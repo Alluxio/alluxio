@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>com.googlecode.libphonenumber</groupId>
+  <artifactId>libphonenumber</artifactId>
+  <version>6.2</version>
+  <packaging>jar</packaging>
+  <url>http://code.google.com/p/libphonenumber/</url>
+
+  <parent>
+    <groupId>com.googlecode.libphonenumber</groupId>
+    <artifactId>libphonenumber-parent</artifactId>
+    <version>6.2</version>
+  </parent>
+
+  <build>
+    <sourceDirectory>src</sourceDirectory>
+    <testSourceDirectory>test</testSourceDirectory>
+    <resources>
+      <resource>
+        <directory>src/com/google/i18n/phonenumbers/data</directory>
+        <targetPath>com/google/i18n/phonenumbers/data</targetPath>
+      </resource>
+    </resources>
+    <testResources>
+      <testResource>
+        <directory>test/com/google/i18n/phonenumbers/data</directory>
+        <targetPath>com/google/i18n/phonenumbers/data</targetPath>
+      </testResource>
+    </testResources>
+  </build>
+
+</project>

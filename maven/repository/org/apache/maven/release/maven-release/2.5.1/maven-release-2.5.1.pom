@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Licensed to the Apache Software Foundation (ASF) under one
+  ~ or more contributor license agreements.  See the NOTICE file
+  ~ distributed with this work for additional information
+  ~ regarding copyright ownership.  The ASF licenses this file
+  ~ to you under the Apache License, Version 2.0 (the
+  ~ "License"); you may not use this file except in compliance
+  ~ with the License.  You may obtain a copy of the License at
+  ~
+  ~   http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing,
+  ~ software distributed under the License is distributed on an
+  ~ "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+  ~ KIND, either express or implied.  See the License for the
+  ~ specific language governing permissions and limitations
+  ~ under the License.
+  -->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>org.apache.maven</groupId>
+    <artifactId>maven-parent</artifactId>
+    <version>24</version>
+    <relativePath>../pom/maven/pom.xml</relativePath>
+  </parent>
+
+  <groupId>org.apache.maven.release</groupId>
+  <artifactId>maven-release</artifactId>
+  <version>2.5.1</version>
+  <packaging>pom</packaging>
+
+  <name>Maven Release</name>
+  <description>Tooling to release a project with Maven, saving a lot of repetitive, manual work.</description>
+
+  <modules>
+    <module>maven-release-api</module>
+    <module>maven-release-manager</module>
+    <module>maven-release-plugin</module>
+    <module>maven-release-policies/maven-release-oddeven-policy</module>
+  </modules>
+
+  <scm>
+    <connection>scm:svn:http://svn.apache.org/repos/asf/maven/release/tags/maven-release-2.5.1</connection>
+    <developerConnection>scm:svn:https://svn.apache.org/repos/asf/maven/release/tags/maven-release-2.5.1</developerConnection>
+    <url>http://svn.apache.org/viewvc/maven/release/tags/maven-release-2.5.1</url>
+  </scm>
+  <issueManagement>
+    <system>jira</system>
+    <url>http://jira.codehaus.org/browse/MRELEASE</url>
+  </issueManagement>
+  <ciManagement>
+    <system>Jenkins</system>
+    <url>https://builds.apache.org/job/maven-release/</url>
+  </ciManagement>
+  <distributionManagement>
+    <site>
+      <id>apache.website</id>
+      <url>scm:svn:https://svn.apache.org/repos/infra/websites/production/maven/content/${maven.site.path}</url>
+    </site>
+  </distributionManagement>
+  
+  <contributors>
+    <contributor>
+      <name>John R Fallows</name>
+    </contributor>
+  </contributors>
+
+  <properties>
+    <scmVersion>1.9.2</scmVersion>
+    <mavenVersion>2.2.1</mavenVersion>
+    <maven.site.path>maven-release-archives/maven-release-LATEST</maven.site.path>
+  </properties>
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>org.apache.maven</groupId>
+        <artifactId>maven-artifact</artifactId>
+        <version>${mavenVersion}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.maven</groupId>
+        <artifactId>maven-repository-metadata</artifactId>
+        <version>${mavenVersion}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.codehaus.plexus</groupId>
+        <artifactId>plexus-utils</artifactId>
+        <version>3.0.10</version>
+      </dependency>
+      <dependency>
+        <groupId>org.jdom</groupId>
+        <artifactId>jdom</artifactId>
+        <version>1.1</version>
+      </dependency>
+      <dependency>
+        <groupId>org.mockito</groupId>
+        <artifactId>mockito-core</artifactId>
+        <version>1.9.5</version>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
+  <build>
+    <pluginManagement>
+      <plugins>
+        <plugin><!-- TODO remove when upgrading maven-parent to 25 -->
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-site-plugin</artifactId>
+          <configuration>
+            <topSiteURL>scm:svn:https://svn.apache.org/repos/infra/websites/production/maven/content/${maven.site.path}</topSiteURL>
+          </configuration>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+  </build>
+</project>

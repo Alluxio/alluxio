@@ -1,0 +1,377 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>org.sonatype.oss</groupId>
+    <artifactId>oss-parent</artifactId>
+    <version>7</version>
+    <relativePath />
+  </parent>
+
+  <groupId>com.google.code.findbugs</groupId>
+  <artifactId>findbugs</artifactId>
+  <version>3.0.1</version>
+  <packaging>jar</packaging>
+
+  <url>http://findbugs.sourceforge.net/</url>
+  <name>FindBugs-Project</name>
+  <description>Findbugs: Because it's easy!</description>
+  <inceptionYear>2003</inceptionYear>
+  <licenses>
+    <license>
+      <name>GNU Lesser Public License</name>
+      <url>http://www.gnu.org/licenses/lgpl.html</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+
+  <prerequisites>
+    <maven>3.0</maven>
+  </prerequisites>
+
+
+  <scm>
+    <connection>scm:git:http://code.google.com/p/findbugs/</connection>
+    <developerConnection>scm:git:https://code.google.com/p/findbugs/</developerConnection>
+    <url>https://code.google.com/p/findbugs/</url>
+  </scm>
+
+  <developers>
+    <developer>
+      <id>bp</id>
+      <name>Bill Pugh</name>
+      <email>pugh at cs.umd.edu</email>
+      <url>http://www.cs.umd.edu/~pugh/</url>
+      <roles>
+        <role>Project Lead</role>
+        <role>Primary Developer</role>
+      </roles>
+      <timezone>-5</timezone>
+    </developer>
+    <developer>
+      <id>al</id>
+      <name>Andrey Loskutov</name>
+      <email>Loskutov@gmx.de</email>
+      <url>http://andrei.gmxhome.de/privat.html</url>
+      <roles>
+        <role>Eclipse plugin</role>
+      </roles>
+      <timezone>+1</timezone>
+    </developer>
+    <developer>
+      <id>bp</id>
+      <name>Keith Lea</name>
+      <email />
+      <url>http://keithlea.com/</url>
+      <roles>
+        <role>web cloud</role>
+      </roles>
+      <timezone>-5</timezone>
+    </developer>
+  </developers>
+  <contributors>
+    <contributor>
+      <name>Garvin LeClaire</name>
+      <email>gleclaire@codehaus.org</email>
+      <url>http://gdleclaire.blogspot.com</url>
+      <roles>
+        <role>Maven</role>
+      </roles>
+      <timezone>-5</timezone>
+    </contributor>
+    <contributor>
+      <name>David H. Hovemeyer</name>
+      <email>dhovemey@ycp.edu</email>
+      <url>http://goose.ycp.edu/~dhovemey/</url>
+      <roles>
+        <role>project founder</role>
+      </roles>
+      <timezone>-5</timezone>
+    </contributor>
+    <contributor>
+      <name>Nay Ayewah</name>
+      <email />
+      <url />
+      <roles>
+        <role />
+      </roles>
+      <timezone>-5</timezone>
+    </contributor>
+    <contributor>
+      <name>Ben Langmead</name>
+      <email />
+      <url />
+      <roles>
+        <role />
+      </roles>
+      <timezone>-5</timezone>
+    </contributor>
+    <contributor>
+      <name>Tomas Pollak</name>
+      <email />
+      <url />
+      <roles>
+        <role>Eclipse plugin tests</role>
+      </roles>
+      <timezone>-5</timezone>
+    </contributor>
+    <contributor>
+      <name>Phil Crosby</name>
+      <email />
+      <url />
+      <roles>
+        <role />
+      </roles>
+      <timezone>-5</timezone>
+    </contributor>
+    <contributor>
+      <name>Peter Friese</name>
+      <email />
+      <url />
+      <roles>
+        <role>Eclipse plugin</role>
+      </roles>
+      <timezone>-5</timezone>
+    </contributor>
+    <contributor>
+      <name>Dave Brosius</name>
+      <email />
+      <url />
+      <roles>
+        <role />
+      </roles>
+      <timezone>-5</timezone>
+    </contributor>
+    <contributor>
+      <name>Brian Goetz</name>
+      <email />
+      <url />
+      <roles>
+        <role />
+      </roles>
+      <timezone>-5</timezone>
+    </contributor>
+    <contributor>
+      <name>Rohan Lloyd</name>
+      <email />
+      <url />
+      <roles>
+        <role />
+      </roles>
+      <timezone>-5</timezone>
+    </contributor>
+    <contributor>
+      <name>Tagir Valeev</name>
+      <email>lany@ngs.ru</email>
+      <url />
+      <roles>
+        <role />
+      </roles>
+      <timezone>+6</timezone>
+    </contributor>
+  </contributors>
+
+  <properties>
+    <asmVersion>5.0.2</asmVersion>
+    <junitVersion>4.11</junitVersion>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>net.jcip</groupId>
+      <artifactId>jcip-annotations</artifactId>
+      <version>1.0</version>
+    </dependency>
+    <dependency>
+      <groupId>com.google.code.findbugs</groupId>
+      <artifactId>jsr305</artifactId>
+      <version>2.0.1</version>
+    </dependency>
+    <dependency>
+      <groupId>com.google.code.findbugs</groupId>
+      <artifactId>bcel-findbugs</artifactId>
+      <version>6.0</version>
+    </dependency>
+    <dependency>
+      <groupId>com.google.code.findbugs</groupId>
+      <artifactId>jFormatString</artifactId>
+      <version>2.0.1</version>
+    </dependency>
+    <dependency>
+      <groupId>dom4j</groupId>
+      <artifactId>dom4j</artifactId>
+      <version>1.6.1</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.ant</groupId>
+      <artifactId>ant</artifactId>
+      <version>1.7.1</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.ow2.asm</groupId>
+      <artifactId>asm-debug-all</artifactId>
+      <version>${asmVersion}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.ow2.asm</groupId>
+      <artifactId>asm-commons</artifactId>
+      <version>${asmVersion}</version>
+    </dependency>
+    <dependency>
+      <groupId>commons-lang</groupId>
+      <artifactId>commons-lang</artifactId>
+      <version>2.6</version>
+    </dependency>
+    <dependency>
+      <groupId>com.apple</groupId>
+      <artifactId>AppleJavaExtensions</artifactId>
+      <version>1.4</version>
+    </dependency>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>${junitVersion}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>jaxen</groupId>
+      <artifactId>jaxen</artifactId>
+      <version>1.1.6</version>
+      <exclusions>
+        <exclusion>
+          <artifactId>icu4j</artifactId>
+          <groupId>com.ibm.icu</groupId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+  </dependencies>
+  <build>
+    <sourceDirectory>${basedir}/src/java</sourceDirectory>
+    <testSourceDirectory>${basedir}/src/junit</testSourceDirectory>
+    <resources>
+      <resource>
+        <directory>${basedir}/etc</directory>
+        <includes>
+          <include>*.xsd</include>
+          <include>bugrank.txt</include>
+          <include>findbugs.xml</include>
+          <include>messages*.xml</include>
+        </includes>
+      </resource>
+      <resource>
+        <directory>${basedir}/src/xsl</directory>
+        <includes>
+          <include>*.xsl</include>
+        </includes>
+      </resource>
+      <resource>
+        <directory>${basedir}/src/antTask</directory>
+        <includes>
+          <include>**/*.xsl</include>
+          <include>**/*.properties</include>
+          <include>**/*.db</include>
+          <include>**/*.png</include>
+          <include>**/*.html</include>
+        </includes>
+      </resource>
+      <resource>
+        <directory>${basedir}/src/gui</directory>
+        <includes>
+          <include>**/*.xsl</include>
+          <include>**/*.properties</include>
+          <include>**/*.db</include>
+          <include>**/*.png</include>
+          <include>**/*.html</include>
+        </includes>
+      </resource>
+      <resource>
+        <directory>${basedir}/src/java</directory>
+        <includes>
+          <include>**/*.xsl</include>
+          <include>**/*.properties</include>
+          <include>**/*.db</include>
+          <include>**/*.png</include>
+          <include>**/*.html</include>
+        </includes>
+      </resource>
+    </resources>
+    <plugins>
+      <plugin>
+          <groupId>org.codehaus.mojo</groupId>
+          <artifactId>build-helper-maven-plugin</artifactId>
+          <version>1.9.1</version>
+          <executions>
+              <execution>
+                  <phase>generate-sources</phase>
+                  <goals><goal>add-source</goal></goals>
+                  <configuration>
+                      <sources>
+                          <source>src/antTask</source>
+                          <source>src/tools</source>
+                          <source>src/gui</source>
+                      </sources>
+                  </configuration>
+              </execution>
+          </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <version>2.9.1</version>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.0</version>
+        <configuration>
+          <source>1.7</source>
+          <target>1.7</target>
+          <excludes>
+            <exclude>**/junit/**</exclude>
+            <exclude>**/infonodeJava/**</exclude>
+            <exclude>**/obsolete/**</exclude>
+          </excludes>
+          <testExcludes>
+            <exclude>**/architecture/**</exclude>
+            <exclude>**/cloud/**</exclude>
+            <exclude>**/DetectorsTest.java</exclude>
+          </testExcludes>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>2.4</version>
+        <configuration>
+          <archive>
+            <manifestFile>${basedir}/etc/MANIFEST-findbugs.MF</manifestFile>
+          </archive>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
+  <profiles>
+    <profile>
+      <id>deploy</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-gpg-plugin</artifactId>
+            <version>1.4</version>
+            <executions>
+              <execution>
+                <id>sign-artifacts</id>
+                <phase>install</phase>
+                <goals>
+                  <goal>sign</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+</project>

@@ -1,0 +1,74 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion> 
+  <parent>
+    <groupId>com.fasterxml.jackson</groupId>
+    <artifactId>jackson-parent</artifactId>
+    <version>2.4</version>
+  </parent>
+  <groupId>com.fasterxml.jackson.module</groupId>
+  <artifactId>jackson-module-jsonSchema</artifactId>
+  <name>jackson-module-jsonSchema</name>
+  <version>2.4.4</version>
+  <packaging>bundle</packaging>
+  <description>Add-on module for Jackson (http://jackson.codehaus.org) to support
+JSON Schema (http://tools.ietf.org/html/draft-zyp-json-schema-03) version 3 generation.
+  </description>
+  <url>https://github.com/FasterXML/jackson-module-jsonSchema</url>
+  <scm>
+    <connection>scm:git:git@github.com:FasterXML/jackson-module-jsonSchema.git</connection>
+    <developerConnection>scm:git:git@github.com:FasterXML/jackson-module-jsonSchema.git</developerConnection>
+    <url>http://github.com/FasterXML/jackson-module-jsonSchema</url>    
+    <tag>jackson-module-jsonSchema-2.4.4</tag>
+  </scm>
+  <developers>
+        <developer>
+            <id>jackphel</id>
+            <name>Jack Phelan</name>
+            <email>jphelan@andrew.cmu.edu</email>
+        </developer>
+        <developer>
+            <id>cowtowncoder</id>
+            <name>Tatu Saloranta</name>
+            <email>jphelan@andrew.cmu.edu</email>
+        </developer>
+  </developers>
+  <properties>
+    <version.jackson.annotations>2.4.0</version.jackson.annotations>
+    <version.jackson.core>2.4.4</version.jackson.core>
+
+    <osgi.export>${project.groupId}.jsonSchema.*</osgi.export>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-annotations</artifactId>
+      <version>${version.jackson.annotations}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-core</artifactId>
+      <version>${version.jackson.core}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+      <version>${version.jackson.core}</version>
+    </dependency>
+
+  </dependencies>
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>${surefire.version}</version>
+        <configuration>
+          <excludes>
+            <exclude>com/fasterxml/jackson/module/jsonSchema/failing/*.java</exclude>
+          </excludes>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+</project>

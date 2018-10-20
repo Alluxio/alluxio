@@ -1,0 +1,416 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>ch.qos.logback</groupId>
+    <artifactId>logback-parent</artifactId>
+    <version>1.0.9</version>
+  </parent>
+
+  <artifactId>logback-classic</artifactId>
+  <packaging>jar</packaging>
+  <name>Logback Classic Module</name>
+  <description>logback-classic module</description>
+
+  <url>http://logback.qos.ch</url>
+
+  <licenses>
+    <license>
+      <name>Eclipse Public License - v 1.0</name>
+      <url>http://www.eclipse.org/legal/epl-v10.html</url>
+    </license>
+
+    <license>
+      <name>GNU Lesser General Public License</name>
+      <url>http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html</url>
+    </license>
+  </licenses>
+
+  <dependencies>
+    <dependency>
+      <groupId>ch.qos.logback</groupId>
+      <artifactId>logback-core</artifactId>
+      <scope>compile</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <scope>compile</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-ext</artifactId>
+      <version>${slf4j.version}</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <type>test-jar</type>
+      <version>${slf4j.version}</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>log4j-over-slf4j</artifactId>
+      <version>${slf4j.version}</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>jul-to-slf4j</artifactId>
+      <version>${slf4j.version}</version>
+      <scope>test</scope>
+    </dependency>
+
+
+    <dependency>
+      <groupId>dom4j</groupId>
+      <artifactId>dom4j</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>hsqldb</groupId>
+      <artifactId>hsqldb</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>com.h2database</groupId>
+      <artifactId>h2</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>postgresql</groupId>
+      <artifactId>postgresql</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>mysql</groupId>
+      <artifactId>mysql-connector-java</artifactId>
+      <version>5.1.9</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>javax.mail</groupId>
+      <artifactId>mail</artifactId>
+      <scope>compile</scope>
+      <optional>true</optional>
+    </dependency>
+
+    <dependency>
+      <groupId>org.codehaus.janino</groupId>
+      <artifactId>janino</artifactId>
+      <scope>compile</scope>
+      <optional>true</optional>
+    </dependency>
+
+    <dependency>
+      <groupId>org.codehaus.groovy</groupId>
+      <artifactId>groovy-all</artifactId>
+      <scope>compile</scope>
+      <optional>true</optional>
+    </dependency>
+
+
+    <dependency>
+      <groupId>ch.qos.logback</groupId>
+      <artifactId>logback-core</artifactId>
+      <type>test-jar</type>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>integration</artifactId>
+      <version>${slf4j.version}</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.geronimo.specs</groupId>
+      <artifactId>geronimo-jms_1.1_spec</artifactId>
+      <scope>compile</scope>
+      <optional>true</optional>
+    </dependency>
+
+    <dependency>
+      <groupId>javax.servlet</groupId>
+      <artifactId>servlet-api</artifactId>
+      <scope>compile</scope>
+      <optional>true</optional>
+    </dependency>
+
+    <dependency>
+      <groupId>com.icegreen</groupId>
+      <artifactId>greenmail</artifactId>
+      <version>1.3</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.subethamail</groupId>
+      <artifactId>subethasmtp</artifactId>
+      <version>2.1.0</version>
+      <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>org.slf4j</groupId>
+          <artifactId>slf4j-api</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.felix</groupId>
+      <artifactId>org.apache.felix.main</artifactId>
+      <version>2.0.2</version>
+      <scope>test</scope>
+    </dependency>
+
+  </dependencies>
+
+
+  <build>
+
+    <resources>
+      <resource>
+        <directory>src/main/groovy</directory>
+        <includes>
+          <include>**/EvaluatorTemplate.groovy</include>
+        </includes>
+      </resource>
+    </resources>
+
+
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <configuration>
+          <source>1.5</source>
+          <target>1.5</target>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.codehaus.gmaven</groupId>
+        <artifactId>gmaven-plugin</artifactId>
+        <version>1.4</version>
+        <dependencies>
+          <dependency>
+            <groupId>org.codehaus.groovy</groupId>
+            <artifactId>groovy-all</artifactId>
+            <version>${groovy.version}</version>
+          </dependency>
+        </dependencies>
+        <executions>
+          <execution>
+            <configuration>
+              <providerSelection>1.8</providerSelection>
+            </configuration>
+            <goals>
+              <goal>generateStubs</goal>
+              <goal>compile</goal>
+              <goal>generateTestStubs</goal>
+              <goal>testCompile</goal>
+            </goals>
+          </execution>
+        </executions>
+
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <configuration>
+          <archive>
+            <manifestFile>
+              ${project.build.outputDirectory}/META-INF/MANIFEST.MF
+            </manifestFile>
+          </archive>
+        </configuration>
+        <executions>
+          <execution>
+            <id>bundle-test-jar</id>
+            <phase>package</phase>
+            <goals>
+              <goal>jar</goal>
+              <goal>test-jar</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+
+      <plugin>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <version>1.4</version>
+        <dependencies>
+          <dependency>
+            <groupId>org.apache.ant</groupId>
+            <artifactId>ant-junit</artifactId>
+            <version>1.8.1</version>
+          </dependency>
+          <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>${junit.version}</version>
+          </dependency>
+
+        </dependencies>
+
+        <executions>
+          <execution>
+            <id>ant-osgi-test</id>
+            <phase>package</phase>
+            <configuration>
+              <tasks>
+                <property name="currentVersion" value="${project.version}"/>
+                <property name="slf4j.version" value="${slf4j.version}"/>
+                <property name="basedir" value="${basedir}"/>
+                <ant antfile="${basedir}/osgi-build.xml"/>
+              </tasks>
+            </configuration>
+            <goals>
+              <goal>run</goal>
+            </goals>
+          </execution>
+
+          <execution>
+            <id>ant-integration-test</id>
+            <phase>package</phase>
+            <configuration>
+              <tasks>
+                <property name="slf4j.version" value="${slf4j.version}"/>
+                <ant antfile="${basedir}/integration.xml"/>
+              </tasks>
+            </configuration>
+            <goals>
+              <goal>run</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>${surefire.version}</version>
+        <configuration>
+          <!-- once, never, pertest, always -->
+          <forkMode>once</forkMode>
+          <reportFormat>plain</reportFormat>
+          <trimStackTrace>false</trimStackTrace>
+          <excludes>
+            <exclude>**/AllClassicTest.java</exclude>
+            <exclude>**/PackageTest.java</exclude>
+            <exclude>**/TestConstants.java</exclude>
+            <exclude>**/test_osgi/BundleTest.java</exclude>
+            <exclude>**/ch/qos/logback/classic/util/InitializationIntegrationTest.java</exclude>
+            <!-- next test requires a running simple server -->
+            <exclude>**/SerializationPerfTest.java</exclude>
+            <!-- next test is fragile and anyhow will run as part of PackageTest -->
+            <exclude>**/LoggerPerfTest.java</exclude>
+            <!-- next test is fragile and anyhow will run as part of PackageTest -->
+            <exclude>**/LoggingEventSerializationPerfTest.java</exclude>
+          </excludes>
+        </configuration>
+      </plugin>
+
+
+      <plugin>
+        <groupId>org.apache.felix</groupId>
+        <artifactId>maven-bundle-plugin</artifactId>
+        <extensions>true</extensions>
+        <executions>
+          <execution>
+            <id>bundle-manifest</id>
+            <phase>process-classes</phase>
+            <goals>
+              <goal>manifest</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <instructions>
+            <Export-Package>ch.qos.logback.classic*, org.slf4j.impl;version=${slf4j.version}</Export-Package>
+            <!-- LB-CLASSIC It is necessary to specify the rolling
+                 file packages as classes are created via IOC (xml
+                 config files). They won't be found by Bnd's analysis
+                 of java code. -->
+
+            <Import-Package>
+              sun.reflect;resolution:=optional,
+              javax.*;resolution:=optional,
+              org.xml.*;resolution:=optional,
+              org.slf4j,
+              ch.qos.logback.core.rolling,
+              ch.qos.logback.core.rolling.helper,
+              ch.qos.logback.core.util,
+              ch.qos.logback.core.read,
+              org.codehaus.groovy.*;resolution:=optional,
+              groovy.lang.*;resolution:=optional,
+              *
+            </Import-Package>
+
+            <Bundle-RequiredExecutionEnvironment>J2SE-1.5</Bundle-RequiredExecutionEnvironment>
+          </instructions>
+        </configuration>
+      </plugin>
+
+    </plugins>
+  </build>
+
+  <profiles>
+
+    <profile>
+      <!-- Integration tests require the host-orion profile -->
+      <id>host-orion</id>
+      <dependencies>
+        <!-- locally installed artifact -->
+        <dependency>
+          <groupId>com.microsoft.sqlserver</groupId>
+          <artifactId>sqljdbc4</artifactId>
+          <version>2.0</version>
+          <scope>test</scope>
+        </dependency>
+        <!-- locally installed artifact -->
+        <dependency>
+          <groupId>com.oracle</groupId>
+          <artifactId>ojdbc14</artifactId>
+          <version>10.2.0.1</version>
+          <scope>test</scope>
+        </dependency>
+      </dependencies>
+
+    </profile>
+
+    <profile>
+      <!-- Integration tests require the host-hora profile -->
+      <id>host-hora</id>
+      <dependencies>
+        <!-- locally installed artifact -->
+        <dependency>
+          <groupId>com.oracle</groupId>
+          <artifactId>ojdbc14</artifactId>
+          <version>10.2.0.1</version>
+          <scope>test</scope>
+        </dependency>
+      </dependencies>
+    </profile>
+  </profiles>
+
+</project>

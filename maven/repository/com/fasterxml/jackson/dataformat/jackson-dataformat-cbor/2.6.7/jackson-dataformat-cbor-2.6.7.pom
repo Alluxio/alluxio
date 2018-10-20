@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion> 
+  <parent>
+    <groupId>com.fasterxml.jackson</groupId>
+    <artifactId>jackson-parent</artifactId>
+    <version>2.6.2</version>
+  </parent>
+  <groupId>com.fasterxml.jackson.dataformat</groupId>
+  <artifactId>jackson-dataformat-cbor</artifactId>
+  <version>2.6.7</version>
+  <name>Jackson-dataformat-CBOR</name>
+  <packaging>bundle</packaging>
+  <description>Support for reading and writing Concise Binary Object Representation
+([CBOR](https://www.rfc-editor.org/info/rfc7049)
+encoded data using Jackson abstractions (streaming API, data binding, tree model)
+  </description>
+  <url>http://wiki.fasterxml.com/JacksonForCbor</url>
+
+  <scm>
+    <connection>scm:git:git@github.com:FasterXML/jackson-dataformat-cbor.git</connection>
+    <developerConnection>scm:git:git@github.com:FasterXML/jackson-dataformat-cbor.git</developerConnection>
+    <url>http://github.com/FasterXML/jackson-dataformat-cbor</url>    
+    <tag>jackson-dataformat-cbor-2.6.7</tag>
+  </scm>
+
+  <properties>
+    <version.jackson.core>2.6.7</version.jackson.core>
+    <!-- Generate PackageVersion.java into this directory. -->
+    <packageVersion.dir>com/fasterxml/jackson/dataformat/cbor</packageVersion.dir>
+    <packageVersion.package>${project.groupId}.cbor</packageVersion.package>
+    <!--
+     | Configuration properties for the OSGi maven-bundle-plugin
+    -->
+    <osgi.export>${project.groupId}.cbor.*;version=${project.version}
+</osgi.export>
+    <osgi.import>com.fasterxml.jackson.core
+,com.fasterxml.jackson.core.base
+,com.fasterxml.jackson.core.format
+,com.fasterxml.jackson.core.io
+,com.fasterxml.jackson.core.json
+,com.fasterxml.jackson.core.sym
+,com.fasterxml.jackson.core.util
+    </osgi.import>
+  </properties>
+
+  <dependencies>
+    <!-- Extends Jackson core -->
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-core</artifactId>
+      <version>${version.jackson.core}</version>
+    </dependency>
+
+    <!-- and for testing we need databind -->
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+      <version>${version.jackson.core}</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <!-- Inherited from oss-base. Generate PackageVersion.java.-->
+        <groupId>com.google.code.maven-replacer-plugin</groupId>
+        <artifactId>replacer</artifactId>
+        <executions>
+          <execution>
+            <id>process-packageVersion</id>
+            <phase>generate-sources</phase>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+</project>

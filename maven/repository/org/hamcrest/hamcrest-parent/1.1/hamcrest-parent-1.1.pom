@@ -1,0 +1,170 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>org.hamcrest</groupId>
+  <artifactId>hamcrest-parent</artifactId>
+  <packaging>pom</packaging>
+  <version>1.1</version>
+  <name>Hamcrest Parent</name>
+
+  <inceptionYear>2006</inceptionYear>
+  <organization>
+    <name>Hamcrest</name>
+    <url>http://code.google.com/p/hamcrest</url>
+  </organization>
+
+  <licenses>
+    <license>
+      <name>BSD style</name>
+      <url>http://www.opensource.org/licenses/bsd-license.php</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+
+  <scm>
+    <developerConnection>scm:svn:https://hamcrest.googlecode.com/svn/tags/hamcrest-packaging-maven-1.1</developerConnection>
+    <url>https://hamcrest.googlecode.com/svn/tags/hamcrest-packaging-maven-1.1</url>
+  </scm>
+
+  <modules>
+    <module>hamcrest-all</module>
+    <module>hamcrest-core</module>
+    <module>hamcrest-generator</module>
+    <module>hamcrest-integration</module>
+    <module>hamcrest-library</module>
+  </modules>
+  
+  
+  <!-- NOTE:  all dependencies are declared at scope provided as they are optional -->
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>jmock</groupId>
+        <artifactId>jmock</artifactId>
+        <version>1.1.0</version>
+        <scope>provided</scope>
+      </dependency>
+      <dependency>
+        <groupId>junit</groupId>
+        <artifactId>junit</artifactId>
+        <version>4.0</version>
+        <scope>provided</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.easymock</groupId>
+        <artifactId>easymock</artifactId>
+        <version>2.2</version>
+        <scope>provided</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
+  <dependencies>
+    <dependency>
+      <groupId>jmock</groupId>
+      <artifactId>jmock</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.easymock</groupId>
+      <artifactId>easymock</artifactId>
+    </dependency>
+  </dependencies>
+  
+  <distributionManagement>
+    <!--  
+      The id used must match a server id defined in ~/.m2/settings.xml
+    -->
+    <repository>
+      <id>hamcrest@repo1.maven.org</id>
+      <name>Central Maven Repository</name>
+      <url>scp://repo1.maven.org/home/projects/hamcrest/repository</url>
+    </repository>    
+  </distributionManagement>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>2.1</version>
+        <configuration>
+          <archive>
+            <compress>false</compress>
+          </archive>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo.groovy</groupId>
+        <artifactId>groovy-maven-plugin</artifactId>
+        <version>1.0-alpha-3</version>
+        <executions>
+          <execution>
+            <phase>generate-resources</phase>
+            <goals>
+              <goal>execute</goal>
+            </goals>
+            <configuration>
+              <source>
+                <body>
+                  def ant = new AntBuilder()
+                  def script = "${basedir}/src/script/download-jars.sh"
+                  def version = "${release.version}"
+                  if ( version == "null" ){
+                    println("ERROR: 'release.version' property not set.")
+                  } else {
+                    println("Using release version ${release.version}")
+                  }                                      
+                  if ( new File(script).exists() ){
+                    // we are in top-level module
+                    println("Found script "+script)
+                    ant.exec(executable: script, dir: "${basedir}", 
+                            spawn: false, failifexecutionfails: true, failonerror: true){
+                      arg(value: "http://hamcrest.googlecode.com/files/")
+                      arg(value: "hamcrest-${release.version}.zip" )
+                      arg(value: "target")
+                      arg(value: "hamcrest-${release.version}")
+                    }
+                  } else {
+                    // we are in child module
+                    ant.copy(file: "${download.artifact.dir}/${artifact.name}.jar", 
+                            tofile: "${project.build.directory}/downloaded.jar", verbose: true)
+                    ant.unjar(src: "${project.build.directory}/downloaded.jar",
+                            dest: "${project.build.outputDirectory}")
+                  }
+                  </body>
+              </source>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-release-plugin</artifactId>
+        <version>2.0-beta-6</version>
+        <configuration>
+          <autoVersionSubmodules>true</autoVersionSubmodules>
+          <tagBase>https://hamcrest.googlecode.com/svn/tags</tagBase>
+        </configuration>
+      </plugin>
+    </plugins>
+    <extensions>
+      <extension>
+        <groupId>org.apache.maven.wagon</groupId>
+        <artifactId>wagon-webdav</artifactId>
+        <version>1.0-beta-2</version>
+      </extension>
+    </extensions>
+  </build>
+
+  <properties>
+    <release.version>1.1</release.version>
+    <download.dir>target</download.dir>
+    <download.name>hamcrest-${release.version}</download.name>
+    <artifact.name>${artifactId}-${release.version}</artifact.name>
+    <download.artifact.dir>${basedir}/../${download.dir}/${download.name}/${download.name}</download.artifact.dir>    
+  </properties>
+
+</project>

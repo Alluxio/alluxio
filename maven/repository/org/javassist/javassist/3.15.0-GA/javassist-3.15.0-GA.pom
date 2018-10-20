@@ -1,0 +1,268 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>org.javassist</groupId>
+  <artifactId>javassist</artifactId>
+  <packaging>jar</packaging>
+  <description>Javassist (JAVA programming ASSISTant) makes Java bytecode manipulation
+     simple.  It is a class library for editing bytecodes in Java.
+  </description>
+  <version>3.15.0-GA</version>
+  <name>Javassist</name>
+  <url>http://www.javassist.org/</url>
+
+  <issueManagement>
+    <system>JIRA</system>
+    <url>https://jira.jboss.org/jira/browse/JASSIST/</url>
+  </issueManagement>
+  <licenses>
+    <!-- this is the license under which javassist is usually distributed
+      -->
+    <license>
+      <name>MPL 1.1</name>
+      <url>http://www.mozilla.org/MPL/MPL-1.1.html</url>
+    </license>
+    <!-- this is the license under which javassist is distributed when
+	 it is bundled with JBoss
+      -->
+    <license>
+      <name>LGPL 2.1</name>
+      <url>http://www.gnu.org/licenses/lgpl-2.1.html</url>
+    </license>
+    <!-- this is the license under which javassist can be distributed.
+      -->
+    <license>
+      <name>Apache License 2.0</name>
+      <url>http://www.apache.org/licenses/</url>
+    </license>
+  </licenses>
+
+  <scm>
+    <connection>scm:svn:http://anonsvn.jboss.org/repos/javassist/</connection>
+    <developerConnection>scm:svn:https://svn.jboss.org/repos/javassist/</developerConnection>
+    <url>http://fisheye.jboss.org/browse/javassist/</url>
+  </scm>
+
+  <developers>
+    <developer>
+      <id>chiba</id>
+      <name>Shigeru Chiba</name>
+      <email>chiba@acm.org</email>
+      <organization>Tokyo Institute of Technology</organization>
+      <organizationUrl>http://www.javassist.org/</organizationUrl>
+      <roles>
+        <role>project lead</role>
+      </roles>
+      <timezone>8</timezone>
+    </developer>
+
+    <developer>
+      <id>adinn</id>
+      <name>Andrew Dinn</name>
+      <email>adinn@redhat.com</email>
+      <organization>JBoss</organization>
+      <organizationUrl>http://www.jboss.org/</organizationUrl>
+      <roles>
+        <role>contributing developer</role>
+      </roles>
+      <timezone>0</timezone>
+    </developer>
+
+    <developer>
+      <id>kabir.khan@jboss.com</id>
+      <name>Kabir Khan</name>
+      <email>kabir.khan@jboss.com</email>
+      <organization>JBoss</organization>
+      <organizationUrl>http://www.jboss.org/</organizationUrl>
+      <roles>
+        <role>contributing developer</role>
+      </roles>
+      <timezone>0</timezone>
+    </developer>
+  </developers>
+
+  <distributionManagement>
+  <!--  
+      You need entries in your .m2/settings.xml like this:
+   <servers>
+    <server>
+       <id>jboss-releases-repository</id>
+       <username>your_jboss.org_username</username>
+       <password>password</password>
+    </server>
+    <server>
+       <id>jboss-snapshots-repository</id>
+       <username>your_jboss.org_username</username>
+       <password>password</password>
+    </server>
+  </servers>
+  
+  To deploy a snapshot, you need to run
+  
+  mvn deploy -Dversion=3.x.y-SNAPSHOT
+
+  To deploy a release you need to change the version to 3.x.y.GA and run
+
+  mvn deploy
+    -->
+    <repository>
+      <id>jboss-releases-repository</id>
+      <name>JBoss Releases Repository</name>
+      <url>https://repository.jboss.org/nexus/service/local/staging/deploy/maven2/</url>
+    </repository>
+    <snapshotRepository>
+      <id>jboss-snapshots-repository</id>
+      <name>JBoss Snapshots Repository</name>
+      <url>https://repository.jboss.org/nexus/content/repositories/snapshots/</url>
+    </snapshotRepository>
+  </distributionManagement>
+  <build>
+    <sourceDirectory>src/main/</sourceDirectory>
+    <testSourceDirectory>src/test/</testSourceDirectory>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <configuration>
+          <source>1.4</source>
+          <target>1.4</target>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <configuration>
+          <archive>
+            <manifestFile>${project.build.sourceDirectory}/META-INF/MANIFEST.MF</manifestFile>
+          </archive>
+        </configuration>
+      </plugin>
+      <plugin>
+        <artifactId>maven-source-plugin</artifactId>
+        <version>2.0.3</version>
+        <executions>
+          <execution>
+            <id>attach-sources</id>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+          </execution>
+        </executions>
+        <inherited>true</inherited>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <version>2.7</version>
+	<configuration>
+	  <attach>true</attach>
+	</configuration>
+      </plugin>
+    </plugins>
+  </build>
+  <profiles>
+    <!-- profile for releasing to sonatype repo
+	 exercise with mvn -PcentralRelease
+      -->
+    <profile>
+      <id>centralRelease</id>
+      <!-- obviously we need to use the Sonatype staging repo for upload -->
+      <distributionManagement>
+	<repository>
+	  <id>sonatype-releases-repository</id>
+	  <name>Sonatype Releases Repository</name>
+	  <url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>
+	</repository>
+      </distributionManagement>
+      <!-- we need to be able to sign the jars we install -->
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-gpg-plugin</artifactId>
+            <configuration>
+              <passphrase>${gpg.passphrase}</passphrase>
+              <useAgent>${gpg.useAgent}</useAgent>
+            </configuration>
+            <executions>
+              <execution>
+                <id>sign-artifacts</id>
+                <phase>verify</phase>
+                <goals>
+                  <goal>sign</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <!-- profiles to add tools jar containing com.sun.jdi code
+	 needed by sample code
+	 -->
+    <profile>
+      <id>jdk14</id>
+      <activation>
+        <jdk>1.4</jdk>
+        <property>
+           <name>!no.tools</name>
+        </property>
+      </activation>
+      <dependencies>
+        <dependency>
+          <groupId>com.sun</groupId>
+          <artifactId>tools</artifactId>
+          <version>1.4</version>
+          <scope>system</scope>
+          <optional>true</optional>
+          <systemPath>${java.home}/../lib/tools.jar</systemPath>
+        </dependency>
+      </dependencies>
+    </profile>
+    <profile>
+      <id>jdk15</id>
+      <activation>
+        <jdk>1.5</jdk>
+        <property>
+           <name>!no.tools</name>
+        </property>
+      </activation>
+      <dependencies>
+        <dependency>
+          <groupId>com.sun</groupId>
+          <artifactId>tools</artifactId>
+          <version>1.5</version>
+          <scope>system</scope>
+          <optional>true</optional>
+          <systemPath>${java.home}/../lib/tools.jar</systemPath>
+        </dependency>
+      </dependencies>
+    </profile>
+    <profile>
+      <id>jdk16</id>
+      <activation>
+        <jdk>1.6</jdk>
+        <property>
+           <name>!no.tools</name>
+        </property>
+      </activation>
+      <dependencies>
+        <dependency>
+          <groupId>com.sun</groupId>
+          <artifactId>tools</artifactId>
+          <version>1.6</version>
+          <scope>system</scope>
+          <optional>true</optional>
+          <systemPath>${java.home}/../lib/tools.jar</systemPath>
+        </dependency>
+      </dependencies>
+    </profile>
+  </profiles>
+  <dependencies>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>3.8.1</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+</project>

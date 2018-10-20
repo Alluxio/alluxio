@@ -1,0 +1,34 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <parent>
+    <groupId>org.eclipse.jetty</groupId>
+    <artifactId>jetty-parent</artifactId>
+    <version>18</version>
+    <relativePath>../../trunk/jetty-parent</relativePath>
+  </parent>
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>org.eclipse.jetty.toolchain</groupId>
+  <artifactId>jetty-toolchain</artifactId>
+  <version>1.4</version>
+  <name>Jetty Toolchain :: Parent</name>
+  <packaging>pom</packaging>
+  <scm>
+    <connection>scm:git:http://git.eclipse.org/gitroot/jetty/org.eclipse.jetty.toolchain.git</connection>
+    <developerConnection>scm:git:ssh://git.eclipse.org/gitroot/jetty/org.eclipse.jetty.toolchain.git</developerConnection>
+    <url>http://git.eclipse.org/c/jetty/org.eclipse.jetty.toolchain.git/tree/jetty-toolchain</url>
+  </scm>
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-release-plugin</artifactId>
+        <version>2.2.1</version>
+        <configuration>
+          <useReleaseProfile>false</useReleaseProfile>
+          <goals>deploy</goals>
+          <arguments>-Peclipse-release</arguments>
+          <preparationGoals>clean install</preparationGoals>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+</project>

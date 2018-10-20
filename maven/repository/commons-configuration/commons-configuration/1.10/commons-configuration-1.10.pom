@@ -1,0 +1,681 @@
+<?xml version="1.0"?>
+<!--
+   Licensed to the Apache Software Foundation (ASF) under one or more
+   contributor license agreements.  See the NOTICE file distributed with
+   this work for additional information regarding copyright ownership.
+   The ASF licenses this file to You under the Apache License, Version 2.0
+   (the "License"); you may not use this file except in compliance with
+   the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
+<!-- ===================================================================== -->
+<!-- $Id: pom.xml 1535307 2013-10-24 08:18:50Z henning $ -->
+<!-- ===================================================================== -->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <parent>
+    <groupId>org.apache.commons</groupId>
+    <artifactId>commons-parent</artifactId>
+    <version>32</version>
+  </parent>
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>commons-configuration</groupId>
+  <artifactId>commons-configuration</artifactId>
+  <version>1.10</version>
+  <name>Apache Commons Configuration</name>
+
+  <inceptionYear>2001</inceptionYear>
+  <description>Tools to assist in the reading of configuration/preferences files in various formats.</description>
+
+  <url>http://commons.apache.org/configuration/</url>
+
+  <issueManagement>
+    <system>jira</system>
+    <url>http://issues.apache.org/jira/browse/CONFIGURATION</url>
+  </issueManagement>
+
+  <scm>
+    <connection>scm:svn:http://svn.apache.org/repos/asf/commons/proper/configuration/tags/CONFIGURATION_1_10RC2</connection>
+    <developerConnection>scm:svn:https://svn.apache.org/repos/asf/commons/proper/configuration/tags/CONFIGURATION_1_10RC2</developerConnection>
+    <url>http://svn.apache.org/viewvc/commons/proper/configuration/tags/CONFIGURATION_1_10RC2</url>
+  </scm>
+
+  <distributionManagement>
+    <site>
+      <id>apache.website</id>
+      <url>${commons.deployment.protocol}://people.apache.org/www/commons.apache.org/${commons.componentid}</url>
+    </site>
+  </distributionManagement>
+
+  <developers>
+    <developer>
+      <name>Daniel Rall</name>
+      <id>dlr</id>
+      <email>dlr@finemaltcoding.com</email>
+      <organization>CollabNet, Inc.</organization>
+      <roles>
+        <role>Java Developer</role>
+      </roles>
+    </developer>
+
+    <developer>
+      <name>Jason van Zyl</name>
+      <id>jvanzyl</id>
+      <email>jason@zenplex.com</email>
+      <organization>Zenplex</organization>
+      <roles>
+        <role>Java Developer</role>
+      </roles>
+    </developer>
+
+    <developer>
+      <name>Martin Poeschl</name>
+      <id>mpoeschl</id>
+      <email>mpoeschl@marmot.at</email>
+      <organization>tucana.at</organization>
+      <roles>
+        <role>Java Developer</role>
+      </roles>
+    </developer>
+
+    <developer>
+      <name>dIon Gillard</name>
+      <id>dion</id>
+      <email>dion@multitask.com.au</email>
+      <organization>Multitask Consulting</organization>
+      <roles>
+        <role>Java Developer</role>
+      </roles>
+    </developer>
+
+    <developer>
+      <name>Henning P. Schmiedehausen</name>
+      <id>henning</id>
+      <email>henning@schmiedehausen.org</email>
+      <timezone>-8</timezone>
+      <roles>
+        <role>Java Developer</role>
+      </roles>
+    </developer>
+
+    <developer>
+      <name>Eric Pugh</name>
+      <id>epugh</id>
+      <email>epugh@upstate.com</email>
+      <organization>upstate.com</organization>
+      <roles>
+        <role>Java Developer</role>
+      </roles>
+    </developer>
+
+    <developer>
+      <name>Brian E. Dunbar</name>
+      <id>bdunbar</id>
+      <email>bdunbar@dunbarconsulting.org</email>
+      <organization>dunbarconsulting.org</organization>
+      <roles>
+        <role>Java Developer</role>
+      </roles>
+    </developer>
+
+    <developer>
+      <name>Emmanuel Bourg</name>
+      <id>ebourg</id>
+      <email>ebourg@apache.org</email>
+      <organization>Ariane Software</organization>
+      <timezone>+1</timezone>
+      <roles>
+        <role>Java Developer</role>
+      </roles>
+    </developer>
+
+    <developer>
+      <name>Oliver Heger</name>
+      <id>oheger</id>
+      <email>oheger@apache.org</email>
+      <organization>Agfa HealthCare</organization>
+      <timezone>+1</timezone>
+      <roles>
+        <role>Java Developer</role>
+      </roles>
+    </developer>
+
+    <developer>
+      <name>Jörg Schaible</name>
+      <id>joehni</id>
+      <email>joerg.schaible@gmx.de</email>
+      <timezone>+1</timezone>
+      <roles>
+        <role>Java Developer</role>
+      </roles>
+    </developer>
+
+    <developer>
+      <name>Ralph Goers</name>
+      <id>rgoers</id>
+      <email>rgoers@apache.org</email>
+      <organization>Intuit</organization>
+      <timezone>-8</timezone>
+      <roles>
+        <role>Java Developer</role>
+      </roles>
+    </developer>
+  </developers>
+
+  <contributors>
+    <contributor>
+      <name>Konstantin Shaposhnikov</name>
+      <email>ksh@scand.com</email>
+      <organization>scand.com</organization>
+    </contributor>
+
+    <contributor>
+      <name>Jamie M. Guillemette</name>
+      <email>JMGuillemette@gmail.com</email>
+      <organization>TD Bank</organization>
+    </contributor>
+
+    <contributor>
+      <name>Jorge Ferrer</name>
+      <email>jorge.ferrer@gmail.com</email>
+      <organization />
+    </contributor>
+
+    <contributor>
+      <name>Gabriele Garuglieri</name>
+      <email>gabriele.garuglieri@infoblu.it</email>
+      <organization>Infoblu S.p.A</organization>
+    </contributor>
+
+    <contributor>
+      <name>Nicolas De Loof</name>
+      <email>nicolas.deloof@gmail.com</email>
+      <organization>Cap Gemini</organization>
+    </contributor>
+  </contributors>
+
+  <dependencies>
+    <dependency>
+      <groupId>commons-collections</groupId>
+      <artifactId>commons-collections</artifactId>
+      <version>3.2.1</version>
+      <optional>true</optional>
+    </dependency>
+
+    <dependency>
+      <groupId>commons-lang</groupId>
+      <artifactId>commons-lang</artifactId>
+      <version>2.6</version>
+    </dependency>
+
+    <dependency>
+      <groupId>commons-logging</groupId>
+      <artifactId>commons-logging</artifactId>
+      <version>1.1.1</version>
+      <exclusions>
+        <exclusion>
+          <groupId>logkit</groupId>
+          <artifactId>logkit</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>avalon-framework</groupId>
+          <artifactId>avalon-framework</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+
+    <dependency>
+      <groupId>commons-digester</groupId>
+      <artifactId>commons-digester</artifactId>
+      <version>1.8.1</version>
+      <optional>true</optional>
+    </dependency>
+
+    <dependency>
+      <groupId>commons-beanutils</groupId>
+      <artifactId>commons-beanutils</artifactId>
+      <version>1.8.3</version>
+      <optional>true</optional>
+    </dependency>
+
+    <dependency>
+      <groupId>commons-codec</groupId>
+      <artifactId>commons-codec</artifactId>
+      <version>1.6</version>
+      <optional>true</optional>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-jexl</artifactId>
+      <version>2.1.1</version>
+      <optional>true</optional>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-vfs2</artifactId>
+      <version>2.0</version>
+      <optional>true</optional>
+    </dependency>
+
+    <dependency>
+      <groupId>commons-jxpath</groupId>
+      <artifactId>commons-jxpath</artifactId>
+      <version>1.3</version>
+      <optional>true</optional>
+      <exclusions>
+        <exclusion>
+          <groupId>xerces</groupId>
+          <artifactId>xerces</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>ant</groupId>
+          <artifactId>ant-optional</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+
+    <dependency>
+      <groupId>xml-resolver</groupId>
+      <artifactId>xml-resolver</artifactId>
+      <version>1.2</version>
+      <optional>true</optional>
+    </dependency>
+
+    <dependency>
+      <groupId>javax.servlet</groupId>
+      <artifactId>servlet-api</artifactId>
+      <version>2.4</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>xerces</groupId>
+      <artifactId>xercesImpl</artifactId>
+      <version>2.6.2</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>xml-apis</groupId>
+      <artifactId>xml-apis</artifactId>
+      <version>1.0.b2</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <!-- Needed for testing -->
+
+    <dependency>
+      <groupId>commons-dbcp</groupId>
+      <artifactId>commons-dbcp</artifactId>
+      <version>1.2.2</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>commons-pool</groupId>
+      <artifactId>commons-pool</artifactId>
+      <version>1.4</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>hsqldb</groupId>
+      <artifactId>hsqldb</artifactId>
+      <version>1.7.2.2</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>dbunit</groupId>
+      <artifactId>dbunit</artifactId>
+      <version>2.1</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.11</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>junit-addons</groupId>
+      <artifactId>junit-addons</artifactId>
+      <version>1.4</version>
+      <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>xerces</groupId>
+          <artifactId>xmlParserAPIs</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>xerces</groupId>
+          <artifactId>xercesImpl</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+
+    <dependency>
+      <groupId>mockobjects</groupId>
+      <artifactId>mockobjects-core</artifactId>
+      <version>0.09</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>mockobjects</groupId>
+      <artifactId>mockobjects-jdk1.4-j2ee1.3</artifactId>
+      <version>0.09</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.easymock</groupId>
+      <artifactId>easymock</artifactId>
+      <version>3.2</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>javax.mail</groupId>
+      <artifactId>mail</artifactId>
+      <version>1.4</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>log4j</groupId>
+      <artifactId>log4j</artifactId>
+      <version>1.2.8</version>
+      <optional>true</optional>
+    </dependency>
+
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <version>1.5.6</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-ext</artifactId>
+      <version>1.5.6</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-log4j12</artifactId>
+      <version>1.5.6</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <properties>
+    <commons.componentid>configuration</commons.componentid>
+    <commons.release.version>1.10</commons.release.version>
+    <commons.rc.version>RC1</commons.rc.version>
+    <commons.jira.id>CONFIGURATION</commons.jira.id>
+    <maven.compiler.source>1.5</maven.compiler.source>
+    <maven.compiler.target>1.5</maven.compiler.target>
+
+    <!-- Explicitly declare optional dependencies for the OSGi manifest. -->
+    <commons.osgi.import>
+      org.apache.commons.beanutils.*;resolution:=optional,
+      org.apache.commons.digester.*;resolution:=optional,
+      org.apache.commons.collections.*;resolution:=optional,
+      org.apache.commons.codec.*;resolution:=optional,
+      org.apache.commons.jxpath.*;resolution:=optional,
+      org.apache.xml.resolver.*;resolution:=optional,
+      javax.servlet.*;resolution:=optional,
+      org.apache.commons.jexl2.*;resolution:=optional,
+      org.apache.commons.vfs2.*;resolution:=optional,
+      *
+    </commons.osgi.import>
+  </properties>
+
+  <build>
+    <testResources>
+      <testResource>
+        <directory>src/test/resources</directory>
+      </testResource>
+      <testResource>
+        <directory>src/main/resources</directory>
+        <includes>
+          <include>*.dtd</include>
+        </includes>
+      </testResource>
+      <!-- hack to ensure the N&L appear in jars -->
+      <testResource>
+        <directory>${basedir}</directory>
+        <targetPath>META-INF</targetPath>
+        <includes>
+          <include>NOTICE.txt</include>
+          <include>LICENSE.txt</include>
+        </includes>
+      </testResource>
+    </testResources>
+    <plugins>
+      <plugin>
+        <!-- create the source and binary assemblies -->
+        <artifactId>maven-assembly-plugin</artifactId>
+        <configuration>
+          <descriptors>
+            <descriptor>src/main/assembly/bin.xml</descriptor>
+            <descriptor>src/main/assembly/src.xml</descriptor>
+          </descriptors>
+          <tarLongFileMode>gnu</tarLongFileMode>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <!-- Uncomment to enable profiling unit tests -->
+          <!-- <argLine>-agentpath:"${yourkit.home}/bin/mac/libyjpagent.jnilib"</argLine> -->
+          <forkMode>once</forkMode>
+          <excludes>
+            <exclude>**/TestWebdavConfigurationBuilder.java</exclude>
+          </excludes>
+          <systemPropertyVariables>
+            <java.awt.headless>true</java.awt.headless>
+            <org.apache.commons.logging.Log>org.apache.commons.configuration.Logging</org.apache.commons.logging.Log>
+          </systemPropertyVariables>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-source-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>attach-sources</id>
+            <phase>install</phase>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>javacc-maven-plugin</artifactId>
+        <version>2.6</version>
+        <executions>
+          <execution>
+            <id>javacc</id>
+            <goals>
+              <goal>javacc</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-scm-publish-plugin</artifactId>
+          <configuration>
+            <ignorePathsToDelete>
+              <ignorePathToDelete>javadocs**</ignorePathToDelete>
+            </ignorePathsToDelete>
+          </configuration>
+        </plugin>
+        <!--This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself.-->
+        <plugin>
+          <groupId>org.eclipse.m2e</groupId>
+          <artifactId>lifecycle-mapping</artifactId>
+          <version>1.0.0</version>
+          <configuration>
+            <lifecycleMappingMetadata>
+              <pluginExecutions>
+                <pluginExecution>
+                  <pluginExecutionFilter>
+                    <groupId>
+                      org.apache.maven.plugins
+                    </groupId>
+                    <artifactId>
+                      maven-antrun-plugin
+                    </artifactId>
+                    <versionRange>
+                      [0,)
+                    </versionRange>
+                    <goals>
+                      <goal>run</goal>
+                    </goals>
+                  </pluginExecutionFilter>
+                  <action>
+                    <ignore />
+                  </action>
+                </pluginExecution>
+                <pluginExecution>
+                  <pluginExecutionFilter>
+                    <groupId>
+                      org.codehaus.mojo
+                    </groupId>
+                    <artifactId>
+                      javacc-maven-plugin
+                    </artifactId>
+                    <versionRange>
+                      [0,)
+                    </versionRange>
+                    <goals>
+                      <goal>javacc</goal>
+                    </goals>
+                  </pluginExecutionFilter>
+                  <action>
+                    <ignore />
+                  </action>
+                </pluginExecution>
+              </pluginExecutions>
+            </lifecycleMappingMetadata>
+          </configuration>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+  </build>
+  <profiles>
+    <profile>
+      <id>webdav</id>
+      <activation>
+        <activeByDefault>false</activeByDefault>
+      </activation>
+      <dependencies>
+        <dependency>
+          <groupId>org.apache.jackrabbit</groupId>
+          <artifactId>jackrabbit-webdav</artifactId>
+          <version>1.5.2</version>
+          <scope>test</scope>
+        </dependency>
+      </dependencies>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <configuration>
+              <forkMode>once</forkMode>
+              <systemPropertyVariables>
+                <java.awt.headless>true</java.awt.headless>
+                <test.webdav.base>${test.webdav.base}</test.webdav.base>
+              </systemPropertyVariables>
+              <includes>
+                <include>**/TestWebdavConfigurationBuilder.java</include>
+              </includes>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+  <reporting>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-changes-plugin</artifactId>
+        <configuration>
+          <onlyCurrentVersion>true</onlyCurrentVersion>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-checkstyle-plugin</artifactId>
+        <version>2.7</version>
+        <configuration>
+          <configLocation>${basedir}/conf/checkstyle.xml</configLocation>
+          <suppressionsLocation>${basedir}/conf/checkstyle-suppressions.xml</suppressionsLocation>
+          <enableRulesSummary>false</enableRulesSummary>
+          <propertyExpansion>basedir=${basedir}</propertyExpansion>
+        </configuration>
+        <reportSets>
+          <reportSet>
+            <reports>
+              <report>checkstyle</report>
+            </reports>
+          </reportSet>
+        </reportSets>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.rat</groupId>
+        <artifactId>apache-rat-plugin</artifactId>
+        <configuration>
+          <excludes combine.children="append">
+            <exclude>src/java/org/apache/commons/configuration/plist/*.java</exclude>
+            <exclude>velocity.log</exclude>
+          </excludes>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>findbugs-maven-plugin</artifactId>
+        <version>2.3.1</version>
+        <configuration>
+          <threshold>Normal</threshold>
+          <effort>Default</effort>
+          <excludeFilterFile>${basedir}/conf/findbugs-exclude-filter.xml</excludeFilterFile>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>clirr-maven-plugin</artifactId>
+        <version>${commons.clirr.version}</version>
+        <configuration>
+          <excludes>
+            <exclude>org/apache/commons/configuration/plist/PropertyListParser*</exclude>
+          </excludes>
+        </configuration>
+      </plugin>
+    </plugins>
+  </reporting>
+</project>

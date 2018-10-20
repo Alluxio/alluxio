@@ -1,0 +1,554 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Copyright © 2014 Cask Data, Inc.
+
+  Licensed under the Apache License, Version 2.0 (the "License"); you may not
+  use this file except in compliance with the License. You may obtain a copy of
+  the License at
+
+  http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+  License for the specific language governing permissions and limitations under
+  the License.
+  -->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>co.cask.tephra</groupId>
+  <artifactId>tephra</artifactId>
+  <version>0.6.0</version>
+  <packaging>pom</packaging>
+  <name>Tephra Transaction System</name>
+  <description>Tephra Transaction System</description>
+  <url>https://github.com/caskdata/tephra</url>
+
+  <modules>
+    <module>tephra-api</module>
+    <module>tephra-core</module>
+    <module>tephra-hbase-compat-0.96</module>
+    <module>tephra-hbase-compat-0.98</module>
+    <module>tephra-hbase-compat-1.0</module>
+    <module>tephra-hbase-compat-1.0-cdh</module>
+    <module>tephra-distribution</module>
+  </modules>
+
+  <licenses>
+    <license>
+      <name>The Apache Software License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+    </license>
+  </licenses>
+
+  <developers>
+    <developer>
+      <name>Cask Data</name>
+      <email>tephra-dev@googlegroups.com</email>
+      <organization>Cask Data</organization>
+      <organizationUrl>https://github.com/caskdata/tephra</organizationUrl>
+    </developer>
+  </developers>
+
+  <scm>
+    <connection>scm:git:https://github.com/caskdata/tephra.git</connection>
+    <developerConnection>scm:git:git@github.com:caskdata/tephra.git</developerConnection>
+    <url>https://github.com/caskdata/tephra.git</url>
+    <tag>v0.6.0</tag>
+  </scm>
+
+  <issueManagement>
+    <system>JIRA</system>
+    <url>https://issues.cask.co/browse/TEPHRA</url>
+  </issueManagement>
+
+  <repositories>
+    <repository>
+      <id>continuuity-public</id>
+      <url>https://repository.continuuity.com/content/groups/public</url>
+    </repository>
+  </repositories>
+
+  <distributionManagement>
+    <repository>
+      <id>sonatype.release</id>
+      <url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>
+    </repository>
+    <snapshotRepository>
+      <id>sonatype.snapshots</id>
+      <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+    </snapshotRepository>
+  </distributionManagement>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <surefire.redirectTestOutputToFile>true</surefire.redirectTestOutputToFile>
+
+    <!-- Dependencies versions -->
+    <fastutil.version>6.5.6</fastutil.version>
+    <gson.version>2.2.4</gson.version>
+    <guava.version>13.0.1</guava.version>
+    <guice.version>3.0</guice.version>
+    <logback.version>1.0.9</logback.version>
+    <hadoop.version>2.2.0</hadoop.version>
+    <hbase96.version>0.96.2-hadoop2</hbase96.version>
+    <hbase98.version>0.98.11-hadoop2</hbase98.version>
+    <hbase10.version>1.0.1.1</hbase10.version>
+    <hbase10cdh.version>1.0.0-cdh5.4.2</hbase10cdh.version>
+    <junit.version>4.11</junit.version>
+    <slf4j.version>1.7.5</slf4j.version>
+    <thrift.version>0.9.0</thrift.version>
+    <twill.version>0.6.0-incubating</twill.version>
+    <dropwizard.metrics.version>3.1.0</dropwizard.metrics.version>
+  </properties>
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>com.google.code.gson</groupId>
+        <artifactId>gson</artifactId>
+        <version>${gson.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.google.guava</groupId>
+        <artifactId>guava</artifactId>
+        <version>${guava.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.google.inject</groupId>
+        <artifactId>guice</artifactId>
+        <version>${guice.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.google.inject.extensions</groupId>
+        <artifactId>guice-assistedinject</artifactId>
+        <version>${guice.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>slf4j-api</artifactId>
+        <version>${slf4j.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>ch.qos.logback</groupId>
+        <artifactId>logback-classic</artifactId>
+        <version>${logback.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>ch.qos.logback</groupId>
+        <artifactId>logback-core</artifactId>
+        <version>${logback.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>it.unimi.dsi</groupId>
+        <artifactId>fastutil</artifactId>
+        <version>${fastutil.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.thrift</groupId>
+        <artifactId>libthrift</artifactId>
+        <version>${thrift.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.twill</groupId>
+        <artifactId>twill-common</artifactId>
+        <version>${twill.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.twill</groupId>
+        <artifactId>twill-core</artifactId>
+        <version>${twill.version}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>org.apache.kafka</groupId>
+            <artifactId>kafka_2.10</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>io.netty</groupId>
+            <artifactId>netty</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.xerial.snappy</groupId>
+            <artifactId>snappy-java</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.twill</groupId>
+        <artifactId>twill-discovery-api</artifactId>
+        <version>${twill.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.twill</groupId>
+        <artifactId>twill-discovery-core</artifactId>
+        <version>${twill.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.twill</groupId>
+        <artifactId>twill-zookeeper</artifactId>
+        <version>${twill.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.dropwizard.metrics</groupId>
+        <artifactId>metrics-core</artifactId>
+        <version>${dropwizard.metrics.version}</version>
+      </dependency>
+
+      <!-- Hadoop dependencies -->
+      <dependency>
+        <groupId>org.apache.hadoop</groupId>
+        <artifactId>hadoop-common</artifactId>
+        <version>${hadoop.version}</version>
+        <scope>provided</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.hadoop</groupId>
+        <artifactId>hadoop-hdfs</artifactId>
+        <version>${hadoop.version}</version>
+        <scope>provided</scope>
+      </dependency>
+
+      <!-- Tests dependencies -->
+      <dependency>
+        <groupId>junit</groupId>
+        <artifactId>junit</artifactId>
+        <version>${junit.version}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.hadoop</groupId>
+        <artifactId>hadoop-minicluster</artifactId>
+        <version>${hadoop.version}</version>
+        <scope>test</scope>
+        <exclusions>
+          <exclusion>
+            <groupId>asm</groupId>
+            <artifactId>asm</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
+  <build>
+    <pluginManagement>
+      <plugins>
+        <!-- Compiler -->
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-compiler-plugin</artifactId>
+          <version>3.1</version>
+          <configuration>
+            <source>1.6</source>
+            <target>1.6</target>
+          </configuration>
+        </plugin>
+
+        <!-- Surefire for unit test -->
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-surefire-plugin</artifactId>
+          <version>2.14.1</version>
+          <configuration>
+            <argLine>-Xmx4096m -Djava.awt.headless=true -XX:MaxPermSize=256m</argLine>
+            <redirectTestOutputToFile>${surefire.redirectTestOutputToFile}</redirectTestOutputToFile>
+            <reuseForks>false</reuseForks>
+            <reportFormat>plain</reportFormat>
+            <systemPropertyVariables>
+              <java.io.tmpdir>${project.build.directory}</java.io.tmpdir>
+            </systemPropertyVariables>
+            <includes>
+              <include>**/*TestsSuite.java</include>
+              <include>**/Test*.java</include>
+              <include>**/*Test.java</include>
+              <include>**/*TestCase.java</include>
+            </includes>
+            <excludes>
+              <exclude>**/*TestRun.java</exclude>
+            </excludes>
+          </configuration>
+        </plugin>
+
+        <!-- License check -->
+        <plugin>
+          <groupId>org.apache.rat</groupId>
+          <artifactId>apache-rat-plugin</artifactId>
+          <version>0.10</version>
+          <executions>
+            <execution>
+              <id>rat-check</id>
+              <phase>validate</phase>
+              <goals>
+                <goal>check</goal>
+              </goals>
+              <configuration>
+                <excludes>
+                  <exclude>build-number.txt</exclude>
+                  <exclude>README.md</exclude>
+                  <exclude>**/target/**</exclude>
+                  <exclude>**/.git/**</exclude>
+                  <exclude>**/.idea/**</exclude>
+                  <exclude>**/*.iml</exclude>
+                  <exclude>**/.project</exclude>
+                  <exclude>**/.classpath</exclude>
+                  <exclude>**/.settings/**</exclude>
+                </excludes>
+              </configuration>
+            </execution>
+          </executions>
+        </plugin>
+
+        <!-- Checkstyle for code style -->
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-checkstyle-plugin</artifactId>
+          <version>2.12.1</version>
+          <executions>
+            <execution>
+              <id>validate</id>
+              <phase>process-test-classes</phase>
+              <configuration>
+                <configLocation>checkstyle.xml</configLocation>
+                <suppressionsLocation>suppressions.xml</suppressionsLocation>
+                <encoding>UTF-8</encoding>
+                <consoleOutput>true</consoleOutput>
+                <failsOnError>true</failsOnError>
+                <includeTestSourceDirectory>true</includeTestSourceDirectory>
+              </configuration>
+              <goals>
+                <goal>check</goal>
+              </goals>
+            </execution>
+          </executions>
+        </plugin>
+
+        <!-- Maven assembly -->
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-assembly-plugin</artifactId>
+          <version>2.4</version>
+          <configuration>
+            <descriptors>
+              <descriptor>src/assemble/bin.xml</descriptor>
+            </descriptors>
+          </configuration>
+        </plugin>
+
+        <!-- Deploy plugin -->
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-deploy-plugin</artifactId>
+          <version>2.8</version>
+          <configuration>
+            <deployAtEnd>true</deployAtEnd>
+          </configuration>
+        </plugin>
+
+        <!-- Release plugin -->
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-release-plugin</artifactId>
+          <version>2.5</version>
+          <configuration>
+            <tagNameFormat>v@{project.version}</tagNameFormat>
+            <allowTimestampedSnapshots>true</allowTimestampedSnapshots>
+            <autoVersionSubmodules>true</autoVersionSubmodules>
+          </configuration>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.1</version>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>2.14.1</version>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.rat</groupId>
+        <artifactId>apache-rat-plugin</artifactId>
+        <version>0.10</version>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-checkstyle-plugin</artifactId>
+        <version>2.12.1</version>
+      </plugin>
+    </plugins>
+  </build>
+
+  <profiles>
+    <!-- Profile for generating coverage report -->
+    <profile>
+      <id>coverage</id>
+      <properties>
+        <jacoco.version>0.7.1.201405082137</jacoco.version>
+      </properties>
+      <build>
+        <pluginManagement>
+          <plugins>
+            <plugin>
+              <groupId>org.apache.maven.plugins</groupId>
+              <artifactId>maven-surefire-plugin</artifactId>
+              <version>2.14.1</version>
+              <configuration>
+                <argLine>${argLine} -Xmx4096m -Djava.awt.headless=true -XX:MaxPermSize=256m</argLine>
+              </configuration>
+            </plugin>
+
+            <plugin>
+              <groupId>org.jacoco</groupId>
+              <artifactId>jacoco-maven-plugin</artifactId>
+              <version>${jacoco.version}</version>
+              <executions>
+                <execution>
+                  <id>prepare-agent</id>
+                  <goals>
+                    <goal>prepare-agent</goal>
+                  </goals>
+                  <configuration>
+                    <excludes>
+                      <exclude>**/thrift/*</exclude>
+                    </excludes>
+                  </configuration>
+                </execution>
+                <execution>
+                  <id>report</id>
+                  <phase>prepare-package</phase>
+                  <goals>
+                    <goal>report</goal>
+                  </goals>
+                </execution>
+              </executions>
+            </plugin>
+          </plugins>
+        </pluginManagement>
+
+        <plugins>
+          <plugin>
+            <groupId>org.jacoco</groupId>
+            <artifactId>jacoco-maven-plugin</artifactId>
+            <version>${jacoco.version}</version>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+
+    <!-- Profile for release. Generates extra artifacts -->
+    <profile>
+      <id>release</id>
+      <build>
+        <pluginManagement>
+          <plugins>
+            <!-- Source jar -->
+            <plugin>
+              <groupId>org.apache.maven.plugins</groupId>
+              <artifactId>maven-source-plugin</artifactId>
+              <version>2.2.1</version>
+              <configuration>
+                <excludeResources>true</excludeResources>
+              </configuration>
+              <executions>
+                <execution>
+                  <id>attach-sources</id>
+                  <phase>package</phase>
+                  <goals>
+                    <goal>jar-no-fork</goal>
+                  </goals>
+                </execution>
+              </executions>
+            </plugin>
+
+            <!-- Javadoc jar -->
+            <plugin>
+              <groupId>org.apache.maven.plugins</groupId>
+              <artifactId>maven-javadoc-plugin</artifactId>
+              <version>2.9</version>
+              <configuration>
+                <excludePackageNames>*.internal.*</excludePackageNames>
+                <links>
+                  <link>http://download.oracle.com/javase/6/docs/api/</link>
+                </links>
+              </configuration>
+              <executions>
+                <execution>
+                  <id>attach-javadoc</id>
+                  <phase>package</phase>
+                  <goals>
+                    <goal>jar</goal>
+                  </goals>
+                </execution>
+              </executions>
+            </plugin>
+
+            <!-- GPG signature -->
+            <plugin>
+              <groupId>org.apache.maven.plugins</groupId>
+              <artifactId>maven-gpg-plugin</artifactId>
+              <version>1.5</version>
+              <configuration>
+                <passphrase>${gpg.passphrase}</passphrase>
+                <useAgent>${gpg.useagent}</useAgent>
+              </configuration>
+              <executions>
+                <execution>
+                  <goals>
+                    <goal>sign</goal>
+                  </goals>
+                </execution>
+              </executions>
+            </plugin>
+
+            <!-- Nexus deploy plugin -->
+            <plugin>
+              <groupId>org.sonatype.plugins</groupId>
+              <artifactId>nexus-staging-maven-plugin</artifactId>
+              <version>1.6.2</version>
+              <extensions>true</extensions>
+              <configuration>
+                <nexusUrl>https://oss.sonatype.org</nexusUrl>
+                <serverId>sonatype.release</serverId>
+                <stagingProfileId>655dc88dc770c3</stagingProfileId>
+              </configuration>
+            </plugin>
+          </plugins>
+        </pluginManagement>
+
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-source-plugin</artifactId>
+            <version>2.2.1</version>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-javadoc-plugin</artifactId>
+            <version>2.9</version>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-gpg-plugin</artifactId>
+            <version>1.5</version>
+          </plugin>
+          <plugin>
+            <groupId>org.sonatype.plugins</groupId>
+            <artifactId>nexus-staging-maven-plugin</artifactId>
+            <version>1.6.2</version>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+
+</project>

@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion> 
+  <parent>
+    <groupId>com.fasterxml.jackson.module</groupId>
+    <artifactId>jackson-modules-base</artifactId>
+    <version>2.9.7</version>
+  </parent>
+  <artifactId>jackson-module-jaxb-annotations</artifactId>
+  <name>Jackson module: JAXB Annotations</name>
+  <packaging>bundle</packaging>
+
+  <description>Support for using JAXB annotations as an alternative to "native" Jackson annotations, for configuring
+data-binding.
+  </description>
+  <url>https://github.com/FasterXML/jackson-modules-base</url>
+
+  <properties>
+   <!-- Generate PackageVersion.java into this directory. -->
+    <packageVersion.dir>com/fasterxml/jackson/module/jaxb</packageVersion.dir>
+    <packageVersion.package>${project.groupId}.jaxb</packageVersion.package>
+  </properties>
+  <dependencies>
+    <!-- Extends Jackson core and mapper; minor dep on annotations too (JsonInclude) -->
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-annotations</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+    </dependency>
+
+    <!--  and actual JAXB annotations... -->
+    <dependency>
+      <groupId>javax.xml.bind</groupId>
+      <artifactId>jaxb-api</artifactId>
+      <version>2.2</version>
+      <scope>provided</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>com.google.code.maven-replacer-plugin</groupId>
+        <artifactId>replacer</artifactId>
+      </plugin>
+    </plugins>
+  </build>
+</project>

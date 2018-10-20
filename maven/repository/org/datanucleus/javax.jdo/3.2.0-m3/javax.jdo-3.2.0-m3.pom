@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.datanucleus</groupId>
+        <artifactId>datanucleus-maven-parent</artifactId>
+        <version>4.0.5</version>
+    </parent>
+
+    <artifactId>javax.jdo</artifactId>
+    <version>3.2.0-m3</version>
+
+    <name>JDO API</name>
+    <description>The Java Data Objects API (JDO) : a standard interface-based Java model abstraction of persistence, developed by the JCP.</description>
+
+    <scm>
+        <connection>scm:git:git@github.com:datanucleus/${project.artifactId}.git</connection>
+        <developerConnection>scm:git:git@github.com:datanucleus/${project.artifactId}.git</developerConnection>
+        <url>https://github.com/datanucleus/${project.artifactId}</url>
+    </scm>
+
+    <!-- Build process -->
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-bundle-plugin</artifactId>
+                <configuration>
+                    <instructions>
+                        <Bundle-SymbolicName>javax.jdo;singleton:=true</Bundle-SymbolicName>
+                        <Import-Package>
+                            *;resolution:=optional
+                        </Import-Package>
+                    </instructions>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+    <dependencies>
+        <dependency>
+            <groupId>javax.transaction</groupId>
+            <artifactId>transaction-api</artifactId>
+            <version>1.1</version>
+        </dependency>
+    </dependencies>
+</project>

@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <artifactId>resteasy-jaxrs-all</artifactId>
+        <groupId>org.jboss.resteasy</groupId>
+        <version>3.0.11.Final</version>
+    </parent>
+
+    <artifactId>resteasy-client</artifactId>
+    <name>RESTEasy JAX-RS Client</name>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.jboss.resteasy</groupId>
+            <artifactId>resteasy-jaxrs</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+    </dependencies>
+
+</project>

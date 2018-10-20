@@ -1,0 +1,234 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Licensed to the Apache Software Foundation (ASF) under one or more
+    contributor license agreements.  See the NOTICE file distributed with
+    this work for additional information regarding copyright ownership.
+    The ASF licenses this file to You under the Apache License, Version 2.0
+    (the "License"); you may not use this file except in compliance with
+    the License.  You may obtain a copy of the License at
+  
+       http://www.apache.org/licenses/LICENSE-2.0
+  
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+-->     
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>javax.jdo</groupId>
+  <artifactId>jdo-api</artifactId>
+  <name>JDO API</name>
+  <description>The Java Data Objects (JDO) API is a standard interface-based Java model abstraction of persistence, developed as Java Specification Request 243 under the auspices of the Java Community Process.</description>
+  <version>3.0.1</version>
+  <url>http://db.apache.org/jdo</url>
+  
+  <organization>
+    <name>Apache Software Foundation</name>
+    <url>http://www.apache.org</url>
+  </organization>
+  
+  <licenses>
+    <license>
+      <name>Apache 2</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+  
+  <mailingLists>
+    <mailingList>
+      <name>JDO User List</name>
+      <subscribe>jdo-user-subscribe@db.apache.org</subscribe>
+      <unsubscribe>jdo-user-unsubscribe@db.apache.org</unsubscribe>
+      <archive>http://mail-archives.apache.org/mod_mbox/db-jdo-user/</archive>
+    </mailingList>
+    <mailingList>
+      <name>JDO Developer List</name>
+      <subscribe>jdo-dev-subscribe@db.apache.org</subscribe>
+      <unsubscribe>jdo-dev-unsubscribe@db.apache.org</unsubscribe>
+      <archive>http://mail-archives.apache.org/mod_mbox/db-jdo-dev/</archive>
+    </mailingList>
+    <mailingList>
+      <name>JDO Commits List</name>
+      <subscribe>jdo-commits-subscribe@db.apache.org</subscribe>
+      <unsubscribe>jdo-commits-unsubscribe@db.apache.org</unsubscribe>
+      <archive>http://mail-archives.apache.org/mod_mbox/db-jdo-commits/</archive>
+    </mailingList>
+  </mailingLists>
+
+  <developers>
+    <developer>
+      <id>clr</id>
+      <name>Craig Russell</name>
+      <email>Craig.Russell@Sun.COM</email>
+      <organization>Sun Microsystems, Inc.</organization>
+      <timezone>-8</timezone>
+    </developer>
+    <developer>
+      <id>mbo</id>
+      <name>Michael Bouschen</name>
+      <email>mbo.tech@spree.de</email>
+      <organization>Tech@Spree Engineering GmbH</organization>
+      <timezone>1</timezone>
+    </developer>
+    <developer>
+      <id>brazil</id>
+      <name>Michael Watzek</name>
+      <email>mwa.tech@spree.de</email>
+      <organization>Tech@Spree Engineering GmbH</organization>
+      <timezone>1</timezone>
+    </developer>
+    <developer>
+      <id>mcaisse</id>
+      <name>Michelle Caisse</name>
+      <email>Michelle.Caisse@Sun.COM</email>
+      <organization>Sun Microsystems, Inc.</organization>
+      <timezone>-8</timezone>
+    </developer>
+    <developer>
+      <id>madams</id>
+      <name>Matthew Adams</name>
+      <email>matthew@matthewadams.me</email>
+      <organization>Apache.org</organization>
+      <timezone>-6</timezone>
+    </developer>
+    <developer>
+      <id>mzaun</id>
+      <name>Martin Zaun</name>
+      <email>martin.zaun@Sun.COM</email>
+      <organization>Sun Microsystems, Inc.</organization>
+      <timezone>-8</timezone>
+    </developer>
+    <developer>
+      <id>ebengtson</id>
+      <name>Erik Bengtson</name>
+      <email>erik@jpox.org</email>
+      <organization>JPOX</organization>
+      <timezone>1</timezone>
+    </developer>
+    <developer>
+      <id>geirm</id>
+      <name>Geir Magnusson, Jr.</name>
+      <email>geirm@apache.org</email>
+      <organization>Apache.org</organization>
+      <timezone>-8</timezone>
+    </developer>
+    <developer>
+      <id>brianm</id>
+      <name>Brian McCallister</name>
+      <email>brianm@apache.org</email>
+      <organization>Apache.org</organization>
+      <timezone>-8</timezone>
+    </developer>
+  </developers>
+
+  <scm>
+    <connection>scm:svn:http://svn.apache.org/repos/asf/db/jdo/trunk</connection>
+    <developerConnection>scm:svn:https://svn.apache.org/repos/asf/db/jdo/trunk</developerConnection>
+    <url>http://svn.apache.org/viewcvs.cgi/db/jdo</url>
+  </scm>
+  
+  <build>
+    <sourceDirectory>src/java</sourceDirectory>
+    <testSourceDirectory>test/java</testSourceDirectory>
+    <resources>
+      <resource>
+        <targetPath>META-INF</targetPath>
+        <directory>${basedir}/..</directory>
+        <includes>
+          <include>NOTICE.txt</include>
+        </includes>
+      </resource>
+      <resource>
+        <directory>${basedir}/src/java</directory>
+        <includes>
+          <include>javax/jdo/*.properties</include>
+        </includes>
+      </resource>
+      <resource>
+        <directory>${basedir}/src/schema</directory>
+        <includes>
+          <include>javax/jdo/*.dtd</include>
+          <include>javax/jdo/*.xsd</include>
+        </includes>
+      </resource>
+    </resources>
+    <testResources>
+      <testResource>
+        <directory>${basedir}/test/resources</directory>
+      </testResource>
+      <testResource>
+        <directory>${basedir}/test/schema</directory>
+        <includes>
+          <include>**/*.jdo</include>
+          <include>**/*.jdoquery</include>
+          <include>**/*.orm</include>
+          <include>**/jdoconfig.xml</include>
+        </includes>
+      </testResource>
+    </testResources>
+    <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <phase>none</phase>
+                    </execution>
+                </executions>
+            </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>2.0.2</version>
+        <configuration>
+          <showWarnings>true</showWarnings>
+          <fork>true</fork>
+          <compilerArgument>-Xlint:unchecked</compilerArgument>
+          <source>1.5</source>
+          <target>1.5</target>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <configuration>
+          <archive>
+            <manifestFile>API3.MF</manifestFile>
+          </archive>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
+  <dependencies>
+    <dependency>
+      <groupId>javax.transaction</groupId>
+      <artifactId>jta</artifactId>
+      <version>1.1</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.ant</groupId>
+      <artifactId>ant</artifactId>
+      <version>1.7.0</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>3.8.1</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.geronimo.specs</groupId>
+      <artifactId>geronimo-jpa_3.0_spec</artifactId>
+      <version>1.0</version>
+      <scope>provided</scope>
+      <optional/>
+    </dependency>
+  </dependencies>
+</project>

@@ -1,0 +1,190 @@
+<!--
+
+    The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+    (the "License"). You may not use this work except in compliance with the License, which is
+    available at www.apache.org/licenses/LICENSE-2.0
+
+    This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+    either express or implied, as more fully set forth in the License.
+
+    See the NOTICE file distributed with this work for information regarding copyright ownership.
+
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>org.alluxio</groupId>
+    <artifactId>alluxio-core-client</artifactId>
+    <version>2.0.0-SNAPSHOT</version>
+  </parent>
+  <artifactId>alluxio-core-client-runtime</artifactId>
+  <packaging>jar</packaging>
+  <name>Alluxio Core - Client - Runtime</name>
+  <description>Runtime Client of Alluxio Core</description>
+
+  <properties>
+    <!-- The following paths need to be defined here as well as in the parent pom so that mvn can -->
+    <!-- run properly from sub-project directories -->
+    <build.path>${project.parent.parent.parent.basedir}/build</build.path>
+    <failIfNoTests>false</failIfNoTests>
+    <!-- The shading prefix should match the artifact ID, replacing '-' with '.' -->
+    <shading.prefix>alluxio.core.client.runtime</shading.prefix>
+  </properties>
+
+  <dependencies>
+    <!-- External dependencies -->
+    <!-- Have hadoop-client dependency in provided scope by default -->
+    <dependency>
+      <groupId>org.apache.hadoop</groupId>
+      <artifactId>hadoop-client</artifactId>
+      <scope>provided</scope>
+    </dependency>
+
+    <!-- Internal dependencies -->
+    <!-- This should include all Alluxio client implementations -->
+    <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-core-client-hdfs</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-core-client-fs</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+  </dependencies>
+
+  <profiles>
+    <profile>
+      <id>includeHadoopClient</id>
+      <dependencies>
+        <dependency>
+          <groupId>org.apache.hadoop</groupId>
+          <artifactId>hadoop-client</artifactId>
+          <scope>compile</scope>
+        </dependency>
+      </dependencies>
+    </profile>
+  </profiles>
+
+  <build>
+    <plugins>
+      <!--In the runtime client jar, dependencies are shaded to avoid version conflicts due to external-->
+      <!--dependencies introduced by applications. The protobuf dependency is already shaded in the internal protobuf-->
+      <!--module rather than in the runtime module, because it is also depended by other libraries included in-->
+      <!--the runtime module, thus shading protobuf during the runtime jar packaging will over-shade references of protobuf.-->
+      <!--Ideally, the thrift dependency should also be shaded in the public jar in the same way as shading protobuf,-->
+      <!--however, this will break compilation due to existing signatures referencing thrift shared among modules.-->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>uber-jar</id>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+            <configuration>
+              <finalName>${project.artifactId}-${project.version}-jar-with-dependencies</finalName>
+              <relocations>
+                <!-- Relocate the native netty libraries to be prefixed with our shade prefix -->
+                <relocation>
+                  <pattern>META-INF/native/libnetty_transport_native_epoll_x86_64.so</pattern>
+                  <shadedPattern>META-INF/native/liballuxio_core_client_runtime_netty_transport_native_epoll_x86_64.so</shadedPattern>
+                  <rawString>true</rawString>
+                </relocation>
+                <relocation>
+                  <pattern>com.codahale.metrics</pattern>
+                  <shadedPattern>${shading.prefix}.com.codahale.metrics</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>com.fasterxml.jackson</pattern>
+                  <shadedPattern>${shading.prefix}.com.fasterxml.jackson</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>com.google.common</pattern>
+                  <shadedPattern>${shading.prefix}.com.google.common</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>io.netty</pattern>
+                  <shadedPattern>${shading.prefix}.io.netty</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>javassist</pattern>
+                  <shadedPattern>${shading.prefix}.javassist</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>org.apache.commons</pattern>
+                  <shadedPattern>${shading.prefix}.org.apache.commons</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>org.apache.curator</pattern>
+                  <shadedPattern>${shading.prefix}.org.apache.curator</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>org.apache.http</pattern>
+                  <shadedPattern>${shading.prefix}.org.apache.http</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>org.apache.jute</pattern>
+                  <shadedPattern>${shading.prefix}.org.apache.jute</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>org.apache.thrift</pattern>
+                  <shadedPattern>${shading.prefix}.org.apache.thrift</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>org.apache.zookeeper</pattern>
+                  <shadedPattern>${shading.prefix}.org.apache.zookeeper</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>org.jboss.netty</pattern>
+                  <shadedPattern>${shading.prefix}.org.jboss.netty</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>org.reflections</pattern>
+                  <shadedPattern>${shading.prefix}.org.reflections</shadedPattern>
+                </relocation>
+              </relocations>
+              <transformers>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
+              </transformers>
+              <filters>
+                <filter>
+                  <artifact>*:*</artifact>
+                  <excludes>
+                    <!-- Enforce no unshaded protobuf classes as the input of shading. See ALLUXIO-3278 -->
+                    <exclude>com/google/protobuf/**</exclude>
+                    <exclude>LICENSE</exclude>
+                    <exclude>META-INF/LICENSE</exclude>
+                    <exclude>META-INF/*.SF</exclude>
+                    <exclude>META-INF/*.DSA</exclude>
+                    <exclude>META-INF/*.RSA</exclude>
+                  </excludes>
+                </filter>
+              </filters>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>com.coderplus.maven.plugins</groupId>
+        <artifactId>copy-rename-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>copy-and-rename-file</id>
+            <phase>install</phase>
+            <goals>
+              <goal>copy</goal>
+            </goals>
+            <configuration>
+              <sourceFile>${basedir}/target/${project.artifactId}-${project.version}-jar-with-dependencies.jar</sourceFile>
+              <destinationFile>${project.parent.parent.parent.basedir}/client/alluxio-${project.version}-client.jar</destinationFile>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+</project>

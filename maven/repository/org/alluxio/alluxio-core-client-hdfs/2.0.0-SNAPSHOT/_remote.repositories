@@ -1,0 +1,7 @@
+#NOTE: This is a Maven Resolver internal implementation file, its format can be changed without prior notice.
+#Sat Oct 20 11:49:44 CST 2018
+alluxio-core-client-hdfs-2.0.0-SNAPSHOT.jar>=
+alluxio-core-client-hdfs-2.0.0-SNAPSHOT-tests.jar>=
+alluxio-core-client-hdfs-2.0.0-SNAPSHOT-sources.jar>=
+alluxio-core-client-hdfs-2.0.0-SNAPSHOT.pom>=
+alluxio-core-client-hdfs-2.0.0-SNAPSHOT-javadoc.jar>=

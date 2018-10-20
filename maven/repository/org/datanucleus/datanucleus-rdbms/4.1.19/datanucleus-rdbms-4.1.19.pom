@@ -1,0 +1,217 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.datanucleus</groupId>
+        <artifactId>datanucleus-maven-parent</artifactId>
+        <version>4.0.5</version>
+    </parent>
+
+    <artifactId>datanucleus-rdbms</artifactId>
+    <version>4.1.19</version>
+
+    <name>DataNucleus RDBMS plugin</name>
+    <description>
+        Plugin for DataNucleus providing persistence to RDBMS datastores.
+    </description>
+
+    <scm>
+        <connection>scm:git:git@github.com:datanucleus/${project.artifactId}.git</connection>
+        <developerConnection>scm:git:git@github.com:datanucleus/${project.artifactId}.git</developerConnection>
+        <url>https://github.com/datanucleus/${project.artifactId}</url>
+    </scm>
+
+    <properties>
+        <dn.core.version>4.1.7</dn.core.version>
+    </properties>
+
+    <repositories>
+        <!-- For any artifacts that aren't present in Maven Central -->
+        <repository>
+            <id>DN_M2_Repo</id>
+            <url>http://www.datanucleus.org/downloads/maven2/</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
+
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <configuration>
+                    <overview>${basedir}/src/java/org/datanucleus/store/rdbms/overview.html</overview>
+                </configuration>
+            </plugin>
+            <plugin>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <testFailureIgnore>true</testFailureIgnore>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-bundle-plugin</artifactId>
+                <configuration>
+                    <instructions>
+                        <Bundle-SymbolicName>org.datanucleus.store.rdbms;singleton:=true</Bundle-SymbolicName>
+                        <Import-Package>
+                            org.datanucleus*;version="${dn.core.version}",
+                            com.ibm.db2.jcc;resolution:=optional,
+                            com.informix.jdbc;resolution:=optional,
+                            com.jolbox.bonecp;resolution:=optional,
+                            com.mchange.v2.c3p0;resolution:=optional,
+                            com.mckoi;resolution:=optional,
+                            com.microsoft.sqlserver.jdbc;resolution:=optional,
+                            com.mysql.jdbc;resolution:=optional,
+                            com.sap.dbtech.jdbc;resolution:=optional,
+                            com.sybase.jdbc2.jdbc;resolution:=optional,
+                            org.sqlite;resolution:=optional,
+                            net.sourceforge.jtds.jdbc;resolution:=optional,
+                            org.apache.derby.jdbc;resolution:=optional,
+                            org.firebirdsql.jdbc;resolution:=optional,
+                            org.h2;resolution:=optional,
+                            org.hsqldb;resolution:=optional,
+                            org.hsqldb.jdbc;resolution:=optional,
+                            org.postgresql;resolution:=optional,
+                            org.apache.tomcat.jdbc.pool;version="7.0.0";resolution:=optional,
+                            *
+                        </Import-Package>
+                    </instructions>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+    
+    <dependencies>
+        <dependency>
+            <groupId>org.datanucleus</groupId>
+            <artifactId>datanucleus-core</artifactId>
+            <version>[${dn.core.version}, 4.9)</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>javax.transaction</groupId>
+            <artifactId>jta</artifactId>
+            <version>1.1</version>
+            <scope>provided</scope>
+            <optional>true</optional>
+        </dependency>
+
+        <!-- Required for Oracle support -->
+        <dependency>
+            <groupId>oracle</groupId>
+            <artifactId>ojdbc14_g</artifactId>
+            <version>10.2.0.4</version>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>oracle</groupId>
+            <artifactId>xdb</artifactId>
+            <version>1.0</version>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>oracle</groupId>
+            <artifactId>xmlparser</artifactId>
+            <version>2.0</version>
+            <optional>true</optional>
+        </dependency>
+
+        <!-- C3P0 -->
+        <dependency>
+            <groupId>c3p0</groupId>
+            <artifactId>c3p0</artifactId>
+            <version>[0.9, 1.0]</version>
+            <optional>true</optional>
+        </dependency>
+
+        <!-- DBCP -->
+        <dependency>
+            <groupId>commons-dbcp</groupId>
+            <artifactId>commons-dbcp</artifactId>
+            <version>[1.2, 2.0)</version>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>commons-pool</groupId>
+            <artifactId>commons-pool</artifactId>
+            <version>[1.2, 2.0)</version>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>commons-collections</groupId>
+            <artifactId>commons-collections</artifactId>
+            <version>[3.0, 4.0)</version>
+            <optional>true</optional>
+        </dependency>
+
+        <!-- DBCP2 -->
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-dbcp2</artifactId>
+            <version>[2.0, 2.99)</version>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-pool2</artifactId>
+            <version>[2.0, 2.99)</version>
+            <optional>true</optional>
+        </dependency>
+
+        <!-- Proxool -->
+        <dependency>
+            <groupId>proxool</groupId>
+            <artifactId>proxool</artifactId>
+            <version>0.9.0RC3</version>
+            <optional>true</optional>
+        </dependency>
+
+        <!-- Tomcat JDBC Pool -->
+        <dependency>
+            <groupId>org.apache.tomcat</groupId>
+            <artifactId>tomcat-jdbc</artifactId>
+            <version>7.0.35</version>
+            <optional>true</optional>
+        </dependency>
+
+        <!-- BoneCP -->
+        <dependency>
+            <groupId>com.jolbox</groupId>
+            <artifactId>bonecp</artifactId>
+            <version>0.7.1.RELEASE</version>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>1.5.6</version>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+            <version>1.5.6</version>
+            <optional>true</optional>
+        </dependency>
+
+        <!-- HikariCP -->
+        <dependency>
+            <groupId>com.zaxxer</groupId>
+            <artifactId>HikariCP</artifactId>
+            <version>2.3.5</version>
+            <optional>true</optional>
+        </dependency>
+
+        <!-- Test dependencies -->
+        <dependency>
+            <groupId>log4j</groupId>
+            <artifactId>log4j</artifactId>
+            <version>[1.2, 1.3)</version>
+            <optional>true</optional>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+</project>

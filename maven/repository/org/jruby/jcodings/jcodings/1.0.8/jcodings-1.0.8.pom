@@ -1,0 +1,152 @@
+<?xml version="1.0" ?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>org.jruby.jcodings</groupId>
+  <artifactId>jcodings</artifactId>
+  <packaging>jar</packaging>
+  <version>1.0.8</version>
+  <name>JCodings</name>
+  <description>
+    Byte based encoding support library for java
+  </description>
+
+  <issueManagement>
+    <system>JIRA</system>
+    <url>http://jira.codehaus.org/browse/JRUBY</url>
+  </issueManagement>
+
+  <scm>
+    <connection>scm:svn:http://svn.codehaus.org/jruby</connection>
+    <developerConnection>scm:svn:https://svn.codehaus.org/jruby</developerConnection>
+    <url>http://svn.codehaus.org/jruby</url>
+  </scm>
+
+  <licenses>
+    <license>
+      <name>MIT License</name>
+      <url>http://www.opensource.org/licenses/mit-license.php</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+
+  <distributionManagement>
+    <repository>
+      <id>codehaus-jruby-repository</id>
+      <name>JRuby Central Repository</name>
+      <url>dav:https://dav.codehaus.org/repository/jruby</url>
+    </repository>
+    <snapshotRepository>
+      <id>codehaus-jruby-snapshot-repository</id>
+      <name>JRuby Central Development Repository</name>
+      <url>dav:https://dav.codehaus.org/snapshots.repository/jruby</url>
+    </snapshotRepository>
+    <site>
+      <id>codehaus-jruby-site</id>
+      <name>JRuby Maven site</name>
+      <url>dav:https://dav.codehaus.org/jruby/info</url>
+    </site>
+  </distributionManagement>
+
+  <repositories>
+    <repository>
+      <id>codehaus</id>
+      <name>Codehaus Repository</name>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+      <url>http://repository.codehaus.org</url>
+    </repository>
+  </repositories>
+
+  <developers>
+    <developer>
+      <id>lopex</id>
+      <name>Marcin Mielzynski</name>
+      <email>lopx@gazeta.pl</email>
+    </developer>
+  </developers>
+
+  <dependencies>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.10</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <sourceDirectory>src</sourceDirectory>
+    <scriptSourceDirectory>scripts</scriptSourceDirectory>
+    <testSourceDirectory>test</testSourceDirectory>
+    <finalName>jcodings</finalName>
+    <extensions>
+      <extension>
+        <groupId>org.apache.maven.wagon</groupId> 
+        <artifactId>wagon-webdav-jackrabbit</artifactId> 
+        <version>2.1</version> 
+      </extension> 
+    </extensions>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-source-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>attach-sources</id>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>attach-javadocs</id>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+            <skip>true</skip>
+        </configuration>
+      </plugin>
+      <plugin>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <configuration>
+          <source>1.5</source>
+          <target>1.5</target>
+        </configuration>
+      </plugin>
+      <plugin>
+        <artifactId>maven-jar-plugin</artifactId>
+        <configuration>
+          <archive>
+            <manifestFile>MANIFEST.MF</manifestFile>
+          </archive>
+        </configuration>
+      </plugin>
+      <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-resources-plugin</artifactId>
+      </plugin>
+    </plugins>
+    <resources>
+        <resource>
+            <directory>resources</directory>
+            <includes>
+                <include>**/*.bin</include>
+            </includes>
+        </resource>
+    </resources>
+
+  </build>
+</project>

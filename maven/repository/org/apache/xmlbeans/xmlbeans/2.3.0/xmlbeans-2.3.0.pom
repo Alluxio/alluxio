@@ -1,0 +1,147 @@
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>org.apache.xmlbeans</groupId>
+    <artifactId>xmlbeans</artifactId>
+    <version>2.3.0</version>
+
+    <name>XmlBeans</name>
+    <description>XmlBeans main jar</description>
+    <url>http://xmlbeans.apache.org</url>
+
+    <issueManagement>
+        <system>jira</system>
+        <url>http://issues.apache.org/jira/secure/BrowseProject.jspa?id=10436</url>
+    </issueManagement>
+
+    <mailingLists>
+        <mailingList>
+            <name>XmlBeans User List</name>
+            <subscribe>user-subscribe@xmlbeans.apache.org</subscribe>
+            <unsubscribe>users-unsubscribe@xmlbeans.apache.org</unsubscribe>
+            <archive>http://mail-archives.apache.org/mod_mbox/xmlbeans-user/</archive>
+        </mailingList>
+        <mailingList>
+            <name>XmlBeans Developer List</name>
+            <subscribe>dev-subscribe@xmlbeans.apache.org</subscribe>
+            <unsubscribe>dev-unsubscribe@xmlbeans.apache.org</unsubscribe>
+            <archive>http://mail-archives.apache.org/mod_mbox/xmlbeans-dev/</archive>
+        </mailingList>
+        <mailingList>
+            <name>Source Control List</name>
+            <subscribe>commits-subscribe@xmlbeans.apache.org</subscribe>
+            <unsubscribe>commits-unsubscribe@xmlbeans.apache.org</unsubscribe>
+            <archive>http://mail-archives.apache.org/mod_mbox/xmlbeans-commits/</archive>
+        </mailingList>
+    </mailingLists>
+
+    <licenses>
+        <license>
+            <name>The Apache Software License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <scm>
+        <connection>scm:svn:https://svn.apache.org/repos/asf/xmlbeans/</connection>
+        <developerConnection>scm:svn:https://${maven.username}@svn.apache.org/repos/asf/xmlbeans/</developerConnection>
+        <url>https://svn.apache.org/repos/asf/xmlbeans/</url>
+    </scm>
+
+    <organization>
+        <name>XmlBeans</name>
+        <url>http://xmlbeans.apache.org/</url>
+    </organization>
+
+    <developers>
+        <developer>
+            <name>Cezar Andrei</name>
+            <id>cezar</id>
+            <email>cezar.andrei@no#spam#!bea.com</email>
+            <organization></organization>
+        </developer>
+
+        <developer>
+            <name>David Bau</name>
+            <id>dbau</id>
+            <email>david.bau@no#spam.google.com</email>
+            <organization></organization>
+        </developer>
+        <developer>
+            <name>Patrick Calahan</name>
+            <id></id>
+            <email>pcal@no#spam.bea.com</email>
+            <organization></organization>
+        </developer>
+        <developer>
+            <name>Yana Kadiyska</name>
+            <id></id>
+            <email>ykadiysk@no#spam#!bea.com</email>
+            <organization></organization>
+        </developer>
+        <developer>
+            <name>Ken Kress</name>
+            <id></id>
+            <email>ken@nos#pam.kress.org</email>
+            <organization></organization>
+        </developer>
+        <developer>
+            <name>Kevin Krouse</name>
+            <id></id>
+            <email>kkrouse@n#osp#am.apache.org</email>
+            <organization></organization>
+        </developer>
+        <developer>
+            <name>Laurence Moroney</name>
+            <id></id>
+            <email>laurence.moroney@nospa#m.reuters.com</email>
+            <organization></organization>
+        </developer>
+        <developer>
+            <name>Radu Preotiuc</name>
+            <id>radup</id>
+            <email>radu.preotiuc-pietro@nos#pam.bea.com</email>
+            <organization></organization>
+        </developer>
+        <developer>
+            <name>Cliff Schmidt</name>
+            <id></id>
+            <email>cliffschmidt@n#osp#am!gmail.com</email>
+            <organization></organization>
+        </developer>
+        <developer>
+            <name>Dutta Satadip</name>
+            <id></id>
+            <email>s-dutta@no#spam.sbcglobal.net</email>
+            <organization></organization>
+        </developer>
+        <developer>
+            <name>Eric Vasilik</name>
+            <id></id>
+            <email>eric@nos#pam.vasilik.com</email>
+            <organization></organization>
+        </developer>
+        <developer>
+            <name>David Waite</name>
+            <id></id>
+            <email>dwaite@no#spam.apache.org</email>
+            <organization></organization>
+        </developer>
+        <developer>
+            <name>Scott Ziegler</name>
+            <id></id>
+            <email>scott.ziegler@n#ospam.bea.com</email>
+            <organization></organization>
+        </developer>
+
+    </developers>
+
+    <dependencies>
+        <dependency>
+            <groupId>stax</groupId>
+            <artifactId>stax-api</artifactId>
+            <version>1.0.1</version>
+        </dependency>
+    </dependencies>
+
+</project>

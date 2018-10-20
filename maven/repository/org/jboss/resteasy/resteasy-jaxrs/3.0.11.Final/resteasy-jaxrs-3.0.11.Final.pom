@@ -1,0 +1,164 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>org.jboss.resteasy</groupId>
+        <artifactId>resteasy-jaxrs-all</artifactId>
+        <version>3.0.11.Final</version>
+    </parent>
+    <artifactId>resteasy-jaxrs</artifactId>
+    <name>RESTEasy JAX-RS Implementation</name>
+    <description/>
+    <packaging>jar</packaging>
+    
+    <properties>
+        <version.xerces.xercesImpl>2.9.1</version.xerces.xercesImpl>
+    </properties>
+    
+    <dependencies>
+        <dependency>
+            <groupId>org.jboss.resteasy</groupId>
+            <artifactId>jaxrs-api</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.jboss.resteasy</groupId>
+            <artifactId>tjws</artifactId>
+            <version>${project.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.jboss.spec.javax.servlet</groupId>
+            <artifactId>jboss-servlet-api_3.1_spec</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+          <groupId>log4j</groupId>
+          <artifactId>log4j</artifactId>
+          <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>javassist</groupId>
+            <artifactId>javassist</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <!--
+           Needed for javax.annotation.security.* which is part of javaee 6 XXX
+           should this dependency be <scope>provided</scope> and only used if
+           detected runtime?
+        -->
+        <dependency>
+               <groupId>org.jboss.spec.javax.annotation</groupId>
+               <artifactId>jboss-annotations-api_1.1_spec</artifactId>
+           </dependency>
+
+        <!-- javax.activation.DataSource provider is required by spec -->
+        <dependency>
+            <groupId>javax.activation</groupId>
+            <artifactId>activation</artifactId>
+        </dependency>
+
+        <!-- 4.0 refactor of apache httpclient -->
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
+        </dependency>
+        
+        <dependency>
+            <groupId>commons-io</groupId>
+	        <artifactId>commons-io</artifactId>
+            <version>${dep.commons-io.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>net.jcip</groupId>
+            <artifactId>jcip-annotations</artifactId>
+        </dependency>
+
+        <!-- Used by org.jboss.resteasy.plugins.server.tjws.* -->
+        <!--
+        <dependency>
+            <groupId>tjws</groupId>
+            <artifactId>webserver</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        -->
+
+        <!-- Required by Hibernate Validator 5.x for testing -->
+        <dependency>
+            <groupId>org.jboss.spec.javax.el</groupId>
+            <artifactId>jboss-el-api_3.0_spec</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.glassfish</groupId>
+            <artifactId>javax.el</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+    
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>com.atlassian.maven.plugins</groupId>
+                <artifactId>maven-clover2-plugin</artifactId>
+                <version>3.1.6</version>
+            </plugin>
+        </plugins>
+    </build>
+    <profiles>
+        <profile>
+            <!-- exclude integrations tests which are known to fail -->
+            <id>exclude-known-tests-failures</id>
+            <activation>
+                <property>
+                    <name>exclude-known-tests-failures</name>
+                </property>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <configuration>
+                            <excludes combine.children="append">
+                                <exclude>org/jboss/resteasy/test/providers/iioimage/TestIIOImageProvider.java</exclude>
+                            </excludes>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <!-- Test with Red Hat version of Xerces -->
+            <id>redhat-xerces</id>
+            <activation>
+                <property>
+                    <name>redhat-xerces</name>
+                </property>
+            </activation>
+            <dependencies>
+                <dependency>
+                    <groupId>xerces</groupId>
+                    <artifactId>xercesImpl</artifactId>
+                    <version>${version.xerces.xercesImpl}</version>
+                    <scope>test</scope>
+                </dependency>
+            </dependencies>
+        </profile>
+    </profiles>
+    
+</project>

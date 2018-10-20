@@ -1,0 +1,417 @@
+<project
+   xmlns="http://maven.apache.org/POM/4.0.0"
+   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+   <modelVersion>4.0.0</modelVersion>
+   <groupId>net.sf.json-lib</groupId>
+   <artifactId>json-lib</artifactId>
+   <packaging>jar</packaging>
+   <version>2.4</version>
+   <name>json-lib</name>
+
+   <url>http://json-lib.sourceforge.net</url>
+
+   <description>
+      Java library for transforming beans, maps, collections, java
+      arrays and XML to JSON.
+   </description>
+
+   <inceptionYear>2006</inceptionYear>
+   <licenses>
+      <license>
+         <name>The Apache Software License, Version 2.0</name>
+         <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+         <distribution>repo</distribution>
+         <comments>
+            This product includes software developed by Douglas
+            Crockford (http://www.crockford.com).
+         </comments>
+      </license>
+   </licenses>
+   <organization>
+      <name>Json-lib</name>
+      <url>http://json-lib.sourceforge.net</url>
+   </organization>
+
+   <scm>
+      <connection>
+         git://github.com/aalmiray/Json-lib.git
+      </connection>
+      <url>git://github.com/aalmiray/Json-lib.git</url>
+      <developerConnection>
+         git@github.com:aalmiray/Json-lib.git
+      </developerConnection>
+   </scm>
+   <issueManagement>
+      <system>SourceForge</system>
+      <url>https://sourceforge.net/tracker/?group_id=171425</url>
+   </issueManagement>
+
+   <mailingLists>
+      <mailingList>
+         <name>Json-lib User List</name>
+         <subscribe>
+            http://lists.sourceforge.net/lists/listinfo/json-lib-user
+         </subscribe>
+         <unsubscribe>
+            http://lists.sourceforge.net/lists/listinfo/json-lib-user
+         </unsubscribe>
+         <archive>
+            http://sourceforge.net/mailarchive/forum.php?forum=json-lib-user
+         </archive>
+      </mailingList>
+   </mailingLists>
+
+   <developers>
+      <developer>
+         <name>Douglas Crockford</name>
+         <email>json at JSON.org</email>
+         <organization>JSON.org</organization>
+         <roles>
+            <role>Original source code developer</role>
+         </roles>
+      </developer>
+      <developer>
+         <name>Andres Almiray</name>
+         <id>aalmiray</id>
+         <email>aalmiray@users.sourceforge.net</email>
+         <timezone>-5</timezone>
+         <roles>
+            <role>Java Developer</role>
+         </roles>
+      </developer>
+   </developers>
+
+   <contributors>
+      <contributor>
+         <name>Matt Small</name>
+         <organization>WaveMaker</organization>
+         <roles>
+            <role>Contributed generics support</role>
+         </roles>
+      </contributor>
+      <contributor>
+         <name>Dan Fabulich</name>
+         <roles>
+            <role>Feedback on JDK5 and JEE features</role>
+         </roles>
+      </contributor>
+      <contributor>
+         <name>Masato Nagai</name>
+         <roles>
+            <role>Patch for XMLSerializer</role>
+         </roles>
+      </contributor>
+      <contributor>
+         <name>Gino Miceli</name>
+         <roles>
+            <role>Patch for PropertySet strategy</role>
+         </roles>
+      </contributor>
+      <contributor>
+         <name>Mino Tonga</name>
+      </contributor>
+      <contributor>
+         <name>Yee_Keat Phuah</name>
+         <roles>
+            <role>Patch for thread safety in JSONObject/JSONArray</role>
+         </roles>
+      </contributor>
+      <contributor>
+         <name>Oliver Zyngier</name>
+      </contributor>
+      <contributor>
+         <name>Marcelo Liberato</name>
+      </contributor>
+      <contributor>
+         <name>Mathias Herberst</name>
+      </contributor>
+      <contributor>
+         <name>Ales Novy</name>
+         <roles>
+            <role>Patch for performance improvements in JSONUtils</role>
+            <role>Patch for propagating JsonConfig to missing methods on JSONObject</role>
+         </roles>
+      </contributor>
+      <contributor>
+         <name>Peter Schubert</name>
+         <roles>
+            <role>Performance patch for JSONUtils</role>
+         </roles>
+      </contributor>      
+      <contributor>
+         <name>Ian Wolfcat Atha</name>
+         <roles>
+            <role>Performance patch for JSONUtils</role>
+         </roles>
+      </contributor>
+   </contributors>
+
+   <dependencies>
+      <dependency>
+         <groupId>junit</groupId>
+         <artifactId>junit</artifactId>
+         <version>3.8.2</version>
+         <scope>compile</scope>
+         <optional>true</optional>
+      </dependency>
+      <dependency>
+         <groupId>xmlunit</groupId>
+         <artifactId>xmlunit</artifactId>
+         <version>1.0</version>
+         <scope>test</scope>
+      </dependency>
+      <dependency>
+         <groupId>commons-beanutils</groupId>
+         <artifactId>commons-beanutils</artifactId>
+         <version>1.8.0</version>
+         <scope>compile</scope>
+      </dependency>
+      <dependency>
+         <groupId>commons-collections</groupId>
+         <artifactId>commons-collections</artifactId>
+         <version>3.2.1</version>
+         <scope>compile</scope>
+      </dependency>
+      <dependency>
+         <groupId>commons-lang</groupId>
+         <artifactId>commons-lang</artifactId>
+         <version>2.5</version>
+         <scope>compile</scope>
+      </dependency>
+      <dependency>
+         <groupId>commons-logging</groupId>
+         <artifactId>commons-logging</artifactId>
+         <version>1.1.1</version>
+         <scope>compile</scope>
+         <exclusions>
+            <exclusion>
+               <groupId>log4j</groupId>
+               <artifactId>log4j</artifactId>
+            </exclusion>
+            <exclusion>
+               <groupId>logkit</groupId>
+               <artifactId>logkit</artifactId>
+            </exclusion>
+            <exclusion>
+               <groupId>avalon-framework</groupId>
+               <artifactId>avalon-framework</artifactId>
+            </exclusion>
+            <exclusion>
+               <groupId>javax.servlet</groupId>
+               <artifactId>servlet-api</artifactId>
+            </exclusion>
+         </exclusions>
+      </dependency>
+      <dependency>
+         <groupId>xom</groupId>
+         <artifactId>xom</artifactId>
+         <version>1.1</version>
+         <scope>compile</scope>
+         <optional>true</optional>
+      </dependency>
+      <dependency>
+         <groupId>oro</groupId>
+         <artifactId>oro</artifactId>
+         <version>2.0.8</version>
+         <scope>compile</scope>
+         <optional>true</optional>
+      </dependency>
+      <dependency>
+         <groupId>net.sf.ezmorph</groupId>
+         <artifactId>ezmorph</artifactId>
+         <version>1.0.6</version>
+         <scope>compile</scope>
+      </dependency>
+      <dependency>
+         <groupId>log4j</groupId>
+         <artifactId>log4j</artifactId>
+         <version>1.2.14</version>
+         <scope>runtime</scope>
+         <optional>true</optional>
+      </dependency>
+      <dependency>
+         <groupId>org.codehaus.groovy</groupId>
+         <artifactId>groovy-all</artifactId>
+         <version>1.7.5</version>
+         <scope>compile</scope>
+         <optional>true</optional>
+      </dependency>
+      <dependency>
+         <groupId>commons-httpclient</groupId>
+         <artifactId>commons-httpclient</artifactId>
+         <version>3.1</version>
+         <scope>test</scope>
+      </dependency>
+   </dependencies>
+
+   <prerequisites>
+      <maven>3.0.1</maven>
+   </prerequisites>
+
+   <build>
+      <defaultGoal>install</defaultGoal>
+      <plugins>
+         <plugin>
+            <artifactId>maven-compiler-plugin</artifactId>
+            <configuration>
+               <source>1.3</source>
+               <target>1.1</target>
+            </configuration>
+         </plugin>
+         <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-site-plugin</artifactId>
+            <configuration>
+               <templateDirectory>
+                  ${basedir}/src/site
+               </templateDirectory>
+               <template>site.vm</template>
+            </configuration>
+         </plugin>
+         <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <version>2.3</version>
+            <configuration>
+               <excludes>
+                  <exclude>**/Abstract*.java</exclude>
+                  <exclude>**/AllTests.java</exclude>
+                  <exclude>**/*closure*</exclude>
+               </excludes>
+               <includes>
+                  <include>**/Test*.java</include>
+               </includes>
+            </configuration>
+         </plugin>
+         <plugin>
+            <groupId>org.codehaus.groovy.maven</groupId>
+            <artifactId>gmaven-plugin</artifactId>
+            <version>1.0-rc-3</version>
+            <executions>
+               <execution>
+                  <goals>
+                     <goal>compile</goal>
+                     <goal>testCompile</goal>
+                  </goals>
+               </execution>
+            </executions>
+         </plugin>
+      </plugins>
+   </build>
+
+   <reporting>
+      <plugins>
+         <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-project-info-reports-plugin</artifactId>
+         </plugin>
+         <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-report-plugin</artifactId>
+         </plugin>
+         <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-jxr-plugin</artifactId>
+         </plugin>
+         <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-javadoc-plugin</artifactId>
+            <version>2.1</version>
+            <configuration>
+               <links>
+                  <link>http://java.sun.com/j2se/1.5.0/docs/api/</link>
+                  <link>http://www.junit.org/junit/javadoc/</link>
+                  <link>
+                     http://jakarta.apache.org/commons/beanutils/commons-beanutils-1.7.0/docs/api/
+                  </link>
+                  <link>
+                     http://jakarta.apache.org/commons/lang/api-2.2/
+                  </link>
+                  <link>http://ezmorph.sourceforge.net/apidocs/</link>
+               </links>
+            </configuration>
+         </plugin>
+         <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>cobertura-maven-plugin</artifactId>
+         </plugin>
+         <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>changes-maven-plugin</artifactId>
+            <reportSets>
+               <reportSet>
+                  <reports>
+                     <report>changes-report</report>
+                  </reports>
+               </reportSet>
+            </reportSets>
+         </plugin>
+         <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>jdepend-maven-plugin</artifactId>
+         </plugin>
+         <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>javancss-maven-plugin</artifactId>
+            <version>2.0-beta-1</version>
+         </plugin>
+         <!--
+         <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>findbugs-maven-plugin</artifactId>
+            <version>1.0.0</version>
+         </plugin>
+         <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>jdiff-maven-plugin</artifactId>
+            <version>0.1-SNAPSHOT</version>
+            <configuration>
+               <packages>net.sf.json</packages>
+               <oldTag>2.0</oldTag>
+               <newTag>CURRENT</newTag>
+            </configuration>
+         </plugin>
+         -->
+      </plugins>
+   </reporting>
+
+   <distributionManagement>
+      <repository>
+         <id>sf_release</id>
+         <name>Json-lib repo @ sourceforge.net</name>
+         <url>
+            scp://ssh.sf.net/home/groups/j/js/json-lib/htdocs/m2/repo/release
+         </url>
+      </repository>
+      <snapshotRepository>
+         <id>sf_snapshot</id>
+         <name>SourceForge Snapshot</name>
+         <url>
+            scp://ssh.sf.net/home/groups/j/js/json-lib/htdocs/m2/repo/snapshot
+         </url>
+      </snapshotRepository>
+      <site>
+         <id>sf_website</id>
+         <url>scp://ssh.sf.net/home/groups/j/js/json-lib/htdocs</url>
+      </site>
+   </distributionManagement>
+
+   <!--
+   <pluginRepositories>
+      <pluginRepository>
+         <id>codehaus-snapshot-plugins</id>
+         <name>codehaus-shapshot-plugins</name>
+         <url>http://snapshots.repository.codehaus.org/</url>
+         <snapshots>
+            <enabled>true</enabled>
+         </snapshots>
+         <releases>
+            <enabled>false</enabled>
+         </releases>
+      </pluginRepository>
+   </pluginRepositories>
+   -->
+
+</project>

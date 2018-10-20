@@ -1,0 +1,6 @@
+#NOTE: This is a Maven Resolver internal implementation file, its format can be changed without prior notice.
+#Sat Oct 20 11:38:21 CST 2018
+alluxio-job-client-2.0.0-SNAPSHOT.pom>=
+alluxio-job-client-2.0.0-SNAPSHOT-sources.jar>=
+alluxio-job-client-2.0.0-SNAPSHOT-javadoc.jar>=
+alluxio-job-client-2.0.0-SNAPSHOT.jar>=

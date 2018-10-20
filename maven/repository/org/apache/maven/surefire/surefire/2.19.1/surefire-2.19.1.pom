@@ -1,0 +1,510 @@
+<!--
+  ~ Licensed to the Apache Software Foundation (ASF) under one
+  ~ or more contributor license agreements.  See the NOTICE file
+  ~ distributed with this work for additional information
+  ~ regarding copyright ownership.  The ASF licenses this file
+  ~ to you under the Apache License, Version 2.0 (the
+  ~ "License"); you may not use this file except in compliance
+  ~ with the License.  You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing,
+  ~ software distributed under the License is distributed on an
+  ~ "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+  ~ KIND, either express or implied.  See the License for the
+  ~ specific language governing permissions and limitations
+  ~ under the License. 
+  -->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <artifactId>maven-parent</artifactId>
+    <groupId>org.apache.maven</groupId>
+    <version>26</version>
+    <relativePath>../pom/maven/pom.xml</relativePath>
+  </parent>
+
+  <groupId>org.apache.maven.surefire</groupId>
+  <artifactId>surefire</artifactId>
+  <version>2.19.1</version>
+  <packaging>pom</packaging>
+
+  <name>Apache Maven Surefire</name>
+  <description>Surefire is a test framework project.
+    This is the aggregator POM in Apache Maven Surefire project.</description>
+  <url>http://maven.apache.org/surefire/</url>
+  <inceptionYear>2004</inceptionYear>
+
+  <contributors>
+    <contributor>
+      <name>Jesse Kuhnert</name>
+    </contributor>
+    <contributor>
+      <name>Marvin Froeder</name>
+      <email>marvin@marvinformatics.com</email>
+    </contributor>
+  </contributors>
+
+  <modules>
+    <module>surefire-shadefire</module>
+    <module>surefire-api</module>
+    <module>surefire-booter</module>
+    <module>surefire-grouper</module>
+    <module>surefire-providers</module>
+    <module>maven-surefire-common</module>
+    <module>surefire-report-parser</module>
+    <module>maven-surefire-plugin</module>
+    <module>maven-failsafe-plugin</module>
+    <module>maven-surefire-report-plugin</module>
+    <module>surefire-setup-integration-tests</module>
+    <module>surefire-integration-tests</module>
+  </modules>
+
+  <scm>
+    <connection>${maven.surefire.scm.devConnection}</connection>
+    <developerConnection>${maven.surefire.scm.devConnection}</developerConnection>
+    <url>https://github.com/apache/maven-surefire/tree/${project.scm.tag}</url>
+    <tag>surefire-2.19.1_vote-2</tag>
+  </scm>
+  <issueManagement>
+    <system>jira</system>
+    <url>https://issues.apache.org/jira/browse/SUREFIRE</url>
+  </issueManagement>
+  <ciManagement>
+    <system>Jenkins</system>
+    <url>https://builds.apache.org/job/maven-surefire/</url>
+  </ciManagement>
+  <distributionManagement>
+    <site>
+      <id>apache.website</id>
+      <url>scm:svn:https://svn.apache.org/repos/infra/websites/production/maven/components/${maven.site.path}</url>
+    </site>
+  </distributionManagement>
+
+  <properties>
+    <mavenVersion>2.2.1</mavenVersion>
+    <!-- <shadedVersion>2.12.4</shadedVersion> commented out due to http://jira.codehaus.org/browse/MRELEASE-799 -->
+    <mavenPluginPluginVersion>3.3</mavenPluginPluginVersion>
+    <maven.surefire.scm.devConnection>scm:git:https://git-wip-us.apache.org/repos/asf/maven-surefire.git</maven.surefire.scm.devConnection>
+    <maven.site.path>surefire-archives/surefire-LATEST</maven.site.path>
+  </properties>
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>org.apache.maven.surefire</groupId>
+        <artifactId>surefire-api</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.commons</groupId>
+        <artifactId>commons-lang3</artifactId>
+        <version>3.1</version>
+      </dependency>
+      <dependency>
+        <groupId>commons-io</groupId>
+        <artifactId>commons-io</artifactId>
+        <version>2.2</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.maven.surefire</groupId>
+        <artifactId>surefire-booter</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.maven.surefire</groupId>
+        <artifactId>surefire-grouper</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.maven.surefire</groupId>
+        <artifactId>maven-surefire-common</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.maven.reporting</groupId>
+        <artifactId>maven-reporting-api</artifactId>
+        <version>3.0</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.maven</groupId>
+        <artifactId>maven-core</artifactId>
+        <version>${mavenVersion}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>org.apache.maven.wagon</groupId>
+            <artifactId>wagon-file</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.apache.maven.wagon</groupId>
+            <artifactId>wagon-webdav</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.apache.maven.wagon</groupId>
+            <artifactId>wagon-http-lightweight</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.apache.maven.wagon</groupId>
+            <artifactId>wagon-ssh</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.apache.maven.wagon</groupId>
+            <artifactId>wagon-ssh-external</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.apache.maven.doxia</groupId>
+            <artifactId>doxia-sink-api</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>commons-cli</groupId>
+            <artifactId>commons-cli</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.codehaus.plexus</groupId>
+            <artifactId>plexus-interactivity-api</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.maven</groupId>
+        <artifactId>maven-plugin-api</artifactId>
+        <version>${mavenVersion}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.maven.plugin-tools</groupId>
+        <artifactId>maven-plugin-annotations</artifactId>
+        <version>${mavenPluginPluginVersion}</version>
+        <scope>compile</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.maven</groupId>
+        <artifactId>maven-artifact</artifactId>
+        <version>${mavenVersion}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.maven</groupId>
+        <artifactId>maven-plugin-descriptor</artifactId>
+        <version>${mavenVersion}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.maven</groupId>
+        <artifactId>maven-project</artifactId>
+        <version>${mavenVersion}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.maven</groupId>
+        <artifactId>maven-model</artifactId>
+        <version>${mavenVersion}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.maven</groupId>
+        <artifactId>maven-toolchain</artifactId>
+        <version>${mavenVersion}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.maven.shared</groupId>
+        <artifactId>maven-shared-utils</artifactId>
+        <version>0.9</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.maven.shared</groupId>
+        <artifactId>maven-verifier</artifactId>
+        <version>1.6</version>
+      </dependency>
+      <dependency>
+        <groupId>jmock</groupId>
+        <artifactId>jmock</artifactId>
+        <version>1.0.1</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>junit</groupId>
+        <artifactId>junit</artifactId>
+        <version>4.12</version>
+      </dependency>
+      <dependency>
+        <groupId>org.hamcrest</groupId>
+        <artifactId>hamcrest-library</artifactId>
+        <version>1.3</version>
+      </dependency>
+      <dependency>
+        <groupId>org.easytesting</groupId>
+        <artifactId>fest-assert</artifactId>
+        <version>1.4</version>
+      </dependency>
+      <dependency>
+        <groupId>com.google.code.findbugs</groupId>
+        <artifactId>jsr305</artifactId>
+        <version>2.0.1</version>
+        <scope>provided</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+  <dependencies>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.hamcrest</groupId>
+      <artifactId>hamcrest-library</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.easytesting</groupId>
+      <artifactId>fest-assert</artifactId>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-compiler-plugin</artifactId>
+        </plugin>
+        <!-- NOTE: animal sniffer does not check test classes: https://jira.codehaus.org/browse/MANIMALSNIFFER-40 -->
+        <plugin>
+          <groupId>org.codehaus.mojo</groupId>
+          <artifactId>animal-sniffer-maven-plugin</artifactId>
+          <version>1.11</version>
+          <executions>
+            <execution>
+              <id>signature-check</id>
+              <goals>
+                <goal>check</goal>
+              </goals>
+            </execution>
+          </executions>
+          <configuration>
+            <signature>
+              <groupId>org.codehaus.mojo.signature</groupId>
+              <artifactId>java15</artifactId>
+              <version>1.0</version>
+            </signature>
+          </configuration>
+        </plugin>
+        <plugin>
+          <artifactId>maven-surefire-plugin</artifactId>
+          <version>2.12.4</version> <!-- ${shadedVersion}, but resolved due to http://jira.codehaus.org/browse/MRELEASE-799 -->
+          <configuration>
+            <!-- NOTE: Be sure to isolate the Surefire version under test from the version running the tests! -->
+            <useSystemClassLoader>false</useSystemClassLoader>
+          </configuration>
+        </plugin>
+        <plugin>
+          <artifactId>maven-release-plugin</artifactId>
+          <configuration>
+            <autoVersionSubmodules>true</autoVersionSubmodules>
+            <preparationGoals>clean install</preparationGoals>
+          </configuration>
+        </plugin>
+        <plugin>
+          <artifactId>maven-shade-plugin</artifactId>
+          <version>1.5</version>
+        </plugin>
+        <plugin>
+          <artifactId>maven-plugin-plugin</artifactId>
+          <version>${mavenPluginPluginVersion}</version>
+          <configuration>
+            <skipErrorNoDescriptorsFound>true</skipErrorNoDescriptorsFound>
+          </configuration>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-enforcer-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>enforce-java</id>
+            <goals>
+              <goal>enforce</goal>
+            </goals>
+            <configuration>
+              <rules>
+                <requireJavaVersion>
+                  <version>[1.6.0, 1.9.0)</version>
+                </requireJavaVersion>
+              </rules>
+            </configuration>
+          </execution>
+          <execution>
+            <id>enforce-maven</id>
+            <goals>
+              <goal>enforce</goal>
+            </goals>
+            <configuration>
+              <rules>
+                <requireMavenVersion>
+                  <version>[3.0.5,)</version>
+                </requireMavenVersion>
+              </rules>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>animal-sniffer-maven-plugin</artifactId>
+      </plugin>
+        <plugin>
+          <groupId>org.apache.rat</groupId>
+          <artifactId>apache-rat-plugin</artifactId>
+          <executions>
+            <execution>
+              <id>rat-check</id>
+              <goals>
+                <goal>check</goal>
+              </goals>
+              <configuration>
+                <excludes combine.children="append">
+                  <exclude>.gitignore</exclude>
+                  <exclude>.git/**/*</exclude>
+                  <exclude>**/.idea</exclude>
+                  <exclude>**/.svn/**/*</exclude>
+                  <exclude>**/*.iml</exclude>
+                  <exclude>**/*.ipr</exclude>
+                  <exclude>**/*.iws</exclude>
+                  <exclude>**/*.versionsBackup</exclude>
+                  <exclude>**/dependency-reduced-pom.xml</exclude>
+                  <exclude>.repository/**</exclude> <!-- jenkins with local maven repository -->
+                  <exclude>src/test/resources/**/*</exclude>
+                  <exclude>src/test/resources/**/*.css</exclude>
+                  <exclude>**/*.jj</exclude>
+                  <exclude>src/main/resources/META-INF/services/org.apache.maven.surefire.providerapi.SurefireProvider
+                  </exclude>
+                </excludes>
+              </configuration>
+            </execution>
+          </executions>
+        </plugin>
+    </plugins>
+  </build>
+
+  <reporting>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-project-info-reports-plugin</artifactId>
+        <configuration>
+          <dependencyLocationsEnabled>false</dependencyLocationsEnabled><!-- waiting for MPIR-267 -->
+          <!-- pin down urls to to avoid interpolation in the modules -->
+          <anonymousConnection>${maven.surefire.scm.devConnection}</anonymousConnection>
+          <developerConnection>${maven.surefire.scm.devConnection}</developerConnection>
+        </configuration>
+        <reportSets>
+          <reportSet>
+            <reports>
+              <report>index</report>
+              <report>summary</report>
+              <report>dependency-info</report>
+              <report>modules</report>
+              <report>license</report>
+              <report>project-team</report>
+              <report>scm</report>
+              <report>issue-tracking</report>
+              <report>mailing-list</report>
+              <report>dependency-management</report>
+              <report>dependencies</report>
+              <report>dependency-convergence</report>
+              <report>cim</report>
+              <report>plugin-management</report>
+              <report>plugins</report>
+              <report>distribution-management</report>
+            </reports>
+          </reportSet>
+        </reportSets>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-report-plugin</artifactId>
+        <version>2.12.4</version> <!-- ${shadedVersion}, but resolved due to http://jira.codehaus.org/browse/MRELEASE-799 -->
+      </plugin>
+    </plugins>
+  </reporting>
+
+  <profiles>
+    <profile>
+      <id>reporting</id>
+      <build>
+        <pluginManagement>
+          <plugins>
+            <!-- Moving to a profile, since these dependencies won't exist the first
+                 time a new snapshot version is built. This prevents the first
+                 snapshot build from proceeding beyond the build for the top-level 
+                 Surefire parent POM.
+            -->
+            <plugin>
+              <groupId>org.apache.maven.plugins</groupId>
+              <artifactId>maven-site-plugin</artifactId>
+              <dependencies>
+                <!-- dependency>
+                  <groupId>org.apache.maven.surefire</groupId>
+                  <artifactId>surefire-shadefire</artifactId>
+                  <version>${project.version}</version>
+                </dependency -->
+              </dependencies>
+            </plugin>
+          </plugins>
+        </pluginManagement>
+      </build>
+      <reporting>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-changes-plugin</artifactId>
+            <version>2.11</version>
+            <configuration>
+              <!-- For JIRA-report -->
+              <columnNames>Type,Priority,Key,Summary,Resolution</columnNames>
+              <onlyCurrentVersion>true</onlyCurrentVersion>
+              <resolutionIds>Fixed</resolutionIds>
+              <sortColumnNames>type DESC,Priority DESC,Key</sortColumnNames>
+              <maxEntries>1000</maxEntries>
+              <skip>true</skip>
+            </configuration>
+          </plugin>
+        </plugins>
+      </reporting>
+    </profile>
+    <profile>
+      <id>m2e</id>
+      <properties>
+        <m2BuildDirectory>target</m2BuildDirectory>
+      </properties>
+      <activation>
+        <property>
+          <name>m2e.version</name>
+        </property>
+      </activation>
+      <build>
+        <directory>${m2BuildDirectory}</directory>
+        <plugins>
+          <plugin>
+            <groupId>org.maven.ide.eclipse</groupId>
+            <artifactId>lifecycle-mapping</artifactId>
+            <version>0.10.0</version>
+            <configuration>
+              <mappingId>customizable</mappingId>
+              <configurators>
+                <configurator id="org.maven.ide.eclipse.jdt.javaConfigurator" />
+                <configurator id="org.maven.ide.eclipse.modello.modelloConfigurator" />
+                <configurator id="org.maven.ide.eclipse.plexus.annotations.plexusConfigurator" />
+              </configurators>
+              <mojoExecutions>
+                <mojoExecution>org.apache.maven.plugins:maven-resources-plugin::</mojoExecution>
+              </mojoExecutions>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+</project>

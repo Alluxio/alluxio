@@ -1,0 +1,1833 @@
+  <!--
+   Licensed to the Apache Software Foundation (ASF) under one or more
+   contributor license agreements.  See the NOTICE file distributed with
+   this work for additional information regarding copyright ownership.
+   The ASF licenses this file to You under the Apache License, Version 2.0
+   (the "License"); you may not use this file except in compliance with
+   the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>org.apache.slider</groupId>
+  <artifactId>slider</artifactId>
+  <name>Slider</name>
+  <version>0.90.2-incubating</version>
+  <packaging>pom</packaging>
+
+  <description>
+    Slider is designed to deploy existing applications onto a YARN cluster without
+    rewriting the application to be YARN-ready.
+  </description>
+  <inceptionYear>2014</inceptionYear>
+  <url>http://slider.incubator.apache.org/</url>
+  <organization>
+    <name>The Apache Software Foundation</name>
+    <url>http://www.apache.org/</url>
+  </organization>
+
+  <modules>
+    <module>app-packages/command-logger/application-pkg</module>
+    <module>app-packages/command-logger/slider-pkg</module>
+    <module>slider-core</module>
+    <module>slider-agent</module>
+    <module>slider-assembly</module>
+    <module>slider-funtest</module>
+    <!-- the app-packages module is added as a profile-->
+  </modules>
+
+  <licenses>
+    <license>
+      <name>Apache License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0</url>
+    </license>
+  </licenses>
+
+
+  <scm>
+    <url>http://git-wip-us.apache.org/repos/asf/incubator-slider.git</url>
+    <connection>scm:git:http://git-wip-us.apache.org/repos/asf/incubator-slider.git
+    </connection>
+    <developerConnection>
+      scm:git:http://git-wip-us.apache.org/repos/asf/incubator-slider.git
+    </developerConnection>
+  </scm>
+  
+
+  <distributionManagement>
+    <site>
+      <id>slider.website</id>
+      <name>Slider Website</name>
+      <url>http://slider.incubator.apache.org/</url>
+    </site>
+    <downloadUrl>http://git-wip-us.apache.org/repos/asf/incubator-slider.git</downloadUrl>
+    <repository>
+      <id>${distMgmtStagingId}</id>
+      <name>${distMgmtStagingName}</name>
+      <url>${distMgmtStagingUrl}</url>
+    </repository>
+    <snapshotRepository>
+      <id>${distMgmtSnapshotsId}</id>
+      <name>${distMgmtSnapshotsName}</name>
+      <url>${distMgmtSnapshotsUrl}</url>
+    </snapshotRepository>
+    
+  </distributionManagement>
+  
+  <mailingLists>
+    <mailingList>
+      <name>Developers Mailing List</name>
+      <post>dev@slider.incubator.apache.org</post>
+      <subscribe>dev-subscribe@slider.incubator.apache.org</subscribe>
+      <unsubscribe>dev-unsubscribe@slider.incubator.apache.org</unsubscribe>
+      <archive>http://mail-archives.apache.org/mod_mbox/incubator-slider-dev/</archive>
+    </mailingList>    
+    <mailingList>
+      <name>Commits Mailing List</name>
+      <post>commits@slider.incubator.apache.org</post>
+      <subscribe>commits-subscribe@slider.incubator.apache.org</subscribe>
+      <unsubscribe>commits-unsubscribe@slider.incubator.apache.org</unsubscribe>
+      <archive>http://mail-archives.apache.org/mod_mbox/incubator-slider-commits/</archive>
+    </mailingList>    
+  </mailingLists>
+
+  <properties>
+    <distMgmtSnapshotsId>apache.snapshots.https</distMgmtSnapshotsId>
+    <distMgmtSnapshotsName>Apache Development Snapshot Repository</distMgmtSnapshotsName>
+    <distMgmtSnapshotsUrl>https://repository.apache.org/content/repositories/snapshots</distMgmtSnapshotsUrl>
+    <distMgmtStagingId>apache.staging.https</distMgmtStagingId>
+    <distMgmtStagingName>Apache Release Distribution Repository</distMgmtStagingName>
+    <distMgmtStagingUrl>https://repository.apache.org/service/local/staging/deploy/maven2</distMgmtStagingUrl>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+
+    <!-- 
+    Java versions
+    -->
+    <project.java.src.version>1.7</project.java.src.version>
+    <enforced.java.version>${project.java.src.version}</enforced.java.version>
+    <groovy.version>2.4.5</groovy.version>
+    
+    <!-- 
+    test options
+    -->
+
+    <slider.conf.dir>${project.basedir}/src/test/clusters/offline/slider</slider.conf.dir>
+    <test.forkedProcessTimeoutInSeconds>18000</test.forkedProcessTimeoutInSeconds>
+    <test.argLine>-Xmx1024m -XX:+HeapDumpOnOutOfMemoryError</test.argLine>
+    <test.reuseForks>false</test.reuseForks>
+    <test.failIfNoTests>true</test.failIfNoTests>
+    <test.funtests.failIfNoTests>false</test.funtests.failIfNoTests>
+    <test.forkMode>always</test.forkMode>
+    <!-- path environment variable -->
+    <test.env.path>${env.PATH}</test.env.path>    
+    
+    <!--
+    core artifacts
+    -->
+    <hadoop.version>2.7.1</hadoop.version>
+
+    <hbase.version>0.99.0</hbase.version>
+    <accumulo.version>1.7.0</accumulo.version>
+    <!--
+     artifact versions
+    -->
+    <avro.version>1.7.4</avro.version>
+    <bigtop.version>0.7.0</bigtop.version>
+    <commons-codec.version>1.4</commons-codec.version>
+    <commons-digester.version>1.8</commons-digester.version>
+    <commons-configuration.version>1.6</commons-configuration.version>
+    <commons-lang.version>2.6</commons-lang.version>
+    <commons-compress.version>1.4.1</commons-compress.version>
+    <commons-logging.version>1.1.3</commons-logging.version>
+    <commons-io.version>2.4</commons-io.version>
+    <curator.version>2.7.1</curator.version>
+    <easymock.version>3.1</easymock.version>
+    <guava.version>11.0.2</guava.version>
+    <gson.version>2.2.2</gson.version>
+    <guice.version>3.0</guice.version>
+    <httpclient.version>3.1</httpclient.version>
+    <httpclient4.version>4.2.5</httpclient4.version>
+
+    <jackson.version>1.9.13</jackson.version>
+    <jcommander.version>1.30</jcommander.version>
+
+    <jetty.version>6.1.26</jetty.version>
+    <jersey.version>1.9</jersey.version>
+    <servlet-api.version>2.5</servlet-api.version>
+    <jsr311-api.version>1.1.1</jsr311-api.version>
+    <jaxb-api.version>2.2.7</jaxb-api.version>
+    <jsp.version>2.1</jsp.version>
+    <jsch.version>0.1.51</jsch.version>
+    <junit.version>4.11</junit.version>
+    <log4j.version>1.2.17</log4j.version>
+    <metrics.version>3.0.1</metrics.version>
+    <mockito.version>1.8.5</mockito.version>
+
+    <!-- ProtocolBuffer version, used to verify the protoc version and -->
+    <!-- define the protobuf JAR version                               -->
+    <protobuf.version>2.5.0</protobuf.version>
+
+    <slf4j.version>1.7.5</slf4j.version>
+    <storm.version>0.9.3</storm.version>
+    <stringtemplate.version>2.4.1</stringtemplate.version>
+    <zookeeper.version>3.4.6</zookeeper.version>
+
+
+    <!-- artifacts used in plugins -->
+    <apache-resources.version>1.0.4</apache-resources.version>
+    <apache-source-release-assembly-descriptor.version>1.0.4</apache-source-release-assembly-descriptor.version>
+    <gmavenVersion>1.5</gmavenVersion>
+    <gmavenProviderSelection>2.0</gmavenProviderSelection>
+    <groovy-eclipse-compiler.version>2.9.1-01</groovy-eclipse-compiler.version>
+    <groovy-eclipse-batch.version>2.3.7-01</groovy-eclipse-batch.version>
+    <buildnumber-maven-plugin.version>1.2</buildnumber-maven-plugin.version>
+  
+    
+    <maven.version.range>[3.0.0,)</maven.version.range>
+
+    <!--  Plugin versions    -->  
+    <maven-antrun-plugin.version>1.7</maven-antrun-plugin.version>
+    <maven-assembly-plugin.version>2.4</maven-assembly-plugin.version>
+    <maven.cobertura.version>2.5.2</maven.cobertura.version>
+    <maven-compiler-plugin.version>3.1</maven-compiler-plugin.version>
+    <maven-dependency-plugin.version>2.8</maven-dependency-plugin.version>
+    <maven-deploy-plugin.version>2.8.2</maven-deploy-plugin.version>
+    <maven-doxia-module-markdown.version>1.4</maven-doxia-module-markdown.version>
+    <maven-enforcer-plugin.version>1.3.1</maven-enforcer-plugin.version>
+    <maven-exec-plugin.version>1.2.1</maven-exec-plugin.version>
+    <maven-install-plugin.version>2.5.2</maven-install-plugin.version>
+    <maven-gpg-plugin.version>1.5</maven-gpg-plugin.version>
+    <maven-groovydoc-plugin.version>1.3</maven-groovydoc-plugin.version>
+    <maven-jar-plugin.version>2.5</maven-jar-plugin.version>
+    <maven.javadoc.version>2.10.1</maven.javadoc.version>
+    <maven.license.version>1.8</maven.license.version>
+    <maven.project.version>2.4</maven.project.version>
+    <maven.properties.version>1.0-alpha-2</maven.properties.version>
+    <maven-project-info-reports-plugin.version>2.7</maven-project-info-reports-plugin.version>
+    <maven-release-plugin.version>2.5.1</maven-release-plugin.version>
+    <maven-remote-resources-plugin.version>1.5</maven-remote-resources-plugin.version>
+    <maven-resources-plugin.version>2.6</maven-resources-plugin.version>
+    <maven-rpm-plugin.version>2.1-alpha-4</maven-rpm-plugin.version>
+    <maven-site-plugin.version>3.4</maven-site-plugin.version>
+    <maven-source-plugin.version>2.3</maven-source-plugin.version>
+    <maven-surefire-plugin.version>2.17</maven-surefire-plugin.version>
+    <maven-surefire-report-plugin.version>${maven-surefire-plugin.version}</maven-surefire-report-plugin.version>
+    <maven-failsafe-plugin.version>${maven-surefire-plugin.version}</maven-failsafe-plugin.version>
+    <maven-verifier-plugin.version>1.0</maven-verifier-plugin.version>
+    <apache-rat-plugin.version>0.11</apache-rat-plugin.version>
+
+    <!-- build options-->
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <build.dependency.fail.on.warning>true</build.dependency.fail.on.warning>
+    <build.redirect.test.output.to.file>false</build.redirect.test.output.to.file>
+    
+    <!-- github options-->
+    <github.global.server>github</github.global.server>
+    <github.site.plugin.version>0.8</github.site.plugin.version>
+    <maven-site-plugin.skipDeploy>true</maven-site-plugin.skipDeploy>
+    <github.downloads.plugin.version>0.6</github.downloads.plugin.version>
+    
+    <!-- override point for ASF staging/snapshot repos -->
+    <asf.staging>https://repository.apache.org/content/groups/staging/</asf.staging>
+    <asf.snapshots>https://repository.apache.org/content/repositories/snapshots/</asf.snapshots>
+  </properties>
+
+
+  <repositories>
+    <repository>
+      <id>ASF Staging</id>
+      <url>${asf.staging}</url>
+    </repository>
+    <repository>
+      <id>ASF Snapshots</id>
+      <url>${asf.snapshots}</url>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
+      <releases>
+        <enabled>false</enabled>
+      </releases>
+    </repository>
+  </repositories>
+
+
+  <pluginRepositories>
+    <pluginRepository>
+      <id>ASF Staging</id>
+      <url>https://repository.apache.org/content/groups/staging/</url>
+    </pluginRepository>
+  </pluginRepositories>
+  
+  <build>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <artifactId>maven-compiler-plugin</artifactId>
+          <version>${maven-compiler-plugin.version}</version>
+          <configuration>
+            <compilerId>groovy-eclipse-compiler</compilerId>
+            <source>${project.java.src.version}</source>
+            <target>${project.java.src.version}</target>
+            <!-- set verbose to be true if you want lots of uninteresting messages -->
+            <!-- <verbose>true</verbose> -->
+          </configuration>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+    <plugins>
+      <plugin>
+        <artifactId>maven-enforcer-plugin</artifactId>
+        <version>${maven-enforcer-plugin.version}</version>
+        <executions>
+          <execution>
+            <id>enforce-java</id>
+            <goals>
+              <goal>enforce</goal>
+            </goals>
+            <configuration>
+              <rules>
+                <requireJavaVersion>
+                  <version>[${project.java.src.version},)</version>
+                </requireJavaVersion>
+              </rules>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-source-plugin</artifactId>
+        <version>${maven-source-plugin.version}</version>
+        <inherited>true</inherited>
+        <executions>
+          <execution>
+            <id>attach-sources</id>
+            <phase>verify</phase>
+            <goals>
+              <goal>jar</goal>
+              <goal>test-jar</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <excludes>
+            <!-- skip test resource configuration-->
+            <exclude>**/slider-test.xml</exclude>
+            <exclude>**/build.properties</exclude>
+            <exclude>**/*~</exclude>
+          </excludes>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-site-plugin</artifactId>
+        <version>${maven-site-plugin.version}</version>
+        <inherited>true</inherited>
+        <configuration>
+          <skipDeploy>${maven-site-plugin.skipDeploy}</skipDeploy>
+        </configuration>
+        <dependencies>
+          <dependency>
+            <groupId>org.apache.maven.doxia</groupId>
+            <artifactId>doxia-module-markdown</artifactId>
+            <version>${maven-doxia-module-markdown.version}</version>
+          </dependency>
+        </dependencies>
+      </plugin>
+
+      <!--read in a build.properties file if defined-->
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>properties-maven-plugin</artifactId>
+        <version>${maven.properties.version}</version>
+        <executions>
+          <execution>
+            <phase>initialize</phase>
+            <goals>
+              <goal>read-project-properties</goal>
+            </goals>
+            <configuration>
+              <quiet>true</quiet>
+              <files>
+                <file>build.properties</file>
+              </files>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!-- We want to package up license resources in the JARs produced -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-remote-resources-plugin</artifactId>
+        <version>${maven-remote-resources-plugin.version}</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>process</goal>
+            </goals>
+            <configuration>
+              <resourceBundles>
+                <resourceBundle>org.apache:apache-jar-resource-bundle:1.4</resourceBundle>
+              </resourceBundles>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>license-maven-plugin</artifactId>
+        <version>${maven.license.version}</version>
+        <executions>
+<!--
+          <execution>
+            <id>download-licenses</id>
+            <goals>
+              <goal>download-licenses</goal>
+            </goals>
+          </execution>
+-->
+          <execution>
+            <id>default-cli</id>
+            <configuration>
+              <licenseMerges>
+                <licenseMerge>The Apache Software License, Version 2.0|Apache License, Version 2.0</licenseMerge>
+                <licenseMerge>The Apache Software License, Version 2.0|Apache License 2.0</licenseMerge>
+                <licenseMerge>The Apache Software License, Version 2.0|Apache Public License 2.0</licenseMerge>
+                <licenseMerge>The Apache Software License, Version 2.0|Apache 2</licenseMerge>
+                <licenseMerge>The Apache Software License, Version 2.0|ASF 2.0</licenseMerge>
+                <licenseMerge>The Apache Software License, Version 2.0|Apache License Version 2</licenseMerge>
+                <licenseMerge>The Apache Software License, Version 2.0|Apache Software License - Version 2.0</licenseMerge>
+                <licenseMerge>New BSD License|New BSD license</licenseMerge>
+                <licenseMerge>GNU Lesser General Public License (LGPL), Version 2.1|LGPL 2.1</licenseMerge>
+              </licenseMerges>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+  </plugins>
+  </build>
+
+  <reporting>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-report-plugin</artifactId>
+        <version>${maven-surefire-report-plugin.version}</version>
+        <inherited>true</inherited>
+        <configuration>
+          <showSuccess>false</showSuccess>
+          <outputDirectory>${basedir}/target/surefire-reports</outputDirectory>
+        </configuration>
+        <reportSets>
+          <reportSet>
+            <id>unit-tests</id>
+            <reports>
+              <report>report-only</report>
+            </reports>
+          </reportSet>
+          <reportSet>
+            <id>integration-tests</id>
+            <reports>
+              <report>failsafe-report-only</report>
+            </reports>
+          </reportSet>
+        </reportSets>
+      </plugin>
+
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <inherited>true</inherited>
+        <artifactId>maven-project-info-reports-plugin</artifactId>
+        <version>${maven-project-info-reports-plugin.version}</version>
+        <configuration>
+          <dependencyLocationsEnabled>false</dependencyLocationsEnabled>
+        </configuration>
+      </plugin>
+
+
+    </plugins>
+  </reporting>
+
+  <dependencyManagement>
+    <dependencies>
+
+      <dependency>
+        <groupId>org.apache.slider</groupId>
+        <artifactId>slider-core</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.apache.slider</groupId>
+        <artifactId>slider-core</artifactId>
+        <version>${project.version}</version>
+        <type>test-jar</type>
+      </dependency>
+
+      <dependency>
+        <groupId>org.apache.slider</groupId>
+        <artifactId>slider-agent</artifactId>
+        <version>${project.version}</version>
+        <type>tar.gz</type>
+      </dependency>
+
+      <dependency>
+        <groupId>org.apache.slider</groupId>
+        <artifactId>slider-funtest</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.apache.slider</groupId>
+        <artifactId>slider-assembly</artifactId>
+        <classifier>all</classifier>
+        <version>${project.version}</version>
+        <type>tar.gz</type>
+      </dependency>
+
+       <dependency>
+        <groupId>org.apache.slider</groupId>
+        <artifactId>slider-hbase-provider</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.apache.slider</groupId>
+        <artifactId>slider-hbase-provider</artifactId>
+        <version>${project.version}</version>
+        <type>test-jar</type>
+      </dependency>
+
+      <dependency>
+        <groupId>org.codehaus.groovy</groupId>
+        <artifactId>groovy-all</artifactId>
+        <version>${groovy.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.codehaus.groovy</groupId>
+        <artifactId>groovy-all</artifactId>
+        <classifier>indy</classifier>
+        <version>${groovy.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>com.beust</groupId>
+        <artifactId>jcommander</artifactId>
+        <version>${jcommander.version}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>org.testng</groupId>
+            <artifactId>testng</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+
+      <!-- hadoop-client includes the following jars, so they do not need to be
+        included separately:
+        hadoop-common, hadoop-hdfs (client?), hadoop-mapreduce-client-app,
+        hadoop-yarn-api, hadoop-mapreduce-client-core,
+        hadoop-mapreduce-client-jobclient, and hadoop-annotations
+      -->
+      <dependency>
+        <groupId>org.apache.hadoop</groupId>
+        <artifactId>hadoop-client</artifactId>
+        <version>${hadoop.version}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>org.codehaus.jackson</groupId>
+            <artifactId>jackson-core-asl</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpcore</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+
+      <!--
+        Hadoop HDFS is pulled in to guarantee that any split to hadoop-hdfs-client doesn't
+        break the build.
+      -->
+      <dependency>
+        <groupId>org.apache.hadoop</groupId>
+        <artifactId>hadoop-hdfs</artifactId>
+        <version>${hadoop.version}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>org.codehaus.jackson</groupId>
+            <artifactId>jackson-core-asl</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpcore</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+
+      <!-- hadoop-minicluster includes the following test-jars, so they do not
+        need to be included separately:
+        hadoop-common, hadoop-hdfs, hadoop-yarn-server-tests,
+        hadoop-mapreduce-client-jobclient
+      -->
+      <dependency>
+        <groupId>org.apache.hadoop</groupId>
+        <artifactId>hadoop-minicluster</artifactId>
+        <version>${hadoop.version}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>com.sun.jersey.jersey-test-framework</groupId>
+            <artifactId>jersey-test-framework-grizzly2</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>net.java.dev.jets3t</groupId>
+            <artifactId>jets3t</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+
+      <dependency>
+        <groupId>org.apache.hadoop</groupId>
+        <artifactId>hadoop-yarn-client</artifactId>
+        <version>${hadoop.version}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>com.sun.jersey.jersey-test-framework</groupId>
+            <artifactId>jersey-test-framework-grizzly2</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+
+      <dependency>
+        <groupId>org.apache.hadoop</groupId>
+        <artifactId>hadoop-yarn-registry</artifactId>
+        <version>${hadoop.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.apache.hadoop</groupId>
+        <artifactId>hadoop-yarn-server-web-proxy</artifactId>
+        <version>${hadoop.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.apache.avro</groupId>
+        <artifactId>avro</artifactId>
+        <version>${avro.version}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>org.mortbay.jetty</groupId>
+            <artifactId>jetty</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.apache.ant</groupId>
+            <artifactId>ant</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.jboss.netty</groupId>
+            <artifactId>netty</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.apache.velocity</groupId>
+            <artifactId>velocity</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+          </exclusion>
+          <exclusion>
+            <artifactId>paranamer-ant</artifactId>
+            <groupId>com.thoughtworks.paranamer</groupId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+
+      <dependency>
+        <groupId>org.apache.bigtop.itest</groupId>
+        <artifactId>itest-common</artifactId>
+        <version>${bigtop.version}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>commons-logging</groupId>
+            <artifactId>commons-logging</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+
+      <dependency>
+        <groupId>commons-configuration</groupId>
+        <artifactId>commons-configuration</artifactId>
+        <version>${commons-configuration.version}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>commons-lang</groupId>
+            <artifactId>commons-lang</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>commons-logging</groupId>
+            <artifactId>commons-logging</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+
+      <dependency>
+        <groupId>commons-lang</groupId>
+        <artifactId>commons-lang</artifactId>
+        <version>${commons-lang.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>commons-httpclient</groupId>
+        <artifactId>commons-httpclient</artifactId>
+        <version>${httpclient.version}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>commons-codec</groupId>
+            <artifactId>commons-codec</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+
+      <dependency>
+        <groupId>org.apache.httpcomponents</groupId>
+        <artifactId>httpclient</artifactId>
+        <version>${httpclient4.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.apache.httpcomponents</groupId>
+        <artifactId>httpcore</artifactId>
+        <version>${httpclient4.version}</version>
+      </dependency>
+  
+      <!-- ======================================================== -->
+      <!-- HBASE -->
+      <!-- ======================================================== -->
+      
+      <dependency>
+        <groupId>org.apache.hbase</groupId>
+        <artifactId>hbase-client</artifactId>
+        <version>${hbase.version}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-core</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-auth</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-annotations</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-mapreduce-client-core</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+
+      <dependency>
+        <groupId>org.apache.hbase</groupId>
+        <artifactId>hbase-common</artifactId>
+        <version>${hbase.version}</version>
+        <classifier>tests</classifier>
+        <exclusions>
+          <exclusion>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-core</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-auth</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-annotations</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-mapreduce-client-core</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+
+      <dependency>
+        <groupId>org.apache.hbase</groupId>
+        <artifactId>hbase-common</artifactId>
+        <version>${hbase.version}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-core</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-auth</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-annotations</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-mapreduce-client-core</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+
+      <dependency>
+        <groupId>org.apache.hbase</groupId>
+        <artifactId>hbase-protocol</artifactId>
+        <version>${hbase.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.apache.hbase</groupId>
+        <artifactId>hbase-it</artifactId>
+        <version>${hbase.version}</version>
+        <classifier>tests</classifier>
+        <exclusions>
+          <exclusion>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-core</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-auth</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-annotations</artifactId>
+          </exclusion>
+
+          <exclusion>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-hdfs</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-mapreduce-client-core</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-mapreduce-client-jobclient</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+
+      <dependency>
+        <groupId>org.apache.hbase</groupId>
+        <artifactId>hbase-hadoop-compat</artifactId>
+        <version>${hbase.version}</version>
+        <classifier>tests</classifier>
+        <exclusions>
+          <exclusion>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-core</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-auth</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-annotations</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-mapreduce-client-core</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-hdfs</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-mapreduce-client-jobclient</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+
+      <dependency>
+        <groupId>org.apache.hbase</groupId>
+        <artifactId>hbase-hadoop2-compat</artifactId>
+        <version>${hbase.version}</version>
+        <classifier>tests</classifier>
+        <exclusions>
+          <exclusion>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-core</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-auth</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-annotations</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-mapreduce-client-core</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-mapreduce-client-jobclient</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+
+      <dependency>
+        <groupId>org.apache.hbase</groupId>
+        <artifactId>hbase-server</artifactId>
+        <version>${hbase.version}</version>
+        <classifier>tests</classifier>
+        <exclusions>
+          <exclusion>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-core</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-client</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-mapreduce-client-jobclient</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-mapreduce-client-core</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-auth</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-annotations</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-hdfs</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.apache.hbase</groupId>
+            <artifactId>hbase-hadoop1-compat</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-math</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>com.sun.jersey</groupId>
+            <artifactId>jersey-core</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>com.sun.jersey</groupId>
+            <artifactId>jersey-server</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>com.sun.jersey</groupId>
+            <artifactId>jersey-core</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>com.sun.jersey</groupId>
+            <artifactId>jersey-json</artifactId>
+          </exclusion>
+          <exclusion>
+            <!-- hbase uses v2.4, which is better, but ...-->
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+
+      <dependency>
+        <groupId>org.apache.hbase</groupId>
+        <artifactId>hbase-server</artifactId>
+        <version>${hbase.version}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-core</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-client</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-mapreduce-client-jobclient</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-mapreduce-client-core</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-auth</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-annotations</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-hdfs</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.apache.hbase</groupId>
+            <artifactId>hbase-hadoop1-compat</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-math</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>com.sun.jersey</groupId>
+            <artifactId>jersey-core</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>com.sun.jersey</groupId>
+            <artifactId>jersey-core</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>com.sun.jersey</groupId>
+            <artifactId>jersey-json</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>com.sun.jersey</groupId>
+            <artifactId>jersey-server</artifactId>
+          </exclusion>
+          <exclusion>
+            <!-- hbase uses v2.4, which is better, but ...-->
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+
+      <!-- ======================================================== -->
+      <!-- ZK -->
+      <!-- ======================================================== -->
+
+      <dependency>
+        <groupId>org.apache.zookeeper</groupId>
+        <artifactId>zookeeper</artifactId>
+        <version>${zookeeper.version}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.junit</groupId>
+            <artifactId>junit</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>com.sun.jdmk</groupId>
+            <artifactId>jmxtools</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>com.sun.jmx</groupId>
+            <artifactId>jmxri</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.jboss.netty</groupId>
+            <artifactId>netty</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+
+
+      <!-- ======================================================== -->
+      <!-- Accumulo -->
+      <!-- ======================================================== -->
+
+      <dependency>
+        <groupId>org.apache.accumulo</groupId>
+        <artifactId>accumulo-core</artifactId>
+        <version>${accumulo.version}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>org.apache.maven.scm</groupId>
+            <artifactId>maven-scm-api</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.apache.maven.scm</groupId>
+            <artifactId>maven-scm-api</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.apache.maven.scm</groupId>
+            <artifactId>maven-scm-provider-svnexe</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>commons-lang</groupId>
+            <artifactId>commons-lang</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>commons-logging</groupId>
+            <artifactId>commons-logging</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+
+      <dependency>
+        <groupId>org.apache.accumulo</groupId>
+        <artifactId>accumulo-fate</artifactId>
+        <version>${accumulo.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.apache.accumulo</groupId>
+        <artifactId>accumulo-minicluster</artifactId>
+        <version>${accumulo.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.apache.accumulo</groupId>
+        <artifactId>accumulo-trace</artifactId>
+        <version>${accumulo.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.apache.accumulo</groupId>
+        <artifactId>accumulo-test</artifactId>
+        <version>${accumulo.version}</version>
+      </dependency>
+
+
+      <!-- ======================================================== -->
+      <!-- Others -->
+      <!-- ======================================================== -->
+
+
+      <dependency>
+        <groupId>commons-digester</groupId>
+        <artifactId>commons-digester</artifactId>
+        <version>${commons-digester.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.apache.commons</groupId>
+        <artifactId>commons-compress</artifactId>
+        <version>${commons-compress.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>commons-io</groupId>
+        <artifactId>commons-io</artifactId>
+        <version>${commons-io.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>commons-logging</groupId>
+        <artifactId>commons-logging</artifactId>
+        <version>${commons-logging.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.apache.curator</groupId>
+        <artifactId>curator-client</artifactId>
+        <version>${curator.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.apache.curator</groupId>
+        <artifactId>curator-framework</artifactId>
+        <version>${curator.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.apache.curator</groupId>
+        <artifactId>curator-recipes</artifactId>
+        <version>${curator.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>com.google.guava</groupId>
+        <artifactId>guava</artifactId>
+        <version>${guava.version}</version>
+      </dependency>
+      
+      <dependency>
+        <groupId>log4j</groupId>
+        <artifactId>log4j</artifactId>
+        <version>${log4j.version}</version>
+      </dependency>
+      
+      <dependency>
+        <groupId>org.codehaus.jackson</groupId>
+        <artifactId>jackson-core-asl</artifactId>
+        <version>${jackson.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.codehaus.jackson</groupId>
+        <artifactId>jackson-mapper-asl</artifactId>
+        <version>${jackson.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.codehaus.jackson</groupId>
+        <artifactId>jackson-xc</artifactId>
+        <version>${jackson.version}</version>
+      </dependency>
+      
+      <dependency>
+        <groupId>org.codehaus.jackson</groupId>
+        <artifactId>jackson-jaxrs</artifactId>
+        <version>${jackson.version}</version>
+      </dependency>
+      
+      <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>slf4j-api</artifactId>
+        <version>${slf4j.version}</version>
+      </dependency>
+
+      <!-- Used for testing -->
+      <dependency>
+        <groupId>junit</groupId>
+        <artifactId>junit</artifactId>
+        <version>${junit.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>com.google.protobuf</groupId>
+        <artifactId>protobuf-java</artifactId>
+        <version>${protobuf.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>com.jcraft</groupId>
+        <artifactId>jsch</artifactId>
+        <version>${jsch.version}</version>
+      </dependency>
+
+      <!-- ======================================================== -->
+      <!-- Jersey and webapp support -->
+      <!-- ======================================================== -->
+
+      <dependency>
+        <groupId>javax.servlet</groupId>
+        <artifactId>servlet-api</artifactId>
+        <version>${servlet-api.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>javax.ws.rs</groupId>
+        <artifactId>jsr311-api</artifactId>
+        <version>${jsr311-api.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>javax.xml.bind</groupId>
+        <artifactId>jaxb-api</artifactId>
+        <version>${jaxb-api.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>javax.servlet.jsp</groupId>
+        <artifactId>jsp-api</artifactId>
+        <version>${jsp.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>com.sun.jersey</groupId>
+        <artifactId>jersey-client</artifactId>
+        <version>${jersey.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>com.sun.jersey.contribs</groupId>
+        <artifactId>jersey-apache-client</artifactId>
+        <version>${jersey.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>com.sun.jersey</groupId>
+        <artifactId>jersey-json</artifactId>
+        <version>${jersey.version}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>stax</groupId>
+            <artifactId>stax-api</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+
+      <dependency>
+        <groupId>com.sun.jersey</groupId>
+        <artifactId>jersey-server</artifactId>
+        <version>${jersey.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>com.google.inject</groupId>
+        <artifactId>guice</artifactId>
+        <version>${guice.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>com.google.code.gson</groupId>
+        <artifactId>gson</artifactId>
+        <version>${gson.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>com.google.inject.extensions</groupId>
+        <artifactId>guice-servlet</artifactId>
+        <version>${guice.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>com.sun.jersey.contribs</groupId>
+        <artifactId>jersey-guice</artifactId>
+        <version>${jersey.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>com.sun.jersey.jersey-test-framework</groupId>
+        <artifactId>jersey-test-framework-core</artifactId>
+        <version>${jersey.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>com.sun.jersey.jersey-test-framework</groupId>
+        <artifactId>jersey-test-framework-grizzly2</artifactId>
+        <version>${jersey.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>com.codahale.metrics</groupId>
+        <artifactId>metrics-core</artifactId>
+        <version>${metrics.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>com.codahale.metrics</groupId>
+        <artifactId>metrics-ganglia</artifactId>
+        <version>${metrics.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>com.codahale.metrics</groupId>
+        <artifactId>metrics-servlets</artifactId>
+        <version>${metrics.version}</version>
+      </dependency>
+
+      <!-- ======================================================== -->
+      <!-- Mocking -->
+      <!-- ======================================================== -->
+
+      <dependency>
+        <groupId>org.mockito</groupId>
+        <artifactId>mockito-core</artifactId>
+        <version>${mockito.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.easymock</groupId>
+        <artifactId>easymock</artifactId>
+        <version>${easymock.version}</version>
+      </dependency>
+
+      <!-- ======================================================== -->
+      <!-- Jetty -->
+      <!-- ======================================================== -->
+
+      <dependency>
+        <groupId>org.mortbay.jetty</groupId>
+        <artifactId>jetty</artifactId>
+        <version>${jetty.version}</version>
+        <exclusions>
+          <!-- cut the jetty version of the servlet API —Hadoop ships with one-->
+          <exclusion>
+            <groupId>org.mortbay.jetty</groupId>
+            <artifactId>servlet-api</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+
+      <dependency>
+        <groupId>org.mortbay.jetty</groupId>
+        <artifactId>jetty-util</artifactId>
+        <version>${jetty.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.mortbay.jetty</groupId>
+        <artifactId>jetty-sslengine</artifactId>
+        <version>${jetty.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.codehaus.jettison</groupId>
+        <artifactId>jettison</artifactId>
+        <version>1.1</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.powermock</groupId>
+        <artifactId>powermock-core</artifactId>
+        <version>1.5</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.powermock</groupId>
+        <artifactId>powermock-reflect</artifactId>
+        <version>1.5</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.powermock</groupId>
+        <artifactId>powermock-api-easymock</artifactId>
+        <version>1.5</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.powermock</groupId>
+        <artifactId>powermock-module-junit4</artifactId>
+        <version>1.5</version>
+      </dependency>
+
+      <dependency>
+        <groupId>asm</groupId>
+        <artifactId>asm</artifactId>
+        <version>3.3.1</version>
+      </dependency>
+
+    </dependencies>
+    
+  </dependencyManagement>
+
+  <profiles>
+
+    <profile>
+      <id>rat</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.rat</groupId>
+            <artifactId>apache-rat-plugin</artifactId>
+            <version>${apache-rat-plugin.version}</version>
+            <executions>
+              <execution>
+                <id>check-licenses</id>
+                <goals>
+                  <goal>check</goal>
+                </goals>
+              </execution>
+            </executions>
+            <configuration>
+              <excludes>
+                <exclude>**/*.json</exclude>
+                <exclude>**/*.tar</exclude>
+                <exclude>**/THIRD-PARTY.properties</exclude>
+                <exclude>**/build.properties</exclude>
+                <exclude>**/regionservers</exclude>
+                <exclude>**/slaves</exclude>
+                <exclude>**/httpfs-signature.secret</exclude>
+                <exclude>**/dfs.exclude</exclude>
+                <exclude>**/*.iml</exclude>
+                <exclude>**/rat.txt</exclude>
+                <exclude>**/test_password_file</exclude>
+                <exclude>DISCLAIMER</exclude>
+                <exclude>app-packages/hbase/target/**</exclude>
+                <exclude>target/*</exclude>
+                <exclude>DEPENDENCIES</exclude>
+              </excludes>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+
+    <profile>
+      <id>all-modules</id>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+      </activation>
+      <modules>
+        <module>app-packages</module>
+      </modules>
+    </profile>
+
+    <profile>
+      <id>no-app-packages</id>
+      <modules>
+      </modules>
+    </profile>
+
+    <profile>
+      <id>apache-release</id>
+      <!-- 
+      Build the release artifacts which become 
+      the official subject of any release vote.
+       
+      The process explicitly skips the app-packages as they are to be released
+      separately.
+       -->
+      <modules>
+        <module>app-packages/command-logger/application-pkg</module>
+        <module>app-packages/command-logger/slider-pkg</module>
+        <module>slider-core</module>
+        <module>slider-agent</module>
+        <module>slider-assembly</module>
+        <module>slider-funtest</module>
+      </modules>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-assembly-plugin</artifactId>
+            <version>${maven-assembly-plugin.version}</version>
+            <dependencies>
+              <dependency>
+                <groupId>org.apache.apache.resources</groupId>
+                <artifactId>apache-source-release-assembly-descriptor</artifactId>
+                <version>${apache-source-release-assembly-descriptor.version}</version>
+              </dependency>
+            </dependencies>
+            <executions>
+              <execution>
+                <id>source-release-assembly</id>
+                <goals>
+                  <goal>single</goal>
+                </goals>
+                <phase>package</phase>
+                <configuration>
+                  <runOnlyAtExecutionRoot>true</runOnlyAtExecutionRoot>
+                  <finalName>apache-slider-${project.version}</finalName>
+                  <descriptorRefs>
+                    <descriptorRef>source-release-zip-tar</descriptorRef>
+                  </descriptorRefs>
+                  <tarLongFileMode>gnu</tarLongFileMode>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-source-plugin</artifactId>
+            <version>${maven-source-plugin.version}</version>
+            <executions>
+              <execution>
+              <id>attach-sources</id>
+                <goals>
+                <goal>jar</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-javadoc-plugin</artifactId>
+            <version>${maven.javadoc.version}</version>
+            <executions>
+              <execution>
+              <id>attach-javadocs</id>
+              <goals>
+                <goal>jar</goal>
+              </goals>
+              </execution>
+            </executions>
+          </plugin>
+            <!--
+            <plugin>
+              <groupId>com.bluetrainsoftware.maven</groupId>
+              <artifactId>maven-groovydoc-plugin</artifactId>
+              <version>${maven-groovydoc-plugin.version}</version>
+              <executions>
+                <execution>
+                  <id>attach-javadocs</id>
+                  <goals>
+                    <goal>attach-docs</goal>
+                  </goals>
+                </execution>
+              </executions>
+            </plugin>
+            -->
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-gpg-plugin</artifactId>
+            <version>${maven-gpg-plugin.version}</version>
+            <executions>
+              <execution>
+                <id>sign-artifacts</id>
+                <phase>verify</phase>
+                <goals>
+                  <goal>sign</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+
+    <!--
+    The maven deploy plugin is more minimal than the mvn deploy plugin,
+    but more tractable
+    https://maven.apache.org/plugins/maven-deploy-plugin/
+    -->
+    <profile>
+      <id>nexus</id>
+      <build>
+        <plugins>
+          <plugin>
+            <inherited>true</inherited>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-deploy-plugin</artifactId>
+            <version>${maven-deploy-plugin.version}</version>
+            <configuration>
+              <updateReleaseInfo>true</updateReleaseInfo>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+
+    <profile>
+      <!-- 2.6 snapshots -->
+      <id>branch-2.6</id>
+      <properties>
+        <hadoop.version>2.6.0-SNAPSHOT</hadoop.version>
+      </properties>
+    </profile>
+
+    <profile>
+      <!-- 2.6 -->
+      <id>release-2.6</id>
+      <properties>
+        <hadoop.version>2.6.0</hadoop.version>
+        <curator.version>2.4.1</curator.version>
+      </properties>
+    </profile>
+
+    <profile>
+      <!-- hadoop 2.7.2 -->
+      <id>release-2.7</id>
+      <properties>
+        <hadoop.version>2.7.2</hadoop.version>
+      </properties>
+    </profile>
+
+    <profile>
+      <!-- hadoop 2.7.2 -->
+      <id>hadoop-2.7.2</id>
+      <properties>
+        <hadoop.version>2.7.2</hadoop.version>
+      </properties>
+    </profile>
+
+    <profile>
+      <!-- hadoop branch-2 builds  -->
+      <id>branch-2.8</id>
+      <properties>
+        <hadoop.version>2.8.0-SNAPSHOT</hadoop.version>
+      </properties>
+    </profile>
+    
+    <profile>
+      <!-- hadoop branch-2 builds  -->
+      <id>branch-2</id>
+      <properties>
+        <hadoop.version>2.9.0-SNAPSHOT</hadoop.version>
+      </properties>
+    </profile>
+    
+    <profile>
+      <!-- hadoop trunk builds  -->
+      <id>trunk</id>
+      <properties>
+        <hadoop.version>3.0.0-SNAPSHOT</hadoop.version>
+      </properties>
+    </profile>
+
+    <profile>
+      <!-- Java 8 build -->
+      <id>java8</id>
+      <properties>
+        <project.java.src.version>1.8</project.java.src.version>
+<!--
+        <jersey.version>1.19</jersey.version>
+-->
+      </properties>
+    </profile>
+    
+    <profile>
+      <!-- anything for a jenkins build -->
+      <id>jenkins</id>
+      <properties>
+        <build.redirect.test.output.to.file>true
+        </build.redirect.test.output.to.file>
+      </properties>
+    </profile>
+
+    <profile>
+    <id>strict</id>
+    <!--enable this if you want to get told off about dependency conflict-->
+    <build>
+
+      <plugins>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-enforcer-plugin</artifactId>
+          <version>${maven-enforcer-plugin.version}</version>
+          <executions>
+            <execution>
+              <id>enforce</id>
+              <configuration>
+                <rules>
+                  <DependencyConvergence />
+                </rules>
+              </configuration>
+              <goals>
+                <goal>enforce</goal>
+              </goals>
+            </execution>
+          </executions>
+        </plugin>
+      </plugins>
+
+    </build>
+    </profile>
+    <profile>
+      <id>sign</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-gpg-plugin</artifactId>
+            <version>${maven-gpg-plugin.version}</version>
+            <executions>
+              <execution>
+                <id>sign-artifacts</id>
+                <phase>verify</phase>
+                <goals>
+                  <goal>sign</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+
+    <profile>
+      <id>private-repo</id>
+      <!-- this profile is for pulling custom app versions from a private maven repo -->
+      <activation>
+        <property>
+          <name>private.repo.url</name>
+        </property>
+      </activation>
+      <repositories>
+        <repository>
+          <releases>
+            <enabled>true</enabled>
+          </releases>
+          <snapshots>
+            <enabled>false</enabled>
+          </snapshots>
+          <id>private-repo</id>
+          <name>Private Repo</name>
+          <url>${private.repo.url}</url>
+        </repository>
+      </repositories>
+    </profile>
+
+    <!-- see https://github.com/rvowles/maven-groovydoc-plugin -->
+    <profile>
+      <id>groovydoc</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>com.bluetrainsoftware.maven</groupId>
+            <artifactId>maven-groovydoc-plugin</artifactId>
+            <version>${maven-groovydoc-plugin.version}</version>
+            <executions>
+              <execution>
+                <id>attach-docs</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>attach-docs</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    
+    <profile>
+      <id>javadoc</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-javadoc-plugin</artifactId>
+            <version>${maven.javadoc.version}</version>
+            <executions>
+              <execution>
+                <id>attach-javadocs</id>
+                <goals>
+                  <goal>jar</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+
+  </profiles>
+
+</project>

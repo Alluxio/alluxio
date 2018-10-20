@@ -1,0 +1,221 @@
+<project>
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>dom4j</groupId>
+  <artifactId>dom4j</artifactId>
+  <name>dom4j</name>
+  <version>1.6.1</version>
+  <description>dom4j: the flexible XML framework for Java</description>
+  <url>http://dom4j.org</url>
+  <issueManagement>
+    <url>http://sourceforge.net/tracker/?group_id=16035</url>
+  </issueManagement>
+  <ciManagement>
+    <notifiers>
+      <notifier>
+        <address>dom4j-dev@lists.sourceforge.net</address>
+      </notifier>
+    </notifiers>
+  </ciManagement>
+  <inceptionYear>2001</inceptionYear>
+  <mailingLists>
+    <mailingList>
+      <name>dom4j user list</name>
+      <subscribe>http://lists.sourceforge.net/lists/listinfo/dom4j-user</subscribe>
+      <unsubscribe>http://lists.sourceforge.net/lists/listinfo/dom4j-user</unsubscribe>
+      <archive>http://www.mail-archive.com/dom4j-user%40lists.sourceforge.net/</archive>
+    </mailingList>
+    <mailingList>
+      <name>dom4j developer list</name>
+      <subscribe>http://lists.sourceforge.net/lists/listinfo/dom4j-dev</subscribe>
+      <unsubscribe>http://lists.sourceforge.net/lists/listinfo/dom4j-dev</unsubscribe>
+      <archive>http://www.mail-archive.com/dom4j-dev%40lists.sourceforge.net/</archive>
+    </mailingList>
+    <mailingList>
+      <name>dom4j commits list</name>
+      <subscribe>http://lists.sourceforge.net/lists/listinfo/dom4j-commits</subscribe>
+      <unsubscribe>http://lists.sourceforge.net/lists/listinfo/dom4j-commits</unsubscribe>
+    </mailingList>
+  </mailingLists>
+  <developers>
+    <developer>
+      <id>carnold</id>
+      <name>Curt Arnold</name>
+      <email>carnold@users.sourceforge.net</email>
+    </developer>
+    <developer>
+      <id>ddlucas</id>
+      <name>David Lucas</name>
+      <email>ddlucas@users.sourceforge.net</email>
+    </developer>
+    <developer>
+      <id>drwhite</id>
+      <name>David White</name>
+      <email>drwhite@users.sourceforge.net</email>
+    </developer>
+    <developer>
+      <id>jjenkov</id>
+      <name>Jakob Jenkov</name>
+      <email>jjenkov@users.sourceforge.net</email>
+    </developer>
+    <developer>
+      <id>jstrachan</id>
+      <name>James Strachan</name>
+      <email>jstrachan@apache.org</email>
+      <organization>SpiritSoft, Inc.</organization>
+    </developer>
+    <developer>
+      <id>laramiec</id>
+      <name>Laramie Crocker</name>
+      <email>laramiec@users.sourceforge.net</email>
+    </developer>
+    <developer>
+      <id>maartenc</id>
+      <name>Maarten Coene</name>
+      <email>maartenc@users.sourceforge.net</email>
+      <organization>Cronos</organization>
+    </developer>
+    <developer>
+      <id>mskells</id>
+      <name>Michael Skells</name>
+      <email>mskells@users.sourceforge.net</email>
+    </developer>
+    <developer>
+      <id>nicksanderson</id>
+      <name>Nick Sanderson</name>
+      <email>nicksanderson@users.sourceforge.net</email>
+    </developer>
+    <developer>
+      <id>slehmann</id>
+      <name>Steen Lehmann</name>
+      <email>slehmann@users.sourceforge.net</email>
+    </developer>
+    <developer>
+      <id>tradem</id>
+      <name>Tobias Rademacher</name>
+      <email>tradem@users.sourceforge.net</email>
+    </developer>
+    <developer>
+      <id>werken</id>
+      <name>Bob McWhirter</name>
+      <email>werken@users.sourceforge.net</email>
+    </developer>
+    <developer>
+      <id>wolfftw</id>
+      <name>Todd Wolff</name>
+      <email>wolfftw@users.sourceforge.net</email>
+    </developer>
+    <developer>
+      <id>yeekee</id>
+      <name>OuYang Chen</name>
+      <email>yeekee@users.sourceforge.net</email>
+    </developer>
+    <developer>
+      <id>yruan2</id>
+      <name>Yuxin Ruan</name>
+      <email>yruan2@users.sourceforge.net</email>
+    </developer>
+  </developers>
+  <scm>
+    <connection>scm:cvs:pserver:anonymous@cvs.sourceforge.net:/cvsroot/dom4j:dom4j</connection>
+    <developerConnection>scm:cvs:ext:${maven.username}@cvs.sourceforge.net:/cvsroot/dom4j:dom4j</developerConnection>
+    <url>http://cvs.sourceforge.net/cgi-bin/viewcvs.cgi/dom4j/dom4j/</url>
+  </scm>
+  <organization>
+    <name>MetaStuff Ltd.</name>
+    <url>http://sourceforge.net/projects/dom4j</url>
+  </organization>
+  <build>
+    <sourceDirectory>src/java</sourceDirectory>
+    <testSourceDirectory>src/test</testSourceDirectory>
+    <plugins>
+      <plugin>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <includes>
+            <include>**/*Test.java</include>
+          </includes>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+  <dependencies>
+    <dependency>
+      <groupId>jaxme</groupId>
+      <artifactId>jaxme-api</artifactId>
+      <version>0.3</version>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>jaxen</groupId>
+      <artifactId>jaxen</artifactId>
+      <version>1.1-beta-6</version>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>msv</groupId>
+      <artifactId>xsdlib</artifactId>
+      <version>20030807</version>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>msv</groupId>
+      <artifactId>relaxngDatatype</artifactId>
+      <version>20030807</version>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>pull-parser</groupId>
+      <artifactId>pull-parser</artifactId>
+      <version>2</version>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>xpp3</groupId>
+      <artifactId>xpp3</artifactId>
+      <version>1.1.3.3</version>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>stax</groupId>
+      <artifactId>stax-api</artifactId>
+      <version>1.0</version>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>xml-apis</groupId>
+      <artifactId>xml-apis</artifactId>
+      <version>1.0.b2</version>
+    </dependency>
+    <dependency>
+      <groupId>junitperf</groupId>
+      <artifactId>junitperf</artifactId>
+      <version>1.8</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>stax</groupId>
+      <artifactId>stax-ri</artifactId>
+      <version>1.0</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>xerces</groupId>
+      <artifactId>xercesImpl</artifactId>
+      <version>2.6.2</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>xalan</groupId>
+      <artifactId>xalan</artifactId>
+      <version>2.5.1</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+  <distributionManagement>
+    <site>
+      <id>default</id>
+      <name>Default Site</name>
+      <url>scp://dom4j.org//home/groups/d/do/dom4j/htdocs</url>
+    </site>
+  </distributionManagement>
+</project>

@@ -1,0 +1,17 @@
+<project>
+
+  <!-- jar downloaded from http://download.java.net/maven/1/javax.transaction/ -->
+
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>javax.transaction</groupId>
+  <artifactId>jta</artifactId>
+  <version>1.1</version>
+  <name>Java Transaction API</name>
+  <description>
+    The javax.transaction package. It is appropriate for inclusion in a classpath, and may be added to a Java 2 installation.
+  </description>
+  <url>http://java.sun.com/products/jta</url>
+  <distributionManagement>
+    <downloadUrl>http://java.sun.com/products/jta</downloadUrl>
+  </distributionManagement>
+</project>

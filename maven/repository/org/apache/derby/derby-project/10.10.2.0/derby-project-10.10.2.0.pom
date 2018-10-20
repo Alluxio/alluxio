@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Licensed to the Apache Software Foundation (ASF) under one
+  or more contributor license agreements.  See the NOTICE file
+  distributed with this work for additional information
+  regarding copyright ownership.  The ASF licenses this file
+  to you under the Apache License, Version 2.0 (the
+  "License"); you may not use this file except in compliance
+  with the License.  You may obtain a copy of the License at
+
+  http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing,
+  software distributed under the License is distributed on an
+  "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+  KIND, either express or implied.  See the License for the
+  specific language governing permissions and limitations
+  under the License.
+  -->
+<project
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+    xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>org.apache.derby</groupId>
+  <parent>
+    <groupId>org.apache</groupId>
+    <artifactId>apache</artifactId>
+    <version>10</version>
+  </parent>
+  <artifactId>derby-project</artifactId>
+  <version>10.10.2.0</version>
+  <packaging>pom</packaging>
+  <name>Apache Derby Project</name>
+  <description>Apache Derby is an open source relational database implemented entirely in Java.</description>
+  <url>http://db.apache.org/derby/</url>
+  <inceptionYear>2004</inceptionYear>
+  <organization>
+    <name>Apache Software Foundation</name>
+    <url>http://db.apache.org/</url>
+  </organization>
+  <licenses>
+    <license>
+      <name>Apache 2</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      <distribution>repo</distribution>
+      <comments>A business-friendly OSS license</comments>
+    </license>
+  </licenses>
+  <mailingLists>
+    <mailingList>
+      <name>Derby User List</name>
+      <subscribe>derby-user-subscribe@db.apache.org</subscribe>
+      <unsubscribe>derby-user-unsubscribe@db.apache.org</unsubscribe>
+      <archive>http://mail-archives.apache.org/mod_mbox/db-derby-user/</archive>
+      <otherArchives>
+        <otherArchive>http://www.nabble.com/Apache-Derby-Users-f93.html</otherArchive>
+      </otherArchives>
+    </mailingList>
+    <mailingList>
+      <name>Derby Developer List</name>
+      <subscribe>derby-dev-subscribe@db.apache.org</subscribe>
+      <unsubscribe>derby-dev-unsubscribe@db.apache.org</unsubscribe>
+      <archive>http://mail-archives.apache.org/mod_mbox/db-derby-dev/</archive>
+      <otherArchives>
+        <otherArchive>http://www.nabble.com/Apache-Derby-Developers-f91.html</otherArchive>
+      </otherArchives>
+    </mailingList>
+    <mailingList>
+      <name>Derby Commit List</name>
+      <subscribe>derby-commits-subscribe@db.apache.org</subscribe>
+      <unsubscribe>derby-commits-unsubscribe@db.apache.org</unsubscribe>
+      <archive>http://mail-archives.apache.org/mod_mbox/db-derby-commits/</archive>
+    </mailingList>
+  </mailingLists>
+  <issueManagement>
+    <system>JIRA</system>
+    <url>https://issues.apache.org/jira/browse/DERBY</url>
+  </issueManagement>
+  <scm>
+    <connection>scm:svn:http://svn.apache.org/repos/asf/db/derby/code/trunk</connection>
+    <developerConnection>scm:svn:https://svn.apache.org/repos/asf/db/derby/code/trunk</developerConnection>
+    <url>http://svn.apache.org/viewcvs.cgi/db/derby/code/trunk/?root=Apache-SVN</url>
+  </scm>
+
+  <modules>
+    <module>engine</module>
+    <module>net</module>
+    <module>client</module>
+    <module>tools</module>
+    <module>war</module>
+    <module>derbyLocale_cs</module>
+    <module>derbyLocale_de_DE</module>
+    <module>derbyLocale_es</module>
+    <module>derbyLocale_fr</module>
+    <module>derbyLocale_hu</module>
+    <module>derbyLocale_it</module>
+    <module>derbyLocale_ja_JP</module>
+    <module>derbyLocale_ko_KR</module>
+    <module>derbyLocale_pl</module>
+    <module>derbyLocale_pt_BR</module>
+    <module>derbyLocale_ru</module>
+    <module>derbyLocale_zh_CN</module>
+    <module>derbyLocale_zh_TW</module>
+  </modules>
+
+  <build>
+    <plugins>
+      <!-- Generate signatures for the artifacts using GnuPG.
+           This requires that you have GnuPG installed and in the search path.
+        -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-gpg-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>sign-artifacts</id>
+            <phase>verify</phase>
+            <goals>
+              <goal>sign</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+  </plugins>
+  </build>
+
+  <!-- Properties used throughout the build / install. -->
+  <properties>
+    <!-- RELEASE_DATA: How to specify your signing key passphrase.
+         If you're not using an agent, you will have to enter the signing key
+         phassphrase a lot of times. Since this file will be deployed, DO NOT
+         specify the passphrase here. If you don't have an agent running,
+         use a command-line property when invoking maven
+         (-Dgpg.passpharse=PASSPHRASE) or configure GnuPG to obtain your
+         passphrase another way.
+    <gpg.passphrase>DO_NOT_SPECIFY_YOUR_PASSPHRASE_HERE</gpg.passphrase>
+      -->
+    <gpg.useagent>true</gpg.useagent>
+    <!-- Have Maven generate checksums (MD5 and SHA1) for the artifacts. -->
+    <createChecksum>true</createChecksum>
+    <!-- All plugins should use this value.
+         See http://docs.codehaus.org/display/MAVENUSER/POM+Element+for+Source+File+Encoding
+      -->
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <!-- Specifies whether to package the sane (debug) or insane jar.
+         Valid values: sane|insane
+      -->
+    <sanity>insane</sanity>
+  </properties>
+
+</project>

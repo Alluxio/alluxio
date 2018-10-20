@@ -1,0 +1,419 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>org.apache.hive</groupId>
+    <artifactId>hive</artifactId>
+    <version>2.3.2</version>
+    <relativePath>../pom.xml</relativePath>
+  </parent>
+
+  <artifactId>hive-metastore</artifactId>
+  <packaging>jar</packaging>
+  <name>Hive Metastore</name>
+
+  <properties>
+    <hive.path.to.root>..</hive.path.to.root>
+  </properties>
+
+  <dependencies>
+    <!-- dependencies are always listed in sorted order by groupId, artifectId -->
+    <!-- intra-project -->
+    <dependency>
+      <groupId>org.apache.hive</groupId>
+      <artifactId>hive-serde</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.hive</groupId>
+      <artifactId>hive-shims</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+	<dependency>
+		<groupId>javolution</groupId>
+		<artifactId>javolution</artifactId>
+		<version>${javolution.version}</version>
+	</dependency>
+    <!-- inter-project -->
+    <dependency>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
+      <version>${guava.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.google.protobuf</groupId>
+      <artifactId>protobuf-java</artifactId>
+      <version>${protobuf.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.hbase</groupId>
+      <artifactId>hbase-client</artifactId>
+      <version>${hbase.version}</version>
+       <exclusions>
+             <exclusion>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>commmons-logging</groupId>
+            <artifactId>commons-logging</artifactId>
+          </exclusion>
+      </exclusions>
+   </dependency>
+    <dependency>
+      <groupId>com.jolbox</groupId>
+      <artifactId>bonecp</artifactId>
+      <version>${bonecp.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.zaxxer</groupId>
+      <artifactId>HikariCP</artifactId>
+      <version>${hikaricp.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>commons-cli</groupId>
+      <artifactId>commons-cli</artifactId>
+      <version>${commons-cli.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>commons-lang</groupId>
+      <artifactId>commons-lang</artifactId>
+      <version>${commons-lang.version}</version>
+    </dependency>
+    <!-- XXX we probably shouldn't be shipping this but the tests depend on it -->
+    <dependency>
+      <groupId>org.apache.derby</groupId>
+      <artifactId>derby</artifactId>
+      <version>${derby.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.datanucleus</groupId>
+      <artifactId>datanucleus-api-jdo</artifactId>
+      <version>${datanucleus-api-jdo.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.datanucleus</groupId>
+      <artifactId>datanucleus-core</artifactId>
+      <version>${datanucleus-core.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.datanucleus</groupId>
+      <artifactId>datanucleus-rdbms</artifactId>
+      <version>${datanucleus-rdbms.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>commons-pool</groupId>
+      <artifactId>commons-pool</artifactId>
+      <version>${commons-pool.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>commons-dbcp</groupId>
+      <artifactId>commons-dbcp</artifactId>
+      <version>${commons-dbcp.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>javax.jdo</groupId>
+      <artifactId>jdo-api</artifactId>
+      <version>${jdo-api.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.datanucleus</groupId>
+      <artifactId>javax.jdo</artifactId>
+      <version>${datanucleus-jdo.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.antlr</groupId>
+      <artifactId>antlr-runtime</artifactId>
+      <version>${antlr.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.hadoop</groupId>
+      <artifactId>hadoop-common</artifactId>
+      <version>${hadoop.version}</version>
+      <optional>true</optional>
+      <exclusions>
+        <exclusion>
+          <groupId>org.slf4j</groupId>
+          <artifactId>slf4j-log4j12</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>commmons-logging</groupId>
+          <artifactId>commons-logging</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.hadoop</groupId>
+      <artifactId>hadoop-hdfs</artifactId>
+      <version>${hadoop.version}</version>
+      <optional>true</optional>
+      <exclusions>
+        <exclusion>
+          <groupId>org.slf4j</groupId>
+          <artifactId>slf4j-log4j12</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>commmons-logging</groupId>
+          <artifactId>commons-logging</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.hadoop</groupId>
+      <artifactId>hadoop-mapreduce-client-core</artifactId>
+      <version>${hadoop.version}</version>
+      <optional>true</optional>
+            <exclusions>
+            <exclusion>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>commmons-logging</groupId>
+            <artifactId>commons-logging</artifactId>
+          </exclusion>
+        </exclusions>
+  </dependency>
+    <dependency>
+      <groupId>org.apache.thrift</groupId>
+      <artifactId>libfb303</artifactId>
+      <version>${libfb303.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.thrift</groupId>
+      <artifactId>libthrift</artifactId>
+      <version>${libthrift.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>co.cask.tephra</groupId>
+      <artifactId>tephra-api</artifactId>
+      <version>${tephra.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>co.cask.tephra</groupId>
+      <artifactId>tephra-core</artifactId>
+      <version>${tephra.version}</version>
+      <exclusions>
+          <exclusion>
+          <groupId>ch.qos.logback</groupId>
+          <artifactId>logback-classic</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>ch.qos.logback</groupId>
+          <artifactId>logback-core</artifactId>
+        </exclusion>
+       <exclusion>
+          <groupId>org.ow2.asm</groupId>
+          <artifactId>asm-all</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>co.cask.tephra</groupId>
+      <artifactId>tephra-hbase-compat-1.0</artifactId>
+      <version>${tephra.version}</version>
+    </dependency>
+    <!-- test intra-project -->
+    <dependency>
+      <groupId>org.apache.hive</groupId>
+      <artifactId>hive-common</artifactId>
+      <version>${project.version}</version>
+      <type>test-jar</type>
+      <scope>test</scope>
+    </dependency>
+    <!-- test inter-project -->
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>${junit.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-all</artifactId>
+      <version>${mockito-all.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.lmax</groupId>
+      <artifactId>disruptor</artifactId>
+      <version>${disruptor.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.skyscreamer</groupId>
+      <artifactId>jsonassert</artifactId>
+      <version>1.4.0</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <profiles>
+    <profile>
+      <id>thriftif</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>com.google.code.maven-replacer-plugin</groupId>
+            <artifactId>replacer</artifactId>
+            <version>1.5.3</version>
+            <executions>
+              <execution>
+                <id>process-thrift-sources</id>
+                <phase>process-sources</phase>
+                <goals>
+                  <goal>replace</goal>
+                </goals>
+              </execution>
+            </executions>
+            <configuration>
+              <basedir>${basedir}/src/gen/thrift/gen-javabean/org/apache/hadoop/hive/metastore/api/</basedir>
+              <includes>
+                <include>FieldSchema.java</include>
+                <include>Partition.java</include>
+                <include>SerDeInfo.java</include>
+                <include>StorageDescriptor.java</include>
+              </includes>
+              <tokenValueMap>${basedir}/src/main/resources/thrift-replacements.txt</tokenValueMap>
+              <regex>true</regex>
+              <quiet>false</quiet>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <profile>
+      <id>protobuf</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-antrun-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>generate-protobuf-sources</id>
+                <phase>generate-sources</phase>
+                <configuration>
+                  <target>
+                    <property name="protobuf.src.dir"  location="${basedir}/src/protobuf"/>
+                    <property name="protobuf.build.dir"  location="${basedir}/src/gen/protobuf/gen-java"/>
+                    <echo>Building HBase Metastore Protobuf</echo>
+                    <mkdir dir="${protobuf.build.dir}"/>
+                    <exec executable="protoc" failonerror="true">
+                      <arg value="--java_out=${protobuf.build.dir}"/>
+                      <arg value="-I=${protobuf.src.dir}/org/apache/hadoop/hive/metastore/hbase"/>
+                      <arg value="${protobuf.src.dir}/org/apache/hadoop/hive/metastore/hbase/hbase_metastore_proto.proto"/>
+                    </exec>
+                    <exec executable="protoc" failonerror="true">
+                      <arg value="--java_out=${protobuf.build.dir}"/>
+                      <arg value="-I=${protobuf.src.dir}/org/apache/hadoop/hive/metastore"/>
+                      <arg value="${protobuf.src.dir}/org/apache/hadoop/hive/metastore/metastore.proto"/>
+                    </exec>
+                  </target>
+                </configuration>
+                <goals>
+                  <goal>run</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+
+  <build>
+    <sourceDirectory>${basedir}/src/java</sourceDirectory>
+    <testSourceDirectory>${basedir}/src/test</testSourceDirectory>
+    <resources>
+      <resource>
+        <directory>${basedir}/src/model</directory>
+        <includes>
+          <include>package.jdo</include>
+        </includes>
+      </resource>
+    </resources>
+    <plugins>
+      <!-- plugins are always listed in sorted order by groupId, artifectId -->
+      <plugin>
+        <groupId>org.antlr</groupId>
+        <artifactId>antlr3-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <goals>
+              <goal>antlr</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <sourceDirectory>${basedir}/src/java</sourceDirectory>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <executions>
+          <execution>
+            <goals>
+              <goal>test-jar</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>build-helper-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>add-source</id>
+            <phase>generate-sources</phase>
+            <goals>
+              <goal>add-source</goal>
+            </goals>
+            <configuration>
+              <sources>
+                <source>src/model</source>
+                <source>src/gen/thrift/gen-javabean</source>
+                <source>src/gen/protobuf/gen-java</source>
+              </sources>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.datanucleus</groupId>
+        <artifactId>datanucleus-maven-plugin</artifactId>
+        <configuration>
+          <api>JDO</api>
+          <verbose>true</verbose>
+          <metadataIncludes>**/*.jdo</metadataIncludes>
+          <fork>false</fork>
+        </configuration>
+        <executions>
+          <execution>
+            <phase>process-classes</phase>
+            <goals>
+              <goal>enhance</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+
+</project>

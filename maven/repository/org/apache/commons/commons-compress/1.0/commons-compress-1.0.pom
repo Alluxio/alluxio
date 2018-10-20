@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+   Licensed to the Apache Software Foundation (ASF) under one or more
+   contributor license agreements.  See the NOTICE file distributed with
+   this work for additional information regarding copyright ownership.
+   The ASF licenses this file to You under the Apache License, Version 2.0
+   (the "License"); you may not use this file except in compliance with
+   the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>org.apache.commons</groupId>
+    <artifactId>commons-parent</artifactId>
+    <version>11</version>
+  </parent>
+
+  <artifactId>commons-compress</artifactId>
+  <version>1.0</version>
+  <name>Commons Compress</name>
+  <url>http://commons.apache.org/compress/</url>
+  <description>Commons Compress is a component that contains Ar, Cpio, Jar, Tar, Zip and BZip2 packages</description>
+
+  <issueManagement>
+    <system>jira</system>
+    <url>http://issues.apache.org/jira/browse/COMPRESS</url>
+  </issueManagement>
+
+  <dependencies>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>3.8.2</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <developers>
+    <developer>
+      <name>Torsten Curdt</name>
+      <id>tcurdt</id>
+      <email>tcurdt at apache.org</email>
+    </developer>
+    <developer>
+      <name>Stefan Bodewig</name>
+      <id>bodewig</id>
+      <email>bodewig at apache.org</email>
+    </developer>
+    <developer>
+      <name>Sebastian Bazley</name>
+      <id>sebb</id>
+      <email>sebb at apache.org</email>
+    </developer>
+    <developer>
+      <name>Christian Grobmeier</name>
+      <email>grobmeier at apache.org</email>
+    </developer>
+  </developers>
+
+  <contributors>
+    <contributor>
+      <name>Wolfgang Glas</name>
+      <email>wolfgang.glas at ev-i.at</email>
+    </contributor>
+    <contributor>
+      <name>Christian Kohlschütte</name>
+      <email>ck@newsclub.de</email>
+    </contributor>
+  </contributors>
+
+  <scm>
+    <connection>scm:svn:http://svn.apache.org/repos/asf/commons/proper/compress/tags/commons-compress-1.0</connection>
+    <developerConnection>scm:svn:https://svn.apache.org/repos/asf/commons/proper/compress/tags/commons-compress-1.0</developerConnection>
+    <url>http://svn.apache.org/repos/asf/commons/proper/compress/tags/commons-compress-1.0</url>
+  </scm>
+
+  <distributionManagement>
+    <site>
+      <id>website</id>
+      <name>Apache Website</name>
+      <url>scp://people.apache.org/www/commons.apache.org/compress/</url>
+    </site>
+  </distributionManagement>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+    <maven.compile.source>1.4</maven.compile.source>
+    <maven.compile.target>1.4</maven.compile.target>
+    <commons.componentid>compress</commons.componentid>
+    <commons.jira.id>COMPRESS</commons.jira.id>
+    <commons.jira.pid>12310904</commons.jira.pid>
+    <!-- configuration bits for cutting a release candidate -->
+    <commons.release.version>1.0</commons.release.version>
+    <commons.rc.version>RC2</commons.rc.version>
+  </properties>
+
+  <build>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <!-- Override plugin versions in parent Pom, which are too old to support manifests -->
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-source-plugin</artifactId>
+          <version>2.1</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-javadoc-plugin</artifactId>
+          <version>2.5</version>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+    <plugins>
+      <plugin>
+        <!-- create the source and binary assemblies -->
+        <artifactId>maven-assembly-plugin</artifactId>
+        <configuration>
+          <descriptors>
+            <descriptor>src/assembly/bin.xml</descriptor>
+            <descriptor>src/assembly/src.xml</descriptor>
+          </descriptors>
+          <tarLongFileMode>gnu</tarLongFileMode>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-source-plugin</artifactId>
+        <configuration>
+          <archive>
+            <manifest>
+              <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+              <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+            </manifest>
+          </archive>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
+  <reporting>
+    <plugins>
+      <plugin>
+        <!-- generate the changes report from changes.xml and link to JIRA -->
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-changes-plugin</artifactId>
+        <version>2.0</version>
+        <configuration>
+          <issueLinkTemplate>%URL%/%ISSUE%</issueLinkTemplate>
+        </configuration>
+        <reportSets>
+          <reportSet>
+            <reports>
+              <report>changes-report</report>
+            </reports>
+          </reportSet>
+        </reportSets>
+      </plugin>
+      <plugin>
+        <!-- generate a code coverage report -->
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>cobertura-maven-plugin</artifactId>
+        <version>2.2</version>
+      </plugin>
+      <plugin>
+        <!-- generate the PMD reports -->
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-pmd-plugin</artifactId>
+        <version>2.4</version>
+        <configuration>
+          <minimumTokens>200</minimumTokens>
+          <targetJdk>${maven.compile.source}</targetJdk>
+          <rulesets>
+            <ruleset>/rulesets/basic.xml</ruleset>
+            <ruleset>/rulesets/finalizers.xml</ruleset>
+            <ruleset>/rulesets/imports.xml</ruleset>
+            <ruleset>/rulesets/unusedcode.xml</ruleset>
+          </rulesets>
+        </configuration>
+      </plugin>
+      <!-- Override Javadoc config in parent pom to add default manifest entries -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <configuration> 
+          <archive>
+            <manifest>
+              <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+              <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+            </manifest>
+          </archive>
+          <aggregate>false</aggregate>
+          <source>${maven.compile.source}</source>
+          <encoding>${commons.encoding}</encoding>
+          <docEncoding>${commons.docEncoding}</docEncoding>
+          <linksource>true</linksource>
+          <links>
+            <link>http://java.sun.com/javase/6/docs/api/</link>
+          </links>
+        </configuration> 
+      </plugin>
+    </plugins>
+  </reporting>
+
+  <profiles>
+    <profile>
+      <id>rc</id>
+      <distributionManagement>
+        <!-- Cannot define in parent ATM, see COMMONSSITE-26 -->
+        <site>
+          <id>apache.website</id>
+          <name>Apache Commons Release Candidate Staging Site</name>
+          <url>${commons.deployment.protocol}://people.apache.org/www/people.apache.org/builds/commons/${commons.componentid}/${commons.release.version}/${commons.rc.version}/site</url>
+        </site>
+      </distributionManagement>
+    </profile>
+  </profiles>
+
+</project>

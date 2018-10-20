@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion> 
+  <parent>
+    <groupId>com.fasterxml.jackson</groupId>
+    <artifactId>jackson-base</artifactId>
+    <version>2.9.7</version>
+  </parent>
+  <groupId>com.fasterxml.jackson.dataformat</groupId>
+  <artifactId>jackson-dataformat-xml</artifactId>
+  <version>2.9.7</version>
+  <name>Jackson-dataformat-XML</name>
+  <packaging>bundle</packaging>
+  <description>Data format extension for Jackson (http://jackson.codehaus.org) to offer
+alternative support for serializing POJOs as XML and deserializing XML as pojos.
+Support implemented on top of Stax API (javax.xml.stream), by implementing core Jackson Streaming API types like JsonGenerator, JsonParser and JsonFactory.
+Some data-binding types overridden as well (ObjectMapper sub-classed as XmlMapper).
+  </description>
+  <url>http://wiki.fasterxml.com/JacksonExtensionXmlDataBinding</url>
+  <scm>
+    <connection>scm:git:git@github.com:FasterXML/jackson-dataformat-xml.git</connection>
+    <developerConnection>scm:git:git@github.com:FasterXML/jackson-dataformat-xml.git</developerConnection>
+    <url>http://github.com/FasterXML/jackson-dataformat-xml</url>    
+    <tag>jackson-dataformat-xml-2.9.7</tag>
+  </scm>
+  <properties>
+    <packageVersion.dir>com/fasterxml/jackson/dataformat/xml</packageVersion.dir>
+    <packageVersion.package>${project.groupId}.xml</packageVersion.package>
+
+    <!-- Default export should work fine... -->
+    <!-- And presumably import too? -->
+  </properties>
+
+  <dependencies>
+    <!-- Extends Jackson (jackson-mapper); requires Stax API (and implementation on deploy time), Stax2 API.
+         Also requires JAXB annotations module
+      -->
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-annotations</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+    </dependency>
+    <!--  JAXB annotation introspector is needed too? -->
+    <dependency>
+      <groupId>com.fasterxml.jackson.module</groupId>
+      <artifactId>jackson-module-jaxb-annotations</artifactId>
+    </dependency>
+    <!-- JDK 1.6 provides stax-api (javax.xml.stream), but let's add this for documentation
+      -->
+    <dependency>
+      <groupId>javax.xml.stream</groupId>
+      <artifactId>stax-api</artifactId>
+      <version>1.0-2</version>
+      <scope>provided</scope>
+    </dependency>
+    <!--  But Stax2 API must be included -->
+    <dependency>
+      <groupId>org.codehaus.woodstox</groupId>
+      <artifactId>stax2-api</artifactId>
+      <!-- 01-Jan-2010, Stupid Maven Release plug-in mandates a non-range
+            version
+        -->
+<!--
+      <version>[3.0.4, 3.5.0)</version>
+-->
+      <version>3.1.4</version>
+    </dependency>
+    <!--  and a Stax impl is needed: SJSXP (from JDK 1.6) might work, but always   
+          has odd issues. Let's default to Woodstox: caller can upgrade to Aalto
+         (needs to block this dep)
+      -->
+    <!-- 09-May-2016, tatu: With Jackson 2.8, let's make this compile-dep to make it
+        less likely users accidentally try to use Sjsxp from JDK, which leads to probs
+      -->
+    <dependency>
+      <groupId>com.fasterxml.woodstox</groupId>
+      <artifactId>woodstox-core</artifactId>
+      <version>5.0.3</version>
+    </dependency>
+
+    <!-- 04-Feb-2018, tatu: Finally, Java 9 does not bundle JAXB, not even API;
+            at least include it for tests. May need to include actual dep to
+            API for runtime too, but first for tests
+      -->
+    <dependency>
+      <groupId>javax.xml.bind</groupId>
+      <artifactId>jaxb-api</artifactId>
+      <version>2.3.0</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <!-- Inherited from oss-base. Generate PackageVersion.java.-->
+        <groupId>com.google.code.maven-replacer-plugin</groupId>
+        <artifactId>replacer</artifactId>
+        <executions>
+          <execution>
+            <id>process-packageVersion</id>
+            <phase>generate-sources</phase>
+          </execution>
+        </executions>
+      </plugin>
+      <!--  Need to skip known-failing tests for build... -->
+      <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-surefire-plugin</artifactId>
+          <version>${version.plugin.surefire}</version>
+          <configuration>
+            <excludes>
+              <exclude>com/fasterxml/jackson/dataformat/xml/failing/*.java</exclude>
+            </excludes>
+            <includes>
+              <include>**/Test*.java</include>
+              <include>**/*Test.java</include>
+            </includes>
+          </configuration>
+        </plugin>
+    </plugins>
+  </build>
+
+  <profiles>
+    <!--  19-Feb-2012, tatu: Since we have some failing tests, may need to force release -->
+    <profile>
+      <id>force-release</id>
+      <properties>
+        <maven.test.skip>true</maven.test.skip>
+        <skipTests>true</skipTests>
+      </properties>
+    </profile>
+  </profiles>
+  <!-- NOTE: repositories from parent POM -->
+
+</project>

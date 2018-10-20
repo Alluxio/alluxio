@@ -1,0 +1,429 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!--
+    DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
+
+    Copyright 1997-2009 Sun Microsystems, Inc. All rights reserved.
+
+    The contents of this file are subject to the terms of either the GNU
+    General Public License Version 2 only ("GPL") or the Common Development
+    and Distribution License("CDDL") (collectively, the "License").  You
+    may not use this file except in compliance with the License. You can obtain
+    a copy of the License at https://glassfish.dev.java.net/public/CDDL+GPL.html
+    or glassfish/bootstrap/legal/LICENSE.txt.  See the License for the specific
+    language governing permissions and limitations under the License.
+
+    When distributing the software, include this License Header Notice in each
+    file and include the License file at glassfish/bootstrap/legal/LICENSE.txt.
+    Sun designates this particular file as subject to the "Classpath" exception
+    as provided by Sun in the GPL Version 2 section of the License file that
+    accompanied this code.  If applicable, add the following below the License
+    Header, with the fields enclosed by brackets [] replaced by your own
+    identifying information: "Portions Copyrighted [year]
+    [name of copyright owner]"
+
+    Contributor(s):
+
+    If you wish your version of this file to be governed by only the CDDL or
+    only the GPL Version 2, indicate your decision by adding "[Contributor]
+    elects to include this software in this distribution under the [CDDL or GPL
+    Version 2] license."  If you don't indicate a single choice of license, a
+    recipient has the option to distribute your version of this file under
+    either the CDDL, the GPL Version 2 or to extend the choice of license to
+    its licensees as provided above.  However, if you add GPL Version 2 code
+    and therefore, elected the GPL Version 2 license, then the option applies
+    only if the new code is made subject to such option by the copyright
+    holder.
+-->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+			    http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>com.sun.mail</groupId>
+    <artifactId>all</artifactId>
+    <packaging>pom</packaging>
+    <version>1.4.3</version>
+    <name>JavaMail API distribution</name>
+    <description>${project.name}</description>
+    <url>http://java.sun.com/projects/javamail</url>
+
+    <licenses>
+      <license>
+        <name>CDDL</name>
+        <url>http://www.sun.com/cddl</url>
+        <distribution>repo</distribution>
+        <comments>A business-friendly OSS license</comments>
+      </license>
+      <license>
+        <name>GPLv2+CE</name>
+        <url>https://glassfish.dev.java.net/public/CDDL+GPL.html</url>
+        <distribution>repo</distribution>
+        <comments>GPL version 2 plus the Classpath Exception</comments>
+      </license>
+    </licenses>
+
+    <organization>
+	<name>Sun Microsystems, Inc.</name>
+	<url>http://www.sun.com</url>
+    </organization>
+
+    <properties>
+	<mail.version>1.4.3</mail.version>
+	<!-- like mail.version, but with underscores instead of dots -->
+	<mail.zipversion>1_4_3</mail.zipversion>
+	<mail.spec.version>1.4</mail.spec.version>
+	<activation-api.version>1.1</activation-api.version>
+	<!-- defaults that are overridden in mail module -->
+	<mail.extensionName>
+	    ${project.groupId}.${project.artifactId}
+	</mail.extensionName>
+	<mail.specificationTitle>
+	    ${project.groupId}.${project.artifactId}
+	</mail.specificationTitle>
+	<mail.implementationTitle>
+	    ${project.groupId}.${project.artifactId}
+	</mail.implementationTitle>
+	<mail.packages.export>
+	    javax.mail.*; version=${mail.spec.version}
+	</mail.packages.export>
+	<mail.packages.import>
+	    javax.security.sasl;resolution:=optional,
+	    sun.security.util;resolution:=optional,
+	    jcifs.ntlmssp;resolution:=optional,
+	    *
+	</mail.packages.import>
+	<mail.packages.private>
+	    com.sun.mail.*
+	</mail.packages.private>
+	<mail.probeFile/>
+	<!-- for the osgiversion-maven-plugin -->
+	<hk2.plugin.version>0.4.11</hk2.plugin.version>
+    </properties>
+
+    <developers>
+        <developer>
+            <id>shannon</id>
+            <name>Bill Shannon</name>
+            <organization>Sun Microsystems, Inc.</organization>
+            <roles>
+                <role>lead</role>
+            </roles>
+        </developer>
+    </developers>
+
+    <modules>
+	<module>mail</module>
+	<module>mailapi</module>
+	<module>smtp</module>
+	<module>imap</module>
+	<module>pop3</module>
+	<module>dsn</module>
+    </modules>
+
+    <profiles>
+	<!--
+	    This profile contains modules that should only be built
+	    but not installed or deployed.
+	-->
+	<profile>
+	    <id>build-only</id>
+	    <modules>
+		<module>mbox</module>
+		<module>demo</module>
+		<module>client</module>
+		<module>servlet</module>
+		<module>webapp</module>
+		<module>taglib</module>
+		<module>logging</module>
+		<module>javadoc</module>
+	    </modules>
+	    <activation>
+		<activeByDefault>true</activeByDefault>
+	    </activation>
+	</profile>
+
+	<!--
+	    Activating this profile manually for deployment causes
+	    the above profile to be deactivated, which works around
+	    an apparent bug in maven that prevents me from manually
+	    deactivating a profile.  This profile purposely has none
+	    of the modules I don't want to be deployed.
+	-->
+	<profile>
+	    <id>deploy</id>
+	</profile>
+    </profiles>
+
+    <distributionManagement>
+	<repository>
+	    <id>java.net-m2-repository</id>
+	    <url>java-net:/maven2-repository/trunk/repository/</url>
+	    <uniqueVersion>false</uniqueVersion>
+	</repository>
+    </distributionManagement>
+
+    <build>
+	<defaultGoal>install</defaultGoal>
+        <plugins>
+	    <!--
+		This plugin is reponsible for packaging artifacts
+		as OSGi bundles.  Please refer to
+		http://felix.apache.org/site/maven-bundle-plugin-bnd.html
+		for more information about how to use this plugin.
+	    -->
+	    <plugin>
+		<groupId>org.apache.felix</groupId>
+		<artifactId>maven-bundle-plugin</artifactId>
+		<configuration>
+		    <instructions>
+			<Export-Package>
+			    ${mail.packages.export}
+			</Export-Package>
+			<Import-Package>
+			    ${mail.packages.import}
+			</Import-Package>
+			<Private-Package>
+			    ${mail.packages.private}
+			</Private-Package>
+		    </instructions>
+		</configuration>
+		<!--
+		    Since we don't change the packaging type to bundle, we
+		    need to configure the plugin to execute the manifest goal
+		    during the process-classes phase of the build life cycle.
+		-->
+		<executions>
+		    <execution>
+			<id>osgi-manifest</id>
+			<phase>process-classes</phase>
+			<goals>
+			    <goal>manifest</goal>
+			</goals>
+		    </execution>
+		</executions>
+	    </plugin>
+
+	    <!--
+		Since we don't want a qualifier like b05 or SNAPSHOT to
+		appear in the OSGi package version attribute, we use
+		the following plugin to populate a project property
+		with an OSGi version that is equivalent to the maven
+		version without the qualifier.
+	    -->
+	    <plugin>
+		<groupId>com.sun.enterprise</groupId>
+		<artifactId>osgiversion-maven-plugin</artifactId>
+		<version>${hk2.plugin.version}</version>
+		<configuration>
+		    <dropVersionComponent>qualifier</dropVersionComponent>
+		    <versionPropertyName>mail.osgiversion</versionPropertyName>
+		</configuration>
+		<executions>
+		    <execution>
+			<id>compute-osgi-version</id>
+			<goals>
+			    <goal>compute-osgi-version</goal>
+			</goals>
+		    </execution>
+		</executions>
+	    </plugin>
+
+            <plugin>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>1.4</source>
+                    <target>1.4</target>
+                </configuration>
+	    </plugin>
+
+	    <plugin>
+		<artifactId>maven-jar-plugin</artifactId>
+		<!-- need at least this version to make excludes work -->
+		<configuration>
+		    <finalName>${project.artifactId}</finalName>
+		    <archive>
+			<!--
+			    Configure the maven-jar-plugin to pick up
+			    META-INF/MANIFEST.MF that's generated by
+			    the maven-bundle-plugin.
+			-->
+			<manifestFile>
+			  ${project.build.outputDirectory}/META-INF/MANIFEST.MF
+			</manifestFile>
+			<manifestEntries>
+			    <Extension-Name>
+				${mail.extensionName}
+			    </Extension-Name>
+			    <Specification-Title>
+				${mail.specificationTitle}
+			    </Specification-Title>
+			    <Specification-Version>
+				${mail.spec.version}</Specification-Version>
+			    <Specification-Vendor>
+				${project.organization.name}
+			    </Specification-Vendor>
+			    <Implementation-Title>
+				${mail.implementationTitle}
+			    </Implementation-Title>
+			    <Implementation-Version>
+				${project.version}
+			    </Implementation-Version>
+			    <Implementation-Vendor>
+				${project.organization.name}
+			    </Implementation-Vendor>
+			    <Implementation-Vendor-Id>
+				com.sun
+			    </Implementation-Vendor-Id>
+			    <Probe-Provider-XML-File-Names>
+				${mail.probeFile}
+			    </Probe-Provider-XML-File-Names>
+			</manifestEntries>
+		    </archive>
+		    <excludes>
+			<exclude>**/*.java</exclude>
+		    </excludes>
+		</configuration>
+	    </plugin>
+
+	    <!--
+		This is the rule that creates the zip file for distribution.
+	    -->
+	    <plugin>
+		<artifactId>maven-assembly-plugin</artifactId>
+		<inherited>false</inherited>
+		<!--
+		    I'd like this to be run as part of the
+		    package phase, but that doesn't work.
+		    Have to run it explicitly as:
+
+		    mvn package assembly:assembly
+
+		<executions>
+		    <execution>
+			<phase>package</phase>
+			<goals>
+			    <goal>assembly</goal>
+			</goals>
+		-->
+			<configuration>
+			    <finalName>javamail${mail.zipversion}</finalName>
+			    <descriptors>
+				<descriptor>assembly.xml</descriptor>
+			    </descriptors>
+			</configuration>
+		<!--
+		    </execution>
+		</executions>
+		-->
+	    </plugin>
+
+<!-- not used
+	    <plugin>
+		<artifactId>maven-release-plugin</artifactId>
+		<configuration>
+		    <arguments>-P deploy</arguments>
+		</configuration>
+	    </plugin>
+-->
+        </plugins>
+
+	<pluginManagement>
+	    <plugins>
+		<plugin>
+		    <!--
+			By default, disable the FindBugs plugin for all modules.
+			It's enabled in the "mail" module, which is the only
+			module where we actually want to run it.
+		    -->
+		    <groupId>org.codehaus.mojo</groupId>
+		    <artifactId>findbugs-maven-plugin</artifactId>
+		    <version>RELEASE</version>
+		    <configuration>
+			<skip>true</skip>
+		    </configuration>
+		</plugin>
+	    </plugins>
+	</pluginManagement>
+
+	<extensions>
+	    <extension>
+		<groupId>org.jvnet.wagon-svn</groupId>
+		<artifactId>wagon-svn</artifactId>
+		<!--
+		    Following should be:
+		<version>RELEASE</version>
+		    but Kohsuke says it doesn't work and to replace
+		    it with the actual version number.
+		-->
+		<version>1.8</version>
+	    </extension>
+	</extensions>
+    </build>
+
+    <dependencyManagement>
+	<dependencies>
+	    <dependency>
+		<groupId>javax.mail</groupId>
+		<artifactId>mail</artifactId>
+		<version>${mail.version}</version>
+	    </dependency>
+	    <dependency>
+		<groupId>com.sun.mail</groupId>
+		<artifactId>dsn</artifactId>
+		<version>${mail.version}</version>
+	    </dependency>
+	    <dependency>
+		<groupId>com.sun.mail</groupId>
+		<artifactId>mbox</artifactId>
+		<version>${mail.version}</version>
+	    </dependency>
+	    <dependency>
+		<groupId>com.sun.mail</groupId>
+		<artifactId>taglib</artifactId>
+		<version>${mail.version}</version>
+	    </dependency>
+	    <dependency>
+		<groupId>javax.servlet</groupId>
+		<artifactId>servlet-api</artifactId>
+		<version>2.5</version>
+	    </dependency>
+	    <dependency>
+		<groupId>javax.servlet.jsp</groupId>
+		<artifactId>jsp-api</artifactId>
+		<version>2.1</version>
+	    </dependency>
+	</dependencies>
+    </dependencyManagement>
+
+    <dependencies>
+        <dependency>
+            <groupId>javax.activation</groupId>
+            <artifactId>activation</artifactId>
+            <version>${activation-api.version}</version>
+        </dependency>
+	<!-- following works around a bug that causes NullPointerException -->
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.3.1</version>
+	    <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <repositories>
+	<repository>
+	    <id>maven2-repository.dev.java.net</id>
+	    <name>Java.net Repository for Maven</name>
+	    <url>http://download.java.net/maven/2/</url>
+	</repository>
+    </repositories>
+
+    <pluginRepositories>
+	<pluginRepository>
+	    <id>glassfish-repo-archive</id>
+	    <name>M2 repo for GlassFish project specific artifacts</name>
+	    <url>http://download.java.net/maven/glassfish/</url>
+	</pluginRepository>
+    </pluginRepositories>
+</project>

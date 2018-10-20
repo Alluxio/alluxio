@@ -1,0 +1,95 @@
+<!--
+ Copyright Microsoft Corporation
+ 
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+ http://www.apache.org/licenses/LICENSE-2.0
+ 
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>com.microsoft.azure</groupId>
+  <artifactId>azure-bom</artifactId>
+  <version>0.8.0</version>
+  <packaging>pom</packaging>
+
+  <name>Microsoft Azure SDK</name>
+  <description>This package contains Microsoft Azure SDK for Java.</description>
+  <url>https://github.com/Azure/azure-sdk-for-java</url>
+
+  <licenses>
+    <license>
+      <name>The Apache Software License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+
+  <scm>
+    <url>scm:git:https://github.com/Azure/azure-sdk-for-java</url>
+    <connection>scm:git:git@github.com:Azure/azure-sdk-for-java.git</connection>
+    <tag>v0.8.0</tag>
+  </scm>
+
+  <properties>
+    <projectVersion>0.8.0-SNAPSHOT</projectVersion>
+  </properties>
+
+  <developers>
+    <developer>
+      <id>microsoft</id>
+      <name>Microsoft</name>
+    </developer>
+  </developers>
+  <modules>
+    <module>azure</module>
+  </modules>
+  <build>
+  	<pluginManagement>
+  		<plugins>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-release-plugin</artifactId>
+          <version>2.5.2</version>
+        </plugin>
+  			<!--This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself.-->
+  			<plugin>
+  				<groupId>org.eclipse.m2e</groupId>
+  				<artifactId>lifecycle-mapping</artifactId>
+  				<version>1.0.0</version>
+  				<configuration>
+  					<lifecycleMappingMetadata>
+  						<pluginExecutions>
+  							<pluginExecution>
+  								<pluginExecutionFilter>
+  									<groupId>
+  										org.apache.maven.plugins
+  									</groupId>
+  									<artifactId>
+  										maven-checkstyle-plugin
+  									</artifactId>
+  									<versionRange>
+  										[2.11,)
+  									</versionRange>
+  									<goals>
+  										<goal>check</goal>
+  									</goals>
+  								</pluginExecutionFilter>
+  								<action>
+  									<ignore />
+  								</action>
+  							</pluginExecution>
+  						</pluginExecutions>
+  					</lifecycleMappingMetadata>
+  				</configuration>
+  			</plugin>
+  		</plugins>
+  	</pluginManagement>
+  </build>
+</project>

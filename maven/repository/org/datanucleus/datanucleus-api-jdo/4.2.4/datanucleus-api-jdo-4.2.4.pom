@@ -1,0 +1,87 @@
+<?xml version="1.0"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.datanucleus</groupId>
+        <artifactId>datanucleus-maven-parent</artifactId>
+        <version>4.0.5</version>
+    </parent>
+
+    <artifactId>datanucleus-api-jdo</artifactId>
+    <version>4.2.4</version>
+
+    <name>DataNucleus JDO API plugin</name>
+    <description>
+        Plugin providing DataNucleus implementation of the JDO API.
+    </description>
+
+    <scm>
+        <connection>scm:git:git@github.com:datanucleus/${project.artifactId}.git</connection>
+        <developerConnection>scm:git:git@github.com:datanucleus/${project.artifactId}.git</developerConnection>
+        <url>https://github.com/datanucleus/${project.artifactId}</url>
+    </scm>
+
+    <properties>
+        <jdo.version>3.2.0-m3</jdo.version>
+        <dn.core.version>4.1.0-release</dn.core.version>
+    </properties>
+
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <argLine>${argLine} -Xmx128m</argLine>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-bundle-plugin</artifactId>
+                <configuration>
+                    <instructions>
+                        <Bundle-SymbolicName>org.datanucleus.api.jdo;singleton:=true</Bundle-SymbolicName>
+                        <Import-Package>
+                            javax.jdo*;version="${jdo.version}",
+                            org.datanucleus*;version="${dn.core.version}",
+                            *;resolution:=optional
+                        </Import-Package>
+                    </instructions>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+    
+    <dependencies>
+        <dependency>
+            <!-- groupId>javax.jdo</groupId>
+            <artifactId>jdo-api</artifactId-->
+            <groupId>org.datanucleus</groupId>
+            <artifactId>javax.jdo</artifactId>
+            <version>${jdo.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.datanucleus</groupId>
+            <artifactId>datanucleus-core</artifactId>
+            <version>[${dn.core.version}, 4.9)</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>javax.transaction</groupId> 
+            <artifactId>jta</artifactId> 
+            <version>1.1</version>
+            <scope>provided</scope>
+            <optional>true</optional>
+        </dependency>
+
+        <!-- Test dependencies -->
+        <dependency>
+            <groupId>log4j</groupId>
+            <artifactId>log4j</artifactId>
+            <version>[1.2, 1.3)</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+</project>

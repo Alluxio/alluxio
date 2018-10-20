@@ -1,0 +1,18 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <parent>
+    <groupId>org.eclipse.jetty.orbit</groupId>
+    <artifactId>jetty-orbit</artifactId>
+    <version>1</version>
+  </parent>
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>org.eclipse.jetty.orbit</groupId>
+  <artifactId>org.eclipse.jdt.core</artifactId>
+  <version>3.8.2.v20130121</version>
+  <name>Jetty Orbit :: JDT Compiler</name>
+  <description>
+    This artifact originates from the Eclipse Project at Eclipse, 
+    it is an osgi bundle and is signed as well.  Originally:
+    org.eclipse.jdt.core.compiler.batch_3.8.2.v20130121-145325
+  </description>
+  <packaging>orbit</packaging>
+</project>

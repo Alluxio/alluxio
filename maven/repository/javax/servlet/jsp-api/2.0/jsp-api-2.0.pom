@@ -1,0 +1,14 @@
+<project>
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>javax.servlet</groupId>
+  <artifactId>jsp-api</artifactId>
+  <version>2.0</version>
+  <dependencies>
+    <dependency>
+      <groupId>javax.servlet</groupId>
+      <artifactId>servlet-api</artifactId>
+      <version>2.4</version>
+      <scope>compile</scope>
+    </dependency>
+  </dependencies>
+</project>

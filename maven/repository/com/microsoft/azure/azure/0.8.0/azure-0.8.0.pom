@@ -1,0 +1,406 @@
+<!--
+ Copyright Microsoft Corporation
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+ http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>com.microsoft.azure</groupId>
+    <version>0.8.0</version>
+    <artifactId>azure-bom</artifactId>
+  </parent>
+
+  <artifactId>azure</artifactId>
+  <packaging>pom</packaging>
+
+  <name>Microsoft Azure SDK Parent</name>
+  <description>This package contains the parent module of Microsoft Azure SDK.</description>
+  <url>https://github.com/Azure/azure-sdk-for-java</url>
+
+  <licenses>
+    <license>
+      <name>The Apache Software License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+
+  <scm>
+    <url>scm:git:https://github.com/Azure/azure-sdk-for-java</url>
+    <connection>scm:git:git@github.com:Azure/azure-sdk-for-java.git</connection>
+    <tag>v0.8.0</tag>
+  </scm>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <legal><![CDATA[[INFO] Any downloads listed may be third party software.  Microsoft grants you no rights for third party software.]]></legal>
+    <testMode>playback</testMode>
+  </properties>
+
+  <developers>
+    <developer>
+      <id>microsoft</id>
+      <name>Microsoft</name>
+    </developer>
+  </developers>
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>org.apache.httpcomponents</groupId>
+        <artifactId>httpclient</artifactId>
+        <version>4.3.6</version>
+      </dependency>
+      <dependency>
+        <groupId>commons-lang</groupId>
+        <artifactId>commons-lang</artifactId>
+        <version>2.6</version>
+      </dependency>
+      <dependency>
+        <groupId>javax.xml.bind</groupId>
+        <artifactId>jaxb-api</artifactId>
+        <version>2.2.7</version>
+        <scope>provided</scope>
+      </dependency>
+      <dependency>
+        <groupId>javax.mail</groupId>
+        <artifactId>mail</artifactId>
+        <version>1.4.5</version>
+      </dependency>
+      <dependency>
+        <groupId>javax.inject</groupId>
+        <artifactId>javax.inject</artifactId>
+        <version>1</version>
+      </dependency>
+      <dependency>
+        <groupId>com.sun.jersey</groupId>
+        <artifactId>jersey-client</artifactId>
+        <version>1.13</version>
+      </dependency>
+      <dependency>
+        <groupId>com.sun.jersey</groupId>
+        <artifactId>jersey-json</artifactId>
+        <version>1.13</version>
+      </dependency>
+      <dependency>
+        <groupId>commons-logging</groupId>
+        <artifactId>commons-logging</artifactId>
+        <version>1.1.1</version>
+      </dependency>
+      <dependency>
+        <groupId>com.microsoft.azure</groupId>
+        <artifactId>azure-storage</artifactId>
+        <version>1.2.0</version>
+      </dependency>
+      <dependency>
+        <groupId>com.fasterxml.jackson.core</groupId>
+        <artifactId>jackson-core</artifactId>
+        <version>2.2.3</version>
+      </dependency>
+      <dependency>
+        <groupId>com.microsoft.azure</groupId>
+        <artifactId>adal4j</artifactId>
+        <version>1.0.0</version>
+      </dependency>
+      <dependency>
+        <groupId>junit</groupId>
+        <artifactId>junit</artifactId>
+        <version>4.11</version>
+      </dependency>
+      <dependency>
+        <groupId>junit</groupId>
+        <artifactId>junit-dep</artifactId>
+        <version>4.11</version>
+      </dependency>
+
+      <!-- Test dependencies -->
+      <dependency>
+        <groupId>org.hamcrest</groupId>
+        <artifactId>hamcrest-all</artifactId>
+        <version>1.3</version>
+      </dependency>
+      <dependency>
+        <groupId>org.mockito</groupId>
+        <artifactId>mockito-all</artifactId>
+        <version>1.9.0</version>
+      </dependency>
+      <dependency>
+        <groupId>org.bouncycastle</groupId>
+        <artifactId>bcprov-jdk16</artifactId>
+        <version>1.46</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>commons-io</groupId>
+        <artifactId>commons-io</artifactId>
+        <version>2.4</version>
+      </dependency>
+      <dependency>
+        <groupId>com.github.tomakehurst</groupId>
+        <artifactId>wiremock</artifactId>
+        <version>1.47</version>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-help-plugin</artifactId>
+        <version>2.1.1</version>
+        <executions>
+          <execution>
+            <phase>validate</phase>
+            <goals>
+              <goal>evaluate</goal>
+            </goals>
+            <configuration>
+              <expression>legal</expression>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.1</version>
+        <configuration>
+          <source>1.6</source>
+          <target>1.6</target>
+          <showWarnings>true</showWarnings>
+          <showDeprecation>true</showDeprecation>
+          <compilerArgument>-Xlint:unchecked</compilerArgument>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <version>2.8</version>
+        <configuration>
+          <additionalparam>-Xdoclint:none</additionalparam>
+          <excludePackageNames>*.implementation.*;*.utils.*;com.microsoft.schemas._2003._10.serialization;*.blob.core.storage</excludePackageNames>
+          <bottom><![CDATA[<code>/**
+<br />* Copyright Microsoft Corporation
+<br />*
+<br />* Licensed under the Apache License, Version 2.0 (the "License");
+<br />* you may not use this file except in compliance with the License.
+<br />* You may obtain a copy of the License at
+<br />* http://www.apache.org/licenses/LICENSE-2.0
+<br />*
+<br />* Unless required by applicable law or agreed to in writing, software
+<br />* distributed under the License is distributed on an "AS IS" BASIS,
+<br />* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+<br />* See the License for the specific language governing permissions and
+<br />* limitations under the License.
+<br />*/</code>]]></bottom>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>findbugs-maven-plugin</artifactId>
+        <version>2.3.2</version>
+        <configuration>
+          <xmlOutput>true</xmlOutput>
+          <findbugsXmlOutput>true</findbugsXmlOutput>
+          <findbugsXmlWithMessages>true</findbugsXmlWithMessages>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-checkstyle-plugin</artifactId>
+        <version>2.11</version>
+        <executions>
+          <execution>
+            <id>validate</id>
+            <phase>validate</phase>
+            <configuration>
+              <configLocation>src/config/checkstyle.xml</configLocation>
+              <encoding>UTF-8</encoding>
+              <consoleOutput>true</consoleOutput>
+              <failsOnError>true</failsOnError>
+              <failOnViolation>true</failOnViolation>
+              <linkXRef>false</linkXRef>
+            </configuration>
+            <goals>
+              <goal>check</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-release-plugin</artifactId>
+        <version>2.5.2</version>
+      </plugin>
+    </plugins>
+    <pluginManagement>
+      <plugins>
+        <!--This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself.-->
+        <plugin>
+          <groupId>org.eclipse.m2e</groupId>
+          <artifactId>lifecycle-mapping</artifactId>
+          <version>1.0.0</version>
+          <configuration>
+            <lifecycleMappingMetadata>
+              <pluginExecutions>
+                <pluginExecution>
+                  <pluginExecutionFilter>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-help-plugin</artifactId>
+                    <versionRange>[2.1.1,)</versionRange>
+                    <goals>
+                      <goal>evaluate</goal>
+                    </goals>
+                  </pluginExecutionFilter>
+                  <action>
+                    <ignore />
+                  </action>
+                </pluginExecution>
+                <pluginExecution>
+                  <pluginExecutionFilter>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-checkstyle-plugin</artifactId>
+                    <versionRange>[2.11,)</versionRange>
+                    <goals>
+                      <goal>check</goal>
+                    </goals>
+                  </pluginExecutionFilter>
+                  <action>
+                    <ignore />
+                  </action>
+                </pluginExecution>
+              </pluginExecutions>
+            </lifecycleMappingMetadata>
+          </configuration>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-resources-plugin</artifactId>
+          <version>2.4.3</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-surefire-plugin</artifactId>
+          <version>2.18.1</version>
+          <configuration>
+            <includes>
+              <include>**/Test*.java</include>
+              <include>**/*Test.java</include>
+              <include>**/*Tests.java</include>
+              <include>**/*TestCase.java</include>
+            </includes>
+            <environmentVariables>
+              <test.mode>${testMode}</test.mode>
+            </environmentVariables>
+          </configuration>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-release-plugin</artifactId>
+          <version>2.5.2</version>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+  </build>
+  <reporting>
+    <plugins>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>emma-maven-plugin</artifactId>
+        <inherited>true</inherited>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>surefire-report-maven-plugin</artifactId>
+        <version>2.0-beta-1</version>
+        <inherited>true</inherited>
+      </plugin>
+    </plugins>
+  </reporting>
+  <profiles>
+    <profile>
+      <id>run-shade-plugin</id>
+      <activation>
+        <property><name>runShadePlugin</name></property>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-shade-plugin</artifactId>
+            <version>2.4.1</version>
+            <configuration>
+            </configuration>
+            <executions>
+              <execution>
+                <id>shade-plugin</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>shade</goal>
+                </goals>
+                <configuration>
+                  <filters>
+                    <filter>
+                      <artifact>*:*</artifact>
+                      <excludes>
+                        <exclude>META-INF/*.SF</exclude>
+                        <exclude>META-INF/*.DSA</exclude>
+                        <exclude>META-INF/*.RSA</exclude>
+                      </excludes>
+                    </filter>
+                  </filters>
+                  <transformers>
+                    <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
+                  </transformers>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+  <modules>
+    <module>../core/azure-core</module>
+    <module>../core/azure-core-test</module>
+    <module>../core/azure-tracing-util</module>
+    <module>../services/keyvault/azure-keyvault</module>
+    <module>../services/keyvault/azure-keyvault-extensions</module>
+    <module>../services/keyvault/azure-keyvault-core</module>
+    <module>../services/azure-media</module>
+    <module>../services/azure-servicebus</module>
+    <module>../services/azure-serviceruntime</module>
+    <module>../resource-management/azure-mgmt-compute</module>
+    <module>../resource-management/azure-mgmt-resources</module>
+    <module>../resource-management/azure-mgmt-sql</module>
+    <module>../resource-management/azure-mgmt-storage</module>
+    <module>../resource-management/azure-mgmt-network</module>
+    <module>../resource-management/azure-mgmt-websites</module>
+    <module>../resource-management/azure-mgmt-dns</module>
+    <module>../resource-management/azure-mgmt-traffic-manager</module>
+    <module>../resource-management/azure-mgmt-utility</module>
+    <module>../azure-mgmt-samples</module>
+    <module>../service-management/azure-svc-mgmt-websites</module>
+    <module>../service-management/azure-svc-mgmt-scheduler</module>
+    <module>../service-management/azure-svc-mgmt</module>
+    <module>../service-management/azure-svc-mgmt-network</module>
+    <module>../service-management/azure-svc-mgmt-storage</module>
+    <module>../service-management/azure-svc-mgmt-sql</module>
+    <module>../service-management/azure-svc-mgmt-media</module>
+    <module>../service-management/azure-svc-mgmt-compute</module>
+  </modules>
+</project>

@@ -1,0 +1,325 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>org.codehaus.mojo</groupId>
+    <artifactId>mojo-parent</artifactId>
+    <version>34</version>
+  </parent>
+
+  <artifactId>exec-maven-plugin</artifactId>
+  <version>1.4.0</version>
+  <packaging>maven-plugin</packaging>
+
+  <name>Exec Maven Plugin</name>
+  <description>A plugin to allow execution of system and Java programs</description>
+  <url>http://mojo.codehaus.org/exec-maven-plugin</url>
+  <inceptionYear>2005</inceptionYear>
+  <prerequisites>
+    <maven>${mavenVersion}</maven>
+  </prerequisites>
+  <issueManagement>
+    <system>jira</system>
+    <url>http://jira.codehaus.org/browse/MEXEC</url>
+  </issueManagement>
+  <ciManagement>
+    <system>bamboo</system>
+    <url>http://bamboo.ci.codehaus.org/browse/MOJO-MEXEC</url>
+  </ciManagement>
+
+  <developers>
+    <developer>
+      <id>jerome</id>
+      <name>Jerome Lacoste</name>
+      <email>jerome@coffeebreaks.org</email>
+      <organization>CoffeeBreaks</organization>
+      <organizationUrl>http://www.coffeebreaks.org</organizationUrl>
+      <roles>
+        <role>Java Developer</role>
+      </roles>
+      <timezone>+1</timezone>
+    </developer>
+    <developer>
+      <id>kaare</id>
+      <name>Kaare Nilsen</name>
+      <email>kaare.nilsen@gmail.com</email>
+      <organization>Objectware</organization>
+      <organizationUrl>http://www.objectware.no</organizationUrl>
+      <roles>
+        <role>Java Developer</role>
+      </roles>
+      <timezone>+1</timezone>
+    </developer>
+    <developer>
+      <id>rfscholte</id>
+      <name>Robert Scholte</name>
+      <email>rfscholte@codehaus.org</email>
+      <timezone>Europe/Amsterdam</timezone>
+    </developer>
+    <developer>
+      <id>khmarbaise</id>
+      <name>Karl Heinz Marbaise</name>
+      <email>khmarbaise@codehaus.org</email>
+      <timezone>Europe/Berlin</timezone>
+    </developer>
+  </developers>
+
+  <contributors>
+    <contributor>
+      <name>David Smiley</name>
+      <email>protected</email>
+      <roles>
+        <role>Patch Contributor</role>
+      </roles>
+    </contributor>
+    <contributor>
+      <name>Milos Kleint</name>
+      <email>protected</email>
+      <roles>
+        <role>Patch Contributor</role>
+      </roles>
+    </contributor>
+  </contributors>
+
+  <licenses>
+    <license>
+      <name>Apache License 2</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+
+  <scm>
+    <connection>scm:svn:http://svn.codehaus.org/mojo/tags/exec-maven-plugin-1.4.0</connection>
+    <developerConnection>scm:svn:https://svn.codehaus.org/mojo/tags/exec-maven-plugin-1.4.0</developerConnection>
+    <url>http://fisheye.codehaus.org/browse/mojo/tags/exec-maven-plugin-1.4.0</url>
+  </scm>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.apache.maven</groupId>
+      <artifactId>maven-toolchain</artifactId>
+      <version>1.0</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven</groupId>
+      <artifactId>maven-project</artifactId>
+      <version>${mavenVersion}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven</groupId>
+      <artifactId>maven-model</artifactId>
+      <version>${mavenVersion}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven</groupId>
+      <artifactId>maven-artifact</artifactId>
+      <version>${mavenVersion}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven</groupId>
+      <artifactId>maven-artifact-manager</artifactId>
+      <version>${mavenVersion}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven</groupId>
+      <artifactId>maven-core</artifactId>
+      <version>${mavenVersion}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.maven</groupId>
+      <artifactId>maven-plugin-api</artifactId>
+      <version>${mavenVersion}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.codehaus.plexus</groupId>
+      <artifactId>plexus-utils</artifactId>
+      <version>3.0.20</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.maven.plugin-tools</groupId>
+      <artifactId>maven-plugin-annotations</artifactId>
+      <version>3.3</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-exec</artifactId>
+      <version>1.3</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.maven.shared</groupId>
+      <artifactId>maven-plugin-testing-harness</artifactId>
+      <version>1.1</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.codehaus.plexus</groupId>
+      <artifactId>plexus-interpolation</artifactId>
+      <version>1.21</version>
+      <scope>test</scope>
+    </dependency>
+
+  </dependencies>
+
+  <properties>
+    <mavenVersion>2.2.1</mavenVersion>
+  </properties>
+
+  <build>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-gpg-plugin</artifactId>
+          <version>1.6</version>
+          <configuration>
+            <!-- Temporary solution to get a release out using gpg version 1 -->
+            <useAgent>false</useAgent>
+          </configuration>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-plugin-plugin</artifactId>
+          <version>3.4</version>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+    <plugins>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>animal-sniffer-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <goals>
+              <goal>check</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <signature>
+            <groupId>org.codehaus.mojo.signature</groupId>
+            <artifactId>java15</artifactId>
+            <version>1.0</version>
+          </signature>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-plugin-plugin</artifactId>
+        <configuration>
+          <goalPrefix>exec</goalPrefix>
+          <skipErrorNoDescriptorsFound>true</skipErrorNoDescriptorsFound>
+        </configuration>
+        <executions>
+          <execution>
+            <id>mojo-descriptor</id>
+            <goals>
+              <goal>descriptor</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+
+  <profiles>
+    <profile>
+      <id>run-its</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.codehaus.gmaven</groupId>
+            <artifactId>gmaven-plugin</artifactId>
+            <version>1.5</version>
+            <dependencies>
+              <dependency>
+                <groupId>org.codehaus.groovy</groupId>
+                <artifactId>groovy</artifactId>
+                <version>1.8.4</version>
+              </dependency>
+              <dependency>
+                <groupId>org.codehaus.gmaven.runtime</groupId>
+                <artifactId>gmaven-runtime-1.8</artifactId>
+                <version>1.4</version>
+              </dependency>
+            </dependencies>
+            <configuration>
+              <debug>false</debug>
+              <verbose>true</verbose>
+              <stacktrace>true</stacktrace>
+              <defaultScriptExtension>.groovy</defaultScriptExtension>
+            </configuration>
+            <executions>
+              <execution>
+                <goals>
+                  <goal>testCompile</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-invoker-plugin</artifactId>
+            <configuration>
+              <addTestClassPath>true</addTestClassPath>
+              <debug>true</debug>
+              <localRepositoryPath>${project.build.directory}/local-repo</localRepositoryPath>
+              <cloneProjectsTo>${project.build.directory}/it</cloneProjectsTo>
+              <projectsDirectory>src/it</projectsDirectory>
+              <showVersion>true</showVersion>
+              <setupIncludes>
+                <setupInclude>setup/pom.xml</setupInclude>
+              </setupIncludes>
+              <pomIncludes>
+                <pomInclude>*/pom.xml</pomInclude>
+              </pomIncludes>
+              <preBuildHookScript>setup</preBuildHookScript>
+              <postBuildHookScript>verify</postBuildHookScript>
+              <settingsFile>src/it/settings.xml</settingsFile>
+              <!-- Currently working with more than one thread does not work, cause it is not guaranteed that the setup-config
+                project is build at first. see also http://jira.codehaus.org/browse/MINVOKER-147 -->
+              <parallelThreads>1</parallelThreads>
+            </configuration>
+            <executions>
+              <execution>
+                <id>pre-integration-tests</id>
+                <goals>
+                  <goal>install</goal>
+                </goals>
+                <configuration>
+                  <extraArtifacts>
+                    <extraArtifact>org.apache.maven.plugins:maven-compiler-plugin:3.1:maven-plugin</extraArtifact>
+                    <extraArtifact>org.apache.maven.plugins:maven-install-plugin:2.4:maven-plugin</extraArtifact>
+                    <extraArtifact>org.apache.maven.plugins:maven-clean-plugin:2.5:maven-plugin</extraArtifact>
+                    <extraArtifact>org.apache.maven.plugins:maven-surefire-plugin:2.16:maven-plugin</extraArtifact>
+                    <extraArtifact>org.apache.maven.plugins:maven-assembly-plugin:2.4:maven-plugin</extraArtifact>
+                    <extraArtifact>org.apache.maven.plugins:maven-jar-plugin:2.4:maven-plugin</extraArtifact>
+                    <extraArtifact>org.apache.maven.plugins:maven-war-plugin:2.3:maven-plugin</extraArtifact>
+                    <extraArtifact>org.apache.maven.plugins:maven-resources-plugin:2.6:maven-plugin</extraArtifact>
+                    <extraArtifact>org.apache.maven.plugins:maven-site-plugin:3.3:maven-plugin</extraArtifact>
+                    <extraArtifact>org.apache.maven.plugins:maven-site-plugin:2.0.1:maven-plugin</extraArtifact>
+                    <extraArtifact>commons-io:commons-io:1.1:jar</extraArtifact>
+                    <extraArtifact>commons-logging:commons-logging:1.0.4:jar</extraArtifact>
+                    <extraArtifact>org.codehaus.plexus:plexus-utils:1.1:jar</extraArtifact>
+                  </extraArtifacts>
+                </configuration>
+              </execution>
+              <execution>
+                <id>integration-tests</id>
+                <goals>
+                  <goal>run</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+</project>

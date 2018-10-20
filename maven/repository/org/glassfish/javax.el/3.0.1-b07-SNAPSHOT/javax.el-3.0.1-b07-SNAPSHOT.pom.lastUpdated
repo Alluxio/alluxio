@@ -1,0 +1,10 @@
+#NOTE: This is a Maven Resolver internal implementation file, its format can be changed without prior notice.
+#Sat Oct 20 11:39:10 CST 2018
+https\://maven.java.net/content/repositories/snapshots/.error=
+http\://nexus.qmino.com/content/repositories/miredot/.error=
+https\://maven.java.net/content/repositories/snapshots/.lastUpdated=1540006750099
+https\://oss.sonatype.org/content/repositories/snapshots/.lastUpdated=1540006748201
+https\://oss.sonatype.org/content/groups/jetty/.lastUpdated=1540006749107
+https\://oss.sonatype.org/content/repositories/snapshots/.error=
+http\://nexus.qmino.com/content/repositories/miredot/.lastUpdated=1540006747309
+https\://oss.sonatype.org/content/groups/jetty/.error=

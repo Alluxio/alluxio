@@ -1,0 +1,378 @@
+<!--
+
+    The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+    (the "License"). You may not use this work except in compliance with the License, which is
+    available at www.apache.org/licenses/LICENSE-2.0
+
+    This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+    either express or implied, as more fully set forth in the License.
+
+    See the NOTICE file distributed with this work for information regarding copyright ownership.
+
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>org.alluxio</groupId>
+    <artifactId>alluxio-parent</artifactId>
+    <version>2.0.0-SNAPSHOT</version>
+  </parent>
+  <artifactId>alluxio-tests</artifactId>
+  <packaging>jar</packaging>
+  <name>Alluxio Tests</name>
+  <description>Integration tests for Alluxio</description>
+
+  <properties>
+    <!-- The following paths need to be defined here as well as in the parent pom so that mvn can -->
+    <!-- run properly from sub-project directories -->
+    <build.path>${project.parent.basedir}/build/</build.path>
+    <surefire.useSystemClassLoader>false</surefire.useSystemClassLoader>
+  </properties>
+
+  <dependencies>
+    <!-- External dependencies -->
+    <dependency>
+      <groupId>com.beust</groupId>
+      <artifactId>jcommander</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>commons-codec</groupId>
+      <artifactId>commons-codec</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>commons-io</groupId>
+      <artifactId>commons-io</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.hamcrest</groupId>
+      <artifactId>hamcrest-all</artifactId>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.netty</groupId>
+      <artifactId>netty-all</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>javax.ws.rs</groupId>
+      <artifactId>javax.ws.rs-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-lang3</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.hadoop</groupId>
+      <artifactId>hadoop-minicluster</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.thrift</groupId>
+      <artifactId>libthrift</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.reflections</groupId>
+      <artifactId>reflections</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+    </dependency>
+
+    <!-- Internal dependencies -->
+    <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-core-client-fs</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-core-client-fs</artifactId>
+      <version>${project.version}</version>
+      <type>test-jar</type>
+    </dependency>
+    <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-core-client-hdfs</artifactId>
+      <version>${project.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.apache.hadoop</groupId>
+          <artifactId>hadoop-client</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-core-client-hdfs</artifactId>
+      <version>${project.version}</version>
+      <type>test-jar</type>
+      <exclusions>
+        <exclusion>
+          <groupId>org.apache.hadoop</groupId>
+          <artifactId>hadoop-client</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-core-common</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-core-common</artifactId>
+      <version>${project.version}</version>
+      <type>test-jar</type>
+    </dependency>
+    <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-core-protobuf</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-core-server-common</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-core-server-master</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-core-server-master</artifactId>
+      <version>${project.version}</version>
+      <type>test-jar</type>
+    </dependency>
+    <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-job-client</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-job-common</artifactId>
+      <version>${project.version}</version>
+      <type>test-jar</type>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-job-server</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-core-server-proxy</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-core-server-worker</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-keyvalue-client</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-keyvalue-server</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-minicluster</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-shell</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-underfs-local</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+  </dependencies>
+
+  <profiles>
+    <!-- Profile to build tests module connecting to hdfs 1 -->
+    <!-- In hadoop-1, hadoop-client is a wrapper on hadoop-core but excluding a few dependencies from hadoop-core.
+         Depending on hadoop-client will lead to missing class errors in test.
+         So we need to have the direct dep on hadoop-core. -->
+    <!-- Mark hadoop-core as provided because alluxio-underfs-hdfs will come with a shaded version. -->
+    <profile>
+      <id>hadoop-1</id>
+      <dependencies>
+        <dependency>
+          <groupId>org.apache.hadoop</groupId>
+          <artifactId>hadoop-core</artifactId>
+          <version>${hadoop.version}</version>
+          <scope>provided</scope>
+        </dependency>
+      </dependencies>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>com.igormaznitsa</groupId>
+            <artifactId>jcp</artifactId>
+            <configuration>
+              <globalVars>
+                <property>
+                  <name>HADOOP1</name>
+                </property>
+              </globalVars>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+
+    <!-- Profile to build tests module connecting to hdfs 2 -->
+    <!-- Mark hadoop-{common, hdfs} as provided because alluxio-underfs-hdfs will come with a shaded version. -->
+    <profile>
+      <id>hadoop-2</id>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+      </activation>
+      <dependencies>
+        <dependency>
+          <groupId>org.apache.hadoop</groupId>
+          <artifactId>hadoop-common</artifactId>
+          <version>${hadoop.version}</version>
+          <scope>provided</scope>
+        </dependency>
+        <dependency>
+          <groupId>org.apache.hadoop</groupId>
+          <artifactId>hadoop-hdfs</artifactId>
+          <version>${hadoop.version}</version>
+          <scope>provided</scope>
+        </dependency>
+      </dependencies>
+    </profile>
+
+    <!-- Profile to build tests module connecting to hdfs 3 -->
+    <!-- Mark hadoop-{common, hdfs-client} as provided because alluxio-underfs-hdfs will come with a
+    shaded version. -->
+    <profile>
+      <id>hadoop-3</id>
+      <dependencies>
+        <dependency>
+          <groupId>org.apache.hadoop</groupId>
+          <artifactId>hadoop-common</artifactId>
+          <version>${hadoop.version}</version>
+          <scope>provided</scope>
+        </dependency>
+        <dependency>
+          <groupId>org.apache.hadoop</groupId>
+          <artifactId>hadoop-hdfs-client</artifactId>
+          <version>${hadoop.version}</version>
+          <scope>provided</scope>
+        </dependency>
+      </dependencies>
+    </profile>
+
+    <profile>
+      <id>contractTest</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-compiler-plugin</artifactId>
+            <configuration>
+              <testExcludes combine.self="override" />
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <configuration>
+          <testExcludes>
+            <!--By default we skip tests in hadoop/contract, unless contractTest profile is used-->
+            <exclude>**/hadoop/contract/**</exclude>
+          </testExcludes>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>uber-jar</id>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+            <configuration>
+              <finalName>${project.artifactId}-${project.version}-jar-with-dependencies</finalName>
+              <filters>
+                <filter>
+                  <artifact>*:* </artifact>
+                  <excludes>
+                    <exclude>LICENSE</exclude>
+                    <exclude>META-INF/*.SF</exclude>
+                    <exclude>META-INF/*.DSA</exclude>
+                    <exclude>META-INF/*.RSA</exclude>
+                  </excludes>
+                </filter>
+              </filters>
+              <transformers>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.ApacheLicenseResourceTransformer"></transformer>
+              </transformers>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>com.igormaznitsa</groupId>
+        <artifactId>jcp</artifactId>
+        <executions>
+          <execution>
+            <id>preprocessSources</id>
+            <phase>generate-test-sources</phase>
+            <goals>
+              <goal>preprocessTests</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>clearGeneratedFolders</id>
+            <goals>
+              <goal>clear</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+</project>

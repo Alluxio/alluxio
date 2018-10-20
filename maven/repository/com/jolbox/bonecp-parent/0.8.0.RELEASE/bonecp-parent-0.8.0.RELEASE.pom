@@ -1,0 +1,546 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+ |  Copyright 2009-2011 Wallace Wadge
+ |
+ |  Licensed under the Apache License, Version 2.0 (the "License");
+ |  you may not use this file except in compliance with the License.
+ |  You may obtain a copy of the License at
+ |
+ |      http://www.apache.org/licenses/LICENSE-2.0
+ |
+ |  Unless required by applicable law or agreed to in writing, software
+ |  distributed under the License is distributed on an "AS IS" BASIS,
+ |  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ |  See the License for the specific language governing permissions and
+ |  limitations under the License.
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>com.jolbox</groupId>
+	<artifactId>bonecp-parent</artifactId>
+	<version>0.8.0.RELEASE</version>
+	<packaging>pom</packaging>
+
+	<name>BoneCP</name>
+	<description>The fast Java JDBC Database Connection pool</description>
+
+	<url>http://jolbox.com</url>
+	<inceptionYear>2009</inceptionYear>
+
+	<scm>
+		<url>http://github.com/wwadge/bonecp</url>
+		<connection>scm:git:ssh://github.com/wwadge/bonecp.git</connection>
+		<developerConnection>scm:git:ssh://git@github.com/wwadge/bonecp.git</developerConnection>
+	  <tag>bonecp-parent-0.8.0.RELEASE</tag>
+  </scm>
+
+	<organization>
+		<name>JolBox</name>
+		<url>http://jolbox.com</url>
+	</organization>
+
+	<licenses>
+		<license>
+			<name>Apache v2</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0.html</url>
+			<distribution>repo</distribution>
+		</license>
+	</licenses>
+
+	<issueManagement>
+		<system>Launchpad</system>
+		<url>https://launchpad.net/bonecp</url>
+	</issueManagement>
+
+	<distributionManagement>
+		<snapshotRepository>
+			<id>sonatype-nexus-snapshots</id>
+			<name>Sonatype Nexus Snapshots</name>
+			<url>https://oss.sonatype.org/content/repositories/snapshots</url>
+		</snapshotRepository>
+
+		<repository>
+			<id>sonatype-nexus-staging</id>
+			<name>Nexus Release Repository</name>
+			<url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+		</repository>
+	</distributionManagement>
+
+	<developers>
+		<developer>
+			<id>wwadge</id>
+			<name>Wallace Wadge</name>
+			<roles>
+				<role>Architect</role>
+			</roles>
+			<timezone>+1</timezone>
+		</developer>
+	</developers>
+
+	<contributors>
+		<contributor>
+			<name>Simone Tripodi</name>
+			<email>simone[dot]tripodi[at]gmail[dot]com</email>
+			<timezone>+1</timezone>
+		</contributor>
+	</contributors>
+
+	<modules>
+		<module>bonecp-jdk-compat</module>
+		<module>bonecp</module>
+		<module>bonecp-spring</module>
+		<module>bonecp-test-commons</module>
+		<!-- <module>bonecp-benchmark</module> -->
+	</modules>
+
+	<dependencyManagement>
+		<dependencies>
+
+			<dependency>
+				<groupId>commons-cli</groupId>
+				<artifactId>commons-cli</artifactId>
+				<version>1.2</version>
+			</dependency>
+
+			<dependency>
+				<groupId>com.google.guava</groupId>
+				<artifactId>guava</artifactId>
+				<version>${guava.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>org.springframework</groupId>
+				<artifactId>spring-jdbc</artifactId>
+				<version>${spring.version}</version>
+			</dependency>
+			
+			<dependency>
+				<groupId>com.jolbox</groupId>
+				<artifactId>bonecp-jdk-compat</artifactId>
+				<version>${project.version}</version>
+				<scope>test</scope>
+			</dependency>
+
+			<dependency>
+				<groupId>com.jolbox</groupId>
+				<artifactId>bonecp-test-commons</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>com.jolbox</groupId>
+				<artifactId>bonecp</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>org.slf4j</groupId>
+				<artifactId>slf4j-api</artifactId>
+				<version>1.7.2</version>
+			</dependency>
+
+			<dependency>
+				<groupId>org.slf4j</groupId>
+				<artifactId>slf4j-log4j12</artifactId>
+				<version>1.7.2</version>
+			</dependency>
+
+			<dependency>
+				<groupId>log4j</groupId>
+				<artifactId>log4j</artifactId>
+				<version>1.2.17</version>
+			</dependency>
+
+			<dependency>
+				<groupId>c3p0</groupId>
+				<artifactId>c3p0</artifactId>
+				<version>0.9.1.2</version>
+			</dependency>
+
+			<dependency>
+				<groupId>commons-dbcp</groupId>
+				<artifactId>commons-dbcp</artifactId>
+				<version>1.4</version>
+			</dependency>
+
+			<dependency>
+				<groupId>org.easymock</groupId>
+				<artifactId>easymock</artifactId>
+				<version>3.1</version>
+			</dependency>
+
+			<dependency>
+				<groupId>org.hibernate</groupId>
+				<artifactId>hibernate-core</artifactId>
+				<version>${hibernate.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>junit</groupId>
+				<artifactId>junit</artifactId>
+				<version>4.10</version>
+			</dependency>
+
+			<dependency>
+				<groupId>com.thoughtworks.qdox</groupId>
+				<artifactId>qdox</artifactId>
+				<version>1.12</version>
+			</dependency>
+ <dependency>
+      <groupId>org.powermock</groupId>
+      <artifactId>powermock-module-junit4</artifactId>
+      <version>${powermock.version}</version>
+      <scope>test</scope>
+   </dependency>
+   <dependency>
+      <groupId>org.powermock</groupId>
+      <artifactId>powermock-api-easymock</artifactId>
+      <version>${powermock.version}</version>
+      <scope>test</scope>
+   </dependency>  
+		</dependencies>
+	</dependencyManagement>
+
+	<properties>
+		<!-- Set default encoding to UTF-8 (most plugins) -->
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<project.reporting.outputEncoding>${project.build.sourceEncoding}</project.reporting.outputEncoding>
+
+		<!-- Set compiler source and target versions (m-compiler-p) -->
+		<maven.compiler.target>1.5</maven.compiler.target>
+		<maven.compiler.source>1.5</maven.compiler.source>
+
+		<!-- Set compiler to be more verbose (m-compiler-p) -->
+		<maven.compiler.showDeprecation>true</maven.compiler.showDeprecation>
+		<maven.compiler.showWarnings>true</maven.compiler.showWarnings>
+
+		<maven.build.timestamp.format>yyyy-MM-dd HH:mm:ssZ</maven.build.timestamp.format>
+		<implementation.build>${maven.build.timestamp}</implementation.build>
+
+		<guava.version>15.0</guava.version>
+		<hibernate.version>4.2.5.Final</hibernate.version>
+		<spring.version>3.2.4.RELEASE</spring.version>
+		  <endorsed.dir>${project.build.directory}/endorsed</endorsed.dir>
+		<powermock.version>1.5</powermock.version>
+	</properties>
+
+	<prerequisites>
+		<maven>3.0</maven>
+	</prerequisites>
+
+	<build>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-compiler-plugin</artifactId>
+					<version>3.0</version>
+					<configuration>
+						<compilerId>javac</compilerId>
+          <source>${maven.compiler.source}</source>
+          <target>${maven.compiler.target}</target>
+  <compilerArguments>
+            <endorseddirs>${endorsed.dir}</endorseddirs>
+        </compilerArguments>
+					</configuration>
+				</plugin>
+
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-deploy-plugin</artifactId>
+					<version>2.7</version>
+				</plugin>
+
+				<plugin>
+					<groupId>org.apache.felix</groupId>
+					<artifactId>maven-bundle-plugin</artifactId>
+					<version>2.3.7</version>
+					<extensions>true</extensions>
+					<configuration>
+						<instructions>
+							<_provider-policy><![CDATA[$<range;[==,=+)>]]></_provider-policy>
+							<_consumer-policy><![CDATA[$<range;[==,+)>]]></_consumer-policy>
+							<_removeheaders>Private-Package,Include-Resource,Embed-Dependency</_removeheaders>
+                                                        <DynamicImport-Package>*</DynamicImport-Package>
+						</instructions>
+					</configuration>
+				</plugin>
+
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-jar-plugin</artifactId>
+					<version>2.4</version>
+					<configuration>
+						<archive>
+							<manifest>
+								<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+								<addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+							</manifest>
+							<manifestEntries>
+								<Implementation-Build>${implementation.build}</Implementation-Build>
+								<X-Compile-Source-JDK>${maven.compiler.source}</X-Compile-Source-JDK>
+								<X-Compile-Target-JDK>${maven.compiler.target}</X-Compile-Target-JDK>
+							</manifestEntries>
+						</archive>
+					</configuration>
+				</plugin>
+
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-assembly-plugin</artifactId>
+					<version>2.2</version>
+					<executions>
+						<execution>
+							<phase>package</phase>
+							<goals>
+								<goal>single</goal>
+							</goals>
+							<configuration>
+								<attach>false</attach>
+							</configuration>
+						</execution>
+					</executions>
+					<configuration>
+						<tarLongFileMode>gnu</tarLongFileMode>
+					</configuration>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-release-plugin</artifactId>
+					<version>2.3.2</version>
+					<configuration>
+						<mavenExecutorId>forked-path</mavenExecutorId>
+						<useReleaseProfile>false</useReleaseProfile>
+						<arguments>${arguments} -Prelease</arguments>
+					</configuration>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-site-plugin</artifactId>
+				<version>2.0-beta-7</version>
+				<configuration>
+					<inputDirectory>${project.reporting.outputDirectory}/apidocs</inputDirectory>
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<version>2.12.4</version>
+				<inherited>false</inherited>
+				<configuration>
+					<reportFormat>html</reportFormat>
+					<classesDirectory>${project.build.directory}/generated-classes/emma/classes</classesDirectory>
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>com.mycila.maven-license-plugin</groupId>
+				<artifactId>maven-license-plugin</artifactId>
+				<version>1.9.0</version>
+				<inherited>false</inherited>
+				<configuration>
+					<header>${basedir}/docs/apache-header.txt</header>
+					<failIfMissing>true</failIfMissing>
+					<aggregate>true</aggregate>
+					<includes>
+						<include>**/*.java</include>
+					</includes>
+				</configuration>
+				<executions>
+					<execution>
+						<id>check-headers</id>
+						<phase>verify</phase>
+						<goals>
+							<goal>format</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+
+		<extensions>
+			<extension>
+				<groupId>org.apache.maven.scm</groupId>
+				<artifactId>maven-scm-provider-gitexe</artifactId>
+				<version>1.8.1</version>
+			</extension>
+
+			<extension>
+				<groupId>org.apache.maven.scm</groupId>
+				<artifactId>maven-scm-manager-plexus</artifactId>
+				<version>1.8.1</version>
+			</extension>
+		</extensions>
+
+	</build>
+
+	<profiles>
+		<profile>
+			<id>JDK5</id>
+	<!--		<activation>
+				<jdk>[1.5,1.6)</jdk> 
+			</activation>
+	-->		<properties>
+
+				<!-- Override compiler target -->
+				<maven.compiler.target>1.5</maven.compiler.target>
+				<maven.compiler.source>1.5</maven.compiler.source>
+
+				<!-- Under jdk5, we fall back to v11 since that's the last one supported -->
+				<guava.version>11.0.2</guava.version>
+				
+				<hibernate.version>3.6.9.Final</hibernate.version>
+			</properties>
+
+			<build>
+				<plugins>
+					<plugin>
+						<artifactId>maven-compiler-plugin</artifactId>
+						<configuration>
+							<fork>true</fork>
+							<executable>${jdk5home}/bin/javac</executable>
+						</configuration>
+					</plugin>
+
+				</plugins>
+			</build>
+		</profile>
+
+		<profile>
+			<id>JDK6</id>
+			<modules>
+				<module>bonecp-hbnprovider</module>
+			</modules>
+
+		</profile>
+
+
+		<profile>
+			<id>release</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-source-plugin</artifactId>
+						<version>2.1.2</version>
+						<executions>
+							<execution>
+								<id>attach-sources</id>
+								<goals>
+									<goal>jar-no-fork</goal>
+								</goals>
+								<configuration>
+									<archive>
+										<manifest>
+											<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+											<addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+										</manifest>
+										<manifestEntries>
+											<Implementation-Build>${implementation.build}</Implementation-Build>
+											<X-Compile-Source-JDK>${maven.compiler.source}</X-Compile-Source-JDK>
+											<X-Compile-Target-JDK>${maven.compiler.target}</X-Compile-Target-JDK>
+										</manifestEntries>
+									</archive>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+
+					<plugin>
+						<artifactId>maven-javadoc-plugin</artifactId>
+						<version>2.7</version>
+						<executions>
+							<execution>
+								<id>attach-javadocs</id>
+								<goals>
+									<goal>jar</goal>
+								</goals>
+								<configuration>
+									<archive>
+										<manifest>
+											<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+											<addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+										</manifest>
+										<manifestEntries>
+											<Implementation-Build>${implementation.build}</Implementation-Build>
+											<X-Compile-Source-JDK>${maven.compiler.source}</X-Compile-Source-JDK>
+											<X-Compile-Target-JDK>${maven.compiler.target}</X-Compile-Target-JDK>
+										</manifestEntries>
+									</archive>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-gpg-plugin</artifactId>
+						<version>1.1</version>
+						<executions>
+							<execution>
+								<id>sign-artifacts</id>
+								<phase>verify</phase>
+								<goals>
+									<goal>sign</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
+
+	<reporting>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<version>2.6.1</version>
+				<configuration>
+					<show>public</show>
+					<excludePackageNames>com.jolbox.bonecp.benchmark.*</excludePackageNames>
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>emma-maven-plugin</artifactId>
+				<version>1.0-alpha-2</version>
+				<inherited>true</inherited>
+			</plugin>
+
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>surefire-report-maven-plugin</artifactId>
+				<version>2.7.2</version>
+				<inherited>true</inherited>
+			</plugin>
+
+			<plugin>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<version>2.7.2</version>
+			</plugin>
+		</plugins>
+	</reporting>
+
+	<repositories>
+		<repository>
+			<id>spring-milestone</id>
+			<name>Spring Portfolio Milestone Repository</name>
+			<url>http://s3.amazonaws.com/maven.springframework.org/milestone</url>
+		</repository>
+		<repository>
+			<id>jboss-public-repository-group</id>
+			<name>JBoss Public Repository Group</name>
+			<url>http://repository.jboss.org/nexus/content/groups/public</url>
+		</repository>
+	</repositories>
+</project>

@@ -1,0 +1,120 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>org.jboss</groupId>
+    <artifactId>jboss-parent</artifactId>
+    <version>9</version>
+  </parent>
+
+  <groupId>org.jboss.spec.javax.annotation</groupId>
+  <artifactId>jboss-annotations-api_1.1_spec</artifactId>
+  <version>1.0.1.Final</version>
+  <packaging>jar</packaging>
+
+  <name>Common Annotations 1.1 API</name>
+  <description>JSR 250: Common Annotations for the Java(TM) Platform</description>
+
+  <licenses>
+    <license>
+      <name>CDDL or GPLv2 with exceptions</name>
+      <url>https://glassfish.dev.java.net/public/CDDL+GPL_1_1.html</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+
+  <scm>
+    <connection>scm:git:git@github.com:jboss/jboss-annotations-api_spec.git</connection>
+    <developerConnection>scm:git:git@github.com:jboss/jboss-annotations-api_spec.git</developerConnection>
+    <url>https://github.com/jboss/jboss-annotations-api_spec</url>
+  </scm>
+
+  <build>
+    <plugins>
+      <!-- Include LICENSE.txt in the META-INF directory -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-resources-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>copy-resources</id>
+            <phase>process-resources</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <configuration>
+              <resources>          
+                <resource>
+                  <directory>${basedir}</directory>
+                  <includes>
+                    <include>LICENSE</include>
+                    <include>README</include>
+                  </includes>
+                </resource>
+              </resources>              
+              <outputDirectory>${project.build.outputDirectory}/META-INF</outputDirectory>
+            </configuration>            
+          </execution>
+        </executions>
+      </plugin>
+
+      <!-- Generate the OSGi jar Manifest. -->
+      <plugin>
+        <groupId>org.apache.felix</groupId>
+        <artifactId>maven-bundle-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>bundle-manifest</id>
+            <phase>process-classes</phase>
+            <goals>
+              <goal>manifest</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <archive>
+            <manifest>
+              <addDefaultSpecificationEntries>false</addDefaultSpecificationEntries>
+            </manifest>
+          </archive>
+          <instructions>
+            <Specification-Title>JSR 250: Common Annotations for the Java(TM) Platform</Specification-Title>
+            <Specification-Vendor>Oracle</Specification-Vendor>
+            <Specification-Version>1.1</Specification-Version>
+            <!-- Set the package version to match the spec version -->
+            <Export-Package>
+              javax.annotation*;version=1.1
+            </Export-Package>
+          </instructions>
+        </configuration>
+      </plugin>
+      <!-- Add the OSGi Manifest to the main jar -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <configuration>
+          <archive>
+            <manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
+          </archive>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-source-plugin</artifactId>
+        <configuration>
+          <archive>
+            <manifestEntries>
+              <Specification-Title>JSR 250: Common Annotations for the Java(TM) Platform</Specification-Title>
+              <Specification-Vendor>Oracle</Specification-Vendor>
+              <Specification-Version>1.1</Specification-Version>
+            </manifestEntries>
+          </archive>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
+</project>

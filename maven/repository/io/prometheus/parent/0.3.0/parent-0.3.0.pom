@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <packaging>pom</packaging>
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>io.prometheus</groupId>
+    <artifactId>parent</artifactId>
+    <version>0.3.0</version>
+
+    <parent>
+        <groupId>org.sonatype.oss</groupId>
+        <artifactId>oss-parent</artifactId>
+        <version>7</version>
+    </parent>
+
+    <name>Prometheus Java Suite</name>
+    <url>http://github.com/prometheus/client_java</url>
+    <description>
+        The Prometheus Java Suite: Client Metrics, Exposition, and Examples
+    </description>
+
+    <licenses>
+        <license>
+            <name>The Apache Software License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <scm>
+        <connection>scm:git:git@github.com:prometheus/client_java.git</connection>
+        <developerConnection>scm:git:git@github.com:prometheus/client_java.git</developerConnection>
+        <url>git@github.com:prometheus/client_java.git</url>
+        <tag>parent-0.3.0</tag>
+    </scm>
+
+    <developers>
+        <developer>
+            <id>mtp</id>
+            <name>Matt T. Proud</name>
+            <email>matt.proud@gmail.com</email>
+        </developer>
+    </developers>
+
+    <modules>
+        <module>simpleclient</module>
+        <module>simpleclient_common</module>
+        <module>simpleclient_caffeine</module>
+        <module>simpleclient_dropwizard</module>
+        <module>simpleclient_graphite_bridge</module>
+        <module>simpleclient_hibernate</module>
+        <module>simpleclient_guava</module>
+        <module>simpleclient_hotspot</module>
+        <module>simpleclient_httpserver</module>
+        <module>simpleclient_log4j</module>
+        <module>simpleclient_log4j2</module>
+        <module>simpleclient_logback</module>
+        <module>simpleclient_pushgateway</module>
+        <module>simpleclient_servlet</module>
+        <module>simpleclient_spring_web</module>
+        <module>simpleclient_spring_boot</module>
+        <module>simpleclient_jetty</module>
+        <module>simpleclient_jetty_jdk8</module>
+        <module>simpleclient_vertx</module>
+        <module>benchmark</module>
+    </modules>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+        <maven.compiler.source>1.6</maven.compiler.source>
+        <maven.compiler.target>1.6</maven.compiler.target>
+    </properties>
+
+    <distributionManagement>
+        <snapshotRepository>
+            <id>ossrh</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+        </snapshotRepository>
+        <repository>
+            <id>ossrh</id>
+            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+        </repository>
+    </distributionManagement>
+
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-release-plugin</artifactId>
+                <groupId>org.apache.maven.plugins</groupId>
+                <version>2.5</version>
+                <configuration>
+                  <autoVersionSubmodules>true</autoVersionSubmodules>
+                  <useReleaseProfile>false</useReleaseProfile>
+                  <releaseProfiles>release</releaseProfiles>
+                  <goals>deploy</goals>
+                </configuration>
+            </plugin>
+            <plugin>
+                <artifactId>maven-deploy-plugin</artifactId>
+                <groupId>org.apache.maven.plugins</groupId>
+                <version>2.7</version>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-bundle-plugin</artifactId>
+                <version>2.4.0</version>
+                <extensions>true</extensions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.15</version>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>2.8</version>
+                <configuration>
+                    <encoding>UTF-8</encoding>
+                    <docencoding>UTF-8</docencoding>
+                    <linksource>true</linksource>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>generate-javadoc-site-report</id>
+                        <phase>site</phase>
+                        <goals>
+                            <goal>javadoc</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+    <profiles>
+        <profile>
+            <id>release</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <version>1.5</version>
+                        <executions>
+                            <execution>
+                                <id>sign-artifacts</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-source-plugin</artifactId>
+                        <version>2.2.1</version>
+                        <executions>
+                            <execution>
+                                <id>attach-sources</id>
+                                  <goals>
+                                      <goal>jar-no-fork</goal>
+                                  </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-javadoc-plugin</artifactId>
+                        <version>2.9.1</version>
+                        <executions>
+                            <execution>
+                                <id>attach-javadocs</id>
+                                <goals>
+                                    <goal>jar</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+</project>

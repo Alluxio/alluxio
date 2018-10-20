@@ -1,0 +1,95 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <parent>
+    <artifactId>project</artifactId>
+    <groupId>org.mortbay.jetty</groupId>
+    <version>6.1.14</version>
+    <relativePath>../../pom.xml</relativePath>
+  </parent>
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>org.mortbay.jetty</groupId>
+  <artifactId>servlet-api-2.5</artifactId>
+  <name>Servlet Specification 2.5 API</name>
+  <description>Servlet Specification 2.5 API</description>
+  <packaging>jar</packaging>
+  <licenses>
+    <license>
+      <name>CDDL 1.0</name>
+      <url>https://glassfish.dev.java.net/public/CDDLv1.0.html</url>
+    </license>
+  </licenses>
+  <build>
+    <plugins>
+      <plugin>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>clean</id>
+            <phase>clean</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <tasks>
+                <delete failonerror="false" file="../../lib/${project.artifactId}-${project.version}.${project.packaging}" />
+              </tasks>
+            </configuration>
+          </execution>
+          <execution>
+            <phase>install</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <tasks>
+                <copy file="target/${project.artifactId}-${project.version}.${project.packaging}" tofile="../../lib/${project.artifactId}-${project.version}.${project.packaging}" />
+              </tasks>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <version>2.2</version>
+        <configuration>
+          <stylesheetfile>${basedir}/../../project-website/project-site/src/resources/javadoc.css</stylesheetfile>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.felix</groupId>
+        <artifactId>maven-bundle-plugin</artifactId>
+        <version>${maven-bundle-plugin-version}</version>
+        <extensions>true</extensions>
+        <executions>
+          <execution>
+            <goals>
+              <goal>manifest</goal>
+            </goals>
+            <configuration>
+              <instructions>
+              <Bundle-Version>2.5</Bundle-Version>
+              <Import-Package>!javax.servlet.*,*</Import-Package>
+              <Bundle-RequiredExecutionEnvironment>J2SE-1.4</Bundle-RequiredExecutionEnvironment>
+              <Implementation-Vendor>JCP</Implementation-Vendor>
+              <Specification-Version>2.5</Specification-Version>
+              </instructions>
+            </configuration>
+           </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <!--
+        Required for OSGI
+        -->
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <configuration>
+          <archive>               
+            <manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
+          </archive>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+</project>

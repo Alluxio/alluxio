@@ -1,0 +1,104 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <parent>
+    <groupId>org.eclipse.jetty</groupId>
+    <artifactId>jetty-project</artifactId>
+    <version>9.2.16.v20160414</version>
+  </parent>
+  <modelVersion>4.0.0</modelVersion>
+  <artifactId>jetty-jsp</artifactId>
+  <name>Jetty :: Glassfish JSP Implementation</name>
+  <url>http://www.eclipse.org/jetty</url>
+  <packaging>jar</packaging>
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>single</goal>
+            </goals>
+            <configuration>
+              <descriptorRefs>
+                <descriptorRef>config</descriptorRef>
+              </descriptorRefs>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+
+  <dependencies>
+
+    <dependency>
+        <groupId>org.eclipse.jetty</groupId>
+        <artifactId>jetty-util</artifactId>
+        <version>${project.version}</version>
+        <scope>provided</scope>
+    </dependency>
+    <dependency>
+        <groupId>org.eclipse.jetty</groupId>
+        <artifactId>jetty-server</artifactId>
+        <version>${project.version}</version>
+        <scope>provided</scope>
+    </dependency>
+
+    <!-- Schemas -->
+    <dependency>
+      <groupId>org.eclipse.jetty.toolchain</groupId>
+      <artifactId>jetty-schemas</artifactId>
+    </dependency>
+
+    <!-- servlet api -->
+    <dependency>
+       <groupId>javax.servlet</groupId>
+       <artifactId>javax.servlet-api</artifactId>
+    </dependency>
+
+    <!-- JSP Api -->
+    <dependency>
+      <groupId>javax.servlet.jsp</groupId>
+      <artifactId>javax.servlet.jsp-api</artifactId>
+    </dependency>
+    <!-- JSP Impl -->
+    <dependency>
+      <groupId>org.glassfish.web</groupId>
+      <artifactId>javax.servlet.jsp</artifactId>
+    </dependency>
+
+    <!-- JSTL Api -->
+    <dependency>
+       <groupId>org.eclipse.jetty.orbit</groupId>
+       <artifactId>javax.servlet.jsp.jstl</artifactId>
+    </dependency>
+    <!-- JSTL Impl -->
+    <dependency>
+       <groupId>org.glassfish.web</groupId>
+       <artifactId>javax.servlet.jsp.jstl</artifactId>
+    </dependency>
+
+    <!-- EL Api -->
+    <!-- Not needed as glassfish impl jars contain also the api classes
+    <dependency>
+      <groupId>javax.el</groupId>
+      <artifactId>javax.el-api</artifactId>
+    </dependency>
+    -->
+
+    <!-- EL Impl -->
+    <dependency>
+        <groupId>org.glassfish</groupId>
+        <artifactId>javax.el</artifactId>
+    </dependency>
+
+
+    <!-- Eclipse Java Compiler (for JSP Compilation) -->
+    <dependency>
+      <groupId>org.eclipse.jetty.orbit</groupId>
+      <artifactId>org.eclipse.jdt.core</artifactId>
+    </dependency>
+  </dependencies>
+</project>

@@ -1,0 +1,303 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Licensed to the Apache Software Foundation (ASF) under one
+  ~ or more contributor license agreements.  See the NOTICE file
+  ~ distributed with this work for additional information
+  ~ regarding copyright ownership.  The ASF licenses this file
+  ~ to you under the Apache License, Version 2.0 (the
+  ~ "License"); you may not use this file except in compliance
+  ~ with the License.  You may obtain a copy of the License at
+  ~
+  ~   http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing,
+  ~ software distributed under the License is distributed on an
+  ~ "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+  ~ KIND, either express or implied.  See the License for the
+  ~ specific language governing permissions and limitations
+  ~ under the License.
+  -->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>org.apache.maven.release</groupId>
+    <artifactId>maven-release</artifactId>
+    <version>2.5.1</version>
+  </parent>
+
+  <groupId>org.apache.maven.plugins</groupId>
+  <artifactId>maven-release-plugin</artifactId>
+  <packaging>maven-plugin</packaging>
+
+  <name>Maven Release Plugin</name>
+  <description>This plugin is used to release a project with Maven, saving a lot of repetitive, manual work.</description>
+
+  <prerequisites>
+    <maven>${mavenVersion}</maven>
+  </prerequisites>
+
+  <properties>
+    <mavenPluginPluginVersion>3.2</mavenPluginPluginVersion>
+  </properties>
+  
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>org.apache.maven</groupId>
+        <artifactId>maven-artifact</artifactId>
+        <version>${mavenVersion}</version>
+      </dependency>
+    </dependencies>
+  </dependencyManagement> 
+
+  <dependencies>
+    <dependency>
+      <groupId>org.apache.maven</groupId>
+      <artifactId>maven-plugin-api</artifactId>
+      <version>${mavenVersion}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven.plugin-tools</groupId>
+      <artifactId>maven-plugin-annotations</artifactId>
+      <version>${mavenPluginPluginVersion}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven.release</groupId>
+      <artifactId>maven-release-manager</artifactId>
+      <version>2.5.1</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven</groupId>
+      <artifactId>maven-model</artifactId>
+      <version>${mavenVersion}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven</groupId>
+      <artifactId>maven-core</artifactId>
+      <version>${mavenVersion}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven</groupId>
+      <artifactId>maven-project</artifactId>
+      <version>${mavenVersion}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven</groupId>
+      <artifactId>maven-settings</artifactId>
+      <version>${mavenVersion}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven.scm</groupId>
+      <artifactId>maven-scm-api</artifactId>
+      <version>${scmVersion}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.codehaus.plexus</groupId>
+      <artifactId>plexus-utils</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.jdom</groupId>
+      <artifactId>jdom</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-core</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven.shared</groupId>
+      <artifactId>maven-plugin-testing-harness</artifactId>
+      <version>1.1</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <artifactId>maven-site-plugin</artifactId>
+        <configuration>
+          <stagingSiteURL>scp://people.apache.org/www/maven.apache.org/plugins/${project.artifactId}-${project.version}</stagingSiteURL>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-plugin-plugin</artifactId>
+        <version>${mavenPluginPluginVersion}</version>
+        <configuration>
+          <skipErrorNoDescriptorsFound>true</skipErrorNoDescriptorsFound>
+        </configuration>
+        <executions>
+          <execution>
+            <id>mojo-descriptor</id>
+            <goals>
+              <goal>descriptor</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>generated-helpmojo</id>
+            <goals>
+              <goal>helpmojo</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <artifactId>maven-enforcer-plugin</artifactId>
+        <executions>
+          <execution>
+            <goals>
+              <goal>enforce</goal>
+            </goals>
+            <id>ensure-no-container-api</id>
+            <configuration>
+              <rules>
+                <bannedDependencies>
+                  <excludes>
+                    <exclude>org.codehaus.plexus:plexus-component-api</exclude>
+                  </excludes>
+                  <message>
+                    The new containers are not supported. You probably added a dependency that is missing the exclusions.
+                  </message>
+                </bannedDependencies>
+              </rules>
+              <fail>true</fail>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-invoker-plugin</artifactId>
+        <version>1.8</version>
+        <configuration>
+          <projectsDirectory>src/it</projectsDirectory>
+          <cloneProjectsTo>${project.build.directory}/it</cloneProjectsTo>
+          <postBuildHookScript>verify</postBuildHookScript>
+          <localRepositoryPath>${project.build.directory}/local-repo</localRepositoryPath>
+          <settingsFile>src/it/settings.xml</settingsFile>
+          <debug>true</debug>
+          <properties>
+            <allowReleasePluginSnapshot>true</allowReleasePluginSnapshot>
+            <dryRun>true</dryRun>
+          </properties>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
+  <reporting>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-plugin-plugin</artifactId>
+        <version>${mavenPluginPluginVersion}</version>
+      </plugin>
+    </plugins>
+  </reporting>
+
+  <profiles>
+    <profile>
+      <id>run-its</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-invoker-plugin</artifactId>
+            <version>1.8</version>
+            <executions>
+              <execution>
+                <id>integration-test-prepare</id>
+                <configuration>
+                  <setupIncludes>
+                    <setupInclude>setup/*/pom.xml</setupInclude>
+                  </setupIncludes>
+                  <pomIncludes>
+                    <pomInclude>projects/prepare/*/*pom.xml</pomInclude>
+                    <pomInclude>projects/prepare/flat-multi-module/parent-project/pom.xml</pomInclude>
+                  </pomIncludes>
+                  <goals>
+                    <goal>clean</goal>
+                    <goal>${project.groupId}:${project.artifactId}:${project.version}:clean</goal>
+                    <goal>${project.groupId}:${project.artifactId}:${project.version}:prepare</goal>
+                  </goals>
+                </configuration>
+                <goals>
+                  <goal>install</goal>
+                  <goal>run</goal>
+                </goals>
+              </execution>
+              <execution>
+                <id>integration-test-prepare-with-pom</id>
+                <configuration>
+                  <pomIncludes>
+                    <pomInclude>projects/prepare-with-pom/*/*pom.xml</pomInclude>
+                  </pomIncludes>
+                  <goals>
+                    <goal>clean</goal>
+                    <goal>${project.groupId}:${project.artifactId}:${project.version}:clean</goal>
+                    <goal>${project.groupId}:${project.artifactId}:${project.version}:prepare-with-pom</goal>
+                  </goals>
+                </configuration>
+                <goals>
+                  <goal>run</goal>
+                </goals>
+              </execution>
+              <execution>
+                <id>integration-test-branch</id>
+                <configuration>
+                  <pomIncludes>
+                    <pomInclude>projects/branch/*/pom.xml</pomInclude>
+                  </pomIncludes>
+                  <goals>
+                    <goal>clean</goal>
+                    <goal>${project.groupId}:${project.artifactId}:${project.version}:clean</goal>
+                    <goal>${project.groupId}:${project.artifactId}:${project.version}:branch</goal>
+                  </goals>
+                </configuration>
+                <goals>
+                  <goal>run</goal>
+                </goals>
+              </execution>
+              <execution>
+                <id>integration-test-perform</id>
+                <configuration>
+                  <pomIncludes>
+                    <pomInclude>projects/perform/*/pom.xml</pomInclude>
+                  </pomIncludes>
+                  <goals>
+                    <goal>clean</goal>
+                    <goal>${project.groupId}:${project.artifactId}:${project.version}:clean</goal>
+                    <goal>${project.groupId}:${project.artifactId}:${project.version}:prepare</goal>
+                    <goal>${project.groupId}:${project.artifactId}:${project.version}:perform</goal>
+                  </goals>
+                </configuration>
+                <goals>
+                  <goal>run</goal>
+                </goals>
+              </execution>
+              <execution>
+                <id>integration-test-update-versions</id>
+                <configuration>
+                  <pomIncludes>
+                    <pomInclude>projects/update-versions/*/pom.xml</pomInclude>
+                  </pomIncludes>
+                  <goals>
+                    <goal>clean</goal>
+                    <goal>${project.groupId}:${project.artifactId}:${project.version}:clean</goal>
+                    <goal>${project.groupId}:${project.artifactId}:${project.version}:update-versions</goal>
+                  </goals>
+                </configuration>
+                <goals>
+                  <goal>run</goal>
+                </goals>
+              </execution>
+           </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+</project>

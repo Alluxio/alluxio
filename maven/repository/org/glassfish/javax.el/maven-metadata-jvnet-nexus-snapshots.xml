@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata>
+  <groupId>org.glassfish</groupId>
+  <artifactId>javax.el</artifactId>
+  <versioning>
+    <versions>
+      <version>3.0.1-b06-SNAPSHOT</version>
+      <version>3.0.1-b07-SNAPSHOT</version>
+      <version>3.0.1-b08-SNAPSHOT</version>
+      <version>3.0.1-b11-SNAPSHOT</version>
+    </versions>
+    <lastUpdated>20180604075339</lastUpdated>
+  </versioning>
+</metadata>

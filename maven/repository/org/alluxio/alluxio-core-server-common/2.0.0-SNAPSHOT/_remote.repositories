@@ -1,0 +1,6 @@
+#NOTE: This is a Maven Resolver internal implementation file, its format can be changed without prior notice.
+#Sat Oct 20 11:40:37 CST 2018
+alluxio-core-server-common-2.0.0-SNAPSHOT-javadoc.jar>=
+alluxio-core-server-common-2.0.0-SNAPSHOT.jar>=
+alluxio-core-server-common-2.0.0-SNAPSHOT-sources.jar>=
+alluxio-core-server-common-2.0.0-SNAPSHOT.pom>=

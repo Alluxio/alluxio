@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata>
+  <groupId>org.alluxio</groupId>
+  <artifactId>alluxio-examples</artifactId>
+  <versioning>
+    <versions>
+      <version>2.0.0-SNAPSHOT</version>
+    </versions>
+    <lastUpdated>20181020033805</lastUpdated>
+  </versioning>
+</metadata>

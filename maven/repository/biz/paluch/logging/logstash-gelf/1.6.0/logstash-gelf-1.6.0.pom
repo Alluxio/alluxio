@@ -1,0 +1,334 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.sonatype.oss</groupId>
+        <artifactId>oss-parent</artifactId>
+        <version>9</version>
+    </parent>
+
+    <groupId>biz.paluch.logging</groupId>
+    <version>1.6.0</version>
+    <artifactId>logstash-gelf</artifactId>
+
+    <name>logstash logging connectors</name>
+    <url>https://github.com/mp911de/logstash-gelf/</url>
+    <inceptionYear>2013</inceptionYear>
+
+    <scm>
+        <connection>scm:git://github.com/mp911de/logstash-gelf.git</connection>
+        <developerConnection>scm:git:git@github.com:mp911de/logstash-gelf.git</developerConnection>
+        <url>http://github.com/mp911de/logstash-gelf/</url>
+        <tag>logstash-gelf-1.6.0</tag>
+    </scm>
+
+    <issueManagement>
+        <system>GitHub</system>
+        <url>https://github.com/mp911de/logstash-gelf/issues</url>
+    </issueManagement>
+
+    <licenses>
+        <license>
+            <name>MIT License</name>
+            <url>http://www.opensource.org/licenses/mit-license.php</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <distributionManagement>
+        <site>
+            <id>site</id>
+            <url>scm:git:git@github.com:mp911de/logging.paluch.biz.git</url>
+        </site>
+    </distributionManagement>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.compiler.target>1.6</maven.compiler.target>
+        <maven.compiler.source>1.6</maven.compiler.source>
+        <logstash-gelf-release-version>1.6.0</logstash-gelf-release-version>
+
+        <github.site.upload.skip>true</github.site.upload.skip>
+        <test.withRedis>false</test.withRedis>
+
+        <!-- Versions -->
+        <com.googlecode.json-simple.version>1.1.1</com.googlecode.json-simple.version>
+        <log4j.version>1.2.14</log4j.version>
+        <log4j2.version>2.1</log4j2.version>
+        <junit.version>4.11</junit.version>
+        <mockito.version>1.9.5</mockito.version>
+        <jedis.version>2.6.1</jedis.version>
+        <jedis-commons-pool2.version>2.2</jedis-commons-pool2.version>
+        <slf4j-api.version>1.7.7</slf4j-api.version>
+        <logback-classic.version>1.0.13</logback-classic.version>
+        <org.jboss.logmanager.version>1.5.2.Final</org.jboss.logmanager.version>
+
+        <site-plugin.version>3.3</site-plugin.version>
+        <maven-javadoc-plugin.version>2.7</maven-javadoc-plugin.version>
+        <maven-surefire-plugin.version>2.17</maven-surefire-plugin.version>
+        <doxia-module-markdown.version>1.3</doxia-module-markdown.version>
+        <maven-project-info-reports-plugin.version>2.7</maven-project-info-reports-plugin.version>
+        <cobertura-maven-plugin.version>2.6</cobertura-maven-plugin.version>
+        <coveralls-maven-plugin.version>2.2.0</coveralls-maven-plugin.version>
+        <maven-release-plugin.version>2.5</maven-release-plugin.version>
+        <netty-all.version>4.0.12.Final</netty-all.version>
+        <maven-scm-publish-plugin.version>1.1</maven-scm-publish-plugin.version>
+        <tempus-fugit.version>1.1</tempus-fugit.version>
+        <maven-dependency-plugin.version>2.8</maven-dependency-plugin.version>
+        <maven-assembly-plugin.version>2.2-beta-5</maven-assembly-plugin.version>
+        <maven-scm-provider-gitexe.version>1.9</maven-scm-provider-gitexe.version>
+    </properties>
+
+    <developers>
+        <developer>
+            <email>mpaluch@paluch.biz</email>
+            <name>Mark Paluch</name>
+            <timezone>Europe/Berlin</timezone>
+            <url>http://www.paluch.biz</url>
+        </developer>
+    </developers>
+
+    <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>${maven-assembly-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>dist-assembly</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <descriptor>src/main/assembly/assembly.xml</descriptor>
+                    <attach>true</attach>
+                    <classifier>module</classifier>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <version>${maven-dependency-plugin.version}</version>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>${maven-surefire-plugin.version}</version>
+                <configuration>
+                    <redirectTestOutputToFile>true</redirectTestOutputToFile>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-release-plugin</artifactId>
+                <version>${maven-release-plugin.version}</version>
+                <configuration>
+                    <releaseProfiles>sonatype-oss-release</releaseProfiles>
+                    <goals>deploy</goals>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.eluder.coveralls</groupId>
+                <artifactId>coveralls-maven-plugin</artifactId>
+                <version>${coveralls-maven-plugin.version}</version>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>cobertura-maven-plugin</artifactId>
+                <version>${cobertura-maven-plugin.version}</version>
+                <configuration>
+                    <format>xml</format>
+                    <maxmem>256m</maxmem>
+                    <aggregate>true</aggregate>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-site-plugin</artifactId>
+                <version>${site-plugin.version}</version>
+                <configuration>
+                    <relativizeDecorationLinks>false</relativizeDecorationLinks>
+                </configuration>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.apache.maven.doxia</groupId>
+                        <artifactId>doxia-module-markdown</artifactId>
+                        <version>${doxia-module-markdown.version}</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.apache.maven.scm</groupId>
+                        <artifactId>maven-scm-provider-gitexe</artifactId>
+                        <version>${maven-scm-provider-gitexe.version}</version>
+                    </dependency>
+                </dependencies>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-scm-publish-plugin</artifactId>
+                <version>${maven-scm-publish-plugin.version}</version>
+                <configuration>
+                    <scmBranch>gh-pages</scmBranch>
+                    <content>${project.build.directory}/site</content>
+                    <skipCheckin>${github.site.upload.skip}</skipCheckin>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>publish-scm</id>
+                        <goals>
+                            <goal>publish-scm</goal>
+                        </goals>
+                        <phase>post-site</phase>
+                    </execution>
+                </executions>
+            </plugin>
+
+        </plugins>
+    </build>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.googlecode.json-simple</groupId>
+            <artifactId>json-simple</artifactId>
+            <version>${com.googlecode.json-simple.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>log4j</groupId>
+            <artifactId>log4j</artifactId>
+            <version>${log4j.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- log4j2 START -->
+
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-api</artifactId>
+            <version>${log4j2.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-core</artifactId>
+            <version>${log4j2.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- log4j2 END -->
+
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>${slf4j-api.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>${logback-classic.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- Test -->
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>${junit.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-all</artifactId>
+            <version>${mockito.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-all</artifactId>
+            <version>${netty-all.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.google.code.tempus-fugit</groupId>
+            <artifactId>tempus-fugit</artifactId>
+            <version>${tempus-fugit.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- Redis Client -->
+        <dependency>
+            <groupId>redis.clients</groupId>
+            <artifactId>jedis</artifactId>
+            <version>${jedis.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-pool2</artifactId>
+            <version>${jedis-commons-pool2.version}</version>
+        </dependency>
+
+		<!--JBoss Logging -->
+		<dependency>
+			<groupId>org.jboss.logmanager</groupId>
+			<artifactId>jboss-logmanager</artifactId>
+			<version>${org.jboss.logmanager.version}</version>
+			<scope>provided</scope>
+		</dependency>
+    </dependencies>
+
+    <reporting>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>${maven-javadoc-plugin.version}</version>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-project-info-reports-plugin</artifactId>
+                <version>${maven-project-info-reports-plugin.version}</version>
+                <reportSets>
+                    <reportSet>
+                        <reports>
+                            <report>index</report>
+                            <report>plugin-management</report>
+                            <report>distribution-management</report>
+                            <report>dependency-info</report>
+                            <report>dependencies</report>
+                            <report>scm</report>
+                            <report>issue-tracking</report>
+                            <report>cim</report>
+                            <report>dependency-management</report>
+                            <report>project-team</report>
+                            <report>summary</report>
+                        </reports>
+                    </reportSet>
+                </reportSets>
+            </plugin>
+        </plugins>
+    </reporting>
+</project>

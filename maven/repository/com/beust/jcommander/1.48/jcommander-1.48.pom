@@ -1,0 +1,283 @@
+<!--
+
+    Copyright (C) 2010 the original author or authors.
+    See the notice.md file distributed with this work for additional
+    information regarding copyright ownership.
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>com.beust</groupId>
+  <artifactId>jcommander</artifactId>
+  <packaging>jar</packaging>
+  <name>JCommander</name>
+  <version>1.48</version>
+  <description>A Java framework to parse command line options with annotations.</description>
+  <url>http://beust.com/jcommander</url>
+  <licenses>
+    <license>
+      <name>The Apache Software License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+  <scm>
+    <connection>scm:git:git@github.com:cbeust/jcommander.git</connection>
+    <developerConnection>scm:git:git@github.com:cbeust/jcommander.git</developerConnection>
+    <url>git@github.com:cbeust/jcommander.git</url>
+  </scm>
+
+  <distributionManagement>
+    <repository>
+      <id>sonatype-nexus-staging</id>
+      <name>Nexus Staging Repository</name>
+      <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+    </repository>
+  </distributionManagement>
+
+  <developers>
+    <developer>
+      <name>Cedric Beust</name>
+    </developer>
+  </developers>
+
+  <parent>
+    <groupId>org.sonatype.oss</groupId>
+    <artifactId>oss-parent</artifactId>
+    <version>3</version>
+  </parent>
+
+  <build>
+    <plugins>
+
+      <!-- Bundle sources -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-source-plugin</artifactId>
+        <version>2.1.1</version>
+        <executions>
+          <execution>
+            <id>attach-sources</id>
+              <goals>
+                <goal>jar</goal>
+              </goals>
+            </execution>
+        </executions>
+      </plugin>
+
+      <!-- Compilation -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>2.3.1</version>
+        <configuration>
+          <source>1.5</source>
+          <target>1.5</target>
+          <encoding>UTF-8</encoding>
+        </configuration>
+      </plugin>
+
+      <!-- Resource handling -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-resources-plugin</artifactId>
+        <version>2.4.1</version>
+        <configuration>
+          <encoding>UTF-8</encoding>
+        </configuration>
+      </plugin>
+
+      <!-- OSGi manifest creation -->
+      <plugin>
+        <groupId>org.apache.felix</groupId>
+        <artifactId>maven-bundle-plugin</artifactId>
+        <version>2.1.0</version>
+        <executions>
+          <execution>
+            <id>bundle-manifest</id>
+            <phase>process-classes</phase>
+            <goals>
+              <goal>manifest</goal>
+            </goals>
+            <configuration>
+              <instructions>
+                <_versionpolicy>$(@)</_versionpolicy>
+              </instructions>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!-- Add OSGi manifest in JAR -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>2.3.1</version>
+        <configuration>
+          <archive>
+            <manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
+          </archive>
+        </configuration>
+      </plugin>
+
+      <!-- Tests -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>2.10</version>
+        <configuration>
+          <skipTests>true</skipTests>
+        </configuration>
+        <dependencies>
+          <dependency>
+            <groupId>com.beust</groupId>
+            <artifactId>jcommander</artifactId>
+            <version>1.30</version>
+<!--
+            <version>${project.version}</version>
+-->
+           </dependency>
+        </dependencies>
+      </plugin>
+
+      <!-- Generating Javadoc -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <version>2.7</version>
+        <configuration>
+          <excludePackageNames>*.internal</excludePackageNames>
+        </configuration>
+      </plugin>
+    </plugins>
+    <pluginManagement>
+        <plugins>
+            <!--This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself.-->
+            <plugin>
+                <groupId>org.eclipse.m2e</groupId>
+                <artifactId>lifecycle-mapping</artifactId>
+                <version>1.0.0</version>
+                <configuration>
+                    <lifecycleMappingMetadata>
+                        <pluginExecutions>
+                            <pluginExecution>
+                                <pluginExecutionFilter>
+                                    <groupId>org.apache.felix</groupId>
+                                    <artifactId>
+                                        maven-bundle-plugin
+                                    </artifactId>
+                                    <versionRange>
+                                        [2.1.0,)
+                                    </versionRange>
+                                    <goals>
+                                        <goal>manifest</goal>
+                                    </goals>
+                                </pluginExecutionFilter>
+                                <action>
+                                    <ignore />
+                                </action>
+                            </pluginExecution>
+                        </pluginExecutions>
+                    </lifecycleMappingMetadata>
+                </configuration>
+            </plugin>
+        </plugins>
+    </pluginManagement>
+  </build>
+
+  <dependencies>
+  	<dependency>
+  		<groupId>org.testng</groupId>
+  		<artifactId>testng</artifactId>
+  		<version>6.1.1</version>
+  		<type>jar</type>
+  		<scope>test</scope>
+        <exclusions>
+            <exclusion>
+                <artifactId>jcommander</artifactId>
+                <groupId>com.beust</groupId>
+            </exclusion>
+        </exclusions>
+  	</dependency>
+  </dependencies>
+
+  <profiles>
+    
+    <!--
+        Do a license check by running       : mvn -P license license:check
+        UPdate the license check by running : mvn -P license license:format
+      -->
+    <profile>
+      <id>license</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>com.mycila.maven-license-plugin</groupId>
+            <artifactId>maven-license-plugin</artifactId>
+            <version>1.7.0</version>
+            <configuration>
+              <quiet>false</quiet>
+              <header>src/main/license/license-header.txt</header>
+              <includes>
+                  <include>src/**</include>
+                  <include>pom.xml</include>
+              </includes>
+              <excludes>
+                <exclude>**/.git/**</exclude>
+                <!-- ignore files produced during a build -->
+                <exclude>**/target/**</exclude>
+              </excludes>
+              <useDefaultExcludes>false</useDefaultExcludes>
+            </configuration>
+            <executions>
+              <execution>
+                <goals>
+                  <goal>check</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <!-- Signing with gpg -->
+    <!--
+    Sign the artifacts by calling
+    mvn -P sign [..]
+    -->
+    <profile>
+      <id>sign</id>
+      <build>
+        <plugins>
+          <plugin>
+            <artifactId>maven-gpg-plugin</artifactId>
+            <version>1.4</version>
+            <executions>
+              <execution>
+                <id>sign-artifacts</id>
+                <phase>verify</phase>
+                <goals>
+                  <goal>sign</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+
+</project>

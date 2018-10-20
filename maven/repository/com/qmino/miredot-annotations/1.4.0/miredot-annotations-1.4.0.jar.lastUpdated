@@ -1,0 +1,15 @@
+#NOTE: This is a Maven Resolver internal implementation file, its format can be changed without prior notice.
+#Sat Oct 20 11:41:35 CST 2018
+https\://repo1.maven.org/maven2/.lastUpdated=1540006889871
+http\://repo.hortonworks.com/content/repositories/releases/.lastUpdated=1540006894249
+http\://repository.mapr.com/maven/.error=
+http\://repository.mapr.com/maven/.lastUpdated=1540006893276
+http\://repo.hortonworks.com/content/repositories/releases/.error=
+https\://repository.apache.org/content/repositories/releases/.lastUpdated=1540006891580
+http\://repo.spring.io/libs-release/.error=
+http\://nexus.qmino.com/content/repositories/miredot/.lastUpdated=1540006895616
+http\://repo.spring.io/libs-release/.lastUpdated=1540006893740
+https\://repository.apache.org/content/repositories/releases/.error=
+https\://repository.cloudera.com/artifactory/cloudera-repos/.lastUpdated=1540006892822
+https\://repo1.maven.org/maven2/.error=
+https\://repository.cloudera.com/artifactory/cloudera-repos/.error=

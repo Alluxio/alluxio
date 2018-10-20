@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <parent>
+        <groupId>org.powermock</groupId>
+        <artifactId>powermock-classloading-module</artifactId>
+        <version>1.6.1</version>
+    </parent>
+    <packaging>jar</packaging>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>org.powermock</groupId>
+    <artifactId>powermock-classloading-xstream</artifactId>
+    <name>powermock-classloading-xstream</name>
+    <version>1.6.1</version>
+
+    <description>
+        Performs classloader deep-cloning using X-Stream
+    </description>
+    <dependencies>
+        <dependency>
+            <groupId>org.powermock</groupId>
+            <artifactId>powermock-classloading-base</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.thoughtworks.xstream</groupId>
+            <artifactId>xstream</artifactId>
+            <version>1.4.2</version>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.8.2</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+</project>

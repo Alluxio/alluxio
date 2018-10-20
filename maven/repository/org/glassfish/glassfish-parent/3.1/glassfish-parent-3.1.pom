@@ -1,0 +1,1435 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+    DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
+
+    Copyright (c) 1997-2011 Oracle and/or its affiliates. All rights reserved.
+
+    The contents of this file are subject to the terms of either the GNU
+    General Public License Version 2 only ("GPL") or the Common Development
+    and Distribution License("CDDL") (collectively, the "License").  You
+    may not use this file except in compliance with the License.  You can
+    obtain a copy of the License at
+    https://glassfish.dev.java.net/public/CDDL+GPL_1_1.html
+    or packager/legal/LICENSE.txt.  See the License for the specific
+    language governing permissions and limitations under the License.
+
+    When distributing the software, include this License Header Notice in each
+    file and include the License file at packager/legal/LICENSE.txt.
+
+    GPL Classpath Exception:
+    Oracle designates this particular file as subject to the "Classpath"
+    exception as provided by Oracle in the GPL Version 2 section of the License
+    file that accompanied this code.
+
+    Modifications:
+    If applicable, add the following below the License Header, with the fields
+    enclosed by brackets [] replaced by your own identifying information:
+    "Portions Copyright [year] [name of copyright owner]"
+
+    Contributor(s):
+    If you wish your version of this file to be governed by only the CDDL or
+    only the GPL Version 2, indicate your decision by adding "[Contributor]
+    elects to include this software in this distribution under the [CDDL or GPL
+    Version 2] license."  If you don't indicate a single choice of license, a
+    recipient has the option to distribute your version of this file under
+    either the CDDL, the GPL Version 2 or to extend the choice of license to
+    its licensees as provided above.  However, if you add GPL Version 2 code
+    and therefore, elected the GPL Version 2 license, then the option applies
+    only if the new code is made subject to such option by the copyright
+    holder.
+
+-->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>org.glassfish</groupId>
+        <artifactId>pom</artifactId>
+        <version>8</version>
+    </parent>
+    
+    <groupId>org.glassfish</groupId>
+    <artifactId>glassfish-parent</artifactId>
+    <packaging>pom</packaging>
+    <version>3.1</version>
+    <name>GlassFish Parent Project</name>
+    <scm>
+        <connection>scm:svn:https://svn.java.net/svn/glassfish~svn/tags/3.1-b43</connection>
+        <developerConnection>scm:svn:https://svn.java.net/svn/glassfish~svn/tags/3.1-b43</developerConnection>
+    </scm>
+    <issueManagement>
+        <system>IssueTracker</system>
+        <url>http://java.net/jira/browse/GLASSFISH</url>
+    </issueManagement>
+
+    <mailingLists>
+        <mailingList>
+            <name>dev</name>
+            <subscribe>http://java.net/projects/glassfish/lists</subscribe>
+            <post>dev@glassfish.java.net</post>
+            <archive>http://java.net/projects/glassfish/lists/dev/archive</archive>
+        </mailingList>
+        <mailingList>
+            <name>users</name>
+            <subscribe>http://java.net/projects/glassfish/lists</subscribe>
+            <post>users@glassfish.java.net</post>
+            <archive>http://java.net/projects/glassfish/lists/users/archive</archive>
+        </mailingList>
+        <mailingList>
+            <name>issues</name>
+            <subscribe>http://java.net/projects/glassfish/lists</subscribe>
+            <post>issues@glassfish.java.net</post>
+            <archive>http://java.net/projects/glassfish/lists/issues/archive</archive>
+        </mailingList>
+        <mailingList>
+            <name>commits</name>
+            <subscribe>http://java.net/projects/glassfish/lists</subscribe>
+            <post>commits@glassfish.java.net</post>
+            <archive>http://java.net/projects/glassfish/lists/commits/archive</archive>
+        </mailingList>
+    </mailingLists>
+
+    <properties>
+        <!-- Set sourceEncoding property to eliminate warning with "File encoding not set" -->
+        <!-- when running FindBugs plugin.  -->
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding> 
+        <mail.version>1.4.4</mail.version>
+        <management-api.version>1.1-rev-1</management-api.version>
+        <jms-api.version>1.1-rev-1</jms-api.version>
+        <jsp-api.version>2.2.1-b02</jsp-api.version>
+        <jsp-impl.version>2.2.2-b06</jsp-impl.version>
+        <el-api.version>2.2.1-b03</el-api.version>
+        <el-impl.version>2.2.1-b03</el-impl.version>
+        <jstl-impl.version>1.2</jstl-impl.version>
+        <jstl-api.version>1.2</jstl-api.version>
+        <jsf-api.version>2.1.0-b11</jsf-api.version>
+        <jsf-impl.version>2.1.0-b11</jsf-impl.version>
+        <jsf-ext.version>0.2</jsf-ext.version>
+        <woodstock.version>4.0.2.6</woodstock.version>
+        <jaxrpc-api.version>1.1</jaxrpc-api.version>
+        <grizzly.version>1.9.31</grizzly.version>
+        <jsr181-api.version>1.0-MR1</jsr181-api.version>
+        <saaj-api.version>1.3</saaj-api.version>
+        <hk2.version>1.1.0</hk2.version>
+        <hk2.plugin.version>1.1.0</hk2.plugin.version>
+        <trilead-ssh2.version>build212-hudson-6</trilead-ssh2.version>
+        <product.name>GlassFish Server Open Source Edition</product.name>
+        <abbrev_product_name>glassfish</abbrev_product_name>
+        <version_prefix />
+        <major_version>3</major_version>
+        <minor_version>1</minor_version>
+        <update_version />
+        <version_suffix />
+        <build.id>${user.name}-private</build.id><!-- on Hudson and RE, this gets replaced by real build ID -->
+        <stax-api.version>1.0-2</stax-api.version>
+        <jsftemplating.version>2.0.4</jsftemplating.version>
+        <glassfish-corba.version>3.1.0-b027</glassfish-corba.version>
+        <uc-pkg-client.version>1.122-50.2809</uc-pkg-client.version>
+        <uc-pkg-bootstrap.version>1.122-50.2809</uc-pkg-bootstrap.version>
+        <webservices.version>2.1</webservices.version>
+        <woodstox.version>3.2.1.1</woodstox.version>
+        <jaxb-api.version>2.2.2</jaxb-api.version>
+        <jaxb.version>2.2.3-1</jaxb.version>
+        <jaxrpc.api.version>1.1-b01</jaxrpc.api.version>
+
+        <javax-persistence-api.version>2.0.3</javax-persistence-api.version>
+        <eclipselink.version>2.2.0-RC4</eclipselink.version>
+        <dbschema.version>RELEASE60</dbschema.version>
+        <!-- osgi version string must start with a number. Manually mapping above dbschema.version to osgi.version here -->
+        <dbschema.osgi.version>6.0</dbschema.osgi.version>
+        <schema2beans.version>RELEASE55</schema2beans.version>
+        <!-- osgi version string must start with a number. Manually mapping above schema2beans.version to osgi.version here -->
+        <schema2beans.osgi.version>5.5</schema2beans.osgi.version>
+        <antlr.version>2.7.6</antlr.version>
+        <mq.version>4.5-029</mq.version>
+        <javadb.version>10.6.2.1</javadb.version>
+        <jaxr.version>JAXR_RA_20091012</jaxr.version>
+        <weld.version>1.1.0.Final</weld.version>
+        <jersey.version>1.5</jersey.version>
+        <jbi.version>1.0</jbi.version>
+        <wsdl4j.version>1.6.2</wsdl4j.version>
+        <gmbal.version>3.1.0-b001</gmbal.version>
+        <glassfish-management-api.version>3.1.0-b001</glassfish-management-api.version>
+        <mimepull.version>1.5</mimepull.version>
+        <findbugs.exclude />
+        <btrace.version>1.0.5</btrace.version>
+        <opendmk.version>1.0-b01-ea</opendmk.version>
+        <v3-docs.version>3.1-b11</v3-docs.version>
+        <l10n.version>3.1-b41</l10n.version>
+        <asm.version>3.1</asm.version>
+        <shoal.version>1.5.29</shoal.version>
+        <ha-api.version>3.1.8</ha-api.version>
+    </properties>
+
+
+    <modules>
+        <!-- Don't add any other module here. Instead add them in debug profile -->
+        <!-- To avoid JVM crash while using JDK 6, we are not
+             building this module in anonymous profile anymore.
+             See bug #6766662 for more details.
+              <module>build</module>
+        -->
+    </modules>
+    <profiles>
+        <profile>
+            <id>test-packager</id>
+            <modules>
+                <module>extras</module>
+                <module>packager</module>
+            </modules>
+        </profile>
+
+        <profile>
+            <!-- this profile is used during the development -->
+            <id>default</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <modules>
+                <!-- Every time you change module list, please change
+                     the same under release profiles as well (below) -->
+                <module>cluster</module>
+                <module>javaee-api</module>
+                <module>common</module>
+                <module>ha</module>
+                <module>deployment</module>
+                <module>admin</module>
+                <module>core</module>
+                <module>transaction</module>
+                <module>web</module>
+                <module>ejb</module>
+                <module>connectors</module>
+                <module>load-balancer</module> 
+                <module>jms</module>
+                <module>jdbc</module>
+                <module>persistence</module>
+                <module>extras</module>
+                <module>admingui</module>
+                <module>extras/embedded/shell</module>
+                <module>packager</module>
+                <module>distributions</module>
+                <module>security</module>
+                <module>registration</module>
+                <module>tests</module>
+                <module>osgi-platforms</module>
+                <module>flashlight</module>
+                <module>webservices</module>
+                <module>orb</module>
+                <module>appclient</module>
+                <module>verifier/verifier-impl</module>
+                <module>verifier/verifier-scripts</module>
+                <module>verifier/verifier-jdk-extension-bundle</module>
+                <module>osgi-javaee</module>
+                <module>ant-tasks</module>
+            </modules>
+            <build>
+                <plugins>
+                    <!-- prints ${project.basedir} in build output -->
+                    <plugin>
+                        <groupId>org.glassfish.build</groupId>
+                        <artifactId>maven-glassfishbuild-plugin</artifactId>
+                        <version>${project.version}</version>
+                        <executions>
+                            <execution>
+                                <id>echo</id>
+                                <phase>validate</phase>
+                                <goals>
+                                    <goal>echo</goal>
+                                </goals>
+                                <configuration>
+                                    <messages>
+                                        <message>Building in ${project.basedir} </message>
+                                    </messages>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+        <profile>
+            <!-- this profile is used during the development -->
+            <id>IDE</id>
+            <modules>
+                <!-- Every time you change module list, please change
+                     the same under release profiles as well (below) -->
+                <module>cluster</module>
+                <module>javaee-api</module>
+                <module>common</module>
+                <module>ha</module>
+                <module>deployment</module>
+                <module>admin</module>
+                <module>core</module>
+                <module>transaction</module>
+                <module>web</module>
+                <module>ejb</module>
+                <module>connectors</module>
+                <module>load-balancer</module> 
+                <module>jdbc</module>
+                <module>extras</module>
+                <module>distributions</module>
+                <module>security</module>
+                <module>registration</module>
+                <module>tests</module>
+                <module>osgi-platforms</module>
+                <module>flashlight</module>
+                <module>webservices</module>
+            </modules>
+        </profile>        
+        <profile>
+            <!--
+                The GlassFish build depends on maven-glassfishbuild-plugin as an extension,
+                so it causes a chicken and egg problem during a release;
+                Maven tries to resolve all extensions early on, but it fails
+                because the maven-glassfishbuild-plugin is not built yet.
+
+                So the work around is a release in two-phase. First we
+                do "mvn release:prepare", which fails due to the problem described above.
+                At this point the workspace is left with POM that has non-SNAPSHOT version.
+                So now we run "mvn -P release-phase1" and builds the build module.
+                This puts maven-glassfishbuild-plugin in local repo,
+                so the retry of "mvn release:prepare" now works.
+            -->
+            <id>release-phase1</id>
+            <modules>
+                <!-- To avoid JVM crash while using JDK 6, we are
+                     building this module in this profile only.
+                     See bug #6766662 for more details.
+                -->
+                <module>build</module>
+            </modules>
+        </profile>
+
+        <profile>
+            <!--
+                RE profile for release purposes.
+            -->
+            <id>release-phase2</id>
+
+            <build>
+                <plugins>
+                    <!-- The installer module requires the dependency of jdk tools.jar -->
+                    <!-- to compile java classes in build.xml.  -->
+                    <plugin>
+                        <groupId>org.jvnet.maven-antrun-extended-plugin</groupId>
+                        <artifactId>maven-antrun-extended-plugin</artifactId>
+                        <dependencies>
+                            <dependency>
+                                <groupId>sun.jdk</groupId>
+                                <artifactId>tools</artifactId>
+                                <version>1.6</version>
+                                <scope>system</scope>
+                                <systemPath>${java.home}/../lib/tools.jar</systemPath>
+                            </dependency>
+                        </dependencies>
+                    </plugin>
+                </plugins>
+            </build>
+
+            <modules>
+                <module>cluster</module>
+                <module>javaee-api</module>
+                <module>common</module>
+                <module>ha</module>
+                <module>deployment</module>
+                <module>admin</module>
+                <module>core</module>
+                <module>transaction</module>
+                <module>web</module>
+                <module>ejb</module>
+                <module>connectors</module>
+                <module>load-balancer</module> 
+                <module>jms</module>
+                <module>jdbc</module>
+                <module>persistence</module>
+                <module>extras</module>
+                <module>admingui</module>
+                <module>extras/embedded/shell</module>
+                <module>packager</module>
+                <module>distributions</module>
+                <module>security</module>
+                <module>registration</module>
+                <module>tests</module>
+                <module>osgi-platforms</module>
+                <module>flashlight</module>
+                <module>webservices</module>
+                <module>orb</module>
+                <module>installer</module>
+                <module>sun-glassfish</module>
+                <module>sun-glassfish/packager</module>
+                <module>sun-glassfish/distributions</module>
+                <module>sun-glassfish/installer</module>
+                <module>javaee-sdk</module>
+                <module>appclient</module>
+                <module>verifier/verifier-impl</module>
+                <module>verifier/verifier-scripts</module>
+                <module>verifier/verifier-jdk-extension-bundle</module>
+                <module>extras/embedded/all</module>
+                <module>extras/embedded/web</module>
+                <module>extras/embedded/nucleus</module>
+                <module>osgi-javaee</module>
+		<module>ant-tasks</module>
+            </modules>
+       </profile>
+
+       <profile>
+            <!--
+                RE profile for release purposes.
+            -->
+            <id>release-phase-all</id>
+            <modules>
+                <module>cluster</module>
+                <module>build</module>
+                <module>javaee-api</module>
+                <module>common</module>
+                <module>ha</module>
+                <module>deployment</module>
+                <module>admin</module>
+                <module>core</module>
+                <module>transaction</module>
+                <module>web</module>
+                <module>ejb</module>
+                <module>connectors</module>
+                <module>load-balancer</module> 
+                <module>jms</module>
+                <module>jdbc</module>
+                <module>persistence</module>
+                <module>extras</module>
+                <module>admingui</module>
+                <module>extras/embedded/shell</module>
+                <module>packager</module>
+                <module>distributions</module>
+                <module>security</module>
+                <module>registration</module>
+                <module>tests</module>
+                <module>osgi-platforms</module>
+                <module>flashlight</module>
+                <module>webservices</module>
+                <module>orb</module>
+                <module>installer</module>
+                <module>sun-glassfish</module>
+                <module>sun-glassfish/packager</module>
+                <module>sun-glassfish/distributions</module>
+                <module>sun-glassfish/installer</module>
+                <module>javaee-sdk</module>
+                <module>sun-glassfish/distributions/web-ri</module>
+                <module>sun-glassfish/distributions/glassfish-ri</module>
+                <module>appclient</module>
+                <module>verifier/verifier-impl</module>
+                <module>verifier/verifier-scripts</module>
+                <module>verifier/verifier-jdk-extension-bundle</module>
+                <module>extras/embedded/all</module>
+                <module>extras/embedded/web</module>
+                <module>extras/embedded/nucleus</module>
+                <module>osgi-javaee</module>
+                <module>ant-tasks</module>
+            </modules>
+        </profile>
+    </profiles>
+
+    <build>
+        <defaultGoal>install</defaultGoal>
+        <sourceDirectory>src/main/java</sourceDirectory>
+        <!-- make the target/*.jar names match the name as found in  installed modules/ -->
+        <finalName>${project.artifactId}</finalName>
+
+        <!--    Begin: Parent Plugin Management Section -->
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>com.sun.enterprise</groupId>
+                    <artifactId>hk2-maven-plugin</artifactId>
+                    <version>${hk2.plugin.version}</version>
+                </plugin>
+
+                <plugin>
+                    <groupId>com.sun.enterprise</groupId>
+                    <artifactId>osgiversion-maven-plugin</artifactId>
+                    <version>${hk2.plugin.version}</version>
+                </plugin>
+
+                <plugin>
+                    <groupId>com.sun.enterprise</groupId>
+                    <artifactId>consolidatedbundle-maven-plugin</artifactId>
+                    <version>${hk2.plugin.version}</version>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.jvnet.maven-antrun-extended-plugin</groupId>
+                    <artifactId>maven-antrun-extended-plugin</artifactId>
+                    <version> 1.41 </version>
+                </plugin>
+
+                 <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-antrun-plugin</artifactId>
+                    <version> 1.1 </version>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.apache.felix</groupId>
+                    <artifactId>maven-bundle-plugin</artifactId>
+                    <version> 2.0.1 </version>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version> 2.0.2 </version>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-dependency-plugin</artifactId>
+                    <version> 2.0 </version>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.glassfish.build</groupId>
+                    <artifactId>maven-glassfishbuild-plugin</artifactId>
+                    <version>${project.version}</version>
+                    <configuration>
+                        <!-- configuration for the checkout mojo -->
+                        <checkoutDirectory>.</checkoutDirectory>
+                        <skipCheckoutIfExists>true</skipCheckoutIfExists>
+                        <!-- configuration for the run mojo -->
+                        <distribution>
+                            <groupId>org.glassfish.distributions</groupId>
+                            <artifactId>web</artifactId>
+                            <version>${project.version}</version>
+                        </distribution>
+                    </configuration>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-javadoc-plugin</artifactId>
+                    <version> 2.2 </version>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-source-plugin</artifactId>
+                    <version> 2.1 </version>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-clean-plugin</artifactId>
+                    <version> 2.3 </version>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <version> 2.4.3 </version>
+                    <configuration>
+                      <forkMode>never</forkMode>
+                    </configuration>
+                </plugin>
+
+                <!--
+                     Get the latest version of release plugin.
+                     There is a bug in 2.0-beta-7 where the releaseVersion
+                     and developmentVersion properties are noop.
+                -->
+                <plugin>
+                   <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-release-plugin</artifactId>
+                    <version>2.0-beta-9</version>
+                </plugin>
+                
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>antlr-maven-plugin</artifactId>
+                    <version>2.1</version>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.jvnet.updatecenter2</groupId>
+                    <artifactId>maven-makepkgs-plugin</artifactId>
+                    <version>0.5.1</version>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-remote-resources-plugin</artifactId>
+                    <version>1.1</version>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-resources-plugin</artifactId>
+                    <version>2.4.3</version>
+                </plugin>
+
+             </plugins>
+        </pluginManagement>
+        <!--    End: Parent Plugin Management Section    -->
+
+        <plugins>
+
+            <!-- Enforces maven 2.2.1 and jdk 1.6.0-04 and above to be used to build v3 -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <version>1.0-beta-1</version>
+                <executions>
+                    <execution>
+                    <id>enforce-versions</id>
+                    <goals>
+                        <goal>enforce</goal>
+                    </goals>
+                    <configuration>
+                        <rules>
+                            <requireJavaVersion>
+                                <version>[1.6.0-4,)</version>
+                                <message>You need JDK 1.6.0_04 and above!</message>
+                            </requireJavaVersion>
+                            <requireMavenVersion>
+                                <version>[2.2.1,)</version>
+                                <message>You need Maven 2.2.1 or above!</message>
+                            </requireMavenVersion>
+                        </rules>
+                        </configuration>
+                    </execution>
+                    </executions>
+            </plugin>
+
+            <!-- Configure maven-bundle-plugin to generate OSGi manifest.
+                 Please note: we use the manifest goal only and not the bundle goal.
+                  The bundle goal can lead to very surprising results if the
+                  package names are not correctly specified. So,
+                  we use the jar plugin to generate the jar.-->
+            <plugin>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-bundle-plugin</artifactId>
+                <configuration>
+                    <!-- By default, we don't export anything.
+                    -->
+                    <Export-Package />
+                    <!-- Since, we are in a top level pom and
+                         we we don't want it to be active for plain jar type artifacts,
+                         enable the plugin for hk2-jar and bundle packaging type only,
+                    -->
+                    <supportedProjectTypes>
+                        <supportedProjectType>hk2-jar</supportedProjectType>
+                        <supportedProjectType>bundle</supportedProjectType>
+                    </supportedProjectTypes>
+                    <instructions>
+                        <!-- Read all the configuration from osgi.bundle file, if it exists.
+                             See Felix-699 to find out why we use ${basedir}.
+                        -->
+                        <_include>-${basedir}/osgi.bundle</_include>
+                    </instructions>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>bundle-manifest</id>
+                        <phase>process-classes</phase>
+                        <goals>
+                            <goal>manifest</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <!-- if project does not contain source, plugin will fail, so add pom.xml.  -->
+                <!-- See:  http://jira.codehaus.org/browse/MSOURCES-44.  -->
+                <configuration>
+                    <includePom>true</includePom>
+                </configuration>
+                <executions>
+                    <execution>
+                       <id>attach-sources</id>
+                       <phase>verify</phase>
+                       <goals>
+                           <goal>jar-no-fork</goal> 
+                       </goals>
+                    </execution>
+                </executions>
+          </plugin>
+
+            <plugin>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <forkMode>none</forkMode>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>com.sun.enterprise</groupId>
+                <artifactId>hk2-maven-plugin</artifactId>
+                <extensions>true</extensions>
+                <configuration>
+                    <archive>
+                        <!-- Use the manifest.mf produced by maven-bundle-plugin:manifest -->
+                        <manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
+                    </archive>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>com.sun.enterprise</groupId>
+                <artifactId>osgiversion-maven-plugin</artifactId>
+                <executions>
+                    <!-- Since we don't want qualifier like b05 or SNAPSHOT to appear
+                         in package version attribute, we use the following goal to
+                         populate a project property with an OSGi version which is
+                         equivalent to maven version without qualifier and then use that
+                         property in osgi.bundle while exporting. -->
+                    <execution>
+                        <id>compute-osgi-version</id>
+                        <goals>
+                            <goal>compute-osgi-version</goal>
+                        </goals>
+                        <configuration>
+                            <dropVersionComponent>qualifier</dropVersionComponent>
+                            <versionPropertyName>project.osgi.version</versionPropertyName>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!--
+                Require the maven archiver release 2.4 which has enhancements needed in
+                appclient/client/acc-standalone.  For consistency, use the
+                same release throughout the build.
+            -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.apache.maven</groupId>
+                        <artifactId>maven-archiver</artifactId>
+                        <version>2.4</version>
+                   </dependency>
+                </dependencies>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>findbugs-maven-plugin</artifactId>
+                <version>2.0.1</version>
+                <configuration>
+                    <threshold>High</threshold>
+                    <excludeFilterFile>${findbugs.exclude}</excludeFilterFile>
+                    <findbugsXmlOutput>true</findbugsXmlOutput>
+                    <findbugsXmlWithMessages>true</findbugsXmlWithMessages>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+    <reporting>
+        <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>findbugs-maven-plugin</artifactId>
+                <version>2.0.1</version>
+                <configuration>
+                    <threshold>High</threshold>
+                    <excludeFilterFile>${findbugs.exclude}</excludeFilterFile>
+                </configuration>
+            </plugin>
+        </plugins>
+    </reporting>
+
+    <!--  Begin: Dependency management -->
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>com.sun.enterprise</groupId>
+                <artifactId>hk2</artifactId>
+                <version>${hk2.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.sun.enterprise</groupId>
+                <artifactId>hk2-core</artifactId>
+                <version>${hk2.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.sun.enterprise</groupId>
+                <artifactId>hk2-maven</artifactId>
+                <version>${hk2.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.sun.enterprise</groupId>
+                <artifactId>osgi-adapter</artifactId>
+                <version>${hk2.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.sun.enterprise</groupId>
+                <artifactId>osgi-main</artifactId>
+                <version>${hk2.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.sun.enterprise</groupId>
+                <artifactId>stax-osgi</artifactId>
+                <version>${hk2.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.sun.enterprise</groupId>
+                <artifactId>auto-depends</artifactId>
+                <version>${hk2.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.sun.enterprise</groupId>
+                <artifactId>config-types</artifactId>
+                <version>${hk2.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.sun.faces</groupId>
+                <artifactId>jsf-api</artifactId>
+                <version>${jsf-api.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.sun.grizzly</groupId>
+                <artifactId>grizzly-utils</artifactId>
+                <version>${grizzly.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.sun.grizzly</groupId>
+                <artifactId>grizzly-framework</artifactId>
+                <version>${grizzly.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.sun.grizzly</groupId>
+                <artifactId>grizzly-portunif</artifactId>
+                <version>${grizzly.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.sun.grizzly</groupId>
+                <artifactId>grizzly-http</artifactId>
+                <version>${grizzly.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.sun.grizzly</groupId>
+                <artifactId>grizzly-rcm</artifactId>
+                <version>${grizzly.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.sun.grizzly</groupId>
+                <artifactId>grizzly-compat</artifactId>
+                <version>${grizzly.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.sun.grizzly</groupId>
+                <artifactId>grizzly-comet</artifactId>
+                <version>${grizzly.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.sun.grizzly</groupId>
+                <artifactId>grizzly-websockets</artifactId>
+                <version>${grizzly.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.sun.grizzly</groupId>
+                <artifactId>grizzly-messagesbus</artifactId>
+                <version>${grizzly.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.sun.grizzly</groupId>
+                <artifactId>grizzly-config</artifactId>
+                <version>${grizzly.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.netbeans.modules</groupId>
+                <artifactId>org-netbeans-modules-dbschema</artifactId>
+                <version>${dbschema.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.netbeans.api</groupId>
+                <artifactId>org-netbeans-modules-schema2beans</artifactId>
+                <version>${schema2beans.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.eclipse.persistence</groupId>
+                <artifactId>javax.persistence</artifactId>
+                <version>${javax-persistence-api.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.eclipse.persistence</groupId>
+                <artifactId>org.eclipse.persistence.core</artifactId>
+                <version>${eclipselink.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.eclipse.persistence</groupId>
+                <artifactId>org.eclipse.persistence.jpa</artifactId>
+                <version>${eclipselink.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.eclipse.persistence</groupId>
+                <artifactId>org.eclipse.persistence.oracle</artifactId>
+                <version>${eclipselink.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.eclipse.persistence</groupId>
+                <artifactId>org.eclipse.persistence.antlr</artifactId>
+                <version>${eclipselink.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.eclipse.persistence</groupId>
+                <artifactId>org.eclipse.persistence.asm</artifactId>
+                <version>${eclipselink.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>antlr</groupId>
+                <artifactId>antlr</artifactId>
+                <version>${antlr.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.ctc.wstx</groupId>
+                <artifactId>woodstox-osgi</artifactId>
+                <version>${woodstox.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.glassfish.metro</groupId>
+                <artifactId>webservices-osgi</artifactId>
+                <version>${webservices.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.glassfish.metro</groupId>
+                <artifactId>webservices-extra-jdk-packages</artifactId>
+                <version>${webservices.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.glassfish.metro</groupId>
+                <artifactId>webservices-api-osgi</artifactId>
+                <version>${webservices.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>javax.xml</groupId>
+                <artifactId>jaxrpc-api-osgi</artifactId>
+                <version>${jaxrpc.api.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.sun.xml.bind</groupId>
+                <artifactId>jaxb-osgi</artifactId>
+                <version>${jaxb.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>javax.xml.bind</groupId>
+                <artifactId>jaxb-api-osgi</artifactId>
+                <version>${jaxb-api.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.sun.grizzly</groupId>
+                <artifactId>grizzly-http-servlet</artifactId>
+                <version>${grizzly.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>javax.jbi</groupId>
+                <artifactId>jbi</artifactId>
+                <version>${jbi.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>wsdl4j</groupId>
+                <artifactId>wsdl4j</artifactId>
+                <version>${wsdl4j.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.glassfish.external</groupId>
+                <artifactId>management-api</artifactId>
+                <version>${glassfish-management-api.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.glassfish.gmbal</groupId>
+                <artifactId>gmbal</artifactId>
+                <version>${gmbal.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.jboss.weld</groupId>
+                <artifactId>weld-osgi-bundle</artifactId>
+                <version>${weld.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.sun.faces</groupId>
+                <artifactId>jsf-impl</artifactId>
+                <version>${jsf-impl.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.osgi</groupId>
+                <artifactId>org.osgi.compendium</artifactId>
+                <version>4.2.0</version>
+                <!-- This jar should never be part of runtime. -->
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.osgi</groupId>
+                <artifactId>org.osgi.core</artifactId>
+                <version>4.2.0</version>
+                <!-- This jar should never be part of runtime. -->
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.osgi</groupId>
+                <artifactId>org.osgi.enterprise</artifactId>
+                <version>4.2.0</version>
+                <!-- This jar should never be part of runtime. -->
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>org.apache.felix.main</artifactId>
+                <version>1.0.3</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>org.apache.felix.webconsole</artifactId>
+                <version>3.1.2</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>org.apache.felix.eventadmin</artifactId>
+                <version>1.2.8</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.sun.pkg</groupId>
+                <artifactId>pkg-client</artifactId>
+                <version>${uc-pkg-client.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.sun.pkg</groupId>
+                <artifactId>pkg-bootstrap</artifactId>
+                <version>${uc-pkg-bootstrap.version}</version>
+            </dependency>
+            
+            <dependency>
+                <groupId>org.glassfish.web</groupId>
+                <artifactId>jsp-impl</artifactId>
+                <version>${jsp-impl.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.glassfish.web</groupId>
+                <artifactId>el-impl</artifactId>
+                <version>${el-impl.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.sun.jersey</groupId>
+                <artifactId>jersey-server</artifactId>
+                <version>${jersey.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.sun.jersey</groupId>
+                <artifactId>jersey-client</artifactId>
+                <version>${jersey.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.sun.jersey</groupId>
+                <artifactId>jersey-json</artifactId>
+                <version>${jersey.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.sun.faces.extensions</groupId>
+                <artifactId>jsf-extensions-dynamic-faces</artifactId>
+                <version>${jsf-ext.version}</version>
+                <classifier>jsftemplating</classifier>
+            </dependency>
+            <dependency>
+                <groupId>com.sun.faces.extensions</groupId>
+                <artifactId>jsf-extensions-common</artifactId>
+                <version>${jsf-ext.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.sun.woodstock</groupId>
+                <artifactId>webui-jsf</artifactId>
+                <version>${woodstock.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.sun.woodstock</groupId>
+                <artifactId>webui-jsf-suntheme</artifactId>
+                <version>${woodstock.version}</version>
+            </dependency>
+            
+            <dependency>
+                <groupId>org.glassfish.admingui</groupId>
+                <artifactId>console-common-help</artifactId>
+                <version>${v3-docs.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.glassfish.admingui</groupId>
+                <artifactId>console-cluster-plugin-help</artifactId>
+                <version>${v3-docs.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.glassfish.admingui</groupId>
+                <artifactId>console-corba-plugin-help</artifactId>
+                <version>${v3-docs.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.glassfish.admingui</groupId>
+                <artifactId>console-ejb-lite-plugin-help</artifactId>
+                <version>${v3-docs.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.glassfish.admingui</groupId>
+                <artifactId>console-ejb-plugin-help</artifactId>
+                <version>${v3-docs.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.glassfish.admingui</groupId>
+                <artifactId>console-jca-plugin-help</artifactId>
+                <version>${v3-docs.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.glassfish.admingui</groupId>
+                <artifactId>console-jdbc-plugin-help</artifactId>
+                <version>${v3-docs.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.glassfish.admingui</groupId>
+                <artifactId>console-common-full-plugin-help</artifactId>
+                <version>${v3-docs.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.glassfish.admingui</groupId>
+                <artifactId>console-jms-plugin-help</artifactId>
+                <version>${v3-docs.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.glassfish.admingui</groupId>
+                <artifactId>console-jruby-plugin-help</artifactId>
+                <version>${v3-docs.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.glassfish.admingui</groupId>
+                <artifactId>console-jts-plugin-help</artifactId>
+                <version>${v3-docs.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.glassfish.admingui</groupId>
+                <artifactId>console-web-plugin-help</artifactId>
+                <version>${v3-docs.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.sun.jsftemplating</groupId>
+                <artifactId>jsftemplating</artifactId>
+                <version>${jsftemplating.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.sun.jsftemplating</groupId>
+                <artifactId>jsftemplating-dt</artifactId>
+                <version>${jsftemplating.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.sun.woodstock.dependlibs</groupId>
+                <artifactId>json</artifactId>
+                <version>1.0</version>
+            </dependency>
+            <dependency>
+                <groupId>com.sun.woodstock.dependlibs</groupId>
+                <artifactId>dojo-ajax-nodemo</artifactId>
+                <version>0.4.1</version>
+            </dependency>
+            <dependency>
+                <groupId>com.sun.woodstock.dependlibs</groupId>
+                <artifactId>prototype</artifactId>
+                <version>1.5.0</version>
+            </dependency>
+            <dependency>
+                <groupId>com.sun.woodstock.dependlibs</groupId>
+                <artifactId>dataprovider</artifactId>
+                <version>1.0</version>
+            </dependency>
+            <dependency>
+                <groupId>commons-fileupload</groupId>
+                <artifactId>commons-fileupload</artifactId>
+                <version>1.1.1</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.sun.messaging.mq</groupId>
+                <artifactId>imqjmx</artifactId>
+                <version>4.3</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.jvnet</groupId>
+                <artifactId>mimepull</artifactId>
+                <version>${mimepull.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.sun.jersey.contribs</groupId>
+                <artifactId>jersey-multipart</artifactId>
+                <version>${jersey.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>javax.help</groupId>
+                <artifactId>javahelp</artifactId>
+                <version>2.0.02</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.sun.tools.btrace</groupId>
+                <artifactId>btrace-agent</artifactId>
+                <version>${btrace.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.sun.tools.btrace</groupId>
+                <artifactId>btrace-boot</artifactId>
+                <version>${btrace.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.glassfish.external</groupId>
+                <artifactId>opendmk_jmxremote_optional_jar</artifactId>
+                <version>${opendmk.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.sun.corba</groupId>
+                <artifactId>glassfish-corba-orb</artifactId>
+                <version>${glassfish-corba.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.sun.corba</groupId>
+                <artifactId>glassfish-corba-orbgeneric</artifactId>
+                <version>${glassfish-corba.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.sun.corba</groupId>
+                <artifactId>glassfish-corba-omgapi</artifactId>
+                <version>${glassfish-corba.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.sun.corba</groupId>
+                <artifactId>glassfish-corba-internal-api</artifactId>
+                <version>${glassfish-corba.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.sun.corba</groupId>
+                <artifactId>glassfish-corba-codegen</artifactId>
+                <version>${glassfish-corba.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.sun.corba</groupId>
+                <artifactId>glassfish-corba-asm</artifactId>
+                <version>${glassfish-corba.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.sun.corba</groupId>
+                <artifactId>glassfish-corba-csiv2-idl</artifactId>
+                <version>${glassfish-corba.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.sun.corba</groupId>
+                <artifactId>glassfish-corba-newtimer</artifactId>
+                <version>${glassfish-corba.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.kohsuke.metainf-services</groupId>
+                <artifactId>metainf-services</artifactId>
+                <version>1.1</version>
+            </dependency>
+            <dependency>
+                <groupId>javax.xml.stream</groupId>
+                <artifactId>stax-api</artifactId>
+                <version>${stax-api.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.sun.xml.stream</groupId>
+                <artifactId>sjsxp</artifactId>
+                <version>1.0</version>
+            </dependency>
+            <dependency>
+                <groupId>junit</groupId>
+                <artifactId>junit</artifactId>
+                <version>4.3.1</version>
+            </dependency>
+            <dependency>
+                <groupId>com.sun.mail</groupId>
+                <artifactId>javax.mail</artifactId>
+                <version>${mail.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.glassfish</groupId>
+                <artifactId>mq-distribution</artifactId>
+                <version>${mq.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.maven</groupId>
+                <artifactId>maven-core</artifactId>
+                <version>2.0.7</version>
+            </dependency>
+            <dependency>
+                <groupId>commons-io</groupId>
+                <artifactId>commons-io</artifactId>
+                <version>1.3.1</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.maven</groupId>
+                <artifactId>maven-plugin-api</artifactId>
+                <version>2.0</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.maven.scm</groupId>
+                <artifactId>maven-scm-api</artifactId>
+                <version>1.0-beta-3</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-scm-plugin</artifactId>
+                <version>1.0-beta-3</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.maven</groupId>
+                <artifactId>maven-project</artifactId>
+                <version>2.0</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.maven</groupId>
+                <artifactId>maven-archiver</artifactId>
+                <version>2.0</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.ant</groupId>
+                <artifactId>ant</artifactId>
+                <version>1.7.0</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.ant</groupId>
+                <artifactId>ant-launcher</artifactId>
+                <version>1.7.0</version>
+            </dependency>
+            <dependency>
+                <groupId>javax.jms</groupId>
+                <artifactId>jms-api</artifactId>
+                <version>${jms-api.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>javax.jws</groupId>
+                <artifactId>jsr181-api</artifactId>
+                <version>${jsr181-api.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>javax.servlet.jsp</groupId>
+                <artifactId>jsp-api</artifactId>
+                <version>${jsp-api.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>javax.el</groupId>
+                <artifactId>el-api</artifactId>
+                <version>${el-api.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>javax.servlet.jsp.jstl</groupId>
+                <artifactId>jstl-api</artifactId>
+                <version>${jstl-api.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.glassfish.web</groupId>
+                <artifactId>jstl-impl</artifactId>
+                <version>${jstl-impl.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>javax.xml</groupId>
+                <artifactId>jaxrpc-api</artifactId>
+                <version>${jaxrpc-api.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>javax.xml.soap</groupId>
+                <artifactId>saaj-api</artifactId>
+                <version>${saaj-api.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.glassfish</groupId>
+                <artifactId>genericra</artifactId>
+                <version>2.0-20081121</version>
+            </dependency>
+            <dependency>
+                <groupId>com.sun</groupId>
+                <artifactId>ldapbp</artifactId>
+                <version>1.0</version>
+            </dependency>
+            <dependency>
+                <groupId>asm</groupId>
+                <artifactId>asm-commons</artifactId>
+                <version>${asm.version}</version>
+            </dependency>
+	    <dependency>
+                <groupId>org.jvnet.hudson</groupId>
+                <artifactId>trilead-ssh2</artifactId>
+                <version>${trilead-ssh2.version}</version>
+	    </dependency>
+            <dependency>
+                <groupId>org.shoal</groupId>
+                <artifactId>shoal-gms-api</artifactId>
+                <version>${shoal.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.shoal</groupId>
+                <artifactId>shoal-gms-impl</artifactId>
+                <version>${shoal.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.shoal</groupId>
+                <artifactId>shoal-cache</artifactId>
+                <version>${shoal.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.glassfish.hk2</groupId>
+                <artifactId>osgi-resource-locator</artifactId>
+                <version>1.0.1</version>
+            </dependency>
+            <dependency>
+                <groupId>org.glassfish.ha</groupId>
+                <artifactId>ha-api</artifactId>
+                <version>${ha-api.version}</version>
+            </dependency>
+
+        </dependencies>
+    </dependencyManagement>
+    <!--  End:   Dependency management -->
+
+    <dependencies>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.3.1</version>
+            <scope>test</scope>
+            <optional>true</optional>
+      </dependency>
+    </dependencies>
+</project>

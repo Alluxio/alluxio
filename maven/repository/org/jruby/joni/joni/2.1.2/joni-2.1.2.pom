@@ -1,0 +1,157 @@
+<?xml version="1.0" ?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>org.jruby.joni</groupId>
+  <artifactId>joni</artifactId>
+  <packaging>jar</packaging>
+  <version>2.1.2</version>
+  <name>Joni</name>
+  <description>
+    Java port of Oniguruma: http://www.geocities.jp/kosako3/oniguruma
+    that uses byte arrays directly instead of java Strings and chars
+  </description>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  </properties>
+
+  <parent>
+    <groupId>org.sonatype.oss</groupId>
+    <artifactId>oss-parent</artifactId>
+    <version>7</version>
+  </parent>
+
+  <issueManagement>
+    <system>JIRA</system>
+    <url>http://jira.codehaus.org/browse/JRUBY</url>
+  </issueManagement>
+
+  <scm>
+    <connection>scm:git:https://github.com/jruby/joni.git</connection>
+    <developerConnection>scm:git:git@github.com:jruby/joni.git</developerConnection>
+    <url>https://github.com/jruby/joni</url>
+  </scm>
+
+  <licenses>
+    <license>
+      <name>MIT License</name>
+      <url>http://www.opensource.org/licenses/mit-license.php</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+
+  <repositories>
+    <repository>
+      <id>codehaus</id>
+      <name>Codehaus Repository</name>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+      <url>http://repository.codehaus.org</url>
+    </repository>
+  </repositories>
+
+  <developers>
+    <developer>
+      <id>lopex</id>
+      <name>Marcin Mielzynski</name>
+      <email>lopx@gazeta.pl</email>
+    </developer>
+  </developers>
+
+  <dependencies>
+    <dependency>
+       <groupId>org.jruby.jcodings</groupId>
+       <artifactId>jcodings</artifactId>
+       <version>1.0.8</version>
+    </dependency>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>3.8.1</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.ow2.asm</groupId>
+      <artifactId>asm</artifactId>
+      <version>4.0</version>
+      <scope>provided</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <sourceDirectory>src</sourceDirectory>
+    <testSourceDirectory>test</testSourceDirectory>
+    <finalName>joni</finalName>
+    <extensions>
+      <extension>
+        <groupId>org.apache.maven.wagon</groupId>
+        <artifactId>wagon-webdav</artifactId>
+      </extension>
+    </extensions>
+    <plugins>
+      <plugin>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>2.3.2</version>
+        <configuration>
+          <source>1.5</source>
+          <target>1.5</target>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>2.4.3</version>
+        <configuration>
+          <includes>
+            <include>**/TestJoni.java</include>
+          </includes>
+        </configuration>
+      </plugin>
+      <plugin>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>2.2</version>
+        <configuration>
+          <archive>
+            <manifestFile>MANIFEST.MF</manifestFile>
+          </archive>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-source-plugin</artifactId>
+        <version>2.1.2</version>
+        <executions>
+          <execution>
+            <id>attach-sources</id>
+            <phase>verify</phase>
+            <goals>
+              <goal>jar-no-fork</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <version>2.8.1</version>
+        <configuration>
+          <show>private</show>
+          <nohelp>true</nohelp>
+        </configuration>
+        <executions>
+          <execution>
+            <id>attach-sources</id>
+            <phase>verify</phase>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+</project>
