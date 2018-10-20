@@ -26,7 +26,9 @@ import org.junit.Test;
 
 import java.io.Closeable;
 import java.net.InetSocketAddress;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 
 /**
  * Unit tests for functionality in {@link MasterInquireClient}.
@@ -76,6 +78,25 @@ public final class MasterInquireClientTest {
         assertCurrentConnectString(zkConnect);
         assertEquals("zk@zkAddr:1234/my/leader/path", zkConnect.toString());
       }
+    }
+  }
+
+  @Test
+  public void MultiMasterConnectString() throws Exception {
+    String host = "testhost1:123,testhost2,testhost3:19998";
+    int defaultPort = Integer.valueOf(PropertyKey.MASTER_RPC_PORT.getDefaultValue());
+    try (Closeable c = new ConfigurationRule(new HashMap<PropertyKey, String>() {
+      {
+        put(PropertyKey.MASTER_ADDRESSES, host);
+      }
+    }).toResource()) {
+      List<InetSocketAddress> addressList = Arrays.asList(
+          new InetSocketAddress("testhost1", 123),
+          new InetSocketAddress("testhost2", defaultPort),
+          new InetSocketAddress("testhost3", 19998));
+      ConnectDetails cs = new PollingMasterInquireClient.MultiMasterConnectDetails(addressList);
+      assertCurrentConnectString(cs);
+      assertEquals("testhost1:123,testhost2:" + defaultPort + ",testhost3:19998", cs.toString());
     }
   }
 
