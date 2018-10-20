@@ -9,11 +9,12 @@ priority: 6
 * 内容列表
 {:toc}
 
-Alluxio支持RESTful API，它和Amazon的基本操作是兼容的[S3 API](http://docs.aws.amazon.com/AmazonS3/latest/API/Welcome.html)。
+
+Alluxio 支持 RESTful API，兼容[Amazon S3 API](http://docs.aws.amazon.com/AmazonS3/latest/API/Welcome.html) 的基本操作。
 
 [REST API 手册](http://www.alluxio.org/restdoc/{{site.ALLUXIO_MAJOR_VERSION}}/proxy/index.html)会在Alluxio构建时生成并且可以通过`${ALLUXIO_HOME}/core/server/proxy/target/miredot/index.html`获得。
 
-使用HTTP代理会带来一些性能的影响，尤其是在使用代理的时候会增加一个额外的跳计数。为了达到最优的性能，推荐代理服务和一个Alluxio worker运行在一个计算节点上。或者，推荐将所有的代理服务器放到load balancer之后。
+使用HTTP代理会带来一些性能的影响，尤其是在使用代理的时候会增加一个额外的跳计数。为了达到最优的性能，推荐代理服务和一个Alluxio worker运行在一个计算节点上。或者，推荐将所有的代理服务器放到负载均衡之后。
 
 # 特性支持
 下表描述了对当前Amazon S3基础特性的支持情况：
@@ -141,7 +142,7 @@ HTTP/1.1 204 No Content
 Date: Tue, 29 Aug 2017 22:43:22 GMT
 Server: Jetty(9.2.z-SNAPSHOT)
 ```
- 
+
 ```bash
 # curl -i -X DELETE http://localhost:39999/api/v1/s3/testbucket/key2
 # curl -i -X DELETE http://localhost:39999/api/v1/s3/testbucket/key3
@@ -173,7 +174,7 @@ HTTP/1.1 200 OK
 Date: Tue, 29 Aug 2017 22:43:22 GMT
 ETag: "b54357faf0632cce46e942fa68356b38"
 Server: Jetty(9.2.z-SNAPSHOT)
-``` 
+```
 
 ### 罗列已上传的分块
 
