@@ -504,6 +504,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .build();
 
+  public static final PropertyKey MASTER_ADDRESSES =
+      new Builder(Name.MASTER_ADDRESSES)
+          .setDescription("Address list of master.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .build();
   /**
    * UFS related properties.
    *
@@ -3292,6 +3297,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.zookeeper.leader.inquiry.retry";
     public static final String ZOOKEEPER_LEADER_PATH = "alluxio.zookeeper.leader.path";
     public static final String ZOOKEEPER_SESSION_TIMEOUT = "alluxio.zookeeper.session.timeout";
+    public static final String MASTER_ADDRESSES = "alluxio.master.addresses";
 
     //
     // UFS related properties

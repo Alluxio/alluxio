@@ -37,6 +37,7 @@ import java.net.NetworkInterface;
 import java.net.Socket;
 import java.net.SocketAddress;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
@@ -675,6 +676,37 @@ public final class NetworkAddressUtils {
       throw new IOException("Invalid InetSocketAddress " + address);
     }
     return new InetSocketAddress(strArr[0], Integer.parseInt(strArr[1]));
+  }
+
+  /**
+   * Parses {@link InetSocketAddress} from a String.
+   *
+   * @param addresses socket address to parse
+   * @param defaultPort default port
+   * @return InetSocketAddresses of the String
+   */
+  @Nullable
+  public static List<InetSocketAddress> parseInetSocketAddresses(
+      String addresses,
+      String defaultPort) {
+    List<InetSocketAddress> addressList = new ArrayList<InetSocketAddress>();
+    if (addresses == null) {
+      return addressList;
+    }
+    String[] splitedAddr = addresses.split(",");
+    for (int i = 0; i < splitedAddr.length; i++) {
+      String address = splitedAddr[i];
+      String[] strArr = address.split(":");
+      String hostName;
+      String port = defaultPort;
+      hostName = strArr[0];
+      if (strArr.length == 2) {
+        port = strArr[1];
+      }
+      addressList.add(new InetSocketAddress(hostName, Integer.parseInt(port)));
+    }
+
+    return addressList;
   }
 
   /**

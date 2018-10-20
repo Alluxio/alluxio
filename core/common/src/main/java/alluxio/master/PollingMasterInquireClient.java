@@ -29,8 +29,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.Supplier;
 
 import javax.annotation.Nullable;
@@ -45,13 +47,14 @@ public class PollingMasterInquireClient implements MasterInquireClient {
 
   private final MultiMasterConnectDetails mConnectDetails;
   private final Supplier<RetryPolicy> mRetryPolicySupplier;
-
+  private final Set<InetSocketAddress> mBlacklist;
   /**
    * @param masterAddresses the potential master addresses
    * @param retryPolicySupplier the retry policy supplier
    */
   public PollingMasterInquireClient(List<InetSocketAddress> masterAddresses,
       Supplier<RetryPolicy> retryPolicySupplier) {
+    mBlacklist = new HashSet<>();
     mConnectDetails = new MultiMasterConnectDetails(masterAddresses);
     mRetryPolicySupplier = retryPolicySupplier;
   }
@@ -75,12 +78,19 @@ public class PollingMasterInquireClient implements MasterInquireClient {
     // Iterate over the masters and try to connect to each of their RPC ports.
     for (InetSocketAddress address : mConnectDetails.getAddresses()) {
       try {
+        if (mBlacklist.contains(address)) {
+          continue;
+        }
         LOG.debug("Checking whether {} is listening for RPCs", address);
         pingMetaService(address);
         LOG.debug("Successfully connected to {}", address);
         return address;
       } catch (TTransportException e) {
         LOG.debug("Failed to connect to {}", address);
+        mBlacklist.add(address);
+        if (mBlacklist.size() == mConnectDetails.getAddresses().size()) {
+          mBlacklist.clear();
+        }
         continue;
       } catch (UnauthenticatedException e) {
         throw new RuntimeException(e);

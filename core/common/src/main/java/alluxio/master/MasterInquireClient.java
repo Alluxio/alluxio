@@ -17,9 +17,12 @@ import alluxio.PropertyKey;
 import alluxio.exception.status.UnavailableException;
 import alluxio.master.SingleMasterInquireClient.SingleMasterConnectDetails;
 import alluxio.master.ZkMasterInquireClient.ZkMasterConnectDetails;
+import alluxio.retry.RetryUtils;
 import alluxio.uri.Authority;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
+
+import com.google.common.base.Strings;
 
 import java.net.InetSocketAddress;
 import java.util.List;
@@ -83,7 +86,13 @@ public interface MasterInquireClient {
      * @return a master inquire client
      */
     public static MasterInquireClient create(AlluxioConfiguration conf) {
-      if (conf.getBoolean(PropertyKey.ZOOKEEPER_ENABLED)) {
+      if (Strings.isNullOrEmpty(conf.get(PropertyKey.MASTER_ADDRESSES))) {
+        return new PollingMasterInquireClient(
+            NetworkAddressUtils.parseInetSocketAddresses(
+                conf.get(PropertyKey.MASTER_ADDRESSES),
+                PropertyKey.MASTER_RPC_PORT.getDefaultValue()),
+            RetryUtils::defaultClientRetry);
+      } else if (conf.getBoolean(PropertyKey.ZOOKEEPER_ENABLED)) {
         return ZkMasterInquireClient.getClient(conf.get(PropertyKey.ZOOKEEPER_ADDRESS),
             conf.get(PropertyKey.ZOOKEEPER_ELECTION_PATH),
             conf.get(PropertyKey.ZOOKEEPER_LEADER_PATH));
@@ -108,7 +117,12 @@ public interface MasterInquireClient {
      * @return the connect string represented by the configuration
      */
     public static ConnectDetails getConnectDetails(AlluxioConfiguration conf) {
-      if (conf.getBoolean(PropertyKey.ZOOKEEPER_ENABLED)) {
+      if (Strings.isNullOrEmpty(conf.get(PropertyKey.MASTER_ADDRESSES))) {
+        return new PollingMasterInquireClient.MultiMasterConnectDetails(
+            NetworkAddressUtils.parseInetSocketAddresses(
+                conf.get(PropertyKey.MASTER_ADDRESSES),
+                PropertyKey.MASTER_RPC_PORT.getDefaultValue()));
+      } else if (conf.getBoolean(PropertyKey.ZOOKEEPER_ENABLED)) {
         return new ZkMasterConnectDetails(conf.get(PropertyKey.ZOOKEEPER_ADDRESS),
             conf.get(PropertyKey.ZOOKEEPER_LEADER_PATH));
       } else {
