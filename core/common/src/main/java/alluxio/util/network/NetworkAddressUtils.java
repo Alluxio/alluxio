@@ -679,13 +679,12 @@ public final class NetworkAddressUtils {
   }
 
   /**
-   * Parses {@link InetSocketAddress} from a String.
+   * Parses a list of {@link InetSocketAddress} from a String.
    *
    * @param addresses socket address to parse
    * @param defaultPort default port
    * @return InetSocketAddresses of the String
    */
-  @Nullable
   public static List<InetSocketAddress> parseInetSocketAddresses(
       String addresses,
       String defaultPort) {
@@ -705,7 +704,6 @@ public final class NetworkAddressUtils {
       }
       addressList.add(new InetSocketAddress(hostName, Integer.parseInt(port)));
     }
-
     return addressList;
   }
 
