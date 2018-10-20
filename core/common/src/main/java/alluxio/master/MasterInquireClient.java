@@ -86,7 +86,7 @@ public interface MasterInquireClient {
      * @return a master inquire client
      */
     public static MasterInquireClient create(AlluxioConfiguration conf) {
-      if (Strings.isNullOrEmpty(conf.get(PropertyKey.MASTER_ADDRESSES))) {
+      if (!conf.getOrDefault(PropertyKey.MASTER_ADDRESSES, "").isEmpty()) {
         return new PollingMasterInquireClient(
             NetworkAddressUtils.parseInetSocketAddresses(
                 conf.get(PropertyKey.MASTER_ADDRESSES),
@@ -117,7 +117,7 @@ public interface MasterInquireClient {
      * @return the connect string represented by the configuration
      */
     public static ConnectDetails getConnectDetails(AlluxioConfiguration conf) {
-      if (Strings.isNullOrEmpty(conf.get(PropertyKey.MASTER_ADDRESSES))) {
+      if (!conf.getOrDefault(PropertyKey.MASTER_ADDRESSES, "").isEmpty()) {
         return new PollingMasterInquireClient.MultiMasterConnectDetails(
             NetworkAddressUtils.parseInetSocketAddresses(
                 conf.get(PropertyKey.MASTER_ADDRESSES),
