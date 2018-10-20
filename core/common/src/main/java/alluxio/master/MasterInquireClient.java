@@ -22,8 +22,6 @@ import alluxio.uri.Authority;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 
-import com.google.common.base.Strings;
-
 import java.net.InetSocketAddress;
 import java.util.List;
 

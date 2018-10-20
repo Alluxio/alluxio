@@ -506,6 +506,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
 
   public static final PropertyKey MASTER_ADDRESSES =
       new Builder(Name.MASTER_ADDRESSES)
+          .setDefaultValue("")
           .setDescription("Address list of master.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .build();
