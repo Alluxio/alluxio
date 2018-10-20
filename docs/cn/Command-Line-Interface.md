@@ -109,7 +109,7 @@ alluxio.underfs.address=/mnt/nfs
 
 使用举例：使用`chgrp`命令能够快速修改一个文件的所属组：
 
-```
+```properties
 properties
 alluxio.underfs.address=/mnt/nfs
 ```
