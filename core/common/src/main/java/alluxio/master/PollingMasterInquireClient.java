@@ -29,6 +29,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
@@ -128,7 +129,7 @@ public class PollingMasterInquireClient implements MasterInquireClient {
      * @param addresses a list of addresses
      */
     public MultiMasterConnectDetails(List<InetSocketAddress> addresses) {
-      mAddresses = addresses;
+      mAddresses = Collections.unmodifiableList(addresses);
     }
 
     /**
