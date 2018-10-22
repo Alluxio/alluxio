@@ -349,7 +349,7 @@ Alluxio can be deployed in many different environments.
 
 ### Under Storage Systems
 
-Various Under storage systems can be accessed through Alluxio.
+Various under storage systems can be accessed through Alluxio.
 
 * [Alluxio with Azure Blob Store]({{site.baseurl}}{% link en/ufs/Azure-Blob-Store.md %})
 * [Alluxio with S3]({{site.baseurl}}{% link en/ufs/S3.md %})
