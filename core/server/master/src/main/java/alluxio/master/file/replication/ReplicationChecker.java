@@ -13,9 +13,9 @@ package alluxio.master.file.replication;
 
 import alluxio.AlluxioURI;
 import alluxio.client.job.JobMasterClientPool;
-import alluxio.exception.BlockInfoException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.JobDoesNotExistException;
+import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.job.replicate.DefaultReplicationHandler;
@@ -150,7 +150,7 @@ public final class ReplicationChecker implements HeartbeatExecutor {
           BlockInfo blockInfo = null;
           try {
             blockInfo = mBlockMaster.getBlockInfo(blockId);
-          } catch (BlockInfoException e) {
+          } catch (NotFoundException e) {
             // Cannot find this block in Alluxio from BlockMaster, possibly persisted in UFS
           } catch (UnavailableException e) {
             // The block master is not available, wait for the next heartbeat

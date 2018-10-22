@@ -19,7 +19,7 @@ import alluxio.client.WriteType;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.URIStatus;
-import alluxio.exception.BlockInfoException;
+import alluxio.exception.status.NotFoundException;
 import alluxio.master.LocalAlluxioCluster;
 import alluxio.master.MasterProcess;
 import alluxio.master.block.BlockMaster;
@@ -76,7 +76,7 @@ public class BlockMasterJournalIntegrationTest {
     try {
       blockMaster.getBlockInfo(blockId);
       fail("Expected the block to be deleted");
-    } catch (BlockInfoException e) {
+    } catch (NotFoundException e) {
       // expected
     }
     mCluster.stopMasters();
@@ -85,7 +85,7 @@ public class BlockMasterJournalIntegrationTest {
     try {
       masterProcess.getMaster(BlockMaster.class).getBlockInfo(blockId);
       fail("Expected the block to be deleted after restart");
-    } catch (BlockInfoException e) {
+    } catch (NotFoundException e) {
       // expected
     }
   }

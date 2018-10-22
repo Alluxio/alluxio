@@ -1,0 +1,15 @@
+syntax = "proto2";
+
+package alluxio.proto.master;
+
+// next available id: 2
+message BlockMeta {
+    optional int64 length = 1;
+}
+
+// next available id: 3
+message BlockLocation {
+    optional int64 worker_id = 1;
+    // TODO(andrew): make this an ID instead.
+    optional string tier_alias = 2;
+}

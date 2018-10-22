@@ -31,13 +31,13 @@ import alluxio.Constants;
 import alluxio.LoginUserRule;
 import alluxio.PropertyKey;
 import alluxio.exception.AccessControlException;
-import alluxio.exception.BlockInfoException;
 import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.UnexpectedAlluxioException;
+import alluxio.exception.status.NotFoundException;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
@@ -275,7 +275,7 @@ public final class FileSystemMasterTest {
     try {
       mBlockMaster.getBlockInfo(blockId);
       fail("Expected blockInfo to fail");
-    } catch (BlockInfoException e) {
+    } catch (NotFoundException e) {
       // expected
     }
 

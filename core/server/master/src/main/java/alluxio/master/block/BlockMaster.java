@@ -13,7 +13,6 @@ package alluxio.master.block;
 
 import alluxio.StorageTierAssoc;
 import alluxio.client.block.options.GetWorkerReportOptions;
-import alluxio.exception.BlockInfoException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;
@@ -127,9 +126,9 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
   /**
    * @param blockId the block id to get information for
    * @return the {@link BlockInfo} for the given block id
-   * @throws BlockInfoException if the block info is not found
+   * @throws NotFoundException if the block info is not found
    */
-  BlockInfo getBlockInfo(long blockId) throws BlockInfoException, UnavailableException;
+  BlockInfo getBlockInfo(long blockId) throws UnavailableException, NotFoundException;
 
   /**
    * Retrieves information for the given list of block ids.

@@ -27,6 +27,7 @@ import alluxio.master.file.FileSystemMasterFactory;
 import alluxio.master.file.StartupConsistencyCheck.Status;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalTestUtils;
+import alluxio.master.metastore.java.JavaMetastore;
 import alluxio.master.metrics.MetricsMasterFactory;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
@@ -71,7 +72,7 @@ public class MasterTestUtils {
     int port = Configuration.getInt(PropertyKey.MASTER_RPC_PORT);
     JournalSystem journalSystem = JournalTestUtils.createJournalSystem(masterJournal);
     MasterContext masterContext = new MasterContext(journalSystem, safeModeManager,
-        mock(BackupManager.class), startTimeMs, port);
+        mock(BackupManager.class), new JavaMetastore(), startTimeMs, port);
     new MetricsMasterFactory().create(registry, masterContext);
     new BlockMasterFactory().create(registry, masterContext);
     new FileSystemMasterFactory().create(registry, masterContext);
