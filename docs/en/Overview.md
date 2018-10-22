@@ -11,8 +11,8 @@ priority: 0
 ## What is Alluxio
 
 Alluxio is the world’s first memory-speed virtual distributed storage system.
-It unifies data access and bridges computation frameworks and their underlying storage systems.
-Applications can access data stored in numerous storage system through a single unified source.
+It bridges the gap between computation frameworks and storage systems, enabling applications
+to connect to numerous storage systems through a common interface.
 Alluxio’s memory-centric architecture enables data access at speeds orders of magnitude faster than existing solutions.
 
 The Alluxio project is open source under [Apache License 2.0](https://github.com/alluxio/alluxio/blob/master/LICENSE)
@@ -52,8 +52,8 @@ from remote locations, to provide in-memory I/O throughput.
 semantics that have performance implications compared to traditional file systems. Common file
 system operations such as directory listing and renaming often incur significant performance
 overhead. When accessing data in cloud storage, applications have no node-level locality or
-cross-application caching. Deploying Alluxio with cloud or object storage mitigates these problems
-because...TODO: how does Alluxio address this???
+cross-application caching. Deploying Alluxio with cloud or object storage mitigates these problems.
+Instead of all reads hitting cloud storage, hot data can be read quickly from local Alluxio workers.
 
 * **Simplified Data Management**: Alluxio provides a single point of access to multiple data
 sources. In addition to connecting data sources of different types, Alluxio also enables users to
@@ -61,8 +61,8 @@ simultaneously connect to different versions of the same storage system, such as
 of HDFS, without complex system configuration and management.
 
 * **Easy Application Deployment**: Alluxio manages communication between applications and file or
-object storages, translating data access requests from applications to a connected underlying
-storage interface. Alluxio is Hadoop compatible. Existing data analytics applications, such as
+object storages, translating data access requests from applications into underlying
+storage interfaces. Alluxio is Hadoop compatible. Existing data analytics applications, such as
 Spark and MapReduce programs, can run on top of Alluxio without any code change.
 
 ## How Alluxio Works
@@ -101,6 +101,6 @@ Each release comes with prebuilt binaries compatible with various Hadoop version
 [Building From Master Branch Documentation]({{ site.baseurl }}{% link
 en/contributor/Building-Alluxio-From-Source.md %}) explains how to build the project from source
 code. Questions can be directed to our
-[User Mailing List](https://groups.google.com/forum/?fromgroups#!forum/alluxio-users). For users
-can not access the Google Group, please use its [mirror](http://alluxio-users.85194.x6.nabble.com/)
+[User Mailing List](https://groups.google.com/forum/?fromgroups#!forum/alluxio-users). Users who
+can not access the Google Group may use its [mirror](http://alluxio-users.85194.x6.nabble.com/)
 Note that the mirror does not have information before May 2016.
