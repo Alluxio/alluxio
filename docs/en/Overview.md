@@ -52,8 +52,8 @@ from remote locations, to provide in-memory I/O throughput.
 semantics that have performance implications compared to traditional file systems. Common file
 system operations such as directory listing and renaming often incur significant performance
 overhead. When accessing data in cloud storage, applications have no node-level locality or
-cross-application caching. Deploying Alluxio with cloud or object storage mitigates these problems.
-Instead of all reads hitting cloud storage, hot data can be read quickly from local Alluxio workers.
+cross-application caching. Deploying Alluxio with cloud or object storage mitigates these problems
+because data will be retrieved from Alluxio instead of the underlying cloud or object storage.
 
 * **Simplified Data Management**: Alluxio provides a single point of access to multiple data
 sources. In addition to connecting data sources of different types, Alluxio also enables users to
