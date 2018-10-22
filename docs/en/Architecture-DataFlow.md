@@ -16,11 +16,11 @@ Alluxio serves as a new data access layer in the ecosystem (TODO: what ecosystem
 residing between any persistent storage systems, such as Amazon S3, Microsoft Azure
 Object Store, Apache HDFS, or OpenStack Swift, and computation frameworks such as
 Apache Spark, Presto, or Hadoop MapReduce. Note that Alluxio itself is not a
-persistent storage system. The data access layer provides multiple benefits in the stack:
+persistent storage system. Using Alluxio as the data access layer provides multiple benefits:
 
 - For user applications and computation frameworks, Alluxio provides fast storage,
 facilitating data sharing and locality between jobs, regardless of the computation engine used.
-As a result, Alluxio can serve data at memory speed when it is local or the speed of the
+As a result, Alluxio can serve data at memory speed when it is local or at the speed of the
 computation cluster network when data is in Alluxio. Data is only read once from the
 under storage system when accessed for the first time. Data access is significantly
 accelerated when access to the under storage is slow. To achieve the best performance,
@@ -37,7 +37,7 @@ Alluxio can be divided into three components: masters, workers, and clients.
 A typical setup consists of a single leading master, multiple standby masters,
 and multiple workers. The master and worker processes constitute the Alluxio servers,
 which are the components a system administrator would maintain. The clients are used to
-communicate with the Alluxio servers by applications, such as Spark or MapReduce jobs,
+communicate with the Alluxio servers by applications such as Spark or MapReduce jobs,
 Alluxio command-line, or the FUSE layer.
 
 <p align="center">
@@ -59,7 +59,7 @@ is elected to become the new leading master.
 Only one master process can be the leading master in an Alluxio cluster.
 The leading master is responsible for managing the global metadata of the system.
 This includes file system metadata (e.g. the namespace tree), block metadata
-(e.g block locations), and worker capacity metadata (free and used space).
+(e.g. block locations), and worker capacity metadata (free and used space).
 Alluxio clients interact with the leading master to read or modify this metadata.
 All workers periodically send heartbeat information to the leading master to maintain their
 participation in the cluster. The leading master does not initiate communication
@@ -106,7 +106,7 @@ servers. It initiates communication with the leading master to carry out
 metadata operations and with workers to read and write data that is stored in
 Alluxio. Alluxio supports a native filesystem API in Java and bindings in
 multiple languages including REST, Go, and Python. Alluxio also supports APIs
-that are compatible with HDFS API and Amazon S3 API.
+that are compatible with the HDFS API and the Amazon S3 API.
 
 Note that Alluxio clients never directly access the under storage systems. 
 Data is transmitted through Alluxio workers.
@@ -154,8 +154,8 @@ storage media. To learn more about this topic, please refer to the
 
 #### Remote Cache Hit
 
-When the Alluxio client requests for data not available in a local Alluxio
-worker, the client reads from the corresponding remote worker. After the client finishes
+When requested data is stored in Alluxio, but not on a client's local worker,
+the client will perform a remote read from a worker that does have the data. After the client finishes
 reading the data, the client instructs the local worker, if present, to create a
 copy locally so that future reads of the same data can be served locally.
 Remote cache hits provide network-speed data reads. Alluxio prioritizes
@@ -173,20 +173,17 @@ If the data is not available within the Alluxio space, a cache miss occurs and
 the application will have to read the data from the under storage. The Alluxio
 client delegates the read from UFS to a worker, preferably a local worker.
 This worker reads and caches the data from the under storage.
-Cache misses generally cause the largest delay because fetching the
-data from the under storage generally slower. A cache miss is expected
-when reading data for the first time.
+Cache misses generally cause the largest delay because data must be fetched from
+under storage. A cache miss is expected when reading data for the first time.
 
-Note that when Alluxio client reads only a portion of the entire block or
-reads the block non-sequentially, such as in the case of running SQL queries
-on files of ORC and Parquet formats, the client reads data as normal
-and signals to the worker which blocks it reads asynchronously. (TODO: I've reread this multiple times and still have no idea what this means???)
-The caching process is completely transparent to the client and the worker
-fetches these blocks from the under storage asynchronously. Duplicate requests
-caused by concurrent readers will be consolidated on the worker and result in
-caching the block once. Partial caching is not on the critical path, but may still impact
+When the client reads only a portion of a block or
+reads the block non-sequentially, the client will instruct the worker to cache the
+full block asynchronously. This is called async caching.
+Async caching doesn't block the client, but may still impact
 performance if the network bandwidth between Alluxio and the under storage
-system is a bottleneck. (TODO: what is this seemingly random reference to "the critical path"???)
+system is a bottleneck. You can tune the impact of async caching by setting
+`alluxio.worker.network.netty.async.cache.manager.threads.max` on your workers.
+The default value is `8`.
 
 <p align="center">
 <img src="{{site.baseurl}}{% link img/dataflow-cache-miss.gif %}" alt="Cache Miss data flow"/>
