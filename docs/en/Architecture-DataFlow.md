@@ -191,8 +191,7 @@ The default value is `8`.
 
 #### Cache Skip
 
-It is possible to turn off caching in Alluxio and have the client read directly
-from the under storage by setting the property
+It is possible to turn off caching in Alluxio by setting the property
 [`alluxio.user.file.readtype.default`]({{ site.baseurl }}{% link en/reference/Properties-List.md %}#alluxio.user.file.cache.partially.read.block)
 in the client to `NO_CACHE`.
 
@@ -210,8 +209,8 @@ well as the performance implications to the applications.
 With a write type of MUST_CACHE, the Alluxio client only writes to the local
 Alluxio worker and no data will be written to the under storage. During the
 write, if short-circuit write is available, Alluxio client directly writes
-to the file on the local RAM disk, bypassing the Alluxio worker to avoid using
-a network transfer. Since the data is not persisted to the under storage,
+to the file on the local RAM disk, bypassing the Alluxio worker to avoid
+network transfer. Since the data is not persisted to the under storage,
 data can be lost if the machine crashes or data needs to be freed up for newer writes.
 The `MUST_CACHE` setting is useful for writing temporary data when data loss can be tolerated.
 
