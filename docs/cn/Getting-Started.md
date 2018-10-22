@@ -14,10 +14,10 @@ priority: 0
 * 验证Alluxio运行环境
 * 本地启动Alluxio
 * 通过Alluxio Shell进行基本的文件操作
-* **[奖励]** 挂载一个公开的Amazon S3 bucket到Alluxio上
+* **[ * ]** 挂载一个公开的Amazon S3 bucket到Alluxio上
 * 关闭Alluxio
 
-**[奖励]** 如果你有一个[包含access key id和secret accsee key的AWS账户](http://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSGettingStartedGuide/AWSCredentials.html)，你可以完成额外的任务。需要你AWS账户信息的章节都有**[奖励]**的标签。
+**[ * ]** 如果你有一个[包含access key id和secret accsee key的AWS账户](http://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSGettingStartedGuide/AWSCredentials.html)，你可以完成额外的任务。需要你AWS账户信息的章节都有**[ * ]**的标签。
 
 **注意** 本指南旨在让你快速开始与Alluxio系统进行交互。Alluxio在大数据工作负载的分布式环境中表现最好。这些特性都难以适用于本地环境。如果你有兴趣运行一个更大规模的、能够突出Alluxio性能优势的例子，可以选择这两个白皮书中的任一个，尝试其中的指南：[Accelerating
 on-demand data analytics with Alluxio](https://alluxio.com/resources/accelerating-on-demand-data-analytics-with-alluxio)、[Accelerating data analytics on ceph object storage with Alluxio](https://www.alluxio.com/blog/accelerating-data-analytics-on-ceph-object-storage-with-alluxio)。
@@ -28,7 +28,7 @@ on-demand data analytics with Alluxio](https://alluxio.com/resources/acceleratin
 
 * Mac OS X或Linux
 * [Java 8或更新版本](Java-Setup.html)
-* **[奖励]** AWS账户和秘钥
+* **[ * ]** AWS账户和秘钥
 
 ### 安装SSH(Mac OS X)
 
@@ -62,7 +62,7 @@ $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```bash
 $ echo "alluxio.master.hostname=localhost" >> conf/alluxio-site.properties
 ```
-### [奖励] AWS相关配置
+### [ * ] AWS相关配置
 
 如果你有一个包含access key id和secret accsee key的AWS账户，你可以添加你的Alluxio配置以备接下来与Amazon S3的交互。如下命令可以添加你的AWS访问信息到`conf/alluxio-site.properties`文件。
 
@@ -180,7 +180,7 @@ LICENSE
 
 如果我们在[master webUI](http://localhost:19999/browse)中浏览Alluxio文件系统，我们可以看见`LICENSE`文件以及其它有用的信息。这里，**Persistence State**栏显示文件为**PERSISTED**。
 
-## [奖励]Alluxio中的挂载
+## [ * ]Alluxio中的挂载
 
 Alluxio通过统一命名空间的特性统一了对底层存储的访问。你可以阅读[统一命名空间的博客](http://www.alluxio.com/2016/04/unified-namespace-allowing-applications-to-access-data-anywhere/)和[统一命名空间的文档](Unified-and-Transparent-Namespace.html)获取更详细的解释。
 
@@ -229,7 +229,7 @@ dr-x------ staff  staff         4 PERSISTED 01-09-2018 16:34:55:362  DIR /mnt/s3
 
 输出显示了Alluxio文件系统根目录下来源于挂载的不同文件系统的所有文件。`/LICENSE`文件在本地文件系统，`/mnt/s3/`目录下是S3的文件。
 
-## [奖励]用Alluxio加速数据访问
+## [ * ]用Alluxio加速数据访问
 
 由于Alluxio利用内存存储数据，它可以加速数据的访问。首先，我们看一看Alluxio中一个文件的状态(从S3中挂载)。
 
