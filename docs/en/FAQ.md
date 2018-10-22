@@ -27,7 +27,7 @@ Alluxio is open sourced under the Apache 2.0 license.
 
 Some possible reasons to consider:
 1. The job is computation bound and does not spend significant time in reading or writing data.
-Because the bottleneck is not in I/O performance, the performance impact is lessened.
+Because the bottleneck is not in I/O performance, the benefit from faster Alluxio I/O is small.
 1. The persistent storage is co-located with compute (e.g. Alluxio is connected to a local
 HDFS) and the input data of the job is in the OS
 [buffer cache](https://www.tldp.org/LDP/sag/html/buffer-cache.html).
@@ -76,7 +76,7 @@ systems.
 
 ## Does Alluxio require HDFS?
 
-In addition to HDFS, Alluxio can also run on different under storage systems such as Amazon S3 or Swift.
+No, in addition to HDFS, Alluxio can also run on different under storage systems such as Amazon S3 or Swift.
 
 ## How can I learn more about Alluxio?
 
@@ -95,11 +95,11 @@ Registration is required before posting.
 
 ## Where can I get more help?
 
-For any questions related installation, contribution and comments please send an email to the
+For any questions related to installation, contribution or feedback, please send an email to the
 [Alluxio User Mailing List](https://groups.google.com/forum/?fromgroups#!forum/alluxio-users).
 We look forward to seeing you there.
 
 ## How can I contribute to Alluxio?
 
-Thank you for your interest to contribute. Please read [our contributor guide]({{ site.baseurl }}{%
+Thank you for your interest in contributing. Please read [our contributor guide]({{ site.baseurl }}{%
 link en/contributor/Contributor-Getting-Started.md %}).
