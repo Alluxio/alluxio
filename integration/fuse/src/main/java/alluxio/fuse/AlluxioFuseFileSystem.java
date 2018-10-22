@@ -148,13 +148,6 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
       return -ErrorCodes.ENOSYS();
     }
 
-    boolean isUserSet = true;
-    if (uid == -1 || uid == 4294967295L) {
-      // 4294967295 is just unsigned long -1, -1 means that uid is not set
-      // These uids occur when chown without user name or chgrp
-      isUserSet = false;
-    }
-
     try {
       String groupName = AlluxioFuseUtils.getGroupName(gid);
       if (groupName.isEmpty()) {
@@ -167,7 +160,9 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
       SetAttributeOptions options = SetAttributeOptions.defaults().setGroup(groupName);
       final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
 
-      if (isUserSet) {
+      if (uid != 4294967295L) {
+        // 4294967295 is just unsigned long -1, -1 means that uid is not set
+        // It occurs when chown without user name or chgrp
         String userName = AlluxioFuseUtils.getUserName(uid);
         if (userName.isEmpty()) {
           // This should never be reached
