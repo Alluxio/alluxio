@@ -8,7 +8,7 @@ priority: 3
 * Table of Contents
 {:toc}
 
-In this quick start guide, Alluxio will be installed on a local machine. 
+This quick start guide goes over how to run Alluxio on a local machine.
 The guide will cover the following tasks:
 
 * Download and configure Alluxio
@@ -24,8 +24,8 @@ The optional sections will be labeled with **[Bonus]**.
 
 **Note**  This guide is designed to start an Alluxio system with minimal setup. Alluxio
 performs best in a distributed environment for big data workloads, but this scenario is difficult
-to incorporate in a local environment. The performance benefits of Alluxio are illustrated in
-the following whitepapers, which include further instructions for running Alluxio in a scaled
+to simulate on a single machine. The performance benefits of Alluxio are illustrated in
+the following whitepapers, which include further instructions for running Alluxio in a scaled-up
 environment:
 * [Accelerating on-demand data analytics with Alluxio](https://alluxio.com/resources/accelerating-on-demand-data-analytics-with-alluxio)
 * [Accelerating data analytics on Ceph object storage with Alluxio](https://www.alluxio.com/blog/accelerating-data-analytics-on-ceph-object-storage-with-alluxio).
@@ -45,8 +45,7 @@ For Mac OS X, enable remote login to SSH into localhost. The setting is found in
 
 Download Alluxio from [this page](http://www.alluxio.org/download). Select the
 {{site.ALLUXIO_RELEASED_VERSION}} release followed by the distribution built for default Hadoop.
-Unpack the downloaded file with the following commands. The filename differs depending on which
-pre-built binary was downloaded.
+Unpack the downloaded file with the following commands.
 
 ```bash
 $ tar -xzf alluxio-{{site.ALLUXIO_RELEASED_VERSION}}-bin.tar.gz
@@ -66,8 +65,7 @@ file by copying the template file.
 $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
-Update `alluxio.master.hostname` in `conf/alluxio-site.properties` to `localhost` to inform Alluxio
-the hostname of the machine running the Alluxio master.
+Set `alluxio.master.hostname` in `conf/alluxio-site.properties` to `localhost`.
 
 ```bash
 $ echo "alluxio.master.hostname=localhost" >> conf/alluxio-site.properties
@@ -96,15 +94,10 @@ Run the following command to validate the environment for running Alluxio locall
 $ ./bin/alluxio validateEnv local
 ```
 
-This reports potential problems that might prevent Alluxio from starting locally. For Alluxio
-deployed on a cluster of nodes, validate the environment across all nodes by running:
-
-```bash
-$ ./bin/alluxio validateEnv all
-```
+This reports potential problems that might prevent Alluxio from starting locally.
 
 Check out [this page]({{site.baseurl}}{% link en/basic/Command-Line-Interface.md %}) for detailed
-usage information regarding this command.
+usage information regarding the `validateEnv` command.
 
 ## Starting Alluxio
 
@@ -129,8 +122,7 @@ to see the status of the Alluxio master and worker respectively.
 ## Using the Alluxio Shell
 
 The [Alluxio shell]({{site.baseurl}}{% link en/basic/Command-Line-Interface.md %}) provides
-command line operations for interacting with Alluxio. Examine possible operations to interact with
-the Alluxio file system with the following command:
+command line operations for interacting with Alluxio. To see a list of filesystem operations, run
 
 ```bash
 $ ./bin/alluxio fs
@@ -159,7 +151,7 @@ $ ./bin/alluxio fs ls /
 ```
 
 The output shows the file that exists in Alluxio, as well the size of the file, the date it was
-created, the owner and group of the file, and the percentage of this file in Alluxio. TODO: what does this percentage represent???
+created, the owner and group of the file, and the percentage of the file that is cached in Alluxio.
 
 The `cat` command prints the contents of the file.
 
@@ -183,7 +175,7 @@ $ ls ./underFSStorage/
 Note that the directory does not exist. This is because Alluxio is currently writing data only into
 Alluxio space, not to the UFS.
 
-Instruct Alluxio to persist the file from Alluxio space to the UFS by using the `persist` command.
+Configure Alluxio to persist the file from Alluxio space to the UFS by using the `persist` command.
 
 ```bash
 $ ./bin/alluxio fs persist /LICENSE
@@ -252,14 +244,14 @@ dr-x------ staff  staff         4 PERSISTED 01-09-2018 16:34:55:362  DIR /mnt/s3
 -r-x------ staff  staff 157046046 PERSISTED 01-09-2018 16:35:01:002   0% /mnt/s3/sample_tweets_150m.csv
 ```
 
-This shows all the files under the root of the Alluxio file system from all of the mounted storage
+This shows all the files across all of the mounted storage
 systems. The `/LICENSE` file is from the local file system whereas the files under `/mnt/s3/` are
-from S3.
+in S3.
 
 ## [Bonus] Accelerating Data Access with Alluxio
 
 Since Alluxio leverages memory to store data, it can accelerate access to data. Check the status
-of a file previously mounted from S3 in Alluxio.
+of a file previously mounted from S3 into Alluxio:
 
 ```bash
 $ ./bin/alluxio fs ls /mnt/s3/sample_tweets_150m.csv
@@ -330,11 +322,11 @@ $ ./bin/alluxio-stop.sh local
 ## Conclusion
 
 Congratulations on completing the quick start guide for Alluxio! This guide covered how to 
-download and install Alluxio locally and examples of basic interactions via the Alluxio
+download and install Alluxio locally with examples of basic interactions via the Alluxio
 shell. This was a simple example on how to get started with Alluxio.
 
 There are several next steps available. Learn more about the various features of Alluxio in
-our documentation. The resources below details deploying Alluxio in various ways,
+our documentation. The resources below detail deploying Alluxio in various ways,
 mounting existing storage systems, and configuring existing applications to interact with Alluxio.
 
 ### Deploying Alluxio
