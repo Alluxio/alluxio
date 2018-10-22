@@ -12,7 +12,7 @@ priority: 2
 
 ### Overview
 
-Alluxio serves as a new data access layer in the ecosystem (TODO: what ecosystem???),
+Alluxio serves as a new data access layer in the big data and machine learning ecosystem,
 residing between any persistent storage systems, such as Amazon S3, Microsoft Azure
 Object Store, Apache HDFS, or OpenStack Swift, and computation frameworks such as
 Apache Spark, Presto, or Hadoop MapReduce. Note that Alluxio itself is not a
@@ -54,20 +54,18 @@ The Alluxio master service can be deployed as one leading master and several sta
 masters for fault tolerance. When the leading master goes down, a standby master
 is elected to become the new leading master.
 
-#### Leader Master
+#### Leading Master
 
 Only one master process can be the leading master in an Alluxio cluster.
 The leading master is responsible for managing the global metadata of the system.
-This includes file system metadata (e.g. the namespace tree), block metadata
+This includes file system metadata (e.g. the file system inode tree), block metadata
 (e.g. block locations), and worker capacity metadata (free and used space).
 Alluxio clients interact with the leading master to read or modify this metadata.
 All workers periodically send heartbeat information to the leading master to maintain their
 participation in the cluster. The leading master does not initiate communication
 with other components; it only responds to requests via RPC services.
-The leading master writes journals to a distributed persistent storage
-to allow for recovery of master state information.
-(TODO: at this point, i have no idea what a journal is, or any of the above metadata details in parenthesis above
-a brief explanation of what the namespace tree is or what a block is would be appreciated)
+The leading master records all file system transactions to a distributed persistent storage
+to allow for recovery of master state information; the set of records is referred to as the journal.
 
 #### Standby Masters
 
@@ -173,13 +171,13 @@ If the data is not available within the Alluxio space, a cache miss occurs and
 the application will have to read the data from the under storage. The Alluxio
 client delegates the read from UFS to a worker, preferably a local worker.
 This worker reads and caches the data from the under storage.
-Cache misses generally cause the largest delay because data must be fetched from
+Cache misses generally cause the largest delay because data must be fetched from the
 under storage. A cache miss is expected when reading data for the first time.
 
 When the client reads only a portion of a block or
 reads the block non-sequentially, the client will instruct the worker to cache the
 full block asynchronously. This is called async caching.
-Async caching doesn't block the client, but may still impact
+Async caching does not block the client, but may still impact
 performance if the network bandwidth between Alluxio and the under storage
 system is a bottleneck. You can tune the impact of async caching by setting
 `alluxio.worker.network.netty.async.cache.manager.threads.max` on your workers.
