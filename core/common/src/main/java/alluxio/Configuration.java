@@ -95,7 +95,7 @@ public final class Configuration {
    * @return a copy of properties
    */
   public static AlluxioProperties copyProperties() {
-    try (LockResource workersLockShared = new LockResource(CONFIG_RWL.readLock())) {
+    try (LockResource configLockShared = new LockResource(CONFIG_RWL.readLock())) {
       return new AlluxioProperties(PROPERTIES);
     }
   }
@@ -106,7 +106,7 @@ public final class Configuration {
    */
   private static InstancedConfiguration getConfForThread() {
     Long currThreadId = Thread.currentThread().getId();
-    try (LockResource workersLockShared = new LockResource(CONFIG_RWL.readLock())) {
+    try (LockResource configLockShared = new LockResource(CONFIG_RWL.readLock())) {
       if (LOCAL_CONFS.containsKey(currThreadId)) {
         return LOCAL_CONFS.get(currThreadId);
       } else {
@@ -125,7 +125,7 @@ public final class Configuration {
     // Step1: bootstrap the configuration. This is necessary because we need to resolve alluxio.home
     // (likely to be in system properties) to locate the conf dir to search for the site property
     // file.
-    try (LockResource workersLockShared = new LockResource(CONFIG_RWL.writeLock())) {
+    try (LockResource configLockExclusive = new LockResource(CONFIG_RWL.writeLock())) {
       PROPERTIES.clear();
       PROPERTIES.merge(System.getProperties(), Source.SYSTEM_PROPERTY);
       LOCAL_CONFS.clear();
@@ -200,7 +200,7 @@ public final class Configuration {
         String.format("The key \"%s\" cannot be have an empty string as a value. Use "
             + "Configuration.unset to remove a key from the configuration.", key));
 
-    try (LockResource workersLockShared = new LockResource(CONFIG_RWL.writeLock())) {
+    try (LockResource configLockExclusive = new LockResource(CONFIG_RWL.writeLock())) {
       PROPERTIES.put(key, String.valueOf(value), source);
       LOCAL_CONFS.clear();
     }
@@ -213,7 +213,7 @@ public final class Configuration {
    */
   public static void unset(PropertyKey key) {
     Preconditions.checkNotNull(key, "key");
-    try (LockResource workersLockShared = new LockResource(CONFIG_RWL.writeLock())) {
+    try (LockResource configLockExclusive = new LockResource(CONFIG_RWL.writeLock())) {
       PROPERTIES.remove(key);
       LOCAL_CONFS.clear();
     }
@@ -526,7 +526,8 @@ public final class Configuration {
       String clientVersion = Configuration.get(PropertyKey.VERSION);
       String clusterVersion = clusterProps.get(PropertyKey.VERSION).toString();
       if (!clientVersion.equals(clusterVersion)) {
-        LOG.warn("Alluxio client version ({}) does not match Alluxio cluster version ({})",
+        LOG.warn("Alluxio client version ({}) does not "
+            + "match Alluxio cluster version ({})",
             clientVersion, clusterVersion);
         clusterProps.remove(PropertyKey.VERSION);
       }

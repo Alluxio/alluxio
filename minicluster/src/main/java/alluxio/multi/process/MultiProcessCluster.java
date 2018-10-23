@@ -370,6 +370,7 @@ public final class MultiProcessCluster {
     mCloser.close();
     LOG.info("Destroyed cluster {}", mClusterName);
     mState = State.DESTROYED;
+    Configuration.reset();
   }
 
   /**
