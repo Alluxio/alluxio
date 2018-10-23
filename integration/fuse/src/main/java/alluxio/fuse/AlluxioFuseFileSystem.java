@@ -160,9 +160,9 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
       SetAttributeOptions options = SetAttributeOptions.defaults().setGroup(groupName);
       final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
 
-      if (uid != 4294967295L) {
+      if (uid != -1 && uid != 4294967295L) {
         // 4294967295 is just unsigned long -1, -1 means that uid is not set
-        // It occurs when chown without user name or chgrp
+        // 4294967295 or -1 occurs when chown without user name or chgrp
         String userName = AlluxioFuseUtils.getUserName(uid);
         if (userName.isEmpty()) {
           // This should never be reached
