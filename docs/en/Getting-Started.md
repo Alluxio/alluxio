@@ -96,7 +96,7 @@ $ ./bin/alluxio validateEnv local
 
 This reports potential problems that might prevent Alluxio from starting locally.
 
-Check out [this page]({{site.baseurl}}{% link en/basic/Command-Line-Interface.md %}) for detailed
+Check out [this page]({{ '/en/basic/Command-Line-Interface.html' | relativize_url }}) for detailed
 usage information regarding the `validateEnv` command.
 
 ## Starting Alluxio
@@ -121,7 +121,7 @@ to see the status of the Alluxio master and worker respectively.
 
 ## Using the Alluxio Shell
 
-The [Alluxio shell]({{site.baseurl}}{% link en/basic/Command-Line-Interface.md %}) provides
+The [Alluxio shell]({{ '/en/basic/Command-Line-Interface.html' | relativize_url }}) provides
 command line operations for interacting with Alluxio. To see a list of filesystem operations, run
 
 ```bash
@@ -197,7 +197,7 @@ shows the file as **PERSISTED**.
 
 Alluxio unifies access to storage systems with the unified namespace feature. Read the [Unified
 Namespace blog post](http://www.alluxio.com/2016/04/unified-namespace-allowing-applications-to-access-data-anywhere/)
-and the [unified namespace documentation]({{site.baseurl}}{% link en/advanced/Namespace-Management.md %}) for more detailed
+and the [unified namespace documentation]({{ '/en/advanced/Namespace-Management.html' | relativize_url }}) for more detailed
 explanations of the feature.
 
 This feature allows users to mount different storage systems into the Alluxio namespace and
@@ -333,34 +333,34 @@ mounting existing storage systems, and configuring existing applications to inte
 
 Alluxio can be deployed in many different environments.
 
-* [Alluxio on Local Machine]({{site.baseurl}}{% link en/deploy/Running-Alluxio-Locally.md %})
-* [Alluxio Standalone on a Cluster]({{site.baseurl}}{% link en/deploy/Running-Alluxio-On-a-Cluster.md %})
-* [Alluxio on Docker]({{site.baseurl}}{% link en/deploy/Running-Alluxio-On-Docker.md %})
-* [Alluxio with Mesos on EC2]({{site.baseurl}}{% link en/deploy/Running-Alluxio-On-Mesos.md %})
-* [Alluxio On YARN]({{site.baseurl}}{% link en/deploy/Running-Alluxio-On-Yarn.md %})
+* [Alluxio on Local Machine]({{ '/en/deploy/Running-Alluxio-Locally.html' | relativize_url }})
+* [Alluxio Standalone on a Cluster]({{ '/en/deploy/Running-Alluxio-On-a-Cluster.html' | relativize_url }})
+* [Alluxio on Docker]({{ '/en/deploy/Running-Alluxio-On-Docker.html' | relativize_url }})
+* [Alluxio with Mesos on EC2]({{ '/en/deploy/Running-Alluxio-On-Mesos.html' | relativize_url }})
+* [Alluxio On YARN]({{ '/en/deploy/Running-Alluxio-On-Yarn.html' | relativize_url }})
 
 ### Under Storage Systems
 
 Various under storage systems can be accessed through Alluxio.
 
-* [Alluxio with Azure Blob Store]({{site.baseurl}}{% link en/ufs/Azure-Blob-Store.md %})
-* [Alluxio with S3]({{site.baseurl}}{% link en/ufs/S3.md %})
-* [Alluxio with GCS]({{site.baseurl}}{% link en/ufs/GCS.md %})
-* [Alluxio with Minio]({{site.baseurl}}{% link en/ufs/Minio.md %})
-* [Alluxio with Ceph]({{site.baseurl}}{% link en/ufs/Ceph.md %})
-* [Alluxio with Swift]({{site.baseurl}}{% link en/ufs/Swift.md %})
-* [Alluxio with GlusterFS]({{site.baseurl}}{% link en/ufs/GlusterFS.md %})
-* [Alluxio with MapR-FS]({{site.baseurl}}{% link en/ufs/MapR-FS.md %})
-* [Alluxio with HDFS]({{site.baseurl}}{% link en/ufs/HDFS.md %})
-* [Alluxio with OSS]({{site.baseurl}}{% link en/ufs/OSS.md %})
-* [Alluxio with NFS]({{site.baseurl}}{% link en/ufs/NFS.md %})
+* [Alluxio with Azure Blob Store]({{ '/en/ufs/Azure-Blob-Store.html' | relativize_url }})
+* [Alluxio with S3]({{ '/en/ufs/S3.html' | relativize_url }})
+* [Alluxio with GCS]({{ '/en/ufs/GCS.html' | relativize_url }})
+* [Alluxio with Minio]({{ '/en/ufs/Minio.html' | relativize_url }})
+* [Alluxio with Ceph]({{ '/en/ufs/Ceph.html' | relativize_url }})
+* [Alluxio with Swift]({{ '/en/ufs/Swift.html' | relativize_url }})
+* [Alluxio with GlusterFS]({{ '/en/ufs/GlusterFS.html' | relativize_url }})
+* [Alluxio with MapR-FS]({{ '/en/ufs/MapR-FS.html' | relativize_url }})
+* [Alluxio with HDFS]({{ '/en/ufs/HDFS.html' | relativize_url }})
+* [Alluxio with OSS]({{ '/en/ufs/OSS.html' | relativize_url }})
+* [Alluxio with NFS]({{ '/en/ufs/NFS.html' | relativize_url }})
 
 ### Frameworks and Applications
 
 Different frameworks and applications work with Alluxio.
 
-* [Apache Spark with Alluxio]({{site.baseurl}}{% link en/compute/Spark.md %})
-* [Apache Hadoop MapReduce with Alluxio]({{site.baseurl}}{% link en/compute/Hadoop-MapReduce.md %})
-* [Apache HBase with Alluxio]({{site.baseurl}}{% link en/compute/HBase.md %})
-* [Apache Hive with Alluxio]({{site.baseurl}}{% link en/compute/Hive.md %})
-* [Presto with Alluxio]({{site.baseurl}}{% link en/compute/Presto.md %})
+* [Apache Spark with Alluxio]({{ '/en/compute/Spark.html' | relativize_url }})
+* [Apache Hadoop MapReduce with Alluxio]({{ '/en/compute/Hadoop-MapReduce.html' | relativize_url }})
+* [Apache HBase with Alluxio]({{ '/en/compute/HBase.html' | relativize_url }})
+* [Apache Hive with Alluxio]({{ '/en/compute/Hive.html' | relativize_url }})
+* [Presto with Alluxio]({{ '/en/compute/Presto.html' | relativize_url }})

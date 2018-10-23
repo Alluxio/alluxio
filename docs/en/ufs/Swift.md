@@ -15,8 +15,8 @@ This guide describes how to configure Alluxio with an under storage system suppo
 ## Initial Setup
 
 The Alluxio binaries must be on your machine. You can either
-[compile Alluxio]({{site.baseurl}}{% link en/contributor/Building-Alluxio-From-Source.md %}), or
-[download the binaries locally]({{site.baseurl}}{% link en/deploy/Running-Alluxio-Locally.md %}).
+[compile Alluxio]({{ '/en/contributor/Building-Alluxio-From-Source.html' | relativize_url }}), or
+[download the binaries locally]({{ '/en/deploy/Running-Alluxio-Locally.html' | relativize_url }}).
 
 ## Configuring Alluxio
 

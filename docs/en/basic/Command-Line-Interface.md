@@ -24,7 +24,7 @@ Usage: alluxio [COMMAND]
 ## General operations
 
 This section lists usages and examples of general Alluxio operations with the exception of file
-system commands which are covered in the [Admin CLI doc]({{site.baseurl}}{% link en/operation/Admin-CLI.md %}).
+system commands which are covered in the [Admin CLI doc]({{ '/en/operation/Admin-CLI.html' | relativize_url }}).
 
 ### format
 
@@ -606,7 +606,7 @@ For example, `mkdir` can be used by an admin to set up the basic folder structur
 The `mount` command links an under storage path to an Alluxio path,
 where files and folders created in Alluxio space under the path will be backed
 by a corresponding file or folder in the under storage path.
-For more details, see [Unified Namespace]({{site.baseurl}}{% link en/advanced/Namespace-Management.md %}).
+For more details, see [Unified Namespace]({{ '/en/advanced/Namespace-Management.html' | relativize_url }}).
 
 Options:
 
@@ -765,7 +765,7 @@ For example, `touch` can be used to create a file signifying the completion of a
 The `unmount` command disassociates an Alluxio path with an under storage directory.
 Alluxio metadata for the mount point is removed along with any data blocks,
 but the under storage system will retain all metadata and data.
-See [Unified Namespace]({{site.baseurl}}{% link en/advanced/Namespace-Management.md %}) for more details.
+See [Unified Namespace]({{ '/en/advanced/Namespace-Management.html' | relativize_url }}) for more details.
 
 For example, `unmount` can be used to remove an under storage system when the users no longer need
 data from that system.

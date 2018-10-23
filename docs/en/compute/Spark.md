@@ -34,12 +34,12 @@ This guide assumes the persistent under storage is a local HDFS deployment. E.g.
 Note that Alluxio supports many other under storage systems in addition to HDFS.
 To access data from any number of those systems is orthogonal
 to the focus of this guide but covered by
-[Unified and Transparent Namespace]({{ site.baseurl }}{% link en/advanced/Namespace-Management.md %}).
+[Unified and Transparent Namespace]({{ '/en/advanced/Namespace-Management.html' | relativize_url }}).
 * Make sure that the Alluxio client jar is available.
 This Alluxio client jar file can be found at `{{site.ALLUXIO_CLIENT_JAR_PATH}}` in the tarball
 downloaded from Alluxio [download page](http://www.alluxio.org/download).
 Alternatively, advanced users can compile this client jar from the source code
-by following the [instructions]({{ site.baseurl }}{% link en/contributor/Building-Alluxio-From-Source.md %}).
+by following the [instructions]({{ '/en/contributor/Building-Alluxio-From-Source.html' | relativize_url }}).
 
 ## Basic Setup
 
@@ -156,7 +156,7 @@ $ spark-submit \
 ```
 
 To customize Alluxio client-side properties in a Spark job, see
-[how to configure Spark Jobs]({{site.baseurl}}{% link en/basic/Configuration-Settings.md %}#spark).
+[how to configure Spark Jobs]({{ '/en/basic/Configuration-Settings.html' | relativize_url }}#spark).
 
 Note that, in client mode you need set `--driver-java-options "-Dalluxio.user.file.writetype.default=CACHE_THROUGH"` instead of
 `--conf spark.driver.extraJavaOptions=-Dalluxio.user.file.writetype.default=CACHE_THROUGH` (see
@@ -192,7 +192,7 @@ This feature of encoding Zookeeper service address into Alluxio URIs is not avai
 > Note that you must use semicolons rather than commas to separate different Zookeeper addresses to
 refer a URI of Alluxio in HA mode in Spark. Otherwise, the URI will be considered invalid by Spark.
 Please refer to the instructions in [HDFS API to connect to Alluxio with high
-availability]({{site.baseurl}}{% link en/deploy/Running-Alluxio-On-a-Cluster.md %}#Configure-Alluxio-Clients-for-HA).
+availability]({{ '/en/deploy/Running-Alluxio-On-a-Cluster.html' | relativize_url }}#Configure-Alluxio-Clients-for-HA).
 
 ### Cache RDD into Alluxio
 

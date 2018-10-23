@@ -11,7 +11,7 @@ priority: 99
 
 ## Overview
 
-In addition to [Filesystem API]({{site.baseurl}}{% link en/api/FS-API.md %}) which allows applications to read, write or
+In addition to [Filesystem API]({{ '/en/api/FS-API.html' | relativize_url }}) which allows applications to read, write or
 manage files, Alluxio also serves key-value system on top of Alluxio filesystem.
 Like files in Alluxio filesystem, the semantics of key-value system are also write-once:
 
@@ -28,7 +28,7 @@ transparent to users.
 ## Configuration Parameters For Key-Value System
 
 Key-Value support in Alluxio is disabled by default, and it can be enabled in Alluxio by setting
-`alluxio.keyvalue.enabled` to true (see [configuration parameters]({{site.baseurl}}{% link en/basic/Configuration-Settings.md %}))
+`alluxio.keyvalue.enabled` to true (see [configuration parameters]({{ '/en/basic/Configuration-Settings.html' | relativize_url }}))
 
 <table class="table table-striped">
 <tr><th>Property Name</th><th>Default</th><th>Meaning</th></tr>
@@ -106,7 +106,7 @@ pairs to the key-value store:
 
 See an [example](https://github.com/Alluxio/alluxio/blob/master/examples/src/main/java/alluxio/examples/keyvalue/hadoop/CloneStoreMapReduce.java) in the codebase.
 
-If you have [configured Alluxio to use HDFS as under storage]({{site.baseurl}}{% link en/ufs/HDFS.md %}),
+If you have [configured Alluxio to use HDFS as under storage]({{ '/en/ufs/HDFS.html' | relativize_url }}),
 and have enabled Key-Value system, you can run the example via
 
 {% include Key-Value-Store-API/run-mapreduce-example.md %}

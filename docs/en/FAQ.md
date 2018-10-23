@@ -13,7 +13,7 @@ priority: 10
 
 [Alluxio](http://www.alluxio.org/), formerly Tachyon, is an open source, memory speed, virtual
 distributed storage. It enables any application to interact with any data from any storage system
-at memory speed. Read more about Alluxio [Overview]({{ site.baseurl }}{% link en/Overview.md %}).
+at memory speed. Read more about Alluxio [Overview]({{ '/en/Overview.html' | relativize_url }}).
 
 ## What platforms and Java versions can Alluxio run on?
 
@@ -39,16 +39,16 @@ under storage instead of the Alluxio cache.
 ## Should I deploy Alluxio as a stand-alone system or through an orchestration framework?
 
 It is recommended to deploy Alluxio as a stand-alone system. Orchestration frameworks supported include:
-- [YARN]({{site.baseurl }}{% link en/deploy/Running-Alluxio-On-Yarn.md %})
-- [Mesos]({{ site.baseurl }}{% link en/deploy/Running-Alluxio-On-Mesos.md %})
-- [Kubernetes]({{ site.baseurl }}{% link en/deploy/Running-Alluxio-On-Kubernetes.md %})
+- [YARN]({{ '/en/deploy/Running-Alluxio-On-Yarn.html' | relativize_url }})
+- [Mesos]({{ '/en/deploy/Running-Alluxio-On-Mesos.html' | relativize_url }})
+- [Kubernetes]({{ '/en/deploy/Running-Alluxio-On-Kubernetes.html' | relativize_url }})
 
 ## Which programming language does Alluxio support?
 
 Alluxio is primarily developed in Java and exposes Java-like File APIs for other applications to
-interact with. Alluxio supports other language bindings including [Python]({{ site.baseurl
-}}{% link en/api/FS-API.md %}#python) and [Golang]({{ site.baseurl }}{% link en/api/FS-API.md
-%}#go).
+interact with. Alluxio supports other language bindings including
+[Python]({{ '/en/api/FS-API.html' | relativize_url }}#python) and
+[Golang]({{ '/en/api/FS-API.html' | relativize_url }}#go).
 
 ## What happens if my data set does not fit in memory?
 
@@ -57,12 +57,12 @@ applications to work. Alluxio will transparently load data on demand from the un
 To help fit more data in Alluxio's storage space, configure Alluxio to leverage other storage
 resources such as SSD and HDD in addition to memory to extend Alluxio storage capacity.
 Read more about Alluxio storage setup
-[here]({{site.baseurl}}{% link en/advanced/Alluxio-Storage-Management.md %}).
+[here]({{ '/en/advanced/Alluxio-Storage-Management.html' | relativize_url }}).
 
 ## Does Alluxio support a fault tolerant mode?
 
-Yes. See instructions about [Deploy Alluxio on a Cluster]({{ site.baseurl }}{% link
-en/deploy/Running-Alluxio-On-a-Cluster.md %}).
+Yes. See instructions about
+[Deploy Alluxio on a Cluster]({{ '/en/deploy/Running-Alluxio-On-a-Cluster.html' | relativize_url }}).
 
 ## Will Alluxio rebalance cached blocks to the newly added nodes in order to balance memory space utilization?
 
@@ -71,7 +71,7 @@ No, rebalancing of data blocks in Alluxio is not currently supported.
 ## How can I add support for other under store systems?
 
 Support for other under storages is in progress by many contributors. See the
-[documentation]({{site.baseurl}}{% link en/ufs/Ufs-Extensions.md %}) for adding other under storage
+[documentation]({{ '/en/ufs/Ufs-Extensions.html' | relativize_url }}) for adding other under storage
 systems.
 
 ## Does Alluxio require HDFS?
@@ -101,5 +101,5 @@ We look forward to seeing you there.
 
 ## How can I contribute to Alluxio?
 
-Thank you for your interest in contributing. Please read [our contributor guide]({{ site.baseurl }}{%
-link en/contributor/Contributor-Getting-Started.md %}).
+Thank you for your interest in contributing. Please read
+[our contributor guide]({{ '/en/contributor/Contributor-Getting-Started.html' | relativize_url }}).

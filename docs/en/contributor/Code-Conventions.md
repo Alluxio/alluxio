@@ -14,7 +14,7 @@ We greatly appreciate any contribution; whether new features or bug fixes.
 
 > If you are a first time contributor to the Alluxio open source project, we strongly encourage
 > you to follow the step-by-step instructions within the
-> [Contribution Guide]({{site.baseurl}}{% link en/contributor/Contributor-Getting-Started.md %}) and
+> [Contribution Guide]({{ '/en/contributor/Contributor-Getting-Started.html' | relativize_url }}) and
 > finish a new contributor task before making more advanced changes to Alluxio.
 
 ## Submitting Code
@@ -48,7 +48,7 @@ can prefix the titles of your pull requests with "[SMALLFIX]", for example:
 ~~~~~
 
 - For pull requests that improve the documentation of Alluxio project website (e.g., modify the
-markdown files in `docs` directory), you can prefix the titles of your pull requests with 
+markdown files in `docs` directory), you can prefix the titles of your pull requests with
 "[DOCFIX]". For example, to edit this web page which is generated from
 `docs/Contributing-to-Alluxio.md`, the title can be:
 
@@ -89,9 +89,10 @@ with the following changes or deviations:
     sUnderFSAddress;`
 - Bash scripts follow [Google Shell style](https://google.github.io/styleguide/shell.xml), and
 must be compatible with Bash 3.x
-- You can download our [Eclipse formatter]({{site.baseurl}}/resources/alluxio-code-formatter-eclipse.xml)
+- You can download our
+[Eclipse formatter]({{site.baseurl}}{% link resources/alluxio-code-formatter-eclipse.xml %})
 - For Eclipse to organize your imports correctly, configure "Organize Imports" to look like
-[this]({{site.baseurl}}/resources/eclipse_imports.png)
+[this]({{site.baseurl}}{% link resources/eclipse_imports.png %})
 - If you use IntelliJ IDEA:
 - You can either use our formatter with the help from
 [Eclipse Code Formatter](https://github.com/krasa/EclipseCodeFormatter#instructions)
@@ -99,7 +100,7 @@ or use [Eclipse Code Formatter Plugin](http://plugins.jetbrains.com/plugin/6546)
 IntelliJ IDEA.
 - To automatically format the **import**, configure in
 Preferences->Code Style->Java->Imports->Import Layout according to
-[this order]({{site.baseurl}}/resources/intellij_imports.png)
+[this order]({{site.baseurl}}{% link resources/intellij_imports.png %})
 - To automatically reorder methods alphabetically, try the
 [Rearranger Plugin](http://plugins.jetbrains.com/plugin/173), open Preferences, search for
 rearranger, remove the unnecessary comments, then right click, choose "Rearrange", codes
@@ -322,4 +323,3 @@ public void test() {
 #### Other global state
 
 If a test needs to modify other types of global state, create a new `@Rule` for managing the state so that it can be shared across tests. One example of this is [`TtlIntervalRule`](https://github.com/Alluxio/alluxio/blob/master/core/server/master/src/test/java/alluxio/master/file/meta/TtlIntervalRule.java).
-

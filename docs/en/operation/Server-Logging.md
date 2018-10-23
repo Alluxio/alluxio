@@ -15,7 +15,7 @@ This page summarizes Alluxio's logging system for servers, such as the master an
 processes. We include tips for modifying Alluxio's log4j properties file to best suit
 deployment needs. If you are a user of Alluxio looking for logging information about clients
 that are utilizing the Alluxio API, we recommend looking at the
-[client logging documentation]({{site.baseurl}}{% link en/advanced/Client-Logging.md %})
+[client logging documentation]({{ '/en/advanced/Client-Logging.html' | relativize_url }})
 
 Alluxio's logging behavior can be fully configured through the `log4j.properties` file found in the
 `conf` folder.
@@ -31,7 +31,7 @@ By default Alluxio processes' log files can be found under `${ALLUXIO_HOME}/logs
 The location of the logs is determined by the `alluxio.logs.dir` property. This can only be set via JVM
 property; it cannot be set in the `alluxio-site.properties` file.
 See the
-[configuration settings page]({{site.baseurl}}{% link en/basic/Configuration-Settings.md %}#configuration-sources)
+[configuration settings page]({{ '/en/basic/Configuration-Settings.html' | relativize_url }}#configuration-sources)
 for more information on how to set JVM properties for Alluxio.
 
 Each Alluxio process (master, worker, FUSE, proxy) will log to a separate file within the
@@ -141,7 +141,7 @@ ALLUXIO_LOGSERVER_PORT=45010
 
 These variables propagate their values to the `alluxio.logserver.hostname` and
 `alluxio.logserver.port`
-[system properties]({{site.baseurl}}{% link en/reference/Properties-List.md %}#alluxio.logserver.hostname)
+[system properties]({{ '/en/reference/Properties-List.html' | relativize_url }}#alluxio.logserver.hostname)
 when set via `alluxio-env.sh` which are then referenced within `log4j.properties`
 
 #### Enable Remote Logging with `log4j.properties`
@@ -196,5 +196,5 @@ different workers are distinguished by the IP/hostname of the machine on which t
 
 ## Configuration Properties
 
-You can find the properties related to logging in the [table of configuration
-properties]({{site.baseurl}}{%link en/reference/Properties-List.md %}#alluxio.logger.type)
+You can find the properties related to logging in the
+[table of configuration properties]({{ '/en/reference/Properties-List.html' | relativize_url }}#alluxio.logger.type)

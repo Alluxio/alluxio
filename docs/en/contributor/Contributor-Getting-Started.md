@@ -19,8 +19,7 @@ The main requirement is a computer with MacOS or Linux-based operating system in
 does not have Windows support at this time.
 
 If you haven't already, we recommend first cloning and compiling the Alluxio source code with our
-[Building Alluxio from Source Tutorial]({{site.baseurl}}{% link
-en/contributor/Building-Alluxio-From-Source.md %})
+[Building Alluxio from Source Tutorial]({{ '/en/contributor/Building-Alluxio-From-Source.html' | relativize_url }})
 
 ### Software Requirements
 
@@ -115,8 +114,8 @@ $ mvn -T 2C clean install -DskipTests -Dmaven.javadoc.skip -Dfindbugs.skip -Dche
 
 This should take less than 1 minute.
 
-Here are more [details for building Alluxio]({{site.baseurl}}{% link
-en/contributor/Building-Alluxio-From-Source.md %}).
+Here are more
+[details for building Alluxio]({{ '/en/contributor/Building-Alluxio-From-Source.html' | relativize_url }}).
 
 ## Taking a New Contributor JIRA Ticket
 
@@ -269,12 +268,12 @@ There are a few things that new contributors can do to familiarize themselves wi
 
 1. Take on some
    [Beginner Alluxio tickets](https://alluxio.atlassian.net/issues/?jql=project%20%3D%20ALLUXIO%20AND%20status%20%3D%20Open%20AND%20labels%20%3D%20Beginner%20AND%20assignee%20in%20(EMPTY)).
-1.  [Run Alluxio Locally]({{site.baseurl}}{% link en/deploy/Running-Alluxio-Locally.md %})
-1.  [Run Alluxio on a Cluster]({{site.baseurl}}{% link en/deploy/Running-Alluxio-On-a-Cluster.md %})
-1.  Read [Configuration Settings]({{site.baseurl}}{% link en/basic/Configuration-Settings.md %}) and
-[Command Line Interface]({{site.baseurl}}{% link en/basic/Command-Line-Interface.md %})
+1.  [Run Alluxio Locally]({{ '/en/deploy/Running-Alluxio-Locally.html' | relativize_url }})
+1.  [Run Alluxio on a Cluster]({{ '/en/deploy/Running-Alluxio-On-a-Cluster.html' | relativize_url }})
+1.  Read [Configuration Settings]({{ '/en/basic/Configuration-Settings.html' | relativize_url }}) and
+[Command Line Interface]({{ '/en/basic/Command-Line-Interface.html' | relativize_url }})
 1.  Read a [Code Example](https://github.com/alluxio/alluxio/blob/master/examples/src/main/java/alluxio/examples/BasicOperations.java)
-1.  [Build Alluxio From Source]({{site.baseurl}}{% link en/contributor/Building-Alluxio-From-Source.md %})
+1.  [Build Alluxio From Source]({{ '/en/contributor/Building-Alluxio-From-Source.html' | relativize_url }})
 1.  Fork the repository, add unit tests or javadoc for one or two files, and submit a pull request.
 You are also welcome to address issues in our [JIRA](https://alluxio.atlassian.net/browse/ALLUXIO).
 Here is a list of unassigned

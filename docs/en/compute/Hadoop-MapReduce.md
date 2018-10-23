@@ -19,7 +19,7 @@ easily run your MapReduce programs with files stored on Alluxio.
 This Alluxio client jar file can be found at `{{site.ALLUXIO_CLIENT_JAR_PATH}}` in the tarball
 downloaded from Alluxio [download page](http://www.alluxio.org/download).
 Alternatively, advanced users can compile this client jar from the source code
-by following the [instructions]({{ site.baseurl }}{% link en/contributor/Building-Alluxio-From-Source.md %}).
+by following the [instructions]({{ '/en/contributor/Building-Alluxio-From-Source.html' | relativize_url }}).
 * In order to run map-reduce examples, we also recommend you download the
 [map-reduce examples jar](http://mvnrepository.com/artifact/org.apache.hadoop/hadoop-mapreduce-examples)
 based on your Hadoop version, or if you are using Hadoop 1, this
@@ -111,7 +111,7 @@ $ bin/alluxio fs cat /wordcount/output/part-r-00000
 > Tips：The previous wordcount example is also applicable to Alluxio in fault tolerant mode with Zookeeper.
 
 Please follow the instructions in
-[HDFS API to connect to Alluxio with high availability]({{ site.baseurl }}{% link en/deploy/Running-Alluxio-On-a-Cluster.md %}#Configure-Alluxio-Clients-for-HA).
+[HDFS API to connect to Alluxio with high availability]({{ '/en/deploy/Running-Alluxio-On-a-Cluster.html' | relativize_url }}#Configure-Alluxio-Clients-for-HA).
 
 ## Advanced Setup
 

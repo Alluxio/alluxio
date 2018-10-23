@@ -128,7 +128,7 @@ $ ${ALLUXIO_HOME}/bin/alluxio runTests
 ### Configuration
 
 To customize Alluxio master and worker with specific properties (e.g., tiered storage setup on each
-worker), see [Configuration settings]({{site.baseurl}}{% link en/basic/Configuration-Settings.md %}).
+worker), see [Configuration settings]({{ '/en/basic/Configuration-Settings.html' | relativize_url }}).
 To ensure your configuration can be
 read by both the ApplicationMaster and Alluxio master/workers, put `alluxio-site.properties` in
 `/etc/alluxio/alluxio-site.properties`.

@@ -69,8 +69,8 @@ If you're still looking for solutions, check out the [metrics system][2] to bett
 your jobs are performing. The remainder of this doc discusses various knobs that can be turned to
 help tune Alluxio to your needs.
 
-[1]: {{ site.baseurl }}{% link en/api/FS-API.md %}#location-policy
-[2]: {{ site.baseurl }}{% link en/operation/Metrics-System.md %}
+[1]: {{ '/en/api/FS-API.html' | relativize_url }}#location-policy
+[2]: {{ '/en/operation/Metrics-System.html' | relativize_url }}
 
 ## General Tuning
 
