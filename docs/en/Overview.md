@@ -33,7 +33,7 @@ Today, Alluxio is deployed in production by 100s organizations, and runs on clus
 1,000 nodes.
 
 <p align="center">
-<img src="{{site.baseurl}}{% link img/stack.png %}" width="800" alt="Ecosystem"/>
+<img src="{{ "/img/stack.png" | relativize_url }}" width="800" alt="Ecosystem"/>
 </p>
 
 ## Benefits
