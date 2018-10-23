@@ -11,14 +11,14 @@ priority: 1
 
 该文档介绍Alluxio安全性相关的的功能。
 
-1. [身份验证](#authentication): 如果`alluxio.security.authentication.type=SIMPLE`(默认情况下),
+1. [身份验证](#authentication): 如果`alluxio.security.authentication.type=SIMPLE`(默认情况下)，
 Alluxio文件系统将区分使用服务的用户。要使用其他高级安全特性(如访问权限控制以及审计日志)，`SIMPLE`身份验证需要被开启。
 Alluxio还支持其它身份验证模式，如`NOSASL`和`CUSTOM`。
 1. [访问权限控制](#authorization): 如果是 `alluxio.security.authorization.permission.enabled=true`
 (默认情况下)，根据请求用户和要访问的文件或目录的POSIX权限模型，Alluxio文件系统将授予或拒绝用户访问。
 注意，身份验证不能是`NOSASL`，因为授权需要用户信息。
 1. [用户模拟](#impersonation)：Alluxio支持用户模拟，以便某一个用户可以代表其他用户访问Alluxio。这个机制在Alluxio客户端需要为多个用户提供数据访问的服务的一部分时相当有用。
-1. [审计](#auditing): 如果是 `alluxio.master.audit.logging.enabled=true`, Alluxio 文件系统
+1. [审计](#auditing): 如果是 `alluxio.master.audit.logging.enabled=true`， Alluxio 文件系统
 维护用户访问文件元数据的审计日志(audit log)。
 
 参考[安全性配置项](Configuration-Settings.html#security-configuration)的信息以启用不同安全特性。
@@ -92,7 +92,7 @@ drwxr-xr-x jack           staff                       24       PERSISTED 11-20-2
 
 ### 目录和文件初始访问权限
 
-初始创建访问权限是777,并且目录和文件的区别为111。默认的umask值为022，新创建的目录权限为755，文件为644。umask可以通过`alluxio.security.authorization.permission.umask`属性设置。
+初始创建访问权限是777，并且目录和文件的区别为111。默认的umask值为022，新创建的目录权限为755，文件为644。umask可以通过`alluxio.security.authorization.permission.umask`属性设置。
 
 ### 更新目录和文件访问权限
 
@@ -100,8 +100,8 @@ drwxr-xr-x jack           staff                       24       PERSISTED 11-20-2
 
 1. 用户应用可以调用`FileSystem API`或`Hadoop API`的`setAttribute(...)`方法，参考[文件系统API](File-System-API.html)。
 2. CLI命令，参考
-[chown](Command-Line-Interface.html#chown),
-[chgrp](Command-Line-Interface.html#chgrp),
+[chown](Command-Line-Interface.html#chown)，
+[chgrp](Command-Line-Interface.html#chgrp)，
 [chmod](Command-Line-Interface.html#chmod)。
 
 所属用户只能由超级用户修改。
