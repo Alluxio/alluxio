@@ -69,17 +69,17 @@ Default port for Hadoop Web UI is **50070**.
 
 Visit `http://{MASTER_IP}:{PORT}` in the browser to access the Web UIs.
 
-**Access with ssh**
+**Access with SSH**
 
 The nodes set up are named as `AlluxioMaster`, `AlluxioWorker1`, `AlluxioWorker2` and so on.
 
-To ssh into a node, run:
+To SSH into a node, run:
 
 ```bash
 $ vagrant ssh <node name>
 ```
 
-For example, you can ssh into `AlluxioMaster` with:
+For example, you can SSH into `AlluxioMaster` with:
 
 ```bash
 $ vagrant ssh AlluxioMaster
@@ -96,7 +96,7 @@ $ /alluxio/bin/alluxio runTests
 
 After the tests finish, visit Alluxio web UI at `http://{MASTER_IP}:19999` again. Click `Browse File System` in the navigation bar, and you should see the files written to Alluxio by the above tests.
 
-From a node in the cluster, you can ssh to other nodes in the cluster without password with:
+From a node in the cluster, you can SSH to other nodes in the cluster without password with:
 
 ```bash
 $ ssh AlluxioWorker1
@@ -192,17 +192,17 @@ Here are some scenarios when you may want to check the console:
  - After the cluster is destroyed, confirm EC2 instances are terminated.
  - When you no longer need the cluster, make sure EC2 instances are NOT costing you extra money.
 
-**Access with ssh**
+**Access with SSH**
 
 The nodes set up are named to `AlluxioMaster`, `AlluxioWorker1`, `AlluxioWorker2` and so on.
 
-To ssh into a node, run:
+To SSH into a node, run:
 
 ```bash
 $ vagrant ssh <node name>
 ```
 
-For example, you can ssh into `AlluxioMaster` with:
+For example, you can SSH into `AlluxioMaster` with:
 
 ```bash
 $ vagrant ssh AlluxioMaster
@@ -302,7 +302,7 @@ If not, you can create a new JSON key for the existing service account (click on
 right, then "create key"), which will download the JSON key.
 Save the JSON key in a safe location.
 
-Using the [gcloud sdk](https://console.cloud.google.com) configure keys for ssh:
+Using the [gcloud sdk](https://console.cloud.google.com) configure keys for SSH:
 
 ```bash
 $ curl https://sdk.cloud.google.com | bash
@@ -318,7 +318,7 @@ $ cp deploy/vagrant/conf/gce.yml.template deploy/vagrant/conf/gce.yml
 ```
 
 In the configuration file `deploy/vagrant/conf/gce.yml`, set the project id, service account,
-location to JSON key and ssh username you've just created.
+location to JSON key and SSH username you've just created.
 
 For GCE, the default under storage is Google Cloud Storage (GCS). Visit the
 [Storage page](https://console.cloud.google.com/storage/) of the Google Cloud console, create a GCS
@@ -374,17 +374,17 @@ Here are some scenarios when you may want to check the console:
  - When the cluster creation fails, check GCE instances status/logs.
  - After the cluster is destroyed, confirm GCE instances are terminated (to avoid unexpected costs).
 
-**Access with ssh**
+**Access with SSH**
 
 The nodes set up are named to `AlluxioMaster`, `AlluxioWorker1`, `AlluxioWorker2` and so on.
 
-To ssh into a node, run:
+To SSH into a node, run:
 
 ```bash
 $ vagrant ssh <node name>
 ```
 
-For example, you can ssh into `AlluxioMaster` with:
+For example, you can SSH into `AlluxioMaster` with:
 
 ```bash
 $ vagrant ssh AlluxioMaster
@@ -401,7 +401,7 @@ $ /alluxio/bin/alluxio runTests
 After the tests finish, visit Alluxio web UI at `http://{MASTER_IP}:19999` again. Click `Browse
 File System` in the navigation bar, and you should see the files written to Alluxio by the tests.
 
-From a node in the cluster, you can ssh to other nodes in the cluster with:
+From a node in the cluster, you can SSH to other nodes in the cluster with:
 
 ```bash
 $ ssh AlluxioWorker1
