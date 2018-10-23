@@ -87,7 +87,7 @@ Also check out the [metrics system][2] for better insight in how jobs are perfor
 
 To detect long GC pauses, Alluxio administrators can set `alluxio.master.jvm.monitor.enabled=true`
 for masters or `alluxio.worker.jvm.monitor.enabled=true` for workers.
-This will trigger a monitoring thread that periodically measures the delay between TODO: ???.
+This will trigger a monitoring thread that periodically measures the delay between two GC pauses.
 A long delay could indicate that the process is spending significant time garbage collecting.
 The following parameters tune the behavior of the monitor thread: 
 
@@ -188,12 +188,13 @@ The UFS metadata is only pulled when a client accesses a path.
 When a client accesses a path which does not exist in Alluxio, Alluxio may consult the UFS to load the UFS metadata.
 There are 3 options for loading a missing path: `Never`, `Once`, `Always`.
 
-`Never` will never consult the UFS and `Always` will always interact with the UFS.
-The behavior for `Once` is approximated in the Alluxio master. TODO: this is super confusing??? i have no idea what this means
+`ALWAYS` will always check the UFS for the latest state of the given path,
+`ONCE` will use the default behavior of only scanning each directory once ever, and `NEVER` will never consult the UFS
+and thus prevent Alluxio from scanning for new files at all.
+
 The Alluxio master maintains a cache to approximate which UFS paths have been previously loaded, to approximate the `Once` behavior.
 The parameter `alluxio.master.ufs.path.cache.capacity` controls the number of paths to store in the cache.
 A larger cache size will consume more memory, but will better approximate the `Once` behavior.
-
 The Alluxio master maintains the UFS path cache asynchronously.
 Alluxio uses a thread pool to process the paths asynchronously, whose size is controlled by
 `alluxio.master.ufs.path.cache.threads`.
@@ -205,14 +206,13 @@ If this is set to 0, the cache is disabled and the `Once` setting will behave li
 
 ### Block thread pool size
 
-The `alluxio.worker.block.threads.max` property configures the maximum number of incoming RPC requests to block
-worker that can be handled. TODO: what is a "block worker"??? is this referring to block requests to a worker?
+The `alluxio.worker.block.threads.max` property configures the maximum number of incoming RPC requests to 
+worker that can be handled. 
 This value is used to configure maximum number of threads in Thrift thread pool of the block worker.
 This value should be greater than the sum of `alluxio.user.block.worker.client.threads` across concurrent Alluxio clients.
 Otherwise, the worker connection pool can be drained, preventing new connections from being established.
 
-### Async caching
-TODO: would this be better titled as "Async block caching"?
+### Async block caching
 
 When a worker requests for data from a portion of a block, the worker reads as much data as requested
 and immediately returns the requested data to the client.
