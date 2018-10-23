@@ -28,16 +28,15 @@ system commands which are covered in the [Admin CLI doc]({{site.baseurl}}{% link
 
 ### format
 
-The `format` command formats the Alluxio master and all its workers. 
+The `format` command formats the Alluxio master and all its workers.
 
-TODO: this doesn't make sense; adding -s will only run format if the UFS is local? or does -s also format the UFS assuming it is local and not exists? 
 If `-s` specified, only format if under storage is local and does not already exist
 
 Running this command on an existing Alluxio cluster deletes everything persisted in Alluxio,
-including cached data and any metadata information. 
+including cached data and any metadata information.
 Data in under storage will not be changed.
 
-Warning: `format` is required when you run Alluxio for the first time. 
+Warning: `format` is required when you run Alluxio for the first time.
 `format` should only be called while the cluster is not running.
 
 ```bash
@@ -64,7 +63,7 @@ Warning: `formatMaster` should only be called while the cluster is not running.
 $ ./bin/alluxio formatMaster
 ```
 
-### formatWorker 
+### formatWorker
 
 The `formatWorker` command formats the Alluxio worker.
 
@@ -82,8 +81,8 @@ $ ./bin/alluxio formatWorker
 ### bootstrapConf
 
 The `bootstrapConf` command generates the bootstrap configuration file
-`${ALLUXIO_HOME}/conf/alluxio-env.sh` with the specified `ALLUXIO_MASTER_HOSTNAME`, 
-if the configuration file does not exist. 
+`${ALLUXIO_HOME}/conf/alluxio-env.sh` with the specified `ALLUXIO_MASTER_HOSTNAME`,
+if the configuration file does not exist.
 
 In addition, worker memory size and the ramdisk folder will be set in the configuration file
 in accordance to the state of the machine:
@@ -106,7 +105,7 @@ Options:
 * `--master` option prints any configuration properties used by the master.
 * `--source` option prints the source of the configuration properties.
 * `--unit <arg>` option displays the configuration value in the given unit.
-For example, with `--unit KB`, a configuration value of `4096B` returns as `4`, 
+For example, with `--unit KB`, a configuration value of `4096B` returns as `4`,
 and with `--unit S`, a configuration value of `5000ms` returns as `5`.
 Possible unit options include B, KB, MB, GB, TP, PB as units of byte size and
 MS, S, M, H, D as units of time.
@@ -139,9 +138,9 @@ where:
 * `--logName <arg>` indicates the logger's class (e.g. `alluxio.master.file.DefaultFileSystemMaster`)
 * `--target <arg>` lists the Alluxio master or workers to set.
 The target could be of the form `<master|workers|host:webPort>` and multiple targets can be listed as comma-separated entries.
-`host:webPort` pair must be one of the workers. TODO: what does this mean??? must be???
+The `host:webPort` form only works with worker hostnames and ports.
 The default target value is all masters and workers.
-* `--level <arg>` If provided, the command changes to the given logger level, 
+* `--level <arg>` If provided, the command changes to the given logger level,
 otherwise it returns the current logger level.
 
 For example, the following command sets the logger level of the class `alluxio.heartbeat.HeartbeatContext` to
@@ -166,7 +165,7 @@ $ ./bin/alluxio runTests
 
 ### upgradeJournal
 
-The `upgradeJournal` command upgrades an Alluxio journal version 0 (Alluxio version < 1.5.0) 
+The `upgradeJournal` command upgrades an Alluxio journal version 0 (Alluxio version < 1.5.0)
 to an Alluxio journal version 1 (Alluxio version >= 1.5.0).
 
 `-journalDirectoryV0 <arg>` will provide the v0 journal persisted location.\
@@ -194,7 +193,7 @@ $ ./bin/alluxio version
 
 ### validateConf
 
-The `validateConf` command validates the Alluxio configuration. TODO: does this validates it across every master and worker???
+The `validateConf` command validates the local Alluxio configuration files, checking for common misconfigurations.
 
 ```bash
 $ ./bin/alluxio validateConf
@@ -237,10 +236,10 @@ $ ./bin/alluxio validateEnv ulimit
 $ ./bin/alluxio validateEnv local ma
 ```
 
-`OPTIONS` can be a list of command line options. Each option has the format 
+`OPTIONS` can be a list of command line options. Each option has the format
 `-<optionName> [optionValue]` For example, `[-hadoopConfDir <arg>]` could set the path to
 server-side hadoop configuration directory when running validating tasks.
- 
+
 ## File System Operations
 
 ```bash
@@ -447,7 +446,7 @@ This request is not guaranteed to take effect immediately,
 as readers may be currently using the blocks of the file.
 `free` will return immediately after the request is acknowledged by the master.
 Note that files must be already persisted in under storage before being freed or the `free` command will fail.
-Any pinned files cannot be freed unless `-f` option is specified. TODO: i have yet to read anything about pinning in the root level docs or advanced section???
+Any pinned files cannot be freed unless `-f` option is specified.
 The `free` command does not delete any data from the under storage system,
 only removing the blocks of those files in Alluxio space to reclaim space.
 Metadata is not affected by this operation; a freed file will still show up if an `ls` command is run.
@@ -630,8 +629,7 @@ If it is a directory, the file or directory will be placed as a child of the dir
 `mv` is purely a metadata operation and does not affect the data blocks of the file.
 `mv` cannot be done between mount points of different under storage systems.
 
-For example, `mv` can be used to move older data into a non-working directory.
-TODO: huh? what's a non-working directory? how does working directory even relate to this???
+For example, `mv` can be used to re-organize your files.
 
 {% include Command-Line-Interface/mv.md %}
 
@@ -675,7 +673,7 @@ For example, `rm` can be used to remove temporary files which are no longer need
 
 ### setfacl
 
-The `setfacl` command modifies the access control list associated with a specified file or directory. 
+The `setfacl` command modifies the access control list associated with a specified file or directory.
 
 The`-R` option applies operations to all files and directories recursively.
 The `-m` option modifies the ACL by adding/overwriting new entries.
@@ -683,7 +681,7 @@ The `-x` option removes specific ACL entries.
 The `-b` option removes all ACL entries, except for the base entries.
 The `-k` option removes all the default ACL entries.
 
-For example, `setfacl` can be used to give read and execute permissions to a user named `testuser`. 
+For example, `setfacl` can be used to give read and execute permissions to a user named `testuser`.
 
 ```bash
 $ ./bin/alluxio fs setfacl -m "user:testuser:r-x" /testdir/testfile
