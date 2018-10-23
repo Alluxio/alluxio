@@ -66,7 +66,7 @@ $ bin/alluxio fs copyFromLocal /path/to/ml-100k/u.user alluxio://master_hostname
 View Alluxio WebUI at `http://master_hostname:port` and you can see the directory and file Hive
 creates:
 
-![HiveTableInAlluxio]({{ '/img/screenshot_hive_table_in_alluxio.png ' | relativize_url }})
+![HiveTableInAlluxio]({{ '/img/screenshot_hive_table_in_alluxio.png' | relativize_url }})
 
 ### Create a New Internal Table
 
@@ -114,7 +114,7 @@ hive> select * from u_user;
 
 And you can see the query results from console:
 
-![HiveQueryResult]({{ '/img/screenshot_hive_query_result.png ' | relativize_url }})
+![HiveQueryResult]({{ '/img/screenshot_hive_query_result.png' | relativize_url }})
 
 ## Example: Serve Existing Tables Stored in HDFS from Alluxio
 
@@ -311,7 +311,7 @@ OVERWRITE INTO TABLE u_user;
 View Alluxio WebUI at `http://master_hostname:port` and you can see the directory and file Hive
 creates:
 
-![HiveTableInAlluxio]({{ '/img/screenshot_hive_table_in_alluxio.png ' | relativize_url }})
+![HiveTableInAlluxio]({{ '/img/screenshot_hive_table_in_alluxio.png' | relativize_url }})
 
 Using a single query:
 
@@ -321,7 +321,7 @@ hive> select * from u_user;
 
 And you can see the query results from console:
 
-![HiveQueryResult]({{ '/img/screenshot_hive_query_result.png ' | relativize_url }})
+![HiveQueryResult]({{ '/img/screenshot_hive_query_result.png' | relativize_url }})
 
 ## Troubleshooting
 

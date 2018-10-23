@@ -21,7 +21,7 @@ One of the key benefit that Alluxio provides is a unified namespace to the appli
 This is an abstraction that allows applications to access multiple independent storage systems through the same name space and interface.
 Applications simply communicate with Alluxio and Alluxio interacts with the different underlying storage systems.
 
-![unified]({{ '/img/screenshot_unified.png ' | relativize_url }})
+![unified]({{ '/img/screenshot_unified.png' | relativize_url }})
 
 The directory specified by the `alluxio.underfs.address` property of Alluxio configuration is mounted to the root of the Alluxio namespace.
 This directory identifies the "primary storage" for Alluxio.
@@ -53,7 +53,7 @@ When this happens, a [UFS Metadata Sync](#Ufs-Metadata-Sync) operation is requir
 Transparent naming maintains an identity between the Alluxio namespace and the underlying storage
 system namespace.
 
-![transparent]({{ '/img/screenshot_transparent.png ' | relativize_url }})
+![transparent]({{ '/img/screenshot_transparent.png' | relativize_url }})
 
 When a user creates objects in the Alluxio namespace, they can choose whether these objects should
 be persisted in the underlying storage system. For objects that are persisted, Alluxio preserves the

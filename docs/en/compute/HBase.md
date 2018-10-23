@@ -78,12 +78,12 @@ $ ${HBASE_HOME}/bin/start-hbase.sh
 Visit HBase Web UI at `http://<HBASE_MASTER_HOSTNAME>:16010` to confirm that HBase is running on Alluxio
 (check the `HBase Root Directory` attribute):
 
-![HBaseRootDirectory]({{ '/img/screenshot_start_hbase_webui.png ' | relativize_url }})
+![HBaseRootDirectory]({{ '/img/screenshot_start_hbase_webui.png' | relativize_url }})
 
 And visit Alluxio Web UI at `http://<ALLUXIO_MASTER_HOSTNAME>:19999`, click `Browse` and you can see the files HBase stores
 on Alluxio, including data and WALs:
 
-![HBaseRootDirectoryOnAlluxio]({{ '/img/screenshot_start_hbase_alluxio_webui.png ' | relativize_url }})
+![HBaseRootDirectoryOnAlluxio]({{ '/img/screenshot_start_hbase_alluxio_webui.png' | relativize_url }})
 
 Create a text file `simple_test.txt` and write these commands into it:
 
@@ -105,7 +105,7 @@ bin/hbase shell simple_test.txt
 
 You should see some output like this:
 
-![HBaseShellOutput]({{ '/img/screenshot_hbase_shell_output.png ' | relativize_url }})
+![HBaseShellOutput]({{ '/img/screenshot_hbase_shell_output.png' | relativize_url }})
 
 If you have Hadoop installed, you can run a Hadoop-utility program in HBase shell to
 count the rows of the newly created table:
@@ -116,7 +116,7 @@ bin/hbase org.apache.hadoop.hbase.mapreduce.RowCounter test
 
 After this mapreduce job finishes, you can see a result like this:
 
-![HBaseHadoopOutput]({{ '/img/screenshot_hbase_hadoop_output.png ' | relativize_url }})
+![HBaseHadoopOutput]({{ '/img/screenshot_hbase_hadoop_output.png' | relativize_url }})
 
 ## Advanced Setup
 

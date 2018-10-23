@@ -58,7 +58,7 @@ local files and directories. This enables users to continue to use familiar tool
 interact with their data. Since Alluxio can connect to multiple disparate storages, data from any
 storage can be accessed like a local file or directory.
 
-![Fuse]({{ '/img/fuse.png ' | relativize_url }})
+![Fuse]({{ '/img/fuse.png' | relativize_url }})
 
 Alluxio also provides
 [local caching]({{ '/en/advanced/Alluxio-Storage-Management.html' | relativize_url }}) of frequently

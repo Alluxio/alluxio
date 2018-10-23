@@ -41,13 +41,13 @@ communicate with the Alluxio servers by applications such as Spark or MapReduce 
 Alluxio command-line, or the FUSE layer.
 
 <p align="center">
-<img src="{{ '/img/architecture-overview.png ' | relativize_url }}" alt="Architecture overview"/>
+<img src="{{ '/img/architecture-overview.png' | relativize_url }}" alt="Architecture overview"/>
 </p>
 
 ### Master
 
 <p align="center">
-<img src="{{ '/img/architecture-master.png ' | relativize_url }}" alt="Alluxio master"/>
+<img src="{{ '/img/architecture-master.png' | relativize_url }}" alt="Alluxio master"/>
 </p>
 
 The Alluxio master service can be deployed as one leading master and several standby
@@ -77,7 +77,7 @@ Alluxio components.
 ### Worker
 
 <p align="center">
-<img src="{{ '/img/architecture-worker.png ' | relativize_url }}" alt="Alluxio worker"/>
+<img src="{{ '/img/architecture-worker.png' | relativize_url }}" alt="Alluxio worker"/>
 </p>
 
 Alluxio workers are responsible for managing user-configurable local resources
@@ -147,7 +147,7 @@ storage media. To learn more about this topic, please refer to the
 [tiered storage document]({{ '/en/advanced/Alluxio-Storage-Management.html' | relativize_url }}#multiple-tier-storage).
 
 <p align="center">
-<img src="{{ '/img/dataflow-local-cache-hit.gif ' | relativize_url }}" alt="Data Flow of Read from a Local Worker"/>
+<img src="{{ '/img/dataflow-local-cache-hit.gif' | relativize_url }}" alt="Data Flow of Read from a Local Worker"/>
 </p>
 
 #### Remote Cache Hit
@@ -162,7 +162,7 @@ speed between Alluxio workers is typically faster than the speed between Alluxio
 workers and the under storage.
 
 <p align="center">
-<img src="{{ '/img/dataflow-remote-cache-hit.gif ' | relativize_url }}" alt="Data Flow of Read from a Remote Worker"/>
+<img src="{{ '/img/dataflow-remote-cache-hit.gif' | relativize_url }}" alt="Data Flow of Read from a Remote Worker"/>
 </p>
 
 #### Cache Miss
@@ -184,7 +184,7 @@ system is a bottleneck. You can tune the impact of async caching by setting
 The default value is `8`.
 
 <p align="center">
-<img src="{{ '/img/dataflow-cache-miss.gif ' | relativize_url }}" alt="Cache Miss data flow"/>
+<img src="{{ '/img/dataflow-cache-miss.gif' | relativize_url }}" alt="Cache Miss data flow"/>
 </p>
 
 #### Cache Skip
@@ -213,7 +213,7 @@ data can be lost if the machine crashes or data needs to be freed up for newer w
 The `MUST_CACHE` setting is useful for writing temporary data when data loss can be tolerated.
 
 <p align="center">
-<img src="{{ '/img/dataflow-must-cache.gif ' | relativize_url }}" alt="MUST_CACHE data flow"/>
+<img src="{{ '/img/dataflow-must-cache.gif' | relativize_url }}" alt="MUST_CACHE data flow"/>
 </p>
 
 #### Write through to UFS (`CACHE_THROUGH`)
@@ -228,7 +228,7 @@ recommended when data persistence is required. A local copy is also written so
 any future reads of the data can be served from local memory directly.
 
 <p align="center">
-<img src="{{ '/img/dataflow-cache-through.gif ' | relativize_url }}" alt="CACHE_THROUGH data flow"/>
+<img src="{{ '/img/dataflow-cache-through.gif' | relativize_url }}" alt="CACHE_THROUGH data flow"/>
 </p>
 
 #### Write back to UFS (`ASYNC_THROUGH`)
@@ -239,5 +239,5 @@ under storage system. `ASYNC_THROUGH` can provide data write at memory speed
 while still persisting the data.
 
 <p align="center">
-<img src="{{ '/img/dataflow-async-through.gif ' | relativize_url }}" alt="ASYNC_THROUGH data flow"/>
+<img src="{{ '/img/dataflow-async-through.gif' | relativize_url }}" alt="ASYNC_THROUGH data flow"/>
 </p>

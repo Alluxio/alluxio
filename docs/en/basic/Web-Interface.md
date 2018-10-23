@@ -24,7 +24,7 @@ The Alluxio master web interface contains several different pages, described bel
 
 The Alluxio master home page looks something like below:
 
-![Alluxio Master Home Page]({{ '/img/screenshot_overview.png ' | relativize_url }})
+![Alluxio Master Home Page]({{ '/img/screenshot_overview.png' | relativize_url }})
 
 The home page gives an overview of the system status. It includes the following sections:
 
@@ -41,7 +41,7 @@ which gives a breakdown of the amount of space used per tier across the cluster.
 To check the current configuration information, click "Configuration" in the
 navigation bar on the top of the screen.
 
-![configurations]({{ '/img/screenshot_systemConfiguration.png ' | relativize_url }})
+![configurations]({{ '/img/screenshot_systemConfiguration.png' | relativize_url }})
 
 The configuration page has two sections:
 
@@ -56,19 +56,19 @@ Only whitelisted files will be stored in Alluxio.
 To browse the Alluxio file system through the UI. select the "Browse" tab
 in the navigation bar:
 
-![browse]({{ '/img/screenshot_browseFileSystem.png ' | relativize_url }})
+![browse]({{ '/img/screenshot_browseFileSystem.png' | relativize_url }})
 
 Files in the current folder are listed, with the file name, file size, size for each block, the
 percentage of in-Alluxio data, creation time, and the modification time.\
 To view the content of a file, click the link for that file.
 
-![viewFile]({{ '/img/screenshot_viewFile.png ' | relativize_url }})
+![viewFile]({{ '/img/screenshot_viewFile.png' | relativize_url }})
 
 ### Browse In-Alluxio Files Page
 
 To browse all in-Alluxio files, click on the "In-Alluxio Files" tab in the navigation bar.
 
-![inMemFiles]({{ '/img/screenshot_inMemoryFiles.png ' | relativize_url }})
+![inMemFiles]({{ '/img/screenshot_inMemoryFiles.png' | relativize_url }})
 
 Files currently in Alluxio are listed, with the file name, file size, size for each block,
 whether the file is pinned or not, the file creation time, and the file modification time.
@@ -77,7 +77,7 @@ whether the file is pinned or not, the file creation time, and the file modifica
 
 The master UI shows all known Alluxio workers in the system in the "Workers" tab.
 
-![workers]({{ '/img/screenshot_workers.png ' | relativize_url }})
+![workers]({{ '/img/screenshot_workers.png' | relativize_url }})
 
 The workers page gives an overview of all Alluxio worker nodes divided into two sections:
 
@@ -92,7 +92,7 @@ Possible causes include system restart or network failures.
 
 To access master metrics section, click on the “Metrics” tab in the navigation bar.
 
-![masterMetrics]({{ '/img/screenshot_masterMetrics.png ' | relativize_url }})
+![masterMetrics]({{ '/img/screenshot_masterMetrics.png' | relativize_url }})
 
 This section shows all master metrics. It includes the following sections:
 
@@ -123,7 +123,7 @@ Clicking on a file shows the blocks of that file.
 
 To Access worker metrics section, click on the “Metrics” tab in the navigation bar.
 
-![workerMetrics]({{ '/img/screenshot_workerMetrics.png ' | relativize_url }})
+![workerMetrics]({{ '/img/screenshot_workerMetrics.png' | relativize_url }})
 
 This section shows all worker metrics. It includes the following sections:
 
