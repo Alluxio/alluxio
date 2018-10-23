@@ -99,11 +99,18 @@ when a client attempts to communicate with the Alluxio master.
 
 ### Thread Pool Size
 
-The size of the client thread pool for block and file operations are configured by the following properties:
+On a single client, the number of threads connecting to the master is configured by the
+`alluxio.user.block.master.client.threads` and `alluxio.user.file.master.client.threads` properties,
+each with a default value of `10`.
+The size of the master thread pool that serves connections to clients should be tuned to match
+the maximum number of concurrrent client connections.
+For example, if the master expects up to 100 clients, each with the default number of connections,
+the master's thread pool should be configured to be at least `100 * 10 * 2 = 2000`.
+
+Consider reducing these values if the master is not responsive
+as it is possible that the master thread pool is completely drained:
 
 ```properties
 alluxio.user.block.master.client.threads=5
 alluxio.user.file.master.client.threads=5
 ```
-
-Consider reducing these values if the master is not responsive, as it is possible that the master thread pool is completely drained.
