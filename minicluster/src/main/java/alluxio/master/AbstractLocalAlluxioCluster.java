@@ -117,7 +117,6 @@ public abstract class AbstractLocalAlluxioCluster {
         throw new RuntimeException(e + " \n Start Proxy Error \n" + e.getMessage(), e);
       }
     };
-
     mProxyThread = new Thread(runProxy);
     mProxyThread.setName("ProxyThread-" + System.identityHashCode(mProxyThread));
     mProxyThread.start();
