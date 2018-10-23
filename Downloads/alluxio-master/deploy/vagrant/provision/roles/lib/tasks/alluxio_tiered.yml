@@ -1,0 +1,2 @@
+- name: set 2nd level Alluxio tieredstore(SSD)
+  script: alluxio_tiered.sh

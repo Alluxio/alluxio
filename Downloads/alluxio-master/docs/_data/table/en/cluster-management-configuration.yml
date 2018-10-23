@@ -1,0 +1,30 @@
+alluxio.integration.master.resource.cpu:
+  'The number of CPUs to run an Alluxio master for YARN framework.'
+alluxio.integration.master.resource.mem:
+  'The amount of memory to run an Alluxio master for YARN framework.'
+alluxio.integration.mesos.alluxio.jar.url:
+  'Url to download an Alluxio distribution from during Mesos deployment.'
+alluxio.integration.mesos.jdk.path:
+  'If installing java from a remote URL during mesos deployment, this must be set to the directory name of the untarred jdk.'
+alluxio.integration.mesos.jdk.url:
+  'A url from which to install the jdk during Mesos deployment. Default to LOCAL which tells Mesos to use the local JDK on the system. When using this property, alluxio.integration.mesos.jdk.path must also be set correctly.'
+alluxio.integration.mesos.master.name:
+  'The name of the master process to use within Mesos.'
+alluxio.integration.mesos.master.node.count:
+  'The number of Alluxio master process to run within Mesos.'
+alluxio.integration.mesos.principal:
+  'The Mesos principal for the Alluxio Mesos Framework.'
+alluxio.integration.mesos.role:
+  'Mesos role for the Alluxio Mesos Framework.'
+alluxio.integration.mesos.secret:
+  'Secret token for authenticating with Mesos.'
+alluxio.integration.mesos.user:
+  'The Mesos user for the Alluxio Mesos Framework. Defaults to the current user.'
+alluxio.integration.mesos.worker.name:
+  'The name of the worker process to use within Mesos.'
+alluxio.integration.worker.resource.cpu:
+  'The number of CPUs to run an Alluxio worker for YARN framework.'
+alluxio.integration.worker.resource.mem:
+  'The amount of memory to run an Alluxio worker for YARN framework.'
+alluxio.integration.yarn.workers.per.host.max:
+  'The number of workers to run on an Alluxio host for YARN framework.'

@@ -1,0 +1,4 @@
+- name: start hadoop
+  script: start.sh
+
+# vim :set filetype=ansible.yaml:

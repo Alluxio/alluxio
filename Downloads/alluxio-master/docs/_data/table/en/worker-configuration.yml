@@ -1,0 +1,166 @@
+alluxio.worker.allocator.class:
+  'The strategy that a worker uses to allocate space among storage directories in certain storage layer. Valid options include: `alluxio.worker.block.allocator.MaxFreeAllocator`, `alluxio.worker.block.allocator.GreedyAllocator`, `alluxio.worker.block.allocator.RoundRobinAllocator`.'
+alluxio.worker.bind.host:
+  'The hostname Alluxio''s worker node binds to. See <a href="#configure-multihomed-networks">multi-homed networks</a>.'
+alluxio.worker.block.heartbeat.interval:
+  'The interval between block workers'' heartbeats.'
+alluxio.worker.block.heartbeat.timeout:
+  'The timeout value of block workers'' heartbeats. If the worker can''t connect to master before this interval expires, the worker will exit.'
+alluxio.worker.block.master.client.pool.size:
+  'The block master client pool size on the Alluxio workers.'
+alluxio.worker.block.threads.max:
+  'The maximum number of incoming RPC requests to block worker that can be handled. This value is used to configure maximum number of threads in Thrift thread pool with block worker. This value should be greater than the sum of `alluxio.user.block.worker.client.threads` across concurrent Alluxio clients. Otherwise, the worker connection pool can be drained, preventing new connections from being established.'
+alluxio.worker.block.threads.min:
+  'The minimum number of threads used to handle incoming RPC requests to block worker. This value is used to configure minimum number of threads in Thrift thread pool with block worker.'
+alluxio.worker.data.bind.host:
+  'The hostname that the Alluxio worker''s data server runs on. See <a href="#configure-multihomed-networks">multi-homed networks</a>.'
+alluxio.worker.data.folder:
+  'A relative path within each storage directory used as the data folder for Alluxio worker to put data for tiered store.'
+alluxio.worker.data.folder.permissions:
+  'The permission set for the worker data folder. If short circuit is used this folder should be accessible by all users (rwxrwxrwx).'
+alluxio.worker.data.folder.tmp:
+  'A relative path in alluxio.worker.data.folder used to store the temporary data for uncommitted files.'
+alluxio.worker.data.hostname:
+  'The hostname of Alluxio worker data service.'
+alluxio.worker.data.port:
+  'The port Alluxio''s worker''s data server runs on.'
+alluxio.worker.data.server.class:
+  'Selects the networking stack to run the worker with. Valid options are: `alluxio.worker.netty.NettyDataServer`.'
+alluxio.worker.data.server.domain.socket.address:
+  'The path to the domain socket. Short-circuit reads make use of a UNIX domain socket when this is set (non-empty). This is a special path in the file system that allows the client and the AlluxioWorker to communicate. You will need to set a path to this socket. The AlluxioWorker needs to be able to create the path. If alluxio.worker.data.server.domain.socket.as.uuid is set, the path should be the home directory for the domain socket. The full path for the domain socket with be <path>/<uuid>.'
+alluxio.worker.data.server.domain.socket.as.uuid:
+  'If true, the property alluxio.worker.data.server.domain.socket.addressis the path to the home directory for the domain socket and a unique identifier is used as the domain socket name. In addition, clients ignore alluxio.user.hostname while detecting a local worker for short circuit ops. If false, the property is the absolute path to the UNIX domain socket.'
+alluxio.worker.data.tmp.subdir.max:
+  'The maximum number of sub-directories allowed to be created in alluxio.worker.data.tmp.folder.'
+alluxio.worker.evictor.class:
+  'The strategy that a worker uses to evict block files when a storage layer runs out of space. Valid options include `alluxio.worker.block.evictor.LRFUEvictor`, `alluxio.worker.block.evictor.GreedyEvictor`, `alluxio.worker.block.evictor.LRUEvictor`.'
+alluxio.worker.evictor.lrfu.attenuation.factor:
+  'A attenuation factor in [2, INF) to control the behavior of LRFU.'
+alluxio.worker.evictor.lrfu.step.factor:
+  'A factor in [0, 1] to control the behavior of LRFU: smaller value makes LRFU more similar to LFU; and larger value makes LRFU closer to LRU.'
+alluxio.worker.file.buffer.size:
+  'The buffer size for worker to write data into the tiered storage.'
+alluxio.worker.file.persist.pool.size:
+  'The size of the thread pool per worker, in which the thread persists an ASYNC_THROUGH file to under storage.'
+alluxio.worker.file.persist.rate.limit:
+  'The rate limit of asynchronous persistence per second.'
+alluxio.worker.file.persist.rate.limit.enabled:
+  'Whether to enable rate limiting when performing asynchronous persistence.'
+alluxio.worker.filesystem.heartbeat.interval:
+  'The heartbeat interval between the worker and file system master.'
+alluxio.worker.free.space.timeout:
+  'The duration for which a worker will wait for eviction to make space available for a client write request.'
+alluxio.worker.hostname:
+  'The hostname of Alluxio worker.'
+alluxio.worker.jvm.monitor.enabled:
+  'Whether to enable start JVM monitor thread on worker.'
+alluxio.worker.keytab.file:
+  'Kerberos keytab file for Alluxio worker.'
+alluxio.worker.master.connect.retry.timeout:
+  'Retry period before workers give up on connecting to master'
+alluxio.worker.memory.size:
+  'Memory capacity of each worker node.'
+alluxio.worker.network.netty.async.cache.manager.threads.max:
+  'The maximum number of threads used to cache blocks asynchronously in the netty data server.'
+alluxio.worker.network.netty.backlog:
+  'Netty socket option for SO_BACKLOG: the number of connections queued.'
+alluxio.worker.network.netty.block.reader.threads.max:
+  'The maximum number of threads used to read blocks in the netty data server.'
+alluxio.worker.network.netty.block.writer.threads.max:
+  'The maximum number of threads used to write blocks in the netty data server.'
+alluxio.worker.network.netty.boss.threads:
+  'How many threads to use for accepting new requests.'
+alluxio.worker.network.netty.buffer.receive:
+  'Netty socket option for SO_RCVBUF: the proposed buffer size that will be used for receives.'
+alluxio.worker.network.netty.buffer.send:
+  'Netty socket option for SO_SNDBUF: the proposed buffer size that will be used for sends.'
+alluxio.worker.network.netty.channel:
+  'Netty channel type: NIO or EPOLL. If EPOLL is not available, this will automatically fall back to NIO.'
+alluxio.worker.network.netty.file.transfer:
+  'When returning files to the user, select how the data is transferred; valid options are `MAPPED` (uses java MappedByteBuffer) and `TRANSFER` (uses Java FileChannel.transferTo).'
+alluxio.worker.network.netty.file.writer.threads.max:
+  'The maximum number of threads used to write files to UFS in the netty data server.'
+alluxio.worker.network.netty.reader.buffer.size.packets:
+  'The maximum number of parallel data packets when a client reads from a worker.'
+alluxio.worker.network.netty.rpc.threads.max:
+  'The maximum number of threads used to handle worker side RPCs in the netty data server.'
+alluxio.worker.network.netty.shutdown.quiet.period:
+  'The quiet period. When the netty server is shutting down, it will ensure that no RPCs occur during the quiet period. If an RPC occurs, then the quiet period will restart before shutting down the netty server.'
+alluxio.worker.network.netty.shutdown.timeout:
+  'Maximum amount of time to wait until the netty server is shutdown (regardless of the quiet period).'
+alluxio.worker.network.netty.watermark.high:
+  'Determines how many bytes can be in the write queue before switching to non-writable.'
+alluxio.worker.network.netty.watermark.low:
+  'Once the high watermark limit is reached, the queue must be flushed down to the low watermark before switching back to writable.'
+alluxio.worker.network.netty.worker.threads:
+  'How many threads to use for processing requests. Zero defaults to #cpuCores * 2.'
+alluxio.worker.network.netty.writer.buffer.size.packets:
+  'The maximum number of parallel data packets when a client writes to a worker.'
+alluxio.worker.port:
+  'The port Alluxio''s worker node runs on.'
+alluxio.worker.principal:
+  'Kerberos principal for Alluxio worker.'
+alluxio.worker.session.timeout:
+  'Timeout between worker and client connection indicating a lost session connection.'
+alluxio.worker.tieredstore.block.lock.readers:
+  'The max number of concurrent readers for a block lock.'
+alluxio.worker.tieredstore.block.locks:
+  'Total number of block locks for an Alluxio block worker. Larger value leads to finer locking granularity, but uses more space.'
+alluxio.worker.tieredstore.level0.alias:
+  'The alias of the top storage tier on this worker. It must match one of the global storage tiers from the master configuration. We disable placing an alias lower in the global hierarchy before an alias with a higher postion on the worker hierarchy. So by default, SSD cannot come before MEM on any worker.'
+alluxio.worker.tieredstore.level0.dirs.path:
+  'The path of storage directory for the top storage tier. Note for MacOS the value should be `/Volumes/`.'
+alluxio.worker.tieredstore.level0.dirs.quota:
+  'The capacity of the top storage tier.'
+alluxio.worker.tieredstore.level0.reserved.ratio:
+  'Fraction of space reserved in the top storage tier. This has been deprecated, please use high and low watermark instead.'
+alluxio.worker.tieredstore.level0.watermark.high.ratio:
+  'The high watermark of the space in the top storage tier (a value between 0 and 1).'
+alluxio.worker.tieredstore.level0.watermark.low.ratio:
+  'The low watermark of the space in the top storage tier (a value between 0 and 1).'
+alluxio.worker.tieredstore.level1.alias:
+  'The alias of the second storage tier on this worker.'
+alluxio.worker.tieredstore.level1.dirs.path:
+  'The path of storage directory for the second storage tier.'
+alluxio.worker.tieredstore.level1.dirs.quota:
+  'The capacity of the second storage tier.'
+alluxio.worker.tieredstore.level1.reserved.ratio:
+  'Fraction of space reserved in the second storage tier. This has been deprecated, please use high and low watermark instead.'
+alluxio.worker.tieredstore.level1.watermark.high.ratio:
+  'The high watermark of the space in the second storage tier (a value between 0 and 1).'
+alluxio.worker.tieredstore.level1.watermark.low.ratio:
+  'The low watermark of the space in the second storage tier (a value between 0 and 1).'
+alluxio.worker.tieredstore.level2.alias:
+  'The alias of the third storage tier on this worker.'
+alluxio.worker.tieredstore.level2.dirs.path:
+  'The path of storage directory for the third storage tier.'
+alluxio.worker.tieredstore.level2.dirs.quota:
+  'The capacity of the third storage tier.'
+alluxio.worker.tieredstore.level2.reserved.ratio:
+  'Fraction of space reserved in the third storage tier. This has been deprecated, please use high and low watermark instead.'
+alluxio.worker.tieredstore.level2.watermark.high.ratio:
+  'The high watermark of the space in the third storage tier (a value between 0 and 1).'
+alluxio.worker.tieredstore.level2.watermark.low.ratio:
+  'The low watermark of the space in the third storage tier (a value between 0 and 1).'
+alluxio.worker.tieredstore.levels:
+  'The number of storage tiers on the worker.'
+alluxio.worker.tieredstore.reserver.enabled:
+  'Whether to enable tiered store reserver service or not.'
+alluxio.worker.tieredstore.reserver.interval:
+  'The time period of space reserver service, which keeps certain portion of available space on each layer.'
+alluxio.worker.tieredstore.retry:
+  'The number of retries that the worker uses to process blocks.'
+alluxio.worker.ufs.block.open.timeout:
+  'Timeout to open a block from UFS.'
+alluxio.worker.ufs.instream.cache.enabled:
+  'Enable caching for seekable under storage input stream, so that subsequent seek operations on the same file will reuse the cached input stream. This will improve position read performance as the open operations of some under file system would be expensive. The cached input stream would be stale, when the UFS file is modified without notifying alluxio. '
+alluxio.worker.ufs.instream.cache.expiration.time:
+  'Cached UFS instream expiration time.'
+alluxio.worker.ufs.instream.cache.max.size:
+  'The max entries in the UFS instream cache.'
+alluxio.worker.web.bind.host:
+  'The hostname Alluxio worker''s web server binds to. See <a href="#configure-multihomed-networks">multi-homed networks</a>.'
+alluxio.worker.web.hostname:
+  'The hostname Alluxio worker''s web UI binds to.'
+alluxio.worker.web.port:
+  'The port Alluxio worker''s web UI runs on.'

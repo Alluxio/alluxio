@@ -1,0 +1,175 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+require 'yaml'
+require "./core/EnvSetup"
+
+# load configuration from init.yml
+@cmd = YAML.load_file('conf/init.yml')
+puts @cmd.inspect
+
+Total = @cmd['MachineNumber']
+Provider = @cmd['Provider']
+
+validate_provider(Provider)
+
+# load version configuration
+ZookeeperV = ZookeeperVersion.new('conf/zookeeper.yml')
+MesosV = MesosVersion.new('conf/mesos.yml')
+AlluxioV = AlluxioVersion.new('conf/alluxio.yml')
+SparkV = SparkVersion.new('conf/spark.yml')
+UfsV = UfsVersion.new('conf/ufs.yml', Provider)
+
+require "./core/config_#{Provider}"
+
+# Vagrantfile API/syntax version.
+VAGRANTFILE_API_VERSION = "2"
+Vagrant.require_version ">= 1.6.5"
+Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
+  (1..Total).each do |i|
+    # multi vm config
+    if i <= AlluxioV.masters
+      if i == 1
+        name = "AlluxioMaster"
+      else
+        name = "AlluxioMaster#{i}"
+      end
+    else
+      name = "AlluxioWorker#{i - AlluxioV.masters}"
+    end
+    config.vm.define "#{name}" do |n|
+      n.vm.hostname = "#{name}"
+
+      # Start parallel provision when it is the last machine
+      if i == Total
+        n.vm.provision :ansible do |ans|
+          ans.playbook = "provision/playbook.yml"
+          ans.limit = "all" # to let "- hosts: all" work in playbooks
+          mesos_repo, mesos_version = MesosV.repo_version
+          alluxio_repo, alluxio_version = AlluxioV.repo_version
+          spark_repo, spark_version = SparkV.repo_version
+          is_vb = Provider == "vb"
+          alluxio_dist = UfsV.alluxio_dist(alluxio_version)
+          puts "using alluxio distribution #{alluxio_dist}"
+          alluxio_platform = "standalone"
+          if MesosV.type != "None"
+            alluxio_platform = "mesos"
+          end
+          ans.extra_vars = {
+              zookeeper_type: ZookeeperV.type,
+              zookeeper_version: ZookeeperV.version,
+
+              mesos_type: MesosV.type,
+              mesos_repo: mesos_repo,
+              mesos_dist: MesosV.dist,
+              mesos_version: mesos_version,
+
+              alluxio_type:    AlluxioV.type,
+              alluxio_repo:    alluxio_repo,
+              alluxio_dist:    alluxio_dist,
+              alluxio_memory:  AlluxioV.memory,
+              alluxio_version: alluxio_version,
+              alluxio_version_lessthan_0_8: AlluxioV.v_lt_0_8,
+              alluxio_version_lessthan_1_1: AlluxioV.v_lt_1_1,
+              alluxio_masters: AlluxioV.masters,
+              alluxio_platform: alluxio_platform,
+
+              spark_type:    SparkV.type,
+              spark_repo:    spark_repo,
+              spark_dist:    SparkV.dist,
+              spark_profile: UfsV.hadoop.spark_profile,
+              spark_version: spark_version,
+              spark_version_lessthan_1: SparkV.v_lt_1,
+
+              ufs: UfsV.type,
+
+              hadoop_version:     UfsV.hadoop.version,
+              hadoop_tarball_url: UfsV.hadoop.tarball_url,
+
+              s3_id:     UfsV.s3.id,
+              s3_key:    UfsV.s3.key,
+              s3_bucket: UfsV.s3.bucket,
+
+              gcs_id:     UfsV.gcs.id,
+              gcs_key:    UfsV.gcs.key,
+              gcs_bucket: UfsV.gcs.bucket,
+              
+              swift_container: UfsV.swift.container,
+              swift_user: UfsV.swift.user,
+              swift_tenant: UfsV.swift.tenant,
+              swift_password: UfsV.swift.password,
+              swift_auth_url: UfsV.swift.auth_url,
+              swift_use_public_url: UfsV.swift.use_public_url,
+              swift_auth_method: UfsV.swift.auth_method,
+
+              provider: Provider,
+          }
+          # ans.verbose = "vvvv"
+          ans.raw_ssh_args = ['-o ControlPersist=30m']
+        end
+      end
+
+      # Provider specific init
+      if Provider == "vb"
+        config_vb(n, i, Total, name, AlluxioV.type == "Local")
+      end
+
+      if Provider == "aws"
+        if (defined?(@ec2)).nil?
+          @ec2 = YAML.load_file('conf/ec2.yml')
+          puts @ec2.inspect
+          KEYPAIR=@ec2['Keypair']
+          KEY_PATH=@ec2['Key_Path']
+          AMI=@ec2['AMI']
+          REGION=@ec2['Region']
+          SECURITY_GROUP=@ec2['Security_Group']
+          INSTANCE_TYPE = @ec2['Instance_Type']
+          AVAILABILITY_ZONE  = @ec2['Availability_Zone']
+          BLOCK_DEVICE_MAPPING = @ec2['Block_Device_Mapping']
+          TAG = @ec2['Tag']
+          SUBNET = @ec2['Subnet']
+        end
+        config_aws(n, i, Total, name)
+      end
+
+      if Provider == "google"
+        if (defined?(@gce)).nil?
+          @gce = YAML.load_file('conf/gce.yml')
+          puts @gce.inspect
+          SSH_USERNAME = @gce['SSH_Username']
+          KEY_PATH = @gce['Key_Path']
+          GOOGLE_CLOUD_PROJECT_ID = @gce['Google_Cloud_Project_ID']
+          SERVICE_ACCOUNT_EMAIL_ADDRESS = @gce['Service_Acount_Email_Address']
+          JSON_KEY_LOCATION = @gce['Json_Key_Location']
+          IMAGE = @gce['Image']
+          MACHINE_TYPE = @gce['Machine_Type']
+          PREEMPTIBLE = @gce['Preemptible']
+          INSTANCE_GROUP = @gce['Instance_Group']
+          SCOPES = @gce['Scopes']
+          DISK_SIZE = @gce['Disk_Size']
+          PREFIX = @gce['Prefix']
+          NETWORK = @gce['Network']
+        end
+        config_google(n, i, Total, name)
+      end
+
+
+      if Provider == "openstack"
+        if (defined?(@os)).nil?
+          @os = YAML.load_file('conf/openstack.yml')
+          puts @os.inspect
+          FLAVOR = @os['Flavor']
+          IMAGE =  @os['Image']
+          KEY_PATH = @os['Key_Path']
+          KEYPAIR_NAME = @os['Keypair_Name']
+          TENENT = @os['Tenent']
+          KEYSTONE = @os['Keystone_URL']
+          SECURITY_GROUP = @os['Security_Group']
+          SSH_USERNAME = @os['SSH_Username']
+          TAG = @os['Tag']
+        end
+        config_os(n, i, Total, name)
+      end
+    end
+  end
+end

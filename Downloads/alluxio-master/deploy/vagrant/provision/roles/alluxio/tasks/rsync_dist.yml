@@ -1,0 +1,15 @@
+# For efficiency, only AlluxioMaster will compile from source
+# other nodes rsync necessary runtime from AlluxioMaster
+---
+
+- name: install rsync
+  yum: name=rsync
+  sudo: yes
+
+- name: mkdir /alluxio
+  script: mkdir.sh
+
+- name: rsync alluxio from AlluxioMaster
+  script: rsync.sh
+
+# vim :set filetype=ansible.yaml:

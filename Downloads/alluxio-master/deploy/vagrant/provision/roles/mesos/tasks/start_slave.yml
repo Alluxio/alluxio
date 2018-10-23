@@ -1,0 +1,10 @@
+- include: install_deps.yml
+
+- copy: >
+    src=roles/mesos/files/start_slave.sh
+    dest=/tmp/start_mesos_slave.sh
+
+- name: start Mesos slave
+  shell: bash /tmp/start_mesos_slave.sh
+
+# vim :set filetype=ansible.yaml:

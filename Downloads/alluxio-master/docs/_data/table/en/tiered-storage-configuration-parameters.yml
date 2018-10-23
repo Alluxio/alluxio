@@ -1,0 +1,28 @@
+alluxio.user.file.write.tier.default:
+  The default tier for choosing a where to write a block. This should be configured on the client
+  application. Valid option is any integer. Non-negative values identify tiers starting from top
+  going down (0 identifies the first tier, 1 identifies the second tier, and so on). If the provided
+  value is greater than the number of tiers, it identifies the last tier. Negative values identify
+  tiers starting from the bottom going up (-1 identifies the last tier, -2 identifies the second to
+  last tier, and so on). If the absolute value of the provided value is greater than the number of
+  tiers, it identifies the first tier.
+alluxio.worker.tieredstore.levels:
+  The maximum number of storage tiers in Alluxio. Currently, Alluxio supports 1, 2, or 3 tiers.
+alluxio.worker.tieredstore.level{x}.alias:
+  The alias of each storage tier, where x represents storage tier number (top tier is 0). Currently, there are 3 aliases, MEM, SSD, and HDD.
+alluxio.worker.tieredstore.level{x}.dirs.path:
+  The paths of storage directories in storage tier x, delimited by comma. x represents the storage tier number (top tier is 0). It is suggested to have one storage directory per hardware device for the SSD and HDD tiers.
+alluxio.worker.tieredstore.level{x}.dirs.quota:
+  The quotas for all storage directories in storage tier x, delimited by comma. x represents the storage tier number (starting from 0). For a particular storage tier, if the list of quotas is shorter than the list of directories of that tier, then the quotas for the remaining directories will just use the last-defined quota. Quota definitions use these suffixes&#58; KB, MB, GB, TB, PB.
+alluxio.worker.tieredstore.level{x}.watermark.high.ratio:
+  Value is between 0 and 1, it sets the high watermark of the space on storage tier x. If the used space reach the high watermark, the space reserver will evict blocks until the used space drop to the low watermark.
+alluxio.worker.tieredstore.level{x}.watermark.low.ratio:
+  Value is between 0 and 1, it sets the low watermark of the space on storage tier x. If the used space reach the high watermark, the space reserver will evict blocks until the used space drop to the low watermark.
+alluxio.worker.tieredstore.reserver.enabled:
+  Flag for enabling the space reserver service.
+alluxio.worker.tieredstore.reserver.interval.ms:
+  Interval for the space reserver to check if enough space is reserved in all tiers.
+alluxio.worker.allocator.class:
+  The class name of the allocation strategy to use for new blocks in Alluxio.
+alluxio.worker.evictor.class:
+  The class name of the block eviction strategy to use when a storage layer runs out of space.

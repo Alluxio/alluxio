@@ -1,0 +1,101 @@
+cat:
+  Print the content of a file to the console.
+checkConsistency:
+  Check the metadata consistency between Alluxio and the under storage.
+checksum:
+  Calculate the md5 checksum for a file.
+chgrp:
+  Change the group of a file or directory.
+chmod:
+  Change the permission of the directory or file.
+chown:
+  Change the owner of a file or directory.
+copyFromLocal:
+  Copy the file specified by "source path" to the path specified by "remote path".
+  This command will fail if "remote path" already exists.
+copyToLocal:
+  Copy the file specified by "remote path" to a local destination.
+count:
+  Display the number of folders and files matching the specified prefix in "path".
+cp:
+  Copy a file or directory within the Alluxio file system.
+du:
+  Display the size of the file or a directory specified by the input path.
+fileInfo:
+  Print the information of the blocks of a specified file.
+free:
+  Free a file or all files under a directory from Alluxio. If the file/directory is also
+  in under storage, it will still be available there.
+getCapacityBytes:
+  Get the capacity of the AlluxioFS.
+getfacl:
+  Get the Access Control List of a file or directory.
+getUsedBytes:
+  Get number of bytes used in the AlluxioFS.
+help:
+  Print help information for the given command. If no command is given,
+  print help information for all supported commands.
+leader:
+  Print the current Alluxio leader master host name.
+load:
+  Load the data of a file or a directory from under storage into Alluxio.
+loadMetadata:
+  The loadMetadata command is deprecated since Alluxio version 1.1. Please use "alluxio fs ls &lt;path&gt;" command instead.
+  Load the metadata of a file or a directory from under storage into Alluxio.
+location:
+  Display a list of hosts that have the file data.
+ls:
+  List all the files and directories directly under the given path with information such as
+  size.
+lsr:
+  Recursively list all the files and directories under the given path with information such
+  as size.
+masterInfo:
+  Print information regarding master fault tolerance such as leader address, list of master addresses, and configured Zookeeper address.
+mkdir:
+  Create directory(ies) under the given paths, along with any necessary parent directories. Multiple paths separated by spaces or tabs. This
+  command will fail if any of the given paths already exist.
+mount:
+  Mount the underlying file system path "uri" into the Alluxio namespace as "path". The "path"
+  is assumed not to exist and is created by the operation. No data or metadata is loaded from
+  under storage into Alluxio. After a path is mounted, operations on objects under the mounted
+  path are mirror to the mounted under storage.
+mv:
+  Move a file or directory specified by "source" to a new location "destination". This command
+  will fail if "destination" already exists.
+persist:
+  Persist files or directories currently stored only in Alluxio to the underlying file system.
+pin:
+  Pin the given file to avoid evicting it from memory. If the given path is a directory, it
+  recursively pins all the files contained and any new files created within this directory.
+report:
+  Report to the master that a file is lost.
+rm:
+  Remove a file. This command will fail if the given path is a directory rather than a
+  file.
+rmr:
+  Remove a file, or a directory with all the files and sub-directories that this directory
+  contains.
+setfacl:
+  Set the Access Control List of a file or directory.
+setTtl:
+  Set the TTL (time to live) in milliseconds for a file. Allow to perform either "delete"
+  or "free" after expiry of ttl interval.
+stat:
+  Display info for the specified file or directory.
+tail:
+  Print the last 1KB of the specified file to the console.
+test:
+  Test a property of a path, returning 0 if the property is true, or 1 otherwise.
+touch:
+  Create a 0-byte file at the specified location.
+unmount:
+  Unmount the underlying file system path mounted in the Alluxio namespace as "path". Alluxio
+  objects under "path" are removed from Alluxio, but they still exist in the previously mounted
+  under storage.
+unpin:
+  Unpin the given file to allow Alluxio to evict this file again. If the given path is a
+  directory, it recursively unpins all files contained and any new files created within this
+  directory.
+unsetTtl:
+  Remove the TTL (time to live) setting from a file.

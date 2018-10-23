@@ -1,0 +1,188 @@
+alluxio.conf.dir:
+  包含Alluxio配置文件的目录。
+alluxio.debug:
+  设置为true后即可启用debug模式，会记录更多日志，且在Web UI中会显示更多信息。
+alluxio.extensions.dir:
+  包含Alluxio扩展的目录。
+alluxio.fuse.cached.paths.max:
+  用于FUSE conversion的Alluxio缓存路径的最大数量。
+alluxio.fuse.debug.enabled:
+  以debug模式运行FUSE，让fuse进程记录每个FS请求。
+alluxio.fuse.fs.name:
+  FUSE文件系统名。
+alluxio.fuse.maxwrite.bytes:
+  写操作的最大粒度，内核将其上限设置为128KB max(从Linux 3.16.0开始)。
+alluxio.home:
+  Alluxio安装目录。
+alluxio.jvm.monitor.info.threshold:
+  额外的睡眠时间超过这个阈值，记录INFO。
+alluxio.jvm.monitor.sleep.interval:
+  JVM monitor线程的睡眠时间。
+alluxio.jvm.monitor.warn.threshold:
+  额外的睡眠时间超过这个阈值，记录WARN。
+alluxio.locality.compare.node.ip:
+  是否在本地性检查时尝试解析IP地址。
+alluxio.locality.node:
+  用于判断node本地性。
+alluxio.locality.order:
+  本地性级别顺序。
+alluxio.locality.rack:
+  用于判断rack本地性。
+alluxio.locality.script:
+  用于确定本地性检查的身份的脚本。
+alluxio.logger.type:
+  logger类型。
+alluxio.logs.dir:
+  存放日志文件的路径。
+alluxio.logserver.hostname:
+  Alluxio logserver主机名。注意:必须将此属性指定为JVM属性;它在alluxio-site.properties不被接受。
+alluxio.logserver.logs.dir:
+  远程日志文件默认位置。注意:必须将此属性指定为JVM属性;它在alluxio-site.properties不被接受。
+alluxio.logserver.port:
+  从Alluxio server接收日志的默认端口号。注意:必须将此属性指定为JVM属性;它在alluxio-site.properties不被接受。
+alluxio.logserver.threads.max:
+  logserver用于响应日志请求的最大线程数。
+alluxio.logserver.threads.min:
+  logserver用于响应日志请求的最小线程数。
+alluxio.keyvalue.enabled:
+  是否开启键值对服务。
+alluxio.keyvalue.partition.size.bytes.max:
+  存储中的一个键值对分区的最大大小（单位：byte），该值应当不小于块大小（alluxio.user.block.size.bytes.default）。
+alluxio.metrics.conf.file:
+  度量系统配置文件路径，默认是`conf`文件夹下的`metrics.properties`文件。
+alluxio.network.host.resolution.timeout:
+  Alluxio在启动Master和Worker过程中，需要确保它们在监听外部可达且可解析的主机名。如果没有显式指定主机名，Alluxio会自动尝试选择一个合适的主机名。该配置项指定用于判断一个候选主机名在网络上是否可达的最长等待时间。
+alluxio.network.netty.heartbeat.timeout:
+  如果没有流量传入，服务器在关闭网络连接之前等待的总时间。
+alluxio.network.thrift.frame.size.bytes.max:
+  (实验属性) 设置在Thrift RPC通讯过程中,使用的最大容许帧包（Frame）限值.
+alluxio.proxy.s3.deletetype:
+  通过S3 API删除桶和对象的删除类型，可选择 `ALLUXIO_AND_UFS`（删除Alluxio和UFS）或`ALLUXIO_ONLY`（只删除Alluxio名空间下）
+alluxio.proxy.s3.multipart.temporary.dir.suffix:
+  在多部分上传时拥有这些部分的目录的后缀。
+alluxio.proxy.s3.writetype:
+  通过S3 API创建桶和对象的写类型，可选择“MUST_CACHE”(只写入Alluxio，必须存储在Alluxio中)、“CACHE_THROUGH”(尝试缓存，同步写入到UnderFS)、“THROUGH”(无缓存，同步写入到UnderFS)。
+alluxio.proxy.stream.cache.timeout:
+  在代理中输入和输出流缓存回收的时限。
+alluxio.proxy.web.bind.host:
+  Alluxio代理网络服务器运行的主机名。
+alluxio.proxy.web.hostname:
+  Alluxio代理的web UI绑定的主机名。
+alluxio.proxy.web.port:
+  Alluxio代理的web UI绑定的端口。
+alluxio.site.conf.dir:
+  加载配置文件时默认的搜索路径
+alluxio.test.mode:
+  设置在测试过程中是否启用某些特殊行为。
+alluxio.tmp.dirs:
+  存储Alluxio临时文件的路径，使用逗号作为分隔符。如果指定了多个路径，每个临时文件将随机选择一个路径。目前，只有上传到对象存储的文件存储在这些路径中。
+alluxio.underfs.address:
+  Alluxio在底层文件系统中的文件夹。
+alluxio.underfs.allow.set.owner.failure:
+  是否允许UFS中的设置所有者失败。当设置为true时，文件或目录所有者可能会在Alluxio和UFS之间产生分歧。
+alluxio.underfs.gcs.owner.id.to.username.mapping:
+  可选配置项，指定一个预设的gcs拥有者ID到Alluxio用户名的静态映射，格式为“id1=user1;id2=user2”。谷歌云存储的ID可以在控制台地址https://console.cloud.google.com/storage/settings找到。请使用“Owners”选项。
+alluxio.underfs.glusterfs.impl:
+  作为底层存储系统的glusterFS的实现类，其提供的接口与Hadoop兼容。
+alluxio.underfs.glusterfs.mapred.&#8203;system.dir:
+  可选配置项，指定GlusterFS下用于存储MapReduce中间数据的子文件夹。
+alluxio.underfs.hdfs.configuration:
+  hdfs配置文件的位置。
+alluxio.underfs.hdfs.impl:
+  作为底层存储系统的hdfs的实现类。
+alluxio.underfs.hdfs.prefixes:
+  可选配置项，指定以哪些前缀开头的文件应该存放在Apache Hadoop底层文件系统。分隔符为任何空白符或者','。
+alluxio.underfs.hdfs.remote:
+  底层存储系统的worker节点对于Alluxio worker节点来说是否是远程的。如果该值为true，那么Alluxio将不会尝试从底层存储系统获取locality相关信息，因为这种情况下不可能存在任何locality，这样做可以提高性能。默认值为false。
+alluxio.underfs.listing.length:
+  底层文件系统在一次查询中可以列出的目录条目的最大数量。如果条目数量大于指定长度，则需要多次查询才能列出。
+alluxio.underfs.object.store.service.threads:
+  存储底层文件系统操作的并行对象在执行程序池中的线程数。
+alluxio.underfs.object.store.mount.shared.publicly:
+  是否对所有Alluxio用户共享挂载的对象存储系统。
+  注意，该配置对HDFS或者本地文件系统没有任何影响。默认值是false。
+alluxio.underfs.object.store.read.retry.base.sleep:
+  块从对象存储中读取时，将自动重试瞬态错误，并进行指数回退。这个性质决定了指数回退的基本时间。
+alluxio.underfs.object.store.read.retry.max.num:
+  块从对象存储中读取时，将自动重试瞬态错误，并进行指数回退。这个性质决定了最大重试次数。
+alluxio.underfs.object.store.read.retry.max.sleep:
+  块从对象存储中读取时，将自动重试瞬态错误，并进行指数回退。这个性质决定了回退中最大等待时间。
+alluxio.underfs.oss.connection.max:
+  OSS连接最大数目。
+alluxio.underfs.oss.connection.timeout:
+  OSS连接时限。
+alluxio.underfs.oss.connection.ttl:
+  OSS连接的TTL（ms）。
+alluxio.underfs.oss.socket.timeout:
+  OSS套接字时限。
+alluxio.underfs.s3.owner.id.to.username.mapping:
+  可选配置项，指定一个预设的s3规范ID到Alluxio用户名的静态映射，格式为“id1=user1;id2=user2”。AWS的s3规范ID可以在控制台地址https://console.aws.amazon.com/iam/home?#security_credential找到。请展开“Account Identifiers”选项卡，并参考“Canonical User ID”。
+alluxio.underfs.s3.disable.dns.buckets:
+  可选配置项，指定所有S3请求路径样式。
+alluxio.underfs.s3.endpoint:
+  可选配置项，在组织AWS服务请求的时候可以指定某个区域地址来降低数据延迟或者访问某些隔离在不同AWS Region的资源。
+  一个endpoint是某个服务的一个入口地址。举例，s3.cn-north-1.amazonaws.com.cn 就是一个北京区域的亚马逊S3服务的一个endpoing。
+alluxio.underfs.s3.proxy.host:
+  可选配置项，指定与S3通信的代理主机。
+alluxio.underfs.s3.proxy.https.only:
+  如果使用代理与S3通信，该配置项指定是否使用https与该代理通信。
+alluxio.underfs.s3.proxy.port:
+  可选配置项，指定与S3通信的代理端口。
+alluxio.underfs.s3.threads.max:
+  与S3通信时使用的最大线程数目和最大并发连接数。包括数据上载以及元数据操作线程。该数目至少要等于最大管理线程与最大上传线程数目之和。默认值为40,即默认管理线程与默认上传线程池大小之和。
+alluxio.underfs.s3.admin.threads.max:
+  与S3通信时进行元数据操作所使用的最大线程数目，这些操作会并发且频繁执行，但不会花费太多时间。默认值为20。
+alluxio.underfs.s3.upload.threads.max:
+  进行多部分上传时上传数据到S3所使用的最大线程数目，这些操作会相对耗时，然而由于某些线程会引起错误，过多线程会导致带宽饥饿。默认值为2。
+alluxio.underfs.s3a.consistency.timeout:
+  等待底层存储元数据一致所持续的最久时间。该配置仅用于本应该执行成功的Alluxio内部操作，但是由于最终一致性，可能现在并没有执行成功。默认值是60000毫秒（1分钟）。
+alluxio.underfs.s3a.directory.suffix:
+  S3会把目录表示为0字节的对象，名字以指定后缀结尾。默认值为“/”。
+alluxio.underfs.s3a.inherit_acl:
+  可选地关闭来关闭对象的ACL桶继承。
+alluxio.underfs.s3a.list.objects.v1:
+  是否使用GET Bucket（列出对象）API。默认为"false"。
+alluxio.underfs.s3a.secure.http.enabled:
+  是否使用HTTPS协议与S3进行通信。默认值为false。
+alluxio.underfs.s3a.server.side.encryption.enabled:
+  是否加密存储在S3中的数据。默认值为false。
+alluxio.underfs.s3a.signer.algorithm:
+  签名算法，用于向s3服务签名请求。这是可选的，如果没有设置，客户端将自动确定它。若要与仅支持v2签名的S3端点交互，请将其设置为“S3SignerType”。
+alluxio.underfs.s3a.socket.timeout:
+  与S3通信时socket超时的时间长度。
+alluxio.web.resources:
+  web应用资源路径。
+alluxio.web.threads:
+  web服务器的线程数目。
+alluxio.work.dir:
+  Alluxio的工作目录。默认情况下，journal、logs以及底层文件系统的数据（如果使用本地文件系统）都会写在该目录下。
+alluxio.zookeeper.address:
+  ZooKeeper地址。
+alluxio.zookeeper.connection.timeout:
+  连接到Zookeeper时的连接时限。
+alluxio.zookeeper.election.path:
+  ZooKeeper的选举文件夹。
+alluxio.zookeeper.enabled:
+  若为true，则使用zooKeeper启动master容错机制。
+alluxio.zookeeper.leader.path:
+  ZooKeeper的leader文件夹。
+alluxio.zookeeper.leader.inquiry.retry:
+  从ZooKeeper申请leader的最大请求次数。
+alluxio.zookeeper.session.timeout:
+  连接到Zookeeper时的会话时限。
+fs.swift.auth.method:
+  选择身份验证方法：[tempauth (default), swiftauth, keystone, keystonev3]
+fs.swift.auth.url:
+  REST服务器的认证URL，例如http://server:8090/auth/v1.0
+fs.swift.password:
+  user:tenant认证的密码
+fs.swift.region:
+  Keystone认证的服务地区
+fs.swift.simulation:
+  是否模拟单节点Swift后台用于验证，默认为否
+fs.swift.tenant:
+  Swift user用于认证
+fs.swift.use.public.url:
+  REST服务器是否在公共域，默认为是
+fs.swift.user:
+  Swift tenant用于认证

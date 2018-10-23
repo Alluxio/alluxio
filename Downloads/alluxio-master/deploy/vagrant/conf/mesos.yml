@@ -1,0 +1,12 @@
+# Release means using binary distribution from https://github.com/apache/mesos/releases.
+# Github means cloning and compiling github repo.
+# {Github | Release}
+Type: None
+
+# github repo and version(can be branch, commit hash)
+Github:
+  Repo: https://github.com/apache/mesos
+  Version: 0.23.0
+
+Release:
+  Dist: mesos-0.23.0-bin.tar.gz # name of release tarball in https://github.com/apache/mesos/releases

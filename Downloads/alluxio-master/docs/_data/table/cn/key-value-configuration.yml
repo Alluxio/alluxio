@@ -1,0 +1,4 @@
+alluxio.keyvalue.enabled:
+  是否开启key-value键值存储服务
+alluxio.keyvalue.partition.size.bytes.max:
+  每个分区的大小上限

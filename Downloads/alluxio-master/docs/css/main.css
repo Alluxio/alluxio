@@ -1,0 +1,341 @@
+/* ==========================================================================
+   Author's custom styles
+   ========================================================================== */
+
+.navbar .brand {
+    height: 50px;
+    width: 160px;
+    margin-left: 1px;
+    padding: 0;
+}
+.version {
+    line-height: 23px;
+    vertical-align: middle;
+    font-size: 12px;
+    padding: 0;
+    margin: 0;
+    font-weight: bold;
+    color: #777;
+}
+#topbar {
+    position: fixed;
+}
+.navbar-inner {
+    /*padding-top: 2px;*/
+    height: 85px;
+}
+.navbar-inner .nav {
+    margin-top: 5px;
+    font-size: auto;
+}
+.navbar .divider-vertical {
+    border-right-color: lightgray;
+}
+.navbar-text .version-text {
+    color: #555555;
+    padding: 5px;
+    margin-left: 10px;
+}
+body #content {
+    margin-top: 50px;
+    line-height: 1.6;
+    /* Inspired by Github's wiki style */
+}
+@media screen and (max-width: 715px) {
+    body {
+        padding-top: 0px !important;
+    }
+    #topbar {
+        background-color: #2d2d2d;
+        display: inline-block;
+        position: static;
+    }
+}
+.title {
+    font-size: 32px;
+}
+h1 {
+    font-size: 28px;
+    margin-top: 12px;
+    counter-reset: h2counter;
+}
+h2 {
+    font-size: 24px;
+    margin-top: 12px;
+    counter-reset: h3counter;
+}
+h3 {
+    font-size: 21px;
+    margin-top: 10px;
+    counter-reset: h4counter;
+}
+h2:before {
+    counter-increment: h2counter;
+    content: counter(h2counter) "\0000a0\0000a0";
+}
+
+h3:before {
+    counter-increment: h3counter;
+    content: counter(h2counter) "." counter(h3counter) "\0000a0\0000a0";
+}
+
+h4:before {
+    counter-increment: h4counter;
+    content: counter(h2counter) "." counter(h3counter) "." counter(h4counter) "\0000a0\0000a0";
+}
+pre {
+    font-family: "Menlo", "Lucida Console", monospace;
+}
+code {
+    font-family: "Menlo", "Lucida Console", monospace;
+    background: white;
+    border: none;
+    padding: 0;
+    color: #444444;
+}
+a code {
+    color: #0088cc;
+}
+a:hover code {
+    color: #005580;
+    text-decoration: underline;
+}
+.container {
+    max-width: 919px;
+}
+
+/**
+ * Make dropdown menus in nav bars show on hover instead of click
+ * using solution at http://stackoverflow.com/questions/8878033/how-
+ * to-make-twitter-bootstrap-menu-dropdown-on-hover-rather-than-click
+ **/
+
+.dropdown-menu {
+    /* Remove the default 2px top margin which causes a small
+    gap between the hover trigger area and the popup menu */
+    margin-top: 0;
+}
+.dropdown-menu p {
+    margin: 0;
+    padding: 3px 10px;
+    font-style: italic;
+    color: gray;
+}
+ul.nav li.dropdown:hover ul.dropdown-menu {
+    display: block;
+}
+a.menu:after, .dropdown-toggle:after {
+    content: none;
+}
+body {
+    padding-top: 70px;
+    padding-bottom: 40px;
+}
+.navbar .nav {
+    float: right;
+}
+.navbar .nav>li>a {
+    text-shadow: none;
+    padding-bottom: 5px;
+    padding-right: 5px;
+    color: #F7F4F3;
+}
+.navbar .nav>li>a:hover, .navbar .nav>li>a:focus {
+    color: white;
+}
+.navbar .nav li.dropdown>.dropdown-toggle .caret {
+    border-top-color: #F7F4F3;
+    border-bottom-color: #F7F4F3;
+}
+.navbar-inner {
+    padding: 10px 0;
+    background: #2D2D2D;
+    transition: padding 0.2s, box-shadow 0.2s;
+    -webkit-transition: padding 0.2s, box-shadow 0.2s;
+    -moz-transition: padding 0.2s, box-shadow 0.2s;
+    -o-transition: padding 0.2s, box-shadow 0.2s;
+}
+.navbar-inner.shrunk {
+    padding: 0;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
+}
+.navbar-inner .version {
+    font-weight: 400;
+    transition: opacity 0.2s;
+    -webkit-transition: opacity 0.2s;
+    -moz-transition: opacity 0.2s;
+    -o-transition: opacity 0.2s;
+}
+.navbar-inner.shrunk .version {
+    opacity: 0;
+}
+.navbar .nav>li.active a, .navbar .nav>li.active a:hover, .navbar .nav>li.dropdown>a.active {
+    background-color: transparent;
+    box-shadow: none;
+    color: #F7F4F3;
+    border-bottom: 2px solid #F7F4F3;
+}
+.dropdown-menu .active>a, .dropdown-menu .active>a:hover {
+    background-color: #C4CBCA;
+    background-image: none;
+    color: #2D2D2D;
+    font-style: italic;
+}
+#current-features + ul {
+    text-align: center;
+    margin: 0;
+}
+#current-features + ul li {
+    display: inline-block;
+    width: 220px;
+    height: 260px;
+    vertical-align: top;
+    border: 2px solid black;
+    padding: 10px;
+    border-radius: 10px;
+    margin: 10px;
+    position: relative;
+    overflow: hidden;
+}
+
+/*card borders*/
+
+#current-features + ul li:nth-child(1) {
+    border-color: rgb(46, 180, 77);
+    background-color: rgba(46, 180, 77, 0.1);
+}
+#current-features + ul li:nth-child(2) {
+    border-color: rgb(242, 144, 58);
+    background-color: rgba(242, 144, 58, 0.1);
+}
+#current-features + ul li:nth-child(3) {
+    border-color: rgb(36, 140, 203);
+    background-color: rgba(36, 140, 203, 0.1);
+}
+#current-features + ul li:nth-child(4) {
+    border-color: rgb(233, 106, 121);
+    background-color: rgba(233, 106, 121, 0.1);
+}
+#current-features + ul li:nth-child(5) {
+    border-color: rgb(20, 103, 103);
+    background-color: rgba(20, 103, 103, 0.1);
+}
+#current-features + ul li:nth-child(6) {
+    border-color: rgb(250, 188, 66);
+    background-color: rgba(250, 188, 66, 0.1);
+}
+
+/*card titles*/
+
+#current-features + ul li:nth-child(1) strong {
+    background-color: rgb(46, 180, 77);
+}
+#current-features + ul li:nth-child(2) strong {
+    background-color: rgb(242, 144, 58);
+}
+#current-features + ul li:nth-child(3) strong {
+    background-color: rgb(36, 140, 203);
+}
+#current-features + ul li:nth-child(4) strong {
+    background-color: rgb(233, 106, 121);
+}
+#current-features + ul li:nth-child(5) strong {
+    background-color: rgb(20, 103, 103);
+}
+#current-features + ul li:nth-child(6) strong {
+    background-color: rgb(250, 188, 66);
+}
+
+/*custom font sizes to make content fit nicely*/
+
+#current-features + ul li:nth-child(1) strong {
+    font-size: 16px;
+}
+#current-features + ul li:nth-child(2) strong {
+    font-size: 16px;
+}
+#current-features + ul li:nth-child(3) strong {
+    font-size: 16px;
+}
+#current-features + ul li:nth-child(4) strong {
+    font-size: 16px;
+}
+#current-features + ul li:nth-child(5) strong {
+    font-size: 16px;
+}
+#current-features + ul li:nth-child(6) strong {
+    font-size: 16px;
+}
+#current-features + ul li p a {
+    text-decoration: underline;
+    color: inherit;
+}
+#current-features + ul li p {
+    text-align: left;
+    font-size: 12px;
+    line-height: 1.6;
+    padding-top: 30px;
+}
+#current-features + ul li p strong {
+    display: block;
+    font-size: 16px;
+    width: 100%;
+    position: absolute;
+    left: 0;
+    top: 0;
+    text-align: center;
+    color: white;
+    padding: 5px 0;
+}
+#current-features + ul li p code {
+    background-color: #F7F4F3;
+    border: 1px solid #C4CBCA;
+    font-size: 100%;
+    padding: 0 2px;
+}
+
+#toc {
+    display: none;
+}
+#toc + ul {
+    display: none;
+}
+/* Prevent anchor links from being hidden under nav bar */
+h1, h2, h3, h4 {
+    margin-top: -70px;
+    padding-top: 70px;
+}
+a.anchor {
+    margin-top: -115px;
+    padding-top: 115px;
+}
+@media (min-width: 1350px) {
+    #toc + ul {
+        position: fixed;
+        margin-left: -200px;
+        max-width: 200px;
+        list-style: none;
+        display: block;
+    }
+    #toc + ul a {
+        text-decoration: none;
+        color: #2f2f2f;
+    }
+    #toc + ul li a {
+        padding: 0 5px;
+    }
+    #toc.on + ul li.active>a {
+        background-color: #DCDCDC;
+        display: block;
+        border-left: 2px solid #2f2f2f;
+    }
+    #toc + ul>li>ul {
+        list-style: none;
+    }
+    #toc.on + ul>li>ul {
+        display: none;
+    }
+    #toc + ul>li.list>ul {
+        display: block;
+    }
+}

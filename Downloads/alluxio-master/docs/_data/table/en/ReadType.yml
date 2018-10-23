@@ -1,0 +1,12 @@
+CACHE_PROMOTE:
+  Data is moved to the highest tier in the worker where the data was read. If the data was not
+  in the Alluxio storage of the local worker, a replica will be added to the local Alluxio worker.
+  If there is no local Alluxio worker, a replica will be added to a remote Alluxio worker if the
+  data was fetched from the under storage system.
+CACHE:
+  If the data was not in the Alluxio storage of the local worker, a replica will be added to the
+  local Alluxio worker. If there is no local Alluxio worker, a replica will be added to a remote
+  Alluxio worker if the data was fetched from the under storage system.
+NO_CACHE:
+  Data is read without storing a replica in Alluxio. Note that a replica may already exist in
+  Alluxio.

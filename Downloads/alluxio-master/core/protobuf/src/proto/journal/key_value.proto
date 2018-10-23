@@ -1,0 +1,41 @@
+syntax = "proto2";
+
+package alluxio.proto.journal;
+
+// Journal entry messages for the key-value master.
+
+// next available id: 6
+message CompletePartitionEntry {
+  optional int64 store_id = 1;
+  optional string key_start = 2; // inclusive
+  optional string key_limit = 3; // inclusive
+  optional int64 block_id = 4;
+  optional int32 key_count = 5;
+}
+
+// next available id: 2
+message CompleteStoreEntry {
+  optional int64 store_id = 1;
+}
+
+// next available id: 2
+message CreateStoreEntry {
+  optional int64 store_id = 1;
+}
+
+// next available id: 2
+message DeleteStoreEntry {
+  optional int64 store_id = 1;
+}
+
+// next available id: 3
+message RenameStoreEntry {
+  optional int64 old_store_id = 1;
+  optional int64 new_store_id = 2;
+}
+
+// next available id: 3
+message MergeStoreEntry {
+  optional int64 from_store_id = 1;
+  optional int64 to_store_id = 2;
+}

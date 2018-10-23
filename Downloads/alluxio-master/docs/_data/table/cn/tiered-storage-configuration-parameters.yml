@@ -1,0 +1,22 @@
+alluxio.user.file.write.tier.default:
+  选择将block写到何处的默认层级(tier)。该属性应该在客户端应用中配置。合法的选项为任意整数。非负值标识了从上到下的层级（0表示第1层，1表示第二层，依次递推）。如果提供的值大于层级的个数，那么它标识了最后一层。负值标识了从下到上的层级（-1表示最后一层，-2表示倒数第二层，依次递推）。如果绝对值大于层级的个数，那么它标识了第一层。
+alluxio.worker.tieredstore.levels:
+  Alluxio Worker多层存储中的最大存储级数。当前Alluxio支持1，2，3层。
+alluxio.worker.tieredstore.level{x}.alias:
+  每个存储层的别名，x代表存储层序号(顶层为0)。当前有3个别名，MEM，SSD和HDD。
+alluxio.worker.tieredstore.level{x}.dirs.path:
+  x存储层的底层存储目录路径，以逗号分割。x代表存储层序号(顶层为0)。建议SSD和HDD层每个硬盘设备有一个存储目录
+alluxio.worker.tieredstore.level{x}.dirs.quota:
+  x存储层所有存储目录的配额，以逗号分割。x代表存储层序号(从0开始)。对于特定的存储层，如果配额的列表长度比目录列表短，剩余目录的配额使用最后一个定义的配额。配额定义可使用这些后缀：KB，MB，GB，TB，PB。
+alluxio.worker.tieredstore.level{x}.watermark.high.ratio:
+  值在0到1之间，设置了x存储层的高水位。如果使用空间达到高水位，空间预留器会移出数据块直到使用空间降到低水位。
+alluxio.worker.tieredstore.level{x}.watermark.low.ratio:
+  值在0到1之间，设置了x存储层的低水位。如果使用空间达到高水位，空间预留器会移出数据块直到使用空间降到低水位。
+alluxio.worker.tieredstore.reserver.enabled:
+  开启空间预留器服务的标志。
+alluxio.worker.tieredstore.reserver.interval.ms:
+  空间预留器检查所有存储层是否预留足够空间的时间间隔。
+alluxio.worker.allocator.class:
+  Alluxio中新数据块分配策略的类名。
+alluxio.worker.evictor.class:
+  当存储层空间用尽时块回收策略的类名。

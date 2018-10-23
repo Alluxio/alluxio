@@ -1,0 +1,13 @@
+# Make sure playbook.yml/../files directory is synced /vagrant/files on remote host
+---
+
+- name: mkdir /vagrant if not exist
+  script: mkdir_vagrant.sh
+
+# src is files/ in the same directory as Vagrantfile
+- name: sync files
+  synchronize: >
+    src="../../../../files"
+    dest=/vagrant
+
+# vim: set filetype=ansible.yaml:
