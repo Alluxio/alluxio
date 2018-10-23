@@ -152,7 +152,7 @@ a good resource for getting help if the log messages are insufficient.
 
 ## Configure yarn.application.classpath
 
-To enable your YARN applications to communicate with Alluxio servers, add the alluxio
+To enable your YARN applications to communicate with Alluxio servers, add the Alluxio
 client jar to each YARN node, either by adding it to a directory on your
 `yarn.application.classpath`, or updating the classpath to include the client jar.
 For example,
