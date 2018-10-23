@@ -430,7 +430,7 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
    * @param buf FUSE buffer to fill with data read
    * @param size how many bytes to read. The maximum value that is accepted
    *             on this method is {@link Integer#MAX_VALUE} (note that current
-   *             FUSE implementation will call this metod whit a size of
+   *             FUSE implementation will call this method with a size of
    *             at most 128K).
    * @param offset offset of the read operation
    * @param fi FileInfo data structure kept by FUSE

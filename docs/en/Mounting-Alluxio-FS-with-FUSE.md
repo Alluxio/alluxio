@@ -160,7 +160,10 @@ characteristics, please be aware that:
   shell user group translation service, by setting `alluxio.fuse.user.group.translation.enabled` to `true` 
   in `conf/alluxio-site.properties`. Otherwise `chown` and `chgrp` are no-ops, and `ll` will return the
   user and group of the user who started the alluxio-fuse process. The translation service
-  does not change the actual file permission when running `ll`. 
+  does not change the actual file permission when running `ll`.
+* When `alluxio.fuse.user.group.translation.enabled` is `false`, the user mounted the Alluxio can access all the files and sub-folders.
+  If `alluxio.fuse.user.group.translation.enabled` is `true`, the user mounted the Alluxio can not access the files and folders 
+  that he does not have permissions (user group permissions will be checked).
 
 ## Performance considerations
 
