@@ -3137,7 +3137,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     }
 
     // Update metadata for inodePath
-    if (pathsToLoad.size() == 0) {
+    if (pathsToLoad.isEmpty()) {
       mUfsSyncPathCache.notifySyncedPath(inodePath.getUri().getPath());
     }
     return true;
