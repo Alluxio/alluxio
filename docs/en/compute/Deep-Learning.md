@@ -91,7 +91,7 @@ Note this command takes options to pass the S3 credentials of the bucket. These 
 are associated with the mounting point so that the future accesses will not require credentials.
 
 Start the Alluxio-FUSE process. Create a folder `/mnt/fuse`, change its
-owner to the current user (`ec2-user` in this doc), and modify its permissions to allow read and write.
+owner to the current user (`ec2-user` in this example), and modify its permissions to allow read and write.
 
 ```bash
 $ sudo mkdir -p /mnt/fuse

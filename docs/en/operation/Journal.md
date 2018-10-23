@@ -13,7 +13,7 @@ Alluxio is fault-tolerant: force-killing the system will not lose metadata. To a
 this, the master writes edit logs of all metadata changes. On startup,
 a recovering master will read the edit logs to restore itself back to its previous state.
 We use the term "journal" to refer to the system of edit logs used to support fault-tolerance.
-The purpose of this doc is to help Alluxio administrators understand and manage the Alluxio journal.
+The purpose of this documentation is to help Alluxio administrators understand and manage the Alluxio journal.
 
 ## Configuration
 

@@ -42,7 +42,7 @@ The following is a checklist to run through to address common problems when tuni
    Alluxio worker. This is efficient for applications which write data from many nodes concurrently.
    In a scenario where all data is written from a single node, its local worker will be filled,
    leaving the remaining workers empty.
-   See [this doc][1] for discussion of the different location policies and how to configure them.
+   See [this page][1] for discussion of the different location policies and how to configure them.
 
 1. Are there warnings or errors in the master or worker logs related to thread pool exhaustion?
 

@@ -28,16 +28,16 @@ Execute the following command on master to install the extension to all masters 
 $ bin/alluxio extensions install /PATH/TO/DOWNLOADED/OBS/jar
 ```
 
-See [this doc]({{ '/en/ufs/Ufs-Extensions.html' | relativize_url }}) for more details on Alluxio extension management.
+See [here]({{ '/en/ufs/Ufs-Extensions.html' | relativize_url }}) for more details on Alluxio extension management.
 
 A bucket and directory in OBS should exist before mounting OBS to Alluxio, create them if they do not exist.
 Suppose the bucket is named `OBS_BUCKET` and the directory is named `OBS_DIRECTORY`.
-Please refer to [this doc](http://support.huaweicloud.com/en-us/qs-obs/en-us_topic_0046535383.html) for more
+Please refer to [this link](http://support.huaweicloud.com/en-us/qs-obs/en-us_topic_0046535383.html) for more
 information on creating a bucket in OBS.
 
 The OBS endpoint specifying the region of your bucket should also be set in Alluxio configurations.
 Suppose the endpoint is named `OBS_ENDPOINT`.
-Please refer to [this doc](http://support.huaweicloud.com/en-us/qs-obs/en-us_topic_0075679174.html) for more
+Please refer to [this link](http://support.huaweicloud.com/en-us/qs-obs/en-us_topic_0075679174.html) for more
 information on different regions and endpoints in OBS.
 
 ## Mounting OBS
@@ -67,7 +67,7 @@ fs.oss.endpoint=<OBS_ENDPOINT>
 
 Here `fs.obs.accessKey` is the access Key string and `fs.obs.secretKey` is the secret Key
 string; please refer to [help on managing access keys](http://support.huaweicloud.com/en-us/usermanual-ca/en-us_topic_0046606340.html).
-`fs.obs.endpoint` is the endpoint of this bucket; please refer to [this doc](http://support.huaweicloud.com/en-us/qs-obs/en-us_topic_0075679174.html).
+`fs.obs.endpoint` is the endpoint of this bucket; please refer to [this link](http://support.huaweicloud.com/en-us/qs-obs/en-us_topic_0075679174.html).
 
 After these changes, Alluxio should be configured to work with OBS as its under storage system,
 and you can try to run alluxio locally with OBS.
