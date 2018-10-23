@@ -14,6 +14,7 @@ package alluxio.underfs;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
+import alluxio.SyncInfo;
 import alluxio.annotation.PublicApi;
 import alluxio.collections.Pair;
 import alluxio.security.authorization.AccessControlList;
@@ -557,4 +558,8 @@ public interface UnderFileSystem extends Closeable {
    * @return true if this type of UFS supports flush, false otherwise
    */
   boolean supportsFlush();
+
+  boolean supportsActiveSync();
+
+  SyncInfo getActiveSyncInfo();
 }

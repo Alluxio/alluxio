@@ -45,6 +45,7 @@ import alluxio.master.audit.AsyncUserAccessAuditLogWriter;
 import alluxio.master.audit.AuditContext;
 import alluxio.master.block.BlockId;
 import alluxio.master.block.BlockMaster;
+import alluxio.master.file.activesync.ActiveSyncManager;
 import alluxio.master.file.meta.FileSystemMasterView;
 import alluxio.master.file.meta.InodeDirectory;
 import alluxio.master.file.meta.InodeDirectoryIdGenerator;
@@ -119,6 +120,7 @@ import alluxio.underfs.options.ListOptions;
 import alluxio.util.CommonUtils;
 import alluxio.util.IdUtils;
 import alluxio.util.SecurityUtils;
+import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.executor.ExecutorServiceFactory;
 import alluxio.util.interfaces.Scoped;
@@ -330,6 +332,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
   private Future<List<AlluxioURI>> mStartupConsistencyCheck;
 
+  private ActiveSyncManager mSyncManager;
   /**
    * Log writer for user access audit log.
    */
@@ -374,6 +377,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     mUfsAbsentPathCache = UfsAbsentPathCache.Factory.create(mMountTable);
     mUfsBlockLocationCache = UfsBlockLocationCache.Factory.create(mMountTable);
     mUfsSyncPathCache = new UfsSyncPathCache();
+    mSyncManager = new ActiveSyncManager(mMountTable, this, getExecutorService());
 
     resetState();
     Metrics.registerGauges(this, mUfsManager);
@@ -3454,6 +3458,25 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   @Override
   public List<WorkerInfo> getWorkerInfoList() throws UnavailableException {
     return mBlockMaster.getWorkerInfoList();
+  }
+
+  @Override
+  public List<String> getSyncPathList() throws UnavailableException {
+    return mSyncManager.getSyncPathList();
+  }
+
+  @Override
+  public void startSync(AlluxioURI syncPoint) throws UnavailableException, InvalidPathException {
+    if (mSyncManager.isActivelySynced(syncPoint)) {
+      //consider return false to indicate already being synced
+      return;
+    }
+    mSyncManager.addSyncPoint(syncPoint);
+  }
+
+  @Override
+  public void stopSync(AlluxioURI syncPoint) throws UnavailableException, InvalidPathException {
+    mSyncManager.removeSyncPoint(syncPoint);
   }
 
   /**

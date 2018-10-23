@@ -1382,6 +1382,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_ACTIVE_SYNC_INTERVAL_MS =
+      new Builder(Name.MASTER_ACTIVE_SYNC_INTERVAL_MS)
+          .setAlias(new String[]{"alluxio.master.activesync.interval.ms"})
+          .setDefaultValue("1min")
+          .setDescription("Time interval to periodically actively sync UFS")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
   public static final PropertyKey MASTER_UFS_BLOCK_LOCATION_CACHE_CAPACITY =
       new Builder(Name.MASTER_UFS_BLOCK_LOCATION_CACHE_CAPACITY)
           .setDefaultValue(1000000)
@@ -3464,6 +3472,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.tieredstore.global.levels";
     public static final String MASTER_TTL_CHECKER_INTERVAL_MS =
         "alluxio.master.ttl.checker.interval";
+    public static final String MASTER_ACTIVE_SYNC_INTERVAL_MS =
+        "alluxio.master.activesync.interval";
     public static final String MASTER_UFS_BLOCK_LOCATION_CACHE_CAPACITY =
         "alluxio.master.ufs.block.location.cache.capacity";
     public static final String MASTER_UFS_PATH_CACHE_CAPACITY =

@@ -131,6 +131,14 @@ public interface FileSystemMasterClient extends Client {
   long getNewBlockIdForFile(AlluxioURI path) throws AlluxioStatusException;
 
   /**
+   * get the list of paths that are currently being actively synced
+   * @return the list of paths
+   * @throws AlluxioStatusException
+   */
+  List<String> getSyncPathList() throws AlluxioStatusException;
+
+
+  /**
    * @param path the path to list
    * @param options the listStatus options
    * @return the list of file information for the given path
@@ -206,6 +214,21 @@ public interface FileSystemMasterClient extends Client {
    * @throws NotFoundException if the path does not exist
    */
   void setAttribute(AlluxioURI path, SetAttributeOptions options) throws AlluxioStatusException;
+
+  /**
+   * Start the active syncing process for a specified path
+   * @param path the file or directory to be synced
+   * @throws AlluxioStatusException
+   */
+  void startSync(AlluxioURI path) throws AlluxioStatusException;
+
+  /**
+   * Stop the active syncing process for a specified path
+   * @param path the file or directory to stop syncing
+   * @throws AlluxioStatusException
+   */
+  void stopSync(AlluxioURI path) throws AlluxioStatusException;
+
 
   /**
    * Schedules the async persistence of the given file.

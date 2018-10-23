@@ -14,6 +14,7 @@ package alluxio.underfs.hdfs;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.PropertyKey;
+import alluxio.SyncInfo;
 import alluxio.collections.Pair;
 import alluxio.retry.CountingRetry;
 import alluxio.retry.RetryPolicy;
@@ -614,6 +615,17 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
   @Override
   public boolean supportsFlush() {
     return true;
+  }
+
+  @Override
+  public boolean supportsActiveSync() {
+    return true;
+  }
+
+  @Override
+  public SyncInfo getActiveSyncInfo() {
+    // TODO(yuzhu) : implement this
+    return null;
   }
 
   /**

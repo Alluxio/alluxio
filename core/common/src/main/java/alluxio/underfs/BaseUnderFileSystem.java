@@ -13,6 +13,7 @@ package alluxio.underfs;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.SyncInfo;
 import alluxio.collections.Pair;
 import alluxio.security.authorization.AccessControlList;
 import alluxio.security.authorization.AclEntry;
@@ -187,6 +188,14 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem {
   public AlluxioURI resolveUri(AlluxioURI ufsBaseUri, String alluxioPath) {
     return new AlluxioURI(ufsBaseUri, PathUtils.concatPath(ufsBaseUri.getPath(), alluxioPath),
         false);
+  }
+
+  public boolean supportsActiveSync() {
+    return false;
+  }
+
+  public SyncInfo getActiveSyncInfo() {
+    return null;
   }
 
   /**

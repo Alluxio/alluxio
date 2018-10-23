@@ -83,6 +83,10 @@ struct GetStatusTResponse {
   1: FileInfo fileInfo
 }
 
+struct GetSyncPathListTResponse {
+  1: list<string> syncPathList
+}
+
 struct ListStatusTOptions {
   // This is deprecated since 1.1.1 and will be removed in 2.0. Use loadMetadataType.
   1: optional bool loadDirectChildren
@@ -256,6 +260,16 @@ struct ScheduleAsyncPersistenceTOptions {
 }
 struct ScheduleAsyncPersistenceTResponse {}
 
+struct StartSyncTOptions {
+  1: optional FileSystemMasterCommonTOptions commonOptions
+}
+struct StartSyncTResponse {}
+
+struct StopSyncTOptions {
+  1: optional FileSystemMasterCommonTOptions commonOptions
+}
+struct StopSyncTResponse {}
+
 struct SyncMetadataTOptions {
   1: optional FileSystemMasterCommonTOptions commonOptions
 }
@@ -341,6 +355,13 @@ service FileSystemMasterClientService extends common.AlluxioService {
   */
   GetMountTableTResponse getMountTable()
     throws (1: exception.AlluxioTException e)
+
+  /**
+   * Returns a list of paths that are being actively synced by Alluxio
+   */
+  GetSyncPathListTResponse getSyncPathList()
+    throws (1: exception.AlluxioTException e)
+
 
   /**
    * Generates a new block id for the given file.
@@ -442,6 +463,24 @@ service FileSystemMasterClientService extends common.AlluxioService {
   SetAttributeTResponse setAttribute(
     /** the path of the file or directory */ 1: string path,
     /** the method options */ 2: SetAttributeTOptions options,
+    )
+    throws (1: exception.AlluxioTException e)
+
+  /**
+   * Start the active syncing of the directory or file
+   */
+  StartSyncTResponse startSync(
+    /** the path of the file or directory */ 1: string path,
+    /** the method options */ 2: StartSyncTOptions options,
+    )
+    throws (1: exception.AlluxioTException e)
+
+  /**
+   * Start the active syncing of the directory or file
+   */
+  StopSyncTResponse stopSync(
+    /** the path of the file or directory */ 1: string path,
+    /** the method options */ 2: StopSyncTOptions options,
     )
     throws (1: exception.AlluxioTException e)
 

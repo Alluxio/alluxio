@@ -495,4 +495,10 @@ public interface FileSystemMaster extends Master {
    * @return a list of {@link WorkerInfo} objects representing the workers in Alluxio
    */
   List<WorkerInfo> getWorkerInfoList() throws UnavailableException;
+
+  List<String> getSyncPathList() throws UnavailableException;
+
+  void startSync(AlluxioURI alluxioURI) throws UnavailableException, InvalidPathException;
+
+  void stopSync(AlluxioURI alluxioURI) throws UnavailableException, InvalidPathException;
 }

@@ -388,6 +388,15 @@ public final class MountTable implements JournalEntryIterable, JournalEntryRepla
     return null;
   }
 
+  @Nullable
+  public UfsManager.UfsClient getUfsClient(long mountId) {
+    try {
+      return mUfsManager.get(mountId);
+    } catch (NotFoundException | UnavailableException e) {
+      return null;
+    }
+  }
+
   @Override
   public boolean replayJournalEntryFromJournal(JournalEntry entry) {
     return mState.replayJournalEntryFromJournal(entry);
