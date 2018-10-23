@@ -134,7 +134,6 @@ When writing data using the load command, the data is also written to the top ti
 
 #### Reading Data
 
-Reading a data block with tiered storage is similar to standard Alluxio. TODO: what is "standard Alluxio"???
 If the data is already in Alluxio, the client will simply read the block from where it is already stored.
 If Alluxio is configured with multiple tiers, the block may not be necessarily read from the top tier,
 since it could have been moved to a lower tier transparently.
@@ -232,7 +231,7 @@ Users can specify different Alluxio evictors to better control the eviction proc
 Out-of-the-box evictor implementations include:
 
 - **LRUEvictor**: Evicts the least-recently-used blocks until the required space is freed.
-**This is Alluxio's default evictor**
+**This is Alluxio's default evictor**.
 - **GreedyEvictor**: Evicts arbitrary blocks until the required space is freed.
 - **LRFUEvictor**: Evicts blocks based on least-recently-used and least-frequently-used with a
 configurable weight.
@@ -241,8 +240,8 @@ configurable weight.
     - The applicable configuration properties are `alluxio.worker.evictor.lrfu.step.factor` and
     `alluxio.worker.evictor.lrfu.attenuation.factor` which can be found in
     [configuration properties]({{site.baseurl}}{% link en/reference/Properties-List.md %}#alluxio.worker.evictor.lrfu.step.factor)
-- **PartialLRUEvictor** : Evicts based on least-recently-used but will choose StorageDir with
-maximum free space and only evict from that StorageDir. TODO: what is StorageDir???
+- **PartialLRUEvictor** : Evicts based on a least-recently-used policy but will choose one configured
+storage directory on the local worker with maximum free space and only evict from that directory.
 
 The evictor utilized by workers is determined by the Alluxio property
 [`alluxio.worker.evictor.class`]({{site.basurl}}{% link en/reference/Properties-List.md %}#alluxio.worker.evictor.class).
