@@ -31,7 +31,7 @@ which provides access to Alluxio for many different users.
 1. [Auditing](#auditing): If `alluxio.master.audit.logging.enabled=true`, Alluxio file system
 maintains an audit log for user accesses to file metadata.
 
-See [Security specific configuration]({{site.baseurl}}{% link en/reference/Properties-List.md %}#security-configuration)
+See [Security specific configuration]({{ '/en/reference/Properties-List.html' | relativize_url }}#security-configuration)
 for different security properties.
 
 ## Authentication
@@ -132,9 +132,9 @@ The owner, group, and permissions can be changed by two ways:
 
 1. User application invokes the `setAttribute(...)` method of `FileSystem API` or `Hadoop API`.
 2. CLI command in shell. See
-[chown]({{site.baseurl}}{% link en/basic/Command-Line-Interface.md %}#chown),
-[chgrp]({{site.baseurl}}{% link en/basic/Command-Line-Interface.md %}#chgrp),
-[chmod]({{site.baseurl}}{% link en/basic/Command-Line-Interface.md %}#chmod).
+[chown]({{ '/en/basic/Command-Line-Interface.html' | relativize_url }}#chown),
+[chgrp]({{ '/en/basic/Command-Line-Interface.html' | relativize_url }}#chgrp),
+[chmod]({{ '/en/basic/Command-Line-Interface.html' | relativize_url }}#chmod).
 
 The owner attribute can only be changed by a super user.
 The group and permission attributes can be changed by a super user or the owner.
@@ -214,8 +214,8 @@ ACLs can be managed by two ways:
 
 1. User application invokes the `setFacl(...)` method of `FileSystem API` or `Hadoop API` to change the ACL and invokes the `getFacl(...)` to obtain the current ACL. 
 2. CLI command in shell. See
-[getfacl]({{site.baseurl}}{% link en/basic/Command-Line-Interface.md %}#getfacl)
-[setfacl]({{site.baseurl}}{% link en/basic/Command-Line-Interface.md %}#setfacl),
+[getfacl]({{ '/en/basic/Command-Line-Interface.html' | relativize_url }}#getfacl)
+[setfacl]({{ '/en/basic/Command-Line-Interface.html' | relativize_url }}#setfacl),
 
 The ACL of a file or directory can only be changed by super user or its owner.
 
@@ -315,7 +315,7 @@ This is similar to the format of HDFS audit log [wiki](https://wiki.apache.org/h
 
 To enable Alluxio audit logging, set the JVM property
 `alluxio.master.audit.logging.enabled` to `true` in `alluxio-env.sh`.
-See [Configuration settings]({{site.baseurl}}{% link en/basic/Configuration-Settings.md %}).
+See [Configuration settings]({{ '/en/basic/Configuration-Settings.html' | relativize_url }}).
 
 ## Encryption
 

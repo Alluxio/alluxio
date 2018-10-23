@@ -14,13 +14,13 @@ storage system.
 
 ## Initial Setup
 
-First, the Alluxio binaries must be on your machine. You can either
-[compile Alluxio]({{site.baseurl}}{% link en/contributor/Building-Alluxio-From-Source.md %}), or
-[download the binaries locally]({{site.baseurl}}{% link en/deploy/Running-Alluxio-Locally.md %}).
+The Alluxio binaries must be on your machine. You can either
+[compile Alluxio]({{ '/en/contributor/Building-Alluxio-From-Source.html' | relativize_url }}), or
+[download the binaries locally]({{ '/en/deploy/Running-Alluxio-Locally.html' | relativize_url }}).
 
 ## Configuring Alluxio
 
-You need to configure Alluxio to use under storage systems by modifying
+Configure Alluxio to use under storage systems by modifying
 `conf/alluxio-site.properties`. If it does not exist, create the configuration file from the
 template.
 
@@ -36,18 +36,18 @@ Assuming the GlusterFS bricks are co-located with Alluxio nodes, the GlusterFS v
 
 ## Running Alluxio Locally with GlusterFS
 
-After everything is configured, you can start up Alluxio locally to see that everything works.
+Start up Alluxio locally to see that everything works.
 
 {% include Common-Commands/start-alluxio.md %}
 
 This should start an Alluxio master and an Alluxio worker. You can see the master UI at
 [http://localhost:19999](http://localhost:19999).
 
-Next, you can run a simple example program:
+Run a simple example program:
 
 {% include Common-Commands/runTests.md %}
 
-After this succeeds, you can visit your GlusterFS volume to verify the files and directories created
+Visit your GlusterFS volume to verify the files and directories created
 by Alluxio exist. For this test, you should see files named like:
 
 {% include Configuring-Alluxio-with-GlusterFS/glusterfs-file.md %}

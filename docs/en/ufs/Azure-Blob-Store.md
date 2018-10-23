@@ -16,10 +16,10 @@ Store](https://azure.microsoft.com/en-in/services/storage/blobs/) as the under s
 
 To run an Alluxio cluster on a set of machines, you must deploy Alluxio binaries to each of these
 machines. You can either [compile the binaries from Alluxio source
-code]({{site.baseurl}}{% link en/contributor/Building-Alluxio-From-Source.md %}), or [download the
-precompiled binaries directly]({{site.baseurl}}{% link en/deploy/Running-Alluxio-Locally.md %}).
+code]({{ '/en/contributor/Building-Alluxio-From-Source.html' | relativize_url }}), or [download the
+precompiled binaries directly]({{ '/en/deploy/Running-Alluxio-Locally.html' | relativize_url }}).
 
-Also, in preparation for using Azure Blob Store with Alluxio, create a new container in your Azure
+in preparation for using Azure Blob Store with Alluxio, create a new container in your Azure
 storage account or use an existing container. You should also note that the directory you want to
 use in that container, either by creating a new directory in the container, or using an existing
 one. For the purposes of this guide, the Azure storage account name is called `<AZURE_ACCOUNT>`, the
@@ -41,13 +41,13 @@ template.
 $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
-The first modification is to specify the underfs address by modifying `conf/alluxio-site.properties` to include:
+Specify the underfs address by modifying `conf/alluxio-site.properties` to include:
 
 ```
 alluxio.underfs.address=wasb://<AZURE_CONTAINER>@<AZURE_ACCOUNT>.blob.core.windows.net/<AZURE_DIRECTORY>/
 ```
 
-Next, specify credentials for the Azure account of the root mount point by adding the following
+Specify credentials for the Azure account of the root mount point by adding the following
 properties in `conf/alluxio-site.properties`:
 
 ```
@@ -56,8 +56,8 @@ alluxio.master.mount.table.root.option.fs.azure.account.key.<AZURE_ACCOUNT>.blob
 
 ### Nested Mount
 An Azure blob store location can be mounted at a nested directory in the Alluxio namespace to have unified access
-to multiple under storage systems. Alluxio's [Command Line Interface]({{ site.baseurl }}{% link
-en/basic/Command-Line-Interface.md %}) can be used for this purpose.
+to multiple under storage systems. Alluxio's
+[Command Line Interface]({{ '/en/basic/Command-Line-Interface.html' | relativize_url }}) can be used for this purpose.
 
 ```bash
 $ ./bin/alluxio fs mount --option fs.azure.account.key.<AZURE_ACCOUNT>.blob.core.windows.net=<AZURE_ACCESS_KEY>\
@@ -68,7 +68,7 @@ After these changes, Alluxio should be configured to work with Azure Blob Store 
 
 ## Running Alluxio Locally with Azure Blob Store
 
-After everything is configured, you can start up Alluxio locally to see that everything works.
+Start up Alluxio locally to see that everything works.
 
 ```
 $ ./bin/alluxio format
@@ -78,13 +78,13 @@ $ ./bin/alluxio-start.sh local
 This should start an Alluxio master and an Alluxio worker. You can see the master UI at
 [http://localhost:19999](http://localhost:19999).
 
-Next, you can run a simple example program:
+Run a simple example program:
 
 ```
 $ ./bin/alluxio runTests
 ```
 
-After this succeeds, you can visit your container `<AZURE_CONTAINER>` to verify the files and directories created by Alluxio exist. For this test, you should see files named like:
+Visit your container `<AZURE_CONTAINER>` to verify the files and directories created by Alluxio exist. For this test, you should see files named like:
 
 ```
 <AZURE_CONTAINER>/<AZURE_DIRECTORY>/default_tests_files/BASIC_CACHE_PROMOTE_CACHE_THROUGH

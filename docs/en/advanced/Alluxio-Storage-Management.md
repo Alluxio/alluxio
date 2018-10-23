@@ -14,7 +14,7 @@ priority: 0
 The purpose of this documentation is to introduce users to the concepts behind Alluxio storage and
 the operations that can be performed within Alluxio storage space. For metadata related operations
 such as syncing and namespaces, refer to the
-[page on namespace management]({{site.baseurl}}{% link en/advanced/Namespace-Management.md %})
+[page on namespace management]({{ '/en/advanced/Namespace-Management.html' | relativize_url }})
 
 Alluxio helps unify users' data across a variety of platforms while also helping to increase
 overall I/O throughput from a user's perspective. Alluxio accomplishes this by splitting storage
@@ -39,7 +39,7 @@ into two distinct categories.
     read a file that is only available from a UFS.
 
 
-![Alluxio storage diagram]({{site.baseurl}}{% link img/stack.png %})
+![Alluxio storage diagram]({{ '/img/stack.png' | relativize_url }})
 
 Alluxio storage improves performance by storing data in memory co-located with compute nodes.
 Data in Alluxio storage can be replicated to make "hot" data more readily available for
@@ -67,7 +67,7 @@ system's total memory. This ramdisk will be used as the only storage medium allo
 Alluxio worker.
 
 Alluxio storage is configured through Alluxio's configuration in `alluxio-site.properties`. See the
-[configuration docs]({{site.baseurl}}{% link en/basic/Configuration-Settings.md %}) for detailed
+[configuration docs]({{ '/en/basic/Configuration-Settings.html' | relativize_url }}) for detailed
 information.
 
 A common modification to the default is to explicitly set the ramdisk size. For example, to set the
@@ -145,7 +145,7 @@ explicitly moving hot data to higher tiers.
 #### Configuring Tiered Storage
 
 Tiered storage can be enabled in Alluxio using
-[configuration parameters]({{site.baseurl}}{% link en/basic/Configuration-Settings.md %}).
+[configuration parameters]({{ '/en/basic/Configuration-Settings.html' | relativize_url }}).
 To specify additional tiers for Alluxio, use the following configuration parameters:
 
 ```
@@ -239,7 +239,7 @@ configurable weight.
     as the LRUEvictor.
     - The applicable configuration properties are `alluxio.worker.evictor.lrfu.step.factor` and
     `alluxio.worker.evictor.lrfu.attenuation.factor` which can be found in
-    [configuration properties]({{site.baseurl}}{% link en/reference/Properties-List.md %}#alluxio.worker.evictor.lrfu.step.factor)
+    [configuration properties]({{ '/en/reference/Properties-List.html' | relativize_url }}#alluxio.worker.evictor.lrfu.step.factor)
 - **PartialLRUEvictor** : Evicts based on a least-recently-used policy but will choose one configured
 storage directory on the local worker with maximum free space and only evict from that directory.
 
@@ -291,7 +291,7 @@ $ ./bin/alluxio fs free ${PATH_TO_UNUSED_DATA}
 
 This will remove the data at the given path from Alluxio storage. The data is still accessible if
 it is persisted to a UFS. For more information refer to the
-[command line interface documentation]({{site.baseurl}}{% link en/basic/Command-Line-Interface.md %}#free)
+[command line interface documentation]({{ '/en/basic/Command-Line-Interface.html' | relativize_url }}#free)
 
 Note that a user typically should not need to manually free data from Alluxio as the
 configured [eviction policy](#eviction-policies) will take care of removing unused or old data.
@@ -299,14 +299,14 @@ configured [eviction policy](#eviction-policies) will take care of removing unus
 ### Loading Data into Alluxio Storage
 
 If the data is already in a UFS, use
-[`alluxio fs load`]({{site.baseurl}}{% link en/basic/Command-Line-Interface.md %}#load)
+[`alluxio fs load`]({{ '/en/basic/Command-Line-Interface.html' | relativize_url }}#load)
 
 ```bash
 $ ./bin/alluxio fs load ${PATH_TO_FILE}
 ```
 
 To load data from the local file system, use the
-[command `copyFromLocal`]({{site.baseurl}}{% link en/basic/Command-Line-Interface.md %}#copyfromlocal).
+[command `copyFromLocal`]({{ '/en/basic/Command-Line-Interface.html' | relativize_url }}#copyfromlocal).
 This will only load the file into Alluxio storage, but may not persist the data to a UFS.
 Setting the write type to `MUST_CACHE` write type will _not_ persist data to a UFS,
 whereas `CACHE` and `CACHE_THROUGH` will. Manually loading data is not recommended as Alluxio 
@@ -314,7 +314,7 @@ will automatically load data into the Alluxio cache when a file is used for the 
 
 ### Persisting Data in Alluxio
 
-[The `alluxio fs persist`]({{site.baseurl}}{% link en/basic/Command-Line-Interface.md %}#persist)
+[The `alluxio fs persist`]({{ '/en/basic/Command-Line-Interface.html' | relativize_url }}#persist)
 command allows a user to push data from the Alluxio cache to a UFS.
 
 ```bash
@@ -347,7 +347,7 @@ To set the interval to 10 minutes, add the following to `alluxio-site.properties
 alluxio.master.ttl.checker.interval=10m
 ```
 
-Refer to the [configuration page]({{site.baseurl}}{% link en/basic/Configuration-Settings.md %})
+Refer to the [configuration page]({{ '/en/basic/Configuration-Settings.html' | relativize_url }})
 for more details on setting Alluxio configurations.
 
 #### APIs
@@ -374,7 +374,7 @@ SetTTL(path, duration, action)
 #### Command Line Usage
 
 See the detailed
-[command line documentation]({{site.baseurl}}{% link en/basic/Command-Line-Interface.md %}#setttl)
+[command line documentation]({{ '/en/basic/Command-Line-Interface.html' | relativize_url }}#setttl)
 to see how to use the `setTtl` command within the Alluxio shell to modify TTL attribute.
 
 #### Passively on load metadata or create file
@@ -455,4 +455,4 @@ $ ./bin/alluxio fs getCapacityBytes
 The Alluxio master web interface gives the user a visual overview of the cluster and how much
 storage space is used. It can be found at `http:/{MASTER_IP}:${alluxio.master.web.port}/`.
 More detailed information about the Alluxio web interface can be
-[found in our documentation]({{site.baseurl}}{% link en/basic/Web-Interface.md %})
+[found in our documentation]({{ '/en/basic/Web-Interface.html' | relativize_url }}).

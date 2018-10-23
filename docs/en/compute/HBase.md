@@ -19,7 +19,7 @@ that you can easily store HBase tables into Alluxio at various storage levels.
 This Alluxio client jar file can be found at `{{site.ALLUXIO_CLIENT_JAR_PATH}}` in the tarball
 downloaded from Alluxio [download page](http://www.alluxio.org/download).
 Alternatively, advanced users can compile this client jar from the source code
-by following the [instructions]({{ site.baseurl }}{% link en/contributor/Building-Alluxio-From-Source.md %}).
+by following the [instructions]({{ '/en/contributor/Building-Alluxio-From-Source.html' | relativize_url }}).
 * [Deploy HBase](https://hbase.apache.org/book.html#configuration)
 Please follow this guides for setting up HBase.
 
@@ -65,7 +65,7 @@ on all cluster nodes). For example:
 export HBASE_CLASSPATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${HBASE_CLASSPATH}
 ```
 
-Alternative ways are described in the [Advanced Setup]({{ site.baseurl }}{% link en/compute/HBase.md %}#advanced-setup)
+Alternative ways are described in the [Advanced Setup]({{ '/en/compute/HBase.html' | relativize_url }}#advanced-setup)
 
 ## Example
 
@@ -78,12 +78,12 @@ $ ${HBASE_HOME}/bin/start-hbase.sh
 Visit HBase Web UI at `http://<HBASE_MASTER_HOSTNAME>:16010` to confirm that HBase is running on Alluxio
 (check the `HBase Root Directory` attribute):
 
-![HBaseRootDirectory]({{ site.baseurl }}{% link img/screenshot_start_hbase_webui.png %})
+![HBaseRootDirectory]({{ '/img/screenshot_start_hbase_webui.png' | relativize_url }})
 
 And visit Alluxio Web UI at `http://<ALLUXIO_MASTER_HOSTNAME>:19999`, click `Browse` and you can see the files HBase stores
 on Alluxio, including data and WALs:
 
-![HBaseRootDirectoryOnAlluxio]({{ site.baseurl }}{% link img/screenshot_start_hbase_alluxio_webui.png %})
+![HBaseRootDirectoryOnAlluxio]({{ '/img/screenshot_start_hbase_alluxio_webui.png' | relativize_url }})
 
 Create a text file `simple_test.txt` and write these commands into it:
 
@@ -105,7 +105,7 @@ bin/hbase shell simple_test.txt
 
 You should see some output like this:
 
-![HBaseShellOutput]({{ site.baseurl }}{% link img/screenshot_hbase_shell_output.png %})
+![HBaseShellOutput]({{ '/img/screenshot_hbase_shell_output.png' | relativize_url }})
 
 If you have Hadoop installed, you can run a Hadoop-utility program in HBase shell to
 count the rows of the newly created table:
@@ -116,7 +116,7 @@ bin/hbase org.apache.hadoop.hbase.mapreduce.RowCounter test
 
 After this mapreduce job finishes, you can see a result like this:
 
-![HBaseHadoopOutput]({{ site.baseurl }}{% link img/screenshot_hbase_hadoop_output.png %})
+![HBaseHadoopOutput]({{ '/img/screenshot_hbase_hadoop_output.png' | relativize_url }})
 
 ## Advanced Setup
 

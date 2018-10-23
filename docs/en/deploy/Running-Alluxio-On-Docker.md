@@ -9,9 +9,9 @@ priority: 3
 Docker can be used to simplify the deployment and management of Alluxio servers.
 Using the [alluxio/alluxio](https://hub.docker.com/r/alluxio/alluxio/) Docker
 image available on Dockerhub, you can go from
-zero to a running Alluxio cluster in just a couple of `docker run` commands.
+zero to a running Alluxio cluster with a couple of `docker run` commands.
 This document provides a tutorial for running Dockerized Alluxio on a single node.
-We'll also discuss more advanced topics, and how to troubleshoot.
+We'll also discuss more advanced topics and how to troubleshoot.
 
 * Table of Contents
 {:toc}

@@ -19,7 +19,7 @@ To run an Alluxio cluster on a set of machines, you must deploy Alluxio server b
 these machines. You can either
 [download the precompiled binaries directly](http://www.alluxio.org/download)
 with the correct Hadoop version (recommended), or
-[compile the binaries from Alluxio source code]({{ site.baseurl }}{% link en/contributor/Building-Alluxio-From-Source.md %})
+[compile the binaries from Alluxio source code]({{ '/en/contributor/Building-Alluxio-From-Source.html' | relativize_url }})
 (for advanced users).
 
 Note that, when building Alluxio from source code, by default Alluxio server binaries is built to
@@ -43,9 +43,8 @@ $ mvn install -Phadoop-3 -Dhadoop.version=3.0.0 -DskipTests
 ```
 
 Please visit the
-[Building Alluxio Master Branch]({{ site.baseurl }}{% link
-en/contributor/Building-Alluxio-From-Source.md %}#hadoop-distribution-support) page for more information about
-support for other distributions.
+[Building Alluxio Master Branch]({{ '/en/contributor/Building-Alluxio-From-Source.html' | relativize_url }}#hadoop-distribution-support)
+page for more information about support for other distributions.
 
 If everything succeeds, you should see
 `alluxio-assembly-server-{{site.ALLUXIO_RELEASED_VERSION}}-jar-with-dependencies.jar` created in
@@ -92,7 +91,7 @@ your `hdfs-site.xml` and `core-site.xml`. Make sure this configuration is set on
 alluxio.underfs.hdfs.configuration=/path/to/hdfs/conf/core-site.xml:/path/to/hdfs/conf/hdfs-site.xml
 ```
 
-Then, set the under storage address to `hdfs://nameservice/` (`nameservice` is the name of HDFS
+Set the under storage address to `hdfs://nameservice/` (`nameservice` is the name of HDFS
 service already configured in `core-site.xml`). To mount an HDFS subdirectory to Alluxio instead
 of the whole HDFS namespace, change the under storage address to something like
 `hdfs://nameservice/alluxio/data`.
@@ -103,7 +102,7 @@ alluxio.underfs.address=hdfs://nameservice/
 
 ### User/Permission Mapping
 
-Alluxio supports POSIX-like filesystem [user and permission checking]({{ site.baseurl }}{% link en/advanced/Security.md %}).
+Alluxio supports POSIX-like filesystem [user and permission checking]({{ '/en/advanced/Security.html' | relativize_url }}).
 To ensure that the permission information of files/directories including user, group and mode in
 HDFS is consistent with Alluxio (e.g., a file created by user Foo in Alluxio is persisted to
 HDFS also with owner as user Foo), the user to start Alluxio master and worker processes
@@ -170,7 +169,7 @@ $ bin/alluxio-start.sh local
 This will start one Alluxio master and one Alluxio worker locally. You can see the master UI at
 [http://localhost:19999](http://localhost:19999).
 
-Next, you can run a simple example program:
+Run a simple example program:
 
 ```bash
 $ bin/alluxio runTests
@@ -186,7 +185,7 @@ to verify the files and directories created by Alluxio exist. For this test, you
 files named like: `/default_tests_files/BASIC_CACHE_THROUGH` at
 [http://localhost:50070/explorer.html](http://localhost:50070/explorer.html)
 
-You can stop Alluxio any time by running:
+Stop Alluxio by running:
 
 ```bash
 $ bin/alluxio-stop.sh local

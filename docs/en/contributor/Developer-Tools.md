@@ -155,7 +155,7 @@ leverage the Scala shell, as discussed in this
 [blog](http://scala4fun.tumblr.com/post/84791653967/interactivejavacoding).
 
 - The fuse tests are ignored if the libfuse library is missing. To run those tests, please install the correct libraries
-mentioned in [this page]({{site.baseurl}}{% link en/api/FUSE-API.md %}#requirements).
+mentioned in [this page]({{ '/en/api/FUSE-API.html' | relativize_url }}#requirements).
 
 ## Modifying a Thrift RPC definition
 
@@ -215,7 +215,7 @@ the syntax of each command.
 
 In addition, these commands have different prerequisites. The prerequisite for the `format`,
 `formatWorker`, `journalCrashTest`, `readJournal`, `version`, `validateConf` and `validateEnv` commands is that you
-have already built Alluxio (see [Build Alluxio Master Branch]({{site.baseurl}}{% link
-en/contributor/Building-Alluxio-From-Source.md %}) about how to build Alluxio manually). Further,
-the prerequisite for the `fs`, `loadufs`, `logLevel`, `runTest` and `runTests` commands is that you
+have already built Alluxio (see
+[Build Alluxio Master Branch]({{ '/en/contributor/Building-Alluxio-From-Source.html' | relativize_url }}) about how to build Alluxio manually).
+Further, the prerequisite for the `fs`, `loadufs`, `logLevel`, `runTest` and `runTests` commands is that you
 have a running Alluxio system.

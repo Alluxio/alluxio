@@ -14,8 +14,8 @@ as the under storage system.
 
 ## Compiling Alluxio with MapR Version
 
-Alluxio must be [compiled]({{site.baseurl}}{% link en/contributor/Building-Alluxio-From-Source.md
-%}) with the correct MapR distribution to integrate with MapR-FS. Here are some values of
+Alluxio must be [compiled]({{ '/en/contributor/Building-Alluxio-From-Source.html' | relativize_url }})
+with the correct MapR distribution to integrate with MapR-FS. Here are some values of
 `hadoop.version` for different MapR distributions:
 
 <table class="table table-striped">
@@ -59,10 +59,10 @@ alluxio.underfs.hdfs.prefixes=hdfs://,maprfs:///
 ```
 
 This configuration parameter should be set for all the Alluxio servers (masters, workers). Please
-read how to [configure Alluxio]({{site.baseurl}}{% link en/basic/Configuration-Settings.md %}). For
+read how to [configure Alluxio]({{ '/en/basic/Configuration-Settings.html' | relativize_url }}). For
 Alluxio processes, this parameter can be set in the property file `alluxio-site.properties`. For
-more information, please read about [configuration of Alluxio with property files]({% link
-en/basic/Configuration-Settings.md %}#configuration-sources).
+more information, please read about
+[configuration of Alluxio with property files]({% link en/basic/Configuration-Settings.md %}#configuration-sources).
 
 ## Configuring Alluxio to use MapR-FS as Under Storage
 
@@ -81,21 +81,21 @@ $ ${ALLUXIO_HOME}/bin/alluxio fs mount /<path in Alluxio>/ maprfs:///<path in Ma
 
 ## Running Alluxio Locally with MapR-FS
 
-After everything is configured, you can start up Alluxio locally to see that everything works.
+Start up Alluxio locally to see that everything works.
 
 {% include Common-Commands/start-alluxio.md %}
 
 This should start one Alluxio master and one Alluxio worker locally. You can see the master UI at
 [http://localhost:19999](http://localhost:19999).
 
-Next, you can run a simple example program:
+Run a simple example program:
 
 {% include Common-Commands/runTests.md %}
 
-After this succeeds, you can visit MapR-FS web UI to verify the files and directories created by
+Visit MapR-FS web UI to verify the files and directories created by
 Alluxio exist. For this test, you should see files named like:
 `/default_tests_files/BASIC_CACHE_CACHE_THROUGH`
 
-You can stop Alluxio any time by running:
+Stop Alluxio by running:
 
 {% include Common-Commands/stop-alluxio.md %}

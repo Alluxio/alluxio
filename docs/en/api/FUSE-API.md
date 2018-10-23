@@ -12,7 +12,7 @@ priority: 3
 Alluxio-FUSE is a feature that allows mounting the distributed Alluxio File System as a standard
 file system on most flavors of Unix. By using this feature, standard bash tools (for example, `ls`,
 `cat` or `mkdir`) will have basic access to the distributed Alluxio data store. More importantly,
-with FUSE your application written in any language like C, C++, Python, Ruby, Perl, Java etc can
+with FUSE, an application written in any language like C, C++, Python, Ruby, Perl, or Java, can
 interact with Alluxio by using standard POSIX APIs like `open, write, read`, without any Alluxio
 client integration or set up.
 
@@ -24,9 +24,9 @@ full POSIX semantics and will have specific limitations.  Please read the [secti
 
 ## Requirements
 
-* JDK 1.8 or newer 
+* JDK 1.8 or newer
 * [libfuse](https://github.com/libfuse/libfuse) 2.9.3 or newer (2.8.3 has been
-  reported to also work - with some warnings) for Linux 
+  reported to also work - with some warnings) for Linux
 * [osxfuse](https://osxfuse.github.io/) 3.7.1 or newer for MacOS
 
 ## Usage
@@ -103,7 +103,7 @@ operations. You might want to customize the behaviour of the alluxio client used
 same way you would for any other client application.
 
 One possibility, for example, is to edit `$ALLUXIO_HOME/conf/alluxio-site.properties` and set your
-specific alluxio client options. Note that these changes should be before Alluxio-FUSE starts.
+specific Alluxio client options. Note that these changes should be before Alluxio-FUSE starts.
 
 ### Configure mount point options
 
@@ -117,16 +117,16 @@ The commonly used mount options are listed [here](http://man7.org/linux/man-page
 $ integration/fuse/bin/alluxio-fuse mount -o [comma separated mount options] mount_point [alluxio_path]
 ```
 
-Note that `direct_io` mount option is set by default so that writes and reads bypass the kernel page cache 
+Note that `direct_io` mount option is set by default so that writes and reads bypass the kernel page cache
 and go directly to Alluxio.
 
 Note that different versions of libfuse and osxfuse support different mount options.
 
 #### Example: allow_other or allow_root
 
-By default, Alluxio Fuse mount point can only be accessed by the user 
+By default, Alluxio Fuse mount point can only be accessed by the user
 mounting the Alluxio namespace to the local filesystem.
-If you want to allow other users or allow root to access the mounted folder, you can 
+If you want to allow other users or allow root to access the mounted folder, you can
 add the following line to the file `/etc/fuse.conf`:
 
 ```
@@ -164,8 +164,8 @@ characteristics, please be aware that:
 ## Performance considerations
 
 Due to the conjunct use of FUSE and JNR, the performance of the mounted file system is expected to
-be worse than what you would see by using the [Alluxio Java client]({{site.baseurl}}{% link
-en/api/FS-API.md %}#Java-Client) directly.
+be worse than what you would see by using the
+[Alluxio Java client]({{ '/en/api/FS-API.html' | relativize_url }}#Java-Client) directly.
 
 Most of the overheads come from the fact that there are several memory copies going on for each call
 on `read` or `write` operations, and that FUSE caps the maximum granularity of writes to 128KB. This

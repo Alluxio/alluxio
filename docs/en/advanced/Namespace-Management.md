@@ -23,7 +23,7 @@ Rather than communicating to each individual storage system, applications can de
 responsibility by connecting through Alluxio, which will handle the different underlying storage
 systems.
 
-![unified]({{ site.baseurl }}{% link img/screenshot_unified.png %})
+![unified]({{ '/img/screenshot_unified.png' | relativize_url }})
 
 The directory specified by the `alluxio.underfs.address` is mounted to the root of the Alluxio
 namespace. This directory identifies the "primary storage" for Alluxio.
@@ -54,7 +54,7 @@ the two namespaces.
 Transparent naming maintains an identity between the Alluxio namespace and the underlying storage
 system namespace.
 
-![transparent]({{ site.baseurl }}{% link img/screenshot_transparent.png %})
+![transparent]({{ '/img/screenshot_transparent.png' | relativize_url }})
 
 When a user creates objects in the Alluxio namespace, they can choose whether these objects should
 be persisted in the underlying storage system. For objects that are persisted, Alluxio preserves the
