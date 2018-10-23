@@ -13,7 +13,7 @@ priority: 10
 
 [Alluxio](http://www.alluxio.org/), formerly Tachyon, is an open source, memory speed, virtual
 distributed storage. It enables any application to interact with any data from any storage system
- at memory speed. Read more about Alluxio [Overview]({{ site.baseurl }}{% link en/Overview.md %}).
+at memory speed. Read more about Alluxio [Overview]({{ site.baseurl }}{% link en/Overview.md %}).
 
 ## What platforms and Java versions can Alluxio run on?
 
@@ -23,84 +23,83 @@ Alluxio requires JVM 1.8 or above to run on various distributions of Linux / Mac
 
 Alluxio is open sourced under the Apache 2.0 license.
 
-## My analytics job does not get faster after deploying Alluxio, why?
+## Why is my analytics job not running faster after deploying Alluxio?
 
-There are multiple possible reasons to check out:
-1. The job can be computation bound and does not spend too much time in reading/writing data.
-In this case, speeding up I/O performance which is not the bottleneck will help less.
-1. The persistent storage is colocated with compute (e.g., Alluxio is connected to a local
-HDFS), and the input data of the job is in the OS
+Some possible reasons to consider:
+1. The job is computation bound and does not spend significant time in reading or writing data.
+Because the bottleneck is not in I/O performance, the benefit from faster Alluxio I/O is small.
+1. The persistent storage is co-located with compute (e.g. Alluxio is connected to a local
+HDFS) and the input data of the job is in the OS
 [buffer cache](https://www.tldp.org/LDP/sag/html/buffer-cache.html).
-1. Due to some mis-configuration, tasks of this job are not reading from their local Alluxio workers
-but from remote Alluxio workers through network, resulting in low data-locality.
-1. Input data is not loaded into Alluxio yet or already evicted out, the job is not really reading
-from Alluxio cache but from the under storage.
+1. Due to misconfiguration, clients are not able to identify their corresponding local Alluxio worker.
+This results in reading from remote Alluxio workers through the network, resulting in low data-locality.
+1. Input data is not loaded into Alluxio yet or already evicted, causing the job to read from the
+under storage instead of the Alluxio cache.
 
-## Shall I run Alluxio as a stand-alone system or on YARN, Mesos or Kubernetes?
+## Should I deploy Alluxio as a stand-alone system or through an orchestration framework?
 
-We recommend to run Alluxio as a stand-alone system.  We support running Alluxio on [YARN]({{
-site.baseurl }}{% link en/deploy/Running-Alluxio-On-Yarn.md %}), [Mesos]({{ site.baseurl }}{% link
-en/deploy/Running-Alluxio-On-Mesos.md %}), and [Kubernetes]({{ site.baseurl }}{% link
-en/deploy/Running-Alluxio-On-Kubernetes.md %}).
+It is recommended to deploy Alluxio as a stand-alone system. Orchestration frameworks supported include:
+- [YARN]({{site.baseurl }}{% link en/deploy/Running-Alluxio-On-Yarn.md %})
+- [Mesos]({{ site.baseurl }}{% link en/deploy/Running-Alluxio-On-Mesos.md %})
+- [Kubernetes]({{ site.baseurl }}{% link en/deploy/Running-Alluxio-On-Kubernetes.md %})
 
 ## Which programming language does Alluxio support?
 
 Alluxio is primarily developed in Java and exposes Java-like File APIs for other applications to
-interact with. Alluxio supports other language bindings including [Python client]({{ site.baseurl
-}}{% link en/api/FS-API.md %}#python), [Golang client]({{ site.baseurl }}{% link en/api/FS-API.md
+interact with. Alluxio supports other language bindings including [Python]({{ site.baseurl
+}}{% link en/api/FS-API.md %}#python) and [Golang]({{ site.baseurl }}{% link en/api/FS-API.md
 %}#go).
 
 ## What happens if my data set does not fit in memory?
 
-- It is not required for the input data set to fit in Alluxio storage space in order for
-applications to work. Alluxio will transparently and dynamically load data on demand from under
-storage.
-- To help more hot data fit in Alluxio storage space, you can configure Alluxio to leverage storage
-resource like SSD and HDD in addition to memory to extend Alluxio storage capacity. You can read
-more about Alluxio storage setup [here]({{site.baseurl}}{% link 
-en/advanced/Alluxio-Storage-Management.md %}).
+It is not required for the input data set to fit in Alluxio storage space in order for
+applications to work. Alluxio will transparently load data on demand from the under storage.
+To help fit more data in Alluxio's storage space, configure Alluxio to leverage other storage
+resources such as SSD and HDD in addition to memory to extend Alluxio storage capacity.
+Read more about Alluxio storage setup
+[here]({{site.baseurl}}{% link en/advanced/Alluxio-Storage-Management.md %}).
 
 ## Does Alluxio support a fault tolerant mode?
 
-Yes. Please see instructions about [Deploy Alluxio on a Cluster]({{ site.baseurl }}{% link
+Yes. See instructions about [Deploy Alluxio on a Cluster]({{ site.baseurl }}{% link
 en/deploy/Running-Alluxio-On-a-Cluster.md %}).
 
-## Will Alluxio re-balance / move the cached blocks to the newly added nodes in order to balance memory space utilization?
+## Will Alluxio rebalance cached blocks to the newly added nodes in order to balance memory space utilization?
 
-No, re-balancing of data blocks in Alluxio is not supported currently.
+No, rebalancing of data blocks in Alluxio is not currently supported.
 
 ## How can I add support for other under store systems?
 
-Yes, in fact support for other under storages is in progress by many contributors. Here is the
+Support for other under storages is in progress by many contributors. See the
 [documentation]({{site.baseurl}}{% link en/ufs/Ufs-Extensions.md %}) for adding other under storage
 systems.
 
-## Does Alluxio always need HDFS?
+## Does Alluxio require HDFS?
 
-No, Alluxio runs on different under storage systems like HDFS, Amazon S3, Swift.
+No, in addition to HDFS, Alluxio can also run on different under storage systems such as Amazon S3 or Swift.
 
 ## How can I learn more about Alluxio?
 
-You can read the recent [blogs](https://alluxio.org/resources/posts) and 
+Read the recent [blogs](https://alluxio.org/resources/posts) and
 [presentations](https://alluxio.org/resources/presentations).
 
-We also hosts meetup group for Alluxio and please join
-[http://www.meetup.com/Alluxio/](http://www.meetup.com/Alluxio/). You can also find more Alluxio
-events [here](https://alluxio.org/resources/events).
+Join the meetup group for Alluxio at
+[http://www.meetup.com/Alluxio/](http://www.meetup.com/Alluxio/).
+Other Alluxio events can be found [here](https://alluxio.org/resources/events).
 
 ## Where can I report issues or propose new features?
 
-We use [JIRA](https://alluxio.atlassian.net/projects/ALLUXIO) to track development and issues.  If
-you would like to report an issue or propose a feature, post it to the JIRA Alluxio issue
-tracker. You need to register before posting.
+[JIRA](https://alluxio.atlassian.net/projects/ALLUXIO) is used to track feature development and issues.
+To report an issue or propose a feature, post on the JIRA Alluxio issue tracker.
+Registration is required before posting.
 
 ## Where can I get more help?
 
-For any questions related installation, contribution and comments please post an email to [Alluxio
-User Mailing List](https://groups.google.com/forum/?fromgroups#!forum/alluxio-users).  We look
-forward to seeing you there.
+For any questions related to installation, contribution or feedback, please send an email to the
+[Alluxio User Mailing List](https://groups.google.com/forum/?fromgroups#!forum/alluxio-users).
+We look forward to seeing you there.
 
 ## How can I contribute to Alluxio?
 
-Thank you for the interest to contribute. Please read [our contributor guide]({{ site.baseurl }}{%
+Thank you for your interest in contributing. Please read [our contributor guide]({{ site.baseurl }}{%
 link en/contributor/Contributor-Getting-Started.md %}).
