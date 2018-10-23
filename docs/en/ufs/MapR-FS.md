@@ -81,21 +81,21 @@ $ ${ALLUXIO_HOME}/bin/alluxio fs mount /<path in Alluxio>/ maprfs:///<path in Ma
 
 ## Running Alluxio Locally with MapR-FS
 
-After everything is configured, you can start up Alluxio locally to see that everything works.
+Start up Alluxio locally to see that everything works.
 
 {% include Common-Commands/start-alluxio.md %}
 
 This should start one Alluxio master and one Alluxio worker locally. You can see the master UI at
 [http://localhost:19999](http://localhost:19999).
 
-Next, you can run a simple example program:
+Run a simple example program:
 
 {% include Common-Commands/runTests.md %}
 
-After this succeeds, you can visit MapR-FS web UI to verify the files and directories created by
+Visit MapR-FS web UI to verify the files and directories created by
 Alluxio exist. For this test, you should see files named like:
 `/default_tests_files/BASIC_CACHE_CACHE_THROUGH`
 
-You can stop Alluxio any time by running:
+Stop Alluxio by running:
 
 {% include Common-Commands/stop-alluxio.md %}

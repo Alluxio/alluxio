@@ -14,13 +14,13 @@ This guide describes how to configure Alluxio with an under storage system suppo
 
 ## Initial Setup
 
-First, the Alluxio binaries must be on your machine. You can either
+The Alluxio binaries must be on your machine. You can either
 [compile Alluxio]({{site.baseurl}}{% link en/contributor/Building-Alluxio-From-Source.md %}), or
 [download the binaries locally]({{site.baseurl}}{% link en/deploy/Running-Alluxio-Locally.md %}).
 
 ## Configuring Alluxio
 
-You need to configure Alluxio to use under storage systems by modifying
+Configure Alluxio to use under storage systems by modifying
 `conf/alluxio-site.properties`. If it does not exist, create the configuration file from the
 template.
 
@@ -63,7 +63,7 @@ be deployed.
 
 ## Running Alluxio Locally with Swift
 
-After configuration, you can start an Alluxio cluster:
+Start an Alluxio cluster:
 
 ```bash
 $ ./bin/alluxio format
@@ -73,13 +73,13 @@ $ ./bin/alluxio-start.sh local
 This should start an Alluxio master and an Alluxio worker. You can see the master UI at
 [http://localhost:19999](http://localhost:19999).
 
-Next, you can run a simple example program:
+Run a simple example program:
 
 ```bash
 $ ./bin/alluxio runTests
 ```
 
-After this succeeds, you can visit your Swift container to verify the files and directories created
+Visit your Swift container to verify the files and directories created
 by Alluxio exist. For this test, you should see files named like:
 
 ```bash
@@ -117,5 +117,5 @@ If you want to share the Swift mount point with other users in Alluxio namespace
 
 ### Permission change
 
-In addition, chown/chgrp/chmod to Alluxio directories and files do NOT propagate to the underlying
+In addition, chown/chgrp/chmod to Alluxio directories and files do **NOT** propagate to the underlying
 Swift containers nor objects.

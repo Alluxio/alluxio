@@ -63,7 +63,7 @@ documentation for instructions on how to set configuration properties.
 
 {% include Running-Alluxio-on-Mesos/alluxio-mesos.md %}
 
-### Deploy with Alluxio tarball url
+### Deploy with Alluxio tarball URL
 
 From anywhere with Alluxio installed:
 

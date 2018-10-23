@@ -32,14 +32,14 @@ Building a new under storage connector involves:
 - Bundling up the implementation and transitive dependencies in an uber JAR
 
 A reference implementation can be found in the [alluxio-extensions](https://github.com/Alluxio/alluxio-extensions/tree/master/underfs/tutorial)
-repository. In the rest of this section we describe the steps involved in writing a new under
+repository. In the rest of this section, we describe the steps involved in writing a new under
 storage extension. The sample project, called `DummyUnderFileSystem`, uses maven as the build and
 dependency management tool, and forwards all operations to a local filesystem.
 
 ### Implement the Under Storage Interface
 
 The [HDFS Submodule](https://github.com/alluxio/alluxio/tree/master/underfs/hdfs) and [S3A 
-Submodule](https://github.com/alluxio/alluxio/tree/master/underfs/s3a) are two good examples of how
+Submodule](https://github.com/alluxio/alluxio/tree/master/underfs/s3a) are good examples of how
 to enable a storage system to serve as Alluxio's underlying storage.
 
 Step 1: Implement the interface `UnderFileSystem`
@@ -68,7 +68,7 @@ public class DummyUnderFileSystem extends ObjectUnderFileSystem {
 Step 2: Implement the interface `UnderFileSystemFactory`
 
 The under storage factory determines defines which paths the `UnderFileSystem` implementation
-supports, and how to create the `UnderFileSystem` implementation.
+supports and how to create the `UnderFileSystem` implementation.
 
 ```java
 public class DummyUnderFileSystemFactory implements UnderFileSystemFactory {
@@ -100,7 +100,7 @@ alluxio.underfs.dummy.DummyUnderFileSystemFactory
 Include all transitive dependencies of the extension project in the built JAR using either
 `maven-shade-plugin` or `maven-assembly`.
 
-In addition, to avoid collisions specify scope for the dependency `alluxio-core-common` as
+In addition, to avoid collisions, specify scope for the dependency `alluxio-core-common` as
 `provided`. The maven definition would look like:
 
 ```xml

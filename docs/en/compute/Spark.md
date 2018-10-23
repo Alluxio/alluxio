@@ -43,10 +43,10 @@ by following the [instructions]({{ site.baseurl }}{% link en/contributor/Buildin
 
 ## Basic Setup
 
-Step 1, distribute the Alluxio client jar across the nodes where Spark drivers or executors are
+Distribute the Alluxio client jar across the nodes where Spark drivers or executors are
 running. Specifically, put the client jar on the same local path (e.g. `{{site.ALLUXIO_CLIENT_JAR_PATH}}`) on each node.
 
-Step 2, add the Alluxio client jar to the classpath of Spark drivers and executors
+Add the Alluxio client jar to the classpath of Spark drivers and executors
 in order for Spark applications to use the client jar to read and write files in Alluxio.
 Specifically, add the following line to `spark/conf/spark-defaults.conf` on every node running
 Spark.

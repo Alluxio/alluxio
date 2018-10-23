@@ -38,7 +38,7 @@ Back up to a specific directory in the under storage.
 $ ./bin/alluxio fsadmin backup /alluxio/special_backups
 Successfully backed up journal to hdfs://mycluster/opt/alluxio/backups/alluxio-backup-2018-5-29-1527644810.gz
 ```
-Back up to a specific directory on the leader master's local filesystem.
+Back up to a specific directory on the leading master's local filesystem.
 ```
 $ ./bin/alluxio fsadmin backup /opt/alluxio/backups/ --local
 Successfully backed up journal to file:///opt/alluxio/backups/alluxio-backup-2018-5-29-1527644810.gz on master Master2
@@ -57,7 +57,7 @@ $ ./bin/alluxio fsadmin doctor configuration
 
 The `report` command provides Alluxio running cluster information.
 
-If no argument is passed in, `report` will report the leader master, worker number, and capacity information.
+If no argument is passed in, `report` will report the leading master, worker number, and capacity information.
 
 ```bash
 $ ./bin/alluxio fsadmin report

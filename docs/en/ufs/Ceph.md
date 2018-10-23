@@ -66,7 +66,7 @@ as `http://<rgw-hostname>:<rgw-port>/auth/1.0`.
 
 ## Running Alluxio Locally with Ceph
 
-After everything is configured, you can start up Alluxio locally to see that everything works.
+Start up Alluxio locally to see that everything works.
 
 ```bash
 $ ./bin/alluxio format
@@ -76,13 +76,13 @@ $ ./bin/alluxio-start.sh local
 This should start an Alluxio master and an Alluxio worker. You can see the master UI at
 [http://localhost:19999](http://localhost:19999).
 
-Next, you can run a simple example program:
+Run a simple example program:
 
 ```bash
 $ ./bin/alluxio runTests
 ```
 
-After this succeeds, you can visit your bucket/container to verify the files and directories created
+Visit your bucket/container to verify the files and directories created
 by Alluxio exist.
 
 If using the S3A connector, you should see files named like:

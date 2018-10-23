@@ -161,7 +161,7 @@ By default, the Vagrant script creates a
 [Security Group](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-network-security.html)
 named *alluxio-vagrant-test* at
 [Region(**us-east-1**) and Availability Zone(**us-east-1b**)](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html).
-The security group will be set up automatically in the region with all inbound/outbound network
+The security group will be set up automatically in the region with all inbound and outbound network
 traffic opened. You can change the *security group*, *region* and *availability zone* in `ec2.yml`. Sometimes the default zone can be unavailable.
 Note: the keypair is associated with a specific region. For example, if you created a keypair in us-east-1, the keypair is invalid in other regions (like us-west-1).  If you ran into permission/connection errors, please first check the region/zone.
 
@@ -223,7 +223,7 @@ tests.
 You can login to [AWS web console](https://console.aws.amazon.com/console), then go to your S3
 console, and find some files written into your S3 bucket by the above tests.
 
-From a node in the cluster, you can ssh to other nodes in the cluster without password with:
+From a node in the cluster, you can SSH to other nodes in the cluster without password with:
 
 ```bash
 $ ssh AlluxioWorker1

@@ -15,13 +15,13 @@ performance). You can use this scheme to connect Alluxio with Minio server.
 
 ## Initial Setup
 
-First, the Alluxio binaries must be on your machine. You can either
+The Alluxio binaries must be on your machine. You can either
 [compile Alluxio]({{site.baseurl}}{% link en/contributor/Building-Alluxio-From-Source.md %}), or
 [download the binaries locally]({{site.baseurl}}{% link en/deploy/Running-Alluxio-Locally.md %}).
 
 ## Setup Minio
 
-You need to configure Alluxio to use under storage systems by modifying
+Configure Alluxio to use under storage systems by modifying
 `conf/alluxio-site.properties`. If it does not exist, create the configuration file from the
 template.
 

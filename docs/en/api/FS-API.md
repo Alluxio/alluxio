@@ -26,7 +26,7 @@ existing S3 workloads to use Alluxio.
 
 Alluxio provides access to data through a filesystem interface. Files in Alluxio offer write-once
 semantics: they become immutable after they have been written in their entirety and cannot be read
-before being completed. Alluxio provides two different Filesystem APIs, the Alluxio API and a Hadoop
+before being completed. Alluxio provides two different Filesystem APIs: the Alluxio API and a Hadoop
 compatible API. The Alluxio API provides additional functionality, while the Hadoop compatible API
 gives users the flexibility of leveraging Alluxio without having to modify existing code written
 using Hadoop's API.
@@ -116,14 +116,14 @@ Alluxio provides location policy to choose which workers to store the blocks of 
 Using Alluxio's Java API, users can set the policy in `CreateFileOptions` for writing files and
 `OpenFileOptions` for reading files into Alluxio.
 
-Users can simply override the default policy class in the
+Users can override the default policy class in the
 [configuration file]({{site.baseurl}}{% link en/basic/Configuration-Settings.md %}) at property
 `alluxio.user.file.write.location.policy.class`. The built-in policies include:
 
 * **LocalFirstPolicy (alluxio.client.file.policy.LocalFirstPolicy)**
 
-    Returns the local host first, and if the local worker doesn't have enough capacity of a block,
-    it randomly picks a worker from the active workers list. This is the default policy.
+    Returns the local worker first, and if it does not have enough capacity of a block,
+    randomly picks a worker from the active workers list. This is the default policy.
 
 * **MostAvailableFirstPolicy (alluxio.client.file.policy.MostAvailableFirstPolicy)**
 
@@ -140,7 +140,7 @@ Users can simply override the default policy class in the
 
 Alluxio supports custom policies, so you can also develop your own policy appropriate for your
 workload by implementing interface `alluxio.client.file.policy.FileWriteLocationPolicy`. Note that a
-default policy must have an empty constructor. And to use ASYNC_THROUGH write type, all the blocks
+default policy must have an empty constructor. And to use `ASYNC_THROUGH` write type, all the blocks
 of a file must be written to the same worker.
 
 ### Write Tier
@@ -161,7 +161,7 @@ With the AlluxioURI, the user may use any of the methods of `FileSystem` to acce
 ### Reading Data
 
 A `AlluxioURI` can be used to perform Alluxio FileSystem operations, such as modifying the file
-metadata, ie. ttl or pin state, or getting an input stream to read the file.
+metadata, ie. TTL or pin state, or getting an input stream to read the file.
 
 For example, to read a file:
 

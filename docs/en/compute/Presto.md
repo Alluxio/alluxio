@@ -203,7 +203,7 @@ Alternatively, modify `conf/hive-site.xml` to have:
 
 ### Enable data locality
 
-It is recommended to collocate Presto workers with Alluxio workers so that Presto workers can read data locally. An important option to enable in Presto is `hive.force-local-scheduling`, which forces splits to be
+It is recommended to co-locate Presto workers with Alluxio workers so that Presto workers can read data locally. An important option to enable in Presto is `hive.force-local-scheduling`, which forces splits to be
 scheduled on the same node as the Alluxio worker serving the split data. By default, `hive.force-local-scheduling` in Presto is set to `false`, and Presto will not attempt to schedule the work on the same machine as the Alluxio worker node.
 
 ### Increase parallelism

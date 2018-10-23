@@ -92,7 +92,7 @@ your `hdfs-site.xml` and `core-site.xml`. Make sure this configuration is set on
 alluxio.underfs.hdfs.configuration=/path/to/hdfs/conf/core-site.xml:/path/to/hdfs/conf/hdfs-site.xml
 ```
 
-Then, set the under storage address to `hdfs://nameservice/` (`nameservice` is the name of HDFS
+Set the under storage address to `hdfs://nameservice/` (`nameservice` is the name of HDFS
 service already configured in `core-site.xml`). To mount an HDFS subdirectory to Alluxio instead
 of the whole HDFS namespace, change the under storage address to something like
 `hdfs://nameservice/alluxio/data`.
@@ -170,7 +170,7 @@ $ bin/alluxio-start.sh local
 This will start one Alluxio master and one Alluxio worker locally. You can see the master UI at
 [http://localhost:19999](http://localhost:19999).
 
-Next, you can run a simple example program:
+Run a simple example program:
 
 ```bash
 $ bin/alluxio runTests
@@ -186,7 +186,7 @@ to verify the files and directories created by Alluxio exist. For this test, you
 files named like: `/default_tests_files/BASIC_CACHE_THROUGH` at
 [http://localhost:50070/explorer.html](http://localhost:50070/explorer.html)
 
-You can stop Alluxio any time by running:
+Stop Alluxio by running:
 
 ```bash
 $ bin/alluxio-stop.sh local
