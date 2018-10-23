@@ -119,7 +119,7 @@ $ ./bin/alluxio-start.sh local NoMount
 
 Options:
 
-* Start Alluxio as a superuser.
+* Start Alluxio as a super user.
 * Add the user to start Alluxio in [suderors](https://help.ubuntu.com/community/Sudoers).
 * Give limited sudo privileges to the running user (e.g., "alluxio") by adding the following line to
 `/etc/sudoers` on Linux:
