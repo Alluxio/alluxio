@@ -58,33 +58,37 @@ log4j.rootLogger=DEBUG, ${alluxio.logger.type}, ${alluxio.remote.logger.type}`
 ```
 
 ### Modifying Logging at Runtime
-TODO: this seems awfully familiar, similar to the analogous section in Command Line Interface???
 It is recommended to modify the `log4j.properties` file, however if there is a need to modify
 logging parameters without stopping nodes in the cluster, then you may modify some parameters at
 runtime.
 
-The Alluxio shell comes with a `logLevel` command that allows you to get or change the log level of a
-particular class on specific master or worker instances.
+The Alluxio shell comes with a `logLevel` command that returns the current value of
+or updates the log level of a particular class on specific instances.
+Users are able to change Alluxio server-side log levels at runtime.
 
-The syntax is `alluxio logLevel --logName=NAME [--target=<master|worker|host:port>] [--level=LEVEL]`,
-where the `logName` indicates the logger's name, and `target` lists the Alluxio masters or
-workers to set. If parameter `level` is provided the command changes the logger level, otherwise it
-gets and displays the current logger level. `logName` typically represents the name of the class
-that is logging the information.
+The command follows the format `alluxio logLevel --logName=NAME [--target=<master|worker|host:port>] [--level=LEVEL]`,
+where:
+* `--logName <arg>` indicates the logger's class (e.g. `alluxio.master.file.DefaultFileSystemMaster`)
+* `--target <arg>` lists the Alluxio master or workers to set.
+The target could be of the form `<master|workers|host:webPort>` and multiple targets can be listed as comma-separated entries.
+The `host:webPort` format can only be used when referencing a worker.
+The default target value is all masters and workers.
+* `--level <arg>` If provided, the command changes to the given logger level,
+otherwise it returns the current logger level.
 
-For example, this command sets the class `alluxio.heartbeat.HeartbeatContext`'s logger level to
-DEBUG on master as well as a worker at `192.168.100.100:30000`.
+For example, the following command sets the logger level of the class `alluxio.heartbeat.HeartbeatContext` to
+`DEBUG` on master as well as a worker at `192.168.100.100:30000`:
 
 ```bash
 alluxio logLevel --logName=alluxio.heartbeat.HeartbeatContext --target=master,192.168.100.100:30000 --level=DEBUG
 ```
 
-And the following command gets all workers' log level on class `alluxio.heartbeat.HeartbeatContext`
+And the following command returns the log level of the class `alluxio.heartbeat.HeartbeatContext` among all the workers:
 ```bash
 alluxio logLevel --logName=alluxio.heartbeat.HeartbeatContext --target=workers
 ```
 
-For more information, refer to the help text of the `logLevel` commmand by running `./bin/alluxio logLevel`
+For more information, refer to the help text of the `logLevel` command by running `./bin/alluxio logLevel`
 
 ## Remote Logging
 

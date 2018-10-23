@@ -61,7 +61,7 @@ possible values like "oss-us-west-1.aliyuncs.com", "oss-cn-shanghai.aliyuncs.com
 ([OSS Internet Endpoint](https://intl.aliyun.com/help/doc-detail/31837.htm)).
 
 After these changes, Alluxio should be configured to work with OSS as its under storage system,
-and you can try to run alluxio locally with OSS.
+and you can try to run Alluxio locally with OSS.
 
 ### Nested Mount
 An OSS location can be mounted at a nested directory in the Alluxio namespace to have unified

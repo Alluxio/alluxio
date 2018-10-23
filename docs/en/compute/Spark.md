@@ -62,7 +62,7 @@ This section shows how to use Alluxio as input and output sources for your Spark
 
 ### Access Data Only in Alluxio
 
-First, we will copy some local data to the Alluxio file system. Put the file `LICENSE` into Alluxio,
+Copy local data to the Alluxio file system. Put the file `LICENSE` into Alluxio,
 assuming you are in the Alluxio project directory:
 
 ```bash

@@ -138,7 +138,7 @@ where:
 * `--logName <arg>` indicates the logger's class (e.g. `alluxio.master.file.DefaultFileSystemMaster`)
 * `--target <arg>` lists the Alluxio master or workers to set.
 The target could be of the form `<master|workers|host:webPort>` and multiple targets can be listed as comma-separated entries.
-The `host:webPort` form only works with worker hostnames and ports.
+The `host:webPort` format can only be used when referencing a worker.
 The default target value is all masters and workers.
 * `--level <arg>` If provided, the command changes to the given logger level,
 otherwise it returns the current logger level.

@@ -33,17 +33,17 @@ full POSIX semantics and will have specific limitations.  Please read the [secti
 
 ### Mount Alluxio-FUSE
 
-After having properly configured and started the alluxio cluster, and from the node where you wish
+After having properly configured and started the Alluxio cluster, and from the node where you wish
 to mount Alluxio, point a shell to your `$ALLUXIO_HOME` and run:
 
 ```bash
 $ integration/fuse/bin/alluxio-fuse mount mount_point [alluxio_path]
 ```
 
-This will spawn a background user-space java process (alluxio-fuse) that will mount the alluxio path
+This will spawn a background user-space java process (alluxio-fuse) that will mount the Alluxio path
 specified at `alluxio_path` to the local file system on the specified `mount_point`.
 
-For example, the following command will mount the alluxio path `/people` to the folder `/mnt/people`
+For example, the following command will mount the Alluxio path `/people` to the folder `/mnt/people`
 in the local file system.
 
 ```bash
@@ -99,7 +99,7 @@ pid	mount_point	alluxio_path
 ### Configure Alluxio client options
 
 Alluxio-FUSE is based on the standard Java client API `alluxio-core-client-fs` to perform its
-operations. You might want to customize the behaviour of the alluxio client used by Alluxio-FUSE the
+operations. You might want to customize the behaviour of the Alluxio client used by Alluxio-FUSE the
 same way you would for any other client application.
 
 One possibility, for example, is to edit `$ALLUXIO_HOME/conf/alluxio-site.properties` and set your

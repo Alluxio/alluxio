@@ -31,7 +31,7 @@ To run in standalone mode, do the following:
   filesystem (e.g., `alluxio.underfs.address=/tmp`).
 
 * Turn on remote login service so that `ssh localhost` can succeed. To avoid the need to
-repeatedly input the password, you can add the public ssh key for the host into
+repeatedly input the password, you can add the public SSH key for the host into
 `~/.ssh/authorized_keys`. See [this tutorial](http://www.linuxproblem.org/art_9.html) for more
 details.
 
@@ -119,7 +119,7 @@ $ ./bin/alluxio-start.sh local NoMount
 
 Options:
 
-* Start Alluxio as a superuser.
+* Start Alluxio as a super user.
 * Add the user to start Alluxio in [suderors](https://help.ubuntu.com/community/Sudoers).
 * Give limited sudo privileges to the running user (e.g., "alluxio") by adding the following line to
 `/etc/sudoers` on Linux:

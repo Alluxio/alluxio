@@ -13,7 +13,7 @@ This document describes the following security related features in Alluxio.
 
 1. [User Authentication](#authentication): 
 Alluxio filesystem will differentiate users accessing the service
-when authentication mode is `SIMPLE` (i.e., `alluxio.security.authentication.type=SIMPLE`).
+when the authentication mode is `SIMPLE` (i.e., `alluxio.security.authentication.type=SIMPLE`).
 Alluxio also supports other authentication modes like `NOSASL` which ignores the difference among users.
 Having authentication mode to be `SIMPLE` is required for authorization.
 1. [User Authorization](#authorization): 
@@ -22,7 +22,7 @@ the POSIX permissions model of the files or directories to access,
 when `alluxio.security.authorization.permission.enabled=true`.
 Note that, authentication cannot be `NOSASL` as authorization requires user information.
 1. [Access Control Lists](#Access-Control-Lists): In addition to the POSIX permission model, Alluxio
-implements an Access Control List(ACL) model similar to those found in Linux and HDFS. The ACL model
+implements an Access Control List (ACL) model similar to those found in Linux and HDFS. The ACL model
 is more flexible and allows administrators to manage any user or group's permissions to any file
 system object. 
 1. [Impersonation](#impersonation): Alluxio supports user impersonation so one user can access
@@ -120,8 +120,8 @@ Any users belong to this group are also super users.
 
 ### Initialized directory and file permissions
 
-When a file is created, it is initally assigned fully opened permissions of `666` by default.
-Similarly, a directory is initally assigned with `777` permissions.
+When a file is created, it is initially assigned fully opened permissions of `666` by default.
+Similarly, a directory is initially assigned with `777` permissions.
 A umask is applied on the initial permissions; this is configured by the
 `alluxio.security.authorization.permission.umask` property, with a default of `022`.
 Without any property modifications, files and directories are created with `644` and `755` permissions respectively.

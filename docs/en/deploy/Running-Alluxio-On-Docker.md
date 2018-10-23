@@ -69,16 +69,16 @@ ef2f3b5be1a3        alluxio:1.8.0       "/entrypoint.sh work…"   6 days ago   
 If you don't see the containers, run `docker logs` on their container ids to see what happened.
 The container ids were printed by the `docker run` command, and can also be found in `docker ps -a`.
 
-Next, visit `instance_hostname:19999` to view the Alluxio web UI. You should see one worker connected and providing
+Visit `instance_hostname:19999` to view the Alluxio web UI. You should see one worker connected and providing
 `1024MB` of space.
 
-To run tests, first enter the worker container
+To run tests, enter the worker container
 
 ```bash
 $ docker exec -it ${worker_container_id} /bin/bash
 ```
 
-Then run the tests
+Run the tests
 
 ```bash
 $ cd /opt/alluxio

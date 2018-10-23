@@ -59,15 +59,15 @@ storage optimizations similar to L1/L2 cpu caches.
 
 The easiest way to configure Alluxio storage is to use the default single-tier mode.
 
-Note that this doc refers to local storage and terms like `mount` refer to mounting in the local
+Note that this page refers to local storage and terms like `mount` refer to mounting in the local
 filesystem, not to be confused with Alluxio's `mount` concept for external under storages.
 
 On startup, Alluxio will provision a ramdisk on every worker and take a percentage of the
 system's total memory. This ramdisk will be used as the only storage medium allocated to each
 Alluxio worker.
 
-Alluxio storage is configured through Alluxio's configuration in `alluxio-site.properties`. See the
-[configuration docs]({{ '/en/basic/Configuration-Settings.html' | relativize_url }}) for detailed
+Alluxio storage is configured through Alluxio's configuration in `alluxio-site.properties`. See
+[configuration settings]({{ '/en/basic/Configuration-Settings.html' | relativize_url }}) for detailed
 information.
 
 A common modification to the default is to explicitly set the ramdisk size. For example, to set the

@@ -19,7 +19,7 @@ the cluster as a whole would be unavailable. We highly recommend running Alluxio
 ### Prerequisites
 
 * A single master node, and 1 or more worker nodes
-* SSH login without password to all nodes. You can add a public ssh key for the host into
+* SSH login without password to all nodes. You can add a public SSH key for the host into
 `~/.ssh/authorized_keys`. See [this tutorial](http://www.linuxproblem.org/art_9.html) for more details.
 * A shared storage system to mount to Alluxio (accessible by all Alluxio nodes). For example, HDFS or Amazon S3.
 
@@ -117,7 +117,7 @@ that during the failover to a standby master, clients may experience brief delay
 ### Prerequisites
 
 * Multiple master nodes, and 1 or more worker nodes
-* SSH login without password to all nodes. You can add a public ssh key for the host into
+* SSH login without password to all nodes. You can add a public SSH key for the host into
 `~/.ssh/authorized_keys`. See [this tutorial](http://www.linuxproblem.org/art_9.html) for more details.
 * A shared storage system to mount to Alluxio (accessible by all Alluxio nodes). For example, HDFS or Amazon S3.
 * A [ZooKeeper](http://zookeeper.apache.org/) instance. Alluxio masters use ZooKeeper for leader election,
