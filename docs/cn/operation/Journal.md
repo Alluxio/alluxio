@@ -2,7 +2,7 @@
 layout: global
 title: 日志
 nickname: 日志
-group: Features
+group: Operations
 priority: 0
 ---
 

@@ -2,7 +2,7 @@
 layout: global
 title: 在HDFS安全认证模式上配置Alluxio
 nickname: Alluxio使用secure HDFS
-group: Under Store
+group: Under Stores
 priority: 3
 ---
 

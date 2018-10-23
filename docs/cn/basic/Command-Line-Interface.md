@@ -1,7 +1,7 @@
 ---
 layout: global
 title: 命令行接口
-group: Features
+group: Basic
 priority: 0
 ---
 

@@ -2,7 +2,7 @@
 layout: global
 title: 在MapR-FS上配置Alluixo
 nickname: Alluxio使用MapR-FS
-group: Under Store
+group: Under Stores
 priority: 3
 ---
 

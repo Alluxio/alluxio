@@ -2,7 +2,7 @@
 layout: global
 title: Configuring Alluxio with Azure Blob Store
 nickname: Alluxio使用Azure Blob Store
-group: Under Store
+group: Under Stores
 priority: 0
 ---
 

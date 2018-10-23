@@ -2,7 +2,7 @@
 layout: global
 title: 在Alluxio上运行Apache HBase
 nickname: Apache HBase
-group: Frameworks
+group: Compute
 priority: 2
 ---
 

@@ -2,7 +2,7 @@
 layout: global
 title: （实验）Key Value Store客户端API
 nickname: （实验）Key Value Store API
-group: Features
+group: APIs
 priority: 99
 ---
 

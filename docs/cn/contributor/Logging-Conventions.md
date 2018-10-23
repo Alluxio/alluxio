@@ -2,7 +2,7 @@
 layout: global
 title: Logging Configuration
 nickname: 运行日志选项
-group: Resources
+group: Contributor Resources
 priority: 3
 ---
 

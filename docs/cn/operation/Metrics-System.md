@@ -1,8 +1,8 @@
 ---
 layout: global
 title: 度量指标系统
-group: Features
-priority: 3
+group: Operations
+priority: 0
 ---
 
 * 内容列表

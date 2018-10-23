@@ -2,7 +2,7 @@
 layout: global
 title: REST API
 nickname: REST API
-group: Clients
+group: APIs
 priority: 3
 ---
 

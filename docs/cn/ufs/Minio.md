@@ -2,7 +2,7 @@
 layout: global
 title: Alluxio使用Minio
 nickname: Alluxio使用Minio
-group: Under Store
+group: Under Stores
 priority: 0
 ---
 

@@ -1,7 +1,7 @@
 ---
 layout: global
-group: Features
 title: Web界面
+group: Basic
 priority: 6
 ---
 

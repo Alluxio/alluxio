@@ -2,7 +2,7 @@
 layout: global
 title: Go 客户端
 nickname: Go 客户端
-group: Clients
+group: APIs
 priority: 4
 ---
 

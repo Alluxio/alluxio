@@ -2,7 +2,7 @@
 layout: global
 title: 在Alluxio上运行Spark
 nickname: Apache Spark
-group: Frameworks
+group: Compute
 priority: 0
 ---
 

@@ -2,7 +2,7 @@
 layout: global
 title: 如何开发单元测试
 nickname: 如何开发单元测试
-group: Resources
+group: Contributor Resources
 priority: 3
 ---
 

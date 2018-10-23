@@ -2,6 +2,8 @@
 layout: global
 group: Under Store
 title: 底层存储扩展
+group: Under Stores
+priority: 100
 ---
 
 * 内容列表

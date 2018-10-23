@@ -1,8 +1,8 @@
 ---
 layout: global
-title: Alluxio配置项列表
-group: Resources
-priority: 4
+title: 配置项列表
+group: Reference
+priority: 0
 ---
 
 * 内容列表

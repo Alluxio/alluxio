@@ -2,7 +2,7 @@
 layout: global
 title: 层级化的本地性
 nickname: 层级化的本地性
-group: Features
+group: Advanced
 priority: 1
 ---
 

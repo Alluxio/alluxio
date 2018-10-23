@@ -2,7 +2,7 @@
 layout: global
 title: 编译Alluxio源代码
 nickname: 编译Alluxio源代码
-group: Resources
+group: Contributor Resources
 priority: 1
 ---
 

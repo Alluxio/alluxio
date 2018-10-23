@@ -2,7 +2,7 @@
 layout: global
 title: 在NFS上配置Alluxio
 nickname: Alluxio使用NFS
-group: Under Store
+group: Under Stores
 priority: 5
 ---
 

@@ -1,8 +1,8 @@
 ---
 layout: global
 title: 远程记录日志
-group: Features
-priority: 5
+group: Operations
+priority: 0
 ---
 
 * 内容列表

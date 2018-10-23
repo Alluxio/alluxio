@@ -1,9 +1,9 @@
 ---
 layout: global
-title: Alluxio存储
-nickname: Alluxio存储
-group: Features
-priority: 1
+title: Alluxio存储管理
+nickname: Alluxio存储管理
+group: Advanced
+priority: 0
 ---
 
 * 内容列表

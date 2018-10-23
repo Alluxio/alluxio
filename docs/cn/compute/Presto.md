@@ -2,7 +2,7 @@
 layout: global
 title: 在Alluxio上运行Presto
 nickname: Presto
-group: Frameworks
+group: Compute
 priority: 2
 ---
 

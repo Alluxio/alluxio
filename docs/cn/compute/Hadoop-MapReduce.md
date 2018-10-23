@@ -2,7 +2,7 @@
 layout: global
 title: 在Alluxio上运行Hadoop MapReduce
 nickname: Apache Hadoop MapReduce
-group: Frameworks
+group: Compute
 priority: 1
 ---
 

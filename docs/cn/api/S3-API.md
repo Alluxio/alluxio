@@ -2,7 +2,7 @@
 layout: global
 title: S3 Client
 nickname: S3 Client
-group: Clients
+group: APIs
 priority: 6
 ---
 

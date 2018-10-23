@@ -1,8 +1,8 @@
 ---
 layout: global
-title: Alluxio开发与代码规范
-nickname: Alluxio开发与代码规范
-group: Resources
+title: 代码规范
+nickname: 代码规范
+group: Contributor Resources
 priority: 2
 ---
 

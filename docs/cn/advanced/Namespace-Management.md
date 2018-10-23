@@ -1,9 +1,9 @@
 ---
 layout: global
-title: 统一透明命名空间
-nickname: 统一命名空间
-group: Features
-priority: 5
+title: 命名空间管理
+nickname: 命名空间管理
+group: Advanced
+priority: 0
 ---
 
 * 内容列表

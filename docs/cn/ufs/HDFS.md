@@ -2,7 +2,7 @@
 layout: global
 title: 在HDFS上配置Alluxio
 nickname: Alluxio使用HDFS
-group: Under Store
+group: Under Stores
 priority: 3
 ---
 

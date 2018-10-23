@@ -2,8 +2,8 @@
 layout: global
 title: 安全性
 nickname: 安全性
-group: Features
-priority: 1
+group: Advanced
+priority: 0
 ---
 
 * 内容列表

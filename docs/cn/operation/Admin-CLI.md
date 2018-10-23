@@ -2,6 +2,7 @@
 layout: global
 title: 管理员命令行接口
 group: Features
+group: Operations
 priority: 0
 ---
  

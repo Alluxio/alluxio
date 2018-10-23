@@ -2,7 +2,7 @@
 layout: global
 title: 使用FUSE挂载Alluxio
 nickname: Alluxio-FUSE
-group: Features
+group: APIs
 priority: 7
 ---
 

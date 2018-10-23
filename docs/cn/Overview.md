@@ -2,6 +2,7 @@
 layout: global
 title: 概览
 group: Home
+priority: 0
 ---
 
 * 内容列表
