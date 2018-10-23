@@ -93,7 +93,7 @@ View Alluxio WebUI at `http://master_hostname:19999` and you can see the directo
 
 ### Start Hive metastore
 
-Next, ensure your Hive metastore service is running. Hive metastore listens on port `9083` by
+Ensure your Hive metastore service is running. Hive metastore listens on port `9083` by
 default. If it is not running,
 
 ```bash

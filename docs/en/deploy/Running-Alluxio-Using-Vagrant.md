@@ -140,7 +140,7 @@ $ export AWS_ACCESS_KEY_ID=<your access key>
 $ export AWS_SECRET_ACCESS_KEY=<your secret access key>
 ```
 
-Next generate your EC2
+Generate your EC2
 [Key Pairs](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html). Make sure to set
 the permissions of your private key file that only you can read it:
 
@@ -289,7 +289,7 @@ If you are new to Google Cloud, create a billing account and project at the
 familiar with Google Compute Engine, you may want to review the
 [documentation](https://cloud.google.com/compute/docs) first.
 
-Next, you will need your JSON keys for your GCE project. Go to the
+You will need your JSON keys for your GCE project. Go to the
 [Service Accounts](https://console.cloud.google.com/iam-admin/serviceaccounts) section of the
 [IAM & Admin](https://console.cloud.google.com/projectselector/iam-admin) page in the Console.
 

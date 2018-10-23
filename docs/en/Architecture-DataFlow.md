@@ -233,7 +233,7 @@ any future reads of the data can be served from local memory directly.
 
 #### Write back to UFS (`ASYNC_THROUGH`)
 
-Lastly, Alluxio provides a write type of `ASYNC_THROUGH`. With `ASYNC_THROUGH`,
+Alluxio provides a write type of `ASYNC_THROUGH`. With `ASYNC_THROUGH`,
 data is written synchronously to an Alluxio worker and asynchronously to the
 under storage system. `ASYNC_THROUGH` can provide data write at memory speed
 while still persisting the data.
