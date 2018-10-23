@@ -57,7 +57,7 @@ applications to work. Alluxio will transparently and dynamically load data on de
 storage.
 - To help more hot data fit in Alluxio storage space, you can configure Alluxio to leverage storage
 resource like SSD and HDD in addition to memory to extend Alluxio storage capacity. You can read
-more about Alluxio storage setup [here]({{site.baseurl}}{% link 
+more about Alluxio storage setup [here]({{site.baseurl}}{% link
 en/advanced/Alluxio-Storage-Management.md %}).
 
 ## Does Alluxio support a fault tolerant mode?
@@ -81,7 +81,7 @@ No, Alluxio runs on different under storage systems like HDFS, Amazon S3, Swift.
 
 ## How can I learn more about Alluxio?
 
-You can read the recent [blogs](https://alluxio.org/resources/posts) and 
+You can read the recent [blogs](https://alluxio.org/resources/posts) and
 [presentations](https://alluxio.org/resources/presentations).
 
 We also hosts meetup group for Alluxio and please join
