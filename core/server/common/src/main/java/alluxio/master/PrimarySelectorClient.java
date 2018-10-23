@@ -154,8 +154,8 @@ public final class PrimarySelectorClient extends AbstractPrimarySelector
       client.delete().forPath(mLeaderFolder + mName);
     }
     LOG.info("Creating zk path: {}{}", mLeaderFolder, mName);
-    client.create().creatingParentsIfNeeded().withMode(CreateMode.EPHEMERAL).
-        forPath(mLeaderFolder + mName);
+    client.create().creatingParentsIfNeeded().withMode(CreateMode.EPHEMERAL)
+        .forPath(mLeaderFolder + mName);
     LOG.info("{} is now the leader.", mName);
     try {
       waitForState(State.SECONDARY);
