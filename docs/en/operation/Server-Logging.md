@@ -29,7 +29,9 @@ By default Alluxio processes' log files can be found under `${ALLUXIO_HOME}/logs
 ### Configuring the Log Location 
 
 The location of the logs is determined by the `alluxio.logs.dir` property. This is a JVM
-property which cannot be set in the `alluxio-site.properties` file. See the
+property which cannot be set in the `alluxio-site.properties` file. 
+TODO: if stating where the property cannot be set, please state where it CAN be set
+See the
 [configuration settings page]({{site.baseurl}}{% link en/basic/Configuration-Settings.md %}#configuration-sources)
 for more information on how to set JVM properties for Alluxio.
 
@@ -57,7 +59,7 @@ log4j.rootLogger=DEBUG, ${alluxio.logger.type}, ${alluxio.remote.logger.type}`
 ```
 
 ### Modifying Logging at Runtime
-
+TODO: this seems awfully familiar, similar to the analogous section in Command Line Interface???
 It is recommended to modify the `log4j.properties` file, however if there is a need to modify
 logging parameters without stopping nodes in the cluster, then you may modify some parameters at
 runtime.
@@ -174,9 +176,9 @@ also go to the log server.
 
 ### Verify the Log Server has Started
 
-First, `ssh` to the machine on which log server is running.
+SSH to the machine on which log server is running.
 
-Second, go to the directory where the log server has been configured to store logs received from
+Go to the directory where the log server has been configured to store logs received from
 other Alluxio servers. In the above example, the directory is `/tmp/alluxio_remote_logs`.
 
 ```bash

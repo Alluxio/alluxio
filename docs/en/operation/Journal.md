@@ -97,7 +97,7 @@ If the restore succeeds, you should see a log message along the lines of
 ```
 INFO AlluxioMasterProcess - Restored 57 entries from backup
 ```
-in the leader master logs.
+in the leading master logs.
 
 ### Changing masters
 
@@ -116,7 +116,7 @@ When running with a single master, the journal folder size will grow indefinitel
 as metadata operations are written to journal log files. To address this, production
 deployments should run in HA mode with multiple Alluxio masters. The standby
 masters will create checkpoints of the master state and clean up the logs that
-were written prior to the checkpoints. For example, if 3 million alluxio files were
+were written prior to the checkpoints. For example, if 3 million Alluxio files were
 created and then 2 million were deleted, the journal logs would contain 5 million
 total entries. Then if a checkpoint is taken, the checkpoint will contain only the
 metadata for the 1 million remaining files, and the original 5 million entries will be deleted.
@@ -127,10 +127,10 @@ the value lower will reduce the amount of disk space needed by the journal at th
 cost of additional work for the standby masters.
 
 If HA mode is not an option, it is possible to run a master on the same node as a
-dedicated secondary master. The second master exists only to write checkpoints, and
-will not serve client requests if the leader master dies. In this setup, both
+dedicated standby master. This second master exists only to write checkpoints, and
+will not serve client requests if the leading master dies. In this setup, both
 masters have similar memory requirements since they both need to hold all Alluxio
-metadata in memory. To start a dedicated secondary master for writing periodic checkpoints,
+metadata in memory. To start a dedicated standby master for writing periodic checkpoints,
 run
 
 ```bash

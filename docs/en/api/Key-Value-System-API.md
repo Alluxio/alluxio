@@ -18,8 +18,8 @@ Like files in Alluxio filesystem, the semantics of key-value system are also wri
 * Users can create a key-value store and insert key-value pairs into the store. A store becomes immutable after it is complete.
 * Users can open key-value stores after they are complete.
 
-Each single key-value store is denoted by an AlluxioURI like `alluxio://192.168.1.200:19998/path/my-kvstore`,
-it means master address is 192.168.1.200, PRC port is 19998, key-value store path is `/path/my-kvstore`.
+Each single key-value store is denoted by an AlluxioURI of the form `alluxio://192.168.1.200:19998/path/my-kvstore`,
+where the master address is 192.168.1.200, the PRC port is 19998, and the key-value store path is `/path/my-kvstore`.
 Depending on the total size and block size specified by the user, a single key-value
 store may consist of one or multiple partitions, but the internal is managed by Alluxio and thus
 transparent to users.
@@ -43,8 +43,8 @@ Key-Value support in Alluxio is disabled by default, and it can be enabled in Al
 
 ## Quick Test
 
-After enabling Key-Value support in Alluxio, you can run `./bin/alluxio runKVTest` to test whether
-the Key-Value system is running. You should see `Passed the test!` at the bottom of the output if
+After enabling Key-Value support in Alluxio, run `./bin/alluxio runKVTest` to test whether
+the Key-Value system is running. It should output `Passed the test!` if
 the Key-Value system is correctly started.
 
 ## Accessing Key-Value System in Java Application
@@ -62,11 +62,11 @@ a writer to add key-value pairs. For example:
 
 {% include Key-Value-Store-API/create-new-key-value.md %}
 
-Note that,
+Note that:
 
-* Before the writer closes, the store is not complete and can not be read;
-* It is possible that the store is larger than the maximum allowed size of one partition, and in
-this case, the writer will save key-value pairs into multiple partitions. But the switch is
+* Before the writer closes, the store is not complete and can not be read.
+* It is possible that the store is larger than the maximum allowed size of one partition.
+In this case, the writer will save key-value pairs into multiple partitions, but the switch is
 transparent.
 * The keys to insert should be sorted and with no duplicated keys.
 
@@ -97,8 +97,8 @@ a key-value store. It takes a key-value URI, and emits key-value pairs stored in
 ### MapReduce OutputFormat
 
 Similarly, Alluxio also provides implementations of `OutputFormat` and `OutputCommitter` for Hadoop
- MapReduce programs to create a key-value store by taking a key-value URI, and saving key-value
- pairs to the key-value store:
+MapReduce programs to create a key-value store by taking a key-value URI, and saving key-value
+pairs to the key-value store:
 
 {% include Key-Value-Store-API/set-output-format.md %}
 

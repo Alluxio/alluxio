@@ -21,7 +21,7 @@ machines.You can either
 en/contributor/Building-Alluxio-From-Source.md %}), or [download the precompiled binaries
 directly]({{site.baseurl}}{% link en/deploy/Running-Alluxio-Locally.md %}).
 
-Also, in preparation for using OSS with alluxio, create a bucket or use an existing bucket. You
+In preparation for using OSS with Alluxio, create a bucket or use an existing bucket. You
 should also note the directory you want to use in that bucket, either by creating a new
 directory in the bucket, or using an existing one. For the purposes of this guide, the OSS bucket
 name is called `OSS_BUCKET`, and the directory in that bucket is called `OSS_DIRECTORY`. Also, for
@@ -38,15 +38,15 @@ either mounted at the root of the Alluxio namespace or at a nested directory.
 
 ### Root Mount
 
-You need to configure Alluxio to use OSS as its under storage system. The first modification is to
-specify an existing OSS bucket and directory as the under storage system by modifying
+Configure Alluxio to use OSS as its under storage system.
+Specify an existing OSS bucket and directory as the under storage system by modifying
 `conf/alluxio-site.properties` to include:
 
 ```
 alluxio.underfs.address=oss://<OSS_BUCKET>/<OSS_DIRECTORY>/
 ```
 
-Next you need to specify the Aliyun credentials for OSS access. In `conf/alluxio-site.properties`,
+Specify the Aliyun credentials for OSS access. In `conf/alluxio-site.properties`,
 add:
 
 ```
@@ -55,8 +55,8 @@ fs.oss.accessKeySecret=<OSS_ACCESS_KEY_SECRET>
 fs.oss.endpoint=<OSS_ENDPOINT>
 ```
 
-Here `fs.oss.accessKeyId` is the Access Key Id string and `fs.oss.accessKeySecret` is the Access
-Key Secret string, which are managed in [AccessKeys](https://ak-console.aliyun.com) in Aliyun UI.
+Here `fs.oss.accessKeyId` is the access Key id string and `fs.oss.accessKeySecret` is the access
+key secret string, which are managed in [AccessKeys](https://ak-console.aliyun.com) in Aliyun UI.
 `fs.oss.endpoint` is the endpoint of this bucket, which can be found in the Bucket overview with
 possible values like "oss-us-west-1.aliyuncs.com", "oss-cn-shanghai.aliyuncs.com"
 ([OSS Internet Endpoint](https://intl.aliyun.com/help/doc-detail/31837.htm)).
@@ -80,7 +80,7 @@ $ ./bin/alluxio fs mount --option fs.oss.accessKeyId=<OSS_ACCESS_KEY_ID> \
 
 ## Running Alluxio Locally with OSS
 
-After everything is configured, you can start up Alluxio locally to see that everything works.
+Start up Alluxio locally to see that everything works.
 
 ```bash
 $ bin/alluxio format
@@ -90,13 +90,13 @@ $ bin/alluxio-start.sh local
 This should start an Alluxio master and an Alluxio worker. You can see the master UI at
 [http://localhost:19999](http://localhost:19999).
 
-Next, you can run a simple example program:
+Run a simple example program:
 
 ```bash
 $ bin/alluxio runTests
 ```
 
-After this succeeds, you can visit your OSS directory `oss://<OSS_BUCKET>/<OSS_DIRECTORY>` to verify the files
+Visit your OSS directory `oss://<OSS_BUCKET>/<OSS_DIRECTORY>` to verify the files
 and directories created by Alluxio exist. For this test, you should see files named like
 `OSS_BUCKET/OSS_DIRECTORY/default_tests_files/BasicFile_CACHE_PROMOTE_MUST_CACHE`.
 

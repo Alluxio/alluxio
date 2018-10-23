@@ -12,7 +12,7 @@ priority: 3
 Alluxio-FUSE is a feature that allows mounting the distributed Alluxio File System as a standard
 file system on most flavors of Unix. By using this feature, standard bash tools (for example, `ls`,
 `cat` or `mkdir`) will have basic access to the distributed Alluxio data store. More importantly,
-with FUSE your application written in any language like C, C++, Python, Ruby, Perl, Java etc can
+with FUSE, an application written in any language like C, C++, Python, Ruby, Perl, or Java, can
 interact with Alluxio by using standard POSIX APIs like `open, write, read`, without any Alluxio
 client integration or set up.
 
@@ -103,7 +103,7 @@ operations. You might want to customize the behaviour of the alluxio client used
 same way you would for any other client application.
 
 One possibility, for example, is to edit `$ALLUXIO_HOME/conf/alluxio-site.properties` and set your
-specific alluxio client options. Note that these changes should be before Alluxio-FUSE starts.
+specific Alluxio client options. Note that these changes should be before Alluxio-FUSE starts.
 
 ### Configure mount point options
 

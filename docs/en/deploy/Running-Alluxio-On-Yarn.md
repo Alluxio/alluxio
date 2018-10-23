@@ -148,7 +148,7 @@ match the hostname used by YARN for one of the hosts in the cluster. If you pass
 YARN is using hostnames, the master cannot be started.
 
 The Alluxio [user mailing list](https://groups.google.com/forum/#!forum/alluxio-users) is
-a good resource for getting help if the log messages aren't enough.
+a good resource for getting help if the log messages are insufficient.
 
 ## Configure yarn.application.classpath
 

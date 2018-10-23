@@ -79,7 +79,7 @@ metadata served by Alluxio.
 
 Clients and workers send metrics data to the Alluxio master tagged with an application id. By
 default this will be in the form of 'app-[random number]'. This value can be configured through the
-property 'alluxio.user.app.id', so multiple processes can be combined into a logical application.
+property `alluxio.user.app.id`, so multiple processes can be combined into a logical application.
 
 Cluster metrics include:
 * Alluxio storage capacity
@@ -111,4 +111,4 @@ endpoint of the web UI. There is generally an Alluxio metric for every RPC invoc
 to the under store.
 
 Tags are additional pieces of metadata for the metric such as user name or under storage location.
-Tags can be used to further filter or aggregrate on various characteristics.
+Tags can be used to further filter or aggregate on various characteristics.
