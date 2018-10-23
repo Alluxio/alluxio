@@ -36,7 +36,7 @@ and is also part of the [Fedora distribution](https://fedoraproject.org/wiki/SIG
 Today, Alluxio is deployed in production by hundreds of organizations and runs on clusters exceeding 1,000 nodes.
 
 <p align="center">
-<img src="{{site.baseurl}}{% link img/stack.png %}" width="800" alt="Ecosystem"/>
+<img src="{{ "/img/stack.png" | relativize_url }}" width="800" alt="Ecosystem"/>
 </p>
 
 ## Benefits

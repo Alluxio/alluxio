@@ -56,8 +56,8 @@ It is not required for the input data set to fit in Alluxio storage space in ord
 applications to work. Alluxio will transparently load data on demand from the under storage.
 To help fit more data in Alluxio's storage space, configure Alluxio to leverage other storage
 resources such as SSD and HDD in addition to memory to extend Alluxio storage capacity.
-Read more about Alluxio storage setup [here]({{site.baseurl}}{% link 
-en/advanced/Alluxio-Storage-Management.md %}).
+Read more about Alluxio storage setup
+[here]({{site.baseurl}}{% link en/advanced/Alluxio-Storage-Management.md %}).
 
 ## Does Alluxio support a fault tolerant mode?
 
@@ -83,7 +83,7 @@ No, in addition to HDFS, Alluxio can also run on different under storage systems
 Read the recent [blogs](https://alluxio.org/resources/posts) and
 [presentations](https://alluxio.org/resources/presentations).
 
-Join the meetup group for Alluxio at 
+Join the meetup group for Alluxio at
 [http://www.meetup.com/Alluxio/](http://www.meetup.com/Alluxio/).
 Other Alluxio events can be found [here](https://alluxio.org/resources/events).
 
