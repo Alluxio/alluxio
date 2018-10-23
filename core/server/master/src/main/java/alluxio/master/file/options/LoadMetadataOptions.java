@@ -11,10 +11,14 @@
 
 package alluxio.master.file.options;
 
-import alluxio.underfs.UnderFileStatus;
+import alluxio.thrift.LoadMetadataTOptions;
+import alluxio.underfs.UfsStatus;
+import alluxio.wire.CommonOptions;
+import alluxio.wire.TtlAction;
 
 import com.google.common.base.Objects;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -22,9 +26,10 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class LoadMetadataOptions {
+  private CommonOptions mCommonOptions;
   private boolean mCreateAncestors;
-  private boolean mLoadDirectChildren;
-  private UnderFileStatus mUnderFileStatus;
+  private DescendantType mLoadDescendantType;
+  private UfsStatus mUfsStatus;
 
   /**
    * @return the default {@link LoadMetadataOptions}
@@ -34,16 +39,45 @@ public final class LoadMetadataOptions {
   }
 
   private LoadMetadataOptions() {
+    super();
+    mCommonOptions = CommonOptions.defaults();
     mCreateAncestors = false;
-    mLoadDirectChildren = false;
-    mUnderFileStatus = null;
+    mUfsStatus = null;
+    mLoadDescendantType = DescendantType.NONE;
+  }
+
+  /**
+   * @param options the thrift options to create from
+   */
+  public LoadMetadataOptions(LoadMetadataTOptions options) {
+    this();
+    if (options != null) {
+      if (options.isSetCommonOptions()) {
+        mCommonOptions = new CommonOptions(options.getCommonOptions());
+      }
+    }
+  }
+
+  /**
+   * @return the common options
+   */
+  public CommonOptions getCommonOptions() {
+    return mCommonOptions;
+  }
+
+  /**
+   * @return the type of descendants to load
+   */
+  public DescendantType getLoadDescendantType() {
+    return mLoadDescendantType;
   }
 
   /**
    * @return null if unknown, else the status of UFS path for which loading metadata
    */
-  public UnderFileStatus getUnderFileStatus() {
-    return mUnderFileStatus;
+  @Nullable
+  public UfsStatus getUfsStatus() {
+    return mUfsStatus;
   }
 
   /**
@@ -55,11 +89,26 @@ public final class LoadMetadataOptions {
   }
 
   /**
-   * @return the load direct children flag. It specifies whether the direct children should
-   * be loaded.
+   * @return the time to live of an inode
    */
-  public boolean isLoadDirectChildren() {
-    return mLoadDirectChildren;
+  public long getTtl() {
+    return getCommonOptions().getTtl();
+  }
+
+  /**
+   * @return the action after ttl is expired
+   */
+  public TtlAction getTtlAction() {
+    return getCommonOptions().getTtlAction();
+  }
+
+  /**
+   * @param options the common options
+   * @return the updated options object
+   */
+  public LoadMetadataOptions setCommonOptions(CommonOptions options) {
+    mCommonOptions = options;
+    return this;
   }
 
   /**
@@ -75,14 +124,11 @@ public final class LoadMetadataOptions {
   }
 
   /**
-   * Sets the load direct children flag.
-   *
-   * @param loadDirectChildren the load direct children flag. It specifies whether the direct
-   *                           children should be loaded.
+   * @param loadDescendantType the type of descendants to load
    * @return the updated object
    */
-  public LoadMetadataOptions setLoadDirectChildren(boolean loadDirectChildren) {
-    mLoadDirectChildren = loadDirectChildren;
+  public LoadMetadataOptions setLoadDescendantType(DescendantType loadDescendantType) {
+    mLoadDescendantType = loadDescendantType;
     return this;
   }
 
@@ -92,8 +138,30 @@ public final class LoadMetadataOptions {
    * @param status UFS status of path
    * @return the updated object
    */
-  public LoadMetadataOptions setUnderFileStatus(UnderFileStatus status) {
-    mUnderFileStatus = status;
+  public LoadMetadataOptions setUfsStatus(UfsStatus status) {
+    mUfsStatus = status;
+    return this;
+  }
+
+  /**
+   * Sets the ttl of a path.
+   *
+   * @param ttl time to live
+   * @return the updated object
+   */
+  public LoadMetadataOptions setTtl(long ttl) {
+    getCommonOptions().setTtl(ttl);
+    return this;
+  }
+
+  /**
+   * Sets the action after ttl expired.
+   *
+   * @param ttlAction action after ttl expired
+   * @return the updated object
+   */
+  public LoadMetadataOptions setTtlAction(TtlAction ttlAction) {
+    getCommonOptions().setTtlAction(ttlAction);
     return this;
   }
 
@@ -107,19 +175,23 @@ public final class LoadMetadataOptions {
     }
     LoadMetadataOptions that = (LoadMetadataOptions) o;
     return Objects.equal(mCreateAncestors, that.mCreateAncestors)
-        && Objects.equal(mLoadDirectChildren, that.mLoadDirectChildren)
-        && Objects.equal(mUnderFileStatus, that.mUnderFileStatus);
+        && Objects.equal(mCommonOptions, that.mCommonOptions)
+        && Objects.equal(mLoadDescendantType, that.mLoadDescendantType)
+        && Objects.equal(mUfsStatus, that.mUfsStatus);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mCreateAncestors, mLoadDirectChildren, mUnderFileStatus);
+    return Objects.hashCode(mCreateAncestors, mLoadDescendantType, mUfsStatus, mCommonOptions);
   }
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this).add("createAncestors", mCreateAncestors)
-        .add("loadDirectChildren", mLoadDirectChildren)
-        .add("underFileStatus", mUnderFileStatus).toString();
+    return Objects.toStringHelper(this)
+        .add("commonOptions", mCommonOptions)
+        .add("createAncestors", mCreateAncestors)
+        .add("loadDescendantLevels", mLoadDescendantType)
+        .add("ufsStatus", mUfsStatus)
+        .toString();
   }
 }

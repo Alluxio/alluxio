@@ -17,6 +17,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentSkipListSet;
 
 import javax.annotation.concurrent.ThreadSafe;
+import javax.annotation.Nullable;
 
 /**
  * A list of non-empty {@link TtlBucket}s sorted by ttl interval start time of each bucket.
@@ -45,7 +46,8 @@ public final class TtlBucketList {
    * @param inode the inode to be contained
    * @return the bucket containing the inode, or null if no such bucket exists
    */
-  private TtlBucket getBucketContaining(Inode<?> inode) {
+  @Nullable
+  private TtlBucket getBucketContaining(InodeView inode) {
     if (inode.getTtl() == Constants.NO_TTL) {
       // no bucket will contain a inode with NO_TTL.
       return null;
@@ -75,13 +77,17 @@ public final class TtlBucketList {
    *
    * @param inode the inode to be inserted
    */
-  public void insert(Inode<?> inode) {
+  public void insert(InodeView inode) {
     if (inode.getTtl() == Constants.NO_TTL) {
       return;
     }
 
-    TtlBucket bucket = getBucketContaining(inode);
-    if (bucket == null) {
+    TtlBucket bucket;
+    while (true) {
+      bucket = getBucketContaining(inode);
+      if (bucket != null) {
+        break;
+      }
       long ttlEndTimeMs = inode.getCreationTimeMs() + inode.getTtl();
       // No bucket contains the inode, so a new bucket should be added with an appropriate interval
       // start. Assume the list of buckets have continuous intervals, and the first interval starts
@@ -89,8 +95,15 @@ public final class TtlBucketList {
       // start time of this interval should be (ttlEndTimeMs / interval) * interval.
       long interval = TtlBucket.getTtlIntervalMs();
       bucket = new TtlBucket(interval == 0 ? ttlEndTimeMs : ttlEndTimeMs / interval * interval);
-      mBucketList.add(bucket);
+      if (mBucketList.add(bucket)) {
+        break;
+      }
+      // If we reach here, it means the same bucket has been concurrently inserted by another
+      // thread.
     }
+    // TODO(zhouyufa): Consider the concurrent situation that the bucket is expired and processed by
+    // the InodeTtlChecker, then adding the inode into the bucket is meaningless since the bucket
+    // will not be accessed again. (c.f. ALLUXIO-2821)
     bucket.addInode(inode);
   }
 
@@ -105,7 +118,7 @@ public final class TtlBucketList {
    *
    * @param inode the inode to be removed
    */
-  public void remove(Inode<?> inode) {
+  public void remove(InodeView inode) {
     TtlBucket bucket = getBucketContaining(inode);
     if (bucket != null) {
       bucket.removeInode(inode);

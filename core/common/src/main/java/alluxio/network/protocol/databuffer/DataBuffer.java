@@ -56,7 +56,7 @@ public interface DataBuffer {
   int readableBytes();
 
   /**
-   * Release the underlying buffer of this DataBuffer if no longer needed.
+   * Releases the underlying buffer of this DataBuffer if no longer needed.
    */
   void release();
 }

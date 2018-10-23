@@ -11,6 +11,10 @@
 
 package alluxio.security.authorization;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
 import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
@@ -18,7 +22,6 @@ import alluxio.PropertyKey;
 import alluxio.exception.ExceptionMessage;
 
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -42,7 +45,7 @@ public final class ModeTest {
   @Test
   public void defaults() {
     Mode mode = Mode.defaults();
-    Assert.assertEquals(Constants.DEFAULT_FILE_SYSTEM_MODE, mode.toShort());
+    assertEquals(Constants.DEFAULT_FILE_SYSTEM_MODE, mode.toShort());
   }
 
   /**
@@ -51,13 +54,13 @@ public final class ModeTest {
   @Test
   public void toShort() {
     Mode mode = new Mode(Mode.Bits.ALL, Mode.Bits.READ_EXECUTE, Mode.Bits.READ_EXECUTE);
-    Assert.assertEquals(0755, mode.toShort());
+    assertEquals(0755, mode.toShort());
 
     mode = Mode.defaults();
-    Assert.assertEquals(0777, mode.toShort());
+    assertEquals(0777, mode.toShort());
 
     mode = new Mode(Mode.Bits.READ_WRITE, Mode.Bits.READ, Mode.Bits.READ);
-    Assert.assertEquals(0644, mode.toShort());
+    assertEquals(0644, mode.toShort());
   }
 
   /**
@@ -66,19 +69,19 @@ public final class ModeTest {
   @Test
   public void fromShort() {
     Mode mode = new Mode((short) 0777);
-    Assert.assertEquals(Mode.Bits.ALL, mode.getOwnerBits());
-    Assert.assertEquals(Mode.Bits.ALL, mode.getGroupBits());
-    Assert.assertEquals(Mode.Bits.ALL, mode.getOtherBits());
+    assertEquals(Mode.Bits.ALL, mode.getOwnerBits());
+    assertEquals(Mode.Bits.ALL, mode.getGroupBits());
+    assertEquals(Mode.Bits.ALL, mode.getOtherBits());
 
     mode = new Mode((short) 0644);
-    Assert.assertEquals(Mode.Bits.READ_WRITE, mode.getOwnerBits());
-    Assert.assertEquals(Mode.Bits.READ, mode.getGroupBits());
-    Assert.assertEquals(Mode.Bits.READ, mode.getOtherBits());
+    assertEquals(Mode.Bits.READ_WRITE, mode.getOwnerBits());
+    assertEquals(Mode.Bits.READ, mode.getGroupBits());
+    assertEquals(Mode.Bits.READ, mode.getOtherBits());
 
     mode = new Mode((short) 0755);
-    Assert.assertEquals(Mode.Bits.ALL, mode.getOwnerBits());
-    Assert.assertEquals(Mode.Bits.READ_EXECUTE, mode.getGroupBits());
-    Assert.assertEquals(Mode.Bits.READ_EXECUTE, mode.getOtherBits());
+    assertEquals(Mode.Bits.ALL, mode.getOwnerBits());
+    assertEquals(Mode.Bits.READ_EXECUTE, mode.getGroupBits());
+    assertEquals(Mode.Bits.READ_EXECUTE, mode.getOtherBits());
   }
 
   /**
@@ -87,10 +90,10 @@ public final class ModeTest {
   @Test
   public void copyConstructor() {
     Mode mode = new Mode(Mode.defaults());
-    Assert.assertEquals(Mode.Bits.ALL, mode.getOwnerBits());
-    Assert.assertEquals(Mode.Bits.ALL, mode.getGroupBits());
-    Assert.assertEquals(Mode.Bits.ALL, mode.getOtherBits());
-    Assert.assertEquals(0777, mode.toShort());
+    assertEquals(Mode.Bits.ALL, mode.getOwnerBits());
+    assertEquals(Mode.Bits.ALL, mode.getGroupBits());
+    assertEquals(Mode.Bits.ALL, mode.getOtherBits());
+    assertEquals(0777, mode.toShort());
   }
 
   /**
@@ -99,10 +102,10 @@ public final class ModeTest {
   @Test
   public void createNoAccess() {
     Mode mode = Mode.createNoAccess();
-    Assert.assertEquals(Mode.Bits.NONE, mode.getOwnerBits());
-    Assert.assertEquals(Mode.Bits.NONE, mode.getGroupBits());
-    Assert.assertEquals(Mode.Bits.NONE, mode.getOtherBits());
-    Assert.assertEquals(0000, mode.toShort());
+    assertEquals(Mode.Bits.NONE, mode.getOwnerBits());
+    assertEquals(Mode.Bits.NONE, mode.getGroupBits());
+    assertEquals(Mode.Bits.NONE, mode.getOtherBits());
+    assertEquals(0000, mode.toShort());
   }
 
   /**
@@ -111,10 +114,10 @@ public final class ModeTest {
   @Test
   public void equals() {
     Mode allAccess = new Mode((short) 0777);
-    Assert.assertTrue(allAccess.equals(Mode.defaults()));
+    assertTrue(allAccess.equals(Mode.defaults()));
     Mode noAccess = new Mode((short) 0000);
-    Assert.assertTrue(noAccess.equals(Mode.createNoAccess()));
-    Assert.assertFalse(allAccess.equals(noAccess));
+    assertTrue(noAccess.equals(Mode.createNoAccess()));
+    assertFalse(allAccess.equals(noAccess));
   }
 
   /**
@@ -122,10 +125,10 @@ public final class ModeTest {
    */
   @Test
   public void toStringTest() {
-    Assert.assertEquals("rwxrwxrwx", new Mode((short) 0777).toString());
-    Assert.assertEquals("rw-r-----", new Mode((short) 0640).toString());
-    Assert.assertEquals("rw-------", new Mode((short) 0600).toString());
-    Assert.assertEquals("---------", new Mode((short) 0000).toString());
+    assertEquals("rwxrwxrwx", new Mode((short) 0777).toString());
+    assertEquals("rw-r-----", new Mode((short) 0640).toString());
+    assertEquals("rw-------", new Mode((short) 0600).toString());
+    assertEquals("---------", new Mode((short) 0000).toString());
   }
 
   /**
@@ -138,10 +141,10 @@ public final class ModeTest {
     Configuration.set(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK, umask);
     // after umask 0022, 0777 should change to 0755
     Mode mode = Mode.defaults().applyDirectoryUMask();
-    Assert.assertEquals(Mode.Bits.ALL, mode.getOwnerBits());
-    Assert.assertEquals(Mode.Bits.READ_EXECUTE, mode.getGroupBits());
-    Assert.assertEquals(Mode.Bits.READ_EXECUTE, mode.getOtherBits());
-    Assert.assertEquals(0755, mode.toShort());
+    assertEquals(Mode.Bits.ALL, mode.getOwnerBits());
+    assertEquals(Mode.Bits.READ_EXECUTE, mode.getGroupBits());
+    assertEquals(Mode.Bits.READ_EXECUTE, mode.getOtherBits());
+    assertEquals(0755, mode.toShort());
   }
 
   /**
@@ -174,32 +177,32 @@ public final class ModeTest {
   public void setOwnerBits() {
     Mode mode = new Mode((short) 0000);
     mode.setOwnerBits(Mode.Bits.READ_EXECUTE);
-    Assert.assertEquals(Mode.Bits.READ_EXECUTE, mode.getOwnerBits());
+    assertEquals(Mode.Bits.READ_EXECUTE, mode.getOwnerBits());
     mode.setOwnerBits(Mode.Bits.WRITE);
-    Assert.assertEquals(Mode.Bits.WRITE, mode.getOwnerBits());
+    assertEquals(Mode.Bits.WRITE, mode.getOwnerBits());
     mode.setOwnerBits(Mode.Bits.ALL);
-    Assert.assertEquals(Mode.Bits.ALL, mode.getOwnerBits());
+    assertEquals(Mode.Bits.ALL, mode.getOwnerBits());
   }
 
   @Test
   public void setGroupBits() {
     Mode mode = new Mode((short) 0000);
     mode.setGroupBits(Mode.Bits.READ_EXECUTE);
-    Assert.assertEquals(Mode.Bits.READ_EXECUTE, mode.getGroupBits());
+    assertEquals(Mode.Bits.READ_EXECUTE, mode.getGroupBits());
     mode.setGroupBits(Mode.Bits.WRITE);
-    Assert.assertEquals(Mode.Bits.WRITE, mode.getGroupBits());
+    assertEquals(Mode.Bits.WRITE, mode.getGroupBits());
     mode.setGroupBits(Mode.Bits.ALL);
-    Assert.assertEquals(Mode.Bits.ALL, mode.getGroupBits());
+    assertEquals(Mode.Bits.ALL, mode.getGroupBits());
   }
 
   @Test
   public void setOtherBits() {
     Mode mode = new Mode((short) 0000);
     mode.setOtherBits(Mode.Bits.READ_EXECUTE);
-    Assert.assertEquals(Mode.Bits.READ_EXECUTE, mode.getOtherBits());
+    assertEquals(Mode.Bits.READ_EXECUTE, mode.getOtherBits());
     mode.setOtherBits(Mode.Bits.WRITE);
-    Assert.assertEquals(Mode.Bits.WRITE, mode.getOtherBits());
+    assertEquals(Mode.Bits.WRITE, mode.getOtherBits());
     mode.setOtherBits(Mode.Bits.ALL);
-    Assert.assertEquals(Mode.Bits.ALL, mode.getOtherBits());
+    assertEquals(Mode.Bits.ALL, mode.getOtherBits());
   }
 }

@@ -17,6 +17,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.UUID;
 
 /**
@@ -48,16 +49,7 @@ public final class AlluxioTestDirectory {
       throw new RuntimeException("Failed to create directory " + file.getAbsolutePath());
     }
 
-    Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
-      public void run() {
-        try {
-          alluxio.util.io.FileUtils.deletePathRecursively(file.getAbsolutePath());
-        } catch (IOException e) {
-          LOG.warn("Failed to clean up Alluxio test directory {} : {}", file.getAbsolutePath(),
-              e.getMessage());
-        }
-      }
-    }));
+    Runtime.getRuntime().addShutdownHook(new Thread(() -> delete(file)));
     return file;
   }
 
@@ -87,15 +79,23 @@ public final class AlluxioTestDirectory {
    */
   private static void cleanUpOldFiles(File dir) {
     long cutoffTimestamp = System.currentTimeMillis() - (MAX_FILE_AGE_HOURS * Constants.HOUR_MS);
-    File[] files = dir.listFiles();
-    for (File file : files) {
-      if (!FileUtils.isFileNewer(file, cutoffTimestamp)) {
-        try {
-          alluxio.util.io.FileUtils.deletePathRecursively(file.getAbsolutePath());
-        } catch (Exception e) {
-          LOG.warn("Failed to delete {} : {}", file.getAbsolutePath(), e.getMessage());
-        }
-      }
+    Arrays.asList(dir.listFiles()).stream()
+        .filter(file -> !FileUtils.isFileNewer(file, cutoffTimestamp))
+        .forEach(file -> delete(file));
+  }
+
+  private static void delete(File file) {
+    if (!file.exists()) {
+      return;
+    }
+    if (file.isFile()) {
+      file.delete();
+      return;
+    }
+    try {
+      FileUtils.deleteDirectory(file);
+    } catch (IOException e) {
+      LOG.warn("Failed to clean up {} : {}", file.getAbsolutePath(), e.toString());
     }
   }
 }

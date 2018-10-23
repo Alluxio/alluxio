@@ -13,13 +13,14 @@ package alluxio.master.file.meta;
 
 import alluxio.Constants;
 import alluxio.exception.BlockInfoException;
-import alluxio.exception.FileAlreadyCompletedException;
-import alluxio.exception.InvalidFileSizeException;
 import alluxio.master.ProtobufUtils;
 import alluxio.master.block.BlockId;
 import alluxio.master.file.options.CreateFileOptions;
 import alluxio.proto.journal.File.InodeFileEntry;
+import alluxio.proto.journal.File.UpdateInodeFileEntry;
 import alluxio.proto.journal.Journal.JournalEntry;
+import alluxio.security.authorization.AccessControlList;
+import alluxio.security.authorization.DefaultAccessControlList;
 import alluxio.wire.FileInfo;
 
 import com.google.common.base.Preconditions;
@@ -34,13 +35,18 @@ import javax.annotation.concurrent.NotThreadSafe;
  * ({@link #lockRead()} or {@link #lockWrite()}) before methods are called.
  */
 @NotThreadSafe
-public final class InodeFile extends Inode<InodeFile> {
+public final class InodeFile extends Inode<InodeFile> implements InodeFileView {
   private List<Long> mBlocks;
   private long mBlockContainerId;
   private long mBlockSizeBytes;
   private boolean mCacheable;
   private boolean mCompleted;
   private long mLength;
+  private long mPersistJobId;
+  private int mReplicationDurable;
+  private int mReplicationMax;
+  private int mReplicationMin;
+  private String mTempUfsPath;
 
   /**
    * Creates a new instance of {@link InodeFile}.
@@ -55,6 +61,11 @@ public final class InodeFile extends Inode<InodeFile> {
     mCacheable = false;
     mCompleted = false;
     mLength = 0;
+    mPersistJobId = Constants.PERSISTENCE_INVALID_JOB_ID;
+    mReplicationDurable = 0;
+    mReplicationMax = Constants.REPLICATION_MAX_INFINITY;
+    mReplicationMin = 0;
+    mTempUfsPath = Constants.PERSISTENCE_INVALID_UFS_PATH;
   }
 
   @Override
@@ -65,7 +76,7 @@ public final class InodeFile extends Inode<InodeFile> {
   @Override
   public FileInfo generateClientFileInfo(String path) {
     FileInfo ret = new FileInfo();
-    // note: in-memory percentage is NOT calculated here, because it needs blocks info stored in
+    // note: in-Alluxio percentage is NOT calculated here, because it needs blocks info stored in
     // block master
     ret.setFileId(getId());
     ret.setName(getName());
@@ -87,6 +98,10 @@ public final class InodeFile extends Inode<InodeFile> {
     ret.setMode(getMode());
     ret.setPersistenceState(getPersistenceState().toString());
     ret.setMountPoint(false);
+    ret.setReplicationMax(getReplicationMax());
+    ret.setReplicationMin(getReplicationMin());
+    ret.setUfsFingerprint(getUfsFingerprint());
+    ret.setAcl(mAcl);
     return ret;
   }
 
@@ -100,25 +115,79 @@ public final class InodeFile extends Inode<InodeFile> {
     mCacheable = false;
   }
 
-  /**
-   * @return a duplication of all the block ids of the file
-   */
+  @Override
+  public DefaultAccessControlList getDefaultACL() throws UnsupportedOperationException {
+    throw new UnsupportedOperationException("getDefaultACL: File does not have default ACL");
+  }
+
+  @Override
+  public InodeFile setDefaultACL(DefaultAccessControlList acl)
+      throws UnsupportedOperationException {
+    throw new UnsupportedOperationException("setDefaultACL: File does not have default ACL");
+  }
+
+  @Override
   public List<Long> getBlockIds() {
     return new ArrayList<>(mBlocks);
   }
 
-  /**
-   * @return the block size in bytes
-   */
+  @Override
   public long getBlockSizeBytes() {
     return mBlockSizeBytes;
   }
 
-  /**
-   * @return the length of the file in bytes. This is not accurate before the file is closed
-   */
+  @Override
   public long getLength() {
     return mLength;
+  }
+
+  @Override
+  public long getBlockContainerId() {
+    return mBlockContainerId;
+  }
+
+  @Override
+  public long getBlockIdByIndex(int blockIndex) throws BlockInfoException {
+    if (blockIndex < 0 || blockIndex >= mBlocks.size()) {
+      throw new BlockInfoException(
+          "blockIndex " + blockIndex + " is out of range. File blocks: " + mBlocks.size());
+    }
+    return mBlocks.get(blockIndex);
+  }
+
+  @Override
+  public long getPersistJobId() {
+    return mPersistJobId;
+  }
+
+  @Override
+  public int getReplicationDurable() {
+    return mReplicationDurable;
+  }
+
+  @Override
+  public int getReplicationMax() {
+    return mReplicationMax;
+  }
+
+  @Override
+  public int getReplicationMin() {
+    return mReplicationMin;
+  }
+
+  @Override
+  public String getTempUfsPath() {
+    return mTempUfsPath;
+  }
+
+  @Override
+  public boolean isCacheable() {
+    return mCacheable;
+  }
+
+  @Override
+  public boolean isCompleted() {
+    return mCompleted;
   }
 
   /**
@@ -128,39 +197,8 @@ public final class InodeFile extends Inode<InodeFile> {
     long blockId = BlockId.createBlockId(mBlockContainerId, mBlocks.size());
     // TODO(gene): Check for max block sequence number, and sanity check the sequence number.
     // TODO(gene): Check isComplete?
-    // TODO(gene): This will not work with existing lineage implementation, since a new writer will
-    // not be able to get the same block ids (to write the same block ids).
     mBlocks.add(blockId);
     return blockId;
-  }
-
-  /**
-   * Gets the block id for a given index.
-   *
-   * @param blockIndex the index to get the block id for
-   * @return the block id for the index
-   * @throws BlockInfoException if the index of the block is out of range
-   */
-  public long getBlockIdByIndex(int blockIndex) throws BlockInfoException {
-    if (blockIndex < 0 || blockIndex >= mBlocks.size()) {
-      throw new BlockInfoException(
-          "blockIndex " + blockIndex + " is out of range. File blocks: " + mBlocks.size());
-    }
-    return mBlocks.get(blockIndex);
-  }
-
-  /**
-   * @return true if the file is cacheable, false otherwise
-   */
-  public boolean isCacheable() {
-    return mCacheable;
-  }
-
-  /**
-   * @return true if the file is complete, false otherwise
-   */
-  public boolean isCompleted() {
-    return mCompleted;
   }
 
   /**
@@ -178,7 +216,7 @@ public final class InodeFile extends Inode<InodeFile> {
    * @return the updated object
    */
   public InodeFile setBlockIds(List<Long> blockIds) {
-    mBlocks = new ArrayList<>(Preconditions.checkNotNull(blockIds));
+    mBlocks = new ArrayList<>(Preconditions.checkNotNull(blockIds, "blockIds"));
     return getThis();
   }
 
@@ -211,35 +249,82 @@ public final class InodeFile extends Inode<InodeFile> {
   }
 
   /**
-   * Completes the file. Cannot set the length if the file is already completed. However, an unknown
-   * file size, {@link Constants#UNKNOWN_SIZE}, is valid. Cannot complete an already complete file,
-   * unless the completed length was previously {@link Constants#UNKNOWN_SIZE}.
-   *
-   * @param length The new length of the file, cannot be negative, but can be
-   *               {@link Constants#UNKNOWN_SIZE}
-   * @throws InvalidFileSizeException if invalid file size is encountered
-   * @throws FileAlreadyCompletedException if the file is already completed
+   * @param persistJobId the id of the job persisting this file
+   * @return the updated object
    */
-  public void complete(long length)
-      throws InvalidFileSizeException, FileAlreadyCompletedException {
-    if (mCompleted && mLength != Constants.UNKNOWN_SIZE) {
-      throw new FileAlreadyCompletedException("File " + getName() + " has already been completed.");
+  public InodeFile setPersistJobId(long persistJobId) {
+    mPersistJobId = persistJobId;
+    return getThis();
+  }
+
+  /**
+   * @param replicationDurable the durable number of block replication
+   * @return the updated object
+   */
+  public InodeFile setReplicationDurable(int replicationDurable) {
+    mReplicationDurable = replicationDurable;
+    return getThis();
+  }
+
+  /**
+   * @param replicationMax the maximum number of block replication
+   * @return the updated object
+   */
+  public InodeFile setReplicationMax(int replicationMax) {
+    mReplicationMax = replicationMax;
+    return getThis();
+  }
+
+  /**
+   * @param replicationMin the minimum number of block replication
+   * @return the updated object
+   */
+  public InodeFile setReplicationMin(int replicationMin) {
+    mReplicationMin = replicationMin;
+    return getThis();
+  }
+
+  /**
+   * @param tempUfsPath the temporary UFS path this file is persisted to
+   * @return the updated object
+   */
+  public InodeFile setTempUfsPath(String tempUfsPath) {
+    mTempUfsPath = tempUfsPath;
+    return getThis();
+  }
+
+  /**
+   * Updates this inode file's state from the given entry.
+   *
+   * @param entry the entry
+   */
+  public void updateFromEntry(UpdateInodeFileEntry entry) {
+    if (entry.hasPersistJobId()) {
+      setPersistJobId(entry.getPersistJobId());
     }
-    if (length < 0 && length != Constants.UNKNOWN_SIZE) {
-      throw new InvalidFileSizeException("File " + getName() + " cannot have negative length.");
+    if (entry.hasReplicationMax()) {
+      setReplicationMax(entry.getReplicationMax());
     }
-    mCompleted = true;
-    mLength = length;
-    mBlocks.clear();
-    if (length == Constants.UNKNOWN_SIZE) {
-      // TODO(gpang): allow unknown files to be multiple blocks.
-      // If the length of the file is unknown, only allow 1 block to the file.
-      length = mBlockSizeBytes;
+    if (entry.hasReplicationMin()) {
+      setReplicationMin(entry.getReplicationMin());
     }
-    while (length > 0) {
-      long blockSize = Math.min(length, mBlockSizeBytes);
-      getNewBlockId();
-      length -= blockSize;
+    if (entry.hasTempUfsPath()) {
+      setTempUfsPath(entry.getTempUfsPath());
+    }
+    if (entry.hasBlockSizeBytes()) {
+      setBlockSizeBytes(entry.getBlockSizeBytes());
+    }
+    if (entry.hasCacheable()) {
+      setCacheable(entry.getCacheable());
+    }
+    if (entry.hasCompleted()) {
+      setCompleted(entry.getCompleted());
+    }
+    if (entry.hasLength()) {
+      setLength(entry.getLength());
+    }
+    if (entry.getSetBlocksCount() > 0) {
+      setBlockIds(entry.getSetBlocksList());
     }
   }
 
@@ -251,6 +336,11 @@ public final class InodeFile extends Inode<InodeFile> {
         .add("blockSizeBytes", mBlockSizeBytes)
         .add("cacheable", mCacheable)
         .add("completed", mCompleted)
+        .add("persistJobId", mPersistJobId)
+        .add("replicationDurable", mReplicationDurable)
+        .add("replicationMax", mReplicationMax)
+        .add("replicationMin", mReplicationMin)
+        .add("tempUfsPath", mTempUfsPath)
         .add("length", mLength).toString();
   }
 
@@ -261,7 +351,8 @@ public final class InodeFile extends Inode<InodeFile> {
    * @return the {@link InodeFile} representation
    */
   public static InodeFile fromJournalEntry(InodeFileEntry entry) {
-    return new InodeFile(BlockId.getContainerId(entry.getId()))
+    // If journal entry has no mode set, set default mode for backwards-compatibility.
+    InodeFile ret = new InodeFile(BlockId.getContainerId(entry.getId()))
         .setName(entry.getName())
         .setBlockIds(entry.getBlocksList())
         .setBlockSizeBytes(entry.getBlockSizeBytes())
@@ -273,11 +364,27 @@ public final class InodeFile extends Inode<InodeFile> {
         .setParentId(entry.getParentId())
         .setPersistenceState(PersistenceState.valueOf(entry.getPersistenceState()))
         .setPinned(entry.getPinned())
+        .setPersistJobId(entry.getPersistJobId())
+        .setReplicationDurable(entry.getReplicationDurable())
+        .setReplicationMax(entry.getReplicationMax())
+        .setReplicationMin(entry.getReplicationMin())
+        .setTempUfsPath(entry.getTempUfsPath())
         .setTtl(entry.getTtl())
         .setTtlAction((ProtobufUtils.fromProtobuf(entry.getTtlAction())))
-        .setOwner(entry.getOwner())
-        .setGroup(entry.getGroup())
-        .setMode((short) entry.getMode());
+        .setUfsFingerprint(entry.hasUfsFingerprint() ? entry.getUfsFingerprint() :
+            Constants.INVALID_UFS_FINGERPRINT);
+    if (entry.hasAcl()) {
+      ret.mAcl = AccessControlList.fromProtoBuf(entry.getAcl());
+    } else {
+      // Backward compatibility.
+      AccessControlList acl = new AccessControlList();
+      acl.setOwningUser(entry.getOwner());
+      acl.setOwningGroup(entry.getGroup());
+      short mode = entry.hasMode() ? (short) entry.getMode() : Constants.DEFAULT_FILE_SYSTEM_MODE;
+      acl.setMode(mode);
+      ret.mAcl = acl;
+    }
+    return ret;
   }
 
   /**
@@ -292,19 +399,26 @@ public final class InodeFile extends Inode<InodeFile> {
    */
   public static InodeFile create(long blockContainerId, long parentId, String name,
       long creationTimeMs, CreateFileOptions options) {
+    Preconditions.checkArgument(
+        options.getReplicationMax() == Constants.REPLICATION_MAX_INFINITY
+        || options.getReplicationMax() >= options.getReplicationMin());
     return new InodeFile(blockContainerId)
         .setBlockSizeBytes(options.getBlockSizeBytes())
         .setCreationTimeMs(creationTimeMs)
         .setName(name)
+        .setReplicationDurable(options.getReplicationDurable())
+        .setReplicationMax(options.getReplicationMax())
+        .setReplicationMin(options.getReplicationMin())
         .setTtl(options.getTtl())
         .setTtlAction(options.getTtlAction())
         .setParentId(parentId)
+        .setLastModificationTimeMs(options.getOperationTimeMs(), true)
         .setOwner(options.getOwner())
         .setGroup(options.getGroup())
         .setMode(options.getMode().toShort())
+        .setAcl(options.getAcl())
         .setPersistenceState(options.isPersisted() ? PersistenceState.PERSISTED
             : PersistenceState.NOT_PERSISTED);
-
   }
 
   @Override
@@ -315,19 +429,23 @@ public final class InodeFile extends Inode<InodeFile> {
         .setCacheable(isCacheable())
         .setCompleted(isCompleted())
         .setCreationTimeMs(getCreationTimeMs())
-        .setGroup(getGroup())
         .setId(getId())
         .setLastModificationTimeMs(getLastModificationTimeMs())
         .setLength(getLength())
-        .setMode(getMode())
         .setName(getName())
-        .setOwner(getOwner())
         .setParentId(getParentId())
         .setPersistenceState(getPersistenceState().name())
         .setPinned(isPinned())
+        .setReplicationDurable(getReplicationDurable())
+        .setReplicationMax(getReplicationMax())
+        .setReplicationMin(getReplicationMin())
+        .setPersistJobId(getPersistJobId())
+        .setTempUfsPath(getTempUfsPath())
         .setTtl(getTtl())
-        .setTtlAction(ProtobufUtils.toProtobuf(getTtlAction())).build();
+        .setTtlAction(ProtobufUtils.toProtobuf(getTtlAction()))
+        .setUfsFingerprint(getUfsFingerprint())
+        .setAcl(AccessControlList.toProtoBuf(mAcl))
+        .build();
     return JournalEntry.newBuilder().setInodeFile(inodeFile).build();
   }
-
 }

@@ -11,7 +11,10 @@
 
 package alluxio.underfs.options;
 
-import alluxio.CommonTestUtils;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.security.authentication.AuthType;
@@ -19,7 +22,6 @@ import alluxio.security.authorization.Mode;
 import alluxio.security.group.provider.IdentityUserGroupsMapping;
 import alluxio.util.CommonUtils;
 
-import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -36,11 +38,11 @@ public final class CreateOptionsTest {
   public void defaults() throws IOException {
     CreateOptions options = CreateOptions.defaults();
 
-    Assert.assertFalse(options.getCreateParent());
-    Assert.assertTrue(options.isEnsureAtomic());
-    Assert.assertEquals("", options.getOwner());
-    Assert.assertEquals("", options.getGroup());
-    Assert.assertEquals(Mode.defaults().applyFileUMask(), options.getMode());
+    assertFalse(options.getCreateParent());
+    assertFalse(options.isEnsureAtomic());
+    assertNull(options.getOwner());
+    assertNull(options.getGroup());
+    assertEquals(Mode.defaults().applyFileUMask(), options.getMode());
   }
 
   /**
@@ -57,11 +59,11 @@ public final class CreateOptionsTest {
 
     CreateOptions options = CreateOptions.defaults();
 
-    Assert.assertFalse(options.getCreateParent());
-    Assert.assertTrue(options.isEnsureAtomic());
-    Assert.assertEquals("", options.getOwner());
-    Assert.assertEquals("", options.getGroup());
-    Assert.assertEquals(Mode.defaults().applyFileUMask(), options.getMode());
+    assertFalse(options.getCreateParent());
+    assertFalse(options.isEnsureAtomic());
+    assertNull(options.getOwner());
+    assertNull(options.getGroup());
+    assertEquals(Mode.defaults().applyFileUMask(), options.getMode());
   }
 
   /**
@@ -83,15 +85,15 @@ public final class CreateOptionsTest {
     options.setGroup(group);
     options.setMode(mode);
 
-    Assert.assertEquals(createParent, options.getCreateParent());
-    Assert.assertEquals(ensureAtomic, options.isEnsureAtomic());
-    Assert.assertEquals(owner, options.getOwner());
-    Assert.assertEquals(group, options.getGroup());
-    Assert.assertEquals(mode, options.getMode());
+    assertEquals(createParent, options.getCreateParent());
+    assertEquals(ensureAtomic, options.isEnsureAtomic());
+    assertEquals(owner, options.getOwner());
+    assertEquals(group, options.getGroup());
+    assertEquals(mode, options.getMode());
   }
 
   @Test
   public void equalsTest() throws Exception {
-    CommonTestUtils.testEquals(CreateOptions.class);
+    alluxio.test.util.CommonUtils.testEquals(CreateOptions.class);
   }
 }

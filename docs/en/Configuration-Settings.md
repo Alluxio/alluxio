@@ -8,58 +8,130 @@ priority: 1
 * Table of Contents
 {:toc}
 
-This page explains the configuration system of Alluxio and also provides recommendation on how to customize the configuration
-for Alluxio in different contexts.
+Alluxio can be configured by setting the values of supported [configuration properties
+](Configuration-Properties.html). To learn about how users can customize how an application
+(e.g., a Spark or MapReduce job) interacts with Alluxio, see [how to configure Alluxio
+applications](#configure-applications); to learn about how Alluxio admins can customize Alluxio
+service, see [how to configure Alluxio clusters](#configure-alluxio-cluster).
 
-## Configuration in Alluxio
+## Configure Applications
 
-Alluxio runtime respects three sources of configuration settings:
+Customizing how an application job interacts with Alluxio service is application specific. Here
+we provide recommendations for a few common applications.
 
-1. [Application settings](#application-settings). Setting Alluxio configuration in this way is application-specific,
-and is required each time when running an application instance (e.g., a Spark job).
-2. [Environment variables](#environment-variables). This is an easy and fast way to set the basic properties
-to manage Alluxio servers and run Alluxio shell commands.
-Note that, configuration set through environment variables may not be realized by applications.
-3. [Property files](#property-files). This is a general approach to customize any
-[supported Alluxio configuration properties](#appendix). Configuration in those files can be respected by Alluxio servers,
-as well as applications.
+### Alluxio Shell Commands
 
-The priority to load property values, from the highest to the lowest, is
-application settings (if any), environment variables, property files and the defaults.
+Alluxio shell users can put JVM system properties `-Dproperty=value` after `fs` command and
+before the subcommand (e.g., `copyFromLocal`) to specify Alluxio properties
+from the command line. For example, the following Alluxio shell command sets the write type to
+`CACHE_THROUGH` when copying files to Alluxio:
 
-### Application settings
+```bash
+$ bin/alluxio fs -Dalluxio.user.file.writetype.default=CACHE_THROUGH copyFromLocal README.md /README.md
+```
 
-Alluxio shell users can use `-Dkey=property` to specify an Alluxio configuration value in commandline. For example,
+### Spark Jobs
 
-{% include Configuration-Settings/specify-conf.md %}
+Spark users can use pass JVM system properties to Spark jobs by adding `"-Dproperty=value"` to
+`spark.executor.extraJavaOptions` for Spark executors and `spark.driver.extraJavaOptions` for
+Spark drivers. For example, to submit a Spark job with the write `CACHE_THROUGH` when writing to
+ Alluxio:
 
-Spark users can add `"-Dkey=property"` to `${SPARK_DAEMON_JAVA_OPTS}` in `conf/spark-env.sh`, or add it to
-`spark.executor.extraJavaOptions` (for Spark executors) and `spark.driver.extraJavaOptions` (for Spark drivers).
+```bash
+$ spark-submit \
+--conf 'spark.driver.extraJavaOptions=-Dalluxio.user.file.writetype.default=CACHE_THROUGH' \
+--conf 'spark.executor.extraJavaOptions=-Dalluxio.user.file.writetype.default=CACHE_THROUGH' \
+...
+```
 
-Hadoop MapReduce users can set `"-Dkey=property"` in `hadoop jar` command-lines to pass it down to Alluxio:
+In the Spark Shell, this can be achieved by:
 
-{% include Configuration-Settings/hadoop-specify-conf.md %}
+```scala
+val conf = new SparkConf()
+    .set("spark.driver.extraJavaOptions", "-Dalluxio.user.file.writetype.default=CACHE_THROUGH")
+    .set("spark.executor.extraJavaOptions", "-Dalluxio.user.file.writetype.default=CACHE_THROUGH")
+val sc = new SparkContext(conf)
+```
 
-Note that, setting Alluxio configuration in this way is application specific and required for each job or command.
+### Hadoop MapReduce Jobs
 
-### Environment variables
+Hadoop MapReduce users can add `"-Dproperty=value"` after the `hadoop jar` or `yarn jar` command
+and the properties will be propagated to all the tasks of this job.  For example, the following
+MapReduce job of wordcount sets write type to `CACHE_THROUGH` when writing to Alluxio:
 
-> When you want to [start Alluxio server processes](Running-Alluxio-Locally.html), or [use Alluxio command line interfaces](Command-Line-Interface.html) with your specific configuration tuning, it is often fast and easy to set environment variables to customize basic Alluxio configuration. However, these environment variables will not affect application processes like Spark or MapReduce that use Alluxio as a client.
+```bash
+$ bin/hadoop jar libexec/share/hadoop/mapreduce/hadoop-mapreduce-examples-2.7.3.jar wordcount \
+-Dalluxio.user.file.writetype.default=CACHE_THROUGH \
+-libjars {{site.ALLUXIO_CLIENT_JAR_PATH}} \
+<INPUT FILES> <OUTPUT DIRECTORY>
+```
 
+## Configure Alluxio Cluster
 
-Alluxio supports a few basic and very frequently used configuration properties via the environment variables in
-`conf/alluxio-env.sh`, including:
+### Use Site-Property Files (Recommended)
+
+Alluxio admins can create and customize the property file `alluxio-site.properties` to
+configure an Alluxio cluster. If this file does not exist, it can be created from the
+template file under `${ALLUXIO_HOME}/conf`:
+
+```bash
+$ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
+```
+
+Make sure that this file is distributed to `${ALLUXIO_HOME}/conf` on every Alluxio node (masters
+and workers) before starting the cluster.
+
+### Use Cluster Default
+
+Since v1.8, each Alluxio client can initialize its configuration with the cluster-wide
+configuration values retrieved from masters.
+To be specific, when different client applications such as Alluxio Shell commands,
+Spark jobs, or MapReduce jobs connect to an Alluxio service,
+they will initialize their own Alluxio configuration properties with the default values
+supplied by the masters based on the master-side `${ALLUXIO_HOME}/conf/alluxio-site.properties` files. As a result, cluster admins can put client-side settings (e.g., `alluxio.user.*`) or
+network transport settings (such as `alluxio.security.authentication.type`) in
+`${ALLUXIO_HOME}/conf/alluxio-site.properties` on masters,
+which will be distributed and become cluster-wide default values for new Alluxio clients.
+
+For example, a common Alluxio property `alluxio.user.file.writetype.default` is default to
+`MUST_CACHE` which only writes to Alluxio space. In an Alluxio cluster
+deployment where data persistency is preferred and all jobs need to write through to both UFS and Alluxio, with Alluxio v1.8 or later the admin can simply add
+`alluxio.user.file.writetype.default=CACHE_THROUGH` to the master-side
+`${ALLUXIO_HOME}/conf/alluxio-site.properties`. After restarting the cluster, all the new jobs will
+automatically set property `alluxio.user.file.writetype.default` to `CACHE_THROUGH` as its default
+value.
+
+Clients can still ignore or overwrite the cluster-wide default values, either
+specifying the property `alluxio.user.conf.cluster.default.enabled=false` to
+decline loading the cluster-wide default values or
+following the approaches described in
+[Configure Alluxio for Applications](Configuration-Settings.html#configure-applications) to
+overwrite the same properties.
+
+> Note that, before v1.8, `${ALLUXIO_HOME}/conf/alluxio-site.properties` file is only loaded by
+Alluxio server
+> processes and will be ignored by applications interacting with Alluxio service through Alluxio
+client,
+> unless `${ALLUXIO_HOME}/conf` is on applications' classpath.
+
+### Use Environment variables
+
+Alluxio supports a few frequently used configuration settings via the environment
+variables, including:
 
 <table class="table table-striped">
-<tr><th>Environment Variable</th><th>Meaning</th></tr>
+<tr><th>Environment Variable</th><th>Description</th></tr>
+<tr>
+  <td><code class="highlighter-rouge">ALLUXIO_CONF_DIR</code></td>
+  <td>path to Alluxio configuration directory.</td>
+</tr>
+<tr>
+  <td><code class="highlighter-rouge">ALLUXIO_LOGS_DIR</code></td>
+  <td>path to Alluxio logs directory.</td>
+</tr>
 <tr>
   <td><code class="highlighter-rouge">ALLUXIO_MASTER_HOSTNAME</code></td>
   <td>hostname of Alluxio master, defaults to localhost.</td>
-</tr>
-<tr>
-  <td><del><code class="highlighter-rouge">ALLUXIO_MASTER_ADDRESS</code></del></td>
-  <td>deprecated by <code class="highlighter-rouge">ALLUXIO_MASTER_HOSTNAME</code> since version 1.1 and
-will be remove in version 2.0.</td>
 </tr>
 <tr>
   <td><code class="highlighter-rouge">ALLUXIO_UNDERFS_ADDRESS</code></td>
@@ -90,160 +162,103 @@ will be remove in version 2.0.</td>
   <td><code class="highlighter-rouge">ALLUXIO_USER_JAVA_OPTS</code></td>
   <td>additional Java VM options for Alluxio shell configuration.</td>
 </tr>
+<tr>
+  <td><code class="highlighter-rouge">ALLUXIO_CLASSPATH</code></td>
+  <td>additional classpath entries for Alluxio processes. This is empty by default.</td>
+</tr>
+<tr>
+  <td><code class="highlighter-rouge">ALLUXIO_LOGSERVER_HOSTNAME</code></td>
+  <td>host name of the log server. This is empty by default.</td>
+</tr>
+<tr>
+  <td><code class="highlighter-rouge">ALLUXIO_LOGSERVER_PORT</code></td>
+  <td>port number of the log server. This is 45600 by default.</td>
+</tr>
+<tr>
+  <td><code class="highlighter-rouge">ALLUXIO_LOGSERVER_LOGS_DIR</code></td>
+  <td>path to the local directory where Alluxio log server stores logs received from Alluxio servers.</td>
+</tr>
 </table>
 
-For example, if you would like to setup an Alluxio master at `localhost` that talks to an HDFS cluster with a namenode
-also running at `localhost`, and enable Java remote debugging at port 7001, you can do so before starting master process using:
-
-{% include Configuration-Settings/more-conf.md %}
-
-Users can either set these variables through shell or in `conf/alluxio-env.sh`. If this file does not exist yet,
-Alluxio can help you bootstrap the `conf/alluxio-env.sh` file by running
-
-{% include Common-Commands/bootstrapConf.md %}
-
-Alternatively, you can create one from a template we provided in the source code using:
-
-{% include Common-Commands/copy-alluxio-env.md %}
-
-### Property files
-
-> Alluxio site property file `alluxio-site.properties` can overwrite Alluxio configuration regardless the JVM is an Alluxio server process or a job using Alluxio client. For the site property file to be loaded, either the parent directory of this file is a part of the classpath of your target JVM process, or the file is in one of the pre-defined paths.
-
-Using Alluxio supported environment variables has two limitations:
-first it only provides basic Alluxio settings, and second it does not affect non-Alluxio JVMs like Spark or MapReduce.
-To address them, Alluxio uses site property file `alluxio-site.properties` for users to customize all supported configuration properties, regardless of the JVM process.
-On startup, Alluxio runtime checks if the configuration
-property file exists and if so, it uses the content to override the default configuration.
-To be specific, it searches `alluxio-site.properties` in `${HOME}/.alluxio/`, `/etc/alluxio/` (can be customized by changing the default value
-of `alluxio.site.conf.dir`) and the classpath of the relevant Java VM process in order, and skips the remaining paths once
-a file is found.
-
-For example, `${ALLUXIO_HOME}/conf/` is by default on the classpath of Alluxio master, worker and shell JVM processes.
-So you can simply create `${ALLUXIO_HOME}/conf/alluxio-site.properties` by
+For example, if you would like to setup an Alluxio master at `localhost` that talks to an HDFS
+cluster with a namenode also running at `localhost`, and enable Java remote debugging at port 7001,
+you can do so before starting master process using:
 
 ```bash
-$ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
+$ export ALLUXIO_MASTER_HOSTNAME="localhost"
+$ export ALLUXIO_UNDERFS_ADDRESS="hdfs://localhost:9000"
+$ export ALLUXIO_MASTER_JAVA_OPTS="$ALLUXIO_JAVA_OPTS -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=7001"
 ```
 
-Then customize it to fit your configuration tuning needs to start Alluxio servers or to use Alluxio shell commands:
-
-{% include Common-Commands/copy-alluxio-site-properties.md %}
-
-For applications like Spark or MapReduce to use Alluxio property files, you can append the directory of your site property files to your application classpath.
-For example
+Users can either set these variables through the shell or in `conf/alluxio-env.sh`. If this file
+does not exist yet, you can create one by copying the template:
 
 ```bash
-$ export SPARK_CLASSPATH=${ALLUXIO_HOME}/conf:${SPARK_CLASSPATH} # for Spark jobs
-$ export HADOOP_CLASSPATH=${ALLUXIO_HOME}/conf:${HADOOP_CLASSPATH} # for Hadoop jobs
+$ cp conf/alluxio-env.sh.template conf/alluxio-env.sh
 ```
 
-Alternatively, with access to paths like `/etc/`, one can copy the site properties to `/etc/alluxio/`. This configuration will be shared
-across processes regardless the JVM is an Alluxio server or a job using Alluxio client.
+## Configuration Sources
 
+An Alluxio property can be possibly configured in multiple sources. In this case, its final value
+is determined by the source earliest in this list:
 
-## Appendix
+1. [JVM system properties (i.e., `-Dproperty=key`)](http://docs.oracle.com/javase/jndi/tutorial/beyond/env/source.html#SYS)
+2. [Environment variables](#use-environment-variables)
+3. [Property files](#use-site-property-files-recommended). When an Alluxio cluster starts, each
+server process including master and worker searches `alluxio-site.properties` in a list paths of
+`${HOME}/.alluxio/`, `/etc/alluxio/` and `${ALLUXIO_HOME}/conf` in order, and will skip the
+remaining paths once this `alluxio-site.properties` file is found.
+4. [Cluster default values](#use-cluster-default). An Alluxio client may initialize its
+configuration based on the cluster-wide default configuration served by the masters.
 
-All Alluxio configuration properties fall into one of the six categories:
-[Common](#common-configuration) (shared by Master and Worker),
-[Master specific](#master-configuration), [Worker specific](#worker-configuration),
-[User specific](#user-configuration), [Cluster specific](#cluster-management) (used for running
-Alluxio with cluster managers like Mesos and YARN), and
-[Security specific](#security-configuration) (shared by Master, Worker, and User).
+If no above user-specified configuration is found for a property, Alluxio runtime will fallback to
+its [default property value](Configuration-Properties.html).
 
-### Common Configuration
+To check the value of a specific configuration property and the source of its value, users can use
+the following commandline:
 
-The common configuration contains constants shared by different components.
+```bash
+$ bin/alluxio getConf alluxio.worker.port
+29998
+$ bin/alluxio getConf --source alluxio.worker.port
+DEFAULT
+```
 
-<table class="table table-striped">
-<tr><th>Property Name</th><th>Default</th><th>Meaning</th></tr>
-{% for item in site.data.table.common-configuration %}
-  <tr>
-    <td>{{ item.propertyName }}</td>
-    <td>{{ item.defaultValue }}</td>
-    <td>{{ site.data.table.en.common-configuration[item.propertyName] }}</td>
-  </tr>
-{% endfor %}
-</table>
+To list all of the configuration properties with sources:
 
-### Master Configuration
+```bash
+$ bin/alluxio getConf --source
+alluxio.conf.dir=/Users/bob/alluxio/conf (SYSTEM_PROPERTY)
+alluxio.debug=false (DEFAULT)
+...
+```
 
-The master configuration specifies information regarding the master node, such as the address and
-the port number.
+Users can also specify `--master` option to list all of the cluster-default configuration properties
+by the masters. Note that, with `--master` option `getConf` will query the master and thus require
+the master nodes running; without `--master` option this command only checks the local configuration.
 
-<table class="table table-striped">
-<tr><th>Property Name</th><th>Default</th><th>Meaning</th></tr>
-{% for item in site.data.table.master-configuration %}
-  <tr>
-    <td>{{ item.propertyName }}</td>
-    <td>{{ item.defaultValue }}</td>
-    <td>{{ site.data.table.en.master-configuration[item.propertyName] }}</td>
-  </tr>
-{% endfor %}
-</table>
+```bash
+$ bin/alluxio getConf --master --source
+alluxio.conf.dir=/Users/bob/alluxio/conf (SYSTEM_PROPERTY)
+alluxio.debug=false (DEFAULT)
+...
+```
 
-### Worker Configuration
+## Server Configuration Checker
 
-The worker configuration specifies information regarding the worker nodes, such as the address and
-the port number.
+Server-side configuration checker helps discover configuration errors and warnings. 
+Suspected configuration errors are reported through the web UI, `doctor` CLI, and master logs.
 
-<table class="table table-striped">
-<tr><th>Property Name</th><th>Default</th><th>Meaning</th></tr>
-{% for item in site.data.table.worker-configuration %}
-  <tr>
-    <td>{{ item.propertyName }}</td>
-    <td>{{ item.defaultValue }}</td>
-    <td>{{ site.data.table.en.worker-configuration[item.propertyName] }}</td>
-  </tr>
-{% endfor %}
-</table>
+The web UI shows the result of the server configuration check.
 
+![webUi]({{site.data.img.screenshot_configuration_checker_webui}})
 
-### User Configuration
+Users can also run the `fsadmin doctor` command to get the same results.
 
-The user configuration specifies values regarding file system access.
+```bash
+$ bin/alluxio fsadmin doctor configuration
+```
 
-<table class="table table-striped">
-<tr><th>Property Name</th><th>Default</th><th>Meaning</th></tr>
-{% for item in site.data.table.user-configuration %}
-  <tr>
-    <td>{{ item.propertyName }}</td>
-    <td>{{ item.defaultValue }}</td>
-    <td>{{ site.data.table.en.user-configuration[item.propertyName] }}</td>
-  </tr>
-{% endfor %}
-</table>
+Configuration warnings can also be seen in the master logs.
 
-### Cluster Management
-
-When running Alluxio with cluster managers like Mesos and YARN, Alluxio has additional configuration options.
-
-<table class="table table-striped">
-<tr><th>Property Name</th><th>Default</th><th>Meaning</th></tr>
-{% for item in site.data.table.cluster-management %}
-  <tr>
-    <td>{{ item.propertyName }}</td>
-    <td>{{ item.defaultValue }}</td>
-    <td>{{ site.data.table.en.cluster-management[item.propertyName] }}</td>
-  </tr>
-{% endfor %}
-</table>
-
-### Security Configuration
-
-The security configuration specifies information regarding the security features, such as authentication and file permission. Properties for authentication take effect for master, worker, and user. Properties for file permission only take effect for master. See [Security](Security.html) for more information about security features.
-
-<table class="table table-striped">
-<tr><th>Property Name</th><th>Default</th><th>Meaning</th></tr>
-{% for item in site.data.table.security-configuration %}
-  <tr>
-    <td>{{ item.propertyName }}</td>
-    <td>{{ item.defaultValue }}</td>
-    <td>{{ site.data.table.en.security-configuration[item.propertyName] }}</td>
-  </tr>
-{% endfor %}
-</table>
-
-### Configure Multihomed Networks
-
-Alluxio configuration provides a way to take advantage of multi-homed networks. If you have more than one NICs and you want your Alluxio master to listen on all NICs, you can specify `alluxio.master.bind.host` to be `0.0.0.0`. As a result, Alluxio clients can reach the master node from connecting to any of its NIC. This is also the same case for other properties suffixed with `bind.host`.
+![masterLogs]({{site.data.img.screenshot_configuration_checker_masterlogs}})

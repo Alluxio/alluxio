@@ -15,7 +15,7 @@ LAUNCHER=
 if [[ "$-" == *x* ]]; then
   LAUNCHER="bash -x"
 fi
-BIN=$(cd "$( dirname "$0" )"; pwd)
+BIN=$(cd "$( dirname "$( readlink "$0" || echo "$0" )" )"; pwd)
 
 USAGE="Usage: alluxio-workers.sh command..."
 
@@ -29,17 +29,16 @@ DEFAULT_LIBEXEC_DIR="${BIN}/../libexec"
 ALLUXIO_LIBEXEC_DIR=${ALLUXIO_LIBEXEC_DIR:-${DEFAULT_LIBEXEC_DIR}}
 . ${ALLUXIO_LIBEXEC_DIR}/alluxio-config.sh
 
-HOSTLIST=$(cat ${ALLUXIO_CONF_DIR}/workers | sed  "s/#.*$//;/^$/d")
-ALLUXIO_LOG_DIR="${BIN}/../logs"
-mkdir -p "${ALLUXIO_LOG_DIR}"
-ALLUXIO_TASK_LOG="${ALLUXIO_LOG_DIR}/task.log"
+HOSTLIST=$(cat "${ALLUXIO_CONF_DIR}/workers" | sed  "s/#.*$//;/^$/d")
+mkdir -p "${ALLUXIO_LOGS_DIR}"
+ALLUXIO_TASK_LOG="${ALLUXIO_LOGS_DIR}/task.log"
 
 echo "Executing the following command on all worker nodes and logging to ${ALLUXIO_TASK_LOG}: $@" | tee -a ${ALLUXIO_TASK_LOG}
 
 for worker in $(echo ${HOSTLIST}); do
   echo "[${worker}] Connecting as ${USER}..." >> ${ALLUXIO_TASK_LOG}
   nohup ssh -o ConnectTimeout=5 -o StrictHostKeyChecking=no -tt ${worker} ${LAUNCHER} \
-   $"${@// /\\ }" 2>&1 | while read line; do echo "[${worker}] ${line}"; done >> ${ALLUXIO_TASK_LOG} &
+    $"${@// /\\ }" 2>&1 | while read line; do echo "[${worker}] ${line}"; done >> ${ALLUXIO_TASK_LOG} &
 done
 
 echo "Waiting for tasks to finish..."

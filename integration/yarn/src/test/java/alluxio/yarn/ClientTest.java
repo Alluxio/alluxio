@@ -164,6 +164,9 @@ public final class ClientTest {
     client.run();
   }
 
+  /**
+   * Generates the maximum resource allocation.
+   */
   private void generateMaxAllocation(Resource resource) throws Exception {
     YarnClientApplication mockYarnClientApplication = mock(YarnClientApplication.class);
     doReturn(mockYarnClientApplication).when(mYarnClient).createApplication();

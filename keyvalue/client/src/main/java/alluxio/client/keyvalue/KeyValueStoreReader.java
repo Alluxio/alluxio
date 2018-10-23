@@ -30,8 +30,6 @@ public interface KeyValueStoreReader extends Closeable, KeyValueIterable {
    *
    * @param key key to get, cannot be null
    * @return value associated with the given key, or null if not found
-   * @throws IOException if non-Alluxio error occurs
-   * @throws AlluxioException if Alluxio error occurs
    */
   byte[] get(byte[] key) throws IOException, AlluxioException;
 
@@ -40,15 +38,11 @@ public interface KeyValueStoreReader extends Closeable, KeyValueIterable {
    *
    * @param key key to get, cannot be null
    * @return value associated with the given key, or null if not found
-   * @throws IOException if non-Alluxio error occurs
-   * @throws AlluxioException if Alluxio error occurs
    */
   ByteBuffer get(ByteBuffer key) throws IOException, AlluxioException;
 
   /**
    * @return the number of key-value pairs in the store
-   * @throws IOException if a non-Alluxio error occurs
-   * @throws AlluxioException if an Alluxio error occurs
    */
   int size() throws IOException, AlluxioException;
 }

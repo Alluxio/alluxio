@@ -31,12 +31,24 @@ Therefore, the configuration of Alluxio is done mostly in Hadoop configuration f
 If you have a Hadoop setup next to the Flink installation, add the following property to the
 `core-site.xml` configuration file:
 
-{% include Running-Flink-on-Alluxio/core-site-configuration.md %}
+```xml
+<property>
+  <name>fs.alluxio.impl</name>
+  <value>alluxio.hadoop.FileSystem</value>
+</property>
+```
 
 In case you don't have a Hadoop setup, you have to create a file called `core-site.xml` with the
 following contents:
 
-{% include Running-Flink-on-Alluxio/create-core-site.md %}
+```xml
+<configuration>
+  <property>
+    <name>fs.alluxio.impl</name>
+    <value>alluxio.hadoop.FileSystem</value>
+  </property>
+</configuration>
+```
 
 ### Specify path to `core-site.xml` in `conf/flink-conf.yaml`
 
@@ -45,34 +57,40 @@ Next, you have to specify the path to the Hadoop configuration in Flink. Open th
 configuration value to the **directory** containing the `core-site.xml`. (For newer Hadoop versions,
 the directory usually ends with `etc/hadoop`.)
 
-### Generate and Distribute the Alluxio Client Jar
+### Distribute the Alluxio Client Jar
 
 In order to communicate with Alluxio, we need to provide Flink programs with the Alluxio Core Client
-jar.
-Generate the Flink compatible client jar by building the entire project from the top level `alluxio`
-directory:
-
-{% include Running-Flink-on-Alluxio/flink-profile-build.md %}
+jar. We recommend you to download the tarball from
+Alluxio [download page](http://www.alluxio.org/download).
+Alternatively, advanced users can choose to compile this client jar from the source code
+by following Follow the instructs [here](Building-Alluxio-From-Source.html#compute-framework-support).
+The Alluxio client jar can be found at `{{site.ALLUXIO_CLIENT_JAR_PATH}}`.
 
 We need to make the Alluxio `jar` file available to Flink, because it contains the configured
 `alluxio.hadoop.FileSystem` class.
 
 There are different ways to achieve that:
 
-- Put the `alluxio-core-client-{{site.ALLUXIO_RELEASED_VERSION}}-jar-with-dependencies.jar` file into the
-`lib` directory of Flink (for local and standalone cluster setups)
-- Put the `alluxio-core-client-{{site.ALLUXIO_RELEASED_VERSION}}-jar-with-dependencies.jar` file into the
-`ship` directory for Flink on YARN.
+- Put the `{{site.ALLUXIO_CLIENT_JAR_PATH}}` file into the `lib` directory of Flink (for local and
+standalone cluster setups)
+- Put the `{{site.ALLUXIO_CLIENT_JAR_PATH}}` file into the `ship` directory for Flink on YARN.
 - Specify the location of the jar file in the `HADOOP_CLASSPATH` environment variable (make sure its
 available on all cluster nodes as well). For example like this:
 
-{% include Running-Flink-on-Alluxio/hadoop-classpath.md %}
+```bash
+$ export HADOOP_CLASSPATH={{site.ALLUXIO_CLIENT_JAR_PATH}}
+```
 
 ### Translate additional Alluxio site properties to Flink
 
-In addition, if there are any properties specified in `conf/alluxio-site.properties`,
+In addition, if there are any client-related properties specified in `conf/alluxio-site.properties`,
 translate those to `env.java.opts` in `{FLINK_HOME}/conf/flink-conf.yaml` for Flink to pick up
-Alluxio configuration.
+Alluxio configuration. For example, if you want to configure Alluxio client to use CACHE_THROUGH as
+the write type, you should add the following to `{FLINK_HOME}/conf/flink-conf.yaml`.
+
+```yaml
+env.java.opts: -Dalluxio.user.file.writetype.default=CACHE_THROUGH
+```
 
 ## Using Alluxio with Flink
 
@@ -87,10 +105,17 @@ This example assumes you have set up Alluxio and Flink as previously described.
 
 Put the file `LICENSE` into Alluxio, assuming you are in the top level Alluxio project directory:
 
-{% include Running-Flink-on-Alluxio/license.md %}
+```bash
+$ bin/alluxio fs copyFromLocal LICENSE alluxio://localhost:19998/LICENSE
+```
 
 Run the following command from the top level Flink project directory:
 
-{% include Running-Flink-on-Alluxio/wordcount.md %}
+```bash
+$ bin/flink run examples/batch/WordCount.jar --input alluxio://localhost:19998/LICENSE --output alluxio://localhost:19998/output
+```
 
 Open your browser and check [http://localhost:19999/browse](http://localhost:19999/browse). There should be an output file `output` which contains the word counts of the file `LICENSE`.
+
+> Tips：The previous example is also applicable to Alluxio in fault tolerant mode with Zookeeper. 
+Please follow the instructions in [HDFS API to connect to Alluxio with high availability](Running-Alluxio-on-a-Cluster.html#hdfs-api).

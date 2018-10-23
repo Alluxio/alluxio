@@ -11,12 +11,12 @@
 
 package alluxio.underfs.swift;
 
+import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
 
 import org.javaswift.joss.model.Account;
 import org.javaswift.joss.model.Container;
 import org.javaswift.joss.model.StoredObject;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,7 +56,6 @@ public class SwiftMockOutputStream extends OutputStream {
    * @param account simulated Swift account
    * @param containerName container name
    * @param objectName name of file or folder to write
-   * @throws IOException if an I/O error occurs
    */
   public SwiftMockOutputStream(Account account, String containerName, String objectName)
       throws IOException {
@@ -64,7 +63,7 @@ public class SwiftMockOutputStream extends OutputStream {
       mAccount = account;
       mContainerName = containerName;
       mObjectName = objectName;
-      mFile = new File(PathUtils.concatPath("/tmp", UUID.randomUUID()));
+      mFile = new File(PathUtils.concatPath(CommonUtils.getTmpDir(), UUID.randomUUID()));
       mOutputStream  = new BufferedOutputStream(new FileOutputStream(mFile));
     } catch (Exception e) {
       LOG.error(e.getMessage());

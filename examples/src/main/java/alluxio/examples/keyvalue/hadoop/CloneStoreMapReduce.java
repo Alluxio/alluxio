@@ -77,7 +77,6 @@ public final class CloneStoreMapReduce {
   /**
    * @param args two parameters, the first is the input key-value store path, the second is the
    *    output key-value store path
-   * @throws Exception if any exception happens
    */
   public static void main(String[] args) throws Exception {
     Configuration conf = new Configuration();

@@ -24,7 +24,6 @@ import alluxio.worker.block.meta.StorageTierView;
 import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterators;
-import io.netty.util.internal.chmv8.ConcurrentHashMapV8;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -33,8 +32,10 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -51,15 +52,15 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public final class LRFUEvictor extends AbstractEvictor {
   /** Map from block id to the last updated logic time count. */
-  private final Map<Long, Long> mBlockIdToLastUpdateTime = new ConcurrentHashMapV8<>();
+  private final Map<Long, Long> mBlockIdToLastUpdateTime = new ConcurrentHashMap<>();
   // Map from block id to the CRF value of the block
-  private final Map<Long, Double> mBlockIdToCRFValue = new ConcurrentHashMapV8<>();
+  private final Map<Long, Double> mBlockIdToCRFValue = new ConcurrentHashMap<>();
   /** In the range of [0, 1]. Closer to 0, LRFU closer to LFU. Closer to 1, LRFU closer to LRU. */
   private final double mStepFactor;
   /** The attenuation factor is in the range of [2, INF]. */
   private final double mAttenuationFactor;
 
-  //logic time count
+  /** Logic time count. */
   private AtomicLong mLogicTimeCount = new AtomicLong(0L);
 
   /**
@@ -100,9 +101,10 @@ public final class LRFUEvictor extends AbstractEvictor {
     return Math.pow(1.0 / mAttenuationFactor, logicTimeInterval * mStepFactor);
   }
 
+  @Nullable
   @Override
   public EvictionPlan freeSpaceWithView(long bytesToBeAvailable, BlockStoreLocation location,
-      BlockMetadataManagerView view) {
+      BlockMetadataManagerView view, Mode mode) {
     synchronized (mBlockIdToLastUpdateTime) {
       updateCRFValue();
       mManagerView = view;
@@ -110,7 +112,7 @@ public final class LRFUEvictor extends AbstractEvictor {
       List<BlockTransferInfo> toMove = new ArrayList<>();
       List<Pair<Long, BlockStoreLocation>> toEvict = new ArrayList<>();
       EvictionPlan plan = new EvictionPlan(toMove, toEvict);
-      StorageDirView candidateDir = cascadingEvict(bytesToBeAvailable, location, plan);
+      StorageDirView candidateDir = cascadingEvict(bytesToBeAvailable, location, plan, mode);
 
       mManagerView.clearBlockMarks();
       if (candidateDir == null) {

@@ -22,7 +22,7 @@
 }
 .navbar-inner {
     /*padding-top: 2px;*/
-    height: 50px;
+    height: 85px;
 }
 .navbar-inner .nav {
     margin-top: 5px;
@@ -37,6 +37,7 @@
     margin-left: 10px;
 }
 body #content {
+    margin-top: 50px;
     line-height: 1.6;
     /* Inspired by Github's wiki style */
 }
@@ -56,14 +57,31 @@ body #content {
 h1 {
     font-size: 28px;
     margin-top: 12px;
+    counter-reset: h2counter;
 }
 h2 {
     font-size: 24px;
     margin-top: 12px;
+    counter-reset: h3counter;
 }
 h3 {
     font-size: 21px;
     margin-top: 10px;
+    counter-reset: h4counter;
+}
+h2:before {
+    counter-increment: h2counter;
+    content: counter(h2counter) "\0000a0\0000a0";
+}
+
+h3:before {
+    counter-increment: h3counter;
+    content: counter(h2counter) "." counter(h3counter) "\0000a0\0000a0";
+}
+
+h4:before {
+    counter-increment: h4counter;
+    content: counter(h2counter) "." counter(h3counter) "." counter(h4counter) "\0000a0\0000a0";
 }
 pre {
     font-family: "Menlo", "Lucida Console", monospace;
@@ -286,6 +304,10 @@ body {
 h1, h2, h3, h4 {
     margin-top: -70px;
     padding-top: 70px;
+}
+a.anchor {
+    margin-top: -115px;
+    padding-top: 115px;
 }
 @media (min-width: 1350px) {
     #toc + ul {

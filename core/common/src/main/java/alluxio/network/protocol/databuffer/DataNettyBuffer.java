@@ -83,7 +83,7 @@ public final class DataNettyBuffer implements DataBuffer {
   }
 
   /**
-   * Release the Netty ByteBuf.
+   * Releases the Netty ByteBuf.
    */
   @Override
   public void release() {

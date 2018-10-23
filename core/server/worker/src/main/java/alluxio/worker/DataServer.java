@@ -15,10 +15,9 @@ import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.util.CommonUtils;
 
-import com.google.common.base.Throwables;
-
 import java.io.Closeable;
 import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -42,32 +41,21 @@ public interface DataServer extends Closeable {
      * @param worker the Alluxio worker handle
      * @return the generated {@link DataServer}
      */
-    public static DataServer create(final InetSocketAddress dataAddress,
-        final AlluxioWorkerService worker) {
-      try {
-        return CommonUtils.createNewClassInstance(
-            Configuration.<DataServer>getClass(PropertyKey.WORKER_DATA_SERVER_CLASS),
-            new Class[] {InetSocketAddress.class, AlluxioWorkerService.class},
-            new Object[] {dataAddress, worker});
-      } catch (Exception e) {
-        throw Throwables.propagate(e);
-      }
+    public static DataServer create(final SocketAddress dataAddress, final WorkerProcess worker) {
+      return CommonUtils.createNewClassInstance(
+          Configuration.<DataServer>getClass(PropertyKey.WORKER_DATA_SERVER_CLASS),
+          new Class[] {SocketAddress.class, WorkerProcess.class},
+          new Object[] {dataAddress, worker});
     }
   }
 
   /**
-   * Gets the actual bind hostname on {@link DataServer} service.
+   * Gets the actual bind socket address. It is either a {@link InetSocketAddress} or a
+   * {@link io.netty.channel.unix.DomainSocketAddress}.
    *
-   * @return the bind host
+   * @return the bind socket address
    */
-  String getBindHost();
-
-  /**
-   * Gets the port the {@link DataServer} is listening on.
-   *
-   * @return the port number
-   */
-  int getPort();
+  SocketAddress getBindAddress();
 
   /**
    * Checks if the {@link DataServer} is closed.

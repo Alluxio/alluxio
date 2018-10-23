@@ -5,36 +5,48 @@ group: Features
 priority: 0
 ---
 
-Alluxio's command line interface provides users with basic file system operations. You can invoke the command line utility using:
+* Table of Contents
+{:toc}
 
-{% include Command-Line-Interface/alluxio-fs.md %}
+Alluxio's command line interface provides users with basic file system operations. You can invoke
+the following command line utility to get all the subcommands:
 
-All "path" variables in fs commands should start with
+```bash
+$ ./bin/alluxio fs
+Usage: alluxio fs [generic options]
+       [cat <path>]
+       [checkConsistency [-r] <Alluxio path>]
+       ...
+```
 
-{% include Command-Line-Interface/alluxio-path.md %}
+For `fs` subcommands that take Alluxio URIs as argument (e.g. `ls`, `mkdir`), the argument should
+be either a complete Alluxio URI `alluxio://<master-hostname>:<master-port>/<path>`, or `/<path>`
+without header provided to use the default hostname and port set in the
+`conf/allluxio-site.properties`.
 
-Or, if no header is provided, the default hostname and port (set in the env file) will be used.
 
-    /<path>
-
-## Wildcard Input
-
-Most of the commands which require path components allow wildcard arguments for ease of use. For
-example:
-
-{% include Command-Line-Interface/rm.md %}
-
-The example command would delete anything in the `data` directory with a prefix of `2014`.
-
-Note that some shells will attempt to glob the input paths, causing strange errors (Note: the number 21 could be different and comes from the number of matching files in your local filesystem):
-
-{% include Command-Line-Interface/rm-error.md %}
-
-As a work around, you can disable globbing (depending on your shell, for example `set -f`) or by escaping wildcards, for example:
-
-{% include Command-Line-Interface/escape.md %}
-
-Note the double escape, this is because the shell script will eventually call a java program which should have the final escaped parameters (cat /\\*).
+>**Wildcard input**
+>
+>Most of the commands which require path components allow wildcard arguments for ease of use. For
+>example:
+>
+>{% include Command-Line-Interface/rm.md %}
+>
+>The example command would delete anything in the `data` directory with a prefix of `2014`.
+>
+>Note that some shells will attempt to glob the input paths, causing strange errors (Note: the
+>number 21 could be different and comes from the number of matching files in your local
+>filesystem):
+>
+>{% include Command-Line-Interface/rm-error.md %}
+>
+>As a work around, you can disable globbing (depending on your shell, for example `set -f`) or by
+>escaping wildcards, for example:
+>
+>{% include Command-Line-Interface/escape.md %}
+>
+>Note the double escape, this is because the shell script will eventually call a java program
+>which should have the final escaped parameters (`cat /\\*`).
 
 ## List of Operations
 
@@ -51,7 +63,7 @@ Note the double escape, this is because the shell script will eventually call a 
 
 ## Example Use Cases
 
-## cat
+### cat
 
 The `cat` command prints the entire contents of a file in Alluxio to the console. This can be useful for verifying the file is what the user expects. If you wish to copy the file to your local file system, `copyToLocal` should be used.
 
@@ -150,7 +162,7 @@ For example, if data files are stored by their date, `count` can be used to dete
 
 ### cp
 
-The `cp` command copies a file or directory in the Alluxio file system or between local file system 
+The `cp` command copies a file or directory in the Alluxio file system or between local file system
 and Alluxio file system.
 
 Scheme `file` indicates the local file system and scheme `alluxio` or no scheme indicates
@@ -164,9 +176,14 @@ For example, `cp` can be used to copy files between Under file systems.
 
 ### du
 
-The `du` command outputs the size of a file. If a directory is specified, it will output the aggregate size of all files in the directory and its children directories.
+The `du` command outputs the total size and in Alluxio size of files and folders. 
 
-For example, if the Alluxio space is unexpectedly over utilized, `du` can be used to detect which folders are taking up the most space.
+If a directory is specified, it will display the total size and in Alluxio size of all files in this directory.
+If the `-s` option is used, it will display the aggregate summary of file lengths being displayed.
+
+By default, `du` prints the size in bytes. If the `-h` option is used, it will print sizes in human readable format (e.g., 1KB 234MB 2GB).
+
+The `--memory` option will print the in memory size as well.
 
 {% include Command-Line-Interface/du.md %}
 
@@ -182,7 +199,7 @@ For example, `fileInfo` can be used to debug the block locations of a file. This
 
 ### free
 
-The `free` command sends a request to the master to evict all blocks of a file from the Alluxio workers. If the argument to `free` is a directory, it will recursively `free` all files. This request is not guaranteed to take effect immediately, as readers may be currently using the blocks of the file. `Free` will return immediately after the request is acknowledged by the master. Note that, files must be persisted already in under storage before being freed, or the `free` command will fail; also any pinned files cannot be freed unless `-f` option is specified. The `free` command does not delete any data from the under storage system, but only removing the blocks of those files in Alluxio space to reclaim space. In addition, metadata will not be affected by this operation, meaning the freed file will still show up if an `ls` command is run.
+The `free` command sends a request to the master to evict all blocks of a file from the Alluxio workers. If the argument to `free` is a directory, it will recursively `free` all files. This request is not guaranteed to take effect immediately, as readers may be currently using the blocks of the file. `free` will return immediately after the request is acknowledged by the master. Note that, files must be persisted already in under storage before being freed, or the `free` command will fail; also any pinned files cannot be freed unless `-f` option is specified. The `free` command does not delete any data from the under storage system, but only removing the blocks of those files in Alluxio space to reclaim space. In addition, metadata will not be affected by this operation, meaning the freed file will still show up if an `ls` command is run.
 
 For example, `free` can be used to manually manage Alluxio's data caching.
 
@@ -196,6 +213,15 @@ For example, `getCapacityBytes` can be used to verify if your cluster is set up 
 
 {% include Command-Line-Interface/getCapacityBytes.md %}
 
+### getfacl
+The `getfacl` command returns the ACL entries for a specified file or directory.
+
+For example, `getfacl` can be used to verify that an ACL is changed successfully after a call to `setfacl`.
+
+```bash
+$ ./bin/alluxio fs getfacl /testdir/testfile
+```
+
 ### getUsedBytes
 
 The `getUsedBytes` command returns the number of used bytes in Alluxio.
@@ -203,6 +229,21 @@ The `getUsedBytes` command returns the number of used bytes in Alluxio.
 For example, `getUsedBytes` can be used to monitor the health of your cluster.
 
 {% include Command-Line-Interface/getUsedBytes.md %}
+
+### help
+
+The `help` command prints the help message for a given `fs` subcommand. If there isn't given
+command, prints help messages for all supported subcommands.
+
+Examples:
+
+```bash
+# Print all subcommands
+$ ./bin/alluxio fs help
+#
+# Print help message for ls
+$ ./bin/alluxio fs help ls
+```
 
 ### leader
 
@@ -212,7 +253,8 @@ The `leader` command prints the current Alluxio leader master host name.
 
 ### load
 
-The `load` command moves data from the under storage system into Alluxio storage. If there is a Alluxio worker on the machine this command is run from, the data will be loaded to that worker. Otherwise, a random worker will be selected to serve the data. Load will no-op if the file is already in Alluxio memory level storage. If `load` is run on a directory, files in the directory will be recursively loaded.
+The `load` command moves data from the under storage system into Alluxio storage. If there is a Alluxio worker on the machine this command is run from, the data will be loaded to that worker. Otherwise, a random worker will be selected to serve the data.
+If the data is already loaded into Alluxio, load is a no-op unless the `--local flag` is used, it means that the `--local` flag will load data to a local worker even if the data is already available on remote workers. If `load` is run on a directory, files in the directory will be recursively loaded.
 
 For example, `load` can be used to prefetch data for analytics jobs.
 
@@ -241,19 +283,27 @@ For example, `location` can be used to debug data locality when running jobs usi
 
 The `ls` command lists all the immediate children in a directory and displays the file size, last modification time, and in memory status of the files. Using `ls` on a file will only display the information for that specific file.
 
-Adding `-R` option also recursively lists child directories, displaying the entire subtree starting from the input path.
+The `ls` command will also load the metadata for any file or immedidate children of a directory
+from the under storage system to Alluxio namespace, if it does not exist in Alluxio yet. `ls`
+queries the under storage system for any file or directory matching the given path and then creates
+a mirror of the file in Alluxio backed by that file. Only the metadata, such as the file name and
+size are loaded this way and no data transfer occurs.
 
-The `ls` command will also load the metadata for any file or directory from the under storage system to Alluxio namespace, if it does not exist in Alluxio yet. `ls` queries the under storage system for any file or directory matching the given path and then creates a mirror of the file in Alluxio backed by that file. Only the metadata, such as the file name and size are loaded this way and no data transfer occurs.
+Options:
 
-Adding `-f` option forces loading metadata for immediate children in a directory. By default, it loads metadata only at the first time at which a directory is listed.
-
-Adding `-raw` option to display raw sizes.
+* `-d` option lists the directories as plain files. For example, `ls -d /` shows the atrributes
+of root directory.
+* `-f` option forces loading metadata for immediate children in a directory. By default, it loads
+metadata only at the first time at which a directory is listed.
+* `-h` option displays file sizes in human-readable formats.
+* `-p` option lists all pinned files.
+* `-R` option also recursively lists child directories, displaying the entire subtree starting from the input path.
+* `--sort` sorts the result by the given option. Possible values: `size|creationTime|inMemoryPercentage|lastModificationTime|path`
+* `-r` reverses the sorting order.
 
 For example, `ls` can be used to browse the file system.
 
 {% include Command-Line-Interface/ls.md %}
-
-`ls` loads the metadata for immedidate children of a directory.
 
 ### masterInfo
 
@@ -276,6 +326,11 @@ For example, `mkdir` can be used by an admin to set up the basic folder structur
 ### mount
 
 The `mount` command links an under storage path to an Alluxio path, and files and folders created in Alluxio space under the path will be backed by a corresponding file or folder in the under storage path. For more details, see [Unified Namespace](Unified-and-Transparent-Namespace.html).
+
+Options:
+
+* `--readonly` option sets the  mount point to be readonly in Alluxio
+* `--option <key>=<val>` option passes an property to this mount point (e.g., S3 credential)
 
 For example, `mount` can be used to make data in another storage system available in Alluxio.
 
@@ -305,23 +360,31 @@ For example, `pin` can be used to manually ensure performance if the administrat
 
 {% include Command-Line-Interface/pin.md %}
 
-### report
-
-The `report` command marks a file as lost to the Alluxio master. This command should only be used with files created using the [Lineage API](Lineage-API.html). Marking a file as lost will cause the master to schedule a recomputation job to regenerate the file.
-
-For example, `report` can be used to force recomputation of a file.
-
-{% include Command-Line-Interface/report.md %}
-
 ### rm
 
 The `rm` command removes a file from Alluxio space and the under storage system. The file will be unavailable immediately after this command returns, but the actual data may be deleted a while later.
 
-Add `-R` option will delete all contents of the directory and then the directory itself.
+Add `-R` option will delete all contents of the directory and then the directory itself. Add `-U` option to not check whether the UFS contents being deleted are in-sync with Alluxio before attempting to delete persisted directories.
 
 For example, `rm` can be used to remove temporary files which are no longer needed.
 
 {% include Command-Line-Interface/rm2.md %}
+
+### setfacl
+
+The `setfacl` command modifies the access control list associated with a specified file or directory. 
+
+The`-R` option will apply operations to all files and directories recursively.
+The `-m` option will modify the ACL by adding/overwriting new entries.
+The `-x` option will remove specific ACL entries.
+The `-b` option will remove all ACL entries, except for the base entries.
+The `-k` option will remove all the default ACL entries.
+
+For example, `setfacl` can be used to give read and execute permissions to a user named `testuser`. 
+
+```bash
+$ ./bin/alluxio fs setfacl -m "user:testuser:r-x" /testdir/testfile
+```
 
 ### setTtl
 
@@ -335,6 +398,15 @@ For example, `setTtl` with action `delete` can be used to clean up files the adm
 
 The `stat` command dumps the FileInfo representation of a file or a directory to the console. It is primarily intended to assist powerusers in debugging their system. Generally viewing the file info in the UI will be much easier to understand.
 
+One can specify `-f <arg>` to display info in given format:
+* "%N": name of the file;
+* "%z": size of file in bytes;
+* "%u": owner;
+* "%g": group name of owner;
+* "%y" or "%Y": modification time, %y shows 'yyyy-MM-dd HH:mm:ss' (the UTC
+date), %Y it shows milliseconds since January 1, 1970 UTC;
+* "%b": Number of blocks allocated for file
+
 For example, `stat` can be used to debug the block locations of a file. This is useful when trying to achieve locality for compute workloads.
 
 {% include Command-Line-Interface/stat.md %}
@@ -346,6 +418,29 @@ The `tail` command outputs the last 1 kb of data in a file to the console.
 For example, `tail` can be used to verify the output of a job is in the expected format or contains expected values.
 
 {% include Command-Line-Interface/tail.md %}
+
+### test
+
+The `test` command tests a property of a path, returning 0 if the property is true, or 1
+otherwise. Specify `-d` to test whether the path is a directory, Specify `-f`
+to test whether the path is a file, Specify `-e` to test whether the path
+exists, Specify `-s` to test whether the directory is not empty, Specify `-z`
+to test whether the file is zero length,
+
+Options:
+
+ * `-d` option tests whether path is a directory.
+ * `-e` option tests whether path exists.
+ * `-f` option tests whether path is a file.
+ * `-s` option tests whether path is not empty.
+ * `-z` option tests whether file is zero length.
+
+Examples:
+
+```bash
+$ ./bin/alluxio fs test -d /someDir
+$ echo $?
+```
 
 ### touch
 

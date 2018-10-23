@@ -26,9 +26,7 @@ Download [Vagrant](https://www.vagrantup.com/downloads.html)
 
 **Install Alluxio**
 
-Download Alluxio to your local machine, and unzip it:
-
-{% include Common-Commands/download-alluxio.md %}
+[Clone Alluxio Repository](https://github.com/Alluxio/alluxio) to your local machine
 
 **Install python library dependencies**
 
@@ -36,19 +34,25 @@ Install [python>=2.7](https://www.python.org/), not python3.
 
 Under `deploy/vagrant` directory in your home directory, run:
 
-{% include Running-Alluxio-on-Virtual-Box/install-vagrant.md %}
+```bash
+$ sudo bash bin/install.sh
+```
 
 Alternatively, you can manually install [pip](https://pip.pypa.io/en/latest/installing/), and then
 in `deploy/vagrant` run:
 
-{% include Running-Alluxio-on-Virtual-Box/install-pip.md %}
+```bash
+$ sudo pip install -r pip-req.txt
+```
 
 ## Launch a Cluster
 
 Now you can launch the Alluxio cluster with Hadoop2.4.1 as under filesystem by running the script
 under `deploy/vagrant`:
 
-{% include Running-Alluxio-on-Virtual-Box/launch-cluster.md %}
+```bash
+$ ./create <number of machines> vb
+```
 
 Each node of the cluster runs an Alluxio worker, and the `AlluxioMaster` runs an Alluxio master.
 
@@ -59,7 +63,10 @@ Each node of the cluster runs an Alluxio worker, and the `AlluxioMaster` runs an
 After the command `./create <number of machines> vb` succeeds, you can see two green lines like
 below shown at the end of the shell output:
 
-{% include Running-Alluxio-on-Virtual-Box/shell-output.md %}
+```bash
+>>> AlluxioMaster public IP is xxx, visit xxx:19999 for Alluxio web UI<<<
+>>> visit default port of the web UI of what you deployed <<<
+```
 
 Default port for Alluxio Web UI is **19999**.
 
@@ -73,18 +80,24 @@ The nodes set up are named as `AlluxioMaster`, `AlluxioWorker1`, `AlluxioWorker2
 
 To ssh into a node, run:
 
-{% include Running-Alluxio-on-Virtual-Box/ssh.md %}
+```bash
+$ vagrant ssh <node name>
+```
 
 For example, you can ssh into `AlluxioMaster` with:
 
-{% include Running-Alluxio-on-Virtual-Box/ssh-AlluxioMaster.md %}
+```bash
+$ vagrant ssh AlluxioMaster
+```
 
 All software is installed under the root directory, e.g. Alluxio is installed in `/alluxio`,
 and Hadoop is installed in `/hadoop`.
 
 On the `AlluxioMaster` node, you can run tests against Alluxio to check its health:
 
-{% include Running-Alluxio-on-Virtual-Box/runTests.md %}
+```bash
+$ /alluxio/bin/alluxio runTests
+```
 
 After the tests finish, visit Alluxio web UI at `http://{MASTER_IP}:19999` again. Click `Browse
 File System` in the navigation bar, and you should see the files written to Alluxio by the above
@@ -92,13 +105,17 @@ tests.
 
 From a node in the cluster, you can ssh to other nodes in the cluster without password with:
 
-{% include Running-Alluxio-on-Virtual-Box/ssh-other-node.md %}
+```bash
+$ ssh AlluxioWorker1
+```
 
 ## Destroy the cluster
 
 Under `deploy/vagrant` directory, you can run:
 
-{% include Running-Alluxio-on-Virtual-Box/destroy.md %}
+```bash
+$ ./destroy
+```
 
 to destroy the cluster that you created. Only one cluster can be created at a time. After the
 command succeeds, the virtual machines are terminated.

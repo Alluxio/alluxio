@@ -11,8 +11,6 @@
 
 package alluxio.exception;
 
-import alluxio.PropertyKey;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -22,11 +20,10 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public enum PreconditionMessage {
-  ASYNC_JOURNAL_WRITER_NULL("AsyncJournalWriter cannot be null"),
-  COMMAND_LINE_LINEAGE_ONLY("Only command line jobs are supported by createLineage"),
+  BLOCK_LENGTH_INCONSISTENT("Block %s is expected to be %s bytes, but only %s bytes are available. "
+      + "Please ensure its metadata is consistent between Alluxio and UFS."),
   EMPTY_FILE_INFO_LIST_FOR_PERMISSION_CHECK(
       "The passed-in file info list can not be empty when checking permission"),
-  ERR_BLOCK_INDEX("Current block index exceeds max index"),
   ERR_BLOCK_REMAINING("The current block still has space left, no need to get new block"),
   ERR_BUFFER_STATE("Buffer length: %s, offset: %s, len: %s"),
   ERR_CLOSED_BLOCK_IN_STREAM("Cannot do operations on a closed BlockInStream"),
@@ -47,7 +44,7 @@ public enum PreconditionMessage {
   ERR_TIER_QUOTA_BLANK("Tier capacity configuration should not be blank"),
   ERR_UFS_MANAGER_OPERATION_INVALID_SESSION("Attempted to %s ufs file with invalid session id."),
   ERR_UFS_MANAGER_FAILED_TO_REMOVE_AGENT(
-      "Failed to remove agent %d from ufs manager's internal state."),
+      "Failed to remove agent %s from ufs manager's internal state."),
   ERR_UNEXPECTED_EOF("Reached EOF unexpectedly."),
   ERR_WRITE_BUFFER_NULL("Cannot write a null input buffer"),
   ERR_ZK_ADDRESS_NOT_SET("Cannot get leader address from zookeeper; %s is not set"),
@@ -55,8 +52,18 @@ public enum PreconditionMessage {
   FILE_WRITE_LOCATION_POLICY_UNSPECIFIED("The location policy is not specified"),
   UFS_READ_LOCATION_POLICY_UNSPECIFIED("The UFS read location policy is not specified"),
   GCS_BUCKET_MUST_BE_SET("The %s system property must be set to use the GCSUnderStorageCluster"),
+  INCONSISTENT_ZK_CONFIGURATION(
+      "Inconsistent Zookeeper configuration; %s should be set if and only if %s is true"),
   INODE_TREE_UNINITIALIZED_IS_ROOT_ID("Cannot call isRootId() before initializeRoot()"),
-  INVALID_USER_FILE_BUFFER_BYTES("Invalid \"" + PropertyKey.USER_FILE_BUFFER_BYTES + "\": %d"),
+  INVALID_REPLICATION_MAX_VALUE("Max replication must be -1 (infinity) or a non-negative integer"),
+  INVALID_REPLICATION_MIN_VALUE("Min replication must be a non-negative integer"),
+  INVALID_REPLICATION_MAX_MIN_VALUE_NULL("Both min and max replication are null"),
+  INVALID_REPLICATION_MAX_SMALLER_THAN_MIN("Cannot set min and max replication to be %s and %s: "
+      + "min replication must be smaller or equal than max replication"),
+  INVALID_PROPERTY("Invalid property: %s"),
+  INVALID_USER_FILE_BUFFER_BYTES("Invalid value of %s: %s"),
+  NOT_ENOUGH_BYTES_READ(
+      "Not enough bytes have been read [bytesRead: %s, bytesToRead: %s] from the UFS file: %s."),
   PERMISSION_GROUP_IS_NULL("Group cannot be null when constructing Permission"),
   PERMISSION_MODE_IS_NULL("Mode cannot be null when constructing Permission"),
   PERMISSION_OWNER_IS_NULL("Owner cannot be null when constructing Permission"),
@@ -69,9 +76,7 @@ public enum PreconditionMessage {
   URI_HOST_NULL("URI hostname must not be null"),
   URI_PORT_NULL("URI port must not be null"),
   URI_KEY_VALUE_STORE_NULL("URI of key-value store must not be null"),
-  NOT_ENOUGH_BYTES_READ(
-      "Not enough bytes have been read [bytesRead: %d, bytesToRead: %d] from the UFS file: %s."),
-
+  URI_SCHEME_MISMATCH("URI scheme %s does not match the expected scheme %s"),
   // SEMICOLON! minimize merge conflicts by putting it on its own line
   ;
 

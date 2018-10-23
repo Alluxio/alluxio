@@ -1,7 +1,7 @@
 ---
 layout: global
-title: 在Minio上配置Alluxio
-nickname: Minio使用Alluxio
+title: Alluxio使用Minio
+nickname: Alluxio使用Minio
 group: Under Store
 priority: 0
 ---
@@ -14,18 +14,15 @@ Alluxio本地提供了s3a:// scheme(建议使用以获取更好的性能)。您�
 
 ## 初始步骤
 
-首先，本地要有Alluxio二进制包。你可以自己[编译Alluxio](Building-Alluxio-Master-Branch.html)，或者[下载二进制包](Running-Alluxio-Locally.html)
-
-然后，如果你还没有配置文件，可通过`bootstrapConf`命令创建。
-例如，如果你是在本机运行Alluxio，那么`<ALLUXIO_MASTER_HOSTNAME>`应该设置为`localhost`。
-
-{% include Configuring-Alluxio-with-Minio/bootstrapConf.md %}
-
-除了上述方式，也可以通过template文件创建配置文件，并且手动设置相应参数。
-
-{% include Common-Commands/copy-alluxio-env.md %}
+首先，本地要有Alluxio二进制包。你可以自己[编译Alluxio](Building-Alluxio-From-Source.html)，或者[下载二进制包](Running-Alluxio-Locally.html)
 
 ## 配置Minio
+
+您需要修改`conf/alluxio-site.properties`配置Alluxio，以使用Minio作为其底层存储系统。如果该配置文件不存在，请从模板创建该配置文件。
+
+```bash
+$ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
+```
 
 Minio是为云应用程序和DevOps构建的对象存储服务器。 Minio提供了AWS S3的开源替代方案。
 
@@ -42,11 +39,14 @@ Minio是为云应用程序和DevOps构建的对象存储服务器。 Minio提供
 
 在`conf/alluxio-site.properties`文件中要修改的所有字段如下所示：
 
-{% include Configuring-Alluxio-with-Minio/minio.md %}
+```properties
+alluxio.underfs.address=s3a://<MINIO_BUCKET>/<MINIO_DIRECTORY>
+alluxio.underfs.s3.endpoint=http://<MINIO_ENDPOINT>/
+alluxio.underfs.s3.disable.dns.buckets=true
+alluxio.underfs.s3a.inherit_acl=false
+aws.accessKeyId=<MINIO_ACCESS_KEY_ID>
+aws.secretKey=<MINIO_SECRET_KEY_ID>
+```
 
-对于这些参数，用您的Minio服务的URL和端口替换`<MINIO_ENDPOINT>`和`<MINIO_PORT>`。
-
-用`true`或`false`替换`<USE_HTTPS>`。
-如果使用`true`(使用HTTPS)，还需要用提供者的HTTPS端口替换`<MINIO_HTTPS_PORT>`，并且删除`alluxio.underfs.s3.endpoint.http.port`参数。
-如果您使用`false`来替换`<USE_HTTPS>`(使用HTTP)，同样需要用提供者的HTTPS端口替换`<MINIO_HTTP_PORT>`，并且删除`alluxio.underfs.s3.endpoint.https.port`参数。
-如果HTTP或HTTPS端口值未设置，`<HTTP_PORT>`默认端口为80，`<HTTPS_PORT>`默认端口为443。
+对于这些参数，用您的Minio服务的主机名和端口替换`<MINIO_ENDPOINT>`，例如`http://localhost:9000`。
+如果端口值未设置，对于`http`默认端口为80，对于`https`默认端口为443。

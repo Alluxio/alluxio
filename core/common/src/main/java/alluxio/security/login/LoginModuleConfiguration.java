@@ -21,6 +21,7 @@ import javax.annotation.concurrent.ThreadSafe;
 import javax.security.auth.login.AppConfigurationEntry;
 import javax.security.auth.login.AppConfigurationEntry.LoginModuleControlFlag;
 import javax.security.auth.login.Configuration;
+import javax.annotation.Nullable;
 
 /**
  * A JAAS configuration that defines the login modules, by which JAAS uses to login.
@@ -70,6 +71,7 @@ public final class LoginModuleConfiguration extends Configuration {
   public LoginModuleConfiguration() {}
 
   @Override
+  @Nullable
   public AppConfigurationEntry[] getAppConfigurationEntry(String appName) {
     if (appName.equalsIgnoreCase(AuthType.SIMPLE.getAuthName())
         || appName.equalsIgnoreCase(AuthType.CUSTOM.getAuthName())) {

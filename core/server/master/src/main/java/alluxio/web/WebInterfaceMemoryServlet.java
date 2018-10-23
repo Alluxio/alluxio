@@ -16,7 +16,7 @@ import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.FileDoesNotExistException;
-import alluxio.master.AlluxioMasterService;
+import alluxio.master.MasterProcess;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.security.LoginUser;
 import alluxio.security.authentication.AuthenticatedClientUser;
@@ -42,15 +42,15 @@ import javax.servlet.http.HttpServletResponse;
 @ThreadSafe
 public final class WebInterfaceMemoryServlet extends HttpServlet {
   private static final long serialVersionUID = 4293149962399443914L;
-  private final transient AlluxioMasterService mMaster;
+  private final transient MasterProcess mMasterProcess;
 
   /**
    * Creates a new instance of {@link WebInterfaceMemoryServlet}.
    *
-   * @param master Alluxio master
+   * @param masterProcess Alluxio master process
    */
-  public WebInterfaceMemoryServlet(AlluxioMasterService master) {
-    mMaster = Preconditions.checkNotNull(master);
+  public WebInterfaceMemoryServlet(MasterProcess masterProcess) {
+    mMasterProcess = Preconditions.checkNotNull(masterProcess, "masterProcess");
   }
 
   /**
@@ -59,30 +59,32 @@ public final class WebInterfaceMemoryServlet extends HttpServlet {
    * @param request the {@link HttpServletRequest} object
    * @param response the {@link HttpServletResponse} object
    * @throws ServletException if the target resource throws this exception
-   * @throws IOException if the target resource throws this exception
    */
   @Override
   public void doGet(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException {
+    if (!Configuration.getBoolean(PropertyKey.WEB_FILE_INFO_ENABLED)) {
+      return;
+    }
     if (SecurityUtils.isSecurityEnabled() && AuthenticatedClientUser.get() == null) {
       AuthenticatedClientUser.set(LoginUser.get().getName());
     }
-    request.setAttribute("masterNodeAddress", mMaster.getRpcAddress().toString());
+    request.setAttribute("masterNodeAddress", mMasterProcess.getRpcAddress().toString());
     request.setAttribute("fatalError", "");
     request.setAttribute("showPermissions",
         Configuration.getBoolean(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED));
 
-    FileSystemMaster fileSystemMaster = mMaster.getMaster(FileSystemMaster.class);
+    FileSystemMaster fileSystemMaster = mMasterProcess.getMaster(FileSystemMaster.class);
 
-    List<AlluxioURI> inMemoryFiles = fileSystemMaster.getInMemoryFiles();
-    Collections.sort(inMemoryFiles);
+    List<AlluxioURI> inAlluxioFiles = fileSystemMaster.getInAlluxioFiles();
+    Collections.sort(inAlluxioFiles);
 
-    List<UIFileInfo> fileInfos = new ArrayList<>(inMemoryFiles.size());
-    for (AlluxioURI file : inMemoryFiles) {
+    List<UIFileInfo> fileInfos = new ArrayList<>(inAlluxioFiles.size());
+    for (AlluxioURI file : inAlluxioFiles) {
       try {
         long fileId = fileSystemMaster.getFileId(file);
         FileInfo fileInfo = fileSystemMaster.getFileInfo(fileId);
-        if (fileInfo != null && fileInfo.getInMemoryPercentage() == 100) {
+        if (fileInfo != null && fileInfo.getInAlluxioPercentage() == 100) {
           fileInfos.add(new UIFileInfo(fileInfo));
         }
       } catch (FileDoesNotExistException e) {
@@ -97,7 +99,7 @@ public final class WebInterfaceMemoryServlet extends HttpServlet {
         return;
       }
     }
-    request.setAttribute("inMemoryFileNum", fileInfos.size());
+    request.setAttribute("inAlluxioFileNum", fileInfos.size());
 
     // URL is "./memory", can not determine offset and limit, let javascript in jsp determine
     // and redirect to "./memory?offset=xxx&limit=xxx"

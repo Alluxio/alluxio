@@ -11,71 +11,24 @@
 
 package alluxio.master.journal;
 
-import alluxio.master.journal.ufs.UfsJournal;
-import alluxio.util.URIUtils;
+import alluxio.exception.status.UnavailableException;
 
-import java.io.IOException;
+import java.io.Closeable;
 import java.net.URI;
-import java.net.URISyntaxException;
-
-import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * The read-only journal. It prevents access to a {@link JournalWriter}.
+ * A journal for persisting journal entries.
  */
-@ThreadSafe
-public interface Journal {
-
-  /**
-   * A {@link Journal} factory.
-   */
-  @ThreadSafe
-  final class Factory implements JournalFactory {
-    private final URI mBase;
-
-    /**
-     * Creates a read-only journal factory with the specified base location. When journals are
-     * created, their names are appended to the base location.
-     *
-     * @param base the base location for journals created by this factory
-     */
-    public Factory(URI base) {
-      mBase = base;
-    }
-
-    @Override
-    public Journal create(String name) {
-      try {
-        return new UfsJournal(URIUtils.appendPath(mBase, name));
-      } catch (URISyntaxException e) {
-        throw new RuntimeException(e);
-      }
-    }
-
-    /**
-     * Creates a new read-only journal using the given location.
-     *
-     * @param location the journal location
-     * @return a new instance of {@link Journal}
-     */
-    public static Journal create(URI location) {
-      return new UfsJournal(location);
-    }
-  }
-
+public interface Journal extends Closeable {
   /**
    * @return the journal location
    */
   URI getLocation();
 
   /**
-   * @return the {@link JournalReader} for this journal
+   * @return a journal context for appending journal entries
+   * @throws UnavailableException if a context cannot be created because the journal has been
+   *         closed.
    */
-  JournalReader getReader();
-
-  /**
-   * @return whether the journal has been formatted
-   * @throws IOException if an I/O error occurs
-   */
-  boolean isFormatted() throws IOException;
+  JournalContext createJournalContext() throws UnavailableException;
 }

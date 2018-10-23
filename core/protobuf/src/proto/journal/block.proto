@@ -14,3 +14,8 @@ message BlockInfoEntry {
   optional int64 block_id = 1;
   optional int64 length = 2;
 }
+
+// next available id: 2
+message DeleteBlockEntry {
+  optional int64 block_id = 1;
+}

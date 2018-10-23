@@ -18,7 +18,7 @@ import com.google.common.base.Objects;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * Method options for file locations in {@link UnderFileSystem}.
+ * Method options for file locations in {@link alluxio.underfs.UnderFileSystem}.
  */
 @PublicApi
 @NotThreadSafe

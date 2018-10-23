@@ -11,36 +11,29 @@
 
 package alluxio.underfs.hdfs;
 
-import alluxio.Seekable;
+import alluxio.underfs.SeekableUnderFileInputStream;
 
 import org.apache.hadoop.fs.FSDataInputStream;
 
-import java.io.FilterInputStream;
 import java.io.IOException;
 
-import javax.annotation.concurrent.NotThreadSafe;
-
 /**
- * HDFS implementation for {@link UnderFileInputStream}.
+ * The input stream of HDFS as under filesystem. This input stream supports seeking and can be
+ * cached for reuse.
  */
-@NotThreadSafe
-public class HdfsUnderFileInputStream extends FilterInputStream implements Seekable {
+public class HdfsUnderFileInputStream extends SeekableUnderFileInputStream {
 
-  /** The underlying stream to read data from. */
-  private FSDataInputStream mStream;
-
-  /**
-   * Creates a new instance of {@link HdfsUnderFileInputStream}.
-   *
-   * @param stream the wrapped input stream
-   */
-  public HdfsUnderFileInputStream(FSDataInputStream stream) {
-    super(stream);
-    mStream = stream;
+  HdfsUnderFileInputStream(FSDataInputStream in) {
+    super(in);
   }
 
   @Override
   public void seek(long position) throws IOException {
-    mStream.seek(position);
+    ((FSDataInputStream) in).seek(position);
+  }
+
+  @Override
+  public long getPos() throws IOException {
+    return ((FSDataInputStream) in).getPos();
   }
 }

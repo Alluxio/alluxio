@@ -14,8 +14,8 @@ package alluxio.wire;
 import alluxio.Constants;
 import alluxio.util.CommonUtils;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.net.HostAndPort;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -23,7 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-public class FileBlockInfoTest {
+public final class FileBlockInfoTest {
 
   @Test
   public void json() throws Exception {
@@ -37,7 +37,7 @@ public class FileBlockInfoTest {
   @Test
   public void thrift() {
     FileBlockInfo fileBlockInfo = createRandom();
-    FileBlockInfo other = ThriftUtils.fromThrift(ThriftUtils.toThrift(fileBlockInfo));
+    FileBlockInfo other = FileBlockInfo.fromThrift(fileBlockInfo.toThrift());
     checkEquality(fileBlockInfo, other);
   }
 

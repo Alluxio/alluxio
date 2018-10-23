@@ -31,4 +31,4 @@ ALLUXIO_MASTER_LOGGER="Console,MASTER_LOGGER"
 
 . ${SCRIPT_DIR}/../../../libexec/alluxio-config.sh
 
-${JAVA} -cp ${CLASSPATH} ${ALLUXIO_MASTER_JAVA_OPTS} alluxio.master.AlluxioMaster
+${JAVA} -cp ${ALLUXIO_SERVER_CLASSPATH} ${ALLUXIO_MASTER_JAVA_OPTS} alluxio.master.AlluxioMaster

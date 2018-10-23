@@ -11,7 +11,6 @@
 
 package alluxio.master.file.options;
 
-import alluxio.CommonTestUtils;
 import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
@@ -47,6 +46,7 @@ public class CreateFileOptionsTest {
     Assert.assertFalse(options.isRecursive());
     Assert.assertEquals(Constants.NO_TTL, options.getTtl());
     Assert.assertEquals(TtlAction.DELETE, options.getTtlAction());
+    Assert.assertFalse(options.isCacheable());
     ConfigurationTestUtils.resetConfiguration();
   }
 
@@ -65,6 +65,7 @@ public class CreateFileOptionsTest {
     boolean persisted = random.nextBoolean();
     boolean recursive = random.nextBoolean();
     long ttl = random.nextLong();
+    boolean cacheable = random.nextBoolean();
 
     CreateFileOptions options = CreateFileOptions.defaults()
         .setBlockSizeBytes(blockSize)
@@ -76,7 +77,8 @@ public class CreateFileOptionsTest {
         .setMode(mode)
         .setRecursive(recursive)
         .setTtl(ttl)
-        .setTtlAction(TtlAction.FREE);
+        .setTtlAction(TtlAction.FREE)
+        .setCacheable(cacheable);
 
     Assert.assertEquals(blockSize, options.getBlockSizeBytes());
     Assert.assertEquals(mountPoint, options.isMountPoint());
@@ -86,12 +88,13 @@ public class CreateFileOptionsTest {
     Assert.assertEquals(mode, options.getMode());
     Assert.assertEquals(persisted, options.isPersisted());
     Assert.assertEquals(recursive, options.isRecursive());
-    Assert.assertEquals(ttl, options.getTtl());
     Assert.assertEquals(TtlAction.FREE, options.getTtlAction());
+    Assert.assertEquals(ttl, options.getTtl());
+    Assert.assertEquals(cacheable, options.isCacheable());
   }
 
   @Test
   public void equalsTest() throws Exception {
-    CommonTestUtils.testEquals(CreateFileOptions.class);
+    alluxio.test.util.CommonUtils.testEquals(CreateFileOptions.class);
   }
 }

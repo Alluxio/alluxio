@@ -19,6 +19,9 @@ import alluxio.exception.ExceptionMessage;
 
 import com.google.common.base.Preconditions;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -99,6 +102,18 @@ public final class Mode {
    */
   public Mode(Mode mode) {
     set(mode.mOwnerBits, mode.mGroupBits, mode.mOtherBits);
+  }
+
+  /**
+   * @param mode1 first mode of the and operation
+   * @param mode2 second mode of the and operation
+   * @return the AND result of the two Modes
+   */
+  public static Mode and(Mode mode1, Mode mode2) {
+    Bits u = mode1.mOwnerBits.and(mode2.mOwnerBits);
+    Bits g = mode1.mGroupBits.and(mode2.mGroupBits);
+    Bits o = mode1.mOtherBits.and(mode2.mOtherBits);
+    return new Mode(u, g, o);
   }
 
   /**
@@ -288,14 +303,14 @@ public final class Mode {
   @PublicApi
   @ThreadSafe
   public enum Bits {
-    NONE("---"),
-    EXECUTE("--x"),
-    WRITE("-w-"),
-    WRITE_EXECUTE("-wx"),
-    READ("r--"),
-    READ_EXECUTE("r-x"),
-    READ_WRITE("rw-"),
-    ALL("rwx"),
+    NONE(Constants.MODE_BITS_NONE),
+    EXECUTE(Constants.MODE_BITS_EXECUTE),
+    WRITE(Constants.MODE_BITS_WRITE),
+    WRITE_EXECUTE(Constants.MODE_BITS_WRITE_EXECUTE),
+    READ(Constants.MODE_BITS_READ),
+    READ_EXECUTE(Constants.MODE_BITS_READ_EXECUTE),
+    READ_WRITE(Constants.MODE_BITS_READ_WRITE),
+    ALL(Constants.MODE_BITS_ALL),
     ;
 
     /** String representation of the bits. */
@@ -316,6 +331,33 @@ public final class Mode {
      */
     public static Bits fromShort(short bits) {
       return SVALS[bits];
+    }
+
+    /**
+     * @param string the string representation
+     * @return the {@link Bits} instance
+     */
+    public static Bits fromString(String string) {
+      switch (string) {
+        case Constants.MODE_BITS_NONE:
+          return NONE;
+        case Constants.MODE_BITS_EXECUTE:
+          return EXECUTE;
+        case Constants.MODE_BITS_WRITE:
+          return WRITE;
+        case Constants.MODE_BITS_WRITE_EXECUTE:
+          return WRITE_EXECUTE;
+        case Constants.MODE_BITS_READ:
+          return READ;
+        case Constants.MODE_BITS_READ_EXECUTE:
+          return READ_EXECUTE;
+        case Constants.MODE_BITS_READ_WRITE:
+          return READ_WRITE;
+        case Constants.MODE_BITS_ALL:
+          return ALL;
+        default:
+          throw new IllegalArgumentException("Invalid mode string: " + string);
+      }
     }
 
     @Override
@@ -341,7 +383,7 @@ public final class Mode {
      * @return the intersection of thes bits and the given bits
      */
     public Bits and(Bits that) {
-      Preconditions.checkNotNull(that);
+      Preconditions.checkNotNull(that, "that");
       return SVALS[ordinal() & that.ordinal()];
     }
 
@@ -350,7 +392,7 @@ public final class Mode {
      * @return the union of thes bits and the given bits
      */
     public Bits or(Bits that) {
-      Preconditions.checkNotNull(that);
+      Preconditions.checkNotNull(that, "that");
       return SVALS[ordinal() | that.ordinal()];
     }
 
@@ -359,6 +401,40 @@ public final class Mode {
      */
     public Bits not() {
       return SVALS[7 - ordinal()];
+    }
+
+    /**
+     * @return the set of {@link AclAction}s implied by this mode
+     */
+    public Set<AclAction> toAclActionSet() {
+      Set<AclAction> actions = new HashSet<>();
+      if (imply(READ)) {
+        actions.add(AclAction.READ);
+      }
+      if (imply(WRITE)) {
+        actions.add(AclAction.WRITE);
+      }
+      if (imply(EXECUTE)) {
+        actions.add(AclAction.EXECUTE);
+      }
+      return actions;
+    }
+
+    /**
+     * @return the set of {@link AclAction}s implied by this mode
+     */
+    public AclActions toAclActions() {
+      AclActions actions = new AclActions();
+      if (imply(READ)) {
+        actions.add(AclAction.READ);
+      }
+      if (imply(WRITE)) {
+        actions.add(AclAction.WRITE);
+      }
+      if (imply(EXECUTE)) {
+        actions.add(AclAction.EXECUTE);
+      }
+      return actions;
     }
   }
 }

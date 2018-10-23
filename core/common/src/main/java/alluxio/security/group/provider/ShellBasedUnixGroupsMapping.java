@@ -35,7 +35,6 @@ public final class ShellBasedUnixGroupsMapping implements GroupMappingService {
    *
    * @param user get groups for this user
    * @return list of groups for a given user
-   * @throws IOException when getting the UNIX groups
    */
   @Override
   public List<String> getGroups(String user) throws IOException {

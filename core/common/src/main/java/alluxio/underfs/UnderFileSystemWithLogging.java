@@ -12,13 +12,27 @@
 package alluxio.underfs;
 
 import alluxio.AlluxioURI;
+import alluxio.Constants;
+import alluxio.collections.Pair;
+import alluxio.exception.status.UnimplementedException;
+import alluxio.security.authorization.AccessControlList;
+import alluxio.metrics.CommonMetrics;
+import alluxio.metrics.Metric;
+import alluxio.metrics.MetricsSystem;
+import alluxio.metrics.WorkerMetrics;
+import alluxio.security.authentication.AuthenticatedClientUser;
+import alluxio.security.authorization.AclEntry;
+import alluxio.security.authorization.DefaultAccessControlList;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.FileLocationOptions;
 import alluxio.underfs.options.ListOptions;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.underfs.options.OpenOptions;
+import alluxio.util.SecurityUtils;
 
+import com.codahale.metrics.Timer;
+import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,17 +51,39 @@ import java.util.Map;
 public class UnderFileSystemWithLogging implements UnderFileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(UnderFileSystemWithLogging.class);
 
+  private static final String NAME_SEPARATOR = ":";
+
   private final UnderFileSystem mUnderFileSystem;
+  private final String mPath;
 
   /**
    * Creates a new {@link UnderFileSystemWithLogging} which forwards all calls to the provided
    * {@link UnderFileSystem} implementation.
    *
+   * @param path the UFS path
    * @param ufs the implementation which will handle all the calls
    */
   // TODO(adit): Remove this method. ALLUXIO-2643.
-  UnderFileSystemWithLogging(UnderFileSystem ufs) {
+  UnderFileSystemWithLogging(String path, UnderFileSystem ufs) {
+    Preconditions.checkNotNull(path, "path");
+    mPath = path;
     mUnderFileSystem = ufs;
+  }
+
+  @Override
+  public void cleanup() throws IOException {
+    call(new UfsCallable<Void>() {
+      @Override
+      public Void call() throws IOException {
+        mUnderFileSystem.cleanup();
+        return null;
+      }
+
+      @Override
+      public String toString() {
+        return "Cleanup";
+      }
+    });
   }
 
   @Override
@@ -62,22 +98,6 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
       @Override
       public String toString() {
         return "Close";
-      }
-    });
-  }
-
-  @Override
-  public void configureProperties() throws IOException {
-    call(new UfsCallable<Void>() {
-      @Override
-      public Void call() throws IOException {
-        mUnderFileSystem.configureProperties();
-        return null;
-      }
-
-      @Override
-      public String toString() {
-        return "ConfigureProperties";
       }
     });
   }
@@ -206,6 +226,22 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
   }
 
   @Override
+  public Pair<AccessControlList, DefaultAccessControlList> getAclPair(String path)
+      throws IOException, UnimplementedException {
+    return call(new UfsCallable<Pair<AccessControlList, DefaultAccessControlList>>() {
+      @Override
+      public Pair<AccessControlList, DefaultAccessControlList> call() throws IOException {
+        return mUnderFileSystem.getAclPair(path);
+      }
+
+      @Override
+      public String toString() {
+        return String.format("GetAcl: path=%s", path);
+      }
+    });
+  }
+
+  @Override
   public long getBlockSizeByte(final String path) throws IOException {
     return call(new UfsCallable<Long>() {
       @Override
@@ -221,8 +257,18 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
   }
 
   @Override
-  public Object getConf() {
-    return mUnderFileSystem.getConf();
+  public UfsDirectoryStatus getDirectoryStatus(final String path) throws IOException {
+    return call(new UfsCallable<UfsDirectoryStatus>() {
+      @Override
+      public UfsDirectoryStatus call() throws IOException {
+        return mUnderFileSystem.getDirectoryStatus(path);
+      }
+
+      @Override
+      public String toString() {
+        return String.format("GetDirectoryStatus: path=%s", path);
+      }
+    });
   }
 
   @Override
@@ -257,83 +303,43 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
   }
 
   @Override
-  public long getFileSize(final String path) throws IOException {
-    return call(new UfsCallable<Long>() {
+  public UfsFileStatus getFileStatus(final String path) throws IOException {
+    return call(new UfsCallable<UfsFileStatus>() {
       @Override
-      public Long call() throws IOException {
-        return mUnderFileSystem.getFileSize(path);
+      public UfsFileStatus call() throws IOException {
+        return mUnderFileSystem.getFileStatus(path);
       }
 
       @Override
       public String toString() {
-        return String.format("GetFileSize: path=%s", path);
+        return String.format("GetFileStatus: path=%s", path);
       }
     });
   }
 
   @Override
-  public String getGroup(final String path) throws IOException {
-    return call(new UfsCallable<String>() {
-      @Override
-      public String call() throws IOException {
-        return mUnderFileSystem.getGroup(path);
-      }
+  public String getFingerprint(String path) {
+    try {
+      return call(new UfsCallable<String>() {
+        @Override
+        public String call() throws IOException {
+          return mUnderFileSystem.getFingerprint(path);
+        }
 
-      @Override
-      public String toString() {
-        return String.format("GetGroup: path=%s", path);
-      }
-    });
+        @Override
+        public String toString() {
+          return String.format("GetFingerprint: path=%s", path);
+        }
+      });
+    } catch (IOException e) {
+      // This is not possible.
+      return Constants.INVALID_UFS_FINGERPRINT;
+    }
   }
 
   @Override
-  public short getMode(final String path) throws IOException {
-    return call(new UfsCallable<Short>() {
-      @Override
-      public Short call() throws IOException {
-        return mUnderFileSystem.getMode(path);
-      }
-
-      @Override
-      public String toString() {
-        return String.format("GetMode: path=%s", path);
-      }
-    });
-  }
-
-  @Override
-  public long getModificationTimeMs(final String path) throws IOException {
-    return call(new UfsCallable<Long>() {
-      @Override
-      public Long call() throws IOException {
-        return mUnderFileSystem.getModificationTimeMs(path);
-      }
-
-      @Override
-      public String toString() {
-        return String.format("GetModificationTimeMs: path=%s", path);
-      }
-    });
-  }
-
-  @Override
-  public String getOwner(final String path) throws IOException {
-    return call(new UfsCallable<String>() {
-      @Override
-      public String call() throws IOException {
-        return mUnderFileSystem.getOwner(path);
-      }
-
-      @Override
-      public String toString() {
-        return String.format("GetOwner: path=%s", path);
-      }
-    });
-  }
-
-  @Override
-  public Map<String, String> getProperties() {
-    return mUnderFileSystem.getProperties();
+  public UfsMode getOperationMode(Map<String, UfsMode> physicalUfsState) {
+    return mUnderFileSystem.getOperationMode(physicalUfsState);
   }
 
   @Override
@@ -347,6 +353,21 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
       @Override
       public String toString() {
         return String.format("GetSpace: path=%s, type=%s", path, type);
+      }
+    });
+  }
+
+  @Override
+  public UfsStatus getStatus(String path) throws IOException {
+    return call(new UfsCallable<UfsStatus>() {
+      @Override
+      public UfsStatus call() throws IOException {
+        return mUnderFileSystem.getStatus(path);
+      }
+
+      @Override
+      public String toString() {
+        return String.format("GetStatus: path=%s", path);
       }
     });
   }
@@ -387,11 +408,21 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
   }
 
   @Override
-  public UnderFileStatus[] listStatus(final String path) throws IOException {
-    return call(new UfsCallable<UnderFileStatus[]>() {
+  public List<String> getPhysicalStores() {
+    return mUnderFileSystem.getPhysicalStores();
+  }
+
+  @Override
+  public boolean isObjectStorage() {
+    return mUnderFileSystem.isObjectStorage();
+  }
+
+  @Override
+  public UfsStatus[] listStatus(final String path) throws IOException {
+    return call(new UfsCallable<UfsStatus[]>() {
       @Override
-      public UnderFileStatus[] call() throws IOException {
-        return mUnderFileSystem.listStatus(path);
+      public UfsStatus[] call() throws IOException {
+        return filterInvalidPaths(mUnderFileSystem.listStatus(path), path);
       }
 
       @Override
@@ -402,12 +433,12 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
   }
 
   @Override
-  public UnderFileStatus[] listStatus(final String path, final ListOptions options)
+  public UfsStatus[] listStatus(final String path, final ListOptions options)
       throws IOException {
-    return call(new UfsCallable<UnderFileStatus[]>() {
+    return call(new UfsCallable<UfsStatus[]>() {
       @Override
-      public UnderFileStatus[] call() throws IOException {
-        return mUnderFileSystem.listStatus(path, options);
+      public UfsStatus[] call() throws IOException {
+        return filterInvalidPaths(mUnderFileSystem.listStatus(path, options), path);
       }
 
       @Override
@@ -415,6 +446,33 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
         return String.format("ListStatus: path=%s, options=%s", path, options);
       }
     });
+  }
+
+  private UfsStatus[] filterInvalidPaths(UfsStatus[] statuses, String listedPath) {
+    // This is a temporary fix to prevent us from choking on paths containing '?'.
+    if (statuses == null) {
+      return null;
+    }
+    int removed = 0;
+    for (UfsStatus status : statuses) {
+      if (status.getName().contains("?")) {
+        LOG.warn("Ignoring {} while listing {} since it contains '?'", status.getName(),
+            listedPath);
+        removed++;
+      }
+    }
+    if (removed > 0) {
+      UfsStatus[] newStatuses = new UfsStatus[statuses.length - removed];
+      int i = 0;
+      // We perform two passes to keep the common case (no invalid names) very cheap.
+      for (UfsStatus status : statuses) {
+        if (!status.getName().contains("?")) {
+          newStatuses[i++] = status;
+        }
+      }
+      return newStatuses;
+    }
+    return statuses;
   }
 
   @Override
@@ -513,8 +571,19 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
   }
 
   @Override
-  public void setConf(Object conf) {
-    mUnderFileSystem.setConf(conf);
+  public void setAclEntries(String path, List<AclEntry> aclEntries) throws IOException {
+    call(new UfsCallable<Void>() {
+      @Override
+      public Void call() throws IOException {
+        mUnderFileSystem.setAclEntries(path, aclEntries);
+        return null;
+      }
+
+      @Override
+      public String toString() {
+        return String.format("SetAcl: path=%s, ACLEntries=%s", path, aclEntries);
+      }
+    });
   }
 
   @Override
@@ -532,11 +601,6 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
         return String.format("SetOwner: path=%s, owner=%s, group=%s", path, owner, group);
       }
     });
-  }
-
-  @Override
-  public void setProperties(Map<String, String> properties) {
-    mUnderFileSystem.setProperties(properties);
   }
 
   @Override
@@ -580,7 +644,6 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
      * Executes the call.
      *
      * @return the result of the call
-     * @throws IOException if an error occurs during the external communication
      */
     T call() throws IOException;
   }
@@ -591,17 +654,45 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
    * @param callable the callable to invoke
    * @param <T> the return type
    * @return the result of the callable
-   * @throws IOException if an error occurs when invoking the operation on the underlying storage
    */
   private <T> T call(UfsCallable<T> callable) throws IOException {
     LOG.debug("Enter: {}", callable);
-    try {
+    String methodName = callable.toString().split(NAME_SEPARATOR)[0];
+    try (Timer.Context ctx = MetricsSystem.timer(getQualifiedMetricName(methodName)).time()) {
       T ret = callable.call();
       LOG.debug("Exit (OK): {}", callable);
       return ret;
     } catch (IOException e) {
+      MetricsSystem.counter(getQualifiedFailureMetricName(methodName)).inc();
       LOG.debug("Exit (Error): {}, Error={}", callable, e.getMessage());
       throw e;
     }
+  }
+
+  @Override
+  public boolean isSeekable() {
+    return mUnderFileSystem.isSeekable();
+  }
+
+  // TODO(calvin): General tag logic should be in getMetricName
+  private String getQualifiedMetricName(String metricName) {
+    try {
+      if (SecurityUtils.isAuthenticationEnabled() && AuthenticatedClientUser.get() != null) {
+        return Metric.getMetricNameWithTags(metricName, CommonMetrics.TAG_USER,
+            AuthenticatedClientUser.get().getName(), WorkerMetrics.TAG_UFS,
+            MetricsSystem.escape(new AlluxioURI(mPath)), WorkerMetrics.TAG_UFS_TYPE,
+            mUnderFileSystem.getUnderFSType());
+      }
+    } catch (IOException e) {
+      // fall through
+    }
+    return Metric.getMetricNameWithTags(metricName, WorkerMetrics.TAG_UFS,
+        MetricsSystem.escape(new AlluxioURI(mPath)), WorkerMetrics.TAG_UFS_TYPE,
+        mUnderFileSystem.getUnderFSType());
+  }
+
+  // TODO(calvin): This should not be in this class
+  private String getQualifiedFailureMetricName(String metricName) {
+    return getQualifiedMetricName(metricName + "Failures");
   }
 }

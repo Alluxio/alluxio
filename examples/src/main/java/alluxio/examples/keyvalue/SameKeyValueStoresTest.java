@@ -39,7 +39,6 @@ public final class SameKeyValueStoresTest implements Callable<Boolean> {
   /**
    * @param storeUri1 the URI of the first key-value store
    * @param storeUri2 the URI of the second key-value store
-   * @throws Exception if the instance fails to be created
    */
   public SameKeyValueStoresTest(AlluxioURI storeUri1, AlluxioURI storeUri2) throws Exception {
     mStoreUri1 = storeUri1;
@@ -93,7 +92,6 @@ public final class SameKeyValueStoresTest implements Callable<Boolean> {
    * {@code java -cp ALLUXIO_JAR CLASS_NAME <key-value store URI 1> <key-value store URI 2>}.
    *
    * @param args two arguments, specifying the URIs of the stores to be compared
-   * @throws Exception if unexpected errors happen
    */
   public static void main(String[] args) throws Exception {
     if (args.length != 2) {

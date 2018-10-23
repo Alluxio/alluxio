@@ -11,7 +11,7 @@
 
 package alluxio;
 
-import alluxio.exception.ConnectionFailedException;
+import alluxio.exception.status.UnavailableException;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -22,16 +22,10 @@ import java.net.InetSocketAddress;
  */
 public interface Client extends Closeable {
 
-  @Override
-  void close();
-
   /**
    * Connects with the remote.
-   *
-   * @throws IOException if an I/O error occurs
-   * @throws ConnectionFailedException if network connection failed
    */
-  void connect() throws IOException, ConnectionFailedException;
+  void connect() throws IOException;
 
   /**
    * Closes the connection with the Alluxio remote and does the necessary cleanup. It should be used
@@ -40,9 +34,10 @@ public interface Client extends Closeable {
   void disconnect();
 
   /**
-   * @return the {@link InetSocketAddress} of the remote
+   * @return the {@link InetSocketAddress} of the remote,
+   * @throws UnavailableException if the primary address cannot be determined
    */
-  InetSocketAddress getAddress();
+  InetSocketAddress getAddress() throws UnavailableException;
 
   /**
    * Returns the connected status of the client.
@@ -50,9 +45,4 @@ public interface Client extends Closeable {
    * @return true if this client is connected to the remote
    */
   boolean isConnected();
-
-  /**
-   * Closes the connection, then queries and sets current remote address.
-   */
-  void resetConnection();
 }

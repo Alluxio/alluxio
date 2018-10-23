@@ -12,17 +12,15 @@
 package alluxio.util.io;
 
 import alluxio.AlluxioURI;
+import alluxio.Configuration;
+import alluxio.PropertyKey;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidPathException;
 import alluxio.util.OSUtils;
 
 import com.google.common.base.CharMatcher;
-import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 import org.apache.commons.io.FilenameUtils;
-
-import java.util.ArrayList;
-import java.util.List;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -34,6 +32,8 @@ public final class PathUtils {
   private static final String TEMPORARY_SUFFIX_FORMAT = ".alluxio.0x%016X.tmp";
   private static final int TEMPORARY_SUFFIX_LENGTH =
       String.format(TEMPORARY_SUFFIX_FORMAT, 0).length();
+  private static final CharMatcher SEPARATOR_MATCHER =
+      CharMatcher.is(AlluxioURI.SEPARATOR.charAt(0));
 
   /**
    * Checks and normalizes the given path.
@@ -46,6 +46,36 @@ public final class PathUtils {
   public static String cleanPath(String path) throws InvalidPathException {
     validatePath(path);
     return FilenameUtils.separatorsToUnix(FilenameUtils.normalizeNoEndSeparator(path));
+  }
+
+  /**
+   * Joins two path elements, separated by {@link AlluxioURI#SEPARATOR}.
+   * <p>
+   * Note that empty element in base or paths is ignored.
+   *
+   * @param base base path
+   * @param path path element to concatenate
+   * @return joined path
+   * @throws IllegalArgumentException if base or paths is null
+   */
+  public static String concatPath(Object base, Object path) throws IllegalArgumentException {
+    Preconditions.checkNotNull(base, "base");
+    Preconditions.checkNotNull(path, "path");
+    String trimmedBase = SEPARATOR_MATCHER.trimTrailingFrom(base.toString());
+    String trimmedPath = SEPARATOR_MATCHER.trimFrom(path.toString());
+
+    StringBuilder output = new StringBuilder(trimmedBase.length() + trimmedPath.length() + 1);
+    output.append(trimmedBase);
+    if (!trimmedPath.isEmpty()) {
+      output.append(AlluxioURI.SEPARATOR);
+      output.append(trimmedPath);
+    }
+
+    if (output.length() == 0) {
+      // base must be "[/]+"
+      return AlluxioURI.SEPARATOR;
+    }
+    return output.toString();
   }
 
   /**
@@ -72,26 +102,25 @@ public final class PathUtils {
   public static String concatPath(Object base, Object... paths) throws IllegalArgumentException {
     Preconditions.checkArgument(base != null, "Failed to concatPath: base is null");
     Preconditions.checkArgument(paths != null, "Failed to concatPath: a null set of paths");
-    List<String> trimmedPathList = new ArrayList<>();
-    String trimmedBase =
-        CharMatcher.is(AlluxioURI.SEPARATOR.charAt(0)).trimTrailingFrom(base.toString().trim());
-    trimmedPathList.add(trimmedBase);
+    String trimmedBase = SEPARATOR_MATCHER.trimTrailingFrom(base.toString());
+
+    StringBuilder output = new StringBuilder();
+    output.append(trimmedBase);
     for (Object path : paths) {
       if (path == null) {
         continue;
       }
-      String trimmedPath =
-          CharMatcher.is(AlluxioURI.SEPARATOR.charAt(0)).trimFrom(path.toString().trim());
+      String trimmedPath = SEPARATOR_MATCHER.trimFrom(path.toString());
       if (!trimmedPath.isEmpty()) {
-        trimmedPathList.add(trimmedPath);
+        output.append(AlluxioURI.SEPARATOR);
+        output.append(trimmedPath);
       }
     }
-    if (trimmedPathList.size() == 1 && trimmedBase.isEmpty()) {
+    if (output.length() == 0) {
       // base must be "[/]+"
       return AlluxioURI.SEPARATOR;
     }
-    return Joiner.on(AlluxioURI.SEPARATOR).join(trimmedPathList);
-
+    return output.toString();
   }
 
   /**
@@ -106,7 +135,7 @@ public final class PathUtils {
     String name = FilenameUtils.getName(cleanedPath);
     String parent = cleanedPath.substring(0, cleanedPath.length() - name.length() - 1);
     if (parent.isEmpty()) {
-      // The parent is the root path
+      // The parent is the root path.
       return AlluxioURI.SEPARATOR;
     }
     return parent;
@@ -198,7 +227,7 @@ public final class PathUtils {
    * @throws InvalidPathException If the path is not properly formed
    */
   public static void validatePath(String path) throws InvalidPathException {
-    boolean invalid = (path == null || path.isEmpty() || path.contains(" "));
+    boolean invalid = (path == null || path.isEmpty());
     if (!OSUtils.isWindows()) {
       invalid = (invalid || !path.startsWith(AlluxioURI.SEPARATOR));
     }
@@ -260,6 +289,18 @@ public final class PathUtils {
    */
   public static String normalizePath(String path, String separator) {
     return path.endsWith(separator) ? path : path + separator;
+  }
+
+  /**
+   * @param storageDir the root of a storage directory in tiered storage
+   *
+   * @return the worker data folder path after each storage directory, the final path will be like
+   * "/mnt/ramdisk/alluxioworker" for storage dir "/mnt/ramdisk" by appending
+   * {@link PropertyKey#WORKER_DATA_FOLDER).
+   */
+  public static String getWorkerDataDirectory(String storageDir) {
+    return concatPath(
+        storageDir.trim(), Configuration.get(PropertyKey.WORKER_DATA_FOLDER));
   }
 
   private PathUtils() {} // prevent instantiation

@@ -13,59 +13,69 @@ priority: 4
 
 ## 初始步骤
 
-要在许多机器上运行Alluxio集群，需要在这些机器上部署二进制包。你可以自己[编译Alluxio](Building-Alluxio-Master-Branch.html)，或者[下载二进制包](Running-Alluxio-Locally.html)
-
-如果,你还没有这么做,那么通过`bootstrapConf`命令来创建你的配置文件,比如,你在本机上运行Alluxio,`ALLUXIO_MASTER_HOSTNAME`应该被动设置为`localhost`
-
-{% include Configuring-Alluxio-with-OSS/bootstrapConf.md %}
-
-然后，如果你还没有配置文件，可以由template文件创建配置文件：
-
-{% include Common-Commands/copy-alluxio-env.md %}
+要在许多机器上运行Alluxio集群，需要在这些机器上部署二进制包。你可以自己[编译Alluxio](Building-Alluxio-From-Source.html)，或者[下载二进制包](Running-Alluxio-Locally.html)
 
 另外，为了在OSS上使用Alluxio，需要创建一个bucket（或者使用一个已有的bucket）。还要注意在该bucket里使用的目录，可以在该bucket中新建一个目录，或者使用一个存在的目录。在该指南中，OSS bucket的名称为OSS_BUCKET，在该bucket里的目录名称为OSS_DIRECTORY。另外，要使用OSS服务，还需提供一个oss 端点，该端点指定了你的bucket在哪个范围，本向导中的端点名为OSS_ENDPOINT。要了解更多指定范围的端点的具体内容，可以参考[这里](http://intl.aliyun.com/docs#/pub/oss_en_us/product-documentation/domain-region)，要了解更多OSS Bucket的信息，请参考[这里](http://intl.aliyun.com/docs#/pub/oss_en_us/product-documentation/function&bucket)
 
-## 配置Alluxio
+## 安装OSS
 
-若要在Alluxio中使用OSS作为底层文件系统，一定要修改`conf/alluxio-env.sh`配置文件。首先要指定一个已有的OSS bucket和其中的目录作为底层文件系统，可以在`conf/alluxio-env.sh`中添加如下语句指定它：
+Alluxio通过[统一命名空间](Unified-and-Transparent-Namespace.html)统一访问不同存储系统。 OSS的安装位置可以在Alluxio命名空间的根目录或嵌套目录下。
 
-{% include Configuring-Alluxio-with-OSS/underfs-address.md %}
+### 根目录安装
 
-接着，需要指定Aliyun证书以便访问OSS，在`conf/alluxio-env.sh`中的`ALLUXIO_JAVA_OPTS`部分添加：
+若要在Alluxio中使用OSS作为底层文件系统，一定要修改`conf/alluxio-site.properties`配置文件。首先要指定一个已有的OSS bucket和其中的目录作为底层文件系统，可以在`conf/alluxio-site.properties`中添加如下语句指定它：
 
-{% include Configuring-Alluxio-with-OSS/oss-access.md %}
+```
+alluxio.underfs.address=oss://<OSS_BUCKET>/<OSS_DIRECTORY>/
+```
 
-此处, `fs.oss.accessKeyId `和`fs.oss.accessKeySecret`分别为`Access Key ID`字符串和`Access Key Secret`字符串，均受阿里云[AccessKeys管理界面](https://ak-console.aliyun.com/#/accesskey)管理；`fs.oss.endpoint`是Bucket概述中所说的Bucket的endpoint，其可能的取值比如`oss-us-west-1.aliyuncs.com `，`oss-cn-shanghai.aliyuncs.com`。
+接着，需要指定Aliyun证书以便访问OSS，在`conf/alluxio-site.properties`中添加：
+
+```
+fs.oss.accessKeyId=<OSS_ACCESS_KEY_ID>
+fs.oss.accessKeySecret=<OSS_ACCESS_KEY_SECRET>
+fs.oss.endpoint=<OSS_ENDPOINT>
+```
+
+此处, `fs.oss.accessKeyId `和`fs.oss.accessKeySecret`分别为`Access Key ID`字符串和`Access Key Secret`字符串，均受阿里云[AccessKeys管理界面](https://ak-console.aliyun.com)管理；`fs.oss.endpoint`是Bucket概述中所说的Bucket的endpoint，其可能的取值比如`oss-us-west-1.aliyuncs.com `，`oss-cn-shanghai.aliyuncs.com`。
 ([OSS Internet Endpoint](https://intl.aliyun.com/help/doc-detail/31837.htm))。
-
-如果你不太确定如何更改`conf/alluxio-env.sh`，有另外一个方法提供这些配置。可以在`conf/`目录下创建一个`alluxio-site.properties`文件，并在其中添加：
-
-{% include Configuring-Alluxio-with-OSS/properties.md %}
 
 更改完成后，Alluxio应该能够将OSS作为底层文件系统运行，你可以尝试[使用OSS在本地运行Alluxio](#running-alluxio-locally-with-s3)
 
-## 配置分布式应用
+### 嵌套目录安装
 
-如果你使用的Alluxio Client并非运行在Alluxio Master或者Worker上（在其他JVM上），那需要确保为该JVM提供了Aliyun证书，最简单的方法是在启动client JVM时添加如下选项：
+OSS可以安装在Alluxio命名空间中的嵌套目录中，以统一访问多个存储系统。 
+[Mount 命令](Command-Line-Interface.html#mount)可以实现这一目的。例如，下面的命令将OSS容器内部的目录挂载到Alluxio的`/oss`目录
 
-{% include Configuring-Alluxio-with-OSS/java-bash.md %}
+```bash 
+$ ./bin/alluxio fs mount --option fs.oss.accessKeyId=<OSS_ACCESS_KEY_ID> \
+  --option fs.oss.accessKeySecret=<OSS_ACCESS_KEY_SECRET> \
+  --option fs.oss.endpoint=<OSS_ENDPOINT> \
+  /oss oss://<OSS_BUCKET>/<OSS_DIRECTORY>/
+```
 
 ## 使用OSS在本地运行Alluxio
 
 配置完成后，你可以在本地启动Alluxio，观察一切是否正常运行：
 
-{% include Common-Commands/start-alluxio.md %}
+```bash
+$ bin/alluxio format
+$ bin/alluxio-start.sh local
+```
 
 该命令应当会启动一个Alluxio master和一个Alluxio worker，可以在浏览器中访问[http://localhost:19999](http://localhost:19999)查看master UI。
 
 接着，你可以运行一个简单的示例程序：
 
-{% include Common-Commands/runTests.md %}
+```bash
+$ bin/alluxio runTests
+```
 
-运行成功后，访问你的OSS目录OSS_BUCKET/OSS_DIRECTORY，确认其中包含了由Alluxio创建的文件和目录。在该测试中，创建的文件名称应像下面这样：
-
-{% include Configuring-Alluxio-with-OSS/oss-file.md %}
+运行成功后，访问你的OSS目录`oss://<OSS_BUCKET>/<OSS_DIRECTORY>`，确认其中包含了由Alluxio创建的文件和目录。在该测试中，创建的文件名称应像`OSS_BUCKET/OSS_DIRECTORY/default_tests_files/BasicFile_CACHE_PROMOTE_MUST_CACHE`这样。。
 
 运行以下命令停止Alluxio：
 
-{% include Common-Commands/stop-alluxio.md %}
+```bash
+$ bin/alluxio-stop.sh local
+```
+

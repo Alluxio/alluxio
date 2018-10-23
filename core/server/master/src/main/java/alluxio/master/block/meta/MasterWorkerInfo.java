@@ -14,6 +14,7 @@ package alluxio.master.block.meta;
 import alluxio.Constants;
 import alluxio.StorageTierAssoc;
 import alluxio.WorkerStorageTierAssoc;
+import alluxio.client.block.options.GetWorkerReportOptions.WorkerInfoField;
 import alluxio.util.CommonUtils;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
@@ -25,6 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -40,6 +42,8 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public final class MasterWorkerInfo {
   private static final Logger LOG = LoggerFactory.getLogger(MasterWorkerInfo.class);
+  private static final String LIVE_WORKER_STATE = "In Service";
+  private static final String LOST_WORKER_STATE = "Out of Service";
 
   /** Worker's address. */
   private final WorkerNetAddress mWorkerAddress;
@@ -74,7 +78,7 @@ public final class MasterWorkerInfo {
    * @param address the worker address to use
    */
   public MasterWorkerInfo(long id, WorkerNetAddress address) {
-    mWorkerAddress = Preconditions.checkNotNull(address);
+    mWorkerAddress = Preconditions.checkNotNull(address, "address");
     mId = id;
     mStartTimeMs = System.currentTimeMillis();
     mLastUpdatedTimeMs = System.currentTimeMillis();
@@ -172,16 +176,55 @@ public final class MasterWorkerInfo {
   }
 
   /**
-   * @return generated {@link WorkerInfo} for this worker
+   * Gets the selected field information for this worker.
+   *
+   * @param fieldRange the client selected fields
+   * @param isLiveWorker the worker is live or not
+   * @return generated worker information
    */
-  public WorkerInfo generateClientWorkerInfo() {
-    return new WorkerInfo()
-        .setId(mId)
-        .setAddress(mWorkerAddress)
-        .setLastContactSec(
-            (int) ((CommonUtils.getCurrentMs() - mLastUpdatedTimeMs) / Constants.SECOND_MS))
-        .setState("In Service").setCapacityBytes(mCapacityBytes).setUsedBytes(mUsedBytes)
-        .setStartTimeMs(mStartTimeMs);
+  public WorkerInfo generateWorkerInfo(Set<WorkerInfoField> fieldRange, boolean isLiveWorker) {
+    WorkerInfo info = new WorkerInfo();
+    Set<WorkerInfoField> checkedFieldRange = fieldRange != null ? fieldRange :
+        new HashSet<>(Arrays.asList(WorkerInfoField.values()));
+    for (WorkerInfoField field : checkedFieldRange) {
+      switch (field) {
+        case ADDRESS:
+          info.setAddress(mWorkerAddress);
+          break;
+        case CAPACITY_BYTES:
+          info.setCapacityBytes(mCapacityBytes);
+          break;
+        case CAPACITY_BYTES_ON_TIERS:
+          info.setCapacityBytesOnTiers(mTotalBytesOnTiers);
+          break;
+        case ID:
+          info.setId(mId);
+          break;
+        case LAST_CONTACT_SEC:
+          info.setLastContactSec(
+              (int) ((CommonUtils.getCurrentMs() - mLastUpdatedTimeMs) / Constants.SECOND_MS));
+          break;
+        case START_TIME_MS:
+          info.setStartTimeMs(mStartTimeMs);
+          break;
+        case STATE:
+          if (isLiveWorker) {
+            info.setState(LIVE_WORKER_STATE);
+          } else {
+            info.setState(LOST_WORKER_STATE);
+          }
+          break;
+        case USED_BYTES:
+          info.setUsedBytes(mUsedBytes);
+          break;
+        case USED_BYTES_ON_TIERS:
+          info.setUsedBytesOnTiers(mUsedBytesOnTiers);
+          break;
+        default:
+          LOG.warn("Unrecognized worker info field: " + field);
+      }
+    }
+    return info;
   }
 
   /**

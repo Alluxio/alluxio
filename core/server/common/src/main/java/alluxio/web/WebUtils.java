@@ -11,24 +11,14 @@
 
 package alluxio.web;
 
-import alluxio.Configuration;
 import alluxio.Constants;
-import alluxio.PropertyKey;
 
 import com.google.common.base.Preconditions;
-
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 
 import javax.annotation.concurrent.ThreadSafe;
 
 @ThreadSafe
 final class WebUtils {
-
-  private static final String DATE_FORMAT_PATTERN =
-      Configuration.get(PropertyKey.USER_DATE_FORMAT_PATTERN);
-
   /**
    * Converts a byte array to string.
    *
@@ -43,35 +33,6 @@ final class WebUtils {
       sb.append((char) data[i]);
     }
     return sb.toString();
-  }
-
-  /**
-   * Converts milliseconds to clock time.
-   *
-   * @param millis milliseconds
-   * @return input encoded as clock time
-   */
-  public static String convertMsToClockTime(long millis) {
-    Preconditions.checkArgument(millis >= 0, "Negative values are not supported");
-
-    long days = millis / Constants.DAY_MS;
-    long hours = (millis % Constants.DAY_MS) / Constants.HOUR_MS;
-    long mins = (millis % Constants.HOUR_MS) / Constants.MINUTE_MS;
-    long secs = (millis % Constants.MINUTE_MS) / Constants.SECOND_MS;
-
-    return String.format("%d day(s), %d hour(s), %d minute(s), and %d second(s)", days, hours,
-        mins, secs);
-  }
-
-  /**
-   * Converts milliseconds to date.
-   *
-   * @param millis milliseconds
-   * @return input encoded as date
-   */
-  public static String convertMsToDate(long millis) {
-    DateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT_PATTERN);
-    return dateFormat.format(new Date(millis));
   }
 
   /**

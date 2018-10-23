@@ -45,8 +45,10 @@ public class KeyValueWorkerClientService {
      * @param blockId the id of the block being accessed
      * 
      * @param key binary of the key
+     * 
+     * @param options the method options
      */
-    public ByteBuffer get(long blockId, ByteBuffer key) throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException;
+    public GetTResponse get(long blockId, ByteBuffer key, GetTOptions options) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException;
 
     /**
      * Gets a batch of keys next to the given key in the partition.
@@ -58,25 +60,29 @@ public class KeyValueWorkerClientService {
      * @param key current key
      * 
      * @param numKeys maximum number of keys to get
+     * 
+     * @param options the method options
      */
-    public List<ByteBuffer> getNextKeys(long blockId, ByteBuffer key, int numKeys) throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException;
+    public GetNextKeysTResponse getNextKeys(long blockId, ByteBuffer key, int numKeys, GetNextKeysTOptions options) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException;
 
     /**
      * Gets the number of key-value pairs in the partition.
      * 
      * @param blockId the id of the partition
+     * 
+     * @param options the method options
      */
-    public int getSize(long blockId) throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException;
+    public GetSizeTResponse getSize(long blockId, GetSizeTOptions options) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException;
 
   }
 
   public interface AsyncIface extends alluxio.thrift.AlluxioService .AsyncIface {
 
-    public void get(long blockId, ByteBuffer key, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
+    public void get(long blockId, ByteBuffer key, GetTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
-    public void getNextKeys(long blockId, ByteBuffer key, int numKeys, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
+    public void getNextKeys(long blockId, ByteBuffer key, int numKeys, GetNextKeysTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
-    public void getSize(long blockId, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
+    public void getSize(long blockId, GetSizeTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
   }
 
@@ -100,21 +106,22 @@ public class KeyValueWorkerClientService {
       super(iprot, oprot);
     }
 
-    public ByteBuffer get(long blockId, ByteBuffer key) throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException
+    public GetTResponse get(long blockId, ByteBuffer key, GetTOptions options) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
     {
-      send_get(blockId, key);
+      send_get(blockId, key, options);
       return recv_get();
     }
 
-    public void send_get(long blockId, ByteBuffer key) throws org.apache.thrift.TException
+    public void send_get(long blockId, ByteBuffer key, GetTOptions options) throws org.apache.thrift.TException
     {
       get_args args = new get_args();
       args.setBlockId(blockId);
       args.setKey(key);
+      args.setOptions(options);
       sendBase("get", args);
     }
 
-    public ByteBuffer recv_get() throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException
+    public GetTResponse recv_get() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
     {
       get_result result = new get_result();
       receiveBase(result, "get");
@@ -124,28 +131,26 @@ public class KeyValueWorkerClientService {
       if (result.e != null) {
         throw result.e;
       }
-      if (result.ioe != null) {
-        throw result.ioe;
-      }
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "get failed: unknown result");
     }
 
-    public List<ByteBuffer> getNextKeys(long blockId, ByteBuffer key, int numKeys) throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException
+    public GetNextKeysTResponse getNextKeys(long blockId, ByteBuffer key, int numKeys, GetNextKeysTOptions options) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
     {
-      send_getNextKeys(blockId, key, numKeys);
+      send_getNextKeys(blockId, key, numKeys, options);
       return recv_getNextKeys();
     }
 
-    public void send_getNextKeys(long blockId, ByteBuffer key, int numKeys) throws org.apache.thrift.TException
+    public void send_getNextKeys(long blockId, ByteBuffer key, int numKeys, GetNextKeysTOptions options) throws org.apache.thrift.TException
     {
       getNextKeys_args args = new getNextKeys_args();
       args.setBlockId(blockId);
       args.setKey(key);
       args.setNumKeys(numKeys);
+      args.setOptions(options);
       sendBase("getNextKeys", args);
     }
 
-    public List<ByteBuffer> recv_getNextKeys() throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException
+    public GetNextKeysTResponse recv_getNextKeys() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
     {
       getNextKeys_result result = new getNextKeys_result();
       receiveBase(result, "getNextKeys");
@@ -155,26 +160,24 @@ public class KeyValueWorkerClientService {
       if (result.e != null) {
         throw result.e;
       }
-      if (result.ioe != null) {
-        throw result.ioe;
-      }
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "getNextKeys failed: unknown result");
     }
 
-    public int getSize(long blockId) throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException
+    public GetSizeTResponse getSize(long blockId, GetSizeTOptions options) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
     {
-      send_getSize(blockId);
+      send_getSize(blockId, options);
       return recv_getSize();
     }
 
-    public void send_getSize(long blockId) throws org.apache.thrift.TException
+    public void send_getSize(long blockId, GetSizeTOptions options) throws org.apache.thrift.TException
     {
       getSize_args args = new getSize_args();
       args.setBlockId(blockId);
+      args.setOptions(options);
       sendBase("getSize", args);
     }
 
-    public int recv_getSize() throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException
+    public GetSizeTResponse recv_getSize() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
     {
       getSize_result result = new getSize_result();
       receiveBase(result, "getSize");
@@ -183,9 +186,6 @@ public class KeyValueWorkerClientService {
       }
       if (result.e != null) {
         throw result.e;
-      }
-      if (result.ioe != null) {
-        throw result.ioe;
       }
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "getSize failed: unknown result");
     }
@@ -208,9 +208,9 @@ public class KeyValueWorkerClientService {
       super(protocolFactory, clientManager, transport);
     }
 
-    public void get(long blockId, ByteBuffer key, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
+    public void get(long blockId, ByteBuffer key, GetTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
       checkReady();
-      get_call method_call = new get_call(blockId, key, resultHandler, this, ___protocolFactory, ___transport);
+      get_call method_call = new get_call(blockId, key, options, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
       ___manager.call(method_call);
     }
@@ -218,10 +218,12 @@ public class KeyValueWorkerClientService {
     public static class get_call extends org.apache.thrift.async.TAsyncMethodCall {
       private long blockId;
       private ByteBuffer key;
-      public get_call(long blockId, ByteBuffer key, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+      private GetTOptions options;
+      public get_call(long blockId, ByteBuffer key, GetTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, false);
         this.blockId = blockId;
         this.key = key;
+        this.options = options;
       }
 
       public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
@@ -229,11 +231,12 @@ public class KeyValueWorkerClientService {
         get_args args = new get_args();
         args.setBlockId(blockId);
         args.setKey(key);
+        args.setOptions(options);
         args.write(prot);
         prot.writeMessageEnd();
       }
 
-      public ByteBuffer getResult() throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException {
+      public GetTResponse getResult() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
@@ -243,9 +246,9 @@ public class KeyValueWorkerClientService {
       }
     }
 
-    public void getNextKeys(long blockId, ByteBuffer key, int numKeys, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
+    public void getNextKeys(long blockId, ByteBuffer key, int numKeys, GetNextKeysTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
       checkReady();
-      getNextKeys_call method_call = new getNextKeys_call(blockId, key, numKeys, resultHandler, this, ___protocolFactory, ___transport);
+      getNextKeys_call method_call = new getNextKeys_call(blockId, key, numKeys, options, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
       ___manager.call(method_call);
     }
@@ -254,11 +257,13 @@ public class KeyValueWorkerClientService {
       private long blockId;
       private ByteBuffer key;
       private int numKeys;
-      public getNextKeys_call(long blockId, ByteBuffer key, int numKeys, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+      private GetNextKeysTOptions options;
+      public getNextKeys_call(long blockId, ByteBuffer key, int numKeys, GetNextKeysTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, false);
         this.blockId = blockId;
         this.key = key;
         this.numKeys = numKeys;
+        this.options = options;
       }
 
       public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
@@ -267,11 +272,12 @@ public class KeyValueWorkerClientService {
         args.setBlockId(blockId);
         args.setKey(key);
         args.setNumKeys(numKeys);
+        args.setOptions(options);
         args.write(prot);
         prot.writeMessageEnd();
       }
 
-      public List<ByteBuffer> getResult() throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException {
+      public GetNextKeysTResponse getResult() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
@@ -281,29 +287,32 @@ public class KeyValueWorkerClientService {
       }
     }
 
-    public void getSize(long blockId, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
+    public void getSize(long blockId, GetSizeTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
       checkReady();
-      getSize_call method_call = new getSize_call(blockId, resultHandler, this, ___protocolFactory, ___transport);
+      getSize_call method_call = new getSize_call(blockId, options, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
       ___manager.call(method_call);
     }
 
     public static class getSize_call extends org.apache.thrift.async.TAsyncMethodCall {
       private long blockId;
-      public getSize_call(long blockId, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+      private GetSizeTOptions options;
+      public getSize_call(long blockId, GetSizeTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, false);
         this.blockId = blockId;
+        this.options = options;
       }
 
       public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
         prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("getSize", org.apache.thrift.protocol.TMessageType.CALL, 0));
         getSize_args args = new getSize_args();
         args.setBlockId(blockId);
+        args.setOptions(options);
         args.write(prot);
         prot.writeMessageEnd();
       }
 
-      public int getResult() throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException {
+      public GetSizeTResponse getResult() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
@@ -348,11 +357,9 @@ public class KeyValueWorkerClientService {
       public get_result getResult(I iface, get_args args) throws org.apache.thrift.TException {
         get_result result = new get_result();
         try {
-          result.success = iface.get(args.blockId, args.key);
+          result.success = iface.get(args.blockId, args.key, args.options);
         } catch (alluxio.thrift.AlluxioTException e) {
           result.e = e;
-        } catch (alluxio.thrift.ThriftIOException ioe) {
-          result.ioe = ioe;
         }
         return result;
       }
@@ -374,11 +381,9 @@ public class KeyValueWorkerClientService {
       public getNextKeys_result getResult(I iface, getNextKeys_args args) throws org.apache.thrift.TException {
         getNextKeys_result result = new getNextKeys_result();
         try {
-          result.success = iface.getNextKeys(args.blockId, args.key, args.numKeys);
+          result.success = iface.getNextKeys(args.blockId, args.key, args.numKeys, args.options);
         } catch (alluxio.thrift.AlluxioTException e) {
           result.e = e;
-        } catch (alluxio.thrift.ThriftIOException ioe) {
-          result.ioe = ioe;
         }
         return result;
       }
@@ -400,12 +405,9 @@ public class KeyValueWorkerClientService {
       public getSize_result getResult(I iface, getSize_args args) throws org.apache.thrift.TException {
         getSize_result result = new getSize_result();
         try {
-          result.success = iface.getSize(args.blockId);
-          result.setSuccessIsSet(true);
+          result.success = iface.getSize(args.blockId, args.options);
         } catch (alluxio.thrift.AlluxioTException e) {
           result.e = e;
-        } catch (alluxio.thrift.ThriftIOException ioe) {
-          result.ioe = ioe;
         }
         return result;
       }
@@ -430,7 +432,7 @@ public class KeyValueWorkerClientService {
       return processMap;
     }
 
-    public static class get<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, get_args, ByteBuffer> {
+    public static class get<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, get_args, GetTResponse> {
       public get() {
         super("get");
       }
@@ -439,10 +441,10 @@ public class KeyValueWorkerClientService {
         return new get_args();
       }
 
-      public AsyncMethodCallback<ByteBuffer> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
+      public AsyncMethodCallback<GetTResponse> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
         final org.apache.thrift.AsyncProcessFunction fcall = this;
-        return new AsyncMethodCallback<ByteBuffer>() { 
-          public void onComplete(ByteBuffer o) {
+        return new AsyncMethodCallback<GetTResponse>() { 
+          public void onComplete(GetTResponse o) {
             get_result result = new get_result();
             result.success = o;
             try {
@@ -460,11 +462,6 @@ public class KeyValueWorkerClientService {
             if (e instanceof alluxio.thrift.AlluxioTException) {
                         result.e = (alluxio.thrift.AlluxioTException) e;
                         result.setEIsSet(true);
-                        msg = result;
-            }
-            else             if (e instanceof alluxio.thrift.ThriftIOException) {
-                        result.ioe = (alluxio.thrift.ThriftIOException) e;
-                        result.setIoeIsSet(true);
                         msg = result;
             }
              else 
@@ -487,12 +484,12 @@ public class KeyValueWorkerClientService {
         return false;
       }
 
-      public void start(I iface, get_args args, org.apache.thrift.async.AsyncMethodCallback<ByteBuffer> resultHandler) throws TException {
-        iface.get(args.blockId, args.key,resultHandler);
+      public void start(I iface, get_args args, org.apache.thrift.async.AsyncMethodCallback<GetTResponse> resultHandler) throws TException {
+        iface.get(args.blockId, args.key, args.options,resultHandler);
       }
     }
 
-    public static class getNextKeys<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, getNextKeys_args, List<ByteBuffer>> {
+    public static class getNextKeys<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, getNextKeys_args, GetNextKeysTResponse> {
       public getNextKeys() {
         super("getNextKeys");
       }
@@ -501,10 +498,10 @@ public class KeyValueWorkerClientService {
         return new getNextKeys_args();
       }
 
-      public AsyncMethodCallback<List<ByteBuffer>> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
+      public AsyncMethodCallback<GetNextKeysTResponse> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
         final org.apache.thrift.AsyncProcessFunction fcall = this;
-        return new AsyncMethodCallback<List<ByteBuffer>>() { 
-          public void onComplete(List<ByteBuffer> o) {
+        return new AsyncMethodCallback<GetNextKeysTResponse>() { 
+          public void onComplete(GetNextKeysTResponse o) {
             getNextKeys_result result = new getNextKeys_result();
             result.success = o;
             try {
@@ -522,11 +519,6 @@ public class KeyValueWorkerClientService {
             if (e instanceof alluxio.thrift.AlluxioTException) {
                         result.e = (alluxio.thrift.AlluxioTException) e;
                         result.setEIsSet(true);
-                        msg = result;
-            }
-            else             if (e instanceof alluxio.thrift.ThriftIOException) {
-                        result.ioe = (alluxio.thrift.ThriftIOException) e;
-                        result.setIoeIsSet(true);
                         msg = result;
             }
              else 
@@ -549,12 +541,12 @@ public class KeyValueWorkerClientService {
         return false;
       }
 
-      public void start(I iface, getNextKeys_args args, org.apache.thrift.async.AsyncMethodCallback<List<ByteBuffer>> resultHandler) throws TException {
-        iface.getNextKeys(args.blockId, args.key, args.numKeys,resultHandler);
+      public void start(I iface, getNextKeys_args args, org.apache.thrift.async.AsyncMethodCallback<GetNextKeysTResponse> resultHandler) throws TException {
+        iface.getNextKeys(args.blockId, args.key, args.numKeys, args.options,resultHandler);
       }
     }
 
-    public static class getSize<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, getSize_args, Integer> {
+    public static class getSize<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, getSize_args, GetSizeTResponse> {
       public getSize() {
         super("getSize");
       }
@@ -563,13 +555,12 @@ public class KeyValueWorkerClientService {
         return new getSize_args();
       }
 
-      public AsyncMethodCallback<Integer> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
+      public AsyncMethodCallback<GetSizeTResponse> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
         final org.apache.thrift.AsyncProcessFunction fcall = this;
-        return new AsyncMethodCallback<Integer>() { 
-          public void onComplete(Integer o) {
+        return new AsyncMethodCallback<GetSizeTResponse>() { 
+          public void onComplete(GetSizeTResponse o) {
             getSize_result result = new getSize_result();
             result.success = o;
-            result.setSuccessIsSet(true);
             try {
               fcall.sendResponse(fb,result, org.apache.thrift.protocol.TMessageType.REPLY,seqid);
               return;
@@ -585,11 +576,6 @@ public class KeyValueWorkerClientService {
             if (e instanceof alluxio.thrift.AlluxioTException) {
                         result.e = (alluxio.thrift.AlluxioTException) e;
                         result.setEIsSet(true);
-                        msg = result;
-            }
-            else             if (e instanceof alluxio.thrift.ThriftIOException) {
-                        result.ioe = (alluxio.thrift.ThriftIOException) e;
-                        result.setIoeIsSet(true);
                         msg = result;
             }
              else 
@@ -612,8 +598,8 @@ public class KeyValueWorkerClientService {
         return false;
       }
 
-      public void start(I iface, getSize_args args, org.apache.thrift.async.AsyncMethodCallback<Integer> resultHandler) throws TException {
-        iface.getSize(args.blockId,resultHandler);
+      public void start(I iface, getSize_args args, org.apache.thrift.async.AsyncMethodCallback<GetSizeTResponse> resultHandler) throws TException {
+        iface.getSize(args.blockId, args.options,resultHandler);
       }
     }
 
@@ -624,6 +610,7 @@ public class KeyValueWorkerClientService {
 
     private static final org.apache.thrift.protocol.TField BLOCK_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("blockId", org.apache.thrift.protocol.TType.I64, (short)1);
     private static final org.apache.thrift.protocol.TField KEY_FIELD_DESC = new org.apache.thrift.protocol.TField("key", org.apache.thrift.protocol.TType.STRING, (short)2);
+    private static final org.apache.thrift.protocol.TField OPTIONS_FIELD_DESC = new org.apache.thrift.protocol.TField("options", org.apache.thrift.protocol.TType.STRUCT, (short)3);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -633,6 +620,7 @@ public class KeyValueWorkerClientService {
 
     private long blockId; // required
     private ByteBuffer key; // required
+    private GetTOptions options; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
@@ -643,7 +631,11 @@ public class KeyValueWorkerClientService {
       /**
        * binary of the key
        */
-      KEY((short)2, "key");
+      KEY((short)2, "key"),
+      /**
+       * the method options
+       */
+      OPTIONS((short)3, "options");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -662,6 +654,8 @@ public class KeyValueWorkerClientService {
             return BLOCK_ID;
           case 2: // KEY
             return KEY;
+          case 3: // OPTIONS
+            return OPTIONS;
           default:
             return null;
         }
@@ -711,6 +705,8 @@ public class KeyValueWorkerClientService {
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
       tmpMap.put(_Fields.KEY, new org.apache.thrift.meta_data.FieldMetaData("key", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING          , true)));
+      tmpMap.put(_Fields.OPTIONS, new org.apache.thrift.meta_data.FieldMetaData("options", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, GetTOptions.class)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(get_args.class, metaDataMap);
     }
@@ -720,12 +716,14 @@ public class KeyValueWorkerClientService {
 
     public get_args(
       long blockId,
-      ByteBuffer key)
+      ByteBuffer key,
+      GetTOptions options)
     {
       this();
       this.blockId = blockId;
       setBlockIdIsSet(true);
       this.key = org.apache.thrift.TBaseHelper.copyBinary(key);
+      this.options = options;
     }
 
     /**
@@ -736,6 +734,9 @@ public class KeyValueWorkerClientService {
       this.blockId = other.blockId;
       if (other.isSetKey()) {
         this.key = org.apache.thrift.TBaseHelper.copyBinary(other.key);
+      }
+      if (other.isSetOptions()) {
+        this.options = new GetTOptions(other.options);
       }
     }
 
@@ -748,6 +749,7 @@ public class KeyValueWorkerClientService {
       setBlockIdIsSet(false);
       this.blockId = 0;
       this.key = null;
+      this.options = null;
     }
 
     /**
@@ -819,6 +821,36 @@ public class KeyValueWorkerClientService {
       }
     }
 
+    /**
+     * the method options
+     */
+    public GetTOptions getOptions() {
+      return this.options;
+    }
+
+    /**
+     * the method options
+     */
+    public get_args setOptions(GetTOptions options) {
+      this.options = options;
+      return this;
+    }
+
+    public void unsetOptions() {
+      this.options = null;
+    }
+
+    /** Returns true if field options is set (has been assigned a value) and false otherwise */
+    public boolean isSetOptions() {
+      return this.options != null;
+    }
+
+    public void setOptionsIsSet(boolean value) {
+      if (!value) {
+        this.options = null;
+      }
+    }
+
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
       case BLOCK_ID:
@@ -837,6 +869,14 @@ public class KeyValueWorkerClientService {
         }
         break;
 
+      case OPTIONS:
+        if (value == null) {
+          unsetOptions();
+        } else {
+          setOptions((GetTOptions)value);
+        }
+        break;
+
       }
     }
 
@@ -847,6 +887,9 @@ public class KeyValueWorkerClientService {
 
       case KEY:
         return getKey();
+
+      case OPTIONS:
+        return getOptions();
 
       }
       throw new IllegalStateException();
@@ -863,6 +906,8 @@ public class KeyValueWorkerClientService {
         return isSetBlockId();
       case KEY:
         return isSetKey();
+      case OPTIONS:
+        return isSetOptions();
       }
       throw new IllegalStateException();
     }
@@ -898,6 +943,15 @@ public class KeyValueWorkerClientService {
           return false;
       }
 
+      boolean this_present_options = true && this.isSetOptions();
+      boolean that_present_options = true && that.isSetOptions();
+      if (this_present_options || that_present_options) {
+        if (!(this_present_options && that_present_options))
+          return false;
+        if (!this.options.equals(that.options))
+          return false;
+      }
+
       return true;
     }
 
@@ -914,6 +968,11 @@ public class KeyValueWorkerClientService {
       list.add(present_key);
       if (present_key)
         list.add(key);
+
+      boolean present_options = true && (isSetOptions());
+      list.add(present_options);
+      if (present_options)
+        list.add(options);
 
       return list.hashCode();
     }
@@ -942,6 +1001,16 @@ public class KeyValueWorkerClientService {
       }
       if (isSetKey()) {
         lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.key, other.key);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = Boolean.valueOf(isSetOptions()).compareTo(other.isSetOptions());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetOptions()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.options, other.options);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -977,6 +1046,14 @@ public class KeyValueWorkerClientService {
         org.apache.thrift.TBaseHelper.toString(this.key, sb);
       }
       first = false;
+      if (!first) sb.append(", ");
+      sb.append("options:");
+      if (this.options == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.options);
+      }
+      first = false;
       sb.append(")");
       return sb.toString();
     }
@@ -984,6 +1061,9 @@ public class KeyValueWorkerClientService {
     public void validate() throws org.apache.thrift.TException {
       // check for required fields
       // check for sub-struct validity
+      if (options != null) {
+        options.validate();
+      }
     }
 
     private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
@@ -1038,6 +1118,15 @@ public class KeyValueWorkerClientService {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
+            case 3: // OPTIONS
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.options = new GetTOptions();
+                struct.options.read(iprot);
+                struct.setOptionsIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
             default:
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
           }
@@ -1059,6 +1148,11 @@ public class KeyValueWorkerClientService {
         if (struct.key != null) {
           oprot.writeFieldBegin(KEY_FIELD_DESC);
           oprot.writeBinary(struct.key);
+          oprot.writeFieldEnd();
+        }
+        if (struct.options != null) {
+          oprot.writeFieldBegin(OPTIONS_FIELD_DESC);
+          struct.options.write(oprot);
           oprot.writeFieldEnd();
         }
         oprot.writeFieldStop();
@@ -1085,19 +1179,25 @@ public class KeyValueWorkerClientService {
         if (struct.isSetKey()) {
           optionals.set(1);
         }
-        oprot.writeBitSet(optionals, 2);
+        if (struct.isSetOptions()) {
+          optionals.set(2);
+        }
+        oprot.writeBitSet(optionals, 3);
         if (struct.isSetBlockId()) {
           oprot.writeI64(struct.blockId);
         }
         if (struct.isSetKey()) {
           oprot.writeBinary(struct.key);
         }
+        if (struct.isSetOptions()) {
+          struct.options.write(oprot);
+        }
       }
 
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, get_args struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(2);
+        BitSet incoming = iprot.readBitSet(3);
         if (incoming.get(0)) {
           struct.blockId = iprot.readI64();
           struct.setBlockIdIsSet(true);
@@ -1105,6 +1205,11 @@ public class KeyValueWorkerClientService {
         if (incoming.get(1)) {
           struct.key = iprot.readBinary();
           struct.setKeyIsSet(true);
+        }
+        if (incoming.get(2)) {
+          struct.options = new GetTOptions();
+          struct.options.read(iprot);
+          struct.setOptionsIsSet(true);
         }
       }
     }
@@ -1114,9 +1219,8 @@ public class KeyValueWorkerClientService {
   public static class get_result implements org.apache.thrift.TBase<get_result, get_result._Fields>, java.io.Serializable, Cloneable, Comparable<get_result>   {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("get_result");
 
-    private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.STRING, (short)0);
+    private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.STRUCT, (short)0);
     private static final org.apache.thrift.protocol.TField E_FIELD_DESC = new org.apache.thrift.protocol.TField("e", org.apache.thrift.protocol.TType.STRUCT, (short)1);
-    private static final org.apache.thrift.protocol.TField IOE_FIELD_DESC = new org.apache.thrift.protocol.TField("ioe", org.apache.thrift.protocol.TType.STRUCT, (short)2);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -1124,15 +1228,13 @@ public class KeyValueWorkerClientService {
       schemes.put(TupleScheme.class, new get_resultTupleSchemeFactory());
     }
 
-    private ByteBuffer success; // required
+    private GetTResponse success; // required
     private alluxio.thrift.AlluxioTException e; // required
-    private alluxio.thrift.ThriftIOException ioe; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
       SUCCESS((short)0, "success"),
-      E((short)1, "e"),
-      IOE((short)2, "ioe");
+      E((short)1, "e");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -1151,8 +1253,6 @@ public class KeyValueWorkerClientService {
             return SUCCESS;
           case 1: // E
             return E;
-          case 2: // IOE
-            return IOE;
           default:
             return null;
         }
@@ -1197,10 +1297,8 @@ public class KeyValueWorkerClientService {
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
       tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING          , true)));
+          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, GetTResponse.class)));
       tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
-      tmpMap.put(_Fields.IOE, new org.apache.thrift.meta_data.FieldMetaData("ioe", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(get_result.class, metaDataMap);
@@ -1210,14 +1308,12 @@ public class KeyValueWorkerClientService {
     }
 
     public get_result(
-      ByteBuffer success,
-      alluxio.thrift.AlluxioTException e,
-      alluxio.thrift.ThriftIOException ioe)
+      GetTResponse success,
+      alluxio.thrift.AlluxioTException e)
     {
       this();
-      this.success = org.apache.thrift.TBaseHelper.copyBinary(success);
+      this.success = success;
       this.e = e;
-      this.ioe = ioe;
     }
 
     /**
@@ -1225,13 +1321,10 @@ public class KeyValueWorkerClientService {
      */
     public get_result(get_result other) {
       if (other.isSetSuccess()) {
-        this.success = org.apache.thrift.TBaseHelper.copyBinary(other.success);
+        this.success = new GetTResponse(other.success);
       }
       if (other.isSetE()) {
         this.e = new alluxio.thrift.AlluxioTException(other.e);
-      }
-      if (other.isSetIoe()) {
-        this.ioe = new alluxio.thrift.ThriftIOException(other.ioe);
       }
     }
 
@@ -1243,25 +1336,14 @@ public class KeyValueWorkerClientService {
     public void clear() {
       this.success = null;
       this.e = null;
-      this.ioe = null;
     }
 
-    public byte[] getSuccess() {
-      setSuccess(org.apache.thrift.TBaseHelper.rightSize(success));
-      return success == null ? null : success.array();
+    public GetTResponse getSuccess() {
+      return this.success;
     }
 
-    public ByteBuffer bufferForSuccess() {
-      return org.apache.thrift.TBaseHelper.copyBinary(success);
-    }
-
-    public get_result setSuccess(byte[] success) {
-      this.success = success == null ? (ByteBuffer)null : ByteBuffer.wrap(Arrays.copyOf(success, success.length));
-      return this;
-    }
-
-    public get_result setSuccess(ByteBuffer success) {
-      this.success = org.apache.thrift.TBaseHelper.copyBinary(success);
+    public get_result setSuccess(GetTResponse success) {
+      this.success = success;
       return this;
     }
 
@@ -1304,37 +1386,13 @@ public class KeyValueWorkerClientService {
       }
     }
 
-    public alluxio.thrift.ThriftIOException getIoe() {
-      return this.ioe;
-    }
-
-    public get_result setIoe(alluxio.thrift.ThriftIOException ioe) {
-      this.ioe = ioe;
-      return this;
-    }
-
-    public void unsetIoe() {
-      this.ioe = null;
-    }
-
-    /** Returns true if field ioe is set (has been assigned a value) and false otherwise */
-    public boolean isSetIoe() {
-      return this.ioe != null;
-    }
-
-    public void setIoeIsSet(boolean value) {
-      if (!value) {
-        this.ioe = null;
-      }
-    }
-
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
       case SUCCESS:
         if (value == null) {
           unsetSuccess();
         } else {
-          setSuccess((ByteBuffer)value);
+          setSuccess((GetTResponse)value);
         }
         break;
 
@@ -1343,14 +1401,6 @@ public class KeyValueWorkerClientService {
           unsetE();
         } else {
           setE((alluxio.thrift.AlluxioTException)value);
-        }
-        break;
-
-      case IOE:
-        if (value == null) {
-          unsetIoe();
-        } else {
-          setIoe((alluxio.thrift.ThriftIOException)value);
         }
         break;
 
@@ -1364,9 +1414,6 @@ public class KeyValueWorkerClientService {
 
       case E:
         return getE();
-
-      case IOE:
-        return getIoe();
 
       }
       throw new IllegalStateException();
@@ -1383,8 +1430,6 @@ public class KeyValueWorkerClientService {
         return isSetSuccess();
       case E:
         return isSetE();
-      case IOE:
-        return isSetIoe();
       }
       throw new IllegalStateException();
     }
@@ -1420,15 +1465,6 @@ public class KeyValueWorkerClientService {
           return false;
       }
 
-      boolean this_present_ioe = true && this.isSetIoe();
-      boolean that_present_ioe = true && that.isSetIoe();
-      if (this_present_ioe || that_present_ioe) {
-        if (!(this_present_ioe && that_present_ioe))
-          return false;
-        if (!this.ioe.equals(that.ioe))
-          return false;
-      }
-
       return true;
     }
 
@@ -1445,11 +1481,6 @@ public class KeyValueWorkerClientService {
       list.add(present_e);
       if (present_e)
         list.add(e);
-
-      boolean present_ioe = true && (isSetIoe());
-      list.add(present_ioe);
-      if (present_ioe)
-        list.add(ioe);
 
       return list.hashCode();
     }
@@ -1482,16 +1513,6 @@ public class KeyValueWorkerClientService {
           return lastComparison;
         }
       }
-      lastComparison = Boolean.valueOf(isSetIoe()).compareTo(other.isSetIoe());
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-      if (isSetIoe()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.ioe, other.ioe);
-        if (lastComparison != 0) {
-          return lastComparison;
-        }
-      }
       return 0;
     }
 
@@ -1516,7 +1537,7 @@ public class KeyValueWorkerClientService {
       if (this.success == null) {
         sb.append("null");
       } else {
-        org.apache.thrift.TBaseHelper.toString(this.success, sb);
+        sb.append(this.success);
       }
       first = false;
       if (!first) sb.append(", ");
@@ -1527,14 +1548,6 @@ public class KeyValueWorkerClientService {
         sb.append(this.e);
       }
       first = false;
-      if (!first) sb.append(", ");
-      sb.append("ioe:");
-      if (this.ioe == null) {
-        sb.append("null");
-      } else {
-        sb.append(this.ioe);
-      }
-      first = false;
       sb.append(")");
       return sb.toString();
     }
@@ -1542,6 +1555,9 @@ public class KeyValueWorkerClientService {
     public void validate() throws org.apache.thrift.TException {
       // check for required fields
       // check for sub-struct validity
+      if (success != null) {
+        success.validate();
+      }
     }
 
     private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
@@ -1579,8 +1595,9 @@ public class KeyValueWorkerClientService {
           }
           switch (schemeField.id) {
             case 0: // SUCCESS
-              if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
-                struct.success = iprot.readBinary();
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.success = new GetTResponse();
+                struct.success.read(iprot);
                 struct.setSuccessIsSet(true);
               } else { 
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
@@ -1591,15 +1608,6 @@ public class KeyValueWorkerClientService {
                 struct.e = new alluxio.thrift.AlluxioTException();
                 struct.e.read(iprot);
                 struct.setEIsSet(true);
-              } else { 
-                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-              }
-              break;
-            case 2: // IOE
-              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.ioe = new alluxio.thrift.ThriftIOException();
-                struct.ioe.read(iprot);
-                struct.setIoeIsSet(true);
               } else { 
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
@@ -1621,17 +1629,12 @@ public class KeyValueWorkerClientService {
         oprot.writeStructBegin(STRUCT_DESC);
         if (struct.success != null) {
           oprot.writeFieldBegin(SUCCESS_FIELD_DESC);
-          oprot.writeBinary(struct.success);
+          struct.success.write(oprot);
           oprot.writeFieldEnd();
         }
         if (struct.e != null) {
           oprot.writeFieldBegin(E_FIELD_DESC);
           struct.e.write(oprot);
-          oprot.writeFieldEnd();
-        }
-        if (struct.ioe != null) {
-          oprot.writeFieldBegin(IOE_FIELD_DESC);
-          struct.ioe.write(oprot);
           oprot.writeFieldEnd();
         }
         oprot.writeFieldStop();
@@ -1658,38 +1661,28 @@ public class KeyValueWorkerClientService {
         if (struct.isSetE()) {
           optionals.set(1);
         }
-        if (struct.isSetIoe()) {
-          optionals.set(2);
-        }
-        oprot.writeBitSet(optionals, 3);
+        oprot.writeBitSet(optionals, 2);
         if (struct.isSetSuccess()) {
-          oprot.writeBinary(struct.success);
+          struct.success.write(oprot);
         }
         if (struct.isSetE()) {
           struct.e.write(oprot);
-        }
-        if (struct.isSetIoe()) {
-          struct.ioe.write(oprot);
         }
       }
 
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, get_result struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(3);
+        BitSet incoming = iprot.readBitSet(2);
         if (incoming.get(0)) {
-          struct.success = iprot.readBinary();
+          struct.success = new GetTResponse();
+          struct.success.read(iprot);
           struct.setSuccessIsSet(true);
         }
         if (incoming.get(1)) {
           struct.e = new alluxio.thrift.AlluxioTException();
           struct.e.read(iprot);
           struct.setEIsSet(true);
-        }
-        if (incoming.get(2)) {
-          struct.ioe = new alluxio.thrift.ThriftIOException();
-          struct.ioe.read(iprot);
-          struct.setIoeIsSet(true);
         }
       }
     }
@@ -1702,6 +1695,7 @@ public class KeyValueWorkerClientService {
     private static final org.apache.thrift.protocol.TField BLOCK_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("blockId", org.apache.thrift.protocol.TType.I64, (short)1);
     private static final org.apache.thrift.protocol.TField KEY_FIELD_DESC = new org.apache.thrift.protocol.TField("key", org.apache.thrift.protocol.TType.STRING, (short)2);
     private static final org.apache.thrift.protocol.TField NUM_KEYS_FIELD_DESC = new org.apache.thrift.protocol.TField("numKeys", org.apache.thrift.protocol.TType.I32, (short)3);
+    private static final org.apache.thrift.protocol.TField OPTIONS_FIELD_DESC = new org.apache.thrift.protocol.TField("options", org.apache.thrift.protocol.TType.STRUCT, (short)4);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -1712,6 +1706,7 @@ public class KeyValueWorkerClientService {
     private long blockId; // required
     private ByteBuffer key; // required
     private int numKeys; // required
+    private GetNextKeysTOptions options; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
@@ -1726,7 +1721,11 @@ public class KeyValueWorkerClientService {
       /**
        * maximum number of keys to get
        */
-      NUM_KEYS((short)3, "numKeys");
+      NUM_KEYS((short)3, "numKeys"),
+      /**
+       * the method options
+       */
+      OPTIONS((short)4, "options");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -1747,6 +1746,8 @@ public class KeyValueWorkerClientService {
             return KEY;
           case 3: // NUM_KEYS
             return NUM_KEYS;
+          case 4: // OPTIONS
+            return OPTIONS;
           default:
             return null;
         }
@@ -1799,6 +1800,8 @@ public class KeyValueWorkerClientService {
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING          , true)));
       tmpMap.put(_Fields.NUM_KEYS, new org.apache.thrift.meta_data.FieldMetaData("numKeys", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
+      tmpMap.put(_Fields.OPTIONS, new org.apache.thrift.meta_data.FieldMetaData("options", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, GetNextKeysTOptions.class)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(getNextKeys_args.class, metaDataMap);
     }
@@ -1809,7 +1812,8 @@ public class KeyValueWorkerClientService {
     public getNextKeys_args(
       long blockId,
       ByteBuffer key,
-      int numKeys)
+      int numKeys,
+      GetNextKeysTOptions options)
     {
       this();
       this.blockId = blockId;
@@ -1817,6 +1821,7 @@ public class KeyValueWorkerClientService {
       this.key = org.apache.thrift.TBaseHelper.copyBinary(key);
       this.numKeys = numKeys;
       setNumKeysIsSet(true);
+      this.options = options;
     }
 
     /**
@@ -1829,6 +1834,9 @@ public class KeyValueWorkerClientService {
         this.key = org.apache.thrift.TBaseHelper.copyBinary(other.key);
       }
       this.numKeys = other.numKeys;
+      if (other.isSetOptions()) {
+        this.options = new GetNextKeysTOptions(other.options);
+      }
     }
 
     public getNextKeys_args deepCopy() {
@@ -1842,6 +1850,7 @@ public class KeyValueWorkerClientService {
       this.key = null;
       setNumKeysIsSet(false);
       this.numKeys = 0;
+      this.options = null;
     }
 
     /**
@@ -1942,6 +1951,36 @@ public class KeyValueWorkerClientService {
       __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __NUMKEYS_ISSET_ID, value);
     }
 
+    /**
+     * the method options
+     */
+    public GetNextKeysTOptions getOptions() {
+      return this.options;
+    }
+
+    /**
+     * the method options
+     */
+    public getNextKeys_args setOptions(GetNextKeysTOptions options) {
+      this.options = options;
+      return this;
+    }
+
+    public void unsetOptions() {
+      this.options = null;
+    }
+
+    /** Returns true if field options is set (has been assigned a value) and false otherwise */
+    public boolean isSetOptions() {
+      return this.options != null;
+    }
+
+    public void setOptionsIsSet(boolean value) {
+      if (!value) {
+        this.options = null;
+      }
+    }
+
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
       case BLOCK_ID:
@@ -1968,6 +2007,14 @@ public class KeyValueWorkerClientService {
         }
         break;
 
+      case OPTIONS:
+        if (value == null) {
+          unsetOptions();
+        } else {
+          setOptions((GetNextKeysTOptions)value);
+        }
+        break;
+
       }
     }
 
@@ -1981,6 +2028,9 @@ public class KeyValueWorkerClientService {
 
       case NUM_KEYS:
         return getNumKeys();
+
+      case OPTIONS:
+        return getOptions();
 
       }
       throw new IllegalStateException();
@@ -1999,6 +2049,8 @@ public class KeyValueWorkerClientService {
         return isSetKey();
       case NUM_KEYS:
         return isSetNumKeys();
+      case OPTIONS:
+        return isSetOptions();
       }
       throw new IllegalStateException();
     }
@@ -2043,6 +2095,15 @@ public class KeyValueWorkerClientService {
           return false;
       }
 
+      boolean this_present_options = true && this.isSetOptions();
+      boolean that_present_options = true && that.isSetOptions();
+      if (this_present_options || that_present_options) {
+        if (!(this_present_options && that_present_options))
+          return false;
+        if (!this.options.equals(that.options))
+          return false;
+      }
+
       return true;
     }
 
@@ -2064,6 +2125,11 @@ public class KeyValueWorkerClientService {
       list.add(present_numKeys);
       if (present_numKeys)
         list.add(numKeys);
+
+      boolean present_options = true && (isSetOptions());
+      list.add(present_options);
+      if (present_options)
+        list.add(options);
 
       return list.hashCode();
     }
@@ -2106,6 +2172,16 @@ public class KeyValueWorkerClientService {
           return lastComparison;
         }
       }
+      lastComparison = Boolean.valueOf(isSetOptions()).compareTo(other.isSetOptions());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetOptions()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.options, other.options);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
       return 0;
     }
 
@@ -2141,6 +2217,14 @@ public class KeyValueWorkerClientService {
       sb.append("numKeys:");
       sb.append(this.numKeys);
       first = false;
+      if (!first) sb.append(", ");
+      sb.append("options:");
+      if (this.options == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.options);
+      }
+      first = false;
       sb.append(")");
       return sb.toString();
     }
@@ -2148,6 +2232,9 @@ public class KeyValueWorkerClientService {
     public void validate() throws org.apache.thrift.TException {
       // check for required fields
       // check for sub-struct validity
+      if (options != null) {
+        options.validate();
+      }
     }
 
     private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
@@ -2210,6 +2297,15 @@ public class KeyValueWorkerClientService {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
+            case 4: // OPTIONS
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.options = new GetNextKeysTOptions();
+                struct.options.read(iprot);
+                struct.setOptionsIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
             default:
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
           }
@@ -2236,6 +2332,11 @@ public class KeyValueWorkerClientService {
         oprot.writeFieldBegin(NUM_KEYS_FIELD_DESC);
         oprot.writeI32(struct.numKeys);
         oprot.writeFieldEnd();
+        if (struct.options != null) {
+          oprot.writeFieldBegin(OPTIONS_FIELD_DESC);
+          struct.options.write(oprot);
+          oprot.writeFieldEnd();
+        }
         oprot.writeFieldStop();
         oprot.writeStructEnd();
       }
@@ -2263,7 +2364,10 @@ public class KeyValueWorkerClientService {
         if (struct.isSetNumKeys()) {
           optionals.set(2);
         }
-        oprot.writeBitSet(optionals, 3);
+        if (struct.isSetOptions()) {
+          optionals.set(3);
+        }
+        oprot.writeBitSet(optionals, 4);
         if (struct.isSetBlockId()) {
           oprot.writeI64(struct.blockId);
         }
@@ -2273,12 +2377,15 @@ public class KeyValueWorkerClientService {
         if (struct.isSetNumKeys()) {
           oprot.writeI32(struct.numKeys);
         }
+        if (struct.isSetOptions()) {
+          struct.options.write(oprot);
+        }
       }
 
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, getNextKeys_args struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(3);
+        BitSet incoming = iprot.readBitSet(4);
         if (incoming.get(0)) {
           struct.blockId = iprot.readI64();
           struct.setBlockIdIsSet(true);
@@ -2291,6 +2398,11 @@ public class KeyValueWorkerClientService {
           struct.numKeys = iprot.readI32();
           struct.setNumKeysIsSet(true);
         }
+        if (incoming.get(3)) {
+          struct.options = new GetNextKeysTOptions();
+          struct.options.read(iprot);
+          struct.setOptionsIsSet(true);
+        }
       }
     }
 
@@ -2299,9 +2411,8 @@ public class KeyValueWorkerClientService {
   public static class getNextKeys_result implements org.apache.thrift.TBase<getNextKeys_result, getNextKeys_result._Fields>, java.io.Serializable, Cloneable, Comparable<getNextKeys_result>   {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("getNextKeys_result");
 
-    private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.LIST, (short)0);
+    private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.STRUCT, (short)0);
     private static final org.apache.thrift.protocol.TField E_FIELD_DESC = new org.apache.thrift.protocol.TField("e", org.apache.thrift.protocol.TType.STRUCT, (short)1);
-    private static final org.apache.thrift.protocol.TField IOE_FIELD_DESC = new org.apache.thrift.protocol.TField("ioe", org.apache.thrift.protocol.TType.STRUCT, (short)2);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -2309,15 +2420,13 @@ public class KeyValueWorkerClientService {
       schemes.put(TupleScheme.class, new getNextKeys_resultTupleSchemeFactory());
     }
 
-    private List<ByteBuffer> success; // required
+    private GetNextKeysTResponse success; // required
     private alluxio.thrift.AlluxioTException e; // required
-    private alluxio.thrift.ThriftIOException ioe; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
       SUCCESS((short)0, "success"),
-      E((short)1, "e"),
-      IOE((short)2, "ioe");
+      E((short)1, "e");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -2336,8 +2445,6 @@ public class KeyValueWorkerClientService {
             return SUCCESS;
           case 1: // E
             return E;
-          case 2: // IOE
-            return IOE;
           default:
             return null;
         }
@@ -2382,11 +2489,8 @@ public class KeyValueWorkerClientService {
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
       tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.ListMetaData(org.apache.thrift.protocol.TType.LIST, 
-              new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING              , true))));
+          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, GetNextKeysTResponse.class)));
       tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
-      tmpMap.put(_Fields.IOE, new org.apache.thrift.meta_data.FieldMetaData("ioe", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(getNextKeys_result.class, metaDataMap);
@@ -2396,14 +2500,12 @@ public class KeyValueWorkerClientService {
     }
 
     public getNextKeys_result(
-      List<ByteBuffer> success,
-      alluxio.thrift.AlluxioTException e,
-      alluxio.thrift.ThriftIOException ioe)
+      GetNextKeysTResponse success,
+      alluxio.thrift.AlluxioTException e)
     {
       this();
       this.success = success;
       this.e = e;
-      this.ioe = ioe;
     }
 
     /**
@@ -2411,14 +2513,10 @@ public class KeyValueWorkerClientService {
      */
     public getNextKeys_result(getNextKeys_result other) {
       if (other.isSetSuccess()) {
-        List<ByteBuffer> __this__success = new ArrayList<ByteBuffer>(other.success);
-        this.success = __this__success;
+        this.success = new GetNextKeysTResponse(other.success);
       }
       if (other.isSetE()) {
         this.e = new alluxio.thrift.AlluxioTException(other.e);
-      }
-      if (other.isSetIoe()) {
-        this.ioe = new alluxio.thrift.ThriftIOException(other.ioe);
       }
     }
 
@@ -2430,29 +2528,13 @@ public class KeyValueWorkerClientService {
     public void clear() {
       this.success = null;
       this.e = null;
-      this.ioe = null;
     }
 
-    public int getSuccessSize() {
-      return (this.success == null) ? 0 : this.success.size();
-    }
-
-    public java.util.Iterator<ByteBuffer> getSuccessIterator() {
-      return (this.success == null) ? null : this.success.iterator();
-    }
-
-    public void addToSuccess(ByteBuffer elem) {
-      if (this.success == null) {
-        this.success = new ArrayList<ByteBuffer>();
-      }
-      this.success.add(elem);
-    }
-
-    public List<ByteBuffer> getSuccess() {
+    public GetNextKeysTResponse getSuccess() {
       return this.success;
     }
 
-    public getNextKeys_result setSuccess(List<ByteBuffer> success) {
+    public getNextKeys_result setSuccess(GetNextKeysTResponse success) {
       this.success = success;
       return this;
     }
@@ -2496,37 +2578,13 @@ public class KeyValueWorkerClientService {
       }
     }
 
-    public alluxio.thrift.ThriftIOException getIoe() {
-      return this.ioe;
-    }
-
-    public getNextKeys_result setIoe(alluxio.thrift.ThriftIOException ioe) {
-      this.ioe = ioe;
-      return this;
-    }
-
-    public void unsetIoe() {
-      this.ioe = null;
-    }
-
-    /** Returns true if field ioe is set (has been assigned a value) and false otherwise */
-    public boolean isSetIoe() {
-      return this.ioe != null;
-    }
-
-    public void setIoeIsSet(boolean value) {
-      if (!value) {
-        this.ioe = null;
-      }
-    }
-
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
       case SUCCESS:
         if (value == null) {
           unsetSuccess();
         } else {
-          setSuccess((List<ByteBuffer>)value);
+          setSuccess((GetNextKeysTResponse)value);
         }
         break;
 
@@ -2535,14 +2593,6 @@ public class KeyValueWorkerClientService {
           unsetE();
         } else {
           setE((alluxio.thrift.AlluxioTException)value);
-        }
-        break;
-
-      case IOE:
-        if (value == null) {
-          unsetIoe();
-        } else {
-          setIoe((alluxio.thrift.ThriftIOException)value);
         }
         break;
 
@@ -2556,9 +2606,6 @@ public class KeyValueWorkerClientService {
 
       case E:
         return getE();
-
-      case IOE:
-        return getIoe();
 
       }
       throw new IllegalStateException();
@@ -2575,8 +2622,6 @@ public class KeyValueWorkerClientService {
         return isSetSuccess();
       case E:
         return isSetE();
-      case IOE:
-        return isSetIoe();
       }
       throw new IllegalStateException();
     }
@@ -2612,15 +2657,6 @@ public class KeyValueWorkerClientService {
           return false;
       }
 
-      boolean this_present_ioe = true && this.isSetIoe();
-      boolean that_present_ioe = true && that.isSetIoe();
-      if (this_present_ioe || that_present_ioe) {
-        if (!(this_present_ioe && that_present_ioe))
-          return false;
-        if (!this.ioe.equals(that.ioe))
-          return false;
-      }
-
       return true;
     }
 
@@ -2637,11 +2673,6 @@ public class KeyValueWorkerClientService {
       list.add(present_e);
       if (present_e)
         list.add(e);
-
-      boolean present_ioe = true && (isSetIoe());
-      list.add(present_ioe);
-      if (present_ioe)
-        list.add(ioe);
 
       return list.hashCode();
     }
@@ -2674,16 +2705,6 @@ public class KeyValueWorkerClientService {
           return lastComparison;
         }
       }
-      lastComparison = Boolean.valueOf(isSetIoe()).compareTo(other.isSetIoe());
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-      if (isSetIoe()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.ioe, other.ioe);
-        if (lastComparison != 0) {
-          return lastComparison;
-        }
-      }
       return 0;
     }
 
@@ -2708,7 +2729,7 @@ public class KeyValueWorkerClientService {
       if (this.success == null) {
         sb.append("null");
       } else {
-        org.apache.thrift.TBaseHelper.toString(this.success, sb);
+        sb.append(this.success);
       }
       first = false;
       if (!first) sb.append(", ");
@@ -2719,14 +2740,6 @@ public class KeyValueWorkerClientService {
         sb.append(this.e);
       }
       first = false;
-      if (!first) sb.append(", ");
-      sb.append("ioe:");
-      if (this.ioe == null) {
-        sb.append("null");
-      } else {
-        sb.append(this.ioe);
-      }
-      first = false;
       sb.append(")");
       return sb.toString();
     }
@@ -2734,6 +2747,9 @@ public class KeyValueWorkerClientService {
     public void validate() throws org.apache.thrift.TException {
       // check for required fields
       // check for sub-struct validity
+      if (success != null) {
+        success.validate();
+      }
     }
 
     private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
@@ -2771,18 +2787,9 @@ public class KeyValueWorkerClientService {
           }
           switch (schemeField.id) {
             case 0: // SUCCESS
-              if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
-                {
-                  org.apache.thrift.protocol.TList _list0 = iprot.readListBegin();
-                  struct.success = new ArrayList<ByteBuffer>(_list0.size);
-                  ByteBuffer _elem1;
-                  for (int _i2 = 0; _i2 < _list0.size; ++_i2)
-                  {
-                    _elem1 = iprot.readBinary();
-                    struct.success.add(_elem1);
-                  }
-                  iprot.readListEnd();
-                }
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.success = new GetNextKeysTResponse();
+                struct.success.read(iprot);
                 struct.setSuccessIsSet(true);
               } else { 
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
@@ -2793,15 +2800,6 @@ public class KeyValueWorkerClientService {
                 struct.e = new alluxio.thrift.AlluxioTException();
                 struct.e.read(iprot);
                 struct.setEIsSet(true);
-              } else { 
-                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-              }
-              break;
-            case 2: // IOE
-              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.ioe = new alluxio.thrift.ThriftIOException();
-                struct.ioe.read(iprot);
-                struct.setIoeIsSet(true);
               } else { 
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
@@ -2823,24 +2821,12 @@ public class KeyValueWorkerClientService {
         oprot.writeStructBegin(STRUCT_DESC);
         if (struct.success != null) {
           oprot.writeFieldBegin(SUCCESS_FIELD_DESC);
-          {
-            oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRING, struct.success.size()));
-            for (ByteBuffer _iter3 : struct.success)
-            {
-              oprot.writeBinary(_iter3);
-            }
-            oprot.writeListEnd();
-          }
+          struct.success.write(oprot);
           oprot.writeFieldEnd();
         }
         if (struct.e != null) {
           oprot.writeFieldBegin(E_FIELD_DESC);
           struct.e.write(oprot);
-          oprot.writeFieldEnd();
-        }
-        if (struct.ioe != null) {
-          oprot.writeFieldBegin(IOE_FIELD_DESC);
-          struct.ioe.write(oprot);
           oprot.writeFieldEnd();
         }
         oprot.writeFieldStop();
@@ -2867,53 +2853,28 @@ public class KeyValueWorkerClientService {
         if (struct.isSetE()) {
           optionals.set(1);
         }
-        if (struct.isSetIoe()) {
-          optionals.set(2);
-        }
-        oprot.writeBitSet(optionals, 3);
+        oprot.writeBitSet(optionals, 2);
         if (struct.isSetSuccess()) {
-          {
-            oprot.writeI32(struct.success.size());
-            for (ByteBuffer _iter4 : struct.success)
-            {
-              oprot.writeBinary(_iter4);
-            }
-          }
+          struct.success.write(oprot);
         }
         if (struct.isSetE()) {
           struct.e.write(oprot);
-        }
-        if (struct.isSetIoe()) {
-          struct.ioe.write(oprot);
         }
       }
 
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, getNextKeys_result struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(3);
+        BitSet incoming = iprot.readBitSet(2);
         if (incoming.get(0)) {
-          {
-            org.apache.thrift.protocol.TList _list5 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRING, iprot.readI32());
-            struct.success = new ArrayList<ByteBuffer>(_list5.size);
-            ByteBuffer _elem6;
-            for (int _i7 = 0; _i7 < _list5.size; ++_i7)
-            {
-              _elem6 = iprot.readBinary();
-              struct.success.add(_elem6);
-            }
-          }
+          struct.success = new GetNextKeysTResponse();
+          struct.success.read(iprot);
           struct.setSuccessIsSet(true);
         }
         if (incoming.get(1)) {
           struct.e = new alluxio.thrift.AlluxioTException();
           struct.e.read(iprot);
           struct.setEIsSet(true);
-        }
-        if (incoming.get(2)) {
-          struct.ioe = new alluxio.thrift.ThriftIOException();
-          struct.ioe.read(iprot);
-          struct.setIoeIsSet(true);
         }
       }
     }
@@ -2924,6 +2885,7 @@ public class KeyValueWorkerClientService {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("getSize_args");
 
     private static final org.apache.thrift.protocol.TField BLOCK_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("blockId", org.apache.thrift.protocol.TType.I64, (short)1);
+    private static final org.apache.thrift.protocol.TField OPTIONS_FIELD_DESC = new org.apache.thrift.protocol.TField("options", org.apache.thrift.protocol.TType.STRUCT, (short)2);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -2932,13 +2894,18 @@ public class KeyValueWorkerClientService {
     }
 
     private long blockId; // required
+    private GetSizeTOptions options; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
       /**
        * the id of the partition
        */
-      BLOCK_ID((short)1, "blockId");
+      BLOCK_ID((short)1, "blockId"),
+      /**
+       * the method options
+       */
+      OPTIONS((short)2, "options");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -2955,6 +2922,8 @@ public class KeyValueWorkerClientService {
         switch(fieldId) {
           case 1: // BLOCK_ID
             return BLOCK_ID;
+          case 2: // OPTIONS
+            return OPTIONS;
           default:
             return null;
         }
@@ -3002,6 +2971,8 @@ public class KeyValueWorkerClientService {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
       tmpMap.put(_Fields.BLOCK_ID, new org.apache.thrift.meta_data.FieldMetaData("blockId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
+      tmpMap.put(_Fields.OPTIONS, new org.apache.thrift.meta_data.FieldMetaData("options", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, GetSizeTOptions.class)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(getSize_args.class, metaDataMap);
     }
@@ -3010,11 +2981,13 @@ public class KeyValueWorkerClientService {
     }
 
     public getSize_args(
-      long blockId)
+      long blockId,
+      GetSizeTOptions options)
     {
       this();
       this.blockId = blockId;
       setBlockIdIsSet(true);
+      this.options = options;
     }
 
     /**
@@ -3023,6 +2996,9 @@ public class KeyValueWorkerClientService {
     public getSize_args(getSize_args other) {
       __isset_bitfield = other.__isset_bitfield;
       this.blockId = other.blockId;
+      if (other.isSetOptions()) {
+        this.options = new GetSizeTOptions(other.options);
+      }
     }
 
     public getSize_args deepCopy() {
@@ -3033,6 +3009,7 @@ public class KeyValueWorkerClientService {
     public void clear() {
       setBlockIdIsSet(false);
       this.blockId = 0;
+      this.options = null;
     }
 
     /**
@@ -3064,6 +3041,36 @@ public class KeyValueWorkerClientService {
       __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __BLOCKID_ISSET_ID, value);
     }
 
+    /**
+     * the method options
+     */
+    public GetSizeTOptions getOptions() {
+      return this.options;
+    }
+
+    /**
+     * the method options
+     */
+    public getSize_args setOptions(GetSizeTOptions options) {
+      this.options = options;
+      return this;
+    }
+
+    public void unsetOptions() {
+      this.options = null;
+    }
+
+    /** Returns true if field options is set (has been assigned a value) and false otherwise */
+    public boolean isSetOptions() {
+      return this.options != null;
+    }
+
+    public void setOptionsIsSet(boolean value) {
+      if (!value) {
+        this.options = null;
+      }
+    }
+
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
       case BLOCK_ID:
@@ -3074,6 +3081,14 @@ public class KeyValueWorkerClientService {
         }
         break;
 
+      case OPTIONS:
+        if (value == null) {
+          unsetOptions();
+        } else {
+          setOptions((GetSizeTOptions)value);
+        }
+        break;
+
       }
     }
 
@@ -3081,6 +3096,9 @@ public class KeyValueWorkerClientService {
       switch (field) {
       case BLOCK_ID:
         return getBlockId();
+
+      case OPTIONS:
+        return getOptions();
 
       }
       throw new IllegalStateException();
@@ -3095,6 +3113,8 @@ public class KeyValueWorkerClientService {
       switch (field) {
       case BLOCK_ID:
         return isSetBlockId();
+      case OPTIONS:
+        return isSetOptions();
       }
       throw new IllegalStateException();
     }
@@ -3121,6 +3141,15 @@ public class KeyValueWorkerClientService {
           return false;
       }
 
+      boolean this_present_options = true && this.isSetOptions();
+      boolean that_present_options = true && that.isSetOptions();
+      if (this_present_options || that_present_options) {
+        if (!(this_present_options && that_present_options))
+          return false;
+        if (!this.options.equals(that.options))
+          return false;
+      }
+
       return true;
     }
 
@@ -3132,6 +3161,11 @@ public class KeyValueWorkerClientService {
       list.add(present_blockId);
       if (present_blockId)
         list.add(blockId);
+
+      boolean present_options = true && (isSetOptions());
+      list.add(present_options);
+      if (present_options)
+        list.add(options);
 
       return list.hashCode();
     }
@@ -3150,6 +3184,16 @@ public class KeyValueWorkerClientService {
       }
       if (isSetBlockId()) {
         lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.blockId, other.blockId);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = Boolean.valueOf(isSetOptions()).compareTo(other.isSetOptions());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetOptions()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.options, other.options);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -3177,6 +3221,14 @@ public class KeyValueWorkerClientService {
       sb.append("blockId:");
       sb.append(this.blockId);
       first = false;
+      if (!first) sb.append(", ");
+      sb.append("options:");
+      if (this.options == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.options);
+      }
+      first = false;
       sb.append(")");
       return sb.toString();
     }
@@ -3184,6 +3236,9 @@ public class KeyValueWorkerClientService {
     public void validate() throws org.apache.thrift.TException {
       // check for required fields
       // check for sub-struct validity
+      if (options != null) {
+        options.validate();
+      }
     }
 
     private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
@@ -3230,6 +3285,15 @@ public class KeyValueWorkerClientService {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
+            case 2: // OPTIONS
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.options = new GetSizeTOptions();
+                struct.options.read(iprot);
+                struct.setOptionsIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
             default:
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
           }
@@ -3248,6 +3312,11 @@ public class KeyValueWorkerClientService {
         oprot.writeFieldBegin(BLOCK_ID_FIELD_DESC);
         oprot.writeI64(struct.blockId);
         oprot.writeFieldEnd();
+        if (struct.options != null) {
+          oprot.writeFieldBegin(OPTIONS_FIELD_DESC);
+          struct.options.write(oprot);
+          oprot.writeFieldEnd();
+        }
         oprot.writeFieldStop();
         oprot.writeStructEnd();
       }
@@ -3269,19 +3338,30 @@ public class KeyValueWorkerClientService {
         if (struct.isSetBlockId()) {
           optionals.set(0);
         }
-        oprot.writeBitSet(optionals, 1);
+        if (struct.isSetOptions()) {
+          optionals.set(1);
+        }
+        oprot.writeBitSet(optionals, 2);
         if (struct.isSetBlockId()) {
           oprot.writeI64(struct.blockId);
+        }
+        if (struct.isSetOptions()) {
+          struct.options.write(oprot);
         }
       }
 
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, getSize_args struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(1);
+        BitSet incoming = iprot.readBitSet(2);
         if (incoming.get(0)) {
           struct.blockId = iprot.readI64();
           struct.setBlockIdIsSet(true);
+        }
+        if (incoming.get(1)) {
+          struct.options = new GetSizeTOptions();
+          struct.options.read(iprot);
+          struct.setOptionsIsSet(true);
         }
       }
     }
@@ -3291,9 +3371,8 @@ public class KeyValueWorkerClientService {
   public static class getSize_result implements org.apache.thrift.TBase<getSize_result, getSize_result._Fields>, java.io.Serializable, Cloneable, Comparable<getSize_result>   {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("getSize_result");
 
-    private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.I32, (short)0);
+    private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.STRUCT, (short)0);
     private static final org.apache.thrift.protocol.TField E_FIELD_DESC = new org.apache.thrift.protocol.TField("e", org.apache.thrift.protocol.TType.STRUCT, (short)1);
-    private static final org.apache.thrift.protocol.TField IOE_FIELD_DESC = new org.apache.thrift.protocol.TField("ioe", org.apache.thrift.protocol.TType.STRUCT, (short)2);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -3301,15 +3380,13 @@ public class KeyValueWorkerClientService {
       schemes.put(TupleScheme.class, new getSize_resultTupleSchemeFactory());
     }
 
-    private int success; // required
+    private GetSizeTResponse success; // required
     private alluxio.thrift.AlluxioTException e; // required
-    private alluxio.thrift.ThriftIOException ioe; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
       SUCCESS((short)0, "success"),
-      E((short)1, "e"),
-      IOE((short)2, "ioe");
+      E((short)1, "e");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -3328,8 +3405,6 @@ public class KeyValueWorkerClientService {
             return SUCCESS;
           case 1: // E
             return E;
-          case 2: // IOE
-            return IOE;
           default:
             return null;
         }
@@ -3370,16 +3445,12 @@ public class KeyValueWorkerClientService {
     }
 
     // isset id assignments
-    private static final int __SUCCESS_ISSET_ID = 0;
-    private byte __isset_bitfield = 0;
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
       tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
+          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, GetSizeTResponse.class)));
       tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
-      tmpMap.put(_Fields.IOE, new org.apache.thrift.meta_data.FieldMetaData("ioe", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(getSize_result.class, metaDataMap);
@@ -3389,28 +3460,23 @@ public class KeyValueWorkerClientService {
     }
 
     public getSize_result(
-      int success,
-      alluxio.thrift.AlluxioTException e,
-      alluxio.thrift.ThriftIOException ioe)
+      GetSizeTResponse success,
+      alluxio.thrift.AlluxioTException e)
     {
       this();
       this.success = success;
-      setSuccessIsSet(true);
       this.e = e;
-      this.ioe = ioe;
     }
 
     /**
      * Performs a deep copy on <i>other</i>.
      */
     public getSize_result(getSize_result other) {
-      __isset_bitfield = other.__isset_bitfield;
-      this.success = other.success;
+      if (other.isSetSuccess()) {
+        this.success = new GetSizeTResponse(other.success);
+      }
       if (other.isSetE()) {
         this.e = new alluxio.thrift.AlluxioTException(other.e);
-      }
-      if (other.isSetIoe()) {
-        this.ioe = new alluxio.thrift.ThriftIOException(other.ioe);
       }
     }
 
@@ -3420,33 +3486,32 @@ public class KeyValueWorkerClientService {
 
     @Override
     public void clear() {
-      setSuccessIsSet(false);
-      this.success = 0;
+      this.success = null;
       this.e = null;
-      this.ioe = null;
     }
 
-    public int getSuccess() {
+    public GetSizeTResponse getSuccess() {
       return this.success;
     }
 
-    public getSize_result setSuccess(int success) {
+    public getSize_result setSuccess(GetSizeTResponse success) {
       this.success = success;
-      setSuccessIsSet(true);
       return this;
     }
 
     public void unsetSuccess() {
-      __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __SUCCESS_ISSET_ID);
+      this.success = null;
     }
 
     /** Returns true if field success is set (has been assigned a value) and false otherwise */
     public boolean isSetSuccess() {
-      return EncodingUtils.testBit(__isset_bitfield, __SUCCESS_ISSET_ID);
+      return this.success != null;
     }
 
     public void setSuccessIsSet(boolean value) {
-      __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __SUCCESS_ISSET_ID, value);
+      if (!value) {
+        this.success = null;
+      }
     }
 
     public alluxio.thrift.AlluxioTException getE() {
@@ -3473,37 +3538,13 @@ public class KeyValueWorkerClientService {
       }
     }
 
-    public alluxio.thrift.ThriftIOException getIoe() {
-      return this.ioe;
-    }
-
-    public getSize_result setIoe(alluxio.thrift.ThriftIOException ioe) {
-      this.ioe = ioe;
-      return this;
-    }
-
-    public void unsetIoe() {
-      this.ioe = null;
-    }
-
-    /** Returns true if field ioe is set (has been assigned a value) and false otherwise */
-    public boolean isSetIoe() {
-      return this.ioe != null;
-    }
-
-    public void setIoeIsSet(boolean value) {
-      if (!value) {
-        this.ioe = null;
-      }
-    }
-
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
       case SUCCESS:
         if (value == null) {
           unsetSuccess();
         } else {
-          setSuccess((Integer)value);
+          setSuccess((GetSizeTResponse)value);
         }
         break;
 
@@ -3512,14 +3553,6 @@ public class KeyValueWorkerClientService {
           unsetE();
         } else {
           setE((alluxio.thrift.AlluxioTException)value);
-        }
-        break;
-
-      case IOE:
-        if (value == null) {
-          unsetIoe();
-        } else {
-          setIoe((alluxio.thrift.ThriftIOException)value);
         }
         break;
 
@@ -3533,9 +3566,6 @@ public class KeyValueWorkerClientService {
 
       case E:
         return getE();
-
-      case IOE:
-        return getIoe();
 
       }
       throw new IllegalStateException();
@@ -3552,8 +3582,6 @@ public class KeyValueWorkerClientService {
         return isSetSuccess();
       case E:
         return isSetE();
-      case IOE:
-        return isSetIoe();
       }
       throw new IllegalStateException();
     }
@@ -3571,12 +3599,12 @@ public class KeyValueWorkerClientService {
       if (that == null)
         return false;
 
-      boolean this_present_success = true;
-      boolean that_present_success = true;
+      boolean this_present_success = true && this.isSetSuccess();
+      boolean that_present_success = true && that.isSetSuccess();
       if (this_present_success || that_present_success) {
         if (!(this_present_success && that_present_success))
           return false;
-        if (this.success != that.success)
+        if (!this.success.equals(that.success))
           return false;
       }
 
@@ -3589,15 +3617,6 @@ public class KeyValueWorkerClientService {
           return false;
       }
 
-      boolean this_present_ioe = true && this.isSetIoe();
-      boolean that_present_ioe = true && that.isSetIoe();
-      if (this_present_ioe || that_present_ioe) {
-        if (!(this_present_ioe && that_present_ioe))
-          return false;
-        if (!this.ioe.equals(that.ioe))
-          return false;
-      }
-
       return true;
     }
 
@@ -3605,7 +3624,7 @@ public class KeyValueWorkerClientService {
     public int hashCode() {
       List<Object> list = new ArrayList<Object>();
 
-      boolean present_success = true;
+      boolean present_success = true && (isSetSuccess());
       list.add(present_success);
       if (present_success)
         list.add(success);
@@ -3614,11 +3633,6 @@ public class KeyValueWorkerClientService {
       list.add(present_e);
       if (present_e)
         list.add(e);
-
-      boolean present_ioe = true && (isSetIoe());
-      list.add(present_ioe);
-      if (present_ioe)
-        list.add(ioe);
 
       return list.hashCode();
     }
@@ -3651,16 +3665,6 @@ public class KeyValueWorkerClientService {
           return lastComparison;
         }
       }
-      lastComparison = Boolean.valueOf(isSetIoe()).compareTo(other.isSetIoe());
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-      if (isSetIoe()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.ioe, other.ioe);
-        if (lastComparison != 0) {
-          return lastComparison;
-        }
-      }
       return 0;
     }
 
@@ -3682,7 +3686,11 @@ public class KeyValueWorkerClientService {
       boolean first = true;
 
       sb.append("success:");
-      sb.append(this.success);
+      if (this.success == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.success);
+      }
       first = false;
       if (!first) sb.append(", ");
       sb.append("e:");
@@ -3692,14 +3700,6 @@ public class KeyValueWorkerClientService {
         sb.append(this.e);
       }
       first = false;
-      if (!first) sb.append(", ");
-      sb.append("ioe:");
-      if (this.ioe == null) {
-        sb.append("null");
-      } else {
-        sb.append(this.ioe);
-      }
-      first = false;
       sb.append(")");
       return sb.toString();
     }
@@ -3707,6 +3707,9 @@ public class KeyValueWorkerClientService {
     public void validate() throws org.apache.thrift.TException {
       // check for required fields
       // check for sub-struct validity
+      if (success != null) {
+        success.validate();
+      }
     }
 
     private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
@@ -3719,8 +3722,6 @@ public class KeyValueWorkerClientService {
 
     private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
       try {
-        // it doesn't seem like you should have to do this, but java serialization is wacky, and doesn't call the default constructor.
-        __isset_bitfield = 0;
         read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
       } catch (org.apache.thrift.TException te) {
         throw new java.io.IOException(te);
@@ -3746,8 +3747,9 @@ public class KeyValueWorkerClientService {
           }
           switch (schemeField.id) {
             case 0: // SUCCESS
-              if (schemeField.type == org.apache.thrift.protocol.TType.I32) {
-                struct.success = iprot.readI32();
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.success = new GetSizeTResponse();
+                struct.success.read(iprot);
                 struct.setSuccessIsSet(true);
               } else { 
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
@@ -3758,15 +3760,6 @@ public class KeyValueWorkerClientService {
                 struct.e = new alluxio.thrift.AlluxioTException();
                 struct.e.read(iprot);
                 struct.setEIsSet(true);
-              } else { 
-                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-              }
-              break;
-            case 2: // IOE
-              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.ioe = new alluxio.thrift.ThriftIOException();
-                struct.ioe.read(iprot);
-                struct.setIoeIsSet(true);
               } else { 
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
@@ -3786,19 +3779,14 @@ public class KeyValueWorkerClientService {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
-        if (struct.isSetSuccess()) {
+        if (struct.success != null) {
           oprot.writeFieldBegin(SUCCESS_FIELD_DESC);
-          oprot.writeI32(struct.success);
+          struct.success.write(oprot);
           oprot.writeFieldEnd();
         }
         if (struct.e != null) {
           oprot.writeFieldBegin(E_FIELD_DESC);
           struct.e.write(oprot);
-          oprot.writeFieldEnd();
-        }
-        if (struct.ioe != null) {
-          oprot.writeFieldBegin(IOE_FIELD_DESC);
-          struct.ioe.write(oprot);
           oprot.writeFieldEnd();
         }
         oprot.writeFieldStop();
@@ -3825,38 +3813,28 @@ public class KeyValueWorkerClientService {
         if (struct.isSetE()) {
           optionals.set(1);
         }
-        if (struct.isSetIoe()) {
-          optionals.set(2);
-        }
-        oprot.writeBitSet(optionals, 3);
+        oprot.writeBitSet(optionals, 2);
         if (struct.isSetSuccess()) {
-          oprot.writeI32(struct.success);
+          struct.success.write(oprot);
         }
         if (struct.isSetE()) {
           struct.e.write(oprot);
-        }
-        if (struct.isSetIoe()) {
-          struct.ioe.write(oprot);
         }
       }
 
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, getSize_result struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(3);
+        BitSet incoming = iprot.readBitSet(2);
         if (incoming.get(0)) {
-          struct.success = iprot.readI32();
+          struct.success = new GetSizeTResponse();
+          struct.success.read(iprot);
           struct.setSuccessIsSet(true);
         }
         if (incoming.get(1)) {
           struct.e = new alluxio.thrift.AlluxioTException();
           struct.e.read(iprot);
           struct.setEIsSet(true);
-        }
-        if (incoming.get(2)) {
-          struct.ioe = new alluxio.thrift.ThriftIOException();
-          struct.ioe.read(iprot);
-          struct.setIoeIsSet(true);
         }
       }
     }

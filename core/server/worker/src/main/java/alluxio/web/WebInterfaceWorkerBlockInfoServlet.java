@@ -12,6 +12,8 @@
 package alluxio.web;
 
 import alluxio.AlluxioURI;
+import alluxio.Configuration;
+import alluxio.PropertyKey;
 import alluxio.WorkerStorageTierAssoc;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
@@ -59,7 +61,7 @@ public final class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
    * @param blockWorker block worker handle
    */
   public WebInterfaceWorkerBlockInfoServlet(BlockWorker blockWorker) {
-    mBlockWorker = Preconditions.checkNotNull(blockWorker);
+    mBlockWorker = Preconditions.checkNotNull(blockWorker, "blockWorker");
   }
 
   /**
@@ -68,11 +70,13 @@ public final class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
    * @param request the {@link HttpServletRequest} object
    * @param response the {@link HttpServletResponse} object
    * @throws ServletException if the target resource throws this exception
-   * @throws IOException if the target resource throws this exception
    */
   @Override
   protected void doGet(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException {
+    if (!Configuration.getBoolean(PropertyKey.WEB_FILE_INFO_ENABLED)) {
+      return;
+    }
     request.setAttribute("fatalError", "");
     String filePath = request.getParameter("path");
     if (!(filePath == null || filePath.isEmpty())) {
@@ -134,16 +138,12 @@ public final class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
       for (long fileId : subFileIds) {
         try {
           uiFileInfos.add(getUiFileInfo(fileId));
-        } catch (IOException e) {
+        } catch (Exception e) {
           // The file might have been deleted, log a warning and ignore this file.
           LOG.warn("Unable to get file info for fileId {}. {}", fileId, e.getMessage());
         }
       }
       request.setAttribute("fileInfos", uiFileInfos);
-    } catch (FileDoesNotExistException e) {
-      request.setAttribute("fatalError", "Error: Invalid FileId " + e.getMessage());
-      getServletContext().getRequestDispatcher("/worker/blockInfo.jsp").forward(request, response);
-      return;
     } catch (NumberFormatException e) {
       request.setAttribute("fatalError",
           "Error: offset or limit parse error, " + e.getLocalizedMessage());
@@ -154,7 +154,7 @@ public final class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
           "Error: offset or offset + limit is out of bound, " + e.getLocalizedMessage());
       getServletContext().getRequestDispatcher("/worker/blockInfo.jsp").forward(request, response);
       return;
-    } catch (IllegalArgumentException | AlluxioException e) {
+    } catch (Exception e) {
       request.setAttribute("fatalError", e.getLocalizedMessage());
       getServletContext().getRequestDispatcher("/worker/blockInfo.jsp").forward(request, response);
       return;
@@ -188,8 +188,6 @@ public final class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
    *
    * @param fileId the file id of the file
    * @return the {@link UIFileInfo} object of the file
-   * @throws IOException if an I/O error occurs
-   * @throws AlluxioException if an Alluxio exception is thrown
    */
   private UIFileInfo getUiFileInfo(long fileId) throws IOException, AlluxioException {
     return getUiFileInfo(new URIStatus(mBlockWorker.getFileInfo(fileId)));
@@ -200,8 +198,6 @@ public final class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
    *
    * @param filePath the path of the file
    * @return the {@link UIFileInfo} object of the file
-   * @throws IOException if an I/O error occurs
-   * @throws AlluxioException if an Alluxio exception is thrown
    */
   private UIFileInfo getUiFileInfo(AlluxioURI filePath) throws IOException, AlluxioException {
     return getUiFileInfo(FileSystem.Factory.get().getStatus(filePath));

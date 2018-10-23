@@ -29,17 +29,14 @@ public final class ModeParser {
   private static final char[] VALID_TARGETS = { 'u', 'g', 'o', 'a' };
   private static final char[] VALID_PERMISSIONS = { 'r', 'w', 'x' };
 
-  /**
-   * Creates a new parser.
-   */
-  public ModeParser() {}
+  private ModeParser() {} // to prevent initialization
 
   /**
    * Parses the given value as a mode.
    * @param value Value
    * @return Mode
    */
-  public Mode parse(String value) {
+  public static Mode parse(String value) {
     if (StringUtils.isBlank(value)) {
       throw new IllegalArgumentException(ExceptionMessage.INVALID_MODE.getMessage(value));
     }
@@ -52,12 +49,12 @@ public final class ModeParser {
     }
   }
 
-  private Mode parseNumeric(String value) {
+  private static Mode parseNumeric(String value) {
     short s = Short.parseShort(value, 8);
     return new Mode(s);
   }
 
-  private Mode parseSymbolic(String value) {
+  private static Mode parseSymbolic(String value) {
     Mode.Bits ownerBits = Bits.NONE;
     Mode.Bits groupBits = Bits.NONE;
     Mode.Bits otherBits = Bits.NONE;
@@ -98,6 +95,7 @@ public final class ModeParser {
             break;
           default:
             // Should never get here as already checked for invalid targets
+            throw new IllegalStateException("Unknown permission character: " + permChar);
         }
       }
 
@@ -120,6 +118,7 @@ public final class ModeParser {
             break;
           default:
             // Should never get here as already checked for invalid targets
+            throw new IllegalStateException("Unknown target character: " + targetChar);
         }
       }
     }

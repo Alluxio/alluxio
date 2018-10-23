@@ -12,11 +12,11 @@
 package alluxio.master.file;
 
 import alluxio.Constants;
+import alluxio.master.MasterContext;
 import alluxio.master.MasterFactory;
 import alluxio.master.MasterRegistry;
-import alluxio.master.journal.JournalFactory;
+import alluxio.master.block.BlockMaster;
 
-import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,9 +45,11 @@ public final class FileSystemMasterFactory implements MasterFactory {
   }
 
   @Override
-  public FileSystemMaster create(MasterRegistry registry, JournalFactory journalFactory) {
-    Preconditions.checkArgument(journalFactory != null, "journal factory may not be null");
+  public FileSystemMaster create(MasterRegistry registry, MasterContext context) {
     LOG.info("Creating {} ", FileSystemMaster.class.getName());
-    return new DefaultFileSystemMaster(registry, journalFactory);
+    BlockMaster blockMaster = registry.get(BlockMaster.class);
+    FileSystemMaster fileSystemMaster = new DefaultFileSystemMaster(blockMaster, context);
+    registry.add(FileSystemMaster.class, fileSystemMaster);
+    return fileSystemMaster;
   }
 }

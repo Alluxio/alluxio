@@ -12,6 +12,8 @@
 package alluxio.web;
 
 import alluxio.AlluxioURI;
+import alluxio.Configuration;
+import alluxio.PropertyKey;
 import alluxio.client.ReadType;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
@@ -53,7 +55,7 @@ public final class WebInterfaceDownloadServlet extends HttpServlet {
    * @param fsMaster file system master
    */
   public WebInterfaceDownloadServlet(FileSystemMaster fsMaster) {
-    mFsMaster = Preconditions.checkNotNull(fsMaster);
+    mFsMaster = Preconditions.checkNotNull(fsMaster, "fsMaster");
   }
 
   /**
@@ -62,11 +64,13 @@ public final class WebInterfaceDownloadServlet extends HttpServlet {
    * @param request the {@link HttpServletRequest} object
    * @param response the {@link HttpServletResponse} object
    * @throws ServletException if the target resource throws this exception
-   * @throws IOException if the target resource throws this exception
    */
   @Override
   protected void doGet(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException {
+    if (!Configuration.getBoolean(PropertyKey.WEB_FILE_INFO_ENABLED)) {
+      return;
+    }
     if (SecurityUtils.isSecurityEnabled() && AuthenticatedClientUser.get() == null) {
       AuthenticatedClientUser.set(LoginUser.get().getName());
     }
@@ -101,9 +105,7 @@ public final class WebInterfaceDownloadServlet extends HttpServlet {
    * @param request the {@link HttpServletRequest} object
    * @param response the {@link HttpServletResponse} object
    * @throws FileDoesNotExistException if the file does not exist
-   * @throws IOException if an I/O error occurs
    * @throws InvalidPathException if an invalid path is encountered
-   * @throws AlluxioException if an unexpected Alluxio exception is thrown
    */
   private void downloadFile(AlluxioURI path, HttpServletRequest request,
       HttpServletResponse response) throws FileDoesNotExistException, IOException,

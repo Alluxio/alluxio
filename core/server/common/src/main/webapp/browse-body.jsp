@@ -49,148 +49,150 @@
 <div class="container-fluid">
   <jsp:include page="/header" />
 
-  <div class="container-fluid">
-    <div class="row-fluid">
-      <div class="span12 well">
-        <h1 class="text-error">
-          <%= request.getAttribute("invalidPathError") %>
-        </h1>
-        <div class="navbar">
-          <div class="navbar-inner">
-            <ul class="nav nav-pills">
-              <% if (request.getAttribute("pathInfos") != null) { %>
-                <% for (UIFileInfo pathInfo : ((UIFileInfo[]) request.getAttribute("pathInfos"))) { %>
-                  <li><a href="./browse?path=<%= encode(pathInfo.getAbsolutePath(), "UTF-8") %>"><%= escapeHtml(pathInfo.getName()) %> </a></li>
+  <% if ((boolean) request.getAttribute("fileInfoEnabled")) { %>
+    <div class="container-fluid">
+      <div class="row-fluid">
+        <div class="span12 well">
+          <h1 class="text-error">
+            <%= request.getAttribute("invalidPathError") %>
+          </h1>
+          <div class="navbar">
+            <div class="navbar-inner">
+              <ul class="nav nav-pills">
+                <% if (request.getAttribute("pathInfos") != null) { %>
+                  <% for (UIFileInfo pathInfo : ((UIFileInfo[]) request.getAttribute("pathInfos"))) { %>
+                    <li><a href="./browse?path=<%= encode(pathInfo.getAbsolutePath(), "UTF-8") %>"><%= escapeHtml(pathInfo.getName()) %> </a></li>
+                  <% } %>
                 <% } %>
-              <% } %>
-              <% if (request.getAttribute("currentDirectory") != null) { %>
-                <li class="active"><a href="./browse?path=<%= encode(request.getAttribute("currentPath").toString(), "UTF-8") %>"><%= escapeHtml(((UIFileInfo) request.getAttribute("currentDirectory")).getName()) %></a></li>
-              <% } %>
-            </ul>
-            <div id="pathNav" class="input-append pull-right" style="margin: 5px; margin-right: 45px;width:600px; ">
-              <input class="span12" id="pathInput" type="text" placeholder="Navigate to a directory">
-              <button class="btn" id="goBtn" type="button">Go</button>
+                <% if (request.getAttribute("currentDirectory") != null) { %>
+                  <li class="active"><a href="./browse?path=<%= encode(request.getAttribute("currentPath").toString(), "UTF-8") %>"><%= escapeHtml(((UIFileInfo) request.getAttribute("currentDirectory")).getName()) %></a></li>
+                <% } %>
+              </ul>
+              <div id="pathNav" class="input-append pull-right" style="margin: 5px; margin-right: 45px;width:600px; ">
+                <input class="span12" id="pathInput" type="text" placeholder="Navigate to a directory">
+                <button class="btn" id="goBtn" type="button">Go</button>
+              </div>
             </div>
           </div>
-        </div>
-        <table class="table table-condensed">
-          <thead>
-            <th>File Name</th>
-            <th>Size</th>
-            <th>Block Size</th>
-            <th>In-Memory</th>
-            <% if ((Boolean)request.getAttribute("showPermissions")) { %>
-              <th>Mode</th>
-              <th>Owner</th>
-              <th>Group</th>
-            <% } %>
-            <th>Persistence State</th>
-            <th>Pin</th>
-            <th>Creation Time</th>
-            <th>Modification Time</th>
-          <!--
-            <c:if test = "${debug}">
-              <th>[D]Inode Number</th>
-              <th>[D]Checkpoint Path</th>
-            </c:if>
-          -->
-            <% if ((Boolean) request.getAttribute("debug")) { %>
-              <th>[D]DepID</th>
-              <th>[D]INumber</th>
-              <th>[D]UnderfsPath</th>
-              <th>[D]File Locations</th>
-            <% } %>
-          </thead>
-          <tbody>
+          <table class="table table-condensed">
+            <thead>
+              <th>File Name</th>
+              <th>Size</th>
+              <th>Block Size</th>
+              <th>In-Alluxio</th>
+              <% if ((Boolean)request.getAttribute("showPermissions")) { %>
+                <th>Mode</th>
+                <th>Owner</th>
+                <th>Group</th>
+              <% } %>
+              <th>Persistence State</th>
+              <th>Pin</th>
+              <th>Creation Time</th>
+              <th>Modification Time</th>
             <!--
-            <c:forEach var="fileInfo" items="${fileInfos}">
-              <tr>
-                <th>
-                  <c:if test = "${fileInfo.isDirectory}">
-                    <i class="icon-folder-close"></i>
-                  </c:if>
-                  <c:if test = "${not fileInfo.isDirectory}">
-                    <i class="icon-file"></i>
-                  </c:if>
-                  <a href="./browse?path=${fileInfo.absolutePath}"><c:out value="${fileInfo.name}"/></a>
-                </th>
-                <th>${fileInfo.size} Bytes</th>
-                <th>${fileInfo.blockSizeBytes}</th>
-                <th>
-                  <c:if test = "${fileInfo.inMemory}">
-                    <i class="icon-hdd"></i>
-                  </c:if>
-                  <c:if test = "${not fileInfo.inMemory}">
-                    <i class="icon-hdd icon-white"></i>
-                  </c:if>
-                </th>
-                <th>${fileInfo.creationTime}</th>
-                <c:if test = "${debug}">
-                  <th>${fileInfo.id}</th>
-                  <th>${fileInfo.checkpointPath}</th>
-                  <th>
-                  <c:forEach var="location" items="${fileInfo.fileLocations}">
-                    ${location}<br/>
-                  </c:forEach>
-                  </th>
-                </c:if>
-              </tr>
-            </c:forEach>
-          -->
-            <% if (request.getAttribute("fileInfos") != null) { %>
-              <% for (UIFileInfo fileInfo : ((List<UIFileInfo>) request.getAttribute("fileInfos"))) { %>
+              <c:if test = "${debug}">
+                <th>[D]Inode Number</th>
+                <th>[D]Checkpoint Path</th>
+              </c:if>
+            -->
+              <% if ((Boolean) request.getAttribute("debug")) { %>
+                <th>[D]DepID</th>
+                <th>[D]INumber</th>
+                <th>[D]UnderfsPath</th>
+                <th>[D]File Locations</th>
+              <% } %>
+            </thead>
+            <tbody>
+              <!--
+              <c:forEach var="fileInfo" items="${fileInfos}">
                 <tr>
                   <th>
-                    <% if (fileInfo.getIsDirectory()) { %>
+                    <c:if test = "${fileInfo.isDirectory}">
                       <i class="icon-folder-close"></i>
-                    <% } %>
-                    <% if (!fileInfo.getIsDirectory()) { %>
+                    </c:if>
+                    <c:if test = "${not fileInfo.isDirectory}">
                       <i class="icon-file"></i>
-                    <% } %>
-                    <a href="<%= (request.getAttribute("baseUrl") == null) ? "./browse" : request.getAttribute("baseUrl").toString() %>?path=<%=encode(fileInfo.getAbsolutePath(), "UTF-8")%>"><%= escapeHtml(fileInfo.getName()) %></a>
+                    </c:if>
+                    <a href="./browse?path=${fileInfo.absolutePath}"><c:out value="${fileInfo.name}"/></a>
                   </th>
-                  <th><%= fileInfo.getSize() %></th>
-                  <th><%= fileInfo.getBlockSizeBytes() %></th>
+                  <th>${fileInfo.size} Bytes</th>
+                  <th>${fileInfo.blockSizeBytes}</th>
                   <th>
-                    <% if (fileInfo.getIsDirectory()) { %>
-                    <% } %>
-                    <% if (!fileInfo.getIsDirectory()) { %>
-                      <% if (fileInfo.getInMemory()) { %>
-                        <i class="icon-hdd"></i>
-                      <% } %>
-                      <% if (!fileInfo.getInMemory()) { %>
-                        <i class="icon-hdd icon-white"></i>
-                      <% } %>
-                      <%= fileInfo.getInMemoryPercentage() %>%
-                    <% } %>
+                    <c:if test = "${fileInfo.inAlluxio}">
+                      <i class="icon-hdd"></i>
+                    </c:if>
+                    <c:if test = "${not fileInfo.inAlluxio}">
+                      <i class="icon-hdd icon-white"></i>
+                    </c:if>
                   </th>
-                  <% if ((Boolean)request.getAttribute("showPermissions")) { %>
-                    <th><%= fileInfo.getMode() %></th>
-                    <th><%= fileInfo.getOwner() %></th>
-                    <th><%= fileInfo.getGroup() %></th>
-                  <% } %>
-                  <th><%= (fileInfo.getPersistenceState()) %></th>
-                  <th><%= (fileInfo.isPinned() ? "YES" : "NO") %></th>
-                  <th><%= fileInfo.getCreationTime() %></th>
-                  <th><%= fileInfo.getModificationTime() %></th>
-                  <% if ((Boolean) request.getAttribute("debug")) { %>
-                    <th><%= fileInfo.getId() %></th>
-                    <th><% for (String location : fileInfo.getFileLocations()) { %>
-                          <%= location %> <br/>
-                        <% } %>
+                  <th>${fileInfo.creationTime}</th>
+                  <c:if test = "${debug}">
+                    <th>${fileInfo.id}</th>
+                    <th>${fileInfo.checkpointPath}</th>
+                    <th>
+                    <c:forEach var="location" items="${fileInfo.fileLocations}">
+                      ${location}<br/>
+                    </c:forEach>
                     </th>
-                  <% } %>
+                  </c:if>
                 </tr>
+              </c:forEach>
+            -->
+              <% if (request.getAttribute("fileInfos") != null) { %>
+                <% for (UIFileInfo fileInfo : ((List<UIFileInfo>) request.getAttribute("fileInfos"))) { %>
+                  <tr>
+                    <th>
+                      <% if (fileInfo.getIsDirectory()) { %>
+                        <i class="icon-folder-close"></i>
+                      <% } %>
+                      <% if (!fileInfo.getIsDirectory()) { %>
+                        <i class="icon-file"></i>
+                      <% } %>
+                      <a href="<%= (request.getAttribute("baseUrl") == null) ? "./browse" : request.getAttribute("baseUrl").toString() %>?path=<%=encode(fileInfo.getAbsolutePath(), "UTF-8")%>"><%= escapeHtml(fileInfo.getName()) %></a>
+                    </th>
+                    <th><%= fileInfo.getSize() %></th>
+                    <th><%= fileInfo.getBlockSizeBytes() %></th>
+                    <th>
+                      <% if (fileInfo.getIsDirectory()) { %>
+                      <% } %>
+                      <% if (!fileInfo.getIsDirectory()) { %>
+                        <% if (fileInfo.getInAlluxio()) { %>
+                          <i class="icon-hdd"></i>
+                        <% } %>
+                        <% if (!fileInfo.getInAlluxio()) { %>
+                          <i class="icon-hdd icon-white"></i>
+                        <% } %>
+                        <%= fileInfo.getInAlluxioPercentage() %>%
+                      <% } %>
+                    </th>
+                    <% if ((Boolean)request.getAttribute("showPermissions")) { %>
+                      <th><%= fileInfo.getMode() %></th>
+                      <th><%= fileInfo.getOwner() %></th>
+                      <th><%= fileInfo.getGroup() %></th>
+                    <% } %>
+                    <th><%= (fileInfo.getPersistenceState()) %></th>
+                    <th><%= (fileInfo.isPinned() ? "YES" : "NO") %></th>
+                    <th><%= fileInfo.getCreationTime() %></th>
+                    <th><%= fileInfo.getModificationTime() %></th>
+                    <% if ((Boolean) request.getAttribute("debug")) { %>
+                      <th><%= fileInfo.getId() %></th>
+                      <th><% for (String location : fileInfo.getFileLocations()) { %>
+                            <%= location %> <br/>
+                          <% } %>
+                      </th>
+                    <% } %>
+                  </tr>
+                <% } %>
               <% } %>
-            <% } %>
-          </tbody>
-        </table>
+            </tbody>
+          </table>
 
-        <%@ include file="pagination-component.jsp" %>
+          <%@ include file="pagination-component.jsp" %>
 
+        </div>
       </div>
     </div>
-  </div>
+  <% } %>
   <%@ include file="footer.jsp" %>
 </div>
 

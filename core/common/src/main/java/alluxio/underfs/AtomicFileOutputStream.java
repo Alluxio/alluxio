@@ -45,7 +45,6 @@ public class AtomicFileOutputStream extends OutputStream {
    * @param path path being written to
    * @param ufs the calling {@link UnderFileSystem}
    * @param options create options for destination file
-   * @throws IOException when a non Alluxio error occurs
    */
   public AtomicFileOutputStream(String path, AtomicFileOutputStreamCallback ufs,
       CreateOptions options) throws IOException {
@@ -87,7 +86,7 @@ public class AtomicFileOutputStream extends OutputStream {
     }
 
     // Preserve owner and group in case delegation was used to create the path
-    if (!mOptions.getOwner().isEmpty() || !mOptions.getGroup().isEmpty()) {
+    if (mOptions.getOwner() != null || mOptions.getGroup() != null) {
       try {
         mUfs.setOwner(mPermanentPath, mOptions.getOwner(), mOptions.getGroup());
       } catch (Exception e) {

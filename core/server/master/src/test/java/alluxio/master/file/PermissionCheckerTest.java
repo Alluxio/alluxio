@@ -11,6 +11,8 @@
 
 package alluxio.master.file;
 
+import static org.mockito.Mockito.mock;
+
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
@@ -19,22 +21,28 @@ import alluxio.PropertyKey;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidPathException;
+import alluxio.master.MasterContext;
 import alluxio.master.MasterRegistry;
+import alluxio.master.MasterTestUtils;
 import alluxio.master.block.BlockMaster;
-import alluxio.master.file.meta.Inode;
+import alluxio.master.block.BlockMasterFactory;
 import alluxio.master.file.meta.InodeDirectoryIdGenerator;
 import alluxio.master.file.meta.InodeFile;
 import alluxio.master.file.meta.InodeTree;
+import alluxio.master.file.meta.InodeView;
 import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.file.meta.MountTable;
+import alluxio.master.file.meta.options.MountInfo;
 import alluxio.master.file.options.CreateFileOptions;
-import alluxio.master.journal.JournalFactory;
-import alluxio.master.journal.MutableJournal;
+import alluxio.master.journal.NoopJournalContext;
+import alluxio.master.metrics.MetricsMaster;
+import alluxio.master.metrics.MetricsMasterFactory;
 import alluxio.security.GroupMappingServiceTestUtils;
 import alluxio.security.authentication.AuthType;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.authorization.Mode;
 import alluxio.security.group.GroupMappingService;
+import alluxio.underfs.UfsManager;
 
 import com.google.common.collect.Lists;
 import org.junit.AfterClass;
@@ -48,7 +56,6 @@ import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 
 import java.io.IOException;
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -96,6 +103,8 @@ public final class PermissionCheckerTest {
   private static CreateFileOptions sNestedFileOptions;
 
   private static InodeTree sTree;
+  private static MasterRegistry sRegistry;
+  private static MetricsMaster sMetricsMaster;
 
   private PermissionChecker mPermissionChecker;
 
@@ -166,16 +175,17 @@ public final class PermissionCheckerTest {
             .setGroup(TEST_USER_1.getGroup()).setMode(TEST_NORMAL_MODE).setRecursive(true);
 
     // setup an InodeTree
-    MasterRegistry registry = new MasterRegistry();
-    JournalFactory factory =
-        new MutableJournal.Factory(new URI(sTestFolder.newFolder().getAbsolutePath()));
-
-    BlockMaster blockMaster = new BlockMaster(registry, factory);
+    sRegistry = new MasterRegistry();
+    MasterContext masterContext = MasterTestUtils.testMasterContext();
+    sMetricsMaster = new MetricsMasterFactory().create(sRegistry, masterContext);
+    sRegistry.add(MetricsMaster.class, sMetricsMaster);
+    BlockMaster blockMaster = new BlockMasterFactory().create(sRegistry, masterContext);
     InodeDirectoryIdGenerator directoryIdGenerator = new InodeDirectoryIdGenerator(blockMaster);
-    MountTable mountTable = new MountTable();
+    UfsManager ufsManager = mock(UfsManager.class);
+    MountTable mountTable = new MountTable(ufsManager, mock(MountInfo.class));
     sTree = new InodeTree(blockMaster, directoryIdGenerator, mountTable);
 
-    blockMaster.start(true);
+    sRegistry.start(true);
 
     GroupMappingServiceTestUtils.resetCache();
     Configuration.set(PropertyKey.SECURITY_GROUP_MAPPING_CLASS,
@@ -183,7 +193,8 @@ public final class PermissionCheckerTest {
     Configuration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
     Configuration.set(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true");
     Configuration.set(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP, TEST_SUPER_GROUP);
-    sTree.initializeRoot(TEST_USER_ADMIN.getUser(), TEST_USER_ADMIN.getGroup(), TEST_NORMAL_MODE);
+    sTree.initializeRoot(TEST_USER_ADMIN.getUser(), TEST_USER_ADMIN.getGroup(), TEST_NORMAL_MODE,
+        NoopJournalContext.INSTANCE);
 
     // build file structure
     createAndSetPermission(TEST_DIR_FILE_URI, sNestedFileOptions);
@@ -193,6 +204,7 @@ public final class PermissionCheckerTest {
 
   @AfterClass
   public static void afterClass() throws Exception {
+    sRegistry.stop();
     AuthenticatedClientUser.remove();
     ConfigurationTestUtils.resetConfiguration();
   }
@@ -200,23 +212,33 @@ public final class PermissionCheckerTest {
   @Before
   public void before() throws Exception {
     AuthenticatedClientUser.remove();
-    mPermissionChecker = new PermissionChecker(sTree);
+    mPermissionChecker = new DefaultPermissionChecker(sTree);
   }
 
-  // Helper function to create a path and set the permission to what specified in option.
+  /**
+   * Helper function to create a path and set the permission to what specified in option.
+   *
+   * @param path path to construct the {@link AlluxioURI} from
+   * @param option method options for creating a file
+   */
   private static void createAndSetPermission(String path, CreateFileOptions option)
       throws Exception {
     try (
         LockedInodePath inodePath = sTree
             .lockInodePath(new AlluxioURI(path), InodeTree.LockMode.WRITE)) {
-      InodeTree.CreatePathResult result = sTree.createPath(inodePath, option);
+      InodeTree.CreatePathResult result = sTree.createPath(RpcContext.NOOP, inodePath, option);
       ((InodeFile) result.getCreated().get(result.getCreated().size() - 1))
           .setOwner(option.getOwner()).setGroup(option.getGroup())
           .setMode(option.getMode().toShort());
     }
   }
 
-  private static void verifyInodesList(String[] expectedInodes, List<Inode<?>> inodes) {
+  /**
+   * Verifies that the list of inodes are same as the expected ones.
+   * @param expectedInodes the expected inodes names
+   * @param inodes the inodes for test
+   */
+  private static void verifyInodesList(String[] expectedInodes, List<InodeView> inodes) {
     String[] inodesName = new String[inodes.size()];
     for (int i = 0; i < inodes.size(); i++) {
       inodesName[i] = inodes.get(i).getName();
@@ -273,6 +295,39 @@ public final class PermissionCheckerTest {
   }
 
   @Test
+  public void checkNoFallThroughFromOwnerToGroup() throws Exception {
+    mThrown.expect(AccessControlException.class);
+    mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED.getMessage(
+        toExceptionMessage(TEST_USER_1.getUser(), Mode.Bits.READ, TEST_WEIRD_FILE_URI,
+            "testWeirdFile")));
+
+    // user cannot read although group can
+    checkPermission(TEST_USER_1, Mode.Bits.READ, TEST_WEIRD_FILE_URI);
+  }
+
+  @Test
+  public void checkNoFallThroughFromOwnerToOther() throws Exception {
+    mThrown.expect(AccessControlException.class);
+    mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED.getMessage(
+        toExceptionMessage(TEST_USER_1.getUser(), Mode.Bits.WRITE, TEST_WEIRD_FILE_URI,
+            "testWeirdFile")));
+
+    // user and group cannot write although other can
+    checkPermission(TEST_USER_1, Mode.Bits.WRITE, TEST_WEIRD_FILE_URI);
+  }
+
+  @Test
+  public void checkNoFallThroughFromGroupToOther() throws Exception {
+    mThrown.expect(AccessControlException.class);
+    mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED.getMessage(
+        toExceptionMessage(TEST_USER_3.getUser(), Mode.Bits.WRITE, TEST_WEIRD_FILE_URI,
+            "testWeirdFile")));
+
+    // group cannot write although other can
+    checkPermission(TEST_USER_3, Mode.Bits.WRITE, TEST_WEIRD_FILE_URI);
+  }
+
+  @Test
   public void selfCheckFailByOtherGroup() throws Exception {
     mThrown.expect(AccessControlException.class);
     mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED.getMessage(
@@ -292,15 +347,6 @@ public final class PermissionCheckerTest {
 
     // not the owner but in same group
     checkPermission(TEST_USER_3, Mode.Bits.WRITE, TEST_DIR_FILE_URI);
-  }
-
-  @Test
-  public void checkFallThrough() throws Exception {
-    // user can not read, but group can
-    checkPermission(TEST_USER_1, Mode.Bits.READ, TEST_WEIRD_FILE_URI);
-
-    // user and group can not write, but other can
-    checkPermission(TEST_USER_1, Mode.Bits.WRITE, TEST_WEIRD_FILE_URI);
   }
 
   @Test
@@ -342,6 +388,32 @@ public final class PermissionCheckerTest {
     }
   }
 
+  @Test
+  public void getPermission() throws Exception {
+    try (LockedInodePath path =
+             sTree.lockInodePath(new AlluxioURI(TEST_WEIRD_FILE_URI), InodeTree.LockMode.READ)) {
+      // user is admin
+      AuthenticatedClientUser.set(TEST_USER_ADMIN.getUser());
+      Mode.Bits perm = mPermissionChecker.getPermission(path);
+      Assert.assertEquals(Mode.Bits.ALL, perm);
+
+      // user is owner
+      AuthenticatedClientUser.set(TEST_USER_1.getUser());
+      perm = mPermissionChecker.getPermission(path);
+      Assert.assertEquals(TEST_WEIRD_MODE.getOwnerBits(), perm);
+
+      // user is not owner but in group
+      AuthenticatedClientUser.set(TEST_USER_3.getUser());
+      perm = mPermissionChecker.getPermission(path);
+      Assert.assertEquals(TEST_WEIRD_MODE.getGroupBits(), perm);
+
+      // user is other
+      AuthenticatedClientUser.set(TEST_USER_2.getUser());
+      perm = mPermissionChecker.getPermission(path);
+      Assert.assertEquals(TEST_WEIRD_MODE.getOtherBits(), perm);
+    }
+  }
+
   /**
    * Helper function to check user can perform action on path.
    */
@@ -354,6 +426,14 @@ public final class PermissionCheckerTest {
     }
   }
 
+  /**
+   * Helper function to check a user has permission to perform a action on the parent or ancestor of
+   * the given path.
+   *
+   * @param user a user with groups
+   * @param action action that capture the action {@link Mode.Bits} by user
+   * @param path path to construct the {@link AlluxioURI} from
+   */
   private void checkParentOrAncestorPermission(TestUser user, Mode.Bits action, String path)
       throws Exception {
     AuthenticatedClientUser.set(user.getUser());

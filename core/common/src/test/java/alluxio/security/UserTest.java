@@ -11,7 +11,10 @@
 
 package alluxio.security;
 
-import org.junit.Assert;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 import org.junit.Test;
 
 import java.util.Set;
@@ -38,11 +41,11 @@ public final class UserTest {
     Set<User> users = subject.getPrincipals(User.class);
 
     // Verification.
-    Assert.assertEquals(2, users.size());
+    assertEquals(2, users.size());
 
     // Test equals.
-    Assert.assertTrue(users.contains(new User("realUser")));
-    Assert.assertFalse(users.contains(new User("noExistingUser")));
+    assertTrue(users.contains(new User("realUser")));
+    assertFalse(users.contains(new User("noExistingUser")));
   }
 
   /**
@@ -58,13 +61,13 @@ public final class UserTest {
 
     // Fetch added users.
     Set<User> users = subject.getPrincipals(User.class);
-    Assert.assertEquals(3, users.size());
+    assertEquals(3, users.size());
 
     // Add similar user name without domain name.
     subject.getPrincipals().add(new User("admin"));
     subject.getPrincipals().add(new User("imap"));
 
     users = subject.getPrincipals(User.class);
-    Assert.assertEquals(5, users.size());
+    assertEquals(5, users.size());
   }
 }

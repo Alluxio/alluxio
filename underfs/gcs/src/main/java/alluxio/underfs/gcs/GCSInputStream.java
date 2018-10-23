@@ -113,7 +113,6 @@ public final class GCSInputStream extends InputStream {
    *
    * @param n number of bytes to skip
    * @return the number of bytes skipped
-   * @throws IOException if an error occurs when requesting from GCS
    */
   @Override
   public long skip(long n) throws IOException {

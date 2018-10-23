@@ -11,12 +11,12 @@
 
 package alluxio.wire;
 
-import alluxio.util.CommonUtils;
-
-import org.codehaus.jackson.map.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Random;
 
 public class WorkerInfoTest {
@@ -33,19 +33,40 @@ public class WorkerInfoTest {
   @Test
   public void thrift() {
     WorkerInfo workerInfo = createRandom();
-    WorkerInfo other = ThriftUtils.fromThrift(ThriftUtils.toThrift(workerInfo));
+    WorkerInfo other = WorkerInfo.fromThrift(workerInfo.toThrift());
     checkEquality(workerInfo, other);
+  }
+
+  @Test
+  public void lastContactSecComparator() {
+    Assert.assertTrue(compareLostWorkersWithTimes(0, 1) < 0);
+    Assert.assertTrue(compareLostWorkersWithTimes(1, 0) > 0);
+    Assert.assertTrue(compareLostWorkersWithTimes(1, 1) == 0);
+    Assert.assertTrue(compareLostWorkersWithTimes(-1, 1) < 0);
+    Assert.assertTrue(compareLostWorkersWithTimes(1, -1) > 0);
   }
 
   public void checkEquality(WorkerInfo a, WorkerInfo b) {
     Assert.assertEquals(a.getId(), b.getId());
     Assert.assertEquals(a.getAddress(), b.getAddress());
     Assert.assertEquals(a.getLastContactSec(), b.getLastContactSec());
-    Assert.assertEquals(a.getState(), b.getState());
     Assert.assertEquals(a.getCapacityBytes(), b.getCapacityBytes());
     Assert.assertEquals(a.getUsedBytes(), b.getUsedBytes());
     Assert.assertEquals(a.getStartTimeMs(), b.getStartTimeMs());
+    Assert.assertEquals(a.getState(), b.getState());
+    Assert.assertEquals(a.getCapacityBytesOnTiers(), b.getCapacityBytesOnTiers());
+    Assert.assertEquals(a.getUsedBytesOnTiers(), b.getUsedBytesOnTiers());
     Assert.assertEquals(a, b);
+  }
+
+  private static int compareLostWorkersWithTimes(int time1, int time2) {
+    WorkerInfo.LastContactSecComparator comparator =
+        new WorkerInfo.LastContactSecComparator();
+    WorkerInfo worker1 = createRandom();
+    WorkerInfo worker2 = createRandom();
+    worker1.setLastContactSec(time1);
+    worker2.setLastContactSec(time2);
+    return comparator.compare(worker1, worker2);
   }
 
   public static WorkerInfo createRandom() {
@@ -55,19 +76,24 @@ public class WorkerInfoTest {
     long id = random.nextLong();
     WorkerNetAddress address = WorkerNetAddressTest.createRandom();
     int lastContactSec = random.nextInt();
-    String state = CommonUtils.randomAlphaNumString(random.nextInt(10));
     long capacityBytes = random.nextLong();
     long usedBytes = random.nextLong();
     long startTimeMs = random.nextLong();
+    Map<String, Long> capacityBytesOnTiers = new HashMap<>();
+    capacityBytesOnTiers.put("MEM", capacityBytes);
+    Map<String, Long> usedBytesOnTiers = new HashMap<>();
+    usedBytesOnTiers.put("MEM", usedBytes);
+    String state = random.nextInt(1) == 1 ? "In Service" : "Out of Service";
 
     result.setId(id);
     result.setAddress(address);
     result.setLastContactSec(lastContactSec);
-    result.setState(state);
     result.setCapacityBytes(capacityBytes);
     result.setUsedBytes(usedBytes);
     result.setStartTimeMs(startTimeMs);
-
+    result.setState(state);
+    result.setCapacityBytesOnTiers(capacityBytesOnTiers);
+    result.setUsedBytesOnTiers(usedBytesOnTiers);
     return result;
   }
 }

@@ -1,37 +1,52 @@
 ---
 layout: global
-title: 文件系统客户端API
-nickname: 文件系统API
-group: Features
+title: 本地Java客户端
+nickname: Native Java
+group: clients
 priority: 1
 ---
 
 * 内容列表
 {:toc}
 
-Alluxio提供了访问数据的文件系统接口。Alluxio上的文件提供了一次写入的语义：文件全部被写入之后就不会改变，而且文件在写操作完成之前不能进行读操作。Alluxio提供了两种不同的文件系统API，本地API和兼容Hadoop的API。本地API具有更好的性能，而兼容Hadoop的API使用户可以灵活利用Alluxio，但没必要修改用Hadoop API写的代码。
+Alluxio提供了访问数据的文件系统接口。Alluxio上的文件提供了一次写入的语义：文件全部被写入之后就不会改变，而且文件在写操作完成之前不能进行读操作。Alluxio提供了两种不同的文件系统API，本地API和兼容Hadoop的API。本地API提供了额外的功能，而兼容Hadoop的API使用户可以灵活利用Alluxio，但没必要修改用Hadoop API写的代码。
 
-## 本地API
-
-Alluxio提供了Java版的API来访问和修改Alluxio文件系统命名空间内的文件。所有资源都可以通过代表资源路径的`AlluxioURI`来访问。
+所有的本地javaAPI资源可以通过 `AlluxioURI`指定，`AlluxioURI`代表资源路径。
 
 ### 获取文件系统客户端
 
 若需要使用Java代码获取一个Alluxio文件系统实例，可使用：
 
-{% include File-System-API/get-fileSystem.md %}
+```java
+FileSystem fs = FileSystem.Factory.get();
+```
 
 ### 创建文件
 
 所有的元数据操作，以及用于读文件的打开文件的操作或用于写文件的创建文件的操作，都会通过FileSystem对象来执行。因为Alluxio文件一旦写入就不会改变，惯用的创建文件的方式是使用`FileSystem#createFile(AlluxioURI)`，这条语句会返回一个用于写文件的流对象，例如：
 
-{% include File-System-API/write-file.md %}
+```java
+FileSystem fs = FileSystem.Factory.get();
+AlluxioURI path = new AlluxioURI("/myFile");
+// Create a file and get its output stream
+FileOutStream out = fs.createFile(path);
+// Write data
+out.write(...);
+// Close and complete file
+out.close();
+```
 
 ### 指定操作选项
 
 对于所有FileSystem的操作，可能要指定额外的`options`域，该域允许用户指定该操作的非默认设置。例如：
 
-{% include File-System-API/specify-options.md %}
+```java
+FileSystem fs = FileSystem.Factory.get();
+AlluxioURI path = new AlluxioURI("/myFile");
+// Generate options to set a custom blocksize of 128 MB
+CreateFileOptions options = CreateFileOptions.defaults().setBlockSize(128 * Constants.MB);
+FileOutStream out = fs.createFile(path, options);
+```
 
 ### IO选项
 
@@ -105,20 +120,18 @@ Alluxio允许客户端在向本地worker写入数据块时选择偏好的存储�
 
 例如，读文件：
 
-{% include File-System-API/read-file.md %}
+```java
+FileSystem fs = FileSystem.Factory.get();
+AlluxioURI path = new AlluxioURI("/myFile");
+// Open the file for reading
+FileInStream in = fs.openFile(path);
+// Read data
+in.read(...);
+// Close file relinquishing the lock
+in.close();
+```
 
-## REST API
+### Javadoc
 
-考虑到与其他语言的可移植性，Alluxio本地API也可以以REST API的形式通过HTTP代理访问。
-
-REST API文档是作为Alluxio构建的一部分来生成的，并可以通过`${ALLUXIO_HOME}/core/server/target/miredot/index.html`来访问。特别地，`paths`资源端点对应于`FileSystem`API端点。REST API和原生API的最主要的区别在于对流的表示。原生API使用内存内的流，而REST API将流的创建和使用分离开来（更多细节请参考'create'和`open`REST API方法以及`streams`资源端点）。
-
-HTTP代理是一个独立的服务器，可以通过`${ALLUXIO_HOME}/bin/alluxio-start.sh proxy`来启动，以及通过`${ALLUXIO_HOME}/bin/alluxio-stop.sh proxy`来停止。默认情况下，REST API在端口39999可用。
-
-使用HTTP代理会影响系统性能。特别是使用代理需要额外一跳来访问。为了获得最佳性能，建议在每个计算节点运行代理服务器和Alluxio worker进程。
-
-## Hadoop API
-
-Alluxio有一个原生客户端的封装，其提供了兼容Hadoop的`FileSystem`接口。利用该客户端实例，Hadoop的文件操作将被转换为FileSystem操作。最新的`FileSystem`接口的文档可以在[这里](http://hadoop.apache.org/docs/current/api/org/apache/hadoop/fs/FileSystem.html)找到。
-
-兼容Hadoop的接口被作为一个通用类来使用，其允许用户保留之前所写的用于Hadoop的代码。
+想要获得更多API信息，请参考
+[Alluxio javadocs](http://www.alluxio.org/javadoc/{{site.ALLUXIO_MAJOR_VERSION}}/index.html)

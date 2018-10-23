@@ -12,17 +12,20 @@
 package alluxio.worker.keyvalue;
 
 import alluxio.Constants;
+import alluxio.Server;
 import alluxio.thrift.KeyValueWorkerClientService;
 import alluxio.util.ThreadFactoryUtils;
+import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.AbstractWorker;
 import alluxio.worker.block.BlockWorker;
 
-import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableSet;
 import org.apache.thrift.TProcessor;
 
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.Executors;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -32,22 +35,32 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class KeyValueWorker extends AbstractWorker {
-  /** BlockWorker handle for accessing block info. */
-  private final BlockWorker mBlockWorker;
+  private static final Set<Class<? extends Server>> DEPS =
+      ImmutableSet.<Class<? extends Server>>of(BlockWorker.class);
+
   /** Logic for handling key-value RPC requests. */
   private final KeyValueWorkerClientServiceHandler mKeyValueServiceHandler;
 
   /**
    * Constructor of {@link KeyValueWorker}.
    *
-   * @param blockWorker handler to the {@link BlockWorker}
+   * @param blockWorker the block worker handle
    */
-  public KeyValueWorker(BlockWorker blockWorker) {
+  KeyValueWorker(BlockWorker blockWorker) {
     // TODO(binfan): figure out do we really need thread pool for key-value worker (and for what)
     super(Executors.newFixedThreadPool(1,
         ThreadFactoryUtils.build("keyvalue-worker-heartbeat-%d", true)));
-    mBlockWorker = Preconditions.checkNotNull(blockWorker);
-    mKeyValueServiceHandler = new KeyValueWorkerClientServiceHandler(mBlockWorker);
+    mKeyValueServiceHandler = new KeyValueWorkerClientServiceHandler(blockWorker);
+  }
+
+  @Override
+  public Set<Class<? extends Server>> getDependencies() {
+    return DEPS;
+  }
+
+  @Override
+  public String getName() {
+    return Constants.KEY_VALUE_WORKER_NAME;
   }
 
   @Override
@@ -59,14 +72,12 @@ public final class KeyValueWorker extends AbstractWorker {
   }
 
   @Override
-  public void start() throws IOException {
-    // No heartbeat thread to start
-    // Thrift service is multiplexed with other services and will be started together with others
+  public void start(WorkerNetAddress address) {
+    // nothing to do, Thrift service will be started by the Alluxio worker process
   }
 
   @Override
   public void stop() throws IOException {
-    // No heartbeat thread to stop
-    // Thrift service is multiplexed with other services and will be stopped together with others
+    // nothing to do, Thrift service will be started by the Alluxio worker process
   }
 }

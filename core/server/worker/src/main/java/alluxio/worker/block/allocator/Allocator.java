@@ -20,7 +20,6 @@ import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.meta.StorageDirView;
 
 import com.google.common.base.Preconditions;
-import com.google.common.base.Throwables;
 
 /**
  * Interface for the allocation policy of Alluxio managed data.
@@ -42,14 +41,10 @@ public interface Allocator {
      * @return the generated {@link Allocator}, it will be a {@link MaxFreeAllocator} by default
      */
     public static Allocator create(BlockMetadataManagerView view) {
-      BlockMetadataManagerView managerView = Preconditions.checkNotNull(view);
-      try {
-        return CommonUtils.createNewClassInstance(
-            Configuration.<Allocator>getClass(PropertyKey.WORKER_ALLOCATOR_CLASS),
-            new Class[] {BlockMetadataManagerView.class}, new Object[] {managerView});
-      } catch (Exception e) {
-        throw Throwables.propagate(e);
-      }
+      BlockMetadataManagerView managerView = Preconditions.checkNotNull(view, "view");
+      return CommonUtils.createNewClassInstance(
+          Configuration.<Allocator>getClass(PropertyKey.WORKER_ALLOCATOR_CLASS),
+          new Class[] {BlockMetadataManagerView.class}, new Object[] {managerView});
     }
   }
 

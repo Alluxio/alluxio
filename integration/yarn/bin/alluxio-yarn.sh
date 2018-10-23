@@ -42,7 +42,7 @@ if [[ -z "$YARN_HOME" ]]; then
 fi
 YARN_HOME=${YARN_HOME:-${HADOOP_HOME}}
 
-SCRIPT_DIR="$(cd "$(dirname "$0")"; pwd)"
+SCRIPT_DIR="$(cd "$(dirname "$(readlink "$0" || echo "$0")")"; pwd)"
 ALLUXIO_HOME="$(cd "${SCRIPT_DIR}/../../.."; pwd)"
 
 source "${SCRIPT_DIR}/common.sh"
@@ -54,18 +54,20 @@ MASTER_ADDRESS=${3:-${ALLUXIO_MASTER_HOSTNAME}}
 ALLUXIO_TARFILE="alluxio.tar.gz"
 rm -rf $ALLUXIO_TARFILE
 tar -C $ALLUXIO_HOME -zcf $ALLUXIO_TARFILE \
-  assembly/target/alluxio-assemblies-${VERSION}-jar-with-dependencies.jar libexec \
-  core/server/src/main/webapp \
-  bin conf integration/yarn/bin/common.sh integration/yarn/bin/alluxio-master-yarn.sh \
-  integration/yarn/bin/alluxio-worker-yarn.sh \
+  assembly/alluxio-server-${VERSION}.jar \
+  assembly/webapp.war \
   integration/yarn/bin/alluxio-application-master.sh \
+  integration/yarn/bin/alluxio-master-yarn.sh \
+  integration/yarn/bin/alluxio-worker-yarn.sh \
+  integration/yarn/bin/common.sh \
+  bin conf lib libexec
 
-JAR_LOCAL=${ALLUXIO_HOME}/assembly/target/alluxio-assemblies-${VERSION}-jar-with-dependencies.jar
+JAR_LOCAL=${ALLUXIO_HOME}/integration/yarn/alluxio-yarn-${VERSION}.jar
 
 echo "Uploading files to HDFS to distribute alluxio runtime"
 
 ${HADOOP_HOME}/bin/hadoop fs -mkdir -p ${HDFS_PATH}
-${HADOOP_HOME}/bin/hadoop fs -put -f ${ALLUXIO_TARFILE} ${HDFS_PATH}/$ALLUXIO_TARFILE
+${HADOOP_HOME}/bin/hadoop fs -put -f ${ALLUXIO_TARFILE} ${HDFS_PATH}/${ALLUXIO_TARFILE}
 ${HADOOP_HOME}/bin/hadoop fs -put -f ${JAR_LOCAL} ${HDFS_PATH}/alluxio.jar
 ${HADOOP_HOME}/bin/hadoop fs -put -f ${SCRIPT_DIR}/alluxio-yarn-setup.sh ${HDFS_PATH}/alluxio-yarn-setup.sh
 ${HADOOP_HOME}/bin/hadoop fs -put -f ${SCRIPT_DIR}/alluxio-application-master.sh ${HDFS_PATH}/alluxio-application-master.sh
@@ -75,9 +77,9 @@ echo "Starting YARN client to launch Alluxio on YARN"
 # Add Alluxio java options to the yarn options so that alluxio.yarn.Client can be configured via
 # alluxio java options
 ALLUXIO_JAVA_OPTS="${ALLUXIO_JAVA_OPTS} -Dalluxio.logger.type=Console"
-export YARN_OPTS="${YARN_OPTS:-${ALLUXIO_JAVA_OPTS}}"
+export YARN_OPTS="${YARN_OPTS} ${ALLUXIO_JAVA_OPTS}"
 
 ${YARN_HOME}/bin/yarn jar ${JAR_LOCAL} alluxio.yarn.Client \
-    -num_workers $NUM_WORKERS \
+    -num_workers ${NUM_WORKERS} \
     -master_address ${MASTER_ADDRESS} \
     -resource_path ${HDFS_PATH}

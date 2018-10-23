@@ -11,23 +11,20 @@
 
 package alluxio.network.protocol.databuffer;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 import alluxio.util.io.BufferUtils;
 
-import io.netty.buffer.ByteBuf;
 import io.netty.channel.FileRegion;
-import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
 
 /**
  * Tests for the {@link DataFileChannel} class.
@@ -40,8 +37,7 @@ public class DataFileChannelTest {
   @Rule
   public TemporaryFolder mFolder = new TemporaryFolder();
 
-  private FileInputStream mInputStream = null;
-  private FileChannel mChannel = null;
+  private File mFile;
 
   /**
    * Sets up the dependencies before a test runs.
@@ -49,23 +45,12 @@ public class DataFileChannelTest {
   @Before
   public final void before() throws IOException {
     // Create a temporary file for the FileChannel.
-    File f = mFolder.newFile("temp.txt");
-    String path = f.getAbsolutePath();
+    mFile = mFolder.newFile("temp.txt");
+    String filePath = mFile.getAbsolutePath();
 
-    FileOutputStream os = new FileOutputStream(path);
+    FileOutputStream os = new FileOutputStream(filePath);
     os.write(BufferUtils.getIncreasingByteArray(OFFSET + LENGTH));
     os.close();
-
-    mInputStream = new FileInputStream(f);
-    mChannel = mInputStream.getChannel();
-  }
-
-  /**
-   * Closes the stream after a test ran.
-   */
-  @After
-  public final void after() throws IOException {
-    mInputStream.close();
   }
 
   /**
@@ -73,9 +58,9 @@ public class DataFileChannelTest {
    */
   @Test
   public void nettyOutput() {
-    DataFileChannel data = new DataFileChannel(mChannel, OFFSET, LENGTH);
+    DataFileChannel data = new DataFileChannel(mFile, OFFSET, LENGTH);
     Object output = data.getNettyOutput();
-    Assert.assertTrue(output instanceof ByteBuf || output instanceof FileRegion);
+    assertTrue(output instanceof FileRegion);
   }
 
   /**
@@ -83,18 +68,7 @@ public class DataFileChannelTest {
    */
   @Test
   public void length() {
-    DataFileChannel data = new DataFileChannel(mChannel, OFFSET, LENGTH);
-    Assert.assertEquals(LENGTH, data.getLength());
-  }
-
-  /**
-   * Tests the {@link DataFileChannel#getReadOnlyByteBuffer()} method.
-   */
-  @Test
-  public void readOnlyByteBuffer() {
-    DataFileChannel data = new DataFileChannel(mChannel, OFFSET, LENGTH);
-    ByteBuffer readOnlyBuffer = data.getReadOnlyByteBuffer();
-    Assert.assertTrue(readOnlyBuffer.isReadOnly());
-    Assert.assertEquals(BufferUtils.getIncreasingByteBuffer(OFFSET, LENGTH), readOnlyBuffer);
+    DataFileChannel data = new DataFileChannel(mFile, OFFSET, LENGTH);
+    assertEquals(LENGTH, data.getLength());
   }
 }

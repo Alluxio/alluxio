@@ -11,9 +11,13 @@
 
 package alluxio.security.authentication;
 
+import static org.junit.Assert.assertTrue;
+
 import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
 import alluxio.PropertyKey;
+import alluxio.exception.status.UnauthenticatedException;
+import alluxio.network.thrift.ThriftUtils;
 import alluxio.util.network.NetworkAddressUtils;
 
 import org.apache.thrift.protocol.TBinaryProtocol;
@@ -23,7 +27,6 @@ import org.apache.thrift.transport.TTransport;
 import org.apache.thrift.transport.TTransportException;
 import org.apache.thrift.transport.TTransportFactory;
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -32,7 +35,6 @@ import org.junit.rules.ExpectedException;
 import java.net.InetSocketAddress;
 
 import javax.security.sasl.AuthenticationException;
-import javax.security.sasl.SaslException;
 
 /**
  * Unit test for methods of {@link TransportProvider}.
@@ -44,6 +46,7 @@ public final class TransportProviderTest {
 
   private TThreadPoolServer mServer;
   private InetSocketAddress mServerAddress;
+  private TTransport mBaseTransport;
   private TServerSocket mServerTSocket;
   private TransportProvider mTransportProvider;
 
@@ -61,8 +64,9 @@ public final class TransportProviderTest {
     // Use port 0 to assign each test case an available port (possibly different)
     String localhost = NetworkAddressUtils.getLocalHostName();
     mServerTSocket = new TServerSocket(new InetSocketAddress(localhost, 0));
-    int port = NetworkAddressUtils.getThriftPort(mServerTSocket);
+    int port = ThriftUtils.getThriftPort(mServerTSocket);
     mServerAddress = new InetSocketAddress(localhost, port);
+    mBaseTransport = ThriftUtils.createThriftSocket(mServerAddress);
   }
 
   @After
@@ -84,7 +88,7 @@ public final class TransportProviderTest {
     // create client and connect to server
     TTransport client = mTransportProvider.getClientTransport(mServerAddress);
     client.open();
-    Assert.assertTrue(client.isOpen());
+    assertTrue(client.isOpen());
 
     // clean up
     client.close();
@@ -106,7 +110,7 @@ public final class TransportProviderTest {
     // when connecting, authentication happens. It is a no-op in Simple mode.
     TTransport client = mTransportProvider.getClientTransport(mServerAddress);
     client.open();
-    Assert.assertTrue(client.isOpen());
+    assertTrue(client.isOpen());
 
     // clean up
     client.close();
@@ -122,10 +126,10 @@ public final class TransportProviderTest {
     mTransportProvider = TransportProvider.Factory.create();
 
     // check case that user is null
-    mThrown.expect(SaslException.class);
+    mThrown.expect(UnauthenticatedException.class);
     mThrown.expectMessage("PLAIN: authorization ID and password must be specified");
     ((PlainSaslTransportProvider) mTransportProvider)
-        .getClientTransport(null, "whatever", mServerAddress);
+        .getClientTransport(null, "whatever", null, mServerAddress);
   }
 
   /**
@@ -137,10 +141,10 @@ public final class TransportProviderTest {
     mTransportProvider = TransportProvider.Factory.create();
 
     // check case that password is null
-    mThrown.expect(SaslException.class);
+    mThrown.expect(UnauthenticatedException.class);
     mThrown.expectMessage("PLAIN: authorization ID and password must be specified");
     ((PlainSaslTransportProvider) mTransportProvider)
-        .getClientTransport("anyone", null, mServerAddress);
+        .getClientTransport("anyone", null, null, mServerAddress);
   }
 
   /**
@@ -159,7 +163,7 @@ public final class TransportProviderTest {
     mThrown.expectMessage("Peer indicated failure: Plain authentication failed: No authentication"
         + " identity provided");
     TTransport client = ((PlainSaslTransportProvider) mTransportProvider)
-        .getClientTransport("", "whatever", mServerAddress);
+        .getClientTransport("", "whatever", null, mServerAddress);
     try {
       client.open();
     } finally {
@@ -185,7 +189,7 @@ public final class TransportProviderTest {
     mThrown.expectMessage(
         "Peer indicated failure: Plain authentication failed: No password " + "provided");
     TTransport client = ((PlainSaslTransportProvider) mTransportProvider)
-        .getClientTransport("anyone", "", mServerAddress);
+        .getClientTransport("anyone", "", null, mServerAddress);
     try {
       client.open();
     } finally {
@@ -211,9 +215,9 @@ public final class TransportProviderTest {
     // when connecting, authentication happens. User's name:pwd pair matches and auth pass.
     TTransport client = ((PlainSaslTransportProvider) mTransportProvider)
         .getClientTransport(ExactlyMatchAuthenticationProvider.USERNAME,
-            ExactlyMatchAuthenticationProvider.PASSWORD, mServerAddress);
+            ExactlyMatchAuthenticationProvider.PASSWORD, null, mServerAddress);
     client.open();
-    Assert.assertTrue(client.isOpen());
+    assertTrue(client.isOpen());
 
     // clean up
     client.close();
@@ -236,7 +240,7 @@ public final class TransportProviderTest {
 
     // User with wrong password can not pass auth, and throw exception.
     TTransport wrongClient = ((PlainSaslTransportProvider) mTransportProvider)
-        .getClientTransport(ExactlyMatchAuthenticationProvider.USERNAME, "wrong-password",
+        .getClientTransport(ExactlyMatchAuthenticationProvider.USERNAME, "wrong-password", null,
             mServerAddress);
     mThrown.expect(TTransportException.class);
     mThrown.expectMessage(
@@ -257,10 +261,11 @@ public final class TransportProviderTest {
     mTransportProvider = TransportProvider.Factory.create();
 
     // check case that user is null
-    mThrown.expect(SaslException.class);
+    mThrown.expect(UnauthenticatedException.class);
     mThrown.expectMessage("PLAIN: authorization ID and password must be specified");
     ((PlainSaslTransportProvider) mTransportProvider)
-        .getClientTransport(null, ExactlyMatchAuthenticationProvider.PASSWORD, mServerAddress);
+        .getClientTransport(null, ExactlyMatchAuthenticationProvider.PASSWORD, null,
+            mServerAddress);
   }
 
   /**
@@ -272,10 +277,11 @@ public final class TransportProviderTest {
     mTransportProvider = TransportProvider.Factory.create();
 
     // check case that password is null
-    mThrown.expect(SaslException.class);
+    mThrown.expect(UnauthenticatedException.class);
     mThrown.expectMessage("PLAIN: authorization ID and password must be specified");
     ((PlainSaslTransportProvider) mTransportProvider)
-        .getClientTransport(ExactlyMatchAuthenticationProvider.USERNAME, null, mServerAddress);
+        .getClientTransport(ExactlyMatchAuthenticationProvider.USERNAME, null, null,
+            mServerAddress);
   }
 
   /**
@@ -296,7 +302,7 @@ public final class TransportProviderTest {
     mThrown.expectMessage("Peer indicated failure: Plain authentication failed: No authentication"
         + " identity provided");
     TTransport client = ((PlainSaslTransportProvider) mTransportProvider)
-        .getClientTransport("", ExactlyMatchAuthenticationProvider.PASSWORD, mServerAddress);
+        .getClientTransport("", ExactlyMatchAuthenticationProvider.PASSWORD, null, mServerAddress);
     try {
       client.open();
     } finally {
@@ -322,7 +328,7 @@ public final class TransportProviderTest {
     mThrown.expectMessage(
         "Peer indicated failure: Plain authentication failed: No password provided");
     TTransport client = ((PlainSaslTransportProvider) mTransportProvider)
-        .getClientTransport(ExactlyMatchAuthenticationProvider.USERNAME, "", mServerAddress);
+        .getClientTransport(ExactlyMatchAuthenticationProvider.USERNAME, "", null, mServerAddress);
     try {
       client.open();
     } finally {
@@ -346,7 +352,7 @@ public final class TransportProviderTest {
 
   private void startServerThread() throws Exception {
     // create args and use them to build a Thrift TServer
-    TTransportFactory tTransportFactory = mTransportProvider.getServerTransportFactory();
+    TTransportFactory tTransportFactory = mTransportProvider.getServerTransportFactory("test");
 
     mServer = new TThreadPoolServer(
         new TThreadPoolServer.Args(mServerTSocket).maxWorkerThreads(2).minWorkerThreads(1)
@@ -354,13 +360,7 @@ public final class TransportProviderTest {
             .protocolFactory(new TBinaryProtocol.Factory(true, true)));
 
     // start the server in a new thread
-    Thread serverThread = new Thread(new Runnable() {
-      @Override
-      public void run() {
-        mServer.serve();
-      }
-    });
-
+    Thread serverThread = new Thread(() -> mServer.serve());
     serverThread.start();
 
     // ensure server is running, and break if it does not start serving in 2 seconds.
@@ -389,5 +389,4 @@ public final class TransportProviderTest {
       }
     }
   }
-
 }

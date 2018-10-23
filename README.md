@@ -1,7 +1,7 @@
 Alluxio (formerly Tachyon)
 =======
 
-The master branch is in version 1.5.0-SNAPSHOT:
+The master branch is in version 2.0.0-SNAPSHOT:
 
 - [Alluxio Open Source Website](http://www.alluxio.org/) | [Alluxio Latest Release Document](http://www.alluxio.org/documentation/) | [Master Branch Document](http://alluxio.org/documentation/master/) | [Alluxio Inc.](http://www.alluxio.com/)
 - [Contribute to Alluxio](http://alluxio.org/documentation/master/en/Contributing-to-Alluxio.html) and
@@ -18,31 +18,39 @@ The master branch is in version 1.5.0-SNAPSHOT:
 
 ### Dependency Information
 
+For Alluxio versions 1.4 or earlier, use the `alluxio-core-client` artifact.
+
+For Alluxio versions 1.5 or later, Alluxio provides several different client artifacts. The Alluxio
+file system interface provided by the `alluxio-core-client-fs` artifact is recommended for the best
+performance and access to Alluxio-specific functionality. If you want to use other interfaces,
+include the appropriate client artifact. For example, `alluxio-core-client-hdfs` provides a client
+implementing HDFS's file system API.
+
 #### Apache Maven
 ```xml
 <dependency>
   <groupId>org.alluxio</groupId>
-  <artifactId>alluxio-core-client</artifactId>
-  <version>1.4.0</version>
+  <artifactId>alluxio-core-client-fs</artifactId>
+  <version>1.8.1</version>
 </dependency>
 ```
 
 #### Gradle
 
 ```groovy
-compile 'org.alluxio:alluxio-core-client:1.4.0'
+compile 'org.alluxio:alluxio-core-client-fs:1.8.1'
 ```
 
 #### Apache Ant
 ```xml
-<dependency org="org.alluxio" name="alluxio" rev="1.4.0">
-  <artifact name="alluxio-core-client" type="jar" />
+<dependency org="org.alluxio" name="alluxio" rev="1.8.1">
+  <artifact name="alluxio-core-client-fs" type="jar" />
 </dependency>
 ```
 
 #### SBT
 ```
-libraryDependencies += "org.alluxio" % "alluxio-core-client" % "1.4.0"
+libraryDependencies += "org.alluxio" % "alluxio-core-client-fs" % "1.8.1"
 ```
 
 ## Contributing

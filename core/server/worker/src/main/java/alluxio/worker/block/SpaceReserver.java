@@ -13,7 +13,6 @@ package alluxio.worker.block;
 
 import alluxio.Configuration;
 import alluxio.PropertyKey;
-import alluxio.PropertyKeyFormat;
 import alluxio.Sessions;
 import alluxio.StorageTierAssoc;
 import alluxio.WorkerStorageTierAssoc;
@@ -23,6 +22,7 @@ import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.heartbeat.HeartbeatExecutor;
 
+import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,20 +33,26 @@ import java.util.Map;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * {@link SpaceReserver} periodically checks if there is enough space reserved on each storage tier,
- * if there is no enough free space on some tier, free space from it.
+ * The {@link SpaceReserver} periodically checks the available space on each storage tier. If the
+ * used space is above the high watermark configured for the tier, eviction will be triggered to
+ * reach the low watermark. If this is not the top tier, it will also add the amount of space
+ * reserved on the tier above to reduce the impact of cascading eviction.
  */
 @NotThreadSafe
-public class SpaceReserver implements HeartbeatExecutor  {
+public class SpaceReserver implements HeartbeatExecutor {
   private static final Logger LOG = LoggerFactory.getLogger(SpaceReserver.class);
 
+  /** The block worker the space reserver monitors. */
   private final BlockWorker mBlockWorker;
 
   /** Association between storage tier aliases and ordinals for the worker. */
   private final StorageTierAssoc mStorageTierAssoc;
 
-  /** Mapping from tier alias to space size to be reserved on the tier. */
-  private final Map<String, Long> mBytesToReserveOnTiers = new HashMap<>();
+  /** Mapping from tier alias to high watermark in bytes. */
+  private final Map<String, Long> mHighWatermarks = new HashMap<>();
+
+  /** Mapping from tier alias to space in bytes to be reserved on the tier. */
+  private final Map<String, Long> mReservedSpaces = new HashMap<>();
 
   /**
    * Creates a new instance of {@link SpaceReserver}.
@@ -56,28 +62,76 @@ public class SpaceReserver implements HeartbeatExecutor  {
   public SpaceReserver(BlockWorker blockWorker) {
     mBlockWorker = blockWorker;
     mStorageTierAssoc = new WorkerStorageTierAssoc();
-    Map<String, Long> capOnTiers = blockWorker.getStoreMeta().getCapacityBytesOnTiers();
+    Map<String, Long> tierCapacities = blockWorker.getStoreMeta().getCapacityBytesOnTiers();
     long lastTierReservedBytes = 0;
     for (int ordinal = 0; ordinal < mStorageTierAssoc.size(); ordinal++) {
-      PropertyKey tierReservedSpaceProp =
-          PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO_FORMAT.format(ordinal);
       String tierAlias = mStorageTierAssoc.getAlias(ordinal);
-      long reservedSpaceBytes =
-          (long) (capOnTiers.get(tierAlias) * Configuration.getDouble(tierReservedSpaceProp));
-      mBytesToReserveOnTiers.put(tierAlias, reservedSpaceBytes + lastTierReservedBytes);
-      lastTierReservedBytes += reservedSpaceBytes;
+      long tierCapacity = tierCapacities.get(tierAlias);
+      long reservedSpace;
+      PropertyKey tierReservedSpaceProp =
+          PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO.format(ordinal);
+      if (Configuration.isSet(tierReservedSpaceProp)) {
+        LOG.warn("The property reserved.ratio is deprecated, use high/low watermark instead.");
+        reservedSpace = (long) (tierCapacity * Configuration.getDouble(tierReservedSpaceProp));
+      } else {
+        // High watermark defines when to start the space reserving process
+        PropertyKey tierHighWatermarkProp =
+            PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_HIGH_WATERMARK_RATIO.format(ordinal);
+        double tierHighWatermarkConf = Configuration.getDouble(tierHighWatermarkProp);
+        Preconditions.checkArgument(tierHighWatermarkConf > 0,
+            "The high watermark of tier %s should be positive, but is %s", ordinal,
+            tierHighWatermarkConf);
+        Preconditions.checkArgument(tierHighWatermarkConf < 1,
+            "The high watermark of tier %s should be less than 1.0, but is %s", ordinal,
+            tierHighWatermarkConf);
+        long highWatermark = (long) (tierCapacity * Configuration.getDouble(tierHighWatermarkProp));
+        mHighWatermarks.put(tierAlias, highWatermark);
+
+        // Low watermark defines when to stop the space reserving process if started
+        PropertyKey tierLowWatermarkProp =
+            PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_LOW_WATERMARK_RATIO.format(ordinal);
+        double tierLowWatermarkConf = Configuration.getDouble(tierLowWatermarkProp);
+        Preconditions.checkArgument(tierLowWatermarkConf >= 0,
+            "The low watermark of tier %s should not be negative, but is %s", ordinal,
+            tierLowWatermarkConf);
+        Preconditions.checkArgument(tierLowWatermarkConf < tierHighWatermarkConf,
+            "The low watermark (%s) of tier %d should not be smaller than the high watermark (%s)",
+            tierLowWatermarkConf, ordinal, tierHighWatermarkConf);
+        reservedSpace =
+            (long) (tierCapacity - tierCapacity * Configuration.getDouble(tierLowWatermarkProp));
+      }
+      lastTierReservedBytes += reservedSpace;
+      // On each tier, we reserve no more than its capacity
+      lastTierReservedBytes =
+          (lastTierReservedBytes <= tierCapacity) ? lastTierReservedBytes : tierCapacity;
+      mReservedSpaces.put(tierAlias, lastTierReservedBytes);
     }
   }
 
   private void reserveSpace() {
+    Map<String, Long> usedBytesOnTiers = mBlockWorker.getStoreMeta().getUsedBytesOnTiers();
     for (int ordinal = mStorageTierAssoc.size() - 1; ordinal >= 0; ordinal--) {
       String tierAlias = mStorageTierAssoc.getAlias(ordinal);
-      long bytesReserved = mBytesToReserveOnTiers.get(tierAlias);
-      try {
-        mBlockWorker.freeSpace(Sessions.MIGRATE_DATA_SESSION_ID, bytesReserved, tierAlias);
-      } catch (WorkerOutOfSpaceException | BlockDoesNotExistException | BlockAlreadyExistsException
-              | InvalidWorkerStateException | IOException e) {
-        LOG.warn(e.getMessage());
+      long reservedSpace = mReservedSpaces.get(tierAlias);
+      if (mHighWatermarks.containsKey(tierAlias)) {
+        long highWatermark = mHighWatermarks.get(tierAlias);
+        if (usedBytesOnTiers.get(tierAlias) >= highWatermark) {
+          try {
+            mBlockWorker.freeSpace(Sessions.MIGRATE_DATA_SESSION_ID, reservedSpace, tierAlias);
+          } catch (WorkerOutOfSpaceException | BlockDoesNotExistException
+              | BlockAlreadyExistsException | InvalidWorkerStateException | IOException e) {
+            LOG.warn("SpaceReserver failed to free {} bytes on tier {} for high watermarks: {}",
+                reservedSpace, tierAlias, e.getMessage());
+          }
+        }
+      } else {
+        try {
+          mBlockWorker.freeSpace(Sessions.MIGRATE_DATA_SESSION_ID, reservedSpace, tierAlias);
+        } catch (WorkerOutOfSpaceException | BlockDoesNotExistException
+            | BlockAlreadyExistsException | InvalidWorkerStateException | IOException e) {
+          LOG.warn("SpaceReserver failed to free {} bytes on tier {}: {}", reservedSpace,
+              tierAlias, e.getMessage());
+        }
       }
     }
   }

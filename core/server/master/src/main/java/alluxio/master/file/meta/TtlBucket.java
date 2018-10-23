@@ -13,31 +13,35 @@ package alluxio.master.file.meta;
 
 import alluxio.Configuration;
 import alluxio.PropertyKey;
+import alluxio.collections.ConcurrentHashSet;
 
 import com.google.common.base.Objects;
 
-import java.util.HashSet;
 import java.util.Set;
 
-import javax.annotation.concurrent.NotThreadSafe;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * A bucket with all inodes whose ttl value lies in the bucket's time interval. The bucket's time
  * interval starts at a certain time and lasts for
  * {@link PropertyKey#MASTER_TTL_CHECKER_INTERVAL_MS}.
  */
-@NotThreadSafe
+@ThreadSafe
 public final class TtlBucket implements Comparable<TtlBucket> {
-  /** The time interval of this bucket is the same as ttl checker's interval. */
+  /**
+   * The time interval of this bucket is the same as ttl checker's interval.
+   *
+   * This field is intentionally not final so that tests can change the value.
+   */
   private static long sTtlIntervalMs =
-      Configuration.getInt(PropertyKey.MASTER_TTL_CHECKER_INTERVAL_MS);
+      Configuration.getMs(PropertyKey.MASTER_TTL_CHECKER_INTERVAL_MS);
   /**
    * Each bucket has a time to live interval, this value is the start of the interval, interval
    * value is the same as the configuration of {@link PropertyKey#MASTER_TTL_CHECKER_INTERVAL_MS}.
    */
-  private long mTtlIntervalStartTimeMs;
+  private final long mTtlIntervalStartTimeMs;
   /** A set of Inode whose ttl value is in the range of this bucket's interval. */
-  private Set<Inode<?>> mInodes;
+  private final ConcurrentHashSet<InodeView> mInodes;
 
   /**
    * Creates a new instance of {@link TtlBucket}.
@@ -46,7 +50,7 @@ public final class TtlBucket implements Comparable<TtlBucket> {
    */
   public TtlBucket(long startTimeMs) {
     mTtlIntervalStartTimeMs = startTimeMs;
-    mInodes = new HashSet<>();
+    mInodes = new ConcurrentHashSet<>();
   }
 
   /**
@@ -75,7 +79,7 @@ public final class TtlBucket implements Comparable<TtlBucket> {
    * @return the set of all inodes in the bucket backed by the internal set, changes made to the
    *         returned set will be shown in the internal set, and vice versa
    */
-  public Set<Inode<?>> getInodes() {
+  public Set<InodeView> getInodes() {
     return mInodes;
   }
 
@@ -84,7 +88,7 @@ public final class TtlBucket implements Comparable<TtlBucket> {
    *
    * @param inode the inode to be added
    */
-  public void addInode(Inode<?> inode) {
+  public void addInode(InodeView inode) {
     mInodes.add(inode);
   }
 
@@ -93,7 +97,7 @@ public final class TtlBucket implements Comparable<TtlBucket> {
    *
    * @param inode the inode to be removed
    */
-  public void removeInode(Inode<?> inode) {
+  public void removeInode(InodeView inode) {
     mInodes.remove(inode);
   }
 
@@ -108,14 +112,7 @@ public final class TtlBucket implements Comparable<TtlBucket> {
   public int compareTo(TtlBucket ttlBucket) {
     long startTime1 = getTtlIntervalStartTimeMs();
     long startTime2 = ttlBucket.getTtlIntervalStartTimeMs();
-
-    if (startTime1 < startTime2) {
-      return -1;
-    }
-    if (startTime1 == startTime2) {
-      return 0;
-    }
-    return 1;
+    return Long.compare(startTime1, startTime2);
   }
 
   /**

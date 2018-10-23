@@ -60,7 +60,7 @@ a sintaxe de cada comando.
 </table>
 
 Estes comandos possuem pré-requisitos diferentes. O pré-requisito para os comandos `format`, `formatWorker`,
-`journalCrashTest`, `readJournal`, `version` e `validateConf` é que você tenha
-configurado o Alluxio (veja o [Construindo o Alluxio Master Branch](Building-Alluxio-Master-Branch.html)
+`journalCrashTest`, `readJournal`, `version`, `validateConf` e `validateEnv` é que você tenha
+configurado o Alluxio (veja o [Construindo o Alluxio Master Branch](Building-Alluxio-From-Source.html)
 para saber como configurar o Alluxio manualmente). Além disso, o pré-requisito para os comandos `fs`,
 `loadufs`, `runTest` e `runTests` é que você possua o sistema do Alluxio em execução.

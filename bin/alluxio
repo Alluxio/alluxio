@@ -14,13 +14,18 @@ function printUsage {
   echo "Usage: alluxio COMMAND [GENERIC_COMMAND_OPTIONS] [COMMAND_ARGS]"
   echo
   echo "COMMAND is one of:"
+  echo -e "  extensions    \t Manage extensions to core Alluxio"
   echo -e "  format [-s]   \t Format Alluxio master and all workers (if -s specified, only format if underfs is local and doesn't already exist)"
+  echo -e "  formatMaster  \t Format Alluxio master"
   echo -e "  formatWorker  \t Format Alluxio worker storage"
   echo -e "  bootstrapConf \t Generate a config file if one doesn't exist"
-  echo -e "  fs            \t Command line input for generic filesystem user client."
+  echo -e "  fs            \t Command line tool for interacting with the Alluxio filesystem."
+  echo -e "  fsadmin       \t Command line tool for use by Alluxio filesystem admins."
   echo -e "  getConf [key] \t Look up a configuration key, or print all configuration."
+  echo -e "  job           \t Command line tool for interacting with the job service."
   echo -e "  loadufs       \t Load existing files in underlayer filesystem into Alluxio."
-  echo -e "  runClass      \t Run an Alluxio class with main method."
+  echo -e "  logLevel      \t Set or get log level of Alluxio servers."
+  echo -e "  runClass      \t Run the main method of an Alluxio class."
   echo -e "  runTest       \t Run an end-to-end test on an Alluxio cluster."
   echo -e "  runKVTest     \t Run a test of key-value store operations."
   echo -e "  runTests      \t Run all end-to-end tests on an Alluxio cluster."
@@ -29,13 +34,16 @@ function printUsage {
   echo -e "  runMesosTest  \t Test the Alluxio integration with Mesos. Try 'alluxio mesosTest -help' for more help."
   echo -e "                \t NOTE: This command requires Mesos to be running and will stop any Alluxio servers that are currently running."
   echo -e "  readJournal   \t Read an Alluxio journal file from stdin and write a human-readable version of it to stdout."
+  echo -e "  upgradeJournal\t Upgrade an Alluxio journal version 0 (Alluxio version < 1.5.0) to an Alluxio journal version 1 (Alluxio version >= 1.5.0)."
   echo -e "  killAll <WORD>\t Kill processes containing the WORD."
   echo -e "  copyDir <PATH>\t Copy the PATH to all worker nodes."
   echo -e "  clearCache    \t Clear OS buffer cache of the machine."
+  echo -e "  confDocGen    \t Generate configuration docs."
   echo -e "  thriftGen     \t Generate all thrift code."
   echo -e "  protoGen      \t Generate all protocol buffer code."
   echo -e "  version       \t Print Alluxio version and exit."
   echo -e "  validateConf  \t Validate Alluxio conf and exit."
+  echo -e "  validateEnv   \t Validate Alluxio environment."
   echo
   echo "GENERIC_COMMAND_OPTIONS supports:"
   echo -e "  -D<property=value>\t Use a value for a given Alluxio property"
@@ -116,7 +124,8 @@ function killAll {
   count=0
   for pid in $(ps -Aww -o pid,command | grep -i "[j]ava" | grep ${keyword} | awk '{print $1}'); do
     kill -15 ${pid} > /dev/null 2>&1
-    local cnt=30
+    local maxWait=120
+    local cnt=${maxWait}
     while kill -0 ${pid} > /dev/null 2>&1; do
       if [[ ${cnt} -gt 1 ]]; then
         # still not dead, wait
@@ -124,7 +133,7 @@ function killAll {
         sleep 1
       else
         # waited long enough, kill the process
-        echo "Process did not complete after 30 seconds, killing."
+        echo "Process did not complete after "${maxWait}" seconds, killing."
         kill -9 ${pid} 2> /dev/null
       fi
     done
@@ -139,9 +148,15 @@ function copyDir {
     exit 1
   fi
 
+  ABS_PATH_COMMAND="readlink -f"
+  if [[ $(uname -s) = "Darwin" ]]
+  then
+    ABS_PATH_COMMAND="realpath"
+  fi
+
   WORKERS=$(cat ${ALLUXIO_CONF_DIR}/workers | grep -v '^#')
 
-  DIR=$(readlink -f "$1")
+  DIR=$(${ABS_PATH_COMMAND} $1)
   DIR=$(echo ${DIR}|sed 's@/$@@')
   DEST=$(dirname ${DIR})
 
@@ -156,29 +171,40 @@ function copyDir {
 }
 
 function runJavaClass {
-  CLASS_ARGS=""
+  CLASS_ARGS=()
   for arg in "$@"; do
-      shift
       case "${arg}" in
           -debug)
               ALLUXIO_USER_JAVA_OPTS+=" ${ALLUXIO_USER_DEBUG_JAVA_OPTS}" ;;
-          -D*)
+          -D* | -X* | -agentlib*)
               ALLUXIO_SHELL_JAVA_OPTS+=" ${arg}" ;;
           *)
-              CLASS_ARGS+=" ${arg}"
+              CLASS_ARGS+=("${arg}")
       esac
   done
-  "${JAVA}" -cp ${CLASSPATH} ${ALLUXIO_USER_JAVA_OPTS} ${ALLUXIO_SHELL_JAVA_OPTS} ${CLASS} ${PARAMETER} ${CLASS_ARGS}
+  "${JAVA}" -cp ${CLASSPATH} ${ALLUXIO_USER_JAVA_OPTS} ${ALLUXIO_SHELL_JAVA_OPTS} ${CLASS} ${PARAMETER} "${CLASS_ARGS[@]}"
+}
+
+function formatJournal {
+  echo "Formatting Alluxio Master @ $(hostname -f)"
+  CLASS="alluxio.cli.Format"
+  CLASSPATH=${ALLUXIO_SERVER_CLASSPATH}
+  PARAMETER="master"
+  ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.logger.type=Console"
+  runJavaClass "$@"
+}
+
+function formatMasters {
+  formatJournal "$@"
 }
 
 function main {
-
   LAUNCHER=
   # If debugging is enabled propagate that through to sub-shells
   if [[ $- == *x* ]]; then
     LAUNCHER="bash -x"
   fi
-  BIN=$(cd "$( dirname "$0" )"; pwd)
+  BIN=$(cd "$( dirname "$( readlink "$0" || echo "$0" )" )"; pwd)
 
   if [[ $# == 0 ]]; then
     printUsage
@@ -202,6 +228,11 @@ function main {
   PARAMETER=""
 
   case ${COMMAND} in
+  "extensions")
+    CLASS="alluxio.cli.extensions.ExtensionsShell"
+    CLASSPATH=${ALLUXIO_SERVER_CLASSPATH}
+    runJavaClass "$@"
+  ;;
   "format")
     if [[ $# -eq 1 ]]; then
       if [[ $1 == "-s" ]]; then
@@ -209,13 +240,11 @@ function main {
           # if ufs is local filesystem and already exists
           exit 0
         else
-          declare -a schemes=(hdfs s3 s3a s3n glusterfs swift oss gcs)
-          for scheme in ${schemes[@]}; do
-            if [[ ${ALLUXIO_UNDERFS_ADDRESS} == ${scheme}://* ]]; then
-              # if ufs is not local filesystem, don't format
-              exit 0
-            fi
-          done
+          # if ufs is not set it will default to local filesystem
+          if [[ ! -z ${ALLUXIO_UNDERFS_ADDRESS} ]] && [[ ${ALLUXIO_UNDERFS_ADDRESS} != /* ]] && [[ ${ALLUXIO_UNDERFS_ADDRESS} != file://* ]]; then
+            # if ufs is not local filesystem, don't format
+            exit 0
+          fi
 
           shift # remove -s param
         fi
@@ -230,24 +259,45 @@ function main {
 
     ${LAUNCHER} ${BIN}/alluxio-workers.sh ${BIN}/alluxio formatWorker
 
-    echo "Formatting Alluxio Master @ $(hostname -f)"
-    CLASS="alluxio.cli.Format"
-    PARAMETER="master"
-    ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.logger.type=Console"
-    runJavaClass "$@"
+    formatMasters
   ;;
   "formatWorker")
     echo "Formatting Alluxio Worker @ $(hostname -f)"
     CLASS="alluxio.cli.Format"
+    CLASSPATH=${ALLUXIO_SERVER_CLASSPATH}
     PARAMETER="worker"
+    ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.logger.type=Console"
     runJavaClass "$@"
   ;;
+  "formatJournal")
+    formatJournal
+  ;;
+  "formatMaster")
+    echo "formatMaster is deprecated - use formatMasters instead"
+    formatJournal
+  ;;
+  "formatMasters")
+    formatMasters
+  ;;
   "fs")
-    CLASS="alluxio.cli.AlluxioShell"
+    CLASS="alluxio.cli.fs.FileSystemShell"
+    CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
+    runJavaClass "$@"
+  ;;
+  "fsadmin")
+    CLASS="alluxio.cli.fsadmin.FileSystemAdminShell"
+    CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
     runJavaClass "$@"
   ;;
   "getConf")
     CLASS="alluxio.cli.GetConf"
+    CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
+    ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.conf.validation.enabled=false"
+    runJavaClass "$@"
+  ;;
+  "job")
+    CLASS="alluxio.cli.job.JobShell"
+    CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
     runJavaClass "$@"
   ;;
   "loadufs")
@@ -255,44 +305,63 @@ function main {
     echo "Use the \"alluxio fs mount <AlluxioURI> <UfsURI>\" command followed by the \"alluxio fs ls -R <AlluxioURI>\" command instead." >&2
     exit 1
   ;;
+  "logLevel")
+    CLASS="alluxio.cli.LogLevel"
+    CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
+    runJavaClass "$@"
+  ;;
   "runClass")
     CLASS=$1
+    CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH} # this should be the common case
     shift
     runJavaClass "$@"
   ;;
   "runTest")
     CLASS="alluxio.cli.TestRunner"
+    CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
     ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.logger.type=Console"
     runJavaClass "$@"
   ;;
   "runKVTest")
     CLASS="alluxio.examples.keyvalue.KeyValueStoreOperations"
+    CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
     PARAMETER="/default_tests_files/KeyValueStoreOperations"
     ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.logger.type=Console"
     runJavaClass "$@"
   ;;
   "runTests")
     CLASS="alluxio.cli.TestRunner"
+    CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
     ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.logger.type=Console"
     runJavaClass "$@"
   ;;
   "runMiniBenchmark")
     CLASS="alluxio.cli.MiniBenchmark"
+    CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
     ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.logger.type=Console"
     runJavaClass "$@"
     ;;
   "runJournalCrashTest")
     CLASS="alluxio.cli.JournalCrashTest"
+    CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
     ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.logger.type=Console"
     runJavaClass "$@"
   ;;
   "runMesosTest")
     CLASS="alluxio.cli.AlluxioFrameworkIntegrationTest"
+    CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
     ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.logger.type=Console"
     runJavaClass "$@"
   ;;
   "readJournal")
     CLASS="alluxio.master.journal.JournalTool"
+    CLASSPATH=${ALLUXIO_SERVER_CLASSPATH}
+    ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.logger.type=Console"
+    runJavaClass "$@"
+  ;;
+  "upgradeJournal")
+    CLASS="alluxio.master.journal.JournalUpgrader"
+    CLASSPATH=${ALLUXIO_SERVER_CLASSPATH}
     ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.logger.type=Console"
     runJavaClass "$@"
   ;;
@@ -301,6 +370,12 @@ function main {
   ;;
   "copyDir")
     copyDir "$@"
+  ;;
+  "confDocGen")
+    CLASS="alluxio.cli.ConfigurationDocGenerator"
+    CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
+    ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.logger.type=Console"
+    runJavaClass "$@"
   ;;
   "thriftGen")
     declare -a thriftSrcPaths=($(find "${BIN}/.." -name "*.thrift" -print0 | xargs -0 -n1 dirname | sort | uniq))
@@ -312,9 +387,14 @@ function main {
     done
   ;;
   "protoGen")
+    proto_version="$(protoc --version)"
+    if ! [[ ${proto_version} == *2.5.0* ]]; then
+      echo "protoGen requires protoc version 2.5.0, but <protoc --version> returns <${proto_version}>"
+      exit 1
+    fi
     rm -rf ${BIN}/../core/protobuf/src/main/java/alluxio/proto
     for src_file in $(find ${BIN}/../core/protobuf/src/proto -name '*.proto' -type f); do
-      protoc --java_out=${BIN}/../core/protobuf/src/main/java --proto_path=$(dirname ${src_file}) ${src_file}
+      protoc --java_out=${BIN}/../core/protobuf/src/main/java --proto_path=${BIN}/../core/protobuf/src/proto ${src_file}
     done
   ;;
   "clearCache")
@@ -322,10 +402,18 @@ function main {
   ;;
   "version")
     CLASS="alluxio.cli.Version"
+    CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
     runJavaClass "$@"
   ;;
   "validateConf")
     CLASS="alluxio.cli.ValidateConf"
+    CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
+    ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.logger.type=Console"
+    runJavaClass "$@"
+  ;;
+  "validateEnv")
+    CLASS="alluxio.cli.ValidateEnv"
+    CLASSPATH=${ALLUXIO_SERVER_CLASSPATH}
     ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.logger.type=Console"
     runJavaClass "$@"
   ;;

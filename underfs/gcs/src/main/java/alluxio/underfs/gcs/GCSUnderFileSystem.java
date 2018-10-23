@@ -12,13 +12,14 @@
 package alluxio.underfs.gcs;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.underfs.ObjectUnderFileSystem;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.options.OpenOptions;
 import alluxio.util.CommonUtils;
+import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Preconditions;
@@ -28,6 +29,7 @@ import org.jets3t.service.acl.gs.GSAccessControlList;
 import org.jets3t.service.impl.rest.httpclient.GoogleStorageService;
 import org.jets3t.service.model.GSObject;
 import org.jets3t.service.model.StorageObject;
+import org.jets3t.service.model.StorageOwner;
 import org.jets3t.service.security.GSCredentials;
 import org.jets3t.service.utils.Mimetypes;
 import org.slf4j.Logger;
@@ -78,37 +80,49 @@ public class GCSUnderFileSystem extends ObjectUnderFileSystem {
    * Constructs a new instance of {@link GCSUnderFileSystem}.
    *
    * @param uri the {@link AlluxioURI} for this UFS
+   * @param conf the configuration for this UFS
    * @return the created {@link GCSUnderFileSystem} instance
    * @throws ServiceException when a connection to GCS could not be created
    */
-  public static GCSUnderFileSystem createInstance(AlluxioURI uri)
-      throws ServiceException {
-    String bucketName = uri.getHost();
-    Preconditions.checkArgument(Configuration.containsKey(PropertyKey.GCS_ACCESS_KEY),
-        "Property " + PropertyKey.GCS_ACCESS_KEY + " is required to connect to GCS");
-    Preconditions.checkArgument(Configuration.containsKey(PropertyKey.GCS_SECRET_KEY),
-        "Property " + PropertyKey.GCS_SECRET_KEY + " is required to connect to GCS");
+  public static GCSUnderFileSystem createInstance(
+      AlluxioURI uri, UnderFileSystemConfiguration conf) throws ServiceException {
+    String bucketName = UnderFileSystemUtils.getBucketName(uri);
+    Preconditions.checkArgument(conf.isSet(PropertyKey.GCS_ACCESS_KEY),
+            "Property " + PropertyKey.GCS_ACCESS_KEY + " is required to connect to GCS");
+    Preconditions.checkArgument(conf.isSet(PropertyKey.GCS_SECRET_KEY),
+            "Property " + PropertyKey.GCS_SECRET_KEY + " is required to connect to GCS");
     GSCredentials googleCredentials = new GSCredentials(
-        Configuration.get(PropertyKey.GCS_ACCESS_KEY),
-        Configuration.get(PropertyKey.GCS_SECRET_KEY));
+        conf.get(PropertyKey.GCS_ACCESS_KEY),
+        conf.get(PropertyKey.GCS_SECRET_KEY));
 
     // TODO(chaomin): maybe add proxy support for GCS.
     GoogleStorageService googleStorageService = new GoogleStorageService(googleCredentials);
 
-    String accountOwnerId = googleStorageService.getAccountOwner().getId();
-    // Gets the owner from user-defined static mapping from GCS account id to Alluxio user name.
-    String owner = CommonUtils.getValueFromStaticMapping(
-        Configuration.get(PropertyKey.UNDERFS_GCS_OWNER_ID_TO_USERNAME_MAPPING), accountOwnerId);
-    // If there is no user-defined mapping, use the display name.
-    if (owner == null) {
-      owner = googleStorageService.getAccountOwner().getDisplayName();
+    // getAccountOwner() can return null even when the account is authenticated.
+    // TODO(chaomin): investigate the root cause why Google cloud service is returning
+    // null StorageOwner.
+    StorageOwner storageOwner = googleStorageService.getAccountOwner();
+    String accountOwnerId = "unknown";
+    String accountOwner = "unknown";
+    if (storageOwner != null) {
+      accountOwnerId = storageOwner.getId();
+      // Gets the owner from user-defined static mapping from GCS account id to Alluxio user name.
+      String owner = CommonUtils.getValueFromStaticMapping(
+          conf.get(PropertyKey.UNDERFS_GCS_OWNER_ID_TO_USERNAME_MAPPING), accountOwnerId);
+      // If there is no user-defined mapping, use the display name.
+      if (owner == null) {
+        owner = storageOwner.getDisplayName();
+      }
+      accountOwner = owner == null ? accountOwnerId : owner;
+    } else {
+      LOG.debug("GoogleStorageService returns a null StorageOwner with this Google Cloud account.");
     }
-    String accountOwner = owner == null ? accountOwnerId : owner;
 
     GSAccessControlList acl = googleStorageService.getBucketAcl(bucketName);
     short bucketMode = GCSUtils.translateBucketAcl(acl, accountOwnerId);
 
-    return new GCSUnderFileSystem(uri, googleStorageService, bucketName, bucketMode, accountOwner);
+    return new GCSUnderFileSystem(uri, googleStorageService, bucketName, bucketMode, accountOwner,
+        conf);
   }
 
   /**
@@ -119,13 +133,11 @@ public class GCSUnderFileSystem extends ObjectUnderFileSystem {
    * @param bucketName bucket name of user's configured Alluxio bucket
    * @param bucketMode the permission mode that the account owner has to the bucket
    * @param accountOwner the name of the account owner
+   * @param conf configuration for this UFS
    */
-  protected GCSUnderFileSystem(AlluxioURI uri,
-      GoogleStorageService googleStorageService,
-      String bucketName,
-      short bucketMode,
-      String accountOwner) {
-    super(uri);
+  protected GCSUnderFileSystem(AlluxioURI uri, GoogleStorageService googleStorageService,
+      String bucketName, short bucketMode, String accountOwner, UnderFileSystemConfiguration conf) {
+    super(uri, conf);
     mClient = googleStorageService;
     mBucketName = bucketName;
     mBucketMode = bucketMode;
@@ -144,24 +156,6 @@ public class GCSUnderFileSystem extends ObjectUnderFileSystem {
   // Setting GCS mode via Alluxio is not supported yet. This is a no-op.
   @Override
   public void setMode(String path, short mode) throws IOException {}
-
-  // Returns the account owner.
-  @Override
-  public String getOwner(String path) throws IOException {
-    return mAccountOwner;
-  }
-
-  // No group in GCS ACL, returns the account owner.
-  @Override
-  public String getGroup(String path) throws IOException {
-    return mAccountOwner;
-  }
-
-  // Returns the account owner's permission mode to the GCS bucket.
-  @Override
-  public short getMode(String path) throws IOException {
-    return mBucketMode;
-  }
 
   @Override
   protected boolean copyObject(String src, String dst) {
@@ -235,7 +229,7 @@ public class GCSUnderFileSystem extends ObjectUnderFileSystem {
     return null;
   }
 
-  // Get next chunk of listing result
+  // Get next chunk of listing result.
   private StorageObjectsChunk getObjectListingChunk(String key, String delimiter,
       String priorLastKey) {
     StorageObjectsChunk res;
@@ -264,11 +258,12 @@ public class GCSUnderFileSystem extends ObjectUnderFileSystem {
     }
 
     @Override
-    public String[] getObjectNames() {
+    public ObjectStatus[] getObjectStatuses() {
       StorageObject[] objects = mChunk.getObjects();
-      String[] ret = new String[objects.length];
+      ObjectStatus[] ret = new ObjectStatus[objects.length];
       for (int i = 0; i < ret.length; ++i) {
-        ret[i] = objects[i].getKey();
+        ret[i] = new ObjectStatus(objects[i].getKey(), objects[i].getMd5HashAsBase64(),
+            objects[i].getContentLength(), objects[i].getLastModifiedDate().getTime());
       }
       return ret;
     }
@@ -298,10 +293,17 @@ public class GCSUnderFileSystem extends ObjectUnderFileSystem {
       if (meta == null) {
         return null;
       }
-      return new ObjectStatus(meta.getContentLength(), meta.getLastModifiedDate().getTime());
+      return new ObjectStatus(key, meta.getMd5HashAsBase64(), meta.getContentLength(),
+          meta.getLastModifiedDate().getTime());
     } catch (ServiceException e) {
       return null;
     }
+  }
+
+  // No group in GCS ACL, returns the account owner for group.
+  @Override
+  protected ObjectPermissions getPermissions() {
+    return new ObjectPermissions(mAccountOwner, mAccountOwner, mBucketMode);
   }
 
   @Override
@@ -317,5 +319,4 @@ public class GCSUnderFileSystem extends ObjectUnderFileSystem {
       throw new IOException(e.getMessage());
     }
   }
-
 }

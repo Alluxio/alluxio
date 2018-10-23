@@ -15,12 +15,19 @@ import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
 import alluxio.StorageTierAssoc;
-import alluxio.master.AlluxioMasterService;
+import alluxio.master.MasterProcess;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.StartupConsistencyCheck;
-import alluxio.underfs.UnderFileSystem;
+import alluxio.master.file.meta.MountTable;
+import alluxio.master.meta.MetaMaster;
+import alluxio.util.CommonUtils;
 import alluxio.util.FormatUtils;
+import alluxio.wire.ConfigCheckReport;
+import alluxio.wire.MountPointInfo;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -38,6 +45,8 @@ import javax.servlet.http.HttpServletResponse;
  */
 @ThreadSafe
 public final class WebInterfaceGeneralServlet extends HttpServlet {
+  private static final Logger LOG = LoggerFactory.getLogger(WebInterfaceGeneralServlet.class);
+
   /**
    * Class to make referencing tiered storage information more intuitive.
    */
@@ -103,15 +112,17 @@ public final class WebInterfaceGeneralServlet extends HttpServlet {
 
   private static final long serialVersionUID = 2335205655766736309L;
 
-  private final transient AlluxioMasterService mMaster;
+  private final transient MasterProcess mMasterProcess;
+  private final transient MetaMaster mMetaMaster;
 
   /**
    * Creates a new instance of {@link WebInterfaceGeneralServlet}.
    *
-   * @param master Alluxio master
+   * @param masterProcess Alluxio master process
    */
-  public WebInterfaceGeneralServlet(AlluxioMasterService master) {
-    mMaster = master;
+  public WebInterfaceGeneralServlet(MasterProcess masterProcess) {
+    mMasterProcess = masterProcess;
+    mMetaMaster = mMasterProcess.getMaster(MetaMaster.class);
   }
 
   /**
@@ -120,7 +131,6 @@ public final class WebInterfaceGeneralServlet extends HttpServlet {
    * @param request the {@link HttpServletRequest} object
    * @param response the {@link HttpServletResponse} object
    * @throws ServletException if the target resource throws this exception
-   * @throws IOException if the target resource throws this exception
    */
   @Override
   protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -142,7 +152,7 @@ public final class WebInterfaceGeneralServlet extends HttpServlet {
    * @return the list of {@link StorageTierInfo} objects, in order from highest tier to lowest
    */
   private StorageTierInfo[] generateOrderedStorageTierInfo() {
-    BlockMaster blockMaster = mMaster.getMaster(BlockMaster.class);
+    BlockMaster blockMaster = mMasterProcess.getMaster(BlockMaster.class);
     StorageTierAssoc globalStorageTierAssoc = blockMaster.getGlobalStorageTierAssoc();
     List<StorageTierInfo> infos = new ArrayList<>();
     Map<String, Long> totalBytesOnTiers = blockMaster.getTotalBytesOnTiers();
@@ -165,20 +175,19 @@ public final class WebInterfaceGeneralServlet extends HttpServlet {
    * Populates key, value pairs for UI display.
    *
    * @param request The {@link HttpServletRequest} object
-   * @throws IOException if an I/O error occurs
    */
-  private void populateValues(HttpServletRequest request) throws IOException {
-    BlockMaster blockMaster = mMaster.getMaster(BlockMaster.class);
-    FileSystemMaster fileSystemMaster = mMaster.getMaster(FileSystemMaster.class);
+  private void populateValues(HttpServletRequest request) {
+    BlockMaster blockMaster = mMasterProcess.getMaster(BlockMaster.class);
+    FileSystemMaster fileSystemMaster = mMasterProcess.getMaster(FileSystemMaster.class);
 
     request.setAttribute("debug", Configuration.getBoolean(PropertyKey.DEBUG));
 
-    request.setAttribute("masterNodeAddress", mMaster.getRpcAddress().toString());
+    request.setAttribute("masterNodeAddress", mMasterProcess.getRpcAddress().toString());
 
-    request.setAttribute("uptime",
-        WebUtils.convertMsToClockTime(System.currentTimeMillis() - mMaster.getStartTimeMs()));
+    request.setAttribute("uptime", CommonUtils
+        .convertMsToClockTime(System.currentTimeMillis() - mMetaMaster.getStartTimeMs()));
 
-    request.setAttribute("startTime", WebUtils.convertMsToDate(mMaster.getStartTimeMs()));
+    request.setAttribute("startTime", CommonUtils.convertMsToDate(mMetaMaster.getStartTimeMs()));
 
     request.setAttribute("version", RuntimeConstants.VERSION);
 
@@ -203,29 +212,51 @@ public final class WebInterfaceGeneralServlet extends HttpServlet {
       request.setAttribute("inconsistentPaths", 0);
     }
 
-    String ufsRoot = Configuration.get(PropertyKey.UNDERFS_ADDRESS);
-    UnderFileSystem ufs = UnderFileSystem.Factory.get(ufsRoot);
+    ConfigCheckReport report = mMetaMaster.getConfigCheckReport();
+    request.setAttribute("configCheckStatus", report.getConfigStatus());
+    request.setAttribute("configCheckErrors", report.getConfigErrors());
+    request.setAttribute("configCheckWarns", report.getConfigWarns());
+    request.setAttribute("configCheckErrorNum",
+        report.getConfigErrors().values().stream().mapToInt(List::size).sum());
+    request.setAttribute("configCheckWarnNum",
+        report.getConfigWarns().values().stream().mapToInt(List::size).sum());
 
-    long sizeBytes = ufs.getSpace(ufsRoot, UnderFileSystem.SpaceType.SPACE_TOTAL);
-    if (sizeBytes >= 0) {
-      request.setAttribute("diskCapacity", FormatUtils.getSizeFromBytes(sizeBytes));
-    } else {
-      request.setAttribute("diskCapacity", "UNKNOWN");
+    setUfsAttributes(request);
+  }
+
+  private void setUfsAttributes(HttpServletRequest request) {
+    FileSystemMaster fsMaster = mMasterProcess.getMaster(FileSystemMaster.class);
+    Map<String, MountPointInfo> mountPoints = fsMaster.getMountTable();
+    MountPointInfo mountInfo = mountPoints.get(MountTable.ROOT);
+    if (mountInfo == null) {
+      LOG.error("Missing root mount info");
+      return;
     }
 
-    sizeBytes = ufs.getSpace(ufsRoot, UnderFileSystem.SpaceType.SPACE_USED);
-    if (sizeBytes >= 0) {
-      request.setAttribute("diskUsedCapacity", FormatUtils.getSizeFromBytes(sizeBytes));
-    } else {
-      request.setAttribute("diskUsedCapacity", "UNKNOWN");
+    long capacityBytes = mountInfo.getUfsCapacityBytes();
+    long usedBytes = mountInfo.getUfsUsedBytes();
+    long freeBytes = -1;
+    if (capacityBytes >= 0 && usedBytes >= 0 && capacityBytes >= usedBytes) {
+      freeBytes = capacityBytes - usedBytes;
     }
 
-    sizeBytes = ufs.getSpace(ufsRoot, UnderFileSystem.SpaceType.SPACE_FREE);
-    if (sizeBytes >= 0) {
-      request.setAttribute("diskFreeCapacity", FormatUtils.getSizeFromBytes(sizeBytes));
-    } else {
-      request.setAttribute("diskFreeCapacity", "UNKNOWN");
+    String totalSpace = "UNKNOWN";
+    if (capacityBytes >= 0) {
+      totalSpace = FormatUtils.getSizeFromBytes(capacityBytes);
     }
+    request.setAttribute("diskCapacity", totalSpace);
+
+    String usedSpace = "UNKNOWN";
+    if (usedBytes >= 0) {
+      usedSpace = FormatUtils.getSizeFromBytes(usedBytes);
+    }
+    request.setAttribute("diskUsedCapacity", usedSpace);
+
+    String freeSpace = "UNKNOWN";
+    if (freeBytes >= 0) {
+      freeSpace = FormatUtils.getSizeFromBytes(freeBytes);
+    }
+    request.setAttribute("diskFreeCapacity", freeSpace);
 
     StorageTierInfo[] infos = generateOrderedStorageTierInfo();
     request.setAttribute("storageTierInfos", infos);

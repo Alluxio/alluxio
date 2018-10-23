@@ -14,11 +14,13 @@ package alluxio.worker.block;
 import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ExceptionMessage;
+import alluxio.proto.dataserver.Protocol;
 import alluxio.resource.LockResource;
+import alluxio.underfs.UfsManager;
+import alluxio.worker.SessionCleanable;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.block.meta.UnderFileSystemBlockMeta;
-import alluxio.worker.block.options.OpenUfsBlockOptions;
 
 import com.google.common.base.Objects;
 import org.slf4j.Logger;
@@ -44,7 +46,7 @@ import javax.annotation.concurrent.GuardedBy;
  * If the client is lost before releasing or cleaning up the session, the session cleaner will
  * clean the data.
  */
-public final class UnderFileSystemBlockStore {
+public final class UnderFileSystemBlockStore implements SessionCleanable {
   private static final Logger LOG = LoggerFactory.getLogger(UnderFileSystemBlockStore.class);
 
   /**
@@ -69,13 +71,22 @@ public final class UnderFileSystemBlockStore {
   /** The Local block store. */
   private final BlockStore mLocalBlockStore;
 
+  /** The manager for all ufs. */
+  private final UfsManager mUfsManager;
+
+  /** The manager for all ufs instream. */
+  private final UfsInputStreamManager mUfsInstreamManager;
+
   /**
    * Creates an instance of {@link UnderFileSystemBlockStore}.
    *
    * @param localBlockStore the local block store
+   * @param ufsManager the file manager
    */
-  public UnderFileSystemBlockStore(BlockStore localBlockStore) {
+  public UnderFileSystemBlockStore(BlockStore localBlockStore, UfsManager ufsManager) {
     mLocalBlockStore = localBlockStore;
+    mUfsManager = ufsManager;
+    mUfsInstreamManager = new UfsInputStreamManager();
   }
 
   /**
@@ -89,7 +100,7 @@ public final class UnderFileSystemBlockStore {
    * @return whether an access token is acquired
    * @throws BlockAlreadyExistsException if the block already exists for a session ID
    */
-  public boolean acquireAccess(long sessionId, long blockId, OpenUfsBlockOptions options)
+  public boolean acquireAccess(long sessionId, long blockId, Protocol.OpenUfsBlockOptions options)
       throws BlockAlreadyExistsException {
     UnderFileSystemBlockMeta blockMeta = new UnderFileSystemBlockMeta(sessionId, blockId, options);
     try (LockResource lr = new LockResource(mLock)) {
@@ -129,7 +140,6 @@ public final class UnderFileSystemBlockStore {
    *
    * @param sessionId the session ID
    * @param blockId the block ID
-   * @throws IOException if it fails to clean up
    */
   public void closeReaderOrWriter(long sessionId, long blockId) throws IOException {
     BlockInfo blockInfo;
@@ -162,10 +172,16 @@ public final class UnderFileSystemBlockStore {
       Set<Long> blockIds = mSessionIdToBlockIds.get(sessionId);
       if (blockIds != null) {
         blockIds.remove(blockId);
+        if (blockIds.isEmpty()) {
+          mSessionIdToBlockIds.remove(sessionId);
+        }
       }
       Set<Long> sessionIds = mBlockIdToSessionIds.get(blockId);
       if (sessionIds != null) {
         sessionIds.remove(sessionId);
+        if (sessionIds.isEmpty()) {
+          mBlockIdToSessionIds.remove(blockId);
+        }
       }
     }
   }
@@ -175,6 +191,7 @@ public final class UnderFileSystemBlockStore {
    *
    * @param sessionId the session ID
    */
+  @Override
   public void cleanupSession(long sessionId) {
     Set<Long> blockIds;
     try (LockResource lr = new LockResource(mLock)) {
@@ -183,7 +200,9 @@ public final class UnderFileSystemBlockStore {
         return;
       }
     }
-
+    // Note that, there can be a race condition that blockIds can be stale when we release the
+    // access. The race condition only has a minimal negative consequence (printing extra logging
+    // message), and is expected very rare to trigger.
     for (Long blockId : blockIds) {
       try {
         // Note that we don't need to explicitly call abortBlock to cleanup the temp block
@@ -204,14 +223,12 @@ public final class UnderFileSystemBlockStore {
    * @param sessionId the client session ID that requested this read
    * @param blockId the ID of the block to read
    * @param offset the read offset within the block (NOT the file)
-   * @param noCache if set, do not try to cache the block in the Alluxio worker
    * @return the block reader instance
    * @throws BlockDoesNotExistException if the UFS block does not exist in the
    * {@link UnderFileSystemBlockStore}
-   * @throws IOException if any I/O errors occur
    */
-  public BlockReader getBlockReader(final long sessionId, long blockId, long offset,
-      boolean noCache) throws BlockDoesNotExistException, IOException {
+  public BlockReader getBlockReader(final long sessionId, long blockId, long offset)
+      throws BlockDoesNotExistException, IOException {
     final BlockInfo blockInfo;
     try (LockResource lr = new LockResource(mLock)) {
       blockInfo = getBlockInfo(sessionId, blockId);
@@ -221,7 +238,8 @@ public final class UnderFileSystemBlockStore {
       }
     }
     BlockReader reader =
-        UnderFileSystemBlockReader.create(blockInfo.getMeta(), offset, noCache, mLocalBlockStore);
+        UnderFileSystemBlockReader.create(blockInfo.getMeta(), offset, mLocalBlockStore,
+            mUfsManager, mUfsInstreamManager);
     blockInfo.setBlockReader(reader);
     return reader;
   }
@@ -245,6 +263,9 @@ public final class UnderFileSystemBlockStore {
     return blockInfo;
   }
 
+  /**
+   * This class is to wrap session ID amd block ID.
+   */
   private static class Key {
     private final long mSessionId;
     private final long mBlockId;
@@ -364,8 +385,6 @@ public final class UnderFileSystemBlockStore {
 
     /**
      * Closes the block reader or writer.
-     *
-     * @throws IOException if it fails to close block reader or writer
      */
     public synchronized void closeReaderOrWriter() throws IOException {
       if (mBlockReader != null) {

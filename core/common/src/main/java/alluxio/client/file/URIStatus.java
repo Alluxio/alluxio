@@ -12,6 +12,8 @@
 package alluxio.client.file;
 
 import alluxio.annotation.PublicApi;
+import alluxio.security.authorization.AccessControlList;
+import alluxio.security.authorization.DefaultAccessControlList;
 import alluxio.wire.FileBlockInfo;
 import alluxio.wire.FileInfo;
 import alluxio.wire.TtlAction;
@@ -40,6 +42,20 @@ public class URIStatus {
    */
   public URIStatus(FileInfo info) {
     mInfo = Preconditions.checkNotNull(info, "Cannot create a URIStatus from a null FileInfo");
+  }
+
+  /**
+   * @return the ACL entries for this path, mutable
+   */
+  public AccessControlList getAcl() {
+    return mInfo.getAcl();
+  }
+
+  /**
+   * @return the default ACL entries for this path, mutable
+   */
+  public DefaultAccessControlList getDefaultAcl() {
+    return mInfo.getDefaultAcl();
   }
 
   /**
@@ -83,6 +99,13 @@ public class URIStatus {
    */
   public int getInMemoryPercentage() {
     return mInfo.getInMemoryPercentage();
+  }
+
+  /**
+   * @return the percentage of blocks in Alluxio tier storage, mutable
+   */
+  public int getInAlluxioPercentage() {
+    return mInfo.getInAlluxioPercentage();
   }
 
   /**
@@ -163,6 +186,20 @@ public class URIStatus {
   }
 
   /**
+   * @return the maximum number of replicas of the entity referenced by this uri, mutable
+   */
+  public int getReplicationMax() {
+    return mInfo.getReplicationMax();
+  }
+
+  /**
+   * @return the minimum number of replicas of the entity referenced by this uri, mutable
+   */
+  public int getReplicationMin() {
+    return mInfo.getReplicationMin();
+  }
+
+  /**
    * @return whether the entity referenced by this uri can be stored in Alluxio space, mutable
    */
   public boolean isCacheable() {
@@ -207,10 +244,24 @@ public class URIStatus {
   }
 
   /**
+   * @return the id of the mount of this file is mapped to
+   */
+  public long getMountId() {
+    return mInfo.getMountId();
+  }
+
+  /**
    * @return the list of file block descriptors
    */
   public List<FileBlockInfo> getFileBlockInfos() {
     return mInfo.getFileBlockInfos();
+  }
+
+  /**
+   * @return the ufs fingerprint
+   */
+  public String getUfsFingerprint() {
+    return mInfo.getUfsFingerprint();
   }
 
   @Override

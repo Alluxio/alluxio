@@ -11,10 +11,13 @@
 
 package alluxio.master.block.meta;
 
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+
 import alluxio.Constants;
 
 import com.google.common.collect.ImmutableSet;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -35,14 +38,14 @@ public final class MasterBlockInfoTest {
   @Test
   public void addWorker() {
     mInfo.addWorker(1, "MEM");
-    Assert.assertTrue(mInfo.getWorkers().contains(1L));
+    assertTrue(mInfo.getWorkers().contains(1L));
   }
 
   @Test
   public void removeWorker() {
     mInfo.addWorker(1, "MEM");
     mInfo.removeWorker(1);
-    Assert.assertEquals(0, mInfo.getWorkers().size());
+    assertEquals(0, mInfo.getWorkers().size());
   }
 
   @Test
@@ -55,7 +58,7 @@ public final class MasterBlockInfoTest {
     mInfo.addWorker(1, "MEM");
     mInfo.addWorker(2, "MEM");
     mInfo.addWorker(3, "HDD");
-    Assert.assertEquals(3, mInfo.getNumLocations());
+    assertEquals(3, mInfo.getNumLocations());
   }
 
   @Test
@@ -69,36 +72,36 @@ public final class MasterBlockInfoTest {
         new MasterBlockLocation(1, "MEM"),
         new MasterBlockLocation(2, "MEM"),
         new MasterBlockLocation(3, "HDD"));
-    Assert.assertEquals(expectedLocations, ImmutableSet.copyOf(locations));
+    assertEquals(expectedLocations, ImmutableSet.copyOf(locations));
   }
 
   @Test
   public void isInTier() {
     mInfo.addWorker(1, "HDD");
-    Assert.assertTrue(mInfo.isInTier("HDD"));
+    assertTrue(mInfo.isInTier("HDD"));
   }
 
   @Test
   public void isNotInTier() {
     mInfo.addWorker(1, "HDD");
-    Assert.assertFalse(mInfo.isInTier("MEM"));
+    assertFalse(mInfo.isInTier("MEM"));
   }
 
   @Test
   public void getLength() {
-    Assert.assertEquals(Constants.KB, mInfo.getLength());
+    assertEquals(Constants.KB, mInfo.getLength());
   }
 
   @Test
   public void updateKnownLengthDoesNothing() {
     mInfo.updateLength(2 * Constants.KB);
-    Assert.assertEquals(Constants.KB, mInfo.getLength());
+    assertEquals(Constants.KB, mInfo.getLength());
   }
 
   @Test
   public void updateUnknownLengthUpdates() {
     MasterBlockInfo info = new MasterBlockInfo(0, Constants.UNKNOWN_SIZE);
     info.updateLength(2 * Constants.KB);
-    Assert.assertEquals(2 * Constants.KB, info.getLength());
+    assertEquals(2 * Constants.KB, info.getLength());
   }
 }

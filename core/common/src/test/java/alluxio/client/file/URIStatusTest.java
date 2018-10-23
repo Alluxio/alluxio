@@ -14,6 +14,7 @@ package alluxio.client.file;
 import alluxio.wire.FileInfo;
 import alluxio.wire.FileInfoTest;
 
+import org.hamcrest.CoreMatchers;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -29,8 +30,8 @@ public final class URIStatusTest {
       Assert.fail("Cannot create a URIStatus from a null FileInfo");
     } catch (Exception e) {
       Assert.assertTrue(e instanceof NullPointerException);
-      Assert.assertTrue(e.getMessage().contains(
-          "Cannot create a URIStatus from a null FileInfo"));
+      Assert.assertThat(e.getMessage(),
+          CoreMatchers.containsString("Cannot create a URIStatus from a null FileInfo"));
     }
   }
 

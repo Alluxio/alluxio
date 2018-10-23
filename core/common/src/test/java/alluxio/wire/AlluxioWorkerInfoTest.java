@@ -11,10 +11,9 @@
 
 package alluxio.wire;
 
-import alluxio.CommonTestUtils;
 import alluxio.util.CommonUtils;
 
-import org.codehaus.jackson.map.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -24,7 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
-public class AlluxioWorkerInfoTest {
+public final class AlluxioWorkerInfoTest {
 
   @Test
   public void json() throws Exception {
@@ -37,7 +36,7 @@ public class AlluxioWorkerInfoTest {
 
   @Test
   public void equals() {
-    CommonTestUtils.testEquals(AlluxioMasterInfo.class);
+    alluxio.test.util.CommonUtils.testEquals(AlluxioMasterInfo.class);
   }
 
   private void checkEquality(AlluxioWorkerInfo a, AlluxioWorkerInfo b) {

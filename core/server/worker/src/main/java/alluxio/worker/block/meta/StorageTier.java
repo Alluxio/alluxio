@@ -13,15 +13,19 @@ package alluxio.worker.block.meta;
 
 import alluxio.Configuration;
 import alluxio.PropertyKey;
-import alluxio.PropertyKeyFormat;
 import alluxio.WorkerStorageTierAssoc;
 import alluxio.exception.BlockAlreadyExistsException;
+import alluxio.exception.InvalidPathException;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.util.FormatUtils;
+import alluxio.util.OSUtils;
+import alluxio.util.ShellUtils;
+import alluxio.util.UnixMountInfo;
 import alluxio.util.io.FileUtils;
 import alluxio.util.io.PathUtils;
 
+import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,20 +61,17 @@ public final class StorageTier {
 
   private void initStorageTier()
       throws BlockAlreadyExistsException, IOException, WorkerOutOfSpaceException {
-    String workerDataFolder = Configuration.get(PropertyKey.WORKER_DATA_FOLDER);
     String tmpDir = Configuration.get(PropertyKey.WORKER_DATA_TMP_FOLDER);
     PropertyKey tierDirPathConf =
-        PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT.format(mTierOrdinal);
+        PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(mTierOrdinal);
     String[] dirPaths = Configuration.get(tierDirPathConf).split(",");
 
-    // Add the worker data folder path after each storage directory, the final path will be like
-    // /mnt/ramdisk/alluxioworker
     for (int i = 0; i < dirPaths.length; i++) {
-      dirPaths[i] = PathUtils.concatPath(dirPaths[i].trim(), workerDataFolder);
+      dirPaths[i] = PathUtils.getWorkerDataDirectory(dirPaths[i]);
     }
 
     PropertyKey tierDirCapacityConf =
-        PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA_FORMAT.format(mTierOrdinal);
+        PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA.format(mTierOrdinal);
     String rawDirQuota = Configuration.get(tierDirCapacityConf);
     Preconditions.checkState(rawDirQuota.length() > 0, PreconditionMessage.ERR_TIER_QUOTA_BLANK);
     String[] dirQuotas = rawDirQuota.split(",");
@@ -81,8 +82,14 @@ public final class StorageTier {
     for (int i = 0; i < dirPaths.length; i++) {
       int index = i >= dirQuotas.length ? dirQuotas.length - 1 : i;
       long capacity = FormatUtils.parseSpaceSize(dirQuotas[index]);
-      totalCapacity += capacity;
-      mDirs.add(StorageDir.newStorageDir(this, i, capacity, dirPaths[i]));
+      try {
+        StorageDir dir = StorageDir.newStorageDir(this, i, capacity, dirPaths[i]);
+        totalCapacity += capacity;
+        mDirs.add(dir);
+      } catch (IOException e) {
+        LOG.error("Unable to initialize storage directory at {}: {}", dirPaths[i], e.getMessage());
+        continue;
+      }
 
       // Delete tmp directory.
       String tmpDirPath = PathUtils.concatPath(dirPaths[i], tmpDir);
@@ -95,6 +102,63 @@ public final class StorageTier {
       }
     }
     mCapacityBytes = totalCapacity;
+    if (mTierAlias.equals("MEM") && mDirs.size() == 1) {
+      checkEnoughMemSpace(mDirs.get(0));
+    }
+  }
+
+  /**
+   * Checks that a tmpfs/ramfs backing the storage directory has enough capacity. If the storage
+   * directory is not backed by tmpfs/ramfs or the size of the tmpfs/ramfs cannot be determined, a
+   * warning is logged but no exception is thrown.
+   *
+   * @param storageDir the storage dir to check
+   * @throws IllegalStateException if the tmpfs/ramfs is smaller than the configured memory size
+   */
+  private void checkEnoughMemSpace(StorageDir storageDir) {
+    if (!OSUtils.isLinux()) {
+      return;
+    }
+    List<UnixMountInfo> info;
+    try {
+      info = ShellUtils.getUnixMountInfo();
+    } catch (IOException e) {
+      LOG.warn("Failed to get mount information for verifying memory capacity: {}", e.getMessage());
+      return;
+    }
+    boolean foundMountInfo = false;
+    for (UnixMountInfo mountInfo : info) {
+      Optional<String> mountPointOption = mountInfo.getMountPoint();
+      Optional<String> fsTypeOption = mountInfo.getFsType();
+      Optional<Long> sizeOption = mountInfo.getOptions().getSize();
+      if (!mountPointOption.isPresent() || !fsTypeOption.isPresent() || !sizeOption.isPresent()) {
+        continue;
+      }
+      String mountPoint = mountPointOption.get();
+      String fsType = fsTypeOption.get();
+      long size = sizeOption.get();
+      try {
+        // getDirPath gives something like "/mnt/tmpfs/alluxioworker".
+        String rootStoragePath = PathUtils.getParent(storageDir.getDirPath());
+        if (!PathUtils.cleanPath(mountPoint).equals(rootStoragePath)) {
+          continue;
+        }
+      } catch (InvalidPathException e) {
+        continue;
+      }
+      foundMountInfo = true;
+      if ((fsType.equalsIgnoreCase("tmpfs") || fsType.equalsIgnoreCase("ramfs"))
+          && size < storageDir.getCapacityBytes()) {
+        throw new IllegalStateException(String.format(
+            "%s is smaller than the configured size: %s size: %s, configured size: %s", fsType,
+            fsType, FormatUtils.getSizeFromBytes(size),
+            FormatUtils.getSizeFromBytes(storageDir.getCapacityBytes())));
+      }
+      break;
+    }
+    if (!foundMountInfo) {
+      LOG.warn("Failed to verify memory capacity");
+    }
   }
 
   /**
@@ -103,7 +167,6 @@ public final class StorageTier {
    * @param tierAlias the tier alias
    * @return a new storage tier
    * @throws BlockAlreadyExistsException if the tier already exists
-   * @throws IOException if an I/O error occurred
    * @throws WorkerOutOfSpaceException if there is not enough space available
    */
   public static StorageTier newStorageTier(String tierAlias)

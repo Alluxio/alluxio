@@ -19,15 +19,14 @@ import alluxio.client.block.BlockMasterClient;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
-import alluxio.exception.ConnectionFailedException;
+import alluxio.exception.status.UnavailableException;
+import alluxio.master.MasterClientConfig;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.util.io.PathUtils;
-import alluxio.util.network.NetworkAddressUtils;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
-import com.google.common.base.Function;
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
@@ -35,7 +34,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.InetSocketAddress;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -99,26 +97,20 @@ public final class AlluxioFrameworkIntegrationTest {
     try {
       startAlluxioFramework(env);
       LOG.info("Launched Alluxio cluster, waiting for worker to register with master");
-      String masterHostName = NetworkAddressUtils.getLocalHostName();
-      int masterPort = Configuration.getInt(PropertyKey.MASTER_RPC_PORT);
-      InetSocketAddress masterAddress = new InetSocketAddress(masterHostName, masterPort);
-      try (final BlockMasterClient client = BlockMasterClient.Factory.create(masterAddress)) {
-        CommonUtils.waitFor("Alluxio worker to register with master",
-            new Function<Void, Boolean>() {
-              @Override
-              public Boolean apply(Void input) {
-                try {
-                  try {
-                    return !client.getWorkerInfoList().isEmpty();
-                  } catch (ConnectionFailedException e) {
-                    // block master isn't up yet, keep waiting
-                    return false;
-                  }
-                } catch (Exception e) {
-                  throw new RuntimeException(e);
-                }
-              }
-            }, WaitForOptions.defaults().setTimeout(15 * Constants.MINUTE_MS));
+      try (final BlockMasterClient client =
+          BlockMasterClient.Factory.create(MasterClientConfig.defaults())) {
+        CommonUtils.waitFor("Alluxio worker to register with master", () -> {
+          try {
+            try {
+              return !client.getWorkerInfoList().isEmpty();
+            } catch (UnavailableException e) {
+              // block master isn't up yet, keep waiting
+              return false;
+            }
+          } catch (Exception e) {
+            throw new RuntimeException(e);
+          }
+        }, WaitForOptions.defaults().setTimeoutMs(15 * Constants.MINUTE_MS));
       }
       LOG.info("Worker registered");
       basicAlluxioTests();
@@ -207,7 +199,6 @@ public final class AlluxioFrameworkIntegrationTest {
 
   /**
    * @param args arguments
-   * @throws Exception if an exception occurs
    */
   public static void main(String[] args) throws Exception {
     AlluxioFrameworkIntegrationTest test = new AlluxioFrameworkIntegrationTest();

@@ -39,12 +39,8 @@ public final class WebInterfaceBrowseLogsServlet extends HttpServlet {
 
   private final String mBrowseJsp;
   private final String mViewJsp;
-  private static final FilenameFilter LOG_FILE_FILTER = new FilenameFilter() {
-    @Override
-    public boolean accept(File dir, String name) {
-      return name.toLowerCase().endsWith(".log");
-    }
-  };
+  private static final FilenameFilter LOG_FILE_FILTER =
+      (dir, name) -> name.toLowerCase().endsWith(".log");
 
   /**
    * Creates a new instance of {@link WebInterfaceBrowseLogsServlet}.
@@ -63,7 +59,6 @@ public final class WebInterfaceBrowseLogsServlet extends HttpServlet {
    * @param file the local file to display
    * @param request the {@link HttpServletRequest} object
    * @param offset where the file starts to display
-   * @throws IOException if an I/O error occurs
    */
   private void displayLocalFile(File file, HttpServletRequest request, long offset)
       throws IOException {
@@ -101,11 +96,13 @@ public final class WebInterfaceBrowseLogsServlet extends HttpServlet {
    * @param request the {@link HttpServletRequest} object
    * @param response the {@link HttpServletResponse} object
    * @throws ServletException if the target resource throws this exception
-   * @throws IOException if the target resource throws this exception
    */
   @Override
   protected void doGet(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException {
+    if (!Configuration.getBoolean(PropertyKey.WEB_FILE_INFO_ENABLED)) {
+      return;
+    }
     request.setAttribute("debug", Configuration.getBoolean(PropertyKey.DEBUG));
     request.setAttribute("invalidPathError", "");
     request.setAttribute("viewingOffset", 0);

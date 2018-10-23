@@ -13,6 +13,7 @@ package alluxio.web;
 
 import alluxio.RuntimeConstants;
 import alluxio.collections.Pair;
+import alluxio.util.CommonUtils;
 import alluxio.util.FormatUtils;
 import alluxio.worker.block.BlockStoreMeta;
 import alluxio.worker.block.BlockWorker;
@@ -111,14 +112,14 @@ public final class WebInterfaceWorkerGeneralServlet extends HttpServlet {
      * @return the start time
      */
     public String getStartTime() {
-      return WebUtils.convertMsToDate(mStartTimeMs);
+      return CommonUtils.convertMsToDate(mStartTimeMs);
     }
 
     /**
      * @return the uptime
      */
     public String getUptime() {
-      return WebUtils.convertMsToClockTime(System.currentTimeMillis() - mStartTimeMs);
+      return CommonUtils.convertMsToClockTime(System.currentTimeMillis() - mStartTimeMs);
     }
 
     /**
@@ -127,7 +128,6 @@ public final class WebInterfaceWorkerGeneralServlet extends HttpServlet {
     public String getWorkerAddress() {
       return mWorkerAddress;
     }
-
   }
 
   /**
@@ -173,7 +173,6 @@ public final class WebInterfaceWorkerGeneralServlet extends HttpServlet {
     public long getUsedBytes() {
       return mUsedBytes;
     }
-
   }
 
   private static final long serialVersionUID = 3735143768058466487L;
@@ -204,7 +203,6 @@ public final class WebInterfaceWorkerGeneralServlet extends HttpServlet {
    * Populates key, value pairs for UI display.
    *
    * @param request the {@link HttpServletRequest} object
-   * @throws IOException if an I/O error occurs
    */
   private void populateValues(HttpServletRequest request) throws IOException {
     request.setAttribute("workerInfo", mUiWorkerInfo);

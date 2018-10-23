@@ -13,7 +13,7 @@ package alluxio.master.block;
 
 import alluxio.Constants;
 import alluxio.RestUtils;
-import alluxio.master.AlluxioMasterService;
+import alluxio.master.MasterProcess;
 import alluxio.web.MasterWebServer;
 import alluxio.wire.BlockInfo;
 
@@ -54,7 +54,7 @@ public final class BlockMasterClientRestServiceHandler {
    */
   public BlockMasterClientRestServiceHandler(@Context ServletContext context) {
     // Poor man's dependency injection through the Jersey application scope.
-    mBlockMaster = ((AlluxioMasterService) context
+    mBlockMaster = ((MasterProcess) context
         .getAttribute(MasterWebServer.ALLUXIO_MASTER_SERVLET_RESOURCE_KEY))
         .getMaster(BlockMaster.class);
   }
@@ -83,12 +83,7 @@ public final class BlockMasterClientRestServiceHandler {
   @Path(SERVICE_VERSION)
   @ReturnType("java.lang.Long")
   public Response getServiceVersion() {
-    return RestUtils.call(new RestUtils.RestCallable<Long>() {
-      @Override
-      public Long call() throws Exception {
-        return Constants.BLOCK_MASTER_CLIENT_SERVICE_VERSION;
-      }
-    });
+    return RestUtils.call(() -> Constants.BLOCK_MASTER_CLIENT_SERVICE_VERSION);
   }
 
   /**

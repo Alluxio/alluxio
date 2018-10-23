@@ -109,6 +109,9 @@ public final class PlainSaslServerTest {
     Assert.assertEquals(testUser, mPlainSaslServer.getAuthorizationID());
   }
 
+  /**
+   * A server side callback that is authorized.
+   */
   private static class MockCallbackHandler implements CallbackHandler {
     @Override
     public void handle(Callback[] callbacks) throws IOException, UnsupportedCallbackException {
@@ -122,6 +125,9 @@ public final class PlainSaslServerTest {
     }
   }
 
+  /**
+   * A server side callback that is not authorized.
+   */
   private static class MockCallbackHandlerUnauthorized implements CallbackHandler {
     @Override
     public void handle(Callback[] callbacks) throws IOException, UnsupportedCallbackException {
@@ -135,7 +141,7 @@ public final class PlainSaslServerTest {
     }
   }
 
-  /*
+  /**
    * Tests the {@link PlainSaslServer#evaluateResponse(byte[])} method when AuthorizeCallback is
    * not authorized.
    */

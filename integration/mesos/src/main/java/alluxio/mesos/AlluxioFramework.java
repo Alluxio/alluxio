@@ -13,6 +13,8 @@ package alluxio.mesos;
 
 import alluxio.Configuration;
 import alluxio.PropertyKey;
+import alluxio.util.network.NetworkAddressUtils;
+import alluxio.util.network.NetworkAddressUtils.ServiceType;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
@@ -24,6 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.UnsupportedEncodingException;
+import java.net.InetSocketAddress;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -58,17 +61,23 @@ public class AlluxioFramework {
     Protos.FrameworkInfo.Builder frameworkInfo = Protos.FrameworkInfo.newBuilder()
         .setName("alluxio").setCheckpoint(true);
 
-    if (Configuration.containsKey(PropertyKey.INTEGRATION_MESOS_ROLE)) {
+    if (Configuration.isSet(PropertyKey.INTEGRATION_MESOS_ROLE)) {
       frameworkInfo.setRole(Configuration.get(PropertyKey.INTEGRATION_MESOS_ROLE));
     }
-    // Setting the user to an empty string will prompt Mesos to set it to the current user.
-    if (Configuration.containsKey(PropertyKey.INTEGRATION_MESOS_USER)) {
+    if (Configuration.isSet(PropertyKey.INTEGRATION_MESOS_USER)) {
       frameworkInfo.setUser(Configuration.get(PropertyKey.INTEGRATION_MESOS_USER));
+    } else {
+      // Setting the user to an empty string will prompt Mesos to set it to the current user.
+      frameworkInfo.setUser("");
     }
 
-    if (Configuration.containsKey(PropertyKey.INTEGRATION_MESOS_PRINCIPAL)) {
+    if (Configuration.isSet(PropertyKey.INTEGRATION_MESOS_PRINCIPAL)) {
       frameworkInfo.setPrincipal(Configuration.get(PropertyKey.INTEGRATION_MESOS_PRINCIPAL));
     }
+
+    // Publish WebUI url to mesos master.
+    String masterWebUrl = createMasterWebUrl();
+    frameworkInfo.setWebuiUrl(masterWebUrl);
 
     Scheduler scheduler = new AlluxioScheduler(mAlluxioMasterHostname);
 
@@ -85,9 +94,18 @@ public class AlluxioFramework {
     System.exit(status);
   }
 
+  /**
+   * Create AlluxioMaster web url.
+   */
+  private static String createMasterWebUrl() {
+    InetSocketAddress masterWeb = NetworkAddressUtils.getConnectAddress(
+        ServiceType.MASTER_WEB);
+    return "http://" + masterWeb.getHostString() + ":" + masterWeb.getPort();
+  }
+
   private static Protos.Credential createCredential() {
-    if (!(Configuration.containsKey(PropertyKey.INTEGRATION_MESOS_PRINCIPAL)
-        && Configuration.containsKey(PropertyKey.INTEGRATION_MESOS_SECRET))) {
+    if (!(Configuration.isSet(PropertyKey.INTEGRATION_MESOS_PRINCIPAL)
+        && Configuration.isSet(PropertyKey.INTEGRATION_MESOS_SECRET))) {
       return null;
     }
 
@@ -108,7 +126,6 @@ public class AlluxioFramework {
    * Starts the Alluxio framework.
    *
    * @param args command-line arguments
-   * @throws Exception if the Alluxio framework encounters an unrecoverable error
    */
   public static void main(String[] args) throws Exception {
     AlluxioFramework framework = new AlluxioFramework();

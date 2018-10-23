@@ -11,8 +11,11 @@
 
 package alluxio.collections;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertFalse;
+
 import com.google.common.collect.ImmutableList;
-import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.List;
@@ -29,9 +32,9 @@ public final class PrefixListTest {
   @Test
   public void emptyPrefix() {
     PrefixList prefixList = new PrefixList(ImmutableList.of(""));
-    Assert.assertTrue(prefixList.inList("a"));
+    assertTrue(prefixList.inList("a"));
 
-    Assert.assertTrue(prefixList.outList(""));
+    assertTrue(prefixList.outList(""));
   }
 
   /**
@@ -40,27 +43,27 @@ public final class PrefixListTest {
   @Test
   public void prefixList() {
     PrefixList prefixList = new PrefixList(ImmutableList.of("test", "apple", "sun"));
-    Assert.assertTrue(prefixList.inList("test"));
-    Assert.assertTrue(prefixList.inList("apple"));
-    Assert.assertTrue(prefixList.inList("sun"));
+    assertTrue(prefixList.inList("test"));
+    assertTrue(prefixList.inList("apple"));
+    assertTrue(prefixList.inList("sun"));
 
-    Assert.assertTrue(prefixList.inList("test123"));
-    Assert.assertTrue(prefixList.inList("testing-1012"));
-    Assert.assertTrue(prefixList.inList("apple12nmzx91l"));
-    Assert.assertTrue(prefixList.inList("sunn1i2080-40mx"));
+    assertTrue(prefixList.inList("test123"));
+    assertTrue(prefixList.inList("testing-1012"));
+    assertTrue(prefixList.inList("apple12nmzx91l"));
+    assertTrue(prefixList.inList("sunn1i2080-40mx"));
 
-    Assert.assertFalse(prefixList.outList("test123"));
-    Assert.assertFalse(prefixList.outList("testing-1012"));
-    Assert.assertFalse(prefixList.outList("apple12nmzx91l"));
-    Assert.assertFalse(prefixList.outList("sunn1i2080-40mx"));
+    assertFalse(prefixList.outList("test123"));
+    assertFalse(prefixList.outList("testing-1012"));
+    assertFalse(prefixList.outList("apple12nmzx91l"));
+    assertFalse(prefixList.outList("sunn1i2080-40mx"));
 
-    Assert.assertTrue(prefixList.outList("tes"));
-    Assert.assertTrue(prefixList.outList("a"));
-    Assert.assertTrue(prefixList.outList("s"));
-    Assert.assertTrue(prefixList.outList("su"));
-    Assert.assertTrue(prefixList.outList("ap"));
-    Assert.assertTrue(prefixList.outList(""));
-    Assert.assertTrue(prefixList.outList(null));
+    assertTrue(prefixList.outList("tes"));
+    assertTrue(prefixList.outList("a"));
+    assertTrue(prefixList.outList("s"));
+    assertTrue(prefixList.outList("su"));
+    assertTrue(prefixList.outList("ap"));
+    assertTrue(prefixList.outList(""));
+    assertTrue(prefixList.outList(null));
   }
 
   /**
@@ -69,27 +72,27 @@ public final class PrefixListTest {
   @Test
   public void prefixListTest2() {
     PrefixList prefixList = new PrefixList("test;apple;sun", ";");
-    Assert.assertTrue(prefixList.inList("test"));
-    Assert.assertTrue(prefixList.inList("apple"));
-    Assert.assertTrue(prefixList.inList("sun"));
+    assertTrue(prefixList.inList("test"));
+    assertTrue(prefixList.inList("apple"));
+    assertTrue(prefixList.inList("sun"));
 
-    Assert.assertTrue(prefixList.inList("test123"));
-    Assert.assertTrue(prefixList.inList("testing-1012"));
-    Assert.assertTrue(prefixList.inList("apple12nmzx91l"));
-    Assert.assertTrue(prefixList.inList("sunn1i2080-40mx"));
+    assertTrue(prefixList.inList("test123"));
+    assertTrue(prefixList.inList("testing-1012"));
+    assertTrue(prefixList.inList("apple12nmzx91l"));
+    assertTrue(prefixList.inList("sunn1i2080-40mx"));
 
-    Assert.assertFalse(prefixList.outList("test123"));
-    Assert.assertFalse(prefixList.outList("testing-1012"));
-    Assert.assertFalse(prefixList.outList("apple12nmzx91l"));
-    Assert.assertFalse(prefixList.outList("sunn1i2080-40mx"));
+    assertFalse(prefixList.outList("test123"));
+    assertFalse(prefixList.outList("testing-1012"));
+    assertFalse(prefixList.outList("apple12nmzx91l"));
+    assertFalse(prefixList.outList("sunn1i2080-40mx"));
 
-    Assert.assertTrue(prefixList.outList("tes"));
-    Assert.assertTrue(prefixList.outList("a"));
-    Assert.assertTrue(prefixList.outList("s"));
-    Assert.assertTrue(prefixList.outList("su"));
-    Assert.assertTrue(prefixList.outList("ap"));
-    Assert.assertTrue(prefixList.outList(""));
-    Assert.assertTrue(prefixList.outList(null));
+    assertTrue(prefixList.outList("tes"));
+    assertTrue(prefixList.outList("a"));
+    assertTrue(prefixList.outList("s"));
+    assertTrue(prefixList.outList("su"));
+    assertTrue(prefixList.outList("ap"));
+    assertTrue(prefixList.outList(""));
+    assertTrue(prefixList.outList(null));
   }
 
   /**
@@ -98,21 +101,21 @@ public final class PrefixListTest {
   @Test
   public void toStringTest() {
     PrefixList prefixList = new PrefixList(null, ";");
-    Assert.assertEquals(prefixList.toString(), "");
+    assertEquals(prefixList.toString(), "");
 
     prefixList = new PrefixList("", ";");
-    Assert.assertEquals(prefixList.toString(), "");
+    assertEquals(prefixList.toString(), "");
 
     prefixList = new PrefixList(";", ";");
-    Assert.assertEquals(prefixList.toString(), "");
+    assertEquals(prefixList.toString(), "");
 
     prefixList = new PrefixList(" a ; ; b ", ";");
-    Assert.assertEquals(prefixList.toString(), "a;b;");
+    assertEquals(prefixList.toString(), "a;b;");
 
     prefixList = new PrefixList("a/b;c", ";");
-    Assert.assertEquals(prefixList.toString(), "a/b;c;");
+    assertEquals(prefixList.toString(), "a/b;c;");
 
     prefixList = new PrefixList("a/b;c;", ";");
-    Assert.assertEquals(prefixList.toString(), "a/b;c;");
+    assertEquals(prefixList.toString(), "a/b;c;");
   }
 }

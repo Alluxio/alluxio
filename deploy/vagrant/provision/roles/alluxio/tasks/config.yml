@@ -68,7 +68,4 @@
     replace='ALLUXIO_SSH_FOREGROUND=""'
   when: alluxio_version_lessthan_1_1
 
-- name: set ALLUXIO_JAR in libexec/alluxio-config.sh
-  script: alluxio_jar.sh
-
 # vim :set filetype=ansible.yaml:

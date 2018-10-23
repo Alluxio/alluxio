@@ -11,21 +11,28 @@
 
 package alluxio.util.io;
 
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertNotEquals;
+
 import alluxio.Constants;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidPathException;
 
-import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 
 /**
  * Tests for the {@link PathUtils} class.
  */
-public class PathUtilsTest {
+public final class PathUtilsTest {
 
   /**
    * The expected exception thrown during a test.
@@ -39,26 +46,26 @@ public class PathUtilsTest {
   @Test
   public void cleanPathNoException() throws InvalidPathException {
     // test clean path
-    Assert.assertEquals("/foo/bar", PathUtils.cleanPath("/foo/bar"));
+    assertEquals("/foo/bar", PathUtils.cleanPath("/foo/bar"));
 
     // test trailing slash
-    Assert.assertEquals("/foo/bar", PathUtils.cleanPath("/foo/bar/"));
+    assertEquals("/foo/bar", PathUtils.cleanPath("/foo/bar/"));
 
     // test redundant slashes
-    Assert.assertEquals("/foo/bar", PathUtils.cleanPath("/foo//bar"));
-    Assert.assertEquals("/foo/bar", PathUtils.cleanPath("/foo//bar//"));
-    Assert.assertEquals("/foo/bar", PathUtils.cleanPath("/foo///////bar//////"));
+    assertEquals("/foo/bar", PathUtils.cleanPath("/foo//bar"));
+    assertEquals("/foo/bar", PathUtils.cleanPath("/foo//bar//"));
+    assertEquals("/foo/bar", PathUtils.cleanPath("/foo///////bar//////"));
 
     // test dots gets resolved
-    Assert.assertEquals("/foo/bar", PathUtils.cleanPath("/foo/./bar"));
-    Assert.assertEquals("/foo/bar", PathUtils.cleanPath("/foo/././bar"));
-    Assert.assertEquals("/foo", PathUtils.cleanPath("/foo/bar/.."));
-    Assert.assertEquals("/bar", PathUtils.cleanPath("/foo/../bar"));
-    Assert.assertEquals("/", PathUtils.cleanPath("/foo/bar/../.."));
+    assertEquals("/foo/bar", PathUtils.cleanPath("/foo/./bar"));
+    assertEquals("/foo/bar", PathUtils.cleanPath("/foo/././bar"));
+    assertEquals("/foo", PathUtils.cleanPath("/foo/bar/.."));
+    assertEquals("/bar", PathUtils.cleanPath("/foo/../bar"));
+    assertEquals("/", PathUtils.cleanPath("/foo/bar/../.."));
 
     // the following seems strange
     // TODO(jiri): Instead of returning null, throw InvalidPathException.
-    Assert.assertNull(PathUtils.cleanPath("/foo/bar/../../.."));
+    assertNull(PathUtils.cleanPath("/foo/bar/../../.."));
   }
 
   /**
@@ -68,7 +75,7 @@ public class PathUtilsTest {
   @Test
   public void cleanPathException() throws InvalidPathException {
     mException.expect(InvalidPathException.class);
-    Assert.assertEquals("/foo/bar", PathUtils.cleanPath("/\\   foo / bar"));
+    PathUtils.cleanPath("");
   }
 
   /**
@@ -76,44 +83,39 @@ public class PathUtilsTest {
    */
   @Test
   public void concatPath() {
-    Assert.assertEquals("/", PathUtils.concatPath("/"));
-    Assert.assertEquals("/", PathUtils.concatPath("/", ""));
-    Assert.assertEquals("/bar", PathUtils.concatPath("/", "bar"));
+    assertEquals("/", PathUtils.concatPath("/"));
+    assertEquals("/", PathUtils.concatPath("/", ""));
+    assertEquals("/bar", PathUtils.concatPath("/", "bar"));
 
-    Assert.assertEquals("foo", PathUtils.concatPath("foo"));
-    Assert.assertEquals("/foo", PathUtils.concatPath("/foo"));
-    Assert.assertEquals("/foo", PathUtils.concatPath("/foo", ""));
+    assertEquals("foo", PathUtils.concatPath("foo"));
+    assertEquals("/foo", PathUtils.concatPath("/foo"));
+    assertEquals("/foo", PathUtils.concatPath("/foo", ""));
 
     // Join base without trailing "/"
-    Assert.assertEquals("/foo/bar", PathUtils.concatPath("/foo", "bar"));
-    Assert.assertEquals("/foo/bar", PathUtils.concatPath("/foo", "bar/"));
-    Assert.assertEquals("/foo/bar", PathUtils.concatPath("/foo", "/bar"));
-    Assert.assertEquals("/foo/bar", PathUtils.concatPath("/foo", "/bar/"));
+    assertEquals("/foo/bar", PathUtils.concatPath("/foo", "bar"));
+    assertEquals("/foo/bar", PathUtils.concatPath("/foo", "bar/"));
+    assertEquals("/foo/bar", PathUtils.concatPath("/foo", "/bar"));
+    assertEquals("/foo/bar", PathUtils.concatPath("/foo", "/bar/"));
 
     // Join base with trailing "/"
-    Assert.assertEquals("/foo/bar", PathUtils.concatPath("/foo/", "bar"));
-    Assert.assertEquals("/foo/bar", PathUtils.concatPath("/foo/", "bar/"));
-    Assert.assertEquals("/foo/bar", PathUtils.concatPath("/foo/", "/bar"));
-    Assert.assertEquals("/foo/bar", PathUtils.concatPath("/foo/", "/bar/"));
-
-    // Whitespace must be trimmed.
-    Assert.assertEquals("/foo/bar", PathUtils.concatPath("/foo ", "bar  "));
-    Assert.assertEquals("/foo/bar", PathUtils.concatPath("/foo ", "  bar"));
-    Assert.assertEquals("/foo/bar", PathUtils.concatPath("/foo ", "  bar  "));
+    assertEquals("/foo/bar", PathUtils.concatPath("/foo/", "bar"));
+    assertEquals("/foo/bar", PathUtils.concatPath("/foo/", "bar/"));
+    assertEquals("/foo/bar", PathUtils.concatPath("/foo/", "/bar"));
+    assertEquals("/foo/bar", PathUtils.concatPath("/foo/", "/bar/"));
 
     // Redundant separator must be trimmed.
-    Assert.assertEquals("/foo/bar", PathUtils.concatPath("/foo/", "bar//"));
+    assertEquals("/foo/bar", PathUtils.concatPath("/foo/", "bar//"));
 
     // Multiple components to join.
-    Assert.assertEquals("/foo/bar/a/b/c", PathUtils.concatPath("/foo", "bar", "a", "b", "c"));
-    Assert.assertEquals("/foo/bar/b/c", PathUtils.concatPath("/foo", "bar", "", "b", "c"));
+    assertEquals("/foo/bar/a/b/c", PathUtils.concatPath("/foo", "bar", "a", "b", "c"));
+    assertEquals("/foo/bar/b/c", PathUtils.concatPath("/foo", "bar", "", "b", "c"));
 
     // Non-string
-    Assert.assertEquals("/foo/bar/1", PathUtils.concatPath("/foo", "bar", 1));
-    Assert.assertEquals("/foo/bar/2", PathUtils.concatPath("/foo", "bar", 2L));
+    assertEquals("/foo/bar/1", PathUtils.concatPath("/foo", "bar", 1));
+    assertEquals("/foo/bar/2", PathUtils.concatPath("/foo", "bar", 2L));
 
     // Header
-    Assert.assertEquals(Constants.HEADER + "host:port/foo/bar",
+    assertEquals(Constants.HEADER + "host:port/foo/bar",
         PathUtils.concatPath(Constants.HEADER + "host:port", "/foo", "bar"));
   }
 
@@ -123,20 +125,20 @@ public class PathUtilsTest {
   @Test
   public void getParent() throws InvalidPathException {
     // get a parent that is non-root
-    Assert.assertEquals("/foo", PathUtils.getParent("/foo/bar"));
-    Assert.assertEquals("/foo", PathUtils.getParent("/foo/bar/"));
-    Assert.assertEquals("/foo", PathUtils.getParent("/foo/./bar/"));
-    Assert.assertEquals("/foo", PathUtils.getParent("/foo/././bar/"));
+    assertEquals("/foo", PathUtils.getParent("/foo/bar"));
+    assertEquals("/foo", PathUtils.getParent("/foo/bar/"));
+    assertEquals("/foo", PathUtils.getParent("/foo/./bar/"));
+    assertEquals("/foo", PathUtils.getParent("/foo/././bar/"));
 
     // get a parent that is root
-    Assert.assertEquals("/", PathUtils.getParent("/foo"));
-    Assert.assertEquals("/", PathUtils.getParent("/foo/bar/../"));
-    Assert.assertEquals("/", PathUtils.getParent("/foo/../bar/"));
+    assertEquals("/", PathUtils.getParent("/foo"));
+    assertEquals("/", PathUtils.getParent("/foo/bar/../"));
+    assertEquals("/", PathUtils.getParent("/foo/../bar/"));
 
     // get parent of root
-    Assert.assertEquals("/", PathUtils.getParent("/"));
-    Assert.assertEquals("/", PathUtils.getParent("/foo/bar/../../"));
-    Assert.assertEquals("/", PathUtils.getParent("/foo/../bar/../"));
+    assertEquals("/", PathUtils.getParent("/"));
+    assertEquals("/", PathUtils.getParent("/foo/bar/../../"));
+    assertEquals("/", PathUtils.getParent("/foo/../bar/../"));
   }
 
   /**
@@ -144,15 +146,15 @@ public class PathUtilsTest {
    */
   @Test
   public void getPathComponentsNoException() throws InvalidPathException {
-    Assert.assertArrayEquals(new String[] {""}, PathUtils.getPathComponents("/"));
-    Assert.assertArrayEquals(new String[] {"", "bar"}, PathUtils.getPathComponents("/bar"));
-    Assert.assertArrayEquals(new String[] {"", "foo", "bar"},
+    assertArrayEquals(new String[] {""}, PathUtils.getPathComponents("/"));
+    assertArrayEquals(new String[] {"", "bar"}, PathUtils.getPathComponents("/bar"));
+    assertArrayEquals(new String[] {"", "foo", "bar"},
         PathUtils.getPathComponents("/foo/bar"));
-    Assert.assertArrayEquals(new String[] {"", "foo", "bar"},
+    assertArrayEquals(new String[] {"", "foo", "bar"},
         PathUtils.getPathComponents("/foo/bar/"));
-    Assert.assertArrayEquals(new String[] {"", "bar"},
+    assertArrayEquals(new String[] {"", "bar"},
         PathUtils.getPathComponents("/foo/../bar"));
-    Assert.assertArrayEquals(new String[] {"", "foo", "bar", "a", "b", "c"},
+    assertArrayEquals(new String[] {"", "foo", "bar", "a", "b", "c"},
         PathUtils.getPathComponents("/foo//bar/a/b/c"));
   }
 
@@ -163,7 +165,7 @@ public class PathUtilsTest {
   @Test
   public void getPathComponentsException() throws InvalidPathException {
     mException.expect(InvalidPathException.class);
-    PathUtils.getPathComponents("/\\   foo / bar");
+    PathUtils.getPathComponents("");
   }
 
   /**
@@ -171,14 +173,14 @@ public class PathUtilsTest {
    */
   @Test
   public void subtractPaths() throws InvalidPathException {
-    Assert.assertEquals("b/c", PathUtils.subtractPaths("/a/b/c", "/a"));
-    Assert.assertEquals("b/c", PathUtils.subtractPaths("/a/b/c", "/a/"));
-    Assert.assertEquals("b/c", PathUtils.subtractPaths("/a/b/c", "/a/"));
-    Assert.assertEquals("c", PathUtils.subtractPaths("/a/b/c", "/a/b"));
-    Assert.assertEquals("a/b/c", PathUtils.subtractPaths("/a/b/c", "/"));
-    Assert.assertEquals("", PathUtils.subtractPaths("/", "/"));
-    Assert.assertEquals("", PathUtils.subtractPaths("/a/b/", "/a/b"));
-    Assert.assertEquals("", PathUtils.subtractPaths("/a/b", "/a/b"));
+    assertEquals("b/c", PathUtils.subtractPaths("/a/b/c", "/a"));
+    assertEquals("b/c", PathUtils.subtractPaths("/a/b/c", "/a/"));
+    assertEquals("b/c", PathUtils.subtractPaths("/a/b/c", "/a/"));
+    assertEquals("c", PathUtils.subtractPaths("/a/b/c", "/a/b"));
+    assertEquals("a/b/c", PathUtils.subtractPaths("/a/b/c", "/"));
+    assertEquals("", PathUtils.subtractPaths("/", "/"));
+    assertEquals("", PathUtils.subtractPaths("/a/b/", "/a/b"));
+    assertEquals("", PathUtils.subtractPaths("/a/b", "/a/b"));
   }
 
   /**
@@ -189,22 +191,22 @@ public class PathUtilsTest {
   public void subtractPathsException() throws InvalidPathException {
     try {
       PathUtils.subtractPaths("", "/");
-      Assert.fail("\"\" should throw an InvalidPathException");
+      fail("\"\" should throw an InvalidPathException");
     } catch (InvalidPathException e) {
-      Assert.assertEquals(ExceptionMessage.PATH_INVALID.getMessage(""), e.getMessage());
+      assertEquals(ExceptionMessage.PATH_INVALID.getMessage(""), e.getMessage());
     }
     try {
       PathUtils.subtractPaths("/", "noslash");
-      Assert.fail("noslash should be an invalid path");
+      fail("noslash should be an invalid path");
     } catch (InvalidPathException e) {
-      Assert.assertEquals(ExceptionMessage.PATH_INVALID.getMessage("noslash"), e.getMessage());
+      assertEquals(ExceptionMessage.PATH_INVALID.getMessage("noslash"), e.getMessage());
     }
     try {
       PathUtils.subtractPaths("/a", "/not/a/prefix");
-      Assert.fail("subtractPaths should complain about the prefix not being a prefix");
+      fail("subtractPaths should complain about the prefix not being a prefix");
     } catch (RuntimeException e) {
       String expectedMessage = "Cannot subtract /not/a/prefix from /a because it is not a prefix";
-      Assert.assertEquals(expectedMessage, e.getMessage());
+      assertEquals(expectedMessage, e.getMessage());
     }
   }
 
@@ -213,22 +215,22 @@ public class PathUtilsTest {
    */
   @Test
   public void hasPrefix() throws InvalidPathException {
-    Assert.assertTrue(PathUtils.hasPrefix("/", "/"));
-    Assert.assertTrue(PathUtils.hasPrefix("/a", "/a"));
-    Assert.assertTrue(PathUtils.hasPrefix("/a", "/a/"));
-    Assert.assertTrue(PathUtils.hasPrefix("/a/b/c", "/a"));
-    Assert.assertTrue(PathUtils.hasPrefix("/a/b/c", "/a/b"));
-    Assert.assertTrue(PathUtils.hasPrefix("/a/b/c", "/a/b/c"));
-    Assert.assertFalse(PathUtils.hasPrefix("/", "/a"));
-    Assert.assertFalse(PathUtils.hasPrefix("/", "/a/b/c"));
-    Assert.assertFalse(PathUtils.hasPrefix("/a", "/a/b/c"));
-    Assert.assertFalse(PathUtils.hasPrefix("/a/b", "/a/b/c"));
-    Assert.assertFalse(PathUtils.hasPrefix("/a/b/c", "/aa"));
-    Assert.assertFalse(PathUtils.hasPrefix("/a/b/c", "/a/bb"));
-    Assert.assertFalse(PathUtils.hasPrefix("/a/b/c", "/a/b/cc"));
-    Assert.assertFalse(PathUtils.hasPrefix("/aa/b/c", "/a"));
-    Assert.assertFalse(PathUtils.hasPrefix("/a/bb/c", "/a/b"));
-    Assert.assertFalse(PathUtils.hasPrefix("/a/b/cc", "/a/b/c"));
+    assertTrue(PathUtils.hasPrefix("/", "/"));
+    assertTrue(PathUtils.hasPrefix("/a", "/a"));
+    assertTrue(PathUtils.hasPrefix("/a", "/a/"));
+    assertTrue(PathUtils.hasPrefix("/a/b/c", "/a"));
+    assertTrue(PathUtils.hasPrefix("/a/b/c", "/a/b"));
+    assertTrue(PathUtils.hasPrefix("/a/b/c", "/a/b/c"));
+    assertFalse(PathUtils.hasPrefix("/", "/a"));
+    assertFalse(PathUtils.hasPrefix("/", "/a/b/c"));
+    assertFalse(PathUtils.hasPrefix("/a", "/a/b/c"));
+    assertFalse(PathUtils.hasPrefix("/a/b", "/a/b/c"));
+    assertFalse(PathUtils.hasPrefix("/a/b/c", "/aa"));
+    assertFalse(PathUtils.hasPrefix("/a/b/c", "/a/bb"));
+    assertFalse(PathUtils.hasPrefix("/a/b/c", "/a/b/cc"));
+    assertFalse(PathUtils.hasPrefix("/aa/b/c", "/a"));
+    assertFalse(PathUtils.hasPrefix("/a/bb/c", "/a/b"));
+    assertFalse(PathUtils.hasPrefix("/a/b/cc", "/a/b/c"));
   }
 
   /**
@@ -237,20 +239,20 @@ public class PathUtilsTest {
   @Test
   public void isRoot() throws InvalidPathException {
     // check a path that is non-root
-    Assert.assertFalse(PathUtils.isRoot("/foo/bar"));
-    Assert.assertFalse(PathUtils.isRoot("/foo/bar/"));
-    Assert.assertFalse(PathUtils.isRoot("/foo/./bar/"));
-    Assert.assertFalse(PathUtils.isRoot("/foo/././bar/"));
-    Assert.assertFalse(PathUtils.isRoot("/foo/../bar"));
-    Assert.assertFalse(PathUtils.isRoot("/foo/../bar/"));
+    assertFalse(PathUtils.isRoot("/foo/bar"));
+    assertFalse(PathUtils.isRoot("/foo/bar/"));
+    assertFalse(PathUtils.isRoot("/foo/./bar/"));
+    assertFalse(PathUtils.isRoot("/foo/././bar/"));
+    assertFalse(PathUtils.isRoot("/foo/../bar"));
+    assertFalse(PathUtils.isRoot("/foo/../bar/"));
 
     // check a path that is root
-    Assert.assertTrue(PathUtils.isRoot("/"));
-    Assert.assertTrue(PathUtils.isRoot("/"));
-    Assert.assertTrue(PathUtils.isRoot("/."));
-    Assert.assertTrue(PathUtils.isRoot("/./"));
-    Assert.assertTrue(PathUtils.isRoot("/foo/.."));
-    Assert.assertTrue(PathUtils.isRoot("/foo/../"));
+    assertTrue(PathUtils.isRoot("/"));
+    assertTrue(PathUtils.isRoot("/"));
+    assertTrue(PathUtils.isRoot("/."));
+    assertTrue(PathUtils.isRoot("/./"));
+    assertTrue(PathUtils.isRoot("/foo/.."));
+    assertTrue(PathUtils.isRoot("/foo/../"));
   }
 
   /**
@@ -258,20 +260,20 @@ public class PathUtilsTest {
    */
   @Test
   public void temporaryFileName() {
-    Assert.assertEquals(PathUtils.temporaryFileName(1, "/"),
+    assertEquals(PathUtils.temporaryFileName(1, "/"),
         PathUtils.temporaryFileName(1, "/"));
-    Assert.assertNotEquals(PathUtils.temporaryFileName(1, "/"),
+    assertNotEquals(PathUtils.temporaryFileName(1, "/"),
         PathUtils.temporaryFileName(2, "/"));
-    Assert.assertNotEquals(PathUtils.temporaryFileName(1, "/"),
+    assertNotEquals(PathUtils.temporaryFileName(1, "/"),
         PathUtils.temporaryFileName(1, "/a"));
   }
 
   @Test
   public void getPermanentFileName() {
-    Assert.assertEquals("/", PathUtils.getPermanentFileName(PathUtils.temporaryFileName(1, "/")));
-    Assert.assertEquals("/",
+    assertEquals("/", PathUtils.getPermanentFileName(PathUtils.temporaryFileName(1, "/")));
+    assertEquals("/",
         PathUtils.getPermanentFileName(PathUtils.temporaryFileName(0xFFFFFFFFFFFFFFFFL, "/")));
-    Assert.assertEquals("/foo.alluxio.0x0123456789ABCDEF.tmp", PathUtils
+    assertEquals("/foo.alluxio.0x0123456789ABCDEF.tmp", PathUtils
         .getPermanentFileName(PathUtils.temporaryFileName(14324,
             "/foo.alluxio.0x0123456789ABCDEF.tmp")));
   }
@@ -281,15 +283,15 @@ public class PathUtilsTest {
    */
   @Test
   public void isTemporaryFileName() {
-    Assert.assertTrue(PathUtils.isTemporaryFileName(PathUtils.temporaryFileName(0, "/")));
-    Assert.assertTrue(
+    assertTrue(PathUtils.isTemporaryFileName(PathUtils.temporaryFileName(0, "/")));
+    assertTrue(
         PathUtils.isTemporaryFileName(PathUtils.temporaryFileName(0xFFFFFFFFFFFFFFFFL, "/")));
-    Assert.assertTrue(PathUtils.isTemporaryFileName("foo.alluxio.0x0123456789ABCDEF.tmp"));
-    Assert.assertFalse(PathUtils.isTemporaryFileName("foo.alluxio.0x      0123456789.tmp"));
-    Assert.assertFalse(PathUtils.isTemporaryFileName("foo.alluxio.0x0123456789ABCDEFG.tmp"));
-    Assert.assertFalse(PathUtils.isTemporaryFileName("foo.alluxio.0x0123456789ABCDE.tmp"));
-    Assert.assertFalse(PathUtils.isTemporaryFileName("foo.0x0123456789ABCDEFG.tmp"));
-    Assert.assertFalse(PathUtils.isTemporaryFileName("alluxio.0x0123456789ABCDEFG"));
+    assertTrue(PathUtils.isTemporaryFileName("foo.alluxio.0x0123456789ABCDEF.tmp"));
+    assertFalse(PathUtils.isTemporaryFileName("foo.alluxio.0x      0123456789.tmp"));
+    assertFalse(PathUtils.isTemporaryFileName("foo.alluxio.0x0123456789ABCDEFG.tmp"));
+    assertFalse(PathUtils.isTemporaryFileName("foo.alluxio.0x0123456789ABCDE.tmp"));
+    assertFalse(PathUtils.isTemporaryFileName("foo.0x0123456789ABCDEFG.tmp"));
+    assertFalse(PathUtils.isTemporaryFileName("alluxio.0x0123456789ABCDEFG"));
   }
 
   /**
@@ -297,7 +299,7 @@ public class PathUtilsTest {
    */
   @Test
   public void uniqPath() {
-    Assert.assertNotEquals(PathUtils.uniqPath(), PathUtils.uniqPath());
+    assertNotEquals(PathUtils.uniqPath(), PathUtils.uniqPath());
   }
 
   /**
@@ -316,15 +318,13 @@ public class PathUtilsTest {
     PathUtils.validatePath("/foo/../bar/");
 
     // check invalid paths
-    LinkedList<String> invalidPaths = new LinkedList<>();
+    ArrayList<String> invalidPaths = new ArrayList<>();
     invalidPaths.add(null);
     invalidPaths.add("");
-    invalidPaths.add(" /");
-    invalidPaths.add("/ ");
     for (String invalidPath : invalidPaths) {
       try {
         PathUtils.validatePath(invalidPath);
-        Assert.fail("validatePath(" + invalidPath + ") did not fail");
+        fail("validatePath(" + invalidPath + ") did not fail");
       } catch (InvalidPathException e) {
         // this is expected
       }
@@ -336,11 +336,11 @@ public class PathUtilsTest {
    */
   @Test
   public void normalizePath() throws Exception {
-    Assert.assertEquals("/", PathUtils.normalizePath("", "/"));
-    Assert.assertEquals("/", PathUtils.normalizePath("/", "/"));
-    Assert.assertEquals("/foo/bar/", PathUtils.normalizePath("/foo/bar", "/"));
-    Assert.assertEquals("/foo/bar/", PathUtils.normalizePath("/foo/bar/", "/"));
-    Assert.assertEquals("/foo/bar//", PathUtils.normalizePath("/foo/bar//", "/"));
-    Assert.assertEquals("/foo/bar%", PathUtils.normalizePath("/foo/bar", "%"));
+    assertEquals("/", PathUtils.normalizePath("", "/"));
+    assertEquals("/", PathUtils.normalizePath("/", "/"));
+    assertEquals("/foo/bar/", PathUtils.normalizePath("/foo/bar", "/"));
+    assertEquals("/foo/bar/", PathUtils.normalizePath("/foo/bar/", "/"));
+    assertEquals("/foo/bar//", PathUtils.normalizePath("/foo/bar//", "/"));
+    assertEquals("/foo/bar%", PathUtils.normalizePath("/foo/bar", "%"));
   }
 }

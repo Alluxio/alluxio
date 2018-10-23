@@ -29,11 +29,25 @@ public final class HeartbeatContext {
   public static final Class<? extends HeartbeatTimer> SLEEPING_TIMER_CLASS = SleepingTimer.class;
 
   // Names of different heartbeat executors.
+  public static final String JOB_MASTER_LOST_WORKER_DETECTION = "Job Master Lost Worker Detection";
+  public static final String JOB_WORKER_COMMAND_HANDLING =
+      "Job Worker Command Handling";
+  public static final String MASTER_PERSISTENCE_CHECKER = "Master Persistence Checker";
+  public static final String MASTER_PERSISTENCE_SCHEDULER = "Master Persistence Scheduler";
+  public static final String MASTER_REPLICATION_CHECK = "Master Replication Check";
+  public static final String MASTER_BLOCK_INTEGRITY_CHECK = "Master Block Integrity Check";
+  public static final String MASTER_CLUSTER_METRICS_UPDATER = "Master Cluster Metrics Updater";
   public static final String MASTER_CHECKPOINT_SCHEDULING = "Master Checkpoint Scheduling";
   public static final String MASTER_FILE_RECOMPUTATION = "Master File Recomputation";
+  public static final String MASTER_LOG_CONFIG_REPORT_SCHEDULING
+      = "Master Log Config Report Scheduling";
   public static final String MASTER_LOST_FILES_DETECTION = "Master Lost Files Detection";
+  public static final String MASTER_LOST_MASTER_DETECTION = "Master Lost Master Detection";
   public static final String MASTER_LOST_WORKER_DETECTION = "Master Lost Worker Detection";
+  public static final String MASTER_METRICS_SYNC = "Master Metrics Sync";
+  public static final String MASTER_UFS_CLEANUP = "Master Ufs Cleanup";
   public static final String MASTER_TTL_CHECK = "Master TTL Check";
+  public static final String META_MASTER_SYNC = "Meta Master Sync";
   public static final String WORKER_BLOCK_SYNC = "Worker Block Sync";
   public static final String WORKER_CLIENT = "Worker Client";
   public static final String WORKER_FILESYSTEM_MASTER_SYNC = "Worker FileSystemMaster Sync";
@@ -42,16 +56,28 @@ public final class HeartbeatContext {
 
   static {
     sTimerClasses = new HashMap<>();
+    sTimerClasses.put(MASTER_PERSISTENCE_CHECKER, SLEEPING_TIMER_CLASS);
+    sTimerClasses.put(MASTER_PERSISTENCE_SCHEDULER, SLEEPING_TIMER_CLASS);
+    sTimerClasses.put(MASTER_REPLICATION_CHECK, SLEEPING_TIMER_CLASS);
+    sTimerClasses.put(JOB_MASTER_LOST_WORKER_DETECTION, SLEEPING_TIMER_CLASS);
+    sTimerClasses.put(JOB_WORKER_COMMAND_HANDLING, SLEEPING_TIMER_CLASS);
+    sTimerClasses.put(MASTER_BLOCK_INTEGRITY_CHECK, SLEEPING_TIMER_CLASS);
+    sTimerClasses.put(MASTER_CLUSTER_METRICS_UPDATER, SLEEPING_TIMER_CLASS);
     sTimerClasses.put(MASTER_CHECKPOINT_SCHEDULING, SLEEPING_TIMER_CLASS);
     sTimerClasses.put(MASTER_FILE_RECOMPUTATION, SLEEPING_TIMER_CLASS);
+    sTimerClasses.put(MASTER_LOG_CONFIG_REPORT_SCHEDULING, SLEEPING_TIMER_CLASS);
     sTimerClasses.put(MASTER_LOST_FILES_DETECTION, SLEEPING_TIMER_CLASS);
+    sTimerClasses.put(MASTER_LOST_MASTER_DETECTION, SLEEPING_TIMER_CLASS);
     sTimerClasses.put(MASTER_LOST_WORKER_DETECTION, SLEEPING_TIMER_CLASS);
+    sTimerClasses.put(MASTER_UFS_CLEANUP, SLEEPING_TIMER_CLASS);
     sTimerClasses.put(MASTER_TTL_CHECK, SLEEPING_TIMER_CLASS);
+    sTimerClasses.put(META_MASTER_SYNC, SLEEPING_TIMER_CLASS);
     sTimerClasses.put(WORKER_FILESYSTEM_MASTER_SYNC, SLEEPING_TIMER_CLASS);
     sTimerClasses.put(WORKER_BLOCK_SYNC, SLEEPING_TIMER_CLASS);
     sTimerClasses.put(WORKER_CLIENT, SLEEPING_TIMER_CLASS);
     sTimerClasses.put(WORKER_PIN_LIST_SYNC, SLEEPING_TIMER_CLASS);
     sTimerClasses.put(WORKER_SPACE_RESERVER, SLEEPING_TIMER_CLASS);
+    sTimerClasses.put(MASTER_METRICS_SYNC, SLEEPING_TIMER_CLASS);
   }
 
   private HeartbeatContext() {} // to prevent initialization

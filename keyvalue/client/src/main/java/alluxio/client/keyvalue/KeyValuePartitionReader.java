@@ -40,12 +40,10 @@ public interface KeyValuePartitionReader extends Closeable, KeyValueIterable {
      *
      * @param uri Alluxio URI of the key-value partition to use as input
      * @return an instance of a {@link KeyValuePartitionReader}
-     * @throws IOException if a non-Alluxio exception occurs
-     * @throws AlluxioException if an unexpected Alluxio exception is thrown
      */
     public static KeyValuePartitionReader create(AlluxioURI uri)
         throws AlluxioException, IOException {
-      Preconditions.checkNotNull(uri);
+      Preconditions.checkNotNull(uri, "uri");
       FileSystem fs = FileSystem.Factory.get();
       List<Long> blockIds = fs.getStatus(uri).getBlockIds();
       // Each partition file should only contain one block.
@@ -60,8 +58,6 @@ public interface KeyValuePartitionReader extends Closeable, KeyValueIterable {
      *
      * @param blockId blockId the key-value partition to use as input
      * @return an instance of a {@link KeyValuePartitionReader}
-     * @throws IOException if a non-Alluxio exception occurs
-     * @throws AlluxioException if an unexpected Alluxio exception is thrown
      */
     public static KeyValuePartitionReader create(long blockId)
         throws AlluxioException, IOException {
@@ -75,8 +71,6 @@ public interface KeyValuePartitionReader extends Closeable, KeyValueIterable {
    *
    * @param key key to get, cannot be null
    * @return bytes of the value if found, null otherwise
-   * @throws IOException if a non-Alluxio exception occurs
-   * @throws AlluxioException if an unexpected Alluxio exception is thrown
    */
   byte[] get(byte[] key) throws IOException, AlluxioException;
 
@@ -87,15 +81,11 @@ public interface KeyValuePartitionReader extends Closeable, KeyValueIterable {
    *
    * @param key key to get, cannot be null
    * @return bytes of the value if found, null otherwise
-   * @throws IOException if a non-Alluxio exception occurs
-   * @throws AlluxioException if an unexpected Alluxio exception is thrown
    */
   ByteBuffer get(ByteBuffer key) throws IOException, AlluxioException;
 
   /**
    * @return the number of key-value pairs in the partition
-   * @throws IOException if a non-Alluxio error occurs
-   * @throws AlluxioException if an Alluxio error occurs
    */
   int size() throws IOException, AlluxioException;
 }

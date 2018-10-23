@@ -42,13 +42,6 @@ public class FileSystemMasterWorkerService {
    */
   public interface Iface extends alluxio.thrift.AlluxioService.Iface {
 
-    public FileInfo getFileInfo(long fileId) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException;
-
-    /**
-     * Returns the set of pinned files.
-     */
-    public Set<Long> getPinIdList() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException;
-
     /**
      * Periodic file system worker heartbeat. Returns the command for persisting
      * the blocks of a file.
@@ -56,18 +49,41 @@ public class FileSystemMasterWorkerService {
      * @param workerId the id of the worker
      * 
      * @param persistedFiles the list of persisted files
+     * 
+     * @param options the method options
      */
-    public FileSystemCommand heartbeat(long workerId, List<Long> persistedFiles) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException;
+    public FileSystemHeartbeatTResponse fileSystemHeartbeat(long workerId, List<Long> persistedFiles, FileSystemHeartbeatTOptions options) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException;
+
+    public GetFileInfoTResponse getFileInfo(long fileId, GetFileInfoTOptions options) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException;
+
+    /**
+     * Returns the set of pinned file ids.
+     * 
+     * @param options the method options
+     */
+    public GetPinnedFileIdsTResponse getPinnedFileIds(GetPinnedFileIdsTOptions options) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException;
+
+    /**
+     * Returns the UFS information for the given mount point identified by its id.
+     * 
+     * 
+     * @param mountId the id of the ufs
+     * 
+     * @param options the method options
+     */
+    public GetUfsInfoTResponse getUfsInfo(long mountId, GetUfsInfoTOptions options) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException;
 
   }
 
   public interface AsyncIface extends alluxio.thrift.AlluxioService .AsyncIface {
 
-    public void getFileInfo(long fileId, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
+    public void fileSystemHeartbeat(long workerId, List<Long> persistedFiles, FileSystemHeartbeatTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
-    public void getPinIdList(org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
+    public void getFileInfo(long fileId, GetFileInfoTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
-    public void heartbeat(long workerId, List<Long> persistedFiles, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
+    public void getPinnedFileIds(GetPinnedFileIdsTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
+
+    public void getUfsInfo(long mountId, GetUfsInfoTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
   }
 
@@ -91,20 +107,49 @@ public class FileSystemMasterWorkerService {
       super(iprot, oprot);
     }
 
-    public FileInfo getFileInfo(long fileId) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
+    public FileSystemHeartbeatTResponse fileSystemHeartbeat(long workerId, List<Long> persistedFiles, FileSystemHeartbeatTOptions options) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
     {
-      send_getFileInfo(fileId);
+      send_fileSystemHeartbeat(workerId, persistedFiles, options);
+      return recv_fileSystemHeartbeat();
+    }
+
+    public void send_fileSystemHeartbeat(long workerId, List<Long> persistedFiles, FileSystemHeartbeatTOptions options) throws org.apache.thrift.TException
+    {
+      fileSystemHeartbeat_args args = new fileSystemHeartbeat_args();
+      args.setWorkerId(workerId);
+      args.setPersistedFiles(persistedFiles);
+      args.setOptions(options);
+      sendBase("fileSystemHeartbeat", args);
+    }
+
+    public FileSystemHeartbeatTResponse recv_fileSystemHeartbeat() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
+    {
+      fileSystemHeartbeat_result result = new fileSystemHeartbeat_result();
+      receiveBase(result, "fileSystemHeartbeat");
+      if (result.isSetSuccess()) {
+        return result.success;
+      }
+      if (result.e != null) {
+        throw result.e;
+      }
+      throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "fileSystemHeartbeat failed: unknown result");
+    }
+
+    public GetFileInfoTResponse getFileInfo(long fileId, GetFileInfoTOptions options) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
+    {
+      send_getFileInfo(fileId, options);
       return recv_getFileInfo();
     }
 
-    public void send_getFileInfo(long fileId) throws org.apache.thrift.TException
+    public void send_getFileInfo(long fileId, GetFileInfoTOptions options) throws org.apache.thrift.TException
     {
       getFileInfo_args args = new getFileInfo_args();
       args.setFileId(fileId);
+      args.setOptions(options);
       sendBase("getFileInfo", args);
     }
 
-    public FileInfo recv_getFileInfo() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
+    public GetFileInfoTResponse recv_getFileInfo() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
     {
       getFileInfo_result result = new getFileInfo_result();
       receiveBase(result, "getFileInfo");
@@ -117,56 +162,57 @@ public class FileSystemMasterWorkerService {
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "getFileInfo failed: unknown result");
     }
 
-    public Set<Long> getPinIdList() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
+    public GetPinnedFileIdsTResponse getPinnedFileIds(GetPinnedFileIdsTOptions options) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
     {
-      send_getPinIdList();
-      return recv_getPinIdList();
+      send_getPinnedFileIds(options);
+      return recv_getPinnedFileIds();
     }
 
-    public void send_getPinIdList() throws org.apache.thrift.TException
+    public void send_getPinnedFileIds(GetPinnedFileIdsTOptions options) throws org.apache.thrift.TException
     {
-      getPinIdList_args args = new getPinIdList_args();
-      sendBase("getPinIdList", args);
+      getPinnedFileIds_args args = new getPinnedFileIds_args();
+      args.setOptions(options);
+      sendBase("getPinnedFileIds", args);
     }
 
-    public Set<Long> recv_getPinIdList() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
+    public GetPinnedFileIdsTResponse recv_getPinnedFileIds() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
     {
-      getPinIdList_result result = new getPinIdList_result();
-      receiveBase(result, "getPinIdList");
+      getPinnedFileIds_result result = new getPinnedFileIds_result();
+      receiveBase(result, "getPinnedFileIds");
       if (result.isSetSuccess()) {
         return result.success;
       }
       if (result.e != null) {
         throw result.e;
       }
-      throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "getPinIdList failed: unknown result");
+      throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "getPinnedFileIds failed: unknown result");
     }
 
-    public FileSystemCommand heartbeat(long workerId, List<Long> persistedFiles) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
+    public GetUfsInfoTResponse getUfsInfo(long mountId, GetUfsInfoTOptions options) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
     {
-      send_heartbeat(workerId, persistedFiles);
-      return recv_heartbeat();
+      send_getUfsInfo(mountId, options);
+      return recv_getUfsInfo();
     }
 
-    public void send_heartbeat(long workerId, List<Long> persistedFiles) throws org.apache.thrift.TException
+    public void send_getUfsInfo(long mountId, GetUfsInfoTOptions options) throws org.apache.thrift.TException
     {
-      heartbeat_args args = new heartbeat_args();
-      args.setWorkerId(workerId);
-      args.setPersistedFiles(persistedFiles);
-      sendBase("heartbeat", args);
+      getUfsInfo_args args = new getUfsInfo_args();
+      args.setMountId(mountId);
+      args.setOptions(options);
+      sendBase("getUfsInfo", args);
     }
 
-    public FileSystemCommand recv_heartbeat() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
+    public GetUfsInfoTResponse recv_getUfsInfo() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
     {
-      heartbeat_result result = new heartbeat_result();
-      receiveBase(result, "heartbeat");
+      getUfsInfo_result result = new getUfsInfo_result();
+      receiveBase(result, "getUfsInfo");
       if (result.isSetSuccess()) {
         return result.success;
       }
       if (result.e != null) {
         throw result.e;
       }
-      throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "heartbeat failed: unknown result");
+      throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "getUfsInfo failed: unknown result");
     }
 
   }
@@ -187,29 +233,70 @@ public class FileSystemMasterWorkerService {
       super(protocolFactory, clientManager, transport);
     }
 
-    public void getFileInfo(long fileId, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
+    public void fileSystemHeartbeat(long workerId, List<Long> persistedFiles, FileSystemHeartbeatTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
       checkReady();
-      getFileInfo_call method_call = new getFileInfo_call(fileId, resultHandler, this, ___protocolFactory, ___transport);
+      fileSystemHeartbeat_call method_call = new fileSystemHeartbeat_call(workerId, persistedFiles, options, resultHandler, this, ___protocolFactory, ___transport);
+      this.___currentMethod = method_call;
+      ___manager.call(method_call);
+    }
+
+    public static class fileSystemHeartbeat_call extends org.apache.thrift.async.TAsyncMethodCall {
+      private long workerId;
+      private List<Long> persistedFiles;
+      private FileSystemHeartbeatTOptions options;
+      public fileSystemHeartbeat_call(long workerId, List<Long> persistedFiles, FileSystemHeartbeatTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+        super(client, protocolFactory, transport, resultHandler, false);
+        this.workerId = workerId;
+        this.persistedFiles = persistedFiles;
+        this.options = options;
+      }
+
+      public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
+        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("fileSystemHeartbeat", org.apache.thrift.protocol.TMessageType.CALL, 0));
+        fileSystemHeartbeat_args args = new fileSystemHeartbeat_args();
+        args.setWorkerId(workerId);
+        args.setPersistedFiles(persistedFiles);
+        args.setOptions(options);
+        args.write(prot);
+        prot.writeMessageEnd();
+      }
+
+      public FileSystemHeartbeatTResponse getResult() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException {
+        if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
+          throw new IllegalStateException("Method call not finished!");
+        }
+        org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
+        org.apache.thrift.protocol.TProtocol prot = client.getProtocolFactory().getProtocol(memoryTransport);
+        return (new Client(prot)).recv_fileSystemHeartbeat();
+      }
+    }
+
+    public void getFileInfo(long fileId, GetFileInfoTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
+      checkReady();
+      getFileInfo_call method_call = new getFileInfo_call(fileId, options, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
       ___manager.call(method_call);
     }
 
     public static class getFileInfo_call extends org.apache.thrift.async.TAsyncMethodCall {
       private long fileId;
-      public getFileInfo_call(long fileId, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+      private GetFileInfoTOptions options;
+      public getFileInfo_call(long fileId, GetFileInfoTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, false);
         this.fileId = fileId;
+        this.options = options;
       }
 
       public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
         prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("getFileInfo", org.apache.thrift.protocol.TMessageType.CALL, 0));
         getFileInfo_args args = new getFileInfo_args();
         args.setFileId(fileId);
+        args.setOptions(options);
         args.write(prot);
         prot.writeMessageEnd();
       }
 
-      public FileInfo getResult() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException {
+      public GetFileInfoTResponse getResult() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
@@ -219,67 +306,70 @@ public class FileSystemMasterWorkerService {
       }
     }
 
-    public void getPinIdList(org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
+    public void getPinnedFileIds(GetPinnedFileIdsTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
       checkReady();
-      getPinIdList_call method_call = new getPinIdList_call(resultHandler, this, ___protocolFactory, ___transport);
+      getPinnedFileIds_call method_call = new getPinnedFileIds_call(options, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
       ___manager.call(method_call);
     }
 
-    public static class getPinIdList_call extends org.apache.thrift.async.TAsyncMethodCall {
-      public getPinIdList_call(org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+    public static class getPinnedFileIds_call extends org.apache.thrift.async.TAsyncMethodCall {
+      private GetPinnedFileIdsTOptions options;
+      public getPinnedFileIds_call(GetPinnedFileIdsTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, false);
+        this.options = options;
       }
 
       public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
-        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("getPinIdList", org.apache.thrift.protocol.TMessageType.CALL, 0));
-        getPinIdList_args args = new getPinIdList_args();
+        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("getPinnedFileIds", org.apache.thrift.protocol.TMessageType.CALL, 0));
+        getPinnedFileIds_args args = new getPinnedFileIds_args();
+        args.setOptions(options);
         args.write(prot);
         prot.writeMessageEnd();
       }
 
-      public Set<Long> getResult() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException {
+      public GetPinnedFileIdsTResponse getResult() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
         org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
         org.apache.thrift.protocol.TProtocol prot = client.getProtocolFactory().getProtocol(memoryTransport);
-        return (new Client(prot)).recv_getPinIdList();
+        return (new Client(prot)).recv_getPinnedFileIds();
       }
     }
 
-    public void heartbeat(long workerId, List<Long> persistedFiles, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
+    public void getUfsInfo(long mountId, GetUfsInfoTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
       checkReady();
-      heartbeat_call method_call = new heartbeat_call(workerId, persistedFiles, resultHandler, this, ___protocolFactory, ___transport);
+      getUfsInfo_call method_call = new getUfsInfo_call(mountId, options, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
       ___manager.call(method_call);
     }
 
-    public static class heartbeat_call extends org.apache.thrift.async.TAsyncMethodCall {
-      private long workerId;
-      private List<Long> persistedFiles;
-      public heartbeat_call(long workerId, List<Long> persistedFiles, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+    public static class getUfsInfo_call extends org.apache.thrift.async.TAsyncMethodCall {
+      private long mountId;
+      private GetUfsInfoTOptions options;
+      public getUfsInfo_call(long mountId, GetUfsInfoTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, false);
-        this.workerId = workerId;
-        this.persistedFiles = persistedFiles;
+        this.mountId = mountId;
+        this.options = options;
       }
 
       public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
-        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("heartbeat", org.apache.thrift.protocol.TMessageType.CALL, 0));
-        heartbeat_args args = new heartbeat_args();
-        args.setWorkerId(workerId);
-        args.setPersistedFiles(persistedFiles);
+        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("getUfsInfo", org.apache.thrift.protocol.TMessageType.CALL, 0));
+        getUfsInfo_args args = new getUfsInfo_args();
+        args.setMountId(mountId);
+        args.setOptions(options);
         args.write(prot);
         prot.writeMessageEnd();
       }
 
-      public FileSystemCommand getResult() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException {
+      public GetUfsInfoTResponse getResult() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
         org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
         org.apache.thrift.protocol.TProtocol prot = client.getProtocolFactory().getProtocol(memoryTransport);
-        return (new Client(prot)).recv_heartbeat();
+        return (new Client(prot)).recv_getUfsInfo();
       }
     }
 
@@ -296,10 +386,35 @@ public class FileSystemMasterWorkerService {
     }
 
     private static <I extends Iface> Map<String,  org.apache.thrift.ProcessFunction<I, ? extends  org.apache.thrift.TBase>> getProcessMap(Map<String,  org.apache.thrift.ProcessFunction<I, ? extends  org.apache.thrift.TBase>> processMap) {
+      processMap.put("fileSystemHeartbeat", new fileSystemHeartbeat());
       processMap.put("getFileInfo", new getFileInfo());
-      processMap.put("getPinIdList", new getPinIdList());
-      processMap.put("heartbeat", new heartbeat());
+      processMap.put("getPinnedFileIds", new getPinnedFileIds());
+      processMap.put("getUfsInfo", new getUfsInfo());
       return processMap;
+    }
+
+    public static class fileSystemHeartbeat<I extends Iface> extends org.apache.thrift.ProcessFunction<I, fileSystemHeartbeat_args> {
+      public fileSystemHeartbeat() {
+        super("fileSystemHeartbeat");
+      }
+
+      public fileSystemHeartbeat_args getEmptyArgsInstance() {
+        return new fileSystemHeartbeat_args();
+      }
+
+      protected boolean isOneway() {
+        return false;
+      }
+
+      public fileSystemHeartbeat_result getResult(I iface, fileSystemHeartbeat_args args) throws org.apache.thrift.TException {
+        fileSystemHeartbeat_result result = new fileSystemHeartbeat_result();
+        try {
+          result.success = iface.fileSystemHeartbeat(args.workerId, args.persistedFiles, args.options);
+        } catch (alluxio.thrift.AlluxioTException e) {
+          result.e = e;
+        }
+        return result;
+      }
     }
 
     public static class getFileInfo<I extends Iface> extends org.apache.thrift.ProcessFunction<I, getFileInfo_args> {
@@ -318,7 +433,7 @@ public class FileSystemMasterWorkerService {
       public getFileInfo_result getResult(I iface, getFileInfo_args args) throws org.apache.thrift.TException {
         getFileInfo_result result = new getFileInfo_result();
         try {
-          result.success = iface.getFileInfo(args.fileId);
+          result.success = iface.getFileInfo(args.fileId, args.options);
         } catch (alluxio.thrift.AlluxioTException e) {
           result.e = e;
         }
@@ -326,23 +441,23 @@ public class FileSystemMasterWorkerService {
       }
     }
 
-    public static class getPinIdList<I extends Iface> extends org.apache.thrift.ProcessFunction<I, getPinIdList_args> {
-      public getPinIdList() {
-        super("getPinIdList");
+    public static class getPinnedFileIds<I extends Iface> extends org.apache.thrift.ProcessFunction<I, getPinnedFileIds_args> {
+      public getPinnedFileIds() {
+        super("getPinnedFileIds");
       }
 
-      public getPinIdList_args getEmptyArgsInstance() {
-        return new getPinIdList_args();
+      public getPinnedFileIds_args getEmptyArgsInstance() {
+        return new getPinnedFileIds_args();
       }
 
       protected boolean isOneway() {
         return false;
       }
 
-      public getPinIdList_result getResult(I iface, getPinIdList_args args) throws org.apache.thrift.TException {
-        getPinIdList_result result = new getPinIdList_result();
+      public getPinnedFileIds_result getResult(I iface, getPinnedFileIds_args args) throws org.apache.thrift.TException {
+        getPinnedFileIds_result result = new getPinnedFileIds_result();
         try {
-          result.success = iface.getPinIdList();
+          result.success = iface.getPinnedFileIds(args.options);
         } catch (alluxio.thrift.AlluxioTException e) {
           result.e = e;
         }
@@ -350,23 +465,23 @@ public class FileSystemMasterWorkerService {
       }
     }
 
-    public static class heartbeat<I extends Iface> extends org.apache.thrift.ProcessFunction<I, heartbeat_args> {
-      public heartbeat() {
-        super("heartbeat");
+    public static class getUfsInfo<I extends Iface> extends org.apache.thrift.ProcessFunction<I, getUfsInfo_args> {
+      public getUfsInfo() {
+        super("getUfsInfo");
       }
 
-      public heartbeat_args getEmptyArgsInstance() {
-        return new heartbeat_args();
+      public getUfsInfo_args getEmptyArgsInstance() {
+        return new getUfsInfo_args();
       }
 
       protected boolean isOneway() {
         return false;
       }
 
-      public heartbeat_result getResult(I iface, heartbeat_args args) throws org.apache.thrift.TException {
-        heartbeat_result result = new heartbeat_result();
+      public getUfsInfo_result getResult(I iface, getUfsInfo_args args) throws org.apache.thrift.TException {
+        getUfsInfo_result result = new getUfsInfo_result();
         try {
-          result.success = iface.heartbeat(args.workerId, args.persistedFiles);
+          result.success = iface.getUfsInfo(args.mountId, args.options);
         } catch (alluxio.thrift.AlluxioTException e) {
           result.e = e;
         }
@@ -387,13 +502,71 @@ public class FileSystemMasterWorkerService {
     }
 
     private static <I extends AsyncIface> Map<String,  org.apache.thrift.AsyncProcessFunction<I, ? extends  org.apache.thrift.TBase,?>> getProcessMap(Map<String,  org.apache.thrift.AsyncProcessFunction<I, ? extends  org.apache.thrift.TBase, ?>> processMap) {
+      processMap.put("fileSystemHeartbeat", new fileSystemHeartbeat());
       processMap.put("getFileInfo", new getFileInfo());
-      processMap.put("getPinIdList", new getPinIdList());
-      processMap.put("heartbeat", new heartbeat());
+      processMap.put("getPinnedFileIds", new getPinnedFileIds());
+      processMap.put("getUfsInfo", new getUfsInfo());
       return processMap;
     }
 
-    public static class getFileInfo<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, getFileInfo_args, FileInfo> {
+    public static class fileSystemHeartbeat<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, fileSystemHeartbeat_args, FileSystemHeartbeatTResponse> {
+      public fileSystemHeartbeat() {
+        super("fileSystemHeartbeat");
+      }
+
+      public fileSystemHeartbeat_args getEmptyArgsInstance() {
+        return new fileSystemHeartbeat_args();
+      }
+
+      public AsyncMethodCallback<FileSystemHeartbeatTResponse> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
+        final org.apache.thrift.AsyncProcessFunction fcall = this;
+        return new AsyncMethodCallback<FileSystemHeartbeatTResponse>() { 
+          public void onComplete(FileSystemHeartbeatTResponse o) {
+            fileSystemHeartbeat_result result = new fileSystemHeartbeat_result();
+            result.success = o;
+            try {
+              fcall.sendResponse(fb,result, org.apache.thrift.protocol.TMessageType.REPLY,seqid);
+              return;
+            } catch (Exception e) {
+              LOGGER.error("Exception writing to internal frame buffer", e);
+            }
+            fb.close();
+          }
+          public void onError(Exception e) {
+            byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
+            org.apache.thrift.TBase msg;
+            fileSystemHeartbeat_result result = new fileSystemHeartbeat_result();
+            if (e instanceof alluxio.thrift.AlluxioTException) {
+                        result.e = (alluxio.thrift.AlluxioTException) e;
+                        result.setEIsSet(true);
+                        msg = result;
+            }
+             else 
+            {
+              msgType = org.apache.thrift.protocol.TMessageType.EXCEPTION;
+              msg = (org.apache.thrift.TBase)new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.INTERNAL_ERROR, e.getMessage());
+            }
+            try {
+              fcall.sendResponse(fb,msg,msgType,seqid);
+              return;
+            } catch (Exception ex) {
+              LOGGER.error("Exception writing to internal frame buffer", ex);
+            }
+            fb.close();
+          }
+        };
+      }
+
+      protected boolean isOneway() {
+        return false;
+      }
+
+      public void start(I iface, fileSystemHeartbeat_args args, org.apache.thrift.async.AsyncMethodCallback<FileSystemHeartbeatTResponse> resultHandler) throws TException {
+        iface.fileSystemHeartbeat(args.workerId, args.persistedFiles, args.options,resultHandler);
+      }
+    }
+
+    public static class getFileInfo<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, getFileInfo_args, GetFileInfoTResponse> {
       public getFileInfo() {
         super("getFileInfo");
       }
@@ -402,10 +575,10 @@ public class FileSystemMasterWorkerService {
         return new getFileInfo_args();
       }
 
-      public AsyncMethodCallback<FileInfo> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
+      public AsyncMethodCallback<GetFileInfoTResponse> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
         final org.apache.thrift.AsyncProcessFunction fcall = this;
-        return new AsyncMethodCallback<FileInfo>() { 
-          public void onComplete(FileInfo o) {
+        return new AsyncMethodCallback<GetFileInfoTResponse>() { 
+          public void onComplete(GetFileInfoTResponse o) {
             getFileInfo_result result = new getFileInfo_result();
             result.success = o;
             try {
@@ -445,25 +618,25 @@ public class FileSystemMasterWorkerService {
         return false;
       }
 
-      public void start(I iface, getFileInfo_args args, org.apache.thrift.async.AsyncMethodCallback<FileInfo> resultHandler) throws TException {
-        iface.getFileInfo(args.fileId,resultHandler);
+      public void start(I iface, getFileInfo_args args, org.apache.thrift.async.AsyncMethodCallback<GetFileInfoTResponse> resultHandler) throws TException {
+        iface.getFileInfo(args.fileId, args.options,resultHandler);
       }
     }
 
-    public static class getPinIdList<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, getPinIdList_args, Set<Long>> {
-      public getPinIdList() {
-        super("getPinIdList");
+    public static class getPinnedFileIds<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, getPinnedFileIds_args, GetPinnedFileIdsTResponse> {
+      public getPinnedFileIds() {
+        super("getPinnedFileIds");
       }
 
-      public getPinIdList_args getEmptyArgsInstance() {
-        return new getPinIdList_args();
+      public getPinnedFileIds_args getEmptyArgsInstance() {
+        return new getPinnedFileIds_args();
       }
 
-      public AsyncMethodCallback<Set<Long>> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
+      public AsyncMethodCallback<GetPinnedFileIdsTResponse> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
         final org.apache.thrift.AsyncProcessFunction fcall = this;
-        return new AsyncMethodCallback<Set<Long>>() { 
-          public void onComplete(Set<Long> o) {
-            getPinIdList_result result = new getPinIdList_result();
+        return new AsyncMethodCallback<GetPinnedFileIdsTResponse>() { 
+          public void onComplete(GetPinnedFileIdsTResponse o) {
+            getPinnedFileIds_result result = new getPinnedFileIds_result();
             result.success = o;
             try {
               fcall.sendResponse(fb,result, org.apache.thrift.protocol.TMessageType.REPLY,seqid);
@@ -476,7 +649,7 @@ public class FileSystemMasterWorkerService {
           public void onError(Exception e) {
             byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
             org.apache.thrift.TBase msg;
-            getPinIdList_result result = new getPinIdList_result();
+            getPinnedFileIds_result result = new getPinnedFileIds_result();
             if (e instanceof alluxio.thrift.AlluxioTException) {
                         result.e = (alluxio.thrift.AlluxioTException) e;
                         result.setEIsSet(true);
@@ -502,25 +675,25 @@ public class FileSystemMasterWorkerService {
         return false;
       }
 
-      public void start(I iface, getPinIdList_args args, org.apache.thrift.async.AsyncMethodCallback<Set<Long>> resultHandler) throws TException {
-        iface.getPinIdList(resultHandler);
+      public void start(I iface, getPinnedFileIds_args args, org.apache.thrift.async.AsyncMethodCallback<GetPinnedFileIdsTResponse> resultHandler) throws TException {
+        iface.getPinnedFileIds(args.options,resultHandler);
       }
     }
 
-    public static class heartbeat<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, heartbeat_args, FileSystemCommand> {
-      public heartbeat() {
-        super("heartbeat");
+    public static class getUfsInfo<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, getUfsInfo_args, GetUfsInfoTResponse> {
+      public getUfsInfo() {
+        super("getUfsInfo");
       }
 
-      public heartbeat_args getEmptyArgsInstance() {
-        return new heartbeat_args();
+      public getUfsInfo_args getEmptyArgsInstance() {
+        return new getUfsInfo_args();
       }
 
-      public AsyncMethodCallback<FileSystemCommand> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
+      public AsyncMethodCallback<GetUfsInfoTResponse> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
         final org.apache.thrift.AsyncProcessFunction fcall = this;
-        return new AsyncMethodCallback<FileSystemCommand>() { 
-          public void onComplete(FileSystemCommand o) {
-            heartbeat_result result = new heartbeat_result();
+        return new AsyncMethodCallback<GetUfsInfoTResponse>() { 
+          public void onComplete(GetUfsInfoTResponse o) {
+            getUfsInfo_result result = new getUfsInfo_result();
             result.success = o;
             try {
               fcall.sendResponse(fb,result, org.apache.thrift.protocol.TMessageType.REPLY,seqid);
@@ -533,7 +706,7 @@ public class FileSystemMasterWorkerService {
           public void onError(Exception e) {
             byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
             org.apache.thrift.TBase msg;
-            heartbeat_result result = new heartbeat_result();
+            getUfsInfo_result result = new getUfsInfo_result();
             if (e instanceof alluxio.thrift.AlluxioTException) {
                         result.e = (alluxio.thrift.AlluxioTException) e;
                         result.setEIsSet(true);
@@ -559,32 +732,44 @@ public class FileSystemMasterWorkerService {
         return false;
       }
 
-      public void start(I iface, heartbeat_args args, org.apache.thrift.async.AsyncMethodCallback<FileSystemCommand> resultHandler) throws TException {
-        iface.heartbeat(args.workerId, args.persistedFiles,resultHandler);
+      public void start(I iface, getUfsInfo_args args, org.apache.thrift.async.AsyncMethodCallback<GetUfsInfoTResponse> resultHandler) throws TException {
+        iface.getUfsInfo(args.mountId, args.options,resultHandler);
       }
     }
 
   }
 
-  public static class getFileInfo_args implements org.apache.thrift.TBase<getFileInfo_args, getFileInfo_args._Fields>, java.io.Serializable, Cloneable, Comparable<getFileInfo_args>   {
-    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("getFileInfo_args");
+  public static class fileSystemHeartbeat_args implements org.apache.thrift.TBase<fileSystemHeartbeat_args, fileSystemHeartbeat_args._Fields>, java.io.Serializable, Cloneable, Comparable<fileSystemHeartbeat_args>   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("fileSystemHeartbeat_args");
 
-    private static final org.apache.thrift.protocol.TField FILE_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("fileId", org.apache.thrift.protocol.TType.I64, (short)1);
+    private static final org.apache.thrift.protocol.TField WORKER_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("workerId", org.apache.thrift.protocol.TType.I64, (short)1);
+    private static final org.apache.thrift.protocol.TField PERSISTED_FILES_FIELD_DESC = new org.apache.thrift.protocol.TField("persistedFiles", org.apache.thrift.protocol.TType.LIST, (short)2);
+    private static final org.apache.thrift.protocol.TField OPTIONS_FIELD_DESC = new org.apache.thrift.protocol.TField("options", org.apache.thrift.protocol.TType.STRUCT, (short)3);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
-      schemes.put(StandardScheme.class, new getFileInfo_argsStandardSchemeFactory());
-      schemes.put(TupleScheme.class, new getFileInfo_argsTupleSchemeFactory());
+      schemes.put(StandardScheme.class, new fileSystemHeartbeat_argsStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new fileSystemHeartbeat_argsTupleSchemeFactory());
     }
 
-    private long fileId; // required
+    private long workerId; // required
+    private List<Long> persistedFiles; // required
+    private FileSystemHeartbeatTOptions options; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
       /**
-       * the id of the file
+       * the id of the worker
        */
-      FILE_ID((short)1, "fileId");
+      WORKER_ID((short)1, "workerId"),
+      /**
+       * the list of persisted files
+       */
+      PERSISTED_FILES((short)2, "persistedFiles"),
+      /**
+       * the method options
+       */
+      OPTIONS((short)3, "options");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -599,8 +784,12 @@ public class FileSystemMasterWorkerService {
        */
       public static _Fields findByThriftId(int fieldId) {
         switch(fieldId) {
-          case 1: // FILE_ID
-            return FILE_ID;
+          case 1: // WORKER_ID
+            return WORKER_ID;
+          case 2: // PERSISTED_FILES
+            return PERSISTED_FILES;
+          case 3: // OPTIONS
+            return OPTIONS;
           default:
             return null;
         }
@@ -641,82 +830,191 @@ public class FileSystemMasterWorkerService {
     }
 
     // isset id assignments
-    private static final int __FILEID_ISSET_ID = 0;
+    private static final int __WORKERID_ISSET_ID = 0;
     private byte __isset_bitfield = 0;
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-      tmpMap.put(_Fields.FILE_ID, new org.apache.thrift.meta_data.FieldMetaData("fileId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.WORKER_ID, new org.apache.thrift.meta_data.FieldMetaData("workerId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
+      tmpMap.put(_Fields.PERSISTED_FILES, new org.apache.thrift.meta_data.FieldMetaData("persistedFiles", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.ListMetaData(org.apache.thrift.protocol.TType.LIST, 
+              new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64))));
+      tmpMap.put(_Fields.OPTIONS, new org.apache.thrift.meta_data.FieldMetaData("options", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, FileSystemHeartbeatTOptions.class)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
-      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(getFileInfo_args.class, metaDataMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(fileSystemHeartbeat_args.class, metaDataMap);
     }
 
-    public getFileInfo_args() {
+    public fileSystemHeartbeat_args() {
     }
 
-    public getFileInfo_args(
-      long fileId)
+    public fileSystemHeartbeat_args(
+      long workerId,
+      List<Long> persistedFiles,
+      FileSystemHeartbeatTOptions options)
     {
       this();
-      this.fileId = fileId;
-      setFileIdIsSet(true);
+      this.workerId = workerId;
+      setWorkerIdIsSet(true);
+      this.persistedFiles = persistedFiles;
+      this.options = options;
     }
 
     /**
      * Performs a deep copy on <i>other</i>.
      */
-    public getFileInfo_args(getFileInfo_args other) {
+    public fileSystemHeartbeat_args(fileSystemHeartbeat_args other) {
       __isset_bitfield = other.__isset_bitfield;
-      this.fileId = other.fileId;
+      this.workerId = other.workerId;
+      if (other.isSetPersistedFiles()) {
+        List<Long> __this__persistedFiles = new ArrayList<Long>(other.persistedFiles);
+        this.persistedFiles = __this__persistedFiles;
+      }
+      if (other.isSetOptions()) {
+        this.options = new FileSystemHeartbeatTOptions(other.options);
+      }
     }
 
-    public getFileInfo_args deepCopy() {
-      return new getFileInfo_args(this);
+    public fileSystemHeartbeat_args deepCopy() {
+      return new fileSystemHeartbeat_args(this);
     }
 
     @Override
     public void clear() {
-      setFileIdIsSet(false);
-      this.fileId = 0;
+      setWorkerIdIsSet(false);
+      this.workerId = 0;
+      this.persistedFiles = null;
+      this.options = null;
     }
 
     /**
-     * the id of the file
+     * the id of the worker
      */
-    public long getFileId() {
-      return this.fileId;
+    public long getWorkerId() {
+      return this.workerId;
     }
 
     /**
-     * the id of the file
+     * the id of the worker
      */
-    public getFileInfo_args setFileId(long fileId) {
-      this.fileId = fileId;
-      setFileIdIsSet(true);
+    public fileSystemHeartbeat_args setWorkerId(long workerId) {
+      this.workerId = workerId;
+      setWorkerIdIsSet(true);
       return this;
     }
 
-    public void unsetFileId() {
-      __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __FILEID_ISSET_ID);
+    public void unsetWorkerId() {
+      __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __WORKERID_ISSET_ID);
     }
 
-    /** Returns true if field fileId is set (has been assigned a value) and false otherwise */
-    public boolean isSetFileId() {
-      return EncodingUtils.testBit(__isset_bitfield, __FILEID_ISSET_ID);
+    /** Returns true if field workerId is set (has been assigned a value) and false otherwise */
+    public boolean isSetWorkerId() {
+      return EncodingUtils.testBit(__isset_bitfield, __WORKERID_ISSET_ID);
     }
 
-    public void setFileIdIsSet(boolean value) {
-      __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __FILEID_ISSET_ID, value);
+    public void setWorkerIdIsSet(boolean value) {
+      __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __WORKERID_ISSET_ID, value);
+    }
+
+    public int getPersistedFilesSize() {
+      return (this.persistedFiles == null) ? 0 : this.persistedFiles.size();
+    }
+
+    public java.util.Iterator<Long> getPersistedFilesIterator() {
+      return (this.persistedFiles == null) ? null : this.persistedFiles.iterator();
+    }
+
+    public void addToPersistedFiles(long elem) {
+      if (this.persistedFiles == null) {
+        this.persistedFiles = new ArrayList<Long>();
+      }
+      this.persistedFiles.add(elem);
+    }
+
+    /**
+     * the list of persisted files
+     */
+    public List<Long> getPersistedFiles() {
+      return this.persistedFiles;
+    }
+
+    /**
+     * the list of persisted files
+     */
+    public fileSystemHeartbeat_args setPersistedFiles(List<Long> persistedFiles) {
+      this.persistedFiles = persistedFiles;
+      return this;
+    }
+
+    public void unsetPersistedFiles() {
+      this.persistedFiles = null;
+    }
+
+    /** Returns true if field persistedFiles is set (has been assigned a value) and false otherwise */
+    public boolean isSetPersistedFiles() {
+      return this.persistedFiles != null;
+    }
+
+    public void setPersistedFilesIsSet(boolean value) {
+      if (!value) {
+        this.persistedFiles = null;
+      }
+    }
+
+    /**
+     * the method options
+     */
+    public FileSystemHeartbeatTOptions getOptions() {
+      return this.options;
+    }
+
+    /**
+     * the method options
+     */
+    public fileSystemHeartbeat_args setOptions(FileSystemHeartbeatTOptions options) {
+      this.options = options;
+      return this;
+    }
+
+    public void unsetOptions() {
+      this.options = null;
+    }
+
+    /** Returns true if field options is set (has been assigned a value) and false otherwise */
+    public boolean isSetOptions() {
+      return this.options != null;
+    }
+
+    public void setOptionsIsSet(boolean value) {
+      if (!value) {
+        this.options = null;
+      }
     }
 
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
-      case FILE_ID:
+      case WORKER_ID:
         if (value == null) {
-          unsetFileId();
+          unsetWorkerId();
         } else {
-          setFileId((Long)value);
+          setWorkerId((Long)value);
+        }
+        break;
+
+      case PERSISTED_FILES:
+        if (value == null) {
+          unsetPersistedFiles();
+        } else {
+          setPersistedFiles((List<Long>)value);
+        }
+        break;
+
+      case OPTIONS:
+        if (value == null) {
+          unsetOptions();
+        } else {
+          setOptions((FileSystemHeartbeatTOptions)value);
         }
         break;
 
@@ -725,8 +1023,14 @@ public class FileSystemMasterWorkerService {
 
     public Object getFieldValue(_Fields field) {
       switch (field) {
-      case FILE_ID:
-        return getFileId();
+      case WORKER_ID:
+        return getWorkerId();
+
+      case PERSISTED_FILES:
+        return getPersistedFiles();
+
+      case OPTIONS:
+        return getOptions();
 
       }
       throw new IllegalStateException();
@@ -739,8 +1043,12 @@ public class FileSystemMasterWorkerService {
       }
 
       switch (field) {
-      case FILE_ID:
-        return isSetFileId();
+      case WORKER_ID:
+        return isSetWorkerId();
+      case PERSISTED_FILES:
+        return isSetPersistedFiles();
+      case OPTIONS:
+        return isSetOptions();
       }
       throw new IllegalStateException();
     }
@@ -749,21 +1057,39 @@ public class FileSystemMasterWorkerService {
     public boolean equals(Object that) {
       if (that == null)
         return false;
-      if (that instanceof getFileInfo_args)
-        return this.equals((getFileInfo_args)that);
+      if (that instanceof fileSystemHeartbeat_args)
+        return this.equals((fileSystemHeartbeat_args)that);
       return false;
     }
 
-    public boolean equals(getFileInfo_args that) {
+    public boolean equals(fileSystemHeartbeat_args that) {
       if (that == null)
         return false;
 
-      boolean this_present_fileId = true;
-      boolean that_present_fileId = true;
-      if (this_present_fileId || that_present_fileId) {
-        if (!(this_present_fileId && that_present_fileId))
+      boolean this_present_workerId = true;
+      boolean that_present_workerId = true;
+      if (this_present_workerId || that_present_workerId) {
+        if (!(this_present_workerId && that_present_workerId))
           return false;
-        if (this.fileId != that.fileId)
+        if (this.workerId != that.workerId)
+          return false;
+      }
+
+      boolean this_present_persistedFiles = true && this.isSetPersistedFiles();
+      boolean that_present_persistedFiles = true && that.isSetPersistedFiles();
+      if (this_present_persistedFiles || that_present_persistedFiles) {
+        if (!(this_present_persistedFiles && that_present_persistedFiles))
+          return false;
+        if (!this.persistedFiles.equals(that.persistedFiles))
+          return false;
+      }
+
+      boolean this_present_options = true && this.isSetOptions();
+      boolean that_present_options = true && that.isSetOptions();
+      if (this_present_options || that_present_options) {
+        if (!(this_present_options && that_present_options))
+          return false;
+        if (!this.options.equals(that.options))
           return false;
       }
 
@@ -774,28 +1100,58 @@ public class FileSystemMasterWorkerService {
     public int hashCode() {
       List<Object> list = new ArrayList<Object>();
 
-      boolean present_fileId = true;
-      list.add(present_fileId);
-      if (present_fileId)
-        list.add(fileId);
+      boolean present_workerId = true;
+      list.add(present_workerId);
+      if (present_workerId)
+        list.add(workerId);
+
+      boolean present_persistedFiles = true && (isSetPersistedFiles());
+      list.add(present_persistedFiles);
+      if (present_persistedFiles)
+        list.add(persistedFiles);
+
+      boolean present_options = true && (isSetOptions());
+      list.add(present_options);
+      if (present_options)
+        list.add(options);
 
       return list.hashCode();
     }
 
     @Override
-    public int compareTo(getFileInfo_args other) {
+    public int compareTo(fileSystemHeartbeat_args other) {
       if (!getClass().equals(other.getClass())) {
         return getClass().getName().compareTo(other.getClass().getName());
       }
 
       int lastComparison = 0;
 
-      lastComparison = Boolean.valueOf(isSetFileId()).compareTo(other.isSetFileId());
+      lastComparison = Boolean.valueOf(isSetWorkerId()).compareTo(other.isSetWorkerId());
       if (lastComparison != 0) {
         return lastComparison;
       }
-      if (isSetFileId()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.fileId, other.fileId);
+      if (isSetWorkerId()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.workerId, other.workerId);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = Boolean.valueOf(isSetPersistedFiles()).compareTo(other.isSetPersistedFiles());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetPersistedFiles()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.persistedFiles, other.persistedFiles);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = Boolean.valueOf(isSetOptions()).compareTo(other.isSetOptions());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetOptions()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.options, other.options);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -817,11 +1173,27 @@ public class FileSystemMasterWorkerService {
 
     @Override
     public String toString() {
-      StringBuilder sb = new StringBuilder("getFileInfo_args(");
+      StringBuilder sb = new StringBuilder("fileSystemHeartbeat_args(");
       boolean first = true;
 
-      sb.append("fileId:");
-      sb.append(this.fileId);
+      sb.append("workerId:");
+      sb.append(this.workerId);
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("persistedFiles:");
+      if (this.persistedFiles == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.persistedFiles);
+      }
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("options:");
+      if (this.options == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.options);
+      }
       first = false;
       sb.append(")");
       return sb.toString();
@@ -830,6 +1202,9 @@ public class FileSystemMasterWorkerService {
     public void validate() throws org.apache.thrift.TException {
       // check for required fields
       // check for sub-struct validity
+      if (options != null) {
+        options.validate();
+      }
     }
 
     private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
@@ -850,15 +1225,15 @@ public class FileSystemMasterWorkerService {
       }
     }
 
-    private static class getFileInfo_argsStandardSchemeFactory implements SchemeFactory {
-      public getFileInfo_argsStandardScheme getScheme() {
-        return new getFileInfo_argsStandardScheme();
+    private static class fileSystemHeartbeat_argsStandardSchemeFactory implements SchemeFactory {
+      public fileSystemHeartbeat_argsStandardScheme getScheme() {
+        return new fileSystemHeartbeat_argsStandardScheme();
       }
     }
 
-    private static class getFileInfo_argsStandardScheme extends StandardScheme<getFileInfo_args> {
+    private static class fileSystemHeartbeat_argsStandardScheme extends StandardScheme<fileSystemHeartbeat_args> {
 
-      public void read(org.apache.thrift.protocol.TProtocol iprot, getFileInfo_args struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol iprot, fileSystemHeartbeat_args struct) throws org.apache.thrift.TException {
         org.apache.thrift.protocol.TField schemeField;
         iprot.readStructBegin();
         while (true)
@@ -868,10 +1243,37 @@ public class FileSystemMasterWorkerService {
             break;
           }
           switch (schemeField.id) {
-            case 1: // FILE_ID
+            case 1: // WORKER_ID
               if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
-                struct.fileId = iprot.readI64();
-                struct.setFileIdIsSet(true);
+                struct.workerId = iprot.readI64();
+                struct.setWorkerIdIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            case 2: // PERSISTED_FILES
+              if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
+                {
+                  org.apache.thrift.protocol.TList _list134 = iprot.readListBegin();
+                  struct.persistedFiles = new ArrayList<Long>(_list134.size);
+                  long _elem135;
+                  for (int _i136 = 0; _i136 < _list134.size; ++_i136)
+                  {
+                    _elem135 = iprot.readI64();
+                    struct.persistedFiles.add(_elem135);
+                  }
+                  iprot.readListEnd();
+                }
+                struct.setPersistedFilesIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            case 3: // OPTIONS
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.options = new FileSystemHeartbeatTOptions();
+                struct.options.read(iprot);
+                struct.setOptionsIsSet(true);
               } else { 
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
@@ -887,66 +1289,119 @@ public class FileSystemMasterWorkerService {
         struct.validate();
       }
 
-      public void write(org.apache.thrift.protocol.TProtocol oprot, getFileInfo_args struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol oprot, fileSystemHeartbeat_args struct) throws org.apache.thrift.TException {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
-        oprot.writeFieldBegin(FILE_ID_FIELD_DESC);
-        oprot.writeI64(struct.fileId);
+        oprot.writeFieldBegin(WORKER_ID_FIELD_DESC);
+        oprot.writeI64(struct.workerId);
         oprot.writeFieldEnd();
+        if (struct.persistedFiles != null) {
+          oprot.writeFieldBegin(PERSISTED_FILES_FIELD_DESC);
+          {
+            oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.I64, struct.persistedFiles.size()));
+            for (long _iter137 : struct.persistedFiles)
+            {
+              oprot.writeI64(_iter137);
+            }
+            oprot.writeListEnd();
+          }
+          oprot.writeFieldEnd();
+        }
+        if (struct.options != null) {
+          oprot.writeFieldBegin(OPTIONS_FIELD_DESC);
+          struct.options.write(oprot);
+          oprot.writeFieldEnd();
+        }
         oprot.writeFieldStop();
         oprot.writeStructEnd();
       }
 
     }
 
-    private static class getFileInfo_argsTupleSchemeFactory implements SchemeFactory {
-      public getFileInfo_argsTupleScheme getScheme() {
-        return new getFileInfo_argsTupleScheme();
+    private static class fileSystemHeartbeat_argsTupleSchemeFactory implements SchemeFactory {
+      public fileSystemHeartbeat_argsTupleScheme getScheme() {
+        return new fileSystemHeartbeat_argsTupleScheme();
       }
     }
 
-    private static class getFileInfo_argsTupleScheme extends TupleScheme<getFileInfo_args> {
+    private static class fileSystemHeartbeat_argsTupleScheme extends TupleScheme<fileSystemHeartbeat_args> {
 
       @Override
-      public void write(org.apache.thrift.protocol.TProtocol prot, getFileInfo_args struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol prot, fileSystemHeartbeat_args struct) throws org.apache.thrift.TException {
         TTupleProtocol oprot = (TTupleProtocol) prot;
         BitSet optionals = new BitSet();
-        if (struct.isSetFileId()) {
+        if (struct.isSetWorkerId()) {
           optionals.set(0);
         }
-        oprot.writeBitSet(optionals, 1);
-        if (struct.isSetFileId()) {
-          oprot.writeI64(struct.fileId);
+        if (struct.isSetPersistedFiles()) {
+          optionals.set(1);
+        }
+        if (struct.isSetOptions()) {
+          optionals.set(2);
+        }
+        oprot.writeBitSet(optionals, 3);
+        if (struct.isSetWorkerId()) {
+          oprot.writeI64(struct.workerId);
+        }
+        if (struct.isSetPersistedFiles()) {
+          {
+            oprot.writeI32(struct.persistedFiles.size());
+            for (long _iter138 : struct.persistedFiles)
+            {
+              oprot.writeI64(_iter138);
+            }
+          }
+        }
+        if (struct.isSetOptions()) {
+          struct.options.write(oprot);
         }
       }
 
       @Override
-      public void read(org.apache.thrift.protocol.TProtocol prot, getFileInfo_args struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol prot, fileSystemHeartbeat_args struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(1);
+        BitSet incoming = iprot.readBitSet(3);
         if (incoming.get(0)) {
-          struct.fileId = iprot.readI64();
-          struct.setFileIdIsSet(true);
+          struct.workerId = iprot.readI64();
+          struct.setWorkerIdIsSet(true);
+        }
+        if (incoming.get(1)) {
+          {
+            org.apache.thrift.protocol.TList _list139 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.I64, iprot.readI32());
+            struct.persistedFiles = new ArrayList<Long>(_list139.size);
+            long _elem140;
+            for (int _i141 = 0; _i141 < _list139.size; ++_i141)
+            {
+              _elem140 = iprot.readI64();
+              struct.persistedFiles.add(_elem140);
+            }
+          }
+          struct.setPersistedFilesIsSet(true);
+        }
+        if (incoming.get(2)) {
+          struct.options = new FileSystemHeartbeatTOptions();
+          struct.options.read(iprot);
+          struct.setOptionsIsSet(true);
         }
       }
     }
 
   }
 
-  public static class getFileInfo_result implements org.apache.thrift.TBase<getFileInfo_result, getFileInfo_result._Fields>, java.io.Serializable, Cloneable, Comparable<getFileInfo_result>   {
-    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("getFileInfo_result");
+  public static class fileSystemHeartbeat_result implements org.apache.thrift.TBase<fileSystemHeartbeat_result, fileSystemHeartbeat_result._Fields>, java.io.Serializable, Cloneable, Comparable<fileSystemHeartbeat_result>   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("fileSystemHeartbeat_result");
 
     private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.STRUCT, (short)0);
     private static final org.apache.thrift.protocol.TField E_FIELD_DESC = new org.apache.thrift.protocol.TField("e", org.apache.thrift.protocol.TType.STRUCT, (short)1);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
-      schemes.put(StandardScheme.class, new getFileInfo_resultStandardSchemeFactory());
-      schemes.put(TupleScheme.class, new getFileInfo_resultTupleSchemeFactory());
+      schemes.put(StandardScheme.class, new fileSystemHeartbeat_resultStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new fileSystemHeartbeat_resultTupleSchemeFactory());
     }
 
-    private FileInfo success; // required
+    private FileSystemHeartbeatTResponse success; // required
     private alluxio.thrift.AlluxioTException e; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
@@ -1015,7 +1470,967 @@ public class FileSystemMasterWorkerService {
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
       tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, FileInfo.class)));
+          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, FileSystemHeartbeatTResponse.class)));
+      tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
+      metaDataMap = Collections.unmodifiableMap(tmpMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(fileSystemHeartbeat_result.class, metaDataMap);
+    }
+
+    public fileSystemHeartbeat_result() {
+    }
+
+    public fileSystemHeartbeat_result(
+      FileSystemHeartbeatTResponse success,
+      alluxio.thrift.AlluxioTException e)
+    {
+      this();
+      this.success = success;
+      this.e = e;
+    }
+
+    /**
+     * Performs a deep copy on <i>other</i>.
+     */
+    public fileSystemHeartbeat_result(fileSystemHeartbeat_result other) {
+      if (other.isSetSuccess()) {
+        this.success = new FileSystemHeartbeatTResponse(other.success);
+      }
+      if (other.isSetE()) {
+        this.e = new alluxio.thrift.AlluxioTException(other.e);
+      }
+    }
+
+    public fileSystemHeartbeat_result deepCopy() {
+      return new fileSystemHeartbeat_result(this);
+    }
+
+    @Override
+    public void clear() {
+      this.success = null;
+      this.e = null;
+    }
+
+    public FileSystemHeartbeatTResponse getSuccess() {
+      return this.success;
+    }
+
+    public fileSystemHeartbeat_result setSuccess(FileSystemHeartbeatTResponse success) {
+      this.success = success;
+      return this;
+    }
+
+    public void unsetSuccess() {
+      this.success = null;
+    }
+
+    /** Returns true if field success is set (has been assigned a value) and false otherwise */
+    public boolean isSetSuccess() {
+      return this.success != null;
+    }
+
+    public void setSuccessIsSet(boolean value) {
+      if (!value) {
+        this.success = null;
+      }
+    }
+
+    public alluxio.thrift.AlluxioTException getE() {
+      return this.e;
+    }
+
+    public fileSystemHeartbeat_result setE(alluxio.thrift.AlluxioTException e) {
+      this.e = e;
+      return this;
+    }
+
+    public void unsetE() {
+      this.e = null;
+    }
+
+    /** Returns true if field e is set (has been assigned a value) and false otherwise */
+    public boolean isSetE() {
+      return this.e != null;
+    }
+
+    public void setEIsSet(boolean value) {
+      if (!value) {
+        this.e = null;
+      }
+    }
+
+    public void setFieldValue(_Fields field, Object value) {
+      switch (field) {
+      case SUCCESS:
+        if (value == null) {
+          unsetSuccess();
+        } else {
+          setSuccess((FileSystemHeartbeatTResponse)value);
+        }
+        break;
+
+      case E:
+        if (value == null) {
+          unsetE();
+        } else {
+          setE((alluxio.thrift.AlluxioTException)value);
+        }
+        break;
+
+      }
+    }
+
+    public Object getFieldValue(_Fields field) {
+      switch (field) {
+      case SUCCESS:
+        return getSuccess();
+
+      case E:
+        return getE();
+
+      }
+      throw new IllegalStateException();
+    }
+
+    /** Returns true if field corresponding to fieldID is set (has been assigned a value) and false otherwise */
+    public boolean isSet(_Fields field) {
+      if (field == null) {
+        throw new IllegalArgumentException();
+      }
+
+      switch (field) {
+      case SUCCESS:
+        return isSetSuccess();
+      case E:
+        return isSetE();
+      }
+      throw new IllegalStateException();
+    }
+
+    @Override
+    public boolean equals(Object that) {
+      if (that == null)
+        return false;
+      if (that instanceof fileSystemHeartbeat_result)
+        return this.equals((fileSystemHeartbeat_result)that);
+      return false;
+    }
+
+    public boolean equals(fileSystemHeartbeat_result that) {
+      if (that == null)
+        return false;
+
+      boolean this_present_success = true && this.isSetSuccess();
+      boolean that_present_success = true && that.isSetSuccess();
+      if (this_present_success || that_present_success) {
+        if (!(this_present_success && that_present_success))
+          return false;
+        if (!this.success.equals(that.success))
+          return false;
+      }
+
+      boolean this_present_e = true && this.isSetE();
+      boolean that_present_e = true && that.isSetE();
+      if (this_present_e || that_present_e) {
+        if (!(this_present_e && that_present_e))
+          return false;
+        if (!this.e.equals(that.e))
+          return false;
+      }
+
+      return true;
+    }
+
+    @Override
+    public int hashCode() {
+      List<Object> list = new ArrayList<Object>();
+
+      boolean present_success = true && (isSetSuccess());
+      list.add(present_success);
+      if (present_success)
+        list.add(success);
+
+      boolean present_e = true && (isSetE());
+      list.add(present_e);
+      if (present_e)
+        list.add(e);
+
+      return list.hashCode();
+    }
+
+    @Override
+    public int compareTo(fileSystemHeartbeat_result other) {
+      if (!getClass().equals(other.getClass())) {
+        return getClass().getName().compareTo(other.getClass().getName());
+      }
+
+      int lastComparison = 0;
+
+      lastComparison = Boolean.valueOf(isSetSuccess()).compareTo(other.isSetSuccess());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetSuccess()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.success, other.success);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = Boolean.valueOf(isSetE()).compareTo(other.isSetE());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetE()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.e, other.e);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      return 0;
+    }
+
+    public _Fields fieldForId(int fieldId) {
+      return _Fields.findByThriftId(fieldId);
+    }
+
+    public void read(org.apache.thrift.protocol.TProtocol iprot) throws org.apache.thrift.TException {
+      schemes.get(iprot.getScheme()).getScheme().read(iprot, this);
+    }
+
+    public void write(org.apache.thrift.protocol.TProtocol oprot) throws org.apache.thrift.TException {
+      schemes.get(oprot.getScheme()).getScheme().write(oprot, this);
+      }
+
+    @Override
+    public String toString() {
+      StringBuilder sb = new StringBuilder("fileSystemHeartbeat_result(");
+      boolean first = true;
+
+      sb.append("success:");
+      if (this.success == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.success);
+      }
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("e:");
+      if (this.e == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.e);
+      }
+      first = false;
+      sb.append(")");
+      return sb.toString();
+    }
+
+    public void validate() throws org.apache.thrift.TException {
+      // check for required fields
+      // check for sub-struct validity
+      if (success != null) {
+        success.validate();
+      }
+    }
+
+    private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
+      try {
+        write(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(out)));
+      } catch (org.apache.thrift.TException te) {
+        throw new java.io.IOException(te);
+      }
+    }
+
+    private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
+      try {
+        read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
+      } catch (org.apache.thrift.TException te) {
+        throw new java.io.IOException(te);
+      }
+    }
+
+    private static class fileSystemHeartbeat_resultStandardSchemeFactory implements SchemeFactory {
+      public fileSystemHeartbeat_resultStandardScheme getScheme() {
+        return new fileSystemHeartbeat_resultStandardScheme();
+      }
+    }
+
+    private static class fileSystemHeartbeat_resultStandardScheme extends StandardScheme<fileSystemHeartbeat_result> {
+
+      public void read(org.apache.thrift.protocol.TProtocol iprot, fileSystemHeartbeat_result struct) throws org.apache.thrift.TException {
+        org.apache.thrift.protocol.TField schemeField;
+        iprot.readStructBegin();
+        while (true)
+        {
+          schemeField = iprot.readFieldBegin();
+          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
+            break;
+          }
+          switch (schemeField.id) {
+            case 0: // SUCCESS
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.success = new FileSystemHeartbeatTResponse();
+                struct.success.read(iprot);
+                struct.setSuccessIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            case 1: // E
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.e = new alluxio.thrift.AlluxioTException();
+                struct.e.read(iprot);
+                struct.setEIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            default:
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+          }
+          iprot.readFieldEnd();
+        }
+        iprot.readStructEnd();
+
+        // check for required fields of primitive type, which can't be checked in the validate method
+        struct.validate();
+      }
+
+      public void write(org.apache.thrift.protocol.TProtocol oprot, fileSystemHeartbeat_result struct) throws org.apache.thrift.TException {
+        struct.validate();
+
+        oprot.writeStructBegin(STRUCT_DESC);
+        if (struct.success != null) {
+          oprot.writeFieldBegin(SUCCESS_FIELD_DESC);
+          struct.success.write(oprot);
+          oprot.writeFieldEnd();
+        }
+        if (struct.e != null) {
+          oprot.writeFieldBegin(E_FIELD_DESC);
+          struct.e.write(oprot);
+          oprot.writeFieldEnd();
+        }
+        oprot.writeFieldStop();
+        oprot.writeStructEnd();
+      }
+
+    }
+
+    private static class fileSystemHeartbeat_resultTupleSchemeFactory implements SchemeFactory {
+      public fileSystemHeartbeat_resultTupleScheme getScheme() {
+        return new fileSystemHeartbeat_resultTupleScheme();
+      }
+    }
+
+    private static class fileSystemHeartbeat_resultTupleScheme extends TupleScheme<fileSystemHeartbeat_result> {
+
+      @Override
+      public void write(org.apache.thrift.protocol.TProtocol prot, fileSystemHeartbeat_result struct) throws org.apache.thrift.TException {
+        TTupleProtocol oprot = (TTupleProtocol) prot;
+        BitSet optionals = new BitSet();
+        if (struct.isSetSuccess()) {
+          optionals.set(0);
+        }
+        if (struct.isSetE()) {
+          optionals.set(1);
+        }
+        oprot.writeBitSet(optionals, 2);
+        if (struct.isSetSuccess()) {
+          struct.success.write(oprot);
+        }
+        if (struct.isSetE()) {
+          struct.e.write(oprot);
+        }
+      }
+
+      @Override
+      public void read(org.apache.thrift.protocol.TProtocol prot, fileSystemHeartbeat_result struct) throws org.apache.thrift.TException {
+        TTupleProtocol iprot = (TTupleProtocol) prot;
+        BitSet incoming = iprot.readBitSet(2);
+        if (incoming.get(0)) {
+          struct.success = new FileSystemHeartbeatTResponse();
+          struct.success.read(iprot);
+          struct.setSuccessIsSet(true);
+        }
+        if (incoming.get(1)) {
+          struct.e = new alluxio.thrift.AlluxioTException();
+          struct.e.read(iprot);
+          struct.setEIsSet(true);
+        }
+      }
+    }
+
+  }
+
+  public static class getFileInfo_args implements org.apache.thrift.TBase<getFileInfo_args, getFileInfo_args._Fields>, java.io.Serializable, Cloneable, Comparable<getFileInfo_args>   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("getFileInfo_args");
+
+    private static final org.apache.thrift.protocol.TField FILE_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("fileId", org.apache.thrift.protocol.TType.I64, (short)1);
+    private static final org.apache.thrift.protocol.TField OPTIONS_FIELD_DESC = new org.apache.thrift.protocol.TField("options", org.apache.thrift.protocol.TType.STRUCT, (short)2);
+
+    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
+    static {
+      schemes.put(StandardScheme.class, new getFileInfo_argsStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new getFileInfo_argsTupleSchemeFactory());
+    }
+
+    private long fileId; // required
+    private GetFileInfoTOptions options; // required
+
+    /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
+    public enum _Fields implements org.apache.thrift.TFieldIdEnum {
+      /**
+       * the id of the file
+       */
+      FILE_ID((short)1, "fileId"),
+      /**
+       * the method options
+       */
+      OPTIONS((short)2, "options");
+
+      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
+
+      static {
+        for (_Fields field : EnumSet.allOf(_Fields.class)) {
+          byName.put(field.getFieldName(), field);
+        }
+      }
+
+      /**
+       * Find the _Fields constant that matches fieldId, or null if its not found.
+       */
+      public static _Fields findByThriftId(int fieldId) {
+        switch(fieldId) {
+          case 1: // FILE_ID
+            return FILE_ID;
+          case 2: // OPTIONS
+            return OPTIONS;
+          default:
+            return null;
+        }
+      }
+
+      /**
+       * Find the _Fields constant that matches fieldId, throwing an exception
+       * if it is not found.
+       */
+      public static _Fields findByThriftIdOrThrow(int fieldId) {
+        _Fields fields = findByThriftId(fieldId);
+        if (fields == null) throw new IllegalArgumentException("Field " + fieldId + " doesn't exist!");
+        return fields;
+      }
+
+      /**
+       * Find the _Fields constant that matches name, or null if its not found.
+       */
+      public static _Fields findByName(String name) {
+        return byName.get(name);
+      }
+
+      private final short _thriftId;
+      private final String _fieldName;
+
+      _Fields(short thriftId, String fieldName) {
+        _thriftId = thriftId;
+        _fieldName = fieldName;
+      }
+
+      public short getThriftFieldId() {
+        return _thriftId;
+      }
+
+      public String getFieldName() {
+        return _fieldName;
+      }
+    }
+
+    // isset id assignments
+    private static final int __FILEID_ISSET_ID = 0;
+    private byte __isset_bitfield = 0;
+    public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
+    static {
+      Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
+      tmpMap.put(_Fields.FILE_ID, new org.apache.thrift.meta_data.FieldMetaData("fileId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
+      tmpMap.put(_Fields.OPTIONS, new org.apache.thrift.meta_data.FieldMetaData("options", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, GetFileInfoTOptions.class)));
+      metaDataMap = Collections.unmodifiableMap(tmpMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(getFileInfo_args.class, metaDataMap);
+    }
+
+    public getFileInfo_args() {
+    }
+
+    public getFileInfo_args(
+      long fileId,
+      GetFileInfoTOptions options)
+    {
+      this();
+      this.fileId = fileId;
+      setFileIdIsSet(true);
+      this.options = options;
+    }
+
+    /**
+     * Performs a deep copy on <i>other</i>.
+     */
+    public getFileInfo_args(getFileInfo_args other) {
+      __isset_bitfield = other.__isset_bitfield;
+      this.fileId = other.fileId;
+      if (other.isSetOptions()) {
+        this.options = new GetFileInfoTOptions(other.options);
+      }
+    }
+
+    public getFileInfo_args deepCopy() {
+      return new getFileInfo_args(this);
+    }
+
+    @Override
+    public void clear() {
+      setFileIdIsSet(false);
+      this.fileId = 0;
+      this.options = null;
+    }
+
+    /**
+     * the id of the file
+     */
+    public long getFileId() {
+      return this.fileId;
+    }
+
+    /**
+     * the id of the file
+     */
+    public getFileInfo_args setFileId(long fileId) {
+      this.fileId = fileId;
+      setFileIdIsSet(true);
+      return this;
+    }
+
+    public void unsetFileId() {
+      __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __FILEID_ISSET_ID);
+    }
+
+    /** Returns true if field fileId is set (has been assigned a value) and false otherwise */
+    public boolean isSetFileId() {
+      return EncodingUtils.testBit(__isset_bitfield, __FILEID_ISSET_ID);
+    }
+
+    public void setFileIdIsSet(boolean value) {
+      __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __FILEID_ISSET_ID, value);
+    }
+
+    /**
+     * the method options
+     */
+    public GetFileInfoTOptions getOptions() {
+      return this.options;
+    }
+
+    /**
+     * the method options
+     */
+    public getFileInfo_args setOptions(GetFileInfoTOptions options) {
+      this.options = options;
+      return this;
+    }
+
+    public void unsetOptions() {
+      this.options = null;
+    }
+
+    /** Returns true if field options is set (has been assigned a value) and false otherwise */
+    public boolean isSetOptions() {
+      return this.options != null;
+    }
+
+    public void setOptionsIsSet(boolean value) {
+      if (!value) {
+        this.options = null;
+      }
+    }
+
+    public void setFieldValue(_Fields field, Object value) {
+      switch (field) {
+      case FILE_ID:
+        if (value == null) {
+          unsetFileId();
+        } else {
+          setFileId((Long)value);
+        }
+        break;
+
+      case OPTIONS:
+        if (value == null) {
+          unsetOptions();
+        } else {
+          setOptions((GetFileInfoTOptions)value);
+        }
+        break;
+
+      }
+    }
+
+    public Object getFieldValue(_Fields field) {
+      switch (field) {
+      case FILE_ID:
+        return getFileId();
+
+      case OPTIONS:
+        return getOptions();
+
+      }
+      throw new IllegalStateException();
+    }
+
+    /** Returns true if field corresponding to fieldID is set (has been assigned a value) and false otherwise */
+    public boolean isSet(_Fields field) {
+      if (field == null) {
+        throw new IllegalArgumentException();
+      }
+
+      switch (field) {
+      case FILE_ID:
+        return isSetFileId();
+      case OPTIONS:
+        return isSetOptions();
+      }
+      throw new IllegalStateException();
+    }
+
+    @Override
+    public boolean equals(Object that) {
+      if (that == null)
+        return false;
+      if (that instanceof getFileInfo_args)
+        return this.equals((getFileInfo_args)that);
+      return false;
+    }
+
+    public boolean equals(getFileInfo_args that) {
+      if (that == null)
+        return false;
+
+      boolean this_present_fileId = true;
+      boolean that_present_fileId = true;
+      if (this_present_fileId || that_present_fileId) {
+        if (!(this_present_fileId && that_present_fileId))
+          return false;
+        if (this.fileId != that.fileId)
+          return false;
+      }
+
+      boolean this_present_options = true && this.isSetOptions();
+      boolean that_present_options = true && that.isSetOptions();
+      if (this_present_options || that_present_options) {
+        if (!(this_present_options && that_present_options))
+          return false;
+        if (!this.options.equals(that.options))
+          return false;
+      }
+
+      return true;
+    }
+
+    @Override
+    public int hashCode() {
+      List<Object> list = new ArrayList<Object>();
+
+      boolean present_fileId = true;
+      list.add(present_fileId);
+      if (present_fileId)
+        list.add(fileId);
+
+      boolean present_options = true && (isSetOptions());
+      list.add(present_options);
+      if (present_options)
+        list.add(options);
+
+      return list.hashCode();
+    }
+
+    @Override
+    public int compareTo(getFileInfo_args other) {
+      if (!getClass().equals(other.getClass())) {
+        return getClass().getName().compareTo(other.getClass().getName());
+      }
+
+      int lastComparison = 0;
+
+      lastComparison = Boolean.valueOf(isSetFileId()).compareTo(other.isSetFileId());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetFileId()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.fileId, other.fileId);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = Boolean.valueOf(isSetOptions()).compareTo(other.isSetOptions());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetOptions()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.options, other.options);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      return 0;
+    }
+
+    public _Fields fieldForId(int fieldId) {
+      return _Fields.findByThriftId(fieldId);
+    }
+
+    public void read(org.apache.thrift.protocol.TProtocol iprot) throws org.apache.thrift.TException {
+      schemes.get(iprot.getScheme()).getScheme().read(iprot, this);
+    }
+
+    public void write(org.apache.thrift.protocol.TProtocol oprot) throws org.apache.thrift.TException {
+      schemes.get(oprot.getScheme()).getScheme().write(oprot, this);
+    }
+
+    @Override
+    public String toString() {
+      StringBuilder sb = new StringBuilder("getFileInfo_args(");
+      boolean first = true;
+
+      sb.append("fileId:");
+      sb.append(this.fileId);
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("options:");
+      if (this.options == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.options);
+      }
+      first = false;
+      sb.append(")");
+      return sb.toString();
+    }
+
+    public void validate() throws org.apache.thrift.TException {
+      // check for required fields
+      // check for sub-struct validity
+      if (options != null) {
+        options.validate();
+      }
+    }
+
+    private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
+      try {
+        write(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(out)));
+      } catch (org.apache.thrift.TException te) {
+        throw new java.io.IOException(te);
+      }
+    }
+
+    private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
+      try {
+        // it doesn't seem like you should have to do this, but java serialization is wacky, and doesn't call the default constructor.
+        __isset_bitfield = 0;
+        read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
+      } catch (org.apache.thrift.TException te) {
+        throw new java.io.IOException(te);
+      }
+    }
+
+    private static class getFileInfo_argsStandardSchemeFactory implements SchemeFactory {
+      public getFileInfo_argsStandardScheme getScheme() {
+        return new getFileInfo_argsStandardScheme();
+      }
+    }
+
+    private static class getFileInfo_argsStandardScheme extends StandardScheme<getFileInfo_args> {
+
+      public void read(org.apache.thrift.protocol.TProtocol iprot, getFileInfo_args struct) throws org.apache.thrift.TException {
+        org.apache.thrift.protocol.TField schemeField;
+        iprot.readStructBegin();
+        while (true)
+        {
+          schemeField = iprot.readFieldBegin();
+          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
+            break;
+          }
+          switch (schemeField.id) {
+            case 1: // FILE_ID
+              if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
+                struct.fileId = iprot.readI64();
+                struct.setFileIdIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            case 2: // OPTIONS
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.options = new GetFileInfoTOptions();
+                struct.options.read(iprot);
+                struct.setOptionsIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            default:
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+          }
+          iprot.readFieldEnd();
+        }
+        iprot.readStructEnd();
+
+        // check for required fields of primitive type, which can't be checked in the validate method
+        struct.validate();
+      }
+
+      public void write(org.apache.thrift.protocol.TProtocol oprot, getFileInfo_args struct) throws org.apache.thrift.TException {
+        struct.validate();
+
+        oprot.writeStructBegin(STRUCT_DESC);
+        oprot.writeFieldBegin(FILE_ID_FIELD_DESC);
+        oprot.writeI64(struct.fileId);
+        oprot.writeFieldEnd();
+        if (struct.options != null) {
+          oprot.writeFieldBegin(OPTIONS_FIELD_DESC);
+          struct.options.write(oprot);
+          oprot.writeFieldEnd();
+        }
+        oprot.writeFieldStop();
+        oprot.writeStructEnd();
+      }
+
+    }
+
+    private static class getFileInfo_argsTupleSchemeFactory implements SchemeFactory {
+      public getFileInfo_argsTupleScheme getScheme() {
+        return new getFileInfo_argsTupleScheme();
+      }
+    }
+
+    private static class getFileInfo_argsTupleScheme extends TupleScheme<getFileInfo_args> {
+
+      @Override
+      public void write(org.apache.thrift.protocol.TProtocol prot, getFileInfo_args struct) throws org.apache.thrift.TException {
+        TTupleProtocol oprot = (TTupleProtocol) prot;
+        BitSet optionals = new BitSet();
+        if (struct.isSetFileId()) {
+          optionals.set(0);
+        }
+        if (struct.isSetOptions()) {
+          optionals.set(1);
+        }
+        oprot.writeBitSet(optionals, 2);
+        if (struct.isSetFileId()) {
+          oprot.writeI64(struct.fileId);
+        }
+        if (struct.isSetOptions()) {
+          struct.options.write(oprot);
+        }
+      }
+
+      @Override
+      public void read(org.apache.thrift.protocol.TProtocol prot, getFileInfo_args struct) throws org.apache.thrift.TException {
+        TTupleProtocol iprot = (TTupleProtocol) prot;
+        BitSet incoming = iprot.readBitSet(2);
+        if (incoming.get(0)) {
+          struct.fileId = iprot.readI64();
+          struct.setFileIdIsSet(true);
+        }
+        if (incoming.get(1)) {
+          struct.options = new GetFileInfoTOptions();
+          struct.options.read(iprot);
+          struct.setOptionsIsSet(true);
+        }
+      }
+    }
+
+  }
+
+  public static class getFileInfo_result implements org.apache.thrift.TBase<getFileInfo_result, getFileInfo_result._Fields>, java.io.Serializable, Cloneable, Comparable<getFileInfo_result>   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("getFileInfo_result");
+
+    private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.STRUCT, (short)0);
+    private static final org.apache.thrift.protocol.TField E_FIELD_DESC = new org.apache.thrift.protocol.TField("e", org.apache.thrift.protocol.TType.STRUCT, (short)1);
+
+    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
+    static {
+      schemes.put(StandardScheme.class, new getFileInfo_resultStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new getFileInfo_resultTupleSchemeFactory());
+    }
+
+    private GetFileInfoTResponse success; // required
+    private alluxio.thrift.AlluxioTException e; // required
+
+    /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
+    public enum _Fields implements org.apache.thrift.TFieldIdEnum {
+      SUCCESS((short)0, "success"),
+      E((short)1, "e");
+
+      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
+
+      static {
+        for (_Fields field : EnumSet.allOf(_Fields.class)) {
+          byName.put(field.getFieldName(), field);
+        }
+      }
+
+      /**
+       * Find the _Fields constant that matches fieldId, or null if its not found.
+       */
+      public static _Fields findByThriftId(int fieldId) {
+        switch(fieldId) {
+          case 0: // SUCCESS
+            return SUCCESS;
+          case 1: // E
+            return E;
+          default:
+            return null;
+        }
+      }
+
+      /**
+       * Find the _Fields constant that matches fieldId, throwing an exception
+       * if it is not found.
+       */
+      public static _Fields findByThriftIdOrThrow(int fieldId) {
+        _Fields fields = findByThriftId(fieldId);
+        if (fields == null) throw new IllegalArgumentException("Field " + fieldId + " doesn't exist!");
+        return fields;
+      }
+
+      /**
+       * Find the _Fields constant that matches name, or null if its not found.
+       */
+      public static _Fields findByName(String name) {
+        return byName.get(name);
+      }
+
+      private final short _thriftId;
+      private final String _fieldName;
+
+      _Fields(short thriftId, String fieldName) {
+        _thriftId = thriftId;
+        _fieldName = fieldName;
+      }
+
+      public short getThriftFieldId() {
+        return _thriftId;
+      }
+
+      public String getFieldName() {
+        return _fieldName;
+      }
+    }
+
+    // isset id assignments
+    public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
+    static {
+      Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
+      tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, GetFileInfoTResponse.class)));
       tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
@@ -1026,7 +2441,7 @@ public class FileSystemMasterWorkerService {
     }
 
     public getFileInfo_result(
-      FileInfo success,
+      GetFileInfoTResponse success,
       alluxio.thrift.AlluxioTException e)
     {
       this();
@@ -1039,7 +2454,7 @@ public class FileSystemMasterWorkerService {
      */
     public getFileInfo_result(getFileInfo_result other) {
       if (other.isSetSuccess()) {
-        this.success = new FileInfo(other.success);
+        this.success = new GetFileInfoTResponse(other.success);
       }
       if (other.isSetE()) {
         this.e = new alluxio.thrift.AlluxioTException(other.e);
@@ -1056,11 +2471,11 @@ public class FileSystemMasterWorkerService {
       this.e = null;
     }
 
-    public FileInfo getSuccess() {
+    public GetFileInfoTResponse getSuccess() {
       return this.success;
     }
 
-    public getFileInfo_result setSuccess(FileInfo success) {
+    public getFileInfo_result setSuccess(GetFileInfoTResponse success) {
       this.success = success;
       return this;
     }
@@ -1110,7 +2525,7 @@ public class FileSystemMasterWorkerService {
         if (value == null) {
           unsetSuccess();
         } else {
-          setSuccess((FileInfo)value);
+          setSuccess((GetFileInfoTResponse)value);
         }
         break;
 
@@ -1314,7 +2729,7 @@ public class FileSystemMasterWorkerService {
           switch (schemeField.id) {
             case 0: // SUCCESS
               if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.success = new FileInfo();
+                struct.success = new GetFileInfoTResponse();
                 struct.success.read(iprot);
                 struct.setSuccessIsSet(true);
               } else { 
@@ -1393,7 +2808,7 @@ public class FileSystemMasterWorkerService {
         TTupleProtocol iprot = (TTupleProtocol) prot;
         BitSet incoming = iprot.readBitSet(2);
         if (incoming.get(0)) {
-          struct.success = new FileInfo();
+          struct.success = new GetFileInfoTResponse();
           struct.success.read(iprot);
           struct.setSuccessIsSet(true);
         }
@@ -1407,20 +2822,25 @@ public class FileSystemMasterWorkerService {
 
   }
 
-  public static class getPinIdList_args implements org.apache.thrift.TBase<getPinIdList_args, getPinIdList_args._Fields>, java.io.Serializable, Cloneable, Comparable<getPinIdList_args>   {
-    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("getPinIdList_args");
+  public static class getPinnedFileIds_args implements org.apache.thrift.TBase<getPinnedFileIds_args, getPinnedFileIds_args._Fields>, java.io.Serializable, Cloneable, Comparable<getPinnedFileIds_args>   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("getPinnedFileIds_args");
 
+    private static final org.apache.thrift.protocol.TField OPTIONS_FIELD_DESC = new org.apache.thrift.protocol.TField("options", org.apache.thrift.protocol.TType.STRUCT, (short)1);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
-      schemes.put(StandardScheme.class, new getPinIdList_argsStandardSchemeFactory());
-      schemes.put(TupleScheme.class, new getPinIdList_argsTupleSchemeFactory());
+      schemes.put(StandardScheme.class, new getPinnedFileIds_argsStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new getPinnedFileIds_argsTupleSchemeFactory());
     }
 
+    private GetPinnedFileIdsTOptions options; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-;
+      /**
+       * the method options
+       */
+      OPTIONS((short)1, "options");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -1435,263 +2855,8 @@ public class FileSystemMasterWorkerService {
        */
       public static _Fields findByThriftId(int fieldId) {
         switch(fieldId) {
-          default:
-            return null;
-        }
-      }
-
-      /**
-       * Find the _Fields constant that matches fieldId, throwing an exception
-       * if it is not found.
-       */
-      public static _Fields findByThriftIdOrThrow(int fieldId) {
-        _Fields fields = findByThriftId(fieldId);
-        if (fields == null) throw new IllegalArgumentException("Field " + fieldId + " doesn't exist!");
-        return fields;
-      }
-
-      /**
-       * Find the _Fields constant that matches name, or null if its not found.
-       */
-      public static _Fields findByName(String name) {
-        return byName.get(name);
-      }
-
-      private final short _thriftId;
-      private final String _fieldName;
-
-      _Fields(short thriftId, String fieldName) {
-        _thriftId = thriftId;
-        _fieldName = fieldName;
-      }
-
-      public short getThriftFieldId() {
-        return _thriftId;
-      }
-
-      public String getFieldName() {
-        return _fieldName;
-      }
-    }
-    public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
-    static {
-      Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-      metaDataMap = Collections.unmodifiableMap(tmpMap);
-      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(getPinIdList_args.class, metaDataMap);
-    }
-
-    public getPinIdList_args() {
-    }
-
-    /**
-     * Performs a deep copy on <i>other</i>.
-     */
-    public getPinIdList_args(getPinIdList_args other) {
-    }
-
-    public getPinIdList_args deepCopy() {
-      return new getPinIdList_args(this);
-    }
-
-    @Override
-    public void clear() {
-    }
-
-    public void setFieldValue(_Fields field, Object value) {
-      switch (field) {
-      }
-    }
-
-    public Object getFieldValue(_Fields field) {
-      switch (field) {
-      }
-      throw new IllegalStateException();
-    }
-
-    /** Returns true if field corresponding to fieldID is set (has been assigned a value) and false otherwise */
-    public boolean isSet(_Fields field) {
-      if (field == null) {
-        throw new IllegalArgumentException();
-      }
-
-      switch (field) {
-      }
-      throw new IllegalStateException();
-    }
-
-    @Override
-    public boolean equals(Object that) {
-      if (that == null)
-        return false;
-      if (that instanceof getPinIdList_args)
-        return this.equals((getPinIdList_args)that);
-      return false;
-    }
-
-    public boolean equals(getPinIdList_args that) {
-      if (that == null)
-        return false;
-
-      return true;
-    }
-
-    @Override
-    public int hashCode() {
-      List<Object> list = new ArrayList<Object>();
-
-      return list.hashCode();
-    }
-
-    @Override
-    public int compareTo(getPinIdList_args other) {
-      if (!getClass().equals(other.getClass())) {
-        return getClass().getName().compareTo(other.getClass().getName());
-      }
-
-      int lastComparison = 0;
-
-      return 0;
-    }
-
-    public _Fields fieldForId(int fieldId) {
-      return _Fields.findByThriftId(fieldId);
-    }
-
-    public void read(org.apache.thrift.protocol.TProtocol iprot) throws org.apache.thrift.TException {
-      schemes.get(iprot.getScheme()).getScheme().read(iprot, this);
-    }
-
-    public void write(org.apache.thrift.protocol.TProtocol oprot) throws org.apache.thrift.TException {
-      schemes.get(oprot.getScheme()).getScheme().write(oprot, this);
-    }
-
-    @Override
-    public String toString() {
-      StringBuilder sb = new StringBuilder("getPinIdList_args(");
-      boolean first = true;
-
-      sb.append(")");
-      return sb.toString();
-    }
-
-    public void validate() throws org.apache.thrift.TException {
-      // check for required fields
-      // check for sub-struct validity
-    }
-
-    private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
-      try {
-        write(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(out)));
-      } catch (org.apache.thrift.TException te) {
-        throw new java.io.IOException(te);
-      }
-    }
-
-    private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
-      try {
-        read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
-      } catch (org.apache.thrift.TException te) {
-        throw new java.io.IOException(te);
-      }
-    }
-
-    private static class getPinIdList_argsStandardSchemeFactory implements SchemeFactory {
-      public getPinIdList_argsStandardScheme getScheme() {
-        return new getPinIdList_argsStandardScheme();
-      }
-    }
-
-    private static class getPinIdList_argsStandardScheme extends StandardScheme<getPinIdList_args> {
-
-      public void read(org.apache.thrift.protocol.TProtocol iprot, getPinIdList_args struct) throws org.apache.thrift.TException {
-        org.apache.thrift.protocol.TField schemeField;
-        iprot.readStructBegin();
-        while (true)
-        {
-          schemeField = iprot.readFieldBegin();
-          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
-            break;
-          }
-          switch (schemeField.id) {
-            default:
-              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-          }
-          iprot.readFieldEnd();
-        }
-        iprot.readStructEnd();
-
-        // check for required fields of primitive type, which can't be checked in the validate method
-        struct.validate();
-      }
-
-      public void write(org.apache.thrift.protocol.TProtocol oprot, getPinIdList_args struct) throws org.apache.thrift.TException {
-        struct.validate();
-
-        oprot.writeStructBegin(STRUCT_DESC);
-        oprot.writeFieldStop();
-        oprot.writeStructEnd();
-      }
-
-    }
-
-    private static class getPinIdList_argsTupleSchemeFactory implements SchemeFactory {
-      public getPinIdList_argsTupleScheme getScheme() {
-        return new getPinIdList_argsTupleScheme();
-      }
-    }
-
-    private static class getPinIdList_argsTupleScheme extends TupleScheme<getPinIdList_args> {
-
-      @Override
-      public void write(org.apache.thrift.protocol.TProtocol prot, getPinIdList_args struct) throws org.apache.thrift.TException {
-        TTupleProtocol oprot = (TTupleProtocol) prot;
-      }
-
-      @Override
-      public void read(org.apache.thrift.protocol.TProtocol prot, getPinIdList_args struct) throws org.apache.thrift.TException {
-        TTupleProtocol iprot = (TTupleProtocol) prot;
-      }
-    }
-
-  }
-
-  public static class getPinIdList_result implements org.apache.thrift.TBase<getPinIdList_result, getPinIdList_result._Fields>, java.io.Serializable, Cloneable, Comparable<getPinIdList_result>   {
-    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("getPinIdList_result");
-
-    private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.SET, (short)0);
-    private static final org.apache.thrift.protocol.TField E_FIELD_DESC = new org.apache.thrift.protocol.TField("e", org.apache.thrift.protocol.TType.STRUCT, (short)1);
-
-    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
-    static {
-      schemes.put(StandardScheme.class, new getPinIdList_resultStandardSchemeFactory());
-      schemes.put(TupleScheme.class, new getPinIdList_resultTupleSchemeFactory());
-    }
-
-    private Set<Long> success; // required
-    private alluxio.thrift.AlluxioTException e; // required
-
-    /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
-    public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-      SUCCESS((short)0, "success"),
-      E((short)1, "e");
-
-      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
-
-      static {
-        for (_Fields field : EnumSet.allOf(_Fields.class)) {
-          byName.put(field.getFieldName(), field);
-        }
-      }
-
-      /**
-       * Find the _Fields constant that matches fieldId, or null if its not found.
-       */
-      public static _Fields findByThriftId(int fieldId) {
-        switch(fieldId) {
-          case 0: // SUCCESS
-            return SUCCESS;
-          case 1: // E
-            return E;
+          case 1: // OPTIONS
+            return OPTIONS;
           default:
             return null;
         }
@@ -1735,128 +2900,77 @@ public class FileSystemMasterWorkerService {
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-      tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.SetMetaData(org.apache.thrift.protocol.TType.SET, 
-              new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64))));
-      tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
+      tmpMap.put(_Fields.OPTIONS, new org.apache.thrift.meta_data.FieldMetaData("options", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, GetPinnedFileIdsTOptions.class)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
-      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(getPinIdList_result.class, metaDataMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(getPinnedFileIds_args.class, metaDataMap);
     }
 
-    public getPinIdList_result() {
+    public getPinnedFileIds_args() {
     }
 
-    public getPinIdList_result(
-      Set<Long> success,
-      alluxio.thrift.AlluxioTException e)
+    public getPinnedFileIds_args(
+      GetPinnedFileIdsTOptions options)
     {
       this();
-      this.success = success;
-      this.e = e;
+      this.options = options;
     }
 
     /**
      * Performs a deep copy on <i>other</i>.
      */
-    public getPinIdList_result(getPinIdList_result other) {
-      if (other.isSetSuccess()) {
-        Set<Long> __this__success = new HashSet<Long>(other.success);
-        this.success = __this__success;
-      }
-      if (other.isSetE()) {
-        this.e = new alluxio.thrift.AlluxioTException(other.e);
+    public getPinnedFileIds_args(getPinnedFileIds_args other) {
+      if (other.isSetOptions()) {
+        this.options = new GetPinnedFileIdsTOptions(other.options);
       }
     }
 
-    public getPinIdList_result deepCopy() {
-      return new getPinIdList_result(this);
+    public getPinnedFileIds_args deepCopy() {
+      return new getPinnedFileIds_args(this);
     }
 
     @Override
     public void clear() {
-      this.success = null;
-      this.e = null;
+      this.options = null;
     }
 
-    public int getSuccessSize() {
-      return (this.success == null) ? 0 : this.success.size();
+    /**
+     * the method options
+     */
+    public GetPinnedFileIdsTOptions getOptions() {
+      return this.options;
     }
 
-    public java.util.Iterator<Long> getSuccessIterator() {
-      return (this.success == null) ? null : this.success.iterator();
-    }
-
-    public void addToSuccess(long elem) {
-      if (this.success == null) {
-        this.success = new HashSet<Long>();
-      }
-      this.success.add(elem);
-    }
-
-    public Set<Long> getSuccess() {
-      return this.success;
-    }
-
-    public getPinIdList_result setSuccess(Set<Long> success) {
-      this.success = success;
+    /**
+     * the method options
+     */
+    public getPinnedFileIds_args setOptions(GetPinnedFileIdsTOptions options) {
+      this.options = options;
       return this;
     }
 
-    public void unsetSuccess() {
-      this.success = null;
+    public void unsetOptions() {
+      this.options = null;
     }
 
-    /** Returns true if field success is set (has been assigned a value) and false otherwise */
-    public boolean isSetSuccess() {
-      return this.success != null;
+    /** Returns true if field options is set (has been assigned a value) and false otherwise */
+    public boolean isSetOptions() {
+      return this.options != null;
     }
 
-    public void setSuccessIsSet(boolean value) {
+    public void setOptionsIsSet(boolean value) {
       if (!value) {
-        this.success = null;
-      }
-    }
-
-    public alluxio.thrift.AlluxioTException getE() {
-      return this.e;
-    }
-
-    public getPinIdList_result setE(alluxio.thrift.AlluxioTException e) {
-      this.e = e;
-      return this;
-    }
-
-    public void unsetE() {
-      this.e = null;
-    }
-
-    /** Returns true if field e is set (has been assigned a value) and false otherwise */
-    public boolean isSetE() {
-      return this.e != null;
-    }
-
-    public void setEIsSet(boolean value) {
-      if (!value) {
-        this.e = null;
+        this.options = null;
       }
     }
 
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
-      case SUCCESS:
+      case OPTIONS:
         if (value == null) {
-          unsetSuccess();
+          unsetOptions();
         } else {
-          setSuccess((Set<Long>)value);
-        }
-        break;
-
-      case E:
-        if (value == null) {
-          unsetE();
-        } else {
-          setE((alluxio.thrift.AlluxioTException)value);
+          setOptions((GetPinnedFileIdsTOptions)value);
         }
         break;
 
@@ -1865,11 +2979,8 @@ public class FileSystemMasterWorkerService {
 
     public Object getFieldValue(_Fields field) {
       switch (field) {
-      case SUCCESS:
-        return getSuccess();
-
-      case E:
-        return getE();
+      case OPTIONS:
+        return getOptions();
 
       }
       throw new IllegalStateException();
@@ -1882,10 +2993,8 @@ public class FileSystemMasterWorkerService {
       }
 
       switch (field) {
-      case SUCCESS:
-        return isSetSuccess();
-      case E:
-        return isSetE();
+      case OPTIONS:
+        return isSetOptions();
       }
       throw new IllegalStateException();
     }
@@ -1894,30 +3003,21 @@ public class FileSystemMasterWorkerService {
     public boolean equals(Object that) {
       if (that == null)
         return false;
-      if (that instanceof getPinIdList_result)
-        return this.equals((getPinIdList_result)that);
+      if (that instanceof getPinnedFileIds_args)
+        return this.equals((getPinnedFileIds_args)that);
       return false;
     }
 
-    public boolean equals(getPinIdList_result that) {
+    public boolean equals(getPinnedFileIds_args that) {
       if (that == null)
         return false;
 
-      boolean this_present_success = true && this.isSetSuccess();
-      boolean that_present_success = true && that.isSetSuccess();
-      if (this_present_success || that_present_success) {
-        if (!(this_present_success && that_present_success))
+      boolean this_present_options = true && this.isSetOptions();
+      boolean that_present_options = true && that.isSetOptions();
+      if (this_present_options || that_present_options) {
+        if (!(this_present_options && that_present_options))
           return false;
-        if (!this.success.equals(that.success))
-          return false;
-      }
-
-      boolean this_present_e = true && this.isSetE();
-      boolean that_present_e = true && that.isSetE();
-      if (this_present_e || that_present_e) {
-        if (!(this_present_e && that_present_e))
-          return false;
-        if (!this.e.equals(that.e))
+        if (!this.options.equals(that.options))
           return false;
       }
 
@@ -1928,43 +3028,28 @@ public class FileSystemMasterWorkerService {
     public int hashCode() {
       List<Object> list = new ArrayList<Object>();
 
-      boolean present_success = true && (isSetSuccess());
-      list.add(present_success);
-      if (present_success)
-        list.add(success);
-
-      boolean present_e = true && (isSetE());
-      list.add(present_e);
-      if (present_e)
-        list.add(e);
+      boolean present_options = true && (isSetOptions());
+      list.add(present_options);
+      if (present_options)
+        list.add(options);
 
       return list.hashCode();
     }
 
     @Override
-    public int compareTo(getPinIdList_result other) {
+    public int compareTo(getPinnedFileIds_args other) {
       if (!getClass().equals(other.getClass())) {
         return getClass().getName().compareTo(other.getClass().getName());
       }
 
       int lastComparison = 0;
 
-      lastComparison = Boolean.valueOf(isSetSuccess()).compareTo(other.isSetSuccess());
+      lastComparison = Boolean.valueOf(isSetOptions()).compareTo(other.isSetOptions());
       if (lastComparison != 0) {
         return lastComparison;
       }
-      if (isSetSuccess()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.success, other.success);
-        if (lastComparison != 0) {
-          return lastComparison;
-        }
-      }
-      lastComparison = Boolean.valueOf(isSetE()).compareTo(other.isSetE());
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-      if (isSetE()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.e, other.e);
+      if (isSetOptions()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.options, other.options);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -1982,26 +3067,18 @@ public class FileSystemMasterWorkerService {
 
     public void write(org.apache.thrift.protocol.TProtocol oprot) throws org.apache.thrift.TException {
       schemes.get(oprot.getScheme()).getScheme().write(oprot, this);
-      }
+    }
 
     @Override
     public String toString() {
-      StringBuilder sb = new StringBuilder("getPinIdList_result(");
+      StringBuilder sb = new StringBuilder("getPinnedFileIds_args(");
       boolean first = true;
 
-      sb.append("success:");
-      if (this.success == null) {
+      sb.append("options:");
+      if (this.options == null) {
         sb.append("null");
       } else {
-        sb.append(this.success);
-      }
-      first = false;
-      if (!first) sb.append(", ");
-      sb.append("e:");
-      if (this.e == null) {
-        sb.append("null");
-      } else {
-        sb.append(this.e);
+        sb.append(this.options);
       }
       first = false;
       sb.append(")");
@@ -2011,6 +3088,9 @@ public class FileSystemMasterWorkerService {
     public void validate() throws org.apache.thrift.TException {
       // check for required fields
       // check for sub-struct validity
+      if (options != null) {
+        options.validate();
+      }
     }
 
     private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
@@ -2029,15 +3109,15 @@ public class FileSystemMasterWorkerService {
       }
     }
 
-    private static class getPinIdList_resultStandardSchemeFactory implements SchemeFactory {
-      public getPinIdList_resultStandardScheme getScheme() {
-        return new getPinIdList_resultStandardScheme();
+    private static class getPinnedFileIds_argsStandardSchemeFactory implements SchemeFactory {
+      public getPinnedFileIds_argsStandardScheme getScheme() {
+        return new getPinnedFileIds_argsStandardScheme();
       }
     }
 
-    private static class getPinIdList_resultStandardScheme extends StandardScheme<getPinIdList_result> {
+    private static class getPinnedFileIds_argsStandardScheme extends StandardScheme<getPinnedFileIds_args> {
 
-      public void read(org.apache.thrift.protocol.TProtocol iprot, getPinIdList_result struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol iprot, getPinnedFileIds_args struct) throws org.apache.thrift.TException {
         org.apache.thrift.protocol.TField schemeField;
         iprot.readStructBegin();
         while (true)
@@ -2047,29 +3127,11 @@ public class FileSystemMasterWorkerService {
             break;
           }
           switch (schemeField.id) {
-            case 0: // SUCCESS
-              if (schemeField.type == org.apache.thrift.protocol.TType.SET) {
-                {
-                  org.apache.thrift.protocol.TSet _set82 = iprot.readSetBegin();
-                  struct.success = new HashSet<Long>(2*_set82.size);
-                  long _elem83;
-                  for (int _i84 = 0; _i84 < _set82.size; ++_i84)
-                  {
-                    _elem83 = iprot.readI64();
-                    struct.success.add(_elem83);
-                  }
-                  iprot.readSetEnd();
-                }
-                struct.setSuccessIsSet(true);
-              } else { 
-                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-              }
-              break;
-            case 1: // E
+            case 1: // OPTIONS
               if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.e = new alluxio.thrift.AlluxioTException();
-                struct.e.read(iprot);
-                struct.setEIsSet(true);
+                struct.options = new GetPinnedFileIdsTOptions();
+                struct.options.read(iprot);
+                struct.setOptionsIsSet(true);
               } else { 
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
@@ -2085,25 +3147,13 @@ public class FileSystemMasterWorkerService {
         struct.validate();
       }
 
-      public void write(org.apache.thrift.protocol.TProtocol oprot, getPinIdList_result struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol oprot, getPinnedFileIds_args struct) throws org.apache.thrift.TException {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
-        if (struct.success != null) {
-          oprot.writeFieldBegin(SUCCESS_FIELD_DESC);
-          {
-            oprot.writeSetBegin(new org.apache.thrift.protocol.TSet(org.apache.thrift.protocol.TType.I64, struct.success.size()));
-            for (long _iter85 : struct.success)
-            {
-              oprot.writeI64(_iter85);
-            }
-            oprot.writeSetEnd();
-          }
-          oprot.writeFieldEnd();
-        }
-        if (struct.e != null) {
-          oprot.writeFieldBegin(E_FIELD_DESC);
-          struct.e.write(oprot);
+        if (struct.options != null) {
+          oprot.writeFieldBegin(OPTIONS_FIELD_DESC);
+          struct.options.write(oprot);
           oprot.writeFieldEnd();
         }
         oprot.writeFieldStop();
@@ -2112,610 +3162,54 @@ public class FileSystemMasterWorkerService {
 
     }
 
-    private static class getPinIdList_resultTupleSchemeFactory implements SchemeFactory {
-      public getPinIdList_resultTupleScheme getScheme() {
-        return new getPinIdList_resultTupleScheme();
+    private static class getPinnedFileIds_argsTupleSchemeFactory implements SchemeFactory {
+      public getPinnedFileIds_argsTupleScheme getScheme() {
+        return new getPinnedFileIds_argsTupleScheme();
       }
     }
 
-    private static class getPinIdList_resultTupleScheme extends TupleScheme<getPinIdList_result> {
+    private static class getPinnedFileIds_argsTupleScheme extends TupleScheme<getPinnedFileIds_args> {
 
       @Override
-      public void write(org.apache.thrift.protocol.TProtocol prot, getPinIdList_result struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol prot, getPinnedFileIds_args struct) throws org.apache.thrift.TException {
         TTupleProtocol oprot = (TTupleProtocol) prot;
         BitSet optionals = new BitSet();
-        if (struct.isSetSuccess()) {
+        if (struct.isSetOptions()) {
           optionals.set(0);
         }
-        if (struct.isSetE()) {
-          optionals.set(1);
-        }
-        oprot.writeBitSet(optionals, 2);
-        if (struct.isSetSuccess()) {
-          {
-            oprot.writeI32(struct.success.size());
-            for (long _iter86 : struct.success)
-            {
-              oprot.writeI64(_iter86);
-            }
-          }
-        }
-        if (struct.isSetE()) {
-          struct.e.write(oprot);
+        oprot.writeBitSet(optionals, 1);
+        if (struct.isSetOptions()) {
+          struct.options.write(oprot);
         }
       }
 
       @Override
-      public void read(org.apache.thrift.protocol.TProtocol prot, getPinIdList_result struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol prot, getPinnedFileIds_args struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(2);
+        BitSet incoming = iprot.readBitSet(1);
         if (incoming.get(0)) {
-          {
-            org.apache.thrift.protocol.TSet _set87 = new org.apache.thrift.protocol.TSet(org.apache.thrift.protocol.TType.I64, iprot.readI32());
-            struct.success = new HashSet<Long>(2*_set87.size);
-            long _elem88;
-            for (int _i89 = 0; _i89 < _set87.size; ++_i89)
-            {
-              _elem88 = iprot.readI64();
-              struct.success.add(_elem88);
-            }
-          }
-          struct.setSuccessIsSet(true);
-        }
-        if (incoming.get(1)) {
-          struct.e = new alluxio.thrift.AlluxioTException();
-          struct.e.read(iprot);
-          struct.setEIsSet(true);
+          struct.options = new GetPinnedFileIdsTOptions();
+          struct.options.read(iprot);
+          struct.setOptionsIsSet(true);
         }
       }
     }
 
   }
 
-  public static class heartbeat_args implements org.apache.thrift.TBase<heartbeat_args, heartbeat_args._Fields>, java.io.Serializable, Cloneable, Comparable<heartbeat_args>   {
-    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("heartbeat_args");
-
-    private static final org.apache.thrift.protocol.TField WORKER_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("workerId", org.apache.thrift.protocol.TType.I64, (short)1);
-    private static final org.apache.thrift.protocol.TField PERSISTED_FILES_FIELD_DESC = new org.apache.thrift.protocol.TField("persistedFiles", org.apache.thrift.protocol.TType.LIST, (short)2);
-
-    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
-    static {
-      schemes.put(StandardScheme.class, new heartbeat_argsStandardSchemeFactory());
-      schemes.put(TupleScheme.class, new heartbeat_argsTupleSchemeFactory());
-    }
-
-    private long workerId; // required
-    private List<Long> persistedFiles; // required
-
-    /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
-    public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-      /**
-       * the id of the worker
-       */
-      WORKER_ID((short)1, "workerId"),
-      /**
-       * the list of persisted files
-       */
-      PERSISTED_FILES((short)2, "persistedFiles");
-
-      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
-
-      static {
-        for (_Fields field : EnumSet.allOf(_Fields.class)) {
-          byName.put(field.getFieldName(), field);
-        }
-      }
-
-      /**
-       * Find the _Fields constant that matches fieldId, or null if its not found.
-       */
-      public static _Fields findByThriftId(int fieldId) {
-        switch(fieldId) {
-          case 1: // WORKER_ID
-            return WORKER_ID;
-          case 2: // PERSISTED_FILES
-            return PERSISTED_FILES;
-          default:
-            return null;
-        }
-      }
-
-      /**
-       * Find the _Fields constant that matches fieldId, throwing an exception
-       * if it is not found.
-       */
-      public static _Fields findByThriftIdOrThrow(int fieldId) {
-        _Fields fields = findByThriftId(fieldId);
-        if (fields == null) throw new IllegalArgumentException("Field " + fieldId + " doesn't exist!");
-        return fields;
-      }
-
-      /**
-       * Find the _Fields constant that matches name, or null if its not found.
-       */
-      public static _Fields findByName(String name) {
-        return byName.get(name);
-      }
-
-      private final short _thriftId;
-      private final String _fieldName;
-
-      _Fields(short thriftId, String fieldName) {
-        _thriftId = thriftId;
-        _fieldName = fieldName;
-      }
-
-      public short getThriftFieldId() {
-        return _thriftId;
-      }
-
-      public String getFieldName() {
-        return _fieldName;
-      }
-    }
-
-    // isset id assignments
-    private static final int __WORKERID_ISSET_ID = 0;
-    private byte __isset_bitfield = 0;
-    public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
-    static {
-      Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-      tmpMap.put(_Fields.WORKER_ID, new org.apache.thrift.meta_data.FieldMetaData("workerId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
-      tmpMap.put(_Fields.PERSISTED_FILES, new org.apache.thrift.meta_data.FieldMetaData("persistedFiles", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.ListMetaData(org.apache.thrift.protocol.TType.LIST, 
-              new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64))));
-      metaDataMap = Collections.unmodifiableMap(tmpMap);
-      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(heartbeat_args.class, metaDataMap);
-    }
-
-    public heartbeat_args() {
-    }
-
-    public heartbeat_args(
-      long workerId,
-      List<Long> persistedFiles)
-    {
-      this();
-      this.workerId = workerId;
-      setWorkerIdIsSet(true);
-      this.persistedFiles = persistedFiles;
-    }
-
-    /**
-     * Performs a deep copy on <i>other</i>.
-     */
-    public heartbeat_args(heartbeat_args other) {
-      __isset_bitfield = other.__isset_bitfield;
-      this.workerId = other.workerId;
-      if (other.isSetPersistedFiles()) {
-        List<Long> __this__persistedFiles = new ArrayList<Long>(other.persistedFiles);
-        this.persistedFiles = __this__persistedFiles;
-      }
-    }
-
-    public heartbeat_args deepCopy() {
-      return new heartbeat_args(this);
-    }
-
-    @Override
-    public void clear() {
-      setWorkerIdIsSet(false);
-      this.workerId = 0;
-      this.persistedFiles = null;
-    }
-
-    /**
-     * the id of the worker
-     */
-    public long getWorkerId() {
-      return this.workerId;
-    }
-
-    /**
-     * the id of the worker
-     */
-    public heartbeat_args setWorkerId(long workerId) {
-      this.workerId = workerId;
-      setWorkerIdIsSet(true);
-      return this;
-    }
-
-    public void unsetWorkerId() {
-      __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __WORKERID_ISSET_ID);
-    }
-
-    /** Returns true if field workerId is set (has been assigned a value) and false otherwise */
-    public boolean isSetWorkerId() {
-      return EncodingUtils.testBit(__isset_bitfield, __WORKERID_ISSET_ID);
-    }
-
-    public void setWorkerIdIsSet(boolean value) {
-      __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __WORKERID_ISSET_ID, value);
-    }
-
-    public int getPersistedFilesSize() {
-      return (this.persistedFiles == null) ? 0 : this.persistedFiles.size();
-    }
-
-    public java.util.Iterator<Long> getPersistedFilesIterator() {
-      return (this.persistedFiles == null) ? null : this.persistedFiles.iterator();
-    }
-
-    public void addToPersistedFiles(long elem) {
-      if (this.persistedFiles == null) {
-        this.persistedFiles = new ArrayList<Long>();
-      }
-      this.persistedFiles.add(elem);
-    }
-
-    /**
-     * the list of persisted files
-     */
-    public List<Long> getPersistedFiles() {
-      return this.persistedFiles;
-    }
-
-    /**
-     * the list of persisted files
-     */
-    public heartbeat_args setPersistedFiles(List<Long> persistedFiles) {
-      this.persistedFiles = persistedFiles;
-      return this;
-    }
-
-    public void unsetPersistedFiles() {
-      this.persistedFiles = null;
-    }
-
-    /** Returns true if field persistedFiles is set (has been assigned a value) and false otherwise */
-    public boolean isSetPersistedFiles() {
-      return this.persistedFiles != null;
-    }
-
-    public void setPersistedFilesIsSet(boolean value) {
-      if (!value) {
-        this.persistedFiles = null;
-      }
-    }
-
-    public void setFieldValue(_Fields field, Object value) {
-      switch (field) {
-      case WORKER_ID:
-        if (value == null) {
-          unsetWorkerId();
-        } else {
-          setWorkerId((Long)value);
-        }
-        break;
-
-      case PERSISTED_FILES:
-        if (value == null) {
-          unsetPersistedFiles();
-        } else {
-          setPersistedFiles((List<Long>)value);
-        }
-        break;
-
-      }
-    }
-
-    public Object getFieldValue(_Fields field) {
-      switch (field) {
-      case WORKER_ID:
-        return getWorkerId();
-
-      case PERSISTED_FILES:
-        return getPersistedFiles();
-
-      }
-      throw new IllegalStateException();
-    }
-
-    /** Returns true if field corresponding to fieldID is set (has been assigned a value) and false otherwise */
-    public boolean isSet(_Fields field) {
-      if (field == null) {
-        throw new IllegalArgumentException();
-      }
-
-      switch (field) {
-      case WORKER_ID:
-        return isSetWorkerId();
-      case PERSISTED_FILES:
-        return isSetPersistedFiles();
-      }
-      throw new IllegalStateException();
-    }
-
-    @Override
-    public boolean equals(Object that) {
-      if (that == null)
-        return false;
-      if (that instanceof heartbeat_args)
-        return this.equals((heartbeat_args)that);
-      return false;
-    }
-
-    public boolean equals(heartbeat_args that) {
-      if (that == null)
-        return false;
-
-      boolean this_present_workerId = true;
-      boolean that_present_workerId = true;
-      if (this_present_workerId || that_present_workerId) {
-        if (!(this_present_workerId && that_present_workerId))
-          return false;
-        if (this.workerId != that.workerId)
-          return false;
-      }
-
-      boolean this_present_persistedFiles = true && this.isSetPersistedFiles();
-      boolean that_present_persistedFiles = true && that.isSetPersistedFiles();
-      if (this_present_persistedFiles || that_present_persistedFiles) {
-        if (!(this_present_persistedFiles && that_present_persistedFiles))
-          return false;
-        if (!this.persistedFiles.equals(that.persistedFiles))
-          return false;
-      }
-
-      return true;
-    }
-
-    @Override
-    public int hashCode() {
-      List<Object> list = new ArrayList<Object>();
-
-      boolean present_workerId = true;
-      list.add(present_workerId);
-      if (present_workerId)
-        list.add(workerId);
-
-      boolean present_persistedFiles = true && (isSetPersistedFiles());
-      list.add(present_persistedFiles);
-      if (present_persistedFiles)
-        list.add(persistedFiles);
-
-      return list.hashCode();
-    }
-
-    @Override
-    public int compareTo(heartbeat_args other) {
-      if (!getClass().equals(other.getClass())) {
-        return getClass().getName().compareTo(other.getClass().getName());
-      }
-
-      int lastComparison = 0;
-
-      lastComparison = Boolean.valueOf(isSetWorkerId()).compareTo(other.isSetWorkerId());
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-      if (isSetWorkerId()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.workerId, other.workerId);
-        if (lastComparison != 0) {
-          return lastComparison;
-        }
-      }
-      lastComparison = Boolean.valueOf(isSetPersistedFiles()).compareTo(other.isSetPersistedFiles());
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-      if (isSetPersistedFiles()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.persistedFiles, other.persistedFiles);
-        if (lastComparison != 0) {
-          return lastComparison;
-        }
-      }
-      return 0;
-    }
-
-    public _Fields fieldForId(int fieldId) {
-      return _Fields.findByThriftId(fieldId);
-    }
-
-    public void read(org.apache.thrift.protocol.TProtocol iprot) throws org.apache.thrift.TException {
-      schemes.get(iprot.getScheme()).getScheme().read(iprot, this);
-    }
-
-    public void write(org.apache.thrift.protocol.TProtocol oprot) throws org.apache.thrift.TException {
-      schemes.get(oprot.getScheme()).getScheme().write(oprot, this);
-    }
-
-    @Override
-    public String toString() {
-      StringBuilder sb = new StringBuilder("heartbeat_args(");
-      boolean first = true;
-
-      sb.append("workerId:");
-      sb.append(this.workerId);
-      first = false;
-      if (!first) sb.append(", ");
-      sb.append("persistedFiles:");
-      if (this.persistedFiles == null) {
-        sb.append("null");
-      } else {
-        sb.append(this.persistedFiles);
-      }
-      first = false;
-      sb.append(")");
-      return sb.toString();
-    }
-
-    public void validate() throws org.apache.thrift.TException {
-      // check for required fields
-      // check for sub-struct validity
-    }
-
-    private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
-      try {
-        write(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(out)));
-      } catch (org.apache.thrift.TException te) {
-        throw new java.io.IOException(te);
-      }
-    }
-
-    private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
-      try {
-        // it doesn't seem like you should have to do this, but java serialization is wacky, and doesn't call the default constructor.
-        __isset_bitfield = 0;
-        read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
-      } catch (org.apache.thrift.TException te) {
-        throw new java.io.IOException(te);
-      }
-    }
-
-    private static class heartbeat_argsStandardSchemeFactory implements SchemeFactory {
-      public heartbeat_argsStandardScheme getScheme() {
-        return new heartbeat_argsStandardScheme();
-      }
-    }
-
-    private static class heartbeat_argsStandardScheme extends StandardScheme<heartbeat_args> {
-
-      public void read(org.apache.thrift.protocol.TProtocol iprot, heartbeat_args struct) throws org.apache.thrift.TException {
-        org.apache.thrift.protocol.TField schemeField;
-        iprot.readStructBegin();
-        while (true)
-        {
-          schemeField = iprot.readFieldBegin();
-          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
-            break;
-          }
-          switch (schemeField.id) {
-            case 1: // WORKER_ID
-              if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
-                struct.workerId = iprot.readI64();
-                struct.setWorkerIdIsSet(true);
-              } else { 
-                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-              }
-              break;
-            case 2: // PERSISTED_FILES
-              if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
-                {
-                  org.apache.thrift.protocol.TList _list90 = iprot.readListBegin();
-                  struct.persistedFiles = new ArrayList<Long>(_list90.size);
-                  long _elem91;
-                  for (int _i92 = 0; _i92 < _list90.size; ++_i92)
-                  {
-                    _elem91 = iprot.readI64();
-                    struct.persistedFiles.add(_elem91);
-                  }
-                  iprot.readListEnd();
-                }
-                struct.setPersistedFilesIsSet(true);
-              } else { 
-                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-              }
-              break;
-            default:
-              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-          }
-          iprot.readFieldEnd();
-        }
-        iprot.readStructEnd();
-
-        // check for required fields of primitive type, which can't be checked in the validate method
-        struct.validate();
-      }
-
-      public void write(org.apache.thrift.protocol.TProtocol oprot, heartbeat_args struct) throws org.apache.thrift.TException {
-        struct.validate();
-
-        oprot.writeStructBegin(STRUCT_DESC);
-        oprot.writeFieldBegin(WORKER_ID_FIELD_DESC);
-        oprot.writeI64(struct.workerId);
-        oprot.writeFieldEnd();
-        if (struct.persistedFiles != null) {
-          oprot.writeFieldBegin(PERSISTED_FILES_FIELD_DESC);
-          {
-            oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.I64, struct.persistedFiles.size()));
-            for (long _iter93 : struct.persistedFiles)
-            {
-              oprot.writeI64(_iter93);
-            }
-            oprot.writeListEnd();
-          }
-          oprot.writeFieldEnd();
-        }
-        oprot.writeFieldStop();
-        oprot.writeStructEnd();
-      }
-
-    }
-
-    private static class heartbeat_argsTupleSchemeFactory implements SchemeFactory {
-      public heartbeat_argsTupleScheme getScheme() {
-        return new heartbeat_argsTupleScheme();
-      }
-    }
-
-    private static class heartbeat_argsTupleScheme extends TupleScheme<heartbeat_args> {
-
-      @Override
-      public void write(org.apache.thrift.protocol.TProtocol prot, heartbeat_args struct) throws org.apache.thrift.TException {
-        TTupleProtocol oprot = (TTupleProtocol) prot;
-        BitSet optionals = new BitSet();
-        if (struct.isSetWorkerId()) {
-          optionals.set(0);
-        }
-        if (struct.isSetPersistedFiles()) {
-          optionals.set(1);
-        }
-        oprot.writeBitSet(optionals, 2);
-        if (struct.isSetWorkerId()) {
-          oprot.writeI64(struct.workerId);
-        }
-        if (struct.isSetPersistedFiles()) {
-          {
-            oprot.writeI32(struct.persistedFiles.size());
-            for (long _iter94 : struct.persistedFiles)
-            {
-              oprot.writeI64(_iter94);
-            }
-          }
-        }
-      }
-
-      @Override
-      public void read(org.apache.thrift.protocol.TProtocol prot, heartbeat_args struct) throws org.apache.thrift.TException {
-        TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(2);
-        if (incoming.get(0)) {
-          struct.workerId = iprot.readI64();
-          struct.setWorkerIdIsSet(true);
-        }
-        if (incoming.get(1)) {
-          {
-            org.apache.thrift.protocol.TList _list95 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.I64, iprot.readI32());
-            struct.persistedFiles = new ArrayList<Long>(_list95.size);
-            long _elem96;
-            for (int _i97 = 0; _i97 < _list95.size; ++_i97)
-            {
-              _elem96 = iprot.readI64();
-              struct.persistedFiles.add(_elem96);
-            }
-          }
-          struct.setPersistedFilesIsSet(true);
-        }
-      }
-    }
-
-  }
-
-  public static class heartbeat_result implements org.apache.thrift.TBase<heartbeat_result, heartbeat_result._Fields>, java.io.Serializable, Cloneable, Comparable<heartbeat_result>   {
-    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("heartbeat_result");
+  public static class getPinnedFileIds_result implements org.apache.thrift.TBase<getPinnedFileIds_result, getPinnedFileIds_result._Fields>, java.io.Serializable, Cloneable, Comparable<getPinnedFileIds_result>   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("getPinnedFileIds_result");
 
     private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.STRUCT, (short)0);
     private static final org.apache.thrift.protocol.TField E_FIELD_DESC = new org.apache.thrift.protocol.TField("e", org.apache.thrift.protocol.TType.STRUCT, (short)1);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
-      schemes.put(StandardScheme.class, new heartbeat_resultStandardSchemeFactory());
-      schemes.put(TupleScheme.class, new heartbeat_resultTupleSchemeFactory());
+      schemes.put(StandardScheme.class, new getPinnedFileIds_resultStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new getPinnedFileIds_resultTupleSchemeFactory());
     }
 
-    private FileSystemCommand success; // required
+    private GetPinnedFileIdsTResponse success; // required
     private alluxio.thrift.AlluxioTException e; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
@@ -2784,18 +3278,18 @@ public class FileSystemMasterWorkerService {
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
       tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, FileSystemCommand.class)));
+          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, GetPinnedFileIdsTResponse.class)));
       tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
-      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(heartbeat_result.class, metaDataMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(getPinnedFileIds_result.class, metaDataMap);
     }
 
-    public heartbeat_result() {
+    public getPinnedFileIds_result() {
     }
 
-    public heartbeat_result(
-      FileSystemCommand success,
+    public getPinnedFileIds_result(
+      GetPinnedFileIdsTResponse success,
       alluxio.thrift.AlluxioTException e)
     {
       this();
@@ -2806,17 +3300,17 @@ public class FileSystemMasterWorkerService {
     /**
      * Performs a deep copy on <i>other</i>.
      */
-    public heartbeat_result(heartbeat_result other) {
+    public getPinnedFileIds_result(getPinnedFileIds_result other) {
       if (other.isSetSuccess()) {
-        this.success = new FileSystemCommand(other.success);
+        this.success = new GetPinnedFileIdsTResponse(other.success);
       }
       if (other.isSetE()) {
         this.e = new alluxio.thrift.AlluxioTException(other.e);
       }
     }
 
-    public heartbeat_result deepCopy() {
-      return new heartbeat_result(this);
+    public getPinnedFileIds_result deepCopy() {
+      return new getPinnedFileIds_result(this);
     }
 
     @Override
@@ -2825,11 +3319,11 @@ public class FileSystemMasterWorkerService {
       this.e = null;
     }
 
-    public FileSystemCommand getSuccess() {
+    public GetPinnedFileIdsTResponse getSuccess() {
       return this.success;
     }
 
-    public heartbeat_result setSuccess(FileSystemCommand success) {
+    public getPinnedFileIds_result setSuccess(GetPinnedFileIdsTResponse success) {
       this.success = success;
       return this;
     }
@@ -2853,7 +3347,7 @@ public class FileSystemMasterWorkerService {
       return this.e;
     }
 
-    public heartbeat_result setE(alluxio.thrift.AlluxioTException e) {
+    public getPinnedFileIds_result setE(alluxio.thrift.AlluxioTException e) {
       this.e = e;
       return this;
     }
@@ -2879,7 +3373,7 @@ public class FileSystemMasterWorkerService {
         if (value == null) {
           unsetSuccess();
         } else {
-          setSuccess((FileSystemCommand)value);
+          setSuccess((GetPinnedFileIdsTResponse)value);
         }
         break;
 
@@ -2925,12 +3419,12 @@ public class FileSystemMasterWorkerService {
     public boolean equals(Object that) {
       if (that == null)
         return false;
-      if (that instanceof heartbeat_result)
-        return this.equals((heartbeat_result)that);
+      if (that instanceof getPinnedFileIds_result)
+        return this.equals((getPinnedFileIds_result)that);
       return false;
     }
 
-    public boolean equals(heartbeat_result that) {
+    public boolean equals(getPinnedFileIds_result that) {
       if (that == null)
         return false;
 
@@ -2973,7 +3467,7 @@ public class FileSystemMasterWorkerService {
     }
 
     @Override
-    public int compareTo(heartbeat_result other) {
+    public int compareTo(getPinnedFileIds_result other) {
       if (!getClass().equals(other.getClass())) {
         return getClass().getName().compareTo(other.getClass().getName());
       }
@@ -3017,7 +3511,7 @@ public class FileSystemMasterWorkerService {
 
     @Override
     public String toString() {
-      StringBuilder sb = new StringBuilder("heartbeat_result(");
+      StringBuilder sb = new StringBuilder("getPinnedFileIds_result(");
       boolean first = true;
 
       sb.append("success:");
@@ -3063,15 +3557,15 @@ public class FileSystemMasterWorkerService {
       }
     }
 
-    private static class heartbeat_resultStandardSchemeFactory implements SchemeFactory {
-      public heartbeat_resultStandardScheme getScheme() {
-        return new heartbeat_resultStandardScheme();
+    private static class getPinnedFileIds_resultStandardSchemeFactory implements SchemeFactory {
+      public getPinnedFileIds_resultStandardScheme getScheme() {
+        return new getPinnedFileIds_resultStandardScheme();
       }
     }
 
-    private static class heartbeat_resultStandardScheme extends StandardScheme<heartbeat_result> {
+    private static class getPinnedFileIds_resultStandardScheme extends StandardScheme<getPinnedFileIds_result> {
 
-      public void read(org.apache.thrift.protocol.TProtocol iprot, heartbeat_result struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol iprot, getPinnedFileIds_result struct) throws org.apache.thrift.TException {
         org.apache.thrift.protocol.TField schemeField;
         iprot.readStructBegin();
         while (true)
@@ -3083,7 +3577,7 @@ public class FileSystemMasterWorkerService {
           switch (schemeField.id) {
             case 0: // SUCCESS
               if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.success = new FileSystemCommand();
+                struct.success = new GetPinnedFileIdsTResponse();
                 struct.success.read(iprot);
                 struct.setSuccessIsSet(true);
               } else { 
@@ -3110,7 +3604,7 @@ public class FileSystemMasterWorkerService {
         struct.validate();
       }
 
-      public void write(org.apache.thrift.protocol.TProtocol oprot, heartbeat_result struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol oprot, getPinnedFileIds_result struct) throws org.apache.thrift.TException {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
@@ -3130,16 +3624,16 @@ public class FileSystemMasterWorkerService {
 
     }
 
-    private static class heartbeat_resultTupleSchemeFactory implements SchemeFactory {
-      public heartbeat_resultTupleScheme getScheme() {
-        return new heartbeat_resultTupleScheme();
+    private static class getPinnedFileIds_resultTupleSchemeFactory implements SchemeFactory {
+      public getPinnedFileIds_resultTupleScheme getScheme() {
+        return new getPinnedFileIds_resultTupleScheme();
       }
     }
 
-    private static class heartbeat_resultTupleScheme extends TupleScheme<heartbeat_result> {
+    private static class getPinnedFileIds_resultTupleScheme extends TupleScheme<getPinnedFileIds_result> {
 
       @Override
-      public void write(org.apache.thrift.protocol.TProtocol prot, heartbeat_result struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol prot, getPinnedFileIds_result struct) throws org.apache.thrift.TException {
         TTupleProtocol oprot = (TTupleProtocol) prot;
         BitSet optionals = new BitSet();
         if (struct.isSetSuccess()) {
@@ -3158,11 +3652,971 @@ public class FileSystemMasterWorkerService {
       }
 
       @Override
-      public void read(org.apache.thrift.protocol.TProtocol prot, heartbeat_result struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol prot, getPinnedFileIds_result struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
         BitSet incoming = iprot.readBitSet(2);
         if (incoming.get(0)) {
-          struct.success = new FileSystemCommand();
+          struct.success = new GetPinnedFileIdsTResponse();
+          struct.success.read(iprot);
+          struct.setSuccessIsSet(true);
+        }
+        if (incoming.get(1)) {
+          struct.e = new alluxio.thrift.AlluxioTException();
+          struct.e.read(iprot);
+          struct.setEIsSet(true);
+        }
+      }
+    }
+
+  }
+
+  public static class getUfsInfo_args implements org.apache.thrift.TBase<getUfsInfo_args, getUfsInfo_args._Fields>, java.io.Serializable, Cloneable, Comparable<getUfsInfo_args>   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("getUfsInfo_args");
+
+    private static final org.apache.thrift.protocol.TField MOUNT_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("mountId", org.apache.thrift.protocol.TType.I64, (short)1);
+    private static final org.apache.thrift.protocol.TField OPTIONS_FIELD_DESC = new org.apache.thrift.protocol.TField("options", org.apache.thrift.protocol.TType.STRUCT, (short)2);
+
+    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
+    static {
+      schemes.put(StandardScheme.class, new getUfsInfo_argsStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new getUfsInfo_argsTupleSchemeFactory());
+    }
+
+    private long mountId; // required
+    private GetUfsInfoTOptions options; // required
+
+    /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
+    public enum _Fields implements org.apache.thrift.TFieldIdEnum {
+      /**
+       * the id of the ufs
+       */
+      MOUNT_ID((short)1, "mountId"),
+      /**
+       * the method options
+       */
+      OPTIONS((short)2, "options");
+
+      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
+
+      static {
+        for (_Fields field : EnumSet.allOf(_Fields.class)) {
+          byName.put(field.getFieldName(), field);
+        }
+      }
+
+      /**
+       * Find the _Fields constant that matches fieldId, or null if its not found.
+       */
+      public static _Fields findByThriftId(int fieldId) {
+        switch(fieldId) {
+          case 1: // MOUNT_ID
+            return MOUNT_ID;
+          case 2: // OPTIONS
+            return OPTIONS;
+          default:
+            return null;
+        }
+      }
+
+      /**
+       * Find the _Fields constant that matches fieldId, throwing an exception
+       * if it is not found.
+       */
+      public static _Fields findByThriftIdOrThrow(int fieldId) {
+        _Fields fields = findByThriftId(fieldId);
+        if (fields == null) throw new IllegalArgumentException("Field " + fieldId + " doesn't exist!");
+        return fields;
+      }
+
+      /**
+       * Find the _Fields constant that matches name, or null if its not found.
+       */
+      public static _Fields findByName(String name) {
+        return byName.get(name);
+      }
+
+      private final short _thriftId;
+      private final String _fieldName;
+
+      _Fields(short thriftId, String fieldName) {
+        _thriftId = thriftId;
+        _fieldName = fieldName;
+      }
+
+      public short getThriftFieldId() {
+        return _thriftId;
+      }
+
+      public String getFieldName() {
+        return _fieldName;
+      }
+    }
+
+    // isset id assignments
+    private static final int __MOUNTID_ISSET_ID = 0;
+    private byte __isset_bitfield = 0;
+    public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
+    static {
+      Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
+      tmpMap.put(_Fields.MOUNT_ID, new org.apache.thrift.meta_data.FieldMetaData("mountId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
+      tmpMap.put(_Fields.OPTIONS, new org.apache.thrift.meta_data.FieldMetaData("options", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, GetUfsInfoTOptions.class)));
+      metaDataMap = Collections.unmodifiableMap(tmpMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(getUfsInfo_args.class, metaDataMap);
+    }
+
+    public getUfsInfo_args() {
+    }
+
+    public getUfsInfo_args(
+      long mountId,
+      GetUfsInfoTOptions options)
+    {
+      this();
+      this.mountId = mountId;
+      setMountIdIsSet(true);
+      this.options = options;
+    }
+
+    /**
+     * Performs a deep copy on <i>other</i>.
+     */
+    public getUfsInfo_args(getUfsInfo_args other) {
+      __isset_bitfield = other.__isset_bitfield;
+      this.mountId = other.mountId;
+      if (other.isSetOptions()) {
+        this.options = new GetUfsInfoTOptions(other.options);
+      }
+    }
+
+    public getUfsInfo_args deepCopy() {
+      return new getUfsInfo_args(this);
+    }
+
+    @Override
+    public void clear() {
+      setMountIdIsSet(false);
+      this.mountId = 0;
+      this.options = null;
+    }
+
+    /**
+     * the id of the ufs
+     */
+    public long getMountId() {
+      return this.mountId;
+    }
+
+    /**
+     * the id of the ufs
+     */
+    public getUfsInfo_args setMountId(long mountId) {
+      this.mountId = mountId;
+      setMountIdIsSet(true);
+      return this;
+    }
+
+    public void unsetMountId() {
+      __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __MOUNTID_ISSET_ID);
+    }
+
+    /** Returns true if field mountId is set (has been assigned a value) and false otherwise */
+    public boolean isSetMountId() {
+      return EncodingUtils.testBit(__isset_bitfield, __MOUNTID_ISSET_ID);
+    }
+
+    public void setMountIdIsSet(boolean value) {
+      __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __MOUNTID_ISSET_ID, value);
+    }
+
+    /**
+     * the method options
+     */
+    public GetUfsInfoTOptions getOptions() {
+      return this.options;
+    }
+
+    /**
+     * the method options
+     */
+    public getUfsInfo_args setOptions(GetUfsInfoTOptions options) {
+      this.options = options;
+      return this;
+    }
+
+    public void unsetOptions() {
+      this.options = null;
+    }
+
+    /** Returns true if field options is set (has been assigned a value) and false otherwise */
+    public boolean isSetOptions() {
+      return this.options != null;
+    }
+
+    public void setOptionsIsSet(boolean value) {
+      if (!value) {
+        this.options = null;
+      }
+    }
+
+    public void setFieldValue(_Fields field, Object value) {
+      switch (field) {
+      case MOUNT_ID:
+        if (value == null) {
+          unsetMountId();
+        } else {
+          setMountId((Long)value);
+        }
+        break;
+
+      case OPTIONS:
+        if (value == null) {
+          unsetOptions();
+        } else {
+          setOptions((GetUfsInfoTOptions)value);
+        }
+        break;
+
+      }
+    }
+
+    public Object getFieldValue(_Fields field) {
+      switch (field) {
+      case MOUNT_ID:
+        return getMountId();
+
+      case OPTIONS:
+        return getOptions();
+
+      }
+      throw new IllegalStateException();
+    }
+
+    /** Returns true if field corresponding to fieldID is set (has been assigned a value) and false otherwise */
+    public boolean isSet(_Fields field) {
+      if (field == null) {
+        throw new IllegalArgumentException();
+      }
+
+      switch (field) {
+      case MOUNT_ID:
+        return isSetMountId();
+      case OPTIONS:
+        return isSetOptions();
+      }
+      throw new IllegalStateException();
+    }
+
+    @Override
+    public boolean equals(Object that) {
+      if (that == null)
+        return false;
+      if (that instanceof getUfsInfo_args)
+        return this.equals((getUfsInfo_args)that);
+      return false;
+    }
+
+    public boolean equals(getUfsInfo_args that) {
+      if (that == null)
+        return false;
+
+      boolean this_present_mountId = true;
+      boolean that_present_mountId = true;
+      if (this_present_mountId || that_present_mountId) {
+        if (!(this_present_mountId && that_present_mountId))
+          return false;
+        if (this.mountId != that.mountId)
+          return false;
+      }
+
+      boolean this_present_options = true && this.isSetOptions();
+      boolean that_present_options = true && that.isSetOptions();
+      if (this_present_options || that_present_options) {
+        if (!(this_present_options && that_present_options))
+          return false;
+        if (!this.options.equals(that.options))
+          return false;
+      }
+
+      return true;
+    }
+
+    @Override
+    public int hashCode() {
+      List<Object> list = new ArrayList<Object>();
+
+      boolean present_mountId = true;
+      list.add(present_mountId);
+      if (present_mountId)
+        list.add(mountId);
+
+      boolean present_options = true && (isSetOptions());
+      list.add(present_options);
+      if (present_options)
+        list.add(options);
+
+      return list.hashCode();
+    }
+
+    @Override
+    public int compareTo(getUfsInfo_args other) {
+      if (!getClass().equals(other.getClass())) {
+        return getClass().getName().compareTo(other.getClass().getName());
+      }
+
+      int lastComparison = 0;
+
+      lastComparison = Boolean.valueOf(isSetMountId()).compareTo(other.isSetMountId());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetMountId()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.mountId, other.mountId);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = Boolean.valueOf(isSetOptions()).compareTo(other.isSetOptions());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetOptions()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.options, other.options);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      return 0;
+    }
+
+    public _Fields fieldForId(int fieldId) {
+      return _Fields.findByThriftId(fieldId);
+    }
+
+    public void read(org.apache.thrift.protocol.TProtocol iprot) throws org.apache.thrift.TException {
+      schemes.get(iprot.getScheme()).getScheme().read(iprot, this);
+    }
+
+    public void write(org.apache.thrift.protocol.TProtocol oprot) throws org.apache.thrift.TException {
+      schemes.get(oprot.getScheme()).getScheme().write(oprot, this);
+    }
+
+    @Override
+    public String toString() {
+      StringBuilder sb = new StringBuilder("getUfsInfo_args(");
+      boolean first = true;
+
+      sb.append("mountId:");
+      sb.append(this.mountId);
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("options:");
+      if (this.options == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.options);
+      }
+      first = false;
+      sb.append(")");
+      return sb.toString();
+    }
+
+    public void validate() throws org.apache.thrift.TException {
+      // check for required fields
+      // check for sub-struct validity
+      if (options != null) {
+        options.validate();
+      }
+    }
+
+    private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
+      try {
+        write(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(out)));
+      } catch (org.apache.thrift.TException te) {
+        throw new java.io.IOException(te);
+      }
+    }
+
+    private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
+      try {
+        // it doesn't seem like you should have to do this, but java serialization is wacky, and doesn't call the default constructor.
+        __isset_bitfield = 0;
+        read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
+      } catch (org.apache.thrift.TException te) {
+        throw new java.io.IOException(te);
+      }
+    }
+
+    private static class getUfsInfo_argsStandardSchemeFactory implements SchemeFactory {
+      public getUfsInfo_argsStandardScheme getScheme() {
+        return new getUfsInfo_argsStandardScheme();
+      }
+    }
+
+    private static class getUfsInfo_argsStandardScheme extends StandardScheme<getUfsInfo_args> {
+
+      public void read(org.apache.thrift.protocol.TProtocol iprot, getUfsInfo_args struct) throws org.apache.thrift.TException {
+        org.apache.thrift.protocol.TField schemeField;
+        iprot.readStructBegin();
+        while (true)
+        {
+          schemeField = iprot.readFieldBegin();
+          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
+            break;
+          }
+          switch (schemeField.id) {
+            case 1: // MOUNT_ID
+              if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
+                struct.mountId = iprot.readI64();
+                struct.setMountIdIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            case 2: // OPTIONS
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.options = new GetUfsInfoTOptions();
+                struct.options.read(iprot);
+                struct.setOptionsIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            default:
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+          }
+          iprot.readFieldEnd();
+        }
+        iprot.readStructEnd();
+
+        // check for required fields of primitive type, which can't be checked in the validate method
+        struct.validate();
+      }
+
+      public void write(org.apache.thrift.protocol.TProtocol oprot, getUfsInfo_args struct) throws org.apache.thrift.TException {
+        struct.validate();
+
+        oprot.writeStructBegin(STRUCT_DESC);
+        oprot.writeFieldBegin(MOUNT_ID_FIELD_DESC);
+        oprot.writeI64(struct.mountId);
+        oprot.writeFieldEnd();
+        if (struct.options != null) {
+          oprot.writeFieldBegin(OPTIONS_FIELD_DESC);
+          struct.options.write(oprot);
+          oprot.writeFieldEnd();
+        }
+        oprot.writeFieldStop();
+        oprot.writeStructEnd();
+      }
+
+    }
+
+    private static class getUfsInfo_argsTupleSchemeFactory implements SchemeFactory {
+      public getUfsInfo_argsTupleScheme getScheme() {
+        return new getUfsInfo_argsTupleScheme();
+      }
+    }
+
+    private static class getUfsInfo_argsTupleScheme extends TupleScheme<getUfsInfo_args> {
+
+      @Override
+      public void write(org.apache.thrift.protocol.TProtocol prot, getUfsInfo_args struct) throws org.apache.thrift.TException {
+        TTupleProtocol oprot = (TTupleProtocol) prot;
+        BitSet optionals = new BitSet();
+        if (struct.isSetMountId()) {
+          optionals.set(0);
+        }
+        if (struct.isSetOptions()) {
+          optionals.set(1);
+        }
+        oprot.writeBitSet(optionals, 2);
+        if (struct.isSetMountId()) {
+          oprot.writeI64(struct.mountId);
+        }
+        if (struct.isSetOptions()) {
+          struct.options.write(oprot);
+        }
+      }
+
+      @Override
+      public void read(org.apache.thrift.protocol.TProtocol prot, getUfsInfo_args struct) throws org.apache.thrift.TException {
+        TTupleProtocol iprot = (TTupleProtocol) prot;
+        BitSet incoming = iprot.readBitSet(2);
+        if (incoming.get(0)) {
+          struct.mountId = iprot.readI64();
+          struct.setMountIdIsSet(true);
+        }
+        if (incoming.get(1)) {
+          struct.options = new GetUfsInfoTOptions();
+          struct.options.read(iprot);
+          struct.setOptionsIsSet(true);
+        }
+      }
+    }
+
+  }
+
+  public static class getUfsInfo_result implements org.apache.thrift.TBase<getUfsInfo_result, getUfsInfo_result._Fields>, java.io.Serializable, Cloneable, Comparable<getUfsInfo_result>   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("getUfsInfo_result");
+
+    private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.STRUCT, (short)0);
+    private static final org.apache.thrift.protocol.TField E_FIELD_DESC = new org.apache.thrift.protocol.TField("e", org.apache.thrift.protocol.TType.STRUCT, (short)1);
+
+    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
+    static {
+      schemes.put(StandardScheme.class, new getUfsInfo_resultStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new getUfsInfo_resultTupleSchemeFactory());
+    }
+
+    private GetUfsInfoTResponse success; // required
+    private alluxio.thrift.AlluxioTException e; // required
+
+    /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
+    public enum _Fields implements org.apache.thrift.TFieldIdEnum {
+      SUCCESS((short)0, "success"),
+      E((short)1, "e");
+
+      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
+
+      static {
+        for (_Fields field : EnumSet.allOf(_Fields.class)) {
+          byName.put(field.getFieldName(), field);
+        }
+      }
+
+      /**
+       * Find the _Fields constant that matches fieldId, or null if its not found.
+       */
+      public static _Fields findByThriftId(int fieldId) {
+        switch(fieldId) {
+          case 0: // SUCCESS
+            return SUCCESS;
+          case 1: // E
+            return E;
+          default:
+            return null;
+        }
+      }
+
+      /**
+       * Find the _Fields constant that matches fieldId, throwing an exception
+       * if it is not found.
+       */
+      public static _Fields findByThriftIdOrThrow(int fieldId) {
+        _Fields fields = findByThriftId(fieldId);
+        if (fields == null) throw new IllegalArgumentException("Field " + fieldId + " doesn't exist!");
+        return fields;
+      }
+
+      /**
+       * Find the _Fields constant that matches name, or null if its not found.
+       */
+      public static _Fields findByName(String name) {
+        return byName.get(name);
+      }
+
+      private final short _thriftId;
+      private final String _fieldName;
+
+      _Fields(short thriftId, String fieldName) {
+        _thriftId = thriftId;
+        _fieldName = fieldName;
+      }
+
+      public short getThriftFieldId() {
+        return _thriftId;
+      }
+
+      public String getFieldName() {
+        return _fieldName;
+      }
+    }
+
+    // isset id assignments
+    public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
+    static {
+      Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
+      tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, GetUfsInfoTResponse.class)));
+      tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
+      metaDataMap = Collections.unmodifiableMap(tmpMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(getUfsInfo_result.class, metaDataMap);
+    }
+
+    public getUfsInfo_result() {
+    }
+
+    public getUfsInfo_result(
+      GetUfsInfoTResponse success,
+      alluxio.thrift.AlluxioTException e)
+    {
+      this();
+      this.success = success;
+      this.e = e;
+    }
+
+    /**
+     * Performs a deep copy on <i>other</i>.
+     */
+    public getUfsInfo_result(getUfsInfo_result other) {
+      if (other.isSetSuccess()) {
+        this.success = new GetUfsInfoTResponse(other.success);
+      }
+      if (other.isSetE()) {
+        this.e = new alluxio.thrift.AlluxioTException(other.e);
+      }
+    }
+
+    public getUfsInfo_result deepCopy() {
+      return new getUfsInfo_result(this);
+    }
+
+    @Override
+    public void clear() {
+      this.success = null;
+      this.e = null;
+    }
+
+    public GetUfsInfoTResponse getSuccess() {
+      return this.success;
+    }
+
+    public getUfsInfo_result setSuccess(GetUfsInfoTResponse success) {
+      this.success = success;
+      return this;
+    }
+
+    public void unsetSuccess() {
+      this.success = null;
+    }
+
+    /** Returns true if field success is set (has been assigned a value) and false otherwise */
+    public boolean isSetSuccess() {
+      return this.success != null;
+    }
+
+    public void setSuccessIsSet(boolean value) {
+      if (!value) {
+        this.success = null;
+      }
+    }
+
+    public alluxio.thrift.AlluxioTException getE() {
+      return this.e;
+    }
+
+    public getUfsInfo_result setE(alluxio.thrift.AlluxioTException e) {
+      this.e = e;
+      return this;
+    }
+
+    public void unsetE() {
+      this.e = null;
+    }
+
+    /** Returns true if field e is set (has been assigned a value) and false otherwise */
+    public boolean isSetE() {
+      return this.e != null;
+    }
+
+    public void setEIsSet(boolean value) {
+      if (!value) {
+        this.e = null;
+      }
+    }
+
+    public void setFieldValue(_Fields field, Object value) {
+      switch (field) {
+      case SUCCESS:
+        if (value == null) {
+          unsetSuccess();
+        } else {
+          setSuccess((GetUfsInfoTResponse)value);
+        }
+        break;
+
+      case E:
+        if (value == null) {
+          unsetE();
+        } else {
+          setE((alluxio.thrift.AlluxioTException)value);
+        }
+        break;
+
+      }
+    }
+
+    public Object getFieldValue(_Fields field) {
+      switch (field) {
+      case SUCCESS:
+        return getSuccess();
+
+      case E:
+        return getE();
+
+      }
+      throw new IllegalStateException();
+    }
+
+    /** Returns true if field corresponding to fieldID is set (has been assigned a value) and false otherwise */
+    public boolean isSet(_Fields field) {
+      if (field == null) {
+        throw new IllegalArgumentException();
+      }
+
+      switch (field) {
+      case SUCCESS:
+        return isSetSuccess();
+      case E:
+        return isSetE();
+      }
+      throw new IllegalStateException();
+    }
+
+    @Override
+    public boolean equals(Object that) {
+      if (that == null)
+        return false;
+      if (that instanceof getUfsInfo_result)
+        return this.equals((getUfsInfo_result)that);
+      return false;
+    }
+
+    public boolean equals(getUfsInfo_result that) {
+      if (that == null)
+        return false;
+
+      boolean this_present_success = true && this.isSetSuccess();
+      boolean that_present_success = true && that.isSetSuccess();
+      if (this_present_success || that_present_success) {
+        if (!(this_present_success && that_present_success))
+          return false;
+        if (!this.success.equals(that.success))
+          return false;
+      }
+
+      boolean this_present_e = true && this.isSetE();
+      boolean that_present_e = true && that.isSetE();
+      if (this_present_e || that_present_e) {
+        if (!(this_present_e && that_present_e))
+          return false;
+        if (!this.e.equals(that.e))
+          return false;
+      }
+
+      return true;
+    }
+
+    @Override
+    public int hashCode() {
+      List<Object> list = new ArrayList<Object>();
+
+      boolean present_success = true && (isSetSuccess());
+      list.add(present_success);
+      if (present_success)
+        list.add(success);
+
+      boolean present_e = true && (isSetE());
+      list.add(present_e);
+      if (present_e)
+        list.add(e);
+
+      return list.hashCode();
+    }
+
+    @Override
+    public int compareTo(getUfsInfo_result other) {
+      if (!getClass().equals(other.getClass())) {
+        return getClass().getName().compareTo(other.getClass().getName());
+      }
+
+      int lastComparison = 0;
+
+      lastComparison = Boolean.valueOf(isSetSuccess()).compareTo(other.isSetSuccess());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetSuccess()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.success, other.success);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = Boolean.valueOf(isSetE()).compareTo(other.isSetE());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetE()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.e, other.e);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      return 0;
+    }
+
+    public _Fields fieldForId(int fieldId) {
+      return _Fields.findByThriftId(fieldId);
+    }
+
+    public void read(org.apache.thrift.protocol.TProtocol iprot) throws org.apache.thrift.TException {
+      schemes.get(iprot.getScheme()).getScheme().read(iprot, this);
+    }
+
+    public void write(org.apache.thrift.protocol.TProtocol oprot) throws org.apache.thrift.TException {
+      schemes.get(oprot.getScheme()).getScheme().write(oprot, this);
+      }
+
+    @Override
+    public String toString() {
+      StringBuilder sb = new StringBuilder("getUfsInfo_result(");
+      boolean first = true;
+
+      sb.append("success:");
+      if (this.success == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.success);
+      }
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("e:");
+      if (this.e == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.e);
+      }
+      first = false;
+      sb.append(")");
+      return sb.toString();
+    }
+
+    public void validate() throws org.apache.thrift.TException {
+      // check for required fields
+      // check for sub-struct validity
+      if (success != null) {
+        success.validate();
+      }
+    }
+
+    private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
+      try {
+        write(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(out)));
+      } catch (org.apache.thrift.TException te) {
+        throw new java.io.IOException(te);
+      }
+    }
+
+    private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
+      try {
+        read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
+      } catch (org.apache.thrift.TException te) {
+        throw new java.io.IOException(te);
+      }
+    }
+
+    private static class getUfsInfo_resultStandardSchemeFactory implements SchemeFactory {
+      public getUfsInfo_resultStandardScheme getScheme() {
+        return new getUfsInfo_resultStandardScheme();
+      }
+    }
+
+    private static class getUfsInfo_resultStandardScheme extends StandardScheme<getUfsInfo_result> {
+
+      public void read(org.apache.thrift.protocol.TProtocol iprot, getUfsInfo_result struct) throws org.apache.thrift.TException {
+        org.apache.thrift.protocol.TField schemeField;
+        iprot.readStructBegin();
+        while (true)
+        {
+          schemeField = iprot.readFieldBegin();
+          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
+            break;
+          }
+          switch (schemeField.id) {
+            case 0: // SUCCESS
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.success = new GetUfsInfoTResponse();
+                struct.success.read(iprot);
+                struct.setSuccessIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            case 1: // E
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.e = new alluxio.thrift.AlluxioTException();
+                struct.e.read(iprot);
+                struct.setEIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            default:
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+          }
+          iprot.readFieldEnd();
+        }
+        iprot.readStructEnd();
+
+        // check for required fields of primitive type, which can't be checked in the validate method
+        struct.validate();
+      }
+
+      public void write(org.apache.thrift.protocol.TProtocol oprot, getUfsInfo_result struct) throws org.apache.thrift.TException {
+        struct.validate();
+
+        oprot.writeStructBegin(STRUCT_DESC);
+        if (struct.success != null) {
+          oprot.writeFieldBegin(SUCCESS_FIELD_DESC);
+          struct.success.write(oprot);
+          oprot.writeFieldEnd();
+        }
+        if (struct.e != null) {
+          oprot.writeFieldBegin(E_FIELD_DESC);
+          struct.e.write(oprot);
+          oprot.writeFieldEnd();
+        }
+        oprot.writeFieldStop();
+        oprot.writeStructEnd();
+      }
+
+    }
+
+    private static class getUfsInfo_resultTupleSchemeFactory implements SchemeFactory {
+      public getUfsInfo_resultTupleScheme getScheme() {
+        return new getUfsInfo_resultTupleScheme();
+      }
+    }
+
+    private static class getUfsInfo_resultTupleScheme extends TupleScheme<getUfsInfo_result> {
+
+      @Override
+      public void write(org.apache.thrift.protocol.TProtocol prot, getUfsInfo_result struct) throws org.apache.thrift.TException {
+        TTupleProtocol oprot = (TTupleProtocol) prot;
+        BitSet optionals = new BitSet();
+        if (struct.isSetSuccess()) {
+          optionals.set(0);
+        }
+        if (struct.isSetE()) {
+          optionals.set(1);
+        }
+        oprot.writeBitSet(optionals, 2);
+        if (struct.isSetSuccess()) {
+          struct.success.write(oprot);
+        }
+        if (struct.isSetE()) {
+          struct.e.write(oprot);
+        }
+      }
+
+      @Override
+      public void read(org.apache.thrift.protocol.TProtocol prot, getUfsInfo_result struct) throws org.apache.thrift.TException {
+        TTupleProtocol iprot = (TTupleProtocol) prot;
+        BitSet incoming = iprot.readBitSet(2);
+        if (incoming.get(0)) {
+          struct.success = new GetUfsInfoTResponse();
           struct.success.read(iprot);
           struct.setSuccessIsSet(true);
         }

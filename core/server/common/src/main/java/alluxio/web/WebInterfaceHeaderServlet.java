@@ -43,20 +43,14 @@ public final class WebInterfaceHeaderServlet extends HttpServlet {
    * @param request the {@link HttpServletRequest} object
    * @param response the {@link HttpServletResponse} object
    * @throws ServletException if the target resource throws this exception
-   * @throws IOException if the target resource throws this exception
    */
   @Override
   protected void doGet(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException {
+    boolean fileInfoEnabled = Configuration.getBoolean(PropertyKey.WEB_FILE_INFO_ENABLED);
+    String masterHostName = NetworkAddressUtils.getConnectHost(ServiceType.MASTER_RPC);
     int masterWebPort = Configuration.getInt(PropertyKey.MASTER_WEB_PORT);
-    String masterHostName;
-    if (!Configuration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED)) {
-      masterHostName = NetworkAddressUtils.getConnectHost(ServiceType.MASTER_RPC);
-    } else {
-      masterHostName = NetworkAddressUtils
-          .getLeaderAddressFromZK(Configuration.get(PropertyKey.ZOOKEEPER_LEADER_PATH))
-          .getHostName();
-    }
+    request.setAttribute("fileInfoEnabled", fileInfoEnabled);
     request.setAttribute("masterHost", masterHostName);
     request.setAttribute("masterPort", masterWebPort);
     getServletContext().getRequestDispatcher("/header.jsp").include(request, response);

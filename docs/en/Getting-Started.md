@@ -13,6 +13,7 @@ quick start guide, we will install Alluxio on your local machine, mount example 
 perform basic tasks with the data in Alluxio. During this guide, you will:
 
 * Download and configure Alluxio
+* Validating Alluxio environment
 * Start Alluxio locally
 * Perform basic tasks via Alluxio Shell
 * **[Bonus]** Mount a public Amazon S3 bucket in Alluxio
@@ -29,15 +30,14 @@ difficult to incorporate in a local environment. If you are interested in runnin
 example which highlights the performance benefits of Alluxio, try out the instructions in either of
 these two whitepapers: [Accelerating on-demand data analytics with
 Alluxio](https://alluxio.com/resources/accelerating-on-demand-data-analytics-with-alluxio),
-[Accelerating data analytics on ceph object storage with Alluxio](https://www.alluxio.com/resources
-/accelerating-data-analytics-on-ceph-object-storage-with-alluxio).
+[Accelerating data analytics on ceph object storage with Alluxio](https://www.alluxio.com/blog/accelerating-data-analytics-on-ceph-object-storage-with-alluxio).
 
 ## Prerequisites
 
 For the following quick start guide, you will need:
 
 * Mac OS X or Linux
-* [Java 7 or newer](Java-Setup.html)
+* [Java 8 or newer](Java-Setup.html)
 * **[Bonus]** AWS account and keys
 
 ### Setup SSH (Mac OS X)
@@ -60,17 +60,25 @@ $ cd alluxio-{{site.ALLUXIO_RELEASED_VERSION}}
 ```
 
 This will create a directory `alluxio-{{site.ALLUXIO_RELEASED_VERSION}}` with all of the Alluxio
-source files and Java binaries.
+source files and Java binaries. Through this tutorial, the path of this directory will be referred
+to as `${ALLUXIO_HOME}`.
 
 ## Configuring Alluxio
 
 Before we start Alluxio, we have to configure it. We will be using most of the default settings.
 
-Create the `conf/alluxio-env.sh` configuration file from the template. You can create the config
-file with the following command:
+In the `${ALLUXIO_HOME}/conf` directory, create the `conf/alluxio-site.properties` configuration
+file from the template.
 
 ```bash
-$ ./bin/alluxio bootstrapConf localhost
+$ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
+```
+
+Update `alluxio.master.hostname` in `conf/alluxio-site.properties` to the hostname of the machine
+you plan to run Alluxio Master on.
+
+```bash
+$ echo "alluxio.master.hostname=localhost" >> conf/alluxio-site.properties
 ```
 
 ### [Bonus] Configuration for AWS
@@ -81,13 +89,40 @@ your AWS access information to the Alluxio configuration by adding the keys to t
 `conf/alluxio-site.properties` file. The following commands will update the configuration.
 
 ```bash
-$ echo "aws.accessKeyId=AWS_ACCESS_KEY_ID" >> conf/alluxio-site.properties
-$ echo "aws.secretKey=AWS_SECRET_ACCESS_KEY" >> conf/alluxio-site.properties
+$ echo "aws.accessKeyId=<AWS_ACCESS_KEY_ID>" >> conf/alluxio-site.properties
+$ echo "aws.secretKey=<AWS_SECRET_ACCESS_KEY>" >> conf/alluxio-site.properties
 ```
 
-You will have to replace **AWS_ACCESS_KEY_ID** with your AWS access key id, and
-**AWS_SECRET_ACCESS_KEY** with your AWS secret access key. Now, Alluxio is fully configured for the
-rest of this guide.
+You will have to replace **`<AWS_ACCESS_KEY_ID>`** with your AWS access key id, and
+**`<AWS_SECRET_ACCESS_KEY>`** with your AWS secret access key. Now, Alluxio is fully configured for
+the rest of this guide.
+
+## Validating Alluxio environment
+
+Before starting Alluxio, you might want to make sure that your system environment is ready for running
+Alluxio services. You can run the following command to validate your local environment with your
+Alluxio configuration:
+
+```bash
+$ ./bin/alluxio validateEnv local
+```
+
+This will report potential problems that might prevent you from starting Alluxio services locally. If you configured Alluxio to run in a cluster and you want to validate environment on all nodes, you
+can run the following command instead:
+
+```bash
+$ ./bin/alluxio validateEnv all
+```
+
+You can also make the command run only specific validation task. For example,
+
+```bash
+$ ./bin/alluxio validateEnv local ulimit
+```
+
+Will only run validation tasks that check your local system resource limits.
+
+You can check out [this page](Developer-Tips.html) for detailed usage information regarding this command.
 
 ## Starting Alluxio
 
@@ -103,7 +138,7 @@ Now, we can start Alluxio! By default, Alluxio is configured to start a master a
 localhost. We can start Alluxio on localhost with the following command:
 
 ```bash
-$ ./bin/alluxio-start.sh local
+$ ./bin/alluxio-start.sh local SudoMount
 ```
 
 Congratulations! Alluxio is now up and running! You can visit
@@ -141,11 +176,12 @@ Alluxio with the command:
 
 ```bash
 $ ./bin/alluxio fs ls /
-26.22KB   06-20-2016 11:30:04:415  In Memory      /LICENSE
+-rw-r--r-- staff  staff     26847 NOT_PERSISTED 01-09-2018 15:24:37:088 100% /LICENSE
 ```
 
 The output shows the file that exists in Alluxio, as well as some other useful information, like the
-size of the file, the date it was created, and the in-memory status of the file.
+size of the file, the date it was created, the owner and group of the file, and the percentage of
+this file in Alluxio.
 
 You can also view the contents of the file through the Alluxio shell. The `cat` command will print
 the contents of the file.
@@ -210,7 +246,7 @@ Next, we will mount an existing sample S3 bucket to Alluxio. We have provided a 
 you to use in the rest of this guide.
 
 ```bash
-$ ./bin/alluxio fs mount -readonly alluxio://localhost:19998/mnt/s3 s3a://alluxio-quick-start/data
+$ ./bin/alluxio fs mount --readonly alluxio://localhost:19998/mnt/s3 s3a://alluxio-quick-start/data
 Mounted s3a://alluxio-quick-start/data at alluxio://localhost:19998/mnt/s3
 ```
 
@@ -221,10 +257,10 @@ command to list the files from the S3 mounted directory.
 
 ```bash
 $ ./bin/alluxio fs ls /mnt/s3
-87.86KB   06-20-2016 12:50:51:660  Not In Memory  /mnt/s3/sample_tweets_100k.csv
-933.21KB  06-20-2016 12:50:53:633  Not In Memory  /mnt/s3/sample_tweets_1m.csv
-149.77MB  06-20-2016 12:50:55:473  Not In Memory  /mnt/s3/sample_tweets_150m.csv
-9.61MB    06-20-2016 12:50:55:821  Not In Memory  /mnt/s3/sample_tweets_10m.csv
+-r-x------ staff  staff    955610 PERSISTED 01-09-2018 16:35:00:882   0% /mnt/s3/sample_tweets_1m.csv
+-r-x------ staff  staff  10077271 PERSISTED 01-09-2018 16:35:00:910   0% /mnt/s3/sample_tweets_10m.csv
+-r-x------ staff  staff     89964 PERSISTED 01-09-2018 16:35:00:972   0% /mnt/s3/sample_tweets_100k.csv
+-r-x------ staff  staff 157046046 PERSISTED 01-09-2018 16:35:01:002   0% /mnt/s3/sample_tweets_150m.csv
 ```
 
 We can see the [newly mounted files and directories in the Alluxio web UI](http://localhost:19999/browse?path=%2Fmnt%2Fs3) as well.
@@ -235,13 +271,13 @@ exist under a directory.
 
 ```bash
 $ ./bin/alluxio fs ls -R /
-26.22KB   06-20-2016 11:30:04:415  In Memory      /LICENSE
-1.00B     06-20-2016 12:28:39:176                 /mnt
-4.00B     06-20-2016 12:30:41:986                 /mnt/s3
-87.86KB   06-20-2016 12:50:51:660  Not In Memory  /mnt/s3/sample_tweets_100k.csv
-933.21KB  06-20-2016 12:50:53:633  Not In Memory  /mnt/s3/sample_tweets_1m.csv
-149.77MB  06-20-2016 12:50:55:473  Not In Memory  /mnt/s3/sample_tweets_150m.csv
-9.61MB    06-20-2016 12:50:55:821  Not In Memory  /mnt/s3/sample_tweets_10m.csv
+-rw-r--r-- staff  staff     26847 PERSISTED 01-09-2018 15:24:37:088 100% /LICENSE
+drwxr-xr-x staff  staff         1 PERSISTED 01-09-2018 16:05:59:547  DIR /mnt
+dr-x------ staff  staff         4 PERSISTED 01-09-2018 16:34:55:362  DIR /mnt/s3
+-r-x------ staff  staff    955610 PERSISTED 01-09-2018 16:35:00:882   0% /mnt/s3/sample_tweets_1m.csv
+-r-x------ staff  staff  10077271 PERSISTED 01-09-2018 16:35:00:910   0% /mnt/s3/sample_tweets_10m.csv
+-r-x------ staff  staff     89964 PERSISTED 01-09-2018 16:35:00:972   0% /mnt/s3/sample_tweets_100k.csv
+-r-x------ staff  staff 157046046 PERSISTED 01-09-2018 16:35:01:002   0% /mnt/s3/sample_tweets_150m.csv
 ```
 
 This shows all the files under the root of the Alluxio file system, from all of the mounted storage
@@ -255,7 +291,7 @@ look at the status of a file in Alluxio (mounted from S3).
 
 ```bash
 $ ./bin/alluxio fs ls /mnt/s3/sample_tweets_150m.csv
-149.77MB  06-20-2016 12:50:55:473  Not In Memory  /mnt/s3/sample_tweets_150m.csv
+-r-x------ staff  staff 157046046 PERSISTED 01-09-2018 16:35:01:002   0% /mnt/s3/sample_tweets_150m.csv
 ```
 
 The output shows that the file is **Not In Memory**. This file is a sample of tweets. Let’s see how
@@ -273,37 +309,17 @@ sys	0m1.181s
 
 Depending on your network connection, the operation may take over 20 seconds. If reading this file
 takes too long, you may use a smaller dataset. The other files in the directory are smaller subsets
-of this file.
+of this file. As you can see, it takes a lot of time to access the data for each command. Alluxio
+can accelerate access to this data by using memory to store the data.
 
-Now, let’s see how many tweets mention the word "puppy".
-
-```bash
-$ time ./bin/alluxio fs cat /mnt/s3/sample_tweets_150m.csv | grep -c puppy
-1553
-
-real	0m25.998s
-user	0m6.828s
-sys	0m1.048s
-```
-
-As you can see, it takes a lot of time to access the data for each command. Alluxio can accelerate
-access to this data by using memory to store the data. However, the `cat` shell command does not
-cache data in Alluxio memory. There is a separate shell command, `load`, which tells
-Alluxio to store the data in memory. You can tell Alluxio to load the data into memory with the
-following command.
-
-```bash
-$ ./bin/alluxio fs load /mnt/s3/sample_tweets_150m.csv
-```
-
-After loading the file, you can check the status with the ls command:
+After reading the file by the `cat` command, you can check the status with the `ls` command:
 
 ```bash
 $ ./bin/alluxio fs ls /mnt/s3/sample_tweets_150m.csv
-149.77MB  06-20-2016 12:50:55:473  In Memory      /mnt/s3/sample_tweets_150m.csv
+-r-x------ staff  staff 157046046 PERSISTED 01-09-2018 16:35:01:002 100% /mnt/s3/sample_tweets_150m.csv
 ```
 
-The output shows that the file is now **In Memory**. Now that the file is memory, reading the file
+The output shows that the file is now 100% loaded to Alluxio. Now that the file is Alluxio, reading the file
 should be much faster now.
 
 Let’s count the number of tweets with the word "puppy".
@@ -338,7 +354,7 @@ Once you are done with interacting with your local Alluxio installation, you can
 the following command:
 
 ```bash
-$ ./bin/alluxio-stop.sh all
+$ ./bin/alluxio-stop.sh local
 ```
 
 ## Conclusion
@@ -357,25 +373,29 @@ resources are below.
 Alluxio can be deployed in many different environments.
 
 * [Alluxio on Local Machine](Running-Alluxio-Locally.html)
-* [Alluxio on Virtual Box](Running-Alluxio-on-Virtual-Box.html)
 * [Alluxio Standalone on a Cluster](Running-Alluxio-on-a-Cluster.html)
-* [Alluxio Standalone with Fault Tolerance](Running-Alluxio-Fault-Tolerant.html)
+* [Alluxio on Virtual Box](Running-Alluxio-on-Virtual-Box.html)
+* [Alluxio on Docker](Running-Alluxio-On-Docker.html)
 * [Alluxio on EC2](Running-Alluxio-on-EC2.html)
 * [Alluxio on GCE](Running-Alluxio-on-GCE.html)
-* [Alluxio with Mesos on EC2](Running-Alluxio-on-EC2-Mesos.html)
+* [Alluxio with Mesos on EC2](Running-Alluxio-on-Mesos.html)
 * [Alluxio with Fault Tolerance on EC2](Running-Alluxio-Fault-Tolerant-on-EC2.html)
-* [Alluxio with YARN on EC2](Running-Alluxio-on-EC2-Yarn.html)
+* [Alluxio YARN Integration](Running-Alluxio-Yarn-Integration.html)
+* [Alluxio Standalone with YARN](Running-Alluxio-Yarn-Standalone.html)
 
 ### Under Storage Systems
 
 There are many Under storage systems that can be accessed through Alluxio.
 
-* [Alluxio with GCS](Configuring-Alluxio-with-GCS.html)
+* [Alluxio with Azure Blob Store](Configuring-Alluxio-with-Azure-Blob-Store.html)
 * [Alluxio with S3](Configuring-Alluxio-with-S3.html)
+* [Alluxio with GCS](Configuring-Alluxio-with-GCS.html)
+* [Alluxio with Minio](Configuring-Alluxio-with-Minio.html)
+* [Alluxio with Ceph](Configuring-Alluxio-with-Ceph.html)
 * [Alluxio with Swift](Configuring-Alluxio-with-Swift.html)
 * [Alluxio with GlusterFS](Configuring-Alluxio-with-GlusterFS.html)
-* [Alluxio with HDFS](Configuring-Alluxio-with-HDFS.html)
 * [Alluxio with MapR-FS](Configuring-Alluxio-with-MapR-FS.html)
+* [Alluxio with HDFS](Configuring-Alluxio-with-HDFS.html)
 * [Alluxio with Secure HDFS](Configuring-Alluxio-with-secure-HDFS.html)
 * [Alluxio with OSS](Configuring-Alluxio-with-OSS.html)
 * [Alluxio with NFS](Configuring-Alluxio-with-NFS.html)
@@ -386,6 +406,8 @@ Different frameworks and applications work with Alluxio.
 
 * [Apache Spark with Alluxio](Running-Spark-on-Alluxio.html)
 * [Apache Hadoop MapReduce with Alluxio](Running-Hadoop-MapReduce-on-Alluxio.html)
-* [Apache Flink with Alluxio](Running-Flink-on-Alluxio.html)
-* [Apache Zeppelin with Alluxio](Accessing-Alluxio-from-Zeppelin.html)
 * [Apache HBase with Alluxio](Running-HBase-on-Alluxio.html)
+* [Apache Flink with Alluxio](Running-Flink-on-Alluxio.html)
+* [Presto with Alluxio](Running-Presto-with-Alluxio.html)
+* [Apache Hive with Alluxio](Running-Hive-with-Alluxio.html)
+* [Apache Zeppelin with Alluxio](Accessing-Alluxio-from-Zeppelin.html)

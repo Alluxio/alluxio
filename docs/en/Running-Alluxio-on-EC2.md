@@ -23,9 +23,7 @@ Install AWS Vagrant plugin:
 
 **Install Alluxio**
 
-Download Alluxio to your local machine, and unzip it:
-
-{% include Common-Commands/download-alluxio.md %}
+[Clone Alluxio Repository](https://github.com/Alluxio/alluxio) to your local machine.
 
 **Install python library dependencies**
 

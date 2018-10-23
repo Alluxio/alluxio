@@ -111,7 +111,6 @@ public abstract class MultiRangeObjectInputStream extends InputStream {
    * @param startPos start position in bytes (inclusive)
    * @param endPos end position in bytes (exclusive)
    * @return a new {@link InputStream}
-   * @throws IOException when a non-Alluxio error occurs
    */
   protected abstract InputStream createStream(long startPos, long endPos) throws IOException;
 

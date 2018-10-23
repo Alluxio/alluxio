@@ -11,18 +11,28 @@
 
 package alluxio.resource;
 
-import org.junit.Assert;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertNull;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.mockito.Mockito;
 
+import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Unit test for {@code ResourcePool} class.
  */
-public class ResourcePoolTest {
+public final class ResourcePoolTest {
 
   /**
    * The exception expected to be thrown.
@@ -76,7 +86,7 @@ public class ResourcePoolTest {
     int resource1 = testPool.acquire();
     testPool.release(resource1);
     int resource2 = testPool.acquire();
-    Assert.assertEquals(resource1, resource2);
+    assertEquals(resource1, resource2);
   }
 
   /**
@@ -87,12 +97,41 @@ public class ResourcePoolTest {
     mThrown.expect(RuntimeException.class);
     final int POOL_SIZE = 2;
     @SuppressWarnings("unchecked")
-    ConcurrentLinkedQueue<Integer> queue = Mockito.mock(ConcurrentLinkedQueue.class);
+    ConcurrentLinkedQueue<Integer> queue = mock(ConcurrentLinkedQueue.class);
     TestResourcePool testPool = new TestResourcePool(POOL_SIZE, queue);
-    Mockito.when(queue.isEmpty()).thenReturn(true);
-    Mockito.when(queue.poll()).thenThrow(new InterruptedException());
+    when(queue.isEmpty()).thenReturn(true);
+    when(queue.poll()).thenThrow(new InterruptedException());
     for (int i = 0; i < POOL_SIZE + 1; i++) {
       testPool.acquire();
     }
+  }
+
+  /**
+   * Tests that an exception is thrown if the timestamps overflows and terminate before 5 seconds.
+   */
+  @Test
+  public void resourcePoolTimestampOverflow() {
+    Callable<Integer> task = () -> {
+      ConcurrentLinkedQueue<Integer> queue = mock(ConcurrentLinkedQueue.class);
+      TestResourcePool testPool = new TestResourcePool(2, queue);
+      Integer resource1 = testPool.acquire(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
+      Integer resource2 = testPool.acquire(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
+      assertEquals(new Integer(1), resource1);
+      assertEquals(new Integer(2), resource2);
+      Integer resource3 = testPool.acquire(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
+      assertNull(resource3);
+      return resource3;
+    };
+    ExecutorService executor = Executors.newFixedThreadPool(1);
+    Future<Integer> future = executor.submit(task);
+    boolean timeout = false;
+    try {
+      future.get(5000, TimeUnit.MILLISECONDS);
+    } catch (Exception ex) {
+      timeout = true;
+    }
+    assertTrue(timeout);
+    assertFalse(future.isDone());
+    future.cancel(true);
   }
 }

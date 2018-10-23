@@ -12,12 +12,11 @@
 package alluxio.master.block;
 
 import alluxio.Constants;
-import alluxio.master.Master;
+import alluxio.master.MasterContext;
 import alluxio.master.MasterFactory;
 import alluxio.master.MasterRegistry;
-import alluxio.master.journal.JournalFactory;
+import alluxio.master.metrics.MetricsMaster;
 
-import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,9 +45,11 @@ public final class BlockMasterFactory implements MasterFactory {
   }
 
   @Override
-  public Master create(MasterRegistry registry, JournalFactory journalFactory) {
-    Preconditions.checkArgument(journalFactory != null, "journal factory may not be null");
+  public BlockMaster create(MasterRegistry registry, MasterContext context) {
     LOG.info("Creating {} ", BlockMaster.class.getName());
-    return new BlockMaster(registry, journalFactory);
+    MetricsMaster metricsMaster = registry.get(MetricsMaster.class);
+    BlockMaster master = new DefaultBlockMaster(metricsMaster, context);
+    registry.add(BlockMaster.class, master);
+    return master;
   }
 }

@@ -15,6 +15,7 @@ import com.google.common.base.Preconditions;
 
 import java.util.Map;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.annotation.concurrent.ThreadSafe;
 import javax.security.auth.callback.Callback;
@@ -35,8 +36,6 @@ import javax.security.sasl.SaslServerFactory;
  * currently.
  */
 @NotThreadSafe
-// TODO(dong): Authorization ID and authentication ID could be different after supporting
-// impersonation.
 public final class PlainSaslServer implements SaslServer {
   /**
    * This ID represent the authorized client user, who has been authenticated successfully. It is
@@ -58,6 +57,7 @@ public final class PlainSaslServer implements SaslServer {
   }
 
   @Override
+  @Nullable
   public byte[] evaluateResponse(byte[] response) throws SaslException {
     Preconditions.checkState(!mCompleted, "PLAIN authentication has completed");
     Preconditions.checkArgument(response != null, "Received null response");
@@ -86,9 +86,6 @@ public final class PlainSaslServer implements SaslServer {
 
       if (authorizationId == null || authorizationId.isEmpty()) {
         authorizationId = authenticationId;
-      } else if (!authorizationId.equals(authenticationId)) {
-        // TODO(dong): support impersonation
-        throw new UnsupportedOperationException("Impersonation is not supported now.");
       }
 
       NameCallback nameCallback = new NameCallback("User");
@@ -132,6 +129,7 @@ public final class PlainSaslServer implements SaslServer {
   }
 
   @Override
+  @Nullable
   public Object getNegotiatedProperty(String propName) {
     checkNotComplete();
     return Sasl.QOP.equals(propName) ? "auth" : null;
@@ -196,5 +194,4 @@ public final class PlainSaslServer implements SaslServer {
       return new String[] {PlainSaslServerProvider.MECHANISM};
     }
   }
-
 }

@@ -11,16 +11,17 @@
 
 package alluxio.master.file.options;
 
-import alluxio.CommonTestUtils;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+
 import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
-import alluxio.PropertyKey;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.security.authorization.Mode;
 import alluxio.util.CommonUtils;
 import alluxio.wire.TtlAction;
 
-import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.Random;
@@ -38,14 +39,14 @@ public final class CreateDirectoryOptionsTest {
 
     CreateDirectoryOptions options = CreateDirectoryOptions.defaults();
 
-    Assert.assertEquals(false, options.isAllowExists());
-    Assert.assertEquals("", options.getOwner());
-    Assert.assertEquals("", options.getGroup());
-    Assert.assertEquals(Mode.defaults().applyDirectoryUMask(), options.getMode());
-    Assert.assertFalse(options.isPersisted());
-    Assert.assertFalse(options.isRecursive());
-    Assert.assertEquals(Constants.NO_TTL, options.getTtl());
-    Assert.assertEquals(TtlAction.DELETE, options.getTtlAction());
+    assertEquals(false, options.isAllowExists());
+    assertEquals("", options.getOwner());
+    assertEquals("", options.getGroup());
+    assertEquals(Mode.defaults().applyDirectoryUMask(), options.getMode());
+    assertFalse(options.isPersisted());
+    assertFalse(options.isRecursive());
+    assertEquals(Constants.NO_TTL, options.getTtl());
+    assertEquals(TtlAction.DELETE, options.getTtlAction());
     ConfigurationTestUtils.resetConfiguration();
   }
 
@@ -78,20 +79,20 @@ public final class CreateDirectoryOptionsTest {
         .setTtl(ttl)
         .setTtlAction(TtlAction.FREE);
 
-    Assert.assertEquals(allowExists, options.isAllowExists());
-    Assert.assertEquals(mountPoint, options.isMountPoint());
-    Assert.assertEquals(operationTimeMs, options.getOperationTimeMs());
-    Assert.assertEquals(persisted, options.isPersisted());
-    Assert.assertEquals(owner, options.getOwner());
-    Assert.assertEquals(group, options.getGroup());
-    Assert.assertEquals(mode, options.getMode());
-    Assert.assertEquals(recursive, options.isRecursive());
-    Assert.assertEquals(ttl, options.getTtl());
-    Assert.assertEquals(TtlAction.FREE, options.getTtlAction());
+    assertEquals(allowExists, options.isAllowExists());
+    assertEquals(mountPoint, options.isMountPoint());
+    assertEquals(operationTimeMs, options.getOperationTimeMs());
+    assertEquals(persisted, options.isPersisted());
+    assertEquals(owner, options.getOwner());
+    assertEquals(group, options.getGroup());
+    assertEquals(mode, options.getMode());
+    assertEquals(recursive, options.isRecursive());
+    assertEquals(ttl, options.getTtl());
+    assertEquals(TtlAction.FREE, options.getTtlAction());
   }
 
   @Test
   public void equalsTest() throws Exception {
-    CommonTestUtils.testEquals(CreateDirectoryOptions.class);
+    alluxio.test.util.CommonUtils.testEquals(CreateDirectoryOptions.class);
   }
 }

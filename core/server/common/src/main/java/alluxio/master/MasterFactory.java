@@ -11,11 +11,12 @@
 
 package alluxio.master;
 
-import alluxio.master.journal.JournalFactory;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Interface for factory of {@link Master}.
  */
+@ThreadSafe
 public interface MasterFactory {
   /**
    * @return whether the master is enabled
@@ -31,9 +32,8 @@ public interface MasterFactory {
    * Factory method to create a new master instance.
    *
    * @param registry the master registry
-   * @param factory a factory for creating the journal
-   *
-   * @return a new {@link Master} instance or null if the master is not enabled
+   * @param context master context
+   * @return a new {@link Master} instance
    */
-  Master create(MasterRegistry registry, JournalFactory factory);
+  Master create(MasterRegistry registry, MasterContext context);
 }

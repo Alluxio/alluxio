@@ -11,13 +11,14 @@
 
 package alluxio.underfs.gcs;
 
+import static org.junit.Assert.assertEquals;
+
 import org.jets3t.service.acl.CanonicalGrantee;
 import org.jets3t.service.acl.GroupGrantee;
 import org.jets3t.service.acl.Permission;
 import org.jets3t.service.acl.gs.GSAccessControlList;
 import org.jets3t.service.model.StorageOwner;
 
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -47,73 +48,73 @@ public final class GCSUtilsTest {
   @Test
   public void translateUserReadPermission() {
     mAcl.grantPermission(mUserGrantee, Permission.PERMISSION_READ);
-    Assert.assertEquals((short) 0500, GCSUtils.translateBucketAcl(mAcl, ID));
-    Assert.assertEquals((short) 0000, GCSUtils.translateBucketAcl(mAcl, OTHER_ID));
+    assertEquals((short) 0500, GCSUtils.translateBucketAcl(mAcl, ID));
+    assertEquals((short) 0000, GCSUtils.translateBucketAcl(mAcl, OTHER_ID));
     mAcl.grantPermission(mUserGrantee, Permission.PERMISSION_READ_ACP);
-    Assert.assertEquals((short) 0500, GCSUtils.translateBucketAcl(mAcl, ID));
-    Assert.assertEquals((short) 0000, GCSUtils.translateBucketAcl(mAcl, OTHER_ID));
+    assertEquals((short) 0500, GCSUtils.translateBucketAcl(mAcl, ID));
+    assertEquals((short) 0000, GCSUtils.translateBucketAcl(mAcl, OTHER_ID));
   }
 
   @Test
   public void translateUserWritePermission() {
     mAcl.grantPermission(mUserGrantee, Permission.PERMISSION_WRITE);
-    Assert.assertEquals((short) 0200, GCSUtils.translateBucketAcl(mAcl, ID));
+    assertEquals((short) 0200, GCSUtils.translateBucketAcl(mAcl, ID));
     mAcl.grantPermission(mUserGrantee, Permission.PERMISSION_READ);
-    Assert.assertEquals((short) 0700, GCSUtils.translateBucketAcl(mAcl, ID));
+    assertEquals((short) 0700, GCSUtils.translateBucketAcl(mAcl, ID));
   }
 
   @Test
   public void translateUserFullPermission() {
     mAcl.grantPermission(mUserGrantee, Permission.PERMISSION_FULL_CONTROL);
-    Assert.assertEquals((short) 0700, GCSUtils.translateBucketAcl(mAcl, ID));
-    Assert.assertEquals((short) 0000, GCSUtils.translateBucketAcl(mAcl, OTHER_ID));
+    assertEquals((short) 0700, GCSUtils.translateBucketAcl(mAcl, ID));
+    assertEquals((short) 0000, GCSUtils.translateBucketAcl(mAcl, OTHER_ID));
   }
 
   @Test
   public void translateEveryoneReadPermission() {
     GroupGrantee allUsersGrantee = GroupGrantee.ALL_USERS;
     mAcl.grantPermission(allUsersGrantee, Permission.PERMISSION_READ);
-    Assert.assertEquals((short) 0500, GCSUtils.translateBucketAcl(mAcl, ID));
-    Assert.assertEquals((short) 0500, GCSUtils.translateBucketAcl(mAcl, OTHER_ID));
+    assertEquals((short) 0500, GCSUtils.translateBucketAcl(mAcl, ID));
+    assertEquals((short) 0500, GCSUtils.translateBucketAcl(mAcl, OTHER_ID));
   }
 
   @Test
   public void translateEveryoneWritePermission() {
     GroupGrantee allUsersGrantee = GroupGrantee.ALL_USERS;
     mAcl.grantPermission(allUsersGrantee, Permission.PERMISSION_WRITE);
-    Assert.assertEquals((short) 0200, GCSUtils.translateBucketAcl(mAcl, ID));
-    Assert.assertEquals((short) 0200, GCSUtils.translateBucketAcl(mAcl, OTHER_ID));
+    assertEquals((short) 0200, GCSUtils.translateBucketAcl(mAcl, ID));
+    assertEquals((short) 0200, GCSUtils.translateBucketAcl(mAcl, OTHER_ID));
   }
 
   @Test
   public void translateEveryoneFullPermission() {
     GroupGrantee allUsersGrantee = GroupGrantee.ALL_USERS;
     mAcl.grantPermission(allUsersGrantee, Permission.PERMISSION_FULL_CONTROL);
-    Assert.assertEquals((short) 0700, GCSUtils.translateBucketAcl(mAcl, ID));
-    Assert.assertEquals((short) 0700, GCSUtils.translateBucketAcl(mAcl, OTHER_ID));
+    assertEquals((short) 0700, GCSUtils.translateBucketAcl(mAcl, ID));
+    assertEquals((short) 0700, GCSUtils.translateBucketAcl(mAcl, OTHER_ID));
   }
 
   @Test
   public void translateAuthenticatedUserReadPermission() {
     GroupGrantee authenticatedUsersGrantee = GroupGrantee.AUTHENTICATED_USERS;
     mAcl.grantPermission(authenticatedUsersGrantee, Permission.PERMISSION_READ);
-    Assert.assertEquals((short) 0500, GCSUtils.translateBucketAcl(mAcl, ID));
-    Assert.assertEquals((short) 0500, GCSUtils.translateBucketAcl(mAcl, OTHER_ID));
+    assertEquals((short) 0500, GCSUtils.translateBucketAcl(mAcl, ID));
+    assertEquals((short) 0500, GCSUtils.translateBucketAcl(mAcl, OTHER_ID));
   }
 
   @Test
   public void translateAuthenticatedUserWritePermission() {
     GroupGrantee authenticatedUsersGrantee = GroupGrantee.AUTHENTICATED_USERS;
     mAcl.grantPermission(authenticatedUsersGrantee, Permission.PERMISSION_WRITE);
-    Assert.assertEquals((short) 0200, GCSUtils.translateBucketAcl(mAcl, ID));
-    Assert.assertEquals((short) 0200, GCSUtils.translateBucketAcl(mAcl, OTHER_ID));
+    assertEquals((short) 0200, GCSUtils.translateBucketAcl(mAcl, ID));
+    assertEquals((short) 0200, GCSUtils.translateBucketAcl(mAcl, OTHER_ID));
   }
 
   @Test
   public void translateAuthenticatedUserFullPermission() {
     GroupGrantee authenticatedUsersGrantee = GroupGrantee.AUTHENTICATED_USERS;
     mAcl.grantPermission(authenticatedUsersGrantee, Permission.PERMISSION_FULL_CONTROL);
-    Assert.assertEquals((short) 0700, GCSUtils.translateBucketAcl(mAcl, ID));
-    Assert.assertEquals((short) 0700, GCSUtils.translateBucketAcl(mAcl, OTHER_ID));
+    assertEquals((short) 0700, GCSUtils.translateBucketAcl(mAcl, ID));
+    assertEquals((short) 0700, GCSUtils.translateBucketAcl(mAcl, OTHER_ID));
   }
 }

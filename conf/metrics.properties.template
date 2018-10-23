@@ -53,6 +53,10 @@
 #   Name:     Default:      Description:
 #   path      /metrics/json Path prefix from the web server root
 
+# alluxio.metrics.sink.PrometheusMetricsServlet
+#   Name:     Default:      Description:
+#   path      /metrics/prometheus Path prefix from the web server root
+
 # alluxio.metrics.sink.GraphiteSink
 #   Name:     Default:      Description:
 #   host      NONE          Hostname of Graphite server

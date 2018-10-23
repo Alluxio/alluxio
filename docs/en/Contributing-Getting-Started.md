@@ -1,8 +1,9 @@
 ---
 layout: global
-title: Contributor Getting Started
-nickname: Contributor Getting Started
+title: Contributing to Alluxio Tutorial
+nickname: Contributing to Alluxio Tutorial
 group: Resources
+priority: 2
 ---
 
 * Table of Contents
@@ -21,9 +22,11 @@ support at the moment.
 
 There is some software and account setup required before contributing to Alluxio.
 
-### Java 7 or 8
+> Watch our "Alluxio new contributor" video in the [Video](#video) section below!
 
-Developing Alluxio requires Java 7 or 8. If you are unsure of which version of Java you have, you
+### Java 8
+
+Developing Alluxio requires Java 8. If you are unsure of which version of Java you have, you
 can check with this command:
 
 ```bash
@@ -130,7 +133,7 @@ $ mvn -T 2C clean install -DskipTests -Dmaven.javadoc.skip -Dfindbugs.skip -Dche
 
 This should take less than 1 minute.
 
-Here are more [details for building Alluxio](Building-Alluxio-Master-Branch.html).
+Here are more [details for building Alluxio](Building-Alluxio-From-Source.html).
 
 ## Taking a New Contributor JIRA Ticket
 
@@ -267,9 +270,31 @@ into the Alluxio code base.
 
 Congratulations! You have successfully contributed to Alluxio! Thank you for joining the community!
 
-## Moving to More Advanced Tasks
+## Video
 
-After you have complete two **New Contributor** tasks, you can take on some
-[Beginner Alluxio tickets](https://alluxio.atlassian.net/issues/?jql=project%20%3D%20ALLUXIO%20AND%20status%20%3D%20Open%20AND%20labels%20%3D%20Beginner%20AND%20assignee%20in%20(EMPTY)).
+<iframe width="560" height="315" src="https://www.youtube.com/embed/QsbM804rc6Y" frameborder="0" allowfullscreen></iframe>
+
+## Next Steps
+
+There are a few things that new contributors can do to familiarize themselves with Alluxio:
+
+1. Take on some
+   [Beginner Alluxio tickets](https://alluxio.atlassian.net/issues/?jql=project%20%3D%20ALLUXIO%20AND%20status%20%3D%20Open%20AND%20labels%20%3D%20Beginner%20AND%20assignee%20in%20(EMPTY)).
+1.  [Run Alluxio Locally](Running-Alluxio-Locally.html)
+1.  [Run Alluxio on a Cluster](Running-Alluxio-on-a-Cluster.html)
+1.  Read [Configuration-Settings](Configuration-Settings.html) and [Command-Line Interface](Command-Line-Interface.html)
+1.  Read a [Code Example](https://github.com/alluxio/alluxio/blob/master/examples/src/main/java/alluxio/examples/BasicOperations.java)
+1.  [Build Alluxio From Source](Building-Alluxio-From-Source.html)
+1.  Fork the repository, add unit tests or javadoc for one or two files, and submit a pull request. You are also welcome to address
+issues in our [JIRA](https://alluxio.atlassian.net/browse/ALLUXIO).
+Here is a list of unassigned
+[New Contributor Tasks](https://alluxio.atlassian.net/issues/?jql=project%20%3D%20ALLUXIO%20AND%20status%20%3D%20Open%20AND%20labels%20%3D%20NewContributor%20AND%20assignee%20in%20(EMPTY)).
+Please limit 2 tasks per New Contributor.
+Afterwards, try some Beginner/Intermediate tasks, or ask in the
+[User Mailing List](https://groups.google.com/forum/?fromgroups#!forum/alluxio-users).
+For a tutorial, see the GitHub guides on
+[forking a repo](https://help.github.com/articles/fork-a-repo) and
+[sending a pull request](https://help.github.com/articles/using-pull-requests).
+
 
 # Welcome to the Alluxio Community!

@@ -20,7 +20,7 @@ import org.junit.Test;
 /**
  * Unit tests for {@link MaxFreeAllocator}.
  */
-public class MaxFreeAllocatorTest extends AllocatorTestBase {
+public final class MaxFreeAllocatorTest extends AllocatorTestBase {
 
   /**
    * Tests that blocks are allocated in the storage directory with the most available free space.

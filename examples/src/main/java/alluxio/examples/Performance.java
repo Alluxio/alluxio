@@ -64,9 +64,6 @@ public final class Performance {
 
   /**
    * Creates the files for this example.
-   *
-   * @throws AlluxioException if creating a file fails
-   * @throws IOException if a non-Alluxio related exception occurs
    */
   public static void createFiles() throws AlluxioException, IOException {
     final long startTimeMs = CommonUtils.getCurrentMs();
@@ -140,8 +137,6 @@ public final class Performance {
 
     /**
      * Copies a partition in memory.
-     *
-     * @throws IOException if a non-Alluxio related exception occurs
      */
     public void memoryCopyPartition() throws IOException {
       if (sDebugMode) {
@@ -226,7 +221,6 @@ public final class Performance {
      * @param left the id of the worker on the left
      * @param right the id of the worker on the right
      * @param buf the buffer to write
-     * @throws IOException if a non-Alluxio related exception occurs
      */
     public AlluxioWriterWorker(int id, int left, int right, ByteBuffer buf) throws IOException {
       super(id, left, right, buf);
@@ -235,9 +229,6 @@ public final class Performance {
 
     /**
      * Writes a partition.
-     *
-     * @throws IOException if a non-Alluxio related exception occurs
-     * @throws AlluxioException if the write stream cannot be retrieved
      */
     public void writePartition()
             throws IOException, AlluxioException {
@@ -282,7 +273,6 @@ public final class Performance {
      * @param left the id of the worker on the left
      * @param right the id of the worker on the right
      * @param buf the buffer to read
-     * @throws IOException if a non-Alluxio related exception occurs
      */
     public AlluxioReadWorker(int id, int left, int right, ByteBuffer buf) throws IOException {
       super(id, left, right, buf);
@@ -291,9 +281,6 @@ public final class Performance {
 
     /**
      * Reads a partition.
-     *
-     * @throws IOException if a non-Alluxio related exception occurs
-     * @throws AlluxioException if the file cannot be opened or the stream cannot be retrieved
      */
     public void readPartition() throws IOException, AlluxioException {
       if (sDebugMode) {
@@ -384,7 +371,6 @@ public final class Performance {
      * @param buf the buffer
      * @param write indicates if data is written to HDFS
      * @param msg the message to write
-     * @throws IOException if a non-Alluxio related exception occurs
      */
     public HdfsWorker(int id, int left, int right, ByteBuffer buf, boolean write, String msg)
         throws IOException {
@@ -411,8 +397,6 @@ public final class Performance {
 
     /**
      * Creates IO utilization.
-     *
-     * @throws IOException if a non-Alluxio related exception occurs
      */
     public void io() throws IOException {
       if (sDebugMode) {
@@ -591,7 +575,6 @@ public final class Performance {
    * <TestCaseNumber> <BaseFileNumber>}
    *
    * @param args the arguments for this example
-   * @throws Exception if the example fails
    */
   public static void main(String[] args) throws Exception {
     if (args.length != 9) {

@@ -29,7 +29,7 @@ os que são suportados são: [Amazon S3](Configuring-Alluxio-with-S3.html),
 
 O Alluxio provê uma [interface de file system](File-System-API.html) para permitir que as aplicações
 interajam com os dados armazenados no Alluxio. Se você quer que uma aplicação escreva diretamente
-no topo do Alluxio, simplesmente adicione a dependencia `alluxio-core-client` no seu programa. Por
+no topo do Alluxio, simplesmente adicione a dependencia `alluxio-core-client-fs` no seu programa. Por
 exemplo, se uma aplicação está compilada através do `Maven`:
 
 {% include Getting-Started/config-application.md %}
@@ -75,5 +75,3 @@ se encaixam na memória de possuírem a vantagem de estar na arquitetura Alluxio
 * [Namespace Unificado](Unified-and-Transparent-Namespace.html), prove a habilidade aos usuários para
 gerenciar dados a partir de sistemas de armazenamento existentes e, facilmente, manusear implantações de
 onde nem todos os sistemas estão cientes do Alluxio.
-* [Linhagem](Lineage-API.html), permite uma alternativa para tolerância a falha e durabilidade de dado,
-mantendo ótimos desempenho de escrita, ao invés do dispendioso processo de replicação de dado em disco.

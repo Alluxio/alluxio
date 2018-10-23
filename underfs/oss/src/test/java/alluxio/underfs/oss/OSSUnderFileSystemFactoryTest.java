@@ -12,7 +12,7 @@
 package alluxio.underfs.oss;
 
 import alluxio.underfs.UnderFileSystemFactory;
-import alluxio.underfs.UnderFileSystemRegistry;
+import alluxio.underfs.UnderFileSystemFactoryRegistry;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -27,7 +27,7 @@ public class OSSUnderFileSystemFactoryTest {
    */
   @Test
   public void factory() {
-    UnderFileSystemFactory factory = UnderFileSystemRegistry.find("oss://test-bucket/path");
+    UnderFileSystemFactory factory = UnderFileSystemFactoryRegistry.find("oss://test-bucket/path");
 
     Assert.assertNotNull(
         "A UnderFileSystemFactory should exist for oss paths when using this module", factory);

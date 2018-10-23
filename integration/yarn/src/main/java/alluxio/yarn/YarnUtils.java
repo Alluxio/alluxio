@@ -63,8 +63,6 @@ public final class YarnUtils {
    *
    * @param yarnClient the client to use to look up node information
    * @return the set of host names
-   * @throws YarnException if an error occurs within YARN
-   * @throws IOException if an error occurs in YARN's underlying IO
    */
   public static Set<String> getNodeHosts(YarnClient yarnClient) throws YarnException, IOException {
     ImmutableSet.Builder<String> nodeHosts = ImmutableSet.builder();
@@ -79,7 +77,6 @@ public final class YarnUtils {
    *
    * @param yarnConf YARN configuration
    * @param resource the path to a resource file on HDFS
-   * @throws IOException if the file can not be found on HDFS
    * @return the created local resource
    */
   public static LocalResource createLocalResourceOfFile(YarnConfiguration yarnConf,

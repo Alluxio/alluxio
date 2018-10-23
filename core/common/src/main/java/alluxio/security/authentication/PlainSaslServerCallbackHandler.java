@@ -30,6 +30,7 @@ import javax.security.sasl.AuthorizeCallback;
 public final class PlainSaslServerCallbackHandler implements CallbackHandler {
   private final AuthenticationProvider mAuthenticationProvider;
   private final Runnable mCallback;
+  private final ImpersonationAuthenticator mImpersonationAuthenticator;
 
   /**
    * Constructs a new callback handler.
@@ -39,8 +40,10 @@ public final class PlainSaslServerCallbackHandler implements CallbackHandler {
    */
   public PlainSaslServerCallbackHandler(AuthenticationProvider authenticationProvider,
       Runnable callback) {
-    mAuthenticationProvider = Preconditions.checkNotNull(authenticationProvider);
+    mAuthenticationProvider = Preconditions.checkNotNull(authenticationProvider,
+        "authenticationProvider");
     mCallback = callback;
+    mImpersonationAuthenticator = new ImpersonationAuthenticator();
   }
 
   @Override
@@ -67,6 +70,14 @@ public final class PlainSaslServerCallbackHandler implements CallbackHandler {
 
     if (ac != null) {
       ac.setAuthorized(true);
+
+      try {
+        // getAuthorizedID() only works after the AuthorizeCallback is authorized
+        mImpersonationAuthenticator.authenticate(username, ac.getAuthorizedID());
+      } catch (Exception e) {
+        ac.setAuthorized(false);
+        throw e;
+      }
 
       // After verification succeeds, a user with this authz id will be set to a Threadlocal.
       AuthenticatedClientUser.set(ac.getAuthorizedID());

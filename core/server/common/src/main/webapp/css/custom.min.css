@@ -8,3 +8,12 @@ a
 {
     color:rgb(0, 96, 214); /* The same shade of blue as the Alluxio logo. */
 }
+form#loginForm {
+	margin: 0;
+}
+form#loginForm control-group:last {
+	margin: 0;
+}
+form#loginForm input {
+	height: unset;
+}

@@ -2,83 +2,173 @@ syntax = "proto2";
 
 package alluxio.proto.dataserver;
 
-// Data server messages.
-message Exception {
-  optional string class_name = 1;
-  optional string message = 2;
-}
-
-message Status {
-  // See descriptions of the statuses in http://www.grpc.io/grpc-java/javadoc/io/grpc/Status.Code.html
-  // TODO(peis): Come up with a story for this. The objective is here is to standarize the error codes in Alluxio.
-  enum Code {
-    OK = 0;
-    CANCELLED = 1;
-    UNKNOWN = 2;
-    INVALID_ARGUMENT = 3;
-    PERMISSION_DENIED = 6;
-    INTERNAL = 13;
-
-    // The following are unused for now.
-    NOT_FOUND = 4;
-    ALREADY_EXISTS = 5;
-    UNAUTHENTICATED = 7;
-    RESOURCE_EXHAUSTED = 8;
-    FAILED_PRECONDITION = 9;
-    ABORTED = 10;
-    OUT_OF_RANGE = 11;
-    UNIMPLEMENTED = 12;
-    UNAVAILABLE = 14;
-    DATA_LOSS = 15;
-    DO_NOT_USE = 16;
-  }
-  optional Code code = 1 [default = OK];
-  optional string message = 2;
-
-  // The cause. Only one level is preserved.
-  optional Exception cause = 3;
-}
+import "dataserver/status.proto";
+import "shared/acl.proto";
 
 // The read/write request type. It can either be an Alluxio block operation or a UFS file operation.
+// next available id: 2
 enum RequestType {
   ALLUXIO_BLOCK = 0;
   UFS_FILE = 1;
-  UFS_BLOCK = 2;
+  UFS_FALLBACK_BLOCK = 2;
 }
 
 // The read request.
+// next available id: 8
 message ReadRequest {
-  optional RequestType type = 1;
-  // The block ID or UFS file ID.
-  optional int64 id = 2;
-  optional int64 offset = 3;
-  optional int64 length = 4;
+  optional int64 block_id = 1;
+  optional int64 offset = 2;
+  optional int64 length = 3;
   // If set, this request is to cancel the reading request for the id.
-  optional bool cancel = 5;
+  optional bool cancel = 4;
+  // Whether the block should be promoted before reading
+  optional bool promote = 7;
 
-  optional int64 lock_id = 6;
-  optional int64 session_id = 7;
+  // If set, the server should send packets in the specified packet size.
+  optional int64 packet_size = 5;
+
+  // This is only set for UFS block read.
+  optional OpenUfsBlockOptions open_ufs_block_options = 6;
+}
+
+// Options for caching a block asynchronously
+// next available id: 6
+message AsyncCacheRequest {
+  optional int64 block_id = 1;
+  // TODO(calvin): source host and port should be replace with WorkerNetAddress
+  optional string source_host = 2;
+  optional int32 source_port = 3;
+  optional OpenUfsBlockOptions open_ufs_block_options = 4;
+  optional int64 length = 5;
+}
+
+// Options to open a UFS block.
+// next available id: 7
+message OpenUfsBlockOptions {
+  optional string ufs_path = 1;
+  // The offset of the block in within the file.
+  optional int64 offset_in_file = 2;
+  // The block size.
+  optional int64 block_size = 3;
+  optional int32 maxUfsReadConcurrency = 4;
+  optional int64 mountId = 5;
   // If set, do not try to cache the block locally when reading the data from the UFS.
-  optional bool no_cache = 8;
+  optional bool no_cache = 6;
+  // The client does not need to set this. This is set by the worker.
+  optional string user = 7;
+  // If set to true, the block is possibly stored as a UFS block.
+  optional bool block_in_ufs_tier = 8;
 }
 
 // The write request.
+// next available id: 9
 message WriteRequest {
   optional RequestType type = 1;
   // The block ID or UFS file ID.
   optional int64 id = 2;
   optional int64 offset = 3;
-  optional int64 session_id = 4;
 
   // This is only applicable for block write.
-  optional int32 tier = 5;
+  optional int32 tier = 4;
 
-  optional bool eof = 6;
-  optional bool cancel = 7;
+  optional bool eof = 5;
+  optional bool cancel = 6;
+
+  // This is only applicable for ufs writes.
+  optional CreateUfsFileOptions create_ufs_file_options = 7;
+
+  optional bool flush = 8;
+  //This is only applicable for ufs block writes.
+  optional CreateUfsBlockOptions create_ufs_block_options = 9;
+}
+
+// Options to create a UFS file.
+// next available: 6
+message CreateUfsFileOptions {
+  optional string ufs_path = 1;
+  optional string owner = 2;
+  optional string group = 3;
+  optional int32 mode = 4;
+  optional int64 mount_id = 5;
+  optional alluxio.proto.shared.AccessControlList acl = 6;
+}
+
+// Options to create a block file in UFS.
+// next available: 3
+message CreateUfsBlockOptions {
+  // the number of bytes previously written to block store
+  // zero if no previous temp block created
+  optional int64 bytes_in_block_store = 1;
+  // mount ID of the UFS to write to
+  optional int64 mount_id = 2;
+  // true if the write request is already a fallback from
+  // a failed short-circuit write.
+  optional bool fallback = 3;
 }
 
 // The response.
+// next available id: 3
 message Response {
-  optional Status status = 1;
+  optional status.PStatus status = 1;
+  optional string message = 2;
 }
 
+// The read response.
+// next available id: 2
+message ReadResponse {
+  enum Type {
+    // A heatbeat message indicates that the server is still actively acquiring access to a UFS file.
+    // This is to avoid timing out in the client.
+    UFS_READ_HEARTBEAT = 1;
+  }
+  optional Type type = 1;
+}
+
+// A heartbeat
+message Heartbeat {
+  // Empty message
+}
+
+// Netty RPCs. Every RPC needs to define a request type and optionally a response type (default to Response).
+
+// next available id: 3
+message LocalBlockOpenRequest {
+  optional int64 block_id = 1;
+  optional bool promote = 2;
+}
+
+// next available id: 2
+message LocalBlockOpenResponse {
+  optional string path = 1;
+}
+
+// next available id: 2
+message LocalBlockCloseRequest {
+  optional int64 block_id = 1;
+}
+
+// next available id: 6
+message LocalBlockCreateRequest {
+  optional int64 block_id = 1;
+  optional int32 tier = 3;
+  optional int64 space_to_reserve = 4;
+  // If set, only reserve space for the block.
+  optional bool only_reserve_space = 5;
+  optional bool cleanup_on_failure = 6;
+}
+
+// next available id: 2
+message LocalBlockCreateResponse {
+  optional string path = 1;
+}
+
+// next available id: 3
+message LocalBlockCompleteRequest {
+  optional int64 block_id = 1;
+  optional bool cancel = 2;
+}
+
+// next available id: 2
+message RemoveBlockRequest {
+  optional int64 block_id = 1;
+}

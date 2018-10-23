@@ -13,6 +13,7 @@ package alluxio.underfs.s3a;
 
 import alluxio.Configuration;
 import alluxio.PropertyKey;
+import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
 
 import com.amazonaws.services.s3.internal.Mimetypes;
@@ -84,7 +85,6 @@ public class S3AOutputStream extends OutputStream {
    * @param bucketName the name of the bucket
    * @param key the key of the file
    * @param manager the transfer manager to upload the file with
-   * @throws IOException when a non-Alluxio related error occurs
    */
   public S3AOutputStream(String bucketName, String key, TransferManager manager)
       throws IOException {
@@ -93,7 +93,7 @@ public class S3AOutputStream extends OutputStream {
     mBucketName = bucketName;
     mKey = key;
     mManager = manager;
-    mFile = new File(PathUtils.concatPath("/tmp", UUID.randomUUID()));
+    mFile = new File(PathUtils.concatPath(CommonUtils.getTmpDir(), UUID.randomUUID()));
     try {
       mHash = MessageDigest.getInstance("MD5");
       mLocalOutputStream =
@@ -143,7 +143,7 @@ public class S3AOutputStream extends OutputStream {
         meta.setContentMD5(new String(Base64.encode(mHash.digest())));
       }
       meta.setContentLength(mFile.length());
-      meta.setContentEncoding(Mimetypes.MIMETYPE_OCTET_STREAM);
+      meta.setContentType(Mimetypes.MIMETYPE_OCTET_STREAM);
 
       // Generate the put request and wait for the transfer manager to complete the upload, then
       // delete the temporary file on the local machine
@@ -153,7 +153,7 @@ public class S3AOutputStream extends OutputStream {
         LOG.error("Failed to delete temporary file @ {}", mFile.getPath());
       }
     } catch (Exception e) {
-      LOG.error("Failed to upload {}. Temporary file @ {}", path, mFile.getPath());
+      LOG.error("Failed to upload {}: {}", path, e.toString());
       throw new IOException(e);
     }
 

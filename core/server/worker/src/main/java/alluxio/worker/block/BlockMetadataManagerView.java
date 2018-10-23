@@ -29,7 +29,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
+
 /**
  * This class exposes a narrower view of {@link BlockMetadataManager} to Evictors and Allocators,
  * filtering out un-evictable blocks and un-allocatable space internally, so that evictors and
@@ -48,7 +50,7 @@ public class BlockMetadataManagerView {
    * A list of {@link StorageTierView}, derived from {@link StorageTier}s from the
    * {@link BlockMetadataManager}.
    */
-  private List<StorageTierView> mTierViews = new ArrayList<>();
+  private final List<StorageTierView> mTierViews = new ArrayList<>();
 
   /** A list of pinned inodes. */
   private final Set<Long> mPinnedInodes = new HashSet<>();
@@ -70,9 +72,9 @@ public class BlockMetadataManagerView {
   // TODO(qifan): Incrementally update the view.
   public BlockMetadataManagerView(BlockMetadataManager manager, Set<Long> pinnedInodes,
       Set<Long> lockedBlocks) {
-    mMetadataManager = Preconditions.checkNotNull(manager);
-    mPinnedInodes.addAll(Preconditions.checkNotNull(pinnedInodes));
-    Preconditions.checkNotNull(lockedBlocks);
+    mMetadataManager = Preconditions.checkNotNull(manager, "manager");
+    mPinnedInodes.addAll(Preconditions.checkNotNull(pinnedInodes, "pinnedInodes"));
+    Preconditions.checkNotNull(lockedBlocks, "lockedBlocks");
     mInUseBlocks.addAll(lockedBlocks);
 
     // iteratively create all StorageTierViews and StorageDirViews
@@ -186,6 +188,7 @@ public class BlockMetadataManagerView {
    * @param tierView the storage tier view
    * @return the next storage tier view, null if this is the last tier view
    */
+  @Nullable
   public StorageTierView getNextTier(StorageTierView tierView) {
     int nextOrdinal = tierView.getTierViewOrdinal() + 1;
     if (nextOrdinal < mTierViews.size()) {
@@ -214,6 +217,7 @@ public class BlockMetadataManagerView {
    * @return metadata of the block or null
    * @throws BlockDoesNotExistException if no {@link BlockMeta} for this block id is found
    */
+  @Nullable
   public BlockMeta getBlockMeta(long blockId) throws BlockDoesNotExistException {
     if (isBlockEvictable(blockId)) {
       return mMetadataManager.getBlockMeta(blockId);

@@ -11,20 +11,36 @@
 
 package alluxio.master.file;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+import alluxio.AlluxioTestDirectory;
 import alluxio.AlluxioURI;
 import alluxio.AuthenticatedUserRule;
+import alluxio.Configuration;
 import alluxio.ConfigurationRule;
+import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.LoginUserRule;
 import alluxio.PropertyKey;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
+import alluxio.master.DefaultSafeModeManager;
+import alluxio.master.MasterContext;
 import alluxio.master.MasterRegistry;
+import alluxio.master.MasterTestUtils;
+import alluxio.master.SafeModeManager;
 import alluxio.master.block.BlockMaster;
+import alluxio.master.block.BlockMasterFactory;
+
 import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeDirectory;
 import alluxio.master.file.meta.InodeFile;
+import alluxio.master.file.meta.InodeLockList;
 import alluxio.master.file.meta.InodeTree;
 import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.file.meta.MutableLockedInodePath;
@@ -33,11 +49,12 @@ import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
 import alluxio.master.file.options.DeleteOptions;
 import alluxio.master.file.options.FreeOptions;
+import alluxio.master.file.options.GetStatusOptions;
 import alluxio.master.file.options.ListStatusOptions;
 import alluxio.master.file.options.RenameOptions;
 import alluxio.master.file.options.SetAttributeOptions;
-import alluxio.master.journal.JournalFactory;
-import alluxio.master.journal.MutableJournal;
+import alluxio.master.metrics.MetricsMaster;
+import alluxio.master.metrics.MetricsMasterFactory;
 import alluxio.security.GroupMappingServiceTestUtils;
 import alluxio.security.authorization.Mode;
 import alluxio.security.group.GroupMappingService;
@@ -52,17 +69,14 @@ import com.google.common.collect.Lists;
 import org.apache.commons.lang3.tuple.ImmutableTriple;
 import org.apache.commons.lang3.tuple.Triple;
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
-import org.mockito.Mockito;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -103,15 +117,23 @@ public final class PermissionCheckTest {
   private static final Mode TEST_FILE_MODE = new Mode((short) 0755);
 
   private MasterRegistry mRegistry;
+  private SafeModeManager mSafeModeManager;
+  private long mStartTimeMs;
+  private int mPort;
+  private MetricsMaster mMetricsMaster;
   private FileSystemMaster mFileSystemMaster;
   private BlockMaster mBlockMaster;
 
   private InodeTree mInodeTree;
 
   @Rule
-  public ConfigurationRule mConfiguration = new ConfigurationRule(ImmutableMap
-      .of(PropertyKey.SECURITY_GROUP_MAPPING_CLASS, FakeUserGroupsMapping.class.getName(),
-          PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP, TEST_SUPER_GROUP));
+  public ConfigurationRule mConfiguration =
+      new ConfigurationRule(new ImmutableMap.Builder<PropertyKey, String>()
+          .put(PropertyKey.SECURITY_GROUP_MAPPING_CLASS, FakeUserGroupsMapping.class.getName())
+          .put(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP, TEST_SUPER_GROUP)
+          .put(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS, AlluxioTestDirectory
+              .createTemporaryDirectory("PermissionCheckTest").getAbsolutePath())
+          .build());
 
   @Rule
   public AuthenticatedUserRule mAuthenticatedUser =
@@ -172,24 +194,28 @@ public final class PermissionCheckTest {
 
   @Before
   public void before() throws Exception {
+    Configuration.set(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS, mTestFolder.newFolder());
     GroupMappingServiceTestUtils.resetCache();
     mRegistry = new MasterRegistry();
-    JournalFactory factory =
-        new MutableJournal.Factory(new URI(mTestFolder.newFolder().getAbsolutePath()));
-    mBlockMaster = new BlockMaster(mRegistry, factory);
-    mFileSystemMaster = new FileSystemMasterFactory().create(mRegistry, factory);
+    mRegistry.add(MetricsMaster.class, mMetricsMaster);
+    mSafeModeManager = new DefaultSafeModeManager();
+    MasterContext masterContext = MasterTestUtils.testMasterContext();
+    mMetricsMaster = new MetricsMasterFactory().create(mRegistry, masterContext);
+    mBlockMaster = new BlockMasterFactory().create(mRegistry, masterContext);
+    mFileSystemMaster = new FileSystemMasterFactory().create(mRegistry, masterContext);
     mRegistry.start(true);
 
     createDirAndFileForTest();
 
-    mInodeTree = Mockito.mock(InodeTree.class);
-    Mockito.when(mInodeTree.getRootUserName()).thenReturn(TEST_USER_ADMIN.getUser());
+    mInodeTree = mock(InodeTree.class);
+    when(mInodeTree.getRootUserName()).thenReturn(TEST_USER_ADMIN.getUser());
   }
 
   @After
   public void after() throws Exception {
     mRegistry.stop();
     GroupMappingServiceTestUtils.resetCache();
+    ConfigurationTestUtils.resetConfiguration();
   }
 
   /**
@@ -237,9 +263,9 @@ public final class PermissionCheckTest {
         new Mode((short) 0754)));
     LockedInodePath lockedInodePath = getLockedInodePath(permissions);
     try (Closeable r = new AuthenticatedUserRule(TEST_USER_1.getUser()).toResource()) {
-      PermissionChecker checker = new PermissionChecker(mInodeTree);
+      PermissionChecker checker = new DefaultPermissionChecker(mInodeTree);
       Mode.Bits actual = checker.getPermission(lockedInodePath);
-      Assert.assertEquals(Mode.Bits.ALL, actual);
+      assertEquals(Mode.Bits.ALL, actual);
     }
   }
 
@@ -250,9 +276,9 @@ public final class PermissionCheckTest {
         new Mode((short) 0754)));
     LockedInodePath lockedInodePath = getLockedInodePath(permissions);
     try (Closeable r = new AuthenticatedUserRule(TEST_USER_3.getUser()).toResource()) {
-      PermissionChecker checker = new PermissionChecker(mInodeTree);
+      PermissionChecker checker = new DefaultPermissionChecker(mInodeTree);
       Mode.Bits actual = checker.getPermission(lockedInodePath);
-      Assert.assertEquals(Mode.Bits.READ_EXECUTE, actual);
+      assertEquals(Mode.Bits.READ_EXECUTE, actual);
     }
   }
 
@@ -263,9 +289,9 @@ public final class PermissionCheckTest {
         new Mode((short) 0754)));
     LockedInodePath lockedInodePath = getLockedInodePath(permissions);
     try (Closeable r  = new AuthenticatedUserRule(TEST_USER_2.getUser()).toResource()) {
-      PermissionChecker checker = new PermissionChecker(mInodeTree);
+      PermissionChecker checker = new DefaultPermissionChecker(mInodeTree);
       Mode.Bits actual = checker.getPermission(lockedInodePath);
-      Assert.assertEquals(Mode.Bits.READ, actual);
+      assertEquals(Mode.Bits.READ, actual);
     }
   }
 
@@ -320,8 +346,8 @@ public final class PermissionCheckTest {
 
       FileInfo fileInfo = mFileSystemMaster.getFileInfo(fileId);
       String[] pathComponents = path.split("/");
-      Assert.assertEquals(pathComponents[pathComponents.length - 1], fileInfo.getName());
-      Assert.assertEquals(user.getUser(), fileInfo.getOwner());
+      assertEquals(pathComponents[pathComponents.length - 1], fileInfo.getName());
+      assertEquals(user.getUser(), fileInfo.getOwner());
     }
   }
 
@@ -375,9 +401,9 @@ public final class PermissionCheckTest {
       FileInfo fileInfo =
           mFileSystemMaster.getFileInfo(mFileSystemMaster.getFileId(new AlluxioURI(path)));
       String[] pathComponents = path.split("/");
-      Assert.assertEquals(pathComponents[pathComponents.length - 1], fileInfo.getName());
-      Assert.assertEquals(true, fileInfo.isFolder());
-      Assert.assertEquals(user.getUser(), fileInfo.getOwner());
+      assertEquals(pathComponents[pathComponents.length - 1], fileInfo.getName());
+      assertEquals(true, fileInfo.isFolder());
+      assertEquals(user.getUser(), fileInfo.getOwner());
     }
   }
 
@@ -449,12 +475,12 @@ public final class PermissionCheckTest {
       mFileSystemMaster
           .rename(new AlluxioURI(srcPath), new AlluxioURI(dstPath), RenameOptions.defaults());
 
-      Assert.assertEquals(-1, mFileSystemMaster.getFileId(new AlluxioURI(srcPath)));
+      assertEquals(-1, mFileSystemMaster.getFileId(new AlluxioURI(srcPath)));
       FileInfo fileInfo =
           mFileSystemMaster.getFileInfo(mFileSystemMaster.getFileId(new AlluxioURI(dstPath)));
       String[] pathComponents = dstPath.split("/");
-      Assert.assertEquals(pathComponents[pathComponents.length - 1], fileInfo.getName());
-      Assert.assertEquals(fileOwner, fileInfo.getOwner());
+      assertEquals(pathComponents[pathComponents.length - 1], fileInfo.getName());
+      assertEquals(fileOwner, fileInfo.getOwner());
     }
   }
 
@@ -524,7 +550,7 @@ public final class PermissionCheckTest {
     try (Closeable r = new AuthenticatedUserRule(user.getUser()).toResource()) {
       mFileSystemMaster.delete(new AlluxioURI(path), DeleteOptions.defaults()
           .setRecursive(recursive));
-      Assert.assertEquals(-1, mFileSystemMaster.getFileId(new AlluxioURI(path)));
+      assertEquals(-1, mFileSystemMaster.getFileId(new AlluxioURI(path)));
     }
   }
 
@@ -614,6 +640,13 @@ public final class PermissionCheckTest {
     }
   }
 
+  /**
+   * This method verifies the read permission.
+   * @param user the user
+   * @param path the path of the file to read
+   * @param isFile whether the path is a file
+   * @throws Exception if it fails to verify
+   */
   private void verifyRead(TestUser user, String path, boolean isFile) throws Exception {
     try (Closeable r = new AuthenticatedUserRule(user.getUser()).toResource()) {
       verifyGetFileId(user, path);
@@ -621,10 +654,16 @@ public final class PermissionCheckTest {
     }
   }
 
+  /**
+   * This method verifies the get fileId.
+   * @param user the user
+   * @param path the path of the file to verify
+   * @throws Exception if it fails to verify
+   */
   private void verifyGetFileId(TestUser user, String path) throws Exception {
     try (Closeable r = new AuthenticatedUserRule(user.getUser()).toResource()) {
       long fileId = mFileSystemMaster.getFileId(new AlluxioURI(path));
-      Assert.assertNotEquals(-1, fileId);
+      assertNotEquals(-1, fileId);
     }
   }
 
@@ -632,15 +671,17 @@ public final class PermissionCheckTest {
       throws Exception {
     try (Closeable r = new AuthenticatedUserRule(user.getUser()).toResource()) {
       if (isFile) {
-        Assert.assertEquals(path, mFileSystemMaster.getFileInfo(new AlluxioURI(path)).getPath());
-        Assert.assertEquals(1,
+        assertEquals(path,
+            mFileSystemMaster.getFileInfo(new AlluxioURI(path), GetStatusOptions.defaults())
+                .getPath());
+        assertEquals(1,
             mFileSystemMaster.listStatus(new AlluxioURI(path), ListStatusOptions.defaults())
                 .size());
       } else {
         List<FileInfo> fileInfoList =
             mFileSystemMaster.listStatus(new AlluxioURI(path), ListStatusOptions.defaults());
         if (fileInfoList.size() > 0) {
-          Assert.assertTrue(PathUtils.getParent(fileInfoList.get(0).getPath()).equals(path));
+          assertTrue(PathUtils.getParent(fileInfoList.get(0).getPath()).equals(path));
         }
       }
     }
@@ -656,9 +697,9 @@ public final class PermissionCheckTest {
       SetAttributeOptions expect = getNonDefaultSetState();
       SetAttributeOptions result = verifySetState(TEST_USER_2, file, expect);
 
-      Assert.assertEquals(expect.getTtl(), result.getTtl());
-      Assert.assertEquals(expect.getTtlAction(), result.getTtlAction());
-      Assert.assertEquals(expect.getPinned(), result.getPinned());
+      assertEquals(expect.getTtl(), result.getTtl());
+      assertEquals(expect.getTtlAction(), result.getTtlAction());
+      assertEquals(expect.getPinned(), result.getPinned());
     }
   }
 
@@ -691,7 +732,8 @@ public final class PermissionCheckTest {
     try (Closeable r = new AuthenticatedUserRule(user.getUser()).toResource()) {
       mFileSystemMaster.setAttribute(new AlluxioURI(path), options);
 
-      FileInfo fileInfo = mFileSystemMaster.getFileInfo(new AlluxioURI(path));
+      FileInfo fileInfo =
+          mFileSystemMaster.getFileInfo(new AlluxioURI(path), GetStatusOptions.defaults());
       return SetAttributeOptions.defaults().setPinned(fileInfo.isPinned()).setTtl(fileInfo.getTtl())
           .setPersisted(fileInfo.isPersisted());
     }
@@ -798,7 +840,7 @@ public final class PermissionCheckTest {
     verifySetAcl(TEST_USER_SUPERGROUP, TEST_DIR_URI, TEST_USER_2.getUser(), null, (short) -1, true);
     FileInfo fileInfo = mFileSystemMaster
         .getFileInfo(mFileSystemMaster.getFileId(new AlluxioURI(TEST_DIR_FILE_URI)));
-    Assert.assertEquals(TEST_USER_2.getUser(), fileInfo.getOwner());
+    assertEquals(TEST_USER_2.getUser(), fileInfo.getOwner());
   }
 
   @Test
@@ -818,13 +860,13 @@ public final class PermissionCheckTest {
         true);
     FileInfo fileInfo = mFileSystemMaster
         .getFileInfo(mFileSystemMaster.getFileId(new AlluxioURI(TEST_DIR_FILE_URI)));
-    Assert.assertEquals(TEST_USER_2.getGroup(), fileInfo.getGroup());
+    assertEquals(TEST_USER_2.getGroup(), fileInfo.getGroup());
 
     // owner
     verifySetAcl(TEST_USER_1, TEST_DIR_URI, null, TEST_USER_2.getGroup(), (short) -1, true);
     fileInfo = mFileSystemMaster
         .getFileInfo(mFileSystemMaster.getFileId(new AlluxioURI(TEST_DIR_FILE_URI)));
-    Assert.assertEquals(TEST_USER_2.getGroup(), fileInfo.getGroup());
+    assertEquals(TEST_USER_2.getGroup(), fileInfo.getGroup());
   }
 
   @Test
@@ -845,13 +887,13 @@ public final class PermissionCheckTest {
     verifySetAcl(TEST_USER_SUPERGROUP, TEST_DIR_URI, null, null, (short) 0700, true);
     FileInfo fileInfo = mFileSystemMaster
         .getFileInfo(mFileSystemMaster.getFileId(new AlluxioURI(TEST_DIR_FILE_URI)));
-    Assert.assertEquals((short) 0700, fileInfo.getMode());
+    assertEquals((short) 0700, fileInfo.getMode());
 
     // owner enlarge the permission
     verifySetAcl(TEST_USER_1, TEST_DIR_URI, null, null, (short) 0777, true);
     fileInfo = mFileSystemMaster
         .getFileInfo(mFileSystemMaster.getFileId(new AlluxioURI(TEST_DIR_FILE_URI)));
-    Assert.assertEquals((short) 0777, fileInfo.getMode());
+    assertEquals((short) 0777, fileInfo.getMode());
     // other user can operate under this enlarged permission
     verifyCreateFile(TEST_USER_2, TEST_DIR_URI + "/newFile", false);
     verifyDelete(TEST_USER_2, TEST_DIR_FILE_URI, false);
@@ -876,8 +918,8 @@ public final class PermissionCheckTest {
     verifySetAcl(TEST_USER_1, TEST_DIR_URI, null, TEST_USER_2.getGroup(), (short) 0777, true);
     FileInfo fileInfo = mFileSystemMaster
         .getFileInfo(mFileSystemMaster.getFileId(new AlluxioURI(TEST_DIR_FILE_URI)));
-    Assert.assertEquals(TEST_USER_2.getGroup(), fileInfo.getGroup());
-    Assert.assertEquals((short) 0777, fileInfo.getMode());
+    assertEquals(TEST_USER_2.getGroup(), fileInfo.getGroup());
+    assertEquals((short) 0777, fileInfo.getMode());
   }
 
   @Test
@@ -901,13 +943,13 @@ public final class PermissionCheckTest {
       FileInfo fileInfo =
           mFileSystemMaster.getFileInfo(mFileSystemMaster.getFileId(new AlluxioURI(path)));
       if (owner != null) {
-        Assert.assertEquals(owner, fileInfo.getOwner());
+        assertEquals(owner, fileInfo.getOwner());
       }
       if (group != null) {
-        Assert.assertEquals(group, fileInfo.getGroup());
+        assertEquals(group, fileInfo.getGroup());
       }
       if (mode != -1) {
-        Assert.assertEquals(mode, fileInfo.getMode());
+        assertEquals(mode, fileInfo.getMode());
       }
     }
   }
@@ -922,10 +964,10 @@ public final class PermissionCheckTest {
 
   private LockedInodePath getLockedInodePath(ArrayList<Triple<String, String, Mode>> permissions)
       throws Exception {
-    List<Inode<?>> inodes = new ArrayList<>();
-    inodes.add(getRootInode());
+    InodeLockList lockList = new InodeLockList();
+    lockList.lockRead(getRootInode());
     if (permissions.size() == 0) {
-      return new MutableLockedInodePath(new AlluxioURI("/"), inodes, null);
+      return new MutableLockedInodePath(new AlluxioURI("/"), lockList, InodeTree.LockMode.READ);
     }
     String uri = "";
     for (int i = 0; i < permissions.size(); i++) {
@@ -938,13 +980,13 @@ public final class PermissionCheckTest {
         Inode<?> inode = InodeFile.create(i + 1, i, (i + 1) + "", CommonUtils.getCurrentMs(),
             CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB).setOwner(owner)
                 .setGroup(group).setMode(mode));
-        inodes.add(inode);
+        lockList.lockRead(inode);
       } else {
         Inode<?> inode = InodeDirectory.create(i + 1, i, (i + 1) + "",
             CreateDirectoryOptions.defaults().setOwner(owner).setGroup(group).setMode(mode));
-        inodes.add(inode);
+        lockList.lockRead(inode);
       }
     }
-    return new MutableLockedInodePath(new AlluxioURI(uri), inodes, null);
+    return new MutableLockedInodePath(new AlluxioURI(uri), lockList, InodeTree.LockMode.READ);
   }
 }

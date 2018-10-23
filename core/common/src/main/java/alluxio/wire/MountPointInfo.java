@@ -11,11 +11,8 @@
 
 package alluxio.wire;
 
-import alluxio.underfs.UnderFileSystem;
-
 import com.google.common.base.Objects;
 
-import java.io.IOException;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
@@ -158,24 +155,28 @@ public class MountPointInfo implements Serializable {
   }
 
   /**
-   * Sets information related to under filesystem, including its uri, type, storage usage.
-   *
-   * @param ufsUri the under filesystem uri
+   * @return thrift representation of the file information
    */
-  public void setUfsInfo(String ufsUri) {
-    mUfsUri = ufsUri;
-    UnderFileSystem ufs = UnderFileSystem.Factory.get(mUfsUri);
-    mUfsType = ufs.getUnderFSType();
-    try {
-      mUfsCapacityBytes = ufs.getSpace(mUfsUri, UnderFileSystem.SpaceType.SPACE_TOTAL);
-    } catch (IOException e) {
-      mUfsCapacityBytes = UNKNOWN_CAPACITY_BYTES;
-    }
-    try {
-      mUfsUsedBytes = ufs.getSpace(mUfsUri, UnderFileSystem.SpaceType.SPACE_USED);
-    } catch (IOException e) {
-      mUfsUsedBytes = UNKNOWN_USED_BYTES;
-    }
+  public alluxio.thrift.MountPointInfo toThrift() {
+    return new alluxio.thrift.MountPointInfo(mUfsUri, mUfsType, mUfsCapacityBytes, mUfsUsedBytes,
+        mReadOnly, mProperties, mShared);
+  }
+
+  /**
+   * Creates a new instance of {@link MountPointInfo} from thrift representation.
+   *
+   * @param info the thrift representation of a mount point information
+   * @return the instance
+   */
+  public static MountPointInfo fromThrift(alluxio.thrift.MountPointInfo info) {
+    return new MountPointInfo()
+        .setUfsUri(info.getUfsUri())
+        .setUfsType(info.getUfsType())
+        .setUfsCapacityBytes(info.getUfsCapacityBytes())
+        .setUfsUsedBytes(info.getUfsUsedBytes())
+        .setReadOnly(info.isReadOnly())
+        .setProperties(info.getProperties())
+        .setShared(info.isShared());
   }
 
   @Override

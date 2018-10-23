@@ -11,21 +11,23 @@
 
 package alluxio.resource;
 
+import java.io.Closeable;
+import java.io.IOException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 /**
  * Interface representing a pool of resources to be temporarily used and returned.
  *
  * @param <T> the type of resource this pool manages
  */
-public interface Pool<T> {
+public interface Pool<T> extends Closeable {
   /**
    * Acquires a resource from the pool.
    *
    * @return the acquired resource which should not be null
-   * @throws Exception if it fails
    */
-  T acquire() throws Exception;
+  T acquire() throws IOException;
 
   /**
    * Acquires a resource from the pool.
@@ -33,9 +35,8 @@ public interface Pool<T> {
    * @param time time it takes before timeout if no resource is available
    * @param unit the unit of the time
    * @return the acquired resource which should not be null
-   * @throws Exception if it fails
    */
-  T acquire(long time, TimeUnit unit) throws Exception;
+  T acquire(long time, TimeUnit unit) throws TimeoutException, IOException;
 
   /**
    * Releases the resource to the pool.
@@ -43,11 +44,6 @@ public interface Pool<T> {
    * @param resource the resource to release
    */
   void release(T resource);
-
-  /**
-   * Closes the pool which clears all the resources.
-   */
-  void close();
 
   /**
    * @return the current pool size

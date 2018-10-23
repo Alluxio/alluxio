@@ -25,16 +25,15 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public enum ExceptionMessage {
   // general
-  DEPENDENCY_CYCLE("Dependency cycle encountered"),
-  INVALID_PREFIX("Parent path {0} is not a prefix of child {1}"),
-  NOT_SUPPORTED("This method is not supported"),
-  PATH_DOES_NOT_EXIST("Path {0} does not exist"),
-  PATH_MUST_BE_FILE("Path {0} must be a file"),
-  PATH_MUST_BE_DIRECTORY("Path {0} must be a directory"),
-  PATH_INVALID("Path {0} is invalid"),
-  RESOURCE_UNAVAILABLE("Resource unavailable"),
+  INVALID_PREFIX("Parent path \"{0}\" is not a prefix of child {1}."),
+  NOT_SUPPORTED("This method is not supported."),
+  PATH_DOES_NOT_EXIST("Path \"{0}\" does not exist."),
+  PATH_MUST_BE_FILE("Path \"{0}\" must be a file."),
+  PATH_MUST_BE_DIRECTORY("Path \"{0}\" must be a directory."),
+  PATH_INVALID("Path \"{0}\" is invalid."),
 
   // general block
+  BLOCK_UNAVAILABLE("Block {0} is unavailable in both Alluxio and UFS."),
   CANNOT_REQUEST_SPACE("Not enough space left on worker {0} to store blockId {1,number,#}."),
   NO_LOCAL_WORKER("Local address {0} requested but there is no local worker"),
   NO_SPACE_FOR_BLOCK_ON_WORKER("There is no worker with enough space for a new block of size {0}"),
@@ -48,6 +47,8 @@ public enum ExceptionMessage {
   LOCK_RECORD_NOT_FOUND_FOR_BLOCK_AND_SESSION(
       "no lock is found for blockId {0,number,#} for sessionId {1,number,#}"),
   LOCK_RECORD_NOT_FOUND_FOR_LOCK_ID("lockId {0,number,#} has no lock record"),
+  LOCK_NOT_RELEASED("lockId {0,number,#} is not released."),
+  SESSION_NOT_CLOSED("session {0,number,#} is not closed."),
 
   // block metadata manager and view
   BLOCK_META_NOT_FOUND("BlockMeta not found for blockId {0,number,#}"),
@@ -63,8 +64,9 @@ public enum ExceptionMessage {
   FAILED_SKIP("Failed to skip {0}"),
   INSTREAM_CANNOT_SKIP("The underlying BlockInStream could not skip {0}"),
   READ_CLOSED_STREAM("Cannot read from a closed stream"),
-  SEEK_NEGATIVE("Seek position is negative: {0,number,#}"),
-  SEEK_PAST_EOF("Seek position is past EOF: {0,number,#}, fileSize: {1,number,#}"),
+
+  // meta master
+  NO_MASTER_FOUND("No master with masterId {0,number,#} is found"),
 
   // netty
   BLOCK_WRITE_ERROR(
@@ -89,11 +91,20 @@ public enum ExceptionMessage {
   BLOCK_NOT_FOUND_AT_LOCATION("blockId {0,number,#} not found at location: {1}"),
   MOVE_UNCOMMITTED_BLOCK("Cannot move uncommitted blockId {0,number,#}"),
   NO_BLOCK_ID_FOUND("blockId {0,number,#} not found"),
-  NO_EVICTION_PLAN_TO_FREE_SPACE("No eviction plan by evictor to free space"),
-  NO_SPACE_FOR_BLOCK_ALLOCATION(
-      "Failed to allocate {0,number,#} bytes after {1} retries for blockId {2,number,#}"),
-  NO_SPACE_FOR_BLOCK_MOVE(
-      "Failed to find space in {0} to move blockId {1,number,#} after {2} retries"),
+  NO_EVICTION_PLAN_TO_FREE_SPACE(
+      "Failed to find an eviction plan to free {0,number,#} bytes space at location {1}"),
+  NO_SPACE_FOR_BLOCK_ALLOCATION_TIMEOUT(
+      "Failed to allocate {0,number,#} bytes on {1} after {2}ms to create blockId {3,number,#}"),
+  NO_SPACE_FOR_BLOCK_ALLOCATION_RETRIES_EXCEEDED(
+      "Failed to allocate {0,number,#} bytes on {1} after {2} attempts for blockId {3,number,#}"),
+  NO_SPACE_FOR_BLOCK_REQUEST_SPACE_TIMEOUT(
+      "Failed to request {0,number,#} bytes after {1}ms to create blockId {2,number,#}"),
+  NO_SPACE_FOR_BLOCK_REQUEST_SPACE_RETRIES_EXCEEDED(
+      "Failed to request {0,number,#} bytes after {1} attempts for blockId {2,number,#}"),
+  NO_SPACE_FOR_BLOCK_MOVE_TIMEOUT(
+      "Failed to find space in {0} to move blockId {1,number,#} after {2}ms"),
+  NO_SPACE_FOR_BLOCK_MOVE_RETRIES_EXCEEDED(
+      "Failed to find space in {0} to move blockId {1,number,#} after {2} attempts"),
   REMOVE_UNCOMMITTED_BLOCK("Cannot remove uncommitted blockId {0,number,#}"),
   TEMP_BLOCK_ID_COMMITTED(
       "Temp blockId {0,number,#} is not available, because it is already committed"),
@@ -115,7 +126,16 @@ public enum ExceptionMessage {
 
   // file
   CANNOT_READ_DIRECTORY("Cannot read from {0} because it is a directory"),
+  DELETE_FAILED_DIR_CHILDREN(
+      "Cannot delete directory {0}. Failed to delete children: {1}"),
+  DELETE_FAILED_DIR_NONEMPTY("Directory not empty"),
   DELETE_FAILED_UFS("Failed to delete {0} from the under file system"),
+  DELETE_FAILED_UFS_DIR("UFS delete dir failed"),
+  DELETE_FAILED_UFS_FILE("UFS delete file failed"),
+  DELETE_FAILED_UFS_NOT_IN_SYNC("UFS dir not in sync. Sync UFS, or delete with unchecked flag."),
+  DELETE_FAILED_DIRECTORY_NOT_IN_SYNC(
+      "Cannot delete {0} because the UFS has contents not loaded into Alluxio. Sync Alluxio with "
+          + "UFS or run delete with unchecked flag to forcibly delete"),
   DELETE_NONEMPTY_DIRECTORY_NONRECURSIVE(
       "Cannot delete non-empty directory {0} because recursive is set to false"),
   DELETE_ROOT_DIRECTORY("Cannot delete the root directory"),
@@ -142,9 +162,16 @@ public enum ExceptionMessage {
   RENAME_CANNOT_BE_TO_ROOT("Cannot rename a path to the root directory"),
   RENAME_CANNOT_BE_TO_SUBDIRECTORY("Cannot rename because {0} is a prefix of {1}"),
   ROOT_CANNOT_BE_RENAMED("The root directory cannot be renamed"),
+  JOURNAL_ENTRY_MISSING(
+      "Journal entries are missing between sequence number {0} (inclusive) and {1} (exclusive)."),
+  JOURNAL_ENTRY_TRUNCATED_UNEXPECTEDLY(
+      "Journal entry [sequence number {0}] is truncated unexpectedly."),
 
   // block master
   NO_WORKER_FOUND("No worker with workerId {0,number,#} is found"),
+
+  // safe mode
+  MASTER_IN_SAFEMODE("Alluxio master is in safe mode. Please try again later."),
 
   // file system master ufs
   FAILED_UFS_CREATE("Failed to create {0} in the under file system"),
@@ -155,25 +182,32 @@ public enum ExceptionMessage {
       "Worker fileId {0,number,#} is invalid. The worker may have crashed or cleaned up "
           + "the client state due to a timeout."),
 
-  // shell
+  // cli
+  INVALID_ARGS_GENERIC("Invalid args for command {0}"),
+  INVALID_ARGS_NULL("Null args for command {0}"),
+  INVALID_ARGS_NUM("Command {0} takes {1} arguments, not {2}"),
+  INVALID_ARGS_NUM_INSUFFICIENT("Command {0} requires at least {1} arguments ({2} provided)"),
+  INVALID_ARGS_NUM_TOO_MANY("Command {0} requires at most {1} arguments ({2} provided)"),
+  INVALID_ARGS_SORT_FIELD("Invalid sort option `{0}` for --sort"),
+  INVALID_ARG_TYPE("Arg {0} is not type {1}"),
+
+  // extension shell
+  INVALID_EXTENSION_NOT_JAR("File {0} does not have the extension JAR"),
+
+  // fs shell
   DESTINATION_CANNOT_BE_FILE(
       "The destination cannot be an existing file when the source is a directory or a list of "
           + "files."),
-
-  // lineage
-  DELETE_LINEAGE_WITH_CHILDREN("The lineage {0} to delete has child lineages"),
-  LINEAGE_DOES_NOT_EXIST("The lineage {0} does not exist"),
-  LINEAGE_INPUT_FILE_NOT_EXIST("The lineage input file {0} does not exist"),
-  LINEAGE_OUTPUT_FILE_NOT_EXIST("No lineage has output file {0}"),
-  MISSING_REINITIALIZE_FILE("Cannot reinitialize file {0} because its lineage does not exist"),
-  UNKNOWN_LINEAGE_FILE_STATE("Unknown LineageFileState: {0}"),
+  INVALID_TIME("{0} is not valid time"),
 
   // client
-  DIFFERENT_MASTER_ADDRESS("Master address {0} is different from that in file system context {1}"),
+  DIFFERENT_CONNECTION_DETAILS(
+      "New connection details are different from that in file system context {0}"),
   INCOMPATIBLE_VERSION("{0} client version {1} is not compatible with server version {2}"),
 
   // configuration
   DEFAULT_PROPERTIES_FILE_DOES_NOT_EXIST("The default Alluxio properties file does not exist"),
+  INVALID_CONFIGURATION_KEY("Invalid property key {0}"),
   INVALID_CONFIGURATION_VALUE("Invalid value {0} for configuration key {1}"),
   KEY_NOT_BOOLEAN("Configuration cannot evaluate key {0} as boolean"),
   KEY_NOT_BYTES("Configuration cannot evaluate key {0} as bytes"),
@@ -182,12 +216,21 @@ public enum ExceptionMessage {
   KEY_NOT_INTEGER("Configuration cannot evaluate key {0} as integer"),
   KEY_NOT_LONG("Configuration cannot evaluate key {0} as long"),
   KEY_NOT_MS("Configuration cannot evaluate key {0} as milliseconds"),
+  KEY_CIRCULAR_DEPENDENCY("Circular dependency found while resolving {0}"),
   UNDEFINED_CONFIGURATION_KEY("No value set for configuration key {0}"),
+  UNKNOWN_ENUM("Unrecognized configuration value <{0}>. Acceptable values: {1}"),
   UNKNOWN_PROPERTY("Unknown property for {0} {1}"),
 
   // security
+  ACL_BASE_REQUIRED(
+      "Replacing ACL entries must include the base entries for 'user', 'group', and 'other'. "
+          + "missing: {0}"),
   AUTHENTICATION_IS_NOT_ENABLED("Authentication is not enabled"),
   AUTHORIZED_CLIENT_USER_IS_NULL("The client user is not authorized so as to be null in server"),
+  IMPERSONATION_NOT_CONFIGURED(
+      "User {0} is not configured for any impersonation. impersonationUser: {1}"),
+  IMPERSONATION_GROUPS_FAILED("Failed to get groups for impersonationUser {0}. user: {1}"),
+  IMPERSONATION_DENIED("User {0} is not configured to impersonate {1}"),
   INVALID_SET_ACL_OPTIONS("Invalid set acl options: {0}, {1}, {2}"),
   INVALID_MODE("Invalid mode {0}"),
   INVALID_MODE_SEGMENT("Invalid mode {0} - contains invalid segment {1}"),
@@ -208,9 +251,9 @@ public enum ExceptionMessage {
   // mounting
   MOUNT_POINT_ALREADY_EXISTS("Mount point {0} already exists"),
   MOUNT_POINT_PREFIX_OF_ANOTHER("Mount point {0} is a prefix of {1}"),
-  MOUNT_PATH_SHADOWS_DEFAULT_UFS(
-      "Mount path {0} shadows an existing path in the default underlying filesystem"),
-  MOUNT_READONLY("A write operation on {0} is under a readonly mount point {1}"),
+  MOUNT_PATH_SHADOWS_PARENT_UFS(
+      "Mount path {0} shadows an existing path {1} in the parent underlying filesystem"),
+  MOUNT_READONLY("A write operation on {0} under a readonly mount point {1} is not allowed"),
   UFS_PATH_DOES_NOT_EXIST("Ufs path {0} does not exist"),
 
   // key-value
@@ -218,8 +261,28 @@ public enum ExceptionMessage {
   KEY_ALREADY_EXISTS("The input key already exists in the key-value store"),
   INVALID_KEY_VALUE_STORE_URI("The URI {0} exists but is not a key-value store"),
 
+  // move job
+  MOVE_CANNOT_BE_TO_SUBDIRECTORY("Cannot move because {0} is a prefix of {1}"),
+  MOVE_DIRECTORY_TO_FILE("Cannot move a directory ({0}) to a file ({1})"),
+  MOVE_FILE_TO_DIRECTORY("Cannot move a file ({0}) to a directory ({1})"),
+  MOVE_NEED_OVERWRITE("Cannot move to {0} because it exists and overwrite is set to false"),
+  MOVE_OVERWRITE_DIRECTORY(
+      "{0} already exists. The overwrite flag cannot be used to overwrite directories"),
+  MOVE_TO_FILE_AS_DIRECTORY("Cannot move to {0}. {1} is a file, not a directory"),
+
+  // job service
+  NO_LOCAL_BLOCK_WORKER_REPLICATE_TASK(
+      "Cannot find a local block worker to replicate blockId {0,number,#}"),
+
+  // job manager
+  JOB_DEFINITION_DOES_NOT_EXIST("The job definition for config {0} does not exist"),
+  JOB_DOES_NOT_EXIST("The job of id {0} does not exist"),
+
   // block worker
   FAILED_COMMIT_BLOCK_TO_MASTER("Failed to commit block with blockId {0,number,#} to master"),
+
+  // ufs maintenance
+  UFS_OP_NOT_ALLOWED("Operation {0} not allowed on ufs path {1} under maintenance mode {2}"),
 
   // SEMICOLON! minimize merge conflicts by putting it on its own line
   ;

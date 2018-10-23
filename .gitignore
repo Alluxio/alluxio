@@ -1,3 +1,4 @@
+.DS_Store
 **/alluxio-site.properties
 **/nb-configuration*.xml
 **/nbproject/
@@ -15,6 +16,7 @@
 .metadata/
 .project
 .settings/
+/client/
 /conf/alluxio-env.sh
 /conf/metrics.properties
 /conf/alluxio-env.sh.bootstrap.bk
@@ -30,15 +32,19 @@
 /deploy/vagrant/spot/roles/tag_ec2/vars/
 /deploy/vagrant/vbox/.vagrant/
 /deploy/vagrant/vbox/alluxio-dev.box
+/dev/scripts/*.tar.gz
 /dev/scripts/tarballs
 /dev/scripts/workdir
 /docs/_site/
 /docs/api/
 /docs/serve/
+/extensions/
 /journal/
+/lib/
 /logs/*.log*
 /logs/*.out*
 /underFSStorage/
+/web/
 dependency-reduced-pom.xml
 target/
 tests.log*

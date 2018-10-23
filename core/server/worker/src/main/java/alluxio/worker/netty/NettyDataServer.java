@@ -15,11 +15,9 @@ import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.network.ChannelType;
 import alluxio.util.network.NettyUtils;
-import alluxio.worker.AlluxioWorkerService;
 import alluxio.worker.DataServer;
+import alluxio.worker.WorkerProcess;
 
-import com.google.common.base.Preconditions;
-import com.google.common.base.Throwables;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.ChannelFuture;
@@ -28,11 +26,12 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.ServerChannel;
 import io.netty.channel.epoll.EpollChannelOption;
 import io.netty.channel.epoll.EpollMode;
+import io.netty.channel.unix.DomainSocketAddress;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 import java.util.concurrent.TimeUnit;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -46,33 +45,31 @@ public final class NettyDataServer implements DataServer {
 
   private final ServerBootstrap mBootstrap;
   private final ChannelFuture mChannelFuture;
-  // Use a shared handler for all pipelines.
-  private final DataServerHandler mDataServerHandler;
+  private final SocketAddress mSocketAddress;
+  private final long mQuietPeriodMs =
+      Configuration.getMs(PropertyKey.WORKER_NETWORK_NETTY_SHUTDOWN_QUIET_PERIOD);
+  private final long mTimeoutMs =
+      Configuration.getMs(PropertyKey.WORKER_NETWORK_NETTY_SHUTDOWN_TIMEOUT);
 
   /**
    * Creates a new instance of {@link NettyDataServer}.
    *
    * @param address the server address
-   * @param worker the Alluxio worker which contains the appropriate components to handle data
-   *               operations
+   * @param workerProcess the Alluxio worker process
    */
-  public NettyDataServer(final InetSocketAddress address, final AlluxioWorkerService worker) {
-    mDataServerHandler = new DataServerHandler(Preconditions.checkNotNull(worker));
-    mBootstrap = createBootstrap().childHandler(new PipelineHandler(worker, mDataServerHandler));
-
+  public NettyDataServer(final SocketAddress address, final WorkerProcess workerProcess) {
+    mSocketAddress = address;
+    mBootstrap = createBootstrap().childHandler(new PipelineHandler(workerProcess));
     try {
       mChannelFuture = mBootstrap.bind(address).sync();
     } catch (InterruptedException e) {
-      throw Throwables.propagate(e);
+      Thread.currentThread().interrupt();
+      throw new RuntimeException(e);
     }
   }
 
   @Override
   public void close() throws IOException {
-    int quietPeriodSecs =
-        Configuration.getInt(PropertyKey.WORKER_NETWORK_NETTY_SHUTDOWN_QUIET_PERIOD);
-    int timeoutSecs = Configuration.getInt(PropertyKey.WORKER_NETWORK_NETTY_SHUTDOWN_TIMEOUT);
-
     // The following steps are needed to shut down the data server:
     //
     // 1) its channel needs to be closed
@@ -85,27 +82,26 @@ public final class NettyDataServer implements DataServer {
 
     boolean completed;
     completed =
-        mChannelFuture.channel().close().awaitUninterruptibly(timeoutSecs, TimeUnit.SECONDS);
+        mChannelFuture.channel().close().awaitUninterruptibly(mTimeoutMs);
     if (!completed) {
       LOG.warn("Closing the channel timed out.");
     }
     completed =
-        mBootstrap.group().shutdownGracefully(quietPeriodSecs, timeoutSecs, TimeUnit.SECONDS)
-            .awaitUninterruptibly(timeoutSecs, TimeUnit.SECONDS);
+        mBootstrap.group().shutdownGracefully(mQuietPeriodMs, mTimeoutMs, TimeUnit.MILLISECONDS)
+            .awaitUninterruptibly(mTimeoutMs);
     if (!completed) {
       LOG.warn("Forced group shutdown because graceful shutdown timed out.");
     }
-    completed =
-        mBootstrap.childGroup().shutdownGracefully(quietPeriodSecs, timeoutSecs, TimeUnit.SECONDS)
-            .awaitUninterruptibly(timeoutSecs, TimeUnit.SECONDS);
+    completed = mBootstrap.childGroup()
+        .shutdownGracefully(mQuietPeriodMs, mTimeoutMs, TimeUnit.MILLISECONDS)
+        .awaitUninterruptibly(mTimeoutMs);
     if (!completed) {
       LOG.warn("Forced child group shutdown because graceful shutdown timed out.");
     }
   }
 
   private ServerBootstrap createBootstrap() {
-    final ServerBootstrap boot = createBootstrapOfType(
-        Configuration.getEnum(PropertyKey.WORKER_NETWORK_NETTY_CHANNEL, ChannelType.class));
+    final ServerBootstrap boot = createBootstrapOfType(NettyUtils.WORKER_CHANNEL_TYPE);
 
     // use pooled buffers
     boot.option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT);
@@ -123,15 +119,15 @@ public final class NettyDataServer implements DataServer {
     // alluxio.worker.network.netty.backlog=50
     // alluxio.worker.network.netty.buffer.send=64KB
     // alluxio.worker.network.netty.buffer.receive=64KB
-    if (Configuration.containsKey(PropertyKey.WORKER_NETWORK_NETTY_BACKLOG)) {
+    if (Configuration.isSet(PropertyKey.WORKER_NETWORK_NETTY_BACKLOG)) {
       boot.option(ChannelOption.SO_BACKLOG,
           Configuration.getInt(PropertyKey.WORKER_NETWORK_NETTY_BACKLOG));
     }
-    if (Configuration.containsKey(PropertyKey.WORKER_NETWORK_NETTY_BUFFER_SEND)) {
+    if (Configuration.isSet(PropertyKey.WORKER_NETWORK_NETTY_BUFFER_SEND)) {
       boot.option(ChannelOption.SO_SNDBUF,
           (int) Configuration.getBytes(PropertyKey.WORKER_NETWORK_NETTY_BUFFER_SEND));
     }
-    if (Configuration.containsKey(PropertyKey.WORKER_NETWORK_NETTY_BUFFER_RECEIVE)) {
+    if (Configuration.isSet(PropertyKey.WORKER_NETWORK_NETTY_BUFFER_RECEIVE)) {
       boot.option(ChannelOption.SO_RCVBUF,
           (int) Configuration.getBytes(PropertyKey.WORKER_NETWORK_NETTY_BUFFER_RECEIVE));
     }
@@ -139,17 +135,8 @@ public final class NettyDataServer implements DataServer {
   }
 
   @Override
-  public String getBindHost() {
-    // Return value of io.netty.channel.Channel.localAddress() must be down-cast into types like
-    // InetSocketAddress to get detailed info such as port.
-    return ((InetSocketAddress) mChannelFuture.channel().localAddress()).getHostString();
-  }
-
-  @Override
-  public int getPort() {
-    // Return value of io.netty.channel.Channel.localAddress() must be down-cast into types like
-    // InetSocketAddress to get detailed info such as port.
-    return ((InetSocketAddress) mChannelFuture.channel().localAddress()).getPort();
+  public SocketAddress getBindAddress() {
+    return mChannelFuture.channel().localAddress();
   }
 
   @Override
@@ -170,13 +157,17 @@ public final class NettyDataServer implements DataServer {
     // If number of worker threads is 0, Netty creates (#processors * 2) threads by default.
     final int workerThreadCount =
         Configuration.getInt(PropertyKey.WORKER_NETWORK_NETTY_WORKER_THREADS);
-    final EventLoopGroup bossGroup =
-        NettyUtils.createEventLoop(type, bossThreadCount, "data-server-boss-%d", false);
-    final EventLoopGroup workerGroup =
-        NettyUtils.createEventLoop(type, workerThreadCount, "data-server-worker-%d", false);
+    String dataServerEventLoopNamePrefix =
+        "data-server-" + ((mSocketAddress instanceof DomainSocketAddress) ? "domain-socket" :
+            "tcp-socket");
+    final EventLoopGroup bossGroup = NettyUtils
+        .createEventLoop(type, bossThreadCount, dataServerEventLoopNamePrefix + "-boss-%d", true);
+    final EventLoopGroup workerGroup = NettyUtils
+        .createEventLoop(type, workerThreadCount, dataServerEventLoopNamePrefix + "-worker-%d",
+            true);
 
-    final Class<? extends ServerChannel> socketChannelClass =
-        NettyUtils.getServerChannelClass(type);
+    final Class<? extends ServerChannel> socketChannelClass = NettyUtils.getServerChannelClass(
+         mSocketAddress instanceof DomainSocketAddress);
     boot.group(bossGroup, workerGroup).channel(socketChannelClass);
     if (type == ChannelType.EPOLL) {
       boot.childOption(EpollChannelOption.EPOLL_MODE, EpollMode.LEVEL_TRIGGERED);

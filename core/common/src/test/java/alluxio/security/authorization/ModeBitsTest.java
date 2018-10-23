@@ -11,6 +11,10 @@
 
 package alluxio.security.authorization;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -24,14 +28,14 @@ public final class ModeBitsTest {
    */
   @Test
   public void getSymbol() {
-    Assert.assertEquals("---", Mode.Bits.NONE.toString());
-    Assert.assertEquals("r--", Mode.Bits.READ.toString());
-    Assert.assertEquals("-w-", Mode.Bits.WRITE.toString());
-    Assert.assertEquals("--x", Mode.Bits.EXECUTE.toString());
-    Assert.assertEquals("rw-", Mode.Bits.READ_WRITE.toString());
-    Assert.assertEquals("r-x", Mode.Bits.READ_EXECUTE.toString());
-    Assert.assertEquals("-wx", Mode.Bits.WRITE_EXECUTE.toString());
-    Assert.assertEquals("rwx", Mode.Bits.ALL.toString());
+    assertEquals("---", Mode.Bits.NONE.toString());
+    assertEquals("r--", Mode.Bits.READ.toString());
+    assertEquals("-w-", Mode.Bits.WRITE.toString());
+    assertEquals("--x", Mode.Bits.EXECUTE.toString());
+    assertEquals("rw-", Mode.Bits.READ_WRITE.toString());
+    assertEquals("r-x", Mode.Bits.READ_EXECUTE.toString());
+    assertEquals("-wx", Mode.Bits.WRITE_EXECUTE.toString());
+    assertEquals("rwx", Mode.Bits.ALL.toString());
   }
 
   /**
@@ -39,24 +43,24 @@ public final class ModeBitsTest {
    */
   @Test
   public void implies() {
-    Assert.assertTrue(Mode.Bits.ALL.imply(Mode.Bits.READ));
-    Assert.assertTrue(Mode.Bits.ALL.imply(Mode.Bits.WRITE));
-    Assert.assertTrue(Mode.Bits.ALL.imply(Mode.Bits.EXECUTE));
-    Assert.assertTrue(Mode.Bits.ALL.imply(Mode.Bits.READ_EXECUTE));
-    Assert.assertTrue(Mode.Bits.ALL.imply(Mode.Bits.WRITE_EXECUTE));
-    Assert.assertTrue(Mode.Bits.ALL.imply(Mode.Bits.ALL));
+    assertTrue(Mode.Bits.ALL.imply(Mode.Bits.READ));
+    assertTrue(Mode.Bits.ALL.imply(Mode.Bits.WRITE));
+    assertTrue(Mode.Bits.ALL.imply(Mode.Bits.EXECUTE));
+    assertTrue(Mode.Bits.ALL.imply(Mode.Bits.READ_EXECUTE));
+    assertTrue(Mode.Bits.ALL.imply(Mode.Bits.WRITE_EXECUTE));
+    assertTrue(Mode.Bits.ALL.imply(Mode.Bits.ALL));
 
-    Assert.assertTrue(Mode.Bits.READ_EXECUTE.imply(Mode.Bits.READ));
-    Assert.assertTrue(Mode.Bits.READ_EXECUTE.imply(Mode.Bits.EXECUTE));
-    Assert.assertFalse(Mode.Bits.READ_EXECUTE.imply(Mode.Bits.WRITE));
+    assertTrue(Mode.Bits.READ_EXECUTE.imply(Mode.Bits.READ));
+    assertTrue(Mode.Bits.READ_EXECUTE.imply(Mode.Bits.EXECUTE));
+    assertFalse(Mode.Bits.READ_EXECUTE.imply(Mode.Bits.WRITE));
 
-    Assert.assertTrue(Mode.Bits.WRITE_EXECUTE.imply(Mode.Bits.WRITE));
-    Assert.assertTrue(Mode.Bits.WRITE_EXECUTE.imply(Mode.Bits.EXECUTE));
-    Assert.assertFalse(Mode.Bits.WRITE_EXECUTE.imply(Mode.Bits.READ));
+    assertTrue(Mode.Bits.WRITE_EXECUTE.imply(Mode.Bits.WRITE));
+    assertTrue(Mode.Bits.WRITE_EXECUTE.imply(Mode.Bits.EXECUTE));
+    assertFalse(Mode.Bits.WRITE_EXECUTE.imply(Mode.Bits.READ));
 
-    Assert.assertTrue(Mode.Bits.READ_WRITE.imply(Mode.Bits.WRITE));
-    Assert.assertTrue(Mode.Bits.READ_WRITE.imply(Mode.Bits.READ));
-    Assert.assertFalse(Mode.Bits.READ_WRITE.imply(Mode.Bits.EXECUTE));
+    assertTrue(Mode.Bits.READ_WRITE.imply(Mode.Bits.WRITE));
+    assertTrue(Mode.Bits.READ_WRITE.imply(Mode.Bits.READ));
+    assertFalse(Mode.Bits.READ_WRITE.imply(Mode.Bits.EXECUTE));
   }
 
   /**
@@ -64,9 +68,9 @@ public final class ModeBitsTest {
    */
   @Test
   public void notOperation() {
-    Assert.assertEquals(Mode.Bits.WRITE, Mode.Bits.READ_EXECUTE.not());
-    Assert.assertEquals(Mode.Bits.READ, Mode.Bits.WRITE_EXECUTE.not());
-    Assert.assertEquals(Mode.Bits.EXECUTE, Mode.Bits.READ_WRITE.not());
+    assertEquals(Mode.Bits.WRITE, Mode.Bits.READ_EXECUTE.not());
+    assertEquals(Mode.Bits.READ, Mode.Bits.WRITE_EXECUTE.not());
+    assertEquals(Mode.Bits.EXECUTE, Mode.Bits.READ_WRITE.not());
   }
 
   /**
@@ -74,9 +78,9 @@ public final class ModeBitsTest {
    */
   @Test
   public void orOperation() {
-    Assert.assertEquals(Mode.Bits.WRITE_EXECUTE, Mode.Bits.WRITE.or(Mode.Bits.EXECUTE));
-    Assert.assertEquals(Mode.Bits.READ_EXECUTE, Mode.Bits.READ.or(Mode.Bits.EXECUTE));
-    Assert.assertEquals(Mode.Bits.READ_WRITE, Mode.Bits.WRITE.or(Mode.Bits.READ));
+    assertEquals(Mode.Bits.WRITE_EXECUTE, Mode.Bits.WRITE.or(Mode.Bits.EXECUTE));
+    assertEquals(Mode.Bits.READ_EXECUTE, Mode.Bits.READ.or(Mode.Bits.EXECUTE));
+    assertEquals(Mode.Bits.READ_WRITE, Mode.Bits.WRITE.or(Mode.Bits.READ));
   }
 
   /**
@@ -84,8 +88,18 @@ public final class ModeBitsTest {
    */
   @Test
   public void andOperation() {
-    Assert.assertEquals(Mode.Bits.NONE, Mode.Bits.READ.and(Mode.Bits.WRITE));
-    Assert.assertEquals(Mode.Bits.READ, Mode.Bits.READ_EXECUTE.and(Mode.Bits.READ));
-    Assert.assertEquals(Mode.Bits.WRITE, Mode.Bits.READ_WRITE.and(Mode.Bits.WRITE));
+    assertEquals(Mode.Bits.NONE, Mode.Bits.READ.and(Mode.Bits.WRITE));
+    assertEquals(Mode.Bits.READ, Mode.Bits.READ_EXECUTE.and(Mode.Bits.READ));
+    assertEquals(Mode.Bits.WRITE, Mode.Bits.READ_WRITE.and(Mode.Bits.WRITE));
+  }
+
+  /**
+   * Tests {@link Mode.Bits#toAclActionSet()}.
+   */
+  @Test
+  public void toAclActions() {
+    for (Mode.Bits bits : Mode.Bits.values()) {
+      Assert.assertEquals(bits, new AclActions(bits.toAclActionSet()).toModeBits());
+    }
   }
 }

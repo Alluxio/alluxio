@@ -30,7 +30,7 @@ public final class DataNettyBufferV2 implements DataBuffer {
   * @param bytebuf The ByteBuf having the data
   */
   public DataNettyBufferV2(ByteBuf bytebuf) {
-    Preconditions.checkNotNull(bytebuf);
+    Preconditions.checkNotNull(bytebuf, "bytebuf");
     mNettyBuf = bytebuf;
   }
 

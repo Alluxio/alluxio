@@ -11,49 +11,32 @@
 
 package alluxio.master.journal;
 
+import alluxio.exception.InvalidJournalEntryException;
+import alluxio.proto.journal.Journal.JournalEntry;
+
+import java.io.Closeable;
 import java.io.IOException;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * This class manages reading from the journal. The reading must occur in two phases:
- *
- * 1. First, the checkpoint must be read.
- *
- * 2. Afterwards, logs are read in order they were created. Only completed logs are read, so the
- * last log currently being written is not read until it is marked as complete.
+ * This class manages reading from the journal.
  */
 @NotThreadSafe
-public interface JournalReader {
-
+public interface JournalReader extends Closeable {
   /**
-   * Checks to see if the journal checkpoint has not been updated. If it has been updated since the
-   * creation of this reader, this reader is no longer valid.
+   * Reads an entry from the journal. Return null if there is no more entry left.
    *
-   * @return true if the checkpoint has not been updated
+   * @return the journal entry, null if no more entry left
+   * @throws InvalidJournalEntryException if the journal entry is invalid (e.g. corrupted entry)
    */
-  boolean isValid();
+  JournalEntry read() throws IOException, InvalidJournalEntryException;
 
   /**
-   * Gets the {@link JournalInputStream} for the journal checkpoint. This must be called before
-   * calling {@link #getNextInputStream()}.
+   * Gets the the sequence number of the next journal log entry to read. This method is valid
+   * no matter whether this JournalReader is closed or not.
    *
-   * @return the {@link JournalInputStream} for the journal checkpoint
-   * @throws IOException if the checkpoint cannot be read, or was already read
+   * @return the next sequence number
    */
-  JournalInputStream getCheckpointInputStream() throws IOException;
-
-  /**
-   * @return the input stream for the next completed log. Will return null if the next
-   *         completed log does not exist yet.
-   * @throws IOException if the reader is no longer valid or when trying to get an input stream
-   *                     before a checkpoint was read
-   */
-  JournalInputStream getNextInputStream() throws IOException;
-
-  /**
-   * @return the last modified time of the checkpoint in ms
-   * @throws IOException if the checkpoint does not exist
-   */
-  long getCheckpointLastModifiedTimeMs() throws IOException;
+  long getNextSequenceNumber();
 }

@@ -40,8 +40,6 @@ final class BaseKeyValuePartitionReader implements KeyValuePartitionReader {
    * Constructs {@link BaseKeyValuePartitionReader} given a block id.
    *
    * @param blockId blockId of the key-value file to read from
-   * @throws AlluxioException if an unexpected Alluxio exception is thrown
-   * @throws IOException if a non-Alluxio exception occurs
    */
   BaseKeyValuePartitionReader(long blockId) throws AlluxioException, IOException {
     mBlockId = blockId;
@@ -82,8 +80,6 @@ final class BaseKeyValuePartitionReader implements KeyValuePartitionReader {
    *
    * @param key the key to lookup
    * @return the value of this key
-   * @throws IOException if an I/O error occurs
-   * @throws AlluxioException if an Alluxio error occurs
    */
   private ByteBuffer getInternal(ByteBuffer key) throws IOException, AlluxioException {
     Preconditions.checkState(!mClosed, "Can not query a reader closed");
@@ -99,9 +95,6 @@ final class BaseKeyValuePartitionReader implements KeyValuePartitionReader {
 
     /**
      * Gets the first key-value pair and constructs a new key-value partition iterator.
-     *
-     * @throws IOException if a non-Alluxio error happens when getting the first key-value pair
-     * @throws AlluxioException if an Alluxio error happens when getting the first key-value pair
      */
     public Iterator() throws IOException, AlluxioException {
       mNextKey = nextKey(null);

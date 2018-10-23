@@ -16,7 +16,6 @@ import alluxio.worker.block.DefaultBlockWorker;
 
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Metric;
-import com.codahale.metrics.MetricFilter;
 import com.codahale.metrics.MetricRegistry;
 
 import java.io.IOException;
@@ -46,7 +45,6 @@ public final class WebInterfaceWorkerMetricsServlet extends WebInterfaceAbstract
    * @param request the {@link HttpServletRequest} object
    * @param response the {@link HttpServletResponse} object
    * @throws ServletException if the target resource throws this exception
-   * @throws IOException if the target resource throws this exception
    */
   @Override
   protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -66,16 +64,15 @@ public final class WebInterfaceWorkerMetricsServlet extends WebInterfaceAbstract
    * Populates key, value pairs for UI display.
    *
    * @param request The {@link HttpServletRequest} object
-   * @throws IOException if an I/O error occurs
    */
   private void populateValues(HttpServletRequest request) throws IOException {
     MetricRegistry mr = MetricsSystem.METRIC_REGISTRY;
 
     Long workerCapacityTotal = (Long) mr.getGauges()
-        .get(MetricsSystem.getWorkerMetricName(DefaultBlockWorker.Metrics.CAPACITY_TOTAL))
+        .get(MetricsSystem.getMetricName(DefaultBlockWorker.Metrics.CAPACITY_TOTAL))
         .getValue();
     Long workerCapacityUsed = (Long) mr.getGauges()
-        .get(MetricsSystem.getWorkerMetricName(DefaultBlockWorker.Metrics.CAPACITY_USED))
+        .get(MetricsSystem.getMetricName(DefaultBlockWorker.Metrics.CAPACITY_USED))
         .getValue();
 
     int workerCapacityUsedPercentage =
@@ -83,26 +80,16 @@ public final class WebInterfaceWorkerMetricsServlet extends WebInterfaceAbstract
     request.setAttribute("workerCapacityUsedPercentage", workerCapacityUsedPercentage);
     request.setAttribute("workerCapacityFreePercentage", 100 - workerCapacityUsedPercentage);
 
-    Map<String, Counter> counters = mr.getCounters(new MetricFilter() {
-      @Override
-      public boolean matches(String name, Metric metric) {
-        return !(name.endsWith("Ops"));
-      }
-    });
+    Map<String, Counter> counters = mr.getCounters((name, metric) -> !(name.endsWith("Ops")));
 
-    Map<String, Counter> rpcInvocations = mr.getCounters(new MetricFilter() {
-      @Override
-      public boolean matches(String name, Metric metric) {
-        return name.endsWith("Ops");
-      }
-    });
+    Map<String, Counter> rpcInvocations = mr.getCounters((name, metric) -> name.endsWith("Ops"));
 
     Map<String, Metric> operations = new TreeMap<>();
     for (Map.Entry<String, Counter> entry: counters.entrySet()) {
       operations.put(MetricsSystem.stripInstanceAndHost(entry.getKey()), entry.getValue());
     }
     String blockCachedProperty =
-        MetricsSystem.getWorkerMetricName(DefaultBlockWorker.Metrics.BLOCKS_CACHED);
+        MetricsSystem.getMetricName(DefaultBlockWorker.Metrics.BLOCKS_CACHED);
     operations.put(MetricsSystem.stripInstanceAndHost(blockCachedProperty),
         mr.getGauges().get(blockCachedProperty));
 

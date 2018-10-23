@@ -34,18 +34,18 @@ public final class LocalFileBlockReader implements BlockReader {
   private final Closer mCloser = Closer.create();
   private final long mFileSize;
   private boolean mClosed;
+  private int mUsageCount = 0;
 
   /**
    * Constructs a Block reader given the file path of the block.
    *
    * @param path file path of the block
-   * @throws IOException if its file can not be open with "r" mode
    */
   public LocalFileBlockReader(String path) throws IOException {
-    mFilePath = Preconditions.checkNotNull(path);
+    mFilePath = Preconditions.checkNotNull(path, "path");
     mLocalFile = mCloser.register(new RandomAccessFile(mFilePath, "r"));
-    mLocalFileChannel = mCloser.register(mLocalFile.getChannel());
     mFileSize = mLocalFile.length();
+    mLocalFileChannel = mCloser.register(mLocalFile.getChannel());
   }
 
   @Override
@@ -56,6 +56,35 @@ public final class LocalFileBlockReader implements BlockReader {
   @Override
   public long getLength() {
     return mFileSize;
+  }
+
+  /**
+   * increase the file reader usage count.
+   */
+  public void increaseUsageCount() {
+    mUsageCount++;
+  }
+
+  /**
+   * decrease the file reader usage count.
+   */
+  public void decreaseUsageCount() {
+    Preconditions.checkState(mUsageCount > 0);
+    mUsageCount--;
+  }
+
+  /**
+   * @return the file reader usage count
+   */
+  public int getUsageCount() {
+    return mUsageCount;
+  }
+
+  /**
+   * @return the file path
+   */
+  public String getFilePath() {
+    return mFilePath;
   }
 
   @Override
@@ -76,6 +105,7 @@ public final class LocalFileBlockReader implements BlockReader {
 
   @Override
   public void close() throws IOException {
+    Preconditions.checkState(mUsageCount == 0);
     if (mClosed) {
       return;
     }

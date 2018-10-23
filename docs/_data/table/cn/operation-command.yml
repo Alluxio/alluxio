@@ -29,6 +29,8 @@ getCapacityBytes:
   获取Alluxio文件系统的容量
 getUsedBytes:
   获取Alluxio文件系统已使用的字节数
+help:
+  打印给定命令的帮助信息，如果没有给定命令，打印所有支持的命令的帮助信息
 leader:
   打印当前Alluxio leader master节点主机名
 load:
@@ -62,8 +64,12 @@ rmr:
   删除一个文件，或者递归删除一个目录
 setTtl:
   设置一个文件的TTL时间，单位毫秒
+stat:
+  显示文件和目录指定路径的信息
 tail:
   将指定文件的最后1KB内容输出到控制台
+test:
+  测试路径的属性，如果属性正确，返回0，否则返回1
 touch:
   在指定路径创建一个空文件
 unmount:

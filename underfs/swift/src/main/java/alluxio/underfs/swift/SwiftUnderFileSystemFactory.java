@@ -12,10 +12,10 @@
 package alluxio.underfs.swift;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.UnderFileSystemFactory;
 
 import com.google.common.base.Preconditions;
@@ -40,19 +40,18 @@ public class SwiftUnderFileSystemFactory implements UnderFileSystemFactory {
   public SwiftUnderFileSystemFactory() {}
 
   @Override
-  public UnderFileSystem create(String path, Object unusedConf) {
-    Preconditions.checkNotNull(path);
+  public UnderFileSystem create(String path, UnderFileSystemConfiguration conf) {
+    Preconditions.checkNotNull(path, "path");
 
-    if (addAndCheckSwiftCredentials()) {
+    if (checkSwiftCredentials(conf)) {
       try {
-        return new SwiftUnderFileSystem(new AlluxioURI(path));
+        return new SwiftUnderFileSystem(new AlluxioURI(path), conf);
       } catch (Exception e) {
         throw Throwables.propagate(e);
       }
     }
 
     String err = "Swift Credentials not available, cannot create Swift Under File System.";
-    LOG.error(err);
     throw Throwables.propagate(new IOException(err));
   }
 
@@ -62,42 +61,25 @@ public class SwiftUnderFileSystemFactory implements UnderFileSystemFactory {
   }
 
   /**
-   * Adds Swift credentials from system properties to the Alluxio configuration if they are not
-   * already present.
+   * @param conf optional configuration object for the UFS
    *
    * @return true if simulation mode or if all required authentication credentials are present
    */
-  private boolean addAndCheckSwiftCredentials() {
-    PropertyKey[] propertiesToRead = {PropertyKey.SWIFT_API_KEY, PropertyKey.SWIFT_TENANT_KEY,
-        PropertyKey.SWIFT_USER_KEY, PropertyKey.SWIFT_AUTH_URL_KEY,
-        PropertyKey.SWIFT_AUTH_METHOD_KEY, PropertyKey.SWIFT_PASSWORD_KEY,
-        PropertyKey.SWIFT_SIMULATION, PropertyKey.SWIFT_REGION_KEY};
-
-    for (PropertyKey property : propertiesToRead) {
-      if (System.getProperty(property.toString()) != null
-          && (!Configuration.containsKey(property) || Configuration.get(property) == null)) {
-        Configuration.set(property, System.getProperty(property.toString()));
-      }
-    }
-
+  private boolean checkSwiftCredentials(UnderFileSystemConfiguration conf) {
     // We do not need authentication credentials in simulation mode
-    if (Configuration.containsKey(PropertyKey.SWIFT_SIMULATION)
-        && Configuration.getBoolean(PropertyKey.SWIFT_SIMULATION)) {
+    if (conf.isSet(PropertyKey.SWIFT_SIMULATION)
+        && Boolean.valueOf(conf.get(PropertyKey.SWIFT_SIMULATION))) {
       return true;
     }
 
     // API or Password Key is required
-    PropertyKey apiOrPasswordKey = Configuration.containsKey(PropertyKey.SWIFT_API_KEY)
+    PropertyKey apiOrPasswordKey = conf.isSet(PropertyKey.SWIFT_API_KEY)
         ? PropertyKey.SWIFT_API_KEY : PropertyKey.SWIFT_PASSWORD_KEY;
 
     // Check if required credentials exist
-    PropertyKey[] requiredProperties = {apiOrPasswordKey, PropertyKey.SWIFT_TENANT_KEY,
-        PropertyKey.SWIFT_AUTH_URL_KEY, PropertyKey.SWIFT_USER_KEY};
-    for (PropertyKey propertyName : requiredProperties) {
-      if (Configuration.get(propertyName) == null) {
-        return false;
-      }
-    }
-    return true;
+    return conf.isSet(apiOrPasswordKey)
+        && conf.isSet(PropertyKey.SWIFT_TENANT_KEY)
+        && conf.isSet(PropertyKey.SWIFT_AUTH_URL_KEY)
+        && conf.isSet(PropertyKey.SWIFT_USER_KEY);
   }
 }

@@ -64,11 +64,14 @@
     <property name="fileExtensions" value=".java"/>
     <property name="message" value="Extra newline"/>
   </module>
+  <module name="RegexpMultiline">
+    <property name="format" value="\n\s*\n\s*}"/>
+    <property name="fileExtensions" value=".java"/>
+    <property name="message" value="Extra newline at end of block"/>
+  </module>
 
   <!-- All Java AST specific tests live under TreeWalker module. -->
   <module name="TreeWalker">
-    <!-- Checks that a class which has only private constructors is declared as final. -->
-    <module name="FinalClass"/>
     <module name="OuterTypeFilename"/>
     <module name="IllegalTokenText">
       <property name="tokens" value="STRING_LITERAL, CHAR_LITERAL"/>
@@ -136,7 +139,8 @@
       <property name="option" value="EOL"/>
     </module>
     <module name="PackageName">
-      <property name="format" value="^[a-z]+(\.[a-z][a-z0-9]*)*$"/>
+      <!-- https://docs.oracle.com/javase/tutorial/java/package/namingpkgs.html -->
+      <property name="format" value="^[a-z]+(\.[a-z_][a-z0-9_]*)*$"/>
       <message key="name.invalidPattern"
                value="Package name ''{0}'' must match pattern ''{1}''."/>
     </module>
@@ -222,6 +226,7 @@
     <module name="JavadocMethod">
       <property name="id" value="ProductionScope"/>
       <property name="scope" value="public"/>
+      <property name="allowMissingThrowsTags" value="true"/>
     </module>
     <!-- Checks Javadoc comments for public class and interface definitions. Only applies to
          production code -->
@@ -254,10 +259,8 @@
     <!-- Checks that there is whitespace after various tokens. -->
     <module name="WhitespaceAfter"/>
 
-    <!-- Checks that classes (except abstract ones) define a constructor and don't rely on the default one. -->
-    <module name="MissingCtor">
-      <property name="id" value="ProductionScope"/>
-    </module>
+    <!-- Allows SuppressionCommentFilter to access module contents. -->
+    <module name="FileContentsHolder"/>
   </module>
 
   <!-- always use Unix-style line separators -->
@@ -268,5 +271,11 @@
     <property name="format" value="\s+$"/>
     <property name="message" value="Trailing whitespace found."/>
     <property name="fileExtensions" value=".java"/>
+  </module>
+
+  <!-- Disables checkstyle for particular lines of codes. -->
+  <module name="SuppressionCommentFilter">
+    <property name="offCommentFormat" value="CHECKSTYLE.OFF\: ([\w\|]+)"/>
+    <property name="onCommentFormat" value="CHECKSTYLE.ON\: ([\w\|]+)"/>
   </module>
 </module>

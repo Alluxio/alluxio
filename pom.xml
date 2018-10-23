@@ -10,13 +10,11 @@
     See the NOTICE file distributed with this work for information regarding copyright ownership.
 
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.alluxio</groupId>
   <artifactId>alluxio-parent</artifactId>
-  <version>1.5.0-SNAPSHOT</version>
+  <version>2.0.0-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>Alluxio Parent</name>
   <description>Parent POM of Alluxio project: a Memory-Speed Virtual Distributed Storage System</description>
@@ -138,43 +136,45 @@
 
   <properties>
     <apache.curator.version>2.1.0-incubating</apache.curator.version>
-    <aws.amazonaws.version>1.11.7</aws.amazonaws.version>
+    <aws.amazonaws.version>1.11.215</aws.amazonaws.version>
     <build.path>build</build.path>
-    <checkstyle.path>build/checkstyle/</checkstyle.path>
     <cxf.version>2.7.0</cxf.version>
-    <findbugs.path>build/findbugs</findbugs.path>
     <glusterfs-hadoop.version>2.3.13</glusterfs-hadoop.version>
     <gmetric4j.version>1.0.7</gmetric4j.version>
     <hadoop.version>2.2.0</hadoop.version>
     <hadoop-openstack.version>2.6.0</hadoop-openstack.version>
-    <jackson.version>1.9.7</jackson.version>
-    <java.version>1.7</java.version>
+    <java.version>1.8</java.version>
     <jersey.version>2.22</jersey.version>
     <jetty.version>9.2.16.v20160414</jetty.version>
     <junit.version>4.12</junit.version>
     <libthrift.version>0.9.3</libthrift.version>
-    <license.header.path>build/license/</license.header.path>
     <log4j.version>1.2.17</log4j.version>
+    <maven.version>3.3.9</maven.version>
     <metrics.version>3.1.2</metrics.version>
     <powermock.version>1.6.1</powermock.version>
+    <prometheus.version>0.3.0</prometheus.version>
     <protobuf.version>2.5.0</protobuf.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <slf4j.version>1.7.2</slf4j.version>
+    <jackson.version>2.9.7</jackson.version>
     <surefire.forkCount>2</surefire.forkCount>
     <surefire.useSystemClassLoader>true</surefire.useSystemClassLoader>
+    <surefire.excludesFile>slow-tests</surefire.excludesFile>
     <test.output.redirect>true</test.output.redirect>
   </properties>
 
   <modules>
-    <module>underfs</module>
-    <module>core</module>
-    <module>keyvalue</module>
-    <module>shell</module>
-    <module>examples</module>
-    <module>tests</module>
-    <module>integration</module>
     <module>assembly</module>
+    <module>core</module>
+    <module>examples</module>
+    <module>integration</module>
+    <module>keyvalue</module>
+    <module>logserver</module>
     <module>minicluster</module>
+    <module>job</module>
+    <module>shell</module>
+    <module>tests</module>
+    <module>underfs</module>
   </modules>
 
   <dependencyManagement>
@@ -184,6 +184,11 @@
         <groupId>com.aliyun.oss</groupId>
         <artifactId>aliyun-sdk-oss</artifactId>
         <version>2.0.7</version>
+      </dependency>
+      <dependency>
+        <groupId>com.amazonaws</groupId>
+        <artifactId>aws-java-sdk-core</artifactId>
+        <version>${aws.amazonaws.version}</version>
       </dependency>
       <dependency>
         <groupId>com.amazonaws</groupId>
@@ -197,23 +202,28 @@
       </dependency>
       <dependency>
         <groupId>com.fasterxml.jackson.core</groupId>
+        <artifactId>jackson-annotations</artifactId>
+        <version>${jackson.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.fasterxml.jackson.core</groupId>
         <artifactId>jackson-core</artifactId>
-        <version>2.6.6</version>
+        <version>${jackson.version}</version>
       </dependency>
       <dependency>
         <groupId>com.fasterxml.jackson.core</groupId>
         <artifactId>jackson-databind</artifactId>
-        <version>2.6.6</version>
+        <version>${jackson.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.fasterxml.jackson.dataformat</groupId>
+        <artifactId>jackson-dataformat-xml</artifactId>
+        <version>${jackson.version}</version>
       </dependency>
       <dependency>
         <groupId>com.github.serceman</groupId>
         <artifactId>jnr-fuse</artifactId>
-        <version>0.3</version>
-      </dependency>
-      <dependency>
-        <groupId>com.google.code.findbugs</groupId>
-        <artifactId>jsr305</artifactId>
-        <version>3.0.0</version>
+        <version>0.5.1</version>
       </dependency>
       <dependency>
         <groupId>com.qmino</groupId>
@@ -303,10 +313,26 @@
         <artifactId>metrics-jvm</artifactId>
         <version>${metrics.version}</version>
       </dependency>
+      <!-- Netty 4.0.50+ required for shading in client runtime jar to work -->
       <dependency>
         <groupId>io.netty</groupId>
         <artifactId>netty-all</artifactId>
-        <version>4.0.29.Final</version>
+        <version>4.0.53.Final</version>
+      </dependency>
+      <dependency>
+        <groupId>io.prometheus</groupId>
+        <artifactId>simpleclient</artifactId>
+        <version>${prometheus.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.prometheus</groupId>
+        <artifactId>simpleclient_servlet</artifactId>
+        <version>${prometheus.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.prometheus</groupId>
+        <artifactId>simpleclient_dropwizard</artifactId>
+        <version>${prometheus.version}</version>
       </dependency>
       <dependency>
         <groupId>javax.ws.rs</groupId>
@@ -314,9 +340,29 @@
         <version>2.0.1</version>
       </dependency>
       <dependency>
+        <groupId>javax.servlet</groupId>
+        <artifactId>javax.servlet-api</artifactId>
+        <version>3.1.0</version>
+      </dependency>
+      <dependency>
+        <groupId>jline</groupId>
+        <artifactId>jline</artifactId>
+        <version>2.14.6</version>
+      </dependency>
+      <dependency>
+        <groupId>log4j</groupId>
+        <artifactId>log4j</artifactId>
+        <version>${log4j.version}</version>
+      </dependency>
+      <dependency>
         <groupId>net.java.dev.jets3t</groupId>
         <artifactId>jets3t</artifactId>
         <version>0.8.1</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.commons</groupId>
+        <artifactId>commons-compress</artifactId>
+        <version>1.16.1</version>
       </dependency>
       <dependency>
         <groupId>org.apache.commons</groupId>
@@ -359,6 +405,8 @@
           </exclusion>
         </exclusions>
       </dependency>
+      <!-- We do not use dependent management for hadoop-common, hadoop-hdfs, as it is unavailable in hadoop-1 -->
+      <!-- We do not use dependent management for hadoop-core, as it is unavailable in hadoop-2.x -->
       <dependency>
         <groupId>org.apache.hadoop</groupId>
         <artifactId>hadoop-client</artifactId>
@@ -378,6 +426,11 @@
           <exclusion>
             <groupId>org.jboss.netty</groupId>
             <artifactId>netty</artifactId>
+          </exclusion>
+          <!-- Excluded to avoid implementation conflict with javax.servlet:servlet-api -->
+          <exclusion>
+            <groupId>javax.servlet</groupId>
+            <artifactId>servlet-api</artifactId>
           </exclusion>
         </exclusions>
       </dependency>
@@ -445,8 +498,13 @@
       </dependency>
       <dependency>
         <groupId>org.apache.httpcomponents</groupId>
+        <artifactId>httpclient</artifactId>
+        <version>4.5.3</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.httpcomponents</groupId>
         <artifactId>httpcore</artifactId>
-        <version>4.4</version>
+        <version>4.4.6</version>
       </dependency>
       <dependency>
         <groupId>org.apache.mesos</groupId>
@@ -478,14 +536,9 @@
         </exclusions>
       </dependency>
       <dependency>
-        <groupId>org.codehaus.jackson</groupId>
-        <artifactId>jackson-core-asl</artifactId>
-        <version>${jackson.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.codehaus.jackson</groupId>
-        <artifactId>jackson-mapper-asl</artifactId>
-        <version>${jackson.version}</version>
+        <groupId>org.apache.zookeeper</groupId>
+        <artifactId>zookeeper</artifactId>
+        <version>3.4.6</version>
       </dependency>
       <dependency>
         <groupId>org.eclipse.jetty</groupId>
@@ -504,11 +557,6 @@
       </dependency>
       <dependency>
         <groupId>org.eclipse.jetty</groupId>
-        <artifactId>jetty-jsp</artifactId>
-        <version>${jetty.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.eclipse.jetty</groupId>
         <artifactId>jetty-server</artifactId>
         <version>${jetty.version}</version>
       </dependency>
@@ -519,12 +567,22 @@
       </dependency>
       <dependency>
         <groupId>org.eclipse.jetty</groupId>
+        <artifactId>jetty-util</artifactId>
+        <version>${jetty.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.eclipse.jetty</groupId>
         <artifactId>jetty-webapp</artifactId>
         <version>${jetty.version}</version>
       </dependency>
       <dependency>
         <groupId>org.glassfish.jersey.containers</groupId>
         <artifactId>jersey-container-servlet-core</artifactId>
+        <version>${jersey.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.glassfish.jersey.core</groupId>
+        <artifactId>jersey-server</artifactId>
         <version>${jersey.version}</version>
       </dependency>
       <dependency>
@@ -601,6 +659,18 @@
         <scope>test</scope>
       </dependency>
       <dependency>
+        <groupId>org.hamcrest</groupId>
+        <artifactId>hamcrest-core</artifactId>
+        <version>1.3</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.hamcrest</groupId>
+        <artifactId>hamcrest-all</artifactId>
+        <version>1.3</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
         <groupId>org.mockito</groupId>
         <artifactId>mockito-all</artifactId>
         <version>1.10.8</version>
@@ -609,6 +679,12 @@
       <dependency>
         <groupId>org.powermock</groupId>
         <artifactId>powermock-api-mockito</artifactId>
+        <version>${powermock.version}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.powermock</groupId>
+        <artifactId>powermock-classloading-xstream</artifactId>
         <version>${powermock.version}</version>
         <scope>test</scope>
       </dependency>
@@ -626,12 +702,26 @@
       </dependency>
       <dependency>
         <groupId>org.powermock</groupId>
+        <artifactId>powermock-module-junit4-rule</artifactId>
+        <version>${powermock.version}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.powermock</groupId>
         <artifactId>powermock-reflect</artifactId>
         <version>${powermock.version}</version>
         <scope>test</scope>
       </dependency>
 
       <!-- Provided scope -->
+      <!--
+         Dependency for FindBugs Plugin annotations.
+         This enables @ThreadSafe @ThreadNotSafe @SuppressFBWarnings.
+         This library is a super set of com.google.code.findbugs:jsr305
+         Note that this package can be unnecessary for runtime, and the
+         'provided' scope makes it available for compilation and test,
+         but not be packaged into the jar.
+       -->
       <dependency>
         <groupId>com.google.code.findbugs</groupId>
         <artifactId>annotations</artifactId>
@@ -641,11 +731,42 @@
     </dependencies>
   </dependencyManagement>
 
-  <!-- Dependencies to add to all projects. These should all be in the test scope. -->
+  <!-- Dependencies to add to all projects. -->
   <dependencies>
+    <!-- Dependencies in the compile scope. -->
+    <!-- FindBugs and concurrency annotations. -->
+    <dependency>
+      <groupId>com.google.code.findbugs</groupId>
+      <artifactId>annotations</artifactId>
+    </dependency>
+    <!-- System logging. -->
+    <dependency>
+      <groupId>log4j</groupId>
+      <artifactId>log4j</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-log4j12</artifactId>
+    </dependency>
+
+    <!-- Dependencies in the test scope. -->
+    <dependency>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava-testlib</artifactId>
+      <scope>test</scope>
+    </dependency>
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.hamcrest</groupId>
+      <artifactId>hamcrest-all</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -660,12 +781,22 @@
     </dependency>
     <dependency>
       <groupId>org.powermock</groupId>
+      <artifactId>powermock-classloading-xstream</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.powermock</groupId>
       <artifactId>powermock-core</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.powermock</groupId>
       <artifactId>powermock-module-junit4</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.powermock</groupId>
+      <artifactId>powermock-module-junit4-rule</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -686,6 +817,16 @@
   <build>
     <pluginManagement>
       <plugins>
+        <plugin>
+          <groupId>com.coderplus.maven.plugins</groupId>
+          <artifactId>copy-rename-maven-plugin</artifactId>
+          <version>1.0</version>
+        </plugin>
+        <plugin>
+          <groupId>com.igormaznitsa</groupId>
+          <artifactId>jcp</artifactId>
+          <version>6.1.2</version>
+        </plugin>
         <plugin>
           <groupId>com.mycila</groupId>
           <artifactId>license-maven-plugin</artifactId>
@@ -749,6 +890,10 @@
           <version>2.17</version>
         </plugin>
         <plugin>
+          <artifactId>maven-clean-plugin</artifactId>
+          <version>3.0.0</version>
+        </plugin>
+        <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-compiler-plugin</artifactId>
           <version>3.2</version>
@@ -760,10 +905,12 @@
             <compilerArgs>
               <arg>-Xlint:none</arg>
             </compilerArgs>
-            <excludes>
-              <exclude>**/\${alluxio.hadoop2.impl}</exclude>
-            </excludes>
           </configuration>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-dependency-plugin</artifactId>
+          <version>3.0.1</version>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
@@ -792,8 +939,14 @@
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-resources-plugin</artifactId>
+          <version>2.7</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-shade-plugin</artifactId>
-          <version>2.2</version>
+          <!-- Needs to be 2.4.2 or later to prevent MSHADE-148 -->
+          <version>2.4.3</version>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
@@ -805,7 +958,8 @@
           <artifactId>maven-surefire-plugin</artifactId>
           <version>2.19.1</version>
           <configuration>
-            <argLine>-Djava.net.preferIPv4Stack=true -XX:MaxPermSize=512M</argLine>
+            <argLine>-Djava.net.preferIPv4Stack=true</argLine>
+            <excludesFile>${build.path}/surefire/${surefire.excludesFile}</excludesFile>
             <forkCount>${surefire.forkCount}</forkCount>
             <redirectTestOutputToFile>${test.output.redirect}</redirectTestOutputToFile>
             <reuseForks>false</reuseForks>
@@ -868,6 +1022,9 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-javadoc-plugin</artifactId>
+        <configuration>
+          <additionalparam>-Xdoclint:none</additionalparam>
+        </configuration>
         <executions>
           <execution>
             <id>aggregate</id>
@@ -884,31 +1041,12 @@
         </executions>
       </plugin>
 
-      <!-- Parse Hadoop major version and resolve the compilation conflict between Hadoop 1.x and 2.x -->
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>build-helper-maven-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>parse-hadoop-major-version</id>
-            <goals>
-              <goal>regex-property</goal>
-            </goals>
-            <configuration>
-              <name>alluxio.hadoop2.impl</name>
-              <value>${hadoop.version}</value>
-              <regex>^1\..*$</regex>
-              <replacement>AlluxioFileSystem.java</replacement>
-              <failIfNoMatch>false</failIfNoMatch>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-
       <!-- Enforce versions -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-enforcer-plugin</artifactId>
+        <!-- hardcode the version here because maven failed to pick up the dependency-managed version of maven-enforcer-plugin -->
+        <version>1.4</version>
         <executions>
           <execution>
             <id>enforce-versions</id>
@@ -917,6 +1055,9 @@
             </goals>
             <configuration>
               <rules>
+                <requireMavenVersion>
+                  <version>${maven.version}</version>
+                </requireMavenVersion>
                 <requireJavaVersion>
                   <version>${java.version}</version>
                 </requireJavaVersion>
@@ -931,7 +1072,7 @@
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>findbugs-maven-plugin</artifactId>
         <configuration>
-          <excludeFilterFile>${findbugs.path}/findbugs-exclude.xml</excludeFilterFile>
+          <excludeFilterFile>${build.path}/findbugs/findbugs-exclude.xml</excludeFilterFile>
           <!--
               Enables analysis which takes more memory but finds more bugs.
               If you run out of memory, changes the value of the effort element
@@ -958,9 +1099,14 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-checkstyle-plugin</artifactId>
         <configuration>
-          <configLocation>${checkstyle.path}alluxio_checks.xml</configLocation>
-          <suppressionsLocation>${checkstyle.path}suppressions.xml</suppressionsLocation>
+          <configLocation>${build.path}/checkstyle/alluxio_checks.xml</configLocation>
+          <suppressionsLocation>${build.path}/checkstyle/suppressions.xml</suppressionsLocation>
           <suppressionsFileExpression>checkstyle.suppressions.file</suppressionsFileExpression>
+          <!-- Ensure generated source files are not style-checked -->
+          <sourceDirectories>
+            <sourceDirectory>${project.build.sourceDirectory}</sourceDirectory>
+            <sourceDirectory>${project.build.testSourceDirectory}</sourceDirectory>
+          </sourceDirectories>
           <includeTestSourceDirectory>true</includeTestSourceDirectory>
           <excludes>**/org/apache/jsp/**,**/alluxio/thrift/**,**/alluxio/proto/**</excludes>
           <encoding>UTF-8</encoding>
@@ -984,7 +1130,7 @@
         <groupId>com.mycila</groupId>
         <artifactId>license-maven-plugin</artifactId>
         <configuration>
-          <header>${license.header.path}HEADER.txt</header>
+          <header>${build.path}/license/HEADER.txt</header>
           <failIfMissing>true</failIfMissing>
           <aggregate>false</aggregate>
           <excludes>
@@ -1000,15 +1146,22 @@
             <exclude>**/src/proto/**</exclude>
             <exclude>**/src/deb/**/*</exclude>
             <exclude>**/src/test/resources/**</exclude>
+            <exclude>**/dev/scripts/vendor/**</exclude>
+            <exclude>**/dev/scripts/src/vendor/**</exclude>
             <exclude>**/vagrant/**/*</exclude>
 
             <!-- Build and Packaging Exclusions -->
             <exclude>build/**/*</exclude>
+            <exclude>conf/alluxio-env.sh</exclude>
             <exclude>conf/alluxio-site.properties</exclude>
+            <exclude>conf/masters</exclude>
+            <exclude>conf/tiered_identity.sh</exclude>
+            <exclude>conf/workers</exclude>
             <exclude>dev/scripts/tarballs/**/*</exclude>
             <exclude>dev/scripts/workdir/**/*</exclude>
             <exclude>**/.checkstyle</exclude>
             <exclude>**/src/main/assembly/*</exclude>
+            <exclude>**/.idea/**</exclude>
 
             <!-- Documentation Exclusions -->
             <exclude>docs/**/*</exclude>
@@ -1022,6 +1175,7 @@
           </excludes>
           <mapping>
             <alluxio>SCRIPT_STYLE</alluxio>
+            <go>SLASHSTAR_STYLE</go>
             <java>SLASHSTAR_STYLE</java>
             <properties.template>SCRIPT_STYLE</properties.template>
             <sh.template>SCRIPT_STYLE</sh.template>
@@ -1076,36 +1230,16 @@
 
   <profiles>
     <profile>
-      <!-- Turn off doclint for java8 and later -->
-      <id>doclint-java8-disable</id>
-      <activation>
-        <jdk>[1.8,)</jdk>
-      </activation>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-javadoc-plugin</artifactId>
-            <configuration>
-              <additionalparam>-Xdoclint:none</additionalparam>
-            </configuration>
-            <executions>
-              <execution>
-                <id>attach-javadoc</id>
-                <goals>
-                  <goal>jar</goal>
-                </goals>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
+      <id>runAllTests</id>
+      <properties>
+        <surefire.excludesFile>no-excludes</surefire.excludesFile>
+      </properties>
     </profile>
 
     <profile>
       <id>contractTest</id>
       <properties>
-        <hadoop.version>2.6.0</hadoop.version>
+        <hadoop.version>2.6.5</hadoop.version>
       </properties>
     </profile>
 
@@ -1117,56 +1251,17 @@
     </profile>
 
     <profile>
-      <id>hadoop-2.2</id>
+      <id>hadoop-2</id>
       <properties>
         <hadoop.version>2.2.0</hadoop.version>
       </properties>
     </profile>
 
     <profile>
-      <id>hadoop-2.3</id>
+      <id>hadoop-3</id>
       <properties>
-        <hadoop.version>2.3.0</hadoop.version>
+        <hadoop.version>3.0.0</hadoop.version>
       </properties>
-    </profile>
-
-    <profile>
-      <id>hadoop-2.4</id>
-      <properties>
-        <hadoop.version>2.4.0</hadoop.version>
-      </properties>
-    </profile>
-
-    <profile>
-      <id>hadoop-2.6</id>
-      <properties>
-        <hadoop.version>2.6.0</hadoop.version>
-      </properties>
-    </profile>
-
-    <profile>
-      <id>hadoop-2.7</id>
-      <properties>
-        <hadoop.version>2.7.0</hadoop.version>
-      </properties>
-    </profile>
-
-    <!--
-        build profile for Apache Spark.
-        Empty spark profile to avoid missing profile complaints. Client
-        submodules do more interesting things with this profile.
-    -->
-    <profile>
-      <id>spark</id>
-    </profile>
-
-    <!--
-        build profile for Apache Flink.
-        Empty flinkprofile to avoid missing profile complaints. Client
-        submodules do more interesting things with this profile.
-    -->
-    <profile>
-      <id>flink</id>
     </profile>
 
     <profile>
@@ -1182,15 +1277,6 @@
       <modules>
         <module>integration/yarn</module>
       </modules>
-    </profile>
-
-    <!--
-        build profile for Facebook Presto.
-        Empty Presto profile to avoid missing profile complaints. Client
-        submodules do more interesting things with this profile.
-    -->
-    <profile>
-      <id>presto</id>
     </profile>
 
     <!-- profile that Alluxio developers should use -->
@@ -1231,16 +1317,36 @@
         </pluginManagement>
       </build>
     </profile>
-
-    <!-- profile that activates alluxio fuse for java8 or newer -->
     <profile>
-      <id>fuse</id>
-      <activation>
-        <jdk>[1.8,)</jdk> <!-- 1.8 or newer -->
-      </activation>
-      <modules>
-        <module>integration/fuse</module>
-      </modules>
+      <id>generateDocs</id>
+      <build>
+        <plugins>
+          <plugin>
+            <artifactId>exec-maven-plugin</artifactId>
+            <groupId>org.codehaus.mojo</groupId>
+            <inherited>false</inherited>
+            <executions>
+              <execution>
+                <id>Generate documentation</id>
+                <phase>compile</phase>
+                <goals>
+                  <goal>exec</goal>
+                </goals>
+                <configuration>
+                  <executable>jekyll</executable>
+                  <arguments>
+                    <argument>build</argument>
+                    <argument>--source</argument>
+                    <argument>docs</argument>
+                    <argument>--destination</argument>
+                    <argument>docs/_site</argument>
+                  </arguments>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
     </profile>
   </profiles>
 </project>

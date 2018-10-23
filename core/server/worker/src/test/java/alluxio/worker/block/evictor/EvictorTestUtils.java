@@ -40,7 +40,7 @@ public class EvictorTestUtils {
    */
   public static boolean blocksInTheSameDir(EvictionPlan plan, BlockMetadataManager meta)
       throws BlockDoesNotExistException {
-    Preconditions.checkNotNull(plan);
+    Preconditions.checkNotNull(plan, "plan");
 
     StorageDir dir = null;
     List<Long> blockIds = new ArrayList<>();
@@ -78,7 +78,7 @@ public class EvictorTestUtils {
    */
   public static boolean validNonCascadingPlan(long bytesToBeAvailable, EvictionPlan plan,
       BlockMetadataManager metaManager) throws BlockDoesNotExistException {
-    Preconditions.checkNotNull(plan);
+    Preconditions.checkNotNull(plan, "plan");
     return blocksInTheSameDir(plan, metaManager)
         && requestSpaceSatisfied(bytesToBeAvailable, plan, metaManager);
   }
@@ -179,7 +179,6 @@ public class EvictorTestUtils {
    * @param bytesToBeAvailable the requested bytes to be available
    * @param plan the eviction plan, should not be null
    * @param metaManager the metadata manager
-   * @throws Exception when fail
    */
   public static void assertEvictionPlanValid(long bytesToBeAvailable, EvictionPlan plan,
       BlockMetadataManager metaManager) throws Exception {
@@ -200,7 +199,7 @@ public class EvictorTestUtils {
    */
   public static boolean requestSpaceSatisfied(long bytesToBeAvailable, EvictionPlan plan,
       BlockMetadataManager meta) throws BlockDoesNotExistException {
-    Preconditions.checkNotNull(plan);
+    Preconditions.checkNotNull(plan, "plan");
 
     List<Long> blockIds = new ArrayList<>();
     for (Pair<Long, BlockStoreLocation> evict : plan.toEvict()) {

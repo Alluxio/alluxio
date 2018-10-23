@@ -11,6 +11,10 @@
 
 package alluxio.master.block.meta;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertFalse;
+
 import alluxio.Constants;
 import alluxio.MasterStorageTierAssoc;
 import alluxio.StorageTierAssoc;
@@ -20,7 +24,6 @@ import alluxio.wire.WorkerNetAddress;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -64,11 +67,11 @@ public final class MasterWorkerInfoTest {
    */
   @Test
   public void register() {
-    Assert.assertEquals(NEW_BLOCKS, mInfo.getBlocks());
-    Assert.assertEquals(TOTAL_BYTES_ON_TIERS, mInfo.getTotalBytesOnTiers());
-    Assert.assertEquals(Constants.KB * 6L, mInfo.getCapacityBytes());
-    Assert.assertEquals(USED_BYTES_ON_TIERS, mInfo.getUsedBytesOnTiers());
-    Assert.assertEquals(Constants.KB * 2L, mInfo.getUsedBytes());
+    assertEquals(NEW_BLOCKS, mInfo.getBlocks());
+    assertEquals(TOTAL_BYTES_ON_TIERS, mInfo.getTotalBytesOnTiers());
+    assertEquals(Constants.KB * 6L, mInfo.getCapacityBytes());
+    assertEquals(USED_BYTES_ON_TIERS, mInfo.getUsedBytesOnTiers());
+    assertEquals(Constants.KB * 2L, mInfo.getUsedBytes());
   }
 
   /**
@@ -76,7 +79,7 @@ public final class MasterWorkerInfoTest {
    */
   @Test
   public void getFreeBytesOnTiers() {
-    Assert.assertEquals(ImmutableMap.of("MEM", Constants.KB * 2L, "SSD", Constants.KB * 2L),
+    assertEquals(ImmutableMap.of("MEM", Constants.KB * 2L, "SSD", Constants.KB * 2L),
         mInfo.getFreeBytesOnTiers());
   }
 
@@ -89,8 +92,8 @@ public final class MasterWorkerInfoTest {
     Set<Long> newBlocks = Sets.newHashSet(3L);
     Set<Long> removedBlocks = mInfo.register(GLOBAL_STORAGE_TIER_ASSOC, STORAGE_TIER_ALIASES,
         TOTAL_BYTES_ON_TIERS, USED_BYTES_ON_TIERS, newBlocks);
-    Assert.assertEquals(NEW_BLOCKS, removedBlocks);
-    Assert.assertEquals(newBlocks, mInfo.getBlocks());
+    assertEquals(NEW_BLOCKS, removedBlocks);
+    assertEquals(newBlocks, mInfo.getBlocks());
   }
 
   /**
@@ -116,27 +119,27 @@ public final class MasterWorkerInfoTest {
   public void blockOperation() {
     // add existing block
     mInfo.addBlock(1L);
-    Assert.assertEquals(NEW_BLOCKS, mInfo.getBlocks());
+    assertEquals(NEW_BLOCKS, mInfo.getBlocks());
     // add a new block
     mInfo.addBlock(3L);
-    Assert.assertTrue(mInfo.getBlocks().contains(3L));
+    assertTrue(mInfo.getBlocks().contains(3L));
     // remove block
     mInfo.removeBlock(3L);
-    Assert.assertFalse(mInfo.getBlocks().contains(3L));
+    assertFalse(mInfo.getBlocks().contains(3L));
   }
 
   /**
-   * Tests the {@link MasterWorkerInfo#generateClientWorkerInfo()} method.
+   * Tests the {@link MasterWorkerInfo#generateWorkerInfo} method.
    */
   @Test
   public void workerInfoGeneration() {
-    WorkerInfo workerInfo = mInfo.generateClientWorkerInfo();
-    Assert.assertEquals(mInfo.getId(), workerInfo.getId());
-    Assert.assertEquals(mInfo.getWorkerAddress(), workerInfo.getAddress());
-    Assert.assertEquals("In Service", workerInfo.getState());
-    Assert.assertEquals(mInfo.getCapacityBytes(), workerInfo.getCapacityBytes());
-    Assert.assertEquals(mInfo.getUsedBytes(), workerInfo.getUsedBytes());
-    Assert.assertEquals(mInfo.getStartTime(), workerInfo.getStartTimeMs());
+    WorkerInfo workerInfo = mInfo.generateWorkerInfo(null, true);
+    assertEquals(mInfo.getId(), workerInfo.getId());
+    assertEquals(mInfo.getWorkerAddress(), workerInfo.getAddress());
+    assertEquals("In Service", workerInfo.getState());
+    assertEquals(mInfo.getCapacityBytes(), workerInfo.getCapacityBytes());
+    assertEquals(mInfo.getUsedBytes(), workerInfo.getUsedBytes());
+    assertEquals(mInfo.getStartTime(), workerInfo.getStartTimeMs());
   }
 
   /**
@@ -146,17 +149,17 @@ public final class MasterWorkerInfoTest {
   public void updateToRemovedBlock() {
     // remove a non-existing block
     mInfo.updateToRemovedBlock(true, 10L);
-    Assert.assertTrue(mInfo.getToRemoveBlocks().isEmpty());
+    assertTrue(mInfo.getToRemoveBlocks().isEmpty());
     // remove block 1
     mInfo.updateToRemovedBlock(true, 1L);
-    Assert.assertTrue(mInfo.getToRemoveBlocks().contains(1L));
+    assertTrue(mInfo.getToRemoveBlocks().contains(1L));
     // cancel the removal
     mInfo.updateToRemovedBlock(false, 1L);
-    Assert.assertTrue(mInfo.getToRemoveBlocks().isEmpty());
+    assertTrue(mInfo.getToRemoveBlocks().isEmpty());
     // actually remove 1 for real
     mInfo.updateToRemovedBlock(true, 1L);
     mInfo.removeBlock(1L);
-    Assert.assertTrue(mInfo.getToRemoveBlocks().isEmpty());
+    assertTrue(mInfo.getToRemoveBlocks().isEmpty());
   }
 
   /**
@@ -164,12 +167,12 @@ public final class MasterWorkerInfoTest {
    */
   @Test
   public void updateUsedBytes() {
-    Assert.assertEquals(Constants.KB * 2L, mInfo.getUsedBytes());
+    assertEquals(Constants.KB * 2L, mInfo.getUsedBytes());
     Map<String, Long> usedBytesOnTiers =
         ImmutableMap.of("MEM", Constants.KB * 2L, "SSD", (long) Constants.KB);
     mInfo.updateUsedBytes(usedBytesOnTiers);
-    Assert.assertEquals(usedBytesOnTiers, mInfo.getUsedBytesOnTiers());
-    Assert.assertEquals(Constants.KB * 3L, mInfo.getUsedBytes());
+    assertEquals(usedBytesOnTiers, mInfo.getUsedBytesOnTiers());
+    assertEquals(Constants.KB * 3L, mInfo.getUsedBytes());
   }
 
   /**
@@ -177,9 +180,9 @@ public final class MasterWorkerInfoTest {
    */
   @Test
   public void updateUsedBytesInTier() {
-    Assert.assertEquals(Constants.KB * 2L, mInfo.getUsedBytes());
+    assertEquals(Constants.KB * 2L, mInfo.getUsedBytes());
     mInfo.updateUsedBytes("MEM", Constants.KB * 2L);
-    Assert.assertEquals(Constants.KB * 3L, mInfo.getUsedBytes());
-    Assert.assertEquals(Constants.KB * 2L, (long) mInfo.getUsedBytesOnTiers().get("MEM"));
+    assertEquals(Constants.KB * 3L, mInfo.getUsedBytes());
+    assertEquals(Constants.KB * 2L, (long) mInfo.getUsedBytesOnTiers().get("MEM"));
   }
 }

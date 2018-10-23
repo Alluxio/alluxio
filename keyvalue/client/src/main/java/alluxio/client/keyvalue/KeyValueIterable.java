@@ -26,8 +26,6 @@ import java.io.IOException;
 public interface KeyValueIterable {
   /**
    * @return a {@link KeyValueIterator} for iterating over key-value pairs in the store
-   * @throws IOException if a non-Alluxio error occurs
-   * @throws AlluxioException if an Alluxio error occurs
    */
   KeyValueIterator iterator() throws IOException, AlluxioException;
 }

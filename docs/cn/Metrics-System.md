@@ -25,7 +25,7 @@ Alluxio的度量指标信息被分配到各种相关Alluxio组件的实例中。
 * MetricsServlet: 添加Web UI中的servlet，作为JSON数据来为度量指标数据服务。
 
 ## 配置
-度指标量系统可以通过配置文件进行配置，Alluxio中该文件默认位于`$ALLUXIO_HOME/conf/metrics.properties`。自定义文件位置可以通过`alluxio.metrics.conf.file`配置项来指定。Alluxio在conf目录下提供了一个metrics.properties.template文件，其包括所有可配置属性。默认情况下，MetricsServlet是生效的，你可以发送HTTP请求"/metrics/json"来获取一个以JSON格式表示的所有已注册度量信息的快照。
+度指标量系统可以通过配置文件进行配置，Alluxio中该文件默认位于`$ALLUXIO_HOME/conf/metrics.properties`。自定义文件位置可以通过`alluxio.metrics.conf.file`配置项来指定。Alluxio在conf目录下提供了一个`metrics.properties.template`文件，其包括所有可配置属性。默认情况下，MetricsServlet是生效的，你可以发送HTTP请求"/metrics/json"来获取一个以JSON格式表示的所有已注册度量信息的快照。
 
 ## 支持的度量指标信息
 
@@ -38,6 +38,10 @@ Alluxio的度量指标信息被分配到各种相关Alluxio组件的实例中。
 下面详细展示了可用的度量指标信息。
 
 ### Master
+
+每个master度量指标都会以`master`开头，例如：
+
+`master.CapacityTotal`
 
 #### 常规信息
 
@@ -83,6 +87,12 @@ Alluxio的度量指标信息被分配到各种相关Alluxio组件的实例中。
 
 ### Worker
 
+每个worker的度量指标都会以worker的地址开头。例如某个名为
+
+`192_168_1_4.CapacityTotal`
+
+的指标就是地址为192.168.1.4的worker的度量指标。
+
 #### 常规信息
 
 * CapacityTotal: 该Worker的总容量（以字节为单位）。
@@ -97,10 +107,10 @@ Alluxio的度量指标信息被分配到各种相关Alluxio组件的实例中。
 * BlocksDeleted: 被删除的数据块数目。
 * BlocksEvicted: 被替换的数据块数目。
 * BlocksPromoted: 被提升到内存的数据块数目。
-* NettyBlockRead: 块读取访问的数目。
-* NettyBlockReadFailures: 块读取访问失败的数目。
-* NettyBlockWrite: 块写入请求的数目。
-* NettyBlockWriteFailures: 块写入请求失败的数目。
+* BytesReadAlluxio: 通过该worker从Alluxio存储读取的数据量，单位为byte。其中不包括UFS读。
+* BytesWrittenAlluxio: 通过该worker写到Alluxio存储的数据量，单位为byte。其中不包括UTF写。
+* BytesReadUfs-UFS:${UFS}: 通过该worker从指定UFS读取的数据量，单位为byte。
+* BytesWrittenUfs-UFS:${UFS}: 通过该worker写到指定UFS的数据量，单位为byte。
 
 ### Client
 

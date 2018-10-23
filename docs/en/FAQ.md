@@ -16,7 +16,7 @@ priority: 2
 
 2. What platforms and Java versions does Alluxio run on?
 
-   Alluxio can run with Java 1.7 or above on various distributions of Linux / Mac.
+   Alluxio can run with Java 1.8 or above on various distributions of Linux / Mac.
 
 3. Is there an easy way to see the status and health of a cluster?
 
@@ -29,7 +29,7 @@ added nodes in order to balance memory space utilization between the nodes?
 
 5. Is Alluxio master fault tolerant?
 
-   Yes. Please see this [page](Running-Alluxio-Fault-Tolerant.html).
+   Yes. Please see this [page](Running-Alluxio-on-a-Cluster.html#running-alluxio-with-high-availability).
 
 6. What are under storage systems and how many under storage systems are supported?
 
@@ -40,7 +40,7 @@ added nodes in order to balance memory space utilization between the nodes?
 7. Can I easily add support for other under store systems?
 
    Yes, in fact support for other under storages is in progress by many contributors. Here is the
-   [introduction](Integrating-Under-Storage-Systems.html) to adding other under storage systems.
+   [documentation](DevelopingUFSExtensions.html) for adding other under storage systems.
 
 8. In which language is Alluxio developed?
 
@@ -50,18 +50,16 @@ added nodes in order to balance memory space utilization between the nodes?
 9. What happens if my data set does not fit in memory?
 
    Depends on the system setup, Alluxio may leverage local SSD and HDD. It keeps hot data in
-   Alluxio, and cold data in under storage systems. You can read more about tiered storage setup 
-   [here](Tiered-Storage-on-Alluxio.html).
+   Alluxio, and cold data in under storage systems. You can read more about Alluxio storage setup
+   [here](Alluxio-Storage.html).
 
 10. Can I run Alluxio as a stand-alone system for experimenting and validation?
 
-    Yes, Alluxio can run as a stand-alone system. Instructions are available [here](Running-Alluxio-
-    Locally.html).
+    Yes, Alluxio can run as a stand-alone system. Instructions are available [here](Running-Alluxio-Locally.html).
 
 11. Can I run Alluxio in a cluster mode?
 
-    Yes, Alluxio can be run in a cluster mode. Instructions are available [here](Running-Alluxio-
-    on-a-Cluster.html).
+    Yes, Alluxio can be run in a cluster mode. Instructions are available [here](Running-Alluxio-on-a-Cluster.html).
 
 12. Does Alluxio always need HDFS?
 
@@ -69,9 +67,9 @@ added nodes in order to balance memory space utilization between the nodes?
 
 13. Does Alluxio work alongside with other Frameworks?
 
-    Yes, Alluxio works with [Spark](Running-Spark-on-Alluxio.html), [Flink](Running-Flink-on-
-    Alluxio.html), [Hadoop](Running-Hadoop-MapReduce-on-Alluxio.html),  [HBase](Running-HBase-on-
-    Alluxio.html), [Hive](Running-Hive-with-Alluxio.html), etc.
+    Yes, Alluxio works with [Spark](Running-Spark-on-Alluxio.html), [Flink](Running-Flink-on-Alluxio.html),
+    [Hadoop](Running-Hadoop-MapReduce-on-Alluxio.html),  [HBase](Running-HBase-on-Alluxio.html),
+    [Hive](Running-Hive-with-Alluxio.html), etc.
 
 14. How can I learn more about Alluxio?
 
@@ -89,8 +87,8 @@ added nodes in order to balance memory space utilization between the nodes?
 
 17. How can I contribute to Alluxio?
 
-    Thank you for the interest to contribute. Please look into [Contributing-to-
-    Alluxio](/contribute). Also, please look into some of the JIRA issues (marked for New
+    Thank you for the interest to contribute. Please look into [our contribute page](
+    /community/contribute). Also, please look into some of the JIRA issues (marked for New
     Contributors) [here](https://alluxio.atlassian.net/browse/ALLUXIO-2532?jql=project%20%3D%20ALLUXIO%20AND%20status%20%3D%20Open%20AND%20labels%20%3D%20NewContributor%20AND%20assignee%20in%20(EMPTY))
 
 18. Where can I report issues or propose new features?

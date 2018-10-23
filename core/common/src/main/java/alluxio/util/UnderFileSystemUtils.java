@@ -11,11 +11,9 @@
 
 package alluxio.util;
 
-import alluxio.Constants;
+import alluxio.AlluxioURI;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.DeleteOptions;
-
-import com.google.common.base.Throwables;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -32,12 +30,10 @@ public final class UnderFileSystemUtils {
   /**
    * Deletes the directory at the given path if it exists.
    *
+   * @param ufs instance of {@link UnderFileSystem}
    * @param path path to the directory
-   * @throws IOException if the directory cannot be deleted
    */
-  public static void deleteDirIfExists(final String path) throws IOException {
-    UnderFileSystem ufs = UnderFileSystem.Factory.get(path);
-
+  public static void deleteDirIfExists(UnderFileSystem ufs, String path) throws IOException {
     if (ufs.isDirectory(path)
         && !ufs.deleteDirectory(path, DeleteOptions.defaults().setRecursive(true))) {
       throw new IOException("Folder " + path + " already exists but can not be deleted.");
@@ -47,12 +43,10 @@ public final class UnderFileSystemUtils {
   /**
    * Attempts to create the directory if it does not already exist.
    *
+   * @param ufs instance of {@link UnderFileSystem}
    * @param path path to the directory
-   * @throws IOException if the directory cannot be created
    */
-  public static void mkdirIfNotExists(final String path) throws IOException {
-    UnderFileSystem ufs = UnderFileSystem.Factory.get(path);
-
+  public static void mkdirIfNotExists(UnderFileSystem ufs, String path) throws IOException {
     if (!ufs.isDirectory(path)) {
       if (!ufs.mkdirs(path)) {
         throw new IOException("Failed to make folder: " + path);
@@ -63,11 +57,10 @@ public final class UnderFileSystemUtils {
   /**
    * Creates an empty file.
    *
+   * @param ufs instance of {@link UnderFileSystem}
    * @param path path to the file
-   * @throws IOException if the file cannot be created
    */
-  public static void touch(final String path) throws IOException {
-    UnderFileSystem ufs = UnderFileSystem.Factory.get(path);
+  public static void touch(UnderFileSystem ufs, String path) throws IOException {
     OutputStream os = ufs.create(path);
     os.close();
   }
@@ -75,16 +68,16 @@ public final class UnderFileSystemUtils {
   /**
    * Deletes the specified path from the specified under file system if it is a file and exists.
    *
+   * @param ufs instance of {@link UnderFileSystem}
    * @param path the path to delete
    */
-  public static void deleteFileIfExists(final String path) {
-    UnderFileSystem ufs = UnderFileSystem.Factory.get(path);
+  public static void deleteFileIfExists(UnderFileSystem ufs, String path) {
     try {
       if (ufs.isFile(path)) {
         ufs.deleteFile(path);
       }
     } catch (IOException e) {
-      throw Throwables.propagate(e);
+      throw new RuntimeException(e);
     }
   }
 
@@ -113,28 +106,6 @@ public final class UnderFileSystemUtils {
   }
 
   /**
-   * Returns whether the given ufs address indicates a object storage ufs.
-   * @param ufsAddress the ufs address
-   * @return true if the under file system is a object storage; false otherwise
-   */
-  public static boolean isObjectStorage(String ufsAddress) {
-    return ufsAddress.startsWith(Constants.HEADER_S3)
-        || ufsAddress.startsWith(Constants.HEADER_S3N)
-        || ufsAddress.startsWith(Constants.HEADER_S3A)
-        || ufsAddress.startsWith(Constants.HEADER_GCS)
-        || ufsAddress.startsWith(Constants.HEADER_SWIFT)
-        || ufsAddress.startsWith(Constants.HEADER_OSS);
-  }
-
-  /**
-   * @param ufs the {@link UnderFileSystem} implementation to check
-   * @return true if the implementation is an object storage implementation
-   */
-  public static boolean isObjectStorage(UnderFileSystem ufs) {
-    return isGcs(ufs) || isOss(ufs) || isS3(ufs) || isSwift(ufs);
-  }
-
-  /**
    * @param ufs the {@link UnderFileSystem} implementation to check
    * @return true if the implementation is an Object storage service implementation
    */
@@ -156,6 +127,34 @@ public final class UnderFileSystemUtils {
    */
   public static boolean isSwift(UnderFileSystem ufs) {
     return "swift".equals(ufs.getUnderFSType());
+  }
+
+  /**
+   * @param uri the UFS path
+   * @return the bucket or container name of the object storage
+   */
+  public static String getBucketName(AlluxioURI uri) {
+    return uri.getAuthority().toString();
+  }
+
+  /**
+   * Returns an approximate content hash, using the length and modification time.
+   *
+   * @param length the content length
+   * @param modTime the content last modification time
+   * @return the content hash
+   */
+  public static String approximateContentHash(long length, long modTime) {
+    // approximating the content hash with the file length and modtime.
+    StringBuilder sb = new StringBuilder();
+    sb.append('(');
+    sb.append("len:");
+    sb.append(length);
+    sb.append(", ");
+    sb.append("modtime:");
+    sb.append(modTime);
+    sb.append(')');
+    return sb.toString();
   }
 
   private UnderFileSystemUtils() {} // prevent instantiation

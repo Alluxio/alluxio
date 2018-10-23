@@ -1,7 +1,7 @@
 alluxio.security.authentication.type:
   安全认证模式。目前支持三种模式：NOSASL、SIMPLE和CUSTOM。
   默认为NOSASL，即不启用安全认证功能。
-alluxio.security.authentication.socket.timeout.ms:
+alluxio.security.authentication.socket.timeout:
   用户创建一个连接master的Thrift套接字的最大时长（以毫秒为单位）。
 alluxio.security.authentication.custom.provider.class:
   当alluxio.security.authentication.type被设为CUSTOM时，实现安全认证功能的类。
@@ -14,6 +14,8 @@ alluxio.security.authorization.permission.enabled:
 alluxio.security.authorization.permission.umask:
   创建文件和目录时的文件权限掩码。初始化的创建权限为777，目录和文件之间相差111。
   因此，当默认文件权限掩码为022时，新建目录的权限为755，新建文件的权限为644。
+alluxio.security.group.mapping.cache.timeout:
+  缓存的组映射过期时间。
 alluxio.security.authorization.permission.supergroup:
   Alluxio文件系统的超级用户组。所有该组下的用户拥有超级权限。
 alluxio.security.group.mapping.class:

@@ -1,9 +1,9 @@
 ---
 layout: global
-title: Key Value System Client API (alpha)
-nickname: Key Value System API
+title: (Experimental) Key Value System Client API
+nickname: (Experimental) Key Value System API
 group: Features
-priority: 4
+priority: 99
 ---
 
 * Table of Contents
@@ -18,7 +18,8 @@ Like files in Alluxio filesystem, the semantics of key-value system are also wri
 * Users can create a key-value store and insert key-value pairs into the store. A store becomes immutable after it is complete.
 * Users can open key-value stores after they are complete.
 
-Each single key-value store is denoted by an AlluxioURI like `alluxio://path/my-kvstore`.
+Each single key-value store is denoted by an AlluxioURI like `alluxio://192.168.1.200:19998/path/my-kvstore`,
+it means master address is 192.168.1.200, PRC port is 19998, key-value store path is `/path/my-kvstore`.
 Depending on the total size and block size specified by the user, a single key-value
 store may consist of one or multiple partitions, but the internal is managed by Alluxio and thus
 transparent to users.
@@ -105,7 +106,7 @@ Similarly, Alluxio also provides implementations of `OutputFormat` and `OutputCo
 
 See an [example](https://github.com/Alluxio/alluxio/blob/master/examples/src/main/java/alluxio/examples/keyvalue/hadoop/CloneStoreMapReduce.java) in the codebase.
 
-If you have [configured Alluxio to use HDFS as under storage](Configuring-Alluxio-with-HDFS.md), and have enabled
+If you have [configured Alluxio to use HDFS as under storage](Configuring-Alluxio-with-HDFS.html), and have enabled
 Key-Value system, you can run the example via
 
 {% include Key-Value-Store-API/run-mapreduce-example.md %}

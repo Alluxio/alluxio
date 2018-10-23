@@ -11,8 +11,10 @@
 
 package alluxio;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+
 import com.google.common.collect.ImmutableMap;
-import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runners.model.Statement;
 
@@ -26,10 +28,10 @@ public final class ConfigurationRuleTest {
     Statement statement = new Statement() {
       @Override
       public void evaluate() throws Throwable {
-        Assert.assertEquals("testValue", Configuration.get(PropertyKey.MASTER_ADDRESS));
+        assertEquals("testValue", Configuration.get(PropertyKey.MASTER_HOSTNAME));
       }
     };
-    new ConfigurationRule(ImmutableMap.of(PropertyKey.MASTER_ADDRESS, "testValue"))
+    new ConfigurationRule(ImmutableMap.of(PropertyKey.MASTER_HOSTNAME, "testValue"))
         .apply(statement, null).evaluate();
   }
 
@@ -38,12 +40,12 @@ public final class ConfigurationRuleTest {
     Statement statement = new Statement() {
       @Override
       public void evaluate() throws Throwable {
-        Assert.assertEquals("testValue", Configuration.get(PropertyKey.SECURITY_LOGIN_USERNAME));
+        assertEquals("testValue", Configuration.get(PropertyKey.SECURITY_LOGIN_USERNAME));
       }
     };
-    Assert.assertFalse(Configuration.containsKey(PropertyKey.SECURITY_LOGIN_USERNAME));
+    assertFalse(Configuration.isSet(PropertyKey.SECURITY_LOGIN_USERNAME));
     new ConfigurationRule(ImmutableMap.of(PropertyKey.SECURITY_LOGIN_USERNAME, "testValue"))
         .apply(statement, null).evaluate();
-    Assert.assertFalse(Configuration.containsKey(PropertyKey.SECURITY_LOGIN_USERNAME));
+    assertFalse(Configuration.isSet(PropertyKey.SECURITY_LOGIN_USERNAME));
   }
 }

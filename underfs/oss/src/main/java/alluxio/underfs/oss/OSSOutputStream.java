@@ -11,6 +11,7 @@
 
 package alluxio.underfs.oss;
 
+import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
 
 import com.aliyun.oss.OSSClient;
@@ -53,7 +54,7 @@ public final class OSSOutputStream extends OutputStream {
   /** The oss client for OSS operations. */
   private final OSSClient mOssClient;
 
-  /** The outputstream to a local file where the file will be buffered until closed. */
+  /** The OutputStream to a local file where the file will be buffered until closed. */
   private OutputStream mLocalOutputStream;
   /** The MD5 hash of the file. */
   private MessageDigest mHash;
@@ -67,7 +68,6 @@ public final class OSSOutputStream extends OutputStream {
    * @param bucketName the name of the bucket
    * @param key the key of the file
    * @param client the client for OSS
-   * @throws IOException if an I/O error occurs
    */
   public OSSOutputStream(String bucketName, String key, OSSClient client) throws IOException {
     Preconditions.checkArgument(bucketName != null && !bucketName.isEmpty(),
@@ -79,7 +79,7 @@ public final class OSSOutputStream extends OutputStream {
     mKey = key;
     mOssClient = client;
 
-    mFile = new File(PathUtils.concatPath("/tmp", UUID.randomUUID()));
+    mFile = new File(PathUtils.concatPath(CommonUtils.getTmpDir(), UUID.randomUUID()));
 
     try {
       mHash = MessageDigest.getInstance("MD5");
@@ -97,7 +97,6 @@ public final class OSSOutputStream extends OutputStream {
    * file.
    *
    * @param b the bytes to write
-   * @throws IOException if an I/O error occurs
    */
   @Override
   public void write(int b) throws IOException {
@@ -109,7 +108,6 @@ public final class OSSOutputStream extends OutputStream {
    * local file.
    *
    * @param b the byte array
-   * @throws IOException if an I/O error occurs
    */
   @Override
   public void write(byte[] b) throws IOException {
@@ -123,7 +121,6 @@ public final class OSSOutputStream extends OutputStream {
    * @param b the byte array
    * @param off the start offset in the data
    * @param len the number of bytes to write
-   * @throws IOException if an I/O error occurs
    */
   @Override
   public void write(byte[] b, int off, int len) throws IOException {
@@ -133,8 +130,6 @@ public final class OSSOutputStream extends OutputStream {
   /**
    * Flushes this output stream and forces any buffered output bytes to be written out. Before
    * close, the data are flushed to local file.
-   *
-   * @throws IOException if an I/O error occurs
    */
   @Override
   public void flush() throws IOException {
@@ -144,8 +139,6 @@ public final class OSSOutputStream extends OutputStream {
   /**
    * Closes this output stream. When an output stream is closed, the local temporary file is
    * uploaded to OSS Service. Once the file is uploaded, the temporary file is deleted.
-   *
-   * @throws IOException if an I/O error occurs
    */
   @Override
   public void close() throws IOException {
@@ -153,9 +146,7 @@ public final class OSSOutputStream extends OutputStream {
       return;
     }
     mLocalOutputStream.close();
-    try {
-      BufferedInputStream in = new BufferedInputStream(
-          new FileInputStream(mFile));
+    try (BufferedInputStream in = new BufferedInputStream(new FileInputStream(mFile))) {
       ObjectMetadata objMeta = new ObjectMetadata();
       objMeta.setContentLength(mFile.length());
       if (mHash != null) {
@@ -163,10 +154,10 @@ public final class OSSOutputStream extends OutputStream {
         objMeta.setContentMD5(new String(Base64.encodeBase64(hashBytes)));
       }
       mOssClient.putObject(mBucketName, mKey, in, objMeta);
-      mFile.delete();
     } catch (ServiceException e) {
       LOG.error("Failed to upload {}. Temporary file @ {}", mKey, mFile.getPath());
       throw new IOException(e);
     }
+    mFile.delete();
   }
 }

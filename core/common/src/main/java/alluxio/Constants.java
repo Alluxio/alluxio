@@ -24,6 +24,11 @@ public final class Constants {
   public static final long TB = GB * 1024L;
   public static final long PB = TB * 1024L;
 
+  public static final long SECOND = 1000;
+  public static final long MINUTE = SECOND * 60L;
+  public static final long HOUR = MINUTE * 60L;
+  public static final long DAY = HOUR * 24L;
+
   public static final String ANSI_RESET = "\u001B[0m";
   public static final String ANSI_BLACK = "\u001B[30m";
   public static final String ANSI_RED = "\u001B[31m";
@@ -34,18 +39,7 @@ public final class Constants {
   public static final String ANSI_CYAN = "\u001B[36m";
   public static final String ANSI_WHITE = "\u001B[37m";
 
-  public static final String LS_FORMAT_PERMISSION = "%-15s";
-  public static final String LS_FORMAT_FILE_SIZE = "%-10s";
-  public static final String LS_FORMAT_CREATE_TIME = "%-25s";
-  public static final String LS_FORMAT_FILE_TYPE = "%-15s";
-  public static final String LS_FORMAT_USER_NAME = "%-15s";
-  public static final String LS_FORMAT_GROUP_NAME = "%-15s";
-  public static final String LS_FORMAT_FILE_PATH = "%-5s";
-  public static final String LS_FORMAT = LS_FORMAT_PERMISSION + LS_FORMAT_USER_NAME
-      + LS_FORMAT_GROUP_NAME + LS_FORMAT_FILE_SIZE + LS_FORMAT_CREATE_TIME + LS_FORMAT_FILE_TYPE
-      + LS_FORMAT_FILE_PATH + "%n";
-  public static final String LS_FORMAT_NO_ACL = LS_FORMAT_FILE_SIZE + LS_FORMAT_CREATE_TIME
-      + LS_FORMAT_FILE_TYPE + LS_FORMAT_FILE_PATH + "%n";
+  public static final String EXTENSION_JAR = ".jar";
 
   public static final String MESOS_RESOURCE_CPUS = "cpus";
   public static final String MESOS_RESOURCE_MEM = "mem";
@@ -71,51 +65,78 @@ public final class Constants {
   public static final String HEADER_OSS = "oss://";
 
   public static final String HEADER_S3 = "s3://";
-  public static final String HEADER_S3N = "s3n://";
   public static final String HEADER_S3A = "s3a://";
   public static final String HEADER_SWIFT = "swift://";
   // Google Cloud Storage header convention is "gs://".
   // See https://cloud.google.com/storage/docs/cloud-console
   public static final String HEADER_GCS = "gs://";
+  public static final String HEADER_COS = "cos://";
 
   public static final int MAX_PORT = 65535;
 
+  public static final int MAX_TEST_PROCESS_LIFETIME_MS = 20 * Constants.MINUTE_MS;
+
   // Service versions should be incremented every time a backwards incompatible change occurs.
-  public static final long BLOCK_MASTER_CLIENT_SERVICE_VERSION = 1;
-  public static final long BLOCK_MASTER_WORKER_SERVICE_VERSION = 1;
-  public static final long BLOCK_WORKER_CLIENT_SERVICE_VERSION = 1;
-  public static final long FILE_SYSTEM_MASTER_CLIENT_SERVICE_VERSION = 1;
-  public static final long FILE_SYSTEM_MASTER_WORKER_SERVICE_VERSION = 1;
-  public static final long FILE_SYSTEM_WORKER_CLIENT_SERVICE_VERSION = 1;
-  public static final long LINEAGE_MASTER_CLIENT_SERVICE_VERSION = 1;
-  public static final long META_MASTER_CLIENT_SERVICE_VERSION = 1;
-  public static final long KEY_VALUE_MASTER_CLIENT_SERVICE_VERSION = 1;
-  public static final long KEY_VALUE_WORKER_SERVICE_VERSION = 1;
+  public static final long BLOCK_MASTER_CLIENT_SERVICE_VERSION = 2;
+  public static final long BLOCK_MASTER_WORKER_SERVICE_VERSION = 2;
+  public static final long BLOCK_WORKER_CLIENT_SERVICE_VERSION = 2;
+  public static final long FILE_SYSTEM_MASTER_CLIENT_SERVICE_VERSION = 2;
+  public static final long FILE_SYSTEM_MASTER_JOB_SERVICE_VERSION = 2;
+  public static final long FILE_SYSTEM_MASTER_WORKER_SERVICE_VERSION = 2;
+  public static final long FILE_SYSTEM_WORKER_CLIENT_SERVICE_VERSION = 2;
+  public static final long META_MASTER_CLIENT_SERVICE_VERSION = 2;
+  public static final long META_MASTER_MASTER_SERVICE_VERSION = 1;
+  public static final long METRICS_MASTER_CLIENT_SERVICE_VERSION = 2;
+  public static final long KEY_VALUE_MASTER_CLIENT_SERVICE_VERSION = 2;
+  public static final long KEY_VALUE_WORKER_SERVICE_VERSION = 2;
   public static final long UNKNOWN_SERVICE_VERSION = -1;
 
   public static final String BLOCK_MASTER_NAME = "BlockMaster";
   public static final String FILE_SYSTEM_MASTER_NAME = "FileSystemMaster";
-  public static final String LINEAGE_MASTER_NAME = "LineageMaster";
   public static final String KEY_VALUE_MASTER_NAME = "KeyValueMaster";
+  public static final String META_MASTER_NAME = "MetaMaster";
+  public static final String METRICS_MASTER_NAME = "MetricsMaster";
+  public static final String BLOCK_WORKER_NAME = "BlockWorker";
+  public static final String FILE_SYSTEM_WORKER_NAME = "FileSystemWorker";
+  public static final String KEY_VALUE_WORKER_NAME = "KeyValueWorker";
 
   public static final String BLOCK_MASTER_CLIENT_SERVICE_NAME = "BlockMasterClient";
   public static final String BLOCK_MASTER_WORKER_SERVICE_NAME = "BlockMasterWorker";
   public static final String FILE_SYSTEM_MASTER_CLIENT_SERVICE_NAME = "FileSystemMasterClient";
+  public static final String FILE_SYSTEM_MASTER_JOB_SERVICE_NAME = "FileSystemMasterJob";
   public static final String FILE_SYSTEM_MASTER_WORKER_SERVICE_NAME = "FileSystemMasterWorker";
-  public static final String LINEAGE_MASTER_CLIENT_SERVICE_NAME = "LineageMasterClient";
-  public static final String META_MASTER_SERVICE_NAME = "MetaMaster";
+  // TODO(binfan): set META_MASTER_CLIENT_SERVICE_NAME to "MetaMasterClient" after 2.0.
+  // Its value is "MetaMaster" for backwards compatibility so 1.7 clients can talk to 1.8 MetaMaster
+  public static final String META_MASTER_CLIENT_SERVICE_NAME = "MetaMaster";
+  public static final String META_MASTER_MASTER_SERVICE_NAME = "MetaMasterMaster";
+  public static final String METRICS_MASTER_CLIENT_SERVICE_NAME = "MetricsMasterClient";
   public static final String BLOCK_WORKER_CLIENT_SERVICE_NAME = "BlockWorkerClient";
   public static final String FILE_SYSTEM_WORKER_CLIENT_SERVICE_NAME = "FileSystemWorkerClient";
   public static final String KEY_VALUE_MASTER_CLIENT_SERVICE_NAME = "KeyValueMasterClient";
   public static final String KEY_VALUE_WORKER_CLIENT_SERVICE_NAME = "KeyValueWorkerClient";
+  public static final String UFS_INPUT_STREAM_CACHE_EXPIRATION = "UfsInputStreamCacheExpiration";
+
+  public static final int DEFAULT_REGISTRY_GET_TIMEOUT_MS = 60 * SECOND_MS;
+
+  // Test-related constants
+  public static final int MAX_TEST_DURATION_MS = 10 * MINUTE_MS;
+  public static final String TEST_ARTIFACTS_DIR = "./target/artifacts";
+  public static final String TEST_LOG_DIR = "./target/logs";
+  public static final String TESTS_LOG = "./target/logs/tests.log";
 
   public static final String REST_API_PREFIX = "/api/v1";
 
   public static final String MASTER_COLUMN_FILE_PREFIX = "COL_";
 
+  public static final String SITE_PROPERTIES = "alluxio-site.properties";
+  public static final String ALLUXIO_LOCALITY_SCRIPT = "alluxio-locality.sh";
+
   public static final String SWIFT_AUTH_KEYSTONE = "keystone";
+  public static final String SWIFT_AUTH_KEYSTONE_V3 = "keystonev3";
   public static final String SWIFT_AUTH_SWIFTAUTH = "swiftauth";
 
+  public static final String LOCALITY_NODE = "node";
+  public static final String LOCALITY_RACK = "rack";
   public static final String MESOS_LOCAL_INSTALL = "LOCAL";
 
   /**
@@ -133,10 +154,57 @@ public final class Constants {
   public static final short FILE_DIR_PERMISSION_DIFF = (short) 0111;
   public static final short INVALID_MODE = -1;
 
+  public static final String IMPERSONATION_HDFS_USER = "_HDFS_USER_";
+  public static final String IMPERSONATION_NONE = "_NONE_";
+
+  public static final String MODE_BITS_NONE = "---";
+  public static final String MODE_BITS_EXECUTE = "--x";
+  public static final String MODE_BITS_WRITE = "-w-";
+  public static final String MODE_BITS_WRITE_EXECUTE = "-wx";
+  public static final String MODE_BITS_READ = "r--";
+  public static final String MODE_BITS_READ_EXECUTE = "r-x";
+  public static final String MODE_BITS_READ_WRITE = "rw-";
+  public static final String MODE_BITS_ALL = "rwx";
+
   // Specific tier write
   public static final int FIRST_TIER = 0;
   public static final int SECOND_TIER = 1;
   public static final int LAST_TIER = -1;
+
+  // S3 northbound API constants
+  public static final String S3_DELETE_IN_ALLUXIO_ONLY = "ALLUXIO_ONLY";
+  public static final String S3_DELETE_IN_ALLUXIO_AND_UFS = "ALLUXIO_AND_UFS";
+  public static final String S3_MULTIPART_TEMPORARY_DIR_SUFFIX = "_s3_multipart_tmp";
+
+  // Ufs fingerprint
+  public static final String INVALID_UFS_FINGERPRINT = "";
+
+  // Output stream flushed signal
+  public static final String FLUSHED_SIGNAL = "FLUSHED";
+
+  // Job service
+  public static final String JOB_MASTER_WORKER_SERVICE_NAME = "JobMasterWorker";
+  public static final long JOB_MASTER_WORKER_SERVICE_VERSION = 1;
+  public static final String JOB_MASTER_NAME = "JobMaster";
+  public static final String JOB_MASTER_CLIENT_SERVICE_NAME = "JobMasterClient";
+  public static final int JOB_MASTER_CLIENT_SERVICE_VERSION = 1;
+  public static final String JOB_WORKER_NAME = "JobWorker";
+
+  public static final int JOB_DEFAULT_MASTER_PORT = 20001;
+  public static final int JOB_DEFAULT_MASTER_WEB_PORT = JOB_DEFAULT_MASTER_PORT + 1;
+  public static final int JOB_DEFAULT_WORKER_PORT = 30001;
+  public static final int JOB_DEFAULT_WORKER_DATA_PORT = JOB_DEFAULT_WORKER_PORT + 1;
+  public static final int JOB_DEFAULT_WORKER_WEB_PORT = JOB_DEFAULT_WORKER_PORT + 2;
+
+  // Journal
+  public static final String JOB_JOURNAL_NAME = "JobJournal";
+
+  // Replication
+  public static final int REPLICATION_MAX_INFINITY = -1;
+
+  // Persistence
+  public static final int PERSISTENCE_INVALID_JOB_ID = -1;
+  public static final String PERSISTENCE_INVALID_UFS_PATH = "";
 
   private Constants() {} // prevent instantiation
 }

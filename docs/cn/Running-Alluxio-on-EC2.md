@@ -20,13 +20,14 @@ Alluxio部署在Amazon EC2上。该脚本允许你创建，配置以及撤销集
 
 安装AWS Vagrant插件：
 
-{% include Running-Alluxio-on-EC2/install-aws-vagrant-plugin.md %}
+```bash
+$ vagrant plugin install vagrant-aws
+$ vagrant box add dummy https://github.com/mitchellh/vagrant-aws/raw/master/dummy.box
+```
 
 **安装Alluxio**
 
-下载Alluxio到本地，并解压：
-
-{% include Common-Commands/download-alluxio.md %}
+下载[Alluxio](https://alluxio.org/download)到你本地的机器上并解压(unzip)。
 
 **安装python库依赖**
 
@@ -34,11 +35,15 @@ Alluxio部署在Amazon EC2上。该脚本允许你创建，配置以及撤销集
 
 进入`deploy/vagrant`目录下，运行：
 
-{% include Running-Alluxio-on-EC2/install-vagrant.md %}
+```bash
+$ sudo bash bin/install.sh
+```
 
 另外，你可以选择手动安装[pip](https://pip.pypa.io/en/latest/installing/)，之后进入`deploy/vagrant`目录，运行：
 
-{% include Running-Alluxio-on-EC2/install-pip.md %}
+```bash
+$ sudo pip install -r pip-req.txt
+```
 
 ## 启动集群
 
@@ -46,16 +51,23 @@ Alluxio部署在Amazon EC2上。该脚本允许你创建，配置以及撤销集
 
 接着创建[access keys](https://aws.amazon.com/developers/access-keys/)并且设置`AWS_ACCESS_KEY_ID`和`AWS_SECRET_ACCESS_KEY`环境变量:
 
-{% include Running-Alluxio-on-EC2/access-key.md %}
+```bash
+$ export AWS_ACCESS_KEY_ID=<your access key>
+$ export AWS_SECRET_ACCESS_KEY=<your secret access key>
+```
 
 接着生成EC2
 [Key Pairs](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html)。确保将私钥文件的权限设置成只对你可读。
 
-{% include Running-Alluxio-on-EC2/generate-key-pair.md %}
+```bash
+$ chmod 400 <your key pair>.pem
+```
 
 复制`deploy/vagrant/conf/ec2.yml.template`到`deploy/vagrant/conf/ec2.yml`：
 
-{% include Running-Alluxio-on-EC2/copy-ec2.md %}
+```bash
+$ cp deploy/vagrant/conf/ec2.yml.template deploy/vagrant/conf/ec2.yml
+```
 
 在`deploy/vagrant/conf/ec2.yml`配置文件中，将`Keypair`设置为你的keypair名，`Key_Path`设置成pem key路径。
 
@@ -66,7 +78,9 @@ Vagrant脚本默认使用[Amazon S3](http://aws.amazon.com/s3)作为Alluxio的�
 
 现在你可以以你选择的文件系统作为Alluxio的底层文件系统，在你所选择的可用区域下启动Alluxio集群了，在`deploy/vagrant`目录下运行：
 
-{% include Running-Alluxio-on-EC2/launch-cluster.md %}
+```bash
+$ ./create <number of machines> aws
+```
 
 集群中的每个节点运行一个Alluxio worker，`AlluxioMaster`节点上运行Alluxio master。
 
@@ -76,7 +90,10 @@ Vagrant脚本默认使用[Amazon S3](http://aws.amazon.com/s3)作为Alluxio的�
 
 命令`./create <number of machines> aws`运行成功后，在shell中会输出类似下面的两条语句。
 
-{% include Running-Alluxio-on-EC2/shell-output.md %}
+```
+>>> AlluxioMaster public IP is xxx, visit xxx:19999 for Alluxio web UI<<<
+>>> visit default port of the web UI of what you deployed <<<
+```
 
 Alluxio Web UI的默认端口为**19999**。
 
@@ -88,19 +105,25 @@ Alluxio Web UI的默认端口为**19999**。
 
 节点的名称依次被设置成`AlluxioMaster`, `AlluxioWorker1`, `AlluxioWorker2`等等。
 
-通过ssh登陆一个节点，运行：
+通过ssh登陆一个节点，运行:
 
-{% include Running-Alluxio-on-EC2/ssh.md %}
+```bash
+$ vagrant ssh <node name>
+```
 
 例如，通过以下命令可以登陆`AlluxioMaster`节点：
 
-{% include Running-Alluxio-on-EC2/ssh-AlluxioMaster.md %}
+```bash
+$ vagrant ssh AlluxioMaster
+```
 
 所有的软件都安装在根目录下，例如Alluxio安装在`/alluxio`。
 
 在`AlluxioMaster`节点上，可以对Alluxio运行测试检测其健康状态：
 
-{% include Running-Alluxio-on-EC2/runTests.md %}
+```bash
+$ /alluxio/bin/alluxio runTests
+```
 
 在所有测试完成后，再次访问Alluxio的web UI `http://{MASTER_IP}:19999`，在导航栏中点
 击`Browse`，你应该能看到测试过程中写入到Alluxio的文件。
@@ -110,12 +133,16 @@ Alluxio Web UI的默认端口为**19999**。
 
 在集群中的某个节点上，可以通过ssh免密码登陆到集群中的其他节点：
 
-{% include Running-Alluxio-on-EC2/ssh-other-node.md %}
+```bash
+$ ssh AlluxioWorker1
+```
 
 ## 撤销集群
 
 在`deploy/vagrant`目录下运行：
 
-{% include Running-Alluxio-on-EC2/destroy.md %}
+```bash
+$ ./destroy
+```
 
 从而撤销之前创建的集群。一次只能创建一个集群。当该命令成功执行后，EC2实例将终止运行。

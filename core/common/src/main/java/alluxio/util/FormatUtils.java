@@ -17,6 +17,8 @@ import alluxio.security.authorization.Mode;
 import java.math.BigDecimal;
 import java.nio.ByteBuffer;
 import java.util.Locale;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -133,7 +135,7 @@ public final class FormatUtils {
   public static String getSizeFromBytes(long bytes) {
     double ret = bytes;
     if (ret <= 1024 * 5) {
-      return String.format(Locale.ENGLISH, "%.2fB", ret);
+      return String.format(Locale.ENGLISH, "%dB", bytes);
     }
     ret /= 1024;
     if (ret <= 1024 * 5) {
@@ -179,15 +181,15 @@ public final class FormatUtils {
     end = end.toLowerCase();
     if (end.isEmpty() || end.equals("b")) {
       return (long) (ret + alpha);
-    } else if (end.equals("kb")) {
+    } else if (end.equals("kb") || end.equals("k")) {
       return (long) (ret * Constants.KB + alpha);
-    } else if (end.equals("mb")) {
+    } else if (end.equals("mb") || end.equals("m")) {
       return (long) (ret * Constants.MB + alpha);
-    } else if (end.equals("gb")) {
+    } else if (end.equals("gb") || end.equals("g")) {
       return (long) (ret * Constants.GB + alpha);
-    } else if (end.equals("tb")) {
+    } else if (end.equals("tb") || end.equals("t")) {
       return (long) (ret * Constants.TB + alpha);
-    } else if (end.equals("pb")) {
+    } else if (end.equals("pb") || end.equals("p")) {
       // When parsing petabyte values, we can't multiply with doubles and longs, since that will
       // lose presicion with such high numbers. Therefore we use a BigDecimal.
       BigDecimal pBDecimal = new BigDecimal(Constants.PB);
@@ -198,13 +200,60 @@ public final class FormatUtils {
   }
 
   /**
+   * Regular expression pattern to separate digits (negative sign allowed) and letters in a string.
+   */
+  private static final Pattern SEP_DIGIT_LETTER = Pattern.compile("([-]?[0-9]*)([a-zA-Z]*)");
+
+  /**
+   * Parses a String size to Milliseconds. Supports negative numbers.
+   *
+   * @param timeSize the size of a time, e.g. 1M, 5H, 10D, -1
+   * @return the time size in milliseconds
+   */
+  public static long parseTimeSize(String timeSize) {
+    double alpha = 0.0001;
+    String time = "";
+    String size = "";
+    Matcher m = SEP_DIGIT_LETTER.matcher(timeSize);
+    if (m.matches()) {
+      time = m.group(1);
+      size = m.group(2);
+    }
+    double douTime = Double.parseDouble(time);
+    long sign = 1;
+    if (douTime < 0) {
+      sign = -1;
+      douTime = -douTime;
+    }
+    size = size.toLowerCase();
+    if (size.isEmpty() || size.equalsIgnoreCase("ms")
+        || size.equalsIgnoreCase("millisecond")) {
+      return sign * (long) (douTime + alpha);
+    } else if (size.equalsIgnoreCase("s") || size.equalsIgnoreCase("sec")
+        || size.equalsIgnoreCase("second")) {
+      return sign * (long) (douTime * Constants.SECOND + alpha);
+    } else if (size.equalsIgnoreCase("m") || size.equalsIgnoreCase("min")
+        || size.equalsIgnoreCase("minute")) {
+      return sign * (long) (douTime * Constants.MINUTE + alpha);
+    } else if (size.equalsIgnoreCase("h") || size.equalsIgnoreCase("hr")
+        || size.equalsIgnoreCase("hour")) {
+      return sign * (long) (douTime * Constants.HOUR + alpha);
+    } else if (size.equalsIgnoreCase("d") || size.equalsIgnoreCase("day")) {
+      return sign * (long) (douTime * Constants.DAY + alpha);
+    } else {
+      throw new IllegalArgumentException("Fail to parse " + timeSize + " to milliseconds");
+    }
+  }
+
+  /**
    * Formats digital representation of a model as a human-readable string.
    *
    * @param mode file mode
    * @param directory if the mode corresponds to a directory
+   * @param hasExtended true if extended acls exist
    * @return human-readable version of the given mode
    */
-  public static String formatMode(short mode, boolean directory) {
+  public static String formatMode(short mode, boolean directory, boolean hasExtended) {
     StringBuilder str = new StringBuilder();
     if (directory) {
       str.append("d");
@@ -212,6 +261,9 @@ public final class FormatUtils {
       str.append("-");
     }
     str.append(new Mode(mode).toString());
+    if (hasExtended) {
+      str.append("+");
+    }
     return str.toString();
   }
 

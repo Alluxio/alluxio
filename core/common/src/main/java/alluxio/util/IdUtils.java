@@ -30,6 +30,8 @@ public final class IdUtils {
 
   public static final long INVALID_FILE_ID = -1;
   public static final long INVALID_WORKER_ID = -1;
+  public static final long INVALID_MOUNT_ID = -1;
+  public static final long ROOT_MOUNT_ID = 1;
   private static SecureRandom sRandom = new SecureRandom();
 
   private IdUtils() {} // prevent instantiation
@@ -74,5 +76,26 @@ public final class IdUtils {
    */
   public static synchronized long getRandomNonNegativeLong() {
     return Math.abs(sRandom.nextLong());
+  }
+
+  /**
+   * @return a session ID
+   */
+  public static long createSessionId() {
+    return getRandomNonNegativeLong();
+  }
+
+  /**
+   * @return a random long which is guaranteed to be non negative (zero is allowed)
+   */
+  public static long createMountId() {
+    return getRandomNonNegativeLong();
+  }
+
+  /**
+   * @return app suffixed by a positive random long
+   */
+  public static String createFileSystemContextId() {
+    return "app-" + Math.abs(sRandom.nextLong());
   }
 }

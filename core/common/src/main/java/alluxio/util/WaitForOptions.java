@@ -18,11 +18,11 @@ import com.google.common.base.Objects;
  */
 public final class WaitForOptions {
   static final int DEFAULT_INTERVAL = 20;
-  static final int NEVER = -1;
+  public static final int NEVER = -1;
 
-  /** Determines how often to check for completion. */
+  /** How often to check for completion. */
   private int mIntervalMs;
-  /** Determines how long to wait before giving up. */
+  /** How long to wait before giving up. */
   private int mTimeoutMs;
 
   private WaitForOptions() {}
@@ -31,7 +31,7 @@ public final class WaitForOptions {
    * @return the default instance of {@link WaitForOptions}
    */
   public static WaitForOptions defaults() {
-    return new WaitForOptions().setInterval(DEFAULT_INTERVAL).setTimeout(NEVER);
+    return new WaitForOptions().setInterval(DEFAULT_INTERVAL).setTimeoutMs(NEVER);
   }
 
   /**
@@ -44,7 +44,7 @@ public final class WaitForOptions {
   /**
    * @return the timeout
    */
-  public int getTimeout() {
+  public int getTimeoutMs() {
     return mTimeoutMs;
   }
 
@@ -61,7 +61,7 @@ public final class WaitForOptions {
    * @param timeoutMs the timeout to use (in milliseconds)
    * @return the updated options object
    */
-  public WaitForOptions setTimeout(int timeoutMs) {
+  public WaitForOptions setTimeoutMs(int timeoutMs) {
     mTimeoutMs = timeoutMs;
     return this;
   }

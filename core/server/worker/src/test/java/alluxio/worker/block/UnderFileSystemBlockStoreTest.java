@@ -11,10 +11,12 @@
 
 package alluxio.worker.block;
 
-import alluxio.thrift.LockBlockTOptions;
-import alluxio.worker.block.options.OpenUfsBlockOptions;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertFalse;
 
-import org.junit.Assert;
+import alluxio.proto.dataserver.Protocol;
+import alluxio.underfs.UfsManager;
+
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -26,7 +28,8 @@ public final class UnderFileSystemBlockStoreTest {
   private static final long BLOCK_ID = 2;
 
   private BlockStore mAlluxioBlockStore;
-  private OpenUfsBlockOptions mOpenUfsBlockOptions;
+  private Protocol.OpenUfsBlockOptions mOpenUfsBlockOptions;
+  private UfsManager mUfsManager;
 
   @Rule
   public TemporaryFolder mFolder = new TemporaryFolder();
@@ -34,33 +37,32 @@ public final class UnderFileSystemBlockStoreTest {
   @Before
   public void before() throws Exception {
     mAlluxioBlockStore = Mockito.mock(BlockStore.class);
-
-    LockBlockTOptions options = new LockBlockTOptions();
-    options.setMaxUfsReadConcurrency(5);
-    options.setBlockSize(TEST_BLOCK_SIZE);
-    options.setOffset(TEST_BLOCK_SIZE);
-    options.setUfsPath(mFolder.newFile().getAbsolutePath());
-    mOpenUfsBlockOptions = new OpenUfsBlockOptions(options);
+    mUfsManager = Mockito.mock(UfsManager.class);
+    mOpenUfsBlockOptions = Protocol.OpenUfsBlockOptions.newBuilder().setMaxUfsReadConcurrency(5)
+        .setBlockSize(TEST_BLOCK_SIZE).setOffsetInFile(TEST_BLOCK_SIZE)
+        .setUfsPath(mFolder.newFile().getAbsolutePath()).build();
   }
 
   @Test
   public void acquireAccess() throws Exception {
-    UnderFileSystemBlockStore blockStore = new UnderFileSystemBlockStore(mAlluxioBlockStore);
+    UnderFileSystemBlockStore blockStore =
+        new UnderFileSystemBlockStore(mAlluxioBlockStore, mUfsManager);
     for (int i = 0; i < 5; i++) {
-      Assert.assertTrue(blockStore.acquireAccess(i + 1, BLOCK_ID, mOpenUfsBlockOptions));
+      assertTrue(blockStore.acquireAccess(i + 1, BLOCK_ID, mOpenUfsBlockOptions));
     }
 
-    Assert.assertFalse(blockStore.acquireAccess(6, BLOCK_ID, mOpenUfsBlockOptions));
+    assertFalse(blockStore.acquireAccess(6, BLOCK_ID, mOpenUfsBlockOptions));
   }
 
   @Test
   public void releaseAccess() throws Exception {
-    UnderFileSystemBlockStore blockStore = new UnderFileSystemBlockStore(mAlluxioBlockStore);
+    UnderFileSystemBlockStore blockStore =
+        new UnderFileSystemBlockStore(mAlluxioBlockStore, mUfsManager);
     for (int i = 0; i < 5; i++) {
-      Assert.assertTrue(blockStore.acquireAccess(i + 1, BLOCK_ID, mOpenUfsBlockOptions));
+      assertTrue(blockStore.acquireAccess(i + 1, BLOCK_ID, mOpenUfsBlockOptions));
       blockStore.releaseAccess(i + 1, BLOCK_ID);
     }
 
-    Assert.assertTrue(blockStore.acquireAccess(6, BLOCK_ID, mOpenUfsBlockOptions));
+    assertTrue(blockStore.acquireAccess(6, BLOCK_ID, mOpenUfsBlockOptions));
   }
 }

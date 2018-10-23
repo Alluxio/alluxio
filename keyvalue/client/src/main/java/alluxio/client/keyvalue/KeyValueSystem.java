@@ -49,8 +49,6 @@ public interface KeyValueSystem {
    *
    * @param uri {@link AlluxioURI} to the store
    * @return {@link BaseKeyValueStoreReader} instance
-   * @throws IOException if non-Alluxio error occurs
-   * @throws AlluxioException if Alluxio error occurs
    */
   KeyValueStoreReader openStore(AlluxioURI uri) throws IOException, AlluxioException;
 
@@ -59,8 +57,6 @@ public interface KeyValueSystem {
    *
    * @param uri {@link AlluxioURI} to the store
    * @return {@link BaseKeyValueStoreWriter} instance
-   * @throws IOException if non-Alluxio error occurs
-   * @throws AlluxioException if Alluxio error occurs
    */
   KeyValueStoreWriter createStore(AlluxioURI uri) throws IOException, AlluxioException;
 
@@ -69,8 +65,6 @@ public interface KeyValueSystem {
    *
    * @param oldUri the old {@link AlluxioURI} to the store
    * @param newUri the new {@link AlluxioURI} to the store
-   * @throws IOException if non-Alluxio error occurs
-   * @throws AlluxioException if other Alluxio error occurs
    */
   void renameStore(AlluxioURI oldUri, AlluxioURI newUri) throws IOException, AlluxioException;
 
@@ -78,10 +72,8 @@ public interface KeyValueSystem {
    * Deletes a completed key-value store.
    *
    * @param uri {@link AlluxioURI} to the store
-   * @throws IOException if non-Alluxio error occurs
    * @throws InvalidPathException if the uri exists but is not a key-value store
    * @throws FileDoesNotExistException if the uri does not exist
-   * @throws AlluxioException if other Alluxio error occurs
    */
   void deleteStore(AlluxioURI uri)
       throws IOException, InvalidPathException, FileDoesNotExistException, AlluxioException;
@@ -94,8 +86,6 @@ public interface KeyValueSystem {
    *
    * @param fromUri the {@link AlluxioURI} to the store to be merged
    * @param toUri the {@link AlluxioURI} to the store to be merged to
-   * @throws IOException if non-Alluxio error occurs
-   * @throws AlluxioException if other Alluxio error occurs
    */
   void mergeStore(AlluxioURI fromUri, AlluxioURI toUri) throws IOException, AlluxioException;
 }

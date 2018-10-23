@@ -54,21 +54,16 @@ public interface GroupMappingService {
       if (sCachedGroupMapping == null) {
         synchronized (Factory.class) {
           if (sCachedGroupMapping == null) {
-            try {
-              LOG.debug("Creating new Groups object");
-              GroupMappingService groupMappingService = CommonUtils.createNewClassInstance(
-                  Configuration.<GroupMappingService>getClass(
-                      PropertyKey.SECURITY_GROUP_MAPPING_CLASS), null, null);
-              sCachedGroupMapping = new CachedGroupMapping(groupMappingService);
-            } catch (Exception e) {
-              throw new RuntimeException(e);
-            }
+            LOG.debug("Creating new Groups object");
+            GroupMappingService groupMappingService =
+                CommonUtils.createNewClassInstance(Configuration.<GroupMappingService>getClass(
+                    PropertyKey.SECURITY_GROUP_MAPPING_CLASS), null, null);
+            sCachedGroupMapping = new CachedGroupMapping(groupMappingService);
           }
         }
       }
       return sCachedGroupMapping;
     }
-
   }
 
   /**
@@ -77,7 +72,6 @@ public interface GroupMappingService {
    *
    * @param user user's name
    * @return group memberships of user
-   * @throws IOException if can't get user's groups
    */
   List<String> getGroups(String user) throws IOException;
 }

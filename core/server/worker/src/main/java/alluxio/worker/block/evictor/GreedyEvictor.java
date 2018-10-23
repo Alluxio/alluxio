@@ -50,8 +50,14 @@ public final class GreedyEvictor implements Evictor {
   @Override
   public EvictionPlan freeSpaceWithView(long availableBytes, BlockStoreLocation location,
       BlockMetadataManagerView view) {
-    Preconditions.checkNotNull(location);
-    Preconditions.checkNotNull(view);
+    return freeSpaceWithView(availableBytes, location, view, Mode.GUARANTEED);
+  }
+
+  @Override
+  public EvictionPlan freeSpaceWithView(long availableBytes, BlockStoreLocation location,
+      BlockMetadataManagerView view, Mode mode) {
+    Preconditions.checkNotNull(location, "location");
+    Preconditions.checkNotNull(view, "view");
 
     // 1. Select a StorageDirView that has enough capacity for required bytes.
     StorageDirView selectedDirView = null;
@@ -71,7 +77,7 @@ public final class GreedyEvictor implements Evictor {
       }
     }
     if (selectedDirView == null) {
-      LOG.error("Failed to freeSpace: No StorageDirView has enough capacity of {} bytes",
+      LOG.warn("Failed to freeSpace: No StorageDirView has enough capacity of {} bytes",
           availableBytes);
       return null;
     }

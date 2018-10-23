@@ -1,9 +1,9 @@
 ---
 layout: global
-title: 键值存储库（Key Value Store）客户端API（内测版）
-nickname: 键值存储库（Key Value Store) API
+title: （实验）Key Value Store客户端API
+nickname: （实验）Key Value Store API
 group: Features
-priority: 4
+priority: 99
 ---
 
 * 内容列表
@@ -17,7 +17,8 @@ Alluxio除了提供[Filesystem API](File-System-API.html) 让应用程序来读�
 * 用户可以创建一个键值存储库并且把键值对放入其中。键值对放入存储后是不可变的。
 * 键值存储库完整保存后，用户可以打开并使用该键值存储库。
 
-键值存储库可以用AlluxioURI来表示路径，比如`alluxio://path/my-kvstore`.
+键值存储库可以用AlluxioURI来表示路径，比如`alluxio://192.168.1.200:19998/path/my-kvstore`，
+表示master地址为192.168.1.200，RPC端口为19998，键值存储库路径为`/path/my-kvstore`。
 根据总容量和用户指定的数据块大小，单个键值存储库可能有一个以上的分区，分区是由Alluxio内部来管理，对用户透明。
 
 ## 键值存储库配置参数
@@ -49,14 +50,24 @@ Alluxio默认配置是禁用键值存储库的，可以通过配置`alluxio.keyv
 
 要想用Java代码获取一个Alluxio键值存储系统客户端实例，可以使用:
 
-{% include Key-Value-Store-API/get-key-value-system.md %}
+```java
+KeyValueSystem kvs = KeyValueSystem.Factory.create();
+```
 
 ### 创建一个新的键值存储库
 
 可以通过调用`KeyValueSystem#createStore(AlluxioURI)`来创建一个新的键值存储库。将返回一个writer用于后续
 加入键值对。可以参照下面的例子：
 
-{% include Key-Value-Store-API/create-new-key-value.md %}
+```java
+KeyValueStoreWriter writer = kvs.createStore(new AlluxioURI("alluxio://192.168.1.200:19998/path/my-kvstore"));
+// Insert key-value pair ("100", "foo")
+writer.put("100", "foo");
+// Insert key-value pair ("200", "bar")
+writer.put("200", "bar");
+// Close and complete the store
+writer.close();
+```
 
 需要注意的是,
 
@@ -70,13 +81,31 @@ Alluxio默认配置是禁用键值存储库的，可以通过配置`alluxio.keyv
 可以通过调用`KeyValueSystem#openStore(AlluxioURI)`来读取一个完整的键值存储库。将返回一个reader用于后续
 基于键的值读取。可以参照下面的例子：
 
-{% include Key-Value-Store-API/read-value.md %}
+```java
+KeyValueStoreReader reader = kvs.openStore(new AlluxioURI("alluxio://192.168.1.200:19998/path/kvstore/"));
+// Return "foo"
+reader.get("100");
+// Return null as no value associated with "300"
+reader.get("300");
+// Close the reader on the store
+reader.close();
+```
 
 ### 通过迭代器遍历存储中的键值对
 
 可以参照下面的例子：
 
-{% include Key-Value-Store-API/iterate-key-values.md %}
+```java
+KeyValueStoreReader reader = kvs.openStore(new AlluxioURI("alluxio://192.168.1.200:19998/path/kvstore/"));
+KeyValueIterator iterator = reader.iterator();
+while (iterator.hasNext()) {
+  KeyValuePair pair = iterator.next();
+  ByteBuffer key = pair.getkKey();
+  ByteBuffer value = pair.getValue();
+}
+// Close the reader on the store
+reader.close()
+```
 
 ### 样例
 
@@ -90,22 +119,36 @@ Alluxio默认配置是禁用键值存储库的，可以通过配置`alluxio.keyv
 Alluxio提供了一种`InputFormat`的实现使得Hadoop MapReduce程序可以访问键值存储库。它使用一个key-value
 URI作为参数，把键值对放入键值存储库内。
 
-{% include Key-Value-Store-API/set-input-format.md %}
+```java
+conf.setInputFormat(KeyValueInputFormat.class);
+FileInputFormat.setInputPaths(conf, new Path("alluxio://192.168.1.200:19998/input-store"));
+```
 
 
 ### MapReduce OutputFormat
 Alluxio同时提供了一种`OutputFormat`的实现使得Hadoop MapReduce程序可以创建一个键值存储库。它使用一个
 key-value URI作为参数把键值对放入键值存储库内。
 
-{% include Key-Value-Store-API/set-output-format.md %}
-
+```java
+conf.setOutputKeyClass(BytesWritable.class);
+conf.setOutputValueClass(BytesWritable.class);
+conf.setOutputFormat(KeyValueOutputFormat.class);
+FileOutputFormat.setOutputPath(conf, new Path("alluxio://192.168.1.200:19998/output-store"));
+```
 
 ### 样例
 
 从代码库中的[样例](https://github.com/Alluxio/alluxio/blob/master/examples/src/main/java/alluxio/examples/keyvalue/hadoop/CloneStoreMapReduce.java)
  可以了解更多。
 
-如果你已经[将HDFS配置为Alluxio的底层存储](Configuring-Alluxio-with-HDFS.md), 并且已经启用了键值存储，
+如果你已经[将HDFS配置为Alluxio的底层存储](Configuring-Alluxio-with-HDFS.html), 并且已经启用了键值存储，
 那么可以按照如下方式运行上面的样例:
 
-{% include Key-Value-Store-API/run-mapreduce-example.md %}
+```bash
+$ export HADOOP_CLASSPATH=${ALLUXIO_INSTALLATION_DIRECTORY}/assembly/target/alluxio-assemblies-${ALLUXIO_VERSION}-jar-with-dependencies.jar
+
+$ ${HADOOP_INSTALLATION_DIRECTORY}/bin/hadoop jar \
+  ${ALLUXIO_INSTALLATION_DIRECTORY}/examples/target/alluxio-examples-${ALLUXIO_VERSION}.jar \
+  alluxio.examples.keyvalue.hadoop.CloneStoreMapReduce alluxio://${ALLUXIO_MASTER}:${PORT}/${INPUT_KEY_VALUE_STORE_PATH} alluxio://${ALLUXIO_MASTER}:${PORT}/${OUTPUT_KEY_VALUE_STORE_PATH} \
+  -libjars=${ALLUXIO_INSTALLATION_DIRECTORY}/assembly/target/alluxio-assemblies-${ALLUXIO_VERSION}-jar-with-dependencies.jar
+```

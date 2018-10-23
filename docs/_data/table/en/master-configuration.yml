@@ -1,81 +1,114 @@
+alluxio.master.audit.logging.enabled:
+  'Set to true to enable file system master audit. Note: This property must be specified as a JVM property; it is not accepted in alluxio-site.properties.'
+alluxio.master.audit.logging.queue.capacity:
+  'Capacity of the queue used by audit logging.'
+alluxio.master.backup.directory:
+  'Default directory for writing master metadata backups. This path is relative to the root directory of the root UFS. For example, if the root ufs directory is hdfs://cluster/alluxio/data, the default backup directory will be hdfs://cluster/alluxio_backups'
 alluxio.master.bind.host:
-  The hostname that Alluxio master binds to. See <a href="#configure-multihomed-networks">multi-homed networks</a>
-alluxio.master.heartbeat.interval.ms:
-  The interval (in milliseconds) between Alluxio master's heartbeats
-alluxio.master.hostname:
-  The hostname of Alluxio master.
+  'The hostname that Alluxio master binds to. See <a href="#configure-multihomed-networks">multi-homed networks</a>.'
+alluxio.master.connection.timeout:
+  'Timeout of connections between master and client. A value of 0 means never timeout'
 alluxio.master.file.async.persist.handler:
-  The handler for processing the async persistence requests.
+  'The handler for processing the async persistence requests.'
 alluxio.master.format.file_prefix:
-  The file prefix of the file generated in the journal directory when the journal is
-  formatted. The master will search for a file with this prefix when determining of the journal
-  was once formatted.
-alluxio.master.journal.flush.batch.time.ms:
-  Time (in milliseconds) to wait for batching journal writes.
-alluxio.master.journal.flush.timeout.ms:
-  The amount of time (in milliseconds) to keep retrying journal writes before giving up and shutting down the master.
+  'The file prefix of the file generated in the journal directory when the journal is formatted. The master will search for a file with this prefix when determining if the journal is formatted.'
+alluxio.master.heartbeat.timeout:
+  'Timeout between leader master and standby master indicating a lost master.'
+alluxio.master.hostname:
+  'The hostname of Alluxio master.'
+alluxio.master.journal.checkpoint.period.entries:
+  'The number of journal entries to write before creating a new journal checkpoint.'
+alluxio.master.journal.flush.batch.time:
+  'Time to wait for batching journal writes.'
+alluxio.master.journal.flush.timeout:
+  'The amount of time to keep retrying journal writes before giving up and shutting down the master.'
 alluxio.master.journal.folder:
-  The path to store master journal logs.
+  'The path to store master journal logs.'
 alluxio.master.journal.formatter.class:
-  The class to serialize the journal in a specified format.
+  'The class to serialize the journal in a specified format.'
+alluxio.master.journal.gc.period:
+  'Frequency with which to scan for and delete stale journal checkpoints.'
+alluxio.master.journal.gc.threshold:
+  'Minimum age for garbage collecting checkpoints.'
+alluxio.master.journal.init.from.backup:
+  'A uri for a backup to initialize the journal from. When the master becomes primary, if it sees that its journal is freshly formatted, it will restore its state from the backup. When running multiple masters, this property must be configured on all masters since it isn''t known during startup which master will become the first primary.'
 alluxio.master.journal.log.size.bytes.max:
-  If a log file is bigger than this value, it will rotate to next file
-alluxio.master.journal.tailer.&#8203;shutdown.quiet.wait.time.ms:
-  Before the standby master shuts down its tailer thread, there should be no update to the
-  leader master's journal in this specified time period (in milliseconds).
-alluxio.master.journal.tailer.sleep.time.ms:
-  Time (in milliseconds) the standby master sleeps for when it cannot find anything new in leader
-  master's journal.
-alluxio.master.lineage.checkpoint.interval.ms:
-  The interval (in milliseconds) between Alluxio's checkpoint scheduling.
-alluxio.master.lineage.checkpoint.class:
-  The class name of the checkpoint strategy for lineage output files. The default strategy is to
-  checkpoint the latest completed lineage, i.e. the lineage whose output files are completed.
-alluxio.master.lineage.recompute.interval.ms:
-  The interval (in milliseconds) between Alluxio's recompute execution. The executor scans the
-  all the lost files tracked by lineage, and re-executes the corresponding jobs.
-  every 10 minutes.
-alluxio.master.lineage.recompute.log.path:
-  The path to the log that the recompute executor redirects the job's stdout into.
-alluxio.master.port:
-  The port that Alluxio master node runs on.
-alluxio.master.retry:
-  "The number of retries that the client connects to master. (NOTE: this property is deprecated, use
-  `alluxio.user.rpc.retry.max.num.retry` instead)"
-alluxio.master.startup.consistency.check.enabled:
-  Whether the system should be checked for consistency with the underlying storage on startup.
-  During the time the check is running, Alluxio will be in read only mode. Enabled by default.
-alluxio.master.ttl.checker.interval.ms:
-  Time interval (in milliseconds) to periodically delete the files with expired ttl value.
-alluxio.master.web.bind.host:
-  The hostname Alluxio master web UI binds to. See <a href="#configure-multihomed-networks">multi-homed networks</a>
-alluxio.master.web.hostname:
-  The hostname of Alluxio Master web UI.
-alluxio.master.web.port:
-  The port Alluxio web UI runs on.
-alluxio.master.whitelist:
-  A comma-separated list of prefixes of the paths which are cacheable, separated by
-  semi-colons. Alluxio will try to cache the cacheable file when it is read for the first
-  time.
-alluxio.master.worker.threads.max:
-  The maximum number of incoming RPC requests to master that can be handled.
-  This value is used to configure maximum number of threads in Thrift thread pool with master.
-alluxio.master.worker.threads.min:
-  The minimum number of threads used to handle incoming RPC requests to master.
-  This value is used to configure minimum number of threads in Thrift thread pool with master.
-alluxio.master.worker.timeout.ms:
-  Timeout (in milliseconds) between master and worker indicating a lost worker.
-alluxio.master.tieredstore.global.levels:
-  The total number of storage tiers in the system
-alluxio.master.tieredstore.global.level0.alias:
-  The name of the highest storage tier in the entire system
-alluxio.master.tieredstore.global.level1.alias:
-  The name of the second highest storage tier in the entire system
-alluxio.master.tieredstore.global.level2.alias:
-  The name of the third highest storage tier in the entire system
+  'If a log file is bigger than this value, it will rotate to next file.'
+alluxio.master.journal.retry.interval:
+  'The amount of time to sleep between retrying journal flushes'
+alluxio.master.journal.tailer.shutdown.quiet.wait.time:
+  'Before the standby master shuts down its tailer thread, there should be no update to the leader master''s journal in this specified time period.'
+alluxio.master.journal.tailer.sleep.time:
+  'Time for the standby master to sleep for when it cannot find anything new in leader master''s journal.'
+alluxio.master.journal.temporary.file.gc.threshold:
+  'Minimum age for garbage collecting temporary checkpoint files.'
+alluxio.master.journal.type:
+  'The type of journal to use. Valid options are UFS (store journal in UFS) and NOOP (do not use a journal).'
+alluxio.master.journal.ufs.option:
+  'The configuration to use for the journal operations.'
+alluxio.master.jvm.monitor.enabled:
+  'Whether to enable start JVM monitor thread on master.'
 alluxio.master.keytab.file:
-  Kerberos keytab file for Alluxio master.
+  'Kerberos keytab file for Alluxio master.'
+alluxio.master.log.config.report.heartbeat.interval:
+  'The interval for periodically logging the configuration check report.'
+alluxio.master.master.heartbeat.interval:
+  'The interval between Alluxio masters'' heartbeats.'
+alluxio.master.mount.table.root.alluxio:
+  'Alluxio root mount point.'
+alluxio.master.mount.table.root.option:
+  'Configuration for the UFS of Alluxio root mount point.'
+alluxio.master.mount.table.root.readonly:
+  'Whether Alluxio root mount point is readonly.'
+alluxio.master.mount.table.root.shared:
+  'Whether Alluxio root mount point is shared.'
+alluxio.master.mount.table.root.ufs:
+  'The UFS mounted to Alluxio root mount point.'
+alluxio.master.periodic.block.integrity.check.interval:
+  'The period for the block integrity check, disabled if <= 0.'
+alluxio.master.periodic.block.integrity.check.repair:
+  'Whether the system should delete orphaned blocks found during the periodic integrity check. This is an experimental feature.'
+alluxio.master.port:
+  'The port that Alluxio master node runs on.'
 alluxio.master.principal:
-  Kerberos principal for Alluxio master.
-alluxio.master.connection.timeout.ms:
-  Timeout (in milliseconds) between master and client，the default value is 0, that time is unlimited
+  'Kerberos principal for Alluxio master.'
+alluxio.master.startup.block.integrity.check.enabled:
+  'Whether the system should be checked on startup for orphaned blocks (blocks having no corresponding files but still taking system resource due to various system failures). Orphaned blocks will be deleted during master startup if this property is true. This property is available since 1.7.1'
+alluxio.master.startup.consistency.check.enabled:
+  'Whether the system should be checked for consistency with the underlying storage on startup. During the time the check is running, Alluxio will be in read only mode. Enabled by default.'
+alluxio.master.thrift.shutdown.timeout:
+  'Maximum time to wait for thrift servers to stop on shutdown'
+alluxio.master.tieredstore.global.level0.alias:
+  'The name of the highest storage tier in the entire system.'
+alluxio.master.tieredstore.global.level1.alias:
+  'The name of the second highest storage tier in the entire system.'
+alluxio.master.tieredstore.global.level2.alias:
+  'The name of the third highest storage tier in the entire system.'
+alluxio.master.tieredstore.global.levels:
+  'The total number of storage tiers in the system.'
+alluxio.master.ttl.checker.interval:
+  'Time interval to periodically delete the files with expired ttl value.'
+alluxio.master.ufs.block.location.cache.capacity:
+  'The capacity of the UFS block locations cache. This cache caches UFS block locations for files that are persisted but not in Alluxio space, so that listing status of these files do not need to repeatedly ask UFS for their block locations. If this is set to 0, the cache will be disabled.'
+alluxio.master.ufs.path.cache.capacity:
+  'The capacity of the UFS path cache. This cache is used to approximate the `Once` metadata load behavior (see `alluxio.user.file.metadata.load.type`). Larger caches will consume more memory, but will better approximate the `Once` behavior.'
+alluxio.master.ufs.path.cache.threads:
+  'The maximum size of the thread pool for asynchronously processing paths for the UFS path cache. Greater number of threads will decrease the amount of staleness in the async cache, but may impact performance. If this is set to 0, the cache will be disabled, and `alluxio.user.file.metadata.load.type=Once` will behave like `Always`.'
+alluxio.master.web.bind.host:
+  'The hostname Alluxio master web UI binds to. See <a href="#configure-multihomed-networks">multi-homed networks</a>.'
+alluxio.master.web.hostname:
+  'The hostname of Alluxio Master web UI.'
+alluxio.master.web.port:
+  'The port Alluxio web UI runs on.'
+alluxio.master.whitelist:
+  'A comma-separated list of prefixes of the paths which are cacheable, separated by semi-colons. Alluxio will try to cache the cacheable file when it is read for the first time.'
+alluxio.master.worker.connect.wait.time:
+  'Alluxio master will wait a period of time after start up for all workers to register, before it starts accepting client requests. This property determines the wait time.'
+alluxio.master.worker.heartbeat.interval:
+  'The interval between Alluxio master and worker heartbeats.'
+alluxio.master.worker.threads.max:
+  'The maximum number of incoming RPC requests to master that can be handled. This value is used to configure maximum number of threads in Thrift thread pool with master.'
+alluxio.master.worker.threads.min:
+  'The minimum number of threads used to handle incoming RPC requests to master. This value is used to configure minimum number of threads in Thrift thread pool with master.'
+alluxio.master.worker.timeout:
+  'Timeout between master and worker indicating a lost worker.'

@@ -12,17 +12,13 @@
 package alluxio.master.file.options;
 
 import alluxio.Configuration;
-import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.security.authorization.Mode;
 import alluxio.thrift.CreateFileTOptions;
 import alluxio.util.SecurityUtils;
-import alluxio.wire.ThriftUtils;
-import alluxio.wire.TtlAction;
+import alluxio.wire.CommonOptions;
 
 import com.google.common.base.Objects;
-
-import java.io.IOException;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -32,8 +28,10 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public final class CreateFileOptions extends CreatePathOptions<CreateFileOptions> {
   private long mBlockSizeBytes;
-  private long mTtl;
-  private TtlAction mTtlAction;
+  private int mReplicationDurable;
+  private int mReplicationMax;
+  private int mReplicationMin;
+  private boolean mCacheable;
 
   /**
    * @return the default {@link CreateFileOptions}
@@ -47,32 +45,39 @@ public final class CreateFileOptions extends CreatePathOptions<CreateFileOptions
    * of permission is constructed with the username obtained from thrift transport.
    *
    * @param options the {@link CreateFileTOptions} to use
-   * @throws IOException if it failed to retrieve users or groups from thrift transport
    */
-  public CreateFileOptions(CreateFileTOptions options) throws IOException {
-    super();
-    mBlockSizeBytes = options.getBlockSizeBytes();
-    mPersisted = options.isPersisted();
-    mRecursive = options.isRecursive();
-    mTtl = options.getTtl();
-    mTtlAction = ThriftUtils.fromThrift(options.getTtlAction());
-    if (SecurityUtils.isAuthenticationEnabled()) {
-      mOwner = SecurityUtils.getOwnerFromThriftClient();
-      mGroup = SecurityUtils.getGroupFromThriftClient();
-    }
-    if (options.isSetMode()) {
-      mMode = new Mode(options.getMode());
-    } else {
-      mMode.applyFileUMask();
+  public CreateFileOptions(CreateFileTOptions options) {
+    this();
+    if (options != null) {
+      if (options.isSetCommonOptions()) {
+        mCommonOptions = new CommonOptions(options.getCommonOptions());
+      }
+      mBlockSizeBytes = options.getBlockSizeBytes();
+      mPersisted = options.isPersisted();
+      mRecursive = options.isRecursive();
+      mReplicationDurable = options.getReplicationDurable();
+      mReplicationMax = options.getReplicationMax();
+      mReplicationMin = options.getReplicationMin();
+      if (SecurityUtils.isAuthenticationEnabled()) {
+        mOwner = SecurityUtils.getOwnerFromThriftClient();
+        mGroup = SecurityUtils.getGroupFromThriftClient();
+      }
+      if (options.isSetMode()) {
+        mMode = new Mode(options.getMode());
+      } else {
+        mMode.applyFileUMask();
+      }
     }
   }
 
   private CreateFileOptions() {
     super();
     mBlockSizeBytes = Configuration.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
-    mTtl = Constants.NO_TTL;
-    mTtlAction = TtlAction.DELETE;
+    mReplicationDurable = Configuration.getInt(PropertyKey.USER_FILE_REPLICATION_DURABLE);
+    mReplicationMax = Configuration.getInt(PropertyKey.USER_FILE_REPLICATION_MAX);
+    mReplicationMin = Configuration.getInt(PropertyKey.USER_FILE_REPLICATION_MIN);
     mMode.applyFileUMask();
+    mCacheable = false;
   }
 
   /**
@@ -83,18 +88,31 @@ public final class CreateFileOptions extends CreatePathOptions<CreateFileOptions
   }
 
   /**
-   * @return the TTL (time to live) value; it identifies duration (in seconds) the created file
-   *         should be kept around before it is automatically deleted
+   * @return the number of block replication for durable write
    */
-  public long getTtl() {
-    return mTtl;
+  public int getReplicationDurable() {
+    return mReplicationDurable;
   }
 
   /**
-   * @return the {@link TtlAction}
+   * @return the maximum number of block replication
    */
-  public TtlAction getTtlAction() {
-    return mTtlAction;
+  public int getReplicationMax() {
+    return mReplicationMax;
+  }
+
+  /**
+   * @return the minimum number of block replication
+   */
+  public int getReplicationMin() {
+    return mReplicationMin;
+  }
+
+  /**
+   * @return true if file is cacheable
+   */
+  public boolean isCacheable() {
+    return mCacheable;
   }
 
   /**
@@ -107,22 +125,39 @@ public final class CreateFileOptions extends CreatePathOptions<CreateFileOptions
   }
 
   /**
-   * @param ttl the TTL (time to live) value to use; it identifies duration (in milliseconds) the
-   *        created file should be kept around before it is automatically deleted
+   * @param replicationDurable the number of block replication for durable write
    * @return the updated options object
    */
-  public CreateFileOptions setTtl(long ttl) {
-    mTtl = ttl;
-    return getThis();
+  public CreateFileOptions setReplicationDurable(int replicationDurable) {
+    mReplicationDurable = replicationDurable;
+    return this;
   }
 
   /**
-   * @param ttlAction the {@link TtlAction}; It informs the action to take when Ttl is expired;
+   * @param replicationMax the maximum number of block replication
    * @return the updated options object
    */
-  public CreateFileOptions setTtlAction(TtlAction ttlAction) {
-    mTtlAction = ttlAction;
-    return getThis();
+  public CreateFileOptions setReplicationMax(int replicationMax) {
+    mReplicationMax = replicationMax;
+    return this;
+  }
+
+  /**
+   * @param replicationMin the minimum number of block replication
+   * @return the updated options object
+   */
+  public CreateFileOptions setReplicationMin(int replicationMin) {
+    mReplicationMin = replicationMin;
+    return this;
+  }
+
+  /**
+   * @param cacheable true if the file is cacheable, false otherwise
+   * @return the updated options object
+   */
+  public CreateFileOptions setCacheable(boolean cacheable) {
+    mCacheable = cacheable;
+    return this;
   }
 
   @Override
@@ -142,18 +177,25 @@ public final class CreateFileOptions extends CreatePathOptions<CreateFileOptions
       return false;
     }
     CreateFileOptions that = (CreateFileOptions) o;
-    return Objects.equal(mBlockSizeBytes, that.mBlockSizeBytes) && Objects.equal(mTtl, that.mTtl)
-        && Objects.equal(mTtlAction, that.mTtlAction);
+    return Objects.equal(mBlockSizeBytes, that.mBlockSizeBytes)
+        && Objects.equal(mReplicationDurable, that.mReplicationDurable)
+        && Objects.equal(mReplicationMax, that.mReplicationMax)
+        && Objects.equal(mReplicationMin, that.mReplicationMin)
+        && Objects.equal(mCacheable, that.mCacheable);
   }
 
   @Override
   public int hashCode() {
-    return super.hashCode() + Objects.hashCode(mBlockSizeBytes, mTtl, mTtlAction);
+    return super.hashCode() + Objects.hashCode(mBlockSizeBytes, mReplicationDurable,
+        mReplicationMax, mReplicationMin, mCacheable);
   }
 
   @Override
   public String toString() {
-    return toStringHelper().add("blockSizeBytes", mBlockSizeBytes).add("ttl", mTtl)
-        .add("ttlAction", mTtlAction).toString();
+    return toStringHelper().add("blockSizeBytes", mBlockSizeBytes)
+        .add("replicationDurable", mReplicationDurable)
+        .add("replicationMax", mReplicationMax)
+        .add("replicationMin", mReplicationMin)
+        .add("cacheable", mCacheable).toString();
   }
 }

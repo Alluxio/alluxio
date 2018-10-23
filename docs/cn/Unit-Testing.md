@@ -1,14 +1,15 @@
 ---
 layout: global
-title: 单元测试指南
-nickname: 单元测试指南
+title: 如何开发单元测试
+nickname: 如何开发单元测试
 group: Resources
+priority: 3
 ---
 
 * 内容列表
 {:toc}
 
-# 单元测试目标
+## 单元测试目标
 1. 单元测试用于示例如何使用测试中的代码。
 2. 单元测试在对象失去功能时检测。
 3. 当对象被重构但仍满足相同功能时，单元测试不会打断它。
@@ -75,7 +76,7 @@ public void detectLostWorker() throws Exception {
 ```
 7\. 循环回到步骤＃3，直到类的整个公共API都已经被测试。
 
-# 惯例
+## 惯例
 1. 对`src/main/java/ClassName.java`的测试应该运行为`src/test/java/ClassNameTest.java`。
 2. 测试不需要处理或记录特定的检查异常，更倾向于简单地添加`throws Exception`到方法声明中。
 3. 目标是保持测试简明扼要而不需要注释帮助理解。
@@ -134,4 +135,4 @@ public void test() {
 ```
 
 ### 其他全局状态
-如果测试需要修改其它类型的全局状态，创建一个新的`@Rule`用于管理状态，这样就可以在测试中共享。这样的一个例子是[`TtlIntervalRule`](https://github.com/Alluxio/alluxio/blob/master/core/server/src/test/java/alluxio/master/file/meta/TtlIntervalRule.java)。
+如果测试需要修改其它类型的全局状态，创建一个新的`@Rule`用于管理状态，这样就可以在测试中共享。这样的一个例子是[`TtlIntervalRule`](https://github.com/Alluxio/alluxio/blob/master/core/server/master/src/test/java/alluxio/master/file/meta/TtlIntervalRule.java)。

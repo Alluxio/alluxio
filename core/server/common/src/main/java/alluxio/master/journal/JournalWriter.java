@@ -11,87 +11,26 @@
 
 package alluxio.master.journal;
 
+import alluxio.exception.JournalClosedException;
 import alluxio.proto.journal.Journal.JournalEntry;
 
+import java.io.Closeable;
 import java.io.IOException;
 
 /**
- * This class manages all the writes to the journal. Journal writes happen in two phases:
- *
- * 1. First the checkpoint is written. The checkpoint contains entries reflecting the
- * state of the master with all of the completed logs applied.
- *
- * 2. Afterwards, entries are appended to log. The checkpoint must be written before the logs.
- *
- * The latest state can be reconstructed by reading the checkpoint, and applying all the
- * completed logs and finally the current log.
+ * Interface for a class that can write and flush journal entries.
  */
-public interface JournalWriter {
-
+public interface JournalWriter extends Closeable {
   /**
-   * Marks all logs as completed.
-   *
-   * @throws IOException if an I/O error occurs
-   */
-  void completeLogs() throws IOException;
-
-  /**
-   * Returns an output stream for the journal checkpoint. The returned output stream is a singleton
-   * for this writer.
-   *
-   * @param latestSequenceNumber the sequence number of the latest journal entry. This sequence
-   *        number will be used to determine the next sequence numbers for the subsequent journal
-   *        entries.
-   * @return the output stream for the journal checkpoint
-   * @throws IOException if an I/O error occurs
-   */
-  JournalOutputStream getCheckpointOutputStream(long latestSequenceNumber) throws IOException;
-
-  /**
-   * Writes an entry to the current log stream. {@link #flush} should be called
-   * afterward to ensure the entry is persisted.
+   * Writes an entry. {@link #flush} should be called afterwards if we want to make sure the entry
+   * is persisted.
    *
    * @param entry the journal entry to write
-   * @throws IOException if an error occurs writing the entry or if the checkpoint is not closed
    */
-  void write(JournalEntry entry) throws IOException;
+  void write(JournalEntry entry) throws IOException, JournalClosedException;
 
   /**
-   * Flushes the current log stream. Otherwise this operation is a no-op.
-   *
-   * @throws IOException if an error occurs preventing the stream from being flushed
+   * Flushes all the entries written to the underlying storage.
    */
-  void flush() throws IOException;
-
-  /**
-   * @return the next sequence number
-   */
-  long getNextSequenceNumber();
-
-  /**
-   * Closes the journal.
-   *
-   * @throws IOException if an I/O error occurs
-   */
-  void close() throws IOException;
-
-  /**
-   * Recovers the checkpoint in case the master crashed while updating it previously.
-   */
-  void recover();
-
-  /**
-   * Deletes all of the completed logs.
-   *
-   * @throws IOException if an I/O error occurs
-   */
-  void deleteCompletedLogs() throws IOException;
-
-  /**
-   * Marks the current log as completed. If successful, the current log will no longer exist. The
-   * current log must be closed before this call.
-   *
-   * @throws IOException if an I/O error occurs
-   */
-  void completeCurrentLog() throws IOException;
+  void flush() throws IOException, JournalClosedException;
 }

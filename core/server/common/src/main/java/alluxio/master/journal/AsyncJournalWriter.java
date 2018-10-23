@@ -13,6 +13,7 @@ package alluxio.master.journal;
 
 import alluxio.Configuration;
 import alluxio.PropertyKey;
+import alluxio.exception.JournalClosedException;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.resource.LockResource;
 
@@ -53,7 +54,7 @@ public final class AsyncJournalWriter {
   /**
    * Creates a {@link AsyncJournalWriter}.
    *
-   * @param journalWriter the {@link JournalWriter} to use for writing
+   * @param journalWriter a journal writer to write to
    */
   public AsyncJournalWriter(JournalWriter journalWriter) {
     mJournalWriter = Preconditions.checkNotNull(journalWriter, "journalWriter");
@@ -63,7 +64,7 @@ public final class AsyncJournalWriter {
     mWriteCounter = new AtomicLong(0);
     // convert milliseconds to nanoseconds.
     mFlushBatchTimeNs =
-        1000000L * Configuration.getLong(PropertyKey.MASTER_JOURNAL_FLUSH_BATCH_TIME_MS);
+        1000000L * Configuration.getMs(PropertyKey.MASTER_JOURNAL_FLUSH_BATCH_TIME_MS);
   }
 
   /**
@@ -102,9 +103,9 @@ public final class AsyncJournalWriter {
    * counter is already flushed, this is essentially a no-op.
    *
    * @param targetCounter the counter to flush
-   * @throws IOException if an error occurs in flushing the journal
    */
-  public void flush(final long targetCounter) throws IOException {
+  @SuppressWarnings("Duplicates")
+  public void flush(final long targetCounter) throws IOException, JournalClosedException {
     if (targetCounter <= mFlushCounter.get()) {
       return;
     }

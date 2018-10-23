@@ -12,13 +12,20 @@
 package alluxio.worker;
 
 import alluxio.Configuration;
+import alluxio.Constants;
+import alluxio.ProcessUtils;
 import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
-import alluxio.ServerUtils;
+import alluxio.master.MasterInquireClient;
+import alluxio.retry.RetryUtils;
+import alluxio.util.CommonUtils;
 import alluxio.util.ConfigurationUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.net.InetSocketAddress;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -42,17 +49,27 @@ public final class AlluxioWorker {
     }
 
     if (!ConfigurationUtils.masterHostConfigured()) {
-      System.out.println(String.format(
+      ProcessUtils.fatalError(LOG,
           "Cannot run alluxio worker; master hostname is not "
               + "configured. Please modify %s to either set %s or configure zookeeper with "
               + "%s=true and %s=[comma-separated zookeeper master addresses]",
-          Configuration.SITE_PROPERTIES, PropertyKey.MASTER_HOSTNAME.toString(),
-          PropertyKey.ZOOKEEPER_ENABLED.toString(), PropertyKey.ZOOKEEPER_ADDRESS.toString()));
-      System.exit(1);
+          Constants.SITE_PROPERTIES, PropertyKey.MASTER_HOSTNAME.toString(),
+          PropertyKey.ZOOKEEPER_ENABLED.toString(), PropertyKey.ZOOKEEPER_ADDRESS.toString());
     }
 
-    AlluxioWorkerService worker = AlluxioWorkerService.Factory.create();
-    ServerUtils.run(worker, "Alluxio worker");
+    CommonUtils.PROCESS_TYPE.set(CommonUtils.ProcessType.WORKER);
+    MasterInquireClient masterInquireClient = MasterInquireClient.Factory.create();
+    try {
+      RetryUtils.retry("load cluster default configuration with master", () -> {
+        InetSocketAddress masterAddress = masterInquireClient.getPrimaryRpcAddress();
+        Configuration.loadClusterDefault(masterAddress);
+      }, RetryUtils.defaultWorkerMasterClientRetry());
+    } catch (IOException e) {
+      ProcessUtils.fatalError(LOG,
+          "Failed to load cluster default configuration for worker: %s", e.getMessage());
+    }
+    WorkerProcess process = WorkerProcess.Factory.create();
+    ProcessUtils.run(process);
   }
 
   private AlluxioWorker() {} // prevent instantiation

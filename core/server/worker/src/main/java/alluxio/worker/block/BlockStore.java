@@ -15,6 +15,7 @@ import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.WorkerOutOfSpaceException;
+import alluxio.worker.SessionCleanable;
 import alluxio.worker.block.evictor.EvictionPlan;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
@@ -24,11 +25,13 @@ import alluxio.worker.block.meta.TempBlockMeta;
 import java.io.IOException;
 import java.util.Set;
 
+import javax.annotation.Nullable;
+
 /**
  * A blob store interface to represent the local storage managing and serving all the blocks in the
  * local storage.
  */
-interface BlockStore {
+public interface BlockStore extends SessionCleanable {
 
   /**
    * Locks an existing block and guards subsequent reads on this block.
@@ -87,7 +90,6 @@ interface BlockStore {
    * @throws BlockAlreadyExistsException if block id already exists, either temporary or committed,
    *         or block in eviction plan already exists
    * @throws WorkerOutOfSpaceException if this Store has no more space than the initialBlockSize
-   * @throws IOException if blocks in eviction plan fail to be moved or deleted
    */
   TempBlockMeta createBlock(long sessionId, long blockId, BlockStoreLocation location,
       long initialBlockSize) throws BlockAlreadyExistsException, WorkerOutOfSpaceException,
@@ -129,6 +131,7 @@ interface BlockStore {
    * @param blockId the id of the block
    * @return metadata of the block or null if the temp block does not exist
    */
+  @Nullable
   TempBlockMeta getTempBlockMeta(long sessionId, long blockId);
 
   /**
@@ -141,7 +144,6 @@ interface BlockStore {
    * @throws BlockAlreadyExistsException if block id already exists in committed blocks
    * @throws BlockDoesNotExistException if the temporary block can not be found
    * @throws InvalidWorkerStateException if block id does not belong to session id
-   * @throws IOException if the block can not be moved from temporary path to committed path
    * @throws WorkerOutOfSpaceException if there is no more space left to hold the block
    */
   void commitBlock(long sessionId, long blockId) throws BlockAlreadyExistsException,
@@ -158,7 +160,6 @@ interface BlockStore {
    * @throws BlockAlreadyExistsException if block id already exists in committed blocks
    * @throws BlockDoesNotExistException if the temporary block can not be found
    * @throws InvalidWorkerStateException if block id does not belong to session id
-   * @throws IOException if temporary block can not be deleted
    */
   void abortBlock(long sessionId, long blockId) throws BlockAlreadyExistsException,
       BlockDoesNotExistException, InvalidWorkerStateException, IOException;
@@ -173,8 +174,6 @@ interface BlockStore {
    * @throws BlockDoesNotExistException if block id can not be found, or some block in eviction plan
    *         cannot be found
    * @throws WorkerOutOfSpaceException if requested space can not be satisfied
-   * @throws IOException if blocks in {@link alluxio.worker.block.evictor.EvictionPlan} fail to be
-   *         moved or deleted on file system
    */
   void requestSpace(long sessionId, long blockId, long additionalBytes)
       throws BlockDoesNotExistException, WorkerOutOfSpaceException, IOException;
@@ -189,7 +188,6 @@ interface BlockStore {
    * @throws BlockDoesNotExistException if the block can not be found
    * @throws BlockAlreadyExistsException if a committed block with the same ID exists
    * @throws InvalidWorkerStateException if the worker state is invalid
-   * @throws IOException if block can not be created
    */
   BlockWriter getBlockWriter(long sessionId, long blockId)
       throws BlockDoesNotExistException, BlockAlreadyExistsException, InvalidWorkerStateException,
@@ -208,7 +206,6 @@ interface BlockStore {
    * @throws BlockDoesNotExistException if lockId is not found
    * @throws InvalidWorkerStateException if session id or block id is not the same as that in the
    *         LockRecord of lockId
-   * @throws IOException if block can not be read
    */
   BlockReader getBlockReader(long sessionId, long blockId, long lockId)
       throws BlockDoesNotExistException, InvalidWorkerStateException, IOException;
@@ -226,7 +223,6 @@ interface BlockStore {
    * @throws InvalidWorkerStateException if block id has not been committed
    * @throws WorkerOutOfSpaceException if newLocation does not have enough extra space to hold the
    *         block
-   * @throws IOException if block cannot be moved from current location to newLocation
    */
   void moveBlock(long sessionId, long blockId, BlockStoreLocation newLocation)
       throws BlockDoesNotExistException, BlockAlreadyExistsException, InvalidWorkerStateException,
@@ -246,7 +242,6 @@ interface BlockStore {
    * @throws InvalidWorkerStateException if block id has not been committed
    * @throws WorkerOutOfSpaceException if newLocation does not have enough extra space to hold the
    *         block
-   * @throws IOException if block cannot be moved from current location to newLocation
    */
   void moveBlock(long sessionId, long blockId, BlockStoreLocation oldLocation,
       BlockStoreLocation newLocation) throws BlockDoesNotExistException,
@@ -260,7 +255,6 @@ interface BlockStore {
    * @param blockId the id of an existing block
    * @throws InvalidWorkerStateException if block id has not been committed
    * @throws BlockDoesNotExistException if block can not be found
-   * @throws IOException if block cannot be removed from current path
    */
   void removeBlock(long sessionId, long blockId) throws InvalidWorkerStateException,
       BlockDoesNotExistException, IOException;
@@ -273,7 +267,6 @@ interface BlockStore {
    * @param location the location of the block
    * @throws InvalidWorkerStateException if block id has not been committed
    * @throws BlockDoesNotExistException if block can not be found
-   * @throws IOException if block cannot be removed from current path
    */
   void removeBlock(long sessionId, long blockId, BlockStoreLocation location)
       throws InvalidWorkerStateException, BlockDoesNotExistException, IOException;
@@ -298,8 +291,8 @@ interface BlockStore {
   BlockStoreMeta getBlockStoreMeta();
 
   /**
-   * Similar as {@link BlockStoreMeta#getBlockStoreMeta} except that this includes more information
-   * about the block store (e.g. blockId list). This is an expensive operation.
+   * Similar as {@link #getBlockStoreMeta} except that this includes
+   * more information about the block store (e.g. blockId list). This is an expensive operation.
    *
    * @return full store metadata
    */
@@ -320,18 +313,17 @@ interface BlockStore {
    *
    * @param sessionId the session id
    */
+  @Override
   void cleanupSession(long sessionId);
 
   /**
-   * Frees space to make a specific amount of bytes available in the location.
+   * Frees space to make a specific amount of bytes available in a best-effort way in the location.
    *
    * @param sessionId the session id
    * @param availableBytes the amount of free space in bytes
    * @param location the location to free space
    * @throws WorkerOutOfSpaceException if there is not enough space
    * @throws BlockDoesNotExistException if blocks in {@link EvictionPlan} can not be found
-   * @throws IOException if blocks in {@link EvictionPlan} fail to be moved or deleted on file
-   *         system
    */
   void freeSpace(long sessionId, long availableBytes, BlockStoreLocation location)
       throws WorkerOutOfSpaceException, BlockDoesNotExistException, IOException;

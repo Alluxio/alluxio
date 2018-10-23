@@ -11,10 +11,11 @@
 
 package alluxio.wire;
 
-import alluxio.CommonTestUtils;
+import static org.junit.Assert.assertEquals;
 
-import org.codehaus.jackson.map.ObjectMapper;
-import org.junit.Assert;
+import alluxio.test.util.CommonUtils;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Test;
 
 import java.util.Random;
@@ -23,8 +24,6 @@ public class CapacityTest {
 
   /**
    * Test to convert between a Capacity type and a json type.
-   *
-   * @throws Exception if an error occurs during conversion between Capacity type and json type
    */
   @Test
   public void json() throws Exception {
@@ -36,7 +35,7 @@ public class CapacityTest {
 
   @Test
   public void equals() {
-    CommonTestUtils.testEquals(AlluxioMasterInfo.class);
+    CommonUtils.testEquals(AlluxioMasterInfo.class);
   }
 
   /**
@@ -46,9 +45,9 @@ public class CapacityTest {
    * @param b the second Capacity object to be checked
    */
   private void checkEquality(Capacity a, Capacity b) {
-    Assert.assertEquals(a.getTotal(), b.getTotal());
-    Assert.assertEquals(a.getUsed(), b.getUsed());
-    Assert.assertEquals(a, b);
+    assertEquals(a.getTotal(), b.getTotal());
+    assertEquals(a.getUsed(), b.getUsed());
+    assertEquals(a, b);
   }
 
   /**

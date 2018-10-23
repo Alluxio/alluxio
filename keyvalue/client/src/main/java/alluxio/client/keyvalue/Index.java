@@ -28,7 +28,6 @@ public interface Index {
    * @param value bytes of value
    * @param writer writer to store key-value payload
    * @return true on success, false otherwise (e.g., unresolvable hash collision)
-   * @throws IOException if errors happen when writer writes key/value
    */
   boolean put(byte[] key, byte[] value, PayloadWriter writer) throws IOException;
 
@@ -38,7 +37,6 @@ public interface Index {
    * @param key bytes of key
    * @param reader reader to access key-value payload
    * @return ByteBuffer of value, or null if not found
-   * @throws IOException if a non-Alluxio related exception occurs
    */
   ByteBuffer get(ByteBuffer key, PayloadReader reader) throws IOException;
 
@@ -79,5 +77,4 @@ public interface Index {
    * @return an iterator of keys, the iterator does not support remove
    */
   Iterator<ByteBuffer> keyIterator(PayloadReader reader);
-
 }

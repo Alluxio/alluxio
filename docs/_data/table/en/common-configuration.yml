@@ -1,125 +1,198 @@
 alluxio.conf.dir:
-  The directory containing files used to configure Alluxio.
+  'The directory containing files used to configure Alluxio. Note: This property must be specified as a JVM property; it is not accepted in alluxio-site.properties.'
 alluxio.debug:
-  Set to true to enable debug mode which has additional logging and info in the Web UI.
+  'Set to true to enable debug mode which has additional logging and info in the Web UI.'
+alluxio.extensions.dir:
+  'The directory containing Alluxio extensions.'
+alluxio.fuse.cached.paths.max:
+  'Maximum number of Alluxio paths to cache for FUSE conversion.'
+alluxio.fuse.debug.enabled:
+  'Run FUSE in debug mode, and have the fuse process log every FS request.'
+alluxio.fuse.fs.name:
+  'The FUSE file system name.'
+alluxio.fuse.maxwrite.bytes:
+  'Maximum granularity of write operations, capped by the kernel to 128KB max (as of Linux 3.16.0).'
+alluxio.fuse.user.group.translation.enabled:
+  'Whether to translate Alluxio users and groups into Unix users and groups when exposing Alluxio files through the FUSE API. When this property is set to false, the user and group for all FUSE files will match the user who started the alluxio-fuse process.'
 alluxio.home:
-  Alluxio installation directory.
+  'Alluxio installation directory.'
+alluxio.jvm.monitor.info.threshold:
+  'Extra sleep time longer than this threshold, log INFO.'
+alluxio.jvm.monitor.sleep.interval:
+  'The time for the JVM monitor thread to sleep.'
+alluxio.jvm.monitor.warn.threshold:
+  'Extra sleep time longer than this threshold, log WARN.'
+alluxio.locality.compare.node.ip:
+  'Whether try to resolve the node IP address for locality checking'
+alluxio.locality.node:
+  'Value to use for determining node locality'
+alluxio.locality.order:
+  'Ordering of locality tiers'
+alluxio.locality.rack:
+  'Value to use for determining rack locality'
+alluxio.locality.script:
+  'A script to determine tiered identity for locality checking'
+alluxio.logger.type:
+  'The type of logger.'
 alluxio.logs.dir:
-  The path to store log files.
-alluxio.keyvalue.enabled:
-  Whether the key-value service is enabled.
-alluxio.keyvalue.partition.size.bytes.max:
-  Maximum allowable size (in bytes) of a single key-value partition in a store. This value
-  should be no larger than the block size (alluxio.user.block.size.bytes.default)
+  'The path to store log files. Note: This property must be specified as a JVM property; it is not accepted in alluxio-site.properties.'
+alluxio.logserver.hostname:
+  'The hostname of Alluxio logserver. Note: This property must be specified as a JVM property; it is not accepted in alluxio-site.properties.'
+alluxio.logserver.logs.dir:
+  'Default location for remote log files. Note: This property must be specified as a JVM property; it is not accepted in alluxio-site.properties.'
+alluxio.logserver.port:
+  'Default port number to receive logs from alluxio servers. Note: This property must be specified as a JVM property; it is not accepted in alluxio-site.properties.'
+alluxio.logserver.threads.max:
+  'The maximum number of threads used by logserver to service logging requests.'
+alluxio.logserver.threads.min:
+  'The minimum number of threads used by logserver to service logging requests.'
 alluxio.metrics.conf.file:
-  The file path of the metrics system configuration file. By default it is `metrics.properties`
-  in the `conf` directory.
-alluxio.network.host.resolution.&#8203;timeout.ms:
-  During startup of the Master and Worker processes Alluxio needs to ensure that they are
-  listening on externally resolvable and reachable host names.  To do this, Alluxio will
-  automatically attempt to select an appropriate host name if one was not explicitly specified.
-  This represents the maximum amount of time spent waiting to determine if a candidate host name
-  is resolvable over the network.
-alluxio.network.thrift.frame.&#8203;size.bytes.max:
-  (Experimental) The largest allowable frame size used for Thrift RPC communication.
+  'The file path of the metrics system configuration file. By default it is `metrics.properties` in the `conf` directory.'
+alluxio.network.host.resolution.timeout:
+  'During startup of the Master and Worker processes Alluxio needs to ensure that they are listening on externally resolvable and reachable host names. To do this, Alluxio will automatically attempt to select an appropriate host name if one was not explicitly specified. This represents the maximum amount of time spent waiting to determine if a candidate host name is resolvable over the network.'
+alluxio.network.netty.heartbeat.timeout:
+  'The amount of time the server will wait before closing a netty connection if there has not been any incoming traffic. The client will periodically heartbeat when there is no activity on a connection. This value should be the same on the clients and server.'
+alluxio.network.thrift.frame.size.bytes.max:
+  '(Experimental) The largest allowable frame size used for Thrift RPC communication.'
+alluxio.proxy.s3.deletetype:
+  'Delete type when deleting buckets and objects through S3 API. Valid options are `ALLUXIO_AND_UFS` (delete both in Alluxio and UFS), `ALLUXIO_ONLY` (delete only the buckets or objects in Alluxio namespace).'
+alluxio.proxy.s3.multipart.temporary.dir.suffix:
+  'Suffix for the directory which holds parts during a multipart upload.'
+alluxio.proxy.s3.writetype:
+  'Write type when creating buckets and objects through S3 API. Valid options are `MUST_CACHE` (write will only go to Alluxio and must be stored in Alluxio), `CACHE_THROUGH` (try to cache, write to UnderFS synchronously), `THROUGH` (no cache, write to UnderFS synchronously).'
+alluxio.proxy.stream.cache.timeout:
+  'The timeout for the input and output streams cache eviction in the proxy.'
+alluxio.proxy.web.bind.host:
+  'The hostname that the Alluxio proxy''s web server runs on. See <a href="#configure-multihomed-networks">multi-homed networks</a>.'
+alluxio.proxy.web.hostname:
+  'The hostname Alluxio proxy''s web UI binds to.'
+alluxio.proxy.web.port:
+  'The port Alluxio proxy''s web UI runs on.'
 alluxio.site.conf.dir:
-  Default search path for configuration files to read
+  'Comma-separated search path for alluxio-site.properties. Note: This property must be specified as a JVM property; it is not accepted in alluxio-site.properties.'
 alluxio.test.mode:
-  Flag used only during tests to allow special behavior.
+  'Flag used only during tests to allow special behavior.'
+alluxio.tmp.dirs:
+  'The path(s) to store Alluxio temporary files, use commas as delimiters. If multiple paths are specified, one will be selected at random per temporary file. Currently, only files to be uploaded to object stores are stored in these paths.'
 alluxio.underfs.address:
-  Alluxio directory in the under file system.
+  'Alluxio directory in the under file system.'
+alluxio.underfs.allow.set.owner.failure:
+  'Whether to allow setting owner in UFS to fail. When set to true, it is possible file or directory owners diverge between Alluxio and UFS.'
 alluxio.underfs.gcs.owner.id.to.username.mapping:
-  Optionally, specify a preset gcs owner id to Alluxio username static mapping in the
-  format "id1=user1;id2=user2". The Google Cloud Storage IDs can be found at the console address
-  https://console.cloud.google.com/storage/settings . Please use the "Owners" one.
-alluxio.underfs.glusterfs.impl:
-  Glusterfs hook with hadoop.
-alluxio.underfs.glusterfs.mapred.&#8203;system.dir:
-  Optionally, specify subdirectory under GlusterFS for intermediary MapReduce data.
+  'Optionally, specify a preset gcs owner id to Alluxio username static mapping in the format "id1=user1;id2=user2". The Google Cloud Storage IDs can be found at the console address https://console.cloud.google.com/storage/settings . Please use the "Owners" one.'
 alluxio.underfs.hdfs.configuration:
-  Location of the hdfs configuration file.
+  'Location of the HDFS configuration file.'
 alluxio.underfs.hdfs.impl:
-  The implementation class of the HDFS as the under storage system.
+  'The implementation class of the HDFS as the under storage system.'
 alluxio.underfs.hdfs.prefixes:
-  Optionally, specify which prefixes should run through the Apache Hadoop implementation of
-  UnderFileSystem. The delimiter is any whitespace and/or ','.
+  'Optionally, specify which prefixes should run through the HDFS implementation of UnderFileSystem. The delimiter is any whitespace and/or '',''.'
 alluxio.underfs.hdfs.remote:
-  Boolean indicating whether or not the under storage worker nodes are remote with respect to
-  Alluxio worker nodes. If set to true, Alluxio will not attempt to discover locality information
-  from the under storage because locality is impossible. This will improve performance. The default
-  value is false.
+  'Boolean indicating whether or not the under storage worker nodes are remote with respect to Alluxio worker nodes. If set to true, Alluxio will not attempt to discover locality information from the under storage because locality is impossible. This will improve performance. The default value is false.'
 alluxio.underfs.listing.length:
-  The maximum number of directory entries to list in a single query to under file system. If the
-  total number of entries is greater than the specified length, multiple queries will be issued.
+  'The maximum number of directory entries to list in a single query to under file system. If the total number of entries is greater than the specified length, multiple queries will be issued.'
 alluxio.underfs.object.store.mount.shared.publicly:
-  Whether or not to share object storage under storage system mounted point with all Alluxio users.
-  Note that this configuration has no effect on HDFS nor local UFS. The default value is false.
-alluxio.underfs.s3.owner.id.to.username.mapping:
-  Optionally, specify a preset s3 canonical id to Alluxio username static mapping, in the
-  format "id1=user1;id2=user2". The AWS S3 canonical ID can be found at the console address
-  https://console.aws.amazon.com/iam/home?#security_credential . Please expand the
-  "Account Identifiers" tab and refer to "Canonical User ID".
-alluxio.underfs.s3.endpoint:
-  Optinally, to reduce data latency or visit resources which are sepreted in defferent AWS regions, specify a regional endpoint to make aws requests.
-  An endpoint is a URL that is the entry point for a web service. For example,
-  s3.cn-north-1.amazonaws.com.cn is an entry point for the Amazon S3 service in beijing region.
-alluxio.underfs.s3.proxy.host:
-  Optionally, specify a proxy host for communicating with S3.
-alluxio.underfs.s3.proxy.https.only:
-  If using a proxy to communicate with S3, determine whether to talk to the proxy using https.
-alluxio.underfs.s3.proxy.port:
-  Optionally, specify a proxy port for communicating with S3.
-alluxio.underfs.s3.threads.max:
-  The maximum number of threads to use for communicating with S3 and the maximum number of
-  concurrent connections to S3. Includes both threads for data upload and metadata operations. This
-  number should be at least as large as the max admin threads plus max upload threads. The default
-  is 40 which is the sum of the default admin and upload thread pool sizes.
+  'Whether or not to share object storage under storage system mounted point with all Alluxio users. Note that this configuration has no effect on HDFS nor local UFS.'
+alluxio.underfs.object.store.read.retry.base.sleep:
+  'Block reads from an object store automatically retry for transient errors with an exponential backoff. This property determines the base time in the exponential backoff.'
+alluxio.underfs.object.store.read.retry.max.num:
+  'Block reads from  an object store automatically retry for transient errors with an exponential backoff. This property determines the maximum number of retries.'
+alluxio.underfs.object.store.read.retry.max.sleep:
+  'Block reads from an object store automatically retry for transient errors with an exponential backoff. This property determines the maximum wait time in the backoff.'
+alluxio.underfs.object.store.service.threads:
+  'The number of threads in executor pool for parallel object store UFS operations.'
+alluxio.underfs.oss.connection.max:
+  'The maximum number of OSS connections.'
+alluxio.underfs.oss.connection.timeout:
+  'The timeout when connecting to OSS.'
+alluxio.underfs.oss.connection.ttl:
+  'The TTL of OSS connections in ms.'
+alluxio.underfs.oss.socket.timeout:
+  'The timeout of OSS socket.'
 alluxio.underfs.s3.admin.threads.max:
-  The maximum number of threads to use for metadata operations when communicating with S3. These
-  operations may be fairly concurrent and frequent but should not take much time to process.
-  The default is 20.
-alluxio.underfs.s3.upload.threads.max:
-  The maximum number of threads to use for uploading data to S3 for multipart uploads. These
-  operations can be fairly expensive, so multiple threads are encouraged. However, this also splits
-  the bandwidth between threads, meaning the overall latency for completing an upload will be higher
-  for more threads. The default value is 20.
+  'The maximum number of threads to use for metadata operations when communicating with S3. These operations may be fairly concurrent and frequent but should not take much time to process.'
 alluxio.underfs.s3.disable.dns.buckets:
-  Optionally, specify to make all S3 requests path style. The default value is false.
-alluxio.underfs.s3a.consistency.timeout.ms:
-  The duration to wait for metadata consistency from the under storage. This is only used by
-  internal Alluxio operations which should be successful, but may appear unsuccessful due to
-  eventual consistency. The default value is 60000 milliseconds (1 minute).
-alluxio.underfs.s3a.request.timeout.ms:
-  The timeout for a single request to S3. Infinity if set to 0. Setting this property to a non-zero
-  value can improve performance by avoiding the long tail of requests to S3. For very slow
-  connections to S3, consider increasing this value or setting it to 0. The default value is 60000
-  milliseconds (1 minute).
-alluxio.underfs.s3a.secure.http.enabled:
-  Whether or not to use HTTPS protocol when communicating with s3. The default value is false.
-alluxio.underfs.s3a.server.side.encryption.enabled:
-  Whether or not to encrypt data stored in s3. The default value is false.
-alluxio.underfs.s3a.signer.algorithm:
-  The signature algorithm which should be used to sign requests to the s3 service. This is
-  optional, and if not set, the client will automatically determine it. For interacting with an s3
-  endpoint which only supports v2 signatures, set this to "S3SignerType".
-alluxio.underfs.s3a.socket.timeout.ms:
-  Length of the socket timeout when communicating with s3. The default value is 50000.
+  'Optionally, specify to make all S3 requests path style.'
+alluxio.underfs.s3.endpoint:
+  'Optionally, to reduce data latency or visit resources which are separated in different AWS regions, specify a regional endpoint to make aws requests. An endpoint is a URL that is the entry point for a web service. For example, s3.cn-north-1.amazonaws.com.cn is an entry point for the Amazon S3 service in beijing region.'
+alluxio.underfs.s3.owner.id.to.username.mapping:
+  'Optionally, specify a preset s3 canonical id to Alluxio username static mapping, in the format "id1=user1;id2=user2". The AWS S3 canonical ID can be found at the console address https://console.aws.amazon.com/iam/home?#security_credential . Please expand the "Account Identifiers" tab and refer to "Canonical User ID".'
+alluxio.underfs.s3.proxy.host:
+  'Optionally, specify a proxy host for communicating with S3.'
+alluxio.underfs.s3.proxy.port:
+  'Optionally, specify a proxy port for communicating with S3.'
+alluxio.underfs.s3.threads.max:
+  'The maximum number of threads to use for communicating with S3 and the maximum number of concurrent connections to S3. Includes both threads for data upload and metadata operations. This number should be at least as large as the max admin threads plus max upload threads.'
+alluxio.underfs.s3.upload.threads.max:
+  'The maximum number of threads to use for uploading data to S3 for multipart uploads. These operations can be fairly expensive, so multiple threads are encouraged. However, this also splits the bandwidth between threads, meaning the overall latency for completing an upload will be higher for more threads.'
+alluxio.underfs.s3a.consistency.timeout:
+  'The duration to wait for metadata consistency from the under storage. This is only used by internal Alluxio operations which should be successful, but may appear unsuccessful due to eventual consistency.'
+alluxio.underfs.s3a.directory.suffix:
+  'Directories are represented in S3 as zero-byte objects named with the specified suffix.'
 alluxio.underfs.s3a.inherit_acl:
-  Optionally disable this to disable inheriting bucket ACLs on objects. The default value is true.
+  'Optionally disable this to disable inheriting bucket ACLs on objects.'
+alluxio.underfs.s3a.list.objects.v1:
+  'Whether to use version 1 of GET Bucket (List Objects) API.'
+alluxio.underfs.s3a.request.timeout:
+  'The timeout for a single request to S3. Infinity if set to 0. Setting this property to a non-zero value can improve performance by avoiding the long tail of requests to S3. For very slow connections to S3, consider increasing this value or setting it to 0.'
+alluxio.underfs.s3a.secure.http.enabled:
+  'Whether or not to use HTTPS protocol when communicating with S3.'
+alluxio.underfs.s3a.server.side.encryption.enabled:
+  'Whether or not to encrypt data stored in S3.'
+alluxio.underfs.s3a.signer.algorithm:
+  'The signature algorithm which should be used to sign requests to the s3 service. This is optional, and if not set, the client will automatically determine it. For interacting with an S3 endpoint which only supports v2 signatures, set this to "S3SignerType".'
+alluxio.underfs.s3a.socket.timeout:
+  'Length of the socket timeout when communicating with S3.'
+alluxio.web.file.info.enabled:
+  'Whether detailed file information are enabled for the web UI.'
 alluxio.web.resources:
-  Path to the web application resources.
+  'Path to the web application resources.'
 alluxio.web.threads:
-  How many threads to use for the web server.
-alluxio.work.directory:
-  The directory to use for Alluxio's working directory. By default, the journal, logs,
-  and under file system data (if using local filesystem) are written here.
+  'How many threads to use for the web server.'
+alluxio.work.dir:
+  'The directory to use for Alluxio''s working directory. By default, the journal, logs, and under file system data (if using local filesystem) are written here.'
 alluxio.zookeeper.address:
-  Address of ZooKeeper
+  'Address of ZooKeeper.'
+alluxio.zookeeper.connection.timeout:
+  'Connection timeout to use when connecting to Zookeeper'
 alluxio.zookeeper.election.path:
-  Election directory in ZooKeeper.
+  'Election directory in ZooKeeper.'
 alluxio.zookeeper.enabled:
-  If true, setup master fault tolerant mode using ZooKeeper.
-alluxio.zookeeper.leader.path:
-  Leader directory in ZooKeeper.
+  'If true, setup master fault tolerant mode using ZooKeeper.'
 alluxio.zookeeper.leader.inquiry.retry:
-  The number of retries to inquire leader from ZooKeeper.
+  'The number of retries to inquire leader from ZooKeeper.'
+alluxio.zookeeper.leader.path:
+  'Leader directory in ZooKeeper.'
+alluxio.zookeeper.session.timeout:
+  'Session timeout to use when connecting to Zookeeper'
+aws.accessKeyId:
+  'The access key of S3 bucket.'
+aws.secretKey:
+  'The secret key of S3 bucket.'
+fs.gcs.accessKeyId:
+  'The access key of GCS bucket.'
+fs.gcs.secretAccessKey:
+  'The secret key of GCS bucket.'
+fs.oss.accessKeyId:
+  'The access key of OSS bucket.'
+fs.oss.accessKeySecret:
+  'The secret key of OSS bucket.'
+fs.oss.endpoint:
+  'The endpoint key of OSS bucket.'
+fs.swift.apikey:
+  '(deprecated) The API key used for user:tenant authentication.'
+fs.swift.auth.method:
+  'Choice of authentication method: [tempauth (default), swiftauth, keystone, keystonev3].'
+fs.swift.auth.url:
+  'Authentication URL for REST server, e.g., http://server:8090/auth/v1.0.'
+fs.swift.password:
+  'The password used for user:tenant authentication.'
+fs.swift.region:
+  'Service region when using Keystone authentication.'
+fs.swift.simulation:
+  'Whether to simulate a single node Swift backend for testing purposes: true or false (default).'
+fs.swift.tenant:
+  'Swift user for authentication.'
+fs.swift.use.public.url:
+  'Whether the REST server is in a public domain: true (default) or false.'
+fs.swift.user:
+  'Swift tenant for authentication.'

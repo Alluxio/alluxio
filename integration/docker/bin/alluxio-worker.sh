@@ -31,4 +31,4 @@ ALLUXIO_WORKER_LOGGER="Console,WORKER_LOGGER"
 
 . ${SCRIPT_DIR}/../../../libexec/alluxio-config.sh
 
-${JAVA} -cp ${CLASSPATH} ${ALLUXIO_WORKER_JAVA_OPTS} alluxio.worker.AlluxioWorker
+${JAVA} -cp ${ALLUXIO_SERVER_CLASSPATH} ${ALLUXIO_WORKER_JAVA_OPTS} alluxio.worker.AlluxioWorker

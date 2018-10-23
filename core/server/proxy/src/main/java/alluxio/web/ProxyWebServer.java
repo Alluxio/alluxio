@@ -16,7 +16,7 @@ import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.client.file.FileSystem;
 import alluxio.StreamCache;
-import alluxio.proxy.AlluxioProxyService;
+import alluxio.proxy.ProxyProcess;
 import alluxio.util.io.PathUtils;
 
 import org.eclipse.jetty.servlet.ServletHolder;
@@ -43,25 +43,25 @@ public final class ProxyWebServer extends WebServer {
    *
    * @param serviceName the service name
    * @param address the service address
-   * @param proxy the Alluxio proxy service
+   * @param proxyProcess the Alluxio proxy process
    */
   public ProxyWebServer(String serviceName, InetSocketAddress address,
-      final AlluxioProxyService proxy) {
+      final ProxyProcess proxyProcess) {
     super(serviceName, address);
 
     // REST configuration
-    ResourceConfig config = new ResourceConfig().packages("alluxio.proxy");
+    ResourceConfig config = new ResourceConfig().packages("alluxio.proxy", "alluxio.proxy.s3");
     ServletContainer servlet = new ServletContainer(config) {
       private static final long serialVersionUID = 7756010860672831556L;
 
       @Override
       public void init() throws ServletException {
         super.init();
-        getServletContext().setAttribute(ALLUXIO_PROXY_SERVLET_RESOURCE_KEY, proxy);
+        getServletContext().setAttribute(ALLUXIO_PROXY_SERVLET_RESOURCE_KEY, proxyProcess);
         getServletContext()
             .setAttribute(FILE_SYSTEM_SERVLET_RESOURCE_KEY, FileSystem.Factory.get());
         getServletContext().setAttribute(STREAM_CACHE_SERVLET_RESOURCE_KEY,
-            new StreamCache(Configuration.getLong(PropertyKey.PROXY_STREAM_CACHE_TIMEOUT_MS)));
+            new StreamCache(Configuration.getMs(PropertyKey.PROXY_STREAM_CACHE_TIMEOUT_MS)));
       }
     };
     ServletHolder servletHolder = new ServletHolder("Alluxio Proxy Web Service", servlet);

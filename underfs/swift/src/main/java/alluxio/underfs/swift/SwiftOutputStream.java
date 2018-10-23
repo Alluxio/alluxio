@@ -35,7 +35,6 @@ public class SwiftOutputStream extends OutputStream {
    * Creates a new instance of {@link SwiftOutputStream}.
    *
    * @param httpCon connection to Swift
-   * @throws IOException if an I/O error occurs
    */
   public SwiftOutputStream(HttpURLConnection httpCon) throws IOException {
     try {
@@ -67,8 +66,8 @@ public class SwiftOutputStream extends OutputStream {
     mOutputStream.close();
     InputStream is = null;
     try {
-      // Status 400 and up should be read from error stream
-      // Expecting here 201 Create or 202 Accepted
+      // Status 400 and up should be read from error stream.
+      // Expecting here 201 Create or 202 Accepted.
       if (mHttpCon.getResponseCode() >= 400) {
         LOG.error("Failed to write data to Swift with error code: " + mHttpCon.getResponseCode());
         is = mHttpCon.getErrorStream();

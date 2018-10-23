@@ -11,20 +11,15 @@
 
 package alluxio;
 
-import com.google.common.collect.ImmutableMap;
-
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * A rule for modifying Alluxio configuration during a test suite.
  */
 public final class ConfigurationRule extends AbstractResourceRule {
   private final Map<PropertyKey, String> mKeyValuePairs;
-  private final Map<PropertyKey, String> mOriginalValues = new HashMap<>();
-  private final Set<PropertyKey> mOriginalNullKeys = new HashSet<>();
+  private final Map<PropertyKey, String> mStashedProperties = new HashMap<>();
 
   /**
    * @param keyValuePairs map from configuration keys to the values to set them to
@@ -35,10 +30,15 @@ public final class ConfigurationRule extends AbstractResourceRule {
 
   /**
    * @param key the key of the configuration property to set
-   * @param value the value to set it to
+   * @param value the value to set it to, can be null to unset this key
    */
-  public ConfigurationRule(PropertyKey key, String value) {
-    this(ImmutableMap.of(key, value));
+  public ConfigurationRule(final PropertyKey key, final String value) {
+    // ImmutableMap does not support nullable value, create a map literals
+    this(new HashMap<PropertyKey, String>() {
+      {
+        put(key, value);
+      }
+    });
   }
 
   @Override
@@ -46,22 +46,28 @@ public final class ConfigurationRule extends AbstractResourceRule {
     for (Map.Entry<PropertyKey, String> entry : mKeyValuePairs.entrySet()) {
       PropertyKey key = entry.getKey();
       String value = entry.getValue();
-      if (Configuration.containsKey(key)) {
-        mOriginalValues.put(key, Configuration.get(key));
+      if (Configuration.isSet(key)) {
+        mStashedProperties.put(key, Configuration.get(key));
       } else {
-        mOriginalNullKeys.add(key);
+        mStashedProperties.put(key, null);
       }
-      Configuration.set(key, value);
+      if (value != null) {
+        Configuration.set(key, value);
+      } else {
+        Configuration.unset(key);
+      }
     }
   }
 
   @Override
   public void after() {
-    for (Map.Entry<PropertyKey, String> entry : mOriginalValues.entrySet()) {
-      Configuration.set(entry.getKey(), entry.getValue());
-    }
-    for (PropertyKey key : mOriginalNullKeys) {
-      Configuration.unset(key);
+    for (Map.Entry<PropertyKey, String> entry : mStashedProperties.entrySet()) {
+      String value = entry.getValue();
+      if (value != null) {
+        Configuration.set(entry.getKey(), value);
+      } else {
+        Configuration.unset(entry.getKey());
+      }
     }
   }
 }

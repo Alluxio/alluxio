@@ -1,9 +1,11 @@
 namespace java alluxio.thrift
 
+include "exception.thrift"
+
 /**
-* Contains the information of a block in Alluxio. It maintains the worker nodes where the replicas
-* of the blocks are stored.
-*/
+ * Contains the information of a block in Alluxio. It maintains the worker nodes where the replicas
+ * of the blocks are stored.
+ */
 struct BlockInfo {
   1: i64 blockId
   2: i64 length
@@ -11,12 +13,24 @@ struct BlockInfo {
 }
 
 /**
-* Information about blocks.
-*/
+ * Information about blocks.
+ */
 struct BlockLocation {
   1: i64 workerId
   2: WorkerNetAddress workerAddress
   3: string tierAlias
+}
+
+/**
+ * Information about metrics.
+ */
+struct Metric {
+  1: string instance
+  2: string hostname
+  3: string instanceId
+  4: string name
+  5: double value
+  6: map<string,string> tags
 }
 
 enum CommandType {
@@ -25,7 +39,13 @@ enum CommandType {
   Register = 2, // Ask the worker to re-register.
   Free = 3,     // Ask the worker to free files.
   Delete = 4,   // Ask the worker to delete files.
-  Persist = 5,  // Ask the worker to persist a file for lineage
+  Persist = 5,  // Ask the worker to persist a file.
+}
+
+struct ConfigProperty {
+  1: string name
+  2: string source
+  3: string value
 }
 
 enum TTtlAction {
@@ -38,23 +58,40 @@ struct Command {
   2: list<i64> data
 }
 
+struct LocalityTier {
+  1: string tierName;
+  2: string value;
+}
+
+struct TieredIdentity {
+  1: list<LocalityTier> tiers
+}
+
 /**
-* Address information about workers.
-*/
+ * Address information about masters.
+ */
+struct MasterNetAddress {
+  1: string host
+  2: i32 rpcPort
+}
+
+/**
+ * Address information about workers.
+ */
 struct WorkerNetAddress {
   1: string host
   2: i32 rpcPort
   3: i32 dataPort
   4: i32 webPort
+  5: string domainSocketPath
+  6: TieredIdentity tieredIdentity
 }
 
-/**
-* Information about the RPC.
-*/
-struct RpcOptions {
-  // key used to identify retried RPCs
-  1: optional string key
+struct GetServiceVersionTResponse {
+  1: i64 version,
 }
+
+struct GetServiceVersionTOptions {}
 
 service AlluxioService {
 
@@ -62,5 +99,7 @@ service AlluxioService {
    * Returns the version of the master service.
    * NOTE: The version should be updated every time a backwards incompatible API change occurs.
    */
-  i64 getServiceVersion()
+  GetServiceVersionTResponse getServiceVersion(
+    /** the method options */ 1: GetServiceVersionTOptions options,
+  ) throws (1: exception.AlluxioTException e)
 }

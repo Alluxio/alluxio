@@ -46,6 +46,9 @@ public class SetAttributeTOptions implements org.apache.thrift.TBase<SetAttribut
   private static final org.apache.thrift.protocol.TField MODE_FIELD_DESC = new org.apache.thrift.protocol.TField("mode", org.apache.thrift.protocol.TType.I16, (short)6);
   private static final org.apache.thrift.protocol.TField RECURSIVE_FIELD_DESC = new org.apache.thrift.protocol.TField("recursive", org.apache.thrift.protocol.TType.BOOL, (short)7);
   private static final org.apache.thrift.protocol.TField TTL_ACTION_FIELD_DESC = new org.apache.thrift.protocol.TField("ttlAction", org.apache.thrift.protocol.TType.I32, (short)8);
+  private static final org.apache.thrift.protocol.TField COMMON_OPTIONS_FIELD_DESC = new org.apache.thrift.protocol.TField("commonOptions", org.apache.thrift.protocol.TType.STRUCT, (short)9);
+  private static final org.apache.thrift.protocol.TField REPLICATION_MAX_FIELD_DESC = new org.apache.thrift.protocol.TField("replicationMax", org.apache.thrift.protocol.TType.I32, (short)10);
+  private static final org.apache.thrift.protocol.TField REPLICATION_MIN_FIELD_DESC = new org.apache.thrift.protocol.TField("replicationMin", org.apache.thrift.protocol.TType.I32, (short)11);
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
   static {
@@ -61,6 +64,9 @@ public class SetAttributeTOptions implements org.apache.thrift.TBase<SetAttribut
   private short mode; // optional
   private boolean recursive; // optional
   private alluxio.thrift.TTtlAction ttlAction; // optional
+  private FileSystemMasterCommonTOptions commonOptions; // optional
+  private int replicationMax; // optional
+  private int replicationMin; // optional
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
@@ -75,7 +81,10 @@ public class SetAttributeTOptions implements org.apache.thrift.TBase<SetAttribut
      * 
      * @see alluxio.thrift.TTtlAction
      */
-    TTL_ACTION((short)8, "ttlAction");
+    TTL_ACTION((short)8, "ttlAction"),
+    COMMON_OPTIONS((short)9, "commonOptions"),
+    REPLICATION_MAX((short)10, "replicationMax"),
+    REPLICATION_MIN((short)11, "replicationMin");
 
     private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -106,6 +115,12 @@ public class SetAttributeTOptions implements org.apache.thrift.TBase<SetAttribut
           return RECURSIVE;
         case 8: // TTL_ACTION
           return TTL_ACTION;
+        case 9: // COMMON_OPTIONS
+          return COMMON_OPTIONS;
+        case 10: // REPLICATION_MAX
+          return REPLICATION_MAX;
+        case 11: // REPLICATION_MIN
+          return REPLICATION_MIN;
         default:
           return null;
       }
@@ -151,8 +166,10 @@ public class SetAttributeTOptions implements org.apache.thrift.TBase<SetAttribut
   private static final int __PERSISTED_ISSET_ID = 2;
   private static final int __MODE_ISSET_ID = 3;
   private static final int __RECURSIVE_ISSET_ID = 4;
+  private static final int __REPLICATIONMAX_ISSET_ID = 5;
+  private static final int __REPLICATIONMIN_ISSET_ID = 6;
   private byte __isset_bitfield = 0;
-  private static final _Fields optionals[] = {_Fields.PINNED,_Fields.TTL,_Fields.PERSISTED,_Fields.OWNER,_Fields.GROUP,_Fields.MODE,_Fields.RECURSIVE,_Fields.TTL_ACTION};
+  private static final _Fields optionals[] = {_Fields.PINNED,_Fields.TTL,_Fields.PERSISTED,_Fields.OWNER,_Fields.GROUP,_Fields.MODE,_Fields.RECURSIVE,_Fields.TTL_ACTION,_Fields.COMMON_OPTIONS,_Fields.REPLICATION_MAX,_Fields.REPLICATION_MIN};
   public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
   static {
     Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
@@ -172,6 +189,12 @@ public class SetAttributeTOptions implements org.apache.thrift.TBase<SetAttribut
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
     tmpMap.put(_Fields.TTL_ACTION, new org.apache.thrift.meta_data.FieldMetaData("ttlAction", org.apache.thrift.TFieldRequirementType.OPTIONAL, 
         new org.apache.thrift.meta_data.EnumMetaData(org.apache.thrift.protocol.TType.ENUM, alluxio.thrift.TTtlAction.class)));
+    tmpMap.put(_Fields.COMMON_OPTIONS, new org.apache.thrift.meta_data.FieldMetaData("commonOptions", org.apache.thrift.TFieldRequirementType.OPTIONAL, 
+        new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, FileSystemMasterCommonTOptions.class)));
+    tmpMap.put(_Fields.REPLICATION_MAX, new org.apache.thrift.meta_data.FieldMetaData("replicationMax", org.apache.thrift.TFieldRequirementType.OPTIONAL, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
+    tmpMap.put(_Fields.REPLICATION_MIN, new org.apache.thrift.meta_data.FieldMetaData("replicationMin", org.apache.thrift.TFieldRequirementType.OPTIONAL, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(SetAttributeTOptions.class, metaDataMap);
   }
@@ -198,6 +221,11 @@ public class SetAttributeTOptions implements org.apache.thrift.TBase<SetAttribut
     if (other.isSetTtlAction()) {
       this.ttlAction = other.ttlAction;
     }
+    if (other.isSetCommonOptions()) {
+      this.commonOptions = new FileSystemMasterCommonTOptions(other.commonOptions);
+    }
+    this.replicationMax = other.replicationMax;
+    this.replicationMin = other.replicationMin;
   }
 
   public SetAttributeTOptions deepCopy() {
@@ -219,6 +247,11 @@ public class SetAttributeTOptions implements org.apache.thrift.TBase<SetAttribut
     setRecursiveIsSet(false);
     this.recursive = false;
     this.ttlAction = null;
+    this.commonOptions = null;
+    setReplicationMaxIsSet(false);
+    this.replicationMax = 0;
+    setReplicationMinIsSet(false);
+    this.replicationMin = 0;
   }
 
   public boolean isPinned() {
@@ -416,6 +449,76 @@ public class SetAttributeTOptions implements org.apache.thrift.TBase<SetAttribut
     }
   }
 
+  public FileSystemMasterCommonTOptions getCommonOptions() {
+    return this.commonOptions;
+  }
+
+  public SetAttributeTOptions setCommonOptions(FileSystemMasterCommonTOptions commonOptions) {
+    this.commonOptions = commonOptions;
+    return this;
+  }
+
+  public void unsetCommonOptions() {
+    this.commonOptions = null;
+  }
+
+  /** Returns true if field commonOptions is set (has been assigned a value) and false otherwise */
+  public boolean isSetCommonOptions() {
+    return this.commonOptions != null;
+  }
+
+  public void setCommonOptionsIsSet(boolean value) {
+    if (!value) {
+      this.commonOptions = null;
+    }
+  }
+
+  public int getReplicationMax() {
+    return this.replicationMax;
+  }
+
+  public SetAttributeTOptions setReplicationMax(int replicationMax) {
+    this.replicationMax = replicationMax;
+    setReplicationMaxIsSet(true);
+    return this;
+  }
+
+  public void unsetReplicationMax() {
+    __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __REPLICATIONMAX_ISSET_ID);
+  }
+
+  /** Returns true if field replicationMax is set (has been assigned a value) and false otherwise */
+  public boolean isSetReplicationMax() {
+    return EncodingUtils.testBit(__isset_bitfield, __REPLICATIONMAX_ISSET_ID);
+  }
+
+  public void setReplicationMaxIsSet(boolean value) {
+    __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __REPLICATIONMAX_ISSET_ID, value);
+  }
+
+  public int getReplicationMin() {
+    return this.replicationMin;
+  }
+
+  public SetAttributeTOptions setReplicationMin(int replicationMin) {
+    this.replicationMin = replicationMin;
+    setReplicationMinIsSet(true);
+    return this;
+  }
+
+  public void unsetReplicationMin() {
+    __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __REPLICATIONMIN_ISSET_ID);
+  }
+
+  /** Returns true if field replicationMin is set (has been assigned a value) and false otherwise */
+  public boolean isSetReplicationMin() {
+    return EncodingUtils.testBit(__isset_bitfield, __REPLICATIONMIN_ISSET_ID);
+  }
+
+  public void setReplicationMinIsSet(boolean value) {
+    __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __REPLICATIONMIN_ISSET_ID, value);
+  }
+
   public void setFieldValue(_Fields field, Object value) {
     switch (field) {
     case PINNED:
@@ -482,6 +585,30 @@ public class SetAttributeTOptions implements org.apache.thrift.TBase<SetAttribut
       }
       break;
 
+    case COMMON_OPTIONS:
+      if (value == null) {
+        unsetCommonOptions();
+      } else {
+        setCommonOptions((FileSystemMasterCommonTOptions)value);
+      }
+      break;
+
+    case REPLICATION_MAX:
+      if (value == null) {
+        unsetReplicationMax();
+      } else {
+        setReplicationMax((Integer)value);
+      }
+      break;
+
+    case REPLICATION_MIN:
+      if (value == null) {
+        unsetReplicationMin();
+      } else {
+        setReplicationMin((Integer)value);
+      }
+      break;
+
     }
   }
 
@@ -511,6 +638,15 @@ public class SetAttributeTOptions implements org.apache.thrift.TBase<SetAttribut
     case TTL_ACTION:
       return getTtlAction();
 
+    case COMMON_OPTIONS:
+      return getCommonOptions();
+
+    case REPLICATION_MAX:
+      return getReplicationMax();
+
+    case REPLICATION_MIN:
+      return getReplicationMin();
+
     }
     throw new IllegalStateException();
   }
@@ -538,6 +674,12 @@ public class SetAttributeTOptions implements org.apache.thrift.TBase<SetAttribut
       return isSetRecursive();
     case TTL_ACTION:
       return isSetTtlAction();
+    case COMMON_OPTIONS:
+      return isSetCommonOptions();
+    case REPLICATION_MAX:
+      return isSetReplicationMax();
+    case REPLICATION_MIN:
+      return isSetReplicationMin();
     }
     throw new IllegalStateException();
   }
@@ -627,6 +769,33 @@ public class SetAttributeTOptions implements org.apache.thrift.TBase<SetAttribut
         return false;
     }
 
+    boolean this_present_commonOptions = true && this.isSetCommonOptions();
+    boolean that_present_commonOptions = true && that.isSetCommonOptions();
+    if (this_present_commonOptions || that_present_commonOptions) {
+      if (!(this_present_commonOptions && that_present_commonOptions))
+        return false;
+      if (!this.commonOptions.equals(that.commonOptions))
+        return false;
+    }
+
+    boolean this_present_replicationMax = true && this.isSetReplicationMax();
+    boolean that_present_replicationMax = true && that.isSetReplicationMax();
+    if (this_present_replicationMax || that_present_replicationMax) {
+      if (!(this_present_replicationMax && that_present_replicationMax))
+        return false;
+      if (this.replicationMax != that.replicationMax)
+        return false;
+    }
+
+    boolean this_present_replicationMin = true && this.isSetReplicationMin();
+    boolean that_present_replicationMin = true && that.isSetReplicationMin();
+    if (this_present_replicationMin || that_present_replicationMin) {
+      if (!(this_present_replicationMin && that_present_replicationMin))
+        return false;
+      if (this.replicationMin != that.replicationMin)
+        return false;
+    }
+
     return true;
   }
 
@@ -673,6 +842,21 @@ public class SetAttributeTOptions implements org.apache.thrift.TBase<SetAttribut
     list.add(present_ttlAction);
     if (present_ttlAction)
       list.add(ttlAction.getValue());
+
+    boolean present_commonOptions = true && (isSetCommonOptions());
+    list.add(present_commonOptions);
+    if (present_commonOptions)
+      list.add(commonOptions);
+
+    boolean present_replicationMax = true && (isSetReplicationMax());
+    list.add(present_replicationMax);
+    if (present_replicationMax)
+      list.add(replicationMax);
+
+    boolean present_replicationMin = true && (isSetReplicationMin());
+    list.add(present_replicationMin);
+    if (present_replicationMin)
+      list.add(replicationMin);
 
     return list.hashCode();
   }
@@ -765,6 +949,36 @@ public class SetAttributeTOptions implements org.apache.thrift.TBase<SetAttribut
         return lastComparison;
       }
     }
+    lastComparison = Boolean.valueOf(isSetCommonOptions()).compareTo(other.isSetCommonOptions());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetCommonOptions()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.commonOptions, other.commonOptions);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
+    lastComparison = Boolean.valueOf(isSetReplicationMax()).compareTo(other.isSetReplicationMax());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetReplicationMax()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.replicationMax, other.replicationMax);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
+    lastComparison = Boolean.valueOf(isSetReplicationMin()).compareTo(other.isSetReplicationMin());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetReplicationMin()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.replicationMin, other.replicationMin);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
     return 0;
   }
 
@@ -844,6 +1058,28 @@ public class SetAttributeTOptions implements org.apache.thrift.TBase<SetAttribut
       }
       first = false;
     }
+    if (isSetCommonOptions()) {
+      if (!first) sb.append(", ");
+      sb.append("commonOptions:");
+      if (this.commonOptions == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.commonOptions);
+      }
+      first = false;
+    }
+    if (isSetReplicationMax()) {
+      if (!first) sb.append(", ");
+      sb.append("replicationMax:");
+      sb.append(this.replicationMax);
+      first = false;
+    }
+    if (isSetReplicationMin()) {
+      if (!first) sb.append(", ");
+      sb.append("replicationMin:");
+      sb.append(this.replicationMin);
+      first = false;
+    }
     sb.append(")");
     return sb.toString();
   }
@@ -851,6 +1087,9 @@ public class SetAttributeTOptions implements org.apache.thrift.TBase<SetAttribut
   public void validate() throws org.apache.thrift.TException {
     // check for required fields
     // check for sub-struct validity
+    if (commonOptions != null) {
+      commonOptions.validate();
+    }
   }
 
   private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
@@ -953,6 +1192,31 @@ public class SetAttributeTOptions implements org.apache.thrift.TBase<SetAttribut
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
+          case 9: // COMMON_OPTIONS
+            if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+              struct.commonOptions = new FileSystemMasterCommonTOptions();
+              struct.commonOptions.read(iprot);
+              struct.setCommonOptionsIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
+          case 10: // REPLICATION_MAX
+            if (schemeField.type == org.apache.thrift.protocol.TType.I32) {
+              struct.replicationMax = iprot.readI32();
+              struct.setReplicationMaxIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
+          case 11: // REPLICATION_MIN
+            if (schemeField.type == org.apache.thrift.protocol.TType.I32) {
+              struct.replicationMin = iprot.readI32();
+              struct.setReplicationMinIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
           default:
             org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
         }
@@ -1014,6 +1278,23 @@ public class SetAttributeTOptions implements org.apache.thrift.TBase<SetAttribut
           oprot.writeFieldEnd();
         }
       }
+      if (struct.commonOptions != null) {
+        if (struct.isSetCommonOptions()) {
+          oprot.writeFieldBegin(COMMON_OPTIONS_FIELD_DESC);
+          struct.commonOptions.write(oprot);
+          oprot.writeFieldEnd();
+        }
+      }
+      if (struct.isSetReplicationMax()) {
+        oprot.writeFieldBegin(REPLICATION_MAX_FIELD_DESC);
+        oprot.writeI32(struct.replicationMax);
+        oprot.writeFieldEnd();
+      }
+      if (struct.isSetReplicationMin()) {
+        oprot.writeFieldBegin(REPLICATION_MIN_FIELD_DESC);
+        oprot.writeI32(struct.replicationMin);
+        oprot.writeFieldEnd();
+      }
       oprot.writeFieldStop();
       oprot.writeStructEnd();
     }
@@ -1056,7 +1337,16 @@ public class SetAttributeTOptions implements org.apache.thrift.TBase<SetAttribut
       if (struct.isSetTtlAction()) {
         optionals.set(7);
       }
-      oprot.writeBitSet(optionals, 8);
+      if (struct.isSetCommonOptions()) {
+        optionals.set(8);
+      }
+      if (struct.isSetReplicationMax()) {
+        optionals.set(9);
+      }
+      if (struct.isSetReplicationMin()) {
+        optionals.set(10);
+      }
+      oprot.writeBitSet(optionals, 11);
       if (struct.isSetPinned()) {
         oprot.writeBool(struct.pinned);
       }
@@ -1081,12 +1371,21 @@ public class SetAttributeTOptions implements org.apache.thrift.TBase<SetAttribut
       if (struct.isSetTtlAction()) {
         oprot.writeI32(struct.ttlAction.getValue());
       }
+      if (struct.isSetCommonOptions()) {
+        struct.commonOptions.write(oprot);
+      }
+      if (struct.isSetReplicationMax()) {
+        oprot.writeI32(struct.replicationMax);
+      }
+      if (struct.isSetReplicationMin()) {
+        oprot.writeI32(struct.replicationMin);
+      }
     }
 
     @Override
     public void read(org.apache.thrift.protocol.TProtocol prot, SetAttributeTOptions struct) throws org.apache.thrift.TException {
       TTupleProtocol iprot = (TTupleProtocol) prot;
-      BitSet incoming = iprot.readBitSet(8);
+      BitSet incoming = iprot.readBitSet(11);
       if (incoming.get(0)) {
         struct.pinned = iprot.readBool();
         struct.setPinnedIsSet(true);
@@ -1118,6 +1417,19 @@ public class SetAttributeTOptions implements org.apache.thrift.TBase<SetAttribut
       if (incoming.get(7)) {
         struct.ttlAction = alluxio.thrift.TTtlAction.findByValue(iprot.readI32());
         struct.setTtlActionIsSet(true);
+      }
+      if (incoming.get(8)) {
+        struct.commonOptions = new FileSystemMasterCommonTOptions();
+        struct.commonOptions.read(iprot);
+        struct.setCommonOptionsIsSet(true);
+      }
+      if (incoming.get(9)) {
+        struct.replicationMax = iprot.readI32();
+        struct.setReplicationMaxIsSet(true);
+      }
+      if (incoming.get(10)) {
+        struct.replicationMin = iprot.readI32();
+        struct.setReplicationMinIsSet(true);
       }
     }
   }

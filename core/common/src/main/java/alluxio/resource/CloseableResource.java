@@ -11,15 +11,13 @@
 
 package alluxio.resource;
 
-import java.io.Closeable;
-
 /**
  * A {@code CloseableResource<T>} is a wrapper around a resource of type {@code T} which must do
  * some sort of cleanup when it is no longer in use.
  *
  * @param <T> the type of the wrapped resource
  */
-public abstract class CloseableResource<T> implements Closeable {
+public abstract class CloseableResource<T> implements AutoCloseable {
   private T mResource;
 
   /**

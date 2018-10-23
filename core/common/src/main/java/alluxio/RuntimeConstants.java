@@ -16,22 +16,25 @@ import javax.annotation.concurrent.ThreadSafe;
 /**
  * System constants that are determined during runtime.
  */
+// Note: PropertyKey depends on this class, so this class shouldn't depend on any classes that have
+// a dependency on PropertyKey.
 @ThreadSafe
 public final class RuntimeConstants {
+  /** The version of this Alluxio instance. */
+  public static final String VERSION = ProjectConstants.VERSION;
+
   static {
-    String version = Configuration.get(PropertyKey.VERSION);
-    VERSION = version;
-    if (version.endsWith("SNAPSHOT")) {
-      ALLUXIO_DOCS_URL = "http://www.alluxio.org/docs/master";
+    if (VERSION.endsWith("SNAPSHOT")) {
+      ALLUXIO_DOCS_URL = "https://www.alluxio.org/docs/master";
+      ALLUXIO_JAVADOC_URL = "https://www.alluxio.org/javadoc/master";
     } else {
-      String[] majorMinor = version.split("\\.");
-      ALLUXIO_DOCS_URL = String.format(
-          "http://www.alluxio.org/docs/%s.%s", majorMinor[0], majorMinor[1]);
+      String[] majorMinor = VERSION.split("\\.");
+      ALLUXIO_DOCS_URL =
+          String.format("https://www.alluxio.org/docs/%s.%s", majorMinor[0], majorMinor[1]);
+      ALLUXIO_JAVADOC_URL =
+          String.format("https://www.alluxio.org/javadoc/%s.%s", majorMinor[0], majorMinor[1]);
     }
   }
-
-  /** The version of this Alluxio instance. */
-  public static final String VERSION;
 
   /** The relative path to the Alluxio target jar. */
   public static final String ALLUXIO_JAR =
@@ -39,6 +42,9 @@ public final class RuntimeConstants {
 
   /** The URL of Alluxio documentation for this version on project web site. */
   public static final String ALLUXIO_DOCS_URL;
+
+  /** The URL of Alluxio javadoc documentation. */
+  public static final String ALLUXIO_JAVADOC_URL;
 
   /** The URL of Alluxio debugging documentation. */
   public static final String ALLUXIO_DEBUG_DOCS_URL = ALLUXIO_DOCS_URL + "/en/Debugging-Guide.html";

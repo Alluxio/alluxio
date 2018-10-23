@@ -11,7 +11,7 @@
 
 --%>
 <script type="text/javascript">
-  var nTotalFile = <%= request.getAttribute("inMemoryFileNum") %>;
+  var nTotalFile = <%= request.getAttribute("inAlluxioFileNum") %>;
 
   // default view settings
   var nFilePerPage = 20;

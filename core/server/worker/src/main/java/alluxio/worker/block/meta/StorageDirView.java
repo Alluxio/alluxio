@@ -54,9 +54,9 @@ public final class StorageDirView {
    */
   public StorageDirView(StorageDir dir, StorageTierView tierView,
       BlockMetadataManagerView managerView) {
-    mDir = Preconditions.checkNotNull(dir);
-    mTierView = Preconditions.checkNotNull(tierView);
-    mManagerView = Preconditions.checkNotNull(managerView);
+    mDir = Preconditions.checkNotNull(dir, "dir");
+    mTierView = Preconditions.checkNotNull(tierView, "tierView");
+    mManagerView = Preconditions.checkNotNull(managerView, "managerView");
   }
 
   /**

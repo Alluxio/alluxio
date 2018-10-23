@@ -11,17 +11,26 @@
 
 package alluxio.worker;
 
-import java.util.List;
+import alluxio.underfs.UfsManager;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Interface for factory of {@link Worker}.
  */
+@ThreadSafe
 public interface WorkerFactory {
+  /**
+   * @return whether the worker is enabled
+   */
+  boolean isEnabled();
+
   /**
    * Factory method to create a new worker instance.
    *
-   * @param workers a list of other workers that this worker depends on
-   * @return a new {@link Worker} instance or null if failed to launch the worker
+   * @param registry the worker registry
+   * @param ufsManager the UFS manager
+   * @return a new {@link Worker} instance
    */
-  Worker create(List<? extends Worker> workers);
+  Worker create(WorkerRegistry registry, UfsManager ufsManager);
 }

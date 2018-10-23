@@ -14,7 +14,7 @@ package alluxio.network.protocol.databuffer;
 import com.google.common.base.Preconditions;
 import io.netty.channel.DefaultFileRegion;
 
-import java.io.IOException;
+import java.io.File;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 
@@ -22,25 +22,24 @@ import java.nio.channels.FileChannel;
  * A DataBuffer with the underlying data being a {@link FileChannel}.
  */
 public final class DataFileChannel implements DataBuffer {
-  private final FileChannel mFileChannel;
+  private final File mFile;
   private final long mOffset;
   private final long mLength;
 
   /**
-   *
-   * @param fileChannel The FileChannel representing the data
+   * @param file The file
    * @param offset The offset into the FileChannel
    * @param length The length of the data to read
    */
-  public DataFileChannel(FileChannel fileChannel, long offset, long length) {
-    mFileChannel = Preconditions.checkNotNull(fileChannel);
+  public DataFileChannel(File file, long offset, long length) {
+    mFile = Preconditions.checkNotNull(file, "file");
     mOffset = offset;
     mLength = length;
   }
 
   @Override
   public Object getNettyOutput() {
-    return new DefaultFileRegion(mFileChannel, mOffset, mLength);
+    return new DefaultFileRegion(mFile, mOffset, mLength);
   }
 
   @Override
@@ -50,20 +49,8 @@ public final class DataFileChannel implements DataBuffer {
 
   @Override
   public ByteBuffer getReadOnlyByteBuffer() {
-    ByteBuffer buffer = ByteBuffer.allocate((int) mLength);
-    try {
-      mFileChannel.position(mOffset);
-      int bytesRead;
-      long bytesRemaining = mLength;
-      while (bytesRemaining > 0 && (bytesRead = mFileChannel.read(buffer)) >= 0) {
-        bytesRemaining -= bytesRead;
-      }
-    } catch (IOException e) {
-      return null;
-    }
-    ByteBuffer readOnly = buffer.asReadOnlyBuffer();
-    readOnly.position(0);
-    return readOnly;
+    throw new UnsupportedOperationException(
+        "DataFileChannel#getReadOnlyByteBuffer is not implemented.");
   }
 
   @Override

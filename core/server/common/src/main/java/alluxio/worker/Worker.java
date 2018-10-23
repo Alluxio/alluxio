@@ -12,17 +12,9 @@
 package alluxio.worker;
 
 import alluxio.Server;
-
-import org.apache.thrift.TProcessor;
-
-import java.util.Map;
+import alluxio.wire.WorkerNetAddress;
 
 /**
  * Interface of an Alluxio worker.
  */
-public interface Worker extends Server {
-  /**
-   * @return a map from service names to {@link TProcessor}s that serve RPCs for this worker
-   */
-  Map<String, TProcessor> getServices();
-}
+public interface Worker extends Server<WorkerNetAddress> {}

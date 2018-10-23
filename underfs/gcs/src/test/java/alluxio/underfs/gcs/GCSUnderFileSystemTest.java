@@ -11,16 +11,19 @@
 
 package alluxio.underfs.gcs;
 
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+import static org.junit.Assert.assertFalse;
+
 import alluxio.AlluxioURI;
+import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.options.DeleteOptions;
 
 import org.jets3t.service.ServiceException;
 import org.jets3t.service.impl.rest.httpclient.GoogleStorageService;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Matchers;
-import org.mockito.Mockito;
 
 import java.io.IOException;
 
@@ -44,10 +47,10 @@ public class GCSUnderFileSystemTest {
    */
   @Before
   public void before() throws InterruptedException, ServiceException {
-    mClient = Mockito.mock(GoogleStorageService.class);
+    mClient = mock(GoogleStorageService.class);
 
-    mGCSUnderFileSystem = new GCSUnderFileSystem(new AlluxioURI(""),
-        mClient, BUCKET_NAME, BUCKET_MODE, ACCOUNT_OWNER);
+    mGCSUnderFileSystem = new GCSUnderFileSystem(new AlluxioURI(""), mClient, BUCKET_NAME,
+        BUCKET_MODE, ACCOUNT_OWNER, UnderFileSystemConfiguration.defaults());
   }
 
   /**
@@ -55,13 +58,13 @@ public class GCSUnderFileSystemTest {
    */
   @Test
   public void deleteNonRecursiveOnServiceException() throws IOException, ServiceException {
-    Mockito.when(mClient.listObjectsChunked(Matchers.anyString(), Matchers.anyString(),
+    when(mClient.listObjectsChunked(Matchers.anyString(), Matchers.anyString(),
         Matchers.anyString(), Matchers.anyLong(), Matchers.anyString()))
         .thenThrow(ServiceException.class);
 
     boolean result = mGCSUnderFileSystem.deleteDirectory(PATH,
         DeleteOptions.defaults().setRecursive(false));
-    Assert.assertFalse(result);
+    assertFalse(result);
   }
 
   /**
@@ -69,13 +72,13 @@ public class GCSUnderFileSystemTest {
    */
   @Test
   public void deleteRecursiveOnServiceException() throws IOException, ServiceException {
-    Mockito.when(mClient.listObjectsChunked(Matchers.anyString(), Matchers.anyString(),
+    when(mClient.listObjectsChunked(Matchers.anyString(), Matchers.anyString(),
         Matchers.anyString(), Matchers.anyLong(), Matchers.anyString()))
         .thenThrow(ServiceException.class);
 
     boolean result = mGCSUnderFileSystem.deleteDirectory(PATH,
         DeleteOptions.defaults().setRecursive(true));
-    Assert.assertFalse(result);
+    assertFalse(result);
   }
 
   /**
@@ -83,11 +86,11 @@ public class GCSUnderFileSystemTest {
    */
   @Test
   public void renameOnServiceException() throws IOException, ServiceException {
-    Mockito.when(mClient.listObjectsChunked(Matchers.anyString(), Matchers.anyString(),
+    when(mClient.listObjectsChunked(Matchers.anyString(), Matchers.anyString(),
         Matchers.anyString(), Matchers.anyLong(), Matchers.anyString()))
         .thenThrow(ServiceException.class);
 
     boolean result = mGCSUnderFileSystem.renameFile(SRC, DST);
-    Assert.assertFalse(result);
+    assertFalse(result);
   }
 }

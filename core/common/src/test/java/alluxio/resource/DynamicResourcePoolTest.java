@@ -22,6 +22,10 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -269,5 +273,29 @@ public final class DynamicResourcePoolTest {
     releaseThread.start();
     Resource resource2 = pool.acquire(2, TimeUnit.SECONDS);
     Assert.assertEquals(0, resource2.mInteger.intValue());
+  }
+
+  /**
+   * Tests that an exception is thrown if the timestamps overflow and the method
+   * terminate before 5 seconds.
+   */
+  @Test
+  public void TimestampOverflow() {
+    Callable<Resource> task = () -> {
+      TestPool pool = new TestPool(DynamicResourcePool.Options.defaultOptions().setMaxCapacity(1));
+      pool.acquire(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
+      return pool.acquire(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
+    };
+    ExecutorService executor = Executors.newFixedThreadPool(1);
+    Future<Resource> future = executor.submit(task);
+    boolean timeout = false;
+    try {
+      future.get(5000, TimeUnit.MILLISECONDS);
+    } catch (Exception ex) {
+      timeout = true;
+    }
+    Assert.assertTrue(timeout);
+    Assert.assertFalse(future.isDone());
+    future.cancel(true);
   }
 }

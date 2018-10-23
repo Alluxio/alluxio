@@ -17,7 +17,7 @@ como um sistema de armazenamento inferior.
 
 Para rodar um Allucio `cluster` em um conjunto de máquinas, você deve colocar os binários do
 Alluxio em cada uma destas máquinas. Você pode
-[compilar o Alluxio](Building-Alluxio-Master-Branch.html) ou
+[compilar o Alluxio](Building-Alluxio-From-Source.html) ou
 [baixar os binários localmente](Running-Alluxio-Locally.html).
 
 Atente que, por padrão, os binários do Alluxio foram construídos para trabalhar com a versão
@@ -39,8 +39,8 @@ for compilar utilizando o `maven`. Por exemplo, se você quer que o Alluxio trab
 {% include Configuring-Alluxio-with-HDFS/mvn-Dhadoop-package.md %}
 
 Se for obtido sucesso, você deve ver o arquivo
-`alluxio-assemblies-{{site.ALLUXIO_RELEASED_VERSION}}-jar-with-dependencies.jar` criado dentro do
-diretório `assembly/target` e este é o arquivo `jar` que você pode utilizar para executar os
+`alluxio-assembly-server-{{site.ALLUXIO_RELEASED_VERSION}}-jar-with-dependencies.jar` criado dentro do
+diretório `assembly/server/target` e este é o arquivo `jar` que você pode utilizar para executar os
 Alluxio `Master` e `Worker`.
 
 ## Configurando o Alluxio

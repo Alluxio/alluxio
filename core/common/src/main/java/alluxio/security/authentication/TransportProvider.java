@@ -13,11 +13,11 @@ package alluxio.security.authentication;
 
 import alluxio.Configuration;
 import alluxio.PropertyKey;
+import alluxio.exception.status.UnauthenticatedException;
 
 import org.apache.thrift.transport.TTransport;
 import org.apache.thrift.transport.TTransportFactory;
 
-import java.io.IOException;
 import java.net.InetSocketAddress;
 
 import javax.security.auth.Subject;
@@ -73,9 +73,8 @@ public interface TransportProvider {
    *
    * @param serverAddress the server address which clients will connect to
    * @return a TTransport for client
-   * @throws IOException if building a TransportFactory fails or user login fails
    */
-  TTransport getClientTransport(InetSocketAddress serverAddress) throws IOException;
+  TTransport getClientTransport(InetSocketAddress serverAddress) throws UnauthenticatedException;
 
   /**
    * Similar as {@link TransportProvider#getClientTransport(InetSocketAddress)} but it also
@@ -84,29 +83,31 @@ public interface TransportProvider {
    * @param subject the subject, set to null if not present
    * @param serverAddress the server address which clients will connect to
    * @return a TTransport for client
-   * @throws IOException if building a TransportFactory fails or user login fails
    */
-  TTransport getClientTransport(Subject subject, InetSocketAddress serverAddress)
-      throws IOException;
+  TTransport getClientTransport(Subject subject, InetSocketAddress serverAddress) throws
+      UnauthenticatedException;
 
   /**
    * For server side, this method returns a {@link TTransportFactory} based on the auth type. It is
    * used as one argument to build a Thrift {@link org.apache.thrift.server.TServer}. If the auth
    * type is not supported or recognized, an {@link UnsupportedOperationException} is thrown.
    *
+   * @param serverName the name for this server
    * @return a corresponding TTransportFactory
    * @throws SaslException if building a TransportFactory fails
    */
-  TTransportFactory getServerTransportFactory() throws SaslException;
+  TTransportFactory getServerTransportFactory(String serverName) throws SaslException;
 
   /**
    * For server side, this method returns a {@link TTransportFactory} based on the auth type. It is
    * used as one argument to build a Thrift {@link org.apache.thrift.server.TServer}. If the auth
    * type is not supported or recognized, an {@link UnsupportedOperationException} is thrown.
    *
-   * @param runnable a closure runs after the transport is established
+   * @param runnable a closure to run after the transport is established
+   * @param serverName the name for this server
    * @return a corresponding TTransportFactory
    * @throws SaslException if building a TransportFactory fails
    */
-  TTransportFactory getServerTransportFactory(Runnable runnable) throws SaslException;
+  TTransportFactory getServerTransportFactory(Runnable runnable, String serverName)
+      throws SaslException;
 }

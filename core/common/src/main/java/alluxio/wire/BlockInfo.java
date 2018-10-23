@@ -11,6 +11,8 @@
 
 package alluxio.wire;
 
+import static alluxio.util.StreamUtils.map;
+
 import alluxio.annotation.PublicApi;
 
 import com.google.common.base.Objects;
@@ -38,20 +40,6 @@ public final class BlockInfo implements Serializable {
    * Creates a new instance of {@link BlockInfo}.
    */
   public BlockInfo() {}
-
-  /**
-   * Creates a new instance of {@link BlockInfo} from a thrift representation.
-   *
-   * @param blockInfo the thrift representation of a block information
-   */
-  protected BlockInfo(alluxio.thrift.BlockInfo blockInfo) {
-    mBlockId = blockInfo.getBlockId();
-    mLength = blockInfo.getLength();
-    mLocations = new ArrayList<>();
-    for (alluxio.thrift.BlockLocation location : blockInfo.getLocations()) {
-      mLocations.add(new BlockLocation(location));
-    }
-  }
 
   /**
    * @return the block id
@@ -97,20 +85,32 @@ public final class BlockInfo implements Serializable {
    * @return the block information
    */
   public BlockInfo setLocations(List<BlockLocation> locations) {
-    Preconditions.checkNotNull(locations);
-    mLocations = new ArrayList<>(locations);
+    mLocations = new ArrayList<>(Preconditions.checkNotNull(locations, "locations"));
     return this;
   }
 
   /**
    * @return thrift representation of the block information
    */
-  protected alluxio.thrift.BlockInfo toThrift() {
+  public alluxio.thrift.BlockInfo toThrift() {
     List<alluxio.thrift.BlockLocation> locations = new ArrayList<>();
     for (BlockLocation location : mLocations) {
       locations.add(location.toThrift());
     }
     return new alluxio.thrift.BlockInfo(mBlockId, mLength, locations);
+  }
+
+  /**
+   * Creates a new instance of {@link BlockInfo} from a thrift representation.
+   *
+   * @param blockInfo the thrift representation of a block information
+   * @return the instance
+   */
+  public static BlockInfo fromThrift(alluxio.thrift.BlockInfo blockInfo) {
+    return new BlockInfo()
+        .setBlockId(blockInfo.getBlockId())
+        .setLength(blockInfo.getLength())
+        .setLocations(map(BlockLocation::fromThrift, blockInfo.getLocations()));
   }
 
   @Override

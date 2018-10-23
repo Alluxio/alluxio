@@ -11,13 +11,16 @@
 
 package alluxio.security.group;
 
-import alluxio.Configuration;
-import alluxio.ConfigurationTestUtils;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertEquals;
+
+import alluxio.ConfigurationRule;
 import alluxio.PropertyKey;
 import alluxio.security.group.provider.IdentityUserGroupsMapping;
 
-import org.junit.Assert;
 import org.junit.Test;
+
+import java.io.Closeable;
 
 /**
  * Unit test for {@link alluxio.security.group.GroupMappingService}.
@@ -31,15 +34,15 @@ public final class GroupMappingServiceTest {
   public void group() throws Throwable {
     String userName = "alluxio-user1";
 
-    Configuration.set(PropertyKey.SECURITY_GROUP_MAPPING_CLASS,
-        IdentityUserGroupsMapping.class.getName());
-    GroupMappingService groups = GroupMappingService.Factory.get();
+    try (Closeable mConfigurationRule =
+        new ConfigurationRule(PropertyKey.SECURITY_GROUP_MAPPING_CLASS,
+            IdentityUserGroupsMapping.class.getName()).toResource()) {
+      GroupMappingService groups = GroupMappingService.Factory.get();
 
-    Assert.assertNotNull(groups);
-    Assert.assertNotNull(groups.getGroups(userName));
-    Assert.assertEquals(groups.getGroups(userName).size(), 1);
-    Assert.assertEquals(groups.getGroups(userName).get(0), userName);
-
-    ConfigurationTestUtils.resetConfiguration();
+      assertNotNull(groups);
+      assertNotNull(groups.getGroups(userName));
+      assertEquals(groups.getGroups(userName).size(), 1);
+      assertEquals(groups.getGroups(userName).get(0), userName);
+    }
   }
 }

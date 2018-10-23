@@ -17,7 +17,7 @@ import org.junit.Test;
 /**
  * Tests for the {@link CountingRetry} class.
  */
-public class CountingRetryTest {
+public final class CountingRetryTest {
 
   /**
    * Tests that the provided number of retries is equal the actual number of retries.
@@ -26,12 +26,12 @@ public class CountingRetryTest {
   public void testNumRetries() {
     int numTries = 10;
     CountingRetry countingRetry = new CountingRetry(numTries);
-    Assert.assertEquals(0, countingRetry.getRetryCount());
+    Assert.assertEquals(0, countingRetry.getAttemptCount());
     int retryAttempts = 0;
-    while (countingRetry.attemptRetry()) {
+    while (countingRetry.attempt()) {
       retryAttempts++;
     }
-    Assert.assertEquals(numTries, retryAttempts);
-    Assert.assertEquals(numTries, countingRetry.getRetryCount());
+    Assert.assertEquals(numTries + 1, retryAttempts);
+    Assert.assertEquals(numTries + 1, countingRetry.getAttemptCount());
   }
 }

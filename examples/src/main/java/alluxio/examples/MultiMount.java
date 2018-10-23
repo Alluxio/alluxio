@@ -25,8 +25,7 @@ import org.apache.commons.io.IOUtils;
  * types of storage systems. In particular, this example reads data from S3 and writes data to HDFS.
  *
  * NOTE: This example assumes that the existence of an Alluxio cluster, the existence of an HDFS
- * cluster, and that the properties for accessing S3 (fs.s3n.awsAccessKeyId and fs.s3n
- * .awsSecretAccessKey) are set in your Alluxio configuration.
+ * cluster, and that the properties for accessing S3 are set in your Alluxio configuration.
  *
  * If the above assumptions are met, you can run the example using:
  *
@@ -50,7 +49,7 @@ public final class MultiMount {
     AlluxioURI mntPath = new AlluxioURI("/mnt");
     AlluxioURI s3Mount = new AlluxioURI("/mnt/s3");
     AlluxioURI inputPath = new AlluxioURI("/mnt/s3/hello.txt");
-    AlluxioURI s3Path = new AlluxioURI("s3n://alluxio-demo/");
+    AlluxioURI s3Path = new AlluxioURI("s3a://alluxio-demo/");
     AlluxioURI hdfsMount = new AlluxioURI("/mnt/hdfs");
     AlluxioURI outputPath = new AlluxioURI("/mnt/hdfs/hello.txt");
     AlluxioURI hdfsPath = new AlluxioURI(args[0]);

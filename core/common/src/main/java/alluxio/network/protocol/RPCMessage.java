@@ -12,6 +12,7 @@
 package alluxio.network.protocol;
 
 import alluxio.network.protocol.databuffer.DataBuffer;
+import alluxio.proto.dataserver.Protocol;
 import alluxio.util.proto.ProtoMessage;
 
 import com.google.common.primitives.Ints;
@@ -20,6 +21,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.ByteToMessageDecoder;
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -33,21 +35,20 @@ public abstract class RPCMessage implements EncodedMessage {
    * The possible types of RPC messages.
    */
   public enum Type implements EncodedMessage {
-    RPC_ERROR_RESPONSE(0),
-    RPC_BLOCK_READ_REQUEST(1),
-    RPC_BLOCK_READ_RESPONSE(2),
-    RPC_BLOCK_WRITE_REQUEST(3),
-    RPC_BLOCK_WRITE_RESPONSE(4),
-    RPC_FILE_READ_REQUEST(5),
-    RPC_FILE_READ_RESPONSE(6),
-    RPC_FILE_WRITE_REQUEST(7),
-    RPC_FILE_WRITE_RESPONSE(8),
-
     // Tags lower than 100 are reserved since v1.4.0.
+    RPC_REMOVE_BLOCK_REQUEST(15),
     RPC_READ_REQUEST(100),
     RPC_WRITE_REQUEST(101),
     RPC_RESPONSE(102),
-    RPC_UFS_BLOCK_READ_REQUEST(103),
+    RPC_HEARTBEAT(104),
+    RPC_LOCAL_BLOCK_OPEN_REQUEST(105),
+    RPC_LOCAL_BLOCK_OPEN_RESPONSE(106),
+    RPC_LOCAL_BLOCK_CLOSE_REQUEST(107),
+    RPC_LOCAL_BLOCK_CREATE_REQUEST(108),
+    RPC_LOCAL_BLOCK_CREATE_RESPONSE(109),
+    RPC_LOCAL_BLOCK_COMPLETE_REQUEST(110),
+    RPC_READ_RESPONSE(111),
+    RPC_ASYNC_CACHE_REQUEST(112),
 
     RPC_UNKNOWN(1000),
     ;
@@ -93,32 +94,32 @@ public abstract class RPCMessage implements EncodedMessage {
     public static Type decode(ByteBuf in) {
       int id = in.readInt();
       switch (id) {
-        case 0:
-          return RPC_ERROR_RESPONSE;
-        case 1:
-          return RPC_BLOCK_READ_REQUEST;
-        case 2:
-          return RPC_BLOCK_READ_RESPONSE;
-        case 3:
-          return RPC_BLOCK_WRITE_REQUEST;
-        case 4:
-          return RPC_BLOCK_WRITE_RESPONSE;
-        case 5:
-          return RPC_FILE_READ_REQUEST;
-        case 6:
-          return RPC_FILE_READ_RESPONSE;
-        case 7:
-          return RPC_FILE_WRITE_REQUEST;
-        case 8:
-          return RPC_FILE_WRITE_RESPONSE;
+        case 15:
+          return RPC_REMOVE_BLOCK_REQUEST;
         case 100:
           return RPC_READ_REQUEST;
         case 101:
           return RPC_WRITE_REQUEST;
         case 102:
           return RPC_RESPONSE;
-        case 103:
-          return RPC_UFS_BLOCK_READ_REQUEST;
+        case 104:
+          return RPC_HEARTBEAT;
+        case 105:
+          return RPC_LOCAL_BLOCK_OPEN_REQUEST;
+        case 106:
+          return RPC_LOCAL_BLOCK_OPEN_RESPONSE;
+        case 107:
+          return RPC_LOCAL_BLOCK_CLOSE_REQUEST;
+        case 108:
+          return RPC_LOCAL_BLOCK_CREATE_REQUEST;
+        case 109:
+          return RPC_LOCAL_BLOCK_CREATE_RESPONSE;
+        case 110:
+          return RPC_LOCAL_BLOCK_COMPLETE_REQUEST;
+        case 111:
+          return RPC_READ_RESPONSE;
+        case 112:
+          return RPC_ASYNC_CACHE_REQUEST;
         default:
           throw new IllegalArgumentException("Unknown RPCMessage type id. id: " + id);
       }
@@ -133,7 +134,7 @@ public abstract class RPCMessage implements EncodedMessage {
   public abstract Type getType();
 
   /**
-   * Validate the message. Throws an Exception if the message is invalid.
+   * Validates the message. Throws an Exception if the message is invalid.
    */
   public void validate() {}
 
@@ -152,6 +153,7 @@ public abstract class RPCMessage implements EncodedMessage {
    *
    * @return The DataBuffer representing the payload
    */
+  @Nullable
   public DataBuffer getPayloadDataBuffer() {
     return null;
   }
@@ -182,32 +184,44 @@ public abstract class RPCMessage implements EncodedMessage {
    */
   public static RPCMessage decodeMessage(Type type, ByteBuf in) {
     switch (type) {
-      case RPC_ERROR_RESPONSE:
-        return RPCErrorResponse.decode(in);
-      case RPC_BLOCK_READ_REQUEST:
-        return RPCBlockReadRequest.decode(in);
-      case RPC_BLOCK_READ_RESPONSE:
-        return RPCBlockReadResponse.decode(in);
-      case RPC_BLOCK_WRITE_REQUEST:
-        return RPCBlockWriteRequest.decode(in);
-      case RPC_BLOCK_WRITE_RESPONSE:
-        return RPCBlockWriteResponse.decode(in);
-      case RPC_FILE_READ_REQUEST:
-        return RPCFileReadRequest.decode(in);
-      case RPC_FILE_READ_RESPONSE:
-        return RPCFileReadResponse.decode(in);
-      case RPC_FILE_WRITE_REQUEST:
-        return RPCFileWriteRequest.decode(in);
-      case RPC_FILE_WRITE_RESPONSE:
-        return RPCFileWriteResponse.decode(in);
+      case RPC_REMOVE_BLOCK_REQUEST:
+        return RPCProtoMessage.decode(in,
+            new ProtoMessage(Protocol.RemoveBlockRequest.getDefaultInstance()));
       case RPC_READ_REQUEST:
-        return RPCProtoMessage.decode(in, ProtoMessage.Type.READ_REQUEST);
+        return RPCProtoMessage
+            .decode(in, new ProtoMessage(Protocol.ReadRequest.getDefaultInstance()));
       case RPC_WRITE_REQUEST:
-        return RPCProtoMessage.decode(in, ProtoMessage.Type.WRITE_REQUEST);
+        return RPCProtoMessage
+            .decode(in, new ProtoMessage(Protocol.WriteRequest.getDefaultInstance()));
       case RPC_RESPONSE:
-        return RPCProtoMessage.decode(in, ProtoMessage.Type.RESPONSE);
-      case RPC_UFS_BLOCK_READ_REQUEST:
-        return RPCUnderFileSystemBlockReadRequest.decode(in);
+        return RPCProtoMessage.decode(in, new ProtoMessage(Protocol.Response.getDefaultInstance()));
+      case RPC_LOCAL_BLOCK_OPEN_REQUEST:
+        return RPCProtoMessage
+            .decode(in, new ProtoMessage(Protocol.LocalBlockOpenRequest.getDefaultInstance()));
+      case RPC_LOCAL_BLOCK_OPEN_RESPONSE:
+        return RPCProtoMessage
+            .decode(in, new ProtoMessage(Protocol.LocalBlockOpenResponse.getDefaultInstance()));
+      case RPC_LOCAL_BLOCK_CLOSE_REQUEST:
+        return RPCProtoMessage
+            .decode(in, new ProtoMessage(Protocol.LocalBlockCloseRequest.getDefaultInstance()));
+      case RPC_LOCAL_BLOCK_CREATE_REQUEST:
+        return RPCProtoMessage
+            .decode(in, new ProtoMessage(Protocol.LocalBlockCreateRequest.getDefaultInstance()));
+      case RPC_LOCAL_BLOCK_CREATE_RESPONSE:
+        return RPCProtoMessage
+            .decode(in, new ProtoMessage(Protocol.LocalBlockCreateResponse.getDefaultInstance()));
+      case RPC_LOCAL_BLOCK_COMPLETE_REQUEST:
+        return RPCProtoMessage
+            .decode(in, new ProtoMessage(Protocol.LocalBlockCompleteRequest.getDefaultInstance()));
+      case RPC_ASYNC_CACHE_REQUEST:
+        return RPCProtoMessage.decode(in,
+            new ProtoMessage(Protocol.AsyncCacheRequest.getDefaultInstance()));
+      case RPC_HEARTBEAT:
+        return
+            RPCProtoMessage.decode(in, new ProtoMessage(Protocol.Heartbeat.getDefaultInstance()));
+      case RPC_READ_RESPONSE:
+        return RPCProtoMessage
+            .decode(in, new ProtoMessage(Protocol.ReadResponse.getDefaultInstance()));
       default:
         throw new IllegalArgumentException("Unknown RPCMessage type. type: " + type);
     }

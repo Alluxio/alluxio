@@ -61,7 +61,7 @@ public final class BufferUtils {
    * @param buffer the byte buffer to be unmapped, this must be a direct buffer
    */
   public static synchronized void cleanDirectBuffer(ByteBuffer buffer) {
-    Preconditions.checkNotNull(buffer);
+    Preconditions.checkNotNull(buffer, "buffer");
     Preconditions.checkArgument(buffer.isDirect(), "buffer isn't a DirectByteBuffer");
     try {
       if (sByteBufferCleanerMethod == null) {
@@ -95,7 +95,7 @@ public final class BufferUtils {
    * The new bytebuffer will have the same content, but the type of the bytebuffer may not be the
    * same.
    *
-   * @param buf The ByteBuffer to clone
+   * @param buf The ByteBuffer to copy
    * @return The new ByteBuffer
    */
   public static ByteBuffer cloneByteBuffer(ByteBuffer buf) {
@@ -113,7 +113,7 @@ public final class BufferUtils {
   /**
    * Clones a list of {@link ByteBuffer}s.
    *
-   * @param source the list of ByteBuffers to clone
+   * @param source the list of ByteBuffers to copy
    * @return the new list of ByteBuffers
    */
   public static List<ByteBuffer> cloneByteBufferList(List<ByteBuffer> source) {
@@ -211,7 +211,7 @@ public final class BufferUtils {
 
   /**
    * Checks if the given byte array starts with an increasing sequence of bytes of the given
-   * length, starting from the given value.
+   * length, starting from the given value. The array length must be equal to the length checked.
    *
    * @param start the starting value to use
    * @param len the target length of the sequence
@@ -284,7 +284,6 @@ public final class BufferUtils {
    *
    * @param path file path to write the data
    * @param buffer raw data
-   * @throws IOException if the operation fails
    */
   public static void writeBufferToFile(String path, byte[] buffer) throws IOException {
     try (FileOutputStream os = new FileOutputStream(path)) {
@@ -297,7 +296,6 @@ public final class BufferUtils {
    *
    * @param src the source channel
    * @param dest the destination channel
-   * @throws IOException if the copy fails
    */
   public static void fastCopy(final ReadableByteChannel src, final WritableByteChannel dest)
       throws IOException {
@@ -315,6 +313,16 @@ public final class BufferUtils {
     while (buffer.hasRemaining()) {
       dest.write(buffer);
     }
+  }
+
+  /**
+   * Gets the unsigned byte value of an integer. Useful for comparing to the result of reading
+   * from an input stream.
+   * @param i the integer to convert
+   * @return the integer value after casting as an unsigned byte
+   */
+  public static int intAsUnsignedByteValue(int i) {
+    return ((byte) i) & 0xFF;
   }
 
   /**

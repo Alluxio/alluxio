@@ -12,9 +12,9 @@
 package alluxio.yarn;
 
 import alluxio.Configuration;
+import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.exception.ExceptionMessage;
-import alluxio.Constants;
 import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.yarn.YarnUtils.YarnContainerType;
@@ -26,8 +26,6 @@ import org.apache.commons.cli.GnuParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.io.DataOutputBuffer;
 import org.apache.hadoop.security.Credentials;
 import org.apache.hadoop.security.UserGroupInformation;
@@ -45,14 +43,16 @@ import org.apache.hadoop.yarn.api.records.LocalResource;
 import org.apache.hadoop.yarn.api.records.Priority;
 import org.apache.hadoop.yarn.api.records.Resource;
 import org.apache.hadoop.yarn.api.records.YarnApplicationState;
+import org.apache.hadoop.yarn.client.ClientRMProxy;
 import org.apache.hadoop.yarn.client.api.YarnClient;
 import org.apache.hadoop.yarn.client.api.YarnClientApplication;
-import org.apache.hadoop.yarn.client.ClientRMProxy;
 import org.apache.hadoop.yarn.conf.YarnConfiguration;
 import org.apache.hadoop.yarn.exceptions.YarnException;
 import org.apache.hadoop.yarn.util.Apps;
 import org.apache.hadoop.yarn.util.ConverterUtils;
 import org.apache.hadoop.yarn.util.Records;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -71,7 +71,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Launch Alluxio on YARN:
  * </p>
  * {@code
- * $ yarn jar alluxio-assemblies-0.8.0-SNAPSHOT-jar-with-dependencies.jar alluxio.yarn.Client \
+ * $ yarn jar \
+ *     alluxio-integration-yarn-<ALLUXIO-VERSION>-jar-with-dependencies.jar alluxio.yarn.Client \
  *     -num_workers NumAlluxioWorkers \
  *     -master_address MasterAddress \
  *     -resource_path ResourcePath
@@ -81,12 +82,14 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Get help and a full list of options:
  * </p>
  * {@code
- * $ yarn jar alluxio-assemblies-0.8.0-SNAPSHOT-jar-with-dependencies.jar alluxio.yarn.Client -help
+ * $ yarn jar \
+ *     alluxio-integration-yarn-<ALLUXIO-VERSION>-jar-with-dependencies.jar \
+ *     alluxio.yarn.Client -help
  * }
  */
 @NotThreadSafe
 public final class Client {
-  private static final Log LOG = LogFactory.getLog(Client.class);
+  private static final Logger LOG = LoggerFactory.getLogger(Client.class);
 
   /** Yarn client to talk to resource manager. */
   private YarnClient mYarnClient;
@@ -174,9 +177,6 @@ public final class Client {
 
   /**
    * Main run function for the client.
-   *
-   * @throws IOException if errors occur from ResourceManager
-   * @throws YarnException if errors occur from ResourceManager
    */
   public void run() throws IOException, YarnException {
     submitApplication();
@@ -423,9 +423,6 @@ public final class Client {
 
   /**
    * Monitor the submitted application until app is running, finished, killed or failed.
-   *
-   * @throws YarnException if errors occur when obtaining application report from ResourceManager
-   * @throws IOException if errors occur when obtaining application report from ResourceManager
    */
   private void monitorApplication() throws YarnException, IOException {
     while (true) {

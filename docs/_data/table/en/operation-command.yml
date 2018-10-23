@@ -1,27 +1,26 @@
 cat:
-  Print the content of the file to the console.
+  Print the content of a file to the console.
 checkConsistency:
   Check the metadata consistency between Alluxio and the under storage.
 checksum:
   Calculate the md5 checksum for a file.
 chgrp:
-  Change the group of the directory or file.
+  Change the group of a file or directory.
 chmod:
   Change the permission of the directory or file.
 chown:
-  Change the owner of the directory or file.
+  Change the owner of a file or directory.
 copyFromLocal:
-  Copy the specified file specified by "source path" to the path specified by "remote path".
+  Copy the file specified by "source path" to the path specified by "remote path".
   This command will fail if "remote path" already exists.
 copyToLocal:
-  Copy the specified file from the path specified by "remote path" to a local
-  destination.
+  Copy the file specified by "remote path" to a local destination.
 count:
   Display the number of folders and files matching the specified prefix in "path".
 cp:
   Copy a file or directory within the Alluxio file system.
 du:
-  Display the size of a file or a directory specified by the input path.
+  Display the size of the file or a directory specified by the input path.
 fileInfo:
   Print the information of the blocks of a specified file.
 free:
@@ -29,10 +28,15 @@ free:
   in under storage, it will still be available there.
 getCapacityBytes:
   Get the capacity of the AlluxioFS.
+getfacl:
+  Get the Access Control List of a file or directory.
 getUsedBytes:
   Get number of bytes used in the AlluxioFS.
+help:
+  Print help information for the given command. If no command is given,
+  print help information for all supported commands.
 leader:
-  Prints the current Alluxio leader master host name.
+  Print the current Alluxio leader master host name.
 load:
   Load the data of a file or a directory from under storage into Alluxio.
 loadMetadata:
@@ -47,7 +51,7 @@ lsr:
   Recursively list all the files and directories under the given path with information such
   as size.
 masterInfo:
-  Prints information regarding master fault tolerance such as leader address, list of master addresses, and the configured Zookeeper address.
+  Print information regarding master fault tolerance such as leader address, list of master addresses, and configured Zookeeper address.
 mkdir:
   Create directory(ies) under the given paths, along with any necessary parent directories. Multiple paths separated by spaces or tabs. This
   command will fail if any of the given paths already exist.
@@ -72,11 +76,17 @@ rm:
 rmr:
   Remove a file, or a directory with all the files and sub-directories that this directory
   contains.
+setfacl:
+  Set the Access Control List of a file or directory.
 setTtl:
-  Set the TTL (time to live) in milliseconds to a file. Allow to perform either "delete"
+  Set the TTL (time to live) in milliseconds for a file. Allow to perform either "delete"
   or "free" after expiry of ttl interval.
+stat:
+  Display info for the specified file or directory.
 tail:
   Print the last 1KB of the specified file to the console.
+test:
+  Test a property of a path, returning 0 if the property is true, or 1 otherwise.
 touch:
   Create a 0-byte file at the specified location.
 unmount:

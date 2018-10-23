@@ -12,10 +12,10 @@
 package alluxio.underfs.oss;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.UnderFileSystemFactory;
 
 import com.google.common.base.Preconditions;
@@ -37,12 +37,12 @@ public class OSSUnderFileSystemFactory implements UnderFileSystemFactory {
   public OSSUnderFileSystemFactory() {}
 
   @Override
-  public UnderFileSystem create(String path, Object ufsConf) {
-    Preconditions.checkNotNull(path);
+  public UnderFileSystem create(String path, UnderFileSystemConfiguration conf) {
+    Preconditions.checkNotNull(path, "path");
 
-    if (checkOSSCredentials()) {
+    if (checkOSSCredentials(conf)) {
       try {
-        return OSSUnderFileSystem.createInstance(new AlluxioURI(path));
+        return OSSUnderFileSystem.createInstance(new AlluxioURI(path), conf);
       } catch (Exception e) {
         throw Throwables.propagate(e);
       }
@@ -58,11 +58,13 @@ public class OSSUnderFileSystemFactory implements UnderFileSystemFactory {
   }
 
   /**
+   * @param conf optional configuration object for the UFS
+   *
    * @return true if both access, secret and endpoint keys are present, false otherwise
    */
-  private boolean checkOSSCredentials() {
-    return Configuration.containsKey(PropertyKey.OSS_ACCESS_KEY)
-        && Configuration.containsKey(PropertyKey.OSS_SECRET_KEY)
-        && Configuration.containsKey(PropertyKey.OSS_ENDPOINT_KEY);
+  private boolean checkOSSCredentials(UnderFileSystemConfiguration conf) {
+    return conf.isSet(PropertyKey.OSS_ACCESS_KEY)
+        && conf.isSet(PropertyKey.OSS_SECRET_KEY)
+        && conf.isSet(PropertyKey.OSS_ENDPOINT_KEY);
   }
 }

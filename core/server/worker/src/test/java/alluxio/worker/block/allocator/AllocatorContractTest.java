@@ -30,7 +30,7 @@ import java.util.Set;
  * This is the class to test the "contract" of different kinds of allocators,
  * i.e., the general properties the allocators need to follow.
  */
-public class AllocatorContractTest extends AllocatorTestBase {
+public final class AllocatorContractTest extends AllocatorTestBase {
   protected List<String> mStrategies;
 
   /**

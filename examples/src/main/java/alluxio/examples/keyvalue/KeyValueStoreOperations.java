@@ -47,7 +47,6 @@ public final class KeyValueStoreOperations implements Callable<Boolean> {
 
   /**
    * @param storeUri URI of the key-value store to write to, should not exist before
-   * @throws Exception if the instance fails to be created
    */
   public KeyValueStoreOperations(AlluxioURI storeUri) throws Exception {
     mStoreUri = storeUri;
@@ -123,7 +122,6 @@ public final class KeyValueStoreOperations implements Callable<Boolean> {
    * Starts in a command like {@code java -cp ALLUXIO_JAR CLASS_NAME <key-value store URI>}.
    *
    * @param args one argument, specifying the URI of the store to be created
-   * @throws Exception if unexpected errors happen
    */
   public static void main(String[] args) throws Exception {
     if (args.length != 1) {

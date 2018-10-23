@@ -11,7 +11,11 @@
 
 package alluxio.collections;
 
-import org.junit.Assert;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.fail;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -25,7 +29,7 @@ import java.util.Set;
 /**
  * Tests the {@link IndexedSet} class.
  */
-public class IndexedSetTest {
+public final class IndexedSetTest {
   private static class Pair {
     private int mInt;
     private long mLong;
@@ -45,24 +49,24 @@ public class IndexedSetTest {
   }
 
   private IndexedSet<Pair> mSet;
-  private IndexDefinition<Pair> mNonUniqueIntIndex;
-  private IndexDefinition<Pair> mUniqueLongIndex;
+  private IndexDefinition<Pair, Integer> mNonUniqueIntIndex;
+  private IndexDefinition<Pair, Long> mUniqueLongIndex;
 
   /**
    * Sets up the fields before running a test.
    */
   @Before
   public void before() {
-    mNonUniqueIntIndex = new IndexDefinition<Pair>(false) {
+    mNonUniqueIntIndex = new IndexDefinition<Pair, Integer>(false) {
       @Override
-      public Object getFieldValue(Pair o) {
+      public Integer getFieldValue(Pair o) {
         return o.intValue();
       }
     };
 
-    mUniqueLongIndex = new IndexDefinition<Pair>(true) {
+    mUniqueLongIndex = new IndexDefinition<Pair, Long>(true) {
       @Override
-      public Object getFieldValue(Pair o) {
+      public Long getFieldValue(Pair o) {
         return o.longValue();
       }
     };
@@ -82,9 +86,9 @@ public class IndexedSetTest {
   @Test
   public void UniqueContains() {
     for (int i = 0; i < 3; i++) {
-      Assert.assertTrue(mSet.contains(mNonUniqueIntIndex, i));
+      assertTrue(mSet.contains(mNonUniqueIntIndex, i));
     }
-    Assert.assertFalse(mSet.contains(mNonUniqueIntIndex, 4));
+    assertFalse(mSet.contains(mNonUniqueIntIndex, 4));
   }
 
   /**
@@ -93,9 +97,9 @@ public class IndexedSetTest {
   @Test
   public void NonUniqueContains() {
     for (long l = 0; l < 9; l++) {
-      Assert.assertTrue(mSet.contains(mUniqueLongIndex, l));
+      assertTrue(mSet.contains(mUniqueLongIndex, l));
     }
-    Assert.assertFalse(mSet.contains(mUniqueLongIndex, 9L));
+    assertFalse(mSet.contains(mUniqueLongIndex, 9L));
   }
 
   /**
@@ -105,14 +109,14 @@ public class IndexedSetTest {
   public void nonUniqueGet() {
     for (int i = 0; i < 3; i++) {
       Set<Pair> set = mSet.getByField(mNonUniqueIntIndex, i);
-      Assert.assertEquals(3, set.size());
+      assertEquals(3, set.size());
       List<Long> longs = new ArrayList<>(set.size());
       for (Pair o : set) {
         longs.add(o.longValue());
       }
       Collections.sort(longs);
       for (int j = 0; j < 3; j++) {
-        Assert.assertEquals(new Long(i * 3 + j), longs.get(j));
+        assertEquals(new Long(i * 3 + j), longs.get(j));
       }
     }
   }
@@ -123,11 +127,9 @@ public class IndexedSetTest {
   @Test
   public void uniqueGet() {
     for (int i = 0; i < 9; i++) {
-      Set<Pair> set = mSet.getByField(mUniqueLongIndex, i);
-      Assert.assertEquals(0, set.size()); // i is integer, must be in the same type
-      set = mSet.getByField(mUniqueLongIndex, (long) i);
-      Assert.assertEquals(1, set.size());
-      Assert.assertEquals(i / 3, set.iterator().next().intValue());
+      Set<Pair> set = mSet.getByField(mUniqueLongIndex, (long) i);
+      assertEquals(1, set.size());
+      assertEquals(i / 3, set.iterator().next().intValue());
     }
   }
 
@@ -139,38 +141,36 @@ public class IndexedSetTest {
   @Test
   public void remove() {
     Pair toRemove = mSet.getFirstByField(mUniqueLongIndex, 1L);
-    Assert.assertEquals(1, mSet.getByField(mUniqueLongIndex, toRemove.longValue()).size());
-    Assert.assertEquals(9, mSet.size());
-    Assert.assertTrue(mSet.remove(toRemove));
-    Assert.assertEquals(8, mSet.size());
+    assertEquals(1, mSet.getByField(mUniqueLongIndex, toRemove.longValue()).size());
+    assertEquals(9, mSet.size());
+    assertTrue(mSet.remove(toRemove));
+    assertEquals(8, mSet.size());
 
-    Assert.assertEquals(2, mSet.getByField(mNonUniqueIntIndex, toRemove.intValue()).size());
-    Assert.assertTrue("Element should be in the NonUniqueIntIndex",
+    assertEquals(2, mSet.getByField(mNonUniqueIntIndex, toRemove.intValue()).size());
+    assertTrue("Element should be in the NonUniqueIntIndex",
         mSet.contains(mNonUniqueIntIndex, toRemove.intValue()));
 
-    Assert.assertEquals(0, mSet.getByField(mUniqueLongIndex, toRemove.longValue()).size());
-    Assert.assertFalse("Element should not be in the mUniqueLongIndex",
+    assertEquals(0, mSet.getByField(mUniqueLongIndex, toRemove.longValue()).size());
+    assertFalse("Element should not be in the mUniqueLongIndex",
         mSet.contains(mUniqueLongIndex, toRemove.longValue()));
 
     toRemove = mSet.getFirstByField(mNonUniqueIntIndex, 2);
-    Assert.assertTrue(mSet.remove(toRemove));
-    Assert.assertTrue("Element should be in the NonUniqueIntIndex",
+    assertTrue(mSet.remove(toRemove));
+    assertTrue("Element should be in the NonUniqueIntIndex",
         mSet.contains(mNonUniqueIntIndex, toRemove.intValue()));
 
     toRemove = mSet.getFirstByField(mNonUniqueIntIndex, 2);
-    Assert.assertTrue(mSet.remove(toRemove));
-    Assert.assertTrue("Element should be in the NonUniqueIntIndex",
+    assertTrue(mSet.remove(toRemove));
+    assertTrue("Element should be in the NonUniqueIntIndex",
         mSet.contains(mNonUniqueIntIndex, toRemove.intValue()));
 
     toRemove = mSet.getFirstByField(mNonUniqueIntIndex, 2);
-    Assert.assertTrue(mSet.remove(toRemove));
-    Assert.assertFalse("Element should not be in the NonUniqueIntIndex",
+    assertTrue(mSet.remove(toRemove));
+    assertFalse("Element should not be in the NonUniqueIntIndex",
         mSet.contains(mNonUniqueIntIndex, toRemove.intValue()));
-    Assert.assertFalse("Element should not be in the mNonUniqueIntIndex",
-        mSet.contains(mNonUniqueIntIndex, toRemove.longValue()));
 
     toRemove = mSet.getFirstByField(mNonUniqueIntIndex, 2);
-    Assert.assertTrue(toRemove == null);
+    assertTrue(toRemove == null);
   }
 
   /**
@@ -179,9 +179,9 @@ public class IndexedSetTest {
    */
   @Test
   public void removeNonExist() {
-    Assert.assertFalse(mSet.remove(new Pair(-1, -1)));
-    Assert.assertEquals(0, mSet.removeByField(mNonUniqueIntIndex, -1));
-    Assert.assertEquals(0, mSet.removeByField(mUniqueLongIndex, -1L));
+    assertFalse(mSet.remove(new Pair(-1, -1)));
+    assertEquals(0, mSet.removeByField(mNonUniqueIntIndex, -1));
+    assertEquals(0, mSet.removeByField(mUniqueLongIndex, -1L));
   }
 
   /**
@@ -189,15 +189,15 @@ public class IndexedSetTest {
    */
   @Test
   public void nonUniqueRemoveByField() {
-    Assert.assertEquals(3, mSet.getByField(mNonUniqueIntIndex, 1).size());
-    Assert.assertEquals(9, mSet.size());
-    Assert.assertEquals(3, mSet.removeByField(mNonUniqueIntIndex, 1));
-    Assert.assertEquals(6, mSet.size());
-    Assert.assertEquals(0, mSet.getByField(mNonUniqueIntIndex, 1).size());
-    Assert.assertEquals(3, mSet.getByField(mNonUniqueIntIndex, 0).size());
-    Assert.assertEquals(3, mSet.getByField(mNonUniqueIntIndex, 2).size());
+    assertEquals(3, mSet.getByField(mNonUniqueIntIndex, 1).size());
+    assertEquals(9, mSet.size());
+    assertEquals(3, mSet.removeByField(mNonUniqueIntIndex, 1));
+    assertEquals(6, mSet.size());
+    assertEquals(0, mSet.getByField(mNonUniqueIntIndex, 1).size());
+    assertEquals(3, mSet.getByField(mNonUniqueIntIndex, 0).size());
+    assertEquals(3, mSet.getByField(mNonUniqueIntIndex, 2).size());
     for (long l = 3; l < 6; l++) {
-      Assert.assertEquals(0, mSet.getByField(mUniqueLongIndex, l).size());
+      assertEquals(0, mSet.getByField(mUniqueLongIndex, l).size());
     }
   }
 
@@ -206,15 +206,15 @@ public class IndexedSetTest {
    */
   @Test
   public void uniqueRemoveByField() {
-    Assert.assertEquals(9, mSet.size());
-    Assert.assertEquals(1, mSet.removeByField(mUniqueLongIndex, 1L));
-    Assert.assertEquals(8, mSet.size());
-    Assert.assertEquals(0, mSet.removeByField(mUniqueLongIndex, 1L));
-    Assert.assertEquals(8, mSet.size());
-    Assert.assertEquals(0, mSet.getByField(mUniqueLongIndex, 1L).size());
-    Assert.assertEquals(1, mSet.getByField(mUniqueLongIndex, 0L).size());
-    Assert.assertEquals(1, mSet.getByField(mUniqueLongIndex, 2L).size());
-    Assert.assertEquals(2, mSet.getByField(mNonUniqueIntIndex, 0).size());
+    assertEquals(9, mSet.size());
+    assertEquals(1, mSet.removeByField(mUniqueLongIndex, 1L));
+    assertEquals(8, mSet.size());
+    assertEquals(0, mSet.removeByField(mUniqueLongIndex, 1L));
+    assertEquals(8, mSet.size());
+    assertEquals(0, mSet.getByField(mUniqueLongIndex, 1L).size());
+    assertEquals(1, mSet.getByField(mUniqueLongIndex, 0L).size());
+    assertEquals(1, mSet.getByField(mUniqueLongIndex, 2L).size());
+    assertEquals(2, mSet.getByField(mNonUniqueIntIndex, 0).size());
   }
 
   /**
@@ -224,23 +224,23 @@ public class IndexedSetTest {
   public void addTheSameObjectMultipleTimes() {
     final ExpectedException exception = ExpectedException.none();
     for (int i = 0; i < 3; i++) {
-      Assert.assertEquals(9, mSet.size());
-      Assert.assertEquals(3, mSet.getByField(mNonUniqueIntIndex, i).size());
+      assertEquals(9, mSet.size());
+      assertEquals(3, mSet.getByField(mNonUniqueIntIndex, i).size());
       for (Pair p : mSet.getByField(mNonUniqueIntIndex, i)) {
         exception.expect(IllegalStateException.class);
         exception.expectMessage("Adding more than one value to a unique index.");
         mSet.add(p);
       }
-      Assert.assertEquals(9, mSet.size());
-      Assert.assertEquals(3, mSet.getByField(mNonUniqueIntIndex, i).size());
+      assertEquals(9, mSet.size());
+      assertEquals(3, mSet.getByField(mNonUniqueIntIndex, i).size());
     }
     try {
       mSet.add(new Pair(1, 9L));
     } catch (IllegalStateException e) {
-      Assert.fail();
+      fail();
     }
-    Assert.assertEquals(10, mSet.size());
-    Assert.assertEquals(4, mSet.getByField(mNonUniqueIntIndex, 1).size());
+    assertEquals(10, mSet.size());
+    assertEquals(4, mSet.getByField(mNonUniqueIntIndex, 1).size());
   }
 
   /**
@@ -250,21 +250,21 @@ public class IndexedSetTest {
   @Test
   public void iteratorRemove() {
     Iterator<Pair> it = mSet.iterator();
-    Assert.assertTrue(it.hasNext());
+    assertTrue(it.hasNext());
     final Pair first = it.next();
 
     Set<Pair> valueSet = mSet.getByField(mNonUniqueIntIndex, first.intValue());
-    Assert.assertTrue("Element should be in the set", valueSet.contains(first));
+    assertTrue("Element should be in the set", valueSet.contains(first));
 
     valueSet = mSet.getByField(mUniqueLongIndex, first.longValue());
-    Assert.assertTrue("Element should be in the set", valueSet.contains(first));
+    assertTrue("Element should be in the set", valueSet.contains(first));
 
     it.remove();
     valueSet = mSet.getByField(mNonUniqueIntIndex, first.intValue());
-    Assert.assertFalse("Element should not be in the set", valueSet.contains(first));
+    assertFalse("Element should not be in the set", valueSet.contains(first));
 
     valueSet = mSet.getByField(mUniqueLongIndex, first.longValue());
-    Assert.assertFalse("Element should not be in the set", valueSet.contains(first));
+    assertFalse("Element should not be in the set", valueSet.contains(first));
   }
 
   /**
@@ -275,7 +275,7 @@ public class IndexedSetTest {
   public void iteratorForeach() {
     long removed = 0;
     Iterator<Pair> it = mSet.iterator();
-    Assert.assertTrue(it.hasNext());
+    assertTrue(it.hasNext());
     final Pair first = it.next();
 
     it.remove();
@@ -286,18 +286,18 @@ public class IndexedSetTest {
       it.remove();
       removed++;
     }
-    Assert.assertEquals(9L, removed);
-    Assert.assertEquals(0, mSet.size());
+    assertEquals(9L, removed);
+    assertEquals(0, mSet.size());
 
     for (Pair o : mSet) {
-      Assert.fail();
+      fail();
     }
 
     long l = 0;
     for (int i = 0; i < 3; i++) {
-      Assert.assertFalse(mSet.contains(mNonUniqueIntIndex, i));
+      assertFalse(mSet.contains(mNonUniqueIntIndex, i));
       for (int k = 0; k < 3; k++) {
-        Assert.assertFalse(mSet.contains(mUniqueLongIndex, l++));
+        assertFalse(mSet.contains(mUniqueLongIndex, l++));
       }
     }
   }
@@ -326,13 +326,13 @@ public class IndexedSetTest {
         }
       }
     } catch (Exception e) {
-      Assert.fail();
+      fail();
     }
 
-    Assert.assertEquals(expectedIntSum, intSum);
-    Assert.assertEquals(expectedLongSum, longSum);
+    assertEquals(expectedIntSum, intSum);
+    assertEquals(expectedLongSum, longSum);
 
-    Assert.assertFalse(it.hasNext());
+    assertFalse(it.hasNext());
   }
 
   /**
@@ -345,7 +345,7 @@ public class IndexedSetTest {
     long size = mSet.size();
     try {
       for (int i = 0; i < size * 2; i++) {
-        Assert.assertTrue(it.hasNext());
+        assertTrue(it.hasNext());
       }
       for (int i = 0; i < 3; i++) {
         for (int k = 0; k < 3; k++) {
@@ -353,10 +353,10 @@ public class IndexedSetTest {
         }
       }
       for (int i = 0; i < size; i++) {
-        Assert.assertFalse(it.hasNext());
+        assertFalse(it.hasNext());
       }
     } catch (Exception e) {
-      Assert.fail();
+      fail();
     }
   }
 }

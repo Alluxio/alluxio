@@ -40,7 +40,7 @@ final class BasePayloadWriter implements Closeable, Flushable, PayloadWriter {
    * @param out the stream to output payload
    */
   BasePayloadWriter(AbstractOutStream out) {
-    mOutStream = Preconditions.checkNotNull(out);
+    mOutStream = Preconditions.checkNotNull(out, "out");
   }
 
   @Override
