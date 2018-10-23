@@ -149,7 +149,7 @@ public abstract class AbstractClient implements Client {
    */
   protected void beforeConnect() throws IOException {
     // Bootstrap once for clients
-    if (!isConnected()) {
+    if (!isConnected() && (this instanceof AbstractMasterClient)) {
       Configuration.loadClusterDefault(mAddress);
     }
   }

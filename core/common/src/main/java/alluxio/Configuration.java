@@ -18,6 +18,7 @@ import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.network.thrift.BootstrapClientTransport;
 import alluxio.network.thrift.ThriftUtils;
+import alluxio.resource.LockResource;
 import alluxio.thrift.GetConfigurationTOptions;
 import alluxio.thrift.MetaMasterClientService;
 import alluxio.util.ConfigurationUtils;
@@ -39,9 +40,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
 
+import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -71,8 +74,15 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public final class Configuration {
   private static final Logger LOG = LoggerFactory.getLogger(Configuration.class);
-
+  // Thread local copies of global configuration
+  private static final ConcurrentHashMap<Long, InstancedConfiguration> LOCAL_CONFS
+      = new ConcurrentHashMap<>();
+  // RW lock to protect consistency of global config's view for thread-local copies
+  private static final ReentrantReadWriteLock CONFIG_RWL = new ReentrantReadWriteLock(true);
+  // Global configuration
+  @GuardedBy("CONFIG_RWL")
   private static final AlluxioProperties PROPERTIES = new AlluxioProperties();
+  @GuardedBy("CONFIG_RWL")
   private static final InstancedConfiguration CONF = new InstancedConfiguration(PROPERTIES);
 
   static {
@@ -85,7 +95,27 @@ public final class Configuration {
    * @return a copy of properties
    */
   public static AlluxioProperties copyProperties() {
-    return new AlluxioProperties(PROPERTIES);
+    try (LockResource workersLockShared = new LockResource(CONFIG_RWL.readLock())) {
+      return new AlluxioProperties(PROPERTIES);
+    }
+  }
+
+  /**
+   * Don't call while holding mConfigRWLock lock.
+   * @return {@link InstancedConfiguration} reserved for calling thread
+   */
+  private static InstancedConfiguration getConfForThread() {
+    Long currThreadId = Thread.currentThread().getId();
+    try (LockResource workersLockShared = new LockResource(CONFIG_RWL.readLock())) {
+      if (LOCAL_CONFS.containsKey(currThreadId)) {
+        return LOCAL_CONFS.get(currThreadId);
+      } else {
+        InstancedConfiguration newInstance =
+                new InstancedConfiguration(new AlluxioProperties(PROPERTIES));
+        LOCAL_CONFS.put(currThreadId, newInstance);
+        return newInstance;
+      }
+    }
   }
 
   /**
@@ -95,33 +125,38 @@ public final class Configuration {
     // Step1: bootstrap the configuration. This is necessary because we need to resolve alluxio.home
     // (likely to be in system properties) to locate the conf dir to search for the site property
     // file.
-    PROPERTIES.clear();
-    PROPERTIES.merge(System.getProperties(), Source.SYSTEM_PROPERTY);
-    if (Configuration.getBoolean(PropertyKey.TEST_MODE)) {
-      validate();
-      return;
-    }
+    try (LockResource workersLockShared = new LockResource(CONFIG_RWL.writeLock())) {
+      PROPERTIES.clear();
+      PROPERTIES.merge(System.getProperties(), Source.SYSTEM_PROPERTY);
+      LOCAL_CONFS.clear();
+      if (Configuration.getBoolean(PropertyKey.TEST_MODE)) {
+        validate();
+        return;
+      }
 
-    // Step2: Load site specific properties file if not in test mode. Note that we decide whether in
-    // test mode by default properties and system properties (via getBoolean).
-    Properties siteProps = null;
-    // we are not in test mode, load site properties
-    String confPaths = Configuration.get(PropertyKey.SITE_CONF_DIR);
-    String[] confPathList = confPaths.split(",");
-    String sitePropertyFile =
-        ConfigurationUtils.searchPropertiesFile(Constants.SITE_PROPERTIES, confPathList);
-    if (sitePropertyFile != null) {
-      siteProps = ConfigurationUtils.loadPropertiesFromFile(sitePropertyFile);
-    } else {
-      URL resource = Configuration.class.getClassLoader().getResource(Constants.SITE_PROPERTIES);
-      if (resource != null) {
-        siteProps = ConfigurationUtils.loadPropertiesFromResource(resource);
-        if (siteProps != null) {
-          sitePropertyFile = resource.getPath();
+      // Step2: Load site specific properties file if not in test mode.
+      // Note that we decide whether in test mode by default properties and system
+      // properties (via getBoolean).
+      Properties siteProps = null;
+      // we are not in test mode, load site properties
+      String confPaths = Configuration.get(PropertyKey.SITE_CONF_DIR);
+      String[] confPathList = confPaths.split(",");
+      String sitePropertyFile =
+              ConfigurationUtils.searchPropertiesFile(Constants.SITE_PROPERTIES, confPathList);
+      if (sitePropertyFile != null) {
+        siteProps = ConfigurationUtils.loadPropertiesFromFile(sitePropertyFile);
+      } else {
+        URL resource = Configuration.class.getClassLoader().getResource(Constants.SITE_PROPERTIES);
+        if (resource != null) {
+          siteProps = ConfigurationUtils.loadPropertiesFromResource(resource);
+          if (siteProps != null) {
+            sitePropertyFile = resource.getPath();
+          }
         }
       }
+      PROPERTIES.merge(siteProps, Source.siteProperty(sitePropertyFile));
+      LOCAL_CONFS.clear();
     }
-    PROPERTIES.merge(siteProps, Source.siteProperty(sitePropertyFile));
     validate();
   }
 
@@ -134,7 +169,10 @@ public final class Configuration {
    * @param source the source of the the properties (e.g., system property, default and etc)
    */
   public static void merge(Map<?, ?> properties, Source source) {
-    PROPERTIES.merge(properties, source);
+    try (LockResource workersLockShared = new LockResource(CONFIG_RWL.writeLock())) {
+      PROPERTIES.merge(properties, source);
+      LOCAL_CONFS.clear();
+    }
   }
 
   // Public accessor methods
@@ -161,7 +199,11 @@ public final class Configuration {
     Preconditions.checkArgument(!value.equals(""),
         String.format("The key \"%s\" cannot be have an empty string as a value. Use "
             + "Configuration.unset to remove a key from the configuration.", key));
-    PROPERTIES.put(key, String.valueOf(value), source);
+
+    try (LockResource workersLockShared = new LockResource(CONFIG_RWL.writeLock())) {
+      PROPERTIES.put(key, String.valueOf(value), source);
+      LOCAL_CONFS.clear();
+    }
   }
 
   /**
@@ -171,7 +213,10 @@ public final class Configuration {
    */
   public static void unset(PropertyKey key) {
     Preconditions.checkNotNull(key, "key");
-    PROPERTIES.remove(key);
+    try (LockResource workersLockShared = new LockResource(CONFIG_RWL.writeLock())) {
+      PROPERTIES.remove(key);
+      LOCAL_CONFS.clear();
+    }
   }
 
   /**
@@ -182,7 +227,7 @@ public final class Configuration {
    * @return the value for the given key
    */
   public static String get(PropertyKey key) {
-    return CONF.get(key);
+    return getConfForThread().get(key);
   }
 
   /**
@@ -194,7 +239,7 @@ public final class Configuration {
    * @return the value for the given key
    */
   public static String get(PropertyKey key, ConfigurationValueOptions options) {
-    return CONF.get(key, options);
+    return getConfForThread().get(key, options);
   }
 
   /**
@@ -203,7 +248,7 @@ public final class Configuration {
    * @return the value
    */
   public static String getOrDefault(PropertyKey key, String defaultValue) {
-    return CONF.getOrDefault(key, defaultValue);
+    return getConfForThread().getOrDefault(key, defaultValue);
   }
 
   /**
@@ -214,7 +259,7 @@ public final class Configuration {
    */
   public static String getOrDefault(PropertyKey key, String defaultValue,
       ConfigurationValueOptions options) {
-    return CONF.getOrDefault(key, defaultValue, options);
+    return getConfForThread().getOrDefault(key, defaultValue, options);
   }
 
   /**
@@ -236,14 +281,14 @@ public final class Configuration {
    * @return true if there is value for the key, false otherwise
    */
   public static boolean isSet(PropertyKey key) {
-    return CONF.isSet(key);
+    return getConfForThread().isSet(key);
   }
 
   /**
    * @return the keys configured by the configuration
    */
   public static Set<PropertyKey> keySet() {
-    return CONF.keySet();
+    return getConfForThread().keySet();
   }
 
   /**
@@ -253,7 +298,7 @@ public final class Configuration {
    * @return the value for the given key as an {@code int}
    */
   public static int getInt(PropertyKey key) {
-    return CONF.getInt(key);
+    return getConfForThread().getInt(key);
   }
 
   /**
@@ -263,7 +308,7 @@ public final class Configuration {
    * @return the value for the given key as a {@code long}
    */
   public static long getLong(PropertyKey key) {
-    return CONF.getLong(key);
+    return getConfForThread().getLong(key);
   }
 
   /**
@@ -273,7 +318,7 @@ public final class Configuration {
    * @return the value for the given key as a {@code double}
    */
   public static double getDouble(PropertyKey key) {
-    return CONF.getDouble(key);
+    return getConfForThread().getDouble(key);
   }
 
   /**
@@ -283,7 +328,7 @@ public final class Configuration {
    * @return the value for the given key as a {@code float}
    */
   public static float getFloat(PropertyKey key) {
-    return CONF.getFloat(key);
+    return getConfForThread().getFloat(key);
   }
 
   /**
@@ -293,7 +338,7 @@ public final class Configuration {
    * @return the value for the given key as a {@code boolean}
    */
   public static boolean getBoolean(PropertyKey key) {
-    return CONF.getBoolean(key);
+    return getConfForThread().getBoolean(key);
   }
 
   /**
@@ -304,7 +349,7 @@ public final class Configuration {
    * @return the list of values for the given key
    */
   public static List<String> getList(PropertyKey key, String delimiter) {
-    return CONF.getList(key, delimiter);
+    return getConfForThread().getList(key, delimiter);
   }
 
   /**
@@ -316,7 +361,7 @@ public final class Configuration {
    * @return the value for the given key as an enum value
    */
   public static <T extends Enum<T>> T getEnum(PropertyKey key, Class<T> enumType) {
-    return CONF.getEnum(key, enumType);
+    return getConfForThread().getEnum(key, enumType);
   }
 
   /**
@@ -326,7 +371,7 @@ public final class Configuration {
    * @return the bytes of the value for the given key
    */
   public static long getBytes(PropertyKey key) {
-    return CONF.getBytes(key);
+    return getConfForThread().getBytes(key);
   }
 
   /**
@@ -336,7 +381,7 @@ public final class Configuration {
    * @return the time of key in millisecond unit
    */
   public static long getMs(PropertyKey key) {
-    return CONF.getMs(key);
+    return getConfForThread().getMs(key);
   }
 
   /**
@@ -346,7 +391,7 @@ public final class Configuration {
    * @return the value of the key represented as a duration
    */
   public static Duration getDuration(PropertyKey key) {
-    return CONF.getDuration(key);
+    return getConfForThread().getDuration(key);
   }
 
   /**
@@ -357,7 +402,7 @@ public final class Configuration {
    * @return the value for the given key as a class
    */
   public static <T> Class<T> getClass(PropertyKey key) {
-    return CONF.getClass(key);
+    return getConfForThread().getClass(key);
   }
 
   /**
@@ -369,7 +414,7 @@ public final class Configuration {
    * @return a map from nested properties aggregated by the prefix
    */
   public static Map<String, String> getNestedProperties(PropertyKey prefixKey) {
-    return CONF.getNestedProperties(prefixKey);
+    return getConfForThread().getNestedProperties(prefixKey);
   }
 
   /**
@@ -377,7 +422,7 @@ public final class Configuration {
    * @return the source for the given key
    */
   public static Source getSource(PropertyKey key) {
-    return CONF.getSource(key);
+    return getConfForThread().getSource(key);
   }
 
   /**
@@ -385,7 +430,7 @@ public final class Configuration {
    *         null
    */
   public static Map<String, String> toMap() {
-    return CONF.toMap();
+    return getConfForThread().toMap();
   }
 
   /**
@@ -394,7 +439,7 @@ public final class Configuration {
    *         null
    */
   public static Map<String, String> toMap(ConfigurationValueOptions opts) {
-    return CONF.toMap(opts);
+    return getConfForThread().toMap(opts);
   }
 
   /**
@@ -403,18 +448,28 @@ public final class Configuration {
    * @throws IllegalStateException if invalid configuration is encountered
    */
   public static void validate() {
-    CONF.validate();
+    getConfForThread().validate();
   }
 
   /**
    * @return the {@link InstancedConfiguration} object backing the global configuration
    */
   public static InstancedConfiguration global() {
-    return CONF;
+    try (LockResource workersLockShared = new LockResource(CONFIG_RWL.writeLock())) {
+      /*
+       * Acquiring the global configuration could potentially, and indeed do,
+       * change the config. Flushing thread-local configs here for further queries to
+       * see the recent state.
+       *
+       * PS: Queries until global config has been updated fully will cause querying threads to
+       * hold a out-of-date copy. Currently use of global config is done safely during
+       * initialization. Periodically syncing thread-local configs to global config could address
+       * potential issues.
+       */
+      LOCAL_CONFS.clear();
+      return CONF;
+    }
   }
-
-  /** Whether the cluster-default is loaded. */
-  private static final AtomicBoolean CLUSTER_DEFAULT_LOADED = new AtomicBoolean(false);
 
   /**
    * Loads cluster default values from the meta master.
@@ -422,14 +477,10 @@ public final class Configuration {
    * @param address the master address
    */
   public static void loadClusterDefault(InetSocketAddress address) throws AlluxioStatusException {
-    if (!Configuration.getBoolean(PropertyKey.USER_CONF_CLUSTER_DEFAULT_ENABLED)
-        || CLUSTER_DEFAULT_LOADED.get()) {
+    if (!Configuration.getBoolean(PropertyKey.USER_CONF_CLUSTER_DEFAULT_ENABLED)) {
       return;
     }
     synchronized (Configuration.class) {
-      if (CLUSTER_DEFAULT_LOADED.get()) {
-        return;
-      }
       LOG.info("Alluxio client (version {}) is trying to bootstrap-connect with {}",
           RuntimeConstants.VERSION, address);
       // A plain socket transport to bootstrap
@@ -482,7 +533,6 @@ public final class Configuration {
       Configuration.merge(clusterProps, Source.CLUSTER_DEFAULT);
       Configuration.validate();
       // This needs to be the last
-      CLUSTER_DEFAULT_LOADED.set(true);
       LOG.info("Alluxio client has bootstrap-connected with {}", address);
     }
   }
