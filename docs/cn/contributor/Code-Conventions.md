@@ -115,13 +115,13 @@ $ sudo launchctl limit maxproc 32768 32768
     -  类成员变量要使用`m`前缀，例如`private WorkerClient mWorkerClient;`
     -  静态成员变量要使用`s`前缀，例如`public static String sUnderFSAddress;`
 -   Bash脚本遵循[Google Shell style](https://google.github.io/styleguide/shell.xml), 且必须兼容Bash 3.x版本
--   你可以下载我们提供的[Eclipse formatter](../resources/alluxio-code-formatter-eclipse.xml)
+-   你可以下载我们提供的[Eclipse formatter](../../resources/alluxio-code-formatter-eclipse.xml)
     -  为了让Eclipse能够正确地组织你的导入, 配置"组织导入"以看上去像
-       [这样](../resources/eclipse_imports.png)
+       [这样](../../resources/eclipse_imports.png)
     -  如果你使用IntelliJ IDEA:
        - 你可以使用我们提供的formatter，参考[Eclipse Code Formatter](https://github.com/krasa/EclipseCodeFormatter#instructions)，或者在IntelliJ
        IDEA中使用[Eclipse Code Formatter Plugin](http://plugins.jetbrains.com/plugin/6546)
-       - 要自动格式化**import**，在Preferences->Code Style->Java->Imports->Import中设置Layout为[该顺序](../resources/importorder.png)
+       - 要自动格式化**import**，在Preferences->Code Style->Java->Imports->Import中设置Layout为[该顺序](../../resources/importorder.png)
        - 要自动将方法按字母顺序重新排序，可以使用[Rearranger插件](http://plugins.jetbrains.com/plugin/173)，打开Preferences，查找rearrager，去除不必要的内容，然后右击，选择"Rearrange"，代码将格式化成你需要的风格。
 
 -  为验证编码风格符合标准，你在提交pull request之前应该先运行[checkstyle](http://checkstyle.sourceforge.net)，并且保证没有警告：
