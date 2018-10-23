@@ -44,7 +44,7 @@ network I/O will increase costs and increase the time to process the data.
 While there are several data management related issues with deep learning, Alluxio can help with
 the challenge of accessing data. Alluxio in its simplest form is a virtual file system which
 transparently connects to existing storage systems and presents them as a single system to users.
-Using Alluxio's [unified namespace]({{site.baseurl}}{% link en/advanced/Namespace-Management.md %}),
+Using Alluxio's [unified namespace]({{ '/en/advanced/Namespace-Management.html' | relativize_url }}),
 many storage technologies can be mounted into Alluxio, including cloud storage like S3, Azure, and
 GCS. Because Alluxio can already integrate with storage systems, deep learning frameworks only need
 to interact with Alluxio to be able to access data from any connected storage. This opens the door
@@ -52,16 +52,17 @@ for training to be performed on all data from any data source, which can lead to
 performance.
 
 Alluxio also includes a FUSE interface for a convenient and familiar use experience. With [Alluxio
-FUSE]({{site.baseurl}}{% link en/api/FUSE-API.md %}), an Alluxio instance can
+FUSE]({{ '/en/api/FUSE-API.html' | relativize_url }}), an Alluxio instance can
 be mounted to the local file system, so interacting with Alluxio is as simple as interacting with
 local files and directories. This enables users to continue to use familiar tools and paradigms to
 interact with their data. Since Alluxio can connect to multiple disparate storages, data from any
 storage can be accessed like a local file or directory.
 
-![Fuse]({{site.baseurl}}{% link img/fuse.png %})
+![Fuse]({{ '/img/fuse.png ' | relativize_url }})
 
-Alluxio also provides [local caching]({{site.baseurl}}{% link
-en/advanced/Alluxio-Storage-Management.md %}) of frequently used data. This is particularly useful
+Alluxio also provides
+[local caching]({{ '/en/advanced/Alluxio-Storage-Management.html' | relativize_url }}) of frequently
+used data. This is particularly useful
 when the data is remote from the computation. Since Alluxio can cache the data locally,
 network I/O is not incurred when accessing the data,
 so deep learning training can be more cost effective and take less time.
@@ -69,7 +70,7 @@ so deep learning training can be more cost effective and take less time.
 ## Setting up Alluxio FUSE
 
 In this section, we will follow the instructions in the
-[FUSE section]({{site.baseurl}}{% link en/api/FUSE-API.md %}) to setup FUSE,
+[FUSE section]({{ '/en/api/FUSE-API.html' | relativize_url }}) to setup FUSE,
 access training data of ImageNet in S3, and allow deep learning frameworks to access the data
 through FUSE.
 

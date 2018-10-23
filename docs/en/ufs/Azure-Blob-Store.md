@@ -16,8 +16,8 @@ Store](https://azure.microsoft.com/en-in/services/storage/blobs/) as the under s
 
 To run an Alluxio cluster on a set of machines, you must deploy Alluxio binaries to each of these
 machines. You can either [compile the binaries from Alluxio source
-code]({{site.baseurl}}{% link en/contributor/Building-Alluxio-From-Source.md %}), or [download the
-precompiled binaries directly]({{site.baseurl}}{% link en/deploy/Running-Alluxio-Locally.md %}).
+code]({{ '/en/contributor/Building-Alluxio-From-Source.html' | relativize_url }}), or [download the
+precompiled binaries directly]({{ '/en/deploy/Running-Alluxio-Locally.html' | relativize_url }}).
 
 in preparation for using Azure Blob Store with Alluxio, create a new container in your Azure
 storage account or use an existing container. You should also note that the directory you want to
@@ -56,8 +56,8 @@ alluxio.master.mount.table.root.option.fs.azure.account.key.<AZURE_ACCOUNT>.blob
 
 ### Nested Mount
 An Azure blob store location can be mounted at a nested directory in the Alluxio namespace to have unified access
-to multiple under storage systems. Alluxio's [Command Line Interface]({{ site.baseurl }}{% link
-en/basic/Command-Line-Interface.md %}) can be used for this purpose.
+to multiple under storage systems. Alluxio's
+[Command Line Interface]({{ '/en/basic/Command-Line-Interface.html' | relativize_url }}) can be used for this purpose.
 
 ```bash
 $ ./bin/alluxio fs mount --option fs.azure.account.key.<AZURE_ACCOUNT>.blob.core.windows.net=<AZURE_ACCESS_KEY>\

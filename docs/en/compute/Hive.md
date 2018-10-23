@@ -21,9 +21,9 @@ that you can easily store Hive tables in Alluxio's tiered storage.
   This Alluxio client jar file can be found at `{{site.ALLUXIO_CLIENT_JAR_PATH}}` in the tarball
   downloaded from Alluxio [download page](http://www.alluxio.org/download).
   Alternatively, advanced users can compile this client jar from the source code
-  by following the [instructions]({{ site.baseurl }}{% link en/contributor/Building-Alluxio-From-Source.md %}).
+  by following the [instructions]({{ '/en/contributor/Building-Alluxio-From-Source.html' | relativize_url }}).
 * To run Hive on Hadoop MapReduce, please also follow the instructions in
-  [running MapReduce on Alluxio]({{ site.baseurl }}{% link en/compute/Hadoop-MapReduce.md %})
+  [running MapReduce on Alluxio]({{ '/en/compute/Hadoop-MapReduce.html' | relativize_url }})
   to make sure Hadoop MapReduce can work with Alluxio.
   In the following sections of this documentation, Hive is running on Hadoop MapReduce.
 
@@ -66,7 +66,7 @@ $ bin/alluxio fs copyFromLocal /path/to/ml-100k/u.user alluxio://master_hostname
 View Alluxio WebUI at `http://master_hostname:port` and you can see the directory and file Hive
 creates:
 
-![HiveTableInAlluxio]({{ site.baseurl }}{% link img/screenshot_hive_table_in_alluxio.png %})
+![HiveTableInAlluxio]({{ '/img/screenshot_hive_table_in_alluxio.png ' | relativize_url }})
 
 ### Create a New Internal Table
 
@@ -114,7 +114,7 @@ hive> select * from u_user;
 
 And you can see the query results from console:
 
-![HiveQueryResult]({{ site.baseurl }}{% link img/screenshot_hive_query_result.png %})
+![HiveQueryResult]({{ '/img/screenshot_hive_query_result.png ' | relativize_url }})
 
 ## Example: Serve Existing Tables Stored in HDFS from Alluxio
 
@@ -123,7 +123,7 @@ Alluxio can also serve them for Hive if HDFS is mounted as the under storage of 
 In this example, we assume a HDFS cluster is mounted as the under storage of
 Alluxio root directory (i.e., property `alluxio.underfs.address=hdfs://namenode:port/`
 is set in `conf/alluxio-site.properties`). Please refer to
-[unified namespace]({{ site.baseurl }}{% link en/advanced/Namespace-Management.md %})
+[unified namespace]({{ '/en/advanced/Namespace-Management.html' | relativize_url }})
 for more details about Alluxio `mount` operation.
 
 ### Move an Internal Table from HDFS to Alluxio
@@ -225,7 +225,7 @@ Alternatively, modify `conf/hive-site.xml` to have:
 
 > Tips：after Alluxio 1.8 (exclusive), there is an easier way to configure Hive to connect to Alluxio
  in fault tolerant mode with Zookeeper. Please follow the instructions in [HDFS API to connect to
- Alluxio with high availability]({{site.baseurl}}{% link en/deploy/Running-Alluxio-On-a-Cluster.md %}#Configure-Alluxio-Clients-for-HA).
+ Alluxio with high availability]({{ '/en/deploy/Running-Alluxio-On-a-Cluster.html' | relativize_url }}#Configure-Alluxio-Clients-for-HA).
 
 If you are running Alluxio in fault tolerant mode with a Zookeeper service running at
 `zkHost1:2181`, `zkHost2:2181` and `zkHost3:2181`, it requires setting
@@ -311,7 +311,7 @@ OVERWRITE INTO TABLE u_user;
 View Alluxio WebUI at `http://master_hostname:port` and you can see the directory and file Hive
 creates:
 
-![HiveTableInAlluxio]({{ site.baseurl }}{% link img/screenshot_hive_table_in_alluxio.png %})
+![HiveTableInAlluxio]({{ '/img/screenshot_hive_table_in_alluxio.png ' | relativize_url }})
 
 Using a single query:
 
@@ -321,7 +321,7 @@ hive> select * from u_user;
 
 And you can see the query results from console:
 
-![HiveQueryResult]({{ site.baseurl }}{% link img/screenshot_hive_query_result.png %})
+![HiveQueryResult]({{ '/img/screenshot_hive_query_result.png ' | relativize_url }})
 
 ## Troubleshooting
 

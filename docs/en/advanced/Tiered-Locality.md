@@ -96,7 +96,7 @@ alluxio.locality.node=node_name
 alluxio.locality.rack=rack_name
 ```
 
-See the [Configuration-Settings]({{ site.baseurl }}{% link en/basic/Configuration-Settings.md %}) page for the different
+See the [Configuration-Settings]({{ '/en/basic/Configuration-Settings.html' | relativize_url }}) page for the different
 ways to set configuration properties.
 
 ### Custom locality script name

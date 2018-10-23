@@ -21,8 +21,9 @@ This tutorial walks through a basic Alluxio setup on Kubernetes.
 - A Kubernetes cluster (version >= 1.8). Alluxio workers will use `emptyDir` volumes with a
 restricted size using the `sizeLimit` parameter. This is an alpha feature in Kubernetes 1.8.
 Please ensure the feature is enabled.
-- An Alluxio Docker image. Refer to [this page]({{ site.baseurl }}{% link
-en/deploy/Running-Alluxio-On-Docker.md %}) for instructions to build an image. The image must be
+- An Alluxio Docker image. Refer to
+[this page]({{ '/en/deploy/Running-Alluxio-On-Docker.html' | relativize_url }}) for instructions to
+build an image. The image must be
 available for a pull from all Kubernetes hosts running Alluxio processes. This can be achieved by
 pushing the image to an accessible Docker registry, or pushing the image individually to all hosts.
 If using a private Docker registry, refer to the Kubernetes
@@ -85,8 +86,8 @@ $ kubectl create -f alluxio-journal-volume.yaml
 ```
 
 ### Configure Alluxio properties
-Alluxio containers in Kubernetes use environment variables to set Alluxio properties. Refer to 
-[Docker configuration]({{site.baseurl}}{% link en/deploy/Running-Alluxio-On-Docker.md %}) for the
+Alluxio containers in Kubernetes use environment variables to set Alluxio properties. Refer to
+[Docker configuration]({{ '/en/deploy/Running-Alluxio-On-Docker.html' | relativize_url }}) for the
 corresponding environment variable name for Alluxio properties in `conf/alluxio-site.properties`.
 
 Define all environment variables in a single file. Copy the properties template at

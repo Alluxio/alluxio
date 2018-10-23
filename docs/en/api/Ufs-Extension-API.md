@@ -6,9 +6,9 @@ group: APIs
 priority: 10
 ---
 
-This page is intended for developers of under storage extensions. Please look at [managing
-extensions]({{site.baseurl}}{% link en/ufs/Ufs-Extensions.md%}) for a guide to using existing
-extensions.
+This page is intended for developers of under storage extensions. Please look at
+[managing extensions]({{ '/en/ufs/Ufs-Extensions.html' | relativize_url }}) for a
+guide to using existing extensions.
 
 * Table of Contents
 {:toc}
@@ -38,7 +38,7 @@ dependency management tool, and forwards all operations to a local filesystem.
 
 ### Implement the Under Storage Interface
 
-The [HDFS Submodule](https://github.com/alluxio/alluxio/tree/master/underfs/hdfs) and [S3A 
+The [HDFS Submodule](https://github.com/alluxio/alluxio/tree/master/underfs/hdfs) and [S3A
 Submodule](https://github.com/alluxio/alluxio/tree/master/underfs/s3a) are good examples of how
 to enable a storage system to serve as Alluxio's underlying storage.
 
@@ -150,5 +150,5 @@ extensions.
 Congratulations! You have developed a new under storage extension to Alluxio. Let the community
 know by submitting a pull request to the Alluxio
 [repository](https://github.com/Alluxio/alluxio/tree/master/docs/en/UFSExtensions.md) to edit the
-list of extensions section on the [documentation page]({{site.baseurl}}{% link
-en/ufs/Ufs-Extensions.md %}).
+list of extensions section on the
+[documentation page]({{ '/en/ufs/Ufs-Extensions.html' | relativize_url }}).

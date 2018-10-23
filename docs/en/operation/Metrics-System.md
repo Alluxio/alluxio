@@ -75,7 +75,7 @@ Cluster metrics are collected by the master and displayed in the metrics tab of 
 metrics are designed to provide a snapshot of the cluster state and the overall amount of data and
 metadata served by Alluxio.
 
-![Master Metrics]({{ site.baseurl }}{% link img/screenshot_generalMetrics.png %})
+![Master Metrics]({{ '/img/screenshot_generalMetrics.png ' | relativize_url }})
 
 Clients and workers send metrics data to the Alluxio master tagged with an application id. By
 default this will be in the form of 'app-[random number]'. This value can be configured through the

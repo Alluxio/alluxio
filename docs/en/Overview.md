@@ -72,34 +72,34 @@ Alluxio brings three key areas of innovation together to provide a unique set of
 1. **Intelligent Cache**: Alluxio clusters act as a read and write cache for data in connected storage
 systems. Configurable policies automatically optimize data placement for performance and reliability
 across both memory and disk (SSD/HDD). Caching is transparent to the user and uses
-buffering to maintain consistency with persistent storage. See [Alluxio Storage Management]({{
-site.baseurl }}{% link en/advanced/Alluxio-Storage-Management.md %}) for more details.
+buffering to maintain consistency with persistent storage. See
+[Alluxio Storage Management]({{ '/en/advanced/Alluxio-Storage-Management.html' | relativize_url }}) for more details.
 
 1. **Global Namespace**: Alluxio serves as a single point of access to multiple independent storage
 systems regardless of physical location. This provides a unified view of all data sources and a
-standard interface for applications. See [Namespace Management]({{ site.baseurl }}{% link
-en/advanced/Namespace-Management.md %}) for more details.
+standard interface for applications. See
+[Namespace Management]({{ '/en/advanced/Namespace-Management.html' | relativize_url }}) for more details.
 
 1. **Server-Side API Translation**: Alluxio transparently converts from a standard client-side
 interface to any storage interface. Alluxio manages communication between applications and file or
 object storage, eliminating the need for complex system configuration and management. File data can
 look like object data and vice versa.
 
-To understand more details on Alluxio internals, please read [Alluxio architecture and data flow]({{
-site.baseurl }}{% link en/Architecture-DataFlow.md %}).
+To understand more details on Alluxio internals, please read
+[Alluxio architecture and data flow]({{ '/en/Architecture-DataFlow.html' | relativize_url }}).
 
 ## Getting Started
 
-To quickly get Alluxio up and running, take a look at our [Getting Started]({{ site.baseurl }}{%
-link en/Getting-Started.md %}) page, which explains how to deploy Alluxio and run examples in a
-local environment.
+To quickly get Alluxio up and running, take a look at our
+[Getting Started]({{ '/en/Getting-Started.html' | relativize_url }}) page,
+which explains how to deploy Alluxio and run examples in a local environment.
 
 ## Downloads and More
 
 Released versions of Alluxio are available from the [Project Downloads Page](http://alluxio.org/download).
 Each release comes with prebuilt binaries compatible with various Hadoop versions.
-[Building From Master Branch Documentation]({{ site.baseurl }}{% link
-en/contributor/Building-Alluxio-From-Source.md %}) explains how to build the project from source
+[Building From Master Branch Documentation]({{ '/en/contributor/Building-Alluxio-From-Source.html' | relativize_url }})
+explains how to build the project from source
 code. Questions can be directed to our
 [User Mailing List](https://groups.google.com/forum/?fromgroups#!forum/alluxio-users). Users who
 can not access the Google Group may use its [mirror](http://alluxio-users.85194.x6.nabble.com/)

@@ -19,7 +19,7 @@ To run an Alluxio cluster on a set of machines, you must deploy Alluxio server b
 these machines. You can either
 [download the precompiled binaries directly](http://www.alluxio.org/download)
 with the correct Hadoop version (recommended), or
-[compile the binaries from Alluxio source code]({{ site.baseurl }}{% link en/contributor/Building-Alluxio-From-Source.md %})
+[compile the binaries from Alluxio source code]({{ '/en/contributor/Building-Alluxio-From-Source.html' | relativize_url }})
 (for advanced users).
 
 Note that, when building Alluxio from source code, by default Alluxio server binaries is built to
@@ -43,9 +43,8 @@ $ mvn install -Phadoop-3 -Dhadoop.version=3.0.0 -DskipTests
 ```
 
 Please visit the
-[Building Alluxio Master Branch]({{ site.baseurl }}{% link
-en/contributor/Building-Alluxio-From-Source.md %}#hadoop-distribution-support) page for more information about
-support for other distributions.
+[Building Alluxio Master Branch]({{ '/en/contributor/Building-Alluxio-From-Source.html' | relativize_url }}#hadoop-distribution-support)
+page for more information about support for other distributions.
 
 If everything succeeds, you should see
 `alluxio-assembly-server-{{site.ALLUXIO_RELEASED_VERSION}}-jar-with-dependencies.jar` created in
@@ -103,7 +102,7 @@ alluxio.underfs.address=hdfs://nameservice/
 
 ### User/Permission Mapping
 
-Alluxio supports POSIX-like filesystem [user and permission checking]({{ site.baseurl }}{% link en/advanced/Security.md %}).
+Alluxio supports POSIX-like filesystem [user and permission checking]({{ '/en/advanced/Security.html' | relativize_url }}).
 To ensure that the permission information of files/directories including user, group and mode in
 HDFS is consistent with Alluxio (e.g., a file created by user Foo in Alluxio is persisted to
 HDFS also with owner as user Foo), the user to start Alluxio master and worker processes

@@ -17,9 +17,8 @@ Service (OBS) is a massive, secure and highly reliable cloud storage service pro
 
 To run an Alluxio cluster on a set of machines, you must deploy Alluxio binaries to each of these
 machines. You can either
-[compile the binaries from Alluxio source code]({{site.baseurl}}{% link
-en/contributor/Building-Alluxio-From-Source.md %}), or [download the precompiled binaries
-directly]({{site.baseurl}}{% link en/deploy/Running-Alluxio-Locally.md %}).
+[compile the binaries from Alluxio source code]({{ '/en/contributor/Building-Alluxio-From-Source.html' | relativize_url }}),
+or [download the precompiled binaries directly]({{ '/en/deploy/Running-Alluxio-Locally.html' | relativize_url }}).
 
 OBS under storage is implemented as an under storage extension. A precompiled OBS under storage jar can be downloaded from [here](https://github.com/Alluxio/alluxio-extensions/tree/master/underfs/obs/target).
 
@@ -29,7 +28,7 @@ Execute the following command on master to install the extension to all masters 
 $ bin/alluxio extensions install /PATH/TO/DOWNLOADED/OBS/jar
 ```
 
-See [this doc]({{site.baseurl}}{% link en/ufs/Ufs-Extensions.md %}) for more details on Alluxio extension management.
+See [this doc]({{ '/en/ufs/Ufs-Extensions.html' | relativize_url }}) for more details on Alluxio extension management.
 
 A bucket and directory in OBS should exist before mounting OBS to Alluxio, create them if they do not exist.
 Suppose the bucket is named `OBS_BUCKET` and the directory is named `OBS_DIRECTORY`.
@@ -44,7 +43,7 @@ information on different regions and endpoints in OBS.
 ## Mounting OBS
 
 Alluxio unifies access to different storage systems through the
-[unified namespace]({{site.baseurl}}{% link en/advanced/Namespace-Management.md %}) feature. An OBS location can be
+[unified namespace]({{ '/en/advanced/Namespace-Management.html' | relativize_url }}) feature. An OBS location can be
 either mounted at the root of the Alluxio namespace or at a nested directory.
 
 ### Root Mount
@@ -76,7 +75,7 @@ and you can try to run alluxio locally with OBS.
 ### Nested Mount
 An OBS location can be mounted at a nested directory in the Alluxio namespace to have unified
 access to multiple under storage systems. Alluxio's
-[Mount Command]({{site.baseurl}}{% link en/basic/Command-Line-Interface.md %}#mount) can be used for
+[Mount Command]({{ '/en/basic/Command-Line-Interface.html' | relativize_url }}#mount) can be used for
 this purpose. For example, the following command mounts a folder inside an OBS bucket into Alluxio
 directory `/obs`:
 

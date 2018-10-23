@@ -18,8 +18,8 @@ using [Rados Gateway](http://docs.ceph.com/docs/master/radosgw/):
 ## Initial Setup
 
 First, the Alluxio binaries must be on your machine. You can either
-[compile Alluxio]({{site.baseurl}}{% link en/contributor/Building-Alluxio-From-Source.md %}), or
-[download the binaries locally]({{site.baseurl}}{% link en/deploy/Running-Alluxio-Locally.md %}).
+[compile Alluxio]({{ '/en/contributor/Building-Alluxio-From-Source.html' | relativize_url }}), or
+[download the binaries locally]({{ '/en/deploy/Running-Alluxio-Locally.html' | relativize_url }}).
 
 ## Configuring Alluxio
 
@@ -104,6 +104,6 @@ $ ./bin/alluxio-stop.sh local
 ## Access Control
 
 If Alluxio security is enabled, Alluxio enforces the access control inherited from underlying Ceph
-Object Storage. Depending on the interace used, refer to [S3A Access Control]({{site.baseurl}}{%
-link en/ufs/S3.md %}#s3-access-control) or [Swift Access Control]({{site.baseurl}}{% link
-en/ufs/Swift.md %}#swift-access-control) for more information.
+Object Storage. Depending on the interace used, refer to
+[S3A Access Control]({{ '/en/ufs/S3.html' | relativize_url }}#s3-access-control) or
+[Swift Access Control]({{ '/en/ufs/Swift.html' | relativize_url }}#swift-access-control) for more information.

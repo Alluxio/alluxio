@@ -15,8 +15,8 @@ as the under storage system.
 ## Initial Setup
 
 The Alluxio binaries must be on your machine. You can either
-[compile Alluxio]({{ site.baseurl }}{% link en/contributor/Building-Alluxio-From-Source.md %}), or
-[download the binaries locally]({{ site.baseurl }}{% link en/deploy/Running-Alluxio-Locally.md %}).
+[compile Alluxio]({{ '/en/contributor/Building-Alluxio-From-Source.html' | relativize_url }}), or
+[download the binaries locally]({{ '/en/deploy/Running-Alluxio-Locally.html' | relativize_url }}).
 
 In preparation for using GCS with Alluxio, create a bucket (or use an existing bucket). You
 should also note the directory you want to use in that bucket, either by creating a new directory in
@@ -60,8 +60,9 @@ you can [Run Alluxio Locally with GCS](#running-alluxio-locally-with-gcs).
 ### Configuring Application Dependency
 
 When building your application to use Alluxio, your application should include a client module, the
-`alluxio-core-client-fs` module to use the [Alluxio file system interface]({{ site.baseurl }}{% link
-en/api/FS-API.md %}) or the `alluxio-core-client-hdfs` module to use the
+`alluxio-core-client-fs` module to use the
+[Alluxio file system interface]({{ '/en/api/FS-API.html' | relativize_url }}) or the
+`alluxio-core-client-hdfs` module to use the
 [Hadoop file system interface](https://wiki.apache.org/hadoop/HCFS). For example, if you
 are using [maven](https://maven.apache.org/), you can add the dependency to your application with:
 

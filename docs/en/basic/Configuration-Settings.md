@@ -9,7 +9,7 @@ priority: 0
 {:toc}
 
 An Alluxio cluster can be configured by setting the values of Alluxio
-[configuration properties]({{ site.baseurl }}{% link en/reference/Properties-List.md %}).
+[configuration properties]({{ '/en/reference/Properties-List.html' | relativize_url }}).
 The two major components to configure are
 [Alluxio servers](#configure-alluxio-cluster), consisting of masters and workers, and
 [Alluxio clients](#configure-applications), which are a part of applications.
@@ -42,30 +42,29 @@ Note that, as a part of Alluxio deployment, Alluxio shell will also take the con
 
 To customize Alluxio client-side properties in Spark,
 Spark users can use pass Alluxio properties as JVM system properties.
-See examples for [the entire Spark Service]({{ site.baseurl }}{% link en/compute/Spark.md
-%}#customize-alluxio-user-properties-for-all-spark-jobs)
-or for [individual Spark Jobs]({{ site.baseurl }}{% link en/compute/Spark.md
- %}#customize-alluxio-user-properties-for-individual-spark-jobs).
+See examples for
+[the entire Spark Service]({{ '/en/compute/Spark.html' | relativize_url }}#customize-alluxio-user-properties-for-all-spark-jobs)
+or for
+[individual Spark Jobs]({{ '/en/compute/Spark.html' | relativize_url }}#customize-alluxio-user-properties-for-individual-spark-jobs).
 
 ### Hadoop MapReduce
 
 See examples to configure Alluxio properties for
-[the entire MapReduce service]({{ site.baseurl }}{% link en/compute/Hadoop-MapReduce.md
-%}#customize-alluxio-user-properties-for-all-mapreduce-jobs)
-or for [individual MapReduce jobs]({{ site.baseurl }}{% link en/compute/Hadoop-MapReduce.md
-%}#customize-alluxio-user-properties-for-individual-mapreduce-jobs).
+[the entire MapReduce service]({{ '/en/compute/Hadoop-MapReduce.html' | relativize_url }}#customize-alluxio-user-properties-for-all-mapreduce-jobs)
+or for
+[individual MapReduce jobs]({{ '/en/compute/Hadoop-MapReduce.html' | relativize_url }}#customize-alluxio-user-properties-for-individual-mapreduce-jobs).
 
 ### Hive
 
 Hive can be configured to use customized Alluxio client-side properties for the entire service.
-See [examples]({{ site.baseurl }}{% link
-en/compute/Hive.md %}#customize-alluxio-user-properties).
+See
+[examples]({{ '/en/compute/Hive.html' | relativize_url }}#customize-alluxio-user-properties).
 
 ### Presto
 
 Presto can be configured to use customized Alluxio client-side properties for the entire service.
-See [examples]({{ site.baseurl }}{% link
-en/compute/Presto.md %}#customize-alluxio-user-properties).
+See
+[examples]({{ '/en/compute/Presto.html' | relativize_url }}#customize-alluxio-user-properties).
 
 ## Configure Alluxio Cluster
 
@@ -208,7 +207,7 @@ In this case, its final value is determined by the following priority list, from
 
 1. [JVM system properties (i.e., `-Dproperty=key`)](http://docs.oracle.com/javase/jndi/tutorial/beyond/env/source.html#SYS)
 2. [Environment variables](#use-environment-variables)
-3. [Property files](#use-site-property-files-recommended): 
+3. [Property files](#use-site-property-files-recommended):
 When an Alluxio cluster starts, each server process including master and worker searches for
 `alluxio-site.properties` within the following directories in the given order, stopping when a match is found:
 `${HOME}/.alluxio/`, `/etc/alluxio/`, and `${ALLUXIO_HOME}/conf`
@@ -216,7 +215,7 @@ When an Alluxio cluster starts, each server process including master and worker 
 An Alluxio client may initialize its configuration based on the cluster-wide default configuration served by the masters.
 
 If no user-specified configuration is found for a property, Alluxio runtime will fallback to
-its [default property value]({{site.baseurl}}{% link en/reference/Properties-List.md %}).
+its [default property value]({{ '/en/reference/Properties-List.html' | relativize_url }}).
 
 To check the value of a specific configuration property and the source of its value,
 users can run the following command:
@@ -257,7 +256,7 @@ Suspected configuration errors are reported through the web UI, `doctor` CLI, an
 
 The web UI shows the result of the server configuration check.
 
-![webUi]({{ site.baseurl }}{% link img/screenshot_configuration_checker_webui.png %})
+![webUi]({{ '/img/screenshot_configuration_checker_webui.png ' | relativize_url }})
 
 Users can also run the `fsadmin doctor` command to get the same results.
 
@@ -267,4 +266,4 @@ $ bin/alluxio fsadmin doctor configuration
 
 Configuration warnings can also be found in the master logs.
 
-![masterLogs]({{ site.baseurl }}{% link img/screenshot_configuration_checker_masterlogs.png %})
+![masterLogs]({{ '/img/screenshot_configuration_checker_masterlogs.png ' | relativize_url }})

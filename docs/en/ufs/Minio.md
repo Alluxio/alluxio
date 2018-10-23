@@ -16,8 +16,8 @@ performance). You can use this scheme to connect Alluxio with Minio server.
 ## Initial Setup
 
 The Alluxio binaries must be on your machine. You can either
-[compile Alluxio]({{site.baseurl}}{% link en/contributor/Building-Alluxio-From-Source.md %}), or
-[download the binaries locally]({{site.baseurl}}{% link en/deploy/Running-Alluxio-Locally.md %}).
+[compile Alluxio]({{ '/en/contributor/Building-Alluxio-From-Source.html' | relativize_url }}), or
+[download the binaries locally]({{ '/en/deploy/Running-Alluxio-Locally.html' | relativize_url }}).
 
 ## Setup Minio
 
