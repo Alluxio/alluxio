@@ -11,15 +11,15 @@ priority: 0
 
 This document describes the following security related features in Alluxio.
 
-1. [Authentication](#authentication): 
-TODO: I can't even begin to parse this...
-If `alluxio.security.authentication.type=SIMPLE` (by default),
-Alluxio file system recognizes the user accessing the service.
-Having `SIMPLE` authentication is required to use other security features such as authorization.
-Alluxio also supports other authentication modes like `NOSASL` and `CUSTOM`.
-1. [Authorization](#authorization): If `alluxio.security.authorization.permission.enabled=true`
-(by default), Alluxio file system will grant or deny user access based on the requesting user and
-the POSIX permissions model of the files or directories to access.
+1. [User Authentication](#authentication): 
+Alluxio filesystem will differentiate users accessing the service
+when authentication mode is `SIMPLE` (i.e., `alluxio.security.authentication.type=SIMPLE`).
+Alluxio also supports other authentication modes like `NOSASL` which ignores the difference among users.
+Having authentication mode to be `SIMPLE` is required for authorization.
+1. [User Authorization](#authorization): 
+Alluxio filesystem will grant or deny user access based on the requesting user and
+the POSIX permissions model of the files or directories to access,
+when `alluxio.security.authorization.permission.enabled=true`.
 Note that, authentication cannot be `NOSASL` as authorization requires user information.
 1. [Access Control Lists](#Access-Control-Lists): In addition to the POSIX permission model, Alluxio
 implements an Access Control List(ACL) model similar to those found in Linux and HDFS. The ACL model
@@ -114,14 +114,14 @@ The user group mapping is cached, with an expiration period configured by the
 `alluxio.security.group.mapping.cache.timeout` property, with a default value of `60s`.
 If set to a value of `0`, caching is disabled.
 
+Alluxio has super user, a user with special privileges typically needed to administer and maintain the system.
 The `alluxio.security.authorization.permission.supergroup` property defines a super group.
 Any users belong to this group are also super users.
-TODO: but what is a super user?
 
 ### Initialized directory and file permissions
 
 When a file is created, it is initally assigned fully opened permissions of `666` by default.
-Similarly, a directory is initally assigned with `777` permissions. TODO: i think that's what it previously meant by difference of 111 but someone please check??? i also think it was mixed up according to the following example
+Similarly, a directory is initally assigned with `777` permissions.
 A umask is applied on the initial permissions; this is configured by the
 `alluxio.security.authorization.permission.umask` property, with a default of `022`.
 Without any property modifications, files and directories are created with `644` and `755` permissions respectively.
@@ -266,8 +266,7 @@ This is configured by the `alluxio.security.login.impersonation.username` proper
 If the property is set to an empty string or `_NONE_`, impersonation is disabled.
 If the property is set to `_HDFS_USER_`, the Alluxio client will impersonate as the same user as
 the HDFS client when using the Hadoop compatible client.
-
-TODO: just wondering, can we set this to a particular string indicating the specific user name? if possible, i find it weird that it's not explained here...
+This property can also be set to a particular string to indicate a user name.
 
 ## Auditing
 
