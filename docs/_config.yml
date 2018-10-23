@@ -32,13 +32,6 @@ defaults:
       lang: cn
       languageName: 中文
       languagePriority: 1
-  -
-    scope:
-      path: pt
-    values:
-      lang: pt
-      languageName: Português
-      languagePriority: 2
 
 # These are the ordered category names
 categoryList:
@@ -60,19 +53,15 @@ categoryInfo:
   Home:
     en: Home
     cn: 用户指南
-    pt: Guias do Usuário
   Deploying Alluxio:
     en: Deploying Alluxio
     cn: 部署
-    pt: Deploy
   Under Stores:
     en: Under Stores
     cn: 底层存储系统
-    pt: Under Stores
   Compute:
     en: Compute
     cn: 计算框架
-    pt: Compute
   Basic:
     en: Basic
   Operations:
@@ -82,10 +71,8 @@ categoryInfo:
   APIs:
     en: APIs
     cn: Clients
-    pt: Clients
   Contributor Resources:
     en: Contributor Resources
     cn: 开发者资源
-    pt: Recursos
   Reference:
     en: Reference
