@@ -55,24 +55,28 @@ categoryInfo:
     cn: 用户指南
   Deploying Alluxio:
     en: Deploying Alluxio
-    cn: 部署
+    cn: 部署 Alluxio
   Under Stores:
     en: Under Stores
     cn: 底层存储系统
   Compute:
     en: Compute
-    cn: 计算框架
+    cn: 计算应用
   Basic:
     en: Basic
+    cn: 基本用法
   Operations:
     en: Operations
+    cn: 运行维护
   Advanced:
     en: Advanced
+    cn: 高级用法
   APIs:
     en: APIs
-    cn: Clients
+    cn: APIs
   Contributor Resources:
     en: Contributor Resources
     cn: 开发者资源
   Reference:
     en: Reference
+    cn: 参考
