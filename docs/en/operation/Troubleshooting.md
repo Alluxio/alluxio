@@ -34,12 +34,7 @@ log4j configuration used by the application. For more information about logging,
 
 ## Alluxio remote debug
 
-Alluxio does not typically run on the development environment, which makes it difficult to debug Alluxio. We locate
-problem's method is 'log-build-deploy-scanlog', the efficiency of the problem localization is low and need to modify
-the code and trigger new deployment, which is not allowed in some time.
-TODO: i have no idea what this means???
-
-Java remote debugging makes it easier to debug Alluxio at the source level without modify any code. You
+Java remote debugging makes it easier to debug Alluxio at the source level without modifying any code. You
 will need to append the JVM remote debugging parameters and start a debugging server. There are several ways to append
 the remote debugging parameters; you can export the following configuration properties in shell or `alluxio-env.sh`:
 
@@ -49,13 +44,13 @@ export ALLUXIO_MASTER_JAVA_OPTS="$ALLUXIO_JAVA_OPTS -agentlib:jdwp=transport=dt_
 export ALLUXIO_USER_DEBUG_JAVA_OPTS="-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=6609"
 ```
 
-If you want to debug shell command, you can add the `-debug` flag to start a debug server with the JVM debug
+If you want to debug shell commands, you can add the `-debug` flag to start a debug server with the JVM debug
 parameters `ALLUXIO_USER_DEBUG_JAVA_OPTS`, such as `alluxio fs -debug ls /`.
 
 `suspend = y/n` will decide whether the JVM process wait until the debugger connects. If you want to debug with the
 shell command, set the `suspend = y`. Otherwise, you can set `suspend = n` to avoid unnecessary waiting time.
 
-After start the master or worker, use Eclipse, IntelliJ IDEA, or another java IDE. Create a new java remote configuration,
+After starting the master or worker, use Eclipse, IntelliJ IDEA, or another java IDE. Create a new java remote configuration,
 set the debug server's host and port, and start the debug session. If you set a breakpoint which can be reached, the IDE
 will enter debug mode and you can inspect the current context's variables, call stack, thread list, and expression
 evaluation.
@@ -82,16 +77,6 @@ Tips:
 - The best performance gains occur when Alluxio workers are co-located with the nodes of the computation frameworks.
 - You can use Mesos and Yarn integration if you are already using Mesos or Yarn to manage your cluster.
 - If the under storage is remote (like S3 or remote HDFS), using Alluxio can be especially beneficial.
-
-### Q: I'm having problems setting up Alluxio cluster on EC2. Can you help?
-
-A: Please follow [Deploy-Alluxio-on-EC2]({{site.baseurl}}{% link en/deploy/Running-Alluxio-Using-Vagrant.md %}#deploy-on-aws-ec2) for details.
-
-Typical issues:
-- Check that your AWS access keys and key pairs are set up.
-- If the UnderFileSystem is S3, check the S3 bucket name in `ufs.yml` is the name of an existing
-bucket, without the `s3a://` prefix. TODO: wait what is this ufs.yml???
-- If you are not able to access the UI, please check that your security group allows incoming traffic on port 19999.
 
 ### Q: Why do I see "Unsupported major.minor version 52.0" error when I start Alluxio?
 

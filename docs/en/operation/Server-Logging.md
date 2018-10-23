@@ -26,11 +26,10 @@ Alluxio's logging behavior can be fully configured through the `log4j.properties
 
 By default Alluxio processes' log files can be found under `${ALLUXIO_HOME}/logs/`.
 
-### Configuring the Log Location 
+### Configuring the Log Location
 
-The location of the logs is determined by the `alluxio.logs.dir` property. This is a JVM
-property which cannot be set in the `alluxio-site.properties` file. 
-TODO: if stating where the property cannot be set, please state where it CAN be set
+The location of the logs is determined by the `alluxio.logs.dir` property. This can only be set via JVM
+property; it cannot be set in the `alluxio-site.properties` file.
 See the
 [configuration settings page]({{site.baseurl}}{% link en/basic/Configuration-Settings.md %}#configuration-sources)
 for more information on how to set JVM properties for Alluxio.
