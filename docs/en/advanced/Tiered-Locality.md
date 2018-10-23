@@ -88,7 +88,10 @@ If the user does nothing to provide tiered identity info,
 each entity will perform a hostname lookup to set its node-level identity info.
 If other locality tiers are left unset, they will not be used to inform locality decisions.
 To set the value for a locality tier, set the configuration property:
-TODO: huh why is this empty???
+
+```
+alluxio.locality.<tierName>=<tierValue>
+```
 
 ### Set locality via configuration properties
 
