@@ -156,10 +156,11 @@ characteristics, please be aware that:
   `cp` command will fail when the destination file exists.
 * Alluxio does not have hard-link and soft-link concepts, so the commands like `ln` are not supported,
   neither the hardlinks number is displayed in `ll` output.
-* The user and group are mapped to the Unix user and group only when Alluxio is configured to use
-  shell-based mapping, by setting `alluxio.security.group.mapping.class` to `ShellBasedUnixGroupsMapping`
+* The user and group are mapped to the Unix user and group only when Alluxio Fuse is configured to use
+  shell user group translation service, by setting `alluxio.fuse.user.group.translation.enabled` to `true` 
   in `conf/alluxio-site.properties`. Otherwise `chown` and `chgrp` are no-ops, and `ll` will return the
-  user and group of the user who started the alluxio-fuse process.
+  user and group of the user who started the alluxio-fuse process. The translation service
+  does not change the actual file permission when running `ll`. 
 
 ## Performance considerations
 
