@@ -90,9 +90,9 @@ with the following changes or deviations:
 - Bash scripts follow [Google Shell style](https://google.github.io/styleguide/shell.xml), and
 must be compatible with Bash 3.x
 - You can download our
-[Eclipse formatter]({{site.baseurl}}{% link resources/alluxio-code-formatter-eclipse.xml %})
+[Eclipse formatter]({{ '/resources/alluxio-code-formatter-eclipse.xml ' | relativize_url }})
 - For Eclipse to organize your imports correctly, configure "Organize Imports" to look like
-[this]({{site.baseurl}}{% link resources/eclipse_imports.png %})
+[this]({{ '/resources/eclipse_imports.png ' | relativize_url }})
 - If you use IntelliJ IDEA:
 - You can either use our formatter with the help from
 [Eclipse Code Formatter](https://github.com/krasa/EclipseCodeFormatter#instructions)
@@ -100,7 +100,7 @@ or use [Eclipse Code Formatter Plugin](http://plugins.jetbrains.com/plugin/6546)
 IntelliJ IDEA.
 - To automatically format the **import**, configure in
 Preferences->Code Style->Java->Imports->Import Layout according to
-[this order]({{site.baseurl}}{% link resources/intellij_imports.png %})
+[this order]({{ '/resources/intellij_imports.png ' | relativize_url }})
 - To automatically reorder methods alphabetically, try the
 [Rearranger Plugin](http://plugins.jetbrains.com/plugin/173), open Preferences, search for
 rearranger, remove the unnecessary comments, then right click, choose "Rearrange", codes

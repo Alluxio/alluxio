@@ -39,7 +39,7 @@ into two distinct categories.
     the data will be copied into Alluxio storage.
 
 
-![Alluxio storage diagram]({{site.baseurl}}{% link img/stack.png %})
+![Alluxio storage diagram]({{ '/img/stack.png ' | relativize_url }})
 
 One of the reasons that Alluxio storage improves performance is that it stores data in memory
 co-located with compute nodes. Another reason is that Alluxio makes "hot" data more available to
