@@ -62,7 +62,7 @@ categoryInfo:
     cn: 用户指南
     pt: Guias do Usuário
   Deploying Alluxio:
-    en: Deploy
+    en: Deploying Alluxio
     cn: 部署
     pt: Deploy
   Under Stores:
