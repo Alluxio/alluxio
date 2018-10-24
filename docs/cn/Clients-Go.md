@@ -9,22 +9,22 @@ priority: 4
 * 内容列表
 {:toc}
 
-Alluxio有一个[Go Client](https://github.com/Alluxio/alluxio-go), 此客户端通过[REST API](Clients-Rest.html)
-和Alluxio进行交互。Go 客户端提供一个和[native Java API](Clients-Java-Native.html)相似的API。
+Alluxio有一个[Go 语言客户端](https://github.com/Alluxio/alluxio-go), 此客户端通过[REST API](Clients-Rest.html)
+和Alluxio进行交互。Go 客户端提供一个和[原生 Java API](Clients-Java-Native.html)相似的API。
 查看[godoc](http://godoc.org/github.com/Alluxio/alluxio-go)
 获取所有可用接口的详细信息，godoc包括如何下载，上传Alluxio中的文件，检查文件是否
 存在，列出文件状态等信息。
 
 # Alluxio 代理依赖
 
-Go 客户端通过Alluxio代理提供的REST API和Alluxio进行交互。
+Go 语言客户端通过Alluxio代理提供的REST API和Alluxio进行交互。
 
-Alluxio代理是一个独立运行的server，可用通过`${ALLUXIO_HOME}/bin/alluxio-start.sh proxy`进行启动，
+Alluxio代理是一个独立运行的server，可通过命令`${ALLUXIO_HOME}/bin/alluxio-start.sh proxy`启动，
 `${ALLUXIO_HOME}/bin/alluxio-stop.sh proxy`停止服务，默认情况下，REST API使用端口39999.
 
-使用HTTP代理会影响性能，尤其是，使用代理会增加一个额外的跳计数，所以推荐代理服务和一个Alluxio worker运行在一个计算节点上。
+使用HTTP代理会影响性能，尤其是在使用代理时会增加一个额外的跳计数，所以推荐让代理服务和一个Alluxio worker运行在一个计算节点上。
 
-# 安装Go客户端相关库
+# 安装Go语言客户端相关库
 ```bash
 $ go get -d github.com/Alluxio/alluxio-go
 ```
