@@ -17,7 +17,7 @@ priority: 2
 
 为了在集群上部署Alluxio，首先要在每个节点下载Alluxio tar文件并解压：
 
-为了在集群上部署Alluxio，首先 [下载](https://alluxio.org/download) Alluxio文件(.tar),然后在每个节点上解压它。
+为了在集群上部署Alluxio，首先 [下载](https://alluxio.org/download) Alluxio文件(.tar)，然后在每个节点上解压它。
 
 ### 配置Alluxio
 
@@ -29,7 +29,7 @@ $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 
 更新`conf/alluxio-site.properties`中的`alluxio.master.hostname`为你将运行Alluxio Master的机器的主机名。添加所有worker节点的IP地址到`conf/workers`文件。
 如果集群中存在多节点，你不可以使用本地文件系统作为Allxuio底层存储层。你需要在所有Alluxio服务端连接的节点启动共享存储，共享存储可以是
-网络文件系统（NFS)，HDFS，S3等。例如。你可以参照[Configuring Alluxio with S3](Configuring-Alluxio-with-S3.html)按照说明启动S3作为Alluxio底层存储。
+网络文件系统（NFS），HDFS，S3等。例如。你可以参照[Configuring Alluxio with S3](Configuring-Alluxio-with-S3.html)按照说明启动S3作为Alluxio底层存储。
 
 最后，同步所有信息到worker节点。你可以使用
 
@@ -51,13 +51,13 @@ $ ./bin/alluxio-start.sh # use the right parameters here. e.g. all Mount
 # Notice: the Mount and SudoMount parameters will format the existing RamFS.
 ```
 
-为了确保Alluxio正在运行, 访问 `http://<alluxio_master_hostname>:19999`, 检查文件夹`alluxio/logs`下的日志, or 或者运行简单程序:
+为了确保Alluxio正在运行，访问 `http://<alluxio_master_hostname>:19999`，检查文件夹`alluxio/logs`下的日志，or 或者运行简单程序：
 
 ```bash
 $ ./bin/alluxio runTests
 ```
 
-**注意**: 如果你使用EC2, 确保master节点上的安全组设置允许来自alluxio web UI 端口的连接。
+**注意**：如果你使用EC2，确保master节点上的安全组设置允许来自alluxio web UI 端口的连接。
 
 ## 运行Alluxio实现高可用性
 
@@ -88,7 +88,7 @@ Alluxio使用Zookeeper实现master的高可用性。Alluxio master使用Zookeepe
 Zookeeper查询当前leader的id和地址。
 
 ZooKeeper必须单独安装
-(见[ZooKeeper快速入门](http://zookeeper.apache.org/doc/r3.4.5/zookeeperStarted.html)).
+(见[ZooKeeper快速入门](http://zookeeper.apache.org/doc/r3.4.5/zookeeperStarted.html))。
 
 部署Zookeeper之后，记下其地址和端口，下面配置Alluxio时会用到。
 
@@ -106,12 +106,12 @@ Zookeeper和共享文件系统都正常运行时，需要在每个主机上配�
 
 #### 外部可见地址
 
-下文中提到的“外部可见地址(externally visible address)”指的是机器上配置的接口地址，对Alluxio集群中其它节点可见。在EC2上，使用`ip-x-x-x-x`地址。而
+下文中提到的“外部可见地址（externally visible address）”指的是机器上配置的接口地址，对Alluxio集群中其它节点可见。在EC2上，使用`ip-x-x-x-x`地址。而
 且不能使用`localhost`或`127.0.0.1`，否则其它节点无法访问该结点。
 
 #### 配置容错的Alluxio
 
-实现Alluxio上的高可用性，需要为Alluxio master、worker和client添加额外的配置。在`conf/alluxio-site.properties`中，以
+实现Alluxio上的高可用性，需要为Alluxio master，worker和client添加额外的配置。在`conf/alluxio-site.properties`中，以
 下java选项需要设置：
 
 <table class="table">

@@ -960,17 +960,13 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
     List<BlockLocation> locations = new ArrayList<>();
     List<MasterBlockLocation> blockLocations = masterBlockInfo.getBlockLocations();
     // Sort the block locations by their alias ordinal in the master storage tier mapping
-    /**Collections.sort(blockLocations, new Comparator<MasterBlockLocation>() {
+    Collections.sort(blockLocations, new Comparator<MasterBlockLocation>() {
       @Override
       public int compare(MasterBlockLocation o1, MasterBlockLocation o2) {
         return mGlobalStorageTierAssoc.getOrdinal(o1.getTierAlias())
             - mGlobalStorageTierAssoc.getOrdinal(o2.getTierAlias());
       }
-    });*/
-    Collections.sort(blockLocations, Comparator
-            .comparingInt(o -> mGlobalStorageTierAssoc.getOrdinal(o.getTierAlias())
-            )
-    );
+    });
     for (MasterBlockLocation masterBlockLocation : blockLocations) {
       MasterWorkerInfo workerInfo =
           mWorkers.getFirstByField(ID_INDEX, masterBlockLocation.getWorkerId());
