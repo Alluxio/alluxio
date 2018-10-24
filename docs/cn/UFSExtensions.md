@@ -52,7 +52,7 @@ Usage: alluxio extensions [generic options]
 `uninstall`命令和`install`命令类似，处理所有`conf/masters`和`conf/workers`包括的主机。手动移除Alluxio服务器中的扩展，
 防止一些主机是运行命令行的主机不可达的。
 
-###　从Maven坐标中安装
+### 从Maven坐标中安装
 
 为了从maven中安装，按照下面的步骤下载JAR,并安装。
 
