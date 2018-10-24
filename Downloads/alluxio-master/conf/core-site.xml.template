@@ -1,0 +1,127 @@
+<!--
+
+    The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+    (the "License"). You may not use this work except in compliance with the License, which is
+    available at www.apache.org/licenses/LICENSE-2.0
+
+    This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+    either express or implied, as more fully set forth in the License.
+
+    See the NOTICE file distributed with this work for information regarding copyright ownership.
+
+-->
+<configuration>
+  <property>
+   <name>fs.swift.impl</name>
+   <value>org.apache.hadoop.fs.swift.snative.SwiftNativeFileSystem</value>
+  </property>
+
+  <!--SoftLayer Dallas - identified via "dal05"
+  Use this via swift://<swift container>.dal05/ -->
+  <property>
+    <name>fs.swift.service.dal05.auth.url</name>
+    <value>https://dal05.objectstorage.softlayer.net/auth/v1.0</value>
+  </property>
+  <property>
+    <name>fs.swift.service.dal05.http.port</name>
+    <value>8080</value>
+  </property>
+  <property>
+    <name>fs.swift.service.dal05.public</name>
+    <value>true</value>
+  </property>
+  <property>
+   <name>fs.swift.service.dal05.location-aware</name>
+   <value>false</value>
+  </property>
+  <property>
+    <name>fs.swift.service.ibm.dal05.endpoint.prefix</name>
+    <value>endpoints</value>
+  </property>
+  <property>
+    <name>fs.swift.service.dal05.apikey</name>
+    <value>API_KEY</value>
+  </property>
+  <property>
+    <name>fs.swift.service.dal05.username</name>
+    <value>ACCOUNT:USER NAME</value>
+  </property>
+  <property>
+    <name>fs.swift.service.dal05.use.get.auth</name>
+    <value>true</value>
+  </property>
+
+  <!-- Local Swift cluster using Keystone- identified via "swift1"
+  Use this via swift://<swift container>.swift1 -->
+  <property>
+   <name>fs.swift.service.swift1.location-aware</name>
+   <value>false</value>
+  </property>
+  <property>
+    <name>fs.swift.service.swift1.auth.url</name>
+    <value>http://127.0.0.1:5000/v2.0/tokens</value>
+  </property>
+  <property>
+    <name>fs.swift.service.swift1.http.port</name>
+    <value>8080</value>
+  </property>
+  <property>
+    <name>fs.swift.service.swift1.region</name>
+    <value>RegionOne</value>
+  </property>
+  <property>
+    <name>fs.swift.service.swift1.public</name>
+    <value>true</value>
+  </property>
+  <property>
+    <name>fs.swift.service.swift1.auth.endpoint.prefix</name>
+    <value>endpoints</value>
+  </property>
+  <property>
+    <name>fs.swift.service.swift1.tenant</name>
+    <value>TENANT</value>
+  </property>
+  <property>
+    <name>fs.swift.service.swift1.password</name>
+    <value>PASSWORD</value>
+  </property>
+  <property>
+    <name>fs.swift.service.swift1.username</name>
+    <value>USER NAME</value>
+  </property>
+
+  <!--Local Swift using Temp Auth - identified via "swift2"
+  Use this via swift://<swift container>.swift2 -->
+  <property>
+    <name>fs.swift.service.swift2.auth.url</name>
+    <value>http://127.0.0.1:8080/auth/v1.0</value>
+  </property>
+  <property>
+    <name>fs.swift.service.swift2.http.port</name>
+    <value>8080</value>
+  </property>
+  <property>
+    <name>fs.swift.service.swift2.public</name>
+    <value>true</value>
+  </property>
+  <property>
+   <name>fs.swift.service.swift2.location-aware</name>
+   <value>false</value>
+  </property>
+  <property>
+    <name>fs.swift.service.swift2.endpoint.prefix</name>
+    <value>endpoints</value>
+  </property>
+  <property>
+    <name>fs.swift.service.swift2.apikey</name>
+    <value>testing</value>
+  </property>
+  <property>
+    <name>fs.swift.service.swift2.username</name>
+    <value>test:tester</value>
+  </property>
+  <property>
+    <name>fs.swift.service.swift2.use.get.auth</name>
+    <value>true</value>
+  </property>
+</configuration>

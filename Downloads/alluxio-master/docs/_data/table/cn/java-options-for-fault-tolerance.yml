@@ -1,0 +1,4 @@
+alluxio.zookeeper.enabled:
+  如果设置为true，master会使用Zookeeper进行容错。
+alluxio.zookeeper.address:
+  Zookeeper运行时所在的主机名和端口。多个地址以逗号分割。

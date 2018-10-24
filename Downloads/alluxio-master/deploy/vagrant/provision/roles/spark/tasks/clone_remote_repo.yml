@@ -1,0 +1,14 @@
+- name: install git
+  yum: name=git
+  sudo: yes
+
+- name: mkdir /spark
+  script: mkdir.sh
+
+- name: clone spark repo
+  git: >
+    repo={{ spark_repo }}
+    dest=/spark
+    version={{ spark_version }}
+
+# vim :set filetype=ansible.yaml:

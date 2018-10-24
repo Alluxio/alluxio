@@ -1,0 +1,4 @@
+alluxio.zookeeper.enabled:
+  If true, masters will use ZooKeeper to enable fault tolerance.
+alluxio.zookeeper.address:
+  The hostname and port ZooKeeper is running on. Separate multiple addresses with commas.

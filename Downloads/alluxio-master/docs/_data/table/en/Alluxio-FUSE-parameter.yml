@@ -1,0 +1,11 @@
+alluxio.fuse.maxwrite.bytes:
+  The desired granularity of FUSE write upcalls in bytes. Note that 128K is currently an upper
+  bound imposed by the linux kernel.
+alluxio.fuse.debug.enabled:
+  Enable FUSE debug output. This output will be redirected in a `fuse.out` log file inside
+  `alluxio.logs.dir`.
+alluxio.fuse.cachedpaths.max:
+  Defines the size of the internal Alluxio-FUSE cache that maintains the most frequently used
+  translations between local file system paths and Alluxio file URIs.
+alluxio.fuse.fs.name:
+  Descriptive name used by FUSE to mount the file system.

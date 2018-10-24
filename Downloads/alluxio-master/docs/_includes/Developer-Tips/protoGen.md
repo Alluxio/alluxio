@@ -1,0 +1,3 @@
+```bash
+$ bin/alluxio protoGen
+```

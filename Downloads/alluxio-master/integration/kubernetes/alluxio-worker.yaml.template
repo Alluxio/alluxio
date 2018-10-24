@@ -1,0 +1,69 @@
+#
+# The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+# (the "License"). You may not use this work except in compliance with the License, which is
+# available at www.apache.org/licenses/LICENSE-2.0
+#
+# This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+# either express or implied, as more fully set forth in the License.
+#
+# See the NOTICE file distributed with this work for information regarding copyright ownership.
+#
+
+apiVersion: extensions/v1beta1
+kind: DaemonSet
+metadata:
+  name: alluxio-worker
+spec:
+  template:
+    metadata:
+      labels:
+        name: alluxio-worker
+        app: alluxio
+    spec:
+      hostNetwork: true
+      hostPID: true
+      dnsPolicy: ClusterFirstWithHostNet
+      containers:
+        - name: alluxio-worker
+          image: alluxio/alluxio:1.6.1
+          resources:
+            requests:
+              cpu: "0.5"
+              memory: "2G"
+            limits:
+              cpu: "1"
+              memory: "2G"
+          command: ["/entrypoint.sh"]
+          args: ["worker"]
+          env:
+          - name: ALLUXIO_WORKER_HOSTNAME
+            valueFrom:
+              fieldRef:
+                fieldPath: status.hostIP
+          envFrom:
+          - configMapRef:
+              name: alluxio-config
+          ports:
+          - containerPort: 29998
+            name: rpc
+          - containerPort: 29999
+            name: data
+          - containerPort: 29996
+            name: web
+          securityContext:
+            privileged: true
+          volumeMounts:
+            - name: alluxio-ramdisk
+              mountPath: /dev/shm
+            - name: alluxio-domain
+              mountPath: /opt/domain
+      restartPolicy: Always
+      volumes:
+        - name: alluxio-ramdisk
+          emptyDir:
+            medium: "Memory"
+            sizeLimit: "1G"
+        - name: alluxio-domain
+          hostPath:
+            path: /tmp/domain
+            type: Directory

@@ -1,0 +1,26 @@
+syntax = "proto2";
+
+package alluxio.proto.journal;
+
+// Journal entry messages for the lineage master.
+
+// next available id: 3
+message DeleteLineageEntry {
+  optional int64 lineage_id = 1;
+  optional bool cascade = 2;
+}
+
+// next available id: 7
+message LineageEntry {
+  optional int64 id = 1;
+  repeated int64 input_files = 2;
+  repeated int64 output_file_ids = 3;
+  optional string job_command = 4;
+  optional string job_output_path = 5;
+  optional int64 creation_time_ms = 6;
+}
+
+// next available id: 2
+message LineageIdGeneratorEntry {
+  optional int64 sequence_number = 1;
+}

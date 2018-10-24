@@ -1,0 +1,8 @@
+CACHE_THROUGH:
+  数据被同步地写入到Alluxio的Worker和底层存储系统。
+MUST_CACHE:
+  数据被同步地写入到Alluxio的Worker。但不会被写入到底层存储系统。这是默认写类型。
+THROUGH:
+  数据被同步地写入到底层存储系统。但不会被写入到Alluxio的Worker。
+ASYNC_THROUGH:
+  数据被同步地写入到Alluxio的Worker，并异步地写入到底层存储系统。处于实验阶段。

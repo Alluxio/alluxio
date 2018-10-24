@@ -1,0 +1,4 @@
+- name: start zookeeper
+  shell: /zookeeper/bin/zkServer.sh start
+
+# vim :set filetype=ansible.yaml:

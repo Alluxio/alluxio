@@ -1,0 +1,9 @@
+---
+# this playbook defines provisioning tasks for creating an image with alluxio development environment
+# e.g., git, wget, rsync, java, maven etc.
+
+- name: install necessary packages
+  hosts: all
+  tasks:
+    - include: roles/common/tasks/pkg.yml
+    - include: roles/lib/tasks/maven.yml

@@ -1,0 +1,10 @@
+CACHE_THROUGH:
+  Data is written synchronously to a Alluxio worker and the under storage system.
+MUST_CACHE:
+  Data is written synchronously to a Alluxio worker. No data will be written to the under
+  storage. This is the default write type.
+THROUGH:
+  Data is written synchronously to the under storage. No data will be written to Alluxio.
+ASYNC_THROUGH:
+  Data is written synchronously to a Alluxio worker and asynchronously to the under storage
+  system. Experimental.

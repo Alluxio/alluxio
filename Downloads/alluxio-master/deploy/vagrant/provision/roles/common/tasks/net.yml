@@ -1,0 +1,15 @@
+# Network configuration of ssh and hosts
+# so that nodes in cluster can visit each other
+---
+
+- name: configure ssh
+  script: ssh.sh
+
+- name: configure hosts
+  script: host.sh
+
+- name: set hostname
+  hostname: name={{ inventory_hostname }}
+  sudo: yes
+
+# vim :set filetype=ansible.yaml:

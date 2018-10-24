@@ -1,0 +1,9 @@
+- name: make sure /hadoop exist
+  script: mkdir.sh
+
+- name: download hadoop release
+  script: download_release.sh
+  environment:
+    TARBALL_URL: "{{ hadoop_tarball_url }}"
+
+# vim :set filetype=ansible.yaml:

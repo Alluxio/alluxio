@@ -1,0 +1,4 @@
+alluxio.keyvalue.enabled:
+  'Whether the key-value service is enabled.'
+alluxio.keyvalue.partition.size.bytes.max:
+  'Maximum allowable size of a single key-value partition in a store. This value should be no larger than the block size (alluxio.user.block.size.bytes.default).'

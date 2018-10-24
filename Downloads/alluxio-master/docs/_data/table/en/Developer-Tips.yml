@@ -1,0 +1,76 @@
+extensions:
+  Manage extensions to core Alluxio
+format:
+  Format Alluxio Master and all Workers. The option [-s] indicates that the command should only
+  format when the underfs is local and doesn't already exist.
+formatMaster:
+  Format Alluxio master.
+formatWorker:
+  Format Alluxio Worker storage.
+bootstrapConf:
+  Generate the bootstrap config file <code>alluxio-env.sh</code> with the specified
+  <code>ALLUXIO_MASTER_HOSTNAME</code>, if the config file doesn't exist.
+fs:
+  Interact with Alluxio in command line style for basic file system operations.
+  See <a href="Command-Line-Interface.html">Command Line</a> for more information.
+fsadmin:
+  Command line tool for use by Alluxio filesystem admins.
+  See <a href="Admin-CLI.html">Fsadmin Command Line</a> for more information.
+getConf:
+  Look up a configuration key, or print all configuration.
+loadufs:
+  Loads files under <code>UfsPath</code> to the given <code>AlluxioPath</code>.
+  This command has been deprecated since version 1.1.
+  Use the <code>alluxio fs mount &lt;AlluxioURI&gt; &lt;UfsURI&gt;</code> command followed by the
+  <code>alluxio fs ls -R &lt;AlluxioURI&gt;</code> command instead.
+logLevel:
+  Dynamically changes the log level of a class on the running Alluxio server.
+  Try alluxio logLevel -help to see the meaning of each argument in detail.
+runTest:
+  Run an end-to-end test on a Alluxio cluster. <code>Example</code> should be "Basic" or
+  "BasicNonByteBuffer". <code>ReadType</code> should be "CACHE_PROMOTE", "CACHE",
+  or "NO_CACHE". <code>WriteType</code> should be "MUST_CACHE", "CACHE_THROUGH" or "THROUGH".
+runTests:
+  Run all end-to-end tests on a Alluxio cluster. That is, execute the <code>runTest</code> command
+  with all the possible args.
+journalCrashTest:
+  Test the Master Journal System in a crash scenario. Try <code>alluxio journalCrashTest -help</code>
+  to see the meanings of each argument in detail, or you can run it without args by default.
+readJournal:
+  Read a Alluxio journal file from stdin and write a human-readable version of it to stdout. You
+  can run this on the journal file as <code>alluxio readJournal < journal/FileSystemMaster/log.out</code>.
+upgradeJournal:
+  Upgrade an Alluxio journal version 0 (Alluxio version &lt; 1.5.0) to an Alluxio journal version
+   1 (Alluxio version &gt;= 1.5.0).
+killAll:
+  Kill processes whose pid or command contains the <code>WORD</code> specified by the user.
+confDocGen:
+  Generate configuration docs.
+copyDir:
+  Copy the <code>PATH</code> to all worker nodes.
+clearCache:
+  Clear OS buffer cache of the machine. This command needs the root permission.
+thriftGen:
+  Generate all thrift code. See <a href="#change-a-thrift-rpc-definition">Change a Thrift RPC
+  definition</a>.
+protoGen:
+  Generate all protocol buffer code. See <a href="#change-a-protocol-buffer-message">Change a
+  Protocol Buffer Message</a>.
+version:
+  Print Alluxio version.
+validateConf:
+  Validate Alluxio configuration.
+validateEnv:
+  Validate environment for Alluxio. <code>TARGET</code> can be one of the following values:<br>
+  <code>local</code>   run all validation tasks on local<br>
+  <code>master</code>  run master validation tasks on local<br>
+  <code>worker</code>  run worker validation tasks on local<br>
+  <code>all</code>     run corresponding validation tasks on all master nodes and worker nodes<br>
+  <code>masters</code> run master validation tasks on all master nodes<br>
+  <code>workers</code> run worker validation tasks on all worker nodes<br>
+  <code>NAME</code> can be any task full name or prefix.<br>
+  When <code>NAME</code> is given, only tasks with name starts with the prefix will run.
+  For example, specifying <code>NAME</code> "master" or "ma" will run both tasks named
+  <code>master.rpc.port.available</code> and <code>master.web.port.available</code> but not
+  <code>worker.rpc.port.available</code>.<br>
+  If <code>NAME</code> is not given, all tasks for the given <code>TARGET</code> will run.

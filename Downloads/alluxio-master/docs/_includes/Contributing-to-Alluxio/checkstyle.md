@@ -1,0 +1,3 @@
+```bash
+$ mvn checkstyle:checkstyle
+```
