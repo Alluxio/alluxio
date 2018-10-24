@@ -60,7 +60,7 @@ alluxio.master.backup.directory=/alluxio/backups
 
 # 恢复
 
-要从日志备份中恢复典故系统，请停止系统，格式化，
+要从日志备份中恢复Alluxio系统，请停止系统，格式化，
 然后重新启动系统，使用 `-i`(import) 标志传递备份的URI。
 
 ```bash
