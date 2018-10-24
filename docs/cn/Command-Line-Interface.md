@@ -18,7 +18,7 @@ Usage: alluxio fs [generic options]
        ...
 ```
 
-对于用Alluxio URI（如`ls`， `mkdir`）作为参数的`fs`子命令来说，参数应该要么是完整的 Alluxio URI `alluxio://<master-hostname>:<master-port>/<path>`，要么是省略了头部信息的`/<path>`，以使用`conf/allluxio-site.properties`中设置的默认的主机名和端口。
+对于用Alluxio URI（如`ls`， `mkdir`）作为参数的`fs`子命令来说，参数应该要么是完整的Alluxio URI `alluxio://<master-hostname>:<master-port>/<path>`，要么是省略了头部信息的`/<path>`，以使用`conf/allluxio-site.properties`中设置的默认的主机名和端口。
 
 
 >**通配符输入**
