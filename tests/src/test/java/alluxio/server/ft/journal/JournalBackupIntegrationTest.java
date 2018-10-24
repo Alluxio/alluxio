@@ -130,7 +130,7 @@ public final class JournalBackupIntegrationTest extends BaseIntegrationTest {
 
       mCluster.notifySuccess();
     } finally {
-      opThreads.forEach();
+      opThreads.forEach(Thread::interrupt);
     }
   }
 
