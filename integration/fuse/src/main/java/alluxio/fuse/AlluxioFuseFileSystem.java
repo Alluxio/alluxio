@@ -163,6 +163,7 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
       if (uid != -1 && uid != 4294967295L) {
         // 4294967295 is just unsigned long -1, -1 means that uid is not set
         // 4294967295 or -1 occurs when chown without user name or chgrp
+        // Please view https://github.com/SerCeMan/jnr-fuse/issues/67 for more details
         String userName = AlluxioFuseUtils.getUserName(uid);
         if (userName.isEmpty()) {
           // This should never be reached
