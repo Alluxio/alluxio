@@ -1,0 +1,539 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <!--
+     Copyright (C) 2006 Joe Walnes.
+     Copyright (C) 2006, 2007, 2008, 2009, 2010, 2011 XStream committers.
+     All rights reserved.
+     
+     The software in this package is published under the terms of the BSD
+     style license a copy of which has been included with this distribution in
+     the LICENSE.txt file.
+     
+     Created on 29. July 2006 by Mauro Talevi
+     -->
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>org.codehaus</groupId>
+    <artifactId>codehaus-parent</artifactId>
+    <version>3</version>
+    <relativePath />
+  </parent>
+  <groupId>com.thoughtworks.xstream</groupId>
+  <artifactId>xstream-parent</artifactId>
+  <packaging>pom</packaging>
+  <version>1.4.2</version>
+  <name>XStream Parent</name>
+
+  <inceptionYear>2004</inceptionYear>
+  <organization>
+    <name>XStream</name>
+    <url>http://xstream.codehaus.org</url>
+  </organization>
+
+  <!-- xstream-builder is currently JDK 5 only -->
+  <profiles>
+    <profile>
+      <id>jdk15-ge</id>
+      <activation>
+        <jdk>[1.5,)</jdk>
+      </activation>
+      <modules>
+        <!--module>xstream-builder</module-->
+      </modules>
+    </profile>
+    <profile>
+      <id>jdk14</id>
+      <activation>
+        <jdk>1.4</jdk>
+      </activation>
+      <properties>
+        <version.java.source>1.3</version.java.source>
+        <version.java.target>1.3</version.java.target>
+        <link.javadoc.javase>http://download.oracle.com/javase/1.4.2/docs/api/</link.javadoc.javase>
+      </properties>
+    </profile>
+  </profiles>
+  <modules>
+    <module>xstream</module>
+    <module>xstream-hibernate</module>
+    <module>xstream-benchmark</module>
+    <module>xstream-distribution</module>
+  </modules>
+
+  <licenses>
+    <license>
+      <name>BSD style</name>
+      <url>http://xstream.codehaus.com/license.html</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>commons-io</groupId>
+        <artifactId>commons-io</artifactId>
+        <version>${version.commons.io}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>commons-cli</groupId>
+        <artifactId>commons-cli</artifactId>
+        <version>${version.commons.cli}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>commons-lang</groupId>
+        <artifactId>commons-lang</artifactId>
+        <version>${version.commons.lang}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>cglib</groupId>
+        <artifactId>cglib-nodep</artifactId>
+        <version>${version.cglib.nodep}</version>
+      </dependency>
+      <dependency>
+        <groupId>javassist</groupId>
+        <artifactId>javassist</artifactId>
+        <version>${version.javaassist}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>dom4j</groupId>
+        <artifactId>dom4j</artifactId>
+        <version>${version.dom4j}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>xml-apis</groupId>
+            <artifactId>xml-apis</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+
+      <dependency>
+        <groupId>org.jdom</groupId>
+        <artifactId>jdom</artifactId>
+        <version>${version.org.jdom}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>joda-time</groupId>
+        <artifactId>joda-time</artifactId>
+        <version>${version.joda-time}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>com.megginson.sax</groupId>
+        <artifactId>xml-writer</artifactId>
+        <version>${version.com.megginson.sax.xml-writer}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>xml-apis</groupId>
+            <artifactId>xml-apis</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+
+      <dependency>
+        <groupId>stax</groupId>
+        <artifactId>stax</artifactId>
+        <version>${version.stax}</version>
+      </dependency>
+      <dependency>
+        <groupId>stax</groupId>
+        <artifactId>stax-api</artifactId>
+        <version>${version.stax.api}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.codehaus.woodstox</groupId>
+        <artifactId>wstx-asl</artifactId>
+        <version>${version.org.codehaus.woodstox.asl}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>xom</groupId>
+        <artifactId>xom</artifactId>
+        <version>${version.xom}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>xerces</groupId>
+            <artifactId>xmlParserAPIs</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>xerces</groupId>
+            <artifactId>xercesImpl</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>xalan</groupId>
+            <artifactId>xalan</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>jaxen</groupId>
+            <artifactId>jaxen</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+
+      <dependency>
+        <groupId>xpp3</groupId>
+        <artifactId>xpp3_min</artifactId>
+        <version>${version.xpp3}</version>
+      </dependency>
+      <dependency>
+        <groupId>net.sf.kxml</groupId>
+        <artifactId>kxml2-min</artifactId>
+        <version>${version.net.sf.kxml.kxml2}</version>
+      </dependency>
+      <dependency>
+        <groupId>net.sf.kxml</groupId>
+        <artifactId>kxml2</artifactId>
+        <version>${version.net.sf.kxml.kxml2}</version>
+      </dependency>
+      <dependency>
+        <groupId>xmlpull</groupId>
+        <artifactId>xmlpull</artifactId>
+        <version>${version.xmlpull}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>oro</groupId>
+        <artifactId>oro</artifactId>
+        <version>${version.oro}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.json</groupId>
+        <artifactId>json</artifactId>
+        <version>${version.org.json}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.codehaus.jettison</groupId>
+        <artifactId>jettison</artifactId>
+        <version>${version.org.codehaus.jettison}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>xml-apis</groupId>
+        <artifactId>xml-apis</artifactId>
+        <version>${version.xml-apis}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>xerces</groupId>
+        <artifactId>xercesImpl</artifactId>
+        <version>${version.xerces.impl}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.hibernate</groupId>
+        <artifactId>hibernate-core</artifactId>
+        <version>${version.org.hibernate.core}</version>
+      </dependency>
+      <dependency>
+        <groupId>hsqldb</groupId>
+        <artifactId>hsqldb</artifactId>
+        <version>${version.hsqldb}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>slf4j-api</artifactId>
+        <version>${version.org.slf4j}</version>
+        <scope>runtime</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>slf4j-simple</artifactId>
+        <version>${version.org.slf4j}</version>
+        <scope>runtime</scope>
+      </dependency>
+
+      <!-- always test-scoped -->
+      <dependency>
+        <groupId>junit</groupId>
+        <artifactId>junit</artifactId>
+        <version>${version.junit}</version>
+        <scope>test</scope>
+      </dependency>
+
+      <dependency>
+        <groupId>jmock</groupId>
+        <artifactId>jmock</artifactId>
+        <version>${version.jmock}</version>
+        <scope>test</scope>
+      </dependency>
+
+    </dependencies>
+  </dependencyManagement>
+
+  <build>
+    <sourceDirectory>${basedir}/src/java</sourceDirectory>
+    <resources>
+      <resource>
+        <directory>${basedir}/src/java</directory>
+        <includes>
+          <include>**/*.properties</include>
+          <include>**/*.xml</include>
+        </includes>
+      </resource>
+    </resources>
+    <testSourceDirectory>${basedir}/src/test</testSourceDirectory>
+    <testResources>
+      <testResource>
+        <directory>${basedir}/src/test</directory>
+        <includes>
+          <include>**/*.xml</include>
+          <include>**/*.xsl</include>
+          <include>**/*.txt</include>
+        </includes>
+      </testResource>
+    </testResources>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-antrun-plugin</artifactId>
+          <version>${version.plugin.maven.antrun}</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-assembly-plugin</artifactId>
+          <version>${version.plugin.maven.assembly}</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-clean-plugin</artifactId>
+          <version>${version.plugin.maven.clean}</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-compiler-plugin</artifactId>
+          <version>${version.plugin.maven.compiler}</version>
+          <configuration>
+            <source>${version.java.source}</source>
+            <target>${version.java.target}</target>
+          </configuration>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-dependency-plugin</artifactId>
+          <version>${version.plugin.maven.dependency}</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-deploy-plugin</artifactId>
+          <version>${version.plugin.maven.deploy}</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-eclipse-plugin</artifactId>
+          <configuration>
+            <downloadSources>true</downloadSources>
+          </configuration>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-enforcer-plugin</artifactId>
+          <version>${version.plugin.maven.enforcer}</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-install-plugin</artifactId>
+          <version>${version.plugin.maven.install}</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-jar-plugin</artifactId>
+          <version>${version.plugin.maven.jar}</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-javadoc-plugin</artifactId>
+          <version>${version.plugin.maven.javadoc}</version>
+          <configuration>
+            <source>${version.java.source}</source>
+            <links>
+              <link>${link.javadoc.javase}</link>
+            </links>
+          </configuration>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-release-plugin</artifactId>
+          <version>${version.plugin.maven.release}</version>
+          <configuration>
+            <goals>deploy</goals>
+            <autoVersionSubmodules>true</autoVersionSubmodules>
+          </configuration>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-resources-plugin</artifactId>
+          <version>${version.plugin.maven.resources}</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-site-plugin</artifactId>
+          <version>${version.plugin.maven.site}</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-source-plugin</artifactId>
+          <version>${version.plugin.maven.source}</version>
+          <executions>
+            <execution>
+              <id>attach-sources</id>
+              <phase>package</phase>
+              <goals>
+                <goal>jar-no-fork</goal>
+              </goals>
+            </execution>
+          </executions>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-surefire-plugin</artifactId>
+          <version>${version.plugin.maven.surefire}</version>
+          <configuration>
+            <forkMode>once</forkMode>
+            <printSummary>true</printSummary>
+            <useFile>false</useFile>
+            <includes>
+                <include>**/*Test.java</include>
+                <include>**/*TestSuite.java</include>
+            </includes>
+            <excludes>
+                <exclude>**/Abstract*Test.java</exclude>
+                <exclude>**/*$*.java</exclude>
+            </excludes>
+            <systemProperties>
+              <property>
+                <name>java.awt.headless</name>
+                <value>true</value>
+              </property>
+            </systemProperties>
+          </configuration>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-surefire-report-plugin</artifactId>
+          <version>${version.plugin.maven.surefire}</version>
+        </plugin>
+        <plugin>
+          <groupId>org.codehaus.mojo</groupId>
+          <artifactId>cobertura-maven-plugin</artifactId>
+          <version>${version.plugin.mojo.cobertura}</version>
+          <executions>
+            <execution>
+              <goals>
+                <goal>clean</goal>
+              </goals>
+            </execution>
+          </executions>
+        </plugin>
+        <plugin>
+          <groupId>org.codehaus.mojo</groupId>
+          <artifactId>jxr-maven-plugin</artifactId>
+          <version>${version.plugin.mojo.jxr}</version>
+        </plugin>
+        <plugin>
+          <groupId>org.codehaus.xsite</groupId>
+          <artifactId>xsite-maven-plugin</artifactId>
+          <version>${version.plugin.codehaus.xsite}</version>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-release-plugin</artifactId>
+        <configuration>
+          <tagBase>https://svn.codehaus.org/xstream/tags</tagBase>
+        </configuration>
+      </plugin>
+    </plugins>
+    <extensions>
+      <extension>
+        <groupId>org.apache.maven.wagon</groupId>
+        <artifactId>wagon-webdav</artifactId>
+        <version>${version.org.apache.maven.wagon.webdev}</version>
+      </extension>
+    </extensions>
+  </build>
+
+  <distributionManagement>
+    <!--  
+      The server id codehaus-nexus-snapshots, codehaus-nexus-staging, and
+      codehaus.org must appear ~/.m2/settings.xml cf. settings-template.xml.
+      http://hausmates.codehaus.org/Codehaus+Maven+Repository+Usage+Guide
+    -->
+    <site>
+      <id>codehaus.org</id>
+      <name>Codehaus XStream Site</name>
+      <url>dav:https://dav.codehaus.org/xstream</url>
+    </site>
+  </distributionManagement>
+
+  <scm>
+    <connection>scm:svn:http://svn.codehaus.org/xstream/tags/XSTREAM_1_4_2</connection>
+    <developerConnection>scm:svn:https://svn.codehaus.org/xstream/tags/XSTREAM_1_4_2</developerConnection>
+    <url>http://fisheye.codehaus.org/browse/xstream/tags/XSTREAM_1_4_2</url>
+  </scm>
+  
+  <properties>
+    <version.java.source>1.5</version.java.source>
+    <version.java.target>1.5</version.java.target>
+
+    <version.plugin.codehaus.xsite>1.2.1</version.plugin.codehaus.xsite>
+    <version.plugin.maven.antrun>1.1</version.plugin.maven.antrun>
+    <version.plugin.maven.assembly>2.1</version.plugin.maven.assembly>
+    <version.plugin.maven.clean>2.2</version.plugin.maven.clean>
+    <version.plugin.maven.compiler>2.1</version.plugin.maven.compiler><!-- JDK 1.4 compatible -->
+    <version.plugin.maven.dependency>2.1</version.plugin.maven.dependency>
+    <version.plugin.maven.deploy>2.3</version.plugin.maven.deploy>
+    <version.plugin.maven.enforcer>1.0-alpha-2</version.plugin.maven.enforcer>
+    <version.plugin.maven.install>2.2</version.plugin.maven.install>
+    <version.plugin.maven.jar>2.2</version.plugin.maven.jar>
+    <version.plugin.maven.javadoc>2.7</version.plugin.maven.javadoc>
+    <version.plugin.maven.release>2.1</version.plugin.maven.release>
+    <version.plugin.maven.resources>2.2</version.plugin.maven.resources>
+    <version.plugin.maven.site>2.0-beta-6</version.plugin.maven.site>
+    <version.plugin.maven.source>2.1.2</version.plugin.maven.source>
+    <version.plugin.maven.surefire>2.4.3</version.plugin.maven.surefire>
+    <version.plugin.mojo.cobertura>2.0</version.plugin.mojo.cobertura>
+    <version.plugin.mojo.jxr>2.0-beta-1</version.plugin.mojo.jxr>
+
+    <version.org.apache.maven.wagon.webdev>1.0-beta-2</version.org.apache.maven.wagon.webdev>
+
+    <version.cglib.nodep>2.2</version.cglib.nodep>
+    <version.com.megginson.sax.xml-writer>0.2</version.com.megginson.sax.xml-writer>
+    <version.commons.cli>1.1</version.commons.cli>
+    <version.commons.io>1.4</version.commons.io>
+    <version.commons.lang>2.4</version.commons.lang>
+    <version.dom4j>1.6.1</version.dom4j>
+    <version.hsqldb>1.8.0.7</version.hsqldb>
+    <version.javaassist>3.12.1.GA</version.javaassist>
+    <version.jmock>1.0.1</version.jmock>
+    <version.joda-time>1.6</version.joda-time>
+    <version.junit>3.8.1</version.junit>
+    <version.net.sf.kxml.kxml2>2.3.0</version.net.sf.kxml.kxml2>
+    <version.org.codehaus.jettison>1.2</version.org.codehaus.jettison>
+    <version.org.codehaus.woodstox.asl>3.2.7</version.org.codehaus.woodstox.asl>
+    <version.org.hibernate.core>3.3.2.GA</version.org.hibernate.core><!-- last version on central -->
+    <!-- version.org.hibernate.core>3.5.6-Final</version.org.hibernate.core -->
+    <version.org.jdom>1.1</version.org.jdom>
+    <version.org.json>20080701</version.org.json>
+    <version.org.slf4j>1.6.1</version.org.slf4j>
+    <version.oro>2.0.8</version.oro>
+    <version.stax>1.2.0</version.stax>
+    <version.stax.api>1.0.1</version.stax.api>
+    <version.xerces.impl>2.8.1</version.xerces.impl>
+    <version.xml-apis>1.3.04</version.xml-apis>
+    <version.xmlpull>1.1.3.1</version.xmlpull>
+    <version.xom>1.1</version.xom>
+    <version.xpp3>1.1.4c</version.xpp3>
+
+    <link.javadoc.javase>http://download.oracle.com/javase/6/docs/api/</link.javadoc.javase>
+  </properties>
+</project>
