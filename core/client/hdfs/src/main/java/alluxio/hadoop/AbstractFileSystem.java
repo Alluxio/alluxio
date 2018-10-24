@@ -287,7 +287,6 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     AlluxioURI path = new AlluxioURI(HadoopUtils.getPathWithoutScheme(file.getPath()));
     List<FileBlockInfo> blocks = getFileBlocks(path);
     List<BlockLocation> blockLocations = new ArrayList<>();
-    Map<String, WorkerNetAddress> workerHosts = null;
     for (FileBlockInfo fileBlockInfo : blocks) {
       long offset = fileBlockInfo.getOffset();
       long end = offset + fileBlockInfo.getBlockInfo().getLength();
@@ -296,22 +295,20 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
         // add the existing in-Alluxio block locations
         List<WorkerNetAddress> locations = fileBlockInfo.getBlockInfo().getLocations()
             .stream().map(alluxio.wire.BlockLocation::getWorkerAddress).collect(toList());
-        if (locations.isEmpty()) {
-          // No in-Alluxio location, fallback to use under file system locations with
-          // co-located workers.
-          if (workerHosts == null) {
-            // lazy initialization for rpc call
-            workerHosts = getHostToWorkerMap();
+        if (locations.isEmpty()) { // No in-Alluxio location
+          if (!fileBlockInfo.getUfsLocations().isEmpty()) {
+            // Case 1: Fallback to use under file system locations with co-located workers.
+            Map<String, WorkerNetAddress> finalWorkerHosts = getHostToWorkerMap();
+            locations = fileBlockInfo.getUfsLocations().stream().map(
+                location -> finalWorkerHosts.get(HostAndPort.fromString(location).getHostText()))
+                .filter(Objects::nonNull).collect(toList());
           }
-          Map<String, WorkerNetAddress> finalWorkerHosts = workerHosts;
-          locations = fileBlockInfo.getUfsLocations().stream()
-              .map(location -> finalWorkerHosts.get(HostAndPort.fromString(location).getHostText()))
-              .filter(Objects::nonNull).collect(toList());
-        }
-        if (locations.isEmpty()) {
-          // Fallback to add all workers to the location so some apps (Impala) won't panic.
-          locations.addAll(workerHosts.values());
-          Collections.shuffle(locations);
+          if (locations.isEmpty() && Configuration
+              .getBoolean(PropertyKey.USER_UFS_BLOCK_LOCATION_ALL_FALLBACK_ENABLED)) {
+            // Case 2: Fallback to add all workers to locations so some apps (Impala) won't panic.
+            locations.addAll(getHostToWorkerMap().values());
+            Collections.shuffle(locations);
+          }
         }
         List<HostAndPort> addresses = locations.stream()
             .map(worker -> HostAndPort.fromParts(worker.getHost(), worker.getDataPort()))
@@ -326,6 +323,26 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     BlockLocation[] ret = new BlockLocation[blockLocations.size()];
     blockLocations.toArray(ret);
     return ret;
+  }
+
+  @Override
+  public short getDefaultReplication() {
+    return (short) Math.max(1, CreateFileOptions.defaults().getReplicationMin());
+  }
+
+  @Override
+  public boolean setReplication(Path path, short replication) throws IOException {
+    AlluxioURI uri = new AlluxioURI(HadoopUtils.getPathWithoutScheme(path));
+
+    try {
+      if (!mFileSystem.exists(uri) || mFileSystem.getStatus(uri).isFolder()) {
+        return false;
+      }
+      mFileSystem.setAttribute(uri, SetAttributeOptions.defaults().setReplicationMin(replication));
+      return true;
+    } catch (AlluxioException e) {
+      throw new IOException(e);
+    }
   }
 
   /**
@@ -358,7 +375,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
   }
 
   private int getReplica(URIStatus status) {
-    return BLOCK_REPLICATION_CONSTANT;
+    return status.getReplicationMin();
   }
 
   /**

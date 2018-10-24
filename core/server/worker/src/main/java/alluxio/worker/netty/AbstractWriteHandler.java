@@ -93,6 +93,9 @@ abstract class AbstractWriteHandler<T extends WriteRequestContext<?>>
   private static final ByteBuf CANCEL = Unpooled.buffer(0);
   private static final ByteBuf ABORT = Unpooled.buffer(0);
   private static final ByteBuf FLUSH = Unpooled.buffer(0);
+  protected static final ByteBuf UFS_FALLBACK_INIT = Unpooled.buffer(0);
+  @GuardedBy("mLock")
+  protected long mUfsFallbackInitBytes = 0;
 
   private ReentrantLock mLock = new ReentrantLock();
 
@@ -175,6 +178,14 @@ abstract class AbstractWriteHandler<T extends WriteRequestContext<?>>
         buf = CANCEL;
       } else if (writeRequest.getFlush()) {
         buf = FLUSH;
+      } else if (writeRequest.hasCreateUfsBlockOptions()
+          && writeRequest.getOffset() == 0
+          && writeRequest.getCreateUfsBlockOptions().hasBytesInBlockStore()) {
+        // This is the init packet sent from a client falling back from a failed short-circuit block
+        // write.
+        buf = UFS_FALLBACK_INIT;
+        mUfsFallbackInitBytes = writeRequest.getCreateUfsBlockOptions().getBytesInBlockStore();
+        mContext.setPosToQueue(mContext.getPosToQueue() + mUfsFallbackInitBytes);
       } else {
         DataBuffer dataBuffer = msg.getPayloadDataBuffer();
         Preconditions.checkState(dataBuffer != null && dataBuffer.getLength() > 0);
@@ -307,6 +318,10 @@ abstract class AbstractWriteHandler<T extends WriteRequestContext<?>>
         }
         try {
           int readableBytes = buf.readableBytes();
+          if (buf == UFS_FALLBACK_INIT) {
+            buf.retain(); // prevent the release in final destruct UFS_FALLBACK_INIT
+            readableBytes = (int) mUfsFallbackInitBytes;
+          }
           mContext.setPosToWrite(mContext.getPosToWrite() + readableBytes);
           writeBuf(mContext, mChannel, buf, mContext.getPosToWrite());
           incrementMetrics(readableBytes);

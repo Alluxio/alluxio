@@ -591,11 +591,8 @@ public final class CommonUtils {
   public static void closeChannel(final Channel channel) {
     if (channel.isOpen())  {
       try {
-        channel.eventLoop().submit(new Runnable() {
-          @Override
-          public void run() {
-            channel.close();
-          }
+        channel.eventLoop().submit(() -> {
+          channel.close();
         }).sync();
       } catch (InterruptedException e) {
         Thread.currentThread().interrupt();

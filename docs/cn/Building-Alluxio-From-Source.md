@@ -61,7 +61,7 @@ $ ./bin/alluxio format
 $ ./bin/alluxio-start.sh local
 ```
 
-若要确认Alluxio是否在运行，可以访问[http://localhost:19999](http://localho    st:19999)，或者查看`alluxio/logs`目录下的日志文件，也可以执行下面的简单程序:
+若要确认Alluxio是否在运行，可以访问[http://localhost:19999](http://localhost:19999)，或者查看`alluxio/logs`目录下的日志文件，也可以执行下面的简单程序:
 
 ```bash
 $ ./bin/alluxio runTests

@@ -2541,6 +2541,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("When file's ttl is expired, the action performs on it. "
               + "DELETE by default")
           .build();
+  public static final PropertyKey USER_FILE_UFS_TIER_ENABLED =
+      new Builder(Name.USER_FILE_UFS_TIER_ENABLED)
+          .setDescription("When workers run out of available memory, whether the client can skip "
+              + "writing data to Alluxio but fallback to write to UFS without stopping the "
+              + "application. This property only works when the write type is ASYNC_THROUGH.")
+          .setDefaultValue(false).build();
   public static final PropertyKey USER_FILE_WRITE_LOCATION_POLICY =
       new Builder(Name.USER_FILE_WRITE_LOCATION_POLICY)
           .setDefaultValue("alluxio.client.file.policy.LocalFirstPolicy")
@@ -2750,6 +2756,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "an exponential backoff. This property determines the maximum duration to retry for"
               + " before giving up. Note that, this value is set to 5s for fs and fsadmin CLIs.")
           .build();
+  public static final PropertyKey USER_WORKER_LIST_REFRESH_INTERVAL =
+      new Builder(Name.USER_WORKER_LIST_REFRESH_INTERVAL)
+          .setDefaultValue("2min")
+          .setDescription("The interval used to refresh the live worker list on the client")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
   /**
    * @deprecated since version 1.8 and will be removed in version 2.0.
    */
@@ -2829,6 +2842,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
+  public static final PropertyKey USER_UFS_BLOCK_LOCATION_ALL_FALLBACK_ENABLED =
+      new Builder(Name.USER_UFS_BLOCK_LOCATION_ALL_FALLBACK_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("Whether to return all workers as block location if ufs block locations "
+              + "are not co-located with any Alluxio workers or is empty.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
   public static final PropertyKey USER_UFS_BLOCK_READ_LOCATION_POLICY =
       new Builder(Name.USER_UFS_BLOCK_READ_LOCATION_POLICY)
           .setDefaultValue("alluxio.client.file.policy.LocalFirstPolicy")
@@ -2900,6 +2921,16 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("Maximum granularity of write operations, capped by the kernel to 128KB "
               + "max (as of Linux 3.16.0).")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .setScope(Scope.NONE)
+          .build();
+  public static final PropertyKey FUSE_USER_GROUP_TRANSLATION_ENABLED =
+      new Builder(Name.FUSE_USER_GROUP_TRANSLATION_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("Whether to translate Alluxio users and groups "
+              + "into Unix users and groups when exposing Alluxio files through the FUSE API. "
+              + "When this property is set to false, the user and group for all FUSE files "
+              + "will match the user who started the alluxio-fuse process.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.NONE)
           .build();
 
@@ -3654,6 +3685,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String USER_FILE_REPLICATION_MIN = "alluxio.user.file.replication.min";
     public static final String USER_FILE_REPLICATION_DURABLE =
         "alluxio.user.file.replication.durable";
+    public static final String USER_FILE_UFS_TIER_ENABLED = "alluxio.user.file.ufs.tier.enabled";
     public static final String USER_FILE_SEEK_BUFFER_SIZE_BYTES =
         "alluxio.user.file.seek.buffer.size.bytes";
     public static final String USER_FILE_WAITCOMPLETED_POLL_MS =
@@ -3721,6 +3753,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.ufs.delegation.write.buffer.size.bytes";
     public static final String USER_UFS_FILE_READER_CLASS = "alluxio.user.ufs.file.reader.class";
     public static final String USER_UFS_FILE_WRITER_CLASS = "alluxio.user.ufs.file.writer.class";
+    public static final String USER_UFS_BLOCK_LOCATION_ALL_FALLBACK_ENABLED =
+        "alluxio.user.ufs.block.location.all.fallback.enabled";
     public static final String USER_UFS_BLOCK_READ_LOCATION_POLICY =
         "alluxio.user.ufs.block.read.location.policy";
     public static final String USER_UFS_BLOCK_READ_LOCATION_POLICY_DETERMINISTIC_HASH_SHARDS =
@@ -3728,6 +3762,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String USER_UFS_BLOCK_READ_CONCURRENCY_MAX =
         "alluxio.user.ufs.block.read.concurrency.max";
     public static final String USER_SHORT_CIRCUIT_ENABLED = "alluxio.user.short.circuit.enabled";
+    public static final String USER_WORKER_LIST_REFRESH_INTERVAL =
+        "alluxio.user.worker.list.refresh.interval";
 
     //
     // FUSE integration related properties
@@ -3736,6 +3772,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String FUSE_DEBUG_ENABLED = "alluxio.fuse.debug.enabled";
     public static final String FUSE_FS_NAME = "alluxio.fuse.fs.name";
     public static final String FUSE_MAXWRITE_BYTES = "alluxio.fuse.maxwrite.bytes";
+    public static final String FUSE_USER_GROUP_TRANSLATION_ENABLED =
+        "alluxio.fuse.user.group.translation.enabled";
 
     //
     // Security related properties
