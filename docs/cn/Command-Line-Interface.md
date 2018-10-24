@@ -25,8 +25,7 @@ Usage: alluxio fs [generic options]
 >
 >大多数需要路径参数的命令可以使用通配符以便简化使用，例如：
 >
->```
-properties
+>```properties
 alluxio.underfs.address=/mnt/nfs
 ```
 >
@@ -34,15 +33,13 @@ alluxio.underfs.address=/mnt/nfs
 >
 >注意有些shell会尝试自动补全输入路径，从而引起奇怪的错误（注意：以下例子中的数字可能不是21，这取决于你的本地文件系统中匹配文件的个数）：
 >
->```
-properties
+>```properties
 alluxio.underfs.address=/mnt/nfs
 ```
 >
 >作为一种绕开这个问题的方式，你可以禁用自动补全功能（跟具体shell有关，例如`set -f`），或者使用转义通配符，例如：
 >
->```
-properties
+>```properties
 alluxio.underfs.address=/mnt/nfs
 ```
 >
@@ -69,8 +66,7 @@ alluxio.underfs.address=/mnt/nfs
 
 例如，当测试一个新的计算任务时，`cat`命令可以用来快速确认其输出结果：
 
-```
-properties
+```properties
 alluxio.underfs.address=/mnt/nfs
 ```
 
@@ -85,8 +81,7 @@ alluxio.underfs.address=/mnt/nfs
 
 例如，`checkConsistency`命令可以用来周期性地检查命名空间的完整性：
 
-```
-properties
+```properties
 alluxio.underfs.address=/mnt/nfs
 ```
 
@@ -96,8 +91,7 @@ alluxio.underfs.address=/mnt/nfs
 
 例如，`checksum`可以用来验证Alluxio中的文件内容与存储在底层文件系统或者本地文件系统中的文件内容是否匹配：
 
-```
-properties
+```properties
 alluxio.underfs.address=/mnt/nfs
 ```
 
@@ -133,8 +127,7 @@ alluxio.underfs.address=/mnt/nfs
 
 使用举例：使用`chmod`命令可以快速修改一个文件的权限：
 
-```
-properties
+```properties
 alluxio.underfs.address=/mnt/nfs
 ```
 
@@ -146,8 +139,7 @@ alluxio.underfs.address=/mnt/nfs
 
 使用举例：使用`chown`命令可以快速修改一个文件的所有者。
 
-```
-properties
+```properties
 alluxio.underfs.address=/mnt/nfs
 ```
 
@@ -157,8 +149,7 @@ alluxio.underfs.address=/mnt/nfs
 
 使用举例：使用`copyFromLocal`命令可以快速将数据复制到alluxio系统中以便后续处理：
 
-```
-properties
+```properties
 alluxio.underfs.address=/mnt/nfs
 ```
 
@@ -168,8 +159,7 @@ alluxio.underfs.address=/mnt/nfs
 
 使用举例：使用`copyToLocal`命令可以快速将输出数据下载下来从而进行后续研究或调试：
 
-```
-properties
+```properties
 alluxio.underfs.address=/mnt/nfs
 ```
 
@@ -179,8 +169,7 @@ alluxio.underfs.address=/mnt/nfs
 
 使用举例：若文件是以它们的创建日期命名，使用`count`命令可以获取任何日期、月份以及年份的所有文件的数目以及它们的总大小：
 
-```
-properties
+```properties
 alluxio.underfs.address=/mnt/nfs
 ```
 
@@ -194,8 +183,7 @@ alluxio.underfs.address=/mnt/nfs
 
 例如，`cp`可以在底层文件系统之间拷贝文件。
 
-```
-properties
+```properties
 alluxio.underfs.address=/mnt/nfs
 ```
 
@@ -205,8 +193,7 @@ alluxio.underfs.address=/mnt/nfs
 
 使用举例：如果Alluxio空间被过分使用，使用`du`命令可以检测到哪些文件夹占用了大部分空间：
 
-```
-properties
+```properties
 alluxio.underfs.address=/mnt/nfs
 ```
 
@@ -217,8 +204,7 @@ alluxio.underfs.address=/mnt/nfs
 
 使用举例：使用`fileInfo`命令能够获取到一个文件的数据块的位置，这在获取计算任务中的数据局部性时非常有用。
 
-```
-properties
+```properties
 alluxio.underfs.address=/mnt/nfs
 ```
 
@@ -228,8 +214,7 @@ alluxio.underfs.address=/mnt/nfs
 
 使用举例：使用`free`命令可以手动管理Alluxio的数据缓存。
 
-```
-properties
+```properties
 alluxio.underfs.address=/mnt/nfs
 ```
 
@@ -239,8 +224,7 @@ alluxio.underfs.address=/mnt/nfs
 
 使用举例：使用`getCapacityBytes`命令能够确认你的系统是否正确启动。
 
-```
-properties
+```properties
 alluxio.underfs.address=/mnt/nfs
 ```
 
