@@ -3135,6 +3135,11 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         LOG.warn("Tried to update metadata from an invalid path : {}", mountPointUri.getPath(), e);
       }
     }
+
+    // Update metadata for inodePath
+    if (pathsToLoad.isEmpty()) {
+      mUfsSyncPathCache.notifySyncedPath(inodePath.getUri().getPath());
+    }
     return true;
   }
 
