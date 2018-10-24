@@ -23,6 +23,7 @@ import org.apache.curator.framework.recipes.leader.LeaderSelectorListener;
 import org.apache.curator.framework.recipes.leader.Participant;
 import org.apache.curator.framework.state.ConnectionState;
 import org.apache.curator.retry.ExponentialBackoffRetry;
+import org.apache.zookeeper.CreateMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -153,7 +154,8 @@ public final class PrimarySelectorClient extends AbstractPrimarySelector
       client.delete().forPath(mLeaderFolder + mName);
     }
     LOG.info("Creating zk path: {}{}", mLeaderFolder, mName);
-    client.create().creatingParentsIfNeeded().forPath(mLeaderFolder + mName);
+    client.create().creatingParentsIfNeeded().withMode(CreateMode.EPHEMERAL)
+        .forPath(mLeaderFolder + mName);
     LOG.info("{} is now the leader.", mName);
     try {
       waitForState(State.SECONDARY);
