@@ -1642,10 +1642,9 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         String failureReason = null;
         if (unsafeInodes.contains(inodeToDelete.getId())) {
           failureReason = ExceptionMessage.DELETE_FAILED_DIR_NONEMPTY.getMessage();
-        } else if (!replayed && inodeToDelete.isPersisted()) {
+        } else if (inodeToDelete.isPersisted()) {
           try {
             // If this is a mount point, we have deleted all the children and can unmount it
-            // TODO(calvin): Add tests (ALLUXIO-1831)
             if (mMountTable.isMountPoint(alluxioUriToDelete)) {
               unmountInternal(alluxioUriToDelete);
             } else {
