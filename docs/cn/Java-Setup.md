@@ -23,7 +23,7 @@ title: Java安装
 3.  解压压缩包，安装JDK。
 
 ```bash
-$ tar zxvf jdk-7u<version>-linux-x64.tar.gz
+$ tar zxvf jdk-8u<version>-linux-x64.tar.gz
 ```
 
-4.  Java开发工具包被安装到当前目录名为`jdk1.7.0_`的目录下面。如果你想节省磁盘空间，删除.tar.gz文件。
+4.  Java开发工具包被安装到当前目录名为`jdk1.8.0_`的目录下面。如果你想节省磁盘空间，删除.tar.gz文件。
