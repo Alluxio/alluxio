@@ -22,10 +22,8 @@ Alluxio除了提供[Filesystem API](File-System-API.html) 让应用程序来读�
 根据总容量和用户指定的数据块大小，单个键值存储库可能有一个以上的分区，分区是由Alluxio内部来管理，对用户透明。
 
 ## 键值存储库配置参数
-
 Alluxio 默认配置是禁用键值存储库的，可以通过配置`alluxio.keyvalue.enabled`为true来启用 （参考
 [配置项设置](Configuration-Settings.html)）
-
 以下是键值存储库的配置参数：
 
 <table class="table table-striped">
