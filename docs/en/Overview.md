@@ -54,6 +54,16 @@ and runs on clusters exceeding 1,000 nodes.
 <img src="{{ "/img/stack.png" | relativize_url }}" width="800" alt="Ecosystem"/>
 </p>
 
+[Downloads](https://alluxio.org/download/)
+| [User Guide]({{ '/en/Getting-Started.html' | relativize_url }})
+| [Developer Guide]({{ '/en/contributor/Contributor-Getting-Started.html' | relativize_url }})
+| [Meetup Group](https://www.meetup.com/Alluxio/)
+| [Issue Tracking](https://alluxio.atlassian.net/browse/ALLUXIO)
+| [User Mailing List](https://groups.google.com/forum/?fromgroups#!forum/alluxio-users)
+| [Videos](https://www.youtube.com/channel/UCpibQsajhwqYPLYhke4RigA)
+| [Github](https://github.com/alluxio/alluxio/)
+| [Releases](https://www.alluxio.org/download/releases)
+
 ## Benefits
 
 Alluxio helps overcome the obstacles in extracting insight from data by simplifying how applications
