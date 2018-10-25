@@ -30,8 +30,16 @@ alluxio.user.file.cache.partially.read.block:
   'This property is deprecated as of 1.7 and has no effect. Use the read type to control caching behavior.'
 alluxio.user.file.copyfromlocal.write.location.policy.class:
   'The default location policy for choosing workers for writing a file''s blocks using copyFromLocal command.'
+alluxio.user.file.create.ttl:
+  'Time to live for files created by a user, no ttl by default.'
+alluxio.user.file.create.ttl.action:
+  'When file''s ttl is expired, the action performs on it. DELETE by default'
 alluxio.user.file.delete.unchecked:
   'Whether to check if the UFS contents are in sync with Alluxio before attempting to delete persisted directories recursively.'
+alluxio.user.file.load.ttl:
+  'Time to live for files loaded from UFS by a user, no ttl by default.'
+alluxio.user.file.load.ttl.action:
+  'When file''s ttl is expired, the action performs on it. FREE by default'
 alluxio.user.file.master.client.threads:
   'The number of threads used by a file master client to talk to the file master.'
 alluxio.user.file.metadata.load.type:
@@ -42,6 +50,8 @@ alluxio.user.file.passive.cache.enabled:
   'Whether to cache files to local Alluxio workers when the files are read from remote workers (not UFS).'
 alluxio.user.file.readtype.default:
   'Default read type when creating Alluxio files. Valid options are `CACHE_PROMOTE` (move data to highest tier if already in Alluxio storage, write data into highest tier of local Alluxio if data needs to be read from under storage), `CACHE` (write data into highest tier of local Alluxio if data needs to be read from under storage), `NO_CACHE` (no data interaction with Alluxio, if the read is from Alluxio data migration or eviction will not occur).'
+alluxio.user.file.ufs.tier.enabled:
+  'When workers run out of available memory, whether the client can skip writing data to Alluxio but fallback to write to UFS without stopping the application. This property only works when the write type is ASYNC_THROUGH.'
 alluxio.user.file.seek.buffer.size.bytes:
   'The file seek buffer size. This is only used when alluxio.user.file.cache.partially.read.block is enabled.'
 alluxio.user.file.waitcompleted.poll:
@@ -58,10 +68,6 @@ alluxio.user.heartbeat.interval:
   'The interval between Alluxio workers'' heartbeats.'
 alluxio.user.hostname:
   'The hostname to use for the client. Note: this property is deprecated. set alluxio.locality.node instead'
-alluxio.user.lineage.enabled:
-  'Flag to enable lineage feature.'
-alluxio.user.lineage.master.client.threads:
-  'The number of threads used by a lineage master client to talk to the lineage master.'
 alluxio.user.local.reader.packet.size.bytes:
   'When a client reads from a local worker, the maximum data packet size.'
 alluxio.user.local.writer.packet.size.bytes:
@@ -90,6 +96,8 @@ alluxio.user.network.netty.writer.buffer.size.packets:
   'When a client writes to a remote worker, the maximum number of packets to buffer by the client.'
 alluxio.user.network.netty.writer.close.timeout:
   'The timeout to close a netty writer client.'
+alluxio.user.network.netty.writer.flush.timeout:
+  'The timeout to wait for flush to finish in a netty writer.'
 alluxio.user.network.netty.writer.packet.size.bytes:
   'When a client writes to a remote worker, the maximum packet size.'
 alluxio.user.network.socket.timeout:
@@ -107,7 +115,7 @@ alluxio.user.short.circuit.enabled:
 alluxio.user.ufs.block.read.concurrency.max:
   'The maximum concurrent readers for one UFS block on one Block Worker.'
 alluxio.user.ufs.block.read.location.policy:
-  'When an Alluxio client reads a file from the UFS, it delegates the read to an Alluxio worker. The client uses this policy to choose which worker to read through. Builtin choices: [<a href="https://www.alluxio.org/javadoc/1.8/alluxio/client/block/policy/DeterministicHashPolicy.html">alluxio.client.block.policy.DeterministicHashPolicy</a>, <a href="https://www.alluxio.org/javadoc/1.8/alluxio/client/file/policy/LocalFirstAvoidEvictionPolicy.html">alluxio.client.file.policy.LocalFirstAvoidEvictionPolicy</a>, <a href="https://www.alluxio.org/javadoc/1.8/alluxio/client/file/policy/LocalFirstPolicy.html">alluxio.client.file.policy.LocalFirstPolicy</a>, <a href="https://www.alluxio.org/javadoc/1.8/alluxio/client/file/policy/MostAvailableFirstPolicy.html">alluxio.client.file.policy.MostAvailableFirstPolicy</a>, <a href="https://www.alluxio.org/javadoc/1.8/alluxio/client/file/policy/RoundRobinPolicy.html">alluxio.client.file.policy.RoundRobinPolicy</a>, <a href="https://www.alluxio.org/javadoc/1.8/alluxio/client/file/policy/SpecificHostPolicy.html">alluxio.client.file.policy.SpecificHostPolicy</a>].'
+  'When an Alluxio client reads a file from the UFS, it delegates the read to an Alluxio worker. The client uses this policy to choose which worker to read through. Builtin choices: [<a href="https://www.alluxio.org/javadoc/master/alluxio/client/block/policy/DeterministicHashPolicy.html">alluxio.client.block.policy.DeterministicHashPolicy</a>, <a href="https://www.alluxio.org/javadoc/master/alluxio/client/file/policy/LocalFirstAvoidEvictionPolicy.html">alluxio.client.file.policy.LocalFirstAvoidEvictionPolicy</a>, <a href="https://www.alluxio.org/javadoc/master/alluxio/client/file/policy/LocalFirstPolicy.html">alluxio.client.file.policy.LocalFirstPolicy</a>, <a href="https://www.alluxio.org/javadoc/master/alluxio/client/file/policy/MostAvailableFirstPolicy.html">alluxio.client.file.policy.MostAvailableFirstPolicy</a>, <a href="https://www.alluxio.org/javadoc/master/alluxio/client/file/policy/RoundRobinPolicy.html">alluxio.client.file.policy.RoundRobinPolicy</a>, <a href="https://www.alluxio.org/javadoc/master/alluxio/client/file/policy/SpecificHostPolicy.html">alluxio.client.file.policy.SpecificHostPolicy</a>].'
 alluxio.user.ufs.block.read.location.policy.deterministic.hash.shards:
   'When alluxio.user.ufs.block.read.location.policy is set to alluxio.client.block.policy.DeterministicHashPolicy, this specifies the number of hash shards.'
 alluxio.user.ufs.delegation.read.buffer.size.bytes:
@@ -118,3 +126,7 @@ alluxio.user.ufs.file.reader.class:
   'Selects networking stack to run the client with for reading from under file system through a worker''s data server. Currently only `alluxio.client.netty.NettyUnderFileSystemFileReader` (remote read using netty) is valid.'
 alluxio.user.ufs.file.writer.class:
   'Selects networking stack to run the client with for writing to under file system through a worker''s data server. Currently only `alluxio.client.netty.NettyUnderFileSystemFileWriter` (remote write using netty) is valid.'
+alluxio.user.ufs.block.location.all.fallback.enabled:
+  'Whether to return all workers as block location if ufs block locations are not co-located with any Alluxio workers or is empty.'
+alluxio.user.worker.list.refresh.interval:
+  'The interval used to refresh the live worker list on the client.'
