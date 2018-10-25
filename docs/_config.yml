@@ -38,7 +38,7 @@ categoryList:
   - Home
   - Deploying Alluxio
   - Under Stores
-  - Compute
+  - Data Applications
   - Basic
   - Operations
   - Advanced
@@ -59,8 +59,8 @@ categoryInfo:
   Under Stores:
     en: Under Stores
     cn: 底层存储系统
-  Compute:
-    en: Compute
+  Data Applications:
+    en: Data Applications
     cn: 计算应用
   Basic:
     en: Basic

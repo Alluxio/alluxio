@@ -2,7 +2,7 @@
 layout: global
 title: 通过Zeppelin访问Alluxio
 nickname: Apache Zeppelin
-group: Compute
+group: Data Applications
 priority: 10
 ---
 

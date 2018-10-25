@@ -2,7 +2,7 @@
 layout: global
 title: Running Apache Hive with Alluxio
 nickname: Apache Hive
-group: Compute
+group: Data Applications
 priority: 2
 ---
 
