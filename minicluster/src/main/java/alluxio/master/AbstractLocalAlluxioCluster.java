@@ -106,18 +106,15 @@ public abstract class AbstractLocalAlluxioCluster {
    */
   private void startProxy() throws Exception {
     mProxyProcess = ProxyProcess.Factory.create();
-    Runnable runProxy = new Runnable() {
-      @Override
-      public void run() {
-        try {
-          mProxyProcess.start();
-        } catch (InterruptedException e) {
-          // this is expected
-        } catch (Exception e) {
-          // Log the exception as the RuntimeException will be caught and handled silently by JUnit
-          LOG.error("Start proxy error", e);
-          throw new RuntimeException(e + " \n Start Proxy Error \n" + e.getMessage(), e);
-        }
+    Runnable runProxy = () -> {
+      try {
+        mProxyProcess.start();
+      } catch (InterruptedException e) {
+        // this is expected
+      } catch (Exception e) {
+        // Log the exception as the RuntimeException will be caught and handled silently by JUnit
+        LOG.error("Start proxy error", e);
+        throw new RuntimeException(e + " \n Start Proxy Error \n" + e.getMessage(), e);
       }
     };
 
