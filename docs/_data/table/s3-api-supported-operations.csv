@@ -13,6 +13,7 @@ S3Feature,Status
 "Delete Object",Supported
 "Get Object",Supported
 "Get Object Info (HEAD)",Supported
+"Get Object (Range Query)","Not Supported <a href='https://alluxio.atlassian.net/browse/ALLUXIO-3321'>[ALLUXIO-3321]</a>"
 "Object ACLs (Get, Put)","Not Supported"
 "POST Object","Not Supported"
 "Copy Object","Not Supported"

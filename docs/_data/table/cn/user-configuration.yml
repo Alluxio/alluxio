@@ -59,10 +59,6 @@ alluxio.user.heartbeat.interval:
   Alluxio worker的心跳时间间隔。
 alluxio.user.hostname:
   给alluxio客户端使用的主机名。
-alluxio.user.lineage.enabled:
-  是否启用lineage。
-alluxio.user.lineage.master.client.threads:
-  lineage master client与lineage master通信所使用的线程数目。
 alluxio.user.local.reader.packet.size.bytes:
   当client从本地worker读数据，数据包的最大容量。
 alluxio.user.local.writer.packet.size.bytes:
