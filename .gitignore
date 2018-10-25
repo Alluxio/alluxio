@@ -48,3 +48,4 @@
 dependency-reduced-pom.xml
 target/
 tests.log*
+core/protobuf/bin
