@@ -12,10 +12,10 @@ bootstrapConf:
   <code>ALLUXIO_MASTER_HOSTNAME</code>, if the config file doesn't exist.
 fs:
   Interact with Alluxio in command line style for basic file system operations.
-  See [Command Line]({{site.baseurl}}{% link en/basic/Command-Line-Interface.md %}) for more information.
+  See [Command Line]({{ '/en/basic/Command-Line-Interface.html' | relativize_url }}) for more information.
 fsadmin:
   Command line tool for use by Alluxio filesystem admins.
-  See [Fsadmin Command Line]({{site.baseurl}}{% link en/basic/operation/Admin-CLI.md %}) for more information.
+  See [Fsadmin Command Line]({{ '/en/basic/operation/Admin-CLI.md' | relativize_url }}) for more information.
 getConf:
   Look up a configuration key, or print all configuration.
 loadufs:

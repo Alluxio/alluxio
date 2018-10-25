@@ -96,14 +96,13 @@
                     </li>
                 {% endfor %}
 
-                <!-- Generator the language selector at the right of the navigation bar -->
+                <!-- Generate the language selector at the top of the navigation bar -->
                 {% assign multiLanguagePages = site.pages | where:'name',page.name | sort:'languagePriority' %}
                 <li class="dropdown">
                     <a href="#" class="dropdown-toggle" data-toggle="dropdown">{{page.languageName}}<b class="caret"></b></a>
                     <ul class="dropdown-menu">
                         {% for singleLanguage in multiLanguagePages %}
-                            <!-- Use the prefix .. to change the absulote url to relative url -->
-                            <li><a href="{{site.baseurl}}{{singleLanguage.url}}">{{singleLanguage.languageName}}</a></li>
+                            <li><a href="{{base}}{{singleLanguage.url}}">{{singleLanguage.languageName}}</a></li>
                         {% endfor %}
                     </ul>
                 </li>
