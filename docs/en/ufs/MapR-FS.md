@@ -62,7 +62,7 @@ This configuration parameter should be set for all the Alluxio servers (masters,
 read how to [configure Alluxio]({{ '/en/basic/Configuration-Settings.html' | relativize_url }}). For
 Alluxio processes, this parameter can be set in the property file `alluxio-site.properties`. For
 more information, please read about
-[configuration of Alluxio with property files]({% link en/basic/Configuration-Settings.md %}#configuration-sources).
+[configuration of Alluxio with property files]({{ '/en/basic/Configuration-Settings.html' | relativize_url }}#configuration-sources).
 
 ## Configuring Alluxio to use MapR-FS as Under Storage
 

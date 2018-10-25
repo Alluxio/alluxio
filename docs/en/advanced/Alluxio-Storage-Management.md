@@ -199,7 +199,7 @@ volatile. Eviction is the mechanism that removes old data.
 There are two modes of eviction in Alluxio: asynchronous and synchronous.
 
 Asynchronous eviction is the default implementation of eviction. It relies on a periodic space
-reserver thread in each worker to evict data. When the worker storage utilization reaches a 
+reserver thread in each worker to evict data. When the worker storage utilization reaches a
 maximum threshold, it evicts data until the usage reaches a minimum threshold. The two thresholds
 are configurable, labeled as the high and low watermarks respectively. In the case where we have
 216 GB of storage on a worker, eviction can be triggered at about 200 GB to reduce storage
@@ -244,7 +244,7 @@ configurable weight.
 storage directory on the local worker with maximum free space and only evict from that directory.
 
 The evictor utilized by workers is determined by the Alluxio property
-[`alluxio.worker.evictor.class`]({{site.basurl}}{% link en/reference/Properties-List.md %}#alluxio.worker.evictor.class).
+[`alluxio.worker.evictor.class`]({{ '/en/reference/Properties-List.html' | relativize_url }}#alluxio.worker.evictor.class).
 The property should specify the fully qualified class name within the configuration. Currently
 available options are:
 
@@ -309,7 +309,7 @@ To load data from the local file system, use the
 [command `copyFromLocal`]({{ '/en/basic/Command-Line-Interface.html' | relativize_url }}#copyfromlocal).
 This will only load the file into Alluxio storage, but may not persist the data to a UFS.
 Setting the write type to `MUST_CACHE` write type will _not_ persist data to a UFS,
-whereas `CACHE` and `CACHE_THROUGH` will. Manually loading data is not recommended as Alluxio 
+whereas `CACHE` and `CACHE_THROUGH` will. Manually loading data is not recommended as Alluxio
 will automatically load data into the Alluxio cache when a file is used for the first time.
 
 ### Persisting Data in Alluxio
@@ -332,7 +332,7 @@ guarantees on the data access patterns. For example, if analytics is run on the 
 ingested data, the TTL feature can be used to explicitly flush old data to free the cache for new
 files.
 
-Alluxio has TTL attributes associated with each file or directory. These attributes are saved as 
+Alluxio has TTL attributes associated with each file or directory. These attributes are saved as
 part of the journal and persist across cluster restarts. The active master node is responsible for
 holding the metadata in memory when Alluxio is serving. Internally, the master runs a background
 thread which periodically checks if files have reached their TTL expiration.
