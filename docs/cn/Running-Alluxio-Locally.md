@@ -65,8 +65,7 @@ $ ./bin/alluxio-start.sh local
 
 ## 为什么在linux上运行Alluxio需要sudo权限？
 
-默认情况下，Alluxio使用[RAMFS](https://www.kernel
-.org/doc/Documentation/filesystems/ramfs-rootfs-initramfs.txt)
+默认情况下，Alluxio使用[RAMFS](https://www.kernel.org/doc/Documentation/filesystems/ramfs-rootfs-initramfs.txt)
 存储内存数据。用户在MacOS系统下可以挂载ramfs，不需要超级用户身份。然而，在linux系统下，用户运行"mount"命令(以及 "umount", "mkdir" 和 "chmod" 命令)需要sudo权限。
 
 ## 用户没有sudo权限，仍然可以在linux下使用Alluxio么？
