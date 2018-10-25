@@ -85,7 +85,7 @@ Alluxio提供了位置策略来选择要存储文件块到哪一个worker。
 
 使用Alluxio的Java API，用户可以设置策略在`CreateFileOptions`中向Alluxio写入文件和在`OpenFileOptions`中读取文件。
 
-用户可以轻松地覆盖默认的策略类[配置文件]（Configuration-Settings.html）中的属性`alluxio.user.file.write.location.policy.class`。内置的政策包括：
+用户可以轻松地覆盖默认的策略类[配置文件](Configuration-Settings.html)中的属性`alluxio.user.file.write.location.policy.class`。内置的策略包括：
 
 * **LocalFirstPolicy (alluxio.client.file.policy.LocalFirstPolicy)**
 
@@ -111,7 +111,7 @@ Alluxio支持自定义策略，所以你也可以通过实现接口`alluxio.clie
 Alluxio允许客户在向本地worker写入数据块时选择一个层级偏好。目前
 这种策略偏好只适用于本地worker而不是远程worker;远程worker会写到最高层。
 
-默认情况下，数据被写入顶层。用户可以通过`alluxio.user.file.write.tier.default` [配置]（Configuration-Settings.html）修改默认设置，
+默认情况下，数据被写入顶层。用户可以通过`alluxio.user.file.write.tier.default` [配置项](Configuration-Settings.html)修改默认设置，
 或通过`FileSystem#createFile(AlluxioURI)`API调用覆盖它。
 
 ### 访问Alluxio中的现有文件
