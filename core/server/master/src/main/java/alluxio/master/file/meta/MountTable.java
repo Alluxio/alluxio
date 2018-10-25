@@ -313,6 +313,32 @@ public final class MountTable implements JournalEntryIterable, JournalEntryRepla
     }
   }
 
+  private AlluxioURI reverseResolve(AlluxioURI mountPoint, AlluxioURI ufsUriMountPoint, AlluxioURI ufsUri) throws InvalidPathException {
+    String relativePath = PathUtils.subtractPaths(ufsUri.getPath(), ufsUriMountPoint.getPath());
+    return new AlluxioURI(PathUtils.concatPath(mountPoint, relativePath));
+  }
+
+  /**
+   * REsolves the given Ufs path. If the given UFs path is mounted in Alluxio space, it returns
+   * the associated Alluxio path.
+   * @param ufsUri an Ufs path URI
+   * @return an Alluxio path URI
+   */
+  public AlluxioURI reverseResolve(AlluxioURI ufsUri) {
+    AlluxioURI returnVal = null;
+    for (Map.Entry<String, MountInfo> mountInfoEntry : getMountTable().entrySet()) {
+      try {
+        returnVal = reverseResolve(mountInfoEntry.getValue().getAlluxioUri(), mountInfoEntry.getValue().getUfsUri(), ufsUri);
+      } catch (InvalidPathException e) {
+        // expected when ufsUri does not belong to this particular mountPoint
+      }
+      if (returnVal != null) {
+        return returnVal;
+      }
+    }
+    return null;
+  }
+
   /**
    * Resolves the given Alluxio path. If the given Alluxio path is nested under a mount point, the
    * resolution maps the Alluxio path to the corresponding UFS path. Otherwise, the resolution is a

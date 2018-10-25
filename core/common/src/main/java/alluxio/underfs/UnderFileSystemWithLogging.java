@@ -631,8 +631,8 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
   }
 
   @Override
-  public SyncInfo getActiveSyncInfo() {
-    return mUnderFileSystem.getActiveSyncInfo();
+  public SyncInfo getActiveSyncInfo(List<AlluxioURI> syncPointList) {
+    return mUnderFileSystem.getActiveSyncInfo(syncPointList);
   }
 
   /**

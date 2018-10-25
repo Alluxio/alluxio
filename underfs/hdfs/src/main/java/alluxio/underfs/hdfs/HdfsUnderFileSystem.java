@@ -49,7 +49,11 @@ import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.permission.FsPermission;
+import org.apache.hadoop.hdfs.DFSInotifyEventInputStream;
 import org.apache.hadoop.hdfs.DistributedFileSystem;
+import org.apache.hadoop.hdfs.client.HdfsAdmin;
+import org.apache.hadoop.hdfs.inotify.Event;
+import org.apache.hadoop.hdfs.inotify.EventBatch;
 import org.apache.hadoop.security.SecurityUtil;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.slf4j.Logger;
@@ -59,12 +63,15 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.URI;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Stack;
 import java.util.concurrent.ExecutionException;
+import java.util.stream.Stream;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
@@ -85,6 +92,10 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
   private final LoadingCache<String, FileSystem> mUserFs;
   private final HdfsAclProvider mHdfsAclProvider;
   private UnderFileSystemConfiguration mUfsConf;
+
+  private HdfsAdmin mHdfsAdmin;
+
+  private HdfsActiveSyncProvider mHdfsActiveSyncer;
 
   /**
    * Factory method to constructs a new HDFS {@link UnderFileSystem} instance.
@@ -150,8 +161,13 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
         return path.getFileSystem(hdfsConf);
       }
     });
+    try {
+      mHdfsAdmin = new HdfsAdmin(URI.create(ufsUri.getPath()), hdfsConf);
+      mHdfsActiveSyncer = new HdfsActiveSyncProvider(mHdfsAdmin);
+    } catch (IOException e) {
+      LOG.warn("Failed to initialize Hdfs Admin");
+    }
   }
-
   @Override
   public String getUnderFSType() {
     return "hdfs";
@@ -623,9 +639,8 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
   }
 
   @Override
-  public SyncInfo getActiveSyncInfo() {
-    // TODO(yuzhu) : implement this
-    return null;
+  public SyncInfo getActiveSyncInfo(List<AlluxioURI> syncPointList) {
+    return mHdfsActiveSyncer.getActivitySyncInfo(syncPointList);
   }
 
   /**

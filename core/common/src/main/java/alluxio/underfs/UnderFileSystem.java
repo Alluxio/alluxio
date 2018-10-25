@@ -561,5 +561,5 @@ public interface UnderFileSystem extends Closeable {
 
   boolean supportsActiveSync();
 
-  SyncInfo getActiveSyncInfo();
+  SyncInfo getActiveSyncInfo(List<AlluxioURI> syncPointList);
 }

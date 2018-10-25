@@ -57,7 +57,6 @@ public class ActiveSyncManager {
 
   public boolean addSyncPoint(AlluxioURI syncPoint) throws InvalidPathException {
     if (!isActivelySynced(syncPoint)) {
-
       MountTable.Resolution resolution = mMountTable.resolve(syncPoint);
       AlluxioURI ufsUri = resolution.getUri();
       String rootPath = ufsUri.getRootPath();
@@ -110,6 +109,10 @@ public class ActiveSyncManager {
       throw new RuntimeException(String.format("rootPath for the syncPoint %s not found", syncPoint.toString()));
     }
     return true;
+  }
+
+  public List<AlluxioURI> getFilterList(String rootPath) {
+    return mFilterMap.get(rootPath);
   }
 
   public List<String> getSyncPathList() {
