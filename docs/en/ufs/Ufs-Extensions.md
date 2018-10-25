@@ -10,7 +10,7 @@ priority: 100
 {:toc}
 
 This page is intended for users of under storage extensions. Please look at [developing
-extensions]({{ '/en/api/Ufs-Extension-API.html' | relativize_url }}) for an extension development
+extensions]({{ '/en/ufs/Ufs-Extension-API.html' | relativize_url }}) for an extension development
 guide.
 
 Alluxio can be extended with the addition of under storage modules at runtime. Under storage
