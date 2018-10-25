@@ -42,7 +42,7 @@ categoryList:
   - Basic
   - Operations
   - Advanced
-  - APIs
+  - Client APIs
   - Contributor Resources
   - Reference
 
@@ -71,8 +71,8 @@ categoryInfo:
   Advanced:
     en: Advanced
     cn: 高级用法
-  APIs:
-    en: APIs
+  Client APIs:
+    en: Client APIs
     cn: APIs
   Contributor Resources:
     en: Contributor Resources

@@ -1,7 +1,7 @@
 ---
 layout: global
 title: 如何开发底层存储扩展
-group: APIs
+group: Client APIs
 priority: 3
 ---
 

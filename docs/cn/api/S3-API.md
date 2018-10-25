@@ -2,7 +2,7 @@
 layout: global
 title: S3 Client
 nickname: S3 Client
-group: APIs
+group: Client APIs
 priority: 6
 ---
 
@@ -55,7 +55,7 @@ Date: Tue, 29 Aug 2017 22:35:00 GMT
 Content-Type: application/xml
 Content-Length: 200
 Server: Jetty(9.2.z-SNAPSHOT)
- 
+
 <ListBucketResult xmlns=""><Name>/testbucket</Name><Prefix/><ContinuationToken/><NextContinuationToken/><KeyCount>0</KeyCount><MaxKeys>1000</MaxKeys><IsTruncated>false</IsTruncated></ListBucketResult>
 ```
 
@@ -65,13 +65,13 @@ Server: Jetty(9.2.z-SNAPSHOT)
 ```bash
 # curl -i -X PUT -T "LICENSE" http://localhost:39999/api/v1/s3/testbucket/testobject
 HTTP/1.1 100 Continue
- 
+
 HTTP/1.1 200 OK
 Date: Tue, 29 Aug 2017 22:36:03 GMT
 ETag: "9347237b67b0be183499e5893128704e"
 Content-Length: 0
 Server: Jetty(9.2.z-SNAPSHOT)
- 
+
 ```
 
 ### 获取object
@@ -84,7 +84,7 @@ Last-Modified: Tue, 29 Aug 2017 22:36:03 GMT
 Content-Type: application/xml
 Content-Length: 26847
 Server: Jetty(9.2.z-SNAPSHOT)
- 
+
 .................. Content of the test file ...................
 ```
 
@@ -114,16 +114,16 @@ Date: Tue, 29 Aug 2017 22:40:45 GMT
 Content-Type: application/xml
 Content-Length: 537
 Server: Jetty(9.2.z-SNAPSHOT)
- 
+
 <ListBucketResult xmlns=""><Name>/testbucket</Name><Prefix/><ContinuationToken/><NextContinuationToken>key3</NextContinuationToken><KeyCount>2</KeyCount><MaxKeys>2</MaxKeys><IsTruncated>true</IsTruncated><Contents><Key>key1</Key><LastModified>2017-08-29T15:40:42.213Z</LastModified><ETag></ETag><Size>26847</Size><StorageClass>STANDARD</StorageClass></Contents><Contents><Key>key2</Key><LastModified>2017-08-29T15:40:43.269Z</LastModified><ETag></ETag><Size>26847</Size><StorageClass>STANDARD</StorageClass></Contents></ListBucketResult>
- 
+
 # curl -i -X GET http://localhost:39999/api/v1/s3/testbucket\?max-keys\=2\&continuation-token\=key3
 HTTP/1.1 200 OK
 Date: Tue, 29 Aug 2017 22:41:18 GMT
 Content-Type: application/xml
 Content-Length: 540
 Server: Jetty(9.2.z-SNAPSHOT)
- 
+
 <ListBucketResult xmlns=""><Name>/testbucket</Name><Prefix/><ContinuationToken>key3</ContinuationToken><NextContinuationToken/><KeyCount>2</KeyCount><MaxKeys>2</MaxKeys><IsTruncated>false</IsTruncated><Contents><Key>key3</Key><LastModified>2017-08-29T15:40:44.002Z</LastModified><ETag></ETag><Size>26847</Size><StorageClass>STANDARD</StorageClass></Contents><Contents><Key>testobject</Key><LastModified>2017-08-29T15:36:03.613Z</LastModified><ETag></ETag><Size>26847</Size><StorageClass>STANDARD</StorageClass></Contents></ListBucketResult>
 ```
 
@@ -141,7 +141,7 @@ HTTP/1.1 204 No Content
 Date: Tue, 29 Aug 2017 22:43:22 GMT
 Server: Jetty(9.2.z-SNAPSHOT)
 ```
- 
+
 ```bash
 # curl -i -X DELETE http://localhost:39999/api/v1/s3/testbucket/key2
 # curl -i -X DELETE http://localhost:39999/api/v1/s3/testbucket/key3
@@ -165,7 +165,7 @@ Server: Jetty(9.2.z-SNAPSHOT)
 </InitiateMultipartUploadResult>
 ```
 
-### 上传分块 
+### 上传分块
 
 ```bash
 # curl -i -X PUT http://localhost:39999/api/v1/s3/testbucket/testobject?partNumber=1&uploadId=2
@@ -173,7 +173,7 @@ HTTP/1.1 200 OK
 Date: Tue, 29 Aug 2017 22:43:22 GMT
 ETag: "b54357faf0632cce46e942fa68356b38"
 Server: Jetty(9.2.z-SNAPSHOT)
-``` 
+```
 
 ### 罗列已上传的分块
 
@@ -210,11 +210,11 @@ Server: Jetty(9.2.z-SNAPSHOT)
     <ETag>"b54357faf0632cce46e942fa68356b38"</ETag>
   </Part>
 </CompleteMultipartUpload>'
- 
+
 HTTP/1.1 200 OK
 Date: Tue, 29 Aug 2017 22:43:22 GMT
 Server: Jetty(9.2.z-SNAPSHOT)
- 
+
 <?xml version="1.0" encoding="UTF-8"?>
 <CompleteMultipartUploadResult xmlns="">
   <Location>/testbucket/testobjectLocation>
@@ -323,7 +323,7 @@ bucket.delete_key(largeObjectKey)
 mp = bucket.initiate_multipart_upload(largeObjectFile)
 ```
 
-### 上传分块 
+### 上传分块
 
 ```python
 import math, os

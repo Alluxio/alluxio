@@ -2,7 +2,7 @@
 layout: global
 title: Alluxio Java客户端
 nickname: Alluxio Java客户端
-group: APIs
+group: Client APIs
 priority: 1
 ---
 
