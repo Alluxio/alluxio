@@ -25,23 +25,17 @@ Usage: alluxio fs [generic options]
 >
 >大多数需要路径参数的命令可以使用通配符以便简化使用，例如：
 >
->```properties
->alluxio.underfs.address=/mnt/nfs
->```
+>$ ./bin/alluxio fs rm '/data/2014*'
 >
 >该示例命令会将`data`文件夹下以`2014`为文件名前缀的所有文件删除。
 >
 >注意有些shell会尝试自动补全输入路径，从而引起奇怪的错误（注意：以下例子中的数字可能不是21，这取决于你的本地文件系统中匹配文件的个数）：
 >
->```properties
->alluxio.underfs.address=/mnt/nfs
->```
+>rm takes 1 arguments,  not 21
 >
 >作为一种绕开这个问题的方式，你可以禁用自动补全功能（跟具体shell有关，例如`set -f`），或者使用转义通配符，例如：
 >
->```properties
->alluxio.underfs.address=/mnt/nfs
->```
+>$ ./bin/alluxio fs cat /\\*
 >
 >注意是两个转义符号，这是因为该shell脚本最终会调用一个java程序运行，该java程序将获取到转义输入参数（cat /\\*）。
 
@@ -66,9 +60,7 @@ Usage: alluxio fs [generic options]
 
 例如，当测试一个新的计算任务时，`cat`命令可以用来快速确认其输出结果：
 
-```properties
-alluxio.underfs.address=/mnt/nfs
-```
+$ ./bin/alluxio fs cat /output/part-00000
 
 ### checkConsistency
 
@@ -81,9 +73,11 @@ alluxio.underfs.address=/mnt/nfs
 
 例如，`checkConsistency`命令可以用来周期性地检查命名空间的完整性：
 
-```properties
-alluxio.underfs.address=/mnt/nfs
-```
+# List each inconsistent file or directory
+$ ./bin/alluxio fs checkConsistency /
+#
+# Repair the inconsistent files or directories
+$ ./bin/alluxio fs checkConsistency -r /
 
 ### checksum
 
@@ -91,9 +85,10 @@ alluxio.underfs.address=/mnt/nfs
 
 例如，`checksum`可以用来验证Alluxio中的文件内容与存储在底层文件系统或者本地文件系统中的文件内容是否匹配：
 
-```properties
-alluxio.underfs.address=/mnt/nfs
-```
+$ ./bin/alluxio fs checksum /LICENSE
+md5sum: bf0513403ff54711966f39b058e059a3
+$ md5 LICENSE
+MD5 (LICENSE) = bf0513403ff54711966f39b058e059a3
 
 ### chgrp
 
@@ -103,9 +98,7 @@ alluxio.underfs.address=/mnt/nfs
 
 使用举例：使用`chgrp`命令能够快速修改一个文件的所属组：
 
-```properties
-alluxio.underfs.address=/mnt/nfs
-```
+$ ./bin/alluxio fs chgrp alluxio-group-new /input/file1
 
 ### chmod
 
@@ -126,9 +119,7 @@ alluxio.underfs.address=/mnt/nfs
 
 使用举例：使用`chmod`命令可以快速修改一个文件的权限：
 
-```properties
-alluxio.underfs.address=/mnt/nfs
-```
+$ ./bin/alluxio fs chmod 755 /input/file1
 
 ### chown
 
@@ -138,9 +129,7 @@ alluxio.underfs.address=/mnt/nfs
 
 使用举例：使用`chown`命令可以快速修改一个文件的所有者。
 
-```properties
-alluxio.underfs.address=/mnt/nfs
-```
+$ ./bin/alluxio fs chown alluxio-user /input/file1
 
 ### copyFromLocal
 
@@ -148,18 +137,16 @@ alluxio.underfs.address=/mnt/nfs
 
 使用举例：使用`copyFromLocal`命令可以快速将数据复制到alluxio系统中以便后续处理：
 
-```properties
-alluxio.underfs.address=/mnt/nfs
-```
+$ ./bin/alluxio fs copyFromLocal /local/data /input
 
 ### copyToLocal
 
 `copyToLocal`命令将Alluxio中的文件复制到本地文件系统中，如果该命令指定的目标是一个文件夹，那么该文件夹及其所有内容都会被递归地复制。
 
 使用举例：使用`copyToLocal`命令可以快速将输出数据下载下来从而进行后续研究或调试：
-```properties
-alluxio.underfs.address=/mnt/nfs
-```
+
+$ ./bin/alluxio fs copyToLocal /output/part-00000 part-00000
+$ wc -l part-00000
 
 ### count
 
@@ -167,9 +154,7 @@ alluxio.underfs.address=/mnt/nfs
 
 使用举例：若文件是以它们的创建日期命名，使用`count`命令可以获取任何日期、月份以及年份的所有文件的数目以及它们的总大小：
 
-```properties
-alluxio.underfs.address=/mnt/nfs
-```
+$ ./bin/alluxio fs count /data/2014
 
 ### cp
 
@@ -181,9 +166,7 @@ alluxio.underfs.address=/mnt/nfs
 
 例如，`cp`可以在底层文件系统之间拷贝文件。
 
-```properties
-alluxio.underfs.address=/mnt/nfs
-```
+$ ./bin/alluxio fs cp /hdfs/file1 /s3/
 
 ### du
 
@@ -191,9 +174,33 @@ alluxio.underfs.address=/mnt/nfs
 
 使用举例：如果Alluxio空间被过分使用，使用`du`命令可以检测到哪些文件夹占用了大部分空间：
 
-```properties
-alluxio.underfs.address=/mnt/nfs
-```
+# Shows the size information of all the files in root directory
+$ ./bin/alluxio fs du /
+File Size     In Alluxio       Path
+1337          0 (0%)           /alluxio-site.properties
+4352          4352 (100%)      /testFolder/NOTICE
+26847         0 (0%)           /testDir/LICENSE
+2970          2970 (100%)      /testDir/README.md
+
+# Shows the in memory size information
+$ ./bin/alluxio fs du --memory /
+File Size     In Alluxio       In Memory        Path
+1337          0 (0%)           0 (0%)           /alluxio-site.properties
+4352          4352 (100%)      4352 (100%)      /testFolder/NOTICE
+26847         0 (0%)           0 (0%)           /testDir/LICENSE
+2970          2970 (100%)      2970 (100%)      /testDir/README.md
+
+# Shows the aggregate size information in human-readable format
+./bin/alluxio fs du -h -s /
+File Size     In Alluxio       In Memory        Path
+34.67KB       7.15KB (20%)     7.15KB (20%)     /
+
+# Can be used to detect which folders are taking up the most space
+$ ./bin/alluxio fs du -h -s /\\*
+File Size     In Alluxio       Path
+1337B         0B (0%)          /alluxio-site.properties
+29.12KB       2970B (9%)       /testDir
+4352B         4352B (100%)     /testFolder
 
 ### fileInfo
 `fileInfo`命令从1.5开始不再支持，请使用stat命令。
@@ -202,9 +209,7 @@ alluxio.underfs.address=/mnt/nfs
 
 使用举例：使用`fileInfo`命令能够获取到一个文件的数据块的位置，这在获取计算任务中的数据局部性时非常有用。
 
-```properties
-alluxio.underfs.address=/mnt/nfs
-```
+$ ./bin/alluxio fs fileInfo /data/2015/logs-1.txt
 
 ### free
 
@@ -212,9 +217,7 @@ alluxio.underfs.address=/mnt/nfs
 
 使用举例：使用`free`命令可以手动管理Alluxio的数据缓存。
 
-```properties
-alluxio.underfs.address=/mnt/nfs
-```
+$ ./bin/alluxio fs free /unused/data
 
 ### getCapacityBytes
 
@@ -222,9 +225,7 @@ alluxio.underfs.address=/mnt/nfs
 
 使用举例：使用`getCapacityBytes`命令能够确认你的系统是否正确启动。
 
-```properties
-alluxio.underfs.address=/mnt/nfs
-```
+$ ./bin/alluxio fs getCapacityBytes
 
 ### getUsedBytes
 
