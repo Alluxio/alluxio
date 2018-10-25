@@ -2,7 +2,7 @@
 layout: global
 title: 本地Java客户端
 nickname: Native Java
-group: APIs
+group: Client APIs
 priority: 1
 ---
 

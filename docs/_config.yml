@@ -38,11 +38,11 @@ categoryList:
   - Home
   - Deploying Alluxio
   - Under Stores
-  - Compute
+  - Data Applications
   - Basic
   - Operations
   - Advanced
-  - APIs
+  - Client APIs
   - Contributor Resources
   - Reference
 
@@ -59,8 +59,8 @@ categoryInfo:
   Under Stores:
     en: Under Stores
     cn: 底层存储系统
-  Compute:
-    en: Compute
+  Data Applications:
+    en: Data Applications
     cn: 计算应用
   Basic:
     en: Basic
@@ -71,8 +71,8 @@ categoryInfo:
   Advanced:
     en: Advanced
     cn: 高级用法
-  APIs:
-    en: APIs
+  Client APIs:
+    en: Client APIs
     cn: APIs
   Contributor Resources:
     en: Contributor Resources

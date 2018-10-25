@@ -2,20 +2,20 @@
 layout: global
 title: Filesystem API
 nickname: Filesystem API
-group: APIs
+group: Client APIs
 priority: 0
 ---
 
 Applications primarily interact with Alluxio through its Filesystem API. Java users
-can either use the [Alluxio Java Client](#Java-Client), or the 
+can either use the [Alluxio Java Client](#Java-Client), or the
 [Hadoop-Compatible Java Client](#Hadoop-Compatible-Java-Client), which
-wraps the Alluxio Java Client to implement the Hadoop API. 
+wraps the Alluxio Java Client to implement the Hadoop API.
 
-By setting up an Alluxio Proxy, users can also interact with Alluxio through a REST 
-API similar to the Filesystem API. The REST API currently has language bindings for 
+By setting up an Alluxio Proxy, users can also interact with Alluxio through a REST
+API similar to the Filesystem API. The REST API currently has language bindings for
 Go and Python.
 
-A third option is to interact with Alluxio through its S3 API. Users can interact 
+A third option is to interact with Alluxio through its S3 API. Users can interact
 using the same S3 clients used for AWS S3 operations. This makes it easy to change
 existing S3 workloads to use Alluxio.
 

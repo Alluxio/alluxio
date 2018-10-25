@@ -8,12 +8,16 @@ priority: 1
 * Table of Contents
 {:toc}
 
-Here is a description of a few common use cases of Alluxio.
+Leading companies around the world run Alluxio in production to extract value
+from their data. Some of them are listed in our
+[Powered-By](https://www.alluxio.org/community/powered-by-alluxio) page.
+In this section, we introduce some of the most common Alluxio use cases.
 
-## A Distributed Caching Layer for Data on Object Storage
+## Object Storage Data Acceleration
 
-In many organizations, an increasingly popular architecture is to leverage object storage as the
-single source of data for big data analytics jobs like Hadoop, Spark or Presto.
+In many organizations, an increasingly popular architecture is to leverage object storage as an
+important source of data for data analytics applications like Spark, Presto, Hadoop, or machine
+learning/AI workloads such as Tensorflow etc.
 Object storage can be public object storage services (e.g. AWS S3, Azure blob storage,
 Google Cloud Storage, Aliyun OSS, or Tencent COS) or on-premise object stores (e.g. Ceph or Swift).
 
@@ -36,7 +40,7 @@ with weaker consistency guarantees.
 - Security models: Object stores often employ different Security models than file systems.
 
 In such architectures, deploying Alluxio on the compute side where data is configured to persist
-from object stores can significantly benefit applications. 
+from object stores can significantly benefit applications.
 Alluxio can cache data locally alongside different applications and manage its corresponding
 metadata to avoid particular inefficient metadata operations of object stores.
 
@@ -44,7 +48,7 @@ See example use cases from
 [BazzarVoice](https://www.slideshare.net/ThaiBui7/hybrid-collaborative-tiered-storage-with-alluxio),
 [Myntra](http://alluxio-com-site-prod.s3.amazonaws.com/resource/media/myntra-case-study-accelerating-analytics-in-the-cloud-for-mobile-e-commerce).
 
-## ETL Elimination for Satellite Compute Clusters
+## Satellite Compute Clusters Enabler
 
 For reasons such as performance, security, or resource isolation, organizations maintain
 satellite computation clusters that are independent from their main data cluster, using dedicated
@@ -62,7 +66,7 @@ decreasing the overall load of the main data cluster.
 See example use cases from
 [Tencent News](http://alluxio-com-site-prod.s3.amazonaws.com/resource/media/tencent-case-study-delivering-customized-news-to-over-100-million-montly-users).
 
-## A Common Storage Access Layer
+## A Common Data Access Layer
 
 Users deploy Alluxio as a storage abstraction layer for common data access requests.
 Alluxio supports storage connectors for various storage types including public cloud, such as AWS or Azure,
@@ -74,7 +78,7 @@ automatically integrated with the most popular storage options without implement
 See example use cases from [Starburst Presto](https://www.starburstdata.com/technical-blog/starburst-presto-alluxio-better-together/),
 [TensorFlow on Azure](https://blogs.msdn.microsoft.com/cloudai/2018/05/01/tensorflow-on-azure-enabling-blob-storage-via-alluxio/).
 
-## A Single Entry Point for Multiple Data Sources
+## A Single Entry Point for Multiple Data Sources (Data Unification)
 
 Alluxio provides a mounting API that enables applications to access data across multiple sources
 in the same filesystem namespace. Applications do not need to individually configure connection

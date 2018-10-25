@@ -2,7 +2,7 @@
 layout: global
 title: 在Alluxio上运行深度学习框架
 nickname: 深度学习框架
-group: Compute
+group: Data Applications
 priority: 5
 ---
 

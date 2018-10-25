@@ -2,8 +2,8 @@
 layout: global
 title: Under File Storage Extension API
 nickname: UFS Extension API
-group: APIs
-priority: 10
+group: Under Stores
+priority: 101
 ---
 
 This page is intended for developers of under storage extensions. Please look at

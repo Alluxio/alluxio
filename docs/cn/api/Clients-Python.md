@@ -2,7 +2,7 @@
 layout: global
 title: Python Client
 nickname: Python Client
-group: APIs
+group: Client APIs
 priority: 5
 ---
 
