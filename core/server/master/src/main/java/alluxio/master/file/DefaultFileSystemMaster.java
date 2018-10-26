@@ -406,23 +406,12 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   @Override
   public Map<String, TProcessor> getServices() {
     Map<String, TProcessor> services = new HashMap<>();
-<<<<<<< HEAD
-    // TODO(adit): remove getServices
-//    services.put(Constants.FILE_SYSTEM_MASTER_CLIENT_SERVICE_NAME,
-//        new FileSystemMasterClientServiceProcessor(
-//            new FileSystemMasterClientServiceHandler(this)));
-||||||| merged common ancestors
-    services.put(Constants.FILE_SYSTEM_MASTER_CLIENT_SERVICE_NAME,
-        new FileSystemMasterClientServiceProcessor(
-            new FileSystemMasterClientServiceHandler(this)));
-=======
     services.put(Constants.FILE_SYSTEM_MASTER_CLIENT_SERVICE_NAME,
         new FileSystemMasterClientServiceProcessor(
             new FileSystemMasterClientServiceHandler(this)));
     services.put(Constants.FILE_SYSTEM_MASTER_JOB_SERVICE_NAME,
         new alluxio.thrift.FileSystemMasterJobService.Processor<>(
             new FileSystemMasterJobServiceHandler(this)));
->>>>>>> master
     services.put(Constants.FILE_SYSTEM_MASTER_WORKER_SERVICE_NAME,
         new FileSystemMasterWorkerService.Processor<>(
             new FileSystemMasterWorkerServiceHandler(this)));

@@ -2370,23 +2370,7 @@ public final class FileSystemMasterTest {
     FileSystemCommand command = mFileSystemMaster
         .workerHeartbeat(mWorkerId1, Lists.newArrayList(fileId), WorkerHeartbeatOptions.defaults());
     assertEquals(CommandType.Persist, command.getCommandType());
-<<<<<<< HEAD
-    assertEquals(1,
-        command.getCommandOptions().getPersistOptions().getFilesToPersist().size());
-    assertEquals(fileId,
-        command.getCommandOptions().getPersistOptions().getFilesToPersist().get(0).getFileId());
-    assertEquals(blockId, (long) command.getCommandOptions().getPersistOptions()
-        .getFilesToPersist().get(0).getBlockIds().get(0));
-||||||| merged common ancestors
-    assertEquals(1,
-        command.getCommandOptions().getPersistOptions().getPersistFiles().size());
-    assertEquals(fileId,
-        command.getCommandOptions().getPersistOptions().getPersistFiles().get(0).getFileId());
-    assertEquals(blockId, (long) command.getCommandOptions().getPersistOptions()
-        .getPersistFiles().get(0).getBlockIds().get(0));
-=======
     assertEquals(0, command.getCommandOptions().getPersistOptions().getPersistFiles().size());
->>>>>>> master
   }
 
   /**
