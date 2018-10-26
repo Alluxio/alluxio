@@ -25,7 +25,6 @@ import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Splitter;
-import com.google.common.base.Throwables;
 import com.google.common.io.Closer;
 import io.netty.channel.Channel;
 import org.slf4j.Logger;
@@ -49,7 +48,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
@@ -454,56 +452,49 @@ public final class CommonUtils {
    * an exception, that exception will be re-thrown from this method.
    *
    * @param callables the callables to execute
-   * @param timeout the maximum time to wait
-   * @param unit the time unit of the timeout argument
+   * @param timeoutMs time to wait for the callables to complete, in milliseconds
    * @param <T> the return type of the callables
-   * @throws Exception if any of the callables throws an exception
+   * @throws TimeoutException if the callables don't complete before the timeout
+   * @throws ExecutionException if any of the callables throws an exception
    */
-  public static <T> void invokeAll(List<Callable<T>> callables, long timeout, TimeUnit unit)
-      throws TimeoutException, Exception {
+  public static <T> void invokeAll(List<Callable<T>> callables, long timeoutMs)
+      throws TimeoutException, ExecutionException {
+    long endMs = System.currentTimeMillis() + timeoutMs;
     ExecutorService service = Executors.newCachedThreadPool();
     try {
-      List<Future<T>> results = service.invokeAll(callables, timeout, unit);
+      List<Future<T>> pending = new ArrayList<>();
+      for (Callable<T> c : callables) {
+        pending.add(service.submit(c));
+      }
+      // Poll the tasks to exit early in case of failure.
+      while (!pending.isEmpty()) {
+        Iterator<Future<T>> it = pending.iterator();
+        while (it.hasNext()) {
+          Future<T> future = it.next();
+          if (future.isDone()) {
+            // Check whether the callable threw an exception.
+            try {
+              future.get();
+            } catch (InterruptedException e) {
+              // This should never happen since we already checked isDone().
+              Thread.currentThread().interrupt();
+              throw new RuntimeException(e);
+            }
+            it.remove();
+          }
+        }
+        if (pending.isEmpty()) {
+          break;
+        }
+        long remainingMs = endMs - System.currentTimeMillis();
+        if (remainingMs <= 0) {
+          throw new TimeoutException(
+              String.format("Timed out after %dms", timeoutMs - remainingMs));
+        }
+        CommonUtils.sleepMs(Math.min(remainingMs, 50));
+      }
+    } finally {
       service.shutdownNow();
-      propagateExceptions(results);
-      for (Future<T> result : results) {
-        if (result.isCancelled()) {
-          throw new TimeoutException("Timed out invoking task");
-        }
-      }
-      // All tasks are guaranteed to have finished at this point. If they were still running, their
-      // futures would have been canceled by invokeAll.
-      if (!service.awaitTermination(1, TimeUnit.SECONDS)) {
-        throw new IllegalStateException("Failed to shutdown service");
-      }
-    } catch (InterruptedException e) {
-      Thread.currentThread().interrupt();
-      service.shutdownNow();
-      throw new RuntimeException(e);
-    }
-  }
-
-  /**
-   * Checks whether any of the futures have completed with an exception, propagating the exception
-   * if any is found.
-   *
-   * @param futures the futures to check
-   * @throws Exception if one of the futures completed with an exception
-   */
-  private static <T> void propagateExceptions(List<Future<T>> futures) throws Exception {
-    for (Future<?> future : futures) {
-      try {
-        if (future.isDone() && !future.isCancelled()) {
-          future.get();
-        }
-      } catch (ExecutionException e) {
-        Throwable cause = e.getCause();
-        Throwables.propagateIfPossible(cause);
-        if (cause instanceof Exception) {
-          throw (Exception) cause;
-        }
-        throw new RuntimeException(cause);
-      }
     }
   }
 
@@ -538,6 +529,8 @@ public final class CommonUtils {
 
   /** Alluxio process types. */
   public enum ProcessType {
+    JOB_MASTER,
+    JOB_WORKER,
     CLIENT,
     MASTER,
     PROXY,
@@ -598,11 +591,8 @@ public final class CommonUtils {
   public static void closeChannel(final Channel channel) {
     if (channel.isOpen())  {
       try {
-        channel.eventLoop().submit(new Runnable() {
-          @Override
-          public void run() {
-            channel.close();
-          }
+        channel.eventLoop().submit(() -> {
+          channel.close();
         }).sync();
       } catch (InterruptedException e) {
         Thread.currentThread().interrupt();

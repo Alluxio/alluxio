@@ -666,14 +666,17 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
         newDir.setPinned(currentInodeDirectory.isPinned());
 
         // if the parent has default ACL, copy that default ACL as the new directory's default
-        // and access acl.
-        if (!options.isMetadataLoad()) {
-          DefaultAccessControlList dAcl = currentInodeDirectory.getDefaultACL();
-          if (!dAcl.isEmpty()) {
-            Pair<AccessControlList, DefaultAccessControlList> pair = dAcl.generateChildDirACL();
-            newDir.setInternalAcl(pair.getFirst());
-            newDir.setDefaultACL(pair.getSecond());
-          }
+        // and access acl, ANDed with the umask
+        // if it is part of a metadata load operation, we ignore the umask and simply inherit
+        // the default ACL as the directory's new default and access ACL
+        short mode = options.isMetadataLoad() ? Mode.createFullAccess().toShort()
+            : newDir.getMode();
+        DefaultAccessControlList dAcl = currentInodeDirectory.getDefaultACL();
+        if (!dAcl.isEmpty()) {
+          Pair<AccessControlList, DefaultAccessControlList> pair =
+              dAcl.generateChildDirACL(mode);
+          newDir.setInternalAcl(pair.getFirst());
+          newDir.setDefaultACL(pair.getSecond());
         }
 
         if (mState.applyAndJournal(rpcContext, newDir)) {
@@ -764,11 +767,15 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
         extensibleInodePath.getLockList().lockWriteAndCheckNameAndParent(newDir,
             currentInodeDirectory, name);
 
-        // if the parent has default ACL, copy that default ACL as the new directory's default
-        // and access acl.
+        // if the parent has default ACL, take the default ACL ANDed with the umask as the new
+        // directory's default and access acl
+        // WHen it is a metadata load operation, do not take the umask into account
+        short mode = options.isMetadataLoad() ? Mode.createFullAccess().toShort()
+            : newDir.getMode();
         DefaultAccessControlList dAcl = currentInodeDirectory.getDefaultACL();
         if (!dAcl.isEmpty()) {
-          Pair<AccessControlList, DefaultAccessControlList> pair = dAcl.generateChildDirACL();
+          Pair<AccessControlList, DefaultAccessControlList> pair =
+              dAcl.generateChildDirACL(mode);
           newDir.setInternalAcl(pair.getFirst());
           newDir.setDefaultACL(pair.getSecond());
         }
@@ -801,10 +808,14 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
         extensibleInodePath.getLockList().lockWriteAndCheckNameAndParent(newFile,
             currentInodeDirectory, name);
 
-        // if the parent has a default ACL, copy that default ACL as the new file's access ACL.
+        // if the parent has a default ACL, copy that default ACL ANDed with the umask as the new
+        // file's access ACL.
+        // If it is a metadata load operation, do not consider the umask.
         DefaultAccessControlList dAcl = currentInodeDirectory.getDefaultACL();
+        short mode = options.isMetadataLoad() ? Mode.createFullAccess().toShort()
+            : newFile.getMode();
         if (!dAcl.isEmpty()) {
-          AccessControlList acl = dAcl.generateChildFileACL();
+          AccessControlList acl = dAcl.generateChildFileACL(mode);
           newFile.setInternalAcl(acl);
         }
 
@@ -1036,6 +1047,70 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
   public void setPinned(RpcContext rpcContext, LockedInodePath inodePath, boolean pinned)
       throws FileDoesNotExistException, InvalidPathException {
     setPinned(rpcContext, inodePath, pinned, System.currentTimeMillis());
+  }
+
+  /**
+   * Sets the min and/or max replication level of an inode. If the inode is a directory, the state
+   * will be set recursively. Arguments replicationMax and replicationMin can be null if they are
+   * not meant to be set.
+   *
+   * @param rpcContext the rpc context
+   * @param inodePath the {@link LockedInodePath} to set the pinned state for
+   * @param replicationMax the max replication level to set for the inode (and possible descendants)
+   * @param replicationMin the min replication level to set for the inode (and possible descendants)
+   * @param opTimeMs the operation time
+   * @throws FileDoesNotExistException if inode does not exist
+   */
+  public void setReplication(RpcContext rpcContext, LockedInodePath inodePath,
+      Integer replicationMax, Integer replicationMin, long opTimeMs)
+      throws FileDoesNotExistException {
+    Preconditions.checkArgument(replicationMin != null || replicationMax != null,
+        PreconditionMessage.INVALID_REPLICATION_MAX_MIN_VALUE_NULL);
+    Preconditions.checkArgument(replicationMin == null || replicationMin >= 0,
+        PreconditionMessage.INVALID_REPLICATION_MIN_VALUE);
+
+    InodeView inode = inodePath.getInode();
+
+    if (inode.isFile()) {
+      InodeFileView inodeFile = (InodeFileView) inode;
+      int newMax = (replicationMax == null) ? inodeFile.getReplicationMax() : replicationMax;
+      int newMin = (replicationMin == null) ? inodeFile.getReplicationMin() : replicationMin;
+
+      Preconditions.checkArgument(newMax == alluxio.Constants.REPLICATION_MAX_INFINITY
+          || newMax >= newMin,
+          PreconditionMessage.INVALID_REPLICATION_MAX_SMALLER_THAN_MIN.toString(),
+          replicationMax, replicationMax);
+
+      mState.applyAndJournal(rpcContext, UpdateInodeFileEntry.newBuilder()
+          .setId(inode.getId())
+          .setReplicationMax(newMax)
+          .setReplicationMin(newMin)
+          .build());
+      mState.applyAndJournal(rpcContext, UpdateInodeEntry.newBuilder()
+          .setId(inode.getId())
+          .setPinned(newMin > 0)
+          .setLastModificationTimeMs(opTimeMs)
+          .build());
+    } else {
+      try {
+        for (InodeView child : ((InodeDirectoryView) inode).getChildren()) {
+          try (LockedInodePath tempInodePath =
+                   inodePath.createTempPathForExistingChild(child, LockMode.WRITE)) {
+            setReplication(rpcContext, tempInodePath, replicationMax, replicationMin, opTimeMs);
+          }
+        }
+      } catch (InvalidPathException e) {
+        LOG.warn("Invalid path encountered when trying to set replication {}",
+            inodePath.getUri().getPath());
+      }
+    }
+  }
+
+  /**
+   * @return the set of file ids whose replication max is not infinity
+   */
+  public Set<Long> getReplicationLimitedFileIds() {
+    return java.util.Collections.unmodifiableSet(mState.getReplicationLimitedFileIds());
   }
 
   /**

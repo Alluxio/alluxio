@@ -58,7 +58,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.Callable;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -123,22 +122,18 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
       mRegistry = new WorkerRegistry();
       List<Callable<Void>> callables = new ArrayList<>();
       for (final WorkerFactory factory : ServiceUtils.getWorkerServiceLoader()) {
-        callables.add(new Callable<Void>() {
-          @Override
-          public Void call() throws Exception {
-            if (factory.isEnabled()) {
-              factory.create(mRegistry, mUfsManager);
-            }
-            return null;
+        callables.add(() -> {
+          if (factory.isEnabled()) {
+            factory.create(mRegistry, mUfsManager);
           }
+          return null;
         });
       }
       // In the worst case, each worker factory is blocked waiting for the dependent servers to be
       // registered at worker registry, so the maximum timeout here is set to the multiply of
       // the number of factories by the default timeout of getting a worker from the registry.
       CommonUtils.invokeAll(callables,
-          (long) callables.size() * Constants.DEFAULT_REGISTRY_GET_TIMEOUT_MS,
-          TimeUnit.MILLISECONDS);
+          (long) callables.size() * Constants.DEFAULT_REGISTRY_GET_TIMEOUT_MS);
 
       // Setup web server
       mWebServer =
@@ -367,7 +362,7 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
    */
   private boolean isDomainSocketEnabled() {
     return NettyUtils.WORKER_CHANNEL_TYPE == ChannelType.EPOLL
-        && !Configuration.get(PropertyKey.WORKER_DATA_SERVER_DOMAIN_SOCKET_ADDRESS).isEmpty();
+        && Configuration.containsKey(PropertyKey.WORKER_DATA_SERVER_DOMAIN_SOCKET_ADDRESS);
   }
 
   @Override

@@ -57,9 +57,15 @@ mount_fuse() {
   echo "Starting alluxio-fuse on local host."
   local mount_point=$1
   local alluxio_root=$2
+  local full_mount_option=""
+  if [[ ! -z "${mount_option}" ]]; then
+    full_mount_option="big_writes,${mount_option}"
+  else
+    full_mount_option="big_writes"
+  fi
   (nohup "${JAVA}" -cp ${CLASSPATH} ${JAVA_OPTS} ${ALLUXIO_FUSE_JAVA_OPTS} \
     alluxio.fuse.AlluxioFuse \
-    -o big_writes \
+    -o ${full_mount_option} \
     -m ${mount_point} \
     -r ${alluxio_root} > ${ALLUXIO_LOGS_DIR}/fuse.out 2>&1) &
   # sleep: workaround to let the bg java process exit on errors, if any
@@ -114,18 +120,31 @@ fi
 
 case $1 in
   mount)
-    if [[ $# -eq 2 ]]; then
-      mount_fuse $2 /
+    shift
+    while getopts "o:" option; do
+      case "${option}" in
+        o)
+          mount_option=${OPTARG}
+          ;;
+        *)
+          echo -e "${USAGE}" >&2
+          exit 1
+          ;;
+      esac
+    done
+    shift $((${OPTIND} - 1))
+    if [[ $# -eq 1 ]]; then
+      mount_fuse $1 /
       exit $?
     fi
-    if [[ $# -eq 3 ]]; then
-      mount_fuse $2 $3
+    if [[ $# -eq 2 ]]; then
+      mount_fuse $1 $2
       exit $?
     fi
     echo -e "Usage\n\t$0 mount mount_point [alluxio_path]\n\t alluxio_path is default to root" >&2
     exit 1
     ;;
-  umount)    
+  umount)
     if [[ $# -eq 2 ]]; then
       umount_fuse $2
       exit $?

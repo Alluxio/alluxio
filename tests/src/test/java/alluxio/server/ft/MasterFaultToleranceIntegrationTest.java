@@ -319,7 +319,6 @@ public class MasterFaultToleranceIntegrationTest extends BaseIntegrationTest {
           blockMaster2.getWorkerId(new alluxio.wire.WorkerNetAddress().setHost("host1"));
       blockMaster2.workerRegister(workerId1b, Collections.EMPTY_LIST, Collections.EMPTY_MAP,
           Collections.EMPTY_MAP, Collections.EMPTY_MAP, new RegisterWorkerTOptions());
-
     } finally {
       cluster.stop();
     }

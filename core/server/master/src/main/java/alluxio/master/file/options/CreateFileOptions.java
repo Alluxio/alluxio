@@ -28,6 +28,9 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public final class CreateFileOptions extends CreatePathOptions<CreateFileOptions> {
   private long mBlockSizeBytes;
+  private int mReplicationDurable;
+  private int mReplicationMax;
+  private int mReplicationMin;
   private boolean mCacheable;
 
   /**
@@ -52,6 +55,9 @@ public final class CreateFileOptions extends CreatePathOptions<CreateFileOptions
       mBlockSizeBytes = options.getBlockSizeBytes();
       mPersisted = options.isPersisted();
       mRecursive = options.isRecursive();
+      mReplicationDurable = options.getReplicationDurable();
+      mReplicationMax = options.getReplicationMax();
+      mReplicationMin = options.getReplicationMin();
       if (SecurityUtils.isAuthenticationEnabled()) {
         mOwner = SecurityUtils.getOwnerFromThriftClient();
         mGroup = SecurityUtils.getGroupFromThriftClient();
@@ -67,6 +73,9 @@ public final class CreateFileOptions extends CreatePathOptions<CreateFileOptions
   private CreateFileOptions() {
     super();
     mBlockSizeBytes = Configuration.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
+    mReplicationDurable = Configuration.getInt(PropertyKey.USER_FILE_REPLICATION_DURABLE);
+    mReplicationMax = Configuration.getInt(PropertyKey.USER_FILE_REPLICATION_MAX);
+    mReplicationMin = Configuration.getInt(PropertyKey.USER_FILE_REPLICATION_MIN);
     mMode.applyFileUMask();
     mCacheable = false;
   }
@@ -76,6 +85,27 @@ public final class CreateFileOptions extends CreatePathOptions<CreateFileOptions
    */
   public long getBlockSizeBytes() {
     return mBlockSizeBytes;
+  }
+
+  /**
+   * @return the number of block replication for durable write
+   */
+  public int getReplicationDurable() {
+    return mReplicationDurable;
+  }
+
+  /**
+   * @return the maximum number of block replication
+   */
+  public int getReplicationMax() {
+    return mReplicationMax;
+  }
+
+  /**
+   * @return the minimum number of block replication
+   */
+  public int getReplicationMin() {
+    return mReplicationMin;
   }
 
   /**
@@ -91,6 +121,33 @@ public final class CreateFileOptions extends CreatePathOptions<CreateFileOptions
    */
   public CreateFileOptions setBlockSizeBytes(long blockSizeBytes) {
     mBlockSizeBytes = blockSizeBytes;
+    return this;
+  }
+
+  /**
+   * @param replicationDurable the number of block replication for durable write
+   * @return the updated options object
+   */
+  public CreateFileOptions setReplicationDurable(int replicationDurable) {
+    mReplicationDurable = replicationDurable;
+    return this;
+  }
+
+  /**
+   * @param replicationMax the maximum number of block replication
+   * @return the updated options object
+   */
+  public CreateFileOptions setReplicationMax(int replicationMax) {
+    mReplicationMax = replicationMax;
+    return this;
+  }
+
+  /**
+   * @param replicationMin the minimum number of block replication
+   * @return the updated options object
+   */
+  public CreateFileOptions setReplicationMin(int replicationMin) {
+    mReplicationMin = replicationMin;
     return this;
   }
 
@@ -121,17 +178,24 @@ public final class CreateFileOptions extends CreatePathOptions<CreateFileOptions
     }
     CreateFileOptions that = (CreateFileOptions) o;
     return Objects.equal(mBlockSizeBytes, that.mBlockSizeBytes)
+        && Objects.equal(mReplicationDurable, that.mReplicationDurable)
+        && Objects.equal(mReplicationMax, that.mReplicationMax)
+        && Objects.equal(mReplicationMin, that.mReplicationMin)
         && Objects.equal(mCacheable, that.mCacheable);
   }
 
   @Override
   public int hashCode() {
-    return super.hashCode() + Objects.hashCode(mBlockSizeBytes, mCacheable);
+    return super.hashCode() + Objects.hashCode(mBlockSizeBytes, mReplicationDurable,
+        mReplicationMax, mReplicationMin, mCacheable);
   }
 
   @Override
   public String toString() {
     return toStringHelper().add("blockSizeBytes", mBlockSizeBytes)
+        .add("replicationDurable", mReplicationDurable)
+        .add("replicationMax", mReplicationMax)
+        .add("replicationMin", mReplicationMin)
         .add("cacheable", mCacheable).toString();
   }
 }

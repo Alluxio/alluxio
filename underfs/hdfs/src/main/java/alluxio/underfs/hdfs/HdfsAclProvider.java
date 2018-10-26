@@ -11,11 +11,15 @@
 
 package alluxio.underfs.hdfs;
 
+import alluxio.collections.Pair;
 import alluxio.security.authorization.AccessControlList;
+import alluxio.security.authorization.AclEntry;
+import alluxio.security.authorization.DefaultAccessControlList;
 
 import org.apache.hadoop.fs.FileSystem;
 
 import java.io.IOException;
+import java.util.List;
 
 import javax.annotation.Nullable;
 
@@ -28,19 +32,23 @@ public interface HdfsAclProvider {
    *
    * @param hdfs the HDFS client
    * @param path the path to retrieve the ACL for
-   * @return the {@link AccessControlList} representation, or null if ACL is unsupported/disabled
+   * @return a Pair object containing the {@link AccessControlList} representation and
+   *         the  {@link DefaultAccessControlList} representation or null if ACL is
+   *         unsupported/disabled
    * @throws IOException if ACL is supported but cannot be retrieved
    */
   @Nullable
-  AccessControlList getAcl(FileSystem hdfs, String path) throws IOException;
+  Pair<AccessControlList, DefaultAccessControlList> getAcl(FileSystem hdfs, String path)
+      throws IOException;
 
   /**
-   * Sets the ACL for an hdfs path.
+   * Sets the ACL and default ACL for an hdfs path using ACL entries.
    *
    * @param hdfs the HDFS client
-   * @param path the path to set the ACL for
-   * @param acl the {@link AccessControlList} representation
+   * @param path the path to set the ACL entries for
+   * @param aclEntries list of AclEntries, could be a representation of {@link AccessControlList}
+   *                   or {@link DefaultAccessControlList}
    * @throws IOException if ACL can not be set
    */
-  void setAcl(FileSystem hdfs, String path, AccessControlList acl) throws IOException;
+  void setAclEntries(FileSystem hdfs, String path, List<AclEntry> aclEntries) throws IOException;
 }

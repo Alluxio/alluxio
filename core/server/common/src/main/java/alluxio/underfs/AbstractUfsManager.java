@@ -20,7 +20,6 @@ import alluxio.util.IdUtils;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
-import com.google.common.base.Supplier;
 import com.google.common.io.Closer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -137,12 +136,7 @@ public abstract class AbstractUfsManager implements UfsManager {
     Preconditions.checkArgument(mountId != IdUtils.INVALID_MOUNT_ID, "mountId");
     Preconditions.checkNotNull(ufsUri, "ufsUri");
     Preconditions.checkNotNull(ufsConf, "ufsConf");
-    mMountIdToUfsInfoMap.put(mountId, new UfsClient(new Supplier<UnderFileSystem>() {
-      @Override
-      public UnderFileSystem get() {
-        return getOrAdd(ufsUri, ufsConf);
-      }
-    }, ufsUri));
+    mMountIdToUfsInfoMap.put(mountId, new UfsClient(() -> getOrAdd(ufsUri, ufsConf), ufsUri));
   }
 
   @Override

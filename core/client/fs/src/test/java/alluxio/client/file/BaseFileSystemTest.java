@@ -14,21 +14,21 @@ package alluxio.client.file;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
-
-import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.doNothing;
+import static org.junit.Assert.fail;
 import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
 import alluxio.PropertyKey;
+import alluxio.TestLoggerRule;
 import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.DeleteOptions;
@@ -44,11 +44,9 @@ import alluxio.client.file.options.UnmountOptions;
 import alluxio.wire.FileInfo;
 import alluxio.wire.LoadMetadataType;
 
-import org.apache.log4j.AppenderSkeleton;
-import org.apache.log4j.Logger;
-import org.apache.log4j.spi.LoggingEvent;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.powermock.api.mockito.PowerMockito;
@@ -69,7 +67,8 @@ public final class BaseFileSystemTest {
   private static final String SHOULD_HAVE_PROPAGATED_MESSAGE =
       "Exception should have been propagated";
 
-  private TestAppender mAppender;
+  @Rule
+  private TestLoggerRule mTestLogger = new TestLoggerRule();
 
   private FileSystem mFileSystem;
   private FileSystemContext mFileContext;
@@ -90,14 +89,11 @@ public final class BaseFileSystemTest {
     mFileSystem = new DummyAlluxioFileSystem(mFileContext);
     mFileSystemMasterClient = PowerMockito.mock(FileSystemMasterClient.class);
     when(mFileContext.acquireMasterClient()).thenReturn(mFileSystemMasterClient);
-    mAppender = new TestAppender();
-    Logger.getRootLogger().addAppender(mAppender);
   }
 
   @After
   public void after() {
     ConfigurationTestUtils.resetConfiguration();
-    Logger.getRootLogger().removeAppender(mAppender);
   }
 
   /**
@@ -512,17 +508,11 @@ public final class BaseFileSystemTest {
     Configuration.set(PropertyKey.MASTER_HOSTNAME, "localhost");
     Configuration.set(PropertyKey.MASTER_RPC_PORT, "19998");
 
-    AlluxioURI uri = new AlluxioURI("alluxio://localhost:1234/root");
-    try {
-      mFileSystem.createDirectory(uri);
-      fail("Should have failed on bad host and port");
-    } catch (IllegalArgumentException e) {
-      assertThat(e.getMessage(), containsString("does not match the configured value of"));
-    }
+    assertBadAuthority("localhost:1234", "Should fail on bad host and port");
+    assertBadAuthority("zk@localhost:19998", "Should fail on zk authority");
 
-    assertTrue(mAppender.wasLogged("The URI scheme"));
-    assertTrue(mAppender.wasLogged("The URI authority"));
-
+    assertTrue(loggedAuthorityWarning());
+    assertTrue(loggedSchemeWarning());
   }
 
   /**
@@ -532,6 +522,7 @@ public final class BaseFileSystemTest {
   public void uriCheckBadScheme() throws Exception {
     Configuration.set(PropertyKey.MASTER_HOSTNAME, "localhost");
     Configuration.set(PropertyKey.MASTER_RPC_PORT, "19998");
+
     AlluxioURI uri = new AlluxioURI("hdfs://localhost:19998/root");
     try {
       mFileSystem.createDirectory(uri);
@@ -539,7 +530,6 @@ public final class BaseFileSystemTest {
     } catch (IllegalArgumentException e) {
       assertThat(e.getMessage(), containsString("Scheme hdfs:// in AlluxioURI is invalid"));
     }
-
   }
 
   /**
@@ -550,12 +540,10 @@ public final class BaseFileSystemTest {
     Configuration.set(PropertyKey.MASTER_HOSTNAME, "localhost");
     Configuration.set(PropertyKey.MASTER_RPC_PORT, "19998");
 
-    AlluxioURI uri = new AlluxioURI("alluxio://localhost:19998/root");
-    mFileSystem.createDirectory(uri);
+    useUriWithAuthority("localhost:19998");
 
-    assertTrue(mAppender.wasLogged("The URI scheme"));
-    assertTrue(mAppender.wasLogged("The URI authority"));
-
+    assertTrue(loggedAuthorityWarning());
+    assertTrue(loggedSchemeWarning());
   }
 
   /**
@@ -570,35 +558,49 @@ public final class BaseFileSystemTest {
     AlluxioURI uri = new AlluxioURI("/root");
     mFileSystem.createDirectory(uri);
 
-    assertFalse(mAppender.wasLogged("The URI authority"));
-    assertFalse(mAppender.wasLogged("The URI scheme"));
+    assertFalse(loggedAuthorityWarning());
+    assertFalse(loggedSchemeWarning());
   }
 
-  private static class TestAppender extends AppenderSkeleton {
+  @Test
+  public void uriCheckZkAuthorityMatch() throws Exception {
+    configureZk("a:0,b:0,c:0");
+    useUriWithAuthority("zk@a:0,b:0,c:0"); // Same authority
+    useUriWithAuthority("zk@a:0;b:0+c:0"); // Same authority, but different delimiters
+  }
 
-    public List<LoggingEvent> mEvents = new ArrayList<LoggingEvent>();
+  @Test
+  public void uriCheckZkAuthorityMismatch() throws Exception {
+    configureZk("a:0,b:0,c:0");
 
-    public void close() { }
+    assertBadAuthority("a:0,b:0,c:0", "Should fail on non-zk authority");
+    assertBadAuthority("zk@a:0", "Should fail on zk authority with different addresses");
+    assertBadAuthority("zk@a:0,b:0,c:1", "Should fail on zk authority with different addresses");
+  }
 
-      /**
-       * Determines whether string was logged.
-       */
-    public boolean wasLogged(String eventString) {
-      for (LoggingEvent e : mEvents) {
-        if (e.getRenderedMessage().contains(eventString)) {
-          return true;
-        }
-      }
-      return false;
+  private void assertBadAuthority(String authority, String failureMessage) throws Exception {
+    try {
+      useUriWithAuthority(authority);
+      fail(failureMessage);
+    } catch (IllegalArgumentException e) {
+      assertThat(e.getMessage(), containsString("does not match"));
     }
+  }
 
-    public boolean requiresLayout() {
-      return false;
-    }
+  private void useUriWithAuthority(String authority) throws Exception {
+    mFileSystem.createDirectory(new AlluxioURI(String.format("alluxio://%s/dir", authority)));
+  }
 
-    @Override
-    protected void append(LoggingEvent event) {
-      mEvents.add(event);
-    }
+  private boolean loggedAuthorityWarning() {
+    return mTestLogger.wasLogged("The URI authority .* is ignored");
+  }
+
+  private boolean loggedSchemeWarning() {
+    return mTestLogger.wasLogged("The URI scheme .* is ignored");
+  }
+
+  private void configureZk(String addrs) {
+    Configuration.set(PropertyKey.ZOOKEEPER_ENABLED, true);
+    Configuration.set(PropertyKey.ZOOKEEPER_ADDRESS, addrs);
   }
 }

@@ -298,5 +298,4 @@ public final class DynamicResourcePoolTest {
     Assert.assertFalse(future.isDone());
     future.cancel(true);
   }
-
 }

@@ -98,7 +98,7 @@ public final class AuthenticatedClientUser {
   /**
    * Removes the {@link User} from the {@link ThreadLocal} variable.
    */
-  public static synchronized void remove() {
+  public static void remove() {
     sUserThreadLocal.remove();
   }
 

@@ -69,6 +69,5 @@ public final class UfsSuperUserValidationTask extends AbstractValidationTask {
           + "Please check if Alluxio is super user on the file system.%n", mPath, e.getMessage());
       return TaskResult.WARNING;
     }
-
   }
 }

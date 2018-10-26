@@ -30,7 +30,9 @@ public class TempBlockMetaTest {
   private static final int TEST_TIER_ORDINAL = 0;
   private static final String TEST_TIER_ALIAS = "MEM";
   private static final long[] TEST_TIER_CAPACITY_BYTES = {100};
+  private static final String TEST_WORKER_DATA_FOLDER = "workertest";
   private String mTestDirPath;
+  private String mTestBlockDirPath;
   private TempBlockMeta mTempBlockMeta;
 
   /** Rule to create a new temporary folder during each test. */
@@ -45,10 +47,13 @@ public class TempBlockMetaTest {
     mTestDirPath = mFolder.newFolder().getAbsolutePath();
     // Sets up tier with one storage dir under mTestDirPath with 100 bytes capacity.
     TieredBlockStoreTestUtils.setupConfWithSingleTier(null, TEST_TIER_ORDINAL,
-        TEST_TIER_ALIAS, new String[] {mTestDirPath}, TEST_TIER_CAPACITY_BYTES, "");
+        TEST_TIER_ALIAS, new String[] {mTestDirPath}, TEST_TIER_CAPACITY_BYTES,
+        TEST_WORKER_DATA_FOLDER);
 
     StorageTier tier = StorageTier.newStorageTier(TEST_TIER_ALIAS);
     StorageDir dir = tier.getDir(0);
+    // Append the worker data folder to the expected path.
+    mTestBlockDirPath = PathUtils.concatPath(mTestDirPath, TEST_WORKER_DATA_FOLDER);
     mTempBlockMeta = new TempBlockMeta(TEST_SESSION_ID, TEST_BLOCK_ID, TEST_BLOCK_SIZE, dir);
   }
 
@@ -57,7 +62,8 @@ public class TempBlockMetaTest {
    */
   @Test
   public void getPath() {
-    Assert.assertEquals(PathUtils.concatPath(mTestDirPath, ".tmp_blocks", TEST_SESSION_ID % 1024,
+    Assert.assertEquals(PathUtils.concatPath(mTestBlockDirPath,
+        ".tmp_blocks", TEST_SESSION_ID % 1024,
         String.format("%x-%x", TEST_SESSION_ID, TEST_BLOCK_ID)),
         mTempBlockMeta.getPath());
   }
@@ -67,7 +73,7 @@ public class TempBlockMetaTest {
    */
   @Test
   public void getCommitPath() {
-    Assert.assertEquals(PathUtils.concatPath(mTestDirPath, TEST_BLOCK_ID),
+    Assert.assertEquals(PathUtils.concatPath(mTestBlockDirPath, TEST_BLOCK_ID),
         mTempBlockMeta.getCommitPath());
   }
 

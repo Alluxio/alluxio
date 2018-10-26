@@ -159,7 +159,7 @@ public class AlluxioURITest {
     AlluxioURI uri =
         new AlluxioURI("alluxio://zk@host1:2181;host2:2181;host3:2181/xy z/a b c");
     assertTrue(uri.hasAuthority());
-    assertEquals("zk@host1:2181;host2:2181;host3:2181", uri.getAuthority().toString());
+    assertEquals("zk@host1:2181,host2:2181,host3:2181", uri.getAuthority().toString());
     assertTrue(uri.getAuthority() instanceof ZookeeperAuthority);
     ZookeeperAuthority zkAuthority = (ZookeeperAuthority) uri.getAuthority();
     assertEquals("host1:2181,host2:2181,host3:2181", zkAuthority.getZookeeperAddress());

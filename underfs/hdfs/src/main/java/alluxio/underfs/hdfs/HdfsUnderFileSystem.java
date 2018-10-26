@@ -14,9 +14,12 @@ package alluxio.underfs.hdfs;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.PropertyKey;
+import alluxio.collections.Pair;
 import alluxio.retry.CountingRetry;
 import alluxio.retry.RetryPolicy;
 import alluxio.security.authorization.AccessControlList;
+import alluxio.security.authorization.AclEntry;
+import alluxio.security.authorization.DefaultAccessControlList;
 import alluxio.underfs.AtomicFileOutputStream;
 import alluxio.underfs.AtomicFileOutputStreamCallback;
 import alluxio.underfs.BaseUnderFileSystem;
@@ -221,8 +224,13 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
     while (retryPolicy.attempt()) {
       try {
         // TODO(chaomin): support creating HDFS files with specified block size and replication.
-        return new HdfsUnderFileOutputStream(FileSystem.create(hdfs, new Path(path),
+        OutputStream outputStream = new HdfsUnderFileOutputStream(
+            FileSystem.create(hdfs, new Path(path),
             new FsPermission(options.getMode().toShort())));
+        if (options.getAcl() != null) {
+          setAclEntries(path, options.getAcl().getEntries());
+        }
+        return outputStream;
       } catch (IOException e) {
         LOG.warn("Attempt count {} : {} ", retryPolicy.getAttemptCount(), e.getMessage());
         te = e;
@@ -248,13 +256,14 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
   }
 
   @Override
-  public AccessControlList getAcl(String path) throws IOException {
+  public Pair<AccessControlList, DefaultAccessControlList> getAclPair(String path)
+      throws IOException {
     return mHdfsAclProvider.getAcl(getFs(), path);
   }
 
   @Override
-  public void setAcl(String path, AccessControlList acl) throws IOException {
-    mHdfsAclProvider.setAcl(getFs(), path, acl);
+  public void setAclEntries(String path, List<AclEntry> aclEntries) throws IOException {
+    mHdfsAclProvider.setAclEntries(getFs(), path, aclEntries);
   }
 
   @Override

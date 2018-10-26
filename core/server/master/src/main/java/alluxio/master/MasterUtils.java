@@ -11,13 +11,13 @@
 
 package alluxio.master;
 
+import alluxio.Constants;
 import alluxio.ServiceUtils;
 import alluxio.util.CommonUtils;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
-import java.util.concurrent.TimeUnit;
 
 /**
  * This class encapsulates the different master services that are configured to run.
@@ -45,7 +45,7 @@ final class MasterUtils {
       });
     }
     try {
-      CommonUtils.invokeAll(callables, 10, TimeUnit.SECONDS);
+      CommonUtils.invokeAll(callables, 10 * Constants.SECOND_MS);
     } catch (Exception e) {
       throw new RuntimeException("Failed to start masters", e);
     }
