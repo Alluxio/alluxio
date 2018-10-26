@@ -12,7 +12,10 @@
 package alluxio.testutils.underfs.delegating;
 
 import alluxio.AlluxioURI;
+import alluxio.collections.Pair;
 import alluxio.security.authorization.AccessControlList;
+import alluxio.security.authorization.AclEntry;
+import alluxio.security.authorization.DefaultAccessControlList;
 import alluxio.underfs.UfsDirectoryStatus;
 import alluxio.underfs.UfsFileStatus;
 import alluxio.underfs.UfsMode;
@@ -95,8 +98,9 @@ public class DelegatingUnderFileSystem implements UnderFileSystem {
   }
 
   @Override
-  public AccessControlList getAcl(String path) throws IOException {
-    return mUfs.getAcl(path);
+  public Pair<AccessControlList, DefaultAccessControlList> getAclPair(String path)
+      throws IOException {
+    return mUfs.getAclPair(path);
   }
 
   @Override
@@ -221,8 +225,8 @@ public class DelegatingUnderFileSystem implements UnderFileSystem {
   }
 
   @Override
-  public void setAcl(String path, AccessControlList acl) throws IOException {
-    mUfs.setAcl(path, acl);
+  public void setAclEntries(String path, List<AclEntry> aclEntries) throws IOException {
+    mUfs.setAclEntries(path, aclEntries);
   }
 
   @Override

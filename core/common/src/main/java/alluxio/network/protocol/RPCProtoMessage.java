@@ -143,6 +143,8 @@ public final class RPCProtoMessage extends RPCMessage {
       return Type.RPC_WRITE_REQUEST;
     } else if (mMessage.isResponse()) {
       return Type.RPC_RESPONSE;
+    } else if (mMessage.isRemoveBlockRequest()) {
+      return Type.RPC_REMOVE_BLOCK_REQUEST;
     } else if (mMessage.isLocalBlockOpenRequest()) {
       return Type.RPC_LOCAL_BLOCK_OPEN_REQUEST;
     } else if (mMessage.isLocalBlockOpenResponse()) {

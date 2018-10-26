@@ -13,7 +13,8 @@ package alluxio.worker.block.meta;
 
 import alluxio.Configuration;
 import alluxio.PropertyKey;
-import alluxio.exception.PreconditionMessage;
+import alluxio.exception.ExceptionMessage;
+import alluxio.util.io.PathUtils;
 import alluxio.worker.block.TieredBlockStoreTestUtils;
 
 import org.junit.Assert;
@@ -36,6 +37,7 @@ public class StorageTierTest {
   private static final long TEST_DIR2_CAPACITY = 3000;
   private static final int TEST_TIER_ORDINAL = 0;
   private static final String TEST_TIER_ALIAS = "MEM";
+  private static final String TEST_WORKER_DATA_DIR = "testworker";
 
   private static final long[] TIER_CAPACITY_BYTES = {TEST_DIR1_CAPACITY, TEST_DIR2_CAPACITY};
 
@@ -44,6 +46,8 @@ public class StorageTierTest {
   private TempBlockMeta mTempBlockMeta;
   private String mTestDirPath1;
   private String mTestDirPath2;
+  private String mTestBlockDirPath1;
+  private String mTestBlockDirPath2;
 
   /** Rule to create a new temporary folder during each test. */
   @Rule
@@ -63,8 +67,10 @@ public class StorageTierTest {
     String[] tierPath = {mTestDirPath1, mTestDirPath2};
 
     TieredBlockStoreTestUtils.setupConfWithSingleTier(null, TEST_TIER_ORDINAL,
-        TEST_TIER_ALIAS, tierPath, TIER_CAPACITY_BYTES, "");
+        TEST_TIER_ALIAS, tierPath, TIER_CAPACITY_BYTES, TEST_WORKER_DATA_DIR);
 
+    mTestBlockDirPath1 = PathUtils.concatPath(mTestDirPath1,  TEST_WORKER_DATA_DIR);
+    mTestBlockDirPath2 = PathUtils.concatPath(mTestDirPath2,  TEST_WORKER_DATA_DIR);
     mTier = StorageTier.newStorageTier("MEM");
     mDir1 = mTier.getDir(0);
     mTempBlockMeta = new TempBlockMeta(TEST_SESSION_ID, TEST_TEMP_BLOCK_ID, TEST_BLOCK_SIZE, mDir1);
@@ -118,9 +124,9 @@ public class StorageTierTest {
   public void getDir() {
     mThrown.expect(IndexOutOfBoundsException.class);
     StorageDir dir1 = mTier.getDir(0);
-    Assert.assertEquals(mTestDirPath1, dir1.getDirPath());
+    Assert.assertEquals(mTestBlockDirPath1, dir1.getDirPath());
     StorageDir dir2 = mTier.getDir(1);
-    Assert.assertEquals(mTestDirPath2, dir2.getDirPath());
+    Assert.assertEquals(mTestBlockDirPath2, dir2.getDirPath());
     // Get dir by a non-existing index, expect getDir to fail and throw IndexOutOfBoundsException
     mTier.getDir(2);
   }
@@ -132,17 +138,18 @@ public class StorageTierTest {
   public void getStorageDirs() {
     List<StorageDir> dirs = mTier.getStorageDirs();
     Assert.assertEquals(2, dirs.size());
-    Assert.assertEquals(mTestDirPath1, dirs.get(0).getDirPath());
-    Assert.assertEquals(mTestDirPath2, dirs.get(1).getDirPath());
+    Assert.assertEquals(mTestBlockDirPath1, dirs.get(0).getDirPath());
+    Assert.assertEquals(mTestBlockDirPath2, dirs.get(1).getDirPath());
   }
 
   @Test
   public void blankStorageTier() throws Exception {
     PropertyKey tierDirCapacityConf =
         PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA.format(0);
-    Configuration.set(tierDirCapacityConf, "");
-    mThrown.expect(IllegalStateException.class);
-    mThrown.expectMessage(PreconditionMessage.ERR_TIER_QUOTA_BLANK.toString());
+    Configuration.unset(tierDirCapacityConf);
+    mThrown.expect(RuntimeException.class);
+    mThrown.expectMessage(ExceptionMessage.UNDEFINED_CONFIGURATION_KEY.getMessage(
+        PropertyKey.WORKER_TIERED_STORE_LEVEL0_DIRS_QUOTA.getName()));
     mTier = StorageTier.newStorageTier("MEM");
   }
 
@@ -154,6 +161,6 @@ public class StorageTierTest {
     mTier = StorageTier.newStorageTier("MEM");
     List<StorageDir> dirs = mTier.getStorageDirs();
     Assert.assertEquals(1, dirs.size());
-    Assert.assertEquals(mTestDirPath1, dirs.get(0).getDirPath());
+    Assert.assertEquals(mTestBlockDirPath1, dirs.get(0).getDirPath());
   }
 }

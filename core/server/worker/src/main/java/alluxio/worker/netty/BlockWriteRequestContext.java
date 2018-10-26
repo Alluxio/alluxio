@@ -24,6 +24,10 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class BlockWriteRequestContext extends WriteRequestContext<BlockWriteRequest> {
   private BlockWriter mBlockWriter;
   private long mBytesReserved;
+  private boolean mIsWritingToLocal = true;
+  private alluxio.resource.CloseableResource<alluxio.underfs.UnderFileSystem> mUfsResource;
+  private java.io.OutputStream mOutputStream;
+  private String mUfsPath;
 
   BlockWriteRequestContext(Protocol.WriteRequest request, long bytesReserved) {
     super(new BlockWriteRequest(request));
@@ -57,5 +61,64 @@ public final class BlockWriteRequestContext extends WriteRequestContext<BlockWri
    */
   public void setBytesReserved(long bytesReserved) {
     mBytesReserved = bytesReserved;
+  }
+
+  /**
+   * @return is the current request writing to UFS
+   */
+  public boolean isWritingToLocal() {
+    return mIsWritingToLocal;
+  }
+
+  /**
+   * @return the UFS path of the block
+   */
+  @Nullable
+  public String getUfsPath() {
+    return mUfsPath;
+  }
+
+  /**
+   * @return the output stream
+   */
+  @Nullable
+  public java.io.OutputStream getOutputStream() {
+    return mOutputStream;
+  }
+  /**
+   * @return the handler of the UFS
+   */
+  @Nullable
+  public alluxio.resource.CloseableResource<alluxio.underfs.UnderFileSystem> getUfsResource() {
+    return mUfsResource;
+  }
+
+  /**
+   * @param writingToLocal whether the current request is writing to UFS
+   */
+  public void setWritingToLocal(boolean writingToLocal) {
+    mIsWritingToLocal = writingToLocal;
+  }
+
+  /**
+   * @param outputStream output stream to set
+   */
+  public void setOutputStream(java.io.OutputStream outputStream) {
+    mOutputStream = outputStream;
+  }
+
+  /**
+   * @param ufsResource UFS to set
+   */
+  public void setUfsResource(
+      alluxio.resource.CloseableResource<alluxio.underfs.UnderFileSystem> ufsResource) {
+    mUfsResource = ufsResource;
+  }
+
+  /**
+   * @param ufsPath UFS path to set
+   */
+  public void setUfsPath(String ufsPath) {
+    mUfsPath = ufsPath;
   }
 }

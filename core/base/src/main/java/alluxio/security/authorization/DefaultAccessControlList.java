@@ -23,7 +23,6 @@ import java.util.List;
  */
 public class DefaultAccessControlList extends AccessControlList {
   private static final long serialVersionUID = 8649647787531425489L;
-
   public static final DefaultAccessControlList EMPTY_DEFAULT_ACL = new DefaultAccessControlList();
 
   /**
@@ -59,27 +58,46 @@ public class DefaultAccessControlList extends AccessControlList {
 
   /**
    * create a child file 's accessACL based on the default ACL.
+   * @param umask file's umask
    * @return child file's access ACL
    */
-  public AccessControlList generateChildFileACL() {
+  public AccessControlList generateChildFileACL(Short umask) {
+    Mode defaultMode = new Mode(umask);
     AccessControlList acl = new AccessControlList();
     acl.mOwningUser = mOwningUser;
     acl.mOwningGroup = mOwningGroup;
     acl.mMode = mMode;
     if (mExtendedEntries == null) {
       acl.mExtendedEntries = null;
+      // minimal acl so we use defaultMode to filter user/group/other
+      acl.mMode = Mode.and(new Mode(mMode), defaultMode).toShort();
     } else {
+      // Rules for having extended entries, we need to modify user, mask and others'
+      // permission to be filtered by the defaultMode
       acl.mExtendedEntries = new ExtendedACLEntries(mExtendedEntries);
+
+      // mask is filtered by the group bits from the umask parameter
+      AclActions mask = acl.mExtendedEntries.getMask();
+      AclActions groupAction = new AclActions();
+      groupAction.updateByModeBits(defaultMode.getGroupBits());
+      mask.mask(groupAction);
+      // user is filtered by the user bits from the umask parameter
+      // other is filtered by the other bits from the umask parameter
+      Mode updateMode = new Mode(mMode);
+      updateMode.setOwnerBits(updateMode.getOwnerBits().and(defaultMode.getOwnerBits()));
+      updateMode.setOtherBits(updateMode.getOtherBits().and(defaultMode.getOtherBits()));
+      acl.mMode = updateMode.toShort();
     }
     return acl;
   }
 
   /**
    * Creates a child directory's access ACL and default ACL based on the default ACL.
+   * @param umask child's umask
    * @return child directory's access ACL and default ACL
    */
-  public Pair<AccessControlList, DefaultAccessControlList> generateChildDirACL() {
-    AccessControlList acl = generateChildFileACL();
+  public Pair<AccessControlList, DefaultAccessControlList> generateChildDirACL(Short umask) {
+    AccessControlList acl = generateChildFileACL(umask);
     DefaultAccessControlList dAcl = new DefaultAccessControlList(acl);
     dAcl.setEmpty(false);
     dAcl.mOwningUser = mOwningUser;

@@ -64,7 +64,6 @@ public interface GroupMappingService {
       }
       return sCachedGroupMapping;
     }
-
   }
 
   /**

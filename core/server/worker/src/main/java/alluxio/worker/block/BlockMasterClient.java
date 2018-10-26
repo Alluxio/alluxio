@@ -83,11 +83,25 @@ public final class BlockMasterClient extends AbstractMasterClient {
    */
   public synchronized void commitBlock(final long workerId, final long usedBytesOnTier,
       final String tierAlias, final long blockId, final long length) throws IOException {
+    retryRPC((RpcCallable<Void>) () -> {
+      mClient.commitBlock(workerId, usedBytesOnTier, tierAlias, blockId, length,
+          new CommitBlockTOptions());
+      return null;
+    });
+  }
+
+  /**
+   * Commits a block in Ufs.
+   *
+   * @param blockId the block id being committed
+   * @param length the length of the block being committed
+   */
+  public synchronized void commitBlockInUfs(final long blockId, final long length)
+      throws IOException {
     retryRPC(new RpcCallable<Void>() {
       @Override
       public Void call() throws TException {
-        mClient.commitBlock(workerId, usedBytesOnTier, tierAlias, blockId, length,
-            new CommitBlockTOptions());
+        mClient.commitBlockInUfs(blockId, length, new alluxio.thrift.CommitBlockInUfsTOptions());
         return null;
       }
     });
@@ -123,13 +137,9 @@ public final class BlockMasterClient extends AbstractMasterClient {
   public synchronized Command heartbeat(final long workerId,
       final Map<String, Long> usedBytesOnTiers, final List<Long> removedBlocks,
       final Map<String, List<Long>> addedBlocks, final List<Metric> metrics) throws IOException {
-    return retryRPC(new RpcCallable<Command>() {
-      @Override
-      public Command call() throws TException {
-        return mClient.blockHeartbeat(workerId, usedBytesOnTiers, removedBlocks, addedBlocks,
-            new BlockHeartbeatTOptions(metrics)).getCommand();
-      }
-    });
+    return retryRPC(() -> mClient.blockHeartbeat(workerId, usedBytesOnTiers, removedBlocks,
+        addedBlocks,
+        new BlockHeartbeatTOptions(metrics)).getCommand());
   }
 
   /**

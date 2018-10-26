@@ -19,6 +19,7 @@ import alluxio.client.AlluxioStorageType;
 import alluxio.client.UnderStorageType;
 import alluxio.client.WriteType;
 import alluxio.client.file.policy.FileWriteLocationPolicy;
+import alluxio.security.authorization.AccessControlList;
 import alluxio.security.authorization.Mode;
 import alluxio.util.CommonUtils;
 import alluxio.util.IdUtils;
@@ -45,6 +46,10 @@ public final class OutStreamOptions {
   private String mOwner;
   private String mGroup;
   private Mode mMode;
+  private AccessControlList mAcl;
+  private int mReplicationDurable;
+  private int mReplicationMax;
+  private int mReplicationMin;
   private String mUfsPath;
   private long mMountId;
 
@@ -69,6 +74,16 @@ public final class OutStreamOptions {
     mGroup = SecurityUtils.getGroupFromLoginModule();
     mMode = ModeUtils.applyFileUMask(Mode.defaults());
     mMountId = IdUtils.INVALID_MOUNT_ID;
+    mReplicationDurable = Configuration.getInt(PropertyKey.USER_FILE_REPLICATION_DURABLE);
+    mReplicationMax = Configuration.getInt(PropertyKey.USER_FILE_REPLICATION_MAX);
+    mReplicationMin = Configuration.getInt(PropertyKey.USER_FILE_REPLICATION_MIN);
+  }
+
+  /**
+   * @return the acl
+   */
+  public AccessControlList getAcl() {
+    return mAcl;
   }
 
   /**
@@ -136,6 +151,27 @@ public final class OutStreamOptions {
   }
 
   /**
+   * @return the number of block replication for durable write
+   */
+  public int getReplicationDurable() {
+    return mReplicationDurable;
+  }
+
+  /**
+   * @return the maximum number of block replication
+   */
+  public int getReplicationMax() {
+    return mReplicationMax;
+  }
+
+  /**
+   * @return the minimum number of block replication
+   */
+  public int getReplicationMin() {
+    return mReplicationMin;
+  }
+
+  /**
    * @return the mount id
    */
   public long getMountId() {
@@ -161,6 +197,17 @@ public final class OutStreamOptions {
    */
   public WriteType getWriteType() {
     return mWriteType;
+  }
+
+  /**
+   * Sets the acl of the file.
+   *
+   * @param acl the acl to use
+   * @return the updated options object
+   */
+  public OutStreamOptions setAcl(AccessControlList acl) {
+    mAcl = acl;
+    return this;
   }
 
   /**
@@ -265,6 +312,33 @@ public final class OutStreamOptions {
   }
 
   /**
+   * @param replicationDurable the number of block replication for durable write
+   * @return the updated options object
+   */
+  public OutStreamOptions setReplicationDurable(int replicationDurable) {
+    mReplicationDurable = replicationDurable;
+    return this;
+  }
+
+  /**
+   * @param replicationMax the maximum number of block replication
+   * @return the updated options object
+   */
+  public OutStreamOptions setReplicationMax(int replicationMax) {
+    mReplicationMax = replicationMax;
+    return this;
+  }
+
+  /**
+   * @param replicationMin the minimum number of block replication
+   * @return the updated options object
+   */
+  public OutStreamOptions setReplicationMin(int replicationMin) {
+    mReplicationMin = replicationMin;
+    return this;
+  }
+
+  /**
    * @param mode the permission
    * @return the updated options object
    */
@@ -282,7 +356,8 @@ public final class OutStreamOptions {
       return false;
     }
     OutStreamOptions that = (OutStreamOptions) o;
-    return Objects.equal(mBlockSizeBytes, that.mBlockSizeBytes)
+    return Objects.equal(mAcl, that.mAcl)
+        && Objects.equal(mBlockSizeBytes, that.mBlockSizeBytes)
         && Objects.equal(mGroup, that.mGroup)
         && Objects.equal(mLocationPolicy, that.mLocationPolicy)
         && Objects.equal(mMode, that.mMode)
@@ -290,6 +365,9 @@ public final class OutStreamOptions {
         && Objects.equal(mOwner, that.mOwner)
         && Objects.equal(mTtl, that.mTtl)
         && Objects.equal(mTtlAction, that.mTtlAction)
+        && Objects.equal(mReplicationDurable, that.mReplicationDurable)
+        && Objects.equal(mReplicationMax, that.mReplicationMax)
+        && Objects.equal(mReplicationMin, that.mReplicationMin)
         && Objects.equal(mUfsPath, that.mUfsPath)
         && Objects.equal(mWriteTier, that.mWriteTier)
         && Objects.equal(mWriteType, that.mWriteType);
@@ -298,6 +376,7 @@ public final class OutStreamOptions {
   @Override
   public int hashCode() {
     return Objects.hashCode(
+        mAcl,
         mBlockSizeBytes,
         mGroup,
         mLocationPolicy,
@@ -306,6 +385,9 @@ public final class OutStreamOptions {
         mOwner,
         mTtl,
         mTtlAction,
+        mReplicationDurable,
+        mReplicationMax,
+        mReplicationMin,
         mUfsPath,
         mWriteTier,
         mWriteType
@@ -315,6 +397,7 @@ public final class OutStreamOptions {
   @Override
   public String toString() {
     return Objects.toStringHelper(this)
+        .add("acl", mAcl)
         .add("blockSizeBytes", mBlockSizeBytes)
         .add("group", mGroup)
         .add("locationPolicy", mLocationPolicy)
@@ -326,6 +409,9 @@ public final class OutStreamOptions {
         .add("ufsPath", mUfsPath)
         .add("writeTier", mWriteTier)
         .add("writeType", mWriteType)
+        .add("replicationDurable", mReplicationDurable)
+        .add("replicationMax", mReplicationMax)
+        .add("replicationMin", mReplicationMin)
         .toString();
   }
 }

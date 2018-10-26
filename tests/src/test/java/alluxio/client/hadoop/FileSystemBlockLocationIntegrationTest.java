@@ -104,5 +104,4 @@ public class FileSystemBlockLocationIntegrationTest extends BaseIntegrationTest 
     len = 1;
     Assert.assertEquals(0, sTFS.getFileBlockLocations(fStatus, start, len).length);
   }
-
 }

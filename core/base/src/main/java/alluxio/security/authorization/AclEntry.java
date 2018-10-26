@@ -11,6 +11,18 @@
 
 package alluxio.security.authorization;
 
+<<<<<<< HEAD:core/base/src/main/java/alluxio/security/authorization/AclEntry.java
+||||||| merged common ancestors
+import alluxio.proto.journal.File;
+import alluxio.thrift.TAclAction;
+import alluxio.thrift.TAclEntry;
+
+=======
+import alluxio.proto.shared.Acl;
+import alluxio.thrift.TAclAction;
+import alluxio.thrift.TAclEntry;
+
+>>>>>>> master:core/common/src/main/java/alluxio/security/authorization/AclEntry.java
 import com.google.common.base.Objects;
 
 import java.io.Serializable;
@@ -333,6 +345,134 @@ public final class AclEntry implements Serializable {
   }
 
   /**
+<<<<<<< HEAD:core/base/src/main/java/alluxio/security/authorization/AclEntry.java
+||||||| merged common ancestors
+   * @param pEntry the proto representation
+   * @return the {@link AclEntry} instance created from the proto representation
+   */
+  public static AclEntry fromProto(File.AclEntry pEntry) {
+    AclEntry.Builder builder = new AclEntry.Builder();
+    builder.setType(AclEntryType.fromProto(pEntry.getType()));
+    builder.setSubject(pEntry.getSubject());
+    builder.setIsDefault(pEntry.getIsDefault());
+
+    for (File.AclAction pAction : pEntry.getActionsList()) {
+      builder.addAction(AclAction.fromProtoBuf(pAction));
+    }
+    return builder.build();
+  }
+
+  /**
+   * @return the proto representation of this instance
+   */
+  public File.AclEntry toProto() {
+    File.AclEntry.Builder builder = File.AclEntry.newBuilder();
+    builder.setType(mType.toProto());
+    builder.setSubject(mSubject);
+    builder.setIsDefault(mIsDefault);
+    for (AclAction action : mActions.getActions()) {
+      builder.addActions(action.toProtoBuf());
+    }
+    return builder.build();
+  }
+
+  /**
+   * @param tEntry the thrift representation
+   * @return the {@link AclEntry} instance created from the thrift representation
+   */
+  public static AclEntry fromThrift(TAclEntry tEntry) {
+    AclEntry.Builder builder = new AclEntry.Builder();
+    builder.setType(AclEntryType.fromThrift(tEntry.getType()));
+    builder.setSubject(tEntry.getSubject());
+    builder.setIsDefault(tEntry.isIsDefault());
+    if (tEntry.isSetActions()) {
+      for (TAclAction tAction : tEntry.getActions()) {
+        builder.addAction(AclAction.fromThrift(tAction));
+      }
+    }
+
+    return builder.build();
+  }
+
+  /**
+   * @return the thrift representation of this instance
+   */
+  public TAclEntry toThrift() {
+    TAclEntry tAclEntry = new TAclEntry();
+    tAclEntry.setType(mType.toThrift());
+    tAclEntry.setSubject(mSubject);
+    tAclEntry.setIsDefault(mIsDefault);
+    for (AclAction action : mActions.getActions()) {
+      tAclEntry.addToActions(action.toThrift());
+    }
+    return tAclEntry;
+  }
+
+  /**
+=======
+   * @param pEntry the proto representation
+   * @return the {@link AclEntry} instance created from the proto representation
+   */
+  public static AclEntry fromProto(Acl.AclEntry pEntry) {
+    AclEntry.Builder builder = new AclEntry.Builder();
+    builder.setType(AclEntryType.fromProto(pEntry.getType()));
+    builder.setSubject(pEntry.getSubject());
+    builder.setIsDefault(pEntry.getIsDefault());
+
+    for (Acl.AclAction pAction : pEntry.getActionsList()) {
+      builder.addAction(AclAction.fromProtoBuf(pAction));
+    }
+    return builder.build();
+  }
+
+  /**
+   * @return the proto representation of this instance
+   */
+  public Acl.AclEntry toProto() {
+    Acl.AclEntry.Builder builder = Acl.AclEntry.newBuilder();
+    builder.setType(mType.toProto());
+    builder.setSubject(mSubject);
+    builder.setIsDefault(mIsDefault);
+    for (AclAction action : mActions.getActions()) {
+      builder.addActions(action.toProtoBuf());
+    }
+    return builder.build();
+  }
+
+  /**
+   * @param tEntry the thrift representation
+   * @return the {@link AclEntry} instance created from the thrift representation
+   */
+  public static AclEntry fromThrift(TAclEntry tEntry) {
+    AclEntry.Builder builder = new AclEntry.Builder();
+    builder.setType(AclEntryType.fromThrift(tEntry.getType()));
+    builder.setSubject(tEntry.getSubject());
+    builder.setIsDefault(tEntry.isIsDefault());
+    if (tEntry.isSetActions()) {
+      for (TAclAction tAction : tEntry.getActions()) {
+        builder.addAction(AclAction.fromThrift(tAction));
+      }
+    }
+
+    return builder.build();
+  }
+
+  /**
+   * @return the thrift representation of this instance
+   */
+  public TAclEntry toThrift() {
+    TAclEntry tAclEntry = new TAclEntry();
+    tAclEntry.setType(mType.toThrift());
+    tAclEntry.setSubject(mSubject);
+    tAclEntry.setIsDefault(mIsDefault);
+    for (AclAction action : mActions.getActions()) {
+      tAclEntry.addToActions(action.toThrift());
+    }
+    return tAclEntry;
+  }
+
+  /**
+>>>>>>> master:core/common/src/main/java/alluxio/security/authorization/AclEntry.java
    * Builder for {@link AclEntry}.
    */
   public static final class Builder {

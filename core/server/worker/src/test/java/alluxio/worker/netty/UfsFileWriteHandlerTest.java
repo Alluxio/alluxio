@@ -19,7 +19,6 @@ import alluxio.underfs.UfsManager.UfsClient;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
 
-import com.google.common.base.Suppliers;
 import io.netty.channel.embedded.EmbeddedChannel;
 import org.junit.After;
 import org.junit.Before;
@@ -47,7 +46,7 @@ public final class UfsFileWriteHandlerTest extends AbstractWriteHandlerTest {
     mOutputStream = new FileOutputStream(mFile);
     UnderFileSystem mockUfs = Mockito.mock(UnderFileSystem.class);
     UfsManager ufsManager = Mockito.mock(UfsManager.class);
-    UfsClient ufsClient = new UfsClient(Suppliers.ofInstance(mockUfs), AlluxioURI.EMPTY_URI);
+    UfsClient ufsClient = new UfsClient(() -> mockUfs, AlluxioURI.EMPTY_URI);
     Mockito.when(ufsManager.get(TEST_MOUNT_ID)).thenReturn(ufsClient);
     Mockito.when(mockUfs.create(Mockito.anyString(), Mockito.any(CreateOptions.class)))
         .thenReturn(mOutputStream)

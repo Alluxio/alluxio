@@ -181,12 +181,7 @@ public final class AlluxioWorkerRestServiceHandler {
   @ReturnType("java.lang.Long")
   @Deprecated
   public Response getUsedBytes() {
-    return RestUtils.call(new RestUtils.RestCallable<Long>() {
-      @Override
-      public Long call() throws Exception {
-        return mStoreMeta.getUsedBytes();
-      }
-    });
+    return RestUtils.call(mStoreMeta::getUsedBytes);
   }
 
   /**
@@ -349,13 +344,7 @@ public final class AlluxioWorkerRestServiceHandler {
       public int compare(String tier1, String tier2) {
         int ordinal1 = mTierAssoc.getOrdinal(tier1);
         int ordinal2 = mTierAssoc.getOrdinal(tier2);
-        if (ordinal1 < ordinal2) {
-          return -1;
-        }
-        if (ordinal1 == ordinal2) {
-          return 0;
-        }
-        return 1;
+        return Integer.compare(ordinal1, ordinal2);
       }
     };
   }

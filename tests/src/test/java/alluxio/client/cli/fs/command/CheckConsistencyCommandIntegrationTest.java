@@ -110,5 +110,4 @@ public class CheckConsistencyCommandIntegrationTest extends AbstractFileSystemSh
             + "with the under storage system.\n";
     Assert.assertEquals(expected, mOutput.toString());
   }
-
 }

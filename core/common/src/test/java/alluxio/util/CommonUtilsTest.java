@@ -43,6 +43,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -411,7 +412,7 @@ public class CommonUtilsTest {
         }
       });
     }
-    CommonUtils.invokeAll(tasks, 10, TimeUnit.SECONDS);
+    CommonUtils.invokeAll(tasks, 10 * Constants.SECOND_MS);
     assertEquals(numTasks, completed.get());
   }
 
@@ -429,11 +430,33 @@ public class CommonUtilsTest {
       });
     }
     try {
-      CommonUtils.invokeAll(tasks, 50, TimeUnit.MILLISECONDS);
+      CommonUtils.invokeAll(tasks, 50);
       fail("Expected a timeout exception");
     } catch (TimeoutException e) {
       // Expected
     }
+  }
+
+  @Test
+  public void invokeAllExceptionAndHang() throws Exception {
+    long start = System.currentTimeMillis();
+    RuntimeException testException = new RuntimeException("failed");
+    try {
+      CommonUtils.invokeAll(Arrays.asList(
+          () -> {
+            Thread.sleep(10 * Constants.SECOND_MS);
+            return null;
+          },
+          () -> {
+            throw testException;
+          }
+      ), 5 * Constants.SECOND_MS);
+      fail("Expected an exception to be thrown");
+    } catch (ExecutionException e) {
+      assertSame(testException, e.getCause());
+    }
+    assertThat("invokeAll should exit early if one of the tasks throws an exception",
+        System.currentTimeMillis() - start, Matchers.lessThan(2L * Constants.SECOND_MS));
   }
 
   @Test
@@ -456,10 +479,10 @@ public class CommonUtilsTest {
       });
     }
     try {
-      CommonUtils.invokeAll(tasks, 2, TimeUnit.SECONDS);
+      CommonUtils.invokeAll(tasks, 2 * Constants.SECOND_MS);
       fail("Expected an exception to be thrown");
-    } catch (Exception e) {
-      assertSame(testException, e);
+    } catch (ExecutionException e) {
+      assertSame(testException, e.getCause());
     }
   }
 
@@ -486,10 +509,10 @@ public class CommonUtilsTest {
       });
     }
     try {
-      CommonUtils.invokeAll(tasks, 500, TimeUnit.MILLISECONDS);
+      CommonUtils.invokeAll(tasks, 500);
       fail("Expected an exception to be thrown");
-    } catch (Exception e) {
-      assertSame(testException, e);
+    } catch (ExecutionException e) {
+      assertSame(testException, e.getCause());
     }
   }
 

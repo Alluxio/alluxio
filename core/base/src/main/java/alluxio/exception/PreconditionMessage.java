@@ -44,7 +44,7 @@ public enum PreconditionMessage {
   ERR_TIER_QUOTA_BLANK("Tier capacity configuration should not be blank"),
   ERR_UFS_MANAGER_OPERATION_INVALID_SESSION("Attempted to %s ufs file with invalid session id."),
   ERR_UFS_MANAGER_FAILED_TO_REMOVE_AGENT(
-      "Failed to remove agent %d from ufs manager's internal state."),
+      "Failed to remove agent %s from ufs manager's internal state."),
   ERR_UNEXPECTED_EOF("Reached EOF unexpectedly."),
   ERR_WRITE_BUFFER_NULL("Cannot write a null input buffer"),
   ERR_ZK_ADDRESS_NOT_SET("Cannot get leader address from zookeeper; %s is not set"),
@@ -55,10 +55,15 @@ public enum PreconditionMessage {
   INCONSISTENT_ZK_CONFIGURATION(
       "Inconsistent Zookeeper configuration; %s should be set if and only if %s is true"),
   INODE_TREE_UNINITIALIZED_IS_ROOT_ID("Cannot call isRootId() before initializeRoot()"),
+  INVALID_REPLICATION_MAX_VALUE("Max replication must be -1 (infinity) or a non-negative integer"),
+  INVALID_REPLICATION_MIN_VALUE("Min replication must be a non-negative integer"),
+  INVALID_REPLICATION_MAX_MIN_VALUE_NULL("Both min and max replication are null"),
+  INVALID_REPLICATION_MAX_SMALLER_THAN_MIN("Cannot set min and max replication to be %s and %s: "
+      + "min replication must be smaller or equal than max replication"),
   INVALID_PROPERTY("Invalid property: %s"),
-  INVALID_USER_FILE_BUFFER_BYTES("Invalid value of %s: %d"),
+  INVALID_USER_FILE_BUFFER_BYTES("Invalid value of %s: %s"),
   NOT_ENOUGH_BYTES_READ(
-      "Not enough bytes have been read [bytesRead: %d, bytesToRead: %d] from the UFS file: %s."),
+      "Not enough bytes have been read [bytesRead: %s, bytesToRead: %s] from the UFS file: %s."),
   PERMISSION_GROUP_IS_NULL("Group cannot be null when constructing Permission"),
   PERMISSION_MODE_IS_NULL("Mode cannot be null when constructing Permission"),
   PERMISSION_OWNER_IS_NULL("Owner cannot be null when constructing Permission"),

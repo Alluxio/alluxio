@@ -11,6 +11,14 @@
 
 package alluxio.security.authorization;
 
+<<<<<<< HEAD:core/base/src/main/java/alluxio/security/authorization/ExtendedACLEntries.java
+||||||| merged common ancestors
+import alluxio.proto.journal.File;
+
+=======
+import alluxio.proto.shared.Acl;
+
+>>>>>>> master:core/common/src/main/java/alluxio/security/authorization/ExtendedACLEntries.java
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 
@@ -186,6 +194,70 @@ public class ExtendedACLEntries {
   }
 
   /**
+<<<<<<< HEAD:core/base/src/main/java/alluxio/security/authorization/ExtendedACLEntries.java
+||||||| merged common ancestors
+   * @return a list of the proto representation of the named users actions
+   */
+  public List<File.NamedAclActions> getNamedUsersProto() {
+    List<File.NamedAclActions> actions = new ArrayList<>(mNamedUserActions.size());
+    for (Map.Entry<String, AclActions> kv : mNamedUserActions.entrySet()) {
+      File.NamedAclActions namedActions = File.NamedAclActions.newBuilder()
+          .setName(kv.getKey())
+          .setActions(AclActions.toProtoBuf(kv.getValue()))
+          .build();
+      actions.add(namedActions);
+    }
+    return actions;
+  }
+
+  /**
+   * @return a list of the proto representation of the named group actions
+   */
+  public List<File.NamedAclActions> getNamedGroupsProto() {
+    List<File.NamedAclActions> actions = new ArrayList<>(mNamedGroupActions.size());
+    for (Map.Entry<String, AclActions> kv : mNamedGroupActions.entrySet()) {
+      File.NamedAclActions namedActions = File.NamedAclActions.newBuilder()
+          .setName(kv.getKey())
+          .setActions(AclActions.toProtoBuf(kv.getValue()))
+          .build();
+      actions.add(namedActions);
+    }
+    return actions;
+  }
+
+  /**
+=======
+   * @return a list of the proto representation of the named users actions
+   */
+  public List<Acl.NamedAclActions> getNamedUsersProto() {
+    List<Acl.NamedAclActions> actions = new ArrayList<>(mNamedUserActions.size());
+    for (Map.Entry<String, AclActions> kv : mNamedUserActions.entrySet()) {
+      Acl.NamedAclActions namedActions = Acl.NamedAclActions.newBuilder()
+          .setName(kv.getKey())
+          .setActions(AclActions.toProtoBuf(kv.getValue()))
+          .build();
+      actions.add(namedActions);
+    }
+    return actions;
+  }
+
+  /**
+   * @return a list of the proto representation of the named group actions
+   */
+  public List<Acl.NamedAclActions> getNamedGroupsProto() {
+    List<Acl.NamedAclActions> actions = new ArrayList<>(mNamedGroupActions.size());
+    for (Map.Entry<String, AclActions> kv : mNamedGroupActions.entrySet()) {
+      Acl.NamedAclActions namedActions = Acl.NamedAclActions.newBuilder()
+          .setName(kv.getKey())
+          .setActions(AclActions.toProtoBuf(kv.getValue()))
+          .build();
+      actions.add(namedActions);
+    }
+    return actions;
+  }
+
+  /**
+>>>>>>> master:core/common/src/main/java/alluxio/security/authorization/ExtendedACLEntries.java
    * Update the mask to be the union of owning group entry, named user entry and named group entry.
    * @param groupActions the group entry to be integrated into the mask
    */

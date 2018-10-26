@@ -109,14 +109,18 @@ public final class LocalAlluxioClusterResource implements TestRule {
   }
 
   /**
-   * Adds a property to the cluster resource.
+   * Adds a property to the cluster resource. Unset a property by passing a null value.
    *
    * @param key property key
    * @param value property value
    * @return the cluster resource
    */
   public LocalAlluxioClusterResource setProperty(PropertyKey key, Object value) {
-    mConfiguration.put(key, value.toString());
+    if (value == null) {
+      mConfiguration.remove(key);
+    } else {
+      mConfiguration.put(key, value.toString());
+    }
     return this;
   }
 

@@ -80,5 +80,4 @@ public final class ChecksumCommandIntegrationTest extends AbstractFileSystemShel
     int ret = mFsShell.run("checksum", "/testFolder");
     Assert.assertEquals(-1, ret);
   }
-
 }

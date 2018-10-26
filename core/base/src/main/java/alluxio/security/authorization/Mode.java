@@ -100,6 +100,18 @@ public final class Mode {
   }
 
   /**
+   * @param mode1 first mode of the and operation
+   * @param mode2 second mode of the and operation
+   * @return the AND result of the two Modes
+   */
+  public static Mode and(Mode mode1, Mode mode2) {
+    Bits u = mode1.mOwnerBits.and(mode2.mOwnerBits);
+    Bits g = mode1.mGroupBits.and(mode2.mGroupBits);
+    Bits o = mode1.mOtherBits.and(mode2.mOtherBits);
+    return new Mode(u, g, o);
+  }
+
+  /**
    * @return the owner {@link Bits}
    */
   public Bits getOwnerBits() {
