@@ -51,7 +51,7 @@ public class RunOperation {
   @Parameter(names = {"-d", "-dir"}, description = "The directory to perform operations in")
   private String mDir = BASE_DIRECTORY;
   @Parameter(names = {"-s", "-size"},
-      description = "The size of a file to create. Defaults to 4096 bytes")
+      description = "The size of a file to create")
   private int mSize = 4096;
 
   private byte[] mFiledata;
