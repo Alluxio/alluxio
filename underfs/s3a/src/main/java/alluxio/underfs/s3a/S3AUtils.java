@@ -54,7 +54,8 @@ public final class S3AUtils {
   }
 
   private static boolean isUserIdInGrantee(Grantee grantee, String userId) {
-    return grantee.getIdentifier().equals(userId)
+    return grantee.getIdentifier() == null
+        || grantee.getIdentifier().equals(userId)
         || grantee.equals(GroupGrantee.AllUsers)
         || grantee.equals(GroupGrantee.AuthenticatedUsers);
   }
