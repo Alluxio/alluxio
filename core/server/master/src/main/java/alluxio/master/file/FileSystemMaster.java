@@ -504,4 +504,6 @@ public interface FileSystemMaster extends Master {
   void stopSync(AlluxioURI alluxioURI) throws UnavailableException, InvalidPathException;
 
   ExecutorService getExecutorService();
+
+  boolean forceSyncMetadata(AlluxioURI path);
 }

@@ -76,7 +76,7 @@ public class HdfsActiveSyncProvider {
     return eventList.contains(inotifyEvent.getEventType());
   }
 
-  public boolean filterEvent(Event event, List<AlluxioURI> syncPointList) {
+  public boolean processEvent(Event event, List<AlluxioURI> syncPointList) {
     boolean isModified = isEventModification(event);
     boolean fileMatch = false;
     String filePath = "";
@@ -106,11 +106,13 @@ public class HdfsActiveSyncProvider {
       default:
         break;
     }
-
+    if (filePath.isEmpty()) {
+      return false;
+    }
     for (AlluxioURI syncPoint :  syncPointList) {
       try {
-        LOG.info("file path in filterEvent" + filePath);
-        LOG.info("syncPoint in filterEvent" + syncPoint.getPath());
+        LOG.info("file path in processEvent" + filePath);
+        LOG.info("syncPoint in processEvent" + syncPoint.getPath());
         // find out if the changed file falls under one of the sync points
         if (PathUtils.hasPrefix(filePath, syncPoint.getPath())) {
           fileMatch = true;
@@ -160,7 +162,7 @@ public class HdfsActiveSyncProvider {
       if (batch != null) {
         LOG.info("received events");
         Arrays.stream(batch.getEvents())
-            .parallel().forEach(event -> filterEvent(event, syncPointList));
+            .parallel().forEach(event -> processEvent(event, syncPointList));
       }
 
       List<AlluxioURI> pathsToBeSynced = new ArrayList<>();

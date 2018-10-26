@@ -109,12 +109,20 @@ public final class MountTableTest {
     Assert.assertEquals(IdUtils.ROOT_MOUNT_ID, res7.getMountId());
 
     // Test reverseResolve()
-    Assert.assertEquals(mMountTable.reverseResolve(new AlluxioURI("/foo")),
-        new AlluxioURI("/mnt/foo"));
-    Assert.assertEquals(mMountTable.reverseResolve(new AlluxioURI("/foo/x")),
-        new AlluxioURI("/mnt/foo/x"));
+    Assert.assertEquals(new AlluxioURI("/mnt/foo"),
+        mMountTable.reverseResolve(new AlluxioURI("/foo")));
+    Assert.assertEquals(new AlluxioURI("/mnt/foo/x"),
+        mMountTable.reverseResolve(new AlluxioURI("/foo/x")));
+    Assert.assertEquals(mMountTable.reverseResolve(new AlluxioURI("/bar")),
+        new AlluxioURI("/mnt/bar"));
+    Assert.assertEquals(mMountTable.reverseResolve(new AlluxioURI("/bar/y")),
+        new AlluxioURI("/mnt/bar/y"));
+    Assert.assertEquals(mMountTable.reverseResolve(new AlluxioURI("s3a://bucket/foobar")),
+        new AlluxioURI("/foobar"));
     Assert.assertEquals(mMountTable.reverseResolve(new AlluxioURI("s3a://bucket/")),
         new AlluxioURI("/"));
+    Assert.assertNull(mMountTable.reverseResolve(new AlluxioURI("/foobar")));
+
 
     // Test getMountPoint()
     Assert.assertEquals("/mnt/foo", mMountTable.getMountPoint(new AlluxioURI("/mnt/foo")));

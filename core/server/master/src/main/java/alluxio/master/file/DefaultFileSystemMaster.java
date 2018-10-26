@@ -3027,6 +3027,27 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     }
   }
 
+  public boolean forceSyncMetadata(AlluxioURI path) {
+    LockingScheme lockingScheme =
+        createLockingScheme(path, CommonOptions.defaults().setSyncIntervalMs(0), InodeTree.LockMode.READ);
+    try (RpcContext rpcContext = createRpcContext();
+         LockedInodePath inodePath =
+             mInodeTree.lockInodePath(lockingScheme.getPath(), lockingScheme.getMode())) {
+      return syncMetadataInternal(rpcContext, inodePath, lockingScheme, DescendantType.ALL);
+    } catch (Exception e) {
+      LOG.warn("Exception encountered during active sync {}", e.getMessage());
+      return false;
+    }
+  }
+
+  private boolean syncMetadata(RpcContext rpcContext, LockedInodePath inodePath,
+      LockingScheme lockingScheme, DescendantType syncDescendantType) {
+    if (!lockingScheme.shouldSync()) {
+      return false;
+    }
+    return syncMetadataInternal(rpcContext, inodePath, lockingScheme, syncDescendantType);
+  }
+
   /**
    * Syncs the Alluxio metadata with UFS.
    *
@@ -3036,11 +3057,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * @param syncDescendantType how to sync descendants
    * @return true if the sync was performed successfully, false otherwise (including errors)
    */
-  private boolean syncMetadata(RpcContext rpcContext, LockedInodePath inodePath,
+  private boolean syncMetadataInternal(RpcContext rpcContext, LockedInodePath inodePath,
       LockingScheme lockingScheme, DescendantType syncDescendantType) {
-    if (!lockingScheme.shouldSync()) {
-      return false;
-    }
 
     // The high-level process for the syncing is:
     // 1. Find all Alluxio paths which are not consistent with the corresponding UFS path.

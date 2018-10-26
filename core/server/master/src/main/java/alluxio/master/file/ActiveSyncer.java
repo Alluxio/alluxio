@@ -85,7 +85,8 @@ public class ActiveSyncer implements HeartbeatExecutor {
             LOG.info("ufsSyncPoints {}", uri.toString());
           }
           for (AlluxioURI uri : alluxioSyncPoints) {
-            LOG.info("ready to sync {}", uri.toString());
+            LOG.info("sync {}", uri.toString());
+            mFileSystemMaster.forceSyncMetadata(uri);
           }
         }
       }
