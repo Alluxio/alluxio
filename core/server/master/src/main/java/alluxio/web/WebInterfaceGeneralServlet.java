@@ -16,6 +16,7 @@ import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
 import alluxio.StorageTierAssoc;
+import alluxio.exception.InvalidPathException;
 import alluxio.master.MasterProcess;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.FileSystemMaster;
@@ -177,7 +178,7 @@ public final class WebInterfaceGeneralServlet extends HttpServlet {
    *
    * @param request The {@link HttpServletRequest} object
    */
-  private void populateValues(HttpServletRequest request) {
+  private void populateValues(HttpServletRequest request) throws IOException {
     BlockMaster blockMaster = mMasterProcess.getMaster(BlockMaster.class);
     FileSystemMaster fileSystemMaster = mMasterProcess.getMaster(FileSystemMaster.class);
 
@@ -225,16 +226,14 @@ public final class WebInterfaceGeneralServlet extends HttpServlet {
     setUfsAttributes(request);
   }
 
-  private void setUfsAttributes(HttpServletRequest request) {
+  private void setUfsAttributes(HttpServletRequest request) throws IOException {
     FileSystemMaster fsMaster = mMasterProcess.getMaster(FileSystemMaster.class);
     MountPointInfo mountInfo;
     try {
       mountInfo = fsMaster.getMountPointInfo(new AlluxioURI(MountTable.ROOT));
-    } catch (Exception e) {
-      LOG.error("Unable to get root mount info", e);
-      return;
+    } catch (InvalidPathException e) {
+      throw new IOException(e);
     }
-
     long capacityBytes = mountInfo.getUfsCapacityBytes();
     long usedBytes = mountInfo.getUfsUsedBytes();
     long freeBytes = -1;
