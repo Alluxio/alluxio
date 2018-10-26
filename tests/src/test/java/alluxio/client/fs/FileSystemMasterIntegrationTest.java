@@ -1016,34 +1016,6 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
   }
 
   @Test
-<<<<<<< HEAD
-  public void ufsModePersist() throws Exception {
-    mFsMaster.updateUfsMode(new AlluxioURI(mFsMaster.getUfsAddress()),
-        UfsMode.READ_ONLY);
-
-    AlluxioURI alluxioFile = new AlluxioURI("/in_alluxio");
-    mFsMaster.createFile(alluxioFile, CreateFileOptions.defaults().setPersisted(false));
-
-    mThrown.expect(AccessControlException.class);
-    mFsMaster.scheduleAsyncPersistence(alluxioFile);
-  }
-
-  @Test
-||||||| merged common ancestors
-  public void ufsModePersist() throws Exception {
-    mFsMaster.updateUfsMode(new AlluxioURI(mFsMaster.getUfsAddress()),
-        UnderFileSystem.UfsMode.READ_ONLY);
-
-    AlluxioURI alluxioFile = new AlluxioURI("/in_alluxio");
-    mFsMaster.createFile(alluxioFile, CreateFileOptions.defaults().setPersisted(false));
-
-    mThrown.expect(AccessControlException.class);
-    mFsMaster.scheduleAsyncPersistence(alluxioFile);
-  }
-
-  @Test
-=======
->>>>>>> master
   public void ufsModeDeleteFile() throws Exception {
     AlluxioURI alluxioFile = new AlluxioURI("/in_alluxio");
     mFsMaster.createFile(alluxioFile, CreateFileOptions.defaults().setPersisted(true));
