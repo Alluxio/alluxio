@@ -140,9 +140,9 @@ public class RunOperation {
           mFileSystem.delete(uri);
           break;
         case CreateFile:
-          FileOutStream file = mFileSystem.createFile(uri);
-          file.write(mFiledata);
-          file.close();
+          try (FileOutStream file = mFileSystem.createFile(uri)) {
+            file.write(mFiledata);
+          }
           break;
         default:
           throw new IllegalStateException("Unknown operation: " + mOperation);
