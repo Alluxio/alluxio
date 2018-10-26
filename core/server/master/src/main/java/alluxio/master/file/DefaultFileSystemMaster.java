@@ -1340,11 +1340,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
   @Override
   public Map<String, MountPointInfo> getMountTable() {
-    SortedMap<String, MountPointInfo> mountPoints = new TreeMap<>();
-    for (Map.Entry<String, MountInfo> mountPoint : mMountTable.getMountTable().entrySet()) {
-      mountPoints.put(mountPoint.getKey(), getMountPointInfo(mountPoint.getValue()));
-    }
-    return mountPoints;
+    return mMountTable.getMountTable().entrySet().stream()
+        .collect(Collectors.toMap(Map.Entry::getKey, e -> getMountPointInfo(e.getValue())));
   }
 
   @Override
@@ -1353,15 +1350,14 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       throw new InvalidPathException(
           ExceptionMessage.PATH_MUST_BE_MOUNT_POINT.getMessage(path));
     }
-    MountInfo mountInfo = mMountTable.getMountTable().get(path.toString());
-    return getMountPointInfo(mountInfo);
+    return getMountPointInfo(mMountTable.getMountTable().get(path.toString()));
   }
 
   /**
-   * Gets a mount point information.
+   * Gets the mount point information from a mount information
    *
    * @param mountInfo the mount information to transform
-   * @return a mount point information
+   * @return the mount point information
    */
   private MountPointInfo getMountPointInfo(MountInfo mountInfo) {
     MountPointInfo info = mountInfo.toMountPointInfo();
