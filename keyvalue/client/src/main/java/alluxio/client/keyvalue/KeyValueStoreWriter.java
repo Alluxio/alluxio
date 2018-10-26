@@ -39,5 +39,4 @@ public interface KeyValueStoreWriter extends Closeable, Cancelable {
    * @param value value to put, cannot be null
    */
   void put(ByteBuffer key, ByteBuffer value) throws IOException, AlluxioException;
-
 }

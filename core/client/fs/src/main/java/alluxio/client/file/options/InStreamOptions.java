@@ -84,6 +84,9 @@ public final class InStreamOptions {
   public Protocol.OpenUfsBlockOptions getOpenUfsBlockOptions(long blockId) {
     Preconditions.checkArgument(mStatus.getBlockIds().contains(blockId), "blockId");
     boolean readFromUfs = mStatus.isPersisted();
+    // In case it is possible to fallback to read UFS blocks, also fill in the options.
+    boolean storedAsUfsBlock = mStatus.getPersistenceState().equals("TO_BE_PERSISTED");
+    readFromUfs = readFromUfs || storedAsUfsBlock;
     if (!readFromUfs) {
       return Protocol.OpenUfsBlockOptions.getDefaultInstance();
     }
@@ -94,6 +97,14 @@ public final class InStreamOptions {
             .setOffsetInFile(blockStart).setBlockSize(info.getLength())
             .setMaxUfsReadConcurrency(mOptions.getMaxUfsReadConcurrency())
             .setNoCache(!mOptions.getReadType().isCache()).setMountId(mStatus.getMountId()).build();
+    if (storedAsUfsBlock) {
+      // On client-side, we do not have enough mount information to fill in the UFS file path.
+      // Instead, we unset the ufsPath field and fill in a flag ufsBlock to indicate the UFS file
+      // path can be derived from mount id and the block ID. Also because the entire file is only
+      // one block, we set the offset in file to be zero.
+      openUfsBlockOptions = openUfsBlockOptions.toBuilder().clearUfsPath().setBlockInUfsTier(true)
+            .setOffsetInFile(0).build();
+    }
     return openUfsBlockOptions;
   }
 

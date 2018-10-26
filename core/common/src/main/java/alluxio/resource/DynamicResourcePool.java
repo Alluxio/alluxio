@@ -277,7 +277,7 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
   }
 
   /**
-   * Acquire a resource of type {code T} from the pool.
+   * Acquires a resource of type {code T} from the pool.
    *
    * @return the acquired resource
    */

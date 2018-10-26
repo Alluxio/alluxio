@@ -106,8 +106,7 @@ public class CheckConsistencyCommand extends AbstractFileSystemCommand {
       Collections.sort(inconsistentUris);
       System.out.println(path + " has: " + inconsistentUris.size() + " inconsistent files.");
       List<AlluxioURI> inconsistentDirs = new ArrayList<AlluxioURI>();
-      for (int i = 0; i < inconsistentUris.size(); i++) {
-        AlluxioURI inconsistentUri = inconsistentUris.get(i);
+      for (AlluxioURI inconsistentUri : inconsistentUris) {
         URIStatus status = mFileSystem.getStatus(inconsistentUri);
         if (status.isFolder()) {
           inconsistentDirs.add(inconsistentUri);

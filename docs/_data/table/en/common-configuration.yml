@@ -1,5 +1,7 @@
 alluxio.conf.dir:
   'The directory containing files used to configure Alluxio. Note: This property must be specified as a JVM property; it is not accepted in alluxio-site.properties.'
+alluxio.conf.validation.enabled:
+  'Whether to validate the configuration properties when initializing Alluxio clients or server process.'
 alluxio.debug:
   'Set to true to enable debug mode which has additional logging and info in the Web UI.'
 alluxio.extensions.dir:
@@ -12,8 +14,14 @@ alluxio.fuse.fs.name:
   'The FUSE file system name.'
 alluxio.fuse.maxwrite.bytes:
   'Maximum granularity of write operations, capped by the kernel to 128KB max (as of Linux 3.16.0).'
+alluxio.fuse.user.group.translation.enabled:
+  'Whether to translate Alluxio users and groups into Unix users and groups when exposing Alluxio files through the FUSE API. When this property is set to false, the user and group for all FUSE files will match the user who started the alluxio-fuse process.'
 alluxio.home:
   'Alluxio installation directory.'
+alluxio.keyvalue.enabled:
+  'Whether the key-value service is enabled.'
+alluxio.keyvalue.partition.size.bytes.max:
+  'Maximum allowable size of a single key-value partition in a store. This value should be no larger than the block size set by alluxio.user.block.size.bytes.default'
 alluxio.jvm.monitor.info.threshold:
   'Extra sleep time longer than this threshold, log INFO.'
 alluxio.jvm.monitor.sleep.interval:
@@ -46,6 +54,8 @@ alluxio.logserver.threads.min:
   'The minimum number of threads used by logserver to service logging requests.'
 alluxio.metrics.conf.file:
   'The file path of the metrics system configuration file. By default it is `metrics.properties` in the `conf` directory.'
+alluxio.metrics.context.shutdown.timeout:
+  'Time to wait for the metrics context to shut down. The main purpose for this property is to allow tests to shut down faster.'
 alluxio.network.host.resolution.timeout:
   'During startup of the Master and Worker processes Alluxio needs to ensure that they are listening on externally resolvable and reachable host names. To do this, Alluxio will automatically attempt to select an appropriate host name if one was not explicitly specified. This represents the maximum amount of time spent waiting to determine if a candidate host name is resolvable over the network.'
 alluxio.network.netty.heartbeat.timeout:
@@ -61,7 +71,7 @@ alluxio.proxy.s3.writetype:
 alluxio.proxy.stream.cache.timeout:
   'The timeout for the input and output streams cache eviction in the proxy.'
 alluxio.proxy.web.bind.host:
-  'The hostname that the Alluxio proxy''s web server runs on. See <a href="#configure-multihomed-networks">multi-homed networks</a>.'
+  'The hostname that the Alluxio proxy''s web server runs on.'
 alluxio.proxy.web.hostname:
   'The hostname Alluxio proxy''s web UI binds to.'
 alluxio.proxy.web.port:
@@ -76,6 +86,10 @@ alluxio.underfs.address:
   'Alluxio directory in the under file system.'
 alluxio.underfs.allow.set.owner.failure:
   'Whether to allow setting owner in UFS to fail. When set to true, it is possible file or directory owners diverge between Alluxio and UFS.'
+alluxio.underfs.cleanup.enabled:
+  'Whether or not to clean up under filesystem periodically. Some ufs operations may not be completed and cleaned up successfully in normal ways and leave some intermediate data that needs periodical cleanup. If enabled, all the mount points will be cleaned up when a leader master starts or cleanup interval is reached. This should be used sparingly.'
+alluxio.underfs.cleanup.interval:
+  'The interval for periodically cleaning all the mounted under filesystem.'
 alluxio.underfs.gcs.owner.id.to.username.mapping:
   'Optionally, specify a preset gcs owner id to Alluxio username static mapping in the format "id1=user1;id2=user2". The Google Cloud Storage IDs can be found at the console address https://console.cloud.google.com/storage/settings . Please use the "Owners" one.'
 alluxio.underfs.hdfs.configuration:
@@ -128,6 +142,8 @@ alluxio.underfs.s3a.directory.suffix:
   'Directories are represented in S3 as zero-byte objects named with the specified suffix.'
 alluxio.underfs.s3a.inherit_acl:
   'Optionally disable this to disable inheriting bucket ACLs on objects.'
+alluxio.underfs.s3a.intermediate.upload.clean.age:
+  'Streaming uploads may not have been completed/aborted correctly and need periodical ufs cleanup. If ufs cleanup is enabled, intermediate multipart uploads in all non-readonly S3 mount points older than this age will be cleaned. This may impact other ongoing upload operations, so a large clean age is encouraged.'
 alluxio.underfs.s3a.list.objects.v1:
   'Whether to use version 1 of GET Bucket (List Objects) API.'
 alluxio.underfs.s3a.request.timeout:
@@ -140,10 +156,16 @@ alluxio.underfs.s3a.signer.algorithm:
   'The signature algorithm which should be used to sign requests to the s3 service. This is optional, and if not set, the client will automatically determine it. For interacting with an S3 endpoint which only supports v2 signatures, set this to "S3SignerType".'
 alluxio.underfs.s3a.socket.timeout:
   'Length of the socket timeout when communicating with S3.'
+alluxio.underfs.s3a.streaming.upload.enabled:
+  'If true, using streaming upload to write to S3A.'
+alluxio.underfs.s3a.streaming.upload.partition.size:
+  'Maximum allowable size of a single buffer file when using S3A streaming upload. When the buffer file reaches the partition size, it will be uploaded and the upcoming data will write to other buffer files. If the partition size is too small, S3A upload speed might be affected.'
 alluxio.web.file.info.enabled:
   'Whether detailed file information are enabled for the web UI.'
 alluxio.web.resources:
   'Path to the web application resources.'
+alluxio.web.temp.path:
+  'Path to store temporary web server files.'
 alluxio.web.threads:
   'How many threads to use for the web server.'
 alluxio.work.dir:
@@ -166,6 +188,20 @@ aws.accessKeyId:
   'The access key of S3 bucket.'
 aws.secretKey:
   'The secret key of S3 bucket.'
+fs.cos.access.key:
+  'The access key of COS bucket.'
+fs.cos.app.id:
+  'The app id of COS bucket.'
+fs.cos.connection.max:
+  'The maximum number of COS connections.'
+fs.cos.connection.timeout:
+  'The timeout of connecting to COS.'
+fs.cos.region:
+  'The region name of COS bucket.'
+fs.cos.secret.key:
+  'The secret key of COS bucket.'
+fs.cos.socket.timeout:
+  'The timeout of COS socket.'
 fs.gcs.accessKeyId:
   'The access key of GCS bucket.'
 fs.gcs.secretAccessKey:

@@ -52,6 +52,20 @@ public final class ProtoMessage {
   }
 
   /**
+   * @param removeBlockRequest the remove block request message
+   */
+  public ProtoMessage(Protocol.RemoveBlockRequest removeBlockRequest) {
+    mMessage = removeBlockRequest;
+  }
+
+  /**
+   * @param entry the journal entry
+   */
+  public ProtoMessage(alluxio.proto.journal.Journal.JournalEntry entry) {
+    mMessage = entry;
+  }
+
+  /**
    * @param response the response
    */
   public ProtoMessage(Protocol.Response response) {
@@ -173,6 +187,37 @@ public final class ProtoMessage {
    */
   public boolean isResponse() {
     return mMessage instanceof Protocol.Response;
+  }
+
+  /**
+   * @return the remove block request
+   */
+  public alluxio.proto.dataserver.Protocol.RemoveBlockRequest asRemoveBlockRequest() {
+    Preconditions
+        .checkState(mMessage instanceof alluxio.proto.dataserver.Protocol.RemoveBlockRequest);
+    return (alluxio.proto.dataserver.Protocol.RemoveBlockRequest) mMessage;
+  }
+
+  /**
+   * @return true if mMessage is of type {@link Protocol.RemoveBlockRequest}
+   */
+  public boolean isRemoveBlockRequest() {
+    return mMessage instanceof alluxio.proto.dataserver.Protocol.RemoveBlockRequest;
+  }
+
+  /**
+   * @return the journal entry
+   */
+  public alluxio.proto.journal.Journal.JournalEntry asJournalEntry() {
+    Preconditions.checkState(mMessage instanceof alluxio.proto.journal.Journal.JournalEntry);
+    return (alluxio.proto.journal.Journal.JournalEntry) mMessage;
+  }
+
+  /**
+   * @return true if mMessage is of type {@link alluxio.proto.journal.Journal.JournalEntry}
+   */
+  public boolean isJournalEntry() {
+    return mMessage instanceof alluxio.proto.journal.Journal.JournalEntry;
   }
 
   /**

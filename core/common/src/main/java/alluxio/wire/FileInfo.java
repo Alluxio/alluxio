@@ -60,6 +60,8 @@ public final class FileInfo implements Serializable {
   private boolean mMountPoint;
   private ArrayList<FileBlockInfo> mFileBlockInfos = new ArrayList<>();
   private long mMountId;
+  private int mReplicationMax;
+  private int mReplicationMin;
   private int mInAlluxioPercentage;
   private String mUfsFingerprint = Constants.INVALID_UFS_FINGERPRINT;
 
@@ -237,6 +239,20 @@ public final class FileInfo implements Serializable {
    */
   public List<FileBlockInfo> getFileBlockInfos() {
     return mFileBlockInfos;
+  }
+
+  /**
+   * @return the maximum number of block replication
+   */
+  public int getReplicationMax() {
+    return mReplicationMax;
+  }
+
+  /**
+   * @return the minimum number of block replication
+   */
+  public int getReplicationMin() {
+    return mReplicationMin;
   }
 
   /**
@@ -507,6 +523,24 @@ public final class FileInfo implements Serializable {
   }
 
   /**
+   * @param replicationMax the maximum number of block replication
+   * @return the file descriptor
+   */
+  public FileInfo setReplicationMax(int replicationMax) {
+    mReplicationMax = replicationMax;
+    return this;
+  }
+
+  /**
+   * @param replicationMin the minimum number of block replication
+   * @return the file descriptor
+   */
+  public FileInfo setReplicationMin(int replicationMin) {
+    mReplicationMin = replicationMin;
+    return this;
+  }
+
+  /**
    * @param mountId the id of mount
    * @return the file information
    */
@@ -558,7 +592,8 @@ public final class FileInfo implements Serializable {
         mCreationTimeMs, mCompleted, mFolder, mPinned, mCacheable, mPersisted, mBlockIds,
         mInMemoryPercentage, mLastModificationTimeMs, mTtl, mOwner, mGroup, mMode,
         mPersistenceState, mMountPoint, fileBlockInfos, TtlAction.toThrift(mTtlAction), mMountId,
-        mInAlluxioPercentage, mUfsFingerprint, tAcl, tDefaultAcl);
+        mInAlluxioPercentage, mUfsFingerprint, tAcl, tDefaultAcl, mReplicationMax,
+        mReplicationMin);
 
     return info;
   }
@@ -571,6 +606,8 @@ public final class FileInfo implements Serializable {
    */
   public static FileInfo fromThrift(alluxio.thrift.FileInfo info) {
     return new FileInfo()
+        .setReplicationMin(info.getReplicationMin())
+        .setReplicationMax(info.getReplicationMax())
         .setFileId(info.getFileId())
         .setName(info.getName())
         .setPath(info.getPath())
@@ -624,6 +661,7 @@ public final class FileInfo implements Serializable {
         && mLastModificationTimeMs == that.mLastModificationTimeMs && mTtl == that.mTtl
         && mOwner.equals(that.mOwner) && mGroup.equals(that.mGroup) && mMode == that.mMode
         && mPersistenceState.equals(that.mPersistenceState) && mMountPoint == that.mMountPoint
+        && mReplicationMax == that.mReplicationMax && mReplicationMin == that.mReplicationMin
         && mFileBlockInfos.equals(that.mFileBlockInfos) && mTtlAction == that.mTtlAction
         && mMountId == that.mMountId && mInAlluxioPercentage == that.mInAlluxioPercentage
         && mUfsFingerprint.equals(that.mUfsFingerprint)
@@ -635,9 +673,9 @@ public final class FileInfo implements Serializable {
   public int hashCode() {
     return Objects.hashCode(mFileId, mName, mPath, mUfsPath, mLength, mBlockSizeBytes,
         mCreationTimeMs, mCompleted, mFolder, mPinned, mCacheable, mPersisted, mBlockIds,
-        mInMemoryPercentage, mLastModificationTimeMs, mTtl, mOwner, mGroup, mMode,
-        mPersistenceState, mMountPoint, mFileBlockInfos, mTtlAction, mInAlluxioPercentage,
-        mUfsFingerprint, mAcl, mDefaultAcl);
+        mInMemoryPercentage, mLastModificationTimeMs, mTtl, mOwner, mGroup, mMode, mReplicationMax,
+        mReplicationMin, mPersistenceState, mMountPoint, mFileBlockInfos, mTtlAction,
+        mInAlluxioPercentage, mUfsFingerprint, mAcl, mDefaultAcl);
   }
 
   @Override
@@ -650,6 +688,7 @@ public final class FileInfo implements Serializable {
         .add("lastModificationTimesMs", mLastModificationTimeMs).add("ttl", mTtl)
         .add("ttlAction", mTtlAction).add("owner", mOwner).add("group", mGroup).add("mode", mMode)
         .add("persistenceState", mPersistenceState).add("mountPoint", mMountPoint)
+        .add("replicationMax", mReplicationMax).add("replicationMin", mReplicationMin)
         .add("fileBlockInfos", mFileBlockInfos)
         .add("mountId", mMountId).add("inAlluxioPercentage", mInAlluxioPercentage)
         .add("ufsFingerprint", mUfsFingerprint)

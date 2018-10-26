@@ -69,7 +69,6 @@ public final class LocalFirstAvoidEvictionPolicy
   @Override
   public WorkerNetAddress getWorker(GetWorkerOptions options) {
     return getWorkerForNextBlock(options.getBlockWorkerInfos(), options.getBlockSize());
-
   }
 
   /**

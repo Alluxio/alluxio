@@ -57,15 +57,16 @@ public final class ThreadUtils {
    * tasks.
    *
    * @param pool the executor service to shutdown
+   * @param timeoutMs how long to wait for the service to shut down
    */
-  public static void shutdownAndAwaitTermination(ExecutorService pool) {
+  public static void shutdownAndAwaitTermination(ExecutorService pool, long timeoutMs) {
     pool.shutdown(); // Disable new tasks from being submitted
     try {
       // Wait a while for existing tasks to terminate
-      if (!pool.awaitTermination(1, TimeUnit.SECONDS)) {
+      if (!pool.awaitTermination(timeoutMs / 2, TimeUnit.MILLISECONDS)) {
         pool.shutdownNow(); // Cancel currently executing tasks
         // Wait a while for tasks to respond to being cancelled
-        if (!pool.awaitTermination(1, TimeUnit.SECONDS)) {
+        if (!pool.awaitTermination(timeoutMs / 2, TimeUnit.MILLISECONDS)) {
           LOG.warn("Pool did not terminate");
         }
       }

@@ -134,5 +134,4 @@ public final class ResourcePoolTest {
     assertFalse(future.isDone());
     future.cancel(true);
   }
-
 }

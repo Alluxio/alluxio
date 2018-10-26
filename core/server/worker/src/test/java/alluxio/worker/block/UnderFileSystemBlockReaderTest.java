@@ -32,7 +32,6 @@ import alluxio.util.io.BufferUtils;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.meta.UnderFileSystemBlockMeta;
 
-import com.google.common.base.Suppliers;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.PooledByteBufAllocator;
 import org.junit.Assert;
@@ -87,7 +86,7 @@ public final class UnderFileSystemBlockReaderTest {
     mUfsManager = mock(UfsManager.class);
     mUfsInstreamManager = new UfsInputStreamManager();
     UfsClient ufsClient = new UfsClient(
-        Suppliers.ofInstance(UnderFileSystem.Factory.create(testFilePath)),
+        () -> UnderFileSystem.Factory.create(testFilePath),
         new AlluxioURI(testFilePath));
     when(mUfsManager.get(anyLong())).thenReturn(ufsClient);
 

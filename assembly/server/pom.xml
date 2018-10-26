@@ -15,7 +15,7 @@
   <parent>
     <artifactId>alluxio-assembly</artifactId>
     <groupId>org.alluxio</groupId>
-    <version>1.9.0-SNAPSHOT</version>
+    <version>2.0.0-SNAPSHOT</version>
   </parent>
   <artifactId>alluxio-assembly-server</artifactId>
   <packaging>jar</packaging>
@@ -44,6 +44,16 @@
     <dependency>
       <groupId>org.alluxio</groupId>
       <artifactId>alluxio-core-server-worker</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-job-client</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-job-server</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>

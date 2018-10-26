@@ -668,13 +668,7 @@ public final class S3RestServiceHandler {
     public int compare(URIStatus o1, URIStatus o2) {
       long part1 = Long.parseLong(o1.getName());
       long part2 = Long.parseLong(o2.getName());
-      if (part1 == part2) {
-        return 0;
-      }
-      if (part1 < part2) {
-        return -1;
-      }
-      return 1;
+      return Long.compare(part1, part2);
     }
   }
 }

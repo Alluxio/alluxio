@@ -27,7 +27,7 @@ this="${config_bin}/${script}"
 
 # This will set the default installation for a tarball installation while os distributors can
 # set system installation locations.
-VERSION=1.9.0-SNAPSHOT
+VERSION=2.0.0-SNAPSHOT
 ALLUXIO_HOME=$(dirname $(dirname "${this}"))
 ALLUXIO_ASSEMBLY_CLIENT_JAR="${ALLUXIO_HOME}/assembly/client/target/alluxio-assembly-client-${VERSION}-jar-with-dependencies.jar"
 ALLUXIO_ASSEMBLY_SERVER_JAR="${ALLUXIO_HOME}/assembly/server/target/alluxio-assembly-server-${VERSION}-jar-with-dependencies.jar"
@@ -85,6 +85,20 @@ if [[ -n "${ALLUXIO_LOGSERVER_HOSTNAME}" ]]; then
 fi
 if [[ -n "${ALLUXIO_LOGSERVER_PORT}" ]]; then
     ALLUXIO_JAVA_OPTS+=" -Dalluxio.logserver.port=${ALLUXIO_LOGSERVER_PORT}"
+fi
+
+# Job master specific parameters based on ALLUXIO_JAVA_OPTS.
+ALLUXIO_JOB_MASTER_JAVA_OPTS+=${ALLUXIO_JAVA_OPTS}
+ALLUXIO_JOB_MASTER_JAVA_OPTS+=" -Dalluxio.logger.type=${ALLUXIO_JOB_MASTER_LOGGER:-JOB_MASTER_LOGGER}"
+if [[ -n "${ALLUXIO_LOGSERVER_HOSTNAME}" && -n "${ALLUXIO_LOGSERVER_PORT}" ]]; then
+    ALLUXIO_JOB_MASTER_JAVA_OPTS+=" -Dalluxio.remote.logger.type=REMOTE_JOB_MASTER_LOGGER"
+fi
+
+# Job worker specific parameters based on ALLUXIO_JAVA_OPTS.
+ALLUXIO_JOB_WORKER_JAVA_OPTS+=${ALLUXIO_JAVA_OPTS}
+ALLUXIO_JOB_WORKER_JAVA_OPTS+=" -Dalluxio.logger.type=${ALLUXIO_JOB_WORKER_LOGGER:-JOB_WORKER_LOGGER}"
+if [[ -n "${ALLUXIO_LOGSERVER_HOSTNAME}" && -n "${ALLUXIO_LOGSERVER_PORT}" ]]; then
+    ALLUXIO_JOB_WORKER_JAVA_OPTS+=" -Dalluxio.remote.logger.type=REMOTE_JOB_WORKER_LOGGER"
 fi
 
 ALLUXIO_CLIENT_CLASSPATH="${ALLUXIO_CONF_DIR}/:${ALLUXIO_CLASSPATH}:${ALLUXIO_ASSEMBLY_CLIENT_JAR}"

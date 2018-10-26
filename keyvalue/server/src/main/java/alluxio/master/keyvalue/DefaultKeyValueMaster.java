@@ -79,8 +79,8 @@ public class DefaultKeyValueMaster extends AbstractMaster implements KeyValueMas
    * @param masterContext the context for Alluxio master
    */
   DefaultKeyValueMaster(FileSystemMaster fileSystemMaster, MasterContext masterContext) {
-    super(masterContext, new SystemClock(), ExecutorServiceFactories
-        .fixedThreadPoolExecutorServiceFactory(Constants.KEY_VALUE_MASTER_NAME, 2));
+    super(masterContext, new SystemClock(),
+        ExecutorServiceFactories.cachedThreadPool(Constants.KEY_VALUE_MASTER_NAME));
     mFileSystemMaster = fileSystemMaster;
     mCompleteStoreToPartitions = new HashMap<>();
     mIncompleteStoreToPartitions = new HashMap<>();
