@@ -178,7 +178,7 @@ public final class WebInterfaceGeneralServlet extends HttpServlet {
    *
    * @param request The {@link HttpServletRequest} object
    */
-  private void populateValues(HttpServletRequest request) throws IOException {
+  private void populateValues(HttpServletRequest request) {
     BlockMaster blockMaster = mMasterProcess.getMaster(BlockMaster.class);
     FileSystemMaster fileSystemMaster = mMasterProcess.getMaster(FileSystemMaster.class);
 
@@ -226,13 +226,14 @@ public final class WebInterfaceGeneralServlet extends HttpServlet {
     setUfsAttributes(request);
   }
 
-  private void setUfsAttributes(HttpServletRequest request) throws IOException {
+  private void setUfsAttributes(HttpServletRequest request) {
     FileSystemMaster fsMaster = mMasterProcess.getMaster(FileSystemMaster.class);
     MountPointInfo mountInfo;
     try {
       mountInfo = fsMaster.getMountPointInfo(new AlluxioURI(MountTable.ROOT));
-    } catch (InvalidPathException e) {
-      throw new IOException(e);
+    } catch (Throwable e) {
+      LOG.error("Unable to get mount point information of Alluxio root", e);
+      return;
     }
     long capacityBytes = mountInfo.getUfsCapacityBytes();
     long usedBytes = mountInfo.getUfsUsedBytes();
