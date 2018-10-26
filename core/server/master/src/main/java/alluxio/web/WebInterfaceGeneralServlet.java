@@ -11,10 +11,12 @@
 
 package alluxio.web;
 
+import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
 import alluxio.StorageTierAssoc;
+import alluxio.exception.InvalidPathException;
 import alluxio.master.MasterProcess;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.FileSystemMaster;
@@ -226,9 +228,10 @@ public final class WebInterfaceGeneralServlet extends HttpServlet {
 
   private void setUfsAttributes(HttpServletRequest request) {
     FileSystemMaster fsMaster = mMasterProcess.getMaster(FileSystemMaster.class);
-    Map<String, MountPointInfo> mountPoints = fsMaster.getMountTable();
-    MountPointInfo mountInfo = mountPoints.get(MountTable.ROOT);
-    if (mountInfo == null) {
+    MountPointInfo mountInfo;
+    try {
+      mountInfo = fsMaster.getMountPointInfo(new AlluxioURI(MountTable.ROOT));
+    } catch (InvalidPathException e) {
       LOG.error("Missing root mount info");
       return;
     }

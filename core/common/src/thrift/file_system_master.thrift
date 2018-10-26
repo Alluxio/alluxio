@@ -188,6 +188,10 @@ struct GetMountTableTResponse {
   1: map<string, MountPointInfo> mountTable
 }
 
+struct GetMountPointInfoTResponse {
+  1: MountPointInfo mountPointInfo
+}
+
 struct MountPointInfo {
   1: string ufsUri
   2: string ufsType
@@ -340,6 +344,14 @@ service FileSystemMasterClientService extends common.AlluxioService {
   * Returns a map from each Alluxio path to information of corresponding mount point
   */
   GetMountTableTResponse getMountTable()
+    throws (1: exception.AlluxioTException e)
+
+  /**
+  * Gets a mount point information from an Alluxio path
+  */
+  GetMountPointInfoTResponse getMountPointInfo(
+    /** the path of the mount point */ 1: string path,
+    )
     throws (1: exception.AlluxioTException e)
 
   /**

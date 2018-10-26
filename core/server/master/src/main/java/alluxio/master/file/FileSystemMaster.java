@@ -217,6 +217,14 @@ public interface FileSystemMaster extends Master {
   Map<String, MountPointInfo>  getMountTable();
 
   /**
+   * Gets the mount point information of an Alluxio path
+   *
+   * @param path to get mount point info of
+   * @return a mount point info of the path
+   */
+  MountPointInfo getMountPointInfo(AlluxioURI path) throws InvalidPathException;
+
+  /**
    * @return the number of files and directories
    */
   int getNumberOfPaths();

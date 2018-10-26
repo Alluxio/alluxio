@@ -33,6 +33,7 @@ import alluxio.master.MasterClientConfig;
 import alluxio.security.authorization.AclEntry;
 import alluxio.thrift.AlluxioService;
 import alluxio.thrift.FileSystemMasterClientService;
+import alluxio.thrift.GetMountPointInfoTResponse;
 import alluxio.thrift.GetMountTableTResponse;
 import alluxio.thrift.GetNewBlockIdForFileTOptions;
 import alluxio.thrift.LoadMetadataTOptions;
@@ -164,6 +165,13 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
       }
       return mountTableWire;
     }, "GetMountTable");
+  }
+
+  @Override
+  public synchronized alluxio.wire.MountPointInfo getMountPointInfo(final AlluxioURI path)
+      throws AlluxioStatusException {
+    return retryRPC(() -> MountPointInfo.fromThrift(mClient.getMountPointInfo(path.toString())
+        .getMountPointInfo()), "GetMountPointInfo");
   }
 
   @Override
