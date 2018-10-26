@@ -36,6 +36,7 @@ import alluxio.underfs.UnderFileSystem;
 import alluxio.util.IdUtils;
 import alluxio.util.io.PathUtils;
 
+import com.google.common.base.Throwables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -314,8 +315,12 @@ public final class MountTable implements JournalEntryIterable, JournalEntryRepla
   }
 
   private AlluxioURI reverseResolve(AlluxioURI mountPoint, AlluxioURI ufsUriMountPoint, AlluxioURI ufsUri) throws InvalidPathException {
-    String relativePath = PathUtils.subtractPaths(ufsUri.getPath(), ufsUriMountPoint.getPath());
-    return new AlluxioURI(PathUtils.concatPath(mountPoint, relativePath));
+    LOG.info("mountPoint" + mountPoint + "ufsUri" + ufsUriMountPoint +"ufsUri" + ufsUri);
+    String relativePath = PathUtils.subtractPaths(
+        PathUtils.normalizePath(ufsUri.getPath(), AlluxioURI.SEPARATOR),
+        PathUtils.normalizePath(ufsUriMountPoint.getPath(), AlluxioURI.SEPARATOR));
+    LOG.info("Combined path " + mountPoint.joinUnsafe(relativePath));
+    return mountPoint.joinUnsafe(relativePath);
   }
 
   /**
@@ -328,8 +333,11 @@ public final class MountTable implements JournalEntryIterable, JournalEntryRepla
     AlluxioURI returnVal = null;
     for (Map.Entry<String, MountInfo> mountInfoEntry : getMountTable().entrySet()) {
       try {
-        returnVal = reverseResolve(mountInfoEntry.getValue().getAlluxioUri(), mountInfoEntry.getValue().getUfsUri(), ufsUri);
-      } catch (InvalidPathException e) {
+        if (mountInfoEntry.getValue().getUfsUri().isParentOf(ufsUri)) {
+          returnVal = reverseResolve(mountInfoEntry.getValue().getAlluxioUri(), mountInfoEntry.getValue().getUfsUri(), ufsUri);
+        }
+      } catch (InvalidPathException | RuntimeException e) {
+        LOG.info(Throwables.getStackTraceAsString(e));
         // expected when ufsUri does not belong to this particular mountPoint
       }
       if (returnVal != null) {

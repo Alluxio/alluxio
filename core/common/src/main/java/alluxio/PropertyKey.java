@@ -1385,7 +1385,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey MASTER_ACTIVE_SYNC_INTERVAL_MS =
       new Builder(Name.MASTER_ACTIVE_SYNC_INTERVAL_MS)
           .setAlias(new String[]{"alluxio.master.activesync.interval.ms"})
-          .setDefaultValue("1min")
+          .setDefaultValue("3sec")
           .setDescription("Time interval to periodically actively sync UFS")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)

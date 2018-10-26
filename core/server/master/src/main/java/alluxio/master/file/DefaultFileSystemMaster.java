@@ -120,7 +120,6 @@ import alluxio.underfs.options.ListOptions;
 import alluxio.util.CommonUtils;
 import alluxio.util.IdUtils;
 import alluxio.util.SecurityUtils;
-import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.executor.ExecutorServiceFactory;
 import alluxio.util.interfaces.Scoped;
@@ -377,7 +376,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     mUfsAbsentPathCache = UfsAbsentPathCache.Factory.create(mMountTable);
     mUfsBlockLocationCache = UfsBlockLocationCache.Factory.create(mMountTable);
     mUfsSyncPathCache = new UfsSyncPathCache();
-    mSyncManager = new ActiveSyncManager(mMountTable, this, getExecutorService());
+    mSyncManager = new ActiveSyncManager(mMountTable, this);
 
     resetState();
     Metrics.registerGauges(this, mUfsManager);

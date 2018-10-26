@@ -162,7 +162,8 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
       }
     });
     try {
-      mHdfsAdmin = new HdfsAdmin(URI.create(ufsUri.getPath()), hdfsConf);
+      LOG.info("creating hdfs admin {}", ufsUri.toString());
+      mHdfsAdmin = new HdfsAdmin(URI.create(ufsUri.toString()), new Configuration());
       mHdfsActiveSyncer = new HdfsActiveSyncProvider(mHdfsAdmin);
     } catch (IOException e) {
       LOG.warn("Failed to initialize Hdfs Admin");

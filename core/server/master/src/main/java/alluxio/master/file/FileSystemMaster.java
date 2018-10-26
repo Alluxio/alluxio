@@ -55,6 +55,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
 
 /**
  * The interface of file system master.
@@ -501,4 +502,6 @@ public interface FileSystemMaster extends Master {
   void startSync(AlluxioURI alluxioURI) throws UnavailableException, InvalidPathException;
 
   void stopSync(AlluxioURI alluxioURI) throws UnavailableException, InvalidPathException;
+
+  ExecutorService getExecutorService();
 }

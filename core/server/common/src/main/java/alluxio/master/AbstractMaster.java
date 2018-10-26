@@ -127,7 +127,7 @@ public abstract class AbstractMaster implements Master {
   /**
    * @return the {@link ExecutorService} for this master
    */
-  protected ExecutorService getExecutorService() {
+  public ExecutorService getExecutorService() {
     return mExecutorService;
   }
 

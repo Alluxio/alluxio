@@ -10,6 +10,7 @@ import alluxio.master.file.meta.options.MountInfo;
 import alluxio.resource.CloseableResource;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.io.PathUtils;
+import com.google.common.base.Throwables;
 import org.omg.CORBA.DynAnyPackage.Invalid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,6 +46,8 @@ public class ActiveSyncer implements HeartbeatExecutor {
 
   @Override
   public void heartbeat() {
+    LOG.info("start Active Syncer heartbeat");
+
     List<AlluxioURI> filterList =  mSyncManager.getFilterList(mRootPath);
     List<AlluxioURI> ufsUriList = filterList.stream().map(alluxioURI -> {
       try {
@@ -56,6 +59,14 @@ public class ActiveSyncer implements HeartbeatExecutor {
     }).collect(Collectors.toList());
     if (filterList == null || filterList.isEmpty()) {
       return;
+    }
+
+    LOG.info("filterList");
+    for (AlluxioURI filter: filterList) {
+      LOG.info("filterUri {}", filter.getPath());
+    }
+    for (AlluxioURI ufsUri: ufsUriList) {
+      LOG.info("ufsUri {}", ufsUri.getPath());
     }
 
     AlluxioURI path = filterList.get(0);
@@ -70,13 +81,18 @@ public class ActiveSyncer implements HeartbeatExecutor {
           List<AlluxioURI> ufsSyncPoints = syncInfo.getSyncList();
           List<AlluxioURI> alluxioSyncPoints = ufsSyncPoints.stream()
               .map(mMountTable::reverseResolve).collect(Collectors.toList());
+          for (AlluxioURI uri : ufsSyncPoints) {
+            LOG.info("ufsSyncPoints {}", uri.toString());
+          }
           for (AlluxioURI uri : alluxioSyncPoints) {
-            LOG.debug("ready to sync {}", uri.getPath());
+            LOG.info("ready to sync {}", uri.toString());
           }
         }
       }
     } catch (InvalidPathException e) {
       LOG.warn("Invalid path {}", path.getPath());
+    } catch (Exception e) {
+      LOG.warn("Exception " + Throwables.getStackTraceAsString(e));
     }
   }
 

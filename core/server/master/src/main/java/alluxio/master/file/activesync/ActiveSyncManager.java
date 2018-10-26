@@ -13,6 +13,8 @@ import alluxio.resource.CloseableResource;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.io.PathUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.List;
@@ -24,7 +26,7 @@ import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
 public class ActiveSyncManager {
-
+  private static final Logger LOG = LoggerFactory.getLogger(ActiveSyncManager.class);
   private final MountTable mMountTable;
 
   private final List<AlluxioURI> mSyncPathList;
@@ -34,16 +36,14 @@ public class ActiveSyncManager {
   private final Map<String, List<AlluxioURI>> mFilterMap;
 
   private FileSystemMaster mFileSystemMaster;
-  private ExecutorService mExecutorService;
 
   public ActiveSyncManager(MountTable mountTable,
-      FileSystemMaster fileSystemMaster, ExecutorService executorService) {
+      FileSystemMaster fileSystemMaster) {
     mMountTable = mountTable;
     mPollerMap = new ConcurrentHashMap<>();
     mFilterMap = new ConcurrentHashMap<>();
     mSyncPathList = new CopyOnWriteArrayList<>();
     mFileSystemMaster = fileSystemMaster;
-    mExecutorService = executorService;
   }
 
   public boolean isActivelySynced(AlluxioURI path) throws InvalidPathException {
@@ -56,17 +56,20 @@ public class ActiveSyncManager {
   }
 
   public boolean addSyncPoint(AlluxioURI syncPoint) throws InvalidPathException {
+    LOG.info("adding syncPoint {}", syncPoint.getPath());
     if (!isActivelySynced(syncPoint)) {
       MountTable.Resolution resolution = mMountTable.resolve(syncPoint);
       AlluxioURI ufsUri = resolution.getUri();
       String rootPath = ufsUri.getRootPath();
+      LOG.info("rootPath {}", rootPath);
       try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
         if (!UnderFileSystemUtils.isHdfs(ufsResource.get())) {
           throw new UnsupportedOperationException("Active Syncing is only available on HDFS currently");
         }
         ActiveSyncer syncer = new ActiveSyncer(mFileSystemMaster, this, mMountTable, rootPath);
-        Future<?> future = mExecutorService.submit(
-            new HeartbeatThread(HeartbeatContext.MASTER_ACTIVE_SYNC + rootPath,
+
+        Future<?> future = mFileSystemMaster.getExecutorService().submit(
+            new HeartbeatThread(HeartbeatContext.MASTER_ACTIVE_SYNC,
                 syncer,
                 (int) Configuration.getMs(PropertyKey.MASTER_ACTIVE_SYNC_INTERVAL_MS)));
         mPollerMap.put(rootPath, future);
