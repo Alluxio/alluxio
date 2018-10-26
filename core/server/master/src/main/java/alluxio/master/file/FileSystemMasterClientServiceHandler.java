@@ -45,7 +45,6 @@ import alluxio.thrift.FileInfo;
 import alluxio.thrift.FileSystemMasterClientService;
 import alluxio.thrift.FreeTOptions;
 import alluxio.thrift.FreeTResponse;
-import alluxio.thrift.GetMountPointInfoTResponse;
 import alluxio.thrift.GetMountTableTResponse;
 import alluxio.thrift.GetNewBlockIdForFileTOptions;
 import alluxio.thrift.GetNewBlockIdForFileTResponse;
@@ -247,15 +246,6 @@ public final class FileSystemMasterClientServiceHandler implements
       }
       return new GetMountTableTResponse(mountTableThrift);
     }, "GetMountTable", "");
-  }
-
-  @Override
-  public GetMountPointInfoTResponse getMountPointInfo(String path) throws AlluxioTException {
-    return RpcUtils.call(LOG, (RpcCallableThrowsIOException<GetMountPointInfoTResponse>) () -> {
-      MountPointInfo mountPointInfo = mFileSystemMaster.getMountPointInfo(new AlluxioURI(path));
-      alluxio.thrift.MountPointInfo mountInfoThrift = mountPointInfo.toThrift();
-      return new GetMountPointInfoTResponse(mountInfoThrift);
-    }, "GetMountPointInfo", "");
   }
 
   @Override

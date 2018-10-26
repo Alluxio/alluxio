@@ -168,15 +168,6 @@ public interface FileSystemMasterClient extends Client {
   Map<String, MountPointInfo> getMountTable() throws AlluxioStatusException;
 
   /**
-   * Gets a mount point information from an Alluxio path
-   *
-   * @param path an Alluxio path
-   * @return the mount point information
-   */
-  alluxio.wire.MountPointInfo getMountPointInfo(final AlluxioURI path)
-      throws AlluxioStatusException;
-
-  /**
    * Renames a file or a directory.
    *
    * @param src the path to rename

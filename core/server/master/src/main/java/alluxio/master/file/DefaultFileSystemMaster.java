@@ -144,7 +144,6 @@ import com.google.common.collect.Sets;
 import com.google.common.io.Closer;
 import org.apache.commons.lang.StringUtils;
 import org.apache.thrift.TProcessor;
-import org.omg.CORBA.DynAnyPackage.Invalid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
