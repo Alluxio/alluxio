@@ -218,6 +218,7 @@ public interface FileSystemMaster extends Master {
 
   /**
    * Gets the mount point information of an Alluxio path.
+   * The Alluxio path must be a mount point.
    *
    * @param path an Alluxio path
    * @return the mount point information

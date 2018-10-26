@@ -160,7 +160,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.SortedMap;
 import java.util.Stack;
+import java.util.TreeMap;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
@@ -1338,9 +1340,11 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
   @Override
   public Map<String, MountPointInfo> getMountTable() {
-    return mMountTable.getMountTable().entrySet().stream()
-        .sorted(Map.Entry.comparingByKey())
-        .collect(Collectors.toMap(Map.Entry::getKey, e -> getMountPointInfo(e.getValue())));
+    SortedMap<String, MountPointInfo> mountPoints = new TreeMap<>();
+    for (Map.Entry<String, MountInfo> mountPoint : mMountTable.getMountTable().entrySet()) {
+      mountPoints.put(mountPoint.getKey(), getMountPointInfo(mountPoint.getValue()));
+    }
+    return mountPoints;
   }
 
   @Override

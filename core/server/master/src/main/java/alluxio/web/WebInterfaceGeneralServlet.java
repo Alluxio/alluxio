@@ -16,7 +16,6 @@ import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
 import alluxio.StorageTierAssoc;
-import alluxio.exception.InvalidPathException;
 import alluxio.master.MasterProcess;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.FileSystemMaster;
@@ -231,8 +230,8 @@ public final class WebInterfaceGeneralServlet extends HttpServlet {
     MountPointInfo mountInfo;
     try {
       mountInfo = fsMaster.getMountPointInfo(new AlluxioURI(MountTable.ROOT));
-    } catch (InvalidPathException e) {
-      LOG.error("Missing root mount info");
+    } catch (Exception e) {
+      LOG.error("Unable to get root mount info", e);
       return;
     }
 
