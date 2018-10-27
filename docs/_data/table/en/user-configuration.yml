@@ -50,6 +50,8 @@ alluxio.user.file.passive.cache.enabled:
   'Whether to cache files to local Alluxio workers when the files are read from remote workers (not UFS).'
 alluxio.user.file.readtype.default:
   'Default read type when creating Alluxio files. Valid options are `CACHE_PROMOTE` (move data to highest tier if already in Alluxio storage, write data into highest tier of local Alluxio if data needs to be read from under storage), `CACHE` (write data into highest tier of local Alluxio if data needs to be read from under storage), `NO_CACHE` (no data interaction with Alluxio, if the read is from Alluxio data migration or eviction will not occur).'
+alluxio.user.file.ufs.tier.enabled:
+  'When workers run out of available memory, whether the client can skip writing data to Alluxio but fallback to write to UFS without stopping the application. This property only works when the write type is ASYNC_THROUGH.'
 alluxio.user.file.seek.buffer.size.bytes:
   'The file seek buffer size. This is only used when alluxio.user.file.cache.partially.read.block is enabled.'
 alluxio.user.file.waitcompleted.poll:
@@ -94,6 +96,8 @@ alluxio.user.network.netty.writer.buffer.size.packets:
   'When a client writes to a remote worker, the maximum number of packets to buffer by the client.'
 alluxio.user.network.netty.writer.close.timeout:
   'The timeout to close a netty writer client.'
+alluxio.user.network.netty.writer.flush.timeout:
+  'The timeout to wait for flush to finish in a netty writer.'
 alluxio.user.network.netty.writer.packet.size.bytes:
   'When a client writes to a remote worker, the maximum packet size.'
 alluxio.user.network.socket.timeout:
@@ -122,3 +126,7 @@ alluxio.user.ufs.file.reader.class:
   'Selects networking stack to run the client with for reading from under file system through a worker''s data server. Currently only `alluxio.client.netty.NettyUnderFileSystemFileReader` (remote read using netty) is valid.'
 alluxio.user.ufs.file.writer.class:
   'Selects networking stack to run the client with for writing to under file system through a worker''s data server. Currently only `alluxio.client.netty.NettyUnderFileSystemFileWriter` (remote write using netty) is valid.'
+alluxio.user.ufs.block.location.all.fallback.enabled:
+  'Whether to return all workers as block location if ufs block locations are not co-located with any Alluxio workers or is empty.'
+alluxio.user.worker.list.refresh.interval:
+  'The interval used to refresh the live worker list on the client.'
