@@ -81,7 +81,13 @@ $ ./bin/alluxio fs cat /output/part-00000
 
 例如，`checkConsistency`命令可以用来周期性地检查命名空间的完整性：
 
-{% include Command-Line-Interface/checkConsistency.md %}
+```bash
+# List each inconsistent file or directory
+$ ./bin/alluxio fs checkConsistency /
+#
+# Repair the inconsistent files or directories
+$ ./bin/alluxio fs checkConsistency -r /
+```
 
 ### checksum
 
