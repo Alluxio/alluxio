@@ -1382,11 +1382,28 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
-  public static final PropertyKey MASTER_ACTIVE_SYNC_INTERVAL_MS =
-      new Builder(Name.MASTER_ACTIVE_SYNC_INTERVAL_MS)
+  public static final PropertyKey MASTER_ACTIVE_UFS_SYNC_INTERVAL_MS =
+      new Builder(Name.MASTER_ACTIVE_UFS_SYNC_INTERVAL_MS)
           .setAlias(new String[]{"alluxio.master.activesync.interval.ms"})
-          .setDefaultValue("3sec")
+          .setDefaultValue("30sec")
           .setDescription("Time interval to periodically actively sync UFS")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_ACTIVE_UFS_SYNC_MAX_AGE =
+      new Builder(Name.MASTER_ACTIVE_UFS_SYNC_MAX_AGE)
+          .setAlias(new String[]{"alluxio.master.activesync.maxage"})
+          .setDefaultValue("10")
+          .setDescription("Number of intervals before force syncing a "
+              + "directory as part of actively syncing UFS")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_ACTIVE_UFS_SYNC_MAX_ACTIVITY =
+      new Builder(Name.MASTER_ACTIVE_UFS_SYNC_MAX_ACTIVITY)
+          .setAlias(new String[]{"alluxio.master.activesync.maxactivity"})
+          .setDefaultValue("10")
+          .setDescription("Max number of changes in a directory to be considered for active syncing")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
@@ -3472,8 +3489,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.tieredstore.global.levels";
     public static final String MASTER_TTL_CHECKER_INTERVAL_MS =
         "alluxio.master.ttl.checker.interval";
-    public static final String MASTER_ACTIVE_SYNC_INTERVAL_MS =
+    public static final String MASTER_ACTIVE_UFS_SYNC_INTERVAL_MS =
         "alluxio.master.activesync.interval";
+    public static final String MASTER_ACTIVE_UFS_SYNC_MAX_ACTIVITY =
+        "alluxio.master.activesync.maxactivity";
+    public static final String MASTER_ACTIVE_UFS_SYNC_MAX_AGE=
+        "alluxio.master.activesync.maxage";
     public static final String MASTER_UFS_BLOCK_LOCATION_CACHE_CAPACITY =
         "alluxio.master.ufs.block.location.cache.capacity";
     public static final String MASTER_UFS_PATH_CACHE_CAPACITY =

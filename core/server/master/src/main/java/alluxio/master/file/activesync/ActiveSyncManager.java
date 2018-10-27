@@ -21,7 +21,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
@@ -71,7 +70,7 @@ public class ActiveSyncManager {
         Future<?> future = mFileSystemMaster.getExecutorService().submit(
             new HeartbeatThread(HeartbeatContext.MASTER_ACTIVE_SYNC,
                 syncer,
-                (int) Configuration.getMs(PropertyKey.MASTER_ACTIVE_SYNC_INTERVAL_MS)));
+                (int) Configuration.getMs(PropertyKey.MASTER_ACTIVE_UFS_SYNC_INTERVAL_MS)));
         mPollerMap.put(rootPath, future);
 
         // Add the new sync point to the filter map

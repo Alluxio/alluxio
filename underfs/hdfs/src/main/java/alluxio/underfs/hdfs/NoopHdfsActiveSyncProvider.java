@@ -23,16 +23,12 @@ import org.apache.hadoop.fs.FileSystem;
 import java.io.IOException;
 import java.util.List;
 
-import javax.annotation.Nullable;
-
 /**
- * Interface for providing HDFS ActiveSync.
+ * The noop HDFS Active Sync provider.
  */
-public interface HdfsActiveSyncProvider {
-  /**
-   * Get Active SyncInfo from the sync provider
-   * @param syncPointList List of alluxio URIs to watch for changes
-   * @return SyncInfo a syncInfo containing information about what to sync and how to sync
-   */
-  SyncInfo getActivitySyncInfo(List<AlluxioURI> syncPointList);
+public class NoopHdfsActiveSyncProvider implements HdfsActiveSyncProvider {
+  @Override
+  public SyncInfo getActivitySyncInfo(List<AlluxioURI> syncPointList) {
+    return SyncInfo.emptyInfo();
+  }
 }

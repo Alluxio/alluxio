@@ -49,11 +49,8 @@ import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.permission.FsPermission;
-import org.apache.hadoop.hdfs.DFSInotifyEventInputStream;
 import org.apache.hadoop.hdfs.DistributedFileSystem;
 import org.apache.hadoop.hdfs.client.HdfsAdmin;
-import org.apache.hadoop.hdfs.inotify.Event;
-import org.apache.hadoop.hdfs.inotify.EventBatch;
 import org.apache.hadoop.security.SecurityUtil;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.slf4j.Logger;
@@ -63,15 +60,14 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.lang.reflect.Constructor;
 import java.net.URI;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Stack;
 import java.util.concurrent.ExecutionException;
-import java.util.stream.Stream;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
@@ -88,6 +84,10 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
   /** Name of the class for the HDFS Acl provider. */
   private static final String HDFS_ACL_PROVIDER_CLASS =
       "alluxio.underfs.hdfs.acl.SupportedHdfsAclProvider";
+
+  /** Name of the class for the Hdfs ActiveSync provider */
+  private static final String HDFS_ACTIVESYNC_PROVIDER_CLASS =
+      "alluxio.underfs.hdfs.activesync.SupportedHdfsActiveSyncProvider";
 
   private final LoadingCache<String, FileSystem> mUserFs;
   private final HdfsAclProvider mHdfsAclProvider;
@@ -161,13 +161,27 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
         return path.getFileSystem(hdfsConf);
       }
     });
+
+    // Create the supported HdfsActiveSyncer if possible.
+    HdfsActiveSyncProvider hdfsActiveSyncProvider = new NoopHdfsActiveSyncProvider();
+
     try {
-      LOG.info("creating hdfs admin {}", ufsUri.toString());
+      Constructor c = Class.forName(HDFS_ACTIVESYNC_PROVIDER_CLASS).getConstructor(HdfsAdmin.class);
       mHdfsAdmin = new HdfsAdmin(URI.create(ufsUri.toString()), new Configuration());
-      mHdfsActiveSyncer = new HdfsActiveSyncProvider(mHdfsAdmin);
-    } catch (IOException e) {
-      LOG.warn("Failed to initialize Hdfs Admin");
+      Object o = c.newInstance(mHdfsAdmin);
+      if (o instanceof HdfsActiveSyncProvider) {
+        hdfsActiveSyncProvider = (HdfsActiveSyncProvider) o;
+      } else {
+        LOG.warn(
+            "SupportedHdfsActiveSyncProvider is not instance of HdfsActiveSyncProvider. HDFS ActiveSync will not be "
+                + "supported.");
+      }
+    } catch (Exception e) {
+      // ignore
+      LOG.warn("Cannot create SupportedHdfsActiveSyncProvider. HDFS ActiveSync will not be supported.");
     }
+
+    mHdfsActiveSyncer = hdfsActiveSyncProvider;
   }
   @Override
   public String getUnderFSType() {

@@ -6,18 +6,14 @@ import alluxio.exception.InvalidPathException;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.master.file.activesync.ActiveSyncManager;
 import alluxio.master.file.meta.MountTable;
-import alluxio.master.file.meta.options.MountInfo;
 import alluxio.resource.CloseableResource;
 import alluxio.underfs.UnderFileSystem;
-import alluxio.util.io.PathUtils;
 import com.google.common.base.Throwables;
-import org.omg.CORBA.DynAnyPackage.Invalid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
