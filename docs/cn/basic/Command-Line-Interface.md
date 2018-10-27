@@ -70,7 +70,6 @@ Usage: alluxio fs [generic options]
 $ ./bin/alluxio fs cat /output/part-00000
 ```
 
-
 ### checkConsistency
 
 `checkConsistency`命令会对比Alluxio和底层存储系统在给定路径下的元数据。如果该路径是一个目录，那么目录下的所有内容都会被对比。该命令会返回所有不一致的文件和目录的列表，系统管理员决定是否对这些不一致数据进行调整。为了避免Alluxio与底层存储系统的元数据不一致，你的系统应该尽量通过Alluxio来修改文件和目录，避免直接访问底层存储系统进行修改。
