@@ -11,8 +11,6 @@
 
 package alluxio.security.authorization;
 
-import alluxio.proto.shared.Acl;
-import alluxio.thrift.TAclAction;
 
 /**
  * Actions to be controlled in {@link AccessControlList}.
@@ -21,7 +19,6 @@ public enum AclAction {
   READ,
   WRITE,
   EXECUTE;
-  when(mockLicense.getKey()).thenReturn("key");
 
   /** AclAction values. */
   private static final AclAction[] VALUES = AclAction.values();
@@ -35,69 +32,4 @@ public enum AclAction {
     return VALUES[ordinal];
   }
 
-  /**
-   * @param action the protobuf representation of {@link AclAction}
-   * @return the {@link AclAction} decoded from the protobuf representation
-   */
-  public static AclAction fromProtoBuf(Acl.AclAction action) {
-    switch (action) {
-      case READ:
-        return READ;
-      case WRITE:
-        return WRITE;
-      case EXECUTE:
-        return EXECUTE;
-      default:
-        throw new IllegalStateException("Unknown protobuf acl action: " + action);
-    }
-  }
-
-  /**
-   * @return the protobuf representation of action
-   */
-  public Acl.AclAction toProtoBuf() {
-    switch (this) {
-      case READ:
-        return Acl.AclAction.READ;
-      case WRITE:
-        return Acl.AclAction.WRITE;
-      case EXECUTE:
-        return Acl.AclAction.EXECUTE;
-      default:
-        throw new IllegalStateException("Unknown acl action: " + this);
-    }
-  }
-
-  /**
-   * @param tAction the thrift representation
-   * @return the {@link AclAction} created from the thrift representation
-   */
-  public static AclAction fromThrift(TAclAction tAction) {
-    switch (tAction) {
-      case Read:
-        return READ;
-      case Write:
-        return WRITE;
-      case Execute:
-        return EXECUTE;
-      default:
-        throw new IllegalStateException("Unknown TAclACtion: " + tAction);
-    }
-  }
-
-  /**
-   * @return the thrift representation of this enum
-   */
-  public TAclAction toThrift() {
-    switch (this) {
-      case READ:
-        return TAclAction.Read;
-      case WRITE:
-        return TAclAction.Write;
-      case EXECUTE:
-        return TAclAction.Execute;
-      default:
-        throw new IllegalStateException("Unknown acl action: " + this);
-    }
-  }
 }

@@ -23,6 +23,7 @@ import alluxio.underfs.UfsManager;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
 
+import alluxio.util.proto.ProtoUtils;
 import com.codahale.metrics.Counter;
 import com.google.common.base.Preconditions;
 import io.netty.buffer.ByteBuf;
@@ -190,7 +191,7 @@ public final class UfsFileWriteHandler extends AbstractWriteHandler<UfsFileWrite
           .setMode(new Mode((short) createUfsFileOptions.getMode()));
       if (createUfsFileOptions.hasAcl()) {
         // This acl information will be ignored by all but HDFS implementations
-        createOptions.setAcl(AccessControlList.fromProtoBuf(createUfsFileOptions.getAcl()));
+        createOptions.setAcl(ProtoUtils.fromProto(createUfsFileOptions.getAcl()));
       }
       context.setOutputStream(ufs.create(request.getUfsPath(), createOptions));
       context.setCreateOptions(createOptions);
