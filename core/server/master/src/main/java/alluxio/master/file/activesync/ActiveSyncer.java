@@ -26,17 +26,17 @@ public class ActiveSyncer implements HeartbeatExecutor {
   private final FileSystemMaster mFileSystemMaster;
   private final ActiveSyncManager mSyncManager;
   private final MountTable mMountTable;
-  private final String mRootPath;
+  private final long mMountId;
 
 
   /**
    * Constructs a new {@link ActiveSyncer}.
    */
   public ActiveSyncer(FileSystemMaster fileSystemMaster, ActiveSyncManager syncManager,
-      MountTable mountTable, String rootPath) {
+      MountTable mountTable, long mountId) {
     mFileSystemMaster = fileSystemMaster;
     mSyncManager = syncManager;
-    mRootPath = rootPath;
+    mMountId = mountId;
     mMountTable = mountTable;
   }
 
@@ -45,7 +45,7 @@ public class ActiveSyncer implements HeartbeatExecutor {
   public void heartbeat() {
     LOG.info("start Active Syncer heartbeat");
 
-    List<AlluxioURI> filterList =  mSyncManager.getFilterList(mRootPath);
+    List<AlluxioURI> filterList =  mSyncManager.getFilterList(mMountId);
     List<AlluxioURI> ufsUriList = filterList.stream().map(alluxioURI -> {
       try {
         return mMountTable.resolve(alluxioURI).getUri();

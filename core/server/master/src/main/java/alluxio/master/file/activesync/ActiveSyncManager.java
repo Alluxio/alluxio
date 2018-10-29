@@ -28,9 +28,9 @@ public class ActiveSyncManager {
 
   private final List<AlluxioURI> mSyncPathList;
   // a map which maps each UFS rootPath to a thread polling that UFS
-  private final Map<String, Future<?>> mPollerMap;
+  private final Map<Long, Future<?>> mPollerMap;
   //  a map which maps each UFS rootPath to a list of paths being actively synced on that thread
-  private final Map<String, List<AlluxioURI>> mFilterMap;
+  private final Map<Long, List<AlluxioURI>> mFilterMap;
 
   private FileSystemMaster mFileSystemMaster;
 
@@ -56,29 +56,27 @@ public class ActiveSyncManager {
     LOG.info("adding syncPoint {}", syncPoint.getPath());
     if (!isActivelySynced(syncPoint)) {
       MountTable.Resolution resolution = mMountTable.resolve(syncPoint);
-      AlluxioURI ufsUri = resolution.getUri();
-      String rootPath = ufsUri.getRootPath();
-      LOG.info("rootPath {}", rootPath);
+      long mountId = resolution.getMountId();
       try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
         if (!ufsResource.get().supportsActiveSync()) {
           throw new UnsupportedOperationException("Active Syncing is not supported on this UFS type"
               + ufsResource.get().getUnderFSType());
         }
-        if (!mPollerMap.containsKey(rootPath)) {
-          ActiveSyncer syncer = new ActiveSyncer(mFileSystemMaster, this, mMountTable, rootPath);
+        if (!mPollerMap.containsKey(mountId)) {
+          ActiveSyncer syncer = new ActiveSyncer(mFileSystemMaster, this, mMountTable, mountId);
 
           Future<?> future = mFileSystemMaster.getExecutorService().submit(
               new HeartbeatThread(HeartbeatContext.MASTER_ACTIVE_SYNC,
                   syncer,
                   (int) Configuration.getMs(PropertyKey.MASTER_ACTIVE_UFS_SYNC_INTERVAL_MS)));
-          mPollerMap.put(rootPath, future);
+          mPollerMap.put(mountId, future);
         }
 
         // Add the new sync point to the filter map
-        if (mFilterMap.containsKey(rootPath)) {
-          mFilterMap.get(rootPath).add(syncPoint);
+        if (mFilterMap.containsKey(mountId)) {
+          mFilterMap.get(mountId).add(syncPoint);
         } else {
-          mFilterMap.put(rootPath, new CopyOnWriteArrayList<>(Arrays.asList(syncPoint)));
+          mFilterMap.put(mountId, new CopyOnWriteArrayList<>(Arrays.asList(syncPoint)));
         }
         // Add to the sync point list
         mSyncPathList.add(syncPoint);
@@ -114,8 +112,8 @@ public class ActiveSyncManager {
     return true;
   }
 
-  public List<AlluxioURI> getFilterList(String rootPath) {
-    return mFilterMap.get(rootPath);
+  public List<AlluxioURI> getFilterList(long mountId) {
+    return mFilterMap.get(mountId);
   }
 
   public List<String> getSyncPathList() {
