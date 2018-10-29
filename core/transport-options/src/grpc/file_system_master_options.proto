@@ -1,0 +1,155 @@
+syntax = "proto2";
+
+option java_multiple_files = true;
+option java_package = "alluxio.grpc";
+option java_outer_classname = "FileSystemMasterOptionsProto";
+
+package alluxio.grpc;
+
+import "common.proto";
+
+message FileSystemMasterCommonPOptions {
+  optional int64 syncIntervalMs = 1;
+  optional int64 ttl = 2;
+  optional grpc.TtlAction ttlAction = 3;
+}
+
+message CheckConsistencyPOptions {
+  optional FileSystemMasterCommonPOptions commonOptions = 1;
+}
+
+message CompleteFilePOptions {
+  optional int64 ufsLength = 1;
+  optional FileSystemMasterCommonPOptions commonOptions = 2;
+}
+
+message CreateDirectoryPOptions {
+  optional bool persisted = 1;
+  optional bool recursive = 2;
+  optional bool allowExist = 3;
+  optional int32 mode = 4;
+  optional FileSystemMasterCommonPOptions commonOptions = 5;
+}
+
+message CreateFilePOptions {
+  optional int64 blockSizeBytes = 1;
+  optional bool persisted = 2;
+  optional bool recursive = 3;
+  optional int32 mode = 4;
+  optional FileSystemMasterCommonPOptions commonOptions = 5;
+}
+
+message DeletePOptions {
+  optional bool recursive = 1;
+  optional bool alluxioOnly = 2;
+  optional bool unchecked = 3;
+  optional FileSystemMasterCommonPOptions commonOptions = 4;
+}
+
+message FreePOptions {
+  optional bool recursive = 1;
+  optional bool forced = 2;
+  optional FileSystemMasterCommonPOptions commonOptions = 3;
+}
+
+enum LoadMetadataPType {
+  NEVER = 0;  // Never load metadata.
+  ONCE = 1;  // Load metadata only once.
+  ALWAYS = 2;  // Always load metadata.
+}
+
+message GetNewBlockIdForFilePOptions {
+  optional FileSystemMasterCommonPOptions commonOptions = 1;
+}
+
+message GetStatusPOptions {
+  optional LoadMetadataPType loadMetadataType = 1;
+  optional FileSystemMasterCommonPOptions commonOptions = 2;
+}
+
+message ListStatusPOptions {
+  // This is deprecated since 1.1.1 and will be removed in 2.0. Use loadMetadataType.
+  optional bool loadDirectChildren = 1;
+  optional LoadMetadataPType loadMetadataType = 2;
+  optional FileSystemMasterCommonPOptions commonOptions = 3;
+  optional bool recursive = 4;
+}
+
+message LoadMetadataPOptions {
+  /** whether to load metadata recursively */
+  optional bool recursive = 1;
+  optional FileSystemMasterCommonPOptions commonOptions = 2;
+}
+
+message MountPOptions {
+  optional bool readOnly = 1;
+  map<string, string> properties = 2;
+  optional bool shared = 3;
+  optional FileSystemMasterCommonPOptions commonOptions = 4;
+}
+
+message FileSystemCommandOptions {
+  optional PersistCommandOptions persistOptions = 1;
+}
+
+message PersistCommandOptions {
+  repeated PersistFile persistFiles = 1;
+}
+
+message PersistFile {
+  optional int64 fileId = 1;
+  repeated int64 blockIds = 2;
+}
+
+message RenamePOptions {
+  optional FileSystemMasterCommonPOptions commonOptions = 1;
+}
+
+message SetAttributePOptions {
+  optional bool pinned = 1;
+  optional int64 ttl = 2;
+  optional bool persisted = 3;
+  optional string owner = 4;
+  optional string group = 5;
+  optional int32 mode = 6;
+  optional bool recursive = 7;
+  optional grpc.TtlAction ttlAction = 8;
+  optional FileSystemMasterCommonPOptions commonOptions = 9;
+}
+
+message SetAclPOptions {
+  optional FileSystemMasterCommonPOptions commonOptions = 1;
+  optional bool recursive = 2;
+}
+
+message ScheduleAsyncPersistencePOptions {
+  optional FileSystemMasterCommonPOptions commonOptions = 1;
+}
+
+message SyncMetadataPOptions {
+  optional FileSystemMasterCommonPOptions commonOptions = 1;
+}
+
+message UnmountPOptions {
+  optional FileSystemMasterCommonPOptions commonOptions = 1;
+}
+
+enum UfsMode {
+  NoAccess = 1;
+  ReadOnly = 2;
+  ReadWrite = 3;
+}
+
+message UpdateUfsModePOptions {
+  optional UfsMode ufsMode = 1;
+}
+
+message FileSystemHeartbeatPOptions {
+  repeated string persistedFileFingerprints = 1;
+}
+
+message GetFileInfoPOptions {}
+
+message GetPinnedFileIdsPOptions {}
+
+message GetUfsInfoPOptions {}

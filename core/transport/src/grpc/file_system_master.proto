@@ -7,16 +7,8 @@ option java_outer_classname = "FileSystemMasterProto";
 package alluxio.grpc;
 
 import "common.proto";
+import "file_system_master_options.proto";
 
-message FileSystemMasterCommonPOptions {
-  optional int64 syncIntervalMs = 1;
-  optional int64 ttl = 2;
-  optional grpc.TtlAction ttlAction = 3;
-}
-
-message CheckConsistencyPOptions {
-  optional FileSystemMasterCommonPOptions commonOptions = 1;
-}
 message CheckConsistencyPResponse {
   repeated string inconsistentPaths = 1;
 }
@@ -26,10 +18,6 @@ message CheckConsistencyPRequest {
   optional CheckConsistencyPOptions options = 2;
 }
 
-message CompleteFilePOptions {
-  optional int64 ufsLength = 1;
-  optional FileSystemMasterCommonPOptions commonOptions = 2;
-}
 message CompleteFilePResponse {}
 message CompleteFilePRequest {
   /** the path of the file */
@@ -37,14 +25,6 @@ message CompleteFilePRequest {
   optional CompleteFilePOptions options = 2;
 }
 
-
-message CreateDirectoryPOptions {
-  optional bool persisted = 1;
-  optional bool recursive = 2;
-  optional bool allowExist = 3;
-  optional int32 mode = 4;
-  optional FileSystemMasterCommonPOptions commonOptions = 5;
-}
 message CreateDirectoryPResponse {}
 message CreateDirectoryPRequest {
   /** the path of the directory */
@@ -53,13 +33,6 @@ message CreateDirectoryPRequest {
 }
 
 
-message CreateFilePOptions {
-  optional int64 blockSizeBytes = 1;
-  optional bool persisted = 2;
-  optional bool recursive = 3;
-  optional int32 mode = 4;
-  optional FileSystemMasterCommonPOptions commonOptions = 5;
-}
 message CreateFilePResponse {}
 message CreateFilePRequest {
   /** the path of the file */
@@ -68,12 +41,6 @@ message CreateFilePRequest {
 }
 
 
-message DeletePOptions {
-  optional bool recursive = 1;
-  optional bool alluxioOnly = 2;
-  optional bool unchecked = 3;
-  optional FileSystemMasterCommonPOptions commonOptions = 4;
-}
 message DeletePResponse {}
 message DeletePRequest {
   /** the path of the file or directory */
@@ -82,11 +49,6 @@ message DeletePRequest {
 }
 
 
-message FreePOptions {
-  optional bool recursive = 1;
-  optional bool forced = 2;
-  optional FileSystemMasterCommonPOptions commonOptions = 3;
-}
 message FreePResponse {}
 message FreePRequest {
   /** the path of the file or directory */
@@ -95,15 +57,6 @@ message FreePRequest {
 }
 
 
-enum LoadMetadataPType {
-  NEVER = 0;  // Never load metadata.
-  ONCE = 1;  // Load metadata only once.
-  ALWAYS = 2;  // Always load metadata.
-}
-
-message GetNewBlockIdForFilePOptions {
-  optional FileSystemMasterCommonPOptions commonOptions = 1;
-}
 message GetNewBlockIdForFilePResponse {
   optional int64 id = 1;
 }
@@ -114,10 +67,6 @@ message GetNewBlockIdForFilePRequest {
 }
 
 
-message GetStatusPOptions {
-  optional LoadMetadataPType loadMetadataType = 1;
-  optional FileSystemMasterCommonPOptions commonOptions = 2;
-}
 message GetStatusPResponse {
   optional FileInfo fileInfo = 1;
 }
@@ -128,13 +77,6 @@ message GetStatusPRequest {
 }
 
 
-message ListStatusPOptions {
-  // This is deprecated since 1.1.1 and will be removed in 2.0. Use loadMetadataType.
-  optional bool loadDirectChildren = 1;
-  optional LoadMetadataPType loadMetadataType = 2;
-  optional FileSystemMasterCommonPOptions commonOptions = 3;
-  optional bool recursive = 4;
-}
 message ListStatusPResponse {
   repeated FileInfo fileInfoList = 1;
 }
@@ -145,11 +87,6 @@ message ListStatusPRequest {
 }
 
 
-message LoadMetadataPOptions {
-  /** whether to load metadata recursively */
-  optional bool recursive = 1;
-  optional FileSystemMasterCommonPOptions commonOptions = 2;
-}
 message LoadMetadataPResponse {
   optional int64 id = 1;
 }
@@ -231,12 +168,6 @@ message FileInfo {
   optional PAcl defaultAcl = 27;
 }
 
-message MountPOptions {
-  optional bool readOnly = 1;
-  map<string, string> properties = 2;
-  optional bool shared = 3;
-  optional FileSystemMasterCommonPOptions commonOptions = 4;
-}
 message MountPResponse {}
 message MountPRequest {
   /** the path of alluxio mount point */
@@ -267,22 +198,7 @@ message FileSystemCommand {
   optional FileSystemCommandOptions commandOptions = 2;
 }
 
-message FileSystemCommandOptions {
-  optional PersistCommandOptions persistOptions = 1;
-}
 
-message PersistCommandOptions {
-  repeated PersistFile persistFiles = 1;
-}
-
-message PersistFile {
-  optional int64 fileId = 1;
-  repeated int64 blockIds = 2;
-}
-
-message RenamePOptions {
-  optional FileSystemMasterCommonPOptions commonOptions = 1;
-}
 message RenamePResponse {}
 message RenamePRequest {
   /** the source path of the file or directory */
@@ -293,17 +209,6 @@ message RenamePRequest {
 }
 
 
-message SetAttributePOptions {
-  optional bool pinned = 1;
-  optional int64 ttl = 2;
-  optional bool persisted = 3;
-  optional string owner = 4;
-  optional string group = 5;
-  optional int32 mode = 6;
-  optional bool recursive = 7;
-  optional grpc.TtlAction ttlAction = 8;
-  optional FileSystemMasterCommonPOptions commonOptions = 9;
-}
 message SetAttributePResponse {}
 message SetAttributePRequest {
   /** the path of the file */
@@ -319,10 +224,6 @@ enum PSetAclAction {
   RemoveDefault = 4;
 }
 
-message SetAclPOptions {
-  optional FileSystemMasterCommonPOptions commonOptions = 1;
-  optional bool recursive = 2;
-}
 message SetAclPResponse {}
 message SetAclPRequest {
   /** the path of the file or directory */
@@ -335,9 +236,6 @@ message SetAclPRequest {
   optional SetAclPOptions options = 4;
 }
 
-message ScheduleAsyncPersistencePOptions {
-  optional FileSystemMasterCommonPOptions commonOptions = 1;
-}
 message ScheduleAsyncPersistencePResponse {}
 message ScheduleAsyncPersistencePRequest {
   /** the path of the file */
@@ -346,9 +244,6 @@ message ScheduleAsyncPersistencePRequest {
 }
 
 
-message SyncMetadataPOptions {
-  optional FileSystemMasterCommonPOptions commonOptions = 1;
-}
 message SyncMetadataPResponse {
   optional bool synced = 1;
 }
@@ -358,9 +253,6 @@ message SyncMetadataPRequest {
 }
 
 
-message UnmountPOptions {
-  optional FileSystemMasterCommonPOptions commonOptions = 1;
-}
 message UnmountPResponse {}
 message UnmountPRequest {
   /** the path of the alluxio mount point */
@@ -374,15 +266,6 @@ message UfsInfo {
   optional MountPOptions properties = 2;
 }
 
-enum UfsMode {
-  NoAccess = 1;
-  ReadOnly = 2;
-  ReadWrite = 3;
-}
-
-message UpdateUfsModePOptions {
-  optional UfsMode ufsMode = 1;
-}
 message UpdateUfsModePResponse {}
 message UpdateUfsModePRequest {
   /** the ufs path */
@@ -488,9 +371,6 @@ service FileSystemMasterService {
   rpc UpdateUfsMode(UpdateUfsModePRequest) returns (UpdateUfsModePResponse);
 }
 
-message FileSystemHeartbeatPOptions {
-  repeated string persistedFileFingerprints = 1;
-}
 message FileSystemHeartbeatPResponse {
   optional FileSystemCommand command = 1;
 }
@@ -502,7 +382,6 @@ message FileSystemHeartbeatPRequest {
   optional FileSystemHeartbeatPOptions options = 3;
 }
 
-message GetFileInfoPOptions {}
 message GetFileInfoPResponse {
   optional FileInfo fileInfo = 1;
 }
@@ -512,7 +391,6 @@ message GetFileInfoPRequest {
   optional GetFileInfoPOptions options = 2;
 }
 
-message GetPinnedFileIdsPOptions {}
 message GetPinnedFileIdsPResponse {
   // TODO(adit): set replacement?
   repeated int64 pinnedFileIds = 1;
@@ -521,7 +399,6 @@ message GetPinnedFileIdsPRequest {
   optional GetPinnedFileIdsPOptions options = 1;
 }
 
-message GetUfsInfoPOptions {}
 message GetUfsInfoPResponse {
   optional UfsInfo ufsInfo = 1;
 }
