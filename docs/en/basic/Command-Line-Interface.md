@@ -416,11 +416,14 @@ For example, `cp` can be used to copy files between under storage systems.
 
 ### du
 
-The `du` command outputs the size of a file.
-If a directory is specified, it will output the aggregate size of all files in the directory and its child directories.
+The `du` command outputs the total size and in Alluxio size of files and folders.
 
-For example, if the Alluxio space is unexpectedly overutilized,
-`du` can be used to detect which folders are taking up the most space.
+If a directory is specified, it will display the total size and in Alluxio size of all files in this directory.
+If the `-s` option is used, it will display the aggregate summary of file lengths being displayed.
+
+By default, `du` prints the size in bytes. If the `-h` option is used, it will print sizes in human readable format (e.g., 1KB 234MB 2GB).
+
+The `--memory` option will print the in memory size as well.
 
 {% include Command-Line-Interface/du.md %}
 
@@ -612,6 +615,7 @@ Options:
 
 * `--readonly` option sets the mount point to be readonly in Alluxio
 * `--option <key>=<val>` option passes an property to this mount point, such as S3 credentials
+* `--shared` option sets the mount point to be shared with all Alluxio users.
 
 Note that `--readonly` mounts are useful to prevent accidental write operations.
 If multiple Alluxio satellite clusters mount a remote storage cluster which serves as the central source of truth,
@@ -663,10 +667,11 @@ The `rm` command removes a file from Alluxio space and the under storage system.
 The file will be unavailable immediately after this command returns,
 but the actual data may be deleted a while later.
 
-Adding `-R` option deletes all contents of the directory and the directory itself.
-Adding `-U` option skips the check for whether the UFS contents being deleted are in-sync with Alluxio
+* Adding `-R` option deletes all contents of the directory and the directory itself.
+* Adding `-U` option skips the check for whether the UFS contents being deleted are in-sync with Alluxio
 before attempting to delete persisted directories.
-For example, `rm` can be used to remove temporary files which are no longer needed.
+* Adding `--alluxioOnly` option removes data and metadata from Alluxio space only. 
+The under storage system will not be affected.
 
 {% include Command-Line-Interface/rm2.md %}
 
@@ -691,7 +696,8 @@ $ ./bin/alluxio fs setfacl -m "user:testuser:r-x" /testdir/testfile
 The `setTtl` command sets the time-to-live of a file or a directory, in milliseconds.
 If set TTL is run on a directory, the same TTL attributes is set on all its children.
 If a directory's TTL expires, all its children will also expire.
-Action parameter will indicate the action to perform once the file or directory expires.
+
+Action parameter `--action` will indicate the action to perform once the file or directory expires.
 The default action, `delete`, deletes the file or directory from both Alluxio and the under storage system,
 whereas the action `free` frees the file from Alluxio even if pinned.
 
