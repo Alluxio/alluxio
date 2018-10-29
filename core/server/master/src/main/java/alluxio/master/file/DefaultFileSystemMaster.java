@@ -1436,32 +1436,49 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   public Map<String, MountPointInfo> getMountTable() {
     SortedMap<String, MountPointInfo> mountPoints = new TreeMap<>();
     for (Map.Entry<String, MountInfo> mountPoint : mMountTable.getMountTable().entrySet()) {
-      MountInfo mountInfo = mountPoint.getValue();
-      MountPointInfo info = mountInfo.toMountPointInfo();
-      try (CloseableResource<UnderFileSystem> ufsResource =
-          mUfsManager.get(mountInfo.getMountId()).acquireUfsResource()) {
-        UnderFileSystem ufs = ufsResource.get();
-        info.setUfsType(ufs.getUnderFSType());
-        try {
-          info.setUfsCapacityBytes(
-              ufs.getSpace(info.getUfsUri(), UnderFileSystem.SpaceType.SPACE_TOTAL));
-        } catch (IOException e) {
-          // pass
-        }
-        try {
-          info.setUfsUsedBytes(
-              ufs.getSpace(info.getUfsUri(), UnderFileSystem.SpaceType.SPACE_USED));
-        } catch (IOException e) {
-          // pass
-        }
-      } catch (UnavailableException | NotFoundException e) {
-        // We should never reach here
-        LOG.error("No UFS cached for {}", info, e);
-        continue;
-      }
-      mountPoints.put(mountPoint.getKey(), info);
+      mountPoints.put(mountPoint.getKey(), getMountPointInfo(mountPoint.getValue()));
     }
     return mountPoints;
+  }
+
+  @Override
+  public MountPointInfo getMountPointInfo(AlluxioURI path) throws InvalidPathException {
+    if (!mMountTable.isMountPoint(path)) {
+      throw new InvalidPathException(
+          ExceptionMessage.PATH_MUST_BE_MOUNT_POINT.getMessage(path));
+    }
+    return getMountPointInfo(mMountTable.getMountTable().get(path.toString()));
+  }
+
+  /**
+   * Gets the mount point information from a mount information.
+   *
+   * @param mountInfo the mount information to transform
+   * @return the mount point information
+   */
+  private MountPointInfo getMountPointInfo(MountInfo mountInfo) {
+    MountPointInfo info = mountInfo.toMountPointInfo();
+    try (CloseableResource<UnderFileSystem> ufsResource =
+             mUfsManager.get(mountInfo.getMountId()).acquireUfsResource()) {
+      UnderFileSystem ufs = ufsResource.get();
+      info.setUfsType(ufs.getUnderFSType());
+      try {
+        info.setUfsCapacityBytes(
+            ufs.getSpace(info.getUfsUri(), UnderFileSystem.SpaceType.SPACE_TOTAL));
+      } catch (IOException e) {
+        LOG.warn("Cannot get total capacity of {}", info.getUfsUri(), e);
+      }
+      try {
+        info.setUfsUsedBytes(
+            ufs.getSpace(info.getUfsUri(), UnderFileSystem.SpaceType.SPACE_USED));
+      } catch (IOException e) {
+        LOG.warn("Cannot get used capacity of {}", info.getUfsUri(), e);
+      }
+    } catch (UnavailableException | NotFoundException e) {
+      // We should never reach here
+      LOG.error("No UFS cached for {}", info, e);
+    }
+    return info;
   }
 
   @Override
