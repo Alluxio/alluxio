@@ -11,6 +11,8 @@
 
 package alluxio.client.file.options;
 
+import alluxio.grpc.GetStatusPOptions;
+import alluxio.grpc.LoadMetadataPType;
 import alluxio.test.util.CommonUtils;
 import alluxio.wire.LoadMetadataType;
 
@@ -37,7 +39,7 @@ public class ExistsOptionsTest {
   @Test
   public void toGetStatusOptions() {
     ExistsOptions options = ExistsOptions.defaults();
-    GetStatusOptions getStatusOptions = options.toGetStatusOptions();
-    Assert.assertEquals(LoadMetadataType.Once, getStatusOptions.getLoadMetadataType());
+    GetStatusPOptions getStatusOptions = options.toGetStatusOptions();
+    Assert.assertEquals(LoadMetadataPType.ONCE, getStatusOptions.getLoadMetadataType());
   }
 }

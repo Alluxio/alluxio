@@ -18,6 +18,7 @@ import alluxio.PropertyKey;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemClientOptions;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.client.file.options.CreateFileOptions;
@@ -27,7 +28,6 @@ import alluxio.master.LocalAlluxioCluster;
 import alluxio.master.MasterRegistry;
 import alluxio.master.NoopMaster;
 import alluxio.master.file.FileSystemMaster;
-import alluxio.master.file.options.GetStatusOptions;
 import alluxio.master.file.options.ListStatusOptions;
 import alluxio.master.journal.ufs.UfsJournal;
 import alluxio.master.journal.ufs.UfsJournalSnapshot;
@@ -566,7 +566,8 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
     MasterRegistry registry = createFsMasterFromJournal();
     FileSystemMaster fsMaster = registry.get(FileSystemMaster.class);
     AuthenticatedClientUser.set(user);
-    FileInfo info = fsMaster.getFileInfo(new AlluxioURI("/file"), GetStatusOptions.defaults());
+    FileInfo info = fsMaster.getFileInfo(new AlluxioURI("/file"),
+        FileSystemClientOptions.getGetStatusOptions());
     Assert.assertEquals(status, new URIStatus(info.setMountId(status.getMountId())));
     registry.stop();
   }

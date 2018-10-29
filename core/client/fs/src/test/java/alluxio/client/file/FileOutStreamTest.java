@@ -35,13 +35,13 @@ import alluxio.client.block.stream.TestBlockOutStream;
 import alluxio.client.block.stream.TestUnderFileSystemFileOutStream;
 import alluxio.client.block.stream.UnderFileSystemFileOutStream;
 import alluxio.client.file.options.CompleteFileOptions;
-import alluxio.client.file.options.GetStatusOptions;
 import alluxio.client.file.options.OutStreamOptions;
 import alluxio.client.file.policy.FileWriteLocationPolicy;
 import alluxio.client.util.ClientTestUtils;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.UnavailableException;
+import alluxio.grpc.GetStatusPOptions;
 import alluxio.network.TieredIdentityFactory;
 import alluxio.resource.DummyCloseableResource;
 import alluxio.security.GroupMappingServiceTestUtils;
@@ -113,7 +113,7 @@ public class FileOutStreamTest {
 
     when(mFileSystemContext.acquireMasterClientResource())
         .thenReturn(new DummyCloseableResource<>(mFileSystemMasterClient));
-    when(mFileSystemMasterClient.getStatus(any(AlluxioURI.class), any(GetStatusOptions.class)))
+    when(mFileSystemMasterClient.getStatus(any(AlluxioURI.class), any(GetStatusPOptions.class)))
         .thenReturn(new URIStatus(new FileInfo()));
 
     // Return sequentially increasing numbers for new block ids

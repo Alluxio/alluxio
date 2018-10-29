@@ -36,10 +36,10 @@ import alluxio.file.options.MountOptions;
 import alluxio.file.options.RenameOptions;
 import alluxio.file.options.SetAclOptions;
 import alluxio.file.options.SetAttributeOptions;
-import alluxio.file.options.GetStatusOptions;
 import alluxio.file.options.WorkerHeartbeatOptions;
 import alluxio.master.file.meta.FileSystemMasterView;
 import alluxio.master.file.meta.PersistenceState;
+import alluxio.grpc.GetStatusPOptions;
 import alluxio.security.authorization.AclEntry;
 import alluxio.wire.FileSystemCommand;
 import alluxio.wire.SetAclAction;
@@ -105,13 +105,13 @@ public interface FileSystemMasterService {
    * This operation requires users to have READ permission on the path.
    *
    * @param path the path to get the {@link FileInfo} for
-   * @param options the {@link GetStatusOptions}
+   * @param options the {@link alluxio.grpc.GetStatusPOptions}
    * @return the {@link FileInfo} for the given file id
    * @throws FileDoesNotExistException if the file does not exist
    * @throws InvalidPathException if the file path is not valid
    * @throws AccessControlException if permission checking fails
    */
-  FileInfo getFileInfo(AlluxioURI path, GetStatusOptions options)
+  FileInfo getFileInfo(AlluxioURI path, GetStatusPOptions options)
       throws FileDoesNotExistException, InvalidPathException, AccessControlException,
       UnavailableException, IOException;
 

@@ -17,7 +17,6 @@ import alluxio.file.options.CreateDirectoryOptions;
 import alluxio.file.options.CreateFileOptions;
 import alluxio.file.options.DeleteOptions;
 import alluxio.file.options.FreeOptions;
-import alluxio.file.options.GetStatusOptions;
 import alluxio.file.options.CommonOptions;
 import alluxio.file.options.ListStatusOptions;
 import alluxio.file.options.LoadMetadataOptions;
@@ -26,6 +25,7 @@ import alluxio.file.options.RenameOptions;
 import alluxio.file.options.SetAclOptions;
 import alluxio.file.options.SetAttributeOptions;
 import alluxio.file.options.SyncMetadataOptions;
+import alluxio.grpc.GetStatusPOptions;
 
 /**
  * The interface for file system master default options.
@@ -67,9 +67,9 @@ public interface FileSystemMasterOptions {
   FreeOptions getFreeOptions();
 
   /**
-   * @return an instance of {@link GetStatusOptions}
+   * @return an instance of {@link GetStatusPOptions}
    */
-  GetStatusOptions getGetStatusOptions();
+  GetStatusPOptions getGetStatusOptions();
 
   /**
    * @return an instance of {@link ListStatusOptions}

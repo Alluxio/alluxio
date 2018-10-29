@@ -14,6 +14,9 @@ package alluxio.client.file.options;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.annotation.PublicApi;
+import alluxio.client.file.FileSystemClientOptions;
+import alluxio.grpc.GetStatusPOptions;
+import alluxio.util.grpc.GrpcUtils;
 import alluxio.wire.CommonOptions;
 import alluxio.wire.LoadMetadataType;
 
@@ -107,8 +110,9 @@ public final class ExistsOptions {
   /**
    * @return the {@link GetStatusOptions} representation of these options
    */
-  public GetStatusOptions toGetStatusOptions() {
-    return GetStatusOptions.defaults().setLoadMetadataType(mLoadMetadataType)
-        .setCommonOptions(mCommonOptions);
+  public GetStatusPOptions toGetStatusOptions() {
+    return FileSystemClientOptions.getGetStatusOptions().toBuilder()
+        .setLoadMetadataType(GrpcUtils.toProto(mLoadMetadataType))
+        .setCommonOptions(GrpcUtils.toProto(mCommonOptions)).build();
   }
 }

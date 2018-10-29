@@ -14,22 +14,19 @@ package alluxio.proxy;
 import alluxio.AlluxioURI;
 import alluxio.RestUtils;
 import alluxio.StreamCache;
-import alluxio.client.file.FileInStream;
-import alluxio.client.file.FileOutStream;
-import alluxio.client.file.FileSystem;
-import alluxio.client.file.URIStatus;
+import alluxio.client.file.*;
 import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.DeleteOptions;
 import alluxio.client.file.options.ExistsOptions;
 import alluxio.client.file.options.FreeOptions;
-import alluxio.client.file.options.GetStatusOptions;
 import alluxio.client.file.options.ListStatusOptions;
 import alluxio.client.file.options.MountOptions;
 import alluxio.client.file.options.OpenFileOptions;
 import alluxio.client.file.options.RenameOptions;
 import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.client.file.options.UnmountOptions;
+import alluxio.grpc.GetStatusPOptions;
 import alluxio.web.ProxyWebServer;
 
 import com.google.common.base.Preconditions;
@@ -217,12 +214,13 @@ public final class PathsRestServiceHandler {
   @POST
   @Path(PATH_PARAM + GET_STATUS)
   @ReturnType("alluxio.client.file.URIStatus")
-  public Response getStatus(@PathParam("path") final String path, final GetStatusOptions options) {
+  public Response getStatus(@PathParam("path") final String path, final GetStatusPOptions options) {
     return RestUtils.call(new RestUtils.RestCallable<URIStatus>() {
       @Override
       public URIStatus call() throws Exception {
         if (options == null) {
-          return mFileSystem.getStatus(new AlluxioURI(path), GetStatusOptions.defaults());
+          return mFileSystem.getStatus(new AlluxioURI(path),
+              FileSystemClientOptions.getGetStatusOptions());
         } else {
           return mFileSystem.getStatus(new AlluxioURI(path), options);
         }

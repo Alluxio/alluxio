@@ -31,6 +31,7 @@ import alluxio.ConfigurationRule;
 import alluxio.Constants;
 import alluxio.LoginUserRule;
 import alluxio.PropertyKey;
+import alluxio.client.file.FileSystemClientOptions;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.BlockInfoException;
 import alluxio.exception.DirectoryNotEmptyException;
@@ -40,6 +41,8 @@ import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.UnexpectedAlluxioException;
 import alluxio.file.options.DescendantType;
+import alluxio.grpc.GetStatusPOptions;
+import alluxio.grpc.LoadMetadataPType;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
@@ -56,7 +59,6 @@ import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
 import alluxio.master.file.options.DeleteOptions;
 import alluxio.master.file.options.FreeOptions;
-import alluxio.master.file.options.GetStatusOptions;
 import alluxio.master.file.options.ListStatusOptions;
 import alluxio.master.file.options.LoadMetadataOptions;
 import alluxio.master.file.options.MountOptions;
@@ -132,7 +134,8 @@ public final class FileSystemMasterTest {
   private static final AlluxioURI ROOT_FILE_URI = new AlluxioURI("/file");
   private static final AlluxioURI TEST_URI = new AlluxioURI("/test");
   private static final String TEST_USER = "test";
-  private static final GetStatusOptions GET_STATUS_OPTIONS = GetStatusOptions.defaults();
+  private static final GetStatusPOptions GET_STATUS_OPTIONS =
+      FileSystemClientOptions.getGetStatusOptions();
 
   // Constants for tests on persisted directories.
   private static final String DIR_PREFIX = "dir";
@@ -252,7 +255,8 @@ public final class FileSystemMasterTest {
   public void createFileUsesOperationTime() throws Exception {
     AlluxioURI path = new AlluxioURI("/test");
     mFileSystemMaster.createFile(path, CreateFileOptions.defaults().setOperationTimeMs(100));
-    assertEquals(100, mFileSystemMaster.getFileInfo(path, GetStatusOptions.defaults())
+    assertEquals(100, mFileSystemMaster.getFileInfo(path,
+        FileSystemClientOptions.getGetStatusOptions())
         .getLastModificationTimeMs());
   }
 
@@ -309,7 +313,8 @@ public final class FileSystemMasterTest {
     // verify the file is deleted
     mThrown.expect(FileDoesNotExistException.class);
     mFileSystemMaster.getFileInfo(new AlluxioURI("/mnt/local/dir1/file1"),
-        GetStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Never));
+        FileSystemClientOptions.getGetStatusOptions().toBuilder().
+            setLoadMetadataType(LoadMetadataPType.NEVER).build());
   }
 
   /**
@@ -1470,7 +1475,7 @@ public final class FileSystemMasterTest {
   }
 
   private FileInfo getInfo(AlluxioURI uri) throws Exception {
-    return mFileSystemMaster.getFileInfo(uri, GetStatusOptions.defaults());
+    return mFileSystemMaster.getFileInfo(uri, FileSystemClientOptions.getGetStatusOptions());
   }
 
   /**
@@ -2462,13 +2467,15 @@ public final class FileSystemMasterTest {
     aclEntryList.add(AclEntry.fromCliString("default:user::r-x"));
     mFileSystemMaster.setAcl(uri, SetAclAction.MODIFY, aclEntryList, SetAclOptions.defaults());
 
-    FileInfo infoparent = mFileSystemMaster.getFileInfo(uri, GetStatusOptions.defaults());
+    FileInfo infoparent = mFileSystemMaster.getFileInfo(uri,
+        FileSystemClientOptions.getGetStatusOptions());
 
     FileUtils.createFile(Paths.get(mUnderFS).resolve("a/b/file1").toString());
     uri = new AlluxioURI("/a/b/file1");
     mFileSystemMaster.loadMetadata(uri,
         LoadMetadataOptions.defaults().setCreateAncestors(true));
-    FileInfo info = mFileSystemMaster.getFileInfo(uri, GetStatusOptions.defaults());
+    FileInfo info = mFileSystemMaster.getFileInfo(uri,
+        FileSystemClientOptions.getGetStatusOptions());
     Assert.assertTrue(info.convertAclToStringEntries().contains("user::r-x"));
   }
 
@@ -2512,8 +2519,8 @@ public final class FileSystemMasterTest {
     startServices();
 
     assertEquals(fingerprint,
-        mFileSystemMaster.getFileInfo(NESTED_FILE_URI, GetStatusOptions.defaults())
-            .getUfsFingerprint());
+        mFileSystemMaster.getFileInfo(NESTED_FILE_URI,
+            FileSystemClientOptions.getGetStatusOptions()).getUfsFingerprint());
   }
 
   @Test
@@ -2537,24 +2544,28 @@ public final class FileSystemMasterTest {
 
     // Nothing is persisted yet.
     assertEquals(PersistenceState.NOT_PERSISTED.toString(),
-        mFileSystemMaster.getFileInfo(nestedFile, GetStatusOptions.defaults())
+        mFileSystemMaster.getFileInfo(nestedFile, FileSystemClientOptions.getGetStatusOptions())
             .getPersistenceState());
     assertEquals(PersistenceState.NOT_PERSISTED.toString(),
-        mFileSystemMaster.getFileInfo(parent1, GetStatusOptions.defaults()).getPersistenceState());
+        mFileSystemMaster.getFileInfo(parent1,
+            FileSystemClientOptions.getGetStatusOptions()).getPersistenceState());
     assertEquals(PersistenceState.NOT_PERSISTED.toString(),
-        mFileSystemMaster.getFileInfo(parent2, GetStatusOptions.defaults()).getPersistenceState());
+        mFileSystemMaster.getFileInfo(parent2,
+            FileSystemClientOptions.getGetStatusOptions()).getPersistenceState());
 
     // Persist the file.
     mFileSystemMaster.setAttribute(nestedFile, SetAttributeOptions.defaults().setPersisted(true));
 
     // Everything component should be persisted.
     assertEquals(PersistenceState.PERSISTED.toString(),
-        mFileSystemMaster.getFileInfo(nestedFile, GetStatusOptions.defaults())
+        mFileSystemMaster.getFileInfo(nestedFile, FileSystemClientOptions.getGetStatusOptions())
             .getPersistenceState());
     assertEquals(PersistenceState.PERSISTED.toString(),
-        mFileSystemMaster.getFileInfo(parent1, GetStatusOptions.defaults()).getPersistenceState());
+        mFileSystemMaster.getFileInfo(parent1,
+            FileSystemClientOptions.getGetStatusOptions()).getPersistenceState());
     assertEquals(PersistenceState.PERSISTED.toString(),
-        mFileSystemMaster.getFileInfo(parent2, GetStatusOptions.defaults()).getPersistenceState());
+        mFileSystemMaster.getFileInfo(parent2,
+            FileSystemClientOptions.getGetStatusOptions()).getPersistenceState());
 
     // Simulate restart.
     stopServices();
@@ -2562,12 +2573,14 @@ public final class FileSystemMasterTest {
 
     // Everything component should be persisted.
     assertEquals(PersistenceState.PERSISTED.toString(),
-        mFileSystemMaster.getFileInfo(nestedFile, GetStatusOptions.defaults())
+        mFileSystemMaster.getFileInfo(nestedFile, FileSystemClientOptions.getGetStatusOptions())
             .getPersistenceState());
     assertEquals(PersistenceState.PERSISTED.toString(),
-        mFileSystemMaster.getFileInfo(parent1, GetStatusOptions.defaults()).getPersistenceState());
+        mFileSystemMaster.getFileInfo(parent1,
+            FileSystemClientOptions.getGetStatusOptions()).getPersistenceState());
     assertEquals(PersistenceState.PERSISTED.toString(),
-        mFileSystemMaster.getFileInfo(parent2, GetStatusOptions.defaults()).getPersistenceState());
+        mFileSystemMaster.getFileInfo(parent2,
+            FileSystemClientOptions.getGetStatusOptions()).getPersistenceState());
   }
 
   private long createFileWithSingleBlock(AlluxioURI uri) throws Exception {

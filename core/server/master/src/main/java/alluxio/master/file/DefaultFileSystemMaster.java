@@ -44,7 +44,6 @@ import alluxio.file.options.CreateFileOptions;
 import alluxio.file.options.DeleteOptions;
 import alluxio.file.options.DescendantType;
 import alluxio.file.options.FreeOptions;
-import alluxio.file.options.GetStatusOptions;
 import alluxio.file.options.ListStatusOptions;
 import alluxio.file.options.LoadMetadataOptions;
 import alluxio.file.options.MountOptions;
@@ -52,6 +51,8 @@ import alluxio.file.options.RenameOptions;
 import alluxio.file.options.SetAclOptions;
 import alluxio.file.options.SetAttributeOptions;
 import alluxio.file.options.WorkerHeartbeatOptions;
+import alluxio.grpc.GetStatusPOptions;
+import alluxio.grpc.LoadMetadataPType;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatThread;
 import alluxio.master.AbstractMaster;
@@ -117,6 +118,7 @@ import alluxio.util.ModeUtils;
 import alluxio.util.SecurityUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.executor.ExecutorServiceFactory;
+import alluxio.util.grpc.GrpcUtils;
 import alluxio.util.interfaces.Scoped;
 import alluxio.util.io.PathUtils;
 import alluxio.util.network.NetworkAddressUtils;
@@ -784,11 +786,11 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   }
 
   @Override
-  public FileInfo getFileInfo(AlluxioURI path, GetStatusOptions options)
+  public FileInfo getFileInfo(AlluxioURI path, GetStatusPOptions options)
       throws FileDoesNotExistException, InvalidPathException, AccessControlException, IOException {
     Metrics.GET_FILE_INFO_OPS.inc();
-    LockingScheme lockingScheme =
-        createLockingScheme(path, options.getCommonOptions(), InodeTree.LockMode.READ);
+    LockingScheme lockingScheme = createLockingScheme(path, GrpcUtils.fromProto(getMasterOptions(), options.getCommonOptions()),
+        InodeTree.LockMode.READ);
     try (RpcContext rpcContext = createRpcContext();
          LockedInodePath inodePath = mInodeTree
              .lockInodePath(lockingScheme.getPath(), lockingScheme.getMode());
@@ -803,7 +805,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       // Possible ufs sync.
       if (syncMetadata(rpcContext, inodePath, lockingScheme, DescendantType.ONE)) {
         // If synced, do not load metadata.
-        options.setLoadMetadataType(LoadMetadataType.Never);
+        options = options.toBuilder().setLoadMetadataType(LoadMetadataPType.NEVER).build();
       }
 
       // If the file already exists, then metadata does not need to be loaded,
@@ -813,7 +815,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         loadMetadataIfNotExist(rpcContext, inodePath,
             MASTER_OPTIONS.getLoadMetadataOptions().setCreateAncestors(true).setCommonOptions(
                 MASTER_OPTIONS.getCommonOptions().setTtl(options.getCommonOptions().getTtl())
-                    .setTtlAction(options.getCommonOptions().getTtlAction())));
+                        .setTtlAction(GrpcUtils.fromProto(options.getCommonOptions().getTtlAction()))));
         ensureFullPathAndUpdateCache(inodePath);
       }
       FileInfo fileInfo = getFileInfoInternal(inodePath);
@@ -997,6 +999,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   }
 
   /**
+   * TODO(ggezer):Remove after converting ls call
    * Checks the {@link LoadMetadataType} to determine whether or not to proceed in loading
    * metadata. This method assumes that the path does not exist in Alluxio namespace, and will
    * throw an exception if metadata should not be loaded.
@@ -1008,6 +1011,22 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       throws FileDoesNotExistException {
     if (loadMetadataType == LoadMetadataType.Never || (loadMetadataType == LoadMetadataType.Once
         && mUfsAbsentPathCache.isAbsent(path))) {
+      throw new FileDoesNotExistException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path));
+    }
+  }
+
+  /**
+   * Checks the {@link LoadMetadataPType} to determine whether or not to proceed in loading
+   * metadata. This method assumes that the path does not exist in Alluxio namespace, and will
+   * throw an exception if metadata should not be loaded.
+   *
+   * @param loadMetadataType the {@link LoadMetadataPType} to check
+   * @param path the path that does not exist in Alluxio namespace (used for exception message)
+   */
+  private void checkLoadMetadataOptions(LoadMetadataPType loadMetadataType, AlluxioURI path)
+          throws FileDoesNotExistException {
+    if (loadMetadataType == LoadMetadataPType.NEVER || (loadMetadataType == LoadMetadataPType.ONCE
+            && mUfsAbsentPathCache.isAbsent(path))) {
       throw new FileDoesNotExistException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path));
     }
   }

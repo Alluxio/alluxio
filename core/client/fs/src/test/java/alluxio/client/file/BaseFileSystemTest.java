@@ -33,13 +33,14 @@ import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.DeleteOptions;
 import alluxio.client.file.options.FreeOptions;
-import alluxio.client.file.options.GetStatusOptions;
 import alluxio.client.file.options.ListStatusOptions;
 import alluxio.client.file.options.MountOptions;
 import alluxio.client.file.options.OpenFileOptions;
 import alluxio.client.file.options.RenameOptions;
 import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.client.file.options.UnmountOptions;
+import alluxio.grpc.GetStatusPOptions;
+import alluxio.grpc.LoadMetadataPType;
 import alluxio.wire.FileInfo;
 import alluxio.wire.LoadMetadataType;
 
@@ -113,8 +114,10 @@ public final class BaseFileSystemTest {
         .createFile(any(AlluxioURI.class), any(CreateFileOptions.class));
     URIStatus status = new URIStatus(new FileInfo());
     AlluxioURI file = new AlluxioURI("/file");
-    GetStatusOptions getStatusOptions = GetStatusOptions.defaults().setLoadMetadataType(
-        LoadMetadataType.Never);
+    GetStatusPOptions getStatusOptions =
+        FileSystemClientOptions.getGetStatusOptions().toBuilder()
+            .setLoadMetadataType(LoadMetadataPType.NEVER)
+            .build();
     when(mFileSystemMasterClient.getStatus(file, getStatusOptions)).thenReturn(status);
     CreateFileOptions options = CreateFileOptions.defaults();
     FileOutStream out = mFileSystem.createFile(file, options);
@@ -205,13 +208,13 @@ public final class BaseFileSystemTest {
   }
 
   /**
-   * Tests for the {@link BaseFileSystem#getStatus(AlluxioURI, GetStatusOptions)} method.
+   * Tests for the {@link BaseFileSystem#getStatus(AlluxioURI, GetStatusPOptions)} method.
    */
   @Test
   public void getStatus() throws Exception {
     AlluxioURI file = new AlluxioURI("/file");
     URIStatus status = new URIStatus(new FileInfo());
-    GetStatusOptions getStatusOptions = GetStatusOptions.defaults();
+    GetStatusPOptions getStatusOptions = FileSystemClientOptions.getGetStatusOptions();
     when(mFileSystemMasterClient.getStatus(file, getStatusOptions)).thenReturn(status);
     assertSame(status, mFileSystem.getStatus(file, getStatusOptions));
     verify(mFileSystemMasterClient).getStatus(file, getStatusOptions);
@@ -225,7 +228,7 @@ public final class BaseFileSystemTest {
   @Test
   public void getStatusException() throws Exception {
     AlluxioURI file = new AlluxioURI("/file");
-    GetStatusOptions getStatusOptions = GetStatusOptions.defaults();
+    GetStatusPOptions getStatusOptions = FileSystemClientOptions.getGetStatusOptions();
     when(mFileSystemMasterClient.getStatus(file, getStatusOptions)).thenThrow(EXCEPTION);
     try {
       mFileSystem.getStatus(file, getStatusOptions);
@@ -383,7 +386,7 @@ public final class BaseFileSystemTest {
   public void openFile() throws Exception {
     AlluxioURI file = new AlluxioURI("/file");
     URIStatus status = new URIStatus(new FileInfo());
-    GetStatusOptions getStatusOptions = GetStatusOptions.defaults();
+    GetStatusPOptions getStatusOptions = FileSystemClientOptions.getGetStatusOptions();
     when(mFileSystemMasterClient.getStatus(file, getStatusOptions)).thenReturn(status);
     OpenFileOptions openOptions = OpenFileOptions.defaults();
     mFileSystem.openFile(file, openOptions);
@@ -398,7 +401,7 @@ public final class BaseFileSystemTest {
   @Test
   public void openException() throws Exception {
     AlluxioURI file = new AlluxioURI("/file");
-    GetStatusOptions getStatusOptions = GetStatusOptions.defaults();
+    GetStatusPOptions getStatusOptions = FileSystemClientOptions.getGetStatusOptions();
     when(mFileSystemMasterClient.getStatus(file, getStatusOptions)).thenThrow(EXCEPTION);
     OpenFileOptions openOptions = OpenFileOptions.defaults();
     try {

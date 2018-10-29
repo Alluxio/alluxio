@@ -20,7 +20,6 @@ import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.DeleteOptions;
 import alluxio.client.file.options.FreeOptions;
-import alluxio.client.file.options.GetStatusOptions;
 import alluxio.client.file.options.ListStatusOptions;
 import alluxio.client.file.options.MountOptions;
 import alluxio.client.file.options.RenameOptions;
@@ -37,6 +36,7 @@ import alluxio.grpc.FreePRequest;
 import alluxio.grpc.GetMountTablePRequest;
 import alluxio.grpc.GetNewBlockIdForFilePOptions;
 import alluxio.grpc.GetNewBlockIdForFilePRequest;
+import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.GetStatusPRequest;
 import alluxio.grpc.ListStatusPRequest;
 import alluxio.grpc.MountPRequest;
@@ -160,11 +160,11 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
   }
 
   @Override
-  public synchronized URIStatus getStatus(final AlluxioURI path, final GetStatusOptions options)
+  public synchronized URIStatus getStatus(final AlluxioURI path, final GetStatusPOptions options)
       throws AlluxioStatusException {
     return retryRPC(() -> new URIStatus(GrpcUtils
         .fromProto(mBlockingStub.getStatus(GetStatusPRequest.newBuilder().setPath(path.getPath())
-            .setOptions(GrpcUtils.toProto(options)).build()).getFileInfo())),
+            .setOptions(options).build()).getFileInfo())),
         "GetStatus");
   }
 

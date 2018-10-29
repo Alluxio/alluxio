@@ -15,12 +15,13 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemClientOptions;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.FileDoesNotExistException;
+import alluxio.grpc.GetStatusPOptions;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
-import alluxio.master.file.options.GetStatusOptions;
 import alluxio.master.file.options.ListStatusOptions;
 import alluxio.master.file.options.MountOptions;
 import alluxio.proxy.s3.CompleteMultipartUploadResult;
@@ -58,8 +59,8 @@ import javax.ws.rs.core.Response;
  * Test cases for {@link S3RestServiceHandler}.
  */
 public final class S3ClientRestApiTest extends RestApiTest {
-  private static final alluxio.master.file.options.GetStatusOptions GET_STATUS_OPTIONS =
-      alluxio.master.file.options.GetStatusOptions.defaults();
+  private static final GetStatusPOptions GET_STATUS_OPTIONS =
+      FileSystemClientOptions.getGetStatusOptions();
   private static final Map<String, String> NO_PARAMS = new HashMap<>();
   private static final XmlMapper XML_MAPPER = new XmlMapper();
 
@@ -356,14 +357,14 @@ public final class S3ClientRestApiTest extends RestApiTest {
 
     // Expected result.
     List<URIStatus> objectsList = new ArrayList<>();
-    objectsList.add(
-        new URIStatus(mFileSystemMaster.getFileInfo(file1, GetStatusOptions.defaults())));
-    objectsList.add(
-        new URIStatus(mFileSystemMaster.getFileInfo(file2, GetStatusOptions.defaults())));
-    objectsList.add(
-        new URIStatus(mFileSystemMaster.getFileInfo(file3, GetStatusOptions.defaults())));
-    objectsList.add(
-        new URIStatus(mFileSystemMaster.getFileInfo(dir2, GetStatusOptions.defaults())));
+    objectsList.add(new URIStatus(
+        mFileSystemMaster.getFileInfo(file1, FileSystemClientOptions.getGetStatusOptions())));
+    objectsList.add(new URIStatus(
+        mFileSystemMaster.getFileInfo(file2, FileSystemClientOptions.getGetStatusOptions())));
+    objectsList.add(new URIStatus(
+        mFileSystemMaster.getFileInfo(file3, FileSystemClientOptions.getGetStatusOptions())));
+    objectsList.add(new URIStatus(
+        mFileSystemMaster.getFileInfo(dir2, FileSystemClientOptions.getGetStatusOptions())));
     ListBucketResult expected = new ListBucketResult(
         AlluxioURI.SEPARATOR + bucket, objectsList, ListBucketOptions.defaults());
 
@@ -405,10 +406,10 @@ public final class S3ClientRestApiTest extends RestApiTest {
     Map<String, String> prefixParam = new HashMap<>();
     prefixParam.put("prefix", prefix);
     List<URIStatus> filteredObjectsList = new ArrayList<>();
-    filteredObjectsList.add(
-        new URIStatus(mFileSystemMaster.getFileInfo(file3, GetStatusOptions.defaults())));
-    filteredObjectsList.add(
-        new URIStatus(mFileSystemMaster.getFileInfo(dir2, GetStatusOptions.defaults())));
+    filteredObjectsList.add(new URIStatus(
+        mFileSystemMaster.getFileInfo(file3, FileSystemClientOptions.getGetStatusOptions())));
+    filteredObjectsList.add(new URIStatus(
+        mFileSystemMaster.getFileInfo(dir2, FileSystemClientOptions.getGetStatusOptions())));
     ListBucketResult expected = new ListBucketResult(AlluxioURI.SEPARATOR + bucket,
         filteredObjectsList, ListBucketOptions.defaults().setPrefix(prefix));
     new TestCase(mHostname, mPort, S3_SERVICE_PREFIX + AlluxioURI.SEPARATOR + bucket,
@@ -435,10 +436,10 @@ public final class S3ClientRestApiTest extends RestApiTest {
 
     // Expected result, with max-keys = 1.
     List<URIStatus> objectsList = new ArrayList<>();
-    objectsList.add(
-        new URIStatus(mFileSystemMaster.getFileInfo(file1, GetStatusOptions.defaults())));
-    objectsList.add(
-        new URIStatus(mFileSystemMaster.getFileInfo(file2, GetStatusOptions.defaults())));
+    objectsList.add(new URIStatus(
+        mFileSystemMaster.getFileInfo(file1, FileSystemClientOptions.getGetStatusOptions())));
+    objectsList.add(new URIStatus(
+        mFileSystemMaster.getFileInfo(file2, FileSystemClientOptions.getGetStatusOptions())));
     ListBucketResult expected = new ListBucketResult(
         AlluxioURI.SEPARATOR + bucket, objectsList, ListBucketOptions.defaults().setMaxKeys("1"));
 
@@ -469,10 +470,10 @@ public final class S3ClientRestApiTest extends RestApiTest {
 
     // Expected result, with max-keys = 1.
     List<URIStatus> objectsList = new ArrayList<>();
-    objectsList.add(
-        new URIStatus(mFileSystemMaster.getFileInfo(file1, GetStatusOptions.defaults())));
-    objectsList.add(
-        new URIStatus(mFileSystemMaster.getFileInfo(file2, GetStatusOptions.defaults())));
+    objectsList.add(new URIStatus(
+        mFileSystemMaster.getFileInfo(file1, FileSystemClientOptions.getGetStatusOptions())));
+    objectsList.add(new URIStatus(
+        mFileSystemMaster.getFileInfo(file2, FileSystemClientOptions.getGetStatusOptions())));
     String maxKeys = "1";
     String continuationToken = file1.getPath();
     ListBucketResult expected = new ListBucketResult(
@@ -507,10 +508,10 @@ public final class S3ClientRestApiTest extends RestApiTest {
 
     // Expected result, with max-keys = 1.
     List<URIStatus> objectsList = new ArrayList<>();
-    objectsList.add(
-        new URIStatus(mFileSystemMaster.getFileInfo(file1, GetStatusOptions.defaults())));
-    objectsList.add(
-        new URIStatus(mFileSystemMaster.getFileInfo(file2, GetStatusOptions.defaults())));
+    objectsList.add(new URIStatus(
+        mFileSystemMaster.getFileInfo(file1, FileSystemClientOptions.getGetStatusOptions())));
+    objectsList.add(new URIStatus(
+        mFileSystemMaster.getFileInfo(file2, FileSystemClientOptions.getGetStatusOptions())));
     String continuationToken = file1.getPath() + "random-tail";
     ListBucketResult expected = new ListBucketResult(
         AlluxioURI.SEPARATOR + bucket, objectsList,

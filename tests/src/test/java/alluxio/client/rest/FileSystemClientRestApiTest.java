@@ -16,12 +16,12 @@ import static org.junit.Assert.fail;
 import static org.junit.Assert.assertEquals;
 
 import alluxio.AlluxioURI;
+import alluxio.client.file.FileSystemClientOptions;
 import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.DeleteOptions;
 import alluxio.client.file.options.ExistsOptions;
 import alluxio.client.file.options.FreeOptions;
-import alluxio.client.file.options.GetStatusOptions;
 import alluxio.client.file.options.ListStatusOptions;
 import alluxio.client.file.options.MountOptions;
 import alluxio.client.file.options.OpenFileOptions;
@@ -29,6 +29,7 @@ import alluxio.client.file.options.RenameOptions;
 import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.client.file.options.UnmountOptions;
 import alluxio.exception.FileDoesNotExistException;
+import alluxio.grpc.GetStatusPOptions;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.proxy.PathsRestServiceHandler;
 import alluxio.proxy.StreamsRestServiceHandler;
@@ -54,8 +55,8 @@ import javax.ws.rs.HttpMethod;
  * Test cases for {@link StreamsRestServiceHandler}.
  */
 public final class FileSystemClientRestApiTest extends RestApiTest {
-  private static final alluxio.master.file.options.GetStatusOptions GET_STATUS_OPTIONS =
-      alluxio.master.file.options.GetStatusOptions.defaults();
+  private static final GetStatusPOptions GET_STATUS_OPTIONS =
+      FileSystemClientOptions.getGetStatusOptions();
 
   private static final Map<String, String> NO_PARAMS = new HashMap<>();
   private static final String PATHS_PREFIX = "paths/";
@@ -132,7 +133,8 @@ public final class FileSystemClientRestApiTest extends RestApiTest {
     writeFile(uri, null);
     String result = new TestCase(mHostname, mPort,
         PATHS_PREFIX + uri.toString() + "/" + PathsRestServiceHandler.GET_STATUS, NO_PARAMS,
-        HttpMethod.POST, TestCaseOptions.defaults().setBody(GetStatusOptions.defaults())).call();
+        HttpMethod.POST,
+        TestCaseOptions.defaults().setBody(FileSystemClientOptions.getGetStatusOptions())).call();
     FileInfo fileInfo = new ObjectMapper().readValue(result, FileInfo.class);
     assertEquals(uri.getPath(), fileInfo.getPath());
     assertEquals(0, fileInfo.getLength());

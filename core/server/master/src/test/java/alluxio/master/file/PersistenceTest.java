@@ -16,10 +16,12 @@ import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.PropertyKey;
+import alluxio.client.file.FileSystemClientOptions;
 import alluxio.client.job.JobMasterClient;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
+import alluxio.grpc.GetStatusPOptions;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
@@ -37,7 +39,6 @@ import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
 import alluxio.master.file.options.DeleteOptions;
-import alluxio.master.file.options.GetStatusOptions;
 import alluxio.master.file.options.RenameOptions;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalTestUtils;
@@ -82,7 +83,8 @@ public final class PersistenceTest {
   private SafeModeManager mSafeModeManager;
   private long mStartTimeMs;
   private int mPort;
-  private static final GetStatusOptions GET_STATUS_OPTIONS = GetStatusOptions.defaults();
+  private static final GetStatusPOptions GET_STATUS_OPTIONS =
+      FileSystemClientOptions.getGetStatusOptions();
 
   @Rule
   public ManuallyScheduleHeartbeat mManualScheduler =

@@ -23,7 +23,6 @@ import alluxio.file.options.CreateFileOptions;
 import alluxio.file.options.CreateUfsFileOptions;
 import alluxio.file.options.DeleteOptions;
 import alluxio.file.options.FreeOptions;
-import alluxio.file.options.GetStatusOptions;
 import alluxio.file.options.ListStatusOptions;
 import alluxio.file.options.MountOptions;
 import alluxio.file.options.RenameOptions;
@@ -235,18 +234,18 @@ public final class GrpcUtils {
    * @param pOptions the proto options to convert
    * @return the converted options instance
    */
-  public static GetStatusOptions fromProto(FileSystemMasterOptions masterOptions,
+  public static GetStatusPOptions fromProto(FileSystemMasterOptions masterOptions,
       GetStatusPOptions pOptions) {
-    GetStatusOptions options = masterOptions.getGetStatusOptions();
+    GetStatusPOptions.Builder optionsBuilder = masterOptions.getGetStatusOptions().toBuilder();
     if (pOptions != null) {
       if (pOptions.hasCommonOptions()) {
-        options.setCommonOptions(fromProto(masterOptions, pOptions.getCommonOptions()));
+        optionsBuilder.setCommonOptions(pOptions.getCommonOptions());
       }
       if (pOptions.hasLoadMetadataType()) {
-        options.setLoadMetadataType(fromProto(pOptions.getLoadMetadataType()));
+        optionsBuilder.setLoadMetadataType(pOptions.getLoadMetadataType());
       }
     }
-    return options;
+    return optionsBuilder.build();
   }
 
   /**
@@ -1026,18 +1025,6 @@ public final class GrpcUtils {
         .setBlockInfo(toProto(fileBlockInfo.getBlockInfo())).setOffset(fileBlockInfo.getOffset())
         .addAllUfsLocations(ufsLocations).addAllUfsStringLocations(fileBlockInfo.getUfsLocations())
         .build();
-  }
-
-  /**
-   * Converts options to proto type.
-   *
-   * @param options the options type to convert
-   * @return the converted proto type
-   */
-  public static GetStatusPOptions toProto(GetStatusOptions options) {
-    return GetStatusPOptions.newBuilder()
-        .setLoadMetadataType(toProto(options.getLoadMetadataType()))
-        .setCommonOptions(toProto(options.getCommonOptions())).build();
   }
 
   /**
