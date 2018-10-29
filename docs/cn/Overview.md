@@ -26,10 +26,10 @@ Alluxio为大数据软件栈带来了显著的性能提升。例如，[百度](h
 Alluxio与Hadoop是兼容的。现有的数据分析应用，如Spark和MapReduce程序，可以不修改代码直接在Alluxio上运行。Alluxio是一个已在多家公司部署的开源项目([Apache License 2.0](https://github.com/alluxio/alluxio/blob/master/LICENSE))。
 Alluxio是发展最快的开源大数据项目之一。自2013年4月开源以来，已有超过150个组织机构的
 [700多贡献者](https://github.com/alluxio/alluxio/graphs/contributors)参与到Alluxio的开发中。包括
-[阿里巴巴](http://www.alibaba.com), [Alluxio](http://www.alluxio.com/), [百度](https://www.baidu.com),
-[卡内基梅隆大学](https://www.cmu.edu/),[Google](https://www.google.com)，[IBM](https://www.ibm.com)，[Intel](http://www.intel.com/),
-[南京大学](http://pasa-bigdata.nju.edu.cn/),
-[Red Hat](https://www.redhat.com/)，[UC Berkeley](https://amplab.cs.berkeley.edu/)和
+[阿里巴巴](http://www.alibaba.com)、 [Alluxio](http://www.alluxio.com/)、 [百度](https://www.baidu.com)、
+[卡内基梅隆大学](https://www.cmu.edu/)、[Google](https://www.google.com)、[IBM](https://www.ibm.com)、[Intel](http://www.intel.com/)、
+[南京大学](http://pasa-bigdata.nju.edu.cn/)、
+[Red Hat](https://www.redhat.com/)、[UC Berkeley](https://amplab.cs.berkeley.edu/)和
 [Yahoo](https://www.yahoo.com/)。Alluxio处于伯克利数据分析栈
 ([BDAS](https://amplab.cs.berkeley.edu/bdas/))的存储层，也是
 [Fedora发行版](https://fedoraproject.org/wiki/SIGs/bigdata/packaging)的一部分。
@@ -79,6 +79,6 @@ HDFS，MaprFS，Ceph，NFS，Alibaba OSS，Minio以及单节点本地文件系�
 ## 下载
 
 你可以从[Alluxio下载页面](http://alluxio.org/download)获取已发布版本。每个版本都是由已编译二进制文件组成，与各种Hadoop版本兼容。如果你想从源码编译生成Alluxio，请前往
-[从Master分支构建Alluxio](Building-Alluxio-From-Source.html)。如果你有任何疑问，请联系我们
-[用户邮箱列表](https://groups.google.com/forum/?fromgroups#!forum/alluxio-users)。 对于无法使用Google Group的用户，请使用它的[mirror](http://alluxio-users.85194.x6.nabble.com/)
+[从Master分支构建Alluxio](Building-Alluxio-From-Source.html)。如果你有任何疑问，请通过
+[用户邮箱列表](https://groups.google.com/forum/?fromgroups#!forum/alluxio-users)联系我们。 对于无法使用Google Group的用户，请访问它的[镜像](http://alluxio-users.85194.x6.nabble.com/)
 (注意：该镜像可能不包含2016年五月份以前的信息)。
