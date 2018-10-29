@@ -611,7 +611,6 @@ For more details, see [Unified Namespace]({{ '/en/advanced/Namespace-Management.
 Options:
 
 * `--readonly` option sets the mount point to be readonly in Alluxio
-* `--shared` option sets the mount point to be shared with all Alluxio users.
 * `--option <key>=<val>` option passes an property to this mount point, such as S3 credentials
 
 Note that `--readonly` mounts are useful to prevent accidental write operations.
@@ -664,11 +663,9 @@ The `rm` command removes a file from Alluxio space and the under storage system.
 The file will be unavailable immediately after this command returns,
 but the actual data may be deleted a while later.
 
-* Adding `-R` option deletes all contents of the directory and the directory itself.
-* Adding `-U` option skips the check for whether the UFS contents being deleted are in-sync with Alluxio
+Adding `-R` option deletes all contents of the directory and the directory itself.
+Adding `-U` option skips the check for whether the UFS contents being deleted are in-sync with Alluxio
 before attempting to delete persisted directories.
-* Adding `-alluxioOnly` option removes data and metadata from Alluxio space only. 
-Data in under storage system will not be affected.
  
 For example, `rm` can be used to remove temporary files which are no longer needed.
 

@@ -232,6 +232,9 @@ public final class WebInterfaceGeneralServlet extends HttpServlet {
       mountInfo = fsMaster.getMountPointInfo(new AlluxioURI(MountTable.ROOT));
     } catch (Throwable e) {
       LOG.error("Unable to get mount point information of Alluxio root", e);
+      request.setAttribute("diskCapacity", "UNKNOWN");
+      request.setAttribute("diskUsedCapacity", "UNKNOWN");
+      request.setAttribute("diskFreeCapacity", "UNKNOW");
       return;
     }
     long capacityBytes = mountInfo.getUfsCapacityBytes();

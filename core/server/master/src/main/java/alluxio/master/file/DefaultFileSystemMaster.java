@@ -1372,13 +1372,13 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         info.setUfsCapacityBytes(
             ufs.getSpace(info.getUfsUri(), UnderFileSystem.SpaceType.SPACE_TOTAL));
       } catch (IOException e) {
-        // pass
+        LOG.warn("Cannot get total capacity of {}", info.getUfsUri(), e);
       }
       try {
         info.setUfsUsedBytes(
             ufs.getSpace(info.getUfsUri(), UnderFileSystem.SpaceType.SPACE_USED));
       } catch (IOException e) {
-        // pass
+        LOG.warn("Cannot get used capacity of {}", info.getUfsUri(), e);
       }
     } catch (UnavailableException | NotFoundException e) {
       // We should never reach here
