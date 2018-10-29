@@ -3037,9 +3037,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       Map<AlluxioURI, UfsStatus> statusCache = populateStatusCache(inodePath, DescendantType.ALL);
 
       changedFiles.stream().parallel().forEach(alluxioUri -> {
-        try {
-          LockedInodePath inodePathChangedFile =
-              mInodeTree.lockInodePath(alluxioUri, lockingScheme.getMode());
+        try (LockedInodePath inodePathChangedFile =
+              mInodeTree.lockInodePath(alluxioUri, lockingScheme.getMode())) {
           syncMetadataInternal(rpcContext, inodePathChangedFile, lockingScheme, DescendantType.NONE,
               statusCache);
         } catch (InvalidPathException e) {

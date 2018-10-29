@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -73,7 +74,7 @@ public class ActiveSyncer implements HeartbeatExecutor {
         if (ufsClient.supportsActiveSync()) {
           SyncInfo syncInfo = ufsClient.getActiveSyncInfo(ufsUriList);
           // This returns a list of ufsUris that we need to sync.
-          List<AlluxioURI> ufsSyncPoints = syncInfo.getSyncList();
+          Set<AlluxioURI> ufsSyncPoints = syncInfo.getSyncList();
 
           for (AlluxioURI ufsUri : ufsSyncPoints) {
             LOG.info("sync {}", ufsUri.toString());

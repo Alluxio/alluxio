@@ -195,7 +195,7 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem {
   }
 
   public SyncInfo getActiveSyncInfo(List<AlluxioURI> syncPointList) {
-    return null;
+    return SyncInfo.emptyInfo();
   }
 
   /**

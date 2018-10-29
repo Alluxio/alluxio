@@ -155,44 +155,42 @@ public class SupportedHdfsActiveSyncProvider implements HdfsActiveSyncProvider {
 
     LOG.info("syncPointList");
     LOG.info(Arrays.toString(syncPointList.toArray()));
-
+    initNextWindow();
 
     try {
-      EventBatch batch = mEventStream.poll();
-      initNextWindow();
-      if (batch != null) {
-        LOG.info("received events");
-        Arrays.stream(batch.getEvents())
-            .parallel().forEach(event -> processEvent(event, syncPointList));
-      }
-
-      List<AlluxioURI> pathsToBeSynced = new ArrayList<>();
-      Map<AlluxioURI, Set<AlluxioURI>> syncPointFiles = new ConcurrentHashMap<>();
-      for (String syncPoint : mActivity.keySet()) {
-        AlluxioURI syncPointURI = new AlluxioURI(syncPoint);
-        // if the activity level is below the threshold or the sync point is too old, we sync
-        if (mActivity.get(syncPoint) < MAX_ACTIVITY || mAge.get(syncPoint) > MAX_AGE) {
-          LOG.info("Prepare to return SyncPoint " + syncPoint);
-          pathsToBeSynced.add(syncPointURI);
-          if (!syncPointFiles.containsKey(syncPointURI)) {
-            syncPointFiles.put(syncPointURI, mChangedFiles.get(syncPoint));
-        }
-          clearFile(syncPoint);
+      while (true) {
+        EventBatch batch = mEventStream.poll();
+        if (batch == null) {
+          break;
+        } else {
+          LOG.info("received events");
+          Arrays.stream(batch.getEvents())
+              .parallel().forEach(event -> processEvent(event, syncPointList));
         }
       }
-      LOG.info("pathsToBeSynced");
-      LOG.info(Arrays.toString(pathsToBeSynced.toArray()));
-      LOG.info("syncPointFiles");
-      LOG.info(Arrays.toString(syncPointFiles.entrySet().toArray()));
-
-      SyncInfo syncInfo = new SyncInfo(pathsToBeSynced, syncPointFiles);
-      return syncInfo;
-
-    } catch (IOException e) {
+    } catch(IOException e){
       LOG.warn("IOException occured during polling inotify", e);
-    } catch (MissingEventsException e) {
+    } catch(MissingEventsException e){
       LOG.warn("MissingEventException {}", e);
     }
-    return SyncInfo.emptyInfo();
+
+    Map<AlluxioURI, Set<AlluxioURI>> syncPointFiles = new ConcurrentHashMap<>();
+    for (String syncPoint : mActivity.keySet()) {
+      AlluxioURI syncPointURI = new AlluxioURI(syncPoint);
+      // if the activity level is below the threshold or the sync point is too old, we sync
+      if (mActivity.get(syncPoint) < MAX_ACTIVITY || mAge.get(syncPoint) > MAX_AGE) {
+        LOG.info("Prepare to return SyncPoint " + syncPoint);
+        if (!syncPointFiles.containsKey(syncPointURI)) {
+          syncPointFiles.put(syncPointURI, mChangedFiles.get(syncPoint));
+        }
+        clearFile(syncPoint);
+      }
+    }
+    LOG.info("syncPointFiles");
+    LOG.info(Arrays.toString(syncPointFiles.entrySet().toArray()));
+
+    SyncInfo syncInfo = new SyncInfo(syncPointFiles);
+    return syncInfo;
+
   }
 }

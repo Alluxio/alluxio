@@ -559,7 +559,17 @@ public interface UnderFileSystem extends Closeable {
    */
   boolean supportsFlush();
 
+  /**
+   * Whether this type of UFS supports active sync.
+   *
+   * @return true if this type of UFS supports active sync, false otherwise
+   */
   boolean supportsActiveSync();
 
+  /**
+   * Return the active sync info for the specified syncPoints
+   * @param syncPointList a list of sync points to monitor for this UFS
+   * @return active sync info consisting of what changed for these sync points
+   */
   SyncInfo getActiveSyncInfo(List<AlluxioURI> syncPointList);
 }

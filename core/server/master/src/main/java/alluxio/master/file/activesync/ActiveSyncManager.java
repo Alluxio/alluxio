@@ -62,16 +62,19 @@ public class ActiveSyncManager {
       String rootPath = ufsUri.getRootPath();
       LOG.info("rootPath {}", rootPath);
       try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
-        if (!UnderFileSystemUtils.isHdfs(ufsResource.get())) {
-          throw new UnsupportedOperationException("Active Syncing is only available on HDFS currently");
+        if (!ufsResource.get().supportsActiveSync()) {
+          throw new UnsupportedOperationException("Active Syncing is not supported on this UFS type"
+              + ufsResource.get().getUnderFSType());
         }
-        ActiveSyncer syncer = new ActiveSyncer(mFileSystemMaster, this, mMountTable, rootPath);
+        if (!mPollerMap.containsKey(rootPath)) {
+          ActiveSyncer syncer = new ActiveSyncer(mFileSystemMaster, this, mMountTable, rootPath);
 
-        Future<?> future = mFileSystemMaster.getExecutorService().submit(
-            new HeartbeatThread(HeartbeatContext.MASTER_ACTIVE_SYNC,
-                syncer,
-                (int) Configuration.getMs(PropertyKey.MASTER_ACTIVE_UFS_SYNC_INTERVAL_MS)));
-        mPollerMap.put(rootPath, future);
+          Future<?> future = mFileSystemMaster.getExecutorService().submit(
+              new HeartbeatThread(HeartbeatContext.MASTER_ACTIVE_SYNC,
+                  syncer,
+                  (int) Configuration.getMs(PropertyKey.MASTER_ACTIVE_UFS_SYNC_INTERVAL_MS)));
+          mPollerMap.put(rootPath, future);
+        }
 
         // Add the new sync point to the filter map
         if (mFilterMap.containsKey(rootPath)) {

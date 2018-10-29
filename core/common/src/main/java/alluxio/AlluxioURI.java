@@ -441,10 +441,20 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
     return path;
   }
 
+  /**
+   * Returns true if the current AlluxioURI is a parent of another AlluxioURI.
+   * otherwise, return false.
+   * @param alluxioURI potential children to check
+   * @return
+   */
   public boolean isParentOf(AlluxioURI alluxioURI) {
     // To be a parent of another URI, authority and scheme must match
-    boolean authorityMatch = Objects.equals(getAuthority(), alluxioURI.getAuthority());
-    boolean schemeMatch = Objects.equals(getScheme(), alluxioURI.getScheme());
+    if (!Objects.equals(getAuthority(), alluxioURI.getAuthority())) {
+      return false;
+    }
+    if (!Objects.equals(getScheme(), alluxioURI.getScheme())) {
+      return false;
+    }
     boolean pathPrefix = false;
     try {
       pathPrefix = PathUtils.hasPrefix(
@@ -452,9 +462,10 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
           PathUtils.normalizePath(getPath(), SEPARATOR));
     } catch (InvalidPathException e) {
       // Should never reach here
-      LOG.warn("Encountered invalid path in isParentOf");
+      LOG.warn("Encountered invalid path in isParentOf {} {}", getPath(), alluxioURI.getPath());
+      return false;
     }
-    return authorityMatch && schemeMatch && pathPrefix;
+    return pathPrefix;
   }
 
   /**
