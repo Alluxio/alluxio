@@ -673,8 +673,6 @@ before attempting to delete persisted directories.
 * Adding `--alluxioOnly` option removes data and metadata from Alluxio space only. 
 The under storage system will not be affected.
 
-For example, `rm` can be used to remove temporary files which are no longer needed.
-
 {% include Command-Line-Interface/rm2.md %}
 
 ### setfacl

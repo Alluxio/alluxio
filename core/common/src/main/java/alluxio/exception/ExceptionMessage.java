@@ -30,6 +30,7 @@ public enum ExceptionMessage {
   PATH_DOES_NOT_EXIST("Path \"{0}\" does not exist."),
   PATH_MUST_BE_FILE("Path \"{0}\" must be a file."),
   PATH_MUST_BE_DIRECTORY("Path \"{0}\" must be a directory."),
+  PATH_MUST_BE_MOUNT_POINT("Path \"{0}\" must be a mount point."),
   PATH_INVALID("Path \"{0}\" is invalid."),
 
   // general block
