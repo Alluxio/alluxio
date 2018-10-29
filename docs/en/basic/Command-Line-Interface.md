@@ -416,11 +416,14 @@ For example, `cp` can be used to copy files between under storage systems.
 
 ### du
 
-The `du` command outputs the size of a file.
-If a directory is specified, it will output the aggregate size of all files in the directory and its child directories.
+The `du` command outputs the total size and in Alluxio size of files and folders.
 
-For example, if the Alluxio space is unexpectedly overutilized,
-`du` can be used to detect which folders are taking up the most space.
+If a directory is specified, it will display the total size and in Alluxio size of all files in this directory.
+If the `-s` option is used, it will display the aggregate summary of file lengths being displayed.
+
+By default, `du` prints the size in bytes. If the `-h` option is used, it will print sizes in human readable format (e.g., 1KB 234MB 2GB).
+
+The `--memory` option will print the in memory size as well.
 
 {% include Command-Line-Interface/du.md %}
 
