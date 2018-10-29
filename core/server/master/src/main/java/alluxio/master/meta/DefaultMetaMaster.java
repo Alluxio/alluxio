@@ -57,6 +57,7 @@ import alluxio.wire.Scope;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterators;
+import com.google.common.collect.UnmodifiableListIterator;
 import org.apache.thrift.TProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -69,6 +70,7 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -193,7 +195,7 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
 
   @Override
   public Iterator<JournalEntry> getJournalEntryIterator() {
-    return Iterators.emptyIterator();
+    return Iterators.unmodifiableIterator(Collections.emptyIterator());
   }
 
   @Override
