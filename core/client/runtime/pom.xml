@@ -107,6 +107,18 @@
                   <shadedPattern>${shading.prefix}.com.google.common</shadedPattern>
                 </relocation>
                 <relocation>
+                  <pattern>com.google.protobuf</pattern>
+                  <shadedPattern>${shading.prefix}.com.google.protobuf</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>io.grpc</pattern>
+                  <shadedPattern>${shading.prefix}.io.grpc</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>io.opencensus</pattern>
+                  <shadedPattern>${shading.prefix}.io.opencensus</shadedPattern>
+                </relocation>
+                <relocation>
                   <pattern>io.netty</pattern>
                   <shadedPattern>${shading.prefix}.io.netty</shadedPattern>
                 </relocation>
