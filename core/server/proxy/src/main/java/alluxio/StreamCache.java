@@ -17,7 +17,6 @@ import alluxio.client.file.FileOutStream;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.RemovalListener;
-import com.google.common.cache.RemovalNotification;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,13 +39,11 @@ public final class StreamCache {
   private static final Logger LOG = LoggerFactory.getLogger(StreamCache.class);
 
   private static final RemovalListener<Integer, Closeable> CLOSER =
-      new RemovalListener<Integer, Closeable>() {
-        public void onRemoval(RemovalNotification<Integer, Closeable> removal) {
-          try {
-            removal.getValue().close();
-          } catch (Exception e) {
-            LOG.error("Failed to close stream: ", e);
-          }
+      removal -> {
+        try {
+          removal.getValue().close();
+        } catch (Exception e) {
+          LOG.error("Failed to close stream: ", e);
         }
       };
 
