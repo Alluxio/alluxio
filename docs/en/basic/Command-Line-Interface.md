@@ -666,7 +666,6 @@ but the actual data may be deleted a while later.
 Adding `-R` option deletes all contents of the directory and the directory itself.
 Adding `-U` option skips the check for whether the UFS contents being deleted are in-sync with Alluxio
 before attempting to delete persisted directories.
-
 For example, `rm` can be used to remove temporary files which are no longer needed.
 
 {% include Command-Line-Interface/rm2.md %}
