@@ -602,7 +602,7 @@ Options:
 
 * `--readonly` option sets the mount point to be readonly in Alluxio
 * `--option <key>=<val>` option passes an property to this mount point, such as S3 credentials
-* `--shared` options set the mount point to be shared with all Alluxio users.
+* `--shared` option sets the mount point to be shared with all Alluxio users.
 
 Note that `--readonly` mounts are useful to prevent accidental write operations.
 If multiple Alluxio satellite clusters mount a remote storage cluster which serves as the central source of truth,
