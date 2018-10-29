@@ -167,7 +167,7 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
 
     try {
       Constructor c = Class.forName(HDFS_ACTIVESYNC_PROVIDER_CLASS).getConstructor(HdfsAdmin.class);
-      mHdfsAdmin = new HdfsAdmin(URI.create(ufsUri.toString()), new Configuration());
+      mHdfsAdmin = new HdfsAdmin(URI.create(ufsUri.toString()), hdfsConf);
       Object o = c.newInstance(mHdfsAdmin);
       if (o instanceof HdfsActiveSyncProvider) {
         hdfsActiveSyncProvider = (HdfsActiveSyncProvider) o;

@@ -1,10 +1,10 @@
-package alluxio.master.file;
+package alluxio.master.file.activesync;
 
 import alluxio.AlluxioURI;
 import alluxio.SyncInfo;
 import alluxio.exception.InvalidPathException;
 import alluxio.heartbeat.HeartbeatExecutor;
-import alluxio.master.file.activesync.ActiveSyncManager;
+import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.meta.MountTable;
 import alluxio.resource.CloseableResource;
 import alluxio.underfs.UnderFileSystem;
