@@ -52,6 +52,7 @@ import alluxio.wire.SetAclAction;
 import alluxio.wire.WorkerInfo;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -505,5 +506,5 @@ public interface FileSystemMaster extends Master {
 
   ExecutorService getExecutorService();
 
-  boolean forceSyncMetadata(AlluxioURI path);
+  boolean batchSyncMetadata(AlluxioURI path, Collection<AlluxioURI> changedFiles);
 }

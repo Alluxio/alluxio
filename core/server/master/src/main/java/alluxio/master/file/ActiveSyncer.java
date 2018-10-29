@@ -68,21 +68,22 @@ public class ActiveSyncer implements HeartbeatExecutor {
     AlluxioURI path = filterList.get(0);
     try {
       MountTable.Resolution resolution = mMountTable.resolve(path);
-      AlluxioURI ufsUri = resolution.getUri();
       try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
         UnderFileSystem ufsClient = ufsResource.get();
         if (ufsClient.supportsActiveSync()) {
           SyncInfo syncInfo = ufsClient.getActiveSyncInfo(ufsUriList);
           // This returns a list of ufsUris that we need to sync.
           List<AlluxioURI> ufsSyncPoints = syncInfo.getSyncList();
-          List<AlluxioURI> alluxioSyncPoints = ufsSyncPoints.stream()
-              .map(mMountTable::reverseResolve).collect(Collectors.toList());
-          for (AlluxioURI uri : ufsSyncPoints) {
-            LOG.info("ufsSyncPoints {}", uri.toString());
-          }
-          for (AlluxioURI uri : alluxioSyncPoints) {
-            LOG.info("sync {}", uri.toString());
-            mFileSystemMaster.forceSyncMetadata(uri);
+
+          for (AlluxioURI ufsUri : ufsSyncPoints) {
+            LOG.info("sync {}", ufsUri.toString());
+            AlluxioURI alluxioUri = mMountTable.reverseResolve(ufsUri);
+            if (alluxioUri != null) {
+              mFileSystemMaster.batchSyncMetadata(alluxioUri,
+                  syncInfo.getFileUpdateList(ufsUri).stream().parallel()
+                      .map(mMountTable::reverseResolve).collect(Collectors.toSet()));
+            }
+
           }
         }
       }

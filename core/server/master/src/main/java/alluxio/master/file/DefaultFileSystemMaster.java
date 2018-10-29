@@ -3027,17 +3027,30 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     }
   }
 
-  public boolean forceSyncMetadata(AlluxioURI path) {
+  public boolean batchSyncMetadata(AlluxioURI path, Collection<AlluxioURI> changedFiles) {
     LockingScheme lockingScheme =
         createLockingScheme(path, CommonOptions.defaults().setSyncIntervalMs(0), InodeTree.LockMode.READ);
+
     try (RpcContext rpcContext = createRpcContext();
          LockedInodePath inodePath =
              mInodeTree.lockInodePath(lockingScheme.getPath(), lockingScheme.getMode())) {
-      return syncMetadataInternal(rpcContext, inodePath, lockingScheme, DescendantType.ALL);
+      Map<AlluxioURI, UfsStatus> statusCache = populateStatusCache(inodePath, DescendantType.ALL);
+
+      changedFiles.stream().parallel().forEach(alluxioUri -> {
+        try {
+          LockedInodePath inodePathChangedFile =
+              mInodeTree.lockInodePath(alluxioUri, lockingScheme.getMode());
+          syncMetadataInternal(rpcContext, inodePathChangedFile, lockingScheme, DescendantType.NONE,
+              statusCache);
+        } catch (InvalidPathException e) {
+          LOG.warn("forceSyncMetadata processed an invalid path {}", alluxioUri.getPath());
+        }
+      });
     } catch (Exception e) {
       LOG.warn("Exception encountered during active sync {}", e.getMessage());
       return false;
     }
+    return true;
   }
 
   private boolean syncMetadata(RpcContext rpcContext, LockedInodePath inodePath,
@@ -3045,7 +3058,41 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     if (!lockingScheme.shouldSync()) {
       return false;
     }
-    return syncMetadataInternal(rpcContext, inodePath, lockingScheme, syncDescendantType);
+
+    return syncMetadataInternal(rpcContext, inodePath, lockingScheme,
+        syncDescendantType, populateStatusCache(inodePath, syncDescendantType));
+  }
+
+  private Map<AlluxioURI, UfsStatus> populateStatusCache(LockedInodePath inodePath,
+      DescendantType syncDescendantType) {
+    AlluxioURI path = inodePath.getUri();
+    Map<AlluxioURI, UfsStatus> statusCache = new HashMap<>();
+    try {
+      MountTable.Resolution resolution = mMountTable.resolve(path);
+      AlluxioURI ufsUri = resolution.getUri();
+      try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
+        UnderFileSystem ufs = ufsResource.get();
+        ListOptions listOptions = ListOptions.defaults();
+        // statusCache stores uri to ufsstatus mapping that is used to construct fingerprint
+
+        listOptions.setRecursive(syncDescendantType == DescendantType.ALL);
+        try {
+          UfsStatus[] children = ufs.listStatus(ufsUri.toString(), listOptions);
+          if (children != null) {
+            for (UfsStatus childStatus : children) {
+              statusCache.put(inodePath.getUri().joinUnsafe(childStatus.getName()),
+                  childStatus);
+            }
+          }
+        } catch (Exception e) {
+          LOG.debug("ListStatus failed as an preparation step for syncMetadata {}",
+              inodePath.getUri(), e);
+        }
+        return statusCache;
+      }
+    } catch (InvalidPathException e) {
+      return statusCache;
+    }
   }
 
   /**
@@ -3058,7 +3105,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * @return true if the sync was performed successfully, false otherwise (including errors)
    */
   private boolean syncMetadataInternal(RpcContext rpcContext, LockedInodePath inodePath,
-      LockingScheme lockingScheme, DescendantType syncDescendantType) {
+      LockingScheme lockingScheme, DescendantType syncDescendantType,
+      Map<AlluxioURI, UfsStatus> statusCache) {
 
     // The high-level process for the syncing is:
     // 1. Find all Alluxio paths which are not consistent with the corresponding UFS path.
@@ -3081,32 +3129,10 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         pathsToLoad.add(inodePath.getUri().getPath());
       } else {
         // List the status of the entire directory so we have the data ready for fingerprints
-        AlluxioURI path = inodePath.getUri();
-        MountTable.Resolution resolution = mMountTable.resolve(path);
-        AlluxioURI ufsUri = resolution.getUri();
-        try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
-          UnderFileSystem ufs = ufsResource.get();
-          ListOptions listOptions = ListOptions.defaults();
-          // statusCache stores uri to ufsstatus mapping that is used to construct fingerprint
-          Map<AlluxioURI, UfsStatus> statusCache = new HashMap<>();
-          listOptions.setRecursive(syncDescendantType == DescendantType.ALL);
-          try {
-            UfsStatus[] children = ufs.listStatus(ufsUri.toString(), listOptions);
-            if (children != null) {
-              for (UfsStatus childStatus : children) {
-                statusCache.put(inodePath.getUri().joinUnsafe(childStatus.getName()),
-                    childStatus);
-              }
-            }
-          } catch (Exception e) {
-            LOG.debug("ListStatus failed as an preparation step for syncMetadata {}",
-                inodePath.getUri(), e);
-          }
-          SyncResult result =
-              syncInodeMetadata(rpcContext, inodePath, syncDescendantType, statusCache);
-          deletedInode = result.getDeletedInode();
-          pathsToLoad = result.getPathsToLoad();
-        }
+        SyncResult result =
+            syncInodeMetadata(rpcContext, inodePath, syncDescendantType, statusCache);
+        deletedInode = result.getDeletedInode();
+        pathsToLoad = result.getPathsToLoad();
       }
     } catch (Exception e) {
       LOG.error("Failed to remove out-of-sync metadata for path: {}", inodePath.getUri(), e);
