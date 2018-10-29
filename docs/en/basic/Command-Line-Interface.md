@@ -463,16 +463,6 @@ For example, `getCapacityBytes` can be used to verify if your cluster is set up 
 
 {% include Command-Line-Interface/getCapacityBytes.md %}
 
-### getfacl
-
-The `getfacl` command returns the ACL entries for a specified file or directory.
-
-For example, `getfacl` can be used to verify that an ACL is changed successfully after a call to `setfacl`.
-
-```bash
-$ ./bin/alluxio fs getfacl /testdir/testfile
-```
-
 ### getUsedBytes
 
 The `getUsedBytes` command returns the number of used bytes in Alluxio.
@@ -612,6 +602,7 @@ Options:
 
 * `--readonly` option sets the mount point to be readonly in Alluxio
 * `--option <key>=<val>` option passes an property to this mount point, such as S3 credentials
+* `--shared` option sets the mount point to be shared with all Alluxio users.
 
 Note that `--readonly` mounts are useful to prevent accidental write operations.
 If multiple Alluxio satellite clusters mount a remote storage cluster which serves as the central source of truth,
@@ -663,36 +654,23 @@ The `rm` command removes a file from Alluxio space and the under storage system.
 The file will be unavailable immediately after this command returns,
 but the actual data may be deleted a while later.
 
-Adding `-R` option deletes all contents of the directory and the directory itself.
-Adding `-U` option skips the check for whether the UFS contents being deleted are in-sync with Alluxio
+* Adding `-R` option deletes all contents of the directory and the directory itself.
+* Adding `-U` option skips the check for whether the UFS contents being deleted are in-sync with Alluxio
 before attempting to delete persisted directories.
+* Adding `--alluxioOnly` option removes data and metadata from Alluxio space only. 
+The under storage system will not be affected.
 
 For example, `rm` can be used to remove temporary files which are no longer needed.
 
 {% include Command-Line-Interface/rm2.md %}
-
-### setfacl
-
-The `setfacl` command modifies the access control list associated with a specified file or directory.
-
-The`-R` option applies operations to all files and directories recursively.
-The `-m` option modifies the ACL by adding/overwriting new entries.
-The `-x` option removes specific ACL entries.
-The `-b` option removes all ACL entries, except for the base entries.
-The `-k` option removes all the default ACL entries.
-
-For example, `setfacl` can be used to give read and execute permissions to a user named `testuser`.
-
-```bash
-$ ./bin/alluxio fs setfacl -m "user:testuser:r-x" /testdir/testfile
-```
 
 ### setTtl
 
 The `setTtl` command sets the time-to-live of a file or a directory, in milliseconds.
 If set TTL is run on a directory, the same TTL attributes is set on all its children.
 If a directory's TTL expires, all its children will also expire.
-Action parameter will indicate the action to perform once the file or directory expires.
+
+Action parameter `--action` will indicate the action to perform once the file or directory expires.
 The default action, `delete`, deletes the file or directory from both Alluxio and the under storage system,
 whereas the action `free` frees the file from Alluxio even if pinned.
 
