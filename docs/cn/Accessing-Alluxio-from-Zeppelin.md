@@ -6,6 +6,6 @@ group: Frameworks
 priority: 4
 ---
 
-[Apache Zeppelin](http://zeppelin.apache.org/) 是一个能够进行交互式数据分析的基于Web的记事本。Alluxio 1.0已经
-与Zeppelin进行了集成,
-详细的说明可以在[这里](https://zeppelin.apache.org/docs/latest/interpreter/alluxio.html)被找到。
+[Apache Zeppelin](https://zeppelin.apache.org/) 是一个基于 Web 的记事本，它支持交互式数据分析。
+Alluxio 1.0.0 已经与 Zeppelin 进行了集成，
+点击[这里](https://zeppelin.apache.org/docs/latest/interpreter/alluxio.html)查看详细的说明。
