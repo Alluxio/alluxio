@@ -11,8 +11,14 @@
 
 package alluxio.master.file;
 
+import alluxio.Configuration;
+import alluxio.Constants;
+import alluxio.PropertyKey;
+import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.grpc.GetStatusPOptions;
+import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.LoadMetadataPType;
+import alluxio.grpc.TtlAction;
 import alluxio.master.file.options.CheckConsistencyOptions;
 import alluxio.master.file.options.CommonOptions;
 import alluxio.master.file.options.CompleteFileOptions;
@@ -20,7 +26,6 @@ import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
 import alluxio.master.file.options.DeleteOptions;
 import alluxio.master.file.options.FreeOptions;
-import alluxio.master.file.options.ListStatusOptions;
 import alluxio.master.file.options.LoadMetadataOptions;
 import alluxio.master.file.options.MountOptions;
 import alluxio.master.file.options.RenameOptions;
@@ -41,6 +46,14 @@ public final class DefaultFileSystemMasterOptions implements FileSystemMasterOpt
   @Override
   public CommonOptions getCommonOptions() {
     return CommonOptions.defaults();
+  }
+
+  public FileSystemMasterCommonPOptions getCommonPOptions() {
+    return FileSystemMasterCommonPOptions.newBuilder()
+        .setTtl(Constants.NO_TTL)
+        .setTtlAction(TtlAction.DELETE)
+        .setSyncIntervalMs(Configuration.getMs(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL))
+        .build();
   }
 
   @Override
@@ -71,13 +84,17 @@ public final class DefaultFileSystemMasterOptions implements FileSystemMasterOpt
   @Override
   public GetStatusPOptions getGetStatusOptions() {
     return GetStatusPOptions.newBuilder()
+        .setCommonOptions(getCommonPOptions())
         .setLoadMetadataType(LoadMetadataPType.ONCE)
         .build();
   }
 
   @Override
-  public ListStatusOptions getListStatusOptions() {
-    return ListStatusOptions.defaults();
+  public ListStatusPOptions getListStatusOptions() {
+    return ListStatusPOptions.newBuilder()
+            .setCommonOptions(getCommonPOptions())
+            .setLoadMetadataType(LoadMetadataPType.ONCE)
+            .build();
   }
 
   @Override

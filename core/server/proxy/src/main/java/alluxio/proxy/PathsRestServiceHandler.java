@@ -20,13 +20,13 @@ import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.DeleteOptions;
 import alluxio.client.file.options.ExistsOptions;
 import alluxio.client.file.options.FreeOptions;
-import alluxio.client.file.options.ListStatusOptions;
 import alluxio.client.file.options.MountOptions;
 import alluxio.client.file.options.OpenFileOptions;
 import alluxio.client.file.options.RenameOptions;
 import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.client.file.options.UnmountOptions;
 import alluxio.grpc.GetStatusPOptions;
+import alluxio.grpc.ListStatusPOptions;
 import alluxio.web.ProxyWebServer;
 
 import com.google.common.base.Preconditions;
@@ -238,12 +238,13 @@ public final class PathsRestServiceHandler {
   @Path(PATH_PARAM + LIST_STATUS)
   @ReturnType("java.util.List<alluxio.client.file.URIStatus>")
   public Response listStatus(@PathParam("path") final String path,
-      final ListStatusOptions options) {
+      final ListStatusPOptions options) {
     return RestUtils.call(new RestUtils.RestCallable<List<URIStatus>>() {
       @Override
       public List<URIStatus> call() throws Exception {
         if (options == null) {
-          return mFileSystem.listStatus(new AlluxioURI(path), ListStatusOptions.defaults());
+          return mFileSystem.listStatus(new AlluxioURI(path),
+              FileSystemClientOptions.getListStatusOptions());
         } else {
           return mFileSystem.listStatus(new AlluxioURI(path), options);
         }

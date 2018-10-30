@@ -20,33 +20,13 @@ import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.DeleteOptions;
 import alluxio.client.file.options.FreeOptions;
-import alluxio.client.file.options.ListStatusOptions;
 import alluxio.client.file.options.MountOptions;
 import alluxio.client.file.options.RenameOptions;
 import alluxio.client.file.options.SetAclOptions;
 import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.client.file.options.UpdateUfsModeOptions;
 import alluxio.exception.status.AlluxioStatusException;
-import alluxio.grpc.CheckConsistencyPRequest;
-import alluxio.grpc.CompleteFilePRequest;
-import alluxio.grpc.CreateDirectoryPRequest;
-import alluxio.grpc.CreateFilePRequest;
-import alluxio.grpc.DeletePRequest;
-import alluxio.grpc.FreePRequest;
-import alluxio.grpc.GetMountTablePRequest;
-import alluxio.grpc.GetNewBlockIdForFilePOptions;
-import alluxio.grpc.GetNewBlockIdForFilePRequest;
-import alluxio.grpc.GetStatusPOptions;
-import alluxio.grpc.GetStatusPRequest;
-import alluxio.grpc.ListStatusPRequest;
-import alluxio.grpc.MountPRequest;
-import alluxio.grpc.RenamePRequest;
-import alluxio.grpc.ScheduleAsyncPersistencePRequest;
-import alluxio.grpc.SetAclPRequest;
-import alluxio.grpc.SetAttributePRequest;
-import alluxio.grpc.UnmountPOptions;
-import alluxio.grpc.UnmountPRequest;
-import alluxio.grpc.UpdateUfsModePRequest;
+import alluxio.grpc.*;
 import alluxio.master.MasterClientConfig;
 import alluxio.security.authorization.AclEntry;
 import alluxio.thrift.AlluxioService;
@@ -195,11 +175,11 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
 
   @Override
   public synchronized List<URIStatus> listStatus(final AlluxioURI path,
-      final ListStatusOptions options) throws AlluxioStatusException {
+      final ListStatusPOptions options) throws AlluxioStatusException {
     return retryRPC(() -> {
       List<URIStatus> result = new ArrayList<>();
       for (alluxio.grpc.FileInfo fileInfo : mBlockingStub.listStatus(ListStatusPRequest.newBuilder()
-          .setPath(path.getPath()).setOptions(GrpcUtils.toProto(options)).build())
+          .setPath(path.getPath()).setOptions(options).build())
           .getFileInfoListList()) {
         result.add(new URIStatus(GrpcUtils.fromProto(fileInfo)));
       }

@@ -23,7 +23,6 @@ import alluxio.file.options.CreateFileOptions;
 import alluxio.file.options.CreateUfsFileOptions;
 import alluxio.file.options.DeleteOptions;
 import alluxio.file.options.FreeOptions;
-import alluxio.file.options.ListStatusOptions;
 import alluxio.file.options.MountOptions;
 import alluxio.file.options.RenameOptions;
 import alluxio.file.options.SetAclOptions;
@@ -122,6 +121,24 @@ public final class GrpcUtils {
       }
     }
     return options;
+  }
+
+  /**
+   * Converts from proto type to options.
+   *
+   * @param masterOptions the default master options provider
+   * @param pOptions the proto options to convert
+   * @return the converted options instance
+   */
+  public static FileSystemMasterCommonPOptions fromProtoToProto(FileSystemMasterOptions masterOptions,
+                                        FileSystemMasterCommonPOptions pOptions) {
+    FileSystemMasterCommonPOptions.Builder optionsBuilder = toProto(masterOptions.getCommonOptions()).toBuilder();
+    if (pOptions != null) {
+      if (pOptions.hasSyncIntervalMs()) {
+        optionsBuilder.setSyncIntervalMs(pOptions.getSyncIntervalMs());
+      }
+    }
+    return optionsBuilder.build();
   }
 
   /**
@@ -239,7 +256,7 @@ public final class GrpcUtils {
     GetStatusPOptions.Builder optionsBuilder = masterOptions.getGetStatusOptions().toBuilder();
     if (pOptions != null) {
       if (pOptions.hasCommonOptions()) {
-        optionsBuilder.setCommonOptions(pOptions.getCommonOptions());
+        optionsBuilder.setCommonOptions(fromProtoToProto(masterOptions, pOptions.getCommonOptions()));
       }
       if (pOptions.hasLoadMetadataType()) {
         optionsBuilder.setLoadMetadataType(pOptions.getLoadMetadataType());
@@ -255,23 +272,23 @@ public final class GrpcUtils {
    * @param pOptions the proto options to convert
    * @return the converted options instance
    */
-  public static ListStatusOptions fromProto(FileSystemMasterOptions masterOptions,
+  public static ListStatusPOptions fromProto(FileSystemMasterOptions masterOptions,
       ListStatusPOptions pOptions) {
-    ListStatusOptions options = masterOptions.getListStatusOptions();
+    ListStatusPOptions.Builder optionsBuilder = masterOptions.getListStatusOptions().toBuilder();
     if (pOptions != null) {
       if (pOptions.hasCommonOptions()) {
-        options.setCommonOptions(fromProto(masterOptions, pOptions.getCommonOptions()));
+        optionsBuilder.setCommonOptions(fromProtoToProto(masterOptions, pOptions.getCommonOptions()));
       }
       if (pOptions.hasLoadMetadataType()) {
-        options.setLoadMetadataType(fromProto(pOptions.getLoadMetadataType()));
+        optionsBuilder.setLoadMetadataType(pOptions.getLoadMetadataType());
       } else if (pOptions.hasLoadDirectChildren()) {
-        options.setLoadMetadataType(LoadMetadataType.Never);
+        optionsBuilder.setLoadMetadataType(LoadMetadataPType.NEVER);
       }
       if (pOptions.hasRecursive()) {
-        options.setRecursive(pOptions.getRecursive());
+        optionsBuilder.setRecursive(pOptions.getRecursive());
       }
     }
-    return options;
+    return optionsBuilder.build();
 
   }
 
@@ -1025,21 +1042,6 @@ public final class GrpcUtils {
         .setBlockInfo(toProto(fileBlockInfo.getBlockInfo())).setOffset(fileBlockInfo.getOffset())
         .addAllUfsLocations(ufsLocations).addAllUfsStringLocations(fileBlockInfo.getUfsLocations())
         .build();
-  }
-
-  /**
-   * Converts options to proto type.
-   *
-   * @param options the options type to convert
-   * @return the converted proto type
-   */
-  public static ListStatusPOptions toProto(ListStatusOptions options) {
-    return ListStatusPOptions.newBuilder()
-        .setLoadDirectChildren(options.getLoadMetadataType() == LoadMetadataType.Once
-            || options.getLoadMetadataType() == LoadMetadataType.Always)
-        .setLoadMetadataType(toProto(options.getLoadMetadataType()))
-        .setCommonOptions(toProto(options.getCommonOptions())).build();
-    // TODO(adit): update recursive
   }
 
   /**

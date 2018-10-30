@@ -14,6 +14,9 @@ package alluxio.master.file;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.RestUtils;
+import alluxio.client.file.FileSystemClientOptions;
+import alluxio.grpc.ListStatusPOptions;
+import alluxio.grpc.LoadMetadataPType;
 import alluxio.master.MasterProcess;
 import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
@@ -21,10 +24,10 @@ import alluxio.master.file.options.CreateFileOptions;
 import alluxio.master.file.options.DeleteOptions;
 import alluxio.master.file.options.FreeOptions;
 //import alluxio.master.file.options.GetStatusOptions;
-import alluxio.master.file.options.ListStatusOptions;
 import alluxio.master.file.options.MountOptions;
 import alluxio.master.file.options.RenameOptions;
 import alluxio.master.file.options.SetAttributeOptions;
+import alluxio.util.grpc.GrpcUtils;
 import alluxio.web.MasterWebServer;
 import alluxio.wire.FileInfo;
 import alluxio.wire.LoadMetadataType;
@@ -282,15 +285,18 @@ public final class FileSystemMasterClientRestServiceHandler {
       @Override
       public List<FileInfo> call() throws Exception {
         Preconditions.checkNotNull(path, "required 'path' parameter is missing");
-        ListStatusOptions listStatusOptions = ListStatusOptions.defaults();
+        ListStatusPOptions.Builder listStatusOptionsBuilder =
+            FileSystemClientOptions.getListStatusOptions().toBuilder();
         if (!loadDirectChildren) {
-          listStatusOptions.setLoadMetadataType(LoadMetadataType.Never);
+          listStatusOptionsBuilder.setLoadMetadataType(LoadMetadataPType.NEVER);
         }
         // loadMetadataType overrides loadDirectChildren if it is set.
         if (!loadMetadataType.isEmpty()) {
-          listStatusOptions.setLoadMetadataType(LoadMetadataType.valueOf(loadMetadataType));
+          listStatusOptionsBuilder.setLoadMetadataType(
+              GrpcUtils.toProto(LoadMetadataType.valueOf(loadMetadataType)));
         }
-        return mFileSystemMaster.listStatus(new AlluxioURI(path), listStatusOptions);
+        return mFileSystemMaster.listStatus(new AlluxioURI(path),
+            listStatusOptionsBuilder.build());
       }
     });
   }

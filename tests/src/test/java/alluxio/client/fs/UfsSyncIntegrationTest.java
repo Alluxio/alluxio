@@ -26,12 +26,12 @@ import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.DeleteOptions;
 import alluxio.client.file.options.ExistsOptions;
 import alluxio.client.file.options.FreeOptions;
-import alluxio.client.file.options.ListStatusOptions;
 import alluxio.client.file.options.RenameOptions;
 import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.grpc.GetStatusPOptions;
+import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.LoadMetadataPType;
 import alluxio.master.MasterClientConfig;
 import alluxio.security.authorization.Mode;
@@ -125,9 +125,8 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
 
   @Test
   public void listStatusNoSync() throws Exception {
-    ListStatusOptions options =
-        ListStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Never)
-            .setCommonOptions(SYNC_NEVER);
+    ListStatusPOptions options = FileSystemClientOptions.getListStatusOptions().toBuilder()
+        .setLoadMetadataType(LoadMetadataPType.NEVER).setCommonOptions(PSYNC_NEVER).build();
     checkListStatus(EXISTING_DIR, options, false);
     checkListStatus(EXISTING_FILE, options, false);
 
@@ -155,9 +154,8 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
 
   @Test
   public void listDirSync() throws Exception {
-    ListStatusOptions options =
-        ListStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Never)
-            .setCommonOptions(SYNC_ALWAYS);
+    ListStatusPOptions options = FileSystemClientOptions.getListStatusOptions().toBuilder()
+        .setLoadMetadataType(LoadMetadataPType.NEVER).setCommonOptions(PSYNC_ALWAYS).build();
     checkListStatus(ROOT_DIR, options, true);
 
     // Create new ufs paths.
@@ -190,9 +188,8 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
 
   @Test(timeout = 10000)
   public void listDirSyncInterval() throws Exception {
-    ListStatusOptions options =
-        ListStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Never)
-            .setCommonOptions(SYNC_INTERVAL);
+    ListStatusPOptions options = FileSystemClientOptions.getListStatusOptions().toBuilder()
+        .setLoadMetadataType(LoadMetadataPType.NEVER).setCommonOptions(PSYNC_INTERVAL).build();
     long startMs = System.currentTimeMillis();
     List<URIStatus> statusList =
         mFileSystem.listStatus(new AlluxioURI(alluxioPath(ROOT_DIR)), options);
@@ -252,9 +249,8 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
 
   @Test
   public void unpersistedFileSync() throws Exception {
-    ListStatusOptions options =
-        ListStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Never)
-            .setCommonOptions(SYNC_ALWAYS);
+    ListStatusPOptions options = FileSystemClientOptions.getListStatusOptions().toBuilder()
+        .setLoadMetadataType(LoadMetadataPType.NEVER).setCommonOptions(PSYNC_ALWAYS).build();
     List<String> initialStatusList =
         mFileSystem.listStatus(new AlluxioURI(alluxioPath(ROOT_DIR)), options).stream()
             .map(URIStatus::getName).collect(Collectors.toList());
@@ -311,17 +307,16 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
 
   @Test
   public void mountPoint() throws Exception {
-    ListStatusOptions options =
-        ListStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Never)
-            .setCommonOptions(SYNC_NEVER);
+    ListStatusPOptions options = FileSystemClientOptions.getListStatusOptions().toBuilder()
+        .setLoadMetadataType(LoadMetadataPType.NEVER).setCommonOptions(PSYNC_NEVER).build();
     List<String> rootListing =
         mFileSystem.listStatus(new AlluxioURI("/"), options).stream().map(URIStatus::getName)
             .collect(Collectors.toList());
     Assert.assertEquals(1, rootListing.size());
     Assert.assertEquals("mnt", rootListing.get(0));
 
-    options = ListStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Never)
-        .setCommonOptions(SYNC_ALWAYS);
+    options = FileSystemClientOptions.getListStatusOptions().toBuilder()
+        .setLoadMetadataType(LoadMetadataPType.NEVER).setCommonOptions(PSYNC_ALWAYS).build();
     rootListing =
         mFileSystem.listStatus(new AlluxioURI("/"), options).stream().map(URIStatus::getName)
             .collect(Collectors.toList());
@@ -339,9 +334,8 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
     String fromRootUfs = status.getUfsPath() + "/mnt";
     Assert.assertTrue(new File(fromRootUfs).mkdirs());
 
-    ListStatusOptions options =
-        ListStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Never)
-            .setCommonOptions(SYNC_ALWAYS);
+    ListStatusPOptions options = FileSystemClientOptions.getListStatusOptions().toBuilder()
+        .setLoadMetadataType(LoadMetadataPType.NEVER).setCommonOptions(PSYNC_ALWAYS).build();
     List<URIStatus> rootListing = mFileSystem.listStatus(new AlluxioURI("/"), options);
     Assert.assertEquals(1, rootListing.size());
     Assert.assertEquals("mnt", rootListing.get(0).getName());
@@ -361,9 +355,8 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
             .setTtl(55555));
 
     // Verify /nested/mnt/ dir has 1 mount point
-    ListStatusOptions options =
-        ListStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Never)
-            .setCommonOptions(SYNC_NEVER);
+    ListStatusPOptions options = FileSystemClientOptions.getListStatusOptions().toBuilder()
+        .setLoadMetadataType(LoadMetadataPType.NEVER).setCommonOptions(PSYNC_NEVER).build();
     List<URIStatus> listing = mFileSystem.listStatus(new AlluxioURI("/nested/mnt/"), options);
     Assert.assertEquals(1, listing.size());
     Assert.assertEquals("ufs", listing.get(0).getName());
@@ -649,7 +642,7 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
     }
   }
 
-  private void checkListStatus(String path, ListStatusOptions options, boolean expectExists)
+  private void checkListStatus(String path, ListStatusPOptions options, boolean expectExists)
       throws Exception {
     try {
       List<URIStatus> statusList =

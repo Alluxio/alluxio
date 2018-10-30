@@ -24,11 +24,11 @@ import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.DeleteOptions;
 import alluxio.client.file.options.SetAttributeOptions;
+import alluxio.grpc.LoadMetadataPType;
 import alluxio.master.LocalAlluxioCluster;
 import alluxio.master.MasterRegistry;
 import alluxio.master.NoopMaster;
 import alluxio.master.file.FileSystemMaster;
-import alluxio.master.file.options.ListStatusOptions;
 import alluxio.master.journal.ufs.UfsJournal;
 import alluxio.master.journal.ufs.UfsJournalSnapshot;
 import alluxio.security.authentication.AuthenticatedClientUser;
@@ -105,8 +105,8 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
 
     long rootId = fsMaster.getFileId(mRootUri);
     Assert.assertTrue(rootId != IdUtils.INVALID_FILE_ID);
-    Assert.assertEquals(1, fsMaster.listStatus(mRootUri,
-        ListStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Never)).size());
+    Assert.assertEquals(1, fsMaster.listStatus(mRootUri, FileSystemClientOptions
+        .getListStatusOptions().toBuilder().setLoadMetadataType(LoadMetadataPType.NEVER).build()));
     long xyzId = fsMaster.getFileId(new AlluxioURI("/xyz"));
     Assert.assertTrue(xyzId != IdUtils.INVALID_FILE_ID);
     FileInfo fsMasterInfo = fsMaster.getFileInfo(xyzId);
@@ -169,8 +169,9 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
 
     long rootId = fsMaster.getFileId(mRootUri);
     Assert.assertTrue(rootId != IdUtils.INVALID_FILE_ID);
-    Assert.assertEquals(1, fsMaster.listStatus(mRootUri,
-        ListStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Never)).size());
+    Assert.assertEquals(1,
+        fsMaster.listStatus(mRootUri, FileSystemClientOptions.getListStatusOptions().toBuilder()
+            .setLoadMetadataType(LoadMetadataPType.NEVER).build()).size());
     Assert.assertTrue(fsMaster.getFileId(new AlluxioURI("/xyz")) != IdUtils.INVALID_FILE_ID);
     FileInfo fsMasterInfo = fsMaster.getFileInfo(fsMaster.getFileId(new AlluxioURI("/xyz")));
     Assert.assertEquals(status, new URIStatus(fsMasterInfo.setMountId(status.getMountId())));
@@ -234,8 +235,9 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
     FileSystemMaster fsMaster = registry.get(FileSystemMaster.class);
     long rootId = fsMaster.getFileId(mRootUri);
     Assert.assertTrue(rootId != IdUtils.INVALID_FILE_ID);
-    Assert.assertEquals(5, fsMaster.listStatus(mRootUri,
-        ListStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Never)).size());
+    Assert.assertEquals(5,
+        fsMaster.listStatus(mRootUri, FileSystemClientOptions.getListStatusOptions().toBuilder()
+            .setLoadMetadataType(LoadMetadataPType.NEVER).build()).size());
     for (int i = 0; i < 5; i++) {
       for (int j = 0; j < 5; j++) {
         Assert.assertTrue(
@@ -253,8 +255,9 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
     FileSystemMaster fsMaster = registry.get(FileSystemMaster.class);
     long rootId = fsMaster.getFileId(mRootUri);
     Assert.assertTrue(rootId != IdUtils.INVALID_FILE_ID);
-    Assert.assertEquals(0, fsMaster.listStatus(mRootUri,
-        ListStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Never)).size());
+    Assert.assertEquals(0,
+        fsMaster.listStatus(mRootUri, FileSystemClientOptions.getListStatusOptions().toBuilder()
+            .setLoadMetadataType(LoadMetadataPType.NEVER).build()).size());
     registry.stop();
   }
 
@@ -281,8 +284,9 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
     FileSystemMaster fsMaster = registry.get(FileSystemMaster.class);
     long rootId = fsMaster.getFileId(mRootUri);
     Assert.assertTrue(rootId != IdUtils.INVALID_FILE_ID);
-    Assert.assertEquals(10, fsMaster.listStatus(mRootUri,
-        ListStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Never)).size());
+    Assert.assertEquals(10,
+        fsMaster.listStatus(mRootUri, FileSystemClientOptions.getListStatusOptions().toBuilder()
+            .setLoadMetadataType(LoadMetadataPType.NEVER).build()).size());
     for (int i = 0; i < 10; i++) {
       for (int j = 0; j < 10; j++) {
         Assert.assertTrue(
@@ -312,8 +316,9 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
     FileSystemMaster fsMaster = registry.get(FileSystemMaster.class);
     long rootId = fsMaster.getFileId(mRootUri);
     Assert.assertTrue(rootId != IdUtils.INVALID_FILE_ID);
-    Assert.assertEquals(1, fsMaster.listStatus(mRootUri,
-        ListStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Never)).size());
+    Assert.assertEquals(1,
+        fsMaster.listStatus(mRootUri, FileSystemClientOptions.getListStatusOptions().toBuilder()
+            .setLoadMetadataType(LoadMetadataPType.NEVER).build()).size());
     long fileId = fsMaster.getFileId(new AlluxioURI("/xyz"));
     Assert.assertTrue(fileId != IdUtils.INVALID_FILE_ID);
     Assert.assertEquals(
@@ -389,8 +394,9 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
     FileSystemMaster fsMaster = registry.get(FileSystemMaster.class);
     long rootId = fsMaster.getFileId(mRootUri);
     Assert.assertTrue(rootId != IdUtils.INVALID_FILE_ID);
-    Assert.assertEquals(1, fsMaster.listStatus(mRootUri,
-        ListStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Never)).size());
+    Assert.assertEquals(1,
+        fsMaster.listStatus(mRootUri, FileSystemClientOptions.getListStatusOptions().toBuilder()
+            .setLoadMetadataType(LoadMetadataPType.NEVER).build()).size());
     long fileId = fsMaster.getFileId(new AlluxioURI("/xyz"));
     Assert.assertTrue(fileId != IdUtils.INVALID_FILE_ID);
     Assert.assertEquals(
@@ -463,8 +469,9 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
     FileSystemMaster fsMaster = registry.get(FileSystemMaster.class);
     long rootId = fsMaster.getFileId(mRootUri);
     Assert.assertTrue(rootId != IdUtils.INVALID_FILE_ID);
-    Assert.assertEquals(10, fsMaster.listStatus(mRootUri,
-        ListStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Never)).size());
+    Assert.assertEquals(10,
+        fsMaster.listStatus(mRootUri, FileSystemClientOptions.getListStatusOptions().toBuilder()
+            .setLoadMetadataType(LoadMetadataPType.NEVER).build()).size());
     for (int k = 0; k < 10; k++) {
       Assert.assertTrue(fsMaster.getFileId(new AlluxioURI("/a" + k)) != IdUtils.INVALID_FILE_ID);
     }
@@ -491,8 +498,9 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
     FileSystemMaster fsMaster = registry.get(FileSystemMaster.class);
     long rootId = fsMaster.getFileId(mRootUri);
     Assert.assertTrue(rootId != IdUtils.INVALID_FILE_ID);
-    Assert.assertEquals(124, fsMaster.listStatus(mRootUri,
-        ListStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Never)).size());
+    Assert.assertEquals(124,
+        fsMaster.listStatus(mRootUri, FileSystemClientOptions.getListStatusOptions().toBuilder()
+            .setLoadMetadataType(LoadMetadataPType.NEVER).build()).size());
     for (int k = 0; k < 124; k++) {
       Assert.assertTrue(fsMaster.getFileId(new AlluxioURI("/a" + k)) != IdUtils.INVALID_FILE_ID);
     }
@@ -525,8 +533,9 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
     FileSystemMaster fsMaster = registry.get(FileSystemMaster.class);
     long rootId = fsMaster.getFileId(mRootUri);
     Assert.assertTrue(rootId != IdUtils.INVALID_FILE_ID);
-    Assert.assertEquals(10, fsMaster.listStatus(mRootUri,
-        ListStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Never)).size());
+    Assert.assertEquals(10,
+        fsMaster.listStatus(mRootUri, FileSystemClientOptions.getListStatusOptions().toBuilder()
+            .setLoadMetadataType(LoadMetadataPType.NEVER).build()).size());
     for (int i = 0; i < 10; i++) {
       for (int j = 0; j < 10; j++) {
         Assert.assertTrue(

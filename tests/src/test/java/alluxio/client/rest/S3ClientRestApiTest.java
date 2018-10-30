@@ -22,7 +22,6 @@ import alluxio.grpc.GetStatusPOptions;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
-import alluxio.master.file.options.ListStatusOptions;
 import alluxio.master.file.options.MountOptions;
 import alluxio.proxy.s3.CompleteMultipartUploadResult;
 import alluxio.proxy.s3.InitiateMultipartUploadResult;
@@ -88,7 +87,8 @@ public final class S3ClientRestApiTest extends RestApiTest {
     createBucketRestCall(bucket);
     // Verify the directory is created for the new bucket.
     AlluxioURI uri = new AlluxioURI(AlluxioURI.SEPARATOR + bucket);
-    Assert.assertTrue(mFileSystemMaster.listStatus(uri, ListStatusOptions.defaults()).isEmpty());
+    Assert.assertTrue(mFileSystemMaster
+        .listStatus(uri, FileSystemClientOptions.getListStatusOptions()).isEmpty());
   }
 
   @Test
@@ -107,7 +107,8 @@ public final class S3ClientRestApiTest extends RestApiTest {
     // Verify the directory is created for the new bucket, under the mount point.
     AlluxioURI uri = new AlluxioURI(
         AlluxioURI.SEPARATOR + mountPoint + AlluxioURI.SEPARATOR + bucketName);
-    Assert.assertTrue(mFileSystemMaster.listStatus(uri, ListStatusOptions.defaults()).isEmpty());
+    Assert.assertTrue(mFileSystemMaster
+        .listStatus(uri, FileSystemClientOptions.getListStatusOptions()).isEmpty());
   }
 
   @Test
@@ -131,7 +132,8 @@ public final class S3ClientRestApiTest extends RestApiTest {
     // Verify the directory is created for the new bucket, under the mount point.
     AlluxioURI uri = new AlluxioURI(AlluxioURI.SEPARATOR + mountPointParent
         + AlluxioURI.SEPARATOR + mountPointName + AlluxioURI.SEPARATOR + bucketName);
-    Assert.assertTrue(mFileSystemMaster.listStatus(uri, ListStatusOptions.defaults()).isEmpty());
+    Assert.assertTrue(mFileSystemMaster
+        .listStatus(uri, FileSystemClientOptions.getListStatusOptions()).isEmpty());
   }
 
   @Test
@@ -176,7 +178,8 @@ public final class S3ClientRestApiTest extends RestApiTest {
 
     // Verify the directory is created for the new bucket.
     AlluxioURI uri = new AlluxioURI(AlluxioURI.SEPARATOR + bucket);
-    Assert.assertTrue(mFileSystemMaster.listStatus(uri, ListStatusOptions.defaults()).isEmpty());
+    Assert.assertTrue(mFileSystemMaster
+        .listStatus(uri, FileSystemClientOptions.getListStatusOptions()).isEmpty());
 
     HttpURLConnection connection = deleteBucketRestCall(bucket);
     Assert.assertEquals(Response.Status.NO_CONTENT.getStatusCode(), connection.getResponseCode());
@@ -215,7 +218,8 @@ public final class S3ClientRestApiTest extends RestApiTest {
     mFileSystemMaster.createFile(fileUri, CreateFileOptions.defaults());
 
     // Verify the directory is created for the new bucket, and file is created under it.
-    Assert.assertFalse(mFileSystemMaster.listStatus(uri, ListStatusOptions.defaults()).isEmpty());
+    Assert.assertFalse(mFileSystemMaster
+        .listStatus(uri, FileSystemClientOptions.getListStatusOptions()).isEmpty());
 
     try {
       // Delete a non-empty bucket should fail.
@@ -252,8 +256,8 @@ public final class S3ClientRestApiTest extends RestApiTest {
       bucketURI = new AlluxioURI(tmpDir);
       objectURI = new AlluxioURI(tmpDir + AlluxioURI.SEPARATOR + partNumber.toString());
     }
-    List<FileInfo> fileInfos = mFileSystemMaster.listStatus(bucketURI,
-        ListStatusOptions.defaults());
+    List<FileInfo> fileInfos =
+        mFileSystemMaster.listStatus(bucketURI, FileSystemClientOptions.getListStatusOptions());
     Assert.assertEquals(1, fileInfos.size());
     Assert.assertEquals(objectURI.getPath(), fileInfos.get(0).getPath());
 
@@ -335,7 +339,8 @@ public final class S3ClientRestApiTest extends RestApiTest {
 
     AlluxioURI uri = new AlluxioURI(AlluxioURI.SEPARATOR + bucket + AlluxioURI.SEPARATOR);
     // Verify the directory is created for the new bucket.
-    Assert.assertTrue(mFileSystemMaster.listStatus(uri, ListStatusOptions.defaults()).isEmpty());
+    Assert.assertTrue(mFileSystemMaster
+        .listStatus(uri, FileSystemClientOptions.getListStatusOptions()).isEmpty());
 
     // Prepare a bucket with direct child objects and objects within sub directories:
     // - /file1
@@ -381,7 +386,8 @@ public final class S3ClientRestApiTest extends RestApiTest {
 
     AlluxioURI uri = new AlluxioURI(AlluxioURI.SEPARATOR + bucket + AlluxioURI.SEPARATOR);
     // Verify the directory is created for the new bucket.
-    Assert.assertTrue(mFileSystemMaster.listStatus(uri, ListStatusOptions.defaults()).isEmpty());
+    Assert.assertTrue(mFileSystemMaster
+        .listStatus(uri, FileSystemClientOptions.getListStatusOptions()).isEmpty());
 
     // Prepare a bucket with direct child objects and objects within sub directories:
     // - /file1
@@ -424,7 +430,8 @@ public final class S3ClientRestApiTest extends RestApiTest {
 
     AlluxioURI uri = new AlluxioURI(AlluxioURI.SEPARATOR + bucket + AlluxioURI.SEPARATOR);
     // Verify the directory is created for the new bucket.
-    Assert.assertTrue(mFileSystemMaster.listStatus(uri, ListStatusOptions.defaults()).isEmpty());
+    Assert.assertTrue(mFileSystemMaster
+        .listStatus(uri, FileSystemClientOptions.getListStatusOptions()).isEmpty());
 
     // Prepare a bucket with two objects:
     // - /file1
@@ -458,7 +465,8 @@ public final class S3ClientRestApiTest extends RestApiTest {
 
     AlluxioURI uri = new AlluxioURI(AlluxioURI.SEPARATOR + bucket + AlluxioURI.SEPARATOR);
     // Verify the directory is created for the new bucket.
-    Assert.assertTrue(mFileSystemMaster.listStatus(uri, ListStatusOptions.defaults()).isEmpty());
+    Assert.assertTrue(mFileSystemMaster
+        .listStatus(uri, FileSystemClientOptions.getListStatusOptions()).isEmpty());
 
     // Prepare a bucket with two objects:
     // - /file1
@@ -496,7 +504,8 @@ public final class S3ClientRestApiTest extends RestApiTest {
 
     AlluxioURI uri = new AlluxioURI(AlluxioURI.SEPARATOR + bucket + AlluxioURI.SEPARATOR);
     // Verify the directory is created for the new bucket.
-    Assert.assertTrue(mFileSystemMaster.listStatus(uri, ListStatusOptions.defaults()).isEmpty());
+    Assert.assertTrue(mFileSystemMaster
+        .listStatus(uri, FileSystemClientOptions.getListStatusOptions()).isEmpty());
 
     // Prepare a bucket with two objects:
     // - /file1
@@ -532,7 +541,8 @@ public final class S3ClientRestApiTest extends RestApiTest {
 
     AlluxioURI uri = new AlluxioURI(AlluxioURI.SEPARATOR + bucket + AlluxioURI.SEPARATOR);
     // Verify the directory is created for the new bucket.
-    Assert.assertTrue(mFileSystemMaster.listStatus(uri, ListStatusOptions.defaults()).isEmpty());
+    Assert.assertTrue(mFileSystemMaster
+        .listStatus(uri, FileSystemClientOptions.getListStatusOptions()).isEmpty());
 
     List<URIStatus> listStatusResult = new ArrayList<>();
     ListBucketResult expected = new ListBucketResult(
@@ -634,14 +644,14 @@ public final class S3ClientRestApiTest extends RestApiTest {
     mFileSystemMaster.createFile(fileUri, CreateFileOptions.defaults());
 
     // Verify the directory is created for the new bucket, and file is created under it.
-    Assert.assertFalse(
-        mFileSystemMaster.listStatus(bucketUri, ListStatusOptions.defaults()).isEmpty());
+    Assert.assertFalse(mFileSystemMaster
+        .listStatus(bucketUri, FileSystemClientOptions.getListStatusOptions()).isEmpty());
 
     deleteObjectRestCall(bucketName + AlluxioURI.SEPARATOR + objectName);
 
     // Verify the object is deleted.
-    Assert.assertTrue(
-        mFileSystemMaster.listStatus(bucketUri, ListStatusOptions.defaults()).isEmpty());
+    Assert.assertTrue(mFileSystemMaster
+        .listStatus(bucketUri, FileSystemClientOptions.getListStatusOptions()).isEmpty());
   }
 
   @Test
@@ -656,14 +666,14 @@ public final class S3ClientRestApiTest extends RestApiTest {
     mFileSystemMaster.createDirectory(dirUri, CreateDirectoryOptions.defaults());
 
     // Verify the directory is created for the new bucket, and empty-dir is created under it.
-    Assert.assertFalse(
-        mFileSystemMaster.listStatus(bucketUri, ListStatusOptions.defaults()).isEmpty());
+    Assert.assertFalse(mFileSystemMaster
+        .listStatus(bucketUri, FileSystemClientOptions.getListStatusOptions()).isEmpty());
 
     deleteObjectRestCall(bucketName + AlluxioURI.SEPARATOR + objectName);
 
     // Verify the empty-dir as a valid object is deleted.
-    Assert.assertTrue(
-        mFileSystemMaster.listStatus(bucketUri, ListStatusOptions.defaults()).isEmpty());
+    Assert.assertTrue(mFileSystemMaster
+        .listStatus(bucketUri, FileSystemClientOptions.getListStatusOptions()).isEmpty());
   }
 
   @Test
@@ -680,8 +690,8 @@ public final class S3ClientRestApiTest extends RestApiTest {
     mFileSystemMaster.createFile(
         new AlluxioURI(dirUri.getPath() + "/file"), CreateFileOptions.defaults());
 
-    Assert.assertFalse(
-        mFileSystemMaster.listStatus(dirUri, ListStatusOptions.defaults()).isEmpty());
+    Assert.assertFalse(mFileSystemMaster
+        .listStatus(dirUri, FileSystemClientOptions.getListStatusOptions()).isEmpty());
 
     try {
       deleteObjectRestCall(bucketName + AlluxioURI.SEPARATOR + objectName);

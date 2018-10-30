@@ -20,7 +20,6 @@ import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.DeleteOptions;
 import alluxio.client.file.options.ExistsOptions;
 import alluxio.client.file.options.FreeOptions;
-import alluxio.client.file.options.ListStatusOptions;
 import alluxio.client.file.options.LoadMetadataOptions;
 import alluxio.client.file.options.MountOptions;
 import alluxio.client.file.options.OpenFileOptions;
@@ -35,6 +34,7 @@ import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.grpc.GetStatusPOptions;
+import alluxio.grpc.ListStatusPOptions;
 import alluxio.security.authorization.AclEntry;
 import alluxio.wire.MountPointInfo;
 import alluxio.wire.SetAclAction;
@@ -214,7 +214,7 @@ public interface FileSystem {
       throws FileDoesNotExistException, IOException, AlluxioException;
 
   /**
-   * Convenience method for {@link #listStatus(AlluxioURI, ListStatusOptions)} with default options.
+   * Convenience method for {@link #listStatus(AlluxioURI, ListStatusPOptions)} with default options.
    *
    * @param path the path to list information about
    * @return a list of {@link URIStatus}s containing information about the files and directories
@@ -234,7 +234,7 @@ public interface FileSystem {
    *         which are children of the given path
    * @throws FileDoesNotExistException if the given path does not exist
    */
-  List<URIStatus> listStatus(AlluxioURI path, ListStatusOptions options)
+  List<URIStatus> listStatus(AlluxioURI path, ListStatusPOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException;
 
   /**

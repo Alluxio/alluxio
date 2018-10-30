@@ -14,10 +14,11 @@ package alluxio.cli.fs.command;
 import alluxio.AlluxioURI;
 import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemClientOptions;
 import alluxio.client.file.URIStatus;
-import alluxio.client.file.options.ListStatusOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
+import alluxio.grpc.ListStatusPOptions;
 import alluxio.util.FormatUtils;
 
 import org.apache.commons.cli.CommandLine;
@@ -86,7 +87,8 @@ public final class DuCommand extends AbstractFileSystemCommand {
   protected void runPlainPath(AlluxioURI path, CommandLine cl)
       throws AlluxioException, IOException {
 
-    ListStatusOptions listOptions = ListStatusOptions.defaults().setRecursive(true);
+    ListStatusPOptions listOptions =
+        FileSystemClientOptions.getListStatusOptions().toBuilder().setRecursive(true).build();
     List<URIStatus> statuses = mFileSystem.listStatus(path, listOptions);
     if (statuses == null || statuses.size() == 0) {
       return;

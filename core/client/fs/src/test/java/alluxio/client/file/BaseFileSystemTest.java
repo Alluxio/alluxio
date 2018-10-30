@@ -33,13 +33,13 @@ import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.DeleteOptions;
 import alluxio.client.file.options.FreeOptions;
-import alluxio.client.file.options.ListStatusOptions;
 import alluxio.client.file.options.MountOptions;
 import alluxio.client.file.options.OpenFileOptions;
 import alluxio.client.file.options.RenameOptions;
 import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.client.file.options.UnmountOptions;
 import alluxio.grpc.GetStatusPOptions;
+import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.LoadMetadataPType;
 import alluxio.wire.FileInfo;
 import alluxio.wire.LoadMetadataType;
@@ -241,14 +241,14 @@ public final class BaseFileSystemTest {
   }
 
   /**
-   * Tests for the {@link BaseFileSystem#listStatus(AlluxioURI, ListStatusOptions)} method.
+   * Tests for the {@link BaseFileSystem#listStatus(AlluxioURI, ListStatusPOptions)} method.
    */
   @Test
   public void listStatus() throws Exception {
     AlluxioURI file = new AlluxioURI("/file");
     List<URIStatus> infos = new ArrayList<>();
     infos.add(new URIStatus(new FileInfo()));
-    ListStatusOptions listStatusOptions = ListStatusOptions.defaults();
+    ListStatusPOptions listStatusOptions = FileSystemClientOptions.getListStatusOptions();
     when(mFileSystemMasterClient.listStatus(file, listStatusOptions)).thenReturn(infos);
     assertSame(infos, mFileSystem.listStatus(file, listStatusOptions));
     verify(mFileSystemMasterClient).listStatus(file, listStatusOptions);
@@ -262,9 +262,9 @@ public final class BaseFileSystemTest {
   @Test
   public void listStatusException() throws Exception {
     AlluxioURI file = new AlluxioURI("/file");
-    when(mFileSystemMasterClient.listStatus(file, ListStatusOptions.defaults()))
+    when(mFileSystemMasterClient.listStatus(file, FileSystemClientOptions.getListStatusOptions()))
         .thenThrow(EXCEPTION);
-    ListStatusOptions listStatusOptions = ListStatusOptions.defaults();
+    ListStatusPOptions listStatusOptions = FileSystemClientOptions.getListStatusOptions();
     try {
       mFileSystem.listStatus(file, listStatusOptions);
       fail(SHOULD_HAVE_PROPAGATED_MESSAGE);

@@ -44,7 +44,6 @@ import alluxio.file.options.CreateFileOptions;
 import alluxio.file.options.DeleteOptions;
 import alluxio.file.options.DescendantType;
 import alluxio.file.options.FreeOptions;
-import alluxio.file.options.ListStatusOptions;
 import alluxio.file.options.LoadMetadataOptions;
 import alluxio.file.options.MountOptions;
 import alluxio.file.options.RenameOptions;
@@ -52,6 +51,7 @@ import alluxio.file.options.SetAclOptions;
 import alluxio.file.options.SetAttributeOptions;
 import alluxio.file.options.WorkerHeartbeatOptions;
 import alluxio.grpc.GetStatusPOptions;
+import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.LoadMetadataPType;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatThread;
@@ -864,12 +864,13 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   }
 
   @Override
-  public List<FileInfo> listStatus(AlluxioURI path, ListStatusOptions listStatusOptions)
+  public List<FileInfo> listStatus(AlluxioURI path, ListStatusPOptions listStatusOptions)
       throws AccessControlException, FileDoesNotExistException, InvalidPathException,
       UnavailableException {
     Metrics.GET_FILE_INFO_OPS.inc();
-    LockingScheme lockingScheme =
-        createLockingScheme(path, listStatusOptions.getCommonOptions(), InodeTree.LockMode.READ);
+    LockingScheme lockingScheme = createLockingScheme(path,
+        GrpcUtils.fromProto(getMasterOptions(), listStatusOptions.getCommonOptions()),
+        InodeTree.LockMode.READ);
     try (RpcContext rpcContext = createRpcContext();
          LockedInodePath inodePath = mInodeTree
              .lockInodePath(lockingScheme.getPath(), lockingScheme.getMode());
@@ -882,38 +883,38 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         throw e;
       }
 
-      DescendantType descendantType = listStatusOptions.isRecursive() ? DescendantType.ALL
+      DescendantType descendantType = listStatusOptions.getRecursive() ? DescendantType.ALL
           : DescendantType.ONE;
       // Possible ufs sync.
       if (syncMetadata(rpcContext, inodePath, lockingScheme, descendantType)) {
         // If synced, do not load metadata.
-        listStatusOptions.setLoadMetadataType(LoadMetadataType.Never);
+        listStatusOptions =
+            listStatusOptions.toBuilder().setLoadMetadataType(LoadMetadataPType.NEVER).build();
       }
 
       DescendantType loadDescendantType;
-      if (listStatusOptions.getLoadMetadataType() == LoadMetadataType.Never) {
+      if (listStatusOptions.getLoadMetadataType() == LoadMetadataPType.NEVER) {
         loadDescendantType = DescendantType.NONE;
-      } else if (listStatusOptions.isRecursive()) {
+      } else if (listStatusOptions.getRecursive()) {
         loadDescendantType = DescendantType.ALL;
       } else {
         loadDescendantType = DescendantType.ONE;
       }
       // load metadata for 1 level of descendants, or all descendants if recursive
-      LoadMetadataOptions loadMetadataOptions =
-          MASTER_OPTIONS.getLoadMetadataOptions().setCreateAncestors(true)
-              .setLoadDescendantType(loadDescendantType)
-              .setCommonOptions(MASTER_OPTIONS.getCommonOptions()
-                  .setTtl(listStatusOptions.getCommonOptions().getTtl())
-                  .setTtlAction(listStatusOptions.getCommonOptions().getTtlAction()));
+      LoadMetadataOptions loadMetadataOptions = MASTER_OPTIONS.getLoadMetadataOptions()
+          .setCreateAncestors(true).setLoadDescendantType(loadDescendantType)
+          .setCommonOptions(MASTER_OPTIONS.getCommonOptions()
+              .setTtl(listStatusOptions.getCommonOptions().getTtl()).setTtlAction(
+                  GrpcUtils.fromProto(listStatusOptions.getCommonOptions().getTtlAction())));
       InodeView inode;
       if (inodePath.fullPathExists()) {
         inode = inodePath.getInode();
         if (inode.isDirectory()
-            && listStatusOptions.getLoadMetadataType() != LoadMetadataType.Always) {
+            && listStatusOptions.getLoadMetadataType() != LoadMetadataPType.ALWAYS) {
           InodeDirectoryView inodeDirectory = (InodeDirectoryView) inode;
 
           boolean isLoaded = inodeDirectory.isDirectChildrenLoaded();
-          if (listStatusOptions.isRecursive()) {
+          if (listStatusOptions.getRecursive()) {
             isLoaded = inodeDirectory.areDescendantsLoaded();
           }
           if (isLoaded) {
@@ -930,7 +931,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       inode = inodePath.getInode();
       auditContext.setSrcInode(inode);
       List<FileInfo> ret = new ArrayList<>();
-      DescendantType descendantTypeForListStatus = (listStatusOptions.isRecursive())
+      DescendantType descendantTypeForListStatus = (listStatusOptions.getRecursive())
           ? DescendantType.ALL : DescendantType.ONE;
       listStatusInternal(inodePath, auditContext, descendantTypeForListStatus, ret);
 

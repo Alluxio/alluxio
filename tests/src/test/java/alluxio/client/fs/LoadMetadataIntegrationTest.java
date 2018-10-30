@@ -21,9 +21,9 @@ import alluxio.UnderFileSystemFactoryRegistryRule;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemClientOptions;
 import alluxio.client.file.URIStatus;
-import alluxio.client.file.options.ListStatusOptions;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.grpc.GetStatusPOptions;
+import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.LoadMetadataPType;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.meta.UfsAbsentPathCache;
@@ -198,7 +198,8 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
   @Test
   public void loadRecursive() throws Exception {
     Configuration.set(PropertyKey.USER_FILE_METADATA_LOAD_TYPE, LoadMetadataType.Once.toString());
-    ListStatusOptions options = ListStatusOptions.defaults().setRecursive(true);
+    ListStatusPOptions options =
+        FileSystemClientOptions.getListStatusOptions().toBuilder().setRecursive(false).build();
     for (int i = 0; i < 5; i++) {
       for (int j = 0; j < 5; j++) {
         new File(mLocalUfsPath + "/dir" + i + "/dir" + j + "/").mkdirs();

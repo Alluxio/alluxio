@@ -20,7 +20,6 @@ import alluxio.client.file.options.DeleteOptions;
 import alluxio.client.file.options.ExistsOptions;
 import alluxio.client.file.options.FreeOptions;
 import alluxio.client.file.options.InStreamOptions;
-import alluxio.client.file.options.ListStatusOptions;
 import alluxio.client.file.options.LoadMetadataOptions;
 import alluxio.client.file.options.MountOptions;
 import alluxio.client.file.options.OpenFileOptions;
@@ -42,6 +41,7 @@ import alluxio.exception.status.InvalidArgumentException;
 import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.GetStatusPOptions;
+import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.LoadMetadataPType;
 import alluxio.master.MasterInquireClient;
 import alluxio.security.authorization.AclEntry;
@@ -272,11 +272,11 @@ public class BaseFileSystem implements FileSystem {
   @Override
   public List<URIStatus> listStatus(AlluxioURI path)
       throws FileDoesNotExistException, IOException, AlluxioException {
-    return listStatus(path, ListStatusOptions.defaults());
+    return listStatus(path, FileSystemClientOptions.getListStatusOptions());
   }
 
   @Override
-  public List<URIStatus> listStatus(AlluxioURI path, ListStatusOptions options)
+  public List<URIStatus> listStatus(AlluxioURI path, ListStatusPOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException {
     checkUri(path);
     FileSystemMasterClient masterClient = mFileSystemContext.acquireMasterClient();

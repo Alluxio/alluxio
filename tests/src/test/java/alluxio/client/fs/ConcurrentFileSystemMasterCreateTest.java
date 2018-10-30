@@ -20,9 +20,11 @@ import alluxio.PropertyKey;
 import alluxio.UnderFileSystemFactoryRegistryRule;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemClientOptions;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.CreateDirectoryOptions;
-import alluxio.client.file.options.ListStatusOptions;
+import alluxio.grpc.ListStatusPOptions;
+import alluxio.grpc.LoadMetadataPType;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.meta.PersistenceState;
 import alluxio.testutils.BaseIntegrationTest;
@@ -332,8 +334,8 @@ public class ConcurrentFileSystemMasterCreateTest extends BaseIntegrationTest {
           + "\n" + Throwables.getStackTraceAsString(errors.get(0)));
     }
 
-    ListStatusOptions listOptions = ListStatusOptions.defaults().setLoadMetadataType(
-        LoadMetadataType.Never);
+    ListStatusPOptions listOptions = FileSystemClientOptions.getListStatusOptions().toBuilder()
+        .setLoadMetadataType(LoadMetadataPType.NEVER).build();
 
     List<URIStatus> files = mFileSystem.listStatus(new AlluxioURI("/"), listOptions);
     Assert.assertEquals(1, files.size());
