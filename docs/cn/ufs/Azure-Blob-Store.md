@@ -16,7 +16,7 @@ priority: 0
 为了在多台机器上运行一个Alluxio集群，你必须在每台机器上部署Alluxio的二进制文件。
 你可以[从Alluxio源码编译二进制文件](Building-Alluxio-From-Source.html)，或者[直接下载已经编译好的Alluxio二进制文件](Running-Alluxio-Locally.html)。
 
-此外，为了在 Alluxio 上使用 Azure Blob Store，你需要在 Azure storage 帐户上创建一个新的 container 或者使用一个已有的 container。还要提供准备在这个 container 里使用的目录，你可以在这个 container 里面创建一个目录，或者使用一个已有的目录。在这篇文章中，我们将 Azure storage 帐户名称为 `<AZURE_ACCOUNT>`，将帐户里的 container 称为`<AZURE_CONTAINER>` 并将该 container 里面的目录称为 `<AZURE_DIRECTORY>`。点击[这里](https://docs.microsoft.com/en-us/azure/storage/storage-create-storage-account)查看更多关于Azure storage帐户的信息。
+此外，为了在Alluxi上使用Azure Blob Store，你需要在Azure storage帐户上创建一个新的container或者使用一个已有的container。还要提供准备在这个container里使用的目录，你可以在这个container里面创建一个目录，或者使用一个已有的目录。在这篇文章中，我们将Azure storage帐户名称为`<AZURE_ACCOUNT>`，将帐户里的container称为`<AZURE_CONTAINER>`并将该container里面的目录称为`<AZURE_DIRECTORY>`。点击[这里](https://docs.microsoft.com/en-us/azure/storage/storage-create-storage-account)查看更多关于Azure storage帐户的信息。
 
 
 ## 配置Alluxio
