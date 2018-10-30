@@ -2,11 +2,12 @@
 
   <Match>
     <Or>
-      <Package name="org.apache.thrift"/>
-      <Package name="alluxio.thrift"/>
-      <Package name="alluxio.proto.journal.*"/>
       <Package name="alluxio.proto.dataserver.*"/>
+      <Package name="alluxio.proto.journal.*"/>
+      <Package name="alluxio.proto.master.*"/>
       <Package name="alluxio.proto.shared.*"/>
+      <Package name="alluxio.thrift"/>
+      <Package name="org.apache.thrift"/>
     </Or>
   </Match>
 
