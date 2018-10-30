@@ -25,15 +25,33 @@ public interface LoadMetadataPOptionsOrBuilder extends
   boolean getRecursive();
 
   /**
-   * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 2;</code>
+   * <code>optional bool createAncestors = 2;</code>
+   */
+  boolean hasCreateAncestors();
+  /**
+   * <code>optional bool createAncestors = 2;</code>
+   */
+  boolean getCreateAncestors();
+
+  /**
+   * <code>optional .alluxio.grpc.LoadDescendantPType loadDescendantType = 3;</code>
+   */
+  boolean hasLoadDescendantType();
+  /**
+   * <code>optional .alluxio.grpc.LoadDescendantPType loadDescendantType = 3;</code>
+   */
+  alluxio.grpc.LoadDescendantPType getLoadDescendantType();
+
+  /**
+   * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 4;</code>
    */
   boolean hasCommonOptions();
   /**
-   * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 2;</code>
+   * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 4;</code>
    */
   alluxio.grpc.FileSystemMasterCommonPOptions getCommonOptions();
   /**
-   * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 2;</code>
+   * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 4;</code>
    */
   alluxio.grpc.FileSystemMasterCommonPOptionsOrBuilder getCommonOptionsOrBuilder();
 }

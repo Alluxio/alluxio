@@ -14,43 +14,8 @@ package alluxio.util.grpc;
 import static alluxio.util.StreamUtils.map;
 
 import alluxio.Constants;
-import alluxio.file.options.CheckConsistencyOptions;
-import alluxio.file.options.CommonOptions;
-import alluxio.file.options.CompleteFileOptions;
-import alluxio.file.options.CompleteUfsFileOptions;
-import alluxio.file.options.CreateDirectoryOptions;
-import alluxio.file.options.CreateFileOptions;
-import alluxio.file.options.CreateUfsFileOptions;
-import alluxio.file.options.DeleteOptions;
-import alluxio.file.options.FreeOptions;
-import alluxio.file.options.MountOptions;
-import alluxio.file.options.RenameOptions;
-import alluxio.file.options.SetAclOptions;
-import alluxio.file.options.SetAttributeOptions;
-import alluxio.file.options.UpdateUfsModeOptions;
-import alluxio.grpc.CheckConsistencyPOptions;
-import alluxio.grpc.CompleteFilePOptions;
-import alluxio.grpc.CompleteUfsFilePOptions;
-import alluxio.grpc.CreateDirectoryPOptions;
-import alluxio.grpc.CreateFilePOptions;
-import alluxio.grpc.CreateUfsFilePOptions;
-import alluxio.grpc.DeletePOptions;
-import alluxio.grpc.FreePOptions;
-import alluxio.grpc.ListStatusPOptions;
-import alluxio.grpc.MountPOptions;
-import alluxio.grpc.PAcl;
-import alluxio.grpc.PAclAction;
-import alluxio.grpc.PAclEntry;
-import alluxio.grpc.PAclEntryType;
-import alluxio.grpc.PSetAclAction;
-import alluxio.grpc.RenamePOptions;
-import alluxio.grpc.SetAclPOptions;
-import alluxio.grpc.SetAttributePOptions;
-import alluxio.grpc.FileSystemMasterCommonPOptions;
-import alluxio.grpc.GetStatusPOptions;
-import alluxio.grpc.LoadMetadataPType;
-import alluxio.grpc.UfsMode;
-import alluxio.grpc.UpdateUfsModePOptions;
+import alluxio.file.options.*;
+import alluxio.grpc.*;
 import alluxio.master.file.FileSystemMasterOptions;
 import alluxio.security.authorization.AccessControlList;
 import alluxio.security.authorization.AclAction;
@@ -307,6 +272,26 @@ public final class GrpcUtils {
         return LoadMetadataType.Once;
       case ALWAYS:
         return LoadMetadataType.Always;
+      default:
+        return null;
+    }
+  }
+
+  /**
+   * Converts from proto type to wire type.
+   *
+   * @param loadMetadataPType the proto representation of loadMetadataType
+   * @return the {@link LoadMetadataType}
+   */
+  @Nullable
+  public static DescendantType fromProto(LoadDescendantPType loadMetadataPType) {
+    switch (loadMetadataPType) {
+      case NONE:
+        return DescendantType.NONE;
+      case ONE:
+        return DescendantType.ONE;
+      case ALL:
+        return DescendantType.ALL;
       default:
         return null;
     }
@@ -1052,6 +1037,16 @@ public final class GrpcUtils {
    */
   public static LoadMetadataPType toProto(LoadMetadataType loadMetadataType) {
     return LoadMetadataPType.forNumber(loadMetadataType.getValue());
+  }
+
+  /**
+   * Converts options to proto type.
+   *
+   * @param loadDescendantType the {@link DescendantType}
+   * @return the proto representation of this enum
+   */
+  public static LoadDescendantPType toProto(DescendantType loadDescendantType) {
+    return LoadDescendantPType.valueOf(loadDescendantType.name());
   }
 
   /**

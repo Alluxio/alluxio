@@ -14,11 +14,7 @@ package alluxio.master.file;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
-import alluxio.grpc.FileSystemMasterCommonPOptions;
-import alluxio.grpc.GetStatusPOptions;
-import alluxio.grpc.ListStatusPOptions;
-import alluxio.grpc.LoadMetadataPType;
-import alluxio.grpc.TtlAction;
+import alluxio.grpc.*;
 import alluxio.master.file.options.CheckConsistencyOptions;
 import alluxio.master.file.options.CommonOptions;
 import alluxio.master.file.options.CompleteFileOptions;
@@ -26,7 +22,6 @@ import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
 import alluxio.master.file.options.DeleteOptions;
 import alluxio.master.file.options.FreeOptions;
-import alluxio.master.file.options.LoadMetadataOptions;
 import alluxio.master.file.options.MountOptions;
 import alluxio.master.file.options.RenameOptions;
 import alluxio.master.file.options.SetAclOptions;
@@ -98,8 +93,13 @@ public final class DefaultFileSystemMasterOptions implements FileSystemMasterOpt
   }
 
   @Override
-  public LoadMetadataOptions getLoadMetadataOptions() {
-    return LoadMetadataOptions.defaults();
+  public LoadMetadataPOptions getLoadMetadataOptions() {
+    return LoadMetadataPOptions.newBuilder()
+            .setCommonOptions(getCommonPOptions())
+            .setRecursive(false)
+            .setCreateAncestors(false)
+            .setLoadDescendantType(LoadDescendantPType.NONE)
+            .build();
   }
 
   @Override

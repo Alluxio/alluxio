@@ -30,13 +30,13 @@ import alluxio.file.options.CreateDirectoryOptions;
 import alluxio.file.options.CreateFileOptions;
 import alluxio.file.options.DeleteOptions;
 import alluxio.file.options.FreeOptions;
-import alluxio.file.options.LoadMetadataOptions;
 import alluxio.file.options.MountOptions;
 import alluxio.file.options.RenameOptions;
 import alluxio.file.options.SetAclOptions;
 import alluxio.file.options.SetAttributeOptions;
 import alluxio.file.options.WorkerHeartbeatOptions;
 import alluxio.grpc.ListStatusPOptions;
+import alluxio.grpc.LoadMetadataPOptions;
 import alluxio.master.file.meta.FileSystemMasterView;
 import alluxio.master.file.meta.PersistenceState;
 import alluxio.grpc.GetStatusPOptions;
@@ -382,7 +382,7 @@ public interface FileSystemMasterService {
    * @throws FileAlreadyCompletedException if the file is already completed
    * @throws AccessControlException if permission checking fails
    */
-  long loadMetadata(AlluxioURI path, LoadMetadataOptions options)
+  long loadMetadata(AlluxioURI path, LoadMetadataPOptions options)
       throws BlockInfoException, FileDoesNotExistException, InvalidPathException,
       InvalidFileSizeException, FileAlreadyCompletedException, IOException, AccessControlException;
 

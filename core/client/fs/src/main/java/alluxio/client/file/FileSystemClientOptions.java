@@ -13,9 +13,7 @@ package alluxio.client.file;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
-import alluxio.grpc.FileSystemMasterCommonPOptions;
-import alluxio.grpc.GetStatusPOptions;
-import alluxio.grpc.ListStatusPOptions;
+import alluxio.grpc.*;
 import alluxio.util.grpc.GrpcUtils;
 import alluxio.wire.LoadMetadataType;
 import alluxio.wire.TtlAction;
@@ -47,5 +45,11 @@ public final class FileSystemClientOptions {
         .setLoadMetadataType(GrpcUtils.toProto(Configuration
             .getEnum(PropertyKey.USER_FILE_METADATA_LOAD_TYPE, LoadMetadataType.class)))
         .build();
+  }
+
+  public static LoadMetadataPOptions getLoadMetadataOptions() {
+    return LoadMetadataPOptions.newBuilder().setCommonOptions(getCommonOptions())
+            .setRecursive(false)
+            .build();
   }
 }

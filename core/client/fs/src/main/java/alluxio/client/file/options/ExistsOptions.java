@@ -108,7 +108,7 @@ public final class ExistsOptions {
   }
 
   /**
-   * @return the {@link GetStatusOptions} representation of these options
+   * @return the {@link GetStatusPOptions} representation of these options
    */
   public GetStatusPOptions toGetStatusOptions() {
     return FileSystemClientOptions.getGetStatusOptions().toBuilder()

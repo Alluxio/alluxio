@@ -75,10 +75,18 @@ message ListStatusPOptions {
   optional bool recursive = 4;
 }
 
+enum LoadDescendantPType {
+  NONE = 0;
+  ONE = 1;
+  ALL = 2;
+}
+
 message LoadMetadataPOptions {
   /** whether to load metadata recursively */
   optional bool recursive = 1;
-  optional FileSystemMasterCommonPOptions commonOptions = 2;
+  optional bool createAncestors = 2;
+  optional LoadDescendantPType loadDescendantType = 3;
+  optional FileSystemMasterCommonPOptions commonOptions = 4;
 }
 
 message MountPOptions {

@@ -20,7 +20,6 @@ import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.DeleteOptions;
 import alluxio.client.file.options.ExistsOptions;
 import alluxio.client.file.options.FreeOptions;
-import alluxio.client.file.options.LoadMetadataOptions;
 import alluxio.client.file.options.MountOptions;
 import alluxio.client.file.options.OpenFileOptions;
 import alluxio.client.file.options.RenameOptions;
@@ -35,6 +34,7 @@ import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.ListStatusPOptions;
+import alluxio.grpc.LoadMetadataPOptions;
 import alluxio.security.authorization.AclEntry;
 import alluxio.wire.MountPointInfo;
 import alluxio.wire.SetAclAction;
@@ -238,7 +238,7 @@ public interface FileSystem {
       throws FileDoesNotExistException, IOException, AlluxioException;
 
   /**
-   * Convenience method for {@link #loadMetadata(AlluxioURI, LoadMetadataOptions)} with default
+   * Convenience method for {@link #loadMetadata(AlluxioURI, LoadMetadataPOptions)} with default
    * options.
    *
    * @param path the path for which to load metadata from UFS
@@ -258,7 +258,7 @@ public interface FileSystem {
    * @deprecated since version 1.1 and will be removed in version 2.0
    */
   @Deprecated
-  void loadMetadata(AlluxioURI path, LoadMetadataOptions options)
+  void loadMetadata(AlluxioURI path, LoadMetadataPOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException;
 
   /**
