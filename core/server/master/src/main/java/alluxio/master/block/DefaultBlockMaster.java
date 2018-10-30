@@ -898,7 +898,7 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
           LOG.warn("Invalid block: {} from worker {}.", blockId,
               workerInfo.getWorkerAddress().getHost());
           // Block was removed from the system, tell the worker to remove it.
-          workerInfo.removeBlock(blockId);
+          workerInfo.updateToRemovedBlock(true, blockId);
         }
       }
     }
