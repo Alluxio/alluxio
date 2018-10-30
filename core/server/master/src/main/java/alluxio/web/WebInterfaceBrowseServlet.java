@@ -18,7 +18,6 @@ import alluxio.PropertyKey;
 import alluxio.client.ReadType;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
-import alluxio.client.file.FileSystemClientOptions;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.OpenFileOptions;
 import alluxio.exception.AccessControlException;
@@ -199,7 +198,7 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
       }
       setPathDirectories(currentPath, request);
       filesInfo = fileSystemMaster.listStatus(currentPath,
-          FileSystemClientOptions.getListStatusOptions().toBuilder()
+              fileSystemMaster.getMasterOptions().getListStatusOptions().toBuilder()
               .setLoadMetadataType(LoadMetadataPType.ALWAYS).build());
     } catch (FileDoesNotExistException e) {
       request.setAttribute("invalidPathError", "Error: Invalid Path " + e.getMessage());

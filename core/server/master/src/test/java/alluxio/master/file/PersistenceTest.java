@@ -16,7 +16,6 @@ import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.PropertyKey;
-import alluxio.client.file.FileSystemClientOptions;
 import alluxio.client.job.JobMasterClient;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.FileDoesNotExistException;
@@ -83,8 +82,8 @@ public final class PersistenceTest {
   private SafeModeManager mSafeModeManager;
   private long mStartTimeMs;
   private int mPort;
-  private static final GetStatusPOptions GET_STATUS_OPTIONS =
-      FileSystemClientOptions.getGetStatusOptions();
+  private static FileSystemMasterOptions MASTER_OPTIONS = new DefaultFileSystemMasterOptions();
+  private static final GetStatusPOptions GET_STATUS_OPTIONS = MASTER_OPTIONS.getGetStatusOptions();
 
   @Rule
   public ManuallyScheduleHeartbeat mManualScheduler =

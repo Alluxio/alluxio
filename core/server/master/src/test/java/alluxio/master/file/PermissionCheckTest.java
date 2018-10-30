@@ -26,7 +26,6 @@ import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.LoginUserRule;
 import alluxio.PropertyKey;
-import alluxio.client.file.FileSystemClientOptions;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
@@ -114,6 +113,8 @@ public final class PermissionCheckTest {
 
   private static final Mode TEST_DIR_MODE = new Mode((short) 0755);
   private static final Mode TEST_FILE_MODE = new Mode((short) 0755);
+
+  private static FileSystemMasterOptions MASTER_OPTIONS = new DefaultFileSystemMasterOptions();
 
   private MasterRegistry mRegistry;
   private SafeModeManager mSafeModeManager;
@@ -671,15 +672,15 @@ public final class PermissionCheckTest {
     try (Closeable r = new AuthenticatedUserRule(user.getUser()).toResource()) {
       if (isFile) {
         assertEquals(path, mFileSystemMaster.getFileInfo(new AlluxioURI(path),
-            FileSystemClientOptions.getGetStatusOptions())
+            MASTER_OPTIONS.getGetStatusOptions())
             .getPath());
         assertEquals(1,
             mFileSystemMaster
-                .listStatus(new AlluxioURI(path), FileSystemClientOptions.getListStatusOptions())
+                .listStatus(new AlluxioURI(path), MASTER_OPTIONS.getListStatusOptions())
                 .size());
       } else {
         List<FileInfo> fileInfoList = mFileSystemMaster.listStatus(new AlluxioURI(path),
-            FileSystemClientOptions.getListStatusOptions());
+            MASTER_OPTIONS.getListStatusOptions());
         if (fileInfoList.size() > 0) {
           assertTrue(PathUtils.getParent(fileInfoList.get(0).getPath()).equals(path));
         }
@@ -733,7 +734,7 @@ public final class PermissionCheckTest {
       mFileSystemMaster.setAttribute(new AlluxioURI(path), options);
 
       FileInfo fileInfo = mFileSystemMaster.getFileInfo(new AlluxioURI(path),
-          FileSystemClientOptions.getGetStatusOptions());
+          MASTER_OPTIONS.getGetStatusOptions());
       return SetAttributeOptions.defaults().setPinned(fileInfo.isPinned()).setTtl(fileInfo.getTtl())
           .setPersisted(fileInfo.isPersisted());
     }

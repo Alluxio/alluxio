@@ -13,11 +13,12 @@ package alluxio.client.rest;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
-import alluxio.client.file.FileSystemClientOptions;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.grpc.GetStatusPOptions;
+import alluxio.master.file.DefaultFileSystemMasterOptions;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.FileSystemMasterClientRestServiceHandler;
+import alluxio.master.file.FileSystemMasterOptions;
 import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateFileOptions;
 import alluxio.master.file.options.MountOptions;
@@ -43,8 +44,8 @@ import javax.ws.rs.HttpMethod;
  * Test cases for {@link FileSystemMasterClientRestServiceHandler}.
  */
 public final class FileSystemMasterClientRestApiTest extends RestApiTest {
-  private static final GetStatusPOptions GET_STATUS_OPTIONS =
-      FileSystemClientOptions.getGetStatusOptions();
+  private static FileSystemMasterOptions MASTER_OPTIONS = new DefaultFileSystemMasterOptions();
+  private static final GetStatusPOptions GET_STATUS_OPTIONS = MASTER_OPTIONS.getGetStatusOptions();
 
   private FileSystemMaster mFileSystemMaster;
 
@@ -101,7 +102,7 @@ public final class FileSystemMasterClientRestApiTest extends RestApiTest {
         HttpMethod.POST, null).run();
 
     Assert.assertTrue(mFileSystemMaster
-        .listStatus(uri, FileSystemClientOptions.getListStatusOptions()).isEmpty());
+        .listStatus(uri, MASTER_OPTIONS.getListStatusOptions()).isEmpty());
   }
 
   @Test

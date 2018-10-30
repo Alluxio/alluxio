@@ -23,6 +23,7 @@ import alluxio.file.options.RenameOptions;
 import alluxio.file.options.SetAclOptions;
 import alluxio.file.options.SetAttributeOptions;
 import alluxio.file.options.SyncMetadataOptions;
+import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.LoadMetadataPOptions;
@@ -40,6 +41,12 @@ public interface FileSystemMasterOptions {
    * @return an instance of {@link CommonOptions}
    */
   CommonOptions getCommonOptions();
+
+  /**
+   * TODO(ggezer) Merge with above after integrations are complete
+   * @return an instance of {@link FileSystemMasterCommonPOptions}
+   */
+  FileSystemMasterCommonPOptions getCommonPOptions();
 
   /**
    * @return an instance of {@link CompleteFileOptions}

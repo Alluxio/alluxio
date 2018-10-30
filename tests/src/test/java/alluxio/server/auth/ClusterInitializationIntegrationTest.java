@@ -21,6 +21,7 @@ import alluxio.client.file.URIStatus;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.PermissionDeniedException;
 import alluxio.master.MasterRegistry;
+import alluxio.master.file.DefaultFileSystemMasterOptions;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.security.LoginUserTestUtils;
 import alluxio.security.authentication.AuthType;
@@ -85,10 +86,8 @@ public final class ClusterInitializationIntegrationTest extends BaseIntegrationT
     FileSystemMaster fileSystemMaster = registry.get(FileSystemMaster.class);
 
     AuthenticatedClientUser.set(SUPER_USER);
-    assertEquals(SUPER_USER,
-        fileSystemMaster
-            .getFileInfo(new AlluxioURI("/testFile"), FileSystemClientOptions.getGetStatusOptions())
-            .getOwner());
+    assertEquals(SUPER_USER, fileSystemMaster.getFileInfo(new AlluxioURI("/testFile"),
+        new DefaultFileSystemMasterOptions().getGetStatusOptions()).getOwner());
     registry.stop();
   }
 

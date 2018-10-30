@@ -31,7 +31,6 @@ import alluxio.ConfigurationRule;
 import alluxio.Constants;
 import alluxio.LoginUserRule;
 import alluxio.PropertyKey;
-import alluxio.client.file.FileSystemClientOptions;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.BlockInfoException;
 import alluxio.exception.DirectoryNotEmptyException;
@@ -40,7 +39,6 @@ import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.UnexpectedAlluxioException;
-import alluxio.file.options.DescendantType;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.LoadDescendantPType;
 import alluxio.grpc.LoadMetadataPType;
@@ -133,8 +131,8 @@ public final class FileSystemMasterTest {
   private static final AlluxioURI ROOT_FILE_URI = new AlluxioURI("/file");
   private static final AlluxioURI TEST_URI = new AlluxioURI("/test");
   private static final String TEST_USER = "test";
-  private static final GetStatusPOptions GET_STATUS_OPTIONS =
-      FileSystemClientOptions.getGetStatusOptions();
+  private static final FileSystemMasterOptions MASTER_OPTIONS = new DefaultFileSystemMasterOptions();
+  private static final GetStatusPOptions GET_STATUS_OPTIONS = MASTER_OPTIONS.getGetStatusOptions();
 
   // Constants for tests on persisted directories.
   private static final String DIR_PREFIX = "dir";
@@ -150,7 +148,6 @@ public final class FileSystemMasterTest {
   private BlockMaster mBlockMaster;
   private ExecutorService mExecutorService;
   private FileSystemMaster mFileSystemMaster;
-  private FileSystemMasterOptions mMasterOptions;
   private SafeModeManager mSafeModeManager;
   private long mStartTimeMs;
   private int mPort;
@@ -256,7 +253,7 @@ public final class FileSystemMasterTest {
     AlluxioURI path = new AlluxioURI("/test");
     mFileSystemMaster.createFile(path, CreateFileOptions.defaults().setOperationTimeMs(100));
     assertEquals(100, mFileSystemMaster.getFileInfo(path,
-        FileSystemClientOptions.getGetStatusOptions())
+        MASTER_OPTIONS.getGetStatusOptions())
         .getLastModificationTimeMs());
   }
 
@@ -304,7 +301,7 @@ public final class FileSystemMasterTest {
 
     AlluxioURI uri = new AlluxioURI("/mnt/local/dir1");
     mFileSystemMaster.listStatus(uri,
-        FileSystemClientOptions.getListStatusOptions().toBuilder()
+        MASTER_OPTIONS.getListStatusOptions().toBuilder()
             .setLoadMetadataType(LoadMetadataPType.ALWAYS).build());
     mFileSystemMaster.delete(new AlluxioURI("/mnt/local/dir1/file1"),
         DeleteOptions.defaults().setAlluxioOnly(true));
@@ -314,7 +311,7 @@ public final class FileSystemMasterTest {
     // verify the file is deleted
     mThrown.expect(FileDoesNotExistException.class);
     mFileSystemMaster.getFileInfo(new AlluxioURI("/mnt/local/dir1/file1"),
-        FileSystemClientOptions.getGetStatusOptions().toBuilder().
+        MASTER_OPTIONS.getGetStatusOptions().toBuilder().
             setLoadMetadataType(LoadMetadataPType.NEVER).build());
   }
 
@@ -359,7 +356,7 @@ public final class FileSystemMasterTest {
     mFileSystemMaster.mount(new AlluxioURI("/mnt/local"), ufsMount, MountOptions.defaults());
     // load the dir1 to alluxio
     mFileSystemMaster.listStatus(new AlluxioURI("/mnt/local"),
-        FileSystemClientOptions.getListStatusOptions().toBuilder()
+        MASTER_OPTIONS.getListStatusOptions().toBuilder()
             .setLoadMetadataType(LoadMetadataPType.ALWAYS).build());
     mFileSystemMaster.delete(new AlluxioURI("/mnt/local/dir1"),
         DeleteOptions.defaults().setRecursive(true).setAlluxioOnly(true));
@@ -594,7 +591,7 @@ public final class FileSystemMasterTest {
   private void loadPersistedDirectories(int levels) throws Exception {
     // load persisted ufs entries to alluxio
     mFileSystemMaster.listStatus(new AlluxioURI(MOUNT_URI),
-        FileSystemClientOptions.getListStatusOptions().toBuilder()
+        MASTER_OPTIONS.getListStatusOptions().toBuilder()
             .setLoadMetadataType(LoadMetadataPType.ALWAYS).build());
     loadPersistedDirectoryLevel(levels, new AlluxioURI(MOUNT_URI).join(DIR_TOP_LEVEL));
   }
@@ -605,7 +602,7 @@ public final class FileSystemMasterTest {
     }
 
     mFileSystemMaster.listStatus(alluxioTop,
-        FileSystemClientOptions.getListStatusOptions().toBuilder()
+        MASTER_OPTIONS.getListStatusOptions().toBuilder()
             .setLoadMetadataType(LoadMetadataPType.ALWAYS).build());
 
     for (int i = 0; i < DIR_WIDTH; ++i) {
@@ -804,7 +801,7 @@ public final class FileSystemMasterTest {
     // getFileId should load metadata automatically.
     AlluxioURI uri = new AlluxioURI("/mnt/local/dir1");
     try {
-      mFileSystemMaster.listStatus(uri, FileSystemClientOptions.getListStatusOptions().toBuilder()
+      mFileSystemMaster.listStatus(uri, MASTER_OPTIONS.getListStatusOptions().toBuilder()
           .setLoadMetadataType(LoadMetadataPType.NEVER).build());
       fail("Exception expected");
     } catch (FileDoesNotExistException e) {
@@ -831,7 +828,7 @@ public final class FileSystemMasterTest {
     // getFileId should load metadata automatically.
     AlluxioURI uri = new AlluxioURI("/mnt/local/dir1");
     List<FileInfo> fileInfoList =
-        mFileSystemMaster.listStatus(uri, FileSystemClientOptions.getListStatusOptions());
+        mFileSystemMaster.listStatus(uri, MASTER_OPTIONS.getListStatusOptions());
     Set<String> paths = new HashSet<>();
     for (FileInfo fileInfo : fileInfoList) {
       paths.add(fileInfo.getPath());
@@ -859,7 +856,7 @@ public final class FileSystemMasterTest {
     // getFileId should load metadata automatically.
     AlluxioURI uri = new AlluxioURI("/mnt/local/dir1");
     List<FileInfo> fileInfoList =
-        mFileSystemMaster.listStatus(uri, FileSystemClientOptions.getListStatusOptions());
+        mFileSystemMaster.listStatus(uri, MASTER_OPTIONS.getListStatusOptions());
     assertEquals(0, fileInfoList.size());
     // listStatus should have loaded another files (dir1), so now 4 paths exist.
     assertEquals(4, mFileSystemMaster.getNumberOfPaths());
@@ -869,13 +866,13 @@ public final class FileSystemMasterTest {
     Files.createFile(Paths.get(ufsMount.join("dir1").join("file2").getPath()));
 
     fileInfoList =
-        mFileSystemMaster.listStatus(uri, FileSystemClientOptions.getListStatusOptions());
+        mFileSystemMaster.listStatus(uri, MASTER_OPTIONS.getListStatusOptions());
     assertEquals(0, fileInfoList.size());
     // No file is loaded since dir1 has been loaded once.
     assertEquals(4, mFileSystemMaster.getNumberOfPaths());
 
     fileInfoList = mFileSystemMaster.listStatus(uri,
-        FileSystemClientOptions.getListStatusOptions().toBuilder()
+        MASTER_OPTIONS.getListStatusOptions().toBuilder()
             .setLoadMetadataType(LoadMetadataPType.ALWAYS).build());
     Set<String> paths = new HashSet<>();
     for (FileInfo fileInfo : fileInfoList) {
@@ -922,7 +919,7 @@ public final class FileSystemMasterTest {
             .isPersisted());
 
     List<FileInfo> fileInfoList =
-        mFileSystemMaster.listStatus(folder, FileSystemClientOptions.getListStatusOptions());
+        mFileSystemMaster.listStatus(folder, MASTER_OPTIONS.getListStatusOptions());
     assertEquals(2, fileInfoList.size());
     // listStatus should have loaded files (folder, folder/file1, folder/file2), so now 6 paths
     // exist.
@@ -952,7 +949,7 @@ public final class FileSystemMasterTest {
       createFileWithSingleBlock(ROOT_URI.join("file" + String.format("%05d", i)));
     }
     infos = mFileSystemMaster.listStatus(ROOT_URI,
-        FileSystemClientOptions.getListStatusOptions().toBuilder()
+        MASTER_OPTIONS.getListStatusOptions().toBuilder()
             .setLoadMetadataType(LoadMetadataPType.NEVER).build());
     assertEquals(files, infos.size());
     // Copy out filenames to use List contains.
@@ -969,7 +966,7 @@ public final class FileSystemMasterTest {
     // Test single file.
     createFileWithSingleBlock(ROOT_FILE_URI);
     infos = mFileSystemMaster.listStatus(ROOT_FILE_URI,
-        FileSystemClientOptions.getListStatusOptions().toBuilder()
+        MASTER_OPTIONS.getListStatusOptions().toBuilder()
             .setLoadMetadataType(LoadMetadataPType.NEVER).build());
     assertEquals(1, infos.size());
     assertEquals(ROOT_FILE_URI.getPath(), infos.get(0).getPath());
@@ -979,7 +976,7 @@ public final class FileSystemMasterTest {
       createFileWithSingleBlock(NESTED_URI.join("file" + String.format("%05d", i)));
     }
     infos = mFileSystemMaster.listStatus(NESTED_URI,
-        FileSystemClientOptions.getListStatusOptions().toBuilder()
+        MASTER_OPTIONS.getListStatusOptions().toBuilder()
             .setLoadMetadataType(LoadMetadataPType.NEVER).build());
     assertEquals(files, infos.size());
     // Copy out filenames to use List contains.
@@ -996,7 +993,7 @@ public final class FileSystemMasterTest {
     // Test non-existent URIs.
     try {
       mFileSystemMaster.listStatus(NESTED_URI.join("DNE"),
-          FileSystemClientOptions.getListStatusOptions().toBuilder()
+          MASTER_OPTIONS.getListStatusOptions().toBuilder()
               .setLoadMetadataType(LoadMetadataPType.NEVER).build());
       fail("listStatus() for a non-existent URI should fail.");
     } catch (FileDoesNotExistException e) {
@@ -1021,7 +1018,7 @@ public final class FileSystemMasterTest {
 
     // Test recursive listStatus
     infos = mFileSystemMaster.listStatus(ROOT_URI,
-        FileSystemClientOptions.getListStatusOptions().toBuilder()
+        MASTER_OPTIONS.getListStatusOptions().toBuilder()
             .setLoadMetadataType(LoadMetadataPType.ALWAYS)
             .setRecursive(true).build());
     // 10 files in each directory, 2 levels of directories
@@ -1061,7 +1058,7 @@ public final class FileSystemMasterTest {
         SetAttributeOptions.defaults().setMode((short) 0400).setRecursive(true));
     try (Closeable r = new AuthenticatedUserRule("test_user1").toResource()) {
       // Test recursive listStatus
-      infos = mFileSystemMaster.listStatus(ROOT_URI, FileSystemClientOptions.getListStatusOptions()
+      infos = mFileSystemMaster.listStatus(ROOT_URI, MASTER_OPTIONS.getListStatusOptions()
           .toBuilder().setLoadMetadataType(LoadMetadataPType.ALWAYS).setRecursive(true).build());
 
       // 10 files in each directory, 1 level of directories
@@ -1082,18 +1079,18 @@ public final class FileSystemMasterTest {
 
     FileUtils.createFile(Paths.get(mUnderFS).resolve("ufsfile1").toString());
     // Test interaction between recursive and loadMetadata
-    infos = mFileSystemMaster.listStatus(ROOT_URI, FileSystemClientOptions.getListStatusOptions()
+    infos = mFileSystemMaster.listStatus(ROOT_URI, MASTER_OPTIONS.getListStatusOptions()
         .toBuilder().setLoadMetadataType(LoadMetadataPType.ONCE).setRecursive(false).build());
 
     assertEquals(files + 1  , infos.size());
 
     FileUtils.createFile(Paths.get(mUnderFS).resolve("ufsfile2").toString());
-    infos = mFileSystemMaster.listStatus(ROOT_URI, FileSystemClientOptions.getListStatusOptions()
+    infos = mFileSystemMaster.listStatus(ROOT_URI, MASTER_OPTIONS.getListStatusOptions()
         .toBuilder().setLoadMetadataType(LoadMetadataPType.ONCE).setRecursive(false).build());
     assertEquals(files + 1  , infos.size());
     long newFileId = 1;
 
-    infos = mFileSystemMaster.listStatus(ROOT_URI, FileSystemClientOptions.getListStatusOptions()
+    infos = mFileSystemMaster.listStatus(ROOT_URI, MASTER_OPTIONS.getListStatusOptions()
         .toBuilder().setLoadMetadataType(LoadMetadataPType.ALWAYS).setRecursive(false).build());
     assertEquals(files + 2 , infos.size());
 
@@ -1103,18 +1100,18 @@ public final class FileSystemMasterTest {
     }
 
     FileUtils.createFile(Paths.get(mUnderFS).resolve("nested/test/ufsnestedfile1").toString());
-    infos = mFileSystemMaster.listStatus(ROOT_URI, FileSystemClientOptions.getListStatusOptions()
+    infos = mFileSystemMaster.listStatus(ROOT_URI, MASTER_OPTIONS.getListStatusOptions()
         .toBuilder().setLoadMetadataType(LoadMetadataPType.ONCE).setRecursive(true).build());
     // 2 sets of files, 2 files inserted at root, 2 directories nested and test,
     // 1 file ufsnestedfile1
     assertEquals(files + files +  2 + 2 + 1 , infos.size());
 
     FileUtils.createFile(Paths.get(mUnderFS).resolve("nested/test/ufsnestedfile2").toString());
-    infos = mFileSystemMaster.listStatus(ROOT_URI, FileSystemClientOptions.getListStatusOptions()
+    infos = mFileSystemMaster.listStatus(ROOT_URI, MASTER_OPTIONS.getListStatusOptions()
         .toBuilder().setLoadMetadataType(LoadMetadataPType.ONCE).setRecursive(true).build());
     assertEquals(files + files +  2 + 2 + 1 , infos.size());
 
-    infos = mFileSystemMaster.listStatus(ROOT_URI, FileSystemClientOptions.getListStatusOptions()
+    infos = mFileSystemMaster.listStatus(ROOT_URI, MASTER_OPTIONS.getListStatusOptions()
         .toBuilder().setLoadMetadataType(LoadMetadataPType.ALWAYS).setRecursive(true).build());
     assertEquals(files + files +  2 + 2 + 2 , infos.size());
   }
@@ -1195,14 +1192,14 @@ public final class FileSystemMasterTest {
     // Test simple file.
     AlluxioURI uri = new AlluxioURI("/mnt/local/file");
     mFileSystemMaster.loadMetadata(uri,
-        mMasterOptions.getLoadMetadataOptions().toBuilder().setCreateAncestors(false).build());
+        MASTER_OPTIONS.getLoadMetadataOptions().toBuilder().setCreateAncestors(false).build());
     assertNotNull(mFileSystemMaster.getFileInfo(uri, GET_STATUS_OPTIONS));
 
     // Test nested file.
     uri = new AlluxioURI("/mnt/local/nested/file");
     try {
       mFileSystemMaster.loadMetadata(uri,
-          mMasterOptions.getLoadMetadataOptions().toBuilder().setCreateAncestors(false).build());
+          MASTER_OPTIONS.getLoadMetadataOptions().toBuilder().setCreateAncestors(false).build());
       fail("loadMetadata() without recursive, for a nested file should fail.");
     } catch (FileDoesNotExistException e) {
       // Expected case.
@@ -1210,7 +1207,7 @@ public final class FileSystemMasterTest {
 
     // Test the nested file with recursive flag.
     mFileSystemMaster.loadMetadata(uri,
-        mMasterOptions.getLoadMetadataOptions().toBuilder().setCreateAncestors(true).build());
+        MASTER_OPTIONS.getLoadMetadataOptions().toBuilder().setCreateAncestors(true).build());
     assertNotNull(mFileSystemMaster.getFileInfo(uri, GET_STATUS_OPTIONS));
   }
 
@@ -1422,7 +1419,7 @@ public final class FileSystemMasterTest {
         newEntries.stream().map(AclEntry::fromCliString).collect(Collectors.toList()), options);
 
     List<FileInfo> infos =
-        mFileSystemMaster.listStatus(ROOT_URI, FileSystemClientOptions.getListStatusOptions()
+        mFileSystemMaster.listStatus(ROOT_URI, MASTER_OPTIONS.getListStatusOptions()
             .toBuilder().setLoadMetadataType(LoadMetadataPType.ONCE).setRecursive(true).build());
     assertEquals(files * 3 + 3, infos.size());
     for (FileInfo info : infos) {
@@ -1493,7 +1490,7 @@ public final class FileSystemMasterTest {
   }
 
   private FileInfo getInfo(AlluxioURI uri) throws Exception {
-    return mFileSystemMaster.getFileInfo(uri, FileSystemClientOptions.getGetStatusOptions());
+    return mFileSystemMaster.getFileInfo(uri, MASTER_OPTIONS.getGetStatusOptions());
   }
 
   /**
@@ -2428,9 +2425,9 @@ public final class FileSystemMasterTest {
   public void testLoadMetadata() throws Exception {
     FileUtils.createDir(Paths.get(mUnderFS).resolve("a").toString());
     mFileSystemMaster.loadMetadata(new AlluxioURI("alluxio:/a"),
-        mMasterOptions.getLoadMetadataOptions().toBuilder().setCreateAncestors(true).build());
+        MASTER_OPTIONS.getLoadMetadataOptions().toBuilder().setCreateAncestors(true).build());
     mFileSystemMaster.loadMetadata(new AlluxioURI("alluxio:/a"),
-        mMasterOptions.getLoadMetadataOptions().toBuilder().setCreateAncestors(true).build());
+        MASTER_OPTIONS.getLoadMetadataOptions().toBuilder().setCreateAncestors(true).build());
 
     // TODO(peis): Avoid this hack by adding an option in getFileInfo to skip loading metadata.
     try {
@@ -2447,11 +2444,11 @@ public final class FileSystemMasterTest {
     FileUtils.createFile(Paths.get(mUnderFS).resolve("a/f2").toString());
 
     mFileSystemMaster.loadMetadata(new AlluxioURI("alluxio:/a/f1"),
-        mMasterOptions.getLoadMetadataOptions().toBuilder().setCreateAncestors(true).build());
+        MASTER_OPTIONS.getLoadMetadataOptions().toBuilder().setCreateAncestors(true).build());
 
     // This should not throw file exists exception those a/f1 is loaded.
     mFileSystemMaster.loadMetadata(new AlluxioURI("alluxio:/a"),
-        mMasterOptions.getLoadMetadataOptions().toBuilder().setCreateAncestors(false)
+        MASTER_OPTIONS.getLoadMetadataOptions().toBuilder().setCreateAncestors(false)
             .setLoadDescendantType(LoadDescendantPType.ONE).build());
 
     // TODO(peis): Avoid this hack by adding an option in getFileInfo to skip loading metadata.
@@ -2465,7 +2462,7 @@ public final class FileSystemMasterTest {
     }
 
     mFileSystemMaster.loadMetadata(new AlluxioURI("alluxio:/a"),
-        mMasterOptions.getLoadMetadataOptions().toBuilder().setCreateAncestors(false)
+        MASTER_OPTIONS.getLoadMetadataOptions().toBuilder().setCreateAncestors(false)
             .setLoadDescendantType(LoadDescendantPType.ONE).build());
   }
 
@@ -2480,20 +2477,20 @@ public final class FileSystemMasterTest {
     FileUtils.createDir(Paths.get(mUnderFS).resolve("a").toString());
     AlluxioURI uri = new AlluxioURI("/a");
     mFileSystemMaster.loadMetadata(uri,
-        mMasterOptions.getLoadMetadataOptions().toBuilder().setCreateAncestors(true).build());
+        MASTER_OPTIONS.getLoadMetadataOptions().toBuilder().setCreateAncestors(true).build());
     List<AclEntry> aclEntryList = new ArrayList<>();
     aclEntryList.add(AclEntry.fromCliString("default:user::r-x"));
     mFileSystemMaster.setAcl(uri, SetAclAction.MODIFY, aclEntryList, SetAclOptions.defaults());
 
     FileInfo infoparent = mFileSystemMaster.getFileInfo(uri,
-        FileSystemClientOptions.getGetStatusOptions());
+        MASTER_OPTIONS.getGetStatusOptions());
 
     FileUtils.createFile(Paths.get(mUnderFS).resolve("a/b/file1").toString());
     uri = new AlluxioURI("/a/b/file1");
     mFileSystemMaster.loadMetadata(uri,
-        mMasterOptions.getLoadMetadataOptions().toBuilder().setCreateAncestors(true).build());
+        MASTER_OPTIONS.getLoadMetadataOptions().toBuilder().setCreateAncestors(true).build());
     FileInfo info = mFileSystemMaster.getFileInfo(uri,
-        FileSystemClientOptions.getGetStatusOptions());
+        MASTER_OPTIONS.getGetStatusOptions());
     Assert.assertTrue(info.convertAclToStringEntries().contains("user::r-x"));
   }
 
@@ -2503,7 +2500,7 @@ public final class FileSystemMasterTest {
   @Test
   public void loadRoot() throws Exception {
     mFileSystemMaster.loadMetadata(new AlluxioURI("alluxio:/"),
-        mMasterOptions.getLoadMetadataOptions());
+        MASTER_OPTIONS.getLoadMetadataOptions());
   }
 
   @Test
@@ -2539,7 +2536,7 @@ public final class FileSystemMasterTest {
 
     assertEquals(fingerprint,
         mFileSystemMaster.getFileInfo(NESTED_FILE_URI,
-            FileSystemClientOptions.getGetStatusOptions()).getUfsFingerprint());
+            MASTER_OPTIONS.getGetStatusOptions()).getUfsFingerprint());
   }
 
   @Test
@@ -2548,7 +2545,7 @@ public final class FileSystemMasterTest {
     FileUtils.createFile(Paths.get(mUnderFS, "test", "a?b=C").toString());
     FileUtils.createFile(Paths.get(mUnderFS, "test", "valid").toString());
     List<FileInfo> listing = mFileSystemMaster.listStatus(new AlluxioURI("/test"),
-        FileSystemClientOptions.getListStatusOptions().toBuilder()
+        MASTER_OPTIONS.getListStatusOptions().toBuilder()
             .setLoadMetadataType(LoadMetadataPType.ALWAYS).setRecursive(true).build());
     assertEquals(1, listing.size());
     assertEquals("valid", listing.get(0).getName());
@@ -2564,28 +2561,28 @@ public final class FileSystemMasterTest {
 
     // Nothing is persisted yet.
     assertEquals(PersistenceState.NOT_PERSISTED.toString(),
-        mFileSystemMaster.getFileInfo(nestedFile, FileSystemClientOptions.getGetStatusOptions())
+        mFileSystemMaster.getFileInfo(nestedFile, MASTER_OPTIONS.getGetStatusOptions())
             .getPersistenceState());
     assertEquals(PersistenceState.NOT_PERSISTED.toString(),
         mFileSystemMaster.getFileInfo(parent1,
-            FileSystemClientOptions.getGetStatusOptions()).getPersistenceState());
+            MASTER_OPTIONS.getGetStatusOptions()).getPersistenceState());
     assertEquals(PersistenceState.NOT_PERSISTED.toString(),
         mFileSystemMaster.getFileInfo(parent2,
-            FileSystemClientOptions.getGetStatusOptions()).getPersistenceState());
+            MASTER_OPTIONS.getGetStatusOptions()).getPersistenceState());
 
     // Persist the file.
     mFileSystemMaster.setAttribute(nestedFile, SetAttributeOptions.defaults().setPersisted(true));
 
     // Everything component should be persisted.
     assertEquals(PersistenceState.PERSISTED.toString(),
-        mFileSystemMaster.getFileInfo(nestedFile, FileSystemClientOptions.getGetStatusOptions())
+        mFileSystemMaster.getFileInfo(nestedFile, MASTER_OPTIONS.getGetStatusOptions())
             .getPersistenceState());
     assertEquals(PersistenceState.PERSISTED.toString(),
         mFileSystemMaster.getFileInfo(parent1,
-            FileSystemClientOptions.getGetStatusOptions()).getPersistenceState());
+            MASTER_OPTIONS.getGetStatusOptions()).getPersistenceState());
     assertEquals(PersistenceState.PERSISTED.toString(),
         mFileSystemMaster.getFileInfo(parent2,
-            FileSystemClientOptions.getGetStatusOptions()).getPersistenceState());
+            MASTER_OPTIONS.getGetStatusOptions()).getPersistenceState());
 
     // Simulate restart.
     stopServices();
@@ -2593,14 +2590,14 @@ public final class FileSystemMasterTest {
 
     // Everything component should be persisted.
     assertEquals(PersistenceState.PERSISTED.toString(),
-        mFileSystemMaster.getFileInfo(nestedFile, FileSystemClientOptions.getGetStatusOptions())
+        mFileSystemMaster.getFileInfo(nestedFile, MASTER_OPTIONS.getGetStatusOptions())
             .getPersistenceState());
     assertEquals(PersistenceState.PERSISTED.toString(),
         mFileSystemMaster.getFileInfo(parent1,
-            FileSystemClientOptions.getGetStatusOptions()).getPersistenceState());
+            MASTER_OPTIONS.getGetStatusOptions()).getPersistenceState());
     assertEquals(PersistenceState.PERSISTED.toString(),
         mFileSystemMaster.getFileInfo(parent2,
-            FileSystemClientOptions.getGetStatusOptions()).getPersistenceState());
+            MASTER_OPTIONS.getGetStatusOptions()).getPersistenceState());
   }
 
   private long createFileWithSingleBlock(AlluxioURI uri) throws Exception {
@@ -2624,7 +2621,6 @@ public final class FileSystemMasterTest {
         .newFixedThreadPool(4, ThreadFactoryUtils.build("DefaultFileSystemMasterTest-%d", true));
     mFileSystemMaster = new DefaultFileSystemMaster(mBlockMaster, masterContext,
         ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService));
-    mMasterOptions = new DefaultFileSystemMasterOptions();
     mRegistry.add(FileSystemMaster.class, mFileSystemMaster);
     mJournalSystem.start();
     mJournalSystem.gainPrimacy();
