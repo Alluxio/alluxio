@@ -11,7 +11,6 @@
 
 package alluxio.master.journal.ufs;
 
-import alluxio.Constants;
 import alluxio.master.journal.AbstractJournalSystem;
 import alluxio.master.journal.JournalEntryStateMachine;
 import alluxio.retry.ExponentialTimeBoundedRetry;
@@ -30,8 +29,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeoutException;
+import java.util.concurrent.TimeUnit;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -78,8 +76,8 @@ public class UfsJournalSystem extends AbstractJournalSystem {
       });
     }
     try {
-      CommonUtils.invokeAll(callables, 1 * Constants.HOUR_MS);
-    } catch (TimeoutException | ExecutionException e) {
+      CommonUtils.invokeAll(callables, 1, TimeUnit.HOURS);
+    } catch (Exception e) {
       throw new RuntimeException(e);
     }
   }
