@@ -60,4 +60,11 @@ public final class FileSystemClientOptions {
             .setUnchecked(Configuration.getBoolean(PropertyKey.USER_FILE_DELETE_UNCHECKED))
             .build();
   }
+
+  public static FreePOptions getFreeOptions() {
+    return FreePOptions.newBuilder().setCommonOptions(getCommonOptions())
+            .setForced(false)
+            .setRecursive(false)
+            .build();
+  }
 }

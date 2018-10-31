@@ -17,7 +17,6 @@ import alluxio.client.file.options.CheckConsistencyOptions;
 import alluxio.client.file.options.CompleteFileOptions;
 import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.client.file.options.CreateFileOptions;
-import alluxio.client.file.options.FreeOptions;
 import alluxio.client.file.options.MountOptions;
 import alluxio.client.file.options.RenameOptions;
 import alluxio.client.file.options.SetAclOptions;
@@ -27,6 +26,7 @@ import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.AlreadyExistsException;
 import alluxio.exception.status.NotFoundException;
 import alluxio.grpc.DeletePOptions;
+import alluxio.grpc.FreePOptions;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.master.MasterClientConfig;
@@ -113,7 +113,7 @@ public interface FileSystemMasterClient extends Client {
    * @param options method options
    * @throws NotFoundException if the path does not exist
    */
-  void free(AlluxioURI path, FreeOptions options) throws AlluxioStatusException;
+  void free(AlluxioURI path, FreePOptions options) throws AlluxioStatusException;
 
   /**
    * @param path the file path

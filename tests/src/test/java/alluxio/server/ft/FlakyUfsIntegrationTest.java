@@ -23,7 +23,6 @@ import alluxio.client.block.BlockMasterClient;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemClientOptions;
 import alluxio.client.file.FileSystemTestUtils;
-import alluxio.client.file.options.FreeOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.master.MasterClientConfig;
 import alluxio.testutils.BaseIntegrationTest;
@@ -107,7 +106,8 @@ public final class FlakyUfsIntegrationTest extends BaseIntegrationTest {
     // 90 deletes should succeed.
     assertThat(deleted, Matchers.greaterThan(10));
     assertThat(deleted, Matchers.lessThan(90));
-    mFs.free(new AlluxioURI("/"), FreeOptions.defaults().setRecursive(true));
+    mFs.free(new AlluxioURI("/"),
+        FileSystemClientOptions.getFreeOptions().toBuilder().setRecursive(true).build());
     BlockMasterClient blockClient = BlockMasterClient.Factory.create(MasterClientConfig.defaults());
     CommonUtils.waitFor("data to be freed", () -> {
       try {

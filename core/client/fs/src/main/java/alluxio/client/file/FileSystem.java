@@ -18,7 +18,6 @@ import alluxio.annotation.PublicApi;
 import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.ExistsOptions;
-import alluxio.client.file.options.FreeOptions;
 import alluxio.client.file.options.MountOptions;
 import alluxio.client.file.options.OpenFileOptions;
 import alluxio.client.file.options.RenameOptions;
@@ -31,10 +30,7 @@ import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
-import alluxio.grpc.DeletePOptions;
-import alluxio.grpc.GetStatusPOptions;
-import alluxio.grpc.ListStatusPOptions;
-import alluxio.grpc.LoadMetadataPOptions;
+import alluxio.grpc.*;
 import alluxio.security.authorization.AclEntry;
 import alluxio.wire.MountPointInfo;
 import alluxio.wire.SetAclAction;
@@ -174,7 +170,7 @@ public interface FileSystem {
       throws InvalidPathException, IOException, AlluxioException;
 
   /**
-   * Convenience method for {@link #free(AlluxioURI, FreeOptions)} with default options.
+   * Convenience method for {@link #free(AlluxioURI, FreePOptions)} with default options.
    *
    * @param path the path to free in Alluxio space
    * @throws FileDoesNotExistException if the given path does not exist
@@ -189,7 +185,7 @@ public interface FileSystem {
    * @param options options to associate with this operation
    * @throws FileDoesNotExistException if the given path does not exist
    */
-  void free(AlluxioURI path, FreeOptions options)
+  void free(AlluxioURI path, FreePOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException;
 
   /**

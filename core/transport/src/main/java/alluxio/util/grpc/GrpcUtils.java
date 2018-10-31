@@ -195,17 +195,17 @@ public final class GrpcUtils {
    * @param pOptions the proto options to convert
    * @return the converted options instance
    */
-  public static FreeOptions fromProto(FileSystemMasterOptions masterOptions,
+  public static FreePOptions fromProto(FileSystemMasterOptions masterOptions,
       FreePOptions pOptions) {
-    FreeOptions options = masterOptions.getFreeOptions();
+    FreePOptions.Builder optionsBuilder = masterOptions.getFreeOptions().toBuilder();
     if (pOptions != null) {
       if (pOptions.hasCommonOptions()) {
-        options.setCommonOptions(fromProto(masterOptions, pOptions.getCommonOptions()));
+        optionsBuilder.setCommonOptions(fromProtoToProto(masterOptions, pOptions.getCommonOptions()));
       }
-      options.setForced(pOptions.getForced());
-      options.setRecursive(pOptions.getRecursive());
+      optionsBuilder.setForced(pOptions.getForced());
+      optionsBuilder.setRecursive(pOptions.getRecursive());
     }
-    return options;
+    return optionsBuilder.build();
 
   }
 
@@ -934,20 +934,6 @@ public final class GrpcUtils {
       builder.setMode(options.getMode().toShort());
     }
     return builder.build();
-  }
-
-  /**
-   * Converts options to proto type.
-   *
-   * @param options the options type to convert
-   * @return the converted proto type
-   */
-  public static FreePOptions toProto(FreeOptions options) {
-    return FreePOptions.newBuilder()
-        .setForced(options.isForced())
-        .setRecursive(options.isRecursive())
-        .setCommonOptions(toProto(options.getCommonOptions()))
-        .build();
   }
 
   /**

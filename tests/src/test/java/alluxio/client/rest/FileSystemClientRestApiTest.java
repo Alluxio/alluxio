@@ -20,7 +20,6 @@ import alluxio.client.file.FileSystemClientOptions;
 import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.ExistsOptions;
-import alluxio.client.file.options.FreeOptions;
 import alluxio.client.file.options.MountOptions;
 import alluxio.client.file.options.OpenFileOptions;
 import alluxio.client.file.options.RenameOptions;
@@ -122,7 +121,8 @@ public final class FileSystemClientRestApiTest extends RestApiTest {
     writeFile(uri, null);
     new TestCase(mHostname, mPort,
         PATHS_PREFIX + uri.toString() + "/" + PathsRestServiceHandler.FREE, NO_PARAMS,
-        HttpMethod.POST, null, TestCaseOptions.defaults().setBody(FreeOptions.defaults())).run();
+        HttpMethod.POST, null,
+        TestCaseOptions.defaults().setBody(FileSystemClientOptions.getFreeOptions())).run();
   }
 
   @Test

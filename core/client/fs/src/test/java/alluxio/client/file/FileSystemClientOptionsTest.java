@@ -50,4 +50,12 @@ public class FileSystemClientOptionsTest {
     Assert.assertEquals(options.getUnchecked(),
         Configuration.getBoolean(PropertyKey.USER_FILE_DELETE_UNCHECKED));
   }
+
+  @Test
+  public void freeOptionsDefaults() {
+    FreePOptions options = FileSystemClientOptions.getFreeOptions();
+    Assert.assertNotNull(options);
+    Assert.assertFalse(options.getRecursive());
+    Assert.assertFalse(options.getForced());
+  }
 }

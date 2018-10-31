@@ -21,7 +21,6 @@ import alluxio.master.MasterProcess;
 import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
-import alluxio.master.file.options.FreeOptions;
 import alluxio.master.file.options.MountOptions;
 import alluxio.master.file.options.RenameOptions;
 import alluxio.master.file.options.SetAttributeOptions;
@@ -259,8 +258,8 @@ public final class FileSystemMasterClientRestServiceHandler {
       @QueryParam("recursive") final boolean recursive) {
     return RestUtils.call((RestUtils.RestCallable<Void>) () -> {
       Preconditions.checkNotNull(path, "required 'path' parameter is missing");
-      mFileSystemMaster.free(new AlluxioURI(path), FreeOptions.defaults()
-          .setRecursive(recursive));
+      mFileSystemMaster.free(new AlluxioURI(path), mFileSystemMaster.getMasterOptions()
+          .getFreeOptions().toBuilder().setRecursive(recursive).build());
       return null;
     });
   }

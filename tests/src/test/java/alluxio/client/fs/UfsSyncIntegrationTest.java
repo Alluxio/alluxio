@@ -24,7 +24,6 @@ import alluxio.client.file.*;
 import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.ExistsOptions;
-import alluxio.client.file.options.FreeOptions;
 import alluxio.client.file.options.RenameOptions;
 import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.exception.FileDoesNotExistException;
@@ -522,7 +521,8 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
     new File(ufsPath(EXISTING_FILE)).delete();
     assertFalse(mFileSystem.exists(new AlluxioURI(alluxioPath(EXISTING_FILE)),
         ExistsOptions.defaults().setCommonOptions(SYNC_ALWAYS)));
-    mFileSystem.free(new AlluxioURI("/"), FreeOptions.defaults().setRecursive(true));
+    mFileSystem.free(new AlluxioURI("/"),
+        FileSystemClientOptions.getFreeOptions().toBuilder().setRecursive(true).build());
     BlockMasterClient blockClient = BlockMasterClient.Factory.create(MasterClientConfig.defaults());
     CommonUtils.waitFor("data to be freed", () -> {
       try {

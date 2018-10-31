@@ -47,7 +47,6 @@ import alluxio.master.file.meta.TtlIntervalRule;
 import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
-import alluxio.master.file.options.FreeOptions;
 import alluxio.master.file.options.MountOptions;
 import alluxio.master.file.options.RenameOptions;
 import alluxio.master.file.options.SetAttributeOptions;
@@ -1444,7 +1443,8 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     }
 
     private void doFree(AlluxioURI path) throws Exception {
-      mFsMaster.free(path, FreeOptions.defaults().setForced(true).setRecursive(true));
+      mFsMaster.free(path,
+          MASTER_OPTIONS.getFreeOptions().toBuilder().setForced(true).setRecursive(true).build());
       Assert.assertNotEquals(IdUtils.INVALID_FILE_ID, mFsMaster.getFileId(path));
     }
 

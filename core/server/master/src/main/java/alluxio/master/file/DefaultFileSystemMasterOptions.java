@@ -20,7 +20,6 @@ import alluxio.master.file.options.CommonOptions;
 import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
-import alluxio.master.file.options.FreeOptions;
 import alluxio.master.file.options.MountOptions;
 import alluxio.master.file.options.RenameOptions;
 import alluxio.master.file.options.SetAclOptions;
@@ -75,8 +74,12 @@ public final class DefaultFileSystemMasterOptions implements FileSystemMasterOpt
   }
 
   @Override
-  public FreeOptions getFreeOptions() {
-    return FreeOptions.defaults();
+  public FreePOptions getFreeOptions() {
+    return FreePOptions.newBuilder()
+        .setCommonOptions(getCommonPOptions())
+        .setForced(false)
+        .setRecursive(false)
+        .build();
   }
 
   @Override

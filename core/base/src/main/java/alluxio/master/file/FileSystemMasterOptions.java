@@ -15,7 +15,6 @@ import alluxio.file.options.CheckConsistencyOptions;
 import alluxio.file.options.CompleteFileOptions;
 import alluxio.file.options.CreateDirectoryOptions;
 import alluxio.file.options.CreateFileOptions;
-import alluxio.file.options.FreeOptions;
 import alluxio.file.options.CommonOptions;
 import alluxio.file.options.MountOptions;
 import alluxio.file.options.RenameOptions;
@@ -65,9 +64,9 @@ public interface FileSystemMasterOptions {
   DeletePOptions getDeleteOptions();
 
   /**
-   * @return an instance of {@link FreeOptions}
+   * @return an instance of {@link FreePOptions}
    */
-  FreeOptions getFreeOptions();
+  FreePOptions getFreeOptions();
 
   /**
    * @return an instance of {@link GetStatusPOptions}

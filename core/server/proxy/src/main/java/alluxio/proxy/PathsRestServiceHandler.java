@@ -18,13 +18,13 @@ import alluxio.client.file.*;
 import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.ExistsOptions;
-import alluxio.client.file.options.FreeOptions;
 import alluxio.client.file.options.MountOptions;
 import alluxio.client.file.options.OpenFileOptions;
 import alluxio.client.file.options.RenameOptions;
 import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.client.file.options.UnmountOptions;
 import alluxio.grpc.DeletePOptions;
+import alluxio.grpc.FreePOptions;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.web.ProxyWebServer;
@@ -191,12 +191,12 @@ public final class PathsRestServiceHandler {
   @POST
   @Path(PATH_PARAM + FREE)
   @ReturnType("java.lang.Void")
-  public Response free(@PathParam("path") final String path, final FreeOptions options) {
+  public Response free(@PathParam("path") final String path, final FreePOptions options) {
     return RestUtils.call(new RestUtils.RestCallable<Void>() {
       @Override
       public Void call() throws Exception {
         if (options == null) {
-          mFileSystem.free(new AlluxioURI(path), FreeOptions.defaults());
+          mFileSystem.free(new AlluxioURI(path), FileSystemClientOptions.getFreeOptions());
         } else {
           mFileSystem.free(new AlluxioURI(path), options);
         }

@@ -31,16 +31,12 @@ import alluxio.PropertyKey;
 import alluxio.TestLoggerRule;
 import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.client.file.options.CreateFileOptions;
-import alluxio.client.file.options.FreeOptions;
 import alluxio.client.file.options.MountOptions;
 import alluxio.client.file.options.OpenFileOptions;
 import alluxio.client.file.options.RenameOptions;
 import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.client.file.options.UnmountOptions;
-import alluxio.grpc.GetStatusPOptions;
-import alluxio.grpc.ListStatusPOptions;
-import alluxio.grpc.LoadMetadataPType;
-import alluxio.grpc.DeletePOptions;
+import alluxio.grpc.*;
 import alluxio.wire.FileInfo;
 import alluxio.wire.LoadMetadataType;
 
@@ -184,7 +180,8 @@ public final class BaseFileSystemTest {
   @Test
   public void free() throws Exception {
     AlluxioURI file = new AlluxioURI("/file");
-    FreeOptions freeOptions = FreeOptions.defaults().setRecursive(true);
+    FreePOptions freeOptions =
+        FileSystemClientOptions.getFreeOptions().toBuilder().setRecursive(true).build();
     mFileSystem.free(file, freeOptions);
     verify(mFileSystemMasterClient).free(file, freeOptions);
 
@@ -197,7 +194,8 @@ public final class BaseFileSystemTest {
   @Test
   public void freeException() throws Exception {
     AlluxioURI file = new AlluxioURI("/file");
-    FreeOptions freeOptions = FreeOptions.defaults().setRecursive(true);
+    FreePOptions freeOptions =
+        FileSystemClientOptions.getFreeOptions().toBuilder().setRecursive(true).build();
     doThrow(EXCEPTION).when(mFileSystemMasterClient).free(file, freeOptions);
     try {
       mFileSystem.free(file, freeOptions);

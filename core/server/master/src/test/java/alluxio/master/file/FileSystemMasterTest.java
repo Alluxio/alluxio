@@ -57,7 +57,6 @@ import alluxio.master.file.meta.TtlIntervalRule;
 import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
-import alluxio.master.file.options.FreeOptions;
 import alluxio.master.file.options.MountOptions;
 import alluxio.master.file.options.RenameOptions;
 import alluxio.master.file.options.SetAclOptions;
@@ -2005,7 +2004,7 @@ public final class FileSystemMasterTest {
 
     // free the file
     mFileSystemMaster.free(NESTED_FILE_URI,
-        FreeOptions.defaults().setForced(false).setRecursive(false));
+        MASTER_OPTIONS.getFreeOptions().toBuilder().setForced(false).setRecursive(false).build());
     // Update the heartbeat of removedBlockId received from worker 1.
     Command heartbeat2 = mBlockMaster.workerHeartbeat(mWorkerId1,
         ImmutableMap.of("MEM", (long) Constants.KB), ImmutableList.of(blockId),
@@ -2025,7 +2024,7 @@ public final class FileSystemMasterTest {
     mThrown.expectMessage(ExceptionMessage.CANNOT_FREE_NON_PERSISTED_FILE
         .getMessage(NESTED_FILE_URI.getPath()));
     // cannot free a non-persisted file
-    mFileSystemMaster.free(NESTED_FILE_URI, FreeOptions.defaults());
+    mFileSystemMaster.free(NESTED_FILE_URI, MASTER_OPTIONS.getFreeOptions());
   }
 
   /**
@@ -2040,7 +2039,7 @@ public final class FileSystemMasterTest {
     mThrown.expectMessage(ExceptionMessage.CANNOT_FREE_PINNED_FILE
         .getMessage(NESTED_FILE_URI.getPath()));
     // cannot free a pinned file without "forced"
-    mFileSystemMaster.free(NESTED_FILE_URI, FreeOptions.defaults().setForced(false));
+    mFileSystemMaster.free(NESTED_FILE_URI, MASTER_OPTIONS.getFreeOptions());
   }
 
   /**
@@ -2055,7 +2054,8 @@ public final class FileSystemMasterTest {
     assertEquals(1, mBlockMaster.getBlockInfo(blockId).getLocations().size());
 
     // free the file
-    mFileSystemMaster.free(NESTED_FILE_URI, FreeOptions.defaults().setForced(true));
+    mFileSystemMaster.free(NESTED_FILE_URI,
+        MASTER_OPTIONS.getFreeOptions().toBuilder().setForced(true).build());
     // Update the heartbeat of removedBlockId received from worker 1.
     Command heartbeat = mBlockMaster.workerHeartbeat(mWorkerId1,
         ImmutableMap.of("MEM", (long) Constants.KB), ImmutableList.of(blockId),
@@ -2075,7 +2075,8 @@ public final class FileSystemMasterTest {
     mThrown.expect(UnexpectedAlluxioException.class);
     mThrown.expectMessage(ExceptionMessage.CANNOT_FREE_NON_EMPTY_DIR.getMessage(NESTED_URI));
     // cannot free directory with recursive argument to false
-    mFileSystemMaster.free(NESTED_FILE_URI.getParent(), FreeOptions.defaults().setRecursive(false));
+    mFileSystemMaster.free(NESTED_FILE_URI.getParent(),
+        MASTER_OPTIONS.getFreeOptions().toBuilder().setRecursive(false).build());
   }
 
   /**
@@ -2089,7 +2090,7 @@ public final class FileSystemMasterTest {
 
     // free the dir
     mFileSystemMaster.free(NESTED_FILE_URI.getParent(),
-        FreeOptions.defaults().setForced(true).setRecursive(true));
+        MASTER_OPTIONS.getFreeOptions().toBuilder().setForced(true).setRecursive(true).build());
     // Update the heartbeat of removedBlockId received from worker 1.
     Command heartbeat3 = mBlockMaster.workerHeartbeat(mWorkerId1,
         ImmutableMap.of("MEM", (long) Constants.KB), ImmutableList.of(blockId),
@@ -2110,7 +2111,7 @@ public final class FileSystemMasterTest {
         .getMessage(NESTED_FILE_URI.getPath()));
     // cannot free the parent dir of a non-persisted file
     mFileSystemMaster.free(NESTED_FILE_URI.getParent(),
-        FreeOptions.defaults().setForced(false).setRecursive(true));
+        MASTER_OPTIONS.getFreeOptions().toBuilder().setForced(false).setRecursive(true).build());
   }
 
   /**
@@ -2127,7 +2128,7 @@ public final class FileSystemMasterTest {
         .getMessage(NESTED_FILE_URI.getPath()));
     // cannot free the parent dir of a pinned file without "forced"
     mFileSystemMaster.free(NESTED_FILE_URI.getParent(),
-        FreeOptions.defaults().setForced(false).setRecursive(true));
+        MASTER_OPTIONS.getFreeOptions().toBuilder().setForced(false).setRecursive(true).build());
   }
 
   /**
@@ -2141,7 +2142,7 @@ public final class FileSystemMasterTest {
     mFileSystemMaster.setAttribute(NESTED_FILE_URI, SetAttributeOptions.defaults().setPinned(true));
     // free the parent dir of a pinned file with "forced"
     mFileSystemMaster.free(NESTED_FILE_URI.getParent(),
-        FreeOptions.defaults().setForced(true).setRecursive(true));
+        MASTER_OPTIONS.getFreeOptions().toBuilder().setForced(true).setRecursive(true).build());
     // Update the heartbeat of removedBlockId received from worker 1.
     Command heartbeat = mBlockMaster.workerHeartbeat(mWorkerId1,
         ImmutableMap.of("MEM", (long) Constants.KB), ImmutableList.of(blockId),

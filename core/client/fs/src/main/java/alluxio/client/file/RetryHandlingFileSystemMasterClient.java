@@ -18,7 +18,6 @@ import alluxio.client.file.options.CheckConsistencyOptions;
 import alluxio.client.file.options.CompleteFileOptions;
 import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.client.file.options.CreateFileOptions;
-import alluxio.client.file.options.FreeOptions;
 import alluxio.client.file.options.MountOptions;
 import alluxio.client.file.options.RenameOptions;
 import alluxio.client.file.options.SetAclOptions;
@@ -132,10 +131,10 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
   }
 
   @Override
-  public synchronized void free(final AlluxioURI path, final FreeOptions options)
+  public synchronized void free(final AlluxioURI path, final FreePOptions options)
       throws AlluxioStatusException {
     retryRPC(() -> mBlockingStub.free(FreePRequest.newBuilder().setPath(path.getPath())
-        .setOptions(GrpcUtils.toProto(options)).build()), "Free");
+        .setOptions(options).build()), "Free");
   }
 
   @Override

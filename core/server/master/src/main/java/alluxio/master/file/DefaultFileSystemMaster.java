@@ -42,7 +42,6 @@ import alluxio.file.options.CompleteFileOptions;
 import alluxio.file.options.CreateDirectoryOptions;
 import alluxio.file.options.CreateFileOptions;
 import alluxio.file.options.DescendantType;
-import alluxio.file.options.FreeOptions;
 import alluxio.file.options.MountOptions;
 import alluxio.file.options.RenameOptions;
 import alluxio.file.options.SetAclOptions;
@@ -2188,7 +2187,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   }
 
   @Override
-  public void free(AlluxioURI path, FreeOptions options)
+  public void free(AlluxioURI path, FreePOptions options)
       throws FileDoesNotExistException, InvalidPathException, AccessControlException,
       UnexpectedAlluxioException, IOException {
     Metrics.FREE_FILE_OPS.inc();
@@ -2215,11 +2214,11 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * @param inodePath inode of the path to free
    * @param options options to free
    */
-  private void freeInternal(RpcContext rpcContext, LockedInodePath inodePath, FreeOptions options)
+  private void freeInternal(RpcContext rpcContext, LockedInodePath inodePath, FreePOptions options)
       throws FileDoesNotExistException, UnexpectedAlluxioException,
       IOException, InvalidPathException, AccessControlException {
     InodeView inode = inodePath.getInode();
-    if (inode.isDirectory() && !options.isRecursive()
+    if (inode.isDirectory() && !options.getRecursive()
         && ((InodeDirectoryView) inode).getNumberOfChildren() > 0) {
       // inode is nonempty, and we don't free a nonempty directory unless recursive is true
       throw new UnexpectedAlluxioException(
@@ -2247,7 +2246,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
                 .getMessage(mInodeTree.getPath(freeInode)));
           }
           if (freeInode.isPinned()) {
-            if (!options.isForced()) {
+            if (!options.getForced()) {
               throw new UnexpectedAlluxioException(ExceptionMessage.CANNOT_FREE_PINNED_FILE
                   .getMessage(mInodeTree.getPath(freeInode)));
             }

@@ -21,7 +21,6 @@ import alluxio.master.file.meta.InodeView;
 import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.file.meta.TtlBucket;
 import alluxio.master.file.meta.TtlBucketList;
-import alluxio.master.file.options.FreeOptions;
 import alluxio.master.journal.JournalContext;
 import alluxio.proto.journal.File.UpdateInodeEntry;
 import alluxio.wire.TtlAction;
@@ -78,10 +77,11 @@ final class InodeTtlChecker implements HeartbeatExecutor {
                 // public free method will lock the path, and check WRITE permission required at
                 // parent of file
                 if (inode.isDirectory()) {
-                  mFileSystemMaster
-                      .free(path, FreeOptions.defaults().setForced(true).setRecursive(true));
+                  mFileSystemMaster.free(path, mFileSystemMaster.getMasterOptions().getFreeOptions()
+                      .toBuilder().setForced(true).setRecursive(true).build());
                 } else {
-                  mFileSystemMaster.free(path, FreeOptions.defaults().setForced(true));
+                  mFileSystemMaster.free(path, mFileSystemMaster.getMasterOptions().getFreeOptions()
+                      .toBuilder().setForced(true).build());
                 }
                 try (JournalContext journalContext = mFileSystemMaster.createJournalContext()) {
                   // Reset state
