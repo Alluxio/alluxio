@@ -15,7 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.client.ReadType;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileSystem;
-import alluxio.client.file.options.DeleteOptions;
+import alluxio.client.file.FileSystemClientOptions;
 import alluxio.examples.BasicNonByteBufferOperations;
 import alluxio.examples.BasicOperations;
 import alluxio.util.io.PathUtils;
@@ -110,7 +110,8 @@ public final class TestRunner {
     AlluxioURI testDir = new AlluxioURI(mDirectory);
     FileSystem fs = FileSystem.Factory.get();
     if (fs.exists(testDir)) {
-      fs.delete(testDir, DeleteOptions.defaults().setRecursive(true).setUnchecked(true));
+      fs.delete(testDir, FileSystemClientOptions.getDeleteOptions().toBuilder().setRecursive(true)
+          .setUnchecked(true).build());
     }
 
     int failed = 0;

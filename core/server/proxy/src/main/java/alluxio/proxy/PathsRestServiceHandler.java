@@ -17,7 +17,6 @@ import alluxio.StreamCache;
 import alluxio.client.file.*;
 import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.client.file.options.CreateFileOptions;
-import alluxio.client.file.options.DeleteOptions;
 import alluxio.client.file.options.ExistsOptions;
 import alluxio.client.file.options.FreeOptions;
 import alluxio.client.file.options.MountOptions;
@@ -25,6 +24,7 @@ import alluxio.client.file.options.OpenFileOptions;
 import alluxio.client.file.options.RenameOptions;
 import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.client.file.options.UnmountOptions;
+import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.web.ProxyWebServer;
@@ -146,12 +146,12 @@ public final class PathsRestServiceHandler {
   @POST
   @Path(PATH_PARAM + DELETE)
   @ReturnType("java.lang.Void")
-  public Response delete(@PathParam("path") final String path, final DeleteOptions options) {
+  public Response delete(@PathParam("path") final String path, final DeletePOptions options) {
     return RestUtils.call(new RestUtils.RestCallable<Void>() {
       @Override
       public Void call() throws Exception {
         if (options == null) {
-          mFileSystem.delete(new AlluxioURI(path), DeleteOptions.defaults());
+          mFileSystem.delete(new AlluxioURI(path), FileSystemClientOptions.getDeleteOptions());
         } else {
           mFileSystem.delete(new AlluxioURI(path), options);
         }

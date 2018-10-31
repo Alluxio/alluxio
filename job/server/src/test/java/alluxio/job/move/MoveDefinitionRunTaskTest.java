@@ -25,7 +25,7 @@ import alluxio.client.file.MockFileInStream;
 import alluxio.client.file.MockFileOutStream;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.CreateFileOptions;
-import alluxio.client.file.options.DeleteOptions;
+import alluxio.grpc.DeletePOptions;
 import alluxio.job.JobWorkerContext;
 import alluxio.underfs.UfsManager;
 import alluxio.util.io.BufferUtils;
@@ -91,7 +91,7 @@ public final class MoveDefinitionRunTaskTest {
     when(mMockFileSystem.listStatus(new AlluxioURI(TEST_DIR)))
         .thenReturn(Lists.<URIStatus>newArrayList());
     runTask(TEST_DIR, TEST_SOURCE, TEST_DESTINATION, WriteType.THROUGH);
-    verify(mMockFileSystem).delete(eq(new AlluxioURI(TEST_DIR)), any(DeleteOptions.class));
+    verify(mMockFileSystem).delete(eq(new AlluxioURI(TEST_DIR)), any(DeletePOptions.class));
   }
 
   /**
@@ -106,7 +106,7 @@ public final class MoveDefinitionRunTaskTest {
     when(mMockFileSystem.listStatus(new AlluxioURI(inner)))
         .thenReturn(Lists.<URIStatus>newArrayList());
     runTask(TEST_DIR, TEST_SOURCE, TEST_DESTINATION, WriteType.THROUGH);
-    verify(mMockFileSystem).delete(eq(new AlluxioURI(TEST_DIR)), any(DeleteOptions.class));
+    verify(mMockFileSystem).delete(eq(new AlluxioURI(TEST_DIR)), any(DeletePOptions.class));
   }
 
   /**
@@ -119,7 +119,7 @@ public final class MoveDefinitionRunTaskTest {
         .thenReturn(Lists.newArrayList(new URIStatus(new FileInfo())));
     runTask(TEST_DIR, TEST_SOURCE, TEST_DESTINATION, WriteType.THROUGH);
     verify(mMockFileSystem, times(0)).delete(eq(new AlluxioURI(TEST_DIR)),
-        any(DeleteOptions.class));
+        any(DeletePOptions.class));
   }
 
   /**

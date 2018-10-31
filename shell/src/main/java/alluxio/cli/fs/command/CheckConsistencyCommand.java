@@ -14,13 +14,14 @@ package alluxio.cli.fs.command;
 import alluxio.AlluxioURI;
 import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemClientOptions;
 import alluxio.client.file.FileSystemUtils;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.CheckConsistencyOptions;
-import alluxio.client.file.options.DeleteOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 
+import alluxio.grpc.DeletePOptions;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
@@ -113,15 +114,16 @@ public class CheckConsistencyCommand extends AbstractFileSystemCommand {
           continue;
         }
         System.out.println("repairing path: " + inconsistentUri);
-        DeleteOptions deleteOptions = DeleteOptions.defaults().setAlluxioOnly(true);
+        DeletePOptions deleteOptions =
+            FileSystemClientOptions.getDeleteOptions().toBuilder().setAlluxioOnly(true).build();
         mFileSystem.delete(inconsistentUri, deleteOptions);
         mFileSystem.exists(inconsistentUri);
         System.out.println(inconsistentUri + " repaired");
         System.out.println();
       }
       for (AlluxioURI uri : inconsistentDirs) {
-        DeleteOptions deleteOptions = DeleteOptions.defaults().setAlluxioOnly(true)
-            .setRecursive(true);
+        DeletePOptions deleteOptions = FileSystemClientOptions.getDeleteOptions().toBuilder()
+            .setAlluxioOnly(true).setRecursive(true).build();
         System.out.println("repairing path: " + uri);
         mFileSystem.delete(uri, deleteOptions);
         mFileSystem.exists(uri);

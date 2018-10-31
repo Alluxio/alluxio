@@ -20,7 +20,6 @@ import alluxio.master.file.options.CommonOptions;
 import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
-import alluxio.master.file.options.DeleteOptions;
 import alluxio.master.file.options.FreeOptions;
 import alluxio.master.file.options.MountOptions;
 import alluxio.master.file.options.RenameOptions;
@@ -67,8 +66,12 @@ public final class DefaultFileSystemMasterOptions implements FileSystemMasterOpt
   }
 
   @Override
-  public DeleteOptions getDeleteOptions() {
-    return DeleteOptions.defaults();
+  public DeletePOptions getDeleteOptions() {
+    return DeletePOptions.newBuilder()
+            .setRecursive(false)
+            .setAlluxioOnly(false)
+            .setUnchecked(false)
+            .build();
   }
 
   @Override

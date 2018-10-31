@@ -18,11 +18,12 @@ import alluxio.PropertyKey;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemClientOptions;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.client.file.options.CreateFileOptions;
-import alluxio.client.file.options.DeleteOptions;
 import alluxio.client.file.options.SetAttributeOptions;
+import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.LoadMetadataPType;
 import alluxio.master.LocalAlluxioCluster;
 import alluxio.master.MasterRegistry;
@@ -210,7 +211,8 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
   @Test
   public void delete() throws Exception {
     CreateDirectoryOptions recMkdir = CreateDirectoryOptions.defaults().setRecursive(true);
-    DeleteOptions recDelete = DeleteOptions.defaults().setRecursive(true);
+    DeletePOptions recDelete =
+        FileSystemClientOptions.getDeleteOptions().toBuilder().setRecursive(true).build();
     for (int i = 0; i < 10; i++) {
       String dirPath = "/i" + i;
       mFileSystem.createDirectory(new AlluxioURI(dirPath), recMkdir);

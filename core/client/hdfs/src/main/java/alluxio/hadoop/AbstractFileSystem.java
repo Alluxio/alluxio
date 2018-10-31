@@ -20,13 +20,10 @@ import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.BlockWorkerInfo;
-import alluxio.client.file.FileOutStream;
+import alluxio.client.file.*;
 import alluxio.client.file.FileSystem;
-import alluxio.client.file.FileSystemContext;
-import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.client.file.options.CreateFileOptions;
-import alluxio.client.file.options.DeleteOptions;
 import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.Source;
@@ -35,6 +32,7 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.PreconditionMessage;
+import alluxio.grpc.DeletePOptions;
 import alluxio.master.MasterInquireClient.ConnectDetails;
 import alluxio.master.MasterInquireClient.Factory;
 import alluxio.security.User;
@@ -256,7 +254,8 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
       mStatistics.incrementWriteOps(1);
     }
     AlluxioURI uri = new AlluxioURI(HadoopUtils.getPathWithoutScheme(path));
-    DeleteOptions options = DeleteOptions.defaults().setRecursive(recursive);
+    DeletePOptions options =
+        FileSystemClientOptions.getDeleteOptions().toBuilder().setRecursive(recursive).build();
     try {
       mFileSystem.delete(uri, options);
       return true;

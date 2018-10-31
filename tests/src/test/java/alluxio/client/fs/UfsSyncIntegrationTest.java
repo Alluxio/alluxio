@@ -23,16 +23,12 @@ import alluxio.client.block.BlockMasterClient;
 import alluxio.client.file.*;
 import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.client.file.options.CreateFileOptions;
-import alluxio.client.file.options.DeleteOptions;
 import alluxio.client.file.options.ExistsOptions;
 import alluxio.client.file.options.FreeOptions;
 import alluxio.client.file.options.RenameOptions;
 import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.exception.FileDoesNotExistException;
-import alluxio.grpc.FileSystemMasterCommonPOptions;
-import alluxio.grpc.GetStatusPOptions;
-import alluxio.grpc.ListStatusPOptions;
-import alluxio.grpc.LoadMetadataPType;
+import alluxio.grpc.*;
 import alluxio.master.MasterClientConfig;
 import alluxio.security.authorization.Mode;
 import alluxio.testutils.BaseIntegrationTest;
@@ -211,7 +207,8 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
 
   @Test
   public void deleteFileNoSync() throws Exception {
-    DeleteOptions options = DeleteOptions.defaults().setCommonOptions(SYNC_NEVER);
+    DeletePOptions options = FileSystemClientOptions.getDeleteOptions().toBuilder()
+        .setCommonOptions(PSYNC_NEVER).build();
     try {
       mFileSystem.delete(new AlluxioURI(alluxioPath(EXISTING_FILE)), options);
       Assert.fail("Delete expected to fail: " + alluxioPath(EXISTING_FILE));
@@ -222,7 +219,8 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
 
   @Test
   public void deleteFileSync() throws Exception {
-    DeleteOptions options = DeleteOptions.defaults().setCommonOptions(SYNC_ALWAYS);
+      DeletePOptions options = FileSystemClientOptions.getDeleteOptions().toBuilder()
+              .setCommonOptions(PSYNC_ALWAYS).build();
     mFileSystem.delete(new AlluxioURI(alluxioPath(EXISTING_FILE)), options);
   }
 

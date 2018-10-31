@@ -14,12 +14,13 @@ package alluxio.cli.fs.command;
 import alluxio.AlluxioURI;
 import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystem;
-import alluxio.client.file.options.DeleteOptions;
+import alluxio.client.file.FileSystemClientOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.status.InvalidArgumentException;
 
+import alluxio.grpc.DeletePOptions;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
@@ -89,14 +90,12 @@ public final class RmCommand extends AbstractFileSystemCommand {
       throw new IOException(
           path.getPath() + " is a directory, to remove it, please use \"rm -R <path>\"");
     }
-
-    DeleteOptions options = DeleteOptions.defaults().setRecursive(recursive);
-    if (cl.hasOption(REMOVE_UNCHECKED_OPTION_CHAR)) {
-      options.setUnchecked(true);
-    }
-
+    
     boolean isAlluxioOnly = cl.hasOption(REMOVE_ALLUXIO_ONLY.getLongOpt());
-    options.setAlluxioOnly(isAlluxioOnly);
+    DeletePOptions options = FileSystemClientOptions.getDeleteOptions().toBuilder()
+        .setRecursive(recursive).setAlluxioOnly(isAlluxioOnly)
+        .setUnchecked(cl.hasOption(REMOVE_UNCHECKED_OPTION_CHAR)).build();
+
     mFileSystem.delete(path, options);
     if (!isAlluxioOnly) {
       System.out.println(path + " has been removed");

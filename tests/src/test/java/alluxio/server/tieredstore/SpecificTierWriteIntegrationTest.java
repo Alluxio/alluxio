@@ -17,9 +17,9 @@ import alluxio.PropertyKey;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemClientOptions;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.CreateFileOptions;
-import alluxio.client.file.options.DeleteOptions;
 import alluxio.client.file.policy.LocalFirstPolicy;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
@@ -119,8 +119,8 @@ public class SpecificTierWriteIntegrationTest extends BaseIntegrationTest {
   private void deleteAllFiles() throws Exception {
     List<URIStatus> files = mFileSystem.listStatus(new AlluxioURI("/"));
     for (URIStatus file : files) {
-      mFileSystem
-          .delete(new AlluxioURI(file.getPath()), DeleteOptions.defaults().setRecursive(true));
+      mFileSystem.delete(new AlluxioURI(file.getPath()),
+          FileSystemClientOptions.getDeleteOptions().toBuilder().setRecursive(true).build());
     }
     // Trigger a worker heartbeat to delete the blocks.
     HeartbeatScheduler.execute(HeartbeatContext.WORKER_BLOCK_SYNC);

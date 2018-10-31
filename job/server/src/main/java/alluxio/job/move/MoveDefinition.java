@@ -17,15 +17,9 @@ import alluxio.PropertyKey;
 import alluxio.client.WriteType;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.BlockWorkerInfo;
-import alluxio.client.file.BaseFileSystem;
-import alluxio.client.file.FileInStream;
-import alluxio.client.file.FileOutStream;
-import alluxio.client.file.FileSystem;
-import alluxio.client.file.FileSystemContext;
-import alluxio.client.file.URIStatus;
+import alluxio.client.file.*;
 import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.client.file.options.CreateFileOptions;
-import alluxio.client.file.options.DeleteOptions;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
@@ -284,7 +278,7 @@ public final class MoveDefinition
       try {
         LOG.debug("Deleting {}", config.getSource());
         mFileSystem.delete(new AlluxioURI(config.getSource()),
-            DeleteOptions.defaults().setRecursive(true));
+            FileSystemClientOptions.getDeleteOptions().toBuilder().setRecursive(true).build());
       } catch (FileDoesNotExistException e) {
         // It's already deleted, possibly by another worker.
       }

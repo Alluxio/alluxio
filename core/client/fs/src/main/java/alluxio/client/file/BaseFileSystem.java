@@ -16,7 +16,6 @@ import alluxio.Constants;
 import alluxio.annotation.PublicApi;
 import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.client.file.options.CreateFileOptions;
-import alluxio.client.file.options.DeleteOptions;
 import alluxio.client.file.options.ExistsOptions;
 import alluxio.client.file.options.FreeOptions;
 import alluxio.client.file.options.InStreamOptions;
@@ -39,10 +38,7 @@ import alluxio.exception.status.FailedPreconditionException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;
-import alluxio.grpc.GetStatusPOptions;
-import alluxio.grpc.ListStatusPOptions;
-import alluxio.grpc.LoadMetadataPOptions;
-import alluxio.grpc.LoadMetadataPType;
+import alluxio.grpc.*;
 import alluxio.master.MasterInquireClient;
 import alluxio.security.authorization.AclEntry;
 import alluxio.uri.Authority;
@@ -165,11 +161,11 @@ public class BaseFileSystem implements FileSystem {
   @Override
   public void delete(AlluxioURI path)
       throws DirectoryNotEmptyException, FileDoesNotExistException, IOException, AlluxioException {
-    delete(path, DeleteOptions.defaults());
+    delete(path, FileSystemClientOptions.getDeleteOptions());
   }
 
   @Override
-  public void delete(AlluxioURI path, DeleteOptions options)
+  public void delete(AlluxioURI path, DeletePOptions options)
       throws DirectoryNotEmptyException, FileDoesNotExistException, IOException, AlluxioException {
     checkUri(path);
     FileSystemMasterClient masterClient = mFileSystemContext.acquireMasterClient();

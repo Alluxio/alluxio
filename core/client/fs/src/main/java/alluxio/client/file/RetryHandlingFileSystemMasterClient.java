@@ -18,7 +18,6 @@ import alluxio.client.file.options.CheckConsistencyOptions;
 import alluxio.client.file.options.CompleteFileOptions;
 import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.client.file.options.CreateFileOptions;
-import alluxio.client.file.options.DeleteOptions;
 import alluxio.client.file.options.FreeOptions;
 import alluxio.client.file.options.MountOptions;
 import alluxio.client.file.options.RenameOptions;
@@ -126,10 +125,10 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
   }
 
   @Override
-  public synchronized void delete(final AlluxioURI path, final DeleteOptions options)
+  public synchronized void delete(final AlluxioURI path, final DeletePOptions options)
       throws AlluxioStatusException {
     retryRPC(() -> mBlockingStub.remove(DeletePRequest.newBuilder().setPath(path.getPath())
-        .setOptions(GrpcUtils.toProto(options)).build()), "Delete");
+        .setOptions(options).build()), "Delete");
   }
 
   @Override

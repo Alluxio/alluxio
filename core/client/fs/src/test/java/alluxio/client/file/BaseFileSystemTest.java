@@ -31,7 +31,6 @@ import alluxio.PropertyKey;
 import alluxio.TestLoggerRule;
 import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.client.file.options.CreateFileOptions;
-import alluxio.client.file.options.DeleteOptions;
 import alluxio.client.file.options.FreeOptions;
 import alluxio.client.file.options.MountOptions;
 import alluxio.client.file.options.OpenFileOptions;
@@ -41,6 +40,7 @@ import alluxio.client.file.options.UnmountOptions;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.LoadMetadataPType;
+import alluxio.grpc.DeletePOptions;
 import alluxio.wire.FileInfo;
 import alluxio.wire.LoadMetadataType;
 
@@ -146,12 +146,13 @@ public final class BaseFileSystemTest {
   }
 
   /**
-   * Tests for the {@link BaseFileSystem#delete(AlluxioURI, DeleteOptions)} method.
+   * Tests for the {@link BaseFileSystem#delete(AlluxioURI, DeletePOptions)} method.
    */
   @Test
   public void delete() throws Exception {
     AlluxioURI file = new AlluxioURI("/file");
-    DeleteOptions deleteOptions = DeleteOptions.defaults().setRecursive(true);
+    DeletePOptions deleteOptions =
+        FileSystemClientOptions.getDeleteOptions().toBuilder().setRecursive(true).build();
     mFileSystem.delete(file, deleteOptions);
     verify(mFileSystemMasterClient).delete(file, deleteOptions);
 
@@ -164,7 +165,8 @@ public final class BaseFileSystemTest {
   @Test
   public void deleteException() throws Exception {
     AlluxioURI file = new AlluxioURI("/file");
-    DeleteOptions deleteOptions = DeleteOptions.defaults().setRecursive(true);
+    DeletePOptions deleteOptions =
+        FileSystemClientOptions.getDeleteOptions().toBuilder().setRecursive(true).build();
     doThrow(EXCEPTION).when(mFileSystemMasterClient).delete(file, deleteOptions);
     try {
       mFileSystem.delete(file, deleteOptions);

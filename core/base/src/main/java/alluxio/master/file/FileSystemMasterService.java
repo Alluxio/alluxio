@@ -28,13 +28,13 @@ import alluxio.file.options.CheckConsistencyOptions;
 import alluxio.file.options.CompleteFileOptions;
 import alluxio.file.options.CreateDirectoryOptions;
 import alluxio.file.options.CreateFileOptions;
-import alluxio.file.options.DeleteOptions;
 import alluxio.file.options.FreeOptions;
 import alluxio.file.options.MountOptions;
 import alluxio.file.options.RenameOptions;
 import alluxio.file.options.SetAclOptions;
 import alluxio.file.options.SetAttributeOptions;
 import alluxio.file.options.WorkerHeartbeatOptions;
+import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.LoadMetadataPOptions;
 import alluxio.master.file.meta.FileSystemMasterView;
@@ -242,7 +242,7 @@ public interface FileSystemMasterService {
    * @throws AccessControlException if permission checking fails
    * @throws InvalidPathException if the path is invalid
    */
-  void delete(AlluxioURI path, DeleteOptions options)
+  void delete(AlluxioURI path, DeletePOptions options)
       throws IOException, FileDoesNotExistException, DirectoryNotEmptyException,
       InvalidPathException, AccessControlException;
 

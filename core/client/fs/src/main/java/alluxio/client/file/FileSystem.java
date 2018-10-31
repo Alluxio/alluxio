@@ -17,7 +17,6 @@ import alluxio.PropertyKey;
 import alluxio.annotation.PublicApi;
 import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.client.file.options.CreateFileOptions;
-import alluxio.client.file.options.DeleteOptions;
 import alluxio.client.file.options.ExistsOptions;
 import alluxio.client.file.options.FreeOptions;
 import alluxio.client.file.options.MountOptions;
@@ -32,6 +31,7 @@ import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
+import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.LoadMetadataPOptions;
@@ -133,7 +133,7 @@ public interface FileSystem {
       throws FileAlreadyExistsException, InvalidPathException, IOException, AlluxioException;
 
   /**
-   * Convenience method for {@link #delete(AlluxioURI, DeleteOptions)} with default options.
+   * Convenience method for {@link #delete(AlluxioURI, DeletePOptions)} with default options.
    *
    * @param path the path to delete in Alluxio space
    * @throws FileDoesNotExistException if the given path does not exist
@@ -150,7 +150,7 @@ public interface FileSystem {
    * @throws FileDoesNotExistException if the given path does not exist
    * @throws DirectoryNotEmptyException if recursive is false and the path is a nonempty directory
    */
-  void delete(AlluxioURI path, DeleteOptions options)
+  void delete(AlluxioURI path, DeletePOptions options)
       throws DirectoryNotEmptyException, FileDoesNotExistException, IOException, AlluxioException;
 
   /**

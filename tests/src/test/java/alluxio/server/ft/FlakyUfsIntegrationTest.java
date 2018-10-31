@@ -21,6 +21,7 @@ import alluxio.UnderFileSystemFactoryRegistryRule;
 import alluxio.client.WriteType;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemClientOptions;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.options.FreeOptions;
 import alluxio.exception.AlluxioException;
@@ -91,7 +92,7 @@ public final class FlakyUfsIntegrationTest extends BaseIntegrationTest {
     java.nio.file.Files.createDirectory(Paths.get(ufs, "/dir/testunknown"));
     try {
       mFs.delete(new AlluxioURI("/dir"),
-          alluxio.client.file.options.DeleteOptions.defaults().setRecursive(true));
+          FileSystemClientOptions.getDeleteOptions().toBuilder().setRecursive(true).build());
       fail("Expected an exception to be thrown");
     } catch (AlluxioException e) {
       // expected

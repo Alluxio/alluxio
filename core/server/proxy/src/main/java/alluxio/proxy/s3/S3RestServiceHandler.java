@@ -16,18 +16,15 @@ import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.client.WriteType;
-import alluxio.client.file.FileInStream;
-import alluxio.client.file.FileOutStream;
-import alluxio.client.file.FileSystem;
-import alluxio.client.file.URIStatus;
+import alluxio.client.file.*;
 import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.client.file.options.CreateFileOptions;
-import alluxio.client.file.options.DeleteOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
+import alluxio.grpc.DeletePOptions;
 import alluxio.web.ProxyWebServer;
 
 import com.google.common.base.Preconditions;
@@ -145,9 +142,10 @@ public final class S3RestServiceHandler {
         checkBucketIsAlluxioDirectory(bucketPath);
 
         // Delete the bucket.
-        DeleteOptions options = DeleteOptions.defaults();
-        options.setAlluxioOnly(Configuration.get(PropertyKey.PROXY_S3_DELETE_TYPE)
-            .equals(Constants.S3_DELETE_IN_ALLUXIO_ONLY));
+        DeletePOptions options = FileSystemClientOptions
+            .getDeleteOptions().toBuilder().setAlluxioOnly(Configuration
+                .get(PropertyKey.PROXY_S3_DELETE_TYPE).equals(Constants.S3_DELETE_IN_ALLUXIO_ONLY))
+            .build();
         try {
           mFileSystem.delete(new AlluxioURI(bucketPath), options);
         } catch (Exception e) {
@@ -358,7 +356,8 @@ public final class S3RestServiceHandler {
             digestOutputStream.close();
           }
 
-          mFileSystem.delete(multipartTemporaryDir, DeleteOptions.defaults().setRecursive(true));
+          mFileSystem.delete(multipartTemporaryDir,
+              FileSystemClientOptions.getDeleteOptions().toBuilder().setRecursive(true).build());
 
           String entityTag = Hex.encodeHexString(md5.digest());
           return new CompleteMultipartUploadResult(objectPath, bucket, object, entityTag);
@@ -527,7 +526,8 @@ public final class S3RestServiceHandler {
     checkUploadId(multipartTemporaryDir, uploadId);
 
     try {
-      mFileSystem.delete(multipartTemporaryDir, DeleteOptions.defaults().setRecursive(true));
+      mFileSystem.delete(multipartTemporaryDir,
+          FileSystemClientOptions.getDeleteOptions().toBuilder().setRecursive(true).build());
     } catch (Exception e) {
       throw toObjectS3Exception(e, objectPath);
     }
@@ -537,9 +537,10 @@ public final class S3RestServiceHandler {
     String bucketPath = parseBucketPath(AlluxioURI.SEPARATOR + bucket);
     // Delete the object.
     String objectPath = bucketPath + AlluxioURI.SEPARATOR + object;
-    DeleteOptions options = DeleteOptions.defaults();
-    options.setAlluxioOnly(Configuration.get(PropertyKey.PROXY_S3_DELETE_TYPE)
-        .equals(Constants.S3_DELETE_IN_ALLUXIO_ONLY));
+    DeletePOptions options = FileSystemClientOptions
+        .getDeleteOptions().toBuilder().setAlluxioOnly(Configuration
+            .get(PropertyKey.PROXY_S3_DELETE_TYPE).equals(Constants.S3_DELETE_IN_ALLUXIO_ONLY))
+        .build();
     try {
       mFileSystem.delete(new AlluxioURI(objectPath), options);
     } catch (Exception e) {

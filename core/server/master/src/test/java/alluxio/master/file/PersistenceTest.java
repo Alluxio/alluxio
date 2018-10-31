@@ -37,7 +37,6 @@ import alluxio.master.file.meta.PersistenceState;
 import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
-import alluxio.master.file.options.DeleteOptions;
 import alluxio.master.file.options.RenameOptions;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalTestUtils;
@@ -368,7 +367,8 @@ public final class PersistenceTest {
     mFileSystemMaster.rename(alluxioFileSrc, alluxioFileDst, RenameOptions.defaults());
 
     // Delete the src directory recursively.
-    mFileSystemMaster.delete(alluxioDirSrc, DeleteOptions.defaults().setRecursive(true));
+    mFileSystemMaster.delete(alluxioDirSrc,
+        MASTER_OPTIONS.getDeleteOptions().toBuilder().setRecursive(true).build());
 
     // Execute the persistence checker heartbeat, checking the internal state. This should
     // re-schedule the persist task as tempUfsPath is deleted.

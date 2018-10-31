@@ -21,7 +21,6 @@ import alluxio.master.file.meta.InodeView;
 import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.file.meta.TtlBucket;
 import alluxio.master.file.meta.TtlBucketList;
-import alluxio.master.file.options.DeleteOptions;
 import alluxio.master.file.options.FreeOptions;
 import alluxio.master.journal.JournalContext;
 import alluxio.proto.journal.File.UpdateInodeEntry;
@@ -98,9 +97,11 @@ final class InodeTtlChecker implements HeartbeatExecutor {
                 // public delete method will lock the path, and check WRITE permission required at
                 // parent of file
                 if (inode.isDirectory()) {
-                  mFileSystemMaster.delete(path, DeleteOptions.defaults().setRecursive(true));
+                  mFileSystemMaster.delete(path, mFileSystemMaster.getMasterOptions()
+                      .getDeleteOptions().toBuilder().setRecursive(true).build());
                 } else {
-                  mFileSystemMaster.delete(path, DeleteOptions.defaults().setRecursive(false));
+                  mFileSystemMaster.delete(path,
+                      mFileSystemMaster.getMasterOptions().getDeleteOptions());
                 }
                 break;
               default:

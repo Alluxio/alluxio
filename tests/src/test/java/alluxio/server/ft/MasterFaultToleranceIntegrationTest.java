@@ -22,10 +22,10 @@ import alluxio.PropertyKey;
 import alluxio.client.WriteType;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemClientOptions;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.CreateFileOptions;
-import alluxio.client.file.options.DeleteOptions;
 import alluxio.collections.Pair;
 import alluxio.exception.AlluxioException;
 import alluxio.hadoop.HadoopClientTestUtils;
@@ -183,7 +183,7 @@ public class MasterFaultToleranceIntegrationTest extends BaseIntegrationTest {
         // AlluxioURI(AlluxioURI.SEPARATOR))) because root node can not be deleted.
         for (URIStatus file : mFileSystem.listStatus(new AlluxioURI(AlluxioURI.SEPARATOR))) {
           mFileSystem.delete(new AlluxioURI(file.getPath()),
-              DeleteOptions.defaults().setRecursive(true));
+              FileSystemClientOptions.getDeleteOptions().toBuilder().setRecursive(true).build());
         }
         answer.clear();
         faultTestDataCheck(answer);

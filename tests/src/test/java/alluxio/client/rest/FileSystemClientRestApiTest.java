@@ -19,7 +19,6 @@ import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystemClientOptions;
 import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.client.file.options.CreateFileOptions;
-import alluxio.client.file.options.DeleteOptions;
 import alluxio.client.file.options.ExistsOptions;
 import alluxio.client.file.options.FreeOptions;
 import alluxio.client.file.options.MountOptions;
@@ -90,7 +89,8 @@ public final class FileSystemClientRestApiTest extends RestApiTest {
     writeFile(uri, null);
     new TestCase(mHostname, mPort,
         PATHS_PREFIX + uri.toString() + "/" + PathsRestServiceHandler.DELETE, NO_PARAMS,
-        HttpMethod.POST, null, TestCaseOptions.defaults().setBody(DeleteOptions.defaults())).run();
+        HttpMethod.POST, null,
+        TestCaseOptions.defaults().setBody(FileSystemClientOptions.getDeleteOptions())).run();
     try {
       mFileSystemMaster.getFileInfo(uri, GET_STATUS_OPTIONS);
       fail("file should have been removed");

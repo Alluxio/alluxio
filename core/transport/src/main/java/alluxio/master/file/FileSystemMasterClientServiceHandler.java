@@ -89,7 +89,7 @@ public final class FileSystemMasterClientServiceHandler
   /**
    * Creates a new instance of {@link FileSystemMasterClientServiceHandler}.
    *
-   * @param fileSystemMaster the {@link FileSystemMaster} the handler uses internally
+   * @param fileSystemMaster the {@link FileSystemMasterService} the handler uses internally
    */
   public FileSystemMasterClientServiceHandler(FileSystemMasterService fileSystemMaster) {
     Preconditions.checkNotNull(fileSystemMaster, "fileSystemMaster");

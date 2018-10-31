@@ -52,4 +52,12 @@ public final class FileSystemClientOptions {
             .setRecursive(false)
             .build();
   }
+
+  public static DeletePOptions getDeleteOptions() {
+    return DeletePOptions.newBuilder().setCommonOptions(getCommonOptions())
+            .setRecursive(false)
+            .setAlluxioOnly(false)
+            .setUnchecked(Configuration.getBoolean(PropertyKey.USER_FILE_DELETE_UNCHECKED))
+            .build();
+  }
 }

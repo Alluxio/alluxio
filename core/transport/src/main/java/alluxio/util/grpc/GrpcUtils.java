@@ -357,18 +357,18 @@ public final class GrpcUtils {
    * @param pOptions the proto options to convert
    * @return the converted options instance
    */
-  public static DeleteOptions fromProto(FileSystemMasterOptions masterOptions,
+  public static DeletePOptions fromProto(FileSystemMasterOptions masterOptions,
       DeletePOptions pOptions) {
-    DeleteOptions options = masterOptions.getDeleteOptions();
+    DeletePOptions.Builder optionsBuilder = masterOptions.getDeleteOptions().toBuilder();
     if (pOptions != null) {
       if (pOptions.hasCommonOptions()) {
-        options.setCommonOptions(fromProto(masterOptions, pOptions.getCommonOptions()));
+        optionsBuilder.setCommonOptions(fromProtoToProto(masterOptions, pOptions.getCommonOptions()));
       }
-      options.setRecursive(pOptions.getRecursive());
-      options.setAlluxioOnly(pOptions.getAlluxioOnly());
-      options.setUnchecked(pOptions.getUnchecked());
+      optionsBuilder.setRecursive(pOptions.getRecursive());
+      optionsBuilder.setAlluxioOnly(pOptions.getAlluxioOnly());
+      optionsBuilder.setUnchecked(pOptions.getUnchecked());
     }
-    return options;
+    return optionsBuilder.build();
   }
 
   /**
@@ -658,7 +658,7 @@ public final class GrpcUtils {
   /**
    * Converts proto type to wire type.
    *
-   * @param tTtlAction {@link TTtlAction}
+   * @param tTtlAction {@link TtlAction}
    * @return {@link TtlAction} equivalent
    */
   public static TtlAction fromProto(alluxio.grpc.TtlAction tTtlAction) {
@@ -942,20 +942,6 @@ public final class GrpcUtils {
    * @param options the options type to convert
    * @return the converted proto type
    */
-  public static DeletePOptions toProto(DeleteOptions options) {
-    return DeletePOptions.newBuilder()
-        .setRecursive(options.isRecursive())
-        .setAlluxioOnly(options.isAlluxioOnly())
-        .setUnchecked(options.isUnchecked())
-        .setCommonOptions(toProto(options.getCommonOptions())).build();
-  }
-
-  /**
-   * Converts options to proto type.
-   *
-   * @param options the options type to convert
-   * @return the converted proto type
-   */
   public static FreePOptions toProto(FreeOptions options) {
     return FreePOptions.newBuilder()
         .setForced(options.isForced())
@@ -1184,7 +1170,7 @@ public final class GrpcUtils {
    * Converts wire type to proto type.
    *
    * @param ttlAction {@link TtlAction}
-   * @return {@link TTtlAction} equivalent
+   * @return {@link TtlAction} equivalent
    */
   public static alluxio.grpc.TtlAction toProto(TtlAction ttlAction) {
     if (ttlAction == null) {
