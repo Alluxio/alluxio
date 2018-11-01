@@ -1443,6 +1443,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("Perform an initial sync when we add a sync point")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
+          .setIsHidden(true)
           .build();
   public static final PropertyKey MASTER_ACTIVE_UFS_SYNC_MAX_ACTIVITY =
       new Builder(Name.MASTER_ACTIVE_UFS_SYNC_MAX_ACTIVITY)
