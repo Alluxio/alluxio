@@ -1437,6 +1437,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_ACTIVE_UFS_SYNC_INITIAL_SYNC =
+      new Builder(Name.MASTER_ACTIVE_UFS_SYNC_INITIAL_SYNC)
+          .setDefaultValue("true")
+          .setDescription("Perform an initial sync when we add a sync point")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
   public static final PropertyKey MASTER_ACTIVE_UFS_SYNC_MAX_ACTIVITY =
       new Builder(Name.MASTER_ACTIVE_UFS_SYNC_MAX_ACTIVITY)
           .setAlias(new String[]{"alluxio.master.activesync.maxactivity"})
@@ -3545,6 +3552,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.activesync.maxactivity";
     public static final String MASTER_ACTIVE_UFS_SYNC_MAX_AGE =
         "alluxio.master.activesync.maxage";
+    public static final String MASTER_ACTIVE_UFS_SYNC_INITIAL_SYNC =
+        "alluxio.master.activesync.initialsync";
     public static final String MASTER_UFS_BLOCK_LOCATION_CACHE_CAPACITY =
         "alluxio.master.ufs.block.location.cache.capacity";
     public static final String MASTER_UFS_PATH_CACHE_CAPACITY =
