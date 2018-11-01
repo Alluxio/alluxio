@@ -29,6 +29,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -56,11 +57,12 @@ public class SupportedHdfsActiveSyncProvider implements HdfsActiveSyncProvider {
   /**
    * Constructor for supported Hdfs Active Sync Provider.
    *
-   * @param hdfsAdmin hdfsAdmin object
-   * @throws IOException
+   * @param uri the hdfs uri
+   * @param conf the hdfs conf
    */
-  public SupportedHdfsActiveSyncProvider(HdfsAdmin hdfsAdmin) throws IOException {
-    mHdfsAdmin = hdfsAdmin;
+  public SupportedHdfsActiveSyncProvider(URI uri, org.apache.hadoop.conf.Configuration conf)
+      throws IOException {
+    mHdfsAdmin = new HdfsAdmin(uri, conf);
     mChangedFiles = new ConcurrentHashMap<>();
     mActivity = new ConcurrentHashMap<>();
     mAge = new ConcurrentHashMap<>();
