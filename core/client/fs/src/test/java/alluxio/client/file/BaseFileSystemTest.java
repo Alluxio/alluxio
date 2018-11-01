@@ -31,7 +31,6 @@ import alluxio.PropertyKey;
 import alluxio.TestLoggerRule;
 import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.client.file.options.CreateFileOptions;
-import alluxio.client.file.options.MountOptions;
 import alluxio.client.file.options.OpenFileOptions;
 import alluxio.client.file.options.RenameOptions;
 import alluxio.client.file.options.SetAttributeOptions;
@@ -175,7 +174,7 @@ public final class BaseFileSystemTest {
   }
 
   /**
-   * Tests for the {@link BaseFileSystem#free(AlluxioURI, FreeOptions)} method.
+   * Tests for the {@link BaseFileSystem#free(AlluxioURI, FreePOptions)} method.
    */
   @Test
   public void free() throws Exception {
@@ -344,13 +343,13 @@ public final class BaseFileSystemTest {
   }
 
   /**
-   * Tests for the {@link BaseFileSystem#mount(AlluxioURI, AlluxioURI, MountOptions)} method.
+   * Tests for the {@link BaseFileSystem#mount(AlluxioURI, AlluxioURI, MountPOptions)} method.
    */
   @Test
   public void mount() throws Exception {
     AlluxioURI alluxioPath = new AlluxioURI("/t");
     AlluxioURI ufsPath = new AlluxioURI("/u");
-    MountOptions mountOptions = MountOptions.defaults();
+    MountPOptions mountOptions = FileSystemClientOptions.getMountOptions();
     doNothing().when(mFileSystemMasterClient).mount(alluxioPath, ufsPath, mountOptions);
     mFileSystem.mount(alluxioPath, ufsPath, mountOptions);
     verify(mFileSystemMasterClient).mount(alluxioPath, ufsPath, mountOptions);
@@ -365,7 +364,7 @@ public final class BaseFileSystemTest {
   public void mountException() throws Exception {
     AlluxioURI alluxioPath = new AlluxioURI("/t");
     AlluxioURI ufsPath = new AlluxioURI("/u");
-    MountOptions mountOptions = MountOptions.defaults();
+    MountPOptions mountOptions = FileSystemClientOptions.getMountOptions();
     doThrow(EXCEPTION).when(mFileSystemMasterClient)
         .mount(alluxioPath, ufsPath, mountOptions);
     try {

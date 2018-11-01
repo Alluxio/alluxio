@@ -17,6 +17,7 @@ import alluxio.Constants;
 import alluxio.file.options.*;
 import alluxio.grpc.*;
 import alluxio.master.file.FileSystemMasterOptions;
+import alluxio.proto.journal.File;
 import alluxio.security.authorization.AccessControlList;
 import alluxio.security.authorization.AclAction;
 import alluxio.security.authorization.AclEntry;
@@ -330,24 +331,25 @@ public final class GrpcUtils {
    * @param pOptions the proto options to convert
    * @return the converted options instance
    */
-  public static MountOptions fromProto(FileSystemMasterOptions masterOptions,
+  public static MountPOptions fromProto(FileSystemMasterOptions masterOptions,
       MountPOptions pOptions) {
-    MountOptions options = masterOptions.getMountOptions();
+    MountPOptions.Builder optionsBuilder = masterOptions.getMountOptions().toBuilder();
     if (pOptions != null) {
       if (pOptions.hasCommonOptions()) {
-        options.setCommonOptions(fromProto(masterOptions, pOptions.getCommonOptions()));
+        optionsBuilder
+            .setCommonOptions(fromProtoToProto(masterOptions, pOptions.getCommonOptions()));
       }
       if (pOptions.hasReadOnly()) {
-        options.setReadOnly(pOptions.getReadOnly());
+        optionsBuilder.setReadOnly(pOptions.getReadOnly());
       }
       if (pOptions.getPropertiesMap() != null) {
-        options.getProperties().putAll(pOptions.getPropertiesMap());
+        optionsBuilder.putAllProperties(pOptions.getPropertiesMap());
       }
       if (pOptions.getShared()) {
-        options.setShared(pOptions.getShared());
+        optionsBuilder.setShared(pOptions.getShared());
       }
     }
-    return options;
+    return optionsBuilder.build();
   }
 
   /**
@@ -1045,19 +1047,20 @@ public final class GrpcUtils {
         .setShared(info.getShared()).build();
   }
 
-  /**
-   * Converts a wire type to a proto type.
-   *
-   * @param options the options type to convert
-   * @return the converted proto type
-   */
-  public static MountPOptions toProto(MountOptions options) {
-    MountPOptions.Builder builder = MountPOptions.newBuilder().setReadOnly(options.isReadOnly())
-        .setShared(options.isShared()).setCommonOptions(toProto(options.getCommonOptions()));
-    if (options.getProperties() != null && !options.getProperties().isEmpty()) {
-      builder.putAllProperties(options.getProperties());
+  public static MountPOptions fromMountEntry(File.AddMountPointEntry mountEntryPoint){
+    MountPOptions.Builder optionsBuilder = MountPOptions.newBuilder();
+    if (mountEntryPoint != null) {
+      if (mountEntryPoint.hasReadOnly()) {
+        optionsBuilder.setReadOnly(mountEntryPoint.getReadOnly());
+      }
+      for (File.StringPairEntry entry : mountEntryPoint.getPropertiesList()) {
+        optionsBuilder.putProperties(entry.getKey(), entry.getValue());
+      }
+      if (mountEntryPoint.hasShared()) {
+        optionsBuilder.setShared(mountEntryPoint.getShared());
+      }
     }
-    return builder.build();
+    return optionsBuilder.build();
   }
 
   /**

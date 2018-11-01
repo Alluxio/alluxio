@@ -20,8 +20,10 @@ import alluxio.exception.AccessControlException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.InvalidPathException;
+import alluxio.grpc.MountPOptions;
+import alluxio.master.file.DefaultFileSystemMasterOptions;
+import alluxio.master.file.FileSystemMasterOptions;
 import alluxio.master.file.meta.options.MountInfo;
-import alluxio.master.file.options.MountOptions;
 import alluxio.master.journal.NoopJournalContext;
 import alluxio.underfs.UfsManager;
 import alluxio.underfs.UfsManager.UfsClient;
@@ -41,8 +43,8 @@ import java.util.Map;
  * Unit tests for {@link MountTable}.
  */
 public final class MountTableTest {
+  private static FileSystemMasterOptions MASTER_OPTIONS = new DefaultFileSystemMasterOptions();
   private MountTable mMountTable;
-  private final MountOptions mDefaultOptions = MountOptions.defaults();
   private final UnderFileSystem mTestUfs =
       new LocalUnderFileSystemFactory().create("/", UnderFileSystemConfiguration.defaults());
   private static final String ROOT_UFS = "s3a://bucket/";
@@ -54,7 +56,7 @@ public final class MountTableTest {
         new UfsManager.UfsClient(() -> mTestUfs, AlluxioURI.EMPTY_URI);
     when(ufsManager.get(anyLong())).thenReturn(ufsClient);
     mMountTable = new MountTable(ufsManager, new MountInfo(new AlluxioURI(MountTable.ROOT),
-        new AlluxioURI(ROOT_UFS), IdUtils.ROOT_MOUNT_ID, MountOptions.defaults()));
+        new AlluxioURI(ROOT_UFS), IdUtils.ROOT_MOUNT_ID, MASTER_OPTIONS.getMountOptions()));
   }
 
   /**
@@ -277,7 +279,7 @@ public final class MountTableTest {
    */
   @Test
   public void readOnlyMount() throws Exception {
-    MountOptions options = MountOptions.defaults().setReadOnly(true);
+    MountPOptions options = MASTER_OPTIONS.getMountOptions().toBuilder().setReadOnly(true).build();
     String mountPath = "/mnt/foo";
     AlluxioURI alluxioUri = new AlluxioURI("alluxio://localhost:1234" + mountPath);
     mMountTable.add(NoopJournalContext.INSTANCE, alluxioUri,
@@ -334,12 +336,10 @@ public final class MountTableTest {
   @Test
   public void getMountTable() throws Exception {
     Map<String, MountInfo> mountTable = new HashMap<>(2);
-    mountTable.put("/mnt/foo",
-        new MountInfo(new AlluxioURI("/mnt/foo"), new AlluxioURI("hdfs://localhost:5678/foo"), 2L,
-            MountOptions.defaults()));
-    mountTable.put("/mnt/bar",
-        new MountInfo(new AlluxioURI("/mnt/bar"), new AlluxioURI("hdfs://localhost:5678/bar"), 3L,
-            MountOptions.defaults()));
+    mountTable.put("/mnt/foo", new MountInfo(new AlluxioURI("/mnt/foo"),
+        new AlluxioURI("hdfs://localhost:5678/foo"), 2L, MASTER_OPTIONS.getMountOptions()));
+    mountTable.put("/mnt/bar", new MountInfo(new AlluxioURI("/mnt/bar"),
+        new AlluxioURI("hdfs://localhost:5678/bar"), 3L, MASTER_OPTIONS.getMountOptions()));
 
     AlluxioURI masterAddr = new AlluxioURI("alluxio://localhost:1234");
     for (Map.Entry<String, MountInfo> mountPoint : mountTable.entrySet()) {
@@ -349,7 +349,7 @@ public final class MountTableTest {
     }
     // Add root mountpoint
     mountTable.put("/", new MountInfo(new AlluxioURI("/"), new AlluxioURI("s3a://bucket/"),
-        IdUtils.ROOT_MOUNT_ID, MountOptions.defaults()));
+        IdUtils.ROOT_MOUNT_ID, MASTER_OPTIONS.getMountOptions()));
     Assert.assertEquals(mountTable, mMountTable.getMountTable());
   }
 
@@ -358,12 +358,10 @@ public final class MountTableTest {
    */
   @Test
   public void getMountInfo() throws Exception {
-    MountInfo info1 =
-        new MountInfo(new AlluxioURI("/mnt/foo"), new AlluxioURI("hdfs://localhost:5678/foo"), 2L,
-            MountOptions.defaults());
-    MountInfo info2 =
-        new MountInfo(new AlluxioURI("/mnt/bar"), new AlluxioURI("hdfs://localhost:5678/bar"), 3L,
-            MountOptions.defaults());
+    MountInfo info1 = new MountInfo(new AlluxioURI("/mnt/foo"),
+        new AlluxioURI("hdfs://localhost:5678/foo"), 2L, MASTER_OPTIONS.getMountOptions());
+    MountInfo info2 = new MountInfo(new AlluxioURI("/mnt/bar"), new AlluxioURI("hdfs://localhost:5678/bar"), 3L,
+                MASTER_OPTIONS.getMountOptions());
     addMount("/mnt/foo", "hdfs://localhost:5678/foo", 2);
     addMount("/mnt/bar", "hdfs://localhost:5678/bar", 3);
     Assert.assertEquals(info1, mMountTable.getMountInfo(info1.getMountId()));
@@ -373,7 +371,7 @@ public final class MountTableTest {
 
   private void addMount(String alluxio, String ufs, long id) throws Exception {
     mMountTable.add(NoopJournalContext.INSTANCE, new AlluxioURI(alluxio), new AlluxioURI(ufs), id,
-        mDefaultOptions);
+        MASTER_OPTIONS.getMountOptions());
   }
 
   private boolean deleteMount(String path) {

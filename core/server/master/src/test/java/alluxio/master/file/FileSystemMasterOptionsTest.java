@@ -43,4 +43,13 @@ public class FileSystemMasterOptionsTest {
     Assert.assertFalse(options.getAlluxioOnly());
     Assert.assertFalse(options.getUnchecked());
   }
+
+  @Test
+  public void mountOptionsDefaults() {
+    MountPOptions options = mMasterOptions.getMountOptions();
+    Assert.assertNotNull(options);
+    Assert.assertFalse(options.getShared());
+    Assert.assertFalse(options.getReadOnly());
+    Assert.assertEquals(0, options.getPropertiesMap());
+  }
 }

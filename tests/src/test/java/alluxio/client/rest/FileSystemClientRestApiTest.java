@@ -20,7 +20,6 @@ import alluxio.client.file.FileSystemClientOptions;
 import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.ExistsOptions;
-import alluxio.client.file.options.MountOptions;
 import alluxio.client.file.options.OpenFileOptions;
 import alluxio.client.file.options.RenameOptions;
 import alluxio.client.file.options.SetAttributeOptions;
@@ -160,7 +159,8 @@ public final class FileSystemClientRestApiTest extends RestApiTest {
     params.put("src", mFolder.newFolder().getAbsolutePath());
     new TestCase(mHostname, mPort,
         PATHS_PREFIX + uri.toString() + "/" + PathsRestServiceHandler.MOUNT, params,
-        HttpMethod.POST, null, TestCaseOptions.defaults().setBody(MountOptions.defaults())).run();
+        HttpMethod.POST, null,
+        TestCaseOptions.defaults().setBody(FileSystemClientOptions.getMountOptions())).run();
   }
 
   @Test
@@ -199,7 +199,7 @@ public final class FileSystemClientRestApiTest extends RestApiTest {
   public void unmount() throws Exception {
     AlluxioURI uri = new AlluxioURI("/mount");
     mFileSystemMaster.mount(uri, new AlluxioURI(mFolder.newFolder().getAbsolutePath()),
-        alluxio.master.file.options.MountOptions.defaults());
+        mFileSystemMaster.getMasterOptions().getMountOptions());
     new TestCase(mHostname, mPort,
         PATHS_PREFIX + uri.toString() + "/" + PathsRestServiceHandler.UNMOUNT, NO_PARAMS,
         HttpMethod.POST, null, TestCaseOptions.defaults().setBody(UnmountOptions.defaults())).run();

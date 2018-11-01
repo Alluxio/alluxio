@@ -28,7 +28,6 @@ import alluxio.file.options.CheckConsistencyOptions;
 import alluxio.file.options.CompleteFileOptions;
 import alluxio.file.options.CreateDirectoryOptions;
 import alluxio.file.options.CreateFileOptions;
-import alluxio.file.options.MountOptions;
 import alluxio.file.options.RenameOptions;
 import alluxio.file.options.SetAclOptions;
 import alluxio.file.options.SetAttributeOptions;
@@ -396,7 +395,7 @@ public interface FileSystemMasterService {
    * @throws InvalidPathException if an invalid path is encountered
    * @throws AccessControlException if the permission check fails
    */
-  void mount(AlluxioURI alluxioPath, AlluxioURI ufsPath, MountOptions options)
+  void mount(AlluxioURI alluxioPath, AlluxioURI ufsPath, MountPOptions options)
       throws FileAlreadyExistsException, FileDoesNotExistException, InvalidPathException,
       IOException, AccessControlException;
 

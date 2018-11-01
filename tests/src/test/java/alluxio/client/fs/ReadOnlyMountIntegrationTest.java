@@ -19,7 +19,6 @@ import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemClientOptions;
 import alluxio.client.file.options.CreateFileOptions;
-import alluxio.client.file.options.MountOptions;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
@@ -74,7 +73,7 @@ public class ReadOnlyMountIntegrationTest extends BaseIntegrationTest {
     // Add a readonly mount point.
     mFileSystem.createDirectory(new AlluxioURI("/mnt"));
     mFileSystem.mount(new AlluxioURI(MOUNT_PATH), new AlluxioURI(ufsMountDir),
-        MountOptions.defaults().setReadOnly(true));
+        FileSystemClientOptions.getMountOptions().toBuilder().setReadOnly(true).build());
   }
 
   @After

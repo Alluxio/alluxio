@@ -43,6 +43,7 @@ import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.LoadDescendantPType;
 import alluxio.grpc.LoadMetadataPType;
 import alluxio.grpc.DeletePOptions;
+import alluxio.grpc.MountPOptions;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
@@ -57,7 +58,6 @@ import alluxio.master.file.meta.TtlIntervalRule;
 import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
-import alluxio.master.file.options.MountOptions;
 import alluxio.master.file.options.RenameOptions;
 import alluxio.master.file.options.SetAclOptions;
 import alluxio.master.file.options.SetAttributeOptions;
@@ -79,7 +79,6 @@ import alluxio.util.io.FileUtils;
 import alluxio.wire.FileBlockInfo;
 import alluxio.wire.FileInfo;
 import alluxio.wire.FileSystemCommand;
-import alluxio.wire.LoadMetadataType;
 import alluxio.wire.SetAclAction;
 import alluxio.wire.TtlAction;
 import alluxio.wire.UfsInfo;
@@ -297,7 +296,7 @@ public final class FileSystemMasterTest {
     // Create ufs file.
     Files.createDirectory(Paths.get(ufsMount.join("dir1").getPath()));
     Files.createFile(Paths.get(ufsMount.join("dir1").join("file1").getPath()));
-    mFileSystemMaster.mount(new AlluxioURI("/mnt/local"), ufsMount, MountOptions.defaults());
+    mFileSystemMaster.mount(new AlluxioURI("/mnt/local"), ufsMount, MASTER_OPTIONS.getMountOptions());
 
     AlluxioURI uri = new AlluxioURI("/mnt/local/dir1");
     mFileSystemMaster.listStatus(uri,
@@ -355,7 +354,7 @@ public final class FileSystemMasterTest {
     mFileSystemMaster.createDirectory(new AlluxioURI("/mnt/"), CreateDirectoryOptions.defaults());
     // Create ufs file.
     Files.createDirectory(Paths.get(ufsMount.join("dir1").getPath()));
-    mFileSystemMaster.mount(new AlluxioURI("/mnt/local"), ufsMount, MountOptions.defaults());
+    mFileSystemMaster.mount(new AlluxioURI("/mnt/local"), ufsMount, MASTER_OPTIONS.getMountOptions());
     // load the dir1 to alluxio
     mFileSystemMaster.listStatus(new AlluxioURI("/mnt/local"),
         MASTER_OPTIONS.getListStatusOptions().toBuilder()
@@ -623,7 +622,7 @@ public final class FileSystemMasterTest {
   private void mountPersistedDirectories(AlluxioURI ufsMount) throws Exception {
     mFileSystemMaster.createDirectory(new AlluxioURI(MOUNT_PARENT_URI),
         CreateDirectoryOptions.defaults());
-    mFileSystemMaster.mount(new AlluxioURI(MOUNT_URI), ufsMount, MountOptions.defaults());
+    mFileSystemMaster.mount(new AlluxioURI(MOUNT_URI), ufsMount, MASTER_OPTIONS.getMountOptions());
   }
 
   /**
@@ -759,7 +758,7 @@ public final class FileSystemMasterTest {
 
     // Create ufs file.
     Files.createFile(Paths.get(ufsMount.join("file").getPath()));
-    mFileSystemMaster.mount(new AlluxioURI("/mnt/local"), ufsMount, MountOptions.defaults());
+    mFileSystemMaster.mount(new AlluxioURI("/mnt/local"), ufsMount, MASTER_OPTIONS.getMountOptions());
 
     // 3 directories exist.
     assertEquals(3, mFileSystemMaster.getNumberOfPaths());
@@ -780,7 +779,7 @@ public final class FileSystemMasterTest {
 
     // Create ufs file.
     Files.createFile(Paths.get(ufsMount.join("file").getPath()));
-    mFileSystemMaster.mount(new AlluxioURI("/mnt/local"), ufsMount, MountOptions.defaults());
+    mFileSystemMaster.mount(new AlluxioURI("/mnt/local"), ufsMount, MASTER_OPTIONS.getMountOptions());
 
     // 3 directories exist.
     assertEquals(3, mFileSystemMaster.getNumberOfPaths());
@@ -802,7 +801,7 @@ public final class FileSystemMasterTest {
     Files.createDirectory(Paths.get(ufsMount.join("dir1").getPath()));
     Files.createFile(Paths.get(ufsMount.join("dir1").join("file1").getPath()));
     Files.createFile(Paths.get(ufsMount.join("dir1").join("file2").getPath()));
-    mFileSystemMaster.mount(new AlluxioURI("/mnt/local"), ufsMount, MountOptions.defaults());
+    mFileSystemMaster.mount(new AlluxioURI("/mnt/local"), ufsMount, MASTER_OPTIONS.getMountOptions());
 
     // 3 directories exist.
     assertEquals(3, mFileSystemMaster.getNumberOfPaths());
@@ -829,7 +828,7 @@ public final class FileSystemMasterTest {
     Files.createDirectory(Paths.get(ufsMount.join("dir1").getPath()));
     Files.createFile(Paths.get(ufsMount.join("dir1").join("file1").getPath()));
     Files.createFile(Paths.get(ufsMount.join("dir1").join("file2").getPath()));
-    mFileSystemMaster.mount(new AlluxioURI("/mnt/local"), ufsMount, MountOptions.defaults());
+    mFileSystemMaster.mount(new AlluxioURI("/mnt/local"), ufsMount, MASTER_OPTIONS.getMountOptions());
 
     // 3 directories exist.
     assertEquals(3, mFileSystemMaster.getNumberOfPaths());
@@ -857,7 +856,7 @@ public final class FileSystemMasterTest {
 
     // Create ufs file.
     Files.createDirectory(Paths.get(ufsMount.join("dir1").getPath()));
-    mFileSystemMaster.mount(new AlluxioURI("/mnt/local"), ufsMount, MountOptions.defaults());
+    mFileSystemMaster.mount(new AlluxioURI("/mnt/local"), ufsMount, MASTER_OPTIONS.getMountOptions());
 
     // 3 directories exist.
     assertEquals(3, mFileSystemMaster.getNumberOfPaths());
@@ -904,7 +903,7 @@ public final class FileSystemMasterTest {
     mFileSystemMaster.createDirectory(new AlluxioURI("/mnt/"), CreateDirectoryOptions.defaults());
 
     // Create ufs file.
-    mFileSystemMaster.mount(new AlluxioURI("/mnt/local"), ufsMount, MountOptions.defaults());
+    mFileSystemMaster.mount(new AlluxioURI("/mnt/local"), ufsMount, MASTER_OPTIONS.getMountOptions());
 
     // 3 directories exist.
     assertEquals(3, mFileSystemMaster.getNumberOfPaths());
@@ -1168,7 +1167,7 @@ public final class FileSystemMasterTest {
       // Expected case.
     }
 
-    mFileSystemMaster.mount(new AlluxioURI("/mnt/local"), ufsMount, MountOptions.defaults());
+    mFileSystemMaster.mount(new AlluxioURI("/mnt/local"), ufsMount, MASTER_OPTIONS.getMountOptions());
     // Alluxio mount point should exist after mounting.
     assertNotNull(
         mFileSystemMaster.getFileInfo(new AlluxioURI("/mnt/local"), GET_STATUS_OPTIONS));
@@ -1196,7 +1195,7 @@ public final class FileSystemMasterTest {
     Files.createDirectory(Paths.get(ufsMount.join("nested").getPath()));
     Files.createFile(Paths.get(ufsMount.join("nested").join("file").getPath()));
 
-    mFileSystemMaster.mount(new AlluxioURI("/mnt/local"), ufsMount, MountOptions.defaults());
+    mFileSystemMaster.mount(new AlluxioURI("/mnt/local"), ufsMount, MASTER_OPTIONS.getMountOptions());
 
     // Test simple file.
     AlluxioURI uri = new AlluxioURI("/mnt/local/file");
@@ -2153,13 +2152,13 @@ public final class FileSystemMasterTest {
   }
 
   /**
-   * Tests the {@link FileSystemMaster#mount(AlluxioURI, AlluxioURI, MountOptions)} method.
+   * Tests the {@link FileSystemMaster#mount(AlluxioURI, AlluxioURI, MountPOptions)} method.
    */
   @Test
   public void mount() throws Exception {
     AlluxioURI alluxioURI = new AlluxioURI("/hello");
     AlluxioURI ufsURI = createTempUfsDir("ufs/hello");
-    mFileSystemMaster.mount(alluxioURI, ufsURI, MountOptions.defaults());
+    mFileSystemMaster.mount(alluxioURI, ufsURI, MASTER_OPTIONS.getMountOptions());
   }
 
   /**
@@ -2171,7 +2170,7 @@ public final class FileSystemMasterTest {
     mFileSystemMaster.createDirectory(alluxioURI, CreateDirectoryOptions.defaults());
     mThrown.expect(InvalidPathException.class);
     AlluxioURI ufsURI = createTempUfsDir("ufs/hello");
-    mFileSystemMaster.mount(alluxioURI, ufsURI, MountOptions.defaults());
+    mFileSystemMaster.mount(alluxioURI, ufsURI, MASTER_OPTIONS.getMountOptions());
   }
 
   /**
@@ -2182,7 +2181,7 @@ public final class FileSystemMasterTest {
     AlluxioURI alluxioURI = new AlluxioURI("/non-existing/hello");
     AlluxioURI ufsURI = createTempUfsDir("ufs/hello");
     mThrown.expect(FileDoesNotExistException.class);
-    mFileSystemMaster.mount(alluxioURI, ufsURI, MountOptions.defaults());
+    mFileSystemMaster.mount(alluxioURI, ufsURI, MASTER_OPTIONS.getMountOptions());
   }
 
   /**
@@ -2192,7 +2191,8 @@ public final class FileSystemMasterTest {
   public void mountReadOnlyCreateDirectory() throws Exception {
     AlluxioURI alluxioURI = new AlluxioURI("/hello");
     AlluxioURI ufsURI = createTempUfsDir("ufs/hello");
-    mFileSystemMaster.mount(alluxioURI, ufsURI, MountOptions.defaults().setReadOnly(true));
+    mFileSystemMaster.mount(alluxioURI, ufsURI,
+        MASTER_OPTIONS.getMountOptions().toBuilder().setReadOnly(true).build());
 
     mThrown.expect(AccessControlException.class);
     AlluxioURI path = new AlluxioURI("/hello/dir1");
@@ -2206,7 +2206,8 @@ public final class FileSystemMasterTest {
   public void mountReadOnlyCreateFile() throws Exception {
     AlluxioURI alluxioURI = new AlluxioURI("/hello");
     AlluxioURI ufsURI = createTempUfsDir("ufs/hello");
-    mFileSystemMaster.mount(alluxioURI, ufsURI, MountOptions.defaults().setReadOnly(true));
+    mFileSystemMaster.mount(alluxioURI, ufsURI,
+        MASTER_OPTIONS.getMountOptions().toBuilder().setReadOnly(true).build());
 
     mThrown.expect(AccessControlException.class);
     AlluxioURI path = new AlluxioURI("/hello/file1");
@@ -2221,7 +2222,8 @@ public final class FileSystemMasterTest {
     AlluxioURI alluxioURI = new AlluxioURI("/hello");
     AlluxioURI ufsURI = createTempUfsDir("ufs/hello");
     createTempUfsFile("ufs/hello/file1");
-    mFileSystemMaster.mount(alluxioURI, ufsURI, MountOptions.defaults().setReadOnly(true));
+    mFileSystemMaster.mount(alluxioURI, ufsURI,
+        MASTER_OPTIONS.getMountOptions().toBuilder().setReadOnly(true).build());
 
     mThrown.expect(AccessControlException.class);
     AlluxioURI path = new AlluxioURI("/hello/file1");
@@ -2236,7 +2238,8 @@ public final class FileSystemMasterTest {
     AlluxioURI alluxioURI = new AlluxioURI("/hello");
     AlluxioURI ufsURI = createTempUfsDir("ufs/hello");
     createTempUfsFile("ufs/hello/file1");
-    mFileSystemMaster.mount(alluxioURI, ufsURI, MountOptions.defaults().setReadOnly(true));
+    mFileSystemMaster.mount(alluxioURI, ufsURI,
+        MASTER_OPTIONS.getMountOptions().toBuilder().setReadOnly(true).build());
 
     mThrown.expect(AccessControlException.class);
     AlluxioURI src = new AlluxioURI("/hello/file1");
@@ -2252,7 +2255,8 @@ public final class FileSystemMasterTest {
     AlluxioURI alluxioURI = new AlluxioURI("/hello");
     AlluxioURI ufsURI = createTempUfsDir("ufs/hello");
     createTempUfsFile("ufs/hello/file1");
-    mFileSystemMaster.mount(alluxioURI, ufsURI, MountOptions.defaults().setReadOnly(true));
+    mFileSystemMaster.mount(alluxioURI, ufsURI,
+        MASTER_OPTIONS.getMountOptions().toBuilder().setReadOnly(true).build());
 
     mThrown.expect(AccessControlException.class);
     AlluxioURI path = new AlluxioURI("/hello/file1");
@@ -2267,14 +2271,14 @@ public final class FileSystemMasterTest {
     AlluxioURI alluxioURI = new AlluxioURI("/hello");
     AlluxioURI ufsURI = createTempUfsDir("ufs/hello/shadow");
 
-    mFileSystemMaster.mount(alluxioURI, ufsURI.getParent(), MountOptions.defaults());
+    mFileSystemMaster.mount(alluxioURI, ufsURI.getParent(), MASTER_OPTIONS.getMountOptions());
     AlluxioURI shadowAlluxioURI = new AlluxioURI("/hello/shadow");
     AlluxioURI notShadowAlluxioURI = new AlluxioURI("/hello/notshadow");
     AlluxioURI shadowUfsURI = createTempUfsDir("ufs/hi");
     AlluxioURI notShadowUfsURI = createTempUfsDir("ufs/notshadowhi");
-    mFileSystemMaster.mount(notShadowAlluxioURI, notShadowUfsURI, MountOptions.defaults());
+    mFileSystemMaster.mount(notShadowAlluxioURI, notShadowUfsURI, MASTER_OPTIONS.getMountOptions());
     mThrown.expect(IOException.class);
-    mFileSystemMaster.mount(shadowAlluxioURI, shadowUfsURI, MountOptions.defaults());
+    mFileSystemMaster.mount(shadowAlluxioURI, shadowUfsURI, MASTER_OPTIONS.getMountOptions());
   }
 
   /**
@@ -2284,11 +2288,11 @@ public final class FileSystemMasterTest {
   public void mountPrefixUfsDir() throws Exception {
     AlluxioURI ufsURI = createTempUfsDir("ufs/hello/shadow");
     AlluxioURI alluxioURI = new AlluxioURI("/hello");
-    mFileSystemMaster.mount(alluxioURI, ufsURI, MountOptions.defaults());
+    mFileSystemMaster.mount(alluxioURI, ufsURI, MASTER_OPTIONS.getMountOptions());
     AlluxioURI preUfsURI = ufsURI.getParent();
     AlluxioURI anotherAlluxioURI = new AlluxioURI("/hi");
     mThrown.expect(InvalidPathException.class);
-    mFileSystemMaster.mount(anotherAlluxioURI, preUfsURI, MountOptions.defaults());
+    mFileSystemMaster.mount(anotherAlluxioURI, preUfsURI, MASTER_OPTIONS.getMountOptions());
   }
 
   /**
@@ -2299,10 +2303,10 @@ public final class FileSystemMasterTest {
     AlluxioURI ufsURI = createTempUfsDir("ufs/hello/shadow");
     AlluxioURI preUfsURI = ufsURI.getParent();
     AlluxioURI alluxioURI = new AlluxioURI("/hello");
-    mFileSystemMaster.mount(alluxioURI, preUfsURI, MountOptions.defaults());
+    mFileSystemMaster.mount(alluxioURI, preUfsURI, MASTER_OPTIONS.getMountOptions());
     AlluxioURI anotherAlluxioURI = new AlluxioURI("/hi");
     mThrown.expect(InvalidPathException.class);
-    mFileSystemMaster.mount(anotherAlluxioURI, ufsURI, MountOptions.defaults());
+    mFileSystemMaster.mount(anotherAlluxioURI, ufsURI, MASTER_OPTIONS.getMountOptions());
   }
 
   /**
@@ -2312,7 +2316,7 @@ public final class FileSystemMasterTest {
   public void unmount() throws Exception {
     AlluxioURI alluxioURI = new AlluxioURI("/hello");
     AlluxioURI ufsURI = createTempUfsDir("ufs/hello");
-    mFileSystemMaster.mount(alluxioURI, ufsURI, MountOptions.defaults());
+    mFileSystemMaster.mount(alluxioURI, ufsURI, MASTER_OPTIONS.getMountOptions());
     mFileSystemMaster.createDirectory(alluxioURI.join("dir"),
         CreateDirectoryOptions.defaults().setPersisted(true));
     mFileSystemMaster.unmount(alluxioURI);
@@ -2340,7 +2344,7 @@ public final class FileSystemMasterTest {
   public void unmountNonMountPointWithException() throws Exception {
     AlluxioURI alluxioURI = new AlluxioURI("/hello");
     AlluxioURI ufsURI = createTempUfsDir("ufs/hello");
-    mFileSystemMaster.mount(alluxioURI, ufsURI, MountOptions.defaults());
+    mFileSystemMaster.mount(alluxioURI, ufsURI, MASTER_OPTIONS.getMountOptions());
     AlluxioURI dirURI = alluxioURI.join("dir");
     mFileSystemMaster.createDirectory(dirURI, CreateDirectoryOptions.defaults().setPersisted(true));
     mThrown.expect(InvalidPathException.class);

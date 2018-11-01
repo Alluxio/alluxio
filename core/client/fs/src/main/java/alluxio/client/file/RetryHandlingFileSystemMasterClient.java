@@ -18,7 +18,6 @@ import alluxio.client.file.options.CheckConsistencyOptions;
 import alluxio.client.file.options.CompleteFileOptions;
 import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.client.file.options.CreateFileOptions;
-import alluxio.client.file.options.MountOptions;
 import alluxio.client.file.options.RenameOptions;
 import alluxio.client.file.options.SetAclOptions;
 import alluxio.client.file.options.SetAttributeOptions;
@@ -187,10 +186,10 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
 
   @Override
   public synchronized void mount(final AlluxioURI alluxioPath, final AlluxioURI ufsPath,
-      final MountOptions options) throws AlluxioStatusException {
+      final MountPOptions options) throws AlluxioStatusException {
     retryRPC(
         () -> mBlockingStub.mount(MountPRequest.newBuilder().setAlluxioPath(alluxioPath.getPath())
-            .setUfsPath(ufsPath.getPath()).setOptions(GrpcUtils.toProto(options)).build()),
+            .setUfsPath(ufsPath.getPath()).setOptions(options).build()),
         "Mount");
   }
 

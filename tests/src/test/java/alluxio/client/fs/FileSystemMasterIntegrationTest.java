@@ -47,7 +47,6 @@ import alluxio.master.file.meta.TtlIntervalRule;
 import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
-import alluxio.master.file.options.MountOptions;
 import alluxio.master.file.options.RenameOptions;
 import alluxio.master.file.options.SetAttributeOptions;
 import alluxio.security.authentication.AuthenticatedClientUser;
@@ -914,7 +913,8 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
 
     UnderFileSystemFactoryRegistry.register(mockUfsFactory);
 
-    mFsMaster.mount(new AlluxioURI("/mnt"), new AlluxioURI(ufsBase), MountOptions.defaults());
+    mFsMaster.mount(new AlluxioURI("/mnt"), new AlluxioURI(ufsBase),
+        MASTER_OPTIONS.getMountOptions());
 
     AlluxioURI root = new AlluxioURI("/mnt/");
     AlluxioURI alluxioFile = new AlluxioURI("/mnt/dir1/dir2/file");

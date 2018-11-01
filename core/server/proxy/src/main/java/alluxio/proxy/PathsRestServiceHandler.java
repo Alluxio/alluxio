@@ -18,15 +18,11 @@ import alluxio.client.file.*;
 import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.ExistsOptions;
-import alluxio.client.file.options.MountOptions;
 import alluxio.client.file.options.OpenFileOptions;
 import alluxio.client.file.options.RenameOptions;
 import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.client.file.options.UnmountOptions;
-import alluxio.grpc.DeletePOptions;
-import alluxio.grpc.FreePOptions;
-import alluxio.grpc.GetStatusPOptions;
-import alluxio.grpc.ListStatusPOptions;
+import alluxio.grpc.*;
 import alluxio.web.ProxyWebServer;
 
 import com.google.common.base.Preconditions;
@@ -263,13 +259,14 @@ public final class PathsRestServiceHandler {
   @Path(PATH_PARAM + MOUNT)
   @ReturnType("java.lang.Void")
   public Response mount(@PathParam("path") final String path, @QueryParam("src") final String src,
-      final MountOptions options) {
+      final MountPOptions options) {
     return RestUtils.call(new RestUtils.RestCallable<Void>() {
       @Override
       public Void call() throws Exception {
         Preconditions.checkNotNull(src, "required 'src' parameter is missing");
         if (options == null) {
-          mFileSystem.mount(new AlluxioURI(path), new AlluxioURI(src), MountOptions.defaults());
+          mFileSystem.mount(new AlluxioURI(path), new AlluxioURI(src),
+              FileSystemClientOptions.getMountOptions());
         } else {
           mFileSystem.mount(new AlluxioURI(path), new AlluxioURI(src), options);
         }

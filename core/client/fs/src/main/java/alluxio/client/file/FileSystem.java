@@ -18,7 +18,6 @@ import alluxio.annotation.PublicApi;
 import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.ExistsOptions;
-import alluxio.client.file.options.MountOptions;
 import alluxio.client.file.options.OpenFileOptions;
 import alluxio.client.file.options.RenameOptions;
 import alluxio.client.file.options.SetAclOptions;
@@ -258,7 +257,7 @@ public interface FileSystem {
       throws FileDoesNotExistException, IOException, AlluxioException;
 
   /**
-   * Convenience method for {@link #mount(AlluxioURI, AlluxioURI, MountOptions)} with default
+   * Convenience method for {@link #mount(AlluxioURI, AlluxioURI, MountPOptions)} with default
    * options.
    *
    * @param alluxioPath an Alluxio path to mount the data to
@@ -276,7 +275,7 @@ public interface FileSystem {
    * @param ufsPath a UFS path to mount the data from
    * @param options options to associate with this operation
    */
-  void mount(AlluxioURI alluxioPath, AlluxioURI ufsPath, MountOptions options)
+  void mount(AlluxioURI alluxioPath, AlluxioURI ufsPath, MountPOptions options)
       throws IOException, AlluxioException;
 
   /**

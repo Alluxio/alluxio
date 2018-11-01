@@ -58,4 +58,13 @@ public class FileSystemClientOptionsTest {
     Assert.assertFalse(options.getRecursive());
     Assert.assertFalse(options.getForced());
   }
+
+  @Test
+  public void mountOptionsDefaults() {
+    MountPOptions options = FileSystemClientOptions.getMountOptions();
+    Assert.assertNotNull(options);
+    Assert.assertFalse(options.getReadOnly());
+    Assert.assertFalse(options.getShared());
+    Assert.assertEquals(0, options.getPropertiesMap().size());
+  }
 }

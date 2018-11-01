@@ -49,22 +49,22 @@ public final class FileSystemClientOptions {
 
   public static LoadMetadataPOptions getLoadMetadataOptions() {
     return LoadMetadataPOptions.newBuilder().setCommonOptions(getCommonOptions())
-            .setRecursive(false)
-            .build();
+        .setRecursive(false).build();
   }
 
   public static DeletePOptions getDeleteOptions() {
-    return DeletePOptions.newBuilder().setCommonOptions(getCommonOptions())
-            .setRecursive(false)
-            .setAlluxioOnly(false)
-            .setUnchecked(Configuration.getBoolean(PropertyKey.USER_FILE_DELETE_UNCHECKED))
-            .build();
+    return DeletePOptions.newBuilder().setCommonOptions(getCommonOptions()).setRecursive(false)
+        .setAlluxioOnly(false)
+        .setUnchecked(Configuration.getBoolean(PropertyKey.USER_FILE_DELETE_UNCHECKED)).build();
   }
 
   public static FreePOptions getFreeOptions() {
-    return FreePOptions.newBuilder().setCommonOptions(getCommonOptions())
-            .setForced(false)
-            .setRecursive(false)
-            .build();
+    return FreePOptions.newBuilder().setCommonOptions(getCommonOptions()).setForced(false)
+        .setRecursive(false).build();
+  }
+
+  public static MountPOptions getMountOptions() {
+    return MountPOptions.newBuilder().setCommonOptions(getCommonOptions()).setReadOnly(false)
+        .setShared(false).build();
   }
 }

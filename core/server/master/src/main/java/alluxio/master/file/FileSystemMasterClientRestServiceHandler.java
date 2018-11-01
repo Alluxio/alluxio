@@ -17,11 +17,11 @@ import alluxio.RestUtils;
 import alluxio.client.file.FileSystemClientOptions;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.LoadMetadataPType;
+import alluxio.grpc.MountPOptions;
 import alluxio.master.MasterProcess;
 import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
-import alluxio.master.file.options.MountOptions;
 import alluxio.master.file.options.RenameOptions;
 import alluxio.master.file.options.SetAttributeOptions;
 import alluxio.util.grpc.GrpcUtils;
@@ -317,14 +317,15 @@ public final class FileSystemMasterClientRestServiceHandler {
       public Void call() throws Exception {
         Preconditions.checkNotNull(path, "required 'path' parameter is missing");
         Preconditions.checkNotNull(ufsPath, "required 'ufsPath' parameter is missing");
-        MountOptions options = MountOptions.defaults();
+        MountPOptions.Builder optionsBuilder =
+            mFileSystemMaster.getMasterOptions().getMountOptions().toBuilder();
         if (readOnly != null) {
-          options.setReadOnly(readOnly);
+          optionsBuilder.setReadOnly(readOnly);
         }
         if (shared != null) {
-          options.setShared(shared);
+          optionsBuilder.setShared(shared);
         }
-        mFileSystemMaster.mount(new AlluxioURI(path), new AlluxioURI(ufsPath), options);
+        mFileSystemMaster.mount(new AlluxioURI(path), new AlluxioURI(ufsPath), optionsBuilder.build());
         return null;
       }
     });

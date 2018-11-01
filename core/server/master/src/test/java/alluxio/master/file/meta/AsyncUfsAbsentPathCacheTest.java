@@ -12,8 +12,10 @@
 package alluxio.master.file.meta;
 
 import alluxio.AlluxioURI;
+import alluxio.grpc.MountPOptions;
+import alluxio.master.file.DefaultFileSystemMasterOptions;
+import alluxio.master.file.FileSystemMasterOptions;
 import alluxio.master.file.meta.options.MountInfo;
-import alluxio.master.file.options.MountOptions;
 import alluxio.master.journal.NoopJournalContext;
 import alluxio.underfs.MasterUfsManager;
 import alluxio.underfs.UfsManager;
@@ -36,6 +38,7 @@ import java.util.concurrent.ThreadPoolExecutor;
  * Unit tests for {@link AsyncUfsAbsentPathCache}.
  */
 public class AsyncUfsAbsentPathCacheTest {
+  private static FileSystemMasterOptions MASTER_OPTIONS = new DefaultFileSystemMasterOptions();
   private static final int THREADS = 4;
   private AsyncUfsAbsentPathCache mUfsAbsentPathCache;
   private MountTable mMountTable;
@@ -51,15 +54,15 @@ public class AsyncUfsAbsentPathCacheTest {
   public void before() throws Exception {
     mLocalUfsPath = Files.createTempDir().getAbsolutePath();
     mUfsManager = new MasterUfsManager();
-    mMountTable = new MountTable(mUfsManager,
-        new MountInfo(new AlluxioURI("/"), new AlluxioURI("/ufs"), 1, MountOptions.defaults()));
+    mMountTable = new MountTable(mUfsManager, new MountInfo(new AlluxioURI("/"),
+        new AlluxioURI("/ufs"), 1, MASTER_OPTIONS.getMountOptions()));
     mUfsAbsentPathCache = new AsyncUfsAbsentPathCache(mMountTable, THREADS);
 
     mMountId = IdUtils.getRandomNonNegativeLong();
-    MountOptions options = MountOptions.defaults();
+    MountPOptions options = MASTER_OPTIONS.getMountOptions();
     mUfsManager.addMount(mMountId, new AlluxioURI(mLocalUfsPath),
-        UnderFileSystemConfiguration.defaults().setReadOnly(options.isReadOnly())
-            .setShared(options.isShared())
+        UnderFileSystemConfiguration.defaults().setReadOnly(options.getReadOnly())
+            .setShared(options.getShared())
             .setMountSpecificConf(Collections.<String, String>emptyMap()));
     mMountTable.add(NoopJournalContext.INSTANCE, new AlluxioURI("/mnt"),
         new AlluxioURI(mLocalUfsPath), mMountId, options);
@@ -162,10 +165,10 @@ public class AsyncUfsAbsentPathCacheTest {
 
     // Re-mount the same ufs
     long newMountId = IdUtils.getRandomNonNegativeLong();
-    MountOptions options = MountOptions.defaults();
+    MountPOptions options = MASTER_OPTIONS.getMountOptions();
     mUfsManager.addMount(newMountId, new AlluxioURI(mLocalUfsPath),
-        UnderFileSystemConfiguration.defaults().setReadOnly(options.isReadOnly())
-            .setShared(options.isShared())
+        UnderFileSystemConfiguration.defaults().setReadOnly(options.getReadOnly())
+            .setShared(options.getShared())
             .setMountSpecificConf(Collections.<String, String>emptyMap()));
     mMountTable.add(NoopJournalContext.INSTANCE, new AlluxioURI("/mnt"),
         new AlluxioURI(mLocalUfsPath), newMountId, options);

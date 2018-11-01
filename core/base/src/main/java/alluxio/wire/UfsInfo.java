@@ -12,14 +12,14 @@
 package alluxio.wire;
 
 import alluxio.AlluxioURI;
-import alluxio.file.options.MountOptions;
+import alluxio.grpc.MountPOptions;
 
 /**
  * Class to represent a ufs info.
  */
 public final class UfsInfo {
   private AlluxioURI mUri;
-  private MountOptions mMountOptions;
+  private MountPOptions mMountOptions;
 
   /**
    * Creates a new instance of {@link UfsInfo}.
@@ -36,7 +36,7 @@ public final class UfsInfo {
   /**
    * @return the mount options
    */
-  public MountOptions getMountOptions() {
+  public MountPOptions getMountOptions() {
     return mMountOptions;
   }
 
@@ -53,7 +53,7 @@ public final class UfsInfo {
    * @param options the mount options
    * @return the ufs info
    */
-  public UfsInfo setMountOptions(MountOptions options) {
+  public UfsInfo setMountOptions(MountPOptions options) {
     mMountOptions = options;
     return this;
   }
