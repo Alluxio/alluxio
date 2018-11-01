@@ -32,6 +32,7 @@ import alluxio.job.wire.TaskInfo;
 import alluxio.master.AbstractNonJournaledMaster;
 import alluxio.master.MasterContext;
 import alluxio.master.job.command.CommandManager;
+import alluxio.resource.LockResource;
 import alluxio.thrift.JobCommand;
 import alluxio.thrift.JobMasterWorkerService;
 import alluxio.thrift.RegisterCommand;
@@ -41,22 +42,25 @@ import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
-import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import org.apache.thrift.TProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import net.jcip.annotations.GuardedBy;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.SortedSet;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -88,20 +92,46 @@ public final class JobMaster extends AbstractNonJournaledMaster {
       };
 
   /**
-   * All worker information. Access must be synchronized on mWorkers. If both block and worker
-   * metadata must be locked, mBlocks must be locked first.
+   * All worker information. Access must be controlled on mWorkers using the RW lock(mWorkerRWLock).
    */
+  @GuardedBy("mWorkerRWLock")
   private final IndexedSet<MasterWorkerInfo> mWorkers = new IndexedSet<>(mIdIndex, mAddressIndex);
 
-  /** The next worker id to use. */
+  /**
+   * An RW lock that is used to control access to mWorkers.
+   */
+  private final ReentrantReadWriteLock mWorkerRWLock = new ReentrantReadWriteLock(true);
+
+  /**
+   * The next worker id to use.
+   */
   private final AtomicLong mNextWorkerId = new AtomicLong(CommonUtils.getCurrentMs());
 
-  /** Manage all the jobs' status. */
+  /**
+   * Used to generate Id for new jobs.
+   */
   private final JobIdGenerator mJobIdGenerator;
+
+  /**
+   * Manager for worker tasks.
+   */
   private final CommandManager mCommandManager;
+
+  /**
+   * Used to store JobCoordinator instances per job Id.
+   * This member is accessed concurrently and its instance type is ConcurrentHashMap.
+   */
   private final Map<Long, JobCoordinator> mIdToJobCoordinator;
+
+  /**
+   * Used to keep track of finished jobs that are still within retention policy.
+   * This member is accessed concurrently and its instance type is ConcurrentSkipListSet.
+   */
   private final SortedSet<JobInfo> mFinishedJobs;
-  /** The manager for all ufs. */
+
+  /**
+   * The manager for all ufs.
+   */
   private UfsManager mUfsManager;
 
   /**
@@ -111,12 +141,12 @@ public final class JobMaster extends AbstractNonJournaledMaster {
    * @param ufsManager the ufs manager
    */
   public JobMaster(MasterContext masterContext, UfsManager ufsManager) {
-    super(masterContext, new SystemClock(), ExecutorServiceFactories
-        .cachedThreadPool(Constants.JOB_MASTER_NAME));
+    super(masterContext, new SystemClock(),
+        ExecutorServiceFactories.cachedThreadPool(Constants.JOB_MASTER_NAME));
     mJobIdGenerator = new JobIdGenerator();
     mCommandManager = new CommandManager();
-    mIdToJobCoordinator = Maps.newHashMap();
-    mFinishedJobs = Collections.synchronizedSortedSet(Sets.<JobInfo>newTreeSet());
+    mIdToJobCoordinator = new ConcurrentHashMap<>();
+    mFinishedJobs = new ConcurrentSkipListSet<>();
     mUfsManager = ufsManager;
   }
 
@@ -125,10 +155,8 @@ public final class JobMaster extends AbstractNonJournaledMaster {
     super.start(isLeader);
     // Fail any jobs that were still running when the last job master stopped.
     for (JobCoordinator jobCoordinator : mIdToJobCoordinator.values()) {
-      JobInfo jobInfo = jobCoordinator.getJobInfo();
-      if (!jobInfo.getStatus().isFinished()) {
-        jobInfo.setStatus(Status.FAILED);
-        jobInfo.setErrorMessage("Job failed: Job master shut down during execution");
+      if (!jobCoordinator.isJobFinished()) {
+        jobCoordinator.setJobAsFailed("Job failed: Job master shut down during execution");
       }
     }
     if (isLeader) {
@@ -157,40 +185,47 @@ public final class JobMaster extends AbstractNonJournaledMaster {
    *
    * @param jobConfig the job configuration
    * @return the job id tracking the progress
+   *
    * @throws JobDoesNotExistException when the job doesn't exist
    * @throws ResourceExhaustedException if the job master is too busy to run the job
    */
   public synchronized long run(JobConfig jobConfig)
       throws JobDoesNotExistException, ResourceExhaustedException {
-    long jobId = mJobIdGenerator.getNewJobId();
-    JobInfo jobInfo = new JobInfo(jobId, jobConfig, new Function<JobInfo, Void>() {
-      @Override
-      public Void apply(JobInfo jobInfo) {
-        Status status = jobInfo.getStatus();
-        mFinishedJobs.remove(jobInfo);
-        if (status.isFinished()) {
-          mFinishedJobs.add(jobInfo);
-        }
-        return null;
-      }
-    });
     if (mIdToJobCoordinator.size() == CAPACITY) {
       if (mFinishedJobs.isEmpty()) {
         // The job master is at full capacity and no job has finished.
         throw new ResourceExhaustedException("Job master is at full capacity");
       }
-      // Check if the oldest finished job can be discarded.
+      // Discard old jobs that have completion time beyond retention policy
       Iterator<JobInfo> jobIterator = mFinishedJobs.iterator();
-      JobInfo oldestJob = jobIterator.next();
-      if (CommonUtils.getCurrentMs() - oldestJob.getLastStatusChangeMs() < RETENTION_MS) {
-        // do not evict the candidate job if it has finished recently
+      // Used to denote whether space could be reserved for the new job
+      // It's 'true' if job master is at full capacity
+      boolean isfull = true;
+      while (jobIterator.hasNext()) {
+        JobInfo oldestJob = jobIterator.next();
+        long completedBeforeMs = CommonUtils.getCurrentMs() - oldestJob.getLastStatusChangeMs();
+        if (completedBeforeMs < RETENTION_MS) {
+          // mFinishedJobs is sorted. Can't iterate to a job within retention policy
+          break;
+        }
+        jobIterator.remove();
+        mIdToJobCoordinator.remove(oldestJob.getId());
+        isfull = false;
+      }
+      if (isfull) {
         throw new ResourceExhaustedException("Job master is at full capacity");
       }
-      jobIterator.remove();
-      mIdToJobCoordinator.remove(oldestJob.getId());
     }
-    JobCoordinator jobCoordinator =
-        JobCoordinator.create(mCommandManager, mUfsManager, getWorkerInfoList(), jobInfo);
+    long jobId = mJobIdGenerator.getNewJobId();
+    JobCoordinator jobCoordinator = JobCoordinator.create(mCommandManager, mUfsManager,
+        getWorkerInfoList(), jobId, jobConfig, (jobInfo) -> {
+          Status status = jobInfo.getStatus();
+          mFinishedJobs.remove(jobInfo);
+          if (status.isFinished()) {
+            mFinishedJobs.add(jobInfo);
+          }
+          return null;
+        });
     mIdToJobCoordinator.put(jobId, jobCoordinator);
     return jobId;
   }
@@ -201,18 +236,18 @@ public final class JobMaster extends AbstractNonJournaledMaster {
    * @param jobId the id of the job
    * @throws JobDoesNotExistException when the job does not exist
    */
-  public synchronized void cancel(long jobId) throws JobDoesNotExistException {
-    if (!mIdToJobCoordinator.containsKey(jobId)) {
+  public void cancel(long jobId) throws JobDoesNotExistException {
+    JobCoordinator jobCoordinator = mIdToJobCoordinator.get(jobId);
+    if (jobCoordinator == null) {
       throw new JobDoesNotExistException(ExceptionMessage.JOB_DOES_NOT_EXIST.getMessage(jobId));
     }
-    JobCoordinator jobCoordinator = mIdToJobCoordinator.get(jobId);
     jobCoordinator.cancel();
   }
 
   /**
    * @return list all the job ids
    */
-  public synchronized List<Long> list() {
+  public List<Long> list() {
     return Lists.newArrayList(mIdToJobCoordinator.keySet());
   }
 
@@ -223,13 +258,12 @@ public final class JobMaster extends AbstractNonJournaledMaster {
    * @return the job information
    * @throws JobDoesNotExistException if the job does not exist
    */
-  public synchronized alluxio.job.wire.JobInfo getStatus(long jobId)
-      throws JobDoesNotExistException {
-    if (!mIdToJobCoordinator.containsKey(jobId)) {
-      throw new JobDoesNotExistException(jobId);
+  public alluxio.job.wire.JobInfo getStatus(long jobId) throws JobDoesNotExistException {
+    JobCoordinator jobCoordinator = mIdToJobCoordinator.get(jobId);
+    if (jobCoordinator == null) {
+      throw new JobDoesNotExistException(ExceptionMessage.JOB_DOES_NOT_EXIST.getMessage(jobId));
     }
-    JobInfo jobInfo = mIdToJobCoordinator.get(jobId).getJobInfo();
-    return new alluxio.job.wire.JobInfo(jobInfo);
+    return jobCoordinator.getJobInfoWire();
   }
 
   /**
@@ -238,34 +272,41 @@ public final class JobMaster extends AbstractNonJournaledMaster {
    * @param workerNetAddress the worker {@link WorkerNetAddress}
    * @return the worker id for this worker
    */
-  public synchronized long registerWorker(WorkerNetAddress workerNetAddress) {
-    if (mWorkers.contains(mAddressIndex, workerNetAddress)) {
-      // If the worker is trying to re-register, it must have died and been restarted. We need to
-      // clean up the dead worker.
-      LOG.info("Worker at address {} is re-registering. Failing tasks for previous worker at that "
-          + "address", workerNetAddress);
-      MasterWorkerInfo deadWorker = mWorkers.getFirstByField(mAddressIndex, workerNetAddress);
-      for (JobCoordinator jobCoordinator : mIdToJobCoordinator.values()) {
-        jobCoordinator.failTasksForWorker(deadWorker.getId());
+  public long registerWorker(WorkerNetAddress workerNetAddress) {
+    // Run under exclusive lock for mWorkers
+    try (LockResource workersLockExclusive = new LockResource(mWorkerRWLock.writeLock())) {
+      // Check if worker has already been registered with this job master
+      if (mWorkers.contains(mAddressIndex, workerNetAddress)) {
+        // If the worker is trying to re-register, it must have died and been restarted. We need to
+        // clean up the dead worker.
+        LOG.info(
+            "Worker at address {} is re-registering. Failing tasks for previous worker at that "
+                + "address",
+            workerNetAddress);
+        MasterWorkerInfo deadWorker = mWorkers.getFirstByField(mAddressIndex, workerNetAddress);
+        for (JobCoordinator jobCoordinator : mIdToJobCoordinator.values()) {
+          jobCoordinator.failTasksForWorker(deadWorker.getId());
+        }
+        mWorkers.remove(deadWorker);
       }
-      mWorkers.remove(deadWorker);
+      // Generate a new worker id.
+      long workerId = mNextWorkerId.getAndIncrement();
+      mWorkers.add(new MasterWorkerInfo(workerId, workerNetAddress));
+      LOG.info("registerWorker(): WorkerNetAddress: {} id: {}", workerNetAddress, workerId);
+      return workerId;
     }
-
-    // Generate a new worker id.
-    long workerId = mNextWorkerId.getAndIncrement();
-    mWorkers.add(new MasterWorkerInfo(workerId, workerNetAddress));
-
-    LOG.info("registerWorker(): WorkerNetAddress: {} id: {}", workerNetAddress, workerId);
-    return workerId;
   }
 
   /**
    * @return a list of {@link WorkerInfo} objects representing the workers in Alluxio
    */
-  public synchronized List<WorkerInfo> getWorkerInfoList() {
+  public List<WorkerInfo> getWorkerInfoList() {
     List<WorkerInfo> workerInfoList = new ArrayList<>(mWorkers.size());
-    for (MasterWorkerInfo masterWorkerInfo : mWorkers) {
-      workerInfoList.add(masterWorkerInfo.generateClientWorkerInfo());
+    // Run under shared lock for mWorkers
+    try (LockResource workersLockShared = new LockResource(mWorkerRWLock.readLock())) {
+      for (MasterWorkerInfo masterWorkerInfo : mWorkers) {
+        workerInfoList.add(masterWorkerInfo.generateClientWorkerInfo());
+      }
     }
     return workerInfoList;
   }
@@ -278,30 +319,30 @@ public final class JobMaster extends AbstractNonJournaledMaster {
    * @param taskInfoList the list of the task information
    * @return the list of {@link JobCommand} to the worker
    */
-  public synchronized List<JobCommand> workerHeartbeat(long workerId,
-      List<TaskInfo> taskInfoList) {
-    MasterWorkerInfo worker = mWorkers.getFirstByField(mIdIndex, workerId);
-    if (worker == null) {
-      return Collections.singletonList(JobCommand.registerCommand(new RegisterCommand()));
-    }
-    worker.updateLastUpdatedTimeMs();
-    // update the job info
-    List<Long> updatedJobIds = new ArrayList<>();
-    for (TaskInfo taskInfo : taskInfoList) {
-      JobInfo jobInfo = mIdToJobCoordinator.get(taskInfo.getJobId()).getJobInfo();
-      if (jobInfo == null) {
-        // The master must have restarted and forgotten about the job.
-        continue;
+  public List<JobCommand> workerHeartbeat(long workerId, List<TaskInfo> taskInfoList) {
+    // Run under shared lock for mWorkers
+    try (LockResource workersLockShared = new LockResource(mWorkerRWLock.readLock())) {
+      MasterWorkerInfo worker = mWorkers.getFirstByField(mIdIndex, workerId);
+      if (worker == null) {
+        return Collections.singletonList(JobCommand.registerCommand(new RegisterCommand()));
       }
-      jobInfo.setTaskInfo(taskInfo.getTaskId(), taskInfo);
-      updatedJobIds.add(taskInfo.getJobId());
-    }
-    for (long updatedJobId : updatedJobIds) {
-      // update the job status
-      JobCoordinator jobCoordinator = mIdToJobCoordinator.get(updatedJobId);
-      jobCoordinator.updateStatus();
+      // Update last-update-time of this particular worker under lock
+      // to prevent lost worker detector clearing it under race
+      worker.updateLastUpdatedTimeMs();
     }
 
+    // Update task infos for all jobs involved
+    Map<Long, List<TaskInfo>> taskInfosPerJob = new HashMap<>();
+    for (TaskInfo taskInfo : taskInfoList) {
+      if (!taskInfosPerJob.containsKey(taskInfo.getJobId())) {
+        taskInfosPerJob.put(taskInfo.getJobId(), new ArrayList<TaskInfo>());
+      }
+      taskInfosPerJob.get(taskInfo.getJobId()).add(taskInfo);
+    }
+    for (Map.Entry<Long, List<TaskInfo>> taskInfosPair : taskInfosPerJob.entrySet()) {
+      JobCoordinator jobCoordinator = mIdToJobCoordinator.get(taskInfosPair.getKey());
+      jobCoordinator.updateTasks(taskInfosPair.getValue());
+    }
     return mCommandManager.pollAllPendingCommands(workerId);
   }
 
@@ -318,15 +359,31 @@ public final class JobMaster extends AbstractNonJournaledMaster {
     @Override
     public void heartbeat() {
       int masterWorkerTimeoutMs = Configuration.getInt(PropertyKey.JOB_MASTER_WORKER_TIMEOUT_MS);
-      synchronized (JobMaster.this) {
+      List<MasterWorkerInfo> lostWorkers = new ArrayList<MasterWorkerInfo>();
+      // Run under shared lock for mWorkers
+      try (LockResource workersLockShared = new LockResource(mWorkerRWLock.readLock())) {
         for (MasterWorkerInfo worker : mWorkers) {
           final long lastUpdate = mClock.millis() - worker.getLastUpdatedTimeMs();
           if (lastUpdate > masterWorkerTimeoutMs) {
             LOG.warn("The worker {} timed out after {}ms without a heartbeat!", worker, lastUpdate);
+            lostWorkers.add(worker);
             for (JobCoordinator jobCoordinator : mIdToJobCoordinator.values()) {
               jobCoordinator.failTasksForWorker(worker.getId());
             }
-            mWorkers.remove(worker);
+          }
+        }
+      }
+      // Remove lost workers
+      if (!lostWorkers.isEmpty()) {
+        // Run under exclusive lock for mWorkers
+        try (LockResource workersLockExclusive = new LockResource(mWorkerRWLock.writeLock())) {
+          for (MasterWorkerInfo lostWorker : lostWorkers) {
+            // Check last update time for lost workers again as it could have been changed while
+            // waiting for exclusive lock.
+            final long lastUpdate = mClock.millis() - lostWorker.getLastUpdatedTimeMs();
+            if (lastUpdate > masterWorkerTimeoutMs) {
+              mWorkers.remove(lostWorker);
+            }
           }
         }
       }

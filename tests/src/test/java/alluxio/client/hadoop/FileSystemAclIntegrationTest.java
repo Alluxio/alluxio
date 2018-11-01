@@ -501,7 +501,7 @@ public final class FileSystemAclIntegrationTest extends BaseIntegrationTest {
   public void s3GetPermission() throws Exception {
     Assume.assumeTrue(UnderFileSystemUtils.isS3(sUfs));
 
-    alluxio.Configuration.set(PropertyKey.UNDERFS_S3_OWNER_ID_TO_USERNAME_MAPPING, "");
+    alluxio.Configuration.unset(PropertyKey.UNDERFS_S3_OWNER_ID_TO_USERNAME_MAPPING);
     Path fileA = new Path("/s3GetPermissionFile");
     create(sTFS, fileA);
     Assert.assertTrue(sUfs.isFile(PathUtils.concatPath(sUfsRoot, fileA)));
@@ -518,7 +518,7 @@ public final class FileSystemAclIntegrationTest extends BaseIntegrationTest {
   public void gcsGetPermission() throws Exception {
     Assume.assumeTrue(UnderFileSystemUtils.isGcs(sUfs));
 
-    alluxio.Configuration.set(PropertyKey.UNDERFS_GCS_OWNER_ID_TO_USERNAME_MAPPING, "");
+    alluxio.Configuration.unset(PropertyKey.UNDERFS_GCS_OWNER_ID_TO_USERNAME_MAPPING);
     Path fileA = new Path("/gcsGetPermissionFile");
     create(sTFS, fileA);
     Assert.assertTrue(sUfs.isFile(PathUtils.concatPath(sUfsRoot, fileA)));

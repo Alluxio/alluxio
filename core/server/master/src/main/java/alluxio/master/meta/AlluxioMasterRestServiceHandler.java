@@ -173,7 +173,7 @@ public final class AlluxioMasterRestServiceHandler {
   @ReturnType("java.util.SortedMap<java.lang.String, java.lang.Long>")
   @Deprecated
   public Response getMetrics() {
-    return RestUtils.call(() -> getMetricsInternal());
+    return RestUtils.call(this::getMetricsInternal);
   }
 
   /**
@@ -331,13 +331,7 @@ public final class AlluxioMasterRestServiceHandler {
       public int compare(String tier1, String tier2) {
         int ordinal1 = mTierAssoc.getOrdinal(tier1);
         int ordinal2 = mTierAssoc.getOrdinal(tier2);
-        if (ordinal1 < ordinal2) {
-          return -1;
-        }
-        if (ordinal1 == ordinal2) {
-          return 0;
-        }
-        return 1;
+        return Integer.compare(ordinal1, ordinal2);
       }
     };
   }
