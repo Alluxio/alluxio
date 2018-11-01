@@ -13,6 +13,7 @@ package alluxio.underfs;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.SyncInfo;
 import alluxio.collections.Pair;
 import alluxio.exception.status.UnimplementedException;
 import alluxio.security.authorization.AccessControlList;
@@ -39,6 +40,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -622,6 +624,26 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
   @Override
   public boolean supportsFlush() {
     return mUnderFileSystem.supportsFlush();
+  }
+
+  @Override
+  public boolean supportsActiveSync() {
+    return mUnderFileSystem.supportsActiveSync();
+  }
+
+  @Override
+  public SyncInfo getActiveSyncInfo(List<AlluxioURI> syncPointList) throws IOException {
+    return call(new UfsCallable<SyncInfo>() {
+      @Override
+      public SyncInfo call() throws IOException {
+        return mUnderFileSystem.getActiveSyncInfo(syncPointList);
+      }
+
+      @Override
+      public String toString() {
+        return String.format("getActiveSyncInfo: %s", Arrays.toString(syncPointList.toArray()));
+      }
+    });
   }
 
   /**

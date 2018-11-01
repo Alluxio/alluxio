@@ -26,6 +26,7 @@ public final class JournalEntryAssociation {
   public static String getMasterForEntry(JournalEntry entry) {
     if (entry.hasAddMountPoint()
         || entry.hasAsyncPersistRequest()
+        || entry.hasAddSyncPoint()
         || entry.hasCompleteFile()
         || entry.hasDeleteFile()
         || entry.hasDeleteMountPoint()
@@ -35,6 +36,7 @@ public final class JournalEntryAssociation {
         || entry.hasInodeLastModificationTime()
         || entry.hasNewBlock()
         || entry.hasPersistDirectory()
+        || entry.hasRemoveSyncPoint()
         || entry.hasRename()
         || entry.hasReinitializeFile()
         || entry.hasSetAcl()

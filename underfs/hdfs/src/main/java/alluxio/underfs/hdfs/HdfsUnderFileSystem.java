@@ -14,6 +14,7 @@ package alluxio.underfs.hdfs;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.PropertyKey;
+import alluxio.SyncInfo;
 import alluxio.collections.Pair;
 import alluxio.retry.CountingRetry;
 import alluxio.retry.RetryPolicy;
@@ -49,6 +50,7 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.permission.FsPermission;
 import org.apache.hadoop.hdfs.DistributedFileSystem;
+import org.apache.hadoop.hdfs.client.HdfsAdmin;
 import org.apache.hadoop.security.SecurityUtil;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.slf4j.Logger;
@@ -58,6 +60,8 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.lang.reflect.Constructor;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -81,9 +85,17 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
   private static final String HDFS_ACL_PROVIDER_CLASS =
       "alluxio.underfs.hdfs.acl.SupportedHdfsAclProvider";
 
+  /** Name of the class for the Hdfs ActiveSync provider. */
+  private static final String HDFS_ACTIVESYNC_PROVIDER_CLASS =
+      "alluxio.underfs.hdfs.activesync.SupportedHdfsActiveSyncProvider";
+
   private final LoadingCache<String, FileSystem> mUserFs;
   private final HdfsAclProvider mHdfsAclProvider;
   private UnderFileSystemConfiguration mUfsConf;
+
+  private HdfsAdmin mHdfsAdmin;
+
+  private HdfsActiveSyncProvider mHdfsActiveSyncer;
 
   /**
    * Factory method to constructs a new HDFS {@link UnderFileSystem} instance.
@@ -149,6 +161,27 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
         return path.getFileSystem(hdfsConf);
       }
     });
+
+    // Create the supported HdfsActiveSyncer if possible.
+    HdfsActiveSyncProvider hdfsActiveSyncProvider = new NoopHdfsActiveSyncProvider();
+
+    try {
+      Constructor c = Class.forName(HDFS_ACTIVESYNC_PROVIDER_CLASS).getConstructor(HdfsAdmin.class);
+      mHdfsAdmin = new HdfsAdmin(URI.create(ufsUri.toString()), hdfsConf);
+      Object o = c.newInstance(mHdfsAdmin);
+      if (o instanceof HdfsActiveSyncProvider) {
+        hdfsActiveSyncProvider = (HdfsActiveSyncProvider) o;
+      } else {
+        LOG.warn(
+            "SupportedHdfsActiveSyncProvider is not instance of HdfsActiveSyncProvider. "
+                + "HDFS ActiveSync will not be supported.");
+      }
+    } catch (Exception e) {
+      // ignore
+      LOG.warn("Cannot create SupportedHdfsActiveSyncProvider. HDFS ActiveSync will not be supported.");
+    }
+
+    mHdfsActiveSyncer = hdfsActiveSyncProvider;
   }
 
   @Override
@@ -614,6 +647,16 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
   @Override
   public boolean supportsFlush() {
     return true;
+  }
+
+  @Override
+  public boolean supportsActiveSync() {
+    return true;
+  }
+
+  @Override
+  public SyncInfo getActiveSyncInfo(List<AlluxioURI> syncPointList) {
+    return mHdfsActiveSyncer.getActivitySyncInfo(syncPointList);
   }
 
   /**

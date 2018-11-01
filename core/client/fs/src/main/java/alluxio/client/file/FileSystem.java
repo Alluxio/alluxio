@@ -290,6 +290,13 @@ public interface FileSystem {
   Map<String, MountPointInfo> getMountTable() throws IOException, AlluxioException;
 
   /**
+   * Lists all the actively synced paths.
+   *
+   * @return a list of actively synced paths
+   */
+  List<String> getSyncPathList() throws IOException, AlluxioException;
+
+  /**
    * Convenience method for {@link #openFile(AlluxioURI, OpenFileOptions)} with default options.
    *
    * @param path the file to read from
@@ -343,6 +350,20 @@ public interface FileSystem {
    * @throws FileDoesNotExistException if the given file does not exist
    */
   void setAcl(AlluxioURI path, SetAclAction action, List<AclEntry> entries)
+      throws FileDoesNotExistException, IOException, AlluxioException;
+
+  /**
+   * Starts the active syncing process on an Alluxio path.
+   * @param path the path to sync
+   */
+  void startSync(AlluxioURI path)
+      throws FileDoesNotExistException, IOException, AlluxioException;
+
+  /**
+   * Stops the active syncing process on an Alluxio path.
+   * @param path the path to stop syncing
+   */
+  void stopSync(AlluxioURI path)
       throws FileDoesNotExistException, IOException, AlluxioException;
 
   /**

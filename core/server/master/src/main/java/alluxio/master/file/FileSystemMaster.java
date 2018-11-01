@@ -52,6 +52,7 @@ import alluxio.wire.SetAclAction;
 import alluxio.wire.WorkerInfo;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -503,4 +504,40 @@ public interface FileSystemMaster extends Master {
    * @return a list of {@link WorkerInfo} objects representing the workers in Alluxio
    */
   List<WorkerInfo> getWorkerInfoList() throws UnavailableException;
+
+  /**
+   * @return the list of sync path
+   */
+  List<String> getSyncPathList() throws UnavailableException, AccessControlException;
+
+  /**
+   * starts active sync on a specified alluxioURI.
+   *
+   * @param alluxioURI sync point which is a valid path in Alluxio namespace
+   * @throws UnavailableException
+   * @throws InvalidPathException
+   * @throws AccessControlException
+   */
+  void startSync(AlluxioURI alluxioURI) throws UnavailableException, InvalidPathException,
+      AccessControlException;
+
+  /**
+   * stops active sync on a specific syncpoint.
+   *
+   * @param alluxioURI alluxio path that has been added as a sync point
+   * @throws UnavailableException
+   * @throws InvalidPathException
+   * @throws AccessControlException
+   */
+  void stopSync(AlluxioURI alluxioURI) throws UnavailableException, InvalidPathException,
+      AccessControlException;
+
+  /**
+   * Starts a batch sync with a list of changed files passed in.
+   *
+   * @param path the path to sync
+   * @param changedFiles collection of files that are changed under the path to sync
+   * @return return true if successuflly synced the specified path
+   */
+  boolean batchSyncMetadata(AlluxioURI path, Collection<AlluxioURI> changedFiles);
 }
