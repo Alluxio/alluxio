@@ -23,7 +23,6 @@ import alluxio.client.file.options.OutStreamOptions;
 import alluxio.client.file.options.RenameOptions;
 import alluxio.client.file.options.SetAclOptions;
 import alluxio.client.file.options.SetAttributeOptions;
-import alluxio.client.file.options.UnmountOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.ExceptionMessage;
@@ -460,11 +459,11 @@ public class BaseFileSystem implements FileSystem {
 
   @Override
   public void unmount(AlluxioURI path) throws IOException, AlluxioException {
-    unmount(path, UnmountOptions.defaults());
+    unmount(path, FileSystemClientOptions.getUnmountOptions());
   }
 
   @Override
-  public void unmount(AlluxioURI path, UnmountOptions options)
+  public void unmount(AlluxioURI path, UnmountPOptions options)
       throws IOException, AlluxioException {
     checkUri(path);
     FileSystemMasterClient masterClient = mFileSystemContext.acquireMasterClient();

@@ -23,7 +23,6 @@ import alluxio.client.file.options.ExistsOptions;
 import alluxio.client.file.options.OpenFileOptions;
 import alluxio.client.file.options.RenameOptions;
 import alluxio.client.file.options.SetAttributeOptions;
-import alluxio.client.file.options.UnmountOptions;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.master.file.FileSystemMaster;
@@ -202,7 +201,8 @@ public final class FileSystemClientRestApiTest extends RestApiTest {
         mFileSystemMaster.getMasterOptions().getMountOptions());
     new TestCase(mHostname, mPort,
         PATHS_PREFIX + uri.toString() + "/" + PathsRestServiceHandler.UNMOUNT, NO_PARAMS,
-        HttpMethod.POST, null, TestCaseOptions.defaults().setBody(UnmountOptions.defaults())).run();
+        HttpMethod.POST, null,
+        TestCaseOptions.defaults().setBody(FileSystemClientOptions.getUnmountOptions())).run();
   }
 
   @Test

@@ -34,7 +34,6 @@ import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.OpenFileOptions;
 import alluxio.client.file.options.RenameOptions;
 import alluxio.client.file.options.SetAttributeOptions;
-import alluxio.client.file.options.UnmountOptions;
 import alluxio.grpc.*;
 import alluxio.wire.FileInfo;
 import alluxio.wire.LoadMetadataType;
@@ -473,12 +472,12 @@ public final class BaseFileSystemTest {
   }
 
   /**
-   * Tests for the {@link BaseFileSystem#unmount(AlluxioURI, UnmountOptions)} method.
+   * Tests for the {@link BaseFileSystem#unmount(AlluxioURI, UnmountPOptions)} method.
    */
   @Test
   public void unmount() throws Exception {
     AlluxioURI path = new AlluxioURI("/");
-    UnmountOptions unmountOptions = UnmountOptions.defaults();
+    UnmountPOptions unmountOptions = FileSystemClientOptions.getUnmountOptions();
     doNothing().when(mFileSystemMasterClient).unmount(path);
     mFileSystem.unmount(path, unmountOptions);
     verify(mFileSystemMasterClient).unmount(path);
@@ -490,7 +489,7 @@ public final class BaseFileSystemTest {
   @Test
   public void unmountException() throws Exception {
     AlluxioURI path = new AlluxioURI("/");
-    UnmountOptions unmountOptions = UnmountOptions.defaults();
+    UnmountPOptions unmountOptions = FileSystemClientOptions.getUnmountOptions();
     doThrow(EXCEPTION).when(mFileSystemMasterClient).unmount(path);
     try {
       mFileSystem.unmount(path, unmountOptions);

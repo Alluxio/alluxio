@@ -67,4 +67,8 @@ public final class FileSystemClientOptions {
     return MountPOptions.newBuilder().setCommonOptions(getCommonOptions()).setReadOnly(false)
         .setShared(false).build();
   }
+
+  public static UnmountPOptions getUnmountOptions() {
+    return UnmountPOptions.newBuilder().setCommonOptions(getCommonOptions()).build();
+  }
 }

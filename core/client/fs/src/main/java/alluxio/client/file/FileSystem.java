@@ -22,7 +22,6 @@ import alluxio.client.file.options.OpenFileOptions;
 import alluxio.client.file.options.RenameOptions;
 import alluxio.client.file.options.SetAclOptions;
 import alluxio.client.file.options.SetAttributeOptions;
-import alluxio.client.file.options.UnmountOptions;
 import alluxio.conf.Source;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.DirectoryNotEmptyException;
@@ -373,7 +372,7 @@ public interface FileSystem {
       throws FileDoesNotExistException, IOException, AlluxioException;
 
   /**
-   * Convenience method for {@link #unmount(AlluxioURI, UnmountOptions)} with default options.
+   * Convenience method for {@link #unmount(AlluxioURI, UnmountPOptions)} with default options.
    *
    * @param path an Alluxio path, this must be a mount point
    */
@@ -387,5 +386,5 @@ public interface FileSystem {
    * @param path an Alluxio path, this must be a mount point
    * @param options options to associate with this operation
    */
-  void unmount(AlluxioURI path, UnmountOptions options) throws IOException, AlluxioException;
+  void unmount(AlluxioURI path, UnmountPOptions options) throws IOException, AlluxioException;
 }

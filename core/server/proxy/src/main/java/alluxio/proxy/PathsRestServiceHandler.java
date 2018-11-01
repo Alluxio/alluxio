@@ -21,7 +21,6 @@ import alluxio.client.file.options.ExistsOptions;
 import alluxio.client.file.options.OpenFileOptions;
 import alluxio.client.file.options.RenameOptions;
 import alluxio.client.file.options.SetAttributeOptions;
-import alluxio.client.file.options.UnmountOptions;
 import alluxio.grpc.*;
 import alluxio.web.ProxyWebServer;
 
@@ -359,12 +358,12 @@ public final class PathsRestServiceHandler {
   @POST
   @Path(PATH_PARAM + UNMOUNT)
   @ReturnType("java.lang.Void")
-  public Response unmount(@PathParam("path") final String path, final UnmountOptions options) {
+  public Response unmount(@PathParam("path") final String path, final UnmountPOptions options) {
     return RestUtils.call(new RestUtils.RestCallable<Void>() {
       @Override
       public Void call() throws Exception {
         if (options == null) {
-          mFileSystem.unmount(new AlluxioURI(path), UnmountOptions.defaults());
+          mFileSystem.unmount(new AlluxioURI(path), FileSystemClientOptions.getUnmountOptions());
         } else {
           mFileSystem.unmount(new AlluxioURI(path), options);
         }
