@@ -82,8 +82,7 @@ public class SupportedHdfsActiveSyncProvider implements HdfsActiveSyncProvider {
     }
   }
 
-  private void addFile(String syncPoint, String filePath) {
-    LOG.info("add file for syncPoint {}, at path {}", syncPoint, filePath);
+  private void recordFileChanged(String syncPoint, String filePath) {
     AlluxioURI syncPointUri = new AlluxioURI(syncPoint);
     if (!mChangedFiles.containsKey(syncPoint)) {
       mChangedFiles.put(syncPoint, new ConcurrentHashSet<>());
@@ -95,8 +94,7 @@ public class SupportedHdfsActiveSyncProvider implements HdfsActiveSyncProvider {
     mActivity.put(syncPoint, mActivity.get(syncPoint).intValue() + 1);
   }
 
-  private void clearFile(String syncPoint) {
-    LOG.info("clear file for syncPoint {}, ", syncPoint);
+  private void syncSyncPoint(String syncPoint) {
     mChangedFiles.remove(syncPoint);
     mActivity.remove(syncPoint);
     mAge.remove(syncPoint);
@@ -141,7 +139,7 @@ public class SupportedHdfsActiveSyncProvider implements HdfsActiveSyncProvider {
         // find out if the changed file falls under one of the sync points
         if (PathUtils.hasPrefix(filePath, syncPoint.getPath())) {
           fileMatch = true;
-          addFile(syncPoint.toString(), filePath);
+          recordFileChanged(syncPoint.toString(), filePath);
         }
       } catch (InvalidPathException e) {
         LOG.info("Invalid path encountered {} ", filePath);
@@ -151,7 +149,7 @@ public class SupportedHdfsActiveSyncProvider implements HdfsActiveSyncProvider {
         // find out if the changed file falls under one of the sync points
         if ((!renameFilePath.isEmpty()) && PathUtils.hasPrefix(renameFilePath, syncPoint.getPath())) {
           fileMatch = true;
-          addFile(syncPoint.toString(), renameFilePath);
+          recordFileChanged(syncPoint.toString(), renameFilePath);
         }
       } catch (InvalidPathException e) {
         LOG.info("Invalid path encountered {} ", renameFilePath);
@@ -177,13 +175,6 @@ public class SupportedHdfsActiveSyncProvider implements HdfsActiveSyncProvider {
       return null;
     }
 
-    LOG.debug("Activity map");
-    LOG.debug(Arrays.toString(mActivity.entrySet().toArray()));
-    LOG.debug("Age map");
-    LOG.debug(Arrays.toString(mAge.entrySet().toArray()));
-
-    LOG.debug("syncPointList");
-    LOG.debug(Arrays.toString(syncPointList.toArray()));
     initNextWindow();
     EventBatch batch;
     try {
@@ -191,7 +182,6 @@ public class SupportedHdfsActiveSyncProvider implements HdfsActiveSyncProvider {
         if (batch == null) {
           break;
         } else {
-          LOG.info("received events");
           Arrays.stream(batch.getEvents())
               .parallel().forEach(event -> processEvent(event, syncPointList));
         }
@@ -210,7 +200,7 @@ public class SupportedHdfsActiveSyncProvider implements HdfsActiveSyncProvider {
         if (!syncPointFiles.containsKey(syncPointURI)) {
           syncPointFiles.put(syncPointURI, mChangedFiles.get(syncPoint));
         }
-        clearFile(syncPoint);
+        syncSyncPoint(syncPoint);
       }
     }
     LOG.debug("syncPointFiles");
