@@ -13,6 +13,8 @@ package alluxio.worker.netty;
 
 import alluxio.proto.dataserver.Protocol;
 
+import com.google.common.base.Objects;
+
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -22,6 +24,7 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class BlockWriteRequest extends WriteRequest {
   /** Which tier this block writes to. */
   private final int mTier;
+  private final Protocol.CreateUfsBlockOptions mCreateUfsBlockOptions;
 
   /**
    * @param request block request in proto
@@ -29,6 +32,11 @@ public final class BlockWriteRequest extends WriteRequest {
   BlockWriteRequest(Protocol.WriteRequest request) {
     super(request);
     mTier = request.getTier();
+    if (request.hasCreateUfsBlockOptions()) {
+      mCreateUfsBlockOptions = request.getCreateUfsBlockOptions();
+    } else {
+      mCreateUfsBlockOptions = null;
+    }
   }
 
   /**
@@ -36,5 +44,26 @@ public final class BlockWriteRequest extends WriteRequest {
    */
   public int getTier() {
     return mTier;
+  }
+
+  /**
+   * @return the options to create blocks in UFS
+   */
+  @javax.annotation.Nullable
+  public Protocol.CreateUfsBlockOptions getCreateUfsBlockOptions() {
+    return mCreateUfsBlockOptions;
+  }
+
+  /**
+   * @return whether the request has the options to create blocks in UFS
+   */
+  public boolean hasCreateUfsBlockOptions() {
+    return mCreateUfsBlockOptions != null;
+  }
+
+  @Override
+  protected Objects.ToStringHelper toStringHelper() {
+    return super.toStringHelper().add("tier", mTier)
+        .add("createUfsBlockOptions", mCreateUfsBlockOptions);
   }
 }

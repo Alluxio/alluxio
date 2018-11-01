@@ -27,6 +27,7 @@ import alluxio.client.file.options.InStreamOptions;
 import alluxio.client.file.options.OpenFileOptions;
 import alluxio.client.file.options.OutStreamOptions;
 import alluxio.client.file.policy.FileWriteLocationPolicy;
+import alluxio.exception.status.NotFoundException;
 import alluxio.network.netty.NettyRPC;
 import alluxio.network.netty.NettyRPCContext;
 import alluxio.exception.ExceptionMessage;
@@ -157,12 +158,8 @@ public final class AlluxioBlockStoreTest {
   @Test
   public void getOutStreamUsingLocationPolicy() throws Exception {
     OutStreamOptions options = OutStreamOptions.defaults().setWriteType(WriteType.MUST_CACHE)
-        .setLocationPolicy(new FileWriteLocationPolicy() {
-          @Override
-          public WorkerNetAddress getWorkerForNextBlock(Iterable<BlockWorkerInfo> workerInfoList,
-              long blockSizeBytes) {
-            throw new RuntimeException("policy threw exception");
-          }
+        .setLocationPolicy((workerInfoList, blockSizeBytes) -> {
+          throw new RuntimeException("policy threw exception");
         });
     mException.expect(Exception.class);
     mBlockStore.getOutStream(BLOCK_ID, BLOCK_LENGTH, options);
@@ -224,6 +221,25 @@ public final class AlluxioBlockStoreTest {
   }
 
   @Test
+  public void getOutStreamWithReplicated() throws Exception {
+    PowerMockito.mockStatic(NettyRPC.class);
+    File file = File.createTempFile("test", ".tmp");
+    ProtoMessage response = new ProtoMessage(
+        Protocol.LocalBlockCreateResponse.newBuilder().setPath(file.getAbsolutePath()).build());
+    when(NettyRPC.call(any(NettyRPCContext.class), any(ProtoMessage.class))).thenReturn(response);
+    when(mMasterClient.getWorkerInfoList()).thenReturn(Lists
+        .newArrayList(new alluxio.wire.WorkerInfo().setAddress(WORKER_NET_ADDRESS_LOCAL),
+            new alluxio.wire.WorkerInfo().setAddress(WORKER_NET_ADDRESS_REMOTE)));
+    OutStreamOptions options = OutStreamOptions.defaults().setBlockSizeBytes(BLOCK_LENGTH)
+        .setLocationPolicy(new MockFileWriteLocationPolicy(
+            Lists.newArrayList(WORKER_NET_ADDRESS_LOCAL, WORKER_NET_ADDRESS_REMOTE)))
+        .setWriteType(WriteType.MUST_CACHE).setReplicationMin(2);
+    BlockOutStream stream = mBlockStore.getOutStream(BLOCK_ID, BLOCK_LENGTH, options);
+
+    assertEquals(alluxio.client.block.stream.BlockOutStream.class, stream.getClass());
+  }
+
+  @Test
   public void getInStreamUfs() throws Exception {
     WorkerNetAddress worker1 = new WorkerNetAddress().setHost("worker1");
     WorkerNetAddress worker2 = new WorkerNetAddress().setHost("worker2");
@@ -243,6 +259,32 @@ public final class AlluxioBlockStoreTest {
     assertEquals(worker1, mBlockStore.getInStream(BLOCK_ID, options).getAddress());
     // Location policy chooses worker2 second.
     assertEquals(worker2, mBlockStore.getInStream(BLOCK_ID, options).getAddress());
+  }
+
+  @Test
+  public void getInStreamNoWorkers() throws Exception {
+    URIStatus dummyStatus =
+        new URIStatus(new FileInfo().setPersisted(true).setBlockIds(Collections.singletonList(0L)));
+    InStreamOptions options = new InStreamOptions(dummyStatus, OpenFileOptions.defaults());
+    when(mMasterClient.getBlockInfo(BLOCK_ID)).thenReturn(new BlockInfo());
+    when(mMasterClient.getWorkerInfoList()).thenReturn(Collections.emptyList());
+
+    mException.expect(UnavailableException.class);
+    mException.expectMessage("No Alluxio worker available");
+    mBlockStore.getInStream(BLOCK_ID, options).getAddress();
+  }
+
+  @Test
+  public void getInStreamMissingBlock() throws Exception {
+    URIStatus dummyStatus = new URIStatus(
+        new FileInfo().setPersisted(false).setBlockIds(Collections.singletonList(0L)));
+    InStreamOptions options = new InStreamOptions(dummyStatus, OpenFileOptions.defaults());
+    when(mMasterClient.getBlockInfo(BLOCK_ID)).thenReturn(new BlockInfo());
+    when(mMasterClient.getWorkerInfoList()).thenReturn(Collections.emptyList());
+
+    mException.expect(NotFoundException.class);
+    mException.expectMessage("unavailable in both Alluxio and UFS");
+    mBlockStore.getInStream(BLOCK_ID, options).getAddress();
   }
 
   @Test

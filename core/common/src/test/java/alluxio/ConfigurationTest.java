@@ -916,7 +916,7 @@ public class ConfigurationTest {
   public void noPropertiesAnywhere() throws Exception {
     try (Closeable p =
              new SystemPropertyRule(PropertyKey.TEST_MODE.toString(), "false").toResource()) {
-      Configuration.set(PropertyKey.SITE_CONF_DIR, "");
+      Configuration.unset(PropertyKey.SITE_CONF_DIR);
       Configuration.reset();
       assertEquals("0.0.0.0", Configuration.get(PropertyKey.PROXY_WEB_BIND_HOST));
     }

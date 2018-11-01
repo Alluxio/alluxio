@@ -142,9 +142,10 @@ public final class JobInfo implements Comparable<JobInfo> {
    * @param status the job status
    */
   public synchronized void setStatus(Status status) {
+    Status oldStatus = mStatus;
     mStatus = status;
     mLastStatusChangeMs = CommonUtils.getCurrentMs();
-    if (mStatusChangeCallback != null) {
+    if (mStatusChangeCallback != null && status != oldStatus) {
       mStatusChangeCallback.apply(this);
     }
   }
