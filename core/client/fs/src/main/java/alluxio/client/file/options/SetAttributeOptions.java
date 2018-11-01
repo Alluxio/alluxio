@@ -31,8 +31,6 @@ import javax.annotation.concurrent.NotThreadSafe;
 @JsonInclude(Include.NON_EMPTY)
 public final class SetAttributeOptions
     extends alluxio.file.options.SetAttributeOptions<SetAttributeOptions> {
-  private Integer mReplicationMax;
-  private Integer mReplicationMin;
 
   /**
    * @return the default {@link SetAttributeOptions}

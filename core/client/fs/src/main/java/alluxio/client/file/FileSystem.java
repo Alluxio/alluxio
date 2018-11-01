@@ -20,7 +20,6 @@ import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.ExistsOptions;
 import alluxio.client.file.options.OpenFileOptions;
 import alluxio.client.file.options.RenameOptions;
-import alluxio.client.file.options.SetAclOptions;
 import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.conf.Source;
 import alluxio.exception.AlluxioException;
@@ -328,7 +327,7 @@ public interface FileSystem {
       throws FileDoesNotExistException, IOException, AlluxioException;
 
   /**
-   * Convenience method for {@link #setAcl(AlluxioURI, SetAclAction, List, SetAclOptions)} with
+   * Convenience method for {@link #setAcl(AlluxioURI, SetAclAction, List, SetAclPOptions)} with
    * default options.
    *
    * @param path the path to set the ACL for
@@ -348,7 +347,7 @@ public interface FileSystem {
    * @param options options to associate with this operation
    * @throws FileDoesNotExistException if the given file does not exist
    */
-  void setAcl(AlluxioURI path, SetAclAction action, List<AclEntry> entries, SetAclOptions options)
+  void setAcl(AlluxioURI path, SetAclAction action, List<AclEntry> entries, SetAclPOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException;
 
   /**

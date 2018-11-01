@@ -21,7 +21,6 @@ import alluxio.client.file.options.InStreamOptions;
 import alluxio.client.file.options.OpenFileOptions;
 import alluxio.client.file.options.OutStreamOptions;
 import alluxio.client.file.options.RenameOptions;
-import alluxio.client.file.options.SetAclOptions;
 import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.DirectoryNotEmptyException;
@@ -410,12 +409,12 @@ public class BaseFileSystem implements FileSystem {
   @Override
   public void setAcl(AlluxioURI path, SetAclAction action, List<AclEntry> entries)
       throws FileDoesNotExistException, IOException, AlluxioException {
-    setAcl(path, action, entries, SetAclOptions.defaults());
+    setAcl(path, action, entries, FileSystemClientOptions.getSetAclOptions());
   }
 
   @Override
   public void setAcl(AlluxioURI path, SetAclAction action, List<AclEntry> entries,
-      SetAclOptions options) throws FileDoesNotExistException, IOException, AlluxioException {
+      SetAclPOptions options) throws FileDoesNotExistException, IOException, AlluxioException {
     checkUri(path);
     FileSystemMasterClient masterClient = mFileSystemContext.acquireMasterClient();
     try {

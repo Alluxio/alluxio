@@ -71,4 +71,8 @@ public final class FileSystemClientOptions {
   public static UnmountPOptions getUnmountOptions() {
     return UnmountPOptions.newBuilder().setCommonOptions(getCommonOptions()).build();
   }
+
+  public static SetAclPOptions getSetAclOptions() {
+    return SetAclPOptions.newBuilder().setCommonOptions(getCommonOptions()).build();
+  }
 }

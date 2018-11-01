@@ -78,6 +78,7 @@ import java.util.Map;
 
 /**
  * This class is a gRPC handler for file system master RPCs invoked by an Alluxio client.
+ * TODO(ggezer) SetAcl call is missing in the proto
  */
 public final class FileSystemMasterClientServiceHandler
     extends FileSystemMasterServiceGrpc.FileSystemMasterServiceImplBase {

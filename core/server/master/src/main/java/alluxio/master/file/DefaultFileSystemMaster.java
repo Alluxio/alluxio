@@ -43,7 +43,6 @@ import alluxio.file.options.CreateDirectoryOptions;
 import alluxio.file.options.CreateFileOptions;
 import alluxio.file.options.DescendantType;
 import alluxio.file.options.RenameOptions;
-import alluxio.file.options.SetAclOptions;
 import alluxio.file.options.SetAttributeOptions;
 import alluxio.file.options.WorkerHeartbeatOptions;
 import alluxio.grpc.*;
@@ -2789,11 +2788,12 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
   @Override
   public void setAcl(AlluxioURI path, SetAclAction action, List<AclEntry> entries,
-      SetAclOptions options)
+      SetAclPOptions options)
       throws FileDoesNotExistException, AccessControlException, InvalidPathException, IOException {
     Metrics.SET_ACL_OPS.inc();
-    LockingScheme lockingScheme =
-        createLockingScheme(path, options.getCommonOptions(), InodeTree.LockMode.WRITE);
+    LockingScheme lockingScheme = createLockingScheme(path,
+        GrpcUtils.fromProto(getMasterOptions(), options.getCommonOptions()),
+        InodeTree.LockMode.WRITE);
     try (RpcContext rpcContext = createRpcContext();
          LockedInodePath inodePath = mInodeTree.lockInodePath(lockingScheme.getPath(),
              lockingScheme.getMode());
@@ -2825,7 +2825,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   }
 
   private void setAclInternal(RpcContext rpcContext, SetAclAction action, LockedInodePath inodePath,
-      List<AclEntry> entries, SetAclOptions options)
+      List<AclEntry> entries, SetAclPOptions options)
       throws IOException, FileDoesNotExistException {
 
     long opTimeMs = System.currentTimeMillis();
@@ -2926,7 +2926,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
   private void setAclRecursive(RpcContext rpcContext, SetAclAction action,
       LockedInodePath inodePath, List<AclEntry> entries, boolean replay, long opTimeMs,
-      SetAclOptions options) throws IOException, FileDoesNotExistException {
+      SetAclPOptions options) throws IOException, FileDoesNotExistException {
     setAclSingleInode(rpcContext, action, inodePath, entries, replay, opTimeMs);
     try (LockedInodePathList children = options.getRecursive()
         ? mInodeTree.lockDescendants(inodePath, InodeTree.LockMode.WRITE) : null) {

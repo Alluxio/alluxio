@@ -15,9 +15,9 @@ import alluxio.AlluxioURI;
 import alluxio.PropertyKey;
 import alluxio.cli.fs.command.LsCommand;
 import alluxio.client.WriteType;
+import alluxio.client.file.FileSystemClientOptions;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.URIStatus;
-import alluxio.client.file.options.SetAclOptions;
 import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
@@ -547,9 +547,10 @@ public final class LsCommandIntegrationTest extends AbstractFileSystemShellTest 
 
     mFileSystem.setAcl(new AlluxioURI("/testRoot/testDir"), SetAclAction.MODIFY,
         Arrays.asList(AclEntry.fromCliString("default:user:nameduser:rwx")),
-        SetAclOptions.defaults());
+        FileSystemClientOptions.getSetAclOptions());
     mFileSystem.setAcl(new AlluxioURI("/testRoot/testFile"), SetAclAction.MODIFY,
-        Arrays.asList(AclEntry.fromCliString("user:nameduser:rwx")), SetAclOptions.defaults());
+        Arrays.asList(AclEntry.fromCliString("user:nameduser:rwx")),
+        FileSystemClientOptions.getSetAclOptions());
 
     mFsShell.run("ls", "--sort", "path", "/testRoot");
 

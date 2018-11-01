@@ -67,4 +67,11 @@ public class FileSystemClientOptionsTest {
     Assert.assertFalse(options.getShared());
     Assert.assertEquals(0, options.getPropertiesMap().size());
   }
+
+  @Test
+  public void setAclOptionsDefaults() {
+    SetAclPOptions options = FileSystemClientOptions.getSetAclOptions();
+    Assert.assertNotNull(options);
+    Assert.assertFalse(options.getRecursive());
+  }
 }

@@ -39,11 +39,7 @@ import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.UnexpectedAlluxioException;
-import alluxio.grpc.GetStatusPOptions;
-import alluxio.grpc.LoadDescendantPType;
-import alluxio.grpc.LoadMetadataPType;
-import alluxio.grpc.DeletePOptions;
-import alluxio.grpc.MountPOptions;
+import alluxio.grpc.*;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
@@ -59,7 +55,6 @@ import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
 import alluxio.master.file.options.RenameOptions;
-import alluxio.master.file.options.SetAclOptions;
 import alluxio.master.file.options.SetAttributeOptions;
 import alluxio.master.file.options.WorkerHeartbeatOptions;
 import alluxio.master.journal.JournalSystem;
@@ -1221,7 +1216,7 @@ public final class FileSystemMasterTest {
 
   @Test
   public void setDefaultAcl() throws Exception {
-    SetAclOptions options = SetAclOptions.defaults();
+    SetAclPOptions options = MASTER_OPTIONS.getSetAclOptions();
     createFileWithSingleBlock(NESTED_FILE_URI);
     Set<String> entries = Sets.newHashSet(mFileSystemMaster
         .getFileInfo(NESTED_URI, GET_STATUS_OPTIONS).convertDefaultAclToStringEntries());
@@ -1313,7 +1308,7 @@ public final class FileSystemMasterTest {
 
   @Test
   public void setAcl() throws Exception {
-    SetAclOptions options = SetAclOptions.defaults();
+    SetAclPOptions options = MASTER_OPTIONS.getSetAclOptions();
     createFileWithSingleBlock(NESTED_FILE_URI);
 
     Set<String> entries = Sets.newHashSet(mFileSystemMaster
@@ -1405,7 +1400,8 @@ public final class FileSystemMasterTest {
   @Test
   public void setRecursiveAcl() throws Exception {
     final int files = 10;
-    SetAclOptions options = SetAclOptions.defaults().setRecursive(true);
+    SetAclPOptions options =
+        MASTER_OPTIONS.getSetAclOptions().toBuilder().setRecursive(true).build();
 
     // Test files in root directory.
     for (int i = 0; i < files; i++) {
@@ -1489,12 +1485,12 @@ public final class FileSystemMasterTest {
 
   private void addAcl(AlluxioURI uri, AclEntry acl) throws Exception {
     mFileSystemMaster.setAcl(uri, SetAclAction.MODIFY, Arrays.asList(acl),
-        SetAclOptions.defaults());
+        MASTER_OPTIONS.getSetAclOptions());
   }
 
   private void removeAcl(AlluxioURI uri, AclEntry acl) throws Exception {
     mFileSystemMaster.setAcl(uri, SetAclAction.REMOVE, Arrays.asList(acl),
-        SetAclOptions.defaults());
+        MASTER_OPTIONS.getSetAclOptions());
   }
 
   private FileInfo getInfo(AlluxioURI uri) throws Exception {
@@ -2495,7 +2491,8 @@ public final class FileSystemMasterTest {
         MASTER_OPTIONS.getLoadMetadataOptions().toBuilder().setCreateAncestors(true).build());
     List<AclEntry> aclEntryList = new ArrayList<>();
     aclEntryList.add(AclEntry.fromCliString("default:user::r-x"));
-    mFileSystemMaster.setAcl(uri, SetAclAction.MODIFY, aclEntryList, SetAclOptions.defaults());
+    mFileSystemMaster.setAcl(uri, SetAclAction.MODIFY, aclEntryList,
+        MASTER_OPTIONS.getSetAclOptions());
 
     FileInfo infoparent = mFileSystemMaster.getFileInfo(uri,
         MASTER_OPTIONS.getGetStatusOptions());

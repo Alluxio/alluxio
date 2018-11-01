@@ -52,4 +52,11 @@ public class FileSystemMasterOptionsTest {
     Assert.assertFalse(options.getReadOnly());
     Assert.assertEquals(0, options.getPropertiesMap());
   }
+
+  @Test
+  public void setAclOptionsDefaults() {
+    SetAclPOptions options = mMasterOptions.getSetAclOptions();
+    Assert.assertNotNull(options);
+    Assert.assertFalse(options.getRecursive());
+  }
 }

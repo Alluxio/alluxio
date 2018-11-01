@@ -29,7 +29,6 @@ import alluxio.file.options.CompleteFileOptions;
 import alluxio.file.options.CreateDirectoryOptions;
 import alluxio.file.options.CreateFileOptions;
 import alluxio.file.options.RenameOptions;
-import alluxio.file.options.SetAclOptions;
 import alluxio.file.options.SetAttributeOptions;
 import alluxio.file.options.WorkerHeartbeatOptions;
 import alluxio.grpc.*;
@@ -424,7 +423,7 @@ public interface FileSystemMasterService {
    * @throws AccessControlException if permission checking fails
    * @throws InvalidPathException if the given path is invalid
    */
-  void setAcl(AlluxioURI path, SetAclAction action, List<AclEntry> entries, SetAclOptions options)
+  void setAcl(AlluxioURI path, SetAclAction action, List<AclEntry> entries, SetAclPOptions options)
       throws FileDoesNotExistException, AccessControlException, InvalidPathException,
       IOException;
 

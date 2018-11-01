@@ -19,7 +19,6 @@ import alluxio.client.file.options.CompleteFileOptions;
 import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.RenameOptions;
-import alluxio.client.file.options.SetAclOptions;
 import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.client.file.options.UpdateUfsModeOptions;
 import alluxio.exception.status.AlluxioStatusException;
@@ -208,11 +207,11 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
 
   @Override
   public void setAcl(AlluxioURI path, SetAclAction action, List<AclEntry> entries,
-      SetAclOptions options) throws AlluxioStatusException {
+      SetAclPOptions options) throws AlluxioStatusException {
     retryRPC(() -> mBlockingStub.setAcl(
         SetAclPRequest.newBuilder().setPath(path.getPath()).setAction(GrpcUtils.toProto(action))
             .addAllEntries(entries.stream().map(GrpcUtils::toProto).collect(Collectors.toList()))
-            .setOptions(GrpcUtils.toProto(options)).build()),
+            .setOptions(options).build()),
         "SetAcl");
   }
 

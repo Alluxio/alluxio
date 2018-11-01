@@ -398,18 +398,19 @@ public final class GrpcUtils {
    * @param pOptions the proto options to convert
    * @return the converted options instance
    */
-  public static SetAclOptions fromProto(FileSystemMasterOptions masterOptions,
+  public static SetAclPOptions fromProto(FileSystemMasterOptions masterOptions,
       SetAclPOptions pOptions) {
-    SetAclOptions options = masterOptions.getSetAclOptions();
+    SetAclPOptions.Builder optionsBuilder = masterOptions.getSetAclOptions().toBuilder();
     if (pOptions != null) {
       if (pOptions.hasCommonOptions()) {
-        options.setCommonOptions(fromProto(masterOptions, pOptions.getCommonOptions()));
+        optionsBuilder
+            .setCommonOptions(fromProtoToProto(masterOptions, pOptions.getCommonOptions()));
       }
       if (pOptions.hasRecursive()) {
-        options.setRecursive(pOptions.getRecursive());
+        optionsBuilder.setRecursive(pOptions.getRecursive());
       }
     }
-    return options;
+    return optionsBuilder.build();
   }
 
   /**
@@ -1095,19 +1096,6 @@ public final class GrpcUtils {
       default:
         throw new IllegalStateException("Unrecognized set acl action: " + aclAction);
     }
-  }
-
-  /**
-   * Converts a wire type to a proto type.
-   *
-   * @param options the options type to convert
-   * @return the converted proto type
-   */
-  public static SetAclPOptions toProto(SetAclOptions options) {
-    return SetAclPOptions.newBuilder()
-        .setRecursive(options.getRecursive())
-        .setCommonOptions(toProto(options.getCommonOptions()))
-        .build();
   }
 
   /**

@@ -21,7 +21,6 @@ import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
 import alluxio.master.file.options.RenameOptions;
-import alluxio.master.file.options.SetAclOptions;
 import alluxio.master.file.options.SetAttributeOptions;
 import alluxio.master.file.options.SyncMetadataOptions;
 
@@ -126,8 +125,9 @@ public final class DefaultFileSystemMasterOptions implements FileSystemMasterOpt
   }
 
   @Override
-  public SetAclOptions getSetAclOptions() {
-    return SetAclOptions.defaults();
+  public SetAclPOptions getSetAclOptions() {
+    return SetAclPOptions.newBuilder().setCommonOptions(getCommonPOptions()).setRecursive(false)
+        .build();
   }
 
   @Override

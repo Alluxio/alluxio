@@ -18,7 +18,6 @@ import alluxio.client.file.options.CompleteFileOptions;
 import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.RenameOptions;
-import alluxio.client.file.options.SetAclOptions;
 import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.client.file.options.UpdateUfsModeOptions;
 import alluxio.exception.status.AlluxioStatusException;
@@ -179,7 +178,7 @@ public interface FileSystemMasterClient extends Client {
    * @param options the options for setting ACL
    * @throws NotFoundException if the path does not exist
    */
-  void setAcl(AlluxioURI path, SetAclAction action, List<AclEntry> entries, SetAclOptions options)
+  void setAcl(AlluxioURI path, SetAclAction action, List<AclEntry> entries, SetAclPOptions options)
       throws AlluxioStatusException;
 
   /**
