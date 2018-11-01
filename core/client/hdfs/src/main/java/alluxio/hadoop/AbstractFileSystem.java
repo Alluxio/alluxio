@@ -31,6 +31,7 @@ import alluxio.client.file.options.DeleteOptions;
 import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.client.lineage.LineageContext;
 import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.Source;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
@@ -44,6 +45,7 @@ import alluxio.wire.FileBlockInfo;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.net.HostAndPort;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.hadoop.fs.BlockLocation;
@@ -537,6 +539,14 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     // Alluxio Configuration.
     AlluxioConfiguration alluxioConf = new InstancedConfiguration(Configuration.global());
     HadoopConfigurationUtils.mergeHadoopConfiguration(conf, alluxioConf);
+    if (uri.getHost() != null && !uri.getHost().isEmpty()) {
+      alluxioConf.merge(ImmutableMap.of(PropertyKey.MASTER_HOSTNAME, uri.getHost()),
+          Source.RUNTIME);
+      if (uri.getPort() != -1) {
+        alluxioConf.merge(ImmutableMap.of(PropertyKey.MASTER_RPC_PORT, uri.getPort()),
+            Source.RUNTIME);
+      }
+    }
     ConnectDetails newDetails = Factory.getConnectDetails(alluxioConf);
 
     return newDetails.equals(FileSystemContext.get().getMasterInquireClient().getConnectDetails());
