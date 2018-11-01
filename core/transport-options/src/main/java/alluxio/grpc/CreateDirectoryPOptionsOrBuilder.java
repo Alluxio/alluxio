@@ -44,15 +44,49 @@ public interface CreateDirectoryPOptionsOrBuilder extends
   int getMode();
 
   /**
-   * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 5;</code>
+   * <pre>
+   * deprecated from 1.8
+   * </pre>
+   *
+   * <code>optional int64 ttlNotUsed = 5;</code>
+   */
+  boolean hasTtlNotUsed();
+  /**
+   * <pre>
+   * deprecated from 1.8
+   * </pre>
+   *
+   * <code>optional int64 ttlNotUsed = 5;</code>
+   */
+  long getTtlNotUsed();
+
+  /**
+   * <pre>
+   * deprecated from 1.8
+   * </pre>
+   *
+   * <code>optional .alluxio.grpc.TtlAction ttlActionNotUsed = 6;</code>
+   */
+  boolean hasTtlActionNotUsed();
+  /**
+   * <pre>
+   * deprecated from 1.8
+   * </pre>
+   *
+   * <code>optional .alluxio.grpc.TtlAction ttlActionNotUsed = 6;</code>
+   */
+  alluxio.grpc.TtlAction getTtlActionNotUsed();
+
+  /**
+   * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 7;</code>
    */
   boolean hasCommonOptions();
   /**
-   * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 5;</code>
+   * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 7;</code>
    */
   alluxio.grpc.FileSystemMasterCommonPOptions getCommonOptions();
   /**
-   * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 5;</code>
+   * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 7;</code>
    */
   alluxio.grpc.FileSystemMasterCommonPOptionsOrBuilder getCommonOptionsOrBuilder();
 }

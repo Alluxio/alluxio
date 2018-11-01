@@ -35,24 +35,85 @@ public interface CreateFilePOptionsOrBuilder extends
   boolean getRecursive();
 
   /**
-   * <code>optional int32 mode = 4;</code>
+   * <pre>
+   * deprecated from 1.8
+   * </pre>
+   *
+   * <code>optional int64 ttlNotUsed = 4;</code>
+   */
+  boolean hasTtlNotUsed();
+  /**
+   * <pre>
+   * deprecated from 1.8
+   * </pre>
+   *
+   * <code>optional int64 ttlNotUsed = 4;</code>
+   */
+  long getTtlNotUsed();
+
+  /**
+   * <code>optional int32 mode = 5;</code>
    */
   boolean hasMode();
   /**
-   * <code>optional int32 mode = 4;</code>
+   * <code>optional int32 mode = 5;</code>
    */
   int getMode();
 
   /**
-   * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 5;</code>
+   * <pre>
+   * deprecated from 1.8
+   * </pre>
+   *
+   * <code>optional .alluxio.grpc.TtlAction ttlActionNotUsed = 6;</code>
+   */
+  boolean hasTtlActionNotUsed();
+  /**
+   * <pre>
+   * deprecated from 1.8
+   * </pre>
+   *
+   * <code>optional .alluxio.grpc.TtlAction ttlActionNotUsed = 6;</code>
+   */
+  alluxio.grpc.TtlAction getTtlActionNotUsed();
+
+  /**
+   * <code>optional int32 replicationMax = 7;</code>
+   */
+  boolean hasReplicationMax();
+  /**
+   * <code>optional int32 replicationMax = 7;</code>
+   */
+  int getReplicationMax();
+
+  /**
+   * <code>optional int32 replicationMin = 8;</code>
+   */
+  boolean hasReplicationMin();
+  /**
+   * <code>optional int32 replicationMin = 8;</code>
+   */
+  int getReplicationMin();
+
+  /**
+   * <code>optional int32 replicationDurable = 9;</code>
+   */
+  boolean hasReplicationDurable();
+  /**
+   * <code>optional int32 replicationDurable = 9;</code>
+   */
+  int getReplicationDurable();
+
+  /**
+   * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 10;</code>
    */
   boolean hasCommonOptions();
   /**
-   * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 5;</code>
+   * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 10;</code>
    */
   alluxio.grpc.FileSystemMasterCommonPOptions getCommonOptions();
   /**
-   * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 5;</code>
+   * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 10;</code>
    */
   alluxio.grpc.FileSystemMasterCommonPOptionsOrBuilder getCommonOptionsOrBuilder();
 }

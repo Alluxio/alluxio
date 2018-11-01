@@ -28,15 +28,22 @@ message CreateDirectoryPOptions {
   optional bool recursive = 2;
   optional bool allowExist = 3;
   optional int32 mode = 4;
-  optional FileSystemMasterCommonPOptions commonOptions = 5;
+  optional int64 ttlNotUsed = 5; // deprecated from 1.8
+  optional TtlAction ttlActionNotUsed = 6; // deprecated from 1.8
+  optional FileSystemMasterCommonPOptions commonOptions = 7;
 }
 
 message CreateFilePOptions {
   optional int64 blockSizeBytes = 1;
   optional bool persisted = 2;
   optional bool recursive = 3;
-  optional int32 mode = 4;
-  optional FileSystemMasterCommonPOptions commonOptions = 5;
+  optional int64 ttlNotUsed = 4; // deprecated from 1.8
+  optional int32 mode = 5;
+  optional TtlAction ttlActionNotUsed = 6; // deprecated from 1.8
+  optional int32 replicationMax = 7;
+  optional int32 replicationMin = 8;
+  optional int32 replicationDurable = 9;
+  optional FileSystemMasterCommonPOptions commonOptions = 10;
 }
 
 message DeletePOptions {
@@ -121,8 +128,10 @@ message SetAttributePOptions {
   optional string group = 5;
   optional int32 mode = 6;
   optional bool recursive = 7;
-  optional grpc.TtlAction ttlAction = 8;
-  optional FileSystemMasterCommonPOptions commonOptions = 9;
+  optional TtlAction ttlAction = 8;
+  optional int32 replicationMax = 9;
+  optional int32 replicationMin = 10;
+  optional FileSystemMasterCommonPOptions commonOptions = 11;
 }
 
 message SetAclPOptions {

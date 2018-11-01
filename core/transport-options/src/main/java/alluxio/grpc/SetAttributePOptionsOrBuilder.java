@@ -90,15 +90,33 @@ public interface SetAttributePOptionsOrBuilder extends
   alluxio.grpc.TtlAction getTtlAction();
 
   /**
-   * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 9;</code>
+   * <code>optional int32 replicationMax = 9;</code>
+   */
+  boolean hasReplicationMax();
+  /**
+   * <code>optional int32 replicationMax = 9;</code>
+   */
+  int getReplicationMax();
+
+  /**
+   * <code>optional int32 replicationMin = 10;</code>
+   */
+  boolean hasReplicationMin();
+  /**
+   * <code>optional int32 replicationMin = 10;</code>
+   */
+  int getReplicationMin();
+
+  /**
+   * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 11;</code>
    */
   boolean hasCommonOptions();
   /**
-   * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 9;</code>
+   * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 11;</code>
    */
   alluxio.grpc.FileSystemMasterCommonPOptions getCommonOptions();
   /**
-   * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 9;</code>
+   * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 11;</code>
    */
   alluxio.grpc.FileSystemMasterCommonPOptionsOrBuilder getCommonOptionsOrBuilder();
 }
