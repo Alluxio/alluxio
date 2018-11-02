@@ -13,7 +13,6 @@ package alluxio.master.file.options;
 
 import alluxio.proto.journal.File;
 import alluxio.test.util.CommonUtils;
-import alluxio.thrift.MountTOptions;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -41,36 +40,36 @@ public final class MountOptionsTest {
     Assert.assertFalse(options.isShared());
   }
 
-  /**
-   * Tests creating a {@link MountOptions} from a thrift object.
-   */
-  @Test
-  public void FromThrift() {
-    // Null thrift options
-    MountTOptions thriftOptions = null;
-    MountOptions options = new MountOptions(thriftOptions);
-    Assert.assertFalse(options.isReadOnly());
-    Assert.assertFalse(options.isShared());
-
-    // Default thrift options
-    thriftOptions = new MountTOptions();
-    options = new MountOptions(thriftOptions);
-    Assert.assertFalse(options.isReadOnly());
-    Assert.assertFalse(options.isShared());
-
-    // Set thrift options
-    Map<String, String> properties = new HashMap<>();
-    properties.put(PROPERTY_KEY, PROPERTY_VALUE);
-    thriftOptions = new MountTOptions();
-    thriftOptions.setReadOnly(true);
-    thriftOptions.setShared(true);
-    thriftOptions.setProperties(properties);
-    options = new MountOptions(thriftOptions);
-    Assert.assertTrue(options.isReadOnly());
-    Assert.assertTrue(options.isShared());
-    Assert.assertEquals(properties.size(), options.getProperties().size());
-    Assert.assertEquals(PROPERTY_VALUE, options.getProperties().get(PROPERTY_KEY));
-  }
+//  /**
+//   * Tests creating a {@link MountOptions} from a thrift object.
+//   */
+//  @Test
+//  public void FromThrift() {
+//    // Null thrift options
+//    MountTOptions thriftOptions = null;
+//    MountOptions options = new MountOptions(thriftOptions);
+//    Assert.assertFalse(options.isReadOnly());
+//    Assert.assertFalse(options.isShared());
+//
+//    // Default thrift options
+//    thriftOptions = new MountTOptions();
+//    options = new MountOptions(thriftOptions);
+//    Assert.assertFalse(options.isReadOnly());
+//    Assert.assertFalse(options.isShared());
+//
+//    // Set thrift options
+//    Map<String, String> properties = new HashMap<>();
+//    properties.put(PROPERTY_KEY, PROPERTY_VALUE);
+//    thriftOptions = new MountTOptions();
+//    thriftOptions.setReadOnly(true);
+//    thriftOptions.setShared(true);
+//    thriftOptions.setProperties(properties);
+//    options = new MountOptions(thriftOptions);
+//    Assert.assertTrue(options.isReadOnly());
+//    Assert.assertTrue(options.isShared());
+//    Assert.assertEquals(properties.size(), options.getProperties().size());
+//    Assert.assertEquals(PROPERTY_VALUE, options.getProperties().get(PROPERTY_KEY));
+//  }
 
   /**
    * Tests creating a {@link MountOptions} from a proto object.

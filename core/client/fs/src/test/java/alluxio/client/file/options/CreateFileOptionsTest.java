@@ -17,9 +17,11 @@ import alluxio.PropertyKey;
 import alluxio.client.WriteType;
 import alluxio.client.file.policy.FileWriteLocationPolicy;
 import alluxio.client.file.policy.RoundRobinPolicy;
+import alluxio.grpc.CreateFilePOptions;
 import alluxio.security.authorization.Mode;
 import alluxio.test.util.CommonUtils;
-import alluxio.thrift.CreateFileTOptions;
+import alluxio.util.ModeUtils;
+import alluxio.util.grpc.GrpcUtils;
 import alluxio.wire.TtlAction;
 
 import org.junit.Assert;
@@ -48,7 +50,7 @@ public final class CreateFileOptionsTest {
     Assert.assertEquals(TtlAction.DELETE, options.getTtlAction());
     Assert.assertEquals(mDefaultWriteTier, options.getWriteTier());
     Assert.assertEquals(mDefaultWriteType, options.getWriteType());
-    Assert.assertEquals(Mode.defaults().applyFileUMask(), options.getMode());
+    Assert.assertEquals(ModeUtils.applyFileUMask(Mode.defaults()), options.getMode());
   }
 
   /**
@@ -86,10 +88,10 @@ public final class CreateFileOptionsTest {
   }
 
   /**
-   * Tests conversion to thrift representation.
+   * Tests conversion to proto representation.
    */
   @Test
-  public void toThrift() {
+  public void toProto() {
     Random random = new Random();
     long blockSize = random.nextLong();
     FileWriteLocationPolicy policy = new RoundRobinPolicy();
@@ -109,11 +111,11 @@ public final class CreateFileOptionsTest {
     options.setWriteTier(writeTier);
     options.setWriteType(writeType);
 
-    CreateFileTOptions thriftOptions = options.toThrift();
-    Assert.assertEquals(blockSize, thriftOptions.getBlockSizeBytes());
-    Assert.assertEquals(recursive, thriftOptions.isRecursive());
-    Assert.assertEquals(writeType.isThrough(), thriftOptions.isPersisted());
-    Assert.assertEquals(mode.toShort(), thriftOptions.getMode());
+    CreateFilePOptions protoOptions = GrpcUtils.toProto(options);
+    Assert.assertEquals(blockSize, protoOptions.getBlockSizeBytes());
+    Assert.assertEquals(recursive, protoOptions.getRecursive());
+    Assert.assertEquals(writeType.isThrough(), protoOptions.getPersisted());
+    Assert.assertEquals(mode.toShort(), protoOptions.getMode());
   }
 
   @Test

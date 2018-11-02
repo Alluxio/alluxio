@@ -11,10 +11,10 @@
 
 package alluxio.client.file.options;
 
+import alluxio.grpc.UfsMode;
+import alluxio.grpc.UpdateUfsModePOptions;
 import alluxio.test.util.CommonUtils;
-import alluxio.thrift.UfsMode;
-import alluxio.thrift.UpdateUfsModeTOptions;
-import alluxio.underfs.UnderFileSystem;
+import alluxio.util.grpc.GrpcUtils;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -28,7 +28,7 @@ public class UpdateUfsModeOptionsTest {
     UpdateUfsModeOptions options = UpdateUfsModeOptions.defaults();
 
     Assert.assertNotNull(options);
-    Assert.assertEquals(UnderFileSystem.UfsMode.READ_WRITE, options.getUfsMode());
+    Assert.assertEquals(alluxio.underfs.UfsMode.READ_WRITE, options.getUfsMode());
   }
 
   @Test
@@ -42,21 +42,18 @@ public class UpdateUfsModeOptionsTest {
   @Test
   public void fields() {
     UpdateUfsModeOptions options =
-        UpdateUfsModeOptions.defaults().setUfsMode(UnderFileSystem.UfsMode.READ_ONLY);
-    Assert.assertEquals(UnderFileSystem.UfsMode.READ_ONLY, options.getUfsMode());
+        UpdateUfsModeOptions.defaults().setUfsMode(alluxio.underfs.UfsMode.READ_ONLY);
+    Assert.assertEquals(alluxio.underfs.UfsMode.READ_ONLY, options.getUfsMode());
   }
 
   /**
-   * Tests conversion to thrift representation.
+   * Tests conversion to proto representation.
    */
   @Test
-  public void toThrift() {
+  public void toProto() {
     UpdateUfsModeOptions options =
-        UpdateUfsModeOptions.defaults().setUfsMode(UnderFileSystem.UfsMode.NO_ACCESS);
-    UpdateUfsModeTOptions thriftOptions = options.toThrift();
-
-    Assert.assertEquals(UfsMode.NoAccess, thriftOptions.getUfsMode());
-    Assert.assertEquals(UnderFileSystem.UfsMode.NO_ACCESS,
-        new UpdateUfsModeOptions(thriftOptions).getUfsMode());
+        UpdateUfsModeOptions.defaults().setUfsMode(alluxio.underfs.UfsMode.NO_ACCESS);
+    UpdateUfsModePOptions protoOptions = GrpcUtils.toProto(options);
+    Assert.assertEquals(UfsMode.NoAccess, protoOptions.getUfsMode());
   }
 }

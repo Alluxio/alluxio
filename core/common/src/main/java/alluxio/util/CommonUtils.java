@@ -20,7 +20,9 @@ import alluxio.proto.dataserver.Protocol;
 import alluxio.security.group.CachedGroupMapping;
 import alluxio.security.group.GroupMappingService;
 import alluxio.util.ShellUtils.ExitCodeException;
+import alluxio.util.io.PathUtils;
 import alluxio.util.network.NetworkAddressUtils;
+import alluxio.util.proto.ProtoUtils;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Preconditions;
@@ -85,6 +87,18 @@ public final class CommonUtils {
     }
     // Use existing random instead of ThreadLocal because contention is not expected to be high.
     return TMP_DIRS.get(RANDOM.nextInt(TMP_DIRS.size()));
+  }
+
+  /**
+   * @param storageDir the root of a storage directory in tiered storage
+   *
+   * @return the worker data folder path after each storage directory, the final path will be like
+   * "/mnt/ramdisk/alluxioworker" for storage dir "/mnt/ramdisk" by appending
+   * {@link PropertyKey#WORKER_DATA_FOLDER).
+   */
+  public static String getWorkerDataDirectory(String storageDir) {
+    return PathUtils.concatPath(
+        storageDir.trim(), Configuration.get(PropertyKey.WORKER_DATA_FOLDER));
   }
 
   /**
@@ -169,7 +183,8 @@ public final class CommonUtils {
    * @param timeMs sleep duration in milliseconds
    */
   public static void sleepMs(long timeMs) {
-    sleepMs(null, timeMs);
+    // TODO(adit): remove this wrapper
+    SleepUtils.sleepMs(timeMs);
   }
 
   /**
@@ -183,14 +198,8 @@ public final class CommonUtils {
    * @param timeMs sleep duration in milliseconds
    */
   public static void sleepMs(Logger logger, long timeMs) {
-    try {
-      Thread.sleep(timeMs);
-    } catch (InterruptedException e) {
-      Thread.currentThread().interrupt();
-      if (logger != null) {
-        logger.warn(e.getMessage(), e);
-      }
-    }
+    // TODO(adit): remove this wrapper
+    SleepUtils.sleepMs(logger, timeMs);
   }
 
   /**
@@ -552,7 +561,7 @@ public final class CommonUtils {
    * @param response the response
    */
   public static void unwrapResponse(Protocol.Response response) throws AlluxioStatusException {
-    Status status = Status.fromProto(response.getStatus());
+    Status status = ProtoUtils.fromProto(response.getStatus());
     if (status != Status.OK) {
       throw AlluxioStatusException.from(status, response.getMessage());
     }
@@ -566,7 +575,7 @@ public final class CommonUtils {
    */
   public static void unwrapResponseFrom(Protocol.Response response, Channel channel)
       throws AlluxioStatusException {
-    Status status = Status.fromProto(response.getStatus());
+    Status status = ProtoUtils.fromProto(response.getStatus());
     if (status != Status.OK) {
       throw AlluxioStatusException.from(status, String
           .format("Channel to %s: %s", channel.remoteAddress(), response.getMessage()));

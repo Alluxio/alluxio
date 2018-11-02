@@ -13,10 +13,7 @@ package alluxio.master.file.options;
 
 import alluxio.Configuration;
 import alluxio.PropertyKey;
-import alluxio.security.authorization.Mode;
-import alluxio.thrift.CreateFileTOptions;
-import alluxio.util.SecurityUtils;
-import alluxio.wire.CommonOptions;
+import alluxio.util.ModeUtils;
 
 import com.google.common.base.Objects;
 
@@ -26,11 +23,9 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Method options for creating a file.
  */
 @NotThreadSafe
-public final class CreateFileOptions extends CreatePathOptions<CreateFileOptions> {
+public final class CreateFileOptions
+    extends alluxio.file.options.CreateFileOptions<CreateFileOptions> {
   private long mBlockSizeBytes;
-  private int mReplicationDurable;
-  private int mReplicationMax;
-  private int mReplicationMin;
   private boolean mCacheable;
 
   /**
@@ -40,72 +35,14 @@ public final class CreateFileOptions extends CreatePathOptions<CreateFileOptions
     return new CreateFileOptions();
   }
 
-  /**
-   * Constructs an instance of {@link CreateFileOptions} from {@link CreateFileTOptions}. The option
-   * of permission is constructed with the username obtained from thrift transport.
-   *
-   * @param options the {@link CreateFileTOptions} to use
-   */
-  public CreateFileOptions(CreateFileTOptions options) {
-    this();
-    if (options != null) {
-      if (options.isSetCommonOptions()) {
-        mCommonOptions = new CommonOptions(options.getCommonOptions());
-      }
-      mBlockSizeBytes = options.getBlockSizeBytes();
-      mPersisted = options.isPersisted();
-      mRecursive = options.isRecursive();
-      mReplicationDurable = options.getReplicationDurable();
-      mReplicationMax = options.getReplicationMax();
-      mReplicationMin = options.getReplicationMin();
-      if (SecurityUtils.isAuthenticationEnabled()) {
-        mOwner = SecurityUtils.getOwnerFromThriftClient();
-        mGroup = SecurityUtils.getGroupFromThriftClient();
-      }
-      if (options.isSetMode()) {
-        mMode = new Mode(options.getMode());
-      } else {
-        mMode.applyFileUMask();
-      }
-    }
-  }
-
   private CreateFileOptions() {
     super();
     mBlockSizeBytes = Configuration.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
     mReplicationDurable = Configuration.getInt(PropertyKey.USER_FILE_REPLICATION_DURABLE);
     mReplicationMax = Configuration.getInt(PropertyKey.USER_FILE_REPLICATION_MAX);
     mReplicationMin = Configuration.getInt(PropertyKey.USER_FILE_REPLICATION_MIN);
-    mMode.applyFileUMask();
+    mMode = ModeUtils.applyFileUMask(mMode);
     mCacheable = false;
-  }
-
-  /**
-   * @return the block size
-   */
-  public long getBlockSizeBytes() {
-    return mBlockSizeBytes;
-  }
-
-  /**
-   * @return the number of block replication for durable write
-   */
-  public int getReplicationDurable() {
-    return mReplicationDurable;
-  }
-
-  /**
-   * @return the maximum number of block replication
-   */
-  public int getReplicationMax() {
-    return mReplicationMax;
-  }
-
-  /**
-   * @return the minimum number of block replication
-   */
-  public int getReplicationMin() {
-    return mReplicationMin;
   }
 
   /**
@@ -121,33 +58,6 @@ public final class CreateFileOptions extends CreatePathOptions<CreateFileOptions
    */
   public CreateFileOptions setBlockSizeBytes(long blockSizeBytes) {
     mBlockSizeBytes = blockSizeBytes;
-    return this;
-  }
-
-  /**
-   * @param replicationDurable the number of block replication for durable write
-   * @return the updated options object
-   */
-  public CreateFileOptions setReplicationDurable(int replicationDurable) {
-    mReplicationDurable = replicationDurable;
-    return this;
-  }
-
-  /**
-   * @param replicationMax the maximum number of block replication
-   * @return the updated options object
-   */
-  public CreateFileOptions setReplicationMax(int replicationMax) {
-    mReplicationMax = replicationMax;
-    return this;
-  }
-
-  /**
-   * @param replicationMin the minimum number of block replication
-   * @return the updated options object
-   */
-  public CreateFileOptions setReplicationMin(int replicationMin) {
-    mReplicationMin = replicationMin;
     return this;
   }
 

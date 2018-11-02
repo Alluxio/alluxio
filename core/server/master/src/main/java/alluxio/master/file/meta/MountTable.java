@@ -18,8 +18,8 @@ import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;
+import alluxio.file.options.MountOptions;
 import alluxio.master.file.meta.options.MountInfo;
-import alluxio.master.file.options.MountOptions;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.JournalEntryIterable;
 import alluxio.master.journal.JournalEntryReplayable;
@@ -186,8 +186,10 @@ public final class MountTable implements JournalEntryIterable, JournalEntryRepla
           }
         }
       }
+
+      Map<String, String> properties = options.getProperties();
       mState.applyAndJournal(journalContext, AddMountPointEntry.newBuilder()
-          .addAllProperties(options.getProperties().entrySet().stream()
+          .addAllProperties(properties.entrySet().stream()
               .map(entry -> StringPairEntry.newBuilder()
                   .setKey(entry.getKey()).setValue(entry.getValue()).build())
               .collect(Collectors.toList()))
@@ -494,8 +496,9 @@ public final class MountTable implements JournalEntryIterable, JournalEntryRepla
     }
 
     private void apply(AddMountPointEntry entry) {
-      MountInfo mountInfo = new MountInfo(new AlluxioURI(entry.getAlluxioPath()),
-          new AlluxioURI(entry.getUfsPath()), entry.getMountId(), new MountOptions(entry));
+      MountInfo mountInfo =
+          new MountInfo(new AlluxioURI(entry.getAlluxioPath()), new AlluxioURI(entry.getUfsPath()),
+              entry.getMountId(), new alluxio.master.file.options.MountOptions(entry));
       mMountTable.put(entry.getAlluxioPath(), mountInfo);
     }
 

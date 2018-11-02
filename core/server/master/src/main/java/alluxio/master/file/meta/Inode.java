@@ -23,6 +23,7 @@ import alluxio.security.authorization.AclEntry;
 import alluxio.security.authorization.AclEntryType;
 import alluxio.security.authorization.DefaultAccessControlList;
 import alluxio.util.interfaces.Scoped;
+import alluxio.util.proto.ProtoUtils;
 import alluxio.wire.FileInfo;
 import alluxio.wire.TtlAction;
 
@@ -549,7 +550,7 @@ public abstract class Inode<T> implements InodeView {
    */
   public void updateFromEntry(UpdateInodeEntry entry) {
     if (entry.hasAcl()) {
-      setInternalAcl(AccessControlList.fromProtoBuf(entry.getAcl()));
+      setInternalAcl(ProtoUtils.fromProto(entry.getAcl()));
     }
     if (entry.hasCreationTimeMs()) {
       setCreationTimeMs(entry.getCreationTimeMs());

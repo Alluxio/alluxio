@@ -17,6 +17,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -38,6 +39,7 @@ import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.UnexpectedAlluxioException;
+import alluxio.file.options.DescendantType;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
@@ -53,7 +55,6 @@ import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
 import alluxio.master.file.options.DeleteOptions;
-import alluxio.master.file.options.DescendantType;
 import alluxio.master.file.options.FreeOptions;
 import alluxio.master.file.options.GetStatusOptions;
 import alluxio.master.file.options.ListStatusOptions;
@@ -72,18 +73,18 @@ import alluxio.security.GroupMappingServiceTestUtils;
 import alluxio.security.authorization.AclEntry;
 import alluxio.thrift.Command;
 import alluxio.thrift.CommandType;
-import alluxio.thrift.FileSystemCommand;
 import alluxio.thrift.RegisterWorkerTOptions;
-import alluxio.thrift.UfsInfo;
 import alluxio.util.IdUtils;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.io.FileUtils;
 import alluxio.wire.FileBlockInfo;
 import alluxio.wire.FileInfo;
+import alluxio.wire.FileSystemCommand;
 import alluxio.wire.LoadMetadataType;
 import alluxio.wire.SetAclAction;
 import alluxio.wire.TtlAction;
+import alluxio.wire.UfsInfo;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.collect.ImmutableList;
@@ -2369,7 +2370,7 @@ public final class FileSystemMasterTest {
     FileSystemCommand command = mFileSystemMaster
         .workerHeartbeat(mWorkerId1, Lists.newArrayList(fileId), WorkerHeartbeatOptions.defaults());
     assertEquals(CommandType.Persist, command.getCommandType());
-    assertEquals(0, command.getCommandOptions().getPersistOptions().getPersistFiles().size());
+    assertEquals(0, command.getCommandOptions().getPersistOptions().getFilesToPersist().size());
   }
 
   /**
@@ -2485,14 +2486,14 @@ public final class FileSystemMasterTest {
         mFileSystemMaster.getFileInfo(new AlluxioURI("alluxio://"), GET_STATUS_OPTIONS);
     UfsInfo ufsRootInfo = mFileSystemMaster.getUfsInfo(alluxioRootInfo.getMountId());
     assertEquals(mUnderFS, ufsRootInfo.getUri());
-    assertTrue(ufsRootInfo.getProperties().getProperties().isEmpty());
+    assertTrue(ufsRootInfo.getMountOptions().getProperties().isEmpty());
   }
 
   @Test
   public void getUfsInfoNotExist() throws Exception {
     UfsInfo noSuchUfsInfo = mFileSystemMaster.getUfsInfo(100L);
-    assertFalse(noSuchUfsInfo.isSetUri());
-    assertFalse(noSuchUfsInfo.isSetProperties());
+    assertNull(noSuchUfsInfo.getUri());
+    assertNull(noSuchUfsInfo.getMountOptions());
   }
 
   /**

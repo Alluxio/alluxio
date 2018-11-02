@@ -22,6 +22,8 @@ import alluxio.ConfigurationTestUtils;
 import alluxio.PropertyKey;
 import alluxio.network.TieredIdentityFactory;
 import alluxio.util.CommonUtils;
+import alluxio.util.TieredIdentityUtils;
+import alluxio.util.grpc.GrpcUtils;
 import alluxio.wire.TieredIdentity.LocalityTier;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -50,14 +52,14 @@ public class TieredIdentityTest {
     TieredIdentity id3 = TieredIdentityFactory.fromString("node=C,rack=rack2");
     List<TieredIdentity> identities = Arrays.asList(id1, id2, id3);
 
-    assertSame(id1,
-        TieredIdentityFactory.fromString("node=D,rack=rack1").nearest(identities).get());
-    assertSame(id2,
-        TieredIdentityFactory.fromString("node=B,rack=rack2").nearest(identities).get());
-    assertSame(id3,
-        TieredIdentityFactory.fromString("node=C,rack=rack2").nearest(identities).get());
-    assertSame(id1,
-        TieredIdentityFactory.fromString("node=D,rack=rack3").nearest(identities).get());
+    assertSame(id1, TieredIdentityUtils
+        .nearest(TieredIdentityFactory.fromString("node=D,rack=rack1"), identities).get());
+    assertSame(id2, TieredIdentityUtils
+        .nearest(TieredIdentityFactory.fromString("node=B,rack=rack2"), identities).get());
+    assertSame(id3, TieredIdentityUtils
+        .nearest(TieredIdentityFactory.fromString("node=C,rack=rack2"), identities).get());
+    assertSame(id1, TieredIdentityUtils
+        .nearest(TieredIdentityFactory.fromString("node=D,rack=rack3"), identities).get());
   }
 
   @Test
@@ -70,9 +72,9 @@ public class TieredIdentityTest {
   }
 
   @Test
-  public void thrift() {
+  public void proto() {
     TieredIdentity tieredIdentity = createRandomTieredIdentity();
-    TieredIdentity other = TieredIdentity.fromThrift(tieredIdentity.toThrift());
+    TieredIdentity other = GrpcUtils.fromProto(GrpcUtils.toProto(tieredIdentity));
     checkEquality(tieredIdentity, other);
   }
 
@@ -89,13 +91,13 @@ public class TieredIdentityTest {
     LocalityTier lt7 = new LocalityTier("rack", "");
     LocalityTier lt8 = new LocalityTier("node", "NonResolvableHostname-A");
     LocalityTier lt9 = new LocalityTier("node", "");
-    assertTrue(lt1.matches(lt1));
-    assertTrue(lt1.matches(lt2));
-    assertFalse(lt2.matches(lt3));
-    assertTrue(lt5.matches(lt6));
-    assertFalse(lt4.matches(lt5));
-    assertFalse(lt6.matches(lt7));
-    assertFalse(lt8.matches(lt9));
+    assertTrue(TieredIdentityUtils.matches(lt1, lt1));
+    assertTrue(TieredIdentityUtils.matches(lt1, lt2));
+    assertFalse(TieredIdentityUtils.matches(lt2, lt3));
+    assertTrue(TieredIdentityUtils.matches(lt5, lt6));
+    assertFalse(TieredIdentityUtils.matches(lt4, lt5));
+    assertFalse(TieredIdentityUtils.matches(lt6, lt7));
+    assertFalse(TieredIdentityUtils.matches(lt8, lt9));
   }
 
   @Test
@@ -105,10 +107,10 @@ public class TieredIdentityTest {
     LocalityTier lt2 = new LocalityTier("node", "127.0.0.1");
 
     Configuration.set(PropertyKey.LOCALITY_COMPARE_NODE_IP, "true");
-    assertTrue(lt1.matches(lt2));
+    assertTrue(TieredIdentityUtils.matches(lt1, lt2));
 
     Configuration.set(PropertyKey.LOCALITY_COMPARE_NODE_IP, "false");
-    assertFalse(lt1.matches(lt2));
+    assertFalse(TieredIdentityUtils.matches(lt1, lt2));
   }
 
   public void string() {

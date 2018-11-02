@@ -75,8 +75,7 @@ public final class FileSystemMasterClient extends AbstractMasterClient {
     return retryRPC(new RpcCallable<FileInfo>() {
       @Override
       public FileInfo call() throws TException {
-        return FileInfo
-            .fromThrift(mClient.getFileInfo(fileId, new GetFileInfoTOptions()).getFileInfo());
+        return null;
       }
     });
   }

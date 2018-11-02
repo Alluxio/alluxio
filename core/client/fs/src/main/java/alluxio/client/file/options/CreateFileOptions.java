@@ -19,8 +19,8 @@ import alluxio.client.UnderStorageType;
 import alluxio.client.WriteType;
 import alluxio.client.file.policy.FileWriteLocationPolicy;
 import alluxio.security.authorization.Mode;
-import alluxio.thrift.CreateFileTOptions;
 import alluxio.util.CommonUtils;
+import alluxio.util.ModeUtils;
 import alluxio.wire.CommonOptions;
 import alluxio.wire.TtlAction;
 
@@ -30,6 +30,8 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.google.common.base.Objects;
 import com.google.common.base.Throwables;
 
+import java.util.Collections;
+
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -38,55 +40,39 @@ import javax.annotation.concurrent.NotThreadSafe;
 @PublicApi
 @NotThreadSafe
 @JsonInclude(Include.NON_EMPTY)
-public final class CreateFileOptions {
-  private CommonOptions mCommonOptions;
-  private boolean mRecursive;
+public final class CreateFileOptions
+    extends alluxio.file.options.CreateFileOptions<CreateFileOptions> {
   private FileWriteLocationPolicy mLocationPolicy;
-  private long mBlockSizeBytes;
-  private Mode mMode;
   private int mWriteTier;
   private WriteType mWriteType;
-  private int mReplicationDurable;
-  private int mReplicationMax;
-  private int mReplicationMin;
-
-  /**
-   * @return the default {@link CreateFileOptions}
-   */
-  public static CreateFileOptions defaults() {
-    return new CreateFileOptions();
-  }
 
   private CreateFileOptions() {
     mCommonOptions = CommonOptions.defaults()
-        .setTtl(Configuration.getLong(PropertyKey.USER_FILE_CREATE_TTL))
-        .setTtlAction(Configuration.getEnum(PropertyKey.USER_FILE_CREATE_TTL_ACTION,
-            TtlAction.class));
+        .setTtl(Configuration.getLong(PropertyKey.USER_FILE_CREATE_TTL)).setTtlAction(
+            Configuration.getEnum(PropertyKey.USER_FILE_CREATE_TTL_ACTION, TtlAction.class));
+    mMode = ModeUtils.applyFileUMask(Mode.defaults());
+    mAcl = Collections.emptyList();
     mRecursive = true;
+
     mBlockSizeBytes = Configuration.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
     mLocationPolicy =
         CommonUtils.createNewClassInstance(Configuration.<FileWriteLocationPolicy>getClass(
             PropertyKey.USER_FILE_WRITE_LOCATION_POLICY), new Class[] {}, new Object[] {});
     mWriteTier = Configuration.getInt(PropertyKey.USER_FILE_WRITE_TIER_DEFAULT);
     mWriteType = Configuration.getEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class);
+    // TODO(adit):
+    mPersisted = mWriteType.isThrough();
     mReplicationDurable = Configuration.getInt(PropertyKey.USER_FILE_REPLICATION_DURABLE);
     mReplicationMax = Configuration.getInt(PropertyKey.USER_FILE_REPLICATION_MAX);
     mReplicationMin = Configuration.getInt(PropertyKey.USER_FILE_REPLICATION_MIN);
-    mMode = Mode.defaults().applyFileUMask();
+    mMode = ModeUtils.applyFileUMask(Mode.defaults());
   }
 
   /**
-   * @return the common options
+   * @return the default {@link CreateFileOptions}
    */
-  public CommonOptions getCommonOptions() {
-    return mCommonOptions;
-  }
-
-  /**
-   * @return the block size
-   */
-  public long getBlockSizeBytes() {
-    return mBlockSizeBytes;
+  public static CreateFileOptions defaults() {
+    return new CreateFileOptions();
   }
 
   /**
@@ -102,27 +88,6 @@ public final class CreateFileOptions {
    */
   public String getLocationPolicyClass() {
     return mLocationPolicy.getClass().getCanonicalName();
-  }
-
-  /**
-   * @return the number of block replication for durable write
-   */
-  public int getReplicationDurable() {
-    return mReplicationDurable;
-  }
-
-  /**
-   * @return the maximum number of block replication
-   */
-  public int getReplicationMax() {
-    return mReplicationMax;
-  }
-
-  /**
-   * @return the minimum number of block replication
-   */
-  public int getReplicationMin() {
-    return mReplicationMin;
   }
 
   /**
@@ -202,7 +167,8 @@ public final class CreateFileOptions {
    */
   public CreateFileOptions setLocationPolicyClass(String className) {
     try {
-      @SuppressWarnings("unchecked") Class<FileWriteLocationPolicy> clazz =
+      @SuppressWarnings("unchecked")
+      Class<FileWriteLocationPolicy> clazz =
           (Class<FileWriteLocationPolicy>) Class.forName(className);
       mLocationPolicy = CommonUtils.createNewClassInstance(clazz, new Class[] {}, new Object[] {});
       return this;
@@ -231,59 +197,6 @@ public final class CreateFileOptions {
   }
 
   /**
-   * @param replicationDurable the number of block replication for durable write
-   * @return the updated options object
-   */
-  public CreateFileOptions setReplicationDurable(int replicationDurable) {
-    mReplicationDurable = replicationDurable;
-    return this;
-  }
-
-  /**
-   * @param replicationMax the maximum number of block replication
-   * @return the updated options object
-   */
-  public CreateFileOptions setReplicationMax(int replicationMax) {
-    com.google.common.base.Preconditions
-        .checkArgument(
-            replicationMax == alluxio.Constants.REPLICATION_MAX_INFINITY || replicationMax >= 0,
-            alluxio.exception.PreconditionMessage.INVALID_REPLICATION_MAX_VALUE);
-    mReplicationMax = replicationMax;
-    return this;
-  }
-
-  /**
-   * @param replicationMin the minimum number of block replication
-   * @return the updated options object
-   */
-  public CreateFileOptions setReplicationMin(int replicationMin) {
-    com.google.common.base.Preconditions.checkArgument(replicationMin >= 0,
-        alluxio.exception.PreconditionMessage.INVALID_REPLICATION_MIN_VALUE);
-    mReplicationMin = replicationMin;
-    return this;
-  }
-
-  /**
-   * @param ttl the TTL (time to live) value to use; it identifies duration (in milliseconds) the
-   *        created file should be kept around before it is automatically deleted, no matter whether
-   *        the file is pinned
-   * @return the updated options object
-   */
-  public CreateFileOptions setTtl(long ttl) {
-    getCommonOptions().setTtl(ttl);
-    return this;
-  }
-
-  /**
-   * @param ttlAction the {@link TtlAction} to use
-   * @return the updated options object
-   */
-  public CreateFileOptions setTtlAction(TtlAction ttlAction) {
-    getCommonOptions().setTtlAction(ttlAction);
-    return this;
-  }
-
-  /**
    * @param writeTier the write tier to use for this operation
    * @return the updated options object
    */
@@ -299,6 +212,8 @@ public final class CreateFileOptions {
    */
   public CreateFileOptions setWriteType(WriteType writeType) {
     mWriteType = writeType;
+    // TODO(adit):
+    mPersisted = mWriteType.isThrough();
     return this;
   }
 
@@ -315,6 +230,11 @@ public final class CreateFileOptions {
         .setReplicationMin(mReplicationMin)
         .setWriteTier(mWriteTier)
         .setWriteType(mWriteType);
+  }
+
+  @Override
+  protected CreateFileOptions getThis() {
+    return this;
   }
 
   @Override
@@ -359,23 +279,5 @@ public final class CreateFileOptions {
         .add("writeTier", mWriteTier)
         .add("writeType", mWriteType)
         .toString();
-  }
-
-  /**
-   * @return Thrift representation of the options
-   */
-  public CreateFileTOptions toThrift() {
-    CreateFileTOptions options = new CreateFileTOptions();
-    options.setBlockSizeBytes(mBlockSizeBytes);
-    options.setPersisted(mWriteType.isThrough());
-    options.setRecursive(mRecursive);
-    options.setReplicationDurable(mReplicationDurable);
-    options.setReplicationMax(mReplicationMax);
-    options.setReplicationMin(mReplicationMin);
-    if (mMode != null) {
-      options.setMode(mMode.toShort());
-    }
-    options.setCommonOptions(mCommonOptions.toThrift());
-    return options;
   }
 }

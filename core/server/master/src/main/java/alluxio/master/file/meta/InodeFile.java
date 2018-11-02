@@ -13,14 +13,15 @@ package alluxio.master.file.meta;
 
 import alluxio.Constants;
 import alluxio.exception.BlockInfoException;
+import alluxio.file.options.CreateFileOptions;
 import alluxio.master.ProtobufUtils;
 import alluxio.master.block.BlockId;
-import alluxio.master.file.options.CreateFileOptions;
 import alluxio.proto.journal.File.InodeFileEntry;
 import alluxio.proto.journal.File.UpdateInodeFileEntry;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.security.authorization.AccessControlList;
 import alluxio.security.authorization.DefaultAccessControlList;
+import alluxio.util.proto.ProtoUtils;
 import alluxio.wire.FileInfo;
 
 import com.google.common.base.Preconditions;
@@ -374,7 +375,7 @@ public final class InodeFile extends Inode<InodeFile> implements InodeFileView {
         .setUfsFingerprint(entry.hasUfsFingerprint() ? entry.getUfsFingerprint() :
             Constants.INVALID_UFS_FINGERPRINT);
     if (entry.hasAcl()) {
-      ret.mAcl = AccessControlList.fromProtoBuf(entry.getAcl());
+      ret.mAcl = ProtoUtils.fromProto(entry.getAcl());
     } else {
       // Backward compatibility.
       AccessControlList acl = new AccessControlList();
@@ -444,7 +445,7 @@ public final class InodeFile extends Inode<InodeFile> implements InodeFileView {
         .setTtl(getTtl())
         .setTtlAction(ProtobufUtils.toProtobuf(getTtlAction()))
         .setUfsFingerprint(getUfsFingerprint())
-        .setAcl(AccessControlList.toProtoBuf(mAcl))
+        .setAcl(ProtoUtils.toProto(mAcl))
         .build();
     return JournalEntry.newBuilder().setInodeFile(inodeFile).build();
   }

@@ -87,10 +87,11 @@ public final class BlockMasterClientServiceHandler implements BlockMasterClientS
   @Override
   public GetBlockInfoTResponse getBlockInfo(final long blockId, GetBlockInfoTOptions options)
       throws AlluxioTException {
-    return RpcUtils.call(LOG,
-        (RpcCallableThrowsIOException<GetBlockInfoTResponse>) () -> new GetBlockInfoTResponse(
-            mBlockMaster.getBlockInfo(blockId).toThrift()), "GetBlockInfo",
-        "blockId=%s, options=%s", blockId, options);
+//    return RpcUtils.call(LOG,
+//        (RpcCallableThrowsIOException<GetBlockInfoTResponse>) () -> new GetBlockInfoTResponse(
+//            mBlockMaster.getBlockInfo(blockId).toThrift()), "GetBlockInfo",
+//        "blockId=%s, options=%s", blockId, options);
+    return null;
   }
 
   @Override
@@ -136,7 +137,7 @@ public final class BlockMasterClientServiceHandler implements BlockMasterClientS
     return RpcUtils.call((RpcCallableThrowsIOException<GetWorkerInfoListTResponse>) () -> {
       List<WorkerInfo> workerInfos = new ArrayList<>();
       for (alluxio.wire.WorkerInfo workerInfo : mBlockMaster.getWorkerInfoList()) {
-        workerInfos.add(workerInfo.toThrift());
+//        workerInfos.add(workerInfo.toThrift());
       }
       return new GetWorkerInfoListTResponse(workerInfos);
     });
@@ -149,7 +150,7 @@ public final class BlockMasterClientServiceHandler implements BlockMasterClientS
       List<WorkerInfo> workerInfos = new ArrayList<>();
       for (alluxio.wire.WorkerInfo workerInfo : mBlockMaster
           .getWorkerReport(new GetWorkerReportOptions(options))) {
-        workerInfos.add(workerInfo.toThrift());
+//        workerInfos.add(workerInfo.toThrift());
       }
       return new GetWorkerInfoListTResponse(workerInfos);
     }, "GetWorkerReport", "options=%s", options);

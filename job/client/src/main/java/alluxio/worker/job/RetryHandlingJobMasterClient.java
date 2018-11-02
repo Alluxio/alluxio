@@ -13,6 +13,7 @@ package alluxio.worker.job;
 
 import alluxio.AbstractMasterClient;
 import alluxio.Constants;
+import alluxio.network.thrift.ThriftUtils;
 import alluxio.thrift.AlluxioService.Client;
 import alluxio.thrift.JobCommand;
 import alluxio.thrift.JobHeartbeatTOptions;
@@ -79,7 +80,7 @@ public final class RetryHandlingJobMasterClient extends AbstractMasterClient
     return retryRPC(new RpcCallable<Long>() {
       public Long call() throws TException {
         return mClient
-            .registerJobWorker(address.toThrift(), new RegisterJobWorkerTOptions())
+            .registerJobWorker(null, new RegisterJobWorkerTOptions())
             .getId();
       }
     });

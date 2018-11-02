@@ -48,3 +48,4 @@
 dependency-reduced-pom.xml
 target/
 tests.log*
+bin/protoc-gen-grpc-java-1.10.1-osx-x86_64.exe
