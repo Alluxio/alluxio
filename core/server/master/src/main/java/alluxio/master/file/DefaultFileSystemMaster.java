@@ -406,9 +406,9 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   @Override
   public Map<String, TProcessor> getServices() {
     Map<String, TProcessor> services = new HashMap<>();
-    services.put(Constants.FILE_SYSTEM_MASTER_CLIENT_SERVICE_NAME,
-        new FileSystemMasterClientServiceProcessor(
-            new FileSystemMasterClientServiceHandler(this)));
+    // services.put(Constants.FILE_SYSTEM_MASTER_CLIENT_SERVICE_NAME,
+    //     new FileSystemMasterClientServiceProcessor(
+    //         new FileSystemMasterClientServiceHandler(this)));
     services.put(Constants.FILE_SYSTEM_MASTER_JOB_SERVICE_NAME,
         new alluxio.thrift.FileSystemMasterJobService.Processor<>(
             new FileSystemMasterJobServiceHandler(this)));
@@ -2559,7 +2559,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     }
 
     if (defaultAcl != null) {
-      createDirectoryOptions.setDefaultAcl(defaultAcl.getEntries());
+      createDirectoryOptions.setAcl(defaultAcl.getEntries());
     }
     if (lastModifiedTime != null) {
       createDirectoryOptions.setOperationTimeMs(lastModifiedTime);

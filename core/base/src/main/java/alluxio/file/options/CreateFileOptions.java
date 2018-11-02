@@ -25,6 +25,9 @@ public abstract class CreateFileOptions<T extends CreateFileOptions<T>>
     extends CreatePathOptions<T> {
   protected long mBlockSizeBytes;
   protected boolean mCacheable;
+  protected int mReplicationDurable;
+  protected int mReplicationMax;
+  protected int mReplicationMin;
 
   /**
    * @return the block size
@@ -56,6 +59,60 @@ public abstract class CreateFileOptions<T extends CreateFileOptions<T>>
   public T setCacheable(boolean cacheable) {
     mCacheable = cacheable;
     return getThis();
+  }
+
+  /**
+   * @return the number of block replication for durable write
+   */
+  public int getReplicationDurable() {
+    return mReplicationDurable;
+  }
+
+  /**
+   * @return the maximum number of block replication
+   */
+  public int getReplicationMax() {
+    return mReplicationMax;
+  }
+
+  /**
+   * @return the minimum number of block replication
+   */
+  public int getReplicationMin() {
+    return mReplicationMin;
+  }
+
+  /**
+   * @param replicationDurable the number of block replication for durable write
+   * @return the updated options object
+   */
+  public CreateFileOptions setReplicationDurable(int replicationDurable) {
+    mReplicationDurable = replicationDurable;
+    return this;
+  }
+
+  /**
+   * @param replicationMax the maximum number of block replication
+   * @return the updated options object
+   */
+  public CreateFileOptions setReplicationMax(int replicationMax) {
+    com.google.common.base.Preconditions
+            .checkArgument(
+                    replicationMax == alluxio.Constants.REPLICATION_MAX_INFINITY || replicationMax >= 0,
+                    alluxio.exception.PreconditionMessage.INVALID_REPLICATION_MAX_VALUE);
+    mReplicationMax = replicationMax;
+    return this;
+  }
+
+  /**
+   * @param replicationMin the minimum number of block replication
+   * @return the updated options object
+   */
+  public CreateFileOptions setReplicationMin(int replicationMin) {
+    com.google.common.base.Preconditions.checkArgument(replicationMin >= 0,
+            alluxio.exception.PreconditionMessage.INVALID_REPLICATION_MIN_VALUE);
+    mReplicationMin = replicationMin;
+    return this;
   }
 
   @Override

@@ -29,6 +29,7 @@ import alluxio.resource.LockResource;
 import alluxio.security.authorization.AccessControlList;
 import alluxio.util.CommonUtils;
 import alluxio.util.proto.ProtoMessage;
+import alluxio.util.proto.ProtoUtils;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Preconditions;
@@ -169,7 +170,7 @@ public final class NettyPacketWriter implements PacketWriter {
           Protocol.CreateUfsFileOptions.newBuilder().setUfsPath(options.getUfsPath())
               .setOwner(options.getOwner()).setGroup(options.getGroup())
               .setMode(options.getMode().toShort()).setMountId(options.getMountId())
-              .setAcl(AccessControlList.toProtoBuf(options.getAcl()))
+              .setAcl(ProtoUtils.toProto(options.getAcl()))
               .build();
       builder.setCreateUfsFileOptions(ufsFileOptions);
     }

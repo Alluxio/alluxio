@@ -2370,7 +2370,7 @@ public final class FileSystemMasterTest {
     FileSystemCommand command = mFileSystemMaster
         .workerHeartbeat(mWorkerId1, Lists.newArrayList(fileId), WorkerHeartbeatOptions.defaults());
     assertEquals(CommandType.Persist, command.getCommandType());
-    assertEquals(0, command.getCommandOptions().getPersistOptions().getPersistFiles().size());
+    assertEquals(0, command.getCommandOptions().getPersistOptions().getFilesToPersist().size());
   }
 
   /**
