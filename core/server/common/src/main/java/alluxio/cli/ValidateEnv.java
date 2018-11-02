@@ -187,7 +187,7 @@ public final class ValidateEnv {
     tasks.add(task);
     List<Option> optList = task.getOptionList();
     synchronized (ValidateEnv.class) {
-      optList.forEach(opt -> OPTIONS.addOption(opt));
+      optList.forEach(OPTIONS::addOption);
     }
     return task;
   }
