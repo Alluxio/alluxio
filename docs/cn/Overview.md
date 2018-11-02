@@ -59,8 +59,7 @@ InputStream和OutputStream的接口和对内存映射I/O的高效支持。我们
 不同的底层存储系统。目前我们支持Microsoft Azure Blob Store，Amazon S3，Google Cloud Storage，OpenStack Swift，GlusterFS，
 HDFS，MaprFS，Ceph，NFS，Alibaba OSS，Minio以及单节点本地文件系统，后续也会支持很多其它的文件系统。
 
-* **[Alluxio存储](Alluxio-Storage.html)** Alluxio可以管理内存和本地存储如SSD
-和HDD,以加速数据访问。如果需要更细粒度的控制，分层存储功能可以用于自动管理不同层之间的数据，保证热数据在更快的存储层上。
+* **[Alluxio存储](Alluxio-Storage.html)** Alluxio可以管理内存和本地存储如SSD和HDD，以加速数据访问。如果需要更细粒度的控制，分层存储功能可以用于自动管理不同层之间的数据，保证热数据在更快的存储层上。
 自定义策略可以方便地加入Alluxio，而且pin的概念允许用户直接控制数据的存放位置。
 
 * **[统一命名空间](Unified-and-Transparent-Namespace.html)** Alluxio通过挂载功能在不同的存储系统之间实
