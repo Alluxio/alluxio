@@ -13,6 +13,8 @@ package alluxio.worker.netty;
 
 import alluxio.proto.dataserver.Protocol;
 
+import com.google.common.base.Objects;
+
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -41,5 +43,11 @@ public final class UfsFileWriteRequest extends WriteRequest {
    */
   public Protocol.CreateUfsFileOptions getCreateUfsFileOptions() {
     return mCreateUfsFileOptions;
+  }
+
+  @Override
+  protected Objects.ToStringHelper toStringHelper() {
+    return super.toStringHelper().add("ufsPath", mUfsPath)
+        .add("createUfsFileOptions", mCreateUfsFileOptions);
   }
 }
