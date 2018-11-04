@@ -53,22 +53,21 @@ public class KodoClient {
 
   /** Endpoint for Qiniu kodo. */
   private String mEndPoint;
-
   /**
    * Creates a new instance of {@link KodoClient}.
    * @param auth Qiniu authentication
-   * @param BucketName bucketname for kodo
-   * @param DownloadHost download host for kodo
-   * @param EndPoint endpoint for kodo
+   * @param bucketName bucketname for kodo
+   * @param downloadHost download host for kodo
+   * @param endPoint endpoint for kodo
    * @param cfg configuration for Qiniu SDK
    * @param okHttpClient http client
    */
-  public KodoClient(Auth auth, String BucketName, String DownloadHost, String EndPoint,
+  public KodoClient(Auth auth, String bucketName, String downloadHost, String endPoint,
       Configuration cfg, OkHttpClient okHttpClient) {
     mAuth = auth;
-    mBucketName = BucketName;
-    mEndPoint = EndPoint;
-    mDownloadHost = DownloadHost;
+    mBucketName = bucketName;
+    mEndPoint = endPoint;
+    mDownloadHost = downloadHost;
     mBucketManager = new BucketManager(mAuth, cfg);
     mUploadManager = new UploadManager(cfg);
     mOkHttpClient = okHttpClient;

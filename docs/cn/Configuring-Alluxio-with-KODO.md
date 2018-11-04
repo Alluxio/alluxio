@@ -35,14 +35,14 @@ alluxio.underfs.address=kodo://<KODO_BUCKET>/<KODO_DIRECTORY>/
 ```
 fs.kodo.accesskey=<KODO_ACCESS_KEY>
 fs.kodo.secretkey=<KODO_SECRET_KEY>
-fs.kodo.downloadhost=<KODO_DOWNLOAD_HOST>
-fs.kodo.endpoint=<KODO_ENDPOINT>
+alluxio.underfs.kodo.downloadhost=<KODO_DOWNLOAD_HOST>
+alluxio.underfs.kodo.endpoint=<KODO_ENDPOINT>
 ```
 
 首先, 你可以从[七牛密钥管理](https://portal.qiniu.com/user/key)中 获取 `AccessKey/SecretKey`。
 
-`fs.kodo.downloadhost` 可以在[七牛云对象存储管理平台](https://portal.qiniu.com/bucket) 中的空间概览中获取[访问域名](https://mars-assets.qnssl.com/alluxio_host.png)。
-`fs.kodo.endpoint` 是七牛云存储源站的端点域名配置,可以根据存储空间所在存储区域进行配置:
+`alluxio.underfs.kodo.downloadhost` 可以在[七牛云对象存储管理平台](https://portal.qiniu.com/bucket) 中的空间概览中获取[访问域名](https://mars-assets.qnssl.com/alluxio_host.png)。
+`alluxio.underfs.kodo.endpoint` 是七牛云存储源站的端点域名配置,可以根据存储空间所在存储区域进行配置:
 
 Kodo 存储空间和对应端点域名可以参考
 
@@ -62,8 +62,8 @@ Kodo 可以安装在 Alluxio 命名空间中的嵌套目录中，以统一访问
 ```bash 
 $ ./bin/alluxio fs mount --option fs.kodo.accesskey=<KODO_ACCESS_KEY> \
   --option fs.kodo.secretkey=<KODO_SECRET_KEY> \
-  --option fs.kodo.downloadhost=<KODO_DOWNLOAD_HOST> \
-  --option fs.kodo.endpoint=<KODO_ENDPOINT> \
+  --option alluxio.underfs.kodo.downloadhost=<KODO_DOWNLOAD_HOST> \
+  --option alluxio.underfs.kodo.endpoint=<KODO_ENDPOINT> \
   /kodo kodo://<KODO_BUCKET>/<KODO_DIRECTORY>/
 ```
 

@@ -44,18 +44,18 @@ fs.kodo.accesskey=<KODO_ACCESS_KEY>
 
 fs.kodo.secretkey=<KODO_SECRET_KET>
 
-fs.kodo.downloadhost=<KODO_DOWNLOAD_HOST>
+alluxio.underfs.kodo.downloadhost=<KODO_DOWNLOAD_HOST>
 
-fs.kodo.endpoint=<KODO_ENDPOINT>
+alluxio.underfs.kodo.endpoint=<KODO_ENDPOINT>
 
 ```
 
 `AccessKey/SecretKey` can be found in [Qiniu Console - Key Management](https://portal.qiniu.com/user/key)
 
-`fs.kodo.downloadhost` can be found in [Qiniu Console - Kodo](https://portal.qiniu.com/bucket) 
+`alluxio.underfs.kodo.downloadhost` can be found in [Qiniu Console - Kodo](https://portal.qiniu.com/bucket) 
 according to this [order](https://mars-assets.qnssl.com/alluxio_host.png)
 
-`fs.kodo.endpoint` is the endpoint of this bucket, which can be found in the Bucket in this table:
+`alluxio.underfs.kodo.endpoint` is the endpoint of this bucket, which can be found in the Bucket in this table:
 
 | Region | Abbreviation| EndPoint |
 | ------- | -------- | --------- |
@@ -75,8 +75,8 @@ For example, the following command mounts a directory inside an Kodo bucket into
 ```bash 
 $ ./bin/alluxio fs mount --option fs.kodo.accessKey=<KODO_ACCESS_KEY> \
   --option fs.kodo.secretkey=<KODO_SECRET_KET> \
-  --option fs.kodo.downloadhost=<KODO_DOWNLOAD_HOST> \
-  --option fs.kodo.endpoint=<KODO_ENDPOINT> \
+  --option alluxio.underfs.kodo.downloadhost=<KODO_DOWNLOAD_HOST> \
+  --option alluxio.underfs.kodo.endpoint=<KODO_ENDPOINT> \
   kodo/ kodo://<KODO_BUCKET>/<KODO_DIRECTORY>/
 ```
 

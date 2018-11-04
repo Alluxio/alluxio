@@ -33,7 +33,7 @@
         <dependency>
             <groupId>com.qiniu</groupId>
             <artifactId>qiniu-java-sdk</artifactId>
-            <version>[7.0.0, 7.2.99]</version>
+            <version>7.2.17</version>
         </dependency>
         <dependency>
             <groupId>com.squareup.okhttp3</groupId>
