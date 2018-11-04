@@ -105,47 +105,6 @@ same way you would for any other client application.
 One possibility, for example, is to edit `$ALLUXIO_HOME/conf/alluxio-site.properties` and set your
 specific Alluxio client options. Note that these changes should be before Alluxio-FUSE starts.
 
-### Configure mount point options
-
-You can use `-o [mount options]` to set mount options.
-If you want to set multiple mount options, you can pass in comma separated mount options as the value of `-o`.
-The `-o [mount options]` must follow the `mount` command.
-
-The commonly used mount options are listed [here](http://man7.org/linux/man-pages/man8/mount.fuse.8.html).
-
-```bash
-$ integration/fuse/bin/alluxio-fuse mount -o [comma separated mount options] mount_point [alluxio_path]
-```
-
-Note that `direct_io` mount option is set by default so that writes and reads bypass the kernel page cache
-and go directly to Alluxio.
-
-Note that different versions of libfuse and osxfuse support different mount options.
-
-#### Example: allow_other or allow_root
-
-By default, Alluxio Fuse mount point can only be accessed by the user
-mounting the Alluxio namespace to the local filesystem.
-If you want to allow other users or allow root to access the mounted folder, you can
-add the following line to the file `/etc/fuse.conf`:
-
-```
-user_allow_other
-```
-
-This option allow non-root users to specify the `allow_other` or `allow_root` mount options.
-
-After that, you can pass the `allow_other` or `allow_root` mount options when mounting Alluxio-Fuse:
-
-```bash
-# All users (including root) can access the files.
-$ integration/fuse/bin/alluxio-fuse mount -o allow_other mount_point [alluxio_path]
-# The user mounting the filesystem and root can access the files.
-$ integration/fuse/bin/alluxio-fuse mount -o allow_root mount_point [alluxio_path]
-```
-
-Note that only one of the `allow_other` or `allow_root` could be set.
-
 ## Assumptions and limitations
 
 Currently, most basic file system operations are supported. However, due to Alluxio implicit

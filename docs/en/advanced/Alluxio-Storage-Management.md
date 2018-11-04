@@ -377,41 +377,6 @@ See the detailed
 [command line documentation]({{ '/en/basic/Command-Line-Interface.html' | relativize_url }}#setttl)
 to see how to use the `setTtl` command within the Alluxio shell to modify TTL attribute.
 
-#### Passively on load metadata or create file
-
-The Alluxio client can be configured to add TTL attributes whenever it adds a new file to the
-Alluxio namespace. Passive TTL is useful in cases where files accessed by the user are expected to
-be temporarily used, but it is not flexible because all requests from the same client will inherit
-the same TTL attributes.
-
-Passive TTL works with the following configuration options:
-
-* `alluxio.user.file.load.ttl` - The TTL duration to set on any file newly loaded into Alluxio
-from an under store. By default, no TTL duration is set.
-* `alluxio.user.file.load.ttl.action` - The TTL action to set on any file newly loaded into Alluxio
-from an under store. By default, this action is `DELETE`.
-* `alluxio.user.file.create.ttl` - The TTL duration to set on any file newly created in Alluxio.
-By default, no TTL duration is set.
-* `alluxio.user.file.create.ttl.action` - The TTL action to set on any file newly created
-in Alluxio. By default, this action is `DELETE`.
-
-There are two pairs of options, one for `load` and one for `create`. `Load` refers to files which
-are discovered by Alluxio from the under store. `Create` refers to new files or directories created
-in Alluxio.
-
-Both options are disabled by default and should only be enabled by clients which have strict data
-access patterns.
-
-For example, to delete the files created by the `runTests` after 3 minutes:
-
-```bash
-$ bin/alluxio runTests -Dalluxio.user.file.create.ttl=3m -Dalluxio.user.file.create.ttl
-.action=DELETE
-```
-
-For this example, ensure the `alluxio.master.ttl.checker.interval` is set to a short
-duration, such as a minute, in order for the the master to quickly identify the expired files.
-
 ## Checking Alluxio Cache Capacity and Usage
 
 The Alluxio shell command `fsadmin report` provides a short summary of space availability,
