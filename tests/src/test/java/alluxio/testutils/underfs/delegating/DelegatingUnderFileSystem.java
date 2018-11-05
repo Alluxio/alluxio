@@ -250,7 +250,27 @@ public class DelegatingUnderFileSystem implements UnderFileSystem {
   }
 
   @Override
-  public SyncInfo getActiveSyncInfo(List<AlluxioURI> syncPointList) throws IOException {
-    return mUfs.getActiveSyncInfo(syncPointList);
+  public SyncInfo getActiveSyncInfo() throws IOException {
+    return mUfs.getActiveSyncInfo();
+  }
+
+  @Override
+  public void startSync(AlluxioURI uri) throws IOException {
+    mUfs.startSync(uri);
+  }
+
+  @Override
+  public void stopSync(AlluxioURI uri) throws IOException {
+    mUfs.stopSync(uri);
+  }
+
+  @Override
+  public boolean startActiveSyncPolling(long txId) throws IOException {
+    return mUfs.startActiveSyncPolling(txId);
+  }
+
+  @Override
+  public boolean stopActiveSyncPolling() throws IOException {
+    return mUfs.stopActiveSyncPolling();
   }
 }

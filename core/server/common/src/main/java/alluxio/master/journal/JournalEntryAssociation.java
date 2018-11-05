@@ -27,6 +27,7 @@ public final class JournalEntryAssociation {
     if (entry.hasAddMountPoint()
         || entry.hasAsyncPersistRequest()
         || entry.hasAddSyncPoint()
+        || entry.hasActiveSyncTxId()
         || entry.hasCompleteFile()
         || entry.hasDeleteFile()
         || entry.hasDeleteMountPoint()

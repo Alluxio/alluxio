@@ -196,9 +196,25 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem {
   }
 
   @Override
-  public SyncInfo getActiveSyncInfo(List<AlluxioURI> syncPointList) {
+  public SyncInfo getActiveSyncInfo() {
     return SyncInfo.emptyInfo();
   }
+
+  @Override
+  public boolean startActiveSyncPolling(long txId) throws IOException {
+    return false;
+  }
+
+  @Override
+  public boolean stopActiveSyncPolling() {
+    return false;
+  }
+
+  @Override
+  public void startSync(AlluxioURI uri)  { }
+
+  @Override
+  public void stopSync(AlluxioURI uri) { }
 
   /**
    * Clean the path by creating a URI and turning it back to a string.

@@ -348,6 +348,20 @@ public final class MountTable implements JournalEntryIterable, JournalEntryRepla
   }
 
   /**
+   * Get the associated ufs client with the mount id.
+   * @param mountId mount id to look up ufs client
+   * @return ufsClient
+   */
+  public UfsManager.UfsClient getUfsClient(long mountId) {
+    try {
+      return mUfsManager.get(mountId);
+    } catch (NotFoundException | UnavailableException e) {
+      LOG.warn("failed to get ufsclient for mountid {}, exception {}", mountId, e);
+    }
+    return null;
+  }
+
+  /**
    * Resolves the given Alluxio path. If the given Alluxio path is nested under a mount point, the
    * resolution maps the Alluxio path to the corresponding UFS path. Otherwise, the resolution is a
    * no-op.

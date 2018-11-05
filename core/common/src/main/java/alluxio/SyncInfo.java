@@ -19,18 +19,29 @@ import java.util.Set;
  * This class is used to represent what the active syncing process should sync.
  */
 public class SyncInfo {
-  private static final SyncInfo EMPTY_INFO = new SyncInfo(Collections.emptyMap());
+  public static final long INVALID_TXID = -1;
+  private static final SyncInfo EMPTY_INFO = new SyncInfo(Collections.emptyMap(), false, INVALID_TXID);
 
   // A map mapping syncpoints to files changed in those sync points
   private final Map<AlluxioURI, Set<AlluxioURI>> mChangedFilesMap;
 
+  // Ignore the changed files and simply sync the entire directory
+  private final boolean mForceSync;
+
+  // transaction id that we can restart from once this sync is complete
+  private final long mTxId;
+
   /**
-   * Construct a SyncInfo.
+   * Constructs a SyncInfo.
    *
-   * @param changedFiles changedFile Map
+   * @param changedFiles a map mapping syncpoint to changed files
+   * @param forceSync force sync the entire directory
+   * @param txId the transaction id  that is synced in this sync
    */
-  public SyncInfo(Map<AlluxioURI, Set<AlluxioURI>> changedFiles) {
+  public SyncInfo(Map<AlluxioURI, Set<AlluxioURI>> changedFiles, boolean forceSync, long txId) {
     mChangedFilesMap = changedFiles;
+    mForceSync = forceSync;
+    mTxId = txId;
   }
 
   /**
@@ -59,5 +70,23 @@ public class SyncInfo {
    */
   public Set<AlluxioURI> getChangedFiles(AlluxioURI syncPoint) {
     return mChangedFilesMap.get(syncPoint);
+  }
+
+  /**
+   * returns true if this sync should happen on the entire directory.
+   *
+   * @return true if this sync should happen on the entire dir
+   */
+  public boolean isForceSync() {
+    return mForceSync;
+  }
+
+  /**
+   * returns the transaction id that is synced in this sync period.
+   *
+   * @return a transaction id that is synced in this sync period
+   */
+  public long getTxId() {
+    return mTxId;
   }
 }

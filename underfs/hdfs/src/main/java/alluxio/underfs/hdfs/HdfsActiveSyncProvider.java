@@ -14,7 +14,7 @@ package alluxio.underfs.hdfs;
 import alluxio.AlluxioURI;
 import alluxio.SyncInfo;
 
-import java.util.List;
+import java.io.IOException;
 
 /**
  * Interface for providing HDFS ActiveSync.
@@ -23,8 +23,36 @@ public interface HdfsActiveSyncProvider {
   /**
    * Get Active SyncInfo from the sync provider.
    *
-   * @param syncPointList List of alluxio URIs to watch for changes
    * @return SyncInfo a syncInfo containing information about what to sync and how to sync
    */
-  SyncInfo getActivitySyncInfo(List<AlluxioURI> syncPointList);
+  SyncInfo getActivitySyncInfo();
+
+  /**
+   * start polling thread.
+   *
+   * @param txId transaction id to start monitoring
+   * @return true if polling thread started successfully
+   */
+  boolean startPolling(long txId) throws IOException;
+
+  /**
+   * stop polling thread.
+   *
+   * @return true if polling thread stopped successfully
+   */
+  boolean stopPolling();
+
+  /**
+   * start syncing on a ufs uri.
+   *
+   * @param ufsUri the ufs uri to monitor
+   */
+  void startSync(AlluxioURI ufsUri);
+
+  /**
+   * stop syncing on a ufs uri.
+   *
+   * @param ufsUri the ufs uri to stop monitoring
+   */
+  void stopSync(AlluxioURI ufsUri);
 }

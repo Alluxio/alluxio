@@ -652,8 +652,28 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
   }
 
   @Override
-  public SyncInfo getActiveSyncInfo(List<AlluxioURI> syncPointList) {
-    return mHdfsActiveSyncer.getActivitySyncInfo(syncPointList);
+  public SyncInfo getActiveSyncInfo() {
+    return mHdfsActiveSyncer.getActivitySyncInfo();
+  }
+
+  @Override
+  public boolean startActiveSyncPolling(long txId) throws IOException {
+    return mHdfsActiveSyncer.startPolling(txId);
+  }
+
+  @Override
+  public boolean stopActiveSyncPolling() {
+    return mHdfsActiveSyncer.stopPolling();
+  }
+
+  @Override
+  public void startSync(AlluxioURI ufsUri) {
+    mHdfsActiveSyncer.startSync(ufsUri);
+  }
+
+  @Override
+  public void stopSync(AlluxioURI ufsUri) {
+    mHdfsActiveSyncer.stopSync(ufsUri);
   }
 
   /**

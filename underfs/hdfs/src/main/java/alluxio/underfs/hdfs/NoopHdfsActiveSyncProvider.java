@@ -14,14 +14,30 @@ package alluxio.underfs.hdfs;
 import alluxio.AlluxioURI;
 import alluxio.SyncInfo;
 
-import java.util.List;
-
 /**
  * The noop HDFS Active Sync provider.
  */
 public class NoopHdfsActiveSyncProvider implements HdfsActiveSyncProvider {
   @Override
-  public SyncInfo getActivitySyncInfo(List<AlluxioURI> syncPointList) {
+  public SyncInfo getActivitySyncInfo() {
     return SyncInfo.emptyInfo();
+  }
+
+  @Override
+  public boolean startPolling(long txId) {
+    return false;
+  }
+
+  @Override
+  public boolean stopPolling() {
+    return false;
+  }
+
+  @Override
+  public void startSync(AlluxioURI ufsUri) {
+  }
+
+  @Override
+  public void stopSync(AlluxioURI ufsUri) {
   }
 }

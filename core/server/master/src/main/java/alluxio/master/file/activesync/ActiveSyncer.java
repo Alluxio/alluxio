@@ -18,6 +18,7 @@ import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.meta.MountTable;
 import alluxio.resource.CloseableResource;
+import alluxio.underfs.UfsManager;
 import alluxio.underfs.UnderFileSystem;
 
 import com.google.common.base.Throwables;
@@ -82,31 +83,37 @@ public class ActiveSyncer implements HeartbeatExecutor {
     for (AlluxioURI ufsUri: ufsUriList) {
       LOG.debug("ufsUri {}", ufsUri.getPath());
     }
-
-    AlluxioURI path = filterList.get(0);
+    boolean syncResult = false;
     try {
-      MountTable.Resolution resolution = mMountTable.resolve(path);
-      try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
-        UnderFileSystem ufsClient = ufsResource.get();
-        if (ufsClient.supportsActiveSync()) {
-          SyncInfo syncInfo = ufsClient.getActiveSyncInfo(ufsUriList);
+      UfsManager.UfsClient ufsclient = mMountTable.getUfsClient(mMountId);
+      try (CloseableResource<UnderFileSystem> ufsResource = ufsclient.acquireUfsResource()) {
+        UnderFileSystem ufs = ufsResource.get();
+        if (ufs.supportsActiveSync()) {
+          SyncInfo syncInfo = ufs.getActiveSyncInfo();
           // This returns a list of ufsUris that we need to sync.
           Set<AlluxioURI> ufsSyncPoints = syncInfo.getSyncPoints();
-
           for (AlluxioURI ufsUri : ufsSyncPoints) {
-            LOG.debug("sync {}", ufsUri.toString());
+
             AlluxioURI alluxioUri = mMountTable.reverseResolve(ufsUri);
             if (alluxioUri != null) {
-              mFileSystemMaster.batchSyncMetadata(alluxioUri,
-                  syncInfo.getChangedFiles(ufsUri).stream().parallel()
-                      .map(mMountTable::reverseResolve).collect(Collectors.toSet()));
+              if (syncInfo.isForceSync()) {
+                LOG.debug("force full sync {}", ufsUri.toString());
+                syncResult = mFileSystemMaster.activeSyncMetadata(alluxioUri, null);
+              } else {
+                LOG.debug("sync {}", ufsUri.toString());
+                syncResult = mFileSystemMaster.activeSyncMetadata(alluxioUri,
+                    syncInfo.getChangedFiles(ufsUri).stream().parallel()
+                        .map(mMountTable::reverseResolve).collect(Collectors.toSet())
+                );
+              }
+              // Journal the latest processed txId
+              if (syncResult) {
+                mFileSystemMaster.recordActiveSyncTxid(syncInfo.getTxId(), mMountId);
+              }
             }
-
           }
         }
       }
-    } catch (InvalidPathException e) {
-      LOG.warn("Invalid path {}", path.getPath());
     } catch (Exception e) {
       LOG.warn("Exception " + Throwables.getStackTraceAsString(e));
     }

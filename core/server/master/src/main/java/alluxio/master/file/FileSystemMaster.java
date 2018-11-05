@@ -518,7 +518,7 @@ public interface FileSystemMaster extends Master {
    * @throws InvalidPathException
    * @throws AccessControlException
    */
-  void startSync(AlluxioURI alluxioURI) throws UnavailableException, InvalidPathException,
+  void startSync(AlluxioURI alluxioURI) throws IOException, InvalidPathException,
       AccessControlException;
 
   /**
@@ -529,15 +529,25 @@ public interface FileSystemMaster extends Master {
    * @throws InvalidPathException
    * @throws AccessControlException
    */
-  void stopSync(AlluxioURI alluxioURI) throws UnavailableException, InvalidPathException,
+  void stopSync(AlluxioURI alluxioURI) throws IOException, InvalidPathException,
       AccessControlException;
 
   /**
    * Starts a batch sync with a list of changed files passed in.
+   * If no files are passed in, sync the entire path.
    *
    * @param path the path to sync
    * @param changedFiles collection of files that are changed under the path to sync
    * @return return true if successuflly synced the specified path
    */
-  boolean batchSyncMetadata(AlluxioURI path, Collection<AlluxioURI> changedFiles);
+  boolean activeSyncMetadata(AlluxioURI path, Collection<AlluxioURI> changedFiles);
+
+  /**
+   * Journal the active sync transaction id so that we can restart more efficiently.
+   *
+   * @param txId transaction id
+   * @param mountId mount id
+   * @return true if successfully recorded in the journal
+   */
+  boolean recordActiveSyncTxid(long txId, long mountId);
 }

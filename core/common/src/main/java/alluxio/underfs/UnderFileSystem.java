@@ -569,8 +569,36 @@ public interface UnderFileSystem extends Closeable {
   /**
    * Return the active sync info for the specified syncPoints.
    *
-   * @param syncPointList a list of sync points to monitor for this UFS
    * @return active sync info consisting of what changed for these sync points
    */
-  SyncInfo getActiveSyncInfo(List<AlluxioURI> syncPointList) throws IOException;
+  SyncInfo getActiveSyncInfo() throws IOException;
+
+  /**
+   * Add Sync Point.
+   *
+   * @param uri ufs uri to start
+   */
+  void startSync(AlluxioURI uri) throws IOException;
+
+  /**
+   * Stop Sync Point.
+   *
+   * @param uri ufs uri to stop
+   */
+  void stopSync(AlluxioURI uri) throws IOException;
+
+  /**
+   * Start Active Sync.
+   *
+   * @param txId the transaction id to start receiving event
+   * @return true if active sync started
+   */
+  boolean startActiveSyncPolling(long txId) throws IOException;
+
+  /**
+   * Stop Active Sync.
+   *
+   * @return true if active sync stopped
+   */
+  boolean stopActiveSyncPolling() throws IOException;
 }
