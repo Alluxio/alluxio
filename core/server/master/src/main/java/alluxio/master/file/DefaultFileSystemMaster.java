@@ -4028,12 +4028,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         final FileSystemMaster master, final UfsManager ufsManager) {
       MetricsSystem.registerGaugeIfAbsent(MetricsSystem
               .getMetricName(MasterMetrics.FILES_PINNED),
-          new Gauge<Integer>() {
-            @Override
-            public Integer getValue() {
-              return master.getNumberOfPinnedFiles();
-            }
-          });
+          master::getNumberOfPinnedFiles);
 
       MetricsSystem.registerGaugeIfAbsent(MetricsSystem
               .getMetricName(MasterMetrics.PATHS_TOTAL),
