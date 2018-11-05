@@ -21,10 +21,6 @@ Alluxio filesystem will grant or deny user access based on the requesting user a
 the POSIX permissions model of the files or directories to access,
 when `alluxio.security.authorization.permission.enabled=true`.
 Note that, authentication cannot be `NOSASL` as authorization requires user information.
-1. [Access Control Lists](#Access-Control-Lists): In addition to the POSIX permission model, Alluxio
-implements an Access Control List (ACL) model similar to those found in Linux and HDFS. The ACL model
-is more flexible and allows administrators to manage any user or group's permissions to any file
-system object. 
 1. [Impersonation](#impersonation): Alluxio supports user impersonation so one user can access
 Alluxio on the behalf of another user. This can be useful if an Alluxio client is part of a service
 which provides access to Alluxio for many different users.
@@ -138,86 +134,6 @@ The owner, group, and permissions can be changed by two ways:
 
 The owner attribute can only be changed by a super user.
 The group and permission attributes can be changed by a super user or the owner.
-
-## Access Control Lists
-
-The POSIX permissions model allows administrators to grant permissions to owners, owning groups and other users.
-The permission bits model is sufficient for most cases. 
-However, to help administrators express more complicated security policies, Alluxio also supports Access Control Lists (ACLs).
-ACLs allow administrators to grant permissions to any user or group. 
-
-A file or directory's Access Control List consists of multiple entries.
-The two types of ACL entries are Access ACL entries and Default ACL entries. 
-
-### 1. Access ACL Entries:
-
-This type of ACL entry specifies a particular user or group's permission to read, write and
-execute. 
-
-Each ACL entry consists of:
-- a type, which can be one of user, group or mask
-- an optional name 
-- a permission string similar to the POSIX permission bits
-
-The following table shows the different types of ACL entries that can appear in the access ACL: 
-
-|ACL Entry Type| Description|
-|:----------------------:|:-----------------------|
-|user:userid:permission  | Sets the access ACLs for a user. Empty userid implies the permission is for the owner of the file.|
-|group:groupid:permission| Sets the access ACLs for a group. Empty groupid implies the permission is for the owning group of the file.|
-|other::permission       | Sets the access ACLs for all users not specified above.|
-|mask::permission        | Sets the effective rights mask.  The ACL mask indicates the maximum permissions allowed for all users other than the owner and for groups.|
-
-Notice that ACL entries describing owner's, owning group's and other's permissions already exist in
-the standard POSIX permission bits model.
-For example, a standard POSIX permission of `755` translates into an ACL list as follows:
-`user::rwx, group::r-x, other::r-x`.
-
-These three entries are always present in each file and directory.
-When there are entries in addition to these standard entries, the ACL is considered an extended ACL. 
-
-A mask entry is automatically generated when an ACL becomes extended.
-Unless specifically set by the user, the mask's value is adjusted to be the union of all permissions affected by the mask entry.
-This includes all the user entries other than the owner and all group entries. 
-	
-For the ACL entry `user::rw-`:
-- the type is `user`
-- the name is empty, which implies the owner
-- the permission string is `rw-`
-
-This culminates to the owner has `read` and `write` permissions, but not `execute`.
-
-For the ACL entry `group:interns:rwx` and mask `mask::r--`:
-- the entry grants all permissions to the group `interns`
-- the mask only allows `read` permissions
-
-This culminates to the `interns` group having only `read` access because the mask disallows all other permissions.  
-
-### 2. Default ACL Entries:
-
-**Default ACLs only apply to directories.**
-Any new file or directory created within a directory with a default ACL will inherit the default ACL as its access ACL. 
-Any new directory created within a directory with a default ACL will also inherit the default ACL as its default ACL. 
-
-**Default ACLs also consists of ACL entries, similar to those found in access ACLs.** 
-The are distinguished by the `default` keyword as the prefix.
-For example, `default:user:alluxiouser:rwx` and `default:other::r-x` are both valid default ACL entries.
-
-Given a `documents` directory, its default ACL can be set to `default:user:alluxiouser:rwx`.
-The user `alluxiouser` will have full access to any new files created in the `documents` directory.
-These new files will have an access ACL entry of `user:alluxiouser:rwx`.
-Note that the ACL does not grant the user `alluxiouser` any additional permissions to the directory.
-
-### Managing ACL entries
-
-ACLs can be managed by two ways:
-
-1. User application invokes the `setFacl(...)` method of `FileSystem API` or `Hadoop API` to change the ACL and invokes the `getFacl(...)` to obtain the current ACL. 
-2. CLI command in shell. See
-[getfacl]({{ '/en/basic/Command-Line-Interface.html' | relativize_url }}#getfacl)
-[setfacl]({{ '/en/basic/Command-Line-Interface.html' | relativize_url }}#setfacl),
-
-The ACL of a file or directory can only be changed by super user or its owner.
 
 ## Impersonation
 
