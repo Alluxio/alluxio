@@ -1867,9 +1867,18 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       if (options.isPersisted()) {
         checkUfsMode(path, OperationType.WRITE);
       }
-      createDirectoryInternal(rpcContext, inodePath, options);
-      auditContext.setSrcInode(inodePath.getInode()).setSucceeded(true);
-      return inodePath.getInode().getId();
+      try {
+        createDirectoryInternal(rpcContext, inodePath, options);
+        auditContext.setSrcInode(inodePath.getInode()).setSucceeded(true);
+        return inodePath.getInode().getId();
+      } catch (FileDoesNotExistException e) {
+        //Fix FileDoesNotExistException: Path "/some/path" does not exist
+        LOG.warn("Failed to Create directory: ", e);
+        lockingScheme = new LockingScheme(path, InodeTree.LockMode.READ, true)
+        syncMetadata(rpcContext, inodePath, lockingScheme, DescendantType.ONE);
+        auditContext.setSrcInode(inodePath.getInode()).setSucceeded(true);
+        return inodePath.getInode().getId();
+      }
     }
   }
 
