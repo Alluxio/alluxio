@@ -26,6 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.concurrent.NotThreadSafe;
+import java.io.IOException;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -58,7 +59,7 @@ public class ActiveSyncer implements HeartbeatExecutor {
   }
 
   @Override
-  public void heartbeat() {
+  public void heartbeat() throws InterruptedException {
     LOG.debug("start Active Syncer heartbeat");
 
     List<AlluxioURI> filterList =  mSyncManager.getFilterList(mMountId);
@@ -76,13 +77,6 @@ public class ActiveSyncer implements HeartbeatExecutor {
       return;
     }
 
-    LOG.debug("filterList");
-    for (AlluxioURI filter: filterList) {
-      LOG.debug("filterUri {}", filter.getPath());
-    }
-    for (AlluxioURI ufsUri: ufsUriList) {
-      LOG.debug("ufsUri {}", ufsUri.getPath());
-    }
     boolean syncResult = false;
     try {
       UfsManager.UfsClient ufsclient = mMountTable.getUfsClient(mMountId);
@@ -98,12 +92,14 @@ public class ActiveSyncer implements HeartbeatExecutor {
             if (alluxioUri != null) {
               if (syncInfo.isForceSync()) {
                 LOG.debug("force full sync {}", ufsUri.toString());
-                syncResult = mFileSystemMaster.activeSyncMetadata(alluxioUri, null);
+                syncResult = mFileSystemMaster.activeSyncMetadata(alluxioUri, null,
+                    mSyncManager.getExecutor());
               } else {
                 LOG.debug("sync {}", ufsUri.toString());
                 syncResult = mFileSystemMaster.activeSyncMetadata(alluxioUri,
                     syncInfo.getChangedFiles(ufsUri).stream().parallel()
-                        .map(mMountTable::reverseResolve).collect(Collectors.toSet())
+                        .map(mMountTable::reverseResolve).collect(Collectors.toSet()),
+                    mSyncManager.getExecutor()
                 );
               }
               // Journal the latest processed txId
@@ -114,8 +110,8 @@ public class ActiveSyncer implements HeartbeatExecutor {
           }
         }
       }
-    } catch (Exception e) {
-      LOG.warn("Exception " + Throwables.getStackTraceAsString(e));
+    } catch (IOException e) {
+      LOG.warn("IOException " + Throwables.getStackTraceAsString(e));
     }
   }
 

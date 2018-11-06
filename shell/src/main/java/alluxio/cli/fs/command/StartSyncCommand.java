@@ -45,6 +45,7 @@ public final class StartSyncCommand extends AbstractFileSystemCommand {
   @Override
   protected void runPlainPath(AlluxioURI path, CommandLine cl)
       throws AlluxioException, IOException {
+    System.out.println("Starting a full sync of '" + path + "'. This may take a while ...");
     mFileSystem.startSync(path);
     System.out.println("Started automatic syncing of '" + path + "'.");
   }

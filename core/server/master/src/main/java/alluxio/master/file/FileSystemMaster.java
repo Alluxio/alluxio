@@ -56,6 +56,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
 
 /**
  * The interface of file system master.
@@ -538,9 +539,11 @@ public interface FileSystemMaster extends Master {
    *
    * @param path the path to sync
    * @param changedFiles collection of files that are changed under the path to sync
+   * @param executorService executor for executing parallel syncs
    * @return return true if successuflly synced the specified path
    */
-  boolean activeSyncMetadata(AlluxioURI path, Collection<AlluxioURI> changedFiles);
+  boolean activeSyncMetadata(AlluxioURI path, Collection<AlluxioURI> changedFiles,
+      ExecutorService executorService);
 
   /**
    * Journal the active sync transaction id so that we can restart more efficiently.
