@@ -15,7 +15,6 @@ import alluxio.Constants;
 import alluxio.RestUtils;
 import alluxio.master.MasterProcess;
 import alluxio.web.MasterWebServer;
-import alluxio.wire.BlockInfo;
 
 import com.google.common.base.Preconditions;
 import com.qmino.miredot.annotations.ReturnType;
