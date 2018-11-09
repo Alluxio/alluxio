@@ -95,12 +95,9 @@ public final class BlockMasterClientRestServiceHandler {
   @Path(GET_BLOCK_INFO)
   @ReturnType("alluxio.wire.BlockInfo")
   public Response getBlockInfo(@QueryParam("blockId") final Long blockId) {
-    return RestUtils.call(new RestUtils.RestCallable<BlockInfo>() {
-      @Override
-      public BlockInfo call() throws Exception {
-        Preconditions.checkNotNull(blockId, "required 'blockId' parameter is missing");
-        return mBlockMaster.getBlockInfo(blockId);
-      }
+    return RestUtils.call(() -> {
+      Preconditions.checkNotNull(blockId, "required 'blockId' parameter is missing");
+      return mBlockMaster.getBlockInfo(blockId);
     });
   }
 }
