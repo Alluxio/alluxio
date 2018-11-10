@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.BlockInfoException;
+import alluxio.exception.ConnectionFailedException;
 import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.FileAlreadyCompletedException;
 import alluxio.exception.FileAlreadyExistsException;
@@ -520,7 +521,7 @@ public interface FileSystemMaster extends Master {
    * @throws AccessControlException
    */
   void startSync(AlluxioURI alluxioURI) throws IOException, InvalidPathException,
-      AccessControlException;
+      AccessControlException, ConnectionFailedException;
 
   /**
    * stops active sync on a specific syncpoint.
@@ -536,14 +537,12 @@ public interface FileSystemMaster extends Master {
   /**
    * Starts a batch sync with a list of changed files passed in.
    * If no files are passed in, sync the entire path.
-   *
    * @param path the path to sync
    * @param changedFiles collection of files that are changed under the path to sync
    * @param executorService executor for executing parallel syncs
-   * @return return true if successuflly synced the specified path
    */
-  boolean activeSyncMetadata(AlluxioURI path, Collection<AlluxioURI> changedFiles,
-      ExecutorService executorService);
+  void activeSyncMetadata(AlluxioURI path, Collection<AlluxioURI> changedFiles,
+      ExecutorService executorService) throws IOException;
 
   /**
    * Journal the active sync transaction id so that we can restart more efficiently.

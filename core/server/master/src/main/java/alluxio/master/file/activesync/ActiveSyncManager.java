@@ -16,6 +16,7 @@ import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.SyncInfo;
+import alluxio.exception.ConnectionFailedException;
 import alluxio.exception.InvalidPathException;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatThread;
@@ -27,6 +28,7 @@ import alluxio.proto.journal.File;
 import alluxio.proto.journal.Journal;
 import alluxio.resource.CloseableResource;
 import alluxio.resource.LockResource;
+import alluxio.retry.RetryUtils;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.io.PathUtils;
 
@@ -143,11 +145,16 @@ public class ActiveSyncManager implements JournalEntryIterable, JournalEntryRepl
             && Configuration.getBoolean(PropertyKey.MASTER_ACTIVE_UFS_SYNC_INITIAL_SYNC)) {
           mExecutorService.submit(
               () -> mFilterMap.get(mountId).parallelStream().forEach(
-                  syncPoint ->
-                  {
-                    mFileSystemMaster.activeSyncMetadata(syncPoint, null, getExecutor());
-                  })
-          ).get();
+                  syncPoint -> {
+                    try {
+                      RetryUtils.retry("active sync during start",
+                          () -> mFileSystemMaster.activeSyncMetadata(syncPoint, null, getExecutor()),
+                          RetryUtils.defaultActiveSyncClientRetry());
+                    } catch (IOException e) {
+                      LOG.warn("IOException encountered during active sync while starting {}", e);
+                    }
+                  }
+          )).get();
         }
       } catch (Exception e) {
         LOG.warn("exception encountered during initial sync {}", e);
@@ -180,7 +187,7 @@ public class ActiveSyncManager implements JournalEntryIterable, JournalEntryRepl
    * @return true if sync point correctly added
    */
   public boolean startSync(AlluxioURI syncPoint)
-      throws InvalidPathException, IOException {
+      throws InvalidPathException, IOException, ConnectionFailedException {
     boolean initSync = false;
     try (LockResource r = new LockResource(mSyncManagerLock)) {
       if (startSyncInternal(syncPoint)) {
@@ -192,9 +199,16 @@ public class ActiveSyncManager implements JournalEntryIterable, JournalEntryRepl
         return false;
       }
     }
-    // Initial sync
-    if (initSync && Configuration.getBoolean(PropertyKey.MASTER_ACTIVE_UFS_SYNC_INITIAL_SYNC)) {
-      mFileSystemMaster.activeSyncMetadata(syncPoint, null, getExecutor());
+    try {
+      // Initial sync after adding a sync point
+      if (initSync && Configuration.getBoolean(PropertyKey.MASTER_ACTIVE_UFS_SYNC_INITIAL_SYNC)) {
+        mFileSystemMaster.activeSyncMetadata(syncPoint, null, getExecutor());
+      }
+    } catch (IOException e) {
+      LOG.warn("Network connection error causing initial sync to fail");
+      stopSync(syncPoint);
+      throw new ConnectionFailedException("Adding syncpoint"
+          + syncPoint.toString() + "failed because of network error");
     }
     return true;
   }

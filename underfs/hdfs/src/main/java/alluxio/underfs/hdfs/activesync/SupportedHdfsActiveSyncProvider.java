@@ -255,21 +255,38 @@ public class SupportedHdfsActiveSyncProvider implements HdfsActiveSyncProvider {
    */
   public void pollEvent(DFSInotifyEventInputStream eventStream) {
     EventBatch batch;
-    LOG.debug("Polling thread polling");
+    long timeout = Configuration.getMs(PropertyKey.MASTER_ACTIVE_UFS_POLL_TIMEOUT);
+    long interval = Configuration.getMs(PropertyKey.MASTER_ACTIVE_UFS_SYNC_EVENT_RATE_INTERVAL);
+    LOG.debug("Polling thread starting, with timeout {} ms", timeout);
     int count = 0;
+    long start = System.currentTimeMillis();
+
+    long behind = eventStream.getTxidsBehindEstimate();
+
     while (!Thread.currentThread().isInterrupted()) {
       try {
-        batch = eventStream.poll(500, TimeUnit.MILLISECONDS);
-        count++;
-        if (count == 1000) {
-          LOG.debug("behind by {}", eventStream.getTxidsBehindEstimate());
-          count = 0;
-        }
+        batch = eventStream.poll(timeout, TimeUnit.MILLISECONDS);
+
         if (batch != null) {
           long txId = batch.getTxid();
+          count += batch.getEvents().length;
           for (Event event : batch.getEvents()) {
             processEvent(event, mUfsUriList, txId);
           }
+        }
+        long end = System.currentTimeMillis();
+        if (end > (start + interval)) {
+          LOG.info("processed {} events in {} ms, at a rate of {} rps", count,
+              end - start,
+              String.format("%.2f", count * 1000.0 / (end - start)));
+          long currentlyBehind = eventStream.getTxidsBehindEstimate();
+          LOG.info("HDFS generated {} events in {} ms, at a rate of {} rps",
+              count + currentlyBehind - behind ,
+              end - start,
+              String.format("%.2f", (count + currentlyBehind - behind) * 1000.0 / (end - start)));
+          behind = currentlyBehind;
+          start = end;
+          count = 0;
         }
       } catch (IOException e) {
         LOG.warn("IOException occured during polling inotify {}", e);

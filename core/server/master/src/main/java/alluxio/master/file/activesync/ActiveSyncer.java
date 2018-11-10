@@ -18,6 +18,7 @@ import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.meta.MountTable;
 import alluxio.resource.CloseableResource;
+import alluxio.retry.RetryUtils;
 import alluxio.underfs.UfsManager;
 import alluxio.underfs.UnderFileSystem;
 
@@ -92,15 +93,19 @@ public class ActiveSyncer implements HeartbeatExecutor {
             if (alluxioUri != null) {
               if (syncInfo.isForceSync()) {
                 LOG.debug("force full sync {}", ufsUri.toString());
-                syncResult = mFileSystemMaster.activeSyncMetadata(alluxioUri, null,
-                    mSyncManager.getExecutor());
+                RetryUtils.retry("Full Sync", () -> {
+                  mFileSystemMaster.activeSyncMetadata(alluxioUri, null,
+                      mSyncManager.getExecutor());
+                }, RetryUtils.defaultActiveSyncClientRetry());
               } else {
                 LOG.debug("sync {}", ufsUri.toString());
-                syncResult = mFileSystemMaster.activeSyncMetadata(alluxioUri,
-                    syncInfo.getChangedFiles(ufsUri).stream().parallel()
-                        .map(mMountTable::reverseResolve).collect(Collectors.toSet()),
-                    mSyncManager.getExecutor()
-                );
+                RetryUtils.retry("Incremental Sync", () -> {
+                  mFileSystemMaster.activeSyncMetadata(alluxioUri,
+                      syncInfo.getChangedFiles(ufsUri).stream().parallel()
+                          .map(mMountTable::reverseResolve).collect(Collectors.toSet()),
+                      mSyncManager.getExecutor()
+                  );
+                }, RetryUtils.defaultActiveSyncClientRetry());
               }
               // Journal the latest processed txId
               if (syncResult) {

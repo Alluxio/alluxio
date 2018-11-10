@@ -22,6 +22,7 @@ import alluxio.collections.PrefixList;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.BlockInfoException;
+import alluxio.exception.ConnectionFailedException;
 import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyCompletedException;
@@ -153,6 +154,7 @@ import com.codahale.metrics.Counter;
 import com.codahale.metrics.Gauge;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
+import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Sets;
@@ -3081,10 +3083,10 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * @param changedFiles collection of files that are changed under the path to sync,
    *                     if this is null, force sync the entire directory
    * @param executorService executor to execute the parallel incremental sync
-   * @return if the active sync is successful
    */
-  public boolean activeSyncMetadata(AlluxioURI path, Collection<AlluxioURI> changedFiles,
-      ExecutorService executorService) {
+  public void activeSyncMetadata(AlluxioURI path, Collection<AlluxioURI> changedFiles,
+      ExecutorService executorService)
+      throws IOException {
     if (changedFiles == null) {
       LOG.info("Start an active full sync of {}", path.toString());
     } else {
@@ -3092,7 +3094,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     }
 
     if (changedFiles != null && changedFiles.isEmpty()) {
-      return true;
+      return;
     }
 
     LockingScheme lockingScheme =
@@ -3105,7 +3107,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
           statusCache = populateStatusCache(inodePath, DescendantType.ALL);
           syncMetadataInternal(rpcContext, inodePath, lockingScheme, DescendantType.ALL, statusCache);
           LOG.info("Ended an active full sync of {}", path.toString());
-          return true;
+          return;
         }
       } else {
         try (LockedInodePath inodePath =
@@ -3130,16 +3132,14 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         }
         executorService.invokeAll(callables);
       }
-    } catch (IOException | InvalidPathException e) {
-      LOG.warn("Exception encountered during active sync {}", e.getMessage());
-      return false;
+    } catch (InvalidPathException e) {
+      LOG.warn("InvalidPathException during active sync {}", e);
     } catch (InterruptedException e) {
       LOG.warn("InterruptedException during active sync {}", e);
       Thread.currentThread().interrupt();
-      return false;
+      return;
     }
     LOG.info("Ended an active incremental sync of {} files", changedFiles.size());
-    return true;
   }
 
   @Override
@@ -3158,16 +3158,23 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
   private boolean syncMetadata(RpcContext rpcContext, LockedInodePath inodePath,
       LockingScheme lockingScheme, DescendantType syncDescendantType) {
+    boolean result;
     if (!lockingScheme.shouldSync()) {
       return false;
     }
-
-    return syncMetadataInternal(rpcContext, inodePath, lockingScheme,
-        syncDescendantType, populateStatusCache(inodePath, syncDescendantType));
+    try {
+      result = syncMetadataInternal(rpcContext, inodePath, lockingScheme,
+          syncDescendantType, populateStatusCache(inodePath, syncDescendantType));
+    } catch (Exception e) {
+      LOG.warn("Sync metadata for path {} encountered exception {}", inodePath.getUri(),
+          Throwables.getStackTraceAsString(e));
+      return false;
+    }
+    return result;
   }
 
   private Map<AlluxioURI, UfsStatus> populateStatusCache(LockedInodePath inodePath,
-      DescendantType syncDescendantType) {
+      DescendantType syncDescendantType) throws IOException {
     AlluxioURI path = inodePath.getUri();
     Map<AlluxioURI, UfsStatus> statusCache = new HashMap<>();
     try {
@@ -3210,7 +3217,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    */
   private boolean syncMetadataInternal(RpcContext rpcContext, LockedInodePath inodePath,
       LockingScheme lockingScheme, DescendantType syncDescendantType,
-      Map<AlluxioURI, UfsStatus> statusCache) {
+      Map<AlluxioURI, UfsStatus> statusCache)
+      throws IOException {
 
     // The high-level process for the syncing is:
     // 1. Find all Alluxio paths which are not consistent with the corresponding UFS path.
@@ -3238,8 +3246,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         deletedInode = result.getDeletedInode();
         pathsToLoad = result.getPathsToLoad();
       }
-    } catch (Exception e) {
-      LOG.error("Failed to remove out-of-sync metadata for path: {}", inodePath.getUri(), e);
+    } catch (InvalidPathException | FileDoesNotExistException | AccessControlException e) {
+      LOG.warn("Exception encountered when syncing metadata for {}, exception is {}", inodePath.getUri(), e);
       return false;
     } finally {
       if (deletedInode) {
@@ -3614,7 +3622,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
   private void startSyncAndJournal(RpcContext rpcContext,
       LockingScheme lockingScheme, LockedInodePath lockedInodePath)
-      throws InvalidPathException, IOException {
+      throws InvalidPathException, IOException, ConnectionFailedException {
     try (LockResource r = new LockResource(mSyncManager.getSyncManagerLock())) {
       mSyncManager.startSync(lockedInodePath.getUri());
       AddSyncPointEntry addSyncPoint =
@@ -3644,7 +3652,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   @Override
   public void startSync(AlluxioURI syncPoint)
       throws IOException, InvalidPathException,
-      AccessControlException {
+      AccessControlException, ConnectionFailedException {
     LockingScheme lockingScheme = new LockingScheme(syncPoint, InodeTree.LockMode.WRITE, true);
     try (RpcContext rpcContext = createRpcContext();
          LockedInodePath inodePath = mInodeTree

@@ -1421,6 +1421,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_ACTIVE_UFS_SYNC_RETRY_TIMEOUT =
+      new Builder(Name.MASTER_ACTIVE_UFS_SYNC_RETRY_TIMEOUT)
+          .setDescription("Retry period before workers give up on connecting to master")
+          .setDefaultValue("1hour")
+          .setScope(Scope.MASTER)
+          .build();
   public static final PropertyKey MASTER_ACTIVE_UFS_SYNC_INTERVAL_MS =
       new Builder(Name.MASTER_ACTIVE_UFS_SYNC_INTERVAL)
           .setAlias(new String[]{"alluxio.master.activesync.interval.ms"})
@@ -1461,6 +1467,21 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_ACTIVE_UFS_POLL_TIMEOUT =
+      new Builder(Name.MASTER_ACTIVE_UFS_SYNC_POLL_TIMEOUT)
+          .setDefaultValue("10sec")
+          .setDescription("Max time to wait before timing out a polling operation")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_ACTIVE_UFS_SYNC_EVENT_RATE_INTERVAL =
+      new Builder(Name.MASTER_ACTIVE_UFS_SYNC_EVENT_RATE_INTERVAL)
+          .setDefaultValue("60sec")
+          .setDescription("The time interval we use to estimate incoming event rate")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
+
   public static final PropertyKey MASTER_UFS_BLOCK_LOCATION_CACHE_CAPACITY =
       new Builder(Name.MASTER_UFS_BLOCK_LOCATION_CACHE_CAPACITY)
           .setDefaultValue(1000000)
@@ -3555,12 +3576,18 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.tieredstore.global.levels";
     public static final String MASTER_TTL_CHECKER_INTERVAL_MS =
         "alluxio.master.ttl.checker.interval";
+    public static final String MASTER_ACTIVE_UFS_SYNC_RETRY_TIMEOUT =
+        "alluxio.master.activesync.retry.timeout";
     public static final String MASTER_ACTIVE_UFS_SYNC_BATCH_INTERVAL =
         "alluxio.master.activesync.batchinterval";
     public static final String MASTER_ACTIVE_UFS_SYNC_INTERVAL =
         "alluxio.master.activesync.interval";
     public static final String MASTER_ACTIVE_UFS_SYNC_MAX_ACTIVITY =
         "alluxio.master.activesync.maxactivity";
+    public static final String MASTER_ACTIVE_UFS_SYNC_POLL_TIMEOUT =
+        "alluxio.master.activesync.polltimeout";
+    public static final String MASTER_ACTIVE_UFS_SYNC_EVENT_RATE_INTERVAL =
+        "alluxio.master.activesync.eventrate.interval";
     public static final String MASTER_ACTIVE_UFS_SYNC_MAX_AGE =
         "alluxio.master.activesync.maxage";
     public static final String MASTER_ACTIVE_UFS_SYNC_INITIAL_SYNC =

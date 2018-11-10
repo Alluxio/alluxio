@@ -17,6 +17,7 @@ import alluxio.client.file.FileSystem;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 
+import com.google.common.base.Throwables;
 import org.apache.commons.cli.CommandLine;
 
 import java.io.IOException;
@@ -43,10 +44,15 @@ public final class StartSyncCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  protected void runPlainPath(AlluxioURI path, CommandLine cl)
-      throws AlluxioException, IOException {
+  protected void runPlainPath(AlluxioURI path, CommandLine cl) {
     System.out.println("Starting a full sync of '" + path + "'. This may take a while ...");
-    mFileSystem.startSync(path);
+    try {
+      mFileSystem.startSync(path);
+    } catch (Exception e) {
+      Throwables.propagateIfPossible(e);
+      System.out.println("Failed to start automatic syncing of '" + path + "'.");
+      throw new RuntimeException(e);
+    }
     System.out.println("Started automatic syncing of '" + path + "'.");
   }
 
