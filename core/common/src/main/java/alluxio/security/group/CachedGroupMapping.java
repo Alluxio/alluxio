@@ -94,12 +94,7 @@ public class CachedGroupMapping implements GroupMappingService {
         throws IOException {
       // Load values asynchronously.
       ListenableFuture<List<String>> listenableFuture = mExecutorService.submit(
-          new Callable<List<String>>() {
-            @Override
-            public List<String> call() throws IOException {
-              return load(user);
-            }
-          }
+        () -> load(user)
       );
       return listenableFuture;
     }
