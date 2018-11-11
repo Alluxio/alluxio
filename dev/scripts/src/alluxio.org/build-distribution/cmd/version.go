@@ -58,6 +58,8 @@ func (v version) hadoopProfile() string {
 		return "hadoop-1"
 	case 2:
 		return "hadoop-2"
+	case 3:
+    return "hadoop-3"
 	default:
 		panic(fmt.Sprintf("unexpected hadoop major version %v", v.major))
 	}
