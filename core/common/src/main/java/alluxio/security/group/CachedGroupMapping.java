@@ -24,7 +24,6 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -94,7 +93,7 @@ public class CachedGroupMapping implements GroupMappingService {
         throws IOException {
       // Load values asynchronously.
       ListenableFuture<List<String>> listenableFuture = mExecutorService.submit(
-        () -> load(user)
+          () -> load(user)
       );
       return listenableFuture;
     }
