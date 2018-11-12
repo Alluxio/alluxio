@@ -18,11 +18,13 @@ import alluxio.PropertyKey;
 import alluxio.UnderFileSystemFactoryRegistryRule;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemClientOptions;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.CreateDirectoryOptions;
-import alluxio.client.file.options.CreateFileOptions;
 import alluxio.collections.ConcurrentHashSet;
 import alluxio.exception.AlluxioException;
+import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.WritePType;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.testutils.BaseIntegrationTest;
@@ -69,8 +71,8 @@ public class ConcurrentRenameIntegrationTest extends BaseIntegrationTest {
    * Options to mark a created file as persisted. Note that this does not actually persist the
    * file but flag the file to be treated as persisted, which will invoke ufs operations.
    */
-  private static CreateFileOptions sCreatePersistedFileOptions =
-      CreateFileOptions.defaults().setWriteType(WriteType.THROUGH);
+  private static CreateFilePOptions sCreatePersistedFileOptions = FileSystemClientOptions
+      .getCreateFileOptions().toBuilder().setWriteType(WritePType.WRITE_THROUGH).build();
   private static CreateDirectoryOptions sCreatePersistedDirOptions =
       CreateDirectoryOptions.defaults().setWriteType(WriteType.THROUGH).setRecursive(true);
 
@@ -490,7 +492,8 @@ public class ConcurrentRenameIntegrationTest extends BaseIntegrationTest {
     };
     for (int i = 0; i < iterations; i++) {
       // Don't want sleeping ufs behavior, so do not write to ufs
-      mFileSystem.createFile(file, CreateFileOptions.defaults().setWriteType(WriteType.MUST_CACHE))
+      mFileSystem.createFile(file, FileSystemClientOptions.getCreateFileOptions().toBuilder()
+          .setWriteType(WritePType.WRITE_MUST_CACHE).build())
           .close();
       Thread renamer = new Thread(new Runnable() {
         @Override

@@ -14,15 +14,15 @@ package alluxio.job.move;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
-import alluxio.client.WriteType;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.file.*;
 import alluxio.client.file.options.CreateDirectoryOptions;
-import alluxio.client.file.options.CreateFileOptions;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
+import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.WritePType;
 import alluxio.job.AbstractVoidJobDefinition;
 import alluxio.job.JobMasterContext;
 import alluxio.job.JobWorkerContext;
@@ -267,9 +267,10 @@ public final class MoveDefinition
   @Override
   public SerializableVoid runTask(MoveConfig config, ArrayList<MoveCommand> commands,
       JobWorkerContext jobWorkerContext) throws Exception {
-    WriteType writeType = config.getWriteType() == null
-        ? Configuration.getEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class)
-        : WriteType.valueOf(config.getWriteType());
+    // TODO(ggezer) WritePType conversion
+    WritePType writeType = config.getWriteType() == null
+        ? WritePType.valueOf("WRITE_" + Configuration.get(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT))
+        : WritePType.valueOf("WRITE_" + config.getWriteType());
     for (MoveCommand command : commands) {
       move(command, writeType, mFileSystem);
     }
@@ -291,14 +292,16 @@ public final class MoveDefinition
    * @param writeType the write type to use for the moved file
    * @param fileSystem the Alluxio file system
    */
-  private static void move(MoveCommand command, WriteType writeType, FileSystem fileSystem)
+  private static void move(MoveCommand command, WritePType writeType, FileSystem fileSystem)
       throws Exception {
     String source = command.getSource();
     String destination = command.getDestination();
     LOG.debug("Moving {} to {}", source, destination);
 
-    try (FileOutStream out = fileSystem.createFile(new AlluxioURI(destination),
-        CreateFileOptions.defaults().setWriteType(writeType))) {
+    CreateFilePOptions createOptions =
+        FileSystemClientOptions.getCreateFileOptions().toBuilder().setWriteType(writeType).build();
+
+    try (FileOutStream out = fileSystem.createFile(new AlluxioURI(destination), createOptions)) {
       try (FileInStream in = fileSystem.openFile(new AlluxioURI(source))) {
         IOUtils.copy(in, out);
       } catch (Throwable t) {

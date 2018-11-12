@@ -19,15 +19,12 @@ import alluxio.PropertyKey;
 import alluxio.client.WriteType;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.BlockWorkerInfo;
-import alluxio.client.file.FileInStream;
-import alluxio.client.file.FileSystem;
-import alluxio.client.file.FileSystemTestUtils;
-import alluxio.client.file.URIStatus;
-import alluxio.client.file.options.CreateFileOptions;
+import alluxio.client.file.*;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.client.file.options.OpenFileOptions;
 import alluxio.client.file.options.OutStreamOptions;
 import alluxio.client.file.policy.RoundRobinPolicy;
+import alluxio.grpc.WritePType;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.util.io.BufferUtils;
@@ -71,8 +68,9 @@ public final class MultiWorkerIntegrationTest extends BaseIntegrationTest {
     AlluxioURI file = new AlluxioURI("/test");
     FileSystem fs = mResource.get().getClient();
     FileSystemTestUtils.createByteFile(fs, file.getPath(), fileSize,
-        CreateFileOptions.defaults().setWriteType(WriteType.MUST_CACHE)
-            .setLocationPolicy(new RoundRobinPolicy()));
+        FileSystemClientOptions.getCreateFileOptions().toBuilder()
+            .setWriteType(WritePType.WRITE_MUST_CACHE)
+            .setFileWriteLocationPolicy(RoundRobinPolicy.class.getCanonicalName()).build());
     URIStatus status = fs.getStatus(file);
     assertEquals(100, status.getInAlluxioPercentage());
     try (FileInStream inStream = fs.openFile(file)) {
@@ -156,6 +154,8 @@ public final class MultiWorkerIntegrationTest extends BaseIntegrationTest {
 
   private void createFileOnWorker(int total, AlluxioURI filePath, WorkerNetAddress address)
       throws IOException {
+    // TODO(ggezer) Externalize the anonymous class
+    /*
     FileSystemTestUtils.createByteFile(mResource.get().getClient(), filePath,
         CreateFileOptions.defaults()
             .setWriteType(WriteType.MUST_CACHE)
@@ -165,6 +165,7 @@ public final class MultiWorkerIntegrationTest extends BaseIntegrationTest {
                     .findFirst()
                     .get()
                     .getNetAddress()), total);
+   */
   }
 
   private void replicateFileBlocks(AlluxioURI filePath) throws Exception {

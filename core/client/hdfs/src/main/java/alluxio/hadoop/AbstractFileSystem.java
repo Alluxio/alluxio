@@ -32,6 +32,7 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.PreconditionMessage;
+import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
 import alluxio.master.MasterInquireClient.ConnectDetails;
 import alluxio.master.MasterInquireClient.Factory;
@@ -173,8 +174,8 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     }
 
     AlluxioURI uri = new AlluxioURI(HadoopUtils.getPathWithoutScheme(path));
-    CreateFileOptions options = CreateFileOptions.defaults().setBlockSizeBytes(blockSize)
-        .setMode(new Mode(permission.toShort()));
+    CreateFilePOptions options = FileSystemClientOptions.getCreateFileOptions().toBuilder()
+        .setBlockSizeBytes(blockSize).setMode(permission.toShort()).build();
 
     FileOutStream outStream;
     try {

@@ -14,13 +14,14 @@ package alluxio.examples;
 import alluxio.AlluxioURI;
 import alluxio.client.AlluxioStorageType;
 import alluxio.client.ReadType;
-import alluxio.client.WriteType;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
-import alluxio.client.file.options.CreateFileOptions;
+import alluxio.client.file.FileSystemClientOptions;
 import alluxio.client.file.options.OpenFileOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.FileAlreadyExistsException;
+import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.WritePType;
 import alluxio.util.CommonUtils;
 import alluxio.util.FormatUtils;
 
@@ -50,18 +51,18 @@ public final class BasicNonByteBufferOperations implements Callable<Boolean> {
 
   private final AlluxioURI mFilePath;
   private final ReadType mReadType;
-  private final WriteType mWriteType;
+  private final WritePType mWriteType;
   private final boolean mDeleteIfExists;
   private final int mLength;
 
   /**
    * @param filePath the path for the files
    * @param readType the {@link ReadType}
-   * @param writeType the {@link WriteType}
+   * @param writeType the {@link WritePType}
    * @param deleteIfExists delete files if they already exist
    * @param length the number of files
    */
-  public BasicNonByteBufferOperations(AlluxioURI filePath, ReadType readType, WriteType writeType,
+  public BasicNonByteBufferOperations(AlluxioURI filePath, ReadType readType, WritePType writeType,
       boolean deleteIfExists, int length) {
     mFilePath = filePath;
     mWriteType = writeType;
@@ -91,7 +92,8 @@ public final class BasicNonByteBufferOperations implements Callable<Boolean> {
 
   private FileOutStream createFile(FileSystem fileSystem, AlluxioURI filePath,
       boolean deleteIfExists) throws IOException, AlluxioException {
-    CreateFileOptions options = CreateFileOptions.defaults().setWriteType(mWriteType);
+    CreateFilePOptions options =
+        FileSystemClientOptions.getCreateFileOptions().toBuilder().setWriteType(mWriteType).build();
     if (!fileSystem.exists(filePath)) {
       // file doesn't exist yet, so create it
       return fileSystem.createFile(filePath, options);

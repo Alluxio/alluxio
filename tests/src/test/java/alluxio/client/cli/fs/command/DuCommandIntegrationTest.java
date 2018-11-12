@@ -11,11 +11,11 @@
 
 package alluxio.client.cli.fs.command;
 
-import alluxio.client.WriteType;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.exception.ExceptionMessage;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
 
+import alluxio.grpc.WritePType;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -25,14 +25,14 @@ import org.junit.Test;
 public final class DuCommandIntegrationTest extends AbstractFileSystemShellTest {
   @Test
   public void du() throws Exception {
-    FileSystemTestUtils
-        .createByteFile(mFileSystem, "/testRoot/testFileA", WriteType.MUST_CACHE, 0);
-    FileSystemTestUtils
-        .createByteFile(mFileSystem, "/testRoot/testFileB", WriteType.MUST_CACHE, 21243);
+    FileSystemTestUtils.createByteFile(mFileSystem, "/testRoot/testFileA",
+        WritePType.WRITE_MUST_CACHE, 0);
+    FileSystemTestUtils.createByteFile(mFileSystem, "/testRoot/testFileB",
+        WritePType.WRITE_MUST_CACHE, 21243);
     FileSystemTestUtils.createByteFile(mFileSystem, "/testRoot/testDir/testFileC",
-        WriteType.THROUGH, 9712654);
+        WritePType.WRITE_THROUGH, 9712654);
     FileSystemTestUtils.createByteFile(mFileSystem, "/testRoot/testDir/testDir/testFileD",
-        WriteType.THROUGH, 532982);
+        WritePType.WRITE_THROUGH, 532982);
 
     String expected = "";
 
@@ -62,12 +62,12 @@ public final class DuCommandIntegrationTest extends AbstractFileSystemShellTest 
 
   @Test
   public void duWildcard() throws Exception {
-    FileSystemTestUtils
-        .createByteFile(mFileSystem, "/testRoot/testDir1/testFileA", WriteType.MUST_CACHE, 10);
+    FileSystemTestUtils.createByteFile(mFileSystem, "/testRoot/testDir1/testFileA",
+        WritePType.WRITE_MUST_CACHE, 10);
     FileSystemTestUtils.createByteFile(mFileSystem, "/testRoot/testDir2/testFileB",
-        WriteType.THROUGH, 20);
+        WritePType.WRITE_THROUGH, 20);
     FileSystemTestUtils.createByteFile(mFileSystem, "/testRoot/testDir2/testNotIncludeFile",
-        WriteType.MUST_CACHE, 30);
+        WritePType.WRITE_MUST_CACHE, 30);
 
     mFsShell.run("du", "/testRoot/*/testFile*");
     String expected = "File Size     In Alluxio       Path\n"

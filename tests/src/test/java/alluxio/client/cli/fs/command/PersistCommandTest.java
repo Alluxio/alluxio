@@ -15,11 +15,11 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
 import alluxio.PropertyKey;
-import alluxio.client.WriteType;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.exception.ExceptionMessage;
+import alluxio.grpc.WritePType;
 import alluxio.security.authorization.Mode;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
 import alluxio.client.cli.fs.FileSystemShellUtilsTest;
@@ -38,7 +38,7 @@ public final class PersistCommandTest extends AbstractFileSystemShellTest {
   @Test
   public void persist() throws Exception {
     String testFilePath = "/testPersist/testFile";
-    FileSystemTestUtils.createByteFile(mFileSystem, testFilePath, WriteType.MUST_CACHE, 10);
+    FileSystemTestUtils.createByteFile(mFileSystem, testFilePath, WritePType.WRITE_MUST_CACHE, 10);
     Assert
         .assertFalse(mFileSystem.getStatus(new AlluxioURI("/testPersist/testFile")).isPersisted());
 
@@ -77,9 +77,9 @@ public final class PersistCommandTest extends AbstractFileSystemShellTest {
     String filePath1 = "/testPersist/testFile1";
     String filePath2 = "/testFile2";
     String filePath3 = "/testPersist/testFile3";
-    FileSystemTestUtils.createByteFile(mFileSystem, filePath1, WriteType.MUST_CACHE, 10);
-    FileSystemTestUtils.createByteFile(mFileSystem, filePath2, WriteType.MUST_CACHE, 20);
-    FileSystemTestUtils.createByteFile(mFileSystem, filePath3, WriteType.MUST_CACHE, 30);
+    FileSystemTestUtils.createByteFile(mFileSystem, filePath1, WritePType.WRITE_MUST_CACHE, 10);
+    FileSystemTestUtils.createByteFile(mFileSystem, filePath2, WritePType.WRITE_MUST_CACHE, 20);
+    FileSystemTestUtils.createByteFile(mFileSystem, filePath3, WritePType.WRITE_MUST_CACHE, 30);
 
     Assert.assertFalse(mFileSystem.getStatus(new AlluxioURI(filePath1)).isPersisted());
     Assert.assertFalse(mFileSystem.getStatus(new AlluxioURI(filePath2)).isPersisted());
@@ -133,7 +133,7 @@ public final class PersistCommandTest extends AbstractFileSystemShellTest {
   public void persistTwice() throws Exception {
     // Persisting an already-persisted file is okay
     String testFilePath = "/testPersist/testFile";
-    FileSystemTestUtils.createByteFile(mFileSystem, testFilePath, WriteType.MUST_CACHE, 10);
+    FileSystemTestUtils.createByteFile(mFileSystem, testFilePath, WritePType.WRITE_MUST_CACHE, 10);
     Assert
         .assertFalse(mFileSystem.getStatus(new AlluxioURI("/testPersist/testFile")).isPersisted());
     int ret = mFsShell.run("persist", testFilePath);
@@ -156,7 +156,7 @@ public final class PersistCommandTest extends AbstractFileSystemShellTest {
     AlluxioURI testFile = new AlluxioURI("/grand/parent/file");
     AlluxioURI grandParent = new AlluxioURI("/grand");
     Mode grandParentMode = new Mode((short) 0777);
-    FileSystemTestUtils.createByteFile(mFileSystem, testFile, WriteType.MUST_CACHE, 10);
+    FileSystemTestUtils.createByteFile(mFileSystem, testFile, WritePType.WRITE_MUST_CACHE, 10);
     URIStatus status = mFileSystem.getStatus(testFile);
     Assert.assertFalse(status.isPersisted());
     mFileSystem.setAttribute(grandParent, SetAttributeOptions.defaults().setMode(grandParentMode));
@@ -181,9 +181,9 @@ public final class PersistCommandTest extends AbstractFileSystemShellTest {
     String filePath1 = "/testPersist1/testFile1";
     String filePath2 = "/testPersist2/testFile2";
     String filePath3 = "/testPersist2/testFile3";
-    FileSystemTestUtils.createByteFile(mFileSystem, filePath1, WriteType.MUST_CACHE, 10);
-    FileSystemTestUtils.createByteFile(mFileSystem, filePath2, WriteType.MUST_CACHE, 20);
-    FileSystemTestUtils.createByteFile(mFileSystem, filePath3, WriteType.MUST_CACHE, 30);
+    FileSystemTestUtils.createByteFile(mFileSystem, filePath1, WritePType.WRITE_MUST_CACHE, 10);
+    FileSystemTestUtils.createByteFile(mFileSystem, filePath2, WritePType.WRITE_MUST_CACHE, 20);
+    FileSystemTestUtils.createByteFile(mFileSystem, filePath3, WritePType.WRITE_MUST_CACHE, 30);
 
     Assert.assertFalse(mFileSystem.getStatus(new AlluxioURI(filePath1)).isPersisted());
     Assert.assertFalse(mFileSystem.getStatus(new AlluxioURI(filePath2)).isPersisted());

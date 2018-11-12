@@ -14,12 +14,13 @@ package alluxio.server.tieredstore;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.PropertyKey;
-import alluxio.client.WriteType;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemClientOptions;
 import alluxio.client.file.URIStatus;
-import alluxio.client.file.options.CreateFileOptions;
 import alluxio.exception.AlluxioException;
+import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.WritePType;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.util.CommonUtils;
@@ -61,7 +62,7 @@ public class CapacityUsageIntegrationTest extends BaseIntegrationTest {
     mFileSystem = mLocalAlluxioClusterResource.get().getClient();
   }
 
-  private void createAndWriteFile(AlluxioURI filePath, WriteType writeType, int len)
+  private void createAndWriteFile(AlluxioURI filePath, WritePType writeType, int len)
       throws IOException, AlluxioException {
     ByteBuffer buf = ByteBuffer.allocate(len);
     buf.order(ByteOrder.nativeOrder());
@@ -69,7 +70,8 @@ public class CapacityUsageIntegrationTest extends BaseIntegrationTest {
       buf.put((byte) k);
     }
 
-    CreateFileOptions options = CreateFileOptions.defaults().setWriteType(writeType);
+    CreateFilePOptions options =
+        FileSystemClientOptions.getCreateFileOptions().toBuilder().setWriteType(writeType).build();
     FileOutStream os = mFileSystem.createFile(filePath, options);
     os.write(buf.array());
     os.close();
@@ -78,13 +80,13 @@ public class CapacityUsageIntegrationTest extends BaseIntegrationTest {
   private void deleteDuringEviction(int i) throws IOException, AlluxioException {
     final AlluxioURI fileName1 = new AlluxioURI("/file" + i + "_1");
     final AlluxioURI fileName2 = new AlluxioURI("/file" + i + "_2");
-    createAndWriteFile(fileName1, WriteType.CACHE_THROUGH, MEM_CAPACITY_BYTES);
+    createAndWriteFile(fileName1, WritePType.WRITE_CACHE_THROUGH, MEM_CAPACITY_BYTES);
     URIStatus fileStatus1 = mFileSystem.getStatus(fileName1);
     Assert.assertTrue(fileStatus1.getInMemoryPercentage() == 100);
     // Deleting file1, command will be sent by master to worker asynchronously
     mFileSystem.delete(fileName1);
     // Meanwhile creating file2. If creation arrives earlier than deletion, it will evict file1
-    createAndWriteFile(fileName2, WriteType.CACHE_THROUGH, MEM_CAPACITY_BYTES / 4);
+    createAndWriteFile(fileName2, WritePType.WRITE_CACHE_THROUGH, MEM_CAPACITY_BYTES / 4);
     URIStatus fileStatus2 = mFileSystem.getStatus(fileName2);
     Assert.assertTrue(fileStatus2.getInMemoryPercentage() == 100);
     mFileSystem.delete(fileName2);

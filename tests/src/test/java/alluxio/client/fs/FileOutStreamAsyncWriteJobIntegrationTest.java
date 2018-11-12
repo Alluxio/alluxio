@@ -12,11 +12,12 @@
 package alluxio.client.fs;
 
 import alluxio.AlluxioURI;
+import alluxio.client.file.FileSystemClientOptions;
+import alluxio.grpc.WritePType;
 import alluxio.testutils.PersistenceTestUtils;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.URIStatus;
-import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.heartbeat.HeartbeatContext;
@@ -52,8 +53,8 @@ public final class FileOutStreamAsyncWriteJobIntegrationTest
    * @return ths URIStatus of this file after creation
    */
   private URIStatus createAsyncFile() throws Exception {
-    writeIncreasingByteArrayToFile(mUri, LEN,
-        CreateFileOptions.defaults().setWriteType(WriteType.ASYNC_THROUGH));
+    writeIncreasingByteArrayToFile(mUri, LEN, FileSystemClientOptions.getCreateFileOptions()
+        .toBuilder().setWriteType(WritePType.WRITE_ASYNC_THROUGH).build());
     return mFileSystem.getStatus(mUri);
   }
 

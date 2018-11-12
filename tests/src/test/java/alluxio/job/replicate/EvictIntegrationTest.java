@@ -15,9 +15,10 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileOutStream;
+import alluxio.client.file.FileSystemClientOptions;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
-import alluxio.client.file.options.CreateFileOptions;
+import alluxio.grpc.WritePType;
 import alluxio.job.JobIntegrationTest;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
@@ -44,9 +45,9 @@ public final class EvictIntegrationTest extends JobIntegrationTest {
     super.before();
 
     AlluxioURI filePath = new AlluxioURI(TEST_URI);
-    FileOutStream os = mFileSystem.createFile(filePath,
-        CreateFileOptions.defaults().setWriteType(WriteType.MUST_CACHE)
-            .setBlockSizeBytes(TEST_BLOCK_SIZE));
+    FileOutStream os =
+        mFileSystem.createFile(filePath, FileSystemClientOptions.getCreateFileOptions().toBuilder()
+            .setWriteType(WritePType.WRITE_MUST_CACHE).setBlockSizeBytes(TEST_BLOCK_SIZE).build());
     os.write(BufferUtils.getIncreasingByteArray(TEST_BLOCK_SIZE + 1));
     os.close();
 

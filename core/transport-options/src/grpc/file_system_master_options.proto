@@ -33,6 +33,15 @@ message CreateDirectoryPOptions {
   optional FileSystemMasterCommonPOptions commonOptions = 7;
 }
 
+enum WritePType {
+  WRITE_MUST_CACHE = 0;
+  WRITE_TRY_CACHE = 1;
+  WRITE_CACHE_THROUGH = 2;
+  WRITE_THROUGH = 3;
+  WRITE_ASYNC_THROUGH = 4;
+  WRITE_NONE = 5;
+}
+
 message CreateFilePOptions {
   optional int64 blockSizeBytes = 1;
   optional bool persisted = 2;
@@ -43,7 +52,10 @@ message CreateFilePOptions {
   optional int32 replicationMax = 7;
   optional int32 replicationMin = 8;
   optional int32 replicationDurable = 9;
-  optional FileSystemMasterCommonPOptions commonOptions = 10;
+  optional string fileWriteLocationPolicy = 10;
+  optional int32 writeTier = 11;
+  optional WritePType writeType = 12;
+  optional FileSystemMasterCommonPOptions commonOptions = 13;
 }
 
 message DeletePOptions {

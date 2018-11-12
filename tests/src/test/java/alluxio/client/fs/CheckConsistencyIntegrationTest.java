@@ -16,8 +16,10 @@ import alluxio.AuthenticatedUserRule;
 import alluxio.PropertyKey;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemClientOptions;
 import alluxio.client.file.options.CreateDirectoryOptions;
-import alluxio.client.file.options.CreateFileOptions;
+import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.WritePType;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.options.CheckConsistencyOptions;
 import alluxio.testutils.BaseIntegrationTest;
@@ -64,8 +66,8 @@ public class CheckConsistencyIntegrationTest extends BaseIntegrationTest {
     mFileSystem = FileSystem.Factory.get();
     CreateDirectoryOptions dirOptions =
         CreateDirectoryOptions.defaults().setWriteType(WriteType.CACHE_THROUGH);
-    CreateFileOptions fileOptions =
-        CreateFileOptions.defaults().setWriteType(WriteType.CACHE_THROUGH);
+    CreateFilePOptions fileOptions = FileSystemClientOptions.getCreateFileOptions().toBuilder()
+        .setWriteType(WritePType.WRITE_CACHE_THROUGH).build();
     mFileSystem.createDirectory(DIRECTORY, dirOptions);
     mFileSystem.createFile(FILE, fileOptions).close();
   }
@@ -120,8 +122,8 @@ public class CheckConsistencyIntegrationTest extends BaseIntegrationTest {
   public void largeTree() throws Exception {
     CreateDirectoryOptions dirOptions =
         CreateDirectoryOptions.defaults().setWriteType(WriteType.CACHE_THROUGH);
-    CreateFileOptions fileOptions =
-        CreateFileOptions.defaults().setWriteType(WriteType.CACHE_THROUGH);
+    CreateFilePOptions fileOptions = FileSystemClientOptions.getCreateFileOptions().toBuilder()
+        .setWriteType(WritePType.WRITE_CACHE_THROUGH).build();
     AlluxioURI nestedDir = DIRECTORY.join("/dir2");
     AlluxioURI topLevelFile = new AlluxioURI("/file");
     AlluxioURI thirdLevelFile = nestedDir.join("/file");

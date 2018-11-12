@@ -22,7 +22,6 @@ import alluxio.client.WriteType;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.client.file.*;
 import alluxio.client.file.options.CreateDirectoryOptions;
-import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.ExistsOptions;
 import alluxio.client.file.options.RenameOptions;
 import alluxio.client.file.options.SetAttributeOptions;
@@ -538,8 +537,9 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
     Configuration.set(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL, "0");
 
     mFileSystem.createFile(new AlluxioURI(alluxioPath(NEW_NESTED_FILE)),
-        CreateFileOptions.defaults().setRecursive(true).setWriteType(WriteType.CACHE_THROUGH)
-            .setCommonOptions(SYNC_ALWAYS)).close();
+        FileSystemClientOptions.getCreateFileOptions().toBuilder()
+            .setWriteType(WritePType.WRITE_CACHE_THROUGH).setCommonOptions(PSYNC_ALWAYS).build())
+        .close();
 
     // Make sure we can create the nested file.
     Assert.assertNotNull(mFileSystem.getStatus(new AlluxioURI(alluxioPath(EXISTING_FILE))));
@@ -617,7 +617,8 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
   }
 
   private void writeMustCacheFile(String path, int sizeFactor) throws Exception {
-    CreateFileOptions options = CreateFileOptions.defaults().setWriteType(WriteType.MUST_CACHE);
+    CreateFilePOptions options = FileSystemClientOptions.getCreateFileOptions().toBuilder()
+        .setWriteType(WritePType.WRITE_MUST_CACHE).build();
     FileOutStream os = mFileSystem.createFile(new AlluxioURI(path), options);
     for (int i = 0; i < sizeFactor; i++) {
       os.write("test".getBytes());

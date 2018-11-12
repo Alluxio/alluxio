@@ -18,6 +18,7 @@ import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
+import alluxio.grpc.WritePType;
 import alluxio.testutils.underfs.ConfExpectingUnderFileSystemFactory;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.io.PathUtils;
@@ -85,7 +86,7 @@ public final class MountCommandTest extends AbstractFileSystemShellTest {
       Assert.assertEquals(0, mFsShell
           .run("mount", "--option", "k1=v1", "--option", "k2=v2", mountPoint.toString(), ufsPath));
       FileSystemTestUtils.createByteFile(mFileSystem,
-          "/mnt/testFile1", WriteType.CACHE_THROUGH, 20);
+          "/mnt/testFile1", WritePType.WRITE_CACHE_THROUGH, 20);
       Assert.assertTrue(mFileSystem.exists(new AlluxioURI("/mnt/testFile1")));
       URIStatus status = mFileSystem.getStatus(new AlluxioURI("/mnt/testFile1"));
       Assert.assertTrue(status.isPersisted());

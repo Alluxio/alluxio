@@ -50,7 +50,7 @@ public final class TouchCommand extends AbstractFileSystemCommand {
   @Override
   protected void runPlainPath(AlluxioURI inputPath, CommandLine cl)
       throws AlluxioException, IOException {
-    mFileSystem.createFile(inputPath, CreateFileOptions.defaults()).close();
+    mFileSystem.createFile(inputPath).close();
     System.out.println(inputPath + " has been created");
   }
 

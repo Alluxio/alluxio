@@ -18,9 +18,13 @@ import alluxio.client.AlluxioStorageType;
 import alluxio.client.UnderStorageType;
 import alluxio.client.WriteType;
 import alluxio.client.file.policy.FileWriteLocationPolicy;
+import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.FileSystemMasterCommonPOptions;
+import alluxio.grpc.WritePType;
 import alluxio.security.authorization.Mode;
 import alluxio.util.CommonUtils;
 import alluxio.util.ModeUtils;
+import alluxio.util.grpc.GrpcUtils;
 import alluxio.wire.CommonOptions;
 import alluxio.wire.TtlAction;
 
@@ -29,6 +33,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.google.common.base.Objects;
 import com.google.common.base.Throwables;
+import org.apache.zookeeper.Op;
 
 import java.util.Collections;
 
@@ -215,6 +220,49 @@ public final class CreateFileOptions
     // TODO(adit):
     mPersisted = mWriteType.isThrough();
     return this;
+  }
+
+  /**
+   *
+   * @return proto representation of the client options instance
+   */
+  public CreateFilePOptions toProto() {
+    // TODO(ggezer) WritePType conversion
+    return CreateFilePOptions.newBuilder().setBlockSizeBytes(getBlockSizeBytes())
+        .setMode(getMode().toShort()).setFileWriteLocationPolicy(getLocationPolicyClass())
+        .setPersisted(isPersisted()).setRecursive(isRecursive())
+        .setReplicationDurable(getReplicationDurable()).setReplicationMin(getReplicationMin())
+        .setReplicationMax(getReplicationMax()).setWriteTier(getWriteTier())
+        .setWriteType(WritePType.valueOf("WRITE_" + getWriteType().name()))
+        .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder()
+            .setSyncIntervalMs(getCommonOptions().getSyncIntervalMs())
+            .setTtl(getCommonOptions().getTtl())
+            .setTtlAction(alluxio.grpc.TtlAction.valueOf(getCommonOptions().getTtlAction().name())))
+        .build();
+  }
+
+  /**
+   *
+   * @param protoOptions Proto options to create the options from
+   * @return Option wrapper instance created from the given proto options
+   */
+  public static CreateFileOptions fromProto(CreateFilePOptions protoOptions) throws Exception{
+    CreateFileOptions options = CreateFileOptions.defaults();
+    options.getCommonOptions().setSyncIntervalMs(protoOptions.getCommonOptions().getSyncIntervalMs());
+    options.getCommonOptions().setTtl(protoOptions.getCommonOptions().getTtl());
+    options.getCommonOptions().setTtlAction(GrpcUtils.fromProto(protoOptions.getCommonOptions().getTtlAction()));
+    options.setBlockSizeBytes(protoOptions.getBlockSizeBytes());
+    options.setLocationPolicyClass(protoOptions.getFileWriteLocationPolicy());
+    options.setMode(new Mode((short)protoOptions.getMode()));
+    options.setRecursive(protoOptions.getRecursive());
+    options.setPersisted(protoOptions.getPersisted());
+    options.setWriteTier(protoOptions.getWriteTier());
+    // TODO(ggezer) WritePType conversion
+    options.setWriteType(WriteType.valueOf(protoOptions.getWriteType().name().substring(6)));
+    options.setReplicationDurable(protoOptions.getReplicationDurable());
+    options.setReplicationMax(protoOptions.getReplicationMax());
+    options.setReplicationMin(protoOptions.getReplicationMin());
+    return options;
   }
 
   /**

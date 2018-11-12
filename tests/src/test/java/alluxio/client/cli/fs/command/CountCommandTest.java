@@ -13,11 +13,11 @@ package alluxio.client.cli.fs.command;
 
 import static org.junit.Assert.assertEquals;
 
-import alluxio.client.WriteType;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.exception.ExceptionMessage;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
 
+import alluxio.grpc.WritePType;
 import org.junit.Test;
 
 /**
@@ -34,12 +34,12 @@ public final class CountCommandTest extends AbstractFileSystemShellTest {
 
   @Test
   public void count() throws Exception {
-    FileSystemTestUtils
-        .createByteFile(mFileSystem, "/testRoot/testFileA", WriteType.MUST_CACHE, 10);
+    FileSystemTestUtils.createByteFile(mFileSystem, "/testRoot/testFileA",
+        WritePType.WRITE_MUST_CACHE, 10);
     FileSystemTestUtils.createByteFile(mFileSystem, "/testRoot/testDir/testFileB",
-        WriteType.MUST_CACHE, 20);
-    FileSystemTestUtils
-        .createByteFile(mFileSystem, "/testRoot/testFileB", WriteType.MUST_CACHE, 30);
+        WritePType.WRITE_MUST_CACHE, 20);
+    FileSystemTestUtils.createByteFile(mFileSystem, "/testRoot/testFileB",
+        WritePType.WRITE_MUST_CACHE, 30);
     mFsShell.run("count", "/testRoot");
     String expected = "";
     String format = "%-25s%-25s%-15s\n";

@@ -13,13 +13,13 @@ package alluxio.client.cli.fs.command;
 
 import alluxio.AlluxioURI;
 import alluxio.client.ReadType;
-import alluxio.client.WriteType;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.OpenFileOptions;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
 import alluxio.client.cli.fs.FileSystemShellUtilsTest;
+import alluxio.grpc.WritePType;
 import alluxio.util.io.BufferUtils;
 
 import com.google.common.io.Closer;
@@ -473,7 +473,8 @@ public final class CpCommandIntegrationTest extends AbstractFileSystemShellTest 
 
   @Override
   protected void copyToLocalWithBytes(int bytes) throws Exception {
-    FileSystemTestUtils.createByteFile(mFileSystem, "/testFile", WriteType.MUST_CACHE, bytes);
+    FileSystemTestUtils.createByteFile(mFileSystem, "/testFile", WritePType.WRITE_MUST_CACHE,
+        bytes);
     String[] cmd = new String[] {"cp", "/testFile",
         "file://" + mLocalAlluxioCluster.getAlluxioHome() + "/testFile"};
     mFsShell.run(cmd);

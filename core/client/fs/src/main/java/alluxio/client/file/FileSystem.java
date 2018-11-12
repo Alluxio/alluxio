@@ -16,7 +16,6 @@ import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.annotation.PublicApi;
 import alluxio.client.file.options.CreateDirectoryOptions;
-import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.ExistsOptions;
 import alluxio.client.file.options.OpenFileOptions;
 import alluxio.client.file.options.RenameOptions;
@@ -103,7 +102,7 @@ public interface FileSystem {
       throws FileAlreadyExistsException, InvalidPathException, IOException, AlluxioException;
 
   /**
-   * Convenience method for {@link #createFile(AlluxioURI, CreateFileOptions)} with default options.
+   * Convenience method for {@link #createFile(AlluxioURI, CreateFilePOptions)} with default options.
    *
    * @param path the path of the file to create in Alluxio space
    * @return a {@link FileOutStream} which will write data to the newly created file
@@ -122,7 +121,7 @@ public interface FileSystem {
    * @throws FileAlreadyExistsException if there is already a file at the given path
    * @throws InvalidPathException if the path is invalid
    */
-  FileOutStream createFile(AlluxioURI path, CreateFileOptions options)
+  FileOutStream createFile(AlluxioURI path, CreateFilePOptions options)
       throws FileAlreadyExistsException, InvalidPathException, IOException, AlluxioException;
 
   /**

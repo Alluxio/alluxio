@@ -21,8 +21,8 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemClientOptions;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.CreateDirectoryOptions;
-import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.SetAttributeOptions;
+import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.LoadMetadataPType;
 import alluxio.master.LocalAlluxioCluster;
@@ -91,7 +91,8 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
   @Test
   public void addBlock() throws Exception {
     AlluxioURI uri = new AlluxioURI("/xyz");
-    CreateFileOptions options = CreateFileOptions.defaults().setBlockSizeBytes(64);
+    CreateFilePOptions options =
+        FileSystemClientOptions.getCreateFileOptions().toBuilder().setBlockSizeBytes(64).build();
     FileOutStream os = mFileSystem.createFile(uri, options);
     for (int k = 0; k < 1000; k++) {
       os.write(k);
@@ -187,8 +188,9 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
   @Test
   public void completedEditLogDeletion() throws Exception {
     for (int i = 0; i < 124; i++) {
-      mFileSystem.createFile(new AlluxioURI("/a" + i),
-          CreateFileOptions.defaults().setBlockSizeBytes((i + 10) / 10 * 64)).close();
+      mFileSystem.createFile(new AlluxioURI("/a" + i), FileSystemClientOptions
+          .getCreateFileOptions().toBuilder().setBlockSizeBytes((i + 10) / 10 * 64).build())
+          .close();
     }
     mLocalAlluxioCluster.stopFS();
 
@@ -217,7 +219,8 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
       String dirPath = "/i" + i;
       mFileSystem.createDirectory(new AlluxioURI(dirPath), recMkdir);
       for (int j = 0; j < 10; j++) {
-        CreateFileOptions option = CreateFileOptions.defaults().setBlockSizeBytes((i + j + 1) * 64);
+        CreateFilePOptions option = FileSystemClientOptions.getCreateFileOptions().toBuilder()
+            .setBlockSizeBytes((i + j + 1) * 64).build();
         String filePath = dirPath + "/j" + j;
         mFileSystem.createFile(new AlluxioURI(filePath), option).close();
         if (j >= 5) {
@@ -273,7 +276,8 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
     for (int i = 0; i < 10; i++) {
       mFileSystem.createDirectory(new AlluxioURI("/i" + i));
       for (int j = 0; j < 10; j++) {
-        CreateFileOptions option = CreateFileOptions.defaults().setBlockSizeBytes((i + j + 1) * 64);
+        CreateFilePOptions option = FileSystemClientOptions.getCreateFileOptions().toBuilder()
+            .setBlockSizeBytes((i + j + 1) * 64).build();
         mFileSystem.createFile(new AlluxioURI("/i" + i + "/j" + j), option).close();
       }
     }
@@ -305,7 +309,8 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
    */
   @Test
   public void file() throws Exception {
-    CreateFileOptions option = CreateFileOptions.defaults().setBlockSizeBytes(64);
+    CreateFilePOptions option =
+        FileSystemClientOptions.getCreateFileOptions().toBuilder().setBlockSizeBytes(64).build();
     AlluxioURI filePath = new AlluxioURI("/xyz");
     mFileSystem.createFile(filePath, option).close();
     URIStatus status = mFileSystem.getStatus(filePath);
@@ -342,7 +347,8 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
     mFileSystem.setAttribute(dirUri, setPinned);
 
     AlluxioURI file0Path = new AlluxioURI("/myFolder/file0");
-    CreateFileOptions op = CreateFileOptions.defaults().setBlockSizeBytes(64);
+    CreateFilePOptions op =
+        FileSystemClientOptions.getCreateFileOptions().toBuilder().setBlockSizeBytes(64).build();
     mFileSystem.createFile(file0Path, op).close();
     mFileSystem.setAttribute(file0Path, setUnpinned);
 
@@ -459,7 +465,8 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
   @Test
   public void manyFile() throws Exception {
     for (int i = 0; i < 10; i++) {
-      CreateFileOptions option = CreateFileOptions.defaults().setBlockSizeBytes((i + 1) * 64);
+      CreateFilePOptions option = FileSystemClientOptions.getCreateFileOptions().toBuilder()
+          .setBlockSizeBytes((i + 1) * 64).build();
       mFileSystem.createFile(new AlluxioURI("/a" + i), option).close();
     }
     mLocalAlluxioCluster.stopFS();
@@ -488,7 +495,8 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
   @Test
   public void multiEditLog() throws Exception {
     for (int i = 0; i < 124; i++) {
-      CreateFileOptions op = CreateFileOptions.defaults().setBlockSizeBytes((i + 10) / 10 * 64);
+      CreateFilePOptions op = FileSystemClientOptions.getCreateFileOptions().toBuilder()
+          .setBlockSizeBytes((i + 10) / 10 * 64).build();
       mFileSystem.createFile(new AlluxioURI("/a" + i), op).close();
     }
     mLocalAlluxioCluster.stopFS();
@@ -519,7 +527,8 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
     for (int i = 0; i < 10; i++) {
       mFileSystem.createDirectory(new AlluxioURI("/i" + i));
       for (int j = 0; j < 10; j++) {
-        CreateFileOptions option = CreateFileOptions.defaults().setBlockSizeBytes((i + j + 1) * 64);
+        CreateFilePOptions option = FileSystemClientOptions.getCreateFileOptions().toBuilder()
+            .setBlockSizeBytes((i + j + 1) * 64).build();
         AlluxioURI path = new AlluxioURI("/i" + i + "/j" + j);
         mFileSystem.createFile(path, option).close();
         mFileSystem.rename(path, new AlluxioURI("/i" + i + "/jj" + j));
@@ -559,7 +568,8 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
 
     String user = "alluxio";
     Configuration.set(PropertyKey.SECURITY_LOGIN_USERNAME, user);
-    CreateFileOptions op = CreateFileOptions.defaults().setBlockSizeBytes(64);
+    CreateFilePOptions op =
+        FileSystemClientOptions.getCreateFileOptions().toBuilder().setBlockSizeBytes(64).build();
     mFileSystem.createFile(filePath, op).close();
 
     // TODO(chaomin): also setOwner and setGroup once there's a way to fake the owner/group in UFS.

@@ -12,10 +12,10 @@
 package alluxio.client.cli.fs.command;
 
 import alluxio.AlluxioURI;
-import alluxio.client.WriteType;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
 
+import alluxio.grpc.WritePType;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -39,7 +39,7 @@ public final class TestCommandIntegrationTest extends AbstractFileSystemShellTes
   @Test
   public void testPathIsDirectoryWhenPathIsFile() throws Exception {
     FileSystemTestUtils
-        .createByteFile(mFileSystem, "/testFile", WriteType.MUST_CACHE, 10);
+        .createByteFile(mFileSystem, "/testFile", WritePType.WRITE_MUST_CACHE, 10);
     int ret = mFsShell.run("test", "-d", "/testFile");
     Assert.assertEquals(1, ret);
   }
@@ -60,7 +60,7 @@ public final class TestCommandIntegrationTest extends AbstractFileSystemShellTes
   @Test
   public void testPathIsFileWhenPathIsFile() throws Exception {
     FileSystemTestUtils
-        .createByteFile(mFileSystem, "/testFile", WriteType.MUST_CACHE, 10);
+        .createByteFile(mFileSystem, "/testFile", WritePType.WRITE_MUST_CACHE, 10);
     int ret = mFsShell.run("test", "-f", "/testFile");
     Assert.assertEquals(0, ret);
   }
@@ -81,7 +81,7 @@ public final class TestCommandIntegrationTest extends AbstractFileSystemShellTes
   @Test
   public void testPathExistWhenPathIsFile() throws Exception {
     FileSystemTestUtils
-        .createByteFile(mFileSystem, "/testFile", WriteType.MUST_CACHE, 10);
+        .createByteFile(mFileSystem, "/testFile", WritePType.WRITE_MUST_CACHE, 10);
     int ret = mFsShell.run("test", "-e", "/testFile");
     Assert.assertEquals(0, ret);
   }
@@ -95,9 +95,9 @@ public final class TestCommandIntegrationTest extends AbstractFileSystemShellTes
   @Test
   public void testDirNotEmptyWhenPathIsDirectory() throws Exception {
     FileSystemTestUtils
-        .createByteFile(mFileSystem, "/testDir1/testFile1", WriteType.MUST_CACHE, 0);
+        .createByteFile(mFileSystem, "/testDir1/testFile1", WritePType.WRITE_MUST_CACHE, 0);
     FileSystemTestUtils
-        .createByteFile(mFileSystem, "/testDir2/testFile2", WriteType.MUST_CACHE, 10);
+        .createByteFile(mFileSystem, "/testDir2/testFile2", WritePType.WRITE_MUST_CACHE, 10);
     String[] command = new String[] {"mkdir", "/testDir3/testDir4"};
     mFsShell.run(command);
 
@@ -117,9 +117,9 @@ public final class TestCommandIntegrationTest extends AbstractFileSystemShellTes
   @Test
   public void testDirNotEmptyWhenPathIsFile() throws Exception {
     FileSystemTestUtils
-        .createByteFile(mFileSystem, "/testFile1", WriteType.MUST_CACHE, 0);
+        .createByteFile(mFileSystem, "/testFile1", WritePType.WRITE_MUST_CACHE, 0);
     FileSystemTestUtils
-        .createByteFile(mFileSystem, "/testFile2", WriteType.MUST_CACHE, 10);
+        .createByteFile(mFileSystem, "/testFile2", WritePType.WRITE_MUST_CACHE, 10);
     int ret = mFsShell.run("test", "-s", "/testFile1");
     Assert.assertEquals(1, ret);
 
@@ -143,9 +143,9 @@ public final class TestCommandIntegrationTest extends AbstractFileSystemShellTes
   @Test
   public void testFileZeroLengthWhenPathIsFile() throws Exception {
     FileSystemTestUtils
-        .createByteFile(mFileSystem, "/testFile1", WriteType.MUST_CACHE, 0);
+        .createByteFile(mFileSystem, "/testFile1", WritePType.WRITE_MUST_CACHE, 0);
     FileSystemTestUtils
-        .createByteFile(mFileSystem, "/testFile2", WriteType.MUST_CACHE, 10);
+        .createByteFile(mFileSystem, "/testFile2", WritePType.WRITE_MUST_CACHE, 10);
     int ret = mFsShell.run("test", "-z", "/testFile1");
     Assert.assertEquals(0, ret);
 

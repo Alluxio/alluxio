@@ -25,6 +25,9 @@ private static final long serialVersionUID = 0L;
     replicationMax_ = 0;
     replicationMin_ = 0;
     replicationDurable_ = 0;
+    fileWriteLocationPolicy_ = "";
+    writeTier_ = 0;
+    writeType_ = 0;
   }
 
   @java.lang.Override
@@ -110,8 +113,30 @@ private static final long serialVersionUID = 0L;
             break;
           }
           case 82: {
+            com.google.protobuf.ByteString bs = input.readBytes();
+            bitField0_ |= 0x00000200;
+            fileWriteLocationPolicy_ = bs;
+            break;
+          }
+          case 88: {
+            bitField0_ |= 0x00000400;
+            writeTier_ = input.readInt32();
+            break;
+          }
+          case 96: {
+            int rawValue = input.readEnum();
+            alluxio.grpc.WritePType value = alluxio.grpc.WritePType.valueOf(rawValue);
+            if (value == null) {
+              unknownFields.mergeVarintField(12, rawValue);
+            } else {
+              bitField0_ |= 0x00000800;
+              writeType_ = rawValue;
+            }
+            break;
+          }
+          case 106: {
             alluxio.grpc.FileSystemMasterCommonPOptions.Builder subBuilder = null;
-            if (((bitField0_ & 0x00000200) == 0x00000200)) {
+            if (((bitField0_ & 0x00001000) == 0x00001000)) {
               subBuilder = commonOptions_.toBuilder();
             }
             commonOptions_ = input.readMessage(alluxio.grpc.FileSystemMasterCommonPOptions.PARSER, extensionRegistry);
@@ -119,7 +144,7 @@ private static final long serialVersionUID = 0L;
               subBuilder.mergeFrom(commonOptions_);
               commonOptions_ = subBuilder.buildPartial();
             }
-            bitField0_ |= 0x00000200;
+            bitField0_ |= 0x00001000;
             break;
           }
         }
@@ -299,22 +324,95 @@ private static final long serialVersionUID = 0L;
     return replicationDurable_;
   }
 
-  public static final int COMMONOPTIONS_FIELD_NUMBER = 10;
-  private alluxio.grpc.FileSystemMasterCommonPOptions commonOptions_;
+  public static final int FILEWRITELOCATIONPOLICY_FIELD_NUMBER = 10;
+  private volatile java.lang.Object fileWriteLocationPolicy_;
   /**
-   * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 10;</code>
+   * <code>optional string fileWriteLocationPolicy = 10;</code>
    */
-  public boolean hasCommonOptions() {
+  public boolean hasFileWriteLocationPolicy() {
     return ((bitField0_ & 0x00000200) == 0x00000200);
   }
   /**
-   * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 10;</code>
+   * <code>optional string fileWriteLocationPolicy = 10;</code>
+   */
+  public java.lang.String getFileWriteLocationPolicy() {
+    java.lang.Object ref = fileWriteLocationPolicy_;
+    if (ref instanceof java.lang.String) {
+      return (java.lang.String) ref;
+    } else {
+      com.google.protobuf.ByteString bs = 
+          (com.google.protobuf.ByteString) ref;
+      java.lang.String s = bs.toStringUtf8();
+      if (bs.isValidUtf8()) {
+        fileWriteLocationPolicy_ = s;
+      }
+      return s;
+    }
+  }
+  /**
+   * <code>optional string fileWriteLocationPolicy = 10;</code>
+   */
+  public com.google.protobuf.ByteString
+      getFileWriteLocationPolicyBytes() {
+    java.lang.Object ref = fileWriteLocationPolicy_;
+    if (ref instanceof java.lang.String) {
+      com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString.copyFromUtf8(
+              (java.lang.String) ref);
+      fileWriteLocationPolicy_ = b;
+      return b;
+    } else {
+      return (com.google.protobuf.ByteString) ref;
+    }
+  }
+
+  public static final int WRITETIER_FIELD_NUMBER = 11;
+  private int writeTier_;
+  /**
+   * <code>optional int32 writeTier = 11;</code>
+   */
+  public boolean hasWriteTier() {
+    return ((bitField0_ & 0x00000400) == 0x00000400);
+  }
+  /**
+   * <code>optional int32 writeTier = 11;</code>
+   */
+  public int getWriteTier() {
+    return writeTier_;
+  }
+
+  public static final int WRITETYPE_FIELD_NUMBER = 12;
+  private int writeType_;
+  /**
+   * <code>optional .alluxio.grpc.WritePType writeType = 12;</code>
+   */
+  public boolean hasWriteType() {
+    return ((bitField0_ & 0x00000800) == 0x00000800);
+  }
+  /**
+   * <code>optional .alluxio.grpc.WritePType writeType = 12;</code>
+   */
+  public alluxio.grpc.WritePType getWriteType() {
+    alluxio.grpc.WritePType result = alluxio.grpc.WritePType.valueOf(writeType_);
+    return result == null ? alluxio.grpc.WritePType.WRITE_MUST_CACHE : result;
+  }
+
+  public static final int COMMONOPTIONS_FIELD_NUMBER = 13;
+  private alluxio.grpc.FileSystemMasterCommonPOptions commonOptions_;
+  /**
+   * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 13;</code>
+   */
+  public boolean hasCommonOptions() {
+    return ((bitField0_ & 0x00001000) == 0x00001000);
+  }
+  /**
+   * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 13;</code>
    */
   public alluxio.grpc.FileSystemMasterCommonPOptions getCommonOptions() {
     return commonOptions_ == null ? alluxio.grpc.FileSystemMasterCommonPOptions.getDefaultInstance() : commonOptions_;
   }
   /**
-   * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 10;</code>
+   * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 13;</code>
    */
   public alluxio.grpc.FileSystemMasterCommonPOptionsOrBuilder getCommonOptionsOrBuilder() {
     return commonOptions_ == null ? alluxio.grpc.FileSystemMasterCommonPOptions.getDefaultInstance() : commonOptions_;
@@ -360,7 +458,16 @@ private static final long serialVersionUID = 0L;
       output.writeInt32(9, replicationDurable_);
     }
     if (((bitField0_ & 0x00000200) == 0x00000200)) {
-      output.writeMessage(10, getCommonOptions());
+      com.google.protobuf.GeneratedMessageV3.writeString(output, 10, fileWriteLocationPolicy_);
+    }
+    if (((bitField0_ & 0x00000400) == 0x00000400)) {
+      output.writeInt32(11, writeTier_);
+    }
+    if (((bitField0_ & 0x00000800) == 0x00000800)) {
+      output.writeEnum(12, writeType_);
+    }
+    if (((bitField0_ & 0x00001000) == 0x00001000)) {
+      output.writeMessage(13, getCommonOptions());
     }
     unknownFields.writeTo(output);
   }
@@ -407,8 +514,19 @@ private static final long serialVersionUID = 0L;
         .computeInt32Size(9, replicationDurable_);
     }
     if (((bitField0_ & 0x00000200) == 0x00000200)) {
+      size += com.google.protobuf.GeneratedMessageV3.computeStringSize(10, fileWriteLocationPolicy_);
+    }
+    if (((bitField0_ & 0x00000400) == 0x00000400)) {
       size += com.google.protobuf.CodedOutputStream
-        .computeMessageSize(10, getCommonOptions());
+        .computeInt32Size(11, writeTier_);
+    }
+    if (((bitField0_ & 0x00000800) == 0x00000800)) {
+      size += com.google.protobuf.CodedOutputStream
+        .computeEnumSize(12, writeType_);
+    }
+    if (((bitField0_ & 0x00001000) == 0x00001000)) {
+      size += com.google.protobuf.CodedOutputStream
+        .computeMessageSize(13, getCommonOptions());
     }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
@@ -470,6 +588,20 @@ private static final long serialVersionUID = 0L;
       result = result && (getReplicationDurable()
           == other.getReplicationDurable());
     }
+    result = result && (hasFileWriteLocationPolicy() == other.hasFileWriteLocationPolicy());
+    if (hasFileWriteLocationPolicy()) {
+      result = result && getFileWriteLocationPolicy()
+          .equals(other.getFileWriteLocationPolicy());
+    }
+    result = result && (hasWriteTier() == other.hasWriteTier());
+    if (hasWriteTier()) {
+      result = result && (getWriteTier()
+          == other.getWriteTier());
+    }
+    result = result && (hasWriteType() == other.hasWriteType());
+    if (hasWriteType()) {
+      result = result && writeType_ == other.writeType_;
+    }
     result = result && (hasCommonOptions() == other.hasCommonOptions());
     if (hasCommonOptions()) {
       result = result && getCommonOptions()
@@ -525,6 +657,18 @@ private static final long serialVersionUID = 0L;
     if (hasReplicationDurable()) {
       hash = (37 * hash) + REPLICATIONDURABLE_FIELD_NUMBER;
       hash = (53 * hash) + getReplicationDurable();
+    }
+    if (hasFileWriteLocationPolicy()) {
+      hash = (37 * hash) + FILEWRITELOCATIONPOLICY_FIELD_NUMBER;
+      hash = (53 * hash) + getFileWriteLocationPolicy().hashCode();
+    }
+    if (hasWriteTier()) {
+      hash = (37 * hash) + WRITETIER_FIELD_NUMBER;
+      hash = (53 * hash) + getWriteTier();
+    }
+    if (hasWriteType()) {
+      hash = (37 * hash) + WRITETYPE_FIELD_NUMBER;
+      hash = (53 * hash) + writeType_;
     }
     if (hasCommonOptions()) {
       hash = (37 * hash) + COMMONOPTIONS_FIELD_NUMBER;
@@ -678,12 +822,18 @@ private static final long serialVersionUID = 0L;
       bitField0_ = (bitField0_ & ~0x00000080);
       replicationDurable_ = 0;
       bitField0_ = (bitField0_ & ~0x00000100);
+      fileWriteLocationPolicy_ = "";
+      bitField0_ = (bitField0_ & ~0x00000200);
+      writeTier_ = 0;
+      bitField0_ = (bitField0_ & ~0x00000400);
+      writeType_ = 0;
+      bitField0_ = (bitField0_ & ~0x00000800);
       if (commonOptionsBuilder_ == null) {
         commonOptions_ = null;
       } else {
         commonOptionsBuilder_.clear();
       }
-      bitField0_ = (bitField0_ & ~0x00000200);
+      bitField0_ = (bitField0_ & ~0x00001000);
       return this;
     }
 
@@ -746,6 +896,18 @@ private static final long serialVersionUID = 0L;
       result.replicationDurable_ = replicationDurable_;
       if (((from_bitField0_ & 0x00000200) == 0x00000200)) {
         to_bitField0_ |= 0x00000200;
+      }
+      result.fileWriteLocationPolicy_ = fileWriteLocationPolicy_;
+      if (((from_bitField0_ & 0x00000400) == 0x00000400)) {
+        to_bitField0_ |= 0x00000400;
+      }
+      result.writeTier_ = writeTier_;
+      if (((from_bitField0_ & 0x00000800) == 0x00000800)) {
+        to_bitField0_ |= 0x00000800;
+      }
+      result.writeType_ = writeType_;
+      if (((from_bitField0_ & 0x00001000) == 0x00001000)) {
+        to_bitField0_ |= 0x00001000;
       }
       if (commonOptionsBuilder_ == null) {
         result.commonOptions_ = commonOptions_;
@@ -820,6 +982,17 @@ private static final long serialVersionUID = 0L;
       }
       if (other.hasReplicationDurable()) {
         setReplicationDurable(other.getReplicationDurable());
+      }
+      if (other.hasFileWriteLocationPolicy()) {
+        bitField0_ |= 0x00000200;
+        fileWriteLocationPolicy_ = other.fileWriteLocationPolicy_;
+        onChanged();
+      }
+      if (other.hasWriteTier()) {
+        setWriteTier(other.getWriteTier());
+      }
+      if (other.hasWriteType()) {
+        setWriteType(other.getWriteType());
       }
       if (other.hasCommonOptions()) {
         mergeCommonOptions(other.getCommonOptions());
@@ -1176,17 +1349,161 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
+    private java.lang.Object fileWriteLocationPolicy_ = "";
+    /**
+     * <code>optional string fileWriteLocationPolicy = 10;</code>
+     */
+    public boolean hasFileWriteLocationPolicy() {
+      return ((bitField0_ & 0x00000200) == 0x00000200);
+    }
+    /**
+     * <code>optional string fileWriteLocationPolicy = 10;</code>
+     */
+    public java.lang.String getFileWriteLocationPolicy() {
+      java.lang.Object ref = fileWriteLocationPolicy_;
+      if (!(ref instanceof java.lang.String)) {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        if (bs.isValidUtf8()) {
+          fileWriteLocationPolicy_ = s;
+        }
+        return s;
+      } else {
+        return (java.lang.String) ref;
+      }
+    }
+    /**
+     * <code>optional string fileWriteLocationPolicy = 10;</code>
+     */
+    public com.google.protobuf.ByteString
+        getFileWriteLocationPolicyBytes() {
+      java.lang.Object ref = fileWriteLocationPolicy_;
+      if (ref instanceof String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        fileWriteLocationPolicy_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+    /**
+     * <code>optional string fileWriteLocationPolicy = 10;</code>
+     */
+    public Builder setFileWriteLocationPolicy(
+        java.lang.String value) {
+      if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000200;
+      fileWriteLocationPolicy_ = value;
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>optional string fileWriteLocationPolicy = 10;</code>
+     */
+    public Builder clearFileWriteLocationPolicy() {
+      bitField0_ = (bitField0_ & ~0x00000200);
+      fileWriteLocationPolicy_ = getDefaultInstance().getFileWriteLocationPolicy();
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>optional string fileWriteLocationPolicy = 10;</code>
+     */
+    public Builder setFileWriteLocationPolicyBytes(
+        com.google.protobuf.ByteString value) {
+      if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000200;
+      fileWriteLocationPolicy_ = value;
+      onChanged();
+      return this;
+    }
+
+    private int writeTier_ ;
+    /**
+     * <code>optional int32 writeTier = 11;</code>
+     */
+    public boolean hasWriteTier() {
+      return ((bitField0_ & 0x00000400) == 0x00000400);
+    }
+    /**
+     * <code>optional int32 writeTier = 11;</code>
+     */
+    public int getWriteTier() {
+      return writeTier_;
+    }
+    /**
+     * <code>optional int32 writeTier = 11;</code>
+     */
+    public Builder setWriteTier(int value) {
+      bitField0_ |= 0x00000400;
+      writeTier_ = value;
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>optional int32 writeTier = 11;</code>
+     */
+    public Builder clearWriteTier() {
+      bitField0_ = (bitField0_ & ~0x00000400);
+      writeTier_ = 0;
+      onChanged();
+      return this;
+    }
+
+    private int writeType_ = 0;
+    /**
+     * <code>optional .alluxio.grpc.WritePType writeType = 12;</code>
+     */
+    public boolean hasWriteType() {
+      return ((bitField0_ & 0x00000800) == 0x00000800);
+    }
+    /**
+     * <code>optional .alluxio.grpc.WritePType writeType = 12;</code>
+     */
+    public alluxio.grpc.WritePType getWriteType() {
+      alluxio.grpc.WritePType result = alluxio.grpc.WritePType.valueOf(writeType_);
+      return result == null ? alluxio.grpc.WritePType.WRITE_MUST_CACHE : result;
+    }
+    /**
+     * <code>optional .alluxio.grpc.WritePType writeType = 12;</code>
+     */
+    public Builder setWriteType(alluxio.grpc.WritePType value) {
+      if (value == null) {
+        throw new NullPointerException();
+      }
+      bitField0_ |= 0x00000800;
+      writeType_ = value.getNumber();
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>optional .alluxio.grpc.WritePType writeType = 12;</code>
+     */
+    public Builder clearWriteType() {
+      bitField0_ = (bitField0_ & ~0x00000800);
+      writeType_ = 0;
+      onChanged();
+      return this;
+    }
+
     private alluxio.grpc.FileSystemMasterCommonPOptions commonOptions_ = null;
     private com.google.protobuf.SingleFieldBuilderV3<
         alluxio.grpc.FileSystemMasterCommonPOptions, alluxio.grpc.FileSystemMasterCommonPOptions.Builder, alluxio.grpc.FileSystemMasterCommonPOptionsOrBuilder> commonOptionsBuilder_;
     /**
-     * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 10;</code>
+     * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 13;</code>
      */
     public boolean hasCommonOptions() {
-      return ((bitField0_ & 0x00000200) == 0x00000200);
+      return ((bitField0_ & 0x00001000) == 0x00001000);
     }
     /**
-     * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 10;</code>
+     * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 13;</code>
      */
     public alluxio.grpc.FileSystemMasterCommonPOptions getCommonOptions() {
       if (commonOptionsBuilder_ == null) {
@@ -1196,7 +1513,7 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
-     * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 10;</code>
+     * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 13;</code>
      */
     public Builder setCommonOptions(alluxio.grpc.FileSystemMasterCommonPOptions value) {
       if (commonOptionsBuilder_ == null) {
@@ -1208,11 +1525,11 @@ private static final long serialVersionUID = 0L;
       } else {
         commonOptionsBuilder_.setMessage(value);
       }
-      bitField0_ |= 0x00000200;
+      bitField0_ |= 0x00001000;
       return this;
     }
     /**
-     * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 10;</code>
+     * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 13;</code>
      */
     public Builder setCommonOptions(
         alluxio.grpc.FileSystemMasterCommonPOptions.Builder builderForValue) {
@@ -1222,15 +1539,15 @@ private static final long serialVersionUID = 0L;
       } else {
         commonOptionsBuilder_.setMessage(builderForValue.build());
       }
-      bitField0_ |= 0x00000200;
+      bitField0_ |= 0x00001000;
       return this;
     }
     /**
-     * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 10;</code>
+     * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 13;</code>
      */
     public Builder mergeCommonOptions(alluxio.grpc.FileSystemMasterCommonPOptions value) {
       if (commonOptionsBuilder_ == null) {
-        if (((bitField0_ & 0x00000200) == 0x00000200) &&
+        if (((bitField0_ & 0x00001000) == 0x00001000) &&
             commonOptions_ != null &&
             commonOptions_ != alluxio.grpc.FileSystemMasterCommonPOptions.getDefaultInstance()) {
           commonOptions_ =
@@ -1242,11 +1559,11 @@ private static final long serialVersionUID = 0L;
       } else {
         commonOptionsBuilder_.mergeFrom(value);
       }
-      bitField0_ |= 0x00000200;
+      bitField0_ |= 0x00001000;
       return this;
     }
     /**
-     * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 10;</code>
+     * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 13;</code>
      */
     public Builder clearCommonOptions() {
       if (commonOptionsBuilder_ == null) {
@@ -1255,19 +1572,19 @@ private static final long serialVersionUID = 0L;
       } else {
         commonOptionsBuilder_.clear();
       }
-      bitField0_ = (bitField0_ & ~0x00000200);
+      bitField0_ = (bitField0_ & ~0x00001000);
       return this;
     }
     /**
-     * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 10;</code>
+     * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 13;</code>
      */
     public alluxio.grpc.FileSystemMasterCommonPOptions.Builder getCommonOptionsBuilder() {
-      bitField0_ |= 0x00000200;
+      bitField0_ |= 0x00001000;
       onChanged();
       return getCommonOptionsFieldBuilder().getBuilder();
     }
     /**
-     * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 10;</code>
+     * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 13;</code>
      */
     public alluxio.grpc.FileSystemMasterCommonPOptionsOrBuilder getCommonOptionsOrBuilder() {
       if (commonOptionsBuilder_ != null) {
@@ -1278,7 +1595,7 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
-     * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 10;</code>
+     * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 13;</code>
      */
     private com.google.protobuf.SingleFieldBuilderV3<
         alluxio.grpc.FileSystemMasterCommonPOptions, alluxio.grpc.FileSystemMasterCommonPOptions.Builder, alluxio.grpc.FileSystemMasterCommonPOptionsOrBuilder> 

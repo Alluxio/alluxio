@@ -18,13 +18,14 @@ import alluxio.PropertyKey;
 import alluxio.client.WriteType;
 import alluxio.client.file.*;
 import alluxio.client.file.options.CreateDirectoryOptions;
-import alluxio.client.file.options.CreateFileOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
+import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
+import alluxio.grpc.WritePType;
 import alluxio.web.ProxyWebServer;
 
 import com.google.common.base.Preconditions;
@@ -241,8 +242,8 @@ public final class S3RestServiceHandler {
         AlluxioURI objectURI = new AlluxioURI(objectPath);
 
         try {
-          CreateFileOptions options = CreateFileOptions.defaults().setRecursive(true)
-              .setWriteType(getS3WriteType());
+          CreateFilePOptions options = FileSystemClientOptions.getCreateFileOptions().toBuilder()
+              .setRecursive(true).setWriteType(getS3WritePType()).build();
           FileOutStream os = mFileSystem.createFile(objectURI, options);
           MessageDigest md5 = MessageDigest.getInstance("MD5");
           DigestOutputStream digestOutputStream = new DigestOutputStream(os, md5);
@@ -340,8 +341,8 @@ public final class S3RestServiceHandler {
           List<URIStatus> parts = mFileSystem.listStatus(multipartTemporaryDir);
           Collections.sort(parts, new URIStatusNameComparator());
 
-          CreateFileOptions options = CreateFileOptions.defaults().setRecursive(true)
-              .setWriteType(getS3WriteType());
+          CreateFilePOptions options = FileSystemClientOptions.getCreateFileOptions().toBuilder()
+              .setRecursive(true).setWriteType(getS3WritePType()).build();
           FileOutStream os = mFileSystem.createFile(new AlluxioURI(objectPath), options);
           MessageDigest md5 = MessageDigest.getInstance("MD5");
           DigestOutputStream digestOutputStream = new DigestOutputStream(os, md5);
@@ -662,6 +663,11 @@ public final class S3RestServiceHandler {
 
   private WriteType getS3WriteType() {
     return Configuration.getEnum(PropertyKey.PROXY_S3_WRITE_TYPE, WriteType.class);
+  }
+
+  private WritePType getS3WritePType() {
+    // TODO(ggezer)
+    return WritePType.valueOf("WRITE_" + Configuration.get(PropertyKey.PROXY_S3_WRITE_TYPE));
   }
 
   private class URIStatusNameComparator implements Comparator<URIStatus> {

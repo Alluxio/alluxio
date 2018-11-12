@@ -15,14 +15,10 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.client.ReadType;
-import alluxio.client.WriteType;
-import alluxio.client.file.FileInStream;
-import alluxio.client.file.FileOutStream;
-import alluxio.client.file.FileSystem;
-import alluxio.client.file.FileSystemTestUtils;
-import alluxio.client.file.URIStatus;
-import alluxio.client.file.options.CreateFileOptions;
+import alluxio.client.file.*;
 import alluxio.client.file.options.OpenFileOptions;
+import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.WritePType;
 import alluxio.security.authorization.Mode;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
@@ -60,9 +56,9 @@ public final class FileInStreamIntegrationTest extends BaseIntegrationTest {
       new LocalAlluxioClusterResource.Builder().setProperty(
           PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, BLOCK_SIZE).build();
   private FileSystem mFileSystem;
-  private CreateFileOptions mWriteBoth;
-  private CreateFileOptions mWriteAlluxio;
-  private CreateFileOptions mWriteUnderStore;
+  private CreateFilePOptions mWriteBoth;
+  private CreateFilePOptions mWriteAlluxio;
+  private CreateFilePOptions mWriteUnderStore;
   private String mTestPath;
 
   @Rule
@@ -74,28 +70,28 @@ public final class FileInStreamIntegrationTest extends BaseIntegrationTest {
   @Before
   public void before() throws Exception {
     mFileSystem = mLocalAlluxioClusterResource.get().getClient();
-    mWriteBoth =
-        CreateFileOptions.defaults().setMode(Mode.createFullAccess()).setBlockSizeBytes(BLOCK_SIZE)
-            .setWriteType(WriteType.CACHE_THROUGH);
-    mWriteAlluxio =
-        CreateFileOptions.defaults().setMode(Mode.createFullAccess()).setBlockSizeBytes(BLOCK_SIZE)
-            .setWriteType(WriteType.MUST_CACHE);
-    mWriteUnderStore =
-        CreateFileOptions.defaults().setMode(Mode.createFullAccess()).setBlockSizeBytes(BLOCK_SIZE)
-            .setWriteType(WriteType.THROUGH);
+    mWriteBoth = FileSystemClientOptions.getCreateFileOptions().toBuilder()
+        .setMode(Mode.createFullAccess().toShort()).setBlockSizeBytes(BLOCK_SIZE)
+        .setWriteType(WritePType.WRITE_CACHE_THROUGH).build();
+    mWriteAlluxio = FileSystemClientOptions.getCreateFileOptions().toBuilder()
+        .setMode(Mode.createFullAccess().toShort()).setBlockSizeBytes(BLOCK_SIZE)
+        .setWriteType(WritePType.WRITE_MUST_CACHE).build();
+    mWriteUnderStore = FileSystemClientOptions.getCreateFileOptions().toBuilder()
+        .setMode(Mode.createFullAccess().toShort()).setBlockSizeBytes(BLOCK_SIZE)
+        .setWriteType(WritePType.WRITE_THROUGH).build();
     mTestPath = PathUtils.uniqPath();
 
     // Create files of varying size and write type to later read from
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
-      for (CreateFileOptions op : getOptionSet()) {
+      for (CreateFilePOptions op : getOptionSet()) {
         AlluxioURI path = new AlluxioURI(mTestPath + "/file_" + k + "_" + op.hashCode());
         FileSystemTestUtils.createByteFile(mFileSystem, path, op, k);
       }
     }
   }
 
-  private List<CreateFileOptions> getOptionSet() {
-    List<CreateFileOptions> ret = new ArrayList<>(3);
+  private List<CreateFilePOptions> getOptionSet() {
+    List<CreateFilePOptions> ret = new ArrayList<>(3);
     ret.add(mWriteBoth);
     ret.add(mWriteAlluxio);
     ret.add(mWriteUnderStore);
@@ -110,7 +106,7 @@ public final class FileInStreamIntegrationTest extends BaseIntegrationTest {
       confParams = {PropertyKey.Name.USER_NETWORK_NETTY_READER_PACKET_SIZE_BYTES, "64KB"})
   public void readTest1() throws Exception {
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
-      for (CreateFileOptions op : getOptionSet()) {
+      for (CreateFilePOptions op : getOptionSet()) {
         String filename = mTestPath + "/file_" + k + "_" + op.hashCode();
         AlluxioURI uri = new AlluxioURI(filename);
 
@@ -153,7 +149,7 @@ public final class FileInStreamIntegrationTest extends BaseIntegrationTest {
       confParams = {PropertyKey.Name.USER_NETWORK_NETTY_READER_PACKET_SIZE_BYTES, "64KB"})
   public void readTest2() throws Exception {
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
-      for (CreateFileOptions op : getOptionSet()) {
+      for (CreateFilePOptions op : getOptionSet()) {
         String filename = mTestPath + "/file_" + k + "_" + op.hashCode();
         AlluxioURI uri = new AlluxioURI(filename);
 
@@ -180,7 +176,7 @@ public final class FileInStreamIntegrationTest extends BaseIntegrationTest {
       confParams = {PropertyKey.Name.USER_NETWORK_NETTY_READER_PACKET_SIZE_BYTES, "64KB"})
   public void readTest3() throws Exception {
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
-      for (CreateFileOptions op : getOptionSet()) {
+      for (CreateFilePOptions op : getOptionSet()) {
         String filename = mTestPath + "/file_" + k + "_" + op.hashCode();
         AlluxioURI uri = new AlluxioURI(filename);
 
@@ -205,7 +201,7 @@ public final class FileInStreamIntegrationTest extends BaseIntegrationTest {
   @Test
   public void readEndOfFile() throws Exception {
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
-      for (CreateFileOptions op : getOptionSet()) {
+      for (CreateFilePOptions op : getOptionSet()) {
         String filename = mTestPath + "/file_" + k + "_" + op.hashCode();
         AlluxioURI uri = new AlluxioURI(filename);
 
@@ -231,7 +227,7 @@ public final class FileInStreamIntegrationTest extends BaseIntegrationTest {
   public void seekExceptionTest1() throws Exception {
     mThrown.expect(IllegalArgumentException.class);
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
-      for (CreateFileOptions op : getOptionSet()) {
+      for (CreateFilePOptions op : getOptionSet()) {
         String filename = mTestPath + "/file_" + k + "_" + op.hashCode();
         AlluxioURI uri = new AlluxioURI(filename);
 
@@ -251,7 +247,7 @@ public final class FileInStreamIntegrationTest extends BaseIntegrationTest {
   public void seekExceptionTest2() throws Exception {
     mThrown.expect(IllegalArgumentException.class);
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
-      for (CreateFileOptions op : getOptionSet()) {
+      for (CreateFilePOptions op : getOptionSet()) {
         String filename = mTestPath + "/file_" + k + "_" + op.hashCode();
         AlluxioURI uri = new AlluxioURI(filename);
 
@@ -269,7 +265,7 @@ public final class FileInStreamIntegrationTest extends BaseIntegrationTest {
   @Test
   public void seek() throws Exception {
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
-      for (CreateFileOptions op : getOptionSet()) {
+      for (CreateFilePOptions op : getOptionSet()) {
         String filename = mTestPath + "/file_" + k + "_" + op.hashCode();
         AlluxioURI uri = new AlluxioURI(filename);
 
@@ -292,7 +288,7 @@ public final class FileInStreamIntegrationTest extends BaseIntegrationTest {
   public void eofSeek() throws Exception {
     String uniqPath = PathUtils.uniqPath();
     int length = BLOCK_SIZE * 3;
-    for (CreateFileOptions op : getOptionSet()) {
+    for (CreateFilePOptions op : getOptionSet()) {
       String filename = uniqPath + "/file_" + op.hashCode();
       AlluxioURI uri = new AlluxioURI(filename);
       FileSystemTestUtils.createByteFile(mFileSystem, filename, length, op);
@@ -314,7 +310,7 @@ public final class FileInStreamIntegrationTest extends BaseIntegrationTest {
   @Test
   public void skip() throws Exception {
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
-      for (CreateFileOptions op : getOptionSet()) {
+      for (CreateFilePOptions op : getOptionSet()) {
         String filename = mTestPath + "/file_" + k + "_" + op.hashCode();
         AlluxioURI uri = new AlluxioURI(filename);
 
@@ -344,8 +340,8 @@ public final class FileInStreamIntegrationTest extends BaseIntegrationTest {
 
     // Create files of varying size and write type to later read from
     final AlluxioURI path = new AlluxioURI(mTestPath + "/largeFile");
-    FileSystemTestUtils.createByteFile(mFileSystem, path,
-        CreateFileOptions.defaults().setWriteType(WriteType.THROUGH), length);
+    FileSystemTestUtils.createByteFile(mFileSystem, path, FileSystemClientOptions
+        .getCreateFileOptions().toBuilder().setWriteType(WritePType.WRITE_THROUGH).build(), length);
 
     final int concurrency = 10;
     final AtomicInteger count = new AtomicInteger(0);
@@ -400,8 +396,9 @@ public final class FileInStreamIntegrationTest extends BaseIntegrationTest {
   public void remoteReadLargeFile() throws Exception {
     // write a file outside of Alluxio
     AlluxioURI filePath = new AlluxioURI(mTestPath + "/test");
-    try (FileOutStream os = mFileSystem.createFile(filePath, CreateFileOptions.defaults()
-        .setBlockSizeBytes(16 * Constants.MB).setWriteType(WriteType.THROUGH))) {
+    try (FileOutStream os =
+        mFileSystem.createFile(filePath, FileSystemClientOptions.getCreateFileOptions().toBuilder()
+            .setBlockSizeBytes(16 * Constants.MB).setWriteType(WritePType.WRITE_THROUGH).build())) {
       // Write a smaller byte array 10 times to avoid demanding 500mb of contiguous memory.
       byte[] bytes = BufferUtils.getIncreasingByteArray(50 * Constants.MB);
       for (int i = 0; i < 10; i++) {
@@ -421,7 +418,7 @@ public final class FileInStreamIntegrationTest extends BaseIntegrationTest {
   @LocalAlluxioClusterResource.Config(
       confParams = {PropertyKey.Name.USER_FILE_READ_TYPE_DEFAULT, "NO_CACHE"})
   public void positionedReadWithoutCaching() throws Exception {
-    for (CreateFileOptions op : getOptionSet()) {
+    for (CreateFilePOptions op : getOptionSet()) {
       String filename = mTestPath + "/file_" + MIN_LEN + "_" + op.hashCode();
       AlluxioURI uri = new AlluxioURI(filename);
 

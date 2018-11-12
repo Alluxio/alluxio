@@ -14,8 +14,10 @@ package alluxio.client.fs;
 import alluxio.AlluxioURI;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileOutStream;
+import alluxio.client.file.FileSystemClientOptions;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.CreateFileOptions;
+import alluxio.grpc.WritePType;
 import alluxio.master.file.meta.PersistenceState;
 import alluxio.testutils.IntegrationTestUtils;
 import alluxio.util.CommonUtils;
@@ -37,8 +39,8 @@ public final class FileOutStreamAsyncWriteIntegrationTest
 
     AlluxioURI filePath = new AlluxioURI(PathUtils.uniqPath());
     final int length = 2;
-    FileOutStream os = mFileSystem.createFile(filePath,
-            CreateFileOptions.defaults().setWriteType(WriteType.ASYNC_THROUGH));
+    FileOutStream os = mFileSystem.createFile(filePath, FileSystemClientOptions
+        .getCreateFileOptions().toBuilder().setWriteType(WritePType.WRITE_ASYNC_THROUGH).build());
     os.write((byte) 0);
     os.write((byte) 1);
     os.close();
@@ -61,8 +63,8 @@ public final class FileOutStreamAsyncWriteIntegrationTest
   @Test
   public void asyncWriteEmptyFile() throws Exception {
     AlluxioURI filePath = new AlluxioURI(PathUtils.uniqPath());
-    mFileSystem.createFile(filePath, CreateFileOptions.defaults()
-        .setWriteType(WriteType.ASYNC_THROUGH)).close();
+    mFileSystem.createFile(filePath, FileSystemClientOptions.getCreateFileOptions().toBuilder()
+        .setWriteType(WritePType.WRITE_ASYNC_THROUGH).build()).close();
 
     // check the file is completed but not persisted
     URIStatus status = mFileSystem.getStatus(filePath);

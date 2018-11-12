@@ -14,9 +14,9 @@ package alluxio.client.cli.fs.command;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
-import alluxio.client.WriteType;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.URIStatus;
+import alluxio.grpc.WritePType;
 import alluxio.wire.TtlAction;
 
 import org.junit.Assert;
@@ -32,7 +32,7 @@ public final class SetTtlCommandIntegrationTest extends AbstractFileSystemShellT
   @Test
   public void setTtl() throws Exception {
     String filePath = "/testFile";
-    FileSystemTestUtils.createByteFile(mFileSystem, filePath, WriteType.MUST_CACHE, 1);
+    FileSystemTestUtils.createByteFile(mFileSystem, filePath, WritePType.WRITE_MUST_CACHE, 1);
     Assert.assertEquals(Constants.NO_TTL,
         mFileSystem.getStatus(new AlluxioURI("/testFile")).getTtl());
 
@@ -49,7 +49,7 @@ public final class SetTtlCommandIntegrationTest extends AbstractFileSystemShellT
   @Test
   public void setTtlWithDelete() throws Exception {
     String filePath = "/testFile";
-    FileSystemTestUtils.createByteFile(mFileSystem, filePath, WriteType.MUST_CACHE, 1);
+    FileSystemTestUtils.createByteFile(mFileSystem, filePath, WritePType.WRITE_MUST_CACHE, 1);
     Assert.assertEquals(Constants.NO_TTL,
         mFileSystem.getStatus(new AlluxioURI("/testFile")).getTtl());
 
@@ -65,7 +65,7 @@ public final class SetTtlCommandIntegrationTest extends AbstractFileSystemShellT
   @Test
   public void setTtlWithFree() throws Exception {
     String filePath = "/testFile";
-    FileSystemTestUtils.createByteFile(mFileSystem, filePath, WriteType.MUST_CACHE, 1);
+    FileSystemTestUtils.createByteFile(mFileSystem, filePath, WritePType.WRITE_MUST_CACHE, 1);
     Assert.assertEquals(Constants.NO_TTL,
         mFileSystem.getStatus(new AlluxioURI("/testFile")).getTtl());
 
@@ -82,7 +82,7 @@ public final class SetTtlCommandIntegrationTest extends AbstractFileSystemShellT
   public void setTtlSameTimeDifferentAction() throws Exception {
     String filePath = "/testFile";
     AlluxioURI uri = new AlluxioURI("/testFile");
-    FileSystemTestUtils.createByteFile(mFileSystem, filePath, WriteType.MUST_CACHE, 1);
+    FileSystemTestUtils.createByteFile(mFileSystem, filePath, WritePType.WRITE_MUST_CACHE, 1);
     long ttl = 1000L;
 
     Assert.assertEquals(0,
@@ -99,7 +99,7 @@ public final class SetTtlCommandIntegrationTest extends AbstractFileSystemShellT
   @Test
   public void setTtlWithNoOperationValue() throws Exception {
     String filePath = "/testFile";
-    FileSystemTestUtils.createByteFile(mFileSystem, filePath, WriteType.MUST_CACHE, 1);
+    FileSystemTestUtils.createByteFile(mFileSystem, filePath, WritePType.WRITE_MUST_CACHE, 1);
     Assert.assertEquals(Constants.NO_TTL,
         mFileSystem.getStatus(new AlluxioURI("/testFile")).getTtl());
 
@@ -110,7 +110,7 @@ public final class SetTtlCommandIntegrationTest extends AbstractFileSystemShellT
   @Test
   public void setTtlWithInvalidOperationValue() throws Exception {
     String filePath = "/testFile";
-    FileSystemTestUtils.createByteFile(mFileSystem, filePath, WriteType.MUST_CACHE, 1);
+    FileSystemTestUtils.createByteFile(mFileSystem, filePath, WritePType.WRITE_MUST_CACHE, 1);
     Assert.assertEquals(Constants.NO_TTL,
         mFileSystem.getStatus(new AlluxioURI("/testFile")).getTtl());
 
@@ -122,7 +122,7 @@ public final class SetTtlCommandIntegrationTest extends AbstractFileSystemShellT
   @Test
   public void setTtlWithDifferentUnitTime() throws Exception {
     String filePath = "/testFile";
-    FileSystemTestUtils.createByteFile(mFileSystem, filePath, WriteType.MUST_CACHE, 1);
+    FileSystemTestUtils.createByteFile(mFileSystem, filePath, WritePType.WRITE_MUST_CACHE, 1);
     Assert.assertEquals(Constants.NO_TTL,
         mFileSystem.getStatus(new AlluxioURI("/testFile")).getTtl());
 
@@ -155,7 +155,7 @@ public final class SetTtlCommandIntegrationTest extends AbstractFileSystemShellT
 
   @Test
   public void setTtlWithInvalidTime() throws Exception {
-    FileSystemTestUtils.createByteFile(mFileSystem, "/testFile", WriteType.MUST_CACHE, 1);
+    FileSystemTestUtils.createByteFile(mFileSystem, "/testFile", WritePType.WRITE_MUST_CACHE, 1);
     mFsShell.run("setTtl", "/testFile", "some-random-text");
     Assert.assertTrue(mOutput.toString().contains("is not valid time"));
   }

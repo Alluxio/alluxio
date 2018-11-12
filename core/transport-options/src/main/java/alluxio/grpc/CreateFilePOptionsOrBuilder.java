@@ -105,15 +105,47 @@ public interface CreateFilePOptionsOrBuilder extends
   int getReplicationDurable();
 
   /**
-   * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 10;</code>
+   * <code>optional string fileWriteLocationPolicy = 10;</code>
+   */
+  boolean hasFileWriteLocationPolicy();
+  /**
+   * <code>optional string fileWriteLocationPolicy = 10;</code>
+   */
+  java.lang.String getFileWriteLocationPolicy();
+  /**
+   * <code>optional string fileWriteLocationPolicy = 10;</code>
+   */
+  com.google.protobuf.ByteString
+      getFileWriteLocationPolicyBytes();
+
+  /**
+   * <code>optional int32 writeTier = 11;</code>
+   */
+  boolean hasWriteTier();
+  /**
+   * <code>optional int32 writeTier = 11;</code>
+   */
+  int getWriteTier();
+
+  /**
+   * <code>optional .alluxio.grpc.WritePType writeType = 12;</code>
+   */
+  boolean hasWriteType();
+  /**
+   * <code>optional .alluxio.grpc.WritePType writeType = 12;</code>
+   */
+  alluxio.grpc.WritePType getWriteType();
+
+  /**
+   * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 13;</code>
    */
   boolean hasCommonOptions();
   /**
-   * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 10;</code>
+   * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 13;</code>
    */
   alluxio.grpc.FileSystemMasterCommonPOptions getCommonOptions();
   /**
-   * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 10;</code>
+   * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 13;</code>
    */
   alluxio.grpc.FileSystemMasterCommonPOptionsOrBuilder getCommonOptionsOrBuilder();
 }

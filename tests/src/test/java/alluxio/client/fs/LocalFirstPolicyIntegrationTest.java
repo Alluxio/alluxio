@@ -18,9 +18,9 @@ import alluxio.ConfigurationRule;
 import alluxio.ConfigurationTestUtils;
 import alluxio.Process;
 import alluxio.PropertyKey;
-import alluxio.client.WriteType;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
+import alluxio.grpc.WritePType;
 import alluxio.master.AlluxioMasterProcess;
 import alluxio.master.MasterProcess;
 import alluxio.master.TestUtils;
@@ -96,7 +96,7 @@ public class LocalFirstPolicyIntegrationTest extends BaseIntegrationTest {
       Whitebox.setInternalState(TieredIdentityFactory.class, "sInstance",
           TieredIdentityFactory.fromString("node=node1,rack=rack1"));
       try {
-        FileSystemTestUtils.createByteFile(fs, "/file1", WriteType.MUST_CACHE, 100);
+        FileSystemTestUtils.createByteFile(fs, "/file1", WritePType.WRITE_MUST_CACHE, 100);
       } finally {
         Whitebox.setInternalState(TieredIdentityFactory.class, "sInstance", (Object) null);
       }
@@ -111,7 +111,7 @@ public class LocalFirstPolicyIntegrationTest extends BaseIntegrationTest {
       Whitebox.setInternalState(TieredIdentityFactory.class, "sInstance",
           TieredIdentityFactory.fromString("node=node3,rack=rack2"));
       try {
-        FileSystemTestUtils.createByteFile(fs, "/file2", WriteType.MUST_CACHE, 10);
+        FileSystemTestUtils.createByteFile(fs, "/file2", WritePType.WRITE_MUST_CACHE, 10);
       } finally {
         Whitebox.setInternalState(TieredIdentityFactory.class, "sInstance", (Object) null);
       }

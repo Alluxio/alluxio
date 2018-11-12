@@ -173,74 +173,80 @@ public final class FileSystemMasterOptionsProto {
       "\030\004 \001(\005\022\022\n\nttlNotUsed\030\005 \001(\003\0221\n\020ttlActionN" +
       "otUsed\030\006 \001(\0162\027.alluxio.grpc.TtlAction\022C\n" +
       "\rcommonOptions\030\007 \001(\0132,.alluxio.grpc.File" +
-      "SystemMasterCommonPOptions\"\270\002\n\022CreateFil" +
+      "SystemMasterCommonPOptions\"\231\003\n\022CreateFil" +
       "ePOptions\022\026\n\016blockSizeBytes\030\001 \001(\003\022\021\n\tper" +
       "sisted\030\002 \001(\010\022\021\n\trecursive\030\003 \001(\010\022\022\n\nttlNo" +
       "tUsed\030\004 \001(\003\022\014\n\004mode\030\005 \001(\005\0221\n\020ttlActionNo" +
       "tUsed\030\006 \001(\0162\027.alluxio.grpc.TtlAction\022\026\n\016" +
       "replicationMax\030\007 \001(\005\022\026\n\016replicationMin\030\010" +
-      " \001(\005\022\032\n\022replicationDurable\030\t \001(\005\022C\n\rcomm" +
-      "onOptions\030\n \001(\0132,.alluxio.grpc.FileSyste" +
-      "mMasterCommonPOptions\"\220\001\n\016DeletePOptions" +
-      "\022\021\n\trecursive\030\001 \001(\010\022\023\n\013alluxioOnly\030\002 \001(\010" +
-      "\022\021\n\tunchecked\030\003 \001(\010\022C\n\rcommonOptions\030\004 \001" +
-      "(\0132,.alluxio.grpc.FileSystemMasterCommon" +
-      "POptions\"v\n\014FreePOptions\022\021\n\trecursive\030\001 " +
-      "\001(\010\022\016\n\006forced\030\002 \001(\010\022C\n\rcommonOptions\030\003 \001" +
-      "(\0132,.alluxio.grpc.FileSystemMasterCommon" +
-      "POptions\"c\n\034GetNewBlockIdForFilePOptions" +
-      "\022C\n\rcommonOptions\030\001 \001(\0132,.alluxio.grpc.F" +
-      "ileSystemMasterCommonPOptions\"\223\001\n\021GetSta" +
-      "tusPOptions\0229\n\020loadMetadataType\030\001 \001(\0162\037." +
-      "alluxio.grpc.LoadMetadataPType\022C\n\rcommon" +
-      "Options\030\002 \001(\0132,.alluxio.grpc.FileSystemM" +
-      "asterCommonPOptions\"\303\001\n\022ListStatusPOptio" +
-      "ns\022\032\n\022loadDirectChildren\030\001 \001(\010\0229\n\020loadMe" +
-      "tadataType\030\002 \001(\0162\037.alluxio.grpc.LoadMeta" +
-      "dataPType\022C\n\rcommonOptions\030\003 \001(\0132,.allux" +
-      "io.grpc.FileSystemMasterCommonPOptions\022\021" +
-      "\n\trecursive\030\004 \001(\010\"\306\001\n\024LoadMetadataPOptio" +
-      "ns\022\021\n\trecursive\030\001 \001(\010\022\027\n\017createAncestors" +
-      "\030\002 \001(\010\022=\n\022loadDescendantType\030\003 \001(\0162!.all" +
-      "uxio.grpc.LoadDescendantPType\022C\n\rcommonO" +
-      "ptions\030\004 \001(\0132,.alluxio.grpc.FileSystemMa" +
-      "sterCommonPOptions\"\352\001\n\rMountPOptions\022\020\n\010" +
-      "readOnly\030\001 \001(\010\022?\n\nproperties\030\002 \003(\0132+.all" +
-      "uxio.grpc.MountPOptions.PropertiesEntry\022" +
-      "\016\n\006shared\030\003 \001(\010\022C\n\rcommonOptions\030\004 \001(\0132," +
-      ".alluxio.grpc.FileSystemMasterCommonPOpt" +
-      "ions\0321\n\017PropertiesEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005" +
-      "value\030\002 \001(\t:\0028\001\"W\n\030FileSystemCommandOpti" +
-      "ons\022;\n\016persistOptions\030\001 \001(\0132#.alluxio.gr" +
-      "pc.PersistCommandOptions\"H\n\025PersistComma" +
-      "ndOptions\022/\n\014persistFiles\030\001 \003(\0132\031.alluxi" +
-      "o.grpc.PersistFile\"/\n\013PersistFile\022\016\n\006fil" +
-      "eId\030\001 \001(\003\022\020\n\010blockIds\030\002 \003(\003\"U\n\016RenamePOp" +
-      "tions\022C\n\rcommonOptions\030\001 \001(\0132,.alluxio.g" +
-      "rpc.FileSystemMasterCommonPOptions\"\246\002\n\024S" +
-      "etAttributePOptions\022\016\n\006pinned\030\001 \001(\010\022\013\n\003t" +
-      "tl\030\002 \001(\003\022\021\n\tpersisted\030\003 \001(\010\022\r\n\005owner\030\004 \001" +
-      "(\t\022\r\n\005group\030\005 \001(\t\022\014\n\004mode\030\006 \001(\005\022\021\n\trecur" +
-      "sive\030\007 \001(\010\022*\n\tttlAction\030\010 \001(\0162\027.alluxio." +
-      "grpc.TtlAction\022\026\n\016replicationMax\030\t \001(\005\022\026" +
-      "\n\016replicationMin\030\n \001(\005\022C\n\rcommonOptions\030" +
-      "\013 \001(\0132,.alluxio.grpc.FileSystemMasterCom" +
-      "monPOptions\"h\n\016SetAclPOptions\022C\n\rcommonO" +
-      "ptions\030\001 \001(\0132,.alluxio.grpc.FileSystemMa" +
-      "sterCommonPOptions\022\021\n\trecursive\030\002 \001(\010\"g\n" +
-      " ScheduleAsyncPersistencePOptions\022C\n\rcom" +
-      "monOptions\030\001 \001(\0132,.alluxio.grpc.FileSyst" +
-      "emMasterCommonPOptions\"[\n\024SyncMetadataPO" +
+      " \001(\005\022\032\n\022replicationDurable\030\t \001(\005\022\037\n\027file" +
+      "WriteLocationPolicy\030\n \001(\t\022\021\n\twriteTier\030\013" +
+      " \001(\005\022+\n\twriteType\030\014 \001(\0162\030.alluxio.grpc.W" +
+      "ritePType\022C\n\rcommonOptions\030\r \001(\0132,.allux" +
+      "io.grpc.FileSystemMasterCommonPOptions\"\220" +
+      "\001\n\016DeletePOptions\022\021\n\trecursive\030\001 \001(\010\022\023\n\013" +
+      "alluxioOnly\030\002 \001(\010\022\021\n\tunchecked\030\003 \001(\010\022C\n\r" +
+      "commonOptions\030\004 \001(\0132,.alluxio.grpc.FileS" +
+      "ystemMasterCommonPOptions\"v\n\014FreePOption" +
+      "s\022\021\n\trecursive\030\001 \001(\010\022\016\n\006forced\030\002 \001(\010\022C\n\r" +
+      "commonOptions\030\003 \001(\0132,.alluxio.grpc.FileS" +
+      "ystemMasterCommonPOptions\"c\n\034GetNewBlock" +
+      "IdForFilePOptions\022C\n\rcommonOptions\030\001 \001(\013" +
+      "2,.alluxio.grpc.FileSystemMasterCommonPO" +
+      "ptions\"\223\001\n\021GetStatusPOptions\0229\n\020loadMeta" +
+      "dataType\030\001 \001(\0162\037.alluxio.grpc.LoadMetada" +
+      "taPType\022C\n\rcommonOptions\030\002 \001(\0132,.alluxio" +
+      ".grpc.FileSystemMasterCommonPOptions\"\303\001\n" +
+      "\022ListStatusPOptions\022\032\n\022loadDirectChildre" +
+      "n\030\001 \001(\010\0229\n\020loadMetadataType\030\002 \001(\0162\037.allu" +
+      "xio.grpc.LoadMetadataPType\022C\n\rcommonOpti" +
+      "ons\030\003 \001(\0132,.alluxio.grpc.FileSystemMaste" +
+      "rCommonPOptions\022\021\n\trecursive\030\004 \001(\010\"\306\001\n\024L" +
+      "oadMetadataPOptions\022\021\n\trecursive\030\001 \001(\010\022\027" +
+      "\n\017createAncestors\030\002 \001(\010\022=\n\022loadDescendan" +
+      "tType\030\003 \001(\0162!.alluxio.grpc.LoadDescendan" +
+      "tPType\022C\n\rcommonOptions\030\004 \001(\0132,.alluxio." +
+      "grpc.FileSystemMasterCommonPOptions\"\352\001\n\r" +
+      "MountPOptions\022\020\n\010readOnly\030\001 \001(\010\022?\n\nprope" +
+      "rties\030\002 \003(\0132+.alluxio.grpc.MountPOptions" +
+      ".PropertiesEntry\022\016\n\006shared\030\003 \001(\010\022C\n\rcomm" +
+      "onOptions\030\004 \001(\0132,.alluxio.grpc.FileSyste" +
+      "mMasterCommonPOptions\0321\n\017PropertiesEntry" +
+      "\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"W\n\030File" +
+      "SystemCommandOptions\022;\n\016persistOptions\030\001" +
+      " \001(\0132#.alluxio.grpc.PersistCommandOption" +
+      "s\"H\n\025PersistCommandOptions\022/\n\014persistFil" +
+      "es\030\001 \003(\0132\031.alluxio.grpc.PersistFile\"/\n\013P" +
+      "ersistFile\022\016\n\006fileId\030\001 \001(\003\022\020\n\010blockIds\030\002" +
+      " \003(\003\"U\n\016RenamePOptions\022C\n\rcommonOptions\030" +
+      "\001 \001(\0132,.alluxio.grpc.FileSystemMasterCom" +
+      "monPOptions\"\246\002\n\024SetAttributePOptions\022\016\n\006" +
+      "pinned\030\001 \001(\010\022\013\n\003ttl\030\002 \001(\003\022\021\n\tpersisted\030\003" +
+      " \001(\010\022\r\n\005owner\030\004 \001(\t\022\r\n\005group\030\005 \001(\t\022\014\n\004mo" +
+      "de\030\006 \001(\005\022\021\n\trecursive\030\007 \001(\010\022*\n\tttlAction" +
+      "\030\010 \001(\0162\027.alluxio.grpc.TtlAction\022\026\n\016repli" +
+      "cationMax\030\t \001(\005\022\026\n\016replicationMin\030\n \001(\005\022" +
+      "C\n\rcommonOptions\030\013 \001(\0132,.alluxio.grpc.Fi" +
+      "leSystemMasterCommonPOptions\"h\n\016SetAclPO" +
       "ptions\022C\n\rcommonOptions\030\001 \001(\0132,.alluxio." +
-      "grpc.FileSystemMasterCommonPOptions\"V\n\017U" +
-      "nmountPOptions\022C\n\rcommonOptions\030\001 \001(\0132,." +
-      "alluxio.grpc.FileSystemMasterCommonPOpti" +
-      "ons\"?\n\025UpdateUfsModePOptions\022&\n\007ufsMode\030" +
-      "\001 \001(\0162\025.alluxio.grpc.UfsMode\"@\n\033FileSyst" +
-      "emHeartbeatPOptions\022!\n\031persistedFileFing" +
-      "erprints\030\001 \003(\t\"\025\n\023GetFileInfoPOptions\"\032\n" +
-      "\030GetPinnedFileIdsPOptions\"\024\n\022GetUfsInfoP" +
-      "Options*4\n\021LoadMetadataPType\022\t\n\005NEVER\020\000\022" +
+      "grpc.FileSystemMasterCommonPOptions\022\021\n\tr" +
+      "ecursive\030\002 \001(\010\"g\n ScheduleAsyncPersisten" +
+      "cePOptions\022C\n\rcommonOptions\030\001 \001(\0132,.allu" +
+      "xio.grpc.FileSystemMasterCommonPOptions\"" +
+      "[\n\024SyncMetadataPOptions\022C\n\rcommonOptions" +
+      "\030\001 \001(\0132,.alluxio.grpc.FileSystemMasterCo" +
+      "mmonPOptions\"V\n\017UnmountPOptions\022C\n\rcommo" +
+      "nOptions\030\001 \001(\0132,.alluxio.grpc.FileSystem" +
+      "MasterCommonPOptions\"?\n\025UpdateUfsModePOp" +
+      "tions\022&\n\007ufsMode\030\001 \001(\0162\025.alluxio.grpc.Uf" +
+      "sMode\"@\n\033FileSystemHeartbeatPOptions\022!\n\031" +
+      "persistedFileFingerprints\030\001 \003(\t\"\025\n\023GetFi" +
+      "leInfoPOptions\"\032\n\030GetPinnedFileIdsPOptio" +
+      "ns\"\024\n\022GetUfsInfoPOptions*\214\001\n\nWritePType\022" +
+      "\024\n\020WRITE_MUST_CACHE\020\000\022\023\n\017WRITE_TRY_CACHE" +
+      "\020\001\022\027\n\023WRITE_CACHE_THROUGH\020\002\022\021\n\rWRITE_THR" +
+      "OUGH\020\003\022\027\n\023WRITE_ASYNC_THROUGH\020\004\022\016\n\nWRITE" +
+      "_NONE\020\005*4\n\021LoadMetadataPType\022\t\n\005NEVER\020\000\022" +
       "\010\n\004ONCE\020\001\022\n\n\006ALWAYS\020\002*1\n\023LoadDescendantP" +
       "Type\022\010\n\004NONE\020\000\022\007\n\003ONE\020\001\022\007\n\003ALL\020\002*4\n\007UfsM" +
       "ode\022\014\n\010NoAccess\020\001\022\014\n\010ReadOnly\020\002\022\r\n\tReadW" +
@@ -289,7 +295,7 @@ public final class FileSystemMasterOptionsProto {
     internal_static_alluxio_grpc_CreateFilePOptions_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_CreateFilePOptions_descriptor,
-        new java.lang.String[] { "BlockSizeBytes", "Persisted", "Recursive", "TtlNotUsed", "Mode", "TtlActionNotUsed", "ReplicationMax", "ReplicationMin", "ReplicationDurable", "CommonOptions", });
+        new java.lang.String[] { "BlockSizeBytes", "Persisted", "Recursive", "TtlNotUsed", "Mode", "TtlActionNotUsed", "ReplicationMax", "ReplicationMin", "ReplicationDurable", "FileWriteLocationPolicy", "WriteTier", "WriteType", "CommonOptions", });
     internal_static_alluxio_grpc_DeletePOptions_descriptor =
       getDescriptor().getMessageTypes().get(5);
     internal_static_alluxio_grpc_DeletePOptions_fieldAccessorTable = new

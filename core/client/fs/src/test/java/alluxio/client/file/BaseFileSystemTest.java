@@ -100,12 +100,12 @@ public final class BaseFileSystemTest {
 
   /**
    * Tests the creation of a file via the
-   * {@link BaseFileSystem#createFile(AlluxioURI, CreateFileOptions)} method.
+   * {@link BaseFileSystem#createFile(AlluxioURI, CreateFilePOptions)} method.
    */
   @Test
   public void createFile() throws Exception {
     doNothing().when(mFileSystemMasterClient)
-        .createFile(any(AlluxioURI.class), any(CreateFileOptions.class));
+        .createFile(any(AlluxioURI.class), any(CreateFilePOptions.class));
     URIStatus status = new URIStatus(new FileInfo());
     AlluxioURI file = new AlluxioURI("/file");
     GetStatusPOptions getStatusOptions =
@@ -113,9 +113,10 @@ public final class BaseFileSystemTest {
             .setLoadMetadataType(LoadMetadataPType.NEVER)
             .build();
     when(mFileSystemMasterClient.getStatus(file, getStatusOptions)).thenReturn(status);
-    CreateFileOptions options = CreateFileOptions.defaults();
-    FileOutStream out = mFileSystem.createFile(file, options);
-    verify(mFileSystemMasterClient).createFile(file, options);
+    FileOutStream out =
+        mFileSystem.createFile(file, FileSystemClientOptions.getCreateFileOptions());
+    verify(mFileSystemMasterClient).createFile(file,
+        FileSystemClientOptions.getCreateFileOptions());
     assertEquals(out.mUri, file);
 
     verifyFilesystemContextAcquiredAndReleased();
@@ -127,10 +128,9 @@ public final class BaseFileSystemTest {
   @Test
   public void createException() throws Exception {
     doThrow(EXCEPTION).when(mFileSystemMasterClient)
-        .createFile(any(AlluxioURI.class), any(CreateFileOptions.class));
-    CreateFileOptions options = CreateFileOptions.defaults();
+        .createFile(any(AlluxioURI.class), any(CreateFilePOptions.class));
     try {
-      mFileSystem.createFile(new AlluxioURI("/"), options);
+      mFileSystem.createFile(new AlluxioURI("/"), FileSystemClientOptions.getCreateFileOptions());
       fail(SHOULD_HAVE_PROPAGATED_MESSAGE);
     } catch (Exception e) {
       assertSame(EXCEPTION, e);

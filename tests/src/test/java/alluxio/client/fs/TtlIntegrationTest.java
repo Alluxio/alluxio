@@ -16,9 +16,9 @@ import static org.junit.Assert.assertTrue;
 
 import alluxio.AlluxioURI;
 import alluxio.PropertyKey;
-import alluxio.client.WriteType;
 import alluxio.client.file.FileSystem;
-import alluxio.client.file.options.CreateFileOptions;
+import alluxio.client.file.FileSystemClientOptions;
+import alluxio.grpc.WritePType;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
@@ -64,8 +64,8 @@ public class TtlIntegrationTest extends BaseIntegrationTest {
       files[i] = new AlluxioURI("/file" + i);
       // Only the even-index files should expire.
       long ttl = i % 2 == 0 ? TTL_INTERVAL_MS / 2 : TTL_INTERVAL_MS * 1000;
-      mFileSystem.createFile(files[i],
-          CreateFileOptions.defaults().setWriteType(WriteType.MUST_CACHE).setTtl(ttl)).close();
+      mFileSystem.createFile(files[i], FileSystemClientOptions.getCreateFileOptions().toBuilder()
+          .setWriteType(WritePType.WRITE_THROUGH).setTtlNotUsed(ttl).build()).close();
       // Delete some of the even files to make sure this doesn't trip up the TTL checker.
       if (i % 20 == 0) {
         mFileSystem.delete(files[i]);

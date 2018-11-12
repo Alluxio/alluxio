@@ -13,10 +13,10 @@ package alluxio.server.health;
 
 import alluxio.AlluxioURI;
 import alluxio.PropertyKey;
-import alluxio.client.WriteType;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.grpc.DeletePOptions;
+import alluxio.grpc.WritePType;
 import alluxio.master.LocalAlluxioCluster;
 import alluxio.master.file.DefaultFileSystemMaster;
 import alluxio.master.file.FileSystemMaster;
@@ -51,7 +51,7 @@ public class BlockMasterIntegrityIntegrationTest {
     int len = 10;
     FileSystem fs = mCluster.getClient();
     BlockWorker worker = mCluster.getWorkerProcess().getWorker(BlockWorker.class);
-    FileSystemTestUtils.createByteFile(fs, uri, WriteType.MUST_CACHE, len);
+    FileSystemTestUtils.createByteFile(fs, uri, WritePType.WRITE_MUST_CACHE, len);
     Assert.assertEquals(1, worker.getStoreMetaFull().getNumberOfBlocks());
     mCluster.stopWorkers();
     fs.delete(uri);
@@ -72,7 +72,7 @@ public class BlockMasterIntegrityIntegrationTest {
     int len = 10;
     FileSystem fs = mCluster.getClient();
     BlockWorker worker = mCluster.getWorkerProcess().getWorker(BlockWorker.class);
-    FileSystemTestUtils.createByteFile(fs, uri, WriteType.MUST_CACHE, len);
+    FileSystemTestUtils.createByteFile(fs, uri, WritePType.WRITE_MUST_CACHE, len);
     Assert.assertEquals(1, worker.getStoreMetaFull().getNumberOfBlocks());
     removeFileMetadata(uri);
     mCluster.stopWorkers();
@@ -94,7 +94,7 @@ public class BlockMasterIntegrityIntegrationTest {
     int len = 10;
     FileSystem fs = mCluster.getClient();
     BlockWorker worker = mCluster.getWorkerProcess().getWorker(BlockWorker.class);
-    FileSystemTestUtils.createByteFile(fs, uri, WriteType.MUST_CACHE, len);
+    FileSystemTestUtils.createByteFile(fs, uri, WritePType.WRITE_MUST_CACHE, len);
     Assert.assertEquals(1, worker.getStoreMetaFull().getNumberOfBlocks());
     removeFileMetadata(uri);
     CommonUtils.waitFor("invalid blocks to be deleted",

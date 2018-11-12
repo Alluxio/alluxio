@@ -38,6 +38,7 @@ import alluxio.grpc.*;
 import alluxio.master.MasterInquireClient;
 import alluxio.security.authorization.AclEntry;
 import alluxio.uri.Authority;
+import alluxio.util.grpc.GrpcUtils;
 import alluxio.wire.MountPointInfo;
 import alluxio.wire.SetAclAction;
 
@@ -109,11 +110,11 @@ public class BaseFileSystem implements FileSystem {
   @Override
   public FileOutStream createFile(AlluxioURI path)
       throws FileAlreadyExistsException, InvalidPathException, IOException, AlluxioException {
-    return createFile(path, CreateFileOptions.defaults());
+    return createFile(path, FileSystemClientOptions.getCreateFileOptions());
   }
 
   @Override
-  public FileOutStream createFile(AlluxioURI path, CreateFileOptions options)
+  public FileOutStream createFile(AlluxioURI path, CreateFilePOptions options)
       throws FileAlreadyExistsException, InvalidPathException, IOException, AlluxioException {
     checkUri(path);
     FileSystemMasterClient masterClient = mFileSystemContext.acquireMasterClient();
@@ -141,15 +142,17 @@ public class BaseFileSystem implements FileSystem {
     } finally {
       mFileSystemContext.releaseMasterClient(masterClient);
     }
-    OutStreamOptions outStreamOptions = options.toOutStreamOptions();
-    outStreamOptions.setUfsPath(status.getUfsPath());
-    outStreamOptions.setMountId(status.getMountId());
-    outStreamOptions.setAcl(status.getAcl());
+
     try {
+      CreateFileOptions clientOptions = CreateFileOptions.fromProto(options);
+      OutStreamOptions outStreamOptions = clientOptions.toOutStreamOptions();
+      outStreamOptions.setUfsPath(status.getUfsPath());
+      outStreamOptions.setMountId(status.getMountId());
+      outStreamOptions.setAcl(status.getAcl());
       return new FileOutStream(path, outStreamOptions, mFileSystemContext);
     } catch (Exception e) {
       delete(path);
-      throw e;
+      throw new AlluxioException(e.getMessage(), e);
     }
   }
 

@@ -13,7 +13,10 @@ package alluxio.client.file;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
+import alluxio.client.WriteType;
 import alluxio.grpc.*;
+import alluxio.security.authorization.Mode;
+import alluxio.util.ModeUtils;
 import alluxio.util.grpc.GrpcUtils;
 import alluxio.wire.LoadMetadataType;
 import alluxio.wire.TtlAction;
@@ -45,6 +48,21 @@ public final class FileSystemClientOptions {
         .setLoadMetadataType(GrpcUtils.toProto(Configuration
             .getEnum(PropertyKey.USER_FILE_METADATA_LOAD_TYPE, LoadMetadataType.class)))
         .build();
+  }
+
+  public static CreateFilePOptions getCreateFileOptions() {
+    // TODO(ggezer) WritePType conversion logic
+    return CreateFilePOptions.newBuilder().setCommonOptions(getCommonOptions()).setRecursive(true)
+        .setBlockSizeBytes(Configuration.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT))
+        .setFileWriteLocationPolicy(Configuration.get(PropertyKey.USER_FILE_WRITE_LOCATION_POLICY))
+        .setWriteTier(Configuration.getInt(PropertyKey.USER_FILE_WRITE_TIER_DEFAULT))
+        .setWriteType(WritePType.valueOf("WRITE_" + Configuration.get(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT)))
+        .setPersisted(Configuration
+            .getEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class).isThrough())
+        .setMode(ModeUtils.applyFileUMask(Mode.defaults()).toShort())
+        .setReplicationDurable(Configuration.getInt(PropertyKey.USER_FILE_REPLICATION_DURABLE))
+        .setReplicationMin(Configuration.getInt(PropertyKey.USER_FILE_REPLICATION_MIN))
+        .setReplicationMax(Configuration.getInt(PropertyKey.USER_FILE_REPLICATION_MAX)).build();
   }
 
   public static LoadMetadataPOptions getLoadMetadataOptions() {

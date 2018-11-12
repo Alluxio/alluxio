@@ -16,9 +16,11 @@ import alluxio.client.WriteType;
 import alluxio.client.block.stream.BlockInStream;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemClientOptions;
 import alluxio.client.file.FileSystemTestUtils;
-import alluxio.client.file.options.CreateFileOptions;
 import alluxio.exception.AlluxioException;
+import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.WritePType;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.util.io.BufferUtils;
@@ -53,18 +55,19 @@ public final class BufferedBlockInStreamIntegrationTest extends BaseIntegrationT
 
     // Create files of varying size and write type to later read from
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
-      for (CreateFileOptions op : getOptionSet()) {
+      for (CreateFilePOptions op : getOptionSet()) {
         AlluxioURI path = new AlluxioURI(sTestPath + "/file_" + k + "_" + op.hashCode());
         FileSystemTestUtils.createByteFile(sFileSystem, path, op, k);
       }
     }
   }
 
-  private static List<CreateFileOptions> getOptionSet() {
-    List<CreateFileOptions> ret = new ArrayList<>(3);
-    ret.add(CreateFileOptions.defaults().setWriteType(WriteType.CACHE_THROUGH));
-    ret.add(CreateFileOptions.defaults().setWriteType(WriteType.MUST_CACHE));
-    ret.add(CreateFileOptions.defaults().setWriteType(WriteType.THROUGH));
+  private static List<CreateFilePOptions> getOptionSet() {
+    List<CreateFilePOptions> ret = new ArrayList<>(3);
+    CreateFilePOptions optionsDefault = FileSystemClientOptions.getCreateFileOptions();
+    ret.add(optionsDefault.toBuilder().setWriteType(WritePType.WRITE_CACHE_THROUGH).build());
+    ret.add(optionsDefault.toBuilder().setWriteType(WritePType.WRITE_MUST_CACHE).build());
+    ret.add(optionsDefault.toBuilder().setWriteType(WritePType.WRITE_THROUGH).build());
     return ret;
   }
 
@@ -74,7 +77,7 @@ public final class BufferedBlockInStreamIntegrationTest extends BaseIntegrationT
   @Test
   public void readTest1() throws IOException, AlluxioException {
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
-      for (CreateFileOptions op : getOptionSet()) {
+      for (CreateFilePOptions op : getOptionSet()) {
         AlluxioURI path = new AlluxioURI(sTestPath + "/file_" + k + "_" + op.hashCode());
         for (int i = 0; i < 2; i++) {
           FileInStream is = sFileSystem.openFile(path, FileSystemTestUtils.toOpenFileOptions(op));
@@ -101,7 +104,7 @@ public final class BufferedBlockInStreamIntegrationTest extends BaseIntegrationT
   @Test
   public void readTest2() throws IOException, AlluxioException {
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
-      for (CreateFileOptions op : getOptionSet()) {
+      for (CreateFilePOptions op : getOptionSet()) {
         AlluxioURI path = new AlluxioURI(sTestPath + "/file_" + k + "_" + op.hashCode());
 
         FileInStream is = sFileSystem.openFile(path, FileSystemTestUtils.toOpenFileOptions(op));
@@ -125,7 +128,7 @@ public final class BufferedBlockInStreamIntegrationTest extends BaseIntegrationT
   @Test
   public void readTest3() throws IOException, AlluxioException {
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
-      for (CreateFileOptions op : getOptionSet()) {
+      for (CreateFilePOptions op : getOptionSet()) {
         AlluxioURI path = new AlluxioURI(sTestPath + "/file_" + k + "_" + op.hashCode());
 
         FileInStream is = sFileSystem.openFile(path, FileSystemTestUtils.toOpenFileOptions(op));
@@ -150,7 +153,7 @@ public final class BufferedBlockInStreamIntegrationTest extends BaseIntegrationT
   @Test
   public void skip() throws IOException, AlluxioException {
     for (int k = MIN_LEN + DELTA; k <= MAX_LEN; k += DELTA) {
-      for (CreateFileOptions op : getOptionSet()) {
+      for (CreateFilePOptions op : getOptionSet()) {
         AlluxioURI path = new AlluxioURI(sTestPath + "/file_" + k + "_" + op.hashCode());
 
         FileInStream is = sFileSystem.openFile(path, FileSystemTestUtils.toOpenFileOptions(op));

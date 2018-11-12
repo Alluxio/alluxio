@@ -12,14 +12,11 @@
 package alluxio.client.fs;
 
 import alluxio.AlluxioURI;
-import alluxio.client.WriteType;
 import alluxio.Constants;
 import alluxio.PropertyKey;
-import alluxio.client.file.FileInStream;
-import alluxio.client.file.FileSystem;
-import alluxio.client.file.FileSystemTestUtils;
-import alluxio.client.file.URIStatus;
-import alluxio.client.file.options.CreateFileOptions;
+import alluxio.client.file.*;
+import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.WritePType;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
@@ -58,12 +55,13 @@ public class IsolatedFileSystemIntegrationTest extends BaseIntegrationTest {
           .setProperty(PropertyKey.WORKER_TIERED_STORE_RESERVER_ENABLED, false)
           .build();
   private FileSystem mFileSystem = null;
-  private CreateFileOptions mWriteBoth;
+  private CreateFilePOptions mWriteBoth;
 
   @Before
   public final void before() throws Exception {
     mFileSystem = mLocalAlluxioClusterResource.get().getClient();
-    mWriteBoth = CreateFileOptions.defaults().setWriteType(WriteType.CACHE_THROUGH);
+    mWriteBoth = FileSystemClientOptions.getCreateFileOptions().toBuilder()
+        .setWriteType(WritePType.WRITE_CACHE_THROUGH).build();
   }
 
   @Test

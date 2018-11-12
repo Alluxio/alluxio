@@ -18,12 +18,12 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.UnderFileSystemFactoryRegistryRule;
-import alluxio.client.WriteType;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemClientOptions;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.exception.AlluxioException;
+import alluxio.grpc.WritePType;
 import alluxio.master.MasterClientConfig;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
@@ -82,9 +82,8 @@ public final class FlakyUfsIntegrationTest extends BaseIntegrationTest {
   public void deletePartial() throws Exception {
     mFs.createDirectory(new AlluxioURI("/dir"));
     for (int i = 0; i < 100; i++) {
-      FileSystemTestUtils.createByteFile(mFs, "/dir/test" + i, 100,
-          alluxio.client.file.options.CreateFileOptions.defaults()
-              .setWriteType(WriteType.CACHE_THROUGH));
+      FileSystemTestUtils.createByteFile(mFs, "/dir/test" + i, 100, FileSystemClientOptions
+          .getCreateFileOptions().toBuilder().setWriteType(WritePType.WRITE_CACHE_THROUGH).build());
     }
     String ufs = LOCAL_UFS_PATH;
     // This will make the "/dir" directory out of sync so that the files are deleted individually.

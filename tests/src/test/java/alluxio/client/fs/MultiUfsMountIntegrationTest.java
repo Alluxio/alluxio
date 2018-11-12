@@ -16,8 +16,9 @@ import alluxio.client.WriteType;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemClientOptions;
-import alluxio.client.file.options.CreateFileOptions;
+import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.MountPOptions;
+import alluxio.grpc.WritePType;
 import alluxio.master.LocalAlluxioCluster;
 import alluxio.master.MasterRegistry;
 import alluxio.master.file.FileSystemMaster;
@@ -101,8 +102,8 @@ public final class MultiUfsMountIntegrationTest extends BaseIntegrationTest {
 
   @Test
   public void createFile() throws Exception {
-    CreateFileOptions writeBoth =
-        CreateFileOptions.defaults().setWriteType(WriteType.CACHE_THROUGH);
+    CreateFilePOptions writeBoth = FileSystemClientOptions.getCreateFileOptions().toBuilder()
+        .setWriteType(WritePType.WRITE_CACHE_THROUGH).build();
     AlluxioURI file1 = mMountPoint1.join("file1");
     AlluxioURI file2 = mMountPoint2.join("file2");
     mFileSystem.createFile(file1, writeBoth).close();

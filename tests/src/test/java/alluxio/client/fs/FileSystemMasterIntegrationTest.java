@@ -34,6 +34,7 @@ import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.status.FailedPreconditionException;
 import alluxio.grpc.LoadMetadataPType;
+import alluxio.grpc.WritePType;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
@@ -481,8 +482,8 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     FileSystem fs = mLocalAlluxioClusterResource.get().getClient();
     for (int i = 0; i < 3; i++) {
       FileSystemTestUtils.createByteFile(fs, PathUtils.concatPath(dir, "file" + i), 100,
-          alluxio.client.file.options.CreateFileOptions.defaults()
-              .setWriteType(WriteType.MUST_CACHE));
+          FileSystemClientOptions.getCreateFileOptions().toBuilder()
+              .setWriteType(WritePType.WRITE_MUST_CACHE).build());
     }
     fs.delete(dir,
         FileSystemClientOptions.getDeleteOptions().toBuilder().setRecursive(true).build());

@@ -186,7 +186,6 @@ public final class GrpcUtils {
       }
     }
     return options;
-
   }
 
   /**
@@ -675,7 +674,7 @@ public final class GrpcUtils {
         return TtlAction.FREE;
       default:
         throw new IllegalStateException("Unrecognized proto ttl action: " + tTtlAction);
-    }
+   }
   }
 
   /**
