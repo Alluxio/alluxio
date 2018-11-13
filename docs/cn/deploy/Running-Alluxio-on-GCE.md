@@ -27,7 +27,7 @@ $ vagrant box add google https://github.com/mitchellh/vagrant-google/raw/master/
 
 **安装 Alluxio**
 
-复制 [Alluxio]目录(https://github.com/Alluxio/alluxio)到你本地的机器上。
+clone [Alluxio](https://github.com/Alluxio/alluxio)到你本地的机器上。
 
 **安装python依赖库**
 
