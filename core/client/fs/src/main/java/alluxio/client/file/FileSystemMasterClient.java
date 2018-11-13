@@ -15,7 +15,6 @@ import alluxio.AlluxioURI;
 import alluxio.Client;
 import alluxio.client.file.options.CheckConsistencyOptions;
 import alluxio.client.file.options.CompleteFileOptions;
-import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.client.file.options.UpdateUfsModeOptions;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.AlreadyExistsException;
@@ -185,7 +184,7 @@ public interface FileSystemMasterClient extends Client {
    * @param options the file or directory attribute options to be set
    * @throws NotFoundException if the path does not exist
    */
-  void setAttribute(AlluxioURI path, SetAttributeOptions options) throws AlluxioStatusException;
+  void setAttribute(AlluxioURI path, SetAttributePOptions options) throws AlluxioStatusException;
 
   /**
    * Schedules the async persistence of the given file.

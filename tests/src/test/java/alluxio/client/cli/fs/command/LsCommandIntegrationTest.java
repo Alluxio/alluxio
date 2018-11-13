@@ -17,7 +17,6 @@ import alluxio.cli.fs.command.LsCommand;
 import alluxio.client.file.FileSystemClientOptions;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.URIStatus;
-import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
 import alluxio.client.cli.fs.FileSystemShellUtilsTest;
@@ -166,9 +165,9 @@ public final class LsCommandIntegrationTest extends AbstractFileSystemShellTest 
     AlluxioURI fileURI1 = new AlluxioURI("/testRoot/testDir/testFileB");
     AlluxioURI fileURI2 = new AlluxioURI("/testRoot/testFileA");
     mFileSystem.setAttribute(fileURI1,
-        SetAttributeOptions.defaults().setPinned(true));
+        FileSystemClientOptions.getSetAttributeOptions().toBuilder().setPinned(true).build());
     mFileSystem.setAttribute(fileURI2,
-        SetAttributeOptions.defaults().setPinned(true));
+        FileSystemClientOptions.getSetAttributeOptions().toBuilder().setPinned(true).build());
     URIStatus file1 = mFileSystem.getStatus(fileURI1);
     URIStatus file2 = mFileSystem.getStatus(fileURI2);
     mFsShell.run("ls", "-pR",  "/testRoot");

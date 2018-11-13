@@ -15,7 +15,6 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.annotation.PublicApi;
-import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.conf.Source;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.DirectoryNotEmptyException;
@@ -346,7 +345,7 @@ public interface FileSystem {
       throws FileDoesNotExistException, IOException, AlluxioException;
 
   /**
-   * Convenience method for {@link #setAttribute(AlluxioURI, SetAttributeOptions)} with default
+   * Convenience method for {@link #setAttribute(AlluxioURI, SetAttributePOptions)} with default
    * options.
    *
    * @param path the path to set attributes for
@@ -362,7 +361,7 @@ public interface FileSystem {
    * @param options options to associate with this operation
    * @throws FileDoesNotExistException if the given file does not exist
    */
-  void setAttribute(AlluxioURI path, SetAttributeOptions options)
+  void setAttribute(AlluxioURI path, SetAttributePOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException;
 
   /**

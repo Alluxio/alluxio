@@ -11,34 +11,21 @@
 
 package alluxio.client.fs;
 
-import static org.junit.Assert.assertFalse;
-
-import alluxio.AlluxioURI;
-import alluxio.AuthenticatedUserRule;
-import alluxio.Configuration;
-import alluxio.ConfigurationTestUtils;
-import alluxio.PropertyKey;
+import alluxio.*;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.client.file.*;
-import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.grpc.*;
 import alluxio.master.MasterClientConfig;
-import alluxio.security.authorization.Mode;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.CommonUtils;
 import alluxio.util.io.FileUtils;
 import alluxio.wire.CommonOptions;
-
 import com.google.common.collect.Sets;
 import com.google.common.io.Files;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.*;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -48,6 +35,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import static org.junit.Assert.assertFalse;
 
 /**
  * Tests the loading of metadata and the available options.
@@ -344,9 +333,8 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
     mFileSystem.mount(new AlluxioURI("/nested/mnt/ufs"), new AlluxioURI(ufsPath));
 
     // recursively sync (setAttribute enables recursive sync)
-    mFileSystem.setAttribute(new AlluxioURI("/"),
-        SetAttributeOptions.defaults().setCommonOptions(SYNC_ALWAYS).setRecursive(true)
-            .setTtl(55555));
+    mFileSystem.setAttribute(new AlluxioURI("/"), FileSystemClientOptions.getSetAttributeOptions()
+        .toBuilder().setCommonOptions(PSYNC_ALWAYS).setRecursive(true).setTtl(55555).build());
 
     // Verify /nested/mnt/ dir has 1 mount point
     ListStatusPOptions options = FileSystemClientOptions.getListStatusOptions().toBuilder()
@@ -362,9 +350,8 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
     Assert.assertTrue(new File(status.getUfsPath()).delete());
 
     // recursively sync (setAttribute enables recursive sync)
-    mFileSystem.setAttribute(new AlluxioURI("/"),
-        SetAttributeOptions.defaults().setCommonOptions(SYNC_ALWAYS).setRecursive(true)
-            .setTtl(44444));
+    mFileSystem.setAttribute(new AlluxioURI("/"), FileSystemClientOptions.getSetAttributeOptions()
+        .toBuilder().setCommonOptions(PSYNC_ALWAYS).setRecursive(true).setTtl(44444).build());
 
     // Verify /nested/mnt/ dir has 1 mount point
     listing = mFileSystem.listStatus(new AlluxioURI("/nested/mnt/"), options);
@@ -378,9 +365,8 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
     Assert.assertTrue(new File(status.getUfsPath()).delete());
 
     // recursively sync (setAttribute enables recursive sync)
-    mFileSystem.setAttribute(new AlluxioURI("/"),
-        SetAttributeOptions.defaults().setCommonOptions(SYNC_ALWAYS).setRecursive(true)
-            .setTtl(44444));
+    mFileSystem.setAttribute(new AlluxioURI("/"), FileSystemClientOptions.getSetAttributeOptions()
+        .toBuilder().setCommonOptions(PSYNC_ALWAYS).setRecursive(true).setTtl(44444).build());
 
     // Verify /nested/mnt/ dir has 1 mount point
     listing = mFileSystem.listStatus(new AlluxioURI("/nested/mnt/"), options);
@@ -391,9 +377,8 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
     writeUfsFile(ufsPath + "/nestedufs", 1);
 
     // recursively sync (setAttribute enables recursive sync)
-    mFileSystem.setAttribute(new AlluxioURI("/"),
-        SetAttributeOptions.defaults().setCommonOptions(SYNC_ALWAYS).setRecursive(true)
-            .setTtl(44444));
+    mFileSystem.setAttribute(new AlluxioURI("/"), FileSystemClientOptions.getSetAttributeOptions()
+        .toBuilder().setCommonOptions(PSYNC_ALWAYS).setRecursive(true).setTtl(44444).build());
     // Verify /nested/mnt/ufs dir has 1 file
     listing = mFileSystem.listStatus(new AlluxioURI("/nested/mnt/ufs"), options);
     Assert.assertEquals(1, listing.size());
@@ -433,14 +418,14 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
 
     // Set initial alluxio permissions
     mFileSystem.setAttribute(new AlluxioURI(alluxioPath(EXISTING_FILE)),
-        SetAttributeOptions.defaults().setMode(new Mode((short) 0777)));
+        FileSystemClientOptions.getSetAttributeOptions().toBuilder().setMode((short) 0777).build());
 
     URIStatus status = mFileSystem.getStatus(new AlluxioURI(alluxioPath(EXISTING_FILE)), options);
     String startFingerprint = status.getUfsFingerprint();
 
     // Change alluxio permissions
     mFileSystem.setAttribute(new AlluxioURI(alluxioPath(EXISTING_FILE)),
-        SetAttributeOptions.defaults().setMode(new Mode((short) 0655)));
+        FileSystemClientOptions.getSetAttributeOptions().toBuilder().setMode((short) 0655).build());
 
     status = mFileSystem.getStatus(new AlluxioURI(alluxioPath(EXISTING_FILE)), options);
     String endFingerprint = status.getUfsFingerprint();
@@ -563,8 +548,8 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
     assertFalse(mFileSystem.exists(new AlluxioURI(alluxioPath(fileA))));
 
     try {
-      mFileSystem.setAttribute(new AlluxioURI(alluxioPath("/dir1")),
-          SetAttributeOptions.defaults().setRecursive(true).setTtl(55555));
+      mFileSystem.setAttribute(new AlluxioURI(alluxioPath("/dir1")), FileSystemClientOptions
+          .getSetAttributeOptions().toBuilder().setRecursive(true).setTtl(55555).build());
     } catch (FileDoesNotExistException e) {
       // expected, continue
     }
@@ -572,8 +557,8 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
     // Enable UFS sync, before next recursive setAttribute.
     Configuration.set(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL, "0");
     long ttl = 123456789;
-    mFileSystem.setAttribute(new AlluxioURI(alluxioPath("/dir1")),
-        SetAttributeOptions.defaults().setRecursive(true).setTtl(ttl));
+    mFileSystem.setAttribute(new AlluxioURI(alluxioPath("/dir1")), FileSystemClientOptions
+        .getSetAttributeOptions().toBuilder().setRecursive(true).setTtl(ttl).build());
 
     // Verify recursive set TTL by getting info, without sync.
     Configuration.set(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL, "-1");
@@ -587,8 +572,8 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
     // Enable UFS sync, before next recursive setAttribute.
     Configuration.set(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL, "0");
     ttl = 987654321;
-    mFileSystem.setAttribute(new AlluxioURI(alluxioPath("/dir1")),
-        SetAttributeOptions.defaults().setRecursive(true).setTtl(ttl));
+    mFileSystem.setAttribute(new AlluxioURI(alluxioPath("/dir1")), FileSystemClientOptions
+        .getSetAttributeOptions().toBuilder().setRecursive(true).setTtl(ttl).build());
 
     // Verify recursive set TTL by getting info, without sync.
     Configuration.set(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL, "-1");

@@ -16,7 +16,6 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.client.file.options.CheckConsistencyOptions;
 import alluxio.client.file.options.CompleteFileOptions;
-import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.client.file.options.UpdateUfsModeOptions;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.grpc.*;
@@ -213,10 +212,10 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
   }
 
   @Override
-  public synchronized void setAttribute(final AlluxioURI path, final SetAttributeOptions options)
+  public synchronized void setAttribute(final AlluxioURI path, final SetAttributePOptions options)
       throws AlluxioStatusException {
     retryRPC(() -> mBlockingStub.setAttribute(SetAttributePRequest.newBuilder()
-        .setPath(path.getPath()).setOptions(GrpcUtils.toProto(options)).build()), "SetAttribute");
+        .setPath(path.getPath()).setOptions(options).build()), "SetAttribute");
   }
 
   @Override

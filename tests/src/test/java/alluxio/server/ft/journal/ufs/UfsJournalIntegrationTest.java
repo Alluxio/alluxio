@@ -19,7 +19,6 @@ import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemClientOptions;
 import alluxio.client.file.URIStatus;
-import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.grpc.*;
 import alluxio.master.LocalAlluxioCluster;
 import alluxio.master.MasterRegistry;
@@ -30,7 +29,6 @@ import alluxio.master.file.FileSystemMasterOptions;
 import alluxio.master.journal.ufs.UfsJournal;
 import alluxio.master.journal.ufs.UfsJournalSnapshot;
 import alluxio.security.authentication.AuthenticatedClientUser;
-import alluxio.security.authorization.Mode;
 import alluxio.security.group.GroupMappingService;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
@@ -336,8 +334,10 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
    */
   @Test
   public void pin() throws Exception {
-    SetAttributeOptions setPinned = SetAttributeOptions.defaults().setPinned(true);
-    SetAttributeOptions setUnpinned = SetAttributeOptions.defaults().setPinned(false);
+    SetAttributePOptions setPinned =
+        FileSystemClientOptions.getSetAttributeOptions().toBuilder().setPinned(true).build();
+    SetAttributePOptions setUnpinned =
+        FileSystemClientOptions.getSetAttributeOptions().toBuilder().setPinned(false).build();
     AlluxioURI dirUri = new AlluxioURI("/myFolder");
     mFileSystem.createDirectory(dirUri);
     mFileSystem.setAttribute(dirUri, setPinned);
@@ -570,8 +570,8 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
     mFileSystem.createFile(filePath, op).close();
 
     // TODO(chaomin): also setOwner and setGroup once there's a way to fake the owner/group in UFS.
-    mFileSystem.setAttribute(filePath,
-        SetAttributeOptions.defaults().setMode(new Mode((short) 0400)).setRecursive(false));
+    mFileSystem.setAttribute(filePath, FileSystemClientOptions.getSetAttributeOptions().toBuilder()
+        .setMode((short) 0400).setRecursive(false).build());
 
     URIStatus status = mFileSystem.getStatus(filePath);
 

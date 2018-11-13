@@ -15,14 +15,14 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemClientOptions;
 import alluxio.client.file.URIStatus;
-import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
-import alluxio.security.authorization.Mode;
+import alluxio.grpc.SetAttributePOptions;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 
@@ -119,7 +119,8 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
   public int chmod(String path, @mode_t long mode) {
     AlluxioURI uri = mPathResolverCache.getUnchecked(path);
 
-    SetAttributeOptions options = SetAttributeOptions.defaults().setMode(new Mode((short) mode));
+    SetAttributePOptions options =
+        FileSystemClientOptions.getSetAttributeOptions().toBuilder().setMode((short) mode).build();
     try {
       mFileSystem.setAttribute(uri, options);
     } catch (IOException | AlluxioException e) {
@@ -157,7 +158,8 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
         return -ErrorCodes.EFAULT();
       }
 
-      SetAttributeOptions options = SetAttributeOptions.defaults().setGroup(groupName);
+      SetAttributePOptions.Builder optionsBuilder =
+          FileSystemClientOptions.getSetAttributeOptions().toBuilder();
       final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
 
       if (uid != -1 && uid != 4294967295L) {
@@ -170,13 +172,13 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
           LOG.error("Failed to get user name from uid {}", uid);
           return -ErrorCodes.EFAULT();
         }
-        options.setOwner(userName);
+        optionsBuilder.setOwner(userName);
         LOG.info("Change owner and group of file {} to {}:{}", path, userName, groupName);
       } else {
         LOG.info("Change group of file {} to {}", path, groupName);
       }
 
-      mFileSystem.setAttribute(uri, options);
+      mFileSystem.setAttribute(uri, optionsBuilder.build());
     } catch (IOException | AlluxioException e) {
       LOG.error("Exception on {}", path, e);
       return -ErrorCodes.EIO();

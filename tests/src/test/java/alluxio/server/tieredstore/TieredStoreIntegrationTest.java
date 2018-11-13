@@ -14,9 +14,9 @@ package alluxio.server.tieredstore;
 import alluxio.AlluxioURI;
 import alluxio.PropertyKey;
 import alluxio.client.file.*;
-import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.ReadPType;
+import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.WritePType;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
@@ -41,8 +41,8 @@ public class TieredStoreIntegrationTest extends BaseIntegrationTest {
   private static final int MEM_CAPACITY_BYTES = 1000;
 
   private FileSystem mFileSystem;
-  private SetAttributeOptions mSetPinned;
-  private SetAttributeOptions mSetUnpinned;
+  private SetAttributePOptions mSetPinned;
+  private SetAttributePOptions mSetUnpinned;
 
   @ClassRule
   public static ManuallyScheduleHeartbeat sManuallySchedule = new ManuallyScheduleHeartbeat(
@@ -66,8 +66,10 @@ public class TieredStoreIntegrationTest extends BaseIntegrationTest {
   @Before
   public final void before() throws Exception {
     mFileSystem = mLocalAlluxioClusterResource.get().getClient();
-    mSetPinned = SetAttributeOptions.defaults().setPinned(true);
-    mSetUnpinned = SetAttributeOptions.defaults().setPinned(false);
+    mSetPinned =
+        FileSystemClientOptions.getSetAttributeOptions().toBuilder().setPinned(true).build();
+    mSetUnpinned =
+        FileSystemClientOptions.getSetAttributeOptions().toBuilder().setPinned(false).build();
   }
 
   /**

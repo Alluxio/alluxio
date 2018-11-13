@@ -134,4 +134,9 @@ public final class FileSystemClientOptions {
   public static RenamePOptions getRenameOptions() {
     return RenamePOptions.newBuilder().setCommonOptions(getCommonOptions()).build();
   }
+
+  public static SetAttributePOptions getSetAttributeOptions() {
+    return SetAttributePOptions.newBuilder().setCommonOptions(getCommonOptions())
+        .setRecursive(false).setTtlAction(alluxio.grpc.TtlAction.DELETE).build();
+  }
 }

@@ -29,7 +29,6 @@ import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
 import alluxio.PropertyKey;
 import alluxio.TestLoggerRule;
-import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.grpc.*;
 import alluxio.wire.FileInfo;
 
@@ -439,12 +438,12 @@ public final class BaseFileSystemTest {
   }
 
   /**
-   * Tests for the {@link BaseFileSystem#setAttribute(AlluxioURI, SetAttributeOptions)} method.
+   * Tests for the {@link BaseFileSystem#setAttribute(AlluxioURI, SetAttributePOptions)} method.
    */
   @Test
   public void setAttribute() throws Exception {
     AlluxioURI file = new AlluxioURI("/file");
-    SetAttributeOptions setAttributeOptions = SetAttributeOptions.defaults();
+    SetAttributePOptions setAttributeOptions = FileSystemClientOptions.getSetAttributeOptions();
     mFileSystem.setAttribute(file, setAttributeOptions);
     verify(mFileSystemMasterClient).setAttribute(file, setAttributeOptions);
   }
@@ -455,7 +454,7 @@ public final class BaseFileSystemTest {
   @Test
   public void setStateException() throws Exception {
     AlluxioURI file = new AlluxioURI("/file");
-    SetAttributeOptions setAttributeOptions = SetAttributeOptions.defaults();
+    SetAttributePOptions setAttributeOptions = FileSystemClientOptions.getSetAttributeOptions();
     doThrow(EXCEPTION).when(mFileSystemMasterClient)
         .setAttribute(file, setAttributeOptions);
     try {

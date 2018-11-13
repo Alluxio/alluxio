@@ -15,7 +15,6 @@ import alluxio.AlluxioURI;
 import alluxio.RestUtils;
 import alluxio.StreamCache;
 import alluxio.client.file.*;
-import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.grpc.*;
 import alluxio.web.ProxyWebServer;
 
@@ -333,12 +332,12 @@ public final class PathsRestServiceHandler {
   @Path(PATH_PARAM + SET_ATTRIBUTE)
   @ReturnType("java.lang.Void")
   public Response setAttribute(@PathParam("path") final String path,
-      final SetAttributeOptions options) {
+      final SetAttributePOptions options) {
     return RestUtils.call(new RestUtils.RestCallable<Void>() {
       @Override
       public Void call() throws Exception {
         if (options == null) {
-          mFileSystem.setAttribute(new AlluxioURI(path), SetAttributeOptions.defaults());
+          mFileSystem.setAttribute(new AlluxioURI(path), FileSystemClientOptions.getSetAttributeOptions());
         } else {
           mFileSystem.setAttribute(new AlluxioURI(path), options);
         }

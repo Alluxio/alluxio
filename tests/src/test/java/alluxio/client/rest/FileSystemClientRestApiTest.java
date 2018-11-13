@@ -17,7 +17,6 @@ import static org.junit.Assert.assertEquals;
 
 import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystemClientOptions;
-import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.master.file.FileSystemMaster;
@@ -185,9 +184,9 @@ public final class FileSystemClientRestApiTest extends RestApiTest {
     writeFile(uri, null);
     new TestCase(mHostname, mPort,
         PATHS_PREFIX + uri.toString() + "/" + PathsRestServiceHandler.SET_ATTRIBUTE, NO_PARAMS,
-        HttpMethod.POST, null, TestCaseOptions.defaults()
-        .setBody(SetAttributeOptions.defaults().setMode(Mode.defaults())))
-        .run();
+        HttpMethod.POST, null, TestCaseOptions.defaults().setBody(FileSystemClientOptions
+            .getSetAttributeOptions().toBuilder().setMode(Mode.defaults().toShort()).build()))
+                .run();
     FileInfo fileInfo = mFileSystemMaster.getFileInfo(uri, GET_STATUS_OPTIONS);
     assertEquals(uri.toString(), fileInfo.getPath());
   }

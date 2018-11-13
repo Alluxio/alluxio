@@ -156,12 +156,12 @@ message RenamePOptions {
 message SetAttributePOptions {
   optional bool pinned = 1;
   optional int64 ttl = 2;
-  optional bool persisted = 3;
-  optional string owner = 4;
-  optional string group = 5;
-  optional int32 mode = 6;
-  optional bool recursive = 7;
-  optional TtlAction ttlAction = 8;
+  optional TtlAction ttlAction = 3;
+  optional bool persisted = 4;
+  optional string owner = 5;
+  optional string group = 6;
+  optional int32 mode = 7;
+  optional bool recursive = 8;
   optional int32 replicationMax = 9;
   optional int32 replicationMin = 10;
   optional FileSystemMasterCommonPOptions commonOptions = 11;

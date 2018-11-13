@@ -13,7 +13,7 @@ package alluxio.master.backcompat.ops;
 
 import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
-import alluxio.client.file.options.SetAttributeOptions;
+import alluxio.client.file.FileSystemClientOptions;
 import alluxio.master.backcompat.FsTestOp;
 import alluxio.master.backcompat.Utils;
 
@@ -30,7 +30,8 @@ public final class PersistDirectory extends FsTestOp {
   public void apply(FileSystem fs) throws Exception {
     fs.createDirectory(DIR);
     Utils.createFile(fs, INNER_FILE);
-    fs.setAttribute(INNER_FILE, SetAttributeOptions.defaults().setPersisted(true));
+    fs.setAttribute(INNER_FILE,
+        FileSystemClientOptions.getSetAttributeOptions().toBuilder().setPersisted(true).build());
   }
 
   @Override

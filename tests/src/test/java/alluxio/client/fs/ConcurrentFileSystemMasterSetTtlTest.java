@@ -15,11 +15,10 @@ import alluxio.AlluxioURI;
 import alluxio.AuthenticatedUserRule;
 import alluxio.Constants;
 import alluxio.PropertyKey;
-import alluxio.client.WriteType;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemClientOptions;
-import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.collections.ConcurrentHashSet;
+import alluxio.grpc.TtlAction;
 import alluxio.grpc.WritePType;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
@@ -29,7 +28,6 @@ import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.util.CommonUtils;
-import alluxio.wire.TtlAction;
 
 import com.google.common.base.Joiner;
 import org.junit.Assert;
@@ -129,8 +127,9 @@ public class ConcurrentFileSystemMasterSetTtlTest extends BaseIntegrationTest {
           try {
             AuthenticatedClientUser.set(TEST_USER);
             barrier.await();
-            mFileSystem.setAttribute(paths[iteration], SetAttributeOptions.defaults()
-                .setTtl(ttls[iteration]).setTtlAction(TtlAction.DELETE));
+            mFileSystem.setAttribute(paths[iteration],
+                FileSystemClientOptions.getSetAttributeOptions().toBuilder().setTtl(ttls[iteration])
+                    .setTtlAction(TtlAction.DELETE).build());
           } catch (Exception e) {
             throw new RuntimeException(e);
           }

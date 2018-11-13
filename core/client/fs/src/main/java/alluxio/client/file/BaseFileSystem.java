@@ -17,7 +17,6 @@ import alluxio.annotation.PublicApi;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.client.file.options.OutStreamOptions;
-import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.ExceptionMessage;
@@ -433,11 +432,11 @@ public class BaseFileSystem implements FileSystem {
   @Override
   public void setAttribute(AlluxioURI path)
       throws FileDoesNotExistException, IOException, AlluxioException {
-    setAttribute(path, SetAttributeOptions.defaults());
+    setAttribute(path, FileSystemClientOptions.getSetAttributeOptions());
   }
 
   @Override
-  public void setAttribute(AlluxioURI path, SetAttributeOptions options)
+  public void setAttribute(AlluxioURI path, SetAttributePOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException {
     checkUri(path);
     FileSystemMasterClient masterClient = mFileSystemContext.acquireMasterClient();
