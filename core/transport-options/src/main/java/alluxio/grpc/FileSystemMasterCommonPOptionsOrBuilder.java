@@ -33,4 +33,13 @@ public interface FileSystemMasterCommonPOptionsOrBuilder extends
    * <code>optional .alluxio.grpc.TtlAction ttlAction = 3;</code>
    */
   alluxio.grpc.TtlAction getTtlAction();
+
+  /**
+   * <code>optional int64 operationTimeMs = 4;</code>
+   */
+  boolean hasOperationTimeMs();
+  /**
+   * <code>optional int64 operationTimeMs = 4;</code>
+   */
+  long getOperationTimeMs();
 }

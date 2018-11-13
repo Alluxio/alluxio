@@ -27,7 +27,7 @@ public final class FileSystemClientOptions {
     return FileSystemMasterCommonPOptions.newBuilder().setTtl(Constants.NO_TTL)
         .setTtlAction(alluxio.grpc.TtlAction.DELETE)
         .setSyncIntervalMs(Configuration.getMs(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL))
-        .build();
+        .setOperationTimeMs(System.currentTimeMillis()).build();
   }
 
   public static GetStatusPOptions getGetStatusOptions() {

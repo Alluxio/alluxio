@@ -19,6 +19,7 @@ private static final long serialVersionUID = 0L;
     syncIntervalMs_ = 0L;
     ttl_ = 0L;
     ttlAction_ = 0;
+    operationTimeMs_ = 0L;
   }
 
   @java.lang.Override
@@ -71,6 +72,11 @@ private static final long serialVersionUID = 0L;
               bitField0_ |= 0x00000004;
               ttlAction_ = rawValue;
             }
+            break;
+          }
+          case 32: {
+            bitField0_ |= 0x00000008;
+            operationTimeMs_ = input.readInt64();
             break;
           }
         }
@@ -144,6 +150,21 @@ private static final long serialVersionUID = 0L;
     return result == null ? alluxio.grpc.TtlAction.DELETE : result;
   }
 
+  public static final int OPERATIONTIMEMS_FIELD_NUMBER = 4;
+  private long operationTimeMs_;
+  /**
+   * <code>optional int64 operationTimeMs = 4;</code>
+   */
+  public boolean hasOperationTimeMs() {
+    return ((bitField0_ & 0x00000008) == 0x00000008);
+  }
+  /**
+   * <code>optional int64 operationTimeMs = 4;</code>
+   */
+  public long getOperationTimeMs() {
+    return operationTimeMs_;
+  }
+
   private byte memoizedIsInitialized = -1;
   public final boolean isInitialized() {
     byte isInitialized = memoizedIsInitialized;
@@ -165,6 +186,9 @@ private static final long serialVersionUID = 0L;
     if (((bitField0_ & 0x00000004) == 0x00000004)) {
       output.writeEnum(3, ttlAction_);
     }
+    if (((bitField0_ & 0x00000008) == 0x00000008)) {
+      output.writeInt64(4, operationTimeMs_);
+    }
     unknownFields.writeTo(output);
   }
 
@@ -184,6 +208,10 @@ private static final long serialVersionUID = 0L;
     if (((bitField0_ & 0x00000004) == 0x00000004)) {
       size += com.google.protobuf.CodedOutputStream
         .computeEnumSize(3, ttlAction_);
+    }
+    if (((bitField0_ & 0x00000008) == 0x00000008)) {
+      size += com.google.protobuf.CodedOutputStream
+        .computeInt64Size(4, operationTimeMs_);
     }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
@@ -215,6 +243,11 @@ private static final long serialVersionUID = 0L;
     if (hasTtlAction()) {
       result = result && ttlAction_ == other.ttlAction_;
     }
+    result = result && (hasOperationTimeMs() == other.hasOperationTimeMs());
+    if (hasOperationTimeMs()) {
+      result = result && (getOperationTimeMs()
+          == other.getOperationTimeMs());
+    }
     result = result && unknownFields.equals(other.unknownFields);
     return result;
   }
@@ -239,6 +272,11 @@ private static final long serialVersionUID = 0L;
     if (hasTtlAction()) {
       hash = (37 * hash) + TTLACTION_FIELD_NUMBER;
       hash = (53 * hash) + ttlAction_;
+    }
+    if (hasOperationTimeMs()) {
+      hash = (37 * hash) + OPERATIONTIMEMS_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+          getOperationTimeMs());
     }
     hash = (29 * hash) + unknownFields.hashCode();
     memoizedHashCode = hash;
@@ -375,6 +413,8 @@ private static final long serialVersionUID = 0L;
       bitField0_ = (bitField0_ & ~0x00000002);
       ttlAction_ = 0;
       bitField0_ = (bitField0_ & ~0x00000004);
+      operationTimeMs_ = 0L;
+      bitField0_ = (bitField0_ & ~0x00000008);
       return this;
     }
 
@@ -411,6 +451,10 @@ private static final long serialVersionUID = 0L;
         to_bitField0_ |= 0x00000004;
       }
       result.ttlAction_ = ttlAction_;
+      if (((from_bitField0_ & 0x00000008) == 0x00000008)) {
+        to_bitField0_ |= 0x00000008;
+      }
+      result.operationTimeMs_ = operationTimeMs_;
       result.bitField0_ = to_bitField0_;
       onBuilt();
       return result;
@@ -461,6 +505,9 @@ private static final long serialVersionUID = 0L;
       }
       if (other.hasTtlAction()) {
         setTtlAction(other.getTtlAction());
+      }
+      if (other.hasOperationTimeMs()) {
+        setOperationTimeMs(other.getOperationTimeMs());
       }
       this.mergeUnknownFields(other.unknownFields);
       onChanged();
@@ -586,6 +633,38 @@ private static final long serialVersionUID = 0L;
     public Builder clearTtlAction() {
       bitField0_ = (bitField0_ & ~0x00000004);
       ttlAction_ = 0;
+      onChanged();
+      return this;
+    }
+
+    private long operationTimeMs_ ;
+    /**
+     * <code>optional int64 operationTimeMs = 4;</code>
+     */
+    public boolean hasOperationTimeMs() {
+      return ((bitField0_ & 0x00000008) == 0x00000008);
+    }
+    /**
+     * <code>optional int64 operationTimeMs = 4;</code>
+     */
+    public long getOperationTimeMs() {
+      return operationTimeMs_;
+    }
+    /**
+     * <code>optional int64 operationTimeMs = 4;</code>
+     */
+    public Builder setOperationTimeMs(long value) {
+      bitField0_ |= 0x00000008;
+      operationTimeMs_ = value;
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>optional int64 operationTimeMs = 4;</code>
+     */
+    public Builder clearOperationTimeMs() {
+      bitField0_ = (bitField0_ & ~0x00000008);
+      operationTimeMs_ = 0L;
       onChanged();
       return this;
     }
