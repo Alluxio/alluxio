@@ -974,6 +974,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         }
         // TODO(david): Make extending InodePath more efficient
         childComponents[childComponents.length - 1] = child.getName();
+
         try (LockedInodePath childInodePath  = mInodeTree.lockChildPath(currInodePath,
             InodeTree.LockMode.READ, child, childComponents)) {
           listStatusInternal(childInodePath, auditContext,
