@@ -35,6 +35,7 @@ import alluxio.exception.status.FailedPreconditionException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.PermissionDeniedException;
+import alluxio.exception.status.ResourceExhaustedException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatThread;
@@ -3681,7 +3682,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         } catch (UnavailableException e) {
           LOG.warn("Failed to persist file {}, will retry later: {}", uri, e.toString());
           remove = false;
-        } catch (alluxio.exception.status.ResourceExhaustedException e) {
+        } catch (ResourceExhaustedException e) {
           LOG.warn("The job service is busy, will retry later: {}", e.getMessage());
           LOG.debug("Exception: ", e);
           mQuietPeriodSeconds = (mQuietPeriodSeconds == 0) ? 1 :

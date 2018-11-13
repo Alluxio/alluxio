@@ -109,7 +109,7 @@ public final class JobMasterTest {
       mJobMaster.run(jobConfig);
       Assert.fail("should not be able to run more jobs than job master capacity");
     } catch (ResourceExhaustedException e) {
-      Assert.assertEquals("Job master is at full capacity", e.getMessage());
+      Assert.assertEquals(ExceptionMessage.JOB_MASTER_FULL_CAPACITY, e.getMessage());
     }
   }
 
