@@ -174,7 +174,7 @@ public class KodoUnderFileSystem extends ObjectUnderFileSystem {
   }
 
   /**
-   * Get metadata information about object. Implementations should process the key as is, which may
+   * Gets metadata information about object. Implementations should process the key as is, which may
    * be a file or a directory key.
    *
    * @param key ufs key to get metadata for
@@ -212,7 +212,7 @@ public class KodoUnderFileSystem extends ObjectUnderFileSystem {
   }
 
   /**
-   * Get full path of root in object store.
+   * Gets full path of root in object store.
    *
    * @return full path including scheme and bucket
    */
@@ -254,7 +254,7 @@ public class KodoUnderFileSystem extends ObjectUnderFileSystem {
     }
 
     /**
-     * Use common prefixes to infer pseudo-directories in object store.
+     * Uses common prefixes to infer pseudo-directories in object store.
      *
      * @return a list of common prefixes
      */

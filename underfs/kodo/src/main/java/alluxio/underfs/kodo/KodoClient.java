@@ -36,10 +36,10 @@ public class KodoClient {
   /** Qiniu authentication for Qiniu SDK. */
   private Auth mAuth;
 
-  /** bucket manager for Qiniu SDK. */
+  /** Bucket manager for Qiniu SDK. */
   private BucketManager mBucketManager;
 
-  /** upload manager for Qiniu SDK. */
+  /** Upload manager for Qiniu SDK. */
   private UploadManager mUploadManager;
 
   /** Http client for get Object. */
@@ -72,9 +72,8 @@ public class KodoClient {
     mUploadManager = new UploadManager(cfg);
     mOkHttpClient = okHttpClient;
   }
-
   /**
-   * get bucketname for kodoclient.
+   * Gets bucketname for kodoclient.
    * @return bucketname
    */
   public String getBucketName() {
@@ -82,7 +81,7 @@ public class KodoClient {
   }
 
   /**
-   * get file from for Qiniu kodo.
+   * Gets file from for Qiniu kodo.
    * @param key Object jey
    * @return Qiniu FileInfo
    * @throws QiniuException
@@ -90,9 +89,8 @@ public class KodoClient {
   public FileInfo getFileInfo(String key) throws QiniuException {
     return mBucketManager.stat(mBucketName, key);
   }
-
   /**
-   * get object from Qiniu kodo. All requests are authenticated by default，default expires 3600s We
+   * Gets object from Qiniu kodo. All requests are authenticated by default，default expires 3600s We
    * use okhttp as our HTTP client and support two main parameters in the external adjustment, MAX
    * request and timeout time.
    * @param key object key
@@ -122,7 +120,7 @@ public class KodoClient {
   }
 
   /**
-   * Put Object to Qiniu kodo.
+   * Puts Object to Qiniu kodo.
    * @param Key Object key for kodo
    * @param File Alluxio File
    */
@@ -131,18 +129,16 @@ public class KodoClient {
         mUploadManager.put(File, Key, mAuth.uploadToken(mBucketName, Key));
     response.close();
   }
-
   /**
-   * copy object in Qiniu kodo.
+   * Copys object in Qiniu kodo.
    * @param src source Object key
    * @param dst destination Object Key
    */
   public void copyObject(String src, String dst) throws QiniuException {
     mBucketManager.copy(mBucketName, src, mBucketName, dst);
   }
-
   /**
-   * create empty Object in Qiniu kodo.
+   * Creates empty Object in Qiniu kodo.
    * @param key empty Object key
    */
   public void createEmptyObject(String key) throws QiniuException {
@@ -150,18 +146,16 @@ public class KodoClient {
         mUploadManager.put(new byte[0], key, mAuth.uploadToken(mBucketName, key));
     response.close();
   }
-
   /**
-   * delete Object in Qiniu kodo.
+   * Deletes Object in Qiniu kodo.
    * @param key Object key
    */
   public void deleteObject(String key) throws QiniuException {
     com.qiniu.http.Response response = mBucketManager.delete(mBucketName, key);
     response.close();
   }
-
   /**
-   * list object for Qiniu kodo.
+   * Lists object for Qiniu kodo.
    * @param prefix prefix for bucket
    * @param marker Marker returned the last time a file list was obtained
    * @param limit Length limit for each iteration, Max. 1000
