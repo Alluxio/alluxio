@@ -89,12 +89,17 @@ public final class FileSystemClientOptions {
 
   public static CreateDirectoryPOptions getCreateDirectoryOptions() {
     // TODO(ggezer) WritePType conversion logic
-    return CreateDirectoryPOptions.newBuilder().setCommonOptions(getCommonOptions()).setRecursive(false)
-            .setWriteType(WritePType.valueOf("WRITE_" + Configuration.get(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT)))
-            .setPersisted(Configuration
-                    .getEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class).isThrough())
-            .setMode(ModeUtils.applyFileUMask(Mode.defaults()).toShort())
-            .setAllowExist(false).build();
+    return CreateDirectoryPOptions.newBuilder()
+        .setCommonOptions(getCommonOptions().toBuilder()
+            .setTtl(Configuration.getLong(PropertyKey.USER_FILE_CREATE_TTL))
+            .setTtlAction(GrpcUtils.toProto(
+                Configuration.getEnum(PropertyKey.USER_FILE_CREATE_TTL_ACTION, TtlAction.class))))
+        .setRecursive(false)
+        .setWriteType(WritePType
+            .valueOf("WRITE_" + Configuration.get(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT)))
+        .setPersisted(Configuration
+            .getEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class).isThrough())
+        .setMode(ModeUtils.applyFileUMask(Mode.defaults()).toShort()).setAllowExist(false).build();
   }
 
   public static LoadMetadataPOptions getLoadMetadataOptions() {
