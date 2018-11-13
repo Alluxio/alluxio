@@ -11,12 +11,20 @@
 
 package alluxio.client.file.options;
 
+import alluxio.Configuration;
+import alluxio.PropertyKey;
+import alluxio.client.block.policy.BlockLocationPolicy;
+import alluxio.client.block.policy.options.CreateOptions;
+import alluxio.client.file.FileSystemClientOptions;
 import alluxio.client.file.URIStatus;
+import alluxio.grpc.OpenFilePOptions;
 import alluxio.master.block.BlockId;
 import alluxio.proto.dataserver.Protocol;
+import alluxio.util.grpc.GrpcUtils;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.FileBlockInfo;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 
@@ -32,31 +40,50 @@ import javax.annotation.concurrent.NotThreadSafe;
 // TODO(calvin): Rename this class
 public final class InStreamOptions {
   private final URIStatus mStatus;
-  private final OpenFileOptions mOptions;
+  private final OpenFilePOptions mProtoOptions;
+  private BlockLocationPolicy mUfsReadLocationPolicy;
 
   /**
    * Creates with the default {@link OpenFileOptions}.
    * @param status the file to create the options for
    */
   public InStreamOptions(URIStatus status) {
-    this(status, OpenFileOptions.defaults());
+    this(status, FileSystemClientOptions.getOpenFileOptions());
   }
 
-  /**
-   * Creates based on the arguments provided.
-   * @param status the file to create the options for
-   * @param options the {@link OpenFileOptions} to use
-   */
-  public InStreamOptions(URIStatus status, OpenFileOptions options) {
+  public InStreamOptions(URIStatus status, OpenFilePOptions options) {
     mStatus = status;
-    mOptions = options;
+    mProtoOptions = options;
+    CreateOptions blockLocationPolicyCreateOptions = CreateOptions.defaults()
+            .setLocationPolicyClassName(options.getFileReadLocationPolicy())
+            .setDeterministicHashPolicyNumShards(options.getHashingNumberOfShards());
+    mUfsReadLocationPolicy = BlockLocationPolicy.Factory.create(blockLocationPolicyCreateOptions);
   }
 
   /**
    * @return the {@link OpenFileOptions} associated with the instream
    */
-  public OpenFileOptions getOptions() {
-    return mOptions;
+  public OpenFilePOptions getOptions() {
+    return mProtoOptions;
+  }
+
+
+  /**
+   * Sets block read location policy.
+   *
+   * @param ufsReadLocationPolicy block location policy implementation
+   */
+  @VisibleForTesting
+  public void setUfsReadLocationPolicy(BlockLocationPolicy ufsReadLocationPolicy) {
+
+    mUfsReadLocationPolicy = Preconditions.checkNotNull(ufsReadLocationPolicy);
+  }
+
+  /**
+   * @return the {@link BlockLocationPolicy} associated with the instream
+   */
+  public BlockLocationPolicy getUfsReadLocationPolicy() {
+    return mUfsReadLocationPolicy;
   }
 
   /**
@@ -95,8 +122,8 @@ public final class InStreamOptions {
     Protocol.OpenUfsBlockOptions openUfsBlockOptions =
         Protocol.OpenUfsBlockOptions.newBuilder().setUfsPath(mStatus.getUfsPath())
             .setOffsetInFile(blockStart).setBlockSize(info.getLength())
-            .setMaxUfsReadConcurrency(mOptions.getMaxUfsReadConcurrency())
-            .setNoCache(!mOptions.getReadType().isCache()).setMountId(mStatus.getMountId()).build();
+            .setMaxUfsReadConcurrency(mProtoOptions.getMaxUfsReadConcurrency())
+            .setNoCache(!GrpcUtils.isCache(mProtoOptions.getReadType())).setMountId(mStatus.getMountId()).build();
     if (storedAsUfsBlock) {
       // On client-side, we do not have enough mount information to fill in the UFS file path.
       // Instead, we unset the ufsPath field and fill in a flag ufsBlock to indicate the UFS file
@@ -118,14 +145,14 @@ public final class InStreamOptions {
     }
     InStreamOptions that = (InStreamOptions) o;
     return Objects.equal(mStatus, that.mStatus)
-        && Objects.equal(mOptions, that.mOptions);
+        && Objects.equal(mProtoOptions, that.mProtoOptions);
   }
 
   @Override
   public int hashCode() {
     return Objects.hashCode(
         mStatus,
-        mOptions
+        mProtoOptions
     );
   }
 
@@ -133,7 +160,7 @@ public final class InStreamOptions {
   public String toString() {
     return Objects.toStringHelper(this)
         .add("URIStatus", mStatus)
-        .add("OpenFileOptions", mOptions)
+        .add("OpenFileOptions", mProtoOptions)
         .toString();
   }
 }

@@ -15,7 +15,6 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.annotation.PublicApi;
-import alluxio.client.file.options.OpenFileOptions;
 import alluxio.client.file.options.RenameOptions;
 import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.conf.Source;
@@ -280,7 +279,7 @@ public interface FileSystem {
   Map<String, MountPointInfo> getMountTable() throws IOException, AlluxioException;
 
   /**
-   * Convenience method for {@link #openFile(AlluxioURI, OpenFileOptions)} with default options.
+   * Convenience method for {@link #openFile(AlluxioURI, OpenFilePOptions)} with default options.
    *
    * @param path the file to read from
    * @return a {@link FileInStream} for the given path
@@ -297,7 +296,7 @@ public interface FileSystem {
    * @return a {@link FileInStream} for the given path
    * @throws FileDoesNotExistException if the given file does not exist
    */
-  FileInStream openFile(AlluxioURI path, OpenFileOptions options)
+  FileInStream openFile(AlluxioURI path, OpenFilePOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException;
 
   /**

@@ -17,7 +17,6 @@ import static org.junit.Assert.assertEquals;
 
 import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystemClientOptions;
-import alluxio.client.file.options.OpenFileOptions;
 import alluxio.client.file.options.RenameOptions;
 import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.exception.FileDoesNotExistException;
@@ -219,8 +218,8 @@ public final class FileSystemClientRestApiTest extends RestApiTest {
   private byte[] readFile(AlluxioURI path) throws Exception {
     String result = new TestCase(mHostname, mPort,
         PATHS_PREFIX + path.toString() + "/" + PathsRestServiceHandler.OPEN_FILE, NO_PARAMS,
-        HttpMethod.POST, null, TestCaseOptions.defaults().setBody(OpenFileOptions.defaults()))
-        .call();
+        HttpMethod.POST, null,
+        TestCaseOptions.defaults().setBody(FileSystemClientOptions.getOpenFileOptions())).call();
     Integer id = new ObjectMapper().readValue(result, Integer.TYPE);
     result = new TestCase(mHostname, mPort,
         STREAMS_PREFIX + id.toString() + "/" + StreamsRestServiceHandler.READ, NO_PARAMS,

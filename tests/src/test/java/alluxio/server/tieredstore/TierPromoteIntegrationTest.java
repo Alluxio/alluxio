@@ -14,11 +14,11 @@ package alluxio.server.tieredstore;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.PropertyKey;
-import alluxio.client.ReadType;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
-import alluxio.client.file.options.OpenFileOptions;
+import alluxio.client.file.FileSystemClientOptions;
+import alluxio.grpc.ReadPType;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
@@ -26,13 +26,8 @@ import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.io.PathUtils;
-
 import com.google.common.io.Files;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
@@ -115,8 +110,8 @@ public class TierPromoteIntegrationTest extends BaseIntegrationTest {
     Assert.assertFalse(mFileSystem.getStatus(path1).getFileBlockInfos().isEmpty());
 
     // After reading with CACHE_PROMOTE, the file should be in memory
-    FileInStream in = mFileSystem.openFile(path1, OpenFileOptions.defaults().setReadType(ReadType
-        .CACHE_PROMOTE));
+    FileInStream in = mFileSystem.openFile(path1, FileSystemClientOptions.getOpenFileOptions()
+        .toBuilder().setReadType(ReadPType.READ_CACHE_PROMOTE).build());
     byte[] buf = new byte[size];
     while (in.read(buf) != -1) {
       // read the entire file

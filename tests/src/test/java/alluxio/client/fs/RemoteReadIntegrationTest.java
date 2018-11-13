@@ -13,17 +13,16 @@ package alluxio.client.fs;
 
 import alluxio.AlluxioURI;
 import alluxio.PropertyKey;
-import alluxio.client.ReadType;
-import alluxio.client.WriteType;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.stream.BlockInStream;
 import alluxio.client.block.stream.BlockInStream.BlockInStreamSource;
 import alluxio.client.file.*;
 import alluxio.client.file.options.InStreamOptions;
-import alluxio.client.file.options.OpenFileOptions;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.NotFoundException;
 import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.OpenFilePOptions;
+import alluxio.grpc.ReadPType;
 import alluxio.grpc.WritePType;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
@@ -71,8 +70,8 @@ public class RemoteReadIntegrationTest extends BaseIntegrationTest {
   private FileSystem mFileSystem = null;
   private CreateFilePOptions mWriteAlluxio;
   private CreateFilePOptions mWriteUnderStore;
-  private OpenFileOptions mReadNoCache;
-  private OpenFileOptions mReadCache;
+  private OpenFilePOptions mReadNoCache;
+  private OpenFilePOptions mReadCache;
 
   @Parameterized.Parameters
   public static Collection<Object[]> data() {
@@ -110,8 +109,10 @@ public class RemoteReadIntegrationTest extends BaseIntegrationTest {
             .setWriteType(WritePType.WRITE_MUST_CACHE).build();
     mWriteUnderStore = FileSystemClientOptions.getCreateFileOptions().toBuilder()
         .setWriteType(WritePType.WRITE_THROUGH).build();
-    mReadCache = OpenFileOptions.defaults().setReadType(ReadType.CACHE_PROMOTE);
-    mReadNoCache = OpenFileOptions.defaults().setReadType(ReadType.NO_CACHE);
+    mReadCache = FileSystemClientOptions.getOpenFileOptions().toBuilder()
+        .setReadType(ReadPType.READ_CACHE_PROMOTE).build();
+    mReadNoCache = FileSystemClientOptions.getOpenFileOptions().toBuilder()
+        .setReadType(ReadPType.READ_NO_CACHE).build();
   }
 
   /**

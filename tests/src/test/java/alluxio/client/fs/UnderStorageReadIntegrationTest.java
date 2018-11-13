@@ -14,12 +14,10 @@ package alluxio.client.fs;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.PropertyKey;
-import alluxio.client.ReadType;
-import alluxio.client.WriteType;
 import alluxio.client.file.*;
-import alluxio.client.file.options.CreateFileOptions;
-import alluxio.client.file.options.OpenFileOptions;
 import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.OpenFilePOptions;
+import alluxio.grpc.ReadPType;
 import alluxio.grpc.WritePType;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.IntegrationTestUtils;
@@ -52,8 +50,8 @@ public class UnderStorageReadIntegrationTest extends BaseIntegrationTest {
 
   private FileSystem mFileSystem = null;
   private CreateFilePOptions mWriteUnderStore;
-  private OpenFileOptions mReadNoCache;
-  private OpenFileOptions mReadCache;
+  private OpenFilePOptions mReadNoCache;
+  private OpenFilePOptions mReadCache;
 
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
@@ -69,8 +67,10 @@ public class UnderStorageReadIntegrationTest extends BaseIntegrationTest {
     mFileSystem = mLocalAlluxioClusterResource.get().getClient();
     mWriteUnderStore = FileSystemClientOptions.getCreateFileOptions().toBuilder()
         .setWriteType(WritePType.WRITE_THROUGH).build();
-    mReadCache = OpenFileOptions.defaults().setReadType(ReadType.CACHE_PROMOTE);
-    mReadNoCache = OpenFileOptions.defaults().setReadType(ReadType.NO_CACHE);
+    mReadCache = FileSystemClientOptions.getOpenFileOptions().toBuilder()
+        .setReadType(ReadPType.READ_CACHE_PROMOTE).build();
+    mReadNoCache = FileSystemClientOptions.getOpenFileOptions().toBuilder()
+        .setReadType(ReadPType.READ_NO_CACHE).build();
   }
 
   /**

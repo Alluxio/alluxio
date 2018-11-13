@@ -15,7 +15,6 @@ import alluxio.AlluxioURI;
 import alluxio.RestUtils;
 import alluxio.StreamCache;
 import alluxio.client.file.*;
-import alluxio.client.file.options.OpenFileOptions;
 import alluxio.client.file.options.RenameOptions;
 import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.grpc.*;
@@ -283,13 +282,13 @@ public final class PathsRestServiceHandler {
   @Path(PATH_PARAM + OPEN_FILE)
   @ReturnType("java.lang.Integer")
   @Produces(MediaType.APPLICATION_JSON)
-  public Response openFile(@PathParam("path") final String path, final OpenFileOptions options) {
+  public Response openFile(@PathParam("path") final String path, final OpenFilePOptions options) {
     return RestUtils.call(new RestUtils.RestCallable<Integer>() {
       @Override
       public Integer call() throws Exception {
         FileInStream is;
         if (options == null) {
-          is = mFileSystem.openFile(new AlluxioURI(path), OpenFileOptions.defaults());
+          is = mFileSystem.openFile(new AlluxioURI(path), FileSystemClientOptions.getOpenFileOptions());
         } else {
           is = mFileSystem.openFile(new AlluxioURI(path), options);
         }

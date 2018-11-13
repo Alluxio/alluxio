@@ -14,15 +14,16 @@ package alluxio.client.fs;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.PropertyKey;
-import alluxio.client.ReadType;
 import alluxio.client.file.*;
-import alluxio.client.file.options.OpenFileOptions;
 import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.OpenFilePOptions;
+import alluxio.grpc.ReadPType;
 import alluxio.grpc.WritePType;
 import alluxio.security.authorization.Mode;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.util.CommonUtils;
+import alluxio.util.grpc.GrpcUtils;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.FileBlockInfo;
@@ -350,8 +351,8 @@ public final class FileInStreamIntegrationTest extends BaseIntegrationTest {
       service.submit(new Runnable() {
         @Override
         public void run() {
-          try (FileInStream is = mFileSystem
-              .openFile(path, OpenFileOptions.defaults().setReadType(ReadType.CACHE))) {
+          try (FileInStream is = mFileSystem.openFile(path, FileSystemClientOptions
+              .getOpenFileOptions().toBuilder().setReadType(ReadPType.READ_CACHE).build())) {
             int start = 0;
             while (start < length) {
               byte[] buffer = new byte[bufferSize];
@@ -363,8 +364,8 @@ public final class FileInStreamIntegrationTest extends BaseIntegrationTest {
           } catch (Exception e) {
             throw new RuntimeException(e);
           }
-          try (FileInStream is = mFileSystem
-              .openFile(path, OpenFileOptions.defaults().setReadType(ReadType.CACHE))) {
+          try (FileInStream is = mFileSystem.openFile(path, FileSystemClientOptions
+              .getOpenFileOptions().toBuilder().setReadType(ReadPType.READ_CACHE).build())) {
             int start = 0;
             while (start < length) {
               byte[] buffer = new byte[bufferSize];
@@ -406,7 +407,8 @@ public final class FileInStreamIntegrationTest extends BaseIntegrationTest {
       }
     }
 
-    OpenFileOptions options = OpenFileOptions.defaults().setReadType(ReadType.CACHE_PROMOTE);
+    OpenFilePOptions options = FileSystemClientOptions.getOpenFileOptions().toBuilder()
+        .setReadType(ReadPType.READ_CACHE_PROMOTE).build();
     try (FileInStream in = mFileSystem.openFile(filePath, options)) {
       byte[] buf = new byte[8 * Constants.MB];
       while (in.read(buf) != -1) {
@@ -435,7 +437,7 @@ public final class FileInStreamIntegrationTest extends BaseIntegrationTest {
     String filename = mTestPath + "/file_" + MAX_LEN + "_" + mWriteUnderStore.hashCode();
     AlluxioURI uri = new AlluxioURI(filename);
 
-    for (ReadType readType : ReadType.values()) {
+    for (ReadPType readType : ReadPType.values()) {
       mFileSystem.free(uri);
       CommonUtils.waitFor("No in-Alluxio data left from previous iteration.", () -> {
         try {
@@ -445,12 +447,13 @@ public final class FileInStreamIntegrationTest extends BaseIntegrationTest {
           return false;
         }
       });
-      FileInStream is = mFileSystem.openFile(uri, OpenFileOptions.defaults().setReadType(readType));
+      FileInStream is = mFileSystem.openFile(uri,
+          FileSystemClientOptions.getOpenFileOptions().toBuilder().setReadType(readType).build());
       is.read();
       URIStatus status = mFileSystem.getStatus(uri);
       Assert.assertEquals(0, status.getInAlluxioPercentage());
       is.close();
-      if (readType.isCache()) {
+      if (GrpcUtils.isCache(readType)) {
         CommonUtils.waitFor("First block to be cached.", () -> {
           try {
             URIStatus st = mFileSystem.getStatus(uri);
@@ -482,7 +485,7 @@ public final class FileInStreamIntegrationTest extends BaseIntegrationTest {
     String filename = mTestPath + "/file_" + MAX_LEN + "_" + mWriteUnderStore.hashCode();
     AlluxioURI uri = new AlluxioURI(filename);
 
-    for (ReadType readType : ReadType.values()) {
+    for (ReadPType readType : ReadPType.values()) {
       mFileSystem.free(uri);
       CommonUtils.waitFor("No in-Alluxio data left from previous iteration.", () -> {
         try {
@@ -492,14 +495,15 @@ public final class FileInStreamIntegrationTest extends BaseIntegrationTest {
           return false;
         }
       });
-      FileInStream is = mFileSystem.openFile(uri, OpenFileOptions.defaults().setReadType(readType));
+      FileInStream is = mFileSystem.openFile(uri,
+          FileSystemClientOptions.getOpenFileOptions().toBuilder().setReadType(readType).build());
       URIStatus status = mFileSystem.getStatus(uri);
       is.seek(status.getBlockSizeBytes() + 1);
       is.read();
       status = mFileSystem.getStatus(uri);
       Assert.assertEquals(0, status.getInAlluxioPercentage());
       is.close();
-      if (readType.isCache()) {
+      if (GrpcUtils.isCache(readType)) {
         CommonUtils.waitFor("Second block to be cached.", () -> {
           try {
             URIStatus st = mFileSystem.getStatus(uri);
@@ -531,7 +535,7 @@ public final class FileInStreamIntegrationTest extends BaseIntegrationTest {
     String filename = mTestPath + "/file_" + MAX_LEN + "_" + mWriteUnderStore.hashCode();
     AlluxioURI uri = new AlluxioURI(filename);
 
-    for (ReadType readType : ReadType.values()) {
+    for (ReadPType readType : ReadPType.values()) {
       mFileSystem.free(uri);
       CommonUtils.waitFor("No in-Alluxio data left from previous iteration.", () -> {
         try {
@@ -541,13 +545,14 @@ public final class FileInStreamIntegrationTest extends BaseIntegrationTest {
           return false;
         }
       });
-      FileInStream is = mFileSystem.openFile(uri, OpenFileOptions.defaults().setReadType(readType));
+      FileInStream is = mFileSystem.openFile(uri,
+          FileSystemClientOptions.getOpenFileOptions().toBuilder().setReadType(readType).build());
       // Positioned reads trigger async caching after reading and do not need to wait for a close
       // or a block boundary to be crossed.
       URIStatus status = mFileSystem.getStatus(uri);
       Assert.assertEquals(0, status.getInAlluxioPercentage());
       is.positionedRead(BLOCK_SIZE / 2, new byte[1], 0, 1);
-      if (readType.isCache()) {
+      if (GrpcUtils.isCache(readType)) {
         CommonUtils.waitFor("First block to be cached.", () -> {
           try {
             URIStatus st = mFileSystem.getStatus(uri);
@@ -580,8 +585,8 @@ public final class FileInStreamIntegrationTest extends BaseIntegrationTest {
     String filename = mTestPath + "/file_" + MAX_LEN + "_" + mWriteUnderStore.hashCode();
     AlluxioURI uri = new AlluxioURI(filename);
 
-    FileInStream is =
-        mFileSystem.openFile(uri, OpenFileOptions.defaults().setReadType(ReadType.CACHE));
+    FileInStream is = mFileSystem.openFile(uri, FileSystemClientOptions.getOpenFileOptions()
+        .toBuilder().setReadType(ReadPType.READ_CACHE).build());
     URIStatus status = mFileSystem.getStatus(uri);
     byte[] data = new byte[(int) status.getBlockSizeBytes() + 1];
     is.read(data);

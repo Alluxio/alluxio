@@ -15,13 +15,14 @@ import alluxio.AlluxioURI;
 import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemClientOptions;
 import alluxio.client.file.URIStatus;
-import alluxio.client.file.options.OpenFileOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.status.InvalidArgumentException;
 
+import alluxio.grpc.OpenFilePOptions;
 import org.apache.commons.cli.CommandLine;
 
 import java.io.IOException;
@@ -54,7 +55,7 @@ public final class CatCommand extends AbstractFileSystemCommand {
     if (status.isFolder()) {
       throw new FileDoesNotExistException(ExceptionMessage.PATH_MUST_BE_FILE.getMessage(path));
     }
-    OpenFileOptions options = OpenFileOptions.defaults();
+    OpenFilePOptions options = FileSystemClientOptions.getOpenFileOptions();
     byte[] buf = new byte[512];
     try (FileInStream is = mFileSystem.openFile(path, options)) {
       int read = is.read(buf);

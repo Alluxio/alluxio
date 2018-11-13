@@ -226,7 +226,7 @@ public final class AlluxioBlockStore {
     if (dataSource == null) {
       dataSourceType = BlockInStreamSource.UFS;
       BlockLocationPolicy policy =
-          Preconditions.checkNotNull(options.getOptions().getUfsReadLocationPolicy(),
+          Preconditions.checkNotNull(options.getUfsReadLocationPolicy(),
               PreconditionMessage.UFS_READ_LOCATION_POLICY_UNSPECIFIED);
       blockWorkerInfo = blockWorkerInfo.stream()
           .filter(workerInfo -> workers.contains(workerInfo.getNetAddress())).collect(toList());

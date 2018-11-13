@@ -12,13 +12,14 @@
 package alluxio.client.cli.fs.command;
 
 import alluxio.AlluxioURI;
-import alluxio.client.ReadType;
 import alluxio.client.file.FileInStream;
+import alluxio.client.file.FileSystemClientOptions;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.URIStatus;
-import alluxio.client.file.options.OpenFileOptions;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
 import alluxio.client.cli.fs.FileSystemShellUtilsTest;
+import alluxio.grpc.OpenFilePOptions;
+import alluxio.grpc.ReadPType;
 import alluxio.grpc.WritePType;
 import alluxio.util.io.BufferUtils;
 
@@ -168,7 +169,8 @@ public final class CpCommandIntegrationTest extends AbstractFileSystemShellTest 
 
   private boolean equals(AlluxioURI file1, AlluxioURI file2) throws Exception {
     try (Closer closer = Closer.create()) {
-      OpenFileOptions openFileOptions = OpenFileOptions.defaults().setReadType(ReadType.NO_CACHE);
+      OpenFilePOptions openFileOptions = FileSystemClientOptions.getOpenFileOptions().toBuilder()
+          .setReadType(ReadPType.READ_NO_CACHE).build();
       FileInStream is1 = closer.register(mFileSystem.openFile(file1, openFileOptions));
       FileInStream is2 = closer.register(mFileSystem.openFile(file2, openFileOptions));
       return IOUtils.contentEquals(is1, is2);
@@ -285,8 +287,8 @@ public final class CpCommandIntegrationTest extends AbstractFileSystemShellTest 
     Assert.assertNotNull(status);
     Assert.assertEquals(SIZE_BYTES, status.getLength());
 
-    try (FileInStream tfis =
-             mFileSystem.openFile(uri, OpenFileOptions.defaults().setReadType(ReadType.NO_CACHE))) {
+    try (FileInStream tfis = mFileSystem.openFile(uri, FileSystemClientOptions.getOpenFileOptions()
+        .toBuilder().setReadType(ReadPType.READ_NO_CACHE).build())) {
       byte[] read = new byte[SIZE_BYTES];
       tfis.read(read);
       Assert.assertTrue(BufferUtils.equalIncreasingByteArray(SIZE_BYTES, read));

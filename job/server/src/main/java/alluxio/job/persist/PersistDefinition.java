@@ -12,16 +12,12 @@
 package alluxio.job.persist;
 
 import alluxio.AlluxioURI;
-import alluxio.client.ReadType;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.BlockWorkerInfo;
-import alluxio.client.file.BaseFileSystem;
-import alluxio.client.file.FileInStream;
-import alluxio.client.file.FileSystem;
-import alluxio.client.file.FileSystemContext;
-import alluxio.client.file.URIStatus;
-import alluxio.client.file.options.OpenFileOptions;
+import alluxio.client.file.*;
 import alluxio.collections.Pair;
+import alluxio.grpc.OpenFilePOptions;
+import alluxio.grpc.ReadPType;
 import alluxio.job.AbstractVoidJobDefinition;
 import alluxio.job.JobMasterContext;
 import alluxio.job.JobWorkerContext;
@@ -35,21 +31,19 @@ import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.wire.WorkerInfo;
-
 import com.google.common.collect.Maps;
 import com.google.common.io.Closer;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.concurrent.NotThreadSafe;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Stack;
-
-import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * A job that persists a file into the under storage.
@@ -140,7 +134,8 @@ public final class PersistDefinition
       FileSystem fs = FileSystem.Factory.get();
       long bytesWritten;
       try (Closer closer = Closer.create()) {
-        OpenFileOptions options = OpenFileOptions.defaults().setReadType(ReadType.NO_CACHE);
+        OpenFilePOptions options = FileSystemClientOptions.getOpenFileOptions().toBuilder()
+            .setReadType(ReadPType.READ_NO_CACHE).build();
         FileInStream in = closer.register(fs.openFile(uri, options));
         AlluxioURI dstPath = new AlluxioURI(ufsPath);
         // Create ancestor directories from top to the bottom. We cannot use recursive create

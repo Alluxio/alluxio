@@ -16,7 +16,6 @@ import alluxio.Constants;
 import alluxio.annotation.PublicApi;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.InStreamOptions;
-import alluxio.client.file.options.OpenFileOptions;
 import alluxio.client.file.options.OutStreamOptions;
 import alluxio.client.file.options.RenameOptions;
 import alluxio.client.file.options.SetAttributeOptions;
@@ -364,11 +363,11 @@ public class BaseFileSystem implements FileSystem {
   @Override
   public FileInStream openFile(AlluxioURI path)
       throws FileDoesNotExistException, IOException, AlluxioException {
-    return openFile(path, OpenFileOptions.defaults());
+    return openFile(path, FileSystemClientOptions.getOpenFileOptions());
   }
 
   @Override
-  public FileInStream openFile(AlluxioURI path, OpenFileOptions options)
+  public FileInStream openFile(AlluxioURI path, OpenFilePOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException {
     checkUri(path);
     URIStatus status = getStatus(path);
@@ -376,7 +375,7 @@ public class BaseFileSystem implements FileSystem {
       throw new FileDoesNotExistException(
           ExceptionMessage.CANNOT_READ_DIRECTORY.getMessage(status.getName()));
     }
-    InStreamOptions inStreamOptions = options.toInStreamOptions(status);
+    InStreamOptions inStreamOptions = new InStreamOptions(status, options);
     return new FileInStream(status, inStreamOptions, mFileSystemContext);
   }
 

@@ -32,6 +32,20 @@ enum WritePType {
   WRITE_NONE = 5;
 }
 
+enum ReadPType {
+  READ_NO_CACHE = 0;
+  READ_CACHE = 1;
+  READ_CACHE_PROMOTE = 2;
+}
+
+message OpenFilePOptions {
+  optional ReadPType readType = 1;
+  optional int32 maxUfsReadConcurrency = 2;
+  optional string fileReadLocationPolicy = 3;
+  optional int32 hashingNumberOfShards = 4;
+  optional FileSystemMasterCommonPOptions commonOptions = 5;
+}
+
 message CreateFilePOptions {
   optional int64 blockSizeBytes = 1;
   optional bool persisted = 2;

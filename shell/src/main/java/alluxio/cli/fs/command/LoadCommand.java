@@ -14,16 +14,12 @@ package alluxio.cli.fs.command;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.cli.CommandUtils;
-import alluxio.client.ReadType;
-import alluxio.client.file.FileInStream;
-import alluxio.client.file.FileSystem;
-import alluxio.client.file.FileSystemContext;
-import alluxio.client.file.URIStatus;
-import alluxio.client.file.options.OpenFileOptions;
-import alluxio.client.file.policy.LocalFirstPolicy;
+import alluxio.client.file.*;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 
+import alluxio.grpc.OpenFilePOptions;
+import alluxio.grpc.ReadPType;
 import com.google.common.io.Closer;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
@@ -97,14 +93,16 @@ public final class LoadCommand extends AbstractFileSystemCommand {
         load(newPath, local);
       }
     } else {
-      OpenFileOptions options = OpenFileOptions.defaults().setReadType(ReadType.CACHE_PROMOTE);
+      OpenFilePOptions options = FileSystemClientOptions.getOpenFileOptions().toBuilder()
+          .setReadType(ReadPType.READ_CACHE_PROMOTE).build();
       if (local) {
         if (!FileSystemContext.get().hasLocalWorker()) {
           System.out.println("When local option is specified,"
               + " there must be a local worker available");
           return;
         }
-        options.setCacheLocationPolicy(new LocalFirstPolicy());
+        // TODO(ggezer) Double check deprecated field
+        //options.setCacheLocationPolicy(new LocalFirstPolicy());
       } else if (status.getInAlluxioPercentage() == 100) {
         // The file has already been fully loaded into Alluxio.
         System.out.println(filePath + " already in Alluxio fully");

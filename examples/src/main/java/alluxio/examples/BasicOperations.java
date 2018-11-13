@@ -12,14 +12,14 @@
 package alluxio.examples;
 
 import alluxio.AlluxioURI;
-import alluxio.client.ReadType;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemClientOptions;
-import alluxio.client.file.options.OpenFileOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.OpenFilePOptions;
+import alluxio.grpc.ReadPType;
 import alluxio.grpc.WritePType;
 import alluxio.util.CommonUtils;
 import alluxio.util.FormatUtils;
@@ -44,17 +44,18 @@ public class BasicOperations implements Callable<Boolean> {
   private static final int NUMBERS = 20;
 
   private final AlluxioURI mFilePath;
-  private final OpenFileOptions mReadOptions;
+  private final OpenFilePOptions mReadOptions;
   private final CreateFilePOptions mWriteOptions;
 
   /**
    * @param filePath the path for the files
-   * @param readType the {@link ReadType}
+   * @param readType the {@link ReadPType}
    * @param writeType the {@link WritePType}
    */
-  public BasicOperations(AlluxioURI filePath, ReadType readType, WritePType writeType) {
+  public BasicOperations(AlluxioURI filePath, ReadPType readType, WritePType writeType) {
     mFilePath = filePath;
-    mReadOptions = OpenFileOptions.defaults().setReadType(readType);
+    mReadOptions =
+        FileSystemClientOptions.getOpenFileOptions().toBuilder().setReadType(readType).build();
     mWriteOptions =
         FileSystemClientOptions.getCreateFileOptions().toBuilder().setWriteType(writeType).build();
   }

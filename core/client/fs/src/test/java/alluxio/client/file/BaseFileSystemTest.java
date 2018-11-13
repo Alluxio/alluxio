@@ -29,12 +29,10 @@ import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
 import alluxio.PropertyKey;
 import alluxio.TestLoggerRule;
-import alluxio.client.file.options.OpenFileOptions;
 import alluxio.client.file.options.RenameOptions;
 import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.grpc.*;
 import alluxio.wire.FileInfo;
-import alluxio.wire.LoadMetadataType;
 
 import org.junit.After;
 import org.junit.Before;
@@ -377,7 +375,7 @@ public final class BaseFileSystemTest {
   }
 
   /**
-   * Tests for the {@link BaseFileSystem#openFile(AlluxioURI, OpenFileOptions)} method to
+   * Tests for the {@link BaseFileSystem#openFile(AlluxioURI, OpenFilePOptions)} method to
    * complete successfully.
    */
   @Test
@@ -386,8 +384,7 @@ public final class BaseFileSystemTest {
     URIStatus status = new URIStatus(new FileInfo());
     GetStatusPOptions getStatusOptions = FileSystemClientOptions.getGetStatusOptions();
     when(mFileSystemMasterClient.getStatus(file, getStatusOptions)).thenReturn(status);
-    OpenFileOptions openOptions = OpenFileOptions.defaults();
-    mFileSystem.openFile(file, openOptions);
+    mFileSystem.openFile(file, FileSystemClientOptions.getOpenFileOptions());
     verify(mFileSystemMasterClient).getStatus(file, getStatusOptions);
 
     verifyFilesystemContextAcquiredAndReleased();
@@ -401,9 +398,8 @@ public final class BaseFileSystemTest {
     AlluxioURI file = new AlluxioURI("/file");
     GetStatusPOptions getStatusOptions = FileSystemClientOptions.getGetStatusOptions();
     when(mFileSystemMasterClient.getStatus(file, getStatusOptions)).thenThrow(EXCEPTION);
-    OpenFileOptions openOptions = OpenFileOptions.defaults();
     try {
-      mFileSystem.openFile(file, openOptions);
+      mFileSystem.openFile(file, FileSystemClientOptions.getOpenFileOptions());
       fail(SHOULD_HAVE_PROPAGATED_MESSAGE);
     } catch (Exception e) {
       assertSame(EXCEPTION, e);

@@ -27,6 +27,7 @@ import alluxio.network.netty.NettyRPC;
 import alluxio.network.netty.NettyRPCContext;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.retry.CountingRetry;
+import alluxio.util.grpc.GrpcUtils;
 import alluxio.util.proto.ProtoMessage;
 import alluxio.wire.WorkerNetAddress;
 
@@ -329,7 +330,7 @@ public class FileInStream extends InputStream implements BoundedStream, Position
 
   // Send an async cache request to a worker based on read type and passive cache options.
   private void triggerAsyncCaching(BlockInStream stream) throws IOException {
-    boolean cache = mOptions.getOptions().getReadType().isCache();
+    boolean cache = GrpcUtils.isCache(mOptions.getOptions().getReadType());
     boolean overReplicated = mStatus.getReplicationMax() > 0
         && mStatus.getFileBlockInfos().get((int) (getPos() / mBlockSize))
         .getBlockInfo().getLocations().size() >= mStatus.getReplicationMax();

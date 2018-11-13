@@ -19,11 +19,11 @@ import alluxio.client.PositionedReadable;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.InStreamOptions;
-import alluxio.client.file.options.OpenFileOptions;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.NotFoundException;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.proto.dataserver.Protocol;
+import alluxio.util.grpc.GrpcUtils;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.network.NettyUtils;
 import alluxio.util.network.NetworkAddressUtils;
@@ -97,9 +97,7 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
       WorkerNetAddress dataSource, BlockInStreamSource dataSourceType, InStreamOptions options)
       throws IOException {
     URIStatus status = options.getStatus();
-    OpenFileOptions readOptions = options.getOptions();
-
-    boolean promote = readOptions.getReadType().isPromote();
+    boolean promote = GrpcUtils.isPromote(options.getOptions().getReadType());
 
     long blockId = info.getBlockId();
     long blockSize = info.getLength();

@@ -12,12 +12,12 @@
 package alluxio.client.file;
 
 import alluxio.AlluxioURI;
-import alluxio.client.ReadType;
 import alluxio.client.WriteType;
-import alluxio.client.file.options.OpenFileOptions;
 import alluxio.exception.AlluxioException;
 
 import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.OpenFilePOptions;
+import alluxio.grpc.ReadPType;
 import alluxio.grpc.WritePType;
 import com.google.common.io.ByteStreams;
 import org.apache.commons.io.IOUtils;
@@ -143,7 +143,8 @@ public final class FileSystemTestUtils {
    */
   public static void loadFile(FileSystem fs, String fileName) {
     try (FileInStream is = fs.openFile(new AlluxioURI(fileName),
-        OpenFileOptions.defaults().setReadType(ReadType.CACHE))) {
+        FileSystemClientOptions.getOpenFileOptions().toBuilder()
+            .setReadType(ReadPType.READ_CACHE).build())) {
       IOUtils.copy(is, ByteStreams.nullOutputStream());
     } catch (IOException | AlluxioException e) {
       throw new RuntimeException(e);
@@ -157,13 +158,15 @@ public final class FileSystemTestUtils {
    * @param op a {@link CreateFilePOptions} object
    * @return an {@link OpenFileOptions} object with a matching Alluxio storage type
    */
-  public static OpenFileOptions toOpenFileOptions(CreateFilePOptions op) {
+  public static OpenFilePOptions toOpenFileOptions(CreateFilePOptions op) {
     // TODO(ggezer)
     if (WriteType.valueOf(op.getWriteType().name().substring(6)).getAlluxioStorageType()
         .isStore()) {
-      return OpenFileOptions.defaults().setReadType(ReadType.CACHE);
+      return FileSystemClientOptions.getOpenFileOptions().toBuilder()
+          .setReadType(ReadPType.READ_CACHE).build();
     }
-    return OpenFileOptions.defaults().setReadType(ReadType.NO_CACHE);
+    return FileSystemClientOptions.getOpenFileOptions().toBuilder()
+        .setReadType(ReadPType.READ_NO_CACHE).build();
   }
 
   private FileSystemTestUtils() {} // prevent instantiation

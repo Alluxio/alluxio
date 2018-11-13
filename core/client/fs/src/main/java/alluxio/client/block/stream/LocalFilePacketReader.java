@@ -22,6 +22,7 @@ import alluxio.network.netty.NettyRPCContext;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.DataByteBuffer;
 import alluxio.proto.dataserver.Protocol;
+import alluxio.util.grpc.GrpcUtils;
 import alluxio.util.proto.ProtoMessage;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.block.io.LocalFileBlockReader;
@@ -125,7 +126,7 @@ public final class LocalFilePacketReader implements PacketReader {
       mChannel = context.acquireNettyChannel(address);
       Protocol.LocalBlockOpenRequest request =
           Protocol.LocalBlockOpenRequest.newBuilder().setBlockId(mBlockId)
-              .setPromote(options.getOptions().getReadType().isPromote()).build();
+              .setPromote(GrpcUtils.isPromote(options.getOptions().getReadType())).build();
       try {
         ProtoMessage message = NettyRPC
             .call(NettyRPCContext.defaults().setChannel(mChannel).setTimeout(READ_TIMEOUT_MS),

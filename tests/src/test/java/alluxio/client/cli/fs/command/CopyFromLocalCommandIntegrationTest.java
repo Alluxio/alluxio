@@ -15,14 +15,14 @@ import alluxio.AlluxioURI;
 import alluxio.ConfigurationRule;
 import alluxio.PropertyKey;
 import alluxio.SystemPropertyRule;
-import alluxio.client.ReadType;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileInStream;
+import alluxio.client.file.FileSystemClientOptions;
 import alluxio.client.file.URIStatus;
-import alluxio.client.file.options.OpenFileOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
 import alluxio.client.cli.fs.FileSystemShellUtilsTest;
+import alluxio.grpc.ReadPType;
 import alluxio.util.io.BufferUtils;
 
 import org.hamcrest.CoreMatchers;
@@ -157,8 +157,8 @@ public final class CopyFromLocalCommandIntegrationTest extends AbstractFileSyste
     Assert.assertNotNull(status);
     Assert.assertEquals(SIZE_BYTES, status.getLength());
 
-    try (FileInStream tfis =
-        mFileSystem.openFile(uri, OpenFileOptions.defaults().setReadType(ReadType.NO_CACHE))) {
+    try (FileInStream tfis = mFileSystem.openFile(uri, FileSystemClientOptions.getOpenFileOptions()
+        .toBuilder().setReadType(ReadPType.READ_NO_CACHE).build())) {
       byte[] read = new byte[SIZE_BYTES];
       tfis.read(read);
       Assert.assertTrue(BufferUtils.equalIncreasingByteArray(SIZE_BYTES, read));

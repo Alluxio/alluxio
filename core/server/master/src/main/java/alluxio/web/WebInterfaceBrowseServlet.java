@@ -15,17 +15,18 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
-import alluxio.client.ReadType;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemClientOptions;
 import alluxio.client.file.URIStatus;
-import alluxio.client.file.options.OpenFileOptions;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.LoadMetadataPType;
+import alluxio.grpc.OpenFilePOptions;
+import alluxio.grpc.ReadPType;
 import alluxio.master.MasterProcess;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.FileSystemMaster;
@@ -36,7 +37,6 @@ import alluxio.util.io.PathUtils;
 import alluxio.wire.BlockLocation;
 import alluxio.wire.FileBlockInfo;
 import alluxio.wire.FileInfo;
-import alluxio.wire.LoadMetadataType;
 import alluxio.wire.WorkerNetAddress;
 
 import java.io.IOException;
@@ -84,7 +84,8 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
     String fileData;
     URIStatus status = fs.getStatus(path);
     if (status.isCompleted()) {
-      OpenFileOptions options = OpenFileOptions.defaults().setReadType(ReadType.NO_CACHE);
+      OpenFilePOptions options = FileSystemClientOptions.getOpenFileOptions().toBuilder()
+          .setReadType(ReadPType.READ_NO_CACHE).build();
       try (FileInStream is = fs.openFile(path, options)) {
         int len = (int) Math.min(5 * Constants.KB, status.getLength() - offset);
         byte[] data = new byte[len];

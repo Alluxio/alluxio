@@ -16,11 +16,12 @@ import alluxio.Constants;
 import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemClientOptions;
 import alluxio.client.file.URIStatus;
-import alluxio.client.file.options.OpenFileOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.InvalidArgumentException;
+import alluxio.grpc.OpenFilePOptions;
 import alluxio.util.FormatUtils;
 
 import com.google.common.base.Preconditions;
@@ -68,7 +69,7 @@ public final class TailCommand extends AbstractFileSystemCommand {
     if (status.isFolder()) {
       throw new IOException(ExceptionMessage.PATH_MUST_BE_FILE.getMessage(path));
     }
-    OpenFileOptions options = OpenFileOptions.defaults();
+    OpenFilePOptions options = FileSystemClientOptions.getOpenFileOptions();
     try (FileInStream is = mFileSystem.openFile(path, options)) {
       byte[] buf = new byte[numOfBytes];
       long bytesToRead;

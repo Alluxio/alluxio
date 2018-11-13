@@ -13,13 +13,10 @@ package alluxio.server.tieredstore;
 
 import alluxio.AlluxioURI;
 import alluxio.PropertyKey;
-import alluxio.client.ReadType;
-import alluxio.client.file.FileInStream;
-import alluxio.client.file.FileSystem;
-import alluxio.client.file.FileSystemTestUtils;
-import alluxio.client.file.URIStatus;
-import alluxio.client.file.options.OpenFileOptions;
+import alluxio.client.file.*;
 import alluxio.client.file.options.SetAttributeOptions;
+import alluxio.grpc.OpenFilePOptions;
+import alluxio.grpc.ReadPType;
 import alluxio.grpc.WritePType;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
@@ -88,7 +85,8 @@ public class TieredStoreIntegrationTest extends BaseIntegrationTest {
 
     Assert.assertEquals(100, mFileSystem.getStatus(file).getInAlluxioPercentage());
     // Open the file
-    OpenFileOptions options = OpenFileOptions.defaults().setReadType(ReadType.CACHE);
+    OpenFilePOptions options = FileSystemClientOptions.getOpenFileOptions().toBuilder()
+        .setReadType(ReadPType.READ_CACHE).build();
     FileInStream in = mFileSystem.openFile(file, options);
     Assert.assertEquals(0, in.read());
 
@@ -219,9 +217,8 @@ public class TieredStoreIntegrationTest extends BaseIntegrationTest {
       Assert.assertEquals(100, file2Info.getInAlluxioPercentage());
     }
 
-    FileInStream is =
-        mFileSystem.openFile(toPromote,
-            OpenFileOptions.defaults().setReadType(ReadType.CACHE_PROMOTE));
+    FileInStream is = mFileSystem.openFile(toPromote, FileSystemClientOptions.getOpenFileOptions()
+        .toBuilder().setReadType(ReadPType.READ_CACHE_PROMOTE).build());
     byte[] buf = new byte[toPromoteLen];
     int len = is.read(buf);
     is.close();

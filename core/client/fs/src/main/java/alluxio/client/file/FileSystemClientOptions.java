@@ -72,6 +72,21 @@ public final class FileSystemClientOptions {
         .setReplicationMax(Configuration.getInt(PropertyKey.USER_FILE_REPLICATION_MAX)).build();
   }
 
+  public static OpenFilePOptions getOpenFileOptions() {
+    // TODO(ggezer) ReadPType conversion logic
+    return OpenFilePOptions.newBuilder().setCommonOptions(getCommonOptions())
+        .setReadType(
+            ReadPType.valueOf("READ_" + Configuration.get(PropertyKey.USER_FILE_READ_TYPE_DEFAULT)))
+        .setFileReadLocationPolicy(
+            Configuration.get(PropertyKey.USER_UFS_BLOCK_READ_LOCATION_POLICY))
+        .setHashingNumberOfShards(Configuration
+            .getInt(PropertyKey.USER_UFS_BLOCK_READ_LOCATION_POLICY_DETERMINISTIC_HASH_SHARDS))
+        .setMaxUfsReadConcurrency(
+            Configuration.getInt(PropertyKey.USER_UFS_BLOCK_READ_CONCURRENCY_MAX))
+        .build();
+  }
+
+
   public static CreateDirectoryPOptions getCreateDirectoryOptions() {
     // TODO(ggezer) WritePType conversion logic
     return CreateDirectoryPOptions.newBuilder().setCommonOptions(getCommonOptions()).setRecursive(false)

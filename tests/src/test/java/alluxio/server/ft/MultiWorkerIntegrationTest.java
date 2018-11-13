@@ -21,7 +21,6 @@ import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.file.*;
 import alluxio.client.file.options.InStreamOptions;
-import alluxio.client.file.options.OpenFileOptions;
 import alluxio.client.file.options.OutStreamOptions;
 import alluxio.client.file.policy.RoundRobinPolicy;
 import alluxio.grpc.WritePType;
@@ -42,7 +41,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
-import java.util.stream.StreamSupport;
 
 /**
  * Tests a cluster containing multiple workers.
@@ -91,7 +89,7 @@ public final class MultiWorkerIntegrationTest extends BaseIntegrationTest {
     AlluxioURI filePath = new AlluxioURI("/test");
     createFileOnWorker(total, filePath, mResource.get().getWorkerAddress());
     FileSystem fs = mResource.get().getClient();
-    try (FileInStream in = fs.openFile(filePath, OpenFileOptions.defaults())) {
+    try (FileInStream in = fs.openFile(filePath, FileSystemClientOptions.getOpenFileOptions())) {
       byte[] buf = new byte[total];
       int size = in.read(buf, 0, offset);
       replicateFileBlocks(filePath);
@@ -116,7 +114,7 @@ public final class MultiWorkerIntegrationTest extends BaseIntegrationTest {
     AlluxioURI filePath = new AlluxioURI("/test");
     FileSystem fs = mResource.get().getClient();
     createFileOnWorker(total, filePath, mResource.get().getWorkerAddress());
-    try (FileInStream in = fs.openFile(filePath, OpenFileOptions.defaults())) {
+    try (FileInStream in = fs.openFile(filePath, FileSystemClientOptions.getOpenFileOptions())) {
       byte[] buf = new byte[total];
       int size = in.read(buf, 0, offset);
       replicateFileBlocks(filePath);
@@ -141,7 +139,7 @@ public final class MultiWorkerIntegrationTest extends BaseIntegrationTest {
     AlluxioURI filePath = new AlluxioURI("/test");
     FileSystem fs = mResource.get().getClient();
     createFileOnWorker(total, filePath, mResource.get().getWorkerAddress());
-    try (FileInStream in = fs.openFile(filePath, OpenFileOptions.defaults())) {
+    try (FileInStream in = fs.openFile(filePath, FileSystemClientOptions.getOpenFileOptions())) {
       byte[] buf = new byte[length];
       replicateFileBlocks(filePath);
       mResource.get().getWorkerProcess().stop();

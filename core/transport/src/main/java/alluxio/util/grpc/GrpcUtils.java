@@ -1226,5 +1226,19 @@ public final class GrpcUtils {
     }
     return address.build();
   }
+
+  /**
+   * @return true if the read type imposes caching, false otherwise
+   */
+  public static boolean isCache(ReadPType readType) {
+    return readType == ReadPType.READ_CACHE || readType == ReadPType.READ_CACHE_PROMOTE;
+  }
+
+  /**
+   * @return true if the read type imposes promoting in cache, false otherwise
+   */
+  public static boolean isPromote(ReadPType readType) {
+    return readType == ReadPType.READ_CACHE_PROMOTE;
+  }
 }
 

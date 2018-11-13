@@ -79,7 +79,7 @@ public enum LoadDescendantPType
   }
   public static final com.google.protobuf.Descriptors.EnumDescriptor
       getDescriptor() {
-    return alluxio.grpc.FileSystemMasterOptionsProto.getDescriptor().getEnumTypes().get(2);
+    return alluxio.grpc.FileSystemMasterOptionsProto.getDescriptor().getEnumTypes().get(3);
   }
 
   private static final LoadDescendantPType[] VALUES = values();

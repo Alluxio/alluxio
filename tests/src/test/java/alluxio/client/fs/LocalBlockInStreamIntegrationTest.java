@@ -12,14 +12,14 @@
 package alluxio.client.fs;
 
 import alluxio.AlluxioURI;
-import alluxio.client.ReadType;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemClientOptions;
 import alluxio.client.file.FileSystemTestUtils;
-import alluxio.client.file.options.OpenFileOptions;
 import alluxio.exception.PreconditionMessage;
 import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.OpenFilePOptions;
+import alluxio.grpc.ReadPType;
 import alluxio.grpc.WritePType;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
@@ -50,8 +50,8 @@ public final class LocalBlockInStreamIntegrationTest extends BaseIntegrationTest
   private static FileSystem sFileSystem = null;
   private static CreateFilePOptions sWriteBoth;
   private static CreateFilePOptions sWriteAlluxio;
-  private static OpenFileOptions sReadNoCache;
-  private static OpenFileOptions sReadCachePromote;
+  private static OpenFilePOptions sReadNoCache;
+  private static OpenFilePOptions sReadCachePromote;
   private static String sTestPath;
 
   @Rule
@@ -64,8 +64,10 @@ public final class LocalBlockInStreamIntegrationTest extends BaseIntegrationTest
         .setWriteType(WritePType.WRITE_CACHE_THROUGH).build();
     sWriteAlluxio = FileSystemClientOptions.getCreateFileOptions().toBuilder()
         .setWriteType(WritePType.WRITE_MUST_CACHE).build();
-    sReadCachePromote = OpenFileOptions.defaults().setReadType(ReadType.CACHE_PROMOTE);
-    sReadNoCache = OpenFileOptions.defaults().setReadType(ReadType.NO_CACHE);
+    sReadCachePromote = FileSystemClientOptions.getOpenFileOptions().toBuilder()
+        .setReadType(ReadPType.READ_CACHE_PROMOTE).build();
+    sReadNoCache = FileSystemClientOptions.getOpenFileOptions().toBuilder()
+        .setReadType(ReadPType.READ_NO_CACHE).build();
     sTestPath = PathUtils.uniqPath();
 
     // Create files of varying size and write type to later read from
