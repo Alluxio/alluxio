@@ -12,6 +12,7 @@
 package alluxio.master;
 
 import alluxio.master.journal.JournalSystem;
+import alluxio.master.metastore.Metastore;
 
 import com.google.common.base.Preconditions;
 
@@ -26,6 +27,7 @@ public final class MasterContext {
   private final JournalSystem mJournalSystem;
   private final SafeModeManager mSafeModeManager;
   private final BackupManager mBackupManager;
+  private final Metastore mMetastore;
   private final ReadWriteLock mStateLock;
   private final long mStartTimeMs;
   private final int mPort;
@@ -40,14 +42,16 @@ public final class MasterContext {
    * @param journalSystem the journal system to use for tracking master operations
    * @param safeModeManager the manager for master safe mode
    * @param backupManager the backup manager for performing backups
+   * @param metastore the metastore for managing master metadata
    * @param startTimeMs the master process start time in milliseconds
    * @param port the rpc port
    */
   public MasterContext(JournalSystem journalSystem, SafeModeManager safeModeManager,
-      BackupManager backupManager, long startTimeMs, int port) {
+      BackupManager backupManager, Metastore metastore, long startTimeMs, int port) {
     mJournalSystem = Preconditions.checkNotNull(journalSystem, "journalSystem");
     mSafeModeManager = Preconditions.checkNotNull(safeModeManager, "safeModeManager");
     mBackupManager = Preconditions.checkNotNull(backupManager, "backupManager");
+    mMetastore = metastore;
     mStateLock = new ReentrantReadWriteLock();
     mStartTimeMs = startTimeMs;
     mPort = port;
@@ -62,6 +66,7 @@ public final class MasterContext {
     mJournalSystem = Preconditions.checkNotNull(journalSystem, "journalSystem");
     mSafeModeManager = null;
     mBackupManager = null;
+    mMetastore = null;
     mStateLock = new ReentrantReadWriteLock();
     mStartTimeMs = -1;
     mPort = -1;
@@ -86,6 +91,13 @@ public final class MasterContext {
    */
   public BackupManager getBackupManager() {
     return mBackupManager;
+  }
+
+  /**
+   * @return the metastore
+   */
+  public Metastore getMetastore() {
+    return mMetastore;
   }
 
   /**
