@@ -15,7 +15,6 @@ import alluxio.AlluxioURI;
 import alluxio.RestUtils;
 import alluxio.StreamCache;
 import alluxio.client.file.*;
-import alluxio.client.file.options.RenameOptions;
 import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.grpc.*;
 import alluxio.web.ProxyWebServer;
@@ -308,13 +307,14 @@ public final class PathsRestServiceHandler {
   @Path(PATH_PARAM + RENAME)
   @ReturnType("java.lang.Void")
   public Response rename(@PathParam("path") final String path, @QueryParam("dst") final String dst,
-      final RenameOptions options) {
+      final RenamePOptions options) {
     return RestUtils.call(new RestUtils.RestCallable<Void>() {
       @Override
       public Void call() throws Exception {
         Preconditions.checkNotNull(dst, "required 'dst' parameter is missing");
         if (options == null) {
-          mFileSystem.rename(new AlluxioURI(path), new AlluxioURI(dst), RenameOptions.defaults());
+          mFileSystem.rename(new AlluxioURI(path), new AlluxioURI(dst),
+              FileSystemClientOptions.getRenameOptions());
         } else {
           mFileSystem.rename(new AlluxioURI(path), new AlluxioURI(dst), options);
         }

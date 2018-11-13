@@ -20,7 +20,6 @@ import alluxio.master.file.options.CommonOptions;
 import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
-import alluxio.master.file.options.RenameOptions;
 import alluxio.master.file.options.SetAttributeOptions;
 import alluxio.master.file.options.SyncMetadataOptions;
 
@@ -114,8 +113,8 @@ public final class DefaultFileSystemMasterOptions implements FileSystemMasterOpt
   }
 
   @Override
-  public RenameOptions getRenameOptions() {
-    return RenameOptions.defaults();
+  public RenamePOptions getRenameOptions() {
+    return RenamePOptions.newBuilder().setCommonOptions(getCommonPOptions()).build();
   }
 
   @Override

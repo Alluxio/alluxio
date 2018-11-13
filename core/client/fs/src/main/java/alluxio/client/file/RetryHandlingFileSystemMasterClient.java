@@ -16,7 +16,6 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.client.file.options.CheckConsistencyOptions;
 import alluxio.client.file.options.CompleteFileOptions;
-import alluxio.client.file.options.RenameOptions;
 import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.client.file.options.UpdateUfsModeOptions;
 import alluxio.exception.status.AlluxioStatusException;
@@ -193,14 +192,14 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
   @Override
   public synchronized void rename(final AlluxioURI src, final AlluxioURI dst)
       throws AlluxioStatusException {
-    rename(src, dst, RenameOptions.defaults());
+    rename(src, dst, FileSystemClientOptions.getRenameOptions());
   }
 
   @Override
   public synchronized void rename(final AlluxioURI src, final AlluxioURI dst,
-      final RenameOptions options) throws AlluxioStatusException {
+      final RenamePOptions options) throws AlluxioStatusException {
     retryRPC(() -> mBlockingStub.rename(RenamePRequest.newBuilder().setPath(src.getPath())
-        .setDstPath(dst.getPath()).setOptions(GrpcUtils.toProto(options)).build()), "Rename");
+        .setDstPath(dst.getPath()).setOptions(options).build()), "Rename");
   }
 
   @Override

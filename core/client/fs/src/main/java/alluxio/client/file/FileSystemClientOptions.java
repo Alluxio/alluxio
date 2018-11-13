@@ -130,4 +130,8 @@ public final class FileSystemClientOptions {
   public static SetAclPOptions getSetAclOptions() {
     return SetAclPOptions.newBuilder().setCommonOptions(getCommonOptions()).build();
   }
+
+  public static RenamePOptions getRenameOptions() {
+    return RenamePOptions.newBuilder().setCommonOptions(getCommonOptions()).build();
+  }
 }

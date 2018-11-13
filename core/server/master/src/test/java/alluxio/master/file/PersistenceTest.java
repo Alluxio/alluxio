@@ -37,7 +37,6 @@ import alluxio.master.file.meta.PersistenceState;
 import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
-import alluxio.master.file.options.RenameOptions;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalTestUtils;
 import alluxio.master.metrics.MetricsMasterFactory;
@@ -364,7 +363,8 @@ public final class PersistenceTest {
     mFileSystemMaster.createDirectory(new AlluxioURI("/dst"),
         CreateDirectoryOptions.defaults().setPersisted(true));
     AlluxioURI alluxioFileDst = new AlluxioURI("/dst/in_alluxio");
-    mFileSystemMaster.rename(alluxioFileSrc, alluxioFileDst, RenameOptions.defaults());
+    mFileSystemMaster.rename(alluxioFileSrc, alluxioFileDst,
+        mFileSystemMaster.getMasterOptions().getRenameOptions());
 
     // Delete the src directory recursively.
     mFileSystemMaster.delete(alluxioDirSrc,

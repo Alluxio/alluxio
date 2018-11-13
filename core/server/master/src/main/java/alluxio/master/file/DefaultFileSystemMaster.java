@@ -42,7 +42,6 @@ import alluxio.file.options.CompleteFileOptions;
 import alluxio.file.options.CreateDirectoryOptions;
 import alluxio.file.options.CreateFileOptions;
 import alluxio.file.options.DescendantType;
-import alluxio.file.options.RenameOptions;
 import alluxio.file.options.SetAttributeOptions;
 import alluxio.file.options.WorkerHeartbeatOptions;
 import alluxio.grpc.*;
@@ -1935,14 +1934,17 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   }
 
   @Override
-  public void rename(AlluxioURI srcPath, AlluxioURI dstPath, RenameOptions options)
+  public void rename(AlluxioURI srcPath, AlluxioURI dstPath, RenamePOptions options)
       throws FileAlreadyExistsException, FileDoesNotExistException, InvalidPathException,
       IOException, AccessControlException {
     Metrics.RENAME_PATH_OPS.inc();
     LockingScheme srcLockingScheme =
-        createLockingScheme(srcPath, options.getCommonOptions(), InodeTree.LockMode.WRITE);
-    LockingScheme dstLockingScheme =
-        createLockingScheme(dstPath, options.getCommonOptions(), InodeTree.LockMode.READ);
+        createLockingScheme(srcPath,
+            GrpcUtils.fromProto(getMasterOptions(), options.getCommonOptions()),
+            InodeTree.LockMode.WRITE);
+    LockingScheme dstLockingScheme = createLockingScheme(dstPath,
+        GrpcUtils.fromProto(getMasterOptions(), options.getCommonOptions()),
+        InodeTree.LockMode.READ);
     // Require a WRITE lock on the source but only a READ lock on the destination. Since the
     // destination should not exist, we will only obtain a READ lock on the destination parent. The
     // modify operations on the parent inodes are thread safe so WRITE locks are not required.
@@ -1983,7 +1985,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * @param options method options
    */
   private void renameInternal(RpcContext rpcContext, LockedInodePath srcInodePath,
-      LockedInodePath dstInodePath, RenameOptions options) throws InvalidPathException,
+      LockedInodePath dstInodePath, RenamePOptions options) throws InvalidPathException,
       FileDoesNotExistException, FileAlreadyExistsException, IOException, AccessControlException {
     if (!srcInodePath.fullPathExists()) {
       throw new FileDoesNotExistException(
@@ -2054,7 +2056,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * @param options method options
    */
   private void renameInternal(RpcContext rpcContext, LockedInodePath srcInodePath,
-      LockedInodePath dstInodePath, boolean replayed, RenameOptions options)
+      LockedInodePath dstInodePath, boolean replayed, RenamePOptions options)
       throws FileDoesNotExistException, InvalidPathException, IOException, AccessControlException {
 
     // Rename logic:
@@ -2076,7 +2078,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
     if (!mInodeTree.rename(rpcContext, RenameEntry.newBuilder()
         .setId(srcInode.getId())
-        .setOpTimeMs(options.getOperationTimeMs())
+        .setOpTimeMs(options.getCommonOptions().getOperationTimeMs())
         .setNewParentId(dstParentInode.getId())
         .setNewName(dstName)
         .build())) {
@@ -2136,7 +2138,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       // On failure, revert changes and throw exception.
       if (!mInodeTree.rename(rpcContext, RenameEntry.newBuilder()
           .setId(srcInode.getId())
-          .setOpTimeMs(options.getOperationTimeMs())
+          .setOpTimeMs(options.getCommonOptions().getOperationTimeMs())
           .setNewName(srcName)
           .setNewParentId(srcParentInode.getId())
           .build())) {

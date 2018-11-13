@@ -384,15 +384,15 @@ public final class GrpcUtils {
    * @param pOptions the proto options to convert
    * @return the converted options instance
    */
-  public static RenameOptions fromProto(FileSystemMasterOptions masterOptions,
+  public static RenamePOptions fromProto(FileSystemMasterOptions masterOptions,
       RenamePOptions pOptions) {
-    RenameOptions options = masterOptions.getRenameOptions();
+    RenamePOptions.Builder optionsBuilder = masterOptions.getRenameOptions().toBuilder();
     if (pOptions != null) {
       if (pOptions.hasCommonOptions()) {
-        options.setCommonOptions(fromProto(masterOptions, pOptions.getCommonOptions()));
+        optionsBuilder.setCommonOptions(fromProtoToProto(masterOptions, pOptions.getCommonOptions()));
       }
     }
-    return options;
+    return optionsBuilder.build();
   }
 
   /**
@@ -1066,17 +1066,6 @@ public final class GrpcUtils {
       }
     }
     return optionsBuilder.build();
-  }
-
-  /**
-   * Converts a wire type to a proto type.
-   *
-   * @param options the options type to convert
-   * @return the converted proto type
-   */
-  public static RenamePOptions toProto(RenameOptions options) {
-    return RenamePOptions.newBuilder().setCommonOptions(toProto(options.getCommonOptions()))
-        .build();
   }
 
   /**

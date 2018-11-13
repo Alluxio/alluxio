@@ -20,7 +20,6 @@ import alluxio.ConfigurationTestUtils;
 import alluxio.PropertyKey;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.client.file.*;
-import alluxio.client.file.options.RenameOptions;
 import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.grpc.*;
@@ -32,7 +31,6 @@ import alluxio.underfs.UnderFileSystem;
 import alluxio.util.CommonUtils;
 import alluxio.util.io.FileUtils;
 import alluxio.wire.CommonOptions;
-import alluxio.wire.LoadMetadataType;
 
 import com.google.common.collect.Sets;
 import com.google.common.io.Files;
@@ -221,7 +219,8 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
 
   @Test
   public void renameFileNoSync() throws Exception {
-    RenameOptions options = RenameOptions.defaults().setCommonOptions(SYNC_NEVER);
+    RenamePOptions options = FileSystemClientOptions.getRenameOptions().toBuilder()
+        .setCommonOptions(PSYNC_NEVER).build();
     try {
       mFileSystem
           .rename(new AlluxioURI(alluxioPath(EXISTING_FILE)), new AlluxioURI(alluxioPath(NEW_FILE)),
@@ -234,7 +233,8 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
 
   @Test
   public void renameFileSync() throws Exception {
-    RenameOptions options = RenameOptions.defaults().setCommonOptions(SYNC_ALWAYS);
+    RenamePOptions options = FileSystemClientOptions.getRenameOptions().toBuilder()
+        .setCommonOptions(PSYNC_ALWAYS).build();
     mFileSystem
         .rename(new AlluxioURI(alluxioPath(EXISTING_FILE)), new AlluxioURI(alluxioPath(NEW_FILE)),
             options);

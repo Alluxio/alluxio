@@ -15,7 +15,6 @@ import alluxio.AlluxioURI;
 import alluxio.Client;
 import alluxio.client.file.options.CheckConsistencyOptions;
 import alluxio.client.file.options.CompleteFileOptions;
-import alluxio.client.file.options.RenameOptions;
 import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.client.file.options.UpdateUfsModeOptions;
 import alluxio.exception.status.AlluxioStatusException;
@@ -165,7 +164,7 @@ public interface FileSystemMasterClient extends Client {
    * @param options rename options
    * @throws NotFoundException if the path does not exist
    */
-  void rename(AlluxioURI src, AlluxioURI dst, RenameOptions options) throws AlluxioStatusException;
+  void rename(AlluxioURI src, AlluxioURI dst, RenamePOptions options) throws AlluxioStatusException;
 
   /**
    * Sets the ACL for a path.

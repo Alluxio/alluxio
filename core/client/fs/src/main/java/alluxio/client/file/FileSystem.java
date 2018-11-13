@@ -15,7 +15,6 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.annotation.PublicApi;
-import alluxio.client.file.options.RenameOptions;
 import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.conf.Source;
 import alluxio.exception.AlluxioException;
@@ -300,7 +299,7 @@ public interface FileSystem {
       throws FileDoesNotExistException, IOException, AlluxioException;
 
   /**
-   * Convenience method for {@link #rename(AlluxioURI, AlluxioURI, RenameOptions)} with default
+   * Convenience method for {@link #rename(AlluxioURI, AlluxioURI, RenamePOptions)} with default
    * options.
    *
    * @param src the path of the source, this must already exist
@@ -319,7 +318,7 @@ public interface FileSystem {
    * @param options options to associate with this operation
    * @throws FileDoesNotExistException if the given file does not exist
    */
-  void rename(AlluxioURI src, AlluxioURI dst, RenameOptions options)
+  void rename(AlluxioURI src, AlluxioURI dst, RenamePOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException;
 
   /**

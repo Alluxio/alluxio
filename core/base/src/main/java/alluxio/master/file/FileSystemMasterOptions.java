@@ -16,7 +16,6 @@ import alluxio.file.options.CompleteFileOptions;
 import alluxio.file.options.CreateDirectoryOptions;
 import alluxio.file.options.CreateFileOptions;
 import alluxio.file.options.CommonOptions;
-import alluxio.file.options.RenameOptions;
 import alluxio.file.options.SetAttributeOptions;
 import alluxio.file.options.SyncMetadataOptions;
 import alluxio.grpc.*;
@@ -87,9 +86,9 @@ public interface FileSystemMasterOptions {
   MountPOptions getMountOptions();
 
   /**
-   * @return an instance of {@link RenameOptions}
+   * @return an instance of {@link RenamePOptions}
    */
-  RenameOptions getRenameOptions();
+  RenamePOptions getRenameOptions();
 
   /**
    * @return an instance of {@link SetAclPOptions}

@@ -22,7 +22,6 @@ import alluxio.master.MasterProcess;
 import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
-import alluxio.master.file.options.RenameOptions;
 import alluxio.master.file.options.SetAttributeOptions;
 import alluxio.util.grpc.GrpcUtils;
 import alluxio.web.MasterWebServer;
@@ -377,8 +376,8 @@ public final class FileSystemMasterClientRestServiceHandler {
       public Void call() throws Exception {
         Preconditions.checkNotNull(srcPath, "required 'srcPath' parameter is missing");
         Preconditions.checkNotNull(dstPath, "required 'dstPath' parameter is missing");
-        mFileSystemMaster
-            .rename(new AlluxioURI(srcPath), new AlluxioURI(dstPath), RenameOptions.defaults());
+        mFileSystemMaster.rename(new AlluxioURI(srcPath), new AlluxioURI(dstPath),
+            mFileSystemMaster.getMasterOptions().getRenameOptions());
         return null;
       }
     });

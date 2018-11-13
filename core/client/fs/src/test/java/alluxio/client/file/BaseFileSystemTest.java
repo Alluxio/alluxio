@@ -29,7 +29,6 @@ import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
 import alluxio.PropertyKey;
 import alluxio.TestLoggerRule;
-import alluxio.client.file.options.RenameOptions;
 import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.grpc.*;
 import alluxio.wire.FileInfo;
@@ -409,14 +408,14 @@ public final class BaseFileSystemTest {
   }
 
   /**
-   * Tests for the {@link BaseFileSystem#rename(AlluxioURI, AlluxioURI, RenameOptions)}
+   * Tests for the {@link BaseFileSystem#rename(AlluxioURI, AlluxioURI, RenamePOptions)}
    * method.
    */
   @Test
   public void rename() throws Exception {
     AlluxioURI src = new AlluxioURI("/file");
     AlluxioURI dst = new AlluxioURI("/file2");
-    RenameOptions renameOptions = RenameOptions.defaults();
+    RenamePOptions renameOptions = FileSystemClientOptions.getRenameOptions();
     doNothing().when(mFileSystemMasterClient).rename(src, dst, renameOptions);
     mFileSystem.rename(src, dst, renameOptions);
     verify(mFileSystemMasterClient).rename(src, dst, renameOptions);
@@ -429,7 +428,7 @@ public final class BaseFileSystemTest {
   public void renameException() throws Exception {
     AlluxioURI src = new AlluxioURI("/file");
     AlluxioURI dst = new AlluxioURI("/file2");
-    RenameOptions renameOptions = RenameOptions.defaults();
+    RenamePOptions renameOptions = FileSystemClientOptions.getRenameOptions();
     doThrow(EXCEPTION).when(mFileSystemMasterClient).rename(src, dst, renameOptions);
     try {
       mFileSystem.rename(src, dst, renameOptions);

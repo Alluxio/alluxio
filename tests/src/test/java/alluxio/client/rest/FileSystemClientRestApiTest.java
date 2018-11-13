@@ -17,7 +17,6 @@ import static org.junit.Assert.assertEquals;
 
 import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystemClientOptions;
-import alluxio.client.file.options.RenameOptions;
 import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.grpc.GetStatusPOptions;
@@ -169,7 +168,8 @@ public final class FileSystemClientRestApiTest extends RestApiTest {
     params.put("dst", uri2.toString());
     new TestCase(mHostname, mPort,
         PATHS_PREFIX + uri1.toString() + "/" + PathsRestServiceHandler.RENAME, params,
-        HttpMethod.POST, null, TestCaseOptions.defaults().setBody(RenameOptions.defaults())).run();
+        HttpMethod.POST, null,
+        TestCaseOptions.defaults().setBody(FileSystemClientOptions.getRenameOptions())).run();
     try {
       mFileSystemMaster.getFileInfo(uri1, GET_STATUS_OPTIONS);
       fail("file should have been removed");

@@ -28,7 +28,6 @@ import alluxio.file.options.CheckConsistencyOptions;
 import alluxio.file.options.CompleteFileOptions;
 import alluxio.file.options.CreateDirectoryOptions;
 import alluxio.file.options.CreateFileOptions;
-import alluxio.file.options.RenameOptions;
 import alluxio.file.options.SetAttributeOptions;
 import alluxio.file.options.WorkerHeartbeatOptions;
 import alluxio.grpc.*;
@@ -298,7 +297,7 @@ public interface FileSystemMasterService {
    * @throws AccessControlException if permission checking fails
    * @throws FileAlreadyExistsException if the file already exists
    */
-  void rename(AlluxioURI srcPath, AlluxioURI dstPath, RenameOptions options)
+  void rename(AlluxioURI srcPath, AlluxioURI dstPath, RenamePOptions options)
       throws FileAlreadyExistsException, FileDoesNotExistException, InvalidPathException,
       IOException, AccessControlException;
 
