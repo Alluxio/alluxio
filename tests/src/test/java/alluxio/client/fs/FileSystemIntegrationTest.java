@@ -17,9 +17,7 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
-import alluxio.client.WriteType;
 import alluxio.client.file.*;
-import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.FileAlreadyExistsException;
@@ -111,8 +109,8 @@ public final class FileSystemIntegrationTest extends BaseIntegrationTest {
   @Test
   public void deleteDirectoryWithPersistedWritesInProgress() throws Exception {
     final AlluxioURI testFolder = new AlluxioURI("/testFolder");
-    mFileSystem.createDirectory(testFolder,
-        CreateDirectoryOptions.defaults().setWriteType(WriteType.CACHE_THROUGH));
+    mFileSystem.createDirectory(testFolder, FileSystemClientOptions.getCreateDirectoryOptions()
+        .toBuilder().setWriteType(WritePType.WRITE_CACHE_THROUGH).build());
     FileOutStream out =
         mFileSystem.createFile(new AlluxioURI("/testFolder/testFile"),
             FileSystemClientOptions.getCreateFileOptions().toBuilder()

@@ -16,7 +16,6 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.client.file.options.CheckConsistencyOptions;
 import alluxio.client.file.options.CompleteFileOptions;
-import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.client.file.options.RenameOptions;
 import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.client.file.options.UpdateUfsModeOptions;
@@ -99,10 +98,10 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
 
   @Override
   public synchronized void createDirectory(final AlluxioURI path,
-      final CreateDirectoryOptions options) throws AlluxioStatusException {
+      final CreateDirectoryPOptions options) throws AlluxioStatusException {
     retryRPC(
         () -> mBlockingStub.createDirectory(CreateDirectoryPRequest.newBuilder()
-            .setPath(path.getPath()).setOptions(GrpcUtils.toProto(options)).build()),
+            .setPath(path.getPath()).setOptions(options).build()),
         "CreateDirectory");
   }
 

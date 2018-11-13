@@ -23,16 +23,6 @@ message CompleteFilePOptions {
   optional FileSystemMasterCommonPOptions commonOptions = 2;
 }
 
-message CreateDirectoryPOptions {
-  optional bool persisted = 1;
-  optional bool recursive = 2;
-  optional bool allowExist = 3;
-  optional int32 mode = 4;
-  optional int64 ttlNotUsed = 5; // deprecated from 1.8
-  optional TtlAction ttlActionNotUsed = 6; // deprecated from 1.8
-  optional FileSystemMasterCommonPOptions commonOptions = 7;
-}
-
 enum WritePType {
   WRITE_MUST_CACHE = 0;
   WRITE_TRY_CACHE = 1;
@@ -56,6 +46,17 @@ message CreateFilePOptions {
   optional int32 writeTier = 11;
   optional WritePType writeType = 12;
   optional FileSystemMasterCommonPOptions commonOptions = 13;
+}
+
+message CreateDirectoryPOptions {
+  optional bool persisted = 1;
+  optional bool recursive = 2;
+  optional bool allowExist = 3;
+  optional int32 mode = 4;
+  optional int64 ttlNotUsed = 5; // deprecated from 1.8
+  optional TtlAction ttlActionNotUsed = 6; // deprecated from 1.8
+  optional WritePType writeType = 7;
+  optional FileSystemMasterCommonPOptions commonOptions = 8;
 }
 
 message DeletePOptions {

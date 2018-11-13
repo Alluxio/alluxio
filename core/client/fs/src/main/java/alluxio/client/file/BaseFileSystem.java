@@ -14,7 +14,6 @@ package alluxio.client.file;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.annotation.PublicApi;
-import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.ExistsOptions;
 import alluxio.client.file.options.InStreamOptions;
@@ -38,7 +37,6 @@ import alluxio.grpc.*;
 import alluxio.master.MasterInquireClient;
 import alluxio.security.authorization.AclEntry;
 import alluxio.uri.Authority;
-import alluxio.util.grpc.GrpcUtils;
 import alluxio.wire.MountPointInfo;
 import alluxio.wire.SetAclAction;
 
@@ -83,11 +81,11 @@ public class BaseFileSystem implements FileSystem {
   @Override
   public void createDirectory(AlluxioURI path)
       throws FileAlreadyExistsException, InvalidPathException, IOException, AlluxioException {
-    createDirectory(path, CreateDirectoryOptions.defaults());
+    createDirectory(path, FileSystemClientOptions.getCreateDirectoryOptions());
   }
 
   @Override
-  public void createDirectory(AlluxioURI path, CreateDirectoryOptions options)
+  public void createDirectory(AlluxioURI path, CreateDirectoryPOptions options)
       throws FileAlreadyExistsException, InvalidPathException, IOException, AlluxioException {
     checkUri(path);
     FileSystemMasterClient masterClient = mFileSystemContext.acquireMasterClient();

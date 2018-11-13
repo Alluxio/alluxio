@@ -16,13 +16,12 @@ import alluxio.AuthenticatedUserRule;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.UnderFileSystemFactoryRegistryRule;
-import alluxio.client.WriteType;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemClientOptions;
 import alluxio.client.file.URIStatus;
-import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.collections.ConcurrentHashSet;
 import alluxio.exception.AlluxioException;
+import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.WritePType;
 import alluxio.master.file.FileSystemMaster;
@@ -73,8 +72,9 @@ public class ConcurrentRenameIntegrationTest extends BaseIntegrationTest {
    */
   private static CreateFilePOptions sCreatePersistedFileOptions = FileSystemClientOptions
       .getCreateFileOptions().toBuilder().setWriteType(WritePType.WRITE_THROUGH).build();
-  private static CreateDirectoryOptions sCreatePersistedDirOptions =
-      CreateDirectoryOptions.defaults().setWriteType(WriteType.THROUGH).setRecursive(true);
+  private static CreateDirectoryPOptions sCreatePersistedDirOptions =
+      FileSystemClientOptions.getCreateDirectoryOptions().toBuilder()
+          .setWriteType(WritePType.WRITE_THROUGH).setRecursive(true).build();
 
   private FileSystem mFileSystem;
 
@@ -384,9 +384,12 @@ public class ConcurrentRenameIntegrationTest extends BaseIntegrationTest {
     AlluxioURI dir1 = new AlluxioURI("/root/dir1");
     AlluxioURI dir2 = new AlluxioURI("/root/parent/dir2");
     AlluxioURI dst = new AlluxioURI("/dst");
-    mFileSystem.createDirectory(dir1, CreateDirectoryOptions.defaults().setRecursive(true));
-    mFileSystem.createDirectory(dir2, CreateDirectoryOptions.defaults().setRecursive(true));
-    mFileSystem.createDirectory(dst, CreateDirectoryOptions.defaults().setRecursive(true));
+    mFileSystem.createDirectory(dir1,
+        FileSystemClientOptions.getCreateDirectoryOptions().toBuilder().setRecursive(true).build());
+    mFileSystem.createDirectory(dir2,
+        FileSystemClientOptions.getCreateDirectoryOptions().toBuilder().setRecursive(true).build());
+    mFileSystem.createDirectory(dst,
+        FileSystemClientOptions.getCreateDirectoryOptions().toBuilder().setRecursive(true).build());
     for (int i = 0; i < numThreads; i++) {
       // Dir1 has even files, dir2 has odd files.
       srcs[i] = i % 2 == 0 ? dir1.join("file" + i) : dir2.join("file" + i);

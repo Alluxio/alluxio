@@ -22,8 +22,6 @@ import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.file.*;
 import alluxio.client.file.FileSystem;
-import alluxio.client.file.options.CreateDirectoryOptions;
-import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.Source;
@@ -32,6 +30,7 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.PreconditionMessage;
+import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
 import alluxio.master.MasterInquireClient.ConnectDetails;
@@ -327,7 +326,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
 
   @Override
   public short getDefaultReplication() {
-    return (short) Math.max(1, CreateFileOptions.defaults().getReplicationMin());
+    return (short) Math.max(1, FileSystemClientOptions.getCreateFileOptions().getReplicationMin());
   }
 
   @Override
@@ -678,9 +677,8 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
       mStatistics.incrementWriteOps(1);
     }
     AlluxioURI uri = new AlluxioURI(HadoopUtils.getPathWithoutScheme(path));
-    CreateDirectoryOptions options =
-        CreateDirectoryOptions.defaults().setRecursive(true).setAllowExists(true)
-            .setMode(new Mode(permission.toShort()));
+    CreateDirectoryPOptions options = FileSystemClientOptions.getCreateDirectoryOptions()
+        .toBuilder().setRecursive(true).setAllowExist(true).setMode(permission.toShort()).build();
     try {
       mFileSystem.createDirectory(uri, options);
       return true;

@@ -15,14 +15,13 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
-import alluxio.client.WriteType;
 import alluxio.client.file.*;
-import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
+import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.WritePType;
@@ -113,8 +112,8 @@ public final class S3RestServiceHandler {
         String bucketPath = parseBucketPath(AlluxioURI.SEPARATOR + bucket);
 
         // Create the bucket.
-        CreateDirectoryOptions options = CreateDirectoryOptions.defaults()
-            .setWriteType(getS3WriteType());
+        CreateDirectoryPOptions options = FileSystemClientOptions.getCreateDirectoryOptions()
+            .toBuilder().setWriteType(getS3WriteType()).build();
         try {
           mFileSystem.createDirectory(new AlluxioURI(bucketPath), options);
         } catch (Exception e) {
@@ -243,7 +242,7 @@ public final class S3RestServiceHandler {
 
         try {
           CreateFilePOptions options = FileSystemClientOptions.getCreateFileOptions().toBuilder()
-              .setRecursive(true).setWriteType(getS3WritePType()).build();
+              .setRecursive(true).setWriteType(getS3WriteType()).build();
           FileOutStream os = mFileSystem.createFile(objectURI, options);
           MessageDigest md5 = MessageDigest.getInstance("MD5");
           DigestOutputStream digestOutputStream = new DigestOutputStream(os, md5);
@@ -342,7 +341,7 @@ public final class S3RestServiceHandler {
           Collections.sort(parts, new URIStatusNameComparator());
 
           CreateFilePOptions options = FileSystemClientOptions.getCreateFileOptions().toBuilder()
-              .setRecursive(true).setWriteType(getS3WritePType()).build();
+              .setRecursive(true).setWriteType(getS3WriteType()).build();
           FileOutStream os = mFileSystem.createFile(new AlluxioURI(objectPath), options);
           MessageDigest md5 = MessageDigest.getInstance("MD5");
           DigestOutputStream digestOutputStream = new DigestOutputStream(os, md5);
@@ -661,11 +660,7 @@ public final class S3RestServiceHandler {
     return objects;
   }
 
-  private WriteType getS3WriteType() {
-    return Configuration.getEnum(PropertyKey.PROXY_S3_WRITE_TYPE, WriteType.class);
-  }
-
-  private WritePType getS3WritePType() {
+  private WritePType getS3WriteType() {
     // TODO(ggezer)
     return WritePType.valueOf("WRITE_" + Configuration.get(PropertyKey.PROXY_S3_WRITE_TYPE));
   }

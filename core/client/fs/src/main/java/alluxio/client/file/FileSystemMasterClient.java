@@ -15,7 +15,6 @@ import alluxio.AlluxioURI;
 import alluxio.Client;
 import alluxio.client.file.options.CheckConsistencyOptions;
 import alluxio.client.file.options.CompleteFileOptions;
-import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.client.file.options.RenameOptions;
 import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.client.file.options.UpdateUfsModeOptions;
@@ -72,7 +71,7 @@ public interface FileSystemMasterClient extends Client {
    * @param options method options
    * @throws AlreadyExistsException if the directory already exists
    */
-  void createDirectory(AlluxioURI path, CreateDirectoryOptions options)
+  void createDirectory(AlluxioURI path, CreateDirectoryPOptions options)
       throws AlluxioStatusException;
 
   /**

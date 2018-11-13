@@ -29,8 +29,6 @@ import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
 import alluxio.PropertyKey;
 import alluxio.TestLoggerRule;
-import alluxio.client.file.options.CreateDirectoryOptions;
-import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.OpenFileOptions;
 import alluxio.client.file.options.RenameOptions;
 import alluxio.client.file.options.SetAttributeOptions;
@@ -308,13 +306,14 @@ public final class BaseFileSystemTest {
 //  }
 
   /**
-   * Tests for the {@link BaseFileSystem#createDirectory(AlluxioURI, CreateDirectoryOptions)}
+   * Tests for the {@link BaseFileSystem#createDirectory(AlluxioURI, CreateDirectoryPOptions)}
    * method.
    */
   @Test
   public void createDirectory() throws Exception {
     AlluxioURI dir = new AlluxioURI("/dir");
-    CreateDirectoryOptions createDirectoryOptions = CreateDirectoryOptions.defaults();
+    CreateDirectoryPOptions createDirectoryOptions =
+        FileSystemClientOptions.getCreateDirectoryOptions();
     doNothing().when(mFileSystemMasterClient).createDirectory(dir, createDirectoryOptions);
     mFileSystem.createDirectory(dir, createDirectoryOptions);
     verify(mFileSystemMasterClient).createDirectory(dir, createDirectoryOptions);
@@ -328,7 +327,8 @@ public final class BaseFileSystemTest {
   @Test
   public void createDirectoryException() throws Exception {
     AlluxioURI dir = new AlluxioURI("/dir");
-    CreateDirectoryOptions createDirectoryOptions = CreateDirectoryOptions.defaults();
+    CreateDirectoryPOptions createDirectoryOptions =
+        FileSystemClientOptions.getCreateDirectoryOptions();
     doThrow(EXCEPTION).when(mFileSystemMasterClient)
         .createDirectory(dir, createDirectoryOptions);
     try {

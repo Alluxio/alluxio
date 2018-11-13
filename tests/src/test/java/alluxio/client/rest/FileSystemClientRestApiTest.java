@@ -17,7 +17,6 @@ import static org.junit.Assert.assertEquals;
 
 import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystemClientOptions;
-import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.ExistsOptions;
 import alluxio.client.file.options.OpenFileOptions;
@@ -75,7 +74,8 @@ public final class FileSystemClientRestApiTest extends RestApiTest {
     new TestCase(mHostname, mPort,
         PATHS_PREFIX + uri.toString() + "/" + PathsRestServiceHandler.CREATE_DIRECTORY, NO_PARAMS,
         HttpMethod.POST, null,
-        TestCaseOptions.defaults().setBody(CreateDirectoryOptions.defaults())).run();
+        TestCaseOptions.defaults().setBody(FileSystemClientOptions.getCreateDirectoryOptions()))
+            .run();
     assertTrue(mFileSystemMaster.listStatus(uri, FileSystemClientOptions.getListStatusOptions())
         .isEmpty());
   }
@@ -235,8 +235,8 @@ public final class FileSystemClientRestApiTest extends RestApiTest {
   private void writeFile(AlluxioURI path, byte[] input) throws Exception {
     String result = new TestCase(mHostname, mPort,
         PATHS_PREFIX + path.toString() + "/" + PathsRestServiceHandler.CREATE_FILE, NO_PARAMS,
-        HttpMethod.POST, null, TestCaseOptions.defaults().setBody(CreateFileOptions.defaults()))
-        .call();
+        HttpMethod.POST, null,
+        TestCaseOptions.defaults().setBody(FileSystemClientOptions.getCreateFileOptions())).call();
     Integer id = new ObjectMapper().readValue(result, Integer.TYPE);
     TestCaseOptions options = TestCaseOptions.defaults();
     long expected = 0;

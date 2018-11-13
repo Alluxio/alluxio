@@ -17,7 +17,6 @@ import alluxio.PropertyKey;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.file.*;
-import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
@@ -223,7 +222,8 @@ public final class MoveDefinition
    */
   private void moveDirectory(String path, String source, String destination) throws Exception {
     String newDir = computeTargetPath(path, source, destination);
-    mFileSystem.createDirectory(new AlluxioURI(newDir), CreateDirectoryOptions.defaults());
+    mFileSystem.createDirectory(new AlluxioURI(newDir),
+        FileSystemClientOptions.getCreateDirectoryOptions());
   }
 
   /**

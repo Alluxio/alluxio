@@ -52,6 +52,7 @@ public final class CreateDirectoryOptions
     mMode = ModeUtils.applyDirectoryUMask(Mode.defaults());
     mAcl = Collections.emptyList();
     mRecursive = false;
+    mAllowExists = false;
 
     mWriteType = Configuration.getEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class);
     // TODO(adit):

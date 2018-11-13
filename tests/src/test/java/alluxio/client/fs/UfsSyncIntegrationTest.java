@@ -18,10 +18,8 @@ import alluxio.AuthenticatedUserRule;
 import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
 import alluxio.PropertyKey;
-import alluxio.client.WriteType;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.client.file.*;
-import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.client.file.options.ExistsOptions;
 import alluxio.client.file.options.RenameOptions;
 import alluxio.client.file.options.SetAttributeOptions;
@@ -342,7 +340,8 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
   public void mountPointNested() throws Exception {
     String ufsPath = Files.createTempDir().getAbsolutePath();
     mFileSystem.createDirectory(new AlluxioURI("/nested/mnt/"),
-        CreateDirectoryOptions.defaults().setRecursive(true).setWriteType(WriteType.CACHE_THROUGH));
+        FileSystemClientOptions.getCreateDirectoryOptions().toBuilder().setRecursive(true)
+            .setWriteType(WritePType.WRITE_CACHE_THROUGH).build());
     mFileSystem.mount(new AlluxioURI("/nested/mnt/ufs"), new AlluxioURI(ufsPath));
 
     // recursively sync (setAttribute enables recursive sync)

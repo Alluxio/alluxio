@@ -78,15 +78,24 @@ public interface CreateDirectoryPOptionsOrBuilder extends
   alluxio.grpc.TtlAction getTtlActionNotUsed();
 
   /**
-   * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 7;</code>
+   * <code>optional .alluxio.grpc.WritePType writeType = 7;</code>
+   */
+  boolean hasWriteType();
+  /**
+   * <code>optional .alluxio.grpc.WritePType writeType = 7;</code>
+   */
+  alluxio.grpc.WritePType getWriteType();
+
+  /**
+   * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 8;</code>
    */
   boolean hasCommonOptions();
   /**
-   * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 7;</code>
+   * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 8;</code>
    */
   alluxio.grpc.FileSystemMasterCommonPOptions getCommonOptions();
   /**
-   * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 7;</code>
+   * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 8;</code>
    */
   alluxio.grpc.FileSystemMasterCommonPOptionsOrBuilder getCommonOptionsOrBuilder();
 }

@@ -15,7 +15,6 @@ import alluxio.AlluxioURI;
 import alluxio.RestUtils;
 import alluxio.StreamCache;
 import alluxio.client.file.*;
-import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.client.file.options.ExistsOptions;
 import alluxio.client.file.options.OpenFileOptions;
 import alluxio.client.file.options.RenameOptions;
@@ -91,12 +90,13 @@ public final class PathsRestServiceHandler {
   @ReturnType("java.lang.Void")
   @Consumes(MediaType.APPLICATION_JSON)
   public Response createDirectory(@PathParam("path") final String path,
-      final CreateDirectoryOptions options) {
+      final CreateDirectoryPOptions options) {
     return RestUtils.call(new RestUtils.RestCallable<Void>() {
       @Override
       public Void call() throws Exception {
         if (options == null) {
-          mFileSystem.createDirectory(new AlluxioURI(path), CreateDirectoryOptions.defaults());
+          mFileSystem.createDirectory(new AlluxioURI(path),
+              FileSystemClientOptions.getCreateDirectoryOptions());
         } else {
           mFileSystem.createDirectory(new AlluxioURI(path), options);
         }

@@ -19,12 +19,12 @@ import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.client.MetaMasterClient;
 import alluxio.client.RetryHandlingMetaMasterClient;
-import alluxio.client.WriteType;
+import alluxio.client.file.FileSystemClientOptions;
 import alluxio.client.file.FileSystemMasterClient;
 import alluxio.client.file.RetryHandlingFileSystemMasterClient;
-import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.client.file.options.UpdateUfsModeOptions;
 import alluxio.exception.AccessControlException;
+import alluxio.grpc.WritePType;
 import alluxio.master.LocalAlluxioCluster;
 import alluxio.master.MasterClientConfig;
 import alluxio.testutils.BaseIntegrationTest;
@@ -85,8 +85,8 @@ public class JournalCheckpointIntegrationTest extends BaseIntegrationTest {
 
     backupAndRestore();
     try {
-      mCluster.getClient().createDirectory(new AlluxioURI("/test"),
-          CreateDirectoryOptions.defaults().setWriteType(WriteType.THROUGH));
+      mCluster.getClient().createDirectory(new AlluxioURI("/test"), FileSystemClientOptions
+          .getCreateDirectoryOptions().toBuilder().setWriteType(WritePType.WRITE_THROUGH).build());
       fail("Expected an exception to be thrown");
     } catch (AccessControlException e) {
       // Expected

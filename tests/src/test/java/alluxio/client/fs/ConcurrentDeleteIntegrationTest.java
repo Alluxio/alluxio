@@ -16,11 +16,10 @@ import alluxio.AuthenticatedUserRule;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.UnderFileSystemFactoryRegistryRule;
-import alluxio.client.WriteType;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemClientOptions;
 import alluxio.client.file.URIStatus;
-import alluxio.client.file.options.CreateDirectoryOptions;
+import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.WritePType;
 import alluxio.master.file.FileSystemMaster;
@@ -62,8 +61,8 @@ public class ConcurrentDeleteIntegrationTest extends BaseIntegrationTest {
    */
   private static CreateFilePOptions sCreatePersistedFileOptions = FileSystemClientOptions
       .getCreateFileOptions().toBuilder().setWriteType(WritePType.WRITE_THROUGH).build();
-  private static CreateDirectoryOptions sCreatePersistedDirOptions =
-      CreateDirectoryOptions.defaults().setWriteType(WriteType.THROUGH);
+  private static CreateDirectoryPOptions sCreatePersistedDirOptions = FileSystemClientOptions
+      .getCreateDirectoryOptions().toBuilder().setWriteType(WritePType.WRITE_THROUGH).build();
 
   private FileSystem mFileSystem;
 

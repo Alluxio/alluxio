@@ -15,14 +15,13 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.AlluxioURI;
-import alluxio.client.WriteType;
 import alluxio.client.file.FileSystem;
-import alluxio.client.file.options.CreateDirectoryOptions;
+import alluxio.client.file.FileSystemClientOptions;
+import alluxio.grpc.TtlAction;
+import alluxio.grpc.WritePType;
 import alluxio.master.backcompat.FsTestOp;
 import alluxio.security.authorization.Mode;
 import alluxio.security.authorization.ModeParser;
-import alluxio.wire.CommonOptions;
-import alluxio.wire.TtlAction;
 
 import java.util.Arrays;
 
@@ -47,30 +46,26 @@ public final class CreateDirectory extends FsTestOp {
     fs.createDirectory(DIR);
     fs.createDirectory(NESTED_DIR);
     fs.createDirectory(NESTED_NESTED_DIR);
-    fs.createDirectory(RECURSIVE, CreateDirectoryOptions.defaults().setRecursive(true));
-    fs.createDirectory(RECURSIVE, CreateDirectoryOptions.defaults().setAllowExists(true));
-    fs.createDirectory(MODE_DIR, CreateDirectoryOptions.defaults().setMode(TEST_MODE)
-        .setRecursive(true));
+    fs.createDirectory(RECURSIVE,
+        FileSystemClientOptions.getCreateDirectoryOptions().toBuilder().setRecursive(true).build());
+    fs.createDirectory(RECURSIVE, FileSystemClientOptions.getCreateDirectoryOptions().toBuilder()
+        .setAllowExist(true).build());
+    fs.createDirectory(MODE_DIR, FileSystemClientOptions.getCreateDirectoryOptions().toBuilder()
+        .setMode(TEST_MODE.toShort()).setRecursive(true).build());
     // Set TTL via common options instead (should have the same effect).
-    fs.createDirectory(COMMON_TTL_DIR, CreateDirectoryOptions.defaults()
-        .setRecursive(true)
-        .setCommonOptions(CommonOptions.defaults()
-            .setTtl(TTL)
-            .setTtlAction(TtlAction.DELETE)));
-    fs.createDirectory(TTL_DIR, CreateDirectoryOptions.defaults().setTtl(TTL)
-        .setTtlAction(TtlAction.DELETE)
-        .setRecursive(true));
-    fs.createDirectory(THROUGH_DIR, CreateDirectoryOptions.defaults()
-        .setWriteType(WriteType.THROUGH)
-        .setRecursive(true));
-    fs.createDirectory(ALL_OPTS_DIR, CreateDirectoryOptions.defaults()
-        .setRecursive(true)
-        .setMode(TEST_MODE)
-        .setAllowExists(true)
-        .setWriteType(WriteType.THROUGH)
-        .setTtl(TTL)
-        .setTtlAction(TtlAction.DELETE)
-    );
+    fs.createDirectory(COMMON_TTL_DIR,
+        FileSystemClientOptions.getCreateDirectoryOptions().toBuilder().setRecursive(true)
+            .setCommonOptions(FileSystemClientOptions.getCommonOptions().toBuilder().setTtl(TTL)
+                .setTtlAction(TtlAction.DELETE))
+            .build());
+    fs.createDirectory(TTL_DIR, FileSystemClientOptions.getCreateDirectoryOptions().toBuilder()
+        .setTtlNotUsed(TTL).setTtlActionNotUsed(TtlAction.DELETE).setRecursive(true).build());
+    fs.createDirectory(THROUGH_DIR, FileSystemClientOptions.getCreateDirectoryOptions().toBuilder()
+        .setWriteType(WritePType.WRITE_THROUGH).setRecursive(true).build());
+    fs.createDirectory(ALL_OPTS_DIR,
+        FileSystemClientOptions.getCreateDirectoryOptions().toBuilder().setRecursive(true)
+            .setMode(TEST_MODE.toShort()).setAllowExist(true).setWriteType(WritePType.WRITE_THROUGH)
+            .setTtlNotUsed(TTL).setTtlActionNotUsed(TtlAction.DELETE).build());
   }
 
   @Override

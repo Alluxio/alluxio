@@ -15,7 +15,6 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.annotation.PublicApi;
-import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.client.file.options.ExistsOptions;
 import alluxio.client.file.options.OpenFileOptions;
 import alluxio.client.file.options.RenameOptions;
@@ -80,7 +79,7 @@ public interface FileSystem {
   }
 
   /**
-   * Convenience method for {@link #createDirectory(AlluxioURI, CreateDirectoryOptions)} with
+   * Convenience method for {@link #createDirectory(AlluxioURI, CreateDirectoryPOptions)} with
    * default options.
    *
    * @param path the path of the directory to create in Alluxio space
@@ -98,7 +97,7 @@ public interface FileSystem {
    * @throws FileAlreadyExistsException if there is already a file or directory at the given path
    * @throws InvalidPathException if the path is invalid
    */
-  void createDirectory(AlluxioURI path, CreateDirectoryOptions options)
+  void createDirectory(AlluxioURI path, CreateDirectoryPOptions options)
       throws FileAlreadyExistsException, InvalidPathException, IOException, AlluxioException;
 
   /**

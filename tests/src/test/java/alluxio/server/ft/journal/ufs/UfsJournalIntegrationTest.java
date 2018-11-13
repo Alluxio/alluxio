@@ -15,16 +15,12 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
-import alluxio.client.WriteType;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemClientOptions;
 import alluxio.client.file.URIStatus;
-import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.client.file.options.SetAttributeOptions;
-import alluxio.grpc.CreateFilePOptions;
-import alluxio.grpc.DeletePOptions;
-import alluxio.grpc.LoadMetadataPType;
+import alluxio.grpc.*;
 import alluxio.master.LocalAlluxioCluster;
 import alluxio.master.MasterRegistry;
 import alluxio.master.NoopMaster;
@@ -44,7 +40,6 @@ import alluxio.underfs.UnderFileSystem;
 import alluxio.util.IdUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.FileInfo;
-import alluxio.wire.LoadMetadataType;
 
 import com.google.common.collect.Lists;
 import org.junit.Assert;
@@ -212,7 +207,8 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
    */
   @Test
   public void delete() throws Exception {
-    CreateDirectoryOptions recMkdir = CreateDirectoryOptions.defaults().setRecursive(true);
+    CreateDirectoryPOptions recMkdir =
+        FileSystemClientOptions.getCreateDirectoryOptions().toBuilder().setRecursive(true).build();
     DeletePOptions recDelete =
         FileSystemClientOptions.getDeleteOptions().toBuilder().setRecursive(true).build();
     for (int i = 0; i < 10; i++) {
@@ -425,13 +421,14 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
         "/d12", "/d12/d21", "/d12/d22",
     };
 
-    CreateDirectoryOptions options =
-        CreateDirectoryOptions.defaults().setRecursive(true).setWriteType(WriteType.MUST_CACHE);
+    CreateDirectoryPOptions options = FileSystemClientOptions.getCreateDirectoryOptions()
+        .toBuilder().setRecursive(true).setWriteType(WritePType.WRITE_MUST_CACHE).build();
     for (String directory : directories) {
       mFileSystem.createDirectory(new AlluxioURI(directory), options);
     }
 
-    options.setWriteType(WriteType.CACHE_THROUGH).setAllowExists(true);
+    options = options.toBuilder().setWriteType(WritePType.WRITE_CACHE_THROUGH).setAllowExist(true)
+        .build();
     for (String directory : directories) {
       mFileSystem.createDirectory(new AlluxioURI(directory), options);
     }

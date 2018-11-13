@@ -13,7 +13,7 @@ package alluxio.master.backcompat.ops;
 
 import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
-import alluxio.client.file.options.CreateDirectoryOptions;
+import alluxio.client.file.FileSystemClientOptions;
 import alluxio.master.backcompat.FsTestOp;
 import alluxio.master.backcompat.Utils;
 
@@ -32,7 +32,7 @@ public final class Rename extends FsTestOp {
     fs.rename(SRC, DST);
 
     fs.createDirectory(new AlluxioURI("/renameDir/a/b"),
-        CreateDirectoryOptions.defaults().setRecursive(true));
+        FileSystemClientOptions.getCreateDirectoryOptions().toBuilder().setRecursive(true).build());
     fs.rename(new AlluxioURI("/renameDir/a"), new AlluxioURI("/renameDir/c"));
   }
 

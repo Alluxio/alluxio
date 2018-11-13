@@ -65,6 +65,16 @@ public final class FileSystemClientOptions {
         .setReplicationMax(Configuration.getInt(PropertyKey.USER_FILE_REPLICATION_MAX)).build();
   }
 
+  public static CreateDirectoryPOptions getCreateDirectoryOptions() {
+    // TODO(ggezer) WritePType conversion logic
+    return CreateDirectoryPOptions.newBuilder().setCommonOptions(getCommonOptions()).setRecursive(false)
+            .setWriteType(WritePType.valueOf("WRITE_" + Configuration.get(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT)))
+            .setPersisted(Configuration
+                    .getEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class).isThrough())
+            .setMode(ModeUtils.applyFileUMask(Mode.defaults()).toShort())
+            .setAllowExist(false).build();
+  }
+
   public static LoadMetadataPOptions getLoadMetadataOptions() {
     return LoadMetadataPOptions.newBuilder().setCommonOptions(getCommonOptions())
         .setRecursive(false).build();

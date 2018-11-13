@@ -13,10 +13,9 @@ package alluxio.client.cli.fs.command;
 
 import alluxio.AlluxioURI;
 import alluxio.UnderFileSystemFactoryRegistryRule;
-import alluxio.client.WriteType;
+import alluxio.client.file.FileSystemClientOptions;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.URIStatus;
-import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
 import alluxio.grpc.WritePType;
 import alluxio.testutils.underfs.ConfExpectingUnderFileSystemFactory;
@@ -48,8 +47,8 @@ public final class MountCommandTest extends AbstractFileSystemShellTest {
     Assert.assertTrue(fileExists(testFile));
     // Dir in Alluxio can be persisted to UFS
     AlluxioURI testDir = mountPoint.join("testDir");
-    mFileSystem.createDirectory(testDir,
-        CreateDirectoryOptions.defaults().setWriteType(WriteType.CACHE_THROUGH));
+    mFileSystem.createDirectory(testDir, FileSystemClientOptions.getCreateDirectoryOptions()
+        .toBuilder().setWriteType(WritePType.WRITE_CACHE_THROUGH).build());
     Assert.assertTrue(fileExists(testDir));
     Assert.assertTrue(Files.exists(Paths.get(ufsPath, "testDir")));
   }
