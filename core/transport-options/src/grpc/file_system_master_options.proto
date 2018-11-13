@@ -87,6 +87,11 @@ message GetStatusPOptions {
   optional FileSystemMasterCommonPOptions commonOptions = 2;
 }
 
+message ExistsPOptions {
+  optional LoadMetadataPType loadMetadataType = 1;
+  optional FileSystemMasterCommonPOptions commonOptions = 2;
+}
+
 message ListStatusPOptions {
   // This is deprecated since 1.1.1 and will be removed in 2.0. Use loadMetadataType.
   optional bool loadDirectChildren = 1;

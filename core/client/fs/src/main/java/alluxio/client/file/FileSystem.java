@@ -15,7 +15,6 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.annotation.PublicApi;
-import alluxio.client.file.options.ExistsOptions;
 import alluxio.client.file.options.OpenFileOptions;
 import alluxio.client.file.options.RenameOptions;
 import alluxio.client.file.options.SetAttributeOptions;
@@ -145,7 +144,7 @@ public interface FileSystem {
       throws DirectoryNotEmptyException, FileDoesNotExistException, IOException, AlluxioException;
 
   /**
-   * Convenience method for {@link #exists(AlluxioURI, ExistsOptions)} with default options.
+   * Convenience method for {@link #exists(AlluxioURI, ExistsPOptions)} with default options.
    *
    * @param path the path in question
    * @return true if the path exists, false otherwise
@@ -161,7 +160,7 @@ public interface FileSystem {
    * @return true if the path exists, false otherwise
    * @throws InvalidPathException if the path is invalid
    */
-  boolean exists(AlluxioURI path, ExistsOptions options)
+  boolean exists(AlluxioURI path, ExistsPOptions options)
       throws InvalidPathException, IOException, AlluxioException;
 
   /**

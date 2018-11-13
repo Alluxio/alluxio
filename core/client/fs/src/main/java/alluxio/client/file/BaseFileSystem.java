@@ -15,7 +15,6 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.annotation.PublicApi;
 import alluxio.client.file.options.CreateFileOptions;
-import alluxio.client.file.options.ExistsOptions;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.client.file.options.OpenFileOptions;
 import alluxio.client.file.options.OutStreamOptions;
@@ -37,6 +36,7 @@ import alluxio.grpc.*;
 import alluxio.master.MasterInquireClient;
 import alluxio.security.authorization.AclEntry;
 import alluxio.uri.Authority;
+import alluxio.util.grpc.GrpcUtils;
 import alluxio.wire.MountPointInfo;
 import alluxio.wire.SetAclAction;
 
@@ -185,17 +185,17 @@ public class BaseFileSystem implements FileSystem {
   @Override
   public boolean exists(AlluxioURI path)
       throws InvalidPathException, IOException, AlluxioException {
-    return exists(path, ExistsOptions.defaults());
+    return exists(path, FileSystemClientOptions.getExistsOptions());
   }
 
   @Override
-  public boolean exists(AlluxioURI path, ExistsOptions options)
+  public boolean exists(AlluxioURI path, ExistsPOptions options)
       throws InvalidPathException, IOException, AlluxioException {
     checkUri(path);
     FileSystemMasterClient masterClient = mFileSystemContext.acquireMasterClient();
     try {
       // TODO(calvin): Make this more efficient
-      masterClient.getStatus(path, options.toGetStatusOptions());
+      masterClient.getStatus(path, GrpcUtils.toGetStatusOptions(options));
       return true;
     } catch (NotFoundException e) {
       return false;

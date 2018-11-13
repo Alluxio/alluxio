@@ -37,6 +37,13 @@ public final class FileSystemClientOptions {
         .build();
   }
 
+  public static ExistsPOptions getExistsOptions() {
+    return ExistsPOptions.newBuilder().setCommonOptions(getCommonOptions())
+        .setLoadMetadataType(GrpcUtils.toProto(Configuration
+            .getEnum(PropertyKey.USER_FILE_METADATA_LOAD_TYPE, LoadMetadataType.class)))
+        .build();
+  }
+
   public static ListStatusPOptions getListStatusOptions() {
     FileSystemMasterCommonPOptions commonOptions =
         getCommonOptions().toBuilder().setTtl(Configuration.getMs(PropertyKey.USER_FILE_LOAD_TTL))

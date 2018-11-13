@@ -4,6 +4,8 @@ import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.grpc.*;
+import alluxio.util.grpc.GrpcUtils;
+import alluxio.wire.LoadMetadataType;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -73,5 +75,13 @@ public class FileSystemClientOptionsTest {
     SetAclPOptions options = FileSystemClientOptions.getSetAclOptions();
     Assert.assertNotNull(options);
     Assert.assertFalse(options.getRecursive());
+  }
+
+  @Test
+  public void existsDefaults() {
+    ExistsPOptions options = FileSystemClientOptions.getExistsOptions();
+    Assert.assertNotNull(options);
+    Assert.assertEquals(options.getLoadMetadataType(), GrpcUtils.toProto(
+        Configuration.getEnum(PropertyKey.USER_FILE_METADATA_LOAD_TYPE, LoadMetadataType.class)));
   }
 }

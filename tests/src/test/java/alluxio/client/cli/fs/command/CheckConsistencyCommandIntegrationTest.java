@@ -12,9 +12,10 @@
 package alluxio.client.cli.fs.command;
 
 import alluxio.AlluxioURI;
+import alluxio.client.file.FileSystemClientOptions;
 import alluxio.client.file.FileSystemTestUtils;
-import alluxio.client.file.options.ExistsOptions;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
+import alluxio.grpc.LoadMetadataPType;
 import alluxio.grpc.WritePType;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.DeleteOptions;
@@ -87,8 +88,9 @@ public class CheckConsistencyCommandIntegrationTest extends AbstractFileSystemSh
     res = mOutput.toString();
     Assert.assertTrue(res.contains("/testRoot" + " has: " + "1 inconsistent files.\n")
         && res.contains("repairing path: " + "/testRoot/testDir/testFileB\n"));
-    Assert.assertTrue(mFileSystem.exists(new AlluxioURI("/testRoot/testDir/testFileB"),
-        ExistsOptions.defaults().setLoadMetadataType(LoadMetadataType.Always)));
+    Assert.assertTrue(
+        mFileSystem.exists(new AlluxioURI("/testRoot/testDir/testFileB"), FileSystemClientOptions
+            .getExistsOptions().toBuilder().setLoadMetadataType(LoadMetadataPType.ALWAYS).build()));
     Assert.assertTrue(3 == mFileSystem.getStatus(new AlluxioURI("/testRoot/testDir/testFileB"))
         .getLength());
   }

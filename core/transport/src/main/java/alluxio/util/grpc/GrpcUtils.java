@@ -230,6 +230,11 @@ public final class GrpcUtils {
     return optionsBuilder.build();
   }
 
+  public static GetStatusPOptions toGetStatusOptions(ExistsPOptions existsOptions) {
+    return GetStatusPOptions.newBuilder().setLoadMetadataType(existsOptions.getLoadMetadataType())
+        .setCommonOptions(existsOptions.getCommonOptions()).build();
+  }
+
   /**
    * Converts from proto type to options.
    *

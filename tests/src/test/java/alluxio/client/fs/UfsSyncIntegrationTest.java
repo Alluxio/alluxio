@@ -20,7 +20,6 @@ import alluxio.ConfigurationTestUtils;
 import alluxio.PropertyKey;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.client.file.*;
-import alluxio.client.file.options.ExistsOptions;
 import alluxio.client.file.options.RenameOptions;
 import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.exception.FileDoesNotExistException;
@@ -517,8 +516,9 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
   public void ufsDeleteSync() throws Exception {
     FileSystemTestUtils.loadFile(mFileSystem, alluxioPath(EXISTING_FILE));
     new File(ufsPath(EXISTING_FILE)).delete();
-    assertFalse(mFileSystem.exists(new AlluxioURI(alluxioPath(EXISTING_FILE)),
-        ExistsOptions.defaults().setCommonOptions(SYNC_ALWAYS)));
+    assertFalse(
+        mFileSystem.exists(new AlluxioURI(alluxioPath(EXISTING_FILE)), FileSystemClientOptions
+            .getExistsOptions().toBuilder().setCommonOptions(PSYNC_ALWAYS).build()));
     mFileSystem.free(new AlluxioURI("/"),
         FileSystemClientOptions.getFreeOptions().toBuilder().setRecursive(true).build());
     BlockMasterClient blockClient = BlockMasterClient.Factory.create(MasterClientConfig.defaults());

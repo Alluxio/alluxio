@@ -15,7 +15,6 @@ import alluxio.AlluxioURI;
 import alluxio.RestUtils;
 import alluxio.StreamCache;
 import alluxio.client.file.*;
-import alluxio.client.file.options.ExistsOptions;
 import alluxio.client.file.options.OpenFileOptions;
 import alluxio.client.file.options.RenameOptions;
 import alluxio.client.file.options.SetAttributeOptions;
@@ -163,12 +162,13 @@ public final class PathsRestServiceHandler {
   @POST
   @Path(PATH_PARAM + EXISTS)
   @ReturnType("java.lang.Boolean")
-  public Response exists(@PathParam("path") final String path, final ExistsOptions options) {
+  public Response exists(@PathParam("path") final String path, final ExistsPOptions options) {
     return RestUtils.call(new RestUtils.RestCallable<Boolean>() {
       @Override
       public Boolean call() throws Exception {
         if (options == null) {
-          return mFileSystem.exists(new AlluxioURI(path), ExistsOptions.defaults());
+          return mFileSystem.exists(new AlluxioURI(path),
+              FileSystemClientOptions.getExistsOptions());
         } else {
           return mFileSystem.exists(new AlluxioURI(path), options);
         }
