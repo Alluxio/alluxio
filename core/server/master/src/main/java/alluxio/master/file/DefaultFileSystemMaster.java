@@ -974,14 +974,13 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         }
         // TODO(david): Make extending InodePath more efficient
         childComponents[childComponents.length - 1] = child.getName();
-
         try (LockedInodePath childInodePath  = mInodeTree.lockChildPath(currInodePath,
             InodeTree.LockMode.READ, child, childComponents)) {
           listStatusInternal(childInodePath, auditContext,
               nextDescendantType, statusList);
         } catch (InvalidPathException e) {
-          LOG.warn("an invalid ptah was list, parent directory {}",
-              currInodePath.getUri().getPath());
+          LOG.debug("Path \"{0}\" is invalid, has been ignored.",
+              PathUtils.concatPath("/", childComponents));
         }
       }
     }
