@@ -221,11 +221,11 @@ public final class ReplicationChecker implements HeartbeatExecutor {
             e.getMessage());
         return;
       } catch (ResourceExhaustedException e) {
-          LOG.warn("The job service is busy, will retry later: {}", e.getMessage());
-          LOG.debug("Exception: ", e);
-          mQuietPeriodSeconds = (mQuietPeriodSeconds == 0) ? 1 :
-              Math.min(MAX_QUIET_PERIOD_SECONDS, mQuietPeriodSeconds * 2);
-          return;
+        LOG.warn("The job service is busy, will retry later: {}", e.getMessage());
+        LOG.debug("Exception: ", e);
+        mQuietPeriodSeconds = (mQuietPeriodSeconds == 0) ? 1 :
+            Math.min(MAX_QUIET_PERIOD_SECONDS, mQuietPeriodSeconds * 2);
+        return;
       } catch (Exception e) {
         LOG.warn(
             "Unexpected exception encountered when starting a replication / eviction job (uri={},"
