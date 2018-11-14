@@ -113,7 +113,7 @@ public final class AlluxioFuseUtils {
   }
 
   /**
-   * Checks whether fuse is enabled in local file system.
+   * Checks whether fuse is installed in local file system.
    *
    * @return true if fuse is installed, false otherwise
    */
