@@ -195,7 +195,8 @@ public final class JobMaster extends AbstractNonJournaledMaster {
       if (mFinishedJobs.isEmpty()) {
         // The job master is at full capacity and no job has finished.
         throw new ResourceExhaustedException(
-            ExceptionMessage.JOB_MASTER_FULL_CAPACITY.getMessage());
+            ExceptionMessage.JOB_MASTER_FULL_CAPACITY
+                .getMessage(Configuration.get(PropertyKey.JOB_MASTER_JOB_CAPACITY)));
       }
       // Discard old jobs that have completion time beyond retention policy
       Iterator<JobInfo> jobIterator = mFinishedJobs.iterator();
@@ -215,7 +216,8 @@ public final class JobMaster extends AbstractNonJournaledMaster {
       }
       if (isfull) {
         throw new ResourceExhaustedException(
-            ExceptionMessage.JOB_MASTER_FULL_CAPACITY.getMessage());
+            ExceptionMessage.JOB_MASTER_FULL_CAPACITY
+                .getMessage(CAPACITY));
       }
     }
     long jobId = mJobIdGenerator.getNewJobId();
