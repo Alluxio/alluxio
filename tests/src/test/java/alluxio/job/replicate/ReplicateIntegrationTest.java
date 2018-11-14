@@ -57,17 +57,22 @@ public final class ReplicateIntegrationTest extends JobIntegrationTest {
   public void before() throws Exception {
     super.before();
 
-    // write a file outside of Alluxio
-    AlluxioURI filePath = new AlluxioURI(TEST_URI);
-    FileOutStream os = mFileSystem.createFile(filePath,
-        CreateFileOptions.defaults().setWriteType(WriteType.THROUGH)
-            .setBlockSizeBytes(TEST_BLOCK_SIZE));
-    os.write(BufferUtils.getIncreasingByteArray(TEST_BLOCK_SIZE + 1));
-    os.close();
 
+    AlluxioURI filePath = new AlluxioURI(TEST_URI);
+    // write a file outside of Alluxio
+    createFileOutsideOfAlluxio(filePath);
     URIStatus status = mFileSystem.getStatus(filePath);
     mBlockId1 = status.getBlockIds().get(0);
     mBlockId2 = status.getBlockIds().get(1);
+  }
+
+  public void createFileOutsideOfAlluxio(AlluxioURI uri) throws Exception {
+    try (FileOutStream os = mFileSystem.createFile(uri,
+        CreateFileOptions.defaults()
+            .setWriteType(WriteType.THROUGH)
+            .setBlockSizeBytes(TEST_BLOCK_SIZE))) {
+      os.write(BufferUtils.getIncreasingByteArray(TEST_BLOCK_SIZE + 1));
+    }
   }
 
   @Test
@@ -101,13 +106,18 @@ public final class ReplicateIntegrationTest extends JobIntegrationTest {
   @LocalAlluxioClusterResource.Config(confParams = {PropertyKey.Name.JOB_MASTER_JOB_CAPACITY, "0",
       PropertyKey.Name.JOB_MASTER_FINISHED_JOB_RETENTION_MS, "0"})
   public void requestBackoffTest() throws Exception {
+    String rootDir = "/backofftest";
+    for (int i = 0; i < 10; i++) {
+      AlluxioURI uri = new AlluxioURI(rootDir + "/" + i);
+      createFileOutsideOfAlluxio(uri);
+    }
     String exceptionMsg = ExceptionMessage.JOB_MASTER_FULL_CAPACITY
         .getMessage(Configuration.get(PropertyKey.JOB_MASTER_JOB_CAPACITY));
     String replicationCehckerMsg = "The job service is busy, will retry later. " + exceptionMsg;
     String rpcUtilsMsg = "alluxio.exception.status.ResourceExhaustedException: " + exceptionMsg;
     SetAttributeOptions opts = SetAttributeOptions.defaults();
     opts.setReplicationMin(2);
-    mFileSystem.setAttribute(new AlluxioURI(TEST_URI), opts);
+    mFileSystem.setAttribute(new AlluxioURI(rootDir), opts);
     HeartbeatScheduler.execute(HeartbeatContext.MASTER_REPLICATION_CHECK);
     // After logging we should expect only one log message to be logged as the job master
     // has a zero job capacity even though there are two jobs.
