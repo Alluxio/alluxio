@@ -110,4 +110,14 @@ public class FileSystemClientOptionsTest {
     Assert.assertEquals(options.getReplicationMin(), Configuration.getInt(PropertyKey.USER_FILE_REPLICATION_MIN));
     Assert.assertEquals(options.getReplicationMax(), Configuration.getInt(PropertyKey.USER_FILE_REPLICATION_MAX));
   }
+
+  @Test
+  public void createDirectoryDefaults() {
+    CreateDirectoryPOptions options = FileSystemClientOptions.getCreateDirectoryOptions();
+    Assert.assertNotNull(options);
+    Assert.assertFalse(options.getAllowExist());
+    Assert.assertFalse(options.getRecursive());
+    Assert.assertEquals(ModeUtils.applyDirectoryUMask(Mode.defaults()).toShort(), options.getMode());
+    Assert.assertEquals(WritePType.WRITE_MUST_CACHE, options.getWriteType());
+  }
 }

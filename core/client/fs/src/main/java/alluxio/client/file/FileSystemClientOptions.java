@@ -99,7 +99,7 @@ public final class FileSystemClientOptions {
             .valueOf("WRITE_" + Configuration.get(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT)))
         .setPersisted(Configuration
             .getEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class).isThrough())
-        .setMode(ModeUtils.applyFileUMask(Mode.defaults()).toShort()).setAllowExist(false).build();
+        .setMode(ModeUtils.applyDirectoryUMask(Mode.defaults()).toShort()).setAllowExist(false).build();
   }
 
   public static LoadMetadataPOptions getLoadMetadataOptions() {
