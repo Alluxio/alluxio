@@ -70,7 +70,6 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class JobMaster extends AbstractNonJournaledMaster {
   private static final Logger LOG = LoggerFactory.getLogger(JobMaster.class);
-  private static final long CAPACITY = Configuration.getLong(PropertyKey.JOB_MASTER_JOB_CAPACITY);
   private static final long RETENTION_MS =
       Configuration.getLong(PropertyKey.JOB_MASTER_FINISHED_JOB_RETENTION_MS);
 
@@ -90,6 +89,11 @@ public final class JobMaster extends AbstractNonJournaledMaster {
           return o.getWorkerAddress();
         }
       };
+
+  /**
+   * The total number of jobs that the JobMaster may run at any moment.
+   */
+  private final long mCapacity = Configuration.getLong(PropertyKey.JOB_MASTER_JOB_CAPACITY);
 
   /**
    * All worker information. Access must be controlled on mWorkers using the RW lock(mWorkerRWLock).
@@ -191,12 +195,11 @@ public final class JobMaster extends AbstractNonJournaledMaster {
    */
   public synchronized long run(JobConfig jobConfig)
       throws JobDoesNotExistException, ResourceExhaustedException {
-    if (mIdToJobCoordinator.size() == CAPACITY) {
+    if (mIdToJobCoordinator.size() == mCapacity) {
       if (mFinishedJobs.isEmpty()) {
         // The job master is at full capacity and no job has finished.
         throw new ResourceExhaustedException(
-            ExceptionMessage.JOB_MASTER_FULL_CAPACITY
-                .getMessage(Configuration.get(PropertyKey.JOB_MASTER_JOB_CAPACITY)));
+            ExceptionMessage.JOB_MASTER_FULL_CAPACITY.getMessage(mCapacity));
       }
       // Discard old jobs that have completion time beyond retention policy
       Iterator<JobInfo> jobIterator = mFinishedJobs.iterator();
@@ -216,8 +219,7 @@ public final class JobMaster extends AbstractNonJournaledMaster {
       }
       if (isfull) {
         throw new ResourceExhaustedException(
-            ExceptionMessage.JOB_MASTER_FULL_CAPACITY
-                .getMessage(CAPACITY));
+            ExceptionMessage.JOB_MASTER_FULL_CAPACITY.getMessage(mCapacity));
       }
     }
     long jobId = mJobIdGenerator.getNewJobId();
