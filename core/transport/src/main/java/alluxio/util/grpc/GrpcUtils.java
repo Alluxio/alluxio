@@ -1113,26 +1113,6 @@ public final class GrpcUtils {
     }
   }
 
-  /**
-   * Converts a wire type to a proto type.
-   *
-   * @param options the options type to convert
-   * @return the converted proto type
-   */
-  public static UpdateUfsModePOptions toProto(UpdateUfsModeOptions options) {
-    UfsMode ufsMode;
-    switch (options.getUfsMode()) {
-      case NO_ACCESS:
-        ufsMode = UfsMode.NoAccess;
-        break;
-      case READ_ONLY:
-        ufsMode = UfsMode.ReadOnly;
-        break;
-      default:
-        ufsMode = UfsMode.ReadWrite;
-    }
-    return UpdateUfsModePOptions.newBuilder().setUfsMode(ufsMode).build();
-  }
 
   /**
    * Converts wire type to proto type.

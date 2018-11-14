@@ -242,10 +242,10 @@ public final class FileSystemMasterOptionsProto {
       "Ids\030\002 \003(\003\"U\n\016RenamePOptions\022C\n\rcommonOpt" +
       "ions\030\001 \001(\0132,.alluxio.grpc.FileSystemMast" +
       "erCommonPOptions\"\246\002\n\024SetAttributePOption" +
-      "s\022\016\n\006pinned\030\001 \001(\010\022\013\n\003ttl\030\002 \001(\003\022\021\n\tpersis" +
-      "ted\030\003 \001(\010\022\r\n\005owner\030\004 \001(\t\022\r\n\005group\030\005 \001(\t\022" +
-      "\014\n\004mode\030\006 \001(\005\022\021\n\trecursive\030\007 \001(\010\022*\n\tttlA" +
-      "ction\030\010 \001(\0162\027.alluxio.grpc.TtlAction\022\026\n\016" +
+      "s\022\016\n\006pinned\030\001 \001(\010\022\013\n\003ttl\030\002 \001(\003\022*\n\tttlAct" +
+      "ion\030\003 \001(\0162\027.alluxio.grpc.TtlAction\022\021\n\tpe" +
+      "rsisted\030\004 \001(\010\022\r\n\005owner\030\005 \001(\t\022\r\n\005group\030\006 " +
+      "\001(\t\022\014\n\004mode\030\007 \001(\005\022\021\n\trecursive\030\010 \001(\010\022\026\n\016" +
       "replicationMax\030\t \001(\005\022\026\n\016replicationMin\030\n" +
       " \001(\005\022C\n\rcommonOptions\030\013 \001(\0132,.alluxio.gr" +
       "pc.FileSystemMasterCommonPOptions\"h\n\016Set" +
@@ -258,23 +258,23 @@ public final class FileSystemMasterOptionsProto {
       "tions\030\001 \001(\0132,.alluxio.grpc.FileSystemMas" +
       "terCommonPOptions\"V\n\017UnmountPOptions\022C\n\r" +
       "commonOptions\030\001 \001(\0132,.alluxio.grpc.FileS" +
-      "ystemMasterCommonPOptions\"?\n\025UpdateUfsMo" +
-      "dePOptions\022&\n\007ufsMode\030\001 \001(\0162\025.alluxio.gr" +
-      "pc.UfsMode\"@\n\033FileSystemHeartbeatPOption" +
-      "s\022!\n\031persistedFileFingerprints\030\001 \003(\t\"\025\n\023" +
-      "GetFileInfoPOptions\"\032\n\030GetPinnedFileIdsP" +
-      "Options\"\024\n\022GetUfsInfoPOptions*\214\001\n\nWriteP" +
-      "Type\022\024\n\020WRITE_MUST_CACHE\020\000\022\023\n\017WRITE_TRY_" +
-      "CACHE\020\001\022\027\n\023WRITE_CACHE_THROUGH\020\002\022\021\n\rWRIT" +
-      "E_THROUGH\020\003\022\027\n\023WRITE_ASYNC_THROUGH\020\004\022\016\n\n" +
-      "WRITE_NONE\020\005*F\n\tReadPType\022\021\n\rREAD_NO_CAC" +
-      "HE\020\000\022\016\n\nREAD_CACHE\020\001\022\026\n\022READ_CACHE_PROMO" +
-      "TE\020\002*4\n\021LoadMetadataPType\022\t\n\005NEVER\020\000\022\010\n\004" +
-      "ONCE\020\001\022\n\n\006ALWAYS\020\002*1\n\023LoadDescendantPTyp" +
-      "e\022\010\n\004NONE\020\000\022\007\n\003ONE\020\001\022\007\n\003ALL\020\002*4\n\007UfsMode" +
-      "\022\014\n\010NoAccess\020\001\022\014\n\010ReadOnly\020\002\022\r\n\tReadWrit" +
-      "e\020\003B.\n\014alluxio.grpcB\034FileSystemMasterOpt" +
-      "ionsProtoP\001"
+      "ystemMasterCommonPOptions\"@\n\025UpdateUfsMo" +
+      "dePOptions\022\'\n\007ufsMode\030\001 \001(\0162\026.alluxio.gr" +
+      "pc.UfsPMode\"@\n\033FileSystemHeartbeatPOptio" +
+      "ns\022!\n\031persistedFileFingerprints\030\001 \003(\t\"\025\n" +
+      "\023GetFileInfoPOptions\"\032\n\030GetPinnedFileIds" +
+      "POptions\"\024\n\022GetUfsInfoPOptions*\214\001\n\nWrite" +
+      "PType\022\024\n\020WRITE_MUST_CACHE\020\000\022\023\n\017WRITE_TRY" +
+      "_CACHE\020\001\022\027\n\023WRITE_CACHE_THROUGH\020\002\022\021\n\rWRI" +
+      "TE_THROUGH\020\003\022\027\n\023WRITE_ASYNC_THROUGH\020\004\022\016\n" +
+      "\nWRITE_NONE\020\005*F\n\tReadPType\022\021\n\rREAD_NO_CA" +
+      "CHE\020\000\022\016\n\nREAD_CACHE\020\001\022\026\n\022READ_CACHE_PROM" +
+      "OTE\020\002*4\n\021LoadMetadataPType\022\t\n\005NEVER\020\000\022\010\n" +
+      "\004ONCE\020\001\022\n\n\006ALWAYS\020\002*1\n\023LoadDescendantPTy" +
+      "pe\022\010\n\004NONE\020\000\022\007\n\003ONE\020\001\022\007\n\003ALL\020\002*8\n\010UfsPMo" +
+      "de\022\r\n\tNO_ACCESS\020\001\022\r\n\tREAD_ONLY\020\002\022\016\n\nREAD" +
+      "_WRITE\020\003B.\n\014alluxio.grpcB\034FileSystemMast" +
+      "erOptionsProtoP\001"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -408,7 +408,7 @@ public final class FileSystemMasterOptionsProto {
     internal_static_alluxio_grpc_SetAttributePOptions_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_SetAttributePOptions_descriptor,
-        new java.lang.String[] { "Pinned", "Ttl", "Persisted", "Owner", "Group", "Mode", "Recursive", "TtlAction", "ReplicationMax", "ReplicationMin", "CommonOptions", });
+        new java.lang.String[] { "Pinned", "Ttl", "TtlAction", "Persisted", "Owner", "Group", "Mode", "Recursive", "ReplicationMax", "ReplicationMin", "CommonOptions", });
     internal_static_alluxio_grpc_SetAclPOptions_descriptor =
       getDescriptor().getMessageTypes().get(19);
     internal_static_alluxio_grpc_SetAclPOptions_fieldAccessorTable = new

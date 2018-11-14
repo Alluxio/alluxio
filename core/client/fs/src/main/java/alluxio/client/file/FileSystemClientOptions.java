@@ -144,4 +144,8 @@ public final class FileSystemClientOptions {
     return CheckConsistencyPOptions.newBuilder().setCommonOptions(getCommonOptions())
         .build();
   }
+
+  public static UpdateUfsModePOptions getUpdateUfsModeOptions() {
+    return UpdateUfsModePOptions.newBuilder().setUfsMode(UfsPMode.READ_WRITE).build();
+  }
 }

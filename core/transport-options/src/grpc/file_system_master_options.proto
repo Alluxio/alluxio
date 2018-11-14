@@ -184,14 +184,14 @@ message UnmountPOptions {
   optional FileSystemMasterCommonPOptions commonOptions = 1;
 }
 
-enum UfsMode {
-  NoAccess = 1;
-  ReadOnly = 2;
-  ReadWrite = 3;
+enum UfsPMode {
+  NO_ACCESS = 1;
+  READ_ONLY = 2;
+  READ_WRITE = 3;
 }
 
 message UpdateUfsModePOptions {
-  optional UfsMode ufsMode = 1;
+  optional UfsPMode ufsMode = 1;
 }
 
 message FileSystemHeartbeatPOptions {

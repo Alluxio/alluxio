@@ -15,7 +15,6 @@ import alluxio.AbstractMasterClient;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.client.file.options.CompleteFileOptions;
-import alluxio.client.file.options.UpdateUfsModeOptions;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.grpc.*;
 import alluxio.master.MasterClientConfig;
@@ -236,10 +235,10 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
 
   @Override
   public synchronized void updateUfsMode(final AlluxioURI ufsUri,
-      final UpdateUfsModeOptions options) throws AlluxioStatusException {
+      final UpdateUfsModePOptions options) throws AlluxioStatusException {
     retryRPC(
         () -> mBlockingStub.updateUfsMode(UpdateUfsModePRequest.newBuilder()
-            .setUfsPath(ufsUri.getRootPath()).setOptions(GrpcUtils.toProto(options)).build()),
+            .setUfsPath(ufsUri.getRootPath()).setOptions(options).build()),
         "UpdateUfsMode");
   }
 }

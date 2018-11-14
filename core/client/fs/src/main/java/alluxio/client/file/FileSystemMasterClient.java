@@ -14,7 +14,6 @@ package alluxio.client.file;
 import alluxio.AlluxioURI;
 import alluxio.Client;
 import alluxio.client.file.options.CompleteFileOptions;
-import alluxio.client.file.options.UpdateUfsModeOptions;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.AlreadyExistsException;
 import alluxio.exception.status.NotFoundException;
@@ -208,5 +207,5 @@ public interface FileSystemMasterClient extends Client {
    * @param ufsUri the ufs path
    * @param options the options to update ufs operation mode
    */
-  void updateUfsMode(AlluxioURI ufsUri, UpdateUfsModeOptions options) throws AlluxioStatusException;
+  void updateUfsMode(AlluxioURI ufsUri, UpdateUfsModePOptions options) throws AlluxioStatusException;
 }

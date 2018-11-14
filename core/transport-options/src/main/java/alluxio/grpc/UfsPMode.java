@@ -4,36 +4,36 @@
 package alluxio.grpc;
 
 /**
- * Protobuf enum {@code alluxio.grpc.UfsMode}
+ * Protobuf enum {@code alluxio.grpc.UfsPMode}
  */
-public enum UfsMode
+public enum UfsPMode
     implements com.google.protobuf.ProtocolMessageEnum {
   /**
-   * <code>NoAccess = 1;</code>
+   * <code>NO_ACCESS = 1;</code>
    */
-  NoAccess(1),
+  NO_ACCESS(1),
   /**
-   * <code>ReadOnly = 2;</code>
+   * <code>READ_ONLY = 2;</code>
    */
-  ReadOnly(2),
+  READ_ONLY(2),
   /**
-   * <code>ReadWrite = 3;</code>
+   * <code>READ_WRITE = 3;</code>
    */
-  ReadWrite(3),
+  READ_WRITE(3),
   ;
 
   /**
-   * <code>NoAccess = 1;</code>
+   * <code>NO_ACCESS = 1;</code>
    */
-  public static final int NoAccess_VALUE = 1;
+  public static final int NO_ACCESS_VALUE = 1;
   /**
-   * <code>ReadOnly = 2;</code>
+   * <code>READ_ONLY = 2;</code>
    */
-  public static final int ReadOnly_VALUE = 2;
+  public static final int READ_ONLY_VALUE = 2;
   /**
-   * <code>ReadWrite = 3;</code>
+   * <code>READ_WRITE = 3;</code>
    */
-  public static final int ReadWrite_VALUE = 3;
+  public static final int READ_WRITE_VALUE = 3;
 
 
   public final int getNumber() {
@@ -44,28 +44,28 @@ public enum UfsMode
    * @deprecated Use {@link #forNumber(int)} instead.
    */
   @java.lang.Deprecated
-  public static UfsMode valueOf(int value) {
+  public static UfsPMode valueOf(int value) {
     return forNumber(value);
   }
 
-  public static UfsMode forNumber(int value) {
+  public static UfsPMode forNumber(int value) {
     switch (value) {
-      case 1: return NoAccess;
-      case 2: return ReadOnly;
-      case 3: return ReadWrite;
+      case 1: return NO_ACCESS;
+      case 2: return READ_ONLY;
+      case 3: return READ_WRITE;
       default: return null;
     }
   }
 
-  public static com.google.protobuf.Internal.EnumLiteMap<UfsMode>
+  public static com.google.protobuf.Internal.EnumLiteMap<UfsPMode>
       internalGetValueMap() {
     return internalValueMap;
   }
   private static final com.google.protobuf.Internal.EnumLiteMap<
-      UfsMode> internalValueMap =
-        new com.google.protobuf.Internal.EnumLiteMap<UfsMode>() {
-          public UfsMode findValueByNumber(int number) {
-            return UfsMode.forNumber(number);
+      UfsPMode> internalValueMap =
+        new com.google.protobuf.Internal.EnumLiteMap<UfsPMode>() {
+          public UfsPMode findValueByNumber(int number) {
+            return UfsPMode.forNumber(number);
           }
         };
 
@@ -82,9 +82,9 @@ public enum UfsMode
     return alluxio.grpc.FileSystemMasterOptionsProto.getDescriptor().getEnumTypes().get(4);
   }
 
-  private static final UfsMode[] VALUES = values();
+  private static final UfsPMode[] VALUES = values();
 
-  public static UfsMode valueOf(
+  public static UfsPMode valueOf(
       com.google.protobuf.Descriptors.EnumValueDescriptor desc) {
     if (desc.getType() != getDescriptor()) {
       throw new java.lang.IllegalArgumentException(
@@ -95,10 +95,10 @@ public enum UfsMode
 
   private final int value;
 
-  private UfsMode(int value) {
+  private UfsPMode(int value) {
     this.value = value;
   }
 
-  // @@protoc_insertion_point(enum_scope:alluxio.grpc.UfsMode)
+  // @@protoc_insertion_point(enum_scope:alluxio.grpc.UfsPMode)
 }
 

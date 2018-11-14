@@ -26,68 +26,68 @@ public interface SetAttributePOptionsOrBuilder extends
   long getTtl();
 
   /**
-   * <code>optional bool persisted = 3;</code>
+   * <code>optional .alluxio.grpc.TtlAction ttlAction = 3;</code>
+   */
+  boolean hasTtlAction();
+  /**
+   * <code>optional .alluxio.grpc.TtlAction ttlAction = 3;</code>
+   */
+  alluxio.grpc.TtlAction getTtlAction();
+
+  /**
+   * <code>optional bool persisted = 4;</code>
    */
   boolean hasPersisted();
   /**
-   * <code>optional bool persisted = 3;</code>
+   * <code>optional bool persisted = 4;</code>
    */
   boolean getPersisted();
 
   /**
-   * <code>optional string owner = 4;</code>
+   * <code>optional string owner = 5;</code>
    */
   boolean hasOwner();
   /**
-   * <code>optional string owner = 4;</code>
+   * <code>optional string owner = 5;</code>
    */
   java.lang.String getOwner();
   /**
-   * <code>optional string owner = 4;</code>
+   * <code>optional string owner = 5;</code>
    */
   com.google.protobuf.ByteString
       getOwnerBytes();
 
   /**
-   * <code>optional string group = 5;</code>
+   * <code>optional string group = 6;</code>
    */
   boolean hasGroup();
   /**
-   * <code>optional string group = 5;</code>
+   * <code>optional string group = 6;</code>
    */
   java.lang.String getGroup();
   /**
-   * <code>optional string group = 5;</code>
+   * <code>optional string group = 6;</code>
    */
   com.google.protobuf.ByteString
       getGroupBytes();
 
   /**
-   * <code>optional int32 mode = 6;</code>
+   * <code>optional int32 mode = 7;</code>
    */
   boolean hasMode();
   /**
-   * <code>optional int32 mode = 6;</code>
+   * <code>optional int32 mode = 7;</code>
    */
   int getMode();
 
   /**
-   * <code>optional bool recursive = 7;</code>
+   * <code>optional bool recursive = 8;</code>
    */
   boolean hasRecursive();
   /**
-   * <code>optional bool recursive = 7;</code>
+   * <code>optional bool recursive = 8;</code>
    */
   boolean getRecursive();
-
-  /**
-   * <code>optional .alluxio.grpc.TtlAction ttlAction = 8;</code>
-   */
-  boolean hasTtlAction();
-  /**
-   * <code>optional .alluxio.grpc.TtlAction ttlAction = 8;</code>
-   */
-  alluxio.grpc.TtlAction getTtlAction();
 
   /**
    * <code>optional int32 replicationMax = 9;</code>

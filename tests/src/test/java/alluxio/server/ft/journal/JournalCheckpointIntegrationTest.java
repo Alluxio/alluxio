@@ -22,8 +22,8 @@ import alluxio.client.RetryHandlingMetaMasterClient;
 import alluxio.client.file.FileSystemClientOptions;
 import alluxio.client.file.FileSystemMasterClient;
 import alluxio.client.file.RetryHandlingFileSystemMasterClient;
-import alluxio.client.file.options.UpdateUfsModeOptions;
 import alluxio.exception.AccessControlException;
+import alluxio.grpc.UfsPMode;
 import alluxio.grpc.WritePType;
 import alluxio.master.LocalAlluxioCluster;
 import alluxio.master.MasterClientConfig;
@@ -80,8 +80,8 @@ public class JournalCheckpointIntegrationTest extends BaseIntegrationTest {
   public void recoverUfsState() throws Exception {
     FileSystemMasterClient client =
         new RetryHandlingFileSystemMasterClient(MasterClientConfig.defaults());
-    client.updateUfsMode(new AlluxioURI(""),
-        UpdateUfsModeOptions.defaults().setUfsMode(UfsMode.READ_ONLY));
+    client.updateUfsMode(new AlluxioURI(""), FileSystemClientOptions.getUpdateUfsModeOptions()
+        .toBuilder().setUfsMode(UfsPMode.READ_ONLY).build());
 
     backupAndRestore();
     try {

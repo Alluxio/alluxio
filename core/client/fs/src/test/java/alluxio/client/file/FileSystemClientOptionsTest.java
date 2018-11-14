@@ -84,4 +84,11 @@ public class FileSystemClientOptionsTest {
     Assert.assertEquals(options.getLoadMetadataType(), GrpcUtils.toProto(
         Configuration.getEnum(PropertyKey.USER_FILE_METADATA_LOAD_TYPE, LoadMetadataType.class)));
   }
+
+  @Test
+  public void updateUfsModeDefaults() {
+    UpdateUfsModePOptions options = FileSystemClientOptions.getUpdateUfsModeOptions();
+    Assert.assertNotNull(options);
+    Assert.assertEquals(options.getUfsMode(), UfsPMode.READ_WRITE);
+  }
 }

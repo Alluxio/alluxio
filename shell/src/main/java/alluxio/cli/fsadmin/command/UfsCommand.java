@@ -13,10 +13,11 @@ package alluxio.cli.fsadmin.command;
 
 import alluxio.AlluxioURI;
 import alluxio.cli.CommandUtils;
-import alluxio.client.file.options.UpdateUfsModeOptions;
+import alluxio.client.file.FileSystemClientOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
-import alluxio.underfs.UfsMode;
+import alluxio.grpc.UfsPMode;
+import alluxio.grpc.UpdateUfsModePOptions;
 import alluxio.util.io.PathUtils;
 
 import org.apache.commons.cli.CommandLine;
@@ -73,22 +74,24 @@ public final class UfsCommand extends AbstractFsAdminCommand {
       return -1;
     }
     if (cl.hasOption(MODE_OPTION.getLongOpt())) {
-      UfsMode mode;
+      UfsPMode mode;
       switch (cl.getOptionValue(MODE_OPTION.getLongOpt())) {
         case "noAccess":
-          mode = UfsMode.NO_ACCESS;
+          mode = UfsPMode.NO_ACCESS;
           break;
         case "readOnly":
-          mode = UfsMode.READ_ONLY;
+          mode = UfsPMode.READ_ONLY;
           break;
         case "readWrite":
-          mode = UfsMode.READ_WRITE;
+          mode = UfsPMode.READ_WRITE;
           break;
         default:
           System.out.println("Unrecognized mode");
           return -1;
       }
-      mFsClient.updateUfsMode(ufsUri, UpdateUfsModeOptions.defaults().setUfsMode(mode));
+      UpdateUfsModePOptions options =
+          FileSystemClientOptions.getUpdateUfsModeOptions().toBuilder().setUfsMode(mode).build();
+      mFsClient.updateUfsMode(ufsUri, options);
       System.out.println("Ufs mode updated");
       return 0;
     }

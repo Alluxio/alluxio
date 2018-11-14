@@ -52,7 +52,7 @@ private static final long serialVersionUID = 0L;
           }
           case 8: {
             int rawValue = input.readEnum();
-            alluxio.grpc.UfsMode value = alluxio.grpc.UfsMode.valueOf(rawValue);
+            alluxio.grpc.UfsPMode value = alluxio.grpc.UfsPMode.valueOf(rawValue);
             if (value == null) {
               unknownFields.mergeVarintField(1, rawValue);
             } else {
@@ -89,17 +89,17 @@ private static final long serialVersionUID = 0L;
   public static final int UFSMODE_FIELD_NUMBER = 1;
   private int ufsMode_;
   /**
-   * <code>optional .alluxio.grpc.UfsMode ufsMode = 1;</code>
+   * <code>optional .alluxio.grpc.UfsPMode ufsMode = 1;</code>
    */
   public boolean hasUfsMode() {
     return ((bitField0_ & 0x00000001) == 0x00000001);
   }
   /**
-   * <code>optional .alluxio.grpc.UfsMode ufsMode = 1;</code>
+   * <code>optional .alluxio.grpc.UfsPMode ufsMode = 1;</code>
    */
-  public alluxio.grpc.UfsMode getUfsMode() {
-    alluxio.grpc.UfsMode result = alluxio.grpc.UfsMode.valueOf(ufsMode_);
-    return result == null ? alluxio.grpc.UfsMode.NoAccess : result;
+  public alluxio.grpc.UfsPMode getUfsMode() {
+    alluxio.grpc.UfsPMode result = alluxio.grpc.UfsPMode.valueOf(ufsMode_);
+    return result == null ? alluxio.grpc.UfsPMode.NO_ACCESS : result;
   }
 
   private byte memoizedIsInitialized = -1;
@@ -398,22 +398,22 @@ private static final long serialVersionUID = 0L;
 
     private int ufsMode_ = 1;
     /**
-     * <code>optional .alluxio.grpc.UfsMode ufsMode = 1;</code>
+     * <code>optional .alluxio.grpc.UfsPMode ufsMode = 1;</code>
      */
     public boolean hasUfsMode() {
       return ((bitField0_ & 0x00000001) == 0x00000001);
     }
     /**
-     * <code>optional .alluxio.grpc.UfsMode ufsMode = 1;</code>
+     * <code>optional .alluxio.grpc.UfsPMode ufsMode = 1;</code>
      */
-    public alluxio.grpc.UfsMode getUfsMode() {
-      alluxio.grpc.UfsMode result = alluxio.grpc.UfsMode.valueOf(ufsMode_);
-      return result == null ? alluxio.grpc.UfsMode.NoAccess : result;
+    public alluxio.grpc.UfsPMode getUfsMode() {
+      alluxio.grpc.UfsPMode result = alluxio.grpc.UfsPMode.valueOf(ufsMode_);
+      return result == null ? alluxio.grpc.UfsPMode.NO_ACCESS : result;
     }
     /**
-     * <code>optional .alluxio.grpc.UfsMode ufsMode = 1;</code>
+     * <code>optional .alluxio.grpc.UfsPMode ufsMode = 1;</code>
      */
-    public Builder setUfsMode(alluxio.grpc.UfsMode value) {
+    public Builder setUfsMode(alluxio.grpc.UfsPMode value) {
       if (value == null) {
         throw new NullPointerException();
       }
@@ -423,7 +423,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>optional .alluxio.grpc.UfsMode ufsMode = 1;</code>
+     * <code>optional .alluxio.grpc.UfsPMode ufsMode = 1;</code>
      */
     public Builder clearUfsMode() {
       bitField0_ = (bitField0_ & ~0x00000001);

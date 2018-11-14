@@ -8,11 +8,11 @@ public interface UpdateUfsModePOptionsOrBuilder extends
     com.google.protobuf.MessageOrBuilder {
 
   /**
-   * <code>optional .alluxio.grpc.UfsMode ufsMode = 1;</code>
+   * <code>optional .alluxio.grpc.UfsPMode ufsMode = 1;</code>
    */
   boolean hasUfsMode();
   /**
-   * <code>optional .alluxio.grpc.UfsMode ufsMode = 1;</code>
+   * <code>optional .alluxio.grpc.UfsPMode ufsMode = 1;</code>
    */
-  alluxio.grpc.UfsMode getUfsMode();
+  alluxio.grpc.UfsPMode getUfsMode();
 }
