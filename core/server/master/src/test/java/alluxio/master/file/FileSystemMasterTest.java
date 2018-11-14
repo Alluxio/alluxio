@@ -47,7 +47,6 @@ import alluxio.heartbeat.ManuallyScheduleHeartbeat;
 import alluxio.master.MasterContext;
 import alluxio.master.MasterRegistry;
 import alluxio.master.MasterTestUtils;
-import alluxio.master.SafeModeManager;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.block.BlockMasterFactory;
 import alluxio.master.file.meta.PersistenceState;
@@ -64,12 +63,12 @@ import alluxio.metrics.Metric;
 import alluxio.security.GroupMappingServiceTestUtils;
 import alluxio.security.authorization.AclEntry;
 import alluxio.thrift.Command;
-import alluxio.thrift.CommandType;
 import alluxio.thrift.RegisterWorkerTOptions;
 import alluxio.util.IdUtils;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.io.FileUtils;
+import alluxio.wire.CommandType;
 import alluxio.wire.FileBlockInfo;
 import alluxio.wire.FileInfo;
 import alluxio.wire.FileSystemCommand;
@@ -139,9 +138,6 @@ public final class FileSystemMasterTest {
   private BlockMaster mBlockMaster;
   private ExecutorService mExecutorService;
   private FileSystemMaster mFileSystemMaster;
-  private SafeModeManager mSafeModeManager;
-  private long mStartTimeMs;
-  private int mPort;
   private MetricsMaster mMetricsMaster;
   private List<Metric> mMetrics;
   private long mWorkerId1;
@@ -278,7 +274,7 @@ public final class FileSystemMasterTest {
         ImmutableMap.of("MEM", (long) Constants.KB), ImmutableList.of(blockId),
         ImmutableMap.<String, List<Long>>of(), mMetrics);
     // Verify the muted Free command on worker1.
-    assertEquals(new Command(CommandType.Nothing, ImmutableList.<Long>of()), heartbeat1);
+    assertEquals(new Command(alluxio.thrift.CommandType.Nothing, ImmutableList.<Long>of()), heartbeat1);
     assertFalse(mBlockMaster.getLostBlocks().contains(blockId));
 
     // verify the file is deleted
@@ -1585,7 +1581,7 @@ public final class FileSystemMasterTest {
         ImmutableMap.of("MEM", (long) Constants.KB), ImmutableList.of(blockId),
         ImmutableMap.<String, List<Long>>of(), mMetrics);
     // Verify the muted Free command on worker1.
-    assertEquals(new Command(CommandType.Nothing, ImmutableList.<Long>of()), heartbeat);
+    assertEquals(new Command(alluxio.thrift.CommandType.Nothing, ImmutableList.<Long>of()), heartbeat);
     assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
   }
 
@@ -1609,7 +1605,7 @@ public final class FileSystemMasterTest {
         ImmutableMap.of("MEM", (long) Constants.KB), ImmutableList.of(blockId),
         ImmutableMap.<String, List<Long>>of(), mMetrics);
     // Verify the muted Free command on worker1.
-    assertEquals(new Command(CommandType.Nothing, ImmutableList.<Long>of()), heartbeat);
+    assertEquals(new Command(alluxio.thrift.CommandType.Nothing, ImmutableList.<Long>of()), heartbeat);
     assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
   }
 
@@ -1632,7 +1628,7 @@ public final class FileSystemMasterTest {
         ImmutableMap.of("MEM", (long) Constants.KB), ImmutableList.of(blockId),
         ImmutableMap.<String, List<Long>>of(), mMetrics);
     // Verify the muted Free command on worker1.
-    assertEquals(new Command(CommandType.Nothing, ImmutableList.<Long>of()), heartbeat);
+    assertEquals(new Command(alluxio.thrift.CommandType.Nothing, ImmutableList.<Long>of()), heartbeat);
     assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
   }
 
@@ -1659,7 +1655,7 @@ public final class FileSystemMasterTest {
         ImmutableMap.of("MEM", (long) Constants.KB), ImmutableList.of(blockId),
         ImmutableMap.<String, List<Long>>of(), mMetrics);
     // Verify the muted Free command on worker1.
-    assertEquals(new Command(CommandType.Nothing, ImmutableList.<Long>of()), heartbeat);
+    assertEquals(new Command(alluxio.thrift.CommandType.Nothing, ImmutableList.<Long>of()), heartbeat);
     assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
   }
 
@@ -2013,7 +2009,7 @@ public final class FileSystemMasterTest {
         ImmutableMap.of("MEM", (long) Constants.KB), ImmutableList.of(blockId),
         ImmutableMap.<String, List<Long>>of(), mMetrics);
     // Verify the muted Free command on worker1.
-    assertEquals(new Command(CommandType.Nothing, ImmutableList.<Long>of()), heartbeat2);
+    assertEquals(new Command(alluxio.thrift.CommandType.Nothing, ImmutableList.<Long>of()), heartbeat2);
     assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
   }
 
@@ -2066,7 +2062,7 @@ public final class FileSystemMasterTest {
         ImmutableMap.of("MEM", (long) Constants.KB), ImmutableList.of(blockId),
         ImmutableMap.<String, List<Long>>of(), mMetrics);
     // Verify the muted Free command on worker1.
-    assertEquals(new Command(CommandType.Nothing, ImmutableList.<Long>of()), heartbeat);
+    assertEquals(new Command(alluxio.thrift.CommandType.Nothing, ImmutableList.<Long>of()), heartbeat);
     assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
   }
 
@@ -2101,7 +2097,7 @@ public final class FileSystemMasterTest {
         ImmutableMap.of("MEM", (long) Constants.KB), ImmutableList.of(blockId),
         ImmutableMap.<String, List<Long>>of(), mMetrics);
     // Verify the muted Free command on worker1.
-    assertEquals(new Command(CommandType.Nothing, ImmutableList.<Long>of()), heartbeat3);
+    assertEquals(new Command(alluxio.thrift.CommandType.Nothing, ImmutableList.<Long>of()), heartbeat3);
     assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
   }
 
@@ -2155,7 +2151,7 @@ public final class FileSystemMasterTest {
         ImmutableMap.of("MEM", (long) Constants.KB), ImmutableList.of(blockId),
         ImmutableMap.<String, List<Long>>of(), mMetrics);
     // Verify the muted Free command on worker1.
-    assertEquals(new Command(CommandType.Nothing, ImmutableList.<Long>of()), heartbeat);
+    assertEquals(new Command(alluxio.thrift.CommandType.Nothing, ImmutableList.<Long>of()), heartbeat);
     assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
   }
 
@@ -2533,7 +2529,7 @@ public final class FileSystemMasterTest {
     FileInfo alluxioRootInfo =
         mFileSystemMaster.getFileInfo(new AlluxioURI("alluxio://"), GET_STATUS_OPTIONS);
     UfsInfo ufsRootInfo = mFileSystemMaster.getUfsInfo(alluxioRootInfo.getMountId());
-    assertEquals(mUnderFS, ufsRootInfo.getUri());
+    assertEquals(mUnderFS, ufsRootInfo.getUri().getPath());
     assertTrue(ufsRootInfo.getMountOptions().getProperties().isEmpty());
   }
 

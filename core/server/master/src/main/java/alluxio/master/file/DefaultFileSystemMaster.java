@@ -4187,6 +4187,13 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     return new LockingScheme(path, desiredLockMode, shouldSync);
   }
 
+  private LockingScheme createLockingScheme(AlluxioURI path, FileSystemMasterCommonPOptions options,
+      InodeTree.LockMode desiredLockMode) {
+    boolean shouldSync =
+        mUfsSyncPathCache.shouldSyncPath(path.getPath(), options.getSyncIntervalMs());
+    return new LockingScheme(path, desiredLockMode, shouldSync);
+  }
+
   private boolean isAclEnabled() {
     return Configuration.getBoolean(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED);
   }

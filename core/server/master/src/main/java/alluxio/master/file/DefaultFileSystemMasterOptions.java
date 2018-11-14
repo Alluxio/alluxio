@@ -61,6 +61,7 @@ public final class DefaultFileSystemMasterOptions implements FileSystemMasterOpt
   @Override
   public DeletePOptions getDeleteOptions() {
     return DeletePOptions.newBuilder()
+            .setCommonOptions(getCommonPOptions())
             .setRecursive(false)
             .setAlluxioOnly(false)
             .setUnchecked(false)
@@ -105,6 +106,7 @@ public final class DefaultFileSystemMasterOptions implements FileSystemMasterOpt
   @Override
   public MountPOptions getMountOptions() {
     return MountPOptions.newBuilder()
+            .setCommonOptions(getCommonPOptions())
             .setShared(false)
             .setReadOnly(false)
             .build();
@@ -118,7 +120,7 @@ public final class DefaultFileSystemMasterOptions implements FileSystemMasterOpt
   @Override
   public SetAttributePOptions getSetAttributeOptions() {
     return SetAttributePOptions.newBuilder().setCommonOptions(getCommonPOptions())
-        .setTtlAction(TtlAction.DELETE).setRecursive(false).build();
+        .setTtlAction(TtlAction.DELETE).setRecursive(false).setPinned(false).build();
   }
 
   @Override

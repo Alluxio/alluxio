@@ -11,6 +11,11 @@
 
 package alluxio.master.file.options;
 
+import alluxio.Configuration;
+import alluxio.Constants;
+import alluxio.PropertyKey;
+import alluxio.wire.TtlAction;
+
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -42,6 +47,8 @@ public final class CommonOptions extends alluxio.file.options.CommonOptions<Comm
   }
 
   private CommonOptions() {
-    super();
+    mSyncIntervalMs = Configuration.getMs(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL);
+    mTtl = Constants.NO_TTL;
+    mTtlAction = TtlAction.DELETE;
   }
 }
