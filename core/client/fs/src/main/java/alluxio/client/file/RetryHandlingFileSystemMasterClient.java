@@ -14,7 +14,6 @@ package alluxio.client.file;
 import alluxio.AbstractMasterClient;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
-import alluxio.client.file.options.CompleteFileOptions;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.grpc.*;
 import alluxio.master.MasterClientConfig;
@@ -109,10 +108,10 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
   }
 
   @Override
-  public synchronized void completeFile(final AlluxioURI path, final CompleteFileOptions options)
+  public synchronized void completeFile(final AlluxioURI path, final CompleteFilePOptions options)
       throws AlluxioStatusException {
     retryRPC(() -> mBlockingStub.completeFile(CompleteFilePRequest.newBuilder()
-        .setPath(path.getPath()).setOptions(GrpcUtils.toProto(options)).build()), "CompleteFile");
+        .setPath(path.getPath()).setOptions(options).build()), "CompleteFile");
   }
 
   @Override

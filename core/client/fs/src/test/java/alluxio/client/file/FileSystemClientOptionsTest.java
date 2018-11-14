@@ -120,4 +120,11 @@ public class FileSystemClientOptionsTest {
     Assert.assertEquals(ModeUtils.applyDirectoryUMask(Mode.defaults()).toShort(), options.getMode());
     Assert.assertEquals(WritePType.WRITE_MUST_CACHE, options.getWriteType());
   }
+
+  @Test
+  public void completeFileDefaults() {
+    CompleteFilePOptions options = FileSystemClientOptions.getCompleteFileOptions();
+    Assert.assertNotNull(options);
+    Assert.assertEquals(0, options.getUfsLength());
+  }
 }

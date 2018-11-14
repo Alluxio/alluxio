@@ -13,7 +13,6 @@ package alluxio.client.file;
 
 import alluxio.AlluxioURI;
 import alluxio.Client;
-import alluxio.client.file.options.CompleteFileOptions;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.AlreadyExistsException;
 import alluxio.exception.status.NotFoundException;
@@ -85,7 +84,7 @@ public interface FileSystemMasterClient extends Client {
    * @param path the file path
    * @param options the method options
    */
-  void completeFile(AlluxioURI path, CompleteFileOptions options) throws AlluxioStatusException;
+  void completeFile(AlluxioURI path, CompleteFilePOptions options) throws AlluxioStatusException;
 
   /**
    * Deletes a file or a directory.

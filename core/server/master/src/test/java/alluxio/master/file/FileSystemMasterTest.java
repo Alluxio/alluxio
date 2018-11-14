@@ -1493,7 +1493,7 @@ public final class FileSystemMasterTest {
 
   /**
    * Tests that an exception is in the
-   * {@link FileSystemMaster#createFile(AlluxioURI, CreateFileOptions)} with a TTL set in the
+   * {@link FileSystemMaster#createFile(AlluxioURI, alluxio.file.options.CreateFileOptions)} with a TTL set in the
    * {@link CreateFileOptions} after the TTL check was done once.
    */
   @Test
@@ -1530,7 +1530,7 @@ public final class FileSystemMasterTest {
 
   /**
    * Tests that an exception is in the
-   * {@link FileSystemMaster#createDirectory(AlluxioURI, CreateDirectoryOptions)} with a TTL
+   * {@link FileSystemMaster#createDirectory(AlluxioURI, alluxio.file.options.CreateDirectoryOptions)} with a TTL
    * set in the {@link CreateDirectoryOptions} after the TTL check was done once.
    */
   @Test

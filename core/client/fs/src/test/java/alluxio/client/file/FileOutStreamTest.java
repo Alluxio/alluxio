@@ -33,13 +33,13 @@ import alluxio.client.block.stream.BlockOutStream;
 import alluxio.client.block.stream.TestBlockOutStream;
 import alluxio.client.block.stream.TestUnderFileSystemFileOutStream;
 import alluxio.client.block.stream.UnderFileSystemFileOutStream;
-import alluxio.client.file.options.CompleteFileOptions;
 import alluxio.client.file.options.OutStreamOptions;
 import alluxio.client.file.policy.FileWriteLocationPolicy;
 import alluxio.client.util.ClientTestUtils;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.UnavailableException;
+import alluxio.grpc.CompleteFilePOptions;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.WritePType;
 import alluxio.network.TieredIdentityFactory;
@@ -237,7 +237,7 @@ public class FileOutStreamTest {
       Assert.assertFalse(mAlluxioOutStreamMap.get(streamIndex).isCanceled());
       Assert.assertTrue(mAlluxioOutStreamMap.get(streamIndex).isClosed());
     }
-    verify(mFileSystemMasterClient).completeFile(eq(FILE_NAME), any(CompleteFileOptions.class));
+    verify(mFileSystemMasterClient).completeFile(eq(FILE_NAME), any(CompleteFilePOptions.class));
   }
 
   /**
@@ -255,7 +255,7 @@ public class FileOutStreamTest {
     }
     // Don't complete the file if the stream was canceled
     verify(mFileSystemMasterClient, times(0)).completeFile(any(AlluxioURI.class),
-        any(CompleteFileOptions.class));
+        any(CompleteFilePOptions.class));
   }
 
   /**
@@ -378,7 +378,7 @@ public class FileOutStreamTest {
 
     mTestStream.write(BufferUtils.getIncreasingByteArray((int) (BLOCK_LENGTH * 1.5)));
     mTestStream.close();
-    verify(mFileSystemMasterClient).completeFile(eq(FILE_NAME), any(CompleteFileOptions.class));
+    verify(mFileSystemMasterClient).completeFile(eq(FILE_NAME), any(CompleteFilePOptions.class));
     verify(mFileSystemMasterClient).scheduleAsyncPersist(eq(FILE_NAME));
   }
 

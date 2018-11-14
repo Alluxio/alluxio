@@ -148,4 +148,10 @@ public final class FileSystemClientOptions {
   public static UpdateUfsModePOptions getUpdateUfsModeOptions() {
     return UpdateUfsModePOptions.newBuilder().setUfsMode(UfsPMode.READ_WRITE).build();
   }
+  
+  public static CompleteFilePOptions getCompleteFileOptions() {
+    return CompleteFilePOptions.newBuilder().setCommonOptions(getCommonOptions()).setUfsLength(0)
+        .build();
+  } 
+  
 }
