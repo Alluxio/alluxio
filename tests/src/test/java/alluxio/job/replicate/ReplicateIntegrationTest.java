@@ -12,7 +12,6 @@
 package alluxio.job.replicate;
 
 import alluxio.AlluxioURI;
-import alluxio.client.WriteType;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystemClientOptions;
 import alluxio.client.file.FileSystemContext;

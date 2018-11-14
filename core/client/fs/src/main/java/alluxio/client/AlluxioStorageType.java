@@ -11,6 +11,9 @@
 
 package alluxio.client;
 
+import alluxio.grpc.WritePType;
+import alluxio.util.grpc.GrpcUtils;
+
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -40,6 +43,13 @@ public enum AlluxioStorageType {
 
   AlluxioStorageType(int value) {
     mValue = value;
+  }
+
+  public static AlluxioStorageType getTypeForWrite(WritePType writeType) {
+    if (GrpcUtils.isWriteTypeCache(writeType)) {
+      return AlluxioStorageType.STORE;
+    }
+    return AlluxioStorageType.NO_STORE;
   }
 
   /**

@@ -16,7 +16,7 @@ import alluxio.Constants;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemClientOptions;
-import alluxio.client.file.options.CreateFileOptions;
+import alluxio.grpc.CreateFilePOptions;
 
 /**
  * Util methods.
@@ -43,9 +43,9 @@ public final class Utils {
    * @param path the file path
    * @param options create file options
    */
-  public static void createFile(FileSystem fs, AlluxioURI path, CreateFileOptions options)
+  public static void createFile(FileSystem fs, AlluxioURI path, CreateFilePOptions options)
       throws Exception {
-    try (FileOutStream out = fs.createFile(path, options.toProto())) {
+    try (FileOutStream out = fs.createFile(path, options)) {
       out.write("test".getBytes());
     }
   }

@@ -16,9 +16,9 @@ import static org.junit.Assert.assertTrue;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
-import alluxio.client.WriteType;
 import alluxio.client.file.FileSystem;
-import alluxio.client.file.options.CreateFileOptions;
+import alluxio.client.file.FileSystemClientOptions;
+import alluxio.grpc.WritePType;
 import alluxio.master.backcompat.FsTestOp;
 import alluxio.master.backcompat.Utils;
 import alluxio.security.authorization.Mode;
@@ -43,16 +43,15 @@ public final class CreateFile extends FsTestOp {
   public void apply(FileSystem fs) throws Exception {
     Utils.createFile(fs, PATH);
     Utils.createFile(fs, NESTED);
-    Utils.createFile(fs, MODE, CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB)
-        .setRecursive(true)
-        .setMode(TEST_MODE));
-    Utils.createFile(fs, THROUGH, CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB)
-        .setRecursive(true)
-        .setWriteType(WriteType.THROUGH));
-    Utils.createFile(fs, TTL, CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB)
-        .setRecursive(true)
-        .setTtl(TEST_TTL)
-        .setTtlAction(TtlAction.FREE));
+    Utils.createFile(fs, MODE, FileSystemClientOptions.getCreateFileOptions().toBuilder()
+        .setBlockSizeBytes(Constants.KB).setRecursive(true).setMode(TEST_MODE.toShort()).build());
+    Utils.createFile(fs, THROUGH,
+        FileSystemClientOptions.getCreateFileOptions().toBuilder().setBlockSizeBytes(Constants.KB)
+            .setRecursive(true).setWriteType(WritePType.WRITE_THROUGH).build());
+    Utils.createFile(fs, TTL,
+        FileSystemClientOptions.getCreateFileOptions().toBuilder().setBlockSizeBytes(Constants.KB)
+            .setRecursive(true).setTtlNotUsed(TEST_TTL)
+            .setTtlActionNotUsed(alluxio.grpc.TtlAction.FREE).build());
   }
 
   @Override

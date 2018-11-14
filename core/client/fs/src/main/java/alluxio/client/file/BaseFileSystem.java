@@ -14,7 +14,6 @@ package alluxio.client.file;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.annotation.PublicApi;
-import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.client.file.options.OutStreamOptions;
 import alluxio.exception.AlluxioException;
@@ -139,8 +138,7 @@ public class BaseFileSystem implements FileSystem {
     }
 
     try {
-      CreateFileOptions clientOptions = CreateFileOptions.fromProto(options);
-      OutStreamOptions outStreamOptions = clientOptions.toOutStreamOptions();
+      OutStreamOptions outStreamOptions = new OutStreamOptions(options);
       outStreamOptions.setUfsPath(status.getUfsPath());
       outStreamOptions.setMountId(status.getMountId());
       outStreamOptions.setAcl(status.getAcl());

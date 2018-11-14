@@ -31,6 +31,7 @@ import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.ResourceExhaustedException;
 import alluxio.exception.status.UnavailableException;
+import alluxio.grpc.WritePType;
 import alluxio.network.TieredIdentityFactory;
 import alluxio.refresh.RefreshPolicy;
 import alluxio.refresh.TimeoutRefresh;
@@ -313,7 +314,7 @@ public final class AlluxioBlockStore {
     // The number of initial copies depends on the write type: if ASYNC_THROUGH, it is the property
     // "alluxio.user.file.replication.durable" before data has been persisted; otherwise
     // "alluxio.user.file.replication.min"
-    int initialReplicas = (options.getWriteType() == alluxio.client.WriteType.ASYNC_THROUGH
+    int initialReplicas = (options.getWriteType() == WritePType.WRITE_ASYNC_THROUGH
         && options.getReplicationDurable() > options.getReplicationMin())
         ? options.getReplicationDurable() : options.getReplicationMin();
     if (initialReplicas <= 1) {

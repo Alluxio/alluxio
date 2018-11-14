@@ -11,6 +11,9 @@
 
 package alluxio.client;
 
+import alluxio.grpc.WritePType;
+import alluxio.util.grpc.GrpcUtils;
+
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -34,6 +37,15 @@ public enum UnderStorageType {
 
   UnderStorageType(int value) {
     mValue = value;
+  }
+
+  public static UnderStorageType getTypeForWrite(WritePType writeType) {
+    if (GrpcUtils.isWriteTypeThrough(writeType)) {
+      return SYNC_PERSIST;
+    } else if (GrpcUtils.isWriteTypeAsync(writeType)) {
+      return UnderStorageType.ASYNC_PERSIST;
+    }
+    return UnderStorageType.NO_PERSIST;
   }
 
   /**

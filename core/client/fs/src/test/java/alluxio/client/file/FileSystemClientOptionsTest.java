@@ -4,6 +4,8 @@ import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.grpc.*;
+import alluxio.security.authorization.Mode;
+import alluxio.util.ModeUtils;
 import alluxio.util.grpc.GrpcUtils;
 import alluxio.wire.LoadMetadataType;
 import org.junit.Assert;
@@ -90,5 +92,22 @@ public class FileSystemClientOptionsTest {
     UpdateUfsModePOptions options = FileSystemClientOptions.getUpdateUfsModeOptions();
     Assert.assertNotNull(options);
     Assert.assertEquals(options.getUfsMode(), UfsPMode.READ_WRITE);
+  }
+
+  @Test
+  public void createFileDefaults() {
+    CreateFilePOptions options = FileSystemClientOptions.getCreateFileOptions();
+    Assert.assertNotNull(options);
+    Assert.assertEquals(options.getCommonOptions().getTtl(), Configuration.getLong(PropertyKey.USER_FILE_CREATE_TTL));
+    Assert.assertEquals(options.getCommonOptions().getTtlAction(), Configuration.getEnum(PropertyKey.USER_FILE_CREATE_TTL_ACTION, TtlAction.class));
+    Assert.assertEquals(options.getMode(), ModeUtils.applyFileUMask(Mode.defaults()).toShort());
+    Assert.assertTrue(options.getRecursive());
+    Assert.assertEquals(options.getBlockSizeBytes(), Configuration.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT));
+    Assert.assertEquals(options.getFileWriteLocationPolicy(), Configuration.get(PropertyKey.USER_FILE_WRITE_LOCATION_POLICY));
+    Assert.assertEquals(options.getWriteTier(), Configuration.getInt(PropertyKey.USER_FILE_WRITE_TIER_DEFAULT));
+    Assert.assertEquals(options.getWriteType(), WritePType.valueOf("WRITE_" + Configuration.get(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT)));
+    Assert.assertEquals(options.getReplicationDurable(), Configuration.getInt(PropertyKey.USER_FILE_REPLICATION_DURABLE));
+    Assert.assertEquals(options.getReplicationMin(), Configuration.getInt(PropertyKey.USER_FILE_REPLICATION_MIN));
+    Assert.assertEquals(options.getReplicationMax(), Configuration.getInt(PropertyKey.USER_FILE_REPLICATION_MAX));
   }
 }

@@ -14,7 +14,6 @@ package alluxio.client.hadoop;
 import alluxio.AlluxioURI;
 import alluxio.PropertyKey;
 import alluxio.client.ReadType;
-import alluxio.client.WriteType;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.FileSystemTestUtils;
