@@ -11,43 +11,19 @@
 
 package alluxio.master.file;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-import alluxio.AlluxioTestDirectory;
-import alluxio.AlluxioURI;
-import alluxio.AuthenticatedUserRule;
-import alluxio.Configuration;
-import alluxio.ConfigurationRule;
-import alluxio.ConfigurationTestUtils;
-import alluxio.Constants;
-import alluxio.LoginUserRule;
-import alluxio.PropertyKey;
+import alluxio.*;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
-import alluxio.master.DefaultSafeModeManager;
-import alluxio.master.MasterContext;
-import alluxio.master.MasterRegistry;
-import alluxio.master.MasterTestUtils;
-import alluxio.master.SafeModeManager;
+import alluxio.grpc.SetAttributePOptions;
+import alluxio.grpc.TtlAction;
+import alluxio.master.*;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.block.BlockMasterFactory;
-
-import alluxio.master.file.meta.Inode;
-import alluxio.master.file.meta.InodeDirectory;
-import alluxio.master.file.meta.InodeFile;
-import alluxio.master.file.meta.InodeLockList;
-import alluxio.master.file.meta.InodeTree;
-import alluxio.master.file.meta.LockedInodePath;
-import alluxio.master.file.meta.MutableLockedInodePath;
+import alluxio.master.file.meta.*;
 import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
-import alluxio.master.file.options.SetAttributeOptions;
 import alluxio.master.metrics.MetricsMaster;
 import alluxio.master.metrics.MetricsMasterFactory;
 import alluxio.security.GroupMappingServiceTestUtils;
@@ -57,8 +33,6 @@ import alluxio.util.CommonUtils;
 import alluxio.util.SecurityUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.FileInfo;
-import alluxio.wire.TtlAction;
-
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang3.tuple.ImmutableTriple;
@@ -75,6 +49,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+
+import static org.junit.Assert.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * Unit test for {@link FileSystemMaster} when permission check is enabled by configure
@@ -692,8 +670,8 @@ public final class PermissionCheckTest {
         PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK, "000").toResource()) {
       String file = PathUtils.concatPath(TEST_DIR_URI, "testState1");
       verifyCreateFile(TEST_USER_1, file, false);
-      SetAttributeOptions expect = getNonDefaultSetState();
-      SetAttributeOptions result = verifySetState(TEST_USER_2, file, expect);
+      SetAttributePOptions expect = getNonDefaultSetState();
+      SetAttributePOptions result = verifySetState(TEST_USER_2, file, expect);
 
       assertEquals(expect.getTtl(), result.getTtl());
       assertEquals(expect.getTtlAction(), result.getTtlAction());
@@ -708,7 +686,7 @@ public final class PermissionCheckTest {
         PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK, "066").toResource()) {
       String file = PathUtils.concatPath(TEST_DIR_URI, "testState1");
       verifyCreateFile(TEST_USER_1, file, false);
-      SetAttributeOptions expect = getNonDefaultSetState();
+      SetAttributePOptions expect = getNonDefaultSetState();
 
       mThrown.expect(AccessControlException.class);
       mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED.getMessage(
@@ -717,23 +695,20 @@ public final class PermissionCheckTest {
     }
   }
 
-  private SetAttributeOptions getNonDefaultSetState() {
-    boolean recursive = true;
-    long ttl = 11;
-
-    return SetAttributeOptions.defaults().setPinned(recursive).setTtl(ttl)
-        .setTtlAction(TtlAction.DELETE);
+  private SetAttributePOptions getNonDefaultSetState() {
+    return MASTER_OPTIONS.getSetAttributeOptions().toBuilder().setPinned(true).setTtl(11)
+        .setTtlAction(TtlAction.DELETE).build();
   }
 
-  private SetAttributeOptions verifySetState(TestUser user, String path,
-      SetAttributeOptions options) throws Exception {
+  private SetAttributePOptions verifySetState(TestUser user, String path,
+      SetAttributePOptions options) throws Exception {
     try (Closeable r = new AuthenticatedUserRule(user.getUser()).toResource()) {
       mFileSystemMaster.setAttribute(new AlluxioURI(path), options);
 
       FileInfo fileInfo = mFileSystemMaster.getFileInfo(new AlluxioURI(path),
           MASTER_OPTIONS.getGetStatusOptions());
-      return SetAttributeOptions.defaults().setPinned(fileInfo.isPinned()).setTtl(fileInfo.getTtl())
-          .setPersisted(fileInfo.isPersisted());
+      return MASTER_OPTIONS.getSetAttributeOptions().toBuilder().setPinned(fileInfo.isPinned())
+          .setTtl(fileInfo.getTtl()).setPersisted(fileInfo.isPersisted()).build();
     }
   }
 
@@ -933,9 +908,8 @@ public final class PermissionCheckTest {
   private void verifySetAcl(TestUser runUser, String path, String owner, String group,
       short mode, boolean recursive) throws Exception {
     try (Closeable r = new AuthenticatedUserRule(runUser.getUser()).toResource()) {
-      SetAttributeOptions options =
-          SetAttributeOptions.defaults().setOwner(owner).setGroup(group).setMode(mode)
-              .setRecursive(recursive);
+      SetAttributePOptions options = MASTER_OPTIONS.getSetAttributeOptions().toBuilder()
+          .setOwner(owner).setGroup(group).setMode(mode).setRecursive(recursive).build();
       mFileSystemMaster.setAttribute(new AlluxioURI(path), options);
     }
     try (Closeable r = new AuthenticatedUserRule(TEST_USER_ADMIN.getUser()).toResource()) {

@@ -20,7 +20,6 @@ import alluxio.master.file.options.CommonOptions;
 import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
-import alluxio.master.file.options.SetAttributeOptions;
 import alluxio.master.file.options.SyncMetadataOptions;
 
 /**
@@ -118,8 +117,9 @@ public final class DefaultFileSystemMasterOptions implements FileSystemMasterOpt
   }
 
   @Override
-  public SetAttributeOptions getSetAttributeOptions() {
-    return SetAttributeOptions.defaults();
+  public SetAttributePOptions getSetAttributeOptions() {
+    return SetAttributePOptions.newBuilder().setCommonOptions(getCommonPOptions())
+        .setTtlAction(TtlAction.DELETE).setRecursive(false).build();
   }
 
   @Override

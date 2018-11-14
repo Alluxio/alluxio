@@ -49,7 +49,6 @@ import alluxio.master.file.meta.TtlIntervalRule;
 import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
-import alluxio.master.file.options.SetAttributeOptions;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.authorization.Mode;
 import alluxio.testutils.BaseIntegrationTest;
@@ -1135,7 +1134,8 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
         CompleteFileOptions.defaults().setOperationTimeMs(opTimeMs).setUfsLength(0));
 
     mThrown.expect(AccessControlException.class);
-    mFsMaster.setAttribute(alluxioFile, SetAttributeOptions.defaults().setMode((short) 0777));
+    mFsMaster.setAttribute(alluxioFile,
+        MASTER_OPTIONS.getSetAttributeOptions().toBuilder().setMode((short) 0777).build());
   }
 
   @Test

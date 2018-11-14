@@ -424,37 +424,37 @@ public final class GrpcUtils {
    * @param pOptions the proto options to convert
    * @return the converted options instance
    */
-  public static SetAttributeOptions fromProto(FileSystemMasterOptions masterOptions,
+  public static SetAttributePOptions fromProto(FileSystemMasterOptions masterOptions,
       SetAttributePOptions pOptions) {
-    SetAttributeOptions options = masterOptions.getSetAttributeOptions();
+    SetAttributePOptions.Builder optionsBuilder = masterOptions.getSetAttributeOptions().toBuilder();
     if (pOptions != null) {
       if (pOptions.hasCommonOptions()) {
-        options.setCommonOptions(fromProto(masterOptions, pOptions.getCommonOptions()));
+        optionsBuilder.setCommonOptions(fromProtoToProto(masterOptions, pOptions.getCommonOptions()));
       }
       if (pOptions.hasPinned()) {
-        options.setPinned(pOptions.getPinned());
+        optionsBuilder.setPinned(pOptions.getPinned());
       }
       if (pOptions.hasTtl()) {
-        options.setTtl(pOptions.getTtl());
+        optionsBuilder.setTtl(pOptions.getTtl());
       }
       if (pOptions.hasTtlAction()) {
-        options.setTtlAction(fromProto(pOptions.getTtlAction()));
+        optionsBuilder.setTtlAction(pOptions.getTtlAction());
       }
       if (pOptions.hasPersisted()) {
-        options.setPersisted(pOptions.getPersisted());
+        optionsBuilder.setPersisted(pOptions.getPersisted());
       }
       if (pOptions.hasOwner()) {
-        options.setOwner(pOptions.getOwner());
+        optionsBuilder.setOwner(pOptions.getOwner());
       }
       if (pOptions.hasGroup()) {
-        options.setGroup(pOptions.getGroup());
+        optionsBuilder.setGroup(pOptions.getGroup());
       }
       if (pOptions.hasMode()) {
-        options.setMode((short) pOptions.getMode());
+        optionsBuilder.setMode((short) pOptions.getMode());
       }
-      options.setRecursive(pOptions.getRecursive());
+      optionsBuilder.setRecursive(pOptions.getRecursive());
     }
-    return options;
+    return optionsBuilder.build();
   }
 
   /**
@@ -1089,38 +1089,6 @@ public final class GrpcUtils {
       default:
         throw new IllegalStateException("Unrecognized set acl action: " + aclAction);
     }
-  }
-
-  /**
-   * Converts a wire type to a proto type.
-   *
-   * @param options the options type to convert
-   * @return the converted proto type
-   */
-  public static SetAttributePOptions toProto(SetAttributeOptions options) {
-    SetAttributePOptions.Builder builder =
-        SetAttributePOptions.newBuilder().setCommonOptions(toProto(options.getCommonOptions()));
-    if (options.getPinned() != null) {
-      builder.setPinned(options.getPinned());
-    }
-    if (options.getTtl() != null) {
-      builder.setTtl(options.getTtl());
-      builder.setTtlAction(toProto(options.getTtlAction()));
-    }
-    if (options.getOwner() != null) {
-      builder.setOwner(options.getOwner());
-    }
-    if (options.getGroup() != null) {
-      builder.setGroup(options.getGroup());
-    }
-    if (options.getMode() != null) {
-      builder.setMode(options.getMode());
-    }
-    if (options.getPersisted() != null) {
-      builder.setPersisted(options.getPersisted());
-    }
-    builder.setRecursive(options.isRecursive());
-    return builder.build();
   }
 
   /**

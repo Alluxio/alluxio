@@ -36,14 +36,7 @@ import alluxio.exception.status.InvalidArgumentException;
 import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.PermissionDeniedException;
 import alluxio.exception.status.UnavailableException;
-import alluxio.file.options.CommonOptions;
-import alluxio.file.options.CheckConsistencyOptions;
-import alluxio.file.options.CompleteFileOptions;
-import alluxio.file.options.CreateDirectoryOptions;
-import alluxio.file.options.CreateFileOptions;
-import alluxio.file.options.DescendantType;
-import alluxio.file.options.SetAttributeOptions;
-import alluxio.file.options.WorkerHeartbeatOptions;
+import alluxio.file.options.*;
 import alluxio.grpc.*;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatThread;
@@ -994,23 +987,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       }
     }
     statusList.add(getFileInfoInternal(currInodePath));
-  }
-
-  /**
-   * TODO(ggezer):Remove after converting ls call
-   * Checks the {@link LoadMetadataType} to determine whether or not to proceed in loading
-   * metadata. This method assumes that the path does not exist in Alluxio namespace, and will
-   * throw an exception if metadata should not be loaded.
-   *
-   * @param loadMetadataType the {@link LoadMetadataType} to check
-   * @param path the path that does not exist in Alluxio namespace (used for exception message)
-   */
-  private void checkLoadMetadataOptions(LoadMetadataType loadMetadataType, AlluxioURI path)
-      throws FileDoesNotExistException {
-    if (loadMetadataType == LoadMetadataType.Never || (loadMetadataType == LoadMetadataType.Once
-        && mUfsAbsentPathCache.isAbsent(path))) {
-      throw new FileDoesNotExistException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path));
-    }
   }
 
   /**
@@ -2250,9 +2226,10 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
               throw new UnexpectedAlluxioException(ExceptionMessage.CANNOT_FREE_PINNED_FILE
                   .getMessage(mInodeTree.getPath(freeInode)));
             }
-            SetAttributeOptions setAttributeOptions =
-                MASTER_OPTIONS.getSetAttributeOptions().setRecursive(false).setPinned(false);
-            setAttributeSingleFile(rpcContext, descedant, true, opTimeMs, setAttributeOptions);
+            SetAttributePOptions setAttributeOptions = MASTER_OPTIONS.getSetAttributeOptions()
+                .toBuilder().setRecursive(false).setPinned(false).build();
+            setAttributeSingleFile(rpcContext, descedant, true, opTimeMs,
+                new SetAttributeOptions(setAttributeOptions));
           }
           // Remove corresponding blocks from workers.
           mBlockMaster.removeBlocks(((InodeFileView) freeInode).getBlockIds(), false /* delete */);
@@ -2951,17 +2928,26 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     }
   }
 
-  @Override
-  public void setAttribute(AlluxioURI path, SetAttributeOptions options)
-      throws FileDoesNotExistException, AccessControlException, InvalidPathException,
-      IOException {
+  /**
+   * TODO(ggezer) Consider putting fingerprint to proto option in order to remove wrapper variations
+   * @param path Alluxio path of the item that is being set
+   * @param optionsWrapper Wrapper over proto options {@link SetAttributePOptions}
+   *
+   * @throws FileDoesNotExistException
+   * @throws AccessControlException
+   * @throws InvalidPathException
+   * @throws IOException
+   */
+  public void setAttribute(AlluxioURI path, SetAttributeOptions optionsWrapper)
+      throws FileDoesNotExistException, AccessControlException, InvalidPathException, IOException {
+    SetAttributePOptions options = optionsWrapper.getOptions();
     Metrics.SET_ATTRIBUTE_OPS.inc();
     // for chown
-    boolean rootRequired = options.getOwner() != null;
+    boolean rootRequired = options.hasOwner();
     // for chgrp, chmod
     boolean ownerRequired =
-        (options.getGroup() != null) || (options.getMode() != Constants.INVALID_MODE);
-    if (options.getOwner() != null && options.getGroup() != null) {
+        (options.hasGroup()) || (options.hasMode() && options.getMode() != Constants.INVALID_MODE);
+    if (options.hasOwner() && options.hasGroup()) {
       try {
         checkUserBelongsToGroup(options.getOwner(), options.getGroup());
       } catch (IOException e) {
@@ -2970,22 +2956,23 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       }
     }
     String commandName;
-    if (options.getOwner() != null) {
+    if (options.hasOwner()) {
       commandName = "chown";
-    } else if (options.getGroup() != null) {
+    } else if (options.hasGroup()) {
       commandName = "chgrp";
-    } else if (options.getMode() != null) {
+    } else if (options.hasMode()) {
       commandName = "chmod";
     } else {
       commandName = "setAttribute";
     }
-    LockingScheme lockingScheme =
-        createLockingScheme(path, options.getCommonOptions(), InodeTree.LockMode.WRITE);
+    LockingScheme lockingScheme = createLockingScheme(path,
+        GrpcUtils.fromProto(getMasterOptions(), options.getCommonOptions()),
+        InodeTree.LockMode.WRITE);
     try (RpcContext rpcContext = createRpcContext();
-         LockedInodePath inodePath = mInodeTree
-             .lockInodePath(lockingScheme.getPath(), lockingScheme.getMode());
-         FileSystemMasterAuditContext auditContext =
-             createAuditContext(commandName, path, null, inodePath.getInodeOrNull())) {
+        LockedInodePath inodePath =
+            mInodeTree.lockInodePath(lockingScheme.getPath(), lockingScheme.getMode());
+        FileSystemMasterAuditContext auditContext =
+            createAuditContext(commandName, path, null, inodePath.getInodeOrNull())) {
       try {
         mPermissionChecker.checkSetAttributePermission(inodePath, rootRequired, ownerRequired);
       } catch (AccessControlException e) {
@@ -2995,14 +2982,22 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       mMountTable.checkUnderWritableMountPoint(path);
       // Possible ufs sync.
       syncMetadata(rpcContext, inodePath, lockingScheme,
-          options.isRecursive() ? DescendantType.ALL : DescendantType.ONE);
+          options.getRecursive() ? DescendantType.ALL : DescendantType.ONE);
       if (!inodePath.fullPathExists()) {
         throw new FileDoesNotExistException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path));
       }
 
-      setAttributeInternal(rpcContext, inodePath, rootRequired, ownerRequired, options);
+      setAttributeInternal(rpcContext, inodePath, rootRequired, ownerRequired, optionsWrapper);
       auditContext.setSucceeded(true);
     }
+  }
+
+  @Override
+  public void setAttribute(AlluxioURI path, SetAttributePOptions options)
+      throws FileDoesNotExistException, AccessControlException, InvalidPathException,
+      IOException {
+    // Call internal SetAttribute with wrapped options
+    setAttribute(path, new SetAttributeOptions(options));
   }
 
   /**
@@ -3028,14 +3023,14 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * @param inodePath the {@link LockedInodePath} to set attribute for
    * @param rootRequired indicates whether it requires to be the superuser
    * @param ownerRequired indicates whether it requires to be the owner of this path
-   * @param options attributes to be set, see {@link SetAttributeOptions}
+   * @param options attributes to be set, see {@link SetAttributePOptions}
    */
   private void setAttributeInternal(RpcContext rpcContext, LockedInodePath inodePath,
       boolean rootRequired, boolean ownerRequired, SetAttributeOptions options)
       throws InvalidPathException, FileDoesNotExistException, AccessControlException, IOException {
     InodeView targetInode = inodePath.getInode();
     long opTimeMs = System.currentTimeMillis();
-    if (options.isRecursive() && targetInode.isDirectory()) {
+    if (options.getOptions().getRecursive() && targetInode.isDirectory()) {
       try (LockedInodePathList descendants = mInodeTree.lockDescendants(inodePath,
           InodeTree.LockMode.WRITE)) {
         for (LockedInodePath childPath : descendants.getInodePathList()) {
@@ -3288,14 +3283,14 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         // It works by calling SetAttributeInternal on the inodePath.
         if (ufsFpParsed.isValid()) {
           short mode = Short.parseShort(ufsFpParsed.getTag(Tag.MODE));
-          SetAttributeOptions options =
-              MASTER_OPTIONS.getSetAttributeOptions().setOwner(ufsFpParsed.getTag(Tag.OWNER))
+          SetAttributePOptions options =
+              MASTER_OPTIONS.getSetAttributeOptions().toBuilder().setOwner(ufsFpParsed.getTag(Tag.OWNER))
                   .setGroup(ufsFpParsed.getTag(Tag.GROUP))
-                  .setMode(mode)
-                  .setUfsFingerprint(ufsFingerprint);
+                  .setMode(mode).build();
           long opTimeMs = System.currentTimeMillis();
           // use replayed, since updating UFS is not desired.
-          setAttributeSingleFile(rpcContext, inodePath, false, opTimeMs, options);
+          setAttributeSingleFile(rpcContext, inodePath, false, opTimeMs,
+              new SetAttributeOptions(options).setUfsFingerprint(ufsFingerprint));
         }
       }
       if (syncPlan.toDelete()) {
@@ -3371,8 +3366,10 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
           Constants.INVALID_UFS_FINGERPRINT;
       try {
         // Permission checking for each file is performed inside setAttribute
-        setAttribute(getPath(fileId), MASTER_OPTIONS.getSetAttributeOptions().setPersisted(true)
-            .setUfsFingerprint(ufsFingerprint));
+        SetAttributePOptions setOptions =
+            MASTER_OPTIONS.getSetAttributeOptions().toBuilder().setPersisted(true).build();
+        setAttribute(getPath(fileId),
+            new SetAttributeOptions(setOptions).setUfsFingerprint(ufsFingerprint));
       } catch (FileDoesNotExistException | AccessControlException | InvalidPathException e) {
         LOG.error("Failed to set file {} as persisted, because {}", fileId, e);
       }
@@ -3396,42 +3393,45 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       boolean updateUfs, long opTimeMs, SetAttributeOptions options)
       throws FileDoesNotExistException, InvalidPathException, AccessControlException {
     InodeView inode = inodePath.getInode();
-    if (options.getPinned() != null) {
-      mInodeTree.setPinned(rpcContext, inodePath, options.getPinned(), opTimeMs);
+    SetAttributePOptions protoOptions = options.getOptions();
+    if (protoOptions.hasPinned()) {
+      mInodeTree.setPinned(rpcContext, inodePath, options.getOptions().getPinned(), opTimeMs);
     }
     UpdateInodeEntry.Builder entry = UpdateInodeEntry.newBuilder().setId(inode.getId());
-    if (options.getReplicationMax() != null || options.getReplicationMin() != null) {
-      Integer replicationMax = options.getReplicationMax();
-      Integer replicationMin = options.getReplicationMin();
+    if (protoOptions.hasReplicationMax() || protoOptions.hasReplicationMin()) {
+      Integer replicationMax = protoOptions.getReplicationMax();
+      Integer replicationMin = protoOptions.getReplicationMin();
       mInodeTree.setReplication(rpcContext, inodePath, replicationMax, replicationMin, opTimeMs);
     }
-    if (options.getTtl() != null) {
-      long ttl = options.getTtl();
-      if (inode.getTtl() != ttl || inode.getTtlAction() != options.getTtlAction()) {
+    if (protoOptions.hasTtl()) {
+      long ttl = protoOptions.getTtl();
+      if (inode.getTtl() != ttl
+          || GrpcUtils.toProto(inode.getTtlAction()) != protoOptions.getTtlAction()) {
         if (inode.getTtl() != ttl) {
           entry.setTtl(ttl);
         }
         entry.setLastModificationTimeMs(opTimeMs);
-        entry.setTtlAction(ProtobufUtils.toProtobuf(options.getTtlAction()));
+        entry.setTtlAction(ProtobufUtils.toProtobuf(GrpcUtils.fromProto(protoOptions.getTtlAction())));
       }
     }
-    if (options.getPersisted() != null) {
+    if (protoOptions.hasPersisted()) {
       Preconditions.checkArgument(inode.isFile(), PreconditionMessage.PERSIST_ONLY_FOR_FILE);
       Preconditions.checkArgument(((InodeFileView) inode).isCompleted(),
           PreconditionMessage.FILE_TO_PERSIST_MUST_BE_COMPLETE);
       InodeFileView file = (InodeFileView) inode;
       // TODO(manugoyal) figure out valid behavior in the un-persist case
       Preconditions
-          .checkArgument(options.getPersisted(), PreconditionMessage.ERR_SET_STATE_UNPERSIST);
+          .checkArgument(protoOptions.getPersisted(), PreconditionMessage.ERR_SET_STATE_UNPERSIST);
       if (!file.isPersisted()) {
         entry.setPersistenceState(PersistenceState.PERSISTED.name());
-        entry.setLastModificationTimeMs(options.getOperationTimeMs());
+        entry.setLastModificationTimeMs(protoOptions.getCommonOptions().getOperationTimeMs());
         propagatePersistedInternal(rpcContext, inodePath);
         Metrics.FILES_PERSISTED.inc();
       }
     }
-    boolean ownerGroupChanged = (options.getOwner() != null) || (options.getGroup() != null);
-    boolean modeChanged = (options.getMode() != Constants.INVALID_MODE);
+    boolean ownerGroupChanged = (protoOptions.hasOwner()) || (protoOptions.hasGroup());
+    boolean modeChanged =
+        (protoOptions.hasMode() && protoOptions.getMode() != Constants.INVALID_MODE);
     // If the file is persisted in UFS, also update corresponding owner/group/permission.
     if ((ownerGroupChanged || modeChanged) && updateUfs && inode.isPersisted()) {
       if ((inode instanceof InodeFileView) && !((InodeFileView) inode).isCompleted()) {
@@ -3451,8 +3451,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
             String mode = null;
             if (ownerGroupChanged) {
               try {
-                owner = options.getOwner() != null ? options.getOwner() : inode.getOwner();
-                group = options.getGroup() != null ? options.getGroup() : inode.getGroup();
+                owner = protoOptions.getOwner() != null ? protoOptions.getOwner() : inode.getOwner();
+                group = protoOptions.getGroup() != null ? protoOptions.getGroup() : inode.getGroup();
                 ufs.setOwner(ufsUri, owner, group);
               } catch (IOException e) {
                 throw new AccessControlException("Could not setOwner for UFS file " + ufsUri
@@ -3461,8 +3461,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
             }
             if (modeChanged) {
               try {
-                mode = String.valueOf(options.getMode());
-                ufs.setMode(ufsUri, options.getMode());
+                mode = String.valueOf(protoOptions.getMode());
+                ufs.setMode(ufsUri, (short)protoOptions.getMode());
               } catch (IOException e) {
                 throw new AccessControlException("Could not setMode for UFS file " + ufsUri
                     + " . Aborting the setAttribute operation in Alluxio.", e);
@@ -3489,14 +3489,14 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       entry.setUfsFingerprint(options.getUfsFingerprint());
     }
     // Only commit the set permission to inode after the propagation to UFS succeeded.
-    if (options.getOwner() != null) {
-      entry.setOwner(options.getOwner());
+    if (protoOptions.hasOwner()) {
+      entry.setOwner(protoOptions.getOwner());
     }
-    if (options.getGroup() != null) {
-      entry.setGroup(options.getGroup());
+    if (protoOptions.hasGroup()) {
+      entry.setGroup(protoOptions.getGroup());
     }
     if (modeChanged) {
-      entry.setMode(options.getMode());
+      entry.setMode(protoOptions.getMode());
     }
     mInodeTree.updateInode(rpcContext, entry.build());
   }

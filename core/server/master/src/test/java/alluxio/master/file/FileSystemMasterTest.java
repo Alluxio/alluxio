@@ -39,6 +39,7 @@ import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.UnexpectedAlluxioException;
+import alluxio.file.options.SetAttributeOptions;
 import alluxio.grpc.*;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
@@ -54,7 +55,6 @@ import alluxio.master.file.meta.TtlIntervalRule;
 import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
-import alluxio.master.file.options.SetAttributeOptions;
 import alluxio.master.file.options.WorkerHeartbeatOptions;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalTestUtils;
@@ -74,7 +74,6 @@ import alluxio.wire.FileBlockInfo;
 import alluxio.wire.FileInfo;
 import alluxio.wire.FileSystemCommand;
 import alluxio.wire.SetAclAction;
-import alluxio.wire.TtlAction;
 import alluxio.wire.UfsInfo;
 import alluxio.wire.WorkerNetAddress;
 
@@ -368,9 +367,9 @@ public final class FileSystemMasterTest {
     // userA has permissions to delete directory and nested file
     createFileWithSingleBlock(NESTED_FILE_URI);
     mFileSystemMaster.setAttribute(NESTED_URI,
-        SetAttributeOptions.defaults().setMode((short) 0777));
+        MASTER_OPTIONS.getSetAttributeOptions().toBuilder().setMode((short) 0777).build());
     mFileSystemMaster.setAttribute(NESTED_FILE_URI,
-        SetAttributeOptions.defaults().setMode((short) 0777));
+        MASTER_OPTIONS.getSetAttributeOptions().toBuilder().setMode((short) 0777).build());
     try (AuthenticatedClientUserResource userA = new AuthenticatedClientUserResource("userA")) {
       mFileSystemMaster.delete(NESTED_URI,
           MASTER_OPTIONS.getDeleteOptions().toBuilder().setRecursive(true).build());
@@ -385,11 +384,11 @@ public final class FileSystemMasterTest {
     createFileWithSingleBlock(NESTED_FILE_URI);
     createFileWithSingleBlock(NESTED_FILE2_URI);
     mFileSystemMaster.setAttribute(NESTED_URI,
-        SetAttributeOptions.defaults().setMode((short) 0777));
+        MASTER_OPTIONS.getSetAttributeOptions().toBuilder().setMode((short) 0777).build());
     mFileSystemMaster.setAttribute(NESTED_FILE_URI,
-        SetAttributeOptions.defaults().setMode((short) 0700));
+        MASTER_OPTIONS.getSetAttributeOptions().toBuilder().setMode((short) 0700).build());
     mFileSystemMaster.setAttribute(NESTED_FILE2_URI,
-        SetAttributeOptions.defaults().setMode((short) 0777));
+        MASTER_OPTIONS.getSetAttributeOptions().toBuilder().setMode((short) 0777).build());
     try (AuthenticatedClientUserResource userA = new AuthenticatedClientUserResource("userA")) {
       mFileSystemMaster.delete(NESTED_URI,
           MASTER_OPTIONS.getDeleteOptions().toBuilder().setRecursive(true).build());
@@ -1056,8 +1055,8 @@ public final class FileSystemMasterTest {
     }
 
     // Test with permissions
-    mFileSystemMaster.setAttribute(NESTED_URI,
-        SetAttributeOptions.defaults().setMode((short) 0400).setRecursive(true));
+    mFileSystemMaster.setAttribute(NESTED_URI, MASTER_OPTIONS.getSetAttributeOptions().toBuilder()
+        .setMode((short) 0400).setRecursive(true).build());
     try (Closeable r = new AuthenticatedUserRule("test_user1").toResource()) {
       // Test recursive listStatus
       infos = mFileSystemMaster.listStatus(ROOT_URI, MASTER_OPTIONS.getListStatusOptions()
@@ -1579,9 +1578,8 @@ public final class FileSystemMasterTest {
     long blockId = createFileWithSingleBlock(NESTED_FILE_URI);
     assertEquals(1, mBlockMaster.getBlockInfo(blockId).getLocations().size());
     // Set ttl & operation.
-    SetAttributeOptions options = SetAttributeOptions.defaults();
-    options.setTtl(0);
-    options.setTtlAction(TtlAction.FREE);
+    SetAttributePOptions options = MASTER_OPTIONS.getSetAttributeOptions().toBuilder().setTtl(0)
+        .setTtlAction(alluxio.grpc.TtlAction.FREE).build();
     mFileSystemMaster.setAttribute(NESTED_FILE_URI, options);
     Command heartbeat = mBlockMaster.workerHeartbeat(mWorkerId1,
         ImmutableMap.of("MEM", (long) Constants.KB), ImmutableList.of(blockId),
@@ -1599,9 +1597,8 @@ public final class FileSystemMasterTest {
     long blockId = createFileWithSingleBlock(NESTED_FILE_URI);
     assertEquals(1, mBlockMaster.getBlockInfo(blockId).getLocations().size());
     // Set ttl & operation.
-    SetAttributeOptions options = SetAttributeOptions.defaults();
-    options.setTtl(0);
-    options.setTtlAction(TtlAction.FREE);
+    SetAttributePOptions options = MASTER_OPTIONS.getSetAttributeOptions().toBuilder().setTtl(0)
+        .setTtlAction(alluxio.grpc.TtlAction.FREE).build();
     mFileSystemMaster.setAttribute(NESTED_FILE_URI, options);
 
     // Simulate restart.
@@ -1628,9 +1625,8 @@ public final class FileSystemMasterTest {
     long blockId = createFileWithSingleBlock(NESTED_FILE_URI);
     assertEquals(1, mBlockMaster.getBlockInfo(blockId).getLocations().size());
     // Set ttl & operation.
-    SetAttributeOptions options = SetAttributeOptions.defaults();
-    options.setTtl(0);
-    options.setTtlAction(TtlAction.FREE);
+    SetAttributePOptions options = MASTER_OPTIONS.getSetAttributeOptions().toBuilder().setTtl(0)
+        .setTtlAction(alluxio.grpc.TtlAction.FREE).build();
     mFileSystemMaster.setAttribute(NESTED_URI, options);
     Command heartbeat = mBlockMaster.workerHeartbeat(mWorkerId1,
         ImmutableMap.of("MEM", (long) Constants.KB), ImmutableList.of(blockId),
@@ -1651,9 +1647,8 @@ public final class FileSystemMasterTest {
     long blockId = createFileWithSingleBlock(NESTED_FILE_URI);
     assertEquals(1, mBlockMaster.getBlockInfo(blockId).getLocations().size());
     // Set ttl & operation.
-    SetAttributeOptions options = SetAttributeOptions.defaults();
-    options.setTtl(0);
-    options.setTtlAction(TtlAction.FREE);
+    SetAttributePOptions options = MASTER_OPTIONS.getSetAttributeOptions().toBuilder().setTtl(0)
+        .setTtlAction(alluxio.grpc.TtlAction.FREE).build();
     mFileSystemMaster.setAttribute(NESTED_URI, options);
 
     // Simulate restart.
@@ -1682,7 +1677,8 @@ public final class FileSystemMasterTest {
     assertEquals(fileId,
         mFileSystemMaster.getFileInfo(NESTED_FILE_URI, GET_STATUS_OPTIONS).getFileId());
 
-    mFileSystemMaster.setAttribute(NESTED_FILE_URI, SetAttributeOptions.defaults().setTtl(0));
+    mFileSystemMaster.setAttribute(NESTED_FILE_URI,
+        MASTER_OPTIONS.getSetAttributeOptions().toBuilder().setTtl(0).build());
     HeartbeatScheduler.execute(HeartbeatContext.MASTER_TTL_CHECK);
     // TTL is set to 0, the file should have been deleted during last TTL check.
     mThrown.expect(FileDoesNotExistException.class);
@@ -1707,7 +1703,8 @@ public final class FileSystemMasterTest {
     assertEquals(fileId,
         mFileSystemMaster.getFileInfo(NESTED_FILE_URI, GET_STATUS_OPTIONS).getFileId());
     // Set ttl.
-    mFileSystemMaster.setAttribute(NESTED_URI, SetAttributeOptions.defaults().setTtl(0));
+    mFileSystemMaster.setAttribute(NESTED_URI,
+        MASTER_OPTIONS.getSetAttributeOptions().toBuilder().setTtl(0).build());
     HeartbeatScheduler.execute(HeartbeatContext.MASTER_TTL_CHECK);
     // TTL is set to 0, the file and directory should have been deleted during last TTL check.
     mThrown.expect(FileDoesNotExistException.class);
@@ -1730,7 +1727,8 @@ public final class FileSystemMasterTest {
     assertEquals(fileId,
         mFileSystemMaster.getFileInfo(NESTED_FILE_URI, GET_STATUS_OPTIONS).getFileId());
 
-    mFileSystemMaster.setAttribute(NESTED_FILE_URI, SetAttributeOptions.defaults().setTtl(0));
+    mFileSystemMaster.setAttribute(NESTED_FILE_URI,
+        MASTER_OPTIONS.getSetAttributeOptions().toBuilder().setTtl(0).build());
     HeartbeatScheduler.execute(HeartbeatContext.MASTER_TTL_CHECK);
     // TTL is reset to 0, the file should have been deleted during last TTL check.
     mThrown.expect(FileDoesNotExistException.class);
@@ -1749,7 +1747,8 @@ public final class FileSystemMasterTest {
     HeartbeatScheduler.execute(HeartbeatContext.MASTER_TTL_CHECK);
     assertTrue(
         mFileSystemMaster.getFileInfo(NESTED_URI, GET_STATUS_OPTIONS).getName() != null);
-    mFileSystemMaster.setAttribute(NESTED_URI, SetAttributeOptions.defaults().setTtl(0));
+    mFileSystemMaster.setAttribute(NESTED_URI,
+        MASTER_OPTIONS.getSetAttributeOptions().toBuilder().setTtl(0).build());
     HeartbeatScheduler.execute(HeartbeatContext.MASTER_TTL_CHECK);
     // TTL is reset to 0, the file should have been deleted during last TTL check.
     mThrown.expect(FileDoesNotExistException.class);
@@ -1770,7 +1769,7 @@ public final class FileSystemMasterTest {
         mFileSystemMaster.getFileInfo(NESTED_FILE_URI, GET_STATUS_OPTIONS).getFileId());
 
     mFileSystemMaster.setAttribute(NESTED_FILE_URI,
-        SetAttributeOptions.defaults().setTtl(Constants.HOUR_MS));
+        MASTER_OPTIONS.getSetAttributeOptions().toBuilder().setTtl(Constants.HOUR_MS).build());
     HeartbeatScheduler.execute(HeartbeatContext.MASTER_TTL_CHECK);
     // TTL is reset to 1 hour, the file should not be deleted during last TTL check.
     assertEquals(fileId, mFileSystemMaster.getFileInfo(fileId).getFileId());
@@ -1786,7 +1785,7 @@ public final class FileSystemMasterTest {
     mFileSystemMaster.createDirectory(NESTED_URI,
         CreateDirectoryOptions.defaults().setRecursive(true).setTtl(0));
     mFileSystemMaster.setAttribute(NESTED_URI,
-        SetAttributeOptions.defaults().setTtl(Constants.HOUR_MS));
+        MASTER_OPTIONS.getSetAttributeOptions().toBuilder().setTtl(Constants.HOUR_MS).build());
     HeartbeatScheduler.execute(HeartbeatContext.MASTER_TTL_CHECK);
     // TTL is reset to 1 hour, the directory should not be deleted during last TTL check.
     assertEquals(NESTED_URI.getName(),
@@ -1806,7 +1805,7 @@ public final class FileSystemMasterTest {
     // After setting TTL to NO_TTL, the original TTL will be removed, and the file will not be
     // deleted during next TTL check.
     mFileSystemMaster.setAttribute(NESTED_FILE_URI,
-        SetAttributeOptions.defaults().setTtl(Constants.NO_TTL));
+        MASTER_OPTIONS.getSetAttributeOptions().toBuilder().setTtl(Constants.NO_TTL).build());
     HeartbeatScheduler.execute(HeartbeatContext.MASTER_TTL_CHECK);
     assertEquals(fileId, mFileSystemMaster.getFileInfo(fileId).getFileId());
   }
@@ -1825,14 +1824,14 @@ public final class FileSystemMasterTest {
     // After setting TTL to NO_TTL, the original TTL will be removed, and the file will not be
     // deleted during next TTL check.
     mFileSystemMaster.setAttribute(NESTED_URI,
-        SetAttributeOptions.defaults().setTtl(Constants.NO_TTL));
+        MASTER_OPTIONS.getSetAttributeOptions().toBuilder().setTtl(Constants.NO_TTL).build());
     HeartbeatScheduler.execute(HeartbeatContext.MASTER_TTL_CHECK);
     assertEquals(NESTED_URI.getName(),
         mFileSystemMaster.getFileInfo(NESTED_URI, GET_STATUS_OPTIONS).getName());
   }
 
   /**
-   * Tests the {@link FileSystemMaster#setAttribute(AlluxioURI, SetAttributeOptions)} method and
+   * Tests the {@link FileSystemMaster#setAttribute(AlluxioURI, SetAttributePOptions)} method and
    * that an exception is thrown when trying to set a TTL for a directory.
    */
   @Test
@@ -1843,25 +1842,27 @@ public final class FileSystemMasterTest {
     assertEquals(Constants.NO_TTL, fileInfo.getTtl());
 
     // No State.
-    mFileSystemMaster.setAttribute(NESTED_FILE_URI, SetAttributeOptions.defaults());
+    mFileSystemMaster.setAttribute(NESTED_FILE_URI, MASTER_OPTIONS.getSetAttributeOptions());
     fileInfo = mFileSystemMaster.getFileInfo(NESTED_FILE_URI, GET_STATUS_OPTIONS);
     assertFalse(fileInfo.isPinned());
     assertEquals(Constants.NO_TTL, fileInfo.getTtl());
 
     // Just set pinned flag.
-    mFileSystemMaster.setAttribute(NESTED_FILE_URI, SetAttributeOptions.defaults().setPinned(true));
+    mFileSystemMaster.setAttribute(NESTED_FILE_URI,
+        MASTER_OPTIONS.getSetAttributeOptions().toBuilder().setPinned(true).build());
     fileInfo = mFileSystemMaster.getFileInfo(NESTED_FILE_URI, GET_STATUS_OPTIONS);
     assertTrue(fileInfo.isPinned());
     assertEquals(Constants.NO_TTL, fileInfo.getTtl());
 
     // Both pinned flag and ttl value.
     mFileSystemMaster.setAttribute(NESTED_FILE_URI,
-        SetAttributeOptions.defaults().setPinned(false).setTtl(1));
+        MASTER_OPTIONS.getSetAttributeOptions().toBuilder().setTtl(1).build());
     fileInfo = mFileSystemMaster.getFileInfo(NESTED_FILE_URI, GET_STATUS_OPTIONS);
     assertFalse(fileInfo.isPinned());
     assertEquals(1, fileInfo.getTtl());
 
-    mFileSystemMaster.setAttribute(NESTED_URI, SetAttributeOptions.defaults().setTtl(1));
+    mFileSystemMaster.setAttribute(NESTED_URI,
+        MASTER_OPTIONS.getSetAttributeOptions().toBuilder().setTtl(1).build());
   }
 
   /**
@@ -2036,7 +2037,8 @@ public final class FileSystemMasterTest {
   public void freePinnedFileWithoutForce() throws Exception {
     mNestedFileOptions.setPersisted(true);
     createFileWithSingleBlock(NESTED_FILE_URI);
-    mFileSystemMaster.setAttribute(NESTED_FILE_URI, SetAttributeOptions.defaults().setPinned(true));
+    mFileSystemMaster.setAttribute(NESTED_FILE_URI,
+        MASTER_OPTIONS.getSetAttributeOptions().toBuilder().setPinned(true).build());
     mThrown.expect(UnexpectedAlluxioException.class);
     mThrown.expectMessage(ExceptionMessage.CANNOT_FREE_PINNED_FILE
         .getMessage(NESTED_FILE_URI.getPath()));
@@ -2051,7 +2053,8 @@ public final class FileSystemMasterTest {
   public void freePinnedFileWithForce() throws Exception {
     mNestedFileOptions.setPersisted(true);
     long blockId = createFileWithSingleBlock(NESTED_FILE_URI);
-    mFileSystemMaster.setAttribute(NESTED_FILE_URI, SetAttributeOptions.defaults().setPinned(true));
+    mFileSystemMaster.setAttribute(NESTED_FILE_URI,
+        MASTER_OPTIONS.getSetAttributeOptions().toBuilder().setPinned(true).build());
 
     assertEquals(1, mBlockMaster.getBlockInfo(blockId).getLocations().size());
 
@@ -2124,7 +2127,8 @@ public final class FileSystemMasterTest {
   public void freeDirWithPinnedFileAndNotForced() throws Exception {
     mNestedFileOptions.setPersisted(true);
     createFileWithSingleBlock(NESTED_FILE_URI);
-    mFileSystemMaster.setAttribute(NESTED_FILE_URI, SetAttributeOptions.defaults().setPinned(true));
+    mFileSystemMaster.setAttribute(NESTED_FILE_URI,
+        MASTER_OPTIONS.getSetAttributeOptions().toBuilder().setPinned(true).build());
     mThrown.expect(UnexpectedAlluxioException.class);
     mThrown.expectMessage(ExceptionMessage.CANNOT_FREE_PINNED_FILE
         .getMessage(NESTED_FILE_URI.getPath()));
@@ -2141,7 +2145,8 @@ public final class FileSystemMasterTest {
   public void freeDirWithPinnedFileAndForced() throws Exception {
     mNestedFileOptions.setPersisted(true);
     long blockId = createFileWithSingleBlock(NESTED_FILE_URI);
-    mFileSystemMaster.setAttribute(NESTED_FILE_URI, SetAttributeOptions.defaults().setPinned(true));
+    mFileSystemMaster.setAttribute(NESTED_FILE_URI,
+        MASTER_OPTIONS.getSetAttributeOptions().toBuilder().setPinned(true).build());
     // free the parent dir of a pinned file with "forced"
     mFileSystemMaster.free(NESTED_FILE_URI.getParent(),
         MASTER_OPTIONS.getFreeOptions().toBuilder().setForced(true).setRecursive(true).build());
@@ -2263,7 +2268,8 @@ public final class FileSystemMasterTest {
 
     mThrown.expect(AccessControlException.class);
     AlluxioURI path = new AlluxioURI("/hello/file1");
-    mFileSystemMaster.setAttribute(path, SetAttributeOptions.defaults().setOwner("owner"));
+    mFileSystemMaster.setAttribute(path,
+        MASTER_OPTIONS.getSetAttributeOptions().toBuilder().setOwner("owner").build());
   }
 
   /**
@@ -2546,8 +2552,9 @@ public final class FileSystemMasterTest {
     String fingerprint = "FINGERPRINT";
     createFileWithSingleBlock(NESTED_FILE_URI);
 
-    mFileSystemMaster.setAttribute(NESTED_FILE_URI,
-        SetAttributeOptions.defaults().setUfsFingerprint(fingerprint));
+    ((DefaultFileSystemMaster) mFileSystemMaster).setAttribute(NESTED_FILE_URI,
+        new SetAttributeOptions(mFileSystemMaster.getMasterOptions().getSetAttributeOptions())
+            .setUfsFingerprint(fingerprint));
 
     // Simulate restart.
     stopServices();
@@ -2590,7 +2597,8 @@ public final class FileSystemMasterTest {
             MASTER_OPTIONS.getGetStatusOptions()).getPersistenceState());
 
     // Persist the file.
-    mFileSystemMaster.setAttribute(nestedFile, SetAttributeOptions.defaults().setPersisted(true));
+    mFileSystemMaster.setAttribute(nestedFile,
+        MASTER_OPTIONS.getSetAttributeOptions().toBuilder().setPersisted(true).build());
 
     // Everything component should be persisted.
     assertEquals(PersistenceState.PERSISTED.toString(),

@@ -16,7 +16,6 @@ import alluxio.file.options.CompleteFileOptions;
 import alluxio.file.options.CreateDirectoryOptions;
 import alluxio.file.options.CreateFileOptions;
 import alluxio.file.options.CommonOptions;
-import alluxio.file.options.SetAttributeOptions;
 import alluxio.file.options.SyncMetadataOptions;
 import alluxio.grpc.*;
 
@@ -96,9 +95,9 @@ public interface FileSystemMasterOptions {
   SetAclPOptions getSetAclOptions();
 
   /**
-   * @return an instance of {@link SetAttributeOptions}
+   * @return an instance of {@link SetAttributePOptions}
    */
-  SetAttributeOptions getSetAttributeOptions();
+  SetAttributePOptions getSetAttributeOptions();
 
   /**
    * @return an instance of {@link SyncMetadataOptions}

@@ -24,12 +24,7 @@ import alluxio.exception.InvalidPathException;
 import alluxio.exception.UnexpectedAlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.exception.status.UnavailableException;
-import alluxio.file.options.CheckConsistencyOptions;
-import alluxio.file.options.CompleteFileOptions;
-import alluxio.file.options.CreateDirectoryOptions;
-import alluxio.file.options.CreateFileOptions;
-import alluxio.file.options.SetAttributeOptions;
-import alluxio.file.options.WorkerHeartbeatOptions;
+import alluxio.file.options.*;
 import alluxio.grpc.*;
 import alluxio.master.file.meta.FileSystemMasterView;
 import alluxio.master.file.meta.PersistenceState;
@@ -434,12 +429,12 @@ public interface FileSystemMasterService {
    * or the owner when setting the group or permission.
    *
    * @param path the path to set attribute for
-   * @param options attributes to be set, see {@link SetAttributeOptions}
+   * @param options attributes to be set, see {@link SetAttributePOptions}
    * @throws FileDoesNotExistException if the file does not exist
    * @throws AccessControlException if permission checking fails
    * @throws InvalidPathException if the given path is invalid
    */
-  void setAttribute(AlluxioURI path, SetAttributeOptions options)
+  void setAttribute(AlluxioURI path, SetAttributePOptions options)
       throws FileDoesNotExistException, AccessControlException, InvalidPathException,
       IOException;
 
