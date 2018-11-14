@@ -12,11 +12,14 @@
 package alluxio.client.file;
 
 import alluxio.AlluxioURI;
+import alluxio.Configuration;
+import alluxio.PropertyKey;
 import alluxio.annotation.PublicApi;
 import alluxio.client.AbstractOutStream;
 import alluxio.client.AlluxioStorageType;
 import alluxio.client.UnderStorageType;
 import alluxio.client.block.AlluxioBlockStore;
+import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.stream.BlockOutStream;
 import alluxio.client.block.stream.UnderFileSystemFileOutStream;
 import alluxio.client.file.options.CompleteFileOptions;
@@ -27,6 +30,7 @@ import alluxio.exception.status.UnavailableException;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.WorkerMetrics;
 import alluxio.resource.CloseableResource;
+import alluxio.retry.CountingRetry;
 import alluxio.util.CommonUtils;
 import alluxio.wire.WorkerNetAddress;
 
@@ -38,7 +42,9 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.annotation.concurrent.ThreadSafe;
@@ -54,6 +60,8 @@ import javax.annotation.concurrent.ThreadSafe;
 @NotThreadSafe
 public class FileOutStream extends AbstractOutStream {
   private static final Logger LOG = LoggerFactory.getLogger(FileOutStream.class);
+  private static final int MAX_WORKERS_TO_RETRY =
+      Configuration.getInt(PropertyKey.USER_BLOCK_WORKER_CLIENT_WRITE_RETRY);
 
   /** Used to manage closeable resources. */
   private final Closer mCloser;
@@ -63,7 +71,7 @@ public class FileOutStream extends AbstractOutStream {
   private final FileSystemContext mContext;
   private final AlluxioBlockStore mBlockStore;
   /** Stream to the file in the under storage, null if not writing to the under storage. */
-  private final UnderFileSystemFileOutStream mUnderStorageOutputStream;
+  private UnderFileSystemFileOutStream mUnderStorageOutputStream;
   private final OutStreamOptions mOptions;
 
   private boolean mCanceled;
@@ -99,8 +107,23 @@ public class FileOutStream extends AbstractOutStream {
     if (!mUnderStorageType.isSyncPersist()) {
       mUnderStorageOutputStream = null;
     } else { // Write is through to the under storage, create mUnderStorageOutputStream.
+      openUnderStorageOutputStream(path, options);
+    }
+  }
+
+  public void openUnderStorageOutputStream(AlluxioURI path, OutStreamOptions options)
+      throws IOException {
+    CountingRetry retry = new CountingRetry(MAX_WORKERS_TO_RETRY);
+    Set<WorkerNetAddress>  failedWorkers =  new HashSet<>();
+    IOException thrownException = null;
+    while (retry.attempt()) {
+      List<BlockWorkerInfo> workers = mBlockStore.getEligibleWorkers()
+          .stream()
+          .filter(worker -> !failedWorkers.contains(worker.getNetAddress()))
+          .collect(java.util.stream.Collectors.toList());
+
       WorkerNetAddress workerNetAddress = // not storing data to Alluxio, so block size is 0
-          options.getLocationPolicy().getWorkerForNextBlock(mBlockStore.getEligibleWorkers(), 0);
+          options.getLocationPolicy().getWorkerForNextBlock(workers, 0);
       if (workerNetAddress == null) {
         // Assume no worker is available because block size is 0.
         throw new UnavailableException(ExceptionMessage.NO_WORKER_AVAILABLE.getMessage());
@@ -108,10 +131,15 @@ public class FileOutStream extends AbstractOutStream {
       try {
         mUnderStorageOutputStream = mCloser
             .register(UnderFileSystemFileOutStream.create(mContext, workerNetAddress, mOptions));
-      } catch (Throwable t) {
-        throw CommonUtils.closeAndRethrow(mCloser, t);
+        return;
+      } catch (IOException e) {
+        LOG.warn("{} attempt to write into {} failed with exception : {}",
+            retry.getAttemptCount(), path, e.getMessage());
+        failedWorkers.add(workerNetAddress);
+        thrownException = e;
       }
     }
+    throw CommonUtils.closeAndRethrow(mCloser, thrownException);
   }
 
   @Override

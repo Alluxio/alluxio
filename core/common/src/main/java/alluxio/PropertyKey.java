@@ -2377,6 +2377,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("The maximum number of workers to retry before the client gives up on "
               + " reading a block")
           .build();
+  public static final PropertyKey USER_BLOCK_WORKER_CLIENT_WRITE_RETRY =
+      new Builder(Name.USER_BLOCK_WORKER_CLIENT_WRITE_RETRY)
+          .setDefaultValue(5)
+          .setDescription("The maximum number of workers to retry before the client gives up on "
+              + " writing a block")
+          .build();
   public static final PropertyKey USER_CONF_CLUSTER_DEFAULT_ENABLED =
       new Builder(Name.USER_CONF_CLUSTER_DEFAULT_ENABLED)
           .setDefaultValue(true)
@@ -3651,6 +3657,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.block.worker.client.pool.gc.threshold";
     public static final String USER_BLOCK_WORKER_CLIENT_READ_RETRY =
         "alluxio.user.block.worker.client.read.retry";
+    public static final String USER_BLOCK_WORKER_CLIENT_WRITE_RETRY =
+        "alluxio.underfs.object.store.write.retry";
     public static final String USER_CONF_CLUSTER_DEFAULT_ENABLED =
         "alluxio.user.conf.cluster.default.enabled";
     public static final String USER_DATE_FORMAT_PATTERN = "alluxio.user.date.format.pattern";
