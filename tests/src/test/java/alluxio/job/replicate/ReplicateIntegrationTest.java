@@ -113,7 +113,7 @@ public final class ReplicateIntegrationTest extends JobIntegrationTest {
     }
     String exceptionMsg = ExceptionMessage.JOB_MASTER_FULL_CAPACITY
         .getMessage(Configuration.get(PropertyKey.JOB_MASTER_JOB_CAPACITY));
-    String replicationCehckerMsg = "The job service is busy, will retry later. " + exceptionMsg;
+    String replicationCheckerMsg = "The job service is busy, will retry later. " + exceptionMsg;
     String rpcUtilsMsg = "alluxio.exception.status.ResourceExhaustedException: " + exceptionMsg;
     SetAttributeOptions opts = SetAttributeOptions.defaults();
     opts.setReplicationMin(2);
@@ -121,7 +121,7 @@ public final class ReplicateIntegrationTest extends JobIntegrationTest {
     HeartbeatScheduler.execute(HeartbeatContext.MASTER_REPLICATION_CHECK);
     // After logging we should expect only one log message to be logged as the job master
     // has a zero job capacity even though there are two jobs.
-    Assert.assertEquals(1, mLogger.logCount(replicationCehckerMsg));
+    Assert.assertEquals(1, mLogger.logCount(replicationCheckerMsg));
     Assert.assertEquals(1, mLogger.logCount(rpcUtilsMsg));
   }
 }
