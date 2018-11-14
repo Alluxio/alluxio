@@ -15,7 +15,6 @@ import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.grpc.*;
-import alluxio.master.file.options.CheckConsistencyOptions;
 import alluxio.master.file.options.CommonOptions;
 import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
@@ -28,8 +27,8 @@ import alluxio.master.file.options.SyncMetadataOptions;
 public final class DefaultFileSystemMasterOptions implements FileSystemMasterOptions {
 
   @Override
-  public CheckConsistencyOptions getCheckConsistencyOptions() {
-    return CheckConsistencyOptions.defaults();
+  public CheckConsistencyPOptions getCheckConsistencyOptions() {
+    return CheckConsistencyPOptions.newBuilder().setCommonOptions(getCommonPOptions()).build();
   }
 
   @Override

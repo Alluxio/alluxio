@@ -14,7 +14,6 @@ package alluxio.client.file;
 import alluxio.AbstractMasterClient;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
-import alluxio.client.file.options.CheckConsistencyOptions;
 import alluxio.client.file.options.CompleteFileOptions;
 import alluxio.client.file.options.UpdateUfsModeOptions;
 import alluxio.exception.status.AlluxioStatusException;
@@ -81,10 +80,10 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
 
   @Override
   public synchronized List<AlluxioURI> checkConsistency(final AlluxioURI path,
-      final CheckConsistencyOptions options) throws AlluxioStatusException {
+      final CheckConsistencyPOptions options) throws AlluxioStatusException {
     return retryRPC(() -> {
       List<String> inconsistentPaths = mBlockingStub.checkConsistency(CheckConsistencyPRequest
-          .newBuilder().setPath(path.getPath()).setOptions(GrpcUtils.toProto(options)).build())
+          .newBuilder().setPath(path.getPath()).setOptions(options).build())
           .getInconsistentPathsList();
       List<AlluxioURI> inconsistentUris = new ArrayList<>(inconsistentPaths.size());
       for (String inconsistentPath : inconsistentPaths) {

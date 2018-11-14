@@ -1030,10 +1030,11 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   }
 
   @Override
-  public List<AlluxioURI> checkConsistency(AlluxioURI path, CheckConsistencyOptions options)
+  public List<AlluxioURI> checkConsistency(AlluxioURI path, CheckConsistencyPOptions options)
       throws AccessControlException, FileDoesNotExistException, InvalidPathException, IOException {
-    LockingScheme lockingScheme =
-        createLockingScheme(path, options.getCommonOptions(), InodeTree.LockMode.READ);
+    LockingScheme lockingScheme = createLockingScheme(path,
+        GrpcUtils.fromProto(getMasterOptions(), options.getCommonOptions()),
+        InodeTree.LockMode.READ);
     List<AlluxioURI> inconsistentUris = new ArrayList<>();
     try (RpcContext rpcContext = createRpcContext();
          LockedInodePath parent =

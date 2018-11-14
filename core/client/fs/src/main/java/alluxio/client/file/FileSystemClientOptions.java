@@ -139,4 +139,9 @@ public final class FileSystemClientOptions {
     return SetAttributePOptions.newBuilder().setCommonOptions(getCommonOptions())
         .setRecursive(false).setTtlAction(alluxio.grpc.TtlAction.DELETE).build();
   }
+  
+  public static CheckConsistencyPOptions getCheckConsistencyOptions() {
+    return CheckConsistencyPOptions.newBuilder().setCommonOptions(getCommonOptions())
+        .build();
+  }
 }

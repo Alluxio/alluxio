@@ -17,7 +17,6 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemClientOptions;
 import alluxio.client.file.FileSystemUtils;
 import alluxio.client.file.URIStatus;
-import alluxio.client.file.options.CheckConsistencyOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 
@@ -91,8 +90,8 @@ public class CheckConsistencyCommand extends AbstractFileSystemCommand {
    */
   private void checkConsistency(AlluxioURI path, boolean repairConsistency) throws
       AlluxioException, IOException {
-    CheckConsistencyOptions options = CheckConsistencyOptions.defaults();
-    List<AlluxioURI> inconsistentUris = FileSystemUtils.checkConsistency(path, options);
+    List<AlluxioURI> inconsistentUris = FileSystemUtils.checkConsistency(path,
+        FileSystemClientOptions.getCheckConsistencyOptions());
     if (inconsistentUris.isEmpty()) {
       System.out.println(path + " is consistent with the under storage system.");
       return;

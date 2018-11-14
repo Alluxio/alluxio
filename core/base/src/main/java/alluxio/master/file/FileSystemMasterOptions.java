@@ -11,7 +11,6 @@
 
 package alluxio.master.file;
 
-import alluxio.file.options.CheckConsistencyOptions;
 import alluxio.file.options.CompleteFileOptions;
 import alluxio.file.options.CreateDirectoryOptions;
 import alluxio.file.options.CreateFileOptions;
@@ -24,9 +23,9 @@ import alluxio.grpc.*;
  */
 public interface FileSystemMasterOptions {
   /**
-   * @return an instance of {@link CheckConsistencyOptions}
+   * @return an instance of {@link CheckConsistencyPOptions}
    */
-  CheckConsistencyOptions getCheckConsistencyOptions();
+  CheckConsistencyPOptions getCheckConsistencyOptions();
 
   /**
    * @return an instance of {@link CommonOptions}

@@ -13,7 +13,6 @@ package alluxio.client.file;
 
 import alluxio.AlluxioURI;
 import alluxio.Client;
-import alluxio.client.file.options.CheckConsistencyOptions;
 import alluxio.client.file.options.CompleteFileOptions;
 import alluxio.client.file.options.UpdateUfsModeOptions;
 import alluxio.exception.status.AlluxioStatusException;
@@ -59,7 +58,7 @@ public interface FileSystemMasterClient extends Client {
    * @param options method options
    * @return a list of inconsistent files and directories
    */
-  List<AlluxioURI> checkConsistency(AlluxioURI path, CheckConsistencyOptions options)
+  List<AlluxioURI> checkConsistency(AlluxioURI path, CheckConsistencyPOptions options)
       throws AlluxioStatusException;
 
   /**

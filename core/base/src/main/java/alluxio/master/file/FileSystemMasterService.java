@@ -147,7 +147,7 @@ public interface FileSystemMasterService {
    * @throws FileDoesNotExistException if the path does not exist
    * @throws InvalidPathException if the path is invalid
    */
-  List<AlluxioURI> checkConsistency(AlluxioURI path, CheckConsistencyOptions options)
+  List<AlluxioURI> checkConsistency(AlluxioURI path, CheckConsistencyPOptions options)
       throws AccessControlException, FileDoesNotExistException, InvalidPathException, IOException;
 
   /**
