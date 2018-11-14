@@ -334,7 +334,7 @@ public final class FileSystemMasterClientRestServiceHandler {
   @Path(GET_MOUNT_POINTS)
   @ReturnType("java.util.SortedMap<java.lang.String, alluxio.wire.MountPointInfo>")
   public Response getMountPoints() {
-    return RestUtils.call(() -> mFileSystemMaster.getMountTable());
+    return RestUtils.call(mFileSystemMaster::getMountTable);
   }
 
   /**
