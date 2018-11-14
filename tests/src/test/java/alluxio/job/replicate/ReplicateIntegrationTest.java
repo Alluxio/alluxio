@@ -65,7 +65,7 @@ public final class ReplicateIntegrationTest extends JobIntegrationTest {
     mBlockId2 = status.getBlockIds().get(1);
   }
 
-  public void createFileOutsideOfAlluxio(AlluxioURI uri) throws Exception {
+  private void createFileOutsideOfAlluxio(AlluxioURI uri) throws Exception {
     try (FileOutStream os = mFileSystem.createFile(uri,
         CreateFileOptions.defaults()
             .setWriteType(WriteType.THROUGH)
@@ -118,6 +118,7 @@ public final class ReplicateIntegrationTest extends JobIntegrationTest {
     opts.setReplicationMin(2);
     mFileSystem.setAttribute(new AlluxioURI(rootDir), opts);
     HeartbeatScheduler.execute(HeartbeatContext.MASTER_REPLICATION_CHECK);
+
     // After logging we expect only one log message to be logged as the job master has a zero job
     // capacity even though there should be 10 replication jobs.
     Assert.assertEquals(1, mLogger.logCount(replicationCheckerMsg));

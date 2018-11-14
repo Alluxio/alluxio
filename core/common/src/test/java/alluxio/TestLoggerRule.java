@@ -50,6 +50,7 @@ public class TestLoggerRule extends AbstractResourceRule {
 
   /**
    * Count the number of times a specific pattern appears in log messages.
+   *
    * @param pattern Pattern to search for in log events
    * @return The number of log messages which match the pattern
    */
