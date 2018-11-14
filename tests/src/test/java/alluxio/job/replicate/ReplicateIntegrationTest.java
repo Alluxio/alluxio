@@ -118,8 +118,8 @@ public final class ReplicateIntegrationTest extends JobIntegrationTest {
     opts.setReplicationMin(2);
     mFileSystem.setAttribute(new AlluxioURI(rootDir), opts);
     HeartbeatScheduler.execute(HeartbeatContext.MASTER_REPLICATION_CHECK);
-    // After logging we should expect only one log message to be logged as the job master
-    // has a zero job capacity even though there are two jobs.
+    // After logging we expect only one log message to be logged as the job master has a zero job
+    // capacity even though there should be 10 replication jobs.
     Assert.assertEquals(1, mLogger.logCount(replicationCheckerMsg));
     Assert.assertEquals(1, mLogger.logCount(rpcUtilsMsg));
   }
