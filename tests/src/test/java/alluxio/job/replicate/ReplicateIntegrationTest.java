@@ -57,7 +57,6 @@ public final class ReplicateIntegrationTest extends JobIntegrationTest {
   public void before() throws Exception {
     super.before();
 
-
     AlluxioURI filePath = new AlluxioURI(TEST_URI);
     // write a file outside of Alluxio
     createFileOutsideOfAlluxio(filePath);
