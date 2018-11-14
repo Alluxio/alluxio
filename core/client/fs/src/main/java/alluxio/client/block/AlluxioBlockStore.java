@@ -50,6 +50,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.net.ConnectException;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -303,11 +304,37 @@ public final class AlluxioBlockStore {
    */
   public BlockOutStream getOutStream(long blockId, long blockSize, OutStreamOptions options)
       throws IOException {
+    return getOutStream(blockId, blockSize, options, Collections.emptyMap());
+  }
+  /**
+   * Gets a stream to write data to a block based on the options. The stream can only be backed by
+   * Alluxio storage.
+   *
+   * @param blockId the block to write
+   * @param blockSize the standard block size to write, or -1 if the block already exists (and this
+   *        stream is just storing the block in Alluxio again)
+   * @param options the output stream option
+   * @param failedWorkers the map of workers address to most recent failure time
+   * @return a {@link BlockOutStream} which can be used to write data to the block in a streaming
+   *         fashion
+   */
+  public BlockOutStream getOutStream(
+      long blockId,
+      long blockSize,
+      OutStreamOptions options,
+      Map<WorkerNetAddress, Long> failedWorkers)
+      throws IOException {
     WorkerNetAddress address;
     FileWriteLocationPolicy locationPolicy = Preconditions.checkNotNull(options.getLocationPolicy(),
         PreconditionMessage.FILE_WRITE_LOCATION_POLICY_UNSPECIFIED);
-    java.util.Set<BlockWorkerInfo> blockWorkers;
-    blockWorkers = com.google.common.collect.Sets.newHashSet(getEligibleWorkers());
+    // Workers to read the block, after considering failed workers.
+    Set<WorkerNetAddress> workers = handleFailedWorkers(
+        getEligibleWorkers().stream().map(BlockWorkerInfo::getNetAddress).collect(toSet()),
+        failedWorkers);
+    Set<BlockWorkerInfo> blockWorkers = getEligibleWorkers()
+        .stream()
+        .filter(blockWorkerInfo -> workers.contains(blockWorkerInfo))
+        .collect(toSet());
     // The number of initial copies depends on the write type: if ASYNC_THROUGH, it is the property
     // "alluxio.user.file.replication.durable" before data has been persisted; otherwise
     // "alluxio.user.file.replication.min"

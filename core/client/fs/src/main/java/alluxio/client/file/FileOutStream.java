@@ -42,9 +42,9 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.annotation.concurrent.ThreadSafe;
@@ -80,6 +80,9 @@ public class FileOutStream extends AbstractOutStream {
   private BlockOutStream mCurrentBlockOutStream;
   private final List<BlockOutStream> mPreviousBlockOutStreams;
 
+  /** A map of worker addresses to the most recent epoch time when client fails to read from it. */
+  private Map<WorkerNetAddress, Long> mFailedWorkers = new HashMap<>();
+
   protected final AlluxioURI mUri;
 
   /**
@@ -111,15 +114,14 @@ public class FileOutStream extends AbstractOutStream {
     }
   }
 
-  public void openUnderStorageOutputStream(AlluxioURI path, OutStreamOptions options)
+  private void openUnderStorageOutputStream(AlluxioURI path, OutStreamOptions options)
       throws IOException {
     CountingRetry retry = new CountingRetry(MAX_WORKERS_TO_RETRY);
-    Set<WorkerNetAddress>  failedWorkers =  new HashSet<>();
     IOException thrownException = null;
     while (retry.attempt()) {
       List<BlockWorkerInfo> workers = mBlockStore.getEligibleWorkers()
           .stream()
-          .filter(worker -> !failedWorkers.contains(worker.getNetAddress()))
+          .filter(worker -> !mFailedWorkers.containsKey(worker.getNetAddress()))
           .collect(java.util.stream.Collectors.toList());
 
       WorkerNetAddress workerNetAddress = // not storing data to Alluxio, so block size is 0
@@ -135,7 +137,7 @@ public class FileOutStream extends AbstractOutStream {
       } catch (IOException e) {
         LOG.warn("{} attempt to write into {} failed with exception : {}",
             retry.getAttemptCount(), path, e.getMessage());
-        failedWorkers.add(workerNetAddress);
+        mFailedWorkers.put(workerNetAddress, System.currentTimeMillis());
         thrownException = e;
       }
     }
@@ -293,7 +295,7 @@ public class FileOutStream extends AbstractOutStream {
 
     if (mAlluxioStorageType.isStore()) {
       mCurrentBlockOutStream =
-          mBlockStore.getOutStream(getNextBlockId(), mBlockSize, mOptions);
+          mBlockStore.getOutStream(getNextBlockId(), mBlockSize, mOptions, mFailedWorkers);
       mShouldCacheCurrentBlock = true;
     }
   }
