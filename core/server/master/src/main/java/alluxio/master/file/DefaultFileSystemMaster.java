@@ -2789,11 +2789,11 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
          LockedInodePathList children = options.getRecursive()
              ? mInodeTree.lockDescendants(inodePath, InodeTree.LockMode.WRITE) : null) {
       try {
-        mPermissionChecker.checkPermission(Mode.Bits.WRITE, inodePath);
+        mPermissionChecker.checkSetAttributePermission(inodePath, false, true);
 
         if (children != null) {
           for (LockedInodePath child : children.getInodePathList()) {
-            mPermissionChecker.checkPermission(Mode.Bits.WRITE, child);
+            mPermissionChecker.checkSetAttributePermission(child, false, true);
           }
         }
       } catch (AccessControlException e) {
