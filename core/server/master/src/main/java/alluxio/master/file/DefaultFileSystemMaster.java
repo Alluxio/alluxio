@@ -3688,6 +3688,9 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
           mQuietPeriodSeconds = (mQuietPeriodSeconds == 0) ? 1 :
               Math.min(MAX_QUIET_PERIOD_SECONDS, mQuietPeriodSeconds * 2);
           remove = false;
+          // End the method here until the next heartbeat. No more jobs should be scheduled during
+          // the current heartbeat if the job master is at full capacity.
+          return;
         } catch (Exception e) {
           LOG.warn("Unexpected exception encountered when scheduling the persist job for file {} "
               + "(id={}) : {}", uri, fileId, e.getMessage());
