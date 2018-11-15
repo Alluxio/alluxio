@@ -112,8 +112,9 @@ public final class ReplicateIntegrationTest extends JobIntegrationTest {
     }
     String exceptionMsg = ExceptionMessage.JOB_MASTER_FULL_CAPACITY
         .getMessage(Configuration.get(PropertyKey.JOB_MASTER_JOB_CAPACITY));
-    String replicationCheckerMsg = "The job service is busy, will retry later. " + exceptionMsg;
-    String rpcUtilsMsg = "alluxio.exception.status.ResourceExhaustedException: " + exceptionMsg;
+    String replicationCheckerMsg = "The job service is busy, will retry later." +
+        " alluxio.exception.status.ResourceExhaustedException: " + exceptionMsg;
+    String rpcUtilsMsg = "Error=alluxio.exception.status.ResourceExhaustedException: " + exceptionMsg;
     SetAttributeOptions opts = SetAttributeOptions.defaults();
     opts.setReplicationMin(2);
     mFileSystem.setAttribute(new AlluxioURI(rootDir), opts);
