@@ -22,18 +22,14 @@ import alluxio.file.options.CreateDirectoryOptions;
 import alluxio.file.options.CreateFileOptions;
 import alluxio.file.options.CreateUfsFileOptions;
 import alluxio.file.options.DescendantType;
-import alluxio.grpc.CheckConsistencyPOptions;
 import alluxio.grpc.CompleteFilePOptions;
 import alluxio.grpc.CompleteUfsFilePOptions;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.CreateUfsFilePOptions;
-import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.ExistsPOptions;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
-import alluxio.grpc.FreePOptions;
 import alluxio.grpc.GetStatusPOptions;
-import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.LoadDescendantPType;
 import alluxio.grpc.LoadMetadataPType;
 import alluxio.grpc.MountPOptions;
@@ -43,9 +39,6 @@ import alluxio.grpc.PAclEntry;
 import alluxio.grpc.PAclEntryType;
 import alluxio.grpc.PSetAclAction;
 import alluxio.grpc.ReadPType;
-import alluxio.grpc.RenamePOptions;
-import alluxio.grpc.SetAclPOptions;
-import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.WritePType;
 import alluxio.master.file.FileSystemMasterOptions;
 import alluxio.proto.journal.File;
@@ -86,25 +79,6 @@ public final class GrpcUtils {
   /**
    * Converts from proto type to options.
    *
-   * @param masterOptions the default master options provider
-   * @param pOptions the proto options to convert
-   * @return the converted options instance
-   */
-  public static FileSystemMasterCommonPOptions fromProtoToProto(
-          FileSystemMasterOptions masterOptions, FileSystemMasterCommonPOptions pOptions) {
-    FileSystemMasterCommonPOptions.Builder optionsBuilder =
-            toProto(masterOptions.getCommonOptions()).toBuilder();
-    if (pOptions != null) {
-      if (pOptions.hasSyncIntervalMs()) {
-        optionsBuilder.setSyncIntervalMs(pOptions.getSyncIntervalMs());
-      }
-    }
-    return optionsBuilder.build();
-  }
-
-  /**
-   * Converts from proto type to options.
-   *
    * @param existsOptions the proto options to convert
    * @return the converted proto options
    */
@@ -129,26 +103,6 @@ public final class GrpcUtils {
       }
       if (mountEntryPoint.hasShared()) {
         optionsBuilder.setShared(mountEntryPoint.getShared());
-      }
-    }
-    return optionsBuilder.build();
-  }
-
-  /**
-   * Converts from proto type to options.
-   *
-   * @param masterOptions the default master options provider
-   * @param pOptions the proto options to convert
-   * @return the converted options instance
-   */
-  public static CheckConsistencyPOptions fromProto(FileSystemMasterOptions masterOptions,
-      CheckConsistencyPOptions pOptions) {
-    CheckConsistencyPOptions.Builder optionsBuilder =
-        masterOptions.getCheckConsistencyOptions().toBuilder();
-    if (pOptions != null) {
-      if (pOptions.hasCommonOptions()) {
-        optionsBuilder
-            .setCommonOptions(fromProtoToProto(masterOptions, pOptions.getCommonOptions()));
       }
     }
     return optionsBuilder.build();
@@ -253,75 +207,7 @@ public final class GrpcUtils {
     return options;
   }
 
-  /**
-   * Converts from proto type to options.
-   *
-   * @param masterOptions the default master options provider
-   * @param pOptions the proto options to convert
-   * @return the converted options instance
-   */
-  public static FreePOptions fromProto(FileSystemMasterOptions masterOptions,
-      FreePOptions pOptions) {
-    FreePOptions.Builder optionsBuilder = masterOptions.getFreeOptions().toBuilder();
-    if (pOptions != null) {
-      if (pOptions.hasCommonOptions()) {
-        optionsBuilder
-            .setCommonOptions(fromProtoToProto(masterOptions, pOptions.getCommonOptions()));
-      }
-      optionsBuilder.setForced(pOptions.getForced());
-      optionsBuilder.setRecursive(pOptions.getRecursive());
-    }
-    return optionsBuilder.build();
-  }
 
-  /**
-   * Converts from proto type to options.
-   *
-   * @param masterOptions the default master options provider
-   * @param pOptions the proto options to convert
-   * @return the converted options instance
-   */
-  public static GetStatusPOptions fromProto(FileSystemMasterOptions masterOptions,
-      GetStatusPOptions pOptions) {
-    GetStatusPOptions.Builder optionsBuilder = masterOptions.getGetStatusOptions().toBuilder();
-    if (pOptions != null) {
-      if (pOptions.hasCommonOptions()) {
-        optionsBuilder
-            .setCommonOptions(fromProtoToProto(masterOptions, pOptions.getCommonOptions()));
-      }
-      if (pOptions.hasLoadMetadataType()) {
-        optionsBuilder.setLoadMetadataType(pOptions.getLoadMetadataType());
-      }
-    }
-    return optionsBuilder.build();
-  }
-
-  /**
-   * Converts from proto type to options.
-   *
-   * @param masterOptions the default master options provider
-   * @param pOptions the proto options to convert
-   * @return the converted options instance
-   */
-  public static ListStatusPOptions fromProto(FileSystemMasterOptions masterOptions,
-      ListStatusPOptions pOptions) {
-    ListStatusPOptions.Builder optionsBuilder = masterOptions.getListStatusOptions().toBuilder();
-    if (pOptions != null) {
-      if (pOptions.hasCommonOptions()) {
-        optionsBuilder
-            .setCommonOptions(fromProtoToProto(masterOptions, pOptions.getCommonOptions()));
-      }
-      if (pOptions.hasLoadMetadataType()) {
-        optionsBuilder.setLoadMetadataType(pOptions.getLoadMetadataType());
-      } else if (pOptions.hasLoadDirectChildren()) {
-        optionsBuilder.setLoadMetadataType(LoadMetadataPType.NEVER);
-      }
-      if (pOptions.hasRecursive()) {
-        optionsBuilder.setRecursive(pOptions.getRecursive());
-      }
-    }
-    return optionsBuilder.build();
-  }
 
   /**
    * Converts from proto type to wire type.
@@ -387,139 +273,6 @@ public final class GrpcUtils {
       default:
         throw new IllegalStateException("Unrecognized proto set acl action: " + pSetAclAction);
     }
-  }
-
-  /**
-   * Converts from proto type to options.
-   *
-   * @param masterOptions the default master options provider
-   * @param pOptions the proto options to convert
-   * @return the converted options instance
-   */
-  public static MountPOptions fromProto(FileSystemMasterOptions masterOptions,
-      MountPOptions pOptions) {
-    MountPOptions.Builder optionsBuilder = masterOptions.getMountOptions().toBuilder();
-    if (pOptions != null) {
-      if (pOptions.hasCommonOptions()) {
-        optionsBuilder
-            .setCommonOptions(fromProtoToProto(masterOptions, pOptions.getCommonOptions()));
-      }
-      if (pOptions.hasReadOnly()) {
-        optionsBuilder.setReadOnly(pOptions.getReadOnly());
-      }
-      if (pOptions.getPropertiesMap() != null) {
-        optionsBuilder.putAllProperties(pOptions.getPropertiesMap());
-      }
-      if (pOptions.getShared()) {
-        optionsBuilder.setShared(pOptions.getShared());
-      }
-    }
-    return optionsBuilder.build();
-  }
-
-  /**
-   * Converts from proto type to options.
-   *
-   * @param masterOptions the default master options provider
-   * @param pOptions the proto options to convert
-   * @return the converted options instance
-   */
-  public static DeletePOptions fromProto(FileSystemMasterOptions masterOptions,
-      DeletePOptions pOptions) {
-    DeletePOptions.Builder optionsBuilder = masterOptions.getDeleteOptions().toBuilder();
-    if (pOptions != null) {
-      if (pOptions.hasCommonOptions()) {
-        optionsBuilder
-            .setCommonOptions(fromProtoToProto(masterOptions, pOptions.getCommonOptions()));
-      }
-      optionsBuilder.setRecursive(pOptions.getRecursive());
-      optionsBuilder.setAlluxioOnly(pOptions.getAlluxioOnly());
-      optionsBuilder.setUnchecked(pOptions.getUnchecked());
-    }
-    return optionsBuilder.build();
-  }
-
-  /**
-   * Converts from proto type to options.
-   *
-   * @param masterOptions the default master options provider
-   * @param pOptions the proto options to convert
-   * @return the converted options instance
-   */
-  public static RenamePOptions fromProto(FileSystemMasterOptions masterOptions,
-      RenamePOptions pOptions) {
-    RenamePOptions.Builder optionsBuilder = masterOptions.getRenameOptions().toBuilder();
-    if (pOptions != null) {
-      if (pOptions.hasCommonOptions()) {
-        optionsBuilder
-            .setCommonOptions(fromProtoToProto(masterOptions, pOptions.getCommonOptions()));
-      }
-    }
-    return optionsBuilder.build();
-  }
-
-  /**
-   * Converts from proto type to options.
-   *
-   * @param masterOptions the default master options provider
-   * @param pOptions the proto options to convert
-   * @return the converted options instance
-   */
-  public static SetAclPOptions fromProto(FileSystemMasterOptions masterOptions,
-      SetAclPOptions pOptions) {
-    SetAclPOptions.Builder optionsBuilder = masterOptions.getSetAclOptions().toBuilder();
-    if (pOptions != null) {
-      if (pOptions.hasCommonOptions()) {
-        optionsBuilder
-            .setCommonOptions(fromProtoToProto(masterOptions, pOptions.getCommonOptions()));
-      }
-      if (pOptions.hasRecursive()) {
-        optionsBuilder.setRecursive(pOptions.getRecursive());
-      }
-    }
-    return optionsBuilder.build();
-  }
-
-  /**
-   * Converts from proto type to options.
-   *
-   * @param masterOptions the default master options provider
-   * @param pOptions the proto options to convert
-   * @return the converted options instance
-   */
-  public static SetAttributePOptions fromProto(FileSystemMasterOptions masterOptions,
-      SetAttributePOptions pOptions) {
-    SetAttributePOptions.Builder optionsBuilder =
-        masterOptions.getSetAttributeOptions().toBuilder();
-    if (pOptions != null) {
-      if (pOptions.hasCommonOptions()) {
-        optionsBuilder
-            .setCommonOptions(fromProtoToProto(masterOptions, pOptions.getCommonOptions()));
-      }
-      if (pOptions.hasPinned()) {
-        optionsBuilder.setPinned(pOptions.getPinned());
-      }
-      if (pOptions.hasTtl()) {
-        optionsBuilder.setTtl(pOptions.getTtl());
-      }
-      if (pOptions.hasTtlAction()) {
-        optionsBuilder.setTtlAction(pOptions.getTtlAction());
-      }
-      if (pOptions.hasPersisted()) {
-        optionsBuilder.setPersisted(pOptions.getPersisted());
-      }
-      if (pOptions.hasOwner()) {
-        optionsBuilder.setOwner(pOptions.getOwner());
-      }
-      if (pOptions.hasGroup()) {
-        optionsBuilder.setGroup(pOptions.getGroup());
-      }
-      if (pOptions.hasMode()) {
-        optionsBuilder.setMode((short) pOptions.getMode());
-      }
-      optionsBuilder.setRecursive(pOptions.getRecursive());
-    }
-    return optionsBuilder.build();
   }
 
   /**
