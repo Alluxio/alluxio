@@ -43,7 +43,7 @@ public interface FileSystemMasterOptions {
   CommonOptions getCommonOptions();
 
   /**
-   * TODO(ggezer) Merge with above after integrations are complete
+   * TODO(ggezer) Merge with above after integrations are complete.
    * @return an instance of {@link alluxio.grpc.FileSystemMasterCommonPOptions}
    */
   FileSystemMasterCommonPOptions getCommonPOptions();

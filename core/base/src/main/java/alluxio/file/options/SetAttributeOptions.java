@@ -16,19 +16,30 @@ import alluxio.grpc.SetAttributePOptions;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
+/**
+ * Options wrapper class for {@link SetAttributePOptions}.
+ */
 @NotThreadSafe
 public final class SetAttributeOptions {
   private SetAttributePOptions mOptions;
   private String mUfsFingerprint;
 
+  /**
+   * Create by given {@link SetAttributePOptions}.
+   * @param protoOptions proto SetAttribute options to wrap
+   */
   public SetAttributeOptions(SetAttributePOptions protoOptions) {
     mOptions = protoOptions;
     setUfsFingerprint(Constants.INVALID_UFS_FINGERPRINT);
   }
 
+  /**
+   * @return the underlying {@link SetAttributePOptions}
+   */
   public SetAttributePOptions getOptions() {
     return mOptions;
   }
+
   /**
    * @return the ufs fingerprint
    */

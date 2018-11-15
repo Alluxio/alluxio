@@ -96,10 +96,9 @@ public abstract class CreateFileOptions<T extends CreateFileOptions<T>>
    * @return the updated options object
    */
   public CreateFileOptions setReplicationMax(int replicationMax) {
-    com.google.common.base.Preconditions
-            .checkArgument(
-                    replicationMax == alluxio.Constants.REPLICATION_MAX_INFINITY || replicationMax >= 0,
-                    alluxio.exception.PreconditionMessage.INVALID_REPLICATION_MAX_VALUE);
+    com.google.common.base.Preconditions.checkArgument(
+        replicationMax == alluxio.Constants.REPLICATION_MAX_INFINITY || replicationMax >= 0,
+        alluxio.exception.PreconditionMessage.INVALID_REPLICATION_MAX_VALUE);
     mReplicationMax = replicationMax;
     return this;
   }
