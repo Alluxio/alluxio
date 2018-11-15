@@ -39,6 +39,7 @@ import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.UnexpectedAlluxioException;
+import alluxio.file.options.RenameContext;
 import alluxio.file.options.SetAttributeOptions;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.GetStatusPOptions;
@@ -1920,7 +1921,7 @@ public final class FileSystemMasterTest {
   }
 
   /**
-   * Tests the {@link FileSystemMaster#rename(AlluxioURI, AlluxioURI, RenamePOptions)} method.
+   * Tests the {@link FileSystemMaster#rename(AlluxioURI, AlluxioURI, RenameContext)} method.
    */
   @Test
   public void rename() throws Exception {
@@ -1929,7 +1930,7 @@ public final class FileSystemMasterTest {
     // try to rename a file to root
     try {
       mFileSystemMaster.rename(NESTED_FILE_URI, ROOT_URI,
-          mFileSystemMaster.getMasterOptions().getRenameOptions());
+          new RenameContext(mFileSystemMaster.getMasterOptions().getRenameOptions()));
       fail("Renaming to root should fail.");
     } catch (InvalidPathException e) {
       assertEquals(ExceptionMessage.RENAME_CANNOT_BE_TO_ROOT.getMessage(), e.getMessage());
@@ -1938,7 +1939,7 @@ public final class FileSystemMasterTest {
     // move root to another path
     try {
       mFileSystemMaster.rename(ROOT_URI, TEST_URI,
-          mFileSystemMaster.getMasterOptions().getRenameOptions());
+          new RenameContext(mFileSystemMaster.getMasterOptions().getRenameOptions()));
       fail("Should not be able to rename root");
     } catch (InvalidPathException e) {
       assertEquals(ExceptionMessage.ROOT_CANNOT_BE_RENAMED.getMessage(), e.getMessage());
@@ -1947,7 +1948,7 @@ public final class FileSystemMasterTest {
     // move to existing path
     try {
       mFileSystemMaster.rename(NESTED_FILE_URI, NESTED_URI,
-          mFileSystemMaster.getMasterOptions().getRenameOptions());
+          new RenameContext(mFileSystemMaster.getMasterOptions().getRenameOptions()));
       fail("Should not be able to overwrite existing file.");
     } catch (FileAlreadyExistsException e) {
       assertEquals(ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(NESTED_URI.getPath()),
@@ -1956,14 +1957,14 @@ public final class FileSystemMasterTest {
 
     // move a nested file to a root file
     mFileSystemMaster.rename(NESTED_FILE_URI, TEST_URI,
-        mFileSystemMaster.getMasterOptions().getRenameOptions());
+        new RenameContext(mFileSystemMaster.getMasterOptions().getRenameOptions()));
     assertEquals(mFileSystemMaster.getFileInfo(TEST_URI, GET_STATUS_OPTIONS).getPath(),
         TEST_URI.getPath());
 
     // move a file where the dst is lexicographically earlier than the source
     AlluxioURI newDst = new AlluxioURI("/abc_test");
     mFileSystemMaster.rename(TEST_URI, newDst,
-        mFileSystemMaster.getMasterOptions().getRenameOptions());
+        new RenameContext(mFileSystemMaster.getMasterOptions().getRenameOptions()));
     assertEquals(mFileSystemMaster.getFileInfo(newDst, GET_STATUS_OPTIONS).getPath(),
         newDst.getPath());
   }
@@ -1982,7 +1983,7 @@ public final class FileSystemMasterTest {
 
     // nested dir
     mFileSystemMaster.rename(TEST_URI, NESTED_FILE_URI,
-        mFileSystemMaster.getMasterOptions().getRenameOptions());
+        new RenameContext(mFileSystemMaster.getMasterOptions().getRenameOptions()));
   }
 
   @Test
@@ -1993,7 +1994,7 @@ public final class FileSystemMasterTest {
 
     try {
       mFileSystemMaster.rename(NESTED_URI, new AlluxioURI("/testDNE/b"),
-          mFileSystemMaster.getMasterOptions().getRenameOptions());
+          new RenameContext(mFileSystemMaster.getMasterOptions().getRenameOptions()));
       fail("Rename to a non-existent parent path should not succeed.");
     } catch (FileDoesNotExistException e) {
       // Expected case.
@@ -2011,7 +2012,7 @@ public final class FileSystemMasterTest {
 
     mFileSystemMaster.createFile(NESTED_URI, mNestedFileOptions);
     mFileSystemMaster.rename(NESTED_URI, NESTED_FILE_URI,
-        mFileSystemMaster.getMasterOptions().getRenameOptions());
+        new RenameContext(mFileSystemMaster.getMasterOptions().getRenameOptions()));
   }
 
   /**
@@ -2274,7 +2275,8 @@ public final class FileSystemMasterTest {
     mThrown.expect(AccessControlException.class);
     AlluxioURI src = new AlluxioURI("/hello/file1");
     AlluxioURI dst = new AlluxioURI("/hello/file2");
-    mFileSystemMaster.rename(src, dst, mFileSystemMaster.getMasterOptions().getRenameOptions());
+    mFileSystemMaster.rename(src, dst,
+        new RenameContext(mFileSystemMaster.getMasterOptions().getRenameOptions()));
   }
 
   /**

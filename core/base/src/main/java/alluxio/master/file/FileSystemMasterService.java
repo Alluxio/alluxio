@@ -27,6 +27,8 @@ import alluxio.exception.status.UnavailableException;
 import alluxio.file.options.CompleteFileOptions;
 import alluxio.file.options.CreateDirectoryOptions;
 import alluxio.file.options.CreateFileOptions;
+import alluxio.file.options.OperationContext;
+import alluxio.file.options.RenameContext;
 import alluxio.file.options.WorkerHeartbeatOptions;
 import alluxio.grpc.CheckConsistencyPOptions;
 import alluxio.grpc.DeletePOptions;
@@ -298,13 +300,13 @@ public interface FileSystemMasterService {
    *
    * @param srcPath the source path to rename
    * @param dstPath the destination path to rename the file to
-   * @param options method options
+   * @param context method context
    * @throws FileDoesNotExistException if a non-existent file is encountered
    * @throws InvalidPathException if an invalid path is encountered
    * @throws AccessControlException if permission checking fails
    * @throws FileAlreadyExistsException if the file already exists
    */
-  void rename(AlluxioURI srcPath, AlluxioURI dstPath, RenamePOptions options)
+  void rename(AlluxioURI srcPath, AlluxioURI dstPath, RenameContext context)
       throws FileAlreadyExistsException, FileDoesNotExistException, InvalidPathException,
       IOException, AccessControlException;
 

@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.RestUtils;
 import alluxio.client.file.FileSystemClientOptions;
+import alluxio.file.options.RenameContext;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.LoadMetadataPType;
 import alluxio.grpc.MountPOptions;
@@ -378,7 +379,7 @@ public final class FileSystemMasterClientRestServiceHandler {
         Preconditions.checkNotNull(srcPath, "required 'srcPath' parameter is missing");
         Preconditions.checkNotNull(dstPath, "required 'dstPath' parameter is missing");
         mFileSystemMaster.rename(new AlluxioURI(srcPath), new AlluxioURI(dstPath),
-            mFileSystemMaster.getMasterOptions().getRenameOptions());
+            new RenameContext(mFileSystemMaster.getMasterOptions().getRenameOptions()));
         return null;
       }
     });

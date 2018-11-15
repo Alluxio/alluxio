@@ -41,6 +41,7 @@ import alluxio.file.options.CompleteFileOptions;
 import alluxio.file.options.CreateDirectoryOptions;
 import alluxio.file.options.CreateFileOptions;
 import alluxio.file.options.DescendantType;
+import alluxio.file.options.RenameContext;
 import alluxio.file.options.SetAttributeOptions;
 import alluxio.file.options.WorkerHeartbeatOptions;
 import alluxio.grpc.CheckConsistencyPOptions;
@@ -1928,16 +1929,16 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   }
 
   @Override
-  public void rename(AlluxioURI srcPath, AlluxioURI dstPath, RenamePOptions options)
+  public void rename(AlluxioURI srcPath, AlluxioURI dstPath, RenameContext context)
       throws FileAlreadyExistsException, FileDoesNotExistException, InvalidPathException,
       IOException, AccessControlException {
     Metrics.RENAME_PATH_OPS.inc();
     LockingScheme srcLockingScheme =
         createLockingScheme(srcPath,
-            GrpcUtils.fromProto(getMasterOptions(), options.getCommonOptions()),
+            GrpcUtils.fromProto(getMasterOptions(), context.getOptions().getCommonOptions()),
             InodeTree.LockMode.WRITE);
     LockingScheme dstLockingScheme = createLockingScheme(dstPath,
-        GrpcUtils.fromProto(getMasterOptions(), options.getCommonOptions()),
+        GrpcUtils.fromProto(getMasterOptions(), context.getOptions().getCommonOptions()),
         InodeTree.LockMode.READ);
     // Require a WRITE lock on the source but only a READ lock on the destination. Since the
     // destination should not exist, we will only obtain a READ lock on the destination parent. The
@@ -1964,7 +1965,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
       mMountTable.checkUnderWritableMountPoint(srcPath);
       mMountTable.checkUnderWritableMountPoint(dstPath);
-      renameInternal(rpcContext, srcInodePath, dstInodePath, options);
+      renameInternal(rpcContext, srcInodePath, dstInodePath, context);
       auditContext.setSrcInode(srcInodePath.getInode()).setSucceeded(true);
       LOG.debug("Renamed {} to {}", srcPath, dstPath);
     }
@@ -1976,10 +1977,10 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * @param rpcContext the rpc context
    * @param srcInodePath the source path to rename
    * @param dstInodePath the destination path to rename the file to
-   * @param options method options
+   * @param context method options
    */
   private void renameInternal(RpcContext rpcContext, LockedInodePath srcInodePath,
-      LockedInodePath dstInodePath, RenamePOptions options) throws InvalidPathException,
+      LockedInodePath dstInodePath, RenameContext context) throws InvalidPathException,
       FileDoesNotExistException, FileAlreadyExistsException, IOException, AccessControlException {
     if (!srcInodePath.fullPathExists()) {
       throw new FileDoesNotExistException(
@@ -2037,7 +2038,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     }
 
     // Now we remove srcInode from its parent and insert it into dstPath's parent
-    renameInternal(rpcContext, srcInodePath, dstInodePath, false, options);
+    renameInternal(rpcContext, srcInodePath, dstInodePath, false, context);
   }
 
   /**
@@ -2047,10 +2048,10 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * @param srcInodePath the path of the rename source
    * @param dstInodePath the path to the rename destination
    * @param replayed whether the operation is a result of replaying the journal
-   * @param options method options
+   * @param context method options
    */
   private void renameInternal(RpcContext rpcContext, LockedInodePath srcInodePath,
-      LockedInodePath dstInodePath, boolean replayed, RenamePOptions options)
+      LockedInodePath dstInodePath, boolean replayed, RenameContext context)
       throws FileDoesNotExistException, InvalidPathException, IOException, AccessControlException {
 
     // Rename logic:
@@ -2072,7 +2073,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
     if (!mInodeTree.rename(rpcContext, RenameEntry.newBuilder()
         .setId(srcInode.getId())
-        .setOpTimeMs(options.getCommonOptions().getOperationTimeMs())
+        .setOpTimeMs(context.getOperationTimeMs())
         .setNewParentId(dstParentInode.getId())
         .setNewName(dstName)
         .build())) {
@@ -2132,7 +2133,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       // On failure, revert changes and throw exception.
       if (!mInodeTree.rename(rpcContext, RenameEntry.newBuilder()
           .setId(srcInode.getId())
-          .setOpTimeMs(options.getCommonOptions().getOperationTimeMs())
+          .setOpTimeMs(context.getOperationTimeMs())
           .setNewName(srcName)
           .setNewParentId(srcParentInode.getId())
           .build())) {

@@ -29,6 +29,7 @@ import alluxio.PropertyKey;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
+import alluxio.file.options.RenameContext;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.TtlAction;
 import alluxio.master.DefaultSafeModeManager;
@@ -469,7 +470,7 @@ public final class PermissionCheckTest {
               .getOwner();
 
       mFileSystemMaster.rename(new AlluxioURI(srcPath), new AlluxioURI(dstPath),
-          mFileSystemMaster.getMasterOptions().getRenameOptions());
+          new RenameContext(mFileSystemMaster.getMasterOptions().getRenameOptions()));
 
       assertEquals(-1, mFileSystemMaster.getFileId(new AlluxioURI(srcPath)));
       FileInfo fileInfo =

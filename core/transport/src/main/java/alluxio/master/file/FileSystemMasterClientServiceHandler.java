@@ -12,6 +12,7 @@
 package alluxio.master.file;
 
 import alluxio.AlluxioURI;
+import alluxio.file.options.RenameContext;
 import alluxio.grpc.CheckConsistencyPOptions;
 import alluxio.grpc.CheckConsistencyPRequest;
 import alluxio.grpc.CheckConsistencyPResponse;
@@ -245,7 +246,7 @@ public final class FileSystemMasterClientServiceHandler
     RenamePOptions options = request.getOptions();
     RpcUtilsNew.call(LOG, (RpcUtilsNew.RpcCallableThrowsIOException<RenamePResponse>) () -> {
       mFileSystemMaster.rename(new AlluxioURI(srcPath), new AlluxioURI(dstPath),
-          GrpcUtils.fromProto(mOptionsService, options));
+          new RenameContext(GrpcUtils.fromProto(mOptionsService, options)));
       return RenamePResponse.newBuilder().build();
     }, "Rename", "srcPath=%s, dstPath=%s, options=%s", responseObserver, srcPath, dstPath, options);
   }
