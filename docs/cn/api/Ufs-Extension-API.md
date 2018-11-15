@@ -85,7 +85,7 @@ public class DummyUnderFileSystemFactory implements UnderFileSystemFactory {
 
 ### 声明该服务
 
-在`src/main/resources/META-INF/services/alluxio.underfs.UnderFileSystemFactory`创建文件来告知ServiceLoader完成的`UnderFileSystemFactory`。
+在`src/main/resources/META_INF/services/alluxio.underfs.UnderFileSystemFactory`创建文件来告知ServiceLoader完成的`UnderFileSystemFactory`。
 
 ```
 alluxio.underfs.dummy.DummyUnderFileSystemFactory
