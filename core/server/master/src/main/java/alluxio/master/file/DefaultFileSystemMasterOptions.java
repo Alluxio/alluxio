@@ -14,16 +14,32 @@ package alluxio.master.file;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
-import alluxio.grpc.*;
+import alluxio.grpc.CheckConsistencyPOptions;
+import alluxio.grpc.DeletePOptions;
+import alluxio.grpc.FileSystemMasterCommonPOptions;
+import alluxio.grpc.FreePOptions;
+import alluxio.grpc.GetStatusPOptions;
+import alluxio.grpc.ListStatusPOptions;
+import alluxio.grpc.LoadDescendantPType;
+import alluxio.grpc.LoadMetadataPOptions;
+import alluxio.grpc.LoadMetadataPType;
+import alluxio.grpc.MountPOptions;
+import alluxio.grpc.RenamePOptions;
+import alluxio.grpc.SetAclPOptions;
+import alluxio.grpc.SetAttributePOptions;
+import alluxio.grpc.TtlAction;
 import alluxio.master.file.options.CommonOptions;
 import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
 import alluxio.master.file.options.SyncMetadataOptions;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 /**
- * The file system class to set default options.
+ * The file system class to set default options for master.
  */
+@ThreadSafe
 public final class DefaultFileSystemMasterOptions implements FileSystemMasterOptions {
 
   @Override

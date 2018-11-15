@@ -21,6 +21,12 @@ import alluxio.util.grpc.GrpcUtils;
 import alluxio.wire.LoadMetadataType;
 import alluxio.wire.TtlAction;
 
+import javax.annotation.concurrent.ThreadSafe;
+
+/**
+ * The file system class to set default options for client.
+ */
+@ThreadSafe
 public final class FileSystemClientOptions {
 
   public static FileSystemMasterCommonPOptions getCommonOptions() {

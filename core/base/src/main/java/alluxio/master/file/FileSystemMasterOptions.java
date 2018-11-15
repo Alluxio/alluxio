@@ -16,7 +16,17 @@ import alluxio.file.options.CreateDirectoryOptions;
 import alluxio.file.options.CreateFileOptions;
 import alluxio.file.options.CommonOptions;
 import alluxio.file.options.SyncMetadataOptions;
-import alluxio.grpc.*;
+import alluxio.grpc.CheckConsistencyPOptions;
+import alluxio.grpc.DeletePOptions;
+import alluxio.grpc.FileSystemMasterCommonPOptions;
+import alluxio.grpc.FreePOptions;
+import alluxio.grpc.GetStatusPOptions;
+import alluxio.grpc.ListStatusPOptions;
+import alluxio.grpc.LoadMetadataPOptions;
+import alluxio.grpc.MountPOptions;
+import alluxio.grpc.RenamePOptions;
+import alluxio.grpc.SetAclPOptions;
+import alluxio.grpc.SetAttributePOptions;
 
 /**
  * The interface for file system master default options.
@@ -34,7 +44,7 @@ public interface FileSystemMasterOptions {
 
   /**
    * TODO(ggezer) Merge with above after integrations are complete
-   * @return an instance of {@link FileSystemMasterCommonPOptions}
+   * @return an instance of {@link alluxio.grpc.FileSystemMasterCommonPOptions}
    */
   FileSystemMasterCommonPOptions getCommonPOptions();
 
