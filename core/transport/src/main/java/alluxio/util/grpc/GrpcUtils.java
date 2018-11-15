@@ -633,13 +633,16 @@ public final class GrpcUtils {
             .setFileBlockInfos(map(GrpcUtils::fromProto, pInfo.getFileBlockInfosList()))
             .setMountId(pInfo.getMountId())
             .setInAlluxioPercentage(pInfo.getInAlluxioPercentage())
+            .setInMemoryPercentage(pInfo.getInMemoryPercentage())
             .setUfsFingerprint(pInfo.hasUfsFingerprint() ? pInfo.getUfsFingerprint()
                     : Constants.INVALID_UFS_FINGERPRINT)
             .setAcl(pInfo.hasAcl() ? (fromProto(pInfo.getAcl()))
                     : AccessControlList.EMPTY_ACL)
             .setDefaultAcl(
                     pInfo.hasDefaultAcl() ? ((DefaultAccessControlList) fromProto(pInfo.getDefaultAcl()))
-                            : DefaultAccessControlList.EMPTY_DEFAULT_ACL);
+                            : DefaultAccessControlList.EMPTY_DEFAULT_ACL)
+            .setReplicationMax(pInfo.getReplicationMax())
+            .setReplicationMin(pInfo.getReplicationMin());
   }
 
   /**
@@ -1000,7 +1003,11 @@ public final class GrpcUtils {
             .setTtlAction(GrpcUtils.toProto(fileInfo.getTtlAction()))
             .setMountId(fileInfo.getMountId())
             .setInAlluxioPercentage(fileInfo.getInAlluxioPercentage())
-            .setUfsFingerprint(fileInfo.getUfsFingerprint());
+            .setInMemoryPercentage(fileInfo.getInMemoryPercentage())
+            .setUfsFingerprint(fileInfo.getUfsFingerprint())
+            .setReplicationMax(fileInfo.getReplicationMax())
+            .setReplicationMin(fileInfo.getReplicationMin());
+
     if (!fileInfo.getAcl().equals(AccessControlList.EMPTY_ACL)) {
       builder.setAcl(toProto(fileInfo.getAcl()));
     }

@@ -163,9 +163,12 @@ message FileInfo {
   optional grpc.TtlAction ttlAction = 22;
   optional int64 mountId = 23;
   optional int32 inAlluxioPercentage = 24;
-  optional string ufsFingerprint = 25;
-  optional PAcl acl = 26;
-  optional PAcl defaultAcl = 27;
+  optional int32 inMemoryPercentage = 25;
+  optional string ufsFingerprint = 26;
+  optional PAcl acl = 27;
+  optional PAcl defaultAcl = 28;
+  optional int32 replicationMax = 29;
+  optional int32 replicationMin = 30;
 }
 
 message MountPResponse {}
