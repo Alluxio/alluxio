@@ -3683,7 +3683,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
           LOG.warn("Failed to persist file {}, will retry later: {}", uri, e.toString());
           remove = false;
         } catch (ResourceExhaustedException e) {
-          LOG.warn("The job service is busy, will retry later: {}", e.getMessage());
+          LOG.warn("The job service is busy, will retry later: {}", e.toString());
           LOG.debug("Exception: ", e);
           mQuietPeriodSeconds = (mQuietPeriodSeconds == 0) ? 1 :
               Math.min(MAX_QUIET_PERIOD_SECONDS, mQuietPeriodSeconds * 2);

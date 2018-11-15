@@ -212,7 +212,7 @@ public final class ReplicationChecker implements HeartbeatExecutor {
             LOG.warn("Unexpected replication mode {}.", mode);
         }
       } catch (JobDoesNotExistException | ResourceExhaustedException e) {
-        LOG.warn("The job service is busy, will retry later. {}", e.getMessage());
+        LOG.warn("The job service is busy, will retry later. {}", e.toString());
         mQuietPeriodSeconds = (mQuietPeriodSeconds == 0) ? 1 :
             Math.min(MAX_QUIET_PERIOD_SECONDS, mQuietPeriodSeconds * 2);
         return;
