@@ -60,7 +60,7 @@ public final class DefaultFileSystemMasterOptions implements FileSystemMasterOpt
     return FileSystemMasterCommonPOptions.newBuilder().setTtl(Constants.NO_TTL)
         .setTtlAction(TtlAction.DELETE)
         .setSyncIntervalMs(Configuration.getMs(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL))
-        .setOperationTimeMs(System.currentTimeMillis()).build();
+        .build();
   }
 
   @Override

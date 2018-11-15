@@ -12,7 +12,6 @@ message FileSystemMasterCommonPOptions {
   optional int64 syncIntervalMs = 1;
   optional int64 ttl = 2;
   optional grpc.TtlAction ttlAction = 3;
-  optional int64 operationTimeMs = 4;
 }
 
 message CheckConsistencyPOptions {
