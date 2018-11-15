@@ -77,6 +77,7 @@ import java.util.HashMap;
 import java.util.List;
 
 /**
+ * TODO(ggezer) Fix permissions
  * Unit test for {@link FileSystemMaster} when permission check is enabled by configure
  * alluxio.security.authorization.permission.enabled=true.
  */

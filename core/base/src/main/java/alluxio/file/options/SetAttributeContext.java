@@ -11,6 +11,7 @@
 
 package alluxio.file.options;
 
+import alluxio.Constants;
 import alluxio.grpc.SetAttributePOptions;
 
 /**
@@ -28,6 +29,7 @@ public class SetAttributeContext extends OperationContext<SetAttributePOptions>{
     public SetAttributeContext(SetAttributePOptions options) {
         super(options);
         mOperationTimeMs = System.currentTimeMillis();
+        mUfsFingerprint = Constants.INVALID_UFS_FINGERPRINT;
     }
 
     /**

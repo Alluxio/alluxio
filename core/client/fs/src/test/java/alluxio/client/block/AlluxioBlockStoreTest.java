@@ -95,10 +95,18 @@ public final class AlluxioBlockStoreTest {
    * A mock class used to return controlled result when selecting workers.
    */
   @ThreadSafe
-  private static class MockFileWriteLocationPolicy
+  public static class MockFileWriteLocationPolicy
       implements FileWriteLocationPolicy, BlockLocationPolicy {
     private List<WorkerNetAddress> mWorkerNetAddresses;
     private int mIndex;
+
+    /**
+     * Cosntructs this mock location policy with empty host list.
+     */
+    public MockFileWriteLocationPolicy(){
+      mIndex = 0;
+      mWorkerNetAddresses =  Collections.emptyList();
+    }
 
     /**
      * Constructs this mock policy that returns the given result, once a time, in the input order.
@@ -258,7 +266,7 @@ public final class AlluxioBlockStoreTest {
         new URIStatus(new FileInfo().setPersisted(true).setBlockIds(Collections.singletonList(0L))
             .setFileBlockInfos(Collections.singletonList(new FileBlockInfo().setBlockInfo(info))));
     OpenFilePOptions readOptions = FileSystemClientOptions.getOpenFileOptions().toBuilder()
-        .setFileReadLocationPolicy(MockFileWriteLocationPolicy.class.getCanonicalName()).build();
+        .setFileReadLocationPolicy(MockFileWriteLocationPolicy.class.getTypeName()).build();
     InStreamOptions options = new InStreamOptions(dummyStatus, readOptions);
     ((MockFileWriteLocationPolicy) options.getUfsReadLocationPolicy())
         .setHosts(Arrays.asList(worker1, worker2));
