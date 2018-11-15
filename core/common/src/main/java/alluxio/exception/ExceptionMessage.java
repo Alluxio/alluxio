@@ -278,6 +278,7 @@ public enum ExceptionMessage {
   // job manager
   JOB_DEFINITION_DOES_NOT_EXIST("The job definition for config {0} does not exist"),
   JOB_DOES_NOT_EXIST("The job of id {0} does not exist"),
+  JOB_MASTER_FULL_CAPACITY("Job master is at full capacity of {0} jobs"),
 
   // block worker
   FAILED_COMMIT_BLOCK_TO_MASTER("Failed to commit block with blockId {0,number,#} to master"),
