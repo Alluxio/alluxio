@@ -85,7 +85,7 @@ Again, increase the interval to reduce the number of heartbeat checks.
 
 ## Alluxio Client Configuration
 
-## RPC Retry Interval
+### RPC Retry Interval
 
 The following properties tune RPC retry intervals:
 
