@@ -13,12 +13,7 @@ package alluxio.master.file.options;
 
 import alluxio.util.ModeUtils;
 
-import com.google.common.base.Objects;
-import com.google.common.collect.ImmutableList;
-
 import javax.annotation.concurrent.NotThreadSafe;
-import java.util.Collections;
-import java.util.List;
 
 /**
  * Method options for creating a directory.

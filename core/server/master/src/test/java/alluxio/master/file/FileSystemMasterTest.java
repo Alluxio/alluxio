@@ -40,7 +40,14 @@ import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.UnexpectedAlluxioException;
 import alluxio.file.options.SetAttributeOptions;
-import alluxio.grpc.*;
+import alluxio.grpc.DeletePOptions;
+import alluxio.grpc.GetStatusPOptions;
+import alluxio.grpc.LoadDescendantPType;
+import alluxio.grpc.LoadMetadataPType;
+import alluxio.grpc.MountPOptions;
+import alluxio.grpc.RenamePOptions;
+import alluxio.grpc.SetAclPOptions;
+import alluxio.grpc.SetAttributePOptions;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
@@ -121,7 +128,8 @@ public final class FileSystemMasterTest {
   private static final AlluxioURI ROOT_FILE_URI = new AlluxioURI("/file");
   private static final AlluxioURI TEST_URI = new AlluxioURI("/test");
   private static final String TEST_USER = "test";
-  private static final FileSystemMasterOptions MASTER_OPTIONS = new DefaultFileSystemMasterOptions();
+  private static final FileSystemMasterOptions MASTER_OPTIONS =
+      new DefaultFileSystemMasterOptions();
   private static final GetStatusPOptions GET_STATUS_OPTIONS = MASTER_OPTIONS.getGetStatusOptions();
 
   // Constants for tests on persisted directories.
@@ -274,7 +282,8 @@ public final class FileSystemMasterTest {
         ImmutableMap.of("MEM", (long) Constants.KB), ImmutableList.of(blockId),
         ImmutableMap.<String, List<Long>>of(), mMetrics);
     // Verify the muted Free command on worker1.
-    assertEquals(new Command(alluxio.thrift.CommandType.Nothing, ImmutableList.<Long>of()), heartbeat1);
+    assertEquals(new Command(alluxio.thrift.CommandType.Nothing, ImmutableList.<Long>of()),
+        heartbeat1);
     assertFalse(mBlockMaster.getLostBlocks().contains(blockId));
 
     // verify the file is deleted
@@ -285,7 +294,8 @@ public final class FileSystemMasterTest {
     // Create ufs file.
     Files.createDirectory(Paths.get(ufsMount.join("dir1").getPath()));
     Files.createFile(Paths.get(ufsMount.join("dir1").join("file1").getPath()));
-    mFileSystemMaster.mount(new AlluxioURI("/mnt/local"), ufsMount, MASTER_OPTIONS.getMountOptions());
+    mFileSystemMaster.mount(new AlluxioURI("/mnt/local"), ufsMount,
+        MASTER_OPTIONS.getMountOptions());
 
     AlluxioURI uri = new AlluxioURI("/mnt/local/dir1");
     mFileSystemMaster.listStatus(uri,
@@ -298,9 +308,8 @@ public final class FileSystemMasterTest {
     assertTrue(Files.exists(Paths.get(ufsMount.join("dir1").join("file1").getPath())));
     // verify the file is deleted
     mThrown.expect(FileDoesNotExistException.class);
-    mFileSystemMaster.getFileInfo(new AlluxioURI("/mnt/local/dir1/file1"),
-        MASTER_OPTIONS.getGetStatusOptions().toBuilder().
-            setLoadMetadataType(LoadMetadataPType.NEVER).build());
+    mFileSystemMaster.getFileInfo(new AlluxioURI("/mnt/local/dir1/file1"), MASTER_OPTIONS
+        .getGetStatusOptions().toBuilder().setLoadMetadataType(LoadMetadataPType.NEVER).build());
   }
 
   /**
@@ -343,7 +352,8 @@ public final class FileSystemMasterTest {
     mFileSystemMaster.createDirectory(new AlluxioURI("/mnt/"), CreateDirectoryOptions.defaults());
     // Create ufs file.
     Files.createDirectory(Paths.get(ufsMount.join("dir1").getPath()));
-    mFileSystemMaster.mount(new AlluxioURI("/mnt/local"), ufsMount, MASTER_OPTIONS.getMountOptions());
+    mFileSystemMaster.mount(new AlluxioURI("/mnt/local"), ufsMount,
+        MASTER_OPTIONS.getMountOptions());
     // load the dir1 to alluxio
     mFileSystemMaster.listStatus(new AlluxioURI("/mnt/local"),
         MASTER_OPTIONS.getListStatusOptions().toBuilder()
@@ -747,7 +757,8 @@ public final class FileSystemMasterTest {
 
     // Create ufs file.
     Files.createFile(Paths.get(ufsMount.join("file").getPath()));
-    mFileSystemMaster.mount(new AlluxioURI("/mnt/local"), ufsMount, MASTER_OPTIONS.getMountOptions());
+    mFileSystemMaster.mount(new AlluxioURI("/mnt/local"), ufsMount,
+        MASTER_OPTIONS.getMountOptions());
 
     // 3 directories exist.
     assertEquals(3, mFileSystemMaster.getNumberOfPaths());
@@ -768,7 +779,8 @@ public final class FileSystemMasterTest {
 
     // Create ufs file.
     Files.createFile(Paths.get(ufsMount.join("file").getPath()));
-    mFileSystemMaster.mount(new AlluxioURI("/mnt/local"), ufsMount, MASTER_OPTIONS.getMountOptions());
+    mFileSystemMaster.mount(new AlluxioURI("/mnt/local"), ufsMount,
+        MASTER_OPTIONS.getMountOptions());
 
     // 3 directories exist.
     assertEquals(3, mFileSystemMaster.getNumberOfPaths());
@@ -790,7 +802,8 @@ public final class FileSystemMasterTest {
     Files.createDirectory(Paths.get(ufsMount.join("dir1").getPath()));
     Files.createFile(Paths.get(ufsMount.join("dir1").join("file1").getPath()));
     Files.createFile(Paths.get(ufsMount.join("dir1").join("file2").getPath()));
-    mFileSystemMaster.mount(new AlluxioURI("/mnt/local"), ufsMount, MASTER_OPTIONS.getMountOptions());
+    mFileSystemMaster.mount(new AlluxioURI("/mnt/local"), ufsMount,
+        MASTER_OPTIONS.getMountOptions());
 
     // 3 directories exist.
     assertEquals(3, mFileSystemMaster.getNumberOfPaths());
@@ -817,7 +830,8 @@ public final class FileSystemMasterTest {
     Files.createDirectory(Paths.get(ufsMount.join("dir1").getPath()));
     Files.createFile(Paths.get(ufsMount.join("dir1").join("file1").getPath()));
     Files.createFile(Paths.get(ufsMount.join("dir1").join("file2").getPath()));
-    mFileSystemMaster.mount(new AlluxioURI("/mnt/local"), ufsMount, MASTER_OPTIONS.getMountOptions());
+    mFileSystemMaster.mount(new AlluxioURI("/mnt/local"), ufsMount,
+        MASTER_OPTIONS.getMountOptions());
 
     // 3 directories exist.
     assertEquals(3, mFileSystemMaster.getNumberOfPaths());
@@ -845,7 +859,8 @@ public final class FileSystemMasterTest {
 
     // Create ufs file.
     Files.createDirectory(Paths.get(ufsMount.join("dir1").getPath()));
-    mFileSystemMaster.mount(new AlluxioURI("/mnt/local"), ufsMount, MASTER_OPTIONS.getMountOptions());
+    mFileSystemMaster.mount(new AlluxioURI("/mnt/local"), ufsMount,
+        MASTER_OPTIONS.getMountOptions());
 
     // 3 directories exist.
     assertEquals(3, mFileSystemMaster.getNumberOfPaths());
@@ -892,7 +907,8 @@ public final class FileSystemMasterTest {
     mFileSystemMaster.createDirectory(new AlluxioURI("/mnt/"), CreateDirectoryOptions.defaults());
 
     // Create ufs file.
-    mFileSystemMaster.mount(new AlluxioURI("/mnt/local"), ufsMount, MASTER_OPTIONS.getMountOptions());
+    mFileSystemMaster.mount(new AlluxioURI("/mnt/local"), ufsMount,
+        MASTER_OPTIONS.getMountOptions());
 
     // 3 directories exist.
     assertEquals(3, mFileSystemMaster.getNumberOfPaths());
@@ -1156,7 +1172,8 @@ public final class FileSystemMasterTest {
       // Expected case.
     }
 
-    mFileSystemMaster.mount(new AlluxioURI("/mnt/local"), ufsMount, MASTER_OPTIONS.getMountOptions());
+    mFileSystemMaster.mount(new AlluxioURI("/mnt/local"), ufsMount,
+        MASTER_OPTIONS.getMountOptions());
     // Alluxio mount point should exist after mounting.
     assertNotNull(
         mFileSystemMaster.getFileInfo(new AlluxioURI("/mnt/local"), GET_STATUS_OPTIONS));
@@ -1184,7 +1201,8 @@ public final class FileSystemMasterTest {
     Files.createDirectory(Paths.get(ufsMount.join("nested").getPath()));
     Files.createFile(Paths.get(ufsMount.join("nested").join("file").getPath()));
 
-    mFileSystemMaster.mount(new AlluxioURI("/mnt/local"), ufsMount, MASTER_OPTIONS.getMountOptions());
+    mFileSystemMaster.mount(new AlluxioURI("/mnt/local"), ufsMount,
+        MASTER_OPTIONS.getMountOptions());
 
     // Test simple file.
     AlluxioURI uri = new AlluxioURI("/mnt/local/file");
@@ -1493,8 +1511,8 @@ public final class FileSystemMasterTest {
 
   /**
    * Tests that an exception is in the
-   * {@link FileSystemMaster#createFile(AlluxioURI, alluxio.file.options.CreateFileOptions)} with a TTL set in the
-   * {@link CreateFileOptions} after the TTL check was done once.
+   * {@link FileSystemMaster#createFile(AlluxioURI, alluxio.file.options.CreateFileOptions)} with a
+   * TTL set in the {@link CreateFileOptions} after the TTL check was done once.
    */
   @Test
   public void ttlFileDelete() throws Exception {
@@ -1530,8 +1548,8 @@ public final class FileSystemMasterTest {
 
   /**
    * Tests that an exception is in the
-   * {@link FileSystemMaster#createDirectory(AlluxioURI, alluxio.file.options.CreateDirectoryOptions)} with a TTL
-   * set in the {@link CreateDirectoryOptions} after the TTL check was done once.
+   * {@literal FileSystemMaster#createDirectory(AlluxioURI, CreateDirectoryOptions)}
+   * with a TTL set in the {@link CreateDirectoryOptions} after the TTL check was done once.
    */
   @Test
   public void ttlDirectoryDelete() throws Exception {
@@ -1581,7 +1599,8 @@ public final class FileSystemMasterTest {
         ImmutableMap.of("MEM", (long) Constants.KB), ImmutableList.of(blockId),
         ImmutableMap.<String, List<Long>>of(), mMetrics);
     // Verify the muted Free command on worker1.
-    assertEquals(new Command(alluxio.thrift.CommandType.Nothing, ImmutableList.<Long>of()), heartbeat);
+    assertEquals(new Command(alluxio.thrift.CommandType.Nothing, ImmutableList.<Long>of()),
+        heartbeat);
     assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
   }
 
@@ -1605,7 +1624,8 @@ public final class FileSystemMasterTest {
         ImmutableMap.of("MEM", (long) Constants.KB), ImmutableList.of(blockId),
         ImmutableMap.<String, List<Long>>of(), mMetrics);
     // Verify the muted Free command on worker1.
-    assertEquals(new Command(alluxio.thrift.CommandType.Nothing, ImmutableList.<Long>of()), heartbeat);
+    assertEquals(new Command(alluxio.thrift.CommandType.Nothing, ImmutableList.<Long>of()),
+        heartbeat);
     assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
   }
 
@@ -1628,7 +1648,8 @@ public final class FileSystemMasterTest {
         ImmutableMap.of("MEM", (long) Constants.KB), ImmutableList.of(blockId),
         ImmutableMap.<String, List<Long>>of(), mMetrics);
     // Verify the muted Free command on worker1.
-    assertEquals(new Command(alluxio.thrift.CommandType.Nothing, ImmutableList.<Long>of()), heartbeat);
+    assertEquals(new Command(alluxio.thrift.CommandType.Nothing, ImmutableList.<Long>of()),
+        heartbeat);
     assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
   }
 
@@ -1655,7 +1676,8 @@ public final class FileSystemMasterTest {
         ImmutableMap.of("MEM", (long) Constants.KB), ImmutableList.of(blockId),
         ImmutableMap.<String, List<Long>>of(), mMetrics);
     // Verify the muted Free command on worker1.
-    assertEquals(new Command(alluxio.thrift.CommandType.Nothing, ImmutableList.<Long>of()), heartbeat);
+    assertEquals(new Command(alluxio.thrift.CommandType.Nothing, ImmutableList.<Long>of()),
+        heartbeat);
     assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
   }
 
@@ -2009,7 +2031,8 @@ public final class FileSystemMasterTest {
         ImmutableMap.of("MEM", (long) Constants.KB), ImmutableList.of(blockId),
         ImmutableMap.<String, List<Long>>of(), mMetrics);
     // Verify the muted Free command on worker1.
-    assertEquals(new Command(alluxio.thrift.CommandType.Nothing, ImmutableList.<Long>of()), heartbeat2);
+    assertEquals(new Command(alluxio.thrift.CommandType.Nothing, ImmutableList.<Long>of()),
+        heartbeat2);
     assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
   }
 
@@ -2062,7 +2085,8 @@ public final class FileSystemMasterTest {
         ImmutableMap.of("MEM", (long) Constants.KB), ImmutableList.of(blockId),
         ImmutableMap.<String, List<Long>>of(), mMetrics);
     // Verify the muted Free command on worker1.
-    assertEquals(new Command(alluxio.thrift.CommandType.Nothing, ImmutableList.<Long>of()), heartbeat);
+    assertEquals(new Command(alluxio.thrift.CommandType.Nothing, ImmutableList.<Long>of()),
+        heartbeat);
     assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
   }
 
@@ -2097,7 +2121,8 @@ public final class FileSystemMasterTest {
         ImmutableMap.of("MEM", (long) Constants.KB), ImmutableList.of(blockId),
         ImmutableMap.<String, List<Long>>of(), mMetrics);
     // Verify the muted Free command on worker1.
-    assertEquals(new Command(alluxio.thrift.CommandType.Nothing, ImmutableList.<Long>of()), heartbeat3);
+    assertEquals(new Command(alluxio.thrift.CommandType.Nothing, ImmutableList.<Long>of()),
+        heartbeat3);
     assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
   }
 
@@ -2151,7 +2176,8 @@ public final class FileSystemMasterTest {
         ImmutableMap.of("MEM", (long) Constants.KB), ImmutableList.of(blockId),
         ImmutableMap.<String, List<Long>>of(), mMetrics);
     // Verify the muted Free command on worker1.
-    assertEquals(new Command(alluxio.thrift.CommandType.Nothing, ImmutableList.<Long>of()), heartbeat);
+    assertEquals(new Command(alluxio.thrift.CommandType.Nothing, ImmutableList.<Long>of()),
+        heartbeat);
     assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
   }
 
@@ -2640,8 +2666,8 @@ public final class FileSystemMasterTest {
     mRegistry.add(MetricsMaster.class, mMetricsMaster);
     mMetrics = Lists.newArrayList();
     mBlockMaster = new BlockMasterFactory().create(mRegistry, masterContext);
-    mExecutorService = Executors
-        .newFixedThreadPool(4, ThreadFactoryUtils.build("DefaultFileSystemMasterTest-%d", true));
+    mExecutorService = Executors.newFixedThreadPool(4,
+        ThreadFactoryUtils.build("DefaultFileSystemMasterTest-%d", true));
     mFileSystemMaster = new DefaultFileSystemMaster(mBlockMaster, masterContext,
         ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService));
     mRegistry.add(FileSystemMaster.class, mFileSystemMaster);

@@ -13,7 +13,6 @@ package alluxio.master.file.options;
 
 import alluxio.Configuration;
 import alluxio.PropertyKey;
-import alluxio.grpc.CreateFilePOptions;
 import alluxio.security.authorization.Mode;
 import alluxio.util.ModeUtils;
 

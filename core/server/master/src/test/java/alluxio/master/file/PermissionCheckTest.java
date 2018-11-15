@@ -11,16 +11,40 @@
 
 package alluxio.master.file;
 
-import alluxio.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+import alluxio.AlluxioTestDirectory;
+import alluxio.AlluxioURI;
+import alluxio.AuthenticatedUserRule;
+import alluxio.Configuration;
+import alluxio.ConfigurationRule;
+import alluxio.ConfigurationTestUtils;
+import alluxio.Constants;
+import alluxio.LoginUserRule;
+import alluxio.PropertyKey;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.TtlAction;
-import alluxio.master.*;
+import alluxio.master.DefaultSafeModeManager;
+import alluxio.master.MasterContext;
+import alluxio.master.MasterRegistry;
+import alluxio.master.MasterTestUtils;
+import alluxio.master.SafeModeManager;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.block.BlockMasterFactory;
-import alluxio.master.file.meta.*;
+import alluxio.master.file.meta.Inode;
+import alluxio.master.file.meta.InodeDirectory;
+import alluxio.master.file.meta.InodeFile;
+import alluxio.master.file.meta.InodeLockList;
+import alluxio.master.file.meta.InodeTree;
+import alluxio.master.file.meta.LockedInodePath;
+import alluxio.master.file.meta.MutableLockedInodePath;
 import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
@@ -33,6 +57,7 @@ import alluxio.util.CommonUtils;
 import alluxio.util.SecurityUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.FileInfo;
+
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang3.tuple.ImmutableTriple;
@@ -49,10 +74,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 /**
  * Unit test for {@link FileSystemMaster} when permission check is enabled by configure
@@ -89,7 +110,7 @@ public final class PermissionCheckTest {
   private static final Mode TEST_DIR_MODE = new Mode((short) 0755);
   private static final Mode TEST_FILE_MODE = new Mode((short) 0755);
 
-  private static FileSystemMasterOptions MASTER_OPTIONS = new DefaultFileSystemMasterOptions();
+  private static FileSystemMasterOptions sMasterOptions = new DefaultFileSystemMasterOptions();
 
   private MasterRegistry mRegistry;
   private SafeModeManager mSafeModeManager;
@@ -524,7 +545,7 @@ public final class PermissionCheckTest {
   private void verifyDelete(TestUser user, String path, boolean recursive) throws Exception {
     try (Closeable r = new AuthenticatedUserRule(user.getUser()).toResource()) {
       mFileSystemMaster.delete(new AlluxioURI(path),
-          MASTER_OPTIONS.getDeleteOptions().toBuilder().setRecursive(recursive).build());
+          sMasterOptions.getDeleteOptions().toBuilder().setRecursive(recursive).build());
       assertEquals(-1, mFileSystemMaster.getFileId(new AlluxioURI(path)));
     }
   }
@@ -647,15 +668,15 @@ public final class PermissionCheckTest {
     try (Closeable r = new AuthenticatedUserRule(user.getUser()).toResource()) {
       if (isFile) {
         assertEquals(path, mFileSystemMaster.getFileInfo(new AlluxioURI(path),
-            MASTER_OPTIONS.getGetStatusOptions())
+            sMasterOptions.getGetStatusOptions())
             .getPath());
         assertEquals(1,
             mFileSystemMaster
-                .listStatus(new AlluxioURI(path), MASTER_OPTIONS.getListStatusOptions())
+                .listStatus(new AlluxioURI(path), sMasterOptions.getListStatusOptions())
                 .size());
       } else {
         List<FileInfo> fileInfoList = mFileSystemMaster.listStatus(new AlluxioURI(path),
-            MASTER_OPTIONS.getListStatusOptions());
+            sMasterOptions.getListStatusOptions());
         if (fileInfoList.size() > 0) {
           assertTrue(PathUtils.getParent(fileInfoList.get(0).getPath()).equals(path));
         }
@@ -696,7 +717,7 @@ public final class PermissionCheckTest {
   }
 
   private SetAttributePOptions getNonDefaultSetState() {
-    return MASTER_OPTIONS.getSetAttributeOptions().toBuilder().setPinned(true).setTtl(11)
+    return sMasterOptions.getSetAttributeOptions().toBuilder().setPinned(true).setTtl(11)
         .setTtlAction(TtlAction.DELETE).build();
   }
 
@@ -706,8 +727,8 @@ public final class PermissionCheckTest {
       mFileSystemMaster.setAttribute(new AlluxioURI(path), options);
 
       FileInfo fileInfo = mFileSystemMaster.getFileInfo(new AlluxioURI(path),
-          MASTER_OPTIONS.getGetStatusOptions());
-      return MASTER_OPTIONS.getSetAttributeOptions().toBuilder().setPinned(fileInfo.isPinned())
+          sMasterOptions.getGetStatusOptions());
+      return sMasterOptions.getSetAttributeOptions().toBuilder().setPinned(fileInfo.isPinned())
           .setTtl(fileInfo.getTtl()).setPersisted(fileInfo.isPersisted()).build();
     }
   }
@@ -804,7 +825,7 @@ public final class PermissionCheckTest {
   private void verifyFree(TestUser user, String path, boolean recursive) throws Exception {
     try (Closeable r = new AuthenticatedUserRule(user.getUser()).toResource()) {
       mFileSystemMaster.free(new AlluxioURI(path),
-          MASTER_OPTIONS.getFreeOptions().toBuilder().setRecursive(recursive).build());
+          sMasterOptions.getFreeOptions().toBuilder().setRecursive(recursive).build());
     }
   }
 
@@ -908,7 +929,7 @@ public final class PermissionCheckTest {
   private void verifySetAcl(TestUser runUser, String path, String owner, String group,
       short mode, boolean recursive) throws Exception {
     try (Closeable r = new AuthenticatedUserRule(runUser.getUser()).toResource()) {
-      SetAttributePOptions options = MASTER_OPTIONS.getSetAttributeOptions().toBuilder()
+      SetAttributePOptions options = sMasterOptions.getSetAttributeOptions().toBuilder()
           .setOwner(owner).setGroup(group).setMode(mode).setRecursive(recursive).build();
       mFileSystemMaster.setAttribute(new AlluxioURI(path), options);
     }

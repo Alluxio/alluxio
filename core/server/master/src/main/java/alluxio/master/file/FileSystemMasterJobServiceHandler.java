@@ -13,8 +13,6 @@ package alluxio.master.file;
 
 import alluxio.Constants;
 import alluxio.RpcUtils;
-import alluxio.exception.AlluxioException;
-import alluxio.exception.status.UnavailableException;
 import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.FileSystemMasterJobService;
 import alluxio.thrift.GetFileInfoTOptions;
@@ -60,12 +58,12 @@ public final class FileSystemMasterJobServiceHandler implements FileSystemMaster
       throws AlluxioTException {
     return RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<GetFileInfoTResponse>) () -> {
       // TODO(ggezer)
-      //try {
-        // return new GetFileInfoTResponse(mFileSystemMaster.getFileInfo(fileId).toThrift());
-        return null;
-      //} catch (UnavailableException e) {
-      //  throw new AlluxioException("File system master is unavailable", e);
-      //}
+      // try {
+      // return new GetFileInfoTResponse(mFileSystemMaster.getFileInfo(fileId).toThrift());
+      return null;
+      // } catch (UnavailableException e) {
+      // throw new AlluxioException("File system master is unavailable", e);
+      // }
     }, "GetFileInfo", "fileId=%s, options=%s", fileId, options);
   }
 
@@ -73,9 +71,12 @@ public final class FileSystemMasterJobServiceHandler implements FileSystemMaster
   public GetUfsInfoTResponse getUfsInfo(final long mountId, GetUfsInfoTOptions options)
       throws AlluxioTException {
     // TODO(ggezer)
-    return RpcUtils.call(
-        LOG,
-        (RpcUtils.RpcCallable<GetUfsInfoTResponse>) () -> null/*new GetUfsInfoTResponse(mFileSystemMaster
-            .getUfsInfo(mountId))*/, "GetUfsInfo", "mountId=%s, options=%s", mountId, options);
+    return RpcUtils.call(LOG,
+        (RpcUtils.RpcCallable<GetUfsInfoTResponse>) () -> null/*
+                                                               * new GetUfsInfoTResponse(
+                                                               * mFileSystemMaster
+                                                               * .getUfsInfo(mountId))
+                                                               */, "GetUfsInfo",
+        "mountId=%s, options=%s", mountId, options);
   }
 }

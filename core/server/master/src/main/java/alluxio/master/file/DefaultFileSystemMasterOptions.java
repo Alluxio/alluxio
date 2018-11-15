@@ -52,6 +52,10 @@ public final class DefaultFileSystemMasterOptions implements FileSystemMasterOpt
     return CommonOptions.defaults();
   }
 
+  /**
+   * TODO(ggezer) Remove non-proto getCommonOptions.
+   * @return {@link FileSystemMasterCommonPOptions} with default values for master
+   */
   public FileSystemMasterCommonPOptions getCommonPOptions() {
     return FileSystemMasterCommonPOptions.newBuilder().setTtl(Constants.NO_TTL)
         .setTtlAction(TtlAction.DELETE)

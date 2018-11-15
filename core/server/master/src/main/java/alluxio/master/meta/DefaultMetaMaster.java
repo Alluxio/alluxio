@@ -57,7 +57,6 @@ import alluxio.wire.Scope;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterators;
-import com.google.common.collect.UnmodifiableListIterator;
 import org.apache.thrift.TProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

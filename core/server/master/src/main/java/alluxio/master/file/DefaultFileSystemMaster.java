@@ -36,8 +36,26 @@ import alluxio.exception.status.InvalidArgumentException;
 import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.PermissionDeniedException;
 import alluxio.exception.status.UnavailableException;
-import alluxio.file.options.*;
-import alluxio.grpc.*;
+import alluxio.file.options.CommonOptions;
+import alluxio.file.options.CompleteFileOptions;
+import alluxio.file.options.CreateDirectoryOptions;
+import alluxio.file.options.CreateFileOptions;
+import alluxio.file.options.DescendantType;
+import alluxio.file.options.SetAttributeOptions;
+import alluxio.file.options.WorkerHeartbeatOptions;
+import alluxio.grpc.CheckConsistencyPOptions;
+import alluxio.grpc.DeletePOptions;
+import alluxio.grpc.FileSystemMasterCommonPOptions;
+import alluxio.grpc.FreePOptions;
+import alluxio.grpc.GetStatusPOptions;
+import alluxio.grpc.ListStatusPOptions;
+import alluxio.grpc.LoadDescendantPType;
+import alluxio.grpc.LoadMetadataPOptions;
+import alluxio.grpc.LoadMetadataPType;
+import alluxio.grpc.MountPOptions;
+import alluxio.grpc.RenamePOptions;
+import alluxio.grpc.SetAclPOptions;
+import alluxio.grpc.SetAttributePOptions;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatThread;
 import alluxio.master.AbstractMaster;
@@ -2320,7 +2338,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * @param rpcContext the rpc context
    * @param inodePath the path for which metadata should be loaded
    * @param options the load metadata options
-   * @param ufsStatus the UFS status for the file/directory that is being loaded.
+   * @param ufsStatus the UFS status for the file/directory that is being loaded
    */
   private void loadMetadataInternal(RpcContext rpcContext, LockedInodePath inodePath,
       LoadMetadataPOptions options, @Nullable UfsStatus ufsStatus)
@@ -2380,9 +2398,9 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
             try (LockedInodePath tempInodePath =
                 inodePath.createTempPathForChild(childStatus.getName())) {
-              LoadMetadataPOptions loadMetadataOptions =
-                  MASTER_OPTIONS.getLoadMetadataOptions().toBuilder().setLoadDescendantType(LoadDescendantPType.NONE)
-                      .setCreateAncestors(false).build();
+              LoadMetadataPOptions loadMetadataOptions = MASTER_OPTIONS.getLoadMetadataOptions()
+                  .toBuilder().setLoadDescendantType(LoadDescendantPType.NONE)
+                  .setCreateAncestors(false).build();
               try {
                 loadMetadataInternal(rpcContext, tempInodePath, loadMetadataOptions, childStatus);
               } catch (Exception e) {
@@ -2434,7 +2452,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       if (ufsStatus == null) {
         ufsStatus = ufs.getFileStatus(ufsUri.toString());
       }
-      ufsLength = ((UfsFileStatus)ufsStatus).getContentLength();
+      ufsLength = ((UfsFileStatus) ufsStatus).getContentLength();
 
       if (isAclEnabled()) {
         Pair<AccessControlList, DefaultAccessControlList> aclPair
@@ -2532,7 +2550,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     DefaultAccessControlList defaultAcl = null;
     try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
       UnderFileSystem ufs = ufsResource.get();
-      if(ufsStatus == null) {
+      if (ufsStatus == null) {
         ufsStatus = ufs.getDirectoryStatus(ufsUri.toString());
       }
       Pair<AccessControlList, DefaultAccessControlList> aclPair =
@@ -2765,8 +2783,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     try {
       // Use the internal delete API, setting {@code alluxioOnly} to true to prevent the delete
       // operations from being persisted in the UFS.
-      DeletePOptions deleteOptions =
-          MASTER_OPTIONS.getDeleteOptions().toBuilder().setRecursive(true).setAlluxioOnly(true).build();
+      DeletePOptions deleteOptions = MASTER_OPTIONS.getDeleteOptions().toBuilder()
+          .setRecursive(true).setAlluxioOnly(true).build();
       deleteInternal(rpcContext, inodePath, deleteOptions);
     } catch (DirectoryNotEmptyException e) {
       throw new RuntimeException(String.format(
@@ -2929,7 +2947,9 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   }
 
   /**
-   * TODO(ggezer) Consider putting fingerprint to proto option in order to remove wrapper variations
+   * TODO(ggezer) Consider putting fingerprint to proto option in order to remove wrapper
+   * variations.
+   *
    * @param path Alluxio path of the item that is being set
    * @param optionsWrapper Wrapper over proto options {@link SetAttributePOptions}
    *
@@ -3283,10 +3303,9 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         // It works by calling SetAttributeInternal on the inodePath.
         if (ufsFpParsed.isValid()) {
           short mode = Short.parseShort(ufsFpParsed.getTag(Tag.MODE));
-          SetAttributePOptions options =
-              MASTER_OPTIONS.getSetAttributeOptions().toBuilder().setOwner(ufsFpParsed.getTag(Tag.OWNER))
-                  .setGroup(ufsFpParsed.getTag(Tag.GROUP))
-                  .setMode(mode).build();
+          SetAttributePOptions options = MASTER_OPTIONS.getSetAttributeOptions().toBuilder()
+              .setOwner(ufsFpParsed.getTag(Tag.OWNER)).setGroup(ufsFpParsed.getTag(Tag.GROUP))
+              .setMode(mode).build();
           long opTimeMs = System.currentTimeMillis();
           // use replayed, since updating UFS is not desired.
           setAttributeSingleFile(rpcContext, inodePath, false, opTimeMs,
@@ -3411,7 +3430,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
           entry.setTtl(ttl);
         }
         entry.setLastModificationTimeMs(opTimeMs);
-        entry.setTtlAction(ProtobufUtils.toProtobuf(GrpcUtils.fromProto(protoOptions.getTtlAction())));
+        entry.setTtlAction(
+            ProtobufUtils.toProtobuf(GrpcUtils.fromProto(protoOptions.getTtlAction())));
       }
     }
     if (protoOptions.hasPersisted()) {
@@ -3451,8 +3471,10 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
             String mode = null;
             if (ownerGroupChanged) {
               try {
-                owner = protoOptions.getOwner() != null ? protoOptions.getOwner() : inode.getOwner();
-                group = protoOptions.getGroup() != null ? protoOptions.getGroup() : inode.getGroup();
+                owner =
+                    protoOptions.getOwner() != null ? protoOptions.getOwner() : inode.getOwner();
+                group =
+                    protoOptions.getGroup() != null ? protoOptions.getGroup() : inode.getGroup();
                 ufs.setOwner(ufsUri, owner, group);
               } catch (IOException e) {
                 throw new AccessControlException("Could not setOwner for UFS file " + ufsUri
@@ -3462,7 +3484,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
             if (modeChanged) {
               try {
                 mode = String.valueOf(protoOptions.getMode());
-                ufs.setMode(ufsUri, (short)protoOptions.getMode());
+                ufs.setMode(ufsUri, (short) protoOptions.getMode());
               } catch (IOException e) {
                 throw new AccessControlException("Could not setMode for UFS file " + ufsUri
                     + " . Aborting the setAttribute operation in Alluxio.", e);

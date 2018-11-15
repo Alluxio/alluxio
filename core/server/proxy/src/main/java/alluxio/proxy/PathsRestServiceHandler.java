@@ -14,8 +14,23 @@ package alluxio.proxy;
 import alluxio.AlluxioURI;
 import alluxio.RestUtils;
 import alluxio.StreamCache;
-import alluxio.client.file.*;
-import alluxio.grpc.*;
+import alluxio.client.file.FileInStream;
+import alluxio.client.file.FileOutStream;
+import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemClientOptions;
+import alluxio.client.file.URIStatus;
+import alluxio.grpc.CreateDirectoryPOptions;
+import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.DeletePOptions;
+import alluxio.grpc.ExistsPOptions;
+import alluxio.grpc.FreePOptions;
+import alluxio.grpc.GetStatusPOptions;
+import alluxio.grpc.ListStatusPOptions;
+import alluxio.grpc.MountPOptions;
+import alluxio.grpc.OpenFilePOptions;
+import alluxio.grpc.RenamePOptions;
+import alluxio.grpc.SetAttributePOptions;
+import alluxio.grpc.UnmountPOptions;
 import alluxio.web.ProxyWebServer;
 
 import com.google.common.base.Preconditions;
@@ -286,7 +301,8 @@ public final class PathsRestServiceHandler {
       public Integer call() throws Exception {
         FileInStream is;
         if (options == null) {
-          is = mFileSystem.openFile(new AlluxioURI(path), FileSystemClientOptions.getOpenFileOptions());
+          is = mFileSystem.openFile(new AlluxioURI(path),
+              FileSystemClientOptions.getOpenFileOptions());
         } else {
           is = mFileSystem.openFile(new AlluxioURI(path), options);
         }
@@ -337,7 +353,8 @@ public final class PathsRestServiceHandler {
       @Override
       public Void call() throws Exception {
         if (options == null) {
-          mFileSystem.setAttribute(new AlluxioURI(path), FileSystemClientOptions.getSetAttributeOptions());
+          mFileSystem.setAttribute(new AlluxioURI(path),
+              FileSystemClientOptions.getSetAttributeOptions());
         } else {
           mFileSystem.setAttribute(new AlluxioURI(path), options);
         }

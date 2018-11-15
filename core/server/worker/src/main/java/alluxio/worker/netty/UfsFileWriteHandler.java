@@ -17,13 +17,12 @@ import alluxio.metrics.WorkerMetrics;
 import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.resource.CloseableResource;
-import alluxio.security.authorization.AccessControlList;
 import alluxio.security.authorization.Mode;
 import alluxio.underfs.UfsManager;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
-
 import alluxio.util.proto.ProtoUtils;
+
 import com.codahale.metrics.Counter;
 import com.google.common.base.Preconditions;
 import io.netty.buffer.ByteBuf;

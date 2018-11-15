@@ -15,7 +15,6 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.RestUtils;
 import alluxio.client.file.FileSystemClientOptions;
-import alluxio.file.options.SetAttributeOptions;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.LoadMetadataPType;
 import alluxio.grpc.MountPOptions;
@@ -325,7 +324,8 @@ public final class FileSystemMasterClientRestServiceHandler {
         if (shared != null) {
           optionsBuilder.setShared(shared);
         }
-        mFileSystemMaster.mount(new AlluxioURI(path), new AlluxioURI(ufsPath), optionsBuilder.build());
+        mFileSystemMaster.mount(new AlluxioURI(path), new AlluxioURI(ufsPath),
+            optionsBuilder.build());
         return null;
       }
     });
