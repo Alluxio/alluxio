@@ -1,7 +1,7 @@
 /*
- * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the "License"). You may not use this work except in compliance with the License, which is
- * available at www.apache.org/licenses/LICENSE-2.0
+ * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0 (the
+ * "License"). You may not use this work except in compliance with the License, which is available
+ * at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
  * either express or implied, as more fully set forth in the License.
@@ -12,8 +12,55 @@
 package alluxio.master.file;
 
 import alluxio.AlluxioURI;
-import alluxio.file.options.SetAttributeOptions;
-import alluxio.grpc.*;
+import alluxio.grpc.CheckConsistencyPOptions;
+import alluxio.grpc.CheckConsistencyPRequest;
+import alluxio.grpc.CheckConsistencyPResponse;
+import alluxio.grpc.CompleteFilePOptions;
+import alluxio.grpc.CompleteFilePRequest;
+import alluxio.grpc.CompleteFilePResponse;
+import alluxio.grpc.CreateDirectoryPOptions;
+import alluxio.grpc.CreateDirectoryPRequest;
+import alluxio.grpc.CreateDirectoryPResponse;
+import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.CreateFilePRequest;
+import alluxio.grpc.CreateFilePResponse;
+import alluxio.grpc.DeletePOptions;
+import alluxio.grpc.DeletePRequest;
+import alluxio.grpc.DeletePResponse;
+import alluxio.grpc.FileInfo;
+import alluxio.grpc.FileSystemMasterServiceGrpc;
+import alluxio.grpc.FreePOptions;
+import alluxio.grpc.FreePRequest;
+import alluxio.grpc.FreePResponse;
+import alluxio.grpc.GetMountTablePRequest;
+import alluxio.grpc.GetMountTablePResponse;
+import alluxio.grpc.GetNewBlockIdForFilePOptions;
+import alluxio.grpc.GetNewBlockIdForFilePRequest;
+import alluxio.grpc.GetNewBlockIdForFilePResponse;
+import alluxio.grpc.GetStatusPOptions;
+import alluxio.grpc.GetStatusPRequest;
+import alluxio.grpc.GetStatusPResponse;
+import alluxio.grpc.ListStatusPOptions;
+import alluxio.grpc.ListStatusPRequest;
+import alluxio.grpc.ListStatusPResponse;
+import alluxio.grpc.MountPOptions;
+import alluxio.grpc.MountPRequest;
+import alluxio.grpc.MountPResponse;
+import alluxio.grpc.RenamePOptions;
+import alluxio.grpc.RenamePRequest;
+import alluxio.grpc.RenamePResponse;
+import alluxio.grpc.ScheduleAsyncPersistencePOptions;
+import alluxio.grpc.ScheduleAsyncPersistencePRequest;
+import alluxio.grpc.ScheduleAsyncPersistencePResponse;
+import alluxio.grpc.SetAttributePOptions;
+import alluxio.grpc.SetAttributePRequest;
+import alluxio.grpc.SetAttributePResponse;
+import alluxio.grpc.UnmountPOptions;
+import alluxio.grpc.UnmountPRequest;
+import alluxio.grpc.UnmountPResponse;
+import alluxio.grpc.UpdateUfsModePOptions;
+import alluxio.grpc.UpdateUfsModePRequest;
+import alluxio.grpc.UpdateUfsModePResponse;
 import alluxio.underfs.UfsMode;
 import alluxio.util.RpcUtilsNew;
 import alluxio.util.grpc.GrpcUtils;
@@ -120,11 +167,9 @@ public final class FileSystemMasterClientServiceHandler
       StreamObserver<GetNewBlockIdForFilePResponse> responseObserver) {
     String path = request.getPath();
     GetNewBlockIdForFilePOptions options = request.getOptions();
-    RpcUtilsNew.call(LOG,
-        (RpcUtilsNew.RpcCallableThrowsIOException<GetNewBlockIdForFilePResponse>) () ->
-            GetNewBlockIdForFilePResponse.newBuilder()
-                .setId(mFileSystemMaster.getNewBlockIdForFile(new AlluxioURI(path)))
-                .build(),
+    RpcUtilsNew.call(LOG, (RpcUtilsNew.RpcCallableThrowsIOException<GetNewBlockIdForFilePResponse>)
+        () -> GetNewBlockIdForFilePResponse.newBuilder()
+            .setId(mFileSystemMaster.getNewBlockIdForFile(new AlluxioURI(path))).build(),
         "GetNewBlockIdForFile", "path=%s, options=%s", responseObserver, path, options);
   }
 
