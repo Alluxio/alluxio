@@ -42,7 +42,7 @@ import alluxio.file.options.CreateDirectoryOptions;
 import alluxio.file.options.CreateFileOptions;
 import alluxio.file.options.DescendantType;
 import alluxio.file.options.RenameContext;
-import alluxio.file.options.SetAttributeOptions;
+import alluxio.file.options.SetAttributeContext;
 import alluxio.file.options.WorkerHeartbeatOptions;
 import alluxio.grpc.CheckConsistencyPOptions;
 import alluxio.grpc.DeletePOptions;
@@ -54,7 +54,6 @@ import alluxio.grpc.LoadDescendantPType;
 import alluxio.grpc.LoadMetadataPOptions;
 import alluxio.grpc.LoadMetadataPType;
 import alluxio.grpc.MountPOptions;
-import alluxio.grpc.RenamePOptions;
 import alluxio.grpc.SetAclPOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.heartbeat.HeartbeatContext;
@@ -2248,7 +2247,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
             SetAttributePOptions setAttributeOptions = MASTER_OPTIONS.getSetAttributeOptions()
                 .toBuilder().setRecursive(false).setPinned(false).build();
             setAttributeSingleFile(rpcContext, descedant, true, opTimeMs,
-                new SetAttributeOptions(setAttributeOptions));
+                new SetAttributeContext(setAttributeOptions));
           }
           // Remove corresponding blocks from workers.
           mBlockMaster.removeBlocks(((InodeFileView) freeInode).getBlockIds(), false /* delete */);
@@ -2952,16 +2951,16 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * variations.
    *
    * @param path Alluxio path of the item that is being set
-   * @param optionsWrapper Wrapper over proto options {@link SetAttributePOptions}
+   * @param context Wrapper over proto options {@link SetAttributePOptions}
    *
    * @throws FileDoesNotExistException
    * @throws AccessControlException
    * @throws InvalidPathException
    * @throws IOException
    */
-  public void setAttribute(AlluxioURI path, SetAttributeOptions optionsWrapper)
+  public void setAttribute(AlluxioURI path, SetAttributeContext context)
       throws FileDoesNotExistException, AccessControlException, InvalidPathException, IOException {
-    SetAttributePOptions options = optionsWrapper.getOptions();
+    SetAttributePOptions options = context.getOptions();
     Metrics.SET_ATTRIBUTE_OPS.inc();
     // for chown
     boolean rootRequired = options.hasOwner();
@@ -3008,7 +3007,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         throw new FileDoesNotExistException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path));
       }
 
-      setAttributeInternal(rpcContext, inodePath, rootRequired, ownerRequired, optionsWrapper);
+      setAttributeInternal(rpcContext, inodePath, rootRequired, ownerRequired, context);
       auditContext.setSucceeded(true);
     }
   }
@@ -3018,7 +3017,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       throws FileDoesNotExistException, AccessControlException, InvalidPathException,
       IOException {
     // Call internal SetAttribute with wrapped options
-    setAttribute(path, new SetAttributeOptions(options));
+    setAttribute(path, new SetAttributeContext(options));
   }
 
   /**
@@ -3044,25 +3043,25 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * @param inodePath the {@link LockedInodePath} to set attribute for
    * @param rootRequired indicates whether it requires to be the superuser
    * @param ownerRequired indicates whether it requires to be the owner of this path
-   * @param options attributes to be set, see {@link SetAttributePOptions}
+   * @param context attributes to be set, see {@link SetAttributePOptions}
    */
   private void setAttributeInternal(RpcContext rpcContext, LockedInodePath inodePath,
-      boolean rootRequired, boolean ownerRequired, SetAttributeOptions options)
+      boolean rootRequired, boolean ownerRequired, SetAttributeContext context)
       throws InvalidPathException, FileDoesNotExistException, AccessControlException, IOException {
     InodeView targetInode = inodePath.getInode();
     long opTimeMs = System.currentTimeMillis();
-    if (options.getOptions().getRecursive() && targetInode.isDirectory()) {
+    if (context.getOptions().getRecursive() && targetInode.isDirectory()) {
       try (LockedInodePathList descendants = mInodeTree.lockDescendants(inodePath,
           InodeTree.LockMode.WRITE)) {
         for (LockedInodePath childPath : descendants.getInodePathList()) {
           mPermissionChecker.checkSetAttributePermission(childPath, rootRequired, ownerRequired);
         }
         for (LockedInodePath childPath : descendants.getInodePathList()) {
-          setAttributeSingleFile(rpcContext, childPath, true, opTimeMs, options);
+          setAttributeSingleFile(rpcContext, childPath, true, opTimeMs, context);
         }
       }
     }
-    setAttributeSingleFile(rpcContext, inodePath, true, opTimeMs, options);
+    setAttributeSingleFile(rpcContext, inodePath, true, opTimeMs, context);
   }
 
   @Override
@@ -3310,7 +3309,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
           long opTimeMs = System.currentTimeMillis();
           // use replayed, since updating UFS is not desired.
           setAttributeSingleFile(rpcContext, inodePath, false, opTimeMs,
-              new SetAttributeOptions(options).setUfsFingerprint(ufsFingerprint));
+              new SetAttributeContext(options).setUfsFingerprint(ufsFingerprint));
         }
       }
       if (syncPlan.toDelete()) {
@@ -3389,7 +3388,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         SetAttributePOptions setOptions =
             MASTER_OPTIONS.getSetAttributeOptions().toBuilder().setPersisted(true).build();
         setAttribute(getPath(fileId),
-            new SetAttributeOptions(setOptions).setUfsFingerprint(ufsFingerprint));
+            new SetAttributeContext(setOptions).setUfsFingerprint(ufsFingerprint));
       } catch (FileDoesNotExistException | AccessControlException | InvalidPathException e) {
         LOG.error("Failed to set file {} as persisted, because {}", fileId, e);
       }
@@ -3407,15 +3406,15 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * @param inodePath the {@link LockedInodePath} to use
    * @param updateUfs whether to update the UFS with the attribute change
    * @param opTimeMs the operation time (in milliseconds)
-   * @param options the method options
+   * @param context the method context
    */
   private void setAttributeSingleFile(RpcContext rpcContext, LockedInodePath inodePath,
-      boolean updateUfs, long opTimeMs, SetAttributeOptions options)
+      boolean updateUfs, long opTimeMs, SetAttributeContext context)
       throws FileDoesNotExistException, InvalidPathException, AccessControlException {
     InodeView inode = inodePath.getInode();
-    SetAttributePOptions protoOptions = options.getOptions();
+    SetAttributePOptions protoOptions = context.getOptions();
     if (protoOptions.hasPinned()) {
-      mInodeTree.setPinned(rpcContext, inodePath, options.getOptions().getPinned(), opTimeMs);
+      mInodeTree.setPinned(rpcContext, inodePath, context.getOptions().getPinned(), opTimeMs);
     }
     UpdateInodeEntry.Builder entry = UpdateInodeEntry.newBuilder().setId(inode.getId());
     if (protoOptions.hasReplicationMax() || protoOptions.hasReplicationMin()) {
@@ -3445,7 +3444,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
           .checkArgument(protoOptions.getPersisted(), PreconditionMessage.ERR_SET_STATE_UNPERSIST);
       if (!file.isPersisted()) {
         entry.setPersistenceState(PersistenceState.PERSISTED.name());
-        entry.setLastModificationTimeMs(protoOptions.getCommonOptions().getOperationTimeMs());
+        entry.setLastModificationTimeMs(context.getOperationTimeMs());
         propagatePersistedInternal(rpcContext, inodePath);
         Metrics.FILES_PERSISTED.inc();
       }
@@ -3499,17 +3498,17 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
               fp.putTag(Fingerprint.Tag.OWNER, owner);
               fp.putTag(Fingerprint.Tag.GROUP, group);
               fp.putTag(Fingerprint.Tag.MODE, mode);
-              options.setUfsFingerprint(fp.serialize());
+              context.setUfsFingerprint(fp.serialize());
             } else {
               // Need to retrieve the fingerprint from ufs.
-              options.setUfsFingerprint(ufs.getFingerprint(ufsUri));
+              context.setUfsFingerprint(ufs.getFingerprint(ufsUri));
             }
           }
         }
       }
     }
-    if (!options.getUfsFingerprint().equals(Constants.INVALID_UFS_FINGERPRINT)) {
-      entry.setUfsFingerprint(options.getUfsFingerprint());
+    if (!context.getUfsFingerprint().equals(Constants.INVALID_UFS_FINGERPRINT)) {
+      entry.setUfsFingerprint(context.getUfsFingerprint());
     }
     // Only commit the set permission to inode after the propagation to UFS succeeded.
     if (protoOptions.hasOwner()) {

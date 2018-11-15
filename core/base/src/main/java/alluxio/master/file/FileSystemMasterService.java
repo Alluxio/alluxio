@@ -37,7 +37,6 @@ import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.LoadMetadataPOptions;
 import alluxio.grpc.MountPOptions;
-import alluxio.grpc.RenamePOptions;
 import alluxio.grpc.SetAclPOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.master.file.meta.FileSystemMasterView;

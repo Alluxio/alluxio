@@ -40,13 +40,12 @@ import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.UnexpectedAlluxioException;
 import alluxio.file.options.RenameContext;
-import alluxio.file.options.SetAttributeOptions;
+import alluxio.file.options.SetAttributeContext;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.LoadDescendantPType;
 import alluxio.grpc.LoadMetadataPType;
 import alluxio.grpc.MountPOptions;
-import alluxio.grpc.RenamePOptions;
 import alluxio.grpc.SetAclPOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.heartbeat.HeartbeatContext;
@@ -2577,7 +2576,7 @@ public final class FileSystemMasterTest {
     createFileWithSingleBlock(NESTED_FILE_URI);
 
     ((DefaultFileSystemMaster) mFileSystemMaster).setAttribute(NESTED_FILE_URI,
-        new SetAttributeOptions(mFileSystemMaster.getMasterOptions().getSetAttributeOptions())
+        new SetAttributeContext(mFileSystemMaster.getMasterOptions().getSetAttributeOptions())
             .setUfsFingerprint(fingerprint));
 
     // Simulate restart.
