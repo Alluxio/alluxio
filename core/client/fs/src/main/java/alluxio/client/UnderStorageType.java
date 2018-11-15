@@ -39,6 +39,10 @@ public enum UnderStorageType {
     mValue = value;
   }
 
+  /**
+   * @param writeType write type
+   * @return {@link UnderStorageType} type for given {@link WritePType}
+   */
   public static UnderStorageType getTypeForWrite(WritePType writeType) {
     if (GrpcUtils.isWriteTypeThrough(writeType)) {
       return SYNC_PERSIST;

@@ -11,8 +11,6 @@
 
 package alluxio.client.file.options;
 
-import alluxio.Configuration;
-import alluxio.PropertyKey;
 import alluxio.client.block.policy.BlockLocationPolicy;
 import alluxio.client.block.policy.options.CreateOptions;
 import alluxio.client.file.FileSystemClientOptions;
@@ -32,7 +30,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * Information for reading a file. This is an internal options class which contains information
- * from {@link OpenFileOptions} as well as the {@link URIStatus} being read. In addition to
+ * from {@link OpenFilePOptions} as well as the {@link URIStatus} being read. In addition to
  * providing access to the fields, it provides convenience functions for various nested
  * fields and creating {@link alluxio.proto.dataserver.Protocol.ReadRequest}s.
  */
@@ -44,13 +42,18 @@ public final class InStreamOptions {
   private BlockLocationPolicy mUfsReadLocationPolicy;
 
   /**
-   * Creates with the default {@link OpenFileOptions}.
+   * Creates with the default {@link OpenFilePOptions}.
    * @param status the file to create the options for
    */
   public InStreamOptions(URIStatus status) {
     this(status, FileSystemClientOptions.getOpenFileOptions());
   }
 
+  /**
+   * Creates with given {@link OpenFilePOptions} instance.
+   * @param status URI status
+   * @param options OpenFile options
+   */
   public InStreamOptions(URIStatus status, OpenFilePOptions options) {
     mStatus = status;
     mProtoOptions = options;
@@ -61,12 +64,11 @@ public final class InStreamOptions {
   }
 
   /**
-   * @return the {@link OpenFileOptions} associated with the instream
+   * @return the {@link OpenFilePOptions} associated with the instream
    */
   public OpenFilePOptions getOptions() {
     return mProtoOptions;
   }
-
 
   /**
    * Sets block read location policy.
@@ -119,11 +121,11 @@ public final class InStreamOptions {
     }
     long blockStart = BlockId.getSequenceNumber(blockId) * mStatus.getBlockSizeBytes();
     BlockInfo info = getBlockInfo(blockId);
-    Protocol.OpenUfsBlockOptions openUfsBlockOptions =
-        Protocol.OpenUfsBlockOptions.newBuilder().setUfsPath(mStatus.getUfsPath())
-            .setOffsetInFile(blockStart).setBlockSize(info.getLength())
-            .setMaxUfsReadConcurrency(mProtoOptions.getMaxUfsReadConcurrency())
-            .setNoCache(!GrpcUtils.isCache(mProtoOptions.getReadType())).setMountId(mStatus.getMountId()).build();
+    Protocol.OpenUfsBlockOptions openUfsBlockOptions = Protocol.OpenUfsBlockOptions.newBuilder()
+        .setUfsPath(mStatus.getUfsPath()).setOffsetInFile(blockStart).setBlockSize(info.getLength())
+        .setMaxUfsReadConcurrency(mProtoOptions.getMaxUfsReadConcurrency())
+        .setNoCache(!GrpcUtils.isCache(mProtoOptions.getReadType()))
+        .setMountId(mStatus.getMountId()).build();
     if (storedAsUfsBlock) {
       // On client-side, we do not have enough mount information to fill in the UFS file path.
       // Instead, we unset the ufsPath field and fill in a flag ufsBlock to indicate the UFS file

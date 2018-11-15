@@ -60,13 +60,19 @@ public final class OutStreamOptions {
   public static OutStreamOptions defaults() {
     return new OutStreamOptions();
   }
-  
+
+  /**
+   * Creates an {@link OutStreamOptions} instance from given options.
+   *
+   * @param options CreateFile options
+   * @throws Exception if FileWriteLocationPolicy can't be loaded
+   */
   public OutStreamOptions(CreateFilePOptions options) throws Exception {
     this();
     mBlockSizeBytes = options.getBlockSizeBytes();
     mLocationPolicy = (FileWriteLocationPolicy) CommonUtils.createNewClassInstance(
         Class.forName(options.getFileWriteLocationPolicy()), new Class[] {}, new Object[] {});
-    mMode = new Mode((short)options.getMode());
+    mMode = new Mode((short) options.getMode());
     mReplicationDurable = options.getReplicationDurable();
     mReplicationMin = options.getReplicationMin();
     mReplicationMax = options.getReplicationMax();
@@ -84,7 +90,8 @@ public final class OutStreamOptions {
             PropertyKey.USER_FILE_WRITE_LOCATION_POLICY), new Class[] {}, new Object[] {});
     mWriteTier = Configuration.getInt(PropertyKey.USER_FILE_WRITE_TIER_DEFAULT);
     // TODO(ggezer) Handle WritePType conversion
-    mWriteType = WritePType.valueOf("WRITE_" + Configuration.get(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT));
+    mWriteType =
+        WritePType.valueOf("WRITE_" + Configuration.get(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT));
     mOwner = SecurityUtils.getOwnerFromLoginModule();
     mGroup = SecurityUtils.getGroupFromLoginModule();
     mMode = ModeUtils.applyFileUMask(Mode.defaults());

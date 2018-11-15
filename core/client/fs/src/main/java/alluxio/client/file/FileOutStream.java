@@ -130,7 +130,8 @@ public class FileOutStream extends AbstractOutStream {
         mPreviousBlockOutStreams.add(mCurrentBlockOutStream);
       }
 
-      CompleteFilePOptions.Builder optionsBuilder = FileSystemClientOptions.getCompleteFileOptions().toBuilder();
+      CompleteFilePOptions.Builder optionsBuilder =
+          FileSystemClientOptions.getCompleteFileOptions().toBuilder();
       if (mUnderStorageType.isSyncPersist()) {
         if (mCanceled) {
           mUnderStorageOutputStream.cancel();

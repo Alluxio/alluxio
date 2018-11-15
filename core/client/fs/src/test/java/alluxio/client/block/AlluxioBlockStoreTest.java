@@ -260,7 +260,8 @@ public final class AlluxioBlockStoreTest {
     OpenFilePOptions readOptions = FileSystemClientOptions.getOpenFileOptions().toBuilder()
         .setFileReadLocationPolicy(MockFileWriteLocationPolicy.class.getCanonicalName()).build();
     InStreamOptions options = new InStreamOptions(dummyStatus, readOptions);
-    ((MockFileWriteLocationPolicy)options.getUfsReadLocationPolicy()).setHosts(Arrays.asList(worker1, worker2));
+    ((MockFileWriteLocationPolicy) options.getUfsReadLocationPolicy())
+        .setHosts(Arrays.asList(worker1, worker2));
     when(mMasterClient.getBlockInfo(BLOCK_ID)).thenReturn(new BlockInfo());
     when(mMasterClient.getWorkerInfoList()).thenReturn(
         Arrays.asList(new WorkerInfo().setAddress(worker1), new WorkerInfo().setAddress(worker2)));

@@ -45,6 +45,10 @@ public enum AlluxioStorageType {
     mValue = value;
   }
 
+  /**
+   * @param writeType write type
+   * @return {@link AlluxioStorageType} type for given {@link WritePType}
+   */
   public static AlluxioStorageType getTypeForWrite(WritePType writeType) {
     if (GrpcUtils.isWriteTypeCache(writeType)) {
       return AlluxioStorageType.STORE;

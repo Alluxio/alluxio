@@ -110,7 +110,8 @@ public interface FileSystem {
       throws FileAlreadyExistsException, InvalidPathException, IOException, AlluxioException;
 
   /**
-   * Convenience method for {@link #createFile(AlluxioURI, CreateFilePOptions)} with default options.
+   * Convenience method for {@link #createFile(AlluxioURI, CreateFilePOptions)} with default
+   * options.
    *
    * @param path the path of the file to create in Alluxio space
    * @return a {@link FileOutStream} which will write data to the newly created file
@@ -214,7 +215,8 @@ public interface FileSystem {
       throws FileDoesNotExistException, IOException, AlluxioException;
 
   /**
-   * Convenience method for {@link #listStatus(AlluxioURI, ListStatusPOptions)} with default options.
+   * Convenience method for {@link #listStatus(AlluxioURI, ListStatusPOptions)} with default
+   * options.
    *
    * @param path the path to list information about
    * @return a list of {@link URIStatus}s containing information about the files and directories

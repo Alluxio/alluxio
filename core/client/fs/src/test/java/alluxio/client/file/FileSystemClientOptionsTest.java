@@ -3,11 +3,28 @@ package alluxio.client.file;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
-import alluxio.grpc.*;
+import alluxio.grpc.CompleteFilePOptions;
+import alluxio.grpc.CreateDirectoryPOptions;
+import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.DeletePOptions;
+import alluxio.grpc.ExistsPOptions;
+import alluxio.grpc.FileSystemMasterCommonPOptions;
+import alluxio.grpc.FreePOptions;
+import alluxio.grpc.GetStatusPOptions;
+import alluxio.grpc.ListStatusPOptions;
+import alluxio.grpc.LoadMetadataPOptions;
+import alluxio.grpc.LoadMetadataPType;
+import alluxio.grpc.MountPOptions;
+import alluxio.grpc.SetAclPOptions;
+import alluxio.grpc.TtlAction;
+import alluxio.grpc.UfsPMode;
+import alluxio.grpc.UpdateUfsModePOptions;
+import alluxio.grpc.WritePType;
 import alluxio.security.authorization.Mode;
 import alluxio.util.ModeUtils;
 import alluxio.util.grpc.GrpcUtils;
 import alluxio.wire.LoadMetadataType;
+
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -98,17 +115,26 @@ public class FileSystemClientOptionsTest {
   public void createFileDefaults() {
     CreateFilePOptions options = FileSystemClientOptions.getCreateFileOptions();
     Assert.assertNotNull(options);
-    Assert.assertEquals(options.getCommonOptions().getTtl(), Configuration.getLong(PropertyKey.USER_FILE_CREATE_TTL));
-    Assert.assertEquals(options.getCommonOptions().getTtlAction(), Configuration.getEnum(PropertyKey.USER_FILE_CREATE_TTL_ACTION, TtlAction.class));
+    Assert.assertEquals(options.getCommonOptions().getTtl(),
+        Configuration.getLong(PropertyKey.USER_FILE_CREATE_TTL));
+    Assert.assertEquals(options.getCommonOptions().getTtlAction(),
+        Configuration.getEnum(PropertyKey.USER_FILE_CREATE_TTL_ACTION, TtlAction.class));
     Assert.assertEquals(options.getMode(), ModeUtils.applyFileUMask(Mode.defaults()).toShort());
     Assert.assertTrue(options.getRecursive());
-    Assert.assertEquals(options.getBlockSizeBytes(), Configuration.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT));
-    Assert.assertEquals(options.getFileWriteLocationPolicy(), Configuration.get(PropertyKey.USER_FILE_WRITE_LOCATION_POLICY));
-    Assert.assertEquals(options.getWriteTier(), Configuration.getInt(PropertyKey.USER_FILE_WRITE_TIER_DEFAULT));
-    Assert.assertEquals(options.getWriteType(), WritePType.valueOf("WRITE_" + Configuration.get(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT)));
-    Assert.assertEquals(options.getReplicationDurable(), Configuration.getInt(PropertyKey.USER_FILE_REPLICATION_DURABLE));
-    Assert.assertEquals(options.getReplicationMin(), Configuration.getInt(PropertyKey.USER_FILE_REPLICATION_MIN));
-    Assert.assertEquals(options.getReplicationMax(), Configuration.getInt(PropertyKey.USER_FILE_REPLICATION_MAX));
+    Assert.assertEquals(options.getBlockSizeBytes(),
+        Configuration.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT));
+    Assert.assertEquals(options.getFileWriteLocationPolicy(),
+        Configuration.get(PropertyKey.USER_FILE_WRITE_LOCATION_POLICY));
+    Assert.assertEquals(options.getWriteTier(),
+        Configuration.getInt(PropertyKey.USER_FILE_WRITE_TIER_DEFAULT));
+    Assert.assertEquals(options.getWriteType(),
+        WritePType.valueOf("WRITE_" + Configuration.get(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT)));
+    Assert.assertEquals(options.getReplicationDurable(),
+        Configuration.getInt(PropertyKey.USER_FILE_REPLICATION_DURABLE));
+    Assert.assertEquals(options.getReplicationMin(),
+        Configuration.getInt(PropertyKey.USER_FILE_REPLICATION_MIN));
+    Assert.assertEquals(options.getReplicationMax(),
+        Configuration.getInt(PropertyKey.USER_FILE_REPLICATION_MAX));
   }
 
   @Test
@@ -117,7 +143,8 @@ public class FileSystemClientOptionsTest {
     Assert.assertNotNull(options);
     Assert.assertFalse(options.getAllowExist());
     Assert.assertFalse(options.getRecursive());
-    Assert.assertEquals(ModeUtils.applyDirectoryUMask(Mode.defaults()).toShort(), options.getMode());
+    Assert.assertEquals(ModeUtils.applyDirectoryUMask(Mode.defaults()).toShort(),
+        options.getMode());
     Assert.assertEquals(WritePType.WRITE_MUST_CACHE, options.getWriteType());
   }
 
