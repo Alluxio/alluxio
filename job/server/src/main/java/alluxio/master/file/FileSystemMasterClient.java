@@ -16,7 +16,6 @@ import alluxio.Constants;
 import alluxio.master.MasterClientConfig;
 import alluxio.thrift.AlluxioService;
 import alluxio.thrift.FileSystemMasterJobService;
-import alluxio.thrift.GetFileInfoTOptions;
 import alluxio.thrift.GetUfsInfoTOptions;
 import alluxio.thrift.UfsInfo;
 import alluxio.wire.FileInfo;

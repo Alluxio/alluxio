@@ -21,8 +21,8 @@ import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.status.InvalidArgumentException;
-
 import alluxio.grpc.OpenFilePOptions;
+
 import org.apache.commons.cli.CommandLine;
 
 import java.io.IOException;

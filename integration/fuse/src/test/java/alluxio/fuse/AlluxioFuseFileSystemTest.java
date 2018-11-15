@@ -27,7 +27,11 @@ import static org.mockito.Mockito.times;
 import alluxio.AlluxioURI;
 import alluxio.ConfigurationRule;
 import alluxio.PropertyKey;
-import alluxio.client.file.*;
+import alluxio.client.file.FileInStream;
+import alluxio.client.file.FileOutStream;
+import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemClientOptions;
+import alluxio.client.file.URIStatus;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.wire.FileInfo;
 

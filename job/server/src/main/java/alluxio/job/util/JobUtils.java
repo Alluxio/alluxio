@@ -13,7 +13,6 @@ package alluxio.job.util;
 
 import alluxio.AlluxioURI;
 import alluxio.client.Cancelable;
-import alluxio.client.ReadType;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.file.FileSystem;

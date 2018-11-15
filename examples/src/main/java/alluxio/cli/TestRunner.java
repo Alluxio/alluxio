@@ -119,8 +119,8 @@ public final class TestRunner {
     List<ReadPType> readTypes =
         mReadType == null ? READ_TYPES : Lists.newArrayList(ReadPType.valueOf("READ_" + mReadType));
     // TODO(ggezer) WritePType conversion
-    List<WritePType> writeTypes =
-        mWriteType == null ? WRITE_TYPES : Lists.newArrayList(WritePType.valueOf("WRITE_" + mWriteType));
+    List<WritePType> writeTypes = mWriteType == null ? WRITE_TYPES
+        : Lists.newArrayList(WritePType.valueOf("WRITE_" + mWriteType));
     List<OperationType> operations = mOperation == null ? Lists.newArrayList(OperationType.values())
         : Lists.newArrayList(OperationType.valueOf(mOperation));
 

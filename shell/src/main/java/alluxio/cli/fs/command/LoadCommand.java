@@ -14,12 +14,16 @@ package alluxio.cli.fs.command;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.cli.CommandUtils;
-import alluxio.client.file.*;
+import alluxio.client.file.FileInStream;
+import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemClientOptions;
+import alluxio.client.file.FileSystemContext;
+import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
-
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.ReadPType;
+
 import com.google.common.io.Closer;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;

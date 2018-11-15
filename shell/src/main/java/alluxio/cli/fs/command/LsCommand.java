@@ -24,7 +24,6 @@ import alluxio.grpc.LoadMetadataPType;
 import alluxio.util.CommonUtils;
 import alluxio.util.FormatUtils;
 import alluxio.util.SecurityUtils;
-import alluxio.wire.LoadMetadataType;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
@@ -229,7 +228,8 @@ public final class LsCommand extends AbstractFileSystemCommand {
       return;
     }
 
-    ListStatusPOptions.Builder optionsBuilder = FileSystemClientOptions.getListStatusOptions().toBuilder();
+    ListStatusPOptions.Builder optionsBuilder =
+        FileSystemClientOptions.getListStatusOptions().toBuilder();
     if (forceLoadMetadata) {
       optionsBuilder.setLoadMetadataType(LoadMetadataPType.ALWAYS);
     }

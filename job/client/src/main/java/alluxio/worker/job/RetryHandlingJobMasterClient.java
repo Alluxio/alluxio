@@ -13,7 +13,6 @@ package alluxio.worker.job;
 
 import alluxio.AbstractMasterClient;
 import alluxio.Constants;
-import alluxio.network.thrift.ThriftUtils;
 import alluxio.thrift.AlluxioService.Client;
 import alluxio.thrift.JobCommand;
 import alluxio.thrift.JobHeartbeatTOptions;

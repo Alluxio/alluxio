@@ -17,8 +17,8 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemClientOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
-
 import alluxio.grpc.CreateDirectoryPOptions;
+
 import org.apache.commons.cli.CommandLine;
 
 import java.io.IOException;

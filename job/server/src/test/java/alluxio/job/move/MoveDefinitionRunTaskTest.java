@@ -19,7 +19,12 @@ import static org.mockito.Mockito.when;
 
 import alluxio.AlluxioURI;
 import alluxio.client.WriteType;
-import alluxio.client.file.*;
+import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemClientOptions;
+import alluxio.client.file.FileSystemContext;
+import alluxio.client.file.MockFileInStream;
+import alluxio.client.file.MockFileOutStream;
+import alluxio.client.file.URIStatus;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.WritePType;

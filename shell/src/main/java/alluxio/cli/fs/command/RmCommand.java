@@ -19,8 +19,8 @@ import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.status.InvalidArgumentException;
-
 import alluxio.grpc.DeletePOptions;
+
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
@@ -90,7 +90,6 @@ public final class RmCommand extends AbstractFileSystemCommand {
       throw new IOException(
           path.getPath() + " is a directory, to remove it, please use \"rm -R <path>\"");
     }
-    
     boolean isAlluxioOnly = cl.hasOption(REMOVE_ALLUXIO_ONLY.getLongOpt());
     DeletePOptions options = FileSystemClientOptions.getDeleteOptions().toBuilder()
         .setRecursive(recursive).setAlluxioOnly(isAlluxioOnly)
