@@ -114,13 +114,14 @@ public final class AlluxioFuseUtils {
 
   /**
    * Checks whether fuse is installed in local file system.
+   * Alluxio-Fuse only support mac and linux.
    *
    * @return true if fuse is installed, false otherwise
    */
   public static boolean isFuseInstalled() {
     try {
       if (OSUtils.isLinux()) {
-        String result = ShellUtils.execCommand("bash", "-c", "fusermount", "-V");
+        String result = ShellUtils.execCommand("fusermount", "-V");
         return !result.isEmpty();
       } else if (OSUtils.isMacOS()) {
         String result = ShellUtils.execCommand("bash", "-c", "mount | grep FUSE");

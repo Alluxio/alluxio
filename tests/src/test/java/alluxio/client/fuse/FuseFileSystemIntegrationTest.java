@@ -14,6 +14,7 @@ package alluxio.client.fuse;
 import alluxio.AlluxioTestDirectory;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.client.ReadType;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileInStream;
@@ -53,9 +54,13 @@ import java.util.concurrent.TimeoutException;
 public class FuseFileSystemIntegrationTest {
   private static final int WAIT_TIMEOUT_MS = 60 * Constants.SECOND_MS;
 
+  // Fuse user group translation needs to be enabled to support chown/chgrp/ls commands
+  // to show accurate information
   @Rule
-  public LocalAlluxioClusterResource mLocalAlluxioClusterResource
-      = new LocalAlluxioClusterResource.Builder().build();
+  public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
+      new LocalAlluxioClusterResource.Builder()
+          .setProperty(PropertyKey.FUSE_USER_GROUP_TRANSLATION_ENABLED, true)
+          .build();
 
   private final boolean mFuseInstalled = AlluxioFuseUtils.isFuseInstalled();
 
@@ -111,14 +116,12 @@ public class FuseFileSystemIntegrationTest {
 
   @Test
   public void chgrp() throws Exception {
-    // Osxfuse does not support chgrp
-    Assume.assumeTrue(OSUtils.isLinux());
     String testFile = "/chgrpTestFile";
-    FileSystemTestUtils.createByteFile(mFileSystem, testFile, WriteType.MUST_CACHE, 10);
     String userName = System.getProperty("user.name");
     String groupName = AlluxioFuseUtils.getGroupName(userName);
+    FileSystemTestUtils.createByteFile(mFileSystem, testFile, WriteType.MUST_CACHE, 10);
     ShellUtils.execCommand("chgrp", groupName, mMountPoint + testFile);
-    Assert.assertNotEquals(groupName, mFileSystem.getStatus(new AlluxioURI(testFile)).getGroup());
+    Assert.assertEquals(groupName, mFileSystem.getStatus(new AlluxioURI(testFile)).getGroup());
   }
 
   @Test
@@ -131,15 +134,14 @@ public class FuseFileSystemIntegrationTest {
 
   @Test
   public void chown() throws Exception {
-    // Osxfuse does not support chown
-    Assume.assumeTrue(OSUtils.isLinux());
     String testFile = "/chownTestFile";
     FileSystemTestUtils.createByteFile(mFileSystem, testFile, WriteType.MUST_CACHE, 10);
+
     String userName = System.getProperty("user.name");
     String groupName = AlluxioFuseUtils.getGroupName(userName);
     ShellUtils.execCommand("chown", userName + ":" + groupName, mMountPoint + testFile);
-    Assert.assertNotEquals(userName, mFileSystem.getStatus(new AlluxioURI(testFile)).getOwner());
-    Assert.assertNotEquals(groupName, mFileSystem.getStatus(new AlluxioURI(testFile)).getGroup());
+    Assert.assertEquals(userName, mFileSystem.getStatus(new AlluxioURI(testFile)).getOwner());
+    Assert.assertEquals(groupName, mFileSystem.getStatus(new AlluxioURI(testFile)).getGroup());
   }
 
   @Test
