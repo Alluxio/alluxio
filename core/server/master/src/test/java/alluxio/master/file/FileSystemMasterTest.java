@@ -1407,6 +1407,47 @@ public final class FileSystemMasterTest {
   }
 
   @Test
+  public void setAclWithoutOwner() throws Exception {
+    SetAclOptions options = SetAclOptions.defaults();
+    createFileWithSingleBlock(NESTED_FILE_URI);
+    mFileSystemMaster.setAttribute(NESTED_URI,
+        SetAttributeOptions.defaults().setMode((short) 0777));
+    Set<String> entries = Sets.newHashSet(mFileSystemMaster
+        .getFileInfo(NESTED_FILE_URI, GET_STATUS_OPTIONS).convertAclToStringEntries());
+    assertEquals(3, entries.size());
+    mThrown.expect(AccessControlException.class);
+    try (AuthenticatedClientUserResource userA = new AuthenticatedClientUserResource("userA")) {
+      Set<String> newEntries = Sets.newHashSet("user::rwx", "group::rwx", "other::rwx");
+      mFileSystemMaster.setAcl(NESTED_FILE_URI, SetAclAction.REPLACE,
+          newEntries.stream().map(AclEntry::fromCliString).collect(Collectors.toList()), options);
+      entries = Sets.newHashSet(mFileSystemMaster
+          .getFileInfo(NESTED_FILE_URI, GET_STATUS_OPTIONS).convertAclToStringEntries());
+      assertEquals(newEntries, entries);
+    }
+  }
+
+  @Test
+  public void setAclNestedWithoutOwner() throws Exception {
+    SetAclOptions options = SetAclOptions.defaults().setRecursive(true);
+    createFileWithSingleBlock(NESTED_FILE_URI);
+    mFileSystemMaster.setAttribute(NESTED_URI,
+        SetAttributeOptions.defaults().setMode((short) 0777).setOwner("userA"));
+    Set<String> entries = Sets.newHashSet(mFileSystemMaster
+        .getFileInfo(NESTED_FILE_URI, GET_STATUS_OPTIONS).convertAclToStringEntries());
+    assertEquals(3, entries.size());
+    // recursive setAcl should fail if one of the child is not owned by the user
+    mThrown.expect(AccessControlException.class);
+    try (AuthenticatedClientUserResource userA = new AuthenticatedClientUserResource("userA")) {
+      Set<String> newEntries = Sets.newHashSet("user::rwx", "group::rwx", "other::rwx");
+      mFileSystemMaster.setAcl(NESTED_URI, SetAclAction.REPLACE,
+          newEntries.stream().map(AclEntry::fromCliString).collect(Collectors.toList()), options);
+      entries = Sets.newHashSet(mFileSystemMaster
+          .getFileInfo(NESTED_FILE_URI, GET_STATUS_OPTIONS).convertAclToStringEntries());
+      assertEquals(newEntries, entries);
+    }
+  }
+
+  @Test
   public void removeExtendedAclMask() throws Exception {
     mFileSystemMaster.createDirectory(NESTED_URI,
         CreateDirectoryOptions.defaults().setRecursive(true));
