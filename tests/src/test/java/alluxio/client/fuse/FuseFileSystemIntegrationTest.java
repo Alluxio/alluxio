@@ -110,11 +110,36 @@ public class FuseFileSystemIntegrationTest {
   }
 
   @Test
+  public void chgrp() throws Exception {
+    // Osxfuse does not support chgrp
+    Assume.assumeTrue(OSUtils.isLinux());
+    String testFile = "/chgrpTestFile";
+    FileSystemTestUtils.createByteFile(mFileSystem, testFile, WriteType.MUST_CACHE, 10);
+    String userName = System.getProperty("user.name");
+    String groupName = AlluxioFuseUtils.getGroupName(userName);
+    ShellUtils.execCommand("chgrp", groupName, mMountPoint + testFile);
+    Assert.assertNotEquals(groupName, mFileSystem.getStatus(new AlluxioURI(testFile)).getGroup());
+  }
+
+  @Test
   public void chmod() throws Exception {
     String testFile = "/chmodTestFile";
     FileSystemTestUtils.createByteFile(mFileSystem, testFile, WriteType.MUST_CACHE, 10);
     ShellUtils.execCommand("chmod", "777", mMountPoint + testFile);
     Assert.assertEquals((short) 0777, mFileSystem.getStatus(new AlluxioURI(testFile)).getMode());
+  }
+
+  @Test
+  public void chown() throws Exception {
+    // Osxfuse does not support chown
+    Assume.assumeTrue(OSUtils.isLinux());
+    String testFile = "/chownTestFile";
+    FileSystemTestUtils.createByteFile(mFileSystem, testFile, WriteType.MUST_CACHE, 10);
+    String userName = System.getProperty("user.name");
+    String groupName = AlluxioFuseUtils.getGroupName(userName);
+    ShellUtils.execCommand("chown", userName + ":" + groupName, mMountPoint + testFile);
+    Assert.assertNotEquals(userName, mFileSystem.getStatus(new AlluxioURI(testFile)).getOwner());
+    Assert.assertNotEquals(groupName, mFileSystem.getStatus(new AlluxioURI(testFile)).getGroup());
   }
 
   @Test
@@ -226,11 +251,11 @@ public class FuseFileSystemIntegrationTest {
         CommonUtils.waitFor("Alluxio-Fuse mounted on local filesystem", () -> {
           String result;
           try {
-            result = ShellUtils.execCommand("mount");
+            result = ShellUtils.execCommand("bash", "-c", "mount | grep " + mMountPoint);
           } catch (IOException e) {
             return false;
           }
-          return result.contains(mMountPoint);
+          return !result.isEmpty();
         }, WaitForOptions.defaults().setTimeoutMs(WAIT_TIMEOUT_MS));
         return true;
       } catch (InterruptedException e) {
