@@ -107,8 +107,9 @@ public final class FileSystemMasterClientServiceHandler
     CheckConsistencyPOptions options = request.getOptions();
     RpcUtilsNew.call(LOG,
         (RpcUtilsNew.RpcCallableThrowsIOException<CheckConsistencyPResponse>) () -> {
-          List<AlluxioURI> inconsistentUris = mFileSystemMaster.checkConsistency(
-              new AlluxioURI(path), GrpcOptionsMerger.merge(mOptionsService, options));
+          List<AlluxioURI> inconsistentUris =
+              mFileSystemMaster.checkConsistency(new AlluxioURI(path), mOptionsService
+                  .getCheckConsistencyOptions().toBuilder().mergeFrom(options).build());
           List<String> uris = new ArrayList<>(inconsistentUris.size());
           for (AlluxioURI uri : inconsistentUris) {
             uris.add(uri.getPath());
@@ -159,7 +160,8 @@ public final class FileSystemMasterClientServiceHandler
     String path = request.getPath();
     FreePOptions options = request.getOptions();
     RpcUtilsNew.call(LOG, (RpcUtilsNew.RpcCallableThrowsIOException<FreePResponse>) () -> {
-      mFileSystemMaster.free(new AlluxioURI(path), GrpcOptionsMerger.merge(mOptionsService, options));
+      mFileSystemMaster.free(new AlluxioURI(path),
+          mOptionsService.getFreeOptions().toBuilder().mergeFrom(options).build());
       return FreePResponse.newBuilder().build();
     }, "Free", "path=%s, options=%s", responseObserver, path, options);
   }
@@ -184,7 +186,7 @@ public final class FileSystemMasterClientServiceHandler
         (RpcUtilsNew.RpcCallableThrowsIOException<GetStatusPResponse>) () -> GetStatusPResponse
             .newBuilder()
             .setFileInfo(GrpcUtils.toProto(mFileSystemMaster.getFileInfo(new AlluxioURI(path),
-                GrpcOptionsMerger.merge(mOptionsService, options))))
+                mOptionsService.getGetStatusOptions().toBuilder().mergeFrom(options).build())))
             .build(),
         "GetStatus", true, "path=%s, options=%s", responseObserver, path, options);
   }
@@ -197,7 +199,7 @@ public final class FileSystemMasterClientServiceHandler
     RpcUtilsNew.call(LOG, (RpcUtilsNew.RpcCallableThrowsIOException<ListStatusPResponse>) () -> {
       List<FileInfo> result = new ArrayList<>();
       for (alluxio.wire.FileInfo fileInfo : mFileSystemMaster.listStatus(new AlluxioURI(path),
-          GrpcOptionsMerger.merge(mOptionsService, options))) {
+          mOptionsService.getListStatusOptions().toBuilder().mergeFrom(options).build())) {
         result.add(GrpcUtils.toProto(fileInfo));
       }
       return ListStatusPResponse.newBuilder().addAllFileInfoList(result).build();
@@ -211,7 +213,7 @@ public final class FileSystemMasterClientServiceHandler
     MountPOptions options = request.getOptions();
     RpcUtilsNew.call(LOG, (RpcUtilsNew.RpcCallableThrowsIOException<MountPResponse>) () -> {
       mFileSystemMaster.mount(new AlluxioURI(alluxioPath), new AlluxioURI(ufsPath),
-          GrpcOptionsMerger.merge(mOptionsService, options));
+          mOptionsService.getMountOptions().toBuilder().mergeFrom(options).build());
       return MountPResponse.newBuilder().build();
     }, "Mount", "alluxioPath=%s, ufsPath=%s, options=%s", responseObserver, alluxioPath, ufsPath,
         options);
@@ -236,7 +238,7 @@ public final class FileSystemMasterClientServiceHandler
     DeletePOptions options = request.getOptions();
     RpcUtilsNew.call(LOG, (RpcUtilsNew.RpcCallableThrowsIOException<DeletePResponse>) () -> {
       mFileSystemMaster.delete(new AlluxioURI(path),
-          GrpcOptionsMerger.merge(mOptionsService, options));
+          mOptionsService.getDeleteOptions().toBuilder().mergeFrom(options).build());
       return DeletePResponse.newBuilder().build();
     }, "Remove", "path=%s, options=%s", responseObserver, path, options);
   }
@@ -247,8 +249,8 @@ public final class FileSystemMasterClientServiceHandler
     String dstPath = request.getDstPath();
     RenamePOptions options = request.getOptions();
     RpcUtilsNew.call(LOG, (RpcUtilsNew.RpcCallableThrowsIOException<RenamePResponse>) () -> {
-      mFileSystemMaster.rename(new AlluxioURI(srcPath), new AlluxioURI(dstPath),
-          new RenameContext(GrpcOptionsMerger.merge(mOptionsService, options)));
+      mFileSystemMaster.rename(new AlluxioURI(srcPath), new AlluxioURI(dstPath), new RenameContext(
+          mOptionsService.getRenameOptions().toBuilder().mergeFrom(options).build()));
       return RenamePResponse.newBuilder().build();
     }, "Rename", "srcPath=%s, dstPath=%s, options=%s", responseObserver, srcPath, dstPath, options);
   }
@@ -272,7 +274,7 @@ public final class FileSystemMasterClientServiceHandler
     SetAttributePOptions options = request.getOptions();
     RpcUtilsNew.call(LOG, (RpcUtilsNew.RpcCallableThrowsIOException<SetAttributePResponse>) () -> {
       mFileSystemMaster.setAttribute(new AlluxioURI(path),
-          GrpcOptionsMerger.merge(mOptionsService, options));
+          mOptionsService.getSetAttributeOptions().toBuilder().mergeFrom(options).build());
       return SetAttributePResponse.newBuilder().build();
     }, "SetAttribute", "path=%s, options=%s", responseObserver, path, options);
   }
