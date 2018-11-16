@@ -54,8 +54,7 @@ public class ActiveSyncManager implements JournalEntryIterable, JournalEntryRepl
   private final Map<Long, Future<?>> mPollerMap;
   //  a map which maps each mount id to a list of paths being actively synced on mountpoint
   private final Map<Long, List<AlluxioURI>> mFilterMap;
-
-  private final State mState;
+  
   private FileSystemMaster mFileSystemMaster;
 
   /**
