@@ -40,15 +40,9 @@ import javax.annotation.concurrent.ThreadSafe;
  * The file system class to set default options for master.
  */
 @ThreadSafe
-public final class DefaultFileSystemMasterOptions implements FileSystemMasterOptions {
+public final class FileSystemMasterOptions{
 
-  @Override
-  public CheckConsistencyPOptions getCheckConsistencyOptions() {
-    return CheckConsistencyPOptions.newBuilder().setCommonOptions(getCommonPOptions()).build();
-  }
-
-  @Override
-  public CommonOptions getCommonOptions() {
+  public static CommonOptions getCommonOptions() {
     return CommonOptions.defaults();
   }
 
@@ -56,30 +50,38 @@ public final class DefaultFileSystemMasterOptions implements FileSystemMasterOpt
    * TODO(ggezer) Remove non-proto getCommonOptions.
    * @return {@link FileSystemMasterCommonPOptions} with default values for master
    */
-  public FileSystemMasterCommonPOptions getCommonPOptions() {
+  public static FileSystemMasterCommonPOptions getCommonPOptions() {
     return FileSystemMasterCommonPOptions.newBuilder().setTtl(Constants.NO_TTL)
         .setTtlAction(TtlAction.DELETE)
         .setSyncIntervalMs(Configuration.getMs(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL))
         .build();
   }
 
-  @Override
-  public CompleteFileOptions getCompleteFileOptions() {
+  /**
+   * @return Master side defaults for {@link CompleteFileOptions}
+   */
+  public static CompleteFileOptions getCompleteFileOptions() {
     return CompleteFileOptions.defaults();
   }
 
-  @Override
-  public CreateDirectoryOptions getCreateDirectoryOptions() {
+  /**
+   * @return Master side defaults for {@link CreateDirectoryOptions}
+   */
+  public static CreateDirectoryOptions getCreateDirectoryOptions() {
     return CreateDirectoryOptions.defaults();
   }
 
-  @Override
-  public CreateFileOptions getCreateFileOptions() {
+  /**
+   * @return Master side defaults for {@link CreateFileOptions}
+   */
+  public static CreateFileOptions getCreateFileOptions() {
     return CreateFileOptions.defaults();
   }
 
-  @Override
-  public DeletePOptions getDeleteOptions() {
+  /**
+   * @return Master side defaults for {@link DeletePOptions}
+   */
+  public static DeletePOptions getDeleteOptions() {
     return DeletePOptions.newBuilder()
             .setCommonOptions(getCommonPOptions())
             .setRecursive(false)
@@ -88,8 +90,10 @@ public final class DefaultFileSystemMasterOptions implements FileSystemMasterOpt
             .build();
   }
 
-  @Override
-  public FreePOptions getFreeOptions() {
+  /**
+   * @return Master side defaults for {@link FreePOptions}
+   */
+  public static FreePOptions getFreeOptions() {
     return FreePOptions.newBuilder()
         .setCommonOptions(getCommonPOptions())
         .setForced(false)
@@ -97,24 +101,30 @@ public final class DefaultFileSystemMasterOptions implements FileSystemMasterOpt
         .build();
   }
 
-  @Override
-  public GetStatusPOptions getGetStatusOptions() {
+  /**
+   * @return Master side defaults for {@link GetStatusPOptions}
+   */
+  public static GetStatusPOptions getGetStatusOptions() {
     return GetStatusPOptions.newBuilder()
         .setCommonOptions(getCommonPOptions())
         .setLoadMetadataType(LoadMetadataPType.ONCE)
         .build();
   }
 
-  @Override
-  public ListStatusPOptions getListStatusOptions() {
+  /**
+   * @return Master side defaults for {@link ListStatusPOptions}
+   */
+  public static ListStatusPOptions getListStatusOptions() {
     return ListStatusPOptions.newBuilder()
             .setCommonOptions(getCommonPOptions())
             .setLoadMetadataType(LoadMetadataPType.ONCE)
             .build();
   }
 
-  @Override
-  public LoadMetadataPOptions getLoadMetadataOptions() {
+  /**
+   * @return Master side defaults for {@link LoadMetadataPOptions}
+   */
+  public static LoadMetadataPOptions getLoadMetadataOptions() {
     return LoadMetadataPOptions.newBuilder()
             .setCommonOptions(getCommonPOptions())
             .setRecursive(false)
@@ -123,8 +133,10 @@ public final class DefaultFileSystemMasterOptions implements FileSystemMasterOpt
             .build();
   }
 
-  @Override
-  public MountPOptions getMountOptions() {
+  /**
+   * @return Master side defaults for {@link MountPOptions}
+   */
+  public static MountPOptions getMountOptions() {
     return MountPOptions.newBuilder()
             .setCommonOptions(getCommonPOptions())
             .setShared(false)
@@ -132,25 +144,40 @@ public final class DefaultFileSystemMasterOptions implements FileSystemMasterOpt
             .build();
   }
 
-  @Override
-  public RenamePOptions getRenameOptions() {
+  /**
+   * @return Master side defaults for {@link RenamePOptions}
+   */
+  public static RenamePOptions getRenameOptions() {
     return RenamePOptions.newBuilder().setCommonOptions(getCommonPOptions()).build();
   }
 
-  @Override
-  public SetAttributePOptions getSetAttributeOptions() {
+  /**
+   * @return Master side defaults for {@link SetAttributePOptions}
+   */
+  public static SetAttributePOptions getSetAttributeOptions() {
     return SetAttributePOptions.newBuilder().setCommonOptions(getCommonPOptions())
         .setTtlAction(TtlAction.DELETE).setRecursive(false).setPinned(false).build();
   }
 
-  @Override
-  public SetAclPOptions getSetAclOptions() {
+  /**
+   * @return Master side defaults for {@link SetAclPOptions}
+   */
+  public static SetAclPOptions getSetAclOptions() {
     return SetAclPOptions.newBuilder().setCommonOptions(getCommonPOptions()).setRecursive(false)
         .build();
   }
 
-  @Override
-  public SyncMetadataOptions getSyncMetadataOptions() {
+  /**
+   * @return Master side defaults for {@link CheckConsistencyPOptions}
+   */
+  public static CheckConsistencyPOptions getCheckConsistencyOptions() {
+    return CheckConsistencyPOptions.newBuilder().setCommonOptions(getCommonPOptions()).build();
+  }
+
+  /**
+   * @return Master side defaults for {@link SyncMetadataOptions}
+   */
+  public static SyncMetadataOptions getSyncMetadataOptions() {
     return SyncMetadataOptions.defaults();
   }
 }

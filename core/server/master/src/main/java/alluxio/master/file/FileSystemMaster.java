@@ -67,11 +67,6 @@ public interface FileSystemMaster extends Master {
   void cleanupUfs();
 
   /**
-   * @return the file system master default options provider
-   */
-  FileSystemMasterOptions getMasterOptions();
-
-  /**
    * @return the status of the startup consistency check and inconsistent paths if it is complete
    */
   StartupConsistencyCheck getStartupConsistencyCheck();

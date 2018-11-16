@@ -77,10 +77,10 @@ final class InodeTtlChecker implements HeartbeatExecutor {
                 // public free method will lock the path, and check WRITE permission required at
                 // parent of file
                 if (inode.isDirectory()) {
-                  mFileSystemMaster.free(path, mFileSystemMaster.getMasterOptions().getFreeOptions()
+                  mFileSystemMaster.free(path, FileSystemMasterOptions.getFreeOptions()
                       .toBuilder().setForced(true).setRecursive(true).build());
                 } else {
-                  mFileSystemMaster.free(path, mFileSystemMaster.getMasterOptions().getFreeOptions()
+                  mFileSystemMaster.free(path, FileSystemMasterOptions.getFreeOptions()
                       .toBuilder().setForced(true).build());
                 }
                 try (JournalContext journalContext = mFileSystemMaster.createJournalContext()) {
@@ -97,11 +97,10 @@ final class InodeTtlChecker implements HeartbeatExecutor {
                 // public delete method will lock the path, and check WRITE permission required at
                 // parent of file
                 if (inode.isDirectory()) {
-                  mFileSystemMaster.delete(path, mFileSystemMaster.getMasterOptions()
-                      .getDeleteOptions().toBuilder().setRecursive(true).build());
+                  mFileSystemMaster.delete(path, FileSystemMasterOptions.getDeleteOptions()
+                      .toBuilder().setRecursive(true).build());
                 } else {
-                  mFileSystemMaster.delete(path,
-                      mFileSystemMaster.getMasterOptions().getDeleteOptions());
+                  mFileSystemMaster.delete(path, FileSystemMasterOptions.getDeleteOptions());
                 }
                 break;
               default:

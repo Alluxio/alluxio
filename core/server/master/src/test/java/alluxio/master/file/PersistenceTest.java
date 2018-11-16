@@ -81,8 +81,8 @@ public final class PersistenceTest {
   private SafeModeManager mSafeModeManager;
   private long mStartTimeMs;
   private int mPort;
-  private static FileSystemMasterOptions sMasterOptions = new DefaultFileSystemMasterOptions();
-  private static final GetStatusPOptions GET_STATUS_OPTIONS = sMasterOptions.getGetStatusOptions();
+  private static final GetStatusPOptions GET_STATUS_OPTIONS =
+      FileSystemMasterOptions.getGetStatusOptions();
 
   @Rule
   public ManuallyScheduleHeartbeat mManualScheduler =
@@ -365,11 +365,11 @@ public final class PersistenceTest {
         CreateDirectoryOptions.defaults().setPersisted(true));
     AlluxioURI alluxioFileDst = new AlluxioURI("/dst/in_alluxio");
     mFileSystemMaster.rename(alluxioFileSrc, alluxioFileDst,
-        new RenameContext(mFileSystemMaster.getMasterOptions().getRenameOptions()));
+        new RenameContext(FileSystemMasterOptions.getRenameOptions()));
 
     // Delete the src directory recursively.
     mFileSystemMaster.delete(alluxioDirSrc,
-        sMasterOptions.getDeleteOptions().toBuilder().setRecursive(true).build());
+        FileSystemMasterOptions.getDeleteOptions().toBuilder().setRecursive(true).build());
 
     // Execute the persistence checker heartbeat, checking the internal state. This should
     // re-schedule the persist task as tempUfsPath is deleted.

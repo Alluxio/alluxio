@@ -12,6 +12,10 @@
 package alluxio.master.file;
 
 import alluxio.AlluxioURI;
+import alluxio.file.options.CommonOptions;
+import alluxio.file.options.CompleteFileOptions;
+import alluxio.file.options.CreateDirectoryOptions;
+import alluxio.file.options.CreateFileOptions;
 import alluxio.file.options.RenameContext;
 import alluxio.grpc.CheckConsistencyPOptions;
 import alluxio.grpc.CheckConsistencyPRequest;
@@ -29,6 +33,7 @@ import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.DeletePRequest;
 import alluxio.grpc.DeletePResponse;
 import alluxio.grpc.FileInfo;
+import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.grpc.FileSystemMasterServiceGrpc;
 import alluxio.grpc.FreePOptions;
 import alluxio.grpc.FreePRequest;
@@ -62,6 +67,7 @@ import alluxio.grpc.UnmountPResponse;
 import alluxio.grpc.UpdateUfsModePOptions;
 import alluxio.grpc.UpdateUfsModePRequest;
 import alluxio.grpc.UpdateUfsModePResponse;
+import alluxio.security.authorization.Mode;
 import alluxio.underfs.UfsMode;
 import alluxio.util.RpcUtilsNew;
 import alluxio.util.grpc.GrpcUtils;
@@ -86,7 +92,6 @@ public final class FileSystemMasterClientServiceHandler
   private static final Logger LOG =
       LoggerFactory.getLogger(FileSystemMasterClientServiceHandler.class);
   private final FileSystemMaster mFileSystemMaster;
-  private final FileSystemMasterOptions mOptionsService;
 
   /**
    * Creates a new instance of {@link FileSystemMasterClientServiceHandler}.
@@ -96,7 +101,6 @@ public final class FileSystemMasterClientServiceHandler
   public FileSystemMasterClientServiceHandler(FileSystemMaster fileSystemMaster) {
     Preconditions.checkNotNull(fileSystemMaster, "fileSystemMaster");
     mFileSystemMaster = fileSystemMaster;
-    mOptionsService = fileSystemMaster.getMasterOptions();
   }
 
   @Override
@@ -107,7 +111,7 @@ public final class FileSystemMasterClientServiceHandler
     RpcUtilsNew.call(LOG,
         (RpcUtilsNew.RpcCallableThrowsIOException<CheckConsistencyPResponse>) () -> {
           List<AlluxioURI> inconsistentUris =
-              mFileSystemMaster.checkConsistency(new AlluxioURI(path), mOptionsService
+              mFileSystemMaster.checkConsistency(new AlluxioURI(path), FileSystemMasterOptions
                   .getCheckConsistencyOptions().toBuilder().mergeFrom(options).build());
           List<String> uris = new ArrayList<>(inconsistentUris.size());
           for (AlluxioURI uri : inconsistentUris) {
@@ -123,8 +127,7 @@ public final class FileSystemMasterClientServiceHandler
     String path = request.getPath();
     CompleteFilePOptions options = request.getOptions();
     RpcUtilsNew.call(LOG, (RpcUtilsNew.RpcCallableThrowsIOException<CompleteFilePResponse>) () -> {
-      mFileSystemMaster.completeFile(new AlluxioURI(path),
-          GrpcUtils.fromProto(mOptionsService, options));
+      mFileSystemMaster.completeFile(new AlluxioURI(path), new TempGrpcUtils().fromProto(options));
       return CompleteFilePResponse.newBuilder().build();
     }, "CompleteFile", "path=%s, options=%s", responseObserver, path, options);
   }
@@ -136,8 +139,7 @@ public final class FileSystemMasterClientServiceHandler
     CreateDirectoryPOptions options = request.getOptions();
     RpcUtilsNew.call(LOG,
         (RpcUtilsNew.RpcCallableThrowsIOException<CreateDirectoryPResponse>) () -> {
-          mFileSystemMaster.createDirectory(new AlluxioURI(path),
-              GrpcUtils.fromProto(mOptionsService, options));
+          mFileSystemMaster.createDirectory(new AlluxioURI(path), new TempGrpcUtils().fromProto(options));
           return CreateDirectoryPResponse.newBuilder().build();
         }, "CreateDirectory", "path=%s, options=%s", responseObserver, path, options);
   }
@@ -148,8 +150,7 @@ public final class FileSystemMasterClientServiceHandler
     String path = request.getPath();
     CreateFilePOptions options = request.getOptions();
     RpcUtilsNew.call(LOG, (RpcUtilsNew.RpcCallableThrowsIOException<CreateFilePResponse>) () -> {
-      mFileSystemMaster.createFile(new AlluxioURI(path),
-          GrpcUtils.fromProto(mOptionsService, options));
+      mFileSystemMaster.createFile(new AlluxioURI(path), new TempGrpcUtils().fromProto(options));
       return CreateFilePResponse.newBuilder().build();
     }, "CreateFile", "path=%s, options=%s", responseObserver, path, options);
   }
@@ -160,7 +161,7 @@ public final class FileSystemMasterClientServiceHandler
     FreePOptions options = request.getOptions();
     RpcUtilsNew.call(LOG, (RpcUtilsNew.RpcCallableThrowsIOException<FreePResponse>) () -> {
       mFileSystemMaster.free(new AlluxioURI(path),
-          mOptionsService.getFreeOptions().toBuilder().mergeFrom(options).build());
+          FileSystemMasterOptions.getFreeOptions().toBuilder().mergeFrom(options).build());
       return FreePResponse.newBuilder().build();
     }, "Free", "path=%s, options=%s", responseObserver, path, options);
   }
@@ -185,7 +186,8 @@ public final class FileSystemMasterClientServiceHandler
         (RpcUtilsNew.RpcCallableThrowsIOException<GetStatusPResponse>) () -> GetStatusPResponse
             .newBuilder()
             .setFileInfo(GrpcUtils.toProto(mFileSystemMaster.getFileInfo(new AlluxioURI(path),
-                mOptionsService.getGetStatusOptions().toBuilder().mergeFrom(options).build())))
+                FileSystemMasterOptions.getGetStatusOptions().toBuilder().mergeFrom(options)
+                    .build())))
             .build(),
         "GetStatus", true, "path=%s, options=%s", responseObserver, path, options);
   }
@@ -198,7 +200,7 @@ public final class FileSystemMasterClientServiceHandler
     RpcUtilsNew.call(LOG, (RpcUtilsNew.RpcCallableThrowsIOException<ListStatusPResponse>) () -> {
       List<FileInfo> result = new ArrayList<>();
       for (alluxio.wire.FileInfo fileInfo : mFileSystemMaster.listStatus(new AlluxioURI(path),
-          mOptionsService.getListStatusOptions().toBuilder().mergeFrom(options).build())) {
+          FileSystemMasterOptions.getListStatusOptions().toBuilder().mergeFrom(options).build())) {
         result.add(GrpcUtils.toProto(fileInfo));
       }
       return ListStatusPResponse.newBuilder().addAllFileInfoList(result).build();
@@ -212,7 +214,7 @@ public final class FileSystemMasterClientServiceHandler
     MountPOptions options = request.getOptions();
     RpcUtilsNew.call(LOG, (RpcUtilsNew.RpcCallableThrowsIOException<MountPResponse>) () -> {
       mFileSystemMaster.mount(new AlluxioURI(alluxioPath), new AlluxioURI(ufsPath),
-          mOptionsService.getMountOptions().toBuilder().mergeFrom(options).build());
+          FileSystemMasterOptions.getMountOptions().toBuilder().mergeFrom(options).build());
       return MountPResponse.newBuilder().build();
     }, "Mount", "alluxioPath=%s, ufsPath=%s, options=%s", responseObserver, alluxioPath, ufsPath,
         options);
@@ -237,7 +239,7 @@ public final class FileSystemMasterClientServiceHandler
     DeletePOptions options = request.getOptions();
     RpcUtilsNew.call(LOG, (RpcUtilsNew.RpcCallableThrowsIOException<DeletePResponse>) () -> {
       mFileSystemMaster.delete(new AlluxioURI(path),
-          mOptionsService.getDeleteOptions().toBuilder().mergeFrom(options).build());
+          FileSystemMasterOptions.getDeleteOptions().toBuilder().mergeFrom(options).build());
       return DeletePResponse.newBuilder().build();
     }, "Remove", "path=%s, options=%s", responseObserver, path, options);
   }
@@ -249,7 +251,7 @@ public final class FileSystemMasterClientServiceHandler
     RenamePOptions options = request.getOptions();
     RpcUtilsNew.call(LOG, (RpcUtilsNew.RpcCallableThrowsIOException<RenamePResponse>) () -> {
       mFileSystemMaster.rename(new AlluxioURI(srcPath), new AlluxioURI(dstPath), new RenameContext(
-          mOptionsService.getRenameOptions().toBuilder().mergeFrom(options).build()));
+          FileSystemMasterOptions.getRenameOptions().toBuilder().mergeFrom(options).build()));
       return RenamePResponse.newBuilder().build();
     }, "Rename", "srcPath=%s, dstPath=%s, options=%s", responseObserver, srcPath, dstPath, options);
   }
@@ -273,7 +275,7 @@ public final class FileSystemMasterClientServiceHandler
     SetAttributePOptions options = request.getOptions();
     RpcUtilsNew.call(LOG, (RpcUtilsNew.RpcCallableThrowsIOException<SetAttributePResponse>) () -> {
       mFileSystemMaster.setAttribute(new AlluxioURI(path),
-          mOptionsService.getSetAttributeOptions().toBuilder().mergeFrom(options).build());
+          FileSystemMasterOptions.getSetAttributeOptions().toBuilder().mergeFrom(options).build());
       return SetAttributePResponse.newBuilder().build();
     }, "SetAttribute", "path=%s, options=%s", responseObserver, path, options);
   }
@@ -309,5 +311,99 @@ public final class FileSystemMasterClientServiceHandler
       mFileSystemMaster.updateUfsMode(new AlluxioURI(ufsPath), ufsMode);
       return UpdateUfsModePResponse.newBuilder().build();
     }, "UpdateUfsMode", "ufsPath=%s, options=%s", responseObserver, ufsPath, options);
+  }
+
+  // TODO(ggezer) Remove after master context implementations.
+  private final class TempGrpcUtils {
+    /**
+     * Converts from proto type to options.
+     *
+     * @param pOptions the proto options to convert
+     * @return the converted options instance
+     */
+    public CommonOptions fromProto(FileSystemMasterCommonPOptions pOptions) {
+      CommonOptions options = FileSystemMasterOptions.getCommonOptions();
+      if (pOptions != null) {
+        if (pOptions.hasSyncIntervalMs()) {
+          options.setSyncIntervalMs(pOptions.getSyncIntervalMs());
+        }
+      }
+      return options;
+    }
+
+    /**
+     * Converts from proto type to options.
+     *
+     * @param pOptions the proto options to convert
+     * @return the converted options instance
+     */
+    public CompleteFileOptions fromProto(CompleteFilePOptions pOptions) {
+      CompleteFileOptions options = FileSystemMasterOptions.getCompleteFileOptions();
+      if (pOptions != null) {
+        if (pOptions.hasCommonOptions()) {
+          options.setCommonOptions(fromProto(pOptions.getCommonOptions()));
+        }
+        options.setUfsLength(pOptions.getUfsLength());
+      }
+      return options;
+    }
+
+    /**
+     * Converts from proto type to options.
+     *
+     * @param pOptions the proto options to convert
+     * @return the converted options instance
+     */
+    public CreateDirectoryOptions fromProto(CreateDirectoryPOptions pOptions) {
+      CreateDirectoryOptions options = FileSystemMasterOptions.getCreateDirectoryOptions();
+      if (pOptions != null) {
+        if (pOptions.hasCommonOptions()) {
+          options.setCommonOptions(fromProto(pOptions.getCommonOptions()));
+        }
+        options.setAllowExists(pOptions.getAllowExist());
+        options.setPersisted(pOptions.getPersisted());
+        options.setRecursive(pOptions.getRecursive());
+        // TODO(adit): implement auth
+        // if (SecurityUtils.isAuthenticationEnabled()) {
+        // mOwner = SecurityUtils.getOwnerFromProtoClient();
+        // mGroup = SecurityUtils.getGroupFromProtoClient();
+        // }
+        if (pOptions.hasMode()) {
+          options.setMode(new Mode((short) pOptions.getMode()));
+          // } else {
+          // mMode.applyDirectoryUMask();
+        }
+      }
+      return options;
+    }
+
+    /**
+     * Converts from proto type to options.
+     *
+     * @param pOptions the proto options to convert
+     * @return the converted options instance
+     */
+    public CreateFileOptions fromProto(CreateFilePOptions pOptions) {
+      CreateFileOptions options = FileSystemMasterOptions.getCreateFileOptions();
+      if (pOptions != null) {
+        if (pOptions.hasCommonOptions()) {
+          options.setCommonOptions(fromProto(pOptions.getCommonOptions()));
+        }
+        options.setBlockSizeBytes(pOptions.getBlockSizeBytes());
+        options.setPersisted(pOptions.getPersisted());
+        options.setRecursive(pOptions.getRecursive());
+        // TODO(adit): implement auth
+        // if (SecurityUtils.isAuthenticationEnabled()) {
+        // mOwner = SecurityUtils.getOwnerFromProtoClient();
+        // mGroup = SecurityUtils.getGroupFromProtoClient();
+        // }
+        if (pOptions.hasMode()) {
+          options.setMode(new Mode((short) pOptions.getMode()));
+          // } else {
+          // mMode.applyFileUMask();
+        }
+      }
+      return options;
+    }
   }
 }

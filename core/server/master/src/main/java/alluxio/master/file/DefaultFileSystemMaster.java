@@ -187,13 +187,6 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe // TODO(jiri): make thread-safe (c.f. ALLUXIO-1664)
 public final class DefaultFileSystemMaster extends AbstractMaster implements FileSystemMaster {
   private static final Logger LOG = LoggerFactory.getLogger(DefaultFileSystemMaster.class);
-  private static final DefaultFileSystemMasterOptions MASTER_OPTIONS =
-      new DefaultFileSystemMasterOptions();
-
-  @Override
-  public FileSystemMasterOptions getMasterOptions() {
-    return MASTER_OPTIONS;
-  }
 
   private static final Set<Class<? extends Server>> DEPS = ImmutableSet.of(BlockMaster.class);
 
@@ -400,7 +393,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
           && Configuration.getBoolean(PropertyKey.UNDERFS_OBJECT_STORE_MOUNT_SHARED_PUBLICLY);
       Map<String, String> rootUfsConf =
           Configuration.getNestedProperties(PropertyKey.MASTER_MOUNT_TABLE_ROOT_OPTION);
-      MountPOptions mountOptions = MASTER_OPTIONS.getMountOptions().toBuilder().setShared(shared)
+      MountPOptions mountOptions = FileSystemMasterOptions.getMountOptions().toBuilder().setShared(shared)
           .putAllProperties(rootUfsConf).build();
       return new MountInfo(new AlluxioURI(MountTable.ROOT),
           new AlluxioURI(rootUfsUri), IdUtils.ROOT_MOUNT_ID, mountOptions);
@@ -769,7 +762,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       // This is WRITE locked, since loading metadata is possible.
       mPermissionChecker.checkPermission(Mode.Bits.READ, inodePath);
       loadMetadataIfNotExist(rpcContext, inodePath,
-          MASTER_OPTIONS.getLoadMetadataOptions().toBuilder().setCreateAncestors(true).build());
+          FileSystemMasterOptions.getLoadMetadataOptions().toBuilder().setCreateAncestors(true).build());
       mInodeTree.ensureFullInodePath(inodePath, InodeTree.LockMode.READ);
       return inodePath.getInode().getId();
     } catch (InvalidPathException | FileDoesNotExistException e) {
@@ -791,9 +784,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   public FileInfo getFileInfo(AlluxioURI path, GetStatusPOptions options)
       throws FileDoesNotExistException, InvalidPathException, AccessControlException, IOException {
     Metrics.GET_FILE_INFO_OPS.inc();
-    LockingScheme lockingScheme = createLockingScheme(path,
-        GrpcUtils.fromProto(getMasterOptions(), options.getCommonOptions()),
-        InodeTree.LockMode.READ);
+    LockingScheme lockingScheme =
+        createLockingScheme(path, options.getCommonOptions(), InodeTree.LockMode.READ);
     try (RpcContext rpcContext = createRpcContext();
          LockedInodePath inodePath = mInodeTree
              .lockInodePath(lockingScheme.getPath(), lockingScheme.getMode());
@@ -816,8 +808,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       if (!inodePath.fullPathExists()) {
         checkLoadMetadataOptions(options.getLoadMetadataType(), inodePath.getUri());
         loadMetadataIfNotExist(rpcContext, inodePath,
-            MASTER_OPTIONS.getLoadMetadataOptions().toBuilder().setCreateAncestors(true)
-                .setCommonOptions(MASTER_OPTIONS.getCommonPOptions().toBuilder()
+            FileSystemMasterOptions.getLoadMetadataOptions().toBuilder().setCreateAncestors(true)
+                .setCommonOptions(FileSystemMasterOptions.getCommonPOptions().toBuilder()
                     .setTtl(options.getCommonOptions().getTtl())
                     .setTtlAction(options.getCommonOptions().getTtlAction()))
                 .build());
@@ -873,9 +865,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       throws AccessControlException, FileDoesNotExistException, InvalidPathException,
       UnavailableException {
     Metrics.GET_FILE_INFO_OPS.inc();
-    LockingScheme lockingScheme = createLockingScheme(path,
-        GrpcUtils.fromProto(getMasterOptions(), listStatusOptions.getCommonOptions()),
-        InodeTree.LockMode.READ);
+    LockingScheme lockingScheme =
+        createLockingScheme(path, listStatusOptions.getCommonOptions(), InodeTree.LockMode.READ);
     try (RpcContext rpcContext = createRpcContext();
          LockedInodePath inodePath = mInodeTree
              .lockInodePath(lockingScheme.getPath(), lockingScheme.getMode());
@@ -906,9 +897,9 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         loadDescendantType = DescendantType.ONE;
       }
       // load metadata for 1 level of descendants, or all descendants if recursive
-      LoadMetadataPOptions loadMetadataOptions = MASTER_OPTIONS.getLoadMetadataOptions().toBuilder()
+      LoadMetadataPOptions loadMetadataOptions = FileSystemMasterOptions.getLoadMetadataOptions().toBuilder()
           .setCreateAncestors(true).setLoadDescendantType(GrpcUtils.toProto(loadDescendantType))
-          .setCommonOptions(MASTER_OPTIONS.getCommonPOptions().toBuilder()
+          .setCommonOptions(FileSystemMasterOptions.getCommonPOptions().toBuilder()
               .setTtl(listStatusOptions.getCommonOptions().getTtl())
               .setTtlAction(listStatusOptions.getCommonOptions().getTtlAction()))
           .build();
@@ -1049,9 +1040,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   @Override
   public List<AlluxioURI> checkConsistency(AlluxioURI path, CheckConsistencyPOptions options)
       throws AccessControlException, FileDoesNotExistException, InvalidPathException, IOException {
-    LockingScheme lockingScheme = createLockingScheme(path,
-        GrpcUtils.fromProto(getMasterOptions(), options.getCommonOptions()),
-        InodeTree.LockMode.READ);
+    LockingScheme lockingScheme =
+        createLockingScheme(path, options.getCommonOptions(), InodeTree.LockMode.READ);
     List<AlluxioURI> inconsistentUris = new ArrayList<>();
     try (RpcContext rpcContext = createRpcContext();
          LockedInodePath parent =
@@ -1407,9 +1397,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       FileDoesNotExistException, DirectoryNotEmptyException, InvalidPathException,
       AccessControlException {
     Metrics.DELETE_PATHS_OPS.inc();
-    LockingScheme lockingScheme = createLockingScheme(path,
-        GrpcUtils.fromProto(getMasterOptions(), options.getCommonOptions()),
-        InodeTree.LockMode.WRITE);
+    LockingScheme lockingScheme =
+        createLockingScheme(path, options.getCommonOptions(), InodeTree.LockMode.WRITE);
     try (RpcContext rpcContext = createRpcContext();
         LockedInodePath inodePath =
             mInodeTree.lockInodePath(lockingScheme.getPath(), lockingScheme.getMode());
@@ -1932,13 +1921,10 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       throws FileAlreadyExistsException, FileDoesNotExistException, InvalidPathException,
       IOException, AccessControlException {
     Metrics.RENAME_PATH_OPS.inc();
-    LockingScheme srcLockingScheme =
-        createLockingScheme(srcPath,
-            GrpcUtils.fromProto(getMasterOptions(), context.getOptions().getCommonOptions()),
-            InodeTree.LockMode.WRITE);
+    LockingScheme srcLockingScheme = createLockingScheme(srcPath,
+        context.getOptions().getCommonOptions(), InodeTree.LockMode.WRITE);
     LockingScheme dstLockingScheme = createLockingScheme(dstPath,
-        GrpcUtils.fromProto(getMasterOptions(), context.getOptions().getCommonOptions()),
-        InodeTree.LockMode.READ);
+        context.getOptions().getCommonOptions(), InodeTree.LockMode.READ);
     // Require a WRITE lock on the source but only a READ lock on the destination. Since the
     // destination should not exist, we will only obtain a READ lock on the destination parent. The
     // modify operations on the parent inodes are thread safe so WRITE locks are not required.
@@ -2244,7 +2230,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
               throw new UnexpectedAlluxioException(ExceptionMessage.CANNOT_FREE_PINNED_FILE
                   .getMessage(mInodeTree.getPath(freeInode)));
             }
-            SetAttributePOptions setAttributeOptions = MASTER_OPTIONS.getSetAttributeOptions()
+            SetAttributePOptions setAttributeOptions = FileSystemMasterOptions.getSetAttributeOptions()
                 .toBuilder().setRecursive(false).setPinned(false).build();
             setAttributeSingleFile(rpcContext, descedant, true, opTimeMs,
                 new SetAttributeContext(setAttributeOptions));
@@ -2287,7 +2273,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     }
     MountPOptions options = info.getOptions();
     return new UfsInfo().setUri(info.getUfsUri())
-        .setMountOptions(MASTER_OPTIONS.getMountOptions().toBuilder()
+        .setMountOptions(FileSystemMasterOptions.getMountOptions().toBuilder()
             .putAllProperties(options.getProperties()).setReadOnly(options.getReadOnly())
             .setShared(options.getShared()).build());
   }
@@ -2398,7 +2384,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
             try (LockedInodePath tempInodePath =
                 inodePath.createTempPathForChild(childStatus.getName())) {
-              LoadMetadataPOptions loadMetadataOptions = MASTER_OPTIONS.getLoadMetadataOptions()
+              LoadMetadataPOptions loadMetadataOptions = FileSystemMasterOptions.getLoadMetadataOptions()
                   .toBuilder().setLoadDescendantType(LoadDescendantPType.NONE)
                   .setCreateAncestors(false).build();
               try {
@@ -2468,7 +2454,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     }
 
     // Metadata loaded from UFS has no TTL set.
-    CreateFileOptions createFileOptions = MASTER_OPTIONS.getCreateFileOptions()
+    CreateFileOptions createFileOptions = FileSystemMasterOptions.getCreateFileOptions()
         .setBlockSizeBytes(ufsBlockSizeByte)
         .setRecursive(options.getCreateAncestors())
         .setMetadataLoad(true)
@@ -2494,7 +2480,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     try {
       createFileInternal(rpcContext, inodePath, createFileOptions);
       CompleteFileOptions completeOptions =
-          MASTER_OPTIONS.getCompleteFileOptions().setUfsLength(ufsLength).setUfsStatus(ufsStatus);
+          FileSystemMasterOptions.getCompleteFileOptions().setUfsLength(ufsLength).setUfsStatus(ufsStatus);
       if (ufsLastModified != null) {
         completeOptions.setOperationTimeMs(ufsLastModified);
       }
@@ -2535,7 +2521,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       }
     }
     alluxio.master.file.options.CreateDirectoryOptions createDirectoryOptions =
-        MASTER_OPTIONS.getCreateDirectoryOptions()
+        FileSystemMasterOptions.getCreateDirectoryOptions()
             .setMountPoint(mMountTable.isMountPoint(inodePath.getUri()))
             .setPersisted(true)
             .setRecursive(options.getCreateAncestors())
@@ -2634,9 +2620,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       throws FileAlreadyExistsException, FileDoesNotExistException, InvalidPathException,
       IOException, AccessControlException {
     Metrics.MOUNT_OPS.inc();
-    LockingScheme lockingScheme = createLockingScheme(alluxioPath,
-        GrpcUtils.fromProto(getMasterOptions(), options.getCommonOptions()),
-        InodeTree.LockMode.WRITE);
+    LockingScheme lockingScheme =
+        createLockingScheme(alluxioPath, options.getCommonOptions(), InodeTree.LockMode.WRITE);
     try (RpcContext rpcContext = createRpcContext();
          LockedInodePath inodePath = mInodeTree
              .lockInodePath(lockingScheme.getPath(), lockingScheme.getMode());
@@ -2681,7 +2666,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     try {
       // This will create the directory at alluxioPath
       loadDirectoryMetadata(rpcContext, inodePath,
-          MASTER_OPTIONS.getLoadMetadataOptions().toBuilder().setCreateAncestors(false).build(),
+          FileSystemMasterOptions.getLoadMetadataOptions().toBuilder().setCreateAncestors(false).build(),
           null);
       loadMetadataSucceeded = true;
     } finally {
@@ -2783,7 +2768,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     try {
       // Use the internal delete API, setting {@code alluxioOnly} to true to prevent the delete
       // operations from being persisted in the UFS.
-      DeletePOptions deleteOptions = MASTER_OPTIONS.getDeleteOptions().toBuilder()
+      DeletePOptions deleteOptions = FileSystemMasterOptions.getDeleteOptions().toBuilder()
           .setRecursive(true).setAlluxioOnly(true).build();
       deleteInternal(rpcContext, inodePath, deleteOptions);
     } catch (DirectoryNotEmptyException e) {
@@ -2799,9 +2784,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       SetAclPOptions options)
       throws FileDoesNotExistException, AccessControlException, InvalidPathException, IOException {
     Metrics.SET_ACL_OPS.inc();
-    LockingScheme lockingScheme = createLockingScheme(path,
-        GrpcUtils.fromProto(getMasterOptions(), options.getCommonOptions()),
-        InodeTree.LockMode.WRITE);
+    LockingScheme lockingScheme =
+        createLockingScheme(path, options.getCommonOptions(), InodeTree.LockMode.WRITE);
     try (RpcContext rpcContext = createRpcContext();
          LockedInodePath inodePath = mInodeTree.lockInodePath(lockingScheme.getPath(),
              lockingScheme.getMode());
@@ -2985,9 +2969,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     } else {
       commandName = "setAttribute";
     }
-    LockingScheme lockingScheme = createLockingScheme(path,
-        GrpcUtils.fromProto(getMasterOptions(), options.getCommonOptions()),
-        InodeTree.LockMode.WRITE);
+    LockingScheme lockingScheme =
+        createLockingScheme(path, options.getCommonOptions(), InodeTree.LockMode.WRITE);
     try (RpcContext rpcContext = createRpcContext();
         LockedInodePath inodePath =
             mInodeTree.lockInodePath(lockingScheme.getPath(), lockingScheme.getMode());
@@ -3167,7 +3150,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
           // original inodePath. It is already locked. so we proceed to load metadata.
           try {
             loadMetadataInternal(rpcContext, inodePath,
-                MASTER_OPTIONS.getLoadMetadataOptions().toBuilder().setCreateAncestors(true)
+                FileSystemMasterOptions.getLoadMetadataOptions().toBuilder().setCreateAncestors(true)
                     .setLoadDescendantType(GrpcUtils.toProto(syncDescendantType)).build(), null);
 
             mUfsSyncPathCache.notifySyncedPath(inodePath.getUri().getPath());
@@ -3183,7 +3166,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
                        mountPointUri)) {
             try {
               loadMetadataInternal(rpcContext, descendantPath,
-                  MASTER_OPTIONS.getLoadMetadataOptions().toBuilder().setCreateAncestors(true)
+                  FileSystemMasterOptions.getLoadMetadataOptions().toBuilder().setCreateAncestors(true)
                       .setLoadDescendantType(GrpcUtils.toProto(syncDescendantType)).build(), null);
             } catch (Exception e) {
               LOG.debug("Failed to load metadata for mount point: {}", mountPointUri, e);
@@ -3250,7 +3233,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     Set<String> pathsToLoad = new HashSet<>();
 
     // The options for deleting.
-    DeletePOptions syncDeleteOptions = MASTER_OPTIONS.getDeleteOptions().toBuilder()
+    DeletePOptions syncDeleteOptions = FileSystemMasterOptions.getDeleteOptions().toBuilder()
         .setRecursive(true).setAlluxioOnly(true).setUnchecked(true).build();
 
     // The requested path already exists in Alluxio.
@@ -3303,7 +3286,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         // It works by calling SetAttributeInternal on the inodePath.
         if (ufsFpParsed.isValid()) {
           short mode = Short.parseShort(ufsFpParsed.getTag(Tag.MODE));
-          SetAttributePOptions options = MASTER_OPTIONS.getSetAttributeOptions().toBuilder()
+          SetAttributePOptions options = FileSystemMasterOptions.getSetAttributeOptions().toBuilder()
               .setOwner(ufsFpParsed.getTag(Tag.OWNER)).setGroup(ufsFpParsed.getTag(Tag.GROUP))
               .setMode(mode).build();
           long opTimeMs = System.currentTimeMillis();
@@ -3386,7 +3369,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       try {
         // Permission checking for each file is performed inside setAttribute
         SetAttributePOptions setOptions =
-            MASTER_OPTIONS.getSetAttributeOptions().toBuilder().setPersisted(true).build();
+            FileSystemMasterOptions.getSetAttributeOptions().toBuilder().setPersisted(true).build();
         setAttribute(getPath(fileId),
             new SetAttributeContext(setOptions).setUfsFingerprint(ufsFingerprint));
       } catch (FileDoesNotExistException | AccessControlException | InvalidPathException e) {

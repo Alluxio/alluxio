@@ -42,7 +42,6 @@ import alluxio.heartbeat.ManuallyScheduleHeartbeat;
 import alluxio.master.MasterClientConfig;
 import alluxio.master.MasterRegistry;
 import alluxio.master.block.BlockMaster;
-import alluxio.master.file.DefaultFileSystemMasterOptions;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.FileSystemMasterOptions;
 import alluxio.master.file.meta.TtlIntervalRule;
@@ -105,7 +104,6 @@ import javax.annotation.Nullable;
  * For example, (concurrently) creating/deleting/renaming files.
  */
 public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
-  private static FileSystemMasterOptions MASTER_OPTIONS = new DefaultFileSystemMasterOptions();
   private static final int DEPTH = 6;
   private static final int FILES_PER_NODE = 4;
   private static final int CONCURRENCY_DEPTH = 3;
@@ -212,7 +210,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
       MasterRegistry registry = createFileSystemMasterFromJournal();
       FileSystemMaster fsMaster = registry.get(FileSystemMaster.class);
       for (FileInfo info : mFsMaster.listStatus(new AlluxioURI("/"),
-              MASTER_OPTIONS.getListStatusOptions())) {
+              FileSystemMasterOptions.getListStatusOptions())) {
         AlluxioURI path = new AlluxioURI(info.getPath());
         Assert.assertEquals(mFsMaster.getFileId(path), fsMaster.getFileId(path));
       }
@@ -245,7 +243,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     concurrentDeleter.call();
 
     Assert.assertEquals(0, mFsMaster
-        .listStatus(new AlluxioURI("/"), MASTER_OPTIONS.getListStatusOptions()).size());
+        .listStatus(new AlluxioURI("/"), FileSystemMasterOptions.getListStatusOptions()).size());
   }
 
   /**
@@ -273,14 +271,14 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     concurrentCreator.call();
 
     int numFiles =
-        mFsMaster.listStatus(ROOT_PATH, MASTER_OPTIONS.getListStatusOptions()).size();
+        mFsMaster.listStatus(ROOT_PATH, FileSystemMasterOptions.getListStatusOptions()).size();
 
     ConcurrentRenamer concurrentRenamer = new ConcurrentRenamer(DEPTH, CONCURRENCY_DEPTH, ROOT_PATH,
         ROOT_PATH2, AlluxioURI.EMPTY_URI);
     concurrentRenamer.call();
 
     Assert.assertEquals(numFiles,
-        mFsMaster.listStatus(ROOT_PATH2, MASTER_OPTIONS.getListStatusOptions()).size());
+        mFsMaster.listStatus(ROOT_PATH2, FileSystemMasterOptions.getListStatusOptions()).size());
   }
 
   @Test
@@ -350,18 +348,18 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     String ufs = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
     Files.createDirectory(Paths.get(ufs, "testFolder", "ufsOnlyDir"));
     try {
-      mFsMaster.delete(new AlluxioURI("/testFolder"),
-          MASTER_OPTIONS.getDeleteOptions().toBuilder().setUnchecked(false).setRecursive(true).build());
+      mFsMaster.delete(new AlluxioURI("/testFolder"), FileSystemMasterOptions.getDeleteOptions()
+          .toBuilder().setUnchecked(false).setRecursive(true).build());
       Assert.fail("Expected deleting an out of sync directory to fail");
     } catch (IOException e) {
       // Expected
     }
     // Make sure the root folder still exists in Alluxio space.
-    mFsMaster.listStatus(new AlluxioURI("/testFolder"), MASTER_OPTIONS
+    mFsMaster.listStatus(new AlluxioURI("/testFolder"), FileSystemMasterOptions
         .getListStatusOptions().toBuilder().setLoadMetadataType(LoadMetadataPType.NEVER).build());
     // The child was in sync, so it should be deleted both from Alluxio and the UFS.
     mThrown.expect(FileDoesNotExistException.class);
-    mFsMaster.listStatus(new AlluxioURI("/testFolder/child"), MASTER_OPTIONS
+    mFsMaster.listStatus(new AlluxioURI("/testFolder/child"), FileSystemMasterOptions
         .getListStatusOptions().toBuilder().setLoadMetadataType(LoadMetadataPType.ALWAYS).build());
   }
 
@@ -380,7 +378,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     Assert.assertEquals(fileId2,
         mFsMaster.getFileId(new AlluxioURI("/testFolder/testFolder2/testFile2")));
     mFsMaster.delete(new AlluxioURI("/testFolder"),
-        MASTER_OPTIONS.getDeleteOptions().toBuilder().setRecursive(true).build());
+        FileSystemMasterOptions.getDeleteOptions().toBuilder().setRecursive(true).build());
     Assert.assertEquals(IdUtils.INVALID_FILE_ID,
         mFsMaster.getFileId(new AlluxioURI("/testFolder/testFolder2/testFile2")));
   }
@@ -400,7 +398,8 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     Assert.assertEquals(fileId2,
         mFsMaster.getFileId(new AlluxioURI("/testFolder/testFolder2/testFile2")));
     try {
-      mFsMaster.delete(new AlluxioURI("/testFolder/testFolder2"), MASTER_OPTIONS.getDeleteOptions());
+      mFsMaster.delete(new AlluxioURI("/testFolder/testFolder2"),
+          FileSystemMasterOptions.getDeleteOptions());
       Assert.fail("Deleting a nonempty directory nonrecursively should fail");
     } catch (DirectoryNotEmptyException e) {
       Assert.assertEquals(
@@ -422,7 +421,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     Assert.assertEquals(1, mFsMaster.getFileId(new AlluxioURI("/testFolder")));
     Assert.assertEquals(fileId, mFsMaster.getFileId(new AlluxioURI("/testFolder/testFile")));
     mFsMaster.delete(new AlluxioURI("/testFolder"),
-        MASTER_OPTIONS.getDeleteOptions().toBuilder().setRecursive(true).build());
+        FileSystemMasterOptions.getDeleteOptions().toBuilder().setRecursive(true).build());
     Assert.assertEquals(IdUtils.INVALID_FILE_ID,
         mFsMaster.getFileId(new AlluxioURI("/testFolder")));
   }
@@ -435,7 +434,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     Assert.assertEquals(1, mFsMaster.getFileId(new AlluxioURI("/testFolder")));
     Assert.assertEquals(fileId, mFsMaster.getFileId(new AlluxioURI("/testFolder/testFile")));
     try {
-      mFsMaster.delete(new AlluxioURI("/testFolder"), MASTER_OPTIONS.getDeleteOptions());
+      mFsMaster.delete(new AlluxioURI("/testFolder"), FileSystemMasterOptions.getDeleteOptions());
       Assert.fail("Deleting a nonempty directory nonrecursively should fail");
     } catch (DirectoryNotEmptyException e) {
       Assert.assertEquals(
@@ -451,7 +450,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     mFsMaster.createDirectory(new AlluxioURI("/testFolder"), CreateDirectoryOptions.defaults());
     Assert.assertEquals(1, mFsMaster.getFileId(new AlluxioURI("/testFolder")));
     mFsMaster.delete(new AlluxioURI("/testFolder"),
-        MASTER_OPTIONS.getDeleteOptions().toBuilder().setRecursive(true).build());
+        FileSystemMasterOptions.getDeleteOptions().toBuilder().setRecursive(true).build());
     Assert.assertEquals(IdUtils.INVALID_FILE_ID,
         mFsMaster.getFileId(new AlluxioURI("/testFolder")));
   }
@@ -467,7 +466,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     mFsMaster.createDirectory(new AlluxioURI("/testFolder/inAlluxio1/inAlluxio2"),
         CreateDirectoryOptions.defaults().setPersisted(false));
     mFsMaster.delete(new AlluxioURI("/testFolder"),
-        MASTER_OPTIONS.getDeleteOptions().toBuilder().setRecursive(true).build());
+        FileSystemMasterOptions.getDeleteOptions().toBuilder().setRecursive(true).build());
     Assert.assertEquals(IdUtils.INVALID_FILE_ID,
         mFsMaster.getFileId(new AlluxioURI("/testFolder")));
   }
@@ -503,7 +502,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     long fileId = mFsMaster.createFile(new AlluxioURI("/testFile"), CreateFileOptions.defaults());
     Assert.assertEquals(fileId, mFsMaster.getFileId(new AlluxioURI("/testFile")));
     mFsMaster.delete(new AlluxioURI("/testFile"),
-        MASTER_OPTIONS.getDeleteOptions().toBuilder().setRecursive(true).build());
+        FileSystemMasterOptions.getDeleteOptions().toBuilder().setRecursive(true).build());
     Assert.assertEquals(IdUtils.INVALID_FILE_ID, mFsMaster.getFileId(new AlluxioURI("/testFile")));
   }
 
@@ -512,7 +511,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     mThrown.expect(InvalidPathException.class);
     mThrown.expectMessage(ExceptionMessage.DELETE_ROOT_DIRECTORY.getMessage());
     mFsMaster.delete(new AlluxioURI("/"),
-        MASTER_OPTIONS.getDeleteOptions().toBuilder().setRecursive(true).build());
+        FileSystemMasterOptions.getDeleteOptions().toBuilder().setRecursive(true).build());
   }
 
   @Test
@@ -554,7 +553,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     long modificationTimeBeforeDelete = mFsMaster.getFileInfo(folderId).getLastModificationTimeMs();
     CommonUtils.sleepMs(2);
     mFsMaster.delete(new AlluxioURI("/testFolder/testFile"),
-        MASTER_OPTIONS.getDeleteOptions().toBuilder().setRecursive(true).build());
+        FileSystemMasterOptions.getDeleteOptions().toBuilder().setRecursive(true).build());
     long modificationTimeAfterDelete = mFsMaster.getFileInfo(folderId).getLastModificationTimeMs();
     Assert.assertTrue(modificationTimeBeforeDelete < modificationTimeAfterDelete);
   }
@@ -566,7 +565,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     mFsMaster.createDirectory(new AlluxioURI("/testFolder"), CreateDirectoryOptions.defaults());
     mFsMaster.createFile(srcPath, CreateFileOptions.defaults());
     mFsMaster.rename(srcPath, dstPath,
-        new RenameContext(mFsMaster.getMasterOptions().getRenameOptions())
+        new RenameContext(FileSystemMasterOptions.getRenameOptions())
             .setOperationTimeMs(TEST_TIME_MS));
     FileInfo folderInfo = mFsMaster.getFileInfo(mFsMaster.getFileId(new AlluxioURI("/testFolder")));
     Assert.assertEquals(TEST_TIME_MS, folderInfo.getLastModificationTimeMs());
@@ -589,12 +588,12 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     HashSet<Long> listedIds = new HashSet<>();
     HashSet<Long> listedDirIds = new HashSet<>();
     List<FileInfo> infoList =
-        mFsMaster.listStatus(new AlluxioURI("/"), MASTER_OPTIONS.getListStatusOptions());
+        mFsMaster.listStatus(new AlluxioURI("/"), FileSystemMasterOptions.getListStatusOptions());
     for (FileInfo info : infoList) {
       long id = info.getFileId();
       listedDirIds.add(id);
       for (FileInfo fileInfo : mFsMaster.listStatus(new AlluxioURI(info.getPath()),
-          MASTER_OPTIONS.getListStatusOptions())) {
+          FileSystemMasterOptions.getListStatusOptions())) {
         listedIds.add(fileInfo.getFileId());
       }
     }
@@ -615,16 +614,16 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
 
     Assert.assertEquals(1,
         mFsMaster
-            .listStatus(new AlluxioURI("/i0/j0"), MASTER_OPTIONS.getListStatusOptions())
+            .listStatus(new AlluxioURI("/i0/j0"), FileSystemMasterOptions.getListStatusOptions())
             .size());
     for (int i = 0; i < 10; i++) {
       Assert.assertEquals(10,
           mFsMaster
-              .listStatus(new AlluxioURI("/i" + i), MASTER_OPTIONS.getListStatusOptions())
+              .listStatus(new AlluxioURI("/i" + i), FileSystemMasterOptions.getListStatusOptions())
               .size());
     }
     Assert.assertEquals(10, mFsMaster
-        .listStatus(new AlluxioURI("/"), MASTER_OPTIONS.getListStatusOptions()).size());
+        .listStatus(new AlluxioURI("/"), FileSystemMasterOptions.getListStatusOptions()).size());
   }
 
   @Test
@@ -641,7 +640,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     mFsMaster.createFile(new AlluxioURI("/testFile2"), CreateFileOptions.defaults());
     try {
       mFsMaster.rename(new AlluxioURI("/testFile1"), new AlluxioURI("/testFile2"),
-          new RenameContext(mFsMaster.getMasterOptions().getRenameOptions()));
+          new RenameContext(FileSystemMasterOptions.getRenameOptions()));
       Assert.fail("Should not be able to rename to an existing file");
     } catch (Exception e) {
       // expected
@@ -665,7 +664,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
         createFileOptions);
     mFsMaster.rename(new AlluxioURI("/testDir1/testDir2"),
         new AlluxioURI("/testDir1/testDir2/testDir3/testDir4"),
-        new RenameContext(mFsMaster.getMasterOptions().getRenameOptions()));
+        new RenameContext(FileSystemMasterOptions.getRenameOptions()));
   }
 
   @Test
@@ -728,10 +727,10 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     long ttl = 1;
     CreateFileOptions createOptions = CreateFileOptions.defaults().setTtl(ttl);
     mFsMaster.createFile(srcPath, createOptions);
-    RenamePOptions renameOptions = mFsMaster.getMasterOptions().getRenameOptions();
+    RenamePOptions renameOptions = FileSystemMasterOptions.getRenameOptions();
     // TODO(ggezer) Need a helper for setting inner proto fields.
     mFsMaster.rename(srcPath, dstPath,
-        new RenameContext(mFsMaster.getMasterOptions().getRenameOptions())
+        new RenameContext(FileSystemMasterOptions.getRenameOptions())
             .setOperationTimeMs(TEST_TIME_MS));
     FileInfo folderInfo =
         mFsMaster.getFileInfo(mFsMaster.getFileId(new AlluxioURI("/testFolder/testFile2")));
@@ -787,10 +786,10 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
 
     // List what is in Alluxio, without syncing.
     List<FileInfo> files = mFsMaster.listStatus(root,
-        MASTER_OPTIONS.getListStatusOptions().toBuilder()
+        FileSystemMasterOptions.getListStatusOptions().toBuilder()
             .setLoadMetadataType(LoadMetadataPType.NEVER)
             .setCommonOptions(
-                MASTER_OPTIONS.getCommonPOptions().toBuilder().setSyncIntervalMs(-1))
+                FileSystemMasterOptions.getCommonPOptions().toBuilder().setSyncIntervalMs(-1))
             .build());
     Assert.assertEquals(1, files.size());
     Assert.assertEquals(alluxioFile.getName(), files.get(0).getName());
@@ -802,10 +801,10 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
 
     // List with syncing, which will remove alluxio only path, and add ufs only paths.
     files = mFsMaster.listStatus(root,
-        MASTER_OPTIONS.getListStatusOptions().toBuilder()
+        FileSystemMasterOptions.getListStatusOptions().toBuilder()
             .setLoadMetadataType(LoadMetadataPType.NEVER)
             .setCommonOptions(
-                MASTER_OPTIONS.getCommonPOptions().toBuilder().setSyncIntervalMs(0))
+                FileSystemMasterOptions.getCommonPOptions().toBuilder().setSyncIntervalMs(0))
             .build());
     Assert.assertEquals(2, files.size());
     Set<String> filenames = files.stream().map(FileInfo::getName).collect(Collectors.toSet());
@@ -820,10 +819,10 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
 
     // List what is in Alluxio, without syncing. Should match the last state.
     files = fsMaster.listStatus(root,
-        MASTER_OPTIONS.getListStatusOptions().toBuilder()
+        FileSystemMasterOptions.getListStatusOptions().toBuilder()
             .setLoadMetadataType(LoadMetadataPType.NEVER)
             .setCommonOptions(
-                MASTER_OPTIONS.getCommonPOptions().toBuilder().setSyncIntervalMs(-1))
+                FileSystemMasterOptions.getCommonPOptions().toBuilder().setSyncIntervalMs(-1))
             .build());
     Assert.assertEquals(2, files.size());
     filenames = files.stream().map(FileInfo::getName).collect(Collectors.toSet());
@@ -847,10 +846,10 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
 
     // List dir with syncing
     FileInfo info = mFsMaster.getFileInfo(dir,
-        MASTER_OPTIONS.getGetStatusOptions().toBuilder()
+        FileSystemMasterOptions.getGetStatusOptions().toBuilder()
             .setLoadMetadataType(LoadMetadataPType.NEVER)
             .setCommonOptions(
-                MASTER_OPTIONS.getCommonPOptions().toBuilder().setSyncIntervalMs(0).build())
+                FileSystemMasterOptions.getCommonPOptions().toBuilder().setSyncIntervalMs(0).build())
             .build());
     Assert.assertNotNull(info);
     Assert.assertEquals("dir", info.getName());
@@ -862,10 +861,10 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
 
     // List dir with syncing, should update the mode
     info = mFsMaster.getFileInfo(dir,
-        MASTER_OPTIONS.getGetStatusOptions().toBuilder()
+        FileSystemMasterOptions.getGetStatusOptions().toBuilder()
             .setLoadMetadataType(LoadMetadataPType.NEVER)
             .setCommonOptions(
-                MASTER_OPTIONS.getCommonPOptions().toBuilder().setSyncIntervalMs(0).build())
+                FileSystemMasterOptions.getCommonPOptions().toBuilder().setSyncIntervalMs(0).build())
             .build());
     Assert.assertNotNull(info);
     Assert.assertEquals("dir", info.getName());
@@ -881,8 +880,8 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
 
     // List what is in Alluxio, without syncing.
     info = fsMaster.getFileInfo(dir,
-        MASTER_OPTIONS.getGetStatusOptions().toBuilder()
-            .setLoadMetadataType(LoadMetadataPType.NEVER).setCommonOptions(MASTER_OPTIONS
+        FileSystemMasterOptions.getGetStatusOptions().toBuilder()
+            .setLoadMetadataType(LoadMetadataPType.NEVER).setCommonOptions(FileSystemMasterOptions
                 .getCommonPOptions().toBuilder().setSyncIntervalMs(-1).build())
             .build());
     Assert.assertNotNull(info);
@@ -919,7 +918,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     UnderFileSystemFactoryRegistry.register(mockUfsFactory);
 
     mFsMaster.mount(new AlluxioURI("/mnt"), new AlluxioURI(ufsBase),
-        MASTER_OPTIONS.getMountOptions());
+        FileSystemMasterOptions.getMountOptions());
 
     AlluxioURI root = new AlluxioURI("/mnt/");
     AlluxioURI alluxioFile = new AlluxioURI("/mnt/dir1/dir2/file");
@@ -934,14 +933,14 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     }
 
     List<FileInfo> files =
-        mFsMaster.listStatus(root, MASTER_OPTIONS.getListStatusOptions());
+        mFsMaster.listStatus(root, FileSystemMasterOptions.getListStatusOptions());
     
     Assert.assertTrue(files.isEmpty());
 
     try {
       // should not exist
       files = mFsMaster.listStatus(new AlluxioURI("/mnt/dir1/"),
-          MASTER_OPTIONS.getListStatusOptions());
+          FileSystemMasterOptions.getListStatusOptions());
       Assert.fail("dir should not exist, when UFS is unavailable");
     } catch (Exception e) {
       // expected, ignore
@@ -950,7 +949,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     try {
       // should not exist
       mFsMaster.delete(new AlluxioURI("/mnt/dir1/"),
-          MASTER_OPTIONS.getDeleteOptions().toBuilder().setRecursive(true).build());
+          FileSystemMasterOptions.getDeleteOptions().toBuilder().setRecursive(true).build());
       Assert.fail("cannot delete non-existing directory, when UFS is unavailable");
     } catch (Exception e) {
       // expected, ignore
@@ -958,7 +957,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     }
 
     files = mFsMaster.listStatus(new AlluxioURI("/mnt/"),
-        MASTER_OPTIONS.getListStatusOptions());
+        FileSystemMasterOptions.getListStatusOptions());
     Assert.assertTrue(files.isEmpty());
 
     // Stop Alluxio.
@@ -968,7 +967,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     FileSystemMaster newFsMaster = registry.get(FileSystemMaster.class);
 
     files = newFsMaster.listStatus(new AlluxioURI("/mnt/"),
-        MASTER_OPTIONS.getListStatusOptions());
+        FileSystemMasterOptions.getListStatusOptions());
     Assert.assertTrue(files.isEmpty());
   }
 
@@ -1057,7 +1056,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
         UfsMode.READ_ONLY);
 
     mThrown.expect(FailedPreconditionException.class);
-    mFsMaster.delete(alluxioFile, MASTER_OPTIONS.getDeleteOptions());
+    mFsMaster.delete(alluxioFile, FileSystemMasterOptions.getDeleteOptions());
   }
 
   @Test
@@ -1073,7 +1072,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
 
     mThrown.expect(FailedPreconditionException.class);
     mFsMaster.delete(alluxioDirectory,
-        MASTER_OPTIONS.getDeleteOptions().toBuilder().setRecursive(true).build());
+        FileSystemMasterOptions.getDeleteOptions().toBuilder().setRecursive(true).build());
 
     // Check Alluxio entries exist after failed delete
     long dirId = mFsMaster.getFileId(alluxioDirectory);
@@ -1092,7 +1091,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
 
     mThrown.expect(AccessControlException.class);
     mFsMaster.rename(new AlluxioURI("/in_ufs_src"), new AlluxioURI("/in_ufs_dst"),
-        new RenameContext(mFsMaster.getMasterOptions().getRenameOptions()));
+        new RenameContext(FileSystemMasterOptions.getRenameOptions()));
   }
 
   @Test
@@ -1108,7 +1107,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
 
     mThrown.expect(AccessControlException.class);
     mFsMaster.rename(alluxioDirectory, new AlluxioURI("/in_ufs_dst"),
-        new RenameContext(mFsMaster.getMasterOptions().getRenameOptions()));
+        new RenameContext(FileSystemMasterOptions.getRenameOptions()));
 
     // Check Alluxio entries exist after failed rename
     long dirId = mFsMaster.getFileId(alluxioDirectory);
@@ -1130,7 +1129,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
 
     mThrown.expect(AccessControlException.class);
     mFsMaster.setAttribute(alluxioFile,
-        MASTER_OPTIONS.getSetAttributeOptions().toBuilder().setMode((short) 0777).build());
+        FileSystemMasterOptions.getSetAttributeOptions().toBuilder().setMode((short) 0777).build());
   }
 
   @Test
@@ -1187,7 +1186,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     FileUtils.changeLocalFilePermission(parentPath, new Mode((short) 0700).toString());
     AlluxioURI path = new AlluxioURI(Paths.get("/d1", "d2", "d3").toString());
 
-    mFsMaster.listStatus(path, MASTER_OPTIONS.getListStatusOptions().toBuilder()
+    mFsMaster.listStatus(path, FileSystemMasterOptions.getListStatusOptions().toBuilder()
         .setLoadMetadataType(LoadMetadataPType.ONCE).build());
 
     long fileId = mFsMaster.getFileId(new AlluxioURI("/d1"));
@@ -1451,7 +1450,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
 
     private void doFree(AlluxioURI path) throws Exception {
       mFsMaster.free(path,
-          MASTER_OPTIONS.getFreeOptions().toBuilder().setForced(true).setRecursive(true).build());
+          FileSystemMasterOptions.getFreeOptions().toBuilder().setForced(true).setRecursive(true).build());
       Assert.assertNotEquals(IdUtils.INVALID_FILE_ID, mFsMaster.getFileId(path));
     }
 
@@ -1526,7 +1525,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
 
     private void doDelete(AlluxioURI path) throws Exception {
       mFsMaster.delete(path,
-          MASTER_OPTIONS.getDeleteOptions().toBuilder().setRecursive(true).build());
+          FileSystemMasterOptions.getDeleteOptions().toBuilder().setRecursive(true).build());
       Assert.assertEquals(IdUtils.INVALID_FILE_ID, mFsMaster.getFileId(path));
     }
 
@@ -1634,7 +1633,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
           // the root.
         }
         mFsMaster.rename(srcPath, dstPath,
-            new RenameContext(mFsMaster.getMasterOptions().getRenameOptions()));
+            new RenameContext(FileSystemMasterOptions.getRenameOptions()));
         Assert.assertEquals(fileId, mFsMaster.getFileId(dstPath));
       } else if (concurrencyDepth > 0) {
         ExecutorService executor = Executors.newCachedThreadPool();
@@ -1701,7 +1700,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
         id = random.nextInt(mFiles.length);
         try {
           // Delete a random file.
-          mFsMaster.delete(mFiles[id], MASTER_OPTIONS.getDeleteOptions());
+          mFsMaster.delete(mFiles[id], FileSystemMasterOptions.getDeleteOptions());
         } catch (FileDoesNotExistException | InvalidPathException e) {
           // Ignore
         } catch (Exception e) {

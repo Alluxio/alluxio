@@ -258,7 +258,7 @@ public final class FileSystemMasterClientRestServiceHandler {
       @QueryParam("recursive") final boolean recursive) {
     return RestUtils.call((RestUtils.RestCallable<Void>) () -> {
       Preconditions.checkNotNull(path, "required 'path' parameter is missing");
-      mFileSystemMaster.free(new AlluxioURI(path), mFileSystemMaster.getMasterOptions()
+      mFileSystemMaster.free(new AlluxioURI(path), FileSystemMasterOptions
           .getFreeOptions().toBuilder().setRecursive(recursive).build());
       return null;
     });
@@ -318,7 +318,7 @@ public final class FileSystemMasterClientRestServiceHandler {
         Preconditions.checkNotNull(path, "required 'path' parameter is missing");
         Preconditions.checkNotNull(ufsPath, "required 'ufsPath' parameter is missing");
         MountPOptions.Builder optionsBuilder =
-            mFileSystemMaster.getMasterOptions().getMountOptions().toBuilder();
+            FileSystemMasterOptions.getMountOptions().toBuilder();
         if (readOnly != null) {
           optionsBuilder.setReadOnly(readOnly);
         }
@@ -356,8 +356,8 @@ public final class FileSystemMasterClientRestServiceHandler {
       @QueryParam("recursive") final boolean recursive) {
     return RestUtils.call((RestUtils.RestCallable<Void>) () -> {
       Preconditions.checkNotNull(path, "required 'path' parameter is missing");
-      mFileSystemMaster.delete(new AlluxioURI(path), mFileSystemMaster.getMasterOptions()
-          .getDeleteOptions().toBuilder().setRecursive(recursive).build());
+      mFileSystemMaster.delete(new AlluxioURI(path),
+          FileSystemMasterOptions.getDeleteOptions().toBuilder().setRecursive(recursive).build());
       return null;
     });
   }
@@ -379,7 +379,7 @@ public final class FileSystemMasterClientRestServiceHandler {
         Preconditions.checkNotNull(srcPath, "required 'srcPath' parameter is missing");
         Preconditions.checkNotNull(dstPath, "required 'dstPath' parameter is missing");
         mFileSystemMaster.rename(new AlluxioURI(srcPath), new AlluxioURI(dstPath),
-            new RenameContext(mFileSystemMaster.getMasterOptions().getRenameOptions()));
+            new RenameContext(FileSystemMasterOptions.getRenameOptions()));
         return null;
       }
     });
@@ -427,7 +427,7 @@ public final class FileSystemMasterClientRestServiceHandler {
       @Override
       public Void call() throws Exception {
         SetAttributePOptions.Builder optionsBuilder =
-            mFileSystemMaster.getMasterOptions().getSetAttributeOptions().toBuilder();
+            FileSystemMasterOptions.getSetAttributeOptions().toBuilder();
 
         Preconditions.checkNotNull(path, "required 'path' parameter is missing");
         if (pinned != null) {

@@ -40,7 +40,6 @@ import alluxio.grpc.PAclEntryType;
 import alluxio.grpc.PSetAclAction;
 import alluxio.grpc.ReadPType;
 import alluxio.grpc.WritePType;
-import alluxio.master.file.FileSystemMasterOptions;
 import alluxio.proto.journal.File;
 import alluxio.security.authorization.AccessControlList;
 import alluxio.security.authorization.AclAction;
@@ -107,106 +106,6 @@ public final class GrpcUtils {
     }
     return optionsBuilder.build();
   }
-
-  /**
-   * Converts from proto type to options.
-   *
-   * @param masterOptions the default master options provider
-   * @param pOptions the proto options to convert
-   * @return the converted options instance
-   */
-  public static CommonOptions fromProto(FileSystemMasterOptions masterOptions,
-      FileSystemMasterCommonPOptions pOptions) {
-    CommonOptions options = masterOptions.getCommonOptions();
-    if (pOptions != null) {
-      if (pOptions.hasSyncIntervalMs()) {
-        options.setSyncIntervalMs(pOptions.getSyncIntervalMs());
-      }
-    }
-    return options;
-  }
-
-  /**
-   * Converts from proto type to options.
-   *
-   * @param masterOptions the default master options provider
-   * @param pOptions the proto options to convert
-   * @return the converted options instance
-   */
-  public static CompleteFileOptions fromProto(FileSystemMasterOptions masterOptions,
-      CompleteFilePOptions pOptions) {
-    CompleteFileOptions options = masterOptions.getCompleteFileOptions();
-    if (pOptions != null) {
-      if (pOptions.hasCommonOptions()) {
-        options.setCommonOptions(fromProto(masterOptions, pOptions.getCommonOptions()));
-      }
-      options.setUfsLength(pOptions.getUfsLength());
-    }
-    return options;
-  }
-
-  /**
-   * Converts from proto type to options.
-   *
-   * @param masterOptions the default master options provider
-   * @param pOptions the proto options to convert
-   * @return the converted options instance
-   */
-  public static CreateDirectoryOptions fromProto(FileSystemMasterOptions masterOptions,
-      CreateDirectoryPOptions pOptions) {
-    CreateDirectoryOptions options = masterOptions.getCreateDirectoryOptions();
-    if (pOptions != null) {
-      if (pOptions.hasCommonOptions()) {
-        options.setCommonOptions(fromProto(masterOptions, pOptions.getCommonOptions()));
-      }
-      options.setAllowExists(pOptions.getAllowExist());
-      options.setPersisted(pOptions.getPersisted());
-      options.setRecursive(pOptions.getRecursive());
-      // TODO(adit): implement auth
-      // if (SecurityUtils.isAuthenticationEnabled()) {
-      // mOwner = SecurityUtils.getOwnerFromProtoClient();
-      // mGroup = SecurityUtils.getGroupFromProtoClient();
-      // }
-      if (pOptions.hasMode()) {
-        options.setMode(new Mode((short) pOptions.getMode()));
-        // } else {
-        // mMode.applyDirectoryUMask();
-      }
-    }
-    return options;
-  }
-
-  /**
-   * Converts from proto type to options.
-   *
-   * @param masterOptions the default master options provider
-   * @param pOptions the proto options to convert
-   * @return the converted options instance
-   */
-  public static CreateFileOptions fromProto(FileSystemMasterOptions masterOptions,
-      CreateFilePOptions pOptions) {
-    CreateFileOptions options = masterOptions.getCreateFileOptions();
-    if (pOptions != null) {
-      if (pOptions.hasCommonOptions()) {
-        options.setCommonOptions(fromProto(masterOptions, pOptions.getCommonOptions()));
-      }
-      options.setBlockSizeBytes(pOptions.getBlockSizeBytes());
-      options.setPersisted(pOptions.getPersisted());
-      options.setRecursive(pOptions.getRecursive());
-      // TODO(adit): implement auth
-      // if (SecurityUtils.isAuthenticationEnabled()) {
-      // mOwner = SecurityUtils.getOwnerFromProtoClient();
-      // mGroup = SecurityUtils.getGroupFromProtoClient();
-      // }
-      if (pOptions.hasMode()) {
-        options.setMode(new Mode((short) pOptions.getMode()));
-        // } else {
-        // mMode.applyFileUMask();
-      }
-    }
-    return options;
-  }
-
 
 
   /**

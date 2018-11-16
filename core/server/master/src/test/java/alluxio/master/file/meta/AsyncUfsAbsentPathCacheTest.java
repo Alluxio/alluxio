@@ -13,7 +13,6 @@ package alluxio.master.file.meta;
 
 import alluxio.AlluxioURI;
 import alluxio.grpc.MountPOptions;
-import alluxio.master.file.DefaultFileSystemMasterOptions;
 import alluxio.master.file.FileSystemMasterOptions;
 import alluxio.master.file.meta.options.MountInfo;
 import alluxio.master.journal.NoopJournalContext;
@@ -38,7 +37,6 @@ import java.util.concurrent.ThreadPoolExecutor;
  * Unit tests for {@link AsyncUfsAbsentPathCache}.
  */
 public class AsyncUfsAbsentPathCacheTest {
-  private static FileSystemMasterOptions sMasterOptions = new DefaultFileSystemMasterOptions();
   private static final int THREADS = 4;
   private AsyncUfsAbsentPathCache mUfsAbsentPathCache;
   private MountTable mMountTable;
@@ -55,11 +53,11 @@ public class AsyncUfsAbsentPathCacheTest {
     mLocalUfsPath = Files.createTempDir().getAbsolutePath();
     mUfsManager = new MasterUfsManager();
     mMountTable = new MountTable(mUfsManager, new MountInfo(new AlluxioURI("/"),
-        new AlluxioURI("/ufs"), 1, sMasterOptions.getMountOptions()));
+        new AlluxioURI("/ufs"), 1, FileSystemMasterOptions.getMountOptions()));
     mUfsAbsentPathCache = new AsyncUfsAbsentPathCache(mMountTable, THREADS);
 
     mMountId = IdUtils.getRandomNonNegativeLong();
-    MountPOptions options = sMasterOptions.getMountOptions();
+    MountPOptions options = FileSystemMasterOptions.getMountOptions();
     mUfsManager.addMount(mMountId, new AlluxioURI(mLocalUfsPath),
         UnderFileSystemConfiguration.defaults().setReadOnly(options.getReadOnly())
             .setShared(options.getShared())
@@ -165,7 +163,7 @@ public class AsyncUfsAbsentPathCacheTest {
 
     // Re-mount the same ufs
     long newMountId = IdUtils.getRandomNonNegativeLong();
-    MountPOptions options = sMasterOptions.getMountOptions();
+    MountPOptions options = FileSystemMasterOptions.getMountOptions();
     mUfsManager.addMount(newMountId, new AlluxioURI(mLocalUfsPath),
         UnderFileSystemConfiguration.defaults().setReadOnly(options.getReadOnly())
             .setShared(options.getShared())

@@ -15,7 +15,6 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.grpc.GetStatusPOptions;
-import alluxio.master.file.DefaultFileSystemMasterOptions;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.FileSystemMasterClientRestServiceHandler;
 import alluxio.master.file.FileSystemMasterOptions;
@@ -43,8 +42,7 @@ import javax.ws.rs.HttpMethod;
  * Test cases for {@link FileSystemMasterClientRestServiceHandler}.
  */
 public final class FileSystemMasterClientRestApiTest extends RestApiTest {
-  private static FileSystemMasterOptions MASTER_OPTIONS = new DefaultFileSystemMasterOptions();
-  private static final GetStatusPOptions GET_STATUS_OPTIONS = MASTER_OPTIONS.getGetStatusOptions();
+  private static final GetStatusPOptions GET_STATUS_OPTIONS = FileSystemMasterOptions.getGetStatusOptions();
 
   private FileSystemMaster mFileSystemMaster;
 
@@ -101,7 +99,7 @@ public final class FileSystemMasterClientRestApiTest extends RestApiTest {
         HttpMethod.POST, null).run();
 
     Assert.assertTrue(mFileSystemMaster
-        .listStatus(uri, MASTER_OPTIONS.getListStatusOptions()).isEmpty());
+        .listStatus(uri, FileSystemMasterOptions.getListStatusOptions()).isEmpty());
   }
 
   @Test
@@ -280,7 +278,7 @@ public final class FileSystemMasterClientRestApiTest extends RestApiTest {
   public void unmount() throws Exception {
     AlluxioURI uri = new AlluxioURI("/mount");
     mFileSystemMaster.mount(uri, new AlluxioURI(mFolder.newFolder().getAbsolutePath()),
-        mFileSystemMaster.getMasterOptions().getMountOptions());
+        FileSystemMasterOptions.getMountOptions());
 
     Map<String, String> params = new HashMap<>();
     params.put("path", uri.toString());

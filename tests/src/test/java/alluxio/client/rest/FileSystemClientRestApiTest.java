@@ -20,6 +20,7 @@ import alluxio.client.file.FileSystemClientOptions;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.master.file.FileSystemMaster;
+import alluxio.master.file.FileSystemMasterOptions;
 import alluxio.proxy.PathsRestServiceHandler;
 import alluxio.proxy.StreamsRestServiceHandler;
 import alluxio.security.authorization.Mode;
@@ -195,7 +196,7 @@ public final class FileSystemClientRestApiTest extends RestApiTest {
   public void unmount() throws Exception {
     AlluxioURI uri = new AlluxioURI("/mount");
     mFileSystemMaster.mount(uri, new AlluxioURI(mFolder.newFolder().getAbsolutePath()),
-        mFileSystemMaster.getMasterOptions().getMountOptions());
+        FileSystemMasterOptions.getMountOptions());
     new TestCase(mHostname, mPort,
         PATHS_PREFIX + uri.toString() + "/" + PathsRestServiceHandler.UNMOUNT, NO_PARAMS,
         HttpMethod.POST, null,

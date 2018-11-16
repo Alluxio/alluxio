@@ -112,8 +112,6 @@ public final class PermissionCheckTest {
   private static final Mode TEST_DIR_MODE = new Mode((short) 0755);
   private static final Mode TEST_FILE_MODE = new Mode((short) 0755);
 
-  private static FileSystemMasterOptions sMasterOptions = new DefaultFileSystemMasterOptions();
-
   private MasterRegistry mRegistry;
   private SafeModeManager mSafeModeManager;
   private long mStartTimeMs;
@@ -471,7 +469,7 @@ public final class PermissionCheckTest {
               .getOwner();
 
       mFileSystemMaster.rename(new AlluxioURI(srcPath), new AlluxioURI(dstPath),
-          new RenameContext(mFileSystemMaster.getMasterOptions().getRenameOptions()));
+          new RenameContext(FileSystemMasterOptions.getRenameOptions()));
 
       assertEquals(-1, mFileSystemMaster.getFileId(new AlluxioURI(srcPath)));
       FileInfo fileInfo =
@@ -547,7 +545,7 @@ public final class PermissionCheckTest {
   private void verifyDelete(TestUser user, String path, boolean recursive) throws Exception {
     try (Closeable r = new AuthenticatedUserRule(user.getUser()).toResource()) {
       mFileSystemMaster.delete(new AlluxioURI(path),
-          sMasterOptions.getDeleteOptions().toBuilder().setRecursive(recursive).build());
+          FileSystemMasterOptions.getDeleteOptions().toBuilder().setRecursive(recursive).build());
       assertEquals(-1, mFileSystemMaster.getFileId(new AlluxioURI(path)));
     }
   }
@@ -670,15 +668,15 @@ public final class PermissionCheckTest {
     try (Closeable r = new AuthenticatedUserRule(user.getUser()).toResource()) {
       if (isFile) {
         assertEquals(path, mFileSystemMaster.getFileInfo(new AlluxioURI(path),
-            sMasterOptions.getGetStatusOptions())
+            FileSystemMasterOptions.getGetStatusOptions())
             .getPath());
         assertEquals(1,
             mFileSystemMaster
-                .listStatus(new AlluxioURI(path), sMasterOptions.getListStatusOptions())
+                .listStatus(new AlluxioURI(path), FileSystemMasterOptions.getListStatusOptions())
                 .size());
       } else {
         List<FileInfo> fileInfoList = mFileSystemMaster.listStatus(new AlluxioURI(path),
-            sMasterOptions.getListStatusOptions());
+            FileSystemMasterOptions.getListStatusOptions());
         if (fileInfoList.size() > 0) {
           assertTrue(PathUtils.getParent(fileInfoList.get(0).getPath()).equals(path));
         }
@@ -719,7 +717,7 @@ public final class PermissionCheckTest {
   }
 
   private SetAttributePOptions getNonDefaultSetState() {
-    return sMasterOptions.getSetAttributeOptions().toBuilder().setPinned(true).setTtl(11)
+    return FileSystemMasterOptions.getSetAttributeOptions().toBuilder().setPinned(true).setTtl(11)
         .setTtlAction(TtlAction.DELETE).build();
   }
 
@@ -729,9 +727,10 @@ public final class PermissionCheckTest {
       mFileSystemMaster.setAttribute(new AlluxioURI(path), options);
 
       FileInfo fileInfo = mFileSystemMaster.getFileInfo(new AlluxioURI(path),
-          sMasterOptions.getGetStatusOptions());
-      return sMasterOptions.getSetAttributeOptions().toBuilder().setPinned(fileInfo.isPinned())
-          .setTtl(fileInfo.getTtl()).setPersisted(fileInfo.isPersisted()).build();
+          FileSystemMasterOptions.getGetStatusOptions());
+      return FileSystemMasterOptions.getSetAttributeOptions().toBuilder()
+          .setPinned(fileInfo.isPinned()).setTtl(fileInfo.getTtl())
+          .setPersisted(fileInfo.isPersisted()).build();
     }
   }
 
@@ -827,7 +826,7 @@ public final class PermissionCheckTest {
   private void verifyFree(TestUser user, String path, boolean recursive) throws Exception {
     try (Closeable r = new AuthenticatedUserRule(user.getUser()).toResource()) {
       mFileSystemMaster.free(new AlluxioURI(path),
-          sMasterOptions.getFreeOptions().toBuilder().setRecursive(recursive).build());
+          FileSystemMasterOptions.getFreeOptions().toBuilder().setRecursive(recursive).build());
     }
   }
 
@@ -931,7 +930,7 @@ public final class PermissionCheckTest {
   private void verifySetAcl(TestUser runUser, String path, String owner, String group,
       short mode, boolean recursive) throws Exception {
     try (Closeable r = new AuthenticatedUserRule(runUser.getUser()).toResource()) {
-      SetAttributePOptions options = sMasterOptions.getSetAttributeOptions().toBuilder()
+      SetAttributePOptions options = FileSystemMasterOptions.getSetAttributeOptions().toBuilder()
           .setOwner(owner).setGroup(group).setMode(mode).setRecursive(recursive).build();
       mFileSystemMaster.setAttribute(new AlluxioURI(path), options);
     }

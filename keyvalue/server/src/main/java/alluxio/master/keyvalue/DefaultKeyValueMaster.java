@@ -27,6 +27,7 @@ import alluxio.file.options.RenameContext;
 import alluxio.master.AbstractMaster;
 import alluxio.master.MasterContext;
 import alluxio.master.file.FileSystemMaster;
+import alluxio.master.file.FileSystemMasterOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.journal.JournalContext;
 import alluxio.proto.journal.Journal.JournalEntry;
@@ -295,7 +296,7 @@ public class DefaultKeyValueMaster extends AbstractMaster implements KeyValueMas
     checkIsCompletePartition(oldFileId, oldUri);
     try {
       mFileSystemMaster.rename(oldUri, newUri,
-          new RenameContext(mFileSystemMaster.getMasterOptions().getRenameOptions()));
+          new RenameContext(FileSystemMasterOptions.getRenameOptions()));
     } catch (FileAlreadyExistsException e) {
       throw new FileAlreadyExistsException(
           String.format("failed to rename store:the path %s has been used", newUri), e);
@@ -332,7 +333,7 @@ public class DefaultKeyValueMaster extends AbstractMaster implements KeyValueMas
     mFileSystemMaster.rename(fromUri,
         new AlluxioURI(PathUtils.concatPath(toUri.toString(),
             String.format("%s-%s", fromUri.getName(), UUID.randomUUID().toString()))),
-        new RenameContext(mFileSystemMaster.getMasterOptions().getRenameOptions()));
+        new RenameContext(FileSystemMasterOptions.getRenameOptions()));
     try (JournalContext journalContext = createJournalContext()) {
       mergeStoreInternal(fromFileId, toFileId);
       journalContext.append(newMergeStoreEntry(fromFileId, toFileId));

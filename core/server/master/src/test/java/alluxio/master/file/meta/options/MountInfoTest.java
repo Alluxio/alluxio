@@ -13,8 +13,8 @@ package alluxio.master.file.meta.options;
 
 import alluxio.AlluxioURI;
 import alluxio.grpc.MountPOptions;
-import alluxio.master.file.DefaultFileSystemMasterOptions;
 
+import alluxio.master.file.FileSystemMasterOptions;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -29,7 +29,7 @@ public final class MountInfoTest {
   public void getFields() {
     AlluxioURI uri = new AlluxioURI("alluxio://localhost:19998/test");
     AlluxioURI ufsUri = new AlluxioURI("hdfs://localhost:123/test2");
-    MountPOptions options = new DefaultFileSystemMasterOptions().getMountOptions();
+    MountPOptions options = FileSystemMasterOptions.getMountOptions();
     MountInfo info = new MountInfo(uri, ufsUri, 1, options);
     Assert.assertEquals(uri, info.getAlluxioUri());
     Assert.assertEquals(ufsUri, info.getUfsUri());

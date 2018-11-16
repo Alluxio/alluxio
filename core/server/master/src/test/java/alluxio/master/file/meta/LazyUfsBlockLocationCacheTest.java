@@ -13,7 +13,6 @@ package alluxio.master.file.meta;
 
 import alluxio.AlluxioURI;
 import alluxio.grpc.MountPOptions;
-import alluxio.master.file.DefaultFileSystemMasterOptions;
 import alluxio.master.file.FileSystemMasterOptions;
 import alluxio.master.file.meta.options.MountInfo;
 import alluxio.master.journal.NoopJournalContext;
@@ -41,7 +40,6 @@ public class LazyUfsBlockLocationCacheTest {
   private UfsManager mUfsManager;
   private MountTable mMountTable;
   private LazyUfsBlockLocationCache mUfsBlockLocationCache;
-  private static FileSystemMasterOptions sMasterOptions = new DefaultFileSystemMasterOptions();
 
   /**
    * Sets up a new {@link AsyncUfsAbsentPathCache} before a test runs.
@@ -53,14 +51,14 @@ public class LazyUfsBlockLocationCacheTest {
 
     mMountId = IdUtils.getRandomNonNegativeLong();
     mUfsManager = new MasterUfsManager();
-    MountPOptions options = sMasterOptions.getMountOptions();
+    MountPOptions options = FileSystemMasterOptions.getMountOptions();
     mUfsManager.addMount(mMountId, new AlluxioURI(mLocalUfsPath),
         UnderFileSystemConfiguration.defaults().setReadOnly(options.getReadOnly())
             .setShared(options.getShared())
             .setMountSpecificConf(Collections.<String, String>emptyMap()));
 
     mMountTable = new MountTable(mUfsManager, new MountInfo(new AlluxioURI("/"),
-        new AlluxioURI("/ufs"), 1, sMasterOptions.getMountOptions()));
+        new AlluxioURI("/ufs"), 1, FileSystemMasterOptions.getMountOptions()));
     mMountTable.add(NoopJournalContext.INSTANCE, new AlluxioURI("/mnt"),
         new AlluxioURI(mLocalUfsPath), mMountId, options);
 

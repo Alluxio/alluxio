@@ -28,16 +28,9 @@ import org.junit.Test;
  */
 public class FileSystemMasterOptionsTest {
 
-  private FileSystemMasterOptions mMasterOptions;
-
-  @Before
-  public void init() {
-    mMasterOptions = new DefaultFileSystemMasterOptions();
-  }
-
   @Test
   public void listStatusOptionsDefaults() {
-    ListStatusPOptions options = mMasterOptions.getListStatusOptions();
+    ListStatusPOptions options = FileSystemMasterOptions.getListStatusOptions();
     Assert.assertNotNull(options);
     Assert.assertEquals(LoadMetadataPType.ONCE, options.getLoadMetadataType());
     Assert.assertEquals(false, options.getRecursive());
@@ -45,7 +38,7 @@ public class FileSystemMasterOptionsTest {
 
   @Test
   public void loadMetadataOptionsDefaults() {
-    LoadMetadataPOptions options = mMasterOptions.getLoadMetadataOptions();
+    LoadMetadataPOptions options = FileSystemMasterOptions.getLoadMetadataOptions();
     Assert.assertNotNull(options);
     Assert.assertFalse(options.getRecursive());
     Assert.assertFalse(options.getCreateAncestors());
@@ -54,7 +47,7 @@ public class FileSystemMasterOptionsTest {
 
   @Test
   public void deleteOptionsDefaults() {
-    DeletePOptions options = mMasterOptions.getDeleteOptions();
+    DeletePOptions options = FileSystemMasterOptions.getDeleteOptions();
     Assert.assertNotNull(options);
     Assert.assertFalse(options.getRecursive());
     Assert.assertFalse(options.getAlluxioOnly());
@@ -63,7 +56,7 @@ public class FileSystemMasterOptionsTest {
 
   @Test
   public void mountOptionsDefaults() {
-    MountPOptions options = mMasterOptions.getMountOptions();
+    MountPOptions options = FileSystemMasterOptions.getMountOptions();
     Assert.assertNotNull(options);
     Assert.assertFalse(options.getShared());
     Assert.assertFalse(options.getReadOnly());
@@ -72,7 +65,7 @@ public class FileSystemMasterOptionsTest {
 
   @Test
   public void setAclOptionsDefaults() {
-    SetAclPOptions options = mMasterOptions.getSetAclOptions();
+    SetAclPOptions options = FileSystemMasterOptions.getSetAclOptions();
     Assert.assertNotNull(options);
     Assert.assertFalse(options.getRecursive());
   }
