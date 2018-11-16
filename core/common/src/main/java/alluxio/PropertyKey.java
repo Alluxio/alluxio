@@ -458,7 +458,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.WORK_DIR)
           .setDefaultValue(String.format("${%s}", Name.HOME))
           .setDescription("The directory to use for Alluxio's working directory. By default, "
-              + "the journal, logs, and under file system data (if using local filesystem) "
+              + "the journal, logs, and under file storage data (if using local filesystem) "
               + "are written here.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .build();
@@ -513,7 +513,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey UNDERFS_ADDRESS =
       new Builder(Name.UNDERFS_ADDRESS)
           .setDefaultValue(String.format("${%s}/underFSStorage", Name.WORK_DIR))
-          .setDescription("Alluxio directory in the under file system.")
+          .setDescription("Under file storage address. This property is deprecated; "
+              + "use alluxio.master.mount.table.root.ufs instead")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)
           .build();
@@ -528,7 +529,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey UNDERFS_CLEANUP_ENABLED =
       new Builder(Name.UNDERFS_CLEANUP_ENABLED)
           .setDefaultValue(false)
-          .setDescription("Whether or not to clean up under filesystem periodically."
+          .setDescription("Whether or not to clean up under file storage periodically."
               + "Some ufs operations may not be completed and cleaned up successfully "
               + "in normal ways and leave some intermediate data that needs periodical cleanup."
               + "If enabled, all the mount points will be cleaned up when a leader master starts "
@@ -540,7 +541,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.UNDERFS_CLEANUP_INTERVAL)
           .setDefaultValue("1day")
           .setDescription("The interval for periodically cleaning all the "
-              + " mounted under filesystem.")
+              + " mounted under file storages.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
@@ -851,6 +852,20 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
+  public static final PropertyKey UNDERFS_KODO_REQUESTS_MAX =
+      new Builder(Name.UNDERFS_KODO_REQUESTS_MAX)
+          .setDefaultValue(64)
+          .setDescription("The maximum number of kodo connections.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_KODO_CONNECT_TIMEOUT =
+      new Builder(Name.UNDERFS_KODO_CONNECT_TIMEOUT)
+          .setDefaultValue("50sec")
+          .setDescription("The connect timeout of kodo.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
 
   //
   // UFS access control related properties
@@ -983,6 +998,31 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey KODO_ACCESS_KEY =
+      new Builder(Name.KODO_ACCESS_KEY)
+          .setDescription("The access key of Kodo bucket.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey KODO_SECRET_KEY =
+      new Builder(Name.KODO_SECRET_KEY)
+          .setDescription("The secret key of Kodo bucket.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .setDisplayType(DisplayType.CREDENTIALS)
+          .build();
+  public static final PropertyKey KODO_DOWNLOAD_HOST =
+      new Builder(Name.KODO_DOWNLOAD_HOST)
+          .setDescription("The download domain of Kodo bucket.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey KODO_ENDPOINT =
+      new Builder(Name.KODO_ENDPOINT)
+          .setDescription("The endpoint of Kodo bucket.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
 
   //
   // Mount table related properties
@@ -1053,8 +1093,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey MASTER_BIND_HOST =
       new Builder(Name.MASTER_BIND_HOST)
           .setDefaultValue("0.0.0.0")
-          .setDescription("The hostname that Alluxio master binds to. See <a "
-              + "href=\"#configure-multihomed-networks\">multi-homed networks</a>.")
+          .setDescription("The hostname that Alluxio master binds to.")
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_CLIENT_SOCKET_CLEANUP_INTERVAL =
@@ -1417,8 +1456,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey MASTER_WEB_BIND_HOST =
       new Builder(Name.MASTER_WEB_BIND_HOST)
           .setDefaultValue("0.0.0.0")
-          .setDescription("The hostname Alluxio master web UI binds to. See <a "
-              + "href=\"#configure-multihomed-networks\">multi-homed networks</a>.")
+          .setDescription("The hostname Alluxio master web UI binds to.")
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_WEB_HOSTNAME =
@@ -1507,8 +1545,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey WORKER_BIND_HOST =
       new Builder(Name.WORKER_BIND_HOST)
           .setDefaultValue("0.0.0.0")
-          .setDescription("The hostname Alluxio's worker node binds to. See <a "
-              + "href=\"#configure-multihomed-networks\">multi-homed networks</a>.")
+          .setDescription("The hostname Alluxio's worker node binds to.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
@@ -1553,8 +1590,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey WORKER_DATA_BIND_HOST =
       new Builder(Name.WORKER_DATA_BIND_HOST)
           .setDefaultValue("0.0.0.0")
-          .setDescription("The hostname that the Alluxio worker's data server runs on. See <a "
-              + "href=\"#configure-multihomed-networks\">multi-homed networks</a>.")
+          .setDescription("The hostname that the Alluxio worker's data server runs on.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
@@ -2104,8 +2140,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey WORKER_WEB_BIND_HOST =
       new Builder(Name.WORKER_WEB_BIND_HOST)
           .setDefaultValue("0.0.0.0")
-          .setDescription("The hostname Alluxio worker's web server binds to. See <a "
-              + "href=\"#configure-multihomed-networks\">multi-homed networks</a>.")
+          .setDescription("The hostname Alluxio worker's web server binds to.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
@@ -2199,8 +2234,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey PROXY_WEB_BIND_HOST =
       new Builder(Name.PROXY_WEB_BIND_HOST)
           .setDefaultValue("0.0.0.0")
-          .setDescription("The hostname that the Alluxio proxy's web server runs on. See <a "
-              + "href=\"#configure-multihomed-networks\">multi-homed networks</a>.")
+          .setDescription("The hostname that the Alluxio proxy's web server runs on.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.NONE)
           .build();
@@ -3360,6 +3394,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String UNDERFS_S3_THREADS_MAX = "alluxio.underfs.s3.threads.max";
     public static final String UNDERFS_S3_UPLOAD_THREADS_MAX =
         "alluxio.underfs.s3.upload.threads.max";
+    public static final String KODO_ENDPOINT = "alluxio.underfs.kodo.endpoint";
+    public static final String KODO_DOWNLOAD_HOST = "alluxio.underfs.kodo.downloadhost";
+    public static final String UNDERFS_KODO_CONNECT_TIMEOUT =
+        "alluxio.underfs.kodo.connect.timeout";
+    public static final String UNDERFS_KODO_REQUESTS_MAX = "alluxio.underfs.kodo.requests.max";
 
     //
     // UFS access control related properties
@@ -3387,6 +3426,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String SWIFT_TENANT_KEY = "fs.swift.tenant";
     public static final String SWIFT_USE_PUBLIC_URI_KEY = "fs.swift.use.public.url";
     public static final String SWIFT_USER_KEY = "fs.swift.user";
+    public static final String KODO_ACCESS_KEY = "fs.kodo.accesskey";
+    public static final String KODO_SECRET_KEY = "fs.kodo.secretkey";
 
     //
     // Master related properties

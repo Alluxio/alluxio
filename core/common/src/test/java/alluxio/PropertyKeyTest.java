@@ -241,7 +241,7 @@ public final class PropertyKeyTest {
   public void compare() throws Exception {
     assertTrue(PropertyKey.CONF_DIR.compareTo(PropertyKey.DEBUG) < 0);
     assertTrue(PropertyKey.DEBUG.compareTo(PropertyKey.CONF_DIR) > 0);
-    assertTrue(PropertyKey.DEBUG.compareTo(PropertyKey.DEBUG) == 0);
+    assertEquals(0, PropertyKey.DEBUG.compareTo(PropertyKey.DEBUG));
   }
 
   @Test

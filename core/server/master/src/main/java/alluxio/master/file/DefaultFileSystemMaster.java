@@ -35,6 +35,7 @@ import alluxio.exception.status.FailedPreconditionException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.PermissionDeniedException;
+import alluxio.exception.status.ResourceExhaustedException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatThread;
@@ -979,6 +980,9 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
             InodeTree.LockMode.READ, child, childComponents)) {
           listStatusInternal(childInodePath, auditContext,
               nextDescendantType, statusList);
+        } catch (InvalidPathException e) {
+          LOG.debug("Path \"{0}\" is invalid, has been ignored.",
+              PathUtils.concatPath("/", childComponents));
         }
       }
     }
@@ -1342,32 +1346,49 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   public Map<String, MountPointInfo> getMountTable() {
     SortedMap<String, MountPointInfo> mountPoints = new TreeMap<>();
     for (Map.Entry<String, MountInfo> mountPoint : mMountTable.getMountTable().entrySet()) {
-      MountInfo mountInfo = mountPoint.getValue();
-      MountPointInfo info = mountInfo.toMountPointInfo();
-      try (CloseableResource<UnderFileSystem> ufsResource =
-          mUfsManager.get(mountInfo.getMountId()).acquireUfsResource()) {
-        UnderFileSystem ufs = ufsResource.get();
-        info.setUfsType(ufs.getUnderFSType());
-        try {
-          info.setUfsCapacityBytes(
-              ufs.getSpace(info.getUfsUri(), UnderFileSystem.SpaceType.SPACE_TOTAL));
-        } catch (IOException e) {
-          // pass
-        }
-        try {
-          info.setUfsUsedBytes(
-              ufs.getSpace(info.getUfsUri(), UnderFileSystem.SpaceType.SPACE_USED));
-        } catch (IOException e) {
-          // pass
-        }
-      } catch (UnavailableException | NotFoundException e) {
-        // We should never reach here
-        LOG.error("No UFS cached for {}", info, e);
-        continue;
-      }
-      mountPoints.put(mountPoint.getKey(), info);
+      mountPoints.put(mountPoint.getKey(), getMountPointInfo(mountPoint.getValue()));
     }
     return mountPoints;
+  }
+
+  @Override
+  public MountPointInfo getMountPointInfo(AlluxioURI path) throws InvalidPathException {
+    if (!mMountTable.isMountPoint(path)) {
+      throw new InvalidPathException(
+          ExceptionMessage.PATH_MUST_BE_MOUNT_POINT.getMessage(path));
+    }
+    return getMountPointInfo(mMountTable.getMountTable().get(path.toString()));
+  }
+
+  /**
+   * Gets the mount point information from a mount information.
+   *
+   * @param mountInfo the mount information to transform
+   * @return the mount point information
+   */
+  private MountPointInfo getMountPointInfo(MountInfo mountInfo) {
+    MountPointInfo info = mountInfo.toMountPointInfo();
+    try (CloseableResource<UnderFileSystem> ufsResource =
+             mUfsManager.get(mountInfo.getMountId()).acquireUfsResource()) {
+      UnderFileSystem ufs = ufsResource.get();
+      info.setUfsType(ufs.getUnderFSType());
+      try {
+        info.setUfsCapacityBytes(
+            ufs.getSpace(info.getUfsUri(), UnderFileSystem.SpaceType.SPACE_TOTAL));
+      } catch (IOException e) {
+        LOG.warn("Cannot get total capacity of {}", info.getUfsUri(), e);
+      }
+      try {
+        info.setUfsUsedBytes(
+            ufs.getSpace(info.getUfsUri(), UnderFileSystem.SpaceType.SPACE_USED));
+      } catch (IOException e) {
+        LOG.warn("Cannot get used capacity of {}", info.getUfsUri(), e);
+      }
+    } catch (UnavailableException | NotFoundException e) {
+      // We should never reach here
+      LOG.error("No UFS cached for {}", info, e);
+    }
+    return info;
   }
 
   @Override
@@ -3135,6 +3156,11 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         LOG.warn("Tried to update metadata from an invalid path : {}", mountPointUri.getPath(), e);
       }
     }
+
+    // Update metadata for inodePath
+    if (pathsToLoad.isEmpty()) {
+      mUfsSyncPathCache.notifySyncedPath(inodePath.getUri().getPath());
+    }
     return true;
   }
 
@@ -3659,12 +3685,15 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         } catch (UnavailableException e) {
           LOG.warn("Failed to persist file {}, will retry later: {}", uri, e.toString());
           remove = false;
-        } catch (alluxio.exception.status.ResourceExhaustedException e) {
-          LOG.warn("The job service is busy, will retry later: {}", e.getMessage());
+        } catch (ResourceExhaustedException e) {
+          LOG.warn("The job service is busy, will retry later: {}", e.toString());
           LOG.debug("Exception: ", e);
           mQuietPeriodSeconds = (mQuietPeriodSeconds == 0) ? 1 :
               Math.min(MAX_QUIET_PERIOD_SECONDS, mQuietPeriodSeconds * 2);
           remove = false;
+          // End the method here until the next heartbeat. No more jobs should be scheduled during
+          // the current heartbeat if the job master is at full capacity.
+          return;
         } catch (Exception e) {
           LOG.warn("Unexpected exception encountered when scheduling the persist job for file {} "
               + "(id={}) : {}", uri, fileId, e.getMessage());
@@ -4006,12 +4035,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         final FileSystemMaster master, final UfsManager ufsManager) {
       MetricsSystem.registerGaugeIfAbsent(MetricsSystem
               .getMetricName(MasterMetrics.FILES_PINNED),
-          new Gauge<Integer>() {
-            @Override
-            public Integer getValue() {
-              return master.getNumberOfPinnedFiles();
-            }
-          });
+          master::getNumberOfPinnedFiles);
 
       MetricsSystem.registerGaugeIfAbsent(MetricsSystem
               .getMetricName(MasterMetrics.PATHS_TOTAL),
