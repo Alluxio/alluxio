@@ -16,7 +16,7 @@ import alluxio.exception.AccessControlException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.status.UnavailableException;
-import alluxio.master.file.FileSystemMasterService;
+import alluxio.master.file.FileSystemMaster;
 import alluxio.wire.FileBlockInfo;
 import alluxio.wire.FileInfo;
 import alluxio.wire.WorkerInfo;
@@ -32,14 +32,14 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class FileSystemMasterView {
-  private final FileSystemMasterService mFileSystemMaster;
+  private final FileSystemMaster mFileSystemMaster;
 
   /**
    * Constructs a view of the {@link FileSystemMaster}.
    *
    * @param fileSystemMaster the file system master
    */
-  public FileSystemMasterView(FileSystemMasterService fileSystemMaster) {
+  public FileSystemMasterView(FileSystemMaster fileSystemMaster) {
     mFileSystemMaster = Preconditions.checkNotNull(fileSystemMaster, "fileSystemMaster");
   }
 

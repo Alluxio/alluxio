@@ -64,7 +64,6 @@ import alluxio.grpc.UpdateUfsModePRequest;
 import alluxio.grpc.UpdateUfsModePResponse;
 import alluxio.underfs.UfsMode;
 import alluxio.util.RpcUtilsNew;
-import alluxio.util.grpc.GrpcOptionsMerger;
 import alluxio.util.grpc.GrpcUtils;
 import alluxio.wire.MountPointInfo;
 
@@ -86,15 +85,15 @@ public final class FileSystemMasterClientServiceHandler
     extends FileSystemMasterServiceGrpc.FileSystemMasterServiceImplBase {
   private static final Logger LOG =
       LoggerFactory.getLogger(FileSystemMasterClientServiceHandler.class);
-  private final FileSystemMasterService mFileSystemMaster;
+  private final FileSystemMaster mFileSystemMaster;
   private final FileSystemMasterOptions mOptionsService;
 
   /**
    * Creates a new instance of {@link FileSystemMasterClientServiceHandler}.
    *
-   * @param fileSystemMaster the {@link FileSystemMasterService} the handler uses internally
+   * @param fileSystemMaster the {@link FileSystemMaster} the handler uses internally
    */
-  public FileSystemMasterClientServiceHandler(FileSystemMasterService fileSystemMaster) {
+  public FileSystemMasterClientServiceHandler(FileSystemMaster fileSystemMaster) {
     Preconditions.checkNotNull(fileSystemMaster, "fileSystemMaster");
     mFileSystemMaster = fileSystemMaster;
     mOptionsService = fileSystemMaster.getMasterOptions();
