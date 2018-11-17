@@ -1463,7 +1463,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.MASTER_ACTIVE_UFS_SYNC_MAX_ACTIVITY)
           .setAlias(new String[]{"alluxio.master.activesync.maxactivity"})
           .setDefaultValue("10")
-          .setDescription("Max number of changes in a directory to be considered for active syncing")
+          .setDescription("Max number of changes in a directory "
+              + "to be considered for active syncing")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();

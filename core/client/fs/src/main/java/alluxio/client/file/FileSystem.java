@@ -353,6 +353,18 @@ public interface FileSystem {
       throws FileDoesNotExistException, IOException, AlluxioException;
 
   /**
+   * Sets the ACL for a path.
+   *
+   * @param path the path to set the ACL for
+   * @param action the set action to perform
+   * @param entries the ACL entries
+   * @param options options to associate with this operation
+   * @throws FileDoesNotExistException if the given file does not exist
+   */
+  void setAcl(AlluxioURI path, SetAclAction action, List<AclEntry> entries, SetAclOptions options)
+      throws FileDoesNotExistException, IOException, AlluxioException;
+
+  /**
    * Starts the active syncing process on an Alluxio path.
    * @param path the path to sync
    */
@@ -364,18 +376,6 @@ public interface FileSystem {
    * @param path the path to stop syncing
    */
   void stopSync(AlluxioURI path)
-      throws FileDoesNotExistException, IOException, AlluxioException;
-
-  /**
-   * Sets the ACL for a path.
-   *
-   * @param path the path to set the ACL for
-   * @param action the set action to perform
-   * @param entries the ACL entries
-   * @param options options to associate with this operation
-   * @throws FileDoesNotExistException if the given file does not exist
-   */
-  void setAcl(AlluxioURI path, SetAclAction action, List<AclEntry> entries, SetAclOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException;
 
   /**

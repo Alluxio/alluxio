@@ -87,16 +87,6 @@ import alluxio.metrics.MetricsSystem;
 import alluxio.proto.journal.File.NewBlockEntry;
 import alluxio.proto.journal.File;
 import alluxio.proto.journal.File.AddSyncPointEntry;
-import alluxio.proto.journal.File.AddMountPointEntry;
-import alluxio.proto.journal.File.AsyncPersistRequestEntry;
-import alluxio.proto.journal.File.CompleteFileEntry;
-import alluxio.proto.journal.File.DeleteFileEntry;
-import alluxio.proto.journal.File.DeleteMountPointEntry;
-import alluxio.proto.journal.File.InodeDirectoryEntry;
-import alluxio.proto.journal.File.InodeFileEntry;
-import alluxio.proto.journal.File.InodeLastModificationTimeEntry;
-import alluxio.proto.journal.File.PersistDirectoryEntry;
-import alluxio.proto.journal.File.ReinitializeFileEntry;
 import alluxio.proto.journal.File.RemoveSyncPointEntry;
 import alluxio.proto.journal.File.RenameEntry;
 import alluxio.proto.journal.File.SetAclEntry;
@@ -2422,7 +2412,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
               try {
                 loadMetadataInternal(rpcContext, tempInodePath, loadMetadataOptions);
               } catch (FileNotFoundException e) {
-                LOG.debug("Failed to loadMetadata because file is not in ufs: inodePath={}, options={}.",
+                LOG.debug("Failed to loadMetadata because file is not in ufs:"
+                        + " inodePath={}, options={}.",
                     tempInodePath.getUri(), loadMetadataOptions, e);
                 continue;
               } catch (Exception e) {
@@ -3098,14 +3089,17 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     }
 
     LockingScheme lockingScheme =
-        createLockingScheme(path, CommonOptions.defaults().setSyncIntervalMs(0), InodeTree.LockMode.WRITE);
+        createLockingScheme(path, CommonOptions.defaults().setSyncIntervalMs(0),
+            InodeTree.LockMode.WRITE);
     Map<AlluxioURI, UfsStatus> statusCache;
     try (RpcContext rpcContext = createRpcContext()) {
       if (changedFiles == null) {
         try (LockedInodePath inodePath =
-               mInodeTree.lockInodePath(lockingScheme.getPath(), lockingScheme.getMode())) {
+               mInodeTree.lockInodePath(lockingScheme.getPath(),
+                   lockingScheme.getMode())) {
           statusCache = populateStatusCache(inodePath, DescendantType.ALL);
-          syncMetadataInternal(rpcContext, inodePath, lockingScheme, DescendantType.ALL, statusCache);
+          syncMetadataInternal(rpcContext, inodePath, lockingScheme,
+              DescendantType.ALL, statusCache);
           LOG.info("Ended an active full sync of {}", path.toString());
           return;
         }
@@ -3122,8 +3116,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
                     InodeTree.LockMode.WRITE);
             try (LockedInodePath inodePathChangedFile =
                      mInodeTree.lockInodePath(alluxioUri, fileLockingScheme.getMode())) {
-              syncMetadataInternal(rpcContext, inodePathChangedFile, fileLockingScheme, DescendantType.NONE,
-                  statusCache);
+              syncMetadataInternal(rpcContext, inodePathChangedFile, fileLockingScheme,
+                  DescendantType.NONE, statusCache);
             } catch (InvalidPathException e) {
               LOG.warn("forceSyncMetadata processed an invalid path {}", alluxioUri.getPath());
             }
@@ -3247,7 +3241,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         pathsToLoad = result.getPathsToLoad();
       }
     } catch (InvalidPathException | FileDoesNotExistException | AccessControlException e) {
-      LOG.warn("Exception encountered when syncing metadata for {}, exception is {}", inodePath.getUri(), e);
+      LOG.warn("Exception encountered when syncing metadata for {}, exception is {}",
+          inodePath.getUri(), e);
       return false;
     } finally {
       if (deletedInode) {
@@ -3626,7 +3621,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     try (LockResource r = new LockResource(mSyncManager.getSyncManagerLock())) {
       mSyncManager.startSync(lockedInodePath.getUri());
       AddSyncPointEntry addSyncPoint =
-          AddSyncPointEntry.newBuilder().setSyncpointPath(lockedInodePath.getUri().toString()).build();
+          AddSyncPointEntry.newBuilder()
+              .setSyncpointPath(lockedInodePath.getUri().toString()).build();
       rpcContext.journal(JournalEntry.newBuilder().setAddSyncPoint(addSyncPoint).build());
     }
   }

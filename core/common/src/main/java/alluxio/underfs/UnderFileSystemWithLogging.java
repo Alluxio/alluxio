@@ -689,7 +689,6 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
         return String.format("startSync %s", uri.toString());
       }
     });
-
   }
 
   @Override
@@ -706,7 +705,6 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
         return String.format("stopSync %s", uri.toString());
       }
     });
-
   }
 
   /**

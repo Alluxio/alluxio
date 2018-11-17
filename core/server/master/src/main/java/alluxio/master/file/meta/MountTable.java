@@ -314,7 +314,8 @@ public final class MountTable implements JournalEntryIterable, JournalEntryRepla
     }
   }
 
-  private AlluxioURI reverseResolve(AlluxioURI mountPoint, AlluxioURI ufsUriMountPoint, AlluxioURI ufsUri)
+  private AlluxioURI reverseResolve(AlluxioURI mountPoint,
+      AlluxioURI ufsUriMountPoint, AlluxioURI ufsUri)
       throws InvalidPathException {
     String relativePath = PathUtils.subtractPaths(
         PathUtils.normalizePath(ufsUri.getPath(), AlluxioURI.SEPARATOR),

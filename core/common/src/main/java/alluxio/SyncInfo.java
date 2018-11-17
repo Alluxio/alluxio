@@ -20,7 +20,8 @@ import java.util.Set;
  */
 public class SyncInfo {
   public static final long INVALID_TXID = -1;
-  private static final SyncInfo EMPTY_INFO = new SyncInfo(Collections.emptyMap(), false, INVALID_TXID);
+  private static final SyncInfo EMPTY_INFO = new SyncInfo(Collections.emptyMap(),
+      false, INVALID_TXID);
 
   // A map mapping syncpoints to files changed in those sync points
   private final Map<AlluxioURI, Set<AlluxioURI>> mChangedFilesMap;

@@ -148,7 +148,8 @@ public class ActiveSyncManager implements JournalEntryIterable, JournalEntryRepl
                   syncPoint -> {
                     try {
                       RetryUtils.retry("active sync during start",
-                          () -> mFileSystemMaster.activeSyncMetadata(syncPoint, null, getExecutor()),
+                          () -> mFileSystemMaster.activeSyncMetadata(syncPoint,
+                              null, getExecutor()),
                           RetryUtils.defaultActiveSyncClientRetry());
                     } catch (IOException e) {
                       LOG.warn("IOException encountered during active sync while starting {}", e);
@@ -160,7 +161,6 @@ public class ActiveSyncManager implements JournalEntryIterable, JournalEntryRepl
         LOG.warn("exception encountered during initial sync {}", e);
       }
     }
-
   }
 
   private void launchPollingThread(long mountId, ExecutorService executorService, long txId) {
@@ -294,7 +294,8 @@ public class ActiveSyncManager implements JournalEntryIterable, JournalEntryRepl
         }
 
         // We should not be in this situation
-        throw new RuntimeException(String.format("mountId for the syncPoint %s not found in the filterMap",
+        throw new RuntimeException(
+            String.format("mountId for the syncPoint %s not found in the filterMap",
             syncPoint.toString()));
       }
       return true;
@@ -356,7 +357,8 @@ public class ActiveSyncManager implements JournalEntryIterable, JournalEntryRepl
 
       @Override
       public void remove() {
-        throw new UnsupportedOperationException("ActiveSyncManager#Iterator#remove is not supported.");
+        throw new UnsupportedOperationException(
+            "ActiveSyncManager#Iterator#remove is not supported.");
       }
     };
   }
@@ -414,7 +416,8 @@ public class ActiveSyncManager implements JournalEntryIterable, JournalEntryRepl
 
       @Override
       public void remove() {
-        throw new UnsupportedOperationException("ActiveSyncManager#Iterator#remove is not supported.");
+        throw new UnsupportedOperationException(
+            "ActiveSyncManager#Iterator#remove is not supported.");
       }
     };
   }

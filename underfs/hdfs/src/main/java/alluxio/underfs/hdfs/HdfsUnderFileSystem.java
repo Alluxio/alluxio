@@ -175,7 +175,8 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
       }
     } catch (Exception e) {
       // ignore
-      LOG.warn("Cannot create SupportedHdfsActiveSyncProvider. HDFS ActiveSync will not be supported.");
+      LOG.warn("Cannot create SupportedHdfsActiveSyncProvider."
+          + "HDFS ActiveSync will not be supported.");
     }
 
     mHdfsActiveSyncer = hdfsActiveSyncProvider;

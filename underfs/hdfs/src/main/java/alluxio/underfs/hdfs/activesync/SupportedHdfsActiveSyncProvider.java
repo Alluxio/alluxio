@@ -91,7 +91,8 @@ public class SupportedHdfsActiveSyncProvider implements HdfsActiveSyncProvider {
     mReadLock = lock.readLock();
     mWriteLock = lock.writeLock();
     mExecutorService = Executors
-        .newFixedThreadPool(3, ThreadFactoryUtils.build("SupportedHdfsActiveSyncProvider-%d", true));
+        .newFixedThreadPool(3,
+            ThreadFactoryUtils.build("SupportedHdfsActiveSyncProvider-%d", true));
     mPollingThread = null;
     mUfsUriList = new CopyOnWriteArrayList<>();
     mEventMissed = false;
@@ -185,7 +186,8 @@ public class SupportedHdfsActiveSyncProvider implements HdfsActiveSyncProvider {
 
       try {
         // find out if the changed file falls under one of the sync points
-        if ((!renameFilePath.isEmpty()) && PathUtils.hasPrefix(renameFilePath, syncPoint.getPath())) {
+        if ((!renameFilePath.isEmpty())
+            && PathUtils.hasPrefix(renameFilePath, syncPoint.getPath())) {
           fileMatch = true;
           recordFileChanged(syncPoint.toString(), renameFilePath, txId);
         }
