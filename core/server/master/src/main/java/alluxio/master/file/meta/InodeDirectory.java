@@ -28,9 +28,9 @@ import com.google.common.collect.ImmutableSet;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -80,7 +80,7 @@ public final class InodeDirectory extends Inode<InodeDirectory> implements Inode
    * @param child the inode to add
    * @return true if inode was added successfully, false otherwise
    */
-  public boolean addChild(Inode<?> child) {
+  public synchronized boolean addChild(Inode<?> child) {
     final int low = searchChildren(child.getName());
     if (low >= 0) {
       return false;
@@ -95,8 +95,7 @@ public final class InodeDirectory extends Inode<InodeDirectory> implements Inode
    */
   private void addChild(final Inode<?> node, final int insertionPoint) {
     if (mChildren == null) {
-      // TODO(witgo): Is it necessary to use CopyOnWriteArrayList?
-      mChildren = new ArrayList<>(DEFAULT_FILES_PER_DIRECTORY);
+      mChildren = new CopyOnWriteArrayList<>(new ArrayList<>(DEFAULT_FILES_PER_DIRECTORY));
     }
     mChildren.add(-insertionPoint - 1, node);
   }
@@ -164,7 +163,7 @@ public final class InodeDirectory extends Inode<InodeDirectory> implements Inode
 
   @Override
   public int getNumberOfChildren() {
-    return mChildren.size();
+    return mChildren == null ? 0 : mChildren.size();
   }
 
   @Override
@@ -204,7 +203,7 @@ public final class InodeDirectory extends Inode<InodeDirectory> implements Inode
    * @param child the Inode to remove
    * @return true if the inode was removed, false otherwise
    */
-  public boolean removeChild(Inode<?> child) {
+  public synchronized boolean removeChild(Inode<?> child) {
     final int i = searchChildren(child.getName());
     if (i < 0) {
       return false;
@@ -221,7 +220,7 @@ public final class InodeDirectory extends Inode<InodeDirectory> implements Inode
    * @param name the name of the Inode to remove
    * @return true if the inode was removed, false otherwise
    */
-  public boolean removeChild(String name) {
+  public synchronized boolean removeChild(String name) {
     Inode<?> child = getChild(name);
     return removeChild(child);
   }
