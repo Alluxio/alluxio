@@ -606,6 +606,7 @@ public abstract class Inode<T> implements InodeView, Comparable<String> {
     Inode<?> that = (Inode<?>) o;
     return mId == that.mId;
   }
+
   @Override
   public final int compareTo(String name) {
     return getName().compareTo(name);

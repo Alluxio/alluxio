@@ -12,7 +12,6 @@
 package alluxio.master.file.meta;
 
 import alluxio.Constants;
-import alluxio.collections.IndexDefinition;
 import alluxio.exception.InvalidPathException;
 import alluxio.master.ProtobufUtils;
 import alluxio.master.file.options.CreateDirectoryOptions;
@@ -45,6 +44,7 @@ public final class InodeDirectory extends Inode<InodeDirectory> implements Inode
   // Profiling shows that most of the file lists are between 1 and 4 elements.
   // Thus allocate the corresponding ArrayLists with a small initial capacity.
   private static final int DEFAULT_FILES_PER_DIRECTORY = 2;
+
   private int searchChildren(String name) {
     return mChildren == null ? -1 : Collections.binarySearch(mChildren, name);
   }
