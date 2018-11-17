@@ -55,7 +55,7 @@ public class RenameContext extends OperationContext<RenamePOptions.Builder> {
     /**
      * Sets operation time.
      * @param operationTimeMs operation system time in ms
-     * @return the context instance
+     * @return the updated context instance
      */
     public RenameContext setOperationTimeMs(long operationTimeMs) {
         mOperationTimeMs = operationTimeMs;

@@ -15,6 +15,7 @@ import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.grpc.CheckConsistencyPOptions;
+import alluxio.grpc.CompleteFilePOptions;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.grpc.FreePOptions;
@@ -29,7 +30,6 @@ import alluxio.grpc.SetAclPOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.TtlAction;
 import alluxio.master.file.options.CommonOptions;
-import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
 import alluxio.master.file.options.SyncMetadataOptions;
@@ -58,10 +58,11 @@ public final class FileSystemMasterOptions{
   }
 
   /**
-   * @return Master side defaults for {@link CompleteFileOptions}
+   * @return Master side defaults for {@link CompleteFilePOptions}
    */
-  public static CompleteFileOptions getCompleteFileOptions() {
-    return CompleteFileOptions.defaults();
+  public static CompleteFilePOptions getCompleteFileOptions() {
+    return CompleteFilePOptions.newBuilder().setCommonOptions(getCommonPOptions()).setUfsLength(0)
+        .build();
   }
 
   /**

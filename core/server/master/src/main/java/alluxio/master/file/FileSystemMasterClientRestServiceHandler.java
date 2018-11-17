@@ -20,7 +20,7 @@ import alluxio.grpc.LoadMetadataPType;
 import alluxio.grpc.MountPOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.master.MasterProcess;
-import alluxio.master.file.options.CompleteFileOptions;
+import alluxio.master.file.options.CompleteFileContext;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
 import alluxio.master.file.options.RenameContext;
@@ -125,11 +125,11 @@ public final class FileSystemMasterClientRestServiceHandler {
       @QueryParam("ufsLength") final Long ufsLength) {
     return RestUtils.call((RestUtils.RestCallable<Void>) () -> {
       Preconditions.checkNotNull(path, "required 'path' parameter is missing");
-      CompleteFileOptions options = CompleteFileOptions.defaults();
+      CompleteFileContext context = CompleteFileContext.defaults();
       if (ufsLength != null) {
-        options.setUfsLength(ufsLength);
+        context.getOptions().setUfsLength(ufsLength);
       }
-      mFileSystemMaster.completeFile(new AlluxioURI(path), options);
+      mFileSystemMaster.completeFile(new AlluxioURI(path), context);
       return null;
     });
   }

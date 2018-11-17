@@ -29,6 +29,7 @@ import alluxio.PropertyKey;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
+import alluxio.grpc.CompleteFilePOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.TtlAction;
 import alluxio.master.DefaultSafeModeManager;
@@ -45,7 +46,7 @@ import alluxio.master.file.meta.InodeLockList;
 import alluxio.master.file.meta.InodeTree;
 import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.file.meta.MutableLockedInodePath;
-import alluxio.master.file.options.CompleteFileOptions;
+import alluxio.master.file.options.CompleteFileContext;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
 import alluxio.master.file.options.RenameContext;
@@ -742,7 +743,7 @@ public final class PermissionCheckTest {
         PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK, "044").toResource()) {
       String file = PathUtils.concatPath(TEST_DIR_URI, "/testState1");
       verifyCreateFile(TEST_USER_1, file, false);
-      CompleteFileOptions expect = getNonDefaultCompleteFileOptions();
+      CompleteFileContext expect = getNonDefaultCompleteFileContext();
       verifyCompleteFile(TEST_USER_2, file, expect);
     }
   }
@@ -754,7 +755,7 @@ public final class PermissionCheckTest {
         PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK, "066").toResource()) {
       String file = PathUtils.concatPath(TEST_DIR_URI, "/testComplete1");
       verifyCreateFile(TEST_USER_1, file, false);
-      CompleteFileOptions expect = getNonDefaultCompleteFileOptions();
+      CompleteFileContext expect = getNonDefaultCompleteFileContext();
 
       mThrown.expect(AccessControlException.class);
       mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED.getMessage(
@@ -763,18 +764,18 @@ public final class PermissionCheckTest {
     }
   }
 
-  private CompleteFileOptions getNonDefaultCompleteFileOptions() {
+  private CompleteFileContext getNonDefaultCompleteFileContext() {
     long ufsLength = 12;
     long operationTimeMs = 21;
 
-    return CompleteFileOptions.defaults().setUfsLength(ufsLength)
+    return CompleteFileContext.defaults(CompleteFilePOptions.newBuilder().setUfsLength(ufsLength).build())
         .setOperationTimeMs(operationTimeMs);
   }
 
-  private void verifyCompleteFile(TestUser user, String path, CompleteFileOptions options)
+  private void verifyCompleteFile(TestUser user, String path, CompleteFileContext context)
       throws Exception {
     try (Closeable r = new AuthenticatedUserRule(user.getUser()).toResource()) {
-      mFileSystemMaster.completeFile(new AlluxioURI(path), options);
+      mFileSystemMaster.completeFile(new AlluxioURI(path), context);
     }
   }
 

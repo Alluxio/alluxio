@@ -32,6 +32,7 @@ import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.status.FailedPreconditionException;
+import alluxio.grpc.CompleteFilePOptions;
 import alluxio.grpc.LoadMetadataPType;
 import alluxio.grpc.RenamePOptions;
 import alluxio.grpc.SetAttributePOptions;
@@ -45,7 +46,7 @@ import alluxio.master.block.BlockMaster;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.FileSystemMasterOptions;
 import alluxio.master.file.meta.TtlIntervalRule;
-import alluxio.master.file.options.CompleteFileOptions;
+import alluxio.master.file.options.CompleteFileContext;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
 import alluxio.master.file.options.RenameContext;
@@ -529,7 +530,8 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     long fileId = mFsMaster.createFile(new AlluxioURI("/testFile"), CreateFileOptions.defaults());
     long opTimeMs = TEST_TIME_MS;
     mFsMaster.completeFile(new AlluxioURI("/testFile"),
-        CompleteFileOptions.defaults().setOperationTimeMs(opTimeMs).setUfsLength(0));
+        CompleteFileContext.defaults(CompleteFilePOptions.newBuilder().setUfsLength(0).build())
+            .setOperationTimeMs(opTimeMs));
     FileInfo fileInfo = mFsMaster.getFileInfo(fileId);
     Assert.assertEquals(opTimeMs, fileInfo.getLastModificationTimeMs());
   }
@@ -630,8 +632,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
   public void notFileCompletion() throws Exception {
     mThrown.expect(FileDoesNotExistException.class);
     mFsMaster.createDirectory(new AlluxioURI("/testFile"), CreateDirectoryOptions.defaults());
-    CompleteFileOptions options = CompleteFileOptions.defaults();
-    mFsMaster.completeFile(new AlluxioURI("/testFile"), options);
+    mFsMaster.completeFile(new AlluxioURI("/testFile"), CompleteFileContext.defaults());
   }
 
   @Test
@@ -779,7 +780,8 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     // Create a persisted Alluxio file (but no ufs file).
     mFsMaster.createFile(alluxioFile, CreateFileOptions.defaults().setPersisted(true));
     mFsMaster.completeFile(alluxioFile,
-        CompleteFileOptions.defaults().setOperationTimeMs(TEST_TIME_MS).setUfsLength(0));
+        CompleteFileContext.defaults(CompleteFilePOptions.newBuilder().setUfsLength(0).build())
+            .setOperationTimeMs(TEST_TIME_MS));
 
     // List what is in Alluxio, without syncing.
     List<FileInfo> files = mFsMaster.listStatus(root,
@@ -1121,7 +1123,8 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
         UfsMode.READ_ONLY);
     long opTimeMs = TEST_TIME_MS;
     mFsMaster.completeFile(alluxioFile,
-        CompleteFileOptions.defaults().setOperationTimeMs(opTimeMs).setUfsLength(0));
+        CompleteFileContext.defaults(CompleteFilePOptions.newBuilder().setUfsLength(0).build())
+            .setOperationTimeMs(opTimeMs));
 
     mThrown.expect(AccessControlException.class);
     mFsMaster.setAttribute(alluxioFile, SetAttributeContext
@@ -1685,7 +1688,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
         try {
           // Create and complete a random file.
           mFsMaster.createFile(mFiles[id], CreateFileOptions.defaults());
-          mFsMaster.completeFile(mFiles[id], CompleteFileOptions.defaults());
+          mFsMaster.completeFile(mFiles[id], CompleteFileContext.defaults());
         } catch (FileAlreadyExistsException | FileDoesNotExistException
             | FileAlreadyCompletedException | InvalidPathException e) {
           // Ignore

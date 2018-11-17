@@ -16,13 +16,11 @@ import static alluxio.util.StreamUtils.map;
 import alluxio.Constants;
 
 import alluxio.file.options.CommonOptions;
-import alluxio.file.options.CompleteFileOptions;
 import alluxio.file.options.CompleteUfsFileOptions;
 import alluxio.file.options.CreateDirectoryOptions;
 import alluxio.file.options.CreateFileOptions;
 import alluxio.file.options.CreateUfsFileOptions;
 import alluxio.file.options.DescendantType;
-import alluxio.grpc.CompleteFilePOptions;
 import alluxio.grpc.CompleteUfsFilePOptions;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
@@ -571,17 +569,6 @@ public final class GrpcUtils {
       builder.setMode(options.getMode().toShort());
     }
     return builder.build();
-  }
-
-  /**
-   * Converts options to proto type.
-   *
-   * @param options the options type to convert
-   * @return the converted proto type
-   */
-  public static CompleteFilePOptions toProto(CompleteFileOptions options) {
-    return CompleteFilePOptions.newBuilder().setUfsLength(options.getUfsLength())
-        .setCommonOptions(toProto(options.getCommonOptions())).build();
   }
 
   /**

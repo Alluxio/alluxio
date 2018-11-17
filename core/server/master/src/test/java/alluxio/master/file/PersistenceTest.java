@@ -34,7 +34,7 @@ import alluxio.master.MasterTestUtils;
 import alluxio.master.SafeModeManager;
 import alluxio.master.block.BlockMasterFactory;
 import alluxio.master.file.meta.PersistenceState;
-import alluxio.master.file.options.CompleteFileOptions;
+import alluxio.master.file.options.CompleteFileContext;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
 import alluxio.master.file.options.RenameContext;
@@ -455,7 +455,7 @@ public final class PersistenceTest {
     String group = SecurityUtils.getGroupFromThriftClient();
     mFileSystemMaster.createFile(path, CreateFileOptions.defaults()
         .setOwner(owner).setGroup(group).setMode(Mode.createFullAccess()));
-    mFileSystemMaster.completeFile(path, CompleteFileOptions.defaults());
+    mFileSystemMaster.completeFile(path, CompleteFileContext.defaults());
     return path;
   }
 

@@ -39,6 +39,7 @@ import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.UnexpectedAlluxioException;
+import alluxio.grpc.CompleteFilePOptions;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.LoadDescendantPType;
@@ -56,7 +57,7 @@ import alluxio.master.block.BlockMaster;
 import alluxio.master.block.BlockMasterFactory;
 import alluxio.master.file.meta.PersistenceState;
 import alluxio.master.file.meta.TtlIntervalRule;
-import alluxio.master.file.options.CompleteFileOptions;
+import alluxio.master.file.options.CompleteFileContext;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
 import alluxio.master.file.options.RenameContext;
@@ -1906,7 +1907,7 @@ public final class FileSystemMasterTest {
     // add SSD block
     blockId = mFileSystemMaster.getNewBlockIdForFile(NESTED_FILE_URI);
     mBlockMaster.commitBlock(mWorkerId1, Constants.KB, "SSD", blockId, Constants.KB);
-    mFileSystemMaster.completeFile(NESTED_FILE_URI, CompleteFileOptions.defaults());
+    mFileSystemMaster.completeFile(NESTED_FILE_URI, CompleteFileContext.defaults());
 
     // Create 2 files in memory.
     createFileWithSingleBlock(ROOT_FILE_URI);
@@ -2645,8 +2646,9 @@ public final class FileSystemMasterTest {
     mFileSystemMaster.createFile(uri, mNestedFileOptions);
     long blockId = mFileSystemMaster.getNewBlockIdForFile(uri);
     mBlockMaster.commitBlock(mWorkerId1, Constants.KB, "MEM", blockId, Constants.KB);
-    CompleteFileOptions options = CompleteFileOptions.defaults().setUfsLength(Constants.KB);
-    mFileSystemMaster.completeFile(uri, options);
+    CompleteFileContext context = CompleteFileContext
+        .defaults(CompleteFilePOptions.newBuilder().setUfsLength(Constants.KB).build());
+    mFileSystemMaster.completeFile(uri, context);
     return blockId;
   }
 

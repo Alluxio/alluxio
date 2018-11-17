@@ -24,7 +24,6 @@ import alluxio.exception.InvalidPathException;
 import alluxio.exception.UnexpectedAlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.exception.status.UnavailableException;
-import alluxio.file.options.CompleteFileOptions;
 import alluxio.file.options.CreateDirectoryOptions;
 import alluxio.file.options.CreateFileOptions;
 import alluxio.file.options.WorkerHeartbeatOptions;
@@ -36,10 +35,10 @@ import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.LoadMetadataPOptions;
 import alluxio.grpc.MountPOptions;
 import alluxio.grpc.SetAclPOptions;
-import alluxio.grpc.SetAttributePOptions;
 import alluxio.master.Master;
 import alluxio.master.file.meta.FileSystemMasterView;
 import alluxio.master.file.meta.PersistenceState;
+import alluxio.master.file.options.CompleteFileContext;
 import alluxio.master.file.options.RenameContext;
 import alluxio.master.file.options.SetAttributeContext;
 import alluxio.security.authorization.AclEntry;
@@ -165,7 +164,7 @@ public interface FileSystemMaster extends Master {
    * This operation requires users to have WRITE permission on the path.
    *
    * @param path the file path to complete
-   * @param options the method options
+   * @param context the method context
    * @throws BlockInfoException if a block information exception is encountered
    * @throws FileDoesNotExistException if the file does not exist
    * @throws InvalidPathException if an invalid path is encountered
@@ -173,7 +172,7 @@ public interface FileSystemMaster extends Master {
    * @throws FileAlreadyCompletedException if the file is already completed
    * @throws AccessControlException if permission checking fails
    */
-  void completeFile(AlluxioURI path, CompleteFileOptions options)
+  void completeFile(AlluxioURI path, CompleteFileContext context)
       throws BlockInfoException, FileDoesNotExistException, InvalidPathException,
       InvalidFileSizeException, FileAlreadyCompletedException, AccessControlException,
       UnavailableException;

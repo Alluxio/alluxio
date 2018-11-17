@@ -37,12 +37,12 @@ import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.PermissionDeniedException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.file.options.CommonOptions;
-import alluxio.file.options.CompleteFileOptions;
 import alluxio.file.options.CreateDirectoryOptions;
 import alluxio.file.options.CreateFileOptions;
 import alluxio.file.options.DescendantType;
 import alluxio.file.options.WorkerHeartbeatOptions;
 import alluxio.grpc.CheckConsistencyPOptions;
+import alluxio.grpc.CompleteFilePOptions;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.grpc.FreePOptions;
@@ -82,6 +82,7 @@ import alluxio.master.file.meta.UfsBlockLocationCache;
 import alluxio.master.file.meta.UfsSyncPathCache;
 import alluxio.master.file.meta.UfsSyncUtils;
 import alluxio.master.file.meta.options.MountInfo;
+import alluxio.master.file.options.CompleteFileContext;
 import alluxio.master.file.options.RenameContext;
 import alluxio.master.file.options.SetAttributeContext;
 import alluxio.master.journal.JournalContext;
@@ -1116,7 +1117,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   }
 
   @Override
-  public void completeFile(AlluxioURI path, CompleteFileOptions options)
+  public void completeFile(AlluxioURI path, CompleteFileContext context)
       throws BlockInfoException, FileDoesNotExistException, InvalidPathException,
       InvalidFileSizeException, FileAlreadyCompletedException, AccessControlException,
       UnavailableException {
@@ -1133,7 +1134,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         throw e;
       }
       // Even readonly mount points should be able to complete a file, for UFS reads in CACHE mode.
-      completeFileInternal(rpcContext, inodePath, options);
+      completeFileInternal(rpcContext, inodePath, context);
       auditContext.setSucceeded(true);
     }
   }
@@ -1143,10 +1144,10 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    *
    * @param rpcContext the rpc context
    * @param inodePath the {@link LockedInodePath} to complete
-   * @param options the method options
+   * @param context the method context
    */
   private void completeFileInternal(RpcContext rpcContext, LockedInodePath inodePath,
-      CompleteFileOptions options)
+      CompleteFileContext context)
       throws InvalidPathException, FileDoesNotExistException, BlockInfoException,
       FileAlreadyCompletedException, InvalidFileSizeException, UnavailableException {
     InodeView inode = inodePath.getInode();
@@ -1178,11 +1179,11 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
     // If the file is persisted, its length is determined by UFS. Otherwise, its length is
     // determined by its size in Alluxio.
-    long length = fileInode.isPersisted() ? options.getUfsLength() : inAlluxioLength;
+    long length = fileInode.isPersisted() ? context.getOptions().getUfsLength() : inAlluxioLength;
 
     String ufsFingerprint = Constants.INVALID_UFS_FINGERPRINT;
     if (fileInode.isPersisted()) {
-      UfsStatus ufsStatus = options.getUfsStatus();
+      UfsStatus ufsStatus = context.getUfsStatus();
       // Retrieve the UFS fingerprint for this file.
       MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
       AlluxioURI resolvedUri = resolution.getUri();
@@ -1196,7 +1197,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       }
     }
 
-    completeFileInternal(rpcContext, inodePath, length, options.getOperationTimeMs(),
+    completeFileInternal(rpcContext, inodePath, length, context.getOperationTimeMs(),
         ufsFingerprint);
   }
 
@@ -2478,12 +2479,15 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
     try {
       createFileInternal(rpcContext, inodePath, createFileOptions);
-      CompleteFileOptions completeOptions =
-          FileSystemMasterOptions.getCompleteFileOptions().setUfsLength(ufsLength).setUfsStatus(ufsStatus);
+      
+      CompleteFileContext completeCtx = CompleteFileContext
+              .defaults(CompleteFilePOptions.newBuilder().setUfsLength(ufsLength).build())
+              .setUfsStatus(ufsStatus);
       if (ufsLastModified != null) {
-        completeOptions.setOperationTimeMs(ufsLastModified);
+        completeCtx.setOperationTimeMs(ufsLastModified);
       }
-      completeFileInternal(rpcContext, inodePath, completeOptions);
+      completeFileInternal(rpcContext, inodePath, completeCtx);
+
       if (inodePath.getLockMode() == InodeTree.LockMode.READ) {
         // After completing the inode, the lock on the last inode which stands for the created file
         // should be downgraded to a read lock, so that it won't block the reads operations from

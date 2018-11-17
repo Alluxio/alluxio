@@ -13,7 +13,6 @@ package alluxio.master.file;
 
 import alluxio.AlluxioURI;
 import alluxio.file.options.CommonOptions;
-import alluxio.file.options.CompleteFileOptions;
 import alluxio.file.options.CreateDirectoryOptions;
 import alluxio.file.options.CreateFileOptions;
 import alluxio.grpc.CheckConsistencyPOptions;
@@ -66,6 +65,7 @@ import alluxio.grpc.UnmountPResponse;
 import alluxio.grpc.UpdateUfsModePOptions;
 import alluxio.grpc.UpdateUfsModePRequest;
 import alluxio.grpc.UpdateUfsModePResponse;
+import alluxio.master.file.options.CompleteFileContext;
 import alluxio.master.file.options.RenameContext;
 import alluxio.master.file.options.SetAttributeContext;
 import alluxio.security.authorization.Mode;
@@ -128,7 +128,7 @@ public final class FileSystemMasterClientServiceHandler
     String path = request.getPath();
     CompleteFilePOptions options = request.getOptions();
     RpcUtilsNew.call(LOG, (RpcUtilsNew.RpcCallableThrowsIOException<CompleteFilePResponse>) () -> {
-      mFileSystemMaster.completeFile(new AlluxioURI(path), new TempGrpcUtils().fromProto(options));
+      mFileSystemMaster.completeFile(new AlluxioURI(path), CompleteFileContext.defaults(options));
       return CompleteFilePResponse.newBuilder().build();
     }, "CompleteFile", "path=%s, options=%s", responseObserver, path, options);
   }
@@ -327,23 +327,6 @@ public final class FileSystemMasterClientServiceHandler
         if (pOptions.hasSyncIntervalMs()) {
           options.setSyncIntervalMs(pOptions.getSyncIntervalMs());
         }
-      }
-      return options;
-    }
-
-    /**
-     * Converts from proto type to options.
-     *
-     * @param pOptions the proto options to convert
-     * @return the converted options instance
-     */
-    public CompleteFileOptions fromProto(CompleteFilePOptions pOptions) {
-      CompleteFileOptions options = FileSystemMasterOptions.getCompleteFileOptions();
-      if (pOptions != null) {
-        if (pOptions.hasCommonOptions()) {
-          options.setCommonOptions(fromProto(pOptions.getCommonOptions()));
-        }
-        options.setUfsLength(pOptions.getUfsLength());
       }
       return options;
     }
