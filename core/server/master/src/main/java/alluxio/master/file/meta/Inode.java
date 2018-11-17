@@ -44,7 +44,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * @param <T> the concrete subclass of this object
  */
 @NotThreadSafe
-public abstract class Inode<T> implements InodeView {
+public abstract class Inode<T> implements InodeView, Comparable<String> {
   private static final Logger LOG = LoggerFactory.getLogger(Inode.class);
   protected long mCreationTimeMs;
   private boolean mDeleted;
@@ -605,6 +605,10 @@ public abstract class Inode<T> implements InodeView {
     }
     Inode<?> that = (Inode<?>) o;
     return mId == that.mId;
+  }
+  @Override
+  public final int compareTo(String name) {
+    return getName().compareTo(name);
   }
 
   protected Objects.ToStringHelper toStringHelper() {

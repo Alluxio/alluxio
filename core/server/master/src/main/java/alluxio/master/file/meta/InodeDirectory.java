@@ -12,9 +12,7 @@
 package alluxio.master.file.meta;
 
 import alluxio.Constants;
-import alluxio.collections.FieldIndex;
 import alluxio.collections.IndexDefinition;
-import alluxio.collections.UniqueFieldIndex;
 import alluxio.exception.InvalidPathException;
 import alluxio.master.ProtobufUtils;
 import alluxio.master.file.options.CreateDirectoryOptions;
@@ -25,7 +23,12 @@ import alluxio.security.authorization.AccessControlList;
 import alluxio.security.authorization.DefaultAccessControlList;
 import alluxio.wire.FileInfo;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -39,16 +42,14 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class InodeDirectory extends Inode<InodeDirectory> implements InodeDirectoryView {
-  private static final IndexDefinition<Inode<?>, String> NAME_INDEX =
-      new IndexDefinition<Inode<?>, String>(true) {
-        @Override
-        public String getFieldValue(Inode<?> o) {
-          return o.getName();
-        }
-      };
+  // Profiling shows that most of the file lists are between 1 and 4 elements.
+  // Thus allocate the corresponding ArrayLists with a small initial capacity.
+  private static final int DEFAULT_FILES_PER_DIRECTORY = 2;
+  private int searchChildren(String name) {
+    return mChildren == null ? -1 : Collections.binarySearch(mChildren, name);
+  }
 
-  /** Use UniqueFieldIndex directly for name index rather than using IndexedSet. */
-  private final FieldIndex<Inode<?>, String> mChildren = new UniqueFieldIndex<>(NAME_INDEX);
+  private List<Inode<?>> mChildren = null;
 
   private boolean mMountPoint;
 
@@ -80,12 +81,29 @@ public final class InodeDirectory extends Inode<InodeDirectory> implements Inode
    * @return true if inode was added successfully, false otherwise
    */
   public boolean addChild(Inode<?> child) {
-    return mChildren.add(child);
+    final int low = searchChildren(child.getName());
+    if (low >= 0) {
+      return false;
+    }
+    addChild(child, low);
+    return true;
+  }
+
+  /**
+   * Add the node to the mChildren list at the given insertion point.
+   * The basic add method which actually calls mChildren.add(..).
+   */
+  private void addChild(final Inode<?> node, final int insertionPoint) {
+    if (mChildren == null) {
+      mChildren = new ArrayList<>(DEFAULT_FILES_PER_DIRECTORY);
+    }
+    mChildren.add(-insertionPoint - 1, node);
   }
 
   @Override
-  public InodeView getChild(String name) {
-    return mChildren.getFirst(name);
+  public Inode<?> getChild(String name) {
+    final int i = searchChildren(name);
+    return i < 0 ? null : mChildren.get(i);
   }
 
   @Override
@@ -93,12 +111,12 @@ public final class InodeDirectory extends Inode<InodeDirectory> implements Inode
   public InodeView getChildReadLock(String name, InodeLockList lockList) throws
       InvalidPathException {
     while (true) {
-      Inode child = mChildren.getFirst(name);
+      Inode child = getChild(name);
       if (child == null) {
         return null;
       }
       lockList.lockReadAndCheckParent(child, this);
-      if (mChildren.getFirst(name) != child) {
+      if (getChild(name) != child) {
         // The locked child has changed, so unlock and try again.
         lockList.unlockLast();
         continue;
@@ -112,12 +130,12 @@ public final class InodeDirectory extends Inode<InodeDirectory> implements Inode
   public InodeView getChildWriteLock(String name, InodeLockList lockList) throws
       InvalidPathException {
     while (true) {
-      Inode child = mChildren.getFirst(name);
+      Inode child = getChild(name);
       if (child == null) {
         return null;
       }
       lockList.lockWriteAndCheckParent(child, this);
-      if (mChildren.getFirst(name) != child) {
+      if (getChild(name) != child) {
         // The locked child has changed, so unlock and try again.
         lockList.unlockLast();
         continue;
@@ -128,7 +146,7 @@ public final class InodeDirectory extends Inode<InodeDirectory> implements Inode
 
   @Override
   public Set<InodeView> getChildren() {
-    return ImmutableSet.copyOf(mChildren.iterator());
+    return ImmutableSet.copyOf(mChildren);
   }
 
   @Override
@@ -183,7 +201,14 @@ public final class InodeDirectory extends Inode<InodeDirectory> implements Inode
    * @return true if the inode was removed, false otherwise
    */
   public boolean removeChild(Inode<?> child) {
-    return mChildren.remove(child);
+    final int i = searchChildren(child.getName());
+    if (i < 0) {
+      return false;
+    }
+
+    final Inode<?> removed = mChildren.remove(i);
+    Preconditions.checkState(removed == child);
+    return true;
   }
 
   /**
@@ -193,8 +218,8 @@ public final class InodeDirectory extends Inode<InodeDirectory> implements Inode
    * @return true if the inode was removed, false otherwise
    */
   public boolean removeChild(String name) {
-    Inode<?> child = mChildren.getFirst(name);
-    return mChildren.remove(child);
+    Inode<?> child = getChild(name);
+    return removeChild(child);
   }
 
   /**
@@ -233,7 +258,7 @@ public final class InodeDirectory extends Inode<InodeDirectory> implements Inode
     ret.setFileId(getId());
     ret.setName(getName());
     ret.setPath(path);
-    ret.setLength(mChildren.size());
+    ret.setLength(mChildren == null ? 0 : mChildren.size());
     ret.setBlockSizeBytes(0);
     ret.setCreationTimeMs(getCreationTimeMs());
     ret.setCompleted(true);
