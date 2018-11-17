@@ -41,8 +41,6 @@ import alluxio.file.options.CompleteFileOptions;
 import alluxio.file.options.CreateDirectoryOptions;
 import alluxio.file.options.CreateFileOptions;
 import alluxio.file.options.DescendantType;
-import alluxio.file.options.RenameContext;
-import alluxio.file.options.SetAttributeContext;
 import alluxio.file.options.WorkerHeartbeatOptions;
 import alluxio.grpc.CheckConsistencyPOptions;
 import alluxio.grpc.DeletePOptions;
@@ -84,6 +82,8 @@ import alluxio.master.file.meta.UfsBlockLocationCache;
 import alluxio.master.file.meta.UfsSyncPathCache;
 import alluxio.master.file.meta.UfsSyncUtils;
 import alluxio.master.file.meta.options.MountInfo;
+import alluxio.master.file.options.RenameContext;
+import alluxio.master.file.options.SetAttributeContext;
 import alluxio.master.journal.JournalContext;
 import alluxio.metrics.MasterMetrics;
 import alluxio.metrics.MetricsSystem;
@@ -2230,10 +2230,9 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
               throw new UnexpectedAlluxioException(ExceptionMessage.CANNOT_FREE_PINNED_FILE
                   .getMessage(mInodeTree.getPath(freeInode)));
             }
-            SetAttributePOptions setAttributeOptions = FileSystemMasterOptions.getSetAttributeOptions()
-                .toBuilder().setRecursive(false).setPinned(false).build();
             setAttributeSingleFile(rpcContext, descedant, true, opTimeMs,
-                new SetAttributeContext(setAttributeOptions));
+                SetAttributeContext.defaults(SetAttributePOptions.newBuilder().setRecursive(false)
+                    .setPinned(false).build()));
           }
           // Remove corresponding blocks from workers.
           mBlockMaster.removeBlocks(((InodeFileView) freeInode).getBlockIds(), false /* delete */);
@@ -2930,21 +2929,10 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     }
   }
 
-  /**
-   * TODO(ggezer) Consider putting fingerprint to proto option in order to remove wrapper
-   * variations.
-   *
-   * @param path Alluxio path of the item that is being set
-   * @param context Wrapper over proto options {@link SetAttributePOptions}
-   *
-   * @throws FileDoesNotExistException
-   * @throws AccessControlException
-   * @throws InvalidPathException
-   * @throws IOException
-   */
+  @Override
   public void setAttribute(AlluxioURI path, SetAttributeContext context)
       throws FileDoesNotExistException, AccessControlException, InvalidPathException, IOException {
-    SetAttributePOptions options = context.getOptions();
+    SetAttributePOptions.Builder options = context.getOptions();
     Metrics.SET_ATTRIBUTE_OPS.inc();
     // for chown
     boolean rootRequired = options.hasOwner();
@@ -2993,14 +2981,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       setAttributeInternal(rpcContext, inodePath, rootRequired, ownerRequired, context);
       auditContext.setSucceeded(true);
     }
-  }
-
-  @Override
-  public void setAttribute(AlluxioURI path, SetAttributePOptions options)
-      throws FileDoesNotExistException, AccessControlException, InvalidPathException,
-      IOException {
-    // Call internal SetAttribute with wrapped options
-    setAttribute(path, new SetAttributeContext(options));
   }
 
   /**
@@ -3286,13 +3266,12 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         // It works by calling SetAttributeInternal on the inodePath.
         if (ufsFpParsed.isValid()) {
           short mode = Short.parseShort(ufsFpParsed.getTag(Tag.MODE));
-          SetAttributePOptions options = FileSystemMasterOptions.getSetAttributeOptions().toBuilder()
-              .setOwner(ufsFpParsed.getTag(Tag.OWNER)).setGroup(ufsFpParsed.getTag(Tag.GROUP))
-              .setMode(mode).build();
           long opTimeMs = System.currentTimeMillis();
           // use replayed, since updating UFS is not desired.
-          setAttributeSingleFile(rpcContext, inodePath, false, opTimeMs,
-              new SetAttributeContext(options).setUfsFingerprint(ufsFingerprint));
+          setAttributeSingleFile(rpcContext, inodePath, false, opTimeMs, SetAttributeContext
+              .defaults(SetAttributePOptions.newBuilder().setOwner(ufsFpParsed.getTag(Tag.OWNER))
+                  .setGroup(ufsFpParsed.getTag(Tag.GROUP)).setMode(mode).build())
+              .setUfsFingerprint(ufsFingerprint));
         }
       }
       if (syncPlan.toDelete()) {
@@ -3368,10 +3347,10 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
           Constants.INVALID_UFS_FINGERPRINT;
       try {
         // Permission checking for each file is performed inside setAttribute
-        SetAttributePOptions setOptions =
-            FileSystemMasterOptions.getSetAttributeOptions().toBuilder().setPersisted(true).build();
         setAttribute(getPath(fileId),
-            new SetAttributeContext(setOptions).setUfsFingerprint(ufsFingerprint));
+            SetAttributeContext
+                .defaults(SetAttributePOptions.newBuilder().setPersisted(true).build())
+                .setUfsFingerprint(ufsFingerprint));
       } catch (FileDoesNotExistException | AccessControlException | InvalidPathException e) {
         LOG.error("Failed to set file {} as persisted, because {}", fileId, e);
       }
@@ -3395,7 +3374,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       boolean updateUfs, long opTimeMs, SetAttributeContext context)
       throws FileDoesNotExistException, InvalidPathException, AccessControlException {
     InodeView inode = inodePath.getInode();
-    SetAttributePOptions protoOptions = context.getOptions();
+    SetAttributePOptions.Builder protoOptions = context.getOptions();
     if (protoOptions.hasPinned()) {
       mInodeTree.setPinned(rpcContext, inodePath, context.getOptions().getPinned(), opTimeMs);
     }

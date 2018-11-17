@@ -16,7 +16,6 @@ import alluxio.file.options.CommonOptions;
 import alluxio.file.options.CompleteFileOptions;
 import alluxio.file.options.CreateDirectoryOptions;
 import alluxio.file.options.CreateFileOptions;
-import alluxio.file.options.RenameContext;
 import alluxio.grpc.CheckConsistencyPOptions;
 import alluxio.grpc.CheckConsistencyPRequest;
 import alluxio.grpc.CheckConsistencyPResponse;
@@ -67,6 +66,8 @@ import alluxio.grpc.UnmountPResponse;
 import alluxio.grpc.UpdateUfsModePOptions;
 import alluxio.grpc.UpdateUfsModePRequest;
 import alluxio.grpc.UpdateUfsModePResponse;
+import alluxio.master.file.options.RenameContext;
+import alluxio.master.file.options.SetAttributeContext;
 import alluxio.security.authorization.Mode;
 import alluxio.underfs.UfsMode;
 import alluxio.util.RpcUtilsNew;
@@ -250,8 +251,8 @@ public final class FileSystemMasterClientServiceHandler
     String dstPath = request.getDstPath();
     RenamePOptions options = request.getOptions();
     RpcUtilsNew.call(LOG, (RpcUtilsNew.RpcCallableThrowsIOException<RenamePResponse>) () -> {
-      mFileSystemMaster.rename(new AlluxioURI(srcPath), new AlluxioURI(dstPath), new RenameContext(
-          FileSystemMasterOptions.getRenameOptions().toBuilder().mergeFrom(options).build()));
+      mFileSystemMaster.rename(new AlluxioURI(srcPath), new AlluxioURI(dstPath),
+          RenameContext.defaults(options));
       return RenamePResponse.newBuilder().build();
     }, "Rename", "srcPath=%s, dstPath=%s, options=%s", responseObserver, srcPath, dstPath, options);
   }
@@ -274,8 +275,7 @@ public final class FileSystemMasterClientServiceHandler
     String path = request.getPath();
     SetAttributePOptions options = request.getOptions();
     RpcUtilsNew.call(LOG, (RpcUtilsNew.RpcCallableThrowsIOException<SetAttributePResponse>) () -> {
-      mFileSystemMaster.setAttribute(new AlluxioURI(path),
-          FileSystemMasterOptions.getSetAttributeOptions().toBuilder().mergeFrom(options).build());
+      mFileSystemMaster.setAttribute(new AlluxioURI(path), SetAttributeContext.defaults(options));
       return SetAttributePResponse.newBuilder().build();
     }, "SetAttribute", "path=%s, options=%s", responseObserver, path, options);
   }

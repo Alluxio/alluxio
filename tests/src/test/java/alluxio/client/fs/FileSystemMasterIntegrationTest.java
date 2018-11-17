@@ -32,9 +32,9 @@ import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.status.FailedPreconditionException;
-import alluxio.file.options.RenameContext;
 import alluxio.grpc.LoadMetadataPType;
 import alluxio.grpc.RenamePOptions;
+import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.WritePType;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
@@ -48,6 +48,8 @@ import alluxio.master.file.meta.TtlIntervalRule;
 import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
+import alluxio.master.file.options.RenameContext;
+import alluxio.master.file.options.SetAttributeContext;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.authorization.Mode;
 import alluxio.testutils.BaseIntegrationTest;
@@ -564,9 +566,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     AlluxioURI dstPath = new AlluxioURI("/testFolder/testFile2");
     mFsMaster.createDirectory(new AlluxioURI("/testFolder"), CreateDirectoryOptions.defaults());
     mFsMaster.createFile(srcPath, CreateFileOptions.defaults());
-    mFsMaster.rename(srcPath, dstPath,
-        new RenameContext(FileSystemMasterOptions.getRenameOptions())
-            .setOperationTimeMs(TEST_TIME_MS));
+    mFsMaster.rename(srcPath, dstPath, RenameContext.defaults().setOperationTimeMs(TEST_TIME_MS));
     FileInfo folderInfo = mFsMaster.getFileInfo(mFsMaster.getFileId(new AlluxioURI("/testFolder")));
     Assert.assertEquals(TEST_TIME_MS, folderInfo.getLastModificationTimeMs());
   }
@@ -640,7 +640,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     mFsMaster.createFile(new AlluxioURI("/testFile2"), CreateFileOptions.defaults());
     try {
       mFsMaster.rename(new AlluxioURI("/testFile1"), new AlluxioURI("/testFile2"),
-          new RenameContext(FileSystemMasterOptions.getRenameOptions()));
+          RenameContext.defaults());
       Assert.fail("Should not be able to rename to an existing file");
     } catch (Exception e) {
       // expected
@@ -663,8 +663,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     mFsMaster.createFile(new AlluxioURI("/testDir1/testDir2/testDir3/testFile3"),
         createFileOptions);
     mFsMaster.rename(new AlluxioURI("/testDir1/testDir2"),
-        new AlluxioURI("/testDir1/testDir2/testDir3/testDir4"),
-        new RenameContext(FileSystemMasterOptions.getRenameOptions()));
+        new AlluxioURI("/testDir1/testDir2/testDir3/testDir4"), RenameContext.defaults());
   }
 
   @Test
@@ -729,9 +728,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     mFsMaster.createFile(srcPath, createOptions);
     RenamePOptions renameOptions = FileSystemMasterOptions.getRenameOptions();
     // TODO(ggezer) Need a helper for setting inner proto fields.
-    mFsMaster.rename(srcPath, dstPath,
-        new RenameContext(FileSystemMasterOptions.getRenameOptions())
-            .setOperationTimeMs(TEST_TIME_MS));
+    mFsMaster.rename(srcPath, dstPath, RenameContext.defaults().setOperationTimeMs(TEST_TIME_MS));
     FileInfo folderInfo =
         mFsMaster.getFileInfo(mFsMaster.getFileId(new AlluxioURI("/testFolder/testFile2")));
     Assert.assertEquals(ttl, folderInfo.getTtl());
@@ -1091,7 +1088,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
 
     mThrown.expect(AccessControlException.class);
     mFsMaster.rename(new AlluxioURI("/in_ufs_src"), new AlluxioURI("/in_ufs_dst"),
-        new RenameContext(FileSystemMasterOptions.getRenameOptions()));
+        RenameContext.defaults());
   }
 
   @Test
@@ -1106,8 +1103,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
         UfsMode.READ_ONLY);
 
     mThrown.expect(AccessControlException.class);
-    mFsMaster.rename(alluxioDirectory, new AlluxioURI("/in_ufs_dst"),
-        new RenameContext(FileSystemMasterOptions.getRenameOptions()));
+    mFsMaster.rename(alluxioDirectory, new AlluxioURI("/in_ufs_dst"), RenameContext.defaults());
 
     // Check Alluxio entries exist after failed rename
     long dirId = mFsMaster.getFileId(alluxioDirectory);
@@ -1128,8 +1124,8 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
         CompleteFileOptions.defaults().setOperationTimeMs(opTimeMs).setUfsLength(0));
 
     mThrown.expect(AccessControlException.class);
-    mFsMaster.setAttribute(alluxioFile,
-        FileSystemMasterOptions.getSetAttributeOptions().toBuilder().setMode((short) 0777).build());
+    mFsMaster.setAttribute(alluxioFile, SetAttributeContext
+        .defaults(SetAttributePOptions.newBuilder().setMode((short) 0777).build()));
   }
 
   @Test
@@ -1632,8 +1628,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
           // InvalidPathException: This could happen if we are renaming something that's a child of
           // the root.
         }
-        mFsMaster.rename(srcPath, dstPath,
-            new RenameContext(FileSystemMasterOptions.getRenameOptions()));
+        mFsMaster.rename(srcPath, dstPath, RenameContext.defaults());
         Assert.assertEquals(fileId, mFsMaster.getFileId(dstPath));
       } else if (concurrencyDepth > 0) {
         ExecutorService executor = Executors.newCachedThreadPool();

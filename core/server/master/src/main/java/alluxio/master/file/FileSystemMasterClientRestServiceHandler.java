@@ -15,7 +15,6 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.RestUtils;
 import alluxio.client.file.FileSystemClientOptions;
-import alluxio.file.options.RenameContext;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.LoadMetadataPType;
 import alluxio.grpc.MountPOptions;
@@ -24,6 +23,8 @@ import alluxio.master.MasterProcess;
 import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
+import alluxio.master.file.options.RenameContext;
+import alluxio.master.file.options.SetAttributeContext;
 import alluxio.util.grpc.GrpcUtils;
 import alluxio.web.MasterWebServer;
 import alluxio.wire.FileInfo;
@@ -379,7 +380,7 @@ public final class FileSystemMasterClientRestServiceHandler {
         Preconditions.checkNotNull(srcPath, "required 'srcPath' parameter is missing");
         Preconditions.checkNotNull(dstPath, "required 'dstPath' parameter is missing");
         mFileSystemMaster.rename(new AlluxioURI(srcPath), new AlluxioURI(dstPath),
-            new RenameContext(FileSystemMasterOptions.getRenameOptions()));
+            RenameContext.defaults());
         return null;
       }
     });
@@ -426,8 +427,7 @@ public final class FileSystemMasterClientRestServiceHandler {
     return RestUtils.call(new RestUtils.RestCallable<Void>() {
       @Override
       public Void call() throws Exception {
-        SetAttributePOptions.Builder optionsBuilder =
-            FileSystemMasterOptions.getSetAttributeOptions().toBuilder();
+        SetAttributePOptions.Builder optionsBuilder = SetAttributePOptions.newBuilder();
 
         Preconditions.checkNotNull(path, "required 'path' parameter is missing");
         if (pinned != null) {
@@ -454,7 +454,8 @@ public final class FileSystemMasterClientRestServiceHandler {
         if (recursive != null) {
           optionsBuilder.setRecursive(recursive);
         }
-        mFileSystemMaster.setAttribute(new AlluxioURI(path), optionsBuilder.build());
+        mFileSystemMaster.setAttribute(new AlluxioURI(path),
+            SetAttributeContext.defaults(optionsBuilder.build()));
         return null;
       }
     });

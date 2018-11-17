@@ -20,7 +20,6 @@ import alluxio.client.job.JobMasterClient;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
-import alluxio.file.options.RenameContext;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
@@ -38,6 +37,7 @@ import alluxio.master.file.meta.PersistenceState;
 import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
+import alluxio.master.file.options.RenameContext;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalTestUtils;
 import alluxio.master.metrics.MetricsMasterFactory;
@@ -364,8 +364,7 @@ public final class PersistenceTest {
     mFileSystemMaster.createDirectory(new AlluxioURI("/dst"),
         CreateDirectoryOptions.defaults().setPersisted(true));
     AlluxioURI alluxioFileDst = new AlluxioURI("/dst/in_alluxio");
-    mFileSystemMaster.rename(alluxioFileSrc, alluxioFileDst,
-        new RenameContext(FileSystemMasterOptions.getRenameOptions()));
+    mFileSystemMaster.rename(alluxioFileSrc, alluxioFileDst, RenameContext.defaults());
 
     // Delete the src directory recursively.
     mFileSystemMaster.delete(alluxioDirSrc,

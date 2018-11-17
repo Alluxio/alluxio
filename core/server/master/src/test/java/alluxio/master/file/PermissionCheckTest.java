@@ -29,7 +29,6 @@ import alluxio.PropertyKey;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
-import alluxio.file.options.RenameContext;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.TtlAction;
 import alluxio.master.DefaultSafeModeManager;
@@ -49,6 +48,8 @@ import alluxio.master.file.meta.MutableLockedInodePath;
 import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
+import alluxio.master.file.options.RenameContext;
+import alluxio.master.file.options.SetAttributeContext;
 import alluxio.master.metrics.MetricsMaster;
 import alluxio.master.metrics.MetricsMasterFactory;
 import alluxio.security.GroupMappingServiceTestUtils;
@@ -469,7 +470,7 @@ public final class PermissionCheckTest {
               .getOwner();
 
       mFileSystemMaster.rename(new AlluxioURI(srcPath), new AlluxioURI(dstPath),
-          new RenameContext(FileSystemMasterOptions.getRenameOptions()));
+          RenameContext.defaults());
 
       assertEquals(-1, mFileSystemMaster.getFileId(new AlluxioURI(srcPath)));
       FileInfo fileInfo =
@@ -717,14 +718,14 @@ public final class PermissionCheckTest {
   }
 
   private SetAttributePOptions getNonDefaultSetState() {
-    return FileSystemMasterOptions.getSetAttributeOptions().toBuilder().setPinned(true).setTtl(11)
+    return SetAttributePOptions.newBuilder().setPinned(true).setTtl(11)
         .setTtlAction(TtlAction.DELETE).build();
   }
 
   private SetAttributePOptions verifySetState(TestUser user, String path,
       SetAttributePOptions options) throws Exception {
     try (Closeable r = new AuthenticatedUserRule(user.getUser()).toResource()) {
-      mFileSystemMaster.setAttribute(new AlluxioURI(path), options);
+      mFileSystemMaster.setAttribute(new AlluxioURI(path), SetAttributeContext.defaults(options));
 
       FileInfo fileInfo = mFileSystemMaster.getFileInfo(new AlluxioURI(path),
           FileSystemMasterOptions.getGetStatusOptions());
@@ -930,9 +931,9 @@ public final class PermissionCheckTest {
   private void verifySetAcl(TestUser runUser, String path, String owner, String group,
       short mode, boolean recursive) throws Exception {
     try (Closeable r = new AuthenticatedUserRule(runUser.getUser()).toResource()) {
-      SetAttributePOptions options = FileSystemMasterOptions.getSetAttributeOptions().toBuilder()
-          .setOwner(owner).setGroup(group).setMode(mode).setRecursive(recursive).build();
-      mFileSystemMaster.setAttribute(new AlluxioURI(path), options);
+      SetAttributePOptions options = SetAttributePOptions.newBuilder().setOwner(owner)
+          .setGroup(group).setMode(mode).setRecursive(recursive).build();
+      mFileSystemMaster.setAttribute(new AlluxioURI(path), SetAttributeContext.defaults(options));
     }
     try (Closeable r = new AuthenticatedUserRule(TEST_USER_ADMIN.getUser()).toResource()) {
       FileInfo fileInfo =

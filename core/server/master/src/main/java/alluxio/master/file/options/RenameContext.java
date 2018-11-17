@@ -9,23 +9,46 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.file.options;
+package alluxio.master.file.options;
 
 import alluxio.grpc.RenamePOptions;
+import alluxio.master.file.FileSystemMasterOptions;
 
 /**
  * Wrapper for {@link RenamePOptions} with additional context data.
  */
-public class RenameContext extends OperationContext<RenamePOptions>{
+public class RenameContext extends OperationContext<RenamePOptions.Builder> {
 
     private long mOperationTimeMs;
+
+    // Prevent instantiation
+    private RenameContext(){super(null);};
+
+    /**
+     * Merges and embeds the given {@link RenamePOptions} with the corresponding master options.
+     * @param options Proto {@link RenamePOptions} to embed
+     * @return the instance of {@link RenameContext} with default values for master
+     */
+    public static RenameContext defaults(RenamePOptions options){
+        RenamePOptions masterOptions = FileSystemMasterOptions.getRenameOptions();
+        RenamePOptions mergedOptions = masterOptions.toBuilder().mergeFrom(options).build();
+        return new RenameContext(mergedOptions);
+    }
+
+    /**
+     * @return the instance of {@link RenameContext} with default values for master
+     */
+    public static RenameContext defaults() {
+        RenamePOptions masterOptions = FileSystemMasterOptions.getRenameOptions();
+        return new RenameContext(masterOptions);
+    }
 
     /**
      * Creates rename context with given option data.
      * @param options rename options
      */
-    public RenameContext(RenamePOptions options) {
-        super(options);
+    private RenameContext(RenamePOptions options) {
+        super(options.toBuilder());
         mOperationTimeMs = System.currentTimeMillis();
     }
 
