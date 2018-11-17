@@ -101,7 +101,7 @@ public final class InodeDirectory extends Inode<InodeDirectory> implements Inode
   }
 
   @Override
-  public Inode<?> getChild(String name) {
+  public synchronized Inode<?> getChild(String name) {
     final int i = searchChildren(name);
     return i < 0 ? null : mChildren.get(i);
   }
