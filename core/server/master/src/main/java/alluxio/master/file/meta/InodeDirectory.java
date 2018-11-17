@@ -95,6 +95,7 @@ public final class InodeDirectory extends Inode<InodeDirectory> implements Inode
    */
   private void addChild(final Inode<?> node, final int insertionPoint) {
     if (mChildren == null) {
+      // TODO(witgo): Is it necessary to use CopyOnWriteArrayList?
       mChildren = new ArrayList<>(DEFAULT_FILES_PER_DIRECTORY);
     }
     mChildren.add(-insertionPoint - 1, node);
@@ -146,11 +147,14 @@ public final class InodeDirectory extends Inode<InodeDirectory> implements Inode
 
   @Override
   public Set<InodeView> getChildren() {
-    return ImmutableSet.copyOf(mChildren);
+    return mChildren == null ? Collections.emptySet() : ImmutableSet.copyOf(mChildren);
   }
 
   @Override
   public Set<Long> getChildrenIds() {
+    if (mChildren == null) {
+      return Collections.emptySet();
+    }
     Set<Long> ret = new HashSet<>(mChildren.size());
     for (Inode<?> child : mChildren) {
       ret.add(child.getId());
