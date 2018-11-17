@@ -118,8 +118,10 @@ public final class MountTableTest {
     Assert.assertEquals(mMountTable.reverseResolve(new AlluxioURI("/bar/y")),
         new AlluxioURI("/mnt/bar/y"));
     // Test reverseResolve(), ufs path is not mounted
-    Assert.assertNull(mMountTable.reverseResolve(new AlluxioURI("s3a://bucket/foobar")));
-    Assert.assertNull(mMountTable.reverseResolve(new AlluxioURI("s3a://bucket/")));
+    Assert.assertEquals(new AlluxioURI("/foobar"),
+        mMountTable.reverseResolve(new AlluxioURI("s3a://bucket/foobar")));
+    Assert.assertEquals(new AlluxioURI("/"),
+        mMountTable.reverseResolve(new AlluxioURI("s3a://bucket/")));
     Assert.assertNull(mMountTable.reverseResolve(new AlluxioURI("/foobar")));
 
     // Test getMountPoint()

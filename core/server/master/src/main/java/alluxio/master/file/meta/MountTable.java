@@ -320,7 +320,11 @@ public final class MountTable implements JournalEntryIterable, JournalEntryRepla
     String relativePath = PathUtils.subtractPaths(
         PathUtils.normalizePath(ufsUri.getPath(), AlluxioURI.SEPARATOR),
         PathUtils.normalizePath(ufsUriMountPoint.getPath(), AlluxioURI.SEPARATOR));
-    return mountPoint.join(relativePath);
+    if (relativePath.isEmpty()) {
+      return mountPoint;
+    } else {
+      return mountPoint.join(relativePath);
+    }
   }
 
   /**
