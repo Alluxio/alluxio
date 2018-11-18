@@ -72,13 +72,14 @@ public class FuseFileSystemIntegrationTest {
     if (!mFuseInstalled) {
       throw new SkipException("Fuse is not installed");
     }
+
+    // Starts an Alluxio cluster
     mLocalAlluxioCluster = new LocalAlluxioCluster(1);
-    // Init configuration for integration test
     mLocalAlluxioCluster.initConfiguration();
-    // Overwrite the test configuration with test specific parameters
+    // Alluxio-Fuse requires this property to enable chown/chgrp/ls POSIX commands
     Configuration.set(PropertyKey.FUSE_USER_GROUP_TRANSLATION_ENABLED, true);
-    // Start the cluster
     mLocalAlluxioCluster.start();
+
     // Mount Alluxio root to a temp directory
     mFileSystem = mLocalAlluxioCluster.getClient();
 
@@ -105,6 +106,7 @@ public class FuseFileSystemIntegrationTest {
     if (fuseMounted()) {
       umountFuse();
     }
+    mLocalAlluxioCluster.stop();
   }
 
   @Test
