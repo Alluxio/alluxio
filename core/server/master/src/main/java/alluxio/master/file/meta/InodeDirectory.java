@@ -81,7 +81,10 @@ public final class InodeDirectory extends Inode<InodeDirectory> implements Inode
    * @return true if inode was added successfully, false otherwise
    */
   public synchronized boolean addChild(Inode<?> child) {
-    final int low = searchChildren(child.getName());
+    if (child == null) {
+      return false;
+    }
+    int low = searchChildren(child.getName());
     if (low >= 0) {
       return false;
     }
@@ -204,12 +207,12 @@ public final class InodeDirectory extends Inode<InodeDirectory> implements Inode
    * @return true if the inode was removed, false otherwise
    */
   public synchronized boolean removeChild(Inode<?> child) {
-    final int i = searchChildren(child.getName());
+    int i = searchChildren(child.getName());
     if (i < 0) {
       return false;
     }
 
-    final Inode<?> removed = mChildren.remove(i);
+    Inode<?> removed = mChildren.remove(i);
     Preconditions.checkState(removed == child);
     return true;
   }
@@ -222,6 +225,9 @@ public final class InodeDirectory extends Inode<InodeDirectory> implements Inode
    */
   public synchronized boolean removeChild(String name) {
     Inode<?> child = getChild(name);
+    if (child == null) {
+      return false;
+    }
     return removeChild(child);
   }
 
@@ -261,7 +267,7 @@ public final class InodeDirectory extends Inode<InodeDirectory> implements Inode
     ret.setFileId(getId());
     ret.setName(getName());
     ret.setPath(path);
-    ret.setLength(mChildren == null ? 0 : mChildren.size());
+    ret.setLength(getNumberOfChildren());
     ret.setBlockSizeBytes(0);
     ret.setCreationTimeMs(getCreationTimeMs());
     ret.setCompleted(true);
