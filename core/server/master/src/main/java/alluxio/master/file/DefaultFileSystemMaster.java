@@ -39,7 +39,6 @@ import alluxio.exception.status.UnavailableException;
 import alluxio.file.options.CommonOptions;
 import alluxio.file.options.DescendantType;
 import alluxio.file.options.WorkerHeartbeatOptions;
-import alluxio.grpc.CheckConsistencyPOptions;
 import alluxio.grpc.CompleteFilePOptions;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
@@ -80,6 +79,7 @@ import alluxio.master.file.meta.UfsBlockLocationCache;
 import alluxio.master.file.meta.UfsSyncPathCache;
 import alluxio.master.file.meta.UfsSyncUtils;
 import alluxio.master.file.meta.options.MountInfo;
+import alluxio.master.file.options.CheckConsistencyContext;
 import alluxio.master.file.options.CompleteFileContext;
 import alluxio.master.file.options.CreateDirectoryContext;
 import alluxio.master.file.options.CreateFileContext;
@@ -1039,10 +1039,10 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   }
 
   @Override
-  public List<AlluxioURI> checkConsistency(AlluxioURI path, CheckConsistencyPOptions options)
+  public List<AlluxioURI> checkConsistency(AlluxioURI path, CheckConsistencyContext context)
       throws AccessControlException, FileDoesNotExistException, InvalidPathException, IOException {
     LockingScheme lockingScheme =
-        createLockingScheme(path, options.getCommonOptions(), InodeTree.LockMode.READ);
+        createLockingScheme(path, context.getOptions().getCommonOptions(), InodeTree.LockMode.READ);
     List<AlluxioURI> inconsistentUris = new ArrayList<>();
     try (RpcContext rpcContext = createRpcContext();
          LockedInodePath parent =

@@ -12,7 +12,6 @@
 package alluxio.master.file.options;
 
 import alluxio.grpc.CreateFilePOptions;
-import alluxio.grpc.RenamePOptions;
 import alluxio.master.file.FileSystemMasterOptions;
 
 /**
@@ -50,8 +49,8 @@ public class CreateFileContext
     }
 
     /**
-     * Creates rename context with given option data.
-     * @param options rename options
+     * Creates context with given option data.
+     * @param options options
      */
     private CreateFileContext(CreateFilePOptions options) {
         super(options.toBuilder());

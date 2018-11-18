@@ -48,8 +48,8 @@ public class SetAttributeContext extends OperationContext<SetAttributePOptions.B
   }
 
     /**
-     * Creates rename context with given option data.
-     * @param options rename options
+     * Creates context with given option data.
+     * @param options options
      */
     private SetAttributeContext(SetAttributePOptions options) {
         super(options.toBuilder());

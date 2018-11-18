@@ -52,8 +52,8 @@ public class CreateDirectoryContext
   }
 
     /**
-     * Creates rename context with given option data.
-     * @param options rename options
+     * Creates context with given option data.
+     * @param options options
      */
     private CreateDirectoryContext(CreateDirectoryPOptions options) {
         super(options.toBuilder());

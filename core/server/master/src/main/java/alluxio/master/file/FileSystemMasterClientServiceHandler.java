@@ -61,6 +61,7 @@ import alluxio.grpc.UnmountPResponse;
 import alluxio.grpc.UpdateUfsModePOptions;
 import alluxio.grpc.UpdateUfsModePRequest;
 import alluxio.grpc.UpdateUfsModePResponse;
+import alluxio.master.file.options.CheckConsistencyContext;
 import alluxio.master.file.options.CompleteFileContext;
 import alluxio.master.file.options.CreateDirectoryContext;
 import alluxio.master.file.options.CreateFileContext;
@@ -108,9 +109,8 @@ public final class FileSystemMasterClientServiceHandler
     CheckConsistencyPOptions options = request.getOptions();
     RpcUtilsNew.call(LOG,
         (RpcUtilsNew.RpcCallableThrowsIOException<CheckConsistencyPResponse>) () -> {
-          List<AlluxioURI> inconsistentUris =
-              mFileSystemMaster.checkConsistency(new AlluxioURI(path), FileSystemMasterOptions
-                  .getCheckConsistencyOptions().toBuilder().mergeFrom(options).build());
+          List<AlluxioURI> inconsistentUris = mFileSystemMaster
+              .checkConsistency(new AlluxioURI(path), CheckConsistencyContext.defaults(options));
           List<String> uris = new ArrayList<>(inconsistentUris.size());
           for (AlluxioURI uri : inconsistentUris) {
             uris.add(uri.getPath());

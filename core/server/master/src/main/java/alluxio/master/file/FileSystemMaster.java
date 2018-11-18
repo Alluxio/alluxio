@@ -36,6 +36,7 @@ import alluxio.grpc.SetAclPOptions;
 import alluxio.master.Master;
 import alluxio.master.file.meta.FileSystemMasterView;
 import alluxio.master.file.meta.PersistenceState;
+import alluxio.master.file.options.CheckConsistencyContext;
 import alluxio.master.file.options.CompleteFileContext;
 import alluxio.master.file.options.CreateDirectoryContext;
 import alluxio.master.file.options.CreateFileContext;
@@ -149,13 +150,13 @@ public interface FileSystemMaster extends Master {
    * Checks the consistency of the files and directories in the subtree under the path.
    *
    * @param path the root of the subtree to check
-   * @param options the options to use for the checkConsistency method
+   * @param context the context to use for the checkConsistency method
    * @return a list of paths in Alluxio which are not consistent with the under storage
    * @throws AccessControlException if the permission checking fails
    * @throws FileDoesNotExistException if the path does not exist
    * @throws InvalidPathException if the path is invalid
    */
-  List<AlluxioURI> checkConsistency(AlluxioURI path, CheckConsistencyPOptions options)
+  List<AlluxioURI> checkConsistency(AlluxioURI path, CheckConsistencyContext context)
       throws AccessControlException, FileDoesNotExistException, InvalidPathException, IOException;
 
   /**
