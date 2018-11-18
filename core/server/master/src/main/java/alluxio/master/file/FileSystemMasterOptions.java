@@ -31,7 +31,6 @@ import alluxio.grpc.RenamePOptions;
 import alluxio.grpc.SetAclPOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.TtlAction;
-import alluxio.master.file.options.SyncMetadataOptions;
 import alluxio.security.authorization.Mode;
 import alluxio.util.ModeUtils;
 
@@ -173,12 +172,5 @@ public final class FileSystemMasterOptions{
    */
   public static CheckConsistencyPOptions getCheckConsistencyOptions() {
     return CheckConsistencyPOptions.newBuilder().setCommonOptions(getCommonOptions()).build();
-  }
-
-  /**
-   * @return Master side defaults for {@link SyncMetadataOptions}
-   */
-  public static SyncMetadataOptions getSyncMetadataOptions() {
-    return SyncMetadataOptions.defaults();
   }
 }

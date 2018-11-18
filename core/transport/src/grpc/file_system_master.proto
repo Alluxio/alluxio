@@ -32,14 +32,12 @@ message CreateDirectoryPRequest {
   optional CreateDirectoryPOptions options = 2;
 }
 
-
 message CreateFilePResponse {}
 message CreateFilePRequest {
   /** the path of the file */
   optional string path = 1;
   optional CreateFilePOptions options = 2;
 }
-
 
 message DeletePResponse {}
 message DeletePRequest {
@@ -48,14 +46,12 @@ message DeletePRequest {
   optional DeletePOptions options = 2;
 }
 
-
 message FreePResponse {}
 message FreePRequest {
   /** the path of the file or directory */
   optional string path = 1;
   optional FreePOptions options = 2;
 }
-
 
 message GetNewBlockIdForFilePResponse {
   optional int64 id = 1;
@@ -66,7 +62,6 @@ message GetNewBlockIdForFilePRequest {
   optional GetNewBlockIdForFilePOptions options = 2;
 }
 
-
 message GetStatusPResponse {
   optional FileInfo fileInfo = 1;
 }
@@ -76,7 +71,6 @@ message GetStatusPRequest {
   optional GetStatusPOptions options = 2;
 }
 
-
 message ListStatusPResponse {
   repeated FileInfo fileInfoList = 1;
 }
@@ -85,7 +79,6 @@ message ListStatusPRequest {
   optional string path = 1;
   optional ListStatusPOptions options = 2;
 }
-
 
 message LoadMetadataPResponse {
   optional int64 id = 1;
@@ -180,7 +173,6 @@ message MountPRequest {
   optional MountPOptions options = 3;
 }
 
-
 message GetMountTablePResponse {
   map<string, MountPointInfo> mountTable = 1;
 }
@@ -201,7 +193,6 @@ message FileSystemCommand {
   optional FileSystemCommandOptions commandOptions = 2;
 }
 
-
 message RenamePResponse {}
 message RenamePRequest {
   /** the source path of the file or directory */
@@ -210,7 +201,6 @@ message RenamePRequest {
   optional string dstPath = 2;
   optional RenamePOptions options = 3;
 }
-
 
 message SetAttributePResponse {}
 message SetAttributePRequest {
@@ -246,23 +236,12 @@ message ScheduleAsyncPersistencePRequest {
   optional ScheduleAsyncPersistencePOptions options = 2;
 }
 
-
-message SyncMetadataPResponse {
-  optional bool synced = 1;
-}
-message SyncMetadataPRequest {
-  optional string path = 1;
-  optional SyncMetadataPOptions options = 2;
-}
-
-
 message UnmountPResponse {}
 message UnmountPRequest {
   /** the path of the alluxio mount point */
   optional string alluxioPath = 1;
   optional UnmountPOptions options = 2;
 }
-
 
 message UfsInfo {
   optional string uri = 1;
@@ -275,7 +254,6 @@ message UpdateUfsModePRequest {
   optional string ufsPath = 1;
   optional UpdateUfsModePOptions options = 2;
 }
-
 
 /**
  * This interface contains file system master service endpoints for Alluxio clients.

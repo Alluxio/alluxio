@@ -125,11 +125,6 @@ public final class FileSystemMasterOptionsProto {
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_alluxio_grpc_ScheduleAsyncPersistencePOptions_fieldAccessorTable;
   static final com.google.protobuf.Descriptors.Descriptor
-    internal_static_alluxio_grpc_SyncMetadataPOptions_descriptor;
-  static final 
-    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
-      internal_static_alluxio_grpc_SyncMetadataPOptions_fieldAccessorTable;
-  static final com.google.protobuf.Descriptors.Descriptor
     internal_static_alluxio_grpc_UnmountPOptions_descriptor;
   static final 
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
@@ -253,27 +248,25 @@ public final class FileSystemMasterOptionsProto {
       "CommonPOptions\022\021\n\trecursive\030\002 \001(\010\"g\n Sch" +
       "eduleAsyncPersistencePOptions\022C\n\rcommonO" +
       "ptions\030\001 \001(\0132,.alluxio.grpc.FileSystemMa" +
-      "sterCommonPOptions\"[\n\024SyncMetadataPOptio" +
-      "ns\022C\n\rcommonOptions\030\001 \001(\0132,.alluxio.grpc" +
-      ".FileSystemMasterCommonPOptions\"V\n\017Unmou" +
-      "ntPOptions\022C\n\rcommonOptions\030\001 \001(\0132,.allu" +
-      "xio.grpc.FileSystemMasterCommonPOptions\"" +
-      "@\n\025UpdateUfsModePOptions\022\'\n\007ufsMode\030\001 \001(" +
-      "\0162\026.alluxio.grpc.UfsPMode\"@\n\033FileSystemH" +
-      "eartbeatPOptions\022!\n\031persistedFileFingerp" +
-      "rints\030\001 \003(\t\"\025\n\023GetFileInfoPOptions\"\032\n\030Ge" +
-      "tPinnedFileIdsPOptions\"\024\n\022GetUfsInfoPOpt" +
-      "ions*\214\001\n\nWritePType\022\024\n\020WRITE_MUST_CACHE\020" +
-      "\000\022\023\n\017WRITE_TRY_CACHE\020\001\022\027\n\023WRITE_CACHE_TH" +
-      "ROUGH\020\002\022\021\n\rWRITE_THROUGH\020\003\022\027\n\023WRITE_ASYN" +
-      "C_THROUGH\020\004\022\016\n\nWRITE_NONE\020\005*F\n\tReadPType" +
-      "\022\021\n\rREAD_NO_CACHE\020\000\022\016\n\nREAD_CACHE\020\001\022\026\n\022R" +
-      "EAD_CACHE_PROMOTE\020\002*4\n\021LoadMetadataPType" +
-      "\022\t\n\005NEVER\020\000\022\010\n\004ONCE\020\001\022\n\n\006ALWAYS\020\002*1\n\023Loa" +
-      "dDescendantPType\022\010\n\004NONE\020\000\022\007\n\003ONE\020\001\022\007\n\003A" +
-      "LL\020\002*8\n\010UfsPMode\022\r\n\tNO_ACCESS\020\001\022\r\n\tREAD_" +
-      "ONLY\020\002\022\016\n\nREAD_WRITE\020\003B.\n\014alluxio.grpcB\034" +
-      "FileSystemMasterOptionsProtoP\001"
+      "sterCommonPOptions\"V\n\017UnmountPOptions\022C\n" +
+      "\rcommonOptions\030\001 \001(\0132,.alluxio.grpc.File" +
+      "SystemMasterCommonPOptions\"@\n\025UpdateUfsM" +
+      "odePOptions\022\'\n\007ufsMode\030\001 \001(\0162\026.alluxio.g" +
+      "rpc.UfsPMode\"@\n\033FileSystemHeartbeatPOpti" +
+      "ons\022!\n\031persistedFileFingerprints\030\001 \003(\t\"\025" +
+      "\n\023GetFileInfoPOptions\"\032\n\030GetPinnedFileId" +
+      "sPOptions\"\024\n\022GetUfsInfoPOptions*\214\001\n\nWrit" +
+      "ePType\022\024\n\020WRITE_MUST_CACHE\020\000\022\023\n\017WRITE_TR" +
+      "Y_CACHE\020\001\022\027\n\023WRITE_CACHE_THROUGH\020\002\022\021\n\rWR" +
+      "ITE_THROUGH\020\003\022\027\n\023WRITE_ASYNC_THROUGH\020\004\022\016" +
+      "\n\nWRITE_NONE\020\005*F\n\tReadPType\022\021\n\rREAD_NO_C" +
+      "ACHE\020\000\022\016\n\nREAD_CACHE\020\001\022\026\n\022READ_CACHE_PRO" +
+      "MOTE\020\002*4\n\021LoadMetadataPType\022\t\n\005NEVER\020\000\022\010" +
+      "\n\004ONCE\020\001\022\n\n\006ALWAYS\020\002*1\n\023LoadDescendantPT" +
+      "ype\022\010\n\004NONE\020\000\022\007\n\003ONE\020\001\022\007\n\003ALL\020\002*8\n\010UfsPM" +
+      "ode\022\r\n\tNO_ACCESS\020\001\022\r\n\tREAD_ONLY\020\002\022\016\n\nREA" +
+      "D_WRITE\020\003B.\n\014alluxio.grpcB\034FileSystemMas" +
+      "terOptionsProtoP\001"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -420,44 +413,38 @@ public final class FileSystemMasterOptionsProto {
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_ScheduleAsyncPersistencePOptions_descriptor,
         new java.lang.String[] { "CommonOptions", });
-    internal_static_alluxio_grpc_SyncMetadataPOptions_descriptor =
-      getDescriptor().getMessageTypes().get(21);
-    internal_static_alluxio_grpc_SyncMetadataPOptions_fieldAccessorTable = new
-      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
-        internal_static_alluxio_grpc_SyncMetadataPOptions_descriptor,
-        new java.lang.String[] { "CommonOptions", });
     internal_static_alluxio_grpc_UnmountPOptions_descriptor =
-      getDescriptor().getMessageTypes().get(22);
+      getDescriptor().getMessageTypes().get(21);
     internal_static_alluxio_grpc_UnmountPOptions_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_UnmountPOptions_descriptor,
         new java.lang.String[] { "CommonOptions", });
     internal_static_alluxio_grpc_UpdateUfsModePOptions_descriptor =
-      getDescriptor().getMessageTypes().get(23);
+      getDescriptor().getMessageTypes().get(22);
     internal_static_alluxio_grpc_UpdateUfsModePOptions_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_UpdateUfsModePOptions_descriptor,
         new java.lang.String[] { "UfsMode", });
     internal_static_alluxio_grpc_FileSystemHeartbeatPOptions_descriptor =
-      getDescriptor().getMessageTypes().get(24);
+      getDescriptor().getMessageTypes().get(23);
     internal_static_alluxio_grpc_FileSystemHeartbeatPOptions_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_FileSystemHeartbeatPOptions_descriptor,
         new java.lang.String[] { "PersistedFileFingerprints", });
     internal_static_alluxio_grpc_GetFileInfoPOptions_descriptor =
-      getDescriptor().getMessageTypes().get(25);
+      getDescriptor().getMessageTypes().get(24);
     internal_static_alluxio_grpc_GetFileInfoPOptions_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_GetFileInfoPOptions_descriptor,
         new java.lang.String[] { });
     internal_static_alluxio_grpc_GetPinnedFileIdsPOptions_descriptor =
-      getDescriptor().getMessageTypes().get(26);
+      getDescriptor().getMessageTypes().get(25);
     internal_static_alluxio_grpc_GetPinnedFileIdsPOptions_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_GetPinnedFileIdsPOptions_descriptor,
         new java.lang.String[] { });
     internal_static_alluxio_grpc_GetUfsInfoPOptions_descriptor =
-      getDescriptor().getMessageTypes().get(27);
+      getDescriptor().getMessageTypes().get(26);
     internal_static_alluxio_grpc_GetUfsInfoPOptions_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_GetUfsInfoPOptions_descriptor,

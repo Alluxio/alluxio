@@ -175,10 +175,6 @@ message ScheduleAsyncPersistencePOptions {
   optional FileSystemMasterCommonPOptions commonOptions = 1;
 }
 
-message SyncMetadataPOptions {
-  optional FileSystemMasterCommonPOptions commonOptions = 1;
-}
-
 message UnmountPOptions {
   optional FileSystemMasterCommonPOptions commonOptions = 1;
 }
