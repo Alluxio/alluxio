@@ -162,7 +162,7 @@ public class FuseFileSystemIntegrationTest {
     // Cp again to make sure the first cp is completed
     String testFolder = "/cpTestFolder";
     ShellUtils.execCommand("mkdir", mMountPoint + testFolder);
-    ShellUtils.execCommand("cp", mMountPoint + testFile, mMountPoint +testFolder + testFile);
+    ShellUtils.execCommand("cp", mMountPoint + testFile, mMountPoint + testFolder + testFile);
     Assert.assertTrue(mFileSystem.exists(new AlluxioURI(testFolder + testFile)));
 
     byte[] read = new byte[content.length()];

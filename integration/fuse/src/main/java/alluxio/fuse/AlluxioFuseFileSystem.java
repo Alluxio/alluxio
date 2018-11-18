@@ -66,9 +66,9 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
   private static final int MAX_OPEN_FILES = Integer.MAX_VALUE;
   private static final int MAX_OPEN_WAITTIME_MS = 5000;
   /**
-   * 4294967295 is unsigned long -1, -1 means that uid or gid is not set
-   * 4294967295 or -1 occurs when chown without user name or group name
-   * Please view https://github.com/SerCeMan/jnr-fuse/issues/67 for more details
+   * 4294967295 is unsigned long -1, -1 means that uid or gid is not set.
+   * 4294967295 or -1 occurs when chown without user name or group name.
+   * Please view https://github.com/SerCeMan/jnr-fuse/issues/67 for more details.
    */
   private static final long ID_NOT_SET_VALUE = -1;
   private static final long ID_NOT_SET_VALUE_UNSIGNED = 4294967295L;
