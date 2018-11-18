@@ -64,6 +64,7 @@ import alluxio.master.file.options.CompleteFileContext;
 import alluxio.master.file.options.CreateDirectoryContext;
 import alluxio.master.file.options.CreateFileContext;
 import alluxio.master.file.options.RenameContext;
+import alluxio.master.file.options.SetAclContext;
 import alluxio.master.file.options.SetAttributeContext;
 import alluxio.master.file.options.WorkerHeartbeatOptions;
 import alluxio.master.journal.JournalSystem;
@@ -1234,7 +1235,7 @@ public final class FileSystemMasterTest {
 
   @Test
   public void setDefaultAcl() throws Exception {
-    SetAclPOptions options = FileSystemMasterOptions.getSetAclOptions();
+    SetAclContext context = SetAclContext.defaults();
     createFileWithSingleBlock(NESTED_FILE_URI);
     Set<String> entries = Sets.newHashSet(mFileSystemMaster
         .getFileInfo(NESTED_URI, GET_STATUS_OPTIONS).convertDefaultAclToStringEntries());
@@ -1244,7 +1245,7 @@ public final class FileSystemMasterTest {
     Set<String> newEntries = Sets.newHashSet("default:user::rwx",
         "default:group::rwx", "default:other::r-x");
     mFileSystemMaster.setAcl(NESTED_URI, SetAclAction.REPLACE,
-        newEntries.stream().map(AclEntry::fromCliString).collect(Collectors.toList()), options);
+        newEntries.stream().map(AclEntry::fromCliString).collect(Collectors.toList()), context);
 
     entries = Sets.newHashSet(mFileSystemMaster
         .getFileInfo(NESTED_URI, GET_STATUS_OPTIONS).convertDefaultAclToStringEntries());
@@ -1253,7 +1254,7 @@ public final class FileSystemMasterTest {
     // replace
     newEntries = Sets.newHashSet("default:user::rw-", "default:group::r--", "default:other::r--");
     mFileSystemMaster.setAcl(NESTED_URI, SetAclAction.REPLACE,
-        newEntries.stream().map(AclEntry::fromCliString).collect(Collectors.toList()), options);
+        newEntries.stream().map(AclEntry::fromCliString).collect(Collectors.toList()), context);
     entries = Sets.newHashSet(mFileSystemMaster
         .getFileInfo(NESTED_URI, GET_STATUS_OPTIONS).convertDefaultAclToStringEntries());
     assertEquals(newEntries, entries);
@@ -1261,7 +1262,7 @@ public final class FileSystemMasterTest {
     // modify existing
     newEntries = Sets.newHashSet("default:user::rwx", "default:group::rw-", "default:other::r-x");
     mFileSystemMaster.setAcl(NESTED_URI, SetAclAction.MODIFY,
-        newEntries.stream().map(AclEntry::fromCliString).collect(Collectors.toList()), options);
+        newEntries.stream().map(AclEntry::fromCliString).collect(Collectors.toList()), context);
 
     entries = Sets.newHashSet(mFileSystemMaster
         .getFileInfo(NESTED_URI, GET_STATUS_OPTIONS).convertDefaultAclToStringEntries());
@@ -1271,7 +1272,7 @@ public final class FileSystemMasterTest {
     Set<String> oldEntries = new HashSet<>(entries);
     newEntries = Sets.newHashSet("default:user:usera:---", "default:group:groupa:--x");
     mFileSystemMaster.setAcl(NESTED_URI, SetAclAction.MODIFY,
-        newEntries.stream().map(AclEntry::fromCliString).collect(Collectors.toList()), options);
+        newEntries.stream().map(AclEntry::fromCliString).collect(Collectors.toList()), context);
 
     entries = Sets.newHashSet(mFileSystemMaster
         .getFileInfo(NESTED_URI, GET_STATUS_OPTIONS).convertDefaultAclToStringEntries());
@@ -1283,7 +1284,7 @@ public final class FileSystemMasterTest {
     newEntries = Sets.newHashSet("default:user:usera:---", "default:group:groupa:--x",
         "default:other::r-x");
     mFileSystemMaster.setAcl(NESTED_URI, SetAclAction.MODIFY,
-        newEntries.stream().map(AclEntry::fromCliString).collect(Collectors.toList()), options);
+        newEntries.stream().map(AclEntry::fromCliString).collect(Collectors.toList()), context);
 
     entries = Sets.newHashSet(mFileSystemMaster
         .getFileInfo(NESTED_URI, GET_STATUS_OPTIONS).convertDefaultAclToStringEntries());
@@ -1291,7 +1292,7 @@ public final class FileSystemMasterTest {
 
     // remove default
     mFileSystemMaster
-        .setAcl(NESTED_URI, SetAclAction.REMOVE_DEFAULT, Collections.emptyList(), options);
+        .setAcl(NESTED_URI, SetAclAction.REMOVE_DEFAULT, Collections.emptyList(), context);
 
     entries = Sets.newHashSet(mFileSystemMaster
         .getFileInfo(NESTED_URI, GET_STATUS_OPTIONS).convertDefaultAclToStringEntries());
@@ -1302,7 +1303,7 @@ public final class FileSystemMasterTest {
         Sets.newHashSet("default:user:usera:---", "default:user:userb:rwx",
             "default:group:groupa:--x", "default:group:groupb:-wx");
     mFileSystemMaster.setAcl(NESTED_URI, SetAclAction.MODIFY,
-        newEntries.stream().map(AclEntry::fromCliString).collect(Collectors.toList()), options);
+        newEntries.stream().map(AclEntry::fromCliString).collect(Collectors.toList()), context);
     oldEntries = new HashSet<>(entries);
 
     entries = Sets.newHashSet(mFileSystemMaster
@@ -1312,7 +1313,7 @@ public final class FileSystemMasterTest {
     Set<String> deleteEntries = Sets.newHashSet("default:user:userb:rwx",
         "default:group:groupa:--x");
     mFileSystemMaster.setAcl(NESTED_URI, SetAclAction.REMOVE,
-        deleteEntries.stream().map(AclEntry::fromCliString).collect(Collectors.toList()), options);
+        deleteEntries.stream().map(AclEntry::fromCliString).collect(Collectors.toList()), context);
 
     entries = Sets.newHashSet(mFileSystemMaster
         .getFileInfo(NESTED_URI, GET_STATUS_OPTIONS).convertDefaultAclToStringEntries());
@@ -1326,7 +1327,7 @@ public final class FileSystemMasterTest {
 
   @Test
   public void setAcl() throws Exception {
-    SetAclPOptions options = FileSystemMasterOptions.getSetAclOptions();
+    SetAclContext context = SetAclContext.defaults();
     createFileWithSingleBlock(NESTED_FILE_URI);
 
     Set<String> entries = Sets.newHashSet(mFileSystemMaster
@@ -1336,7 +1337,7 @@ public final class FileSystemMasterTest {
     // replace
     Set<String> newEntries = Sets.newHashSet("user::rwx", "group::rwx", "other::rwx");
     mFileSystemMaster.setAcl(NESTED_FILE_URI, SetAclAction.REPLACE,
-        newEntries.stream().map(AclEntry::fromCliString).collect(Collectors.toList()), options);
+        newEntries.stream().map(AclEntry::fromCliString).collect(Collectors.toList()), context);
 
     entries = Sets.newHashSet(mFileSystemMaster
         .getFileInfo(NESTED_FILE_URI, GET_STATUS_OPTIONS).convertAclToStringEntries());
@@ -1345,7 +1346,7 @@ public final class FileSystemMasterTest {
     // replace
     newEntries = Sets.newHashSet("user::rw-", "group::r--", "other::r--");
     mFileSystemMaster.setAcl(NESTED_FILE_URI, SetAclAction.REPLACE,
-        newEntries.stream().map(AclEntry::fromCliString).collect(Collectors.toList()), options);
+        newEntries.stream().map(AclEntry::fromCliString).collect(Collectors.toList()), context);
 
     entries = Sets.newHashSet(mFileSystemMaster
         .getFileInfo(NESTED_FILE_URI, GET_STATUS_OPTIONS).convertAclToStringEntries());
@@ -1354,7 +1355,7 @@ public final class FileSystemMasterTest {
     // modify existing
     newEntries = Sets.newHashSet("user::rwx", "group::r--", "other::r-x");
     mFileSystemMaster.setAcl(NESTED_FILE_URI, SetAclAction.MODIFY,
-        newEntries.stream().map(AclEntry::fromCliString).collect(Collectors.toList()), options);
+        newEntries.stream().map(AclEntry::fromCliString).collect(Collectors.toList()), context);
 
     entries = Sets.newHashSet(mFileSystemMaster
         .getFileInfo(NESTED_FILE_URI, GET_STATUS_OPTIONS).convertAclToStringEntries());
@@ -1364,7 +1365,7 @@ public final class FileSystemMasterTest {
     Set<String> oldEntries = new HashSet<>(entries);
     newEntries = Sets.newHashSet("user:usera:---", "group:groupa:--x");
     mFileSystemMaster.setAcl(NESTED_FILE_URI, SetAclAction.MODIFY,
-        newEntries.stream().map(AclEntry::fromCliString).collect(Collectors.toList()), options);
+        newEntries.stream().map(AclEntry::fromCliString).collect(Collectors.toList()), context);
 
     entries = Sets.newHashSet(mFileSystemMaster
         .getFileInfo(NESTED_FILE_URI, GET_STATUS_OPTIONS).convertAclToStringEntries());
@@ -1376,7 +1377,7 @@ public final class FileSystemMasterTest {
     // modify existing and add
     newEntries = Sets.newHashSet("user:usera:---", "group:groupa:--x", "other::r-x");
     mFileSystemMaster.setAcl(NESTED_FILE_URI, SetAclAction.MODIFY,
-        newEntries.stream().map(AclEntry::fromCliString).collect(Collectors.toList()), options);
+        newEntries.stream().map(AclEntry::fromCliString).collect(Collectors.toList()), context);
 
     entries = Sets.newHashSet(mFileSystemMaster
         .getFileInfo(NESTED_FILE_URI, GET_STATUS_OPTIONS).convertAclToStringEntries());
@@ -1384,7 +1385,7 @@ public final class FileSystemMasterTest {
 
     // remove all
     mFileSystemMaster
-        .setAcl(NESTED_FILE_URI, SetAclAction.REMOVE_ALL, Collections.emptyList(), options);
+        .setAcl(NESTED_FILE_URI, SetAclAction.REMOVE_ALL, Collections.emptyList(), context);
 
     entries = Sets.newHashSet(mFileSystemMaster
         .getFileInfo(NESTED_FILE_URI, GET_STATUS_OPTIONS).convertAclToStringEntries());
@@ -1394,7 +1395,7 @@ public final class FileSystemMasterTest {
     newEntries =
         Sets.newHashSet("user:usera:---", "user:userb:rwx", "group:groupa:--x", "group:groupb:-wx");
     mFileSystemMaster.setAcl(NESTED_FILE_URI, SetAclAction.MODIFY,
-        newEntries.stream().map(AclEntry::fromCliString).collect(Collectors.toList()), options);
+        newEntries.stream().map(AclEntry::fromCliString).collect(Collectors.toList()), context);
     oldEntries = new HashSet<>(entries);
 
     entries = Sets.newHashSet(mFileSystemMaster
@@ -1403,7 +1404,7 @@ public final class FileSystemMasterTest {
 
     Set<String> deleteEntries = Sets.newHashSet("user:userb:rwx", "group:groupa:--x");
     mFileSystemMaster.setAcl(NESTED_FILE_URI, SetAclAction.REMOVE,
-        deleteEntries.stream().map(AclEntry::fromCliString).collect(Collectors.toList()), options);
+        deleteEntries.stream().map(AclEntry::fromCliString).collect(Collectors.toList()), context);
 
     entries = Sets.newHashSet(mFileSystemMaster
         .getFileInfo(NESTED_FILE_URI, GET_STATUS_OPTIONS).convertAclToStringEntries());
@@ -1418,8 +1419,8 @@ public final class FileSystemMasterTest {
   @Test
   public void setRecursiveAcl() throws Exception {
     final int files = 10;
-    SetAclPOptions options =
-        FileSystemMasterOptions.getSetAclOptions().toBuilder().setRecursive(true).build();
+    SetAclContext context =
+        SetAclContext.defaults(SetAclPOptions.newBuilder().setRecursive(true).build());
 
     // Test files in root directory.
     for (int i = 0; i < files; i++) {
@@ -1438,7 +1439,7 @@ public final class FileSystemMasterTest {
     // replace
     Set<String> newEntries = Sets.newHashSet("user::rw-", "group::r-x", "other::-wx");
     mFileSystemMaster.setAcl(ROOT_URI, SetAclAction.REPLACE,
-        newEntries.stream().map(AclEntry::fromCliString).collect(Collectors.toList()), options);
+        newEntries.stream().map(AclEntry::fromCliString).collect(Collectors.toList()), context);
 
     List<FileInfo> infos =
         mFileSystemMaster.listStatus(ROOT_URI, FileSystemMasterOptions.getListStatusOptions()
@@ -1503,12 +1504,12 @@ public final class FileSystemMasterTest {
 
   private void addAcl(AlluxioURI uri, AclEntry acl) throws Exception {
     mFileSystemMaster.setAcl(uri, SetAclAction.MODIFY, Arrays.asList(acl),
-        FileSystemMasterOptions.getSetAclOptions());
+        SetAclContext.defaults());
   }
 
   private void removeAcl(AlluxioURI uri, AclEntry acl) throws Exception {
     mFileSystemMaster.setAcl(uri, SetAclAction.REMOVE, Arrays.asList(acl),
-        FileSystemMasterOptions.getSetAclOptions());
+        SetAclContext.defaults());
   }
 
   private FileInfo getInfo(AlluxioURI uri) throws Exception {
@@ -2541,7 +2542,7 @@ public final class FileSystemMasterTest {
     List<AclEntry> aclEntryList = new ArrayList<>();
     aclEntryList.add(AclEntry.fromCliString("default:user::r-x"));
     mFileSystemMaster.setAcl(uri, SetAclAction.MODIFY, aclEntryList,
-        FileSystemMasterOptions.getSetAclOptions());
+        SetAclContext.defaults());
 
     FileInfo infoparent = mFileSystemMaster.getFileInfo(uri,
         FileSystemMasterOptions.getGetStatusOptions());

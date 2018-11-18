@@ -49,7 +49,6 @@ import alluxio.grpc.LoadDescendantPType;
 import alluxio.grpc.LoadMetadataPOptions;
 import alluxio.grpc.LoadMetadataPType;
 import alluxio.grpc.MountPOptions;
-import alluxio.grpc.SetAclPOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatThread;
@@ -84,6 +83,7 @@ import alluxio.master.file.options.CompleteFileContext;
 import alluxio.master.file.options.CreateDirectoryContext;
 import alluxio.master.file.options.CreateFileContext;
 import alluxio.master.file.options.RenameContext;
+import alluxio.master.file.options.SetAclContext;
 import alluxio.master.file.options.SetAttributeContext;
 import alluxio.master.journal.JournalContext;
 import alluxio.metrics.MasterMetrics;
@@ -2783,17 +2783,17 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
   @Override
   public void setAcl(AlluxioURI path, SetAclAction action, List<AclEntry> entries,
-      SetAclPOptions options)
+      SetAclContext context)
       throws FileDoesNotExistException, AccessControlException, InvalidPathException, IOException {
     Metrics.SET_ACL_OPS.inc();
-    LockingScheme lockingScheme =
-        createLockingScheme(path, options.getCommonOptions(), InodeTree.LockMode.WRITE);
+    LockingScheme lockingScheme = createLockingScheme(path, context.getOptions().getCommonOptions(),
+        InodeTree.LockMode.WRITE);
     try (RpcContext rpcContext = createRpcContext();
          LockedInodePath inodePath = mInodeTree.lockInodePath(lockingScheme.getPath(),
              lockingScheme.getMode());
          FileSystemMasterAuditContext auditContext = createAuditContext("setAcl", path, null,
              inodePath.getInodeOrNull());
-         LockedInodePathList children = options.getRecursive()
+         LockedInodePathList children = context.getOptions().getRecursive()
              ? mInodeTree.lockDescendants(inodePath, InodeTree.LockMode.WRITE) : null) {
       try {
         mPermissionChecker.checkPermission(Mode.Bits.WRITE, inodePath);
@@ -2809,17 +2809,17 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       }
       // Possible ufs sync.
       syncMetadata(rpcContext, inodePath, lockingScheme,
-          options.getRecursive() ? DescendantType.ALL : DescendantType.NONE);
+          context.getOptions().getRecursive() ? DescendantType.ALL : DescendantType.NONE);
       if (!inodePath.fullPathExists()) {
         throw new FileDoesNotExistException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path));
       }
-      setAclInternal(rpcContext, action, inodePath, entries, options);
+      setAclInternal(rpcContext, action, inodePath, entries, context);
       auditContext.setSucceeded(true);
     }
   }
 
   private void setAclInternal(RpcContext rpcContext, SetAclAction action, LockedInodePath inodePath,
-      List<AclEntry> entries, SetAclPOptions options)
+      List<AclEntry> entries, SetAclContext context)
       throws IOException, FileDoesNotExistException {
 
     long opTimeMs = System.currentTimeMillis();
@@ -2853,7 +2853,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         break;
       default:
     }
-    setAclRecursive(rpcContext, action, inodePath, entries, false, opTimeMs, options);
+    setAclRecursive(rpcContext, action, inodePath, entries, false, opTimeMs, context);
   }
 
   private void setUfsAcl(LockedInodePath inodePath)
@@ -2920,9 +2920,9 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
   private void setAclRecursive(RpcContext rpcContext, SetAclAction action,
       LockedInodePath inodePath, List<AclEntry> entries, boolean replay, long opTimeMs,
-      SetAclPOptions options) throws IOException, FileDoesNotExistException {
+      SetAclContext context) throws IOException, FileDoesNotExistException {
     setAclSingleInode(rpcContext, action, inodePath, entries, replay, opTimeMs);
-    try (LockedInodePathList children = options.getRecursive()
+    try (LockedInodePathList children = context.getOptions().getRecursive()
         ? mInodeTree.lockDescendants(inodePath, InodeTree.LockMode.WRITE) : null) {
       if (children != null) {
         for (LockedInodePath child : children.getInodePathList()) {

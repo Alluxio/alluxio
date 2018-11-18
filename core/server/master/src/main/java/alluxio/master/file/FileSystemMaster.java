@@ -25,14 +25,12 @@ import alluxio.exception.UnexpectedAlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.file.options.WorkerHeartbeatOptions;
-import alluxio.grpc.CheckConsistencyPOptions;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.FreePOptions;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.LoadMetadataPOptions;
 import alluxio.grpc.MountPOptions;
-import alluxio.grpc.SetAclPOptions;
 import alluxio.master.Master;
 import alluxio.master.file.meta.FileSystemMasterView;
 import alluxio.master.file.meta.PersistenceState;
@@ -41,6 +39,7 @@ import alluxio.master.file.options.CompleteFileContext;
 import alluxio.master.file.options.CreateDirectoryContext;
 import alluxio.master.file.options.CreateFileContext;
 import alluxio.master.file.options.RenameContext;
+import alluxio.master.file.options.SetAclContext;
 import alluxio.master.file.options.SetAttributeContext;
 import alluxio.security.authorization.AclEntry;
 import alluxio.wire.FileSystemCommand;
@@ -421,12 +420,12 @@ public interface FileSystemMaster extends Master {
    * @param path the path to set attribute for
    * @param action the set action to perform
    * @param entries the list of ACL entries for setting ACL
-   * @param options the options for setting ACL
+   * @param context the context for setting ACL
    * @throws FileDoesNotExistException if the file does not exist
    * @throws AccessControlException if permission checking fails
    * @throws InvalidPathException if the given path is invalid
    */
-  void setAcl(AlluxioURI path, SetAclAction action, List<AclEntry> entries, SetAclPOptions options)
+  void setAcl(AlluxioURI path, SetAclAction action, List<AclEntry> entries, SetAclContext context)
       throws FileDoesNotExistException, AccessControlException, InvalidPathException,
       IOException;
 
