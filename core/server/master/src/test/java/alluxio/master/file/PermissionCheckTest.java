@@ -30,6 +30,8 @@ import alluxio.exception.AccessControlException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.grpc.CompleteFilePOptions;
+import alluxio.grpc.CreateDirectoryPOptions;
+import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.TtlAction;
 import alluxio.master.DefaultSafeModeManager;
@@ -47,8 +49,8 @@ import alluxio.master.file.meta.InodeTree;
 import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.file.meta.MutableLockedInodePath;
 import alluxio.master.file.options.CompleteFileContext;
-import alluxio.master.file.options.CreateDirectoryOptions;
-import alluxio.master.file.options.CreateFileOptions;
+import alluxio.master.file.options.CreateDirectoryContext;
+import alluxio.master.file.options.CreateFileContext;
 import alluxio.master.file.options.RenameContext;
 import alluxio.master.file.options.SetAttributeContext;
 import alluxio.master.metrics.MetricsMaster;
@@ -226,32 +228,35 @@ public final class PermissionCheckTest {
   private void createDirAndFileForTest() throws Exception {
     // create "/testDir" for user1
     try (Closeable r = new AuthenticatedUserRule(TEST_USER_ADMIN.getUser()).toResource()) {
-      mFileSystemMaster.createDirectory(new AlluxioURI("/testDir"),
-          CreateDirectoryOptions.defaults().setOwner(TEST_USER_1.getUser())
-              .setGroup(TEST_USER_1.getGroup()).setMode(TEST_DIR_MODE));
+      mFileSystemMaster.createDirectory(new AlluxioURI("/testDir"), CreateDirectoryContext
+          .defaults(CreateDirectoryPOptions.newBuilder().setMode(TEST_DIR_MODE.toShort()).build())
+          .setOwner(TEST_USER_1.getUser()).setGroup(TEST_USER_1.getGroup()));
     }
 
     // create "/testDir/file" for user1
     try (Closeable r = new AuthenticatedUserRule(TEST_USER_1.getUser()).toResource()) {
       mFileSystemMaster.createFile(new AlluxioURI("/testDir/file"),
-          CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB)
-              .setOwner(TEST_USER_1.getUser()).setGroup(TEST_USER_1.getGroup())
-              .setMode(TEST_FILE_MODE));
+          CreateFileContext
+              .defaults(CreateFilePOptions.newBuilder().setBlockSizeBytes(Constants.KB)
+                  .setMode(TEST_FILE_MODE.toShort()).build())
+              .setOwner(TEST_USER_1.getUser()).setGroup(TEST_USER_1.getGroup()));
     }
 
     // create "/testFile" for user2
     try (Closeable r = new AuthenticatedUserRule(TEST_USER_ADMIN.getUser()).toResource()) {
       mFileSystemMaster.createFile(new AlluxioURI("/testFile"),
-          CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB)
-              .setOwner(TEST_USER_2.getUser()).setGroup(TEST_USER_2.getGroup())
-              .setMode(TEST_FILE_MODE));
+          CreateFileContext
+              .defaults(CreateFilePOptions.newBuilder().setBlockSizeBytes(Constants.KB)
+                  .setMode(TEST_FILE_MODE.toShort()).build())
+              .setOwner(TEST_USER_2.getUser()).setGroup(TEST_USER_2.getGroup()));
     }
   }
 
   private InodeDirectory getRootInode() {
     return InodeDirectory.create(0, -1, "",
-        CreateDirectoryOptions.defaults().setOwner(TEST_USER_ADMIN.getUser())
-            .setGroup(TEST_USER_ADMIN.getGroup()).setMode(TEST_DIR_MODE));
+        CreateDirectoryContext
+            .defaults(CreateDirectoryPOptions.newBuilder().setMode(TEST_DIR_MODE.toShort()).build())
+            .setOwner(TEST_USER_ADMIN.getUser()).setGroup(TEST_USER_ADMIN.getGroup()));
   }
 
   @Test
@@ -336,11 +341,13 @@ public final class PermissionCheckTest {
 
   private void verifyCreateFile(TestUser user, String path, boolean recursive) throws Exception {
     try (Closeable r = new AuthenticatedUserRule(user.getUser()).toResource()) {
-      CreateFileOptions options = CreateFileOptions.defaults().setRecursive(recursive)
+      CreateFileContext context = CreateFileContext
+          .defaults(
+              CreateFilePOptions.newBuilder().setRecursive(recursive).setPersisted(true).build())
           .setOwner(SecurityUtils.getOwnerFromThriftClient())
-          .setGroup(SecurityUtils.getGroupFromThriftClient()).setPersisted(true);
+          .setGroup(SecurityUtils.getGroupFromThriftClient());
 
-      long fileId = mFileSystemMaster.createFile(new AlluxioURI(path), options);
+      long fileId = mFileSystemMaster.createFile(new AlluxioURI(path), context);
 
       FileInfo fileInfo = mFileSystemMaster.getFileInfo(fileId);
       String[] pathComponents = path.split("/");
@@ -391,10 +398,11 @@ public final class PermissionCheckTest {
   private void verifyCreateDirectory(TestUser user, String path, boolean recursive)
       throws Exception {
     try (Closeable r = new AuthenticatedUserRule(user.getUser()).toResource()) {
-      CreateDirectoryOptions options = CreateDirectoryOptions.defaults().setRecursive(recursive)
+      CreateDirectoryContext context = CreateDirectoryContext
+          .defaults(CreateDirectoryPOptions.newBuilder().setRecursive(recursive).build())
           .setOwner(SecurityUtils.getOwnerFromThriftClient())
           .setGroup(SecurityUtils.getGroupFromThriftClient());
-      mFileSystemMaster.createDirectory(new AlluxioURI(path), options);
+      mFileSystemMaster.createDirectory(new AlluxioURI(path), context);
 
       FileInfo fileInfo =
           mFileSystemMaster.getFileInfo(mFileSystemMaster.getFileId(new AlluxioURI(path)));
@@ -975,12 +983,15 @@ public final class PermissionCheckTest {
       uri += "/" + (i + 1);
       if (i == permissions.size() - 1) {
         Inode<?> inode = InodeFile.create(i + 1, i, (i + 1) + "", CommonUtils.getCurrentMs(),
-            CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB).setOwner(owner)
-                .setGroup(group).setMode(mode));
+            CreateFileContext.defaults(CreateFilePOptions.newBuilder()
+                .setBlockSizeBytes(Constants.KB).setMode(mode.toShort()).build()).setOwner(owner)
+                .setGroup(group));
         lockList.lockRead(inode);
       } else {
         Inode<?> inode = InodeDirectory.create(i + 1, i, (i + 1) + "",
-            CreateDirectoryOptions.defaults().setOwner(owner).setGroup(group).setMode(mode));
+            CreateDirectoryContext
+                .defaults(CreateDirectoryPOptions.newBuilder().setMode(mode.toShort()).build())
+                .setOwner(owner).setGroup(group));
         lockList.lockRead(inode);
       }
     }

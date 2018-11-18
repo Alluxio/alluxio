@@ -21,6 +21,7 @@ import alluxio.PropertyKey;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidPathException;
+import alluxio.grpc.CreateFilePOptions;
 import alluxio.master.MasterContext;
 import alluxio.master.MasterRegistry;
 import alluxio.master.MasterTestUtils;
@@ -33,7 +34,7 @@ import alluxio.master.file.meta.InodeView;
 import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.file.meta.MountTable;
 import alluxio.master.file.meta.options.MountInfo;
-import alluxio.master.file.options.CreateFileOptions;
+import alluxio.master.file.options.CreateFileContext;
 import alluxio.master.journal.NoopJournalContext;
 import alluxio.master.metrics.MetricsMaster;
 import alluxio.master.metrics.MetricsMasterFactory;
@@ -98,9 +99,9 @@ public final class PermissionCheckerTest {
   private static final Mode TEST_NORMAL_MODE = new Mode((short) 0755);
   private static final Mode TEST_WEIRD_MODE = new Mode((short) 0157);
 
-  private static CreateFileOptions sFileOptions;
-  private static CreateFileOptions sWeirdFileOptions;
-  private static CreateFileOptions sNestedFileOptions;
+  private static CreateFileContext sFileContext;
+  private static CreateFileContext sWeirdFileContext;
+  private static CreateFileContext sNestedFileContext;
 
   private static InodeTree sTree;
   private static MasterRegistry sRegistry;
@@ -164,15 +165,18 @@ public final class PermissionCheckerTest {
 
   @BeforeClass
   public static void beforeClass() throws Exception {
-    sFileOptions =
-        CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB).setOwner(TEST_USER_2.getUser())
-            .setGroup(TEST_USER_2.getGroup()).setMode(TEST_NORMAL_MODE);
-    sWeirdFileOptions =
-        CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB).setOwner(TEST_USER_1.getUser())
-            .setGroup(TEST_USER_1.getGroup()).setMode(TEST_WEIRD_MODE);
-    sNestedFileOptions =
-        CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB).setOwner(TEST_USER_1.getUser())
-            .setGroup(TEST_USER_1.getGroup()).setMode(TEST_NORMAL_MODE).setRecursive(true);
+    sFileContext = CreateFileContext
+        .defaults(CreateFilePOptions.newBuilder().setBlockSizeBytes(Constants.KB)
+            .setMode(TEST_NORMAL_MODE.toShort()).build())
+        .setOwner(TEST_USER_2.getUser()).setGroup(TEST_USER_2.getGroup());
+    sWeirdFileContext = CreateFileContext
+        .defaults(CreateFilePOptions.newBuilder().setBlockSizeBytes(Constants.KB)
+            .setMode(TEST_WEIRD_MODE.toShort()).build())
+        .setOwner(TEST_USER_1.getUser()).setGroup(TEST_USER_1.getGroup());
+    sNestedFileContext = CreateFileContext
+        .defaults(CreateFilePOptions.newBuilder().setBlockSizeBytes(Constants.KB)
+            .setMode(TEST_NORMAL_MODE.toShort()).build())
+        .setOwner(TEST_USER_1.getUser()).setGroup(TEST_USER_1.getGroup());
 
     // setup an InodeTree
     sRegistry = new MasterRegistry();
@@ -197,9 +201,9 @@ public final class PermissionCheckerTest {
         NoopJournalContext.INSTANCE);
 
     // build file structure
-    createAndSetPermission(TEST_DIR_FILE_URI, sNestedFileOptions);
-    createAndSetPermission(TEST_FILE_URI, sFileOptions);
-    createAndSetPermission(TEST_WEIRD_FILE_URI, sWeirdFileOptions);
+    createAndSetPermission(TEST_DIR_FILE_URI, sNestedFileContext);
+    createAndSetPermission(TEST_FILE_URI, sFileContext);
+    createAndSetPermission(TEST_WEIRD_FILE_URI, sWeirdFileContext);
   }
 
   @AfterClass
@@ -219,17 +223,17 @@ public final class PermissionCheckerTest {
    * Helper function to create a path and set the permission to what specified in option.
    *
    * @param path path to construct the {@link AlluxioURI} from
-   * @param option method options for creating a file
+   * @param context method context for creating a file
    */
-  private static void createAndSetPermission(String path, CreateFileOptions option)
+  private static void createAndSetPermission(String path, CreateFileContext context)
       throws Exception {
     try (
         LockedInodePath inodePath = sTree
             .lockInodePath(new AlluxioURI(path), InodeTree.LockMode.WRITE)) {
-      InodeTree.CreatePathResult result = sTree.createPath(RpcContext.NOOP, inodePath, option);
+      InodeTree.CreatePathResult result = sTree.createPath(RpcContext.NOOP, inodePath, context);
       ((InodeFile) result.getCreated().get(result.getCreated().size() - 1))
-          .setOwner(option.getOwner()).setGroup(option.getGroup())
-          .setMode(option.getMode().toShort());
+          .setOwner(context.getOwner()).setGroup(context.getGroup())
+          .setMode((short) context.getOptions().getMode());
     }
   }
 

@@ -23,11 +23,11 @@ import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.status.UnavailableException;
+import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.master.AbstractMaster;
 import alluxio.master.MasterContext;
 import alluxio.master.file.FileSystemMaster;
-import alluxio.master.file.FileSystemMasterOptions;
-import alluxio.master.file.options.CreateDirectoryOptions;
+import alluxio.master.file.options.CreateDirectoryContext;
 import alluxio.master.file.options.RenameContext;
 import alluxio.master.journal.JournalContext;
 import alluxio.proto.journal.Journal.JournalEntry;
@@ -217,7 +217,8 @@ public class DefaultKeyValueMaster extends AbstractMaster implements KeyValueMas
       InvalidPathException, AccessControlException, UnavailableException {
     try {
       // Create this dir
-      mFileSystemMaster.createDirectory(path, CreateDirectoryOptions.defaults().setRecursive(true));
+      mFileSystemMaster.createDirectory(path, CreateDirectoryContext
+          .defaults(CreateDirectoryPOptions.newBuilder().setRecursive(true).build()));
     } catch (IOException e) {
       // TODO(binfan): Investigate why {@link FileSystemMaster#createDirectory} throws IOException
       throw new InvalidPathException(

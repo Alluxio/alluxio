@@ -24,8 +24,6 @@ import alluxio.exception.InvalidPathException;
 import alluxio.exception.UnexpectedAlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.exception.status.UnavailableException;
-import alluxio.file.options.CreateDirectoryOptions;
-import alluxio.file.options.CreateFileOptions;
 import alluxio.file.options.WorkerHeartbeatOptions;
 import alluxio.grpc.CheckConsistencyPOptions;
 import alluxio.grpc.DeletePOptions;
@@ -39,6 +37,8 @@ import alluxio.master.Master;
 import alluxio.master.file.meta.FileSystemMasterView;
 import alluxio.master.file.meta.PersistenceState;
 import alluxio.master.file.options.CompleteFileContext;
+import alluxio.master.file.options.CreateDirectoryContext;
+import alluxio.master.file.options.CreateFileContext;
 import alluxio.master.file.options.RenameContext;
 import alluxio.master.file.options.SetAttributeContext;
 import alluxio.security.authorization.AclEntry;
@@ -183,7 +183,7 @@ public interface FileSystemMaster extends Master {
    * This operation requires WRITE permission on the parent of this path.
    *
    * @param path the file to create
-   * @param options method options
+   * @param context the method context
    * @return the id of the created file
    * @throws InvalidPathException if an invalid path is encountered
    * @throws FileAlreadyExistsException if the file already exists
@@ -192,7 +192,7 @@ public interface FileSystemMaster extends Master {
    * @throws FileDoesNotExistException if the parent of the path does not exist and the recursive
    *         option is false
    */
-  long createFile(AlluxioURI path, CreateFileOptions options)
+  long createFile(AlluxioURI path, CreateFileContext context)
       throws AccessControlException, InvalidPathException, FileAlreadyExistsException,
       BlockInfoException, IOException, FileDoesNotExistException;
 
@@ -274,7 +274,7 @@ public interface FileSystemMaster extends Master {
    * This operation requires the client user to have WRITE permission on the parent of the path.
    *
    * @param path the path of the directory
-   * @param options method options
+   * @param context method context
    * @return the id of the created directory
    * @throws InvalidPathException when the path is invalid
    * @throws FileAlreadyExistsException when there is already a file at path
@@ -282,7 +282,7 @@ public interface FileSystemMaster extends Master {
    * @throws FileDoesNotExistException if the parent of the path does not exist and the recursive
    *         option is false
    */
-  long createDirectory(AlluxioURI path, CreateDirectoryOptions options)
+  long createDirectory(AlluxioURI path, CreateDirectoryContext context)
       throws InvalidPathException, FileAlreadyExistsException, IOException, AccessControlException,
       FileDoesNotExistException;
 

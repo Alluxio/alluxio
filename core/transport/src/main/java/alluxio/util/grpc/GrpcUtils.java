@@ -15,18 +15,12 @@ import static alluxio.util.StreamUtils.map;
 
 import alluxio.Constants;
 
-import alluxio.file.options.CommonOptions;
 import alluxio.file.options.CompleteUfsFileOptions;
-import alluxio.file.options.CreateDirectoryOptions;
-import alluxio.file.options.CreateFileOptions;
 import alluxio.file.options.CreateUfsFileOptions;
 import alluxio.file.options.DescendantType;
 import alluxio.grpc.CompleteUfsFilePOptions;
-import alluxio.grpc.CreateDirectoryPOptions;
-import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.CreateUfsFilePOptions;
 import alluxio.grpc.ExistsPOptions;
-import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.LoadDescendantPType;
 import alluxio.grpc.LoadMetadataPType;
@@ -44,7 +38,6 @@ import alluxio.security.authorization.AclAction;
 import alluxio.security.authorization.AclEntry;
 import alluxio.security.authorization.AclEntryType;
 import alluxio.security.authorization.DefaultAccessControlList;
-import alluxio.security.authorization.Mode;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
 import alluxio.wire.FileBlockInfo;
@@ -525,50 +518,6 @@ public final class GrpcUtils {
     return alluxio.grpc.BlockLocation.newBuilder().setWorkerId(blockLocation.getWorkerId())
         .setWorkerAddress(toProto(blockLocation.getWorkerAddress()))
         .setTierAlias(blockLocation.getTierAlias()).build();
-  }
-
-  /**
-   * Converts options to proto type.
-   *
-   * @param options the options type to convert
-   * @return the converted proto type
-   */
-  public static FileSystemMasterCommonPOptions toProto(CommonOptions options) {
-    return FileSystemMasterCommonPOptions.newBuilder()
-        .setSyncIntervalMs(options.getSyncIntervalMs()).setTtl(options.getTtl())
-        .setTtlAction(toProto(options.getTtlAction())).build();
-  }
-
-  /**
-   * Converts options to proto type.
-   *
-   * @param options the options type to convert
-   * @return the converted proto type
-   */
-  public static CreateDirectoryPOptions toProto(CreateDirectoryOptions options) {
-    CreateDirectoryPOptions.Builder builder = CreateDirectoryPOptions.newBuilder()
-        .setAllowExist(options.isAllowExists()).setRecursive(options.isRecursive())
-        .setPersisted(options.isPersisted()).setCommonOptions(toProto(options.getCommonOptions()));
-    if (options.getMode() != null) {
-      builder.setMode(options.getMode().toShort());
-    }
-    return builder.build();
-  }
-
-  /**
-   * Converts options to proto type.
-   *
-   * @param options the options type to convert
-   * @return the converted proto type
-   */
-  public static CreateFilePOptions toProto(CreateFileOptions options) {
-    CreateFilePOptions.Builder builder = CreateFilePOptions.newBuilder()
-        .setBlockSizeBytes(options.getBlockSizeBytes()).setPersisted(options.isPersisted())
-        .setRecursive(options.isRecursive()).setCommonOptions(toProto(options.getCommonOptions()));
-    if (options.getMode() != null) {
-      builder.setMode(options.getMode().toShort());
-    }
-    return builder.build();
   }
 
   /**

@@ -37,8 +37,6 @@ import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.PermissionDeniedException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.file.options.CommonOptions;
-import alluxio.file.options.CreateDirectoryOptions;
-import alluxio.file.options.CreateFileOptions;
 import alluxio.file.options.DescendantType;
 import alluxio.file.options.WorkerHeartbeatOptions;
 import alluxio.grpc.CheckConsistencyPOptions;
@@ -83,6 +81,8 @@ import alluxio.master.file.meta.UfsSyncPathCache;
 import alluxio.master.file.meta.UfsSyncUtils;
 import alluxio.master.file.meta.options.MountInfo;
 import alluxio.master.file.options.CompleteFileContext;
+import alluxio.master.file.options.CreateDirectoryContext;
+import alluxio.master.file.options.CreateFileContext;
 import alluxio.master.file.options.RenameContext;
 import alluxio.master.file.options.SetAttributeContext;
 import alluxio.master.journal.JournalContext;
@@ -810,7 +810,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         checkLoadMetadataOptions(options.getLoadMetadataType(), inodePath.getUri());
         loadMetadataIfNotExist(rpcContext, inodePath,
             FileSystemMasterOptions.getLoadMetadataOptions().toBuilder().setCreateAncestors(true)
-                .setCommonOptions(FileSystemMasterOptions.getCommonPOptions().toBuilder()
+                .setCommonOptions(FileSystemMasterOptions.getCommonOptions().toBuilder()
                     .setTtl(options.getCommonOptions().getTtl())
                     .setTtlAction(options.getCommonOptions().getTtlAction()))
                 .build());
@@ -900,7 +900,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       // load metadata for 1 level of descendants, or all descendants if recursive
       LoadMetadataPOptions loadMetadataOptions = FileSystemMasterOptions.getLoadMetadataOptions().toBuilder()
           .setCreateAncestors(true).setLoadDescendantType(GrpcUtils.toProto(loadDescendantType))
-          .setCommonOptions(FileSystemMasterOptions.getCommonPOptions().toBuilder()
+          .setCommonOptions(FileSystemMasterOptions.getCommonOptions().toBuilder()
               .setTtl(listStatusOptions.getCommonOptions().getTtl())
               .setTtlAction(listStatusOptions.getCommonOptions().getTtlAction()))
           .build();
@@ -1264,18 +1264,18 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   }
 
   @Override
-  public long createFile(AlluxioURI path, CreateFileOptions options)
+  public long createFile(AlluxioURI path, CreateFileContext context)
       throws AccessControlException, InvalidPathException, FileAlreadyExistsException,
       BlockInfoException, IOException, FileDoesNotExistException {
     Metrics.CREATE_FILES_OPS.inc();
-    LockingScheme lockingScheme =
-        createLockingScheme(path, options.getCommonOptions(), InodeTree.LockMode.WRITE);
+    LockingScheme lockingScheme = createLockingScheme(path, context.getOptions().getCommonOptions(),
+        InodeTree.LockMode.WRITE);
     try (RpcContext rpcContext = createRpcContext();
          LockedInodePath inodePath = mInodeTree
              .lockInodePath(lockingScheme.getPath(), lockingScheme.getMode());
         FileSystemMasterAuditContext auditContext =
             createAuditContext("createFile", path, null, inodePath.getParentInodeOrNull())) {
-      if (options.isRecursive()) {
+      if (context.getOptions().getRecursive()) {
         auditContext.setSrcInode(inodePath.getLastExistingInode());
       }
       try {
@@ -1288,11 +1288,11 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       syncMetadata(rpcContext, inodePath, lockingScheme, DescendantType.ONE);
 
       mMountTable.checkUnderWritableMountPoint(path);
-      if (options.isPersisted()) {
+      if (context.getOptions().getPersisted()) {
         // Check if ufs is writable
         checkUfsMode(path, OperationType.WRITE);
       }
-      createFileInternal(rpcContext, inodePath, options);
+      createFileInternal(rpcContext, inodePath, context);
       auditContext.setSrcInode(inodePath.getInode()).setSucceeded(true);
       return inodePath.getInode().getId();
     }
@@ -1301,22 +1301,22 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   /**
    * @param rpcContext the rpc context
    * @param inodePath the path to be created
-   * @param options method options
+   * @param context the method context
    * @return {@link InodeTree.CreatePathResult} with the path creation result
    */
   InodeTree.CreatePathResult createFileInternal(RpcContext rpcContext, LockedInodePath inodePath,
-      CreateFileOptions options)
+      CreateFileContext context)
       throws InvalidPathException, FileAlreadyExistsException, BlockInfoException, IOException,
       FileDoesNotExistException {
     if (mWhitelist.inList(inodePath.getUri().toString())) {
-      options.setCacheable(true);
+        context.setCacheable(true);
     }
-    InodeTree.CreatePathResult createResult = mInodeTree.createPath(rpcContext, inodePath, options);
+    InodeTree.CreatePathResult createResult = mInodeTree.createPath(rpcContext, inodePath, context);
     // If the create succeeded, the list of created inodes will not be empty.
     List<InodeView> created = createResult.getCreated();
     InodeFileView inode = (InodeFileView) created.get(created.size() - 1);
 
-    if (options.isPersisted()) {
+    if (context.isPersisted()) {
       // The path exists in UFS, so it is no longer absent. The ancestors exist in UFS, but the
       // actual file does not exist in UFS yet.
       mUfsAbsentPathCache.processExisting(inodePath.getUri().getParent());
@@ -1831,19 +1831,19 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   }
 
   @Override
-  public long createDirectory(AlluxioURI path, CreateDirectoryOptions options)
+  public long createDirectory(AlluxioURI path, CreateDirectoryContext context)
       throws InvalidPathException, FileAlreadyExistsException, IOException, AccessControlException,
       FileDoesNotExistException {
     LOG.debug("createDirectory {} ", path);
     Metrics.CREATE_DIRECTORIES_OPS.inc();
-    LockingScheme lockingScheme =
-        createLockingScheme(path, options.getCommonOptions(), InodeTree.LockMode.WRITE);
+    LockingScheme lockingScheme = createLockingScheme(path, context.getOptions().getCommonOptions(),
+        InodeTree.LockMode.WRITE);
     try (RpcContext rpcContext = createRpcContext();
          LockedInodePath inodePath = mInodeTree
              .lockInodePath(lockingScheme.getPath(), lockingScheme.getMode());
          FileSystemMasterAuditContext auditContext =
              createAuditContext("mkdir", path, null, inodePath.getParentInodeOrNull())) {
-      if (options.isRecursive()) {
+      if (context.getOptions().getRecursive()) {
         auditContext.setSrcInode(inodePath.getLastExistingInode());
       }
       try {
@@ -1856,10 +1856,10 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       syncMetadata(rpcContext, inodePath, lockingScheme, DescendantType.ONE);
 
       mMountTable.checkUnderWritableMountPoint(path);
-      if (options.isPersisted()) {
+      if (context.getOptions().getPersisted()) {
         checkUfsMode(path, OperationType.WRITE);
       }
-      createDirectoryInternal(rpcContext, inodePath, options);
+      createDirectoryInternal(rpcContext, inodePath, context);
       auditContext.setSrcInode(inodePath.getInode()).setSucceeded(true);
       return inodePath.getInode().getId();
     }
@@ -1870,21 +1870,21 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    *
    * @param rpcContext the rpc context
    * @param inodePath the path of the directory
-   * @param options method options
+   * @param context method context
    * @return an {@link alluxio.master.file.meta.InodeTree.CreatePathResult} representing the
    *         modified inodes and created inodes during path creation
    */
   private InodeTree.CreatePathResult createDirectoryInternal(RpcContext rpcContext,
-      LockedInodePath inodePath, CreateDirectoryOptions options) throws InvalidPathException,
+      LockedInodePath inodePath, CreateDirectoryContext context) throws InvalidPathException,
       FileAlreadyExistsException, IOException, FileDoesNotExistException {
     try {
       InodeTree.CreatePathResult createResult =
-          mInodeTree.createPath(rpcContext, inodePath, options);
+          mInodeTree.createPath(rpcContext, inodePath, context);
       InodeDirectoryView inodeDirectory = (InodeDirectoryView) inodePath.getInode();
 
       String ufsFingerprint = Constants.INVALID_UFS_FINGERPRINT;
       if (inodeDirectory.isPersisted()) {
-        UfsStatus ufsStatus = options.getUfsStatus();
+        UfsStatus ufsStatus = context.getUfsStatus();
         // Retrieve the UFS fingerprint for this file.
         MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
         AlluxioURI resolvedUri = resolution.getUri();
@@ -1903,7 +1903,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
           .setUfsFingerprint(ufsFingerprint)
           .build());
 
-      if (options.isPersisted()) {
+      if (context.getOptions().getPersisted()) {
         // The path exists in UFS, so it is no longer absent.
         mUfsAbsentPathCache.processExisting(inodePath.getUri());
       }
@@ -2454,31 +2454,32 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     }
 
     // Metadata loaded from UFS has no TTL set.
-    CreateFileOptions createFileOptions = FileSystemMasterOptions.getCreateFileOptions()
-        .setBlockSizeBytes(ufsBlockSizeByte)
-        .setRecursive(options.getCreateAncestors())
-        .setMetadataLoad(true)
-        .setPersisted(true)
-        .setTtl(options.getCommonOptions().getTtl())
-        .setTtlAction(GrpcUtils.fromProto(options.getCommonOptions().getTtlAction()))
-        .setOwner(ufsStatus.getOwner())
-        .setGroup(ufsStatus.getGroup());
+    CreateFileContext createFileContext = CreateFileContext.defaults();
+    createFileContext.getOptions().setBlockSizeBytes(ufsBlockSizeByte);
+    createFileContext.getOptions().setRecursive(options.getCreateAncestors());
+    createFileContext.getOptions().setPersisted(true);
+    createFileContext.getOptions().setCommonOptions(
+        FileSystemMasterCommonPOptions.newBuilder().setTtl(options.getCommonOptions().getTtl())
+            .setTtlAction(options.getCommonOptions().getTtlAction()));
+    createFileContext.setMetadataLoad(true);
+    createFileContext.setOwner(ufsStatus.getOwner());
+    createFileContext.setGroup(ufsStatus.getGroup());
     short ufsMode = ufsStatus.getMode();
     Mode mode = new Mode(ufsMode);
     Long ufsLastModified = ufsStatus.getLastModifiedTime();
     if (resolution.getShared()) {
       mode.setOtherBits(mode.getOtherBits().or(mode.getOwnerBits()));
     }
-    createFileOptions.setMode(mode);
+      createFileContext.getOptions().setMode(mode.toShort());
     if (acl != null) {
-      createFileOptions.setAcl(acl.getEntries());
+        createFileContext.setAcl(acl.getEntries());
     }
     if (ufsLastModified != null) {
-      createFileOptions.setOperationTimeMs(ufsLastModified);
+        createFileContext.setOperationTimeMs(ufsLastModified);
     }
 
     try {
-      createFileInternal(rpcContext, inodePath, createFileOptions);
+      createFileInternal(rpcContext, inodePath, createFileContext);
       
       CompleteFileContext completeCtx = CompleteFileContext
               .defaults(CompleteFilePOptions.newBuilder().setUfsLength(ufsLength).build())
@@ -2523,15 +2524,13 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         return;
       }
     }
-    alluxio.master.file.options.CreateDirectoryOptions createDirectoryOptions =
-        FileSystemMasterOptions.getCreateDirectoryOptions()
-            .setMountPoint(mMountTable.isMountPoint(inodePath.getUri()))
-            .setPersisted(true)
-            .setRecursive(options.getCreateAncestors())
-            .setMetadataLoad(true)
-            .setAllowExists(true)
-            .setTtl(options.getCommonOptions().getTtl())
-            .setTtlAction(GrpcUtils.fromProto(options.getCommonOptions().getTtlAction()));
+    CreateDirectoryContext createDirectoryContext = CreateDirectoryContext.defaults();
+    createDirectoryContext.getOptions().setPersisted(true)
+        .setRecursive(options.getCreateAncestors()).setAllowExist(true).setCommonOptions(
+            FileSystemMasterCommonPOptions.newBuilder().setTtl(options.getCommonOptions().getTtl())
+                .setTtlAction(options.getCommonOptions().getTtlAction()));
+    createDirectoryContext.setMountPoint(mMountTable.isMountPoint(inodePath.getUri()));
+    createDirectoryContext.setMetadataLoad(true);
     MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
 
     AlluxioURI ufsUri = resolution.getUri();
@@ -2557,21 +2556,21 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     if (resolution.getShared()) {
       mode.setOtherBits(mode.getOtherBits().or(mode.getOwnerBits()));
     }
-    createDirectoryOptions = createDirectoryOptions.setOwner(ufsOwner).setGroup(ufsGroup)
-            .setMode(mode).setUfsStatus(ufsStatus);
+    createDirectoryContext.getOptions().setMode(mode.toShort());
+    createDirectoryContext.setOwner(ufsOwner).setGroup(ufsGroup).setUfsStatus(ufsStatus);
     if (acl != null) {
-      createDirectoryOptions.setAcl(acl.getEntries());
+      createDirectoryContext.setAcl(acl.getEntries());
     }
 
     if (defaultAcl != null) {
-      createDirectoryOptions.setAcl(defaultAcl.getEntries());
+      createDirectoryContext.setAcl(defaultAcl.getEntries());
     }
     if (lastModifiedTime != null) {
-      createDirectoryOptions.setOperationTimeMs(lastModifiedTime);
+      createDirectoryContext.setOperationTimeMs(lastModifiedTime);
     }
 
     try {
-      createDirectoryInternal(rpcContext, inodePath, createDirectoryOptions);
+      createDirectoryInternal(rpcContext, inodePath, createDirectoryContext);
       if (inodePath.getLockMode() == InodeTree.LockMode.READ) {
         // If the directory is successfully created, createDirectoryInternal will add a write lock
         // to the inodePath's lock list. We are done modifying the directory, so we downgrade it to

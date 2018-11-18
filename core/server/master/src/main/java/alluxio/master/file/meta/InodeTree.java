@@ -20,11 +20,13 @@ import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.UnavailableException;
+import alluxio.grpc.CreateDirectoryPOptions;
+import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.master.block.ContainerIdGenerable;
 import alluxio.master.file.RpcContext;
-import alluxio.file.options.CreateFileOptions;
-import alluxio.file.options.CreatePathOptions;
-import alluxio.file.options.CreateDirectoryOptions;
+import alluxio.master.file.options.CreateDirectoryContext;
+import alluxio.master.file.options.CreateFileContext;
+import alluxio.master.file.options.CreatePathContext;
 import alluxio.master.file.state.InodesView;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.JournalEntryIterable;
@@ -156,8 +158,9 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
     if (mState.getRoot() == null) {
       InodeDirectory root = InodeDirectory.create(mDirectoryIdGenerator.getNewDirectoryId(context),
           NO_PARENT, ROOT_INODE_NAME,
-          alluxio.master.file.options.CreateDirectoryOptions.defaults().setOwner(owner)
-              .setGroup(group).setMode(mode));
+          CreateDirectoryContext
+              .defaults(CreateDirectoryPOptions.newBuilder().setMode(mode.toShort()).build())
+              .setOwner(owner).setGroup(group));
       root.setPersistenceState(PersistenceState.PERSISTED);
       mState.applyAndJournal(context, root);
     }
@@ -548,7 +551,7 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
    *
    * @param rpcContext the rpc context
    * @param inodePath the path
-   * @param options method options
+   * @param context method context
    * @return a {@link CreatePathResult} representing the modified inodes and created inodes during
    *         path creation
    * @throws FileAlreadyExistsException when there is already a file at path if we want to create a
@@ -561,7 +564,7 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
    *         option is false
    */
   public CreatePathResult createPath(RpcContext rpcContext, LockedInodePath inodePath,
-      CreatePathOptions<?> options) throws FileAlreadyExistsException, BlockInfoException,
+      CreatePathContext<?,?> context) throws FileAlreadyExistsException, BlockInfoException,
       InvalidPathException, IOException, FileDoesNotExistException {
     // TODO(gpang): consider splitting this into createFilePath and createDirectoryPath, with a
     // helper method for the shared logic.
@@ -572,16 +575,17 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
       throw new FileAlreadyExistsException(errorMessage);
     }
     if (inodePath.fullPathExists()) {
-      if (!(options instanceof CreateDirectoryOptions)
-          || !((CreateDirectoryOptions) options).isAllowExists()) {
+      if (!(context instanceof CreateDirectoryContext)
+          || !((CreateDirectoryContext) context).getOptions().getAllowExist()) {
         throw new FileAlreadyExistsException(path);
       }
     }
 
-    if (options instanceof CreateFileOptions) {
-      CreateFileOptions fileOptions = (CreateFileOptions) options;
-      if (fileOptions.getBlockSizeBytes() < 1) {
-        throw new BlockInfoException("Invalid block size " + fileOptions.getBlockSizeBytes());
+    if (context instanceof CreateFileContext) {
+      CreateFileContext fileContext = (CreateFileContext) context;
+      if (fileContext.getOptions().getBlockSizeBytes() < 1) {
+        throw new BlockInfoException(
+            "Invalid block size " + fileContext.getOptions().getBlockSizeBytes());
       }
     }
 
@@ -602,7 +606,7 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
     if (pathIndex < pathComponents.length - 1) {
       // The immediate parent was not found. If it's not recursive, we throw an exception here.
       // Otherwise we add the remaining path components to the list of components to create.
-      if (!options.isRecursive()) {
+      if (!context.isRecursive()) {
         final String msg = new StringBuilder().append("File ").append(path)
             .append(" creation failed. Component ")
             .append(pathIndex).append("(")
@@ -622,7 +626,7 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
 
     List<InodeView> createdInodes = new ArrayList<>();
     List<InodeView> modifiedInodes = new ArrayList<>();
-    if (options.isPersisted()) {
+    if (context.isPersisted()) {
       // Synchronously persist directories. These inodes are already READ locked.
       for (InodeView inode : traversalResult.getNonPersisted()) {
         // This cast is safe because we've already verified that the file inode doesn't exist.
@@ -630,14 +634,14 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
       }
     }
     if ((pathIndex < (pathComponents.length - 1) || currentInodeDirectory.getChild(name) == null)
-        && options.getOperationTimeMs() > currentInodeDirectory.getLastModificationTimeMs()) {
+        && context.getOperationTimeMs() > currentInodeDirectory.getLastModificationTimeMs()) {
       // (1) There are components in parent paths that need to be created. Or
       // (2) The last component of the path needs to be created.
       // In these two cases, the last traversed Inode will be modified if the new timestamp is after
       // the existing last modified time.
       mState.applyAndJournal(rpcContext, UpdateInodeEntry.newBuilder()
           .setId(currentInodeDirectory.getId())
-          .setLastModificationTimeMs(options.getOperationTimeMs())
+          .setLastModificationTimeMs(context.getOperationTimeMs())
           .build());
       modifiedInodes.add(currentInodeDirectory);
     }
@@ -646,21 +650,20 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
     // NOTE, we set the mode of missing ancestor directories to be the default value, rather
     // than inheriting the option of the final file to create, because it may not have
     // "execute" permission.
-    CreateDirectoryOptions missingDirOptions =
-        alluxio.master.file.options.CreateDirectoryOptions.defaults()
-            .setMountPoint(false)
-            .setPersisted(options.isPersisted())
-            .setOperationTimeMs(options.getOperationTimeMs())
-            .setOwner(options.getOwner())
-            .setGroup(options.getGroup())
-            .setTtl(options.getTtl())
-            .setTtlAction(options.getTtlAction());
+    CreateDirectoryContext missingDirContext = CreateDirectoryContext.defaults();
+    missingDirContext.getOptions().setPersisted(context.isPersisted());
+    missingDirContext.setOperationTimeMs(context.getOperationTimeMs());
+    missingDirContext.getOptions().setCommonOptions(FileSystemMasterCommonPOptions.newBuilder()
+        .setTtl(context.getTtl()).setTtlAction(context.getTtlAction()));
+    missingDirContext.setMountPoint(false);
+    missingDirContext.setOwner(context.getOwner());
+    missingDirContext.setGroup(context.getGroup());
     for (int k = pathIndex; k < (pathComponents.length - 1); k++) {
       InodeDirectoryView dir = null;
       while (dir == null) {
         InodeDirectory newDir = InodeDirectory.create(
             mDirectoryIdGenerator.getNewDirectoryId(rpcContext.getJournalContext()),
-            currentInodeDirectory.getId(), pathComponents[k], missingDirOptions);
+            currentInodeDirectory.getId(), pathComponents[k], missingDirContext);
         // Lock the newly created inode before subsequent operations, and add it to the lock group.
         extensibleInodePath.getLockList().lockWriteAndCheckNameAndParent(newDir,
             currentInodeDirectory, pathComponents[k]);
@@ -671,7 +674,7 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
         // and access acl, ANDed with the umask
         // if it is part of a metadata load operation, we ignore the umask and simply inherit
         // the default ACL as the directory's new default and access ACL
-        short mode = options.isMetadataLoad() ? Mode.createFullAccess().toShort()
+        short mode = context.isMetadataLoad() ? Mode.createFullAccess().toShort()
             : newDir.getMode();
         DefaultAccessControlList dAcl = currentInodeDirectory.getDefaultACL();
         if (!dAcl.isEmpty()) {
@@ -706,7 +709,7 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
 
         // Persist the directory *after* it exists in the inode tree. This prevents multiple
         // concurrent creates from trying to persist the same directory name.
-        if (options.isPersisted()) {
+        if (context.isPersisted()) {
           syncPersistExistingDirectory(rpcContext, dir);
         }
       }
@@ -742,13 +745,13 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
         // We need to remove the last inode from the locklist because it was locked during
         // traversal and locked here again
         extensibleInodePath.getLockList().unlockLast();
-        if (lastLockedInode.isDirectory() && options instanceof CreateDirectoryOptions
-            && !lastLockedInode.isPersisted() && options.isPersisted()) {
+        if (lastLockedInode.isDirectory() && context instanceof CreateDirectoryContext
+            && !lastLockedInode.isPersisted() && context.isPersisted()) {
           // The final path component already exists and is not persisted, so it should be added
           // to the non-persisted Inodes of traversalResult.
           syncPersistExistingDirectory(rpcContext, (InodeDirectoryView) lastLockedInode);
-        } else if (!lastLockedInode.isDirectory() || !(options instanceof CreateDirectoryOptions
-            && ((CreateDirectoryOptions) options).isAllowExists())) {
+        } else if (!lastLockedInode.isDirectory() || !(context instanceof CreateDirectoryContext
+            && ((CreateDirectoryContext) context).getOptions().getAllowExist())) {
           String errorMessage = ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(path);
           LOG.error(errorMessage);
           throw new FileAlreadyExistsException(errorMessage);
@@ -758,11 +761,11 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
 
       Inode<?> newInode;
       // create the new inode, with a write lock
-      if (options instanceof CreateDirectoryOptions) {
-        CreateDirectoryOptions directoryOptions = (CreateDirectoryOptions) options;
+      if (context instanceof CreateDirectoryContext) {
+        CreateDirectoryContext directoryContext = (CreateDirectoryContext) context;
         InodeDirectory newDir = InodeDirectory.create(
             mDirectoryIdGenerator.getNewDirectoryId(rpcContext.getJournalContext()),
-            currentInodeDirectory.getId(), name, directoryOptions);
+            currentInodeDirectory.getId(), name, directoryContext);
 
         // Lock the created inode before subsequent operations, and add it to the lock group.
 
@@ -772,7 +775,7 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
         // if the parent has default ACL, take the default ACL ANDed with the umask as the new
         // directory's default and access acl
         // WHen it is a metadata load operation, do not take the umask into account
-        short mode = options.isMetadataLoad() ? Mode.createFullAccess().toShort()
+        short mode = context.isMetadataLoad() ? Mode.createFullAccess().toShort()
             : newDir.getMode();
         DefaultAccessControlList dAcl = currentInodeDirectory.getDefaultACL();
         if (!dAcl.isEmpty()) {
@@ -782,16 +785,16 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
           newDir.setDefaultACL(pair.getSecond());
         }
 
-        if (directoryOptions.isPersisted()) {
+        if (directoryContext.isPersisted()) {
           // Do not journal the persist entry, since a creation entry will be journaled instead.
-          if (options.isMetadataLoad()) {
+          if (context.isMetadataLoad()) {
             // if we are creating the file as a result of loading metadata, the newDir is already
             // persisted, and we got the permissions info from the ufs.
-            newDir.setOwner(options.getOwner())
-                .setGroup(options.getGroup())
-                .setMode(options.getMode().toShort());
+            newDir.setOwner(context.getOwner())
+                .setGroup(context.getGroup())
+                .setMode(context.getMode().toShort());
 
-            Long lastModificationTime = options.getOperationTimeMs();
+            Long lastModificationTime = context.getOperationTimeMs();
             if (lastModificationTime != null) {
               newDir.setLastModificationTimeMs(lastModificationTime, true);
             }
@@ -801,10 +804,10 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
           }
         }
         newInode = newDir;
-      } else if (options instanceof CreateFileOptions) {
-        CreateFileOptions fileOptions = (CreateFileOptions) options;
+      } else if (context instanceof CreateFileContext) {
+        CreateFileContext fileContext = (CreateFileContext) context;
         InodeFile newFile = InodeFile.create(mContainerIdGenerator.getNewContainerId(),
-            currentInodeDirectory.getId(), name, System.currentTimeMillis(), fileOptions);
+            currentInodeDirectory.getId(), name, System.currentTimeMillis(), fileContext);
         // Lock the created inode before subsequent operations, and add it to the lock group.
 
         extensibleInodePath.getLockList().lockWriteAndCheckNameAndParent(newFile,
@@ -814,19 +817,19 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
         // file's access ACL.
         // If it is a metadata load operation, do not consider the umask.
         DefaultAccessControlList dAcl = currentInodeDirectory.getDefaultACL();
-        short mode = options.isMetadataLoad() ? Mode.createFullAccess().toShort()
+        short mode = context.isMetadataLoad() ? Mode.createFullAccess().toShort()
             : newFile.getMode();
         if (!dAcl.isEmpty()) {
           AccessControlList acl = dAcl.generateChildFileACL(mode);
           newFile.setInternalAcl(acl);
         }
 
-        if (fileOptions.isCacheable()) {
+        if (fileContext.isCacheable()) {
           newFile.setCacheable(true);
         }
         newInode = newFile;
       } else {
-        throw new IllegalStateException(String.format("Unrecognized create options: %s", options));
+        throw new IllegalStateException(String.format("Unrecognized create context: %s", context));
       }
       newInode.setPinned(currentInodeDirectory.isPinned());
 

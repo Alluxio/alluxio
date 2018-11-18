@@ -15,14 +15,15 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.RestUtils;
 import alluxio.client.file.FileSystemClientOptions;
+import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.LoadMetadataPType;
 import alluxio.grpc.MountPOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.master.MasterProcess;
 import alluxio.master.file.options.CompleteFileContext;
-import alluxio.master.file.options.CreateDirectoryOptions;
-import alluxio.master.file.options.CreateFileOptions;
+import alluxio.master.file.options.CreateDirectoryContext;
+import alluxio.master.file.options.CreateFileContext;
 import alluxio.master.file.options.RenameContext;
 import alluxio.master.file.options.SetAttributeContext;
 import alluxio.util.grpc.GrpcUtils;
@@ -153,17 +154,17 @@ public final class FileSystemMasterClientRestServiceHandler {
       @Override
       public Void call() throws Exception {
         Preconditions.checkNotNull(path, "required 'path' parameter is missing");
-        CreateDirectoryOptions options = CreateDirectoryOptions.defaults();
+        CreateDirectoryContext context = CreateDirectoryContext.defaults();
         if (persisted != null) {
-          options.setPersisted(persisted);
+          context.getOptions().setPersisted(persisted);
         }
         if (recursive != null) {
-          options.setRecursive(recursive);
+          context.getOptions().setRecursive(recursive);
         }
         if (allowExists != null) {
-          options.setAllowExists(allowExists);
+          context.getOptions().setAllowExist(allowExists);
         }
-        mFileSystemMaster.createDirectory(new AlluxioURI(path), options);
+        mFileSystemMaster.createDirectory(new AlluxioURI(path), context);
         return null;
       }
     });
@@ -191,26 +192,26 @@ public final class FileSystemMasterClientRestServiceHandler {
       @Override
       public Void call() throws Exception {
         Preconditions.checkNotNull(path, "required 'path' parameter is missing");
-        CreateFileOptions options = CreateFileOptions.defaults();
+        CreateFileContext context = CreateFileContext.defaults();
         if (persisted != null) {
-          options.setPersisted(persisted);
+          context.getOptions().setPersisted(persisted);
         }
         if (recursive != null) {
-          options.setRecursive(recursive);
+            context.getOptions().setRecursive(recursive);
         }
         if (blockSizeBytes != null) {
-          options.setBlockSizeBytes(blockSizeBytes);
+            context.getOptions().setBlockSizeBytes(blockSizeBytes);
         }
         if (ttl != null) {
-          options.setTtl(ttl);
-        }
-        if (ttl != null) {
-          options.setTtl(ttl);
+          FileSystemMasterCommonPOptions.Builder commonOptions =
+              FileSystemMasterCommonPOptions.newBuilder();
+          commonOptions.setTtl(ttl);
           if (ttlAction != null) {
-            options.setTtlAction(ttlAction);
+            commonOptions.setTtlAction(GrpcUtils.toProto(ttlAction));
           }
+          context.getOptions().setCommonOptions(commonOptions);
         }
-        mFileSystemMaster.createFile(new AlluxioURI(path), options);
+        mFileSystemMaster.createFile(new AlluxioURI(path), context);
         return null;
       }
     });

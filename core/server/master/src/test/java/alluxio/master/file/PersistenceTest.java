@@ -20,6 +20,8 @@ import alluxio.client.job.JobMasterClient;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
+import alluxio.grpc.CreateDirectoryPOptions;
+import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
@@ -35,8 +37,8 @@ import alluxio.master.SafeModeManager;
 import alluxio.master.block.BlockMasterFactory;
 import alluxio.master.file.meta.PersistenceState;
 import alluxio.master.file.options.CompleteFileContext;
-import alluxio.master.file.options.CreateDirectoryOptions;
-import alluxio.master.file.options.CreateFileOptions;
+import alluxio.master.file.options.CreateDirectoryContext;
+import alluxio.master.file.options.CreateFileContext;
 import alluxio.master.file.options.RenameContext;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalTestUtils;
@@ -316,11 +318,11 @@ public final class PersistenceTest {
     AuthenticatedClientUser.set(LoginUser.get().getName());
     // Create src file and directory, checking the internal state.
     AlluxioURI alluxioDirSrc = new AlluxioURI("/src");
-    mFileSystemMaster.createDirectory(alluxioDirSrc,
-        CreateDirectoryOptions.defaults().setPersisted(true));
+    mFileSystemMaster.createDirectory(alluxioDirSrc, CreateDirectoryContext
+        .defaults(CreateDirectoryPOptions.newBuilder().setPersisted(true).build()));
     AlluxioURI alluxioFileSrc = new AlluxioURI("/src/in_alluxio");
     long fileId = mFileSystemMaster.createFile(alluxioFileSrc,
-        CreateFileOptions.defaults().setPersisted(false));
+        CreateFileContext.defaults(CreateFilePOptions.newBuilder().setPersisted(true).build()));
     Assert.assertEquals(PersistenceState.NOT_PERSISTED.toString(),
         mFileSystemMaster.getFileInfo(fileId).getPersistenceState());
 
@@ -361,8 +363,8 @@ public final class PersistenceTest {
     }
 
     // Rename the src file before the persist is commited.
-    mFileSystemMaster.createDirectory(new AlluxioURI("/dst"),
-        CreateDirectoryOptions.defaults().setPersisted(true));
+    mFileSystemMaster.createDirectory(new AlluxioURI("/dst"), CreateDirectoryContext
+        .defaults(CreateDirectoryPOptions.newBuilder().setPersisted(true).build()));
     AlluxioURI alluxioFileDst = new AlluxioURI("/dst/in_alluxio");
     mFileSystemMaster.rename(alluxioFileSrc, alluxioFileDst, RenameContext.defaults());
 
@@ -453,8 +455,11 @@ public final class PersistenceTest {
     AlluxioURI path = new AlluxioURI("/" + CommonUtils.randomAlphaNumString(10));
     String owner = SecurityUtils.getOwnerFromThriftClient();
     String group = SecurityUtils.getGroupFromThriftClient();
-    mFileSystemMaster.createFile(path, CreateFileOptions.defaults()
-        .setOwner(owner).setGroup(group).setMode(Mode.createFullAccess()));
+    mFileSystemMaster.createFile(path,
+        CreateFileContext
+            .defaults(
+                CreateFilePOptions.newBuilder().setMode(Mode.createFullAccess().toShort()).build())
+            .setOwner(owner).setGroup(group));
     mFileSystemMaster.completeFile(path, CompleteFileContext.defaults());
     return path;
   }

@@ -14,12 +14,13 @@ package alluxio.client.rest;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.exception.FileDoesNotExistException;
+import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.FileSystemMasterClientRestServiceHandler;
 import alluxio.master.file.FileSystemMasterOptions;
 import alluxio.master.file.options.CompleteFileContext;
-import alluxio.master.file.options.CreateFileOptions;
+import alluxio.master.file.options.CreateFileContext;
 import alluxio.wire.FileInfo;
 import alluxio.wire.TtlAction;
 
@@ -75,7 +76,7 @@ public final class FileSystemMasterClientRestApiTest extends RestApiTest {
   @Test
   public void completeFile() throws Exception {
     AlluxioURI uri = new AlluxioURI("/file");
-    long id = mFileSystemMaster.createFile(uri, CreateFileOptions.defaults());
+    long id = mFileSystemMaster.createFile(uri, CreateFileContext.defaults());
 
     Map<String, String> params = new HashMap<>();
     params.put("path", uri.toString());
@@ -120,7 +121,7 @@ public final class FileSystemMasterClientRestApiTest extends RestApiTest {
   @Test
   public void getNewBlockIdForFile() throws Exception {
     AlluxioURI uri = new AlluxioURI("/file");
-    mFileSystemMaster.createFile(uri, CreateFileOptions.defaults());
+    mFileSystemMaster.createFile(uri, CreateFileContext.defaults());
 
     Map<String, String> params = new HashMap<>();
     params.put("path", uri.toString());
@@ -132,7 +133,7 @@ public final class FileSystemMasterClientRestApiTest extends RestApiTest {
   @Test
   public void getStatus() throws Exception {
     AlluxioURI uri = new AlluxioURI("/file");
-    mFileSystemMaster.createFile(uri, CreateFileOptions.defaults());
+    mFileSystemMaster.createFile(uri, CreateFileContext.defaults());
     mFileSystemMaster.completeFile(uri, CompleteFileContext.defaults());
 
     Map<String, String> params = new HashMap<>();
@@ -149,7 +150,8 @@ public final class FileSystemMasterClientRestApiTest extends RestApiTest {
   public void free() throws Exception {
     AlluxioURI uri = new AlluxioURI("/file");
     // Mark the file as persisted so the "free" works.
-    mFileSystemMaster.createFile(uri, CreateFileOptions.defaults().setPersisted(true));
+    mFileSystemMaster.createFile(uri,
+        CreateFileContext.defaults(CreateFilePOptions.newBuilder().setPersisted(true).build()));
     mFileSystemMaster.completeFile(uri, CompleteFileContext.defaults());
 
     Map<String, String> params = new HashMap<>();
@@ -162,7 +164,7 @@ public final class FileSystemMasterClientRestApiTest extends RestApiTest {
   @Test
   public void listStatus() throws Exception {
     AlluxioURI uri = new AlluxioURI("/file");
-    mFileSystemMaster.createFile(uri, CreateFileOptions.defaults());
+    mFileSystemMaster.createFile(uri, CreateFileContext.defaults());
     mFileSystemMaster.completeFile(uri, CompleteFileContext.defaults());
 
     Map<String, String> params = new HashMap<>();
@@ -195,7 +197,7 @@ public final class FileSystemMasterClientRestApiTest extends RestApiTest {
   @Test
   public void remove() throws Exception {
     AlluxioURI uri = new AlluxioURI("/file");
-    mFileSystemMaster.createFile(uri, CreateFileOptions.defaults());
+    mFileSystemMaster.createFile(uri, CreateFileContext.defaults());
     mFileSystemMaster.completeFile(uri, CompleteFileContext.defaults());
 
     Map<String, String> params = new HashMap<>();
@@ -216,7 +218,7 @@ public final class FileSystemMasterClientRestApiTest extends RestApiTest {
   public void rename() throws Exception {
     AlluxioURI uri1 = new AlluxioURI("/file1");
     AlluxioURI uri2 = new AlluxioURI("/file2");
-    mFileSystemMaster.createFile(uri1, CreateFileOptions.defaults());
+    mFileSystemMaster.createFile(uri1, CreateFileContext.defaults());
     mFileSystemMaster.completeFile(uri1, CompleteFileContext.defaults());
 
     Map<String, String> params = new HashMap<>();
@@ -237,7 +239,7 @@ public final class FileSystemMasterClientRestApiTest extends RestApiTest {
   @Test
   public void scheduleAsyncPersist() throws Exception {
     AlluxioURI uri = new AlluxioURI("/file");
-    mFileSystemMaster.createFile(uri, CreateFileOptions.defaults());
+    mFileSystemMaster.createFile(uri, CreateFileContext.defaults());
     mFileSystemMaster.completeFile(uri, CompleteFileContext.defaults());
 
     Map<String, String> params = new HashMap<>();
@@ -251,7 +253,7 @@ public final class FileSystemMasterClientRestApiTest extends RestApiTest {
   @Test
   public void setAttribute() throws Exception {
     AlluxioURI uri = new AlluxioURI("/file");
-    mFileSystemMaster.createFile(uri, CreateFileOptions.defaults());
+    mFileSystemMaster.createFile(uri, CreateFileContext.defaults());
     mFileSystemMaster.completeFile(uri, CompleteFileContext.defaults());
 
     Map<String, String> params = new HashMap<>();

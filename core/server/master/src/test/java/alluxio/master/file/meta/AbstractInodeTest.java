@@ -12,9 +12,11 @@
 package alluxio.master.file.meta;
 
 import alluxio.Constants;
+import alluxio.grpc.CreateDirectoryPOptions;
+import alluxio.grpc.CreateFilePOptions;
 import alluxio.master.block.BlockId;
-import alluxio.master.file.options.CreateDirectoryOptions;
-import alluxio.master.file.options.CreateFileOptions;
+import alluxio.master.file.options.CreateDirectoryContext;
+import alluxio.master.file.options.CreateFileContext;
 import alluxio.security.authorization.Mode;
 
 import org.junit.Rule;
@@ -45,8 +47,9 @@ public abstract class AbstractInodeTest {
    */
   protected static InodeDirectory createInodeDirectory() {
     return InodeDirectory.create(1, 0, "test1",
-        CreateDirectoryOptions.defaults().setOwner(TEST_OWNER).setGroup(TEST_GROUP)
-            .setMode(TEST_DIR_MODE));
+        CreateDirectoryContext
+            .defaults(CreateDirectoryPOptions.newBuilder().setMode(TEST_DIR_MODE.toShort()).build())
+            .setOwner(TEST_OWNER).setGroup(TEST_GROUP));
   }
 
   /**
@@ -55,7 +58,9 @@ public abstract class AbstractInodeTest {
    */
   protected InodeFile createInodeFile(long id) {
     return InodeFile.create(id, 1, "testFile" + id, 0,
-        CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB).setOwner(TEST_OWNER)
-            .setGroup(TEST_GROUP).setMode(TEST_FILE_MODE));
+        CreateFileContext
+            .defaults(CreateFilePOptions.newBuilder().setBlockSizeBytes(Constants.KB)
+                .setMode(TEST_FILE_MODE.toShort()).build())
+            .setOwner(TEST_OWNER).setGroup(TEST_GROUP));
   }
 }

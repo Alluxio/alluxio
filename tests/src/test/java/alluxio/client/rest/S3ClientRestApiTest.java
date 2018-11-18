@@ -20,8 +20,8 @@ import alluxio.exception.FileDoesNotExistException;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.FileSystemMasterOptions;
-import alluxio.master.file.options.CreateDirectoryOptions;
-import alluxio.master.file.options.CreateFileOptions;
+import alluxio.master.file.options.CreateDirectoryContext;
+import alluxio.master.file.options.CreateFileContext;
 import alluxio.proxy.s3.CompleteMultipartUploadResult;
 import alluxio.proxy.s3.InitiateMultipartUploadResult;
 import alluxio.proxy.s3.ListBucketOptions;
@@ -119,7 +119,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
         mountPointParent + BUCKET_SEPARATOR + mountPointName + BUCKET_SEPARATOR + bucketName;
 
     mFileSystemMaster.createDirectory(new AlluxioURI(
-        AlluxioURI.SEPARATOR + mountPointParent), CreateDirectoryOptions.defaults());
+        AlluxioURI.SEPARATOR + mountPointParent), CreateDirectoryContext.defaults());
     AlluxioURI mountPointPath = new AlluxioURI(AlluxioURI.SEPARATOR + mountPointParent
         + AlluxioURI.SEPARATOR + mountPointName);
     mFileSystemMaster.mount(mountPointPath, new AlluxioURI(mFolder.newFolder().getAbsolutePath()),
@@ -158,7 +158,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
     final String s3Path = dirName + BUCKET_SEPARATOR + bucketName;
 
     AlluxioURI dirPath = new AlluxioURI(AlluxioURI.SEPARATOR + dirName);
-    mFileSystemMaster.createDirectory(dirPath, CreateDirectoryOptions.defaults());
+    mFileSystemMaster.createDirectory(dirPath, CreateDirectoryContext.defaults());
 
     try {
       // Create a new bucket under a non-mount-point directory should fail.
@@ -214,7 +214,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
 
     AlluxioURI uri = new AlluxioURI(AlluxioURI.SEPARATOR + bucketName);
     AlluxioURI fileUri = new AlluxioURI(uri.getPath() + "/file");
-    mFileSystemMaster.createFile(fileUri, CreateFileOptions.defaults());
+    mFileSystemMaster.createFile(fileUri, CreateFileContext.defaults());
 
     // Verify the directory is created for the new bucket, and file is created under it.
     Assert.assertFalse(mFileSystemMaster
@@ -347,17 +347,17 @@ public final class S3ClientRestApiTest extends RestApiTest {
     // - /dir1/subdir1/file3
     // - /dir2/
     AlluxioURI file1 = new AlluxioURI(uri.getPath() + "/file1");
-    mFileSystemMaster.createFile(file1, CreateFileOptions.defaults());
+    mFileSystemMaster.createFile(file1, CreateFileContext.defaults());
     AlluxioURI file2 = new AlluxioURI(uri.getPath() + "/file2");
-    mFileSystemMaster.createFile(file2, CreateFileOptions.defaults());
+    mFileSystemMaster.createFile(file2, CreateFileContext.defaults());
     AlluxioURI dir1 = new AlluxioURI(uri.getPath() + "/dir1");
-    mFileSystemMaster.createDirectory(dir1, CreateDirectoryOptions.defaults());
+    mFileSystemMaster.createDirectory(dir1, CreateDirectoryContext.defaults());
     AlluxioURI dir2 = new AlluxioURI(uri.getPath() + "/dir2");
-    mFileSystemMaster.createDirectory(dir2, CreateDirectoryOptions.defaults());
+    mFileSystemMaster.createDirectory(dir2, CreateDirectoryContext.defaults());
     AlluxioURI subdir1 = new AlluxioURI(uri.getPath() + "/dir1/subdir1");
-    mFileSystemMaster.createDirectory(subdir1, CreateDirectoryOptions.defaults());
+    mFileSystemMaster.createDirectory(subdir1, CreateDirectoryContext.defaults());
     AlluxioURI file3 = new AlluxioURI(subdir1.getPath() + "/file3");
-    mFileSystemMaster.createFile(file3, CreateFileOptions.defaults());
+    mFileSystemMaster.createFile(file3, CreateFileContext.defaults());
 
     // Expected result.
     List<URIStatus> objectsList = new ArrayList<>();
@@ -394,17 +394,17 @@ public final class S3ClientRestApiTest extends RestApiTest {
     // - /dir1/subdir1/file3
     // - /dir2/
     AlluxioURI file1 = new AlluxioURI(uri.getPath() + "/file1");
-    mFileSystemMaster.createFile(file1, CreateFileOptions.defaults());
+    mFileSystemMaster.createFile(file1, CreateFileContext.defaults());
     AlluxioURI file2 = new AlluxioURI(uri.getPath() + "/file2");
-    mFileSystemMaster.createFile(file2, CreateFileOptions.defaults());
+    mFileSystemMaster.createFile(file2, CreateFileContext.defaults());
     AlluxioURI dir1 = new AlluxioURI(uri.getPath() + "/dir1");
-    mFileSystemMaster.createDirectory(dir1, CreateDirectoryOptions.defaults());
+    mFileSystemMaster.createDirectory(dir1, CreateDirectoryContext.defaults());
     AlluxioURI dir2 = new AlluxioURI(uri.getPath() + "/dir2");
-    mFileSystemMaster.createDirectory(dir2, CreateDirectoryOptions.defaults());
+    mFileSystemMaster.createDirectory(dir2, CreateDirectoryContext.defaults());
     AlluxioURI subdir1 = new AlluxioURI(uri.getPath() + "/dir1/subdir1");
-    mFileSystemMaster.createDirectory(subdir1, CreateDirectoryOptions.defaults());
+    mFileSystemMaster.createDirectory(subdir1, CreateDirectoryContext.defaults());
     AlluxioURI file3 = new AlluxioURI(subdir1.getPath() + "/file3");
-    mFileSystemMaster.createFile(file3, CreateFileOptions.defaults());
+    mFileSystemMaster.createFile(file3, CreateFileContext.defaults());
 
     // Verify op with prefix
     final String prefix = "dir";
@@ -436,9 +436,9 @@ public final class S3ClientRestApiTest extends RestApiTest {
     // - /file1
     // - /file2
     AlluxioURI file1 = new AlluxioURI(uri.getPath() + "/file1");
-    mFileSystemMaster.createFile(file1, CreateFileOptions.defaults());
+    mFileSystemMaster.createFile(file1, CreateFileContext.defaults());
     AlluxioURI file2 = new AlluxioURI(uri.getPath() + "/file2");
-    mFileSystemMaster.createFile(file2, CreateFileOptions.defaults());
+    mFileSystemMaster.createFile(file2, CreateFileContext.defaults());
 
     // Expected result, with max-keys = 1.
     List<URIStatus> objectsList = new ArrayList<>();
@@ -471,9 +471,9 @@ public final class S3ClientRestApiTest extends RestApiTest {
     // - /file1
     // - /file2
     AlluxioURI file1 = new AlluxioURI(uri.getPath() + "/file1");
-    mFileSystemMaster.createFile(file1, CreateFileOptions.defaults());
+    mFileSystemMaster.createFile(file1, CreateFileContext.defaults());
     AlluxioURI file2 = new AlluxioURI(uri.getPath() + "/file2");
-    mFileSystemMaster.createFile(file2, CreateFileOptions.defaults());
+    mFileSystemMaster.createFile(file2, CreateFileContext.defaults());
 
     // Expected result, with max-keys = 1.
     List<URIStatus> objectsList = new ArrayList<>();
@@ -510,9 +510,9 @@ public final class S3ClientRestApiTest extends RestApiTest {
     // - /file1
     // - /file2
     AlluxioURI file1 = new AlluxioURI(uri.getPath() + "/file1");
-    mFileSystemMaster.createFile(file1, CreateFileOptions.defaults());
+    mFileSystemMaster.createFile(file1, CreateFileContext.defaults());
     AlluxioURI file2 = new AlluxioURI(uri.getPath() + "/file2");
-    mFileSystemMaster.createFile(file2, CreateFileOptions.defaults());
+    mFileSystemMaster.createFile(file2, CreateFileContext.defaults());
 
     // Expected result, with max-keys = 1.
     List<URIStatus> objectsList = new ArrayList<>();
@@ -640,7 +640,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
     AlluxioURI bucketUri = new AlluxioURI(AlluxioURI.SEPARATOR + bucketName);
     AlluxioURI fileUri = new AlluxioURI(
         bucketUri.getPath() + AlluxioURI.SEPARATOR + objectName);
-    mFileSystemMaster.createFile(fileUri, CreateFileOptions.defaults());
+    mFileSystemMaster.createFile(fileUri, CreateFileContext.defaults());
 
     // Verify the directory is created for the new bucket, and file is created under it.
     Assert.assertFalse(mFileSystemMaster
@@ -662,7 +662,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
     AlluxioURI bucketUri = new AlluxioURI(AlluxioURI.SEPARATOR + bucketName);
     AlluxioURI dirUri = new AlluxioURI(
         bucketUri.getPath() + AlluxioURI.SEPARATOR + objectName);
-    mFileSystemMaster.createDirectory(dirUri, CreateDirectoryOptions.defaults());
+    mFileSystemMaster.createDirectory(dirUri, CreateDirectoryContext.defaults());
 
     // Verify the directory is created for the new bucket, and empty-dir is created under it.
     Assert.assertFalse(mFileSystemMaster
@@ -684,10 +684,10 @@ public final class S3ClientRestApiTest extends RestApiTest {
     AlluxioURI bucketUri = new AlluxioURI(AlluxioURI.SEPARATOR + bucketName);
     AlluxioURI dirUri = new AlluxioURI(
         bucketUri.getPath() + AlluxioURI.SEPARATOR + objectName);
-    mFileSystemMaster.createDirectory(dirUri, CreateDirectoryOptions.defaults());
+    mFileSystemMaster.createDirectory(dirUri, CreateDirectoryContext.defaults());
 
     mFileSystemMaster.createFile(
-        new AlluxioURI(dirUri.getPath() + "/file"), CreateFileOptions.defaults());
+        new AlluxioURI(dirUri.getPath() + "/file"), CreateFileContext.defaults());
 
     Assert.assertFalse(mFileSystemMaster
         .listStatus(dirUri, FileSystemMasterOptions.getListStatusOptions()).isEmpty());
