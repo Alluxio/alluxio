@@ -32,8 +32,8 @@ import alluxio.util.OSUtils;
 import alluxio.util.ShellUtils;
 import alluxio.util.WaitForOptions;
 
-import org.junit.Assume;
 import org.testng.Assert;
+import org.testng.SkipException;
 import org.testng.annotations.AfterTest;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
@@ -69,7 +69,9 @@ public class FuseFileSystemIntegrationTest {
   @BeforeTest
   public void before() throws Exception {
     mFuseInstalled = AlluxioFuseUtils.isFuseInstalled();
-    Assume.assumeTrue(mFuseInstalled);
+    if (!mFuseInstalled) {
+      throw new SkipException("Fuse is not installed");
+    }
     mLocalAlluxioCluster = new LocalAlluxioCluster(1);
     // Init configuration for integration test
     mLocalAlluxioCluster.initConfiguration();
@@ -94,13 +96,13 @@ public class FuseFileSystemIntegrationTest {
     if (!waitForFuseMounted()) {
       // Fuse may not be mounted within timeout and we need to umount it
       umountFuse();
-      Assume.assumeTrue(false);
+      throw new SkipException("Fuse is not mounted within timeout");
     }
   }
 
   @AfterTest
   public void after() throws Exception {
-    if (mFuseInstalled && fuseMounted()) {
+    if (fuseMounted()) {
       umountFuse();
     }
   }
@@ -157,6 +159,12 @@ public class FuseFileSystemIntegrationTest {
     ShellUtils.execCommand("cp", localFile.getPath(), mMountPoint + testFile);
     Assert.assertTrue(mFileSystem.exists(new AlluxioURI(testFile)));
 
+    // Cp again to make sure the first cp is completed
+    String testFolder = "/cpTestFolder";
+    ShellUtils.execCommand("mkdir", mMountPoint + testFolder);
+    ShellUtils.execCommand("cp", mMountPoint + testFile, mMountPoint +testFolder + testFile);
+    Assert.assertTrue(mFileSystem.exists(new AlluxioURI(testFolder + testFile)));
+
     byte[] read = new byte[content.length()];
     try (FileInStream is = mFileSystem.openFile(new AlluxioURI(testFile),
         OpenFileOptions.defaults().setReadType(ReadType.NO_CACHE))) {
@@ -170,6 +178,9 @@ public class FuseFileSystemIntegrationTest {
     String testFile = "/ddTestFile";
     ShellUtils.execCommand("dd", "if=/dev/zero",
         "of=" + mMountPoint + testFile, "count=1024", "bs=" + Constants.MB);
+    // Open the file to make sure dd is completed
+    ShellUtils.execCommand("head", "-c", "10", mMountPoint + testFile);
+
     Assert.assertTrue(mFileSystem.exists(new AlluxioURI(testFile)));
     Assert.assertEquals(Constants.GB, mFileSystem.getStatus(new AlluxioURI(testFile)).getLength());
 
@@ -184,14 +195,14 @@ public class FuseFileSystemIntegrationTest {
     try (FileOutStream os = mFileSystem.createFile(new AlluxioURI(testFile))) {
       os.write(content.getBytes());
     }
-    String result = ShellUtils.execCommand("head", "-c", "17", mMountPoint + "/HeadTestFile");
+    String result = ShellUtils.execCommand("head", "-c", "17", mMountPoint + testFile);
     Assert.assertEquals("Alluxio Head Test\n", result);
   }
 
   @Test
   public void mkdirAndMv() throws Exception {
     String testFile = "/mvTestFile";
-    String testFolder = "/testFolder";
+    String testFolder = "/mkdirTestFolder";
     FileSystemTestUtils.createByteFile(mFileSystem, testFile, WriteType.MUST_CACHE, 10);
     ShellUtils.execCommand("mkdir", mMountPoint + testFolder);
     ShellUtils.execCommand("mv", mMountPoint + testFile,
