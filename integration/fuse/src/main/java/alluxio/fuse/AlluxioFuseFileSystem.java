@@ -63,9 +63,15 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class AlluxioFuseFileSystem extends FuseStubFS {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioFuseFileSystem.class);
-
   private static final int MAX_OPEN_FILES = Integer.MAX_VALUE;
   private static final int MAX_OPEN_WAITTIME_MS = 5000;
+  /**
+   * 4294967295 is unsigned long -1, -1 means that uid or gid is not set
+   * 4294967295 or -1 occurs when chown without user name or group name
+   * Please view https://github.com/SerCeMan/jnr-fuse/issues/67 for more details
+   */
+  private static final long ID_NOT_SET_VALUE = -1;
+  private static final long ID_NOT_SET_VALUE_UNSIGNED = 4294967295L;
 
   private static final long UID = AlluxioFuseUtils.getUid(System.getProperty("user.name"));
   private static final long GID = AlluxioFuseUtils.getGid(System.getProperty("user.name"));
@@ -153,10 +159,7 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
       final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
 
       String userName = "";
-      if (uid != -1 && uid != 4294967295L) {
-        // 4294967295 is just unsigned long -1, -1 means that uid is not set
-        // 4294967295 or -1 occurs when chown without user name or group name
-        // Please view https://github.com/SerCeMan/jnr-fuse/issues/67 for more details
+      if (uid != ID_NOT_SET_VALUE && uid != ID_NOT_SET_VALUE_UNSIGNED) {
         userName = AlluxioFuseUtils.getUserName(uid);
         if (userName.isEmpty()) {
           // This should never be reached
@@ -167,7 +170,7 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
       }
 
       String groupName = "";
-      if (gid != -1 && gid != 4294967295L) {
+      if (gid != ID_NOT_SET_VALUE && gid != ID_NOT_SET_VALUE_UNSIGNED) {
         groupName = AlluxioFuseUtils.getGroupName(gid);
         if (groupName.isEmpty()) {
           // This should never be reached
