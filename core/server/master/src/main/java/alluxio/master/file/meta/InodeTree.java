@@ -159,7 +159,7 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
       InodeDirectory root = InodeDirectory.create(mDirectoryIdGenerator.getNewDirectoryId(context),
           NO_PARENT, ROOT_INODE_NAME,
           CreateDirectoryContext
-              .defaults(CreateDirectoryPOptions.newBuilder().setMode(mode.toShort()).build())
+              .defaults(CreateDirectoryPOptions.newBuilder().setMode(mode.toShort()))
               .setOwner(owner).setGroup(group));
       root.setPersistenceState(PersistenceState.PERSISTED);
       mState.applyAndJournal(context, root);

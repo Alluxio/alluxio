@@ -218,7 +218,7 @@ public class DefaultKeyValueMaster extends AbstractMaster implements KeyValueMas
     try {
       // Create this dir
       mFileSystemMaster.createDirectory(path, CreateDirectoryContext
-          .defaults(CreateDirectoryPOptions.newBuilder().setRecursive(true).build()));
+          .defaults(CreateDirectoryPOptions.newBuilder().setRecursive(true)));
     } catch (IOException e) {
       // TODO(binfan): Investigate why {@link FileSystemMaster#createDirectory} throws IOException
       throw new InvalidPathException(

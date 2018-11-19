@@ -12,22 +12,23 @@ public class SetAclContext extends OperationContext<SetAclPOptions.Builder> {
   /**
    * Creates context with given option data.
    *
-   * @param options options
+   * @param optionsBuilder options builder
    */
-  private SetAclContext(SetAclPOptions options) {
-    super(options.toBuilder());
+  private SetAclContext(SetAclPOptions.Builder optionsBuilder) {
+    super(optionsBuilder);
   }
 
   /**
    * Merges and embeds the given {@link SetAclPOptions} with the corresponding master options.
    *
-   * @param options Proto {@link SetAclPOptions} to embed
+   * @param optionsBuilder Builder for proto {@link SetAclPOptions} to embed
    * @return the instance of {@link SetAclContext} with default values for master
    */
-  public static SetAclContext defaults(SetAclPOptions options) {
+  public static SetAclContext defaults(SetAclPOptions.Builder optionsBuilder) {
     SetAclPOptions masterOptions = FileSystemMasterOptions.getSetAclOptions();
-    SetAclPOptions mergedOptions = masterOptions.toBuilder().mergeFrom(options).build();
-    return new SetAclContext(mergedOptions);
+    SetAclPOptions.Builder mergedOptionsBuilder =
+        masterOptions.toBuilder().mergeFrom(optionsBuilder.build());
+    return new SetAclContext(mergedOptionsBuilder);
   }
 
   /**
@@ -35,6 +36,6 @@ public class SetAclContext extends OperationContext<SetAclPOptions.Builder> {
    */
   public static SetAclContext defaults() {
     SetAclPOptions masterOptions = FileSystemMasterOptions.getSetAclOptions();
-    return new SetAclContext(masterOptions);
+    return new SetAclContext(masterOptions.toBuilder());
   }
 }

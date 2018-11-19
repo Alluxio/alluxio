@@ -35,16 +35,13 @@ public final class TtlBucketListTest {
   private static final long BUCKET2_END =  BUCKET2_START + BUCKET_INTERVAL;
   private static final InodeFile BUCKET1_FILE1 = InodeFile.create(0, 0, "ignored", 0,
       CreateFileContext.defaults(CreateFilePOptions.newBuilder()
-          .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setTtl(BUCKET1_START))
-          .build()));
+          .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setTtl(BUCKET1_START))));
   private static final InodeFile BUCKET1_FILE2 = InodeFile.create(1, 0, "ignored", 0,
       CreateFileContext.defaults(CreateFilePOptions.newBuilder()
-          .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setTtl(BUCKET1_END - 1))
-          .build()));
+          .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setTtl(BUCKET1_END - 1))));
   private static final InodeFile BUCKET2_FILE = InodeFile.create(2, 0, "ignored", 0,
       CreateFileContext.defaults(CreateFilePOptions.newBuilder()
-          .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setTtl(BUCKET2_START))
-          .build()));
+          .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setTtl(BUCKET2_START))));
 
   private TtlBucketList mBucketList;
 

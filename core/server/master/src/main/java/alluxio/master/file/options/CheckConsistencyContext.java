@@ -12,23 +12,24 @@ public class CheckConsistencyContext extends OperationContext<CheckConsistencyPO
   /**
    * Creates context with given option data.
    *
-   * @param options options
+   * @param optionsBuilder options builder
    */
-  private CheckConsistencyContext(CheckConsistencyPOptions options) {
-    super(options.toBuilder());
+  private CheckConsistencyContext(CheckConsistencyPOptions.Builder optionsBuilder) {
+    super(optionsBuilder);
   }
 
   /**
    * Merges and embeds the given {@link CheckConsistencyPOptions} with the corresponding master
    * options.
    *
-   * @param options Proto {@link CheckConsistencyPOptions} to embed
+   * @param optionsBuilder Builder for proto {@link CheckConsistencyPOptions} to embed
    * @return the instance of {@link CheckConsistencyContext} with default values for master
    */
-  public static CheckConsistencyContext defaults(CheckConsistencyPOptions options) {
+  public static CheckConsistencyContext defaults(CheckConsistencyPOptions.Builder optionsBuilder) {
     CheckConsistencyPOptions masterOptions = FileSystemMasterOptions.getCheckConsistencyOptions();
-    CheckConsistencyPOptions mergedOptions = masterOptions.toBuilder().mergeFrom(options).build();
-    return new CheckConsistencyContext(mergedOptions);
+    CheckConsistencyPOptions.Builder mergedOptionsBuilder =
+        masterOptions.toBuilder().mergeFrom(optionsBuilder.build());
+    return new CheckConsistencyContext(mergedOptionsBuilder);
   }
 
   /**
@@ -36,6 +37,6 @@ public class CheckConsistencyContext extends OperationContext<CheckConsistencyPO
    */
   public static CheckConsistencyContext defaults() {
     CheckConsistencyPOptions masterOptions = FileSystemMasterOptions.getCheckConsistencyOptions();
-    return new CheckConsistencyContext(masterOptions);
+    return new CheckConsistencyContext(masterOptions.toBuilder());
   }
 }

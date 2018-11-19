@@ -1,7 +1,7 @@
 /*
- * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the "License"). You may not use this work except in compliance with the License, which is
- * available at www.apache.org/licenses/LICENSE-2.0
+ * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0 (the
+ * "License"). You may not use this work except in compliance with the License, which is available
+ * at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
  * either express or implied, as more fully set forth in the License.
@@ -19,53 +19,59 @@ import alluxio.master.file.FileSystemMasterOptions;
  */
 public class RenameContext extends OperationContext<RenamePOptions.Builder> {
 
-    private long mOperationTimeMs;
+  private long mOperationTimeMs;
 
-    // Prevent instantiation
-    private RenameContext(){super(null);};
+  // Prevent instantiation
+  private RenameContext() {
+    super(null);
+  };
 
-    /**
-     * Merges and embeds the given {@link RenamePOptions} with the corresponding master options.
-     * @param options Proto {@link RenamePOptions} to embed
-     * @return the instance of {@link RenameContext} with default values for master
-     */
-    public static RenameContext defaults(RenamePOptions options){
-        RenamePOptions masterOptions = FileSystemMasterOptions.getRenameOptions();
-        RenamePOptions mergedOptions = masterOptions.toBuilder().mergeFrom(options).build();
-        return new RenameContext(mergedOptions);
-    }
+  /**
+   * Creates rename context with given option data.
+   *
+   * @param optionsBuilder options builder
+   */
+  private RenameContext(RenamePOptions.Builder optionsBuilder) {
+    super(optionsBuilder);
+    mOperationTimeMs = System.currentTimeMillis();
+  }
 
-    /**
-     * @return the instance of {@link RenameContext} with default values for master
-     */
-    public static RenameContext defaults() {
-        RenamePOptions masterOptions = FileSystemMasterOptions.getRenameOptions();
-        return new RenameContext(masterOptions);
-    }
+  /**
+   * Merges and embeds the given {@link RenamePOptions} with the corresponding master options.
+   *
+   * @param optionsBuilder Builder for proto {@link RenamePOptions} to embed
+   * @return the instance of {@link RenameContext} with default values for master
+   */
+  public static RenameContext defaults(RenamePOptions.Builder optionsBuilder) {
+    RenamePOptions masterOptions = FileSystemMasterOptions.getRenameOptions();
+    RenamePOptions.Builder mergedOptionsBuilder =
+        masterOptions.toBuilder().mergeFrom(optionsBuilder.build());
+    return new RenameContext(mergedOptionsBuilder);
+  }
 
-    /**
-     * Creates rename context with given option data.
-     * @param options rename options
-     */
-    private RenameContext(RenamePOptions options) {
-        super(options.toBuilder());
-        mOperationTimeMs = System.currentTimeMillis();
-    }
+  /**
+   * @return the instance of {@link RenameContext} with default values for master
+   */
+  public static RenameContext defaults() {
+    RenamePOptions masterOptions = FileSystemMasterOptions.getRenameOptions();
+    return new RenameContext(masterOptions.toBuilder());
+  }
 
-    /**
-     * Sets operation time.
-     * @param operationTimeMs operation system time in ms
-     * @return the updated context instance
-     */
-    public RenameContext setOperationTimeMs(long operationTimeMs) {
-        mOperationTimeMs = operationTimeMs;
-        return this;
-    }
+  /**
+   * @return the operation system time in ms
+   */
+  public long getOperationTimeMs() {
+    return mOperationTimeMs;
+  }
 
-    /**
-     * @return the operation system time in ms
-     */
-    public long getOperationTimeMs() {
-        return mOperationTimeMs;
-    }
+  /**
+   * Sets operation time.
+   *
+   * @param operationTimeMs operation system time in ms
+   * @return the updated context instance
+   */
+  public RenameContext setOperationTimeMs(long operationTimeMs) {
+    mOperationTimeMs = operationTimeMs;
+    return this;
+  }
 }

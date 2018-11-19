@@ -2230,9 +2230,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
               throw new UnexpectedAlluxioException(ExceptionMessage.CANNOT_FREE_PINNED_FILE
                   .getMessage(mInodeTree.getPath(freeInode)));
             }
-            setAttributeSingleFile(rpcContext, descedant, true, opTimeMs,
-                SetAttributeContext.defaults(SetAttributePOptions.newBuilder().setRecursive(false)
-                    .setPinned(false).build()));
+            setAttributeSingleFile(rpcContext, descedant, true, opTimeMs, SetAttributeContext
+                .defaults(SetAttributePOptions.newBuilder().setRecursive(false).setPinned(false)));
           }
           // Remove corresponding blocks from workers.
           mBlockMaster.removeBlocks(((InodeFileView) freeInode).getBlockIds(), false /* delete */);
@@ -2479,9 +2478,9 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
     try {
       createFileInternal(rpcContext, inodePath, createFileContext);
-      
-      CompleteFileContext completeCtx = CompleteFileContext
-              .defaults(CompleteFilePOptions.newBuilder().setUfsLength(ufsLength).build())
+
+      CompleteFileContext completeCtx =
+          CompleteFileContext.defaults(CompleteFilePOptions.newBuilder().setUfsLength(ufsLength))
               .setUfsStatus(ufsStatus);
       if (ufsLastModified != null) {
         completeCtx.setOperationTimeMs(ufsLastModified);
@@ -3272,7 +3271,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
           // use replayed, since updating UFS is not desired.
           setAttributeSingleFile(rpcContext, inodePath, false, opTimeMs, SetAttributeContext
               .defaults(SetAttributePOptions.newBuilder().setOwner(ufsFpParsed.getTag(Tag.OWNER))
-                  .setGroup(ufsFpParsed.getTag(Tag.GROUP)).setMode(mode).build())
+                  .setGroup(ufsFpParsed.getTag(Tag.GROUP)).setMode(mode))
               .setUfsFingerprint(ufsFingerprint));
         }
       }
@@ -3351,7 +3350,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         // Permission checking for each file is performed inside setAttribute
         setAttribute(getPath(fileId),
             SetAttributeContext
-                .defaults(SetAttributePOptions.newBuilder().setPersisted(true).build())
+                .defaults(SetAttributePOptions.newBuilder().setPersisted(true))
                 .setUfsFingerprint(ufsFingerprint));
       } catch (FileDoesNotExistException | AccessControlException | InvalidPathException e) {
         LOG.error("Failed to set file {} as persisted, because {}", fileId, e);

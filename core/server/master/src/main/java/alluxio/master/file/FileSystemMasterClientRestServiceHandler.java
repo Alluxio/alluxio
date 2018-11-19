@@ -456,7 +456,7 @@ public final class FileSystemMasterClientRestServiceHandler {
           optionsBuilder.setRecursive(recursive);
         }
         mFileSystemMaster.setAttribute(new AlluxioURI(path),
-            SetAttributeContext.defaults(optionsBuilder.build()));
+            SetAttributeContext.defaults(optionsBuilder));
         return null;
       }
     });

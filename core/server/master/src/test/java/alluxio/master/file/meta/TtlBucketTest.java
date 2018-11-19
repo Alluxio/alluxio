@@ -80,10 +80,10 @@ public class TtlBucketTest {
   public void addAndRemoveInodeFile() {
     InodeFile mFileTtl1 = InodeFile.create(0, 0, "test1", 0,
         CreateFileContext.defaults(CreateFilePOptions.newBuilder()
-            .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setTtl(1)).build()));
+            .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setTtl(1))));
     InodeFile mFileTtl2 = InodeFile.create(1, 0, "test1", 0,
         CreateFileContext.defaults(CreateFilePOptions.newBuilder()
-            .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setTtl(2)).build()));
+            .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setTtl(2))));
     Assert.assertTrue(mBucket.getInodes().isEmpty());
 
     mBucket.addInode(mFileTtl1);
@@ -111,12 +111,12 @@ public class TtlBucketTest {
    */
   @Test
   public void addAndRemoveInodeDirectory() {
-    InodeDirectory mDirectoryTtl1 = InodeDirectory.create(0, 0, "test1",
-        CreateDirectoryContext.defaults(CreateDirectoryPOptions.newBuilder()
-            .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setTtl(1)).build()));
-    InodeDirectory mDirectoryTtl2 = InodeDirectory.create(1, 0, "test1",
-        CreateDirectoryContext.defaults(CreateDirectoryPOptions.newBuilder()
-            .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setTtl(2)).build()));
+    InodeDirectory mDirectoryTtl1 =
+        InodeDirectory.create(0, 0, "test1", CreateDirectoryContext.defaults(CreateDirectoryPOptions
+            .newBuilder().setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setTtl(1))));
+    InodeDirectory mDirectoryTtl2 =
+        InodeDirectory.create(1, 0, "test1", CreateDirectoryContext.defaults(CreateDirectoryPOptions
+            .newBuilder().setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setTtl(2))));
     Assert.assertTrue(mBucket.getInodes().isEmpty());
 
     mBucket.addInode(mDirectoryTtl1);

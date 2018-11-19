@@ -112,7 +112,7 @@ public final class ReplicationCheckerTest {
   private MockHandler mMockReplicationHandler;
   private CreateFileContext mFileContext =
       CreateFileContext.defaults(CreateFilePOptions.newBuilder().setBlockSizeBytes(Constants.KB)
-          .setMode(TEST_MODE.toShort()).build()).setOwner(TEST_OWNER).setGroup(TEST_GROUP);
+          .setMode(TEST_MODE.toShort())).setOwner(TEST_OWNER).setGroup(TEST_GROUP);
   private Set<Long> mKnownWorkers = Sets.newHashSet();
 
   /** Rule to create a new temporary folder during each test. */

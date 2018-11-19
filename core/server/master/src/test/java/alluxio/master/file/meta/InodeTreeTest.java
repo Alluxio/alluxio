@@ -139,18 +139,18 @@ public final class InodeTreeTest {
     sFileContext =
         CreateFileContext
             .defaults(CreateFilePOptions.newBuilder().setBlockSizeBytes(Constants.KB)
-                .setMode(TEST_FILE_MODE.toShort()).build())
+                .setMode(TEST_FILE_MODE.toShort()))
             .setOwner(TEST_OWNER).setGroup(TEST_GROUP);
     sDirectoryContext = CreateDirectoryContext
-        .defaults(CreateDirectoryPOptions.newBuilder().setMode(TEST_DIR_MODE.toShort()).build())
+        .defaults(CreateDirectoryPOptions.newBuilder().setMode(TEST_DIR_MODE.toShort()))
         .setOwner(TEST_OWNER).setGroup(TEST_GROUP);
     sNestedFileContext = CreateFileContext
         .defaults(CreateFilePOptions.newBuilder().setBlockSizeBytes(Constants.KB)
-            .setMode(TEST_FILE_MODE.toShort()).setRecursive(true).build())
+            .setMode(TEST_FILE_MODE.toShort()).setRecursive(true))
         .setOwner(TEST_OWNER).setGroup(TEST_GROUP);
-    sNestedDirectoryContext = CreateDirectoryContext.defaults(CreateDirectoryPOptions.newBuilder()
-        .setMode(TEST_DIR_MODE.toShort()).setRecursive(true).build()).setOwner(TEST_OWNER)
-        .setGroup(TEST_GROUP);
+    sNestedDirectoryContext = CreateDirectoryContext.defaults(
+        CreateDirectoryPOptions.newBuilder().setMode(TEST_DIR_MODE.toShort()).setRecursive(true))
+        .setOwner(TEST_OWNER).setGroup(TEST_GROUP);
   }
 
   /**
@@ -205,13 +205,13 @@ public final class InodeTreeTest {
 
     // create again with allowExists true
     createPath(mTree, TEST_URI, CreateDirectoryContext
-        .defaults(CreateDirectoryPOptions.newBuilder().setAllowExist(true).build()));
+        .defaults(CreateDirectoryPOptions.newBuilder().setAllowExist(true)));
 
     // create again with allowExists false
     mThrown.expect(FileAlreadyExistsException.class);
     mThrown.expectMessage(ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(TEST_URI));
     createPath(mTree, TEST_URI, CreateDirectoryContext
-        .defaults(CreateDirectoryPOptions.newBuilder().setAllowExist(false).build()));
+        .defaults(CreateDirectoryPOptions.newBuilder().setAllowExist(false)));
   }
 
   /**
@@ -257,10 +257,8 @@ public final class InodeTreeTest {
    */
   @Test
   public void createPathNonExtendedAclTest() throws Exception {
-    CreateDirectoryContext dirContext =
-        CreateDirectoryContext
-            .defaults(CreateDirectoryPOptions.newBuilder().setRecursive(true)
-                .setMode(TEST_DIR_MODE.toShort()).build())
+    CreateDirectoryContext dirContext = CreateDirectoryContext.defaults(
+        CreateDirectoryPOptions.newBuilder().setRecursive(true).setMode(TEST_DIR_MODE.toShort()))
             .setOwner(TEST_OWNER).setGroup(TEST_GROUP);
     // create nested directory
     InodeTree.CreatePathResult createResult = createPath(mTree, NESTED_URI, dirContext);
@@ -319,11 +317,9 @@ public final class InodeTreeTest {
    */
   @Test
   public void createPathExtendedAclTest() throws Exception {
-    CreateDirectoryContext dirContext =
-        CreateDirectoryContext
-            .defaults(CreateDirectoryPOptions.newBuilder().setRecursive(true)
-                .setMode(TEST_DIR_MODE.toShort()).build())
-            .setOwner(TEST_OWNER).setGroup(TEST_GROUP);
+    CreateDirectoryContext dirContext = CreateDirectoryContext.defaults(
+        CreateDirectoryPOptions.newBuilder().setRecursive(true).setMode(TEST_DIR_MODE.toShort()))
+        .setOwner(TEST_OWNER).setGroup(TEST_GROUP);
     // create nested directory /nested/test
     InodeTree.CreatePathResult createResult = createPath(mTree, NESTED_URI, dirContext);
     List<InodeView> created = createResult.getCreated();
@@ -350,11 +346,10 @@ public final class InodeTreeTest {
     assertEquals(childAcl.toStringEntries().stream().map(AclEntry::toDefault)
         .collect(Collectors.toList()), dAcl.toStringEntries());
     // create nested file
-    CreateFileContext fileContext =
-        CreateFileContext
-            .defaults(CreateFilePOptions.newBuilder().setRecursive(true)
-                .setMode(TEST_FILE_MODE.toShort()).build())
-            .setOwner(TEST_OWNER).setGroup(TEST_GROUP);
+    CreateFileContext fileContext = CreateFileContext
+        .defaults(
+            CreateFilePOptions.newBuilder().setRecursive(true).setMode(TEST_FILE_MODE.toShort()))
+        .setOwner(TEST_OWNER).setGroup(TEST_GROUP);
     createResult = createPath(mTree, NESTED_FILE_URI, fileContext);
     created = createResult.getCreated();
     // the new file should have the same ACL as its parent's default ACL
@@ -384,10 +379,8 @@ public final class InodeTreeTest {
     CommonUtils.sleepMs(10);
 
     // Need to use updated options to set the correct last mod time.
-    CreateDirectoryContext dirContext =
-        CreateDirectoryContext
-            .defaults(CreateDirectoryPOptions.newBuilder().setRecursive(true)
-                .setMode(TEST_DIR_MODE.toShort()).build())
+    CreateDirectoryContext dirContext = CreateDirectoryContext.defaults(
+        CreateDirectoryPOptions.newBuilder().setRecursive(true).setMode(TEST_DIR_MODE.toShort()))
             .setOwner(TEST_OWNER).setGroup(TEST_GROUP);
 
     // create nested directory
@@ -419,7 +412,7 @@ public final class InodeTreeTest {
 
     // create a file
     CreateFileContext context = CreateFileContext.defaults(
-        CreateFilePOptions.newBuilder().setBlockSizeBytes(Constants.KB).setRecursive(true).build());
+        CreateFilePOptions.newBuilder().setBlockSizeBytes(Constants.KB).setRecursive(true));
     createResult = createPath(mTree, NESTED_FILE_URI, context);
     modified = createResult.getModified();
     created = createResult.getCreated();
@@ -453,7 +446,7 @@ public final class InodeTreeTest {
     mThrown.expectMessage("Invalid block size 0");
 
     CreateFileContext context =
-        CreateFileContext.defaults(CreateFilePOptions.newBuilder().setBlockSizeBytes(0).build());
+        CreateFileContext.defaults(CreateFilePOptions.newBuilder().setBlockSizeBytes(0));
     createPath(mTree, TEST_URI, context);
   }
 
@@ -466,7 +459,7 @@ public final class InodeTreeTest {
     mThrown.expectMessage("Invalid block size -1");
 
     CreateFileContext context =
-        CreateFileContext.defaults(CreateFilePOptions.newBuilder().setBlockSizeBytes(-1).build());
+        CreateFileContext.defaults(CreateFilePOptions.newBuilder().setBlockSizeBytes(-1));
     createPath(mTree, TEST_URI, context);
   }
 

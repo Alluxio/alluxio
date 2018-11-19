@@ -167,15 +167,15 @@ public final class PermissionCheckerTest {
   public static void beforeClass() throws Exception {
     sFileContext = CreateFileContext
         .defaults(CreateFilePOptions.newBuilder().setBlockSizeBytes(Constants.KB)
-            .setMode(TEST_NORMAL_MODE.toShort()).build())
+            .setMode(TEST_NORMAL_MODE.toShort()))
         .setOwner(TEST_USER_2.getUser()).setGroup(TEST_USER_2.getGroup());
     sWeirdFileContext = CreateFileContext
         .defaults(CreateFilePOptions.newBuilder().setBlockSizeBytes(Constants.KB)
-            .setMode(TEST_WEIRD_MODE.toShort()).build())
+            .setMode(TEST_WEIRD_MODE.toShort()))
         .setOwner(TEST_USER_1.getUser()).setGroup(TEST_USER_1.getGroup());
     sNestedFileContext = CreateFileContext
         .defaults(CreateFilePOptions.newBuilder().setBlockSizeBytes(Constants.KB)
-            .setMode(TEST_NORMAL_MODE.toShort()).build())
+            .setMode(TEST_NORMAL_MODE.toShort()))
         .setOwner(TEST_USER_1.getUser()).setGroup(TEST_USER_1.getGroup());
 
     // setup an InodeTree

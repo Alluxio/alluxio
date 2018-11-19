@@ -229,7 +229,7 @@ public final class PermissionCheckTest {
     // create "/testDir" for user1
     try (Closeable r = new AuthenticatedUserRule(TEST_USER_ADMIN.getUser()).toResource()) {
       mFileSystemMaster.createDirectory(new AlluxioURI("/testDir"), CreateDirectoryContext
-          .defaults(CreateDirectoryPOptions.newBuilder().setMode(TEST_DIR_MODE.toShort()).build())
+          .defaults(CreateDirectoryPOptions.newBuilder().setMode(TEST_DIR_MODE.toShort()))
           .setOwner(TEST_USER_1.getUser()).setGroup(TEST_USER_1.getGroup()));
     }
 
@@ -238,7 +238,7 @@ public final class PermissionCheckTest {
       mFileSystemMaster.createFile(new AlluxioURI("/testDir/file"),
           CreateFileContext
               .defaults(CreateFilePOptions.newBuilder().setBlockSizeBytes(Constants.KB)
-                  .setMode(TEST_FILE_MODE.toShort()).build())
+                  .setMode(TEST_FILE_MODE.toShort()))
               .setOwner(TEST_USER_1.getUser()).setGroup(TEST_USER_1.getGroup()));
     }
 
@@ -247,7 +247,7 @@ public final class PermissionCheckTest {
       mFileSystemMaster.createFile(new AlluxioURI("/testFile"),
           CreateFileContext
               .defaults(CreateFilePOptions.newBuilder().setBlockSizeBytes(Constants.KB)
-                  .setMode(TEST_FILE_MODE.toShort()).build())
+                  .setMode(TEST_FILE_MODE.toShort()))
               .setOwner(TEST_USER_2.getUser()).setGroup(TEST_USER_2.getGroup()));
     }
   }
@@ -255,7 +255,7 @@ public final class PermissionCheckTest {
   private InodeDirectory getRootInode() {
     return InodeDirectory.create(0, -1, "",
         CreateDirectoryContext
-            .defaults(CreateDirectoryPOptions.newBuilder().setMode(TEST_DIR_MODE.toShort()).build())
+            .defaults(CreateDirectoryPOptions.newBuilder().setMode(TEST_DIR_MODE.toShort()))
             .setOwner(TEST_USER_ADMIN.getUser()).setGroup(TEST_USER_ADMIN.getGroup()));
   }
 
@@ -343,7 +343,7 @@ public final class PermissionCheckTest {
     try (Closeable r = new AuthenticatedUserRule(user.getUser()).toResource()) {
       CreateFileContext context = CreateFileContext
           .defaults(
-              CreateFilePOptions.newBuilder().setRecursive(recursive).setPersisted(true).build())
+              CreateFilePOptions.newBuilder().setRecursive(recursive).setPersisted(true))
           .setOwner(SecurityUtils.getOwnerFromThriftClient())
           .setGroup(SecurityUtils.getGroupFromThriftClient());
 
@@ -399,7 +399,7 @@ public final class PermissionCheckTest {
       throws Exception {
     try (Closeable r = new AuthenticatedUserRule(user.getUser()).toResource()) {
       CreateDirectoryContext context = CreateDirectoryContext
-          .defaults(CreateDirectoryPOptions.newBuilder().setRecursive(recursive).build())
+          .defaults(CreateDirectoryPOptions.newBuilder().setRecursive(recursive))
           .setOwner(SecurityUtils.getOwnerFromThriftClient())
           .setGroup(SecurityUtils.getGroupFromThriftClient());
       mFileSystemMaster.createDirectory(new AlluxioURI(path), context);
@@ -734,7 +734,8 @@ public final class PermissionCheckTest {
   private SetAttributePOptions verifySetState(TestUser user, String path,
       SetAttributePOptions options) throws Exception {
     try (Closeable r = new AuthenticatedUserRule(user.getUser()).toResource()) {
-      mFileSystemMaster.setAttribute(new AlluxioURI(path), SetAttributeContext.defaults(options));
+      mFileSystemMaster.setAttribute(new AlluxioURI(path),
+          SetAttributeContext.defaults(options.toBuilder()));
 
       FileInfo fileInfo = mFileSystemMaster.getFileInfo(new AlluxioURI(path),
           FileSystemMasterOptions.getGetStatusOptions());
@@ -776,7 +777,7 @@ public final class PermissionCheckTest {
     long ufsLength = 12;
     long operationTimeMs = 21;
 
-    return CompleteFileContext.defaults(CompleteFilePOptions.newBuilder().setUfsLength(ufsLength).build())
+    return CompleteFileContext.defaults(CompleteFilePOptions.newBuilder().setUfsLength(ufsLength))
         .setOperationTimeMs(operationTimeMs);
   }
 
@@ -940,9 +941,9 @@ public final class PermissionCheckTest {
   private void verifySetAcl(TestUser runUser, String path, String owner, String group,
       short mode, boolean recursive) throws Exception {
     try (Closeable r = new AuthenticatedUserRule(runUser.getUser()).toResource()) {
-      SetAttributePOptions options = SetAttributePOptions.newBuilder().setOwner(owner)
-          .setGroup(group).setMode(mode).setRecursive(recursive).build();
-      mFileSystemMaster.setAttribute(new AlluxioURI(path), SetAttributeContext.defaults(options));
+      mFileSystemMaster.setAttribute(new AlluxioURI(path),
+          SetAttributeContext.defaults(SetAttributePOptions.newBuilder().setOwner(owner)
+              .setGroup(group).setMode(mode).setRecursive(recursive)));
     }
     try (Closeable r = new AuthenticatedUserRule(TEST_USER_ADMIN.getUser()).toResource()) {
       FileInfo fileInfo =
@@ -984,13 +985,13 @@ public final class PermissionCheckTest {
       if (i == permissions.size() - 1) {
         Inode<?> inode = InodeFile.create(i + 1, i, (i + 1) + "", CommonUtils.getCurrentMs(),
             CreateFileContext.defaults(CreateFilePOptions.newBuilder()
-                .setBlockSizeBytes(Constants.KB).setMode(mode.toShort()).build()).setOwner(owner)
+                .setBlockSizeBytes(Constants.KB).setMode(mode.toShort())).setOwner(owner)
                 .setGroup(group));
         lockList.lockRead(inode);
       } else {
         Inode<?> inode = InodeDirectory.create(i + 1, i, (i + 1) + "",
             CreateDirectoryContext
-                .defaults(CreateDirectoryPOptions.newBuilder().setMode(mode.toShort()).build())
+                .defaults(CreateDirectoryPOptions.newBuilder().setMode(mode.toShort()))
                 .setOwner(owner).setGroup(group));
         lockList.lockRead(inode);
       }

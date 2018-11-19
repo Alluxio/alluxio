@@ -319,10 +319,10 @@ public final class PersistenceTest {
     // Create src file and directory, checking the internal state.
     AlluxioURI alluxioDirSrc = new AlluxioURI("/src");
     mFileSystemMaster.createDirectory(alluxioDirSrc, CreateDirectoryContext
-        .defaults(CreateDirectoryPOptions.newBuilder().setPersisted(true).build()));
+        .defaults(CreateDirectoryPOptions.newBuilder().setPersisted(true)));
     AlluxioURI alluxioFileSrc = new AlluxioURI("/src/in_alluxio");
     long fileId = mFileSystemMaster.createFile(alluxioFileSrc,
-        CreateFileContext.defaults(CreateFilePOptions.newBuilder().setPersisted(true).build()));
+        CreateFileContext.defaults(CreateFilePOptions.newBuilder().setPersisted(true)));
     Assert.assertEquals(PersistenceState.NOT_PERSISTED.toString(),
         mFileSystemMaster.getFileInfo(fileId).getPersistenceState());
 
@@ -364,7 +364,7 @@ public final class PersistenceTest {
 
     // Rename the src file before the persist is commited.
     mFileSystemMaster.createDirectory(new AlluxioURI("/dst"), CreateDirectoryContext
-        .defaults(CreateDirectoryPOptions.newBuilder().setPersisted(true).build()));
+        .defaults(CreateDirectoryPOptions.newBuilder().setPersisted(true)));
     AlluxioURI alluxioFileDst = new AlluxioURI("/dst/in_alluxio");
     mFileSystemMaster.rename(alluxioFileSrc, alluxioFileDst, RenameContext.defaults());
 
@@ -458,7 +458,7 @@ public final class PersistenceTest {
     mFileSystemMaster.createFile(path,
         CreateFileContext
             .defaults(
-                CreateFilePOptions.newBuilder().setMode(Mode.createFullAccess().toShort()).build())
+                CreateFilePOptions.newBuilder().setMode(Mode.createFullAccess().toShort()))
             .setOwner(owner).setGroup(group));
     mFileSystemMaster.completeFile(path, CompleteFileContext.defaults());
     return path;
