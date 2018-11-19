@@ -15,12 +15,11 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.grpc.CreateFilePOptions;
-import alluxio.grpc.GetStatusPOptions;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.FileSystemMasterClientRestServiceHandler;
-import alluxio.master.file.FileSystemMasterOptions;
 import alluxio.master.file.options.CompleteFileContext;
 import alluxio.master.file.options.CreateFileContext;
+import alluxio.master.file.options.GetStatusContext;
 import alluxio.master.file.options.ListStatusContext;
 import alluxio.master.file.options.MountContext;
 import alluxio.wire.FileInfo;
@@ -45,7 +44,7 @@ import javax.ws.rs.HttpMethod;
  * Test cases for {@link FileSystemMasterClientRestServiceHandler}.
  */
 public final class FileSystemMasterClientRestApiTest extends RestApiTest {
-  private static final GetStatusPOptions GET_STATUS_OPTIONS = FileSystemMasterOptions.getGetStatusOptions();
+  private static final GetStatusContext GET_STATUS_CONTEXT = GetStatusContext.defaults();
 
   private FileSystemMaster mFileSystemMaster;
 
@@ -117,7 +116,7 @@ public final class FileSystemMasterClientRestApiTest extends RestApiTest {
     new TestCase(mHostname, mPort,
         getEndpoint(FileSystemMasterClientRestServiceHandler.CREATE_FILE), params, HttpMethod.POST,
         null).run();
-    Assert.assertFalse(mFileSystemMaster.getFileInfo(uri, GET_STATUS_OPTIONS).isCompleted());
+    Assert.assertFalse(mFileSystemMaster.getFileInfo(uri, GET_STATUS_CONTEXT).isCompleted());
   }
 
   @Test
@@ -209,7 +208,7 @@ public final class FileSystemMasterClientRestApiTest extends RestApiTest {
         params, "POST", null).run();
 
     try {
-      mFileSystemMaster.getFileInfo(uri, GET_STATUS_OPTIONS);
+      mFileSystemMaster.getFileInfo(uri, GET_STATUS_CONTEXT);
       Assert.fail("file should have been removed");
     } catch (FileDoesNotExistException e) {
       // Expected
@@ -230,12 +229,12 @@ public final class FileSystemMasterClientRestApiTest extends RestApiTest {
         params, HttpMethod.POST, null).run();
 
     try {
-      mFileSystemMaster.getFileInfo(uri1, GET_STATUS_OPTIONS);
+      mFileSystemMaster.getFileInfo(uri1, GET_STATUS_CONTEXT);
       Assert.fail("file should have been removed");
     } catch (FileDoesNotExistException e) {
       // Expected
     }
-    mFileSystemMaster.getFileInfo(uri2, GET_STATUS_OPTIONS);
+    mFileSystemMaster.getFileInfo(uri2, GET_STATUS_CONTEXT);
   }
 
   @Test
@@ -270,7 +269,7 @@ public final class FileSystemMasterClientRestApiTest extends RestApiTest {
         getEndpoint(FileSystemMasterClientRestServiceHandler.SET_ATTRIBUTE), params,
         HttpMethod.POST, null).run();
 
-    FileInfo fileInfo = mFileSystemMaster.getFileInfo(uri, GET_STATUS_OPTIONS);
+    FileInfo fileInfo = mFileSystemMaster.getFileInfo(uri, GET_STATUS_CONTEXT);
     Assert.assertEquals(uri.toString(), fileInfo.getPath());
     Assert.assertTrue(fileInfo.isPinned());
     Assert.assertEquals(100000, fileInfo.getTtl());

@@ -67,6 +67,7 @@ import alluxio.master.file.options.CreateDirectoryContext;
 import alluxio.master.file.options.CreateFileContext;
 import alluxio.master.file.options.DeleteContext;
 import alluxio.master.file.options.FreeContext;
+import alluxio.master.file.options.GetStatusContext;
 import alluxio.master.file.options.ListStatusContext;
 import alluxio.master.file.options.MountContext;
 import alluxio.master.file.options.RenameContext;
@@ -190,8 +191,7 @@ public final class FileSystemMasterClientServiceHandler
         (RpcUtilsNew.RpcCallableThrowsIOException<GetStatusPResponse>) () -> GetStatusPResponse
             .newBuilder()
             .setFileInfo(GrpcUtils.toProto(mFileSystemMaster.getFileInfo(new AlluxioURI(path),
-                FileSystemMasterOptions.getGetStatusOptions().toBuilder().mergeFrom(options)
-                    .build())))
+                GetStatusContext.defaults(options.toBuilder()))))
             .build(),
         "GetStatus", true, "path=%s, options=%s", responseObserver, path, options);
   }

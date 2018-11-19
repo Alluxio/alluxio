@@ -41,7 +41,6 @@ import alluxio.file.options.WorkerHeartbeatOptions;
 import alluxio.grpc.CompleteFilePOptions;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
-import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.LoadDescendantPType;
 import alluxio.grpc.LoadMetadataPOptions;
 import alluxio.grpc.LoadMetadataPType;
@@ -81,6 +80,7 @@ import alluxio.master.file.options.CreateDirectoryContext;
 import alluxio.master.file.options.CreateFileContext;
 import alluxio.master.file.options.DeleteContext;
 import alluxio.master.file.options.FreeContext;
+import alluxio.master.file.options.GetStatusContext;
 import alluxio.master.file.options.ListStatusContext;
 import alluxio.master.file.options.LoadMetadataContext;
 import alluxio.master.file.options.MountContext;
@@ -785,11 +785,11 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   }
 
   @Override
-  public FileInfo getFileInfo(AlluxioURI path, GetStatusPOptions options)
+  public FileInfo getFileInfo(AlluxioURI path, GetStatusContext context)
       throws FileDoesNotExistException, InvalidPathException, AccessControlException, IOException {
     Metrics.GET_FILE_INFO_OPS.inc();
     LockingScheme lockingScheme =
-        createLockingScheme(path, options.getCommonOptions(), InodeTree.LockMode.READ);
+        createLockingScheme(path, context.getOptions().getCommonOptions(), InodeTree.LockMode.READ);
     try (RpcContext rpcContext = createRpcContext();
          LockedInodePath inodePath = mInodeTree
              .lockInodePath(lockingScheme.getPath(), lockingScheme.getMode());
@@ -804,18 +804,18 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       // Possible ufs sync.
       if (syncMetadata(rpcContext, inodePath, lockingScheme, DescendantType.ONE)) {
         // If synced, do not load metadata.
-        options = options.toBuilder().setLoadMetadataType(LoadMetadataPType.NEVER).build();
+        context.getOptions().setLoadMetadataType(LoadMetadataPType.NEVER);
       }
 
       // If the file already exists, then metadata does not need to be loaded,
       // otherwise load metadata.
       if (!inodePath.fullPathExists()) {
-        checkLoadMetadataOptions(options.getLoadMetadataType(), inodePath.getUri());
+        checkLoadMetadataOptions(context.getOptions().getLoadMetadataType(), inodePath.getUri());
         loadMetadataIfNotExist(rpcContext, inodePath,
             LoadMetadataContext.defaults(LoadMetadataPOptions.newBuilder().setCreateAncestors(true)
                 .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder()
-                    .setTtl(options.getCommonOptions().getTtl())
-                    .setTtlAction(options.getCommonOptions().getTtlAction()))));
+                    .setTtl(context.getOptions().getCommonOptions().getTtl())
+                    .setTtlAction(context.getOptions().getCommonOptions().getTtlAction()))));
         ensureFullPathAndUpdateCache(inodePath);
       }
       FileInfo fileInfo = getFileInfoInternal(inodePath);
@@ -1451,7 +1451,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    *
    * @param rpcContext the rpc context
    * @param inodePath the file {@link LockedInodePath}
-   * @param deleteOptions the method optitions
+   * @param deleteContext the method optitions
    */
   @VisibleForTesting
   public void deleteInternal(RpcContext rpcContext, LockedInodePath inodePath,

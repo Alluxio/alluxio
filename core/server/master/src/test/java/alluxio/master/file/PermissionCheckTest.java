@@ -55,6 +55,7 @@ import alluxio.master.file.options.CreateDirectoryContext;
 import alluxio.master.file.options.CreateFileContext;
 import alluxio.master.file.options.DeleteContext;
 import alluxio.master.file.options.FreeContext;
+import alluxio.master.file.options.GetStatusContext;
 import alluxio.master.file.options.ListStatusContext;
 import alluxio.master.file.options.RenameContext;
 import alluxio.master.file.options.SetAttributeContext;
@@ -682,9 +683,8 @@ public final class PermissionCheckTest {
       throws Exception {
     try (Closeable r = new AuthenticatedUserRule(user.getUser()).toResource()) {
       if (isFile) {
-        assertEquals(path, mFileSystemMaster.getFileInfo(new AlluxioURI(path),
-            FileSystemMasterOptions.getGetStatusOptions())
-            .getPath());
+        assertEquals(path, mFileSystemMaster
+            .getFileInfo(new AlluxioURI(path), GetStatusContext.defaults()).getPath());
         assertEquals(1,
             mFileSystemMaster
                 .listStatus(new AlluxioURI(path), ListStatusContext.defaults())
@@ -743,7 +743,7 @@ public final class PermissionCheckTest {
           SetAttributeContext.defaults(options.toBuilder()));
 
       FileInfo fileInfo = mFileSystemMaster.getFileInfo(new AlluxioURI(path),
-          FileSystemMasterOptions.getGetStatusOptions());
+          GetStatusContext.defaults());
       return FileSystemMasterOptions.getSetAttributeOptions().toBuilder()
           .setPinned(fileInfo.isPinned()).setTtl(fileInfo.getTtl())
           .setPersisted(fileInfo.isPersisted()).build();
