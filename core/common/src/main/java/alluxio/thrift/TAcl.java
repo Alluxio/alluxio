@@ -762,14 +762,14 @@ public class TAcl implements org.apache.thrift.TBase<TAcl, TAcl._Fields>, java.i
           case 3: // ENTRIES
             if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
               {
-                org.apache.thrift.protocol.TList _list24 = iprot.readListBegin();
-                struct.entries = new ArrayList<TAclEntry>(_list24.size);
-                TAclEntry _elem25;
-                for (int _i26 = 0; _i26 < _list24.size; ++_i26)
+                org.apache.thrift.protocol.TList _list32 = iprot.readListBegin();
+                struct.entries = new ArrayList<TAclEntry>(_list32.size);
+                TAclEntry _elem33;
+                for (int _i34 = 0; _i34 < _list32.size; ++_i34)
                 {
-                  _elem25 = new TAclEntry();
-                  _elem25.read(iprot);
-                  struct.entries.add(_elem25);
+                  _elem33 = new TAclEntry();
+                  _elem33.read(iprot);
+                  struct.entries.add(_elem33);
                 }
                 iprot.readListEnd();
               }
@@ -836,9 +836,9 @@ public class TAcl implements org.apache.thrift.TBase<TAcl, TAcl._Fields>, java.i
           oprot.writeFieldBegin(ENTRIES_FIELD_DESC);
           {
             oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, struct.entries.size()));
-            for (TAclEntry _iter27 : struct.entries)
+            for (TAclEntry _iter35 : struct.entries)
             {
-              _iter27.write(oprot);
+              _iter35.write(oprot);
             }
             oprot.writeListEnd();
           }
@@ -906,9 +906,9 @@ public class TAcl implements org.apache.thrift.TBase<TAcl, TAcl._Fields>, java.i
       if (struct.isSetEntries()) {
         {
           oprot.writeI32(struct.entries.size());
-          for (TAclEntry _iter28 : struct.entries)
+          for (TAclEntry _iter36 : struct.entries)
           {
-            _iter28.write(oprot);
+            _iter36.write(oprot);
           }
         }
       }
@@ -937,14 +937,14 @@ public class TAcl implements org.apache.thrift.TBase<TAcl, TAcl._Fields>, java.i
       }
       if (incoming.get(2)) {
         {
-          org.apache.thrift.protocol.TList _list29 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
-          struct.entries = new ArrayList<TAclEntry>(_list29.size);
-          TAclEntry _elem30;
-          for (int _i31 = 0; _i31 < _list29.size; ++_i31)
+          org.apache.thrift.protocol.TList _list37 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
+          struct.entries = new ArrayList<TAclEntry>(_list37.size);
+          TAclEntry _elem38;
+          for (int _i39 = 0; _i39 < _list37.size; ++_i39)
           {
-            _elem30 = new TAclEntry();
-            _elem30.read(iprot);
-            struct.entries.add(_elem30);
+            _elem38 = new TAclEntry();
+            _elem38.read(iprot);
+            struct.entries.add(_elem38);
           }
         }
         struct.setEntriesIsSet(true);

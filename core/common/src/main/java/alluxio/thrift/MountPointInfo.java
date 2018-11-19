@@ -869,15 +869,15 @@ public class MountPointInfo implements org.apache.thrift.TBase<MountPointInfo, M
           case 6: // PROPERTIES
             if (schemeField.type == org.apache.thrift.protocol.TType.MAP) {
               {
-                org.apache.thrift.protocol.TMap _map84 = iprot.readMapBegin();
-                struct.properties = new HashMap<String,String>(2*_map84.size);
-                String _key85;
-                String _val86;
-                for (int _i87 = 0; _i87 < _map84.size; ++_i87)
+                org.apache.thrift.protocol.TMap _map92 = iprot.readMapBegin();
+                struct.properties = new HashMap<String,String>(2*_map92.size);
+                String _key93;
+                String _val94;
+                for (int _i95 = 0; _i95 < _map92.size; ++_i95)
                 {
-                  _key85 = iprot.readString();
-                  _val86 = iprot.readString();
-                  struct.properties.put(_key85, _val86);
+                  _key93 = iprot.readString();
+                  _val94 = iprot.readString();
+                  struct.properties.put(_key93, _val94);
                 }
                 iprot.readMapEnd();
               }
@@ -932,10 +932,10 @@ public class MountPointInfo implements org.apache.thrift.TBase<MountPointInfo, M
         oprot.writeFieldBegin(PROPERTIES_FIELD_DESC);
         {
           oprot.writeMapBegin(new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.STRING, org.apache.thrift.protocol.TType.STRING, struct.properties.size()));
-          for (Map.Entry<String, String> _iter88 : struct.properties.entrySet())
+          for (Map.Entry<String, String> _iter96 : struct.properties.entrySet())
           {
-            oprot.writeString(_iter88.getKey());
-            oprot.writeString(_iter88.getValue());
+            oprot.writeString(_iter96.getKey());
+            oprot.writeString(_iter96.getValue());
           }
           oprot.writeMapEnd();
         }
@@ -1002,10 +1002,10 @@ public class MountPointInfo implements org.apache.thrift.TBase<MountPointInfo, M
       if (struct.isSetProperties()) {
         {
           oprot.writeI32(struct.properties.size());
-          for (Map.Entry<String, String> _iter89 : struct.properties.entrySet())
+          for (Map.Entry<String, String> _iter97 : struct.properties.entrySet())
           {
-            oprot.writeString(_iter89.getKey());
-            oprot.writeString(_iter89.getValue());
+            oprot.writeString(_iter97.getKey());
+            oprot.writeString(_iter97.getValue());
           }
         }
       }
@@ -1040,15 +1040,15 @@ public class MountPointInfo implements org.apache.thrift.TBase<MountPointInfo, M
       }
       if (incoming.get(5)) {
         {
-          org.apache.thrift.protocol.TMap _map90 = new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.STRING, org.apache.thrift.protocol.TType.STRING, iprot.readI32());
-          struct.properties = new HashMap<String,String>(2*_map90.size);
-          String _key91;
-          String _val92;
-          for (int _i93 = 0; _i93 < _map90.size; ++_i93)
+          org.apache.thrift.protocol.TMap _map98 = new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.STRING, org.apache.thrift.protocol.TType.STRING, iprot.readI32());
+          struct.properties = new HashMap<String,String>(2*_map98.size);
+          String _key99;
+          String _val100;
+          for (int _i101 = 0; _i101 < _map98.size; ++_i101)
           {
-            _key91 = iprot.readString();
-            _val92 = iprot.readString();
-            struct.properties.put(_key91, _val92);
+            _key99 = iprot.readString();
+            _val100 = iprot.readString();
+            struct.properties.put(_key99, _val100);
           }
         }
         struct.setPropertiesIsSet(true);

@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.annotation.PublicApi;
+import alluxio.SyncInfo;
 import alluxio.collections.Pair;
 import alluxio.security.authorization.AccessControlList;
 import alluxio.security.authorization.AclEntry;
@@ -557,4 +558,47 @@ public interface UnderFileSystem extends Closeable {
    * @return true if this type of UFS supports flush, false otherwise
    */
   boolean supportsFlush();
+
+  /**
+   * Whether this type of UFS supports active sync.
+   *
+   * @return true if this type of UFS supports active sync, false otherwise
+   */
+  boolean supportsActiveSync();
+
+  /**
+   * Return the active sync info for the specified syncPoints.
+   *
+   * @return active sync info consisting of what changed for these sync points
+   */
+  SyncInfo getActiveSyncInfo() throws IOException;
+
+  /**
+   * Add Sync Point.
+   *
+   * @param uri ufs uri to start
+   */
+  void startSync(AlluxioURI uri) throws IOException;
+
+  /**
+   * Stop Sync Point.
+   *
+   * @param uri ufs uri to stop
+   */
+  void stopSync(AlluxioURI uri) throws IOException;
+
+  /**
+   * Start Active Sync.
+   *
+   * @param txId the transaction id to start receiving event
+   * @return true if active sync started
+   */
+  boolean startActiveSyncPolling(long txId) throws IOException;
+
+  /**
+   * Stop Active Sync.
+   *
+   * @return true if active sync stopped
+   */
+  boolean stopActiveSyncPolling() throws IOException;
 }
