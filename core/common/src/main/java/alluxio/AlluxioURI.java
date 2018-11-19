@@ -12,6 +12,8 @@
 package alluxio;
 
 import alluxio.annotation.PublicApi;
+
+import alluxio.exception.InvalidPathException;
 import alluxio.uri.Authority;
 import alluxio.uri.NoAuthority;
 import alluxio.uri.URI;
@@ -19,10 +21,13 @@ import alluxio.util.URIUtils;
 import alluxio.util.io.PathUtils;
 
 import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Map;
+import java.util.Objects;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
@@ -49,6 +54,9 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
   private static final long serialVersionUID = -1207227692436086387L;
+
+  private static final Logger LOG = LoggerFactory.getLogger(AlluxioURI.class);
+
   public static final String SEPARATOR = "/";
   public static final String CUR_DIR = ".";
   public static final String WILDCARD = "*";
@@ -432,6 +440,25 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
     }
 
     return path;
+  }
+
+  /**
+   * Returns true if the current AlluxioURI is a parent of another AlluxioURI.
+   * otherwise, return false.
+   * @param alluxioURI potential children to check
+   * @return true the current alluxioURI is a parent of the AlluxioURI
+   */
+  public boolean isParentOf(AlluxioURI alluxioURI) throws InvalidPathException {
+    // To be a parent of another URI, authority and scheme must match
+    if (!Objects.equals(getAuthority(), alluxioURI.getAuthority())) {
+      return false;
+    }
+    if (!Objects.equals(getScheme(), alluxioURI.getScheme())) {
+      return false;
+    }
+
+    return PathUtils.hasPrefix(PathUtils.normalizePath(alluxioURI.getPath(), SEPARATOR),
+        PathUtils.normalizePath(getPath(), SEPARATOR));
   }
 
   /**
