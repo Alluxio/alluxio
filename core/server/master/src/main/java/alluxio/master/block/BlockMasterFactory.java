@@ -12,7 +12,7 @@
 package alluxio.master.block;
 
 import alluxio.Constants;
-import alluxio.master.MasterContext;
+import alluxio.master.CoreMasterContext;
 import alluxio.master.MasterFactory;
 import alluxio.master.MasterRegistry;
 import alluxio.master.metrics.MetricsMaster;
@@ -26,7 +26,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * Factory to create a {@link BlockMaster} instance.
  */
 @ThreadSafe
-public final class BlockMasterFactory implements MasterFactory {
+public final class BlockMasterFactory implements MasterFactory<CoreMasterContext> {
   private static final Logger LOG = LoggerFactory.getLogger(BlockMasterFactory.class);
 
   /**
@@ -45,7 +45,7 @@ public final class BlockMasterFactory implements MasterFactory {
   }
 
   @Override
-  public BlockMaster create(MasterRegistry registry, MasterContext context) {
+  public BlockMaster create(MasterRegistry registry, CoreMasterContext context) {
     LOG.info("Creating {} ", BlockMaster.class.getName());
     MetricsMaster metricsMaster = registry.get(MetricsMaster.class);
     BlockMaster master = new DefaultBlockMaster(metricsMaster, context);
