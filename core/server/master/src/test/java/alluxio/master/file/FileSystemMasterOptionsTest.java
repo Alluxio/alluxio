@@ -60,7 +60,7 @@ public class FileSystemMasterOptionsTest {
     Assert.assertNotNull(options);
     Assert.assertFalse(options.getShared());
     Assert.assertFalse(options.getReadOnly());
-    Assert.assertEquals(0, options.getPropertiesMap());
+    Assert.assertEquals(0, options.getPropertiesMap().size());
   }
 
   @Test

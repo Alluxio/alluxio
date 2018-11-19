@@ -188,7 +188,7 @@ public final class MountTable implements JournalEntryIterable, JournalEntryRepla
         }
       }
 
-      Map<String, String> properties = options.getProperties();
+      Map<String, String> properties = options.getPropertiesMap();
       mState.applyAndJournal(journalContext, AddMountPointEntry.newBuilder()
           .addAllProperties(properties.entrySet().stream()
               .map(entry -> StringPairEntry.newBuilder()

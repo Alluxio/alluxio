@@ -98,7 +98,8 @@ public class MountInfo {
     return mMountId == that.getMountId()
         && mAlluxioUri.equals(that.getAlluxioUri())
         && mUfsUri.equals(that.getUfsUri())
-        && mOptions.equals(that.getOptions());
+        && mOptions.getReadOnly() == (that.getOptions().getReadOnly())
+        && mOptions.getShared() == (that.getOptions().getShared());
   }
 
   @Override
