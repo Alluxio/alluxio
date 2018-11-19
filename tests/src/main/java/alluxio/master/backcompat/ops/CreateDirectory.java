@@ -58,14 +58,19 @@ public final class CreateDirectory extends FsTestOp {
             .setCommonOptions(FileSystemClientOptions.getCommonOptions().toBuilder().setTtl(TTL)
                 .setTtlAction(TtlAction.DELETE))
             .build());
-    fs.createDirectory(TTL_DIR, FileSystemClientOptions.getCreateDirectoryOptions().toBuilder()
-        .setTtlNotUsed(TTL).setTtlActionNotUsed(TtlAction.DELETE).setRecursive(true).build());
+    fs.createDirectory(TTL_DIR,
+        FileSystemClientOptions
+            .getCreateDirectoryOptions().toBuilder().setCommonOptions(FileSystemClientOptions
+                .getCommonOptions().toBuilder().setTtl(TTL).setTtlAction(TtlAction.DELETE))
+            .setRecursive(true).build());
     fs.createDirectory(THROUGH_DIR, FileSystemClientOptions.getCreateDirectoryOptions().toBuilder()
         .setWriteType(WritePType.WRITE_THROUGH).setRecursive(true).build());
-    fs.createDirectory(ALL_OPTS_DIR,
-        FileSystemClientOptions.getCreateDirectoryOptions().toBuilder().setRecursive(true)
-            .setMode(TEST_MODE.toShort()).setAllowExist(true).setWriteType(WritePType.WRITE_THROUGH)
-            .setTtlNotUsed(TTL).setTtlActionNotUsed(TtlAction.DELETE).build());
+    fs.createDirectory(
+        ALL_OPTS_DIR, FileSystemClientOptions.getCreateDirectoryOptions().toBuilder()
+            .setRecursive(true).setMode(TEST_MODE.toShort()).setAllowExist(true)
+            .setWriteType(WritePType.WRITE_THROUGH).setCommonOptions(FileSystemClientOptions
+                .getCommonOptions().toBuilder().setTtl(TTL).setTtlAction(TtlAction.DELETE))
+            .build());
   }
 
   @Override

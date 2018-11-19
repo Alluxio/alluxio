@@ -64,8 +64,14 @@ public class TtlIntegrationTest extends BaseIntegrationTest {
       files[i] = new AlluxioURI("/file" + i);
       // Only the even-index files should expire.
       long ttl = i % 2 == 0 ? TTL_INTERVAL_MS / 2 : TTL_INTERVAL_MS * 1000;
-      mFileSystem.createFile(files[i], FileSystemClientOptions.getCreateFileOptions().toBuilder()
-          .setWriteType(WritePType.WRITE_THROUGH).setTtlNotUsed(ttl).build()).close();
+      mFileSystem
+          .createFile(files[i],
+              FileSystemClientOptions.getCreateFileOptions().toBuilder()
+                  .setWriteType(WritePType.WRITE_THROUGH)
+                  .setCommonOptions(
+                      FileSystemClientOptions.getCommonOptions().toBuilder().setTtl(ttl))
+                  .build())
+          .close();
       // Delete some of the even files to make sure this doesn't trip up the TTL checker.
       if (i % 20 == 0) {
         mFileSystem.delete(files[i]);

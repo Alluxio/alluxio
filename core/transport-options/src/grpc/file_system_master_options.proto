@@ -50,16 +50,14 @@ message CreateFilePOptions {
   optional int64 blockSizeBytes = 1;
   optional bool persisted = 2;
   optional bool recursive = 3;
-  optional int64 ttlNotUsed = 4; // deprecated from 1.8
-  optional int32 mode = 5;
-  optional TtlAction ttlActionNotUsed = 6; // deprecated from 1.8
-  optional int32 replicationMax = 7;
-  optional int32 replicationMin = 8;
-  optional int32 replicationDurable = 9;
-  optional string fileWriteLocationPolicy = 10;
-  optional int32 writeTier = 11;
-  optional WritePType writeType = 12;
-  optional FileSystemMasterCommonPOptions commonOptions = 13;
+  optional int32 mode = 4;
+  optional int32 replicationMax = 5;
+  optional int32 replicationMin = 6;
+  optional int32 replicationDurable = 7;
+  optional string fileWriteLocationPolicy = 8;
+  optional int32 writeTier = 9;
+  optional WritePType writeType = 10;
+  optional FileSystemMasterCommonPOptions commonOptions = 11;
 }
 
 message CreateDirectoryPOptions {
@@ -67,10 +65,8 @@ message CreateDirectoryPOptions {
   optional bool recursive = 2;
   optional bool allowExist = 3;
   optional int32 mode = 4;
-  optional int64 ttlNotUsed = 5; // deprecated from 1.8
-  optional TtlAction ttlActionNotUsed = 6; // deprecated from 1.8
-  optional WritePType writeType = 7;
-  optional FileSystemMasterCommonPOptions commonOptions = 8;
+  optional WritePType writeType = 5;
+  optional FileSystemMasterCommonPOptions commonOptions = 6;
 }
 
 message DeletePOptions {

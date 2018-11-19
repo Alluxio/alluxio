@@ -35,117 +35,83 @@ public interface CreateFilePOptionsOrBuilder extends
   boolean getRecursive();
 
   /**
-   * <pre>
-   * deprecated from 1.8
-   * </pre>
-   *
-   * <code>optional int64 ttlNotUsed = 4;</code>
-   */
-  boolean hasTtlNotUsed();
-  /**
-   * <pre>
-   * deprecated from 1.8
-   * </pre>
-   *
-   * <code>optional int64 ttlNotUsed = 4;</code>
-   */
-  long getTtlNotUsed();
-
-  /**
-   * <code>optional int32 mode = 5;</code>
+   * <code>optional int32 mode = 4;</code>
    */
   boolean hasMode();
   /**
-   * <code>optional int32 mode = 5;</code>
+   * <code>optional int32 mode = 4;</code>
    */
   int getMode();
 
   /**
-   * <pre>
-   * deprecated from 1.8
-   * </pre>
-   *
-   * <code>optional .alluxio.grpc.TtlAction ttlActionNotUsed = 6;</code>
-   */
-  boolean hasTtlActionNotUsed();
-  /**
-   * <pre>
-   * deprecated from 1.8
-   * </pre>
-   *
-   * <code>optional .alluxio.grpc.TtlAction ttlActionNotUsed = 6;</code>
-   */
-  alluxio.grpc.TtlAction getTtlActionNotUsed();
-
-  /**
-   * <code>optional int32 replicationMax = 7;</code>
+   * <code>optional int32 replicationMax = 5;</code>
    */
   boolean hasReplicationMax();
   /**
-   * <code>optional int32 replicationMax = 7;</code>
+   * <code>optional int32 replicationMax = 5;</code>
    */
   int getReplicationMax();
 
   /**
-   * <code>optional int32 replicationMin = 8;</code>
+   * <code>optional int32 replicationMin = 6;</code>
    */
   boolean hasReplicationMin();
   /**
-   * <code>optional int32 replicationMin = 8;</code>
+   * <code>optional int32 replicationMin = 6;</code>
    */
   int getReplicationMin();
 
   /**
-   * <code>optional int32 replicationDurable = 9;</code>
+   * <code>optional int32 replicationDurable = 7;</code>
    */
   boolean hasReplicationDurable();
   /**
-   * <code>optional int32 replicationDurable = 9;</code>
+   * <code>optional int32 replicationDurable = 7;</code>
    */
   int getReplicationDurable();
 
   /**
-   * <code>optional string fileWriteLocationPolicy = 10;</code>
+   * <code>optional string fileWriteLocationPolicy = 8;</code>
    */
   boolean hasFileWriteLocationPolicy();
   /**
-   * <code>optional string fileWriteLocationPolicy = 10;</code>
+   * <code>optional string fileWriteLocationPolicy = 8;</code>
    */
   java.lang.String getFileWriteLocationPolicy();
   /**
-   * <code>optional string fileWriteLocationPolicy = 10;</code>
+   * <code>optional string fileWriteLocationPolicy = 8;</code>
    */
   com.google.protobuf.ByteString
       getFileWriteLocationPolicyBytes();
 
   /**
-   * <code>optional int32 writeTier = 11;</code>
+   * <code>optional int32 writeTier = 9;</code>
    */
   boolean hasWriteTier();
   /**
-   * <code>optional int32 writeTier = 11;</code>
+   * <code>optional int32 writeTier = 9;</code>
    */
   int getWriteTier();
 
   /**
-   * <code>optional .alluxio.grpc.WritePType writeType = 12;</code>
+   * <code>optional .alluxio.grpc.WritePType writeType = 10;</code>
    */
   boolean hasWriteType();
   /**
-   * <code>optional .alluxio.grpc.WritePType writeType = 12;</code>
+   * <code>optional .alluxio.grpc.WritePType writeType = 10;</code>
    */
   alluxio.grpc.WritePType getWriteType();
 
   /**
-   * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 13;</code>
+   * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 11;</code>
    */
   boolean hasCommonOptions();
   /**
-   * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 13;</code>
+   * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 11;</code>
    */
   alluxio.grpc.FileSystemMasterCommonPOptions getCommonOptions();
   /**
-   * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 13;</code>
+   * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 11;</code>
    */
   alluxio.grpc.FileSystemMasterCommonPOptionsOrBuilder getCommonOptionsOrBuilder();
 }

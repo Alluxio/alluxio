@@ -18,6 +18,7 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemClientOptions;
+import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.grpc.WritePType;
 import alluxio.master.backcompat.FsTestOp;
 import alluxio.master.backcompat.Utils;
@@ -48,10 +49,13 @@ public final class CreateFile extends FsTestOp {
     Utils.createFile(fs, THROUGH,
         FileSystemClientOptions.getCreateFileOptions().toBuilder().setBlockSizeBytes(Constants.KB)
             .setRecursive(true).setWriteType(WritePType.WRITE_THROUGH).build());
-    Utils.createFile(fs, TTL,
-        FileSystemClientOptions.getCreateFileOptions().toBuilder().setBlockSizeBytes(Constants.KB)
-            .setRecursive(true).setTtlNotUsed(TEST_TTL)
-            .setTtlActionNotUsed(alluxio.grpc.TtlAction.FREE).build());
+    Utils
+        .createFile(fs, TTL,
+            FileSystemClientOptions
+                .getCreateFileOptions().toBuilder().setBlockSizeBytes(Constants.KB)
+                .setRecursive(true).setCommonOptions(FileSystemClientOptions.getCommonOptions()
+                    .toBuilder().setTtl(TEST_TTL).setTtlAction(alluxio.grpc.TtlAction.FREE))
+                .build());
   }
 
   @Override

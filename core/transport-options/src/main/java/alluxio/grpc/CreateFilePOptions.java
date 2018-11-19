@@ -19,9 +19,7 @@ private static final long serialVersionUID = 0L;
     blockSizeBytes_ = 0L;
     persisted_ = false;
     recursive_ = false;
-    ttlNotUsed_ = 0L;
     mode_ = 0;
-    ttlActionNotUsed_ = 0;
     replicationMax_ = 0;
     replicationMin_ = 0;
     replicationDurable_ = 0;
@@ -78,65 +76,49 @@ private static final long serialVersionUID = 0L;
           }
           case 32: {
             bitField0_ |= 0x00000008;
-            ttlNotUsed_ = input.readInt64();
+            mode_ = input.readInt32();
             break;
           }
           case 40: {
             bitField0_ |= 0x00000010;
-            mode_ = input.readInt32();
+            replicationMax_ = input.readInt32();
             break;
           }
           case 48: {
-            int rawValue = input.readEnum();
-            alluxio.grpc.TtlAction value = alluxio.grpc.TtlAction.valueOf(rawValue);
-            if (value == null) {
-              unknownFields.mergeVarintField(6, rawValue);
-            } else {
-              bitField0_ |= 0x00000020;
-              ttlActionNotUsed_ = rawValue;
-            }
+            bitField0_ |= 0x00000020;
+            replicationMin_ = input.readInt32();
             break;
           }
           case 56: {
             bitField0_ |= 0x00000040;
-            replicationMax_ = input.readInt32();
+            replicationDurable_ = input.readInt32();
             break;
           }
-          case 64: {
+          case 66: {
+            com.google.protobuf.ByteString bs = input.readBytes();
             bitField0_ |= 0x00000080;
-            replicationMin_ = input.readInt32();
+            fileWriteLocationPolicy_ = bs;
             break;
           }
           case 72: {
             bitField0_ |= 0x00000100;
-            replicationDurable_ = input.readInt32();
-            break;
-          }
-          case 82: {
-            com.google.protobuf.ByteString bs = input.readBytes();
-            bitField0_ |= 0x00000200;
-            fileWriteLocationPolicy_ = bs;
-            break;
-          }
-          case 88: {
-            bitField0_ |= 0x00000400;
             writeTier_ = input.readInt32();
             break;
           }
-          case 96: {
+          case 80: {
             int rawValue = input.readEnum();
             alluxio.grpc.WritePType value = alluxio.grpc.WritePType.valueOf(rawValue);
             if (value == null) {
-              unknownFields.mergeVarintField(12, rawValue);
+              unknownFields.mergeVarintField(10, rawValue);
             } else {
-              bitField0_ |= 0x00000800;
+              bitField0_ |= 0x00000200;
               writeType_ = rawValue;
             }
             break;
           }
-          case 106: {
+          case 90: {
             alluxio.grpc.FileSystemMasterCommonPOptions.Builder subBuilder = null;
-            if (((bitField0_ & 0x00001000) == 0x00001000)) {
+            if (((bitField0_ & 0x00000400) == 0x00000400)) {
               subBuilder = commonOptions_.toBuilder();
             }
             commonOptions_ = input.readMessage(alluxio.grpc.FileSystemMasterCommonPOptions.PARSER, extensionRegistry);
@@ -144,7 +126,7 @@ private static final long serialVersionUID = 0L;
               subBuilder.mergeFrom(commonOptions_);
               commonOptions_ = subBuilder.buildPartial();
             }
-            bitField0_ |= 0x00001000;
+            bitField0_ |= 0x00000400;
             break;
           }
         }
@@ -217,123 +199,76 @@ private static final long serialVersionUID = 0L;
     return recursive_;
   }
 
-  public static final int TTLNOTUSED_FIELD_NUMBER = 4;
-  private long ttlNotUsed_;
+  public static final int MODE_FIELD_NUMBER = 4;
+  private int mode_;
   /**
-   * <pre>
-   * deprecated from 1.8
-   * </pre>
-   *
-   * <code>optional int64 ttlNotUsed = 4;</code>
+   * <code>optional int32 mode = 4;</code>
    */
-  public boolean hasTtlNotUsed() {
+  public boolean hasMode() {
     return ((bitField0_ & 0x00000008) == 0x00000008);
   }
   /**
-   * <pre>
-   * deprecated from 1.8
-   * </pre>
-   *
-   * <code>optional int64 ttlNotUsed = 4;</code>
-   */
-  public long getTtlNotUsed() {
-    return ttlNotUsed_;
-  }
-
-  public static final int MODE_FIELD_NUMBER = 5;
-  private int mode_;
-  /**
-   * <code>optional int32 mode = 5;</code>
-   */
-  public boolean hasMode() {
-    return ((bitField0_ & 0x00000010) == 0x00000010);
-  }
-  /**
-   * <code>optional int32 mode = 5;</code>
+   * <code>optional int32 mode = 4;</code>
    */
   public int getMode() {
     return mode_;
   }
 
-  public static final int TTLACTIONNOTUSED_FIELD_NUMBER = 6;
-  private int ttlActionNotUsed_;
-  /**
-   * <pre>
-   * deprecated from 1.8
-   * </pre>
-   *
-   * <code>optional .alluxio.grpc.TtlAction ttlActionNotUsed = 6;</code>
-   */
-  public boolean hasTtlActionNotUsed() {
-    return ((bitField0_ & 0x00000020) == 0x00000020);
-  }
-  /**
-   * <pre>
-   * deprecated from 1.8
-   * </pre>
-   *
-   * <code>optional .alluxio.grpc.TtlAction ttlActionNotUsed = 6;</code>
-   */
-  public alluxio.grpc.TtlAction getTtlActionNotUsed() {
-    alluxio.grpc.TtlAction result = alluxio.grpc.TtlAction.valueOf(ttlActionNotUsed_);
-    return result == null ? alluxio.grpc.TtlAction.DELETE : result;
-  }
-
-  public static final int REPLICATIONMAX_FIELD_NUMBER = 7;
+  public static final int REPLICATIONMAX_FIELD_NUMBER = 5;
   private int replicationMax_;
   /**
-   * <code>optional int32 replicationMax = 7;</code>
+   * <code>optional int32 replicationMax = 5;</code>
    */
   public boolean hasReplicationMax() {
-    return ((bitField0_ & 0x00000040) == 0x00000040);
+    return ((bitField0_ & 0x00000010) == 0x00000010);
   }
   /**
-   * <code>optional int32 replicationMax = 7;</code>
+   * <code>optional int32 replicationMax = 5;</code>
    */
   public int getReplicationMax() {
     return replicationMax_;
   }
 
-  public static final int REPLICATIONMIN_FIELD_NUMBER = 8;
+  public static final int REPLICATIONMIN_FIELD_NUMBER = 6;
   private int replicationMin_;
   /**
-   * <code>optional int32 replicationMin = 8;</code>
+   * <code>optional int32 replicationMin = 6;</code>
    */
   public boolean hasReplicationMin() {
-    return ((bitField0_ & 0x00000080) == 0x00000080);
+    return ((bitField0_ & 0x00000020) == 0x00000020);
   }
   /**
-   * <code>optional int32 replicationMin = 8;</code>
+   * <code>optional int32 replicationMin = 6;</code>
    */
   public int getReplicationMin() {
     return replicationMin_;
   }
 
-  public static final int REPLICATIONDURABLE_FIELD_NUMBER = 9;
+  public static final int REPLICATIONDURABLE_FIELD_NUMBER = 7;
   private int replicationDurable_;
   /**
-   * <code>optional int32 replicationDurable = 9;</code>
+   * <code>optional int32 replicationDurable = 7;</code>
    */
   public boolean hasReplicationDurable() {
-    return ((bitField0_ & 0x00000100) == 0x00000100);
+    return ((bitField0_ & 0x00000040) == 0x00000040);
   }
   /**
-   * <code>optional int32 replicationDurable = 9;</code>
+   * <code>optional int32 replicationDurable = 7;</code>
    */
   public int getReplicationDurable() {
     return replicationDurable_;
   }
 
-  public static final int FILEWRITELOCATIONPOLICY_FIELD_NUMBER = 10;
+  public static final int FILEWRITELOCATIONPOLICY_FIELD_NUMBER = 8;
   private volatile java.lang.Object fileWriteLocationPolicy_;
   /**
-   * <code>optional string fileWriteLocationPolicy = 10;</code>
+   * <code>optional string fileWriteLocationPolicy = 8;</code>
    */
   public boolean hasFileWriteLocationPolicy() {
-    return ((bitField0_ & 0x00000200) == 0x00000200);
+    return ((bitField0_ & 0x00000080) == 0x00000080);
   }
   /**
-   * <code>optional string fileWriteLocationPolicy = 10;</code>
+   * <code>optional string fileWriteLocationPolicy = 8;</code>
    */
   public java.lang.String getFileWriteLocationPolicy() {
     java.lang.Object ref = fileWriteLocationPolicy_;
@@ -350,7 +285,7 @@ private static final long serialVersionUID = 0L;
     }
   }
   /**
-   * <code>optional string fileWriteLocationPolicy = 10;</code>
+   * <code>optional string fileWriteLocationPolicy = 8;</code>
    */
   public com.google.protobuf.ByteString
       getFileWriteLocationPolicyBytes() {
@@ -366,53 +301,53 @@ private static final long serialVersionUID = 0L;
     }
   }
 
-  public static final int WRITETIER_FIELD_NUMBER = 11;
+  public static final int WRITETIER_FIELD_NUMBER = 9;
   private int writeTier_;
   /**
-   * <code>optional int32 writeTier = 11;</code>
+   * <code>optional int32 writeTier = 9;</code>
    */
   public boolean hasWriteTier() {
-    return ((bitField0_ & 0x00000400) == 0x00000400);
+    return ((bitField0_ & 0x00000100) == 0x00000100);
   }
   /**
-   * <code>optional int32 writeTier = 11;</code>
+   * <code>optional int32 writeTier = 9;</code>
    */
   public int getWriteTier() {
     return writeTier_;
   }
 
-  public static final int WRITETYPE_FIELD_NUMBER = 12;
+  public static final int WRITETYPE_FIELD_NUMBER = 10;
   private int writeType_;
   /**
-   * <code>optional .alluxio.grpc.WritePType writeType = 12;</code>
+   * <code>optional .alluxio.grpc.WritePType writeType = 10;</code>
    */
   public boolean hasWriteType() {
-    return ((bitField0_ & 0x00000800) == 0x00000800);
+    return ((bitField0_ & 0x00000200) == 0x00000200);
   }
   /**
-   * <code>optional .alluxio.grpc.WritePType writeType = 12;</code>
+   * <code>optional .alluxio.grpc.WritePType writeType = 10;</code>
    */
   public alluxio.grpc.WritePType getWriteType() {
     alluxio.grpc.WritePType result = alluxio.grpc.WritePType.valueOf(writeType_);
     return result == null ? alluxio.grpc.WritePType.WRITE_MUST_CACHE : result;
   }
 
-  public static final int COMMONOPTIONS_FIELD_NUMBER = 13;
+  public static final int COMMONOPTIONS_FIELD_NUMBER = 11;
   private alluxio.grpc.FileSystemMasterCommonPOptions commonOptions_;
   /**
-   * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 13;</code>
+   * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 11;</code>
    */
   public boolean hasCommonOptions() {
-    return ((bitField0_ & 0x00001000) == 0x00001000);
+    return ((bitField0_ & 0x00000400) == 0x00000400);
   }
   /**
-   * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 13;</code>
+   * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 11;</code>
    */
   public alluxio.grpc.FileSystemMasterCommonPOptions getCommonOptions() {
     return commonOptions_ == null ? alluxio.grpc.FileSystemMasterCommonPOptions.getDefaultInstance() : commonOptions_;
   }
   /**
-   * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 13;</code>
+   * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 11;</code>
    */
   public alluxio.grpc.FileSystemMasterCommonPOptionsOrBuilder getCommonOptionsOrBuilder() {
     return commonOptions_ == null ? alluxio.grpc.FileSystemMasterCommonPOptions.getDefaultInstance() : commonOptions_;
@@ -440,34 +375,28 @@ private static final long serialVersionUID = 0L;
       output.writeBool(3, recursive_);
     }
     if (((bitField0_ & 0x00000008) == 0x00000008)) {
-      output.writeInt64(4, ttlNotUsed_);
+      output.writeInt32(4, mode_);
     }
     if (((bitField0_ & 0x00000010) == 0x00000010)) {
-      output.writeInt32(5, mode_);
+      output.writeInt32(5, replicationMax_);
     }
     if (((bitField0_ & 0x00000020) == 0x00000020)) {
-      output.writeEnum(6, ttlActionNotUsed_);
+      output.writeInt32(6, replicationMin_);
     }
     if (((bitField0_ & 0x00000040) == 0x00000040)) {
-      output.writeInt32(7, replicationMax_);
+      output.writeInt32(7, replicationDurable_);
     }
     if (((bitField0_ & 0x00000080) == 0x00000080)) {
-      output.writeInt32(8, replicationMin_);
+      com.google.protobuf.GeneratedMessageV3.writeString(output, 8, fileWriteLocationPolicy_);
     }
     if (((bitField0_ & 0x00000100) == 0x00000100)) {
-      output.writeInt32(9, replicationDurable_);
+      output.writeInt32(9, writeTier_);
     }
     if (((bitField0_ & 0x00000200) == 0x00000200)) {
-      com.google.protobuf.GeneratedMessageV3.writeString(output, 10, fileWriteLocationPolicy_);
+      output.writeEnum(10, writeType_);
     }
     if (((bitField0_ & 0x00000400) == 0x00000400)) {
-      output.writeInt32(11, writeTier_);
-    }
-    if (((bitField0_ & 0x00000800) == 0x00000800)) {
-      output.writeEnum(12, writeType_);
-    }
-    if (((bitField0_ & 0x00001000) == 0x00001000)) {
-      output.writeMessage(13, getCommonOptions());
+      output.writeMessage(11, getCommonOptions());
     }
     unknownFields.writeTo(output);
   }
@@ -491,42 +420,34 @@ private static final long serialVersionUID = 0L;
     }
     if (((bitField0_ & 0x00000008) == 0x00000008)) {
       size += com.google.protobuf.CodedOutputStream
-        .computeInt64Size(4, ttlNotUsed_);
+        .computeInt32Size(4, mode_);
     }
     if (((bitField0_ & 0x00000010) == 0x00000010)) {
       size += com.google.protobuf.CodedOutputStream
-        .computeInt32Size(5, mode_);
+        .computeInt32Size(5, replicationMax_);
     }
     if (((bitField0_ & 0x00000020) == 0x00000020)) {
       size += com.google.protobuf.CodedOutputStream
-        .computeEnumSize(6, ttlActionNotUsed_);
+        .computeInt32Size(6, replicationMin_);
     }
     if (((bitField0_ & 0x00000040) == 0x00000040)) {
       size += com.google.protobuf.CodedOutputStream
-        .computeInt32Size(7, replicationMax_);
+        .computeInt32Size(7, replicationDurable_);
     }
     if (((bitField0_ & 0x00000080) == 0x00000080)) {
-      size += com.google.protobuf.CodedOutputStream
-        .computeInt32Size(8, replicationMin_);
+      size += com.google.protobuf.GeneratedMessageV3.computeStringSize(8, fileWriteLocationPolicy_);
     }
     if (((bitField0_ & 0x00000100) == 0x00000100)) {
       size += com.google.protobuf.CodedOutputStream
-        .computeInt32Size(9, replicationDurable_);
+        .computeInt32Size(9, writeTier_);
     }
     if (((bitField0_ & 0x00000200) == 0x00000200)) {
-      size += com.google.protobuf.GeneratedMessageV3.computeStringSize(10, fileWriteLocationPolicy_);
+      size += com.google.protobuf.CodedOutputStream
+        .computeEnumSize(10, writeType_);
     }
     if (((bitField0_ & 0x00000400) == 0x00000400)) {
       size += com.google.protobuf.CodedOutputStream
-        .computeInt32Size(11, writeTier_);
-    }
-    if (((bitField0_ & 0x00000800) == 0x00000800)) {
-      size += com.google.protobuf.CodedOutputStream
-        .computeEnumSize(12, writeType_);
-    }
-    if (((bitField0_ & 0x00001000) == 0x00001000)) {
-      size += com.google.protobuf.CodedOutputStream
-        .computeMessageSize(13, getCommonOptions());
+        .computeMessageSize(11, getCommonOptions());
     }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
@@ -559,19 +480,10 @@ private static final long serialVersionUID = 0L;
       result = result && (getRecursive()
           == other.getRecursive());
     }
-    result = result && (hasTtlNotUsed() == other.hasTtlNotUsed());
-    if (hasTtlNotUsed()) {
-      result = result && (getTtlNotUsed()
-          == other.getTtlNotUsed());
-    }
     result = result && (hasMode() == other.hasMode());
     if (hasMode()) {
       result = result && (getMode()
           == other.getMode());
-    }
-    result = result && (hasTtlActionNotUsed() == other.hasTtlActionNotUsed());
-    if (hasTtlActionNotUsed()) {
-      result = result && ttlActionNotUsed_ == other.ttlActionNotUsed_;
     }
     result = result && (hasReplicationMax() == other.hasReplicationMax());
     if (hasReplicationMax()) {
@@ -633,18 +545,9 @@ private static final long serialVersionUID = 0L;
       hash = (53 * hash) + com.google.protobuf.Internal.hashBoolean(
           getRecursive());
     }
-    if (hasTtlNotUsed()) {
-      hash = (37 * hash) + TTLNOTUSED_FIELD_NUMBER;
-      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
-          getTtlNotUsed());
-    }
     if (hasMode()) {
       hash = (37 * hash) + MODE_FIELD_NUMBER;
       hash = (53 * hash) + getMode();
-    }
-    if (hasTtlActionNotUsed()) {
-      hash = (37 * hash) + TTLACTIONNOTUSED_FIELD_NUMBER;
-      hash = (53 * hash) + ttlActionNotUsed_;
     }
     if (hasReplicationMax()) {
       hash = (37 * hash) + REPLICATIONMAX_FIELD_NUMBER;
@@ -810,30 +713,26 @@ private static final long serialVersionUID = 0L;
       bitField0_ = (bitField0_ & ~0x00000002);
       recursive_ = false;
       bitField0_ = (bitField0_ & ~0x00000004);
-      ttlNotUsed_ = 0L;
-      bitField0_ = (bitField0_ & ~0x00000008);
       mode_ = 0;
-      bitField0_ = (bitField0_ & ~0x00000010);
-      ttlActionNotUsed_ = 0;
-      bitField0_ = (bitField0_ & ~0x00000020);
+      bitField0_ = (bitField0_ & ~0x00000008);
       replicationMax_ = 0;
-      bitField0_ = (bitField0_ & ~0x00000040);
+      bitField0_ = (bitField0_ & ~0x00000010);
       replicationMin_ = 0;
-      bitField0_ = (bitField0_ & ~0x00000080);
+      bitField0_ = (bitField0_ & ~0x00000020);
       replicationDurable_ = 0;
-      bitField0_ = (bitField0_ & ~0x00000100);
+      bitField0_ = (bitField0_ & ~0x00000040);
       fileWriteLocationPolicy_ = "";
-      bitField0_ = (bitField0_ & ~0x00000200);
+      bitField0_ = (bitField0_ & ~0x00000080);
       writeTier_ = 0;
-      bitField0_ = (bitField0_ & ~0x00000400);
+      bitField0_ = (bitField0_ & ~0x00000100);
       writeType_ = 0;
-      bitField0_ = (bitField0_ & ~0x00000800);
+      bitField0_ = (bitField0_ & ~0x00000200);
       if (commonOptionsBuilder_ == null) {
         commonOptions_ = null;
       } else {
         commonOptionsBuilder_.clear();
       }
-      bitField0_ = (bitField0_ & ~0x00001000);
+      bitField0_ = (bitField0_ & ~0x00000400);
       return this;
     }
 
@@ -873,41 +772,33 @@ private static final long serialVersionUID = 0L;
       if (((from_bitField0_ & 0x00000008) == 0x00000008)) {
         to_bitField0_ |= 0x00000008;
       }
-      result.ttlNotUsed_ = ttlNotUsed_;
+      result.mode_ = mode_;
       if (((from_bitField0_ & 0x00000010) == 0x00000010)) {
         to_bitField0_ |= 0x00000010;
       }
-      result.mode_ = mode_;
+      result.replicationMax_ = replicationMax_;
       if (((from_bitField0_ & 0x00000020) == 0x00000020)) {
         to_bitField0_ |= 0x00000020;
       }
-      result.ttlActionNotUsed_ = ttlActionNotUsed_;
+      result.replicationMin_ = replicationMin_;
       if (((from_bitField0_ & 0x00000040) == 0x00000040)) {
         to_bitField0_ |= 0x00000040;
       }
-      result.replicationMax_ = replicationMax_;
+      result.replicationDurable_ = replicationDurable_;
       if (((from_bitField0_ & 0x00000080) == 0x00000080)) {
         to_bitField0_ |= 0x00000080;
       }
-      result.replicationMin_ = replicationMin_;
+      result.fileWriteLocationPolicy_ = fileWriteLocationPolicy_;
       if (((from_bitField0_ & 0x00000100) == 0x00000100)) {
         to_bitField0_ |= 0x00000100;
       }
-      result.replicationDurable_ = replicationDurable_;
+      result.writeTier_ = writeTier_;
       if (((from_bitField0_ & 0x00000200) == 0x00000200)) {
         to_bitField0_ |= 0x00000200;
       }
-      result.fileWriteLocationPolicy_ = fileWriteLocationPolicy_;
+      result.writeType_ = writeType_;
       if (((from_bitField0_ & 0x00000400) == 0x00000400)) {
         to_bitField0_ |= 0x00000400;
-      }
-      result.writeTier_ = writeTier_;
-      if (((from_bitField0_ & 0x00000800) == 0x00000800)) {
-        to_bitField0_ |= 0x00000800;
-      }
-      result.writeType_ = writeType_;
-      if (((from_bitField0_ & 0x00001000) == 0x00001000)) {
-        to_bitField0_ |= 0x00001000;
       }
       if (commonOptionsBuilder_ == null) {
         result.commonOptions_ = commonOptions_;
@@ -965,14 +856,8 @@ private static final long serialVersionUID = 0L;
       if (other.hasRecursive()) {
         setRecursive(other.getRecursive());
       }
-      if (other.hasTtlNotUsed()) {
-        setTtlNotUsed(other.getTtlNotUsed());
-      }
       if (other.hasMode()) {
         setMode(other.getMode());
-      }
-      if (other.hasTtlActionNotUsed()) {
-        setTtlActionNotUsed(other.getTtlActionNotUsed());
       }
       if (other.hasReplicationMax()) {
         setReplicationMax(other.getReplicationMax());
@@ -984,7 +869,7 @@ private static final long serialVersionUID = 0L;
         setReplicationDurable(other.getReplicationDurable());
       }
       if (other.hasFileWriteLocationPolicy()) {
-        bitField0_ |= 0x00000200;
+        bitField0_ |= 0x00000080;
         fileWriteLocationPolicy_ = other.fileWriteLocationPolicy_;
         onChanged();
       }
@@ -1121,165 +1006,65 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
-    private long ttlNotUsed_ ;
+    private int mode_ ;
     /**
-     * <pre>
-     * deprecated from 1.8
-     * </pre>
-     *
-     * <code>optional int64 ttlNotUsed = 4;</code>
+     * <code>optional int32 mode = 4;</code>
      */
-    public boolean hasTtlNotUsed() {
+    public boolean hasMode() {
       return ((bitField0_ & 0x00000008) == 0x00000008);
     }
     /**
-     * <pre>
-     * deprecated from 1.8
-     * </pre>
-     *
-     * <code>optional int64 ttlNotUsed = 4;</code>
-     */
-    public long getTtlNotUsed() {
-      return ttlNotUsed_;
-    }
-    /**
-     * <pre>
-     * deprecated from 1.8
-     * </pre>
-     *
-     * <code>optional int64 ttlNotUsed = 4;</code>
-     */
-    public Builder setTtlNotUsed(long value) {
-      bitField0_ |= 0x00000008;
-      ttlNotUsed_ = value;
-      onChanged();
-      return this;
-    }
-    /**
-     * <pre>
-     * deprecated from 1.8
-     * </pre>
-     *
-     * <code>optional int64 ttlNotUsed = 4;</code>
-     */
-    public Builder clearTtlNotUsed() {
-      bitField0_ = (bitField0_ & ~0x00000008);
-      ttlNotUsed_ = 0L;
-      onChanged();
-      return this;
-    }
-
-    private int mode_ ;
-    /**
-     * <code>optional int32 mode = 5;</code>
-     */
-    public boolean hasMode() {
-      return ((bitField0_ & 0x00000010) == 0x00000010);
-    }
-    /**
-     * <code>optional int32 mode = 5;</code>
+     * <code>optional int32 mode = 4;</code>
      */
     public int getMode() {
       return mode_;
     }
     /**
-     * <code>optional int32 mode = 5;</code>
+     * <code>optional int32 mode = 4;</code>
      */
     public Builder setMode(int value) {
-      bitField0_ |= 0x00000010;
+      bitField0_ |= 0x00000008;
       mode_ = value;
       onChanged();
       return this;
     }
     /**
-     * <code>optional int32 mode = 5;</code>
+     * <code>optional int32 mode = 4;</code>
      */
     public Builder clearMode() {
-      bitField0_ = (bitField0_ & ~0x00000010);
+      bitField0_ = (bitField0_ & ~0x00000008);
       mode_ = 0;
-      onChanged();
-      return this;
-    }
-
-    private int ttlActionNotUsed_ = 0;
-    /**
-     * <pre>
-     * deprecated from 1.8
-     * </pre>
-     *
-     * <code>optional .alluxio.grpc.TtlAction ttlActionNotUsed = 6;</code>
-     */
-    public boolean hasTtlActionNotUsed() {
-      return ((bitField0_ & 0x00000020) == 0x00000020);
-    }
-    /**
-     * <pre>
-     * deprecated from 1.8
-     * </pre>
-     *
-     * <code>optional .alluxio.grpc.TtlAction ttlActionNotUsed = 6;</code>
-     */
-    public alluxio.grpc.TtlAction getTtlActionNotUsed() {
-      alluxio.grpc.TtlAction result = alluxio.grpc.TtlAction.valueOf(ttlActionNotUsed_);
-      return result == null ? alluxio.grpc.TtlAction.DELETE : result;
-    }
-    /**
-     * <pre>
-     * deprecated from 1.8
-     * </pre>
-     *
-     * <code>optional .alluxio.grpc.TtlAction ttlActionNotUsed = 6;</code>
-     */
-    public Builder setTtlActionNotUsed(alluxio.grpc.TtlAction value) {
-      if (value == null) {
-        throw new NullPointerException();
-      }
-      bitField0_ |= 0x00000020;
-      ttlActionNotUsed_ = value.getNumber();
-      onChanged();
-      return this;
-    }
-    /**
-     * <pre>
-     * deprecated from 1.8
-     * </pre>
-     *
-     * <code>optional .alluxio.grpc.TtlAction ttlActionNotUsed = 6;</code>
-     */
-    public Builder clearTtlActionNotUsed() {
-      bitField0_ = (bitField0_ & ~0x00000020);
-      ttlActionNotUsed_ = 0;
       onChanged();
       return this;
     }
 
     private int replicationMax_ ;
     /**
-     * <code>optional int32 replicationMax = 7;</code>
+     * <code>optional int32 replicationMax = 5;</code>
      */
     public boolean hasReplicationMax() {
-      return ((bitField0_ & 0x00000040) == 0x00000040);
+      return ((bitField0_ & 0x00000010) == 0x00000010);
     }
     /**
-     * <code>optional int32 replicationMax = 7;</code>
+     * <code>optional int32 replicationMax = 5;</code>
      */
     public int getReplicationMax() {
       return replicationMax_;
     }
     /**
-     * <code>optional int32 replicationMax = 7;</code>
+     * <code>optional int32 replicationMax = 5;</code>
      */
     public Builder setReplicationMax(int value) {
-      bitField0_ |= 0x00000040;
+      bitField0_ |= 0x00000010;
       replicationMax_ = value;
       onChanged();
       return this;
     }
     /**
-     * <code>optional int32 replicationMax = 7;</code>
+     * <code>optional int32 replicationMax = 5;</code>
      */
     public Builder clearReplicationMax() {
-      bitField0_ = (bitField0_ & ~0x00000040);
+      bitField0_ = (bitField0_ & ~0x00000010);
       replicationMax_ = 0;
       onChanged();
       return this;
@@ -1287,31 +1072,31 @@ private static final long serialVersionUID = 0L;
 
     private int replicationMin_ ;
     /**
-     * <code>optional int32 replicationMin = 8;</code>
+     * <code>optional int32 replicationMin = 6;</code>
      */
     public boolean hasReplicationMin() {
-      return ((bitField0_ & 0x00000080) == 0x00000080);
+      return ((bitField0_ & 0x00000020) == 0x00000020);
     }
     /**
-     * <code>optional int32 replicationMin = 8;</code>
+     * <code>optional int32 replicationMin = 6;</code>
      */
     public int getReplicationMin() {
       return replicationMin_;
     }
     /**
-     * <code>optional int32 replicationMin = 8;</code>
+     * <code>optional int32 replicationMin = 6;</code>
      */
     public Builder setReplicationMin(int value) {
-      bitField0_ |= 0x00000080;
+      bitField0_ |= 0x00000020;
       replicationMin_ = value;
       onChanged();
       return this;
     }
     /**
-     * <code>optional int32 replicationMin = 8;</code>
+     * <code>optional int32 replicationMin = 6;</code>
      */
     public Builder clearReplicationMin() {
-      bitField0_ = (bitField0_ & ~0x00000080);
+      bitField0_ = (bitField0_ & ~0x00000020);
       replicationMin_ = 0;
       onChanged();
       return this;
@@ -1319,31 +1104,31 @@ private static final long serialVersionUID = 0L;
 
     private int replicationDurable_ ;
     /**
-     * <code>optional int32 replicationDurable = 9;</code>
+     * <code>optional int32 replicationDurable = 7;</code>
      */
     public boolean hasReplicationDurable() {
-      return ((bitField0_ & 0x00000100) == 0x00000100);
+      return ((bitField0_ & 0x00000040) == 0x00000040);
     }
     /**
-     * <code>optional int32 replicationDurable = 9;</code>
+     * <code>optional int32 replicationDurable = 7;</code>
      */
     public int getReplicationDurable() {
       return replicationDurable_;
     }
     /**
-     * <code>optional int32 replicationDurable = 9;</code>
+     * <code>optional int32 replicationDurable = 7;</code>
      */
     public Builder setReplicationDurable(int value) {
-      bitField0_ |= 0x00000100;
+      bitField0_ |= 0x00000040;
       replicationDurable_ = value;
       onChanged();
       return this;
     }
     /**
-     * <code>optional int32 replicationDurable = 9;</code>
+     * <code>optional int32 replicationDurable = 7;</code>
      */
     public Builder clearReplicationDurable() {
-      bitField0_ = (bitField0_ & ~0x00000100);
+      bitField0_ = (bitField0_ & ~0x00000040);
       replicationDurable_ = 0;
       onChanged();
       return this;
@@ -1351,13 +1136,13 @@ private static final long serialVersionUID = 0L;
 
     private java.lang.Object fileWriteLocationPolicy_ = "";
     /**
-     * <code>optional string fileWriteLocationPolicy = 10;</code>
+     * <code>optional string fileWriteLocationPolicy = 8;</code>
      */
     public boolean hasFileWriteLocationPolicy() {
-      return ((bitField0_ & 0x00000200) == 0x00000200);
+      return ((bitField0_ & 0x00000080) == 0x00000080);
     }
     /**
-     * <code>optional string fileWriteLocationPolicy = 10;</code>
+     * <code>optional string fileWriteLocationPolicy = 8;</code>
      */
     public java.lang.String getFileWriteLocationPolicy() {
       java.lang.Object ref = fileWriteLocationPolicy_;
@@ -1374,7 +1159,7 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
-     * <code>optional string fileWriteLocationPolicy = 10;</code>
+     * <code>optional string fileWriteLocationPolicy = 8;</code>
      */
     public com.google.protobuf.ByteString
         getFileWriteLocationPolicyBytes() {
@@ -1390,36 +1175,36 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
-     * <code>optional string fileWriteLocationPolicy = 10;</code>
+     * <code>optional string fileWriteLocationPolicy = 8;</code>
      */
     public Builder setFileWriteLocationPolicy(
         java.lang.String value) {
       if (value == null) {
     throw new NullPointerException();
   }
-  bitField0_ |= 0x00000200;
+  bitField0_ |= 0x00000080;
       fileWriteLocationPolicy_ = value;
       onChanged();
       return this;
     }
     /**
-     * <code>optional string fileWriteLocationPolicy = 10;</code>
+     * <code>optional string fileWriteLocationPolicy = 8;</code>
      */
     public Builder clearFileWriteLocationPolicy() {
-      bitField0_ = (bitField0_ & ~0x00000200);
+      bitField0_ = (bitField0_ & ~0x00000080);
       fileWriteLocationPolicy_ = getDefaultInstance().getFileWriteLocationPolicy();
       onChanged();
       return this;
     }
     /**
-     * <code>optional string fileWriteLocationPolicy = 10;</code>
+     * <code>optional string fileWriteLocationPolicy = 8;</code>
      */
     public Builder setFileWriteLocationPolicyBytes(
         com.google.protobuf.ByteString value) {
       if (value == null) {
     throw new NullPointerException();
   }
-  bitField0_ |= 0x00000200;
+  bitField0_ |= 0x00000080;
       fileWriteLocationPolicy_ = value;
       onChanged();
       return this;
@@ -1427,31 +1212,31 @@ private static final long serialVersionUID = 0L;
 
     private int writeTier_ ;
     /**
-     * <code>optional int32 writeTier = 11;</code>
+     * <code>optional int32 writeTier = 9;</code>
      */
     public boolean hasWriteTier() {
-      return ((bitField0_ & 0x00000400) == 0x00000400);
+      return ((bitField0_ & 0x00000100) == 0x00000100);
     }
     /**
-     * <code>optional int32 writeTier = 11;</code>
+     * <code>optional int32 writeTier = 9;</code>
      */
     public int getWriteTier() {
       return writeTier_;
     }
     /**
-     * <code>optional int32 writeTier = 11;</code>
+     * <code>optional int32 writeTier = 9;</code>
      */
     public Builder setWriteTier(int value) {
-      bitField0_ |= 0x00000400;
+      bitField0_ |= 0x00000100;
       writeTier_ = value;
       onChanged();
       return this;
     }
     /**
-     * <code>optional int32 writeTier = 11;</code>
+     * <code>optional int32 writeTier = 9;</code>
      */
     public Builder clearWriteTier() {
-      bitField0_ = (bitField0_ & ~0x00000400);
+      bitField0_ = (bitField0_ & ~0x00000100);
       writeTier_ = 0;
       onChanged();
       return this;
@@ -1459,35 +1244,35 @@ private static final long serialVersionUID = 0L;
 
     private int writeType_ = 0;
     /**
-     * <code>optional .alluxio.grpc.WritePType writeType = 12;</code>
+     * <code>optional .alluxio.grpc.WritePType writeType = 10;</code>
      */
     public boolean hasWriteType() {
-      return ((bitField0_ & 0x00000800) == 0x00000800);
+      return ((bitField0_ & 0x00000200) == 0x00000200);
     }
     /**
-     * <code>optional .alluxio.grpc.WritePType writeType = 12;</code>
+     * <code>optional .alluxio.grpc.WritePType writeType = 10;</code>
      */
     public alluxio.grpc.WritePType getWriteType() {
       alluxio.grpc.WritePType result = alluxio.grpc.WritePType.valueOf(writeType_);
       return result == null ? alluxio.grpc.WritePType.WRITE_MUST_CACHE : result;
     }
     /**
-     * <code>optional .alluxio.grpc.WritePType writeType = 12;</code>
+     * <code>optional .alluxio.grpc.WritePType writeType = 10;</code>
      */
     public Builder setWriteType(alluxio.grpc.WritePType value) {
       if (value == null) {
         throw new NullPointerException();
       }
-      bitField0_ |= 0x00000800;
+      bitField0_ |= 0x00000200;
       writeType_ = value.getNumber();
       onChanged();
       return this;
     }
     /**
-     * <code>optional .alluxio.grpc.WritePType writeType = 12;</code>
+     * <code>optional .alluxio.grpc.WritePType writeType = 10;</code>
      */
     public Builder clearWriteType() {
-      bitField0_ = (bitField0_ & ~0x00000800);
+      bitField0_ = (bitField0_ & ~0x00000200);
       writeType_ = 0;
       onChanged();
       return this;
@@ -1497,13 +1282,13 @@ private static final long serialVersionUID = 0L;
     private com.google.protobuf.SingleFieldBuilderV3<
         alluxio.grpc.FileSystemMasterCommonPOptions, alluxio.grpc.FileSystemMasterCommonPOptions.Builder, alluxio.grpc.FileSystemMasterCommonPOptionsOrBuilder> commonOptionsBuilder_;
     /**
-     * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 13;</code>
+     * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 11;</code>
      */
     public boolean hasCommonOptions() {
-      return ((bitField0_ & 0x00001000) == 0x00001000);
+      return ((bitField0_ & 0x00000400) == 0x00000400);
     }
     /**
-     * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 13;</code>
+     * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 11;</code>
      */
     public alluxio.grpc.FileSystemMasterCommonPOptions getCommonOptions() {
       if (commonOptionsBuilder_ == null) {
@@ -1513,7 +1298,7 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
-     * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 13;</code>
+     * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 11;</code>
      */
     public Builder setCommonOptions(alluxio.grpc.FileSystemMasterCommonPOptions value) {
       if (commonOptionsBuilder_ == null) {
@@ -1525,11 +1310,11 @@ private static final long serialVersionUID = 0L;
       } else {
         commonOptionsBuilder_.setMessage(value);
       }
-      bitField0_ |= 0x00001000;
+      bitField0_ |= 0x00000400;
       return this;
     }
     /**
-     * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 13;</code>
+     * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 11;</code>
      */
     public Builder setCommonOptions(
         alluxio.grpc.FileSystemMasterCommonPOptions.Builder builderForValue) {
@@ -1539,15 +1324,15 @@ private static final long serialVersionUID = 0L;
       } else {
         commonOptionsBuilder_.setMessage(builderForValue.build());
       }
-      bitField0_ |= 0x00001000;
+      bitField0_ |= 0x00000400;
       return this;
     }
     /**
-     * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 13;</code>
+     * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 11;</code>
      */
     public Builder mergeCommonOptions(alluxio.grpc.FileSystemMasterCommonPOptions value) {
       if (commonOptionsBuilder_ == null) {
-        if (((bitField0_ & 0x00001000) == 0x00001000) &&
+        if (((bitField0_ & 0x00000400) == 0x00000400) &&
             commonOptions_ != null &&
             commonOptions_ != alluxio.grpc.FileSystemMasterCommonPOptions.getDefaultInstance()) {
           commonOptions_ =
@@ -1559,11 +1344,11 @@ private static final long serialVersionUID = 0L;
       } else {
         commonOptionsBuilder_.mergeFrom(value);
       }
-      bitField0_ |= 0x00001000;
+      bitField0_ |= 0x00000400;
       return this;
     }
     /**
-     * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 13;</code>
+     * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 11;</code>
      */
     public Builder clearCommonOptions() {
       if (commonOptionsBuilder_ == null) {
@@ -1572,19 +1357,19 @@ private static final long serialVersionUID = 0L;
       } else {
         commonOptionsBuilder_.clear();
       }
-      bitField0_ = (bitField0_ & ~0x00001000);
+      bitField0_ = (bitField0_ & ~0x00000400);
       return this;
     }
     /**
-     * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 13;</code>
+     * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 11;</code>
      */
     public alluxio.grpc.FileSystemMasterCommonPOptions.Builder getCommonOptionsBuilder() {
-      bitField0_ |= 0x00001000;
+      bitField0_ |= 0x00000400;
       onChanged();
       return getCommonOptionsFieldBuilder().getBuilder();
     }
     /**
-     * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 13;</code>
+     * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 11;</code>
      */
     public alluxio.grpc.FileSystemMasterCommonPOptionsOrBuilder getCommonOptionsOrBuilder() {
       if (commonOptionsBuilder_ != null) {
@@ -1595,7 +1380,7 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
-     * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 13;</code>
+     * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 11;</code>
      */
     private com.google.protobuf.SingleFieldBuilderV3<
         alluxio.grpc.FileSystemMasterCommonPOptions, alluxio.grpc.FileSystemMasterCommonPOptions.Builder, alluxio.grpc.FileSystemMasterCommonPOptionsOrBuilder> 
