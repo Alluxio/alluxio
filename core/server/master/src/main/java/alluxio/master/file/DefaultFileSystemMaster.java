@@ -81,6 +81,7 @@ import alluxio.master.file.options.CheckConsistencyContext;
 import alluxio.master.file.options.CompleteFileContext;
 import alluxio.master.file.options.CreateDirectoryContext;
 import alluxio.master.file.options.CreateFileContext;
+import alluxio.master.file.options.DeleteContext;
 import alluxio.master.file.options.FreeContext;
 import alluxio.master.file.options.LoadMetadataContext;
 import alluxio.master.file.options.MountContext;
@@ -1395,20 +1396,20 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   }
 
   @Override
-  public void delete(AlluxioURI path, DeletePOptions options) throws IOException,
+  public void delete(AlluxioURI path, DeleteContext context) throws IOException,
       FileDoesNotExistException, DirectoryNotEmptyException, InvalidPathException,
       AccessControlException {
     Metrics.DELETE_PATHS_OPS.inc();
     LockingScheme lockingScheme =
-        createLockingScheme(path, options.getCommonOptions(), InodeTree.LockMode.WRITE);
+        createLockingScheme(path, context.getOptions().getCommonOptions(), InodeTree.LockMode.WRITE);
     try (RpcContext rpcContext = createRpcContext();
         LockedInodePath inodePath =
             mInodeTree.lockInodePath(lockingScheme.getPath(), lockingScheme.getMode());
         FileSystemMasterAuditContext auditContext =
             createAuditContext("delete", path, null, inodePath.getInodeOrNull());
-        LockedInodePathList children =
-            options.getRecursive() ? mInodeTree.lockDescendants(inodePath, InodeTree.LockMode.WRITE)
-                : null) {
+        LockedInodePathList children = context.getOptions().getRecursive()
+            ? mInodeTree.lockDescendants(inodePath, InodeTree.LockMode.WRITE)
+            : null) {
       try {
         mPermissionChecker.checkParentPermission(Mode.Bits.WRITE, inodePath);
         if (children != null) {
@@ -1433,12 +1434,12 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       mMountTable.checkUnderWritableMountPoint(path);
       // Possible ufs sync.
       syncMetadata(rpcContext, inodePath, lockingScheme,
-          options.getRecursive() ? DescendantType.ALL : DescendantType.ONE);
+              context.getOptions().getRecursive() ? DescendantType.ALL : DescendantType.ONE);
       if (!inodePath.fullPathExists()) {
         throw new FileDoesNotExistException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path));
       }
 
-      deleteInternal(rpcContext, inodePath, options);
+      deleteInternal(rpcContext, inodePath, context);
       auditContext.setSucceeded(true);
     }
   }
@@ -1456,7 +1457,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    */
   @VisibleForTesting
   public void deleteInternal(RpcContext rpcContext, LockedInodePath inodePath,
-      DeletePOptions deleteOptions) throws FileDoesNotExistException, IOException,
+      DeleteContext deleteContext) throws FileDoesNotExistException, IOException,
       DirectoryNotEmptyException, InvalidPathException {
     // TODO(jiri): A crash after any UFS object is deleted and before the delete operation is
     // journaled will result in an inconsistency between Alluxio and UFS.
@@ -1469,7 +1470,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       return;
     }
 
-    boolean recursive = deleteOptions.getRecursive();
+    boolean recursive = deleteContext.getOptions().getRecursive();
     if (inode.isDirectory() && !recursive
         && ((InodeDirectoryView) inode).getNumberOfChildren() > 0) {
       // inode is nonempty, and we don't want to delete a nonempty directory unless recursive is
@@ -1498,8 +1499,9 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
       // Prepare to delete persisted inodes
       UfsDeleter ufsDeleter = NoopUfsDeleter.INSTANCE;
-      if (!deleteOptions.getAlluxioOnly()) {
-        ufsDeleter = new SafeUfsDeleter(mMountTable, inodesToDelete, deleteOptions);
+      if (!deleteContext.getOptions().getAlluxioOnly()) {
+        ufsDeleter =
+            new SafeUfsDeleter(mMountTable, inodesToDelete, deleteContext.getOptions().build());
       }
 
       // Inodes to delete from tree after attempting to delete from UFS
@@ -1525,7 +1527,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
           if (mMountTable.isMountPoint(alluxioUriToDelete)) {
             mMountTable.delete(rpcContext, alluxioUriToDelete);
           } else {
-            if (!deleteOptions.getAlluxioOnly()) {
+            if (!deleteContext.getOptions().getAlluxioOnly()) {
               try {
                 checkUfsMode(alluxioUriToDelete, OperationType.WRITE);
                 // Attempt to delete node if all children were deleted successfully
@@ -2772,9 +2774,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     try {
       // Use the internal delete API, setting {@code alluxioOnly} to true to prevent the delete
       // operations from being persisted in the UFS.
-      DeletePOptions deleteOptions = FileSystemMasterOptions.getDeleteOptions().toBuilder()
-          .setRecursive(true).setAlluxioOnly(true).build();
-      deleteInternal(rpcContext, inodePath, deleteOptions);
+      deleteInternal(rpcContext, inodePath, DeleteContext
+          .defaults(DeletePOptions.newBuilder().setRecursive(true).setAlluxioOnly(true)));
     } catch (DirectoryNotEmptyException e) {
       throw new RuntimeException(String.format(
           "We should never see this exception because %s should never be thrown when recursive "
@@ -3219,10 +3220,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     // Set of paths to sync
     Set<String> pathsToLoad = new HashSet<>();
 
-    // The options for deleting.
-    DeletePOptions syncDeleteOptions = FileSystemMasterOptions.getDeleteOptions().toBuilder()
-        .setRecursive(true).setAlluxioOnly(true).setUnchecked(true).build();
-
     // The requested path already exists in Alluxio.
     InodeView inode = inodePath.getInode();
 
@@ -3283,7 +3280,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       }
       if (syncPlan.toDelete()) {
         try {
-          deleteInternal(rpcContext, inodePath, syncDeleteOptions);
+          deleteInternal(rpcContext, inodePath, DeleteContext.defaults(DeletePOptions.newBuilder()
+              .setRecursive(true).setAlluxioOnly(true).setUnchecked(true)));
 
           deletedInode = true;
         } catch (DirectoryNotEmptyException | IOException e) {

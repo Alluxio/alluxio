@@ -14,6 +14,7 @@ package alluxio.master.file;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.exception.FileDoesNotExistException;
+import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.FreePOptions;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.master.ProtobufUtils;
@@ -22,6 +23,7 @@ import alluxio.master.file.meta.InodeView;
 import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.file.meta.TtlBucket;
 import alluxio.master.file.meta.TtlBucketList;
+import alluxio.master.file.options.DeleteContext;
 import alluxio.master.file.options.FreeContext;
 import alluxio.master.journal.JournalContext;
 import alluxio.proto.journal.File.UpdateInodeEntry;
@@ -99,10 +101,10 @@ final class InodeTtlChecker implements HeartbeatExecutor {
                 // public delete method will lock the path, and check WRITE permission required at
                 // parent of file
                 if (inode.isDirectory()) {
-                  mFileSystemMaster.delete(path, FileSystemMasterOptions.getDeleteOptions()
-                      .toBuilder().setRecursive(true).build());
+                  mFileSystemMaster.delete(path,
+                      DeleteContext.defaults(DeletePOptions.newBuilder().setRecursive(true)));
                 } else {
-                  mFileSystemMaster.delete(path, FileSystemMasterOptions.getDeleteOptions());
+                  mFileSystemMaster.delete(path, DeleteContext.defaults());
                 }
                 break;
               default:

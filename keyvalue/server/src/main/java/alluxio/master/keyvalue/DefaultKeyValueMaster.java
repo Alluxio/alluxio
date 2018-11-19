@@ -24,10 +24,12 @@ import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.CreateDirectoryPOptions;
+import alluxio.grpc.DeletePOptions;
 import alluxio.master.AbstractMaster;
 import alluxio.master.MasterContext;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.options.CreateDirectoryContext;
+import alluxio.master.file.options.DeleteContext;
 import alluxio.master.file.options.RenameContext;
 import alluxio.master.journal.JournalContext;
 import alluxio.proto.journal.Journal.JournalEntry;
@@ -258,7 +260,7 @@ public class DefaultKeyValueMaster extends AbstractMaster implements KeyValueMas
     long fileId = getFileId(uri);
     checkIsCompletePartition(fileId, uri);
     mFileSystemMaster.delete(uri,
-        FileSystemClientOptions.getDeleteOptions().toBuilder().setRecursive(true).build());
+        DeleteContext.defaults(DeletePOptions.newBuilder().setRecursive(true)));
     try (JournalContext journalContext = createJournalContext()) {
       deleteStoreInternal(fileId);
       journalContext.append(newDeleteStoreEntry(fileId));

@@ -65,6 +65,7 @@ import alluxio.master.file.options.CheckConsistencyContext;
 import alluxio.master.file.options.CompleteFileContext;
 import alluxio.master.file.options.CreateDirectoryContext;
 import alluxio.master.file.options.CreateFileContext;
+import alluxio.master.file.options.DeleteContext;
 import alluxio.master.file.options.FreeContext;
 import alluxio.master.file.options.MountContext;
 import alluxio.master.file.options.RenameContext;
@@ -240,8 +241,7 @@ public final class FileSystemMasterClientServiceHandler
     String path = request.getPath();
     DeletePOptions options = request.getOptions();
     RpcUtilsNew.call(LOG, (RpcUtilsNew.RpcCallableThrowsIOException<DeletePResponse>) () -> {
-      mFileSystemMaster.delete(new AlluxioURI(path),
-          FileSystemMasterOptions.getDeleteOptions().toBuilder().mergeFrom(options).build());
+      mFileSystemMaster.delete(new AlluxioURI(path), DeleteContext.defaults(options.toBuilder()));
       return DeletePResponse.newBuilder().build();
     }, "Remove", "path=%s, options=%s", responseObserver, path, options);
   }

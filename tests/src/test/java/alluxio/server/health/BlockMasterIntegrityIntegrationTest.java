@@ -24,6 +24,7 @@ import alluxio.master.file.FileSystemMasterOptions;
 import alluxio.master.file.RpcContext;
 import alluxio.master.file.meta.InodeTree;
 import alluxio.master.file.meta.LockedInodePath;
+import alluxio.master.file.options.DeleteContext;
 import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
@@ -108,9 +109,8 @@ public class BlockMasterIntegrityIntegrationTest {
         mCluster.getLocalAlluxioMaster().getMasterProcess().getMaster(FileSystemMaster.class);
     InodeTree tree = Whitebox.getInternalState(fsm, "mInodeTree");
     LockedInodePath path = tree.lockInodePath(uri, InodeTree.LockMode.WRITE);
-    DeletePOptions options = FileSystemMasterOptions.getDeleteOptions();
     RpcContext rpcContext = ((DefaultFileSystemMaster) fsm).createRpcContext();
-    ((DefaultFileSystemMaster) fsm).deleteInternal(rpcContext, path, options);
+    ((DefaultFileSystemMaster) fsm).deleteInternal(rpcContext, path, DeleteContext.defaults());
     path.close();
     rpcContext.close();
   }

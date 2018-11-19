@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.RestUtils;
 import alluxio.client.file.FileSystemClientOptions;
+import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.grpc.FreePOptions;
 import alluxio.grpc.ListStatusPOptions;
@@ -25,6 +26,7 @@ import alluxio.master.MasterProcess;
 import alluxio.master.file.options.CompleteFileContext;
 import alluxio.master.file.options.CreateDirectoryContext;
 import alluxio.master.file.options.CreateFileContext;
+import alluxio.master.file.options.DeleteContext;
 import alluxio.master.file.options.FreeContext;
 import alluxio.master.file.options.MountContext;
 import alluxio.master.file.options.RenameContext;
@@ -361,7 +363,7 @@ public final class FileSystemMasterClientRestServiceHandler {
     return RestUtils.call((RestUtils.RestCallable<Void>) () -> {
       Preconditions.checkNotNull(path, "required 'path' parameter is missing");
       mFileSystemMaster.delete(new AlluxioURI(path),
-          FileSystemMasterOptions.getDeleteOptions().toBuilder().setRecursive(recursive).build());
+          DeleteContext.defaults(DeletePOptions.newBuilder().setRecursive(recursive)));
       return null;
     });
   }

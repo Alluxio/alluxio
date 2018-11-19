@@ -38,6 +38,7 @@ import alluxio.master.file.options.CheckConsistencyContext;
 import alluxio.master.file.options.CompleteFileContext;
 import alluxio.master.file.options.CreateDirectoryContext;
 import alluxio.master.file.options.CreateFileContext;
+import alluxio.master.file.options.DeleteContext;
 import alluxio.master.file.options.FreeContext;
 import alluxio.master.file.options.LoadMetadataContext;
 import alluxio.master.file.options.MountContext;
@@ -235,13 +236,13 @@ public interface FileSystemMaster extends Master {
    * This operation requires user to have WRITE permission on the parent of the path.
    *
    * @param path the path to delete
-   * @param options method options
+   * @param context method context
    * @throws DirectoryNotEmptyException if recursive is false and the file is a nonempty directory
    * @throws FileDoesNotExistException if the file does not exist
    * @throws AccessControlException if permission checking fails
    * @throws InvalidPathException if the path is invalid
    */
-  void delete(AlluxioURI path, DeletePOptions options)
+  void delete(AlluxioURI path, DeleteContext context)
       throws IOException, FileDoesNotExistException, DirectoryNotEmptyException,
       InvalidPathException, AccessControlException;
 

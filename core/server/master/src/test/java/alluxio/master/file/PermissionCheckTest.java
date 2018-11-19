@@ -32,6 +32,7 @@ import alluxio.exception.FileDoesNotExistException;
 import alluxio.grpc.CompleteFilePOptions;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.FreePOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.TtlAction;
@@ -52,6 +53,7 @@ import alluxio.master.file.meta.MutableLockedInodePath;
 import alluxio.master.file.options.CompleteFileContext;
 import alluxio.master.file.options.CreateDirectoryContext;
 import alluxio.master.file.options.CreateFileContext;
+import alluxio.master.file.options.DeleteContext;
 import alluxio.master.file.options.FreeContext;
 import alluxio.master.file.options.RenameContext;
 import alluxio.master.file.options.SetAttributeContext;
@@ -557,7 +559,7 @@ public final class PermissionCheckTest {
   private void verifyDelete(TestUser user, String path, boolean recursive) throws Exception {
     try (Closeable r = new AuthenticatedUserRule(user.getUser()).toResource()) {
       mFileSystemMaster.delete(new AlluxioURI(path),
-          FileSystemMasterOptions.getDeleteOptions().toBuilder().setRecursive(recursive).build());
+          DeleteContext.defaults(DeletePOptions.newBuilder().setRecursive(recursive)));
       assertEquals(-1, mFileSystemMaster.getFileId(new AlluxioURI(path)));
     }
   }

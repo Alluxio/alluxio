@@ -65,6 +65,7 @@ import alluxio.master.file.meta.TtlIntervalRule;
 import alluxio.master.file.options.CompleteFileContext;
 import alluxio.master.file.options.CreateDirectoryContext;
 import alluxio.master.file.options.CreateFileContext;
+import alluxio.master.file.options.DeleteContext;
 import alluxio.master.file.options.FreeContext;
 import alluxio.master.file.options.LoadMetadataContext;
 import alluxio.master.file.options.MountContext;
@@ -235,7 +236,7 @@ public final class FileSystemMasterTest {
       long id = mFileSystemMaster.createFile(uri,
           CreateFileContext.defaults(CreateFilePOptions.newBuilder().setRecursive(true)));
       Assert.assertEquals(id, mFileSystemMaster.getFileId(uri));
-      mFileSystemMaster.delete(uri, FileSystemMasterOptions.getDeleteOptions());
+      mFileSystemMaster.delete(uri, DeleteContext.defaults());
       id = mFileSystemMaster.createDirectory(uri, CreateDirectoryContext
           .defaults(CreateDirectoryPOptions.newBuilder().setRecursive(true)));
       Assert.assertEquals(id, mFileSystemMaster.getFileId(uri));
@@ -264,14 +265,14 @@ public final class FileSystemMasterTest {
   }
 
   /**
-   * Tests the {@link FileSystemMaster#delete(AlluxioURI, DeletePOptions)} method.
+   * Tests the {@link FileSystemMaster#delete(AlluxioURI, DeleteContext)} method.
    */
   @Test
   public void deleteFile() throws Exception {
     // cannot delete root
     try {
       mFileSystemMaster.delete(ROOT_URI,
-          FileSystemMasterOptions.getDeleteOptions().toBuilder().setRecursive(true).build());
+          DeleteContext.defaults(DeletePOptions.newBuilder().setRecursive(true)));
       fail("Should not have been able to delete the root");
     } catch (InvalidPathException e) {
       assertEquals(ExceptionMessage.DELETE_ROOT_DIRECTORY.getMessage(), e.getMessage());
@@ -279,7 +280,7 @@ public final class FileSystemMasterTest {
 
     // delete the file
     long blockId = createFileWithSingleBlock(NESTED_FILE_URI);
-    mFileSystemMaster.delete(NESTED_FILE_URI, FileSystemMasterOptions.getDeleteOptions());
+    mFileSystemMaster.delete(NESTED_FILE_URI, DeleteContext.defaults());
 
     try {
       mBlockMaster.getBlockInfo(blockId);
@@ -313,7 +314,7 @@ public final class FileSystemMasterTest {
         FileSystemMasterOptions.getListStatusOptions().toBuilder()
             .setLoadMetadataType(LoadMetadataPType.ALWAYS).build());
     mFileSystemMaster.delete(new AlluxioURI("/mnt/local/dir1/file1"),
-        FileSystemMasterOptions.getDeleteOptions().toBuilder().setAlluxioOnly(true).build());
+        DeleteContext.defaults(DeletePOptions.newBuilder().setAlluxioOnly(true)));
 
     // ufs file still exists
     assertTrue(Files.exists(Paths.get(ufsMount.join("dir1").join("file1").getPath())));
@@ -324,7 +325,7 @@ public final class FileSystemMasterTest {
   }
 
   /**
-   * Tests the {@link FileSystemMaster#delete(AlluxioURI, DeletePOptions)} method with a
+   * Tests the {@link FileSystemMaster#delete(AlluxioURI, DeleteContext)} method with a
    * non-empty directory.
    */
   @Test
@@ -332,7 +333,7 @@ public final class FileSystemMasterTest {
     createFileWithSingleBlock(NESTED_FILE_URI);
     String dirName = mFileSystemMaster.getFileInfo(NESTED_URI, GET_STATUS_OPTIONS).getName();
     try {
-      mFileSystemMaster.delete(NESTED_URI, FileSystemMasterOptions.getDeleteOptions());
+      mFileSystemMaster.delete(NESTED_URI, DeleteContext.defaults());
       fail("Deleting a non-empty directory without setting recursive should fail");
     } catch (DirectoryNotEmptyException e) {
       String expectedMessage =
@@ -342,11 +343,11 @@ public final class FileSystemMasterTest {
 
     // Now delete with recursive set to true.
     mFileSystemMaster.delete(NESTED_URI,
-        FileSystemMasterOptions.getDeleteOptions().toBuilder().setRecursive(true).build());
+        DeleteContext.defaults(DeletePOptions.newBuilder().setRecursive(true)));
   }
 
   /**
-   * Tests the {@link FileSystemMaster#delete(AlluxioURI, DeletePOptions)} method for
+   * Tests the {@link FileSystemMaster#delete(AlluxioURI, DeleteContext)} method for
    * a directory.
    */
   @Test
@@ -354,7 +355,7 @@ public final class FileSystemMasterTest {
     createFileWithSingleBlock(NESTED_FILE_URI);
     // delete the dir
     mFileSystemMaster.delete(NESTED_URI,
-        FileSystemMasterOptions.getDeleteOptions().toBuilder().setRecursive(true).build());
+        DeleteContext.defaults(DeletePOptions.newBuilder().setRecursive(true)));
 
     // verify the dir is deleted
     assertEquals(-1, mFileSystemMaster.getFileId(NESTED_URI));
@@ -369,8 +370,8 @@ public final class FileSystemMasterTest {
     mFileSystemMaster.listStatus(new AlluxioURI("/mnt/local"),
         FileSystemMasterOptions.getListStatusOptions().toBuilder()
             .setLoadMetadataType(LoadMetadataPType.ALWAYS).build());
-    mFileSystemMaster.delete(new AlluxioURI("/mnt/local/dir1"), FileSystemMasterOptions
-        .getDeleteOptions().toBuilder().setRecursive(true).setAlluxioOnly(true).build());
+    mFileSystemMaster.delete(new AlluxioURI("/mnt/local/dir1"), DeleteContext
+        .defaults(DeletePOptions.newBuilder().setRecursive(true).setAlluxioOnly(true)));
     // ufs directory still exists
     assertTrue(Files.exists(Paths.get(ufsMount.join("dir1").getPath())));
     // verify the directory is deleted
@@ -389,7 +390,7 @@ public final class FileSystemMasterTest {
         .defaults(SetAttributePOptions.newBuilder().setMode((short) 0777)));
     try (AuthenticatedClientUserResource userA = new AuthenticatedClientUserResource("userA")) {
       mFileSystemMaster.delete(NESTED_URI,
-          FileSystemMasterOptions.getDeleteOptions().toBuilder().setRecursive(true).build());
+          DeleteContext.defaults(DeletePOptions.newBuilder().setRecursive(true)));
     }
     assertEquals(IdUtils.INVALID_FILE_ID, mFileSystemMaster.getFileId(NESTED_URI));
     assertEquals(IdUtils.INVALID_FILE_ID, mFileSystemMaster.getFileId(NESTED_FILE_URI));
@@ -408,7 +409,7 @@ public final class FileSystemMasterTest {
         .defaults(SetAttributePOptions.newBuilder().setMode((short) 0777)));
     try (AuthenticatedClientUserResource userA = new AuthenticatedClientUserResource("userA")) {
       mFileSystemMaster.delete(NESTED_URI,
-          FileSystemMasterOptions.getDeleteOptions().toBuilder().setRecursive(true).build());
+          DeleteContext.defaults(DeletePOptions.newBuilder().setRecursive(true)));
       fail("Deleting a directory w/ insufficient permission on child should fail");
     } catch (AccessControlException e) {
       String expectedChildMessage = ExceptionMessage.PERMISSION_DENIED
@@ -422,7 +423,7 @@ public final class FileSystemMasterTest {
   }
 
   /**
-   * Tests the {@link FileSystemMaster#delete(AlluxioURI, DeletePOptions)} method for
+   * Tests the {@link FileSystemMaster#delete(AlluxioURI, DeleteContext)} method for
    * a directory with persistent entries with a sync check.
    */
   @Test
@@ -431,7 +432,7 @@ public final class FileSystemMasterTest {
   }
 
   /**
-   * Tests the {@link FileSystemMaster#delete(AlluxioURI, DeletePOptions)} method for
+   * Tests the {@link FileSystemMaster#delete(AlluxioURI, DeleteContext)} method for
    * a directory with persistent entries without a sync check.
    */
   @Test
@@ -440,7 +441,7 @@ public final class FileSystemMasterTest {
   }
 
   /**
-   * Tests the {@link FileSystemMaster#delete(AlluxioURI, DeletePOptions)} method for
+   * Tests the {@link FileSystemMaster#delete(AlluxioURI, DeleteContext)} method for
    * a multi-level directory with persistent entries with a sync check.
    */
   @Test
@@ -449,7 +450,7 @@ public final class FileSystemMasterTest {
   }
 
   /**
-   * Tests the {@link FileSystemMaster#delete(AlluxioURI, DeletePOptions)} method for
+   * Tests the {@link FileSystemMaster#delete(AlluxioURI, DeleteContext)} method for
    * a multi-level directory with persistent entries without a sync check.
    */
   @Test
@@ -464,13 +465,13 @@ public final class FileSystemMasterTest {
     loadPersistedDirectories(levels);
     // delete top-level directory
     mFileSystemMaster.delete(new AlluxioURI(MOUNT_URI).join(DIR_TOP_LEVEL),
-        FileSystemMasterOptions.getDeleteOptions().toBuilder().setRecursive(true)
-            .setAlluxioOnly(false).setUnchecked(unchecked).build());
+        DeleteContext.defaults(DeletePOptions.newBuilder().setRecursive(true).setAlluxioOnly(false)
+            .setUnchecked(unchecked)));
     checkPersistedDirectoriesDeleted(levels, ufsMount, Collections.EMPTY_LIST);
   }
 
   /**
-   * Tests the {@link FileSystemMaster#delete(AlluxioURI, DeletePOptions)} method for
+   * Tests the {@link FileSystemMaster#delete(AlluxioURI, DeleteContext)} method for
    * a directory with un-synced persistent entries with a sync check.
    */
   @Test
@@ -483,9 +484,8 @@ public final class FileSystemMasterTest {
         Paths.get(ufsMount.join(DIR_TOP_LEVEL).join(FILE_PREFIX + (DIR_WIDTH)).getPath()));
     mThrown.expect(IOException.class);
     // delete top-level directory
-    mFileSystemMaster.delete(new AlluxioURI(MOUNT_URI).join(DIR_TOP_LEVEL),
-        FileSystemMasterOptions.getDeleteOptions().toBuilder().setRecursive(true)
-            .setAlluxioOnly(false).setUnchecked(false).build());
+    mFileSystemMaster.delete(new AlluxioURI(MOUNT_URI).join(DIR_TOP_LEVEL), DeleteContext.defaults(
+        DeletePOptions.newBuilder().setRecursive(true).setAlluxioOnly(false).setUnchecked(false)));
     // Check all that could be deleted.
     List<AlluxioURI> except = new ArrayList<>();
     except.add(new AlluxioURI(MOUNT_URI).join(DIR_TOP_LEVEL));
@@ -493,7 +493,7 @@ public final class FileSystemMasterTest {
   }
 
   /**
-   * Tests the {@link FileSystemMaster#delete(AlluxioURI, DeletePOptions)} method for
+   * Tests the {@link FileSystemMaster#delete(AlluxioURI, DeleteContext)} method for
    * a directory with un-synced persistent entries without a sync check.
    */
   @Test
@@ -505,14 +505,13 @@ public final class FileSystemMasterTest {
     Files.createFile(
         Paths.get(ufsMount.join(DIR_TOP_LEVEL).join(FILE_PREFIX + (DIR_WIDTH)).getPath()));
     // delete top-level directory
-    mFileSystemMaster.delete(new AlluxioURI(MOUNT_URI).join(DIR_TOP_LEVEL),
-        FileSystemMasterOptions.getDeleteOptions().toBuilder().setRecursive(true)
-            .setAlluxioOnly(false).setUnchecked(true).build());
+    mFileSystemMaster.delete(new AlluxioURI(MOUNT_URI).join(DIR_TOP_LEVEL), DeleteContext.defaults(
+        DeletePOptions.newBuilder().setRecursive(true).setAlluxioOnly(false).setUnchecked(true)));
     checkPersistedDirectoriesDeleted(1, ufsMount, Collections.EMPTY_LIST);
   }
 
   /**
-   * Tests the {@link FileSystemMaster#delete(AlluxioURI, DeletePOptions)} method for
+   * Tests the {@link FileSystemMaster#delete(AlluxioURI, DeleteContext)} method for
    * a multi-level directory with un-synced persistent entries with a sync check.
    */
   @Test
@@ -525,9 +524,8 @@ public final class FileSystemMasterTest {
         .join(FILE_PREFIX + (DIR_WIDTH)).getPath()));
     mThrown.expect(IOException.class);
     // delete top-level directory
-    mFileSystemMaster.delete(new AlluxioURI(MOUNT_URI).join(DIR_TOP_LEVEL),
-        FileSystemMasterOptions.getDeleteOptions().toBuilder().setRecursive(true)
-            .setAlluxioOnly(false).setUnchecked(false).build());
+    mFileSystemMaster.delete(new AlluxioURI(MOUNT_URI).join(DIR_TOP_LEVEL), DeleteContext.defaults(
+        DeletePOptions.newBuilder().setRecursive(true).setAlluxioOnly(false).setUnchecked(false)));
     // Check all that could be deleted.
     List<AlluxioURI> except = new ArrayList<>();
     except.add(new AlluxioURI(MOUNT_URI).join(DIR_TOP_LEVEL));
@@ -536,7 +534,7 @@ public final class FileSystemMasterTest {
   }
 
   /**
-   * Tests the {@link FileSystemMaster#delete(AlluxioURI, DeletePOptions)} method for
+   * Tests the {@link FileSystemMaster#delete(AlluxioURI, DeleteContext)} method for
    * a multi-level directory with un-synced persistent entries without a sync check.
    */
   @Test
@@ -548,9 +546,8 @@ public final class FileSystemMasterTest {
     Files.createFile(Paths.get(ufsMount.join(DIR_TOP_LEVEL).join(DIR_PREFIX + 0)
         .join(FILE_PREFIX + (DIR_WIDTH)).getPath()));
     // delete top-level directory
-    mFileSystemMaster.delete(new AlluxioURI(MOUNT_URI).join(DIR_TOP_LEVEL),
-        FileSystemMasterOptions.getDeleteOptions().toBuilder().setRecursive(true)
-            .setAlluxioOnly(false).setUnchecked(true).build());
+    mFileSystemMaster.delete(new AlluxioURI(MOUNT_URI).join(DIR_TOP_LEVEL), DeleteContext.defaults(
+        DeletePOptions.newBuilder().setRecursive(true).setAlluxioOnly(false).setUnchecked(true)));
     checkPersistedDirectoriesDeleted(3, ufsMount, Collections.EMPTY_LIST);
   }
 
@@ -2271,7 +2268,7 @@ public final class FileSystemMasterTest {
 
     mThrown.expect(AccessControlException.class);
     AlluxioURI path = new AlluxioURI("/hello/file1");
-    mFileSystemMaster.delete(path, FileSystemMasterOptions.getDeleteOptions());
+    mFileSystemMaster.delete(path, DeleteContext.defaults());
   }
 
   /**

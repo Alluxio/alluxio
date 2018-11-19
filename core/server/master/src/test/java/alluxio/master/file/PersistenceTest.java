@@ -22,6 +22,7 @@ import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
@@ -39,6 +40,7 @@ import alluxio.master.file.meta.PersistenceState;
 import alluxio.master.file.options.CompleteFileContext;
 import alluxio.master.file.options.CreateDirectoryContext;
 import alluxio.master.file.options.CreateFileContext;
+import alluxio.master.file.options.DeleteContext;
 import alluxio.master.file.options.RenameContext;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalTestUtils;
@@ -370,7 +372,7 @@ public final class PersistenceTest {
 
     // Delete the src directory recursively.
     mFileSystemMaster.delete(alluxioDirSrc,
-        FileSystemMasterOptions.getDeleteOptions().toBuilder().setRecursive(true).build());
+        DeleteContext.defaults(DeletePOptions.newBuilder().setRecursive(true)));
 
     // Execute the persistence checker heartbeat, checking the internal state. This should
     // re-schedule the persist task as tempUfsPath is deleted.
