@@ -13,6 +13,7 @@ message StringPairEntry {
   optional string value = 2;
 }
 
+// next available id: 3
 message ActiveSyncTxIdEntry {
   optional int64 mount_id = 1;
   optional int64 tx_id = 2;

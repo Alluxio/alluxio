@@ -952,6 +952,10 @@ public final class File {
   }
   /**
    * Protobuf type {@code alluxio.proto.journal.ActiveSyncTxIdEntry}
+   *
+   * <pre>
+   * next available id: 3
+   * </pre>
    */
   public static final class ActiveSyncTxIdEntry extends
       com.google.protobuf.GeneratedMessage
@@ -1202,6 +1206,10 @@ public final class File {
     }
     /**
      * Protobuf type {@code alluxio.proto.journal.ActiveSyncTxIdEntry}
+     *
+     * <pre>
+     * next available id: 3
+     * </pre>
      */
     public static final class Builder extends
         com.google.protobuf.GeneratedMessage.Builder<Builder>
