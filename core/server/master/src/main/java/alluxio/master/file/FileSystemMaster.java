@@ -38,6 +38,7 @@ import alluxio.master.file.options.CheckConsistencyContext;
 import alluxio.master.file.options.CompleteFileContext;
 import alluxio.master.file.options.CreateDirectoryContext;
 import alluxio.master.file.options.CreateFileContext;
+import alluxio.master.file.options.MountContext;
 import alluxio.master.file.options.RenameContext;
 import alluxio.master.file.options.SetAclContext;
 import alluxio.master.file.options.SetAttributeContext;
@@ -390,13 +391,13 @@ public interface FileSystemMaster extends Master {
    *
    * @param alluxioPath the Alluxio path to mount to
    * @param ufsPath the UFS path to mount
-   * @param options the mount options
+   * @param context the mount context
    * @throws FileAlreadyExistsException if the path to be mounted to already exists
    * @throws FileDoesNotExistException if the parent of the path to be mounted to does not exist
    * @throws InvalidPathException if an invalid path is encountered
    * @throws AccessControlException if the permission check fails
    */
-  void mount(AlluxioURI alluxioPath, AlluxioURI ufsPath, MountPOptions options)
+  void mount(AlluxioURI alluxioPath, AlluxioURI ufsPath, MountContext context)
       throws FileAlreadyExistsException, FileDoesNotExistException, InvalidPathException,
       IOException, AccessControlException;
 

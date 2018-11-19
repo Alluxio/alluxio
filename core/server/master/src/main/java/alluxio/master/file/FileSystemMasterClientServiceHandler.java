@@ -65,6 +65,7 @@ import alluxio.master.file.options.CheckConsistencyContext;
 import alluxio.master.file.options.CompleteFileContext;
 import alluxio.master.file.options.CreateDirectoryContext;
 import alluxio.master.file.options.CreateFileContext;
+import alluxio.master.file.options.MountContext;
 import alluxio.master.file.options.RenameContext;
 import alluxio.master.file.options.SetAttributeContext;
 import alluxio.underfs.UfsMode;
@@ -215,7 +216,7 @@ public final class FileSystemMasterClientServiceHandler
     MountPOptions options = request.getOptions();
     RpcUtilsNew.call(LOG, (RpcUtilsNew.RpcCallableThrowsIOException<MountPResponse>) () -> {
       mFileSystemMaster.mount(new AlluxioURI(alluxioPath), new AlluxioURI(ufsPath),
-          FileSystemMasterOptions.getMountOptions().toBuilder().mergeFrom(options).build());
+          MountContext.defaults(options.toBuilder()));
       return MountPResponse.newBuilder().build();
     }, "Mount", "alluxioPath=%s, ufsPath=%s, options=%s", responseObserver, alluxioPath, ufsPath,
         options);

@@ -21,6 +21,7 @@ import alluxio.master.file.FileSystemMasterClientRestServiceHandler;
 import alluxio.master.file.FileSystemMasterOptions;
 import alluxio.master.file.options.CompleteFileContext;
 import alluxio.master.file.options.CreateFileContext;
+import alluxio.master.file.options.MountContext;
 import alluxio.wire.FileInfo;
 import alluxio.wire.TtlAction;
 
@@ -280,7 +281,7 @@ public final class FileSystemMasterClientRestApiTest extends RestApiTest {
   public void unmount() throws Exception {
     AlluxioURI uri = new AlluxioURI("/mount");
     mFileSystemMaster.mount(uri, new AlluxioURI(mFolder.newFolder().getAbsolutePath()),
-        FileSystemMasterOptions.getMountOptions());
+        MountContext.defaults());
 
     Map<String, String> params = new HashMap<>();
     params.put("path", uri.toString());

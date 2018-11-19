@@ -22,6 +22,7 @@ import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.FileSystemMasterOptions;
 import alluxio.master.file.options.CreateDirectoryContext;
 import alluxio.master.file.options.CreateFileContext;
+import alluxio.master.file.options.MountContext;
 import alluxio.proxy.s3.CompleteMultipartUploadResult;
 import alluxio.proxy.s3.InitiateMultipartUploadResult;
 import alluxio.proxy.s3.ListBucketOptions;
@@ -98,7 +99,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
 
     AlluxioURI mountPointPath = new AlluxioURI(AlluxioURI.SEPARATOR + mountPoint);
     mFileSystemMaster.mount(mountPointPath, new AlluxioURI(mFolder.newFolder().getAbsolutePath()),
-        FileSystemMasterOptions.getMountOptions());
+        MountContext.defaults());
 
     // Create a new bucket under an existing mount point.
     createBucketRestCall(s3Path);
@@ -123,7 +124,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
     AlluxioURI mountPointPath = new AlluxioURI(AlluxioURI.SEPARATOR + mountPointParent
         + AlluxioURI.SEPARATOR + mountPointName);
     mFileSystemMaster.mount(mountPointPath, new AlluxioURI(mFolder.newFolder().getAbsolutePath()),
-        FileSystemMasterOptions.getMountOptions());
+        MountContext.defaults());
 
     // Create a new bucket under an existing nested mount point.
     createBucketRestCall(s3Path);
