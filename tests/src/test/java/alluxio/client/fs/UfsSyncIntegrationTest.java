@@ -22,7 +22,6 @@ import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.CommonUtils;
 import alluxio.util.io.FileUtils;
-import alluxio.wire.CommonOptions;
 import com.google.common.collect.Sets;
 import com.google.common.io.Files;
 import org.junit.*;
@@ -43,11 +42,6 @@ import static org.junit.Assert.assertFalse;
  */
 public class UfsSyncIntegrationTest extends BaseIntegrationTest {
   private static final long INTERVAL_MS = 100;
-  // TODO(ggezer) Merge PSYNC_* and SYNC_* after full removal of wrappers
-  private static final CommonOptions SYNC_NEVER = CommonOptions.defaults().setSyncIntervalMs(-1);
-  private static final CommonOptions SYNC_ALWAYS = CommonOptions.defaults().setSyncIntervalMs(0);
-  private static final CommonOptions SYNC_INTERVAL =
-      CommonOptions.defaults().setSyncIntervalMs(INTERVAL_MS);
   private static final FileSystemMasterCommonPOptions PSYNC_NEVER =
       FileSystemClientOptions.getCommonOptions().toBuilder().setSyncIntervalMs(-1).build();
   private static final FileSystemMasterCommonPOptions PSYNC_ALWAYS =

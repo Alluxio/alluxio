@@ -36,7 +36,6 @@ import alluxio.exception.status.InvalidArgumentException;
 import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.PermissionDeniedException;
 import alluxio.exception.status.UnavailableException;
-import alluxio.file.options.CommonOptions;
 import alluxio.file.options.DescendantType;
 import alluxio.file.options.WorkerHeartbeatOptions;
 import alluxio.grpc.CompleteFilePOptions;
@@ -4165,13 +4164,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   @VisibleForTesting
   public RpcContext createRpcContext() throws UnavailableException {
     return new RpcContext(createBlockDeletionContext(), createJournalContext());
-  }
-
-  private LockingScheme createLockingScheme(AlluxioURI path, CommonOptions options,
-      InodeTree.LockMode desiredLockMode) {
-    boolean shouldSync =
-        mUfsSyncPathCache.shouldSyncPath(path.getPath(), options.getSyncIntervalMs());
-    return new LockingScheme(path, desiredLockMode, shouldSync);
   }
 
   private LockingScheme createLockingScheme(AlluxioURI path, FileSystemMasterCommonPOptions options,
