@@ -12,6 +12,7 @@
 package alluxio.client;
 
 import alluxio.annotation.PublicApi;
+import alluxio.grpc.WritePType;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -31,8 +32,8 @@ public enum WriteType {
    * Write the file and try to cache it.
    *
    * @deprecated This write type is deprecated as of v0.8 and not recommended for use. Use either
-   *             {@link #MUST_CACHE} or {@link #CACHE_THROUGH} depending on your data persistence
-   *             requirements.
+   * {@link #MUST_CACHE} or {@link #CACHE_THROUGH} depending on your data persistence
+   * requirements.
    */
   @Deprecated
   TRY_CACHE(2),
@@ -93,7 +94,7 @@ public enum WriteType {
 
   /**
    * @return true if by this write type data will be persisted <em>asynchronously</em> to under
-   *         storage (e.g., {@link #ASYNC_THROUGH}), false otherwise
+   * storage (e.g., {@link #ASYNC_THROUGH}), false otherwise
    */
   public boolean isAsync() {
     return mValue == ASYNC_THROUGH.mValue;
@@ -101,19 +102,30 @@ public enum WriteType {
 
   /**
    * @return true if by this write type data will be cached in Alluxio space (e.g.,
-   *         {@link #MUST_CACHE}, {@link #CACHE_THROUGH}, {@link #TRY_CACHE}, or
-   *         {@link #ASYNC_THROUGH}), false otherwise
+   * {@link #MUST_CACHE}, {@link #CACHE_THROUGH}, {@link #TRY_CACHE}, or
+   * {@link #ASYNC_THROUGH}), false otherwise
    */
   public boolean isCache() {
     return (mValue == MUST_CACHE.mValue) || (mValue == CACHE_THROUGH.mValue)
-        || (mValue == TRY_CACHE.mValue) || (mValue == ASYNC_THROUGH.mValue);
+            || (mValue == TRY_CACHE.mValue) || (mValue == ASYNC_THROUGH.mValue);
   }
 
   /**
    * @return true if by this write type data will be persisted <em>synchronously</em> to under
-   *         storage (e.g., {@link #CACHE_THROUGH} or {@link #THROUGH}), false otherwise
+   * storage (e.g., {@link #CACHE_THROUGH} or {@link #THROUGH}), false otherwise
    */
   public boolean isThrough() {
     return (mValue == CACHE_THROUGH.mValue) || (mValue == THROUGH.mValue);
+  }
+
+  // TODO(ggezer) Eliminate below parsers/converters for WriteType
+  private static final String sProtoNameHeader = "WRITE_";
+
+  public static WriteType fromProto(WritePType writePType) {
+    return WriteType.valueOf(writePType.name().substring(sProtoNameHeader.length()));
+  }
+
+  public WritePType toProto() {
+    return WritePType.valueOf(sProtoNameHeader + this.name());
   }
 }

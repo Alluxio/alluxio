@@ -11,6 +11,7 @@
 
 package alluxio.client.file.options;
 
+import alluxio.client.ReadType;
 import alluxio.client.block.policy.BlockLocationPolicy;
 import alluxio.client.block.policy.options.CreateOptions;
 import alluxio.client.file.FileSystemClientOptions;
@@ -124,7 +125,7 @@ public final class InStreamOptions {
     Protocol.OpenUfsBlockOptions openUfsBlockOptions = Protocol.OpenUfsBlockOptions.newBuilder()
         .setUfsPath(mStatus.getUfsPath()).setOffsetInFile(blockStart).setBlockSize(info.getLength())
         .setMaxUfsReadConcurrency(mProtoOptions.getMaxUfsReadConcurrency())
-        .setNoCache(!GrpcUtils.isCache(mProtoOptions.getReadType()))
+        .setNoCache(!ReadType.fromProto(mProtoOptions.getReadType()).isCache())
         .setMountId(mStatus.getMountId()).build();
     if (storedAsUfsBlock) {
       // On client-side, we do not have enough mount information to fill in the UFS file path.

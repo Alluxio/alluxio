@@ -14,6 +14,7 @@ package alluxio.job.move;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
+import alluxio.client.WriteType;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.file.BaseFileSystem;
@@ -273,12 +274,11 @@ public final class MoveDefinition
   @Override
   public SerializableVoid runTask(MoveConfig config, ArrayList<MoveCommand> commands,
       JobWorkerContext jobWorkerContext) throws Exception {
-    // TODO(ggezer) WritePType conversion
-    WritePType writeType = config.getWriteType() == null
-        ? WritePType.valueOf("WRITE_" + Configuration.get(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT))
-        : WritePType.valueOf("WRITE_" + config.getWriteType());
+    WriteType writeType = config.getWriteType() == null
+        ? Configuration.getEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class)
+        : WriteType.valueOf(config.getWriteType());
     for (MoveCommand command : commands) {
-      move(command, writeType, mFileSystem);
+      move(command, writeType.toProto(), mFileSystem);
     }
     // Try to delete the source directory if it is empty.
     if (!hasFiles(new AlluxioURI(config.getSource()), mFileSystem)) {

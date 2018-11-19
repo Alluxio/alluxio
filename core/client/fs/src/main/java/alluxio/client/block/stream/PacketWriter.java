@@ -14,9 +14,9 @@ package alluxio.client.block.stream;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.client.Cancelable;
+import alluxio.client.WriteType;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.OutStreamOptions;
-import alluxio.grpc.WritePType;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.util.CommonUtils;
 import alluxio.util.network.NettyUtils;
@@ -59,7 +59,7 @@ public interface PacketWriter extends Closeable, Cancelable {
       if (CommonUtils.isLocalHost(address) && Configuration
           .getBoolean(PropertyKey.USER_SHORT_CIRCUIT_ENABLED) && !NettyUtils
           .isDomainSocketSupported(address)) {
-        if (options.getWriteType() == WritePType.WRITE_ASYNC_THROUGH
+        if (options.getWriteType() == WriteType.ASYNC_THROUGH
             && Configuration.getBoolean(PropertyKey.USER_FILE_UFS_TIER_ENABLED)) {
           LOG.info("Creating UFS-fallback short circuit output stream for block {} @ {}", blockId,
               address);

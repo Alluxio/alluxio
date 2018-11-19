@@ -46,17 +46,6 @@ public enum AlluxioStorageType {
   }
 
   /**
-   * @param writeType write type
-   * @return {@link AlluxioStorageType} type for given {@link WritePType}
-   */
-  public static AlluxioStorageType getTypeForWrite(WritePType writeType) {
-    if (GrpcUtils.isWriteTypeCache(writeType)) {
-      return AlluxioStorageType.STORE;
-    }
-    return AlluxioStorageType.NO_STORE;
-  }
-
-  /**
    * @return whether the data should be put in Alluxio storage
    */
   public boolean isStore() {

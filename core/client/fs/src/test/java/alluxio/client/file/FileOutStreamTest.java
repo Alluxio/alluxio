@@ -27,6 +27,7 @@ import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.LoginUserRule;
 import alluxio.client.UnderStorageType;
+import alluxio.client.WriteType;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.stream.BlockOutStream;
@@ -41,7 +42,6 @@ import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.CompleteFilePOptions;
 import alluxio.grpc.GetStatusPOptions;
-import alluxio.grpc.WritePType;
 import alluxio.network.TieredIdentityFactory;
 import alluxio.resource.DummyCloseableResource;
 import alluxio.security.GroupMappingServiceTestUtils;
@@ -168,7 +168,7 @@ public class FileOutStreamTest {
         mUnderStorageOutputStream);
 
     OutStreamOptions options = OutStreamOptions.defaults().setBlockSizeBytes(BLOCK_LENGTH)
-        .setWriteType(WritePType.WRITE_CACHE_THROUGH).setUfsPath(FILE_NAME.getPath());
+        .setWriteType(WriteType.CACHE_THROUGH).setUfsPath(FILE_NAME.getPath());
     mTestStream = createTestStream(FILE_NAME, options);
   }
 
@@ -277,7 +277,7 @@ public class FileOutStreamTest {
   public void cacheWriteExceptionNonSyncPersist() throws IOException {
     OutStreamOptions options =
         OutStreamOptions.defaults().setBlockSizeBytes(BLOCK_LENGTH)
-            .setWriteType(WritePType.WRITE_MUST_CACHE);
+            .setWriteType(WriteType.MUST_CACHE);
     BlockOutStream stream = mock(BlockOutStream.class);
     when(mBlockStore.getOutStream(anyInt(), anyLong(), any(OutStreamOptions.class)))
         .thenReturn(stream);
@@ -373,7 +373,7 @@ public class FileOutStreamTest {
   public void asyncWrite() throws Exception {
     OutStreamOptions options =
         OutStreamOptions.defaults().setBlockSizeBytes(BLOCK_LENGTH)
-            .setWriteType(WritePType.WRITE_ASYNC_THROUGH);
+            .setWriteType(WriteType.ASYNC_THROUGH);
     mTestStream = createTestStream(FILE_NAME, options);
 
     mTestStream.write(BufferUtils.getIncreasingByteArray((int) (BLOCK_LENGTH * 1.5)));
@@ -388,7 +388,7 @@ public class FileOutStreamTest {
    */
   @Test
   public void getBytesWrittenWithDifferentUnderStorageType() throws IOException {
-    for (WritePType type : WritePType.values()) {
+    for (WriteType type : WriteType.values()) {
       OutStreamOptions options =
           OutStreamOptions.defaults().setBlockSizeBytes(BLOCK_LENGTH).setWriteType(type)
               .setUfsPath(FILE_NAME.getPath());
@@ -408,7 +408,7 @@ public class FileOutStreamTest {
               long blockSizeBytes) {
             return null;
           }
-        }).setWriteType(WritePType.WRITE_CACHE_THROUGH);
+        }).setWriteType(WriteType.CACHE_THROUGH);
     mException.expect(UnavailableException.class);
     mException.expectMessage(ExceptionMessage.NO_WORKER_AVAILABLE.getMessage());
     mTestStream = createTestStream(FILE_NAME, options);

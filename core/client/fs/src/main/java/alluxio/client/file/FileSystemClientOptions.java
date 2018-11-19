@@ -14,6 +14,7 @@ package alluxio.client.file;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
+import alluxio.client.ReadType;
 import alluxio.client.WriteType;
 import alluxio.grpc.CheckConsistencyPOptions;
 import alluxio.grpc.CompleteFilePOptions;
@@ -98,13 +99,12 @@ public final class FileSystemClientOptions {
    * @return {@link CreateFilePOptions} instance with default values for client
    */
   public static CreateFilePOptions getCreateFileOptions() {
-    // TODO(ggezer) WritePType conversion logic
     return CreateFilePOptions.newBuilder().setCommonOptions(getCommonOptions()).setRecursive(true)
         .setBlockSizeBytes(Configuration.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT))
         .setFileWriteLocationPolicy(Configuration.get(PropertyKey.USER_FILE_WRITE_LOCATION_POLICY))
         .setWriteTier(Configuration.getInt(PropertyKey.USER_FILE_WRITE_TIER_DEFAULT))
-        .setWriteType(WritePType
-            .valueOf("WRITE_" + Configuration.get(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT)))
+        .setWriteType(Configuration
+            .getEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class).toProto())
         .setPersisted(Configuration
             .getEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class).isThrough())
         .setMode(ModeUtils.applyFileUMask(Mode.defaults()).toShort())
@@ -117,10 +117,9 @@ public final class FileSystemClientOptions {
    * @return {@link OpenFilePOptions} instance with default values for client
    */
   public static OpenFilePOptions getOpenFileOptions() {
-    // TODO(ggezer) ReadPType conversion logic
     return OpenFilePOptions.newBuilder().setCommonOptions(getCommonOptions())
-        .setReadType(
-            ReadPType.valueOf("READ_" + Configuration.get(PropertyKey.USER_FILE_READ_TYPE_DEFAULT)))
+        .setReadType(Configuration.getEnum(PropertyKey.USER_FILE_READ_TYPE_DEFAULT, ReadType.class)
+            .toProto())
         .setFileReadLocationPolicy(
             Configuration.get(PropertyKey.USER_UFS_BLOCK_READ_LOCATION_POLICY))
         .setHashingNumberOfShards(Configuration
@@ -134,15 +133,14 @@ public final class FileSystemClientOptions {
    * @return {@link CreateDirectoryPOptions} instance with default values for client
    */
   public static CreateDirectoryPOptions getCreateDirectoryOptions() {
-    // TODO(ggezer) WritePType conversion logic
     return CreateDirectoryPOptions.newBuilder()
         .setCommonOptions(getCommonOptions().toBuilder()
             .setTtl(Configuration.getLong(PropertyKey.USER_FILE_CREATE_TTL))
             .setTtlAction(GrpcUtils.toProto(
                 Configuration.getEnum(PropertyKey.USER_FILE_CREATE_TTL_ACTION, TtlAction.class))))
         .setRecursive(false)
-        .setWriteType(WritePType
-            .valueOf("WRITE_" + Configuration.get(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT)))
+        .setWriteType(Configuration
+            .getEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class).toProto())
         .setPersisted(Configuration
             .getEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class).isThrough())
         .setMode(ModeUtils.applyDirectoryUMask(Mode.defaults()).toShort()).setAllowExist(false)

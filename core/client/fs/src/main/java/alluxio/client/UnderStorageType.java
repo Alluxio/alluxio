@@ -40,19 +40,6 @@ public enum UnderStorageType {
   }
 
   /**
-   * @param writeType write type
-   * @return {@link UnderStorageType} type for given {@link WritePType}
-   */
-  public static UnderStorageType getTypeForWrite(WritePType writeType) {
-    if (GrpcUtils.isWriteTypeThrough(writeType)) {
-      return SYNC_PERSIST;
-    } else if (GrpcUtils.isWriteTypeAsync(writeType)) {
-      return UnderStorageType.ASYNC_PERSIST;
-    }
-    return UnderStorageType.NO_PERSIST;
-  }
-
-  /**
    * @return whether the data should be persisted to the under storage synchronously
    */
   public boolean isSyncPersist() {

@@ -13,6 +13,8 @@ package alluxio.examples;
 
 import alluxio.AlluxioURI;
 import alluxio.client.AlluxioStorageType;
+import alluxio.client.ReadType;
+import alluxio.client.WriteType;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemClientOptions;
@@ -20,8 +22,6 @@ import alluxio.exception.AlluxioException;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.OpenFilePOptions;
-import alluxio.grpc.ReadPType;
-import alluxio.grpc.WritePType;
 import alluxio.util.CommonUtils;
 import alluxio.util.FormatUtils;
 
@@ -50,19 +50,19 @@ public final class BasicNonByteBufferOperations implements Callable<Boolean> {
   private static final Logger LOG = LoggerFactory.getLogger(BasicNonByteBufferOperations.class);
 
   private final AlluxioURI mFilePath;
-  private final ReadPType mReadType;
-  private final WritePType mWriteType;
+  private final ReadType mReadType;
+  private final WriteType mWriteType;
   private final boolean mDeleteIfExists;
   private final int mLength;
 
   /**
    * @param filePath the path for the files
-   * @param readType the {@link ReadPType}
-   * @param writeType the {@link WritePType}
+   * @param readType the {@link ReadType}
+   * @param writeType the {@link WriteType}
    * @param deleteIfExists delete files if they already exist
    * @param length the number of files
    */
-  public BasicNonByteBufferOperations(AlluxioURI filePath, ReadPType readType, WritePType writeType,
+  public BasicNonByteBufferOperations(AlluxioURI filePath, ReadType readType, WriteType writeType,
       boolean deleteIfExists, int length) {
     mFilePath = filePath;
     mWriteType = writeType;
@@ -92,8 +92,8 @@ public final class BasicNonByteBufferOperations implements Callable<Boolean> {
 
   private FileOutStream createFile(FileSystem fileSystem, AlluxioURI filePath,
       boolean deleteIfExists) throws IOException, AlluxioException {
-    CreateFilePOptions options =
-        FileSystemClientOptions.getCreateFileOptions().toBuilder().setWriteType(mWriteType).build();
+    CreateFilePOptions options = FileSystemClientOptions.getCreateFileOptions().toBuilder()
+        .setWriteType(mWriteType.toProto()).build();
     if (!fileSystem.exists(filePath)) {
       // file doesn't exist yet, so create it
       return fileSystem.createFile(filePath, options);
@@ -107,8 +107,8 @@ public final class BasicNonByteBufferOperations implements Callable<Boolean> {
   }
 
   private boolean read(FileSystem alluxioClient) throws IOException, AlluxioException {
-    OpenFilePOptions options =
-        FileSystemClientOptions.getOpenFileOptions().toBuilder().setReadType(mReadType).build();
+    OpenFilePOptions options = FileSystemClientOptions.getOpenFileOptions().toBuilder()
+        .setReadType(mReadType.toProto()).build();
     boolean pass = true;
     long startTimeMs = CommonUtils.getCurrentMs();
     try (DataInputStream input = new DataInputStream(alluxioClient.openFile(mFilePath, options))) {

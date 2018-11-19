@@ -747,7 +747,6 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
         .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setTtl(ttl)));
     mFsMaster.createFile(srcPath, context);
     RenamePOptions renameOptions = FileSystemMasterOptions.getRenameOptions();
-    // TODO(ggezer) Need a helper for setting inner proto fields.
     mFsMaster.rename(srcPath, dstPath, RenameContext.defaults().setOperationTimeMs(TEST_TIME_MS));
     FileInfo folderInfo =
         mFsMaster.getFileInfo(mFsMaster.getFileId(new AlluxioURI("/testFolder/testFile2")));

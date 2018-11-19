@@ -12,6 +12,9 @@
 package alluxio.cli;
 
 import alluxio.AlluxioURI;
+import alluxio.Configuration;
+import alluxio.client.ReadType;
+import alluxio.client.WriteType;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemClientOptions;
 import alluxio.examples.BasicNonByteBufferOperations;
@@ -35,12 +38,12 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class TestRunner {
   /** Read types to test. */
-  private static final List<ReadPType> READ_TYPES =
-      Arrays.asList(ReadPType.READ_CACHE_PROMOTE, ReadPType.READ_CACHE, ReadPType.READ_NO_CACHE);
+  private static final List<ReadType> READ_TYPES =
+      Arrays.asList(ReadType.CACHE_PROMOTE, ReadType.CACHE, ReadType.NO_CACHE);
 
   /** Write types to test. */
-  private static final List<WritePType> WRITE_TYPES = Arrays.asList(WritePType.WRITE_MUST_CACHE,
-      WritePType.WRITE_CACHE_THROUGH, WritePType.WRITE_THROUGH, WritePType.WRITE_ASYNC_THROUGH);
+  private static final List<WriteType> WRITE_TYPES = Arrays.asList(WriteType.MUST_CACHE,
+      WriteType.CACHE_THROUGH, WriteType.THROUGH, WriteType.ASYNC_THROUGH);
 
   @Parameter(names = "--directory",
       description = "Alluxio path for the tests working directory.")
@@ -115,17 +118,15 @@ public final class TestRunner {
 
     int failed = 0;
 
-    // TODO(ggezer) ReadPType conversion
-    List<ReadPType> readTypes =
-        mReadType == null ? READ_TYPES : Lists.newArrayList(ReadPType.valueOf("READ_" + mReadType));
-    // TODO(ggezer) WritePType conversion
-    List<WritePType> writeTypes = mWriteType == null ? WRITE_TYPES
-        : Lists.newArrayList(WritePType.valueOf("WRITE_" + mWriteType));
+    List<ReadType> readTypes =
+        mReadType == null ? READ_TYPES : Lists.newArrayList(ReadType.valueOf(mReadType));
+    List<WriteType> writeTypes =
+        mWriteType == null ? WRITE_TYPES : Lists.newArrayList(WriteType.valueOf(mWriteType));
     List<OperationType> operations = mOperation == null ? Lists.newArrayList(OperationType.values())
         : Lists.newArrayList(OperationType.valueOf(mOperation));
 
-    for (ReadPType readType : readTypes) {
-      for (WritePType writeType : writeTypes) {
+    for (ReadType readType : readTypes) {
+      for (WriteType writeType : writeTypes) {
         for (OperationType opType : operations) {
           System.out.println(String.format("runTest %s %s %s", opType, readType, writeType));
           failed += runTest(opType, readType, writeType);
@@ -146,7 +147,7 @@ public final class TestRunner {
    * @param writeType write type
    * @return 0 on success, 1 on failure
    */
-  private int runTest(OperationType opType, ReadPType readType, WritePType writeType) {
+  private int runTest(OperationType opType, ReadType readType, WriteType writeType) {
     AlluxioURI filePath =
         new AlluxioURI(String.format("%s/%s_%s_%s", mDirectory, opType, readType, writeType));
 

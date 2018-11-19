@@ -92,7 +92,7 @@ public class OutStreamOptionsTest {
     assertEquals(Constants.NO_TTL, options.getTtl());
     assertEquals(TtlAction.DELETE, options.getTtlAction());
     assertEquals(ufsType, options.getUnderStorageType());
-    assertEquals(WritePType.WRITE_CACHE_THROUGH, options.getWriteType());
+    assertEquals(WriteType.CACHE_THROUGH, options.getWriteType());
     assertEquals(Constants.LAST_TIER, options.getWriteTier());
     ConfigurationTestUtils.resetConfiguration();
   }
@@ -110,7 +110,7 @@ public class OutStreamOptionsTest {
     Mode mode = new Mode((short) random.nextInt());
     long ttl = random.nextLong();
     int writeTier = random.nextInt();
-    WritePType writeType = WritePType.WRITE_NONE;
+    WriteType writeType = WriteType.NONE;
 
     OutStreamOptions options = OutStreamOptions.defaults();
     options.setBlockSizeBytes(blockSize);
@@ -131,8 +131,8 @@ public class OutStreamOptionsTest {
     assertEquals(ttl, options.getTtl());
     assertEquals(TtlAction.FREE, options.getTtlAction());
     assertEquals(writeTier, options.getWriteTier());
-    assertEquals(AlluxioStorageType.getTypeForWrite(writeType), options.getAlluxioStorageType());
-    assertEquals(UnderStorageType.getTypeForWrite(writeType), options.getUnderStorageType());
+    assertEquals(writeType.getAlluxioStorageType(), options.getAlluxioStorageType());
+    assertEquals(writeType.getUnderStorageType(), options.getUnderStorageType());
   }
 
   @Test

@@ -17,6 +17,7 @@ import alluxio.Seekable;
 import alluxio.annotation.PublicApi;
 import alluxio.client.BoundedStream;
 import alluxio.client.PositionedReadable;
+import alluxio.client.ReadType;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.stream.BlockInStream;
 import alluxio.client.file.options.InStreamOptions;
@@ -330,7 +331,7 @@ public class FileInStream extends InputStream implements BoundedStream, Position
 
   // Send an async cache request to a worker based on read type and passive cache options.
   private void triggerAsyncCaching(BlockInStream stream) throws IOException {
-    boolean cache = GrpcUtils.isCache(mOptions.getOptions().getReadType());
+    boolean cache = ReadType.fromProto(mOptions.getOptions().getReadType()).isCache();
     boolean overReplicated = mStatus.getReplicationMax() > 0
         && mStatus.getFileBlockInfos().get((int) (getPos() / mBlockSize))
         .getBlockInfo().getLocations().size() >= mStatus.getReplicationMax();

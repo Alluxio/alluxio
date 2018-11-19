@@ -758,45 +758,4 @@ public final class GrpcUtils {
   public static boolean isCache(ReadPType readType) {
     return readType == ReadPType.READ_CACHE || readType == ReadPType.READ_CACHE_PROMOTE;
   }
-
-  /**
-   * @return true if the read type imposes promoting in cache, false otherwise
-   * @param readType {@link ReadPType} type
-   */
-  public static boolean isPromote(ReadPType readType) {
-    return readType == ReadPType.READ_CACHE_PROMOTE;
-  }
-
-  /**
-   * @return true if by this write type data will be persisted <em>asynchronously</em> to under
-   *         storage (e.g., {@literal WritePType.WRITE_ASYNC_THROUGH}), false otherwise
-   * @param writeType {@link WritePType} type
-   */
-  public static boolean isWriteTypeAsync(WritePType writeType) {
-    return writeType == WritePType.WRITE_ASYNC_THROUGH;
-  }
-
-  /**
-   * @return true if by this write type data will be cached in Alluxio space (e.g.,
-   *         {@literal WritePType.WRITE_MUST_CACHE}, {@literal WritePType.WRITE_CACHE_THROUGH},
-   *         {@literal WritePType.WRITE_TRY_CACHE}, or {@literal WritePType.WRITE_ASYNC_THROUGH}),
-   *         false otherwise
-   * @param writeType {@link WritePType} type
-   */
-  public static boolean isWriteTypeCache(WritePType writeType) {
-    return (writeType == WritePType.WRITE_MUST_CACHE)
-        || (writeType == WritePType.WRITE_CACHE_THROUGH)
-        || (writeType == WritePType.WRITE_TRY_CACHE)
-        || (writeType == WritePType.WRITE_ASYNC_THROUGH);
-  }
-
-  /**
-   * @return true if by this write type data will be persisted <em>synchronously</em> to under
-   *         storage (e.g., {@literal WritePType.WRITE_CACHE_THROUGH} or
-   *         {@literal WritePType.WRITE_THROUGH}), false otherwise
-   * @param writeType {@link WritePType} type
-   */
-  public static boolean isWriteTypeThrough(WritePType writeType) {
-    return (writeType == WritePType.WRITE_CACHE_THROUGH) || (writeType == WritePType.WRITE_THROUGH);
-  }
 }

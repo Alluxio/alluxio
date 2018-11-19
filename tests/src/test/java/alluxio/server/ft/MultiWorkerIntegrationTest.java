@@ -182,7 +182,7 @@ public final class MultiWorkerIntegrationTest extends BaseIntegrationTest {
           .getNetAddress();
       try (OutputStream outStream = store.getOutStream(blockInfo.getBlockId(),
           blockInfo.getLength(), dest, OutStreamOptions.defaults()
-              .setBlockSizeBytes(8 * Constants.MB).setWriteType(WritePType.WRITE_MUST_CACHE))) {
+              .setBlockSizeBytes(8 * Constants.MB).setWriteType(WriteType.MUST_CACHE))) {
         try (InputStream inStream = store.getInStream(blockInfo.getBlockId(),
             new InStreamOptions(status))) {
           ByteStreams.copy(inStream, outStream);

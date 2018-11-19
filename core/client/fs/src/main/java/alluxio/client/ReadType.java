@@ -12,6 +12,8 @@
 package alluxio.client;
 
 import alluxio.annotation.PublicApi;
+import alluxio.grpc.ReadPType;
+import alluxio.grpc.WritePType;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -81,5 +83,16 @@ public enum ReadType {
    */
   public boolean isPromote() {
     return mValue == CACHE_PROMOTE.mValue;
+  }
+
+  // TODO(ggezer) Eliminate below parsers/converters for ReadType
+  private static final String sProtoNameHeader = "READ_";
+
+  public static ReadType fromProto(ReadPType readPType) {
+    return ReadType.valueOf(readPType.name().substring(sProtoNameHeader.length()));
+  }
+
+  public ReadPType toProto() {
+    return ReadPType.valueOf(sProtoNameHeader + this.name());
   }
 }

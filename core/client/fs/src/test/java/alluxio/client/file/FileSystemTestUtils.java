@@ -153,16 +153,14 @@ public final class FileSystemTestUtils {
   }
 
   /**
-   * Converts a {@link CreateFilePOptions} object to an {@link OpenFileOptions} object with a
+   * Converts a {@link CreateFilePOptions} object to an {@link OpenFilePOptions} object with a
    * matching Alluxio storage type.
    *
    * @param op a {@link CreateFilePOptions} object
-   * @return an {@link OpenFileOptions} object with a matching Alluxio storage type
+   * @return an {@link OpenFilePOptions} object with a matching Alluxio storage type
    */
   public static OpenFilePOptions toOpenFileOptions(CreateFilePOptions op) {
-    // TODO(ggezer)
-    if (WriteType.valueOf(op.getWriteType().name().substring(6)).getAlluxioStorageType()
-        .isStore()) {
+    if (WriteType.fromProto(op.getWriteType()).getAlluxioStorageType().isStore()) {
       return FileSystemClientOptions.getOpenFileOptions().toBuilder()
           .setReadType(ReadPType.READ_CACHE).build();
     }

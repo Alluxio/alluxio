@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
+import alluxio.client.WriteType;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
@@ -665,8 +666,7 @@ public final class S3RestServiceHandler {
   }
 
   private WritePType getS3WriteType() {
-    // TODO(ggezer)
-    return WritePType.valueOf("WRITE_" + Configuration.get(PropertyKey.PROXY_S3_WRITE_TYPE));
+    return Configuration.getEnum(PropertyKey.PROXY_S3_WRITE_TYPE, WriteType.class).toProto();
   }
 
   private class URIStatusNameComparator implements Comparator<URIStatus> {

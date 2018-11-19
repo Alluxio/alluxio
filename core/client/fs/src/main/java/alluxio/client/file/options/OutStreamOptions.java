@@ -17,6 +17,7 @@ import alluxio.PropertyKey;
 import alluxio.annotation.PublicApi;
 import alluxio.client.AlluxioStorageType;
 import alluxio.client.UnderStorageType;
+import alluxio.client.WriteType;
 import alluxio.client.file.policy.FileWriteLocationPolicy;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.WritePType;
@@ -43,7 +44,7 @@ public final class OutStreamOptions {
   private TtlAction mTtlAction;
   private FileWriteLocationPolicy mLocationPolicy;
   private int mWriteTier;
-  private WritePType mWriteType;
+  private WriteType mWriteType;
   private String mOwner;
   private String mGroup;
   private Mode mMode;
@@ -77,7 +78,7 @@ public final class OutStreamOptions {
     mReplicationMin = options.getReplicationMin();
     mReplicationMax = options.getReplicationMax();
     mWriteTier = options.getWriteTier();
-    mWriteType = options.getWriteType();
+    mWriteType = WriteType.fromProto(options.getWriteType());
   }
 
   private OutStreamOptions() {
@@ -89,9 +90,7 @@ public final class OutStreamOptions {
         CommonUtils.createNewClassInstance(Configuration.<FileWriteLocationPolicy>getClass(
             PropertyKey.USER_FILE_WRITE_LOCATION_POLICY), new Class[] {}, new Object[] {});
     mWriteTier = Configuration.getInt(PropertyKey.USER_FILE_WRITE_TIER_DEFAULT);
-    // TODO(ggezer) Handle WritePType conversion
-    mWriteType =
-        WritePType.valueOf("WRITE_" + Configuration.get(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT));
+    mWriteType = Configuration.getEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class);
     mOwner = SecurityUtils.getOwnerFromLoginModule();
     mGroup = SecurityUtils.getGroupFromLoginModule();
     mMode = ModeUtils.applyFileUMask(Mode.defaults());
@@ -126,7 +125,7 @@ public final class OutStreamOptions {
    * @return the Alluxio storage type
    */
   public AlluxioStorageType getAlluxioStorageType() {
-    return AlluxioStorageType.getTypeForWrite(mWriteType);
+    return mWriteType.getAlluxioStorageType();
   }
 
   /**
@@ -148,7 +147,7 @@ public final class OutStreamOptions {
    * @return the under storage type
    */
   public UnderStorageType getUnderStorageType() {
-    return UnderStorageType.getTypeForWrite(mWriteType);
+    return mWriteType.getUnderStorageType();
   }
 
   /**
@@ -217,7 +216,7 @@ public final class OutStreamOptions {
   /**
    * @return the write type
    */
-  public WritePType getWriteType() {
+  public WriteType getWriteType() {
     return mWriteType;
   }
 
@@ -286,13 +285,13 @@ public final class OutStreamOptions {
   }
 
   /**
-   * Sets the {@link WritePType}.
+   * Sets the {@link WriteType}.
    *
-   * @param writeType the {@link WritePType} to use for this operation. This will override both the
+   * @param writeType the {@link WriteType} to use for this operation. This will override both the
    *        {@link AlluxioStorageType} and {@link UnderStorageType}.
    * @return the updated options object
    */
-  public OutStreamOptions setWriteType(WritePType writeType) {
+  public OutStreamOptions setWriteType(WriteType writeType) {
     mWriteType = writeType;
     return this;
   }

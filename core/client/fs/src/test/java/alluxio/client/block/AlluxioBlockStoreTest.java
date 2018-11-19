@@ -16,6 +16,7 @@ import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import alluxio.client.WriteType;
 import alluxio.client.block.policy.BlockLocationPolicy;
 import alluxio.client.block.policy.options.GetWorkerOptions;
 import alluxio.client.block.stream.BlockInStream;
@@ -28,7 +29,6 @@ import alluxio.client.file.options.OutStreamOptions;
 import alluxio.client.file.policy.FileWriteLocationPolicy;
 import alluxio.exception.status.NotFoundException;
 import alluxio.grpc.OpenFilePOptions;
-import alluxio.grpc.WritePType;
 import alluxio.network.netty.NettyRPC;
 import alluxio.network.netty.NettyRPCContext;
 import alluxio.exception.ExceptionMessage;
@@ -171,7 +171,7 @@ public final class AlluxioBlockStoreTest {
 
   @Test
   public void getOutStreamUsingLocationPolicy() throws Exception {
-    OutStreamOptions options = OutStreamOptions.defaults().setWriteType(WritePType.WRITE_MUST_CACHE)
+    OutStreamOptions options = OutStreamOptions.defaults().setWriteType(WriteType.MUST_CACHE)
         .setLocationPolicy(new FileWriteLocationPolicy() {
           @Override
           public WorkerNetAddress getWorkerForNextBlock(Iterable<BlockWorkerInfo> workerInfoList,
@@ -187,7 +187,7 @@ public final class AlluxioBlockStoreTest {
   public void getOutStreamMissingLocationPolicy() throws IOException {
     OutStreamOptions options =
         OutStreamOptions.defaults().setBlockSizeBytes(BLOCK_LENGTH)
-            .setWriteType(WritePType.WRITE_MUST_CACHE).setLocationPolicy(null);
+            .setWriteType(WriteType.MUST_CACHE).setLocationPolicy(null);
     mException.expect(NullPointerException.class);
     mException.expectMessage(PreconditionMessage.FILE_WRITE_LOCATION_POLICY_UNSPECIFIED.toString());
     mBlockStore.getOutStream(BLOCK_ID, BLOCK_LENGTH, options);
@@ -199,7 +199,7 @@ public final class AlluxioBlockStoreTest {
         OutStreamOptions
             .defaults()
             .setBlockSizeBytes(BLOCK_LENGTH)
-            .setWriteType(WritePType.WRITE_MUST_CACHE)
+            .setWriteType(WriteType.MUST_CACHE)
             .setLocationPolicy(
                 new MockFileWriteLocationPolicy(Lists.<WorkerNetAddress>newArrayList()));
     mException.expect(UnavailableException.class);
@@ -220,7 +220,7 @@ public final class AlluxioBlockStoreTest {
     OutStreamOptions options = OutStreamOptions.defaults().setBlockSizeBytes(BLOCK_LENGTH)
         .setLocationPolicy(new MockFileWriteLocationPolicy(
             Lists.newArrayList(WORKER_NET_ADDRESS_LOCAL)))
-        .setWriteType(WritePType.WRITE_MUST_CACHE);
+        .setWriteType(WriteType.MUST_CACHE);
     BlockOutStream stream = mBlockStore.getOutStream(BLOCK_ID, BLOCK_LENGTH, options);
     assertEquals(WORKER_NET_ADDRESS_LOCAL, stream.getAddress());
   }
@@ -231,7 +231,7 @@ public final class AlluxioBlockStoreTest {
     WorkerNetAddress worker2 = new WorkerNetAddress().setHost("worker2");
     OutStreamOptions options = OutStreamOptions.defaults().setBlockSizeBytes(BLOCK_LENGTH)
         .setLocationPolicy(new MockFileWriteLocationPolicy(Arrays.asList(worker1, worker2)))
-        .setWriteType(WritePType.WRITE_MUST_CACHE);
+        .setWriteType(WriteType.MUST_CACHE);
     BlockOutStream stream1 = mBlockStore.getOutStream(BLOCK_ID, BLOCK_LENGTH, options);
     assertEquals(worker1, stream1.getAddress());
     BlockOutStream stream2 = mBlockStore.getOutStream(BLOCK_ID, BLOCK_LENGTH, options);
@@ -251,7 +251,7 @@ public final class AlluxioBlockStoreTest {
     OutStreamOptions options = OutStreamOptions.defaults().setBlockSizeBytes(BLOCK_LENGTH)
         .setLocationPolicy(new MockFileWriteLocationPolicy(
             Lists.newArrayList(WORKER_NET_ADDRESS_LOCAL, WORKER_NET_ADDRESS_REMOTE)))
-        .setWriteType(WritePType.WRITE_MUST_CACHE).setReplicationMin(2);
+        .setWriteType(WriteType.MUST_CACHE).setReplicationMin(2);
     BlockOutStream stream = mBlockStore.getOutStream(BLOCK_ID, BLOCK_LENGTH, options);
 
     assertEquals(alluxio.client.block.stream.BlockOutStream.class, stream.getClass());
