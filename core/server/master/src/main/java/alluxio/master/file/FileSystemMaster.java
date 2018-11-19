@@ -38,6 +38,7 @@ import alluxio.master.file.options.CheckConsistencyContext;
 import alluxio.master.file.options.CompleteFileContext;
 import alluxio.master.file.options.CreateDirectoryContext;
 import alluxio.master.file.options.CreateFileContext;
+import alluxio.master.file.options.LoadMetadataContext;
 import alluxio.master.file.options.MountContext;
 import alluxio.master.file.options.RenameContext;
 import alluxio.master.file.options.SetAclContext;
@@ -370,7 +371,7 @@ public interface FileSystemMaster extends Master {
    * parent path if path is a directory.
    *
    * @param path the path for which metadata should be loaded
-   * @param options the load metadata options
+   * @param context the load metadata context
    * @return the file id of the loaded path
    * @throws BlockInfoException if an invalid block size is encountered
    * @throws FileDoesNotExistException if there is no UFS path
@@ -379,7 +380,7 @@ public interface FileSystemMaster extends Master {
    * @throws FileAlreadyCompletedException if the file is already completed
    * @throws AccessControlException if permission checking fails
    */
-  long loadMetadata(AlluxioURI path, LoadMetadataPOptions options)
+  long loadMetadata(AlluxioURI path, LoadMetadataContext context)
       throws BlockInfoException, FileDoesNotExistException, InvalidPathException,
       InvalidFileSizeException, FileAlreadyCompletedException, IOException, AccessControlException;
 
