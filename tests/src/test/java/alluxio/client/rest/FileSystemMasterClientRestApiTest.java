@@ -21,6 +21,7 @@ import alluxio.master.file.FileSystemMasterClientRestServiceHandler;
 import alluxio.master.file.FileSystemMasterOptions;
 import alluxio.master.file.options.CompleteFileContext;
 import alluxio.master.file.options.CreateFileContext;
+import alluxio.master.file.options.ListStatusContext;
 import alluxio.master.file.options.MountContext;
 import alluxio.wire.FileInfo;
 import alluxio.wire.TtlAction;
@@ -101,7 +102,7 @@ public final class FileSystemMasterClientRestApiTest extends RestApiTest {
         HttpMethod.POST, null).run();
 
     Assert.assertTrue(mFileSystemMaster
-        .listStatus(uri, FileSystemMasterOptions.getListStatusOptions()).isEmpty());
+        .listStatus(uri, ListStatusContext.defaults()).isEmpty());
   }
 
   @Test

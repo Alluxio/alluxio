@@ -20,7 +20,7 @@ import alluxio.client.file.FileSystemClientOptions;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.master.file.FileSystemMaster;
-import alluxio.master.file.FileSystemMasterOptions;
+import alluxio.master.file.options.ListStatusContext;
 import alluxio.master.file.options.MountContext;
 import alluxio.proxy.PathsRestServiceHandler;
 import alluxio.proxy.StreamsRestServiceHandler;
@@ -73,7 +73,11 @@ public final class FileSystemClientRestApiTest extends RestApiTest {
         HttpMethod.POST, null,
         TestCaseOptions.defaults().setBody(FileSystemClientOptions.getCreateDirectoryOptions()))
             .run();
-    assertTrue(mFileSystemMaster.listStatus(uri, FileSystemClientOptions.getListStatusOptions())
+    assertTrue(
+        mFileSystemMaster
+            .listStatus(uri,
+                ListStatusContext
+                    .defaults(FileSystemClientOptions.getListStatusOptions().toBuilder()))
         .isEmpty());
   }
 

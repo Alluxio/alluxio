@@ -25,12 +25,7 @@ import alluxio.exception.UnexpectedAlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.file.options.WorkerHeartbeatOptions;
-import alluxio.grpc.DeletePOptions;
-import alluxio.grpc.FreePOptions;
 import alluxio.grpc.GetStatusPOptions;
-import alluxio.grpc.ListStatusPOptions;
-import alluxio.grpc.LoadMetadataPOptions;
-import alluxio.grpc.MountPOptions;
 import alluxio.master.Master;
 import alluxio.master.file.meta.FileSystemMasterView;
 import alluxio.master.file.meta.PersistenceState;
@@ -40,6 +35,7 @@ import alluxio.master.file.options.CreateDirectoryContext;
 import alluxio.master.file.options.CreateFileContext;
 import alluxio.master.file.options.DeleteContext;
 import alluxio.master.file.options.FreeContext;
+import alluxio.master.file.options.ListStatusContext;
 import alluxio.master.file.options.LoadMetadataContext;
 import alluxio.master.file.options.MountContext;
 import alluxio.master.file.options.RenameContext;
@@ -134,13 +130,13 @@ public interface FileSystemMaster extends Master {
    * EXECUTE permission on the path if it is a directory.
    *
    * @param path the path to get the {@link FileInfo} list for
-   * @param listStatusOptions the {@link ListStatusPOptions}
+   * @param context the method context
    * @return the list of {@link FileInfo}s
    * @throws AccessControlException if permission checking fails
    * @throws FileDoesNotExistException if the file does not exist
    * @throws InvalidPathException if the path is invalid
    */
-  List<FileInfo> listStatus(AlluxioURI path, ListStatusPOptions listStatusOptions)
+  List<FileInfo> listStatus(AlluxioURI path, ListStatusContext context)
       throws AccessControlException, FileDoesNotExistException, InvalidPathException,
       UnavailableException, IOException;
 

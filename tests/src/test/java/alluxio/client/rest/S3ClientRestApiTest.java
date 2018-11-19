@@ -22,6 +22,7 @@ import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.FileSystemMasterOptions;
 import alluxio.master.file.options.CreateDirectoryContext;
 import alluxio.master.file.options.CreateFileContext;
+import alluxio.master.file.options.ListStatusContext;
 import alluxio.master.file.options.MountContext;
 import alluxio.proxy.s3.CompleteMultipartUploadResult;
 import alluxio.proxy.s3.InitiateMultipartUploadResult;
@@ -88,7 +89,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
     // Verify the directory is created for the new bucket.
     AlluxioURI uri = new AlluxioURI(AlluxioURI.SEPARATOR + bucket);
     Assert.assertTrue(mFileSystemMaster
-        .listStatus(uri, FileSystemMasterOptions.getListStatusOptions()).isEmpty());
+        .listStatus(uri, ListStatusContext.defaults()).isEmpty());
   }
 
   @Test
@@ -108,7 +109,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
     AlluxioURI uri = new AlluxioURI(
         AlluxioURI.SEPARATOR + mountPoint + AlluxioURI.SEPARATOR + bucketName);
     Assert.assertTrue(mFileSystemMaster
-        .listStatus(uri, FileSystemMasterOptions.getListStatusOptions()).isEmpty());
+        .listStatus(uri, ListStatusContext.defaults()).isEmpty());
   }
 
   @Test
@@ -133,7 +134,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
     AlluxioURI uri = new AlluxioURI(AlluxioURI.SEPARATOR + mountPointParent
         + AlluxioURI.SEPARATOR + mountPointName + AlluxioURI.SEPARATOR + bucketName);
     Assert.assertTrue(mFileSystemMaster
-        .listStatus(uri, FileSystemMasterOptions.getListStatusOptions()).isEmpty());
+        .listStatus(uri, ListStatusContext.defaults()).isEmpty());
   }
 
   @Test
@@ -179,7 +180,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
     // Verify the directory is created for the new bucket.
     AlluxioURI uri = new AlluxioURI(AlluxioURI.SEPARATOR + bucket);
     Assert.assertTrue(mFileSystemMaster
-        .listStatus(uri, FileSystemMasterOptions.getListStatusOptions()).isEmpty());
+        .listStatus(uri, ListStatusContext.defaults()).isEmpty());
 
     HttpURLConnection connection = deleteBucketRestCall(bucket);
     Assert.assertEquals(Response.Status.NO_CONTENT.getStatusCode(), connection.getResponseCode());
@@ -219,7 +220,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
 
     // Verify the directory is created for the new bucket, and file is created under it.
     Assert.assertFalse(mFileSystemMaster
-        .listStatus(uri, FileSystemMasterOptions.getListStatusOptions()).isEmpty());
+        .listStatus(uri, ListStatusContext.defaults()).isEmpty());
 
     try {
       // Delete a non-empty bucket should fail.
@@ -257,7 +258,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
       objectURI = new AlluxioURI(tmpDir + AlluxioURI.SEPARATOR + partNumber.toString());
     }
     List<FileInfo> fileInfos =
-        mFileSystemMaster.listStatus(bucketURI, FileSystemMasterOptions.getListStatusOptions());
+        mFileSystemMaster.listStatus(bucketURI, ListStatusContext.defaults());
     Assert.assertEquals(1, fileInfos.size());
     Assert.assertEquals(objectURI.getPath(), fileInfos.get(0).getPath());
 
@@ -340,7 +341,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
     AlluxioURI uri = new AlluxioURI(AlluxioURI.SEPARATOR + bucket + AlluxioURI.SEPARATOR);
     // Verify the directory is created for the new bucket.
     Assert.assertTrue(mFileSystemMaster
-        .listStatus(uri, FileSystemMasterOptions.getListStatusOptions()).isEmpty());
+        .listStatus(uri, ListStatusContext.defaults()).isEmpty());
 
     // Prepare a bucket with direct child objects and objects within sub directories:
     // - /file1
@@ -387,7 +388,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
     AlluxioURI uri = new AlluxioURI(AlluxioURI.SEPARATOR + bucket + AlluxioURI.SEPARATOR);
     // Verify the directory is created for the new bucket.
     Assert.assertTrue(mFileSystemMaster
-        .listStatus(uri, FileSystemMasterOptions.getListStatusOptions()).isEmpty());
+        .listStatus(uri, ListStatusContext.defaults()).isEmpty());
 
     // Prepare a bucket with direct child objects and objects within sub directories:
     // - /file1
@@ -431,7 +432,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
     AlluxioURI uri = new AlluxioURI(AlluxioURI.SEPARATOR + bucket + AlluxioURI.SEPARATOR);
     // Verify the directory is created for the new bucket.
     Assert.assertTrue(mFileSystemMaster
-        .listStatus(uri, FileSystemMasterOptions.getListStatusOptions()).isEmpty());
+        .listStatus(uri, ListStatusContext.defaults()).isEmpty());
 
     // Prepare a bucket with two objects:
     // - /file1
@@ -466,7 +467,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
     AlluxioURI uri = new AlluxioURI(AlluxioURI.SEPARATOR + bucket + AlluxioURI.SEPARATOR);
     // Verify the directory is created for the new bucket.
     Assert.assertTrue(mFileSystemMaster
-        .listStatus(uri, FileSystemMasterOptions.getListStatusOptions()).isEmpty());
+        .listStatus(uri, ListStatusContext.defaults()).isEmpty());
 
     // Prepare a bucket with two objects:
     // - /file1
@@ -505,7 +506,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
     AlluxioURI uri = new AlluxioURI(AlluxioURI.SEPARATOR + bucket + AlluxioURI.SEPARATOR);
     // Verify the directory is created for the new bucket.
     Assert.assertTrue(mFileSystemMaster
-        .listStatus(uri, FileSystemMasterOptions.getListStatusOptions()).isEmpty());
+        .listStatus(uri, ListStatusContext.defaults()).isEmpty());
 
     // Prepare a bucket with two objects:
     // - /file1
@@ -542,7 +543,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
     AlluxioURI uri = new AlluxioURI(AlluxioURI.SEPARATOR + bucket + AlluxioURI.SEPARATOR);
     // Verify the directory is created for the new bucket.
     Assert.assertTrue(mFileSystemMaster
-        .listStatus(uri, FileSystemMasterOptions.getListStatusOptions()).isEmpty());
+        .listStatus(uri, ListStatusContext.defaults()).isEmpty());
 
     List<URIStatus> listStatusResult = new ArrayList<>();
     ListBucketResult expected = new ListBucketResult(
@@ -645,13 +646,13 @@ public final class S3ClientRestApiTest extends RestApiTest {
 
     // Verify the directory is created for the new bucket, and file is created under it.
     Assert.assertFalse(mFileSystemMaster
-        .listStatus(bucketUri, FileSystemMasterOptions.getListStatusOptions()).isEmpty());
+        .listStatus(bucketUri, ListStatusContext.defaults()).isEmpty());
 
     deleteObjectRestCall(bucketName + AlluxioURI.SEPARATOR + objectName);
 
     // Verify the object is deleted.
     Assert.assertTrue(mFileSystemMaster
-        .listStatus(bucketUri, FileSystemMasterOptions.getListStatusOptions()).isEmpty());
+        .listStatus(bucketUri, ListStatusContext.defaults()).isEmpty());
   }
 
   @Test
@@ -667,13 +668,13 @@ public final class S3ClientRestApiTest extends RestApiTest {
 
     // Verify the directory is created for the new bucket, and empty-dir is created under it.
     Assert.assertFalse(mFileSystemMaster
-        .listStatus(bucketUri, FileSystemMasterOptions.getListStatusOptions()).isEmpty());
+        .listStatus(bucketUri, ListStatusContext.defaults()).isEmpty());
 
     deleteObjectRestCall(bucketName + AlluxioURI.SEPARATOR + objectName);
 
     // Verify the empty-dir as a valid object is deleted.
     Assert.assertTrue(mFileSystemMaster
-        .listStatus(bucketUri, FileSystemMasterOptions.getListStatusOptions()).isEmpty());
+        .listStatus(bucketUri, ListStatusContext.defaults()).isEmpty());
   }
 
   @Test
@@ -691,7 +692,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
         new AlluxioURI(dirUri.getPath() + "/file"), CreateFileContext.defaults());
 
     Assert.assertFalse(mFileSystemMaster
-        .listStatus(dirUri, FileSystemMasterOptions.getListStatusOptions()).isEmpty());
+        .listStatus(dirUri, ListStatusContext.defaults()).isEmpty());
 
     try {
       deleteObjectRestCall(bucketName + AlluxioURI.SEPARATOR + objectName);

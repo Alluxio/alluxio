@@ -55,6 +55,7 @@ import alluxio.master.file.options.CreateDirectoryContext;
 import alluxio.master.file.options.CreateFileContext;
 import alluxio.master.file.options.DeleteContext;
 import alluxio.master.file.options.FreeContext;
+import alluxio.master.file.options.ListStatusContext;
 import alluxio.master.file.options.RenameContext;
 import alluxio.master.file.options.SetAttributeContext;
 import alluxio.master.metrics.MetricsMaster;
@@ -686,11 +687,11 @@ public final class PermissionCheckTest {
             .getPath());
         assertEquals(1,
             mFileSystemMaster
-                .listStatus(new AlluxioURI(path), FileSystemMasterOptions.getListStatusOptions())
+                .listStatus(new AlluxioURI(path), ListStatusContext.defaults())
                 .size());
       } else {
         List<FileInfo> fileInfoList = mFileSystemMaster.listStatus(new AlluxioURI(path),
-            FileSystemMasterOptions.getListStatusOptions());
+            ListStatusContext.defaults());
         if (fileInfoList.size() > 0) {
           assertTrue(PathUtils.getParent(fileInfoList.get(0).getPath()).equals(path));
         }

@@ -24,13 +24,14 @@ import alluxio.exception.AlluxioException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.status.UnavailableException;
+import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.LoadMetadataPType;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.ReadPType;
 import alluxio.master.MasterProcess;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.FileSystemMaster;
-import alluxio.master.file.FileSystemMasterOptions;
+import alluxio.master.file.options.ListStatusContext;
 import alluxio.security.LoginUser;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.util.SecurityUtils;
@@ -199,9 +200,8 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
         return;
       }
       setPathDirectories(currentPath, request);
-      filesInfo =
-          fileSystemMaster.listStatus(currentPath, FileSystemMasterOptions.getListStatusOptions()
-              .toBuilder().setLoadMetadataType(LoadMetadataPType.ALWAYS).build());
+      filesInfo = fileSystemMaster.listStatus(currentPath, ListStatusContext
+          .defaults(ListStatusPOptions.newBuilder().setLoadMetadataType(LoadMetadataPType.ALWAYS)));
     } catch (FileDoesNotExistException e) {
       request.setAttribute("invalidPathError", "Error: Invalid Path " + e.getMessage());
       getServletContext().getRequestDispatcher("/browse.jsp").forward(request, response);

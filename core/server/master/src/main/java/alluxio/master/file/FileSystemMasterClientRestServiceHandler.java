@@ -28,6 +28,7 @@ import alluxio.master.file.options.CreateDirectoryContext;
 import alluxio.master.file.options.CreateFileContext;
 import alluxio.master.file.options.DeleteContext;
 import alluxio.master.file.options.FreeContext;
+import alluxio.master.file.options.ListStatusContext;
 import alluxio.master.file.options.MountContext;
 import alluxio.master.file.options.RenameContext;
 import alluxio.master.file.options.SetAttributeContext;
@@ -300,7 +301,7 @@ public final class FileSystemMasterClientRestServiceHandler {
               GrpcUtils.toProto(LoadMetadataType.valueOf(loadMetadataType)));
         }
         return mFileSystemMaster.listStatus(new AlluxioURI(path),
-            listStatusOptionsBuilder.build());
+            ListStatusContext.defaults(listStatusOptionsBuilder));
       }
     });
   }
