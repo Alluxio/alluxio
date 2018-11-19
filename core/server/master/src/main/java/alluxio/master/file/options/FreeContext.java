@@ -2,6 +2,7 @@ package alluxio.master.file.options;
 
 import alluxio.grpc.FreePOptions;
 import alluxio.master.file.FileSystemMasterOptions;
+import com.google.common.base.MoreObjects;
 
 public class FreeContext extends OperationContext<FreePOptions.Builder> {
   // Prevent instantiation
@@ -37,5 +38,12 @@ public class FreeContext extends OperationContext<FreePOptions.Builder> {
   public static FreeContext defaults() {
     FreePOptions masterOptions = FileSystemMasterOptions.getFreeOptions();
     return new FreeContext(masterOptions.toBuilder());
+  }
+
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this)
+        .add("ProtoOptions", getOptions().build())
+        .toString();
   }
 }

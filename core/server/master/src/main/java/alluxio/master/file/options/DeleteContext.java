@@ -2,6 +2,7 @@ package alluxio.master.file.options;
 
 import alluxio.grpc.DeletePOptions;
 import alluxio.master.file.FileSystemMasterOptions;
+import com.google.common.base.MoreObjects;
 
 public class DeleteContext extends OperationContext<DeletePOptions.Builder> {
   // Prevent instantiation
@@ -37,5 +38,12 @@ public class DeleteContext extends OperationContext<DeletePOptions.Builder> {
   public static DeleteContext defaults() {
     DeletePOptions masterOptions = FileSystemMasterOptions.getDeleteOptions();
     return new DeleteContext(masterOptions.toBuilder());
+  }
+
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this)
+        .add("ProtoOptions", getOptions().build())
+        .toString();
   }
 }

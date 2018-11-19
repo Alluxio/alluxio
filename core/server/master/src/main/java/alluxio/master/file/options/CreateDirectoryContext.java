@@ -14,6 +14,7 @@ package alluxio.master.file.options;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.master.file.FileSystemMasterOptions;
 import alluxio.underfs.UfsStatus;
+import com.google.common.base.MoreObjects;
 
 /**
  * Wrapper for {@link CreateDirectoryPOptions} with additional context data.
@@ -80,5 +81,13 @@ public class CreateDirectoryContext
   public CreateDirectoryContext setUfsStatus(UfsStatus ufsStatus) {
     mUfsStatus = ufsStatus;
     return getThis();
+  }
+
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this)
+        .add("PathContext", super.toString())
+        .add("UfsStatus", mUfsStatus.toString())
+        .toString();
   }
 }

@@ -13,6 +13,7 @@ package alluxio.master.file.options;
 
 import alluxio.grpc.RenamePOptions;
 import alluxio.master.file.FileSystemMasterOptions;
+import com.google.common.base.MoreObjects;
 
 /**
  * Wrapper for {@link RenamePOptions} with additional context data.
@@ -73,5 +74,13 @@ public class RenameContext extends OperationContext<RenamePOptions.Builder> {
   public RenameContext setOperationTimeMs(long operationTimeMs) {
     mOperationTimeMs = operationTimeMs;
     return this;
+  }
+
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this)
+        .add("ProtoOptions", getOptions().build())
+        .add("OperationTimeMs", mOperationTimeMs)
+        .toString();
   }
 }

@@ -3,6 +3,7 @@ package alluxio.master.file.options;
 import alluxio.grpc.LoadMetadataPOptions;
 import alluxio.master.file.FileSystemMasterOptions;
 import alluxio.underfs.UfsStatus;
+import com.google.common.base.MoreObjects;
 
 public class LoadMetadataContext extends OperationContext<LoadMetadataPOptions.Builder> {
 
@@ -60,4 +61,12 @@ public class LoadMetadataContext extends OperationContext<LoadMetadataPOptions.B
     mUfsStatus = ufsStatus;
     return this;
   }
+
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(this)
+            .add("ProtoOptions", getOptions().build())
+            .add("ufsStatus", mUfsStatus)
+            .toString();
+    }
 }

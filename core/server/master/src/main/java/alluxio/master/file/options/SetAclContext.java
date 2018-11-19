@@ -2,6 +2,7 @@ package alluxio.master.file.options;
 
 import alluxio.grpc.SetAclPOptions;
 import alluxio.master.file.FileSystemMasterOptions;
+import com.google.common.base.MoreObjects;
 
 public class SetAclContext extends OperationContext<SetAclPOptions.Builder> {
   // Prevent instantiation
@@ -37,5 +38,12 @@ public class SetAclContext extends OperationContext<SetAclPOptions.Builder> {
   public static SetAclContext defaults() {
     SetAclPOptions masterOptions = FileSystemMasterOptions.getSetAclOptions();
     return new SetAclContext(masterOptions.toBuilder());
+  }
+
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this)
+        .add("ProtoOptions", getOptions().build())
+        .toString();
   }
 }

@@ -2,6 +2,7 @@ package alluxio.master.file.options;
 
 import alluxio.grpc.CheckConsistencyPOptions;
 import alluxio.master.file.FileSystemMasterOptions;
+import com.google.common.base.MoreObjects;
 
 public class CheckConsistencyContext extends OperationContext<CheckConsistencyPOptions.Builder> {
   // Prevent instantiation
@@ -38,5 +39,12 @@ public class CheckConsistencyContext extends OperationContext<CheckConsistencyPO
   public static CheckConsistencyContext defaults() {
     CheckConsistencyPOptions masterOptions = FileSystemMasterOptions.getCheckConsistencyOptions();
     return new CheckConsistencyContext(masterOptions.toBuilder());
+  }
+
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this)
+        .add("ProtoOptions", getOptions().build())
+         .toString();
   }
 }

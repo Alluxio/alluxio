@@ -13,6 +13,7 @@ package alluxio.master.file.options;
 
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.master.file.FileSystemMasterOptions;
+import com.google.common.base.MoreObjects;
 
 /**
  * Wrapper for {@link CreateFilePOptions} with additional context data.
@@ -76,5 +77,13 @@ public class CreateFileContext
   public CreateFileContext setCacheable(boolean cacheable) {
     mCacheable = cacheable;
     return this;
+  }
+
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this)
+        .add("PathContext", super.toString())
+        .add("Cacheable", mCacheable)
+        .toString();
   }
 }

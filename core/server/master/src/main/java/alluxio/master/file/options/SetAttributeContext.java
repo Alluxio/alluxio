@@ -15,6 +15,7 @@ import alluxio.Constants;
 import alluxio.grpc.RenamePOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.master.file.FileSystemMasterOptions;
+import com.google.common.base.MoreObjects;
 
 /**
  * Wrapper for {@link SetAttributePOptions} with additional context data.
@@ -95,5 +96,14 @@ public class SetAttributeContext extends OperationContext<SetAttributePOptions.B
   public SetAttributeContext setUfsFingerprint(String ufsFingerprint) {
     mUfsFingerprint = ufsFingerprint;
     return this;
+  }
+
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this)
+        .add("ProtoOptions", getOptions().build())
+        .add("OperationTimeMs", mOperationTimeMs)
+        .add("UfsFingerprint", mUfsFingerprint)
+        .toString();
   }
 }

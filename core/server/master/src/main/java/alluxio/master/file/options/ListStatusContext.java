@@ -2,6 +2,7 @@ package alluxio.master.file.options;
 
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.master.file.FileSystemMasterOptions;
+import com.google.common.base.MoreObjects;
 
 public class ListStatusContext extends OperationContext<ListStatusPOptions.Builder> {
   // Prevent instantiation
@@ -37,5 +38,12 @@ public class ListStatusContext extends OperationContext<ListStatusPOptions.Build
   public static ListStatusContext defaults() {
     ListStatusPOptions masterOptions = FileSystemMasterOptions.getListStatusOptions();
     return new ListStatusContext(masterOptions.toBuilder());
+  }
+
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this)
+        .add("ProtoOptions", getOptions().build())
+        .toString();
   }
 }

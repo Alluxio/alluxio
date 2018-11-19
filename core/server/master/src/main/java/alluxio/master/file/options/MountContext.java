@@ -2,6 +2,7 @@ package alluxio.master.file.options;
 
 import alluxio.grpc.MountPOptions;
 import alluxio.master.file.FileSystemMasterOptions;
+import com.google.common.base.MoreObjects;
 
 public class MountContext extends OperationContext<MountPOptions.Builder> {
   // Prevent instantiation
@@ -37,5 +38,12 @@ public class MountContext extends OperationContext<MountPOptions.Builder> {
   public static MountContext defaults() {
     MountPOptions masterOptions = FileSystemMasterOptions.getMountOptions();
     return new MountContext(masterOptions.toBuilder());
+  }
+
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this)
+        .add("ProtoOptions", getOptions().build())
+        .toString();
   }
 }

@@ -14,6 +14,7 @@ package alluxio.master.file.options;
 import alluxio.grpc.CompleteFilePOptions;
 import alluxio.master.file.FileSystemMasterOptions;
 import alluxio.underfs.UfsStatus;
+import com.google.common.base.MoreObjects;
 
 /**
  * Wrapper for {@link CompleteFilePOptions} with additional context data.
@@ -94,5 +95,14 @@ public class CompleteFileContext extends OperationContext<CompleteFilePOptions.B
   public CompleteFileContext setOperationTimeMs(long operationTimeMs) {
     mOperationTimeMs = operationTimeMs;
     return this;
+  }
+
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this)
+        .add("ProtoOptions", getOptions().build())
+        .add("UfsStatus", mUfsStatus.toString())
+        .add("OperationTimeMs", mOperationTimeMs)
+        .toString();
   }
 }
