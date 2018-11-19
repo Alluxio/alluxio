@@ -18,6 +18,7 @@ import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Mockito.atLeast;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -96,6 +97,9 @@ public class AlluxioFuseFileSystemTest {
 
   @Test
   public void chown() throws Exception {
+    // TODO(lu) chown with uid=-1/4294967295L and gid is valid
+    // TODO(lu) chown with uid is valid and gid=-1/4294967295L
+    // TODO(lu) chown with uid and gid is -1/4294967295L
     long uid = AlluxioFuseUtils.getUid(System.getProperty("user.name"));
     long gid = AlluxioFuseUtils.getGid(System.getProperty("user.name"));
     mFuseFs.chown("/foo/bar", uid, gid);
@@ -274,6 +278,20 @@ public class AlluxioFuseFileSystemTest {
   }
 
   @Test
+  public void rmdir() throws Exception {
+    AlluxioURI expectedPath = BASE_EXPECTED_URI.join("/foo/bar");
+    FileInfo info = new FileInfo();
+    info.setFolder(true);
+    URIStatus status = new URIStatus(info);
+    when(mFileSystem.getStatus(expectedPath)).thenReturn(status);
+    when(mFileSystem.exists(expectedPath)).thenReturn(true);
+    doNothing().when(mFileSystem).delete(expectedPath);
+
+    mFuseFs.rmdir("/foo/bar");
+    verify(mFileSystem).delete(expectedPath);
+  }
+
+  @Test
   public void write() throws Exception {
     FileOutStream fos = mock(FileOutStream.class);
     AlluxioURI anyURI = any();
@@ -295,6 +313,20 @@ public class AlluxioFuseFileSystemTest {
     // the second write is no-op because the writes must be sequential and overwriting is supported
     mFuseFs.write("/foo/bar", ptr, 4, 0, mFileInfo);
     verify(fos, times(1)).write(expected);
+  }
+
+  @Test
+  public void unlink() throws Exception {
+    AlluxioURI expectedPath = BASE_EXPECTED_URI.join("/foo/bar");
+    FileInfo info = new FileInfo();
+    info.setFolder(false);
+    URIStatus status = new URIStatus(info);
+    when(mFileSystem.getStatus(expectedPath)).thenReturn(status);
+    when(mFileSystem.exists(expectedPath)).thenReturn(true);
+    doNothing().when(mFileSystem).delete(expectedPath);
+
+    mFuseFs.unlink("/foo/bar");
+    verify(mFileSystem).delete(expectedPath);
   }
 
   @Test
