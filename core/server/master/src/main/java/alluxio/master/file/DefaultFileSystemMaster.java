@@ -2194,7 +2194,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    *
    * @param rpcContext the rpc context
    * @param inodePath inode of the path to free
-   * @param options options to free
+   * @param context context to free method
    */
   private void freeInternal(RpcContext rpcContext, LockedInodePath inodePath, FreeContext context)
       throws FileDoesNotExistException, UnexpectedAlluxioException,
@@ -2313,7 +2313,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         auditContext.setAllowed(false);
         throw e;
       }
-      loadMetadataInternal(rpcContext, inodePath, context, null);
+      loadMetadataInternal(rpcContext, inodePath, context);
       auditContext.setSrcInode(inodePath.getInode()).setSucceeded(true);
       return inodePath.getInode().getId();
     }
@@ -2325,10 +2325,9 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * @param rpcContext the rpc context
    * @param inodePath the path for which metadata should be loaded
    * @param context the load metadata context
-   * @param ufsStatus the UFS status for the file/directory that is being loaded
    */
   private void loadMetadataInternal(RpcContext rpcContext, LockedInodePath inodePath,
-      LoadMetadataContext context, @Nullable UfsStatus ufsStatus)
+      LoadMetadataContext context)
       throws InvalidPathException, FileDoesNotExistException, BlockInfoException,
       FileAlreadyCompletedException, InvalidFileSizeException, AccessControlException, IOException {
     AlluxioURI path = inodePath.getUri();
@@ -2336,22 +2335,22 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     AlluxioURI ufsUri = resolution.getUri();
     try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
       UnderFileSystem ufs = ufsResource.get();
-      if (ufsStatus == null && !ufs.exists(ufsUri.toString())) {
+      if (context.getUfsStatus() == null && !ufs.exists(ufsUri.toString())) {
         // uri does not exist in ufs
         InodeDirectoryView inode = (InodeDirectoryView) inodePath.getInode();
         mInodeTree.setDirectChildrenLoaded(rpcContext, inode);
         return;
       }
       boolean isFile;
-      if (ufsStatus != null) {
-        isFile = ufsStatus.isFile();
+      if (context.getUfsStatus() != null) {
+        isFile = context.getUfsStatus().isFile();
       } else {
         isFile = ufs.isFile(ufsUri.toString());
       }
       if (isFile) {
-        loadFileMetadataInternal(rpcContext, inodePath, resolution, context, ufsStatus);
+        loadFileMetadataInternal(rpcContext, inodePath, resolution, context);
       } else {
-        loadDirectoryMetadata(rpcContext, inodePath, context, ufsStatus);
+        loadDirectoryMetadata(rpcContext, inodePath, context);
         InodeDirectoryView inode = (InodeDirectoryView) inodePath.getInode();
 
         if (context.getOptions().getLoadDescendantType() != LoadDescendantPType.NONE) {
@@ -2385,11 +2384,12 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
             try (LockedInodePath tempInodePath =
                 inodePath.createTempPathForChild(childStatus.getName())) {
-              LoadMetadataContext loadMetadataContext =
-                  LoadMetadataContext.defaults(LoadMetadataPOptions.newBuilder()
-                      .setLoadDescendantType(LoadDescendantPType.NONE).setCreateAncestors(false));
+              LoadMetadataContext loadMetadataContext = LoadMetadataContext
+                  .defaults(LoadMetadataPOptions.newBuilder()
+                      .setLoadDescendantType(LoadDescendantPType.NONE).setCreateAncestors(false))
+                  .setUfsStatus(childStatus);
               try {
-                loadMetadataInternal(rpcContext, tempInodePath, loadMetadataContext, childStatus);
+                loadMetadataInternal(rpcContext, tempInodePath, loadMetadataContext);
               } catch (Exception e) {
                 LOG.info("Failed to loadMetadata: inodePath={}, options={}.",
                     tempInodePath.getUri(), loadMetadataContext, e);
@@ -2419,10 +2419,9 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * @param inodePath the path for which metadata should be loaded
    * @param resolution the UFS resolution of path
    * @param context the load metadata context
-   * @param ufsStatus the UFS status for the file being loaded
    */
   private void loadFileMetadataInternal(RpcContext rpcContext, LockedInodePath inodePath,
-      MountTable.Resolution resolution, LoadMetadataContext context, @Nullable UfsStatus ufsStatus)
+      MountTable.Resolution resolution, LoadMetadataContext context)
       throws BlockInfoException, FileDoesNotExistException, InvalidPathException,
       FileAlreadyCompletedException, InvalidFileSizeException, IOException {
     if (inodePath.fullPathExists()) {
@@ -2436,10 +2435,10 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       UnderFileSystem ufs = ufsResource.get();
 
       ufsBlockSizeByte = ufs.getBlockSizeByte(ufsUri.toString());
-      if (ufsStatus == null) {
-        ufsStatus = ufs.getFileStatus(ufsUri.toString());
+      if (context.getUfsStatus() == null) {
+        context.setUfsStatus(ufs.getFileStatus(ufsUri.toString()));
       }
-      ufsLength = ((UfsFileStatus) ufsStatus).getContentLength();
+      ufsLength = ((UfsFileStatus) context.getUfsStatus()).getContentLength();
 
       if (isAclEnabled()) {
         Pair<AccessControlList, DefaultAccessControlList> aclPair
@@ -2464,11 +2463,11 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
             .setTtl(context.getOptions().getCommonOptions().getTtl())
             .setTtlAction(context.getOptions().getCommonOptions().getTtlAction()));
     createFileContext.setMetadataLoad(true);
-    createFileContext.setOwner(ufsStatus.getOwner());
-    createFileContext.setGroup(ufsStatus.getGroup());
-    short ufsMode = ufsStatus.getMode();
+    createFileContext.setOwner(context.getUfsStatus().getOwner());
+    createFileContext.setGroup(context.getUfsStatus().getGroup());
+    short ufsMode = context.getUfsStatus().getMode();
     Mode mode = new Mode(ufsMode);
-    Long ufsLastModified = ufsStatus.getLastModifiedTime();
+    Long ufsLastModified = context.getUfsStatus().getLastModifiedTime();
     if (resolution.getShared()) {
       mode.setOtherBits(mode.getOtherBits().or(mode.getOwnerBits()));
     }
@@ -2485,7 +2484,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
       CompleteFileContext completeCtx =
           CompleteFileContext.defaults(CompleteFilePOptions.newBuilder().setUfsLength(ufsLength))
-              .setUfsStatus(ufsStatus);
+              .setUfsStatus(context.getUfsStatus());
       if (ufsLastModified != null) {
         completeCtx.setOperationTimeMs(ufsLastModified);
       }
@@ -2516,10 +2515,9 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * @param rpcContext the rpc context
    * @param inodePath the path for which metadata should be loaded
    * @param context the load metadata context
-   * @param ufsStatus the UFS status for the directory that is being loaded
    */
   private void loadDirectoryMetadata(RpcContext rpcContext, LockedInodePath inodePath,
-      LoadMetadataContext context, @Nullable UfsStatus ufsStatus)
+      LoadMetadataContext context)
       throws FileDoesNotExistException, InvalidPathException, AccessControlException, IOException {
     if (inodePath.fullPathExists()) {
       if (inodePath.getInode().isPersisted()) {
@@ -2541,8 +2539,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     DefaultAccessControlList defaultAcl = null;
     try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
       UnderFileSystem ufs = ufsResource.get();
-      if (ufsStatus == null) {
-        ufsStatus = ufs.getDirectoryStatus(ufsUri.toString());
+      if (context.getUfsStatus() == null) {
+        context.setUfsStatus(ufs.getDirectoryStatus(ufsUri.toString()));
       }
       Pair<AccessControlList, DefaultAccessControlList> aclPair =
           ufs.getAclPair(ufsUri.toString());
@@ -2551,16 +2549,17 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         defaultAcl = aclPair.getSecond();
       }
     }
-    String ufsOwner = ufsStatus.getOwner();
-    String ufsGroup = ufsStatus.getGroup();
-    short ufsMode = ufsStatus.getMode();
-    Long lastModifiedTime = ufsStatus.getLastModifiedTime();
+    String ufsOwner = context.getUfsStatus().getOwner();
+    String ufsGroup = context.getUfsStatus().getGroup();
+    short ufsMode = context.getUfsStatus().getMode();
+    Long lastModifiedTime = context.getUfsStatus().getLastModifiedTime();
     Mode mode = new Mode(ufsMode);
     if (resolution.getShared()) {
       mode.setOtherBits(mode.getOtherBits().or(mode.getOwnerBits()));
     }
     createDirectoryContext.getOptions().setMode(mode.toShort());
-    createDirectoryContext.setOwner(ufsOwner).setGroup(ufsGroup).setUfsStatus(ufsStatus);
+    createDirectoryContext.setOwner(ufsOwner).setGroup(ufsGroup)
+        .setUfsStatus(context.getUfsStatus());
     if (acl != null) {
       createDirectoryContext.setAcl(acl.getEntries());
     }
@@ -2610,7 +2609,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     }
     if (!inodeExists || loadDirectChildren) {
       try {
-        loadMetadataInternal(rpcContext, inodePath, context, null);
+        loadMetadataInternal(rpcContext, inodePath, context);
       } catch (IOException | InvalidPathException | FileDoesNotExistException | BlockInfoException
           | FileAlreadyCompletedException | InvalidFileSizeException | AccessControlException e) {
         // NOTE, this may be expected when client tries to get info (e.g. exists()) for a file
@@ -2670,9 +2669,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     boolean loadMetadataSucceeded = false;
     try {
       // This will create the directory at alluxioPath
-      loadDirectoryMetadata(rpcContext, inodePath,
-          LoadMetadataContext.defaults(LoadMetadataPOptions.newBuilder().setCreateAncestors(false)),
-          null);
+      loadDirectoryMetadata(rpcContext, inodePath, LoadMetadataContext
+          .defaults(LoadMetadataPOptions.newBuilder().setCreateAncestors(false)));
       loadMetadataSucceeded = true;
     } finally {
       if (!loadMetadataSucceeded) {
@@ -3139,8 +3137,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
             loadMetadataInternal(rpcContext, inodePath,
                 LoadMetadataContext
                     .defaults(LoadMetadataPOptions.newBuilder().setCreateAncestors(true)
-                        .setLoadDescendantType(GrpcUtils.toProto(syncDescendantType))),
-                null);
+                        .setLoadDescendantType(GrpcUtils.toProto(syncDescendantType))));
 
             mUfsSyncPathCache.notifySyncedPath(inodePath.getUri().getPath());
           } catch (Exception e) {
@@ -3157,8 +3154,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
               loadMetadataInternal(rpcContext, descendantPath,
                   LoadMetadataContext
                       .defaults(LoadMetadataPOptions.newBuilder().setCreateAncestors(true)
-                          .setLoadDescendantType(GrpcUtils.toProto(syncDescendantType))),
-                  null);
+                          .setLoadDescendantType(GrpcUtils.toProto(syncDescendantType))));
             } catch (Exception e) {
               LOG.debug("Failed to load metadata for mount point: {}", mountPointUri, e);
             }

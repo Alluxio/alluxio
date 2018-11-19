@@ -2,8 +2,12 @@ package alluxio.master.file.options;
 
 import alluxio.grpc.LoadMetadataPOptions;
 import alluxio.master.file.FileSystemMasterOptions;
+import alluxio.underfs.UfsStatus;
 
 public class LoadMetadataContext extends OperationContext<LoadMetadataPOptions.Builder> {
+
+  private UfsStatus mUfsStatus;
+
   // Prevent instantiation
   private LoadMetadataContext() {
     super(null);
@@ -37,5 +41,23 @@ public class LoadMetadataContext extends OperationContext<LoadMetadataPOptions.B
   public static LoadMetadataContext defaults() {
     LoadMetadataPOptions masterOptions = FileSystemMasterOptions.getLoadMetadataOptions();
     return new LoadMetadataContext(masterOptions.toBuilder());
+  }
+
+  /**
+   * @return the Ufs status
+   */
+  public UfsStatus getUfsStatus() {
+    return mUfsStatus;
+  }
+
+  /**
+   * Sets {@link UfsStatus} for the directory
+   *
+   * @param ufsStatus Ufs status to set
+   * @return the updated context instance
+   */
+  public LoadMetadataContext setUfsStatus(UfsStatus ufsStatus) {
+    mUfsStatus = ufsStatus;
+    return this;
   }
 }
