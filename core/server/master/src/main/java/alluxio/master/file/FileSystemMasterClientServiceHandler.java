@@ -65,6 +65,7 @@ import alluxio.master.file.options.CheckConsistencyContext;
 import alluxio.master.file.options.CompleteFileContext;
 import alluxio.master.file.options.CreateDirectoryContext;
 import alluxio.master.file.options.CreateFileContext;
+import alluxio.master.file.options.FreeContext;
 import alluxio.master.file.options.MountContext;
 import alluxio.master.file.options.RenameContext;
 import alluxio.master.file.options.SetAttributeContext;
@@ -162,8 +163,7 @@ public final class FileSystemMasterClientServiceHandler
     String path = request.getPath();
     FreePOptions options = request.getOptions();
     RpcUtilsNew.call(LOG, (RpcUtilsNew.RpcCallableThrowsIOException<FreePResponse>) () -> {
-      mFileSystemMaster.free(new AlluxioURI(path),
-          FileSystemMasterOptions.getFreeOptions().toBuilder().mergeFrom(options).build());
+      mFileSystemMaster.free(new AlluxioURI(path), FreeContext.defaults(options.toBuilder()));
       return FreePResponse.newBuilder().build();
     }, "Free", "path=%s, options=%s", responseObserver, path, options);
   }

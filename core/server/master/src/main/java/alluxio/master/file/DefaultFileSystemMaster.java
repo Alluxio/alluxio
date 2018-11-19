@@ -81,6 +81,7 @@ import alluxio.master.file.options.CheckConsistencyContext;
 import alluxio.master.file.options.CompleteFileContext;
 import alluxio.master.file.options.CreateDirectoryContext;
 import alluxio.master.file.options.CreateFileContext;
+import alluxio.master.file.options.FreeContext;
 import alluxio.master.file.options.LoadMetadataContext;
 import alluxio.master.file.options.MountContext;
 import alluxio.master.file.options.RenameContext;
@@ -2168,7 +2169,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   }
 
   @Override
-  public void free(AlluxioURI path, FreePOptions options)
+  public void free(AlluxioURI path, FreeContext context)
       throws FileDoesNotExistException, InvalidPathException, AccessControlException,
       UnexpectedAlluxioException, IOException {
     Metrics.FREE_FILE_OPS.inc();
@@ -2183,7 +2184,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         auditContext.setAllowed(false);
         throw e;
       }
-      freeInternal(rpcContext, inodePath, options);
+      freeInternal(rpcContext, inodePath, context);
       auditContext.setSucceeded(true);
     }
   }
@@ -2195,11 +2196,11 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * @param inodePath inode of the path to free
    * @param options options to free
    */
-  private void freeInternal(RpcContext rpcContext, LockedInodePath inodePath, FreePOptions options)
+  private void freeInternal(RpcContext rpcContext, LockedInodePath inodePath, FreeContext context)
       throws FileDoesNotExistException, UnexpectedAlluxioException,
       IOException, InvalidPathException, AccessControlException {
     InodeView inode = inodePath.getInode();
-    if (inode.isDirectory() && !options.getRecursive()
+    if (inode.isDirectory() && !context.getOptions().getRecursive()
         && ((InodeDirectoryView) inode).getNumberOfChildren() > 0) {
       // inode is nonempty, and we don't free a nonempty directory unless recursive is true
       throw new UnexpectedAlluxioException(
@@ -2227,7 +2228,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
                 .getMessage(mInodeTree.getPath(freeInode)));
           }
           if (freeInode.isPinned()) {
-            if (!options.getForced()) {
+            if (!context.getOptions().getForced()) {
               throw new UnexpectedAlluxioException(ExceptionMessage.CANNOT_FREE_PINNED_FILE
                   .getMessage(mInodeTree.getPath(freeInode)));
             }

@@ -38,6 +38,7 @@ import alluxio.master.file.options.CheckConsistencyContext;
 import alluxio.master.file.options.CompleteFileContext;
 import alluxio.master.file.options.CreateDirectoryContext;
 import alluxio.master.file.options.CreateFileContext;
+import alluxio.master.file.options.FreeContext;
 import alluxio.master.file.options.LoadMetadataContext;
 import alluxio.master.file.options.MountContext;
 import alluxio.master.file.options.RenameContext;
@@ -312,8 +313,8 @@ public interface FileSystemMaster extends Master {
    * <p>
    * This operation requires users to have READ permission on the path.
    *
-   * @param path the path to free
-   * @param options options to free
+   * @param path the path to free method
+   * @param context context to free method
    * @throws FileDoesNotExistException if the file does not exist
    * @throws AccessControlException if permission checking fails
    * @throws InvalidPathException if the given path is invalid
@@ -323,7 +324,7 @@ public interface FileSystemMaster extends Master {
   // UnexpectedAlluxioException is thrown because we want to keep backwards compatibility with
   // clients of earlier versions prior to 1.5. If a new exception is added, it will be converted
   // into RuntimeException on the client.
-  void free(AlluxioURI path, FreePOptions options)
+  void free(AlluxioURI path, FreeContext context)
       throws FileDoesNotExistException, InvalidPathException, AccessControlException,
       UnexpectedAlluxioException, IOException;
 

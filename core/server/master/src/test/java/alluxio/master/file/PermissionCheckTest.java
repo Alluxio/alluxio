@@ -32,6 +32,7 @@ import alluxio.exception.FileDoesNotExistException;
 import alluxio.grpc.CompleteFilePOptions;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.FreePOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.TtlAction;
 import alluxio.master.DefaultSafeModeManager;
@@ -51,6 +52,7 @@ import alluxio.master.file.meta.MutableLockedInodePath;
 import alluxio.master.file.options.CompleteFileContext;
 import alluxio.master.file.options.CreateDirectoryContext;
 import alluxio.master.file.options.CreateFileContext;
+import alluxio.master.file.options.FreeContext;
 import alluxio.master.file.options.RenameContext;
 import alluxio.master.file.options.SetAttributeContext;
 import alluxio.master.metrics.MetricsMaster;
@@ -837,7 +839,7 @@ public final class PermissionCheckTest {
   private void verifyFree(TestUser user, String path, boolean recursive) throws Exception {
     try (Closeable r = new AuthenticatedUserRule(user.getUser()).toResource()) {
       mFileSystemMaster.free(new AlluxioURI(path),
-          FileSystemMasterOptions.getFreeOptions().toBuilder().setRecursive(recursive).build());
+          FreeContext.defaults(FreePOptions.newBuilder().setRecursive(recursive)));
     }
   }
 

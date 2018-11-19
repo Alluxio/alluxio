@@ -16,6 +16,7 @@ import alluxio.Constants;
 import alluxio.RestUtils;
 import alluxio.client.file.FileSystemClientOptions;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
+import alluxio.grpc.FreePOptions;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.LoadMetadataPType;
 import alluxio.grpc.MountPOptions;
@@ -24,6 +25,7 @@ import alluxio.master.MasterProcess;
 import alluxio.master.file.options.CompleteFileContext;
 import alluxio.master.file.options.CreateDirectoryContext;
 import alluxio.master.file.options.CreateFileContext;
+import alluxio.master.file.options.FreeContext;
 import alluxio.master.file.options.MountContext;
 import alluxio.master.file.options.RenameContext;
 import alluxio.master.file.options.SetAttributeContext;
@@ -261,8 +263,8 @@ public final class FileSystemMasterClientRestServiceHandler {
       @QueryParam("recursive") final boolean recursive) {
     return RestUtils.call((RestUtils.RestCallable<Void>) () -> {
       Preconditions.checkNotNull(path, "required 'path' parameter is missing");
-      mFileSystemMaster.free(new AlluxioURI(path), FileSystemMasterOptions
-          .getFreeOptions().toBuilder().setRecursive(recursive).build());
+      mFileSystemMaster.free(new AlluxioURI(path),
+          FreeContext.defaults(FreePOptions.newBuilder().setRecursive(recursive)));
       return null;
     });
   }

@@ -44,6 +44,7 @@ import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
+import alluxio.grpc.FreePOptions;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.LoadDescendantPType;
 import alluxio.grpc.LoadMetadataPOptions;
@@ -64,6 +65,7 @@ import alluxio.master.file.meta.TtlIntervalRule;
 import alluxio.master.file.options.CompleteFileContext;
 import alluxio.master.file.options.CreateDirectoryContext;
 import alluxio.master.file.options.CreateFileContext;
+import alluxio.master.file.options.FreeContext;
 import alluxio.master.file.options.LoadMetadataContext;
 import alluxio.master.file.options.MountContext;
 import alluxio.master.file.options.RenameContext;
@@ -2036,8 +2038,8 @@ public final class FileSystemMasterTest {
     assertEquals(1, mBlockMaster.getBlockInfo(blockId).getLocations().size());
 
     // free the file
-    mFileSystemMaster.free(NESTED_FILE_URI, FileSystemMasterOptions.getFreeOptions().toBuilder()
-        .setForced(false).setRecursive(false).build());
+    mFileSystemMaster.free(NESTED_FILE_URI, FreeContext.defaults(FreePOptions.newBuilder()
+        .setForced(false).setRecursive(false)));
     // Update the heartbeat of removedBlockId received from worker 1.
     Command heartbeat2 = mBlockMaster.workerHeartbeat(mWorkerId1,
         ImmutableMap.of("MEM", (long) Constants.KB), ImmutableList.of(blockId),
@@ -2058,7 +2060,7 @@ public final class FileSystemMasterTest {
     mThrown.expectMessage(ExceptionMessage.CANNOT_FREE_NON_PERSISTED_FILE
         .getMessage(NESTED_FILE_URI.getPath()));
     // cannot free a non-persisted file
-    mFileSystemMaster.free(NESTED_FILE_URI, FileSystemMasterOptions.getFreeOptions());
+    mFileSystemMaster.free(NESTED_FILE_URI, FreeContext.defaults());
   }
 
   /**
@@ -2074,7 +2076,7 @@ public final class FileSystemMasterTest {
     mThrown.expectMessage(ExceptionMessage.CANNOT_FREE_PINNED_FILE
         .getMessage(NESTED_FILE_URI.getPath()));
     // cannot free a pinned file without "forced"
-    mFileSystemMaster.free(NESTED_FILE_URI, FileSystemMasterOptions.getFreeOptions());
+    mFileSystemMaster.free(NESTED_FILE_URI, FreeContext.defaults());
   }
 
   /**
@@ -2091,7 +2093,7 @@ public final class FileSystemMasterTest {
 
     // free the file
     mFileSystemMaster.free(NESTED_FILE_URI,
-        FileSystemMasterOptions.getFreeOptions().toBuilder().setForced(true).build());
+        FreeContext.defaults(FreePOptions.newBuilder().setForced(true)));
     // Update the heartbeat of removedBlockId received from worker 1.
     Command heartbeat = mBlockMaster.workerHeartbeat(mWorkerId1,
         ImmutableMap.of("MEM", (long) Constants.KB), ImmutableList.of(blockId),
@@ -2113,7 +2115,7 @@ public final class FileSystemMasterTest {
     mThrown.expectMessage(ExceptionMessage.CANNOT_FREE_NON_EMPTY_DIR.getMessage(NESTED_URI));
     // cannot free directory with recursive argument to false
     mFileSystemMaster.free(NESTED_FILE_URI.getParent(),
-        FileSystemMasterOptions.getFreeOptions().toBuilder().setRecursive(false).build());
+        FreeContext.defaults(FreePOptions.newBuilder().setRecursive(false)));
   }
 
   /**
@@ -2126,8 +2128,8 @@ public final class FileSystemMasterTest {
     assertEquals(1, mBlockMaster.getBlockInfo(blockId).getLocations().size());
 
     // free the dir
-    mFileSystemMaster.free(NESTED_FILE_URI.getParent(), FileSystemMasterOptions.getFreeOptions()
-        .toBuilder().setForced(true).setRecursive(true).build());
+    mFileSystemMaster.free(NESTED_FILE_URI.getParent(),
+        FreeContext.defaults(FreePOptions.newBuilder().setForced(true).setRecursive(true)));
     // Update the heartbeat of removedBlockId received from worker 1.
     Command heartbeat3 = mBlockMaster.workerHeartbeat(mWorkerId1,
         ImmutableMap.of("MEM", (long) Constants.KB), ImmutableList.of(blockId),
@@ -2148,8 +2150,8 @@ public final class FileSystemMasterTest {
     mThrown.expectMessage(ExceptionMessage.CANNOT_FREE_NON_PERSISTED_FILE
         .getMessage(NESTED_FILE_URI.getPath()));
     // cannot free the parent dir of a non-persisted file
-    mFileSystemMaster.free(NESTED_FILE_URI.getParent(), FileSystemMasterOptions.getFreeOptions()
-        .toBuilder().setForced(false).setRecursive(true).build());
+    mFileSystemMaster.free(NESTED_FILE_URI.getParent(),
+        FreeContext.defaults(FreePOptions.newBuilder().setForced(false).setRecursive(true)));
   }
 
   /**
@@ -2166,8 +2168,8 @@ public final class FileSystemMasterTest {
     mThrown.expectMessage(ExceptionMessage.CANNOT_FREE_PINNED_FILE
         .getMessage(NESTED_FILE_URI.getPath()));
     // cannot free the parent dir of a pinned file without "forced"
-    mFileSystemMaster.free(NESTED_FILE_URI.getParent(), FileSystemMasterOptions.getFreeOptions()
-        .toBuilder().setForced(false).setRecursive(true).build());
+    mFileSystemMaster.free(NESTED_FILE_URI.getParent(),
+        FreeContext.defaults(FreePOptions.newBuilder().setForced(false).setRecursive(true)));
   }
 
   /**
@@ -2181,8 +2183,8 @@ public final class FileSystemMasterTest {
     mFileSystemMaster.setAttribute(NESTED_FILE_URI,
         SetAttributeContext.defaults(SetAttributePOptions.newBuilder().setPinned(true)));
     // free the parent dir of a pinned file with "forced"
-    mFileSystemMaster.free(NESTED_FILE_URI.getParent(), FileSystemMasterOptions.getFreeOptions()
-        .toBuilder().setForced(true).setRecursive(true).build());
+    mFileSystemMaster.free(NESTED_FILE_URI.getParent(),
+        FreeContext.defaults(FreePOptions.newBuilder().setForced(true).setRecursive(true)));
     // Update the heartbeat of removedBlockId received from worker 1.
     Command heartbeat = mBlockMaster.workerHeartbeat(mWorkerId1,
         ImmutableMap.of("MEM", (long) Constants.KB), ImmutableList.of(blockId),

@@ -36,6 +36,7 @@ import alluxio.grpc.CompleteFilePOptions;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
+import alluxio.grpc.FreePOptions;
 import alluxio.grpc.LoadMetadataPType;
 import alluxio.grpc.RenamePOptions;
 import alluxio.grpc.SetAttributePOptions;
@@ -52,6 +53,7 @@ import alluxio.master.file.meta.TtlIntervalRule;
 import alluxio.master.file.options.CompleteFileContext;
 import alluxio.master.file.options.CreateDirectoryContext;
 import alluxio.master.file.options.CreateFileContext;
+import alluxio.master.file.options.FreeContext;
 import alluxio.master.file.options.MountContext;
 import alluxio.master.file.options.RenameContext;
 import alluxio.master.file.options.SetAttributeContext;
@@ -1465,7 +1467,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
 
     private void doFree(AlluxioURI path) throws Exception {
       mFsMaster.free(path,
-          FileSystemMasterOptions.getFreeOptions().toBuilder().setForced(true).setRecursive(true).build());
+          FreeContext.defaults(FreePOptions.newBuilder().setForced(true).setRecursive(true)));
       Assert.assertNotEquals(IdUtils.INVALID_FILE_ID, mFsMaster.getFileId(path));
     }
 
