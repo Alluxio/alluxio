@@ -65,14 +65,16 @@ public class FuseFileSystemIntegrationTest {
           .build();
 
   private static String sAlluxioRoot;
+  private static boolean sFuseInstalled;
   private static FileSystem sFileSystem;
   private static AlluxioFuseFileSystem sFuseFileSystem;
   private static Thread sFuseThread;
   private static String sMountPoint;
 
   @BeforeClass
-  public static void before() throws Exception {
-    Assume.assumeTrue(AlluxioFuseUtils.isFuseInstalled());
+  public static void beforeClass() throws Exception {
+    sFuseInstalled = AlluxioFuseUtils.isFuseInstalled();
+    Assume.assumeTrue(sFuseInstalled);
 
     // Mount Alluxio root to a temp directory
     sFileSystem = sLocalAlluxioClusterResource.get().getClient();
@@ -97,7 +99,7 @@ public class FuseFileSystemIntegrationTest {
 
   @AfterClass
   public static void afterClass() throws Exception {
-    if (fuseMounted()) {
+    if (sFuseInstalled && fuseMounted()) {
       umountFuse();
     }
   }

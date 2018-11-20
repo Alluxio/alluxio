@@ -26,6 +26,7 @@ import alluxio.security.authorization.Mode;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
@@ -65,18 +66,21 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioFuseFileSystem.class);
   private static final int MAX_OPEN_FILES = Integer.MAX_VALUE;
   private static final int MAX_OPEN_WAITTIME_MS = 5000;
+
   /**
    * 4294967295 is unsigned long -1, -1 means that uid or gid is not set.
    * 4294967295 or -1 occurs when chown without user name or group name.
    * Please view https://github.com/SerCeMan/jnr-fuse/issues/67 for more details.
    */
-  private static final long ID_NOT_SET_VALUE = -1;
-  private static final long ID_NOT_SET_VALUE_UNSIGNED = 4294967295L;
+  @VisibleForTesting
+  public static final long ID_NOT_SET_VALUE = -1;
+  @VisibleForTesting
+  public static final long ID_NOT_SET_VALUE_UNSIGNED = 4294967295L;
 
   private static final long UID = AlluxioFuseUtils.getUid(System.getProperty("user.name"));
   private static final long GID = AlluxioFuseUtils.getGid(System.getProperty("user.name"));
-  private final boolean mIsUserGroupTranslation;
 
+  private final boolean mIsUserGroupTranslation;
   private final FileSystem mFileSystem;
   // base path within Alluxio namespace that is used for FUSE operations
   // For example, if alluxio-fuse is mounted in /mnt/alluxio and mAlluxioRootPath
@@ -85,9 +89,9 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
   private final Path mAlluxioRootPath;
   // Keeps a cache of the most recently translated paths from String to Alluxio URI
   private final LoadingCache<String, AlluxioURI> mPathResolverCache;
-
   // Table of open files with corresponding InputStreams and OutputStreams
   private final Map<Long, OpenFileEntry> mOpenFiles;
+
   private long mNextOpenFileId;
 
   /**
