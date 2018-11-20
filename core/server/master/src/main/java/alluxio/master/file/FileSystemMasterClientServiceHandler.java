@@ -46,12 +46,16 @@ import alluxio.grpc.ListStatusPResponse;
 import alluxio.grpc.MountPOptions;
 import alluxio.grpc.MountPRequest;
 import alluxio.grpc.MountPResponse;
+import alluxio.grpc.PAclEntry;
 import alluxio.grpc.RenamePOptions;
 import alluxio.grpc.RenamePRequest;
 import alluxio.grpc.RenamePResponse;
 import alluxio.grpc.ScheduleAsyncPersistencePOptions;
 import alluxio.grpc.ScheduleAsyncPersistencePRequest;
 import alluxio.grpc.ScheduleAsyncPersistencePResponse;
+import alluxio.grpc.SetAclPOptions;
+import alluxio.grpc.SetAclPRequest;
+import alluxio.grpc.SetAclPResponse;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.SetAttributePRequest;
 import alluxio.grpc.SetAttributePResponse;
@@ -71,12 +75,15 @@ import alluxio.master.file.options.GetStatusContext;
 import alluxio.master.file.options.ListStatusContext;
 import alluxio.master.file.options.MountContext;
 import alluxio.master.file.options.RenameContext;
+import alluxio.master.file.options.SetAclContext;
 import alluxio.master.file.options.SetAttributeContext;
+import alluxio.proto.shared.Acl;
 import alluxio.underfs.UfsMode;
 import alluxio.util.RpcUtilsNew;
 import alluxio.util.grpc.GrpcUtils;
 import alluxio.wire.MountPointInfo;
 
+import alluxio.wire.SetAclAction;
 import com.google.common.base.Preconditions;
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
@@ -86,10 +93,13 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
+
+import static io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall;
 
 /**
  * This class is a gRPC handler for file system master RPCs invoked by an Alluxio client.
- * TODO(ggezer) SetAcl call is missing in the proto
  */
 public final class FileSystemMasterClientServiceHandler
     extends FileSystemMasterClientServiceGrpc.FileSystemMasterClientServiceImplBase {
@@ -314,5 +324,21 @@ public final class FileSystemMasterClientServiceHandler
       mFileSystemMaster.updateUfsMode(new AlluxioURI(ufsPath), ufsMode);
       return UpdateUfsModePResponse.newBuilder().build();
     }, "UpdateUfsMode", "ufsPath=%s, options=%s", responseObserver, ufsPath, options);
+  }
+
+  @Override
+  public void setAcl(SetAclPRequest request,
+                     StreamObserver<SetAclPResponse> responseObserver) {
+    String alluxioPath = request.getPath();
+    SetAclAction aclAction = GrpcUtils.fromProto(request.getAction());
+    List<PAclEntry> aclList = request.getEntriesList();
+    SetAclPOptions options = request.getOptions();
+    RpcUtilsNew.call(LOG, (RpcUtilsNew.RpcCallableThrowsIOException<SetAclPResponse>) () -> {
+      mFileSystemMaster.setAcl(new AlluxioURI(alluxioPath), aclAction,
+          aclList.stream().map(GrpcUtils::fromProto).collect(Collectors.toList()),
+          SetAclContext.defaults(options.toBuilder()));
+      return SetAclPResponse.newBuilder().build();
+    }, "setAcl", "alluxioPath=%s, setAclAction=%s, aclEntries=%s, options=%s", responseObserver,
+        alluxioPath, aclAction.name(), aclList, options);
   }
 }
