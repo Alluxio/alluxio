@@ -339,7 +339,7 @@ public final class InodeDirectory extends Inode<InodeDirectory> implements Inode
         .setMode((short) context.getOptions().getMode())
         .setAcl(context.getAcl())
         // SetAcl call is also setting default AclEntries
-        .setAcl(context.getAcl())
+        .setAcl(context.getDefaultAcl())
         .setMountPoint(context.isMountPoint());
   }
 

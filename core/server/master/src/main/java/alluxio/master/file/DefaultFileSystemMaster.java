@@ -2565,7 +2565,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     }
 
     if (defaultAcl != null) {
-      createDirectoryContext.setAcl(defaultAcl.getEntries());
+      createDirectoryContext.setDefaultAcl(defaultAcl.getEntries());
     }
     if (lastModifiedTime != null) {
       createDirectoryContext.setOperationTimeMs(lastModifiedTime);

@@ -13,8 +13,13 @@ package alluxio.master.file.options;
 
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.master.file.FileSystemMasterOptions;
+import alluxio.proto.shared.Acl;
+import alluxio.security.authorization.AclEntry;
 import alluxio.underfs.UfsStatus;
 import com.google.common.base.MoreObjects;
+import com.google.common.collect.ImmutableList;
+
+import java.util.List;
 
 /**
  * Wrapper for {@link CreateDirectoryPOptions} with additional context data.
@@ -23,6 +28,7 @@ public class CreateDirectoryContext
     extends CreatePathContext<CreateDirectoryPOptions.Builder, CreateDirectoryContext> {
 
   private UfsStatus mUfsStatus;
+  protected List<AclEntry> mDefaultAcl;
 
   // Prevent instantiation
   private CreateDirectoryContext() {
@@ -81,6 +87,23 @@ public class CreateDirectoryContext
   public CreateDirectoryContext setUfsStatus(UfsStatus ufsStatus) {
     mUfsStatus = ufsStatus;
     return getThis();
+  }
+
+  /**
+   * Sets the default ACL in the context.
+   * @param defaultAcl a list of default ACL Entries
+   * @return the updated context object
+   */
+  public CreateDirectoryContext setDefaultAcl(List<AclEntry> defaultAcl) {
+    mDefaultAcl = ImmutableList.copyOf(defaultAcl);
+    return getThis();
+  }
+
+  /**
+   * @return the default ACL in the form of a list of default ACL Entries
+   */
+  public List<AclEntry> getDefaultAcl() {
+    return mDefaultAcl;
   }
 
   @Override

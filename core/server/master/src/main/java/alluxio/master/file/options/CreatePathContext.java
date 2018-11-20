@@ -18,7 +18,6 @@ import alluxio.security.authorization.AclEntry;
 import alluxio.security.authorization.Mode;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
-import com.google.protobuf.AbstractMessage;
 
 import java.util.Collections;
 import java.util.List;
