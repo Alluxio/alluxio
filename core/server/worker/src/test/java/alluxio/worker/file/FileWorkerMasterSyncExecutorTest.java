@@ -20,7 +20,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import alluxio.exception.status.UnavailableException;
-import alluxio.thrift.FileSystemCommand;
+import alluxio.grpc.FileSystemCommand;
+import alluxio.grpc.FileSystemHeartbeatPOptions;
 import alluxio.thrift.FileSystemHeartbeatTOptions;
 
 import com.google.common.collect.Lists;
@@ -64,7 +65,7 @@ public final class FileWorkerMasterSyncExecutorTest {
     when(mFileDataManager.getPersistedFileInfos()).thenReturn(filesInfo);
     // first time fails, second time passes
     when(mFileSystemMasterClient.heartbeat(anyLong(), eq(persistedFiles),
-        any(FileSystemHeartbeatTOptions.class)))
+        any(FileSystemHeartbeatPOptions.class)))
         .thenThrow(new UnavailableException("failure"));
     mFileWorkerMasterSyncExecutor.heartbeat();
     verify(mFileDataManager, never()).clearPersistedFiles(persistedFiles);
@@ -83,7 +84,7 @@ public final class FileWorkerMasterSyncExecutorTest {
     when(mFileDataManager.getPersistedFileInfos()).thenReturn(filesInfo);
     // first time fails, second time passes
     when(mFileSystemMasterClient.heartbeat(anyLong(), eq(persistedFiles)))
-        .thenReturn(new FileSystemCommand());
+        .thenReturn(FileSystemCommand.newBuilder().build());
     mFileWorkerMasterSyncExecutor.heartbeat();
     verify(mFileDataManager).clearPersistedFiles(persistedFiles);
   }

@@ -79,14 +79,16 @@ public final class CommonProto {
       "h\030\005 \001(\t\0224\n\016tieredIdentity\030\006 \001(\0132\034.alluxi" +
       "o.grpc.TieredIdentity\"-\n\032GetServiceVersi" +
       "onPResponse\022\017\n\007version\030\001 \001(\003\"0\n\031GetServi" +
-      "ceVersionPOptions\022\023\n\013serviceType\030\001 \001(\t*X" +
-      "\n\013CommandType\022\013\n\007Unknown\020\000\022\013\n\007Nothing\020\001\022" +
-      "\014\n\010Register\020\002\022\010\n\004Free\020\003\022\n\n\006Delete\020\004\022\013\n\007P" +
-      "ersist\020\005*!\n\tTtlAction\022\n\n\006DELETE\020\000\022\010\n\004FRE" +
-      "E\020\0012x\n\016AlluxioService\022f\n\021getServiceVersi" +
-      "on\022\'.alluxio.grpc.GetServiceVersionPOpti" +
-      "ons\032(.alluxio.grpc.GetServiceVersionPRes" +
-      "ponseB\035\n\014alluxio.grpcB\013CommonProtoP\001"
+      "ceVersionPOptions\022\023\n\013serviceType\030\001 \001(\t*\210" +
+      "\001\n\013CommandType\022\023\n\017Command_Unknown\020\000\022\023\n\017C" +
+      "ommand_Nothing\020\001\022\024\n\020Command_Register\020\002\022\020" +
+      "\n\014Command_Free\020\003\022\022\n\016Command_Delete\020\004\022\023\n\017" +
+      "Command_Persist\020\005*!\n\tTtlAction\022\n\n\006DELETE" +
+      "\020\000\022\010\n\004FREE\020\0012x\n\016AlluxioService\022f\n\021getSer" +
+      "viceVersion\022\'.alluxio.grpc.GetServiceVer" +
+      "sionPOptions\032(.alluxio.grpc.GetServiceVe" +
+      "rsionPResponseB\035\n\014alluxio.grpcB\013CommonPr" +
+      "otoP\001"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {

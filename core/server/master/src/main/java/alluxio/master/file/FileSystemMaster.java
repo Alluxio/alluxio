@@ -24,7 +24,6 @@ import alluxio.exception.InvalidPathException;
 import alluxio.exception.UnexpectedAlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.exception.status.UnavailableException;
-import alluxio.file.options.WorkerHeartbeatOptions;
 import alluxio.master.Master;
 import alluxio.master.file.meta.FileSystemMasterView;
 import alluxio.master.file.meta.PersistenceState;
@@ -41,6 +40,7 @@ import alluxio.master.file.options.MountContext;
 import alluxio.master.file.options.RenameContext;
 import alluxio.master.file.options.SetAclContext;
 import alluxio.master.file.options.SetAttributeContext;
+import alluxio.master.file.options.WorkerHeartbeatContext;
 import alluxio.security.authorization.AclEntry;
 import alluxio.wire.FileSystemCommand;
 import alluxio.wire.SetAclAction;
@@ -481,14 +481,14 @@ public interface FileSystemMaster extends Master {
    *
    * @param workerId the id of the worker that heartbeats
    * @param persistedFiles the files that persisted on the worker
-   * @param options the method options
+   * @param context the method context
    * @return the command for persisting the blocks of a file
    * @throws FileDoesNotExistException if the file does not exist
    * @throws InvalidPathException if the file path corresponding to the file id is invalid
    * @throws AccessControlException if permission checking fails
    */
   FileSystemCommand workerHeartbeat(long workerId, List<Long> persistedFiles,
-      WorkerHeartbeatOptions options)
+      WorkerHeartbeatContext context)
       throws FileDoesNotExistException, InvalidPathException, AccessControlException, IOException;
 
   /**

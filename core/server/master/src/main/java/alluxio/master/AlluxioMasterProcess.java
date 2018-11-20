@@ -17,6 +17,7 @@ import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.FileSystemMasterClientServiceHandler;
+import alluxio.master.file.FileSystemMasterWorkerServiceHandler;
 import alluxio.master.journal.JournalSystem;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.sink.MetricsServlet;
@@ -380,6 +381,7 @@ public class AlluxioMasterProcess implements MasterProcess {
       LOG.info("Starting gRPC server on port {}", port);
       mGrpcServer = GrpcServerBuilder.forPort(port)
           .addService(new FileSystemMasterClientServiceHandler(master))
+          .addService(new FileSystemMasterWorkerServiceHandler(master))
           .executor(executorService)
           .build()
           .start();

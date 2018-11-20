@@ -9,87 +9,87 @@ package alluxio.grpc;
 public enum CommandType
     implements com.google.protobuf.ProtocolMessageEnum {
   /**
-   * <code>Unknown = 0;</code>
+   * <code>Command_Unknown = 0;</code>
    */
-  Unknown(0),
+  Command_Unknown(0),
   /**
-   * <code>Nothing = 1;</code>
+   * <code>Command_Nothing = 1;</code>
    */
-  Nothing(1),
+  Command_Nothing(1),
   /**
    * <pre>
    * Ask the worker to re-register.
    * </pre>
    *
-   * <code>Register = 2;</code>
+   * <code>Command_Register = 2;</code>
    */
-  Register(2),
+  Command_Register(2),
   /**
    * <pre>
    * Ask the worker to free files.
    * </pre>
    *
-   * <code>Free = 3;</code>
+   * <code>Command_Free = 3;</code>
    */
-  Free(3),
+  Command_Free(3),
   /**
    * <pre>
    * Ask the worker to delete files.
    * </pre>
    *
-   * <code>Delete = 4;</code>
+   * <code>Command_Delete = 4;</code>
    */
-  Delete(4),
+  Command_Delete(4),
   /**
    * <pre>
    * Ask the worker to persist a file for lineage
    * </pre>
    *
-   * <code>Persist = 5;</code>
+   * <code>Command_Persist = 5;</code>
    */
-  Persist(5),
+  Command_Persist(5),
   ;
 
   /**
-   * <code>Unknown = 0;</code>
+   * <code>Command_Unknown = 0;</code>
    */
-  public static final int Unknown_VALUE = 0;
+  public static final int Command_Unknown_VALUE = 0;
   /**
-   * <code>Nothing = 1;</code>
+   * <code>Command_Nothing = 1;</code>
    */
-  public static final int Nothing_VALUE = 1;
+  public static final int Command_Nothing_VALUE = 1;
   /**
    * <pre>
    * Ask the worker to re-register.
    * </pre>
    *
-   * <code>Register = 2;</code>
+   * <code>Command_Register = 2;</code>
    */
-  public static final int Register_VALUE = 2;
+  public static final int Command_Register_VALUE = 2;
   /**
    * <pre>
    * Ask the worker to free files.
    * </pre>
    *
-   * <code>Free = 3;</code>
+   * <code>Command_Free = 3;</code>
    */
-  public static final int Free_VALUE = 3;
+  public static final int Command_Free_VALUE = 3;
   /**
    * <pre>
    * Ask the worker to delete files.
    * </pre>
    *
-   * <code>Delete = 4;</code>
+   * <code>Command_Delete = 4;</code>
    */
-  public static final int Delete_VALUE = 4;
+  public static final int Command_Delete_VALUE = 4;
   /**
    * <pre>
    * Ask the worker to persist a file for lineage
    * </pre>
    *
-   * <code>Persist = 5;</code>
+   * <code>Command_Persist = 5;</code>
    */
-  public static final int Persist_VALUE = 5;
+  public static final int Command_Persist_VALUE = 5;
 
 
   public final int getNumber() {
@@ -106,12 +106,12 @@ public enum CommandType
 
   public static CommandType forNumber(int value) {
     switch (value) {
-      case 0: return Unknown;
-      case 1: return Nothing;
-      case 2: return Register;
-      case 3: return Free;
-      case 4: return Delete;
-      case 5: return Persist;
+      case 0: return Command_Unknown;
+      case 1: return Command_Nothing;
+      case 2: return Command_Register;
+      case 3: return Command_Free;
+      case 4: return Command_Delete;
+      case 5: return Command_Persist;
       default: return null;
     }
   }

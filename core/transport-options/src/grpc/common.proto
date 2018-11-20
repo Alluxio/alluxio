@@ -26,12 +26,12 @@ message BlockLocation {
 }
 
 enum CommandType {
-  Unknown = 0;
-  Nothing = 1;
-  Register = 2; // Ask the worker to re-register.
-  Free = 3;     // Ask the worker to free files.
-  Delete = 4;   // Ask the worker to delete files.
-  Persist = 5;  // Ask the worker to persist a file for lineage
+  Command_Unknown = 0;
+  Command_Nothing = 1;
+  Command_Register = 2; // Ask the worker to re-register.
+  Command_Free = 3;     // Ask the worker to free files.
+  Command_Delete = 4;   // Ask the worker to delete files.
+  Command_Persist = 5;  // Ask the worker to persist a file for lineage
 }
 
 enum TtlAction {

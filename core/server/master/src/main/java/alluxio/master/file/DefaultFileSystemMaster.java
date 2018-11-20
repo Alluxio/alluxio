@@ -37,7 +37,6 @@ import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.PermissionDeniedException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.file.options.DescendantType;
-import alluxio.file.options.WorkerHeartbeatOptions;
 import alluxio.grpc.CompleteFilePOptions;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
@@ -87,6 +86,7 @@ import alluxio.master.file.options.MountContext;
 import alluxio.master.file.options.RenameContext;
 import alluxio.master.file.options.SetAclContext;
 import alluxio.master.file.options.SetAttributeContext;
+import alluxio.master.file.options.WorkerHeartbeatContext;
 import alluxio.master.journal.JournalContext;
 import alluxio.metrics.MasterMetrics;
 import alluxio.metrics.MetricsSystem;
@@ -413,9 +413,9 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     services.put(Constants.FILE_SYSTEM_MASTER_JOB_SERVICE_NAME,
         new alluxio.thrift.FileSystemMasterJobService.Processor<>(
             new FileSystemMasterJobServiceHandler(this)));
-    services.put(Constants.FILE_SYSTEM_MASTER_WORKER_SERVICE_NAME,
-        new FileSystemMasterWorkerService.Processor<>(
-            new FileSystemMasterWorkerServiceHandler(this)));
+    //services.put(Constants.FILE_SYSTEM_MASTER_WORKER_SERVICE_NAME,
+    //    new FileSystemMasterWorkerService.Processor<>(
+    //        new FileSystemMasterWorkerServiceHandler(this)));
     return services;
   }
 
@@ -3338,11 +3338,9 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
   @Override
   public FileSystemCommand workerHeartbeat(long workerId, List<Long> persistedFiles,
-                                           WorkerHeartbeatOptions options)
-      throws FileDoesNotExistException, InvalidPathException, AccessControlException,
-      IOException {
+      WorkerHeartbeatContext context) throws IOException {
 
-    List<String> persistedUfsFingerprints = options.getPersistedUfsFingerprintList();
+    List<String> persistedUfsFingerprints = context.getOptions().getPersistedFileFingerprintsList();
     boolean hasPersistedFingerprints = persistedUfsFingerprints.size() == persistedFiles.size();
     for (int i = 0; i < persistedFiles.size(); i++) {
       long fileId = persistedFiles.get(i);

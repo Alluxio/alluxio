@@ -11,37 +11,35 @@
 
 package alluxio.master.file;
 
-import alluxio.Constants;
-import alluxio.RpcUtils;
-import alluxio.RpcUtils.RpcCallable;
-import alluxio.RpcUtils.RpcCallableThrowsIOException;
-import alluxio.thrift.AlluxioTException;
-import alluxio.thrift.FileSystemHeartbeatTOptions;
-import alluxio.thrift.FileSystemHeartbeatTResponse;
-import alluxio.thrift.FileSystemMasterWorkerService;
-import alluxio.thrift.GetFileInfoTOptions;
-import alluxio.thrift.GetFileInfoTResponse;
-import alluxio.thrift.GetPinnedFileIdsTOptions;
-import alluxio.thrift.GetPinnedFileIdsTResponse;
-import alluxio.thrift.GetServiceVersionTOptions;
-import alluxio.thrift.GetServiceVersionTResponse;
-import alluxio.thrift.GetUfsInfoTOptions;
-import alluxio.thrift.GetUfsInfoTResponse;
+import alluxio.grpc.FileSystemHeartbeatPOptions;
+import alluxio.grpc.FileSystemHeartbeatPRequest;
+import alluxio.grpc.FileSystemHeartbeatPResponse;
+import alluxio.grpc.FileSystemMasterWorkerServiceGrpc;
+import alluxio.grpc.GetFileInfoPOptions;
+import alluxio.grpc.GetFileInfoPRequest;
+import alluxio.grpc.GetFileInfoPResponse;
+import alluxio.grpc.GetPinnedFileIdsPOptions;
+import alluxio.grpc.GetPinnedFileIdsPRequest;
+import alluxio.grpc.GetPinnedFileIdsPResponse;
+import alluxio.grpc.GetUfsInfoPOptions;
+import alluxio.grpc.GetUfsInfoPRequest;
+import alluxio.grpc.GetUfsInfoPResponse;
+import alluxio.master.file.options.WorkerHeartbeatContext;
 
+import alluxio.util.RpcUtilsNew;
+import alluxio.util.grpc.GrpcUtils;
 import com.google.common.base.Preconditions;
+import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
-import javax.annotation.concurrent.NotThreadSafe;
-
 /**
- * This class is a Thrift handler for file system master RPCs invoked by an Alluxio worker.
+ * This class is a gRPC handler for file system master RPCs invoked by an Alluxio worker.
  */
-@NotThreadSafe // TODO(jiri): make thread-safe (c.f. ALLUXIO-1664)
 public final class FileSystemMasterWorkerServiceHandler
-    implements FileSystemMasterWorkerService.Iface {
+    extends FileSystemMasterWorkerServiceGrpc.FileSystemMasterWorkerServiceImplBase {
   private static final Logger LOG =
       LoggerFactory.getLogger(FileSystemMasterWorkerServiceHandler.class);
 
@@ -52,52 +50,67 @@ public final class FileSystemMasterWorkerServiceHandler
    *
    * @param fileSystemMaster the {@link FileSystemMaster} the handler uses internally
    */
-  FileSystemMasterWorkerServiceHandler(FileSystemMaster fileSystemMaster) {
+  public FileSystemMasterWorkerServiceHandler(FileSystemMaster fileSystemMaster) {
     Preconditions.checkNotNull(fileSystemMaster);
     mFileSystemMaster = fileSystemMaster;
   }
-
+  
   @Override
-  public GetServiceVersionTResponse getServiceVersion(GetServiceVersionTOptions options) {
-    return new GetServiceVersionTResponse(Constants.FILE_SYSTEM_MASTER_WORKER_SERVICE_VERSION);
+  public void fileSystemHeartbeat(FileSystemHeartbeatPRequest request,
+      StreamObserver<FileSystemHeartbeatPResponse> responseObserver) {
+
+    final long workerId = request.getWorkerId();
+    final List<Long> persistedFiles = request.getPersistedFilesList();
+    FileSystemHeartbeatPOptions options = request.getOptions();
+
+    RpcUtilsNew.call(LOG,
+        (RpcUtilsNew.RpcCallableThrowsIOException<FileSystemHeartbeatPResponse>) () -> FileSystemHeartbeatPResponse
+            .newBuilder()
+            .setCommand(GrpcUtils.toProto(mFileSystemMaster.workerHeartbeat(workerId,
+                persistedFiles, WorkerHeartbeatContext.defaults(options.toBuilder()))))
+            .build(),
+        "workerHeartbeat", "workerId=%s, persistedFiles=%s, options=%s", responseObserver, workerId,
+        persistedFiles, options);
   }
 
   @Override
-  public FileSystemHeartbeatTResponse fileSystemHeartbeat(final long workerId,
-      final List<Long> persistedFiles, FileSystemHeartbeatTOptions options)
-      throws AlluxioTException {
-    return RpcUtils.call(LOG, (RpcCallableThrowsIOException<FileSystemHeartbeatTResponse>) () ->
-        null,
-        // new FileSystemHeartbeatTResponse(mFileSystemMaster.workerHeartbeat(workerId,
-        // persistedFiles,
-        // new WorkerHeartbeatOptions(options))),
-        "FileSystemHeartbeat", "workerId=%s, persistedFiles=%s, options=%s",
-        workerId, persistedFiles, options);
+  public void getFileInfo(GetFileInfoPRequest request,
+      StreamObserver<GetFileInfoPResponse> responseObserver) {
+
+    final long fileId = request.getFileId();
+    GetFileInfoPOptions options = request.getOptions();
+
+    RpcUtilsNew.call(LOG,
+        (RpcUtilsNew.RpcCallableThrowsIOException<GetFileInfoPResponse>) () -> GetFileInfoPResponse
+            .newBuilder().setFileInfo(GrpcUtils.toProto(mFileSystemMaster.getFileInfo(fileId)))
+            .build(),
+        "getFileInfo", "fileId=%s, options=%s", responseObserver, fileId, options);
+
   }
 
   @Override
-  public GetFileInfoTResponse getFileInfo(final long fileId, GetFileInfoTOptions options)
-      throws AlluxioTException {
-    return RpcUtils.call(LOG, (RpcCallableThrowsIOException<GetFileInfoTResponse>) () ->
-        null,
-//        new GetFileInfoTResponse(mFileSystemMaster.getFileInfo(fileId).toThrift()),
-        "GetFileInfo", "fileId=%s, options=%s", fileId, options);
+  public void getPinnedFileIds(GetPinnedFileIdsPRequest request,
+      StreamObserver<GetPinnedFileIdsPResponse> responseObserver) {
+
+    GetPinnedFileIdsPOptions options = request.getOptions();
+
+    RpcUtilsNew.call(LOG,
+        (RpcUtilsNew.RpcCallableThrowsIOException<GetPinnedFileIdsPResponse>) () -> GetPinnedFileIdsPResponse
+            .newBuilder().addAllPinnedFileIds(mFileSystemMaster.getPinIdList()).build(),
+        "getPinnedFileIds", "options=%s", responseObserver, options);
   }
 
   @Override
-  public GetPinnedFileIdsTResponse getPinnedFileIds(GetPinnedFileIdsTOptions options)
-      throws AlluxioTException {
-    return RpcUtils.call(LOG, (RpcCallable<GetPinnedFileIdsTResponse>) () ->
-        new GetPinnedFileIdsTResponse(mFileSystemMaster.getPinIdList()),
-        "GetPinnedFileIds", "options=%s", options);
-  }
+  public void getUfsInfo(GetUfsInfoPRequest request,
+      StreamObserver<GetUfsInfoPResponse> responseObserver) {
 
-  @Override
-  public GetUfsInfoTResponse getUfsInfo(final long mountId, GetUfsInfoTOptions options)
-      throws AlluxioTException {
-    return RpcUtils.call(LOG, (RpcCallable<GetUfsInfoTResponse>) () ->
-        null,
-//        new GetUfsInfoTResponse(mFileSystemMaster.getUfsInfo(mountId)),
-        "GetUfsInfo", "mountId=%s, options=%s", mountId, options);
+    final long mountId = request.getMountId();
+    GetUfsInfoPOptions options = request.getOptions();
+
+    RpcUtilsNew.call(LOG,
+        (RpcUtilsNew.RpcCallableThrowsIOException<GetUfsInfoPResponse>) () -> GetUfsInfoPResponse
+            .newBuilder().setUfsInfo(GrpcUtils.toProto(mFileSystemMaster.getUfsInfo(mountId)))
+            .build(),
+        "getUfsInfo", "mountId=%s, options=%s", responseObserver, mountId, options);
   }
 }

@@ -62,8 +62,6 @@ public abstract class AbstractClient implements Client {
   protected InetSocketAddress mAddress;
   protected TProtocol mProtocol;
 
-  // TODO(adit): move to fs master client
-  protected FileSystemMasterServiceGrpc.FileSystemMasterServiceBlockingStub mBlockingStub;
   protected GrpcChannel mChannel;
 
   /** Is true if this client is currently connected. */
@@ -105,12 +103,11 @@ public abstract class AbstractClient implements Client {
     mParentSubject = subject;
     mRetryPolicySupplier = retryPolicySupplier;
     mServiceVersion = Constants.UNKNOWN_SERVICE_VERSION;
+    // TODO(ggezer) review grpc channel initialization
     mChannel = GrpcChannelBuilder
         .forAddress("localhost", 50051)
         .usePlaintext(true)
         .build();
-    // TODO(adit): move to fs master client
-    mBlockingStub = FileSystemMasterServiceGrpc.newBlockingStub(mChannel);
   }
 
   /**

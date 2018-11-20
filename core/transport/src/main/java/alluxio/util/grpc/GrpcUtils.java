@@ -13,6 +13,7 @@ package alluxio.util.grpc;
 
 import static alluxio.util.StreamUtils.map;
 
+import alluxio.AlluxioURI;
 import alluxio.Constants;
 
 import alluxio.file.options.CompleteUfsFileOptions;
@@ -21,6 +22,7 @@ import alluxio.file.options.DescendantType;
 import alluxio.grpc.CompleteUfsFilePOptions;
 import alluxio.grpc.CreateUfsFilePOptions;
 import alluxio.grpc.ExistsPOptions;
+import alluxio.grpc.FileSystemCommandOptions;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.LoadDescendantPType;
 import alluxio.grpc.LoadMetadataPType;
@@ -30,6 +32,7 @@ import alluxio.grpc.PAclAction;
 import alluxio.grpc.PAclEntry;
 import alluxio.grpc.PAclEntryType;
 import alluxio.grpc.PSetAclAction;
+import alluxio.grpc.PersistCommandOptions;
 import alluxio.grpc.ReadPType;
 import alluxio.grpc.WritePType;
 import alluxio.proto.journal.File;
@@ -40,13 +43,17 @@ import alluxio.security.authorization.AclEntryType;
 import alluxio.security.authorization.DefaultAccessControlList;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
+import alluxio.wire.CommandType;
 import alluxio.wire.FileBlockInfo;
 import alluxio.wire.FileInfo;
+import alluxio.wire.FileSystemCommand;
 import alluxio.wire.LoadMetadataType;
 import alluxio.wire.MountPointInfo;
+import alluxio.wire.PersistFile;
 import alluxio.wire.SetAclAction;
 import alluxio.wire.TieredIdentity;
 import alluxio.wire.TtlAction;
+import alluxio.wire.UfsInfo;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
@@ -751,11 +758,29 @@ public final class GrpcUtils {
     return address.build();
   }
 
-  /**
-   * @return true if the read type imposes caching, false otherwise
-   * @param readType {@link ReadPType} type
-   */
-  public static boolean isCache(ReadPType readType) {
-    return readType == ReadPType.READ_CACHE || readType == ReadPType.READ_CACHE_PROMOTE;
+  private static final String sCommandTypeHeader = "Command_";
+
+  public static alluxio.grpc.CommandType toProto(CommandType commandType) {
+    return alluxio.grpc.CommandType.valueOf(sCommandTypeHeader + commandType.name());
+  }
+  
+  public static alluxio.grpc.PersistFile toProto(PersistFile persistFile) {
+    return alluxio.grpc.PersistFile.newBuilder().setFileId(persistFile.getFileId())
+        .addAllBlockIds(persistFile.getBlockIds()).build();
+  }
+
+  public static alluxio.grpc.FileSystemCommand toProto(FileSystemCommand fsCommand) {
+
+    return alluxio.grpc.FileSystemCommand.newBuilder()
+        .setCommandType(toProto(fsCommand.getCommandType()))
+        .setCommandOptions(FileSystemCommandOptions.newBuilder()
+            .setPersistOptions(PersistCommandOptions.newBuilder().addAllPersistFiles(
+                fsCommand.getCommandOptions().getPersistOptions().getFilesToPersist().stream()
+                    .map(GrpcUtils::toProto).collect(Collectors.toList()))))
+        .build();
+  }
+
+  public static alluxio.grpc.UfsInfo toProto(UfsInfo ufsInfo) {
+    return alluxio.grpc.UfsInfo.newBuilder().setUri(ufsInfo.getUri().toString()).build();
   }
 }

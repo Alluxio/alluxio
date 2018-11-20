@@ -75,7 +75,7 @@ import alluxio.master.file.options.MountContext;
 import alluxio.master.file.options.RenameContext;
 import alluxio.master.file.options.SetAclContext;
 import alluxio.master.file.options.SetAttributeContext;
-import alluxio.master.file.options.WorkerHeartbeatOptions;
+import alluxio.master.file.options.WorkerHeartbeatContext;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalTestUtils;
 import alluxio.master.metrics.MetricsMaster;
@@ -2439,7 +2439,7 @@ public final class FileSystemMasterTest {
     mFileSystemMaster.scheduleAsyncPersistence(ROOT_FILE_URI);
 
     FileSystemCommand command = mFileSystemMaster
-        .workerHeartbeat(mWorkerId1, Lists.newArrayList(fileId), WorkerHeartbeatOptions.defaults());
+        .workerHeartbeat(mWorkerId1, Lists.newArrayList(fileId), WorkerHeartbeatContext.defaults());
     assertEquals(CommandType.Persist, command.getCommandType());
     assertEquals(0, command.getCommandOptions().getPersistOptions().getFilesToPersist().size());
   }
