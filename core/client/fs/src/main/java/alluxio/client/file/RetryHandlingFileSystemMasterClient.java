@@ -25,8 +25,7 @@ import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.CreateFilePRequest;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.DeletePRequest;
-import alluxio.grpc.FileSystemMasterServiceGrpc;
-import alluxio.grpc.FileSystemMasterWorkerServiceGrpc;
+import alluxio.grpc.FileSystemMasterClientServiceGrpc;
 import alluxio.grpc.FreePOptions;
 import alluxio.grpc.FreePRequest;
 import alluxio.grpc.GetMountTablePRequest;
@@ -75,7 +74,8 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
     implements FileSystemMasterClient {
   private FileSystemMasterClientService.Client mClient = null;
   // TODO(ggezer) review grpc client initialization
-  private FileSystemMasterServiceGrpc.FileSystemMasterServiceBlockingStub mGrpcClient = null;
+  private FileSystemMasterClientServiceGrpc.FileSystemMasterClientServiceBlockingStub mGrpcClient =
+      null;
 
   /**
    * Creates a new {@link RetryHandlingFileSystemMasterClient} instance.
@@ -104,7 +104,7 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
   @Override
   public synchronized void connect() {
     // TODO(adit): temp workaround
-    mGrpcClient = FileSystemMasterServiceGrpc.newBlockingStub(mChannel);
+    mGrpcClient = FileSystemMasterClientServiceGrpc.newBlockingStub(mChannel);
   }
 
   @Override

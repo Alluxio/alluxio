@@ -28,7 +28,7 @@ import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.DeletePRequest;
 import alluxio.grpc.DeletePResponse;
 import alluxio.grpc.FileInfo;
-import alluxio.grpc.FileSystemMasterServiceGrpc;
+import alluxio.grpc.FileSystemMasterClientServiceGrpc;
 import alluxio.grpc.FreePOptions;
 import alluxio.grpc.FreePRequest;
 import alluxio.grpc.FreePResponse;
@@ -92,7 +92,7 @@ import java.util.Map;
  * TODO(ggezer) SetAcl call is missing in the proto
  */
 public final class FileSystemMasterClientServiceHandler
-    extends FileSystemMasterServiceGrpc.FileSystemMasterServiceImplBase {
+    extends FileSystemMasterClientServiceGrpc.FileSystemMasterClientServiceImplBase {
   private static final Logger LOG =
       LoggerFactory.getLogger(FileSystemMasterClientServiceHandler.class);
   private final FileSystemMaster mFileSystemMaster;

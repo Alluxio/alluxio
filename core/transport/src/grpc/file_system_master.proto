@@ -258,7 +258,7 @@ message UpdateUfsModePRequest {
 /**
  * This interface contains file system master service endpoints for Alluxio clients.
  */
-service FileSystemMasterService {
+service FileSystemMasterClientService {
 
   /**
    * Checks the consistency of the files and directores with the path as the root of the subtree
