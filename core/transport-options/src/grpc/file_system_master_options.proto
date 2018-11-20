@@ -63,7 +63,7 @@ message CreateFilePOptions {
 message CreateDirectoryPOptions {
   optional bool persisted = 1;
   optional bool recursive = 2;
-  optional bool allowExist = 3;
+  optional bool allowExists = 3;
   optional int32 mode = 4;
   optional WritePType writeType = 5;
   optional FileSystemMasterCommonPOptions commonOptions = 6;

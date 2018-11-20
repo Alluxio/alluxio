@@ -205,13 +205,13 @@ public final class InodeTreeTest {
 
     // create again with allowExists true
     createPath(mTree, TEST_URI, CreateDirectoryContext
-        .defaults(CreateDirectoryPOptions.newBuilder().setAllowExist(true)));
+        .defaults(CreateDirectoryPOptions.newBuilder().setAllowExists(true)));
 
     // create again with allowExists false
     mThrown.expect(FileAlreadyExistsException.class);
     mThrown.expectMessage(ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(TEST_URI));
     createPath(mTree, TEST_URI, CreateDirectoryContext
-        .defaults(CreateDirectoryPOptions.newBuilder().setAllowExist(false)));
+        .defaults(CreateDirectoryPOptions.newBuilder().setAllowExists(false)));
   }
 
   /**

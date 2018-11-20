@@ -66,7 +66,7 @@ public final class FileSystemMasterOptions{
   public static CreateDirectoryPOptions getCreateDirectoryOptions() {
     return CreateDirectoryPOptions.newBuilder().setCommonOptions(getCommonOptions())
         .setMode(ModeUtils.applyDirectoryUMask(Mode.defaults()).toShort()).setPersisted(false)
-        .setRecursive(false).setAllowExist(false).build();
+        .setRecursive(false).setAllowExists(false).build();
   }
 
   /**

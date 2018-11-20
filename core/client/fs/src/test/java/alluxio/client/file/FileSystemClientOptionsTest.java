@@ -152,7 +152,7 @@ public class FileSystemClientOptionsTest {
   public void createDirectoryDefaults() {
     CreateDirectoryPOptions options = FileSystemClientOptions.getCreateDirectoryOptions();
     Assert.assertNotNull(options);
-    Assert.assertFalse(options.getAllowExist());
+    Assert.assertFalse(options.getAllowExists());
     Assert.assertFalse(options.getRecursive());
     Assert.assertEquals(ModeUtils.applyDirectoryUMask(Mode.defaults()).toShort(),
         options.getMode());

@@ -681,7 +681,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     }
     AlluxioURI uri = new AlluxioURI(HadoopUtils.getPathWithoutScheme(path));
     CreateDirectoryPOptions options = FileSystemClientOptions.getCreateDirectoryOptions()
-        .toBuilder().setRecursive(true).setAllowExist(true).setMode(permission.toShort()).build();
+        .toBuilder().setRecursive(true).setAllowExists(true).setMode(permission.toShort()).build();
     try {
       mFileSystem.createDirectory(uri, options);
       return true;

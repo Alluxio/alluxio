@@ -168,7 +168,7 @@ public final class FileSystemMasterClientRestServiceHandler {
           context.getOptions().setRecursive(recursive);
         }
         if (allowExists != null) {
-          context.getOptions().setAllowExist(allowExists);
+          context.getOptions().setAllowExists(allowExists);
         }
         mFileSystemMaster.createDirectory(new AlluxioURI(path), context);
         return null;

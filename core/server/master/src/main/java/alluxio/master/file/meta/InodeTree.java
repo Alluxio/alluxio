@@ -576,7 +576,7 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
     }
     if (inodePath.fullPathExists()) {
       if (!(context instanceof CreateDirectoryContext)
-          || !((CreateDirectoryContext) context).getOptions().getAllowExist()) {
+          || !((CreateDirectoryContext) context).getOptions().getAllowExists()) {
         throw new FileAlreadyExistsException(path);
       }
     }
@@ -751,7 +751,7 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
           // to the non-persisted Inodes of traversalResult.
           syncPersistExistingDirectory(rpcContext, (InodeDirectoryView) lastLockedInode);
         } else if (!lastLockedInode.isDirectory() || !(context instanceof CreateDirectoryContext
-            && ((CreateDirectoryContext) context).getOptions().getAllowExist())) {
+            && ((CreateDirectoryContext) context).getOptions().getAllowExists())) {
           String errorMessage = ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(path);
           LOG.error(errorMessage);
           throw new FileAlreadyExistsException(errorMessage);

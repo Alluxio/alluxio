@@ -26,13 +26,13 @@ public interface CreateDirectoryPOptionsOrBuilder extends
   boolean getRecursive();
 
   /**
-   * <code>optional bool allowExist = 3;</code>
+   * <code>optional bool allowExists = 3;</code>
    */
-  boolean hasAllowExist();
+  boolean hasAllowExists();
   /**
-   * <code>optional bool allowExist = 3;</code>
+   * <code>optional bool allowExists = 3;</code>
    */
-  boolean getAllowExist();
+  boolean getAllowExists();
 
   /**
    * <code>optional int32 mode = 4;</code>

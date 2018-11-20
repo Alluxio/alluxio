@@ -49,7 +49,7 @@ public final class CreateDirectory extends FsTestOp {
     fs.createDirectory(RECURSIVE,
         FileSystemClientOptions.getCreateDirectoryOptions().toBuilder().setRecursive(true).build());
     fs.createDirectory(RECURSIVE, FileSystemClientOptions.getCreateDirectoryOptions().toBuilder()
-        .setAllowExist(true).build());
+        .setAllowExists(true).build());
     fs.createDirectory(MODE_DIR, FileSystemClientOptions.getCreateDirectoryOptions().toBuilder()
         .setMode(TEST_MODE.toShort()).setRecursive(true).build());
     // Set TTL via common options instead (should have the same effect).
@@ -67,7 +67,7 @@ public final class CreateDirectory extends FsTestOp {
         .setWriteType(WritePType.WRITE_THROUGH).setRecursive(true).build());
     fs.createDirectory(
         ALL_OPTS_DIR, FileSystemClientOptions.getCreateDirectoryOptions().toBuilder()
-            .setRecursive(true).setMode(TEST_MODE.toShort()).setAllowExist(true)
+            .setRecursive(true).setMode(TEST_MODE.toShort()).setAllowExists(true)
             .setWriteType(WritePType.WRITE_THROUGH).setCommonOptions(FileSystemClientOptions
                 .getCommonOptions().toBuilder().setTtl(TTL).setTtlAction(TtlAction.DELETE))
             .build());

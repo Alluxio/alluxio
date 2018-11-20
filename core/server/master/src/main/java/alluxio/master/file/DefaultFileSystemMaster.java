@@ -2526,7 +2526,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     }
     CreateDirectoryContext createDirectoryContext = CreateDirectoryContext.defaults();
     createDirectoryContext.getOptions().setPersisted(true)
-        .setRecursive(context.getOptions().getCreateAncestors()).setAllowExist(true)
+        .setRecursive(context.getOptions().getCreateAncestors()).setAllowExists(true)
         .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder()
             .setTtl(context.getOptions().getCommonOptions().getTtl())
             .setTtlAction(context.getOptions().getCommonOptions().getTtlAction()));

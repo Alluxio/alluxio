@@ -143,7 +143,7 @@ public final class FileSystemClientOptions {
             .getEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class).toProto())
         .setPersisted(Configuration
             .getEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class).isThrough())
-        .setMode(ModeUtils.applyDirectoryUMask(Mode.defaults()).toShort()).setAllowExist(false)
+        .setMode(ModeUtils.applyDirectoryUMask(Mode.defaults()).toShort()).setAllowExists(false)
         .build();
   }
 

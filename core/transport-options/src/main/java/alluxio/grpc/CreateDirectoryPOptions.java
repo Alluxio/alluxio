@@ -18,7 +18,7 @@ private static final long serialVersionUID = 0L;
   private CreateDirectoryPOptions() {
     persisted_ = false;
     recursive_ = false;
-    allowExist_ = false;
+    allowExists_ = false;
     mode_ = 0;
     writeType_ = 0;
   }
@@ -66,7 +66,7 @@ private static final long serialVersionUID = 0L;
           }
           case 24: {
             bitField0_ |= 0x00000004;
-            allowExist_ = input.readBool();
+            allowExists_ = input.readBool();
             break;
           }
           case 32: {
@@ -153,19 +153,19 @@ private static final long serialVersionUID = 0L;
     return recursive_;
   }
 
-  public static final int ALLOWEXIST_FIELD_NUMBER = 3;
-  private boolean allowExist_;
+  public static final int ALLOWEXISTS_FIELD_NUMBER = 3;
+  private boolean allowExists_;
   /**
-   * <code>optional bool allowExist = 3;</code>
+   * <code>optional bool allowExists = 3;</code>
    */
-  public boolean hasAllowExist() {
+  public boolean hasAllowExists() {
     return ((bitField0_ & 0x00000004) == 0x00000004);
   }
   /**
-   * <code>optional bool allowExist = 3;</code>
+   * <code>optional bool allowExists = 3;</code>
    */
-  public boolean getAllowExist() {
-    return allowExist_;
+  public boolean getAllowExists() {
+    return allowExists_;
   }
 
   public static final int MODE_FIELD_NUMBER = 4;
@@ -239,7 +239,7 @@ private static final long serialVersionUID = 0L;
       output.writeBool(2, recursive_);
     }
     if (((bitField0_ & 0x00000004) == 0x00000004)) {
-      output.writeBool(3, allowExist_);
+      output.writeBool(3, allowExists_);
     }
     if (((bitField0_ & 0x00000008) == 0x00000008)) {
       output.writeInt32(4, mode_);
@@ -268,7 +268,7 @@ private static final long serialVersionUID = 0L;
     }
     if (((bitField0_ & 0x00000004) == 0x00000004)) {
       size += com.google.protobuf.CodedOutputStream
-        .computeBoolSize(3, allowExist_);
+        .computeBoolSize(3, allowExists_);
     }
     if (((bitField0_ & 0x00000008) == 0x00000008)) {
       size += com.google.protobuf.CodedOutputStream
@@ -308,10 +308,10 @@ private static final long serialVersionUID = 0L;
       result = result && (getRecursive()
           == other.getRecursive());
     }
-    result = result && (hasAllowExist() == other.hasAllowExist());
-    if (hasAllowExist()) {
-      result = result && (getAllowExist()
-          == other.getAllowExist());
+    result = result && (hasAllowExists() == other.hasAllowExists());
+    if (hasAllowExists()) {
+      result = result && (getAllowExists()
+          == other.getAllowExists());
     }
     result = result && (hasMode() == other.hasMode());
     if (hasMode()) {
@@ -348,10 +348,10 @@ private static final long serialVersionUID = 0L;
       hash = (53 * hash) + com.google.protobuf.Internal.hashBoolean(
           getRecursive());
     }
-    if (hasAllowExist()) {
-      hash = (37 * hash) + ALLOWEXIST_FIELD_NUMBER;
+    if (hasAllowExists()) {
+      hash = (37 * hash) + ALLOWEXISTS_FIELD_NUMBER;
       hash = (53 * hash) + com.google.protobuf.Internal.hashBoolean(
-          getAllowExist());
+          getAllowExists());
     }
     if (hasMode()) {
       hash = (37 * hash) + MODE_FIELD_NUMBER;
@@ -499,7 +499,7 @@ private static final long serialVersionUID = 0L;
       bitField0_ = (bitField0_ & ~0x00000001);
       recursive_ = false;
       bitField0_ = (bitField0_ & ~0x00000002);
-      allowExist_ = false;
+      allowExists_ = false;
       bitField0_ = (bitField0_ & ~0x00000004);
       mode_ = 0;
       bitField0_ = (bitField0_ & ~0x00000008);
@@ -546,7 +546,7 @@ private static final long serialVersionUID = 0L;
       if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
         to_bitField0_ |= 0x00000004;
       }
-      result.allowExist_ = allowExist_;
+      result.allowExists_ = allowExists_;
       if (((from_bitField0_ & 0x00000008) == 0x00000008)) {
         to_bitField0_ |= 0x00000008;
       }
@@ -611,8 +611,8 @@ private static final long serialVersionUID = 0L;
       if (other.hasRecursive()) {
         setRecursive(other.getRecursive());
       }
-      if (other.hasAllowExist()) {
-        setAllowExist(other.getAllowExist());
+      if (other.hasAllowExists()) {
+        setAllowExists(other.getAllowExists());
       }
       if (other.hasMode()) {
         setMode(other.getMode());
@@ -715,34 +715,34 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
-    private boolean allowExist_ ;
+    private boolean allowExists_ ;
     /**
-     * <code>optional bool allowExist = 3;</code>
+     * <code>optional bool allowExists = 3;</code>
      */
-    public boolean hasAllowExist() {
+    public boolean hasAllowExists() {
       return ((bitField0_ & 0x00000004) == 0x00000004);
     }
     /**
-     * <code>optional bool allowExist = 3;</code>
+     * <code>optional bool allowExists = 3;</code>
      */
-    public boolean getAllowExist() {
-      return allowExist_;
+    public boolean getAllowExists() {
+      return allowExists_;
     }
     /**
-     * <code>optional bool allowExist = 3;</code>
+     * <code>optional bool allowExists = 3;</code>
      */
-    public Builder setAllowExist(boolean value) {
+    public Builder setAllowExists(boolean value) {
       bitField0_ |= 0x00000004;
-      allowExist_ = value;
+      allowExists_ = value;
       onChanged();
       return this;
     }
     /**
-     * <code>optional bool allowExist = 3;</code>
+     * <code>optional bool allowExists = 3;</code>
      */
-    public Builder clearAllowExist() {
+    public Builder clearAllowExists() {
       bitField0_ = (bitField0_ & ~0x00000004);
-      allowExist_ = false;
+      allowExists_ = false;
       onChanged();
       return this;
     }
