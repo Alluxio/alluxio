@@ -19,7 +19,6 @@ import alluxio.grpc.GetUfsInfoPRequest;
 import alluxio.grpc.UfsInfo;
 import alluxio.master.MasterClientConfig;
 import alluxio.thrift.AlluxioService;
-import alluxio.thrift.FileSystemMasterJobService;
 import alluxio.util.grpc.GrpcUtils;
 import alluxio.wire.FileInfo;
 
@@ -39,7 +38,6 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class FileSystemMasterClient extends AbstractMasterClient {
-  private FileSystemMasterJobService.Client mClient = null;
   // TODO(ggezer) review grpc client initialization
   private FileSystemMasterWorkerServiceGrpc.FileSystemMasterWorkerServiceBlockingStub mGrpcClient =
           null;
@@ -55,7 +53,7 @@ public final class FileSystemMasterClient extends AbstractMasterClient {
 
   @Override
   protected AlluxioService.Client getClient() {
-    return mClient;
+    return null;
   }
 
   @Override
@@ -70,7 +68,6 @@ public final class FileSystemMasterClient extends AbstractMasterClient {
 
   @Override
   protected void afterConnect() throws IOException {
-    mClient = new FileSystemMasterJobService.Client(mProtocol);
     mGrpcClient = FileSystemMasterWorkerServiceGrpc.newBlockingStub(mChannel);
   }
 

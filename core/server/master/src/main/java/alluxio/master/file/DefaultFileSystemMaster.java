@@ -4128,7 +4128,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
           Configuration.getEnum(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.class);
       auditContext.setUgi(ugi)
           .setAuthType(authType)
-          .setIp(FileSystemMasterClientServiceProcessor.getClientIp())
+          // TODO(ggezer) Find an equivalent for gRPC handlers
+          // .setIp(FileSystemMasterClientServiceProcessor.getClientIp())
           .setCommand(command).setSrcPath(srcPath).setDstPath(dstPath)
           .setSrcInode(srcInode).setAllowed(true);
     }

@@ -41,7 +41,7 @@ public final class FileSystemMasterJobServiceHandler
    *
    * @param fileSystemMaster the {@link FileSystemMaster} the handler uses internally
    */
-  FileSystemMasterJobServiceHandler(FileSystemMaster fileSystemMaster) {
+  public FileSystemMasterJobServiceHandler(FileSystemMaster fileSystemMaster) {
     Preconditions.checkNotNull(fileSystemMaster);
     mFileSystemMaster = fileSystemMaster;
   }

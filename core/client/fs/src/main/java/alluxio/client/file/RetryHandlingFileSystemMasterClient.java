@@ -51,7 +51,6 @@ import alluxio.grpc.UpdateUfsModePRequest;
 import alluxio.master.MasterClientConfig;
 import alluxio.security.authorization.AclEntry;
 import alluxio.thrift.AlluxioService;
-import alluxio.thrift.FileSystemMasterClientService;
 import alluxio.util.grpc.GrpcUtils;
 import alluxio.wire.SetAclAction;
 
@@ -72,7 +71,6 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class RetryHandlingFileSystemMasterClient extends AbstractMasterClient
     implements FileSystemMasterClient {
-  private FileSystemMasterClientService.Client mClient = null;
   // TODO(ggezer) review grpc client initialization
   private FileSystemMasterClientServiceGrpc.FileSystemMasterClientServiceBlockingStub mGrpcClient =
       null;
@@ -88,7 +86,7 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
 
   @Override
   protected AlluxioService.Client getClient() {
-    return mClient;
+    return null;
   }
 
   @Override
@@ -109,7 +107,6 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
 
   @Override
   protected void afterConnect() {
-    mClient = new FileSystemMasterClientService.Client(mProtocol);
   }
 
   @Override
