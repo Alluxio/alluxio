@@ -20,11 +20,6 @@ import com.google.common.base.MoreObjects;
  * Used to merge and wrap {@link GetStatusPOptions}.
  */
 public class GetStatusContext extends OperationContext<GetStatusPOptions.Builder> {
-  // Prevent instantiation
-  private GetStatusContext() {
-    super(null);
-  }
-
   /**
    * Creates context with given option data.
    *

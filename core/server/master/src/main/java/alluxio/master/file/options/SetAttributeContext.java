@@ -25,11 +25,6 @@ public class SetAttributeContext extends OperationContext<SetAttributePOptions.B
   private long mOperationTimeMs;
   private String mUfsFingerprint;
 
-  // Prevent instantiation
-  private SetAttributeContext() {
-    super(null);
-  }
-
   /**
    * Creates context with given option data.
    *

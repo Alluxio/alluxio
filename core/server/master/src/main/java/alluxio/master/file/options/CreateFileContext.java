@@ -24,11 +24,6 @@ public class CreateFileContext
 
   private boolean mCacheable;
 
-  // Prevent instantiation
-  private CreateFileContext() {
-    super(null);
-  }
-
   /**
    * Creates context with given option data.
    *

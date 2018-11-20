@@ -23,11 +23,6 @@ public class RenameContext extends OperationContext<RenamePOptions.Builder> {
 
   private long mOperationTimeMs;
 
-  // Prevent instantiation
-  private RenameContext() {
-    super(null);
-  }
-
   /**
    * Creates rename context with given option data.
    *

@@ -29,12 +29,6 @@ public class CreateDirectoryContext
 
   private UfsStatus mUfsStatus;
   protected List<AclEntry> mDefaultAcl;
-
-  // Prevent instantiation
-  private CreateDirectoryContext() {
-    super(null);
-  }
-
   /**
    * Creates context with given option data.
    *

@@ -20,10 +20,6 @@ import com.google.common.base.MoreObjects;
  * Used to merge and wrap {@link DeletePOptions}.
  */
 public class DeleteContext extends OperationContext<DeletePOptions.Builder> {
-  // Prevent instantiation
-  private DeleteContext() {
-    super(null);
-  }
 
   /**
    * Creates context with given option data.

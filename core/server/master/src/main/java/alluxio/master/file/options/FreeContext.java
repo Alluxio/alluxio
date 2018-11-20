@@ -20,10 +20,6 @@ import com.google.common.base.MoreObjects;
  * Used to merge and wrap {@link FreePOptions}.
  */
 public class FreeContext extends OperationContext<FreePOptions.Builder> {
-  // Prevent instantiation
-  private FreeContext() {
-    super(null);
-  }
 
   /**
    * Creates context with given option data.

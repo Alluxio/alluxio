@@ -81,13 +81,13 @@ public final class CreateDirectory extends FsTestOp {
     }
     assertEquals(TEST_MODE, new Mode((short) fs.getStatus(MODE_DIR).getMode()));
     assertEquals((long) TTL, fs.getStatus(TTL_DIR).getTtl());
-    assertEquals(TtlAction.DELETE, fs.getStatus(TTL_DIR).getTtlAction());
+    assertEquals(alluxio.wire.TtlAction.DELETE, fs.getStatus(TTL_DIR).getTtlAction());
     assertEquals((long) TTL, fs.getStatus(COMMON_TTL_DIR).getTtl());
-    assertEquals(TtlAction.DELETE, fs.getStatus(COMMON_TTL_DIR).getTtlAction());
+    assertEquals(alluxio.wire.TtlAction.DELETE, fs.getStatus(COMMON_TTL_DIR).getTtlAction());
     assertTrue(fs.getStatus(THROUGH_DIR).isPersisted());
     assertEquals(TEST_MODE, new Mode((short) fs.getStatus(ALL_OPTS_DIR).getMode()));
     assertEquals((long) TTL, fs.getStatus(ALL_OPTS_DIR).getTtl());
-    assertEquals(TtlAction.DELETE, fs.getStatus(ALL_OPTS_DIR).getTtlAction());
+    assertEquals(alluxio.wire.TtlAction.DELETE, fs.getStatus(ALL_OPTS_DIR).getTtlAction());
     assertTrue(fs.getStatus(ALL_OPTS_DIR).isPersisted());
   }
 }

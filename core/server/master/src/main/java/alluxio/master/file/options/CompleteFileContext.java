@@ -25,11 +25,6 @@ public class CompleteFileContext extends OperationContext<CompleteFilePOptions.B
   private long mOperationTimeMs;
   private UfsStatus mUfsStatus;
 
-  // Prevent instantiation
-  private CompleteFileContext() {
-    super(null);
-  }
-
   /**
    * Creates rename context with given option data.
    *

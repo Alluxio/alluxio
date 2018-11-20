@@ -20,10 +20,6 @@ import com.google.common.base.MoreObjects;
  * Used to merge and wrap {@link SetAclPOptions}.
  */
 public class SetAclContext extends OperationContext<SetAclPOptions.Builder> {
-  // Prevent instantiation
-  private SetAclContext() {
-    super(null);
-  }
 
   /**
    * Creates context with given option data.

@@ -24,11 +24,6 @@ public class LoadMetadataContext extends OperationContext<LoadMetadataPOptions.B
 
   private UfsStatus mUfsStatus;
 
-  // Prevent instantiation
-  private LoadMetadataContext() {
-    super(null);
-  }
-
   /**
    * Creates context with given option data.
    *

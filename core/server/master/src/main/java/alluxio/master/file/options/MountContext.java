@@ -20,10 +20,6 @@ import com.google.common.base.MoreObjects;
  * Used to merge and wrap {@link MountPOptions}.
  */
 public class MountContext extends OperationContext<MountPOptions.Builder> {
-  // Prevent instantiation
-  private MountContext() {
-    super(null);
-  }
 
   /**
    * Creates context with given option data.
