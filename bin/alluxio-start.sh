@@ -401,7 +401,7 @@ start_monitor() {
 run_safe() {
   while [ 1 ]
   do
-    RUN=$(ps -ef | grep "alluxio.master.AlluxioMaster" | grep "java" | awk '{ print $1; }')
+    RUN=$(ps -ef | grep "alluxio.master.AlluxioMaster" | grep "java" | wc | awk '{ print $1; }')
     if [[ ${RUN} -eq 0 ]]; then
       echo "Restarting the system master..."
       start_master
