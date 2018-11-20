@@ -22,6 +22,7 @@ import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.URIStatus;
+import alluxio.client.file.options.DeleteOptions;
 import alluxio.client.file.options.OpenFileOptions;
 import alluxio.fuse.AlluxioFuseFileSystem;
 import alluxio.fuse.AlluxioFuseOptions;
@@ -50,8 +51,6 @@ import java.util.concurrent.TimeoutException;
 
 /**
  * Integration tests for {@link AlluxioFuseFileSystem}.
- *
- * This test only runs when libfuse (linux) or osxfuse (osxfuse) is installed on local machine.
  */
 public class FuseFileSystemIntegrationTest {
   private static final int WAIT_TIMEOUT_MS = 60 * Constants.SECOND_MS;
@@ -73,10 +72,10 @@ public class FuseFileSystemIntegrationTest {
 
   @BeforeClass
   public static void beforeClass() throws Exception {
+    // This test only runs when fuse is installed
     sFuseInstalled = AlluxioFuseUtils.isFuseInstalled();
     Assume.assumeTrue(sFuseInstalled);
 
-    // Mount Alluxio root to a temp directory
     sFileSystem = sLocalAlluxioClusterResource.get().getClient();
 
     sMountPoint = AlluxioTestDirectory
@@ -107,7 +106,8 @@ public class FuseFileSystemIntegrationTest {
   @After
   public void after() throws Exception {
     for (URIStatus status : sFileSystem.listStatus(new AlluxioURI(sAlluxioRoot))) {
-      sFileSystem.delete(new AlluxioURI(status.getPath()));
+      DeleteOptions options = DeleteOptions.defaults().setRecursive(true);
+      sFileSystem.delete(new AlluxioURI(status.getPath()), options);
     }
   }
 
@@ -163,6 +163,7 @@ public class FuseFileSystemIntegrationTest {
     ShellUtils.execCommand("cp", localFile.getPath(), sMountPoint + testFile);
     Assert.assertTrue(sFileSystem.exists(new AlluxioURI(testFile)));
 
+    // Fuse release() is async
     // Cp again to make sure the first cp is completed
     String testFolder = "/cpTestFolder";
     ShellUtils.execCommand("mkdir", sMountPoint + testFolder);
@@ -182,6 +183,8 @@ public class FuseFileSystemIntegrationTest {
     String testFile = "/ddTestFile";
     ShellUtils.execCommand("dd", "if=/dev/zero",
         "of=" + sMountPoint + testFile, "count=1024", "bs=" + Constants.MB);
+
+    // Fuse release() is async
     // Open the file to make sure dd is completed
     ShellUtils.execCommand("head", "-c", "10", sMountPoint + testFile);
 
