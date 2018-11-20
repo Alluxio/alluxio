@@ -107,7 +107,6 @@ import alluxio.security.authorization.AclEntry;
 import alluxio.security.authorization.AclEntryType;
 import alluxio.security.authorization.DefaultAccessControlList;
 import alluxio.security.authorization.Mode;
-import alluxio.thrift.FileSystemMasterWorkerService;
 import alluxio.underfs.Fingerprint;
 import alluxio.underfs.Fingerprint.Tag;
 import alluxio.underfs.MasterUfsManager;
@@ -407,12 +406,13 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   @Override
   public Map<String, TProcessor> getServices() {
     Map<String, TProcessor> services = new HashMap<>();
+    // TODO(ggezer) gRPC service initialization for masterprocess
     // services.put(Constants.FILE_SYSTEM_MASTER_CLIENT_SERVICE_NAME,
     //     new FileSystemMasterClientServiceProcessor(
     //         new FileSystemMasterClientServiceHandler(this)));
-    services.put(Constants.FILE_SYSTEM_MASTER_JOB_SERVICE_NAME,
-        new alluxio.thrift.FileSystemMasterJobService.Processor<>(
-            new FileSystemMasterJobServiceHandler(this)));
+    // services.put(Constants.FILE_SYSTEM_MASTER_JOB_SERVICE_NAME,
+    //     new alluxio.thrift.FileSystemMasterJobService.Processor<>(
+    //         new FileSystemMasterJobServiceHandler(this)));
     //services.put(Constants.FILE_SYSTEM_MASTER_WORKER_SERVICE_NAME,
     //    new FileSystemMasterWorkerService.Processor<>(
     //        new FileSystemMasterWorkerServiceHandler(this)));

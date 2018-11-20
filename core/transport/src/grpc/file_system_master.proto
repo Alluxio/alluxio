@@ -415,3 +415,18 @@ service FileSystemMasterWorkerService {
    **/
   rpc GetUfsInfo(GetUfsInfoPRequest) returns (GetUfsInfoPResponse);
 }
+
+/**
+ * This interface contains file system master service endpoints for Alluxio workers.
+ */
+service FileSystemMasterJobService {
+  /*
+   * Returns the file information for a file or directory identified by the given file id.
+   */
+  rpc GetFileInfo(GetFileInfoPRequest) returns (GetFileInfoPResponse);
+
+  /**
+   * Returns the UFS information for the given mount point identified by its id.
+   **/
+  rpc GetUfsInfo(GetUfsInfoPRequest) returns (GetUfsInfoPResponse);
+}

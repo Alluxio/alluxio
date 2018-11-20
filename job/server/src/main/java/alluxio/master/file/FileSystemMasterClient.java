@@ -13,14 +13,18 @@ package alluxio.master.file;
 
 import alluxio.AbstractMasterClient;
 import alluxio.Constants;
+import alluxio.grpc.FileSystemMasterWorkerServiceGrpc;
+import alluxio.grpc.GetFileInfoPRequest;
+import alluxio.grpc.GetUfsInfoPRequest;
+import alluxio.grpc.UfsInfo;
 import alluxio.master.MasterClientConfig;
 import alluxio.thrift.AlluxioService;
 import alluxio.thrift.FileSystemMasterJobService;
-import alluxio.thrift.GetUfsInfoTOptions;
-import alluxio.thrift.UfsInfo;
+import alluxio.util.grpc.GrpcUtils;
 import alluxio.wire.FileInfo;
 
-import org.apache.thrift.TException;
+// TODO(ggezer) GrpcException?
+// import org.apache.thrift.TException;
 
 import java.io.IOException;
 
@@ -36,6 +40,9 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class FileSystemMasterClient extends AbstractMasterClient {
   private FileSystemMasterJobService.Client mClient = null;
+  // TODO(ggezer) review grpc client initialization
+  private FileSystemMasterWorkerServiceGrpc.FileSystemMasterWorkerServiceBlockingStub mGrpcClient =
+          null;
 
   /**
    * Creates an instance of {@link FileSystemMasterClient}.
@@ -64,6 +71,7 @@ public final class FileSystemMasterClient extends AbstractMasterClient {
   @Override
   protected void afterConnect() throws IOException {
     mClient = new FileSystemMasterJobService.Client(mProtocol);
+    mGrpcClient = FileSystemMasterWorkerServiceGrpc.newBlockingStub(mChannel);
   }
 
   /**
@@ -71,12 +79,8 @@ public final class FileSystemMasterClient extends AbstractMasterClient {
    * @return the file info for the given file id
    */
   public synchronized FileInfo getFileInfo(final long fileId) throws IOException {
-    return retryRPC(new RpcCallable<FileInfo>() {
-      @Override
-      public FileInfo call() throws TException {
-        return null;
-      }
-    });
+    return retryRPC(() -> GrpcUtils.fromProto(mGrpcClient
+        .getFileInfo(GetFileInfoPRequest.newBuilder().setFileId(fileId).build()).getFileInfo()));
   }
 
   /**
@@ -85,11 +89,7 @@ public final class FileSystemMasterClient extends AbstractMasterClient {
    * @throws IOException if an I/O error occurs
    */
   public synchronized UfsInfo getUfsInfo(final long mountId) throws IOException {
-    return retryRPC(new RpcCallable<UfsInfo>() {
-      @Override
-      public UfsInfo call() throws TException {
-        return mClient.getUfsInfo(mountId, new GetUfsInfoTOptions()).getUfsInfo();
-      }
-    });
+    return retryRPC(() -> mGrpcClient
+        .getUfsInfo(GetUfsInfoPRequest.newBuilder().setMountId(mountId).build()).getUfsInfo());
   }
 }

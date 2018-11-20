@@ -460,6 +460,11 @@ public final class FileSystemMasterProto {
       "nedFileIdsPRequest\032\'.alluxio.grpc.GetPin" +
       "nedFileIdsPResponse\022Q\n\nGetUfsInfo\022 .allu" +
       "xio.grpc.GetUfsInfoPRequest\032!.alluxio.gr" +
+      "pc.GetUfsInfoPResponse2\305\001\n\032FileSystemMas" +
+      "terJobService\022T\n\013GetFileInfo\022!.alluxio.g" +
+      "rpc.GetFileInfoPRequest\032\".alluxio.grpc.G" +
+      "etFileInfoPResponse\022Q\n\nGetUfsInfo\022 .allu" +
+      "xio.grpc.GetUfsInfoPRequest\032!.alluxio.gr" +
       "pc.GetUfsInfoPResponseB\'\n\014alluxio.grpcB\025" +
       "FileSystemMasterProtoP\001"
     };
