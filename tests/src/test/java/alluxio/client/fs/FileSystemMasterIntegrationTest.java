@@ -41,7 +41,6 @@ import alluxio.grpc.FreePOptions;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.LoadMetadataPType;
-import alluxio.grpc.RenamePOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.WritePType;
 import alluxio.heartbeat.HeartbeatContext;
@@ -51,7 +50,6 @@ import alluxio.master.MasterClientConfig;
 import alluxio.master.MasterRegistry;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.FileSystemMaster;
-import alluxio.master.file.FileSystemMasterOptions;
 import alluxio.master.file.meta.TtlIntervalRule;
 import alluxio.master.file.options.CompleteFileContext;
 import alluxio.master.file.options.CreateDirectoryContext;
@@ -746,7 +744,6 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     CreateFileContext context = CreateFileContext.defaults(CreateFilePOptions.newBuilder()
         .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setTtl(ttl)));
     mFsMaster.createFile(srcPath, context);
-    RenamePOptions renameOptions = FileSystemMasterOptions.getRenameOptions();
     mFsMaster.rename(srcPath, dstPath, RenameContext.defaults().setOperationTimeMs(TEST_TIME_MS));
     FileInfo folderInfo =
         mFsMaster.getFileInfo(mFsMaster.getFileId(new AlluxioURI("/testFolder/testFile2")));
@@ -805,8 +802,8 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     // List what is in Alluxio, without syncing.
     List<FileInfo> files = mFsMaster.listStatus(root,
         ListStatusContext.defaults(ListStatusPOptions.newBuilder()
-            .setLoadMetadataType(LoadMetadataPType.NEVER).setCommonOptions(
-                FileSystemMasterOptions.getCommonOptions().toBuilder().setSyncIntervalMs(-1))));
+            .setLoadMetadataType(LoadMetadataPType.NEVER)
+            .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(-1))));
     Assert.assertEquals(1, files.size());
     Assert.assertEquals(alluxioFile.getName(), files.get(0).getName());
 
@@ -818,8 +815,8 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     // List with syncing, which will remove alluxio only path, and add ufs only paths.
     files = mFsMaster.listStatus(root,
         ListStatusContext.defaults(ListStatusPOptions.newBuilder()
-            .setLoadMetadataType(LoadMetadataPType.NEVER).setCommonOptions(
-                FileSystemMasterOptions.getCommonOptions().toBuilder().setSyncIntervalMs(0))));
+            .setLoadMetadataType(LoadMetadataPType.NEVER)
+            .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(0))));
     Assert.assertEquals(2, files.size());
     Set<String> filenames = files.stream().map(FileInfo::getName).collect(Collectors.toSet());
     Assert.assertTrue(filenames.contains("ufs_dir"));
@@ -834,8 +831,8 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     // List what is in Alluxio, without syncing. Should match the last state.
     files = fsMaster.listStatus(root,
         ListStatusContext.defaults(ListStatusPOptions.newBuilder()
-            .setLoadMetadataType(LoadMetadataPType.NEVER).setCommonOptions(
-                FileSystemMasterOptions.getCommonOptions().toBuilder().setSyncIntervalMs(-1))));
+            .setLoadMetadataType(LoadMetadataPType.NEVER)
+            .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(-1))));
     Assert.assertEquals(2, files.size());
     filenames = files.stream().map(FileInfo::getName).collect(Collectors.toSet());
     Assert.assertTrue(filenames.contains("ufs_dir"));
@@ -857,9 +854,10 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     Assert.assertTrue(ufsDir.setExecutable(true, false));
 
     // List dir with syncing
-    FileInfo info = mFsMaster.getFileInfo(dir, GetStatusContext.defaults(GetStatusPOptions
-        .newBuilder().setLoadMetadataType(LoadMetadataPType.NEVER).setCommonOptions(
-            FileSystemMasterOptions.getCommonOptions().toBuilder().setSyncIntervalMs(0).build())));
+    FileInfo info = mFsMaster.getFileInfo(dir,
+        GetStatusContext.defaults(GetStatusPOptions.newBuilder()
+            .setLoadMetadataType(LoadMetadataPType.NEVER).setCommonOptions(
+                FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(0).build())));
     Assert.assertNotNull(info);
     Assert.assertEquals("dir", info.getName());
     // Retrieve the mode
@@ -869,9 +867,10 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     Assert.assertTrue(ufsDir.setExecutable(false, false));
 
     // List dir with syncing, should update the mode
-    info = mFsMaster.getFileInfo(dir, GetStatusContext.defaults(GetStatusPOptions.newBuilder()
-        .setLoadMetadataType(LoadMetadataPType.NEVER).setCommonOptions(
-            FileSystemMasterOptions.getCommonOptions().toBuilder().setSyncIntervalMs(0).build())));
+    info = mFsMaster.getFileInfo(dir,
+        GetStatusContext.defaults(GetStatusPOptions.newBuilder()
+            .setLoadMetadataType(LoadMetadataPType.NEVER).setCommonOptions(
+                FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(0).build())));
     Assert.assertNotNull(info);
     Assert.assertEquals("dir", info.getName());
     Assert.assertNotEquals(mode, info.getMode());
@@ -885,9 +884,10 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     FileSystemMaster fsMaster = registry.get(FileSystemMaster.class);
 
     // List what is in Alluxio, without syncing.
-    info = fsMaster.getFileInfo(dir, GetStatusContext.defaults(GetStatusPOptions.newBuilder()
-        .setLoadMetadataType(LoadMetadataPType.NEVER).setCommonOptions(
-            FileSystemMasterOptions.getCommonOptions().toBuilder().setSyncIntervalMs(-1).build())));
+    info = fsMaster.getFileInfo(dir,
+        GetStatusContext.defaults(GetStatusPOptions.newBuilder()
+            .setLoadMetadataType(LoadMetadataPType.NEVER).setCommonOptions(
+                FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(-1).build())));
     Assert.assertNotNull(info);
     Assert.assertEquals("dir", info.getName());
     Assert.assertEquals(mode, info.getMode());
@@ -937,7 +937,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
 
     List<FileInfo> files =
         mFsMaster.listStatus(root, ListStatusContext.defaults());
-    
+
     Assert.assertTrue(files.isEmpty());
 
     try {

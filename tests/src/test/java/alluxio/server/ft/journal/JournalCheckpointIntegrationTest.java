@@ -29,7 +29,6 @@ import alluxio.master.LocalAlluxioCluster;
 import alluxio.master.MasterClientConfig;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
-import alluxio.underfs.UfsMode;
 
 import org.junit.Before;
 import org.junit.Rule;

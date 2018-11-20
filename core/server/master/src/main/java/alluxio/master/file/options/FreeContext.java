@@ -13,8 +13,12 @@ package alluxio.master.file.options;
 
 import alluxio.grpc.FreePOptions;
 import alluxio.master.file.FileSystemMasterOptions;
+
 import com.google.common.base.MoreObjects;
 
+/**
+ * Used to merge and wrap {@link FreePOptions}.
+ */
 public class FreeContext extends OperationContext<FreePOptions.Builder> {
   // Prevent instantiation
   private FreeContext() {
@@ -33,11 +37,11 @@ public class FreeContext extends OperationContext<FreePOptions.Builder> {
   /**
    * Merges and embeds the given {@link FreePOptions} with the corresponding master options.
    *
-   * @param optionsBuilder Builder for proto {@link FreePOptions} to embed
+   * @param optionsBuilder Builder for proto {@link FreePOptions} to merge with defaults
    * @return the instance of {@link FreeContext} with default values for master
    */
   public static FreeContext defaults(FreePOptions.Builder optionsBuilder) {
-    FreePOptions masterOptions = FileSystemMasterOptions.getFreeOptions();
+    FreePOptions masterOptions = FileSystemMasterOptions.freeDefaults();
     FreePOptions.Builder mergedOptionsBuilder =
         masterOptions.toBuilder().mergeFrom(optionsBuilder.build());
     return new FreeContext(mergedOptionsBuilder);
@@ -47,7 +51,7 @@ public class FreeContext extends OperationContext<FreePOptions.Builder> {
    * @return the instance of {@link FreeContext} with default values for master
    */
   public static FreeContext defaults() {
-    FreePOptions masterOptions = FileSystemMasterOptions.getFreeOptions();
+    FreePOptions masterOptions = FileSystemMasterOptions.freeDefaults();
     return new FreeContext(masterOptions.toBuilder());
   }
 

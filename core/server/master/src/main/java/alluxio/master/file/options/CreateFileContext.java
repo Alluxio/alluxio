@@ -13,10 +13,11 @@ package alluxio.master.file.options;
 
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.master.file.FileSystemMasterOptions;
+
 import com.google.common.base.MoreObjects;
 
 /**
- * Wrapper for {@link CreateFilePOptions} with additional context data.
+ * Implementation of {@link OperationContext} used to merge and wrap {@link CreateFilePOptions}.
  */
 public class CreateFileContext
     extends CreatePathContext<CreateFilePOptions.Builder, CreateFileContext> {
@@ -26,7 +27,7 @@ public class CreateFileContext
   // Prevent instantiation
   private CreateFileContext() {
     super(null);
-  };
+  }
 
   /**
    * Creates context with given option data.
@@ -40,12 +41,12 @@ public class CreateFileContext
 
   /**
    * Merges and embeds the given {@link CreateFilePOptions} with the corresponding master options.
-   * 
+   *
    * @param optionsBuilder Builder for proto {@link CreateFilePOptions} to embed
    * @return the instance of {@link CreateFileContext} with default values for master
    */
   public static CreateFileContext defaults(CreateFilePOptions.Builder optionsBuilder) {
-    CreateFilePOptions masterOptions = FileSystemMasterOptions.getCreateFileOptions();
+    CreateFilePOptions masterOptions = FileSystemMasterOptions.createFileDefaults();
     CreateFilePOptions.Builder mergedOptionsBuilder =
         masterOptions.toBuilder().mergeFrom(optionsBuilder.build());
     return new CreateFileContext(mergedOptionsBuilder);
@@ -55,7 +56,7 @@ public class CreateFileContext
    * @return the instance of {@link CreateFileContext} with default values for master
    */
   public static CreateFileContext defaults() {
-    CreateFilePOptions masterOptions = FileSystemMasterOptions.getCreateFileOptions();
+    CreateFilePOptions masterOptions = FileSystemMasterOptions.createFileDefaults();
     return new CreateFileContext(masterOptions.toBuilder());
   }
 

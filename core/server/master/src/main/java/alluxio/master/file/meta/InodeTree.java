@@ -564,7 +564,7 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
    *         option is false
    */
   public CreatePathResult createPath(RpcContext rpcContext, LockedInodePath inodePath,
-      CreatePathContext<?,?> context) throws FileAlreadyExistsException, BlockInfoException,
+      CreatePathContext<?, ?> context) throws FileAlreadyExistsException, BlockInfoException,
       InvalidPathException, IOException, FileDoesNotExistException {
     // TODO(gpang): consider splitting this into createFilePath and createDirectoryPath, with a
     // helper method for the shared logic.

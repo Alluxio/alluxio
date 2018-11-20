@@ -14,8 +14,12 @@ package alluxio.master.file.options;
 import alluxio.grpc.LoadMetadataPOptions;
 import alluxio.master.file.FileSystemMasterOptions;
 import alluxio.underfs.UfsStatus;
+
 import com.google.common.base.MoreObjects;
 
+/**
+ * Used to merge and wrap {@link LoadMetadataPOptions}.
+ */
 public class LoadMetadataContext extends OperationContext<LoadMetadataPOptions.Builder> {
 
   private UfsStatus mUfsStatus;
@@ -41,7 +45,7 @@ public class LoadMetadataContext extends OperationContext<LoadMetadataPOptions.B
    * @return the instance of {@link LoadMetadataContext} with default values for master
    */
   public static LoadMetadataContext defaults(LoadMetadataPOptions.Builder optionsBuilder) {
-    LoadMetadataPOptions masterOptions = FileSystemMasterOptions.getLoadMetadataOptions();
+    LoadMetadataPOptions masterOptions = FileSystemMasterOptions.loadMetadataDefaults();
     LoadMetadataPOptions.Builder mergedOptionsBuilder =
         masterOptions.toBuilder().mergeFrom(optionsBuilder.build());
     return new LoadMetadataContext(mergedOptionsBuilder);
@@ -51,7 +55,7 @@ public class LoadMetadataContext extends OperationContext<LoadMetadataPOptions.B
    * @return the instance of {@link LoadMetadataContext} with default values for master
    */
   public static LoadMetadataContext defaults() {
-    LoadMetadataPOptions masterOptions = FileSystemMasterOptions.getLoadMetadataOptions();
+    LoadMetadataPOptions masterOptions = FileSystemMasterOptions.loadMetadataDefaults();
     return new LoadMetadataContext(masterOptions.toBuilder());
   }
 
@@ -63,7 +67,7 @@ public class LoadMetadataContext extends OperationContext<LoadMetadataPOptions.B
   }
 
   /**
-   * Sets {@link UfsStatus} for the directory
+   * Sets {@link UfsStatus} for the directory.
    *
    * @param ufsStatus Ufs status to set
    * @return the updated context instance
@@ -73,11 +77,11 @@ public class LoadMetadataContext extends OperationContext<LoadMetadataPOptions.B
     return this;
   }
 
-    @Override
-    public String toString() {
-        return MoreObjects.toStringHelper(this)
-            .add("ProtoOptions", getOptions().build())
-            .add("ufsStatus", mUfsStatus)
-            .toString();
-    }
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this)
+        .add("ProtoOptions", getOptions().build())
+        .add("ufsStatus", mUfsStatus)
+        .toString();
+  }
 }

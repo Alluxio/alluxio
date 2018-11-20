@@ -19,7 +19,6 @@ import alluxio.grpc.LoadMetadataPType;
 import alluxio.grpc.WritePType;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.DeleteOptions;
-import alluxio.wire.LoadMetadataType;
 
 import org.junit.Assert;
 import org.junit.Test;

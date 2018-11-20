@@ -11,9 +11,6 @@
 
 package alluxio.master.file.options;
 
-import alluxio.grpc.RenamePOptions;
-import com.google.protobuf.AbstractMessage;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -23,22 +20,22 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public class OperationContext<T extends com.google.protobuf.GeneratedMessageV3.Builder<?>> {
-    // Proto message that is being wrapped
-    private T mOptionsBuilder;
+  // Proto message that is being wrapped
+  private T mOptionsBuilder;
 
-    /**
-     * Creates an instance with given proto message
-     *
-     * @param optionsBuilder Internal proto message builder instance
-     */
-    public OperationContext(T optionsBuilder) {
-        mOptionsBuilder = optionsBuilder;
-    }
+  /**
+   * Creates an instance with given proto message.
+   *
+   * @param optionsBuilder Internal proto message builder instance
+   */
+  public OperationContext(T optionsBuilder) {
+    mOptionsBuilder = optionsBuilder;
+  }
 
-    /**
-     * @return underlying proto message instance
-     */
-    public T getOptions() {
-        return mOptionsBuilder;
-    }
+  /**
+   * @return underlying proto message instance
+   */
+  public T getOptions() {
+    return mOptionsBuilder;
+  }
 }

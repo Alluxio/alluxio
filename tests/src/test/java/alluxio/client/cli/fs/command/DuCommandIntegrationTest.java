@@ -14,8 +14,8 @@ package alluxio.client.cli.fs.command;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.exception.ExceptionMessage;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
-
 import alluxio.grpc.WritePType;
+
 import org.junit.Assert;
 import org.junit.Test;
 

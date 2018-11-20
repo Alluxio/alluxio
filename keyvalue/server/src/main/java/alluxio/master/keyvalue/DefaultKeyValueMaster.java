@@ -14,7 +14,6 @@ package alluxio.master.keyvalue;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.Server;
-import alluxio.client.file.FileSystemClientOptions;
 import alluxio.clock.SystemClock;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.AlluxioException;

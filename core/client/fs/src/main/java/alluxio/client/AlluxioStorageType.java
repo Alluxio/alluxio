@@ -11,9 +11,6 @@
 
 package alluxio.client;
 
-import alluxio.grpc.WritePType;
-import alluxio.util.grpc.GrpcUtils;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**

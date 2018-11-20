@@ -11,20 +11,42 @@
 
 package alluxio.client.fs;
 
-import alluxio.*;
+import static org.junit.Assert.assertFalse;
+
+import alluxio.AlluxioURI;
+import alluxio.AuthenticatedUserRule;
+import alluxio.Configuration;
+import alluxio.ConfigurationTestUtils;
+import alluxio.PropertyKey;
 import alluxio.client.block.BlockMasterClient;
-import alluxio.client.file.*;
+import alluxio.client.file.FileOutStream;
+import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemClientOptions;
+import alluxio.client.file.FileSystemTestUtils;
+import alluxio.client.file.URIStatus;
 import alluxio.exception.FileDoesNotExistException;
-import alluxio.grpc.*;
+import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.DeletePOptions;
+import alluxio.grpc.FileSystemMasterCommonPOptions;
+import alluxio.grpc.GetStatusPOptions;
+import alluxio.grpc.ListStatusPOptions;
+import alluxio.grpc.LoadMetadataPType;
+import alluxio.grpc.RenamePOptions;
+import alluxio.grpc.WritePType;
 import alluxio.master.MasterClientConfig;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.CommonUtils;
 import alluxio.util.io.FileUtils;
+
 import com.google.common.collect.Sets;
 import com.google.common.io.Files;
-import org.junit.*;
+import org.junit.After;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -34,8 +56,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import static org.junit.Assert.assertFalse;
 
 /**
  * Tests the loading of metadata and the available options.
@@ -195,8 +215,8 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
 
   @Test
   public void deleteFileSync() throws Exception {
-      DeletePOptions options = FileSystemClientOptions.getDeleteOptions().toBuilder()
-              .setCommonOptions(PSYNC_ALWAYS).build();
+    DeletePOptions options = FileSystemClientOptions.getDeleteOptions().toBuilder()
+        .setCommonOptions(PSYNC_ALWAYS).build();
     mFileSystem.delete(new AlluxioURI(alluxioPath(EXISTING_FILE)), options);
   }
 

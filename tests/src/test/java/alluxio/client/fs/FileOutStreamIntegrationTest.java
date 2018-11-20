@@ -19,7 +19,6 @@ import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystemClientOptions;
 import alluxio.client.file.policy.LocalFirstPolicy;
 import alluxio.grpc.CreateFilePOptions;
-import alluxio.grpc.WritePType;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.util.CommonUtils;
 import alluxio.util.io.BufferUtils;

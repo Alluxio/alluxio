@@ -12,13 +12,13 @@
 package alluxio.master.file.options;
 
 import alluxio.Constants;
-import alluxio.grpc.RenamePOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.master.file.FileSystemMasterOptions;
+
 import com.google.common.base.MoreObjects;
 
 /**
- * Wrapper for {@link SetAttributePOptions} with additional context data.
+ * Used to merge and wrap {@link SetAttributePOptions}.
  */
 public class SetAttributeContext extends OperationContext<SetAttributePOptions.Builder> {
 
@@ -28,7 +28,7 @@ public class SetAttributeContext extends OperationContext<SetAttributePOptions.B
   // Prevent instantiation
   private SetAttributeContext() {
     super(null);
-  };
+  }
 
   /**
    * Creates context with given option data.
@@ -44,11 +44,11 @@ public class SetAttributeContext extends OperationContext<SetAttributePOptions.B
   /**
    * Merges and embeds the given {@link SetAttributePOptions} with the corresponding master options.
    *
-   * @param optionsBuilder Builder for proto {@link SetAttributePOptions} to embed
+   * @param optionsBuilder Builder for proto {@link SetAttributePOptions} to merge with defaults
    * @return the instance of {@link SetAttributeContext} with default values for master
    */
   public static SetAttributeContext defaults(SetAttributePOptions.Builder optionsBuilder) {
-    SetAttributePOptions masterOptions = FileSystemMasterOptions.getSetAttributeOptions();
+    SetAttributePOptions masterOptions = FileSystemMasterOptions.setAttributesDefaults();
     SetAttributePOptions.Builder mergedOptionsBuilder =
         masterOptions.toBuilder().mergeFrom(optionsBuilder.build());
     return new SetAttributeContext(mergedOptionsBuilder);
@@ -58,7 +58,7 @@ public class SetAttributeContext extends OperationContext<SetAttributePOptions.B
    * @return the instance of {@link SetAttributeContext} with default values for master
    */
   public static SetAttributeContext defaults() {
-    SetAttributePOptions masterOptions = FileSystemMasterOptions.getSetAttributeOptions();
+    SetAttributePOptions masterOptions = FileSystemMasterOptions.setAttributesDefaults();
     return new SetAttributeContext(masterOptions.toBuilder());
   }
 

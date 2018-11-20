@@ -103,7 +103,7 @@ public final class AlluxioBlockStoreTest {
     /**
      * Cosntructs this mock location policy with empty host list.
      */
-    public MockFileWriteLocationPolicy(){
+    public MockFileWriteLocationPolicy() {
       mIndex = 0;
       mWorkerNetAddresses =  Collections.emptyList();
     }

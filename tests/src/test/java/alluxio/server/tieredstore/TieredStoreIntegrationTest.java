@@ -13,7 +13,11 @@ package alluxio.server.tieredstore;
 
 import alluxio.AlluxioURI;
 import alluxio.PropertyKey;
-import alluxio.client.file.*;
+import alluxio.client.file.FileInStream;
+import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemClientOptions;
+import alluxio.client.file.FileSystemTestUtils;
+import alluxio.client.file.URIStatus;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.ReadPType;
 import alluxio.grpc.SetAttributePOptions;

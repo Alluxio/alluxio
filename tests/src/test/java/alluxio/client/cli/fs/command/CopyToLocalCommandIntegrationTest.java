@@ -15,8 +15,8 @@ import alluxio.SystemPropertyRule;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
 import alluxio.client.cli.fs.FileSystemShellUtilsTest;
-
 import alluxio.grpc.WritePType;
+
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;

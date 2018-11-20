@@ -13,8 +13,12 @@ package alluxio.master.file.options;
 
 import alluxio.grpc.DeletePOptions;
 import alluxio.master.file.FileSystemMasterOptions;
+
 import com.google.common.base.MoreObjects;
 
+/**
+ * Used to merge and wrap {@link DeletePOptions}.
+ */
 public class DeleteContext extends OperationContext<DeletePOptions.Builder> {
   // Prevent instantiation
   private DeleteContext() {
@@ -33,11 +37,11 @@ public class DeleteContext extends OperationContext<DeletePOptions.Builder> {
   /**
    * Merges and embeds the given {@link DeletePOptions} with the corresponding master options.
    *
-   * @param optionsBuilder Builder for proto {@link DeletePOptions} to embed
+   * @param optionsBuilder Builder for proto {@link DeletePOptions} to merge with defaults
    * @return the instance of {@link DeleteContext} with default values for master
    */
   public static DeleteContext defaults(DeletePOptions.Builder optionsBuilder) {
-    DeletePOptions masterOptions = FileSystemMasterOptions.getDeleteOptions();
+    DeletePOptions masterOptions = FileSystemMasterOptions.deleteDefaults();
     DeletePOptions.Builder mergedOptionsBuilder =
         masterOptions.toBuilder().mergeFrom(optionsBuilder.build());
     return new DeleteContext(mergedOptionsBuilder);
@@ -47,7 +51,7 @@ public class DeleteContext extends OperationContext<DeletePOptions.Builder> {
    * @return the instance of {@link DeleteContext} with default values for master
    */
   public static DeleteContext defaults() {
-    DeletePOptions masterOptions = FileSystemMasterOptions.getDeleteOptions();
+    DeletePOptions masterOptions = FileSystemMasterOptions.deleteDefaults();
     return new DeleteContext(masterOptions.toBuilder());
   }
 

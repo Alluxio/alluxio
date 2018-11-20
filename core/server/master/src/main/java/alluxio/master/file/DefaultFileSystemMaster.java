@@ -1309,7 +1309,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       throws InvalidPathException, FileAlreadyExistsException, BlockInfoException, IOException,
       FileDoesNotExistException {
     if (mWhitelist.inList(inodePath.getUri().toString())) {
-        context.setCacheable(true);
+      context.setCacheable(true);
     }
     InodeTree.CreatePathResult createResult = mInodeTree.createPath(rpcContext, inodePath, context);
     // If the create succeeded, the list of created inodes will not be empty.
@@ -1398,8 +1398,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       FileDoesNotExistException, DirectoryNotEmptyException, InvalidPathException,
       AccessControlException {
     Metrics.DELETE_PATHS_OPS.inc();
-    LockingScheme lockingScheme =
-        createLockingScheme(path, context.getOptions().getCommonOptions(), InodeTree.LockMode.WRITE);
+    LockingScheme lockingScheme = createLockingScheme(path, context.getOptions().getCommonOptions(),
+        InodeTree.LockMode.WRITE);
     try (RpcContext rpcContext = createRpcContext();
         LockedInodePath inodePath =
             mInodeTree.lockInodePath(lockingScheme.getPath(), lockingScheme.getMode());
@@ -2471,12 +2471,12 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     if (resolution.getShared()) {
       mode.setOtherBits(mode.getOtherBits().or(mode.getOwnerBits()));
     }
-      createFileContext.getOptions().setMode(mode.toShort());
+    createFileContext.getOptions().setMode(mode.toShort());
     if (acl != null) {
-        createFileContext.setAcl(acl.getEntries());
+      createFileContext.setAcl(acl.getEntries());
     }
     if (ufsLastModified != null) {
-        createFileContext.setOperationTimeMs(ufsLastModified);
+      createFileContext.setOperationTimeMs(ufsLastModified);
     }
 
     try {

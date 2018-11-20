@@ -13,9 +13,8 @@ package alluxio.master.file.meta.options;
 
 import alluxio.AlluxioURI;
 import alluxio.grpc.MountPOptions;
-
-import alluxio.master.file.FileSystemMasterOptions;
 import alluxio.master.file.options.MountContext;
+
 import org.junit.Assert;
 import org.junit.Test;
 

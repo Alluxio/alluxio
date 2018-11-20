@@ -19,8 +19,8 @@ import alluxio.client.file.FileSystemTestUtils;
 import alluxio.exception.AlluxioException;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
 import alluxio.client.cli.fs.FileSystemShellUtilsTest;
-
 import alluxio.grpc.WritePType;
+
 import org.junit.Test;
 
 import java.io.IOException;

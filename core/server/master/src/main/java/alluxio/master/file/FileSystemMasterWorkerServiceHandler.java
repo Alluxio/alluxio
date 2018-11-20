@@ -25,9 +25,9 @@ import alluxio.grpc.GetUfsInfoPOptions;
 import alluxio.grpc.GetUfsInfoPRequest;
 import alluxio.grpc.GetUfsInfoPResponse;
 import alluxio.master.file.options.WorkerHeartbeatContext;
-
 import alluxio.util.RpcUtilsNew;
 import alluxio.util.grpc.GrpcUtils;
+
 import com.google.common.base.Preconditions;
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
@@ -54,7 +54,7 @@ public final class FileSystemMasterWorkerServiceHandler
     Preconditions.checkNotNull(fileSystemMaster);
     mFileSystemMaster = fileSystemMaster;
   }
-  
+
   @Override
   public void fileSystemHeartbeat(FileSystemHeartbeatPRequest request,
       StreamObserver<FileSystemHeartbeatPResponse> responseObserver) {
@@ -64,7 +64,8 @@ public final class FileSystemMasterWorkerServiceHandler
     FileSystemHeartbeatPOptions options = request.getOptions();
 
     RpcUtilsNew.call(LOG,
-        (RpcUtilsNew.RpcCallableThrowsIOException<FileSystemHeartbeatPResponse>) () -> FileSystemHeartbeatPResponse
+        (RpcUtilsNew.RpcCallableThrowsIOException<FileSystemHeartbeatPResponse>)
+        () -> FileSystemHeartbeatPResponse
             .newBuilder()
             .setCommand(GrpcUtils.toProto(mFileSystemMaster.workerHeartbeat(workerId,
                 persistedFiles, WorkerHeartbeatContext.defaults(options.toBuilder()))))
@@ -85,7 +86,6 @@ public final class FileSystemMasterWorkerServiceHandler
             .newBuilder().setFileInfo(GrpcUtils.toProto(mFileSystemMaster.getFileInfo(fileId)))
             .build(),
         "getFileInfo", "fileId=%s, options=%s", responseObserver, fileId, options);
-
   }
 
   @Override
@@ -95,7 +95,8 @@ public final class FileSystemMasterWorkerServiceHandler
     GetPinnedFileIdsPOptions options = request.getOptions();
 
     RpcUtilsNew.call(LOG,
-        (RpcUtilsNew.RpcCallableThrowsIOException<GetPinnedFileIdsPResponse>) () -> GetPinnedFileIdsPResponse
+        (RpcUtilsNew.RpcCallableThrowsIOException<GetPinnedFileIdsPResponse>)
+        () -> GetPinnedFileIdsPResponse
             .newBuilder().addAllPinnedFileIds(mFileSystemMaster.getPinIdList()).build(),
         "getPinnedFileIds", "options=%s", responseObserver, options);
   }

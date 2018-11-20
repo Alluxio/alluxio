@@ -18,7 +18,6 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemClientOptions;
-import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.grpc.WritePType;
 import alluxio.master.backcompat.FsTestOp;
 import alluxio.master.backcompat.Utils;

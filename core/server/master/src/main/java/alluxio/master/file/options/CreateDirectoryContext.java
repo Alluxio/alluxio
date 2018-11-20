@@ -13,16 +13,16 @@ package alluxio.master.file.options;
 
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.master.file.FileSystemMasterOptions;
-import alluxio.proto.shared.Acl;
 import alluxio.security.authorization.AclEntry;
 import alluxio.underfs.UfsStatus;
+
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
 
 import java.util.List;
 
 /**
- * Wrapper for {@link CreateDirectoryPOptions} with additional context data.
+ * Used to merge and wrap {@link CreateDirectoryPOptions}.
  */
 public class CreateDirectoryContext
     extends CreatePathContext<CreateDirectoryPOptions.Builder, CreateDirectoryContext> {
@@ -33,7 +33,7 @@ public class CreateDirectoryContext
   // Prevent instantiation
   private CreateDirectoryContext() {
     super(null);
-  };
+  }
 
   /**
    * Creates context with given option data.
@@ -48,12 +48,12 @@ public class CreateDirectoryContext
   /**
    * Merges and embeds the given {@link CreateDirectoryPOptions} with the corresponding master
    * options.
-   * 
-   * @param optionsBuilder Builder for proto {@link CreateDirectoryPOptions} to embed
+   *
+   * @param optionsBuilder Builder for proto {@link CreateDirectoryPOptions} to merge with defaults
    * @return the instance of {@link CreateDirectoryContext} with default values for master
    */
   public static CreateDirectoryContext defaults(CreateDirectoryPOptions.Builder optionsBuilder) {
-    CreateDirectoryPOptions masterOptions = FileSystemMasterOptions.getCreateDirectoryOptions();
+    CreateDirectoryPOptions masterOptions = FileSystemMasterOptions.createDirectoryDefaults();
     CreateDirectoryPOptions.Builder mergedOptionsBuilder =
         masterOptions.toBuilder().mergeFrom(optionsBuilder.build());
     return new CreateDirectoryContext(mergedOptionsBuilder);
@@ -63,7 +63,7 @@ public class CreateDirectoryContext
    * @return the instance of {@link CreateDirectoryContext} with default values for master
    */
   public static CreateDirectoryContext defaults() {
-    CreateDirectoryPOptions masterOptions = FileSystemMasterOptions.getCreateDirectoryOptions();
+    CreateDirectoryPOptions masterOptions = FileSystemMasterOptions.createDirectoryDefaults();
     return new CreateDirectoryContext(masterOptions.toBuilder());
   }
 
@@ -79,7 +79,7 @@ public class CreateDirectoryContext
   }
 
   /**
-   * Sets {@link UfsStatus} for the directory
+   * Sets {@link UfsStatus} for the directory.
    *
    * @param ufsStatus Ufs status to set
    * @return the updated context instance

@@ -119,13 +119,20 @@ public enum WriteType {
   }
 
   // TODO(ggezer) Eliminate below parsers/converters for WriteType
-  private static final String sProtoNameHeader = "WRITE_";
+  private static final String PROTOHEADER = "WRITE_";
 
+  /**
+   * @param writePType proto type
+   * @return wire type for given proto type
+   */
   public static WriteType fromProto(WritePType writePType) {
-    return WriteType.valueOf(writePType.name().substring(sProtoNameHeader.length()));
+    return WriteType.valueOf(writePType.name().substring(PROTOHEADER.length()));
   }
 
+  /**
+   * @return proto representation of this instance
+   */
   public WritePType toProto() {
-    return WritePType.valueOf(sProtoNameHeader + this.name());
+    return WritePType.valueOf(PROTOHEADER + this.name());
   }
 }

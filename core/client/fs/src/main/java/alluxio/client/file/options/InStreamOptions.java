@@ -19,7 +19,6 @@ import alluxio.client.file.URIStatus;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.master.block.BlockId;
 import alluxio.proto.dataserver.Protocol;
-import alluxio.util.grpc.GrpcUtils;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.FileBlockInfo;
 

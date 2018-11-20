@@ -13,10 +13,11 @@ package alluxio.master.file.options;
 
 import alluxio.grpc.RenamePOptions;
 import alluxio.master.file.FileSystemMasterOptions;
+
 import com.google.common.base.MoreObjects;
 
 /**
- * Wrapper for {@link RenamePOptions} with additional context data.
+ * Used to merge and wrap {@link RenamePOptions}.
  */
 public class RenameContext extends OperationContext<RenamePOptions.Builder> {
 
@@ -25,7 +26,7 @@ public class RenameContext extends OperationContext<RenamePOptions.Builder> {
   // Prevent instantiation
   private RenameContext() {
     super(null);
-  };
+  }
 
   /**
    * Creates rename context with given option data.
@@ -40,11 +41,11 @@ public class RenameContext extends OperationContext<RenamePOptions.Builder> {
   /**
    * Merges and embeds the given {@link RenamePOptions} with the corresponding master options.
    *
-   * @param optionsBuilder Builder for proto {@link RenamePOptions} to embed
+   * @param optionsBuilder Builder for proto {@link RenamePOptions} to merge with defaults
    * @return the instance of {@link RenameContext} with default values for master
    */
   public static RenameContext defaults(RenamePOptions.Builder optionsBuilder) {
-    RenamePOptions masterOptions = FileSystemMasterOptions.getRenameOptions();
+    RenamePOptions masterOptions = FileSystemMasterOptions.renameDefaults();
     RenamePOptions.Builder mergedOptionsBuilder =
         masterOptions.toBuilder().mergeFrom(optionsBuilder.build());
     return new RenameContext(mergedOptionsBuilder);
@@ -54,7 +55,7 @@ public class RenameContext extends OperationContext<RenamePOptions.Builder> {
    * @return the instance of {@link RenameContext} with default values for master
    */
   public static RenameContext defaults() {
-    RenamePOptions masterOptions = FileSystemMasterOptions.getRenameOptions();
+    RenamePOptions masterOptions = FileSystemMasterOptions.renameDefaults();
     return new RenameContext(masterOptions.toBuilder());
   }
 

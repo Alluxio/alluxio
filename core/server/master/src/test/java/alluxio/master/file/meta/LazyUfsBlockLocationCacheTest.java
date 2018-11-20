@@ -13,7 +13,6 @@ package alluxio.master.file.meta;
 
 import alluxio.AlluxioURI;
 import alluxio.grpc.MountPOptions;
-import alluxio.master.file.FileSystemMasterOptions;
 import alluxio.master.file.meta.options.MountInfo;
 import alluxio.master.file.options.MountContext;
 import alluxio.master.journal.NoopJournalContext;

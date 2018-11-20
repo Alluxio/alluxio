@@ -14,10 +14,11 @@ package alluxio.master.file.options;
 import alluxio.grpc.CompleteFilePOptions;
 import alluxio.master.file.FileSystemMasterOptions;
 import alluxio.underfs.UfsStatus;
+
 import com.google.common.base.MoreObjects;
 
 /**
- * Wrapper for {@link CompleteFilePOptions} with additional context data.
+ * Used to merge and wrap {@link CompleteFilePOptions}.
  */
 public class CompleteFileContext extends OperationContext<CompleteFilePOptions.Builder> {
 
@@ -27,7 +28,7 @@ public class CompleteFileContext extends OperationContext<CompleteFilePOptions.B
   // Prevent instantiation
   private CompleteFileContext() {
     super(null);
-  };
+  }
 
   /**
    * Creates rename context with given option data.
@@ -43,11 +44,11 @@ public class CompleteFileContext extends OperationContext<CompleteFilePOptions.B
   /**
    * Merges and embeds the given {@link CompleteFilePOptions} with the corresponding master options.
    *
-   * @param optionsBuilder Builder for proto {@link CompleteFilePOptions} to embed
+   * @param optionsBuilder Builder for proto {@link CompleteFilePOptions} to merge with defaults
    * @return the instance of {@link CompleteFileContext} with default values for master
    */
   public static CompleteFileContext defaults(CompleteFilePOptions.Builder optionsBuilder) {
-    CompleteFilePOptions masterOptions = FileSystemMasterOptions.getCompleteFileOptions();
+    CompleteFilePOptions masterOptions = FileSystemMasterOptions.completeFileDefaults();
     CompleteFilePOptions.Builder mergedOptionsBuilder =
         masterOptions.toBuilder().mergeFrom(optionsBuilder.build());
     return new CompleteFileContext(mergedOptionsBuilder);
@@ -57,7 +58,7 @@ public class CompleteFileContext extends OperationContext<CompleteFilePOptions.B
    * @return the instance of {@link CompleteFileContext} with default values for master
    */
   public static CompleteFileContext defaults() {
-    CompleteFilePOptions masterOptions = FileSystemMasterOptions.getCompleteFileOptions();
+    CompleteFilePOptions masterOptions = FileSystemMasterOptions.completeFileDefaults();
     return new CompleteFileContext(masterOptions.toBuilder());
   }
 

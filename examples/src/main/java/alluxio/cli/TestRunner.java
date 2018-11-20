@@ -12,15 +12,12 @@
 package alluxio.cli;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
 import alluxio.client.ReadType;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemClientOptions;
 import alluxio.examples.BasicNonByteBufferOperations;
 import alluxio.examples.BasicOperations;
-import alluxio.grpc.ReadPType;
-import alluxio.grpc.WritePType;
 import alluxio.util.io.PathUtils;
 
 import com.beust.jcommander.JCommander;

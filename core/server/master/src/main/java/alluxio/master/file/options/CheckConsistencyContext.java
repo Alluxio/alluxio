@@ -13,8 +13,12 @@ package alluxio.master.file.options;
 
 import alluxio.grpc.CheckConsistencyPOptions;
 import alluxio.master.file.FileSystemMasterOptions;
+
 import com.google.common.base.MoreObjects;
 
+/**
+ * Used to merge and wrap {@link CheckConsistencyPOptions}.
+ */
 public class CheckConsistencyContext extends OperationContext<CheckConsistencyPOptions.Builder> {
   // Prevent instantiation
   private CheckConsistencyContext() {
@@ -34,11 +38,11 @@ public class CheckConsistencyContext extends OperationContext<CheckConsistencyPO
    * Merges and embeds the given {@link CheckConsistencyPOptions} with the corresponding master
    * options.
    *
-   * @param optionsBuilder Builder for proto {@link CheckConsistencyPOptions} to embed
+   * @param optionsBuilder Builder for proto {@link CheckConsistencyPOptions} to merge with defaults
    * @return the instance of {@link CheckConsistencyContext} with default values for master
    */
   public static CheckConsistencyContext defaults(CheckConsistencyPOptions.Builder optionsBuilder) {
-    CheckConsistencyPOptions masterOptions = FileSystemMasterOptions.getCheckConsistencyOptions();
+    CheckConsistencyPOptions masterOptions = FileSystemMasterOptions.checkConsistencyDefaults();
     CheckConsistencyPOptions.Builder mergedOptionsBuilder =
         masterOptions.toBuilder().mergeFrom(optionsBuilder.build());
     return new CheckConsistencyContext(mergedOptionsBuilder);
@@ -48,7 +52,7 @@ public class CheckConsistencyContext extends OperationContext<CheckConsistencyPO
    * @return the instance of {@link CheckConsistencyContext} with default values for master
    */
   public static CheckConsistencyContext defaults() {
-    CheckConsistencyPOptions masterOptions = FileSystemMasterOptions.getCheckConsistencyOptions();
+    CheckConsistencyPOptions masterOptions = FileSystemMasterOptions.checkConsistencyDefaults();
     return new CheckConsistencyContext(masterOptions.toBuilder());
   }
 

@@ -13,8 +13,12 @@ package alluxio.master.file.options;
 
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.master.file.FileSystemMasterOptions;
+
 import com.google.common.base.MoreObjects;
 
+/**
+ * Used to merge and wrap {@link ListStatusPOptions}.
+ */
 public class ListStatusContext extends OperationContext<ListStatusPOptions.Builder> {
   // Prevent instantiation
   private ListStatusContext() {
@@ -33,11 +37,11 @@ public class ListStatusContext extends OperationContext<ListStatusPOptions.Build
   /**
    * Merges and embeds the given {@link ListStatusPOptions} with the corresponding master options.
    *
-   * @param optionsBuilder Builder for proto {@link ListStatusPOptions} to embed
+   * @param optionsBuilder Builder for proto {@link ListStatusPOptions} to merge with defaults
    * @return the instance of {@link ListStatusContext} with default values for master
    */
   public static ListStatusContext defaults(ListStatusPOptions.Builder optionsBuilder) {
-    ListStatusPOptions masterOptions = FileSystemMasterOptions.getListStatusOptions();
+    ListStatusPOptions masterOptions = FileSystemMasterOptions.listStatusDefaults();
     ListStatusPOptions.Builder mergedOptionsBuilder =
         masterOptions.toBuilder().mergeFrom(optionsBuilder.build());
     return new ListStatusContext(mergedOptionsBuilder);
@@ -47,7 +51,7 @@ public class ListStatusContext extends OperationContext<ListStatusPOptions.Build
    * @return the instance of {@link ListStatusContext} with default values for master
    */
   public static ListStatusContext defaults() {
-    ListStatusPOptions masterOptions = FileSystemMasterOptions.getListStatusOptions();
+    ListStatusPOptions masterOptions = FileSystemMasterOptions.listStatusDefaults();
     return new ListStatusContext(masterOptions.toBuilder());
   }
 

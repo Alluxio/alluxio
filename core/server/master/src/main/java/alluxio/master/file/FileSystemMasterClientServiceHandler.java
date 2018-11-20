@@ -77,13 +77,12 @@ import alluxio.master.file.options.MountContext;
 import alluxio.master.file.options.RenameContext;
 import alluxio.master.file.options.SetAclContext;
 import alluxio.master.file.options.SetAttributeContext;
-import alluxio.proto.shared.Acl;
 import alluxio.underfs.UfsMode;
 import alluxio.util.RpcUtilsNew;
 import alluxio.util.grpc.GrpcUtils;
 import alluxio.wire.MountPointInfo;
-
 import alluxio.wire.SetAclAction;
+
 import com.google.common.base.Preconditions;
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
@@ -93,10 +92,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
-
-import static io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall;
 
 /**
  * This class is a gRPC handler for file system master RPCs invoked by an Alluxio client.

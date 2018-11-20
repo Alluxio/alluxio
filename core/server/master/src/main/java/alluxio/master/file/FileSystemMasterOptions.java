@@ -45,8 +45,9 @@ public final class FileSystemMasterOptions{
   /**
    * @return {@link FileSystemMasterCommonPOptions} with default values for master
    */
-  public static FileSystemMasterCommonPOptions getCommonOptions() {
-    return FileSystemMasterCommonPOptions.newBuilder().setTtl(Constants.NO_TTL)
+  private static FileSystemMasterCommonPOptions commonDefaults() {
+    return FileSystemMasterCommonPOptions.newBuilder()
+        .setTtl(Constants.NO_TTL)
         .setTtlAction(TtlAction.DELETE)
         .setSyncIntervalMs(Configuration.getMs(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL))
         .build();
@@ -55,47 +56,60 @@ public final class FileSystemMasterOptions{
   /**
    * @return Master side defaults for {@link CompleteFilePOptions}
    */
-  public static CompleteFilePOptions getCompleteFileOptions() {
-    return CompleteFilePOptions.newBuilder().setCommonOptions(getCommonOptions()).setUfsLength(0)
+  public static CompleteFilePOptions completeFileDefaults() {
+    return CompleteFilePOptions.newBuilder()
+        .setCommonOptions(commonDefaults())
+        .setUfsLength(0)
         .build();
   }
 
   /**
    * @return Master side defaults for {@link CreateDirectoryPOptions}
    */
-  public static CreateDirectoryPOptions getCreateDirectoryOptions() {
-    return CreateDirectoryPOptions.newBuilder().setCommonOptions(getCommonOptions())
-        .setMode(ModeUtils.applyDirectoryUMask(Mode.defaults()).toShort()).setPersisted(false)
-        .setRecursive(false).setAllowExists(false).build();
+  public static CreateDirectoryPOptions createDirectoryDefaults() {
+    return CreateDirectoryPOptions.newBuilder()
+        .setCommonOptions(commonDefaults())
+        .setMode(ModeUtils.applyDirectoryUMask(Mode.defaults()).toShort())
+        .setPersisted(false)
+        .setRecursive(false)
+        .setAllowExists(false)
+        .build();
   }
 
   /**
    * @return Master side defaults for {@link CreateFilePOptions}
    */
-  public static CreateFilePOptions getCreateFileOptions() {
-    return CreateFilePOptions.newBuilder().setCommonOptions(getCommonOptions())
+  public static CreateFilePOptions createFileDefaults() {
+    return CreateFilePOptions.newBuilder()
+        .setCommonOptions(commonDefaults())
         .setBlockSizeBytes(Configuration.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT))
         .setReplicationDurable(Configuration.getInt(PropertyKey.USER_FILE_REPLICATION_DURABLE))
         .setReplicationMax(Configuration.getInt(PropertyKey.USER_FILE_REPLICATION_MAX))
         .setReplicationMin(Configuration.getInt(PropertyKey.USER_FILE_REPLICATION_MIN))
-        .setMode(ModeUtils.applyFileUMask(Mode.defaults()).toShort()).setPersisted(false)
-        .setRecursive(false).build();
+        .setMode(ModeUtils.applyFileUMask(Mode.defaults()).toShort())
+        .setPersisted(false)
+        .setRecursive(false)
+        .build();
   }
 
   /**
    * @return Master side defaults for {@link DeletePOptions}
    */
-  public static DeletePOptions getDeleteOptions() {
-    return DeletePOptions.newBuilder().setCommonOptions(getCommonOptions()).setRecursive(false)
-        .setAlluxioOnly(false).setUnchecked(false).build();
+  public static DeletePOptions deleteDefaults() {
+    return DeletePOptions.newBuilder()
+        .setCommonOptions(commonDefaults())
+        .setRecursive(false)
+        .setAlluxioOnly(false)
+        .setUnchecked(false)
+        .build();
   }
 
   /**
    * @return Master side defaults for {@link FreePOptions}
    */
-  public static FreePOptions getFreeOptions() {
+  public static FreePOptions freeDefaults() {
     return FreePOptions.newBuilder()
-        .setCommonOptions(getCommonOptions())
+        .setCommonOptions(commonDefaults())
         .setForced(false)
         .setRecursive(false)
         .build();
@@ -104,9 +118,9 @@ public final class FileSystemMasterOptions{
   /**
    * @return Master side defaults for {@link GetStatusPOptions}
    */
-  public static GetStatusPOptions getGetStatusOptions() {
+  public static GetStatusPOptions getStatusDefaults() {
     return GetStatusPOptions.newBuilder()
-        .setCommonOptions(getCommonOptions())
+        .setCommonOptions(commonDefaults())
         .setLoadMetadataType(LoadMetadataPType.ONCE)
         .build();
   }
@@ -114,63 +128,73 @@ public final class FileSystemMasterOptions{
   /**
    * @return Master side defaults for {@link ListStatusPOptions}
    */
-  public static ListStatusPOptions getListStatusOptions() {
+  public static ListStatusPOptions listStatusDefaults() {
     return ListStatusPOptions.newBuilder()
-            .setCommonOptions(getCommonOptions())
-            .setLoadMetadataType(LoadMetadataPType.ONCE)
-            .build();
+        .setCommonOptions(commonDefaults())
+        .setLoadMetadataType(LoadMetadataPType.ONCE)
+        .build();
   }
 
   /**
    * @return Master side defaults for {@link LoadMetadataPOptions}
    */
-  public static LoadMetadataPOptions getLoadMetadataOptions() {
+  public static LoadMetadataPOptions loadMetadataDefaults() {
     return LoadMetadataPOptions.newBuilder()
-            .setCommonOptions(getCommonOptions())
-            .setRecursive(false)
-            .setCreateAncestors(false)
-            .setLoadDescendantType(LoadDescendantPType.NONE)
-            .build();
+        .setCommonOptions(commonDefaults())
+        .setRecursive(false)
+        .setCreateAncestors(false)
+        .setLoadDescendantType(LoadDescendantPType.NONE)
+        .build();
   }
 
   /**
    * @return Master side defaults for {@link MountPOptions}
    */
-  public static MountPOptions getMountOptions() {
+  public static MountPOptions mountDefaults() {
     return MountPOptions.newBuilder()
-            .setCommonOptions(getCommonOptions())
-            .setShared(false)
-            .setReadOnly(false)
-            .build();
+        .setCommonOptions(commonDefaults())
+        .setShared(false)
+        .setReadOnly(false)
+        .build();
   }
 
   /**
    * @return Master side defaults for {@link RenamePOptions}
    */
-  public static RenamePOptions getRenameOptions() {
-    return RenamePOptions.newBuilder().setCommonOptions(getCommonOptions()).build();
+  public static RenamePOptions renameDefaults() {
+    return RenamePOptions.newBuilder()
+        .setCommonOptions(commonDefaults())
+        .build();
   }
 
   /**
    * @return Master side defaults for {@link SetAttributePOptions}
    */
-  public static SetAttributePOptions getSetAttributeOptions() {
-    return SetAttributePOptions.newBuilder().setCommonOptions(getCommonOptions())
-        .setTtlAction(TtlAction.DELETE).setRecursive(false).setPinned(false).build();
+  public static SetAttributePOptions setAttributesDefaults() {
+    return SetAttributePOptions.newBuilder()
+        .setCommonOptions(commonDefaults())
+        .setTtlAction(TtlAction.DELETE)
+        .setRecursive(false)
+        .setPinned(false)
+        .build();
   }
 
   /**
    * @return Master side defaults for {@link SetAclPOptions}
    */
-  public static SetAclPOptions getSetAclOptions() {
-    return SetAclPOptions.newBuilder().setCommonOptions(getCommonOptions()).setRecursive(false)
+  public static SetAclPOptions setAclDefaults() {
+    return SetAclPOptions.newBuilder()
+        .setCommonOptions(commonDefaults())
+        .setRecursive(false)
         .build();
   }
 
   /**
    * @return Master side defaults for {@link CheckConsistencyPOptions}
    */
-  public static CheckConsistencyPOptions getCheckConsistencyOptions() {
-    return CheckConsistencyPOptions.newBuilder().setCommonOptions(getCommonOptions()).build();
+  public static CheckConsistencyPOptions checkConsistencyDefaults() {
+    return CheckConsistencyPOptions.newBuilder()
+        .setCommonOptions(commonDefaults())
+        .build();
   }
 }

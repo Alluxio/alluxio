@@ -59,7 +59,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -713,17 +712,29 @@ public final class GrpcUtils {
     return address.build();
   }
 
-  private static final String sCommandTypeHeader = "Command_";
+  private static final String COMMAND_TYPE_PROTOHEADER = "Command_";
 
+  /**
+   * @param commandType wire type
+   * @return proto representation of given wire type
+   */
   public static alluxio.grpc.CommandType toProto(CommandType commandType) {
-    return alluxio.grpc.CommandType.valueOf(sCommandTypeHeader + commandType.name());
+    return alluxio.grpc.CommandType.valueOf(COMMAND_TYPE_PROTOHEADER + commandType.name());
   }
-  
+
+  /**
+   * @param persistFile wire type
+   * @return proto representation of given wire type
+   */
   public static alluxio.grpc.PersistFile toProto(PersistFile persistFile) {
     return alluxio.grpc.PersistFile.newBuilder().setFileId(persistFile.getFileId())
         .addAllBlockIds(persistFile.getBlockIds()).build();
   }
 
+  /**
+   * @param fsCommand wire type
+   * @return proto representation of given wire type
+   */
   public static alluxio.grpc.FileSystemCommand toProto(FileSystemCommand fsCommand) {
 
     return alluxio.grpc.FileSystemCommand.newBuilder()
@@ -735,6 +746,10 @@ public final class GrpcUtils {
         .build();
   }
 
+  /**
+   * @param ufsInfo wire type
+   * @return proto representation of given wire type
+   */
   public static alluxio.grpc.UfsInfo toProto(UfsInfo ufsInfo) {
     return alluxio.grpc.UfsInfo.newBuilder().setUri(ufsInfo.getUri().toString()).build();
   }

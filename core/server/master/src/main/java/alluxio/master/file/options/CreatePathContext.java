@@ -16,8 +16,10 @@ import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.TtlAction;
 import alluxio.security.authorization.AclEntry;
 import alluxio.security.authorization.Mode;
+
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
+import com.google.protobuf.GeneratedMessageV3;
 
 import java.util.Collections;
 import java.util.List;
@@ -26,9 +28,10 @@ import java.util.List;
  * Wrapper for {@link CreateFilePOptions} or {@link CreateDirectoryPOptions} with additional context
  * data.
  *
- * TODO(ggezer) javadoc for generic type specifiers.
+ * @param <T> Proto Builder type
+ * @param <K> Context type (It must be either CreateFileContext or CreateDirectoryContext
  */
-public abstract class CreatePathContext<T extends com.google.protobuf.GeneratedMessageV3.Builder<?>, K>
+public abstract class CreatePathContext<T extends GeneratedMessageV3.Builder<?>, K>
     extends OperationContext<T> {
 
   protected boolean mMountPoint;
@@ -37,7 +40,6 @@ public abstract class CreatePathContext<T extends com.google.protobuf.GeneratedM
   protected String mOwner;
   protected String mGroup;
   protected boolean mMetadataLoad;
-
 
   //
   // Values for the below fields will be extracted from given proto options
@@ -91,26 +93,41 @@ public abstract class CreatePathContext<T extends com.google.protobuf.GeneratedM
     }
   }
 
+  /**
+   * @return Mode, extracted from options
+   */
   public Mode getMode() {
     loadExtractedFields();
     return mMode;
   }
 
+  /**
+   * @return true if persisted, extracted from options
+   */
   public boolean isPersisted() {
     loadExtractedFields();
     return mPersisted;
   }
 
+  /**
+   * @return true if recursive, extracted from options
+   */
   public boolean isRecursive() {
     loadExtractedFields();
     return mRecursive;
   }
 
+  /**
+   * @return ttl, extracted from options
+   */
   public long getTtl() {
     loadExtractedFields();
     return mTtl;
   }
 
+  /**
+   * @return ttl action, extracted from options
+   */
   public TtlAction getTtlAction() {
     loadExtractedFields();
     return mTtlAction;
@@ -228,5 +245,5 @@ public abstract class CreatePathContext<T extends com.google.protobuf.GeneratedM
         .add("Group", mGroup)
         .add("MetadataLoad", mMetadataLoad)
         .toString();
-    }
+  }
 }

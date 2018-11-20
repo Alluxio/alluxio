@@ -850,7 +850,7 @@ public final class InodeTreeTest {
 
   // Helper to create a path.
   private InodeTree.CreatePathResult createPath(InodeTree root, AlluxioURI path,
-      CreatePathContext<?,?> context) throws FileAlreadyExistsException, BlockInfoException,
+      CreatePathContext<?, ?> context) throws FileAlreadyExistsException, BlockInfoException,
       InvalidPathException, IOException, FileDoesNotExistException {
     try (LockedInodePath inodePath = root.lockInodePath(path, InodeTree.LockMode.WRITE)) {
       return root.createPath(RpcContext.NOOP, inodePath, context);

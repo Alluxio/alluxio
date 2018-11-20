@@ -2539,8 +2539,8 @@ public final class FileSystemMasterTest {
 
     FileUtils.createFile(Paths.get(mUnderFS).resolve("a/b/file1").toString());
     uri = new AlluxioURI("/a/b/file1");
-    mFileSystemMaster.loadMetadata(uri, LoadMetadataContext.defaults(LoadMetadataPOptions.newBuilder()
-        .setCreateAncestors(true)));
+    mFileSystemMaster.loadMetadata(uri,
+        LoadMetadataContext.defaults(LoadMetadataPOptions.newBuilder().setCreateAncestors(true)));
     FileInfo info = mFileSystemMaster.getFileInfo(uri,
         GetStatusContext.defaults());
     Assert.assertTrue(info.convertAclToStringEntries().contains("user::r-x"));

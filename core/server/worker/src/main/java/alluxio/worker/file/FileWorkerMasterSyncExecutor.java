@@ -18,7 +18,6 @@ import alluxio.grpc.FileSystemCommand;
 import alluxio.grpc.FileSystemHeartbeatPOptions;
 import alluxio.grpc.PersistFile;
 import alluxio.heartbeat.HeartbeatExecutor;
-import alluxio.thrift.FileSystemHeartbeatTOptions;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.worker.block.BlockMasterSync;
 
@@ -108,8 +107,8 @@ final class FileWorkerMasterSyncExecutor implements HeartbeatExecutor {
     for (PersistFile persistFile : command.getCommandOptions().getPersistOptions()
             .getPersistFilesList()) {
       // Enqueue the persist request.
-      mPersistFileService.execute(
-          new FilePersister(mFileDataManager, persistFile.getFileId(), persistFile.getBlockIdsList()));
+      mPersistFileService.execute(new FilePersister(mFileDataManager, persistFile.getFileId(),
+          persistFile.getBlockIdsList()));
     }
   }
 

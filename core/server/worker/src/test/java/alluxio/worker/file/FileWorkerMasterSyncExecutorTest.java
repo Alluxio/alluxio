@@ -22,7 +22,6 @@ import static org.mockito.Mockito.when;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.FileSystemCommand;
 import alluxio.grpc.FileSystemHeartbeatPOptions;
-import alluxio.thrift.FileSystemHeartbeatTOptions;
 
 import com.google.common.collect.Lists;
 import org.junit.Before;

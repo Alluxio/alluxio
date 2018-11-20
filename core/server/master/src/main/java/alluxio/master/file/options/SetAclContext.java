@@ -13,8 +13,12 @@ package alluxio.master.file.options;
 
 import alluxio.grpc.SetAclPOptions;
 import alluxio.master.file.FileSystemMasterOptions;
+
 import com.google.common.base.MoreObjects;
 
+/**
+ * Used to merge and wrap {@link SetAclPOptions}.
+ */
 public class SetAclContext extends OperationContext<SetAclPOptions.Builder> {
   // Prevent instantiation
   private SetAclContext() {
@@ -33,11 +37,11 @@ public class SetAclContext extends OperationContext<SetAclPOptions.Builder> {
   /**
    * Merges and embeds the given {@link SetAclPOptions} with the corresponding master options.
    *
-   * @param optionsBuilder Builder for proto {@link SetAclPOptions} to embed
+   * @param optionsBuilder Builder for proto {@link SetAclPOptions} to merge with defaults
    * @return the instance of {@link SetAclContext} with default values for master
    */
   public static SetAclContext defaults(SetAclPOptions.Builder optionsBuilder) {
-    SetAclPOptions masterOptions = FileSystemMasterOptions.getSetAclOptions();
+    SetAclPOptions masterOptions = FileSystemMasterOptions.setAclDefaults();
     SetAclPOptions.Builder mergedOptionsBuilder =
         masterOptions.toBuilder().mergeFrom(optionsBuilder.build());
     return new SetAclContext(mergedOptionsBuilder);
@@ -47,7 +51,7 @@ public class SetAclContext extends OperationContext<SetAclPOptions.Builder> {
    * @return the instance of {@link SetAclContext} with default values for master
    */
   public static SetAclContext defaults() {
-    SetAclPOptions masterOptions = FileSystemMasterOptions.getSetAclOptions();
+    SetAclPOptions masterOptions = FileSystemMasterOptions.setAclDefaults();
     return new SetAclContext(masterOptions.toBuilder());
   }
 

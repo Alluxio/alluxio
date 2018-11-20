@@ -18,9 +18,9 @@ import alluxio.grpc.GetFileInfoPResponse;
 import alluxio.grpc.GetUfsInfoPOptions;
 import alluxio.grpc.GetUfsInfoPRequest;
 import alluxio.grpc.GetUfsInfoPResponse;
-
 import alluxio.util.RpcUtilsNew;
 import alluxio.util.grpc.GrpcUtils;
+
 import com.google.common.base.Preconditions;
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
@@ -58,7 +58,6 @@ public final class FileSystemMasterJobServiceHandler
             .newBuilder().setFileInfo(GrpcUtils.toProto(mFileSystemMaster.getFileInfo(fileId)))
             .build(),
         "getFileInfo", "fileId=%s, options=%s", responseObserver, fileId, options);
-
   }
 
   @Override

@@ -156,7 +156,8 @@ public final class ReplicationCheckerTest {
    * @param context context to create the file
    * @return the block ID
    */
-  private long createBlockHelper(AlluxioURI path, CreatePathContext<?,?> context) throws Exception {
+  private long createBlockHelper(AlluxioURI path, CreatePathContext<?, ?> context)
+      throws Exception {
     try (LockedInodePath inodePath = mInodeTree.lockInodePath(path, InodeTree.LockMode.WRITE)) {
       InodeTree.CreatePathResult result =
           mInodeTree.createPath(RpcContext.NOOP, inodePath, context);
