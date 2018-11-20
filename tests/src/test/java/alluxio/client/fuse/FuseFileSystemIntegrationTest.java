@@ -61,6 +61,7 @@ public class FuseFileSystemIntegrationTest {
   public static LocalAlluxioClusterResource sLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder()
           .setProperty(PropertyKey.FUSE_USER_GROUP_TRANSLATION_ENABLED, true)
+          .setProperty(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, 4 * Constants.MB)
           .build();
 
   private static String sAlluxioRoot;
@@ -182,14 +183,15 @@ public class FuseFileSystemIntegrationTest {
   public void ddAndRm() throws Exception {
     String testFile = "/ddTestFile";
     ShellUtils.execCommand("dd", "if=/dev/zero",
-        "of=" + sMountPoint + testFile, "count=1024", "bs=" + Constants.MB);
+        "of=" + sMountPoint + testFile, "count=10", "bs=" + 4 * Constants.MB);
 
     // Fuse release() is async
     // Open the file to make sure dd is completed
     ShellUtils.execCommand("head", "-c", "10", sMountPoint + testFile);
 
     Assert.assertTrue(sFileSystem.exists(new AlluxioURI(testFile)));
-    Assert.assertEquals(Constants.GB, sFileSystem.getStatus(new AlluxioURI(testFile)).getLength());
+    Assert.assertEquals(40 * Constants.MB,
+        sFileSystem.getStatus(new AlluxioURI(testFile)).getLength());
 
     ShellUtils.execCommand("rm", sMountPoint + testFile);
     Assert.assertFalse(sFileSystem.exists(new AlluxioURI(testFile)));
