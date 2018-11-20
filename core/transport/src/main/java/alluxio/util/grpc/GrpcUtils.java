@@ -13,9 +13,7 @@ package alluxio.util.grpc;
 
 import static alluxio.util.StreamUtils.map;
 
-import alluxio.AlluxioURI;
 import alluxio.Constants;
-
 import alluxio.file.options.CompleteUfsFileOptions;
 import alluxio.file.options.CreateUfsFileOptions;
 import alluxio.file.options.DescendantType;
@@ -33,8 +31,6 @@ import alluxio.grpc.PAclEntry;
 import alluxio.grpc.PAclEntryType;
 import alluxio.grpc.PSetAclAction;
 import alluxio.grpc.PersistCommandOptions;
-import alluxio.grpc.ReadPType;
-import alluxio.grpc.WritePType;
 import alluxio.proto.journal.File;
 import alluxio.security.authorization.AccessControlList;
 import alluxio.security.authorization.AclAction;
@@ -103,47 +99,6 @@ public final class GrpcUtils {
       }
     }
     return optionsBuilder.build();
-  }
-
-
-  /**
-   * Converts from proto type to wire type.
-   *
-   * @param loadMetadataPType the proto representation of loadMetadataType
-   * @return the {@link LoadMetadataType}
-   */
-  @Nullable
-  public static LoadMetadataType fromProto(LoadMetadataPType loadMetadataPType) {
-    switch (loadMetadataPType) {
-      case NEVER:
-        return LoadMetadataType.Never;
-      case ONCE:
-        return LoadMetadataType.Once;
-      case ALWAYS:
-        return LoadMetadataType.Always;
-      default:
-        return null;
-    }
-  }
-
-  /**
-   * Converts from proto type to wire type.
-   *
-   * @param loadMetadataPType the proto representation of loadMetadataType
-   * @return the {@link LoadMetadataType}
-   */
-  @Nullable
-  public static DescendantType fromProto(LoadDescendantPType loadMetadataPType) {
-    switch (loadMetadataPType) {
-      case NONE:
-        return DescendantType.NONE;
-      case ONE:
-        return DescendantType.ONE;
-      case ALL:
-        return DescendantType.ALL;
-      default:
-        return null;
-    }
   }
 
   /**
