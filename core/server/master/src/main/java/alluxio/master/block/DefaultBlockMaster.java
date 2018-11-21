@@ -44,7 +44,6 @@ import alluxio.proto.journal.Block.BlockContainerIdGeneratorEntry;
 import alluxio.proto.journal.Block.BlockInfoEntry;
 import alluxio.proto.journal.Block.DeleteBlockEntry;
 import alluxio.proto.journal.Journal.JournalEntry;
-import alluxio.thrift.BlockMasterClientService;
 import alluxio.thrift.BlockMasterWorkerService;
 import alluxio.thrift.Command;
 import alluxio.thrift.CommandType;
@@ -234,9 +233,10 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
 
   @Override
   public Map<String, TProcessor> getServices() {
+    // TODO(ggezer) modify for grpc initilization
     Map<String, TProcessor> services = new HashMap<>();
-    services.put(Constants.BLOCK_MASTER_CLIENT_SERVICE_NAME,
-        new BlockMasterClientService.Processor<>(new BlockMasterClientServiceHandler(this)));
+    //services.put(Constants.BLOCK_MASTER_CLIENT_SERVICE_NAME,
+    //   new BlockMasterClientService.Processor<>(new BlockMasterClientServiceHandler(this)));
     services.put(Constants.BLOCK_MASTER_WORKER_SERVICE_NAME,
         new BlockMasterWorkerService.Processor<>(new BlockMasterWorkerServiceHandler(this)));
     return services;

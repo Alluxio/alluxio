@@ -152,28 +152,30 @@ public final class BlockMasterInfo implements Serializable {
   }
 
   /**
-   * @return thrift representation of the block master information
+   * @return proto representation of the block master information
    */
-  protected alluxio.thrift.BlockMasterInfo toThrift() {
-    return new alluxio.thrift.BlockMasterInfo(mCapacityBytes, mCapacityBytesOnTiers,
-        mFreeBytes, mLiveWorkerNum, mLostWorkerNum, mUsedBytes, mUsedBytesOnTiers);
+  protected alluxio.grpc.BlockMasterInfo toProto() {
+    return alluxio.grpc.BlockMasterInfo.newBuilder().setCapacityBytes(mCapacityBytes)
+        .putAllCapacityBytesOnTiers(mCapacityBytesOnTiers).setFreeBytes(mFreeBytes)
+        .setLiveWorkerNum(mLiveWorkerNum).setLostWorkerNum(mLostWorkerNum).setUsedBytes(mUsedBytes)
+        .putAllUsedBytesOnTiers(mUsedBytesOnTiers).build();
   }
 
   /**
-   * Creates a new instance of {@link BlockMasterInfo} from a thrift representation.
+   * Creates a new instance of {@link BlockMasterInfo} from a proto representation.
    *
-   * @param info the thrift representation of a block master information
+   * @param info the proto representation of a block master information
    * @return the instance
    */
-  public static BlockMasterInfo fromThrift(alluxio.thrift.BlockMasterInfo info) {
+  public static BlockMasterInfo fromProto(alluxio.grpc.BlockMasterInfo info) {
     return new BlockMasterInfo()
         .setCapacityBytes(info.getCapacityBytes())
-        .setCapacityBytesOnTiers(info.getCapacityBytesOnTiers())
+        .setCapacityBytesOnTiers(info.getCapacityBytesOnTiersMap())
         .setFreeBytes(info.getFreeBytes())
         .setLiveWorkerNum(info.getLiveWorkerNum())
         .setLostWorkerNum(info.getLostWorkerNum())
         .setUsedBytes(info.getUsedBytes())
-        .setUsedBytesOnTiers(info.getUsedBytesOnTiers());
+        .setUsedBytesOnTiers(info.getUsedBytesOnTiersMap());
   }
 
   @Override
@@ -222,17 +224,17 @@ public final class BlockMasterInfo implements Serializable {
     USED_BYTES_ON_TIERS;
 
     /**
-     * @return the thrift representation of this block master info field
+     * @return the proto representation of this block master info field
      */
-    public alluxio.thrift.BlockMasterInfoField toThrift() {
-      return alluxio.thrift.BlockMasterInfoField.valueOf(name());
+    public alluxio.grpc.BlockMasterInfoField toProto() {
+      return alluxio.grpc.BlockMasterInfoField.valueOf(name());
     }
 
     /**
-     * @param field the thrift representation of the block master info field to create
+     * @param field the proto representation of the block master info field to create
      * @return the wire type version of the block master info field
      */
-    public static BlockMasterInfoField fromThrift(alluxio.thrift.BlockMasterInfoField field) {
+    public static BlockMasterInfoField fromProto(alluxio.grpc.BlockMasterInfoField field) {
       return BlockMasterInfoField.valueOf(field.name());
     }
   }
