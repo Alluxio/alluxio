@@ -12,6 +12,7 @@
 package alluxio.master.file.meta;
 
 import alluxio.exception.InvalidPathException;
+import alluxio.master.file.meta.InodeTree.LockMode;
 
 import com.google.common.collect.Lists;
 
@@ -27,7 +28,7 @@ import javax.annotation.concurrent.ThreadSafe;
 public class InodeLockList implements AutoCloseable {
   private static final int INITIAL_CAPACITY = 4;
   protected List<InodeView> mInodes;
-  protected List<InodeTree.LockMode> mLockModes;
+  protected List<LockMode> mLockModes;
 
   /**
    * Creates a new instance of {@link InodeLockList}.
@@ -46,7 +47,7 @@ public class InodeLockList implements AutoCloseable {
   public synchronized void lockRead(InodeView inode) {
     inode.lockRead();
     mInodes.add(inode);
-    mLockModes.add(InodeTree.LockMode.READ);
+    mLockModes.add(LockMode.READ);
   }
 
   /**
@@ -63,7 +64,7 @@ public class InodeLockList implements AutoCloseable {
       throws InvalidPathException {
     inode.lockReadAndCheckParent(parent);
     mInodes.add(inode);
-    mLockModes.add(InodeTree.LockMode.READ);
+    mLockModes.add(LockMode.READ);
   }
 
   /**
@@ -81,7 +82,7 @@ public class InodeLockList implements AutoCloseable {
       String name) throws InvalidPathException {
     inode.lockReadAndCheckNameAndParent(parent, name);
     mInodes.add(inode);
-    mLockModes.add(InodeTree.LockMode.READ);
+    mLockModes.add(LockMode.READ);
   }
 
   /**
@@ -93,7 +94,7 @@ public class InodeLockList implements AutoCloseable {
     }
     InodeView inode = mInodes.remove(mInodes.size() - 1);
     InodeTree.LockMode lockMode = mLockModes.remove(mLockModes.size() - 1);
-    if (lockMode == InodeTree.LockMode.READ) {
+    if (lockMode == LockMode.READ) {
       inode.unlockRead();
     } else {
       inode.unlockWrite();
@@ -108,14 +109,14 @@ public class InodeLockList implements AutoCloseable {
     if (mInodes.isEmpty()) {
       return;
     }
-    if (mLockModes.get(mLockModes.size() - 1) != InodeTree.LockMode.READ) {
+    if (mLockModes.get(mLockModes.size() - 1) != LockMode.READ) {
       // The last inode was previously WRITE locked, so downgrade the lock.
       InodeView inode = mInodes.get(mInodes.size() - 1);
       inode.lockRead();
       inode.unlockWrite();
       // Update the last lock mode to READ
       mLockModes.remove(mLockModes.size() - 1);
-      mLockModes.add(InodeTree.LockMode.READ);
+      mLockModes.add(LockMode.READ);
     }
   }
 
@@ -128,7 +129,7 @@ public class InodeLockList implements AutoCloseable {
   public synchronized void lockWrite(InodeView inode) {
     inode.lockWrite();
     mInodes.add(inode);
-    mLockModes.add(InodeTree.LockMode.WRITE);
+    mLockModes.add(LockMode.WRITE);
   }
 
   /**
@@ -145,7 +146,7 @@ public class InodeLockList implements AutoCloseable {
       throws InvalidPathException {
     inode.lockWriteAndCheckParent(parent);
     mInodes.add(inode);
-    mLockModes.add(InodeTree.LockMode.WRITE);
+    mLockModes.add(LockMode.WRITE);
   }
 
   /**
@@ -163,7 +164,7 @@ public class InodeLockList implements AutoCloseable {
       String name) throws InvalidPathException {
     inode.lockWriteAndCheckNameAndParent(parent, name);
     mInodes.add(inode);
-    mLockModes.add(InodeTree.LockMode.WRITE);
+    mLockModes.add(LockMode.WRITE);
   }
 
   /**
@@ -202,7 +203,7 @@ public class InodeLockList implements AutoCloseable {
     for (int i = mInodes.size() - 1; i >= 0; i--) {
       InodeView inode = mInodes.get(i);
       InodeTree.LockMode lockMode = mLockModes.get(i);
-      if (lockMode == InodeTree.LockMode.READ) {
+      if (lockMode == LockMode.READ) {
         inode.unlockRead();
       } else {
         inode.unlockWrite();

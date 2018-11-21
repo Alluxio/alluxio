@@ -25,6 +25,7 @@ import alluxio.master.SafeModeManager;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.meta.InodeFileView;
 import alluxio.master.file.meta.InodeTree;
+import alluxio.master.file.meta.InodeTree.LockPattern;
 import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.file.meta.PersistenceState;
 import alluxio.wire.BlockInfo;
@@ -145,7 +146,7 @@ public final class ReplicationChecker implements HeartbeatExecutor {
       // file and may increase lock contention in this tree. Investigate if we could avoid
       // locking the entire path but just the inode file since this access is read-only.
       try (LockedInodePath inodePath =
-          mInodeTree.lockFullInodePath(inodeId, InodeTree.LockMode.READ)) {
+          mInodeTree.lockFullInodePath(inodeId, LockPattern.READ)) {
         InodeFileView file = inodePath.getInodeFile();
         for (long blockId : file.getBlockIds()) {
           BlockInfo blockInfo = null;

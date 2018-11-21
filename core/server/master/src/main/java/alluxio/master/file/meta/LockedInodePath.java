@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
+import alluxio.master.file.meta.InodeTree.LockPattern;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Preconditions;
@@ -33,25 +34,24 @@ public abstract class LockedInodePath implements Closeable {
   protected final AlluxioURI mUri;
   protected final String[] mPathComponents;
   protected final InodeLockList mLockList;
-  protected InodeTree.LockMode mLockMode;
+  protected LockPattern mLockPattern;
 
-  LockedInodePath(AlluxioURI uri, InodeLockList lockList,
-      InodeTree.LockMode lockMode)
+  LockedInodePath(AlluxioURI uri, InodeLockList lockList, LockPattern lockPattern)
       throws InvalidPathException {
     Preconditions.checkArgument(!lockList.isEmpty());
     mUri = uri;
     mPathComponents = PathUtils.getPathComponents(mUri.getPath());
     mLockList = lockList;
-    mLockMode = lockMode;
+    mLockPattern = lockPattern;
   }
 
   LockedInodePath(AlluxioURI uri, InodeLockList lockList, String[] pathComponents,
-      InodeTree.LockMode lockMode) {
+      LockPattern lockPattern) {
     Preconditions.checkArgument(!lockList.isEmpty());
     mUri = uri;
     mPathComponents = pathComponents;
     mLockList = lockList;
-    mLockMode = lockMode;
+    mLockPattern = lockPattern;
   }
 
   /**
@@ -60,15 +60,15 @@ public abstract class LockedInodePath implements Closeable {
    *
    * @param descendantUri the uri of the descendant
    * @param lockedInodePath the lockedInodePath that is the parent of the descendant
-   * @param lockList the lockList which contains all the locks from the parent (not including)
-   *                to the descendant.
+   * @param lockList the lockList which contains all the locks from the parent (not including) to
+   *        the descendant.
    */
-  LockedInodePath(AlluxioURI descendantUri, LockedInodePath lockedInodePath,
-                  InodeLockList lockList) throws InvalidPathException {
+  LockedInodePath(AlluxioURI descendantUri, LockedInodePath lockedInodePath, InodeLockList lockList)
+      throws InvalidPathException {
     mUri = descendantUri;
     mPathComponents = PathUtils.getPathComponents(mUri.getPath());
     mLockList = new CompositeInodeLockList(lockedInodePath.mLockList, lockList);
-    mLockMode = lockedInodePath.getLockMode();
+    mLockPattern = lockedInodePath.getLockPattern();
   }
 
   /**
@@ -173,10 +173,10 @@ public abstract class LockedInodePath implements Closeable {
   }
 
   /**
-   * @return the {@link InodeTree.LockMode} of this path
+   * @return the {@link LockPattern} of this path
    */
-  public synchronized InodeTree.LockMode getLockMode() {
-    return mLockMode;
+  public synchronized LockPattern getLockPattern() {
+    return mLockPattern;
   }
 
   @Override
@@ -201,9 +201,9 @@ public abstract class LockedInodePath implements Closeable {
    */
   public synchronized void downgradeLastWithScheme(LockingScheme lockingScheme) {
     // Need to downgrade if the locking scheme initially desired the READ lock.
-    if (lockingScheme.getDesiredMode() == InodeTree.LockMode.READ) {
+    if (lockingScheme.getDesiredMode() == LockPattern.READ) {
       downgradeLast();
-      mLockMode = InodeTree.LockMode.READ;
+      mLockPattern = LockPattern.READ;
     }
   }
 
@@ -237,7 +237,7 @@ public abstract class LockedInodePath implements Closeable {
     Preconditions.checkState(getInodeOrNull().isDirectory(),
         "Trying to create TempPathForChild for a file inode");
     return new MutableLockedInodePath(mUri.join(childName), new CompositeInodeLockList(mLockList),
-        mLockMode);
+        mLockPattern);
   }
 
   /**
@@ -253,11 +253,11 @@ public abstract class LockedInodePath implements Closeable {
    * @throws FileDoesNotExistException if the file does not exist
    */
   public synchronized LockedInodePath createTempPathForExistingChild(
-      InodeView child, InodeTree.LockMode lockMode)
+      InodeView child, LockPattern lockMode)
       throws InvalidPathException, FileDoesNotExistException {
     InodeLockList lockList = new CompositeInodeLockList(mLockList);
     LockedInodePath lockedDescendantPath;
-    if (lockMode == InodeTree.LockMode.READ) {
+    if (lockMode == LockPattern.READ) {
       lockList.lockReadAndCheckParent(child, getInode());
       lockedDescendantPath = new MutableLockedInodePath(
           getUri().join(child.getName()), this, lockList);

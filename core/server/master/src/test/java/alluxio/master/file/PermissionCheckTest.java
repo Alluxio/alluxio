@@ -36,12 +36,12 @@ import alluxio.master.MasterTestUtils;
 import alluxio.master.SafeModeManager;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.block.BlockMasterFactory;
-
 import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeDirectory;
 import alluxio.master.file.meta.InodeFile;
 import alluxio.master.file.meta.InodeLockList;
 import alluxio.master.file.meta.InodeTree;
+import alluxio.master.file.meta.InodeTree.LockPattern;
 import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.file.meta.MutableLockedInodePath;
 import alluxio.master.file.options.CompleteFileOptions;
@@ -967,7 +967,7 @@ public final class PermissionCheckTest {
     InodeLockList lockList = new InodeLockList();
     lockList.lockRead(getRootInode());
     if (permissions.size() == 0) {
-      return new MutableLockedInodePath(new AlluxioURI("/"), lockList, InodeTree.LockMode.READ);
+      return new MutableLockedInodePath(new AlluxioURI("/"), lockList, LockPattern.READ);
     }
     String uri = "";
     for (int i = 0; i < permissions.size(); i++) {
@@ -987,6 +987,6 @@ public final class PermissionCheckTest {
         lockList.lockRead(inode);
       }
     }
-    return new MutableLockedInodePath(new AlluxioURI(uri), lockList, InodeTree.LockMode.READ);
+    return new MutableLockedInodePath(new AlluxioURI(uri), lockList, LockPattern.READ);
   }
 }

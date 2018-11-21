@@ -28,6 +28,7 @@ import alluxio.master.file.RpcContext;
 import alluxio.master.file.meta.InodeDirectoryIdGenerator;
 import alluxio.master.file.meta.InodeFile;
 import alluxio.master.file.meta.InodeTree;
+import alluxio.master.file.meta.InodeTree.LockPattern;
 import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.file.meta.MountTable;
 import alluxio.master.file.meta.options.MountInfo;
@@ -155,7 +156,7 @@ public final class ReplicationCheckerTest {
    * @return the block ID
    */
   private long createBlockHelper(AlluxioURI path, CreatePathOptions<?> options) throws Exception {
-    try (LockedInodePath inodePath = mInodeTree.lockInodePath(path, InodeTree.LockMode.WRITE)) {
+    try (LockedInodePath inodePath = mInodeTree.lockInodePath(path, LockPattern.WRITE_LAST)) {
       InodeTree.CreatePathResult result =
           mInodeTree.createPath(RpcContext.NOOP, inodePath, options);
       InodeFile inodeFile = (InodeFile) result.getCreated().get(0);

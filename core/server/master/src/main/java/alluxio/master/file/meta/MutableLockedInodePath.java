@@ -13,6 +13,7 @@ package alluxio.master.file.meta;
 
 import alluxio.AlluxioURI;
 import alluxio.exception.InvalidPathException;
+import alluxio.master.file.meta.InodeTree.LockPattern;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -27,14 +28,13 @@ public class MutableLockedInodePath extends LockedInodePath {
    *
    * @param uri the URI
    * @param lockList the lock list of the inodes
-   * @param lockMode the lock mode for the path
+   * @param lockPattern the lock mode for the path
    * @throws InvalidPathException if the path passed is invalid
    */
   // TODO(gpang): restructure class hierarchy, rename class
-  public MutableLockedInodePath(AlluxioURI uri, InodeLockList lockList,
-      InodeTree.LockMode lockMode)
+  public MutableLockedInodePath(AlluxioURI uri, InodeLockList lockList, LockPattern lockPattern)
       throws InvalidPathException {
-    super(uri, lockList, lockMode);
+    super(uri, lockList, lockPattern);
   }
 
   /**
@@ -43,11 +43,11 @@ public class MutableLockedInodePath extends LockedInodePath {
    * @param uri the URI
    * @param lockList the lock list of the inodes
    * @param pathComponents the array of path components
-   * @param lockMode the lock mode for the path
+   * @param lockPattern the lock mode for the path
    */
   public MutableLockedInodePath(AlluxioURI uri, InodeLockList lockList, String[] pathComponents,
-      InodeTree.LockMode lockMode) {
-    super(uri, lockList, pathComponents, lockMode);
+      LockPattern lockPattern) {
+    super(uri, lockList, pathComponents, lockPattern);
   }
 
   /**
@@ -59,7 +59,7 @@ public class MutableLockedInodePath extends LockedInodePath {
    * @throws InvalidPathException if the path passed is invalid
    */
   public MutableLockedInodePath(AlluxioURI descendantUri, LockedInodePath lockedInodePath,
-                                InodeLockList descendants) throws InvalidPathException {
+      InodeLockList descendants) throws InvalidPathException {
     super(descendantUri, lockedInodePath, descendants);
   }
 
