@@ -1,0 +1,26 @@
+syntax = "proto2";
+
+option java_multiple_files = true;
+option java_package = "alluxio.grpc";
+option java_outer_classname = "MetaMasterProtoOptions";
+
+package alluxio.grpc;
+
+message GetConfigurationPOptions{}
+
+enum MasterInfoField {
+  MASTER_ADDRESS = 0;
+  RPC_PORT = 1;
+  SAFE_MODE = 2;
+  START_TIME_MS = 3;
+  UP_TIME_MS = 4;
+  VERSION = 5;
+  WEB_PORT = 6;
+  ZOOKEEPER_ADDRESSES = 7;
+}
+
+message GetMasterInfoPOptions {
+  repeated MasterInfoField filter = 1;
+}
+
+message GetMetricsPOptions {}

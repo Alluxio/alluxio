@@ -20,11 +20,6 @@ public final class MetaMasterProto {
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_alluxio_grpc_ConfigProperty_fieldAccessorTable;
   static final com.google.protobuf.Descriptors.Descriptor
-    internal_static_alluxio_grpc_GetConfigurationPOptions_descriptor;
-  static final 
-    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
-      internal_static_alluxio_grpc_GetConfigurationPOptions_fieldAccessorTable;
-  static final com.google.protobuf.Descriptors.Descriptor
     internal_static_alluxio_grpc_GetConfigurationPResponse_descriptor;
   static final 
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
@@ -35,20 +30,10 @@ public final class MetaMasterProto {
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_alluxio_grpc_MasterInfo_fieldAccessorTable;
   static final com.google.protobuf.Descriptors.Descriptor
-    internal_static_alluxio_grpc_GetMasterInfoPOptions_descriptor;
-  static final 
-    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
-      internal_static_alluxio_grpc_GetMasterInfoPOptions_fieldAccessorTable;
-  static final com.google.protobuf.Descriptors.Descriptor
     internal_static_alluxio_grpc_GetMasterInfoPResponse_descriptor;
   static final 
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_alluxio_grpc_GetMasterInfoPResponse_fieldAccessorTable;
-  static final com.google.protobuf.Descriptors.Descriptor
-    internal_static_alluxio_grpc_GetMetricsPOptions_descriptor;
-  static final 
-    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
-      internal_static_alluxio_grpc_GetMetricsPOptions_fieldAccessorTable;
   static final com.google.protobuf.Descriptors.Descriptor
     internal_static_alluxio_grpc_GetMetricsPResponse_descriptor;
   static final 
@@ -73,38 +58,32 @@ public final class MetaMasterProto {
       descriptor;
   static {
     java.lang.String[] descriptorData = {
-      "\n\021meta_master.proto\022\014alluxio.grpc\"=\n\016Con" +
-      "figProperty\022\014\n\004name\030\001 \001(\t\022\016\n\006source\030\002 \001(" +
-      "\t\022\r\n\005value\030\003 \001(\t\"\032\n\030GetConfigurationPOpt" +
-      "ions\"M\n\031GetConfigurationPResponse\0220\n\ncon" +
-      "figList\030\001 \003(\0132\034.alluxio.grpc.ConfigPrope" +
-      "rty\"\253\001\n\nMasterInfo\022\025\n\rmasterAddress\030\001 \001(" +
-      "\t\022\017\n\007rpcPort\030\002 \001(\005\022\020\n\010safeMode\030\003 \001(\010\022\023\n\013" +
-      "startTimeMs\030\004 \001(\003\022\020\n\010upTimeMs\030\005 \001(\003\022\017\n\007v" +
-      "ersion\030\006 \001(\t\022\017\n\007webPort\030\007 \001(\005\022\032\n\022zookeep" +
-      "erAddresses\030\010 \003(\t\"F\n\025GetMasterInfoPOptio" +
-      "ns\022-\n\006filter\030\001 \003(\0162\035.alluxio.grpc.Master" +
-      "InfoField\"F\n\026GetMasterInfoPResponse\022,\n\nm" +
-      "asterInfo\030\001 \001(\0132\030.alluxio.grpc.MasterInf" +
-      "o\"\024\n\022GetMetricsPOptions\"\252\001\n\023GetMetricsPR" +
-      "esponse\022E\n\nmetricsMap\030\001 \003(\01321.alluxio.gr" +
-      "pc.GetMetricsPResponse.MetricsMapEntry\032L" +
-      "\n\017MetricsMapEntry\022\013\n\003key\030\001 \001(\t\022(\n\005value\030" +
-      "\002 \001(\0132\031.alluxio.grpc.MetricValue:\0028\001\"5\n\013" +
-      "MetricValue\022\023\n\013doubleValue\030\001 \001(\001\022\021\n\tlong" +
-      "Value\030\002 \001(\003*\231\001\n\017MasterInfoField\022\022\n\016MASTE" +
-      "R_ADDRESS\020\000\022\014\n\010RPC_PORT\020\001\022\r\n\tSAFE_MODE\020\002" +
-      "\022\021\n\rSTART_TIME_MS\020\003\022\016\n\nUP_TIME_MS\020\004\022\013\n\007V" +
-      "ERSION\020\005\022\014\n\010WEB_PORT\020\006\022\027\n\023ZOOKEEPER_ADDR" +
-      "ESSES\020\0072\255\002\n\027MetaMasterClientService\022c\n\020G" +
-      "etConfiguration\022&.alluxio.grpc.GetConfig" +
-      "urationPOptions\032\'.alluxio.grpc.GetConfig" +
-      "urationPResponse\022Z\n\rGetMasterInfo\022#.allu" +
-      "xio.grpc.GetMasterInfoPOptions\032$.alluxio" +
-      ".grpc.GetMasterInfoPResponse\022Q\n\nGetMetri" +
-      "cs\022 .alluxio.grpc.GetMetricsPOptions\032!.a" +
-      "lluxio.grpc.GetMetricsPResponseB!\n\014allux" +
-      "io.grpcB\017MetaMasterProtoP\001"
+      "\n\021meta_master.proto\022\014alluxio.grpc\032\031meta_" +
+      "master_options.proto\"=\n\016ConfigProperty\022\014" +
+      "\n\004name\030\001 \001(\t\022\016\n\006source\030\002 \001(\t\022\r\n\005value\030\003 " +
+      "\001(\t\"M\n\031GetConfigurationPResponse\0220\n\nconf" +
+      "igList\030\001 \003(\0132\034.alluxio.grpc.ConfigProper" +
+      "ty\"\253\001\n\nMasterInfo\022\025\n\rmasterAddress\030\001 \001(\t" +
+      "\022\017\n\007rpcPort\030\002 \001(\005\022\020\n\010safeMode\030\003 \001(\010\022\023\n\013s" +
+      "tartTimeMs\030\004 \001(\003\022\020\n\010upTimeMs\030\005 \001(\003\022\017\n\007ve" +
+      "rsion\030\006 \001(\t\022\017\n\007webPort\030\007 \001(\005\022\032\n\022zookeepe" +
+      "rAddresses\030\010 \003(\t\"F\n\026GetMasterInfoPRespon" +
+      "se\022,\n\nmasterInfo\030\001 \001(\0132\030.alluxio.grpc.Ma" +
+      "sterInfo\"\252\001\n\023GetMetricsPResponse\022E\n\nmetr" +
+      "icsMap\030\001 \003(\01321.alluxio.grpc.GetMetricsPR" +
+      "esponse.MetricsMapEntry\032L\n\017MetricsMapEnt" +
+      "ry\022\013\n\003key\030\001 \001(\t\022(\n\005value\030\002 \001(\0132\031.alluxio" +
+      ".grpc.MetricValue:\0028\001\"5\n\013MetricValue\022\023\n\013" +
+      "doubleValue\030\001 \001(\001\022\021\n\tlongValue\030\002 \001(\0032\255\002\n" +
+      "\027MetaMasterClientService\022c\n\020GetConfigura" +
+      "tion\022&.alluxio.grpc.GetConfigurationPOpt" +
+      "ions\032\'.alluxio.grpc.GetConfigurationPRes" +
+      "ponse\022Z\n\rGetMasterInfo\022#.alluxio.grpc.Ge" +
+      "tMasterInfoPOptions\032$.alluxio.grpc.GetMa" +
+      "sterInfoPResponse\022Q\n\nGetMetrics\022 .alluxi" +
+      "o.grpc.GetMetricsPOptions\032!.alluxio.grpc" +
+      ".GetMetricsPResponseB!\n\014alluxio.grpcB\017Me" +
+      "taMasterProtoP\001"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -117,6 +96,7 @@ public final class MetaMasterProto {
     com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
         new com.google.protobuf.Descriptors.FileDescriptor[] {
+          alluxio.grpc.MetaMasterProtoOptions.getDescriptor(),
         }, assigner);
     internal_static_alluxio_grpc_ConfigProperty_descriptor =
       getDescriptor().getMessageTypes().get(0);
@@ -124,44 +104,26 @@ public final class MetaMasterProto {
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_ConfigProperty_descriptor,
         new java.lang.String[] { "Name", "Source", "Value", });
-    internal_static_alluxio_grpc_GetConfigurationPOptions_descriptor =
-      getDescriptor().getMessageTypes().get(1);
-    internal_static_alluxio_grpc_GetConfigurationPOptions_fieldAccessorTable = new
-      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
-        internal_static_alluxio_grpc_GetConfigurationPOptions_descriptor,
-        new java.lang.String[] { });
     internal_static_alluxio_grpc_GetConfigurationPResponse_descriptor =
-      getDescriptor().getMessageTypes().get(2);
+      getDescriptor().getMessageTypes().get(1);
     internal_static_alluxio_grpc_GetConfigurationPResponse_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_GetConfigurationPResponse_descriptor,
         new java.lang.String[] { "ConfigList", });
     internal_static_alluxio_grpc_MasterInfo_descriptor =
-      getDescriptor().getMessageTypes().get(3);
+      getDescriptor().getMessageTypes().get(2);
     internal_static_alluxio_grpc_MasterInfo_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_MasterInfo_descriptor,
         new java.lang.String[] { "MasterAddress", "RpcPort", "SafeMode", "StartTimeMs", "UpTimeMs", "Version", "WebPort", "ZookeeperAddresses", });
-    internal_static_alluxio_grpc_GetMasterInfoPOptions_descriptor =
-      getDescriptor().getMessageTypes().get(4);
-    internal_static_alluxio_grpc_GetMasterInfoPOptions_fieldAccessorTable = new
-      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
-        internal_static_alluxio_grpc_GetMasterInfoPOptions_descriptor,
-        new java.lang.String[] { "Filter", });
     internal_static_alluxio_grpc_GetMasterInfoPResponse_descriptor =
-      getDescriptor().getMessageTypes().get(5);
+      getDescriptor().getMessageTypes().get(3);
     internal_static_alluxio_grpc_GetMasterInfoPResponse_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_GetMasterInfoPResponse_descriptor,
         new java.lang.String[] { "MasterInfo", });
-    internal_static_alluxio_grpc_GetMetricsPOptions_descriptor =
-      getDescriptor().getMessageTypes().get(6);
-    internal_static_alluxio_grpc_GetMetricsPOptions_fieldAccessorTable = new
-      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
-        internal_static_alluxio_grpc_GetMetricsPOptions_descriptor,
-        new java.lang.String[] { });
     internal_static_alluxio_grpc_GetMetricsPResponse_descriptor =
-      getDescriptor().getMessageTypes().get(7);
+      getDescriptor().getMessageTypes().get(4);
     internal_static_alluxio_grpc_GetMetricsPResponse_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_GetMetricsPResponse_descriptor,
@@ -173,11 +135,12 @@ public final class MetaMasterProto {
         internal_static_alluxio_grpc_GetMetricsPResponse_MetricsMapEntry_descriptor,
         new java.lang.String[] { "Key", "Value", });
     internal_static_alluxio_grpc_MetricValue_descriptor =
-      getDescriptor().getMessageTypes().get(8);
+      getDescriptor().getMessageTypes().get(5);
     internal_static_alluxio_grpc_MetricValue_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_MetricValue_descriptor,
         new java.lang.String[] { "DoubleValue", "LongValue", });
+    alluxio.grpc.MetaMasterProtoOptions.getDescriptor();
   }
 
   // @@protoc_insertion_point(outer_class_scope)

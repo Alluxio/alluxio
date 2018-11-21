@@ -6,26 +6,16 @@ option java_outer_classname = "MetaMasterProto";
 
 package alluxio.grpc;
 
+import "meta_master_options.proto";
+
 message ConfigProperty {
   optional string name = 1;
   optional string source = 2;
   optional string value = 3;
 }
 
-message GetConfigurationPOptions{}
 message GetConfigurationPResponse{
   repeated ConfigProperty configList = 1;
-}
-
-enum MasterInfoField {
-  MASTER_ADDRESS = 0;
-  RPC_PORT = 1;
-  SAFE_MODE = 2;
-  START_TIME_MS = 3;
-  UP_TIME_MS = 4;
-  VERSION = 5;
-  WEB_PORT = 6;
-  ZOOKEEPER_ADDRESSES = 7;
 }
 
 message MasterInfo {
@@ -39,15 +29,11 @@ message MasterInfo {
  repeated string zookeeperAddresses = 8;// Null means zookeeper is not enabled
 }
 
-message GetMasterInfoPOptions {
-  repeated MasterInfoField filter = 1;
-}
 
 message GetMasterInfoPResponse {
   optional MasterInfo masterInfo = 1;
 }
 
-message GetMetricsPOptions {}
 message GetMetricsPResponse {
   map<string, MetricValue> metricsMap = 1;
 }
