@@ -118,7 +118,7 @@ private static final long serialVersionUID = 0L;
               java.lang.Integer, alluxio.grpc.MasterInfoField>() {
             public alluxio.grpc.MasterInfoField convert(java.lang.Integer from) {
               alluxio.grpc.MasterInfoField result = alluxio.grpc.MasterInfoField.valueOf(from);
-              return result == null ? alluxio.grpc.MasterInfoField.MASTER_ADDRESS : result;
+              return result == null ? alluxio.grpc.MasterInfoField.LEADER_MASTER_ADDRESS : result;
             }
           };
   /**

@@ -15,10 +15,20 @@ public final class MetaMasterProtoOptions {
         (com.google.protobuf.ExtensionRegistryLite) registry);
   }
   static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_alluxio_grpc_BackupPOptions_descriptor;
+  static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_alluxio_grpc_BackupPOptions_fieldAccessorTable;
+  static final com.google.protobuf.Descriptors.Descriptor
     internal_static_alluxio_grpc_GetConfigurationPOptions_descriptor;
   static final 
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_alluxio_grpc_GetConfigurationPOptions_fieldAccessorTable;
+  static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_alluxio_grpc_GetConfigReportPOptions_descriptor;
+  static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_alluxio_grpc_GetConfigReportPOptions_fieldAccessorTable;
   static final com.google.protobuf.Descriptors.Descriptor
     internal_static_alluxio_grpc_GetMasterInfoPOptions_descriptor;
   static final 
@@ -29,6 +39,21 @@ public final class MetaMasterProtoOptions {
   static final 
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_alluxio_grpc_GetMetricsPOptions_fieldAccessorTable;
+  static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_alluxio_grpc_GetMasterIdPOptions_descriptor;
+  static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_alluxio_grpc_GetMasterIdPOptions_fieldAccessorTable;
+  static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_alluxio_grpc_RegisterMasterPOptions_descriptor;
+  static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_alluxio_grpc_RegisterMasterPOptions_fieldAccessorTable;
+  static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_alluxio_grpc_MasterHeartbeatPOptions_descriptor;
+  static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_alluxio_grpc_MasterHeartbeatPOptions_fieldAccessorTable;
 
   public static com.google.protobuf.Descriptors.FileDescriptor
       getDescriptor() {
@@ -39,15 +64,22 @@ public final class MetaMasterProtoOptions {
   static {
     java.lang.String[] descriptorData = {
       "\n\031meta_master_options.proto\022\014alluxio.grp" +
-      "c\"\032\n\030GetConfigurationPOptions\"F\n\025GetMast" +
-      "erInfoPOptions\022-\n\006filter\030\001 \003(\0162\035.alluxio" +
-      ".grpc.MasterInfoField\"\024\n\022GetMetricsPOpti" +
-      "ons*\231\001\n\017MasterInfoField\022\022\n\016MASTER_ADDRES" +
-      "S\020\000\022\014\n\010RPC_PORT\020\001\022\r\n\tSAFE_MODE\020\002\022\021\n\rSTAR" +
-      "T_TIME_MS\020\003\022\016\n\nUP_TIME_MS\020\004\022\013\n\007VERSION\020\005" +
-      "\022\014\n\010WEB_PORT\020\006\022\027\n\023ZOOKEEPER_ADDRESSES\020\007B" +
-      "(\n\014alluxio.grpcB\026MetaMasterProtoOptionsP" +
-      "\001"
+      "c\032\014common.proto\"B\n\016BackupPOptions\022\027\n\017tar" +
+      "getDirectory\030\001 \001(\t\022\027\n\017localFileSystem\030\002 " +
+      "\001(\010\",\n\030GetConfigurationPOptions\022\020\n\010rawVa" +
+      "lue\030\001 \001(\010\"\031\n\027GetConfigReportPOptions\"F\n\025" +
+      "GetMasterInfoPOptions\022-\n\006filter\030\001 \003(\0162\035." +
+      "alluxio.grpc.MasterInfoField\"\024\n\022GetMetri" +
+      "csPOptions\"\025\n\023GetMasterIdPOptions\"G\n\026Reg" +
+      "isterMasterPOptions\022-\n\007configs\030\001 \003(\0132\034.a" +
+      "lluxio.grpc.ConfigProperty\"\031\n\027MasterHear" +
+      "tbeatPOptions*\314\001\n\017MasterInfoField\022\031\n\025LEA" +
+      "DER_MASTER_ADDRESS\020\000\022\024\n\020MASTER_ADDRESSES" +
+      "\020\001\022\014\n\010RPC_PORT\020\002\022\r\n\tSAFE_MODE\020\003\022\021\n\rSTART" +
+      "_TIME_MS\020\004\022\016\n\nUP_TIME_MS\020\005\022\013\n\007VERSION\020\006\022" +
+      "\014\n\010WEB_PORT\020\007\022\024\n\020WORKER_ADDRESSES\020\010\022\027\n\023Z" +
+      "OOKEEPER_ADDRESSES\020\tB(\n\014alluxio.grpcB\026Me" +
+      "taMasterProtoOptionsP\001"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -60,25 +92,57 @@ public final class MetaMasterProtoOptions {
     com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
         new com.google.protobuf.Descriptors.FileDescriptor[] {
+          alluxio.grpc.CommonProto.getDescriptor(),
         }, assigner);
-    internal_static_alluxio_grpc_GetConfigurationPOptions_descriptor =
+    internal_static_alluxio_grpc_BackupPOptions_descriptor =
       getDescriptor().getMessageTypes().get(0);
+    internal_static_alluxio_grpc_BackupPOptions_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_alluxio_grpc_BackupPOptions_descriptor,
+        new java.lang.String[] { "TargetDirectory", "LocalFileSystem", });
+    internal_static_alluxio_grpc_GetConfigurationPOptions_descriptor =
+      getDescriptor().getMessageTypes().get(1);
     internal_static_alluxio_grpc_GetConfigurationPOptions_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_GetConfigurationPOptions_descriptor,
+        new java.lang.String[] { "RawValue", });
+    internal_static_alluxio_grpc_GetConfigReportPOptions_descriptor =
+      getDescriptor().getMessageTypes().get(2);
+    internal_static_alluxio_grpc_GetConfigReportPOptions_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_alluxio_grpc_GetConfigReportPOptions_descriptor,
         new java.lang.String[] { });
     internal_static_alluxio_grpc_GetMasterInfoPOptions_descriptor =
-      getDescriptor().getMessageTypes().get(1);
+      getDescriptor().getMessageTypes().get(3);
     internal_static_alluxio_grpc_GetMasterInfoPOptions_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_GetMasterInfoPOptions_descriptor,
         new java.lang.String[] { "Filter", });
     internal_static_alluxio_grpc_GetMetricsPOptions_descriptor =
-      getDescriptor().getMessageTypes().get(2);
+      getDescriptor().getMessageTypes().get(4);
     internal_static_alluxio_grpc_GetMetricsPOptions_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_GetMetricsPOptions_descriptor,
         new java.lang.String[] { });
+    internal_static_alluxio_grpc_GetMasterIdPOptions_descriptor =
+      getDescriptor().getMessageTypes().get(5);
+    internal_static_alluxio_grpc_GetMasterIdPOptions_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_alluxio_grpc_GetMasterIdPOptions_descriptor,
+        new java.lang.String[] { });
+    internal_static_alluxio_grpc_RegisterMasterPOptions_descriptor =
+      getDescriptor().getMessageTypes().get(6);
+    internal_static_alluxio_grpc_RegisterMasterPOptions_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_alluxio_grpc_RegisterMasterPOptions_descriptor,
+        new java.lang.String[] { "Configs", });
+    internal_static_alluxio_grpc_MasterHeartbeatPOptions_descriptor =
+      getDescriptor().getMessageTypes().get(7);
+    internal_static_alluxio_grpc_MasterHeartbeatPOptions_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_alluxio_grpc_MasterHeartbeatPOptions_descriptor,
+        new java.lang.String[] { });
+    alluxio.grpc.CommonProto.getDescriptor();
   }
 
   // @@protoc_insertion_point(outer_class_scope)

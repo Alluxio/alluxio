@@ -16,12 +16,16 @@ import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.Source;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.UnavailableException;
+import alluxio.grpc.ConfigProperty;
+import alluxio.grpc.GetConfigurationPOptions;
+import alluxio.grpc.MetaMasterClientServiceGrpc;
 import alluxio.network.thrift.BootstrapClientTransport;
 import alluxio.network.thrift.ThriftUtils;
 import alluxio.thrift.GetConfigurationTOptions;
 import alluxio.thrift.MetaMasterClientService;
 import alluxio.util.ConfigurationUtils;
-import alluxio.wire.ConfigProperty;
+import alluxio.util.grpc.GrpcChannel;
+import alluxio.util.grpc.GrpcChannelBuilder;
 import alluxio.wire.Scope;
 
 import com.google.common.base.Preconditions;
@@ -432,30 +436,14 @@ public final class Configuration {
       }
       LOG.info("Alluxio client (version {}) is trying to bootstrap-connect with {}",
           RuntimeConstants.VERSION, address);
-      // A plain socket transport to bootstrap
-      TSocket socket = ThriftUtils.createThriftSocket(address);
-      TTransport bootstrapTransport = new BootstrapClientTransport(socket);
-      TProtocol protocol = ThriftUtils.createThriftProtocol(bootstrapTransport,
-          Constants.META_MASTER_CLIENT_SERVICE_NAME);
-      List<ConfigProperty> clusterConfig;
-      try {
-        bootstrapTransport.open();
-        // We didn't use RetryHandlingMetaMasterClient because it inherits AbstractClient,
-        // and AbstractClient uses Configuration.loadClusterDefault inside.
-        MetaMasterClientService.Client client = new MetaMasterClientService.Client(protocol);
-        // The credential configuration properties use displayValue
-        clusterConfig = client.getConfiguration(new GetConfigurationTOptions().setRawValue(true))
-            .getConfigList()
-            .stream()
-            .map(ConfigProperty::fromThrift)
-            .collect(Collectors.toList());
-      } catch (TException e) {
-        throw new UnavailableException(String.format(
-            "Failed to handshake with master %s to load cluster default configuration values",
-            address), e);
-      } finally {
-        bootstrapTransport.close();
-      }
+
+      // TODO(ggezer) review grpc channel initialization
+      GrpcChannel channel =
+          GrpcChannelBuilder.forAddress("localhost", 50051).usePlaintext(true).build();
+      MetaMasterClientServiceGrpc.MetaMasterClientServiceBlockingStub client = MetaMasterClientServiceGrpc.newBlockingStub(channel);
+      List<alluxio.grpc.ConfigProperty> clusterConfig = client.getConfiguration(GetConfigurationPOptions.newBuilder().setRawValue(true).build())
+              .getConfigListList();
+
       // merge conf returned by master as the cluster default into Configuration
       Properties clusterProps = new Properties();
       for (ConfigProperty property : clusterConfig) {

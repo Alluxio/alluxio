@@ -6,29 +6,68 @@ option java_outer_classname = "MetaMasterProto";
 
 package alluxio.grpc;
 
+import "common.proto";
 import "meta_master_options.proto";
 
-message ConfigProperty {
-  optional string name = 1;
-  optional string source = 2;
-  optional string value = 3;
+message BackupPResponse {
+ optional string backupUri = 1;
+ optional string hostname = 2;
 }
 
 message GetConfigurationPResponse{
   repeated ConfigProperty configList = 1;
 }
 
-message MasterInfo {
- optional string masterAddress = 1;
- optional int32 rpcPort = 2;
- optional bool safeMode = 3;
- optional int64 startTimeMs = 4;
- optional int64 upTimeMs = 5;
- optional string version = 6;
- optional int32 webPort = 7;
- repeated string zookeeperAddresses = 8;// Null means zookeeper is not enabled
+enum ConfigStatus {
+  PASSED = 1;
+  WARN = 2;
+  FAILED = 3;
 }
 
+enum Scope {
+  MASTER = 1;
+  WORKER = 2;
+  CLIENT = 3;
+  SERVER = 4;
+  ALL = 5;
+  NONE = 6;
+}
+
+message InconsistentPropertyValues {
+  repeated string values = 1;
+}
+
+message InconsistentProperty {
+  optional string name = 1;
+  map<string, InconsistentPropertyValues> values = 2;
+}
+
+message InconsistentProperties {
+  repeated InconsistentProperty properties = 1;
+}
+
+message ConfigCheckReport {
+  map<string, InconsistentProperties> errors = 1; // Scope name as key
+  map<string, InconsistentProperties> warns = 2; // Scope name as key
+  optional ConfigStatus status = 3;
+}
+
+message GetConfigReportPResponse {
+  optional ConfigCheckReport report = 1;
+}
+
+message MasterInfo {
+ optional string leaderMasterAddress = 1;
+ repeated grpc.NetAddress masterAddresses = 2;
+ optional int32 rpcPort = 3;
+ optional bool safeMode = 4;
+ optional int64 startTimeMs = 5;
+ optional int64 upTimeMs = 6;
+ optional string version = 7;
+ optional int32 webPort = 8;
+ repeated grpc.NetAddress workerAddresses = 9;
+ repeated string zookeeperAddresses = 10;// Empty means zookeeper is not enabled
+}
 
 message GetMasterInfoPResponse {
   optional MasterInfo masterInfo = 1;
@@ -48,10 +87,21 @@ message MetricValue {
   * This interface contains meta master service endpoints for Alluxio clients.
   */
 service MetaMasterClientService {
+
+  /**
+   * Backs up the Alluxio master to the specified URI
+   */
+  rpc Backup(BackupPOptions) returns (BackupPResponse);
+
   /**
    * Returns a list of Alluxio runtime configuration information.
    */
   rpc GetConfiguration(GetConfigurationPOptions) returns (GetConfigurationPResponse);
+
+  /**
+   * Returns server-side configuration report.
+   */
+  rpc GetConfigReport(GetConfigReportPOptions) returns (GetConfigReportPResponse);
 
   /**
    * Returns information about the master.
@@ -62,4 +112,56 @@ service MetaMasterClientService {
    * Returns a map of metrics property names and their values from Alluxio metrics system.
    */
   rpc GetMetrics(GetMetricsPOptions) returns (GetMetricsPResponse);
+}
+
+message GetMasterIdPRequest {
+  optional grpc.NetAddress masterAddress = 1;
+  optional GetMasterIdPOptions options = 2;
+}
+
+message GetMasterIdPResponse {
+  optional int64 masterId = 1;
+}
+
+enum MetaCommand {
+  MetaCommand_Unknown = 0;
+  MetaCommand_Nothing = 1;
+  MetaCommand_Register = 2; // Ask the standby master to re-register.
+}
+
+message RegisterMasterPRequest {
+  optional int64 masterId = 1;
+  optional RegisterMasterPOptions options = 2;
+}
+
+message RegisterMasterPResponse {}
+
+message MasterHeartbeatPRequest {
+  optional int64 masterId = 1;
+  optional MasterHeartbeatPOptions options = 2;
+}
+
+message MasterHeartbeatPResponse {
+  optional MetaCommand command = 1;
+}
+
+/**
+  * This interface contains meta master service endpoints for Alluxio standby masters.
+  */
+service MetaMasterMasterService {
+
+  /**
+   * Returns a master id for the given master address.
+   */
+  rpc GetMasterId(GetMasterIdPRequest) returns (GetMasterIdPResponse);
+
+  /**
+   * Registers a master.
+   */
+  rpc RegisterMaster(RegisterMasterPRequest) returns (RegisterMasterPResponse);
+
+  /**
+   * Heartbeats to indicate the master is lost or not.
+   */
+  rpc MasterHeartbeat(MasterHeartbeatPRequest) returns (MasterHeartbeatPResponse);
 }

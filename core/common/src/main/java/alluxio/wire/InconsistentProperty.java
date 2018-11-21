@@ -11,14 +11,15 @@
 
 package alluxio.wire;
 
+import alluxio.grpc.InconsistentPropertyValues;
 import com.google.common.base.Objects;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.StringJoiner;
-import java.util.stream.Collectors;
 
 /**
  * Records a property that is required or recommended to be consistent but is not within its scope.
@@ -40,16 +41,19 @@ public final class InconsistentProperty {
   public InconsistentProperty() {}
 
   /**
-   * Creates a new instance of {@link InconsistentProperty} from thrift representation.
+   * Creates a new instance of {@link InconsistentProperty} from proto representation.
    *
-   * @param inconsistentProperty the thrift inconsistent property
+   * @param inconsistentProperty the proto inconsistent property
    */
-  protected InconsistentProperty(alluxio.thrift.InconsistentProperty inconsistentProperty) {
+  protected InconsistentProperty(alluxio.grpc.InconsistentProperty inconsistentProperty) {
     mName = inconsistentProperty.getName();
-    mValues = inconsistentProperty.getValues().entrySet().stream()
-        .collect(Collectors.toMap(
-            e -> OptionalString.fromThrift(e.getKey()).getValue(),
-            e -> e.getValue()));
+    mValues = Collections.emptyMap();
+    for (Map.Entry<String, InconsistentPropertyValues> entry : inconsistentProperty.getValuesMap()
+        .entrySet()) {
+      if (entry.getKey().equals(sOptionalStringVal)) {
+        mValues.put(Optional.empty(), entry.getValue().getValuesList());
+      }
+    }
   }
 
   /**
@@ -122,13 +126,23 @@ public final class InconsistentProperty {
     return joiner.toString();
   }
 
+  private static final String sOptionalStringVal = "__Optional__";
+
   /**
-   * @return an inconsistent property of thrift construct
+   * @return an inconsistent property of proto construct
    */
-  public alluxio.thrift.InconsistentProperty toThrift() {
-    return new alluxio.thrift.InconsistentProperty().setName(mName)
-        .setValues(mValues.entrySet().stream().collect(
-            Collectors.toMap(e -> new OptionalString(e.getKey()).toThrift(), e -> e.getValue())));
+  public alluxio.grpc.InconsistentProperty toProto() {
+    Map<String, InconsistentPropertyValues> inconsistentPropsMap = Collections.emptyMap();
+    for (Optional<String> key : mValues.keySet()) {
+      String pKey = sOptionalStringVal;
+      if (key.isPresent()) {
+        pKey = key.get();
+      }
+      inconsistentPropsMap.put(pKey,
+          InconsistentPropertyValues.newBuilder().addAllValues(mValues.get(key)).build());
+    }
+    return alluxio.grpc.InconsistentProperty.newBuilder().setName(mName)
+        .putAllValues(inconsistentPropsMap).build();
   }
 
   /**
@@ -137,8 +151,8 @@ public final class InconsistentProperty {
    * @param inconsistentProperty the thrift representation of an inconsistent property
    * @return the instance
    */
-  public static InconsistentProperty fromThrift(
-      alluxio.thrift.InconsistentProperty inconsistentProperty) {
+  public static InconsistentProperty fromProto(
+          alluxio.grpc.InconsistentProperty inconsistentProperty) {
     return new InconsistentProperty(inconsistentProperty);
   }
 }

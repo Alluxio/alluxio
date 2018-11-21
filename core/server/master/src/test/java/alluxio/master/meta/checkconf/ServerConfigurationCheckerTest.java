@@ -15,9 +15,9 @@ import static org.junit.Assert.assertEquals;
 
 import alluxio.PropertyKey;
 import alluxio.grpc.ConfigProperty;
+import alluxio.grpc.ConfigStatus;
 import alluxio.wire.Address;
 import alluxio.wire.ConfigCheckReport;
-import alluxio.wire.ConfigCheckReport.ConfigStatus;
 import alluxio.wire.Scope;
 
 import org.apache.commons.lang.RandomStringUtils;
@@ -92,7 +92,7 @@ public class ServerConfigurationCheckerTest {
         Arrays.asList(masterEnforceProp, workerWarnProp, serverEnforceProp));
     mRecordTwo.registerNewConf(addressTwo,
         Arrays.asList(masterEnforceProp, workerWarnProp, wrongServerEnforceProp));
-    checkResults(1, 0, ConfigCheckReport.ConfigStatus.FAILED);
+    checkResults(1, 0, ConfigStatus.FAILED);
   }
 
   /**

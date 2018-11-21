@@ -19,6 +19,7 @@ import alluxio.grpc.BlockMasterWorkerServiceGrpc;
 import alluxio.grpc.Command;
 import alluxio.grpc.CommitBlockInUfsPRequest;
 import alluxio.grpc.CommitBlockPRequest;
+import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.GetWorkerIdPRequest;
 import alluxio.grpc.Metric;
 import alluxio.grpc.RegisterWorkerPOptions;
@@ -26,16 +27,13 @@ import alluxio.grpc.RegisterWorkerPRequest;
 import alluxio.grpc.TierList;
 import alluxio.master.MasterClientConfig;
 import alluxio.thrift.AlluxioService;
-import alluxio.thrift.BlockHeartbeatTOptions;
 import alluxio.util.grpc.GrpcUtils;
-import alluxio.wire.ConfigProperty;
 import alluxio.wire.WorkerNetAddress;
 
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -173,9 +171,8 @@ public final class BlockMasterClient extends AbstractMasterClient {
       final Map<String, List<Long>> currentBlocksOnTiers, final List<ConfigProperty> configList)
       throws IOException {
 
-    final RegisterWorkerPOptions options = RegisterWorkerPOptions.newBuilder()
-        .addAllConfig(configList.stream().map(ConfigProperty::toProto).collect(Collectors.toList()))
-        .build();
+    final RegisterWorkerPOptions options =
+        RegisterWorkerPOptions.newBuilder().addAllConfig(configList).build();
     Map<String, TierList> currentBlockOnTiersMap = Collections.emptyMap();
     for (String id : currentBlocksOnTiers.keySet()) {
       currentBlockOnTiersMap.put(id,

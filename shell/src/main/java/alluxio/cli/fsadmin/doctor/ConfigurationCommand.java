@@ -12,8 +12,8 @@
 package alluxio.cli.fsadmin.doctor;
 
 import alluxio.client.MetaMasterClient;
+import alluxio.grpc.ConfigStatus;
 import alluxio.wire.ConfigCheckReport;
-import alluxio.wire.ConfigCheckReport.ConfigStatus;
 import alluxio.wire.InconsistentProperty;
 import alluxio.wire.Scope;
 

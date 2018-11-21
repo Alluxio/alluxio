@@ -16,8 +16,8 @@ import static java.util.stream.Collectors.toList;
 import alluxio.Configuration;
 import alluxio.ConfigurationValueOptions;
 import alluxio.PropertyKey;
+import alluxio.grpc.ConfigProperty;
 import alluxio.util.io.PathUtils;
-import alluxio.wire.ConfigProperty;
 import alluxio.wire.Scope;
 
 import org.slf4j.Logger;
@@ -144,13 +144,12 @@ public final class ConfigurationUtils {
   public static List<ConfigProperty> getConfiguration(Scope scope) {
     ConfigurationValueOptions useRawDisplayValue =
         ConfigurationValueOptions.defaults().useDisplayValue(true).useRawValue(true);
-    return Configuration.keySet().stream()
-        .filter(key -> key.getScope().contains(scope))
+    return Configuration.keySet().stream().filter(key -> key.getScope().contains(scope))
         .filter(key -> key.isValid(key.getName()))
-        .map(key -> new ConfigProperty()
-            .setName(key.getName())
-            .setSource(Configuration.getSource(key).toString()).setValue(
-                Configuration.isSet(key) ? Configuration.get(key, useRawDisplayValue) : null))
+        .map(key -> ConfigProperty.newBuilder().setName(key.getName())
+            .setSource(Configuration.getSource(key).toString())
+            .setValue(Configuration.isSet(key) ? Configuration.get(key, useRawDisplayValue) : null)
+            .build())
         .collect(toList());
   }
 

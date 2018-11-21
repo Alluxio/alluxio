@@ -4,19 +4,32 @@ option java_multiple_files = true;
 option java_package = "alluxio.grpc";
 option java_outer_classname = "MetaMasterProtoOptions";
 
+import "common.proto";
+
 package alluxio.grpc;
 
-message GetConfigurationPOptions{}
+message BackupPOptions {
+ optional string targetDirectory = 1;
+ optional bool localFileSystem = 2;
+}
+
+message GetConfigurationPOptions{
+ optional bool rawValue = 1;
+}
+
+message GetConfigReportPOptions {}
 
 enum MasterInfoField {
-  MASTER_ADDRESS = 0;
-  RPC_PORT = 1;
-  SAFE_MODE = 2;
-  START_TIME_MS = 3;
-  UP_TIME_MS = 4;
-  VERSION = 5;
-  WEB_PORT = 6;
-  ZOOKEEPER_ADDRESSES = 7;
+  LEADER_MASTER_ADDRESS = 0;
+  MASTER_ADDRESSES = 1;
+  RPC_PORT = 2;
+  SAFE_MODE = 3;
+  START_TIME_MS = 4;
+  UP_TIME_MS = 5;
+  VERSION = 6;
+  WEB_PORT = 7;
+  WORKER_ADDRESSES = 8;
+  ZOOKEEPER_ADDRESSES = 9;
 }
 
 message GetMasterInfoPOptions {
@@ -24,3 +37,11 @@ message GetMasterInfoPOptions {
 }
 
 message GetMetricsPOptions {}
+
+message GetMasterIdPOptions {}
+
+message RegisterMasterPOptions {
+  repeated grpc.ConfigProperty configs = 1;
+}
+
+message MasterHeartbeatPOptions {}

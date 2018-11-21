@@ -72,6 +72,14 @@ message TieredIdentity {
 }
 
 /**
+ * Address information about masters.
+ */
+message NetAddress {
+  optional string host = 1;
+  optional int32 rpcPort = 2;
+}
+
+/**
  * Address information about workers.
  */
 message WorkerNetAddress {

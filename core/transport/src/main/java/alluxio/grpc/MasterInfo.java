@@ -16,13 +16,15 @@ private static final long serialVersionUID = 0L;
     super(builder);
   }
   private MasterInfo() {
-    masterAddress_ = "";
+    leaderMasterAddress_ = "";
+    masterAddresses_ = java.util.Collections.emptyList();
     rpcPort_ = 0;
     safeMode_ = false;
     startTimeMs_ = 0L;
     upTimeMs_ = 0L;
     version_ = "";
     webPort_ = 0;
+    workerAddresses_ = java.util.Collections.emptyList();
     zookeeperAddresses_ = com.google.protobuf.LazyStringArrayList.EMPTY;
   }
 
@@ -60,45 +62,63 @@ private static final long serialVersionUID = 0L;
           case 10: {
             com.google.protobuf.ByteString bs = input.readBytes();
             bitField0_ |= 0x00000001;
-            masterAddress_ = bs;
+            leaderMasterAddress_ = bs;
             break;
           }
-          case 16: {
+          case 18: {
+            if (!((mutable_bitField0_ & 0x00000002) == 0x00000002)) {
+              masterAddresses_ = new java.util.ArrayList<alluxio.grpc.NetAddress>();
+              mutable_bitField0_ |= 0x00000002;
+            }
+            masterAddresses_.add(
+                input.readMessage(alluxio.grpc.NetAddress.PARSER, extensionRegistry));
+            break;
+          }
+          case 24: {
             bitField0_ |= 0x00000002;
             rpcPort_ = input.readInt32();
             break;
           }
-          case 24: {
+          case 32: {
             bitField0_ |= 0x00000004;
             safeMode_ = input.readBool();
             break;
           }
-          case 32: {
+          case 40: {
             bitField0_ |= 0x00000008;
             startTimeMs_ = input.readInt64();
             break;
           }
-          case 40: {
+          case 48: {
             bitField0_ |= 0x00000010;
             upTimeMs_ = input.readInt64();
             break;
           }
-          case 50: {
+          case 58: {
             com.google.protobuf.ByteString bs = input.readBytes();
             bitField0_ |= 0x00000020;
             version_ = bs;
             break;
           }
-          case 56: {
+          case 64: {
             bitField0_ |= 0x00000040;
             webPort_ = input.readInt32();
             break;
           }
-          case 66: {
+          case 74: {
+            if (!((mutable_bitField0_ & 0x00000100) == 0x00000100)) {
+              workerAddresses_ = new java.util.ArrayList<alluxio.grpc.NetAddress>();
+              mutable_bitField0_ |= 0x00000100;
+            }
+            workerAddresses_.add(
+                input.readMessage(alluxio.grpc.NetAddress.PARSER, extensionRegistry));
+            break;
+          }
+          case 82: {
             com.google.protobuf.ByteString bs = input.readBytes();
-            if (!((mutable_bitField0_ & 0x00000080) == 0x00000080)) {
+            if (!((mutable_bitField0_ & 0x00000200) == 0x00000200)) {
               zookeeperAddresses_ = new com.google.protobuf.LazyStringArrayList();
-              mutable_bitField0_ |= 0x00000080;
+              mutable_bitField0_ |= 0x00000200;
             }
             zookeeperAddresses_.add(bs);
             break;
@@ -111,7 +131,13 @@ private static final long serialVersionUID = 0L;
       throw new com.google.protobuf.InvalidProtocolBufferException(
           e).setUnfinishedMessage(this);
     } finally {
-      if (((mutable_bitField0_ & 0x00000080) == 0x00000080)) {
+      if (((mutable_bitField0_ & 0x00000002) == 0x00000002)) {
+        masterAddresses_ = java.util.Collections.unmodifiableList(masterAddresses_);
+      }
+      if (((mutable_bitField0_ & 0x00000100) == 0x00000100)) {
+        workerAddresses_ = java.util.Collections.unmodifiableList(workerAddresses_);
+      }
+      if (((mutable_bitField0_ & 0x00000200) == 0x00000200)) {
         zookeeperAddresses_ = zookeeperAddresses_.getUnmodifiableView();
       }
       this.unknownFields = unknownFields.build();
@@ -131,19 +157,19 @@ private static final long serialVersionUID = 0L;
   }
 
   private int bitField0_;
-  public static final int MASTERADDRESS_FIELD_NUMBER = 1;
-  private volatile java.lang.Object masterAddress_;
+  public static final int LEADERMASTERADDRESS_FIELD_NUMBER = 1;
+  private volatile java.lang.Object leaderMasterAddress_;
   /**
-   * <code>optional string masterAddress = 1;</code>
+   * <code>optional string leaderMasterAddress = 1;</code>
    */
-  public boolean hasMasterAddress() {
+  public boolean hasLeaderMasterAddress() {
     return ((bitField0_ & 0x00000001) == 0x00000001);
   }
   /**
-   * <code>optional string masterAddress = 1;</code>
+   * <code>optional string leaderMasterAddress = 1;</code>
    */
-  public java.lang.String getMasterAddress() {
-    java.lang.Object ref = masterAddress_;
+  public java.lang.String getLeaderMasterAddress() {
+    java.lang.Object ref = leaderMasterAddress_;
     if (ref instanceof java.lang.String) {
       return (java.lang.String) ref;
     } else {
@@ -151,98 +177,133 @@ private static final long serialVersionUID = 0L;
           (com.google.protobuf.ByteString) ref;
       java.lang.String s = bs.toStringUtf8();
       if (bs.isValidUtf8()) {
-        masterAddress_ = s;
+        leaderMasterAddress_ = s;
       }
       return s;
     }
   }
   /**
-   * <code>optional string masterAddress = 1;</code>
+   * <code>optional string leaderMasterAddress = 1;</code>
    */
   public com.google.protobuf.ByteString
-      getMasterAddressBytes() {
-    java.lang.Object ref = masterAddress_;
+      getLeaderMasterAddressBytes() {
+    java.lang.Object ref = leaderMasterAddress_;
     if (ref instanceof java.lang.String) {
       com.google.protobuf.ByteString b = 
           com.google.protobuf.ByteString.copyFromUtf8(
               (java.lang.String) ref);
-      masterAddress_ = b;
+      leaderMasterAddress_ = b;
       return b;
     } else {
       return (com.google.protobuf.ByteString) ref;
     }
   }
 
-  public static final int RPCPORT_FIELD_NUMBER = 2;
+  public static final int MASTERADDRESSES_FIELD_NUMBER = 2;
+  private java.util.List<alluxio.grpc.NetAddress> masterAddresses_;
+  /**
+   * <code>repeated .alluxio.grpc.NetAddress masterAddresses = 2;</code>
+   */
+  public java.util.List<alluxio.grpc.NetAddress> getMasterAddressesList() {
+    return masterAddresses_;
+  }
+  /**
+   * <code>repeated .alluxio.grpc.NetAddress masterAddresses = 2;</code>
+   */
+  public java.util.List<? extends alluxio.grpc.NetAddressOrBuilder> 
+      getMasterAddressesOrBuilderList() {
+    return masterAddresses_;
+  }
+  /**
+   * <code>repeated .alluxio.grpc.NetAddress masterAddresses = 2;</code>
+   */
+  public int getMasterAddressesCount() {
+    return masterAddresses_.size();
+  }
+  /**
+   * <code>repeated .alluxio.grpc.NetAddress masterAddresses = 2;</code>
+   */
+  public alluxio.grpc.NetAddress getMasterAddresses(int index) {
+    return masterAddresses_.get(index);
+  }
+  /**
+   * <code>repeated .alluxio.grpc.NetAddress masterAddresses = 2;</code>
+   */
+  public alluxio.grpc.NetAddressOrBuilder getMasterAddressesOrBuilder(
+      int index) {
+    return masterAddresses_.get(index);
+  }
+
+  public static final int RPCPORT_FIELD_NUMBER = 3;
   private int rpcPort_;
   /**
-   * <code>optional int32 rpcPort = 2;</code>
+   * <code>optional int32 rpcPort = 3;</code>
    */
   public boolean hasRpcPort() {
     return ((bitField0_ & 0x00000002) == 0x00000002);
   }
   /**
-   * <code>optional int32 rpcPort = 2;</code>
+   * <code>optional int32 rpcPort = 3;</code>
    */
   public int getRpcPort() {
     return rpcPort_;
   }
 
-  public static final int SAFEMODE_FIELD_NUMBER = 3;
+  public static final int SAFEMODE_FIELD_NUMBER = 4;
   private boolean safeMode_;
   /**
-   * <code>optional bool safeMode = 3;</code>
+   * <code>optional bool safeMode = 4;</code>
    */
   public boolean hasSafeMode() {
     return ((bitField0_ & 0x00000004) == 0x00000004);
   }
   /**
-   * <code>optional bool safeMode = 3;</code>
+   * <code>optional bool safeMode = 4;</code>
    */
   public boolean getSafeMode() {
     return safeMode_;
   }
 
-  public static final int STARTTIMEMS_FIELD_NUMBER = 4;
+  public static final int STARTTIMEMS_FIELD_NUMBER = 5;
   private long startTimeMs_;
   /**
-   * <code>optional int64 startTimeMs = 4;</code>
+   * <code>optional int64 startTimeMs = 5;</code>
    */
   public boolean hasStartTimeMs() {
     return ((bitField0_ & 0x00000008) == 0x00000008);
   }
   /**
-   * <code>optional int64 startTimeMs = 4;</code>
+   * <code>optional int64 startTimeMs = 5;</code>
    */
   public long getStartTimeMs() {
     return startTimeMs_;
   }
 
-  public static final int UPTIMEMS_FIELD_NUMBER = 5;
+  public static final int UPTIMEMS_FIELD_NUMBER = 6;
   private long upTimeMs_;
   /**
-   * <code>optional int64 upTimeMs = 5;</code>
+   * <code>optional int64 upTimeMs = 6;</code>
    */
   public boolean hasUpTimeMs() {
     return ((bitField0_ & 0x00000010) == 0x00000010);
   }
   /**
-   * <code>optional int64 upTimeMs = 5;</code>
+   * <code>optional int64 upTimeMs = 6;</code>
    */
   public long getUpTimeMs() {
     return upTimeMs_;
   }
 
-  public static final int VERSION_FIELD_NUMBER = 6;
+  public static final int VERSION_FIELD_NUMBER = 7;
   private volatile java.lang.Object version_;
   /**
-   * <code>optional string version = 6;</code>
+   * <code>optional string version = 7;</code>
    */
   public boolean hasVersion() {
     return ((bitField0_ & 0x00000020) == 0x00000020);
   }
   /**
-   * <code>optional string version = 6;</code>
+   * <code>optional string version = 7;</code>
    */
   public java.lang.String getVersion() {
     java.lang.Object ref = version_;
@@ -259,7 +320,7 @@ private static final long serialVersionUID = 0L;
     }
   }
   /**
-   * <code>optional string version = 6;</code>
+   * <code>optional string version = 7;</code>
    */
   public com.google.protobuf.ByteString
       getVersionBytes() {
@@ -275,29 +336,64 @@ private static final long serialVersionUID = 0L;
     }
   }
 
-  public static final int WEBPORT_FIELD_NUMBER = 7;
+  public static final int WEBPORT_FIELD_NUMBER = 8;
   private int webPort_;
   /**
-   * <code>optional int32 webPort = 7;</code>
+   * <code>optional int32 webPort = 8;</code>
    */
   public boolean hasWebPort() {
     return ((bitField0_ & 0x00000040) == 0x00000040);
   }
   /**
-   * <code>optional int32 webPort = 7;</code>
+   * <code>optional int32 webPort = 8;</code>
    */
   public int getWebPort() {
     return webPort_;
   }
 
-  public static final int ZOOKEEPERADDRESSES_FIELD_NUMBER = 8;
+  public static final int WORKERADDRESSES_FIELD_NUMBER = 9;
+  private java.util.List<alluxio.grpc.NetAddress> workerAddresses_;
+  /**
+   * <code>repeated .alluxio.grpc.NetAddress workerAddresses = 9;</code>
+   */
+  public java.util.List<alluxio.grpc.NetAddress> getWorkerAddressesList() {
+    return workerAddresses_;
+  }
+  /**
+   * <code>repeated .alluxio.grpc.NetAddress workerAddresses = 9;</code>
+   */
+  public java.util.List<? extends alluxio.grpc.NetAddressOrBuilder> 
+      getWorkerAddressesOrBuilderList() {
+    return workerAddresses_;
+  }
+  /**
+   * <code>repeated .alluxio.grpc.NetAddress workerAddresses = 9;</code>
+   */
+  public int getWorkerAddressesCount() {
+    return workerAddresses_.size();
+  }
+  /**
+   * <code>repeated .alluxio.grpc.NetAddress workerAddresses = 9;</code>
+   */
+  public alluxio.grpc.NetAddress getWorkerAddresses(int index) {
+    return workerAddresses_.get(index);
+  }
+  /**
+   * <code>repeated .alluxio.grpc.NetAddress workerAddresses = 9;</code>
+   */
+  public alluxio.grpc.NetAddressOrBuilder getWorkerAddressesOrBuilder(
+      int index) {
+    return workerAddresses_.get(index);
+  }
+
+  public static final int ZOOKEEPERADDRESSES_FIELD_NUMBER = 10;
   private com.google.protobuf.LazyStringList zookeeperAddresses_;
   /**
    * <pre>
-   * Null means zookeeper is not enabled
+   * Empty means zookeeper is not enabled
    * </pre>
    *
-   * <code>repeated string zookeeperAddresses = 8;</code>
+   * <code>repeated string zookeeperAddresses = 10;</code>
    */
   public com.google.protobuf.ProtocolStringList
       getZookeeperAddressesList() {
@@ -305,30 +401,30 @@ private static final long serialVersionUID = 0L;
   }
   /**
    * <pre>
-   * Null means zookeeper is not enabled
+   * Empty means zookeeper is not enabled
    * </pre>
    *
-   * <code>repeated string zookeeperAddresses = 8;</code>
+   * <code>repeated string zookeeperAddresses = 10;</code>
    */
   public int getZookeeperAddressesCount() {
     return zookeeperAddresses_.size();
   }
   /**
    * <pre>
-   * Null means zookeeper is not enabled
+   * Empty means zookeeper is not enabled
    * </pre>
    *
-   * <code>repeated string zookeeperAddresses = 8;</code>
+   * <code>repeated string zookeeperAddresses = 10;</code>
    */
   public java.lang.String getZookeeperAddresses(int index) {
     return zookeeperAddresses_.get(index);
   }
   /**
    * <pre>
-   * Null means zookeeper is not enabled
+   * Empty means zookeeper is not enabled
    * </pre>
    *
-   * <code>repeated string zookeeperAddresses = 8;</code>
+   * <code>repeated string zookeeperAddresses = 10;</code>
    */
   public com.google.protobuf.ByteString
       getZookeeperAddressesBytes(int index) {
@@ -348,28 +444,34 @@ private static final long serialVersionUID = 0L;
   public void writeTo(com.google.protobuf.CodedOutputStream output)
                       throws java.io.IOException {
     if (((bitField0_ & 0x00000001) == 0x00000001)) {
-      com.google.protobuf.GeneratedMessageV3.writeString(output, 1, masterAddress_);
+      com.google.protobuf.GeneratedMessageV3.writeString(output, 1, leaderMasterAddress_);
+    }
+    for (int i = 0; i < masterAddresses_.size(); i++) {
+      output.writeMessage(2, masterAddresses_.get(i));
     }
     if (((bitField0_ & 0x00000002) == 0x00000002)) {
-      output.writeInt32(2, rpcPort_);
+      output.writeInt32(3, rpcPort_);
     }
     if (((bitField0_ & 0x00000004) == 0x00000004)) {
-      output.writeBool(3, safeMode_);
+      output.writeBool(4, safeMode_);
     }
     if (((bitField0_ & 0x00000008) == 0x00000008)) {
-      output.writeInt64(4, startTimeMs_);
+      output.writeInt64(5, startTimeMs_);
     }
     if (((bitField0_ & 0x00000010) == 0x00000010)) {
-      output.writeInt64(5, upTimeMs_);
+      output.writeInt64(6, upTimeMs_);
     }
     if (((bitField0_ & 0x00000020) == 0x00000020)) {
-      com.google.protobuf.GeneratedMessageV3.writeString(output, 6, version_);
+      com.google.protobuf.GeneratedMessageV3.writeString(output, 7, version_);
     }
     if (((bitField0_ & 0x00000040) == 0x00000040)) {
-      output.writeInt32(7, webPort_);
+      output.writeInt32(8, webPort_);
+    }
+    for (int i = 0; i < workerAddresses_.size(); i++) {
+      output.writeMessage(9, workerAddresses_.get(i));
     }
     for (int i = 0; i < zookeeperAddresses_.size(); i++) {
-      com.google.protobuf.GeneratedMessageV3.writeString(output, 8, zookeeperAddresses_.getRaw(i));
+      com.google.protobuf.GeneratedMessageV3.writeString(output, 10, zookeeperAddresses_.getRaw(i));
     }
     unknownFields.writeTo(output);
   }
@@ -380,30 +482,38 @@ private static final long serialVersionUID = 0L;
 
     size = 0;
     if (((bitField0_ & 0x00000001) == 0x00000001)) {
-      size += com.google.protobuf.GeneratedMessageV3.computeStringSize(1, masterAddress_);
+      size += com.google.protobuf.GeneratedMessageV3.computeStringSize(1, leaderMasterAddress_);
+    }
+    for (int i = 0; i < masterAddresses_.size(); i++) {
+      size += com.google.protobuf.CodedOutputStream
+        .computeMessageSize(2, masterAddresses_.get(i));
     }
     if (((bitField0_ & 0x00000002) == 0x00000002)) {
       size += com.google.protobuf.CodedOutputStream
-        .computeInt32Size(2, rpcPort_);
+        .computeInt32Size(3, rpcPort_);
     }
     if (((bitField0_ & 0x00000004) == 0x00000004)) {
       size += com.google.protobuf.CodedOutputStream
-        .computeBoolSize(3, safeMode_);
+        .computeBoolSize(4, safeMode_);
     }
     if (((bitField0_ & 0x00000008) == 0x00000008)) {
       size += com.google.protobuf.CodedOutputStream
-        .computeInt64Size(4, startTimeMs_);
+        .computeInt64Size(5, startTimeMs_);
     }
     if (((bitField0_ & 0x00000010) == 0x00000010)) {
       size += com.google.protobuf.CodedOutputStream
-        .computeInt64Size(5, upTimeMs_);
+        .computeInt64Size(6, upTimeMs_);
     }
     if (((bitField0_ & 0x00000020) == 0x00000020)) {
-      size += com.google.protobuf.GeneratedMessageV3.computeStringSize(6, version_);
+      size += com.google.protobuf.GeneratedMessageV3.computeStringSize(7, version_);
     }
     if (((bitField0_ & 0x00000040) == 0x00000040)) {
       size += com.google.protobuf.CodedOutputStream
-        .computeInt32Size(7, webPort_);
+        .computeInt32Size(8, webPort_);
+    }
+    for (int i = 0; i < workerAddresses_.size(); i++) {
+      size += com.google.protobuf.CodedOutputStream
+        .computeMessageSize(9, workerAddresses_.get(i));
     }
     {
       int dataSize = 0;
@@ -429,11 +539,13 @@ private static final long serialVersionUID = 0L;
     alluxio.grpc.MasterInfo other = (alluxio.grpc.MasterInfo) obj;
 
     boolean result = true;
-    result = result && (hasMasterAddress() == other.hasMasterAddress());
-    if (hasMasterAddress()) {
-      result = result && getMasterAddress()
-          .equals(other.getMasterAddress());
+    result = result && (hasLeaderMasterAddress() == other.hasLeaderMasterAddress());
+    if (hasLeaderMasterAddress()) {
+      result = result && getLeaderMasterAddress()
+          .equals(other.getLeaderMasterAddress());
     }
+    result = result && getMasterAddressesList()
+        .equals(other.getMasterAddressesList());
     result = result && (hasRpcPort() == other.hasRpcPort());
     if (hasRpcPort()) {
       result = result && (getRpcPort()
@@ -464,6 +576,8 @@ private static final long serialVersionUID = 0L;
       result = result && (getWebPort()
           == other.getWebPort());
     }
+    result = result && getWorkerAddressesList()
+        .equals(other.getWorkerAddressesList());
     result = result && getZookeeperAddressesList()
         .equals(other.getZookeeperAddressesList());
     result = result && unknownFields.equals(other.unknownFields);
@@ -477,9 +591,13 @@ private static final long serialVersionUID = 0L;
     }
     int hash = 41;
     hash = (19 * hash) + getDescriptor().hashCode();
-    if (hasMasterAddress()) {
-      hash = (37 * hash) + MASTERADDRESS_FIELD_NUMBER;
-      hash = (53 * hash) + getMasterAddress().hashCode();
+    if (hasLeaderMasterAddress()) {
+      hash = (37 * hash) + LEADERMASTERADDRESS_FIELD_NUMBER;
+      hash = (53 * hash) + getLeaderMasterAddress().hashCode();
+    }
+    if (getMasterAddressesCount() > 0) {
+      hash = (37 * hash) + MASTERADDRESSES_FIELD_NUMBER;
+      hash = (53 * hash) + getMasterAddressesList().hashCode();
     }
     if (hasRpcPort()) {
       hash = (37 * hash) + RPCPORT_FIELD_NUMBER;
@@ -507,6 +625,10 @@ private static final long serialVersionUID = 0L;
     if (hasWebPort()) {
       hash = (37 * hash) + WEBPORT_FIELD_NUMBER;
       hash = (53 * hash) + getWebPort();
+    }
+    if (getWorkerAddressesCount() > 0) {
+      hash = (37 * hash) + WORKERADDRESSES_FIELD_NUMBER;
+      hash = (53 * hash) + getWorkerAddressesList().hashCode();
     }
     if (getZookeeperAddressesCount() > 0) {
       hash = (37 * hash) + ZOOKEEPERADDRESSES_FIELD_NUMBER;
@@ -637,26 +759,40 @@ private static final long serialVersionUID = 0L;
     private void maybeForceBuilderInitialization() {
       if (com.google.protobuf.GeneratedMessageV3
               .alwaysUseFieldBuilders) {
+        getMasterAddressesFieldBuilder();
+        getWorkerAddressesFieldBuilder();
       }
     }
     public Builder clear() {
       super.clear();
-      masterAddress_ = "";
+      leaderMasterAddress_ = "";
       bitField0_ = (bitField0_ & ~0x00000001);
+      if (masterAddressesBuilder_ == null) {
+        masterAddresses_ = java.util.Collections.emptyList();
+        bitField0_ = (bitField0_ & ~0x00000002);
+      } else {
+        masterAddressesBuilder_.clear();
+      }
       rpcPort_ = 0;
-      bitField0_ = (bitField0_ & ~0x00000002);
-      safeMode_ = false;
       bitField0_ = (bitField0_ & ~0x00000004);
-      startTimeMs_ = 0L;
+      safeMode_ = false;
       bitField0_ = (bitField0_ & ~0x00000008);
-      upTimeMs_ = 0L;
+      startTimeMs_ = 0L;
       bitField0_ = (bitField0_ & ~0x00000010);
-      version_ = "";
+      upTimeMs_ = 0L;
       bitField0_ = (bitField0_ & ~0x00000020);
-      webPort_ = 0;
+      version_ = "";
       bitField0_ = (bitField0_ & ~0x00000040);
-      zookeeperAddresses_ = com.google.protobuf.LazyStringArrayList.EMPTY;
+      webPort_ = 0;
       bitField0_ = (bitField0_ & ~0x00000080);
+      if (workerAddressesBuilder_ == null) {
+        workerAddresses_ = java.util.Collections.emptyList();
+        bitField0_ = (bitField0_ & ~0x00000100);
+      } else {
+        workerAddressesBuilder_.clear();
+      }
+      zookeeperAddresses_ = com.google.protobuf.LazyStringArrayList.EMPTY;
+      bitField0_ = (bitField0_ & ~0x00000200);
       return this;
     }
 
@@ -684,34 +820,52 @@ private static final long serialVersionUID = 0L;
       if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
         to_bitField0_ |= 0x00000001;
       }
-      result.masterAddress_ = masterAddress_;
-      if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
+      result.leaderMasterAddress_ = leaderMasterAddress_;
+      if (masterAddressesBuilder_ == null) {
+        if (((bitField0_ & 0x00000002) == 0x00000002)) {
+          masterAddresses_ = java.util.Collections.unmodifiableList(masterAddresses_);
+          bitField0_ = (bitField0_ & ~0x00000002);
+        }
+        result.masterAddresses_ = masterAddresses_;
+      } else {
+        result.masterAddresses_ = masterAddressesBuilder_.build();
+      }
+      if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
         to_bitField0_ |= 0x00000002;
       }
       result.rpcPort_ = rpcPort_;
-      if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
+      if (((from_bitField0_ & 0x00000008) == 0x00000008)) {
         to_bitField0_ |= 0x00000004;
       }
       result.safeMode_ = safeMode_;
-      if (((from_bitField0_ & 0x00000008) == 0x00000008)) {
+      if (((from_bitField0_ & 0x00000010) == 0x00000010)) {
         to_bitField0_ |= 0x00000008;
       }
       result.startTimeMs_ = startTimeMs_;
-      if (((from_bitField0_ & 0x00000010) == 0x00000010)) {
+      if (((from_bitField0_ & 0x00000020) == 0x00000020)) {
         to_bitField0_ |= 0x00000010;
       }
       result.upTimeMs_ = upTimeMs_;
-      if (((from_bitField0_ & 0x00000020) == 0x00000020)) {
+      if (((from_bitField0_ & 0x00000040) == 0x00000040)) {
         to_bitField0_ |= 0x00000020;
       }
       result.version_ = version_;
-      if (((from_bitField0_ & 0x00000040) == 0x00000040)) {
+      if (((from_bitField0_ & 0x00000080) == 0x00000080)) {
         to_bitField0_ |= 0x00000040;
       }
       result.webPort_ = webPort_;
-      if (((bitField0_ & 0x00000080) == 0x00000080)) {
+      if (workerAddressesBuilder_ == null) {
+        if (((bitField0_ & 0x00000100) == 0x00000100)) {
+          workerAddresses_ = java.util.Collections.unmodifiableList(workerAddresses_);
+          bitField0_ = (bitField0_ & ~0x00000100);
+        }
+        result.workerAddresses_ = workerAddresses_;
+      } else {
+        result.workerAddresses_ = workerAddressesBuilder_.build();
+      }
+      if (((bitField0_ & 0x00000200) == 0x00000200)) {
         zookeeperAddresses_ = zookeeperAddresses_.getUnmodifiableView();
-        bitField0_ = (bitField0_ & ~0x00000080);
+        bitField0_ = (bitField0_ & ~0x00000200);
       }
       result.zookeeperAddresses_ = zookeeperAddresses_;
       result.bitField0_ = to_bitField0_;
@@ -756,10 +910,36 @@ private static final long serialVersionUID = 0L;
 
     public Builder mergeFrom(alluxio.grpc.MasterInfo other) {
       if (other == alluxio.grpc.MasterInfo.getDefaultInstance()) return this;
-      if (other.hasMasterAddress()) {
+      if (other.hasLeaderMasterAddress()) {
         bitField0_ |= 0x00000001;
-        masterAddress_ = other.masterAddress_;
+        leaderMasterAddress_ = other.leaderMasterAddress_;
         onChanged();
+      }
+      if (masterAddressesBuilder_ == null) {
+        if (!other.masterAddresses_.isEmpty()) {
+          if (masterAddresses_.isEmpty()) {
+            masterAddresses_ = other.masterAddresses_;
+            bitField0_ = (bitField0_ & ~0x00000002);
+          } else {
+            ensureMasterAddressesIsMutable();
+            masterAddresses_.addAll(other.masterAddresses_);
+          }
+          onChanged();
+        }
+      } else {
+        if (!other.masterAddresses_.isEmpty()) {
+          if (masterAddressesBuilder_.isEmpty()) {
+            masterAddressesBuilder_.dispose();
+            masterAddressesBuilder_ = null;
+            masterAddresses_ = other.masterAddresses_;
+            bitField0_ = (bitField0_ & ~0x00000002);
+            masterAddressesBuilder_ = 
+              com.google.protobuf.GeneratedMessageV3.alwaysUseFieldBuilders ?
+                 getMasterAddressesFieldBuilder() : null;
+          } else {
+            masterAddressesBuilder_.addAllMessages(other.masterAddresses_);
+          }
+        }
       }
       if (other.hasRpcPort()) {
         setRpcPort(other.getRpcPort());
@@ -774,17 +954,43 @@ private static final long serialVersionUID = 0L;
         setUpTimeMs(other.getUpTimeMs());
       }
       if (other.hasVersion()) {
-        bitField0_ |= 0x00000020;
+        bitField0_ |= 0x00000040;
         version_ = other.version_;
         onChanged();
       }
       if (other.hasWebPort()) {
         setWebPort(other.getWebPort());
       }
+      if (workerAddressesBuilder_ == null) {
+        if (!other.workerAddresses_.isEmpty()) {
+          if (workerAddresses_.isEmpty()) {
+            workerAddresses_ = other.workerAddresses_;
+            bitField0_ = (bitField0_ & ~0x00000100);
+          } else {
+            ensureWorkerAddressesIsMutable();
+            workerAddresses_.addAll(other.workerAddresses_);
+          }
+          onChanged();
+        }
+      } else {
+        if (!other.workerAddresses_.isEmpty()) {
+          if (workerAddressesBuilder_.isEmpty()) {
+            workerAddressesBuilder_.dispose();
+            workerAddressesBuilder_ = null;
+            workerAddresses_ = other.workerAddresses_;
+            bitField0_ = (bitField0_ & ~0x00000100);
+            workerAddressesBuilder_ = 
+              com.google.protobuf.GeneratedMessageV3.alwaysUseFieldBuilders ?
+                 getWorkerAddressesFieldBuilder() : null;
+          } else {
+            workerAddressesBuilder_.addAllMessages(other.workerAddresses_);
+          }
+        }
+      }
       if (!other.zookeeperAddresses_.isEmpty()) {
         if (zookeeperAddresses_.isEmpty()) {
           zookeeperAddresses_ = other.zookeeperAddresses_;
-          bitField0_ = (bitField0_ & ~0x00000080);
+          bitField0_ = (bitField0_ & ~0x00000200);
         } else {
           ensureZookeeperAddressesIsMutable();
           zookeeperAddresses_.addAll(other.zookeeperAddresses_);
@@ -819,24 +1025,24 @@ private static final long serialVersionUID = 0L;
     }
     private int bitField0_;
 
-    private java.lang.Object masterAddress_ = "";
+    private java.lang.Object leaderMasterAddress_ = "";
     /**
-     * <code>optional string masterAddress = 1;</code>
+     * <code>optional string leaderMasterAddress = 1;</code>
      */
-    public boolean hasMasterAddress() {
+    public boolean hasLeaderMasterAddress() {
       return ((bitField0_ & 0x00000001) == 0x00000001);
     }
     /**
-     * <code>optional string masterAddress = 1;</code>
+     * <code>optional string leaderMasterAddress = 1;</code>
      */
-    public java.lang.String getMasterAddress() {
-      java.lang.Object ref = masterAddress_;
+    public java.lang.String getLeaderMasterAddress() {
+      java.lang.Object ref = leaderMasterAddress_;
       if (!(ref instanceof java.lang.String)) {
         com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         if (bs.isValidUtf8()) {
-          masterAddress_ = s;
+          leaderMasterAddress_ = s;
         }
         return s;
       } else {
@@ -844,84 +1050,324 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
-     * <code>optional string masterAddress = 1;</code>
+     * <code>optional string leaderMasterAddress = 1;</code>
      */
     public com.google.protobuf.ByteString
-        getMasterAddressBytes() {
-      java.lang.Object ref = masterAddress_;
+        getLeaderMasterAddressBytes() {
+      java.lang.Object ref = leaderMasterAddress_;
       if (ref instanceof String) {
         com.google.protobuf.ByteString b = 
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
-        masterAddress_ = b;
+        leaderMasterAddress_ = b;
         return b;
       } else {
         return (com.google.protobuf.ByteString) ref;
       }
     }
     /**
-     * <code>optional string masterAddress = 1;</code>
+     * <code>optional string leaderMasterAddress = 1;</code>
      */
-    public Builder setMasterAddress(
+    public Builder setLeaderMasterAddress(
         java.lang.String value) {
       if (value == null) {
     throw new NullPointerException();
   }
   bitField0_ |= 0x00000001;
-      masterAddress_ = value;
+      leaderMasterAddress_ = value;
       onChanged();
       return this;
     }
     /**
-     * <code>optional string masterAddress = 1;</code>
+     * <code>optional string leaderMasterAddress = 1;</code>
      */
-    public Builder clearMasterAddress() {
+    public Builder clearLeaderMasterAddress() {
       bitField0_ = (bitField0_ & ~0x00000001);
-      masterAddress_ = getDefaultInstance().getMasterAddress();
+      leaderMasterAddress_ = getDefaultInstance().getLeaderMasterAddress();
       onChanged();
       return this;
     }
     /**
-     * <code>optional string masterAddress = 1;</code>
+     * <code>optional string leaderMasterAddress = 1;</code>
      */
-    public Builder setMasterAddressBytes(
+    public Builder setLeaderMasterAddressBytes(
         com.google.protobuf.ByteString value) {
       if (value == null) {
     throw new NullPointerException();
   }
   bitField0_ |= 0x00000001;
-      masterAddress_ = value;
+      leaderMasterAddress_ = value;
       onChanged();
       return this;
     }
 
-    private int rpcPort_ ;
+    private java.util.List<alluxio.grpc.NetAddress> masterAddresses_ =
+      java.util.Collections.emptyList();
+    private void ensureMasterAddressesIsMutable() {
+      if (!((bitField0_ & 0x00000002) == 0x00000002)) {
+        masterAddresses_ = new java.util.ArrayList<alluxio.grpc.NetAddress>(masterAddresses_);
+        bitField0_ |= 0x00000002;
+       }
+    }
+
+    private com.google.protobuf.RepeatedFieldBuilderV3<
+        alluxio.grpc.NetAddress, alluxio.grpc.NetAddress.Builder, alluxio.grpc.NetAddressOrBuilder> masterAddressesBuilder_;
+
     /**
-     * <code>optional int32 rpcPort = 2;</code>
+     * <code>repeated .alluxio.grpc.NetAddress masterAddresses = 2;</code>
      */
-    public boolean hasRpcPort() {
-      return ((bitField0_ & 0x00000002) == 0x00000002);
+    public java.util.List<alluxio.grpc.NetAddress> getMasterAddressesList() {
+      if (masterAddressesBuilder_ == null) {
+        return java.util.Collections.unmodifiableList(masterAddresses_);
+      } else {
+        return masterAddressesBuilder_.getMessageList();
+      }
     }
     /**
-     * <code>optional int32 rpcPort = 2;</code>
+     * <code>repeated .alluxio.grpc.NetAddress masterAddresses = 2;</code>
+     */
+    public int getMasterAddressesCount() {
+      if (masterAddressesBuilder_ == null) {
+        return masterAddresses_.size();
+      } else {
+        return masterAddressesBuilder_.getCount();
+      }
+    }
+    /**
+     * <code>repeated .alluxio.grpc.NetAddress masterAddresses = 2;</code>
+     */
+    public alluxio.grpc.NetAddress getMasterAddresses(int index) {
+      if (masterAddressesBuilder_ == null) {
+        return masterAddresses_.get(index);
+      } else {
+        return masterAddressesBuilder_.getMessage(index);
+      }
+    }
+    /**
+     * <code>repeated .alluxio.grpc.NetAddress masterAddresses = 2;</code>
+     */
+    public Builder setMasterAddresses(
+        int index, alluxio.grpc.NetAddress value) {
+      if (masterAddressesBuilder_ == null) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        ensureMasterAddressesIsMutable();
+        masterAddresses_.set(index, value);
+        onChanged();
+      } else {
+        masterAddressesBuilder_.setMessage(index, value);
+      }
+      return this;
+    }
+    /**
+     * <code>repeated .alluxio.grpc.NetAddress masterAddresses = 2;</code>
+     */
+    public Builder setMasterAddresses(
+        int index, alluxio.grpc.NetAddress.Builder builderForValue) {
+      if (masterAddressesBuilder_ == null) {
+        ensureMasterAddressesIsMutable();
+        masterAddresses_.set(index, builderForValue.build());
+        onChanged();
+      } else {
+        masterAddressesBuilder_.setMessage(index, builderForValue.build());
+      }
+      return this;
+    }
+    /**
+     * <code>repeated .alluxio.grpc.NetAddress masterAddresses = 2;</code>
+     */
+    public Builder addMasterAddresses(alluxio.grpc.NetAddress value) {
+      if (masterAddressesBuilder_ == null) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        ensureMasterAddressesIsMutable();
+        masterAddresses_.add(value);
+        onChanged();
+      } else {
+        masterAddressesBuilder_.addMessage(value);
+      }
+      return this;
+    }
+    /**
+     * <code>repeated .alluxio.grpc.NetAddress masterAddresses = 2;</code>
+     */
+    public Builder addMasterAddresses(
+        int index, alluxio.grpc.NetAddress value) {
+      if (masterAddressesBuilder_ == null) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        ensureMasterAddressesIsMutable();
+        masterAddresses_.add(index, value);
+        onChanged();
+      } else {
+        masterAddressesBuilder_.addMessage(index, value);
+      }
+      return this;
+    }
+    /**
+     * <code>repeated .alluxio.grpc.NetAddress masterAddresses = 2;</code>
+     */
+    public Builder addMasterAddresses(
+        alluxio.grpc.NetAddress.Builder builderForValue) {
+      if (masterAddressesBuilder_ == null) {
+        ensureMasterAddressesIsMutable();
+        masterAddresses_.add(builderForValue.build());
+        onChanged();
+      } else {
+        masterAddressesBuilder_.addMessage(builderForValue.build());
+      }
+      return this;
+    }
+    /**
+     * <code>repeated .alluxio.grpc.NetAddress masterAddresses = 2;</code>
+     */
+    public Builder addMasterAddresses(
+        int index, alluxio.grpc.NetAddress.Builder builderForValue) {
+      if (masterAddressesBuilder_ == null) {
+        ensureMasterAddressesIsMutable();
+        masterAddresses_.add(index, builderForValue.build());
+        onChanged();
+      } else {
+        masterAddressesBuilder_.addMessage(index, builderForValue.build());
+      }
+      return this;
+    }
+    /**
+     * <code>repeated .alluxio.grpc.NetAddress masterAddresses = 2;</code>
+     */
+    public Builder addAllMasterAddresses(
+        java.lang.Iterable<? extends alluxio.grpc.NetAddress> values) {
+      if (masterAddressesBuilder_ == null) {
+        ensureMasterAddressesIsMutable();
+        com.google.protobuf.AbstractMessageLite.Builder.addAll(
+            values, masterAddresses_);
+        onChanged();
+      } else {
+        masterAddressesBuilder_.addAllMessages(values);
+      }
+      return this;
+    }
+    /**
+     * <code>repeated .alluxio.grpc.NetAddress masterAddresses = 2;</code>
+     */
+    public Builder clearMasterAddresses() {
+      if (masterAddressesBuilder_ == null) {
+        masterAddresses_ = java.util.Collections.emptyList();
+        bitField0_ = (bitField0_ & ~0x00000002);
+        onChanged();
+      } else {
+        masterAddressesBuilder_.clear();
+      }
+      return this;
+    }
+    /**
+     * <code>repeated .alluxio.grpc.NetAddress masterAddresses = 2;</code>
+     */
+    public Builder removeMasterAddresses(int index) {
+      if (masterAddressesBuilder_ == null) {
+        ensureMasterAddressesIsMutable();
+        masterAddresses_.remove(index);
+        onChanged();
+      } else {
+        masterAddressesBuilder_.remove(index);
+      }
+      return this;
+    }
+    /**
+     * <code>repeated .alluxio.grpc.NetAddress masterAddresses = 2;</code>
+     */
+    public alluxio.grpc.NetAddress.Builder getMasterAddressesBuilder(
+        int index) {
+      return getMasterAddressesFieldBuilder().getBuilder(index);
+    }
+    /**
+     * <code>repeated .alluxio.grpc.NetAddress masterAddresses = 2;</code>
+     */
+    public alluxio.grpc.NetAddressOrBuilder getMasterAddressesOrBuilder(
+        int index) {
+      if (masterAddressesBuilder_ == null) {
+        return masterAddresses_.get(index);  } else {
+        return masterAddressesBuilder_.getMessageOrBuilder(index);
+      }
+    }
+    /**
+     * <code>repeated .alluxio.grpc.NetAddress masterAddresses = 2;</code>
+     */
+    public java.util.List<? extends alluxio.grpc.NetAddressOrBuilder> 
+         getMasterAddressesOrBuilderList() {
+      if (masterAddressesBuilder_ != null) {
+        return masterAddressesBuilder_.getMessageOrBuilderList();
+      } else {
+        return java.util.Collections.unmodifiableList(masterAddresses_);
+      }
+    }
+    /**
+     * <code>repeated .alluxio.grpc.NetAddress masterAddresses = 2;</code>
+     */
+    public alluxio.grpc.NetAddress.Builder addMasterAddressesBuilder() {
+      return getMasterAddressesFieldBuilder().addBuilder(
+          alluxio.grpc.NetAddress.getDefaultInstance());
+    }
+    /**
+     * <code>repeated .alluxio.grpc.NetAddress masterAddresses = 2;</code>
+     */
+    public alluxio.grpc.NetAddress.Builder addMasterAddressesBuilder(
+        int index) {
+      return getMasterAddressesFieldBuilder().addBuilder(
+          index, alluxio.grpc.NetAddress.getDefaultInstance());
+    }
+    /**
+     * <code>repeated .alluxio.grpc.NetAddress masterAddresses = 2;</code>
+     */
+    public java.util.List<alluxio.grpc.NetAddress.Builder> 
+         getMasterAddressesBuilderList() {
+      return getMasterAddressesFieldBuilder().getBuilderList();
+    }
+    private com.google.protobuf.RepeatedFieldBuilderV3<
+        alluxio.grpc.NetAddress, alluxio.grpc.NetAddress.Builder, alluxio.grpc.NetAddressOrBuilder> 
+        getMasterAddressesFieldBuilder() {
+      if (masterAddressesBuilder_ == null) {
+        masterAddressesBuilder_ = new com.google.protobuf.RepeatedFieldBuilderV3<
+            alluxio.grpc.NetAddress, alluxio.grpc.NetAddress.Builder, alluxio.grpc.NetAddressOrBuilder>(
+                masterAddresses_,
+                ((bitField0_ & 0x00000002) == 0x00000002),
+                getParentForChildren(),
+                isClean());
+        masterAddresses_ = null;
+      }
+      return masterAddressesBuilder_;
+    }
+
+    private int rpcPort_ ;
+    /**
+     * <code>optional int32 rpcPort = 3;</code>
+     */
+    public boolean hasRpcPort() {
+      return ((bitField0_ & 0x00000004) == 0x00000004);
+    }
+    /**
+     * <code>optional int32 rpcPort = 3;</code>
      */
     public int getRpcPort() {
       return rpcPort_;
     }
     /**
-     * <code>optional int32 rpcPort = 2;</code>
+     * <code>optional int32 rpcPort = 3;</code>
      */
     public Builder setRpcPort(int value) {
-      bitField0_ |= 0x00000002;
+      bitField0_ |= 0x00000004;
       rpcPort_ = value;
       onChanged();
       return this;
     }
     /**
-     * <code>optional int32 rpcPort = 2;</code>
+     * <code>optional int32 rpcPort = 3;</code>
      */
     public Builder clearRpcPort() {
-      bitField0_ = (bitField0_ & ~0x00000002);
+      bitField0_ = (bitField0_ & ~0x00000004);
       rpcPort_ = 0;
       onChanged();
       return this;
@@ -929,31 +1375,31 @@ private static final long serialVersionUID = 0L;
 
     private boolean safeMode_ ;
     /**
-     * <code>optional bool safeMode = 3;</code>
+     * <code>optional bool safeMode = 4;</code>
      */
     public boolean hasSafeMode() {
-      return ((bitField0_ & 0x00000004) == 0x00000004);
+      return ((bitField0_ & 0x00000008) == 0x00000008);
     }
     /**
-     * <code>optional bool safeMode = 3;</code>
+     * <code>optional bool safeMode = 4;</code>
      */
     public boolean getSafeMode() {
       return safeMode_;
     }
     /**
-     * <code>optional bool safeMode = 3;</code>
+     * <code>optional bool safeMode = 4;</code>
      */
     public Builder setSafeMode(boolean value) {
-      bitField0_ |= 0x00000004;
+      bitField0_ |= 0x00000008;
       safeMode_ = value;
       onChanged();
       return this;
     }
     /**
-     * <code>optional bool safeMode = 3;</code>
+     * <code>optional bool safeMode = 4;</code>
      */
     public Builder clearSafeMode() {
-      bitField0_ = (bitField0_ & ~0x00000004);
+      bitField0_ = (bitField0_ & ~0x00000008);
       safeMode_ = false;
       onChanged();
       return this;
@@ -961,31 +1407,31 @@ private static final long serialVersionUID = 0L;
 
     private long startTimeMs_ ;
     /**
-     * <code>optional int64 startTimeMs = 4;</code>
+     * <code>optional int64 startTimeMs = 5;</code>
      */
     public boolean hasStartTimeMs() {
-      return ((bitField0_ & 0x00000008) == 0x00000008);
+      return ((bitField0_ & 0x00000010) == 0x00000010);
     }
     /**
-     * <code>optional int64 startTimeMs = 4;</code>
+     * <code>optional int64 startTimeMs = 5;</code>
      */
     public long getStartTimeMs() {
       return startTimeMs_;
     }
     /**
-     * <code>optional int64 startTimeMs = 4;</code>
+     * <code>optional int64 startTimeMs = 5;</code>
      */
     public Builder setStartTimeMs(long value) {
-      bitField0_ |= 0x00000008;
+      bitField0_ |= 0x00000010;
       startTimeMs_ = value;
       onChanged();
       return this;
     }
     /**
-     * <code>optional int64 startTimeMs = 4;</code>
+     * <code>optional int64 startTimeMs = 5;</code>
      */
     public Builder clearStartTimeMs() {
-      bitField0_ = (bitField0_ & ~0x00000008);
+      bitField0_ = (bitField0_ & ~0x00000010);
       startTimeMs_ = 0L;
       onChanged();
       return this;
@@ -993,31 +1439,31 @@ private static final long serialVersionUID = 0L;
 
     private long upTimeMs_ ;
     /**
-     * <code>optional int64 upTimeMs = 5;</code>
+     * <code>optional int64 upTimeMs = 6;</code>
      */
     public boolean hasUpTimeMs() {
-      return ((bitField0_ & 0x00000010) == 0x00000010);
+      return ((bitField0_ & 0x00000020) == 0x00000020);
     }
     /**
-     * <code>optional int64 upTimeMs = 5;</code>
+     * <code>optional int64 upTimeMs = 6;</code>
      */
     public long getUpTimeMs() {
       return upTimeMs_;
     }
     /**
-     * <code>optional int64 upTimeMs = 5;</code>
+     * <code>optional int64 upTimeMs = 6;</code>
      */
     public Builder setUpTimeMs(long value) {
-      bitField0_ |= 0x00000010;
+      bitField0_ |= 0x00000020;
       upTimeMs_ = value;
       onChanged();
       return this;
     }
     /**
-     * <code>optional int64 upTimeMs = 5;</code>
+     * <code>optional int64 upTimeMs = 6;</code>
      */
     public Builder clearUpTimeMs() {
-      bitField0_ = (bitField0_ & ~0x00000010);
+      bitField0_ = (bitField0_ & ~0x00000020);
       upTimeMs_ = 0L;
       onChanged();
       return this;
@@ -1025,13 +1471,13 @@ private static final long serialVersionUID = 0L;
 
     private java.lang.Object version_ = "";
     /**
-     * <code>optional string version = 6;</code>
+     * <code>optional string version = 7;</code>
      */
     public boolean hasVersion() {
-      return ((bitField0_ & 0x00000020) == 0x00000020);
+      return ((bitField0_ & 0x00000040) == 0x00000040);
     }
     /**
-     * <code>optional string version = 6;</code>
+     * <code>optional string version = 7;</code>
      */
     public java.lang.String getVersion() {
       java.lang.Object ref = version_;
@@ -1048,7 +1494,7 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
-     * <code>optional string version = 6;</code>
+     * <code>optional string version = 7;</code>
      */
     public com.google.protobuf.ByteString
         getVersionBytes() {
@@ -1064,36 +1510,36 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
-     * <code>optional string version = 6;</code>
+     * <code>optional string version = 7;</code>
      */
     public Builder setVersion(
         java.lang.String value) {
       if (value == null) {
     throw new NullPointerException();
   }
-  bitField0_ |= 0x00000020;
+  bitField0_ |= 0x00000040;
       version_ = value;
       onChanged();
       return this;
     }
     /**
-     * <code>optional string version = 6;</code>
+     * <code>optional string version = 7;</code>
      */
     public Builder clearVersion() {
-      bitField0_ = (bitField0_ & ~0x00000020);
+      bitField0_ = (bitField0_ & ~0x00000040);
       version_ = getDefaultInstance().getVersion();
       onChanged();
       return this;
     }
     /**
-     * <code>optional string version = 6;</code>
+     * <code>optional string version = 7;</code>
      */
     public Builder setVersionBytes(
         com.google.protobuf.ByteString value) {
       if (value == null) {
     throw new NullPointerException();
   }
-  bitField0_ |= 0x00000020;
+  bitField0_ |= 0x00000040;
       version_ = value;
       onChanged();
       return this;
@@ -1101,49 +1547,289 @@ private static final long serialVersionUID = 0L;
 
     private int webPort_ ;
     /**
-     * <code>optional int32 webPort = 7;</code>
+     * <code>optional int32 webPort = 8;</code>
      */
     public boolean hasWebPort() {
-      return ((bitField0_ & 0x00000040) == 0x00000040);
+      return ((bitField0_ & 0x00000080) == 0x00000080);
     }
     /**
-     * <code>optional int32 webPort = 7;</code>
+     * <code>optional int32 webPort = 8;</code>
      */
     public int getWebPort() {
       return webPort_;
     }
     /**
-     * <code>optional int32 webPort = 7;</code>
+     * <code>optional int32 webPort = 8;</code>
      */
     public Builder setWebPort(int value) {
-      bitField0_ |= 0x00000040;
+      bitField0_ |= 0x00000080;
       webPort_ = value;
       onChanged();
       return this;
     }
     /**
-     * <code>optional int32 webPort = 7;</code>
+     * <code>optional int32 webPort = 8;</code>
      */
     public Builder clearWebPort() {
-      bitField0_ = (bitField0_ & ~0x00000040);
+      bitField0_ = (bitField0_ & ~0x00000080);
       webPort_ = 0;
       onChanged();
       return this;
     }
 
+    private java.util.List<alluxio.grpc.NetAddress> workerAddresses_ =
+      java.util.Collections.emptyList();
+    private void ensureWorkerAddressesIsMutable() {
+      if (!((bitField0_ & 0x00000100) == 0x00000100)) {
+        workerAddresses_ = new java.util.ArrayList<alluxio.grpc.NetAddress>(workerAddresses_);
+        bitField0_ |= 0x00000100;
+       }
+    }
+
+    private com.google.protobuf.RepeatedFieldBuilderV3<
+        alluxio.grpc.NetAddress, alluxio.grpc.NetAddress.Builder, alluxio.grpc.NetAddressOrBuilder> workerAddressesBuilder_;
+
+    /**
+     * <code>repeated .alluxio.grpc.NetAddress workerAddresses = 9;</code>
+     */
+    public java.util.List<alluxio.grpc.NetAddress> getWorkerAddressesList() {
+      if (workerAddressesBuilder_ == null) {
+        return java.util.Collections.unmodifiableList(workerAddresses_);
+      } else {
+        return workerAddressesBuilder_.getMessageList();
+      }
+    }
+    /**
+     * <code>repeated .alluxio.grpc.NetAddress workerAddresses = 9;</code>
+     */
+    public int getWorkerAddressesCount() {
+      if (workerAddressesBuilder_ == null) {
+        return workerAddresses_.size();
+      } else {
+        return workerAddressesBuilder_.getCount();
+      }
+    }
+    /**
+     * <code>repeated .alluxio.grpc.NetAddress workerAddresses = 9;</code>
+     */
+    public alluxio.grpc.NetAddress getWorkerAddresses(int index) {
+      if (workerAddressesBuilder_ == null) {
+        return workerAddresses_.get(index);
+      } else {
+        return workerAddressesBuilder_.getMessage(index);
+      }
+    }
+    /**
+     * <code>repeated .alluxio.grpc.NetAddress workerAddresses = 9;</code>
+     */
+    public Builder setWorkerAddresses(
+        int index, alluxio.grpc.NetAddress value) {
+      if (workerAddressesBuilder_ == null) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        ensureWorkerAddressesIsMutable();
+        workerAddresses_.set(index, value);
+        onChanged();
+      } else {
+        workerAddressesBuilder_.setMessage(index, value);
+      }
+      return this;
+    }
+    /**
+     * <code>repeated .alluxio.grpc.NetAddress workerAddresses = 9;</code>
+     */
+    public Builder setWorkerAddresses(
+        int index, alluxio.grpc.NetAddress.Builder builderForValue) {
+      if (workerAddressesBuilder_ == null) {
+        ensureWorkerAddressesIsMutable();
+        workerAddresses_.set(index, builderForValue.build());
+        onChanged();
+      } else {
+        workerAddressesBuilder_.setMessage(index, builderForValue.build());
+      }
+      return this;
+    }
+    /**
+     * <code>repeated .alluxio.grpc.NetAddress workerAddresses = 9;</code>
+     */
+    public Builder addWorkerAddresses(alluxio.grpc.NetAddress value) {
+      if (workerAddressesBuilder_ == null) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        ensureWorkerAddressesIsMutable();
+        workerAddresses_.add(value);
+        onChanged();
+      } else {
+        workerAddressesBuilder_.addMessage(value);
+      }
+      return this;
+    }
+    /**
+     * <code>repeated .alluxio.grpc.NetAddress workerAddresses = 9;</code>
+     */
+    public Builder addWorkerAddresses(
+        int index, alluxio.grpc.NetAddress value) {
+      if (workerAddressesBuilder_ == null) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        ensureWorkerAddressesIsMutable();
+        workerAddresses_.add(index, value);
+        onChanged();
+      } else {
+        workerAddressesBuilder_.addMessage(index, value);
+      }
+      return this;
+    }
+    /**
+     * <code>repeated .alluxio.grpc.NetAddress workerAddresses = 9;</code>
+     */
+    public Builder addWorkerAddresses(
+        alluxio.grpc.NetAddress.Builder builderForValue) {
+      if (workerAddressesBuilder_ == null) {
+        ensureWorkerAddressesIsMutable();
+        workerAddresses_.add(builderForValue.build());
+        onChanged();
+      } else {
+        workerAddressesBuilder_.addMessage(builderForValue.build());
+      }
+      return this;
+    }
+    /**
+     * <code>repeated .alluxio.grpc.NetAddress workerAddresses = 9;</code>
+     */
+    public Builder addWorkerAddresses(
+        int index, alluxio.grpc.NetAddress.Builder builderForValue) {
+      if (workerAddressesBuilder_ == null) {
+        ensureWorkerAddressesIsMutable();
+        workerAddresses_.add(index, builderForValue.build());
+        onChanged();
+      } else {
+        workerAddressesBuilder_.addMessage(index, builderForValue.build());
+      }
+      return this;
+    }
+    /**
+     * <code>repeated .alluxio.grpc.NetAddress workerAddresses = 9;</code>
+     */
+    public Builder addAllWorkerAddresses(
+        java.lang.Iterable<? extends alluxio.grpc.NetAddress> values) {
+      if (workerAddressesBuilder_ == null) {
+        ensureWorkerAddressesIsMutable();
+        com.google.protobuf.AbstractMessageLite.Builder.addAll(
+            values, workerAddresses_);
+        onChanged();
+      } else {
+        workerAddressesBuilder_.addAllMessages(values);
+      }
+      return this;
+    }
+    /**
+     * <code>repeated .alluxio.grpc.NetAddress workerAddresses = 9;</code>
+     */
+    public Builder clearWorkerAddresses() {
+      if (workerAddressesBuilder_ == null) {
+        workerAddresses_ = java.util.Collections.emptyList();
+        bitField0_ = (bitField0_ & ~0x00000100);
+        onChanged();
+      } else {
+        workerAddressesBuilder_.clear();
+      }
+      return this;
+    }
+    /**
+     * <code>repeated .alluxio.grpc.NetAddress workerAddresses = 9;</code>
+     */
+    public Builder removeWorkerAddresses(int index) {
+      if (workerAddressesBuilder_ == null) {
+        ensureWorkerAddressesIsMutable();
+        workerAddresses_.remove(index);
+        onChanged();
+      } else {
+        workerAddressesBuilder_.remove(index);
+      }
+      return this;
+    }
+    /**
+     * <code>repeated .alluxio.grpc.NetAddress workerAddresses = 9;</code>
+     */
+    public alluxio.grpc.NetAddress.Builder getWorkerAddressesBuilder(
+        int index) {
+      return getWorkerAddressesFieldBuilder().getBuilder(index);
+    }
+    /**
+     * <code>repeated .alluxio.grpc.NetAddress workerAddresses = 9;</code>
+     */
+    public alluxio.grpc.NetAddressOrBuilder getWorkerAddressesOrBuilder(
+        int index) {
+      if (workerAddressesBuilder_ == null) {
+        return workerAddresses_.get(index);  } else {
+        return workerAddressesBuilder_.getMessageOrBuilder(index);
+      }
+    }
+    /**
+     * <code>repeated .alluxio.grpc.NetAddress workerAddresses = 9;</code>
+     */
+    public java.util.List<? extends alluxio.grpc.NetAddressOrBuilder> 
+         getWorkerAddressesOrBuilderList() {
+      if (workerAddressesBuilder_ != null) {
+        return workerAddressesBuilder_.getMessageOrBuilderList();
+      } else {
+        return java.util.Collections.unmodifiableList(workerAddresses_);
+      }
+    }
+    /**
+     * <code>repeated .alluxio.grpc.NetAddress workerAddresses = 9;</code>
+     */
+    public alluxio.grpc.NetAddress.Builder addWorkerAddressesBuilder() {
+      return getWorkerAddressesFieldBuilder().addBuilder(
+          alluxio.grpc.NetAddress.getDefaultInstance());
+    }
+    /**
+     * <code>repeated .alluxio.grpc.NetAddress workerAddresses = 9;</code>
+     */
+    public alluxio.grpc.NetAddress.Builder addWorkerAddressesBuilder(
+        int index) {
+      return getWorkerAddressesFieldBuilder().addBuilder(
+          index, alluxio.grpc.NetAddress.getDefaultInstance());
+    }
+    /**
+     * <code>repeated .alluxio.grpc.NetAddress workerAddresses = 9;</code>
+     */
+    public java.util.List<alluxio.grpc.NetAddress.Builder> 
+         getWorkerAddressesBuilderList() {
+      return getWorkerAddressesFieldBuilder().getBuilderList();
+    }
+    private com.google.protobuf.RepeatedFieldBuilderV3<
+        alluxio.grpc.NetAddress, alluxio.grpc.NetAddress.Builder, alluxio.grpc.NetAddressOrBuilder> 
+        getWorkerAddressesFieldBuilder() {
+      if (workerAddressesBuilder_ == null) {
+        workerAddressesBuilder_ = new com.google.protobuf.RepeatedFieldBuilderV3<
+            alluxio.grpc.NetAddress, alluxio.grpc.NetAddress.Builder, alluxio.grpc.NetAddressOrBuilder>(
+                workerAddresses_,
+                ((bitField0_ & 0x00000100) == 0x00000100),
+                getParentForChildren(),
+                isClean());
+        workerAddresses_ = null;
+      }
+      return workerAddressesBuilder_;
+    }
+
     private com.google.protobuf.LazyStringList zookeeperAddresses_ = com.google.protobuf.LazyStringArrayList.EMPTY;
     private void ensureZookeeperAddressesIsMutable() {
-      if (!((bitField0_ & 0x00000080) == 0x00000080)) {
+      if (!((bitField0_ & 0x00000200) == 0x00000200)) {
         zookeeperAddresses_ = new com.google.protobuf.LazyStringArrayList(zookeeperAddresses_);
-        bitField0_ |= 0x00000080;
+        bitField0_ |= 0x00000200;
        }
     }
     /**
      * <pre>
-     * Null means zookeeper is not enabled
+     * Empty means zookeeper is not enabled
      * </pre>
      *
-     * <code>repeated string zookeeperAddresses = 8;</code>
+     * <code>repeated string zookeeperAddresses = 10;</code>
      */
     public com.google.protobuf.ProtocolStringList
         getZookeeperAddressesList() {
@@ -1151,30 +1837,30 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <pre>
-     * Null means zookeeper is not enabled
+     * Empty means zookeeper is not enabled
      * </pre>
      *
-     * <code>repeated string zookeeperAddresses = 8;</code>
+     * <code>repeated string zookeeperAddresses = 10;</code>
      */
     public int getZookeeperAddressesCount() {
       return zookeeperAddresses_.size();
     }
     /**
      * <pre>
-     * Null means zookeeper is not enabled
+     * Empty means zookeeper is not enabled
      * </pre>
      *
-     * <code>repeated string zookeeperAddresses = 8;</code>
+     * <code>repeated string zookeeperAddresses = 10;</code>
      */
     public java.lang.String getZookeeperAddresses(int index) {
       return zookeeperAddresses_.get(index);
     }
     /**
      * <pre>
-     * Null means zookeeper is not enabled
+     * Empty means zookeeper is not enabled
      * </pre>
      *
-     * <code>repeated string zookeeperAddresses = 8;</code>
+     * <code>repeated string zookeeperAddresses = 10;</code>
      */
     public com.google.protobuf.ByteString
         getZookeeperAddressesBytes(int index) {
@@ -1182,10 +1868,10 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <pre>
-     * Null means zookeeper is not enabled
+     * Empty means zookeeper is not enabled
      * </pre>
      *
-     * <code>repeated string zookeeperAddresses = 8;</code>
+     * <code>repeated string zookeeperAddresses = 10;</code>
      */
     public Builder setZookeeperAddresses(
         int index, java.lang.String value) {
@@ -1199,10 +1885,10 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <pre>
-     * Null means zookeeper is not enabled
+     * Empty means zookeeper is not enabled
      * </pre>
      *
-     * <code>repeated string zookeeperAddresses = 8;</code>
+     * <code>repeated string zookeeperAddresses = 10;</code>
      */
     public Builder addZookeeperAddresses(
         java.lang.String value) {
@@ -1216,10 +1902,10 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <pre>
-     * Null means zookeeper is not enabled
+     * Empty means zookeeper is not enabled
      * </pre>
      *
-     * <code>repeated string zookeeperAddresses = 8;</code>
+     * <code>repeated string zookeeperAddresses = 10;</code>
      */
     public Builder addAllZookeeperAddresses(
         java.lang.Iterable<java.lang.String> values) {
@@ -1231,23 +1917,23 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <pre>
-     * Null means zookeeper is not enabled
+     * Empty means zookeeper is not enabled
      * </pre>
      *
-     * <code>repeated string zookeeperAddresses = 8;</code>
+     * <code>repeated string zookeeperAddresses = 10;</code>
      */
     public Builder clearZookeeperAddresses() {
       zookeeperAddresses_ = com.google.protobuf.LazyStringArrayList.EMPTY;
-      bitField0_ = (bitField0_ & ~0x00000080);
+      bitField0_ = (bitField0_ & ~0x00000200);
       onChanged();
       return this;
     }
     /**
      * <pre>
-     * Null means zookeeper is not enabled
+     * Empty means zookeeper is not enabled
      * </pre>
      *
-     * <code>repeated string zookeeperAddresses = 8;</code>
+     * <code>repeated string zookeeperAddresses = 10;</code>
      */
     public Builder addZookeeperAddressesBytes(
         com.google.protobuf.ByteString value) {

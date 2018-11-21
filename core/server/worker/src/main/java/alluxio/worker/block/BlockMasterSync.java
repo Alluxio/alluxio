@@ -18,11 +18,11 @@ import alluxio.StorageTierAssoc;
 import alluxio.WorkerStorageTierAssoc;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.grpc.Command;
+import alluxio.grpc.ConfigProperty;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.metrics.Metric;
 import alluxio.metrics.MetricsSystem;
 import alluxio.util.ConfigurationUtils;
-import alluxio.wire.ConfigProperty;
 import alluxio.wire.Scope;
 import alluxio.wire.WorkerNetAddress;
 

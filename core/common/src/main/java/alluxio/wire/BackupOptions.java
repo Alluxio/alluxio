@@ -11,7 +11,7 @@
 
 package alluxio.wire;
 
-import alluxio.thrift.BackupTOptions;
+import alluxio.grpc.BackupPOptions;
 
 import javax.annotation.Nullable;
 
@@ -34,19 +34,19 @@ public class BackupOptions {
   }
 
   /**
-   * @param tOpts thrift options
-   * @return wire type options corresponding to the thrift options
+   * @param pOpts proto options
+   * @return wire type options corresponding to the proto options
    */
-  public static BackupOptions fromThrift(BackupTOptions tOpts) {
-    return new BackupOptions(tOpts.getTargetDirectory(), tOpts.isLocalFileSystem());
+  public static BackupOptions fromProto(BackupPOptions pOpts) {
+    return new BackupOptions(pOpts.getTargetDirectory(), pOpts.getLocalFileSystem());
   }
 
   /**
-   * @return the thrift options corresponding to these options
+   * @return the proto options corresponding to these options
    */
-  public BackupTOptions toThrift() {
-    return new BackupTOptions().setTargetDirectory(mTargetDirectory)
-        .setLocalFileSystem(mLocalFileSystem);
+  public BackupPOptions toProto() {
+    return BackupPOptions.newBuilder().setTargetDirectory(mTargetDirectory)
+        .setLocalFileSystem(mLocalFileSystem).build();
   }
 
   /**
