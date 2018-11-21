@@ -38,12 +38,14 @@ public final class ConfigProperty implements Serializable {
   /**
    * Creates a new instance of {@link ConfigProperty} from a thrift representation.
    *
-   * @param configProperty the thrift representation of Alluxio configuration property
+   * @param name name
+   * @param source source
+   * @param value value
    */
-  private ConfigProperty(alluxio.thrift.ConfigProperty configProperty) {
-    mName = configProperty.getName();
-    mSource = configProperty.getSource();
-    mValue = configProperty.getValue();
+  public ConfigProperty(String name, String source, String value) {
+    mName = name;
+    mSource = source;
+    mValue = value;
   }
 
   /**
@@ -109,7 +111,26 @@ public final class ConfigProperty implements Serializable {
    * @return the wire type configuration property
    */
   public static ConfigProperty fromThrift(alluxio.thrift.ConfigProperty configProperty) {
-    return new ConfigProperty(configProperty);
+    return new ConfigProperty(configProperty.getName(), configProperty.getSource(),
+        configProperty.getValue());
+  }
+
+  /**
+   * @return proto representation of the configuration property
+   */
+  public alluxio.grpc.ConfigProperty toProto() {
+    return alluxio.grpc.ConfigProperty.newBuilder().setName(mName).setSource(mSource).setValue(mValue).build();
+  }
+
+  /**
+   * Converts a proto type to a wire type.
+   *
+   * @param configProperty the proto representation of a configuration property
+   * @return the wire type configuration property
+   */
+  public static ConfigProperty fromProto(alluxio.grpc.ConfigProperty configProperty) {
+    return new ConfigProperty(configProperty.getName(), configProperty.getSource(),
+        configProperty.getValue());
   }
 
   @Override

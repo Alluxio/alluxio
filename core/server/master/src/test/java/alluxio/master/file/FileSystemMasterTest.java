@@ -39,6 +39,8 @@ import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.UnexpectedAlluxioException;
+import alluxio.grpc.Command;
+import alluxio.grpc.CommandType;
 import alluxio.grpc.CompleteFilePOptions;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
@@ -51,6 +53,7 @@ import alluxio.grpc.LoadDescendantPType;
 import alluxio.grpc.LoadMetadataPOptions;
 import alluxio.grpc.LoadMetadataPType;
 import alluxio.grpc.MountPOptions;
+import alluxio.grpc.RegisterWorkerPOptions;
 import alluxio.grpc.SetAclPOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.heartbeat.HeartbeatContext;
@@ -83,13 +86,11 @@ import alluxio.master.metrics.MetricsMasterFactory;
 import alluxio.metrics.Metric;
 import alluxio.security.GroupMappingServiceTestUtils;
 import alluxio.security.authorization.AclEntry;
-import alluxio.thrift.Command;
 import alluxio.thrift.RegisterWorkerTOptions;
 import alluxio.util.IdUtils;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.io.FileUtils;
-import alluxio.wire.CommandType;
 import alluxio.wire.FileBlockInfo;
 import alluxio.wire.FileInfo;
 import alluxio.wire.FileSystemCommand;
@@ -295,8 +296,7 @@ public final class FileSystemMasterTest {
         ImmutableMap.of("MEM", (long) Constants.KB), ImmutableList.of(blockId),
         ImmutableMap.<String, List<Long>>of(), mMetrics);
     // Verify the muted Free command on worker1.
-    assertEquals(new Command(alluxio.thrift.CommandType.Nothing, ImmutableList.<Long>of()),
-        heartbeat1);
+    assertEquals(Command.newBuilder().setCommandType(CommandType.Nothing).build(), heartbeat1);
     assertFalse(mBlockMaster.getLostBlocks().contains(blockId));
 
     // verify the file is deleted
@@ -1603,8 +1603,7 @@ public final class FileSystemMasterTest {
         ImmutableMap.of("MEM", (long) Constants.KB), ImmutableList.of(blockId),
         ImmutableMap.<String, List<Long>>of(), mMetrics);
     // Verify the muted Free command on worker1.
-    assertEquals(new Command(alluxio.thrift.CommandType.Nothing, ImmutableList.<Long>of()),
-        heartbeat);
+    assertEquals(Command.newBuilder().setCommandType(CommandType.Nothing).build(), heartbeat);
     assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
   }
 
@@ -1627,8 +1626,7 @@ public final class FileSystemMasterTest {
         ImmutableMap.of("MEM", (long) Constants.KB), ImmutableList.of(blockId),
         ImmutableMap.<String, List<Long>>of(), mMetrics);
     // Verify the muted Free command on worker1.
-    assertEquals(new Command(alluxio.thrift.CommandType.Nothing, ImmutableList.<Long>of()),
-        heartbeat);
+    assertEquals(Command.newBuilder().setCommandType(CommandType.Nothing).build(), heartbeat);
     assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
   }
 
@@ -1650,8 +1648,7 @@ public final class FileSystemMasterTest {
         ImmutableMap.of("MEM", (long) Constants.KB), ImmutableList.of(blockId),
         ImmutableMap.<String, List<Long>>of(), mMetrics);
     // Verify the muted Free command on worker1.
-    assertEquals(new Command(alluxio.thrift.CommandType.Nothing, ImmutableList.<Long>of()),
-        heartbeat);
+    assertEquals(Command.newBuilder().setCommandType(CommandType.Nothing).build(), heartbeat);
     assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
   }
 
@@ -1677,8 +1674,7 @@ public final class FileSystemMasterTest {
         ImmutableMap.of("MEM", (long) Constants.KB), ImmutableList.of(blockId),
         ImmutableMap.<String, List<Long>>of(), mMetrics);
     // Verify the muted Free command on worker1.
-    assertEquals(new Command(alluxio.thrift.CommandType.Nothing, ImmutableList.<Long>of()),
-        heartbeat);
+    assertEquals(Command.newBuilder().setCommandType(CommandType.Nothing).build(), heartbeat);
     assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
   }
 
@@ -2032,8 +2028,7 @@ public final class FileSystemMasterTest {
         ImmutableMap.of("MEM", (long) Constants.KB), ImmutableList.of(blockId),
         ImmutableMap.<String, List<Long>>of(), mMetrics);
     // Verify the muted Free command on worker1.
-    assertEquals(new Command(alluxio.thrift.CommandType.Nothing, ImmutableList.<Long>of()),
-        heartbeat2);
+    assertEquals(Command.newBuilder().setCommandType(CommandType.Nothing).build(), heartbeat2);
     assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
   }
 
@@ -2086,8 +2081,7 @@ public final class FileSystemMasterTest {
         ImmutableMap.of("MEM", (long) Constants.KB), ImmutableList.of(blockId),
         ImmutableMap.<String, List<Long>>of(), mMetrics);
     // Verify the muted Free command on worker1.
-    assertEquals(new Command(alluxio.thrift.CommandType.Nothing, ImmutableList.<Long>of()),
-        heartbeat);
+    assertEquals(Command.newBuilder().setCommandType(CommandType.Nothing).build(), heartbeat);
     assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
   }
 
@@ -2122,8 +2116,7 @@ public final class FileSystemMasterTest {
         ImmutableMap.of("MEM", (long) Constants.KB), ImmutableList.of(blockId),
         ImmutableMap.<String, List<Long>>of(), mMetrics);
     // Verify the muted Free command on worker1.
-    assertEquals(new Command(alluxio.thrift.CommandType.Nothing, ImmutableList.<Long>of()),
-        heartbeat3);
+    assertEquals(Command.newBuilder().setCommandType(CommandType.Nothing).build(), heartbeat3);
     assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
   }
 
@@ -2177,8 +2170,7 @@ public final class FileSystemMasterTest {
         ImmutableMap.of("MEM", (long) Constants.KB), ImmutableList.of(blockId),
         ImmutableMap.<String, List<Long>>of(), mMetrics);
     // Verify the muted Free command on worker1.
-    assertEquals(new Command(alluxio.thrift.CommandType.Nothing, ImmutableList.<Long>of()),
-        heartbeat);
+    assertEquals(Command.newBuilder().setCommandType(CommandType.Nothing).build(), heartbeat);
     assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
   }
 
@@ -2440,7 +2432,7 @@ public final class FileSystemMasterTest {
 
     FileSystemCommand command = mFileSystemMaster
         .workerHeartbeat(mWorkerId1, Lists.newArrayList(fileId), WorkerHeartbeatContext.defaults());
-    assertEquals(CommandType.Persist, command.getCommandType());
+    assertEquals(alluxio.wire.CommandType.Persist, command.getCommandType());
     assertEquals(0, command.getCommandOptions().getPersistOptions().getFilesToPersist().size());
   }
 
@@ -2686,13 +2678,13 @@ public final class FileSystemMasterTest {
     mBlockMaster.workerRegister(mWorkerId1, Arrays.asList("MEM", "SSD"),
         ImmutableMap.of("MEM", (long) Constants.MB, "SSD", (long) Constants.MB),
         ImmutableMap.of("MEM", (long) Constants.KB, "SSD", (long) Constants.KB),
-        new HashMap<String, List<Long>>(), new RegisterWorkerTOptions());
+        new HashMap<String, List<Long>>(), RegisterWorkerPOptions.getDefaultInstance());
     mWorkerId2 = mBlockMaster.getWorkerId(
         new WorkerNetAddress().setHost("remote").setRpcPort(80).setDataPort(81).setWebPort(82));
     mBlockMaster.workerRegister(mWorkerId2, Arrays.asList("MEM", "SSD"),
         ImmutableMap.of("MEM", (long) Constants.MB, "SSD", (long) Constants.MB),
         ImmutableMap.of("MEM", (long) Constants.KB, "SSD", (long) Constants.KB),
-        new HashMap<String, List<Long>>(), new RegisterWorkerTOptions());
+        new HashMap<String, List<Long>>(), RegisterWorkerPOptions.getDefaultInstance());
   }
 
   private void stopServices() throws Exception {

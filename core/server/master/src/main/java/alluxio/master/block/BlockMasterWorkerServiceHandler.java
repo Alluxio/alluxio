@@ -1,7 +1,7 @@
 /*
- * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the "License"). You may not use this work except in compliance with the License, which is
- * available at www.apache.org/licenses/LICENSE-2.0
+ * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0 (the
+ * "License"). You may not use this work except in compliance with the License, which is available
+ * at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
  * either express or implied, as more fully set forth in the License.
@@ -11,41 +11,39 @@
 
 package alluxio.master.block;
 
-import alluxio.Constants;
-import alluxio.RpcUtils;
-import alluxio.RpcUtils.RpcCallable;
-import alluxio.RpcUtils.RpcCallableThrowsIOException;
+import alluxio.grpc.BlockHeartbeatPOptions;
+import alluxio.grpc.BlockHeartbeatPRequest;
+import alluxio.grpc.BlockHeartbeatPResponse;
+import alluxio.grpc.BlockMasterWorkerServiceGrpc;
+import alluxio.grpc.CommitBlockInUfsPRequest;
+import alluxio.grpc.CommitBlockInUfsPResponse;
+import alluxio.grpc.CommitBlockPRequest;
+import alluxio.grpc.CommitBlockPResponse;
+import alluxio.grpc.GetWorkerIdPRequest;
+import alluxio.grpc.GetWorkerIdPResponse;
+import alluxio.grpc.RegisterWorkerPOptions;
+import alluxio.grpc.RegisterWorkerPRequest;
+import alluxio.grpc.RegisterWorkerPResponse;
+import alluxio.grpc.TierList;
 import alluxio.metrics.Metric;
-import alluxio.thrift.AlluxioTException;
-import alluxio.thrift.BlockHeartbeatTOptions;
-import alluxio.thrift.BlockHeartbeatTResponse;
-import alluxio.thrift.BlockMasterWorkerService;
-import alluxio.thrift.CommitBlockInUfsTResponse;
-import alluxio.thrift.CommitBlockTOptions;
-import alluxio.thrift.CommitBlockTResponse;
-import alluxio.thrift.GetServiceVersionTOptions;
-import alluxio.thrift.GetServiceVersionTResponse;
-import alluxio.thrift.GetWorkerIdTOptions;
-import alluxio.thrift.GetWorkerIdTResponse;
-import alluxio.thrift.RegisterWorkerTOptions;
-import alluxio.thrift.RegisterWorkerTResponse;
-import alluxio.thrift.WorkerNetAddress;
 
+import alluxio.util.RpcUtilsNew;
+import alluxio.util.grpc.GrpcUtils;
 import com.google.common.base.Preconditions;
-import jersey.repackaged.com.google.common.collect.Lists;
+import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-
-import javax.annotation.concurrent.NotThreadSafe;
+import java.util.stream.Collectors;
 
 /**
- * This class is a Thrift handler for block master RPCs invoked by an Alluxio worker.
+ * This class is a gRPC handler for block master RPCs invoked by an Alluxio worker.
  */
-@NotThreadSafe // TODO(jiri): make thread-safe (c.f. ALLUXIO-1664)
-public final class BlockMasterWorkerServiceHandler implements BlockMasterWorkerService.Iface {
+public final class BlockMasterWorkerServiceHandler
+    extends BlockMasterWorkerServiceGrpc.BlockMasterWorkerServiceImplBase {
   private static final Logger LOG = LoggerFactory.getLogger(BlockMasterWorkerServiceHandler.class);
 
   private final BlockMaster mBlockMaster;
@@ -55,76 +53,92 @@ public final class BlockMasterWorkerServiceHandler implements BlockMasterWorkerS
    *
    * @param blockMaster the {@link BlockMaster} the handler uses internally
    */
-  BlockMasterWorkerServiceHandler(BlockMaster blockMaster) {
+  public BlockMasterWorkerServiceHandler(BlockMaster blockMaster) {
     Preconditions.checkNotNull(blockMaster, "blockMaster");
     mBlockMaster = blockMaster;
   }
 
   @Override
-  public GetServiceVersionTResponse getServiceVersion(GetServiceVersionTOptions options) {
-    return new GetServiceVersionTResponse(Constants.BLOCK_MASTER_WORKER_SERVICE_VERSION);
+  public void blockHeartbeat(BlockHeartbeatPRequest request,
+      StreamObserver<BlockHeartbeatPResponse> responseObserver) {
+
+    final long workerId = request.getWorkerId();
+    final Map<String, Long> usedBytesOnTiers = request.getUsedBytesOnTiersMap();
+    final List<Long> removedBlockIds = request.getRemovedBlockIdsList();
+    final Map<String, TierList> addedBlocksOnTiers = request.getAddedBlocksOnTiersMap();
+    Map<String, List<Long>> addedBlocksOnTiersMap = Collections.emptyMap();
+    for (String id : addedBlocksOnTiers.keySet()) {
+      addedBlocksOnTiersMap.put(id, addedBlocksOnTiers.get(id).getTiersList());
+    }
+    final BlockHeartbeatPOptions options = request.getOptions();
+    final List<Metric> metrics =
+        options.getMetricsList().stream().map(Metric::fromProto).collect(Collectors.toList());
+
+    RpcUtilsNew.call(LOG,
+        (RpcUtilsNew.RpcCallableThrowsIOException<BlockHeartbeatPResponse>) () -> {
+          return BlockHeartbeatPResponse.newBuilder()
+              .setCommand(mBlockMaster.workerHeartbeat(workerId, usedBytesOnTiers, removedBlockIds,
+                  addedBlocksOnTiersMap, metrics))
+              .build();
+          // TODO(ggezer) Check if output of request type is intelligible enough.
+        }, "blockHeartbeat", "request=%s", responseObserver, request);
   }
 
   @Override
-  public BlockHeartbeatTResponse blockHeartbeat(final long workerId,
-      final Map<String, Long> usedBytesOnTiers, final List<Long> removedBlockIds,
-      final Map<String, List<Long>> addedBlocksOnTiers, BlockHeartbeatTOptions options)
-      throws AlluxioTException {
-    return RpcUtils.call(
-        LOG,
-        (RpcCallable<BlockHeartbeatTResponse>) () -> {
-          List<Metric> metrics = Lists.newArrayList();
-          for (alluxio.thrift.Metric metric : options.getMetrics()) {
-            metrics.add(Metric.from(metric));
-          }
-          return new BlockHeartbeatTResponse(mBlockMaster.workerHeartbeat(workerId,
-              usedBytesOnTiers, removedBlockIds, addedBlocksOnTiers, metrics));
-        }, "BlockHeartbeat",
-        "workerId=%s, usedBytesOnTiers=%s, removedBlockIds=%s, addedBlocksOnTiers=%s, options=%s",
-        workerId, usedBytesOnTiers, removedBlockIds, addedBlocksOnTiers, options);
-  }
+  public void commitBlock(CommitBlockPRequest request,
+      StreamObserver<CommitBlockPResponse> responseObserver) {
 
-  @Override
-  public CommitBlockTResponse commitBlock(final long workerId, final long usedBytesOnTier,
-      final String tierAlias, final long blockId, final long length, CommitBlockTOptions options)
-      throws AlluxioTException {
-    return RpcUtils.call(LOG, (RpcCallableThrowsIOException<CommitBlockTResponse>) () -> {
+    final long workerId = request.getWorkerId();
+    final long usedBytesOnTier = request.getUsedBytesOnTier();
+    final String tierAlias = request.getTierAlias();
+    final long blockId = request.getBlockId();
+    final long length = request.getLength();
+
+    RpcUtilsNew.call(LOG, (RpcUtilsNew.RpcCallableThrowsIOException<CommitBlockPResponse>) () -> {
       mBlockMaster.commitBlock(workerId, usedBytesOnTier, tierAlias, blockId, length);
-      return new CommitBlockTResponse();
-    }, "CommitBlock", "workerId=%s, usedBytesOnTier=%s, tierAlias=%s, blockId=%s, length=%s, "
-        + "options=%s", workerId, usedBytesOnTier, tierAlias, blockId, length, options);
+      return CommitBlockPResponse.getDefaultInstance();
+    }, "commitBlock", "request=%s", responseObserver, request);
   }
 
   @Override
-  public CommitBlockInUfsTResponse commitBlockInUfs(final long blockId,
-      final long length, alluxio.thrift.CommitBlockInUfsTOptions options) throws AlluxioTException {
-    return RpcUtils.call(LOG,
-        (RpcCallableThrowsIOException<alluxio.thrift.CommitBlockInUfsTResponse>) () -> {
-          mBlockMaster.commitBlockInUFS(blockId, length);
-          return new alluxio.thrift.CommitBlockInUfsTResponse();
-        }, "CommitBlockInUfs", "blockId=%s, length=%s, options=%s", blockId, length, options);
+  public void commitBlockInUfs(CommitBlockInUfsPRequest request,
+      StreamObserver<CommitBlockInUfsPResponse> responseObserver) {
+
+    RpcUtilsNew.call(LOG,
+        (RpcUtilsNew.RpcCallableThrowsIOException<CommitBlockInUfsPResponse>) () -> {
+          mBlockMaster.commitBlockInUFS(request.getBlockId(), request.getLength());
+          return CommitBlockInUfsPResponse.getDefaultInstance();
+        }, "commitBlock", "request=%s", responseObserver, request);
   }
 
   @Override
-  public GetWorkerIdTResponse getWorkerId(final WorkerNetAddress workerNetAddress,
-      GetWorkerIdTOptions options) throws AlluxioTException {
-//    return RpcUtils.call(LOG, (RpcCallable<GetWorkerIdTResponse>) () -> new GetWorkerIdTResponse(
-//        mBlockMaster.getWorkerId(fromThrift(workerNetAddress))), "GetWorkerId",
-//        "workerNetAddress=%s, options=%s", workerNetAddress, options);
-    return null;
+  public void getWorkerId(GetWorkerIdPRequest request,
+      StreamObserver<GetWorkerIdPResponse> responseObserver) {
+    RpcUtilsNew.call(LOG, (RpcUtilsNew.RpcCallableThrowsIOException<GetWorkerIdPResponse>) () -> {
+      return GetWorkerIdPResponse.newBuilder()
+          .setWorkerId(mBlockMaster.getWorkerId(GrpcUtils.fromProto(request.getWorkerNetAddress())))
+          .build();
+    }, "getWorkerId", "request=%s", responseObserver, request);
   }
 
   @Override
-  public RegisterWorkerTResponse registerWorker(final long workerId,
-      final List<String> storageTiers, final Map<String, Long> totalBytesOnTiers,
-      final Map<String, Long> usedBytesOnTiers, final Map<String, List<Long>> currentBlocksOnTiers,
-      RegisterWorkerTOptions options) throws AlluxioTException {
-    return RpcUtils.call(LOG, (RpcCallableThrowsIOException<RegisterWorkerTResponse>) () -> {
-      mBlockMaster.workerRegister(workerId, storageTiers, totalBytesOnTiers, usedBytesOnTiers,
-          currentBlocksOnTiers, options);
-      return new RegisterWorkerTResponse();
-    }, "RegisterWorker", "workerId=%s, storageTiers=%s, totalBytesOnTiers=%s, "
-        + "usedBytesOnTiers=%s, currentBlocksOnTiers=%s, options=%s", workerId, storageTiers,
-        totalBytesOnTiers, usedBytesOnTiers, currentBlocksOnTiers, options);
+  public void registerWorker(RegisterWorkerPRequest request,
+      StreamObserver<RegisterWorkerPResponse> responseObserver) {
+    final long workerId = request.getWorkerId();
+    final List<String> storageTiers = request.getStorageTiersList();
+    final Map<String, Long> totalBytesOnTiers = request.getTotalBytesOnTiersMap();
+    final Map<String, Long> usedBytesOnTiers = request.getUsedBytesOnTiersMap();
+    final Map<String, TierList> currentBlocksOnTiers = request.getCurrentBlocksOnTiersMap();
+    Map<String, List<Long>> currentBlocksOnTiersMap = Collections.emptyMap();
+    for (String id : currentBlocksOnTiers.keySet()) {
+      currentBlocksOnTiersMap.put(id, currentBlocksOnTiers.get(id).getTiersList());
+    }
+    RegisterWorkerPOptions options = request.getOptions();
+    RpcUtilsNew.call(LOG,
+        (RpcUtilsNew.RpcCallableThrowsIOException<RegisterWorkerPResponse>) () -> {
+          mBlockMaster.workerRegister(workerId, storageTiers, totalBytesOnTiers, usedBytesOnTiers,
+              currentBlocksOnTiersMap, options);
+          return RegisterWorkerPResponse.getDefaultInstance();
+        }, "registerWorker", "request=%s", responseObserver, request);
   }
 }

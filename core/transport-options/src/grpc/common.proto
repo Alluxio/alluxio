@@ -25,13 +25,31 @@ message BlockLocation {
   optional string tierAlias = 3;
 }
 
+/**
+ * Information about metrics.
+ */
+message Metric {
+  optional string instance = 1;
+  optional string hostname = 2;
+  optional string instanceId = 3;
+  optional string name = 4;
+  optional double value = 5;
+  map<string,string> tags = 6;
+}
+
 enum CommandType {
-  Command_Unknown = 0;
-  Command_Nothing = 1;
-  Command_Register = 2; // Ask the worker to re-register.
-  Command_Free = 3;     // Ask the worker to free files.
-  Command_Delete = 4;   // Ask the worker to delete files.
-  Command_Persist = 5;  // Ask the worker to persist a file for lineage
+  Unknown = 0;
+  Nothing = 1;
+  Register = 2; // Ask the worker to re-register.
+  Free = 3;     // Ask the worker to free files.
+  Delete = 4;   // Ask the worker to delete files.
+  Persist = 5;  // Ask the worker to persist a file for lineage
+}
+
+message ConfigProperty {
+  optional string name = 1;
+  optional string source = 2;
+  optional string value = 3;
 }
 
 enum TtlAction {

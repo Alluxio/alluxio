@@ -17,10 +17,10 @@ import alluxio.PropertyKey;
 import alluxio.StorageTierAssoc;
 import alluxio.WorkerStorageTierAssoc;
 import alluxio.exception.ConnectionFailedException;
+import alluxio.grpc.Command;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.metrics.Metric;
 import alluxio.metrics.MetricsSystem;
-import alluxio.thrift.Command;
 import alluxio.util.ConfigurationUtils;
 import alluxio.wire.ConfigProperty;
 import alluxio.wire.Scope;
@@ -119,9 +119,9 @@ public final class BlockMasterSync implements HeartbeatExecutor {
 
     // Send the heartbeat and execute the response
     Command cmdFromMaster = null;
-    List<alluxio.thrift.Metric> metrics = new ArrayList<>();
+    List<alluxio.grpc.Metric> metrics = new ArrayList<>();
     for (Metric metric : MetricsSystem.allWorkerMetrics()) {
-      metrics.add(metric.toThrift());
+      metrics.add(metric.toProto());
     }
     try {
       cmdFromMaster = mMasterClient.heartbeat(mWorkerId.get(), storeMeta.getUsedBytesOnTiers(),
@@ -174,7 +174,7 @@ public final class BlockMasterSync implements HeartbeatExecutor {
         break;
       // Master requests blocks to be removed from Alluxio managed space.
       case Free:
-        mAsyncBlockRemover.addBlocksToDelete(cmd.getData());
+        mAsyncBlockRemover.addBlocksToDelete(cmd.getDataList());
         break;
       // No action required
       case Nothing:

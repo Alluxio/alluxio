@@ -14,10 +14,10 @@ package alluxio.master.meta.checkconf;
 import static org.junit.Assert.assertEquals;
 
 import alluxio.PropertyKey;
+import alluxio.grpc.ConfigProperty;
 import alluxio.wire.Address;
 import alluxio.wire.ConfigCheckReport;
 import alluxio.wire.ConfigCheckReport.ConfigStatus;
-import alluxio.wire.ConfigProperty;
 import alluxio.wire.Scope;
 
 import org.apache.commons.lang.RandomStringUtils;
@@ -48,20 +48,20 @@ public class ServerConfigurationCheckerTest {
     PropertyKey keyMasterEnforce = new PropertyKey.Builder("TestKey1")
         .setConsistencyCheckLevel(PropertyKey.ConsistencyCheckLevel.ENFORCE)
         .setScope(Scope.MASTER).build();
-    ConfigProperty masterEnforceProp = new ConfigProperty()
-        .setName(keyMasterEnforce.getName()).setSource("Test").setValue("Value");
+    ConfigProperty masterEnforceProp = ConfigProperty.newBuilder()
+        .setName(keyMasterEnforce.getName()).setSource("Test").setValue("Value").build();
 
     PropertyKey keyWorkerWarn = new PropertyKey.Builder("TestKey2")
         .setConsistencyCheckLevel(PropertyKey.ConsistencyCheckLevel.WARN)
         .setScope(Scope.WORKER).build();
-    ConfigProperty workerWarnProp = new ConfigProperty()
-        .setName(keyWorkerWarn.getName()).setSource("Test").setValue("Value");
+    ConfigProperty workerWarnProp = ConfigProperty.newBuilder()
+        .setName(keyWorkerWarn.getName()).setSource("Test").setValue("Value").build();
 
     PropertyKey keyServerEnforce = new PropertyKey.Builder("TestKey3")
         .setConsistencyCheckLevel(PropertyKey.ConsistencyCheckLevel.ENFORCE)
         .setScope(Scope.SERVER).build();
-    ConfigProperty serverEnforceProp = new ConfigProperty()
-        .setName(keyServerEnforce.getName()).setSource("Test").setValue("Value");
+    ConfigProperty serverEnforceProp = ConfigProperty.newBuilder()
+        .setName(keyServerEnforce.getName()).setSource("Test").setValue("Value").build();
 
     Random random = new Random();
     Address addressOne = new Address(RandomStringUtils.randomAlphanumeric(10), random.nextInt());
@@ -73,21 +73,21 @@ public class ServerConfigurationCheckerTest {
     checkResults(0, 0, ConfigStatus.PASSED);
 
     // When records have a wrong warn property, checker should be able to find config warns
-    ConfigProperty wrongWorkerWarnProp = new ConfigProperty().setName(workerWarnProp.getName())
-        .setSource(workerWarnProp.getSource()).setValue("WrongValue");
+    ConfigProperty wrongWorkerWarnProp = ConfigProperty.newBuilder().setName(workerWarnProp.getName())
+        .setSource(workerWarnProp.getSource()).setValue("WrongValue").build();
     mRecordOne.registerNewConf(addressOne, Arrays.asList(masterEnforceProp, wrongWorkerWarnProp));
     checkResults(0, 1, ConfigStatus.WARN);
 
     // When records have a wrong enforce property, checker should be able to find config errors
-    ConfigProperty wrongMasterEnforceProp = new ConfigProperty()
+    ConfigProperty wrongMasterEnforceProp = ConfigProperty.newBuilder()
         .setName(masterEnforceProp.getName())
-        .setSource(masterEnforceProp.getSource()).setValue("WrongValue");
+        .setSource(masterEnforceProp.getSource()).setValue("WrongValue").build();
     mRecordTwo.registerNewConf(addressTwo, Arrays.asList(wrongMasterEnforceProp, workerWarnProp));
     checkResults(1, 1, ConfigStatus.FAILED);
 
-    ConfigProperty wrongServerEnforceProp = new ConfigProperty()
+    ConfigProperty wrongServerEnforceProp = ConfigProperty.newBuilder()
         .setName(serverEnforceProp.getName())
-        .setSource(serverEnforceProp.getSource()).setValue("WrongValue");
+        .setSource(serverEnforceProp.getSource()).setValue("WrongValue").build();
     mRecordOne.registerNewConf(addressOne,
         Arrays.asList(masterEnforceProp, workerWarnProp, serverEnforceProp));
     mRecordTwo.registerNewConf(addressTwo,

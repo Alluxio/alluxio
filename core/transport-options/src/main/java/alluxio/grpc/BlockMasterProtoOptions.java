@@ -55,6 +55,11 @@ public final class BlockMasterProtoOptions {
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_alluxio_grpc_CommitBlockPOptions_fieldAccessorTable;
   static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_alluxio_grpc_CommitBlockInUfsPOptions_descriptor;
+  static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_alluxio_grpc_CommitBlockInUfsPOptions_fieldAccessorTable;
+  static final com.google.protobuf.Descriptors.Descriptor
     internal_static_alluxio_grpc_GetWorkerIdPOptions_descriptor;
   static final 
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
@@ -82,22 +87,25 @@ public final class BlockMasterProtoOptions {
       "ns\022\021\n\taddresses\030\001 \003(\t\0221\n\nfieldRange\030\002 \003(" +
       "\0162\035.alluxio.grpc.WorkerInfoField\022.\n\013work" +
       "erRange\030\003 \001(\0162\031.alluxio.grpc.WorkerRange" +
-      "\"\033\n\031GetWorkerInfoListPOptions\"\030\n\026BlockHe" +
-      "artbeatPOptions\"\025\n\023CommitBlockPOptions\"\025" +
-      "\n\023GetWorkerIdPOptions\"\030\n\026RegisterWorkerP" +
-      "Options*\252\001\n\024BlockMasterInfoField\022\022\n\016CAPA" +
-      "CITY_BYTES\020\001\022\033\n\027CAPACITY_BYTES_ON_TIERS\020" +
-      "\002\022\016\n\nFREE_BYTES\020\003\022\023\n\017LIVE_WORKER_NUM\020\004\022\023" +
-      "\n\017LOST_WORKER_NUM\020\005\022\016\n\nUSED_BYTES\020\006\022\027\n\023U" +
-      "SED_BYTES_ON_TIERS\020\007*9\n\013WorkerRange\022\007\n\003A" +
-      "LL\020\001\022\010\n\004LIVE\020\002\022\010\n\004LOST\020\003\022\r\n\tSPECIFIED\020\004*" +
-      "\320\001\n\017WorkerInfoField\022\013\n\007ADDRESS\020\001\022\031\n\025WORK" +
-      "ER_CAPACITY_BYTES\020\002\022\"\n\036WORKER_CAPACITY_B" +
-      "YTES_ON_TIERS\020\003\022\006\n\002ID\020\004\022\024\n\020LAST_CONTACT_" +
-      "SEC\020\005\022\021\n\rSTART_TIME_MS\020\006\022\t\n\005STATE\020\007\022\025\n\021W" +
-      "ORKER_USED_BYTES\020\010\022\036\n\032WORKER_USED_BYTES_" +
-      "ON_TIERS\020\tB)\n\014alluxio.grpcB\027BlockMasterP" +
-      "rotoOptionsP\001"
+      "\"\033\n\031GetWorkerInfoListPOptions\"?\n\026BlockHe" +
+      "artbeatPOptions\022%\n\007metrics\030\001 \003(\0132\024.allux" +
+      "io.grpc.Metric\"\025\n\023CommitBlockPOptions\"\032\n" +
+      "\030CommitBlockInUfsPOptions\"\025\n\023GetWorkerId" +
+      "POptions\"F\n\026RegisterWorkerPOptions\022,\n\006co" +
+      "nfig\030\001 \003(\0132\034.alluxio.grpc.ConfigProperty" +
+      "*\252\001\n\024BlockMasterInfoField\022\022\n\016CAPACITY_BY" +
+      "TES\020\001\022\033\n\027CAPACITY_BYTES_ON_TIERS\020\002\022\016\n\nFR" +
+      "EE_BYTES\020\003\022\023\n\017LIVE_WORKER_NUM\020\004\022\023\n\017LOST_" +
+      "WORKER_NUM\020\005\022\016\n\nUSED_BYTES\020\006\022\027\n\023USED_BYT" +
+      "ES_ON_TIERS\020\007*9\n\013WorkerRange\022\007\n\003ALL\020\001\022\010\n" +
+      "\004LIVE\020\002\022\010\n\004LOST\020\003\022\r\n\tSPECIFIED\020\004*\320\001\n\017Wor" +
+      "kerInfoField\022\013\n\007ADDRESS\020\001\022\031\n\025WORKER_CAPA" +
+      "CITY_BYTES\020\002\022\"\n\036WORKER_CAPACITY_BYTES_ON" +
+      "_TIERS\020\003\022\006\n\002ID\020\004\022\024\n\020LAST_CONTACT_SEC\020\005\022\021" +
+      "\n\rSTART_TIME_MS\020\006\022\t\n\005STATE\020\007\022\025\n\021WORKER_U" +
+      "SED_BYTES\020\010\022\036\n\032WORKER_USED_BYTES_ON_TIER" +
+      "S\020\tB)\n\014alluxio.grpcB\027BlockMasterProtoOpt" +
+      "ionsP\001"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -153,25 +161,31 @@ public final class BlockMasterProtoOptions {
     internal_static_alluxio_grpc_BlockHeartbeatPOptions_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_BlockHeartbeatPOptions_descriptor,
-        new java.lang.String[] { });
+        new java.lang.String[] { "Metrics", });
     internal_static_alluxio_grpc_CommitBlockPOptions_descriptor =
       getDescriptor().getMessageTypes().get(7);
     internal_static_alluxio_grpc_CommitBlockPOptions_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_CommitBlockPOptions_descriptor,
         new java.lang.String[] { });
-    internal_static_alluxio_grpc_GetWorkerIdPOptions_descriptor =
+    internal_static_alluxio_grpc_CommitBlockInUfsPOptions_descriptor =
       getDescriptor().getMessageTypes().get(8);
+    internal_static_alluxio_grpc_CommitBlockInUfsPOptions_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_alluxio_grpc_CommitBlockInUfsPOptions_descriptor,
+        new java.lang.String[] { });
+    internal_static_alluxio_grpc_GetWorkerIdPOptions_descriptor =
+      getDescriptor().getMessageTypes().get(9);
     internal_static_alluxio_grpc_GetWorkerIdPOptions_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_GetWorkerIdPOptions_descriptor,
         new java.lang.String[] { });
     internal_static_alluxio_grpc_RegisterWorkerPOptions_descriptor =
-      getDescriptor().getMessageTypes().get(9);
+      getDescriptor().getMessageTypes().get(10);
     internal_static_alluxio_grpc_RegisterWorkerPOptions_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_RegisterWorkerPOptions_descriptor,
-        new java.lang.String[] { });
+        new java.lang.String[] { "Config", });
     alluxio.grpc.CommonProto.getDescriptor();
   }
 

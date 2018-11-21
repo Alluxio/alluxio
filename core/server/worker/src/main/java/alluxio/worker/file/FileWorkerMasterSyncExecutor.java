@@ -98,7 +98,7 @@ final class FileWorkerMasterSyncExecutor implements HeartbeatExecutor {
     if (command == null) {
       LOG.error("The command sent from master is null");
       return;
-    } else if (command.getCommandType() != CommandType.Command_Persist) {
+    } else if (command.getCommandType() != CommandType.Persist) {
       LOG.error("The command sent from master should be PERSIST type, but was {}",
           command.getCommandType());
       return;

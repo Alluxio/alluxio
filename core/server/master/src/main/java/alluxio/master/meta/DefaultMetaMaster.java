@@ -205,7 +205,10 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
     if (isPrimary) {
       // Add the configuration of the current leader master
       mMasterConfigStore.registerNewConf(mMasterAddress,
-          ConfigurationUtils.getConfiguration(Scope.MASTER));
+          ConfigurationUtils.getConfiguration(Scope.MASTER).stream()
+              .map((pc) -> alluxio.grpc.ConfigProperty.newBuilder().setName(pc.getName())
+                  .setSource(pc.getSource()).setValue(pc.getValue()).build())
+              .collect(Collectors.toList()));
 
       // The service that detects lost standby master nodes
       getExecutorService().submit(new HeartbeatThread(
@@ -394,8 +397,10 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
 
     master.updateLastUpdatedTimeMs();
 
-    List<ConfigProperty> configList = options.getConfigList().stream()
-        .map(ConfigProperty::fromThrift).collect(Collectors.toList());
+    List<alluxio.grpc.ConfigProperty> configList = options
+        .getConfigList().stream().map((c) -> alluxio.grpc.ConfigProperty.newBuilder()
+            .setName(c.getName()).setSource(c.getSource()).setValue(c.getValue()).build())
+        .collect(Collectors.toList());
     mMasterConfigStore.registerNewConf(master.getAddress(), configList);
 
     LOG.info("registerMaster(): master: {}", master);

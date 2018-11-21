@@ -15,6 +15,9 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
+import alluxio.master.block.BlockMaster;
+import alluxio.master.block.BlockMasterClientServiceHandler;
+import alluxio.master.block.BlockMasterWorkerServiceHandler;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.FileSystemMasterClientServiceHandler;
 import alluxio.master.file.FileSystemMasterJobServiceHandler;
@@ -379,11 +382,14 @@ public class AlluxioMasterProcess implements MasterProcess {
     ExecutorService executorService = Executors.newFixedThreadPool(mMaxWorkerThreads);
     try {
       FileSystemMaster master = getMaster(FileSystemMaster.class);
+      BlockMaster blockMaster = getMaster(BlockMaster.class);
       LOG.info("Starting gRPC server on port {}", port);
       mGrpcServer = GrpcServerBuilder.forPort(port)
           .addService(new FileSystemMasterClientServiceHandler(master))
           .addService(new FileSystemMasterWorkerServiceHandler(master))
           .addService(new FileSystemMasterJobServiceHandler(master))
+          .addService(new BlockMasterClientServiceHandler(blockMaster))
+          .addService(new BlockMasterWorkerServiceHandler(blockMaster))
           .executor(executorService)
           .build()
           .start();

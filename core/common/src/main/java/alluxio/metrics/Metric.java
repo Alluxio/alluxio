@@ -193,6 +193,20 @@ public final class Metric implements Serializable {
   }
 
   /**
+   * @return the proto object it converts to. Note the value must be either integer or long
+   */
+  public alluxio.grpc.Metric toProto() {
+    return alluxio.grpc.Metric.newBuilder()
+            .setInstance(mInstanceType.toString())
+            .setHostname(mHostname)
+            .setName(mName)
+            .setInstanceId(mInstanceId)
+            .setValue(mValue)
+            .putAllTags(mTags)
+            .build();
+  }
+
+  /**
    * Gets the metric name with the appendix of tags. The returned name is of the pattern
    * name[.tagName:tagValue]*.
    *
@@ -285,6 +299,21 @@ public final class Metric implements Serializable {
     Metric created = new Metric(MetricsSystem.InstanceType.fromString(metric.getInstance()),
         metric.getHostname(), metric.getInstanceId(), metric.getName(), metric.getValue());
     for (Entry<String, String> entry : metric.getTags().entrySet()) {
+      created.addTag(entry.getKey(), entry.getValue());
+    }
+    return created;
+  }
+  
+  /**
+   * Constructs the metric object from the proto format.
+   *
+   * @param metric the metric in proto format
+   * @return the constructed metric
+   */
+  public static Metric fromProto(alluxio.grpc.Metric metric) {
+    Metric created = new Metric(MetricsSystem.InstanceType.fromString(metric.getInstance()),
+            metric.getHostname(), metric.getInstanceId(), metric.getName(), metric.getValue());
+    for (Entry<String, String> entry : metric.getTagsMap().entrySet()) {
       created.addTag(entry.getKey(), entry.getValue());
     }
     return created;

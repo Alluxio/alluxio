@@ -56,11 +56,17 @@ message GetWorkerReportPOptions {
 
 message GetWorkerInfoListPOptions {}
 
-message BlockHeartbeatPOptions {}
+message BlockHeartbeatPOptions {
+  repeated grpc.Metric metrics = 1;
+}
 
 message CommitBlockPOptions {}
 
+message CommitBlockInUfsPOptions {}
+
 message GetWorkerIdPOptions {}
 
-message RegisterWorkerPOptions {}
+message RegisterWorkerPOptions {
+  repeated grpc.ConfigProperty config = 1;
+}
 

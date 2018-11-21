@@ -6,4 +6,28 @@ package alluxio.grpc;
 public interface RegisterWorkerPOptionsOrBuilder extends
     // @@protoc_insertion_point(interface_extends:alluxio.grpc.RegisterWorkerPOptions)
     com.google.protobuf.MessageOrBuilder {
+
+  /**
+   * <code>repeated .alluxio.grpc.ConfigProperty config = 1;</code>
+   */
+  java.util.List<alluxio.grpc.ConfigProperty> 
+      getConfigList();
+  /**
+   * <code>repeated .alluxio.grpc.ConfigProperty config = 1;</code>
+   */
+  alluxio.grpc.ConfigProperty getConfig(int index);
+  /**
+   * <code>repeated .alluxio.grpc.ConfigProperty config = 1;</code>
+   */
+  int getConfigCount();
+  /**
+   * <code>repeated .alluxio.grpc.ConfigProperty config = 1;</code>
+   */
+  java.util.List<? extends alluxio.grpc.ConfigPropertyOrBuilder> 
+      getConfigOrBuilderList();
+  /**
+   * <code>repeated .alluxio.grpc.ConfigProperty config = 1;</code>
+   */
+  alluxio.grpc.ConfigPropertyOrBuilder getConfigOrBuilder(
+      int index);
 }
