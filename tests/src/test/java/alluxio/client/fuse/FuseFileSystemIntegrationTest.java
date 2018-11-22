@@ -275,8 +275,8 @@ public class FuseFileSystemIntegrationTest {
    * @return true if fuse is mounted, false otherwise
    */
   private static boolean fuseMounted() throws IOException {
-    String result = ShellUtils.execCommand("bash", "-c", "mount | grep " + sMountPoint);
-    return !result.isEmpty();
+    String result = ShellUtils.execCommand("mount");
+    return result.contains(sMountPoint);
   }
 
   /**
