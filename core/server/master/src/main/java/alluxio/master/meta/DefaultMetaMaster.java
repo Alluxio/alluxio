@@ -26,6 +26,7 @@ import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.GetConfigurationPOptions;
 import alluxio.grpc.MetaCommand;
 import alluxio.grpc.RegisterMasterPOptions;
+import alluxio.grpc.Scope;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.heartbeat.HeartbeatThread;
@@ -51,7 +52,6 @@ import alluxio.wire.Address;
 import alluxio.wire.BackupOptions;
 import alluxio.wire.BackupResponse;
 import alluxio.wire.ConfigCheckReport;
-import alluxio.wire.Scope;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterators;
@@ -290,8 +290,11 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
         String source = Configuration.getSource(key).toString();
         String value = Configuration.getOrDefault(key, null, ConfigurationValueOptions.defaults()
             .useDisplayValue(true).useRawValue(options.getRawValue()));
-        configInfoList.add(ConfigProperty.newBuilder().setName(key.getName()).setValue(value)
-            .setSource(source).build());
+        ConfigProperty.Builder config = ConfigProperty.newBuilder().setName(key.getName()).setSource(source);
+        if(value != null) {
+          config.setValue(value);
+        }
+        configInfoList.add(config.build());
       }
     }
     return configInfoList;

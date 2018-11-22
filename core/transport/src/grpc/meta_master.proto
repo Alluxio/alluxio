@@ -27,10 +27,10 @@ enum ConfigStatus {
 enum Scope {
   MASTER = 1;
   WORKER = 2;
-  CLIENT = 3;
-  SERVER = 4;
-  ALL = 5;
-  NONE = 6;
+  CLIENT = 4;
+  SERVER = 3;
+  ALL = 7;
+  NONE = 0;
 }
 
 message InconsistentPropertyValues {

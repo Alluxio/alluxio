@@ -12,10 +12,10 @@
 package alluxio.master.meta;
 
 import alluxio.grpc.MetaCommand;
+import alluxio.grpc.Scope;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.util.ConfigurationUtils;
 import alluxio.wire.Address;
-import alluxio.wire.Scope;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

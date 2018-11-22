@@ -17,8 +17,10 @@ import alluxio.Configuration;
 import alluxio.ConfigurationValueOptions;
 import alluxio.PropertyKey;
 import alluxio.grpc.ConfigProperty;
+import alluxio.grpc.Scope;
+import alluxio.util.grpc.GrpcUtils;
 import alluxio.util.io.PathUtils;
-import alluxio.wire.Scope;
+
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,6 +30,8 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 
@@ -144,13 +148,20 @@ public final class ConfigurationUtils {
   public static List<ConfigProperty> getConfiguration(Scope scope) {
     ConfigurationValueOptions useRawDisplayValue =
         ConfigurationValueOptions.defaults().useDisplayValue(true).useRawValue(true);
-    return Configuration.keySet().stream().filter(key -> key.getScope().contains(scope))
-        .filter(key -> key.isValid(key.getName()))
-        .map(key -> ConfigProperty.newBuilder().setName(key.getName())
-            .setSource(Configuration.getSource(key).toString())
-            .setValue(Configuration.isSet(key) ? Configuration.get(key, useRawDisplayValue) : null)
-            .build())
-        .collect(toList());
+
+    List<ConfigProperty> configs = new ArrayList<>();
+    List<PropertyKey> selectedKeys = Configuration.keySet().stream().filter(key -> GrpcUtils.contains(key.getScope(), scope))
+            .filter(key -> key.isValid(key.getName())).collect(toList());
+    
+    for (PropertyKey key : selectedKeys) {
+      ConfigProperty.Builder configProp = ConfigProperty.newBuilder().setName(key.getName())
+          .setSource(Configuration.getSource(key).toString());
+      if (Configuration.isSet(key)) {
+        configProp.setValue(Configuration.get(key, useRawDisplayValue));
+      }
+      configs.add(configProp.build());
+    }
+    return configs;
   }
 
   /**

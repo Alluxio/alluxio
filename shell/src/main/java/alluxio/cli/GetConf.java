@@ -175,11 +175,14 @@ public final class GetConf {
       // load local configuration
       for (PropertyKey key : Configuration.keySet()) {
         if (key.isBuiltIn()) {
-          confMap.put(key.getName(), ConfigProperty.newBuilder()
-              .setName(key.getName())
-              .setValue(Configuration.getOrDefault(key, null,
-                  ConfigurationValueOptions.defaults().useDisplayValue(true)))
-              .setSource(Configuration.getSource(key).toString()).build());
+          ConfigProperty.Builder config = ConfigProperty.newBuilder().setName(key.getName())
+              .setSource(Configuration.getSource(key).toString());
+          String val = Configuration.getOrDefault(key, null,
+              ConfigurationValueOptions.defaults().useDisplayValue(true));
+          if (val != null) {
+            config.setValue(val);
+          }
+          confMap.put(key.getName(), config.build());
         }
       }
     }

@@ -17,21 +17,21 @@ public enum Scope
    */
   WORKER(2),
   /**
-   * <code>CLIENT = 3;</code>
+   * <code>CLIENT = 4;</code>
    */
-  CLIENT(3),
+  CLIENT(4),
   /**
-   * <code>SERVER = 4;</code>
+   * <code>SERVER = 3;</code>
    */
-  SERVER(4),
+  SERVER(3),
   /**
-   * <code>ALL = 5;</code>
+   * <code>ALL = 7;</code>
    */
-  ALL(5),
+  ALL(7),
   /**
-   * <code>NONE = 6;</code>
+   * <code>NONE = 0;</code>
    */
-  NONE(6),
+  NONE(0),
   ;
 
   /**
@@ -43,21 +43,21 @@ public enum Scope
    */
   public static final int WORKER_VALUE = 2;
   /**
-   * <code>CLIENT = 3;</code>
+   * <code>CLIENT = 4;</code>
    */
-  public static final int CLIENT_VALUE = 3;
+  public static final int CLIENT_VALUE = 4;
   /**
-   * <code>SERVER = 4;</code>
+   * <code>SERVER = 3;</code>
    */
-  public static final int SERVER_VALUE = 4;
+  public static final int SERVER_VALUE = 3;
   /**
-   * <code>ALL = 5;</code>
+   * <code>ALL = 7;</code>
    */
-  public static final int ALL_VALUE = 5;
+  public static final int ALL_VALUE = 7;
   /**
-   * <code>NONE = 6;</code>
+   * <code>NONE = 0;</code>
    */
-  public static final int NONE_VALUE = 6;
+  public static final int NONE_VALUE = 0;
 
 
   public final int getNumber() {
@@ -76,10 +76,10 @@ public enum Scope
     switch (value) {
       case 1: return MASTER;
       case 2: return WORKER;
-      case 3: return CLIENT;
-      case 4: return SERVER;
-      case 5: return ALL;
-      case 6: return NONE;
+      case 4: return CLIENT;
+      case 3: return SERVER;
+      case 7: return ALL;
+      case 0: return NONE;
       default: return null;
     }
   }

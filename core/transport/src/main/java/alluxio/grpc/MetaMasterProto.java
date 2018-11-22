@@ -180,8 +180,8 @@ public final class MetaMasterProto {
       "onse\022*\n\007command\030\001 \001(\0162\031.alluxio.grpc.Met" +
       "aCommand*0\n\014ConfigStatus\022\n\n\006PASSED\020\001\022\010\n\004" +
       "WARN\020\002\022\n\n\006FAILED\020\003*J\n\005Scope\022\n\n\006MASTER\020\001\022" +
-      "\n\n\006WORKER\020\002\022\n\n\006CLIENT\020\003\022\n\n\006SERVER\020\004\022\007\n\003A" +
-      "LL\020\005\022\010\n\004NONE\020\006*Y\n\013MetaCommand\022\027\n\023MetaCom" +
+      "\n\n\006WORKER\020\002\022\n\n\006CLIENT\020\004\022\n\n\006SERVER\020\003\022\007\n\003A" +
+      "LL\020\007\022\010\n\004NONE\020\000*Y\n\013MetaCommand\022\027\n\023MetaCom" +
       "mand_Unknown\020\000\022\027\n\023MetaCommand_Nothing\020\001\022" +
       "\030\n\024MetaCommand_Register\020\0022\326\003\n\027MetaMaster" +
       "ClientService\022E\n\006Backup\022\034.alluxio.grpc.B" +

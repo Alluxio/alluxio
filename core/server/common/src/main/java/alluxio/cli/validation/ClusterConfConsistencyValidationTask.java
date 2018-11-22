@@ -13,10 +13,13 @@ package alluxio.cli.validation;
 
 import alluxio.Configuration;
 import alluxio.PropertyKey;
-import alluxio.wire.Scope;
 
+import alluxio.grpc.Scope;
+import alluxio.util.grpc.GrpcUtils;
+import com.google.common.base.Enums;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
+import com.google.protobuf.Enum;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
@@ -68,10 +71,10 @@ public final class ClusterConfConsistencyValidationTask extends AbstractValidati
       }
       Scope scope = propertyKey.getScope();
       Set<String> targetNodes = ImmutableSet.of();
-      if (scope.contains(Scope.MASTER)) {
+      if (GrpcUtils.contains(scope, Scope.MASTER)) {
         targetNodes = masters;
       }
-      if (scope.contains(Scope.WORKER)) {
+      if (GrpcUtils.contains(scope, Scope.WORKER)) {
         targetNodes = Sets.union(targetNodes, workers);
       }
       if (targetNodes.size() < 2) {

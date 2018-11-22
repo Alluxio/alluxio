@@ -19,11 +19,11 @@ import alluxio.WorkerStorageTierAssoc;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.grpc.Command;
 import alluxio.grpc.ConfigProperty;
+import alluxio.grpc.Scope;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.metrics.Metric;
 import alluxio.metrics.MetricsSystem;
 import alluxio.util.ConfigurationUtils;
-import alluxio.wire.Scope;
 import alluxio.wire.WorkerNetAddress;
 
 import org.slf4j.Logger;

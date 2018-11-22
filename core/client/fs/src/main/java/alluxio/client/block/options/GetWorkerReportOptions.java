@@ -12,7 +12,6 @@
 package alluxio.client.block.options;
 
 import alluxio.grpc.GetWorkerReportPOptions;
-import alluxio.thrift.GetWorkerReportTOptions;
 
 import com.google.common.base.Objects;
 

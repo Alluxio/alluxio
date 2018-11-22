@@ -13,6 +13,7 @@ package alluxio.wire;
 
 import alluxio.grpc.ConfigStatus;
 import alluxio.grpc.InconsistentProperties;
+import alluxio.grpc.Scope;
 
 import java.util.HashMap;
 import java.util.List;

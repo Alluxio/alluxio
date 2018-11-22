@@ -19,32 +19,25 @@ import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.GetConfigurationPOptions;
 import alluxio.grpc.MetaMasterClientServiceGrpc;
-import alluxio.network.thrift.BootstrapClientTransport;
-import alluxio.network.thrift.ThriftUtils;
-import alluxio.thrift.GetConfigurationTOptions;
-import alluxio.thrift.MetaMasterClientService;
+import alluxio.grpc.Scope;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.grpc.GrpcChannel;
 import alluxio.util.grpc.GrpcChannelBuilder;
-import alluxio.wire.Scope;
 
+import alluxio.util.grpc.GrpcUtils;
 import com.google.common.base.Preconditions;
-import org.apache.thrift.TException;
-import org.apache.thrift.protocol.TProtocol;
-import org.apache.thrift.transport.TSocket;
-import org.apache.thrift.transport.TTransport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
 import java.net.URL;
 import java.time.Duration;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.stream.Collectors;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -441,25 +434,41 @@ public final class Configuration {
       GrpcChannel channel =
           GrpcChannelBuilder.forAddress("localhost", 50051).usePlaintext(true).build();
       MetaMasterClientServiceGrpc.MetaMasterClientServiceBlockingStub client = MetaMasterClientServiceGrpc.newBlockingStub(channel);
-      List<alluxio.grpc.ConfigProperty> clusterConfig = client.getConfiguration(GetConfigurationPOptions.newBuilder().setRawValue(true).build())
-              .getConfigListList();
+      List<alluxio.grpc.ConfigProperty> clusterConfig = null;
+
+      try {
+        clusterConfig = client.getConfiguration(GetConfigurationPOptions.newBuilder().setRawValue(true).build())
+                .getConfigListList();
+      } catch(io.grpc.StatusRuntimeException e) {
+        throw new UnavailableException(String.format(
+                "Failed to handshake with master %s to load cluster default configuration values",
+                address), e);
+      }
 
       // merge conf returned by master as the cluster default into Configuration
       Properties clusterProps = new Properties();
       for (ConfigProperty property : clusterConfig) {
+        LOG.info(String.format("Name: %s Source:%s Value: %s", property.getName(),
+            property.getSource(), property.hasValue() ? property.getValue() : "<NULL>"));
+
         String name = property.getName();
         // TODO(binfan): support propagating unsetting properties from master
-        if (PropertyKey.isValid(name) && property.getValue() != null) {
+        if (PropertyKey.isValid(name) && property.hasValue()) {
           PropertyKey key = PropertyKey.fromString(name);
-          if (!key.getScope().contains(Scope.CLIENT)) {
+          if (!GrpcUtils.contains(key.getScope(), Scope.CLIENT)) {
+            LOG.warn(String.format("Key:%s with scope:%s don't contain client scope.",
+                key.getName(), key.getScope().name()));
             // Only propagate client properties.
             continue;
           }
           String value = property.getValue();
           clusterProps.put(key, value);
           LOG.debug("Loading cluster default: {} ({}) -> {}", key, key.getScope(), value);
+        }{
+          LOG.warn("Not valid or empty");
         }
       }
+
       String clientVersion = Configuration.get(PropertyKey.VERSION);
       String clusterVersion = clusterProps.get(PropertyKey.VERSION).toString();
       if (!clientVersion.equals(clusterVersion)) {

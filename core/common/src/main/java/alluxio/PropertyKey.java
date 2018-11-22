@@ -12,9 +12,9 @@
 package alluxio;
 
 import alluxio.exception.ExceptionMessage;
+import alluxio.grpc.Scope;
 import alluxio.util.OSUtils;
 import alluxio.util.io.PathUtils;
-import alluxio.wire.Scope;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Objects;

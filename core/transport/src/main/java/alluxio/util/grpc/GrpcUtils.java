@@ -31,6 +31,7 @@ import alluxio.grpc.PAclEntry;
 import alluxio.grpc.PAclEntryType;
 import alluxio.grpc.PSetAclAction;
 import alluxio.grpc.PersistCommandOptions;
+import alluxio.grpc.Scope;
 import alluxio.proto.journal.File;
 import alluxio.security.authorization.AccessControlList;
 import alluxio.security.authorization.AclAction;
@@ -752,5 +753,23 @@ public final class GrpcUtils {
    */
   public static alluxio.grpc.UfsInfo toProto(UfsInfo ufsInfo) {
     return alluxio.grpc.UfsInfo.newBuilder().setUri(ufsInfo.getUri().toString()).build();
+  }
+
+  /**
+   * @param source source enum
+   * @param target target enum
+   * @return true if target enum is contained within the source
+   */
+  public static boolean contains(Scope source, Scope target) {
+    return (source.getNumber() | target.getNumber()) == source.getNumber();
+  }
+
+  /**
+   * @param scope1 source1
+   * @param scope2 source2
+   * @return combined enum of given enums
+   */
+  public static Scope combine(Scope scope1, Scope scope2) {
+    return Scope.forNumber(scope1.getNumber() & scope2.getNumber());
   }
 }
