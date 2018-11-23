@@ -31,7 +31,6 @@ import alluxio.metrics.WorkerMetrics;
 import alluxio.metrics.aggregator.SingleTagValueAggregator;
 import alluxio.metrics.aggregator.SumInstancesAggregator;
 import alluxio.proto.journal.Journal.JournalEntry;
-import alluxio.thrift.MetricsMasterClientService;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.executor.ExecutorServiceFactory;
 
