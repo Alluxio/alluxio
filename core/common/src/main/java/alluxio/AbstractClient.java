@@ -62,6 +62,7 @@ public abstract class AbstractClient implements Client {
   protected TProtocol mProtocol;
 
   protected GrpcChannel mChannel;
+  protected GrpcChannel mJobChannel;
 
   /** Is true if this client is currently connected. */
   protected boolean mConnected = false;
@@ -103,10 +104,8 @@ public abstract class AbstractClient implements Client {
     mRetryPolicySupplier = retryPolicySupplier;
     mServiceVersion = Constants.UNKNOWN_SERVICE_VERSION;
     // TODO(ggezer) review grpc channel initialization
-    mChannel = GrpcChannelBuilder
-        .forAddress("localhost", 50051)
-        .usePlaintext(true)
-        .build();
+    mChannel = GrpcChannelBuilder.forAddress("localhost", 50051).usePlaintext(true).build();
+    mJobChannel = GrpcChannelBuilder.forAddress("localhost", 50052).usePlaintext(true).build();
   }
 
   /**

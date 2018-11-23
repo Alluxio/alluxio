@@ -58,16 +58,16 @@ public final class JobInfo {
   }
 
   /**
-   * Constructs a new instance of {@link JobInfo} from a Thrift object.
+   * Constructs a new instance of {@link JobInfo} from a proto object.
    *
-   * @param jobInfo the thrift object
+   * @param jobInfo the proto object
    * @throws IOException if the deserialization fails
    */
-  public JobInfo(alluxio.thrift.JobInfo jobInfo) throws IOException {
+  public JobInfo(alluxio.grpc.JobInfo jobInfo) throws IOException {
     mJobId = jobInfo.getId();
     mErrorMessage = jobInfo.getErrorMessage();
     mTaskInfoList = new ArrayList<>();
-    for (alluxio.thrift.TaskInfo taskInfo : jobInfo.getTaskInfos()) {
+    for (alluxio.grpc.TaskInfo taskInfo : jobInfo.getTaskInfosList()) {
       mTaskInfoList.add(new TaskInfo(taskInfo));
     }
     mStatus = Status.valueOf(jobInfo.getStatus().name());
@@ -163,16 +163,16 @@ public final class JobInfo {
   }
 
   /**
-   * @return thrift representation of the job info
+   * @return proto representation of the job info
    * @throws IOException if serialization fails
    */
-  public alluxio.thrift.JobInfo toThrift() throws IOException {
-    List<alluxio.thrift.TaskInfo> taskInfos = new ArrayList<>();
+  public alluxio.grpc.JobInfo toProto() throws IOException {
+    List<alluxio.grpc.TaskInfo> taskInfos = new ArrayList<>();
     for (TaskInfo taskInfo : mTaskInfoList) {
-      taskInfos.add(taskInfo.toThrift());
+      taskInfos.add(taskInfo.toProto());
     }
-    return new alluxio.thrift.JobInfo(mJobId, mErrorMessage, taskInfos, mStatus.toThrift(),
-        mResult);
+    return alluxio.grpc.JobInfo.newBuilder().setId(mJobId).setErrorMessage(mErrorMessage)
+        .addAllTaskInfos(taskInfos).setStatus(mStatus.toProto()).setResult(mResult).build();
   }
 
   @Override

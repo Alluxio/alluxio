@@ -17,6 +17,7 @@ import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
 import alluxio.master.job.JobMaster;
 import alluxio.master.job.JobMasterClientServiceHandler;
+import alluxio.master.job.JobMasterWorkerServiceHandler;
 import alluxio.master.journal.JournalSystem;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.sink.MetricsServlet;
@@ -27,6 +28,8 @@ import alluxio.underfs.JobUfsManager;
 import alluxio.underfs.UfsManager;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
+import alluxio.util.grpc.GrpcServer;
+import alluxio.util.grpc.GrpcServerBuilder;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.web.JobMasterWebServer;
@@ -47,6 +50,8 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeoutException;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -69,6 +74,9 @@ public class AlluxioJobMasterProcess implements JobMasterProcess {
 
   /** The socket for thrift rpc server. */
   private TServerSocket mTServerSocket;
+
+  // TODO(ggezer) review gRPC initialization
+  private GrpcServer mGrpcServer;
 
   /** The transport provider to create thrift server transport. */
   private final TransportProvider mTransportProvider;
@@ -257,6 +265,7 @@ public class AlluxioJobMasterProcess implements JobMasterProcess {
         NetworkAddressUtils.getPort(ServiceType.JOB_MASTER_WEB));
 
     startServingRPCServer();
+    startServingRPCServerNew();
     LOG.info("Alluxio job master ended");
   }
 
@@ -276,13 +285,33 @@ public class AlluxioJobMasterProcess implements JobMasterProcess {
     }
   }
 
+  /**
+   * Starts the gRPC server. The AlluxioMaster registers the Services of registered
+   * {@link Master}s and meta services.
+   */
+  protected void startServingRPCServerNew() {
+    int port = 50052;
+    ExecutorService executorService = Executors.newFixedThreadPool(mMaxWorkerThreads);
+    try {
+      LOG.info("Starting gRPC server on port {}", port);
+      mGrpcServer = GrpcServerBuilder.forPort(port)
+              .addService(new JobMasterClientServiceHandler(mJobMaster))
+              .addService(new JobMasterWorkerServiceHandler(mJobMaster))
+              .executor(executorService)
+              .build()
+              .start();
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
   protected void startServingRPCServer() {
     // set up multiplexed thrift processors
     TMultiplexedProcessor processor = new TMultiplexedProcessor();
     registerServices(processor, mJobMaster.getServices());
     // register meta services
-    processor.registerProcessor(Constants.JOB_MASTER_CLIENT_SERVICE_NAME,
-        new JobMasterClientService.Processor<>(new JobMasterClientServiceHandler(mJobMaster)));
+    // processor.registerProcessor(Constants.JOB_MASTER_CLIENT_SERVICE_NAME,
+    //    new JobMasterClientService.Processor<>(new JobMasterClientServiceHandler(mJobMaster)));
     LOG.info("registered service " + Constants.JOB_MASTER_CLIENT_SERVICE_NAME);
 
     // Return a TTransportFactory based on the authentication type
