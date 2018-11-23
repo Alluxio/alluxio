@@ -179,31 +179,18 @@ public final class Metric implements Serializable {
   }
 
   /**
-   * @return the thrift object it converts to. Note the value must be either integer or long
-   */
-  public alluxio.thrift.Metric toThrift() {
-    alluxio.thrift.Metric metric = new alluxio.thrift.Metric();
-    metric.setInstance(mInstanceType.toString());
-    metric.setHostname(mHostname);
-    metric.setName(mName);
-    metric.setInstanceId(mInstanceId);
-    metric.setValue(mValue);
-    metric.setTags(mTags);
-    return metric;
-  }
-
-  /**
    * @return the proto object it converts to. Note the value must be either integer or long
    */
   public alluxio.grpc.Metric toProto() {
-    return alluxio.grpc.Metric.newBuilder()
-            .setInstance(mInstanceType.toString())
-            .setHostname(mHostname)
-            .setName(mName)
-            .setInstanceId(mInstanceId)
-            .setValue(mValue)
-            .putAllTags(mTags)
-            .build();
+    alluxio.grpc.Metric.Builder metric = alluxio.grpc.Metric.newBuilder();
+    metric.setInstance(mInstanceType.toString()).setHostname(mHostname).setName(mName)
+        .setValue(mValue).putAllTags(mTags);
+
+    if (mInstanceId != null) {
+      metric.setInstanceId(mInstanceId);
+    }
+
+    return metric.build();
   }
 
   /**

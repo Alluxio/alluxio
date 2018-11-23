@@ -35,6 +35,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -66,7 +67,7 @@ public final class BlockMasterWorkerServiceHandler
     final Map<String, Long> usedBytesOnTiers = request.getUsedBytesOnTiersMap();
     final List<Long> removedBlockIds = request.getRemovedBlockIdsList();
     final Map<String, TierList> addedBlocksOnTiers = request.getAddedBlocksOnTiersMap();
-    Map<String, List<Long>> addedBlocksOnTiersMap = Collections.emptyMap();
+    Map<String, List<Long>> addedBlocksOnTiersMap = new HashMap<>();
     for (String id : addedBlocksOnTiers.keySet()) {
       addedBlocksOnTiersMap.put(id, addedBlocksOnTiers.get(id).getTiersList());
     }
@@ -129,7 +130,7 @@ public final class BlockMasterWorkerServiceHandler
     final Map<String, Long> totalBytesOnTiers = request.getTotalBytesOnTiersMap();
     final Map<String, Long> usedBytesOnTiers = request.getUsedBytesOnTiersMap();
     final Map<String, TierList> currentBlocksOnTiers = request.getCurrentBlocksOnTiersMap();
-    Map<String, List<Long>> currentBlocksOnTiersMap = Collections.emptyMap();
+    Map<String, List<Long>> currentBlocksOnTiersMap = new HashMap<>();
     for (String id : currentBlocksOnTiers.keySet()) {
       currentBlocksOnTiersMap.put(id, currentBlocksOnTiers.get(id).getTiersList());
     }

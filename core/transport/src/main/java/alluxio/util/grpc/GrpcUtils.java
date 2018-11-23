@@ -607,8 +607,11 @@ public final class GrpcUtils {
    * @return converted proto representation
    */
   public static alluxio.grpc.LocalityTier toProto(TieredIdentity.LocalityTier localityTier) {
-    return alluxio.grpc.LocalityTier.newBuilder().setTierName(localityTier.getTierName())
-        .setValue(localityTier.getValue()).build();
+    alluxio.grpc.LocalityTier.Builder tier = alluxio.grpc.LocalityTier.newBuilder().setTierName(localityTier.getTierName());
+    if(localityTier.getValue() != null) {
+      tier.setValue(localityTier.getValue());
+    }
+    return tier.build();
   }
 
   /**
@@ -713,14 +716,12 @@ public final class GrpcUtils {
     return address.build();
   }
 
-  private static final String COMMAND_TYPE_PROTOHEADER = "Command_";
-
   /**
    * @param commandType wire type
    * @return proto representation of given wire type
    */
   public static alluxio.grpc.CommandType toProto(CommandType commandType) {
-    return alluxio.grpc.CommandType.valueOf(COMMAND_TYPE_PROTOHEADER + commandType.name());
+    return alluxio.grpc.CommandType.valueOf(commandType.name());
   }
 
   /**

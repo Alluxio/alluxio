@@ -32,6 +32,7 @@ import alluxio.wire.WorkerNetAddress;
 
 import java.io.IOException;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -173,7 +174,7 @@ public final class BlockMasterClient extends AbstractMasterClient {
 
     final RegisterWorkerPOptions options =
         RegisterWorkerPOptions.newBuilder().addAllConfig(configList).build();
-    Map<String, TierList> currentBlockOnTiersMap = Collections.emptyMap();
+    Map<String, TierList> currentBlockOnTiersMap = new HashMap<>();
     for (String id : currentBlocksOnTiers.keySet()) {
       currentBlockOnTiersMap.put(id,
           TierList.newBuilder().addAllTiers(currentBlocksOnTiers.get(id)).build());

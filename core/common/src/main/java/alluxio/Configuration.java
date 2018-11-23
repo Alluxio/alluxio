@@ -450,24 +450,17 @@ public final class Configuration {
       // merge conf returned by master as the cluster default into Configuration
       Properties clusterProps = new Properties();
       for (ConfigProperty property : clusterConfig) {
-        LOG.info(String.format("Name: %s Source:%s Value: %s", property.getName(),
-            property.getSource(), property.hasValue() ? property.getValue() : "<NULL>"));
-
         String name = property.getName();
         // TODO(binfan): support propagating unsetting properties from master
         if (PropertyKey.isValid(name) && property.hasValue()) {
           PropertyKey key = PropertyKey.fromString(name);
           if (!GrpcUtils.contains(key.getScope(), Scope.CLIENT)) {
-            LOG.warn(String.format("Key:%s with scope:%s don't contain client scope.",
-                key.getName(), key.getScope().name()));
             // Only propagate client properties.
             continue;
           }
           String value = property.getValue();
           clusterProps.put(key, value);
           LOG.debug("Loading cluster default: {} ({}) -> {}", key, key.getScope(), value);
-        }{
-          LOG.warn("Not valid or empty");
         }
       }
 
