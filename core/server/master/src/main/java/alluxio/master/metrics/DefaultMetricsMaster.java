@@ -190,8 +190,8 @@ public class DefaultMetricsMaster extends AbstractMaster implements MetricsMaste
   @Override
   public Map<String, TProcessor> getServices() {
     Map<String, TProcessor> services = new HashMap<>();
-    services.put(Constants.METRICS_MASTER_CLIENT_SERVICE_NAME,
-        new MetricsMasterClientService.Processor<>(getMasterServiceHandler()));
+    //services.put(Constants.METRICS_MASTER_CLIENT_SERVICE_NAME,
+    //    new MetricsMasterClientService.Processor<>(getMasterServiceHandler()));
     return services;
   }
 

@@ -26,6 +26,8 @@ import alluxio.master.journal.JournalSystem;
 import alluxio.master.meta.MetaMaster;
 import alluxio.master.meta.MetaMasterClientServiceHandler;
 import alluxio.master.meta.MetaMasterMasterServiceHandler;
+import alluxio.master.metrics.MetricsMaster;
+import alluxio.master.metrics.MetricsMasterClientServiceHandler;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.sink.MetricsServlet;
 import alluxio.metrics.sink.PrometheusMetricsServlet;
@@ -387,6 +389,7 @@ public class AlluxioMasterProcess implements MasterProcess {
       FileSystemMaster master = getMaster(FileSystemMaster.class);
       BlockMaster blockMaster = getMaster(BlockMaster.class);
       MetaMaster metaMaster = getMaster(MetaMaster.class);
+      MetricsMaster metricsMaster = getMaster(MetricsMaster.class);
 
       LOG.info("Starting gRPC server on port {}", port);
       mGrpcServer = GrpcServerBuilder.forPort(port)
@@ -397,6 +400,7 @@ public class AlluxioMasterProcess implements MasterProcess {
           .addService(new BlockMasterWorkerServiceHandler(blockMaster))
           .addService(new MetaMasterClientServiceHandler(metaMaster))
           .addService(new MetaMasterMasterServiceHandler(metaMaster))
+          .addService(new MetricsMasterClientServiceHandler(metricsMaster))
           .executor(executorService)
           .build()
           .start();

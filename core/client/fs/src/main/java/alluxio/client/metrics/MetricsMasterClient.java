@@ -15,16 +15,14 @@ import alluxio.AbstractMasterClient;
 import alluxio.Constants;
 import alluxio.client.file.FileSystemContext;
 import alluxio.exception.status.UnavailableException;
+import alluxio.grpc.Metric;
+import alluxio.grpc.MetricsHeartbeatPOptions;
+import alluxio.grpc.MetricsHeartbeatPRequest;
+import alluxio.grpc.MetricsMasterClientServiceGrpc;
 import alluxio.master.MasterClientConfig;
 import alluxio.retry.RetryUtils;
 import alluxio.thrift.AlluxioService.Client;
-import alluxio.thrift.AlluxioTException;
-import alluxio.thrift.Metric;
-import alluxio.thrift.MetricsHeartbeatTOptions;
-import alluxio.thrift.MetricsMasterClientService;
 import alluxio.util.network.NetworkAddressUtils;
-
-import org.apache.thrift.TException;
 
 import java.io.IOException;
 import java.util.List;
@@ -36,7 +34,8 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public class MetricsMasterClient extends AbstractMasterClient {
-  private MetricsMasterClientService.Client mClient = null;
+  //private MetricsMasterClientService.Client mClient = null;
+  private MetricsMasterClientServiceGrpc.MetricsMasterClientServiceBlockingStub mGrpcClient = null;
 
   /**
    * Creates a new metrics master client.
@@ -49,7 +48,8 @@ public class MetricsMasterClient extends AbstractMasterClient {
 
   @Override
   protected Client getClient() {
-    return mClient;
+    //return mClient;
+    return null;
   }
 
   @Override
@@ -64,7 +64,8 @@ public class MetricsMasterClient extends AbstractMasterClient {
 
   @Override
   protected void afterConnect() {
-    mClient = new MetricsMasterClientService.Client(mProtocol);
+    //mClient = new MetricsMasterClientService.Client(mProtocol);
+    mGrpcClient = MetricsMasterClientServiceGrpc.newBlockingStub(mChannel);
   }
 
   /**
@@ -75,11 +76,13 @@ public class MetricsMasterClient extends AbstractMasterClient {
   public synchronized void heartbeat(final List<Metric> metrics) throws IOException {
     connect();
     try {
-      mClient.metricsHeartbeat(FileSystemContext.get().getId(),
-          NetworkAddressUtils.getClientHostName(), new MetricsHeartbeatTOptions(metrics));
-    } catch (AlluxioTException e) {
-//      throw AlluxioStatusException.fromThrift(e);
-    } catch (TException e) {
+      MetricsHeartbeatPRequest.Builder request = MetricsHeartbeatPRequest.newBuilder();
+      request.setClientId(FileSystemContext.get().getId());
+      request.setHostname(NetworkAddressUtils.getClientHostName());
+      request.setOptions(MetricsHeartbeatPOptions.newBuilder().addAllMetrics(metrics).build());
+      mGrpcClient.metricsHeartbeat(request.build());
+
+    } catch (io.grpc.StatusRuntimeException e) {
       throw new UnavailableException(e);
     }
   }

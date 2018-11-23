@@ -430,19 +430,21 @@ public final class Configuration {
       LOG.info("Alluxio client (version {}) is trying to bootstrap-connect with {}",
           RuntimeConstants.VERSION, address);
 
-      // TODO(ggezer) review grpc channel initialization
-      GrpcChannel channel =
-          GrpcChannelBuilder.forAddress("localhost", 50051).usePlaintext(true).build();
-      MetaMasterClientServiceGrpc.MetaMasterClientServiceBlockingStub client = MetaMasterClientServiceGrpc.newBlockingStub(channel);
+      GrpcChannel channel = null;
       List<alluxio.grpc.ConfigProperty> clusterConfig = null;
 
       try {
+        // TODO(ggezer) review grpc channel initialization
+        channel = GrpcChannelBuilder.forAddress("localhost", 50051).usePlaintext(true).build();
+        MetaMasterClientServiceGrpc.MetaMasterClientServiceBlockingStub client = MetaMasterClientServiceGrpc.newBlockingStub(channel);
         clusterConfig = client.getConfiguration(GetConfigurationPOptions.newBuilder().setRawValue(true).build())
                 .getConfigListList();
       } catch(io.grpc.StatusRuntimeException e) {
         throw new UnavailableException(String.format(
                 "Failed to handshake with master %s to load cluster default configuration values",
                 address), e);
+      } finally {
+        channel.shutdown();
       }
 
       // merge conf returned by master as the cluster default into Configuration

@@ -11,20 +11,15 @@
 
 package alluxio.master.metrics;
 
-import alluxio.Constants;
-import alluxio.RpcUtils;
-import alluxio.RpcUtils.RpcCallableThrowsIOException;
+import alluxio.grpc.MetricsHeartbeatPRequest;
+import alluxio.grpc.MetricsHeartbeatPResponse;
+import alluxio.grpc.MetricsMasterClientServiceGrpc;
 import alluxio.metrics.Metric;
-import alluxio.thrift.AlluxioTException;
-import alluxio.thrift.GetServiceVersionTOptions;
-import alluxio.thrift.GetServiceVersionTResponse;
-import alluxio.thrift.MetricsHeartbeatTOptions;
-import alluxio.thrift.MetricsHeartbeatTResponse;
-import alluxio.thrift.MetricsMasterClientService;
 
+import alluxio.util.RpcUtilsNew;
 import com.google.common.base.Preconditions;
+import io.grpc.stub.StreamObserver;
 import jersey.repackaged.com.google.common.collect.Lists;
-import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,38 +28,34 @@ import java.util.List;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * This class is a Thrift handler for metrics master RPCs invoked by an Alluxio client.
+ * This class is a gRPC handler for metrics master RPCs invoked by an Alluxio client.
  */
 @NotThreadSafe
-public final class MetricsMasterClientServiceHandler implements MetricsMasterClientService.Iface {
+public final class MetricsMasterClientServiceHandler
+    extends MetricsMasterClientServiceGrpc.MetricsMasterClientServiceImplBase {
   private static final Logger LOG =
       LoggerFactory.getLogger(MetricsMasterClientServiceHandler.class);
 
   private final MetricsMaster mMetricsMaster;
 
-  MetricsMasterClientServiceHandler(MetricsMaster metricsMaster) {
+  public MetricsMasterClientServiceHandler(MetricsMaster metricsMaster) {
     Preconditions.checkNotNull(metricsMaster, "metricsMaster");
     mMetricsMaster = metricsMaster;
   }
 
   @Override
-  public GetServiceVersionTResponse getServiceVersion(GetServiceVersionTOptions options)
-      throws AlluxioTException, TException {
-    return new GetServiceVersionTResponse(Constants.METRICS_MASTER_CLIENT_SERVICE_VERSION);
-  }
+  public void metricsHeartbeat(MetricsHeartbeatPRequest request,
+      StreamObserver<MetricsHeartbeatPResponse> responseObserver) {
+    RpcUtilsNew.call(LOG,
+        (RpcUtilsNew.RpcCallableThrowsIOException<MetricsHeartbeatPResponse>) () -> {
 
-  @Override
-  public MetricsHeartbeatTResponse metricsHeartbeat(final String clientId, final String hostname,
-      final MetricsHeartbeatTOptions options) throws AlluxioTException, TException {
-    return RpcUtils.call(LOG, (RpcCallableThrowsIOException<MetricsHeartbeatTResponse>) () -> {
-      List<Metric> metrics = Lists.newArrayList();
-      for (alluxio.thrift.Metric metric : options.getMetrics()) {
-        Metric parsed = Metric.from(metric);
-        metrics.add(parsed);
-      }
-      mMetricsMaster.clientHeartbeat(clientId, hostname, metrics);
-      return new MetricsHeartbeatTResponse();
-    }, "ClientHeartbeat", "ClientHeartbeat: hostname=%s, contextId=%s, options=%s", hostname,
-        clientId, options);
+          List<Metric> metrics = Lists.newArrayList();
+          for (alluxio.grpc.Metric metric : request.getOptions().getMetricsList()) {
+            Metric parsed = Metric.fromProto(metric);
+            metrics.add(parsed);
+          }
+          mMetricsMaster.clientHeartbeat(request.getClientId(), request.getHostname(), metrics);
+          return MetricsHeartbeatPResponse.getDefaultInstance();
+        }, "metricsHeartbeat", "request=%s", responseObserver, request);
   }
 }

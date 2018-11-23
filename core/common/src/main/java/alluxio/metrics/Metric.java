@@ -290,21 +290,6 @@ public final class Metric implements Serializable {
   }
 
   /**
-   * Constructs the metric object from the thrift format.
-   *
-   * @param metric the metric in thrift format
-   * @return the constructed metric
-   */
-  public static Metric from(alluxio.thrift.Metric metric) {
-    Metric created = new Metric(MetricsSystem.InstanceType.fromString(metric.getInstance()),
-        metric.getHostname(), metric.getInstanceId(), metric.getName(), metric.getValue());
-    for (Entry<String, String> entry : metric.getTags().entrySet()) {
-      created.addTag(entry.getKey(), entry.getValue());
-    }
-    return created;
-  }
-  
-  /**
    * Constructs the metric object from the proto format.
    *
    * @param metric the metric in proto format

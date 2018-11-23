@@ -216,7 +216,8 @@ public abstract class AbstractClient implements Client {
         LOG.info("Client registered with {} @ {}", getServiceName(), mAddress);
         mConnected = true;
         afterConnect();
-        checkVersion(getClient(), getServiceVersion());
+        // TODO(ggezer) Revert after implementing common services
+        // checkVersion(getClient(), getServiceVersion());
         return;
       } catch (IOException | TTransportException e) {
         LOG.warn("Failed to connect ({}) with {} @ {}: {}", retryPolicy.getAttemptCount(),

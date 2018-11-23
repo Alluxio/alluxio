@@ -14,6 +14,7 @@ package alluxio.util.grpc;
 import io.grpc.CallOptions;
 import io.grpc.Channel;
 import io.grpc.ClientCall;
+import io.grpc.ManagedChannel;
 import io.grpc.MethodDescriptor;
 
 /**
@@ -22,14 +23,14 @@ import io.grpc.MethodDescriptor;
  * Note: This class is intended for internal use only.
  */
 public final class GrpcChannel extends Channel {
-  Channel mChannel;
+  ManagedChannel mChannel;
 
   /**
    * Create a new instance of {@link GrpcChannel}.
    *
    * @param channel the grpc channel to wrap
    */
-  public GrpcChannel(Channel channel) {
+  public GrpcChannel(ManagedChannel channel) {
     mChannel = channel;
   }
 
@@ -43,4 +44,9 @@ public final class GrpcChannel extends Channel {
   public String authority() {
     return mChannel.authority();
   }
+
+  public void shutdown() {
+    mChannel.shutdownNow();
+  }
+
 }
