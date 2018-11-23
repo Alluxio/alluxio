@@ -23,7 +23,6 @@ import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.sink.MetricsServlet;
 import alluxio.network.thrift.ThriftUtils;
 import alluxio.security.authentication.TransportProvider;
-import alluxio.thrift.JobMasterClientService;
 import alluxio.underfs.JobUfsManager;
 import alluxio.underfs.UfsManager;
 import alluxio.util.CommonUtils;
