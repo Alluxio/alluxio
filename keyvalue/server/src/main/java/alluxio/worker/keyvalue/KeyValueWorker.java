@@ -13,7 +13,6 @@ package alluxio.worker.keyvalue;
 
 import alluxio.Constants;
 import alluxio.Server;
-import alluxio.thrift.KeyValueWorkerClientService;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.AbstractWorker;
