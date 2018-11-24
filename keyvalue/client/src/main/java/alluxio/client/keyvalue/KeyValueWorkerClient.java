@@ -14,32 +14,32 @@ package alluxio.client.keyvalue;
 import alluxio.AbstractClient;
 import alluxio.Constants;
 import alluxio.exception.AlluxioException;
+import alluxio.grpc.GetNextKeysPRequest;
+import alluxio.grpc.GetPRequest;
+import alluxio.grpc.GetSizePRequest;
+import alluxio.grpc.KeyValueWorkerClientServiceGrpc;
 import alluxio.thrift.AlluxioService;
-import alluxio.thrift.AlluxioTException;
-import alluxio.thrift.GetNextKeysTOptions;
-import alluxio.thrift.GetSizeTOptions;
-import alluxio.thrift.GetTOptions;
-import alluxio.thrift.KeyValueWorkerClientService;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.WorkerNetAddress;
 
-import org.apache.thrift.TException;
+import com.google.protobuf.ByteString;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Client for talking to a key-value worker server.
  *
- * Since {@link alluxio.thrift.KeyValueWorkerClientService.Client} is not thread safe, this class
- * has to guarantee thread safety.
  */
 @ThreadSafe
 public final class KeyValueWorkerClient extends AbstractClient {
-  private KeyValueWorkerClientService.Client mClient = null;
+  // private KeyValueWorkerClientService.Client mClient = null;
+  private KeyValueWorkerClientServiceGrpc.KeyValueWorkerClientServiceBlockingStub mGrpcClient =
+      null;
 
   /**
    * Creates a {@link KeyValueWorkerClient}.
@@ -52,7 +52,8 @@ public final class KeyValueWorkerClient extends AbstractClient {
 
   @Override
   protected AlluxioService.Client getClient() {
-    return mClient;
+    // return mClient;
+    return null;
   }
 
   @Override
@@ -67,7 +68,9 @@ public final class KeyValueWorkerClient extends AbstractClient {
 
   @Override
   protected void afterConnect() throws IOException {
-    mClient = new KeyValueWorkerClientService.Client(mProtocol);
+    // mClient = new KeyValueWorkerClientService.Client(mProtocol);
+    // TODO(ggezer) Host the service
+    mGrpcClient = KeyValueWorkerClientServiceGrpc.newBlockingStub(mChannel);
   }
 
   /**
@@ -78,11 +81,13 @@ public final class KeyValueWorkerClient extends AbstractClient {
    * @return ByteBuffer of value, or null if not found
    */
   public synchronized ByteBuffer get(final long blockId, final ByteBuffer key)
-      throws IOException, AlluxioException {
+      throws IOException {
     return retryRPC(new RpcCallable<ByteBuffer>() {
       @Override
-      public ByteBuffer call() throws AlluxioTException, TException {
-        return mClient.get(blockId, key, new GetTOptions()).bufferForData();
+      public ByteBuffer call() {
+        return ByteBuffer.wrap(mGrpcClient.get(
+            GetPRequest.newBuilder().setBlockId(blockId).setKey(ByteString.copyFrom(key)).build())
+            .getData().toByteArray());
       }
     });
   }
@@ -99,11 +104,15 @@ public final class KeyValueWorkerClient extends AbstractClient {
    * @return the next batch of keys
    */
   public synchronized List<ByteBuffer> getNextKeys(final long blockId, final ByteBuffer key,
-      final int numKeys) throws IOException, AlluxioException {
+      final int numKeys) throws IOException {
     return retryRPC(new RpcCallable<List<ByteBuffer>>() {
       @Override
-      public List<ByteBuffer> call() throws AlluxioTException, TException {
-        return mClient.getNextKeys(blockId, key, numKeys, new GetNextKeysTOptions()).getKeys();
+      public List<ByteBuffer> call() {
+        return mGrpcClient
+            .getNextKeys(GetNextKeysPRequest.newBuilder().setBlockId(blockId)
+                .setKey(ByteString.copyFrom(key)).setNumKeys(numKeys).build())
+            .getKeysList().stream().map((c) -> ByteBuffer.wrap(c.toByteArray()))
+            .collect(Collectors.toList());
       }
     });
   }
@@ -115,8 +124,9 @@ public final class KeyValueWorkerClient extends AbstractClient {
   public synchronized int getSize(final long blockId) throws IOException, AlluxioException {
     return retryRPC(new RpcCallable<Integer>() {
       @Override
-      public Integer call() throws AlluxioTException, TException {
-        return mClient.getSize(blockId, new GetSizeTOptions()).getSize();
+      public Integer call() {
+        return mGrpcClient.getSize(GetSizePRequest.newBuilder().setBlockId(blockId).build())
+            .getSize();
       }
     });
   }

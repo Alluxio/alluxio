@@ -1,0 +1,56 @@
+syntax = "proto2";
+
+option java_multiple_files = true;
+option java_package = "alluxio.grpc";
+option java_outer_classname = "KeyValueWorkerProto";
+
+package alluxio.grpc;
+
+message GetPOptions {}
+message GetPRequest {
+  optional int64 blockId = 1;
+  optional bytes key = 2;
+  optional GetPOptions options = 3;
+}
+message GetPResponse {
+  optional bytes data = 1;
+}
+
+message GetNextKeysPOptions {}
+message GetNextKeysPRequest {
+  optional int64 blockId = 1;
+  optional bytes key = 2;
+  optional int32 numKeys = 3;
+  optional GetNextKeysPOptions options = 4;
+}
+message GetNextKeysPResponse {
+  repeated bytes keys = 1;
+}
+
+message GetSizePOptions {}
+message GetSizePRequest {
+  optional int64 blockId = 1;
+  optional GetSizePOptions options = 2;
+}
+message GetSizePResponse {
+  optional int32 size = 1;
+}
+
+service KeyValueWorkerClientService {
+  /**
+   * Looks up a key in the block with the given block id.
+   */
+  rpc Get(GetPRequest) returns (GetPResponse);
+
+  /**
+   * Gets a batch of keys next to the given key in the partition.
+   * If current key is null, it means get the initial batch of keys.
+   * If there are no more next keys, an empty list is returned.
+   */
+  rpc GetNextKeys(GetNextKeysPRequest) returns (GetNextKeysPResponse);
+
+  /**
+   * Gets the number of key-value pairs in the partition.
+   */
+  rpc GetSize(GetSizePRequest) returns (GetSizePResponse);
+}

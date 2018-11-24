@@ -15,8 +15,8 @@ import alluxio.AlluxioURI;
 import alluxio.annotation.PublicApi;
 import alluxio.client.keyvalue.KeyValueMasterClient;
 import alluxio.client.keyvalue.KeyValueSystem;
+import alluxio.grpc.PartitionInfo;
 import alluxio.master.MasterClientConfig;
-import alluxio.thrift.PartitionInfo;
 
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.BytesWritable;

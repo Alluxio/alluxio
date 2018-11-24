@@ -15,8 +15,8 @@ import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.keyvalue.KeyValueSystem;
 import alluxio.exception.status.AlluxioStatusException;
-import alluxio.thrift.PartitionInfo;
 
+import alluxio.grpc.PartitionInfo;
 import org.apache.hadoop.io.Writable;
 import org.apache.hadoop.mapreduce.InputSplit;
 

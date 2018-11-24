@@ -1,7 +1,7 @@
 /*
- * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the "License"). You may not use this work except in compliance with the License, which is
- * available at www.apache.org/licenses/LICENSE-2.0
+ * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0 (the
+ * "License"). You may not use this work except in compliance with the License, which is available
+ * at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
  * either express or implied, as more fully set forth in the License.
@@ -14,19 +14,17 @@ package alluxio.client.keyvalue;
 import alluxio.AbstractMasterClient;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.grpc.CompletePartitionPRequest;
+import alluxio.grpc.CompleteStorePRequest;
+import alluxio.grpc.CreateStorePRequest;
+import alluxio.grpc.DeleteStorePRequest;
+import alluxio.grpc.GetPartitionInfoPRequest;
+import alluxio.grpc.KeyValueMasterClientServiceGrpc;
+import alluxio.grpc.MergeStorePRequest;
+import alluxio.grpc.PartitionInfo;
+import alluxio.grpc.RenameStorePRequest;
 import alluxio.master.MasterClientConfig;
 import alluxio.thrift.AlluxioService;
-import alluxio.thrift.CompletePartitionTOptions;
-import alluxio.thrift.CompleteStoreTOptions;
-import alluxio.thrift.CreateStoreTOptions;
-import alluxio.thrift.DeleteStoreTOptions;
-import alluxio.thrift.GetPartitionInfoTOptions;
-import alluxio.thrift.KeyValueMasterClientService;
-import alluxio.thrift.MergeStoreTOptions;
-import alluxio.thrift.PartitionInfo;
-import alluxio.thrift.RenameStoreTOptions;
-
-import org.apache.thrift.TException;
 
 import java.io.IOException;
 import java.util.List;
@@ -39,7 +37,9 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class KeyValueMasterClient extends AbstractMasterClient {
-  private KeyValueMasterClientService.Client mClient = null;
+  // private KeyValueMasterClientService.Client mClient = null;
+  private KeyValueMasterClientServiceGrpc.KeyValueMasterClientServiceBlockingStub mGrpcClient =
+      null;
 
   /**
    * Creates a new key-value master client.
@@ -52,7 +52,8 @@ public final class KeyValueMasterClient extends AbstractMasterClient {
 
   @Override
   protected AlluxioService.Client getClient() {
-    return mClient;
+    // return mClient;
+    return null;
   }
 
   @Override
@@ -67,7 +68,9 @@ public final class KeyValueMasterClient extends AbstractMasterClient {
 
   @Override
   protected void afterConnect() throws IOException {
-    mClient = new KeyValueMasterClientService.Client(mProtocol);
+    // mClient = new KeyValueMasterClientService.Client(mProtocol);
+    // TODO(ggezer) Host the service
+    mGrpcClient = KeyValueMasterClientServiceGrpc.newBlockingStub(mChannel);
   }
 
   /**
@@ -80,8 +83,9 @@ public final class KeyValueMasterClient extends AbstractMasterClient {
       throws IOException {
     retryRPC(new RpcCallable<Void>() {
       @Override
-      public Void call() throws TException {
-        mClient.completePartition(path.getPath(), info, new CompletePartitionTOptions());
+      public Void call() {
+        mGrpcClient.completePartition(CompletePartitionPRequest.newBuilder().setPath(path.getPath())
+            .setPartitionInfo(info).build());
         return null;
       }
     });
@@ -95,8 +99,9 @@ public final class KeyValueMasterClient extends AbstractMasterClient {
   public synchronized void completeStore(final AlluxioURI path) throws IOException {
     retryRPC(new RpcCallable<Void>() {
       @Override
-      public Void call() throws TException {
-        mClient.completeStore(path.getPath(), new CompleteStoreTOptions());
+      public Void call() {
+        mGrpcClient
+            .completeStore(CompleteStorePRequest.newBuilder().setPath(path.getPath()).build());
         return null;
       }
     });
@@ -110,8 +115,8 @@ public final class KeyValueMasterClient extends AbstractMasterClient {
   public synchronized void createStore(final AlluxioURI path) throws IOException {
     retryRPC(new RpcCallable<Void>() {
       @Override
-      public Void call() throws TException {
-        mClient.createStore(path.getPath(), new CreateStoreTOptions());
+      public Void call() {
+        mGrpcClient.createStore(CreateStorePRequest.newBuilder().setPath(path.getPath()).build());
         return null;
       }
     });
@@ -127,9 +132,10 @@ public final class KeyValueMasterClient extends AbstractMasterClient {
       throws IOException {
     return retryRPC(new RpcCallable<List<PartitionInfo>>() {
       @Override
-      public List<PartitionInfo> call() throws TException {
-        return mClient.getPartitionInfo(path.getPath(), new GetPartitionInfoTOptions())
-            .getPartitionInfo();
+      public List<PartitionInfo> call() {
+        return mGrpcClient
+            .getPartitionInfo(GetPartitionInfoPRequest.newBuilder().setPath(path.getPath()).build())
+            .getPartitionInfoList();
       }
     });
   }
@@ -142,8 +148,8 @@ public final class KeyValueMasterClient extends AbstractMasterClient {
   public synchronized void deleteStore(final AlluxioURI path) throws IOException {
     retryRPC(new RpcCallable<Void>() {
       @Override
-      public Void call() throws TException {
-        mClient.deleteStore(path.getPath(), new DeleteStoreTOptions());
+      public Void call() {
+        mGrpcClient.deleteStore(DeleteStorePRequest.newBuilder().setPath(path.getPath()).build());
         return null;
       }
     });
@@ -159,8 +165,9 @@ public final class KeyValueMasterClient extends AbstractMasterClient {
       throws IOException {
     retryRPC(new RpcCallable<Void>() {
       @Override
-      public Void call() throws TException {
-        mClient.renameStore(oldPath.getPath(), newPath.getPath(), new RenameStoreTOptions());
+      public Void call() {
+        mGrpcClient.renameStore(RenameStorePRequest.newBuilder().setOldPath(oldPath.getPath())
+            .setNewPath(newPath.getPath()).build());
         return null;
       }
     });
@@ -175,8 +182,9 @@ public final class KeyValueMasterClient extends AbstractMasterClient {
   void mergeStore(final AlluxioURI fromPath, final AlluxioURI toPath) throws IOException {
     retryRPC(new RpcCallable<Void>() {
       @Override
-      public Void call() throws TException {
-        mClient.mergeStore(fromPath.getPath(), toPath.getPath(), new MergeStoreTOptions());
+      public Void call() {
+        mGrpcClient.mergeStore(MergeStorePRequest.newBuilder().setFromPath(fromPath.getPath())
+            .setToPath(toPath.getPath()).build());
         return null;
       }
     });
