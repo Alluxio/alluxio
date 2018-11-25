@@ -35,6 +35,7 @@ public interface Server<T> {
   String getName();
 
   /**
+   * TODO(ggezer) Implement in all inheritors for gRPC.
    * @return a map from service names to {@link TProcessor}s that serve RPCs for this server
    */
   Map<String, TProcessor> getServices();

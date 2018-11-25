@@ -406,7 +406,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   @Override
   public Map<String, TProcessor> getServices() {
     Map<String, TProcessor> services = new HashMap<>();
-    // TODO(ggezer) gRPC service initialization for masterprocess
     // services.put(Constants.FILE_SYSTEM_MASTER_CLIENT_SERVICE_NAME,
     //     new FileSystemMasterClientServiceProcessor(
     //         new FileSystemMasterClientServiceHandler(this)));
