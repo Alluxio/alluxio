@@ -175,7 +175,7 @@ public class ActiveSyncManager implements JournalEntryIterable, JournalEntryRepl
       Future<?> future = executorService.submit(
           new HeartbeatThread(HeartbeatContext.MASTER_ACTIVE_UFS_SYNC,
               syncer,
-              (int) Configuration.getMs(PropertyKey.MASTER_ACTIVE_UFS_SYNC_INTERVAL_MS)));
+              (int) Configuration.getMs(PropertyKey.MASTER_ACTIVE_UFS_SYNC_INTERVAL)));
       mPollerMap.put(mountId, future);
     }
   }

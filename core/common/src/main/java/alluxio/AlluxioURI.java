@@ -443,13 +443,13 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
   }
 
   /**
-   * Returns true if the current AlluxioURI is a parent of another AlluxioURI.
+   * Returns true if the current AlluxioURI is an ancestor of another AlluxioURI.
    * otherwise, return false.
    * @param alluxioURI potential children to check
-   * @return true the current alluxioURI is a parent of the AlluxioURI
+   * @return true the current alluxioURI is an ancestor of the AlluxioURI
    */
-  public boolean isParentOf(AlluxioURI alluxioURI) throws InvalidPathException {
-    // To be a parent of another URI, authority and scheme must match
+  public boolean isAncestorOf(AlluxioURI alluxioURI) throws InvalidPathException {
+    // To be an ancestor of another URI, authority and scheme must match
     if (!Objects.equals(getAuthority(), alluxioURI.getAuthority())) {
       return false;
     }
