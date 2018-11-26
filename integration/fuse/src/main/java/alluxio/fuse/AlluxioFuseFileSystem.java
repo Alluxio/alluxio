@@ -26,6 +26,7 @@ import alluxio.security.authorization.Mode;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
@@ -61,16 +62,25 @@ import javax.annotation.concurrent.ThreadSafe;
  * Implements the FUSE callbacks defined by jnr-fuse.
  */
 @ThreadSafe
-final class AlluxioFuseFileSystem extends FuseStubFS {
+public final class AlluxioFuseFileSystem extends FuseStubFS {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioFuseFileSystem.class);
-
   private static final int MAX_OPEN_FILES = Integer.MAX_VALUE;
   private static final int MAX_OPEN_WAITTIME_MS = 5000;
 
+  /**
+   * 4294967295 is unsigned long -1, -1 means that uid or gid is not set.
+   * 4294967295 or -1 occurs when chown without user name or group name.
+   * Please view https://github.com/SerCeMan/jnr-fuse/issues/67 for more details.
+   */
+  @VisibleForTesting
+  public static final long ID_NOT_SET_VALUE = -1;
+  @VisibleForTesting
+  public static final long ID_NOT_SET_VALUE_UNSIGNED = 4294967295L;
+
   private static final long UID = AlluxioFuseUtils.getUid(System.getProperty("user.name"));
   private static final long GID = AlluxioFuseUtils.getGid(System.getProperty("user.name"));
-  private final boolean mIsUserGroupTranslation;
 
+  private final boolean mIsUserGroupTranslation;
   private final FileSystem mFileSystem;
   // base path within Alluxio namespace that is used for FUSE operations
   // For example, if alluxio-fuse is mounted in /mnt/alluxio and mAlluxioRootPath
@@ -79,9 +89,9 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
   private final Path mAlluxioRootPath;
   // Keeps a cache of the most recently translated paths from String to Alluxio URI
   private final LoadingCache<String, AlluxioURI> mPathResolverCache;
-
   // Table of open files with corresponding InputStreams and OutputStreams
   private final Map<Long, OpenFileEntry> mOpenFiles;
+
   private long mNextOpenFileId;
 
   /**
@@ -90,7 +100,7 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
    * @param fs Alluxio file system
    * @param opts options
    */
-  AlluxioFuseFileSystem(FileSystem fs, AlluxioFuseOptions opts) {
+  public AlluxioFuseFileSystem(FileSystem fs, AlluxioFuseOptions opts) {
     super();
     mFileSystem = fs;
     mAlluxioRootPath = Paths.get(opts.getAlluxioRoot());
@@ -149,34 +159,45 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
     }
 
     try {
-      String groupName = AlluxioFuseUtils.getGroupName(gid);
-      if (groupName.isEmpty()) {
-        // This should never be reached since input gid is always valid
-        // If user chown without group name, the primary group gid of the user name will be provided
-        LOG.error("Failed to get group name from gid {}.", gid);
-        return -ErrorCodes.EFAULT();
-      }
-
-      SetAttributeOptions options = SetAttributeOptions.defaults().setGroup(groupName);
+      SetAttributeOptions options = SetAttributeOptions.defaults();
       final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
 
-      if (uid != -1 && uid != 4294967295L) {
-        // 4294967295 is just unsigned long -1, -1 means that uid is not set
-        // 4294967295 or -1 occurs when chown without user name or chgrp
-        // Please view https://github.com/SerCeMan/jnr-fuse/issues/67 for more details
-        String userName = AlluxioFuseUtils.getUserName(uid);
+      String userName = "";
+      if (uid != ID_NOT_SET_VALUE && uid != ID_NOT_SET_VALUE_UNSIGNED) {
+        userName = AlluxioFuseUtils.getUserName(uid);
         if (userName.isEmpty()) {
           // This should never be reached
           LOG.error("Failed to get user name from uid {}", uid);
           return -ErrorCodes.EFAULT();
         }
         options.setOwner(userName);
-        LOG.info("Change owner and group of file {} to {}:{}", path, userName, groupName);
-      } else {
-        LOG.info("Change group of file {} to {}", path, groupName);
       }
 
-      mFileSystem.setAttribute(uri, options);
+      String groupName = "";
+      if (gid != ID_NOT_SET_VALUE && gid != ID_NOT_SET_VALUE_UNSIGNED) {
+        groupName = AlluxioFuseUtils.getGroupName(gid);
+        if (groupName.isEmpty()) {
+          // This should never be reached
+          LOG.error("Failed to get group name from gid {}", gid);
+          return -ErrorCodes.EFAULT();
+        }
+        options.setGroup(groupName);
+      } else if (!userName.isEmpty()) {
+        groupName = AlluxioFuseUtils.getGroupName(userName);
+        options.setGroup(groupName);
+      }
+
+      if (userName.isEmpty() && groupName.isEmpty()) {
+        // This should never be reached
+        LOG.info("Unable to change owner and group of file {} when uid is {} and gid is {}",
+            path, userName, groupName);
+      } else if (userName.isEmpty()) {
+        LOG.info("Change group of file {} to {}", path, groupName);
+        mFileSystem.setAttribute(uri, options);
+      } else {
+        LOG.info("Change owner of file {} to {}", path, groupName);
+        mFileSystem.setAttribute(uri, options);
+      }
     } catch (IOException | AlluxioException e) {
       LOG.error("Exception on {}", path, e);
       return -ErrorCodes.EIO();
