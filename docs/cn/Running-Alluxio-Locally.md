@@ -50,7 +50,7 @@ $ ./bin/alluxio-start.sh local
 
 ## 验证Alluxio是否运行
 
-为了确认Alluxio处于运行状态，用户可以访问**[http://localhost:19999](http://localhost:19999)**，或者查看`logs`文件夹下的日志。
+为了确认Alluxio处于运行状态，用户可以访问 **[http://localhost:19999](http://localhost:19999)**，或者查看`logs`文件夹下的日志。
 
 运行一个更全面的系统完整性检查：
 
