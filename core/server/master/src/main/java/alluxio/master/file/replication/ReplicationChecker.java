@@ -16,6 +16,7 @@ import alluxio.client.job.JobMasterClientPool;
 import alluxio.exception.BlockInfoException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.JobDoesNotExistException;
+import alluxio.exception.status.ResourceExhaustedException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.job.replicate.DefaultReplicationHandler;
@@ -210,8 +211,8 @@ public final class ReplicationChecker implements HeartbeatExecutor {
           default:
             LOG.warn("Unexpected replication mode {}.", mode);
         }
-      } catch (JobDoesNotExistException e) {
-        LOG.warn("The job service is busy, will retry later.");
+      } catch (JobDoesNotExistException | ResourceExhaustedException e) {
+        LOG.warn("The job service is busy, will retry later. {}", e.toString());
         mQuietPeriodSeconds = (mQuietPeriodSeconds == 0) ? 1 :
             Math.min(MAX_QUIET_PERIOD_SECONDS, mQuietPeriodSeconds * 2);
         return;

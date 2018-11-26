@@ -48,6 +48,16 @@ public class TestLoggerRule extends AbstractResourceRule {
     return mAppender.wasLogged(Pattern.compile(".*" + pattern + ".*"));
   }
 
+  /**
+   * Count the number of times a specific pattern appears in log messages.
+   *
+   * @param pattern Pattern to search for in log events
+   * @return The number of log messages which match the pattern
+   */
+  public int logCount(String pattern) {
+    return mAppender.logCount(Pattern.compile(".*" + pattern + ".*"));
+  }
+
   public class TestAppender extends AppenderSkeleton {
     @GuardedBy("this")
     private List<LoggingEvent> mEvents = new ArrayList<>();
@@ -64,6 +74,19 @@ public class TestLoggerRule extends AbstractResourceRule {
         }
       }
       return false;
+    }
+
+    /**
+     * Counts the number of log message with a given pattern.
+     */
+    public synchronized int logCount(Pattern pattern) {
+      int logCount = 0;
+      for (LoggingEvent e: mEvents) {
+        if (pattern.matcher(e.getRenderedMessage()).matches()) {
+          logCount++;
+        }
+      }
+      return logCount;
     }
 
     @Override

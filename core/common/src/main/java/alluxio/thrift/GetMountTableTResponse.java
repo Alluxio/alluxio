@@ -356,16 +356,16 @@ public class GetMountTableTResponse implements org.apache.thrift.TBase<GetMountT
           case 1: // MOUNT_TABLE
             if (schemeField.type == org.apache.thrift.protocol.TType.MAP) {
               {
-                org.apache.thrift.protocol.TMap _map74 = iprot.readMapBegin();
-                struct.mountTable = new HashMap<String,MountPointInfo>(2*_map74.size);
-                String _key75;
-                MountPointInfo _val76;
-                for (int _i77 = 0; _i77 < _map74.size; ++_i77)
+                org.apache.thrift.protocol.TMap _map82 = iprot.readMapBegin();
+                struct.mountTable = new HashMap<String,MountPointInfo>(2*_map82.size);
+                String _key83;
+                MountPointInfo _val84;
+                for (int _i85 = 0; _i85 < _map82.size; ++_i85)
                 {
-                  _key75 = iprot.readString();
-                  _val76 = new MountPointInfo();
-                  _val76.read(iprot);
-                  struct.mountTable.put(_key75, _val76);
+                  _key83 = iprot.readString();
+                  _val84 = new MountPointInfo();
+                  _val84.read(iprot);
+                  struct.mountTable.put(_key83, _val84);
                 }
                 iprot.readMapEnd();
               }
@@ -393,10 +393,10 @@ public class GetMountTableTResponse implements org.apache.thrift.TBase<GetMountT
         oprot.writeFieldBegin(MOUNT_TABLE_FIELD_DESC);
         {
           oprot.writeMapBegin(new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.STRING, org.apache.thrift.protocol.TType.STRUCT, struct.mountTable.size()));
-          for (Map.Entry<String, MountPointInfo> _iter78 : struct.mountTable.entrySet())
+          for (Map.Entry<String, MountPointInfo> _iter86 : struct.mountTable.entrySet())
           {
-            oprot.writeString(_iter78.getKey());
-            _iter78.getValue().write(oprot);
+            oprot.writeString(_iter86.getKey());
+            _iter86.getValue().write(oprot);
           }
           oprot.writeMapEnd();
         }
@@ -427,10 +427,10 @@ public class GetMountTableTResponse implements org.apache.thrift.TBase<GetMountT
       if (struct.isSetMountTable()) {
         {
           oprot.writeI32(struct.mountTable.size());
-          for (Map.Entry<String, MountPointInfo> _iter79 : struct.mountTable.entrySet())
+          for (Map.Entry<String, MountPointInfo> _iter87 : struct.mountTable.entrySet())
           {
-            oprot.writeString(_iter79.getKey());
-            _iter79.getValue().write(oprot);
+            oprot.writeString(_iter87.getKey());
+            _iter87.getValue().write(oprot);
           }
         }
       }
@@ -442,16 +442,16 @@ public class GetMountTableTResponse implements org.apache.thrift.TBase<GetMountT
       BitSet incoming = iprot.readBitSet(1);
       if (incoming.get(0)) {
         {
-          org.apache.thrift.protocol.TMap _map80 = new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.STRING, org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
-          struct.mountTable = new HashMap<String,MountPointInfo>(2*_map80.size);
-          String _key81;
-          MountPointInfo _val82;
-          for (int _i83 = 0; _i83 < _map80.size; ++_i83)
+          org.apache.thrift.protocol.TMap _map88 = new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.STRING, org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
+          struct.mountTable = new HashMap<String,MountPointInfo>(2*_map88.size);
+          String _key89;
+          MountPointInfo _val90;
+          for (int _i91 = 0; _i91 < _map88.size; ++_i91)
           {
-            _key81 = iprot.readString();
-            _val82 = new MountPointInfo();
-            _val82.read(iprot);
-            struct.mountTable.put(_key81, _val82);
+            _key89 = iprot.readString();
+            _val90 = new MountPointInfo();
+            _val90.read(iprot);
+            struct.mountTable.put(_key89, _val90);
           }
         }
         struct.setMountTableIsSet(true);

@@ -35,6 +35,7 @@ Where ACTION is one of:
   safe               \tScript will run continuously and start the master if it's not running.
   worker [MOPT]      \tStart a worker on this node.
   workers [MOPT]     \tStart workers on worker nodes.
+  logserver          \tStart the logserver
   restart_worker     \tRestart a failed worker on this node.
   restart_workers    \tRestart any failed workers on worker nodes.
 
@@ -400,7 +401,7 @@ start_monitor() {
 run_safe() {
   while [ 1 ]
   do
-    RUN=$(ps -ef | grep "alluxio.master.AlluxioMaster" | grep "java" | awk '{ print $1; }')
+    RUN=$(ps -ef | grep "alluxio.master.AlluxioMaster" | grep "java" | wc | awk '{ print $1; }')
     if [[ ${RUN} -eq 0 ]]; then
       echo "Restarting the system master..."
       start_master
