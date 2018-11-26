@@ -12,8 +12,8 @@
 package alluxio.master.meta;
 
 import alluxio.Constants;
+import alluxio.master.CoreMasterContext;
 import alluxio.master.Master;
-import alluxio.master.MasterContext;
 import alluxio.master.MasterFactory;
 import alluxio.master.MasterRegistry;
 import alluxio.master.block.BlockMaster;
@@ -27,7 +27,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * Factory to create a {@link MetaMaster} instance.
  */
 @ThreadSafe
-public final class MetaMasterFactory implements MasterFactory {
+public final class MetaMasterFactory implements MasterFactory<CoreMasterContext> {
   private static final Logger LOG = LoggerFactory.getLogger(MetaMasterFactory.class);
 
   /**
@@ -46,7 +46,7 @@ public final class MetaMasterFactory implements MasterFactory {
   }
 
   @Override
-  public Master create(MasterRegistry registry, MasterContext context) {
+  public Master create(MasterRegistry registry, CoreMasterContext context) {
     LOG.info("Creating {} ", MetaMaster.class.getName());
     MetaMaster metaMaster = new DefaultMetaMaster(registry.get(BlockMaster.class), context);
     registry.add(MetaMaster.class, metaMaster);

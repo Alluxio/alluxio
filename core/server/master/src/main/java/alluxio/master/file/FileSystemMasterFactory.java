@@ -12,7 +12,7 @@
 package alluxio.master.file;
 
 import alluxio.Constants;
-import alluxio.master.MasterContext;
+import alluxio.master.CoreMasterContext;
 import alluxio.master.MasterFactory;
 import alluxio.master.MasterRegistry;
 import alluxio.master.block.BlockMaster;
@@ -26,7 +26,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * Factory to create a {@link FileSystemMaster} instance.
  */
 @ThreadSafe
-public final class FileSystemMasterFactory implements MasterFactory {
+public final class FileSystemMasterFactory implements MasterFactory<CoreMasterContext> {
   private static final Logger LOG = LoggerFactory.getLogger(FileSystemMasterFactory.class);
 
   /**
@@ -45,7 +45,7 @@ public final class FileSystemMasterFactory implements MasterFactory {
   }
 
   @Override
-  public FileSystemMaster create(MasterRegistry registry, MasterContext context) {
+  public FileSystemMaster create(MasterRegistry registry, CoreMasterContext context) {
     LOG.info("Creating {} ", FileSystemMaster.class.getName());
     BlockMaster blockMaster = registry.get(BlockMaster.class);
     FileSystemMaster fileSystemMaster = new DefaultFileSystemMaster(blockMaster, context);
