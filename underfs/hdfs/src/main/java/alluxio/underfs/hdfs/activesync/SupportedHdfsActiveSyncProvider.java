@@ -267,7 +267,7 @@ public class SupportedHdfsActiveSyncProvider implements HdfsActiveSyncProvider {
 
         if (batch != null) {
           long txId = batch.getTxid();
-          count += batch.getEvents().length;
+          count++;
           for (Event event : batch.getEvents()) {
             processEvent(event, mUfsUriList, txId);
           }
@@ -282,6 +282,7 @@ public class SupportedHdfsActiveSyncProvider implements HdfsActiveSyncProvider {
               count + currentlyBehind - behind ,
               end - start,
               String.format("%.2f", (count + currentlyBehind - behind) * 1000.0 / (end - start)));
+          LOG.info("Currently TxidsBehindEstimate by {}", currentlyBehind);
           behind = currentlyBehind;
           start = end;
           count = 0;
