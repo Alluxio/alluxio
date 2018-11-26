@@ -337,8 +337,8 @@ public class SupportedHdfsActiveSyncProvider implements HdfsActiveSyncProvider {
           syncSyncPoint(uri.toString());
         }
         mEventMissed = false;
-        LOG.debug("Missed event, syncing all sync points");
-        LOG.debug(Arrays.toString(syncPointFiles.keySet().toArray()));
+        LOG.debug("Missed event, syncing all sync points\n"
+            + Arrays.toString(syncPointFiles.keySet().toArray()));
         SyncInfo syncInfo = new SyncInfo(syncPointFiles, true, getLastTxId());
         return syncInfo;
       }
