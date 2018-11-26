@@ -160,7 +160,6 @@
     <surefire.forkCount>2</surefire.forkCount>
     <surefire.useSystemClassLoader>true</surefire.useSystemClassLoader>
     <surefire.excludesFile>slow-tests</surefire.excludesFile>
-    <surefire.rerunFailingTestsCount>1</surefire.rerunFailingTestsCount>
     <test.output.redirect>true</test.output.redirect>
   </properties>
 
@@ -962,7 +961,6 @@
             <argLine>-Djava.net.preferIPv4Stack=true</argLine>
             <excludesFile>${build.path}/surefire/${surefire.excludesFile}</excludesFile>
             <forkCount>${surefire.forkCount}</forkCount>
-            <rerunFailingTestsCount>${surefire.rerunFailingTestsCount}</rerunFailingTestsCount>
             <redirectTestOutputToFile>${test.output.redirect}</redirectTestOutputToFile>
             <reuseForks>false</reuseForks>
             <runOrder>alphabetical</runOrder>

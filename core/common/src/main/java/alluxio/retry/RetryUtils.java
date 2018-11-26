@@ -84,18 +84,6 @@ public final class RetryUtils {
   }
 
   /**
-   * @return the default active sync retry behavior
-   */
-  public static RetryPolicy defaultActiveSyncClientRetry() {
-    return ExponentialTimeBoundedRetry.builder()
-        .withMaxDuration(Duration
-            .ofMillis(Configuration.getMs(PropertyKey.MASTER_ACTIVE_UFS_POLL_TIMEOUT)))
-        .withInitialSleep(Duration.ofMillis(100))
-        .withMaxSleep(Duration.ofSeconds(60))
-        .build();
-  }
-
-  /**
    * Interface for methods which return nothing and may throw IOException.
    */
   @FunctionalInterface

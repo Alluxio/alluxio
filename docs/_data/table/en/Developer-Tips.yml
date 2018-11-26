@@ -12,10 +12,10 @@ bootstrapConf:
   <code>ALLUXIO_MASTER_HOSTNAME</code>, if the config file doesn't exist.
 fs:
   Interact with Alluxio in command line style for basic file system operations.
-  See [Command Line]({{ '/en/basic/Command-Line-Interface.html' | relativize_url }}) for more information.
+  See <a href="Command-Line-Interface.html">Command Line</a> for more information.
 fsadmin:
   Command line tool for use by Alluxio filesystem admins.
-  See [Fsadmin Command Line]({{ '/en/basic/operation/Admin-CLI.md' | relativize_url }}) for more information.
+  See <a href="Admin-CLI.html">Fsadmin Command Line</a> for more information.
 getConf:
   Look up a configuration key, or print all configuration.
 loadufs:
@@ -51,10 +51,10 @@ copyDir:
 clearCache:
   Clear OS buffer cache of the machine. This command needs the root permission.
 thriftGen:
-  Generate all thrift code. See <a href="#modifying-a-thrift-rpc-definition">Change a Thrift RPC
+  Generate all thrift code. See <a href="#change-a-thrift-rpc-definition">Change a Thrift RPC
   definition</a>.
 protoGen:
-  Generate all protocol buffer code. See <a href="#modifying-a-protocol-buffer-message">Change a
+  Generate all protocol buffer code. See <a href="#change-a-protocol-buffer-message">Change a
   Protocol Buffer Message</a>.
 version:
   Print Alluxio version.

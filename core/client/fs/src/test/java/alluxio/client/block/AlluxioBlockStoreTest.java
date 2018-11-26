@@ -158,8 +158,12 @@ public final class AlluxioBlockStoreTest {
   @Test
   public void getOutStreamUsingLocationPolicy() throws Exception {
     OutStreamOptions options = OutStreamOptions.defaults().setWriteType(WriteType.MUST_CACHE)
-        .setLocationPolicy((workerInfoList, blockSizeBytes) -> {
-          throw new RuntimeException("policy threw exception");
+        .setLocationPolicy(new FileWriteLocationPolicy() {
+          @Override
+          public WorkerNetAddress getWorkerForNextBlock(Iterable<BlockWorkerInfo> workerInfoList,
+              long blockSizeBytes) {
+            throw new RuntimeException("policy threw exception");
+          }
         });
     mException.expect(Exception.class);
     mBlockStore.getOutStream(BLOCK_ID, BLOCK_LENGTH, options);

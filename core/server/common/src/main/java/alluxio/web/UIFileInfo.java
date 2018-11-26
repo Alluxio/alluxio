@@ -40,8 +40,12 @@ public final class UIFileInfo {
    * absolute paths.
    */
   public static final Ordering<UIFileInfo> PATH_STRING_COMPARE =
-      Ordering.natural().onResultOf(
-          (Function<UIFileInfo, Comparable<String>>) input -> input.mAbsolutePath);
+      Ordering.natural().onResultOf(new Function<UIFileInfo, Comparable<String>>() {
+        @Override
+        public Comparable<String> apply(UIFileInfo input) {
+          return input.mAbsolutePath;
+        }
+      });
 
   // Simple class for describing a file on the local filesystem.
   @ThreadSafe

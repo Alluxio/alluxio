@@ -13,22 +13,6 @@ message StringPairEntry {
   optional string value = 2;
 }
 
-// next available id: 3
-message ActiveSyncTxIdEntry {
-  optional int64 mount_id = 1;
-  optional int64 tx_id = 2;
-}
-
-// next available id: 2
-message AddSyncPointEntry {
-  optional string syncpoint_path = 1;
-}
-
-// next available id: 2
-message RemoveSyncPointEntry {
-  optional string syncpoint_path = 1;
-}
-
 // next available id: 7
 message AddMountPointEntry {
   optional string alluxio_path = 1;

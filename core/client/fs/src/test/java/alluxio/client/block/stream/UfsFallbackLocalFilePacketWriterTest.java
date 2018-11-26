@@ -253,7 +253,6 @@ public class UfsFallbackLocalFilePacketWriterTest {
   }
 
   @Test(timeout = 1000 * 60)
-  @Ignore("Flaky test")
   public void flush() throws Exception {
     long blockSize = PACKET_SIZE * 1024 + PACKET_SIZE / 3;
     try (PacketWriter writer = create(blockSize, PACKET_SIZE)) {
@@ -266,7 +265,6 @@ public class UfsFallbackLocalFilePacketWriterTest {
   }
 
   @Test(timeout = 1000 * 60)
-  @Ignore("Flaky test")
   public void pos() throws Exception {
     long blockSize = PACKET_SIZE * 2 + PACKET_SIZE / 3;
     try (PacketWriter writer = create(blockSize, PACKET_SIZE)) {

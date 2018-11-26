@@ -79,7 +79,12 @@ public final class KeyValueWorkerClient extends AbstractClient {
    */
   public synchronized ByteBuffer get(final long blockId, final ByteBuffer key)
       throws IOException, AlluxioException {
-    return retryRPC(() -> mClient.get(blockId, key, new GetTOptions()).bufferForData());
+    return retryRPC(new RpcCallable<ByteBuffer>() {
+      @Override
+      public ByteBuffer call() throws AlluxioTException, TException {
+        return mClient.get(blockId, key, new GetTOptions()).bufferForData();
+      }
+    });
   }
 
   /**

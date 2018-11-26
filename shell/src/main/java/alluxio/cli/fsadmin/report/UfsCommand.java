@@ -41,7 +41,7 @@ public class UfsCommand {
    */
   public int run() throws IOException {
     Map<String, MountPointInfo> mountTable = mFileSystemMasterClient.getMountTable();
-    System.out.println("Alluxio under storage system information:");
+    System.out.println("Alluxio under filesystem information: ");
     printMountInfo(mountTable);
     return 0;
   }

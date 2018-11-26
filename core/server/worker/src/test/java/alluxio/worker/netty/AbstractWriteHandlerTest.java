@@ -202,7 +202,7 @@ public abstract class AbstractWriteHandlerTest {
    */
   protected Object waitForResponse(final EmbeddedChannel channel)
       throws TimeoutException, InterruptedException {
-    return CommonUtils.waitForResult("response from the channel.", channel::readOutbound,
+    return CommonUtils.waitForResult("response from the channel.", () -> channel.readOutbound(),
         WaitForOptions.defaults().setTimeoutMs(Constants.MINUTE_MS));
   }
 

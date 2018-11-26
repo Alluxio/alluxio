@@ -20,15 +20,16 @@ automatically includes the version of the documentation that is relevant regardl
 or release you have checked out or downloaded.
 
 In directories like `docs/en` or `docs/cn` you will find text files with a `.md` suffix, formatted
-using [Github flavor Markdown syntax](https://help.github.com/articles/basic-writing-and-formatting-syntax/).
-You can read those text files directly if you want. Start with `index.md`.
+using [Github flavor Markdown syntax]
+(https://help.github.com/articles/basic-writing-and-formatting-syntax/). You can read those text
+files directly if you want. Start with `index.md`.
 
 ## Generating the Documentation HTML
 
 To make the documentation more visually appealing and easier to navigate, you can generate the HTML
 version of the documentation. To do this, you will need to have `Jekyll` installed; the easiest
-way to do this is via a Ruby Gem
-(see the [jekyll installation instructions](http://jekyllrb.com/docs/installation/)).
+way to do this is via a Ruby Gem (see the [jekyll installation instructions]
+(http://jekyllrb.com/docs/installation/)).
 
 Before running `jekyll`, please run mvn to generate Java doc under alluxio root directory.
 

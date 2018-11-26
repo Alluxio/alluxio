@@ -75,10 +75,6 @@ spec:
             name: rpc
           - containerPort: 19999
             name: web
-          - containerPort: 20001
-            name: job-rpc
-          - containerPort: 20002
-            name: job-web
           volumeMounts:
             - name: alluxio-journal
               mountPath: /journal

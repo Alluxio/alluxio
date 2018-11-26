@@ -49,9 +49,9 @@ public final class FileSystemShell extends AbstractShell {
   public static void main(String[] argv) throws IOException {
     int ret;
 
-    if (!ConfigurationUtils.masterHostConfigured() && argv.length > 0 && !argv[0].equals("help")) {
+    if (!ConfigurationUtils.masterHostConfigured()) {
       System.out.println(String.format(
-          "Cannot run alluxio fs shell; master hostname is not "
+          "Cannot run alluxio shell; master hostname is not "
               + "configured. Please modify %s to either set %s or configure zookeeper with "
               + "%s=true and %s=[comma-separated zookeeper master addresses]",
           Constants.SITE_PROPERTIES, PropertyKey.MASTER_HOSTNAME.toString(),

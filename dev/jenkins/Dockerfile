@@ -18,7 +18,7 @@ RUN adduser --quiet jenkins
 RUN usermod -u 1000 jenkins && groupmod -g 1000 jenkins
 
 RUN apt-get update -y && \
-    apt-get install -y golang-go ruby ruby-dev make build-essential fuse && \
+    apt-get install -y golang-go ruby ruby-dev make build-essential && \
     gem install jekyll bundler
 
 # Give jenkins user access to /root/.m2. We can still run the image as root for local debugging

@@ -5,11 +5,7 @@ alluxio.master.audit.logging.queue.capacity:
 alluxio.master.backup.directory:
   'Default directory for writing master metadata backups. This path is relative to the root directory of the root UFS. For example, if the root ufs directory is hdfs://cluster/alluxio/data, the default backup directory will be hdfs://cluster/alluxio_backups'
 alluxio.master.bind.host:
-  'The hostname that Alluxio master binds to.'
-alluxio.master.client.socket.cleanup.interval:
-  'Interval for removing closed client sockets from internal tracking.'
-alluxio.master.cluster.metrics.update.interval:
-  'The interval for periodically updating the cluster level metrics.'
+  'The hostname that Alluxio master binds to. See <a href="#configure-multihomed-networks">multi-homed networks</a>.'
 alluxio.master.connection.timeout:
   'Timeout of connections between master and client. A value of 0 means never timeout'
 alluxio.master.file.async.persist.handler:
@@ -76,8 +72,6 @@ alluxio.master.port:
   'The port that Alluxio master node runs on.'
 alluxio.master.principal:
   'Kerberos principal for Alluxio master.'
-alluxio.master.serving.thread.timeout:
-  'When stepping down from being the primary, the master will wait this long for the thrift serving thread to stop before giving up and shutting down the server.'
 alluxio.master.startup.block.integrity.check.enabled:
   'Whether the system should be checked on startup for orphaned blocks (blocks having no corresponding files but still taking system resource due to various system failures). Orphaned blocks will be deleted during master startup if this property is true. This property is available since 1.7.1'
 alluxio.master.startup.consistency.check.enabled:
@@ -101,7 +95,7 @@ alluxio.master.ufs.path.cache.capacity:
 alluxio.master.ufs.path.cache.threads:
   'The maximum size of the thread pool for asynchronously processing paths for the UFS path cache. Greater number of threads will decrease the amount of staleness in the async cache, but may impact performance. If this is set to 0, the cache will be disabled, and `alluxio.user.file.metadata.load.type=Once` will behave like `Always`.'
 alluxio.master.web.bind.host:
-  'The hostname Alluxio master web UI binds to.'
+  'The hostname Alluxio master web UI binds to. See <a href="#configure-multihomed-networks">multi-homed networks</a>.'
 alluxio.master.web.hostname:
   'The hostname of Alluxio Master web UI.'
 alluxio.master.web.port:

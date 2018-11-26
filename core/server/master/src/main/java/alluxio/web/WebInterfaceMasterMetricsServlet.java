@@ -203,8 +203,12 @@ public final class WebInterfaceMasterMetricsServlet extends WebInterfaceAbstract
 
     // cluster per UFS read
     Map<String, String> ufsReadSizeMap = new TreeMap<>();
-    for (Map.Entry<String, Gauge> entry : mr.getGauges((name, metric) ->
-            name.contains(WorkerMetrics.BYTES_READ_UFS)).entrySet()) {
+    for (Map.Entry<String, Gauge> entry : mr.getGauges(new MetricFilter() {
+      @Override
+      public boolean matches(String name, Metric metric) {
+        return name.contains(WorkerMetrics.BYTES_READ_UFS);
+      }
+      }).entrySet()) {
       alluxio.metrics.Metric metric =
           alluxio.metrics.Metric.from(entry.getKey(), (long) entry.getValue().getValue());
       ufsReadSizeMap.put(metric.getTags().get(WorkerMetrics.TAG_UFS),
@@ -214,8 +218,12 @@ public final class WebInterfaceMasterMetricsServlet extends WebInterfaceAbstract
 
     // cluster per UFS write
     Map<String, String> ufsWriteSizeMap = new TreeMap<>();
-    for (Map.Entry<String, Gauge> entry : mr.getGauges((name, metric) ->
-            name.contains(WorkerMetrics.BYTES_WRITTEN_UFS)).entrySet()) {
+    for (Map.Entry<String, Gauge> entry : mr.getGauges(new MetricFilter() {
+      @Override
+      public boolean matches(String name, Metric metric) {
+        return name.contains(WorkerMetrics.BYTES_WRITTEN_UFS);
+      }
+      }).entrySet()) {
       alluxio.metrics.Metric metric =
           alluxio.metrics.Metric.from(entry.getKey(), (long) entry.getValue().getValue());
       ufsWriteSizeMap.put(metric.getTags().get(WorkerMetrics.TAG_UFS),
@@ -225,8 +233,12 @@ public final class WebInterfaceMasterMetricsServlet extends WebInterfaceAbstract
 
     // per UFS ops
     Map<String, Map<String, Long>> ufsOpsMap = new TreeMap<>();
-    for (Map.Entry<String, Gauge> entry : mr.getGauges((name, metric) ->
-            name.contains(WorkerMetrics.UFS_OP_PREFIX)).entrySet()) {
+    for (Map.Entry<String, Gauge> entry : mr.getGauges(new MetricFilter() {
+      @Override
+      public boolean matches(String name, Metric metric) {
+        return name.contains(WorkerMetrics.UFS_OP_PREFIX);
+      }
+      }).entrySet()) {
       alluxio.metrics.Metric metric =
           alluxio.metrics.Metric.from(entry.getKey(), (long) entry.getValue().getValue());
       if (!metric.getTags().containsKey(WorkerMetrics.TAG_UFS)) {

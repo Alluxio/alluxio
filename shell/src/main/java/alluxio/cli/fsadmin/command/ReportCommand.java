@@ -193,7 +193,7 @@ public final class ReportCommand extends AbstractFsAdminCommand {
         + "    capacity         worker capacity information\n"
         + "    metrics          metrics information\n"
         + "    summary          cluster summary\n"
-        + "    ufs              under storage system information\n";
+        + "    ufs              under filesystem information\n";
   }
 
   @Override

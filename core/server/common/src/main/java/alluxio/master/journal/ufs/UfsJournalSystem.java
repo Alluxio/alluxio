@@ -11,12 +11,10 @@
 
 package alluxio.master.journal.ufs;
 
-import alluxio.Constants;
 import alluxio.master.journal.AbstractJournalSystem;
 import alluxio.master.journal.JournalEntryStateMachine;
 import alluxio.retry.ExponentialTimeBoundedRetry;
 import alluxio.retry.RetryPolicy;
-import alluxio.util.CommonUtils;
 import alluxio.util.URIUtils;
 
 import com.google.common.io.Closer;
@@ -26,12 +24,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.net.URI;
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeoutException;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -70,17 +63,12 @@ public class UfsJournalSystem extends AbstractJournalSystem {
 
   @Override
   public void gainPrimacy() {
-    List<Callable<Void>> callables = new ArrayList<>();
-    for (UfsJournal journal : mJournals.values()) {
-      callables.add(() -> {
-        journal.gainPrimacy();
-        return null;
-      });
-    }
     try {
-      CommonUtils.invokeAll(callables, 1 * Constants.HOUR_MS);
-    } catch (TimeoutException | ExecutionException e) {
-      throw new RuntimeException(e);
+      for (UfsJournal journal : mJournals.values()) {
+        journal.gainPrimacy();
+      }
+    } catch (IOException e) {
+      throw new RuntimeException("Failed to upgrade journal to primary", e);
     }
   }
 

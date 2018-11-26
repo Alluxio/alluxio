@@ -18,7 +18,7 @@ import java.util.Map;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * Container for the delta information in each worker-to-master heartbeat.
+ * Container for the delta information in each worker to master heartbeat.
  */
 @ThreadSafe
 public final class BlockHeartbeatReport {

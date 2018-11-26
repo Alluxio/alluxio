@@ -30,7 +30,6 @@ public enum ExceptionMessage {
   PATH_DOES_NOT_EXIST("Path \"{0}\" does not exist."),
   PATH_MUST_BE_FILE("Path \"{0}\" must be a file."),
   PATH_MUST_BE_DIRECTORY("Path \"{0}\" must be a directory."),
-  PATH_MUST_BE_MOUNT_POINT("Path \"{0}\" must be a mount point."),
   PATH_INVALID("Path \"{0}\" is invalid."),
 
   // general block
@@ -278,7 +277,6 @@ public enum ExceptionMessage {
   // job manager
   JOB_DEFINITION_DOES_NOT_EXIST("The job definition for config {0} does not exist"),
   JOB_DOES_NOT_EXIST("The job of id {0} does not exist"),
-  JOB_MASTER_FULL_CAPACITY("Job master is at full capacity of {0} jobs"),
 
   // block worker
   FAILED_COMMIT_BLOCK_TO_MASTER("Failed to commit block with blockId {0,number,#} to master"),

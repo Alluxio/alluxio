@@ -37,8 +37,6 @@ import alluxio.thrift.GetMountTableTResponse;
 import alluxio.thrift.GetNewBlockIdForFileTOptions;
 import alluxio.thrift.LoadMetadataTOptions;
 import alluxio.thrift.ScheduleAsyncPersistenceTOptions;
-import alluxio.thrift.StartSyncTOptions;
-import alluxio.thrift.StopSyncTOptions;
 import alluxio.thrift.UnmountTOptions;
 import alluxio.wire.FileInfo;
 import alluxio.wire.MountPointInfo;
@@ -145,13 +143,6 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
   }
 
   @Override
-  public synchronized List<String> getSyncPathList()
-      throws AlluxioStatusException {
-    return retryRPC(() -> mClient.getSyncPathList()
-        .getSyncPathList(), "GetSyncPathList");
-  }
-
-  @Override
   public synchronized long getNewBlockIdForFile(final AlluxioURI path)
       throws AlluxioStatusException {
     return retryRPC(() -> mClient.getNewBlockIdForFile(path.getPath(),
@@ -236,20 +227,6 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
       throws AlluxioStatusException {
     retryRPC(() -> mClient.scheduleAsyncPersistence(path.getPath(),
         new ScheduleAsyncPersistenceTOptions()), "ScheduleAsyncPersist");
-  }
-
-  @Override
-  public synchronized void startSync(final AlluxioURI path)
-      throws AlluxioStatusException {
-    retryRPC(() -> mClient.startSync(path.getPath(),
-        new StartSyncTOptions()), "StartSync");
-  }
-
-  @Override
-  public synchronized void stopSync(final AlluxioURI path)
-      throws AlluxioStatusException {
-    retryRPC(() -> mClient.stopSync(path.getPath(),
-        new StopSyncTOptions()), "StopSync");
   }
 
   @Override

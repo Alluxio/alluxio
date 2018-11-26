@@ -14,8 +14,6 @@ package alluxio.worker.netty;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.util.IdUtils;
 
-import com.google.common.base.Objects;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -46,17 +44,5 @@ class WriteRequest {
    */
   public long getSessionId() {
     return mSessionId;
-  }
-
-  /**
-   * @return a {@link Objects.ToStringHelper}, inheriting classes should call super
-   */
-  protected Objects.ToStringHelper toStringHelper() {
-    return Objects.toStringHelper(this).add("id", mId).add("sessionId", mSessionId);
-  }
-
-  @Override
-  public final String toString() {
-    return toStringHelper().toString();
   }
 }

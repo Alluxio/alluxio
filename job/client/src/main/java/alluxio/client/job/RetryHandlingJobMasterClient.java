@@ -81,9 +81,11 @@ public final class RetryHandlingJobMasterClient extends AbstractMasterClient
 
   @Override
   public synchronized void cancel(final long jobId) throws IOException {
-    retryRPC((RpcCallable<Void>) () -> {
-      mClient.cancel(jobId, new CancelTOptions());
-      return null;
+    retryRPC(new RpcCallable<Void>() {
+      public Void call() throws TException {
+        mClient.cancel(jobId, new CancelTOptions());
+        return null;
+      }
     });
   }
 

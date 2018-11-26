@@ -50,12 +50,6 @@ spec:
             name: data
           - containerPort: 29996
             name: web
-          - containerPort: 30001
-            name: job-rpc
-          - containerPort: 30002
-            name: job-data
-          - containerPort: 30003
-            name: job-web
           securityContext:
             privileged: true
           volumeMounts:

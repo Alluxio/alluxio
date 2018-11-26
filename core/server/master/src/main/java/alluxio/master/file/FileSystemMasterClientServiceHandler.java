@@ -52,7 +52,6 @@ import alluxio.thrift.GetServiceVersionTOptions;
 import alluxio.thrift.GetServiceVersionTResponse;
 import alluxio.thrift.GetStatusTOptions;
 import alluxio.thrift.GetStatusTResponse;
-import alluxio.thrift.GetSyncPathListTResponse;
 import alluxio.thrift.ListStatusTOptions;
 import alluxio.thrift.ListStatusTResponse;
 import alluxio.thrift.LoadMetadataTOptions;
@@ -67,10 +66,6 @@ import alluxio.thrift.SetAclTOptions;
 import alluxio.thrift.SetAclTResponse;
 import alluxio.thrift.SetAttributeTOptions;
 import alluxio.thrift.SetAttributeTResponse;
-import alluxio.thrift.StartSyncTOptions;
-import alluxio.thrift.StartSyncTResponse;
-import alluxio.thrift.StopSyncTOptions;
-import alluxio.thrift.StopSyncTResponse;
 import alluxio.thrift.TAclEntry;
 import alluxio.thrift.TSetAclAction;
 import alluxio.thrift.UnmountTOptions;
@@ -82,7 +77,6 @@ import alluxio.wire.MountPointInfo;
 import alluxio.wire.SetAclAction;
 
 import com.google.common.base.Preconditions;
-import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -255,14 +249,6 @@ public final class FileSystemMasterClientServiceHandler implements
   }
 
   @Override
-  public GetSyncPathListTResponse getSyncPathList() throws AlluxioTException, TException {
-    return RpcUtils.call(LOG, (RpcCallableThrowsIOException<GetSyncPathListTResponse>) () -> {
-      List<String> pathList = mFileSystemMaster.getSyncPathList();
-      return new GetSyncPathListTResponse(pathList);
-    }, "GetSyncPathList", "");
-  }
-
-  @Override
   public DeleteTResponse remove(final String path, final boolean recursive,
       final DeleteTOptions options) throws AlluxioTException {
     return RpcUtils.call(LOG, (RpcCallableThrowsIOException<DeleteTResponse>) () -> {
@@ -320,24 +306,6 @@ public final class FileSystemMasterClientServiceHandler implements
       mFileSystemMaster.setAttribute(new AlluxioURI(path), new SetAttributeOptions(options));
       return new SetAttributeTResponse();
     }, "SetAttribute", "path=%s, options=%s", path, options);
-  }
-
-  @Override
-  public StartSyncTResponse startSync(String path, StartSyncTOptions options)
-      throws AlluxioTException {
-    return RpcUtils.call(LOG, (RpcCallableThrowsIOException<StartSyncTResponse>) () -> {
-      mFileSystemMaster.startSync(new AlluxioURI(path));
-      return new StartSyncTResponse();
-    }, "StartSync", "path=%s, options=%s", path, options);
-  }
-
-  @Override
-  public StopSyncTResponse stopSync(String path, StopSyncTOptions options)
-      throws AlluxioTException {
-    return RpcUtils.call(LOG, (RpcCallableThrowsIOException<StopSyncTResponse>) () -> {
-      mFileSystemMaster.stopSync(new AlluxioURI(path));
-      return new StopSyncTResponse();
-    }, "StopSync", "path=%s, options=%s", path, options);
   }
 
   @Override

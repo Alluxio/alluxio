@@ -32,7 +32,6 @@ Where component is one of:
   proxies           \tStop proxies on master and worker nodes.
   worker            \tStop local worker.
   workers           \tStop workers on worker nodes.
-  logserver         \tStop the logserver
 
 -h  display this help."
 

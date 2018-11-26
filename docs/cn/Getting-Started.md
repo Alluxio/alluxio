@@ -1,8 +1,8 @@
-可选---
+---
 layout: global
 title: 快速上手指南
-group: Home
-priority: 3
+group: User Guide
+priority: 0
 ---
 
 * 内容列表

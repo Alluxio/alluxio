@@ -13,8 +13,6 @@ package alluxio.worker.netty;
 
 import alluxio.proto.dataserver.Protocol;
 
-import com.google.common.base.Objects;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -59,11 +57,5 @@ public final class BlockWriteRequest extends WriteRequest {
    */
   public boolean hasCreateUfsBlockOptions() {
     return mCreateUfsBlockOptions != null;
-  }
-
-  @Override
-  protected Objects.ToStringHelper toStringHelper() {
-    return super.toStringHelper().add("tier", mTier)
-        .add("createUfsBlockOptions", mCreateUfsBlockOptions);
   }
 }

@@ -46,8 +46,12 @@ public final class LocalAlluxioMaster {
 
   private final String mJournalFolder;
 
-  private final Supplier<String> mClientSupplier = this::getUri;
-
+  private final Supplier<String> mClientSupplier = new Supplier<String>() {
+    @Override
+    public String get() {
+      return getUri();
+    }
+  };
   private final ClientPool mClientPool = new ClientPool(mClientSupplier);
 
   private MasterProcess mMasterProcess;
