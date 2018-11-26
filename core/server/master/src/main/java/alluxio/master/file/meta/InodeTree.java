@@ -87,15 +87,37 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
   public static final long NO_PARENT = -1;
 
   /**
-   * The type of lock to lock inode paths with.
+   * Patterns of inode path locking.
    */
-  public enum LockMode {
+  public enum LockPattern {
     /** Read lock the entire path. */
     READ,
     /** Read lock the entire path, but write lock the target inode. */
-    WRITE,
-    /** Read lock the entire path, but write lock the target inode and the parent of the target. */
-    WRITE_PARENT,
+    WRITE_LAST;
+
+    /**
+     * @param index component index
+     * @param length number of components
+     * @return the type of lock to use for the component at the specified index
+     */
+    public LockMode getLockMode(int index, int length) {
+      switch (this) {
+        case READ:
+          return LockMode.READ;
+        case WRITE_LAST:
+          return index >= length - 1 ? LockMode.WRITE : LockMode.READ;
+        default:
+          throw new IllegalStateException("Unknown lock pattern: " + this);
+      }
+    }
+  }
+
+  /**
+   * ReadWriteLock types.
+   */
+  public enum LockMode {
+    READ,
+    WRITE;
   }
 
   /** Only the root inode should have the empty string as its name. */
@@ -275,7 +297,7 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
   public boolean inodePathExists(AlluxioURI uri) {
     try {
       TraversalResult traversalResult =
-          traverseToInode(PathUtils.getPathComponents(uri.getPath()), LockMode.READ, null);
+          traverseToInode(PathUtils.getPathComponents(uri.getPath()), LockPattern.READ);
       traversalResult.getInodeLockList().close();
       return traversalResult.isFound();
     } catch (InvalidPathException e) {
@@ -284,75 +306,55 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
   }
 
   /**
-   * Locks existing inodes on the specified path, in the specified {@link LockMode}. The target
+   * Locks existing inodes on the specified path, in the specified {@link LockPattern}. The target
    * inode is not required to exist.
    *
    * @param path the path to lock
-   * @param lockMode the {@link LockMode} to lock the inodes with
+   * @param lockPattern the {@link LockPattern} to lock the inodes with
    * @return the {@link LockedInodePath} representing the locked path of inodes
    * @throws InvalidPathException if the path is invalid
    */
-  public LockedInodePath lockInodePath(AlluxioURI path, LockMode lockMode)
+  public LockedInodePath lockInodePath(AlluxioURI path, LockPattern lockPattern)
       throws InvalidPathException {
     TraversalResult traversalResult =
-        traverseToInode(PathUtils.getPathComponents(path.getPath()), lockMode, null);
+        traverseToInode(PathUtils.getPathComponents(path.getPath()), lockPattern);
     return new MutableLockedInodePath(path,
-        traversalResult.getInodeLockList(), lockMode);
+        traversalResult.getInodeLockList(), lockPattern);
   }
 
   /**
-   * Locks existing inodes on the two specified paths. The two paths will be locked in the
-   * correct order. The target inodes are not required to exist.
+   * Locks existing inodes on the two specified paths. The two paths will be locked in the correct
+   * order. The target inodes are not required to exist.
    *
    * @param path1 the first path to lock
-   * @param lockMode1 the {@link LockMode} of the first path
+   * @param lockPattern1 the locking pattern for the first path
    * @param path2 the second path to lock
-   * @param lockMode2 the {@link LockMode} of the second path
+   * @param lockPattern2 the locking pattern for the second path
    * @return a {@link InodePathPair} representing the two locked paths
    * @throws InvalidPathException if a path is invalid
    */
-  public InodePathPair lockInodePathPair(AlluxioURI path1, LockMode lockMode1, AlluxioURI path2,
-      LockMode lockMode2) throws InvalidPathException {
+  public InodePathPair lockInodePathPair(AlluxioURI path1, LockPattern lockPattern1,
+      AlluxioURI path2, LockPattern lockPattern2) throws InvalidPathException {
     String[] pathComponents1 = PathUtils.getPathComponents(path1.getPath());
     String[] pathComponents2 = PathUtils.getPathComponents(path2.getPath());
-    List<LockMode> lockHints = new ArrayList<>();
-
-    int minLength = Math.min(pathComponents1.length, pathComponents2.length);
-    for (int i = 0; i < minLength; i++) {
-      if (pathComponents1[i].equals(pathComponents2[i])) {
-        // The two paths share a common path prefix.
-        LockMode mode1 = getLockModeForComponent(i, pathComponents1.length, lockMode1, null);
-        LockMode mode2 = getLockModeForComponent(i, pathComponents2.length, lockMode2, null);
-        // If either of the modes are WRITE, lock both components as WRITE to prevent deadlock.
-        // TODO(gpang): consider a combine helper method
-        if (mode1 == LockMode.READ && mode2 == LockMode.READ) {
-          lockHints.add(LockMode.READ);
-        } else {
-          lockHints.add(LockMode.WRITE);
-        }
-      } else {
-        // The two paths no longer share a common prefix.
-        break;
-      }
-    }
 
     TraversalResult traversalResult1 = null;
     TraversalResult traversalResult2 = null;
     boolean valid = false;
     try {
       // Lock paths in a deterministic order.
-      if (path1.compareTo(path2) > 0) {
-        traversalResult2 = traverseToInode(pathComponents2, lockMode2, lockHints);
-        traversalResult1 = traverseToInode(pathComponents1, lockMode1, lockHints);
+      if (path1.getPath().compareTo(path2.getPath()) > 0) {
+        traversalResult2 = traverseToInode(pathComponents2, lockPattern2);
+        traversalResult1 = traverseToInode(pathComponents1, lockPattern1);
       } else {
-        traversalResult1 = traverseToInode(pathComponents1, lockMode1, lockHints);
-        traversalResult2 = traverseToInode(pathComponents2, lockMode2, lockHints);
+        traversalResult1 = traverseToInode(pathComponents1, lockPattern1);
+        traversalResult2 = traverseToInode(pathComponents2, lockPattern2);
       }
 
       LockedInodePath inodePath1 = new MutableLockedInodePath(path1,
-          traversalResult1.getInodeLockList(), lockMode1);
+          traversalResult1.getInodeLockList(), lockPattern1);
       LockedInodePath inodePath2 = new MutableLockedInodePath(path2,
-          traversalResult2.getInodeLockList(), lockMode2);
+          traversalResult2.getInodeLockList(), lockPattern2);
       valid = true;
       return new InodePathPair(inodePath1, inodePath2);
     } finally {
@@ -368,66 +370,37 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
   }
 
   /**
-   * Returns the lock mode for a particular index into the path components.
-   *
-   * @param index the index into the path components
-   * @param length the length of path components
-   * @param lockMode the specified {@link LockMode}
-   * @param lockHints the list of lock hints for each index; this can be null, or incomplete
-   * @return the {@link LockMode} to lock this particular inode at this index with
-   */
-  private LockMode getLockModeForComponent(int index, int length, LockMode lockMode,
-      List<LockMode> lockHints) {
-    if (lockHints != null && index < lockHints.size()) {
-      // Use the lock hint if it exists.
-      return lockHints.get(index);
-    }
-    if (lockMode == LockMode.READ) {
-      return LockMode.READ;
-    }
-    boolean isTarget = (index == length - 1);
-    boolean isTargetOrParent = (index >= length - 2);
-
-    if (isTargetOrParent && lockMode == LockMode.WRITE_PARENT
-        || isTarget && lockMode == LockMode.WRITE) {
-      return LockMode.WRITE;
-    }
-    return LockMode.READ;
-  }
-
-  /**
-   * Locks existing inodes on the specified path, in the specified {@link LockMode}. The target
+   * Locks existing inodes on the specified path, in the specified {@link LockPattern}. The target
    * inode must exist.
    *
    * @param path the {@link AlluxioURI} path to lock
-   * @param lockMode the {@link LockMode} to lock the inodes with
+   * @param lockPattern the {@link LockPattern} to lock the inodes with
    * @return the {@link LockedInodePath} representing the locked path of inodes
    * @throws InvalidPathException if the path is invalid
    * @throws FileDoesNotExistException if the target inode does not exist
    */
-  public LockedInodePath lockFullInodePath(AlluxioURI path, LockMode lockMode)
+  public LockedInodePath lockFullInodePath(AlluxioURI path, LockPattern lockPattern)
       throws InvalidPathException, FileDoesNotExistException {
     TraversalResult traversalResult =
-        traverseToInode(PathUtils.getPathComponents(path.getPath()), lockMode, null);
+        traverseToInode(PathUtils.getPathComponents(path.getPath()), lockPattern);
     if (!traversalResult.isFound()) {
       traversalResult.getInodeLockList().close();
       throw new FileDoesNotExistException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path));
     }
-    return new MutableLockedInodePath(path,
-        traversalResult.getInodeLockList(), lockMode);
+    return new MutableLockedInodePath(path, traversalResult.getInodeLockList(), lockPattern);
   }
 
   /**
    * Locks existing inodes on the path to the inode specified by an id, in the specified
-   * {@link LockMode}. The target inode must exist. This may require multiple traversals of the
+   * {@link LockPattern}. The target inode must exist. This may require multiple traversals of the
    * tree, so may be inefficient.
    *
    * @param id the inode id
-   * @param lockMode the {@link LockMode} to lock the inodes with
+   * @param lockPattern the {@link LockPattern} to lock the inodes with
    * @return the {@link LockedInodePath} representing the locked path of inodes
    * @throws FileDoesNotExistException if the target inode does not exist
    */
-  public LockedInodePath lockFullInodePath(long id, LockMode lockMode)
+  public LockedInodePath lockFullInodePath(long id, LockPattern lockPattern)
       throws FileDoesNotExistException {
     int count = 0;
     while (true) {
@@ -443,7 +416,7 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
       boolean valid = false;
       LockedInodePath inodePath = null;
       try {
-        inodePath = lockFullInodePath(uri, lockMode);
+        inodePath = lockFullInodePath(uri, lockPattern);
         if (inodePath.getInode().getId() == id) {
           // Set to true, so the path is not unlocked before returning.
           valid = true;
@@ -471,16 +444,16 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
    * inode for the full path). If the target inode does not exist, an exception will be thrown.
    *
    * @param inodePath the {@link LockedInodePath} to extend to the target inode
-   * @param lockMode the {@link LockMode} to lock the inodes with
+   * @param lockPattern the {@link LockPattern} to lock the inodes with
    * @throws InvalidPathException if the path is invalid
    * @throws FileDoesNotExistException if the target inode does not exist
    */
-  public void ensureFullInodePath(LockedInodePath inodePath, LockMode lockMode)
+  public void ensureFullInodePath(LockedInodePath inodePath, LockPattern lockPattern)
       throws InvalidPathException, FileDoesNotExistException {
     if (inodePath.fullPathExists()) {
       return;
     }
-    TraversalResult traversalResult = traverseToInode(inodePath, lockMode);
+    TraversalResult traversalResult = traverseToInode(inodePath, lockPattern);
     if (!traversalResult.isFound()) {
       throw new FileDoesNotExistException(
           ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(inodePath.getUri()));
@@ -591,7 +564,7 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
 
     LOG.debug("createPath {}", path);
 
-    TraversalResult traversalResult = traverseToInode(inodePath, inodePath.getLockMode());
+    TraversalResult traversalResult = traverseToInode(inodePath, inodePath.getLockPattern());
     MutableLockedInodePath extensibleInodePath = (MutableLockedInodePath) inodePath;
     String[] pathComponents = extensibleInodePath.getPathComponents();
     String name = path.getName();
@@ -720,20 +693,19 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
     while (true) {
       // Try to lock the last inode with the lock mode of the path.
       InodeView lastLockedInode;
-      switch (extensibleInodePath.getLockMode()) {
+      switch (extensibleInodePath.getLockPattern()) {
         case READ:
           lastLockedInode = currentInodeDirectory.getChildReadLock(name,
               extensibleInodePath.getLockList());
           break;
-        case WRITE_PARENT:
-        case WRITE:
+        case WRITE_LAST:
           lastLockedInode = currentInodeDirectory.getChildWriteLock(name,
               extensibleInodePath.getLockList());
           break;
         default:
           // This should not be reachable.
           throw new IllegalStateException(String.format("Unexpected lock mode encountered: %s",
-              extensibleInodePath.getLockMode()));
+              extensibleInodePath.getLockPattern()));
       }
       if (lastLockedInode != null) {
         // inode to create already exists
@@ -846,24 +818,24 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
    * Locks from a specific point in the tree to the descendant, and return a lockedInodePath.
    *
    * @param inodePath the root to start locking
-   * @param lockMode the lock type to use
+   * @param lockPattern the lock type to use
    * @param descendantUri the path to the descendant that we are locking
    * @return  an {@link InodeLockList} representing the list of descendants that got locked as
    * a result of this call.
    * @throws FileDoesNotExistException if inode does not exist
    */
-  public LockedInodePath lockDescendantPath(LockedInodePath inodePath, LockMode lockMode,
+  public LockedInodePath lockDescendantPath(LockedInodePath inodePath, LockPattern lockPattern,
       AlluxioURI descendantUri) throws InvalidPathException {
-    InodeLockList descendantLockList = lockDescendant(inodePath, lockMode, descendantUri);
+    InodeLockList descendantLockList = lockDescendant(inodePath, lockPattern, descendantUri);
     return new MutableLockedInodePath(descendantUri,
-        new CompositeInodeLockList(inodePath.mLockList, descendantLockList), lockMode);
+        new CompositeInodeLockList(inodePath.mLockList, descendantLockList), lockPattern);
   }
 
   /**
    * Lock from a specific poiint in the tree to the immediate child, and return a lockedInodePath.
    *
    * @param inodePath the root to start locking
-   * @param lockMode the lock type to use
+   * @param lockPattern the lock type to use
    * @param childInode the inode of the child that we are locking
    * @param pathComponents the array of pre-parsed path components, or null to parse pathComponents
    *                       from the uri
@@ -872,12 +844,12 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
    * @throws FileDoesNotExistException if the inode does not exist
    * @throws InvalidPathException if the path is invalid
    */
-  public LockedInodePath lockChildPath(LockedInodePath inodePath, LockMode lockMode,
+  public LockedInodePath lockChildPath(LockedInodePath inodePath, LockPattern lockPattern,
       InodeView childInode, String[] pathComponents)
       throws FileDoesNotExistException, InvalidPathException {
     InodeLockList inodeLockList = new InodeLockList();
 
-    if (lockMode == LockMode.READ) {
+    if (lockPattern == LockPattern.READ) {
       inodeLockList.lockReadAndCheckParent(childInode, inodePath.getInode());
     } else {
       inodeLockList.lockWriteAndCheckParent(childInode, inodePath.getInode());
@@ -885,10 +857,11 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
 
     if (pathComponents == null) {
       return new MutableLockedInodePath(inodePath.getUri().joinUnsafe(childInode.getName()),
-          new CompositeInodeLockList(inodePath.mLockList, inodeLockList), lockMode);
+          new CompositeInodeLockList(inodePath.mLockList, inodeLockList), lockPattern);
     } else {
       return new MutableLockedInodePath(inodePath.getUri().joinUnsafe(childInode.getName()),
-          new CompositeInodeLockList(inodePath.mLockList, inodeLockList), pathComponents, lockMode);
+          new CompositeInodeLockList(inodePath.mLockList, inodeLockList), pathComponents,
+          lockPattern);
     }
   }
 
@@ -897,13 +870,13 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
    * {@link LockedInodePath}, it only locks the descendant.
    *
    * @param inodePath the root to start locking
-   * @param lockMode the lock type to use
+   * @param lockPattern the lock type to use
    * @param descendantUri the path to the descendant that we are locking
    * @return  an {@link InodeLockList} representing the list of descendants that got locked as
    * a result of this call.
    * @throws FileDoesNotExistException if inode does not exist
    */
-  private InodeLockList lockDescendant(LockedInodePath inodePath, LockMode lockMode,
+  private InodeLockList lockDescendant(LockedInodePath inodePath, LockPattern lockPattern,
                                        AlluxioURI descendantUri) throws InvalidPathException {
     // Check if the descendant is really the descendant of inodePath
     if (!PathUtils.hasPrefix(descendantUri.getPath(), inodePath.getUri().getPath())
@@ -921,9 +894,9 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
     }
     // Lock from inodePath to the descendant
     InodeLockList lockList = new InodeLockList();
-    TraversalResult traversalResult = traverseToInodeInternal(
-        PathUtils.getPathComponents(descendantUri.getPath()),
-        inodeList, nonPersistedInodes, lockList, lockMode, null);
+    TraversalResult traversalResult =
+        traverseToInodeInternal(PathUtils.getPathComponents(descendantUri.getPath()), inodeList,
+            nonPersistedInodes, lockList, lockPattern);
     if (traversalResult.mFound) {
       return traversalResult.mLockList;
     } else {
@@ -937,16 +910,16 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
    * precedes its descendants in the list.
    *
    * @param inodePath the root {@link LockedInodePath} to retrieve all descendants from
-   * @param lockMode the lock type to use
+   * @param lockPattern the lock type to use
    * @return an {@link InodeLockList} representing the list of all descendants
    */
-  public LockedInodePathList lockDescendants(LockedInodePath inodePath, LockMode lockMode) {
+  public LockedInodePathList lockDescendants(LockedInodePath inodePath, LockPattern lockPattern) {
     List<LockedInodePath> inodePathList = new ArrayList<>();
-    lockDescendantsInternal(inodePath, lockMode, inodePathList);
+    lockDescendantsInternal(inodePath, lockPattern, inodePathList);
     return new LockedInodePathList(inodePathList);
   }
 
-  private void lockDescendantsInternal(LockedInodePath inodePath, LockMode lockMode,
+  private void lockDescendantsInternal(LockedInodePath inodePath, LockPattern lockPattern,
       List<LockedInodePath> inodePathList) {
     InodeView inode = inodePath.getInodeOrNull();
     if (inode == null || !inode.isDirectory()) {
@@ -957,14 +930,14 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
       LockedInodePath lockedDescendantPath;
       try {
         lockedDescendantPath =
-            inodePath.createTempPathForExistingChild(child, inodePath.getLockMode());
+            inodePath.createTempPathForExistingChild(child, inodePath.getLockPattern());
         inodePathList.add(lockedDescendantPath);
       } catch (InvalidPathException | FileDoesNotExistException e) {
         // Inode is no longer a child, continue.
         continue;
       }
       if (child.isDirectory()) {
-        lockDescendantsInternal(lockedDescendantPath, lockMode, inodePathList);
+        lockDescendantsInternal(lockedDescendantPath, lockPattern, inodePathList);
       }
     }
   }
@@ -1024,7 +997,7 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
       // inode is a directory. Set the pinned state for all children.
       try {
         for (InodeView child : ((InodeDirectoryView) inode).getChildren()) {
-          try (LockedInodePath childPath = lockDescendantPath(inodePath, LockMode.WRITE,
+          try (LockedInodePath childPath = lockDescendantPath(inodePath, LockPattern.WRITE_LAST,
               inodePath.getUri().join(child.getName()))) {
             setPinned(rpcContext, childPath, pinned, opTimeMs);
           }
@@ -1095,7 +1068,7 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
       try {
         for (InodeView child : ((InodeDirectoryView) inode).getChildren()) {
           try (LockedInodePath tempInodePath =
-                   inodePath.createTempPathForExistingChild(child, LockMode.WRITE)) {
+                   inodePath.createTempPathForExistingChild(child, LockPattern.WRITE_LAST)) {
             setReplication(rpcContext, tempInodePath, replicationMax, replicationMin, opTimeMs);
           }
         }
@@ -1296,14 +1269,11 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
    * component can be specified.
    *
    * @param pathComponents the components of the path to traverse
-   * @param lockMode the {@link LockMode} for the path
-   * @param lockHints optional {@link List} to specify the lock type for each path component; this
-   *                  can be shorter than pathComponents
+   * @param lockPattern the {@link LockPattern} for the path
    * @return the {@link TraversalResult} for this traversal
    * @throws InvalidPathException if the path is invalid
    */
-  private TraversalResult traverseToInode(String[] pathComponents, LockMode lockMode,
-      List<LockMode> lockHints)
+  private TraversalResult traverseToInode(String[] pathComponents, LockPattern lockPattern)
       throws InvalidPathException {
     List<InodeView> nonPersistedInodes = new ArrayList<>();
     List<InodeView> inodes = new ArrayList<>();
@@ -1321,8 +1291,7 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
             ExceptionMessage.PATH_COMPONENTS_INVALID.getMessage("empty"));
       } else if (pathComponents.length == 1) {
         if (pathComponents[0].equals("")) {
-          if (getLockModeForComponent(0, pathComponents.length, lockMode, lockHints)
-              == LockMode.READ) {
+          if (lockPattern.getLockMode(0, pathComponents.length) == LockMode.READ) {
             lockList.lockRead(root);
           } else {
             lockList.lockWrite(root);
@@ -1336,15 +1305,14 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
         }
       }
 
-      if (getLockModeForComponent(0, pathComponents.length, lockMode, lockHints) == LockMode.READ) {
+      if (lockPattern.getLockMode(0, pathComponents.length) == LockMode.READ) {
         lockList.lockRead(root);
       } else {
         lockList.lockWrite(root);
       }
       inodes.add(root);
-      TraversalResult result =
-          traverseToInodeInternal(pathComponents, inodes, nonPersistedInodes, lockList, lockMode,
-              lockHints);
+      TraversalResult result = traverseToInodeInternal(pathComponents, inodes, nonPersistedInodes,
+          lockList, lockPattern);
       valid = true;
       return result;
     } finally {
@@ -1359,11 +1327,11 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
    * mode at each path.
    *
    * @param inodePath the {@link LockedInodePath} to start the traversal from
-   * @param lockMode the {@link LockMode} for the path
+   * @param lockPattern the {@link LockPattern} for the path
    * @return the {@link TraversalResult} for this traversal
    * @throws InvalidPathException if the path is invalid
    */
-  private TraversalResult traverseToInode(LockedInodePath inodePath, LockMode lockMode)
+  private TraversalResult traverseToInode(LockedInodePath inodePath, LockPattern lockPattern)
       throws InvalidPathException {
     // the inodePath is guaranteed to already include at least the root inode.
     if (!(inodePath instanceof MutableLockedInodePath)) {
@@ -1380,7 +1348,7 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
       }
     }
     return traverseToInodeInternal(extensibleInodePath.getPathComponents(), inodes,
-        nonPersistedInodes, lockList, lockMode, null);
+        nonPersistedInodes, lockList, lockPattern);
   }
 
   /**
@@ -1393,15 +1361,12 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
    * @param nonPersistedInodes nonPersistedInodes, modified in the method to return
    *                           all nonPersistedInodes
    * @param lockList lockList containing all locked inodes, modified in the method
-   * @param lockMode the {@link LockMode} for the path
-   * @param lockHints list of lock hints for locking the path, must be null or its size must match
-   *                  the size of pathComponents
+   * @param lockPattern the {@link LockPattern} for the path
    * @return the result of the traversal
    * @throws InvalidPathException
    */
   private TraversalResult traverseToInodeInternal(String[] pathComponents, List<InodeView> inodes,
-      List<InodeView> nonPersistedInodes, InodeLockList lockList, LockMode lockMode,
-      List<LockMode> lockHints)
+      List<InodeView> nonPersistedInodes, InodeLockList lockList, LockPattern lockPattern)
       throws InvalidPathException {
     InodeView current = inodes.get(inodes.size() - 1);
     for (int i = inodes.size(); i < pathComponents.length; i++) {
@@ -1413,8 +1378,7 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
         return TraversalResult.createNotFoundResult(i, nonPersistedInodes, inodes, lockList);
       }
       // Lock the existing next inode before proceeding.
-      if (getLockModeForComponent(i, pathComponents.length, lockMode, lockHints)
-          == LockMode.READ) {
+      if (lockPattern.getLockMode(i, pathComponents.length) == LockMode.READ) {
         lockList.lockReadAndCheckNameAndParent(next, current, pathComponents[i]);
       } else {
         lockList.lockWriteAndCheckNameAndParent(next, current, pathComponents[i]);
