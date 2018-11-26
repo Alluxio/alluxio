@@ -36,6 +36,7 @@ import alluxio.underfs.UnderFileSystem;
 import alluxio.util.IdUtils;
 import alluxio.util.io.PathUtils;
 
+import com.google.common.base.Throwables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -311,6 +312,58 @@ public final class MountTable implements JournalEntryIterable, JournalEntryRepla
     try (LockResource r = new LockResource(mReadLock)) {
       return mState.getMountTable().containsKey(uri.getPath());
     }
+  }
+
+  private AlluxioURI reverseResolve(AlluxioURI mountPoint,
+      AlluxioURI ufsUriMountPoint, AlluxioURI ufsUri)
+      throws InvalidPathException {
+    String relativePath = PathUtils.subtractPaths(
+        PathUtils.normalizePath(ufsUri.getPath(), AlluxioURI.SEPARATOR),
+        PathUtils.normalizePath(ufsUriMountPoint.getPath(), AlluxioURI.SEPARATOR));
+    if (relativePath.isEmpty()) {
+      return mountPoint;
+    } else {
+      return mountPoint.join(relativePath);
+    }
+  }
+
+  /**
+   * REsolves the given Ufs path. If the given UFs path is mounted in Alluxio space, it returns
+   * the associated Alluxio path.
+   * @param ufsUri an Ufs path URI
+   * @return an Alluxio path URI
+   */
+  public AlluxioURI reverseResolve(AlluxioURI ufsUri) {
+    AlluxioURI returnVal = null;
+    for (Map.Entry<String, MountInfo> mountInfoEntry : getMountTable().entrySet()) {
+      try {
+        if (mountInfoEntry.getValue().getUfsUri().isParentOf(ufsUri)) {
+          returnVal = reverseResolve(mountInfoEntry.getValue().getAlluxioUri(),
+              mountInfoEntry.getValue().getUfsUri(), ufsUri);
+        }
+      } catch (InvalidPathException | RuntimeException e) {
+        LOG.info(Throwables.getStackTraceAsString(e));
+        // expected when ufsUri does not belong to this particular mountPoint
+      }
+      if (returnVal != null) {
+        return returnVal;
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Get the associated ufs client with the mount id.
+   * @param mountId mount id to look up ufs client
+   * @return ufsClient
+   */
+  public UfsManager.UfsClient getUfsClient(long mountId) {
+    try {
+      return mUfsManager.get(mountId);
+    } catch (NotFoundException | UnavailableException e) {
+      LOG.warn("failed to get ufsclient for mountid {}, exception {}", mountId, e);
+    }
+    return null;
   }
 
   /**

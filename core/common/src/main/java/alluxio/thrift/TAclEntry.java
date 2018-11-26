@@ -620,13 +620,13 @@ public class TAclEntry implements org.apache.thrift.TBase<TAclEntry, TAclEntry._
           case 3: // ACTIONS
             if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
               {
-                org.apache.thrift.protocol.TList _list16 = iprot.readListBegin();
-                struct.actions = new ArrayList<TAclAction>(_list16.size);
-                TAclAction _elem17;
-                for (int _i18 = 0; _i18 < _list16.size; ++_i18)
+                org.apache.thrift.protocol.TList _list24 = iprot.readListBegin();
+                struct.actions = new ArrayList<TAclAction>(_list24.size);
+                TAclAction _elem25;
+                for (int _i26 = 0; _i26 < _list24.size; ++_i26)
                 {
-                  _elem17 = alluxio.thrift.TAclAction.findByValue(iprot.readI32());
-                  struct.actions.add(_elem17);
+                  _elem25 = alluxio.thrift.TAclAction.findByValue(iprot.readI32());
+                  struct.actions.add(_elem25);
                 }
                 iprot.readListEnd();
               }
@@ -677,9 +677,9 @@ public class TAclEntry implements org.apache.thrift.TBase<TAclEntry, TAclEntry._
           oprot.writeFieldBegin(ACTIONS_FIELD_DESC);
           {
             oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.I32, struct.actions.size()));
-            for (TAclAction _iter19 : struct.actions)
+            for (TAclAction _iter27 : struct.actions)
             {
-              oprot.writeI32(_iter19.getValue());
+              oprot.writeI32(_iter27.getValue());
             }
             oprot.writeListEnd();
           }
@@ -731,9 +731,9 @@ public class TAclEntry implements org.apache.thrift.TBase<TAclEntry, TAclEntry._
       if (struct.isSetActions()) {
         {
           oprot.writeI32(struct.actions.size());
-          for (TAclAction _iter20 : struct.actions)
+          for (TAclAction _iter28 : struct.actions)
           {
-            oprot.writeI32(_iter20.getValue());
+            oprot.writeI32(_iter28.getValue());
           }
         }
       }
@@ -756,13 +756,13 @@ public class TAclEntry implements org.apache.thrift.TBase<TAclEntry, TAclEntry._
       }
       if (incoming.get(2)) {
         {
-          org.apache.thrift.protocol.TList _list21 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.I32, iprot.readI32());
-          struct.actions = new ArrayList<TAclAction>(_list21.size);
-          TAclAction _elem22;
-          for (int _i23 = 0; _i23 < _list21.size; ++_i23)
+          org.apache.thrift.protocol.TList _list29 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.I32, iprot.readI32());
+          struct.actions = new ArrayList<TAclAction>(_list29.size);
+          TAclAction _elem30;
+          for (int _i31 = 0; _i31 < _list29.size; ++_i31)
           {
-            _elem22 = alluxio.thrift.TAclAction.findByValue(iprot.readI32());
-            struct.actions.add(_elem22);
+            _elem30 = alluxio.thrift.TAclAction.findByValue(iprot.readI32());
+            struct.actions.add(_elem30);
           }
         }
         struct.setActionsIsSet(true);
