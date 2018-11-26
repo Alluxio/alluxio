@@ -1,3 +1,11 @@
+---
+layout: global
+title: Documentation Conventions
+nickname: Documentation Conventions
+group: Contributor Resources
+priority: 2
+---
+
 Documentation is a writing style that portrays professionalism and efficiency in delivering technical content.
 
 The Cs, in order of importance:
@@ -76,50 +84,16 @@ this has been the norm [as of the 1950s](https://en.wikipedia.org/wiki/Sentence_
 
 ### Terminology table
 
-<table>
-  <tr>
-    <td>Correct, preferred term</td>
-    <td>Incorrect or less preferred term(s)</td>
-  </tr>
-  <tr>
-    <td>File system</td>
-    <td>Filesystem</td>
-  </tr>
-  <tr>
-    <td>Leading master</td>
-    <td>Leader, lead master, primary master</td>
-  </tr>
-  <tr>
-    <td>Containerized</td>
-    <td>Dockerized</td>
-  </tr>
-  <tr>
-    <td>Superuser</td>
-    <td>Super-user, super user</td>
-  </tr>
-  <tr>
-    <td>I/O</td>
-    <td>i/o, IO</td>
-  </tr>
-  <tr>
-    <td>Co-locate</td>
-    <td>Colocate</td>
-  </tr>
-  <tr>
-    <td>High availability mode</td>
-    <td>Fault tolerance mode
-(Use of "fault tolerance" is fine, but not when interchangeable with “high availability”)</td>
-  </tr>
-  <tr>
-    <td>Hostname</td>
-    <td>Host name</td>
-  </tr>
-  <tr>
-    <td>Backup master</td>
-    <td>Secondary master, following master, follower master</td>
-  </tr>
-</table>
-
+| Correct, preferred term | Incorrect or less preferred term(s) |
+|-------------------------|-----------------------------------------------------|
+| File system | Filesystem |
+| Leading master | Leader, lead master, primary master |
+| Backup master | Secondary master, following master, follower master |
+| Containerized | Dockerized |
+| Superuser | Super-user, super user |
+| I/O | i/o, IO |
+| High availability mode | Fault tolerance mode (Use of "fault tolerance" is fine, but not when interchangeable with “high availability”) |
+| Hostname | Host name |
 
 ### Line breaks
 
