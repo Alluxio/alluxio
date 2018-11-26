@@ -41,7 +41,7 @@ import alluxio.exception.UnexpectedAlluxioException;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
-import alluxio.master.MasterContext;
+import alluxio.master.CoreMasterContext;
 import alluxio.master.MasterRegistry;
 import alluxio.master.MasterTestUtils;
 import alluxio.master.SafeModeManager;
@@ -2622,7 +2622,7 @@ public final class FileSystemMasterTest {
   private void startServices() throws Exception {
     mRegistry = new MasterRegistry();
     mJournalSystem = JournalTestUtils.createJournalSystem(mJournalFolder);
-    MasterContext masterContext = MasterTestUtils.testMasterContext(mJournalSystem);
+    CoreMasterContext masterContext = MasterTestUtils.testMasterContext(mJournalSystem);
     mMetricsMaster = new MetricsMasterFactory().create(mRegistry, masterContext);
     mRegistry.add(MetricsMaster.class, mMetricsMaster);
     mMetrics = Lists.newArrayList();

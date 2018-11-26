@@ -29,8 +29,8 @@ import alluxio.PropertyKey;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
+import alluxio.master.CoreMasterContext;
 import alluxio.master.DefaultSafeModeManager;
-import alluxio.master.MasterContext;
 import alluxio.master.MasterRegistry;
 import alluxio.master.MasterTestUtils;
 import alluxio.master.SafeModeManager;
@@ -199,7 +199,7 @@ public final class PermissionCheckTest {
     mRegistry = new MasterRegistry();
     mRegistry.add(MetricsMaster.class, mMetricsMaster);
     mSafeModeManager = new DefaultSafeModeManager();
-    MasterContext masterContext = MasterTestUtils.testMasterContext();
+    CoreMasterContext masterContext = MasterTestUtils.testMasterContext();
     mMetricsMaster = new MetricsMasterFactory().create(mRegistry, masterContext);
     mBlockMaster = new BlockMasterFactory().create(mRegistry, masterContext);
     mFileSystemMaster = new FileSystemMasterFactory().create(mRegistry, masterContext);

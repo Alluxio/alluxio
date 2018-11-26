@@ -25,9 +25,9 @@ import alluxio.exception.status.NotFoundException;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.heartbeat.HeartbeatThread;
-import alluxio.master.AbstractMaster;
+import alluxio.master.CoreMaster;
+import alluxio.master.CoreMasterContext;
 import alluxio.master.MasterClientConfig;
-import alluxio.master.MasterContext;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.meta.checkconf.ServerConfigurationChecker;
 import alluxio.master.meta.checkconf.ServerConfigurationStore;
@@ -82,7 +82,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * The default meta master.
  */
 @NotThreadSafe
-public final class DefaultMetaMaster extends AbstractMaster implements MetaMaster {
+public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
   private static final Logger LOG = LoggerFactory.getLogger(DefaultMetaMaster.class);
   private static final Set<Class<? extends Server>> DEPS =
       ImmutableSet.<Class<? extends Server>>of(BlockMaster.class);
@@ -138,7 +138,7 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
    * @param blockMaster a block master handle
    * @param masterContext the context for Alluxio master
    */
-  DefaultMetaMaster(BlockMaster blockMaster, MasterContext masterContext) {
+  DefaultMetaMaster(BlockMaster blockMaster, CoreMasterContext masterContext) {
     this(blockMaster, masterContext,
         ExecutorServiceFactories.cachedThreadPool(Constants.META_MASTER_NAME));
   }
@@ -151,12 +151,12 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
    * @param executorServiceFactory a factory for creating the executor service to use for running
    *        maintenance threads
    */
-  DefaultMetaMaster(BlockMaster blockMaster, MasterContext masterContext,
+  DefaultMetaMaster(BlockMaster blockMaster, CoreMasterContext masterContext,
       ExecutorServiceFactory executorServiceFactory) {
     super(masterContext, new SystemClock(), executorServiceFactory);
     mMasterAddress =
         new Address().setHost(Configuration.getOrDefault(PropertyKey.MASTER_HOSTNAME, "localhost"))
-            .setRpcPort(masterContext.getPort());
+            .setRpcPort(mPort);
     mBlockMaster = blockMaster;
     mBlockMaster.registerLostWorkerFoundListener(mWorkerConfigStore::lostNodeFound);
     mBlockMaster.registerWorkerLostListener(mWorkerConfigStore::handleNodeLost);
@@ -258,7 +258,7 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
       backupFilePath = PathUtils.concatPath(dir, backupFileName);
       try {
         try (OutputStream ufsStream = ufs.create(backupFilePath)) {
-          mMasterContext.getBackupManager().backup(ufsStream);
+          mBackupManager.backup(ufsStream);
         }
       } catch (Throwable t) {
         try {
@@ -353,12 +353,12 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
 
   @Override
   public long getStartTimeMs() {
-    return mMasterContext.getStartTimeMs();
+    return mStartTimeMs;
   }
 
   @Override
   public long getUptimeMs() {
-    return System.currentTimeMillis() - mMasterContext.getStartTimeMs();
+    return System.currentTimeMillis() - mStartTimeMs;
   }
 
   @Override
@@ -368,7 +368,7 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
 
   @Override
   public boolean isInSafeMode() {
-    return mMasterContext.getSafeModeManager().isInSafeMode();
+    return mSafeModeManager.isInSafeMode();
   }
 
   @Override

@@ -26,7 +26,7 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
-import alluxio.master.MasterContext;
+import alluxio.master.CoreMasterContext;
 import alluxio.master.MasterRegistry;
 import alluxio.master.MasterTestUtils;
 import alluxio.master.block.BlockMaster;
@@ -111,7 +111,7 @@ public final class InodeTreeTest {
   @Before
   public void before() throws Exception {
     mRegistry = new MasterRegistry();
-    MasterContext context = MasterTestUtils.testMasterContext();
+    CoreMasterContext context = MasterTestUtils.testMasterContext();
     mMetricsMaster = new MetricsMasterFactory().create(mRegistry, context);
     mRegistry.add(MetricsMaster.class, mMetricsMaster);
     BlockMaster blockMaster = new BlockMasterFactory().create(mRegistry, context);

@@ -9,10 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio;
-
-import alluxio.master.MasterFactory;
-import alluxio.worker.WorkerFactory;
+package alluxio.master;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,13 +38,6 @@ public final class ServiceUtils {
       }
     }
     return masterServiceNames;
-  }
-
-  /**
-   * @return service loader for worker factories
-   */
-  public static synchronized ServiceLoader<WorkerFactory> getWorkerServiceLoader() {
-    return ServiceLoader.load(WorkerFactory.class, WorkerFactory.class.getClassLoader());
   }
 
   private ServiceUtils() {} // prevent instantiation
