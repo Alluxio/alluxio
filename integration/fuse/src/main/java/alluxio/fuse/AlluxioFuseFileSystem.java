@@ -65,10 +65,7 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class AlluxioFuseFileSystem extends FuseStubFS {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioFuseFileSystem.class);
-<<<<<<< HEAD
   private static final long FUSE_BLOCK_SIZE = 4 * Constants.KB;
-=======
->>>>>>> 818a23e36897b2ac33da7ba8bdaa860e03e6817f
   private static final int MAX_OPEN_FILES = Integer.MAX_VALUE;
   private static final int MAX_OPEN_WAITTIME_MS = 5000;
 
