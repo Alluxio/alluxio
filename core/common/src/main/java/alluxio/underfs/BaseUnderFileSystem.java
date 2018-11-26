@@ -13,6 +13,7 @@ package alluxio.underfs;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.SyncInfo;
 import alluxio.collections.Pair;
 import alluxio.security.authorization.AccessControlList;
 import alluxio.security.authorization.AclEntry;
@@ -188,6 +189,32 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem {
     return new AlluxioURI(ufsBaseUri, PathUtils.concatPath(ufsBaseUri.getPath(), alluxioPath),
         false);
   }
+
+  @Override
+  public boolean supportsActiveSync() {
+    return false;
+  }
+
+  @Override
+  public SyncInfo getActiveSyncInfo() {
+    return SyncInfo.emptyInfo();
+  }
+
+  @Override
+  public boolean startActiveSyncPolling(long txId) throws IOException {
+    return false;
+  }
+
+  @Override
+  public boolean stopActiveSyncPolling() {
+    return false;
+  }
+
+  @Override
+  public void startSync(AlluxioURI uri)  { }
+
+  @Override
+  public void stopSync(AlluxioURI uri) { }
 
   /**
    * Clean the path by creating a URI and turning it back to a string.

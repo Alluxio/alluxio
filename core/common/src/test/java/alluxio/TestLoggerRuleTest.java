@@ -34,4 +34,14 @@ public final class TestLoggerRuleTest {
     LOG.info(logEvent);
     assertTrue(mLogger.wasLogged(logEvent));
   }
+
+  @Test
+  public void logCountTest() {
+    String logEvent = "I'm a test";
+    assertTrue(mLogger.logCount(logEvent) == 0);
+    LOG.info(logEvent);
+    assertTrue(mLogger.logCount(logEvent) == 1);
+    LOG.info(logEvent);
+    assertTrue(mLogger.logCount(logEvent) == 2);
+  }
 }

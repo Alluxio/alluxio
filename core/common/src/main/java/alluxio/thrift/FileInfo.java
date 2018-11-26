@@ -2792,13 +2792,13 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
           case 13: // BLOCK_IDS
             if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
               {
-                org.apache.thrift.protocol.TList _list48 = iprot.readListBegin();
-                struct.blockIds = new ArrayList<Long>(_list48.size);
-                long _elem49;
-                for (int _i50 = 0; _i50 < _list48.size; ++_i50)
+                org.apache.thrift.protocol.TList _list56 = iprot.readListBegin();
+                struct.blockIds = new ArrayList<Long>(_list56.size);
+                long _elem57;
+                for (int _i58 = 0; _i58 < _list56.size; ++_i58)
                 {
-                  _elem49 = iprot.readI64();
-                  struct.blockIds.add(_elem49);
+                  _elem57 = iprot.readI64();
+                  struct.blockIds.add(_elem57);
                 }
                 iprot.readListEnd();
               }
@@ -2874,14 +2874,14 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
           case 23: // FILE_BLOCK_INFOS
             if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
               {
-                org.apache.thrift.protocol.TList _list51 = iprot.readListBegin();
-                struct.fileBlockInfos = new ArrayList<FileBlockInfo>(_list51.size);
-                FileBlockInfo _elem52;
-                for (int _i53 = 0; _i53 < _list51.size; ++_i53)
+                org.apache.thrift.protocol.TList _list59 = iprot.readListBegin();
+                struct.fileBlockInfos = new ArrayList<FileBlockInfo>(_list59.size);
+                FileBlockInfo _elem60;
+                for (int _i61 = 0; _i61 < _list59.size; ++_i61)
                 {
-                  _elem52 = new FileBlockInfo();
-                  _elem52.read(iprot);
-                  struct.fileBlockInfos.add(_elem52);
+                  _elem60 = new FileBlockInfo();
+                  _elem60.read(iprot);
+                  struct.fileBlockInfos.add(_elem60);
                 }
                 iprot.readListEnd();
               }
@@ -3017,9 +3017,9 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
         oprot.writeFieldBegin(BLOCK_IDS_FIELD_DESC);
         {
           oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.I64, struct.blockIds.size()));
-          for (long _iter54 : struct.blockIds)
+          for (long _iter62 : struct.blockIds)
           {
-            oprot.writeI64(_iter54);
+            oprot.writeI64(_iter62);
           }
           oprot.writeListEnd();
         }
@@ -3059,9 +3059,9 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
         oprot.writeFieldBegin(FILE_BLOCK_INFOS_FIELD_DESC);
         {
           oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, struct.fileBlockInfos.size()));
-          for (FileBlockInfo _iter55 : struct.fileBlockInfos)
+          for (FileBlockInfo _iter63 : struct.fileBlockInfos)
           {
-            _iter55.write(oprot);
+            _iter63.write(oprot);
           }
           oprot.writeListEnd();
         }
@@ -3247,9 +3247,9 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
       if (struct.isSetBlockIds()) {
         {
           oprot.writeI32(struct.blockIds.size());
-          for (long _iter56 : struct.blockIds)
+          for (long _iter64 : struct.blockIds)
           {
-            oprot.writeI64(_iter56);
+            oprot.writeI64(_iter64);
           }
         }
       }
@@ -3280,9 +3280,9 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
       if (struct.isSetFileBlockInfos()) {
         {
           oprot.writeI32(struct.fileBlockInfos.size());
-          for (FileBlockInfo _iter57 : struct.fileBlockInfos)
+          for (FileBlockInfo _iter65 : struct.fileBlockInfos)
           {
-            _iter57.write(oprot);
+            _iter65.write(oprot);
           }
         }
       }
@@ -3366,13 +3366,13 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
       }
       if (incoming.get(12)) {
         {
-          org.apache.thrift.protocol.TList _list58 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.I64, iprot.readI32());
-          struct.blockIds = new ArrayList<Long>(_list58.size);
-          long _elem59;
-          for (int _i60 = 0; _i60 < _list58.size; ++_i60)
+          org.apache.thrift.protocol.TList _list66 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.I64, iprot.readI32());
+          struct.blockIds = new ArrayList<Long>(_list66.size);
+          long _elem67;
+          for (int _i68 = 0; _i68 < _list66.size; ++_i68)
           {
-            _elem59 = iprot.readI64();
-            struct.blockIds.add(_elem59);
+            _elem67 = iprot.readI64();
+            struct.blockIds.add(_elem67);
           }
         }
         struct.setBlockIdsIsSet(true);
@@ -3411,14 +3411,14 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
       }
       if (incoming.get(21)) {
         {
-          org.apache.thrift.protocol.TList _list61 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
-          struct.fileBlockInfos = new ArrayList<FileBlockInfo>(_list61.size);
-          FileBlockInfo _elem62;
-          for (int _i63 = 0; _i63 < _list61.size; ++_i63)
+          org.apache.thrift.protocol.TList _list69 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
+          struct.fileBlockInfos = new ArrayList<FileBlockInfo>(_list69.size);
+          FileBlockInfo _elem70;
+          for (int _i71 = 0; _i71 < _list69.size; ++_i71)
           {
-            _elem62 = new FileBlockInfo();
-            _elem62.read(iprot);
-            struct.fileBlockInfos.add(_elem62);
+            _elem70 = new FileBlockInfo();
+            _elem70.read(iprot);
+            struct.fileBlockInfos.add(_elem70);
           }
         }
         struct.setFileBlockInfosIsSet(true);
