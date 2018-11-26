@@ -13,6 +13,7 @@ package alluxio.fuse;
 
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
+import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
@@ -63,7 +64,7 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 final class AlluxioFuseFileSystem extends FuseStubFS {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioFuseFileSystem.class);
-
+  private static final long FUSE_BLOCK_SIZE = 4 * Constants.KB;
   private static final int MAX_OPEN_FILES = Integer.MAX_VALUE;
   private static final int MAX_OPEN_WAITTIME_MS = 5000;
 
@@ -282,11 +283,16 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
         return -ErrorCodes.ENOENT();
       }
       final URIStatus status = mFileSystem.getStatus(turi);
-      stat.st_size.set(status.getLength());
+      long size = status.getLength();
+      stat.st_size.set(size);
+
+      // Set block number and block size to fulfill du command needs
+      long blocks = size / FUSE_BLOCK_SIZE;
+      stat.st_blocks.set(size - blocks * FUSE_BLOCK_SIZE == 0 ? blocks : (blocks + 1));
+      stat.st_blksize.set(FUSE_BLOCK_SIZE);
 
       final long ctime_sec = status.getLastModificationTimeMs() / 1000;
-      //keeps only the "residual" nanoseconds not caputred in
-      // citme_sec
+      // Keeps only the "residual" nanoseconds not caputred in citme_sec
       final long ctime_nsec = (status.getLastModificationTimeMs() % 1000) * 1000;
 
       stat.st_ctim.tv_sec.set(ctime_sec);
