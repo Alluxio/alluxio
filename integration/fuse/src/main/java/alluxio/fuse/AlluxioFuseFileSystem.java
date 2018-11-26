@@ -305,13 +305,11 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
         return -ErrorCodes.ENOENT();
       }
       final URIStatus status = mFileSystem.getStatus(turi);
-      long size = status.getLength();
-      stat.st_size.set(size);
 
+      stat.st_size.set(status.getLength());
       // Set block number and block size to fulfill du command needs
-      long blocks = size / FUSE_BLOCK_SIZE;
-      stat.st_blocks.set(size - blocks * FUSE_BLOCK_SIZE == 0 ? blocks : (blocks + 1));
-      stat.st_blksize.set(FUSE_BLOCK_SIZE);
+      stat.st_blocks.set(status.getBlockIds().size());
+      stat.st_blksize.set(status.getBlockSizeBytes());
 
       final long ctime_sec = status.getLastModificationTimeMs() / 1000;
       // Keeps only the "residual" nanoseconds not caputred in citme_sec
