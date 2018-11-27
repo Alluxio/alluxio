@@ -12,8 +12,6 @@
 package alluxio.master.file.meta;
 
 import alluxio.Constants;
-import alluxio.exception.ExceptionMessage;
-import alluxio.exception.InvalidPathException;
 import alluxio.master.ProtobufUtils;
 import alluxio.proto.journal.File.UpdateInodeEntry;
 import alluxio.security.authorization.AccessControlList;
@@ -22,7 +20,6 @@ import alluxio.security.authorization.AclActions;
 import alluxio.security.authorization.AclEntry;
 import alluxio.security.authorization.AclEntryType;
 import alluxio.security.authorization.DefaultAccessControlList;
-import alluxio.util.interfaces.Scoped;
 import alluxio.wire.FileInfo;
 import alluxio.wire.TtlAction;
 
@@ -31,15 +28,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
-import java.util.Optional;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * {@link Inode} is an abstract class, with information shared by all types of Inodes. The inode
- * must be locked ({@link #lockRead()} or {@link #lockWrite()}) before methods are called.
+ * {@link Inode} is an abstract class, with information shared by all types of Inodes.
  *
  * @param <T> the concrete subclass of this object
  */
@@ -60,10 +53,6 @@ public abstract class Inode<T> implements InodeView {
   protected AccessControlList mAcl;
   private String mUfsFingerprint;
 
-  // Lock used to prevent multiple threads from trying to persist the inode concurrently.
-  private AtomicBoolean mPersistingLock;
-  private final ReentrantReadWriteLock mLock;
-
   protected Inode(long id, boolean isDirectory) {
     mCreationTimeMs = System.currentTimeMillis();
     mDeleted = false;
@@ -78,8 +67,6 @@ public abstract class Inode<T> implements InodeView {
     mPinned = false;
     mAcl = new AccessControlList();
     mUfsFingerprint = Constants.INVALID_UFS_FINGERPRINT;
-    mPersistingLock = new AtomicBoolean(false);
-    mLock = new ReentrantReadWriteLock();
   }
 
   @Override
@@ -125,14 +112,6 @@ public abstract class Inode<T> implements InodeView {
   @Override
   public PersistenceState getPersistenceState() {
     return mPersistenceState;
-  }
-
-  @Override
-  public Optional<Scoped> tryAcquirePersistingLock() {
-    if (mPersistingLock.compareAndSet(false, true)) {
-      return Optional.of(() -> mPersistingLock.set(false));
-    }
-    return Optional.empty();
   }
 
   @Override
@@ -455,82 +434,6 @@ public abstract class Inode<T> implements InodeView {
    * @return {@code this} so that the abstract class can use the fluent builder pattern
    */
   protected abstract T getThis();
-
-  @Override
-  public void lockRead() {
-    mLock.readLock().lock();
-  }
-
-  @Override
-  public void lockReadAndCheckParent(InodeView parent) throws InvalidPathException {
-    lockRead();
-    if (mDeleted) {
-      unlockRead();
-      throw new InvalidPathException(ExceptionMessage.PATH_INVALID_CONCURRENT_DELETE.getMessage());
-    }
-    if (mParentId != InodeTree.NO_PARENT && mParentId != parent.getId()) {
-      unlockRead();
-      throw new InvalidPathException(ExceptionMessage.PATH_INVALID_CONCURRENT_RENAME.getMessage());
-    }
-  }
-
-  @Override
-  public void lockReadAndCheckNameAndParent(InodeView parent, String name)
-      throws InvalidPathException {
-    lockReadAndCheckParent(parent);
-    if (!mName.equals(name)) {
-      unlockRead();
-      throw new InvalidPathException(ExceptionMessage.PATH_INVALID_CONCURRENT_RENAME.getMessage());
-    }
-  }
-
-  @Override
-  public void lockWrite() {
-    mLock.writeLock().lock();
-  }
-
-  @Override
-  public void lockWriteAndCheckParent(InodeView parent) throws InvalidPathException {
-    lockWrite();
-    if (mDeleted) {
-      unlockWrite();
-      throw new InvalidPathException(ExceptionMessage.PATH_INVALID_CONCURRENT_DELETE.getMessage());
-    }
-    if (mParentId != InodeTree.NO_PARENT && mParentId != parent.getId()) {
-      unlockWrite();
-      throw new InvalidPathException(ExceptionMessage.PATH_INVALID_CONCURRENT_RENAME.getMessage());
-    }
-  }
-
-  @Override
-  public void lockWriteAndCheckNameAndParent(InodeView parent, String name)
-      throws InvalidPathException {
-    lockWriteAndCheckParent(parent);
-    if (!mName.equals(name)) {
-      unlockWrite();
-      throw new InvalidPathException(ExceptionMessage.PATH_INVALID_CONCURRENT_RENAME.getMessage());
-    }
-  }
-
-  @Override
-  public void unlockRead() {
-    mLock.readLock().unlock();
-  }
-
-  @Override
-  public void unlockWrite() {
-    mLock.writeLock().unlock();
-  }
-
-  @Override
-  public boolean isWriteLocked() {
-    return mLock.isWriteLockedByCurrentThread();
-  }
-
-  @Override
-  public boolean isReadLocked() {
-    return mLock.getReadHoldCount() > 0;
-  }
 
   @Override
   public boolean checkPermission(String user, List<String> groups, AclAction action) {

@@ -34,8 +34,7 @@ import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * Alluxio file system's directory representation in the file system master. The inode must be
- * locked ({@link #lockRead()} or {@link #lockWrite()}) before methods are called.
+ * Alluxio file system's directory representation in the file system master.
  */
 @NotThreadSafe
 public final class InodeDirectory extends Inode<InodeDirectory> implements InodeDirectoryView {

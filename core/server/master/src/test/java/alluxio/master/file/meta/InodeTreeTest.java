@@ -610,7 +610,7 @@ public final class InodeTreeTest {
 
     // all inodes under root
     try (LockedInodePath inodePath = mTree.lockFullInodePath(0, LockPattern.WRITE_LAST);
-      LockedInodePathList lockedInodePathList = mTree.lockDescendants(inodePath,
+         LockedInodePathList lockedInodePathList = mTree.lockDescendants(inodePath,
           LockPattern.READ)) {
       // /nested, /nested/test
       assertEquals(2, lockedInodePathList.getInodePathList().size());

@@ -11,13 +11,16 @@
 
 package alluxio.master.file.meta;
 
+import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidPathException;
 import alluxio.master.file.meta.InodeTree.LockMode;
+import alluxio.resource.LockResource;
 
 import com.google.common.collect.Lists;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Predicate;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -27,14 +30,25 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public class InodeLockList implements AutoCloseable {
   private static final int INITIAL_CAPACITY = 4;
+
+  protected final InodeLocker mInodeLocker;
+  protected final Predicate<Long> mInodeExistsFn;
+
   protected List<InodeView> mInodes;
+  protected List<LockResource> mLocks;
   protected List<LockMode> mLockModes;
 
   /**
    * Creates a new instance of {@link InodeLockList}.
+   *
+   * @param inodeLocker manager for inode locks
+   * @param inodeExistsFn predicate for determining whether an inode still exists
    */
-  public InodeLockList() {
+  public InodeLockList(InodeLocker inodeLocker, Predicate<Long> inodeExistsFn) {
+    mInodeLocker = inodeLocker;
+    mInodeExistsFn = inodeExistsFn;
     mInodes = new ArrayList<>(INITIAL_CAPACITY);
+    mLocks = new ArrayList<>(INITIAL_CAPACITY);
     mLockModes = new ArrayList<>(INITIAL_CAPACITY);
   }
 
@@ -45,8 +59,8 @@ public class InodeLockList implements AutoCloseable {
    * @param inode the inode to lock
    */
   public synchronized void lockRead(InodeView inode) {
-    inode.lockRead();
     mInodes.add(inode);
+    mLocks.add(mInodeLocker.readLock(inode.getId()));
     mLockModes.add(LockMode.READ);
   }
 
@@ -62,9 +76,16 @@ public class InodeLockList implements AutoCloseable {
    */
   public synchronized void lockReadAndCheckParent(InodeView inode, InodeView parent)
       throws InvalidPathException {
-    inode.lockReadAndCheckParent(parent);
     mInodes.add(inode);
+    mLocks.add(mInodeLocker.readLock(inode.getId()));
     mLockModes.add(LockMode.READ);
+    try {
+      checkExists(inode);
+      checkParent(parent, inode);
+    } catch (Throwable t) {
+      unlockLast();
+      throw t;
+    }
   }
 
   /**
@@ -80,9 +101,13 @@ public class InodeLockList implements AutoCloseable {
    */
   public synchronized void lockReadAndCheckNameAndParent(InodeView inode, InodeView parent,
       String name) throws InvalidPathException {
-    inode.lockReadAndCheckNameAndParent(parent, name);
-    mInodes.add(inode);
-    mLockModes.add(LockMode.READ);
+    lockReadAndCheckParent(inode, parent);
+    try {
+      checkName(inode, name);
+    } catch (Throwable t) {
+      unlockLast();
+      throw t;
+    }
   }
 
   /**
@@ -92,13 +117,9 @@ public class InodeLockList implements AutoCloseable {
     if (mInodes.isEmpty()) {
       return;
     }
-    InodeView inode = mInodes.remove(mInodes.size() - 1);
-    InodeTree.LockMode lockMode = mLockModes.remove(mLockModes.size() - 1);
-    if (lockMode == LockMode.READ) {
-      inode.unlockRead();
-    } else {
-      inode.unlockWrite();
-    }
+    mInodes.remove(mInodes.size() - 1);
+    mLocks.remove(mLocks.size() - 1).close();
+    mLockModes.remove(mLockModes.size() - 1);
   }
 
   /**
@@ -109,11 +130,13 @@ public class InodeLockList implements AutoCloseable {
     if (mInodes.isEmpty()) {
       return;
     }
-    if (mLockModes.get(mLockModes.size() - 1) != LockMode.READ) {
+    if (mLockModes.get(mLockModes.size() - 1) == LockMode.WRITE) {
       // The last inode was previously WRITE locked, so downgrade the lock.
       InodeView inode = mInodes.get(mInodes.size() - 1);
-      inode.lockRead();
-      inode.unlockWrite();
+      LockResource readLock = mInodeLocker.readLock(inode.getId());
+      mLocks.remove(mLocks.size() - 1).close();
+      mLocks.add(readLock);
+
       // Update the last lock mode to READ
       mLockModes.remove(mLockModes.size() - 1);
       mLockModes.add(LockMode.READ);
@@ -127,8 +150,8 @@ public class InodeLockList implements AutoCloseable {
    * @param inode the inode to lock
    */
   public synchronized void lockWrite(InodeView inode) {
-    inode.lockWrite();
     mInodes.add(inode);
+    mLocks.add(mInodeLocker.writeLock(inode.getId()));
     mLockModes.add(LockMode.WRITE);
   }
 
@@ -144,9 +167,16 @@ public class InodeLockList implements AutoCloseable {
    */
   public synchronized void lockWriteAndCheckParent(InodeView inode, InodeView parent)
       throws InvalidPathException {
-    inode.lockWriteAndCheckParent(parent);
     mInodes.add(inode);
+    mLocks.add(mInodeLocker.writeLock(inode.getId()));
     mLockModes.add(LockMode.WRITE);
+    try {
+      checkExists(inode);
+      checkParent(parent, inode);
+    } catch (Throwable t) {
+      unlockLast();
+      throw t;
+    }
   }
 
   /**
@@ -162,9 +192,31 @@ public class InodeLockList implements AutoCloseable {
    */
   public synchronized void lockWriteAndCheckNameAndParent(InodeView inode, InodeView parent,
       String name) throws InvalidPathException {
-    inode.lockWriteAndCheckNameAndParent(parent, name);
-    mInodes.add(inode);
-    mLockModes.add(LockMode.WRITE);
+    lockWriteAndCheckParent(inode, parent);
+    try {
+      checkName(inode, name);
+    } catch (Throwable t) {
+      unlockLast();
+      throw t;
+    }
+  }
+
+  private void checkExists(InodeView inode) throws InvalidPathException {
+    if (!mInodeExistsFn.test(inode.getId())) {
+      throw new InvalidPathException(ExceptionMessage.PATH_INVALID_CONCURRENT_DELETE.getMessage());
+    }
+  }
+
+  private void checkParent(InodeView parent, InodeView child) throws InvalidPathException {
+    if (child.getParentId() != InodeTree.NO_PARENT && child.getParentId() != parent.getId()) {
+      throw new InvalidPathException(ExceptionMessage.PATH_INVALID_CONCURRENT_RENAME.getMessage());
+    }
+  }
+
+  private void checkName(InodeView inode, String name) throws InvalidPathException {
+    if (!inode.getName().equals(name)) {
+      throw new InvalidPathException(ExceptionMessage.PATH_INVALID_CONCURRENT_RENAME.getMessage());
+    }
   }
 
   /**
@@ -201,15 +253,10 @@ public class InodeLockList implements AutoCloseable {
   @Override
   public synchronized void close() {
     for (int i = mInodes.size() - 1; i >= 0; i--) {
-      InodeView inode = mInodes.get(i);
-      InodeTree.LockMode lockMode = mLockModes.get(i);
-      if (lockMode == LockMode.READ) {
-        inode.unlockRead();
-      } else {
-        inode.unlockWrite();
-      }
+      mLocks.get(i).close();
     }
     mInodes.clear();
+    mLocks.clear();
     mLockModes.clear();
   }
 }
