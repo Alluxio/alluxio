@@ -142,6 +142,7 @@ service BlockMasterClientService extends common.AlluxioService {
 
 struct BlockHeartbeatTOptions {
   1: list<common.Metric> metrics
+  2: map<string, i64> CapacityBytesOnTiers,
 }
 struct BlockHeartbeatTResponse {
   1: common.Command command

@@ -948,20 +948,20 @@ public class TieredBlockStore implements BlockStore {
 
   @Override
   public boolean checkStorage() {
-    boolean storageChanged = false;
     try (LockResource r = new LockResource(mMetadataWriteLock)) {
+      List<StorageDir> dirsToRemove = new ArrayList<>();
       for (StorageTier tier : mMetaManager.getTiers()) {
         for (StorageDir dir : tier.getStorageDirs()) {
           String path = dir.getDirPath();
           if (!FileUtils.isStorageDirAccessible(path)) {
             LOG.error("Storage check failed for path {}. The directory will be excluded.", path);
-            removeDir(dir);
-            storageChanged = true;
+            dirsToRemove.add(dir);
           }
         }
       }
+      dirsToRemove.forEach(this::removeDir);
+      return !dirsToRemove.isEmpty();
     }
-    return storageChanged;
   }
 
   /**
@@ -970,7 +970,7 @@ public class TieredBlockStore implements BlockStore {
    * @param dir storage directory to be removed
    */
   public void removeDir(StorageDir dir) {
-    // TODO(feng): Add a command for manually remove directory
+    // TODO(feng): Add a command for manually removing directory
     try (LockResource r = new LockResource(mMetadataWriteLock)) {
       dir.getParentTier().removeStorageDir(dir);
       synchronized (mBlockStoreEventListeners) {

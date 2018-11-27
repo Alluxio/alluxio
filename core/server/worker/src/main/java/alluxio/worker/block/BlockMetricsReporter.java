@@ -31,6 +31,7 @@ public final class BlockMetricsReporter extends AbstractBlockStoreEventListener 
   private static final Counter BLOCKS_DELETED = MetricsSystem.counter("BlocksDeleted");
   private static final Counter BLOCKS_EVICTED = MetricsSystem.counter("BlocksEvicted");
   private static final Counter BLOCKS_CANCELLED = MetricsSystem.counter("BlocksCanceled");
+  private static final Counter BLOCKS_LOST = MetricsSystem.counter("BlocksLost");
 
   /**
    * Creates a new instance of {@link BlockMetricsReporter}.
@@ -81,6 +82,6 @@ public final class BlockMetricsReporter extends AbstractBlockStoreEventListener 
 
   @Override
   public void onBlockLost(long blockId) {
-    //TODO(feng): Add block lost counter
+    BLOCKS_LOST.inc();
   }
 }

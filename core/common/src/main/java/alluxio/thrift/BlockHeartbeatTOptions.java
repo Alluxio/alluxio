@@ -39,6 +39,7 @@ public class BlockHeartbeatTOptions implements org.apache.thrift.TBase<BlockHear
   private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("BlockHeartbeatTOptions");
 
   private static final org.apache.thrift.protocol.TField METRICS_FIELD_DESC = new org.apache.thrift.protocol.TField("metrics", org.apache.thrift.protocol.TType.LIST, (short)1);
+  private static final org.apache.thrift.protocol.TField CAPACITY_BYTES_ON_TIERS_FIELD_DESC = new org.apache.thrift.protocol.TField("CapacityBytesOnTiers", org.apache.thrift.protocol.TType.MAP, (short)2);
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
   static {
@@ -47,10 +48,12 @@ public class BlockHeartbeatTOptions implements org.apache.thrift.TBase<BlockHear
   }
 
   private List<alluxio.thrift.Metric> metrics; // required
+  private Map<String,Long> CapacityBytesOnTiers; // required
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-    METRICS((short)1, "metrics");
+    METRICS((short)1, "metrics"),
+    CAPACITY_BYTES_ON_TIERS((short)2, "CapacityBytesOnTiers");
 
     private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -67,6 +70,8 @@ public class BlockHeartbeatTOptions implements org.apache.thrift.TBase<BlockHear
       switch(fieldId) {
         case 1: // METRICS
           return METRICS;
+        case 2: // CAPACITY_BYTES_ON_TIERS
+          return CAPACITY_BYTES_ON_TIERS;
         default:
           return null;
       }
@@ -113,6 +118,10 @@ public class BlockHeartbeatTOptions implements org.apache.thrift.TBase<BlockHear
     tmpMap.put(_Fields.METRICS, new org.apache.thrift.meta_data.FieldMetaData("metrics", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.ListMetaData(org.apache.thrift.protocol.TType.LIST, 
             new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, alluxio.thrift.Metric.class))));
+    tmpMap.put(_Fields.CAPACITY_BYTES_ON_TIERS, new org.apache.thrift.meta_data.FieldMetaData("CapacityBytesOnTiers", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.MapMetaData(org.apache.thrift.protocol.TType.MAP, 
+            new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING), 
+            new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64))));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(BlockHeartbeatTOptions.class, metaDataMap);
   }
@@ -121,10 +130,12 @@ public class BlockHeartbeatTOptions implements org.apache.thrift.TBase<BlockHear
   }
 
   public BlockHeartbeatTOptions(
-    List<alluxio.thrift.Metric> metrics)
+    List<alluxio.thrift.Metric> metrics,
+    Map<String,Long> CapacityBytesOnTiers)
   {
     this();
     this.metrics = metrics;
+    this.CapacityBytesOnTiers = CapacityBytesOnTiers;
   }
 
   /**
@@ -138,6 +149,10 @@ public class BlockHeartbeatTOptions implements org.apache.thrift.TBase<BlockHear
       }
       this.metrics = __this__metrics;
     }
+    if (other.isSetCapacityBytesOnTiers()) {
+      Map<String,Long> __this__CapacityBytesOnTiers = new HashMap<String,Long>(other.CapacityBytesOnTiers);
+      this.CapacityBytesOnTiers = __this__CapacityBytesOnTiers;
+    }
   }
 
   public BlockHeartbeatTOptions deepCopy() {
@@ -147,6 +162,7 @@ public class BlockHeartbeatTOptions implements org.apache.thrift.TBase<BlockHear
   @Override
   public void clear() {
     this.metrics = null;
+    this.CapacityBytesOnTiers = null;
   }
 
   public int getMetricsSize() {
@@ -188,6 +204,41 @@ public class BlockHeartbeatTOptions implements org.apache.thrift.TBase<BlockHear
     }
   }
 
+  public int getCapacityBytesOnTiersSize() {
+    return (this.CapacityBytesOnTiers == null) ? 0 : this.CapacityBytesOnTiers.size();
+  }
+
+  public void putToCapacityBytesOnTiers(String key, long val) {
+    if (this.CapacityBytesOnTiers == null) {
+      this.CapacityBytesOnTiers = new HashMap<String,Long>();
+    }
+    this.CapacityBytesOnTiers.put(key, val);
+  }
+
+  public Map<String,Long> getCapacityBytesOnTiers() {
+    return this.CapacityBytesOnTiers;
+  }
+
+  public BlockHeartbeatTOptions setCapacityBytesOnTiers(Map<String,Long> CapacityBytesOnTiers) {
+    this.CapacityBytesOnTiers = CapacityBytesOnTiers;
+    return this;
+  }
+
+  public void unsetCapacityBytesOnTiers() {
+    this.CapacityBytesOnTiers = null;
+  }
+
+  /** Returns true if field CapacityBytesOnTiers is set (has been assigned a value) and false otherwise */
+  public boolean isSetCapacityBytesOnTiers() {
+    return this.CapacityBytesOnTiers != null;
+  }
+
+  public void setCapacityBytesOnTiersIsSet(boolean value) {
+    if (!value) {
+      this.CapacityBytesOnTiers = null;
+    }
+  }
+
   public void setFieldValue(_Fields field, Object value) {
     switch (field) {
     case METRICS:
@@ -198,6 +249,14 @@ public class BlockHeartbeatTOptions implements org.apache.thrift.TBase<BlockHear
       }
       break;
 
+    case CAPACITY_BYTES_ON_TIERS:
+      if (value == null) {
+        unsetCapacityBytesOnTiers();
+      } else {
+        setCapacityBytesOnTiers((Map<String,Long>)value);
+      }
+      break;
+
     }
   }
 
@@ -205,6 +264,9 @@ public class BlockHeartbeatTOptions implements org.apache.thrift.TBase<BlockHear
     switch (field) {
     case METRICS:
       return getMetrics();
+
+    case CAPACITY_BYTES_ON_TIERS:
+      return getCapacityBytesOnTiers();
 
     }
     throw new IllegalStateException();
@@ -219,6 +281,8 @@ public class BlockHeartbeatTOptions implements org.apache.thrift.TBase<BlockHear
     switch (field) {
     case METRICS:
       return isSetMetrics();
+    case CAPACITY_BYTES_ON_TIERS:
+      return isSetCapacityBytesOnTiers();
     }
     throw new IllegalStateException();
   }
@@ -245,6 +309,15 @@ public class BlockHeartbeatTOptions implements org.apache.thrift.TBase<BlockHear
         return false;
     }
 
+    boolean this_present_CapacityBytesOnTiers = true && this.isSetCapacityBytesOnTiers();
+    boolean that_present_CapacityBytesOnTiers = true && that.isSetCapacityBytesOnTiers();
+    if (this_present_CapacityBytesOnTiers || that_present_CapacityBytesOnTiers) {
+      if (!(this_present_CapacityBytesOnTiers && that_present_CapacityBytesOnTiers))
+        return false;
+      if (!this.CapacityBytesOnTiers.equals(that.CapacityBytesOnTiers))
+        return false;
+    }
+
     return true;
   }
 
@@ -256,6 +329,11 @@ public class BlockHeartbeatTOptions implements org.apache.thrift.TBase<BlockHear
     list.add(present_metrics);
     if (present_metrics)
       list.add(metrics);
+
+    boolean present_CapacityBytesOnTiers = true && (isSetCapacityBytesOnTiers());
+    list.add(present_CapacityBytesOnTiers);
+    if (present_CapacityBytesOnTiers)
+      list.add(CapacityBytesOnTiers);
 
     return list.hashCode();
   }
@@ -274,6 +352,16 @@ public class BlockHeartbeatTOptions implements org.apache.thrift.TBase<BlockHear
     }
     if (isSetMetrics()) {
       lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.metrics, other.metrics);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
+    lastComparison = Boolean.valueOf(isSetCapacityBytesOnTiers()).compareTo(other.isSetCapacityBytesOnTiers());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetCapacityBytesOnTiers()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.CapacityBytesOnTiers, other.CapacityBytesOnTiers);
       if (lastComparison != 0) {
         return lastComparison;
       }
@@ -303,6 +391,14 @@ public class BlockHeartbeatTOptions implements org.apache.thrift.TBase<BlockHear
       sb.append("null");
     } else {
       sb.append(this.metrics);
+    }
+    first = false;
+    if (!first) sb.append(", ");
+    sb.append("CapacityBytesOnTiers:");
+    if (this.CapacityBytesOnTiers == null) {
+      sb.append("null");
+    } else {
+      sb.append(this.CapacityBytesOnTiers);
     }
     first = false;
     sb.append(")");
@@ -367,6 +463,26 @@ public class BlockHeartbeatTOptions implements org.apache.thrift.TBase<BlockHear
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
+          case 2: // CAPACITY_BYTES_ON_TIERS
+            if (schemeField.type == org.apache.thrift.protocol.TType.MAP) {
+              {
+                org.apache.thrift.protocol.TMap _map75 = iprot.readMapBegin();
+                struct.CapacityBytesOnTiers = new HashMap<String,Long>(2*_map75.size);
+                String _key76;
+                long _val77;
+                for (int _i78 = 0; _i78 < _map75.size; ++_i78)
+                {
+                  _key76 = iprot.readString();
+                  _val77 = iprot.readI64();
+                  struct.CapacityBytesOnTiers.put(_key76, _val77);
+                }
+                iprot.readMapEnd();
+              }
+              struct.setCapacityBytesOnTiersIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
           default:
             org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
         }
@@ -386,11 +502,24 @@ public class BlockHeartbeatTOptions implements org.apache.thrift.TBase<BlockHear
         oprot.writeFieldBegin(METRICS_FIELD_DESC);
         {
           oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, struct.metrics.size()));
-          for (alluxio.thrift.Metric _iter75 : struct.metrics)
+          for (alluxio.thrift.Metric _iter79 : struct.metrics)
           {
-            _iter75.write(oprot);
+            _iter79.write(oprot);
           }
           oprot.writeListEnd();
+        }
+        oprot.writeFieldEnd();
+      }
+      if (struct.CapacityBytesOnTiers != null) {
+        oprot.writeFieldBegin(CAPACITY_BYTES_ON_TIERS_FIELD_DESC);
+        {
+          oprot.writeMapBegin(new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.STRING, org.apache.thrift.protocol.TType.I64, struct.CapacityBytesOnTiers.size()));
+          for (Map.Entry<String, Long> _iter80 : struct.CapacityBytesOnTiers.entrySet())
+          {
+            oprot.writeString(_iter80.getKey());
+            oprot.writeI64(_iter80.getValue());
+          }
+          oprot.writeMapEnd();
         }
         oprot.writeFieldEnd();
       }
@@ -415,13 +544,26 @@ public class BlockHeartbeatTOptions implements org.apache.thrift.TBase<BlockHear
       if (struct.isSetMetrics()) {
         optionals.set(0);
       }
-      oprot.writeBitSet(optionals, 1);
+      if (struct.isSetCapacityBytesOnTiers()) {
+        optionals.set(1);
+      }
+      oprot.writeBitSet(optionals, 2);
       if (struct.isSetMetrics()) {
         {
           oprot.writeI32(struct.metrics.size());
-          for (alluxio.thrift.Metric _iter76 : struct.metrics)
+          for (alluxio.thrift.Metric _iter81 : struct.metrics)
           {
-            _iter76.write(oprot);
+            _iter81.write(oprot);
+          }
+        }
+      }
+      if (struct.isSetCapacityBytesOnTiers()) {
+        {
+          oprot.writeI32(struct.CapacityBytesOnTiers.size());
+          for (Map.Entry<String, Long> _iter82 : struct.CapacityBytesOnTiers.entrySet())
+          {
+            oprot.writeString(_iter82.getKey());
+            oprot.writeI64(_iter82.getValue());
           }
         }
       }
@@ -430,20 +572,35 @@ public class BlockHeartbeatTOptions implements org.apache.thrift.TBase<BlockHear
     @Override
     public void read(org.apache.thrift.protocol.TProtocol prot, BlockHeartbeatTOptions struct) throws org.apache.thrift.TException {
       TTupleProtocol iprot = (TTupleProtocol) prot;
-      BitSet incoming = iprot.readBitSet(1);
+      BitSet incoming = iprot.readBitSet(2);
       if (incoming.get(0)) {
         {
-          org.apache.thrift.protocol.TList _list77 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
-          struct.metrics = new ArrayList<alluxio.thrift.Metric>(_list77.size);
-          alluxio.thrift.Metric _elem78;
-          for (int _i79 = 0; _i79 < _list77.size; ++_i79)
+          org.apache.thrift.protocol.TList _list83 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
+          struct.metrics = new ArrayList<alluxio.thrift.Metric>(_list83.size);
+          alluxio.thrift.Metric _elem84;
+          for (int _i85 = 0; _i85 < _list83.size; ++_i85)
           {
-            _elem78 = new alluxio.thrift.Metric();
-            _elem78.read(iprot);
-            struct.metrics.add(_elem78);
+            _elem84 = new alluxio.thrift.Metric();
+            _elem84.read(iprot);
+            struct.metrics.add(_elem84);
           }
         }
         struct.setMetricsIsSet(true);
+      }
+      if (incoming.get(1)) {
+        {
+          org.apache.thrift.protocol.TMap _map86 = new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.STRING, org.apache.thrift.protocol.TType.I64, iprot.readI32());
+          struct.CapacityBytesOnTiers = new HashMap<String,Long>(2*_map86.size);
+          String _key87;
+          long _val88;
+          for (int _i89 = 0; _i89 < _map86.size; ++_i89)
+          {
+            _key87 = iprot.readString();
+            _val88 = iprot.readI64();
+            struct.CapacityBytesOnTiers.put(_key87, _val88);
+          }
+        }
+        struct.setCapacityBytesOnTiersIsSet(true);
       }
     }
   }

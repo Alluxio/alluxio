@@ -209,7 +209,7 @@ public final class ReplicationCheckerTest {
    */
   private void heartbeatToAddLocationHelper(long blockId, long workerId) throws Exception {
     List<Long> addedBlocks = ImmutableList.of(blockId);
-    mBlockMaster.workerHeartbeat(workerId, ImmutableMap.of("MEM", 0L), NO_BLOCKS,
+    mBlockMaster.workerHeartbeat(workerId, null, ImmutableMap.of("MEM", 0L), NO_BLOCKS,
         ImmutableMap.of("MEM", addedBlocks), NO_METRICS);
   }
 
@@ -287,7 +287,7 @@ public final class ReplicationCheckerTest {
     mBlockMaster.commitBlock(workerId, 50L, "MEM", blockId, 20L);
 
     // Indicate that blockId is removed on the worker.
-    mBlockMaster.workerHeartbeat(workerId, ImmutableMap.of("MEM", 0L), ImmutableList.of(blockId),
+    mBlockMaster.workerHeartbeat(workerId, null, ImmutableMap.of("MEM", 0L), ImmutableList.of(blockId),
         NO_BLOCKS_ON_TIERS, NO_METRICS);
 
     mReplicationChecker.heartbeat();
