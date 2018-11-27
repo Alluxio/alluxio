@@ -49,7 +49,6 @@ import org.junit.rules.TemporaryFolder;
 import org.mockito.invocation.InvocationOnMock;
 
 import java.io.File;
-import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
@@ -661,6 +660,9 @@ public final class TieredBlockStoreTest {
     mBlockStore.removeBlock(SESSION_ID1, BLOCK_ID1);
   }
 
+  /**
+   * Tests that check storage fails when a directory is inaccessible.
+   */
   @Test
   public void checkStorageFailed() throws Exception {
     TieredBlockStoreTestUtils.cache(SESSION_ID1, BLOCK_ID1, BLOCK_SIZE, mTestDir1, mMetaManager,

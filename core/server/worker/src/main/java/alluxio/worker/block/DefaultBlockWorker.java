@@ -41,7 +41,6 @@ import alluxio.worker.SessionCleaner;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.block.meta.BlockMeta;
-import alluxio.worker.block.meta.StorageDir;
 import alluxio.worker.block.meta.TempBlockMeta;
 import alluxio.worker.file.FileSystemMasterClient;
 
@@ -55,7 +54,6 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Executors;
@@ -106,7 +104,7 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   private BlockHeartbeatReporter mHeartbeatReporter;
   /** Metrics reporter that listens on block events and increases metrics counters. */
   private BlockMetricsReporter mMetricsReporter;
-  /** Checker for storage paths **/
+  /** Checker for storage paths. **/
   private StorageChecker mStorageChecker;
   /** Session metadata, used to keep track of session heartbeats. */
   private Sessions mSessions;
@@ -249,7 +247,6 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
       getExecutorService()
           .submit(new HeartbeatThread(HeartbeatContext.WORKER_STORAGE_HEALTH, mStorageChecker,
               (int) Configuration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS)));
-
     }
 
     // Start the session cleanup checker to perform the periodical checking
@@ -626,7 +623,7 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   }
 
   /**
-   * StorageChecker periodically checks the health of each storage path and report damaged storage to
+   * StorageChecker periodically checks the health of each storage path and report missing blocks to
    * {@link BlockWorker}.
    */
   @NotThreadSafe

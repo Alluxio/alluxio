@@ -65,6 +65,9 @@ public class SpaceReserver implements HeartbeatExecutor {
     updateStorageInfo();
   }
 
+  /**
+   * Re-calculates storage spaces and watermarks.
+   */
   public synchronized void updateStorageInfo() {
     Map<String, Long> tierCapacities = mBlockWorker.getStoreMeta().getCapacityBytesOnTiers();
     long lastTierReservedBytes = 0;

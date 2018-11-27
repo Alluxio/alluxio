@@ -20,11 +20,9 @@ import alluxio.worker.block.evictor.EvictionPlan;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.block.meta.BlockMeta;
-import alluxio.worker.block.meta.StorageDir;
 import alluxio.worker.block.meta.TempBlockMeta;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.Set;
 
 import javax.annotation.Nullable;

@@ -964,6 +964,11 @@ public class TieredBlockStore implements BlockStore {
     return storageChanged;
   }
 
+  /**
+   * Removes a storage directory.
+   *
+   * @param dir storage directory to be removed
+   */
   public void removeDir(StorageDir dir) {
     // TODO(feng): Add a command for manually remove directory
     try (LockResource r = new LockResource(mMetadataWriteLock)) {
