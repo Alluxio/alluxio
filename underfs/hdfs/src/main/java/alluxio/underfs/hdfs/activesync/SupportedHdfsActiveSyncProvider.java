@@ -274,14 +274,14 @@ public class SupportedHdfsActiveSyncProvider implements HdfsActiveSyncProvider {
         }
         long end = System.currentTimeMillis();
         if (end > (start + interval)) {
-          LOG.info("processed {} events in {} ms, at a rate of {} rps", count,
-              end - start,
-              String.format("%.2f", count * 1000.0 / (end - start)));
           long currentlyBehind = eventStream.getTxidsBehindEstimate();
           LOG.info("HDFS generated {} events in {} ms, at a rate of {} rps",
               count + currentlyBehind - behind ,
               end - start,
               String.format("%.2f", (count + currentlyBehind - behind) * 1000.0 / (end - start)));
+          LOG.info("processed {} events in {} ms, at a rate of {} rps", count,
+              end - start,
+              String.format("%.2f", count * 1000.0 / (end - start)));
           LOG.info("Currently TxidsBehindEstimate by {}", currentlyBehind);
           behind = currentlyBehind;
           start = end;
