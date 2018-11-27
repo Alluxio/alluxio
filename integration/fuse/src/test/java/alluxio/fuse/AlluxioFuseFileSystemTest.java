@@ -27,6 +27,7 @@ import static org.mockito.Mockito.times;
 
 import alluxio.AlluxioURI;
 import alluxio.ConfigurationRule;
+import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
@@ -182,7 +183,8 @@ public class AlluxioFuseFileSystemTest {
   public void getattr() throws Exception {
     // set up status
     FileInfo info = new FileInfo();
-    info.setLength(10);
+    info.setLength(4 * Constants.KB + 1);
+    info.setBlockSizeBytes(Constants.KB);
     info.setLastModificationTimeMs(1000);
     String userName = System.getProperty("user.name");
     info.setOwner(userName);
@@ -198,6 +200,8 @@ public class AlluxioFuseFileSystemTest {
     FileStat stat = new FileStat(Runtime.getSystemRuntime());
     assertEquals(0, mFuseFs.getattr("/foo", stat));
     assertEquals(status.getLength(), stat.st_size.longValue());
+    assertEquals(5, stat.st_blocks.intValue());
+    assertEquals(Constants.KB, stat.st_blksize.intValue());
     assertEquals(status.getLastModificationTimeMs() / 1000, stat.st_ctim.tv_sec.get());
     assertEquals((status.getLastModificationTimeMs() % 1000) * 1000,
         stat.st_ctim.tv_nsec.longValue());
