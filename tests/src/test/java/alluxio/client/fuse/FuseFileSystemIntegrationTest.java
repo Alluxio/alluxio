@@ -54,6 +54,7 @@ import java.util.concurrent.TimeoutException;
  */
 public class FuseFileSystemIntegrationTest {
   private static final int WAIT_TIMEOUT_MS = 60 * Constants.SECOND_MS;
+  private static final int BLOCK_SIZE = 4 * Constants.KB;
 
   // Fuse user group translation needs to be enabled to support chown/chgrp/ls commands
   // to show accurate information
@@ -61,7 +62,7 @@ public class FuseFileSystemIntegrationTest {
   public static LocalAlluxioClusterResource sLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder()
           .setProperty(PropertyKey.FUSE_USER_GROUP_TRANSLATION_ENABLED, true)
-          .setProperty(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, 4 * Constants.MB)
+          .setProperty(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, BLOCK_SIZE)
           .build();
 
   private static String sAlluxioRoot;

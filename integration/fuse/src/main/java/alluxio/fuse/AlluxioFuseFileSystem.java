@@ -13,7 +13,6 @@ package alluxio.fuse;
 
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
-import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
@@ -65,7 +64,6 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class AlluxioFuseFileSystem extends FuseStubFS {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioFuseFileSystem.class);
-  private static final long FUSE_BLOCK_SIZE = 4 * Constants.KB;
   private static final int MAX_OPEN_FILES = Integer.MAX_VALUE;
   private static final int MAX_OPEN_WAITTIME_MS = 5000;
 
@@ -306,10 +304,13 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
       }
       final URIStatus status = mFileSystem.getStatus(turi);
 
-      stat.st_size.set(status.getLength());
-      // Set block number and block size to fulfill du command needs
-      stat.st_blocks.set(status.getBlockIds().size());
-      stat.st_blksize.set(status.getBlockSizeBytes());
+      long size = status.getLength();
+      long blockSize = status.getBlockSizeBytes();
+      stat.st_size.set(size);
+      // Sets block number and block size to fulfill du command needs
+      stat.st_blksize.set(blockSize);
+      // Does not consider replications
+      stat.st_blocks.set((int) Math.ceil((double) size / blockSize));
 
       final long ctime_sec = status.getLastModificationTimeMs() / 1000;
       // Keeps only the "residual" nanoseconds not caputred in citme_sec
@@ -338,6 +339,7 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
         mode |= FileStat.S_IFREG;
       }
       stat.st_mode.set(mode);
+      stat.st_nlink.set(1);
     } catch (InvalidPathException e) {
       LOG.debug("Invalid path {}", path, e);
       return -ErrorCodes.ENOENT();
