@@ -261,8 +261,8 @@ public class BlockMasterTest {
     mBlockMaster.commitBlock(worker, 50L, "MEM", blockId, 20L);
 
     // Indicate that blockId is removed on the worker.
-    mBlockMaster.workerHeartbeat(worker, null, ImmutableMap.of("MEM", 0L), ImmutableList.of(blockId),
-        NO_BLOCKS_ON_TIERS, mMetrics);
+    mBlockMaster.workerHeartbeat(worker, null, ImmutableMap.of("MEM", 0L),
+        ImmutableList.of(blockId), NO_BLOCKS_ON_TIERS, mMetrics);
     assertTrue(mBlockMaster.getBlockInfo(blockId).getLocations().isEmpty());
   }
 

@@ -287,8 +287,8 @@ public final class ReplicationCheckerTest {
     mBlockMaster.commitBlock(workerId, 50L, "MEM", blockId, 20L);
 
     // Indicate that blockId is removed on the worker.
-    mBlockMaster.workerHeartbeat(workerId, null, ImmutableMap.of("MEM", 0L), ImmutableList.of(blockId),
-        NO_BLOCKS_ON_TIERS, NO_METRICS);
+    mBlockMaster.workerHeartbeat(workerId, null, ImmutableMap.of("MEM", 0L),
+        ImmutableList.of(blockId), NO_BLOCKS_ON_TIERS, NO_METRICS);
 
     mReplicationChecker.heartbeat();
     Assert.assertEquals(EMPTY, mMockReplicationHandler.getEvictRequests());
