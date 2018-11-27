@@ -80,24 +80,14 @@ public final class BlockHeartbeatReporter extends AbstractBlockStoreEventListene
   @Override
   public void onRemoveBlockByClient(long sessionId, long blockId) {
     synchronized (mLock) {
-      // Remove the block from list of added blocks, in case it was added in this heartbeat period.
-      removeBlockFromAddedBlocks(blockId);
-      // Add to the list of removed blocks in this heartbeat period.
-      if (!mRemovedBlocks.contains(blockId)) {
-        mRemovedBlocks.add(blockId);
-      }
+      removeBlockInternal(blockId);
     }
   }
 
   @Override
   public void onRemoveBlockByWorker(long sessionId, long blockId) {
     synchronized (mLock) {
-      // Remove the block from list of added blocks, in case it was added in this heartbeat period.
-      removeBlockFromAddedBlocks(blockId);
-      // Add to the list of removed blocks in this heartbeat period.
-      if (!mRemovedBlocks.contains(blockId)) {
-        mRemovedBlocks.add(blockId);
-      }
+      removeBlockInternal(blockId);
     }
   }
 
@@ -110,6 +100,22 @@ public final class BlockHeartbeatReporter extends AbstractBlockStoreEventListene
       removeBlockFromAddedBlocks(blockId);
       // Add the block back with the new storagedir.
       addBlockToAddedBlocks(blockId, newLocation.tierAlias());
+    }
+  }
+
+  @Override
+  public void onBlockLost(long blockId) {
+    synchronized (mLock) {
+      removeBlockInternal(blockId);
+    }
+  }
+
+  private void removeBlockInternal(long blockId) {
+    // Remove the block from list of added blocks, in case it was added in this heartbeat period.
+    removeBlockFromAddedBlocks(blockId);
+    // Add to the list of removed blocks in this heartbeat period.
+    if (!mRemovedBlocks.contains(blockId)) {
+      mRemovedBlocks.add(blockId);
     }
   }
 
