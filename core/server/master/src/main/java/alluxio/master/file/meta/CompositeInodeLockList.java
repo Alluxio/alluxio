@@ -19,6 +19,11 @@ import javax.annotation.concurrent.ThreadSafe;
 /**
  * Manages the locks for a list of {@link Inode}s, based off an existing lock list. This does not
  * modify the base lock list, and when this lock list is closed, the base lock list is not closed.
+ * The purpose of this class is to allow lock lists to be temporarily extended and then restored.
+ *
+ * The base lock list can end with either an inode or edge, and can be read locked or write locked.
+ *
+ * Modification is only supported for the non-base part of the lock list.
  */
 @ThreadSafe
 public class CompositeInodeLockList extends InodeLockList {
@@ -31,41 +36,31 @@ public class CompositeInodeLockList extends InodeLockList {
    * @param baseLockList the base {@link InodeLockList} to use
    */
   public CompositeInodeLockList(InodeLockList baseLockList) {
+    super(baseLockList.mInodeLockManager, !baseLockList.endsInInode());
     mBaseLockList = baseLockList;
-  }
-
-  /**
-   * Constructs a new lock list, using an existing lock list as the base list.
-   *
-   * @param baseLockList the base {@link InodeLockList} to use
-   * @param descendantLockList the locklist extension
-   */
-  public CompositeInodeLockList(InodeLockList baseLockList, InodeLockList descendantLockList) {
-    mBaseLockList = baseLockList;
-    mInodes = descendantLockList.mInodes;
-    mLockModes = descendantLockList.mLockModes;
+    mLockMode = baseLockList.mLockMode;
   }
 
   @Override
   public synchronized List<InodeView> getInodes() {
     // Combine the base list of inodes first.
-    List<InodeView> ret = new ArrayList<>(mBaseLockList.size() + mInodes.size());
+    List<InodeView> ret = new ArrayList<>(mBaseLockList.numLockedInodes() + mLockedInodes.size());
     ret.addAll(mBaseLockList.getInodes());
-    ret.addAll(mInodes);
+    ret.addAll(mLockedInodes);
     return ret;
   }
 
   @Override
   public synchronized InodeView get(int index) {
-    if (index < mBaseLockList.size()) {
+    if (index < mBaseLockList.numLockedInodes()) {
       return mBaseLockList.get(index);
     }
-    return mInodes.get(index - mBaseLockList.size());
+    return mLockedInodes.get(index - mBaseLockList.numLockedInodes());
   }
 
   @Override
-  public synchronized int size() {
-    return mBaseLockList.size() + mInodes.size();
+  public synchronized int numLockedInodes() {
+    return mBaseLockList.numLockedInodes() + mLockedInodes.size();
   }
 
   /**
@@ -73,6 +68,14 @@ public class CompositeInodeLockList extends InodeLockList {
    */
   @Override
   public synchronized boolean isEmpty() {
-    return mBaseLockList.isEmpty() && mInodes.isEmpty();
+    return mBaseLockList.isEmpty() && mLockedInodes.isEmpty();
+  }
+
+  @Override
+  protected Entry lastEntry() {
+    if (mEntries.isEmpty()) {
+      return mBaseLockList.lastEntry();
+    }
+    return super.lastEntry();
   }
 }

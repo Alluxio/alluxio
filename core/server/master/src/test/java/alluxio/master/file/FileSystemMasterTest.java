@@ -462,13 +462,18 @@ public final class FileSystemMasterTest {
     // Add a file to the UFS.
     Files.createFile(
         Paths.get(ufsMount.join(DIR_TOP_LEVEL).join(FILE_PREFIX + (DIR_WIDTH)).getPath()));
-    mThrown.expect(IOException.class);
     // delete top-level directory
-    mFileSystemMaster.delete(new AlluxioURI(MOUNT_URI).join(DIR_TOP_LEVEL),
-        DeleteOptions.defaults().setRecursive(true).setAlluxioOnly(false).setUnchecked(false));
+    try {
+      mFileSystemMaster.delete(new AlluxioURI(MOUNT_URI).join(DIR_TOP_LEVEL),
+          DeleteOptions.defaults().setRecursive(true).setAlluxioOnly(false).setUnchecked(false));
+      fail();
+    } catch (IOException e) {
+      // Expected
+    }
     // Check all that could be deleted.
     List<AlluxioURI> except = new ArrayList<>();
     except.add(new AlluxioURI(MOUNT_URI).join(DIR_TOP_LEVEL));
+
     checkPersistedDirectoriesDeleted(1, ufsMount, except);
   }
 
@@ -1152,7 +1157,7 @@ public final class FileSystemMasterTest {
     // Alluxio mount point should not exist after unmounting.
     try {
       mFileSystemMaster.getFileInfo(new AlluxioURI("/mnt/local"), GET_STATUS_OPTIONS);
-      fail("getFileInfo() for a non-existent URI (before mounting) should fail.");
+      fail("getFileInfo() for a non-existent URI (after unmounting) should fail.");
     } catch (FileDoesNotExistException e) {
       // Expected case.
     }
@@ -1415,14 +1420,12 @@ public final class FileSystemMasterTest {
     Set<String> entries = Sets.newHashSet(mFileSystemMaster
         .getFileInfo(NESTED_FILE_URI, GET_STATUS_OPTIONS).convertAclToStringEntries());
     assertEquals(3, entries.size());
-    mThrown.expect(AccessControlException.class);
+
     try (AuthenticatedClientUserResource userA = new AuthenticatedClientUserResource("userA")) {
       Set<String> newEntries = Sets.newHashSet("user::rwx", "group::rwx", "other::rwx");
+      mThrown.expect(AccessControlException.class);
       mFileSystemMaster.setAcl(NESTED_FILE_URI, SetAclAction.REPLACE,
           newEntries.stream().map(AclEntry::fromCliString).collect(Collectors.toList()), options);
-      entries = Sets.newHashSet(mFileSystemMaster
-          .getFileInfo(NESTED_FILE_URI, GET_STATUS_OPTIONS).convertAclToStringEntries());
-      assertEquals(newEntries, entries);
     }
   }
 
