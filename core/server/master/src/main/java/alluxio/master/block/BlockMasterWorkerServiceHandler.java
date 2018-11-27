@@ -80,7 +80,8 @@ public final class BlockMasterWorkerServiceHandler implements BlockMasterWorkerS
             metrics.add(Metric.from(metric));
           }
           return new BlockHeartbeatTResponse(mBlockMaster.workerHeartbeat(workerId,
-              usedBytesOnTiers, removedBlockIds, addedBlocksOnTiers, metrics));
+              options.getCapacityBytesOnTiers(), usedBytesOnTiers, removedBlockIds,
+              addedBlocksOnTiers, metrics));
         }, "BlockHeartbeat",
         "workerId=%s, usedBytesOnTiers=%s, removedBlockIds=%s, addedBlocksOnTiers=%s, options=%s",
         workerId, usedBytesOnTiers, removedBlockIds, addedBlocksOnTiers, options);

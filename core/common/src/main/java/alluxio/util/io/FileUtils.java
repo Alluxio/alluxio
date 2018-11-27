@@ -300,5 +300,19 @@ public final class FileUtils {
     return Files.exists(Paths.get(path));
   }
 
+  /**
+   * Checks if a storage directory path is accessible.
+   *
+   * @param path the given path
+   * @return true if path exists, false otherwise
+   */
+  public static boolean isStorageDirAccessible(String path) {
+    Path filePath = Paths.get(path);
+    return Files.exists(filePath)
+        && Files.isReadable(filePath)
+        && Files.isWritable(filePath)
+        && Files.isExecutable(filePath);
+  }
+
   private FileUtils() {} // prevent instantiation
 }
