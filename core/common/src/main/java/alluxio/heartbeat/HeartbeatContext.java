@@ -54,6 +54,7 @@ public final class HeartbeatContext {
   public static final String WORKER_FILESYSTEM_MASTER_SYNC = "Worker FileSystemMaster Sync";
   public static final String WORKER_PIN_LIST_SYNC = "Worker Pin List Sync";
   public static final String WORKER_SPACE_RESERVER = "Worker Space Reserver";
+  public static final String WORKER_STORAGE_HEALTH = "Worker Storage Health";
 
   static {
     sTimerClasses = new HashMap<>();
@@ -79,6 +80,7 @@ public final class HeartbeatContext {
     sTimerClasses.put(WORKER_CLIENT, SLEEPING_TIMER_CLASS);
     sTimerClasses.put(WORKER_PIN_LIST_SYNC, SLEEPING_TIMER_CLASS);
     sTimerClasses.put(WORKER_SPACE_RESERVER, SLEEPING_TIMER_CLASS);
+    sTimerClasses.put(WORKER_STORAGE_HEALTH, SLEEPING_TIMER_CLASS);
     sTimerClasses.put(MASTER_METRICS_SYNC, SLEEPING_TIMER_CLASS);
   }
 

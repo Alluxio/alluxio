@@ -20,9 +20,11 @@ import alluxio.worker.block.evictor.EvictionPlan;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.block.meta.BlockMeta;
+import alluxio.worker.block.meta.StorageDir;
 import alluxio.worker.block.meta.TempBlockMeta;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Set;
 
 import javax.annotation.Nullable;
@@ -341,4 +343,11 @@ public interface BlockStore extends SessionCleanable {
    * @param inodes a set of inodes that are currently pinned
    */
   void updatePinnedInodes(Set<Long> inodes);
+
+  /**
+   * Checks storage health.
+   *
+   * @return true if at least one storage path failed check and is removed, false otherwise
+   */
+  boolean checkStorage();
 }

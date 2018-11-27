@@ -24,6 +24,7 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.heartbeat.HeartbeatContext;
+import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.heartbeat.HeartbeatThread;
 import alluxio.master.MasterClientConfig;
 import alluxio.metrics.MetricsSystem;
@@ -40,6 +41,7 @@ import alluxio.worker.SessionCleaner;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.block.meta.BlockMeta;
+import alluxio.worker.block.meta.StorageDir;
 import alluxio.worker.block.meta.TempBlockMeta;
 import alluxio.worker.file.FileSystemMasterClient;
 
@@ -53,6 +55,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Executors;
@@ -103,6 +106,8 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   private BlockHeartbeatReporter mHeartbeatReporter;
   /** Metrics reporter that listens on block events and increases metrics counters. */
   private BlockMetricsReporter mMetricsReporter;
+  /** Checker for storage paths **/
+  private StorageChecker mStorageChecker;
   /** Session metadata, used to keep track of session heartbeats. */
   private Sessions mSessions;
   /** Block Store manager. */
@@ -119,6 +124,8 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   private AtomicReference<Long> mWorkerId;
 
   private final UfsManager mUfsManager;
+  private SpaceReserver mSpaceReserver;
+
   /**
    * Constructs a default block worker.
    *
@@ -221,8 +228,9 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
 
     // Setup space reserver
     if (Configuration.getBoolean(PropertyKey.WORKER_TIERED_STORE_RESERVER_ENABLED)) {
+      mSpaceReserver = new SpaceReserver(this);
       getExecutorService().submit(
-          new HeartbeatThread(HeartbeatContext.WORKER_SPACE_RESERVER, new SpaceReserver(this),
+          new HeartbeatThread(HeartbeatContext.WORKER_SPACE_RESERVER, mSpaceReserver,
               (int) Configuration.getMs(PropertyKey.WORKER_TIERED_STORE_RESERVER_INTERVAL_MS)));
     }
 
@@ -234,6 +242,15 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
     getExecutorService()
         .submit(new HeartbeatThread(HeartbeatContext.WORKER_PIN_LIST_SYNC, mPinListSync,
             (int) Configuration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS)));
+
+    // Setup storage checker
+    if (Configuration.getBoolean(PropertyKey.WORKER_STORAGE_CHECKER_ENABLED)) {
+      mStorageChecker = new StorageChecker();
+      getExecutorService()
+          .submit(new HeartbeatThread(HeartbeatContext.WORKER_STORAGE_HEALTH, mStorageChecker,
+              (int) Configuration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS)));
+
+    }
 
     // Start the session cleanup checker to perform the periodical checking
     getExecutorService().submit(mSessionCleaner);
@@ -606,5 +623,30 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
     }
 
     private Metrics() {} // prevent instantiation
+  }
+
+  /**
+   * StorageChecker periodically checks the health of each storage path and report damaged storage to
+   * {@link BlockWorker}.
+   */
+  @NotThreadSafe
+  public final class StorageChecker implements HeartbeatExecutor {
+
+    @Override
+    public void heartbeat() {
+      try {
+        if (mBlockStore.checkStorage()) {
+          mSpaceReserver.updateStorageInfo();
+        }
+      } catch (Exception e) {
+        LOG.warn("Failed to check storage", e.getMessage());
+        LOG.debug("Exception: ", e);
+      }
+    }
+
+    @Override
+    public void close() {
+      // Nothing to clean up
+    }
   }
 }

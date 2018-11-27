@@ -37,7 +37,9 @@ import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.block.io.LocalFileBlockReader;
 import alluxio.worker.block.io.LocalFileBlockWriter;
 import alluxio.worker.block.meta.BlockMeta;
+import alluxio.worker.block.meta.StorageDir;
 import alluxio.worker.block.meta.StorageDirView;
+import alluxio.worker.block.meta.StorageTier;
 import alluxio.worker.block.meta.TempBlockMeta;
 
 import com.google.common.base.Preconditions;
@@ -941,6 +943,36 @@ public class TieredBlockStore implements BlockStore {
     synchronized (mPinnedInodes) {
       mPinnedInodes.clear();
       mPinnedInodes.addAll(Preconditions.checkNotNull(inodes));
+    }
+  }
+
+  @Override
+  public boolean checkStorage() {
+    boolean storageChanged = false;
+    try (LockResource r = new LockResource(mMetadataWriteLock)) {
+      for (StorageTier tier : mMetaManager.getTiers()) {
+        for (StorageDir dir : tier.getStorageDirs()) {
+          String path = dir.getDirPath();
+          if (!FileUtils.isStorageDirAccessible(path)) {
+            LOG.error("Storage check failed for path {}. The directory will be excluded.", path);
+            removeDir(dir);
+            storageChanged = true;
+          }
+        }
+      }
+    }
+    return storageChanged;
+  }
+
+  public void removeDir(StorageDir dir) {
+    // TODO(feng): Add a command for manually remove directory
+    try (LockResource r = new LockResource(mMetadataWriteLock)) {
+      dir.getParentTier().removeStorageDir(dir);
+      synchronized (mBlockStoreEventListeners) {
+        for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
+          dir.getBlockIds().forEach(listener::onBlockLost);
+        }
+      }
     }
   }
 

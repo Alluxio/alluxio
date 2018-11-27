@@ -49,6 +49,7 @@ import org.junit.rules.TemporaryFolder;
 import org.mockito.invocation.InvocationOnMock;
 
 import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
@@ -658,5 +659,30 @@ public final class TieredBlockStoreTest {
     mThrown.expectMessage(ExceptionMessage.BLOCK_META_NOT_FOUND.getMessage(BLOCK_ID1));
 
     mBlockStore.removeBlock(SESSION_ID1, BLOCK_ID1);
+  }
+
+  @Test
+  public void checkStorageFailed() throws Exception {
+    TieredBlockStoreTestUtils.cache(SESSION_ID1, BLOCK_ID1, BLOCK_SIZE, mTestDir1, mMetaManager,
+        mEvictor);
+    BlockStoreMeta oldMeta = mBlockStore.getBlockStoreMeta();
+    FileUtils.deletePathRecursively(mTestDir1.getDirPath());
+    assertTrue("check storage should fail if one of the directory is not accessible",
+        mBlockStore.checkStorage());
+    BlockStoreMeta meta = mBlockStore.getBlockStoreMeta();
+    long usedByteInDir = mTestDir1.getCapacityBytes() - mTestDir1.getAvailableBytes();
+    assertFalse("failed storage path should be removed",
+        meta.getDirectoryPathsOnTiers().get(FIRST_TIER_ALIAS).contains(mTestDir1.getDirPath()));
+    assertEquals("failed storage path quota should be deducted from store capacity",
+        oldMeta.getCapacityBytes() - mTestDir1.getCapacityBytes(), meta.getCapacityBytes());
+    assertEquals("failed storage path used bytes should be deducted from store used bytes",
+        oldMeta.getUsedBytes() - usedByteInDir,
+        meta.getUsedBytes());
+    assertEquals("failed storage path quota should be deducted from tier capacity",
+        oldMeta.getCapacityBytesOnTiers().get(FIRST_TIER_ALIAS) - mTestDir1.getCapacityBytes(),
+        (long) meta.getCapacityBytesOnTiers().get(FIRST_TIER_ALIAS));
+    assertEquals("failed storage path used bytes should be deducted from tier used bytes",
+        oldMeta.getUsedBytesOnTiers().get(FIRST_TIER_ALIAS) - usedByteInDir,
+        (long) meta.getUsedBytesOnTiers().get(FIRST_TIER_ALIAS));
   }
 }

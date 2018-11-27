@@ -78,4 +78,9 @@ public final class BlockMetricsReporter extends AbstractBlockStoreEventListener 
   public void onAbortBlock(long sessionId, long blockId) {
     BLOCKS_CANCELLED.inc();
   }
+
+  @Override
+  public void onBlockLost(long blockId) {
+    //TODO(feng): Add block lost counter
+  }
 }
