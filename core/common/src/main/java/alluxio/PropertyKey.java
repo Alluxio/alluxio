@@ -3710,7 +3710,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String WORKER_PRINCIPAL = "alluxio.worker.principal";
     public static final String WORKER_RPC_PORT = "alluxio.worker.port";
     public static final String WORKER_SESSION_TIMEOUT_MS = "alluxio.worker.session.timeout";
-    public static final String WORKER_STORAGE_CHECKER_ENABLED = "alluxio.worker.storage.checker.enabled";
+    public static final String WORKER_STORAGE_CHECKER_ENABLED =
+        "alluxio.worker.storage.checker.enabled";
     public static final String WORKER_TIERED_STORE_BLOCK_LOCK_READERS =
         "alluxio.worker.tieredstore.block.lock.readers";
     public static final String WORKER_TIERED_STORE_BLOCK_LOCKS =
