@@ -100,10 +100,14 @@ workers页面将所有Alluxio worker节点分为两类显示：
 Alluxio worker的主页和Alluxio master类似，但是显示的是单个worker的特定信息。因此，它有类似的部分：
 **Worker 概要**, **存储使用概要**, **分层存储详细信息**.
 
+![workerHome]({{ '/img/screenshot_workerOverview.png' | relativize_url }})
+
 ### 块信息页面
 
 在块信息页面，可以看到worker上的文件，以及其他信息，如：文件大小和文件所在的存储层。当你点击文件时，可以看
 到文件的所有块信息。
+
+![workerBlockInfo]({{ '/img/screenshot_workerBlockInfo.png' | relativize_url }})
 
 ### Worker度量信息
 
