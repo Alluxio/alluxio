@@ -24,21 +24,13 @@ public class CoreMasterContext extends MasterContext {
   private final long mStartTimeMs;
   private final int mPort;
 
-  /**
-   * @param journalSystem journal system
-   * @param safeModeManager safe mode manager
-   * @param backupManager backup manager
-   * @param startTimeMs start time
-   * @param port rpc port
-   */
-  public CoreMasterContext(JournalSystem journalSystem, SafeModeManager safeModeManager,
-      BackupManager backupManager, long startTimeMs, int port) {
-    super(journalSystem);
+  private CoreMasterContext(Builder builder) {
+    super(builder.mJournalSystem);
 
-    mSafeModeManager = Preconditions.checkNotNull(safeModeManager, "safeModeManager");
-    mBackupManager = Preconditions.checkNotNull(backupManager, "backupManager");
-    mStartTimeMs = startTimeMs;
-    mPort = port;
+    mSafeModeManager = Preconditions.checkNotNull(builder.mSafeModeManager, "safeModeManager");
+    mBackupManager = Preconditions.checkNotNull(builder.mBackupManager, "backupManager");
+    mStartTimeMs = builder.mStartTimeMs;
+    mPort = builder.mPort;
   }
 
   /**
@@ -67,5 +59,75 @@ public class CoreMasterContext extends MasterContext {
    */
   public int getPort() {
     return mPort;
+  }
+
+  /**
+   * @return a new builder
+   */
+  public static Builder newBuilder() {
+    return new Builder();
+  }
+
+  /**
+   * Constructs {@link CoreMasterContext}s.
+   */
+  public static class Builder {
+    private JournalSystem mJournalSystem;
+    private SafeModeManager mSafeModeManager;
+    private BackupManager mBackupManager;
+    private long mStartTimeMs;
+    private int mPort;
+
+    /**
+     * @param journalSystem journal system
+     * @return the builder
+     */
+    public Builder setJournalSystem(JournalSystem journalSystem) {
+      mJournalSystem = journalSystem;
+      return this;
+    }
+
+    /**
+     * @param safeModeManager safe mode manager
+     * @return the builder
+     */
+    public Builder setSafeModeManager(SafeModeManager safeModeManager) {
+      mSafeModeManager = safeModeManager;
+      return this;
+    }
+
+    /**
+     * @param backupManager backup manager
+     * @return the builder
+     */
+    public Builder setBackupManager(BackupManager backupManager) {
+      mBackupManager = backupManager;
+      return this;
+    }
+
+    /**
+     * @param startTimeMs start time in milliseconds
+     * @return the builder
+     */
+    public Builder setStartTimeMs(long startTimeMs) {
+      mStartTimeMs = startTimeMs;
+      return this;
+    }
+
+    /**
+     * @param port port
+     * @return the builder
+     */
+    public Builder setPort(int port) {
+      mPort = port;
+      return this;
+    }
+
+    /**
+     * @return the built CoreMasterContext
+     */
+    public CoreMasterContext build() {
+      return new CoreMasterContext(this);
+    }
   }
 }
