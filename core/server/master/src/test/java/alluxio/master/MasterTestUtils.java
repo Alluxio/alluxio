@@ -17,8 +17,6 @@ import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.noop.NoopJournalSystem;
 import alluxio.master.metastore.rocks.RocksMetastore;
 
-import org.rocksdb.RocksDBException;
-
 /**
  * Util methods to help with master testing.
  */
@@ -27,7 +25,7 @@ public final class MasterTestUtils {
   /**
    * @return a basic master context for the purpose of testing
    */
-  public static MasterContext testMasterContext() {
+  public static CoreMasterContext testMasterContext() {
     return testMasterContext(new NoopJournalSystem());
   }
 
@@ -35,13 +33,15 @@ public final class MasterTestUtils {
    * @return a basic master context for the purpose of testing
    * @param journalSystem a journal system to use in the context
    */
-  public static MasterContext testMasterContext(JournalSystem journalSystem) {
-    try {
-      return new MasterContext(journalSystem, new TestSafeModeManager(),
-          mock(BackupManager.class), new RocksMetastore(), -1, -1);
-    } catch (RocksDBException e) {
-      throw new RuntimeException(e);
-    }
+  public static CoreMasterContext testMasterContext(JournalSystem journalSystem) {
+    return CoreMasterContext.newBuilder()
+        .setJournalSystem(journalSystem)
+        .setSafeModeManager(new TestSafeModeManager())
+        .setBackupManager(mock(BackupManager.class))
+        .setMetastore(new RocksMetastore())
+        .setStartTimeMs(-1)
+        .setPort(-1)
+        .build();
   }
 
   private MasterTestUtils() {} // Not intended for instatiation.

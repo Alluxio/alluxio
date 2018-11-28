@@ -62,7 +62,14 @@ public class SpaceReserver implements HeartbeatExecutor {
   public SpaceReserver(BlockWorker blockWorker) {
     mBlockWorker = blockWorker;
     mStorageTierAssoc = new WorkerStorageTierAssoc();
-    Map<String, Long> tierCapacities = blockWorker.getStoreMeta().getCapacityBytesOnTiers();
+    updateStorageInfo();
+  }
+
+  /**
+   * Re-calculates storage spaces and watermarks.
+   */
+  public synchronized void updateStorageInfo() {
+    Map<String, Long> tierCapacities = mBlockWorker.getStoreMeta().getCapacityBytesOnTiers();
     long lastTierReservedBytes = 0;
     for (int ordinal = 0; ordinal < mStorageTierAssoc.size(); ordinal++) {
       String tierAlias = mStorageTierAssoc.getAlias(ordinal);
@@ -108,7 +115,7 @@ public class SpaceReserver implements HeartbeatExecutor {
     }
   }
 
-  private void reserveSpace() {
+  private synchronized void reserveSpace() {
     Map<String, Long> usedBytesOnTiers = mBlockWorker.getStoreMeta().getUsedBytesOnTiers();
     for (int ordinal = mStorageTierAssoc.size() - 1; ordinal >= 0; ordinal--) {
       String tierAlias = mStorageTierAssoc.getAlias(ordinal);

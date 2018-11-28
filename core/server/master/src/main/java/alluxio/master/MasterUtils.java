@@ -14,14 +14,11 @@ package alluxio.master;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
-import alluxio.ServiceUtils;
 import alluxio.master.metastore.Metastore;
 import alluxio.master.metastore.Metastore.Type;
 import alluxio.master.metastore.java.HeapMetastore;
 import alluxio.master.metastore.rocks.RocksMetastore;
 import alluxio.util.CommonUtils;
-
-import org.rocksdb.RocksDBException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,7 +38,7 @@ final class MasterUtils {
    */
   public static void createMasters(MasterRegistry registry, MasterContext context) {
     List<Callable<Void>> callables = new ArrayList<>();
-    for (final MasterFactory factory : ServiceUtils.getMasterServiceLoader()) {
+    for (final MasterFactory factory : alluxio.master.ServiceUtils.getMasterServiceLoader()) {
       callables.add(new Callable<Void>() {
         @Override
         public Void call() throws Exception {
@@ -68,11 +65,7 @@ final class MasterUtils {
       case HEAP:
         return new HeapMetastore();
       case ROCKS:
-        try {
-          return new RocksMetastore();
-        } catch (RocksDBException e) {
-          throw new RuntimeException(e);
-        }
+        return new RocksMetastore();
       default:
         throw new IllegalStateException("Unknown metastore type: " + type);
     }

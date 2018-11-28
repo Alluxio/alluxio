@@ -17,7 +17,7 @@ import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.master.BackupManager;
-import alluxio.master.MasterContext;
+import alluxio.master.CoreMasterContext;
 import alluxio.master.MasterRegistry;
 import alluxio.master.SafeModeManager;
 import alluxio.master.TestSafeModeManager;
@@ -71,8 +71,14 @@ public class MasterTestUtils {
     long startTimeMs = System.currentTimeMillis();
     int port = Configuration.getInt(PropertyKey.MASTER_RPC_PORT);
     JournalSystem journalSystem = JournalTestUtils.createJournalSystem(masterJournal);
-    MasterContext masterContext = new MasterContext(journalSystem, safeModeManager,
-        mock(BackupManager.class), new HeapMetastore(), startTimeMs, port);
+    CoreMasterContext masterContext = CoreMasterContext.newBuilder()
+        .setJournalSystem(journalSystem)
+        .setSafeModeManager(safeModeManager)
+        .setBackupManager(mock(BackupManager.class))
+        .setMetastore(new HeapMetastore())
+        .setStartTimeMs(startTimeMs)
+        .setPort(port)
+        .build();
     new MetricsMasterFactory().create(registry, masterContext);
     new BlockMasterFactory().create(registry, masterContext);
     new FileSystemMasterFactory().create(registry, masterContext);

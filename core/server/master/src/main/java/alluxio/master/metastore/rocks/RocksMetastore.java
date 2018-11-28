@@ -28,9 +28,13 @@ public class RocksMetastore implements Metastore {
   /**
    * Constructs a new RocksMetastore.
    */
-  public RocksMetastore() throws RocksDBException {
-    mFileStore = new HeapFileStore();
-    mBlockStore = new RocksBlockStore();
+  public RocksMetastore() {
+    try {
+      mFileStore = new HeapFileStore();
+      mBlockStore = new RocksBlockStore();
+    } catch (RocksDBException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   @Override

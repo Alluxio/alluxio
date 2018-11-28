@@ -12,7 +12,6 @@
 package alluxio.master;
 
 import alluxio.master.journal.JournalSystem;
-import alluxio.master.metastore.Metastore;
 
 import com.google.common.base.Preconditions;
 
@@ -23,14 +22,9 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 /**
  * Stores context information for Alluxio masters.
  */
-public final class MasterContext {
+public class MasterContext {
   private final JournalSystem mJournalSystem;
-  private final SafeModeManager mSafeModeManager;
-  private final BackupManager mBackupManager;
-  private final Metastore mMetastore;
   private final ReadWriteLock mStateLock;
-  private final long mStartTimeMs;
-  private final int mPort;
 
   /**
    * Creates a new master context.
@@ -40,36 +34,10 @@ public final class MasterContext {
    * allows a thread to pause state modifications.
    *
    * @param journalSystem the journal system to use for tracking master operations
-   * @param safeModeManager the manager for master safe mode
-   * @param backupManager the backup manager for performing backups
-   * @param metastore the metastore for managing master metadata
-   * @param startTimeMs the master process start time in milliseconds
-   * @param port the rpc port
-   */
-  public MasterContext(JournalSystem journalSystem, SafeModeManager safeModeManager,
-      BackupManager backupManager, Metastore metastore, long startTimeMs, int port) {
-    mJournalSystem = Preconditions.checkNotNull(journalSystem, "journalSystem");
-    mSafeModeManager = Preconditions.checkNotNull(safeModeManager, "safeModeManager");
-    mBackupManager = Preconditions.checkNotNull(backupManager, "backupManager");
-    mMetastore = metastore;
-    mStateLock = new ReentrantReadWriteLock();
-    mStartTimeMs = startTimeMs;
-    mPort = port;
-  }
-
-  /**
-   * Create a master context to be used for job masters.
-   *
-   * @param journalSystem the journal system to use for tracking master operations
    */
   public MasterContext(JournalSystem journalSystem) {
     mJournalSystem = Preconditions.checkNotNull(journalSystem, "journalSystem");
-    mSafeModeManager = null;
-    mBackupManager = null;
-    mMetastore = null;
     mStateLock = new ReentrantReadWriteLock();
-    mStartTimeMs = -1;
-    mPort = -1;
   }
 
   /**
@@ -77,27 +45,6 @@ public final class MasterContext {
    */
   public JournalSystem getJournalSystem() {
     return mJournalSystem;
-  }
-
-  /**
-   * @return the manager for master safe mode
-   */
-  public SafeModeManager getSafeModeManager() {
-    return mSafeModeManager;
-  }
-
-  /**
-   * @return the backup manager
-   */
-  public BackupManager getBackupManager() {
-    return mBackupManager;
-  }
-
-  /**
-   * @return the metastore
-   */
-  public Metastore getMetastore() {
-    return mMetastore;
   }
 
   /**
@@ -112,19 +59,5 @@ public final class MasterContext {
    */
   public Lock pauseStateLock() {
     return mStateLock.writeLock();
-  }
-
-  /**
-   * @return the master process start time in milliseconds
-   */
-  public long getStartTimeMs() {
-    return mStartTimeMs;
-  }
-
-  /**
-   * @return the rpc port
-   */
-  public int getPort() {
-    return mPort;
   }
 }

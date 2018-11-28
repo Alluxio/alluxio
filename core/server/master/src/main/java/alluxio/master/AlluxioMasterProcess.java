@@ -166,8 +166,14 @@ public class AlluxioMasterProcess implements MasterProcess {
       mRegistry = new MasterRegistry();
       mSafeModeManager = new DefaultSafeModeManager();
       mBackupManager = new BackupManager(mRegistry);
-      MasterContext context = new MasterContext(mJournalSystem, mSafeModeManager, mBackupManager,
-          MasterUtils.getMetaStore(), mStartTimeMs, mPort);
+      MasterContext context = CoreMasterContext.newBuilder()
+          .setJournalSystem(mJournalSystem)
+          .setSafeModeManager(mSafeModeManager)
+          .setBackupManager(mBackupManager)
+          .setMetastore(MasterUtils.getMetaStore())
+          .setStartTimeMs(mStartTimeMs)
+          .setPort(mPort)
+          .build();
       mPauseStateLock = context.pauseStateLock();
       MasterUtils.createMasters(mRegistry, context);
     } catch (Exception e) {

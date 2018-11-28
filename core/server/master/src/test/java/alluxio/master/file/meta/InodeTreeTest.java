@@ -26,12 +26,14 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
-import alluxio.master.MasterContext;
+import alluxio.master.CoreMasterContext;
 import alluxio.master.MasterRegistry;
 import alluxio.master.MasterTestUtils;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.block.BlockMasterFactory;
 import alluxio.master.file.RpcContext;
+import alluxio.master.file.meta.InodeTree.LockMode;
+import alluxio.master.file.meta.InodeTree.LockPattern;
 import alluxio.master.file.meta.options.MountInfo;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
@@ -109,7 +111,7 @@ public final class InodeTreeTest {
   @Before
   public void before() throws Exception {
     mRegistry = new MasterRegistry();
-    MasterContext context = MasterTestUtils.testMasterContext();
+    CoreMasterContext context = MasterTestUtils.testMasterContext();
     mMetricsMaster = new MetricsMasterFactory().create(mRegistry, context);
     mRegistry.add(MetricsMaster.class, mMetricsMaster);
     BlockMaster blockMaster = new BlockMasterFactory().create(mRegistry, context);
@@ -213,7 +215,7 @@ public final class InodeTreeTest {
 
     // pin nested folder
     try (
-        LockedInodePath inodePath = mTree.lockFullInodePath(NESTED_URI, InodeTree.LockMode.WRITE)) {
+        LockedInodePath inodePath = mTree.lockFullInodePath(NESTED_URI, LockPattern.WRITE_LAST)) {
       mTree.setPinned(RpcContext.NOOP, inodePath, true);
     }
 
@@ -545,7 +547,7 @@ public final class InodeTreeTest {
     mThrown.expectMessage(ExceptionMessage.INODE_DOES_NOT_EXIST.getMessage(1));
 
     assertFalse(mTree.inodeIdExists(1));
-    try (LockedInodePath inodePath = mTree.lockFullInodePath(1, InodeTree.LockMode.READ)) {
+    try (LockedInodePath inodePath = mTree.lockFullInodePath(1, LockPattern.READ)) {
       // inode exists
     }
   }
@@ -564,7 +566,7 @@ public final class InodeTreeTest {
    */
   @Test
   public void getPath() throws Exception {
-    try (LockedInodePath inodePath = mTree.lockFullInodePath(0, InodeTree.LockMode.READ)) {
+    try (LockedInodePath inodePath = mTree.lockFullInodePath(0, LockPattern.READ)) {
       InodeView root = inodePath.getInode();
       // test root path
       assertEquals(new AlluxioURI("/"), mTree.getPath(root));
@@ -572,20 +574,17 @@ public final class InodeTreeTest {
 
     // test one level
     createPath(mTree, TEST_URI, sDirectoryOptions);
-    try (LockedInodePath inodePath = mTree.lockFullInodePath(TEST_URI, InodeTree.LockMode.READ)) {
+    try (LockedInodePath inodePath = mTree.lockFullInodePath(TEST_URI, LockPattern.READ)) {
       assertEquals(new AlluxioURI("/test"), mTree.getPath(inodePath.getInode()));
     }
 
     // test nesting
     createPath(mTree, NESTED_URI, sNestedDirectoryOptions);
-    try (LockedInodePath inodePath = mTree.lockFullInodePath(NESTED_URI, InodeTree.LockMode.READ)) {
+    try (LockedInodePath inodePath = mTree.lockFullInodePath(NESTED_URI, LockPattern.READ)) {
       assertEquals(new AlluxioURI("/nested/test"), mTree.getPath(inodePath.getInode()));
     }
   }
 
-  /**
-   * Tests the {@link InodeTree#lockDescendants(LockedInodePath, InodeTree.LockMode)} method.
-   */
   @Test
   public void getInodeChildrenRecursive() throws Exception {
     createPath(mTree, TEST_URI, sDirectoryOptions);
@@ -594,9 +593,9 @@ public final class InodeTreeTest {
     createPath(mTree, NESTED_FILE_URI, sNestedFileOptions);
 
     // all inodes under root
-    try (LockedInodePath inodePath = mTree.lockFullInodePath(0, InodeTree.LockMode.READ);
+    try (LockedInodePath inodePath = mTree.lockFullInodePath(0, LockPattern.READ);
       LockedInodePathList lockedInodePathList = mTree.lockDescendants(inodePath,
-          InodeTree.LockMode.READ)) {
+          LockPattern.READ)) {
       // /test, /nested, /nested/test, /nested/test/file
       assertEquals(4, lockedInodePathList.getInodePathList().size());
     }
@@ -610,9 +609,9 @@ public final class InodeTreeTest {
     createPath(mTree, NESTED_URI, sNestedDirectoryOptions);
 
     // all inodes under root
-    try (LockedInodePath inodePath = mTree.lockFullInodePath(0, InodeTree.LockMode.WRITE);
+    try (LockedInodePath inodePath = mTree.lockFullInodePath(0, LockPattern.WRITE_LAST);
       LockedInodePathList lockedInodePathList = mTree.lockDescendants(inodePath,
-          InodeTree.LockMode.READ)) {
+          LockPattern.READ)) {
       // /nested, /nested/test
       assertEquals(2, lockedInodePathList.getInodePathList().size());
 
@@ -620,7 +619,7 @@ public final class InodeTreeTest {
       deleteInodeByPath(mTree, NESTED_URI);
 
       try (LockedInodePathList lockedInodePathList2 = mTree.lockDescendants(inodePath,
-          InodeTree.LockMode.WRITE)) {
+          LockPattern.WRITE_LAST)) {
         // only /nested left
         assertEquals(1, lockedInodePathList2.getInodePathList().size());
       }
@@ -640,7 +639,7 @@ public final class InodeTreeTest {
 
     // pin nested folder
     try (
-        LockedInodePath inodePath = mTree.lockFullInodePath(NESTED_URI, InodeTree.LockMode.WRITE)) {
+        LockedInodePath inodePath = mTree.lockFullInodePath(NESTED_URI, LockPattern.WRITE_LAST)) {
       mTree.setPinned(RpcContext.NOOP, inodePath, true);
     }
     // nested file pinned
@@ -648,7 +647,7 @@ public final class InodeTreeTest {
 
     // unpin nested folder
     try (
-        LockedInodePath inodePath = mTree.lockFullInodePath(NESTED_URI, InodeTree.LockMode.WRITE)) {
+        LockedInodePath inodePath = mTree.lockFullInodePath(NESTED_URI, LockPattern.WRITE_LAST)) {
       mTree.setPinned(RpcContext.NOOP, inodePath, false);
     }
     assertEquals(0, mTree.getPinIdSet().size());
@@ -693,9 +692,9 @@ public final class InodeTreeTest {
     // re-init the root since the tree was reset above
     mTree.getRoot();
     try (LockedInodePath inodePath =
-             mTree.lockFullInodePath(new AlluxioURI("/"), InodeTree.LockMode.READ);
+             mTree.lockFullInodePath(new AlluxioURI("/"), LockPattern.READ);
          LockedInodePathList lockedInodePathList = mTree.lockDescendants(inodePath,
-             InodeTree.LockMode.READ)) {
+             LockPattern.READ)) {
       assertEquals(0, lockedInodePathList.getInodePathList().size());
       mTree.replayJournalEntryFromJournal(nested.toJournalEntry());
       verifyChildrenNames(mTree, inodePath, Sets.newHashSet("nested"));
@@ -729,15 +728,15 @@ public final class InodeTreeTest {
     // re-init the root since the tree was reset above
     mTree.getRoot();
     try (LockedInodePath inodePath =
-             mTree.lockFullInodePath(new AlluxioURI("/"), InodeTree.LockMode.READ);
+             mTree.lockFullInodePath(new AlluxioURI("/"), LockPattern.READ);
          LockedInodePathList lockedInodePathList = mTree.lockDescendants(inodePath,
-             InodeTree.LockMode.READ)) {
+             LockPattern.READ)) {
       assertEquals(0, lockedInodePathList.getInodePathList().size());
       mTree.replayJournalEntryFromJournal(nested.toJournalEntry());
       mTree.replayJournalEntryFromJournal(test.toJournalEntry());
       mTree.replayJournalEntryFromJournal(file.toJournalEntry());
       try (LockedInodePathList descendants = mTree.lockDescendants(inodePath,
-          InodeTree.LockMode.READ)) {
+          LockPattern.READ)) {
         assertEquals(inodeChildren.length, descendants.getInodePathList().size());
         for (LockedInodePath childPath : descendants.getInodePathList()) {
           InodeView child = childPath.getInodeOrNull();
@@ -752,7 +751,7 @@ public final class InodeTreeTest {
 
   @Test
   public void getInodePathById() throws Exception {
-    try (LockedInodePath rootPath = mTree.lockFullInodePath(0, InodeTree.LockMode.READ)) {
+    try (LockedInodePath rootPath = mTree.lockFullInodePath(0, LockPattern.READ)) {
       assertEquals(0, rootPath.getInode().getId());
     }
 
@@ -761,7 +760,7 @@ public final class InodeTreeTest {
 
     for (InodeView inode : createResult.getCreated()) {
       long id = inode.getId();
-      try (LockedInodePath inodePath = mTree.lockFullInodePath(id, InodeTree.LockMode.READ)) {
+      try (LockedInodePath inodePath = mTree.lockFullInodePath(id, LockPattern.READ)) {
         assertEquals(id, inodePath.getInode().getId());
       }
     }
@@ -770,7 +769,7 @@ public final class InodeTreeTest {
   @Test
   public void getInodePathByPath() throws Exception {
     try (LockedInodePath rootPath =
-        mTree.lockFullInodePath(new AlluxioURI("/"), InodeTree.LockMode.READ)) {
+        mTree.lockFullInodePath(new AlluxioURI("/"), LockPattern.READ)) {
       assertTrue(mTree.isRootId(rootPath.getInode().getId()));
     }
 
@@ -778,17 +777,17 @@ public final class InodeTreeTest {
     createPath(mTree, NESTED_FILE_URI, sNestedFileOptions);
 
     AlluxioURI uri = new AlluxioURI("/nested");
-    try (LockedInodePath inodePath = mTree.lockFullInodePath(uri, InodeTree.LockMode.READ)) {
+    try (LockedInodePath inodePath = mTree.lockFullInodePath(uri, LockPattern.READ)) {
       assertEquals(uri.getName(), inodePath.getInode().getName());
     }
 
     uri = NESTED_URI;
-    try (LockedInodePath inodePath = mTree.lockFullInodePath(uri, InodeTree.LockMode.READ)) {
+    try (LockedInodePath inodePath = mTree.lockFullInodePath(uri, LockPattern.READ)) {
       assertEquals(uri.getName(), inodePath.getInode().getName());
     }
 
     uri = NESTED_FILE_URI;
-    try (LockedInodePath inodePath = mTree.lockFullInodePath(uri, InodeTree.LockMode.READ)) {
+    try (LockedInodePath inodePath = mTree.lockFullInodePath(uri, LockPattern.READ)) {
       assertEquals(uri.getName(), inodePath.getInode().getName());
     }
   }
@@ -800,17 +799,17 @@ public final class InodeTreeTest {
     InodeView dirInode = createResult.getCreated().get(0);
     assertTrue(dirInode.isDirectory());
     try (LockedInodePath lockedDirPath = mTree.lockFullInodePath(dirInode.getId(),
-         InodeTree.LockMode.READ);
+         LockPattern.READ);
          LockedInodePath path = mTree.lockDescendantPath(lockedDirPath,
-             InodeTree.LockMode.READ, NESTED_FILE_URI);
+             LockPattern.READ, NESTED_FILE_URI);
         ) {
       assertEquals(4, path.getInodeList().size());
     }
     // Testing descendant is the same as the LockedInodePath.
     try (LockedInodePath lockedDirPath = mTree.lockFullInodePath(dirInode.getId(),
-        InodeTree.LockMode.READ);
+        LockPattern.READ);
          LockedInodePath path = mTree.lockDescendantPath(lockedDirPath,
-             InodeTree.LockMode.READ, lockedDirPath.getUri())
+             LockPattern.READ, lockedDirPath.getUri())
     ) {
       Assert.fail();
     } catch (InvalidPathException e) {
@@ -821,9 +820,9 @@ public final class InodeTreeTest {
     InodeView subDirInode = createResult.getCreated().get(1);
     assertTrue(dirInode.isDirectory());
     try (LockedInodePath lockedDirPath = mTree.lockFullInodePath(subDirInode.getId(),
-        InodeTree.LockMode.READ);
+        LockPattern.READ);
          LockedInodePath path = mTree.lockDescendantPath(lockedDirPath,
-             InodeTree.LockMode.READ, new AlluxioURI(""));
+             LockPattern.READ, new AlluxioURI(""));
     ) {
       Assert.fail();
     } catch (InvalidPathException e) {
@@ -831,25 +830,38 @@ public final class InodeTreeTest {
     }
   }
 
+  @Test
+  public void getModeForLockPattern() {
+    assertEquals(LockMode.READ, LockPattern.READ.getLockMode(0, 5));
+    assertEquals(LockMode.READ, LockPattern.READ.getLockMode(2, 5));
+    assertEquals(LockMode.READ, LockPattern.READ.getLockMode(4, 5));
+    assertEquals(LockMode.READ, LockPattern.READ.getLockMode(0, 1));
+
+    assertEquals(LockMode.READ, LockPattern.WRITE_LAST.getLockMode(0, 5));
+    assertEquals(LockMode.READ, LockPattern.WRITE_LAST.getLockMode(2, 5));
+    assertEquals(LockMode.WRITE, LockPattern.WRITE_LAST.getLockMode(4, 5));
+    assertEquals(LockMode.WRITE, LockPattern.WRITE_LAST.getLockMode(0, 1));
+  }
+
   // Helper to create a path.
   private InodeTree.CreatePathResult createPath(InodeTree root, AlluxioURI path,
       CreatePathOptions<?> options) throws FileAlreadyExistsException, BlockInfoException,
       InvalidPathException, IOException, FileDoesNotExistException {
-    try (LockedInodePath inodePath = root.lockInodePath(path, InodeTree.LockMode.WRITE)) {
+    try (LockedInodePath inodePath = root.lockInodePath(path, LockPattern.WRITE_LAST)) {
       return root.createPath(RpcContext.NOOP, inodePath, options);
     }
   }
 
   // Helper to get an inode by path. The inode is unlocked before returning.
   private static InodeView getInodeByPath(InodeTree root, AlluxioURI path) throws Exception {
-    try (LockedInodePath inodePath = root.lockFullInodePath(path, InodeTree.LockMode.READ)) {
+    try (LockedInodePath inodePath = root.lockFullInodePath(path, LockPattern.READ)) {
       return inodePath.getInode();
     }
   }
 
   // Helper to delete an inode by path.
   private static void deleteInodeByPath(InodeTree root, AlluxioURI path) throws Exception {
-    try (LockedInodePath inodePath = root.lockFullInodePath(path, InodeTree.LockMode.WRITE)) {
+    try (LockedInodePath inodePath = root.lockFullInodePath(path, LockPattern.WRITE_LAST)) {
       root.deleteInode(RpcContext.NOOP, inodePath, System.currentTimeMillis());
     }
   }
@@ -868,7 +880,7 @@ public final class InodeTreeTest {
   private static void verifyChildrenNames(InodeTree tree, LockedInodePath inodePath,
       Set<String> childNames) throws Exception {
     try (LockedInodePathList childrenPath = tree.lockDescendants(inodePath,
-        InodeTree.LockMode.READ)) {
+        LockPattern.READ)) {
       assertEquals(childNames.size(), childrenPath.getInodePathList().size());
       for (LockedInodePath childPath : childrenPath.getInodePathList()) {
         assertTrue(childNames.contains(childPath.getInode().getName()));
