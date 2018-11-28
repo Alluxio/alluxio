@@ -33,8 +33,13 @@ public final class MasterTestUtils {
    * @param journalSystem a journal system to use in the context
    */
   public static CoreMasterContext testMasterContext(JournalSystem journalSystem) {
-    return new CoreMasterContext(journalSystem, new TestSafeModeManager(),
-        mock(BackupManager.class), -1, -1);
+    return CoreMasterContext.newBuilder()
+        .setJournalSystem(journalSystem)
+        .setSafeModeManager(new TestSafeModeManager())
+        .setBackupManager(mock(BackupManager.class))
+        .setStartTimeMs(-1)
+        .setPort(-1)
+        .build();
   }
 
   private MasterTestUtils() {} // Not intended for instatiation.
