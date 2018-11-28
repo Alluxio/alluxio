@@ -1787,7 +1787,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
       for (InodeView child : children) {
         try (LockedInodePath lockedDescendantPath =
             inodePath.createTempPathForExistingChild(child, LockPattern.READ)) {
-          getInAlluxioFilesInternal(lockedDescendantPath, files);
+          getInMemoryFilesInternal(lockedDescendantPath, files);
         } catch (InvalidPathException | FileDoesNotExistException e) {
           // Inode is no longer a child, continue.
           continue;

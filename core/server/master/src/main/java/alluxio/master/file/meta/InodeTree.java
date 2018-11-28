@@ -1366,8 +1366,7 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
   }
 
   /**
-   * Traverse the tree to find the rest of the given {@link LockedInodePath}. Hints for the lock
-   * mode at each path.
+   * Traverse the tree to find the rest of the given {@link LockedInodePath}.
    *
    * @param pathComponents components of the path that are are traversing towards
    * @param inodes inodes that are already locked and will no longer require locking,

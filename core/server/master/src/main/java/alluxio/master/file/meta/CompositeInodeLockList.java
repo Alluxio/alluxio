@@ -26,7 +26,8 @@ public class CompositeInodeLockList extends InodeLockList {
   private final InodeLockList mBaseLockList;
 
   /**
-   * Constructs a new lock list, using an existing lock list as the base list.
+   * Constructs a new lock list, using an existing lock list as the base list. This is the same as
+   * using the second constructor with an empty descendant lock list.
    *
    * @param baseLockList the base {@link InodeLockList} to use
    */
