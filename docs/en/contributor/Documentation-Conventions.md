@@ -6,7 +6,13 @@ group: Contributor Resources
 priority: 2
 ---
 
-Documentation is a writing style that portrays professionalism and efficiency in delivering technical content.
+* Table of Contents
+{:toc}
+
+This documentation provides a writing style guide that portrays professionalism and efficiency in delivering technical content
+in Alluxio documentation.
+
+## The Cs
 
 The Cs, in order of importance:
 * Be correct
@@ -67,7 +73,7 @@ to differentiate from the commonly used term, but remain in lowercase if not a p
     * Ex. When a new file is added to **the Alluxio namespace**, ...
     * Ex. **The Alluxio master** never reads or writes data directly ...
 
-### Formality = Don’t sound like a kid
+### Formality = Don’t sound like a casual conversation
 
 Documentation is not a conversation.
 Don’t follow the same style as you would use when chatting with someone.
@@ -82,7 +88,7 @@ this has been the norm [as of the 1950s](https://en.wikipedia.org/wiki/Sentence_
 * Avoid using abbreviations
     * Doc -> Documentation
 
-### Terminology table
+## Terminology table
 
 | Correct, preferred term | Incorrect or less preferred term(s) |
 |-------------------------|-----------------------------------------------------|
@@ -95,13 +101,13 @@ this has been the norm [as of the 1950s](https://en.wikipedia.org/wiki/Sentence_
 | High availability mode | Fault tolerance mode (Use of "fault tolerance" is fine, but not when interchangeable with “high availability”) |
 | Hostname | Host name |
 
-### Line breaks
+## Line breaks
 
 Each sentence starts in a new line for ease of reviewing diffs.
 We do not have an official maximum characters per line,
 but feel free to split sentences into separate lines to avoid needing to scroll horizontally to read.
 
-### Resources
+## Resources
 
 * [General guidelines for technical writing style](https://en.wikiversity.org/wiki/Technical_writing_style)
 * [Examples of moods](https://en.oxforddictionaries.com/grammar/moods)
