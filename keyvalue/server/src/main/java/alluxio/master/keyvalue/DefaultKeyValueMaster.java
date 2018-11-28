@@ -22,8 +22,8 @@ import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.status.UnavailableException;
-import alluxio.master.AbstractMaster;
-import alluxio.master.MasterContext;
+import alluxio.master.CoreMaster;
+import alluxio.master.CoreMasterContext;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.DeleteOptions;
@@ -60,7 +60,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * each key-value store.
  */
 @ThreadSafe
-public class DefaultKeyValueMaster extends AbstractMaster implements KeyValueMaster {
+public class DefaultKeyValueMaster extends CoreMaster implements KeyValueMaster {
   private static final Set<Class<? extends Server>> DEPS =
       ImmutableSet.<Class<? extends Server>>of(FileSystemMaster.class);
 
@@ -78,7 +78,7 @@ public class DefaultKeyValueMaster extends AbstractMaster implements KeyValueMas
    * @param fileSystemMaster the file system master handle
    * @param masterContext the context for Alluxio master
    */
-  DefaultKeyValueMaster(FileSystemMaster fileSystemMaster, MasterContext masterContext) {
+  DefaultKeyValueMaster(FileSystemMaster fileSystemMaster, CoreMasterContext masterContext) {
     super(masterContext, new SystemClock(),
         ExecutorServiceFactories.cachedThreadPool(Constants.KEY_VALUE_MASTER_NAME));
     mFileSystemMaster = fileSystemMaster;

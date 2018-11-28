@@ -40,8 +40,8 @@ import alluxio.exception.status.ResourceExhaustedException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatThread;
-import alluxio.master.AbstractMaster;
-import alluxio.master.MasterContext;
+import alluxio.master.CoreMaster;
+import alluxio.master.CoreMasterContext;
 import alluxio.master.ProtobufUtils;
 import alluxio.master.audit.AsyncUserAccessAuditLogWriter;
 import alluxio.master.audit.AuditContext;
@@ -190,7 +190,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * The master that handles all file system metadata management.
  */
 @NotThreadSafe // TODO(jiri): make thread-safe (c.f. ALLUXIO-1664)
-public final class DefaultFileSystemMaster extends AbstractMaster implements FileSystemMaster {
+public final class DefaultFileSystemMaster extends CoreMaster implements FileSystemMaster {
   private static final Logger LOG = LoggerFactory.getLogger(DefaultFileSystemMaster.class);
   private static final Set<Class<? extends Server>> DEPS = ImmutableSet.of(BlockMaster.class);
 
@@ -356,7 +356,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * @param blockMaster a block master handle
    * @param masterContext the context for Alluxio master
    */
-  DefaultFileSystemMaster(BlockMaster blockMaster, MasterContext masterContext) {
+  public DefaultFileSystemMaster(BlockMaster blockMaster, CoreMasterContext masterContext) {
     this(blockMaster, masterContext,
         ExecutorServiceFactories.cachedThreadPool(Constants.FILE_SYSTEM_MASTER_NAME));
   }
@@ -369,7 +369,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * @param executorServiceFactory a factory for creating the executor service to use for running
    *        maintenance threads
    */
-  DefaultFileSystemMaster(BlockMaster blockMaster, MasterContext masterContext,
+  public DefaultFileSystemMaster(BlockMaster blockMaster, CoreMasterContext masterContext,
       ExecutorServiceFactory executorServiceFactory) {
     super(masterContext, new SystemClock(), executorServiceFactory);
 
@@ -569,7 +569,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       getExecutorService().submit(new HeartbeatThread(
           HeartbeatContext.MASTER_REPLICATION_CHECK,
           new alluxio.master.file.replication.ReplicationChecker(mInodeTree, mBlockMaster,
-              mMasterContext.getSafeModeManager(), mJobMasterClientPool),
+              mSafeModeManager, mJobMasterClientPool),
           (int) Configuration.getMs(PropertyKey.MASTER_REPLICATION_CHECK_INTERVAL_MS)));
       getExecutorService().submit(
           new HeartbeatThread(HeartbeatContext.MASTER_PERSISTENCE_SCHEDULER,
@@ -2789,12 +2789,14 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    */
   private void unmountInternal(RpcContext rpcContext, LockedInodePath inodePath)
       throws InvalidPathException, FileDoesNotExistException, IOException {
+    MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
+    mSyncManager.stopSync(resolution.getMountId());
+
     if (!mMountTable.delete(rpcContext, inodePath.getUri())) {
       throw new InvalidPathException("Failed to unmount " + inodePath.getUri() + ". Please ensure"
           + " the path is an existing mount point and not root.");
     }
-    MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
-    mSyncManager.stopSync(resolution.getMountId());
+
     try {
       // Use the internal delete API, setting {@code alluxioOnly} to true to prevent the delete
       // operations from being persisted in the UFS.

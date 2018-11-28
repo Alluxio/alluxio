@@ -12,7 +12,6 @@
 package alluxio.master;
 
 import alluxio.Constants;
-import alluxio.ServiceUtils;
 import alluxio.util.CommonUtils;
 
 import java.util.ArrayList;
@@ -33,7 +32,7 @@ final class MasterUtils {
    */
   public static void createMasters(MasterRegistry registry, MasterContext context) {
     List<Callable<Void>> callables = new ArrayList<>();
-    for (final MasterFactory factory : ServiceUtils.getMasterServiceLoader()) {
+    for (final MasterFactory factory : alluxio.master.ServiceUtils.getMasterServiceLoader()) {
       callables.add(new Callable<Void>() {
         @Override
         public Void call() throws Exception {

@@ -14,7 +14,7 @@ package alluxio.master.keyvalue;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
-import alluxio.master.MasterContext;
+import alluxio.master.CoreMasterContext;
 import alluxio.master.MasterFactory;
 import alluxio.master.MasterRegistry;
 import alluxio.master.file.FileSystemMaster;
@@ -28,7 +28,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * Factory to create a {@link KeyValueMaster} instance.
  */
 @ThreadSafe
-public final class KeyValueMasterFactory implements MasterFactory {
+public final class KeyValueMasterFactory implements MasterFactory<CoreMasterContext> {
   private static final Logger LOG = LoggerFactory.getLogger(KeyValueMasterFactory.class);
 
   /**
@@ -47,7 +47,7 @@ public final class KeyValueMasterFactory implements MasterFactory {
   }
 
   @Override
-  public KeyValueMaster create(MasterRegistry registry, MasterContext context) {
+  public KeyValueMaster create(MasterRegistry registry, CoreMasterContext context) {
     LOG.info("Creating {} ", KeyValueMaster.class.getName());
     FileSystemMaster fileSystemMaster = registry.get(FileSystemMaster.class);
     DefaultKeyValueMaster keyValueMaster = new DefaultKeyValueMaster(fileSystemMaster, context);

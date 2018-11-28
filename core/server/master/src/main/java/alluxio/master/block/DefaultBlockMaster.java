@@ -31,8 +31,8 @@ import alluxio.exception.status.UnavailableException;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.heartbeat.HeartbeatThread;
-import alluxio.master.AbstractMaster;
-import alluxio.master.MasterContext;
+import alluxio.master.CoreMaster;
+import alluxio.master.CoreMasterContext;
 import alluxio.master.block.meta.MasterBlockInfo;
 import alluxio.master.block.meta.MasterBlockLocation;
 import alluxio.master.block.meta.MasterWorkerInfo;
@@ -101,7 +101,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * This block master manages the metadata for all the blocks and block workers in Alluxio.
  */
 @NotThreadSafe // TODO(jiri): make thread-safe (c.f. ALLUXIO-1664)
-public final class DefaultBlockMaster extends AbstractMaster implements BlockMaster {
+public final class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   private static final Logger LOG = LoggerFactory.getLogger(DefaultBlockMaster.class);
   private static final Set<Class<? extends Server>> DEPS =
       ImmutableSet.<Class<? extends Server>>of(MetricsMaster.class);
@@ -209,7 +209,7 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
    * @param metricsMaster the metrics master
    * @param masterContext the context for Alluxio master
    */
-  DefaultBlockMaster(MetricsMaster metricsMaster, MasterContext masterContext) {
+  DefaultBlockMaster(MetricsMaster metricsMaster, CoreMasterContext masterContext) {
     this(metricsMaster, masterContext, new SystemClock(),
         ExecutorServiceFactories.cachedThreadPool(Constants.BLOCK_MASTER_NAME));
   }
@@ -223,7 +223,7 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
    * @param executorServiceFactory a factory for creating the executor service to use for running
    *        maintenance threads
    */
-  DefaultBlockMaster(MetricsMaster metricsMaster, MasterContext masterContext, Clock clock,
+  DefaultBlockMaster(MetricsMaster metricsMaster, CoreMasterContext masterContext, Clock clock,
       ExecutorServiceFactory executorServiceFactory) {
     super(masterContext, clock, executorServiceFactory);
     Preconditions.checkNotNull(metricsMaster, "metricsMaster");
@@ -357,7 +357,7 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
 
   @Override
   public List<WorkerInfo> getWorkerInfoList() throws UnavailableException {
-    if (mMasterContext.getSafeModeManager().isInSafeMode()) {
+    if (mSafeModeManager.isInSafeMode()) {
       throw new UnavailableException(ExceptionMessage.MASTER_IN_SAFEMODE.getMessage());
     }
     List<WorkerInfo> workerInfoList = new ArrayList<>(mWorkers.size());
@@ -371,7 +371,7 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
 
   @Override
   public List<WorkerInfo> getLostWorkersInfoList() throws UnavailableException {
-    if (mMasterContext.getSafeModeManager().isInSafeMode()) {
+    if (mSafeModeManager.isInSafeMode()) {
       throw new UnavailableException(ExceptionMessage.MASTER_IN_SAFEMODE.getMessage());
     }
     List<WorkerInfo> workerInfoList = new ArrayList<>(mLostWorkers.size());
@@ -387,7 +387,7 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
   @Override
   public List<WorkerInfo> getWorkerReport(GetWorkerReportOptions options)
       throws UnavailableException, InvalidArgumentException {
-    if (mMasterContext.getSafeModeManager().isInSafeMode()) {
+    if (mSafeModeManager.isInSafeMode()) {
       throw new UnavailableException(ExceptionMessage.MASTER_IN_SAFEMODE.getMessage());
     }
 
@@ -834,9 +834,9 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
   }
 
   @Override
-  public Command workerHeartbeat(long workerId, Map<String, Long> usedBytesOnTiers,
-      List<Long> removedBlockIds, Map<String, List<Long>> addedBlocksOnTiers,
-      List<Metric> metrics) {
+  public Command workerHeartbeat(long workerId, Map<String, Long> capacityBytesOnTiers,
+      Map<String, Long> usedBytesOnTiers, List<Long> removedBlockIds,
+      Map<String, List<Long>> addedBlocksOnTiers, List<Metric> metrics) {
     MasterWorkerInfo worker = mWorkers.getFirstByField(ID_INDEX, workerId);
     if (worker == null) {
       LOG.warn("Could not find worker id: {} for heartbeat.", workerId);
@@ -851,6 +851,9 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
       processWorkerAddedBlocks(worker, addedBlocksOnTiers);
       processWorkerMetrics(worker.getWorkerAddress().getHost(), metrics);
 
+      if (capacityBytesOnTiers != null) {
+        worker.updateCapacityBytes(capacityBytesOnTiers);
+      }
       worker.updateUsedBytes(usedBytesOnTiers);
       worker.updateLastUpdatedTimeMs();
 
@@ -953,7 +956,7 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
    */
   @GuardedBy("masterBlockInfo")
   private BlockInfo generateBlockInfo(MasterBlockInfo masterBlockInfo) throws UnavailableException {
-    if (mMasterContext.getSafeModeManager().isInSafeMode()) {
+    if (mSafeModeManager.isInSafeMode()) {
       throw new UnavailableException(ExceptionMessage.MASTER_IN_SAFEMODE.getMessage());
     }
     // "Join" to get all the addresses of the workers.

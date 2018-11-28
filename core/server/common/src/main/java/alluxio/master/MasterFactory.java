@@ -15,9 +15,11 @@ import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Interface for factory of {@link Master}.
+ *
+ * @param <T> the type of master context used to create masters
  */
 @ThreadSafe
-public interface MasterFactory {
+public interface MasterFactory<T extends MasterContext> {
   /**
    * @return whether the master is enabled
    */
@@ -35,5 +37,5 @@ public interface MasterFactory {
    * @param context master context
    * @return a new {@link Master} instance
    */
-  Master create(MasterRegistry registry, MasterContext context);
+  Master create(MasterRegistry registry, T context);
 }

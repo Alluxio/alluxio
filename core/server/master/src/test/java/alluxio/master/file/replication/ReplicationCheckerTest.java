@@ -19,7 +19,7 @@ import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.job.replicate.ReplicationHandler;
-import alluxio.master.MasterContext;
+import alluxio.master.CoreMasterContext;
 import alluxio.master.MasterRegistry;
 import alluxio.master.MasterTestUtils;
 import alluxio.master.block.BlockMaster;
@@ -122,7 +122,7 @@ public final class ReplicationCheckerTest {
   public void before() throws Exception {
     MasterRegistry registry = new MasterRegistry();
     JournalSystem journalSystem = JournalTestUtils.createJournalSystem(mTestFolder);
-    MasterContext context = MasterTestUtils.testMasterContext(journalSystem);
+    CoreMasterContext context = MasterTestUtils.testMasterContext(journalSystem);
     new MetricsMasterFactory().create(registry, context);
     mBlockMaster = new BlockMasterFactory().create(registry, context);
     InodeDirectoryIdGenerator directoryIdGenerator = new InodeDirectoryIdGenerator(mBlockMaster);
@@ -210,7 +210,7 @@ public final class ReplicationCheckerTest {
    */
   private void heartbeatToAddLocationHelper(long blockId, long workerId) throws Exception {
     List<Long> addedBlocks = ImmutableList.of(blockId);
-    mBlockMaster.workerHeartbeat(workerId, ImmutableMap.of("MEM", 0L), NO_BLOCKS,
+    mBlockMaster.workerHeartbeat(workerId, null, ImmutableMap.of("MEM", 0L), NO_BLOCKS,
         ImmutableMap.of("MEM", addedBlocks), NO_METRICS);
   }
 
@@ -288,8 +288,8 @@ public final class ReplicationCheckerTest {
     mBlockMaster.commitBlock(workerId, 50L, "MEM", blockId, 20L);
 
     // Indicate that blockId is removed on the worker.
-    mBlockMaster.workerHeartbeat(workerId, ImmutableMap.of("MEM", 0L), ImmutableList.of(blockId),
-        NO_BLOCKS_ON_TIERS, NO_METRICS);
+    mBlockMaster.workerHeartbeat(workerId, null, ImmutableMap.of("MEM", 0L),
+        ImmutableList.of(blockId), NO_BLOCKS_ON_TIERS, NO_METRICS);
 
     mReplicationChecker.heartbeat();
     Assert.assertEquals(EMPTY, mMockReplicationHandler.getEvictRequests());
