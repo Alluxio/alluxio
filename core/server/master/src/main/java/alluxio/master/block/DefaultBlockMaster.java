@@ -145,6 +145,14 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
    * worker must be locked. For block metadata, the id of the block must be locked. This will
    * protect the internal integrity of the block and worker metadata.
    *
+   * A worker's lock must be held to
+   * - Write mutable state in the worker's MasterWorkerInfo
+   * - Modify a block location on the worker
+   *
+   * A block's lock must be held to
+   * - Perform any BlockStore operations on the block
+   * - Add or remove the block from mLostBlocks
+   *
    * Lock ordering must be preserved in order to prevent deadlock. If both worker and block
    * metadata must be locked at the same time, the worker metadata must be locked before the block
    * metadata
