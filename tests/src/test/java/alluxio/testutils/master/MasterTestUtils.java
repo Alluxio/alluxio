@@ -70,8 +70,13 @@ public class MasterTestUtils {
     long startTimeMs = System.currentTimeMillis();
     int port = Configuration.getInt(PropertyKey.MASTER_RPC_PORT);
     JournalSystem journalSystem = JournalTestUtils.createJournalSystem(masterJournal);
-    CoreMasterContext masterContext = new CoreMasterContext(journalSystem, safeModeManager,
-        mock(BackupManager.class), startTimeMs, port);
+    CoreMasterContext masterContext = CoreMasterContext.newBuilder()
+        .setJournalSystem(journalSystem)
+        .setSafeModeManager(safeModeManager)
+        .setBackupManager(mock(BackupManager.class))
+        .setStartTimeMs(startTimeMs)
+        .setPort(port)
+        .build();
     new MetricsMasterFactory().create(registry, masterContext);
     new BlockMasterFactory().create(registry, masterContext);
     new FileSystemMasterFactory().create(registry, masterContext);
