@@ -595,10 +595,15 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
         try (LockResource lr = lockBlock(blockId)) {
           Optional<BlockMeta> block = mBlockStore.getBlock(blockId);
           if (!block.isPresent() || block.get().getLength() != length) {
-            mBlockStore.putBlock(blockId, BlockMeta.newBuilder().setLength(length).build());
-            BlockInfoEntry blockInfo =
-                BlockInfoEntry.newBuilder().setBlockId(blockId).setLength(length).build();
-            journalContext.append(JournalEntry.newBuilder().setBlockInfo(blockInfo).build());
+            if (block.isPresent() && block.get().getLength() != Constants.UNKNOWN_SIZE) {
+              LOG.warn("Rejecting attempt to change block length from {} to {}",
+                  block.get().getLength(), length);
+            } else {
+              mBlockStore.putBlock(blockId, BlockMeta.newBuilder().setLength(length).build());
+              BlockInfoEntry blockInfo =
+                  BlockInfoEntry.newBuilder().setBlockId(blockId).setLength(length).build();
+              journalContext.append(JournalEntry.newBuilder().setBlockInfo(blockInfo).build());
+            }
           }
 
           // Update the block metadata with the new worker location.

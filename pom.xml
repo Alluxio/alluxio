@@ -614,11 +614,6 @@
         </exclusions>
       </dependency>
       <dependency>
-        <groupId>org.rocksdb</groupId>
-        <artifactId>rocksdbjni</artifactId>
-        <version>5.15.10</version>
-      </dependency>
-      <dependency>
         <groupId>org.javaswift</groupId>
         <artifactId>joss</artifactId>
         <version>0.9.10</version>
@@ -627,6 +622,11 @@
         <groupId>org.reflections</groupId>
         <artifactId>reflections</artifactId>
         <version>0.9.10</version>
+      </dependency>
+      <dependency>
+        <groupId>org.rocksdb</groupId>
+        <artifactId>rocksdbjni</artifactId>
+        <version>5.15.10</version>
       </dependency>
       <dependency>
         <groupId>org.slf4j</groupId>
