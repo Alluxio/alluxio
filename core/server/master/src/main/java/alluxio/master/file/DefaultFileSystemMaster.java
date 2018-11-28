@@ -1741,7 +1741,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
       }
     } else {
       // This inode is a directory.
-      Set<InodeView> children = ((InodeDirectoryView) inode).getChildren();
+      Collection<InodeView> children = ((InodeDirectoryView) inode).getChildren();
       for (InodeView child : children) {
         try {
           child.lockReadAndCheckParent(inode);
@@ -1775,7 +1775,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
       }
     } else {
       // This inode is a directory.
-      Set<InodeView> children = ((InodeDirectoryView) inode).getChildren();
+      Collection<InodeView> children = ((InodeDirectoryView) inode).getChildren();
       for (InodeView child : children) {
         try {
           child.lockReadAndCheckParent(inode);

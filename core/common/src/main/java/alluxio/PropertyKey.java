@@ -1590,6 +1590,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .build();
 
+  public static final PropertyKey MASTER_METE_DATE_INODE_DIRECTORY_MAP_THRESHOLD =
+      new Builder(Name.MASTER_METE_DATE_INODE_DIRECTORY_MAP_THRESHOLD)
+          .setDefaultValue(10000)
+          .setScope(Scope.MASTER)
+          .build();
+
   //
   // Worker related properties
   //
@@ -3622,6 +3628,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.journal.gc.threshold";
     public static final String MASTER_JOURNAL_TEMPORARY_FILE_GC_THRESHOLD_MS =
         "alluxio.master.journal.temporary.file.gc.threshold";
+    public static final String MASTER_METE_DATE_INODE_DIRECTORY_MAP_THRESHOLD =
+        "alluxio.master.metadata.inodedirectory.map.threshold";
 
     //
     // Worker related properties

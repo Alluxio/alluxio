@@ -12,9 +12,8 @@
 package alluxio.master.file.meta;
 
 import alluxio.Constants;
-import alluxio.collections.FieldIndex;
+import alluxio.collections.CompositeUniqueFieldIndex;
 import alluxio.collections.IndexDefinition;
-import alluxio.collections.UniqueFieldIndex;
 import alluxio.exception.InvalidPathException;
 import alluxio.master.ProtobufUtils;
 import alluxio.master.file.options.CreateDirectoryOptions;
@@ -25,10 +24,8 @@ import alluxio.security.authorization.AccessControlList;
 import alluxio.security.authorization.DefaultAccessControlList;
 import alluxio.wire.FileInfo;
 
-import com.google.common.collect.ImmutableSet;
-
-import java.util.HashSet;
-import java.util.Set;
+import java.util.Collection;
+import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -39,16 +36,17 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class InodeDirectory extends Inode<InodeDirectory> implements InodeDirectoryView {
-  private static final IndexDefinition<Inode<?>, String> NAME_INDEX =
-      new IndexDefinition<Inode<?>, String>(true) {
+  private static final IndexDefinition<InodeView, String> NAME_INDEX =
+      new IndexDefinition<InodeView, String>(true) {
         @Override
-        public String getFieldValue(Inode<?> o) {
+        public String getFieldValue(InodeView o) {
           return o.getName();
         }
       };
 
   /** Use UniqueFieldIndex directly for name index rather than using IndexedSet. */
-  private final FieldIndex<Inode<?>, String> mChildren = new UniqueFieldIndex<>(NAME_INDEX);
+  private final CompositeUniqueFieldIndex<InodeView, String> mChildren =
+      new CompositeUniqueFieldIndex<>(NAME_INDEX);
 
   private boolean mMountPoint;
 
@@ -93,7 +91,7 @@ public final class InodeDirectory extends Inode<InodeDirectory> implements Inode
   public InodeView getChildReadLock(String name, InodeLockList lockList) throws
       InvalidPathException {
     while (true) {
-      Inode child = mChildren.getFirst(name);
+      InodeView child = mChildren.getFirst(name);
       if (child == null) {
         return null;
       }
@@ -112,7 +110,7 @@ public final class InodeDirectory extends Inode<InodeDirectory> implements Inode
   public InodeView getChildWriteLock(String name, InodeLockList lockList) throws
       InvalidPathException {
     while (true) {
-      Inode child = mChildren.getFirst(name);
+      InodeView child = mChildren.getFirst(name);
       if (child == null) {
         return null;
       }
@@ -127,17 +125,14 @@ public final class InodeDirectory extends Inode<InodeDirectory> implements Inode
   }
 
   @Override
-  public Set<InodeView> getChildren() {
-    return ImmutableSet.copyOf(mChildren.iterator());
+  public Collection<InodeView> getChildren() {
+    return mChildren.readOnlyValues();
   }
 
   @Override
-  public Set<Long> getChildrenIds() {
-    Set<Long> ret = new HashSet<>(mChildren.size());
-    for (Inode<?> child : mChildren) {
-      ret.add(child.getId());
-    }
-    return ret;
+  public Collection<Long> getChildrenIds() {
+    Collection<InodeView> iterator = getChildren();
+    return iterator.stream().map(inode -> inode.getId()).collect(Collectors.toList());
   }
 
   @Override
@@ -193,7 +188,7 @@ public final class InodeDirectory extends Inode<InodeDirectory> implements Inode
    * @return true if the inode was removed, false otherwise
    */
   public boolean removeChild(String name) {
-    Inode<?> child = mChildren.getFirst(name);
+    InodeView child = mChildren.getFirst(name);
     return mChildren.remove(child);
   }
 

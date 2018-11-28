@@ -607,6 +607,11 @@ public abstract class Inode<T> implements InodeView {
     return mId == that.mId;
   }
 
+  @Override
+  public final int compareTo(String name) {
+    return getName().compareTo(name);
+  }
+
   protected Objects.ToStringHelper toStringHelper() {
     return Objects.toStringHelper(this).add("id", mId).add("name", mName).add("parentId", mParentId)
         .add("creationTimeMs", mCreationTimeMs).add("pinned", mPinned).add("deleted", mDeleted)

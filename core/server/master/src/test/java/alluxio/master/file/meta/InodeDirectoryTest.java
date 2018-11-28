@@ -16,7 +16,7 @@ import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.security.authorization.Mode;
 import alluxio.wire.FileInfo;
 
-import com.google.common.collect.Sets;
+import com.google.common.collect.Lists;
 import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -38,8 +38,9 @@ public final class InodeDirectoryTest extends AbstractInodeTest {
     InodeFile inodeFile2 = createInodeFile(3);
     inodeDirectory.addChild(inodeFile1);
     inodeDirectory.addChild(inodeFile2);
-    Assert.assertEquals(Sets.newHashSet(createInodeFileId(2), createInodeFileId(3)),
-        inodeDirectory.getChildrenIds());
+    Assert.assertEquals(
+        Lists.newArrayList(createInodeFileId(2), createInodeFileId(3)),
+        Lists.newArrayList(inodeDirectory.getChildrenIds()));
   }
 
   /**

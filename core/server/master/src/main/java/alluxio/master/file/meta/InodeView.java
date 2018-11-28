@@ -27,7 +27,7 @@ import java.util.Optional;
 /**
  * Read-only view of an inode.
  */
-public interface InodeView extends JournalEntryRepresentable {
+public interface InodeView extends JournalEntryRepresentable, Comparable<String> {
 
   /**
    * @return the create time, in milliseconds

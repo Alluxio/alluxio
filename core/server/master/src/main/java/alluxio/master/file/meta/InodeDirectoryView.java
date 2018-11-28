@@ -13,7 +13,7 @@ package alluxio.master.file.meta;
 
 import alluxio.exception.InvalidPathException;
 
-import java.util.Set;
+import java.util.Collection;
 
 import javax.annotation.Nullable;
 
@@ -49,14 +49,14 @@ public interface InodeDirectoryView extends InodeView {
       InvalidPathException;
 
   /**
-   * @return an unmodifiable set of the children inodes
+   * @return an unmodifiable collection of the children inodes
    */
-  Set<InodeView> getChildren();
+  Collection<InodeView> getChildren();
 
   /**
    * @return the ids of the children
    */
-  Set<Long> getChildrenIds();
+  Collection<Long> getChildrenIds();
 
   /**
    * @return the number of children in the directory
