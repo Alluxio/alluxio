@@ -40,6 +40,8 @@ import com.google.common.io.ByteStreams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -117,7 +119,7 @@ public class LocalUnderFileSystem extends BaseUnderFileSystem
       stream.close();
       throw e;
     }
-    return stream;
+    return new BufferedOutputStream(stream);
   }
 
   @Override
@@ -341,12 +343,12 @@ public class LocalUnderFileSystem extends BaseUnderFileSystem
     path = stripPath(path);
     FileInputStream inputStream = new FileInputStream(path);
     try {
-      ByteStreams.skipFully(inputStream, options.getOffset());
+      ByteStreams.skipFully(inputStream, options.getOffset())
     } catch (IOException e) {
       inputStream.close();
       throw e;
     }
-    return inputStream;
+    return new BufferedInputStream(inputStream);
   }
 
   @Override
