@@ -11,9 +11,6 @@
 
 package alluxio.collections;
 
-import alluxio.Configuration;
-import alluxio.PropertyKey;
-
 import com.google.common.base.Preconditions;
 
 import java.util.ArrayList;
