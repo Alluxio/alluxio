@@ -112,14 +112,14 @@ public class LocalUnderFileSystem extends BaseUnderFileSystem
         throw new IOException(ExceptionMessage.PARENT_CREATION_FAILED.getMessage(path));
       }
     }
-    OutputStream stream = new FileOutputStream(path);
+    OutputStream stream = new BufferedOutputStream(new FileOutputStream(path));
     try {
       setMode(path, options.getMode().toShort());
     } catch (IOException e) {
       stream.close();
       throw e;
     }
-    return new BufferedOutputStream(stream);
+    return stream;
   }
 
   @Override
@@ -341,14 +341,14 @@ public class LocalUnderFileSystem extends BaseUnderFileSystem
   @Override
   public InputStream open(String path, OpenOptions options) throws IOException {
     path = stripPath(path);
-    FileInputStream inputStream = new FileInputStream(path);
+    InputStream inputStream = new BufferedInputStream(new FileInputStream(path));
     try {
-      ByteStreams.skipFully(inputStream, options.getOffset())
+      ByteStreams.skipFully(inputStream, options.getOffset());
     } catch (IOException e) {
       inputStream.close();
       throw e;
     }
-    return new BufferedInputStream(inputStream);
+    return inputStream;
   }
 
   @Override
