@@ -66,10 +66,15 @@ public final class NettyClient {
    * @return the new client {@link Bootstrap}
    */
   public static Bootstrap createClientBootstrap(Subject subject, SocketAddress address) {
+    return createClientBootstrapInternal(new NettyBootstrapParamaters(subject, address));
+  }
+
+  private static Bootstrap createClientBootstrapInternal(
+      NettyBootstrapParamaters bootstrapParamaters) {
     final Bootstrap boot = new Bootstrap();
 
-    boot.group(WORKER_GROUP)
-        .channel(NettyUtils.getClientChannelClass(!(address instanceof InetSocketAddress)));
+    boot.group(WORKER_GROUP).channel(NettyUtils.getClientChannelClass(
+        !(bootstrapParamaters.getSocketAddress() instanceof InetSocketAddress)));
     boot.option(ChannelOption.SO_KEEPALIVE, true);
     boot.option(ChannelOption.TCP_NODELAY, true);
     boot.option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT);
@@ -94,5 +99,26 @@ public final class NettyClient {
     });
 
     return boot;
+  }
+
+  /**
+   * Parameter definition for creating a netty bootstrap.
+   */
+  private static final class NettyBootstrapParamaters {
+    private Subject mSubject;
+    private SocketAddress mSocketAdress;
+
+    public NettyBootstrapParamaters(Subject subject, SocketAddress socketAddress) {
+      mSubject = subject;
+      mSocketAdress = socketAddress;
+    }
+
+    public Subject getSubject() {
+      return mSubject;
+    }
+
+    public SocketAddress getSocketAddress() {
+      return mSocketAdress;
+    }
   }
 }

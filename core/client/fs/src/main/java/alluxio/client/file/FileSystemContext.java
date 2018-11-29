@@ -387,7 +387,13 @@ public final class FileSystemContext implements Closeable {
    * @return the acquired netty channel
    */
   public Channel acquireNettyChannel(final WorkerNetAddress workerNetAddress) throws IOException {
-    SocketAddress address = NetworkAddressUtils.getDataPortSocketAddress(workerNetAddress);
+    return acquireNettyChannelInternal(new NettyChannelProperties(workerNetAddress));
+  }
+
+  private Channel acquireNettyChannelInternal(final NettyChannelProperties channelProperties)
+          throws IOException {
+    SocketAddress address = NetworkAddressUtils.getDataPortSocketAddress(
+        channelProperties.getWorkerNetAddress());
     ChannelPoolKey key =
         new ChannelPoolKey(address, TransportProviderUtils.getImpersonationUser(mParentSubject));
     if (!mNettyChannelPools.containsKey(key)) {
@@ -583,6 +589,18 @@ public final class FileSystemContext implements Closeable {
           .add("socketAddress", mSocketAddress)
           .add("username", mUsername)
           .toString();
+    }
+  }
+
+  private static final class NettyChannelProperties {
+    private WorkerNetAddress mWorkerNetAddress;
+
+    public NettyChannelProperties(WorkerNetAddress workerNetAddress) {
+      mWorkerNetAddress = workerNetAddress;
+    }
+
+    public WorkerNetAddress getWorkerNetAddress() {
+      return mWorkerNetAddress;
     }
   }
 }
