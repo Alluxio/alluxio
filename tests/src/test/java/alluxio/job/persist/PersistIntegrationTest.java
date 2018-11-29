@@ -23,6 +23,8 @@ import alluxio.job.JobIntegrationTest;
 import alluxio.master.file.meta.PersistenceState;
 import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.util.CommonUtils;
+import alluxio.util.WaitForOptions;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -94,11 +96,14 @@ public final class PersistIntegrationTest extends JobIntegrationTest {
     } finally {
       context.releaseMasterClient(client);
     }
-    // verify scheduled to be persisted
-    status = mFileSystem.getStatus(filePath);
-    Assert.assertEquals(PersistenceState.TO_BE_PERSISTED.toString(), status.getPersistenceState());
-    // wait 100ms
-    Thread.sleep(100);
+    CommonUtils.waitFor("persist timeout", () -> {
+      try {
+        return PersistenceState.NOT_PERSISTED.toString().equals(
+            mFileSystem.getStatus(filePath).getPersistenceState());
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
+    }, WaitForOptions.defaults().setTimeoutMs(10000));
     // verify timeout and reverted to not persisted
     status = mFileSystem.getStatus(filePath);
     Assert.assertEquals(PersistenceState.NOT_PERSISTED.toString(), status.getPersistenceState());
