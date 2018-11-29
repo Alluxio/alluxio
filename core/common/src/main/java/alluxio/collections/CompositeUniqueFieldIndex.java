@@ -44,11 +44,8 @@ public final class CompositeUniqueFieldIndex<T extends Comparable<? super V>, V>
   // Profiling shows that most of the file lists are between 1 and 4 elements.
   // Thus allocate the corresponding ArrayLists with a small initial capacity.
   private static final int DEFAULT_FILES_PER_DIRECTORY = 2;
-  // Use map to store objects when the number of objects exceeds
-  // MAP_THRESHOLD, otherwise use list to store objects.
-  private static final int MAP_THRESHOLD =
-      Configuration.getInt(PropertyKey.MASTER_METE_DATE_INODE_DIRECTORY_MAP_THRESHOLD);
   private final IndexDefinition<T, V> mIndexDefinition;
+  private final int mMapThreshold;
   private transient Object mChildren;
 
   /**
@@ -56,13 +53,14 @@ public final class CompositeUniqueFieldIndex<T extends Comparable<? super V>, V>
    *
    * @param indexDefinition definition of index
    */
-  public CompositeUniqueFieldIndex(IndexDefinition<T, V> indexDefinition) {
+  public CompositeUniqueFieldIndex(IndexDefinition<T, V> indexDefinition, int mapThreshold) {
     mIndexDefinition = indexDefinition;
+    mMapThreshold = mapThreshold;
   }
 
   @Override
   public synchronized boolean add(T object) {
-    if (!(mChildren instanceof Map) && size() > MAP_THRESHOLD) {
+    if (!(mChildren instanceof Map) && size() > mMapThreshold) {
       list2Map();
     }
     if (mChildren instanceof Map) {
@@ -113,7 +111,7 @@ public final class CompositeUniqueFieldIndex<T extends Comparable<? super V>, V>
 
   @Override
   public synchronized boolean remove(T object) {
-    if (mChildren instanceof Map && size() < MAP_THRESHOLD) {
+    if (mChildren instanceof Map && size() < mMapThreshold / 2) {
       map2List();
     }
     if (mChildren instanceof Map) {

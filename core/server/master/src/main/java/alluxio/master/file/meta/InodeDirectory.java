@@ -11,7 +11,9 @@
 
 package alluxio.master.file.meta;
 
+import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.collections.CompositeUniqueFieldIndex;
 import alluxio.collections.IndexDefinition;
 import alluxio.exception.InvalidPathException;
@@ -44,9 +46,14 @@ public final class InodeDirectory extends Inode<InodeDirectory> implements Inode
         }
       };
 
+  // Use map to store objects when the number of objects exceeds
+  // MAP_THRESHOLD, otherwise use list to store objects.
+  private static final int MAP_THRESHOLD =
+      Configuration.getInt(PropertyKey.MASTER_METE_DATE_INODE_DIRECTORY_MAP_THRESHOLD);
+
   /** Use UniqueFieldIndex directly for name index rather than using IndexedSet. */
   private final CompositeUniqueFieldIndex<InodeView, String> mChildren =
-      new CompositeUniqueFieldIndex<>(NAME_INDEX);
+      new CompositeUniqueFieldIndex<>(NAME_INDEX, MAP_THRESHOLD);
 
   private boolean mMountPoint;
 
