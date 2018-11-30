@@ -17,8 +17,6 @@ import alluxio.Constants;
 import alluxio.file.options.CompleteUfsFileOptions;
 import alluxio.file.options.CreateUfsFileOptions;
 import alluxio.file.options.DescendantType;
-import alluxio.grpc.CompleteUfsFilePOptions;
-import alluxio.grpc.CreateUfsFilePOptions;
 import alluxio.grpc.ExistsPOptions;
 import alluxio.grpc.FileSystemCommandOptions;
 import alluxio.grpc.GetStatusPOptions;
@@ -480,46 +478,6 @@ public final class GrpcUtils {
     return alluxio.grpc.BlockLocation.newBuilder().setWorkerId(blockLocation.getWorkerId())
         .setWorkerAddress(toProto(blockLocation.getWorkerAddress()))
         .setTierAlias(blockLocation.getTierAlias()).build();
-  }
-
-  /**
-   * Converts options to proto type.
-   *
-   * @param options the options type to convert
-   * @return the converted proto type
-   */
-  public static CreateUfsFilePOptions toProto(CreateUfsFileOptions options) {
-    CreateUfsFilePOptions.Builder builder = CreateUfsFilePOptions.newBuilder();
-    if (!options.getOwner().isEmpty()) {
-      builder.setOwner(options.getOwner());
-    }
-    if (!options.getGroup().isEmpty()) {
-      builder.setGroup(options.getGroup());
-    }
-    if (options.getMode() != null && options.getMode().toShort() != Constants.INVALID_MODE) {
-      builder.setMode(options.getMode().toShort());
-    }
-    return builder.build();
-  }
-
-  /**
-   * Converts options to proto type.
-   *
-   * @param options the options type to convert
-   * @return the converted proto type
-   */
-  public static CompleteUfsFilePOptions toProto(CompleteUfsFileOptions options) {
-    CompleteUfsFilePOptions.Builder builder = CompleteUfsFilePOptions.newBuilder();
-    if (!options.getOwner().isEmpty()) {
-      builder.setOwner(options.getOwner());
-    }
-    if (!options.getGroup().isEmpty()) {
-      builder.setGroup(options.getGroup());
-    }
-    if (options.getMode() != null && options.getMode().toShort() != Constants.INVALID_MODE) {
-      builder.setMode(options.getMode().toShort());
-    }
-    return builder.build();
   }
 
   /**
