@@ -11,7 +11,13 @@
 
 package alluxio.master;
 
+import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.PropertyKey;
+import alluxio.master.metastore.Metastore;
+import alluxio.master.metastore.Metastore.Type;
+import alluxio.master.metastore.java.HeapMetastore;
+import alluxio.master.metastore.rocks.RocksMetastore;
 import alluxio.util.CommonUtils;
 
 import java.util.ArrayList;
@@ -47,6 +53,21 @@ final class MasterUtils {
       CommonUtils.invokeAll(callables, 10 * Constants.SECOND_MS);
     } catch (Exception e) {
       throw new RuntimeException("Failed to start masters", e);
+    }
+  }
+
+  /**
+   * @return a metastore of the configured type
+   */
+  public static Metastore getMetaStore() {
+    Type type = Configuration.getEnum(PropertyKey.MASTER_METASTORE, Type.class);
+    switch (type) {
+      case HEAP:
+        return new HeapMetastore();
+      case ROCKS:
+        return new RocksMetastore();
+      default:
+        throw new IllegalStateException("Unknown metastore type: " + type);
     }
   }
 }

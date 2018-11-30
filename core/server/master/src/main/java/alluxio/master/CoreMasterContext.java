@@ -12,6 +12,7 @@
 package alluxio.master;
 
 import alluxio.master.journal.JournalSystem;
+import alluxio.master.metastore.Metastore;
 
 import com.google.common.base.Preconditions;
 
@@ -21,6 +22,7 @@ import com.google.common.base.Preconditions;
 public class CoreMasterContext extends MasterContext {
   private final SafeModeManager mSafeModeManager;
   private final BackupManager mBackupManager;
+  private final Metastore mMetastore;
   private final long mStartTimeMs;
   private final int mPort;
 
@@ -29,6 +31,7 @@ public class CoreMasterContext extends MasterContext {
 
     mSafeModeManager = Preconditions.checkNotNull(builder.mSafeModeManager, "safeModeManager");
     mBackupManager = Preconditions.checkNotNull(builder.mBackupManager, "backupManager");
+    mMetastore = Preconditions.checkNotNull(builder.mMetastore, "metastore");
     mStartTimeMs = builder.mStartTimeMs;
     mPort = builder.mPort;
   }
@@ -45,6 +48,13 @@ public class CoreMasterContext extends MasterContext {
    */
   public BackupManager getBackupManager() {
     return mBackupManager;
+  }
+
+  /**
+   * @return the metastore
+   */
+  public Metastore getMetastore() {
+    return mMetastore;
   }
 
   /**
@@ -75,6 +85,7 @@ public class CoreMasterContext extends MasterContext {
     private JournalSystem mJournalSystem;
     private SafeModeManager mSafeModeManager;
     private BackupManager mBackupManager;
+    private Metastore mMetastore;
     private long mStartTimeMs;
     private int mPort;
 
@@ -102,6 +113,15 @@ public class CoreMasterContext extends MasterContext {
      */
     public Builder setBackupManager(BackupManager backupManager) {
       mBackupManager = backupManager;
+      return this;
+    }
+
+    /**
+     * @param metastore metastore
+     * @return the builder
+     */
+    public Builder setMetastore(Metastore metastore) {
+      mMetastore = metastore;
       return this;
     }
 

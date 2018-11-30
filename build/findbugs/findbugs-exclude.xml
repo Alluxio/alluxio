@@ -6,6 +6,7 @@
       <Package name="alluxio.thrift"/>
       <Package name="alluxio.proto.journal.*"/>
       <Package name="alluxio.proto.dataserver.*"/>
+      <Package name="alluxio.proto.meta.*"/>
       <Package name="alluxio.proto.shared.*"/>
     </Or>
   </Match>
