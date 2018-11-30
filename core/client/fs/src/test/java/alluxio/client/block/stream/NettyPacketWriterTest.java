@@ -43,7 +43,6 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.util.Random;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
@@ -192,37 +191,37 @@ public final class NettyPacketWriterTest {
   private Future<Long> writeFile(final PacketWriter writer, final long length,
       final long start, final long end) throws Exception {
     return EXECUTOR.submit(() -> {
-        try {
-          long checksum = 0;
-          long pos = 0;
+      try {
+        long checksum = 0;
+        long pos = 0;
 
-          long remaining = length;
-          while (remaining > 0) {
-            int bytesToWrite = (int) Math.min(remaining, PACKET_SIZE);
-            byte[] data = new byte[bytesToWrite];
-            RANDOM.nextBytes(data);
-            ByteBuf buf = Unpooled.wrappedBuffer(data);
-            try {
-              writer.writePacket(buf);
-            } catch (Exception e) {
-              Assert.fail(e.getMessage());
-              throw e;
-            }
-            remaining -= bytesToWrite;
-
-            for (byte aData : data) {
-              if (pos >= start && pos <= end) {
-                checksum += BufferUtils.byteToInt(aData);
-              }
-              pos++;
-            }
+        long remaining = length;
+        while (remaining > 0) {
+          int bytesToWrite = (int) Math.min(remaining, PACKET_SIZE);
+          byte[] data = new byte[bytesToWrite];
+          RANDOM.nextBytes(data);
+          ByteBuf buf = Unpooled.wrappedBuffer(data);
+          try {
+            writer.writePacket(buf);
+          } catch (Exception e) {
+            Assert.fail(e.getMessage());
+            throw e;
           }
-          return checksum;
-        } catch (Throwable throwable) {
-          LOG.error("Failed to write file.", throwable);
-          Assert.fail();
-          throw throwable;
+          remaining -= bytesToWrite;
+
+          for (byte aData : data) {
+            if (pos >= start && pos <= end) {
+              checksum += BufferUtils.byteToInt(aData);
+            }
+            pos++;
+          }
         }
+        return checksum;
+      } catch (Throwable throwable) {
+        LOG.error("Failed to write file.", throwable);
+        Assert.fail();
+        throw throwable;
+      }
     });
   }
 
