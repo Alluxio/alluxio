@@ -27,9 +27,9 @@ import alluxio.grpc.GetUsedBytesPResponse;
 import alluxio.grpc.GetWorkerInfoListPOptions;
 import alluxio.grpc.GetWorkerInfoListPResponse;
 import alluxio.grpc.GetWorkerReportPOptions;
-
 import alluxio.util.RpcUtilsNew;
 import alluxio.util.grpc.GrpcUtils;
+
 import com.google.common.base.Preconditions;
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
@@ -70,7 +70,6 @@ public final class BlockMasterClientServiceHandler
           .setBlockInfo(GrpcUtils.toProto(mBlockMaster.getBlockInfo(blockId))).build();
     }, "CreateFile", "blockId=%s, options=%s", responseObserver, blockId, options);
   }
-
 
   @Override
   public void getBlockMasterInfo(GetBlockMasterInfoPOptions options,

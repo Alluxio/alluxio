@@ -45,8 +45,10 @@ public final class GrpcChannel extends Channel {
     return mChannel.authority();
   }
 
+  /**
+   * Shuts down channel immediately.
+   */
   public void shutdown() {
     mChannel.shutdownNow();
   }
-
 }

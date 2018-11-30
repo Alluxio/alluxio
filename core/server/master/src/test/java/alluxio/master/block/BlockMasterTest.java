@@ -206,7 +206,8 @@ public class BlockMasterTest {
     long worker1 = mBlockMaster.getWorkerId(NET_ADDRESS_1);
     long blockId = 1L;
     mBlockMaster.workerRegister(worker1, Arrays.asList("MEM"), ImmutableMap.of("MEM", 100L),
-        ImmutableMap.of("MEM", 0L), NO_BLOCKS_ON_TIERS,  RegisterWorkerPOptions.getDefaultInstance());
+        ImmutableMap.of("MEM", 0L), NO_BLOCKS_ON_TIERS,
+        RegisterWorkerPOptions.getDefaultInstance());
     mBlockMaster.commitBlock(worker1, 50L, "MEM", blockId, 20L);
 
     // Remove the block
@@ -226,7 +227,8 @@ public class BlockMasterTest {
     List<Long> orphanedBlocks = Arrays.asList(1L, 2L);
     Map<String, Long> memUsage = ImmutableMap.of("MEM", 10L);
     mBlockMaster.workerRegister(worker, Arrays.asList("MEM"), ImmutableMap.of("MEM", 100L),
-        memUsage, ImmutableMap.of("MEM", orphanedBlocks), RegisterWorkerPOptions.getDefaultInstance());
+        memUsage, ImmutableMap.of("MEM", orphanedBlocks),
+        RegisterWorkerPOptions.getDefaultInstance());
 
     // Check that the worker heartbeat tells the worker to remove the blocks.
     alluxio.grpc.Command heartBeat = mBlockMaster.workerHeartbeat(worker, memUsage, NO_BLOCKS,
@@ -256,7 +258,8 @@ public class BlockMasterTest {
     // Create a worker.
     long worker = mBlockMaster.getWorkerId(NET_ADDRESS_1);
     mBlockMaster.workerRegister(worker, Arrays.asList("MEM"), ImmutableMap.of("MEM", 100L),
-        ImmutableMap.of("MEM", 0L), NO_BLOCKS_ON_TIERS, RegisterWorkerPOptions.getDefaultInstance());
+        ImmutableMap.of("MEM", 0L), NO_BLOCKS_ON_TIERS,
+        RegisterWorkerPOptions.getDefaultInstance());
     long blockId = 1L;
     mBlockMaster.commitBlock(worker, 50L, "MEM", blockId, 20L);
 
@@ -271,10 +274,12 @@ public class BlockMasterTest {
     // Create two workers.
     long worker1 = mBlockMaster.getWorkerId(NET_ADDRESS_1);
     mBlockMaster.workerRegister(worker1, Arrays.asList("MEM"), ImmutableMap.of("MEM", 100L),
-        ImmutableMap.of("MEM", 0L), NO_BLOCKS_ON_TIERS, RegisterWorkerPOptions.getDefaultInstance());
+        ImmutableMap.of("MEM", 0L), NO_BLOCKS_ON_TIERS,
+        RegisterWorkerPOptions.getDefaultInstance());
     long worker2 = mBlockMaster.getWorkerId(NET_ADDRESS_2);
     mBlockMaster.workerRegister(worker2, Arrays.asList("MEM"), ImmutableMap.of("MEM", 100L),
-        ImmutableMap.of("MEM", 0L), NO_BLOCKS_ON_TIERS, RegisterWorkerPOptions.getDefaultInstance());
+        ImmutableMap.of("MEM", 0L), NO_BLOCKS_ON_TIERS,
+        RegisterWorkerPOptions.getDefaultInstance());
 
     // Commit blockId to worker1.
     long blockId = 1L;
@@ -308,7 +313,8 @@ public class BlockMasterTest {
     long blockId = 1L;
     long blockLength = 20L;
     mBlockMaster.workerRegister(worker1, Arrays.asList("MEM"), ImmutableMap.of("MEM", 100L),
-        ImmutableMap.of("MEM", 0L), NO_BLOCKS_ON_TIERS, RegisterWorkerPOptions.getDefaultInstance());
+        ImmutableMap.of("MEM", 0L), NO_BLOCKS_ON_TIERS,
+        RegisterWorkerPOptions.getDefaultInstance());
     mBlockMaster.commitBlock(worker1, 50L, "MEM", blockId, blockLength);
 
     BlockLocation blockLocation = new BlockLocation()

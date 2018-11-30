@@ -73,7 +73,8 @@ public class ServerConfigurationCheckerTest {
     checkResults(0, 0, ConfigStatus.PASSED);
 
     // When records have a wrong warn property, checker should be able to find config warns
-    ConfigProperty wrongWorkerWarnProp = ConfigProperty.newBuilder().setName(workerWarnProp.getName())
+    ConfigProperty wrongWorkerWarnProp =
+        ConfigProperty.newBuilder().setName(workerWarnProp.getName())
         .setSource(workerWarnProp.getSource()).setValue("WrongValue").build();
     mRecordOne.registerNewConf(addressOne, Arrays.asList(masterEnforceProp, wrongWorkerWarnProp));
     checkResults(0, 1, ConfigStatus.WARN);

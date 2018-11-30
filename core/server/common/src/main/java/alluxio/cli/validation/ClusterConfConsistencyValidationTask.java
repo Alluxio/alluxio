@@ -13,13 +13,11 @@ package alluxio.cli.validation;
 
 import alluxio.Configuration;
 import alluxio.PropertyKey;
-
 import alluxio.grpc.Scope;
 import alluxio.util.grpc.GrpcUtils;
-import com.google.common.base.Enums;
+
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
-import com.google.protobuf.Enum;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;

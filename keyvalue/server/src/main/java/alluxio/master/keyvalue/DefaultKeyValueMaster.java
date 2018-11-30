@@ -92,7 +92,7 @@ public class DefaultKeyValueMaster extends AbstractMaster implements KeyValueMas
   public Map<String, TProcessor> getServices() {
     Map<String, TProcessor> services = new HashMap<>();
     //services.put(Constants.KEY_VALUE_MASTER_CLIENT_SERVICE_NAME,
-    //    new KeyValueMasterClientService.Processor<>(new KeyValueMasterClientServiceHandler(this)));
+    // new KeyValueMasterClientService.Processor<>(new KeyValueMasterClientServiceHandler(this)));
     return services;
   }
 

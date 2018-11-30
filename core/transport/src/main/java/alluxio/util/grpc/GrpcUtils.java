@@ -14,8 +14,6 @@ package alluxio.util.grpc;
 import static alluxio.util.StreamUtils.map;
 
 import alluxio.Constants;
-import alluxio.file.options.CompleteUfsFileOptions;
-import alluxio.file.options.CreateUfsFileOptions;
 import alluxio.file.options.DescendantType;
 import alluxio.grpc.ExistsPOptions;
 import alluxio.grpc.FileSystemCommandOptions;
@@ -565,8 +563,9 @@ public final class GrpcUtils {
    * @return converted proto representation
    */
   public static alluxio.grpc.LocalityTier toProto(TieredIdentity.LocalityTier localityTier) {
-    alluxio.grpc.LocalityTier.Builder tier = alluxio.grpc.LocalityTier.newBuilder().setTierName(localityTier.getTierName());
-    if(localityTier.getValue() != null) {
+    alluxio.grpc.LocalityTier.Builder tier =
+        alluxio.grpc.LocalityTier.newBuilder().setTierName(localityTier.getTierName());
+    if (localityTier.getValue() != null) {
       tier.setValue(localityTier.getValue());
     }
     return tier.build();

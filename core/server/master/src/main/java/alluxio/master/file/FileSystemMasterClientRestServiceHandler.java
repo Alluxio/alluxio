@@ -41,11 +41,9 @@ import com.google.common.base.Preconditions;
 import com.qmino.miredot.annotations.ReturnType;
 
 import java.util.List;
-import java.util.Optional;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.servlet.ServletContext;
-import javax.validation.constraints.Null;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;

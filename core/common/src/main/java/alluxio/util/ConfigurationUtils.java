@@ -21,7 +21,6 @@ import alluxio.grpc.Scope;
 import alluxio.util.grpc.GrpcUtils;
 import alluxio.util.io.PathUtils;
 
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,7 +30,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 
@@ -150,9 +148,10 @@ public final class ConfigurationUtils {
         ConfigurationValueOptions.defaults().useDisplayValue(true).useRawValue(true);
 
     List<ConfigProperty> configs = new ArrayList<>();
-    List<PropertyKey> selectedKeys = Configuration.keySet().stream().filter(key -> GrpcUtils.contains(key.getScope(), scope))
+    List<PropertyKey> selectedKeys =
+        Configuration.keySet().stream().filter(key -> GrpcUtils.contains(key.getScope(), scope))
             .filter(key -> key.isValid(key.getName())).collect(toList());
-    
+
     for (PropertyKey key : selectedKeys) {
       ConfigProperty.Builder configProp = ConfigProperty.newBuilder().setName(key.getName())
           .setSource(Configuration.getSource(key).toString());

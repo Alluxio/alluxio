@@ -15,9 +15,10 @@ import alluxio.grpc.MetricsHeartbeatPRequest;
 import alluxio.grpc.MetricsHeartbeatPResponse;
 import alluxio.grpc.MetricsMasterClientServiceGrpc;
 import alluxio.metrics.Metric;
-
 import alluxio.util.RpcUtilsNew;
+
 import com.google.common.base.Preconditions;
+
 import io.grpc.stub.StreamObserver;
 import jersey.repackaged.com.google.common.collect.Lists;
 import org.slf4j.Logger;
@@ -38,6 +39,9 @@ public final class MetricsMasterClientServiceHandler
 
   private final MetricsMaster mMetricsMaster;
 
+  /**
+   * @param metricsMaster {@link MetricsMaster} instance
+   */
   public MetricsMasterClientServiceHandler(MetricsMaster metricsMaster) {
     Preconditions.checkNotNull(metricsMaster, "metricsMaster");
     mMetricsMaster = metricsMaster;

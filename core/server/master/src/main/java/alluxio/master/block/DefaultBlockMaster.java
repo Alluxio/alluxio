@@ -830,8 +830,8 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
 
   @Override
   public Command workerHeartbeat(long workerId, Map<String, Long> usedBytesOnTiers,
-                                 List<Long> removedBlockIds, Map<String, List<Long>> addedBlocksOnTiers,
-                                 List<Metric> metrics) {
+      List<Long> removedBlockIds, Map<String, List<Long>> addedBlocksOnTiers,
+      List<Metric> metrics) {
     MasterWorkerInfo worker = mWorkers.getFirstByField(ID_INDEX, workerId);
     if (worker == null) {
       LOG.warn("Could not find worker id: {} for heartbeat.", workerId);

@@ -23,8 +23,8 @@ import alluxio.grpc.Scope;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.grpc.GrpcChannel;
 import alluxio.util.grpc.GrpcChannelBuilder;
-
 import alluxio.util.grpc.GrpcUtils;
+
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,7 +32,6 @@ import org.slf4j.LoggerFactory;
 import java.net.InetSocketAddress;
 import java.net.URL;
 import java.time.Duration;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -436,13 +435,15 @@ public final class Configuration {
       try {
         // TODO(ggezer) review grpc channel initialization
         channel = GrpcChannelBuilder.forAddress("localhost", 50051).usePlaintext(true).build();
-        MetaMasterClientServiceGrpc.MetaMasterClientServiceBlockingStub client = MetaMasterClientServiceGrpc.newBlockingStub(channel);
-        clusterConfig = client.getConfiguration(GetConfigurationPOptions.newBuilder().setRawValue(true).build())
+        MetaMasterClientServiceGrpc.MetaMasterClientServiceBlockingStub client =
+            MetaMasterClientServiceGrpc.newBlockingStub(channel);
+        clusterConfig =
+            client.getConfiguration(GetConfigurationPOptions.newBuilder().setRawValue(true).build())
                 .getConfigListList();
-      } catch(io.grpc.StatusRuntimeException e) {
+      } catch (io.grpc.StatusRuntimeException e) {
         throw new UnavailableException(String.format(
-                "Failed to handshake with master %s to load cluster default configuration values",
-                address), e);
+            "Failed to handshake with master %s to load cluster default configuration values",
+            address), e);
       } finally {
         channel.shutdown();
       }

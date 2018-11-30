@@ -290,8 +290,9 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
         String source = Configuration.getSource(key).toString();
         String value = Configuration.getOrDefault(key, null, ConfigurationValueOptions.defaults()
             .useDisplayValue(true).useRawValue(options.getRawValue()));
-        ConfigProperty.Builder config = ConfigProperty.newBuilder().setName(key.getName()).setSource(source);
-        if(value != null) {
+        ConfigProperty.Builder config =
+            ConfigProperty.newBuilder().setName(key.getName()).setSource(source);
+        if (value != null) {
           config.setValue(value);
         }
         configInfoList.add(config.build());

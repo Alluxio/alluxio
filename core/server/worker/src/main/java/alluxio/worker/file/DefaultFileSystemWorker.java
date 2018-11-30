@@ -31,7 +31,6 @@ import com.google.common.util.concurrent.RateLimiter;
 import org.apache.thrift.TProcessor;
 
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Executors;
@@ -43,7 +42,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * This class is responsible for persisting files when requested by the master
+ * This class is responsible for persisting files when requested by the master.
  */
 @NotThreadSafe // TODO(jiri): make thread-safe (c.f. ALLUXIO-1624)
 public final class DefaultFileSystemWorker extends AbstractWorker implements FileSystemWorker {

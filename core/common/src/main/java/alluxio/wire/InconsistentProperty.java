@@ -12,6 +12,7 @@
 package alluxio.wire;
 
 import alluxio.grpc.InconsistentPropertyValues;
+
 import com.google.common.base.Objects;
 
 import java.util.Collections;
@@ -50,7 +51,7 @@ public final class InconsistentProperty {
     mValues = Collections.emptyMap();
     for (Map.Entry<String, InconsistentPropertyValues> entry : inconsistentProperty.getValuesMap()
         .entrySet()) {
-      if (entry.getKey().equals(sOptionalStringVal)) {
+      if (entry.getKey().equals(OPTIONAL_STRING_VAL)) {
         mValues.put(Optional.empty(), entry.getValue().getValuesList());
       }
     }
@@ -126,20 +127,20 @@ public final class InconsistentProperty {
     return joiner.toString();
   }
 
-  private static final String sOptionalStringVal = "__Optional__";
+  private static final String OPTIONAL_STRING_VAL = "__Optional__";
 
   /**
    * @return an inconsistent property of proto construct
    */
   public alluxio.grpc.InconsistentProperty toProto() {
     Map<String, InconsistentPropertyValues> inconsistentPropsMap = Collections.emptyMap();
-    for (Optional<String> key : mValues.keySet()) {
-      String pKey = sOptionalStringVal;
-      if (key.isPresent()) {
-        pKey = key.get();
+    for (Map.Entry<Optional<String>, List<String>> entry : mValues.entrySet()) {
+      String pKey = OPTIONAL_STRING_VAL;
+      if (entry.getKey().isPresent()) {
+        pKey = entry.getKey().get();
       }
       inconsistentPropsMap.put(pKey,
-          InconsistentPropertyValues.newBuilder().addAllValues(mValues.get(key)).build());
+          InconsistentPropertyValues.newBuilder().addAllValues(entry.getValue()).build());
     }
     return alluxio.grpc.InconsistentProperty.newBuilder().setName(mName)
         .putAllValues(inconsistentPropsMap).build();

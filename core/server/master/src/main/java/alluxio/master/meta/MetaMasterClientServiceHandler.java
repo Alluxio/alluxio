@@ -45,9 +45,10 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
- * This class is a Thrift handler for meta master RPCs.
+ * This class is a gRPC handler for meta master RPCs.
  */
-public final class MetaMasterClientServiceHandler extends MetaMasterClientServiceGrpc.MetaMasterClientServiceImplBase {
+public final class MetaMasterClientServiceHandler
+    extends MetaMasterClientServiceGrpc.MetaMasterClientServiceImplBase {
   private static final Logger LOG = LoggerFactory.getLogger(MetaMasterClientServiceHandler.class);
 
   private final MetaMaster mMetaMaster;
@@ -59,6 +60,7 @@ public final class MetaMasterClientServiceHandler extends MetaMasterClientServic
     mMetaMaster = metaMaster;
   }
 
+  @Override
   public void backup(BackupPOptions options, StreamObserver<BackupPResponse> responseObserver) {
 
     RpcUtilsNew.call(LOG, (RpcUtilsNew.RpcCallableThrowsIOException<BackupPResponse>) () -> {
@@ -66,6 +68,7 @@ public final class MetaMasterClientServiceHandler extends MetaMasterClientServic
     }, "backup", "options=%s", responseObserver, options);
   }
 
+  @Override
   public void getConfigReport(GetConfigReportPOptions options,
       StreamObserver<GetConfigReportPResponse> responseObserver) {
     RpcUtilsNew.call(LOG,
@@ -164,7 +167,6 @@ public final class MetaMasterClientServiceHandler extends MetaMasterClientServic
         }
       }
       return GetMetricsPResponse.newBuilder().putAllMetricsMap(metricsMap).build();
-
     }, "getConfiguration", "options=%s", responseObserver, options);
   }
 }

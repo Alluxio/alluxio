@@ -1,7 +1,7 @@
 /*
- * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0 (the
- * "License"). You may not use this work except in compliance with the License, which is available
- * at www.apache.org/licenses/LICENSE-2.0
+ * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+ * (the "License"). You may not use this work except in compliance with the License, which is
+ * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
  * either express or implied, as more fully set forth in the License.
@@ -27,8 +27,8 @@ import alluxio.grpc.MergeStorePRequest;
 import alluxio.grpc.MergeStorePResponse;
 import alluxio.grpc.RenameStorePRequest;
 import alluxio.grpc.RenameStorePResponse;
-
 import alluxio.util.RpcUtilsNew;
+
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,7 +36,7 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * This class is a Thrift handler for key-value master RPCs invoked by an Alluxio client.
+ * This class is a gRPC handler for key-value master RPCs invoked by an Alluxio client.
  */
 @ThreadSafe
 public final class KeyValueMasterClientServiceHandler
@@ -55,6 +55,7 @@ public final class KeyValueMasterClientServiceHandler
     mKeyValueMaster = keyValueMaster;
   }
 
+  @Override
   public void completePartition(CompletePartitionPRequest request,
       StreamObserver<CompletePartitionPResponse> responseObserver) {
     RpcUtilsNew.call(LOG,
@@ -65,12 +66,7 @@ public final class KeyValueMasterClientServiceHandler
         }, "completePartition", "request=%s", responseObserver, request);
   }
 
-  /**
-   * <pre>
-   **
-   * Marks a store complete with its filesystem path.
-   * </pre>
-   */
+  @Override
   public void completeStore(CompleteStorePRequest request,
       StreamObserver<CompleteStorePResponse> responseObserver) {
     RpcUtilsNew.call(LOG, (RpcUtilsNew.RpcCallableThrowsIOException<CompleteStorePResponse>) () -> {
@@ -79,12 +75,7 @@ public final class KeyValueMasterClientServiceHandler
     }, "completeStore", "request=%s", responseObserver, request);
   }
 
-  /**
-   * <pre>
-   **
-   * Creates a new key-value store on master.
-   * </pre>
-   */
+  @Override
   public void createStore(CreateStorePRequest request,
       StreamObserver<CreateStorePResponse> responseObserver) {
     RpcUtilsNew.call(LOG, (RpcUtilsNew.RpcCallableThrowsIOException<CreateStorePResponse>) () -> {
@@ -93,12 +84,7 @@ public final class KeyValueMasterClientServiceHandler
     }, "createStore", "request=%s", responseObserver, request);
   }
 
-  /**
-   * <pre>
-   **
-   * Deletes a completed key-value store.
-   * </pre>
-   */
+  @Override
   public void deleteStore(DeleteStorePRequest request,
       StreamObserver<DeleteStorePResponse> responseObserver) {
     RpcUtilsNew.call(LOG, (RpcUtilsNew.RpcCallableThrowsIOException<DeleteStorePResponse>) () -> {
@@ -107,12 +93,7 @@ public final class KeyValueMasterClientServiceHandler
     }, "deleteStore", "request=%s", responseObserver, request);
   }
 
-  /**
-   * <pre>
-   **
-   * Gets the partition information for the key-value store at the given filesystem path.
-   * </pre>
-   */
+  @Override
   public void getPartitionInfo(GetPartitionInfoPRequest request,
       StreamObserver<GetPartitionInfoPResponse> responseObserver) {
     RpcUtilsNew.call(LOG,
@@ -122,12 +103,7 @@ public final class KeyValueMasterClientServiceHandler
         }, "getPartitionInfo", "request=%s", responseObserver, request);
   }
 
-  /**
-   * <pre>
-   **
-   * Merges one completed key-value store to another completed key-value store.
-   * </pre>
-   */
+  @Override
   public void mergeStore(MergeStorePRequest request,
       StreamObserver<MergeStorePResponse> responseObserver) {
     RpcUtilsNew.call(LOG, (RpcUtilsNew.RpcCallableThrowsIOException<MergeStorePResponse>) () -> {
@@ -137,12 +113,7 @@ public final class KeyValueMasterClientServiceHandler
     }, "mergeStore", "request=%s", responseObserver, request);
   }
 
-  /**
-   * <pre>
-   **
-   * Renames a completed key-value store.
-   * </pre>
-   */
+  @Override
   public void renameStore(RenameStorePRequest request,
       StreamObserver<RenameStorePResponse> responseObserver) {
     RpcUtilsNew.call(LOG, (RpcUtilsNew.RpcCallableThrowsIOException<RenameStorePResponse>) () -> {

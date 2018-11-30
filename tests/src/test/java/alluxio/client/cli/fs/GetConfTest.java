@@ -19,8 +19,8 @@ import alluxio.SystemOutRule;
 import alluxio.SystemPropertyRule;
 import alluxio.cli.GetConf;
 import alluxio.client.RetryHandlingMetaMasterClient;
-
 import alluxio.grpc.ConfigProperty;
+
 import com.google.common.collect.ImmutableMap;
 import org.junit.After;
 import org.junit.Rule;

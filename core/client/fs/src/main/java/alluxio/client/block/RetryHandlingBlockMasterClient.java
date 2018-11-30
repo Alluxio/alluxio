@@ -47,7 +47,6 @@ public final class RetryHandlingBlockMasterClient extends AbstractMasterClient
     implements BlockMasterClient {
   private BlockMasterClientServiceGrpc.BlockMasterClientServiceBlockingStub mGrpcClient = null;
   //private BlockMasterClientService.Client mClient = null;
-  
 
   /**
    * Creates a new block master client.
