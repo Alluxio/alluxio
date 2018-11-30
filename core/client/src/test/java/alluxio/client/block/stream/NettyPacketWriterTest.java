@@ -184,9 +184,7 @@ public final class NettyPacketWriterTest {
    */
   private Future<Long> writeFile(final PacketWriter writer, final long length,
       final long start, final long end) throws Exception {
-    return EXECUTOR.submit(new Callable<Long>() {
-      @Override
-      public Long call() throws IOException {
+    return EXECUTOR.submit(() -> {
         try {
           long checksum = 0;
           long pos = 0;
@@ -199,15 +197,15 @@ public final class NettyPacketWriterTest {
             ByteBuf buf = Unpooled.wrappedBuffer(data);
             try {
               writer.writePacket(buf);
-            } catch (IOException e) {
+            } catch (Exception e) {
               Assert.fail(e.getMessage());
               throw e;
             }
             remaining -= bytesToWrite;
 
-            for (int i = 0; i < data.length; i++) {
+            for (byte aData : data) {
               if (pos >= start && pos <= end) {
-                checksum += BufferUtils.byteToInt(data[i]);
+                checksum += BufferUtils.byteToInt(aData);
               }
               pos++;
             }
@@ -218,7 +216,6 @@ public final class NettyPacketWriterTest {
           Assert.fail();
           throw throwable;
         }
-      }
     });
   }
 
