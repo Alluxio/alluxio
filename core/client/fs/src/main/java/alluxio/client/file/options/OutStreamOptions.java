@@ -67,11 +67,15 @@ public final class OutStreamOptions {
    * @param options CreateFile options
    * @throws Exception if FileWriteLocationPolicy can't be loaded
    */
-  public OutStreamOptions(CreateFilePOptions options) throws Exception {
+  public OutStreamOptions(CreateFilePOptions options) {
     this();
     mBlockSizeBytes = options.getBlockSizeBytes();
-    mLocationPolicy = (FileWriteLocationPolicy) CommonUtils.createNewClassInstance(
-        Class.forName(options.getFileWriteLocationPolicy()), new Class[] {}, new Object[] {});
+    try {
+      mLocationPolicy = (FileWriteLocationPolicy) CommonUtils.createNewClassInstance(
+          Class.forName(options.getFileWriteLocationPolicy()), new Class[] {}, new Object[] {});
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
     mMode = new Mode((short) options.getMode());
     mReplicationDurable = options.getReplicationDurable();
     mReplicationMin = options.getReplicationMin();

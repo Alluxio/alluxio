@@ -2482,13 +2482,13 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     try {
       createFileInternal(rpcContext, inodePath, createFileContext);
 
-      CompleteFileContext completeCtx =
+      CompleteFileContext completeContext =
           CompleteFileContext.defaults(CompleteFilePOptions.newBuilder().setUfsLength(ufsLength))
               .setUfsStatus(context.getUfsStatus());
       if (ufsLastModified != null) {
-        completeCtx.setOperationTimeMs(ufsLastModified);
+        completeContext.setOperationTimeMs(ufsLastModified);
       }
-      completeFileInternal(rpcContext, inodePath, completeCtx);
+      completeFileInternal(rpcContext, inodePath, completeContext);
 
       if (inodePath.getLockMode() == InodeTree.LockMode.READ) {
         // After completing the inode, the lock on the last inode which stands for the created file

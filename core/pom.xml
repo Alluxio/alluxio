@@ -26,8 +26,8 @@
     <module>base</module>
     <module>client</module>
     <module>common</module>
-    <module>transport</module>
     <module>transport-options</module>
+    <module>transport</module>
     <module>server</module>
   </modules>
 

@@ -95,7 +95,7 @@ public final class AlluxioBlockStoreTest {
    * A mock class used to return controlled result when selecting workers.
    */
   @ThreadSafe
-  public static class MockFileWriteLocationPolicy
+  private static class MockFileWriteLocationPolicy
       implements FileWriteLocationPolicy, BlockLocationPolicy {
     private List<WorkerNetAddress> mWorkerNetAddresses;
     private int mIndex;

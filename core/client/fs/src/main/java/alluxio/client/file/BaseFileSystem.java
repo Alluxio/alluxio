@@ -151,15 +151,15 @@ public class BaseFileSystem implements FileSystem {
       mFileSystemContext.releaseMasterClient(masterClient);
     }
 
+    OutStreamOptions outStreamOptions = new OutStreamOptions(options);
+    outStreamOptions.setUfsPath(status.getUfsPath());
+    outStreamOptions.setMountId(status.getMountId());
+    outStreamOptions.setAcl(status.getAcl());
     try {
-      OutStreamOptions outStreamOptions = new OutStreamOptions(options);
-      outStreamOptions.setUfsPath(status.getUfsPath());
-      outStreamOptions.setMountId(status.getMountId());
-      outStreamOptions.setAcl(status.getAcl());
       return new FileOutStream(path, outStreamOptions, mFileSystemContext);
     } catch (Exception e) {
       delete(path);
-      throw new AlluxioException(e.getMessage(), e);
+      throw e;
     }
   }
 

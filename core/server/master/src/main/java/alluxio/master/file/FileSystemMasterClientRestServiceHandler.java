@@ -14,7 +14,6 @@ package alluxio.master.file;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.RestUtils;
-import alluxio.client.file.FileSystemClientOptions;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.grpc.FreePOptions;
@@ -42,9 +41,11 @@ import com.google.common.base.Preconditions;
 import com.qmino.miredot.annotations.ReturnType;
 
 import java.util.List;
+import java.util.Optional;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.servlet.ServletContext;
+import javax.validation.constraints.Null;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -290,8 +291,7 @@ public final class FileSystemMasterClientRestServiceHandler {
       @Override
       public List<FileInfo> call() throws Exception {
         Preconditions.checkNotNull(path, "required 'path' parameter is missing");
-        ListStatusPOptions.Builder listStatusOptionsBuilder =
-            FileSystemClientOptions.getListStatusOptions().toBuilder();
+        ListStatusPOptions.Builder listStatusOptionsBuilder = ListStatusPOptions.newBuilder();
         if (!loadDirectChildren) {
           listStatusOptionsBuilder.setLoadMetadataType(LoadMetadataPType.NEVER);
         }
