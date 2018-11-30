@@ -323,7 +323,7 @@ public final class PersistenceTest {
         .defaults(CreateDirectoryPOptions.newBuilder().setPersisted(true)));
     AlluxioURI alluxioFileSrc = new AlluxioURI("/src/in_alluxio");
     long fileId = mFileSystemMaster.createFile(alluxioFileSrc,
-        CreateFileContext.defaults(CreateFilePOptions.newBuilder().setPersisted(true)));
+        CreateFileContext.defaults(CreateFilePOptions.newBuilder().setPersisted(false)));
     Assert.assertEquals(PersistenceState.NOT_PERSISTED.toString(),
         mFileSystemMaster.getFileInfo(fileId).getPersistenceState());
 
