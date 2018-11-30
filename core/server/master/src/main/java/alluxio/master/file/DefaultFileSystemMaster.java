@@ -3126,7 +3126,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
               syncMetadataInternal(rpcContext, inodePathChangedFile, fileLockingScheme,
                   DescendantType.NONE, statusCache);
             } catch (InvalidPathException e) {
-              LOG.warn("forceSyncMetadata processed an invalid path {}", alluxioUri.getPath());
+              LOG.info("forceSyncMetadata processed an invalid path {}", alluxioUri.getPath());
             }
             return null;
           });
