@@ -273,42 +273,69 @@ public interface FileInfoOrBuilder extends
   int getInAlluxioPercentage();
 
   /**
-   * <code>optional string ufsFingerprint = 25;</code>
+   * <code>optional int32 inMemoryPercentage = 25;</code>
+   */
+  boolean hasInMemoryPercentage();
+  /**
+   * <code>optional int32 inMemoryPercentage = 25;</code>
+   */
+  int getInMemoryPercentage();
+
+  /**
+   * <code>optional string ufsFingerprint = 26;</code>
    */
   boolean hasUfsFingerprint();
   /**
-   * <code>optional string ufsFingerprint = 25;</code>
+   * <code>optional string ufsFingerprint = 26;</code>
    */
   java.lang.String getUfsFingerprint();
   /**
-   * <code>optional string ufsFingerprint = 25;</code>
+   * <code>optional string ufsFingerprint = 26;</code>
    */
   com.google.protobuf.ByteString
       getUfsFingerprintBytes();
 
   /**
-   * <code>optional .alluxio.grpc.PAcl acl = 26;</code>
+   * <code>optional .alluxio.grpc.PAcl acl = 27;</code>
    */
   boolean hasAcl();
   /**
-   * <code>optional .alluxio.grpc.PAcl acl = 26;</code>
+   * <code>optional .alluxio.grpc.PAcl acl = 27;</code>
    */
   alluxio.grpc.PAcl getAcl();
   /**
-   * <code>optional .alluxio.grpc.PAcl acl = 26;</code>
+   * <code>optional .alluxio.grpc.PAcl acl = 27;</code>
    */
   alluxio.grpc.PAclOrBuilder getAclOrBuilder();
 
   /**
-   * <code>optional .alluxio.grpc.PAcl defaultAcl = 27;</code>
+   * <code>optional .alluxio.grpc.PAcl defaultAcl = 28;</code>
    */
   boolean hasDefaultAcl();
   /**
-   * <code>optional .alluxio.grpc.PAcl defaultAcl = 27;</code>
+   * <code>optional .alluxio.grpc.PAcl defaultAcl = 28;</code>
    */
   alluxio.grpc.PAcl getDefaultAcl();
   /**
-   * <code>optional .alluxio.grpc.PAcl defaultAcl = 27;</code>
+   * <code>optional .alluxio.grpc.PAcl defaultAcl = 28;</code>
    */
   alluxio.grpc.PAclOrBuilder getDefaultAclOrBuilder();
+
+  /**
+   * <code>optional int32 replicationMax = 29;</code>
+   */
+  boolean hasReplicationMax();
+  /**
+   * <code>optional int32 replicationMax = 29;</code>
+   */
+  int getReplicationMax();
+
+  /**
+   * <code>optional int32 replicationMin = 30;</code>
+   */
+  boolean hasReplicationMin();
+  /**
+   * <code>optional int32 replicationMin = 30;</code>
+   */
+  int getReplicationMin();
 }

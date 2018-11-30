@@ -16,10 +16,10 @@ import alluxio.PropertyKey;
 import alluxio.Seekable;
 import alluxio.client.BoundedStream;
 import alluxio.client.PositionedReadable;
+import alluxio.client.ReadType;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.InStreamOptions;
-import alluxio.client.file.options.OpenFileOptions;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.NotFoundException;
 import alluxio.network.protocol.databuffer.DataBuffer;
@@ -97,16 +97,14 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
       WorkerNetAddress dataSource, BlockInStreamSource dataSourceType, InStreamOptions options)
       throws IOException {
     URIStatus status = options.getStatus();
-    OpenFileOptions readOptions = options.getOptions();
-
-    boolean promote = readOptions.getReadType().isPromote();
+    ReadType readType = ReadType.fromProto(options.getOptions().getReadType());
 
     long blockId = info.getBlockId();
     long blockSize = info.getLength();
 
     // Construct the partial read request
     Protocol.ReadRequest.Builder builder =
-        Protocol.ReadRequest.newBuilder().setBlockId(blockId).setPromote(promote);
+        Protocol.ReadRequest.newBuilder().setBlockId(blockId).setPromote(readType.isPromote());
     // Add UFS fallback options
     builder.setOpenUfsBlockOptions(options.getOpenUfsBlockOptions(blockId));
 

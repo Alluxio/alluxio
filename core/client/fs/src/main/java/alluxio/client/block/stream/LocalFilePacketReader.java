@@ -13,6 +13,7 @@ package alluxio.client.block.stream;
 
 import alluxio.Configuration;
 import alluxio.PropertyKey;
+import alluxio.client.ReadType;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.metrics.ClientMetrics;
@@ -123,9 +124,9 @@ public final class LocalFilePacketReader implements PacketReader {
       mPacketSize = packetSize;
 
       mChannel = context.acquireNettyChannel(address);
-      Protocol.LocalBlockOpenRequest request =
-          Protocol.LocalBlockOpenRequest.newBuilder().setBlockId(mBlockId)
-              .setPromote(options.getOptions().getReadType().isPromote()).build();
+      boolean isPromote = ReadType.fromProto(options.getOptions().getReadType()).isPromote();
+      Protocol.LocalBlockOpenRequest request = Protocol.LocalBlockOpenRequest.newBuilder()
+          .setBlockId(mBlockId).setPromote(isPromote).build();
       try {
         ProtoMessage message = NettyRPC
             .call(NettyRPCContext.defaults().setChannel(mChannel).setTimeout(READ_TIMEOUT_MS),

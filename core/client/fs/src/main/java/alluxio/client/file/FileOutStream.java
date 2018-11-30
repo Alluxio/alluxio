@@ -19,11 +19,11 @@ import alluxio.client.UnderStorageType;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.stream.BlockOutStream;
 import alluxio.client.block.stream.UnderFileSystemFileOutStream;
-import alluxio.client.file.options.CompleteFileOptions;
 import alluxio.client.file.options.OutStreamOptions;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.UnavailableException;
+import alluxio.grpc.CompleteFilePOptions;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.WorkerMetrics;
 import alluxio.resource.CloseableResource;
@@ -130,13 +130,14 @@ public class FileOutStream extends AbstractOutStream {
         mPreviousBlockOutStreams.add(mCurrentBlockOutStream);
       }
 
-      CompleteFileOptions options = CompleteFileOptions.defaults();
+      CompleteFilePOptions.Builder optionsBuilder =
+          FileSystemClientOptions.getCompleteFileOptions().toBuilder();
       if (mUnderStorageType.isSyncPersist()) {
         if (mCanceled) {
           mUnderStorageOutputStream.cancel();
         } else {
           mUnderStorageOutputStream.close();
-          options.setUfsLength(mBytesWritten);
+          optionsBuilder.setUfsLength(mBytesWritten);
         }
       }
 
@@ -162,7 +163,7 @@ public class FileOutStream extends AbstractOutStream {
       if (!mCanceled && (mUnderStorageType.isSyncPersist() || mAlluxioStorageType.isStore())) {
         try (CloseableResource<FileSystemMasterClient> masterClient = mContext
             .acquireMasterClientResource()) {
-          masterClient.get().completeFile(mUri, options);
+          masterClient.get().completeFile(mUri, optionsBuilder.build());
         }
       }
 

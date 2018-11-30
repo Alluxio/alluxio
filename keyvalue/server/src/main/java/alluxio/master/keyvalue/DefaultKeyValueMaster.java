@@ -22,12 +22,14 @@ import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.status.UnavailableException;
+import alluxio.grpc.CreateDirectoryPOptions;
+import alluxio.grpc.DeletePOptions;
 import alluxio.master.AbstractMaster;
 import alluxio.master.MasterContext;
 import alluxio.master.file.FileSystemMaster;
-import alluxio.master.file.options.CreateDirectoryOptions;
-import alluxio.master.file.options.DeleteOptions;
-import alluxio.master.file.options.RenameOptions;
+import alluxio.master.file.options.CreateDirectoryContext;
+import alluxio.master.file.options.DeleteContext;
+import alluxio.master.file.options.RenameContext;
 import alluxio.master.journal.JournalContext;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.proto.journal.KeyValue;
@@ -216,7 +218,8 @@ public class DefaultKeyValueMaster extends AbstractMaster implements KeyValueMas
       InvalidPathException, AccessControlException, UnavailableException {
     try {
       // Create this dir
-      mFileSystemMaster.createDirectory(path, CreateDirectoryOptions.defaults().setRecursive(true));
+      mFileSystemMaster.createDirectory(path, CreateDirectoryContext
+          .defaults(CreateDirectoryPOptions.newBuilder().setRecursive(true)));
     } catch (IOException e) {
       // TODO(binfan): Investigate why {@link FileSystemMaster#createDirectory} throws IOException
       throw new InvalidPathException(
@@ -255,7 +258,8 @@ public class DefaultKeyValueMaster extends AbstractMaster implements KeyValueMas
       throws IOException, InvalidPathException, FileDoesNotExistException, AlluxioException {
     long fileId = getFileId(uri);
     checkIsCompletePartition(fileId, uri);
-    mFileSystemMaster.delete(uri, DeleteOptions.defaults().setRecursive(true));
+    mFileSystemMaster.delete(uri,
+        DeleteContext.defaults(DeletePOptions.newBuilder().setRecursive(true)));
     try (JournalContext journalContext = createJournalContext()) {
       deleteStoreInternal(fileId);
       journalContext.append(newDeleteStoreEntry(fileId));
@@ -293,7 +297,7 @@ public class DefaultKeyValueMaster extends AbstractMaster implements KeyValueMas
     long oldFileId = getFileId(oldUri);
     checkIsCompletePartition(oldFileId, oldUri);
     try {
-      mFileSystemMaster.rename(oldUri, newUri, RenameOptions.defaults());
+      mFileSystemMaster.rename(oldUri, newUri, RenameContext.defaults());
     } catch (FileAlreadyExistsException e) {
       throw new FileAlreadyExistsException(
           String.format("failed to rename store:the path %s has been used", newUri), e);
@@ -330,7 +334,7 @@ public class DefaultKeyValueMaster extends AbstractMaster implements KeyValueMas
     mFileSystemMaster.rename(fromUri,
         new AlluxioURI(PathUtils.concatPath(toUri.toString(),
             String.format("%s-%s", fromUri.getName(), UUID.randomUUID().toString()))),
-        RenameOptions.defaults());
+        RenameContext.defaults());
     try (JournalContext journalContext = createJournalContext()) {
       mergeStoreInternal(fromFileId, toFileId);
       journalContext.append(newMergeStoreEntry(fromFileId, toFileId));

@@ -95,5 +95,4 @@ public final class ModeUtils {
       return false;
     }
   }
-
 }

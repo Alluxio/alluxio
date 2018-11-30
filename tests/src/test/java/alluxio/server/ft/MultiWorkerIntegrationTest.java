@@ -21,13 +21,13 @@ import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemClientOptions;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.URIStatus;
-import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.InStreamOptions;
-import alluxio.client.file.options.OpenFileOptions;
 import alluxio.client.file.options.OutStreamOptions;
 import alluxio.client.file.policy.RoundRobinPolicy;
+import alluxio.grpc.WritePType;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.util.io.BufferUtils;
@@ -45,7 +45,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
-import java.util.stream.StreamSupport;
 
 /**
  * Tests a cluster containing multiple workers.
@@ -71,8 +70,9 @@ public final class MultiWorkerIntegrationTest extends BaseIntegrationTest {
     AlluxioURI file = new AlluxioURI("/test");
     FileSystem fs = mResource.get().getClient();
     FileSystemTestUtils.createByteFile(fs, file.getPath(), fileSize,
-        CreateFileOptions.defaults().setWriteType(WriteType.MUST_CACHE)
-            .setLocationPolicy(new RoundRobinPolicy()));
+        FileSystemClientOptions.getCreateFileOptions().toBuilder()
+            .setWriteType(WritePType.WRITE_MUST_CACHE)
+            .setFileWriteLocationPolicy(RoundRobinPolicy.class.getCanonicalName()).build());
     URIStatus status = fs.getStatus(file);
     assertEquals(100, status.getInAlluxioPercentage());
     try (FileInStream inStream = fs.openFile(file)) {
@@ -93,7 +93,7 @@ public final class MultiWorkerIntegrationTest extends BaseIntegrationTest {
     AlluxioURI filePath = new AlluxioURI("/test");
     createFileOnWorker(total, filePath, mResource.get().getWorkerAddress());
     FileSystem fs = mResource.get().getClient();
-    try (FileInStream in = fs.openFile(filePath, OpenFileOptions.defaults())) {
+    try (FileInStream in = fs.openFile(filePath, FileSystemClientOptions.getOpenFileOptions())) {
       byte[] buf = new byte[total];
       int size = in.read(buf, 0, offset);
       replicateFileBlocks(filePath);
@@ -118,7 +118,7 @@ public final class MultiWorkerIntegrationTest extends BaseIntegrationTest {
     AlluxioURI filePath = new AlluxioURI("/test");
     FileSystem fs = mResource.get().getClient();
     createFileOnWorker(total, filePath, mResource.get().getWorkerAddress());
-    try (FileInStream in = fs.openFile(filePath, OpenFileOptions.defaults())) {
+    try (FileInStream in = fs.openFile(filePath, FileSystemClientOptions.getOpenFileOptions())) {
       byte[] buf = new byte[total];
       int size = in.read(buf, 0, offset);
       replicateFileBlocks(filePath);
@@ -143,7 +143,7 @@ public final class MultiWorkerIntegrationTest extends BaseIntegrationTest {
     AlluxioURI filePath = new AlluxioURI("/test");
     FileSystem fs = mResource.get().getClient();
     createFileOnWorker(total, filePath, mResource.get().getWorkerAddress());
-    try (FileInStream in = fs.openFile(filePath, OpenFileOptions.defaults())) {
+    try (FileInStream in = fs.openFile(filePath, FileSystemClientOptions.getOpenFileOptions())) {
       byte[] buf = new byte[length];
       replicateFileBlocks(filePath);
       mResource.get().getWorkerProcess().stop();
@@ -156,6 +156,8 @@ public final class MultiWorkerIntegrationTest extends BaseIntegrationTest {
 
   private void createFileOnWorker(int total, AlluxioURI filePath, WorkerNetAddress address)
       throws IOException {
+    // TODO(ggezer) Externalize the anonymous class
+    /*
     FileSystemTestUtils.createByteFile(mResource.get().getClient(), filePath,
         CreateFileOptions.defaults()
             .setWriteType(WriteType.MUST_CACHE)
@@ -165,6 +167,7 @@ public final class MultiWorkerIntegrationTest extends BaseIntegrationTest {
                     .findFirst()
                     .get()
                     .getNetAddress()), total);
+   */
   }
 
   private void replicateFileBlocks(AlluxioURI filePath) throws Exception {

@@ -15,7 +15,8 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
-import alluxio.client.file.options.CreateFileOptions;
+import alluxio.client.file.FileSystemClientOptions;
+import alluxio.grpc.CreateFilePOptions;
 
 /**
  * Util methods.
@@ -29,8 +30,8 @@ public final class Utils {
    * @param path the file path
    */
   public static void createFile(FileSystem fs, AlluxioURI path) throws Exception {
-    try (FileOutStream out = fs.createFile(path,
-        CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB).setRecursive(true))) {
+    try (FileOutStream out = fs.createFile(path, FileSystemClientOptions.getCreateFileOptions()
+        .toBuilder().setBlockSizeBytes(Constants.KB).setRecursive(true).build())) {
       out.write("test".getBytes());
     }
   }
@@ -42,7 +43,7 @@ public final class Utils {
    * @param path the file path
    * @param options create file options
    */
-  public static void createFile(FileSystem fs, AlluxioURI path, CreateFileOptions options)
+  public static void createFile(FileSystem fs, AlluxioURI path, CreateFilePOptions options)
       throws Exception {
     try (FileOutStream out = fs.createFile(path, options)) {
       out.write("test".getBytes());

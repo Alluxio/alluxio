@@ -14,9 +14,10 @@ package alluxio.cli.fs.command;
 import alluxio.AlluxioURI;
 import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystem;
-import alluxio.client.file.options.CreateDirectoryOptions;
+import alluxio.client.file.FileSystemClientOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
+import alluxio.grpc.CreateDirectoryPOptions;
 
 import org.apache.commons.cli.CommandLine;
 
@@ -51,7 +52,8 @@ public final class MkdirCommand extends AbstractFileSystemCommand {
     for (String path : args) {
       AlluxioURI inputPath = new AlluxioURI(path);
 
-      CreateDirectoryOptions options = CreateDirectoryOptions.defaults().setRecursive(true);
+      CreateDirectoryPOptions options = FileSystemClientOptions.getCreateDirectoryOptions()
+          .toBuilder().setRecursive(true).build();
       mFileSystem.createDirectory(inputPath, options);
       System.out.println("Successfully created directory " + inputPath);
     }

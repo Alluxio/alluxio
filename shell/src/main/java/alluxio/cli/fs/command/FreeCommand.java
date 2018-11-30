@@ -16,9 +16,10 @@ import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystem;
-import alluxio.client.file.options.FreeOptions;
+import alluxio.client.file.FileSystemClientOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
+import alluxio.grpc.FreePOptions;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 
@@ -70,7 +71,8 @@ public final class FreeCommand extends AbstractFileSystemCommand {
       throws AlluxioException, IOException {
     int interval =
         Math.toIntExact(Configuration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS));
-    FreeOptions options = FreeOptions.defaults().setRecursive(true).setForced(cl.hasOption("f"));
+    FreePOptions options = FileSystemClientOptions.getFreeOptions().toBuilder().setRecursive(true)
+        .setForced(cl.hasOption("f")).build();
     mFileSystem.free(path, options);
     try {
       CommonUtils.waitFor("file to be freed. Another user may be loading it.", () -> {

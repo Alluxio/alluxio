@@ -60,6 +60,10 @@ public class FileInfoTest {
   }
 
   public void checkEquality(FileInfo a, FileInfo b) {
+    /*
+        && mInMemoryPercentage == that.mInMemoryPercentage
+        && mOwner.equals(that.mOwner)
+     */
     Assert.assertEquals(a.getBlockIds(), b.getBlockIds());
     Assert.assertEquals(a.getBlockSizeBytes(), b.getBlockSizeBytes());
     Assert.assertEquals(a.getCreationTimeMs(), b.getCreationTimeMs());
@@ -77,7 +81,6 @@ public class FileInfoTest {
     Assert.assertEquals(a.getTtlAction(), b.getTtlAction());
     Assert.assertEquals(a.getMountId(), b.getMountId());
     Assert.assertEquals(a.getUfsPath(), b.getUfsPath());
-    Assert.assertEquals(a.getUfsPath(), b.getUfsPath());
     Assert.assertEquals(a.isCacheable(), b.isCacheable());
     Assert.assertEquals(a.isCompleted(), b.isCompleted());
     Assert.assertEquals(a.isFolder(), b.isFolder());
@@ -87,6 +90,9 @@ public class FileInfoTest {
     Assert.assertEquals(a.getInAlluxioPercentage(), b.getInAlluxioPercentage());
     Assert.assertEquals(a.getAcl(), b.getAcl());
     Assert.assertEquals(a.getDefaultAcl(), b.getDefaultAcl());
+    Assert.assertEquals(a.getUfsFingerprint(), b.getUfsFingerprint());
+    Assert.assertEquals(a.getReplicationMax(), b.getReplicationMax());
+    Assert.assertEquals(a.getReplicationMin(), b.getReplicationMin());
     Assert.assertEquals(a, b);
   }
 

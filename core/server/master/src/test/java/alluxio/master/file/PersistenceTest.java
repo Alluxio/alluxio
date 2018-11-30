@@ -20,6 +20,9 @@ import alluxio.client.job.JobMasterClient;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
+import alluxio.grpc.CreateDirectoryPOptions;
+import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.DeletePOptions;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
@@ -33,12 +36,12 @@ import alluxio.master.MasterTestUtils;
 import alluxio.master.SafeModeManager;
 import alluxio.master.block.BlockMasterFactory;
 import alluxio.master.file.meta.PersistenceState;
-import alluxio.master.file.options.CompleteFileOptions;
-import alluxio.master.file.options.CreateDirectoryOptions;
-import alluxio.master.file.options.CreateFileOptions;
-import alluxio.master.file.options.DeleteOptions;
-import alluxio.master.file.options.GetStatusOptions;
-import alluxio.master.file.options.RenameOptions;
+import alluxio.master.file.options.CompleteFileContext;
+import alluxio.master.file.options.CreateDirectoryContext;
+import alluxio.master.file.options.CreateFileContext;
+import alluxio.master.file.options.DeleteContext;
+import alluxio.master.file.options.GetStatusContext;
+import alluxio.master.file.options.RenameContext;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalTestUtils;
 import alluxio.master.metrics.MetricsMasterFactory;
@@ -82,7 +85,7 @@ public final class PersistenceTest {
   private SafeModeManager mSafeModeManager;
   private long mStartTimeMs;
   private int mPort;
-  private static final GetStatusOptions GET_STATUS_OPTIONS = GetStatusOptions.defaults();
+  private static final GetStatusContext GET_STATUS_CONTEXT = GetStatusContext.defaults();
 
   @Rule
   public ManuallyScheduleHeartbeat mManualScheduler =
@@ -138,7 +141,7 @@ public final class PersistenceTest {
   public void successfulAsyncPersistence() throws Exception {
     // Create a file and check the internal state.
     AlluxioURI testFile = createTestFile();
-    FileInfo fileInfo = mFileSystemMaster.getFileInfo(testFile, GET_STATUS_OPTIONS);
+    FileInfo fileInfo = mFileSystemMaster.getFileInfo(testFile, GET_STATUS_CONTEXT);
     Assert.assertEquals(PersistenceState.NOT_PERSISTED.toString(), fileInfo.getPersistenceState());
 
     // Repeatedly schedule the async persistence, checking the internal state.
@@ -193,7 +196,7 @@ public final class PersistenceTest {
 
     {
       // Create the temporary UFS file.
-      fileInfo = mFileSystemMaster.getFileInfo(testFile, GET_STATUS_OPTIONS);
+      fileInfo = mFileSystemMaster.getFileInfo(testFile, GET_STATUS_CONTEXT);
       Map<Long, PersistJob> persistJobs = getPersistJobs();
       PersistJob job = persistJobs.get(fileInfo.getFileId());
       UnderFileSystem ufs = UnderFileSystem.Factory.create(job.getTempUfsPath());
@@ -216,7 +219,7 @@ public final class PersistenceTest {
   public void noRetryCanceled() throws Exception {
     // Create a file and check the internal state.
     AlluxioURI testFile = createTestFile();
-    FileInfo fileInfo = mFileSystemMaster.getFileInfo(testFile, GET_STATUS_OPTIONS);
+    FileInfo fileInfo = mFileSystemMaster.getFileInfo(testFile, GET_STATUS_CONTEXT);
     Assert.assertEquals(PersistenceState.NOT_PERSISTED.toString(), fileInfo.getPersistenceState());
 
     // Repeatedly schedule the async persistence, checking the internal state.
@@ -259,7 +262,7 @@ public final class PersistenceTest {
   public void retryFailed() throws Exception {
     // Create a file and check the internal state.
     AlluxioURI testFile = createTestFile();
-    FileInfo fileInfo = mFileSystemMaster.getFileInfo(testFile, GET_STATUS_OPTIONS);
+    FileInfo fileInfo = mFileSystemMaster.getFileInfo(testFile, GET_STATUS_CONTEXT);
     Assert.assertEquals(PersistenceState.NOT_PERSISTED.toString(), fileInfo.getPersistenceState());
 
     // Repeatedly schedule the async persistence, checking the internal state.
@@ -303,7 +306,7 @@ public final class PersistenceTest {
       }
       CommonUtils.sleepMs(100);
     }
-    fileInfo = mFileSystemMaster.getFileInfo(testFile, GET_STATUS_OPTIONS);
+    fileInfo = mFileSystemMaster.getFileInfo(testFile, GET_STATUS_CONTEXT);
     Assert.assertEquals(PersistenceState.NOT_PERSISTED.toString(), fileInfo.getPersistenceState());
   }
 
@@ -316,11 +319,11 @@ public final class PersistenceTest {
     AuthenticatedClientUser.set(LoginUser.get().getName());
     // Create src file and directory, checking the internal state.
     AlluxioURI alluxioDirSrc = new AlluxioURI("/src");
-    mFileSystemMaster.createDirectory(alluxioDirSrc,
-        CreateDirectoryOptions.defaults().setPersisted(true));
+    mFileSystemMaster.createDirectory(alluxioDirSrc, CreateDirectoryContext
+        .defaults(CreateDirectoryPOptions.newBuilder().setPersisted(true)));
     AlluxioURI alluxioFileSrc = new AlluxioURI("/src/in_alluxio");
     long fileId = mFileSystemMaster.createFile(alluxioFileSrc,
-        CreateFileOptions.defaults().setPersisted(false));
+        CreateFileContext.defaults(CreateFilePOptions.newBuilder().setPersisted(true)));
     Assert.assertEquals(PersistenceState.NOT_PERSISTED.toString(),
         mFileSystemMaster.getFileInfo(fileId).getPersistenceState());
 
@@ -361,13 +364,14 @@ public final class PersistenceTest {
     }
 
     // Rename the src file before the persist is commited.
-    mFileSystemMaster.createDirectory(new AlluxioURI("/dst"),
-        CreateDirectoryOptions.defaults().setPersisted(true));
+    mFileSystemMaster.createDirectory(new AlluxioURI("/dst"), CreateDirectoryContext
+        .defaults(CreateDirectoryPOptions.newBuilder().setPersisted(true)));
     AlluxioURI alluxioFileDst = new AlluxioURI("/dst/in_alluxio");
-    mFileSystemMaster.rename(alluxioFileSrc, alluxioFileDst, RenameOptions.defaults());
+    mFileSystemMaster.rename(alluxioFileSrc, alluxioFileDst, RenameContext.defaults());
 
     // Delete the src directory recursively.
-    mFileSystemMaster.delete(alluxioDirSrc, DeleteOptions.defaults().setRecursive(true));
+    mFileSystemMaster.delete(alluxioDirSrc,
+        DeleteContext.defaults(DeletePOptions.newBuilder().setRecursive(true)));
 
     // Execute the persistence checker heartbeat, checking the internal state. This should
     // re-schedule the persist task as tempUfsPath is deleted.
@@ -392,7 +396,7 @@ public final class PersistenceTest {
   public void replayPersistRequest() throws Exception {
     // Create a file and check the internal state.
     AlluxioURI testFile = createTestFile();
-    FileInfo fileInfo = mFileSystemMaster.getFileInfo(testFile, GET_STATUS_OPTIONS);
+    FileInfo fileInfo = mFileSystemMaster.getFileInfo(testFile, GET_STATUS_CONTEXT);
     Assert.assertEquals(PersistenceState.NOT_PERSISTED.toString(), fileInfo.getPersistenceState());
 
     // Repeatedly schedule the async persistence, checking the internal state.
@@ -417,7 +421,7 @@ public final class PersistenceTest {
   public void replayPersistJob() throws Exception {
     // Create a file and check the internal state.
     AlluxioURI testFile = createTestFile();
-    FileInfo fileInfo = mFileSystemMaster.getFileInfo(testFile, GET_STATUS_OPTIONS);
+    FileInfo fileInfo = mFileSystemMaster.getFileInfo(testFile, GET_STATUS_CONTEXT);
     Assert.assertEquals(PersistenceState.NOT_PERSISTED.toString(), fileInfo.getPersistenceState());
 
     // Repeatedly schedule the async persistence, checking the internal state.
@@ -452,9 +456,12 @@ public final class PersistenceTest {
     AlluxioURI path = new AlluxioURI("/" + CommonUtils.randomAlphaNumString(10));
     String owner = SecurityUtils.getOwnerFromThriftClient();
     String group = SecurityUtils.getGroupFromThriftClient();
-    mFileSystemMaster.createFile(path, CreateFileOptions.defaults()
-        .setOwner(owner).setGroup(group).setMode(Mode.createFullAccess()));
-    mFileSystemMaster.completeFile(path, CompleteFileOptions.defaults());
+    mFileSystemMaster.createFile(path,
+        CreateFileContext
+            .defaults(
+                CreateFilePOptions.newBuilder().setMode(Mode.createFullAccess().toShort()))
+            .setOwner(owner).setGroup(group));
+    mFileSystemMaster.completeFile(path, CompleteFileContext.defaults());
     return path;
   }
 
@@ -467,7 +474,7 @@ public final class PersistenceTest {
     // Persistence completion is asynchronous, so waiting is necessary.
     CommonUtils.waitFor("async persistence is completed for file", () -> {
       try {
-        FileInfo fileInfo = mFileSystemMaster.getFileInfo(testFile, GET_STATUS_OPTIONS);
+        FileInfo fileInfo = mFileSystemMaster.getFileInfo(testFile, GET_STATUS_CONTEXT);
         return fileInfo.getPersistenceState().equals(PersistenceState.PERSISTED.toString());
       } catch (FileDoesNotExistException | InvalidPathException | AccessControlException
           | IOException e) {
@@ -475,7 +482,7 @@ public final class PersistenceTest {
       }
     }, WaitForOptions.defaults().setTimeoutMs(30000));
 
-    FileInfo fileInfo = mFileSystemMaster.getFileInfo(testFile, GET_STATUS_OPTIONS);
+    FileInfo fileInfo = mFileSystemMaster.getFileInfo(testFile, GET_STATUS_CONTEXT);
     Map<Long, PersistJob> persistJobs = getPersistJobs();
     Assert.assertEquals(0, getPersistRequests().size());
     // We update the file info before removing the persist job, so we must wait here.
@@ -485,7 +492,7 @@ public final class PersistenceTest {
   }
 
   private void checkPersistenceInProgress(AlluxioURI testFile, long jobId) throws Exception {
-    FileInfo fileInfo = mFileSystemMaster.getFileInfo(testFile, GET_STATUS_OPTIONS);
+    FileInfo fileInfo = mFileSystemMaster.getFileInfo(testFile, GET_STATUS_CONTEXT);
     Map<Long, PersistJob> persistJobs = getPersistJobs();
     Assert.assertEquals(0, getPersistRequests().size());
     Assert.assertEquals(1, persistJobs.size());
@@ -499,7 +506,7 @@ public final class PersistenceTest {
   }
 
   private void checkPersistenceRequested(AlluxioURI testFile) throws Exception {
-    FileInfo fileInfo = mFileSystemMaster.getFileInfo(testFile, GET_STATUS_OPTIONS);
+    FileInfo fileInfo = mFileSystemMaster.getFileInfo(testFile, GET_STATUS_CONTEXT);
     Map<Long, ExponentialTimer> persistRequests = getPersistRequests();
     Assert.assertEquals(1, persistRequests.size());
     Assert.assertEquals(0, getPersistJobs().size());

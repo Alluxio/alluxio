@@ -15,11 +15,12 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
-import alluxio.client.WriteType;
 import alluxio.client.file.FileSystem;
-import alluxio.client.file.options.CreateFileOptions;
+import alluxio.client.file.FileSystemClientOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.FileAlreadyExistsException;
+import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.WritePType;
 import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
 
@@ -167,7 +168,7 @@ public final class JournalCrashTest {
   private static final int EXIT_FAILED = 1;
   private static final int EXIT_SUCCESS = 0;
 
-  private static CreateFileOptions sCreateFileOptions = null;
+  private static CreateFilePOptions sCreateFileOptions = null;
   private static List<ClientThread> sClientThreadList = null;
   private static int sCreateDeleteClientNum;
   private static int sCreateFileClientNum;
@@ -244,7 +245,8 @@ public final class JournalCrashTest {
     stopCluster();
 
     // Set NO_STORE and NO_PERSIST so that this test can work without AlluxioWorker.
-    sCreateFileOptions = CreateFileOptions.defaults().setWriteType(WriteType.NONE);
+    sCreateFileOptions = FileSystemClientOptions.getCreateFileOptions().toBuilder()
+        .setWriteType(WritePType.WRITE_NONE).build();
     // Set the max retry to avoid long pending for client disconnect.
     if (System.getProperty(PropertyKey.USER_RPC_RETRY_MAX_NUM_RETRY.toString()) == null) {
       System.setProperty(PropertyKey.USER_RPC_RETRY_MAX_NUM_RETRY.toString(), "10");

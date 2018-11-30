@@ -17,12 +17,13 @@ import alluxio.collections.IndexDefinition;
 import alluxio.collections.UniqueFieldIndex;
 import alluxio.exception.InvalidPathException;
 import alluxio.master.ProtobufUtils;
-import alluxio.file.options.CreateDirectoryOptions;
+import alluxio.master.file.options.CreateDirectoryContext;
 import alluxio.proto.journal.File.InodeDirectoryEntry;
 import alluxio.proto.journal.File.UpdateInodeDirectoryEntry;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.security.authorization.AccessControlList;
 import alluxio.security.authorization.DefaultAccessControlList;
+import alluxio.util.grpc.GrpcUtils;
 import alluxio.util.proto.ProtoUtils;
 import alluxio.wire.FileInfo;
 
@@ -323,23 +324,23 @@ public final class InodeDirectory extends Inode<InodeDirectory> implements Inode
    * @param id id of this inode
    * @param parentId id of the parent of this inode
    * @param name name of this inode
-   * @param options options to create this directory
+   * @param context context to create this directory
    * @return the {@link InodeDirectory} representation
    */
   public static InodeDirectory create(long id, long parentId, String name,
-      CreateDirectoryOptions options) {
+      CreateDirectoryContext context) {
     return new InodeDirectory(id)
         .setParentId(parentId)
         .setName(name)
-        .setTtl(options.getTtl())
-        .setTtlAction(options.getTtlAction())
-        .setOwner(options.getOwner())
-        .setGroup(options.getGroup())
-        .setMode(options.getMode().toShort())
-        .setAcl(options.getAcl())
+        .setTtl(context.getOptions().getCommonOptions().getTtl())
+        .setTtlAction(GrpcUtils.fromProto(context.getOptions().getCommonOptions().getTtlAction()))
+        .setOwner(context.getOwner())
+        .setGroup(context.getGroup())
+        .setMode((short) context.getOptions().getMode())
+        .setAcl(context.getAcl())
         // SetAcl call is also setting default AclEntries
-        .setAcl(options.getAcl())
-        .setMountPoint(options.isMountPoint());
+        .setAcl(context.getDefaultAcl())
+        .setMountPoint(context.isMountPoint());
   }
 
   @Override

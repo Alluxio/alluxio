@@ -14,6 +14,7 @@ package alluxio.client.block.stream;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
+import alluxio.client.WriteType;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.OutStreamOptions;
 import alluxio.exception.status.AlluxioStatusException;
@@ -26,7 +27,6 @@ import alluxio.network.protocol.databuffer.DataNettyBufferV2;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.proto.status.Status.PStatus;
 import alluxio.resource.LockResource;
-import alluxio.security.authorization.AccessControlList;
 import alluxio.util.CommonUtils;
 import alluxio.util.proto.ProtoMessage;
 import alluxio.util.proto.ProtoUtils;
@@ -179,7 +179,7 @@ public final class NettyPacketWriter implements PacketWriter {
     boolean alreadyFallback = type == Protocol.RequestType.UFS_FALLBACK_BLOCK;
     // (2) the write type is async when UFS tier is enabled.
     boolean possibleToFallback = type == Protocol.RequestType.ALLUXIO_BLOCK
-        && options.getWriteType() == alluxio.client.WriteType.ASYNC_THROUGH
+        && options.getWriteType() == WriteType.ASYNC_THROUGH
         && Configuration.getBoolean(PropertyKey.USER_FILE_UFS_TIER_ENABLED);
     if (alreadyFallback || possibleToFallback) {
       // Overwrite to use the fallback-enabled endpoint in case (2)

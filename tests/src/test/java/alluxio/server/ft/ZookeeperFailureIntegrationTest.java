@@ -14,24 +14,20 @@ package alluxio.server.ft;
 import static org.junit.Assert.assertFalse;
 
 import alluxio.ConfigurationRule;
-import alluxio.Constants;
 import alluxio.PropertyKey;
+import alluxio.grpc.FileSystemMasterClientServiceGrpc;
+import alluxio.grpc.ListStatusPRequest;
 import alluxio.multi.process.MasterNetAddress;
 import alluxio.multi.process.MultiProcessCluster;
 import alluxio.multi.process.MultiProcessCluster.DeployMode;
 import alluxio.multi.process.PortCoordination;
-import alluxio.network.thrift.ThriftUtils;
-import alluxio.security.authentication.TransportProvider;
-import alluxio.security.authentication.TransportProvider.Factory;
 import alluxio.testutils.AlluxioOperationThread;
 import alluxio.testutils.BaseIntegrationTest;
-import alluxio.thrift.FileSystemMasterClientService.Client;
-import alluxio.thrift.ListStatusTOptions;
 import alluxio.util.CommonUtils;
+import alluxio.util.grpc.GrpcChannel;
+import alluxio.util.grpc.GrpcChannelBuilder;
 
 import com.google.common.collect.ImmutableMap;
-import org.apache.thrift.TException;
-import org.apache.thrift.protocol.TProtocol;
 import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
@@ -109,13 +105,14 @@ public class ZookeeperFailureIntegrationTest extends BaseIntegrationTest {
     InetSocketAddress address =
         new InetSocketAddress(netAddress.getHostname(), netAddress.getRpcPort());
     try {
-      TransportProvider transportProvider = Factory.create();
-      TProtocol protocol =
-          ThriftUtils.createThriftProtocol(transportProvider.getClientTransport(address),
-              Constants.FILE_SYSTEM_MASTER_CLIENT_SERVICE_NAME);
-      Client client = new Client(protocol);
-      client.listStatus("/", new ListStatusTOptions());
-    } catch (TException e) {
+      GrpcChannel channel = GrpcChannelBuilder
+              .forAddress(address.getHostName(), address.getPort())
+              .usePlaintext(true)
+              .build();
+      FileSystemMasterClientServiceGrpc.FileSystemMasterClientServiceBlockingStub client =
+          FileSystemMasterClientServiceGrpc.newBlockingStub(channel);
+      client.listStatus(ListStatusPRequest.getDefaultInstance());
+    } catch (Exception e) {
       return false;
     }
     return true;

@@ -16,8 +16,9 @@ import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileOutStream;
-import alluxio.client.file.options.CreateFileOptions;
+import alluxio.client.file.FileSystemClientOptions;
 import alluxio.client.file.policy.LocalFirstPolicy;
+import alluxio.grpc.CreateFilePOptions;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.util.CommonUtils;
 import alluxio.util.io.BufferUtils;
@@ -61,7 +62,8 @@ public final class FileOutStreamIntegrationTest extends AbstractFileOutStreamInt
   public void writeBytes() throws Exception {
     String uniqPath = PathUtils.uniqPath();
     for (int len = MIN_LEN; len <= MAX_LEN; len += DELTA) {
-      CreateFileOptions op = CreateFileOptions.defaults().setWriteType(mWriteType);
+      CreateFilePOptions op = FileSystemClientOptions.getCreateFileOptions().toBuilder()
+          .setWriteType(mWriteType.toProto()).build();
       AlluxioURI filePath =
           new AlluxioURI(PathUtils.concatPath(uniqPath, "file_" + len + "_" + mWriteType));
       writeIncreasingBytesToFile(filePath, len, op);
@@ -81,7 +83,8 @@ public final class FileOutStreamIntegrationTest extends AbstractFileOutStreamInt
   public void writeByteArray() throws Exception {
     String uniqPath = PathUtils.uniqPath();
     for (int len = MIN_LEN; len <= MAX_LEN; len += DELTA) {
-      CreateFileOptions op = CreateFileOptions.defaults().setWriteType(mWriteType);
+      CreateFilePOptions op = FileSystemClientOptions.getCreateFileOptions().toBuilder()
+          .setWriteType(mWriteType.toProto()).build();
       AlluxioURI filePath =
           new AlluxioURI(PathUtils.concatPath(uniqPath, "file_" + len + "_" + mWriteType));
       writeIncreasingByteArrayToFile(filePath, len, op);
@@ -101,7 +104,8 @@ public final class FileOutStreamIntegrationTest extends AbstractFileOutStreamInt
   public void writeTwoByteArrays() throws Exception {
     String uniqPath = PathUtils.uniqPath();
     for (int len = MIN_LEN; len <= MAX_LEN; len += DELTA) {
-      CreateFileOptions op = CreateFileOptions.defaults().setWriteType(mWriteType);
+      CreateFilePOptions op = FileSystemClientOptions.getCreateFileOptions().toBuilder()
+          .setWriteType(mWriteType.toProto()).build();
       AlluxioURI filePath =
           new AlluxioURI(PathUtils.concatPath(uniqPath, "file_" + len + "_" + mWriteType));
       writeTwoIncreasingByteArraysToFile(filePath, len, op);
@@ -121,9 +125,10 @@ public final class FileOutStreamIntegrationTest extends AbstractFileOutStreamInt
   public void writeSpecifyLocal() throws Exception {
     AlluxioURI filePath = new AlluxioURI(PathUtils.uniqPath());
     final int length = 2;
-    try (FileOutStream os = mFileSystem.createFile(filePath,
-        CreateFileOptions.defaults().setWriteType(mWriteType)
-            .setLocationPolicy(new LocalFirstPolicy()))) {
+    CreateFilePOptions op = FileSystemClientOptions.getCreateFileOptions().toBuilder()
+        .setWriteType(mWriteType.toProto())
+        .setFileWriteLocationPolicy(LocalFirstPolicy.class.getCanonicalName()).build();
+    try (FileOutStream os = mFileSystem.createFile(filePath, op)) {
       os.write((byte) 0);
       os.write((byte) 1);
     }
@@ -144,7 +149,8 @@ public final class FileOutStreamIntegrationTest extends AbstractFileOutStreamInt
     AlluxioURI filePath = new AlluxioURI(PathUtils.uniqPath());
     final int length = 2;
     try (FileOutStream os =
-        mFileSystem.createFile(filePath, CreateFileOptions.defaults().setWriteType(mWriteType))) {
+        mFileSystem.createFile(filePath, FileSystemClientOptions.getCreateFileOptions().toBuilder()
+            .setWriteType(mWriteType.toProto()).build())) {
       os.write((byte) 0);
       Thread.sleep((int) Configuration.getMs(PropertyKey.USER_HEARTBEAT_INTERVAL_MS) * 2);
       os.write((byte) 1);
@@ -168,7 +174,8 @@ public final class FileOutStreamIntegrationTest extends AbstractFileOutStreamInt
     // A length greater than 0.5 * BUFFER_BYTES and less than BUFFER_BYTES.
     int length = (BUFFER_BYTES * 3) / 4;
     try (FileOutStream os =
-        mFileSystem.createFile(filePath, CreateFileOptions.defaults().setWriteType(mWriteType))) {
+        mFileSystem.createFile(filePath, FileSystemClientOptions.getCreateFileOptions().toBuilder()
+            .setWriteType(mWriteType.toProto()).build())) {
       // Write something small, so it is written into the buffer, and not directly to the file.
       os.write((byte) 0);
       // Write a large amount of data (larger than BUFFER_BYTES/2, but will not overflow the buffer.
@@ -190,7 +197,8 @@ public final class FileOutStreamIntegrationTest extends AbstractFileOutStreamInt
   public void cancelWrite() throws Exception {
     AlluxioURI path = new AlluxioURI(PathUtils.uniqPath());
     try (FileOutStream os =
-        mFileSystem.createFile(path, CreateFileOptions.defaults().setWriteType(mWriteType))) {
+        mFileSystem.createFile(path, FileSystemClientOptions.getCreateFileOptions().toBuilder()
+            .setWriteType(mWriteType.toProto()).build())) {
       os.write(BufferUtils.getIncreasingByteArray(0, BLOCK_SIZE_BYTES * 3 + 1));
       os.cancel();
     }

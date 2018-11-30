@@ -16,13 +16,14 @@ import alluxio.AuthenticatedUserRule;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.UnderFileSystemFactoryRegistryRule;
-import alluxio.client.WriteType;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemClientOptions;
 import alluxio.client.file.URIStatus;
-import alluxio.client.file.options.CreateDirectoryOptions;
-import alluxio.client.file.options.CreateFileOptions;
 import alluxio.collections.ConcurrentHashSet;
 import alluxio.exception.AlluxioException;
+import alluxio.grpc.CreateDirectoryPOptions;
+import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.WritePType;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.testutils.BaseIntegrationTest;
@@ -69,10 +70,11 @@ public class ConcurrentRenameIntegrationTest extends BaseIntegrationTest {
    * Options to mark a created file as persisted. Note that this does not actually persist the
    * file but flag the file to be treated as persisted, which will invoke ufs operations.
    */
-  private static CreateFileOptions sCreatePersistedFileOptions =
-      CreateFileOptions.defaults().setWriteType(WriteType.THROUGH);
-  private static CreateDirectoryOptions sCreatePersistedDirOptions =
-      CreateDirectoryOptions.defaults().setWriteType(WriteType.THROUGH).setRecursive(true);
+  private static CreateFilePOptions sCreatePersistedFileOptions = FileSystemClientOptions
+      .getCreateFileOptions().toBuilder().setWriteType(WritePType.WRITE_THROUGH).build();
+  private static CreateDirectoryPOptions sCreatePersistedDirOptions =
+      FileSystemClientOptions.getCreateDirectoryOptions().toBuilder()
+          .setWriteType(WritePType.WRITE_THROUGH).setRecursive(true).build();
 
   private FileSystem mFileSystem;
 
@@ -382,9 +384,12 @@ public class ConcurrentRenameIntegrationTest extends BaseIntegrationTest {
     AlluxioURI dir1 = new AlluxioURI("/root/dir1");
     AlluxioURI dir2 = new AlluxioURI("/root/parent/dir2");
     AlluxioURI dst = new AlluxioURI("/dst");
-    mFileSystem.createDirectory(dir1, CreateDirectoryOptions.defaults().setRecursive(true));
-    mFileSystem.createDirectory(dir2, CreateDirectoryOptions.defaults().setRecursive(true));
-    mFileSystem.createDirectory(dst, CreateDirectoryOptions.defaults().setRecursive(true));
+    mFileSystem.createDirectory(dir1,
+        FileSystemClientOptions.getCreateDirectoryOptions().toBuilder().setRecursive(true).build());
+    mFileSystem.createDirectory(dir2,
+        FileSystemClientOptions.getCreateDirectoryOptions().toBuilder().setRecursive(true).build());
+    mFileSystem.createDirectory(dst,
+        FileSystemClientOptions.getCreateDirectoryOptions().toBuilder().setRecursive(true).build());
     for (int i = 0; i < numThreads; i++) {
       // Dir1 has even files, dir2 has odd files.
       srcs[i] = i % 2 == 0 ? dir1.join("file" + i) : dir2.join("file" + i);
@@ -490,7 +495,8 @@ public class ConcurrentRenameIntegrationTest extends BaseIntegrationTest {
     };
     for (int i = 0; i < iterations; i++) {
       // Don't want sleeping ufs behavior, so do not write to ufs
-      mFileSystem.createFile(file, CreateFileOptions.defaults().setWriteType(WriteType.MUST_CACHE))
+      mFileSystem.createFile(file, FileSystemClientOptions.getCreateFileOptions().toBuilder()
+          .setWriteType(WritePType.WRITE_MUST_CACHE).build())
           .close();
       Thread renamer = new Thread(new Runnable() {
         @Override

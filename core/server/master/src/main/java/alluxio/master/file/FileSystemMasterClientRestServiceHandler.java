@@ -14,17 +14,24 @@ package alluxio.master.file;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.RestUtils;
+import alluxio.grpc.DeletePOptions;
+import alluxio.grpc.FileSystemMasterCommonPOptions;
+import alluxio.grpc.FreePOptions;
+import alluxio.grpc.ListStatusPOptions;
+import alluxio.grpc.LoadMetadataPType;
+import alluxio.grpc.MountPOptions;
+import alluxio.grpc.SetAttributePOptions;
 import alluxio.master.MasterProcess;
-import alluxio.master.file.options.CompleteFileOptions;
-import alluxio.master.file.options.CreateDirectoryOptions;
-import alluxio.master.file.options.CreateFileOptions;
-import alluxio.master.file.options.DeleteOptions;
-import alluxio.master.file.options.FreeOptions;
-//import alluxio.master.file.options.GetStatusOptions;
-import alluxio.master.file.options.ListStatusOptions;
-import alluxio.master.file.options.MountOptions;
-import alluxio.master.file.options.RenameOptions;
-import alluxio.master.file.options.SetAttributeOptions;
+import alluxio.master.file.options.CompleteFileContext;
+import alluxio.master.file.options.CreateDirectoryContext;
+import alluxio.master.file.options.CreateFileContext;
+import alluxio.master.file.options.DeleteContext;
+import alluxio.master.file.options.FreeContext;
+import alluxio.master.file.options.ListStatusContext;
+import alluxio.master.file.options.MountContext;
+import alluxio.master.file.options.RenameContext;
+import alluxio.master.file.options.SetAttributeContext;
+import alluxio.util.grpc.GrpcUtils;
 import alluxio.web.MasterWebServer;
 import alluxio.wire.FileInfo;
 import alluxio.wire.LoadMetadataType;
@@ -34,9 +41,11 @@ import com.google.common.base.Preconditions;
 import com.qmino.miredot.annotations.ReturnType;
 
 import java.util.List;
+import java.util.Optional;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.servlet.ServletContext;
+import javax.validation.constraints.Null;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -124,11 +133,11 @@ public final class FileSystemMasterClientRestServiceHandler {
       @QueryParam("ufsLength") final Long ufsLength) {
     return RestUtils.call((RestUtils.RestCallable<Void>) () -> {
       Preconditions.checkNotNull(path, "required 'path' parameter is missing");
-      CompleteFileOptions options = CompleteFileOptions.defaults();
+      CompleteFileContext context = CompleteFileContext.defaults();
       if (ufsLength != null) {
-        options.setUfsLength(ufsLength);
+        context.getOptions().setUfsLength(ufsLength);
       }
-      mFileSystemMaster.completeFile(new AlluxioURI(path), options);
+      mFileSystemMaster.completeFile(new AlluxioURI(path), context);
       return null;
     });
   }
@@ -152,17 +161,17 @@ public final class FileSystemMasterClientRestServiceHandler {
       @Override
       public Void call() throws Exception {
         Preconditions.checkNotNull(path, "required 'path' parameter is missing");
-        CreateDirectoryOptions options = CreateDirectoryOptions.defaults();
+        CreateDirectoryContext context = CreateDirectoryContext.defaults();
         if (persisted != null) {
-          options.setPersisted(persisted);
+          context.getOptions().setPersisted(persisted);
         }
         if (recursive != null) {
-          options.setRecursive(recursive);
+          context.getOptions().setRecursive(recursive);
         }
         if (allowExists != null) {
-          options.setAllowExists(allowExists);
+          context.getOptions().setAllowExists(allowExists);
         }
-        mFileSystemMaster.createDirectory(new AlluxioURI(path), options);
+        mFileSystemMaster.createDirectory(new AlluxioURI(path), context);
         return null;
       }
     });
@@ -190,26 +199,26 @@ public final class FileSystemMasterClientRestServiceHandler {
       @Override
       public Void call() throws Exception {
         Preconditions.checkNotNull(path, "required 'path' parameter is missing");
-        CreateFileOptions options = CreateFileOptions.defaults();
+        CreateFileContext context = CreateFileContext.defaults();
         if (persisted != null) {
-          options.setPersisted(persisted);
+          context.getOptions().setPersisted(persisted);
         }
         if (recursive != null) {
-          options.setRecursive(recursive);
+            context.getOptions().setRecursive(recursive);
         }
         if (blockSizeBytes != null) {
-          options.setBlockSizeBytes(blockSizeBytes);
+            context.getOptions().setBlockSizeBytes(blockSizeBytes);
         }
         if (ttl != null) {
-          options.setTtl(ttl);
-        }
-        if (ttl != null) {
-          options.setTtl(ttl);
+          FileSystemMasterCommonPOptions.Builder commonOptions =
+              FileSystemMasterCommonPOptions.newBuilder();
+          commonOptions.setTtl(ttl);
           if (ttlAction != null) {
-            options.setTtlAction(ttlAction);
+            commonOptions.setTtlAction(GrpcUtils.toProto(ttlAction));
           }
+          context.getOptions().setCommonOptions(commonOptions);
         }
-        mFileSystemMaster.createFile(new AlluxioURI(path), options);
+        mFileSystemMaster.createFile(new AlluxioURI(path), context);
         return null;
       }
     });
@@ -258,8 +267,8 @@ public final class FileSystemMasterClientRestServiceHandler {
       @QueryParam("recursive") final boolean recursive) {
     return RestUtils.call((RestUtils.RestCallable<Void>) () -> {
       Preconditions.checkNotNull(path, "required 'path' parameter is missing");
-      mFileSystemMaster.free(new AlluxioURI(path), FreeOptions.defaults()
-          .setRecursive(recursive));
+      mFileSystemMaster.free(new AlluxioURI(path),
+          FreeContext.defaults(FreePOptions.newBuilder().setRecursive(recursive)));
       return null;
     });
   }
@@ -282,15 +291,17 @@ public final class FileSystemMasterClientRestServiceHandler {
       @Override
       public List<FileInfo> call() throws Exception {
         Preconditions.checkNotNull(path, "required 'path' parameter is missing");
-        ListStatusOptions listStatusOptions = ListStatusOptions.defaults();
+        ListStatusPOptions.Builder listStatusOptionsBuilder = ListStatusPOptions.newBuilder();
         if (!loadDirectChildren) {
-          listStatusOptions.setLoadMetadataType(LoadMetadataType.Never);
+          listStatusOptionsBuilder.setLoadMetadataType(LoadMetadataPType.NEVER);
         }
         // loadMetadataType overrides loadDirectChildren if it is set.
         if (!loadMetadataType.isEmpty()) {
-          listStatusOptions.setLoadMetadataType(LoadMetadataType.valueOf(loadMetadataType));
+          listStatusOptionsBuilder.setLoadMetadataType(
+              GrpcUtils.toProto(LoadMetadataType.valueOf(loadMetadataType)));
         }
-        return mFileSystemMaster.listStatus(new AlluxioURI(path), listStatusOptions);
+        return mFileSystemMaster.listStatus(new AlluxioURI(path),
+            ListStatusContext.defaults(listStatusOptionsBuilder));
       }
     });
   }
@@ -314,14 +325,15 @@ public final class FileSystemMasterClientRestServiceHandler {
       public Void call() throws Exception {
         Preconditions.checkNotNull(path, "required 'path' parameter is missing");
         Preconditions.checkNotNull(ufsPath, "required 'ufsPath' parameter is missing");
-        MountOptions options = MountOptions.defaults();
+        MountPOptions.Builder optionsBuilder = MountContext.defaults().getOptions();
         if (readOnly != null) {
-          options.setReadOnly(readOnly);
+          optionsBuilder.setReadOnly(readOnly);
         }
         if (shared != null) {
-          options.setShared(shared);
+          optionsBuilder.setShared(shared);
         }
-        mFileSystemMaster.mount(new AlluxioURI(path), new AlluxioURI(ufsPath), options);
+        mFileSystemMaster.mount(new AlluxioURI(path), new AlluxioURI(ufsPath),
+            MountContext.defaults(optionsBuilder));
         return null;
       }
     });
@@ -351,8 +363,8 @@ public final class FileSystemMasterClientRestServiceHandler {
       @QueryParam("recursive") final boolean recursive) {
     return RestUtils.call((RestUtils.RestCallable<Void>) () -> {
       Preconditions.checkNotNull(path, "required 'path' parameter is missing");
-      mFileSystemMaster.delete(new AlluxioURI(path), DeleteOptions.defaults()
-          .setRecursive(recursive));
+      mFileSystemMaster.delete(new AlluxioURI(path),
+          DeleteContext.defaults(DeletePOptions.newBuilder().setRecursive(recursive)));
       return null;
     });
   }
@@ -373,8 +385,8 @@ public final class FileSystemMasterClientRestServiceHandler {
       public Void call() throws Exception {
         Preconditions.checkNotNull(srcPath, "required 'srcPath' parameter is missing");
         Preconditions.checkNotNull(dstPath, "required 'dstPath' parameter is missing");
-        mFileSystemMaster
-            .rename(new AlluxioURI(srcPath), new AlluxioURI(dstPath), RenameOptions.defaults());
+        mFileSystemMaster.rename(new AlluxioURI(srcPath), new AlluxioURI(dstPath),
+            RenameContext.defaults());
         return null;
       }
     });
@@ -421,33 +433,35 @@ public final class FileSystemMasterClientRestServiceHandler {
     return RestUtils.call(new RestUtils.RestCallable<Void>() {
       @Override
       public Void call() throws Exception {
-        SetAttributeOptions options = SetAttributeOptions.defaults();
+        SetAttributePOptions.Builder optionsBuilder = SetAttributePOptions.newBuilder();
+
         Preconditions.checkNotNull(path, "required 'path' parameter is missing");
         if (pinned != null) {
-          options.setPinned(pinned);
+          optionsBuilder.setPinned(pinned);
         }
         if (ttl != null) {
-          options.setTtl(ttl);
+          optionsBuilder.setTtl(ttl);
         }
         if (ttlAction != null) {
-          options.setTtlAction(ttlAction);
+          optionsBuilder.setTtlAction(GrpcUtils.toProto(ttlAction));
         }
         if (persisted != null) {
-          options.setPersisted(persisted);
+          optionsBuilder.setPersisted(persisted);
         }
         if (owner != null) {
-          options.setOwner(owner);
+          optionsBuilder.setOwner(owner);
         }
         if (group != null) {
-          options.setGroup(group);
+          optionsBuilder.setGroup(group);
         }
         if (permission != null) {
-          options.setMode(permission);
+          optionsBuilder.setMode(permission);
         }
         if (recursive != null) {
-          options.setRecursive(recursive);
+          optionsBuilder.setRecursive(recursive);
         }
-        mFileSystemMaster.setAttribute(new AlluxioURI(path), options);
+        mFileSystemMaster.setAttribute(new AlluxioURI(path),
+            SetAttributeContext.defaults(optionsBuilder));
         return null;
       }
     });

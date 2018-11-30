@@ -13,16 +13,15 @@ package alluxio.client.fs;
 
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
-import alluxio.client.WriteType;
 import alluxio.PropertyKey;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
-import alluxio.client.file.options.CreateFileOptions;
-import alluxio.client.file.options.LoadMetadataOptions;
-import alluxio.client.file.options.MountOptions;
+import alluxio.client.file.FileSystemClientOptions;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
+import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.WritePType;
 import alluxio.master.LocalAlluxioCluster;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
@@ -74,7 +73,7 @@ public class ReadOnlyMountIntegrationTest extends BaseIntegrationTest {
     // Add a readonly mount point.
     mFileSystem.createDirectory(new AlluxioURI("/mnt"));
     mFileSystem.mount(new AlluxioURI(MOUNT_PATH), new AlluxioURI(ufsMountDir),
-        MountOptions.defaults().setReadOnly(true));
+        FileSystemClientOptions.getMountOptions().toBuilder().setReadOnly(true).build());
   }
 
   @After
@@ -85,8 +84,8 @@ public class ReadOnlyMountIntegrationTest extends BaseIntegrationTest {
 
   @Test
   public void createFile() throws IOException, AlluxioException {
-    CreateFileOptions writeBoth =
-        CreateFileOptions.defaults().setWriteType(WriteType.CACHE_THROUGH);
+    CreateFilePOptions writeBoth = FileSystemClientOptions.getCreateFileOptions().toBuilder()
+        .setWriteType(WritePType.WRITE_CACHE_THROUGH).build();
 
     AlluxioURI uri = new AlluxioURI(FILE_PATH + "_create");
     try {
@@ -143,7 +142,8 @@ public class ReadOnlyMountIntegrationTest extends BaseIntegrationTest {
     Assert.assertNotNull(mFileSystem.getStatus(fileUri));
 
     fileUri = new AlluxioURI(SUB_FILE_PATH);
-    mFileSystem.loadMetadata(fileUri, LoadMetadataOptions.defaults().setRecursive(true));
+    mFileSystem.loadMetadata(fileUri,
+        FileSystemClientOptions.getLoadMetadataOptions().toBuilder().setRecursive(true).build());
     try {
       mFileSystem.delete(fileUri);
       Assert.fail("deleteFile should not succeed under a readonly mount.");
@@ -162,7 +162,8 @@ public class ReadOnlyMountIntegrationTest extends BaseIntegrationTest {
     Assert.assertNotNull(mFileSystem.getStatus(fileUri));
 
     fileUri = new AlluxioURI(SUB_FILE_PATH);
-    mFileSystem.loadMetadata(fileUri, LoadMetadataOptions.defaults().setRecursive(true));
+    mFileSystem.loadMetadata(fileUri,
+        FileSystemClientOptions.getLoadMetadataOptions().toBuilder().setRecursive(true).build());
     Assert.assertNotNull(mFileSystem.getStatus(fileUri));
   }
 
@@ -269,7 +270,8 @@ public class ReadOnlyMountIntegrationTest extends BaseIntegrationTest {
 //      Assert.assertEquals(e.getMessage(),
 //          ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(SUB_FILE_PATH));
 //    }
-    mFileSystem.loadMetadata(fileUri, LoadMetadataOptions.defaults().setRecursive(true));
+    mFileSystem.loadMetadata(fileUri,
+        FileSystemClientOptions.getLoadMetadataOptions().toBuilder().setRecursive(true).build());
     Assert.assertNotNull(mFileSystem.getStatus(fileUri));
   }
 
@@ -282,7 +284,8 @@ public class ReadOnlyMountIntegrationTest extends BaseIntegrationTest {
     inStream.close();
 
     fileUri = new AlluxioURI(SUB_FILE_PATH);
-    mFileSystem.loadMetadata(fileUri, LoadMetadataOptions.defaults().setRecursive(true));
+    mFileSystem.loadMetadata(fileUri,
+        FileSystemClientOptions.getLoadMetadataOptions().toBuilder().setRecursive(true).build());
     inStream = mFileSystem.openFile(fileUri);
     Assert.assertNotNull(inStream);
     inStream.close();

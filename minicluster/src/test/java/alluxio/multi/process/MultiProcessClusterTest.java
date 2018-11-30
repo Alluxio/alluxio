@@ -18,8 +18,8 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemClientOptions;
 import alluxio.client.file.FileSystemTestUtils;
-import alluxio.client.file.options.CreateFileOptions;
 import alluxio.multi.process.MultiProcessCluster.DeployMode;
 
 import org.junit.Rule;
@@ -73,8 +73,8 @@ public final class MultiProcessClusterTest {
     for (;;) {
       String testFile = "/fileName";
       try {
-        FileSystemTestUtils.createByteFile(fs, testFile, len,
-            CreateFileOptions.defaults().setBlockSizeBytes(100));
+        FileSystemTestUtils.createByteFile(fs, testFile, len, FileSystemClientOptions
+            .getCreateFileOptions().toBuilder().setBlockSizeBytes(100).build());
         break;
       } catch (Exception e) {
         // This can indicate that the worker hasn't connected yet, so we must delete and retry.

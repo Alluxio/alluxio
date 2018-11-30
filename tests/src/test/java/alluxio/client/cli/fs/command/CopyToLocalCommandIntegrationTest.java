@@ -12,10 +12,10 @@
 package alluxio.client.cli.fs.command;
 
 import alluxio.SystemPropertyRule;
-import alluxio.client.WriteType;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
 import alluxio.client.cli.fs.FileSystemShellUtilsTest;
+import alluxio.grpc.WritePType;
 
 import org.junit.Assert;
 import org.junit.Rule;
@@ -48,7 +48,7 @@ public final class CopyToLocalCommandIntegrationTest extends AbstractFileSystemS
 
   @Test
   public void copyToLocalRelativePathDir() throws Exception {
-    FileSystemTestUtils.createByteFile(mFileSystem, "/testFile", WriteType.MUST_CACHE, 10);
+    FileSystemTestUtils.createByteFile(mFileSystem, "/testFile", WritePType.WRITE_MUST_CACHE, 10);
     HashMap<String, String> sysProps = new HashMap<>();
     sysProps.put("user.dir", mTestFolder.getRoot().getAbsolutePath());
     try (Closeable p = new SystemPropertyRule(sysProps).toResource()) {
@@ -124,7 +124,7 @@ public final class CopyToLocalCommandIntegrationTest extends AbstractFileSystemS
     HashMap<String, String> sysProps = new HashMap<>();
     sysProps.put("user.dir", mTestFolder.getRoot().getAbsolutePath());
     try (Closeable p = new SystemPropertyRule(sysProps).toResource()) {
-      FileSystemTestUtils.createByteFile(mFileSystem, "/testFile", WriteType.MUST_CACHE, 10);
+      FileSystemTestUtils.createByteFile(mFileSystem, "/testFile", WritePType.WRITE_MUST_CACHE, 10);
       mFsShell.run("copyToLocal", "/testFile", ".");
       Assert.assertEquals("Copied /testFile to file://" + mTestFolder.getRoot().getAbsolutePath()
               + "/testFile" + "\n", mOutput.toString());

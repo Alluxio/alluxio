@@ -15,26 +15,26 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.annotation.PublicApi;
-import alluxio.client.file.options.CreateDirectoryOptions;
-import alluxio.client.file.options.CreateFileOptions;
-import alluxio.client.file.options.DeleteOptions;
-import alluxio.client.file.options.ExistsOptions;
-import alluxio.client.file.options.FreeOptions;
-import alluxio.client.file.options.GetStatusOptions;
-import alluxio.client.file.options.ListStatusOptions;
-import alluxio.client.file.options.LoadMetadataOptions;
-import alluxio.client.file.options.MountOptions;
-import alluxio.client.file.options.OpenFileOptions;
-import alluxio.client.file.options.RenameOptions;
-import alluxio.client.file.options.SetAclOptions;
-import alluxio.client.file.options.SetAttributeOptions;
-import alluxio.client.file.options.UnmountOptions;
 import alluxio.conf.Source;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
+import alluxio.grpc.CreateDirectoryPOptions;
+import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.DeletePOptions;
+import alluxio.grpc.ExistsPOptions;
+import alluxio.grpc.FreePOptions;
+import alluxio.grpc.GetStatusPOptions;
+import alluxio.grpc.ListStatusPOptions;
+import alluxio.grpc.LoadMetadataPOptions;
+import alluxio.grpc.MountPOptions;
+import alluxio.grpc.OpenFilePOptions;
+import alluxio.grpc.RenamePOptions;
+import alluxio.grpc.SetAclPOptions;
+import alluxio.grpc.SetAttributePOptions;
+import alluxio.grpc.UnmountPOptions;
 import alluxio.security.authorization.AclEntry;
 import alluxio.wire.MountPointInfo;
 import alluxio.wire.SetAclAction;
@@ -88,7 +88,7 @@ public interface FileSystem {
   }
 
   /**
-   * Convenience method for {@link #createDirectory(AlluxioURI, CreateDirectoryOptions)} with
+   * Convenience method for {@link #createDirectory(AlluxioURI, CreateDirectoryPOptions)} with
    * default options.
    *
    * @param path the path of the directory to create in Alluxio space
@@ -106,11 +106,12 @@ public interface FileSystem {
    * @throws FileAlreadyExistsException if there is already a file or directory at the given path
    * @throws InvalidPathException if the path is invalid
    */
-  void createDirectory(AlluxioURI path, CreateDirectoryOptions options)
+  void createDirectory(AlluxioURI path, CreateDirectoryPOptions options)
       throws FileAlreadyExistsException, InvalidPathException, IOException, AlluxioException;
 
   /**
-   * Convenience method for {@link #createFile(AlluxioURI, CreateFileOptions)} with default options.
+   * Convenience method for {@link #createFile(AlluxioURI, CreateFilePOptions)} with default
+   * options.
    *
    * @param path the path of the file to create in Alluxio space
    * @return a {@link FileOutStream} which will write data to the newly created file
@@ -129,11 +130,11 @@ public interface FileSystem {
    * @throws FileAlreadyExistsException if there is already a file at the given path
    * @throws InvalidPathException if the path is invalid
    */
-  FileOutStream createFile(AlluxioURI path, CreateFileOptions options)
+  FileOutStream createFile(AlluxioURI path, CreateFilePOptions options)
       throws FileAlreadyExistsException, InvalidPathException, IOException, AlluxioException;
 
   /**
-   * Convenience method for {@link #delete(AlluxioURI, DeleteOptions)} with default options.
+   * Convenience method for {@link #delete(AlluxioURI, DeletePOptions)} with default options.
    *
    * @param path the path to delete in Alluxio space
    * @throws FileDoesNotExistException if the given path does not exist
@@ -150,11 +151,11 @@ public interface FileSystem {
    * @throws FileDoesNotExistException if the given path does not exist
    * @throws DirectoryNotEmptyException if recursive is false and the path is a nonempty directory
    */
-  void delete(AlluxioURI path, DeleteOptions options)
+  void delete(AlluxioURI path, DeletePOptions options)
       throws DirectoryNotEmptyException, FileDoesNotExistException, IOException, AlluxioException;
 
   /**
-   * Convenience method for {@link #exists(AlluxioURI, ExistsOptions)} with default options.
+   * Convenience method for {@link #exists(AlluxioURI, ExistsPOptions)} with default options.
    *
    * @param path the path in question
    * @return true if the path exists, false otherwise
@@ -170,11 +171,11 @@ public interface FileSystem {
    * @return true if the path exists, false otherwise
    * @throws InvalidPathException if the path is invalid
    */
-  boolean exists(AlluxioURI path, ExistsOptions options)
+  boolean exists(AlluxioURI path, ExistsPOptions options)
       throws InvalidPathException, IOException, AlluxioException;
 
   /**
-   * Convenience method for {@link #free(AlluxioURI, FreeOptions)} with default options.
+   * Convenience method for {@link #free(AlluxioURI, FreePOptions)} with default options.
    *
    * @param path the path to free in Alluxio space
    * @throws FileDoesNotExistException if the given path does not exist
@@ -189,11 +190,11 @@ public interface FileSystem {
    * @param options options to associate with this operation
    * @throws FileDoesNotExistException if the given path does not exist
    */
-  void free(AlluxioURI path, FreeOptions options)
+  void free(AlluxioURI path, FreePOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException;
 
   /**
-   * Convenience method for {@link #getStatus(AlluxioURI, GetStatusOptions)} with default options.
+   * Convenience method for {@link #getStatus(AlluxioURI, GetStatusPOptions)} with default options.
    *
    * @param path the path to obtain information about
    * @return the {@link URIStatus} of the file
@@ -210,11 +211,12 @@ public interface FileSystem {
    * @return the {@link URIStatus} of the file
    * @throws FileDoesNotExistException if the path does not exist
    */
-  URIStatus getStatus(AlluxioURI path, GetStatusOptions options)
+  URIStatus getStatus(AlluxioURI path, GetStatusPOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException;
 
   /**
-   * Convenience method for {@link #listStatus(AlluxioURI, ListStatusOptions)} with default options.
+   * Convenience method for {@link #listStatus(AlluxioURI, ListStatusPOptions)} with default
+   * options.
    *
    * @param path the path to list information about
    * @return a list of {@link URIStatus}s containing information about the files and directories
@@ -234,11 +236,11 @@ public interface FileSystem {
    *         which are children of the given path
    * @throws FileDoesNotExistException if the given path does not exist
    */
-  List<URIStatus> listStatus(AlluxioURI path, ListStatusOptions options)
+  List<URIStatus> listStatus(AlluxioURI path, ListStatusPOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException;
 
   /**
-   * Convenience method for {@link #loadMetadata(AlluxioURI, LoadMetadataOptions)} with default
+   * Convenience method for {@link #loadMetadata(AlluxioURI, LoadMetadataPOptions)} with default
    * options.
    *
    * @param path the path for which to load metadata from UFS
@@ -258,11 +260,11 @@ public interface FileSystem {
    * @deprecated since version 1.1 and will be removed in version 2.0
    */
   @Deprecated
-  void loadMetadata(AlluxioURI path, LoadMetadataOptions options)
+  void loadMetadata(AlluxioURI path, LoadMetadataPOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException;
 
   /**
-   * Convenience method for {@link #mount(AlluxioURI, AlluxioURI, MountOptions)} with default
+   * Convenience method for {@link #mount(AlluxioURI, AlluxioURI, MountPOptions)} with default
    * options.
    *
    * @param alluxioPath an Alluxio path to mount the data to
@@ -280,7 +282,7 @@ public interface FileSystem {
    * @param ufsPath a UFS path to mount the data from
    * @param options options to associate with this operation
    */
-  void mount(AlluxioURI alluxioPath, AlluxioURI ufsPath, MountOptions options)
+  void mount(AlluxioURI alluxioPath, AlluxioURI ufsPath, MountPOptions options)
       throws IOException, AlluxioException;
 
   /**
@@ -290,7 +292,7 @@ public interface FileSystem {
   Map<String, MountPointInfo> getMountTable() throws IOException, AlluxioException;
 
   /**
-   * Convenience method for {@link #openFile(AlluxioURI, OpenFileOptions)} with default options.
+   * Convenience method for {@link #openFile(AlluxioURI, OpenFilePOptions)} with default options.
    *
    * @param path the file to read from
    * @return a {@link FileInStream} for the given path
@@ -307,11 +309,11 @@ public interface FileSystem {
    * @return a {@link FileInStream} for the given path
    * @throws FileDoesNotExistException if the given file does not exist
    */
-  FileInStream openFile(AlluxioURI path, OpenFileOptions options)
+  FileInStream openFile(AlluxioURI path, OpenFilePOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException;
 
   /**
-   * Convenience method for {@link #rename(AlluxioURI, AlluxioURI, RenameOptions)} with default
+   * Convenience method for {@link #rename(AlluxioURI, AlluxioURI, RenamePOptions)} with default
    * options.
    *
    * @param src the path of the source, this must already exist
@@ -330,11 +332,11 @@ public interface FileSystem {
    * @param options options to associate with this operation
    * @throws FileDoesNotExistException if the given file does not exist
    */
-  void rename(AlluxioURI src, AlluxioURI dst, RenameOptions options)
+  void rename(AlluxioURI src, AlluxioURI dst, RenamePOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException;
 
   /**
-   * Convenience method for {@link #setAcl(AlluxioURI, SetAclAction, List, SetAclOptions)} with
+   * Convenience method for {@link #setAcl(AlluxioURI, SetAclAction, List, SetAclPOptions)} with
    * default options.
    *
    * @param path the path to set the ACL for
@@ -354,11 +356,11 @@ public interface FileSystem {
    * @param options options to associate with this operation
    * @throws FileDoesNotExistException if the given file does not exist
    */
-  void setAcl(AlluxioURI path, SetAclAction action, List<AclEntry> entries, SetAclOptions options)
+  void setAcl(AlluxioURI path, SetAclAction action, List<AclEntry> entries, SetAclPOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException;
 
   /**
-   * Convenience method for {@link #setAttribute(AlluxioURI, SetAttributeOptions)} with default
+   * Convenience method for {@link #setAttribute(AlluxioURI, SetAttributePOptions)} with default
    * options.
    *
    * @param path the path to set attributes for
@@ -374,11 +376,11 @@ public interface FileSystem {
    * @param options options to associate with this operation
    * @throws FileDoesNotExistException if the given file does not exist
    */
-  void setAttribute(AlluxioURI path, SetAttributeOptions options)
+  void setAttribute(AlluxioURI path, SetAttributePOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException;
 
   /**
-   * Convenience method for {@link #unmount(AlluxioURI, UnmountOptions)} with default options.
+   * Convenience method for {@link #unmount(AlluxioURI, UnmountPOptions)} with default options.
    *
    * @param path an Alluxio path, this must be a mount point
    */
@@ -392,5 +394,5 @@ public interface FileSystem {
    * @param path an Alluxio path, this must be a mount point
    * @param options options to associate with this operation
    */
-  void unmount(AlluxioURI path, UnmountOptions options) throws IOException, AlluxioException;
+  void unmount(AlluxioURI path, UnmountPOptions options) throws IOException, AlluxioException;
 }

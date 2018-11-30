@@ -1,0 +1,196 @@
+syntax = "proto2";
+
+option java_multiple_files = true;
+option java_package = "alluxio.grpc";
+option java_outer_classname = "FileSystemMasterOptionsProto";
+
+package alluxio.grpc;
+
+import "common.proto";
+
+message FileSystemMasterCommonPOptions {
+  optional int64 syncIntervalMs = 1;
+  optional int64 ttl = 2;
+  optional grpc.TtlAction ttlAction = 3;
+}
+
+message CheckConsistencyPOptions {
+  optional FileSystemMasterCommonPOptions commonOptions = 1;
+}
+
+message CompleteFilePOptions {
+  optional int64 ufsLength = 1;
+  optional FileSystemMasterCommonPOptions commonOptions = 2;
+}
+
+enum WritePType {
+  WRITE_MUST_CACHE = 0;
+  WRITE_TRY_CACHE = 1;
+  WRITE_CACHE_THROUGH = 2;
+  WRITE_THROUGH = 3;
+  WRITE_ASYNC_THROUGH = 4;
+  WRITE_NONE = 5;
+}
+
+enum ReadPType {
+  READ_NO_CACHE = 0;
+  READ_CACHE = 1;
+  READ_CACHE_PROMOTE = 2;
+}
+
+message OpenFilePOptions {
+  optional ReadPType readType = 1;
+  optional int32 maxUfsReadConcurrency = 2;
+  optional string fileReadLocationPolicy = 3;
+  optional int32 hashingNumberOfShards = 4;
+  optional FileSystemMasterCommonPOptions commonOptions = 5;
+}
+
+message CreateFilePOptions {
+  optional int64 blockSizeBytes = 1;
+  optional bool persisted = 2;
+  optional bool recursive = 3;
+  optional int32 mode = 4;
+  optional int32 replicationMax = 5;
+  optional int32 replicationMin = 6;
+  optional int32 replicationDurable = 7;
+  optional string fileWriteLocationPolicy = 8;
+  optional int32 writeTier = 9;
+  optional WritePType writeType = 10;
+  optional FileSystemMasterCommonPOptions commonOptions = 11;
+}
+
+message CreateDirectoryPOptions {
+  optional bool persisted = 1;
+  optional bool recursive = 2;
+  optional bool allowExists = 3;
+  optional int32 mode = 4;
+  optional WritePType writeType = 5;
+  optional FileSystemMasterCommonPOptions commonOptions = 6;
+}
+
+message DeletePOptions {
+  optional bool recursive = 1;
+  optional bool alluxioOnly = 2;
+  optional bool unchecked = 3;
+  optional FileSystemMasterCommonPOptions commonOptions = 4;
+}
+
+message FreePOptions {
+  optional bool recursive = 1;
+  optional bool forced = 2;
+  optional FileSystemMasterCommonPOptions commonOptions = 3;
+}
+
+enum LoadMetadataPType {
+  NEVER = 0;  // Never load metadata.
+  ONCE = 1;  // Load metadata only once.
+  ALWAYS = 2;  // Always load metadata.
+}
+
+message GetNewBlockIdForFilePOptions {
+  optional FileSystemMasterCommonPOptions commonOptions = 1;
+}
+
+message GetStatusPOptions {
+  optional LoadMetadataPType loadMetadataType = 1;
+  optional FileSystemMasterCommonPOptions commonOptions = 2;
+}
+
+message ExistsPOptions {
+  optional LoadMetadataPType loadMetadataType = 1;
+  optional FileSystemMasterCommonPOptions commonOptions = 2;
+}
+
+message ListStatusPOptions {
+  // This is deprecated since 1.1.1 and will be removed in 2.0. Use loadMetadataType.
+  optional bool loadDirectChildren = 1;
+  optional LoadMetadataPType loadMetadataType = 2;
+  optional FileSystemMasterCommonPOptions commonOptions = 3;
+  optional bool recursive = 4;
+}
+
+enum LoadDescendantPType {
+  NONE = 0;
+  ONE = 1;
+  ALL = 2;
+}
+
+message LoadMetadataPOptions {
+  /** whether to load metadata recursively */
+  optional bool recursive = 1;
+  optional bool createAncestors = 2;
+  optional LoadDescendantPType loadDescendantType = 3;
+  optional FileSystemMasterCommonPOptions commonOptions = 4;
+}
+
+message MountPOptions {
+  optional bool readOnly = 1;
+  map<string, string> properties = 2;
+  optional bool shared = 3;
+  optional FileSystemMasterCommonPOptions commonOptions = 4;
+}
+
+message FileSystemCommandOptions {
+  optional PersistCommandOptions persistOptions = 1;
+}
+
+message PersistCommandOptions {
+  repeated PersistFile persistFiles = 1;
+}
+
+message PersistFile {
+  optional int64 fileId = 1;
+  repeated int64 blockIds = 2;
+}
+
+message RenamePOptions {
+  optional FileSystemMasterCommonPOptions commonOptions = 1;
+}
+
+message SetAttributePOptions {
+  optional bool pinned = 1;
+  optional int64 ttl = 2;
+  optional TtlAction ttlAction = 3;
+  optional bool persisted = 4;
+  optional string owner = 5;
+  optional string group = 6;
+  optional int32 mode = 7;
+  optional bool recursive = 8;
+  optional int32 replicationMax = 9;
+  optional int32 replicationMin = 10;
+  optional FileSystemMasterCommonPOptions commonOptions = 11;
+}
+
+message SetAclPOptions {
+  optional FileSystemMasterCommonPOptions commonOptions = 1;
+  optional bool recursive = 2;
+}
+
+message ScheduleAsyncPersistencePOptions {
+  optional FileSystemMasterCommonPOptions commonOptions = 1;
+}
+
+message UnmountPOptions {
+  optional FileSystemMasterCommonPOptions commonOptions = 1;
+}
+
+enum UfsPMode {
+  NO_ACCESS = 1;
+  READ_ONLY = 2;
+  READ_WRITE = 3;
+}
+
+message UpdateUfsModePOptions {
+  optional UfsPMode ufsMode = 1;
+}
+
+message FileSystemHeartbeatPOptions {
+  repeated string persistedFileFingerprints = 1;
+}
+
+message GetFileInfoPOptions {}
+
+message GetPinnedFileIdsPOptions {}
+
+message GetUfsInfoPOptions {}

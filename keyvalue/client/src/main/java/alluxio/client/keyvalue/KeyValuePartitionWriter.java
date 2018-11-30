@@ -17,8 +17,9 @@ import alluxio.PropertyKey;
 import alluxio.client.Cancelable;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
-import alluxio.client.file.options.CreateFileOptions;
+import alluxio.client.file.FileSystemClientOptions;
 import alluxio.exception.AlluxioException;
+import alluxio.grpc.CreateFilePOptions;
 
 import com.google.common.base.Preconditions;
 
@@ -48,8 +49,9 @@ public interface KeyValuePartitionWriter extends Closeable, Cancelable {
         throws AlluxioException, IOException {
       Preconditions.checkNotNull(uri, "uri");
       FileSystem fs = FileSystem.Factory.get();
-      CreateFileOptions options = CreateFileOptions.defaults().setBlockSizeBytes(
-          Configuration.getBytes(PropertyKey.KEY_VALUE_PARTITION_SIZE_BYTES_MAX));
+      CreateFilePOptions options = FileSystemClientOptions.getCreateFileOptions().toBuilder()
+          .setBlockSizeBytes(Configuration.getBytes(PropertyKey.KEY_VALUE_PARTITION_SIZE_BYTES_MAX))
+          .build();
       FileOutStream fileOutStream = fs.createFile(uri, options);
       return new BaseKeyValuePartitionWriter(fileOutStream);
     }

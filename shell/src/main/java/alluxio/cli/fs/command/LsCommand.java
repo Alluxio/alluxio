@@ -14,15 +14,16 @@ package alluxio.cli.fs.command;
 import alluxio.AlluxioURI;
 import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemClientOptions;
 import alluxio.client.file.URIStatus;
-import alluxio.client.file.options.ListStatusOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.InvalidArgumentException;
+import alluxio.grpc.ListStatusPOptions;
+import alluxio.grpc.LoadMetadataPType;
 import alluxio.util.CommonUtils;
 import alluxio.util.FormatUtils;
 import alluxio.util.SecurityUtils;
-import alluxio.wire.LoadMetadataType;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
@@ -227,12 +228,13 @@ public final class LsCommand extends AbstractFileSystemCommand {
       return;
     }
 
-    ListStatusOptions options = ListStatusOptions.defaults();
+    ListStatusPOptions.Builder optionsBuilder =
+        FileSystemClientOptions.getListStatusOptions().toBuilder();
     if (forceLoadMetadata) {
-      options.setLoadMetadataType(LoadMetadataType.Always);
+      optionsBuilder.setLoadMetadataType(LoadMetadataPType.ALWAYS);
     }
-    options.setRecursive(recursive);
-    List<URIStatus> statuses = mFileSystem.listStatus(path, options);
+    optionsBuilder.setRecursive(recursive);
+    List<URIStatus> statuses = mFileSystem.listStatus(path, optionsBuilder.build());
     List<URIStatus> sorted = sortByFieldAndOrder(statuses, sortField, reverse);
     for (URIStatus status : sorted) {
       if (!pinnedOnly || status.isPinned()) {

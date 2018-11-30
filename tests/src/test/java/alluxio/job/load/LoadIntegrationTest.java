@@ -13,10 +13,10 @@ package alluxio.job.load;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
-import alluxio.client.WriteType;
 import alluxio.client.file.FileOutStream;
+import alluxio.client.file.FileSystemClientOptions;
 import alluxio.client.file.URIStatus;
-import alluxio.client.file.options.CreateFileOptions;
+import alluxio.grpc.WritePType;
 import alluxio.job.JobIntegrationTest;
 import alluxio.master.file.meta.PersistenceState;
 import alluxio.util.io.BufferUtils;
@@ -38,8 +38,8 @@ public final class LoadIntegrationTest extends JobIntegrationTest {
   public void loadTest() throws Exception {
     // write a file outside of Alluxio
     AlluxioURI filePath = new AlluxioURI(TEST_URI);
-    FileOutStream os = mFileSystem.createFile(filePath,
-        CreateFileOptions.defaults().setWriteType(WriteType.THROUGH));
+    FileOutStream os = mFileSystem.createFile(filePath, FileSystemClientOptions
+        .getCreateFileOptions().toBuilder().setWriteType(WritePType.WRITE_THROUGH).build());
     os.write((byte) 0);
     os.write((byte) 1);
     os.close();
@@ -66,8 +66,9 @@ public final class LoadIntegrationTest extends JobIntegrationTest {
   public void loadManyBlocks() throws Exception {
     // write a file outside of Alluxio
     AlluxioURI filePath = new AlluxioURI(TEST_URI);
-    FileOutStream os = mFileSystem.createFile(filePath, CreateFileOptions.defaults()
-        .setBlockSizeBytes(16 * Constants.KB).setWriteType(WriteType.THROUGH));
+    FileOutStream os =
+        mFileSystem.createFile(filePath, FileSystemClientOptions.getCreateFileOptions().toBuilder()
+            .setWriteType(WritePType.WRITE_THROUGH).setBlockSizeBytes(16 * Constants.KB).build());
     byte[] bytes = BufferUtils.getIncreasingByteArray(500 * Constants.KB);
     os.write(bytes);
     os.close();

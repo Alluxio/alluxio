@@ -17,6 +17,7 @@ import static java.util.stream.Collectors.toSet;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
+import alluxio.client.WriteType;
 import alluxio.client.block.policy.BlockLocationPolicy;
 import alluxio.client.block.policy.options.GetWorkerOptions;
 import alluxio.client.block.stream.BlockInStream;
@@ -226,7 +227,7 @@ public final class AlluxioBlockStore {
     if (dataSource == null) {
       dataSourceType = BlockInStreamSource.UFS;
       BlockLocationPolicy policy =
-          Preconditions.checkNotNull(options.getOptions().getUfsReadLocationPolicy(),
+          Preconditions.checkNotNull(options.getUfsReadLocationPolicy(),
               PreconditionMessage.UFS_READ_LOCATION_POLICY_UNSPECIFIED);
       blockWorkerInfo = blockWorkerInfo.stream()
           .filter(workerInfo -> workers.contains(workerInfo.getNetAddress())).collect(toList());
@@ -313,7 +314,7 @@ public final class AlluxioBlockStore {
     // The number of initial copies depends on the write type: if ASYNC_THROUGH, it is the property
     // "alluxio.user.file.replication.durable" before data has been persisted; otherwise
     // "alluxio.user.file.replication.min"
-    int initialReplicas = (options.getWriteType() == alluxio.client.WriteType.ASYNC_THROUGH
+    int initialReplicas = (options.getWriteType() == WriteType.ASYNC_THROUGH
         && options.getReplicationDurable() > options.getReplicationMin())
         ? options.getReplicationDurable() : options.getReplicationMin();
     if (initialReplicas <= 1) {

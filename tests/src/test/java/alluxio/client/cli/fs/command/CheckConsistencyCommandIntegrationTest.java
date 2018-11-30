@@ -12,13 +12,13 @@
 package alluxio.client.cli.fs.command;
 
 import alluxio.AlluxioURI;
-import alluxio.client.WriteType;
+import alluxio.client.file.FileSystemClientOptions;
 import alluxio.client.file.FileSystemTestUtils;
-import alluxio.client.file.options.ExistsOptions;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
+import alluxio.grpc.LoadMetadataPType;
+import alluxio.grpc.WritePType;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.DeleteOptions;
-import alluxio.wire.LoadMetadataType;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -34,10 +34,10 @@ public class CheckConsistencyCommandIntegrationTest extends AbstractFileSystemSh
    */
   @Test
   public void consistent() throws Exception {
-    FileSystemTestUtils
-        .createByteFile(mFileSystem, "/testRoot/testFileA", WriteType.CACHE_THROUGH, 10);
+    FileSystemTestUtils.createByteFile(mFileSystem, "/testRoot/testFileA",
+        WritePType.WRITE_CACHE_THROUGH, 10);
     FileSystemTestUtils.createByteFile(mFileSystem, "/testRoot/testDir/testFileB",
-        WriteType.CACHE_THROUGH, 20);
+        WritePType.WRITE_CACHE_THROUGH, 20);
     mFsShell.run("checkConsistency", "/testRoot");
     String expected = "/testRoot is consistent with the under storage system.\n";
     Assert.assertEquals(expected, mOutput.toString());
@@ -52,9 +52,9 @@ public class CheckConsistencyCommandIntegrationTest extends AbstractFileSystemSh
   @Test
   public void inconsistent() throws Exception {
     FileSystemTestUtils
-        .createByteFile(mFileSystem, "/testRoot/testFileA", WriteType.CACHE_THROUGH, 10);
+        .createByteFile(mFileSystem, "/testRoot/testFileA", WritePType.WRITE_CACHE_THROUGH, 10);
     FileSystemTestUtils.createByteFile(mFileSystem, "/testRoot/testDir/testFileB",
-        WriteType.CACHE_THROUGH, 20);
+            WritePType.WRITE_CACHE_THROUGH, 20);
     String ufsPath = mFileSystem.getStatus(new AlluxioURI("/testRoot/testDir")).getUfsPath();
     UnderFileSystem ufs = UnderFileSystem.Factory.create(ufsPath);
     ufs.deleteDirectory(ufsPath, DeleteOptions.defaults().setRecursive(true));
@@ -75,7 +75,7 @@ public class CheckConsistencyCommandIntegrationTest extends AbstractFileSystemSh
     Assert.assertTrue(!mFileSystem.exists(new AlluxioURI("/testRoot/testDir/testFileB")));
 
     FileSystemTestUtils.createByteFile(mFileSystem, "/testRoot/testDir/testFileB",
-        WriteType.CACHE_THROUGH, 20);
+            WritePType.WRITE_CACHE_THROUGH, 20);
     ufsPath = mFileSystem.getStatus(new AlluxioURI("/testRoot/testDir/testFileB")).getUfsPath();
     ufs.deleteFile(ufsPath);
     OutputStream outputStream = ufs.create(ufsPath);
@@ -87,8 +87,9 @@ public class CheckConsistencyCommandIntegrationTest extends AbstractFileSystemSh
     res = mOutput.toString();
     Assert.assertTrue(res.contains("/testRoot" + " has: " + "1 inconsistent files.\n")
         && res.contains("repairing path: " + "/testRoot/testDir/testFileB\n"));
-    Assert.assertTrue(mFileSystem.exists(new AlluxioURI("/testRoot/testDir/testFileB"),
-        ExistsOptions.defaults().setLoadMetadataType(LoadMetadataType.Always)));
+    Assert.assertTrue(
+        mFileSystem.exists(new AlluxioURI("/testRoot/testDir/testFileB"), FileSystemClientOptions
+            .getExistsOptions().toBuilder().setLoadMetadataType(LoadMetadataPType.ALWAYS).build()));
     Assert.assertTrue(3 == mFileSystem.getStatus(new AlluxioURI("/testRoot/testDir/testFileB"))
         .getLength());
   }
@@ -98,12 +99,11 @@ public class CheckConsistencyCommandIntegrationTest extends AbstractFileSystemSh
    */
   @Test
   public void wildcard() throws Exception {
-    FileSystemTestUtils
-            .createByteFile(mFileSystem, "/testRoot/testDir2/testFileA",
-                    WriteType.CACHE_THROUGH, 10);
+    FileSystemTestUtils.createByteFile(mFileSystem, "/testRoot/testDir2/testFileA",
+        WritePType.WRITE_CACHE_THROUGH, 10);
 
     FileSystemTestUtils.createByteFile(mFileSystem, "/testRoot/testDir/testFileB",
-            WriteType.CACHE_THROUGH, 20);
+        WritePType.WRITE_CACHE_THROUGH, 20);
     mFsShell.run("checkConsistency", "/testRoot/*/testFile*");
     String expected = "/testRoot/testDir/testFileB is consistent with the under storage system.\n"
             + "/testRoot/testDir2/testFileA is consistent "

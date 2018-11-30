@@ -13,8 +13,8 @@ package alluxio.testutils;
 
 import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemClientOptions;
 import alluxio.client.file.FileSystemTestUtils;
-import alluxio.client.file.options.CreateFileOptions;
 import alluxio.util.CommonUtils;
 
 import com.google.common.base.Preconditions;
@@ -123,7 +123,8 @@ public class AlluxioOperationThread extends Thread {
 
   private AlluxioURI createFile() {
     String file = "/file" + ThreadLocalRandom.current().nextLong();
-    FileSystemTestUtils.createByteFile(mFs, file, 100, CreateFileOptions.defaults());
+    FileSystemTestUtils.createByteFile(mFs, file, 100,
+        FileSystemClientOptions.getCreateFileOptions());
     return new AlluxioURI(file);
   }
 }

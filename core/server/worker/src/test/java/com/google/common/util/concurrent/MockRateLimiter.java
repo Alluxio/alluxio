@@ -14,7 +14,7 @@ package com.google.common.util.concurrent;
 import static java.util.concurrent.TimeUnit.MICROSECONDS;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
-import com.google.common.util.concurrent.RateLimiter.SleepingTicker;
+import com.google.common.util.concurrent.RateLimiter.SleepingStopwatch;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,7 +22,7 @@ import java.util.Locale;
 
 /**
  * Provides a fake {@link RateLimiter} to facilitate testing. Note that in Guava 14.0 the
- * {@link RateLimiter.SleepingTicker} class is package private, so this fake rate limiter has to
+ * {@link RateLimiter.SleepingStopwatch} class is package private, so this fake rate limiter has to
  * be in the same package to be able to extend it. Later versions of Guava makes it public, so this
  * can be moved to a package belongs to alluxio when updating to a newer version of Guava.
  */
@@ -72,12 +72,12 @@ public final class MockRateLimiter {
    * R0.6 means a delay of 0.6 seconds caused by the (R)ateLimiter
    * U1.0 means the (U)ser caused the ticker to sleep for a second.
    */
-  private static class FakeSleepingTicker extends SleepingTicker {
+  private static class FakeSleepingTicker extends SleepingStopwatch {
     private long mInstant = 0L;
     private final List<String> mEvents = new ArrayList<>();
 
     @Override
-    public long read() {
+    public long readMicros() {
       return mInstant;
     }
 

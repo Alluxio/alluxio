@@ -14,12 +14,13 @@ package alluxio.client.fs;
 import alluxio.AlluxioURI;
 import alluxio.AuthenticatedUserRule;
 import alluxio.PropertyKey;
-import alluxio.client.WriteType;
 import alluxio.client.file.FileSystem;
-import alluxio.client.file.options.CreateDirectoryOptions;
-import alluxio.client.file.options.CreateFileOptions;
+import alluxio.client.file.FileSystemClientOptions;
+import alluxio.grpc.CreateDirectoryPOptions;
+import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.WritePType;
 import alluxio.master.file.FileSystemMaster;
-import alluxio.master.file.options.CheckConsistencyOptions;
+import alluxio.master.file.options.CheckConsistencyContext;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.underfs.UnderFileSystem;
@@ -38,7 +39,7 @@ import java.util.List;
 
 /**
  * Integration test for
- * {@link FileSystemMaster#checkConsistency(AlluxioURI, CheckConsistencyOptions)}.
+ * {@link FileSystemMaster#checkConsistency(AlluxioURI, CheckConsistencyContext)}.
  */
 public class CheckConsistencyIntegrationTest extends BaseIntegrationTest {
   private static final AlluxioURI DIRECTORY = new AlluxioURI("/dir");
@@ -62,26 +63,26 @@ public class CheckConsistencyIntegrationTest extends BaseIntegrationTest {
         mLocalAlluxioClusterResource.get().getLocalAlluxioMaster().getMasterProcess()
             .getMaster(FileSystemMaster.class);
     mFileSystem = FileSystem.Factory.get();
-    CreateDirectoryOptions dirOptions =
-        CreateDirectoryOptions.defaults().setWriteType(WriteType.CACHE_THROUGH);
-    CreateFileOptions fileOptions =
-        CreateFileOptions.defaults().setWriteType(WriteType.CACHE_THROUGH);
+    CreateDirectoryPOptions dirOptions = FileSystemClientOptions.getCreateDirectoryOptions()
+        .toBuilder().setWriteType(WritePType.WRITE_CACHE_THROUGH).build();
+    CreateFilePOptions fileOptions = FileSystemClientOptions.getCreateFileOptions().toBuilder()
+        .setWriteType(WritePType.WRITE_CACHE_THROUGH).build();
     mFileSystem.createDirectory(DIRECTORY, dirOptions);
     mFileSystem.createFile(FILE, fileOptions).close();
   }
 
   /**
-   * Tests the {@link FileSystemMaster#checkConsistency(AlluxioURI, CheckConsistencyOptions)} method
+   * Tests the {@link FileSystemMaster#checkConsistency(AlluxioURI, CheckConsistencyContext)} method
    * when all files are consistent.
    */
   @Test
   public void consistent() throws Exception {
     Assert.assertEquals(new ArrayList<AlluxioURI>(), mFileSystemMaster.checkConsistency(
-        new AlluxioURI("/"), CheckConsistencyOptions.defaults()));
+        new AlluxioURI("/"), CheckConsistencyContext.defaults()));
   }
 
   /**
-   * Tests the {@link FileSystemMaster#checkConsistency(AlluxioURI, CheckConsistencyOptions)} method
+   * Tests the {@link FileSystemMaster#checkConsistency(AlluxioURI, CheckConsistencyContext)} method
    * when no files are consistent.
    */
   @Test
@@ -91,15 +92,15 @@ public class CheckConsistencyIntegrationTest extends BaseIntegrationTest {
     ufs.deleteDirectory(ufsDirectory, DeleteOptions.defaults().setRecursive(true));
 
     List<AlluxioURI> expected = Lists.newArrayList(FILE, DIRECTORY);
-    List<AlluxioURI> result =
-        mFileSystemMaster.checkConsistency(new AlluxioURI("/"), CheckConsistencyOptions.defaults());
+    List<AlluxioURI> result = mFileSystemMaster.checkConsistency(new AlluxioURI("/"),
+        CheckConsistencyContext.defaults());
     Collections.sort(expected);
     Collections.sort(result);
     Assert.assertEquals(expected, result);
   }
 
   /**
-   * Tests the {@link FileSystemMaster#checkConsistency(AlluxioURI, CheckConsistencyOptions)} method
+   * Tests the {@link FileSystemMaster#checkConsistency(AlluxioURI, CheckConsistencyContext)} method
    * when some files are consistent.
    */
   @Test
@@ -108,20 +109,20 @@ public class CheckConsistencyIntegrationTest extends BaseIntegrationTest {
     UnderFileSystem ufs = UnderFileSystem.Factory.create(ufsFile);
     ufs.deleteFile(ufsFile);
     List<AlluxioURI> expected = Lists.newArrayList(FILE);
-    Assert.assertEquals(expected, mFileSystemMaster
-        .checkConsistency(new AlluxioURI("/"), CheckConsistencyOptions.defaults()));
+    Assert.assertEquals(expected, mFileSystemMaster.checkConsistency(new AlluxioURI("/"),
+        CheckConsistencyContext.defaults()));
   }
 
   /**
-   * Tests the {@link FileSystemMaster#checkConsistency(AlluxioURI, CheckConsistencyOptions)} method
+   * Tests the {@link FileSystemMaster#checkConsistency(AlluxioURI, CheckConsistencyContext)} method
    * when some files are consistent in a larger inode tree.
    */
   @Test
   public void largeTree() throws Exception {
-    CreateDirectoryOptions dirOptions =
-        CreateDirectoryOptions.defaults().setWriteType(WriteType.CACHE_THROUGH);
-    CreateFileOptions fileOptions =
-        CreateFileOptions.defaults().setWriteType(WriteType.CACHE_THROUGH);
+    CreateDirectoryPOptions dirOptions = FileSystemClientOptions.getCreateDirectoryOptions()
+        .toBuilder().setWriteType(WritePType.WRITE_CACHE_THROUGH).build();
+    CreateFilePOptions fileOptions = FileSystemClientOptions.getCreateFileOptions().toBuilder()
+        .setWriteType(WritePType.WRITE_CACHE_THROUGH).build();
     AlluxioURI nestedDir = DIRECTORY.join("/dir2");
     AlluxioURI topLevelFile = new AlluxioURI("/file");
     AlluxioURI thirdLevelFile = nestedDir.join("/file");
@@ -133,15 +134,15 @@ public class CheckConsistencyIntegrationTest extends BaseIntegrationTest {
     ufs.deleteDirectory(ufsDirectory, DeleteOptions.defaults().setRecursive(true));
 
     List<AlluxioURI> expected = Lists.newArrayList(nestedDir, thirdLevelFile);
-    List<AlluxioURI> result =
-        mFileSystemMaster.checkConsistency(new AlluxioURI("/"), CheckConsistencyOptions.defaults());
+    List<AlluxioURI> result = mFileSystemMaster.checkConsistency(new AlluxioURI("/"),
+        CheckConsistencyContext.defaults());
     Collections.sort(expected);
     Collections.sort(result);
     Assert.assertEquals(expected, result);
   }
 
   /**
-   * Tests the {@link FileSystemMaster#checkConsistency(AlluxioURI, CheckConsistencyOptions)} method
+   * Tests the {@link FileSystemMaster#checkConsistency(AlluxioURI, CheckConsistencyContext)} method
    * when a file is not the correct size.
    */
   @Test
@@ -153,12 +154,12 @@ public class CheckConsistencyIntegrationTest extends BaseIntegrationTest {
     out.write(1);
     out.close();
     List<AlluxioURI> expected = Lists.newArrayList(FILE);
-    Assert.assertEquals(expected, mFileSystemMaster
-        .checkConsistency(new AlluxioURI("/"), CheckConsistencyOptions.defaults()));
+    Assert.assertEquals(expected, mFileSystemMaster.checkConsistency(new AlluxioURI("/"),
+        CheckConsistencyContext.defaults()));
   }
 
   /**
-   * Tests the {@link FileSystemMaster#checkConsistency(AlluxioURI, CheckConsistencyOptions)} method
+   * Tests the {@link FileSystemMaster#checkConsistency(AlluxioURI, CheckConsistencyContext)} method
    * when a directory does not exist as a directory in the under storage.
    */
   @Test
@@ -168,15 +169,15 @@ public class CheckConsistencyIntegrationTest extends BaseIntegrationTest {
     ufs.deleteDirectory(ufsDirectory, DeleteOptions.defaults().setRecursive(true));
     ufs.create(ufsDirectory).close();
     List<AlluxioURI> expected = Lists.newArrayList(DIRECTORY, FILE);
-    List<AlluxioURI> result =
-        mFileSystemMaster.checkConsistency(new AlluxioURI("/"), CheckConsistencyOptions.defaults());
+    List<AlluxioURI> result = mFileSystemMaster.checkConsistency(new AlluxioURI("/"),
+        CheckConsistencyContext.defaults());
     Collections.sort(expected);
     Collections.sort(result);
     Assert.assertEquals(expected, result);
   }
 
   /**
-   * Tests the {@link FileSystemMaster#checkConsistency(AlluxioURI, CheckConsistencyOptions)} method
+   * Tests the {@link FileSystemMaster#checkConsistency(AlluxioURI, CheckConsistencyContext)} method
    * when a file does not exist as a file in the under storage.
    */
   @Test
@@ -186,12 +187,12 @@ public class CheckConsistencyIntegrationTest extends BaseIntegrationTest {
     ufs.deleteFile(ufsFile);
     ufs.mkdirs(ufsFile);
     List<AlluxioURI> expected = Lists.newArrayList(FILE);
-    Assert.assertEquals(expected, mFileSystemMaster
-        .checkConsistency(new AlluxioURI("/"), CheckConsistencyOptions.defaults()));
+    Assert.assertEquals(expected, mFileSystemMaster.checkConsistency(new AlluxioURI("/"),
+        CheckConsistencyContext.defaults()));
   }
 
   /**
-   * Tests the {@link FileSystemMaster#checkConsistency(AlluxioURI, CheckConsistencyOptions)} method
+   * Tests the {@link FileSystemMaster#checkConsistency(AlluxioURI, CheckConsistencyContext)} method
    * when running on a file that is inconsistent.
    */
   @Test
@@ -200,7 +201,7 @@ public class CheckConsistencyIntegrationTest extends BaseIntegrationTest {
     UnderFileSystem ufs = UnderFileSystem.Factory.create(ufsFile);
     ufs.deleteFile(ufsFile);
     List<AlluxioURI> expected = Lists.newArrayList(FILE);
-    Assert.assertEquals(expected, mFileSystemMaster
-        .checkConsistency(FILE, CheckConsistencyOptions.defaults()));
+    Assert.assertEquals(expected, mFileSystemMaster.checkConsistency(FILE,
+        CheckConsistencyContext.defaults()));
   }
 }

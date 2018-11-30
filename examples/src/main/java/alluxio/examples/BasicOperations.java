@@ -17,9 +17,12 @@ import alluxio.client.WriteType;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
-import alluxio.client.file.options.CreateFileOptions;
-import alluxio.client.file.options.OpenFileOptions;
+import alluxio.client.file.FileSystemClientOptions;
 import alluxio.exception.AlluxioException;
+import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.OpenFilePOptions;
+import alluxio.grpc.ReadPType;
+import alluxio.grpc.WritePType;
 import alluxio.util.CommonUtils;
 import alluxio.util.FormatUtils;
 
@@ -43,18 +46,20 @@ public class BasicOperations implements Callable<Boolean> {
   private static final int NUMBERS = 20;
 
   private final AlluxioURI mFilePath;
-  private final OpenFileOptions mReadOptions;
-  private final CreateFileOptions mWriteOptions;
+  private final OpenFilePOptions mReadOptions;
+  private final CreateFilePOptions mWriteOptions;
 
   /**
    * @param filePath the path for the files
-   * @param readType the {@link ReadType}
-   * @param writeType the {@link WriteType}
+   * @param readType the {@link ReadPType}
+   * @param writeType the {@link WritePType}
    */
   public BasicOperations(AlluxioURI filePath, ReadType readType, WriteType writeType) {
     mFilePath = filePath;
-    mReadOptions = OpenFileOptions.defaults().setReadType(readType);
-    mWriteOptions = CreateFileOptions.defaults().setWriteType(writeType);
+    mReadOptions = FileSystemClientOptions.getOpenFileOptions().toBuilder()
+        .setReadType(readType.toProto()).build();
+    mWriteOptions = FileSystemClientOptions.getCreateFileOptions().toBuilder()
+        .setWriteType(writeType.toProto()).build();
   }
 
   @Override

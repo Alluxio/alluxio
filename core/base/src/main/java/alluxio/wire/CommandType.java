@@ -59,5 +59,4 @@ public enum CommandType {
   public int getValue() {
     return mValue;
   }
-
 }

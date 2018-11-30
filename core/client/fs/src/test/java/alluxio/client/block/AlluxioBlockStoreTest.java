@@ -21,13 +21,14 @@ import alluxio.client.block.policy.BlockLocationPolicy;
 import alluxio.client.block.policy.options.GetWorkerOptions;
 import alluxio.client.block.stream.BlockInStream;
 import alluxio.client.block.stream.BlockOutStream;
+import alluxio.client.file.FileSystemClientOptions;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.InStreamOptions;
-import alluxio.client.file.options.OpenFileOptions;
 import alluxio.client.file.options.OutStreamOptions;
 import alluxio.client.file.policy.FileWriteLocationPolicy;
 import alluxio.exception.status.NotFoundException;
+import alluxio.grpc.OpenFilePOptions;
 import alluxio.network.netty.NettyRPC;
 import alluxio.network.netty.NettyRPCContext;
 import alluxio.exception.ExceptionMessage;
@@ -96,8 +97,16 @@ public final class AlluxioBlockStoreTest {
   @ThreadSafe
   private static class MockFileWriteLocationPolicy
       implements FileWriteLocationPolicy, BlockLocationPolicy {
-    private final List<WorkerNetAddress> mWorkerNetAddresses;
+    private List<WorkerNetAddress> mWorkerNetAddresses;
     private int mIndex;
+
+    /**
+     * Cosntructs this mock location policy with empty host list.
+     */
+    public MockFileWriteLocationPolicy() {
+      mIndex = 0;
+      mWorkerNetAddresses =  Collections.emptyList();
+    }
 
     /**
      * Constructs this mock policy that returns the given result, once a time, in the input order.
@@ -105,6 +114,11 @@ public final class AlluxioBlockStoreTest {
      * @param addresses list of addresses this mock policy will return
      */
     public MockFileWriteLocationPolicy(List<WorkerNetAddress> addresses) {
+      mWorkerNetAddresses = Lists.newArrayList(addresses);
+      mIndex = 0;
+    }
+
+    public void setHosts(List<WorkerNetAddress> addresses) {
       mWorkerNetAddresses = Lists.newArrayList(addresses);
       mIndex = 0;
     }
@@ -251,10 +265,11 @@ public final class AlluxioBlockStoreTest {
     URIStatus dummyStatus =
         new URIStatus(new FileInfo().setPersisted(true).setBlockIds(Collections.singletonList(0L))
             .setFileBlockInfos(Collections.singletonList(new FileBlockInfo().setBlockInfo(info))));
-    OpenFileOptions readOptions =
-        OpenFileOptions.defaults().setUfsReadLocationPolicy(
-            new MockFileWriteLocationPolicy(Arrays.asList(worker1, worker2)));
+    OpenFilePOptions readOptions = FileSystemClientOptions.getOpenFileOptions().toBuilder()
+        .setFileReadLocationPolicy(MockFileWriteLocationPolicy.class.getTypeName()).build();
     InStreamOptions options = new InStreamOptions(dummyStatus, readOptions);
+    ((MockFileWriteLocationPolicy) options.getUfsReadLocationPolicy())
+        .setHosts(Arrays.asList(worker1, worker2));
     when(mMasterClient.getBlockInfo(BLOCK_ID)).thenReturn(new BlockInfo());
     when(mMasterClient.getWorkerInfoList()).thenReturn(
         Arrays.asList(new WorkerInfo().setAddress(worker1), new WorkerInfo().setAddress(worker2)));
@@ -269,7 +284,8 @@ public final class AlluxioBlockStoreTest {
   public void getInStreamNoWorkers() throws Exception {
     URIStatus dummyStatus =
         new URIStatus(new FileInfo().setPersisted(true).setBlockIds(Collections.singletonList(0L)));
-    InStreamOptions options = new InStreamOptions(dummyStatus, OpenFileOptions.defaults());
+    InStreamOptions options =
+        new InStreamOptions(dummyStatus, FileSystemClientOptions.getOpenFileOptions());
     when(mMasterClient.getBlockInfo(BLOCK_ID)).thenReturn(new BlockInfo());
     when(mMasterClient.getWorkerInfoList()).thenReturn(Collections.emptyList());
 
@@ -282,7 +298,8 @@ public final class AlluxioBlockStoreTest {
   public void getInStreamMissingBlock() throws Exception {
     URIStatus dummyStatus = new URIStatus(
         new FileInfo().setPersisted(false).setBlockIds(Collections.singletonList(0L)));
-    InStreamOptions options = new InStreamOptions(dummyStatus, OpenFileOptions.defaults());
+    InStreamOptions options =
+        new InStreamOptions(dummyStatus, FileSystemClientOptions.getOpenFileOptions());
     when(mMasterClient.getBlockInfo(BLOCK_ID)).thenReturn(new BlockInfo());
     when(mMasterClient.getWorkerInfoList()).thenReturn(Collections.emptyList());
 
@@ -414,9 +431,9 @@ public final class AlluxioBlockStoreTest {
     when(mockPolicy.getWorker(any())).thenAnswer(arg -> arg
         .getArgumentAt(0, GetWorkerOptions.class).getBlockWorkerInfos().iterator().next()
         .getNetAddress());
-    OpenFileOptions readOptions =
-        OpenFileOptions.defaults().setUfsReadLocationPolicy(mockPolicy);
-    InStreamOptions options = new InStreamOptions(dummyStatus, readOptions);
+    InStreamOptions options =
+        new InStreamOptions(dummyStatus, FileSystemClientOptions.getOpenFileOptions());
+    options.setUfsReadLocationPolicy(mockPolicy);
     when(mMasterClient.getBlockInfo(BLOCK_ID)).thenReturn(info);
     when(mMasterClient.getWorkerInfoList()).thenReturn(Arrays.stream(workers)
         .map(x -> new WorkerInfo().setAddress(x)).collect((Collectors.toList())));
@@ -452,9 +469,9 @@ public final class AlluxioBlockStoreTest {
     when(mockPolicy.getWorker(any())).thenAnswer(arg -> arg
         .getArgumentAt(0, GetWorkerOptions.class).getBlockWorkerInfos().iterator().next()
         .getNetAddress());
-    OpenFileOptions readOptions =
-        OpenFileOptions.defaults().setUfsReadLocationPolicy(mockPolicy);
-    InStreamOptions options = new InStreamOptions(dummyStatus, readOptions);
+    InStreamOptions options =
+        new InStreamOptions(dummyStatus, FileSystemClientOptions.getOpenFileOptions());
+    options.setUfsReadLocationPolicy(mockPolicy);
     when(mMasterClient.getBlockInfo(BLOCK_ID)).thenReturn(info);
     when(mMasterClient.getWorkerInfoList()).thenReturn(Arrays.stream(workers)
         .map(x -> new WorkerInfo().setAddress(x)).collect((Collectors.toList())));

@@ -13,13 +13,13 @@ package alluxio.client.fs;
 
 import alluxio.AlluxioURI;
 import alluxio.PropertyKey;
-import alluxio.client.ReadType;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemClientOptions;
 import alluxio.client.file.URIStatus;
-import alluxio.client.file.options.CreateFileOptions;
-import alluxio.client.file.options.OpenFileOptions;
+import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.ReadPType;
 import alluxio.master.LocalAlluxioJobCluster;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
@@ -76,7 +76,7 @@ public abstract class AbstractFileOutStreamIntegrationTest extends BaseIntegrati
    * @param fileLen length of the file
    * @param op options to create file
    */
-  protected void writeIncreasingBytesToFile(AlluxioURI filePath, int fileLen, CreateFileOptions op)
+  protected void writeIncreasingBytesToFile(AlluxioURI filePath, int fileLen, CreateFilePOptions op)
       throws Exception {
     try (FileOutStream os = mFileSystem.createFile(filePath, op)) {
       for (int k = 0; k < fileLen; k++) {
@@ -94,7 +94,7 @@ public abstract class AbstractFileOutStreamIntegrationTest extends BaseIntegrati
    * @param op options to create file
    */
   protected void writeIncreasingByteArrayToFile(AlluxioURI filePath, int fileLen,
-      CreateFileOptions op) throws Exception {
+      CreateFilePOptions op) throws Exception {
     try (FileOutStream os = mFileSystem.createFile(filePath, op)) {
       os.write(BufferUtils.getIncreasingByteArray(fileLen));
     }
@@ -109,7 +109,7 @@ public abstract class AbstractFileOutStreamIntegrationTest extends BaseIntegrati
    * @param op options to create file
    */
   protected void writeTwoIncreasingByteArraysToFile(AlluxioURI filePath, int fileLen,
-      CreateFileOptions op) throws Exception {
+      CreateFilePOptions op) throws Exception {
     try (FileOutStream os = mFileSystem.createFile(filePath, op)) {
       int len1 = fileLen / 2;
       int len2 = fileLen - len1;
@@ -128,8 +128,8 @@ public abstract class AbstractFileOutStreamIntegrationTest extends BaseIntegrati
   protected void checkFileInAlluxio(AlluxioURI filePath, int fileLen) throws Exception {
     URIStatus status = mFileSystem.getStatus(filePath);
     Assert.assertEquals(fileLen, status.getLength());
-    try (FileInStream is = mFileSystem
-        .openFile(filePath, OpenFileOptions.defaults().setReadType(ReadType.NO_CACHE))) {
+    try (FileInStream is = mFileSystem.openFile(filePath, FileSystemClientOptions
+        .getOpenFileOptions().toBuilder().setReadType(ReadPType.READ_NO_CACHE).build())) {
       byte[] res = new byte[(int) status.getLength()];
       Assert.assertEquals((int) status.getLength(), is.read(res));
       Assert.assertTrue(BufferUtils.equalIncreasingByteArray(fileLen, res));

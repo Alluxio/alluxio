@@ -14,13 +14,13 @@ package alluxio.server.tieredstore;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.PropertyKey;
-import alluxio.client.WriteType;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemClientOptions;
 import alluxio.client.file.URIStatus;
-import alluxio.client.file.options.CreateFileOptions;
-import alluxio.client.file.options.DeleteOptions;
 import alluxio.client.file.policy.LocalFirstPolicy;
+import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.WritePType;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
@@ -94,10 +94,12 @@ public class SpecificTierWriteIntegrationTest extends BaseIntegrationTest {
    */
   private void writeFileAndCheckUsage(int writeTier, long memBytes, long ssdBytes, long hddBytes)
       throws Exception {
+    CreateFilePOptions createOptions = FileSystemClientOptions.getCreateFileOptions().toBuilder()
+        .setWriteTier(writeTier).setWriteType(WritePType.WRITE_MUST_CACHE)
+        .setFileWriteLocationPolicy(LocalFirstPolicy.class.getCanonicalName()).build();
     FileOutStream os = mFileSystem.createFile(
         new AlluxioURI("/tier-" + writeTier + "_" + CommonUtils.randomAlphaNumString(5)),
-        CreateFileOptions.defaults().setWriteTier(writeTier).setWriteType(WriteType.MUST_CACHE)
-            .setLocationPolicy(new LocalFirstPolicy()));
+        createOptions);
     os.write(BufferUtils.getIncreasingByteArray(FILE_SIZE));
     os.close();
 
@@ -119,8 +121,8 @@ public class SpecificTierWriteIntegrationTest extends BaseIntegrationTest {
   private void deleteAllFiles() throws Exception {
     List<URIStatus> files = mFileSystem.listStatus(new AlluxioURI("/"));
     for (URIStatus file : files) {
-      mFileSystem
-          .delete(new AlluxioURI(file.getPath()), DeleteOptions.defaults().setRecursive(true));
+      mFileSystem.delete(new AlluxioURI(file.getPath()),
+          FileSystemClientOptions.getDeleteOptions().toBuilder().setRecursive(true).build());
     }
     // Trigger a worker heartbeat to delete the blocks.
     HeartbeatScheduler.execute(HeartbeatContext.WORKER_BLOCK_SYNC);

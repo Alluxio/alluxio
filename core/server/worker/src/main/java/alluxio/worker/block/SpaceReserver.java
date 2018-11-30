@@ -79,11 +79,11 @@ public class SpaceReserver implements HeartbeatExecutor {
             PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_HIGH_WATERMARK_RATIO.format(ordinal);
         double tierHighWatermarkConf = Configuration.getDouble(tierHighWatermarkProp);
         Preconditions.checkArgument(tierHighWatermarkConf > 0,
-            "The high watermark of tier %s should be positive, but is %s", ordinal,
-            tierHighWatermarkConf);
+            "The high watermark of tier %s should be positive, but is %s",
+            Integer.toString(ordinal), tierHighWatermarkConf);
         Preconditions.checkArgument(tierHighWatermarkConf < 1,
-            "The high watermark of tier %s should be less than 1.0, but is %s", ordinal,
-            tierHighWatermarkConf);
+            "The high watermark of tier %s should be less than 1.0, but is %s",
+            Integer.toString(ordinal), tierHighWatermarkConf);
         long highWatermark = (long) (tierCapacity * Configuration.getDouble(tierHighWatermarkProp));
         mHighWatermarks.put(tierAlias, highWatermark);
 
@@ -92,8 +92,8 @@ public class SpaceReserver implements HeartbeatExecutor {
             PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_LOW_WATERMARK_RATIO.format(ordinal);
         double tierLowWatermarkConf = Configuration.getDouble(tierLowWatermarkProp);
         Preconditions.checkArgument(tierLowWatermarkConf >= 0,
-            "The low watermark of tier %s should not be negative, but is %s", ordinal,
-            tierLowWatermarkConf);
+            "The low watermark of tier %s should not be negative, but is %s",
+            Integer.toString(ordinal), tierLowWatermarkConf);
         Preconditions.checkArgument(tierLowWatermarkConf < tierHighWatermarkConf,
             "The low watermark (%s) of tier %d should not be smaller than the high watermark (%s)",
             tierLowWatermarkConf, ordinal, tierHighWatermarkConf);

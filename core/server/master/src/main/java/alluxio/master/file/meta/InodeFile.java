@@ -13,14 +13,15 @@ package alluxio.master.file.meta;
 
 import alluxio.Constants;
 import alluxio.exception.BlockInfoException;
-import alluxio.file.options.CreateFileOptions;
 import alluxio.master.ProtobufUtils;
 import alluxio.master.block.BlockId;
+import alluxio.master.file.options.CreateFileContext;
 import alluxio.proto.journal.File.InodeFileEntry;
 import alluxio.proto.journal.File.UpdateInodeFileEntry;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.security.authorization.AccessControlList;
 import alluxio.security.authorization.DefaultAccessControlList;
+import alluxio.util.grpc.GrpcUtils;
 import alluxio.util.proto.ProtoUtils;
 import alluxio.wire.FileInfo;
 
@@ -395,30 +396,30 @@ public final class InodeFile extends Inode<InodeFile> implements InodeFileView {
    * @param parentId id of the parent of this inode
    * @param name name of this inode
    * @param creationTimeMs the creation time for this inode
-   * @param options options to create this file
+   * @param context context to create this file
    * @return the {@link InodeFile} representation
    */
   public static InodeFile create(long blockContainerId, long parentId, String name,
-      long creationTimeMs, CreateFileOptions options) {
+      long creationTimeMs, CreateFileContext context) {
     Preconditions.checkArgument(
-        options.getReplicationMax() == Constants.REPLICATION_MAX_INFINITY
-        || options.getReplicationMax() >= options.getReplicationMin());
+            context.getOptions().getReplicationMax() == Constants.REPLICATION_MAX_INFINITY
+        || context.getOptions().getReplicationMax() >= context.getOptions().getReplicationMin());
     return new InodeFile(blockContainerId)
-        .setBlockSizeBytes(options.getBlockSizeBytes())
+        .setBlockSizeBytes(context.getOptions().getBlockSizeBytes())
         .setCreationTimeMs(creationTimeMs)
         .setName(name)
-        .setReplicationDurable(options.getReplicationDurable())
-        .setReplicationMax(options.getReplicationMax())
-        .setReplicationMin(options.getReplicationMin())
-        .setTtl(options.getTtl())
-        .setTtlAction(options.getTtlAction())
+        .setReplicationDurable(context.getOptions().getReplicationDurable())
+        .setReplicationMax(context.getOptions().getReplicationMax())
+        .setReplicationMin(context.getOptions().getReplicationMin())
+        .setTtl(context.getOptions().getCommonOptions().getTtl())
+        .setTtlAction(GrpcUtils.fromProto(context.getOptions().getCommonOptions().getTtlAction()))
         .setParentId(parentId)
-        .setLastModificationTimeMs(options.getOperationTimeMs(), true)
-        .setOwner(options.getOwner())
-        .setGroup(options.getGroup())
-        .setMode(options.getMode().toShort())
-        .setAcl(options.getAcl())
-        .setPersistenceState(options.isPersisted() ? PersistenceState.PERSISTED
+        .setLastModificationTimeMs(context.getOperationTimeMs(), true)
+        .setOwner(context.getOwner())
+        .setGroup(context.getGroup())
+        .setMode((short) context.getOptions().getMode())
+        .setAcl(context.getAcl())
+        .setPersistenceState(context.getOptions().getPersisted() ? PersistenceState.PERSISTED
             : PersistenceState.NOT_PERSISTED);
   }
 

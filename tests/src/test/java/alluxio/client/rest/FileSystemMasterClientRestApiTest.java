@@ -14,13 +14,14 @@ package alluxio.client.rest;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.exception.FileDoesNotExistException;
+import alluxio.grpc.CreateFilePOptions;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.FileSystemMasterClientRestServiceHandler;
-import alluxio.master.file.options.CompleteFileOptions;
-import alluxio.master.file.options.CreateFileOptions;
-import alluxio.master.file.options.GetStatusOptions;
-import alluxio.master.file.options.ListStatusOptions;
-import alluxio.master.file.options.MountOptions;
+import alluxio.master.file.options.CompleteFileContext;
+import alluxio.master.file.options.CreateFileContext;
+import alluxio.master.file.options.GetStatusContext;
+import alluxio.master.file.options.ListStatusContext;
+import alluxio.master.file.options.MountContext;
 import alluxio.wire.FileInfo;
 import alluxio.wire.TtlAction;
 
@@ -43,7 +44,7 @@ import javax.ws.rs.HttpMethod;
  * Test cases for {@link FileSystemMasterClientRestServiceHandler}.
  */
 public final class FileSystemMasterClientRestApiTest extends RestApiTest {
-  private static final GetStatusOptions GET_STATUS_OPTIONS = GetStatusOptions.defaults();
+  private static final GetStatusContext GET_STATUS_CONTEXT = GetStatusContext.defaults();
 
   private FileSystemMaster mFileSystemMaster;
 
@@ -76,7 +77,7 @@ public final class FileSystemMasterClientRestApiTest extends RestApiTest {
   @Test
   public void completeFile() throws Exception {
     AlluxioURI uri = new AlluxioURI("/file");
-    long id = mFileSystemMaster.createFile(uri, CreateFileOptions.defaults());
+    long id = mFileSystemMaster.createFile(uri, CreateFileContext.defaults());
 
     Map<String, String> params = new HashMap<>();
     params.put("path", uri.toString());
@@ -99,7 +100,8 @@ public final class FileSystemMasterClientRestApiTest extends RestApiTest {
         getEndpoint(FileSystemMasterClientRestServiceHandler.CREATE_DIRECTORY), params,
         HttpMethod.POST, null).run();
 
-    Assert.assertTrue(mFileSystemMaster.listStatus(uri, ListStatusOptions.defaults()).isEmpty());
+    Assert.assertTrue(mFileSystemMaster
+        .listStatus(uri, ListStatusContext.defaults()).isEmpty());
   }
 
   @Test
@@ -114,13 +116,13 @@ public final class FileSystemMasterClientRestApiTest extends RestApiTest {
     new TestCase(mHostname, mPort,
         getEndpoint(FileSystemMasterClientRestServiceHandler.CREATE_FILE), params, HttpMethod.POST,
         null).run();
-    Assert.assertFalse(mFileSystemMaster.getFileInfo(uri, GET_STATUS_OPTIONS).isCompleted());
+    Assert.assertFalse(mFileSystemMaster.getFileInfo(uri, GET_STATUS_CONTEXT).isCompleted());
   }
 
   @Test
   public void getNewBlockIdForFile() throws Exception {
     AlluxioURI uri = new AlluxioURI("/file");
-    mFileSystemMaster.createFile(uri, CreateFileOptions.defaults());
+    mFileSystemMaster.createFile(uri, CreateFileContext.defaults());
 
     Map<String, String> params = new HashMap<>();
     params.put("path", uri.toString());
@@ -132,8 +134,8 @@ public final class FileSystemMasterClientRestApiTest extends RestApiTest {
   @Test
   public void getStatus() throws Exception {
     AlluxioURI uri = new AlluxioURI("/file");
-    mFileSystemMaster.createFile(uri, CreateFileOptions.defaults());
-    mFileSystemMaster.completeFile(uri, CompleteFileOptions.defaults());
+    mFileSystemMaster.createFile(uri, CreateFileContext.defaults());
+    mFileSystemMaster.completeFile(uri, CompleteFileContext.defaults());
 
     Map<String, String> params = new HashMap<>();
     params.put("path", uri.toString());
@@ -149,8 +151,9 @@ public final class FileSystemMasterClientRestApiTest extends RestApiTest {
   public void free() throws Exception {
     AlluxioURI uri = new AlluxioURI("/file");
     // Mark the file as persisted so the "free" works.
-    mFileSystemMaster.createFile(uri, CreateFileOptions.defaults().setPersisted(true));
-    mFileSystemMaster.completeFile(uri, CompleteFileOptions.defaults());
+    mFileSystemMaster.createFile(uri,
+        CreateFileContext.defaults(CreateFilePOptions.newBuilder().setPersisted(true)));
+    mFileSystemMaster.completeFile(uri, CompleteFileContext.defaults());
 
     Map<String, String> params = new HashMap<>();
     params.put("path", uri.toString());
@@ -162,8 +165,8 @@ public final class FileSystemMasterClientRestApiTest extends RestApiTest {
   @Test
   public void listStatus() throws Exception {
     AlluxioURI uri = new AlluxioURI("/file");
-    mFileSystemMaster.createFile(uri, CreateFileOptions.defaults());
-    mFileSystemMaster.completeFile(uri, CompleteFileOptions.defaults());
+    mFileSystemMaster.createFile(uri, CreateFileContext.defaults());
+    mFileSystemMaster.completeFile(uri, CompleteFileContext.defaults());
 
     Map<String, String> params = new HashMap<>();
     params.put("path", uri.toString());
@@ -195,8 +198,8 @@ public final class FileSystemMasterClientRestApiTest extends RestApiTest {
   @Test
   public void remove() throws Exception {
     AlluxioURI uri = new AlluxioURI("/file");
-    mFileSystemMaster.createFile(uri, CreateFileOptions.defaults());
-    mFileSystemMaster.completeFile(uri, CompleteFileOptions.defaults());
+    mFileSystemMaster.createFile(uri, CreateFileContext.defaults());
+    mFileSystemMaster.completeFile(uri, CompleteFileContext.defaults());
 
     Map<String, String> params = new HashMap<>();
     params.put("path", uri.toString());
@@ -205,7 +208,7 @@ public final class FileSystemMasterClientRestApiTest extends RestApiTest {
         params, "POST", null).run();
 
     try {
-      mFileSystemMaster.getFileInfo(uri, GET_STATUS_OPTIONS);
+      mFileSystemMaster.getFileInfo(uri, GET_STATUS_CONTEXT);
       Assert.fail("file should have been removed");
     } catch (FileDoesNotExistException e) {
       // Expected
@@ -216,8 +219,8 @@ public final class FileSystemMasterClientRestApiTest extends RestApiTest {
   public void rename() throws Exception {
     AlluxioURI uri1 = new AlluxioURI("/file1");
     AlluxioURI uri2 = new AlluxioURI("/file2");
-    mFileSystemMaster.createFile(uri1, CreateFileOptions.defaults());
-    mFileSystemMaster.completeFile(uri1, CompleteFileOptions.defaults());
+    mFileSystemMaster.createFile(uri1, CreateFileContext.defaults());
+    mFileSystemMaster.completeFile(uri1, CompleteFileContext.defaults());
 
     Map<String, String> params = new HashMap<>();
     params.put("srcPath", uri1.toString());
@@ -226,19 +229,19 @@ public final class FileSystemMasterClientRestApiTest extends RestApiTest {
         params, HttpMethod.POST, null).run();
 
     try {
-      mFileSystemMaster.getFileInfo(uri1, GET_STATUS_OPTIONS);
+      mFileSystemMaster.getFileInfo(uri1, GET_STATUS_CONTEXT);
       Assert.fail("file should have been removed");
     } catch (FileDoesNotExistException e) {
       // Expected
     }
-    mFileSystemMaster.getFileInfo(uri2, GET_STATUS_OPTIONS);
+    mFileSystemMaster.getFileInfo(uri2, GET_STATUS_CONTEXT);
   }
 
   @Test
   public void scheduleAsyncPersist() throws Exception {
     AlluxioURI uri = new AlluxioURI("/file");
-    mFileSystemMaster.createFile(uri, CreateFileOptions.defaults());
-    mFileSystemMaster.completeFile(uri, CompleteFileOptions.defaults());
+    mFileSystemMaster.createFile(uri, CreateFileContext.defaults());
+    mFileSystemMaster.completeFile(uri, CompleteFileContext.defaults());
 
     Map<String, String> params = new HashMap<>();
     params.put("path", uri.toString());
@@ -251,8 +254,8 @@ public final class FileSystemMasterClientRestApiTest extends RestApiTest {
   @Test
   public void setAttribute() throws Exception {
     AlluxioURI uri = new AlluxioURI("/file");
-    mFileSystemMaster.createFile(uri, CreateFileOptions.defaults());
-    mFileSystemMaster.completeFile(uri, CompleteFileOptions.defaults());
+    mFileSystemMaster.createFile(uri, CreateFileContext.defaults());
+    mFileSystemMaster.completeFile(uri, CompleteFileContext.defaults());
 
     Map<String, String> params = new HashMap<>();
     params.put("path", uri.toString());
@@ -266,7 +269,7 @@ public final class FileSystemMasterClientRestApiTest extends RestApiTest {
         getEndpoint(FileSystemMasterClientRestServiceHandler.SET_ATTRIBUTE), params,
         HttpMethod.POST, null).run();
 
-    FileInfo fileInfo = mFileSystemMaster.getFileInfo(uri, GET_STATUS_OPTIONS);
+    FileInfo fileInfo = mFileSystemMaster.getFileInfo(uri, GET_STATUS_CONTEXT);
     Assert.assertEquals(uri.toString(), fileInfo.getPath());
     Assert.assertTrue(fileInfo.isPinned());
     Assert.assertEquals(100000, fileInfo.getTtl());
@@ -278,7 +281,7 @@ public final class FileSystemMasterClientRestApiTest extends RestApiTest {
   public void unmount() throws Exception {
     AlluxioURI uri = new AlluxioURI("/mount");
     mFileSystemMaster.mount(uri, new AlluxioURI(mFolder.newFolder().getAbsolutePath()),
-        MountOptions.defaults());
+        MountContext.defaults());
 
     Map<String, String> params = new HashMap<>();
     params.put("path", uri.toString());

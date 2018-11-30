@@ -17,19 +17,18 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
-import alluxio.client.WriteType;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemClientOptions;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.URIStatus;
-import alluxio.client.file.options.CreateDirectoryOptions;
-import alluxio.client.file.options.CreateFileOptions;
-import alluxio.client.file.options.DeleteOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
+import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.WritePType;
 import alluxio.master.LocalAlluxioCluster;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
@@ -59,7 +58,7 @@ public final class FileSystemIntegrationTest extends BaseIntegrationTest {
           .setProperty(PropertyKey.USER_FILE_BUFFER_BYTES, USER_QUOTA_UNIT_BYTES)
           .build();
   private FileSystem mFileSystem = null;
-  private CreateFileOptions mWriteBoth;
+  private CreateFilePOptions mWriteBoth;
   private UnderFileSystem mUfs;
 
   @Rule
@@ -68,7 +67,8 @@ public final class FileSystemIntegrationTest extends BaseIntegrationTest {
   @Before
   public void before() throws Exception {
     mFileSystem = mLocalAlluxioClusterResource.get().getClient();
-    mWriteBoth = CreateFileOptions.defaults().setWriteType(WriteType.CACHE_THROUGH);
+    mWriteBoth = FileSystemClientOptions.getCreateFileOptions().toBuilder()
+        .setWriteType(WritePType.WRITE_CACHE_THROUGH).build();
     mUfs = UnderFileSystem.Factory.createForRoot();
   }
 
@@ -113,11 +113,12 @@ public final class FileSystemIntegrationTest extends BaseIntegrationTest {
   @Test
   public void deleteDirectoryWithPersistedWritesInProgress() throws Exception {
     final AlluxioURI testFolder = new AlluxioURI("/testFolder");
-    mFileSystem.createDirectory(testFolder,
-        CreateDirectoryOptions.defaults().setWriteType(WriteType.CACHE_THROUGH));
+    mFileSystem.createDirectory(testFolder, FileSystemClientOptions.getCreateDirectoryOptions()
+        .toBuilder().setWriteType(WritePType.WRITE_CACHE_THROUGH).build());
     FileOutStream out =
-        mFileSystem.createFile(new AlluxioURI("/testFolder/testFile"), CreateFileOptions.defaults()
-            .setWriteType(WriteType.CACHE_THROUGH));
+        mFileSystem.createFile(new AlluxioURI("/testFolder/testFile"),
+            FileSystemClientOptions.getCreateFileOptions().toBuilder()
+                .setWriteType(WritePType.WRITE_CACHE_THROUGH).build());
     out.write(TEST_BYTES);
     out.flush();
     // Need to wait for the file to be flushed, see ALLUXIO-2899
@@ -128,7 +129,8 @@ public final class FileSystemIntegrationTest extends BaseIntegrationTest {
         throw new RuntimeException(e);
       }
     }, WaitForOptions.defaults().setTimeoutMs(5 * Constants.SECOND_MS));
-    mFileSystem.delete(new AlluxioURI("/testFolder"), DeleteOptions.defaults().setRecursive(true));
+    mFileSystem.delete(new AlluxioURI("/testFolder"),
+        FileSystemClientOptions.getDeleteOptions().toBuilder().setRecursive(true).build());
     Assert.assertFalse(mFileSystem.exists(new AlluxioURI("/testFolder")));
     mThrown.expect(IOException.class);
     out.close();
@@ -305,7 +307,8 @@ public final class FileSystemIntegrationTest extends BaseIntegrationTest {
   @Test
   public void createDirectoryOnTopOfFile() throws Exception {
     AlluxioURI path = new AlluxioURI("/dir");
-    FileSystemTestUtils.createByteFile(mFileSystem, path, CreateFileOptions.defaults(), 10);
+    FileSystemTestUtils.createByteFile(mFileSystem, path,
+            FileSystemClientOptions.getCreateFileOptions(), 10);
     mThrown.expect(FileAlreadyExistsException.class);
     mFileSystem.createDirectory(path);
   }
@@ -348,7 +351,7 @@ public final class FileSystemIntegrationTest extends BaseIntegrationTest {
     mFileSystem.createDirectory(dir);
     mFileSystem.createFile(new AlluxioURI(PathUtils.concatPath(dir, "file"))).close();
     mThrown.expect(DirectoryNotEmptyException.class);
-    mFileSystem.delete(dir, DeleteOptions.defaults().setRecursive(false));
+    mFileSystem.delete(dir, FileSystemClientOptions.getDeleteOptions());
   }
 
   @Test

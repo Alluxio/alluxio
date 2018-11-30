@@ -14,11 +14,11 @@ package alluxio.master.backcompat.ops;
 import static org.junit.Assert.assertFalse;
 
 import alluxio.AlluxioURI;
+import alluxio.client.file.FileSystemClientOptions;
 import alluxio.client.file.FileSystemMasterClient;
-import alluxio.client.file.options.UpdateUfsModeOptions;
+import alluxio.grpc.UfsPMode;
 import alluxio.master.backcompat.TestOp;
 import alluxio.multi.process.Clients;
-import alluxio.underfs.UfsMode;
 
 /**
  * Test for updating UFS modes.
@@ -28,12 +28,12 @@ public final class UpdateUfsMode implements TestOp {
   @Override
   public void apply(Clients clients) throws Exception {
     FileSystemMasterClient masterClient = clients.getFileSystemMasterClient();
-    masterClient.updateUfsMode(new AlluxioURI("/"),
-        UpdateUfsModeOptions.defaults().setUfsMode(UfsMode.READ_ONLY));
-    masterClient.updateUfsMode(new AlluxioURI("/"),
-        UpdateUfsModeOptions.defaults().setUfsMode(UfsMode.NO_ACCESS));
-    masterClient.updateUfsMode(new AlluxioURI("/"),
-        UpdateUfsModeOptions.defaults().setUfsMode(UfsMode.READ_WRITE));
+    masterClient.updateUfsMode(new AlluxioURI("/"), FileSystemClientOptions
+        .getUpdateUfsModeOptions().toBuilder().setUfsMode(UfsPMode.READ_ONLY).build());
+    masterClient.updateUfsMode(new AlluxioURI("/"), FileSystemClientOptions
+        .getUpdateUfsModeOptions().toBuilder().setUfsMode(UfsPMode.NO_ACCESS).build());
+    masterClient.updateUfsMode(new AlluxioURI("/"), FileSystemClientOptions
+        .getUpdateUfsModeOptions().toBuilder().setUfsMode(UfsPMode.READ_WRITE).build());
   }
 
   @Override

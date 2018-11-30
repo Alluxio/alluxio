@@ -13,11 +13,11 @@ package alluxio.worker.file;
 
 import alluxio.Configuration;
 import alluxio.PropertyKey;
+import alluxio.grpc.CommandType;
+import alluxio.grpc.FileSystemCommand;
+import alluxio.grpc.FileSystemHeartbeatPOptions;
+import alluxio.grpc.PersistFile;
 import alluxio.heartbeat.HeartbeatExecutor;
-import alluxio.thrift.CommandType;
-import alluxio.thrift.FileSystemCommand;
-import alluxio.thrift.FileSystemHeartbeatTOptions;
-import alluxio.thrift.PersistFile;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.worker.block.BlockMasterSync;
 
@@ -84,8 +84,8 @@ final class FileWorkerMasterSyncExecutor implements HeartbeatExecutor {
 
     FileSystemCommand command;
     try {
-      FileSystemHeartbeatTOptions options = new FileSystemHeartbeatTOptions();
-      options.setPersistedFileFingerprints(persistedFiles.ufsFingerprintList());
+      FileSystemHeartbeatPOptions options = FileSystemHeartbeatPOptions.newBuilder()
+          .addAllPersistedFileFingerprints(persistedFiles.ufsFingerprintList()).build();
       command = mMasterClient.heartbeat(mWorkerId.get(), persistedFiles.idList(), options);
     } catch (Exception e) {
       LOG.error("Failed to heartbeat to master", e);
@@ -98,17 +98,17 @@ final class FileWorkerMasterSyncExecutor implements HeartbeatExecutor {
     if (command == null) {
       LOG.error("The command sent from master is null");
       return;
-    } else if (command.getCommandType() != CommandType.Persist) {
+    } else if (command.getCommandType() != CommandType.Command_Persist) {
       LOG.error("The command sent from master should be PERSIST type, but was {}",
           command.getCommandType());
       return;
     }
 
     for (PersistFile persistFile : command.getCommandOptions().getPersistOptions()
-            .getPersistFiles()) {
+            .getPersistFilesList()) {
       // Enqueue the persist request.
-      mPersistFileService.execute(
-          new FilePersister(mFileDataManager, persistFile.getFileId(), persistFile.getBlockIds()));
+      mPersistFileService.execute(new FilePersister(mFileDataManager, persistFile.getFileId(),
+          persistFile.getBlockIdsList()));
     }
   }
 

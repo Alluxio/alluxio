@@ -40,7 +40,10 @@ private static final long serialVersionUID = 0L;
     ttlAction_ = 0;
     mountId_ = 0L;
     inAlluxioPercentage_ = 0;
+    inMemoryPercentage_ = 0;
     ufsFingerprint_ = "";
+    replicationMax_ = 0;
+    replicationMin_ = 0;
   }
 
   @java.lang.Override
@@ -226,15 +229,20 @@ private static final long serialVersionUID = 0L;
             inAlluxioPercentage_ = input.readInt32();
             break;
           }
-          case 202: {
-            com.google.protobuf.ByteString bs = input.readBytes();
+          case 200: {
             bitField0_ |= 0x00400000;
-            ufsFingerprint_ = bs;
+            inMemoryPercentage_ = input.readInt32();
             break;
           }
           case 210: {
+            com.google.protobuf.ByteString bs = input.readBytes();
+            bitField0_ |= 0x00800000;
+            ufsFingerprint_ = bs;
+            break;
+          }
+          case 218: {
             alluxio.grpc.PAcl.Builder subBuilder = null;
-            if (((bitField0_ & 0x00800000) == 0x00800000)) {
+            if (((bitField0_ & 0x01000000) == 0x01000000)) {
               subBuilder = acl_.toBuilder();
             }
             acl_ = input.readMessage(alluxio.grpc.PAcl.PARSER, extensionRegistry);
@@ -242,12 +250,12 @@ private static final long serialVersionUID = 0L;
               subBuilder.mergeFrom(acl_);
               acl_ = subBuilder.buildPartial();
             }
-            bitField0_ |= 0x00800000;
+            bitField0_ |= 0x01000000;
             break;
           }
-          case 218: {
+          case 226: {
             alluxio.grpc.PAcl.Builder subBuilder = null;
-            if (((bitField0_ & 0x01000000) == 0x01000000)) {
+            if (((bitField0_ & 0x02000000) == 0x02000000)) {
               subBuilder = defaultAcl_.toBuilder();
             }
             defaultAcl_ = input.readMessage(alluxio.grpc.PAcl.PARSER, extensionRegistry);
@@ -255,7 +263,17 @@ private static final long serialVersionUID = 0L;
               subBuilder.mergeFrom(defaultAcl_);
               defaultAcl_ = subBuilder.buildPartial();
             }
-            bitField0_ |= 0x01000000;
+            bitField0_ |= 0x02000000;
+            break;
+          }
+          case 232: {
+            bitField0_ |= 0x04000000;
+            replicationMax_ = input.readInt32();
+            break;
+          }
+          case 240: {
+            bitField0_ |= 0x08000000;
+            replicationMin_ = input.readInt32();
             break;
           }
         }
@@ -839,16 +857,31 @@ private static final long serialVersionUID = 0L;
     return inAlluxioPercentage_;
   }
 
-  public static final int UFSFINGERPRINT_FIELD_NUMBER = 25;
-  private volatile java.lang.Object ufsFingerprint_;
+  public static final int INMEMORYPERCENTAGE_FIELD_NUMBER = 25;
+  private int inMemoryPercentage_;
   /**
-   * <code>optional string ufsFingerprint = 25;</code>
+   * <code>optional int32 inMemoryPercentage = 25;</code>
    */
-  public boolean hasUfsFingerprint() {
+  public boolean hasInMemoryPercentage() {
     return ((bitField0_ & 0x00400000) == 0x00400000);
   }
   /**
-   * <code>optional string ufsFingerprint = 25;</code>
+   * <code>optional int32 inMemoryPercentage = 25;</code>
+   */
+  public int getInMemoryPercentage() {
+    return inMemoryPercentage_;
+  }
+
+  public static final int UFSFINGERPRINT_FIELD_NUMBER = 26;
+  private volatile java.lang.Object ufsFingerprint_;
+  /**
+   * <code>optional string ufsFingerprint = 26;</code>
+   */
+  public boolean hasUfsFingerprint() {
+    return ((bitField0_ & 0x00800000) == 0x00800000);
+  }
+  /**
+   * <code>optional string ufsFingerprint = 26;</code>
    */
   public java.lang.String getUfsFingerprint() {
     java.lang.Object ref = ufsFingerprint_;
@@ -865,7 +898,7 @@ private static final long serialVersionUID = 0L;
     }
   }
   /**
-   * <code>optional string ufsFingerprint = 25;</code>
+   * <code>optional string ufsFingerprint = 26;</code>
    */
   public com.google.protobuf.ByteString
       getUfsFingerprintBytes() {
@@ -881,46 +914,76 @@ private static final long serialVersionUID = 0L;
     }
   }
 
-  public static final int ACL_FIELD_NUMBER = 26;
+  public static final int ACL_FIELD_NUMBER = 27;
   private alluxio.grpc.PAcl acl_;
   /**
-   * <code>optional .alluxio.grpc.PAcl acl = 26;</code>
+   * <code>optional .alluxio.grpc.PAcl acl = 27;</code>
    */
   public boolean hasAcl() {
-    return ((bitField0_ & 0x00800000) == 0x00800000);
+    return ((bitField0_ & 0x01000000) == 0x01000000);
   }
   /**
-   * <code>optional .alluxio.grpc.PAcl acl = 26;</code>
+   * <code>optional .alluxio.grpc.PAcl acl = 27;</code>
    */
   public alluxio.grpc.PAcl getAcl() {
     return acl_ == null ? alluxio.grpc.PAcl.getDefaultInstance() : acl_;
   }
   /**
-   * <code>optional .alluxio.grpc.PAcl acl = 26;</code>
+   * <code>optional .alluxio.grpc.PAcl acl = 27;</code>
    */
   public alluxio.grpc.PAclOrBuilder getAclOrBuilder() {
     return acl_ == null ? alluxio.grpc.PAcl.getDefaultInstance() : acl_;
   }
 
-  public static final int DEFAULTACL_FIELD_NUMBER = 27;
+  public static final int DEFAULTACL_FIELD_NUMBER = 28;
   private alluxio.grpc.PAcl defaultAcl_;
   /**
-   * <code>optional .alluxio.grpc.PAcl defaultAcl = 27;</code>
+   * <code>optional .alluxio.grpc.PAcl defaultAcl = 28;</code>
    */
   public boolean hasDefaultAcl() {
-    return ((bitField0_ & 0x01000000) == 0x01000000);
+    return ((bitField0_ & 0x02000000) == 0x02000000);
   }
   /**
-   * <code>optional .alluxio.grpc.PAcl defaultAcl = 27;</code>
+   * <code>optional .alluxio.grpc.PAcl defaultAcl = 28;</code>
    */
   public alluxio.grpc.PAcl getDefaultAcl() {
     return defaultAcl_ == null ? alluxio.grpc.PAcl.getDefaultInstance() : defaultAcl_;
   }
   /**
-   * <code>optional .alluxio.grpc.PAcl defaultAcl = 27;</code>
+   * <code>optional .alluxio.grpc.PAcl defaultAcl = 28;</code>
    */
   public alluxio.grpc.PAclOrBuilder getDefaultAclOrBuilder() {
     return defaultAcl_ == null ? alluxio.grpc.PAcl.getDefaultInstance() : defaultAcl_;
+  }
+
+  public static final int REPLICATIONMAX_FIELD_NUMBER = 29;
+  private int replicationMax_;
+  /**
+   * <code>optional int32 replicationMax = 29;</code>
+   */
+  public boolean hasReplicationMax() {
+    return ((bitField0_ & 0x04000000) == 0x04000000);
+  }
+  /**
+   * <code>optional int32 replicationMax = 29;</code>
+   */
+  public int getReplicationMax() {
+    return replicationMax_;
+  }
+
+  public static final int REPLICATIONMIN_FIELD_NUMBER = 30;
+  private int replicationMin_;
+  /**
+   * <code>optional int32 replicationMin = 30;</code>
+   */
+  public boolean hasReplicationMin() {
+    return ((bitField0_ & 0x08000000) == 0x08000000);
+  }
+  /**
+   * <code>optional int32 replicationMin = 30;</code>
+   */
+  public int getReplicationMin() {
+    return replicationMin_;
   }
 
   private byte memoizedIsInitialized = -1;
@@ -1008,13 +1071,22 @@ private static final long serialVersionUID = 0L;
       output.writeInt32(24, inAlluxioPercentage_);
     }
     if (((bitField0_ & 0x00400000) == 0x00400000)) {
-      com.google.protobuf.GeneratedMessageV3.writeString(output, 25, ufsFingerprint_);
+      output.writeInt32(25, inMemoryPercentage_);
     }
     if (((bitField0_ & 0x00800000) == 0x00800000)) {
-      output.writeMessage(26, getAcl());
+      com.google.protobuf.GeneratedMessageV3.writeString(output, 26, ufsFingerprint_);
     }
     if (((bitField0_ & 0x01000000) == 0x01000000)) {
-      output.writeMessage(27, getDefaultAcl());
+      output.writeMessage(27, getAcl());
+    }
+    if (((bitField0_ & 0x02000000) == 0x02000000)) {
+      output.writeMessage(28, getDefaultAcl());
+    }
+    if (((bitField0_ & 0x04000000) == 0x04000000)) {
+      output.writeInt32(29, replicationMax_);
+    }
+    if (((bitField0_ & 0x08000000) == 0x08000000)) {
+      output.writeInt32(30, replicationMin_);
     }
     unknownFields.writeTo(output);
   }
@@ -1120,15 +1192,27 @@ private static final long serialVersionUID = 0L;
         .computeInt32Size(24, inAlluxioPercentage_);
     }
     if (((bitField0_ & 0x00400000) == 0x00400000)) {
-      size += com.google.protobuf.GeneratedMessageV3.computeStringSize(25, ufsFingerprint_);
+      size += com.google.protobuf.CodedOutputStream
+        .computeInt32Size(25, inMemoryPercentage_);
     }
     if (((bitField0_ & 0x00800000) == 0x00800000)) {
-      size += com.google.protobuf.CodedOutputStream
-        .computeMessageSize(26, getAcl());
+      size += com.google.protobuf.GeneratedMessageV3.computeStringSize(26, ufsFingerprint_);
     }
     if (((bitField0_ & 0x01000000) == 0x01000000)) {
       size += com.google.protobuf.CodedOutputStream
-        .computeMessageSize(27, getDefaultAcl());
+        .computeMessageSize(27, getAcl());
+    }
+    if (((bitField0_ & 0x02000000) == 0x02000000)) {
+      size += com.google.protobuf.CodedOutputStream
+        .computeMessageSize(28, getDefaultAcl());
+    }
+    if (((bitField0_ & 0x04000000) == 0x04000000)) {
+      size += com.google.protobuf.CodedOutputStream
+        .computeInt32Size(29, replicationMax_);
+    }
+    if (((bitField0_ & 0x08000000) == 0x08000000)) {
+      size += com.google.protobuf.CodedOutputStream
+        .computeInt32Size(30, replicationMin_);
     }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
@@ -1259,6 +1343,11 @@ private static final long serialVersionUID = 0L;
       result = result && (getInAlluxioPercentage()
           == other.getInAlluxioPercentage());
     }
+    result = result && (hasInMemoryPercentage() == other.hasInMemoryPercentage());
+    if (hasInMemoryPercentage()) {
+      result = result && (getInMemoryPercentage()
+          == other.getInMemoryPercentage());
+    }
     result = result && (hasUfsFingerprint() == other.hasUfsFingerprint());
     if (hasUfsFingerprint()) {
       result = result && getUfsFingerprint()
@@ -1273,6 +1362,16 @@ private static final long serialVersionUID = 0L;
     if (hasDefaultAcl()) {
       result = result && getDefaultAcl()
           .equals(other.getDefaultAcl());
+    }
+    result = result && (hasReplicationMax() == other.hasReplicationMax());
+    if (hasReplicationMax()) {
+      result = result && (getReplicationMax()
+          == other.getReplicationMax());
+    }
+    result = result && (hasReplicationMin() == other.hasReplicationMin());
+    if (hasReplicationMin()) {
+      result = result && (getReplicationMin()
+          == other.getReplicationMin());
     }
     result = result && unknownFields.equals(other.unknownFields);
     return result;
@@ -1394,6 +1493,10 @@ private static final long serialVersionUID = 0L;
       hash = (37 * hash) + INALLUXIOPERCENTAGE_FIELD_NUMBER;
       hash = (53 * hash) + getInAlluxioPercentage();
     }
+    if (hasInMemoryPercentage()) {
+      hash = (37 * hash) + INMEMORYPERCENTAGE_FIELD_NUMBER;
+      hash = (53 * hash) + getInMemoryPercentage();
+    }
     if (hasUfsFingerprint()) {
       hash = (37 * hash) + UFSFINGERPRINT_FIELD_NUMBER;
       hash = (53 * hash) + getUfsFingerprint().hashCode();
@@ -1405,6 +1508,14 @@ private static final long serialVersionUID = 0L;
     if (hasDefaultAcl()) {
       hash = (37 * hash) + DEFAULTACL_FIELD_NUMBER;
       hash = (53 * hash) + getDefaultAcl().hashCode();
+    }
+    if (hasReplicationMax()) {
+      hash = (37 * hash) + REPLICATIONMAX_FIELD_NUMBER;
+      hash = (53 * hash) + getReplicationMax();
+    }
+    if (hasReplicationMin()) {
+      hash = (37 * hash) + REPLICATIONMIN_FIELD_NUMBER;
+      hash = (53 * hash) + getReplicationMin();
     }
     hash = (29 * hash) + unknownFields.hashCode();
     memoizedHashCode = hash;
@@ -1590,20 +1701,26 @@ private static final long serialVersionUID = 0L;
       bitField0_ = (bitField0_ & ~0x00400000);
       inAlluxioPercentage_ = 0;
       bitField0_ = (bitField0_ & ~0x00800000);
-      ufsFingerprint_ = "";
+      inMemoryPercentage_ = 0;
       bitField0_ = (bitField0_ & ~0x01000000);
+      ufsFingerprint_ = "";
+      bitField0_ = (bitField0_ & ~0x02000000);
       if (aclBuilder_ == null) {
         acl_ = null;
       } else {
         aclBuilder_.clear();
       }
-      bitField0_ = (bitField0_ & ~0x02000000);
+      bitField0_ = (bitField0_ & ~0x04000000);
       if (defaultAclBuilder_ == null) {
         defaultAcl_ = null;
       } else {
         defaultAclBuilder_.clear();
       }
-      bitField0_ = (bitField0_ & ~0x04000000);
+      bitField0_ = (bitField0_ & ~0x08000000);
+      replicationMax_ = 0;
+      bitField0_ = (bitField0_ & ~0x10000000);
+      replicationMin_ = 0;
+      bitField0_ = (bitField0_ & ~0x20000000);
       return this;
     }
 
@@ -1733,23 +1850,35 @@ private static final long serialVersionUID = 0L;
       if (((from_bitField0_ & 0x01000000) == 0x01000000)) {
         to_bitField0_ |= 0x00400000;
       }
-      result.ufsFingerprint_ = ufsFingerprint_;
+      result.inMemoryPercentage_ = inMemoryPercentage_;
       if (((from_bitField0_ & 0x02000000) == 0x02000000)) {
         to_bitField0_ |= 0x00800000;
+      }
+      result.ufsFingerprint_ = ufsFingerprint_;
+      if (((from_bitField0_ & 0x04000000) == 0x04000000)) {
+        to_bitField0_ |= 0x01000000;
       }
       if (aclBuilder_ == null) {
         result.acl_ = acl_;
       } else {
         result.acl_ = aclBuilder_.build();
       }
-      if (((from_bitField0_ & 0x04000000) == 0x04000000)) {
-        to_bitField0_ |= 0x01000000;
+      if (((from_bitField0_ & 0x08000000) == 0x08000000)) {
+        to_bitField0_ |= 0x02000000;
       }
       if (defaultAclBuilder_ == null) {
         result.defaultAcl_ = defaultAcl_;
       } else {
         result.defaultAcl_ = defaultAclBuilder_.build();
       }
+      if (((from_bitField0_ & 0x10000000) == 0x10000000)) {
+        to_bitField0_ |= 0x04000000;
+      }
+      result.replicationMax_ = replicationMax_;
+      if (((from_bitField0_ & 0x20000000) == 0x20000000)) {
+        to_bitField0_ |= 0x08000000;
+      }
+      result.replicationMin_ = replicationMin_;
       result.bitField0_ = to_bitField0_;
       onBuilt();
       return result;
@@ -1906,8 +2035,11 @@ private static final long serialVersionUID = 0L;
       if (other.hasInAlluxioPercentage()) {
         setInAlluxioPercentage(other.getInAlluxioPercentage());
       }
+      if (other.hasInMemoryPercentage()) {
+        setInMemoryPercentage(other.getInMemoryPercentage());
+      }
       if (other.hasUfsFingerprint()) {
-        bitField0_ |= 0x01000000;
+        bitField0_ |= 0x02000000;
         ufsFingerprint_ = other.ufsFingerprint_;
         onChanged();
       }
@@ -1916,6 +2048,12 @@ private static final long serialVersionUID = 0L;
       }
       if (other.hasDefaultAcl()) {
         mergeDefaultAcl(other.getDefaultAcl());
+      }
+      if (other.hasReplicationMax()) {
+        setReplicationMax(other.getReplicationMax());
+      }
+      if (other.hasReplicationMin()) {
+        setReplicationMin(other.getReplicationMin());
       }
       this.mergeUnknownFields(other.unknownFields);
       onChanged();
@@ -3223,15 +3361,47 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
-    private java.lang.Object ufsFingerprint_ = "";
+    private int inMemoryPercentage_ ;
     /**
-     * <code>optional string ufsFingerprint = 25;</code>
+     * <code>optional int32 inMemoryPercentage = 25;</code>
      */
-    public boolean hasUfsFingerprint() {
+    public boolean hasInMemoryPercentage() {
       return ((bitField0_ & 0x01000000) == 0x01000000);
     }
     /**
-     * <code>optional string ufsFingerprint = 25;</code>
+     * <code>optional int32 inMemoryPercentage = 25;</code>
+     */
+    public int getInMemoryPercentage() {
+      return inMemoryPercentage_;
+    }
+    /**
+     * <code>optional int32 inMemoryPercentage = 25;</code>
+     */
+    public Builder setInMemoryPercentage(int value) {
+      bitField0_ |= 0x01000000;
+      inMemoryPercentage_ = value;
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>optional int32 inMemoryPercentage = 25;</code>
+     */
+    public Builder clearInMemoryPercentage() {
+      bitField0_ = (bitField0_ & ~0x01000000);
+      inMemoryPercentage_ = 0;
+      onChanged();
+      return this;
+    }
+
+    private java.lang.Object ufsFingerprint_ = "";
+    /**
+     * <code>optional string ufsFingerprint = 26;</code>
+     */
+    public boolean hasUfsFingerprint() {
+      return ((bitField0_ & 0x02000000) == 0x02000000);
+    }
+    /**
+     * <code>optional string ufsFingerprint = 26;</code>
      */
     public java.lang.String getUfsFingerprint() {
       java.lang.Object ref = ufsFingerprint_;
@@ -3248,7 +3418,7 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
-     * <code>optional string ufsFingerprint = 25;</code>
+     * <code>optional string ufsFingerprint = 26;</code>
      */
     public com.google.protobuf.ByteString
         getUfsFingerprintBytes() {
@@ -3264,36 +3434,36 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
-     * <code>optional string ufsFingerprint = 25;</code>
+     * <code>optional string ufsFingerprint = 26;</code>
      */
     public Builder setUfsFingerprint(
         java.lang.String value) {
       if (value == null) {
     throw new NullPointerException();
   }
-  bitField0_ |= 0x01000000;
+  bitField0_ |= 0x02000000;
       ufsFingerprint_ = value;
       onChanged();
       return this;
     }
     /**
-     * <code>optional string ufsFingerprint = 25;</code>
+     * <code>optional string ufsFingerprint = 26;</code>
      */
     public Builder clearUfsFingerprint() {
-      bitField0_ = (bitField0_ & ~0x01000000);
+      bitField0_ = (bitField0_ & ~0x02000000);
       ufsFingerprint_ = getDefaultInstance().getUfsFingerprint();
       onChanged();
       return this;
     }
     /**
-     * <code>optional string ufsFingerprint = 25;</code>
+     * <code>optional string ufsFingerprint = 26;</code>
      */
     public Builder setUfsFingerprintBytes(
         com.google.protobuf.ByteString value) {
       if (value == null) {
     throw new NullPointerException();
   }
-  bitField0_ |= 0x01000000;
+  bitField0_ |= 0x02000000;
       ufsFingerprint_ = value;
       onChanged();
       return this;
@@ -3303,13 +3473,13 @@ private static final long serialVersionUID = 0L;
     private com.google.protobuf.SingleFieldBuilderV3<
         alluxio.grpc.PAcl, alluxio.grpc.PAcl.Builder, alluxio.grpc.PAclOrBuilder> aclBuilder_;
     /**
-     * <code>optional .alluxio.grpc.PAcl acl = 26;</code>
+     * <code>optional .alluxio.grpc.PAcl acl = 27;</code>
      */
     public boolean hasAcl() {
-      return ((bitField0_ & 0x02000000) == 0x02000000);
+      return ((bitField0_ & 0x04000000) == 0x04000000);
     }
     /**
-     * <code>optional .alluxio.grpc.PAcl acl = 26;</code>
+     * <code>optional .alluxio.grpc.PAcl acl = 27;</code>
      */
     public alluxio.grpc.PAcl getAcl() {
       if (aclBuilder_ == null) {
@@ -3319,7 +3489,7 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
-     * <code>optional .alluxio.grpc.PAcl acl = 26;</code>
+     * <code>optional .alluxio.grpc.PAcl acl = 27;</code>
      */
     public Builder setAcl(alluxio.grpc.PAcl value) {
       if (aclBuilder_ == null) {
@@ -3331,11 +3501,11 @@ private static final long serialVersionUID = 0L;
       } else {
         aclBuilder_.setMessage(value);
       }
-      bitField0_ |= 0x02000000;
+      bitField0_ |= 0x04000000;
       return this;
     }
     /**
-     * <code>optional .alluxio.grpc.PAcl acl = 26;</code>
+     * <code>optional .alluxio.grpc.PAcl acl = 27;</code>
      */
     public Builder setAcl(
         alluxio.grpc.PAcl.Builder builderForValue) {
@@ -3345,15 +3515,15 @@ private static final long serialVersionUID = 0L;
       } else {
         aclBuilder_.setMessage(builderForValue.build());
       }
-      bitField0_ |= 0x02000000;
+      bitField0_ |= 0x04000000;
       return this;
     }
     /**
-     * <code>optional .alluxio.grpc.PAcl acl = 26;</code>
+     * <code>optional .alluxio.grpc.PAcl acl = 27;</code>
      */
     public Builder mergeAcl(alluxio.grpc.PAcl value) {
       if (aclBuilder_ == null) {
-        if (((bitField0_ & 0x02000000) == 0x02000000) &&
+        if (((bitField0_ & 0x04000000) == 0x04000000) &&
             acl_ != null &&
             acl_ != alluxio.grpc.PAcl.getDefaultInstance()) {
           acl_ =
@@ -3365,11 +3535,11 @@ private static final long serialVersionUID = 0L;
       } else {
         aclBuilder_.mergeFrom(value);
       }
-      bitField0_ |= 0x02000000;
+      bitField0_ |= 0x04000000;
       return this;
     }
     /**
-     * <code>optional .alluxio.grpc.PAcl acl = 26;</code>
+     * <code>optional .alluxio.grpc.PAcl acl = 27;</code>
      */
     public Builder clearAcl() {
       if (aclBuilder_ == null) {
@@ -3378,19 +3548,19 @@ private static final long serialVersionUID = 0L;
       } else {
         aclBuilder_.clear();
       }
-      bitField0_ = (bitField0_ & ~0x02000000);
+      bitField0_ = (bitField0_ & ~0x04000000);
       return this;
     }
     /**
-     * <code>optional .alluxio.grpc.PAcl acl = 26;</code>
+     * <code>optional .alluxio.grpc.PAcl acl = 27;</code>
      */
     public alluxio.grpc.PAcl.Builder getAclBuilder() {
-      bitField0_ |= 0x02000000;
+      bitField0_ |= 0x04000000;
       onChanged();
       return getAclFieldBuilder().getBuilder();
     }
     /**
-     * <code>optional .alluxio.grpc.PAcl acl = 26;</code>
+     * <code>optional .alluxio.grpc.PAcl acl = 27;</code>
      */
     public alluxio.grpc.PAclOrBuilder getAclOrBuilder() {
       if (aclBuilder_ != null) {
@@ -3401,7 +3571,7 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
-     * <code>optional .alluxio.grpc.PAcl acl = 26;</code>
+     * <code>optional .alluxio.grpc.PAcl acl = 27;</code>
      */
     private com.google.protobuf.SingleFieldBuilderV3<
         alluxio.grpc.PAcl, alluxio.grpc.PAcl.Builder, alluxio.grpc.PAclOrBuilder> 
@@ -3421,13 +3591,13 @@ private static final long serialVersionUID = 0L;
     private com.google.protobuf.SingleFieldBuilderV3<
         alluxio.grpc.PAcl, alluxio.grpc.PAcl.Builder, alluxio.grpc.PAclOrBuilder> defaultAclBuilder_;
     /**
-     * <code>optional .alluxio.grpc.PAcl defaultAcl = 27;</code>
+     * <code>optional .alluxio.grpc.PAcl defaultAcl = 28;</code>
      */
     public boolean hasDefaultAcl() {
-      return ((bitField0_ & 0x04000000) == 0x04000000);
+      return ((bitField0_ & 0x08000000) == 0x08000000);
     }
     /**
-     * <code>optional .alluxio.grpc.PAcl defaultAcl = 27;</code>
+     * <code>optional .alluxio.grpc.PAcl defaultAcl = 28;</code>
      */
     public alluxio.grpc.PAcl getDefaultAcl() {
       if (defaultAclBuilder_ == null) {
@@ -3437,7 +3607,7 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
-     * <code>optional .alluxio.grpc.PAcl defaultAcl = 27;</code>
+     * <code>optional .alluxio.grpc.PAcl defaultAcl = 28;</code>
      */
     public Builder setDefaultAcl(alluxio.grpc.PAcl value) {
       if (defaultAclBuilder_ == null) {
@@ -3449,11 +3619,11 @@ private static final long serialVersionUID = 0L;
       } else {
         defaultAclBuilder_.setMessage(value);
       }
-      bitField0_ |= 0x04000000;
+      bitField0_ |= 0x08000000;
       return this;
     }
     /**
-     * <code>optional .alluxio.grpc.PAcl defaultAcl = 27;</code>
+     * <code>optional .alluxio.grpc.PAcl defaultAcl = 28;</code>
      */
     public Builder setDefaultAcl(
         alluxio.grpc.PAcl.Builder builderForValue) {
@@ -3463,15 +3633,15 @@ private static final long serialVersionUID = 0L;
       } else {
         defaultAclBuilder_.setMessage(builderForValue.build());
       }
-      bitField0_ |= 0x04000000;
+      bitField0_ |= 0x08000000;
       return this;
     }
     /**
-     * <code>optional .alluxio.grpc.PAcl defaultAcl = 27;</code>
+     * <code>optional .alluxio.grpc.PAcl defaultAcl = 28;</code>
      */
     public Builder mergeDefaultAcl(alluxio.grpc.PAcl value) {
       if (defaultAclBuilder_ == null) {
-        if (((bitField0_ & 0x04000000) == 0x04000000) &&
+        if (((bitField0_ & 0x08000000) == 0x08000000) &&
             defaultAcl_ != null &&
             defaultAcl_ != alluxio.grpc.PAcl.getDefaultInstance()) {
           defaultAcl_ =
@@ -3483,11 +3653,11 @@ private static final long serialVersionUID = 0L;
       } else {
         defaultAclBuilder_.mergeFrom(value);
       }
-      bitField0_ |= 0x04000000;
+      bitField0_ |= 0x08000000;
       return this;
     }
     /**
-     * <code>optional .alluxio.grpc.PAcl defaultAcl = 27;</code>
+     * <code>optional .alluxio.grpc.PAcl defaultAcl = 28;</code>
      */
     public Builder clearDefaultAcl() {
       if (defaultAclBuilder_ == null) {
@@ -3496,19 +3666,19 @@ private static final long serialVersionUID = 0L;
       } else {
         defaultAclBuilder_.clear();
       }
-      bitField0_ = (bitField0_ & ~0x04000000);
+      bitField0_ = (bitField0_ & ~0x08000000);
       return this;
     }
     /**
-     * <code>optional .alluxio.grpc.PAcl defaultAcl = 27;</code>
+     * <code>optional .alluxio.grpc.PAcl defaultAcl = 28;</code>
      */
     public alluxio.grpc.PAcl.Builder getDefaultAclBuilder() {
-      bitField0_ |= 0x04000000;
+      bitField0_ |= 0x08000000;
       onChanged();
       return getDefaultAclFieldBuilder().getBuilder();
     }
     /**
-     * <code>optional .alluxio.grpc.PAcl defaultAcl = 27;</code>
+     * <code>optional .alluxio.grpc.PAcl defaultAcl = 28;</code>
      */
     public alluxio.grpc.PAclOrBuilder getDefaultAclOrBuilder() {
       if (defaultAclBuilder_ != null) {
@@ -3519,7 +3689,7 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
-     * <code>optional .alluxio.grpc.PAcl defaultAcl = 27;</code>
+     * <code>optional .alluxio.grpc.PAcl defaultAcl = 28;</code>
      */
     private com.google.protobuf.SingleFieldBuilderV3<
         alluxio.grpc.PAcl, alluxio.grpc.PAcl.Builder, alluxio.grpc.PAclOrBuilder> 
@@ -3533,6 +3703,70 @@ private static final long serialVersionUID = 0L;
         defaultAcl_ = null;
       }
       return defaultAclBuilder_;
+    }
+
+    private int replicationMax_ ;
+    /**
+     * <code>optional int32 replicationMax = 29;</code>
+     */
+    public boolean hasReplicationMax() {
+      return ((bitField0_ & 0x10000000) == 0x10000000);
+    }
+    /**
+     * <code>optional int32 replicationMax = 29;</code>
+     */
+    public int getReplicationMax() {
+      return replicationMax_;
+    }
+    /**
+     * <code>optional int32 replicationMax = 29;</code>
+     */
+    public Builder setReplicationMax(int value) {
+      bitField0_ |= 0x10000000;
+      replicationMax_ = value;
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>optional int32 replicationMax = 29;</code>
+     */
+    public Builder clearReplicationMax() {
+      bitField0_ = (bitField0_ & ~0x10000000);
+      replicationMax_ = 0;
+      onChanged();
+      return this;
+    }
+
+    private int replicationMin_ ;
+    /**
+     * <code>optional int32 replicationMin = 30;</code>
+     */
+    public boolean hasReplicationMin() {
+      return ((bitField0_ & 0x20000000) == 0x20000000);
+    }
+    /**
+     * <code>optional int32 replicationMin = 30;</code>
+     */
+    public int getReplicationMin() {
+      return replicationMin_;
+    }
+    /**
+     * <code>optional int32 replicationMin = 30;</code>
+     */
+    public Builder setReplicationMin(int value) {
+      bitField0_ |= 0x20000000;
+      replicationMin_ = value;
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>optional int32 replicationMin = 30;</code>
+     */
+    public Builder clearReplicationMin() {
+      bitField0_ = (bitField0_ & ~0x20000000);
+      replicationMin_ = 0;
+      onChanged();
+      return this;
     }
     public final Builder setUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {

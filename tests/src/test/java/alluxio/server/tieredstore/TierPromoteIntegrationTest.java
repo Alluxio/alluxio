@@ -14,11 +14,11 @@ package alluxio.server.tieredstore;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.PropertyKey;
-import alluxio.client.ReadType;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
-import alluxio.client.file.options.OpenFileOptions;
+import alluxio.client.file.FileSystemClientOptions;
+import alluxio.grpc.ReadPType;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
@@ -115,8 +115,8 @@ public class TierPromoteIntegrationTest extends BaseIntegrationTest {
     Assert.assertFalse(mFileSystem.getStatus(path1).getFileBlockInfos().isEmpty());
 
     // After reading with CACHE_PROMOTE, the file should be in memory
-    FileInStream in = mFileSystem.openFile(path1, OpenFileOptions.defaults().setReadType(ReadType
-        .CACHE_PROMOTE));
+    FileInStream in = mFileSystem.openFile(path1, FileSystemClientOptions.getOpenFileOptions()
+        .toBuilder().setReadType(ReadPType.READ_CACHE_PROMOTE).build());
     byte[] buf = new byte[size];
     while (in.read(buf) != -1) {
       // read the entire file

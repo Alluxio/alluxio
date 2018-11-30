@@ -17,10 +17,11 @@ import alluxio.client.ReadType;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
-import alluxio.client.file.options.CreateFileOptions;
-import alluxio.client.file.options.OpenFileOptions;
+import alluxio.client.file.FileSystemClientOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.FileAlreadyExistsException;
+import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.OpenFilePOptions;
 import alluxio.util.CommonUtils;
 import alluxio.util.FormatUtils;
 
@@ -91,7 +92,8 @@ public final class BasicNonByteBufferOperations implements Callable<Boolean> {
 
   private FileOutStream createFile(FileSystem fileSystem, AlluxioURI filePath,
       boolean deleteIfExists) throws IOException, AlluxioException {
-    CreateFileOptions options = CreateFileOptions.defaults().setWriteType(mWriteType);
+    CreateFilePOptions options = FileSystemClientOptions.getCreateFileOptions().toBuilder()
+        .setWriteType(mWriteType.toProto()).build();
     if (!fileSystem.exists(filePath)) {
       // file doesn't exist yet, so create it
       return fileSystem.createFile(filePath, options);
@@ -105,7 +107,8 @@ public final class BasicNonByteBufferOperations implements Callable<Boolean> {
   }
 
   private boolean read(FileSystem alluxioClient) throws IOException, AlluxioException {
-    OpenFileOptions options = OpenFileOptions.defaults().setReadType(mReadType);
+    OpenFilePOptions options = FileSystemClientOptions.getOpenFileOptions().toBuilder()
+        .setReadType(mReadType.toProto()).build();
     boolean pass = true;
     long startTimeMs = CommonUtils.getCurrentMs();
     try (DataInputStream input = new DataInputStream(alluxioClient.openFile(mFilePath, options))) {

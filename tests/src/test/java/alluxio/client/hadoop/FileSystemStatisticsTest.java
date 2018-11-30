@@ -12,8 +12,8 @@
 package alluxio.client.hadoop;
 
 import alluxio.PropertyKey;
-import alluxio.client.WriteType;
 import alluxio.client.file.FileSystemTestUtils;
+import alluxio.grpc.WritePType;
 import alluxio.hadoop.FileSystem;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
@@ -52,7 +52,7 @@ public class FileSystemStatisticsTest extends BaseIntegrationTest {
     conf.set("fs.alluxio.impl", FileSystem.class.getName());
 
     alluxio.client.file.FileSystem alluxioFS = sLocalAlluxioClusterResource.get().getClient();
-    FileSystemTestUtils.createByteFile(alluxioFS, "/testFile-read", WriteType.CACHE_THROUGH,
+    FileSystemTestUtils.createByteFile(alluxioFS, "/testFile-read", WritePType.WRITE_CACHE_THROUGH,
         FILE_LEN);
 
     URI uri = URI.create(sLocalAlluxioClusterResource.get().getMasterURI());

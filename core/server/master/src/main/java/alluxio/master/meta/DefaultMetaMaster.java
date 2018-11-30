@@ -69,6 +69,7 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -193,7 +194,7 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
 
   @Override
   public Iterator<JournalEntry> getJournalEntryIterator() {
-    return Iterators.emptyIterator();
+    return Iterators.unmodifiableIterator(Collections.emptyIterator());
   }
 
   @Override

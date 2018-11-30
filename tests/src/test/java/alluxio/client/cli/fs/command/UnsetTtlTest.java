@@ -15,9 +15,9 @@ import static org.junit.Assert.assertEquals;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
-import alluxio.client.WriteType;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
+import alluxio.grpc.WritePType;
 
 import org.junit.Test;
 
@@ -29,7 +29,7 @@ public final class UnsetTtlTest extends AbstractFileSystemShellTest {
   public void unsetTtl() throws Exception {
     String filePath = "/testFile";
     AlluxioURI uri = new AlluxioURI("/testFile");
-    FileSystemTestUtils.createByteFile(mFileSystem, filePath, WriteType.MUST_CACHE, 1);
+    FileSystemTestUtils.createByteFile(mFileSystem, filePath, WritePType.WRITE_MUST_CACHE, 1);
     assertEquals(Constants.NO_TTL, mFileSystem.getStatus(uri).getTtl());
 
     // unsetTTL on a file originally with no TTL will leave the TTL unchanged.

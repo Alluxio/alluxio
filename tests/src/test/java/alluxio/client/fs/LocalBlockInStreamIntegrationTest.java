@@ -12,14 +12,15 @@
 package alluxio.client.fs;
 
 import alluxio.AlluxioURI;
-import alluxio.client.ReadType;
-import alluxio.client.WriteType;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemClientOptions;
 import alluxio.client.file.FileSystemTestUtils;
-import alluxio.client.file.options.CreateFileOptions;
-import alluxio.client.file.options.OpenFileOptions;
 import alluxio.exception.PreconditionMessage;
+import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.OpenFilePOptions;
+import alluxio.grpc.ReadPType;
+import alluxio.grpc.WritePType;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.util.io.BufferUtils;
@@ -47,10 +48,10 @@ public final class LocalBlockInStreamIntegrationTest extends BaseIntegrationTest
   public static LocalAlluxioClusterResource sLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder().build();
   private static FileSystem sFileSystem = null;
-  private static CreateFileOptions sWriteBoth;
-  private static CreateFileOptions sWriteAlluxio;
-  private static OpenFileOptions sReadNoCache;
-  private static OpenFileOptions sReadCachePromote;
+  private static CreateFilePOptions sWriteBoth;
+  private static CreateFilePOptions sWriteAlluxio;
+  private static OpenFilePOptions sReadNoCache;
+  private static OpenFilePOptions sReadCachePromote;
   private static String sTestPath;
 
   @Rule
@@ -59,23 +60,27 @@ public final class LocalBlockInStreamIntegrationTest extends BaseIntegrationTest
   @BeforeClass
   public static final void beforeClass() throws Exception {
     sFileSystem = sLocalAlluxioClusterResource.get().getClient();
-    sWriteBoth = CreateFileOptions.defaults().setWriteType(WriteType.CACHE_THROUGH);
-    sWriteAlluxio = CreateFileOptions.defaults().setWriteType(WriteType.MUST_CACHE);
-    sReadCachePromote = OpenFileOptions.defaults().setReadType(ReadType.CACHE_PROMOTE);
-    sReadNoCache = OpenFileOptions.defaults().setReadType(ReadType.NO_CACHE);
+    sWriteBoth = FileSystemClientOptions.getCreateFileOptions().toBuilder()
+        .setWriteType(WritePType.WRITE_CACHE_THROUGH).build();
+    sWriteAlluxio = FileSystemClientOptions.getCreateFileOptions().toBuilder()
+        .setWriteType(WritePType.WRITE_MUST_CACHE).build();
+    sReadCachePromote = FileSystemClientOptions.getOpenFileOptions().toBuilder()
+        .setReadType(ReadPType.READ_CACHE_PROMOTE).build();
+    sReadNoCache = FileSystemClientOptions.getOpenFileOptions().toBuilder()
+        .setReadType(ReadPType.READ_NO_CACHE).build();
     sTestPath = PathUtils.uniqPath();
 
     // Create files of varying size and write type to later read from
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
-      for (CreateFileOptions op : getOptionSet()) {
+      for (CreateFilePOptions op : getOptionSet()) {
         AlluxioURI path = new AlluxioURI(sTestPath + "/file_" + k + "_" + op.hashCode());
         FileSystemTestUtils.createByteFile(sFileSystem, path, op, k);
       }
     }
   }
 
-  private static List<CreateFileOptions> getOptionSet() {
-    List<CreateFileOptions> ret = new ArrayList<>(2);
+  private static List<CreateFilePOptions> getOptionSet() {
+    List<CreateFilePOptions> ret = new ArrayList<>(2);
     ret.add(sWriteBoth);
     ret.add(sWriteAlluxio);
     return ret;
@@ -87,7 +92,7 @@ public final class LocalBlockInStreamIntegrationTest extends BaseIntegrationTest
   @Test
   public void readTest1() throws Exception {
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
-      for (CreateFileOptions op : getOptionSet()) {
+      for (CreateFilePOptions op : getOptionSet()) {
         AlluxioURI uri = new AlluxioURI(sTestPath + "/file_" + k + "_" + op.hashCode());
 
         FileInStream is = sFileSystem.openFile(uri, sReadNoCache);
@@ -128,7 +133,7 @@ public final class LocalBlockInStreamIntegrationTest extends BaseIntegrationTest
   @Test
   public void readTest2() throws Exception {
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
-      for (CreateFileOptions op : getOptionSet()) {
+      for (CreateFilePOptions op : getOptionSet()) {
         AlluxioURI uri = new AlluxioURI(sTestPath + "/file_" + k + "_" + op.hashCode());
 
         FileInStream is = sFileSystem.openFile(uri, sReadNoCache);
@@ -153,7 +158,7 @@ public final class LocalBlockInStreamIntegrationTest extends BaseIntegrationTest
   @Test
   public void readTest3() throws Exception {
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
-      for (CreateFileOptions op : getOptionSet()) {
+      for (CreateFilePOptions op : getOptionSet()) {
         AlluxioURI uri = new AlluxioURI(sTestPath + "/file_" + k + "_" + op.hashCode());
 
         FileInStream is = sFileSystem.openFile(uri, sReadNoCache);
@@ -181,7 +186,7 @@ public final class LocalBlockInStreamIntegrationTest extends BaseIntegrationTest
     mThrown.expect(IllegalArgumentException.class);
     mThrown.expectMessage(String.format(PreconditionMessage.ERR_SEEK_NEGATIVE.toString(), -1));
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
-      for (CreateFileOptions op : getOptionSet()) {
+      for (CreateFilePOptions op : getOptionSet()) {
         AlluxioURI uri = new AlluxioURI(sTestPath + "/file_" + k + "_" + op.hashCode());
 
         try (FileInStream is = sFileSystem.openFile(uri, sReadNoCache)) {
@@ -202,7 +207,7 @@ public final class LocalBlockInStreamIntegrationTest extends BaseIntegrationTest
         .expectMessage(String.format(PreconditionMessage.ERR_SEEK_PAST_END_OF_FILE.toString(), 1));
 
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
-      for (CreateFileOptions op : getOptionSet()) {
+      for (CreateFilePOptions op : getOptionSet()) {
         AlluxioURI uri = new AlluxioURI(sTestPath + "/file_" + k + "_" + op.hashCode());
 
         try (FileInStream is = sFileSystem.openFile(uri, sReadNoCache)) {
@@ -218,7 +223,7 @@ public final class LocalBlockInStreamIntegrationTest extends BaseIntegrationTest
   @Test
   public void seek() throws Exception {
     for (int k = MIN_LEN + DELTA; k <= MAX_LEN; k += DELTA) {
-      for (CreateFileOptions op : getOptionSet()) {
+      for (CreateFilePOptions op : getOptionSet()) {
         AlluxioURI uri = new AlluxioURI(sTestPath + "/file_" + k + "_" + op.hashCode());
 
         FileInStream is = sFileSystem.openFile(uri, sReadNoCache);
@@ -240,7 +245,7 @@ public final class LocalBlockInStreamIntegrationTest extends BaseIntegrationTest
   @Test
   public void skip() throws Exception {
     for (int k = MIN_LEN + DELTA; k <= MAX_LEN; k += DELTA) {
-      for (CreateFileOptions op : getOptionSet()) {
+      for (CreateFilePOptions op : getOptionSet()) {
         AlluxioURI uri = new AlluxioURI(sTestPath + "/file_" + k + "_" + op.hashCode());
 
         FileInStream is = sFileSystem.openFile(uri, sReadNoCache);

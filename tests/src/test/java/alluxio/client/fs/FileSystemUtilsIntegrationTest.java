@@ -14,12 +14,13 @@ package alluxio.client.fs;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
-import alluxio.client.WriteType;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemClientOptions;
 import alluxio.client.file.FileSystemUtils;
-import alluxio.client.file.options.CreateFileOptions;
 import alluxio.exception.AlluxioException;
+import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.WritePType;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.util.CommonUtils;
@@ -45,7 +46,7 @@ public class FileSystemUtilsIntegrationTest extends BaseIntegrationTest {
       new LocalAlluxioClusterResource.Builder()
           .setProperty(PropertyKey.USER_FILE_BUFFER_BYTES, USER_QUOTA_UNIT_BYTES)
           .build();
-  private static CreateFileOptions sWriteBoth;
+  private static CreateFilePOptions sWriteBoth;
   private static FileSystem sFileSystem = null;
 
   @Rule
@@ -54,7 +55,8 @@ public class FileSystemUtilsIntegrationTest extends BaseIntegrationTest {
   @BeforeClass
   public static void beforeClass() throws Exception {
     sFileSystem = sLocalAlluxioClusterResource.get().getClient();
-    sWriteBoth = CreateFileOptions.defaults().setWriteType(WriteType.CACHE_THROUGH);
+    sWriteBoth = FileSystemClientOptions.getCreateFileOptions().toBuilder()
+        .setWriteType(WritePType.WRITE_CACHE_THROUGH).build();
   }
 
   @Test

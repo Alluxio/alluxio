@@ -14,10 +14,11 @@ package alluxio.server.health;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
-import alluxio.client.WriteType;
 import alluxio.client.file.FileSystem;
-import alluxio.client.file.options.CreateDirectoryOptions;
-import alluxio.client.file.options.CreateFileOptions;
+import alluxio.client.file.FileSystemClientOptions;
+import alluxio.grpc.CreateDirectoryPOptions;
+import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.WritePType;
 import alluxio.master.LocalAlluxioCluster;
 import alluxio.master.MasterRegistry;
 import alluxio.master.file.FileSystemMaster;
@@ -59,9 +60,10 @@ public final class StartupConsistencyCheckIntegrationTest extends BaseIntegratio
 
   @Before
   public void before() throws Exception {
-    CreateFileOptions fileOptions = CreateFileOptions.defaults().setWriteType(WriteType.THROUGH);
-    CreateDirectoryOptions dirOptions =
-        CreateDirectoryOptions.defaults().setWriteType(WriteType.THROUGH);
+    CreateFilePOptions fileOptions = FileSystemClientOptions.getCreateFileOptions().toBuilder()
+        .setWriteType(WritePType.WRITE_THROUGH).build();
+    CreateDirectoryPOptions dirOptions = FileSystemClientOptions.getCreateDirectoryOptions()
+        .toBuilder().setWriteType(WritePType.WRITE_THROUGH).build();
 
     mCluster = mLocalAlluxioClusterResource.get();
     mFileSystem = mCluster.getClient();

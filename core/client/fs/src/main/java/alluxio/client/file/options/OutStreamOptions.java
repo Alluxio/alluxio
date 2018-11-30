@@ -19,6 +19,7 @@ import alluxio.client.AlluxioStorageType;
 import alluxio.client.UnderStorageType;
 import alluxio.client.WriteType;
 import alluxio.client.file.policy.FileWriteLocationPolicy;
+import alluxio.grpc.CreateFilePOptions;
 import alluxio.security.authorization.AccessControlList;
 import alluxio.security.authorization.Mode;
 import alluxio.util.CommonUtils;
@@ -58,6 +59,29 @@ public final class OutStreamOptions {
    */
   public static OutStreamOptions defaults() {
     return new OutStreamOptions();
+  }
+
+  /**
+   * Creates an {@link OutStreamOptions} instance from given options.
+   *
+   * @param options CreateFile options
+   * @throws Exception if FileWriteLocationPolicy can't be loaded
+   */
+  public OutStreamOptions(CreateFilePOptions options) {
+    this();
+    mBlockSizeBytes = options.getBlockSizeBytes();
+    try {
+      mLocationPolicy = (FileWriteLocationPolicy) CommonUtils.createNewClassInstance(
+          Class.forName(options.getFileWriteLocationPolicy()), new Class[] {}, new Object[] {});
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+    mMode = new Mode((short) options.getMode());
+    mReplicationDurable = options.getReplicationDurable();
+    mReplicationMin = options.getReplicationMin();
+    mReplicationMax = options.getReplicationMax();
+    mWriteTier = options.getWriteTier();
+    mWriteType = WriteType.fromProto(options.getWriteType());
   }
 
   private OutStreamOptions() {

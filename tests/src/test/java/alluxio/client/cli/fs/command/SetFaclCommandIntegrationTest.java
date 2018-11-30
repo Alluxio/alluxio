@@ -13,11 +13,11 @@ package alluxio.client.cli.fs.command;
 
 import alluxio.AlluxioURI;
 import alluxio.PropertyKey;
-import alluxio.client.WriteType;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
+import alluxio.grpc.WritePType;
 import alluxio.testutils.LocalAlluxioClusterResource;
 
 import org.junit.Assert;
@@ -103,7 +103,7 @@ public final class SetFaclCommandIntegrationTest extends AbstractFileSystemShell
     Assert.assertEquals(expected, mOutput.toString());
 
     FileSystemTestUtils.createByteFile(mFileSystem,
-        "/testRoot/testDir/testDir2/testFileD", WriteType.MUST_CACHE, 10);
+        "/testRoot/testDir/testDir2/testFileD", WritePType.WRITE_MUST_CACHE, 10);
 
     mFsShell.run("getfacl", "/testRoot/testDir/testDir2");
     stringEntries = new ArrayList<>(DIR_FACL_STRING_ENTRIES);
@@ -146,11 +146,12 @@ public final class SetFaclCommandIntegrationTest extends AbstractFileSystemShell
 
   // Helper function to create a set of files in the file system
   private URIStatus[] createFiles() throws IOException, AlluxioException {
-    FileSystemTestUtils
-        .createByteFile(mFileSystem, "/testRoot/testFileA", WriteType.MUST_CACHE, 10);
-    FileSystemTestUtils
-        .createByteFile(mFileSystem, "/testRoot/testDir/testFileB", WriteType.MUST_CACHE, 20);
-    FileSystemTestUtils.createByteFile(mFileSystem, "/testRoot/testFileC", WriteType.THROUGH, 30);
+    FileSystemTestUtils.createByteFile(mFileSystem, "/testRoot/testFileA",
+        WritePType.WRITE_MUST_CACHE, 10);
+    FileSystemTestUtils.createByteFile(mFileSystem, "/testRoot/testDir/testFileB",
+        WritePType.WRITE_MUST_CACHE, 20);
+    FileSystemTestUtils.createByteFile(mFileSystem, "/testRoot/testFileC", WritePType.WRITE_THROUGH,
+        30);
 
     URIStatus[] files = new URIStatus[4];
     files[0] = mFileSystem.getStatus(new AlluxioURI("/testRoot/testFileA"));

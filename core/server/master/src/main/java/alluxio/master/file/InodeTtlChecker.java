@@ -14,6 +14,8 @@ package alluxio.master.file;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.exception.FileDoesNotExistException;
+import alluxio.grpc.DeletePOptions;
+import alluxio.grpc.FreePOptions;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.master.ProtobufUtils;
 import alluxio.master.file.meta.InodeTree;
@@ -21,8 +23,8 @@ import alluxio.master.file.meta.InodeView;
 import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.file.meta.TtlBucket;
 import alluxio.master.file.meta.TtlBucketList;
-import alluxio.master.file.options.DeleteOptions;
-import alluxio.master.file.options.FreeOptions;
+import alluxio.master.file.options.DeleteContext;
+import alluxio.master.file.options.FreeContext;
 import alluxio.master.journal.JournalContext;
 import alluxio.proto.journal.File.UpdateInodeEntry;
 import alluxio.wire.TtlAction;
@@ -79,10 +81,11 @@ final class InodeTtlChecker implements HeartbeatExecutor {
                 // public free method will lock the path, and check WRITE permission required at
                 // parent of file
                 if (inode.isDirectory()) {
-                  mFileSystemMaster
-                      .free(path, FreeOptions.defaults().setForced(true).setRecursive(true));
+                  mFileSystemMaster.free(path, FreeContext
+                      .defaults(FreePOptions.newBuilder().setForced(true).setRecursive(true)));
                 } else {
-                  mFileSystemMaster.free(path, FreeOptions.defaults().setForced(true));
+                  mFileSystemMaster.free(path,
+                      FreeContext.defaults(FreePOptions.newBuilder().setForced(true)));
                 }
                 try (JournalContext journalContext = mFileSystemMaster.createJournalContext()) {
                   // Reset state
@@ -98,9 +101,10 @@ final class InodeTtlChecker implements HeartbeatExecutor {
                 // public delete method will lock the path, and check WRITE permission required at
                 // parent of file
                 if (inode.isDirectory()) {
-                  mFileSystemMaster.delete(path, DeleteOptions.defaults().setRecursive(true));
+                  mFileSystemMaster.delete(path,
+                      DeleteContext.defaults(DeletePOptions.newBuilder().setRecursive(true)));
                 } else {
-                  mFileSystemMaster.delete(path, DeleteOptions.defaults().setRecursive(false));
+                  mFileSystemMaster.delete(path, DeleteContext.defaults());
                 }
                 break;
               default:

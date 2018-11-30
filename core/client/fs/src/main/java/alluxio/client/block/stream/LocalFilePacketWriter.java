@@ -13,6 +13,7 @@ package alluxio.client.block.stream;
 
 import alluxio.Configuration;
 import alluxio.PropertyKey;
+import alluxio.client.WriteType;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.OutStreamOptions;
 import alluxio.network.netty.NettyRPC;
@@ -89,7 +90,7 @@ public final class LocalFilePacketWriter implements PacketWriter {
       Protocol.LocalBlockCreateRequest.Builder builder =
           Protocol.LocalBlockCreateRequest.newBuilder().setBlockId(blockId)
               .setTier(options.getWriteTier()).setSpaceToReserve(FILE_BUFFER_BYTES);
-      if (options.getWriteType() == alluxio.client.WriteType.ASYNC_THROUGH
+      if (options.getWriteType() == WriteType.ASYNC_THROUGH
           && Configuration.getBoolean(PropertyKey.USER_FILE_UFS_TIER_ENABLED)) {
         builder.setCleanupOnFailure(false);
       }

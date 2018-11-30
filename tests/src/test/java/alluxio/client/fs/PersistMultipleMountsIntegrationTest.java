@@ -14,10 +14,10 @@ package alluxio.client.fs;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
-import alluxio.client.WriteType;
 import alluxio.client.file.FileOutStream;
+import alluxio.client.file.FileSystemClientOptions;
 import alluxio.client.file.URIStatus;
-import alluxio.client.file.options.CreateFileOptions;
+import alluxio.grpc.WritePType;
 import alluxio.master.file.meta.PersistenceState;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.UnderFileSystemUtils;
@@ -65,8 +65,8 @@ public final class PersistMultipleMountsIntegrationTest
 
     String path = PathUtils.uniqPath();
     AlluxioURI filePath = new AlluxioURI(path);
-    FileOutStream os = mFileSystem.createFile(filePath,
-        CreateFileOptions.defaults().setWriteType(WriteType.CACHE_THROUGH));
+    FileOutStream os = mFileSystem.createFile(filePath, FileSystemClientOptions
+        .getCreateFileOptions().toBuilder().setWriteType(WritePType.WRITE_CACHE_THROUGH).build());
     os.write((byte) 0);
     os.write((byte) 1);
     os.close();
@@ -86,8 +86,8 @@ public final class PersistMultipleMountsIntegrationTest
 
     String path = PathUtils.uniqPath();
     AlluxioURI filePath = new AlluxioURI(MOUNT_PATH + path);
-    FileOutStream os = mFileSystem.createFile(filePath,
-        CreateFileOptions.defaults().setWriteType(WriteType.CACHE_THROUGH));
+    FileOutStream os = mFileSystem.createFile(filePath, FileSystemClientOptions
+        .getCreateFileOptions().toBuilder().setWriteType(WritePType.WRITE_CACHE_THROUGH).build());
     os.write((byte) 0);
     os.write((byte) 1);
     os.close();

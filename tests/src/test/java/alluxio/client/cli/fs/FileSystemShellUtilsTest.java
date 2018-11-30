@@ -16,11 +16,11 @@ import alluxio.Constants;
 import alluxio.cli.Command;
 import alluxio.cli.fs.FileSystemShell;
 import alluxio.cli.fs.FileSystemShellUtils;
-import alluxio.client.WriteType;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemClientOptions;
 import alluxio.client.file.FileSystemTestUtils;
-import alluxio.client.file.options.DeleteOptions;
 import alluxio.exception.AlluxioException;
+import alluxio.grpc.WritePType;
 import alluxio.master.LocalAlluxioCluster;
 import alluxio.testutils.LocalAlluxioClusterResource;
 
@@ -93,7 +93,7 @@ public final class FileSystemShellUtilsTest {
    * @return the test directory
    */
   public static String resetFileHierarchy(FileSystem fs) throws IOException, AlluxioException {
-    return resetFileHierarchy(fs, WriteType.MUST_CACHE);
+    return resetFileHierarchy(fs, WritePType.WRITE_MUST_CACHE);
   }
 
   /**
@@ -103,7 +103,7 @@ public final class FileSystemShellUtilsTest {
    * @param writeType write types for creating a file in Alluxio
    * @return the test directory
    */
-  public static String resetFileHierarchy(FileSystem fs, WriteType writeType)
+  public static String resetFileHierarchy(FileSystem fs, WritePType writeType)
       throws IOException, AlluxioException {
     /**
      * Generate such local structure TEST_DIR
@@ -115,7 +115,8 @@ public final class FileSystemShellUtilsTest {
      *                                └── foobar4
      */
     if (fs.exists(new AlluxioURI(TEST_DIR))) {
-      fs.delete(new AlluxioURI(TEST_DIR), DeleteOptions.defaults().setRecursive(true));
+      fs.delete(new AlluxioURI(TEST_DIR),
+          FileSystemClientOptions.getDeleteOptions().toBuilder().setRecursive(true).build());
     }
     fs.createDirectory(new AlluxioURI(TEST_DIR));
     fs.createDirectory(new AlluxioURI(TEST_DIR + "/foo"));

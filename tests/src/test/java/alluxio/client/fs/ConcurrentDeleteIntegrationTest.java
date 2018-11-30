@@ -16,11 +16,12 @@ import alluxio.AuthenticatedUserRule;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.UnderFileSystemFactoryRegistryRule;
-import alluxio.client.WriteType;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemClientOptions;
 import alluxio.client.file.URIStatus;
-import alluxio.client.file.options.CreateDirectoryOptions;
-import alluxio.client.file.options.CreateFileOptions;
+import alluxio.grpc.CreateDirectoryPOptions;
+import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.WritePType;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
@@ -58,10 +59,10 @@ public class ConcurrentDeleteIntegrationTest extends BaseIntegrationTest {
    * Options to mark a created file as persisted. Note that this does not actually persist the
    * file but flag the file to be treated as persisted, which will invoke ufs operations.
    */
-  private static CreateFileOptions sCreatePersistedFileOptions =
-      CreateFileOptions.defaults().setWriteType(WriteType.THROUGH);
-  private static CreateDirectoryOptions sCreatePersistedDirOptions =
-      CreateDirectoryOptions.defaults().setWriteType(WriteType.THROUGH);
+  private static CreateFilePOptions sCreatePersistedFileOptions = FileSystemClientOptions
+      .getCreateFileOptions().toBuilder().setWriteType(WritePType.WRITE_THROUGH).build();
+  private static CreateDirectoryPOptions sCreatePersistedDirOptions = FileSystemClientOptions
+      .getCreateDirectoryOptions().toBuilder().setWriteType(WritePType.WRITE_THROUGH).build();
 
   private FileSystem mFileSystem;
 

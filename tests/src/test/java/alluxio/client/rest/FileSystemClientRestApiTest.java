@@ -16,20 +16,12 @@ import static org.junit.Assert.fail;
 import static org.junit.Assert.assertEquals;
 
 import alluxio.AlluxioURI;
-import alluxio.client.file.options.CreateDirectoryOptions;
-import alluxio.client.file.options.CreateFileOptions;
-import alluxio.client.file.options.DeleteOptions;
-import alluxio.client.file.options.ExistsOptions;
-import alluxio.client.file.options.FreeOptions;
-import alluxio.client.file.options.GetStatusOptions;
-import alluxio.client.file.options.ListStatusOptions;
-import alluxio.client.file.options.MountOptions;
-import alluxio.client.file.options.OpenFileOptions;
-import alluxio.client.file.options.RenameOptions;
-import alluxio.client.file.options.SetAttributeOptions;
-import alluxio.client.file.options.UnmountOptions;
+import alluxio.client.file.FileSystemClientOptions;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.master.file.FileSystemMaster;
+import alluxio.master.file.options.GetStatusContext;
+import alluxio.master.file.options.ListStatusContext;
+import alluxio.master.file.options.MountContext;
 import alluxio.proxy.PathsRestServiceHandler;
 import alluxio.proxy.StreamsRestServiceHandler;
 import alluxio.security.authorization.Mode;
@@ -54,8 +46,7 @@ import javax.ws.rs.HttpMethod;
  * Test cases for {@link StreamsRestServiceHandler}.
  */
 public final class FileSystemClientRestApiTest extends RestApiTest {
-  private static final alluxio.master.file.options.GetStatusOptions GET_STATUS_OPTIONS =
-      alluxio.master.file.options.GetStatusOptions.defaults();
+  private static final GetStatusContext GET_STATUS_CONTEXT = GetStatusContext.defaults();
 
   private static final Map<String, String> NO_PARAMS = new HashMap<>();
   private static final String PATHS_PREFIX = "paths/";
@@ -79,10 +70,14 @@ public final class FileSystemClientRestApiTest extends RestApiTest {
     new TestCase(mHostname, mPort,
         PATHS_PREFIX + uri.toString() + "/" + PathsRestServiceHandler.CREATE_DIRECTORY, NO_PARAMS,
         HttpMethod.POST, null,
-        TestCaseOptions.defaults().setBody(CreateDirectoryOptions.defaults())).run();
+        TestCaseOptions.defaults().setBody(FileSystemClientOptions.getCreateDirectoryOptions()))
+            .run();
     assertTrue(
-        mFileSystemMaster.listStatus(uri, alluxio.master.file.options.ListStatusOptions.defaults())
-            .isEmpty());
+        mFileSystemMaster
+            .listStatus(uri,
+                ListStatusContext
+                    .defaults(FileSystemClientOptions.getListStatusOptions().toBuilder()))
+        .isEmpty());
   }
 
   @Test
@@ -91,9 +86,10 @@ public final class FileSystemClientRestApiTest extends RestApiTest {
     writeFile(uri, null);
     new TestCase(mHostname, mPort,
         PATHS_PREFIX + uri.toString() + "/" + PathsRestServiceHandler.DELETE, NO_PARAMS,
-        HttpMethod.POST, null, TestCaseOptions.defaults().setBody(DeleteOptions.defaults())).run();
+        HttpMethod.POST, null,
+        TestCaseOptions.defaults().setBody(FileSystemClientOptions.getDeleteOptions())).run();
     try {
-      mFileSystemMaster.getFileInfo(uri, GET_STATUS_OPTIONS);
+      mFileSystemMaster.getFileInfo(uri, GET_STATUS_CONTEXT);
       fail("file should have been removed");
     } catch (FileDoesNotExistException e) {
       // Expected
@@ -109,12 +105,13 @@ public final class FileSystemClientRestApiTest extends RestApiTest {
   }
 
   @Test
-  public void exists() throws Exception  {
+  public void exists() throws Exception {
     AlluxioURI uri = new AlluxioURI("/file");
     writeFile(uri, null);
     new TestCase(mHostname, mPort,
         PATHS_PREFIX + uri.toString() + "/" + PathsRestServiceHandler.EXISTS, NO_PARAMS,
-        HttpMethod.POST, true, TestCaseOptions.defaults().setBody(ExistsOptions.defaults())).run();
+        HttpMethod.POST, true,
+        TestCaseOptions.defaults().setBody(FileSystemClientOptions.getExistsOptions())).run();
   }
 
   @Test
@@ -123,7 +120,8 @@ public final class FileSystemClientRestApiTest extends RestApiTest {
     writeFile(uri, null);
     new TestCase(mHostname, mPort,
         PATHS_PREFIX + uri.toString() + "/" + PathsRestServiceHandler.FREE, NO_PARAMS,
-        HttpMethod.POST, null, TestCaseOptions.defaults().setBody(FreeOptions.defaults())).run();
+        HttpMethod.POST, null,
+        TestCaseOptions.defaults().setBody(FileSystemClientOptions.getFreeOptions())).run();
   }
 
   @Test
@@ -132,7 +130,8 @@ public final class FileSystemClientRestApiTest extends RestApiTest {
     writeFile(uri, null);
     String result = new TestCase(mHostname, mPort,
         PATHS_PREFIX + uri.toString() + "/" + PathsRestServiceHandler.GET_STATUS, NO_PARAMS,
-        HttpMethod.POST, TestCaseOptions.defaults().setBody(GetStatusOptions.defaults())).call();
+        HttpMethod.POST,
+        TestCaseOptions.defaults().setBody(FileSystemClientOptions.getGetStatusOptions())).call();
     FileInfo fileInfo = new ObjectMapper().readValue(result, FileInfo.class);
     assertEquals(uri.getPath(), fileInfo.getPath());
     assertEquals(0, fileInfo.getLength());
@@ -144,8 +143,8 @@ public final class FileSystemClientRestApiTest extends RestApiTest {
     writeFile(uri, null);
     String result = new TestCase(mHostname, mPort,
         PATHS_PREFIX + uri.toString() + "/" + PathsRestServiceHandler.LIST_STATUS, NO_PARAMS,
-        HttpMethod.POST, null, TestCaseOptions.defaults().setBody(ListStatusOptions.defaults()))
-        .call();
+        HttpMethod.POST, null,
+        TestCaseOptions.defaults().setBody(FileSystemClientOptions.getListStatusOptions())).call();
     List<FileInfo> fileInfos =
         new ObjectMapper().readValue(result, new TypeReference<List<FileInfo>>() {});
     FileInfo fileInfo = Iterables.getOnlyElement(fileInfos);
@@ -160,7 +159,8 @@ public final class FileSystemClientRestApiTest extends RestApiTest {
     params.put("src", mFolder.newFolder().getAbsolutePath());
     new TestCase(mHostname, mPort,
         PATHS_PREFIX + uri.toString() + "/" + PathsRestServiceHandler.MOUNT, params,
-        HttpMethod.POST, null, TestCaseOptions.defaults().setBody(MountOptions.defaults())).run();
+        HttpMethod.POST, null,
+        TestCaseOptions.defaults().setBody(FileSystemClientOptions.getMountOptions())).run();
   }
 
   @Test
@@ -172,14 +172,15 @@ public final class FileSystemClientRestApiTest extends RestApiTest {
     params.put("dst", uri2.toString());
     new TestCase(mHostname, mPort,
         PATHS_PREFIX + uri1.toString() + "/" + PathsRestServiceHandler.RENAME, params,
-        HttpMethod.POST, null, TestCaseOptions.defaults().setBody(RenameOptions.defaults())).run();
+        HttpMethod.POST, null,
+        TestCaseOptions.defaults().setBody(FileSystemClientOptions.getRenameOptions())).run();
     try {
-      mFileSystemMaster.getFileInfo(uri1, GET_STATUS_OPTIONS);
+      mFileSystemMaster.getFileInfo(uri1, GET_STATUS_CONTEXT);
       fail("file should have been removed");
     } catch (FileDoesNotExistException e) {
       // Expected
     }
-    mFileSystemMaster.getFileInfo(uri2, GET_STATUS_OPTIONS);
+    mFileSystemMaster.getFileInfo(uri2, GET_STATUS_CONTEXT);
   }
 
   @Test
@@ -188,10 +189,10 @@ public final class FileSystemClientRestApiTest extends RestApiTest {
     writeFile(uri, null);
     new TestCase(mHostname, mPort,
         PATHS_PREFIX + uri.toString() + "/" + PathsRestServiceHandler.SET_ATTRIBUTE, NO_PARAMS,
-        HttpMethod.POST, null, TestCaseOptions.defaults()
-        .setBody(SetAttributeOptions.defaults().setMode(Mode.defaults())))
-        .run();
-    FileInfo fileInfo = mFileSystemMaster.getFileInfo(uri, GET_STATUS_OPTIONS);
+        HttpMethod.POST, null, TestCaseOptions.defaults().setBody(FileSystemClientOptions
+            .getSetAttributeOptions().toBuilder().setMode(Mode.defaults().toShort()).build()))
+                .run();
+    FileInfo fileInfo = mFileSystemMaster.getFileInfo(uri, GET_STATUS_CONTEXT);
     assertEquals(uri.toString(), fileInfo.getPath());
   }
 
@@ -199,10 +200,11 @@ public final class FileSystemClientRestApiTest extends RestApiTest {
   public void unmount() throws Exception {
     AlluxioURI uri = new AlluxioURI("/mount");
     mFileSystemMaster.mount(uri, new AlluxioURI(mFolder.newFolder().getAbsolutePath()),
-        alluxio.master.file.options.MountOptions.defaults());
+        MountContext.defaults());
     new TestCase(mHostname, mPort,
         PATHS_PREFIX + uri.toString() + "/" + PathsRestServiceHandler.UNMOUNT, NO_PARAMS,
-        HttpMethod.POST, null, TestCaseOptions.defaults().setBody(UnmountOptions.defaults())).run();
+        HttpMethod.POST, null,
+        TestCaseOptions.defaults().setBody(FileSystemClientOptions.getUnmountOptions())).run();
   }
 
   @Test
@@ -220,8 +222,8 @@ public final class FileSystemClientRestApiTest extends RestApiTest {
   private byte[] readFile(AlluxioURI path) throws Exception {
     String result = new TestCase(mHostname, mPort,
         PATHS_PREFIX + path.toString() + "/" + PathsRestServiceHandler.OPEN_FILE, NO_PARAMS,
-        HttpMethod.POST, null, TestCaseOptions.defaults().setBody(OpenFileOptions.defaults()))
-        .call();
+        HttpMethod.POST, null,
+        TestCaseOptions.defaults().setBody(FileSystemClientOptions.getOpenFileOptions())).call();
     Integer id = new ObjectMapper().readValue(result, Integer.TYPE);
     result = new TestCase(mHostname, mPort,
         STREAMS_PREFIX + id.toString() + "/" + StreamsRestServiceHandler.READ, NO_PARAMS,
@@ -235,8 +237,8 @@ public final class FileSystemClientRestApiTest extends RestApiTest {
   private void writeFile(AlluxioURI path, byte[] input) throws Exception {
     String result = new TestCase(mHostname, mPort,
         PATHS_PREFIX + path.toString() + "/" + PathsRestServiceHandler.CREATE_FILE, NO_PARAMS,
-        HttpMethod.POST, null, TestCaseOptions.defaults().setBody(CreateFileOptions.defaults()))
-        .call();
+        HttpMethod.POST, null,
+        TestCaseOptions.defaults().setBody(FileSystemClientOptions.getCreateFileOptions())).call();
     Integer id = new ObjectMapper().readValue(result, Integer.TYPE);
     TestCaseOptions options = TestCaseOptions.defaults();
     long expected = 0;

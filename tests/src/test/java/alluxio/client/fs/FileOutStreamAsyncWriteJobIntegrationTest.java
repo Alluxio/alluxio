@@ -12,21 +12,21 @@
 package alluxio.client.fs;
 
 import alluxio.AlluxioURI;
+import alluxio.client.file.FileSystemClientOptions;
+import alluxio.grpc.SetAttributePOptions;
+import alluxio.grpc.TtlAction;
+import alluxio.grpc.WritePType;
 import alluxio.testutils.PersistenceTestUtils;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.URIStatus;
-import alluxio.client.file.options.CreateFileOptions;
-import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
 import alluxio.master.file.meta.PersistenceState;
-import alluxio.security.authorization.Mode;
 import alluxio.testutils.IntegrationTestUtils;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.io.PathUtils;
-import alluxio.wire.TtlAction;
 import alluxio.worker.block.BlockWorker;
 
 import org.junit.Assert;
@@ -40,9 +40,9 @@ import org.junit.Test;
 public final class FileOutStreamAsyncWriteJobIntegrationTest
     extends AbstractFileOutStreamIntegrationTest {
   private static final int LEN = 1024;
-  private static final SetAttributeOptions TEST_OPTIONS =
-      SetAttributeOptions.defaults().setMode(new Mode((short) 0555)).setTtl(12345678L)
-          .setTtlAction(TtlAction.DELETE);
+  private static final SetAttributePOptions TEST_OPTIONS =
+      FileSystemClientOptions.getSetAttributeOptions().toBuilder().setMode((short) 0555)
+          .setTtl(12345678L).setTtlAction(TtlAction.DELETE).build();
 
   private AlluxioURI mUri = new AlluxioURI(PathUtils.uniqPath());
 
@@ -52,8 +52,8 @@ public final class FileOutStreamAsyncWriteJobIntegrationTest
    * @return ths URIStatus of this file after creation
    */
   private URIStatus createAsyncFile() throws Exception {
-    writeIncreasingByteArrayToFile(mUri, LEN,
-        CreateFileOptions.defaults().setWriteType(WriteType.ASYNC_THROUGH));
+    writeIncreasingByteArrayToFile(mUri, LEN, FileSystemClientOptions.getCreateFileOptions()
+        .toBuilder().setWriteType(WritePType.WRITE_ASYNC_THROUGH).build());
     return mFileSystem.getStatus(mUri);
   }
 
@@ -299,7 +299,7 @@ public final class FileOutStreamAsyncWriteJobIntegrationTest
     checkFileNotInUnderStorage(status.getUfsPath());
     status = mFileSystem.getStatus(mUri);
     Assert.assertEquals((short) TEST_OPTIONS.getMode(), status.getMode());
-    Assert.assertEquals(TEST_OPTIONS.getTtl().longValue(), status.getTtl());
+    Assert.assertEquals(TEST_OPTIONS.getTtl(), status.getTtl());
     Assert.assertEquals(TEST_OPTIONS.getTtlAction(), status.getTtlAction());
 
     PersistenceTestUtils.resumeScheduler(mLocalAlluxioClusterResource);
@@ -308,7 +308,7 @@ public final class FileOutStreamAsyncWriteJobIntegrationTest
     checkFileInUnderStorage(mUri, LEN);
     status = mFileSystem.getStatus(mUri);
     Assert.assertEquals((short) TEST_OPTIONS.getMode(), status.getMode());
-    Assert.assertEquals(TEST_OPTIONS.getTtl().longValue(), status.getTtl());
+    Assert.assertEquals(TEST_OPTIONS.getTtl(), status.getTtl());
     Assert.assertEquals(TEST_OPTIONS.getTtlAction(), status.getTtlAction());
     // Skip checking mode for object stores
     Assume.assumeFalse(ufs.isObjectStorage());
@@ -327,7 +327,7 @@ public final class FileOutStreamAsyncWriteJobIntegrationTest
     checkFileNotInUnderStorage(status.getUfsPath());
     status = mFileSystem.getStatus(mUri);
     Assert.assertEquals((short) TEST_OPTIONS.getMode(), status.getMode());
-    Assert.assertEquals(TEST_OPTIONS.getTtl().longValue(), status.getTtl());
+    Assert.assertEquals(TEST_OPTIONS.getTtl(), status.getTtl());
     Assert.assertEquals(TEST_OPTIONS.getTtlAction(), status.getTtlAction());
 
     PersistenceTestUtils.resumeChecker(mLocalAlluxioClusterResource);
@@ -336,7 +336,7 @@ public final class FileOutStreamAsyncWriteJobIntegrationTest
     checkFileInUnderStorage(mUri, LEN);
     status = mFileSystem.getStatus(mUri);
     Assert.assertEquals((short) TEST_OPTIONS.getMode(), status.getMode());
-    Assert.assertEquals(TEST_OPTIONS.getTtl().longValue(), status.getTtl());
+    Assert.assertEquals(TEST_OPTIONS.getTtl(), status.getTtl());
     Assert.assertEquals(TEST_OPTIONS.getTtlAction(), status.getTtlAction());
     // Skip checking mode for object stores
     Assume.assumeFalse(ufs.isObjectStorage());
@@ -354,7 +354,7 @@ public final class FileOutStreamAsyncWriteJobIntegrationTest
     String ufsPath = status.getUfsPath();
     UnderFileSystem ufs = UnderFileSystem.Factory.create(ufsPath);
     Assert.assertEquals((short) TEST_OPTIONS.getMode(), status.getMode());
-    Assert.assertEquals(TEST_OPTIONS.getTtl().longValue(), status.getTtl());
+    Assert.assertEquals(TEST_OPTIONS.getTtl(), status.getTtl());
     Assert.assertEquals(TEST_OPTIONS.getTtlAction(), status.getTtlAction());
     // Skip checking mode for object stores
     Assume.assumeFalse(ufs.isObjectStorage());
@@ -465,7 +465,7 @@ public final class FileOutStreamAsyncWriteJobIntegrationTest
     checkFileNotInUnderStorage(newUfsPath);
     status = mFileSystem.getStatus(newUri);
     Assert.assertEquals((short) TEST_OPTIONS.getMode(), status.getMode());
-    Assert.assertEquals(TEST_OPTIONS.getTtl().longValue(), status.getTtl());
+    Assert.assertEquals(TEST_OPTIONS.getTtl(), status.getTtl());
     Assert.assertEquals(TEST_OPTIONS.getTtlAction(), status.getTtlAction());
 
     PersistenceTestUtils.resumeChecker(mLocalAlluxioClusterResource);
@@ -476,7 +476,7 @@ public final class FileOutStreamAsyncWriteJobIntegrationTest
     checkFileInUnderStorage(newUri, LEN);
     status = mFileSystem.getStatus(newUri);
     Assert.assertEquals((short) TEST_OPTIONS.getMode(), status.getMode());
-    Assert.assertEquals(TEST_OPTIONS.getTtl().longValue(), status.getTtl());
+    Assert.assertEquals(TEST_OPTIONS.getTtl(), status.getTtl());
     Assert.assertEquals(TEST_OPTIONS.getTtlAction(), status.getTtlAction());
     // Skip checking mode for object stores
     Assume.assumeFalse(ufs.isObjectStorage());

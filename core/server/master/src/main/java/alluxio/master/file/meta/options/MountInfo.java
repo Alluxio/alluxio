@@ -12,7 +12,7 @@
 package alluxio.master.file.meta.options;
 
 import alluxio.AlluxioURI;
-import alluxio.file.options.MountOptions;
+import alluxio.grpc.MountPOptions;
 import alluxio.wire.MountPointInfo;
 
 import com.google.common.base.Preconditions;
@@ -28,7 +28,7 @@ import javax.annotation.concurrent.ThreadSafe;
 public class MountInfo {
   private final AlluxioURI mAlluxioUri;
   private final AlluxioURI mUfsUri;
-  private final MountOptions mOptions;
+  private final MountPOptions mOptions;
   private final long mMountId;
 
   /**
@@ -39,7 +39,7 @@ public class MountInfo {
    * @param mountId the id of the mount
    * @param options the mount options
    */
-  public MountInfo(AlluxioURI alluxioUri, AlluxioURI ufsUri, long mountId, MountOptions options) {
+  public MountInfo(AlluxioURI alluxioUri, AlluxioURI ufsUri, long mountId, MountPOptions options) {
     mAlluxioUri = Preconditions.checkNotNull(alluxioUri, "alluxioUri");
     mUfsUri = Preconditions.checkNotNull(ufsUri, "ufsUri");
     mMountId = mountId;
@@ -61,9 +61,9 @@ public class MountInfo {
   }
 
   /**
-   * @return the {@link MountOptions} for the mount point
+   * @return the {@link MountPOptions} for the mount point
    */
-  public MountOptions getOptions() {
+  public MountPOptions getOptions() {
     return mOptions;
   }
 
@@ -80,9 +80,9 @@ public class MountInfo {
   public MountPointInfo toMountPointInfo() {
     MountPointInfo info = new MountPointInfo();
     info.setUfsUri(mUfsUri.toString());
-    info.setReadOnly(mOptions.isReadOnly());
+    info.setReadOnly(mOptions.getReadOnly());
     info.setProperties(mOptions.getProperties());
-    info.setShared(mOptions.isShared());
+    info.setShared(mOptions.getShared());
     return info;
   }
 
@@ -98,7 +98,8 @@ public class MountInfo {
     return mMountId == that.getMountId()
         && mAlluxioUri.equals(that.getAlluxioUri())
         && mUfsUri.equals(that.getUfsUri())
-        && mOptions.equals(that.getOptions());
+        && mOptions.getReadOnly() == (that.getOptions().getReadOnly())
+        && mOptions.getShared() == (that.getOptions().getShared());
   }
 
   @Override

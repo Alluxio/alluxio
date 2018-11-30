@@ -12,10 +12,10 @@
 package alluxio.client.cli.fs.command;
 
 import alluxio.AlluxioURI;
-import alluxio.client.WriteType;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.exception.AlluxioException;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
+import alluxio.grpc.WritePType;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -29,7 +29,7 @@ public final class ChmodCommandIntegrationTest extends AbstractFileSystemShellTe
   @Test
   public void chmod() throws IOException, AlluxioException {
     clearLoginUser();
-    FileSystemTestUtils.createByteFile(mFileSystem, "/testFile", WriteType.MUST_CACHE, 10);
+    FileSystemTestUtils.createByteFile(mFileSystem, "/testFile", WritePType.WRITE_MUST_CACHE, 10);
     mFsShell.run("chmod", "777", "/testFile");
     int permission = mFileSystem.getStatus(new AlluxioURI("/testFile")).getMode();
     Assert.assertEquals((short) 0777, permission);
@@ -44,7 +44,8 @@ public final class ChmodCommandIntegrationTest extends AbstractFileSystemShellTe
   @Test
   public void chmodRecursively() throws IOException, AlluxioException {
     clearLoginUser();
-    FileSystemTestUtils.createByteFile(mFileSystem, "/testDir/testFile", WriteType.MUST_CACHE, 10);
+    FileSystemTestUtils.createByteFile(mFileSystem, "/testDir/testFile",
+        WritePType.WRITE_MUST_CACHE, 10);
     mFsShell.run("chmod", "-R", "777", "/testDir");
     int permission = mFileSystem.getStatus(new AlluxioURI("/testDir")).getMode();
     Assert.assertEquals((short) 0777, permission);
@@ -58,7 +59,7 @@ public final class ChmodCommandIntegrationTest extends AbstractFileSystemShellTe
   @Test
   public void chmodSymbolic() throws IOException, AlluxioException {
     clearLoginUser();
-    FileSystemTestUtils.createByteFile(mFileSystem, "/testFile", WriteType.MUST_CACHE, 10);
+    FileSystemTestUtils.createByteFile(mFileSystem, "/testFile", WritePType.WRITE_MUST_CACHE, 10);
     mFsShell.run("chmod", "a=rwx", "/testFile");
     int permission = mFileSystem.getStatus(new AlluxioURI("/testFile")).getMode();
     Assert.assertEquals((short) 0777, permission);
@@ -73,10 +74,10 @@ public final class ChmodCommandIntegrationTest extends AbstractFileSystemShellTe
   @Test
   public void chmodWildCard() throws IOException, AlluxioException {
     clearLoginUser();
-    FileSystemTestUtils.createByteFile(mFileSystem,
-            "/testDir/testFile1", WriteType.MUST_CACHE, 10);
-    FileSystemTestUtils.createByteFile(mFileSystem,
-            "/testDir2/testFile2", WriteType.MUST_CACHE, 10);
+    FileSystemTestUtils.createByteFile(mFileSystem, "/testDir/testFile1",
+        WritePType.WRITE_MUST_CACHE, 10);
+    FileSystemTestUtils.createByteFile(mFileSystem, "/testDir2/testFile2",
+        WritePType.WRITE_MUST_CACHE, 10);
     mFsShell.run("chmod", "a=rwx", "/testDir*/testFile*");
     int permission = mFileSystem.getStatus(new AlluxioURI("/testDir/testFile1")).getMode();
     Assert.assertEquals((short) 0777, permission);

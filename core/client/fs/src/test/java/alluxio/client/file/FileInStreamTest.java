@@ -24,17 +24,17 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import alluxio.client.ReadType;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.stream.BlockInStream;
 import alluxio.client.block.stream.BlockInStream.BlockInStreamSource;
 import alluxio.client.block.stream.TestBlockInStream;
 import alluxio.client.file.options.InStreamOptions;
-import alluxio.client.file.options.OpenFileOptions;
 import alluxio.client.util.ClientTestUtils;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.UnavailableException;
+import alluxio.grpc.OpenFilePOptions;
+import alluxio.grpc.ReadPType;
 import alluxio.util.io.BufferUtils;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.FileBlockInfo;
@@ -150,7 +150,8 @@ public final class FileInStreamTest {
     mInfo.setFileBlockInfos(fileBlockInfos);
     mStatus = new URIStatus(mInfo);
 
-    OpenFileOptions readOptions = OpenFileOptions.defaults().setReadType(ReadType.CACHE_PROMOTE);
+    OpenFilePOptions readOptions = FileSystemClientOptions.getOpenFileOptions().toBuilder()
+        .setReadType(ReadPType.READ_CACHE_PROMOTE).build();
     mTestStream = new FileInStream(mStatus, new InStreamOptions(mStatus, readOptions), mContext);
   }
 
@@ -331,7 +332,8 @@ public final class FileInStreamTest {
    */
   @Test
   public void longSeekBackwardCachingPartiallyReadBlocks() throws IOException {
-    OpenFileOptions options = OpenFileOptions.defaults().setReadType(ReadType.CACHE_PROMOTE);
+    OpenFilePOptions options = FileSystemClientOptions.getOpenFileOptions().toBuilder()
+        .setReadType(ReadPType.READ_CACHE_PROMOTE).build();
     mTestStream = new FileInStream(mStatus, new InStreamOptions(mStatus, options), mContext);
     int seekAmount = (int) (BLOCK_LENGTH / 4 + BLOCK_LENGTH);
     int readAmount = (int) (BLOCK_LENGTH * 3 - BLOCK_LENGTH / 2);
@@ -352,7 +354,8 @@ public final class FileInStreamTest {
   public void testSeekWithNoLocalWorker() throws IOException {
     // Overrides the get local worker call
     PowerMockito.when(mContext.getLocalWorker()).thenReturn(null);
-    OpenFileOptions options = OpenFileOptions.defaults().setReadType(ReadType.CACHE_PROMOTE);
+    OpenFilePOptions options = FileSystemClientOptions.getOpenFileOptions().toBuilder()
+        .setReadType(ReadPType.READ_CACHE_PROMOTE).build();
     mTestStream = new FileInStream(mStatus, new InStreamOptions(mStatus, options), mContext);
     int readAmount = (int) (BLOCK_LENGTH / 2);
     byte[] buffer = new byte[readAmount];
@@ -369,7 +372,8 @@ public final class FileInStreamTest {
 
   @Test
   public void seekAndClose() throws IOException {
-    OpenFileOptions options = OpenFileOptions.defaults().setReadType(ReadType.CACHE_PROMOTE);
+    OpenFilePOptions options = FileSystemClientOptions.getOpenFileOptions().toBuilder()
+        .setReadType(ReadPType.READ_CACHE_PROMOTE).build();
     mTestStream = new FileInStream(mStatus, new InStreamOptions(mStatus, options), mContext);
     int seekAmount = (int) (BLOCK_LENGTH / 2);
     mTestStream.seek(seekAmount);
@@ -384,7 +388,8 @@ public final class FileInStreamTest {
    */
   @Test
   public void shortSeekBackwardCachingPartiallyReadBlocks() throws IOException {
-    OpenFileOptions options = OpenFileOptions.defaults().setReadType(ReadType.CACHE_PROMOTE);
+    OpenFilePOptions options = FileSystemClientOptions.getOpenFileOptions().toBuilder()
+        .setReadType(ReadPType.READ_CACHE_PROMOTE).build();
     mTestStream = new FileInStream(mStatus, new InStreamOptions(mStatus, options), mContext);
     int seekAmount = (int) (BLOCK_LENGTH / 4);
     int readAmount = (int) (BLOCK_LENGTH * 2 - BLOCK_LENGTH / 2);
@@ -409,7 +414,8 @@ public final class FileInStreamTest {
    */
   @Test
   public void longSeekForwardCachingPartiallyReadBlocks() throws IOException {
-    OpenFileOptions options = OpenFileOptions.defaults().setReadType(ReadType.CACHE_PROMOTE);
+    OpenFilePOptions options = FileSystemClientOptions.getOpenFileOptions().toBuilder()
+        .setReadType(ReadPType.READ_CACHE_PROMOTE).build();
     mTestStream = new FileInStream(mStatus, new InStreamOptions(mStatus, options), mContext);
     int seekAmount = (int) (BLOCK_LENGTH / 4 + BLOCK_LENGTH);
     int readAmount = (int) (BLOCK_LENGTH / 2);
@@ -433,7 +439,8 @@ public final class FileInStreamTest {
    */
   @Test
   public void shortSeekForwardCachingPartiallyReadBlocks() throws IOException {
-    OpenFileOptions options = OpenFileOptions.defaults().setReadType(ReadType.CACHE_PROMOTE);
+    OpenFilePOptions options = FileSystemClientOptions.getOpenFileOptions().toBuilder()
+        .setReadType(ReadPType.READ_CACHE_PROMOTE).build();
     mTestStream = new FileInStream(mStatus, new InStreamOptions(mStatus, options), mContext);
     int seekAmount = (int) (BLOCK_LENGTH / 4);
     int readAmount = (int) (BLOCK_LENGTH * 2 - BLOCK_LENGTH / 2);
@@ -458,7 +465,8 @@ public final class FileInStreamTest {
    */
   @Test
   public void seekBackwardSmallSeekBuffer() throws IOException {
-    OpenFileOptions options = OpenFileOptions.defaults().setReadType(ReadType.CACHE_PROMOTE);
+    OpenFilePOptions options = FileSystemClientOptions.getOpenFileOptions().toBuilder()
+        .setReadType(ReadPType.READ_CACHE_PROMOTE).build();
     mTestStream = new FileInStream(mStatus, new InStreamOptions(mStatus, options), mContext);
     int readAmount = (int) (BLOCK_LENGTH / 2);
     byte[] buffer = new byte[readAmount];
@@ -475,7 +483,8 @@ public final class FileInStreamTest {
    */
   @Test
   public void seekBackwardToFileBeginning() throws IOException {
-    OpenFileOptions options = OpenFileOptions.defaults().setReadType(ReadType.CACHE_PROMOTE);
+    OpenFilePOptions options = FileSystemClientOptions.getOpenFileOptions().toBuilder()
+        .setReadType(ReadPType.READ_CACHE_PROMOTE).build();
     mTestStream = new FileInStream(mStatus, new InStreamOptions(mStatus, options), mContext);
     int seekAmount = (int) (BLOCK_LENGTH / 4 + BLOCK_LENGTH);
 

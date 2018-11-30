@@ -1,0 +1,83 @@
+syntax = "proto2";
+
+option java_multiple_files = true;
+option java_package = "alluxio.grpc";
+option java_outer_classname = "CommonProto";
+
+package alluxio.grpc;
+
+/**
+ * Contains the information of a block in Alluxio. It maintains the worker nodes where the replicas
+ * of the blocks are stored.
+ */
+message BlockInfo {
+  optional int64 blockId = 1;
+  optional int64 length = 2;
+  repeated BlockLocation locations = 3;
+}
+
+/**
+ * Information about blocks.
+ */
+message BlockLocation {
+  optional int64 workerId = 1;
+  optional WorkerNetAddress workerAddress = 2;
+  optional string tierAlias = 3;
+}
+
+enum CommandType {
+  Command_Unknown = 0;
+  Command_Nothing = 1;
+  Command_Register = 2; // Ask the worker to re-register.
+  Command_Free = 3;     // Ask the worker to free files.
+  Command_Delete = 4;   // Ask the worker to delete files.
+  Command_Persist = 5;  // Ask the worker to persist a file for lineage
+}
+
+enum TtlAction {
+  DELETE = 0; // Delete the file after TTL expires.
+  FREE = 1;   // Free the file after TTL expires.
+}
+
+message Command {
+  optional CommandType commandType = 1;
+  repeated int64 data = 2;
+}
+
+message LocalityTier {
+  optional string tierName = 1;
+  optional string value = 2;
+}
+
+message TieredIdentity {
+  repeated LocalityTier tiers = 1;
+}
+
+/**
+ * Address information about workers.
+ */
+message WorkerNetAddress {
+  optional string host = 1;
+  optional int32 rpcPort = 2;
+  optional int32 dataPort = 3;
+  optional int32 webPort = 4;
+  optional string domainSocketPath = 5;
+  optional TieredIdentity tieredIdentity = 6;
+}
+
+message GetServiceVersionPResponse {
+  optional int64 version = 1;
+}
+
+message GetServiceVersionPOptions {
+  optional string serviceType = 1;
+}
+
+service AlluxioService {
+
+  /**
+   * Returns the version of the master service.
+   * NOTE: The version should be updated every time a backwards incompatible API change occurs.
+   */
+  rpc getServiceVersion(GetServiceVersionPOptions) returns (GetServiceVersionPResponse);
+}

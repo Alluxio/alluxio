@@ -16,8 +16,8 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertEquals;
 
 import alluxio.AlluxioURI;
-import alluxio.client.WriteType;
 import alluxio.client.file.FileSystemTestUtils;
+import alluxio.grpc.WritePType;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
@@ -43,7 +43,7 @@ public final class PinCommandIntegrationTest extends AbstractFileSystemShellTest
   @Test
   public void setIsPinned() throws Exception {
     AlluxioURI filePath = new AlluxioURI("/testFile");
-    FileSystemTestUtils.createByteFile(mFileSystem, filePath, WriteType.MUST_CACHE, 1);
+    FileSystemTestUtils.createByteFile(mFileSystem, filePath, WritePType.WRITE_MUST_CACHE, 1);
 
     // Ensure that the file exists
     assertTrue(fileExists(filePath));
@@ -76,19 +76,22 @@ public final class PinCommandIntegrationTest extends AbstractFileSystemShellTest
     AlluxioURI filePathC = new AlluxioURI("/testFileC");
     int fileSize = SIZE_BYTES / 2;
 
-    FileSystemTestUtils.createByteFile(mFileSystem, filePathA, WriteType.MUST_CACHE, fileSize);
+    FileSystemTestUtils.createByteFile(mFileSystem, filePathA, WritePType.WRITE_MUST_CACHE,
+        fileSize);
     HeartbeatScheduler.execute(HeartbeatContext.WORKER_BLOCK_SYNC);
     assertTrue(fileExists(filePathA));
     assertEquals(0, mFsShell.run("pin", filePathA.toString()));
     HeartbeatScheduler.execute(HeartbeatContext.WORKER_PIN_LIST_SYNC);
 
-    FileSystemTestUtils.createByteFile(mFileSystem, filePathB, WriteType.MUST_CACHE, fileSize);
+    FileSystemTestUtils.createByteFile(mFileSystem, filePathB, WritePType.WRITE_MUST_CACHE,
+        fileSize);
     HeartbeatScheduler.execute(HeartbeatContext.WORKER_BLOCK_SYNC);
     assertTrue(fileExists(filePathB));
     assertEquals(0, mFsShell.run("unpin", filePathB.toString()));
     HeartbeatScheduler.execute(HeartbeatContext.WORKER_PIN_LIST_SYNC);
 
-    FileSystemTestUtils.createByteFile(mFileSystem, filePathC, WriteType.MUST_CACHE, fileSize);
+    FileSystemTestUtils.createByteFile(mFileSystem, filePathC, WritePType.WRITE_MUST_CACHE,
+        fileSize);
     HeartbeatScheduler.execute(HeartbeatContext.WORKER_BLOCK_SYNC);
     assertTrue(fileExists(filePathC));
 

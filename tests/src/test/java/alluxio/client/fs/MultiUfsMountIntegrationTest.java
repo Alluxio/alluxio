@@ -12,11 +12,12 @@
 package alluxio.client.fs;
 
 import alluxio.AlluxioURI;
-import alluxio.client.WriteType;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
-import alluxio.client.file.options.CreateFileOptions;
-import alluxio.client.file.options.MountOptions;
+import alluxio.client.file.FileSystemClientOptions;
+import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.MountPOptions;
+import alluxio.grpc.WritePType;
 import alluxio.master.LocalAlluxioCluster;
 import alluxio.master.MasterRegistry;
 import alluxio.master.file.FileSystemMaster;
@@ -83,12 +84,12 @@ public final class MultiUfsMountIntegrationTest extends BaseIntegrationTest {
     mLocalAlluxioCluster = mLocalAlluxioClusterResource.get();
     mFileSystem = mLocalAlluxioCluster.getClient();
     // Mount ufs1 to /mnt1 with specified options.
-    MountOptions options1 =
-        MountOptions.defaults().setProperties(UFS_CONF1);
+    MountPOptions options1 =
+        FileSystemClientOptions.getMountOptions().toBuilder().putAllProperties(UFS_CONF1).build();
     mFileSystem.mount(mMountPoint1, new AlluxioURI(mUfsUri1), options1);
     // Mount ufs2 to /mnt2 with specified options.
-    MountOptions options2 =
-        MountOptions.defaults().setProperties(UFS_CONF2);
+    MountPOptions options2 =
+        FileSystemClientOptions.getMountOptions().toBuilder().putAllProperties(UFS_CONF2).build();
     mFileSystem.mount(mMountPoint2, new AlluxioURI(mUfsUri2), options2);
   }
 
@@ -100,8 +101,8 @@ public final class MultiUfsMountIntegrationTest extends BaseIntegrationTest {
 
   @Test
   public void createFile() throws Exception {
-    CreateFileOptions writeBoth =
-        CreateFileOptions.defaults().setWriteType(WriteType.CACHE_THROUGH);
+    CreateFilePOptions writeBoth = FileSystemClientOptions.getCreateFileOptions().toBuilder()
+        .setWriteType(WritePType.WRITE_CACHE_THROUGH).build();
     AlluxioURI file1 = mMountPoint1.join("file1");
     AlluxioURI file2 = mMountPoint2.join("file2");
     mFileSystem.createFile(file1, writeBoth).close();

@@ -14,10 +14,11 @@ package alluxio.client.fs;
 import alluxio.AlluxioURI;
 import alluxio.ConfigurationRule;
 import alluxio.PropertyKey;
-import alluxio.client.WriteType;
 import alluxio.client.file.FileOutStream;
+import alluxio.client.file.FileSystemClientOptions;
 import alluxio.client.file.URIStatus;
-import alluxio.client.file.options.CreateFileOptions;
+import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.WritePType;
 import alluxio.master.file.meta.PersistenceState;
 import alluxio.testutils.IntegrationTestUtils;
 import alluxio.testutils.LocalAlluxioClusterResource;
@@ -89,7 +90,8 @@ public class UfsFallbackFileOutStreamIntegrationTest extends AbstractFileOutStre
       }
     }).toResource()) {
       AlluxioURI filePath = new AlluxioURI(PathUtils.uniqPath());
-      CreateFileOptions op = CreateFileOptions.defaults().setWriteType(WriteType.ASYNC_THROUGH);
+      CreateFilePOptions op = FileSystemClientOptions.getCreateFileOptions().toBuilder()
+          .setWriteType(WritePType.WRITE_ASYNC_THROUGH).build();
       writeIncreasingBytesToFile(filePath, mFileLength, op);
 
       CommonUtils.sleepMs(1);
@@ -120,7 +122,8 @@ public class UfsFallbackFileOutStreamIntegrationTest extends AbstractFileOutStre
       }
     }).toResource()) {
       AlluxioURI filePath = new AlluxioURI(PathUtils.uniqPath());
-      CreateFileOptions op = CreateFileOptions.defaults().setWriteType(WriteType.ASYNC_THROUGH);
+      CreateFilePOptions op = FileSystemClientOptions.getCreateFileOptions().toBuilder()
+          .setWriteType(WritePType.WRITE_ASYNC_THROUGH).build();
       writeIncreasingBytesToFile(filePath, mFileLength, op);
 
       CommonUtils.sleepMs(1);

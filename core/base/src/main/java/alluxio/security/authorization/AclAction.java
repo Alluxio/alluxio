@@ -11,7 +11,6 @@
 
 package alluxio.security.authorization;
 
-
 /**
  * Actions to be controlled in {@link AccessControlList}.
  */
@@ -31,5 +30,4 @@ public enum AclAction {
   public static AclAction ofOrdinal(int ordinal) {
     return VALUES[ordinal];
   }
-
 }

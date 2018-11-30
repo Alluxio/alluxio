@@ -32,5 +32,4 @@ public enum TtlAction {
    * Indicates that the file should be freed (i.e. deleted in Alluxio but not in UFS).
    */
   FREE;
-
 }

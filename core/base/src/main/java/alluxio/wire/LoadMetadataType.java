@@ -47,5 +47,4 @@ public enum LoadMetadataType {
   public int getValue() {
     return mValue;
   }
-
 }

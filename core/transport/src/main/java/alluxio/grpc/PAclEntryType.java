@@ -106,7 +106,7 @@ public enum PAclEntryType
   }
   public static final com.google.protobuf.Descriptors.EnumDescriptor
       getDescriptor() {
-    return alluxio.grpc.FileSystemMasterProto.getDescriptor().getEnumTypes().get(1);
+    return alluxio.grpc.FileSystemMasterProto.getDescriptor().getEnumTypes().get(0);
   }
 
   private static final PAclEntryType[] VALUES = values();

@@ -14,14 +14,15 @@ package alluxio.web;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
-import alluxio.client.ReadType;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemClientOptions;
 import alluxio.client.file.URIStatus;
-import alluxio.client.file.options.OpenFileOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
+import alluxio.grpc.OpenFilePOptions;
+import alluxio.grpc.ReadPType;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.security.LoginUser;
 import alluxio.security.authentication.AuthenticatedClientUser;
@@ -125,7 +126,8 @@ public final class WebInterfaceDownloadServlet extends HttpServlet {
     FileInStream is = null;
     ServletOutputStream out = null;
     try {
-      OpenFileOptions options = OpenFileOptions.defaults().setReadType(ReadType.NO_CACHE);
+      OpenFilePOptions options = FileSystemClientOptions.getOpenFileOptions().toBuilder()
+          .setReadType(ReadPType.READ_NO_CACHE).build();
       is = alluxioClient.openFile(path, options);
       out = response.getOutputStream();
       ByteStreams.copy(is, out);

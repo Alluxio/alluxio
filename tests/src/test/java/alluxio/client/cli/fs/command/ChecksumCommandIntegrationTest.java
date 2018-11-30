@@ -11,10 +11,10 @@
 
 package alluxio.client.cli.fs.command;
 
-import alluxio.client.WriteType;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.exception.ExceptionMessage;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
+import alluxio.grpc.WritePType;
 import alluxio.util.io.BufferUtils;
 
 import org.apache.commons.codec.digest.DigestUtils;
@@ -31,7 +31,7 @@ public final class ChecksumCommandIntegrationTest extends AbstractFileSystemShel
    */
   @Test
   public void checksum() throws Exception {
-    FileSystemTestUtils.createByteFile(mFileSystem, "/testFile", WriteType.MUST_CACHE, 10);
+    FileSystemTestUtils.createByteFile(mFileSystem, "/testFile", WritePType.WRITE_MUST_CACHE, 10);
     mFsShell.run("checksum", "/testFile");
     String str = mOutput.toString();
     String[] splitString = str.split("\\s+");
@@ -50,10 +50,10 @@ public final class ChecksumCommandIntegrationTest extends AbstractFileSystemShel
    */
   @Test
   public void checksumWildCard() throws Exception {
-    FileSystemTestUtils.createByteFile(mFileSystem,
-            "/testDir/testFileA", WriteType.MUST_CACHE, 10);
-    FileSystemTestUtils.createByteFile(mFileSystem,
-            "/testDir2/testFileB", WriteType.MUST_CACHE, 10);
+    FileSystemTestUtils.createByteFile(mFileSystem, "/testDir/testFileA",
+        WritePType.WRITE_MUST_CACHE, 10);
+    FileSystemTestUtils.createByteFile(mFileSystem, "/testDir2/testFileB",
+        WritePType.WRITE_MUST_CACHE, 10);
     mFsShell.run("checksum", "/testDir*/testFile*");
     String str = mOutput.toString();
     String[] splitString = str.split("\\s+");

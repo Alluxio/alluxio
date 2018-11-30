@@ -14,9 +14,10 @@ package alluxio.cli.fs.command;
 import alluxio.AlluxioURI;
 import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystem;
-import alluxio.client.file.options.SetAttributeOptions;
+import alluxio.client.file.FileSystemClientOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
+import alluxio.grpc.SetAttributePOptions;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
@@ -77,17 +78,18 @@ public final class SetReplicationCommand extends AbstractFileSystemCommand {
    */
   private void setReplication(AlluxioURI path, Integer replicationMax, Integer replicationMin,
       boolean recursive) throws AlluxioException, IOException {
-    SetAttributeOptions options = SetAttributeOptions.defaults().setRecursive(recursive);
+    SetAttributePOptions.Builder optionsBuilder =
+        FileSystemClientOptions.getSetAttributeOptions().toBuilder().setRecursive(recursive);
     String message = "Changed the replication level of " + path + "\n";
     if (replicationMax != null) {
-      options.setReplicationMax(replicationMax);
+      optionsBuilder.setReplicationMax(replicationMax);
       message += "replicationMax was set to " + replicationMax + "\n";
     }
     if (replicationMin != null) {
-      options.setReplicationMin(replicationMin);
+      optionsBuilder.setReplicationMin(replicationMin);
       message += "replicationMin was set to " + replicationMin + "\n";
     }
-    mFileSystem.setAttribute(path, options);
+    mFileSystem.setAttribute(path, optionsBuilder.build());
     System.out.println(message);
   }
 

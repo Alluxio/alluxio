@@ -14,10 +14,10 @@ package alluxio.client.fs;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
-import alluxio.client.WriteType;
 import alluxio.client.file.FileOutStream;
+import alluxio.client.file.FileSystemClientOptions;
 import alluxio.client.file.URIStatus;
-import alluxio.client.file.options.CreateFileOptions;
+import alluxio.grpc.WritePType;
 import alluxio.master.file.meta.PersistenceState;
 import alluxio.testutils.IntegrationTestUtils;
 import alluxio.underfs.UnderFileSystem;
@@ -52,8 +52,8 @@ public final class PersistPermissionIntegrationTest extends AbstractFileOutStrea
     Assume.assumeTrue(UnderFileSystemUtils.isLocal(mUfs) || UnderFileSystemUtils.isHdfs(mUfs));
 
     AlluxioURI filePath = new AlluxioURI(PathUtils.uniqPath());
-    FileOutStream os = mFileSystem.createFile(filePath,
-        CreateFileOptions.defaults().setWriteType(WriteType.CACHE_THROUGH));
+    FileOutStream os = mFileSystem.createFile(filePath, FileSystemClientOptions
+        .getCreateFileOptions().toBuilder().setWriteType(WritePType.WRITE_CACHE_THROUGH).build());
     os.write((byte) 0);
     os.write((byte) 1);
     os.close();
@@ -78,8 +78,8 @@ public final class PersistPermissionIntegrationTest extends AbstractFileOutStrea
     Assume.assumeTrue(UnderFileSystemUtils.isLocal(mUfs) || UnderFileSystemUtils.isHdfs(mUfs));
 
     AlluxioURI filePath = new AlluxioURI(PathUtils.uniqPath());
-    FileOutStream os = mFileSystem.createFile(filePath,
-        CreateFileOptions.defaults().setWriteType(WriteType.ASYNC_THROUGH));
+    FileOutStream os = mFileSystem.createFile(filePath, FileSystemClientOptions
+        .getCreateFileOptions().toBuilder().setWriteType(WritePType.WRITE_ASYNC_THROUGH).build());
     os.write((byte) 0);
     os.write((byte) 1);
     os.close();
@@ -110,9 +110,8 @@ public final class PersistPermissionIntegrationTest extends AbstractFileOutStrea
     Assume.assumeTrue(UnderFileSystemUtils.isLocal(mUfs) || UnderFileSystemUtils.isHdfs(mUfs));
 
     AlluxioURI filePath = new AlluxioURI(PathUtils.uniqPath());
-    mFileSystem
-        .createFile(filePath, CreateFileOptions.defaults().setWriteType(WriteType.ASYNC_THROUGH))
-        .close();
+    mFileSystem.createFile(filePath, FileSystemClientOptions.getCreateFileOptions().toBuilder()
+        .setWriteType(WritePType.WRITE_ASYNC_THROUGH).build()).close();
 
     // check the file is completed but not persisted
     URIStatus status = mFileSystem.getStatus(filePath);

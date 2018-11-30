@@ -17,19 +17,20 @@ import alluxio.StreamCache;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemClientOptions;
 import alluxio.client.file.URIStatus;
-import alluxio.client.file.options.CreateDirectoryOptions;
-import alluxio.client.file.options.CreateFileOptions;
-import alluxio.client.file.options.DeleteOptions;
-import alluxio.client.file.options.ExistsOptions;
-import alluxio.client.file.options.FreeOptions;
-import alluxio.client.file.options.GetStatusOptions;
-import alluxio.client.file.options.ListStatusOptions;
-import alluxio.client.file.options.MountOptions;
-import alluxio.client.file.options.OpenFileOptions;
-import alluxio.client.file.options.RenameOptions;
-import alluxio.client.file.options.SetAttributeOptions;
-import alluxio.client.file.options.UnmountOptions;
+import alluxio.grpc.CreateDirectoryPOptions;
+import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.DeletePOptions;
+import alluxio.grpc.ExistsPOptions;
+import alluxio.grpc.FreePOptions;
+import alluxio.grpc.GetStatusPOptions;
+import alluxio.grpc.ListStatusPOptions;
+import alluxio.grpc.MountPOptions;
+import alluxio.grpc.OpenFilePOptions;
+import alluxio.grpc.RenamePOptions;
+import alluxio.grpc.SetAttributePOptions;
+import alluxio.grpc.UnmountPOptions;
 import alluxio.web.ProxyWebServer;
 
 import com.google.common.base.Preconditions;
@@ -100,12 +101,13 @@ public final class PathsRestServiceHandler {
   @ReturnType("java.lang.Void")
   @Consumes(MediaType.APPLICATION_JSON)
   public Response createDirectory(@PathParam("path") final String path,
-      final CreateDirectoryOptions options) {
+      final CreateDirectoryPOptions options) {
     return RestUtils.call(new RestUtils.RestCallable<Void>() {
       @Override
       public Void call() throws Exception {
         if (options == null) {
-          mFileSystem.createDirectory(new AlluxioURI(path), CreateDirectoryOptions.defaults());
+          mFileSystem.createDirectory(new AlluxioURI(path),
+              FileSystemClientOptions.getCreateDirectoryOptions());
         } else {
           mFileSystem.createDirectory(new AlluxioURI(path), options);
         }
@@ -125,13 +127,13 @@ public final class PathsRestServiceHandler {
   @ReturnType("java.lang.Integer")
   @Consumes(MediaType.APPLICATION_JSON)
   public Response createFile(@PathParam("path") final String path,
-      final CreateFileOptions options) {
+      final CreateFilePOptions options) {
     return RestUtils.call(new RestUtils.RestCallable<Integer>() {
       @Override
       public Integer call() throws Exception {
         FileOutStream os;
         if (options == null) {
-          os = mFileSystem.createFile(new AlluxioURI(path), CreateFileOptions.defaults());
+          os = mFileSystem.createFile(new AlluxioURI(path));
         } else {
           os = mFileSystem.createFile(new AlluxioURI(path), options);
         }
@@ -149,12 +151,12 @@ public final class PathsRestServiceHandler {
   @POST
   @Path(PATH_PARAM + DELETE)
   @ReturnType("java.lang.Void")
-  public Response delete(@PathParam("path") final String path, final DeleteOptions options) {
+  public Response delete(@PathParam("path") final String path, final DeletePOptions options) {
     return RestUtils.call(new RestUtils.RestCallable<Void>() {
       @Override
       public Void call() throws Exception {
         if (options == null) {
-          mFileSystem.delete(new AlluxioURI(path), DeleteOptions.defaults());
+          mFileSystem.delete(new AlluxioURI(path), FileSystemClientOptions.getDeleteOptions());
         } else {
           mFileSystem.delete(new AlluxioURI(path), options);
         }
@@ -172,12 +174,13 @@ public final class PathsRestServiceHandler {
   @POST
   @Path(PATH_PARAM + EXISTS)
   @ReturnType("java.lang.Boolean")
-  public Response exists(@PathParam("path") final String path, final ExistsOptions options) {
+  public Response exists(@PathParam("path") final String path, final ExistsPOptions options) {
     return RestUtils.call(new RestUtils.RestCallable<Boolean>() {
       @Override
       public Boolean call() throws Exception {
         if (options == null) {
-          return mFileSystem.exists(new AlluxioURI(path), ExistsOptions.defaults());
+          return mFileSystem.exists(new AlluxioURI(path),
+              FileSystemClientOptions.getExistsOptions());
         } else {
           return mFileSystem.exists(new AlluxioURI(path), options);
         }
@@ -194,12 +197,12 @@ public final class PathsRestServiceHandler {
   @POST
   @Path(PATH_PARAM + FREE)
   @ReturnType("java.lang.Void")
-  public Response free(@PathParam("path") final String path, final FreeOptions options) {
+  public Response free(@PathParam("path") final String path, final FreePOptions options) {
     return RestUtils.call(new RestUtils.RestCallable<Void>() {
       @Override
       public Void call() throws Exception {
         if (options == null) {
-          mFileSystem.free(new AlluxioURI(path), FreeOptions.defaults());
+          mFileSystem.free(new AlluxioURI(path), FileSystemClientOptions.getFreeOptions());
         } else {
           mFileSystem.free(new AlluxioURI(path), options);
         }
@@ -217,12 +220,13 @@ public final class PathsRestServiceHandler {
   @POST
   @Path(PATH_PARAM + GET_STATUS)
   @ReturnType("alluxio.client.file.URIStatus")
-  public Response getStatus(@PathParam("path") final String path, final GetStatusOptions options) {
+  public Response getStatus(@PathParam("path") final String path, final GetStatusPOptions options) {
     return RestUtils.call(new RestUtils.RestCallable<URIStatus>() {
       @Override
       public URIStatus call() throws Exception {
         if (options == null) {
-          return mFileSystem.getStatus(new AlluxioURI(path), GetStatusOptions.defaults());
+          return mFileSystem.getStatus(new AlluxioURI(path),
+              FileSystemClientOptions.getGetStatusOptions());
         } else {
           return mFileSystem.getStatus(new AlluxioURI(path), options);
         }
@@ -240,12 +244,13 @@ public final class PathsRestServiceHandler {
   @Path(PATH_PARAM + LIST_STATUS)
   @ReturnType("java.util.List<alluxio.client.file.URIStatus>")
   public Response listStatus(@PathParam("path") final String path,
-      final ListStatusOptions options) {
+      final ListStatusPOptions options) {
     return RestUtils.call(new RestUtils.RestCallable<List<URIStatus>>() {
       @Override
       public List<URIStatus> call() throws Exception {
         if (options == null) {
-          return mFileSystem.listStatus(new AlluxioURI(path), ListStatusOptions.defaults());
+          return mFileSystem.listStatus(new AlluxioURI(path),
+              FileSystemClientOptions.getListStatusOptions());
         } else {
           return mFileSystem.listStatus(new AlluxioURI(path), options);
         }
@@ -264,13 +269,14 @@ public final class PathsRestServiceHandler {
   @Path(PATH_PARAM + MOUNT)
   @ReturnType("java.lang.Void")
   public Response mount(@PathParam("path") final String path, @QueryParam("src") final String src,
-      final MountOptions options) {
+      final MountPOptions options) {
     return RestUtils.call(new RestUtils.RestCallable<Void>() {
       @Override
       public Void call() throws Exception {
         Preconditions.checkNotNull(src, "required 'src' parameter is missing");
         if (options == null) {
-          mFileSystem.mount(new AlluxioURI(path), new AlluxioURI(src), MountOptions.defaults());
+          mFileSystem.mount(new AlluxioURI(path), new AlluxioURI(src),
+              FileSystemClientOptions.getMountOptions());
         } else {
           mFileSystem.mount(new AlluxioURI(path), new AlluxioURI(src), options);
         }
@@ -289,13 +295,14 @@ public final class PathsRestServiceHandler {
   @Path(PATH_PARAM + OPEN_FILE)
   @ReturnType("java.lang.Integer")
   @Produces(MediaType.APPLICATION_JSON)
-  public Response openFile(@PathParam("path") final String path, final OpenFileOptions options) {
+  public Response openFile(@PathParam("path") final String path, final OpenFilePOptions options) {
     return RestUtils.call(new RestUtils.RestCallable<Integer>() {
       @Override
       public Integer call() throws Exception {
         FileInStream is;
         if (options == null) {
-          is = mFileSystem.openFile(new AlluxioURI(path), OpenFileOptions.defaults());
+          is = mFileSystem.openFile(new AlluxioURI(path),
+              FileSystemClientOptions.getOpenFileOptions());
         } else {
           is = mFileSystem.openFile(new AlluxioURI(path), options);
         }
@@ -315,13 +322,14 @@ public final class PathsRestServiceHandler {
   @Path(PATH_PARAM + RENAME)
   @ReturnType("java.lang.Void")
   public Response rename(@PathParam("path") final String path, @QueryParam("dst") final String dst,
-      final RenameOptions options) {
+      final RenamePOptions options) {
     return RestUtils.call(new RestUtils.RestCallable<Void>() {
       @Override
       public Void call() throws Exception {
         Preconditions.checkNotNull(dst, "required 'dst' parameter is missing");
         if (options == null) {
-          mFileSystem.rename(new AlluxioURI(path), new AlluxioURI(dst), RenameOptions.defaults());
+          mFileSystem.rename(new AlluxioURI(path), new AlluxioURI(dst),
+              FileSystemClientOptions.getRenameOptions());
         } else {
           mFileSystem.rename(new AlluxioURI(path), new AlluxioURI(dst), options);
         }
@@ -340,12 +348,13 @@ public final class PathsRestServiceHandler {
   @Path(PATH_PARAM + SET_ATTRIBUTE)
   @ReturnType("java.lang.Void")
   public Response setAttribute(@PathParam("path") final String path,
-      final SetAttributeOptions options) {
+      final SetAttributePOptions options) {
     return RestUtils.call(new RestUtils.RestCallable<Void>() {
       @Override
       public Void call() throws Exception {
         if (options == null) {
-          mFileSystem.setAttribute(new AlluxioURI(path), SetAttributeOptions.defaults());
+          mFileSystem.setAttribute(new AlluxioURI(path),
+              FileSystemClientOptions.getSetAttributeOptions());
         } else {
           mFileSystem.setAttribute(new AlluxioURI(path), options);
         }
@@ -363,12 +372,12 @@ public final class PathsRestServiceHandler {
   @POST
   @Path(PATH_PARAM + UNMOUNT)
   @ReturnType("java.lang.Void")
-  public Response unmount(@PathParam("path") final String path, final UnmountOptions options) {
+  public Response unmount(@PathParam("path") final String path, final UnmountPOptions options) {
     return RestUtils.call(new RestUtils.RestCallable<Void>() {
       @Override
       public Void call() throws Exception {
         if (options == null) {
-          mFileSystem.unmount(new AlluxioURI(path), UnmountOptions.defaults());
+          mFileSystem.unmount(new AlluxioURI(path), FileSystemClientOptions.getUnmountOptions());
         } else {
           mFileSystem.unmount(new AlluxioURI(path), options);
         }
