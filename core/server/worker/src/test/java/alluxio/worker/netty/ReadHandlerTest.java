@@ -273,8 +273,7 @@ public abstract class ReadHandlerTest {
    */
   protected Object waitForOneResponse(final EmbeddedChannel channel)
       throws TimeoutException, InterruptedException {
-    //return CommonUtils.waitForResult("response from the channel", () -> channel.readOutbound(),
-      return CommonUtils.waitForResult("response from the channel", channel::readOutbound,
+    return CommonUtils.waitForResult("response from the channel", channel::readOutbound,
         WaitForOptions.defaults().setTimeoutMs(Constants.MINUTE_MS));
   }
 
