@@ -710,7 +710,8 @@ public final class GrpcUtils {
    * @return proto representation of given wire type
    */
   public static alluxio.grpc.UfsInfo toProto(UfsInfo ufsInfo) {
-    return alluxio.grpc.UfsInfo.newBuilder().setUri(ufsInfo.getUri().toString()).build();
+    return alluxio.grpc.UfsInfo.newBuilder().setUri(ufsInfo.getUri().toString())
+        .setProperties(ufsInfo.getMountOptions()).build();
   }
 
   /**
