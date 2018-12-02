@@ -651,10 +651,10 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
     // than inheriting the option of the final file to create, because it may not have
     // "execute" permission.
     CreateDirectoryContext missingDirContext = CreateDirectoryContext.defaults();
-    missingDirContext.getOptions().setPersisted(context.isPersisted());
-    missingDirContext.setOperationTimeMs(context.getOperationTimeMs());
     missingDirContext.getOptions().setCommonOptions(FileSystemMasterCommonPOptions.newBuilder()
-        .setTtl(context.getTtl()).setTtlAction(context.getTtlAction()));
+            .setTtl(context.getTtl()).setTtlAction(context.getTtlAction()));
+    missingDirContext.setPersisted(context.isPersisted());
+    missingDirContext.setOperationTimeMs(context.getOperationTimeMs());
     missingDirContext.setMountPoint(false);
     missingDirContext.setOwner(context.getOwner());
     missingDirContext.setGroup(context.getGroup());

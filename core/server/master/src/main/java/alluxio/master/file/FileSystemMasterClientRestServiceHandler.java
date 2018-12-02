@@ -161,7 +161,7 @@ public final class FileSystemMasterClientRestServiceHandler {
         Preconditions.checkNotNull(path, "required 'path' parameter is missing");
         CreateDirectoryContext context = CreateDirectoryContext.defaults();
         if (persisted != null) {
-          context.getOptions().setPersisted(persisted);
+          context.setPersisted(persisted);
         }
         if (recursive != null) {
           context.getOptions().setRecursive(recursive);
@@ -199,7 +199,7 @@ public final class FileSystemMasterClientRestServiceHandler {
         Preconditions.checkNotNull(path, "required 'path' parameter is missing");
         CreateFileContext context = CreateFileContext.defaults();
         if (persisted != null) {
-          context.getOptions().setPersisted(persisted);
+          context.setPersisted(persisted);
         }
         if (recursive != null) {
             context.getOptions().setRecursive(recursive);

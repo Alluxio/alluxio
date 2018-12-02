@@ -349,9 +349,10 @@ public final class PermissionCheckTest {
     try (Closeable r = new AuthenticatedUserRule(user.getUser()).toResource()) {
       CreateFileContext context = CreateFileContext
           .defaults(
-              CreateFilePOptions.newBuilder().setRecursive(recursive).setPersisted(true))
+              CreateFilePOptions.newBuilder().setRecursive(recursive))
           .setOwner(SecurityUtils.getOwnerFromThriftClient())
-          .setGroup(SecurityUtils.getGroupFromThriftClient());
+          .setGroup(SecurityUtils.getGroupFromThriftClient())
+          .setPersisted(true);
 
       long fileId = mFileSystemMaster.createFile(new AlluxioURI(path), context);
 

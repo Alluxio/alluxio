@@ -70,7 +70,6 @@ public final class FileSystemMasterOptions{
     return CreateDirectoryPOptions.newBuilder()
         .setCommonOptions(commonDefaults())
         .setMode(ModeUtils.applyDirectoryUMask(Mode.defaults()).toShort())
-        .setPersisted(false)
         .setRecursive(false)
         .setAllowExists(false)
         .build();
@@ -87,7 +86,6 @@ public final class FileSystemMasterOptions{
         .setReplicationMax(Configuration.getInt(PropertyKey.USER_FILE_REPLICATION_MAX))
         .setReplicationMin(Configuration.getInt(PropertyKey.USER_FILE_REPLICATION_MIN))
         .setMode(ModeUtils.applyFileUMask(Mode.defaults()).toShort())
-        .setPersisted(false)
         .setRecursive(false)
         .build();
   }

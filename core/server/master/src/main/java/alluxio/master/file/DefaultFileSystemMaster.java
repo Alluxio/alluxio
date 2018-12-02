@@ -1287,7 +1287,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       syncMetadata(rpcContext, inodePath, lockingScheme, DescendantType.ONE);
 
       mMountTable.checkUnderWritableMountPoint(path);
-      if (context.getOptions().getPersisted()) {
+      if (context.getPersisted()) {
         // Check if ufs is writable
         checkUfsMode(path, OperationType.WRITE);
       }
@@ -1856,7 +1856,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       syncMetadata(rpcContext, inodePath, lockingScheme, DescendantType.ONE);
 
       mMountTable.checkUnderWritableMountPoint(path);
-      if (context.getOptions().getPersisted()) {
+      if (context.getPersisted()) {
         checkUfsMode(path, OperationType.WRITE);
       }
       createDirectoryInternal(rpcContext, inodePath, context);
@@ -1903,7 +1903,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
           .setUfsFingerprint(ufsFingerprint)
           .build());
 
-      if (context.getOptions().getPersisted()) {
+      if (context.getPersisted()) {
         // The path exists in UFS, so it is no longer absent.
         mUfsAbsentPathCache.processExisting(inodePath.getUri());
       }
@@ -2456,7 +2456,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     CreateFileContext createFileContext = CreateFileContext.defaults();
     createFileContext.getOptions().setBlockSizeBytes(ufsBlockSizeByte);
     createFileContext.getOptions().setRecursive(context.getOptions().getCreateAncestors());
-    createFileContext.getOptions().setPersisted(true);
     createFileContext.getOptions()
         .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder()
             .setTtl(context.getOptions().getCommonOptions().getTtl())
@@ -2464,6 +2463,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     createFileContext.setMetadataLoad(true);
     createFileContext.setOwner(context.getUfsStatus().getOwner());
     createFileContext.setGroup(context.getUfsStatus().getGroup());
+    createFileContext.setPersisted(true);
     short ufsMode = context.getUfsStatus().getMode();
     Mode mode = new Mode(ufsMode);
     Long ufsLastModified = context.getUfsStatus().getLastModifiedTime();
@@ -2524,13 +2524,14 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       }
     }
     CreateDirectoryContext createDirectoryContext = CreateDirectoryContext.defaults();
-    createDirectoryContext.getOptions().setPersisted(true)
+    createDirectoryContext.getOptions()
         .setRecursive(context.getOptions().getCreateAncestors()).setAllowExists(true)
         .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder()
             .setTtl(context.getOptions().getCommonOptions().getTtl())
             .setTtlAction(context.getOptions().getCommonOptions().getTtlAction()));
     createDirectoryContext.setMountPoint(mMountTable.isMountPoint(inodePath.getUri()));
     createDirectoryContext.setMetadataLoad(true);
+    createDirectoryContext.setPersisted(true);
     MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
 
     AlluxioURI ufsUri = resolution.getUri();

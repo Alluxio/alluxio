@@ -419,7 +419,7 @@ public final class InodeFile extends Inode<InodeFile> implements InodeFileView {
         .setGroup(context.getGroup())
         .setMode((short) context.getOptions().getMode())
         .setAcl(context.getAcl())
-        .setPersistenceState(context.getOptions().getPersisted() ? PersistenceState.PERSISTED
+        .setPersistenceState(context.getPersisted() ? PersistenceState.PERSISTED
             : PersistenceState.NOT_PERSISTED);
   }
 

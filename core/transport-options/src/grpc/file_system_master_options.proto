@@ -48,25 +48,23 @@ message OpenFilePOptions {
 
 message CreateFilePOptions {
   optional int64 blockSizeBytes = 1;
-  optional bool persisted = 2;
-  optional bool recursive = 3;
-  optional int32 mode = 4;
-  optional int32 replicationMax = 5;
-  optional int32 replicationMin = 6;
-  optional int32 replicationDurable = 7;
-  optional string fileWriteLocationPolicy = 8;
-  optional int32 writeTier = 9;
-  optional WritePType writeType = 10;
-  optional FileSystemMasterCommonPOptions commonOptions = 11;
+  optional bool recursive = 2;
+  optional int32 mode = 3;
+  optional int32 replicationMax = 4;
+  optional int32 replicationMin = 5;
+  optional int32 replicationDurable = 6;
+  optional string fileWriteLocationPolicy = 7;
+  optional int32 writeTier = 8;
+  optional WritePType writeType = 9;
+  optional FileSystemMasterCommonPOptions commonOptions = 10;
 }
 
 message CreateDirectoryPOptions {
-  optional bool persisted = 1;
-  optional bool recursive = 2;
-  optional bool allowExists = 3;
-  optional int32 mode = 4;
-  optional WritePType writeType = 5;
-  optional FileSystemMasterCommonPOptions commonOptions = 6;
+  optional bool recursive = 1;
+  optional bool allowExists = 2;
+  optional int32 mode = 3;
+  optional WritePType writeType = 4;
+  optional FileSystemMasterCommonPOptions commonOptions = 5;
 }
 
 message DeletePOptions {

@@ -11,9 +11,11 @@
 
 package alluxio.master.file.options;
 
+import alluxio.client.WriteType;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.TtlAction;
+import alluxio.grpc.WritePType;
 import alluxio.security.authorization.AclEntry;
 import alluxio.security.authorization.Mode;
 
@@ -40,6 +42,7 @@ public abstract class CreatePathContext<T extends GeneratedMessageV3.Builder<?>,
   protected String mOwner;
   protected String mGroup;
   protected boolean mMetadataLoad;
+  protected boolean mPersisted;
 
   //
   // Values for the below fields will be extracted from given proto options
@@ -50,7 +53,6 @@ public abstract class CreatePathContext<T extends GeneratedMessageV3.Builder<?>,
   // PS: This extraction can be eliminated by splitting {@link InodeTree.createPath}.
   //
   protected Mode mMode;
-  protected boolean mPersisted;
   protected boolean mRecursive;
   protected long mTtl;
   protected TtlAction mTtlAction;
@@ -68,6 +70,15 @@ public abstract class CreatePathContext<T extends GeneratedMessageV3.Builder<?>,
     mMetadataLoad = false;
     mGroup = "";
     mOwner = "";
+    // Initialize mPersisted based on proto write type.
+    WritePType writeType = WritePType.WRITE_NONE;
+    if (optionsBuilder instanceof CreateFilePOptions.Builder) {
+      writeType = ((CreateFilePOptions.Builder) optionsBuilder).getWriteType();
+    }
+    else if (optionsBuilder instanceof CreateDirectoryPOptions.Builder) {
+      writeType = ((CreateDirectoryPOptions.Builder) optionsBuilder).getWriteType();
+    }
+    mPersisted = WriteType.fromProto(writeType).isThrough();
   }
 
   private void loadExtractedFields() {
@@ -76,7 +87,6 @@ public abstract class CreatePathContext<T extends GeneratedMessageV3.Builder<?>,
     if (optionsBuilder instanceof CreateFilePOptions.Builder) {
       CreateFilePOptions.Builder fileOptions = (CreateFilePOptions.Builder) optionsBuilder;
       mMode = new Mode((short) fileOptions.getMode());
-      mPersisted = fileOptions.getPersisted();
       mRecursive = fileOptions.getRecursive();
       mTtl = fileOptions.getCommonOptions().getTtl();
       mTtlAction = fileOptions.getCommonOptions().getTtlAction();
@@ -86,7 +96,6 @@ public abstract class CreatePathContext<T extends GeneratedMessageV3.Builder<?>,
     if (optionsBuilder instanceof CreateDirectoryPOptions.Builder) {
       CreateDirectoryPOptions.Builder dirOptions = (CreateDirectoryPOptions.Builder) optionsBuilder;
       mMode = new Mode((short) dirOptions.getMode());
-      mPersisted = dirOptions.getPersisted();
       mRecursive = dirOptions.getRecursive();
       mTtl = dirOptions.getCommonOptions().getTtl();
       mTtlAction = dirOptions.getCommonOptions().getTtlAction();
@@ -137,7 +146,7 @@ public abstract class CreatePathContext<T extends GeneratedMessageV3.Builder<?>,
 
   /**
    * @param operationTimeMs the operation time to use
-   * @return the updated options object
+   * @return the updated context
    */
   public K setOperationTimeMs(long operationTimeMs) {
     mOperationTimeMs = operationTimeMs;
@@ -155,7 +164,7 @@ public abstract class CreatePathContext<T extends GeneratedMessageV3.Builder<?>,
    * Sets an immutable copy of acl as the internal access control list.
    *
    * @param acl the ACL entries
-   * @return the updated options object
+   * @return the updated context
    */
   public K setAcl(List<AclEntry> acl) {
     mAcl = ImmutableList.copyOf(acl);
@@ -172,7 +181,7 @@ public abstract class CreatePathContext<T extends GeneratedMessageV3.Builder<?>,
   /**
    * @param mountPoint the mount point flag to use; it specifies whether the object to create is a
    *        mount point
-   * @return the updated options object
+   * @return the updated context
    */
   public K setMountPoint(boolean mountPoint) {
     mMountPoint = mountPoint;
@@ -188,7 +197,7 @@ public abstract class CreatePathContext<T extends GeneratedMessageV3.Builder<?>,
 
   /**
    * @param owner the owner to use
-   * @return the updated options object
+   * @return the updated context
    */
   public K setOwner(String owner) {
     mOwner = owner;
@@ -204,10 +213,26 @@ public abstract class CreatePathContext<T extends GeneratedMessageV3.Builder<?>,
 
   /**
    * @param group the group to use
-   * @return the updated options object
+   * @return the updated context
    */
   public K setGroup(String group) {
     mGroup = group;
+    return getThis();
+  }
+
+  /**
+   * @return true if persisted
+   */
+  public boolean getPersisted() {
+    return mPersisted;
+  }
+
+  /**
+   * @param persisted if path should be persisted
+   * @return the updated context
+   */
+  public K setPersisted(boolean persisted) {
+    mPersisted = persisted;
     return getThis();
   }
 
@@ -221,7 +246,7 @@ public abstract class CreatePathContext<T extends GeneratedMessageV3.Builder<?>,
   /**
    * @param metadataLoad the flag value to use; if true, the create path is a result of a metadata
    *        load
-   * @return the updated options object
+   * @return the updated context
    */
   public K setMetadataLoad(boolean metadataLoad) {
     mMetadataLoad = metadataLoad;

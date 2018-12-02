@@ -17,101 +17,92 @@ public interface CreateFilePOptionsOrBuilder extends
   long getBlockSizeBytes();
 
   /**
-   * <code>optional bool persisted = 2;</code>
-   */
-  boolean hasPersisted();
-  /**
-   * <code>optional bool persisted = 2;</code>
-   */
-  boolean getPersisted();
-
-  /**
-   * <code>optional bool recursive = 3;</code>
+   * <code>optional bool recursive = 2;</code>
    */
   boolean hasRecursive();
   /**
-   * <code>optional bool recursive = 3;</code>
+   * <code>optional bool recursive = 2;</code>
    */
   boolean getRecursive();
 
   /**
-   * <code>optional int32 mode = 4;</code>
+   * <code>optional int32 mode = 3;</code>
    */
   boolean hasMode();
   /**
-   * <code>optional int32 mode = 4;</code>
+   * <code>optional int32 mode = 3;</code>
    */
   int getMode();
 
   /**
-   * <code>optional int32 replicationMax = 5;</code>
+   * <code>optional int32 replicationMax = 4;</code>
    */
   boolean hasReplicationMax();
   /**
-   * <code>optional int32 replicationMax = 5;</code>
+   * <code>optional int32 replicationMax = 4;</code>
    */
   int getReplicationMax();
 
   /**
-   * <code>optional int32 replicationMin = 6;</code>
+   * <code>optional int32 replicationMin = 5;</code>
    */
   boolean hasReplicationMin();
   /**
-   * <code>optional int32 replicationMin = 6;</code>
+   * <code>optional int32 replicationMin = 5;</code>
    */
   int getReplicationMin();
 
   /**
-   * <code>optional int32 replicationDurable = 7;</code>
+   * <code>optional int32 replicationDurable = 6;</code>
    */
   boolean hasReplicationDurable();
   /**
-   * <code>optional int32 replicationDurable = 7;</code>
+   * <code>optional int32 replicationDurable = 6;</code>
    */
   int getReplicationDurable();
 
   /**
-   * <code>optional string fileWriteLocationPolicy = 8;</code>
+   * <code>optional string fileWriteLocationPolicy = 7;</code>
    */
   boolean hasFileWriteLocationPolicy();
   /**
-   * <code>optional string fileWriteLocationPolicy = 8;</code>
+   * <code>optional string fileWriteLocationPolicy = 7;</code>
    */
   java.lang.String getFileWriteLocationPolicy();
   /**
-   * <code>optional string fileWriteLocationPolicy = 8;</code>
+   * <code>optional string fileWriteLocationPolicy = 7;</code>
    */
   com.google.protobuf.ByteString
       getFileWriteLocationPolicyBytes();
 
   /**
-   * <code>optional int32 writeTier = 9;</code>
+   * <code>optional int32 writeTier = 8;</code>
    */
   boolean hasWriteTier();
   /**
-   * <code>optional int32 writeTier = 9;</code>
+   * <code>optional int32 writeTier = 8;</code>
    */
   int getWriteTier();
 
   /**
-   * <code>optional .alluxio.grpc.WritePType writeType = 10;</code>
+   * <code>optional .alluxio.grpc.WritePType writeType = 9;</code>
    */
   boolean hasWriteType();
   /**
-   * <code>optional .alluxio.grpc.WritePType writeType = 10;</code>
+   * <code>optional .alluxio.grpc.WritePType writeType = 9;</code>
    */
   alluxio.grpc.WritePType getWriteType();
 
   /**
-   * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 11;</code>
+   * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 10;</code>
    */
   boolean hasCommonOptions();
   /**
-   * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 11;</code>
+   * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 10;</code>
    */
   alluxio.grpc.FileSystemMasterCommonPOptions getCommonOptions();
   /**
-   * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 11;</code>
+   * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 10;</code>
    */
   alluxio.grpc.FileSystemMasterCommonPOptionsOrBuilder getCommonOptionsOrBuilder();
 }

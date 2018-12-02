@@ -151,8 +151,7 @@ public final class FileSystemMasterClientRestApiTest extends RestApiTest {
   public void free() throws Exception {
     AlluxioURI uri = new AlluxioURI("/file");
     // Mark the file as persisted so the "free" works.
-    mFileSystemMaster.createFile(uri,
-        CreateFileContext.defaults(CreateFilePOptions.newBuilder().setPersisted(true)));
+    mFileSystemMaster.createFile(uri, CreateFileContext.defaults().setPersisted(true));
     mFileSystemMaster.completeFile(uri, CompleteFileContext.defaults());
 
     Map<String, String> params = new HashMap<>();

@@ -103,8 +103,6 @@ public final class FileSystemClientOptions {
         .setWriteTier(Configuration.getInt(PropertyKey.USER_FILE_WRITE_TIER_DEFAULT))
         .setWriteType(Configuration
             .getEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class).toProto())
-        .setPersisted(Configuration
-            .getEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class).isThrough())
         .setMode(ModeUtils.applyFileUMask(Mode.defaults()).toShort())
         .setReplicationDurable(Configuration.getInt(PropertyKey.USER_FILE_REPLICATION_DURABLE))
         .setReplicationMin(Configuration.getInt(PropertyKey.USER_FILE_REPLICATION_MIN))
@@ -139,8 +137,6 @@ public final class FileSystemClientOptions {
         .setRecursive(false)
         .setWriteType(Configuration
             .getEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class).toProto())
-        .setPersisted(Configuration
-            .getEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class).isThrough())
         .setMode(ModeUtils.applyDirectoryUMask(Mode.defaults()).toShort()).setAllowExists(false)
         .build();
   }
