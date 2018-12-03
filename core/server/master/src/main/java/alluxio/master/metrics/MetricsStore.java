@@ -126,26 +126,22 @@ public class MetricsStore {
    * @param name the metric name
    * @return the set of matched metrics
    */
-  public Set<Metric> getMetricsByInstanceTypeAndName(MetricsSystem.InstanceType instanceType,
+  public synchronized Set<Metric> getMetricsByInstanceTypeAndName(MetricsSystem.InstanceType instanceType,
       String name) {
     if (instanceType == InstanceType.MASTER) {
       return getMasterMetrics(name);
     }
 
     if (instanceType == InstanceType.WORKER) {
-      synchronized (mWorkerMetrics) {
-        return mWorkerMetrics.getByField(NAME_INDEX, name);
-      }
+      return mWorkerMetrics.getByField(NAME_INDEX, name);
     } else if (instanceType == InstanceType.CLIENT) {
-      synchronized (mWorkerMetrics) {
-        return mClientMetrics.getByField(NAME_INDEX, name);
-      }
+      return mClientMetrics.getByField(NAME_INDEX, name);
     } else {
       throw new IllegalArgumentException("Unsupported instance type " + instanceType);
     }
   }
 
-  private Set<Metric> getMasterMetrics(String name) {
+  private synchronized Set<Metric> getMasterMetrics(String name) {
     Set<Metric> metrics = new HashSet<>();
     for (Metric metric : MetricsSystem.allMasterMetrics()) {
       if (metric.getName().equals(name)) {
