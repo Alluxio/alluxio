@@ -2786,13 +2786,13 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
   private void unmountInternal(RpcContext rpcContext, LockedInodePath inodePath)
       throws InvalidPathException, FileDoesNotExistException, IOException {
     MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
-    mSyncManager.stopSync(resolution.getMountId());
+    mSyncManager.stopSyncForMount(resolution.getMountId());
 
     if (!mMountTable.delete(rpcContext, inodePath.getUri())) {
       throw new InvalidPathException("Failed to unmount " + inodePath.getUri() + ". Please ensure"
           + " the path is an existing mount point and not root.");
     }
-
+    
     try {
       // Use the internal delete API, setting {@code alluxioOnly} to true to prevent the delete
       // operations from being persisted in the UFS.
