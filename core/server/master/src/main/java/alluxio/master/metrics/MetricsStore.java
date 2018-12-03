@@ -142,7 +142,7 @@ public class MetricsStore {
     }
   }
 
-  private synchronized Set<Metric> getMasterMetrics(String name) {
+  private Set<Metric> getMasterMetrics(String name) {
     Set<Metric> metrics = new HashSet<>();
     for (Metric metric : MetricsSystem.allMasterMetrics()) {
       if (metric.getName().equals(name)) {
