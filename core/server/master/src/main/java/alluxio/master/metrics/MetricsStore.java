@@ -107,6 +107,7 @@ public class MetricsStore {
     if (metrics.isEmpty()) {
       return;
     }
+    LOG.debug("Removing metrics for id {} to replace with {}", clientId, metrics);
     mClientMetrics.removeByField(ID_INDEX, getFullInstanceId(hostname, clientId));
     for (Metric metric : metrics) {
       if (metric.getHostname() == null) {
@@ -124,20 +125,16 @@ public class MetricsStore {
    * @param name the metric name
    * @return the set of matched metrics
    */
-  public Set<Metric> getMetricsByInstanceTypeAndName(MetricsSystem.InstanceType instanceType,
-      String name) {
+  public synchronized Set<Metric> getMetricsByInstanceTypeAndName(
+      MetricsSystem.InstanceType instanceType, String name) {
     if (instanceType == InstanceType.MASTER) {
       return getMasterMetrics(name);
     }
 
     if (instanceType == InstanceType.WORKER) {
-      synchronized (mWorkerMetrics) {
-        return mWorkerMetrics.getByField(NAME_INDEX, name);
-      }
+      return mWorkerMetrics.getByField(NAME_INDEX, name);
     } else if (instanceType == InstanceType.CLIENT) {
-      synchronized (mWorkerMetrics) {
-        return mClientMetrics.getByField(NAME_INDEX, name);
-      }
+      return mClientMetrics.getByField(NAME_INDEX, name);
     } else {
       throw new IllegalArgumentException("Unsupported instance type " + instanceType);
     }
