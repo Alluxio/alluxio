@@ -109,6 +109,7 @@ public class MetricsStore {
     if (metrics.isEmpty()) {
       return;
     }
+    LOG.debug("Removing metrics for id {} to replace with {}", clientId, metrics);
     mClientMetrics.removeByField(ID_INDEX, getFullInstanceId(hostname, clientId));
     for (Metric metric : metrics) {
       if (metric.getHostname() == null) {

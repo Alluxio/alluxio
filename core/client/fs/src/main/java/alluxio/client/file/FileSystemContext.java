@@ -97,7 +97,6 @@ public final class FileSystemContext implements Closeable {
   private MetricsMasterClient mMetricsMasterClient;
   private ClientMasterSync mClientMasterSync;
 
-  private final String mAppId;
   @GuardedBy("CONTEXT_CACHE_LOCK")
   private int mRefCount;
 
@@ -192,11 +191,6 @@ public final class FileSystemContext implements Closeable {
     mParentSubject = subject;
     mExecutorService = Executors.newFixedThreadPool(1,
         ThreadFactoryUtils.build("metrics-master-heartbeat-%d", true));
-    mAppId = Configuration.containsKey(PropertyKey.USER_APP_ID)
-        ? Configuration.get(PropertyKey.USER_APP_ID) : IdUtils.createFileSystemContextId();
-    LOG.info("Created filesystem context with id {}. This ID will be used for identifying info "
-        + "from the client, such as metrics. It can be set manually through the {} property",
-        mAppId, PropertyKey.Name.USER_APP_ID);
     mClosed = new AtomicBoolean(false);
     mRefCount = 0;
   }
@@ -299,13 +293,6 @@ public final class FileSystemContext implements Closeable {
   public synchronized void reset(InstancedConfiguration configuration) throws IOException {
     closeInternal();
     init(MasterInquireClient.Factory.create(), configuration);
-  }
-
-  /**
-   * @return the unique id of the context
-   */
-  public String getId() {
-    return mAppId;
   }
 
   /**
