@@ -1444,8 +1444,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey MASTER_ACTIVE_UFS_SYNC_MAX_AGE =
       new Builder(Name.MASTER_ACTIVE_UFS_SYNC_MAX_AGE)
           .setDefaultValue("10")
-          .setDescription("The maximum number of intervals we will wait to find a quiet period before "
-            + "we have to sync the directories")
+          .setDescription("The maximum number of intervals we will wait to find a quiet "
+            + "period before we have to sync the directories")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
