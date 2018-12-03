@@ -127,8 +127,8 @@ public class MetricsStore {
    * @param name the metric name
    * @return the set of matched metrics
    */
-  public synchronized Set<Metric> getMetricsByInstanceTypeAndName(MetricsSystem.InstanceType instanceType,
-      String name) {
+  public synchronized Set<Metric> getMetricsByInstanceTypeAndName(
+      MetricsSystem.InstanceType instanceType, String name) {
     if (instanceType == InstanceType.MASTER) {
       return getMasterMetrics(name);
     }

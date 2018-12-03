@@ -30,7 +30,6 @@ import alluxio.network.netty.NettyClient;
 import alluxio.resource.CloseableResource;
 import alluxio.security.authentication.TransportProviderUtils;
 import alluxio.util.CommonUtils;
-import alluxio.util.IdUtils;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.ThreadUtils;
 import alluxio.util.network.NetworkAddressUtils;

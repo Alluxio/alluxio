@@ -54,7 +54,7 @@ public final class MetricsSystem {
   private static final Logger LOG = LoggerFactory.getLogger(MetricsSystem.class);
 
   private static final ConcurrentHashMap<String, String> CACHED_METRICS = new ConcurrentHashMap<>();
-  private static String mAppId;
+  private static String sAppId;
 
   /**
    * An enum of supported instance type.
@@ -431,14 +431,14 @@ public final class MetricsSystem {
    * @return the app ID for this MetricsSystem
    */
   public static synchronized String getAppId() {
-    if (mAppId == null) {
-      mAppId = Configuration.containsKey(PropertyKey.USER_APP_ID)
+    if (sAppId == null) {
+      sAppId = Configuration.containsKey(PropertyKey.USER_APP_ID)
           ? Configuration.get(PropertyKey.USER_APP_ID) : IdUtils.createFileSystemContextId();
       LOG.info("Created metrics system with id {}. This ID will be used for identifying metrics "
               + "data from the client. It can be set manually through the {} property",
-          mAppId, PropertyKey.Name.USER_APP_ID);
+          sAppId, PropertyKey.Name.USER_APP_ID);
     }
-    return mAppId;
+    return sAppId;
   }
 
   private static List<Metric> allMetrics(MetricsSystem.InstanceType instanceType) {
