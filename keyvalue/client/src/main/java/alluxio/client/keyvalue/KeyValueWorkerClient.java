@@ -14,11 +14,11 @@ package alluxio.client.keyvalue;
 import alluxio.AbstractClient;
 import alluxio.Constants;
 import alluxio.exception.AlluxioException;
+import alluxio.grpc.AlluxioServiceType;
 import alluxio.grpc.GetNextKeysPRequest;
 import alluxio.grpc.GetPRequest;
 import alluxio.grpc.GetSizePRequest;
 import alluxio.grpc.KeyValueWorkerClientServiceGrpc;
-import alluxio.thrift.AlluxioService;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.WorkerNetAddress;
 
@@ -51,9 +51,8 @@ public final class KeyValueWorkerClient extends AbstractClient {
   }
 
   @Override
-  protected AlluxioService.Client getClient() {
-    // return mClient;
-    return null;
+  protected AlluxioServiceType getRemoteServiceType() {
+    return AlluxioServiceType.KEY_VALUE_WORKER_SERVICE;
   }
 
   @Override

@@ -77,14 +77,12 @@ public final class Constants {
   public static final int MAX_TEST_PROCESS_LIFETIME_MS = 20 * Constants.MINUTE_MS;
 
   // Service versions should be incremented every time a backwards incompatible change occurs.
-  public static final long BLOCK_MASTER_CLIENT_SERVICE_VERSION = 2;
-  public static final long BLOCK_MASTER_WORKER_SERVICE_VERSION = 2;
-  public static final long BLOCK_WORKER_CLIENT_SERVICE_VERSION = 2;
-  // TODO(ggezer) implement service versions for gRPC
+
   public static final long FILE_SYSTEM_MASTER_CLIENT_SERVICE_VERSION = 2;
   public static final long FILE_SYSTEM_MASTER_JOB_SERVICE_VERSION = 2;
   public static final long FILE_SYSTEM_MASTER_WORKER_SERVICE_VERSION = 2;
-  public static final long FILE_SYSTEM_WORKER_CLIENT_SERVICE_VERSION = 2;
+  public static final long BLOCK_MASTER_CLIENT_SERVICE_VERSION = 2;
+  public static final long BLOCK_MASTER_WORKER_SERVICE_VERSION = 2;
   public static final long META_MASTER_CLIENT_SERVICE_VERSION = 2;
   public static final long META_MASTER_MASTER_SERVICE_VERSION = 1;
   public static final long METRICS_MASTER_CLIENT_SERVICE_VERSION = 2;

@@ -90,20 +90,3 @@ message WorkerNetAddress {
   optional string domainSocketPath = 5;
   optional TieredIdentity tieredIdentity = 6;
 }
-
-message GetServiceVersionPResponse {
-  optional int64 version = 1;
-}
-
-message GetServiceVersionPOptions {
-  optional string serviceType = 1;
-}
-
-service AlluxioService {
-
-  /**
-   * Returns the version of the master service.
-   * NOTE: The version should be updated every time a backwards incompatible API change occurs.
-   */
-  rpc getServiceVersion(GetServiceVersionPOptions) returns (GetServiceVersionPResponse);
-}

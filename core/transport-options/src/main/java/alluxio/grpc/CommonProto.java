@@ -64,16 +64,6 @@ public final class CommonProto {
   static final 
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_alluxio_grpc_WorkerNetAddress_fieldAccessorTable;
-  static final com.google.protobuf.Descriptors.Descriptor
-    internal_static_alluxio_grpc_GetServiceVersionPResponse_descriptor;
-  static final 
-    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
-      internal_static_alluxio_grpc_GetServiceVersionPResponse_fieldAccessorTable;
-  static final com.google.protobuf.Descriptors.Descriptor
-    internal_static_alluxio_grpc_GetServiceVersionPOptions_descriptor;
-  static final 
-    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
-      internal_static_alluxio_grpc_GetServiceVersionPOptions_fieldAccessorTable;
 
   public static com.google.protobuf.Descriptors.FileDescriptor
       getDescriptor() {
@@ -104,17 +94,11 @@ public final class CommonProto {
       "NetAddress\022\014\n\004host\030\001 \001(\t\022\017\n\007rpcPort\030\002 \001(" +
       "\005\022\020\n\010dataPort\030\003 \001(\005\022\017\n\007webPort\030\004 \001(\005\022\030\n\020" +
       "domainSocketPath\030\005 \001(\t\0224\n\016tieredIdentity" +
-      "\030\006 \001(\0132\034.alluxio.grpc.TieredIdentity\"-\n\032" +
-      "GetServiceVersionPResponse\022\017\n\007version\030\001 " +
-      "\001(\003\"0\n\031GetServiceVersionPOptions\022\023\n\013serv" +
-      "iceType\030\001 \001(\t*X\n\013CommandType\022\013\n\007Unknown\020" +
-      "\000\022\013\n\007Nothing\020\001\022\014\n\010Register\020\002\022\010\n\004Free\020\003\022\n" +
-      "\n\006Delete\020\004\022\013\n\007Persist\020\005*!\n\tTtlAction\022\n\n\006" +
-      "DELETE\020\000\022\010\n\004FREE\020\0012x\n\016AlluxioService\022f\n\021" +
-      "getServiceVersion\022\'.alluxio.grpc.GetServ" +
-      "iceVersionPOptions\032(.alluxio.grpc.GetSer" +
-      "viceVersionPResponseB\035\n\014alluxio.grpcB\013Co" +
-      "mmonProtoP\001"
+      "\030\006 \001(\0132\034.alluxio.grpc.TieredIdentity*X\n\013" +
+      "CommandType\022\013\n\007Unknown\020\000\022\013\n\007Nothing\020\001\022\014\n" +
+      "\010Register\020\002\022\010\n\004Free\020\003\022\n\n\006Delete\020\004\022\013\n\007Per" +
+      "sist\020\005*!\n\tTtlAction\022\n\n\006DELETE\020\000\022\010\n\004FREE\020" +
+      "\001B\035\n\014alluxio.grpcB\013CommonProtoP\001"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -188,18 +172,6 @@ public final class CommonProto {
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_WorkerNetAddress_descriptor,
         new java.lang.String[] { "Host", "RpcPort", "DataPort", "WebPort", "DomainSocketPath", "TieredIdentity", });
-    internal_static_alluxio_grpc_GetServiceVersionPResponse_descriptor =
-      getDescriptor().getMessageTypes().get(9);
-    internal_static_alluxio_grpc_GetServiceVersionPResponse_fieldAccessorTable = new
-      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
-        internal_static_alluxio_grpc_GetServiceVersionPResponse_descriptor,
-        new java.lang.String[] { "Version", });
-    internal_static_alluxio_grpc_GetServiceVersionPOptions_descriptor =
-      getDescriptor().getMessageTypes().get(10);
-    internal_static_alluxio_grpc_GetServiceVersionPOptions_fieldAccessorTable = new
-      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
-        internal_static_alluxio_grpc_GetServiceVersionPOptions_descriptor,
-        new java.lang.String[] { "ServiceType", });
   }
 
   // @@protoc_insertion_point(outer_class_scope)

@@ -17,6 +17,9 @@ import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.FailedPreconditionException;
 import alluxio.exception.status.Status;
 import alluxio.exception.status.UnavailableException;
+import alluxio.grpc.AlluxioServiceType;
+import alluxio.grpc.AlluxioVersionServiceGrpc;
+import alluxio.grpc.GetServiceVersionPRequest;
 import alluxio.metrics.CommonMetrics;
 import alluxio.metrics.Metric;
 import alluxio.metrics.MetricsSystem;
@@ -25,8 +28,6 @@ import alluxio.retry.RetryPolicy;
 import alluxio.retry.RetryUtils;
 import alluxio.security.LoginUser;
 import alluxio.security.authentication.TransportProvider;
-import alluxio.thrift.AlluxioService;
-import alluxio.thrift.GetServiceVersionTOptions;
 import alluxio.util.grpc.GrpcChannel;
 import alluxio.util.grpc.GrpcChannelBuilder;
 import alluxio.util.SecurityUtils;
@@ -63,6 +64,9 @@ public abstract class AbstractClient implements Client {
 
   protected GrpcChannel mChannel;
   protected GrpcChannel mJobChannel;
+
+  /** Used to query service version for the remote service type */
+  protected AlluxioVersionServiceGrpc.AlluxioVersionServiceBlockingStub mVersionService;
 
   /** Is true if this client is currently connected. */
   protected boolean mConnected = false;
@@ -106,12 +110,25 @@ public abstract class AbstractClient implements Client {
     // TODO(ggezer) review grpc channel initialization
     mChannel = GrpcChannelBuilder.forAddress("localhost", 50051).usePlaintext(true).build();
     mJobChannel = GrpcChannelBuilder.forAddress("localhost", 50052).usePlaintext(true).build();
+    mVersionService = AlluxioVersionServiceGrpc.newBlockingStub(mChannel);
   }
 
   /**
-   * @return a Thrift service client
+   * @return the type of remote service
    */
-  protected abstract AlluxioService.Client getClient();
+  protected abstract AlluxioServiceType getRemoteServiceType();
+
+  protected long getRemoteServiceVersion() {
+    try {
+      return mVersionService
+              .getServiceVersion(
+                      GetServiceVersionPRequest.newBuilder().setServiceType(getRemoteServiceType()).build())
+              .getVersion();
+    } catch (Exception e) {
+      LOG.error("Failed to get remote service version for type: %s", getRemoteServiceType().name(), e);
+      return Constants.UNKNOWN_SERVICE_VERSION;
+    }
+  }
 
   /**
    * @return a string representing the specific service
@@ -126,19 +143,18 @@ public abstract class AbstractClient implements Client {
   /**
    * Checks that the service version is compatible with the client.
    *
-   * @param client the service client
-   * @param version the client version
+   * @param clientVersion the client version
    */
-  protected void checkVersion(AlluxioService.Client client, long version) throws IOException {
+  protected void checkVersion(long clientVersion) throws IOException {
     if (mServiceVersion == Constants.UNKNOWN_SERVICE_VERSION) {
       try {
-        mServiceVersion = client.getServiceVersion(new GetServiceVersionTOptions()).getVersion();
-      } catch (TException e) {
+        mServiceVersion = getRemoteServiceVersion();
+      } catch (Exception e) {
         throw new IOException(e);
       }
-      if (mServiceVersion != version) {
+      if (mServiceVersion != clientVersion) {
         throw new IOException(ExceptionMessage.INCOMPATIBLE_VERSION.getMessage(getServiceName(),
-            version, mServiceVersion));
+            clientVersion, mServiceVersion));
       }
     }
   }
@@ -215,8 +231,7 @@ public abstract class AbstractClient implements Client {
         LOG.info("Client registered with {} @ {}", getServiceName(), mAddress);
         mConnected = true;
         afterConnect();
-        // TODO(ggezer) Revert after implementing common services
-        // checkVersion(getClient(), getServiceVersion());
+        checkVersion(getServiceVersion());
         return;
       } catch (IOException | TTransportException e) {
         LOG.warn("Failed to connect ({}) with {} @ {}: {}", retryPolicy.getAttemptCount(),

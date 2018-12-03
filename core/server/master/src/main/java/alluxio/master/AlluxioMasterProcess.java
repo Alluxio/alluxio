@@ -28,6 +28,7 @@ import alluxio.master.meta.MetaMasterClientServiceHandler;
 import alluxio.master.meta.MetaMasterMasterServiceHandler;
 import alluxio.master.metrics.MetricsMaster;
 import alluxio.master.metrics.MetricsMasterClientServiceHandler;
+import alluxio.master.version.AlluxioVersionServiceHandler;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.sink.MetricsServlet;
 import alluxio.metrics.sink.PrometheusMetricsServlet;
@@ -401,6 +402,7 @@ public class AlluxioMasterProcess implements MasterProcess {
           .addService(new MetaMasterClientServiceHandler(metaMaster))
           .addService(new MetaMasterMasterServiceHandler(metaMaster))
           .addService(new MetricsMasterClientServiceHandler(metricsMaster))
+          .addService(new AlluxioVersionServiceHandler())
           .executor(executorService)
           .build()
           .start();

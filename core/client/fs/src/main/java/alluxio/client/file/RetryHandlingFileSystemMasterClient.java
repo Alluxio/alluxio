@@ -15,6 +15,7 @@ import alluxio.AbstractMasterClient;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.exception.status.AlluxioStatusException;
+import alluxio.grpc.AlluxioServiceType;
 import alluxio.grpc.CheckConsistencyPOptions;
 import alluxio.grpc.CheckConsistencyPRequest;
 import alluxio.grpc.CompleteFilePOptions;
@@ -50,7 +51,6 @@ import alluxio.grpc.UpdateUfsModePOptions;
 import alluxio.grpc.UpdateUfsModePRequest;
 import alluxio.master.MasterClientConfig;
 import alluxio.security.authorization.AclEntry;
-import alluxio.thrift.AlluxioService;
 import alluxio.util.grpc.GrpcUtils;
 import alluxio.wire.SetAclAction;
 
@@ -85,8 +85,8 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
   }
 
   @Override
-  protected AlluxioService.Client getClient() {
-    return null;
+  protected AlluxioServiceType getRemoteServiceType() {
+    return AlluxioServiceType.FILE_SYSTEM_MASTER_CLIENT_SERVICE;
   }
 
   @Override

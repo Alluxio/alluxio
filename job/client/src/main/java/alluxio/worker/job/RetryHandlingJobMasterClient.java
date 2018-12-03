@@ -13,12 +13,12 @@ package alluxio.worker.job;
 
 import alluxio.AbstractMasterClient;
 import alluxio.Constants;
+import alluxio.grpc.AlluxioServiceType;
 import alluxio.grpc.JobCommand;
 import alluxio.grpc.JobHeartbeatPRequest;
 import alluxio.grpc.JobMasterWorkerServiceGrpc;
 import alluxio.grpc.RegisterJobWorkerPRequest;
 import alluxio.grpc.TaskInfo;
-import alluxio.thrift.AlluxioService.Client;
 import alluxio.util.grpc.GrpcUtils;
 import alluxio.wire.WorkerNetAddress;
 
@@ -37,7 +37,6 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class RetryHandlingJobMasterClient extends AbstractMasterClient
     implements JobMasterClient {
-  // private JobMasterWorkerService.Client mClient = null;
   private JobMasterWorkerServiceGrpc.JobMasterWorkerServiceBlockingStub mGrpcClient = null;
 
   /**
@@ -50,9 +49,8 @@ public final class RetryHandlingJobMasterClient extends AbstractMasterClient
   }
 
   @Override
-  protected Client getClient() {
-    //return mClient;
-    return null;
+  protected AlluxioServiceType getRemoteServiceType() {
+    return AlluxioServiceType.JOB_MASTER_WORKER_SERVICE;
   }
 
   @Override

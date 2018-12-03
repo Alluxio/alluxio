@@ -19,6 +19,7 @@ import alluxio.master.job.JobMaster;
 import alluxio.master.job.JobMasterClientServiceHandler;
 import alluxio.master.job.JobMasterWorkerServiceHandler;
 import alluxio.master.journal.JournalSystem;
+import alluxio.master.version.AlluxioVersionServiceHandler;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.sink.MetricsServlet;
 import alluxio.network.thrift.ThriftUtils;
@@ -296,6 +297,7 @@ public class AlluxioJobMasterProcess implements JobMasterProcess {
       mGrpcServer = GrpcServerBuilder.forPort(port)
               .addService(new JobMasterClientServiceHandler(mJobMaster))
               .addService(new JobMasterWorkerServiceHandler(mJobMaster))
+              .addService(new AlluxioVersionServiceHandler())
               .executor(executorService)
               .build()
               .start();

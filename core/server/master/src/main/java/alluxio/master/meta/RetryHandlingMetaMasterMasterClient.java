@@ -13,6 +13,7 @@ package alluxio.master.meta;
 
 import alluxio.AbstractMasterClient;
 import alluxio.Constants;
+import alluxio.grpc.AlluxioServiceType;
 import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.GetMasterIdPRequest;
 import alluxio.grpc.MasterHeartbeatPRequest;
@@ -21,7 +22,6 @@ import alluxio.grpc.MetaMasterMasterServiceGrpc;
 import alluxio.grpc.RegisterMasterPOptions;
 import alluxio.grpc.RegisterMasterPRequest;
 import alluxio.master.MasterClientConfig;
-import alluxio.thrift.AlluxioService;
 import alluxio.wire.Address;
 
 import java.io.IOException;
@@ -51,9 +51,8 @@ public final class RetryHandlingMetaMasterMasterClient extends AbstractMasterCli
   }
 
   @Override
-  protected AlluxioService.Client getClient() {
-    //return mClient;
-    return null;
+  protected AlluxioServiceType getRemoteServiceType() {
+    return AlluxioServiceType.META_MASTER_MASTER_SERVICE;
   }
 
   @Override

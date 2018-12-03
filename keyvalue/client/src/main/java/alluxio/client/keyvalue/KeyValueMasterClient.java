@@ -14,6 +14,7 @@ package alluxio.client.keyvalue;
 import alluxio.AbstractMasterClient;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.grpc.AlluxioServiceType;
 import alluxio.grpc.CompletePartitionPRequest;
 import alluxio.grpc.CompleteStorePRequest;
 import alluxio.grpc.CreateStorePRequest;
@@ -24,7 +25,6 @@ import alluxio.grpc.MergeStorePRequest;
 import alluxio.grpc.PartitionInfo;
 import alluxio.grpc.RenameStorePRequest;
 import alluxio.master.MasterClientConfig;
-import alluxio.thrift.AlluxioService;
 
 import java.io.IOException;
 import java.util.List;
@@ -51,9 +51,8 @@ public final class KeyValueMasterClient extends AbstractMasterClient {
   }
 
   @Override
-  protected AlluxioService.Client getClient() {
-    // return mClient;
-    return null;
+  protected AlluxioServiceType getRemoteServiceType() {
+    return AlluxioServiceType.KEY_VALUE_MASTER_CLIENT_SERVICE;
   }
 
   @Override
