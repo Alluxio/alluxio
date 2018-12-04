@@ -7,7 +7,16 @@ option java_outer_classname = "BlockMasterProto";
 package alluxio.grpc;
 
 import "common.proto";
-import "block_master_options.proto";
+
+enum BlockMasterInfoField {
+  CAPACITY_BYTES = 1;
+  CAPACITY_BYTES_ON_TIERS = 2;
+  FREE_BYTES = 3;
+  LIVE_WORKER_NUM = 4;
+  LOST_WORKER_NUM = 5;
+  USED_BYTES = 6;
+  USED_BYTES_ON_TIERS = 7;
+}
 
 message BlockMasterInfo {
   optional int64 capacityBytes = 1;
@@ -19,25 +28,30 @@ message BlockMasterInfo {
   map<string, int64> usedBytesOnTiers = 7;
 }
 
-message GetBlockInfoPResponse {
-  optional grpc.BlockInfo blockInfo = 1;
-}
-
+message GetBlockInfoPOptions {}
 message GetBlockInfoPRequest {
   /** the id of the block */
   optional int64 blockId = 1;
 
   optional GetBlockInfoPOptions options = 2;
 }
+message GetBlockInfoPResponse {
+  optional grpc.BlockInfo blockInfo = 1;
+}
 
+message GetCapacityBytesPOptions {}
 message GetCapacityBytesPResponse {
   optional int64 bytes = 1;
 }
 
+message GetBlockMasterInfoPOptions {
+ repeated BlockMasterInfoField filter = 1;
+}
 message GetBlockMasterInfoPResponse {
  optional BlockMasterInfo blockMasterInfo = 1;
 }
 
+message GetUsedBytesPOptions {}
 message GetUsedBytesPResponse {
   optional int64 bytes = 1;
 }
@@ -54,6 +68,32 @@ message WorkerInfo {
   map<string, int64> usedBytesOnTiers = 9;
 }
 
+enum WorkerRange {
+  ALL = 1;
+  LIVE = 2;
+  LOST = 3;
+  SPECIFIED = 4;
+}
+
+enum WorkerInfoField {
+  ADDRESS = 1;
+  WORKER_CAPACITY_BYTES = 2;
+  WORKER_CAPACITY_BYTES_ON_TIERS = 3;
+  ID = 4;
+  LAST_CONTACT_SEC = 5;
+  START_TIME_MS = 6;
+  STATE = 7;
+  WORKER_USED_BYTES = 8;
+  WORKER_USED_BYTES_ON_TIERS = 9;
+}
+
+message GetWorkerReportPOptions {
+  /** addresses are only valid when workerRange is SPECIFIED */
+  repeated string addresses = 1;
+  repeated WorkerInfoField fieldRange = 2;
+  optional WorkerRange workerRange = 3;
+}
+message GetWorkerInfoListPOptions {}
 message GetWorkerInfoListPResponse {
   repeated WorkerInfo workerInfoList = 1;
 }
@@ -98,8 +138,8 @@ message TierList {
   repeated int64 tiers = 1;
 }
 
-message BlockHeartbeatPResponse {
-  optional grpc.Command command = 1;
+message BlockHeartbeatPOptions {
+  repeated grpc.Metric metrics = 1;
 }
 message BlockHeartbeatPRequest {
   /** the id of the worker */
@@ -111,6 +151,9 @@ message BlockHeartbeatPRequest {
   /** the map of added blocks on all tiers */
   map<string, TierList> addedBlocksOnTiers = 4;
   optional BlockHeartbeatPOptions options = 5;
+}
+message BlockHeartbeatPResponse {
+  optional grpc.Command command = 1;
 }
 
 message CommitBlockPResponse {}
@@ -128,7 +171,7 @@ message CommitBlockPRequest {
   optional CommitBlockPOptions options = 6;
 }
 
-message CommitBlockInUfsPResponse {}
+message CommitBlockPOptions {}
 message CommitBlockInUfsPRequest {
   /** the id of the worker */
   optional int64 blockId = 1;
@@ -137,16 +180,22 @@ message CommitBlockInUfsPRequest {
   optional CommitBlockInUfsPOptions options = 3;
 }
 
-message GetWorkerIdPResponse {
-  optional int64 workerId = 1;
-}
+message CommitBlockInUfsPOptions {}
+message CommitBlockInUfsPResponse {}
+
+message GetWorkerIdPOptions {}
 message GetWorkerIdPRequest {
   /** the worker network address */
   optional grpc.WorkerNetAddress workerNetAddress = 1;
   optional GetWorkerIdPOptions options = 2;
 }
+message GetWorkerIdPResponse {
+  optional int64 workerId = 1;
+}
 
-message RegisterWorkerPResponse {}
+message RegisterWorkerPOptions {
+  repeated grpc.ConfigProperty config = 1;
+}
 message RegisterWorkerPRequest {
   /** the id of the worker */
   optional int64 workerId = 1;
@@ -160,6 +209,7 @@ message RegisterWorkerPRequest {
   map<string, TierList> currentBlocksOnTiers = 5;
   optional RegisterWorkerPOptions options = 6;
 }
+message RegisterWorkerPResponse {}
 
 /**
  * This interface contains block master service endpoints for Alluxio workers.
