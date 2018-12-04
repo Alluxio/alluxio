@@ -24,6 +24,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -69,8 +70,12 @@ public class MetricsStore {
     return str;
   }
 
+  // Although IndexedSet is threadsafe, it lacks an update operation, so we need locking to
+  // implement atomic update using remove + add.
+  @GuardedBy("itself")
   private final IndexedSet<Metric> mWorkerMetrics =
       new IndexedSet<>(FULL_NAME_INDEX, NAME_INDEX, ID_INDEX);
+  @GuardedBy("itself")
   private final IndexedSet<Metric> mClientMetrics =
       new IndexedSet<>(FULL_NAME_INDEX, NAME_INDEX, ID_INDEX);
 
@@ -81,16 +86,18 @@ public class MetricsStore {
    * @param hostname the hostname of the instance
    * @param metrics the new worker metrics
    */
-  public synchronized void putWorkerMetrics(String hostname, List<Metric> metrics) {
+  public void putWorkerMetrics(String hostname, List<Metric> metrics) {
     if (metrics.isEmpty()) {
       return;
     }
-    mWorkerMetrics.removeByField(ID_INDEX, getFullInstanceId(hostname, null));
-    for (Metric metric : metrics) {
-      if (metric.getHostname() == null) {
-        continue; // ignore metrics whose hostname is null
+    synchronized (mWorkerMetrics) {
+      mWorkerMetrics.removeByField(ID_INDEX, getFullInstanceId(hostname, null));
+      for (Metric metric : metrics) {
+        if (metric.getHostname() == null) {
+          continue; // ignore metrics whose hostname is null
+        }
+        mWorkerMetrics.add(metric);
       }
-      mWorkerMetrics.add(metric);
     }
   }
 
@@ -102,18 +109,20 @@ public class MetricsStore {
    * @param clientId the id of the client
    * @param metrics the new metrics
    */
-  public synchronized void putClientMetrics(String hostname, String clientId,
+  public void putClientMetrics(String hostname, String clientId,
       List<Metric> metrics) {
     if (metrics.isEmpty()) {
       return;
     }
     LOG.debug("Removing metrics for id {} to replace with {}", clientId, metrics);
-    mClientMetrics.removeByField(ID_INDEX, getFullInstanceId(hostname, clientId));
-    for (Metric metric : metrics) {
-      if (metric.getHostname() == null) {
-        continue; // ignore metrics whose hostname is null
+    synchronized (mClientMetrics) {
+      mClientMetrics.removeByField(ID_INDEX, getFullInstanceId(hostname, clientId));
+      for (Metric metric : metrics) {
+        if (metric.getHostname() == null) {
+          continue; // ignore metrics whose hostname is null
+        }
+        mClientMetrics.add(metric);
       }
-      mClientMetrics.add(metric);
     }
   }
 
@@ -125,16 +134,20 @@ public class MetricsStore {
    * @param name the metric name
    * @return the set of matched metrics
    */
-  public synchronized Set<Metric> getMetricsByInstanceTypeAndName(
+  public Set<Metric> getMetricsByInstanceTypeAndName(
       MetricsSystem.InstanceType instanceType, String name) {
     if (instanceType == InstanceType.MASTER) {
       return getMasterMetrics(name);
     }
 
     if (instanceType == InstanceType.WORKER) {
-      return mWorkerMetrics.getByField(NAME_INDEX, name);
+      synchronized (mWorkerMetrics) {
+        return mWorkerMetrics.getByField(NAME_INDEX, name);
+      }
     } else if (instanceType == InstanceType.CLIENT) {
-      return mClientMetrics.getByField(NAME_INDEX, name);
+      synchronized (mClientMetrics) {
+        return mClientMetrics.getByField(NAME_INDEX, name);
+      }
     } else {
       throw new IllegalArgumentException("Unsupported instance type " + instanceType);
     }
@@ -153,8 +166,12 @@ public class MetricsStore {
   /**
    * Clears all the metrics.
    */
-  public synchronized void clear() {
-    mWorkerMetrics.clear();
-    mClientMetrics.clear();
+  public void clear() {
+    synchronized (mWorkerMetrics) {
+      mWorkerMetrics.clear();
+    }
+    synchronized (mClientMetrics) {
+      mClientMetrics.clear();
+    }
   }
 }
