@@ -187,7 +187,7 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
     return retryRPC(() -> {
       Map<String, alluxio.wire.MountPointInfo> mountTableWire = new HashMap<>();
       for (Map.Entry<String, alluxio.grpc.MountPointInfo> entry : mGrpcClient
-          .getMountTable(GetMountTablePRequest.newBuilder().build()).getMountTableMap()
+          .getMountTable(GetMountTablePRequest.newBuilder().build()).getMountPointsMap()
           .entrySet()) {
         mountTableWire.put(entry.getKey(), GrpcUtils.fromProto(entry.getValue()));
       }
@@ -202,7 +202,7 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
       List<URIStatus> result = new ArrayList<>();
       for (alluxio.grpc.FileInfo fileInfo : mGrpcClient.listStatus(ListStatusPRequest.newBuilder()
           .setPath(path.getPath()).setOptions(options).build())
-          .getFileInfoListList()) {
+          .getFileInfosList()) {
         result.add(new URIStatus(GrpcUtils.fromProto(fileInfo)));
       }
       return result;

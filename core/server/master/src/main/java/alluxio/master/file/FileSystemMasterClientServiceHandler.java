@@ -213,7 +213,7 @@ public final class FileSystemMasterClientServiceHandler
           ListStatusContext.defaults(options.toBuilder()))) {
         result.add(GrpcUtils.toProto(fileInfo));
       }
-      return ListStatusPResponse.newBuilder().addAllFileInfoList(result).build();
+      return ListStatusPResponse.newBuilder().addAllFileInfos(result).build();
     }, "ListStatus", "path=%s, options=%s", responseObserver, path, options);
   }
 
@@ -239,7 +239,7 @@ public final class FileSystemMasterClientServiceHandler
       for (Map.Entry<String, MountPointInfo> entry : mountTableWire.entrySet()) {
         mountTableProto.put(entry.getKey(), GrpcUtils.toProto(entry.getValue()));
       }
-      return GetMountTablePResponse.newBuilder().putAllMountTable(mountTableProto).build();
+      return GetMountTablePResponse.newBuilder().putAllMountPoints(mountTableProto).build();
     }, "GetMountTable", "", responseObserver);
   }
 

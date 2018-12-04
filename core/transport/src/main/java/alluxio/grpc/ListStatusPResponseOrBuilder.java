@@ -8,26 +8,26 @@ public interface ListStatusPResponseOrBuilder extends
     com.google.protobuf.MessageOrBuilder {
 
   /**
-   * <code>repeated .alluxio.grpc.FileInfo fileInfoList = 1;</code>
+   * <code>repeated .alluxio.grpc.FileInfo fileInfos = 1;</code>
    */
   java.util.List<alluxio.grpc.FileInfo> 
-      getFileInfoListList();
+      getFileInfosList();
   /**
-   * <code>repeated .alluxio.grpc.FileInfo fileInfoList = 1;</code>
+   * <code>repeated .alluxio.grpc.FileInfo fileInfos = 1;</code>
    */
-  alluxio.grpc.FileInfo getFileInfoList(int index);
+  alluxio.grpc.FileInfo getFileInfos(int index);
   /**
-   * <code>repeated .alluxio.grpc.FileInfo fileInfoList = 1;</code>
+   * <code>repeated .alluxio.grpc.FileInfo fileInfos = 1;</code>
    */
-  int getFileInfoListCount();
+  int getFileInfosCount();
   /**
-   * <code>repeated .alluxio.grpc.FileInfo fileInfoList = 1;</code>
+   * <code>repeated .alluxio.grpc.FileInfo fileInfos = 1;</code>
    */
   java.util.List<? extends alluxio.grpc.FileInfoOrBuilder> 
-      getFileInfoListOrBuilderList();
+      getFileInfosOrBuilderList();
   /**
-   * <code>repeated .alluxio.grpc.FileInfo fileInfoList = 1;</code>
+   * <code>repeated .alluxio.grpc.FileInfo fileInfos = 1;</code>
    */
-  alluxio.grpc.FileInfoOrBuilder getFileInfoListOrBuilder(
+  alluxio.grpc.FileInfoOrBuilder getFileInfosOrBuilder(
       int index);
 }

@@ -172,7 +172,7 @@ public final class BlockMasterClient extends AbstractMasterClient {
       throws IOException {
 
     final RegisterWorkerPOptions options =
-        RegisterWorkerPOptions.newBuilder().addAllConfig(configList).build();
+        RegisterWorkerPOptions.newBuilder().addAllConfigs(configList).build();
     Map<String, TierList> currentBlockOnTiersMap = new HashMap<>();
     for (String id : currentBlocksOnTiers.keySet()) {
       currentBlockOnTiersMap.put(id,

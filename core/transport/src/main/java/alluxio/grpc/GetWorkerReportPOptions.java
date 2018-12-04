@@ -17,7 +17,7 @@ private static final long serialVersionUID = 0L;
   }
   private GetWorkerReportPOptions() {
     addresses_ = com.google.protobuf.LazyStringArrayList.EMPTY;
-    fieldRange_ = java.util.Collections.emptyList();
+    fieldRanges_ = java.util.Collections.emptyList();
     workerRange_ = 1;
   }
 
@@ -68,10 +68,10 @@ private static final long serialVersionUID = 0L;
               unknownFields.mergeVarintField(2, rawValue);
             } else {
               if (!((mutable_bitField0_ & 0x00000002) == 0x00000002)) {
-                fieldRange_ = new java.util.ArrayList<java.lang.Integer>();
+                fieldRanges_ = new java.util.ArrayList<java.lang.Integer>();
                 mutable_bitField0_ |= 0x00000002;
               }
-              fieldRange_.add(rawValue);
+              fieldRanges_.add(rawValue);
             }
             break;
           }
@@ -85,10 +85,10 @@ private static final long serialVersionUID = 0L;
                 unknownFields.mergeVarintField(2, rawValue);
               } else {
                 if (!((mutable_bitField0_ & 0x00000002) == 0x00000002)) {
-                  fieldRange_ = new java.util.ArrayList<java.lang.Integer>();
+                  fieldRanges_ = new java.util.ArrayList<java.lang.Integer>();
                   mutable_bitField0_ |= 0x00000002;
                 }
-                fieldRange_.add(rawValue);
+                fieldRanges_.add(rawValue);
               }
             }
             input.popLimit(oldLimit);
@@ -117,7 +117,7 @@ private static final long serialVersionUID = 0L;
         addresses_ = addresses_.getUnmodifiableView();
       }
       if (((mutable_bitField0_ & 0x00000002) == 0x00000002)) {
-        fieldRange_ = java.util.Collections.unmodifiableList(fieldRange_);
+        fieldRanges_ = java.util.Collections.unmodifiableList(fieldRanges_);
       }
       this.unknownFields = unknownFields.build();
       makeExtensionsImmutable();
@@ -181,10 +181,10 @@ private static final long serialVersionUID = 0L;
     return addresses_.getByteString(index);
   }
 
-  public static final int FIELDRANGE_FIELD_NUMBER = 2;
-  private java.util.List<java.lang.Integer> fieldRange_;
+  public static final int FIELDRANGES_FIELD_NUMBER = 2;
+  private java.util.List<java.lang.Integer> fieldRanges_;
   private static final com.google.protobuf.Internal.ListAdapter.Converter<
-      java.lang.Integer, alluxio.grpc.WorkerInfoField> fieldRange_converter_ =
+      java.lang.Integer, alluxio.grpc.WorkerInfoField> fieldRanges_converter_ =
           new com.google.protobuf.Internal.ListAdapter.Converter<
               java.lang.Integer, alluxio.grpc.WorkerInfoField>() {
             public alluxio.grpc.WorkerInfoField convert(java.lang.Integer from) {
@@ -193,23 +193,23 @@ private static final long serialVersionUID = 0L;
             }
           };
   /**
-   * <code>repeated .alluxio.grpc.WorkerInfoField fieldRange = 2;</code>
+   * <code>repeated .alluxio.grpc.WorkerInfoField fieldRanges = 2;</code>
    */
-  public java.util.List<alluxio.grpc.WorkerInfoField> getFieldRangeList() {
+  public java.util.List<alluxio.grpc.WorkerInfoField> getFieldRangesList() {
     return new com.google.protobuf.Internal.ListAdapter<
-        java.lang.Integer, alluxio.grpc.WorkerInfoField>(fieldRange_, fieldRange_converter_);
+        java.lang.Integer, alluxio.grpc.WorkerInfoField>(fieldRanges_, fieldRanges_converter_);
   }
   /**
-   * <code>repeated .alluxio.grpc.WorkerInfoField fieldRange = 2;</code>
+   * <code>repeated .alluxio.grpc.WorkerInfoField fieldRanges = 2;</code>
    */
-  public int getFieldRangeCount() {
-    return fieldRange_.size();
+  public int getFieldRangesCount() {
+    return fieldRanges_.size();
   }
   /**
-   * <code>repeated .alluxio.grpc.WorkerInfoField fieldRange = 2;</code>
+   * <code>repeated .alluxio.grpc.WorkerInfoField fieldRanges = 2;</code>
    */
-  public alluxio.grpc.WorkerInfoField getFieldRange(int index) {
-    return fieldRange_converter_.convert(fieldRange_.get(index));
+  public alluxio.grpc.WorkerInfoField getFieldRanges(int index) {
+    return fieldRanges_converter_.convert(fieldRanges_.get(index));
   }
 
   public static final int WORKERRANGE_FIELD_NUMBER = 3;
@@ -243,8 +243,8 @@ private static final long serialVersionUID = 0L;
     for (int i = 0; i < addresses_.size(); i++) {
       com.google.protobuf.GeneratedMessageV3.writeString(output, 1, addresses_.getRaw(i));
     }
-    for (int i = 0; i < fieldRange_.size(); i++) {
-      output.writeEnum(2, fieldRange_.get(i));
+    for (int i = 0; i < fieldRanges_.size(); i++) {
+      output.writeEnum(2, fieldRanges_.get(i));
     }
     if (((bitField0_ & 0x00000001) == 0x00000001)) {
       output.writeEnum(3, workerRange_);
@@ -267,12 +267,12 @@ private static final long serialVersionUID = 0L;
     }
     {
       int dataSize = 0;
-      for (int i = 0; i < fieldRange_.size(); i++) {
+      for (int i = 0; i < fieldRanges_.size(); i++) {
         dataSize += com.google.protobuf.CodedOutputStream
-          .computeEnumSizeNoTag(fieldRange_.get(i));
+          .computeEnumSizeNoTag(fieldRanges_.get(i));
       }
       size += dataSize;
-      size += 1 * fieldRange_.size();
+      size += 1 * fieldRanges_.size();
     }
     if (((bitField0_ & 0x00000001) == 0x00000001)) {
       size += com.google.protobuf.CodedOutputStream
@@ -296,7 +296,7 @@ private static final long serialVersionUID = 0L;
     boolean result = true;
     result = result && getAddressesList()
         .equals(other.getAddressesList());
-    result = result && fieldRange_.equals(other.fieldRange_);
+    result = result && fieldRanges_.equals(other.fieldRanges_);
     result = result && (hasWorkerRange() == other.hasWorkerRange());
     if (hasWorkerRange()) {
       result = result && workerRange_ == other.workerRange_;
@@ -316,9 +316,9 @@ private static final long serialVersionUID = 0L;
       hash = (37 * hash) + ADDRESSES_FIELD_NUMBER;
       hash = (53 * hash) + getAddressesList().hashCode();
     }
-    if (getFieldRangeCount() > 0) {
-      hash = (37 * hash) + FIELDRANGE_FIELD_NUMBER;
-      hash = (53 * hash) + fieldRange_.hashCode();
+    if (getFieldRangesCount() > 0) {
+      hash = (37 * hash) + FIELDRANGES_FIELD_NUMBER;
+      hash = (53 * hash) + fieldRanges_.hashCode();
     }
     if (hasWorkerRange()) {
       hash = (37 * hash) + WORKERRANGE_FIELD_NUMBER;
@@ -455,7 +455,7 @@ private static final long serialVersionUID = 0L;
       super.clear();
       addresses_ = com.google.protobuf.LazyStringArrayList.EMPTY;
       bitField0_ = (bitField0_ & ~0x00000001);
-      fieldRange_ = java.util.Collections.emptyList();
+      fieldRanges_ = java.util.Collections.emptyList();
       bitField0_ = (bitField0_ & ~0x00000002);
       workerRange_ = 1;
       bitField0_ = (bitField0_ & ~0x00000004);
@@ -489,10 +489,10 @@ private static final long serialVersionUID = 0L;
       }
       result.addresses_ = addresses_;
       if (((bitField0_ & 0x00000002) == 0x00000002)) {
-        fieldRange_ = java.util.Collections.unmodifiableList(fieldRange_);
+        fieldRanges_ = java.util.Collections.unmodifiableList(fieldRanges_);
         bitField0_ = (bitField0_ & ~0x00000002);
       }
-      result.fieldRange_ = fieldRange_;
+      result.fieldRanges_ = fieldRanges_;
       if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
         to_bitField0_ |= 0x00000001;
       }
@@ -549,13 +549,13 @@ private static final long serialVersionUID = 0L;
         }
         onChanged();
       }
-      if (!other.fieldRange_.isEmpty()) {
-        if (fieldRange_.isEmpty()) {
-          fieldRange_ = other.fieldRange_;
+      if (!other.fieldRanges_.isEmpty()) {
+        if (fieldRanges_.isEmpty()) {
+          fieldRanges_ = other.fieldRanges_;
           bitField0_ = (bitField0_ & ~0x00000002);
         } else {
-          ensureFieldRangeIsMutable();
-          fieldRange_.addAll(other.fieldRange_);
+          ensureFieldRangesIsMutable();
+          fieldRanges_.addAll(other.fieldRanges_);
         }
         onChanged();
       }
@@ -719,75 +719,75 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
-    private java.util.List<java.lang.Integer> fieldRange_ =
+    private java.util.List<java.lang.Integer> fieldRanges_ =
       java.util.Collections.emptyList();
-    private void ensureFieldRangeIsMutable() {
+    private void ensureFieldRangesIsMutable() {
       if (!((bitField0_ & 0x00000002) == 0x00000002)) {
-        fieldRange_ = new java.util.ArrayList<java.lang.Integer>(fieldRange_);
+        fieldRanges_ = new java.util.ArrayList<java.lang.Integer>(fieldRanges_);
         bitField0_ |= 0x00000002;
       }
     }
     /**
-     * <code>repeated .alluxio.grpc.WorkerInfoField fieldRange = 2;</code>
+     * <code>repeated .alluxio.grpc.WorkerInfoField fieldRanges = 2;</code>
      */
-    public java.util.List<alluxio.grpc.WorkerInfoField> getFieldRangeList() {
+    public java.util.List<alluxio.grpc.WorkerInfoField> getFieldRangesList() {
       return new com.google.protobuf.Internal.ListAdapter<
-          java.lang.Integer, alluxio.grpc.WorkerInfoField>(fieldRange_, fieldRange_converter_);
+          java.lang.Integer, alluxio.grpc.WorkerInfoField>(fieldRanges_, fieldRanges_converter_);
     }
     /**
-     * <code>repeated .alluxio.grpc.WorkerInfoField fieldRange = 2;</code>
+     * <code>repeated .alluxio.grpc.WorkerInfoField fieldRanges = 2;</code>
      */
-    public int getFieldRangeCount() {
-      return fieldRange_.size();
+    public int getFieldRangesCount() {
+      return fieldRanges_.size();
     }
     /**
-     * <code>repeated .alluxio.grpc.WorkerInfoField fieldRange = 2;</code>
+     * <code>repeated .alluxio.grpc.WorkerInfoField fieldRanges = 2;</code>
      */
-    public alluxio.grpc.WorkerInfoField getFieldRange(int index) {
-      return fieldRange_converter_.convert(fieldRange_.get(index));
+    public alluxio.grpc.WorkerInfoField getFieldRanges(int index) {
+      return fieldRanges_converter_.convert(fieldRanges_.get(index));
     }
     /**
-     * <code>repeated .alluxio.grpc.WorkerInfoField fieldRange = 2;</code>
+     * <code>repeated .alluxio.grpc.WorkerInfoField fieldRanges = 2;</code>
      */
-    public Builder setFieldRange(
+    public Builder setFieldRanges(
         int index, alluxio.grpc.WorkerInfoField value) {
       if (value == null) {
         throw new NullPointerException();
       }
-      ensureFieldRangeIsMutable();
-      fieldRange_.set(index, value.getNumber());
+      ensureFieldRangesIsMutable();
+      fieldRanges_.set(index, value.getNumber());
       onChanged();
       return this;
     }
     /**
-     * <code>repeated .alluxio.grpc.WorkerInfoField fieldRange = 2;</code>
+     * <code>repeated .alluxio.grpc.WorkerInfoField fieldRanges = 2;</code>
      */
-    public Builder addFieldRange(alluxio.grpc.WorkerInfoField value) {
+    public Builder addFieldRanges(alluxio.grpc.WorkerInfoField value) {
       if (value == null) {
         throw new NullPointerException();
       }
-      ensureFieldRangeIsMutable();
-      fieldRange_.add(value.getNumber());
+      ensureFieldRangesIsMutable();
+      fieldRanges_.add(value.getNumber());
       onChanged();
       return this;
     }
     /**
-     * <code>repeated .alluxio.grpc.WorkerInfoField fieldRange = 2;</code>
+     * <code>repeated .alluxio.grpc.WorkerInfoField fieldRanges = 2;</code>
      */
-    public Builder addAllFieldRange(
+    public Builder addAllFieldRanges(
         java.lang.Iterable<? extends alluxio.grpc.WorkerInfoField> values) {
-      ensureFieldRangeIsMutable();
+      ensureFieldRangesIsMutable();
       for (alluxio.grpc.WorkerInfoField value : values) {
-        fieldRange_.add(value.getNumber());
+        fieldRanges_.add(value.getNumber());
       }
       onChanged();
       return this;
     }
     /**
-     * <code>repeated .alluxio.grpc.WorkerInfoField fieldRange = 2;</code>
+     * <code>repeated .alluxio.grpc.WorkerInfoField fieldRanges = 2;</code>
      */
-    public Builder clearFieldRange() {
-      fieldRange_ = java.util.Collections.emptyList();
+    public Builder clearFieldRanges() {
+      fieldRanges_ = java.util.Collections.emptyList();
       bitField0_ = (bitField0_ & ~0x00000002);
       onChanged();
       return this;

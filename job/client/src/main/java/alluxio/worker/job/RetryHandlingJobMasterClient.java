@@ -92,7 +92,7 @@ public final class RetryHandlingJobMasterClient extends AbstractMasterClient
       @Override
       public List<JobCommand> call() {
         return mGrpcClient.heartbeat(JobHeartbeatPRequest.newBuilder().setWorkerId(workerId)
-            .addAllTaskInfo(taskInfoList).build()).getCommandsList();
+            .addAllTaskInfos(taskInfoList).build()).getCommandsList();
       }
     });
   }

@@ -51,15 +51,15 @@ private static final long serialVersionUID = 0L;
           }
           case 10: {
             if (!((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
-              mountTable_ = com.google.protobuf.MapField.newMapField(
-                  MountTableDefaultEntryHolder.defaultEntry);
+              mountPoints_ = com.google.protobuf.MapField.newMapField(
+                  MountPointsDefaultEntryHolder.defaultEntry);
               mutable_bitField0_ |= 0x00000001;
             }
             com.google.protobuf.MapEntry<java.lang.String, alluxio.grpc.MountPointInfo>
-            mountTable__ = input.readMessage(
-                MountTableDefaultEntryHolder.defaultEntry.getParserForType(), extensionRegistry);
-            mountTable_.getMutableMap().put(
-                mountTable__.getKey(), mountTable__.getValue());
+            mountPoints__ = input.readMessage(
+                MountPointsDefaultEntryHolder.defaultEntry.getParserForType(), extensionRegistry);
+            mountPoints_.getMutableMap().put(
+                mountPoints__.getKey(), mountPoints__.getValue());
             break;
           }
         }
@@ -84,7 +84,7 @@ private static final long serialVersionUID = 0L;
       int number) {
     switch (number) {
       case 1:
-        return internalGetMountTable();
+        return internalGetMountPoints();
       default:
         throw new RuntimeException(
             "Invalid map field number: " + number);
@@ -97,76 +97,76 @@ private static final long serialVersionUID = 0L;
             alluxio.grpc.GetMountTablePResponse.class, alluxio.grpc.GetMountTablePResponse.Builder.class);
   }
 
-  public static final int MOUNTTABLE_FIELD_NUMBER = 1;
-  private static final class MountTableDefaultEntryHolder {
+  public static final int MOUNTPOINTS_FIELD_NUMBER = 1;
+  private static final class MountPointsDefaultEntryHolder {
     static final com.google.protobuf.MapEntry<
         java.lang.String, alluxio.grpc.MountPointInfo> defaultEntry =
             com.google.protobuf.MapEntry
             .<java.lang.String, alluxio.grpc.MountPointInfo>newDefaultInstance(
-                alluxio.grpc.FileSystemMasterProto.internal_static_alluxio_grpc_GetMountTablePResponse_MountTableEntry_descriptor, 
+                alluxio.grpc.FileSystemMasterProto.internal_static_alluxio_grpc_GetMountTablePResponse_MountPointsEntry_descriptor, 
                 com.google.protobuf.WireFormat.FieldType.STRING,
                 "",
                 com.google.protobuf.WireFormat.FieldType.MESSAGE,
                 alluxio.grpc.MountPointInfo.getDefaultInstance());
   }
   private com.google.protobuf.MapField<
-      java.lang.String, alluxio.grpc.MountPointInfo> mountTable_;
+      java.lang.String, alluxio.grpc.MountPointInfo> mountPoints_;
   private com.google.protobuf.MapField<java.lang.String, alluxio.grpc.MountPointInfo>
-  internalGetMountTable() {
-    if (mountTable_ == null) {
+  internalGetMountPoints() {
+    if (mountPoints_ == null) {
       return com.google.protobuf.MapField.emptyMapField(
-          MountTableDefaultEntryHolder.defaultEntry);
+          MountPointsDefaultEntryHolder.defaultEntry);
     }
-    return mountTable_;
+    return mountPoints_;
   }
 
-  public int getMountTableCount() {
-    return internalGetMountTable().getMap().size();
+  public int getMountPointsCount() {
+    return internalGetMountPoints().getMap().size();
   }
   /**
-   * <code>map&lt;string, .alluxio.grpc.MountPointInfo&gt; mountTable = 1;</code>
+   * <code>map&lt;string, .alluxio.grpc.MountPointInfo&gt; mountPoints = 1;</code>
    */
 
-  public boolean containsMountTable(
+  public boolean containsMountPoints(
       java.lang.String key) {
     if (key == null) { throw new java.lang.NullPointerException(); }
-    return internalGetMountTable().getMap().containsKey(key);
+    return internalGetMountPoints().getMap().containsKey(key);
   }
   /**
-   * Use {@link #getMountTableMap()} instead.
+   * Use {@link #getMountPointsMap()} instead.
    */
   @java.lang.Deprecated
-  public java.util.Map<java.lang.String, alluxio.grpc.MountPointInfo> getMountTable() {
-    return getMountTableMap();
+  public java.util.Map<java.lang.String, alluxio.grpc.MountPointInfo> getMountPoints() {
+    return getMountPointsMap();
   }
   /**
-   * <code>map&lt;string, .alluxio.grpc.MountPointInfo&gt; mountTable = 1;</code>
+   * <code>map&lt;string, .alluxio.grpc.MountPointInfo&gt; mountPoints = 1;</code>
    */
 
-  public java.util.Map<java.lang.String, alluxio.grpc.MountPointInfo> getMountTableMap() {
-    return internalGetMountTable().getMap();
+  public java.util.Map<java.lang.String, alluxio.grpc.MountPointInfo> getMountPointsMap() {
+    return internalGetMountPoints().getMap();
   }
   /**
-   * <code>map&lt;string, .alluxio.grpc.MountPointInfo&gt; mountTable = 1;</code>
+   * <code>map&lt;string, .alluxio.grpc.MountPointInfo&gt; mountPoints = 1;</code>
    */
 
-  public alluxio.grpc.MountPointInfo getMountTableOrDefault(
+  public alluxio.grpc.MountPointInfo getMountPointsOrDefault(
       java.lang.String key,
       alluxio.grpc.MountPointInfo defaultValue) {
     if (key == null) { throw new java.lang.NullPointerException(); }
     java.util.Map<java.lang.String, alluxio.grpc.MountPointInfo> map =
-        internalGetMountTable().getMap();
+        internalGetMountPoints().getMap();
     return map.containsKey(key) ? map.get(key) : defaultValue;
   }
   /**
-   * <code>map&lt;string, .alluxio.grpc.MountPointInfo&gt; mountTable = 1;</code>
+   * <code>map&lt;string, .alluxio.grpc.MountPointInfo&gt; mountPoints = 1;</code>
    */
 
-  public alluxio.grpc.MountPointInfo getMountTableOrThrow(
+  public alluxio.grpc.MountPointInfo getMountPointsOrThrow(
       java.lang.String key) {
     if (key == null) { throw new java.lang.NullPointerException(); }
     java.util.Map<java.lang.String, alluxio.grpc.MountPointInfo> map =
-        internalGetMountTable().getMap();
+        internalGetMountPoints().getMap();
     if (!map.containsKey(key)) {
       throw new java.lang.IllegalArgumentException();
     }
@@ -188,8 +188,8 @@ private static final long serialVersionUID = 0L;
     com.google.protobuf.GeneratedMessageV3
       .serializeStringMapTo(
         output,
-        internalGetMountTable(),
-        MountTableDefaultEntryHolder.defaultEntry,
+        internalGetMountPoints(),
+        MountPointsDefaultEntryHolder.defaultEntry,
         1);
     unknownFields.writeTo(output);
   }
@@ -200,14 +200,14 @@ private static final long serialVersionUID = 0L;
 
     size = 0;
     for (java.util.Map.Entry<java.lang.String, alluxio.grpc.MountPointInfo> entry
-         : internalGetMountTable().getMap().entrySet()) {
+         : internalGetMountPoints().getMap().entrySet()) {
       com.google.protobuf.MapEntry<java.lang.String, alluxio.grpc.MountPointInfo>
-      mountTable__ = MountTableDefaultEntryHolder.defaultEntry.newBuilderForType()
+      mountPoints__ = MountPointsDefaultEntryHolder.defaultEntry.newBuilderForType()
           .setKey(entry.getKey())
           .setValue(entry.getValue())
           .build();
       size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(1, mountTable__);
+          .computeMessageSize(1, mountPoints__);
     }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
@@ -225,8 +225,8 @@ private static final long serialVersionUID = 0L;
     alluxio.grpc.GetMountTablePResponse other = (alluxio.grpc.GetMountTablePResponse) obj;
 
     boolean result = true;
-    result = result && internalGetMountTable().equals(
-        other.internalGetMountTable());
+    result = result && internalGetMountPoints().equals(
+        other.internalGetMountPoints());
     result = result && unknownFields.equals(other.unknownFields);
     return result;
   }
@@ -238,9 +238,9 @@ private static final long serialVersionUID = 0L;
     }
     int hash = 41;
     hash = (19 * hash) + getDescriptor().hashCode();
-    if (!internalGetMountTable().getMap().isEmpty()) {
-      hash = (37 * hash) + MOUNTTABLE_FIELD_NUMBER;
-      hash = (53 * hash) + internalGetMountTable().hashCode();
+    if (!internalGetMountPoints().getMap().isEmpty()) {
+      hash = (37 * hash) + MOUNTPOINTS_FIELD_NUMBER;
+      hash = (53 * hash) + internalGetMountPoints().hashCode();
     }
     hash = (29 * hash) + unknownFields.hashCode();
     memoizedHashCode = hash;
@@ -352,7 +352,7 @@ private static final long serialVersionUID = 0L;
         int number) {
       switch (number) {
         case 1:
-          return internalGetMountTable();
+          return internalGetMountPoints();
         default:
           throw new RuntimeException(
               "Invalid map field number: " + number);
@@ -363,7 +363,7 @@ private static final long serialVersionUID = 0L;
         int number) {
       switch (number) {
         case 1:
-          return internalGetMutableMountTable();
+          return internalGetMutableMountPoints();
         default:
           throw new RuntimeException(
               "Invalid map field number: " + number);
@@ -393,7 +393,7 @@ private static final long serialVersionUID = 0L;
     }
     public Builder clear() {
       super.clear();
-      internalGetMutableMountTable().clear();
+      internalGetMutableMountPoints().clear();
       return this;
     }
 
@@ -417,8 +417,8 @@ private static final long serialVersionUID = 0L;
     public alluxio.grpc.GetMountTablePResponse buildPartial() {
       alluxio.grpc.GetMountTablePResponse result = new alluxio.grpc.GetMountTablePResponse(this);
       int from_bitField0_ = bitField0_;
-      result.mountTable_ = internalGetMountTable();
-      result.mountTable_.makeImmutable();
+      result.mountPoints_ = internalGetMountPoints();
+      result.mountPoints_.makeImmutable();
       onBuilt();
       return result;
     }
@@ -460,8 +460,8 @@ private static final long serialVersionUID = 0L;
 
     public Builder mergeFrom(alluxio.grpc.GetMountTablePResponse other) {
       if (other == alluxio.grpc.GetMountTablePResponse.getDefaultInstance()) return this;
-      internalGetMutableMountTable().mergeFrom(
-          other.internalGetMountTable());
+      internalGetMutableMountPoints().mergeFrom(
+          other.internalGetMountPoints());
       this.mergeUnknownFields(other.unknownFields);
       onChanged();
       return this;
@@ -491,94 +491,94 @@ private static final long serialVersionUID = 0L;
     private int bitField0_;
 
     private com.google.protobuf.MapField<
-        java.lang.String, alluxio.grpc.MountPointInfo> mountTable_;
+        java.lang.String, alluxio.grpc.MountPointInfo> mountPoints_;
     private com.google.protobuf.MapField<java.lang.String, alluxio.grpc.MountPointInfo>
-    internalGetMountTable() {
-      if (mountTable_ == null) {
+    internalGetMountPoints() {
+      if (mountPoints_ == null) {
         return com.google.protobuf.MapField.emptyMapField(
-            MountTableDefaultEntryHolder.defaultEntry);
+            MountPointsDefaultEntryHolder.defaultEntry);
       }
-      return mountTable_;
+      return mountPoints_;
     }
     private com.google.protobuf.MapField<java.lang.String, alluxio.grpc.MountPointInfo>
-    internalGetMutableMountTable() {
+    internalGetMutableMountPoints() {
       onChanged();;
-      if (mountTable_ == null) {
-        mountTable_ = com.google.protobuf.MapField.newMapField(
-            MountTableDefaultEntryHolder.defaultEntry);
+      if (mountPoints_ == null) {
+        mountPoints_ = com.google.protobuf.MapField.newMapField(
+            MountPointsDefaultEntryHolder.defaultEntry);
       }
-      if (!mountTable_.isMutable()) {
-        mountTable_ = mountTable_.copy();
+      if (!mountPoints_.isMutable()) {
+        mountPoints_ = mountPoints_.copy();
       }
-      return mountTable_;
+      return mountPoints_;
     }
 
-    public int getMountTableCount() {
-      return internalGetMountTable().getMap().size();
+    public int getMountPointsCount() {
+      return internalGetMountPoints().getMap().size();
     }
     /**
-     * <code>map&lt;string, .alluxio.grpc.MountPointInfo&gt; mountTable = 1;</code>
+     * <code>map&lt;string, .alluxio.grpc.MountPointInfo&gt; mountPoints = 1;</code>
      */
 
-    public boolean containsMountTable(
+    public boolean containsMountPoints(
         java.lang.String key) {
       if (key == null) { throw new java.lang.NullPointerException(); }
-      return internalGetMountTable().getMap().containsKey(key);
+      return internalGetMountPoints().getMap().containsKey(key);
     }
     /**
-     * Use {@link #getMountTableMap()} instead.
+     * Use {@link #getMountPointsMap()} instead.
      */
     @java.lang.Deprecated
-    public java.util.Map<java.lang.String, alluxio.grpc.MountPointInfo> getMountTable() {
-      return getMountTableMap();
+    public java.util.Map<java.lang.String, alluxio.grpc.MountPointInfo> getMountPoints() {
+      return getMountPointsMap();
     }
     /**
-     * <code>map&lt;string, .alluxio.grpc.MountPointInfo&gt; mountTable = 1;</code>
+     * <code>map&lt;string, .alluxio.grpc.MountPointInfo&gt; mountPoints = 1;</code>
      */
 
-    public java.util.Map<java.lang.String, alluxio.grpc.MountPointInfo> getMountTableMap() {
-      return internalGetMountTable().getMap();
+    public java.util.Map<java.lang.String, alluxio.grpc.MountPointInfo> getMountPointsMap() {
+      return internalGetMountPoints().getMap();
     }
     /**
-     * <code>map&lt;string, .alluxio.grpc.MountPointInfo&gt; mountTable = 1;</code>
+     * <code>map&lt;string, .alluxio.grpc.MountPointInfo&gt; mountPoints = 1;</code>
      */
 
-    public alluxio.grpc.MountPointInfo getMountTableOrDefault(
+    public alluxio.grpc.MountPointInfo getMountPointsOrDefault(
         java.lang.String key,
         alluxio.grpc.MountPointInfo defaultValue) {
       if (key == null) { throw new java.lang.NullPointerException(); }
       java.util.Map<java.lang.String, alluxio.grpc.MountPointInfo> map =
-          internalGetMountTable().getMap();
+          internalGetMountPoints().getMap();
       return map.containsKey(key) ? map.get(key) : defaultValue;
     }
     /**
-     * <code>map&lt;string, .alluxio.grpc.MountPointInfo&gt; mountTable = 1;</code>
+     * <code>map&lt;string, .alluxio.grpc.MountPointInfo&gt; mountPoints = 1;</code>
      */
 
-    public alluxio.grpc.MountPointInfo getMountTableOrThrow(
+    public alluxio.grpc.MountPointInfo getMountPointsOrThrow(
         java.lang.String key) {
       if (key == null) { throw new java.lang.NullPointerException(); }
       java.util.Map<java.lang.String, alluxio.grpc.MountPointInfo> map =
-          internalGetMountTable().getMap();
+          internalGetMountPoints().getMap();
       if (!map.containsKey(key)) {
         throw new java.lang.IllegalArgumentException();
       }
       return map.get(key);
     }
 
-    public Builder clearMountTable() {
-      internalGetMutableMountTable().getMutableMap()
+    public Builder clearMountPoints() {
+      internalGetMutableMountPoints().getMutableMap()
           .clear();
       return this;
     }
     /**
-     * <code>map&lt;string, .alluxio.grpc.MountPointInfo&gt; mountTable = 1;</code>
+     * <code>map&lt;string, .alluxio.grpc.MountPointInfo&gt; mountPoints = 1;</code>
      */
 
-    public Builder removeMountTable(
+    public Builder removeMountPoints(
         java.lang.String key) {
       if (key == null) { throw new java.lang.NullPointerException(); }
-      internalGetMutableMountTable().getMutableMap()
+      internalGetMutableMountPoints().getMutableMap()
           .remove(key);
       return this;
     }
@@ -587,28 +587,28 @@ private static final long serialVersionUID = 0L;
      */
     @java.lang.Deprecated
     public java.util.Map<java.lang.String, alluxio.grpc.MountPointInfo>
-    getMutableMountTable() {
-      return internalGetMutableMountTable().getMutableMap();
+    getMutableMountPoints() {
+      return internalGetMutableMountPoints().getMutableMap();
     }
     /**
-     * <code>map&lt;string, .alluxio.grpc.MountPointInfo&gt; mountTable = 1;</code>
+     * <code>map&lt;string, .alluxio.grpc.MountPointInfo&gt; mountPoints = 1;</code>
      */
-    public Builder putMountTable(
+    public Builder putMountPoints(
         java.lang.String key,
         alluxio.grpc.MountPointInfo value) {
       if (key == null) { throw new java.lang.NullPointerException(); }
       if (value == null) { throw new java.lang.NullPointerException(); }
-      internalGetMutableMountTable().getMutableMap()
+      internalGetMutableMountPoints().getMutableMap()
           .put(key, value);
       return this;
     }
     /**
-     * <code>map&lt;string, .alluxio.grpc.MountPointInfo&gt; mountTable = 1;</code>
+     * <code>map&lt;string, .alluxio.grpc.MountPointInfo&gt; mountPoints = 1;</code>
      */
 
-    public Builder putAllMountTable(
+    public Builder putAllMountPoints(
         java.util.Map<java.lang.String, alluxio.grpc.MountPointInfo> values) {
-      internalGetMutableMountTable().getMutableMap()
+      internalGetMutableMountPoints().getMutableMap()
           .putAll(values);
       return this;
     }

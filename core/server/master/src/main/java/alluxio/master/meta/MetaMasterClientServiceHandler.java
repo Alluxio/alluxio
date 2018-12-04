@@ -85,7 +85,7 @@ public final class MetaMasterClientServiceHandler
     RpcUtilsNew.call(LOG,
         (RpcUtilsNew.RpcCallableThrowsIOException<GetConfigurationPResponse>) () -> {
           return GetConfigurationPResponse.newBuilder()
-              .addAllConfigList(mMetaMaster.getConfiguration(options)).build();
+              .addAllConfigs(mMetaMaster.getConfiguration(options)).build();
         }, "getConfiguration", "options=%s", responseObserver, options);
   }
 
@@ -166,7 +166,7 @@ public final class MetaMasterClientServiceHandler
               alluxio.grpc.MetricValue.newBuilder().setDoubleValue((Double) value).build());
         }
       }
-      return GetMetricsPResponse.newBuilder().putAllMetricsMap(metricsMap).build();
+      return GetMetricsPResponse.newBuilder().putAllMetrics(metricsMap).build();
     }, "getConfiguration", "options=%s", responseObserver, options);
   }
 }

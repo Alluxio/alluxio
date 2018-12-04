@@ -45,7 +45,7 @@ message GetCapacityBytesPResponse {
 }
 
 message GetBlockMasterInfoPOptions {
- repeated BlockMasterInfoField filter = 1;
+ repeated BlockMasterInfoField filters = 1;
 }
 message GetBlockMasterInfoPResponse {
  optional BlockMasterInfo blockMasterInfo = 1;
@@ -90,12 +90,12 @@ enum WorkerInfoField {
 message GetWorkerReportPOptions {
   /** addresses are only valid when workerRange is SPECIFIED */
   repeated string addresses = 1;
-  repeated WorkerInfoField fieldRange = 2;
+  repeated WorkerInfoField fieldRanges = 2;
   optional WorkerRange workerRange = 3;
 }
 message GetWorkerInfoListPOptions {}
 message GetWorkerInfoListPResponse {
-  repeated WorkerInfo workerInfoList = 1;
+  repeated WorkerInfo workerInfos = 1;
 }
 
 /**
@@ -194,7 +194,7 @@ message GetWorkerIdPResponse {
 }
 
 message RegisterWorkerPOptions {
-  repeated grpc.ConfigProperty config = 1;
+  repeated grpc.ConfigProperty configs = 1;
 }
 message RegisterWorkerPRequest {
   /** the id of the worker */

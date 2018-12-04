@@ -72,7 +72,7 @@ message GetStatusPRequest {
 }
 
 message ListStatusPResponse {
-  repeated FileInfo fileInfoList = 1;
+  repeated FileInfo fileInfos = 1;
 }
 message ListStatusPRequest {
   /** the path of the file or directory */
@@ -174,7 +174,7 @@ message MountPRequest {
 }
 
 message GetMountTablePResponse {
-  map<string, MountPointInfo> mountTable = 1;
+  map<string, MountPointInfo> mountPoints = 1;
 }
 message GetMountTablePRequest {}
 

@@ -115,7 +115,7 @@ service JobMasterClientService {
 message JobHeartbeatPOptions {}
 message JobHeartbeatPRequest {
   optional int64 workerId = 1;
-  repeated TaskInfo taskInfo = 2;
+  repeated TaskInfo taskInfos = 2;
   optional JobHeartbeatPOptions options = 3;
 }
 message JobHeartbeatPResponse {

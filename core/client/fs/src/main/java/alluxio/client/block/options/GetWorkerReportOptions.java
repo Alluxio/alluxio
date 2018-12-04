@@ -57,7 +57,7 @@ public final class GetWorkerReportOptions implements Serializable {
   public GetWorkerReportOptions(alluxio.grpc.GetWorkerReportPOptions options) {
     mAddresses = new HashSet<>(options.getAddressesList());
     mFieldRange = new HashSet<>();
-    for (alluxio.grpc.WorkerInfoField field: options.getFieldRangeList()) {
+    for (alluxio.grpc.WorkerInfoField field: options.getFieldRangesList()) {
       mFieldRange.add(WorkerInfoField.fromProto(field));
     }
     mWorkerRange = WorkerRange.fromProto(options.getWorkerRange());
@@ -150,7 +150,7 @@ public final class GetWorkerReportOptions implements Serializable {
       for (WorkerInfoField field : mFieldRange) {
         thriftFieldRange.add(field.toProto());
       }
-      optionsBuilder.addAllFieldRange(thriftFieldRange);
+      optionsBuilder.addAllFieldRanges(thriftFieldRange);
     }
     optionsBuilder.setWorkerRange(mWorkerRange.toProto());
     return optionsBuilder.build();

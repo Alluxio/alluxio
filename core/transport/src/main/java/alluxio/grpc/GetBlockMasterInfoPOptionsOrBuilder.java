@@ -8,15 +8,15 @@ public interface GetBlockMasterInfoPOptionsOrBuilder extends
     com.google.protobuf.MessageOrBuilder {
 
   /**
-   * <code>repeated .alluxio.grpc.BlockMasterInfoField filter = 1;</code>
+   * <code>repeated .alluxio.grpc.BlockMasterInfoField filters = 1;</code>
    */
-  java.util.List<alluxio.grpc.BlockMasterInfoField> getFilterList();
+  java.util.List<alluxio.grpc.BlockMasterInfoField> getFiltersList();
   /**
-   * <code>repeated .alluxio.grpc.BlockMasterInfoField filter = 1;</code>
+   * <code>repeated .alluxio.grpc.BlockMasterInfoField filters = 1;</code>
    */
-  int getFilterCount();
+  int getFiltersCount();
   /**
-   * <code>repeated .alluxio.grpc.BlockMasterInfoField filter = 1;</code>
+   * <code>repeated .alluxio.grpc.BlockMasterInfoField filters = 1;</code>
    */
-  alluxio.grpc.BlockMasterInfoField getFilter(int index);
+  alluxio.grpc.BlockMasterInfoField getFilters(int index);
 }

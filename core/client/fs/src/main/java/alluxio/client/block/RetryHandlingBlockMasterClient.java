@@ -84,7 +84,7 @@ public final class RetryHandlingBlockMasterClient extends AbstractMasterClient
       List<WorkerInfo> result = new ArrayList<>();
       for (alluxio.grpc.WorkerInfo workerInfo : mGrpcClient
           .getWorkerInfoList(GetWorkerInfoListPOptions.getDefaultInstance())
-          .getWorkerInfoListList()) {
+          .getWorkerInfosList()) {
         result.add(GrpcUtils.fromProto(workerInfo));
       }
       return result;
@@ -97,7 +97,7 @@ public final class RetryHandlingBlockMasterClient extends AbstractMasterClient
     return retryRPC(() -> {
       List<WorkerInfo> result = new ArrayList<>();
       for (alluxio.grpc.WorkerInfo workerInfo : mGrpcClient.getWorkerReport(options.toProto())
-          .getWorkerInfoListList()) {
+          .getWorkerInfosList()) {
         result.add(GrpcUtils.fromProto(workerInfo));
       }
       return result;
@@ -124,7 +124,7 @@ public final class RetryHandlingBlockMasterClient extends AbstractMasterClient
     return retryRPC(() -> {
       return BlockMasterInfo
           .fromProto(mGrpcClient.getBlockMasterInfo(GetBlockMasterInfoPOptions.newBuilder()
-              .addAllFilter(
+              .addAllFilters(
                   fields.stream().map(BlockMasterInfoField::toProto).collect(Collectors.toList()))
               .build()).getBlockMasterInfo());
     });

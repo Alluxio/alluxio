@@ -16,7 +16,7 @@ private static final long serialVersionUID = 0L;
     super(builder);
   }
   private GetWorkerInfoListPResponse() {
-    workerInfoList_ = java.util.Collections.emptyList();
+    workerInfos_ = java.util.Collections.emptyList();
   }
 
   @java.lang.Override
@@ -52,10 +52,10 @@ private static final long serialVersionUID = 0L;
           }
           case 10: {
             if (!((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
-              workerInfoList_ = new java.util.ArrayList<alluxio.grpc.WorkerInfo>();
+              workerInfos_ = new java.util.ArrayList<alluxio.grpc.WorkerInfo>();
               mutable_bitField0_ |= 0x00000001;
             }
-            workerInfoList_.add(
+            workerInfos_.add(
                 input.readMessage(alluxio.grpc.WorkerInfo.PARSER, extensionRegistry));
             break;
           }
@@ -68,7 +68,7 @@ private static final long serialVersionUID = 0L;
           e).setUnfinishedMessage(this);
     } finally {
       if (((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
-        workerInfoList_ = java.util.Collections.unmodifiableList(workerInfoList_);
+        workerInfos_ = java.util.Collections.unmodifiableList(workerInfos_);
       }
       this.unknownFields = unknownFields.build();
       makeExtensionsImmutable();
@@ -86,39 +86,39 @@ private static final long serialVersionUID = 0L;
             alluxio.grpc.GetWorkerInfoListPResponse.class, alluxio.grpc.GetWorkerInfoListPResponse.Builder.class);
   }
 
-  public static final int WORKERINFOLIST_FIELD_NUMBER = 1;
-  private java.util.List<alluxio.grpc.WorkerInfo> workerInfoList_;
+  public static final int WORKERINFOS_FIELD_NUMBER = 1;
+  private java.util.List<alluxio.grpc.WorkerInfo> workerInfos_;
   /**
-   * <code>repeated .alluxio.grpc.WorkerInfo workerInfoList = 1;</code>
+   * <code>repeated .alluxio.grpc.WorkerInfo workerInfos = 1;</code>
    */
-  public java.util.List<alluxio.grpc.WorkerInfo> getWorkerInfoListList() {
-    return workerInfoList_;
+  public java.util.List<alluxio.grpc.WorkerInfo> getWorkerInfosList() {
+    return workerInfos_;
   }
   /**
-   * <code>repeated .alluxio.grpc.WorkerInfo workerInfoList = 1;</code>
+   * <code>repeated .alluxio.grpc.WorkerInfo workerInfos = 1;</code>
    */
   public java.util.List<? extends alluxio.grpc.WorkerInfoOrBuilder> 
-      getWorkerInfoListOrBuilderList() {
-    return workerInfoList_;
+      getWorkerInfosOrBuilderList() {
+    return workerInfos_;
   }
   /**
-   * <code>repeated .alluxio.grpc.WorkerInfo workerInfoList = 1;</code>
+   * <code>repeated .alluxio.grpc.WorkerInfo workerInfos = 1;</code>
    */
-  public int getWorkerInfoListCount() {
-    return workerInfoList_.size();
+  public int getWorkerInfosCount() {
+    return workerInfos_.size();
   }
   /**
-   * <code>repeated .alluxio.grpc.WorkerInfo workerInfoList = 1;</code>
+   * <code>repeated .alluxio.grpc.WorkerInfo workerInfos = 1;</code>
    */
-  public alluxio.grpc.WorkerInfo getWorkerInfoList(int index) {
-    return workerInfoList_.get(index);
+  public alluxio.grpc.WorkerInfo getWorkerInfos(int index) {
+    return workerInfos_.get(index);
   }
   /**
-   * <code>repeated .alluxio.grpc.WorkerInfo workerInfoList = 1;</code>
+   * <code>repeated .alluxio.grpc.WorkerInfo workerInfos = 1;</code>
    */
-  public alluxio.grpc.WorkerInfoOrBuilder getWorkerInfoListOrBuilder(
+  public alluxio.grpc.WorkerInfoOrBuilder getWorkerInfosOrBuilder(
       int index) {
-    return workerInfoList_.get(index);
+    return workerInfos_.get(index);
   }
 
   private byte memoizedIsInitialized = -1;
@@ -133,8 +133,8 @@ private static final long serialVersionUID = 0L;
 
   public void writeTo(com.google.protobuf.CodedOutputStream output)
                       throws java.io.IOException {
-    for (int i = 0; i < workerInfoList_.size(); i++) {
-      output.writeMessage(1, workerInfoList_.get(i));
+    for (int i = 0; i < workerInfos_.size(); i++) {
+      output.writeMessage(1, workerInfos_.get(i));
     }
     unknownFields.writeTo(output);
   }
@@ -144,9 +144,9 @@ private static final long serialVersionUID = 0L;
     if (size != -1) return size;
 
     size = 0;
-    for (int i = 0; i < workerInfoList_.size(); i++) {
+    for (int i = 0; i < workerInfos_.size(); i++) {
       size += com.google.protobuf.CodedOutputStream
-        .computeMessageSize(1, workerInfoList_.get(i));
+        .computeMessageSize(1, workerInfos_.get(i));
     }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
@@ -164,8 +164,8 @@ private static final long serialVersionUID = 0L;
     alluxio.grpc.GetWorkerInfoListPResponse other = (alluxio.grpc.GetWorkerInfoListPResponse) obj;
 
     boolean result = true;
-    result = result && getWorkerInfoListList()
-        .equals(other.getWorkerInfoListList());
+    result = result && getWorkerInfosList()
+        .equals(other.getWorkerInfosList());
     result = result && unknownFields.equals(other.unknownFields);
     return result;
   }
@@ -177,9 +177,9 @@ private static final long serialVersionUID = 0L;
     }
     int hash = 41;
     hash = (19 * hash) + getDescriptor().hashCode();
-    if (getWorkerInfoListCount() > 0) {
-      hash = (37 * hash) + WORKERINFOLIST_FIELD_NUMBER;
-      hash = (53 * hash) + getWorkerInfoListList().hashCode();
+    if (getWorkerInfosCount() > 0) {
+      hash = (37 * hash) + WORKERINFOS_FIELD_NUMBER;
+      hash = (53 * hash) + getWorkerInfosList().hashCode();
     }
     hash = (29 * hash) + unknownFields.hashCode();
     memoizedHashCode = hash;
@@ -306,16 +306,16 @@ private static final long serialVersionUID = 0L;
     private void maybeForceBuilderInitialization() {
       if (com.google.protobuf.GeneratedMessageV3
               .alwaysUseFieldBuilders) {
-        getWorkerInfoListFieldBuilder();
+        getWorkerInfosFieldBuilder();
       }
     }
     public Builder clear() {
       super.clear();
-      if (workerInfoListBuilder_ == null) {
-        workerInfoList_ = java.util.Collections.emptyList();
+      if (workerInfosBuilder_ == null) {
+        workerInfos_ = java.util.Collections.emptyList();
         bitField0_ = (bitField0_ & ~0x00000001);
       } else {
-        workerInfoListBuilder_.clear();
+        workerInfosBuilder_.clear();
       }
       return this;
     }
@@ -340,14 +340,14 @@ private static final long serialVersionUID = 0L;
     public alluxio.grpc.GetWorkerInfoListPResponse buildPartial() {
       alluxio.grpc.GetWorkerInfoListPResponse result = new alluxio.grpc.GetWorkerInfoListPResponse(this);
       int from_bitField0_ = bitField0_;
-      if (workerInfoListBuilder_ == null) {
+      if (workerInfosBuilder_ == null) {
         if (((bitField0_ & 0x00000001) == 0x00000001)) {
-          workerInfoList_ = java.util.Collections.unmodifiableList(workerInfoList_);
+          workerInfos_ = java.util.Collections.unmodifiableList(workerInfos_);
           bitField0_ = (bitField0_ & ~0x00000001);
         }
-        result.workerInfoList_ = workerInfoList_;
+        result.workerInfos_ = workerInfos_;
       } else {
-        result.workerInfoList_ = workerInfoListBuilder_.build();
+        result.workerInfos_ = workerInfosBuilder_.build();
       }
       onBuilt();
       return result;
@@ -390,29 +390,29 @@ private static final long serialVersionUID = 0L;
 
     public Builder mergeFrom(alluxio.grpc.GetWorkerInfoListPResponse other) {
       if (other == alluxio.grpc.GetWorkerInfoListPResponse.getDefaultInstance()) return this;
-      if (workerInfoListBuilder_ == null) {
-        if (!other.workerInfoList_.isEmpty()) {
-          if (workerInfoList_.isEmpty()) {
-            workerInfoList_ = other.workerInfoList_;
+      if (workerInfosBuilder_ == null) {
+        if (!other.workerInfos_.isEmpty()) {
+          if (workerInfos_.isEmpty()) {
+            workerInfos_ = other.workerInfos_;
             bitField0_ = (bitField0_ & ~0x00000001);
           } else {
-            ensureWorkerInfoListIsMutable();
-            workerInfoList_.addAll(other.workerInfoList_);
+            ensureWorkerInfosIsMutable();
+            workerInfos_.addAll(other.workerInfos_);
           }
           onChanged();
         }
       } else {
-        if (!other.workerInfoList_.isEmpty()) {
-          if (workerInfoListBuilder_.isEmpty()) {
-            workerInfoListBuilder_.dispose();
-            workerInfoListBuilder_ = null;
-            workerInfoList_ = other.workerInfoList_;
+        if (!other.workerInfos_.isEmpty()) {
+          if (workerInfosBuilder_.isEmpty()) {
+            workerInfosBuilder_.dispose();
+            workerInfosBuilder_ = null;
+            workerInfos_ = other.workerInfos_;
             bitField0_ = (bitField0_ & ~0x00000001);
-            workerInfoListBuilder_ = 
+            workerInfosBuilder_ = 
               com.google.protobuf.GeneratedMessageV3.alwaysUseFieldBuilders ?
-                 getWorkerInfoListFieldBuilder() : null;
+                 getWorkerInfosFieldBuilder() : null;
           } else {
-            workerInfoListBuilder_.addAllMessages(other.workerInfoList_);
+            workerInfosBuilder_.addAllMessages(other.workerInfos_);
           }
         }
       }
@@ -444,244 +444,244 @@ private static final long serialVersionUID = 0L;
     }
     private int bitField0_;
 
-    private java.util.List<alluxio.grpc.WorkerInfo> workerInfoList_ =
+    private java.util.List<alluxio.grpc.WorkerInfo> workerInfos_ =
       java.util.Collections.emptyList();
-    private void ensureWorkerInfoListIsMutable() {
+    private void ensureWorkerInfosIsMutable() {
       if (!((bitField0_ & 0x00000001) == 0x00000001)) {
-        workerInfoList_ = new java.util.ArrayList<alluxio.grpc.WorkerInfo>(workerInfoList_);
+        workerInfos_ = new java.util.ArrayList<alluxio.grpc.WorkerInfo>(workerInfos_);
         bitField0_ |= 0x00000001;
        }
     }
 
     private com.google.protobuf.RepeatedFieldBuilderV3<
-        alluxio.grpc.WorkerInfo, alluxio.grpc.WorkerInfo.Builder, alluxio.grpc.WorkerInfoOrBuilder> workerInfoListBuilder_;
+        alluxio.grpc.WorkerInfo, alluxio.grpc.WorkerInfo.Builder, alluxio.grpc.WorkerInfoOrBuilder> workerInfosBuilder_;
 
     /**
-     * <code>repeated .alluxio.grpc.WorkerInfo workerInfoList = 1;</code>
+     * <code>repeated .alluxio.grpc.WorkerInfo workerInfos = 1;</code>
      */
-    public java.util.List<alluxio.grpc.WorkerInfo> getWorkerInfoListList() {
-      if (workerInfoListBuilder_ == null) {
-        return java.util.Collections.unmodifiableList(workerInfoList_);
+    public java.util.List<alluxio.grpc.WorkerInfo> getWorkerInfosList() {
+      if (workerInfosBuilder_ == null) {
+        return java.util.Collections.unmodifiableList(workerInfos_);
       } else {
-        return workerInfoListBuilder_.getMessageList();
+        return workerInfosBuilder_.getMessageList();
       }
     }
     /**
-     * <code>repeated .alluxio.grpc.WorkerInfo workerInfoList = 1;</code>
+     * <code>repeated .alluxio.grpc.WorkerInfo workerInfos = 1;</code>
      */
-    public int getWorkerInfoListCount() {
-      if (workerInfoListBuilder_ == null) {
-        return workerInfoList_.size();
+    public int getWorkerInfosCount() {
+      if (workerInfosBuilder_ == null) {
+        return workerInfos_.size();
       } else {
-        return workerInfoListBuilder_.getCount();
+        return workerInfosBuilder_.getCount();
       }
     }
     /**
-     * <code>repeated .alluxio.grpc.WorkerInfo workerInfoList = 1;</code>
+     * <code>repeated .alluxio.grpc.WorkerInfo workerInfos = 1;</code>
      */
-    public alluxio.grpc.WorkerInfo getWorkerInfoList(int index) {
-      if (workerInfoListBuilder_ == null) {
-        return workerInfoList_.get(index);
+    public alluxio.grpc.WorkerInfo getWorkerInfos(int index) {
+      if (workerInfosBuilder_ == null) {
+        return workerInfos_.get(index);
       } else {
-        return workerInfoListBuilder_.getMessage(index);
+        return workerInfosBuilder_.getMessage(index);
       }
     }
     /**
-     * <code>repeated .alluxio.grpc.WorkerInfo workerInfoList = 1;</code>
+     * <code>repeated .alluxio.grpc.WorkerInfo workerInfos = 1;</code>
      */
-    public Builder setWorkerInfoList(
+    public Builder setWorkerInfos(
         int index, alluxio.grpc.WorkerInfo value) {
-      if (workerInfoListBuilder_ == null) {
+      if (workerInfosBuilder_ == null) {
         if (value == null) {
           throw new NullPointerException();
         }
-        ensureWorkerInfoListIsMutable();
-        workerInfoList_.set(index, value);
+        ensureWorkerInfosIsMutable();
+        workerInfos_.set(index, value);
         onChanged();
       } else {
-        workerInfoListBuilder_.setMessage(index, value);
+        workerInfosBuilder_.setMessage(index, value);
       }
       return this;
     }
     /**
-     * <code>repeated .alluxio.grpc.WorkerInfo workerInfoList = 1;</code>
+     * <code>repeated .alluxio.grpc.WorkerInfo workerInfos = 1;</code>
      */
-    public Builder setWorkerInfoList(
+    public Builder setWorkerInfos(
         int index, alluxio.grpc.WorkerInfo.Builder builderForValue) {
-      if (workerInfoListBuilder_ == null) {
-        ensureWorkerInfoListIsMutable();
-        workerInfoList_.set(index, builderForValue.build());
+      if (workerInfosBuilder_ == null) {
+        ensureWorkerInfosIsMutable();
+        workerInfos_.set(index, builderForValue.build());
         onChanged();
       } else {
-        workerInfoListBuilder_.setMessage(index, builderForValue.build());
+        workerInfosBuilder_.setMessage(index, builderForValue.build());
       }
       return this;
     }
     /**
-     * <code>repeated .alluxio.grpc.WorkerInfo workerInfoList = 1;</code>
+     * <code>repeated .alluxio.grpc.WorkerInfo workerInfos = 1;</code>
      */
-    public Builder addWorkerInfoList(alluxio.grpc.WorkerInfo value) {
-      if (workerInfoListBuilder_ == null) {
+    public Builder addWorkerInfos(alluxio.grpc.WorkerInfo value) {
+      if (workerInfosBuilder_ == null) {
         if (value == null) {
           throw new NullPointerException();
         }
-        ensureWorkerInfoListIsMutable();
-        workerInfoList_.add(value);
+        ensureWorkerInfosIsMutable();
+        workerInfos_.add(value);
         onChanged();
       } else {
-        workerInfoListBuilder_.addMessage(value);
+        workerInfosBuilder_.addMessage(value);
       }
       return this;
     }
     /**
-     * <code>repeated .alluxio.grpc.WorkerInfo workerInfoList = 1;</code>
+     * <code>repeated .alluxio.grpc.WorkerInfo workerInfos = 1;</code>
      */
-    public Builder addWorkerInfoList(
+    public Builder addWorkerInfos(
         int index, alluxio.grpc.WorkerInfo value) {
-      if (workerInfoListBuilder_ == null) {
+      if (workerInfosBuilder_ == null) {
         if (value == null) {
           throw new NullPointerException();
         }
-        ensureWorkerInfoListIsMutable();
-        workerInfoList_.add(index, value);
+        ensureWorkerInfosIsMutable();
+        workerInfos_.add(index, value);
         onChanged();
       } else {
-        workerInfoListBuilder_.addMessage(index, value);
+        workerInfosBuilder_.addMessage(index, value);
       }
       return this;
     }
     /**
-     * <code>repeated .alluxio.grpc.WorkerInfo workerInfoList = 1;</code>
+     * <code>repeated .alluxio.grpc.WorkerInfo workerInfos = 1;</code>
      */
-    public Builder addWorkerInfoList(
+    public Builder addWorkerInfos(
         alluxio.grpc.WorkerInfo.Builder builderForValue) {
-      if (workerInfoListBuilder_ == null) {
-        ensureWorkerInfoListIsMutable();
-        workerInfoList_.add(builderForValue.build());
+      if (workerInfosBuilder_ == null) {
+        ensureWorkerInfosIsMutable();
+        workerInfos_.add(builderForValue.build());
         onChanged();
       } else {
-        workerInfoListBuilder_.addMessage(builderForValue.build());
+        workerInfosBuilder_.addMessage(builderForValue.build());
       }
       return this;
     }
     /**
-     * <code>repeated .alluxio.grpc.WorkerInfo workerInfoList = 1;</code>
+     * <code>repeated .alluxio.grpc.WorkerInfo workerInfos = 1;</code>
      */
-    public Builder addWorkerInfoList(
+    public Builder addWorkerInfos(
         int index, alluxio.grpc.WorkerInfo.Builder builderForValue) {
-      if (workerInfoListBuilder_ == null) {
-        ensureWorkerInfoListIsMutable();
-        workerInfoList_.add(index, builderForValue.build());
+      if (workerInfosBuilder_ == null) {
+        ensureWorkerInfosIsMutable();
+        workerInfos_.add(index, builderForValue.build());
         onChanged();
       } else {
-        workerInfoListBuilder_.addMessage(index, builderForValue.build());
+        workerInfosBuilder_.addMessage(index, builderForValue.build());
       }
       return this;
     }
     /**
-     * <code>repeated .alluxio.grpc.WorkerInfo workerInfoList = 1;</code>
+     * <code>repeated .alluxio.grpc.WorkerInfo workerInfos = 1;</code>
      */
-    public Builder addAllWorkerInfoList(
+    public Builder addAllWorkerInfos(
         java.lang.Iterable<? extends alluxio.grpc.WorkerInfo> values) {
-      if (workerInfoListBuilder_ == null) {
-        ensureWorkerInfoListIsMutable();
+      if (workerInfosBuilder_ == null) {
+        ensureWorkerInfosIsMutable();
         com.google.protobuf.AbstractMessageLite.Builder.addAll(
-            values, workerInfoList_);
+            values, workerInfos_);
         onChanged();
       } else {
-        workerInfoListBuilder_.addAllMessages(values);
+        workerInfosBuilder_.addAllMessages(values);
       }
       return this;
     }
     /**
-     * <code>repeated .alluxio.grpc.WorkerInfo workerInfoList = 1;</code>
+     * <code>repeated .alluxio.grpc.WorkerInfo workerInfos = 1;</code>
      */
-    public Builder clearWorkerInfoList() {
-      if (workerInfoListBuilder_ == null) {
-        workerInfoList_ = java.util.Collections.emptyList();
+    public Builder clearWorkerInfos() {
+      if (workerInfosBuilder_ == null) {
+        workerInfos_ = java.util.Collections.emptyList();
         bitField0_ = (bitField0_ & ~0x00000001);
         onChanged();
       } else {
-        workerInfoListBuilder_.clear();
+        workerInfosBuilder_.clear();
       }
       return this;
     }
     /**
-     * <code>repeated .alluxio.grpc.WorkerInfo workerInfoList = 1;</code>
+     * <code>repeated .alluxio.grpc.WorkerInfo workerInfos = 1;</code>
      */
-    public Builder removeWorkerInfoList(int index) {
-      if (workerInfoListBuilder_ == null) {
-        ensureWorkerInfoListIsMutable();
-        workerInfoList_.remove(index);
+    public Builder removeWorkerInfos(int index) {
+      if (workerInfosBuilder_ == null) {
+        ensureWorkerInfosIsMutable();
+        workerInfos_.remove(index);
         onChanged();
       } else {
-        workerInfoListBuilder_.remove(index);
+        workerInfosBuilder_.remove(index);
       }
       return this;
     }
     /**
-     * <code>repeated .alluxio.grpc.WorkerInfo workerInfoList = 1;</code>
+     * <code>repeated .alluxio.grpc.WorkerInfo workerInfos = 1;</code>
      */
-    public alluxio.grpc.WorkerInfo.Builder getWorkerInfoListBuilder(
+    public alluxio.grpc.WorkerInfo.Builder getWorkerInfosBuilder(
         int index) {
-      return getWorkerInfoListFieldBuilder().getBuilder(index);
+      return getWorkerInfosFieldBuilder().getBuilder(index);
     }
     /**
-     * <code>repeated .alluxio.grpc.WorkerInfo workerInfoList = 1;</code>
+     * <code>repeated .alluxio.grpc.WorkerInfo workerInfos = 1;</code>
      */
-    public alluxio.grpc.WorkerInfoOrBuilder getWorkerInfoListOrBuilder(
+    public alluxio.grpc.WorkerInfoOrBuilder getWorkerInfosOrBuilder(
         int index) {
-      if (workerInfoListBuilder_ == null) {
-        return workerInfoList_.get(index);  } else {
-        return workerInfoListBuilder_.getMessageOrBuilder(index);
+      if (workerInfosBuilder_ == null) {
+        return workerInfos_.get(index);  } else {
+        return workerInfosBuilder_.getMessageOrBuilder(index);
       }
     }
     /**
-     * <code>repeated .alluxio.grpc.WorkerInfo workerInfoList = 1;</code>
+     * <code>repeated .alluxio.grpc.WorkerInfo workerInfos = 1;</code>
      */
     public java.util.List<? extends alluxio.grpc.WorkerInfoOrBuilder> 
-         getWorkerInfoListOrBuilderList() {
-      if (workerInfoListBuilder_ != null) {
-        return workerInfoListBuilder_.getMessageOrBuilderList();
+         getWorkerInfosOrBuilderList() {
+      if (workerInfosBuilder_ != null) {
+        return workerInfosBuilder_.getMessageOrBuilderList();
       } else {
-        return java.util.Collections.unmodifiableList(workerInfoList_);
+        return java.util.Collections.unmodifiableList(workerInfos_);
       }
     }
     /**
-     * <code>repeated .alluxio.grpc.WorkerInfo workerInfoList = 1;</code>
+     * <code>repeated .alluxio.grpc.WorkerInfo workerInfos = 1;</code>
      */
-    public alluxio.grpc.WorkerInfo.Builder addWorkerInfoListBuilder() {
-      return getWorkerInfoListFieldBuilder().addBuilder(
+    public alluxio.grpc.WorkerInfo.Builder addWorkerInfosBuilder() {
+      return getWorkerInfosFieldBuilder().addBuilder(
           alluxio.grpc.WorkerInfo.getDefaultInstance());
     }
     /**
-     * <code>repeated .alluxio.grpc.WorkerInfo workerInfoList = 1;</code>
+     * <code>repeated .alluxio.grpc.WorkerInfo workerInfos = 1;</code>
      */
-    public alluxio.grpc.WorkerInfo.Builder addWorkerInfoListBuilder(
+    public alluxio.grpc.WorkerInfo.Builder addWorkerInfosBuilder(
         int index) {
-      return getWorkerInfoListFieldBuilder().addBuilder(
+      return getWorkerInfosFieldBuilder().addBuilder(
           index, alluxio.grpc.WorkerInfo.getDefaultInstance());
     }
     /**
-     * <code>repeated .alluxio.grpc.WorkerInfo workerInfoList = 1;</code>
+     * <code>repeated .alluxio.grpc.WorkerInfo workerInfos = 1;</code>
      */
     public java.util.List<alluxio.grpc.WorkerInfo.Builder> 
-         getWorkerInfoListBuilderList() {
-      return getWorkerInfoListFieldBuilder().getBuilderList();
+         getWorkerInfosBuilderList() {
+      return getWorkerInfosFieldBuilder().getBuilderList();
     }
     private com.google.protobuf.RepeatedFieldBuilderV3<
         alluxio.grpc.WorkerInfo, alluxio.grpc.WorkerInfo.Builder, alluxio.grpc.WorkerInfoOrBuilder> 
-        getWorkerInfoListFieldBuilder() {
-      if (workerInfoListBuilder_ == null) {
-        workerInfoListBuilder_ = new com.google.protobuf.RepeatedFieldBuilderV3<
+        getWorkerInfosFieldBuilder() {
+      if (workerInfosBuilder_ == null) {
+        workerInfosBuilder_ = new com.google.protobuf.RepeatedFieldBuilderV3<
             alluxio.grpc.WorkerInfo, alluxio.grpc.WorkerInfo.Builder, alluxio.grpc.WorkerInfoOrBuilder>(
-                workerInfoList_,
+                workerInfos_,
                 ((bitField0_ & 0x00000001) == 0x00000001),
                 getParentForChildren(),
                 isClean());
-        workerInfoList_ = null;
+        workerInfos_ = null;
       }
-      return workerInfoListBuilder_;
+      return workerInfosBuilder_;
     }
     public final Builder setUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {

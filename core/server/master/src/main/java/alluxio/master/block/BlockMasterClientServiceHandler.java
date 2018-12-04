@@ -79,8 +79,8 @@ public final class BlockMasterClientServiceHandler
         (RpcUtilsNew.RpcCallableThrowsIOException<GetBlockMasterInfoPResponse>) () -> {
 
           BlockMasterInfo.Builder infoBuilder = BlockMasterInfo.newBuilder();
-          for (BlockMasterInfoField field : (options.getFilterCount() != 0)
-              ? options.getFilterList()
+          for (BlockMasterInfoField field : (options.getFiltersCount() != 0)
+              ? options.getFiltersList()
               : Arrays.asList(BlockMasterInfoField.values())) {
             switch (field) {
               case CAPACITY_BYTES:
@@ -140,7 +140,7 @@ public final class BlockMasterClientServiceHandler
     RpcUtilsNew.call(LOG,
         (RpcUtilsNew.RpcCallableThrowsIOException<GetWorkerInfoListPResponse>) () -> {
 
-          return GetWorkerInfoListPResponse.newBuilder().addAllWorkerInfoList(mBlockMaster
+          return GetWorkerInfoListPResponse.newBuilder().addAllWorkerInfos(mBlockMaster
               .getWorkerInfoList().stream().map(GrpcUtils::toProto).collect(Collectors.toList()))
               .build();
         }, "getWorkerInfoList", "options=%s", responseObserver, options);
@@ -153,7 +153,7 @@ public final class BlockMasterClientServiceHandler
         (RpcUtilsNew.RpcCallableThrowsIOException<GetWorkerInfoListPResponse>) () -> {
 
           return GetWorkerInfoListPResponse.newBuilder()
-              .addAllWorkerInfoList(
+              .addAllWorkerInfos(
                   mBlockMaster.getWorkerReport(new GetWorkerReportOptions(options)).stream()
                       .map(GrpcUtils::toProto).collect(Collectors.toList()))
               .build();

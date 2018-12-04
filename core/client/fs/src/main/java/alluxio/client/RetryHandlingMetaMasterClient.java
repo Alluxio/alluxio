@@ -95,7 +95,7 @@ public class RetryHandlingMetaMasterClient extends AbstractMasterClient
   @Override
   public synchronized List<ConfigProperty> getConfiguration() throws IOException {
     return retryRPC(() -> mGrpcClient
-        .getConfiguration(GetConfigurationPOptions.getDefaultInstance()).getConfigListList());
+        .getConfiguration(GetConfigurationPOptions.getDefaultInstance()).getConfigsList());
   }
 
   @Override
@@ -109,6 +109,6 @@ public class RetryHandlingMetaMasterClient extends AbstractMasterClient
   @Override
   public synchronized Map<String, MetricValue> getMetrics() throws AlluxioStatusException {
     return retryRPC(
-        () -> mGrpcClient.getMetrics(GetMetricsPOptions.getDefaultInstance()).getMetricsMapMap());
+        () -> mGrpcClient.getMetrics(GetMetricsPOptions.getDefaultInstance()).getMetricsMap());
   }
 }

@@ -17,7 +17,7 @@ private static final long serialVersionUID = 0L;
   }
   private JobHeartbeatPRequest() {
     workerId_ = 0L;
-    taskInfo_ = java.util.Collections.emptyList();
+    taskInfos_ = java.util.Collections.emptyList();
   }
 
   @java.lang.Override
@@ -58,10 +58,10 @@ private static final long serialVersionUID = 0L;
           }
           case 18: {
             if (!((mutable_bitField0_ & 0x00000002) == 0x00000002)) {
-              taskInfo_ = new java.util.ArrayList<alluxio.grpc.TaskInfo>();
+              taskInfos_ = new java.util.ArrayList<alluxio.grpc.TaskInfo>();
               mutable_bitField0_ |= 0x00000002;
             }
-            taskInfo_.add(
+            taskInfos_.add(
                 input.readMessage(alluxio.grpc.TaskInfo.PARSER, extensionRegistry));
             break;
           }
@@ -87,7 +87,7 @@ private static final long serialVersionUID = 0L;
           e).setUnfinishedMessage(this);
     } finally {
       if (((mutable_bitField0_ & 0x00000002) == 0x00000002)) {
-        taskInfo_ = java.util.Collections.unmodifiableList(taskInfo_);
+        taskInfos_ = java.util.Collections.unmodifiableList(taskInfos_);
       }
       this.unknownFields = unknownFields.build();
       makeExtensionsImmutable();
@@ -121,39 +121,39 @@ private static final long serialVersionUID = 0L;
     return workerId_;
   }
 
-  public static final int TASKINFO_FIELD_NUMBER = 2;
-  private java.util.List<alluxio.grpc.TaskInfo> taskInfo_;
+  public static final int TASKINFOS_FIELD_NUMBER = 2;
+  private java.util.List<alluxio.grpc.TaskInfo> taskInfos_;
   /**
-   * <code>repeated .alluxio.grpc.TaskInfo taskInfo = 2;</code>
+   * <code>repeated .alluxio.grpc.TaskInfo taskInfos = 2;</code>
    */
-  public java.util.List<alluxio.grpc.TaskInfo> getTaskInfoList() {
-    return taskInfo_;
+  public java.util.List<alluxio.grpc.TaskInfo> getTaskInfosList() {
+    return taskInfos_;
   }
   /**
-   * <code>repeated .alluxio.grpc.TaskInfo taskInfo = 2;</code>
+   * <code>repeated .alluxio.grpc.TaskInfo taskInfos = 2;</code>
    */
   public java.util.List<? extends alluxio.grpc.TaskInfoOrBuilder> 
-      getTaskInfoOrBuilderList() {
-    return taskInfo_;
+      getTaskInfosOrBuilderList() {
+    return taskInfos_;
   }
   /**
-   * <code>repeated .alluxio.grpc.TaskInfo taskInfo = 2;</code>
+   * <code>repeated .alluxio.grpc.TaskInfo taskInfos = 2;</code>
    */
-  public int getTaskInfoCount() {
-    return taskInfo_.size();
+  public int getTaskInfosCount() {
+    return taskInfos_.size();
   }
   /**
-   * <code>repeated .alluxio.grpc.TaskInfo taskInfo = 2;</code>
+   * <code>repeated .alluxio.grpc.TaskInfo taskInfos = 2;</code>
    */
-  public alluxio.grpc.TaskInfo getTaskInfo(int index) {
-    return taskInfo_.get(index);
+  public alluxio.grpc.TaskInfo getTaskInfos(int index) {
+    return taskInfos_.get(index);
   }
   /**
-   * <code>repeated .alluxio.grpc.TaskInfo taskInfo = 2;</code>
+   * <code>repeated .alluxio.grpc.TaskInfo taskInfos = 2;</code>
    */
-  public alluxio.grpc.TaskInfoOrBuilder getTaskInfoOrBuilder(
+  public alluxio.grpc.TaskInfoOrBuilder getTaskInfosOrBuilder(
       int index) {
-    return taskInfo_.get(index);
+    return taskInfos_.get(index);
   }
 
   public static final int OPTIONS_FIELD_NUMBER = 3;
@@ -192,8 +192,8 @@ private static final long serialVersionUID = 0L;
     if (((bitField0_ & 0x00000001) == 0x00000001)) {
       output.writeInt64(1, workerId_);
     }
-    for (int i = 0; i < taskInfo_.size(); i++) {
-      output.writeMessage(2, taskInfo_.get(i));
+    for (int i = 0; i < taskInfos_.size(); i++) {
+      output.writeMessage(2, taskInfos_.get(i));
     }
     if (((bitField0_ & 0x00000002) == 0x00000002)) {
       output.writeMessage(3, getOptions());
@@ -210,9 +210,9 @@ private static final long serialVersionUID = 0L;
       size += com.google.protobuf.CodedOutputStream
         .computeInt64Size(1, workerId_);
     }
-    for (int i = 0; i < taskInfo_.size(); i++) {
+    for (int i = 0; i < taskInfos_.size(); i++) {
       size += com.google.protobuf.CodedOutputStream
-        .computeMessageSize(2, taskInfo_.get(i));
+        .computeMessageSize(2, taskInfos_.get(i));
     }
     if (((bitField0_ & 0x00000002) == 0x00000002)) {
       size += com.google.protobuf.CodedOutputStream
@@ -239,8 +239,8 @@ private static final long serialVersionUID = 0L;
       result = result && (getWorkerId()
           == other.getWorkerId());
     }
-    result = result && getTaskInfoList()
-        .equals(other.getTaskInfoList());
+    result = result && getTaskInfosList()
+        .equals(other.getTaskInfosList());
     result = result && (hasOptions() == other.hasOptions());
     if (hasOptions()) {
       result = result && getOptions()
@@ -262,9 +262,9 @@ private static final long serialVersionUID = 0L;
       hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
           getWorkerId());
     }
-    if (getTaskInfoCount() > 0) {
-      hash = (37 * hash) + TASKINFO_FIELD_NUMBER;
-      hash = (53 * hash) + getTaskInfoList().hashCode();
+    if (getTaskInfosCount() > 0) {
+      hash = (37 * hash) + TASKINFOS_FIELD_NUMBER;
+      hash = (53 * hash) + getTaskInfosList().hashCode();
     }
     if (hasOptions()) {
       hash = (37 * hash) + OPTIONS_FIELD_NUMBER;
@@ -395,7 +395,7 @@ private static final long serialVersionUID = 0L;
     private void maybeForceBuilderInitialization() {
       if (com.google.protobuf.GeneratedMessageV3
               .alwaysUseFieldBuilders) {
-        getTaskInfoFieldBuilder();
+        getTaskInfosFieldBuilder();
         getOptionsFieldBuilder();
       }
     }
@@ -403,11 +403,11 @@ private static final long serialVersionUID = 0L;
       super.clear();
       workerId_ = 0L;
       bitField0_ = (bitField0_ & ~0x00000001);
-      if (taskInfoBuilder_ == null) {
-        taskInfo_ = java.util.Collections.emptyList();
+      if (taskInfosBuilder_ == null) {
+        taskInfos_ = java.util.Collections.emptyList();
         bitField0_ = (bitField0_ & ~0x00000002);
       } else {
-        taskInfoBuilder_.clear();
+        taskInfosBuilder_.clear();
       }
       if (optionsBuilder_ == null) {
         options_ = null;
@@ -443,14 +443,14 @@ private static final long serialVersionUID = 0L;
         to_bitField0_ |= 0x00000001;
       }
       result.workerId_ = workerId_;
-      if (taskInfoBuilder_ == null) {
+      if (taskInfosBuilder_ == null) {
         if (((bitField0_ & 0x00000002) == 0x00000002)) {
-          taskInfo_ = java.util.Collections.unmodifiableList(taskInfo_);
+          taskInfos_ = java.util.Collections.unmodifiableList(taskInfos_);
           bitField0_ = (bitField0_ & ~0x00000002);
         }
-        result.taskInfo_ = taskInfo_;
+        result.taskInfos_ = taskInfos_;
       } else {
-        result.taskInfo_ = taskInfoBuilder_.build();
+        result.taskInfos_ = taskInfosBuilder_.build();
       }
       if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
         to_bitField0_ |= 0x00000002;
@@ -505,29 +505,29 @@ private static final long serialVersionUID = 0L;
       if (other.hasWorkerId()) {
         setWorkerId(other.getWorkerId());
       }
-      if (taskInfoBuilder_ == null) {
-        if (!other.taskInfo_.isEmpty()) {
-          if (taskInfo_.isEmpty()) {
-            taskInfo_ = other.taskInfo_;
+      if (taskInfosBuilder_ == null) {
+        if (!other.taskInfos_.isEmpty()) {
+          if (taskInfos_.isEmpty()) {
+            taskInfos_ = other.taskInfos_;
             bitField0_ = (bitField0_ & ~0x00000002);
           } else {
-            ensureTaskInfoIsMutable();
-            taskInfo_.addAll(other.taskInfo_);
+            ensureTaskInfosIsMutable();
+            taskInfos_.addAll(other.taskInfos_);
           }
           onChanged();
         }
       } else {
-        if (!other.taskInfo_.isEmpty()) {
-          if (taskInfoBuilder_.isEmpty()) {
-            taskInfoBuilder_.dispose();
-            taskInfoBuilder_ = null;
-            taskInfo_ = other.taskInfo_;
+        if (!other.taskInfos_.isEmpty()) {
+          if (taskInfosBuilder_.isEmpty()) {
+            taskInfosBuilder_.dispose();
+            taskInfosBuilder_ = null;
+            taskInfos_ = other.taskInfos_;
             bitField0_ = (bitField0_ & ~0x00000002);
-            taskInfoBuilder_ = 
+            taskInfosBuilder_ = 
               com.google.protobuf.GeneratedMessageV3.alwaysUseFieldBuilders ?
-                 getTaskInfoFieldBuilder() : null;
+                 getTaskInfosFieldBuilder() : null;
           } else {
-            taskInfoBuilder_.addAllMessages(other.taskInfo_);
+            taskInfosBuilder_.addAllMessages(other.taskInfos_);
           }
         }
       }
@@ -594,244 +594,244 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
-    private java.util.List<alluxio.grpc.TaskInfo> taskInfo_ =
+    private java.util.List<alluxio.grpc.TaskInfo> taskInfos_ =
       java.util.Collections.emptyList();
-    private void ensureTaskInfoIsMutable() {
+    private void ensureTaskInfosIsMutable() {
       if (!((bitField0_ & 0x00000002) == 0x00000002)) {
-        taskInfo_ = new java.util.ArrayList<alluxio.grpc.TaskInfo>(taskInfo_);
+        taskInfos_ = new java.util.ArrayList<alluxio.grpc.TaskInfo>(taskInfos_);
         bitField0_ |= 0x00000002;
        }
     }
 
     private com.google.protobuf.RepeatedFieldBuilderV3<
-        alluxio.grpc.TaskInfo, alluxio.grpc.TaskInfo.Builder, alluxio.grpc.TaskInfoOrBuilder> taskInfoBuilder_;
+        alluxio.grpc.TaskInfo, alluxio.grpc.TaskInfo.Builder, alluxio.grpc.TaskInfoOrBuilder> taskInfosBuilder_;
 
     /**
-     * <code>repeated .alluxio.grpc.TaskInfo taskInfo = 2;</code>
+     * <code>repeated .alluxio.grpc.TaskInfo taskInfos = 2;</code>
      */
-    public java.util.List<alluxio.grpc.TaskInfo> getTaskInfoList() {
-      if (taskInfoBuilder_ == null) {
-        return java.util.Collections.unmodifiableList(taskInfo_);
+    public java.util.List<alluxio.grpc.TaskInfo> getTaskInfosList() {
+      if (taskInfosBuilder_ == null) {
+        return java.util.Collections.unmodifiableList(taskInfos_);
       } else {
-        return taskInfoBuilder_.getMessageList();
+        return taskInfosBuilder_.getMessageList();
       }
     }
     /**
-     * <code>repeated .alluxio.grpc.TaskInfo taskInfo = 2;</code>
+     * <code>repeated .alluxio.grpc.TaskInfo taskInfos = 2;</code>
      */
-    public int getTaskInfoCount() {
-      if (taskInfoBuilder_ == null) {
-        return taskInfo_.size();
+    public int getTaskInfosCount() {
+      if (taskInfosBuilder_ == null) {
+        return taskInfos_.size();
       } else {
-        return taskInfoBuilder_.getCount();
+        return taskInfosBuilder_.getCount();
       }
     }
     /**
-     * <code>repeated .alluxio.grpc.TaskInfo taskInfo = 2;</code>
+     * <code>repeated .alluxio.grpc.TaskInfo taskInfos = 2;</code>
      */
-    public alluxio.grpc.TaskInfo getTaskInfo(int index) {
-      if (taskInfoBuilder_ == null) {
-        return taskInfo_.get(index);
+    public alluxio.grpc.TaskInfo getTaskInfos(int index) {
+      if (taskInfosBuilder_ == null) {
+        return taskInfos_.get(index);
       } else {
-        return taskInfoBuilder_.getMessage(index);
+        return taskInfosBuilder_.getMessage(index);
       }
     }
     /**
-     * <code>repeated .alluxio.grpc.TaskInfo taskInfo = 2;</code>
+     * <code>repeated .alluxio.grpc.TaskInfo taskInfos = 2;</code>
      */
-    public Builder setTaskInfo(
+    public Builder setTaskInfos(
         int index, alluxio.grpc.TaskInfo value) {
-      if (taskInfoBuilder_ == null) {
+      if (taskInfosBuilder_ == null) {
         if (value == null) {
           throw new NullPointerException();
         }
-        ensureTaskInfoIsMutable();
-        taskInfo_.set(index, value);
+        ensureTaskInfosIsMutable();
+        taskInfos_.set(index, value);
         onChanged();
       } else {
-        taskInfoBuilder_.setMessage(index, value);
+        taskInfosBuilder_.setMessage(index, value);
       }
       return this;
     }
     /**
-     * <code>repeated .alluxio.grpc.TaskInfo taskInfo = 2;</code>
+     * <code>repeated .alluxio.grpc.TaskInfo taskInfos = 2;</code>
      */
-    public Builder setTaskInfo(
+    public Builder setTaskInfos(
         int index, alluxio.grpc.TaskInfo.Builder builderForValue) {
-      if (taskInfoBuilder_ == null) {
-        ensureTaskInfoIsMutable();
-        taskInfo_.set(index, builderForValue.build());
+      if (taskInfosBuilder_ == null) {
+        ensureTaskInfosIsMutable();
+        taskInfos_.set(index, builderForValue.build());
         onChanged();
       } else {
-        taskInfoBuilder_.setMessage(index, builderForValue.build());
+        taskInfosBuilder_.setMessage(index, builderForValue.build());
       }
       return this;
     }
     /**
-     * <code>repeated .alluxio.grpc.TaskInfo taskInfo = 2;</code>
+     * <code>repeated .alluxio.grpc.TaskInfo taskInfos = 2;</code>
      */
-    public Builder addTaskInfo(alluxio.grpc.TaskInfo value) {
-      if (taskInfoBuilder_ == null) {
+    public Builder addTaskInfos(alluxio.grpc.TaskInfo value) {
+      if (taskInfosBuilder_ == null) {
         if (value == null) {
           throw new NullPointerException();
         }
-        ensureTaskInfoIsMutable();
-        taskInfo_.add(value);
+        ensureTaskInfosIsMutable();
+        taskInfos_.add(value);
         onChanged();
       } else {
-        taskInfoBuilder_.addMessage(value);
+        taskInfosBuilder_.addMessage(value);
       }
       return this;
     }
     /**
-     * <code>repeated .alluxio.grpc.TaskInfo taskInfo = 2;</code>
+     * <code>repeated .alluxio.grpc.TaskInfo taskInfos = 2;</code>
      */
-    public Builder addTaskInfo(
+    public Builder addTaskInfos(
         int index, alluxio.grpc.TaskInfo value) {
-      if (taskInfoBuilder_ == null) {
+      if (taskInfosBuilder_ == null) {
         if (value == null) {
           throw new NullPointerException();
         }
-        ensureTaskInfoIsMutable();
-        taskInfo_.add(index, value);
+        ensureTaskInfosIsMutable();
+        taskInfos_.add(index, value);
         onChanged();
       } else {
-        taskInfoBuilder_.addMessage(index, value);
+        taskInfosBuilder_.addMessage(index, value);
       }
       return this;
     }
     /**
-     * <code>repeated .alluxio.grpc.TaskInfo taskInfo = 2;</code>
+     * <code>repeated .alluxio.grpc.TaskInfo taskInfos = 2;</code>
      */
-    public Builder addTaskInfo(
+    public Builder addTaskInfos(
         alluxio.grpc.TaskInfo.Builder builderForValue) {
-      if (taskInfoBuilder_ == null) {
-        ensureTaskInfoIsMutable();
-        taskInfo_.add(builderForValue.build());
+      if (taskInfosBuilder_ == null) {
+        ensureTaskInfosIsMutable();
+        taskInfos_.add(builderForValue.build());
         onChanged();
       } else {
-        taskInfoBuilder_.addMessage(builderForValue.build());
+        taskInfosBuilder_.addMessage(builderForValue.build());
       }
       return this;
     }
     /**
-     * <code>repeated .alluxio.grpc.TaskInfo taskInfo = 2;</code>
+     * <code>repeated .alluxio.grpc.TaskInfo taskInfos = 2;</code>
      */
-    public Builder addTaskInfo(
+    public Builder addTaskInfos(
         int index, alluxio.grpc.TaskInfo.Builder builderForValue) {
-      if (taskInfoBuilder_ == null) {
-        ensureTaskInfoIsMutable();
-        taskInfo_.add(index, builderForValue.build());
+      if (taskInfosBuilder_ == null) {
+        ensureTaskInfosIsMutable();
+        taskInfos_.add(index, builderForValue.build());
         onChanged();
       } else {
-        taskInfoBuilder_.addMessage(index, builderForValue.build());
+        taskInfosBuilder_.addMessage(index, builderForValue.build());
       }
       return this;
     }
     /**
-     * <code>repeated .alluxio.grpc.TaskInfo taskInfo = 2;</code>
+     * <code>repeated .alluxio.grpc.TaskInfo taskInfos = 2;</code>
      */
-    public Builder addAllTaskInfo(
+    public Builder addAllTaskInfos(
         java.lang.Iterable<? extends alluxio.grpc.TaskInfo> values) {
-      if (taskInfoBuilder_ == null) {
-        ensureTaskInfoIsMutable();
+      if (taskInfosBuilder_ == null) {
+        ensureTaskInfosIsMutable();
         com.google.protobuf.AbstractMessageLite.Builder.addAll(
-            values, taskInfo_);
+            values, taskInfos_);
         onChanged();
       } else {
-        taskInfoBuilder_.addAllMessages(values);
+        taskInfosBuilder_.addAllMessages(values);
       }
       return this;
     }
     /**
-     * <code>repeated .alluxio.grpc.TaskInfo taskInfo = 2;</code>
+     * <code>repeated .alluxio.grpc.TaskInfo taskInfos = 2;</code>
      */
-    public Builder clearTaskInfo() {
-      if (taskInfoBuilder_ == null) {
-        taskInfo_ = java.util.Collections.emptyList();
+    public Builder clearTaskInfos() {
+      if (taskInfosBuilder_ == null) {
+        taskInfos_ = java.util.Collections.emptyList();
         bitField0_ = (bitField0_ & ~0x00000002);
         onChanged();
       } else {
-        taskInfoBuilder_.clear();
+        taskInfosBuilder_.clear();
       }
       return this;
     }
     /**
-     * <code>repeated .alluxio.grpc.TaskInfo taskInfo = 2;</code>
+     * <code>repeated .alluxio.grpc.TaskInfo taskInfos = 2;</code>
      */
-    public Builder removeTaskInfo(int index) {
-      if (taskInfoBuilder_ == null) {
-        ensureTaskInfoIsMutable();
-        taskInfo_.remove(index);
+    public Builder removeTaskInfos(int index) {
+      if (taskInfosBuilder_ == null) {
+        ensureTaskInfosIsMutable();
+        taskInfos_.remove(index);
         onChanged();
       } else {
-        taskInfoBuilder_.remove(index);
+        taskInfosBuilder_.remove(index);
       }
       return this;
     }
     /**
-     * <code>repeated .alluxio.grpc.TaskInfo taskInfo = 2;</code>
+     * <code>repeated .alluxio.grpc.TaskInfo taskInfos = 2;</code>
      */
-    public alluxio.grpc.TaskInfo.Builder getTaskInfoBuilder(
+    public alluxio.grpc.TaskInfo.Builder getTaskInfosBuilder(
         int index) {
-      return getTaskInfoFieldBuilder().getBuilder(index);
+      return getTaskInfosFieldBuilder().getBuilder(index);
     }
     /**
-     * <code>repeated .alluxio.grpc.TaskInfo taskInfo = 2;</code>
+     * <code>repeated .alluxio.grpc.TaskInfo taskInfos = 2;</code>
      */
-    public alluxio.grpc.TaskInfoOrBuilder getTaskInfoOrBuilder(
+    public alluxio.grpc.TaskInfoOrBuilder getTaskInfosOrBuilder(
         int index) {
-      if (taskInfoBuilder_ == null) {
-        return taskInfo_.get(index);  } else {
-        return taskInfoBuilder_.getMessageOrBuilder(index);
+      if (taskInfosBuilder_ == null) {
+        return taskInfos_.get(index);  } else {
+        return taskInfosBuilder_.getMessageOrBuilder(index);
       }
     }
     /**
-     * <code>repeated .alluxio.grpc.TaskInfo taskInfo = 2;</code>
+     * <code>repeated .alluxio.grpc.TaskInfo taskInfos = 2;</code>
      */
     public java.util.List<? extends alluxio.grpc.TaskInfoOrBuilder> 
-         getTaskInfoOrBuilderList() {
-      if (taskInfoBuilder_ != null) {
-        return taskInfoBuilder_.getMessageOrBuilderList();
+         getTaskInfosOrBuilderList() {
+      if (taskInfosBuilder_ != null) {
+        return taskInfosBuilder_.getMessageOrBuilderList();
       } else {
-        return java.util.Collections.unmodifiableList(taskInfo_);
+        return java.util.Collections.unmodifiableList(taskInfos_);
       }
     }
     /**
-     * <code>repeated .alluxio.grpc.TaskInfo taskInfo = 2;</code>
+     * <code>repeated .alluxio.grpc.TaskInfo taskInfos = 2;</code>
      */
-    public alluxio.grpc.TaskInfo.Builder addTaskInfoBuilder() {
-      return getTaskInfoFieldBuilder().addBuilder(
+    public alluxio.grpc.TaskInfo.Builder addTaskInfosBuilder() {
+      return getTaskInfosFieldBuilder().addBuilder(
           alluxio.grpc.TaskInfo.getDefaultInstance());
     }
     /**
-     * <code>repeated .alluxio.grpc.TaskInfo taskInfo = 2;</code>
+     * <code>repeated .alluxio.grpc.TaskInfo taskInfos = 2;</code>
      */
-    public alluxio.grpc.TaskInfo.Builder addTaskInfoBuilder(
+    public alluxio.grpc.TaskInfo.Builder addTaskInfosBuilder(
         int index) {
-      return getTaskInfoFieldBuilder().addBuilder(
+      return getTaskInfosFieldBuilder().addBuilder(
           index, alluxio.grpc.TaskInfo.getDefaultInstance());
     }
     /**
-     * <code>repeated .alluxio.grpc.TaskInfo taskInfo = 2;</code>
+     * <code>repeated .alluxio.grpc.TaskInfo taskInfos = 2;</code>
      */
     public java.util.List<alluxio.grpc.TaskInfo.Builder> 
-         getTaskInfoBuilderList() {
-      return getTaskInfoFieldBuilder().getBuilderList();
+         getTaskInfosBuilderList() {
+      return getTaskInfosFieldBuilder().getBuilderList();
     }
     private com.google.protobuf.RepeatedFieldBuilderV3<
         alluxio.grpc.TaskInfo, alluxio.grpc.TaskInfo.Builder, alluxio.grpc.TaskInfoOrBuilder> 
-        getTaskInfoFieldBuilder() {
-      if (taskInfoBuilder_ == null) {
-        taskInfoBuilder_ = new com.google.protobuf.RepeatedFieldBuilderV3<
+        getTaskInfosFieldBuilder() {
+      if (taskInfosBuilder_ == null) {
+        taskInfosBuilder_ = new com.google.protobuf.RepeatedFieldBuilderV3<
             alluxio.grpc.TaskInfo, alluxio.grpc.TaskInfo.Builder, alluxio.grpc.TaskInfoOrBuilder>(
-                taskInfo_,
+                taskInfos_,
                 ((bitField0_ & 0x00000002) == 0x00000002),
                 getParentForChildren(),
                 isClean());
-        taskInfo_ = null;
+        taskInfos_ = null;
       }
-      return taskInfoBuilder_;
+      return taskInfosBuilder_;
     }
 
     private alluxio.grpc.JobHeartbeatPOptions options_ = null;

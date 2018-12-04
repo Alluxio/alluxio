@@ -815,11 +815,11 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
       processWorkerAddedBlocks(worker, currentBlocksOnTiers);
       processWorkerOrphanedBlocks(worker);
     }
-    if (options.getConfigCount() > 0) {
+    if (options.getConfigsCount() > 0) {
       for (BiConsumer<Address, List<ConfigProperty>> function : mWorkerRegisteredListeners) {
         WorkerNetAddress workerAddress = worker.getWorkerAddress();
         function.accept(new Address(workerAddress.getHost(), workerAddress.getRpcPort()),
-            options.getConfigList());
+            options.getConfigsList());
       }
     }
 

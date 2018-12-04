@@ -21,7 +21,7 @@ message GetConfigurationPOptions{
  optional bool rawValue = 1;
 }
 message GetConfigurationPResponse{
-  repeated ConfigProperty configList = 1;
+  repeated ConfigProperty configs = 1;
 }
 
 enum ConfigStatus {
@@ -104,7 +104,7 @@ message MetricValue {
 
 message GetMetricsPOptions {}
 message GetMetricsPResponse {
-  map<string, MetricValue> metricsMap = 1;
+  map<string, MetricValue> metrics = 1;
 }
 
 /**

@@ -8,26 +8,26 @@ public interface RegisterWorkerPOptionsOrBuilder extends
     com.google.protobuf.MessageOrBuilder {
 
   /**
-   * <code>repeated .alluxio.grpc.ConfigProperty config = 1;</code>
+   * <code>repeated .alluxio.grpc.ConfigProperty configs = 1;</code>
    */
   java.util.List<alluxio.grpc.ConfigProperty> 
-      getConfigList();
+      getConfigsList();
   /**
-   * <code>repeated .alluxio.grpc.ConfigProperty config = 1;</code>
+   * <code>repeated .alluxio.grpc.ConfigProperty configs = 1;</code>
    */
-  alluxio.grpc.ConfigProperty getConfig(int index);
+  alluxio.grpc.ConfigProperty getConfigs(int index);
   /**
-   * <code>repeated .alluxio.grpc.ConfigProperty config = 1;</code>
+   * <code>repeated .alluxio.grpc.ConfigProperty configs = 1;</code>
    */
-  int getConfigCount();
+  int getConfigsCount();
   /**
-   * <code>repeated .alluxio.grpc.ConfigProperty config = 1;</code>
+   * <code>repeated .alluxio.grpc.ConfigProperty configs = 1;</code>
    */
   java.util.List<? extends alluxio.grpc.ConfigPropertyOrBuilder> 
-      getConfigOrBuilderList();
+      getConfigsOrBuilderList();
   /**
-   * <code>repeated .alluxio.grpc.ConfigProperty config = 1;</code>
+   * <code>repeated .alluxio.grpc.ConfigProperty configs = 1;</code>
    */
-  alluxio.grpc.ConfigPropertyOrBuilder getConfigOrBuilder(
+  alluxio.grpc.ConfigPropertyOrBuilder getConfigsOrBuilder(
       int index);
 }

@@ -439,7 +439,7 @@ public final class Configuration {
             MetaMasterClientServiceGrpc.newBlockingStub(channel);
         clusterConfig =
             client.getConfiguration(GetConfigurationPOptions.newBuilder().setRawValue(true).build())
-                .getConfigListList();
+                .getConfigsList();
       } catch (io.grpc.StatusRuntimeException e) {
         throw new UnavailableException(String.format(
             "Failed to handshake with master %s to load cluster default configuration values",
