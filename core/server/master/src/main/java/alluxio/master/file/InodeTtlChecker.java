@@ -27,7 +27,7 @@ import alluxio.master.file.contexts.DeleteContext;
 import alluxio.master.file.contexts.FreeContext;
 import alluxio.master.journal.JournalContext;
 import alluxio.proto.journal.File.UpdateInodeEntry;
-import alluxio.wire.TtlAction;
+import alluxio.grpc.TtlAction;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

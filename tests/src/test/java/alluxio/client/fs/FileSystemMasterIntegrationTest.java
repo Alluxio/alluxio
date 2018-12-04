@@ -78,7 +78,7 @@ import alluxio.util.WaitForOptions;
 import alluxio.util.io.FileUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.FileInfo;
-import alluxio.wire.TtlAction;
+import alluxio.grpc.TtlAction;
 
 import org.junit.Assert;
 import org.junit.Before;

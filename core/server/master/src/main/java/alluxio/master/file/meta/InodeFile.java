@@ -412,7 +412,7 @@ public final class InodeFile extends Inode<InodeFile> implements InodeFileView {
         .setReplicationMax(context.getOptions().getReplicationMax())
         .setReplicationMin(context.getOptions().getReplicationMin())
         .setTtl(context.getOptions().getCommonOptions().getTtl())
-        .setTtlAction(GrpcUtils.fromProto(context.getOptions().getCommonOptions().getTtlAction()))
+        .setTtlAction(context.getOptions().getCommonOptions().getTtlAction())
         .setParentId(parentId)
         .setLastModificationTimeMs(context.getOperationTimeMs(), true)
         .setOwner(context.getOwner())

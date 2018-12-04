@@ -25,7 +25,7 @@ import alluxio.security.authorization.DefaultAccessControlList;
 import alluxio.util.interfaces.Scoped;
 import alluxio.util.proto.ProtoUtils;
 import alluxio.wire.FileInfo;
-import alluxio.wire.TtlAction;
+import alluxio.grpc.TtlAction;
 
 import com.google.common.base.Objects;
 import org.slf4j.Logger;

@@ -12,6 +12,7 @@
 package alluxio.wire;
 
 import alluxio.Constants;
+import alluxio.grpc.TtlAction;
 import alluxio.security.authorization.AccessControlList;
 import alluxio.security.authorization.DefaultAccessControlList;
 

@@ -35,7 +35,7 @@ import alluxio.util.grpc.GrpcUtils;
 import alluxio.web.MasterWebServer;
 import alluxio.wire.FileInfo;
 import alluxio.wire.LoadMetadataType;
-import alluxio.wire.TtlAction;
+import alluxio.grpc.TtlAction;
 
 import com.google.common.base.Preconditions;
 import com.qmino.miredot.annotations.ReturnType;

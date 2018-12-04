@@ -333,7 +333,7 @@ public final class InodeDirectory extends Inode<InodeDirectory> implements Inode
         .setParentId(parentId)
         .setName(name)
         .setTtl(context.getOptions().getCommonOptions().getTtl())
-        .setTtlAction(GrpcUtils.fromProto(context.getOptions().getCommonOptions().getTtlAction()))
+        .setTtlAction(context.getOptions().getCommonOptions().getTtlAction())
         .setOwner(context.getOwner())
         .setGroup(context.getGroup())
         .setMode((short) context.getOptions().getMode())

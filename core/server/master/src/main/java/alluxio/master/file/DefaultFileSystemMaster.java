@@ -3393,8 +3393,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
           entry.setTtl(ttl);
         }
         entry.setLastModificationTimeMs(opTimeMs);
-        entry.setTtlAction(
-            ProtobufUtils.toProtobuf(GrpcUtils.fromProto(protoOptions.getTtlAction())));
+        entry.setTtlAction(ProtobufUtils.toProtobuf(protoOptions.getTtlAction()));
       }
     }
     if (protoOptions.hasPersisted()) {

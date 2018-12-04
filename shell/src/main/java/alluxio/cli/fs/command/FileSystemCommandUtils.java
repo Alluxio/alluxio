@@ -18,7 +18,7 @@ import alluxio.client.file.FileSystemClientOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.util.grpc.GrpcUtils;
-import alluxio.wire.TtlAction;
+import alluxio.grpc.TtlAction;
 
 import java.io.IOException;
 

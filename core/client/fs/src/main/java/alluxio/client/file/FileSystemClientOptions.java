@@ -39,7 +39,7 @@ import alluxio.security.authorization.Mode;
 import alluxio.util.ModeUtils;
 import alluxio.util.grpc.GrpcUtils;
 import alluxio.wire.LoadMetadataType;
-import alluxio.wire.TtlAction;
+import alluxio.grpc.TtlAction;
 
 import javax.annotation.concurrent.ThreadSafe;
 

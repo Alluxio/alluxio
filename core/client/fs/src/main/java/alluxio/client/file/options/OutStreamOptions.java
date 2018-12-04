@@ -26,7 +26,7 @@ import alluxio.util.CommonUtils;
 import alluxio.util.IdUtils;
 import alluxio.util.ModeUtils;
 import alluxio.util.SecurityUtils;
-import alluxio.wire.TtlAction;
+import alluxio.grpc.TtlAction;
 
 import com.google.common.base.Objects;
 

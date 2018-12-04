@@ -45,7 +45,7 @@ import alluxio.wire.MountPointInfo;
 import alluxio.wire.PersistFile;
 import alluxio.wire.SetAclAction;
 import alluxio.wire.TieredIdentity;
-import alluxio.wire.TtlAction;
+import alluxio.grpc.TtlAction;
 import alluxio.wire.UfsInfo;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
@@ -249,7 +249,7 @@ public final class GrpcUtils {
         .setPinned(pInfo.getPinned()).setCacheable(pInfo.getCacheable())
         .setPersisted(pInfo.getPersisted()).setBlockIds(pInfo.getBlockIdsList())
         .setLastModificationTimeMs(pInfo.getLastModificationTimeMs()).setTtl(pInfo.getTtl())
-        .setTtlAction(fromProto(pInfo.getTtlAction())).setOwner(pInfo.getOwner())
+        .setTtlAction(pInfo.getTtlAction()).setOwner(pInfo.getOwner())
         .setGroup(pInfo.getGroup()).setMode(pInfo.getMode())
         .setPersistenceState(pInfo.getPersistenceState()).setMountPoint(pInfo.getMountPoint())
         .setFileBlockInfos(map(GrpcUtils::fromProto, pInfo.getFileBlockInfosList()))
@@ -312,26 +312,6 @@ public final class GrpcUtils {
         .setUfsUsedBytes(mountPointPInfo.getUfsUsedBytes())
         .setReadOnly(mountPointPInfo.getReadOnly())
         .setProperties(mountPointPInfo.getPropertiesMap()).setShared(mountPointPInfo.getShared());
-  }
-
-  /**
-   * Converts proto type to wire type.
-   *
-   * @param tTtlAction {@link TtlAction}
-   * @return {@link TtlAction} equivalent
-   */
-  public static TtlAction fromProto(alluxio.grpc.TtlAction tTtlAction) {
-    if (tTtlAction == null) {
-      return TtlAction.DELETE;
-    }
-    switch (tTtlAction) {
-      case DELETE:
-        return TtlAction.DELETE;
-      case FREE:
-        return TtlAction.FREE;
-      default:
-        throw new IllegalStateException("Unrecognized proto ttl action: " + tTtlAction);
-    }
   }
 
   /**
@@ -501,7 +481,7 @@ public final class GrpcUtils {
         .setOwner(fileInfo.getOwner()).setGroup(fileInfo.getGroup()).setMode(fileInfo.getMode())
         .setPersistenceState(fileInfo.getPersistenceState()).setMountPoint(fileInfo.isMountPoint())
         .addAllFileBlockInfos(fileBlockInfos)
-        .setTtlAction(GrpcUtils.toProto(fileInfo.getTtlAction())).setMountId(fileInfo.getMountId())
+        .setTtlAction(fileInfo.getTtlAction()).setMountId(fileInfo.getMountId())
         .setInAlluxioPercentage(fileInfo.getInAlluxioPercentage())
         .setInMemoryPercentage(fileInfo.getInMemoryPercentage())
         .setUfsFingerprint(fileInfo.getUfsFingerprint())
