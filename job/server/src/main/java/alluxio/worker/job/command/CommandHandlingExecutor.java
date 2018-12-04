@@ -119,8 +119,10 @@ public class CommandHandlingExecutor implements HeartbeatExecutor {
         try {
           jobConfig =
               (JobConfig) SerializationUtils.deserialize(command.getJobConfig().toByteArray());
-          Serializable taskArgs =
-              SerializationUtils.deserialize(command.getTaskArgs().toByteArray());
+          Serializable taskArgs = null;
+          if(command.hasTaskArgs()) {
+            taskArgs = SerializationUtils.deserialize(command.getTaskArgs().toByteArray());
+          }
           JobWorkerContext context = new JobWorkerContext(jobId, taskId, mUfsManager);
           LOG.info("Received run task " + taskId + " for job " + jobId + " on worker "
               + JobWorkerIdRegistry.getWorkerId());

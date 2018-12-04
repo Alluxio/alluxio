@@ -51,10 +51,13 @@ public class TaskInfo {
     mTaskId = taskInfo.getTaskId();
     mStatus = Status.valueOf(taskInfo.getStatus().name());
     mErrorMessage = taskInfo.getErrorMessage();
-    try {
-      mResult = SerializationUtils.deserialize(taskInfo.getResult().toByteArray());
-    } catch (ClassNotFoundException e) {
-      throw new InvalidArgumentException(e);
+    mResult = null;
+    if(taskInfo.hasResult()) {
+      try {
+        mResult = SerializationUtils.deserialize(taskInfo.getResult().toByteArray());
+      } catch (ClassNotFoundException e) {
+        throw new InvalidArgumentException(e);
+      }
     }
   }
 
@@ -145,9 +148,14 @@ public class TaskInfo {
   public alluxio.grpc.TaskInfo toProto() throws IOException {
     ByteBuffer result =
         mResult == null ? null : ByteBuffer.wrap(SerializationUtils.serialize(mResult));
-    return alluxio.grpc.TaskInfo.newBuilder().setJobId(mJobId).setTaskId(mTaskId)
-        .setStatus(mStatus.toProto()).setErrorMessage(mErrorMessage)
-        .setResult(ByteString.copyFrom(result)).build();
+
+    alluxio.grpc.TaskInfo.Builder taskInfoBuilder =
+        alluxio.grpc.TaskInfo.newBuilder().setJobId(mJobId).setTaskId(mTaskId)
+            .setStatus(mStatus.toProto()).setErrorMessage(mErrorMessage);
+    if (result != null) {
+      taskInfoBuilder.setResult(ByteString.copyFrom(result));
+    }
+    return taskInfoBuilder.build();
   }
 
   @Override

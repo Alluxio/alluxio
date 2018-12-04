@@ -171,8 +171,12 @@ public final class JobInfo {
     for (TaskInfo taskInfo : mTaskInfoList) {
       taskInfos.add(taskInfo.toProto());
     }
-    return alluxio.grpc.JobInfo.newBuilder().setId(mJobId).setErrorMessage(mErrorMessage)
-        .addAllTaskInfos(taskInfos).setStatus(mStatus.toProto()).setResult(mResult).build();
+    alluxio.grpc.JobInfo.Builder jobInfoBuilder = alluxio.grpc.JobInfo.newBuilder().setId(mJobId)
+        .setErrorMessage(mErrorMessage).addAllTaskInfos(taskInfos).setStatus(mStatus.toProto());
+    if (mResult != null) {
+      jobInfoBuilder.setResult(mResult);
+    }
+    return jobInfoBuilder.build();
   }
 
   @Override

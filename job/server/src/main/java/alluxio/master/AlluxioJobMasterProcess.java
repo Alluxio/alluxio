@@ -264,8 +264,8 @@ public class AlluxioJobMasterProcess implements JobMasterProcess {
         NetworkAddressUtils.getPort(ServiceType.JOB_MASTER_RPC),
         NetworkAddressUtils.getPort(ServiceType.JOB_MASTER_WEB));
 
-    startServingRPCServer();
     startServingRPCServerNew();
+    startServingRPCServer();
     LOG.info("Alluxio job master ended");
   }
 

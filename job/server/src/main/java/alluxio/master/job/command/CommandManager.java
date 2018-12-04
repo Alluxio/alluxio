@@ -61,7 +61,9 @@ public final class CommandManager {
     runTaskCommand.setTaskId(taskId);
     try {
       runTaskCommand.setJobConfig(ByteString.copyFrom(SerializationUtils.serialize(jobConfig)));
-      runTaskCommand.setTaskArgs(ByteString.copyFrom(SerializationUtils.serialize(taskArgs)));
+      if(taskArgs != null) {
+        runTaskCommand.setTaskArgs(ByteString.copyFrom(SerializationUtils.serialize(taskArgs)));
+      }
     } catch (IOException e) {
       // TODO(yupeng) better exception handling
       LOG.info("Failed to serialize the run task command:" + e);
