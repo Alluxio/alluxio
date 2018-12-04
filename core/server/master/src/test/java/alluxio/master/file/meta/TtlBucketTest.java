@@ -14,8 +14,8 @@ package alluxio.master.file.meta;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
-import alluxio.master.file.options.CreateDirectoryContext;
-import alluxio.master.file.options.CreateFileContext;
+import alluxio.master.file.contexts.CreateDirectoryContext;
+import alluxio.master.file.contexts.CreateFileContext;
 
 import org.junit.Assert;
 import org.junit.Before;

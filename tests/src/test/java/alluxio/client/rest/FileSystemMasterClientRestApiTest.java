@@ -17,11 +17,11 @@ import alluxio.exception.FileDoesNotExistException;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.FileSystemMasterClientRestServiceHandler;
-import alluxio.master.file.options.CompleteFileContext;
-import alluxio.master.file.options.CreateFileContext;
-import alluxio.master.file.options.GetStatusContext;
-import alluxio.master.file.options.ListStatusContext;
-import alluxio.master.file.options.MountContext;
+import alluxio.master.file.contexts.CompleteFileContext;
+import alluxio.master.file.contexts.CreateFileContext;
+import alluxio.master.file.contexts.GetStatusContext;
+import alluxio.master.file.contexts.ListStatusContext;
+import alluxio.master.file.contexts.MountContext;
 import alluxio.wire.FileInfo;
 import alluxio.wire.TtlAction;
 

@@ -13,7 +13,7 @@ package alluxio.master.file.meta;
 
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
-import alluxio.master.file.options.CreateFileContext;
+import alluxio.master.file.contexts.CreateFileContext;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;

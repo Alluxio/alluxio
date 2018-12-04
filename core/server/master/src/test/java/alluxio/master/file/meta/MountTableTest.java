@@ -22,7 +22,7 @@ import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.InvalidPathException;
 import alluxio.grpc.MountPOptions;
 import alluxio.master.file.meta.options.MountInfo;
-import alluxio.master.file.options.MountContext;
+import alluxio.master.file.contexts.MountContext;
 import alluxio.master.journal.NoopJournalContext;
 import alluxio.underfs.UfsManager;
 import alluxio.underfs.UfsManager.UfsClient;

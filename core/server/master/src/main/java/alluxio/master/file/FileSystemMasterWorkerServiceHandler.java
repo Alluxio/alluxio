@@ -24,7 +24,7 @@ import alluxio.grpc.GetPinnedFileIdsPResponse;
 import alluxio.grpc.GetUfsInfoPOptions;
 import alluxio.grpc.GetUfsInfoPRequest;
 import alluxio.grpc.GetUfsInfoPResponse;
-import alluxio.master.file.options.WorkerHeartbeatContext;
+import alluxio.master.file.contexts.WorkerHeartbeatContext;
 import alluxio.util.RpcUtilsNew;
 import alluxio.util.grpc.GrpcUtils;
 

@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master.file.options;
+package alluxio.master.file.contexts;
 
 import alluxio.Constants;
 import alluxio.grpc.SetAttributePOptions;

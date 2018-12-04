@@ -15,7 +15,7 @@ import alluxio.Constants;
 import alluxio.exception.BlockInfoException;
 import alluxio.master.ProtobufUtils;
 import alluxio.master.block.BlockId;
-import alluxio.master.file.options.CreateFileContext;
+import alluxio.master.file.contexts.CreateFileContext;
 import alluxio.proto.journal.File.InodeFileEntry;
 import alluxio.proto.journal.File.UpdateInodeFileEntry;
 import alluxio.proto.journal.Journal.JournalEntry;
