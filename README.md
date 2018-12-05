@@ -1,5 +1,5 @@
 Alluxio (formerly Tachyon)
-=======
+======
 
 The master branch is in version 2.0.0-SNAPSHOT:
 
@@ -16,7 +16,7 @@ The master branch is in version 2.0.0-SNAPSHOT:
 
 ## Building applications with Alluxio
 
-### Dependency Information
+## Dependency Information
 
 For Alluxio versions 1.4 or earlier, use the `alluxio-core-client` artifact.
 
