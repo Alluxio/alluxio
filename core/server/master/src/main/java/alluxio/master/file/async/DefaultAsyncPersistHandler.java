@@ -181,7 +181,7 @@ public final class DefaultAsyncPersistHandler implements AsyncPersistHandler {
             filesToPersist.add(new PersistFile(fileId, blockIds));
           }
         } catch (FileDoesNotExistException e) {
-          LOG.warn("FileId () does not exist, ignore persistence it", fileId);
+          LOG.warn("FileId {} does not exist, ignore persistence it", fileId);
         }
       }
     } catch (UnavailableException e) {
