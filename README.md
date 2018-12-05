@@ -14,7 +14,7 @@ The master branch is in version 2.0.0-SNAPSHOT:
 - [User Mailing List](https://groups.google.com/forum/?fromgroups#!forum/alluxio-users)
 - [Bay Area Meetup Group](http://www.meetup.com/Alluxio)
 
-## Building applications with Alluxio
+### Building applications with Alluxio
 
 ## Dependency Information
 
