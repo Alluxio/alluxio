@@ -43,7 +43,7 @@ import alluxio.master.file.contexts.SetAttributeContext;
 import alluxio.master.file.contexts.WorkerHeartbeatContext;
 import alluxio.security.authorization.AclEntry;
 import alluxio.wire.FileSystemCommand;
-import alluxio.wire.SetAclAction;
+import alluxio.grpc.SetAclAction;
 import alluxio.wire.UfsInfo;
 import alluxio.underfs.UfsMode;
 import alluxio.wire.FileBlockInfo;

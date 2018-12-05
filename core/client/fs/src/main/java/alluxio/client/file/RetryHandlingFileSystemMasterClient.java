@@ -52,7 +52,7 @@ import alluxio.grpc.UpdateUfsModePRequest;
 import alluxio.master.MasterClientConfig;
 import alluxio.security.authorization.AclEntry;
 import alluxio.util.grpc.GrpcUtils;
-import alluxio.wire.SetAclAction;
+import alluxio.grpc.SetAclAction;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -235,7 +235,7 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
   public void setAcl(AlluxioURI path, SetAclAction action, List<AclEntry> entries,
       SetAclPOptions options) throws AlluxioStatusException {
     retryRPC(() -> mGrpcClient.setAcl(
-        SetAclPRequest.newBuilder().setPath(path.getPath()).setAction(GrpcUtils.toProto(action))
+        SetAclPRequest.newBuilder().setPath(path.getPath()).setAction(action)
             .addAllEntries(entries.stream().map(GrpcUtils::toProto).collect(Collectors.toList()))
             .setOptions(options).build()),
         "SetAcl");

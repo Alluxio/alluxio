@@ -91,9 +91,9 @@ public final class File {
   }
 
   /**
-   * Protobuf enum {@code alluxio.proto.journal.SetAclAction}
+   * Protobuf enum {@code alluxio.proto.journal.PSetAclAction}
    */
-  public enum SetAclAction
+  public enum PSetAclAction
       implements com.google.protobuf.ProtocolMessageEnum {
     /**
      * <code>REPLACE = 0;</code>
@@ -141,7 +141,7 @@ public final class File {
 
     public final int getNumber() { return value; }
 
-    public static SetAclAction valueOf(int value) {
+    public static PSetAclAction valueOf(int value) {
       switch (value) {
         case 0: return REPLACE;
         case 1: return MODIFY;
@@ -152,15 +152,15 @@ public final class File {
       }
     }
 
-    public static com.google.protobuf.Internal.EnumLiteMap<SetAclAction>
+    public static com.google.protobuf.Internal.EnumLiteMap<PSetAclAction>
         internalGetValueMap() {
       return internalValueMap;
     }
-    private static com.google.protobuf.Internal.EnumLiteMap<SetAclAction>
+    private static com.google.protobuf.Internal.EnumLiteMap<PSetAclAction>
         internalValueMap =
-          new com.google.protobuf.Internal.EnumLiteMap<SetAclAction>() {
-            public SetAclAction findValueByNumber(int number) {
-              return SetAclAction.valueOf(number);
+          new com.google.protobuf.Internal.EnumLiteMap<PSetAclAction>() {
+            public PSetAclAction findValueByNumber(int number) {
+              return PSetAclAction.valueOf(number);
             }
           };
 
@@ -177,9 +177,9 @@ public final class File {
       return alluxio.proto.journal.File.getDescriptor().getEnumTypes().get(1);
     }
 
-    private static final SetAclAction[] VALUES = values();
+    private static final PSetAclAction[] VALUES = values();
 
-    public static SetAclAction valueOf(
+    public static PSetAclAction valueOf(
         com.google.protobuf.Descriptors.EnumValueDescriptor desc) {
       if (desc.getType() != getDescriptor()) {
         throw new java.lang.IllegalArgumentException(
@@ -191,12 +191,12 @@ public final class File {
     private final int index;
     private final int value;
 
-    private SetAclAction(int index, int value) {
+    private PSetAclAction(int index, int value) {
       this.index = index;
       this.value = value;
     }
 
-    // @@protoc_insertion_point(enum_scope:alluxio.proto.journal.SetAclAction)
+    // @@protoc_insertion_point(enum_scope:alluxio.proto.journal.PSetAclAction)
   }
 
   /**
@@ -17856,15 +17856,15 @@ public final class File {
      */
     long getOpTimeMs();
 
-    // optional .alluxio.proto.journal.SetAclAction action = 3;
+    // optional .alluxio.proto.journal.PSetAclAction action = 3;
     /**
-     * <code>optional .alluxio.proto.journal.SetAclAction action = 3;</code>
+     * <code>optional .alluxio.proto.journal.PSetAclAction action = 3;</code>
      */
     boolean hasAction();
     /**
-     * <code>optional .alluxio.proto.journal.SetAclAction action = 3;</code>
+     * <code>optional .alluxio.proto.journal.PSetAclAction action = 3;</code>
      */
-    alluxio.proto.journal.File.SetAclAction getAction();
+    PSetAclAction getAction();
 
     // repeated .alluxio.proto.shared.AclEntry entries = 4;
     /**
@@ -17968,7 +17968,7 @@ public final class File {
             }
             case 24: {
               int rawValue = input.readEnum();
-              alluxio.proto.journal.File.SetAclAction value = alluxio.proto.journal.File.SetAclAction.valueOf(rawValue);
+              PSetAclAction value = PSetAclAction.valueOf(rawValue);
               if (value == null) {
                 unknownFields.mergeVarintField(3, rawValue);
               } else {
@@ -18065,19 +18065,19 @@ public final class File {
       return opTimeMs_;
     }
 
-    // optional .alluxio.proto.journal.SetAclAction action = 3;
+    // optional .alluxio.proto.journal.PSetAclAction action = 3;
     public static final int ACTION_FIELD_NUMBER = 3;
-    private alluxio.proto.journal.File.SetAclAction action_;
+    private PSetAclAction action_;
     /**
-     * <code>optional .alluxio.proto.journal.SetAclAction action = 3;</code>
+     * <code>optional .alluxio.proto.journal.PSetAclAction action = 3;</code>
      */
     public boolean hasAction() {
       return ((bitField0_ & 0x00000004) == 0x00000004);
     }
     /**
-     * <code>optional .alluxio.proto.journal.SetAclAction action = 3;</code>
+     * <code>optional .alluxio.proto.journal.PSetAclAction action = 3;</code>
      */
-    public alluxio.proto.journal.File.SetAclAction getAction() {
+    public PSetAclAction getAction() {
       return action_;
     }
 
@@ -18136,7 +18136,7 @@ public final class File {
     private void initFields() {
       id_ = 0L;
       opTimeMs_ = 0L;
-      action_ = alluxio.proto.journal.File.SetAclAction.REPLACE;
+      action_ = PSetAclAction.REPLACE;
       entries_ = java.util.Collections.emptyList();
       recursive_ = false;
     }
@@ -18321,7 +18321,7 @@ public final class File {
         bitField0_ = (bitField0_ & ~0x00000001);
         opTimeMs_ = 0L;
         bitField0_ = (bitField0_ & ~0x00000002);
-        action_ = alluxio.proto.journal.File.SetAclAction.REPLACE;
+        action_ = PSetAclAction.REPLACE;
         bitField0_ = (bitField0_ & ~0x00000004);
         if (entriesBuilder_ == null) {
           entries_ = java.util.Collections.emptyList();
@@ -18531,24 +18531,24 @@ public final class File {
         return this;
       }
 
-      // optional .alluxio.proto.journal.SetAclAction action = 3;
-      private alluxio.proto.journal.File.SetAclAction action_ = alluxio.proto.journal.File.SetAclAction.REPLACE;
+      // optional .alluxio.proto.journal.PSetAclAction action = 3;
+      private PSetAclAction action_ = PSetAclAction.REPLACE;
       /**
-       * <code>optional .alluxio.proto.journal.SetAclAction action = 3;</code>
+       * <code>optional .alluxio.proto.journal.PSetAclAction action = 3;</code>
        */
       public boolean hasAction() {
         return ((bitField0_ & 0x00000004) == 0x00000004);
       }
       /**
-       * <code>optional .alluxio.proto.journal.SetAclAction action = 3;</code>
+       * <code>optional .alluxio.proto.journal.PSetAclAction action = 3;</code>
        */
-      public alluxio.proto.journal.File.SetAclAction getAction() {
+      public PSetAclAction getAction() {
         return action_;
       }
       /**
-       * <code>optional .alluxio.proto.journal.SetAclAction action = 3;</code>
+       * <code>optional .alluxio.proto.journal.PSetAclAction action = 3;</code>
        */
-      public Builder setAction(alluxio.proto.journal.File.SetAclAction value) {
+      public Builder setAction(PSetAclAction value) {
         if (value == null) {
           throw new NullPointerException();
         }
@@ -18558,11 +18558,11 @@ public final class File {
         return this;
       }
       /**
-       * <code>optional .alluxio.proto.journal.SetAclAction action = 3;</code>
+       * <code>optional .alluxio.proto.journal.PSetAclAction action = 3;</code>
        */
       public Builder clearAction() {
         bitField0_ = (bitField0_ & ~0x00000004);
-        action_ = alluxio.proto.journal.File.SetAclAction.REPLACE;
+        action_ = PSetAclAction.REPLACE;
         onChanged();
         return this;
       }
@@ -21376,7 +21376,7 @@ public final class File {
       " \001(\003\022\025\n\rnew_parent_id\030\004 \001(\003\022\020\n\010new_name\030" +
       "\005 \001(\t\"\246\001\n\013SetAclEntry\022\n\n\002id\030\001 \001(\003\022\022\n\nop_" +
       "time_ms\030\002 \001(\003\0223\n\006action\030\003 \001(\0162#.alluxio." +
-      "proto.journal.SetAclAction\022/\n\007entries\030\004 " +
+      "proto.journal.PSetAclAction\022/\n\007entries\030\004 " +
       "\003(\0132\036.alluxio.proto.shared.AclEntry\022\021\n\tr" +
       "ecursive\030\005 \001(\010\"\311\002\n\021SetAttributeEntry\022\n\n\002" +
       "id\030\001 \001(\003\022\022\n\nop_time_ms\030\002 \001(\003\022\016\n\006pinned\030\003",

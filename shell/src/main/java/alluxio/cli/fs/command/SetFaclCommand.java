@@ -19,7 +19,7 @@ import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.SetAclPOptions;
 import alluxio.security.authorization.AclEntry;
-import alluxio.wire.SetAclAction;
+import alluxio.grpc.SetAclAction;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;

@@ -4,52 +4,52 @@
 package alluxio.grpc;
 
 /**
- * Protobuf enum {@code alluxio.grpc.PSetAclAction}
+ * Protobuf enum {@code alluxio.grpc.SetAclAction}
  */
-public enum PSetAclAction
+public enum SetAclAction
     implements com.google.protobuf.ProtocolMessageEnum {
   /**
-   * <code>Replace = 0;</code>
+   * <code>REPLACE = 0;</code>
    */
-  Replace(0),
+  REPLACE(0),
   /**
-   * <code>Modify = 1;</code>
+   * <code>MODIFY = 1;</code>
    */
-  Modify(1),
+  MODIFY(1),
   /**
-   * <code>Remove = 2;</code>
+   * <code>REMOVE = 2;</code>
    */
-  Remove(2),
+  REMOVE(2),
   /**
-   * <code>RemoveAll = 3;</code>
+   * <code>REMOVE_ALL = 3;</code>
    */
-  RemoveAll(3),
+  REMOVE_ALL(3),
   /**
-   * <code>RemoveDefault = 4;</code>
+   * <code>REMOVE_DEFAULT = 4;</code>
    */
-  RemoveDefault(4),
+  REMOVE_DEFAULT(4),
   ;
 
   /**
-   * <code>Replace = 0;</code>
+   * <code>REPLACE = 0;</code>
    */
-  public static final int Replace_VALUE = 0;
+  public static final int REPLACE_VALUE = 0;
   /**
-   * <code>Modify = 1;</code>
+   * <code>MODIFY = 1;</code>
    */
-  public static final int Modify_VALUE = 1;
+  public static final int MODIFY_VALUE = 1;
   /**
-   * <code>Remove = 2;</code>
+   * <code>REMOVE = 2;</code>
    */
-  public static final int Remove_VALUE = 2;
+  public static final int REMOVE_VALUE = 2;
   /**
-   * <code>RemoveAll = 3;</code>
+   * <code>REMOVE_ALL = 3;</code>
    */
-  public static final int RemoveAll_VALUE = 3;
+  public static final int REMOVE_ALL_VALUE = 3;
   /**
-   * <code>RemoveDefault = 4;</code>
+   * <code>REMOVE_DEFAULT = 4;</code>
    */
-  public static final int RemoveDefault_VALUE = 4;
+  public static final int REMOVE_DEFAULT_VALUE = 4;
 
 
   public final int getNumber() {
@@ -60,30 +60,30 @@ public enum PSetAclAction
    * @deprecated Use {@link #forNumber(int)} instead.
    */
   @java.lang.Deprecated
-  public static PSetAclAction valueOf(int value) {
+  public static SetAclAction valueOf(int value) {
     return forNumber(value);
   }
 
-  public static PSetAclAction forNumber(int value) {
+  public static SetAclAction forNumber(int value) {
     switch (value) {
-      case 0: return Replace;
-      case 1: return Modify;
-      case 2: return Remove;
-      case 3: return RemoveAll;
-      case 4: return RemoveDefault;
+      case 0: return REPLACE;
+      case 1: return MODIFY;
+      case 2: return REMOVE;
+      case 3: return REMOVE_ALL;
+      case 4: return REMOVE_DEFAULT;
       default: return null;
     }
   }
 
-  public static com.google.protobuf.Internal.EnumLiteMap<PSetAclAction>
+  public static com.google.protobuf.Internal.EnumLiteMap<SetAclAction>
       internalGetValueMap() {
     return internalValueMap;
   }
   private static final com.google.protobuf.Internal.EnumLiteMap<
-      PSetAclAction> internalValueMap =
-        new com.google.protobuf.Internal.EnumLiteMap<PSetAclAction>() {
-          public PSetAclAction findValueByNumber(int number) {
-            return PSetAclAction.forNumber(number);
+      SetAclAction> internalValueMap =
+        new com.google.protobuf.Internal.EnumLiteMap<SetAclAction>() {
+          public SetAclAction findValueByNumber(int number) {
+            return SetAclAction.forNumber(number);
           }
         };
 
@@ -100,9 +100,9 @@ public enum PSetAclAction
     return alluxio.grpc.FileSystemMasterProto.getDescriptor().getEnumTypes().get(2);
   }
 
-  private static final PSetAclAction[] VALUES = values();
+  private static final SetAclAction[] VALUES = values();
 
-  public static PSetAclAction valueOf(
+  public static SetAclAction valueOf(
       com.google.protobuf.Descriptors.EnumValueDescriptor desc) {
     if (desc.getType() != getDescriptor()) {
       throw new java.lang.IllegalArgumentException(
@@ -113,10 +113,10 @@ public enum PSetAclAction
 
   private final int value;
 
-  private PSetAclAction(int value) {
+  private SetAclAction(int value) {
     this.value = value;
   }
 
-  // @@protoc_insertion_point(enum_scope:alluxio.grpc.PSetAclAction)
+  // @@protoc_insertion_point(enum_scope:alluxio.grpc.SetAclAction)
 }
 

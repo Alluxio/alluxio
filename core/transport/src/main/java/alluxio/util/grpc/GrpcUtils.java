@@ -25,7 +25,6 @@ import alluxio.grpc.PAcl;
 import alluxio.grpc.PAclAction;
 import alluxio.grpc.PAclEntry;
 import alluxio.grpc.PAclEntryType;
-import alluxio.grpc.PSetAclAction;
 import alluxio.grpc.PersistCommandOptions;
 import alluxio.grpc.Scope;
 import alluxio.proto.journal.File;
@@ -43,7 +42,6 @@ import alluxio.wire.FileSystemCommand;
 import alluxio.wire.LoadMetadataType;
 import alluxio.wire.MountPointInfo;
 import alluxio.wire.PersistFile;
-import alluxio.wire.SetAclAction;
 import alluxio.wire.TieredIdentity;
 import alluxio.grpc.TtlAction;
 import alluxio.wire.UfsInfo;
@@ -95,32 +93,6 @@ public final class GrpcUtils {
       }
     }
     return optionsBuilder.build();
-  }
-
-  /**
-   * Converts from proto type to wire type.
-   *
-   * @param pSetAclAction {@link PSetAclAction}
-   * @return {@link SetAclAction} equivalent
-   */
-  public static SetAclAction fromProto(PSetAclAction pSetAclAction) {
-    if (pSetAclAction == null) {
-      throw new IllegalStateException("Null proto set acl action.");
-    }
-    switch (pSetAclAction) {
-      case Replace:
-        return SetAclAction.REPLACE;
-      case Modify:
-        return SetAclAction.MODIFY;
-      case Remove:
-        return SetAclAction.REMOVE;
-      case RemoveAll:
-        return SetAclAction.REMOVE_ALL;
-      case RemoveDefault:
-        return SetAclAction.REMOVE_DEFAULT;
-      default:
-        throw new IllegalStateException("Unrecognized proto set acl action: " + pSetAclAction);
-    }
   }
 
   /**
@@ -567,29 +539,6 @@ public final class GrpcUtils {
   /**
    * Converts wire type to proto type.
    *
-   * @param aclAction the wire representation to convert
-   * @return the converted proto representation
-   */
-  public static alluxio.grpc.PSetAclAction toProto(SetAclAction aclAction) {
-    switch (aclAction) {
-      case REPLACE:
-        return PSetAclAction.Replace;
-      case MODIFY:
-        return PSetAclAction.Modify;
-      case REMOVE:
-        return PSetAclAction.Remove;
-      case REMOVE_ALL:
-        return PSetAclAction.RemoveAll;
-      case REMOVE_DEFAULT:
-        return PSetAclAction.RemoveDefault;
-      default:
-        throw new IllegalStateException("Unrecognized set acl action: " + aclAction);
-    }
-  }
-
-  /**
-   * Converts wire type to proto type.
-   *
    * @param tieredIdentity the wire representation to convert
    * @return the converted proto representation
    */
@@ -598,26 +547,6 @@ public final class GrpcUtils {
         .addAllTiers(
             tieredIdentity.getTiers().stream().map(GrpcUtils::toProto).collect(Collectors.toList()))
         .build();
-  }
-
-  /**
-   * Converts wire type to proto type.
-   *
-   * @param ttlAction {@link TtlAction}
-   * @return {@link TtlAction} equivalent
-   */
-  public static alluxio.grpc.TtlAction toProto(TtlAction ttlAction) {
-    if (ttlAction == null) {
-      return alluxio.grpc.TtlAction.DELETE;
-    }
-    switch (ttlAction) {
-      case DELETE:
-        return alluxio.grpc.TtlAction.DELETE;
-      case FREE:
-        return alluxio.grpc.TtlAction.FREE;
-      default:
-        throw new IllegalStateException("Unrecognized ttl action: " + ttlAction);
-    }
   }
 
   /**

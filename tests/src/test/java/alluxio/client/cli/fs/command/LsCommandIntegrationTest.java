@@ -26,7 +26,7 @@ import alluxio.security.authorization.AclEntry;
 import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.util.CommonUtils;
 import alluxio.util.FormatUtils;
-import alluxio.wire.SetAclAction;
+import alluxio.grpc.SetAclAction;
 
 import org.junit.Assert;
 import org.junit.Test;

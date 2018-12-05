@@ -139,7 +139,7 @@ import alluxio.wire.BlockLocation;
 import alluxio.wire.FileBlockInfo;
 import alluxio.wire.FileInfo;
 import alluxio.wire.MountPointInfo;
-import alluxio.wire.SetAclAction;
+import alluxio.grpc.SetAclAction;
 import alluxio.wire.WorkerInfo;
 
 import com.codahale.metrics.Counter;
@@ -3387,8 +3387,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     }
     if (protoOptions.hasTtl()) {
       long ttl = protoOptions.getTtl();
-      if (inode.getTtl() != ttl
-          || GrpcUtils.toProto(inode.getTtlAction()) != protoOptions.getTtlAction()) {
+      if (inode.getTtl() != ttl || inode.getTtlAction() != protoOptions.getTtlAction()) {
         if (inode.getTtl() != ttl) {
           entry.setTtl(ttl);
         }

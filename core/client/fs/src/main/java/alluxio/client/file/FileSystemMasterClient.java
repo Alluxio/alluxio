@@ -32,7 +32,7 @@ import alluxio.grpc.UpdateUfsModePOptions;
 import alluxio.master.MasterClientConfig;
 import alluxio.security.authorization.AclEntry;
 import alluxio.wire.MountPointInfo;
-import alluxio.wire.SetAclAction;
+import alluxio.grpc.SetAclAction;
 
 import java.util.List;
 import java.util.Map;

@@ -81,7 +81,7 @@ import alluxio.underfs.UfsMode;
 import alluxio.util.RpcUtilsNew;
 import alluxio.util.grpc.GrpcUtils;
 import alluxio.wire.MountPointInfo;
-import alluxio.wire.SetAclAction;
+import alluxio.grpc.SetAclAction;
 
 import com.google.common.base.Preconditions;
 import io.grpc.stub.StreamObserver;
@@ -326,7 +326,7 @@ public final class FileSystemMasterClientServiceHandler
   public void setAcl(SetAclPRequest request,
                      StreamObserver<SetAclPResponse> responseObserver) {
     String alluxioPath = request.getPath();
-    SetAclAction aclAction = GrpcUtils.fromProto(request.getAction());
+    SetAclAction aclAction = request.getAction();
     List<PAclEntry> aclList = request.getEntriesList();
     SetAclPOptions options = request.getOptions();
     RpcUtilsNew.call(LOG, (RpcUtilsNew.RpcCallableThrowsIOException<SetAclPResponse>) () -> {

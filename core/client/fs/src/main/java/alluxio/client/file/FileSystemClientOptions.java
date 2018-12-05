@@ -85,9 +85,8 @@ public final class FileSystemClientOptions {
   public static ListStatusPOptions getListStatusOptions() {
     return ListStatusPOptions.newBuilder()
         .setCommonOptions(getCommonOptions().toBuilder()
-            .setTtl(Configuration.getMs(PropertyKey.USER_FILE_LOAD_TTL))
-            .setTtlAction(GrpcUtils.toProto(
-                Configuration.getEnum(PropertyKey.USER_FILE_LOAD_TTL_ACTION, TtlAction.class))))
+            .setTtl(Configuration.getMs(PropertyKey.USER_FILE_LOAD_TTL)).setTtlAction(
+                Configuration.getEnum(PropertyKey.USER_FILE_LOAD_TTL_ACTION, TtlAction.class)))
         .setLoadMetadataType(GrpcUtils.toProto(Configuration
             .getEnum(PropertyKey.USER_FILE_METADATA_LOAD_TYPE, LoadMetadataType.class)))
         .build();
@@ -131,9 +130,8 @@ public final class FileSystemClientOptions {
   public static CreateDirectoryPOptions getCreateDirectoryOptions() {
     return CreateDirectoryPOptions.newBuilder()
         .setCommonOptions(getCommonOptions().toBuilder()
-            .setTtl(Configuration.getLong(PropertyKey.USER_FILE_CREATE_TTL))
-            .setTtlAction(GrpcUtils.toProto(
-                Configuration.getEnum(PropertyKey.USER_FILE_CREATE_TTL_ACTION, TtlAction.class))))
+            .setTtl(Configuration.getLong(PropertyKey.USER_FILE_CREATE_TTL)).setTtlAction(
+                Configuration.getEnum(PropertyKey.USER_FILE_CREATE_TTL_ACTION, TtlAction.class)))
         .setRecursive(false)
         .setWriteType(Configuration
             .getEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class).toProto())

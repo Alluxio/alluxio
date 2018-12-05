@@ -212,7 +212,7 @@ public final class FileSystemMasterClientRestServiceHandler {
               FileSystemMasterCommonPOptions.newBuilder();
           commonOptions.setTtl(ttl);
           if (ttlAction != null) {
-            commonOptions.setTtlAction(GrpcUtils.toProto(ttlAction));
+            commonOptions.setTtlAction(ttlAction);
           }
           context.getOptions().setCommonOptions(commonOptions);
         }
@@ -441,7 +441,7 @@ public final class FileSystemMasterClientRestServiceHandler {
           optionsBuilder.setTtl(ttl);
         }
         if (ttlAction != null) {
-          optionsBuilder.setTtlAction(GrpcUtils.toProto(ttlAction));
+          optionsBuilder.setTtlAction(ttlAction);
         }
         if (persisted != null) {
           optionsBuilder.setPersisted(persisted);

@@ -93,7 +93,7 @@ import alluxio.util.io.FileUtils;
 import alluxio.wire.FileBlockInfo;
 import alluxio.wire.FileInfo;
 import alluxio.wire.FileSystemCommand;
-import alluxio.wire.SetAclAction;
+import alluxio.grpc.SetAclAction;
 import alluxio.wire.UfsInfo;
 import alluxio.wire.WorkerNetAddress;
 
