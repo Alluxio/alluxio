@@ -168,6 +168,7 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
       Object o = c.newInstance(URI.create(ufsUri.toString()), hdfsConf);
       if (o instanceof HdfsActiveSyncProvider) {
         hdfsActiveSyncProvider = (HdfsActiveSyncProvider) o;
+        LOG.info("Successfully instantiated SupportedHdfsActiveSyncProvider");
       } else {
         LOG.warn(
             "SupportedHdfsActiveSyncProvider is not instance of HdfsActiveSyncProvider. "
@@ -649,7 +650,7 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
 
   @Override
   public boolean supportsActiveSync() {
-    return true;
+    return !(mHdfsActiveSyncer instanceof NoopHdfsActiveSyncProvider);
   }
 
   @Override

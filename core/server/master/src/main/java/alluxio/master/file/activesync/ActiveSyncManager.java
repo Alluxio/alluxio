@@ -56,20 +56,21 @@ import java.util.stream.Collectors;
  */
 public class ActiveSyncManager implements JournalEntryIterable, JournalEntryReplayable {
   private static final Logger LOG = LoggerFactory.getLogger(ActiveSyncManager.class);
+  // a reference to the mount table
   private final MountTable mMountTable;
-
+  // a list of sync points
   private final List<AlluxioURI> mSyncPathList;
   // a map which maps mount id to a thread polling that UFS
   private final Map<Long, Future<?>> mPollerMap;
   //  a map which maps each mount id to a list of paths being actively synced on mountpoint
   private final Map<Long, List<AlluxioURI>> mFilterMap;
-
+  // a map which maps mount id to the latest txid synced on that mount point
   private final Map<Long, Long> mStartingTxIdMap;
-
+  // a lock which protects the above data structures
   private final Lock mSyncManagerLock;
-
+  // a reference to FSM
   private FileSystemMaster mFileSystemMaster;
-
+  // a local executor service used to launch polling threads
   private ExecutorService mExecutorService;
 
   /**
@@ -175,7 +176,7 @@ public class ActiveSyncManager implements JournalEntryIterable, JournalEntryRepl
       Future<?> future = executorService.submit(
           new HeartbeatThread(HeartbeatContext.MASTER_ACTIVE_UFS_SYNC,
               syncer,
-              (int) Configuration.getMs(PropertyKey.MASTER_ACTIVE_UFS_SYNC_INTERVAL_MS)));
+              (int) Configuration.getMs(PropertyKey.MASTER_ACTIVE_UFS_SYNC_INTERVAL)));
       mPollerMap.put(mountId, future);
     }
   }
@@ -244,7 +245,7 @@ public class ActiveSyncManager implements JournalEntryIterable, JournalEntryRepl
    *
    * @param mountId mountId to stop active sync
    */
-  public void stopSync(long mountId) throws InvalidPathException, IOException {
+  public void stopSyncForMount(long mountId) throws InvalidPathException, IOException {
     if (mFilterMap.containsKey(mountId)) {
       for (AlluxioURI uri : mFilterMap.get(mountId)) {
         stopSync(uri);

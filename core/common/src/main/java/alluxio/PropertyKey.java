@@ -1423,13 +1423,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_ACTIVE_UFS_SYNC_RETRY_TIMEOUT =
       new Builder(Name.MASTER_ACTIVE_UFS_SYNC_RETRY_TIMEOUT)
-          .setDescription("Retry period before workers give up on connecting to master")
+          .setDescription("Retry period before active ufs syncer gives up on connecting to the ufs")
           .setDefaultValue("1hour")
           .setScope(Scope.MASTER)
           .build();
-  public static final PropertyKey MASTER_ACTIVE_UFS_SYNC_INTERVAL_MS =
+  public static final PropertyKey MASTER_ACTIVE_UFS_SYNC_INTERVAL =
       new Builder(Name.MASTER_ACTIVE_UFS_SYNC_INTERVAL)
-          .setAlias(new String[]{"alluxio.master.activesync.interval.ms"})
           .setDefaultValue("30sec")
           .setDescription("Time interval to periodically actively sync UFS")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -1437,7 +1436,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_ACTIVE_UFS_SYNC_BATCH_INTERVAL =
       new Builder(Name.MASTER_ACTIVE_UFS_SYNC_BATCH_INTERVAL)
-          .setAlias(new String[]{"alluxio.master.activesync.batchinterval.ms"})
           .setDefaultValue("1sec")
           .setDescription("Time interval to batch incoming events for active syncing UFS")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -1446,8 +1444,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey MASTER_ACTIVE_UFS_SYNC_MAX_AGE =
       new Builder(Name.MASTER_ACTIVE_UFS_SYNC_MAX_AGE)
           .setDefaultValue("10")
-          .setDescription("Number of intervals before force syncing a "
-              + "directory as part of actively syncing UFS")
+          .setDescription("The maximum number of intervals we will wait to find a quiet "
+            + "period before we have to sync the directories")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
