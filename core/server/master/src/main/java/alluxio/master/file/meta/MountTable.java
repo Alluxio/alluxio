@@ -337,7 +337,7 @@ public final class MountTable implements JournalEntryIterable, JournalEntryRepla
     AlluxioURI returnVal = null;
     for (Map.Entry<String, MountInfo> mountInfoEntry : getMountTable().entrySet()) {
       try {
-        if (mountInfoEntry.getValue().getUfsUri().isParentOf(ufsUri)) {
+        if (mountInfoEntry.getValue().getUfsUri().isAncestorOf(ufsUri)) {
           returnVal = reverseResolve(mountInfoEntry.getValue().getAlluxioUri(),
               mountInfoEntry.getValue().getUfsUri(), ufsUri);
         }
