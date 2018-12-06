@@ -282,7 +282,7 @@ public final class UfsJournalLogWriterTest {
       writer.write(newEntry(nextSN));
       nextSN++;
       if (i == 3) {
-        flushOutputStream(writer);
+        writer.flush();
         UfsJournalSnapshot snapshot = UfsJournalSnapshot.getSnapshot(mJournal);
         UfsJournalFile journalFile = snapshot.getCurrentLog(mJournal);
         File file = new File(journalFile.getLocation().toString());
