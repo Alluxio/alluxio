@@ -38,8 +38,8 @@ import alluxio.exception.InvalidPathException;
 import alluxio.security.authorization.AclEntry;
 import alluxio.wire.MountPointInfo;
 import alluxio.wire.SetAclAction;
-
 import alluxio.wire.SyncPointInfo;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

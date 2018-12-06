@@ -48,8 +48,8 @@ import alluxio.uri.Authority;
 import alluxio.wire.LoadMetadataType;
 import alluxio.wire.MountPointInfo;
 import alluxio.wire.SetAclAction;
-
 import alluxio.wire.SyncPointInfo;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
