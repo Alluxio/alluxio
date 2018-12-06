@@ -17,6 +17,7 @@ import alluxio.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.SyncInfo;
 import alluxio.exception.ConnectionFailedException;
+import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidPathException;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatThread;
@@ -37,6 +38,7 @@ import com.google.common.collect.Iterators;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.concurrent.NotThreadSafe;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -55,6 +57,7 @@ import java.util.concurrent.locks.ReentrantLock;
 /**
  * Manager for the Active UFS sync process.
  */
+@NotThreadSafe
 public class ActiveSyncManager implements JournalEntryIterable, JournalEntryReplayable {
   private static final Logger LOG = LoggerFactory.getLogger(ActiveSyncManager.class);
   // a reference to the mount table
@@ -67,7 +70,7 @@ public class ActiveSyncManager implements JournalEntryIterable, JournalEntryRepl
   private final Map<Long, List<AlluxioURI>> mFilterMap;
   // a map which maps mount id to the latest txid synced on that mount point
   private final Map<Long, Long> mStartingTxIdMap;
-  // Future.isDone = SYNCED, !Future.isDone = SYNCING, Future == null => NOT_IN_SYNC
+  // Future.isDone = IN_SYNC, !Future.isDone = SYNCING, Future == null => NOT_IN_SYNC
   private final Map<AlluxioURI, Future<?>> mSyncPathStatus;
   // a lock which protects the above data structures
   private final Lock mSyncManagerLock;
@@ -235,8 +238,8 @@ public class ActiveSyncManager implements JournalEntryIterable, JournalEntryRepl
               try {
                 ufsResource.get().startSync(resolution.getUri());
               } catch (IOException e) {
-                LOG.info("Encountered IOexception during initial syncing for {}",
-                    resolution.getUri());
+                LOG.info(ExceptionMessage.FAILED_INITIAL_SYNC.getMessage(
+                    resolution.getUri()), e);
               }
             });
         mSyncPathStatus.put(syncPoint, syncFuture);
@@ -346,7 +349,7 @@ public class ActiveSyncManager implements JournalEntryIterable, JournalEntryRepl
       if (syncStatus == null) {
         status = SyncPointInfo.SyncStatus.NOT_IN_SYNC;
       } else if (syncStatus.isDone()) {
-        status = SyncPointInfo.SyncStatus.SYNCED;
+        status = SyncPointInfo.SyncStatus.IN_SYNC;
       } else {
         status = SyncPointInfo.SyncStatus.SYNCING;
       }

@@ -22,9 +22,10 @@ public class SyncPointInfo {
    * Indicates the sync status of the active sync point.
    */
   public enum SyncStatus {
+    // This state is possible when initial syncing is turned off
     NOT_IN_SYNC,
     SYNCING,
-    SYNCED
+    IN_SYNC
   }
 
   private final AlluxioURI mSyncPointUri;
@@ -32,6 +33,7 @@ public class SyncPointInfo {
 
   /**
    * Constructs a SyncPointInfo object.
+   *
    * @param syncPoint path to the sync point
    * @param syncStatus current syncing status
    */
@@ -83,7 +85,7 @@ public class SyncPointInfo {
         syncStatus = SyncStatus.SYNCING;
         break;
       case Synced:
-        syncStatus = SyncStatus.SYNCED;
+        syncStatus = SyncStatus.IN_SYNC;
         break;
       default:
         syncStatus = SyncStatus.NOT_IN_SYNC;

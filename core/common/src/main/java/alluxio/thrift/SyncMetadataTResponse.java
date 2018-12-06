@@ -65,7 +65,7 @@ public class SyncMetadataTResponse implements org.apache.thrift.TBase<SyncMetada
      */
     public static _Fields findByThriftId(int fieldId) {
       switch(fieldId) {
-        case 1: // SYNCED
+        case 1: // IN_SYNC
           return SYNCED;
         default:
           return null;
@@ -328,7 +328,7 @@ public class SyncMetadataTResponse implements org.apache.thrift.TBase<SyncMetada
           break;
         }
         switch (schemeField.id) {
-          case 1: // SYNCED
+          case 1: // IN_SYNC
             if (schemeField.type == org.apache.thrift.protocol.TType.BOOL) {
               struct.synced = iprot.readBool();
               struct.setSyncedIsSet(true);

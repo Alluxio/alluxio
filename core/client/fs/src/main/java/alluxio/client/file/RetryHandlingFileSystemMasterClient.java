@@ -147,14 +147,9 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
   @Override
   public synchronized List<alluxio.wire.SyncPointInfo> getSyncPathList()
       throws AlluxioStatusException {
-    return retryRPC(() -> {
-      List<alluxio.wire.SyncPointInfo> result = new ArrayList<>();
-      for (alluxio.thrift.SyncPointInfo syncPointInfo : mClient
-          .getSyncPathList().getSyncPathList()) {
-        result.add(alluxio.wire.SyncPointInfo.fromThrift(syncPointInfo));
-      }
-      return result;
-    }, "GetSyncPathList");
+    return retryRPC(() -> mClient.getSyncPathList().getSyncPathList().stream()
+        .map(x -> alluxio.wire.SyncPointInfo.fromThrift(x)).collect(Collectors.toList()),
+        "GetSyncPathList");
   }
 
   @Override

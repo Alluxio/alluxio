@@ -51,8 +51,8 @@ public class GetSyncPathListCommand extends AbstractFileSystemCommand{
         case NOT_IN_SYNC:
           System.out.println("NOT IN SYNC");
           break;
-        case SYNCED:
-          System.out.println("SYNCED");
+        case IN_SYNC:
+          System.out.println("IN_SYNC");
           break;
         case SYNCING:
           System.out.println("SYNCING");

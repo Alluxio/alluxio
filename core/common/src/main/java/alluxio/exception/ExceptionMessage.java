@@ -41,6 +41,9 @@ public enum ExceptionMessage {
   NO_WORKER_AVAILABLE_ON_ADDRESS("No Alluxio worker available for address {0}"),
   NO_WORKER_AVAILABLE("No available Alluxio worker found"),
 
+  // active sync
+  FAILED_INITIAL_SYNC("IOException encountered during initial syncing of sync point {0}"),
+
   // block lock manager
   LOCK_ID_FOR_DIFFERENT_BLOCK("lockId {0,number,#} is for blockId {1,number,#}, not {2,number,#}"),
   LOCK_ID_FOR_DIFFERENT_SESSION(
