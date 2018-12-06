@@ -31,8 +31,8 @@ import alluxio.resource.LockResource;
 import alluxio.retry.RetryUtils;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.io.PathUtils;
-
 import alluxio.wire.SyncPointInfo;
+
 import com.google.common.collect.Iterators;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -235,7 +235,8 @@ public class ActiveSyncManager implements JournalEntryIterable, JournalEntryRepl
               try {
                 ufsResource.get().startSync(resolution.getUri());
               } catch (IOException e) {
-                LOG.info("Encountered IOexception during initial syncing for {}", resolution.getUri());
+                LOG.info("Encountered IOexception during initial syncing for {}",
+                    resolution.getUri());
               }
             });
         mSyncPathStatus.put(syncPoint, syncFuture);

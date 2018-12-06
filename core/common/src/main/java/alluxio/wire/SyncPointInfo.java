@@ -19,7 +19,7 @@ import alluxio.AlluxioURI;
  */
 public class SyncPointInfo {
   /**
-   * Indicates the sync status of the active sync point
+   * Indicates the sync status of the active sync point.
    */
   public enum SyncStatus {
     NOT_IN_SYNC,
@@ -30,30 +30,49 @@ public class SyncPointInfo {
   private final AlluxioURI mSyncPointUri;
   private final SyncStatus mSyncStatus;
 
+  /**
+   * Constructs a SyncPointInfo object.
+   * @param syncPoint path to the sync point
+   * @param syncStatus current syncing status
+   */
   public SyncPointInfo(AlluxioURI syncPoint, SyncStatus syncStatus) {
     mSyncPointUri = syncPoint;
     mSyncStatus = syncStatus;
   }
 
+  /**
+   * Get the uri of the sync point.
+   * @return uri of the sync point
+   */
   public AlluxioURI getSyncPointUri() {
     return mSyncPointUri;
   }
 
+  /**
+   * Get the initial sync status.
+   * @return the initial sync status
+   */
   public SyncStatus getSyncStatus() {
     return mSyncStatus;
   }
 
   /**
-   * @return thrift representation of the file information
+   * @return thrift representation of the sync point information
    */
   public alluxio.thrift.SyncPointInfo toThrift() {
-    alluxio.thrift.SyncPointStatus status =  alluxio.thrift.SyncPointStatus.findByValue(mSyncStatus.ordinal());
+    alluxio.thrift.SyncPointStatus status =
+        alluxio.thrift.SyncPointStatus.findByValue(mSyncStatus.ordinal());
 
     alluxio.thrift.SyncPointInfo info = new alluxio.thrift.SyncPointInfo(
         mSyncPointUri.getPath(), status);
     return info;
   }
 
+  /**
+   * Generate sync point information from the thrift representation.
+   * @param syncPointInfo the thrift representation
+   * @return sync point info object
+   */
   public static SyncPointInfo fromThrift(alluxio.thrift.SyncPointInfo syncPointInfo) {
     SyncStatus syncStatus;
     switch (syncPointInfo.getSyncStatus()) {
@@ -71,5 +90,4 @@ public class SyncPointInfo {
     }
     return new SyncPointInfo(new AlluxioURI(syncPointInfo.getSyncPointUri()), syncStatus);
   }
-
 }

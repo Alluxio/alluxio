@@ -39,7 +39,6 @@ import alluxio.thrift.LoadMetadataTOptions;
 import alluxio.thrift.ScheduleAsyncPersistenceTOptions;
 import alluxio.thrift.StartSyncTOptions;
 import alluxio.thrift.StopSyncTOptions;
-import alluxio.thrift.SyncPointInfo;
 import alluxio.thrift.UnmountTOptions;
 import alluxio.wire.FileInfo;
 import alluxio.wire.MountPointInfo;

@@ -17,6 +17,7 @@ import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 
 import alluxio.wire.SyncPointInfo;
+
 import org.apache.commons.cli.CommandLine;
 
 import java.io.IOException;
