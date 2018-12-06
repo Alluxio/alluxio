@@ -12,6 +12,7 @@
 package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
+import alluxio.Constants;
 import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
@@ -33,7 +34,6 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class CatCommand extends AbstractFileSystemCommand {
-
   /**
    * @param fs the filesystem of Alluxio
    */
@@ -55,7 +55,7 @@ public final class CatCommand extends AbstractFileSystemCommand {
       throw new FileDoesNotExistException(ExceptionMessage.PATH_MUST_BE_FILE.getMessage(path));
     }
     OpenFileOptions options = OpenFileOptions.defaults();
-    byte[] buf = new byte[512];
+    byte[] buf = new byte[Constants.MB];
     try (FileInStream is = mFileSystem.openFile(path, options)) {
       int read = is.read(buf);
       while (read != -1) {
