@@ -365,7 +365,7 @@ public class BaseFileSystem implements FileSystem {
   }
 
   @Override
-  public List<String> getSyncPathList() throws IOException, AlluxioException {
+  public List<alluxio.wire.SyncPointInfo> getSyncPathList() throws IOException, AlluxioException {
     FileSystemMasterClient masterClient = mFileSystemContext.acquireMasterClient();
     try {
       return masterClient.getSyncPathList();

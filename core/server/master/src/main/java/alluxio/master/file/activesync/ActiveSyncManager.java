@@ -32,11 +32,13 @@ import alluxio.retry.RetryUtils;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.io.PathUtils;
 
+import alluxio.wire.SyncPointInfo;
 import com.google.common.collect.Iterators;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
@@ -49,7 +51,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.stream.Collectors;
 
 /**
  * Manager for the Active UFS sync process.
@@ -66,6 +67,8 @@ public class ActiveSyncManager implements JournalEntryIterable, JournalEntryRepl
   private final Map<Long, List<AlluxioURI>> mFilterMap;
   // a map which maps mount id to the latest txid synced on that mount point
   private final Map<Long, Long> mStartingTxIdMap;
+  // Future.isDone = SYNCED, !Future.isDone = SYNCING, Future == null => NOT_IN_SYNC
+  private final Map<AlluxioURI, Future<?>> mSyncPathStatus;
   // a lock which protects the above data structures
   private final Lock mSyncManagerLock;
   // a reference to FSM
@@ -81,12 +84,15 @@ public class ActiveSyncManager implements JournalEntryIterable, JournalEntryRepl
    */
   public ActiveSyncManager(MountTable mountTable,
       FileSystemMaster fileSystemMaster) {
+
     mMountTable = mountTable;
     mPollerMap = new ConcurrentHashMap<>();
     mFilterMap = new ConcurrentHashMap<>();
     mStartingTxIdMap = new ConcurrentHashMap<>();
     mSyncPathList = new CopyOnWriteArrayList<>();
     mFileSystemMaster = fileSystemMaster;
+    mSyncPathStatus = new ConcurrentHashMap<>();
+
     // A lock used to protect the state stored in the above maps and lists
     mSyncManagerLock = new ReentrantLock();
     // Executor Service for active syncing
@@ -224,7 +230,15 @@ public class ActiveSyncManager implements JournalEntryIterable, JournalEntryRepl
           throw new UnsupportedOperationException("Active Syncing is not supported on this UFS type"
               + ufsResource.get().getUnderFSType());
         }
-        ufsResource.get().startSync(resolution.getUri());
+        Future<?> syncFuture = mExecutorService.submit(
+            () -> {
+              try {
+                ufsResource.get().startSync(resolution.getUri());
+              } catch (IOException e) {
+                LOG.info("Encountered IOexception during initial syncing for {}", resolution.getUri());
+              }
+            });
+        mSyncPathStatus.put(syncPoint, syncFuture);
         // Add the new sync point to the filter map
         if (mFilterMap.containsKey(mountId)) {
           mFilterMap.get(mountId).add(syncPoint);
@@ -271,6 +285,7 @@ public class ActiveSyncManager implements JournalEntryIterable, JournalEntryRepl
 
       if (mFilterMap.containsKey(mountId)) {
         mFilterMap.get(mountId).remove(syncPoint);
+
         if (mFilterMap.get(mountId).isEmpty()) {
           // syncPoint removed was the last syncPoint for the rootPath
           mFilterMap.remove(mountId);
@@ -285,6 +300,10 @@ public class ActiveSyncManager implements JournalEntryIterable, JournalEntryRepl
           }
         }
         mSyncPathList.remove(syncPoint);
+        Future<?> syncFuture = mSyncPathStatus.remove(syncPoint);
+        if (syncFuture != null) {
+          syncFuture.cancel(true);
+        }
         try (CloseableResource<UnderFileSystem> ufs = resolution.acquireUfsResource()) {
           ufs.get().stopSync(resolution.getUri());
         }
@@ -318,10 +337,21 @@ public class ActiveSyncManager implements JournalEntryIterable, JournalEntryRepl
    *
    * @return a list of URIs (sync points)
    */
-  public List<String> getSyncPathList() {
-    return mSyncPathList.stream()
-        .map(AlluxioURI::getPath)
-        .collect(Collectors.toList());
+  public List<SyncPointInfo> getSyncPathList() {
+    List<SyncPointInfo> returnList = new ArrayList<>();
+    for (AlluxioURI uri: mSyncPathList) {
+      SyncPointInfo.SyncStatus status;
+      Future<?> syncStatus = mSyncPathStatus.get(uri);
+      if (syncStatus == null) {
+        status = SyncPointInfo.SyncStatus.NOT_IN_SYNC;
+      } else if (syncStatus.isDone()) {
+        status = SyncPointInfo.SyncStatus.SYNCED;
+      } else {
+        status = SyncPointInfo.SyncStatus.SYNCING;
+      }
+      returnList.add(new SyncPointInfo(uri, status));
+    }
+    return returnList;
   }
 
   private Iterator<Journal.JournalEntry> getSyncPathIterator() {

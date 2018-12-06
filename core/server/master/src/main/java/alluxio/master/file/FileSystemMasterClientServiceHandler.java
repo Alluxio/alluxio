@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.RpcUtils;
 import alluxio.RpcUtils.RpcCallableThrowsIOException;
+import alluxio.wire.SyncPointInfo;
 import alluxio.master.file.options.CheckConsistencyOptions;
 import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
@@ -257,8 +258,12 @@ public final class FileSystemMasterClientServiceHandler implements
   @Override
   public GetSyncPathListTResponse getSyncPathList() throws AlluxioTException, TException {
     return RpcUtils.call(LOG, (RpcCallableThrowsIOException<GetSyncPathListTResponse>) () -> {
-      List<String> pathList = mFileSystemMaster.getSyncPathList();
-      return new GetSyncPathListTResponse(pathList);
+      List<SyncPointInfo> pathList = mFileSystemMaster.getSyncPathList();
+      List<alluxio.thrift.SyncPointInfo> syncPointInfoList = new ArrayList<>();
+      for (SyncPointInfo syncPointInfo : pathList) {
+        syncPointInfoList.add(syncPointInfo.toThrift());
+      }
+      return new GetSyncPathListTResponse(syncPointInfoList);
     }, "GetSyncPathList", "");
   }
 

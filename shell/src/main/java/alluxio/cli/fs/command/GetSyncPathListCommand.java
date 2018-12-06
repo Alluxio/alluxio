@@ -16,6 +16,7 @@ import alluxio.client.file.FileSystem;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 
+import alluxio.wire.SyncPointInfo;
 import org.apache.commons.cli.CommandLine;
 
 import java.io.IOException;
@@ -41,10 +42,23 @@ public class GetSyncPathListCommand extends AbstractFileSystemCommand{
 
   @Override
   public int run(CommandLine cl) throws AlluxioException, IOException {
-    List<String> files = mFileSystem.getSyncPathList();
+    List<SyncPointInfo> files = mFileSystem.getSyncPathList();
     System.out.println("The following paths are under active sync");
-    for (String file : files) {
-      System.out.println(file);
+    for (SyncPointInfo syncPointInfo : files) {
+      System.out.println(syncPointInfo.getSyncPointUri() + "\t");
+      switch (syncPointInfo.getSyncStatus()) {
+        case NOT_IN_SYNC:
+          System.out.println("NOT IN SYNC");
+          break;
+        case SYNCED:
+          System.out.println("SYNCED");
+          break;
+        case SYNCING:
+          System.out.println("SYNCING");
+          break;
+        default:
+          System.out.println("Invalid Syncing Status");
+      }
     }
     return 0;
   }

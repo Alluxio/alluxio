@@ -135,7 +135,7 @@ public interface FileSystemMasterClient extends Client {
    *
    * @return the list of paths
    */
-  List<String> getSyncPathList() throws AlluxioStatusException;
+  List<alluxio.wire.SyncPointInfo> getSyncPathList() throws AlluxioStatusException;
 
   /**
    * @param path the path to list

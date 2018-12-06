@@ -294,7 +294,7 @@ public interface FileSystem {
    *
    * @return a list of actively synced paths
    */
-  List<String> getSyncPathList() throws IOException, AlluxioException;
+  List<alluxio.wire.SyncPointInfo> getSyncPathList() throws IOException, AlluxioException;
 
   /**
    * Convenience method for {@link #openFile(AlluxioURI, OpenFileOptions)} with default options.

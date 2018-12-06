@@ -48,6 +48,7 @@ import alluxio.master.audit.AuditContext;
 import alluxio.master.block.BlockId;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.activesync.ActiveSyncManager;
+import alluxio.wire.SyncPointInfo;
 import alluxio.master.file.meta.FileSystemMasterView;
 import alluxio.master.file.meta.InodeDirectory;
 import alluxio.master.file.meta.InodeDirectoryIdGenerator;
@@ -3617,7 +3618,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
   }
 
   @Override
-  public List<String> getSyncPathList() throws UnavailableException {
+  public List<SyncPointInfo> getSyncPathList() throws UnavailableException {
     return mSyncManager.getSyncPathList();
   }
 

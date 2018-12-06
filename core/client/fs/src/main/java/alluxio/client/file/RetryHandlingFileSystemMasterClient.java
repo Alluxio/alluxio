@@ -39,6 +39,7 @@ import alluxio.thrift.LoadMetadataTOptions;
 import alluxio.thrift.ScheduleAsyncPersistenceTOptions;
 import alluxio.thrift.StartSyncTOptions;
 import alluxio.thrift.StopSyncTOptions;
+import alluxio.thrift.SyncPointInfo;
 import alluxio.thrift.UnmountTOptions;
 import alluxio.wire.FileInfo;
 import alluxio.wire.MountPointInfo;
@@ -145,10 +146,16 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
   }
 
   @Override
-  public synchronized List<String> getSyncPathList()
+  public synchronized List<alluxio.wire.SyncPointInfo> getSyncPathList()
       throws AlluxioStatusException {
-    return retryRPC(() -> mClient.getSyncPathList()
-        .getSyncPathList(), "GetSyncPathList");
+    return retryRPC(() -> {
+      List<alluxio.wire.SyncPointInfo> result = new ArrayList<>();
+      for (alluxio.thrift.SyncPointInfo syncPointInfo : mClient
+          .getSyncPathList().getSyncPathList()) {
+        result.add(alluxio.wire.SyncPointInfo.fromThrift(syncPointInfo));
+      }
+      return result;
+    }, "GetSyncPathList");
   }
 
   @Override

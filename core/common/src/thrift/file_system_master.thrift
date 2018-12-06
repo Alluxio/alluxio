@@ -83,8 +83,19 @@ struct GetStatusTResponse {
   1: FileInfo fileInfo
 }
 
+enum SyncPointStatus {
+  Not_In_Sync = 0;
+  Syncing = 1;
+  Synced = 2;
+}
+
+struct SyncPointInfo {
+  1: string syncPointUri
+  2: SyncPointStatus syncStatus
+}
+
 struct GetSyncPathListTResponse {
-  1: list<string> syncPathList
+  1: list<SyncPointInfo> syncPathList
 }
 
 struct ListStatusTOptions {
