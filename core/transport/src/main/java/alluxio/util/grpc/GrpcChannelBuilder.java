@@ -11,6 +11,7 @@
 
 package alluxio.util.grpc;
 
+import io.grpc.ClientInterceptor;
 import io.grpc.internal.DnsNameResolverProvider;
 import io.grpc.netty.NettyChannelBuilder;
 
@@ -46,6 +47,16 @@ public final class GrpcChannelBuilder {
    */
   public GrpcChannelBuilder usePlaintext(boolean skipNegotiation) {
     mNettyChannelBuilder = mNettyChannelBuilder.usePlaintext(skipNegotiation);
+    return this;
+  }
+
+  /**
+   * Registers given client interceptor.
+   * @param interceptor client interceptor
+   * @return the updated {@link GrpcChannelBuilder} instance
+   */
+  public GrpcChannelBuilder intercept(ClientInterceptor interceptor) {
+    mNettyChannelBuilder = mNettyChannelBuilder.intercept(interceptor);
     return this;
   }
 

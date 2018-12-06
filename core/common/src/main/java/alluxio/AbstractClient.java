@@ -12,7 +12,6 @@
 package alluxio;
 
 import alluxio.exception.ExceptionMessage;
-import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.FailedPreconditionException;
 import alluxio.exception.status.Status;
@@ -23,11 +22,11 @@ import alluxio.grpc.GetServiceVersionPRequest;
 import alluxio.metrics.CommonMetrics;
 import alluxio.metrics.Metric;
 import alluxio.metrics.MetricsSystem;
-import alluxio.network.thrift.ThriftUtils;
 import alluxio.retry.RetryPolicy;
 import alluxio.retry.RetryUtils;
 import alluxio.security.LoginUser;
-import alluxio.security.authentication.TransportProvider;
+import alluxio.security.authentication.AuthenticationClient;
+import alluxio.security.authentication.ClientIdInjector;
 import alluxio.util.grpc.GrpcChannel;
 import alluxio.util.grpc.GrpcChannelBuilder;
 import alluxio.util.SecurityUtils;
@@ -37,13 +36,12 @@ import com.codahale.metrics.Timer;
 import com.google.common.base.Preconditions;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TProtocol;
-import org.apache.thrift.transport.TTransport;
-import org.apache.thrift.transport.TTransportException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.UUID;
 import java.util.function.Supplier;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -61,6 +59,8 @@ public abstract class AbstractClient implements Client {
 
   protected InetSocketAddress mAddress;
   protected TProtocol mProtocol;
+
+  protected UUID mClientId;
 
   protected GrpcChannel mChannel;
   protected GrpcChannel mJobChannel;
@@ -103,13 +103,16 @@ public abstract class AbstractClient implements Client {
    */
   public AbstractClient(Subject subject, InetSocketAddress address,
       Supplier<RetryPolicy> retryPolicySupplier) {
+    mClientId = UUID.randomUUID();
     mAddress = address;
     mParentSubject = subject;
     mRetryPolicySupplier = retryPolicySupplier;
     mServiceVersion = Constants.UNKNOWN_SERVICE_VERSION;
     // TODO(ggezer) review grpc channel initialization
-    mChannel = GrpcChannelBuilder.forAddress("localhost", 50051).usePlaintext(true).build();
-    mJobChannel = GrpcChannelBuilder.forAddress("localhost", 50052).usePlaintext(true).build();
+    mChannel = GrpcChannelBuilder.forAddress("localhost", 50051).usePlaintext(true)
+        .intercept(new ClientIdInjector(mClientId)).build();
+    mJobChannel = GrpcChannelBuilder.forAddress("localhost", 50052).usePlaintext(true)
+        .intercept(new ClientIdInjector(mClientId)).build();
     mVersionService = AlluxioVersionServiceGrpc.newBlockingStub(mChannel);
   }
 
@@ -224,16 +227,19 @@ public abstract class AbstractClient implements Client {
         LOG.info("Alluxio client (version {}) is trying to connect with {} @ {}",
             RuntimeConstants.VERSION, getServiceName(), mAddress);
         // The wrapper transport
-        TTransport clientTransport =
-            TransportProvider.Factory.create().getClientTransport(mParentSubject, mAddress);
-        mProtocol = ThriftUtils.createThriftProtocol(clientTransport, getServiceName());
-        mProtocol.getTransport().open();
-        LOG.info("Client registered with {} @ {}", getServiceName(), mAddress);
+        //TTransport clientTransport =
+        //    TransportProvider.Factory.create().getClientTransport(mParentSubject, mAddress);
+        //mProtocol = ThriftUtils.createThriftProtocol(clientTransport, getServiceName());
+        //mProtocol.getTransport().open();
+        //LOG.info("Client registered with {} @ {}", getServiceName(), mAddress);
+        AuthenticationClient authClient =
+                new AuthenticationClient(mClientId, mParentSubject, mChannel);
+        authClient.authenticate();
         mConnected = true;
         afterConnect();
         checkVersion(getServiceVersion());
         return;
-      } catch (IOException | TTransportException e) {
+      } catch (IOException e) {
         LOG.warn("Failed to connect ({}) with {} @ {}: {}", retryPolicy.getAttemptCount(),
             getServiceName(), mAddress, e.getMessage());
         if (e.getCause() instanceof java.net.SocketTimeoutException) {
@@ -261,10 +267,10 @@ public abstract class AbstractClient implements Client {
    */
   public synchronized void disconnect() {
     if (mConnected) {
-      Preconditions.checkNotNull(mProtocol, PreconditionMessage.PROTOCOL_NULL_WHEN_CONNECTED);
+      //Preconditions.checkNotNull(mProtocol, PreconditionMessage.PROTOCOL_NULL_WHEN_CONNECTED);
       LOG.debug("Disconnecting from the {} @ {}", getServiceName(), mAddress);
       beforeDisconnect();
-      mProtocol.getTransport().close();
+      //mProtocol.getTransport().close();
       mConnected = false;
       afterDisconnect();
     }
@@ -359,7 +365,7 @@ public abstract class AbstractClient implements Client {
         return rpc.call();
       } catch (Exception e) {
         AlluxioStatusException se = GrpcExceptionUtils.fromGrpcStatusException(e);
-        if (se.getStatus() == Status.UNAVAILABLE) {
+        if (se.getStatus() == Status.UNAVAILABLE || se.getStatus() == Status.UNAUTHENTICATED) {
           ex = se;
         } else {
           throw se;

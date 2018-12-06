@@ -23,8 +23,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * This class is a gRPC handler that serves Alluxio service versions. TODO(ggezer) Support returning
- * version information only for services that are exposed.
+ * This class is a gRPC handler that serves Alluxio service versions.
+ * TODO(ggezer) Support selective version serving.
  */
 public final class AlluxioVersionServiceHandler
     extends AlluxioVersionServiceGrpc.AlluxioVersionServiceImplBase {

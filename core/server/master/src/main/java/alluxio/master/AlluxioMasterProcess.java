@@ -34,6 +34,8 @@ import alluxio.metrics.sink.MetricsServlet;
 import alluxio.metrics.sink.PrometheusMetricsServlet;
 import alluxio.network.thrift.BootstrapServerTransport;
 import alluxio.network.thrift.ThriftUtils;
+import alluxio.security.authentication.AuthenticationClientInterceptor;
+import alluxio.security.authentication.AuthenticatedClientRegistry;
 import alluxio.security.authentication.TransportProvider;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
@@ -392,6 +394,8 @@ public class AlluxioMasterProcess implements MasterProcess {
       MetaMaster metaMaster = getMaster(MetaMaster.class);
       MetricsMaster metricsMaster = getMaster(MetricsMaster.class);
 
+      AuthenticatedClientRegistry clientRegistry = new AuthenticatedClientRegistry();
+
       LOG.info("Starting gRPC server on port {}", port);
       mGrpcServer = GrpcServerBuilder.forPort(port)
           .addService(new FileSystemMasterClientServiceHandler(master))
@@ -403,6 +407,8 @@ public class AlluxioMasterProcess implements MasterProcess {
           .addService(new MetaMasterMasterServiceHandler(metaMaster))
           .addService(new MetricsMasterClientServiceHandler(metricsMaster))
           .addService(new AlluxioVersionServiceHandler())
+          .addService(new AlluxioSaslClientServiceHandler(clientRegistry))
+          .intercept(new AuthenticationClientInterceptor(clientRegistry))
           .executor(executorService)
           .build()
           .start();

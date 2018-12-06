@@ -100,13 +100,8 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
   }
 
   @Override
-  public synchronized void connect() {
-    // TODO(adit): temp workaround
-    mGrpcClient = FileSystemMasterClientServiceGrpc.newBlockingStub(mChannel);
-  }
-
-  @Override
   protected void afterConnect() {
+    mGrpcClient = FileSystemMasterClientServiceGrpc.newBlockingStub(mChannel);
   }
 
   @Override

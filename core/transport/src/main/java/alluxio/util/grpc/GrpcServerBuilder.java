@@ -12,6 +12,7 @@
 package alluxio.util.grpc;
 
 import io.grpc.BindableService;
+import io.grpc.ServerInterceptor;
 import io.grpc.netty.NettyServerBuilder;
 
 import java.util.concurrent.Executor;
@@ -69,6 +70,16 @@ public class GrpcServerBuilder {
    */
   public GrpcServerBuilder executor(@Nullable Executor executor) {
     mNettyServerBuilder = mNettyServerBuilder.executor(executor);
+    return this;
+  }
+
+  /**
+   * Adds a single interceptor for this server.
+   * @param interceptor server interceptor
+   * @return an updates instance of this {@link GrpcServerBuilder}
+   */
+  public GrpcServerBuilder intercept(ServerInterceptor interceptor) {
+    mNettyServerBuilder = mNettyServerBuilder.intercept(interceptor);
     return this;
   }
 }
