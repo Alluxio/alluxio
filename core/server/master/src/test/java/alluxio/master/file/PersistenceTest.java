@@ -20,7 +20,6 @@ import alluxio.client.job.JobMasterClient;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
-import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
 import alluxio.heartbeat.HeartbeatContext;
@@ -454,8 +453,8 @@ public final class PersistenceTest {
 
   private AlluxioURI createTestFile() throws Exception {
     AlluxioURI path = new AlluxioURI("/" + CommonUtils.randomAlphaNumString(10));
-    String owner = SecurityUtils.getOwnerFromThriftClient();
-    String group = SecurityUtils.getGroupFromThriftClient();
+    String owner = SecurityUtils.getOwnerFromGrpcClient();
+    String group = SecurityUtils.getGroupFromGrpcClient();
     mFileSystemMaster.createFile(path,
         CreateFileContext
             .defaults(

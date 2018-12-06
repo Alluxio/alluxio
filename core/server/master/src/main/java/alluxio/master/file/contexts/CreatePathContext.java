@@ -72,8 +72,8 @@ public abstract class CreatePathContext<T extends GeneratedMessageV3.Builder<?>,
     mGroup = "";
     mOwner = "";
     if (SecurityUtils.isAuthenticationEnabled()) {
-      mOwner = SecurityUtils.getOwnerFromThriftClient();
-      mGroup = SecurityUtils.getGroupFromThriftClient();
+      mOwner = SecurityUtils.getOwnerFromGrpcClient();
+      mGroup = SecurityUtils.getGroupFromGrpcClient();
     }
     // Initialize mPersisted based on proto write type.
     WritePType writeType = WritePType.WRITE_NONE;
