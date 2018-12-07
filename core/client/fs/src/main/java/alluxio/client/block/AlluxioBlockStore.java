@@ -270,7 +270,7 @@ public final class AlluxioBlockStore {
    * @param blockSize the standard block size to write, or -1 if the block already exists (and this
    *        stream is just storing the block in Alluxio again)
    * @param address the address of the worker to write the block to, fails if the worker cannot
-   *        serve the request
+   *        awaitTermination the request
    * @param options the output stream options
    * @return an {@link BlockOutStream} which can be used to write data to the block in a streaming
    *         fashion

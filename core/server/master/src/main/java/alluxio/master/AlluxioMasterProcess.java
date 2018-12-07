@@ -15,28 +15,12 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
-import alluxio.master.block.BlockMaster;
-import alluxio.master.block.BlockMasterClientServiceHandler;
-import alluxio.master.block.BlockMasterWorkerServiceHandler;
-import alluxio.master.file.FileSystemMaster;
-import alluxio.master.file.FileSystemMasterClientServiceHandler;
-import alluxio.master.file.FileSystemMasterJobServiceHandler;
-import alluxio.master.file.FileSystemMasterWorkerServiceHandler;
 import alluxio.master.journal.JournalSystem;
-import alluxio.master.meta.MetaMaster;
-import alluxio.master.meta.MetaMasterClientServiceHandler;
-import alluxio.master.meta.MetaMasterMasterServiceHandler;
-import alluxio.master.metrics.MetricsMaster;
-import alluxio.master.metrics.MetricsMasterClientServiceHandler;
 import alluxio.master.version.AlluxioVersionServiceHandler;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.sink.MetricsServlet;
 import alluxio.metrics.sink.PrometheusMetricsServlet;
-import alluxio.network.thrift.BootstrapServerTransport;
-import alluxio.network.thrift.ThriftUtils;
-import alluxio.security.authentication.AuthenticationClientInterceptor;
-import alluxio.security.authentication.AuthenticatedClientRegistry;
-import alluxio.security.authentication.TransportProvider;
+import alluxio.security.authentication.DefaultAuthenticationServer;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.util.CommonUtils;
@@ -52,14 +36,8 @@ import alluxio.web.WebServer;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
-import org.apache.thrift.TMultiplexedProcessor;
-import org.apache.thrift.TProcessor;
-import org.apache.thrift.server.TServer;
-import org.apache.thrift.server.TThreadPoolServer;
-import org.apache.thrift.server.TThreadPoolServer.Args;
-import org.apache.thrift.transport.TServerSocket;
-import org.apache.thrift.transport.TTransportException;
-import org.apache.thrift.transport.TTransportFactory;
+import io.grpc.BindableService;
+import io.grpc.ServerInterceptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -69,7 +47,6 @@ import java.net.InetSocketAddress;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.Lock;
 
@@ -83,10 +60,10 @@ import javax.annotation.concurrent.NotThreadSafe;
 public class AlluxioMasterProcess implements MasterProcess {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioMasterProcess.class);
 
-  /** Maximum number of threads to serve the rpc server. */
+  /** Maximum number of threads to awaitTermination the rpc server. */
   private final int mMaxWorkerThreads;
 
-  /** Minimum number of threads to serve the rpc server. */
+  /** Minimum number of threads to awaitTermination the rpc server. */
   private final int mMinWorkerThreads;
 
   /** The port for the RPC server. */
@@ -97,12 +74,6 @@ public class AlluxioMasterProcess implements MasterProcess {
    * guarantee that no other threads will modify master state.
    */
   private final Lock mPauseStateLock;
-
-  /** The socket for thrift rpc server. */
-  private TServerSocket mRpcServerSocket;
-
-  /** The transport provider to create thrift server transport. */
-  private final TransportProvider mTransportProvider;
 
   /** The bind address for the rpc server. */
   private final InetSocketAddress mRpcBindAddress;
@@ -117,11 +88,13 @@ public class AlluxioMasterProcess implements MasterProcess {
   /** The master registry. */
   private final MasterRegistry mRegistry;
 
+  /** The Authentication server for this process */
+  private final DefaultAuthenticationServer mAuthenticationServer;
+
   /** The web ui server. */
   private WebServer mWebServer;
 
   /** The RPC server. */
-  private TServer mThriftServer;
   private GrpcServer mGrpcServer;
 
   /** The start time for when the master started. */
@@ -169,12 +142,17 @@ public class AlluxioMasterProcess implements MasterProcess {
             this + " web port is only allowed to be zero in test mode.");
       }
 
-      mTransportProvider = TransportProvider.Factory.create();
-      mRpcServerSocket = ThriftUtils.createThriftServerSocket(
-          NetworkAddressUtils.getBindAddress(ServiceType.MASTER_RPC));
-      mPort = ThriftUtils.getThriftPort(mRpcServerSocket);
-      // reset master rpc port
-      Configuration.set(PropertyKey.MASTER_RPC_PORT, Integer.toString(mPort));
+      // Random port binding.
+      InetSocketAddress configuredBindAddress =
+          NetworkAddressUtils.getBindAddress(ServiceType.MASTER_RPC);
+      if (configuredBindAddress.getPort() == 0) {
+        mGrpcServer = GrpcServerBuilder.forAddress(configuredBindAddress).build().start();
+        mPort = mGrpcServer.getPort();
+        Configuration.set(PropertyKey.MASTER_RPC_PORT, Integer.toString(mPort));
+      } else {
+        mPort = configuredBindAddress.getPort();
+      }
+
       mRpcBindAddress = NetworkAddressUtils.getBindAddress(ServiceType.MASTER_RPC);
       mRpcConnectAddress = NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC);
 
@@ -184,6 +162,7 @@ public class AlluxioMasterProcess implements MasterProcess {
       }
       // Create masters.
       mRegistry = new MasterRegistry();
+      mAuthenticationServer = new DefaultAuthenticationServer();
       mSafeModeManager = new DefaultSafeModeManager();
       mBackupManager = new BackupManager(mRegistry);
       MasterContext context =
@@ -231,14 +210,14 @@ public class AlluxioMasterProcess implements MasterProcess {
 
   @Override
   public boolean isServing() {
-    return mThriftServer != null && mThriftServer.isServing();
+    return mGrpcServer != null && mGrpcServer.isServing();
   }
 
   @Override
   public boolean waitForReady(int timeoutMs) {
     try {
       CommonUtils.waitFor(this + " to start",
-          () -> mThriftServer != null && mThriftServer.isServing() && mWebServer != null
+          () -> mGrpcServer != null && mGrpcServer.isServing() && mWebServer != null
               && mWebServer.getServer().isRunning(),
           WaitForOptions.defaults().setTimeoutMs(timeoutMs));
       return true;
@@ -342,8 +321,6 @@ public class AlluxioMasterProcess implements MasterProcess {
         NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC),
         NetworkAddressUtils.getPort(ServiceType.MASTER_RPC),
         NetworkAddressUtils.getPort(ServiceType.MASTER_WEB));
-    // TODO(adit): This should replace the thrift server
-    startServingRPCServerNew();
     startServingRPCServer();
     LOG.info("Alluxio master ended{}", stopMessage);
   }
@@ -375,9 +352,10 @@ public class AlluxioMasterProcess implements MasterProcess {
     }
   }
 
-  private void registerServices(TMultiplexedProcessor processor, Map<String, TProcessor> services) {
-    for (Map.Entry<String, TProcessor> service : services.entrySet()) {
-      processor.registerProcessor(service.getKey(), service.getValue());
+  private void registerServices(GrpcServerBuilder serverBuilder, Map<String, BindableService> services) {
+    for (Map.Entry<String, BindableService> service : services.entrySet()) {
+      serverBuilder.addService( service.getValue());
+      LOG.info("registered service {}", service.getKey());
     }
   }
 
@@ -385,83 +363,33 @@ public class AlluxioMasterProcess implements MasterProcess {
    * Starts the gRPC server. The AlluxioMaster registers the Services of registered
    * {@link Master}s and meta services.
    */
-  protected void startServingRPCServerNew() {
-    int port = 50051;
+  protected void startServingRPCServer() {
     ExecutorService executorService = Executors.newFixedThreadPool(mMaxWorkerThreads);
     try {
-      FileSystemMaster master = getMaster(FileSystemMaster.class);
-      BlockMaster blockMaster = getMaster(BlockMaster.class);
-      MetaMaster metaMaster = getMaster(MetaMaster.class);
-      MetricsMaster metricsMaster = getMaster(MetricsMaster.class);
-
-      AuthenticatedClientRegistry clientRegistry = new AuthenticatedClientRegistry();
-
-      LOG.info("Starting gRPC server on port {}", port);
-      mGrpcServer = GrpcServerBuilder.forPort(port)
-          .addService(new FileSystemMasterClientServiceHandler(master))
-          .addService(new FileSystemMasterWorkerServiceHandler(master))
-          .addService(new FileSystemMasterJobServiceHandler(master))
-          .addService(new BlockMasterClientServiceHandler(blockMaster))
-          .addService(new BlockMasterWorkerServiceHandler(blockMaster))
-          .addService(new MetaMasterClientServiceHandler(metaMaster))
-          .addService(new MetaMasterMasterServiceHandler(metaMaster))
-          .addService(new MetricsMasterClientServiceHandler(metricsMaster))
-          .addService(new AlluxioVersionServiceHandler())
-          .addService(new AlluxioSaslClientServiceHandler(clientRegistry))
-          .intercept(new AuthenticationClientInterceptor(clientRegistry))
-          .executor(executorService)
-          .build()
-          .start();
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
-  }
-
-  /**
-   * Starts the Thrift RPC server. The AlluxioMaster registers the Services of registered
-   * {@link Master}s and meta services to a multiplexed processor, then creates the master thrift
-   * service with the multiplexed processor.
-   */
-  protected void startServingRPCServer() {
-    // set up multiplexed thrift processors
-    TMultiplexedProcessor processor = new TMultiplexedProcessor();
-    // register master services
-    for (Master master : mRegistry.getServers()) {
-      registerServices(processor, master.getServices());
-    }
-
-    // Return a TTransportFactory based on the authentication type
-    TTransportFactory transportFactory;
-    try {
-      String serverName = NetworkAddressUtils.getConnectHost(ServiceType.MASTER_RPC);
-      transportFactory = new BootstrapServerTransport.Factory(
-          mTransportProvider.getServerTransportFactory(serverName));
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
-
-    try {
-      if (mRpcServerSocket == null) {
-        mRpcServerSocket = ThriftUtils.createThriftServerSocket(mRpcBindAddress);
+      if(mGrpcServer!= null) {
+        // Server launched for auto bind.
+        // Terminate it.
+        mGrpcServer.stop();
+        mGrpcServer.awaitTermination();
       }
-    } catch (TTransportException e) {
+
+      LOG.info("Starting gRPC server on address {}", mRpcBindAddress);
+      GrpcServerBuilder serverBuilder =
+          GrpcServerBuilder.forAddress(mRpcBindAddress).executor(executorService);
+      for (Master master : mRegistry.getServers()) {
+        registerServices(serverBuilder, master.getServices());
+      }
+      serverBuilder.addService(new AlluxioVersionServiceHandler());
+      serverBuilder.addService(mAuthenticationServer);
+      for (ServerInterceptor interceptor : mAuthenticationServer.getInterceptors()) {
+        serverBuilder.intercept(interceptor);
+      }
+      mGrpcServer = serverBuilder.build().start();
+      mSafeModeManager.notifyRpcServerStarted();
+      mGrpcServer.awaitTermination();
+    } catch (IOException e) {
       throw new RuntimeException(e);
     }
-    // create master thrift service with the multiplexed processor.
-    Args args = new TThreadPoolServer.Args(mRpcServerSocket)
-        .maxWorkerThreads(mMaxWorkerThreads)
-        .minWorkerThreads(mMinWorkerThreads)
-        .processor(processor)
-        .transportFactory(transportFactory)
-        .protocolFactory(ThriftUtils.createThriftProtocolFactory())
-        .stopTimeoutVal((int) TimeUnit.MILLISECONDS
-            .toSeconds(Configuration.getMs(PropertyKey.MASTER_THRIFT_SHUTDOWN_TIMEOUT)));
-    args.stopTimeoutUnit = TimeUnit.SECONDS;
-    mThriftServer = new TThreadPoolServer(args);
-
-    // start thrift rpc server
-    mSafeModeManager.notifyRpcServerStarted();
-    mThriftServer.serve();
   }
 
   /**
@@ -469,13 +397,9 @@ public class AlluxioMasterProcess implements MasterProcess {
    * all the sinks.
    */
   protected void stopServing() throws Exception {
-    if (mThriftServer != null) {
-      mThriftServer.stop();
-      mThriftServer = null;
-    }
-    if (mRpcServerSocket != null) {
-      mRpcServerSocket.close();
-      mRpcServerSocket = null;
+    if (mGrpcServer != null) {
+      mGrpcServer.stop();
+      mGrpcServer.awaitTermination();
     }
     if (mJvmPauseMonitor != null) {
       mJvmPauseMonitor.stop();

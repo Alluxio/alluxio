@@ -21,12 +21,12 @@ public interface SaslHandshakeServerHandler {
          * @return the generated {@link AuthenticationProvider}
          * @throws AuthenticationException when unsupported authentication type is used
          */
-        public static SaslHandshakeServerHandler create(AuthType authType, SaslServer saslServer, AuthenticatedClientRegistry clientRegistry)
+        public static SaslHandshakeServerHandler create(AuthType authType, SaslServer saslServer)
                 throws AuthenticationException {
             switch (authType) {
                 case SIMPLE:
                 case CUSTOM:
-                    return new SaslHandshakeServerHandlerPlain(saslServer, clientRegistry);
+                    return new SaslHandshakeServerHandlerPlain(saslServer);
                 default:
                     throw new AuthenticationException("Unsupported AuthType: " + authType.getAuthName());
             }
@@ -34,5 +34,4 @@ public interface SaslHandshakeServerHandler {
     }
 
     public SaslMessage handleSaslMessage(SaslMessage message) throws SaslException;
-    public void persistAuthenticationInfo(UUID clientId);
 }

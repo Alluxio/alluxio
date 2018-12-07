@@ -43,6 +43,7 @@ import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import io.grpc.BindableService;
 import org.apache.thrift.TProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -167,10 +168,9 @@ public final class JobMaster extends AbstractNonJournaledMaster {
   }
 
   @Override
-  public Map<String, TProcessor> getServices() {
-    Map<String, TProcessor> services = Maps.newHashMap();
-    //services.put(Constants.JOB_MASTER_WORKER_SERVICE_NAME,
-    //    new JobMasterWorkerService.Processor<>(new JobMasterWorkerServiceHandler(this)));
+  public Map<String, BindableService> getServices() {
+    Map<String, BindableService> services = Maps.newHashMap();
+    services.put(Constants.JOB_MASTER_WORKER_SERVICE_NAME, new JobMasterWorkerServiceHandler(this));
     return services;
   }
 

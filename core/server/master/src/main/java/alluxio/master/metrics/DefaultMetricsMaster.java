@@ -36,6 +36,7 @@ import alluxio.util.executor.ExecutorServiceFactory;
 
 import com.codahale.metrics.Gauge;
 import com.google.common.annotations.VisibleForTesting;
+import io.grpc.BindableService;
 import org.apache.thrift.TProcessor;
 
 import java.io.IOException;
@@ -187,10 +188,9 @@ public class DefaultMetricsMaster extends AbstractMaster implements MetricsMaste
   }
 
   @Override
-  public Map<String, TProcessor> getServices() {
-    Map<String, TProcessor> services = new HashMap<>();
-    //services.put(Constants.METRICS_MASTER_CLIENT_SERVICE_NAME,
-    //    new MetricsMasterClientService.Processor<>(getMasterServiceHandler()));
+  public Map<String, BindableService> getServices() {
+    Map<String, BindableService> services = new HashMap<>();
+    services.put(Constants.METRICS_MASTER_CLIENT_SERVICE_NAME, getMasterServiceHandler());
     return services;
   }
 

@@ -433,8 +433,8 @@ public final class Configuration {
       List<alluxio.grpc.ConfigProperty> clusterConfig = null;
 
       try {
-        // TODO(ggezer) review grpc channel initialization
-        channel = GrpcChannelBuilder.forAddress("localhost", 50051).usePlaintext(true).build();
+        channel = GrpcChannelBuilder.forAddress(address)
+            .usePlaintext(true).build();
         MetaMasterClientServiceGrpc.MetaMasterClientServiceBlockingStub client =
             MetaMasterClientServiceGrpc.newBlockingStub(channel);
         clusterConfig =

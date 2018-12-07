@@ -10,11 +10,12 @@ import java.util.UUID;
 public class SaslStreamServerDriver implements StreamObserver<SaslMessage> {
   private StreamObserver<SaslMessage> mRequestObserver;
   private SaslHandshakeServerHandler mSaslHandshakeServerHandler;
-  private AuthenticatedClientRegistry mClientRegistry;
+  private AuthenticationServer mAuthenticationServer;
   private UUID mClientId;
+  private SaslServer mSaslServer;
 
-  public SaslStreamServerDriver(AuthenticatedClientRegistry clientRegistry) {
-    mClientRegistry = clientRegistry;
+  public SaslStreamServerDriver(AuthenticationServer authenticationServer) {
+    mAuthenticationServer = authenticationServer;
   }
 
   public void setClientObserver(StreamObserver<SaslMessage> requestObserver) {
@@ -28,10 +29,11 @@ public class SaslStreamServerDriver implements StreamObserver<SaslMessage> {
         // New authentication request
         AuthType authType = AuthType.valueOf(saslMessage.getAuthenticationName());
         mClientId = UUID.fromString(saslMessage.getClientId());
-        SaslServer saslServer = SaslParticipiantProvider.Factory.create(authType).getSaslServer("localhost");
-        mSaslHandshakeServerHandler = SaslHandshakeServerHandler.Factory.create(authType, saslServer, mClientRegistry);
+        // TODO(ggezer) wire server name
+        mSaslServer = SaslParticipiantProvider.Factory.create(authType).getSaslServer("localhost");
+        mSaslHandshakeServerHandler = SaslHandshakeServerHandler.Factory.create(authType, mSaslServer);
         // Unregister from registry if was authenticated before
-        mClientRegistry.unregisterClient(mClientId);
+        mAuthenticationServer.unregisterClient(mClientId);
       }
 
       mRequestObserver.onNext(mSaslHandshakeServerHandler.handleSaslMessage(saslMessage));
@@ -45,7 +47,7 @@ public class SaslStreamServerDriver implements StreamObserver<SaslMessage> {
 
   @Override
   public void onCompleted() {
+    mAuthenticationServer.registerClient(mClientId, mSaslServer.getAuthorizationID(), mSaslServer);
     mRequestObserver.onCompleted();
-    mSaslHandshakeServerHandler.persistAuthenticationInfo(mClientId);
   }
 }

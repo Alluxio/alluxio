@@ -150,6 +150,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Sets;
 import com.google.common.io.Closer;
+import io.grpc.BindableService;
 import org.apache.commons.lang.StringUtils;
 import org.apache.thrift.TProcessor;
 import org.slf4j.Logger;
@@ -404,17 +405,14 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   }
 
   @Override
-  public Map<String, TProcessor> getServices() {
-    Map<String, TProcessor> services = new HashMap<>();
-    // services.put(Constants.FILE_SYSTEM_MASTER_CLIENT_SERVICE_NAME,
-    //     new FileSystemMasterClientServiceProcessor(
-    //         new FileSystemMasterClientServiceHandler(this)));
-    // services.put(Constants.FILE_SYSTEM_MASTER_JOB_SERVICE_NAME,
-    //     new alluxio.thrift.FileSystemMasterJobService.Processor<>(
-    //         new FileSystemMasterJobServiceHandler(this)));
-    //services.put(Constants.FILE_SYSTEM_MASTER_WORKER_SERVICE_NAME,
-    //    new FileSystemMasterWorkerService.Processor<>(
-    //        new FileSystemMasterWorkerServiceHandler(this)));
+  public Map<String, BindableService> getServices() {
+    Map<String, BindableService> services = new HashMap<>();
+    services.put(Constants.FILE_SYSTEM_MASTER_CLIENT_SERVICE_NAME,
+        new FileSystemMasterClientServiceHandler(this));
+    services.put(Constants.FILE_SYSTEM_MASTER_JOB_SERVICE_NAME,
+        new FileSystemMasterJobServiceHandler(this));
+    services.put(Constants.FILE_SYSTEM_MASTER_WORKER_SERVICE_NAME,
+        new FileSystemMasterWorkerServiceHandler(this));
     return services;
   }
 

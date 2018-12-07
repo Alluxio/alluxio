@@ -45,7 +45,7 @@
  *
  * <h2>Thrift</h2>
  *
- * The thrift service on worker side has been deprecated since v1.5. It used to serve
+ * The thrift service on worker side has been deprecated since v1.5. It used to awaitTermination
  * metadata operations (with a few operations that effect the worker's cached memory) such as lock
  * unlock, access, request space for blocks. It has been completely replaced by
  * the {@link alluxio.worker.DataServer} service.

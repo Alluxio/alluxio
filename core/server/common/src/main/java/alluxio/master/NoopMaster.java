@@ -16,6 +16,7 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.master.journal.JournalContext;
 import alluxio.proto.journal.Journal.JournalEntry;
 
+import io.grpc.BindableService;
 import org.apache.thrift.TProcessor;
 
 import java.io.IOException;
@@ -57,7 +58,7 @@ public class NoopMaster implements Master {
   }
 
   @Override
-  public Map<String, TProcessor> getServices() {
+  public Map<String, BindableService> getServices() {
     return null;
   }
 

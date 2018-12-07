@@ -57,7 +57,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  *
  * 1. {@link #updateStream()} is a potentially expensive operation and is responsible for
  * creating new BlockInStreams and updating {@link #mBlockInStream}. After calling this method,
- * {@link #mBlockInStream} is ready to serve reads from the current {@link #mPosition}.
+ * {@link #mBlockInStream} is ready to awaitTermination reads from the current {@link #mPosition}.
  * 2. {@link #mPosition} can become out of sync with {@link #mBlockInStream} when seek or skip is
  * called. When this happens, {@link #mBlockInStream} is set to null and no effort is made to
  * sync between the two until {@link #updateStream()} is called.

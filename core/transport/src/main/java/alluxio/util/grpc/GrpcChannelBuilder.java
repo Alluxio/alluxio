@@ -1,7 +1,7 @@
 /*
- * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the "License"). You may not use this work except in compliance with the License, which is
- * available at www.apache.org/licenses/LICENSE-2.0
+ * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0 (the
+ * "License"). You may not use this work except in compliance with the License, which is available
+ * at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
  * either express or implied, as more fully set forth in the License.
@@ -12,8 +12,10 @@
 package alluxio.util.grpc;
 
 import io.grpc.ClientInterceptor;
-import io.grpc.internal.DnsNameResolverProvider;
+import io.grpc.ManagedChannelBuilder;
 import io.grpc.netty.NettyChannelBuilder;
+
+import java.net.InetSocketAddress;
 
 /**
  * A simple wrapper around the {@link NettyChannelBuilder} class in grpc. Outside of this module,
@@ -22,21 +24,22 @@ import io.grpc.netty.NettyChannelBuilder;
  */
 public final class GrpcChannelBuilder {
 
-  NettyChannelBuilder mNettyChannelBuilder;
+  ManagedChannelBuilder mChannelBuilder;
+
+  private GrpcChannelBuilder(ManagedChannelBuilder channelBuilder) {
+    // mChannelBuilder = nettyChannelBuilder.nameResolverFactory(new DnsNameResolverProvider());
+    mChannelBuilder = channelBuilder;
+  }
 
   /**
    * Create a channel builder for given address.
    *
-   * @param name the host name
-   * @param port the hos port
+   * @param address the host address
    * @return a new instance of {@link GrpcChannelBuilder}
    */
-  public static GrpcChannelBuilder forAddress(String name, int port) {
-    return new GrpcChannelBuilder(NettyChannelBuilder.forAddress(name, port));
-  }
-
-  private GrpcChannelBuilder(NettyChannelBuilder nettyChannelBuilder) {
-    mNettyChannelBuilder = nettyChannelBuilder.nameResolverFactory(new DnsNameResolverProvider());
+  public static GrpcChannelBuilder forAddress(InetSocketAddress address) {
+    return new GrpcChannelBuilder(
+        ManagedChannelBuilder.forAddress(address.getHostName(), address.getPort()));
   }
 
   /**
@@ -46,17 +49,18 @@ public final class GrpcChannelBuilder {
    * @return the updated {@link GrpcChannelBuilder} instance
    */
   public GrpcChannelBuilder usePlaintext(boolean skipNegotiation) {
-    mNettyChannelBuilder = mNettyChannelBuilder.usePlaintext(skipNegotiation);
+    mChannelBuilder = mChannelBuilder.usePlaintext(skipNegotiation);
     return this;
   }
 
   /**
    * Registers given client interceptor.
+   * 
    * @param interceptor client interceptor
    * @return the updated {@link GrpcChannelBuilder} instance
    */
   public GrpcChannelBuilder intercept(ClientInterceptor interceptor) {
-    mNettyChannelBuilder = mNettyChannelBuilder.intercept(interceptor);
+    mChannelBuilder = mChannelBuilder.intercept(interceptor);
     return this;
   }
 
@@ -64,6 +68,6 @@ public final class GrpcChannelBuilder {
    * @return the built {@link GrpcChannel}
    */
   public GrpcChannel build() {
-    return new GrpcChannel(mNettyChannelBuilder.build());
+    return new GrpcChannel(mChannelBuilder.build());
   }
 }

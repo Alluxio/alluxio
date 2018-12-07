@@ -64,6 +64,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterators;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import io.grpc.BindableService;
 import jersey.repackaged.com.google.common.base.Preconditions;
 import org.apache.thrift.TProcessor;
 import org.slf4j.Logger;
@@ -231,12 +232,12 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
   }
 
   @Override
-  public Map<String, TProcessor> getServices() {
-    Map<String, TProcessor> services = new HashMap<>();
-    //services.put(Constants.BLOCK_MASTER_CLIENT_SERVICE_NAME,
-    //   new BlockMasterClientService.Processor<>(new BlockMasterClientServiceHandler(this)));
-    //services.put(Constants.BLOCK_MASTER_WORKER_SERVICE_NAME,
-    //    new BlockMasterWorkerService.Processor<>(new BlockMasterWorkerServiceHandler(this)));
+  public Map<String, BindableService> getServices() {
+    Map<String, BindableService> services = new HashMap<>();
+    services.put(Constants.BLOCK_MASTER_CLIENT_SERVICE_NAME,
+        new BlockMasterClientServiceHandler(this));
+    services.put(Constants.BLOCK_MASTER_WORKER_SERVICE_NAME,
+        new BlockMasterWorkerServiceHandler(this));
     return services;
   }
 

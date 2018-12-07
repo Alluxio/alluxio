@@ -11,6 +11,7 @@
 
 package alluxio;
 
+import io.grpc.BindableService;
 import org.apache.thrift.TProcessor;
 
 import java.io.IOException;
@@ -35,10 +36,9 @@ public interface Server<T> {
   String getName();
 
   /**
-   * TODO(ggezer) Implement in all inheritors for gRPC.
-   * @return a map from service names to {@link TProcessor}s that serve RPCs for this server
+   * @return a map from service names to gRPC service handlers that awaitTermination RPCs for this server
    */
-  Map<String, TProcessor> getServices();
+  Map<String, BindableService> getServices();
 
   /**
    * Starts the Alluxio server.

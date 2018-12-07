@@ -79,7 +79,7 @@ public final class RetryHandlingJobMasterClient extends AbstractMasterClient
   @Override
   protected void afterConnect() throws IOException {
     // mClient = new JobMasterClientService.Client(mProtocol);
-    mGrpcClient = JobMasterClientServiceGrpc.newBlockingStub(mJobChannel);
+    mGrpcClient = JobMasterClientServiceGrpc.newBlockingStub(mChannel);
   }
 
   @Override

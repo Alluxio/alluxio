@@ -16,6 +16,7 @@ import alluxio.master.journal.JournalContext;
 import alluxio.proto.journal.Journal;
 import alluxio.proto.journal.Journal.JournalEntry;
 
+import io.grpc.BindableService;
 import org.apache.thrift.TProcessor;
 
 import java.io.IOException;
@@ -39,7 +40,7 @@ public final class MockMaster implements Master {
 
   @Override
   @Nullable
-  public Map<String, TProcessor> getServices() {
+  public Map<String, BindableService> getServices() {
     return null;
   }
 

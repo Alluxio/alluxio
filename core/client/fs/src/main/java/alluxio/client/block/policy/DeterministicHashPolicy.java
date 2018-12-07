@@ -47,7 +47,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class DeterministicHashPolicy implements BlockLocationPolicy {
-  /** The default number of shards to serve a block. */
+  /** The default number of shards to awaitTermination a block. */
   private static final int DEFAULT_NUM_SHARDS = 1;
   private final int mShards;
   private final Random mRandom = new Random();

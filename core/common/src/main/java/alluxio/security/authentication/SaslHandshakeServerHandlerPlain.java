@@ -11,12 +11,9 @@ import java.util.UUID;
 public class SaslHandshakeServerHandlerPlain implements SaslHandshakeServerHandler {
 
   SaslServer mSaslServer;
-  AuthenticatedClientRegistry mClientRegistry;
 
-  public SaslHandshakeServerHandlerPlain(SaslServer saslServer,
-      AuthenticatedClientRegistry clientRegistry) {
+  public SaslHandshakeServerHandlerPlain(SaslServer saslServer) {
     mSaslServer = saslServer;
-    mClientRegistry = clientRegistry;
   }
 
   @Override
@@ -37,13 +34,5 @@ public class SaslHandshakeServerHandlerPlain implements SaslHandshakeServerHandl
       default:
         throw new SaslException("Server can't handle SUCCESS Sasl message");
     }
-  }
-
-  @Override
-  public void persistAuthenticationInfo(UUID clientId) {
-    AuthenticatedClient clientInfo = new AuthenticatedClient();
-    clientInfo.setSaslServer(mSaslServer);
-    clientInfo.setUserName(mSaslServer.getAuthorizationID());
-    mClientRegistry.registerClient(clientId, clientInfo);
   }
 }

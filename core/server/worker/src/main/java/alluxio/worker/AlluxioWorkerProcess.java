@@ -74,7 +74,7 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
   /** Server for data requests and responses. */
   private DataServer mDataServer;
 
-  /** If started (i.e. not null), this server is used to serve local data transfer. */
+  /** If started (i.e. not null), this server is used to awaitTermination local data transfer. */
   private DataServer mDomainSocketDataServer;
 
   /** Whether the worker is serving the RPC server. */
@@ -320,7 +320,8 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
     TMultiplexedProcessor processor = new TMultiplexedProcessor();
 
     for (Worker worker : mRegistry.getServers()) {
-      registerServices(processor, worker.getServices());
+      //TODO(ggezer) remove thrift from worker process (and everywhere)
+      //registerServices(processor, worker.getServices());
     }
 
     // Return a TTransportFactory based on the authentication type

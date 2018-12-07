@@ -44,6 +44,7 @@ import alluxio.worker.file.FileSystemMasterClient;
 
 import com.codahale.metrics.Gauge;
 import com.google.common.base.Preconditions;
+import io.grpc.BindableService;
 import org.apache.thrift.TProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -173,8 +174,7 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   }
 
   @Override
-  public Map<String, TProcessor> getServices() {
-    // TODO(ggezer) This class does not expose services anymore
+  public Map<String, BindableService> getServices() {
     return Collections.emptyMap();
   }
 

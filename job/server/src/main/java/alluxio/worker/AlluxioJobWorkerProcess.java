@@ -237,7 +237,8 @@ public final class AlluxioJobWorkerProcess implements JobWorkerProcess {
     int maxWorkerThreads = Configuration.getInt(PropertyKey.WORKER_BLOCK_THREADS_MAX);
     TMultiplexedProcessor processor = new TMultiplexedProcessor();
 
-    registerServices(processor, mJobWorker.getServices());
+    // TODO(ggezer) remove thrift
+    //registerServices(processor, mJobWorker.getServices());
 
     // Return a TTransportFactory based on the authentication type
     TTransportFactory tTransportFactory;

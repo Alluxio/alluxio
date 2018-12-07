@@ -42,4 +42,38 @@ public class GrpcServer {
     mServer = mServer.start();
     return this;
   }
+
+  /**
+   * @return the port that the server is binded to
+   */
+  public int getPort() {
+    return mServer.getPort();
+  }
+
+  /**
+   * Stop serving.
+   */
+  public void stop() {
+    mServer.shutdown();
+  }
+
+  /**
+   * Waits until the server is terminated.
+   */
+  public void awaitTermination() {
+    while (!mServer.isTerminated()) {
+      try {
+        mServer.awaitTermination();
+      } catch (InterruptedException e) {
+        // TODO(ggezer) timeout
+      }
+    }
+  }
+
+  /**
+   * @return true if server is serving
+   */
+  public boolean isServing(){
+    return !mServer.isShutdown() && !mServer.isTerminated();
+  }
 }

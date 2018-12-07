@@ -25,7 +25,7 @@ import javax.security.auth.spi.LoginModule;
 
 /**
  * A login module that search the Kerberos or OS user from Subject, and then convert to an Alluxio
- * user. It does not really authenticate the user in its login method.
+ * user. It does not really create the user in its login method.
  */
 @NotThreadSafe
 public final class AlluxioLoginModule implements LoginModule {
@@ -46,7 +46,7 @@ public final class AlluxioLoginModule implements LoginModule {
   /**
    * Authenticates the user (first phase).
    *
-   * The implementation does not really authenticate the user here. Always return true.
+   * The implementation does not really create the user here. Always return true.
    * @return true in all cases
    * @throws LoginException when the login fails
    */

@@ -106,7 +106,7 @@ public class ZookeeperFailureIntegrationTest extends BaseIntegrationTest {
         new InetSocketAddress(netAddress.getHostname(), netAddress.getRpcPort());
     try {
       GrpcChannel channel = GrpcChannelBuilder
-              .forAddress(address.getHostName(), address.getPort())
+              .forAddress(address)
               .usePlaintext(true)
               .build();
       FileSystemMasterClientServiceGrpc.FileSystemMasterClientServiceBlockingStub client =

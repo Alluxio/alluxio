@@ -43,6 +43,7 @@ import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterators;
 import com.google.protobuf.ByteString;
+import io.grpc.BindableService;
 import org.apache.thrift.TProcessor;
 
 import java.io.IOException;
@@ -89,10 +90,10 @@ public class DefaultKeyValueMaster extends AbstractMaster implements KeyValueMas
   }
 
   @Override
-  public Map<String, TProcessor> getServices() {
-    Map<String, TProcessor> services = new HashMap<>();
-    //services.put(Constants.KEY_VALUE_MASTER_CLIENT_SERVICE_NAME,
-    // new KeyValueMasterClientService.Processor<>(new KeyValueMasterClientServiceHandler(this)));
+  public Map<String, BindableService> getServices() {
+    Map<String, BindableService> services = new HashMap<>();
+    services.put(Constants.KEY_VALUE_MASTER_CLIENT_SERVICE_NAME,
+        new KeyValueMasterClientServiceHandler(this));
     return services;
   }
 

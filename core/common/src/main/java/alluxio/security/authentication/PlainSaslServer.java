@@ -173,7 +173,7 @@ public final class PlainSaslServer implements SaslServer {
      * @param mechanism the name of a SASL mechanism. (e.g. "PLAIN")
      * @param protocol the non-null string name of the protocol for which the authentication is
      *        being performed
-     * @param serverName the non-null fully qualified host name of the server to authenticate to
+     * @param serverName the non-null fully qualified host name of the server to create to
      * @param props the possibly null set of properties used to select the SASL mechanism and to
      *        configure the authentication exchange of the selected mechanism
      * @param callbackHandler the possibly null callback handler to used by the SASL mechanisms to

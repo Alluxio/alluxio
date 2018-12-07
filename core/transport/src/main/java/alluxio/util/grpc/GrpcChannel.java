@@ -17,6 +17,8 @@ import io.grpc.ClientCall;
 import io.grpc.ManagedChannel;
 import io.grpc.MethodDescriptor;
 
+import java.util.concurrent.TimeUnit;
+
 /**
  * A simple wrapper around the {@link Channel} class in grpc. Outside of this module, this
  * class should be used to replace references to {@link Channel} for dependency management.
@@ -50,5 +52,11 @@ public final class GrpcChannel extends Channel {
    */
   public void shutdown() {
     mChannel.shutdown();
+    while(!mChannel.isTerminated()) {
+      try {
+        mChannel.awaitTermination(1, TimeUnit.MINUTES);
+      } catch (InterruptedException e) {
+      }
+    }
   }
 }

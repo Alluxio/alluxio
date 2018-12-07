@@ -29,11 +29,13 @@ import alluxio.worker.job.task.TaskExecutorManager;
 
 import com.google.common.base.Throwables;
 import com.google.common.collect.Maps;
+import io.grpc.BindableService;
 import org.apache.thrift.TProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -82,8 +84,8 @@ public final class JobWorker extends AbstractWorker {
   }
 
   @Override
-  public Map<String, TProcessor> getServices() {
-    return Maps.newHashMap();
+  public Map<String, BindableService> getServices() {
+    return Collections.emptyMap();
   }
 
   @Override

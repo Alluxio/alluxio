@@ -28,6 +28,7 @@ import alluxio.worker.block.BlockWorker;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.util.concurrent.RateLimiter;
+import io.grpc.BindableService;
 import org.apache.thrift.TProcessor;
 
 import java.util.Collections;
@@ -91,8 +92,7 @@ public final class DefaultFileSystemWorker extends AbstractWorker implements Fil
   }
 
   @Override
-  public Map<String, TProcessor> getServices() {
-    // TODO(ggezer) This class does not expose services anymore
+  public Map<String, BindableService> getServices() {
     return Collections.emptyMap();
   }
 

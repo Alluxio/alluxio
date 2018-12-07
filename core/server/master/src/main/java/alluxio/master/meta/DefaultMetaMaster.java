@@ -55,6 +55,7 @@ import alluxio.wire.ConfigCheckReport;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterators;
+import io.grpc.BindableService;
 import org.apache.thrift.TProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -162,12 +163,12 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
   }
 
   @Override
-  public Map<String, TProcessor> getServices() {
-    Map<String, TProcessor> services = new HashMap<>();
-    //services.put(Constants.META_MASTER_CLIENT_SERVICE_NAME,
-    //    new MetaMasterClientService.Processor<>(new MetaMasterClientServiceHandler(this)));
-    //services.put(Constants.META_MASTER_MASTER_SERVICE_NAME,
-    //    new MetaMasterMasterService.Processor<>(new MetaMasterMasterServiceHandler(this)));
+  public Map<String, BindableService> getServices() {
+    Map<String, BindableService> services = new HashMap<>();
+    services.put(Constants.META_MASTER_CLIENT_SERVICE_NAME,
+        new MetaMasterClientServiceHandler(this));
+    services.put(Constants.META_MASTER_MASTER_SERVICE_NAME,
+        new MetaMasterMasterServiceHandler(this));
     return services;
   }
 

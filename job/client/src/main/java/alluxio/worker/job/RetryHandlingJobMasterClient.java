@@ -71,7 +71,7 @@ public final class RetryHandlingJobMasterClient extends AbstractMasterClient
   @Override
   protected void afterConnect() {
     //mClient = new JobMasterWorkerService.Client(mProtocol);
-    mGrpcClient = JobMasterWorkerServiceGrpc.newBlockingStub(mJobChannel);
+    mGrpcClient = JobMasterWorkerServiceGrpc.newBlockingStub(mChannel);
   }
 
   @Override

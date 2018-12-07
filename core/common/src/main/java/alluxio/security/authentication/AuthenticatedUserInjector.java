@@ -2,6 +2,8 @@ package alluxio.security.authentication;
 
 import alluxio.exception.status.UnauthenticatedException;
 import alluxio.grpc.AlluxioSaslClientServiceGrpc;
+import alluxio.grpc.AlluxioVersionServiceGrpc;
+
 import io.grpc.ForwardingServerCallListener;
 import io.grpc.Metadata;
 import io.grpc.ServerCall;
@@ -11,16 +13,17 @@ import io.grpc.Status;
 
 import java.util.UUID;
 
-public class AuthenticationClientInterceptor implements ServerInterceptor {
+public class AuthenticatedUserInjector implements ServerInterceptor {
 
-  private AuthenticatedClientRegistry mClientRegistry;
+  private AuthenticationServer mAuthenticationServer;
 
-  public AuthenticationClientInterceptor(AuthenticatedClientRegistry clientRegistry) {
-    mClientRegistry = clientRegistry;
+  public AuthenticatedUserInjector(AuthenticationServer authenticationServer) {
+    mAuthenticationServer = authenticationServer;
   }
 
   private boolean IsWhiteListed(String methodName) {
-    return methodName.contains(AlluxioSaslClientServiceGrpc.SERVICE_NAME);
+    return methodName.contains(AlluxioSaslClientServiceGrpc.SERVICE_NAME)
+        || methodName.contains(AlluxioVersionServiceGrpc.SERVICE_NAME);
   }
 
   @Override
@@ -36,7 +39,7 @@ public class AuthenticationClientInterceptor implements ServerInterceptor {
           UUID clientId = headers.get(ClientIdInjector.sClientIdKey);
           if (clientId != null) {
             try {
-              String userName = mClientRegistry.getUserNameForClient(clientId);
+              String userName = mAuthenticationServer.getUserNameForClient(clientId);
               AuthenticatedClientUser.set(userName);
             } catch (UnauthenticatedException e) {
               call.close(Status.UNAUTHENTICATED, headers);

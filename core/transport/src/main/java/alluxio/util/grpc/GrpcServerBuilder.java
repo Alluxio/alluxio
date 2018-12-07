@@ -15,6 +15,8 @@ import io.grpc.BindableService;
 import io.grpc.ServerInterceptor;
 import io.grpc.netty.NettyServerBuilder;
 
+import java.net.InetSocketAddress;
+import java.util.List;
 import java.util.concurrent.Executor;
 
 import javax.annotation.Nullable;
@@ -31,11 +33,11 @@ public class GrpcServerBuilder {
   /**
    * Create an new instance of {@link GrpcServerBuilder}.
    *
-   * @param port the host port
+   * @param address the address
    * @return a new instance of {@link GrpcServerBuilder}
    */
-  public static GrpcServerBuilder forPort(int port) {
-    return new GrpcServerBuilder(NettyServerBuilder.forPort(port));
+  public static GrpcServerBuilder forAddress(InetSocketAddress address) {
+    return new GrpcServerBuilder(NettyServerBuilder.forAddress(address));
   }
 
   private GrpcServerBuilder(NettyServerBuilder nettyChannelBuilder) {
