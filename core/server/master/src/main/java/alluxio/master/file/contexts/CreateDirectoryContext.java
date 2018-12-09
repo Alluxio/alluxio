@@ -34,8 +34,8 @@ public class CreateDirectoryContext
    *
    * @param optionsBuilder options builder
    */
-  private CreateDirectoryContext(CreateDirectoryPOptions.Builder optionsBuilder) {
-    super(optionsBuilder);
+  private CreateDirectoryContext(CreateDirectoryPOptions.Builder optionsBuilder, boolean merged) {
+    super(optionsBuilder, merged);
     mUfsStatus = null;
   }
 
@@ -50,7 +50,7 @@ public class CreateDirectoryContext
     CreateDirectoryPOptions masterOptions = FileSystemMasterOptions.createDirectoryDefaults();
     CreateDirectoryPOptions.Builder mergedOptionsBuilder =
         masterOptions.toBuilder().mergeFrom(optionsBuilder.build());
-    return new CreateDirectoryContext(mergedOptionsBuilder);
+    return new CreateDirectoryContext(mergedOptionsBuilder, true);
   }
 
   /**
@@ -58,7 +58,7 @@ public class CreateDirectoryContext
    */
   public static CreateDirectoryContext defaults() {
     CreateDirectoryPOptions masterOptions = FileSystemMasterOptions.createDirectoryDefaults();
-    return new CreateDirectoryContext(masterOptions.toBuilder());
+    return new CreateDirectoryContext(masterOptions.toBuilder(), false);
   }
 
   protected CreateDirectoryContext getThis() {

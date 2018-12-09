@@ -63,7 +63,7 @@ public abstract class CreatePathContext<T extends GeneratedMessageV3.Builder<?>,
    *
    * @param optionsBuilder the options builder
    */
-  protected CreatePathContext(T optionsBuilder) {
+  protected CreatePathContext(T optionsBuilder, boolean merged) {
     super(optionsBuilder);
     mMountPoint = false;
     mOperationTimeMs = System.currentTimeMillis();
@@ -71,7 +71,7 @@ public abstract class CreatePathContext<T extends GeneratedMessageV3.Builder<?>,
     mMetadataLoad = false;
     mGroup = "";
     mOwner = "";
-    if (SecurityUtils.isAuthenticationEnabled()) {
+    if (merged && SecurityUtils.isAuthenticationEnabled()) {
       mOwner = SecurityUtils.getOwnerFromGrpcClient();
       mGroup = SecurityUtils.getGroupFromGrpcClient();
     }
