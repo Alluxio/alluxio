@@ -364,7 +364,8 @@ public class AlluxioMasterProcess implements MasterProcess {
    * {@link Master}s and meta services.
    */
   protected void startServingRPCServer() {
-    ExecutorService executorService = Executors.newFixedThreadPool(mMaxWorkerThreads);
+    // TODO(ggezer) gRPC is leaking executor's threads.
+    //ExecutorService executorService = Executors.newFixedThreadPool(mMaxWorkerThreads);
     try {
       if(mGrpcServer!= null) {
         // Server launched for auto bind.
@@ -375,7 +376,7 @@ public class AlluxioMasterProcess implements MasterProcess {
 
       LOG.info("Starting gRPC server on address {}", mRpcBindAddress);
       GrpcServerBuilder serverBuilder =
-          GrpcServerBuilder.forAddress(mRpcBindAddress).executor(executorService);
+          GrpcServerBuilder.forAddress(mRpcBindAddress);
       for (Master master : mRegistry.getServers()) {
         registerServices(serverBuilder, master.getServices());
       }
