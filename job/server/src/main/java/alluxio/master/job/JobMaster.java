@@ -170,6 +170,7 @@ public final class JobMaster extends AbstractNonJournaledMaster {
   @Override
   public Map<String, BindableService> getServices() {
     Map<String, BindableService> services = Maps.newHashMap();
+    services.put(Constants.JOB_MASTER_CLIENT_SERVICE_NAME, new JobMasterClientServiceHandler(this));
     services.put(Constants.JOB_MASTER_WORKER_SERVICE_NAME, new JobMasterWorkerServiceHandler(this));
     return services;
   }
