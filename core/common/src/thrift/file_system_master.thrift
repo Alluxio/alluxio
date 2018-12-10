@@ -84,9 +84,9 @@ struct GetStatusTResponse {
 }
 
 enum SyncPointStatus {
-  Not_In_Sync = 0;
+  Not_Initially_Synced = 0;
   Syncing = 1;
-  Synced = 2;
+  Initially_Synced = 2;
 }
 
 struct SyncPointInfo {

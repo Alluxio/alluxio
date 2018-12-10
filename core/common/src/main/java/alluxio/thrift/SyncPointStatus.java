@@ -12,9 +12,9 @@ import java.util.HashMap;
 import org.apache.thrift.TEnum;
 
 public enum SyncPointStatus implements org.apache.thrift.TEnum {
-  Not_In_Sync(0),
+  Not_Initially_Synced(0),
   Syncing(1),
-  Synced(2);
+  Initially_Synced(2);
 
   private final int value;
 
@@ -36,11 +36,11 @@ public enum SyncPointStatus implements org.apache.thrift.TEnum {
   public static SyncPointStatus findByValue(int value) { 
     switch (value) {
       case 0:
-        return Not_In_Sync;
+        return Not_Initially_Synced;
       case 1:
         return Syncing;
       case 2:
-        return Synced;
+        return Initially_Synced;
       default:
         return null;
     }

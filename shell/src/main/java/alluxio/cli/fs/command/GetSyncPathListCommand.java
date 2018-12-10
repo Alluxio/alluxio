@@ -46,13 +46,13 @@ public class GetSyncPathListCommand extends AbstractFileSystemCommand{
     List<SyncPointInfo> files = mFileSystem.getSyncPathList();
     System.out.println("The following paths are under active sync");
     for (SyncPointInfo syncPointInfo : files) {
-      System.out.println(syncPointInfo.getSyncPointUri() + "\t");
+      System.out.print(syncPointInfo.getSyncPointUri() + "\t");
       switch (syncPointInfo.getSyncStatus()) {
-        case NOT_IN_SYNC:
-          System.out.println("NOT IN SYNC");
+        case NOT_INITIALLY_SYNCED:
+          System.out.println("NEVER SYNCED");
           break;
-        case IN_SYNC:
-          System.out.println("IN_SYNC");
+        case INITIALLY_SYNCED:
+          System.out.println("INITIALLY SYNCED");
           break;
         case SYNCING:
           System.out.println("SYNCING");

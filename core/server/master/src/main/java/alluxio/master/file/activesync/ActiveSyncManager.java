@@ -70,7 +70,7 @@ public class ActiveSyncManager implements JournalEntryIterable, JournalEntryRepl
   private final Map<Long, List<AlluxioURI>> mFilterMap;
   // a map which maps mount id to the latest txid synced on that mount point
   private final Map<Long, Long> mStartingTxIdMap;
-  // Future.isDone = IN_SYNC, !Future.isDone = SYNCING, Future == null => NOT_IN_SYNC
+  // Future.isDone = INITIALLY_SYNCED, !Future.isDone = SYNCING, Future == null => NOT_INITIALLY_SYNCED
   private final Map<AlluxioURI, Future<?>> mSyncPathStatus;
   // a lock which protects the above data structures
   private final Lock mSyncManagerLock;
@@ -347,9 +347,9 @@ public class ActiveSyncManager implements JournalEntryIterable, JournalEntryRepl
       SyncPointInfo.SyncStatus status;
       Future<?> syncStatus = mSyncPathStatus.get(uri);
       if (syncStatus == null) {
-        status = SyncPointInfo.SyncStatus.NOT_IN_SYNC;
+        status = SyncPointInfo.SyncStatus.NOT_INITIALLY_SYNCED;
       } else if (syncStatus.isDone()) {
-        status = SyncPointInfo.SyncStatus.IN_SYNC;
+        status = SyncPointInfo.SyncStatus.INITIALLY_SYNCED;
       } else {
         status = SyncPointInfo.SyncStatus.SYNCING;
       }

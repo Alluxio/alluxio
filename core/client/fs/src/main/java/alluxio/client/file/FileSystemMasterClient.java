@@ -34,6 +34,7 @@ import alluxio.master.MasterClientConfig;
 import alluxio.security.authorization.AclEntry;
 import alluxio.wire.MountPointInfo;
 import alluxio.wire.SetAclAction;
+import alluxio.wire.SyncPointInfo;
 
 import java.util.List;
 import java.util.Map;
@@ -135,7 +136,7 @@ public interface FileSystemMasterClient extends Client {
    *
    * @return the list of paths
    */
-  List<alluxio.wire.SyncPointInfo> getSyncPathList() throws AlluxioStatusException;
+  List<SyncPointInfo> getSyncPathList() throws AlluxioStatusException;
 
   /**
    * @param path the path to list

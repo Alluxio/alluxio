@@ -23,9 +23,9 @@ public class SyncPointInfo {
    */
   public enum SyncStatus {
     // This state is possible when initial syncing is turned off
-    NOT_IN_SYNC,
+    NOT_INITIALLY_SYNCED,
     SYNCING,
-    IN_SYNC
+    INITIALLY_SYNCED
   }
 
   private final AlluxioURI mSyncPointUri;
@@ -78,17 +78,17 @@ public class SyncPointInfo {
   public static SyncPointInfo fromThrift(alluxio.thrift.SyncPointInfo syncPointInfo) {
     SyncStatus syncStatus;
     switch (syncPointInfo.getSyncStatus()) {
-      case Not_In_Sync:
-        syncStatus = SyncStatus.NOT_IN_SYNC;
+      case Not_Initially_Synced:
+        syncStatus = SyncStatus.NOT_INITIALLY_SYNCED;
         break;
       case Syncing:
         syncStatus = SyncStatus.SYNCING;
         break;
-      case Synced:
-        syncStatus = SyncStatus.IN_SYNC;
+      case Initially_Synced:
+        syncStatus = SyncStatus.INITIALLY_SYNCED;
         break;
       default:
-        syncStatus = SyncStatus.NOT_IN_SYNC;
+        syncStatus = SyncStatus.NOT_INITIALLY_SYNCED;
     }
     return new SyncPointInfo(new AlluxioURI(syncPointInfo.getSyncPointUri()), syncStatus);
   }
