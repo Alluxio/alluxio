@@ -20,13 +20,13 @@ import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.AlluxioServiceType;
 import alluxio.grpc.AlluxioVersionServiceGrpc;
 import alluxio.grpc.GetServiceVersionPRequest;
+import alluxio.grpc.GrpcChannelBuilder;
 import alluxio.metrics.CommonMetrics;
 import alluxio.metrics.Metric;
 import alluxio.metrics.MetricsSystem;
 import alluxio.retry.RetryPolicy;
 import alluxio.retry.RetryUtils;
 import alluxio.security.LoginUser;
-import alluxio.security.authentication.AuthenticatedChannelBuilder;
 import alluxio.grpc.GrpcChannel;
 import alluxio.util.SecurityUtils;
 import alluxio.grpc.GrpcExceptionUtils;
@@ -157,7 +157,7 @@ public abstract class AbstractClient implements Client {
   }
 
   /**
-   * This method is called after the connection is made to the remote. Implementations should create
+   * This method is called after the connection is made to the remote. Implementations should authenticate
    * internal state to finish the connection process.
    */
   protected void afterConnect() throws IOException {
@@ -220,14 +220,14 @@ public abstract class AbstractClient implements Client {
         beforeConnect();
         LOG.info("Alluxio client (version {}) is trying to connect with {} @ {}",
             RuntimeConstants.VERSION, getServiceName(), mAddress);
-        AuthenticatedChannelBuilder channelBuilder =
-            new AuthenticatedChannelBuilder(mClientId, mParentSubject, mAddress);
-        mChannel = channelBuilder.create().usePlaintext(true).build();
+        mChannel = GrpcChannelBuilder.forAddress(mAddress).setSubject(mParentSubject).build();
         // Create stub for version service on host
         mVersionService = AlluxioVersionServiceGrpc.newBlockingStub(mChannel);
         mConnected = true;
         afterConnect();
         checkVersion(getServiceVersion());
+        LOG.info("Alluxio client (version {}) is connected with {} @ {}", RuntimeConstants.VERSION,
+            getServiceName(), mAddress);
         return;
       } catch (IOException e) {
         LOG.warn("Failed to connect ({}) with {} @ {}: {}", retryPolicy.getAttemptCount(),

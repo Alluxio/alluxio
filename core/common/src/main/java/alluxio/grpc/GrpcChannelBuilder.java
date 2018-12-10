@@ -11,23 +11,34 @@
 
 package alluxio.grpc;
 
+import alluxio.Configuration;
+import alluxio.PropertyKey;
+import alluxio.security.authentication.AuthType;
+import alluxio.security.authentication.ChannelBuilderAuthenticator;
 import io.grpc.ClientInterceptor;
 import io.grpc.netty.NettyChannelBuilder;
 
+import javax.security.auth.Subject;
+import javax.security.sasl.AuthenticationException;
 import java.net.InetSocketAddress;
+import java.util.UUID;
 
 /**
- * A simple wrapper around the {@link NettyChannelBuilder} class in grpc. Outside of this module,
- * this class should be used to replace references to {@link NettyChannelBuilder} for dependency
- * management. Note: This class is intended for internal use only.
+ * A gRPC channel builder that authenticates with {@link GrpcServer} at the target
+ * during channel building.
  */
 public final class GrpcChannelBuilder {
 
   NettyChannelBuilder mChannelBuilder;
+  InetSocketAddress mAddress;
+  Subject mParentSubject;
+  AuthType mAuthType;
 
-  private GrpcChannelBuilder(NettyChannelBuilder channelBuilder) {
-    // mChannelBuilder = nettyChannelBuilder.nameResolverFactory(new DnsNameResolverProvider());
-    mChannelBuilder = channelBuilder;
+  private GrpcChannelBuilder(InetSocketAddress address) {
+    mAddress = address;
+    mChannelBuilder = NettyChannelBuilder.forAddress(mAddress);
+    mParentSubject = null;
+    mAuthType = Configuration.getEnum(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.class);
   }
 
   /**
@@ -37,8 +48,28 @@ public final class GrpcChannelBuilder {
    * @return a new instance of {@link GrpcChannelBuilder}
    */
   public static GrpcChannelBuilder forAddress(InetSocketAddress address) {
-    return new GrpcChannelBuilder(
-        NettyChannelBuilder.forAddress(address.getHostName(), address.getPort()));
+    return new GrpcChannelBuilder(address).usePlaintext(true);
+  }
+
+  /**
+   * Sets {@link Subject} for authentication.
+   * 
+   * @param subject the subject
+   * @return the updated {@link GrpcChannelBuilder} instance
+   */
+  public GrpcChannelBuilder setSubject(Subject subject) {
+    mParentSubject = subject;
+    return this;
+  }
+
+  /**
+   * Disables authentication with the server.
+   * 
+   * @return the updated {@link GrpcChannelBuilder} instance
+   */
+  public GrpcChannelBuilder disableAuthentication() {
+    mAuthType = AuthType.NOSASL;
+    return this;
   }
 
   /**
@@ -64,9 +95,13 @@ public final class GrpcChannelBuilder {
   }
 
   /**
+   * Creates an authenticated channel of type {@link GrpcChannel}.
+   * 
    * @return the built {@link GrpcChannel}
    */
-  public GrpcChannel build() {
-    return new GrpcChannel(mChannelBuilder.build());
+  public GrpcChannel build() throws AuthenticationException {
+    ChannelBuilderAuthenticator channelAuthenticator =
+        new ChannelBuilderAuthenticator(UUID.randomUUID(), mParentSubject, mAddress, mAuthType);
+    return new GrpcChannel(channelAuthenticator.authenticate(mChannelBuilder).build());
   }
 }

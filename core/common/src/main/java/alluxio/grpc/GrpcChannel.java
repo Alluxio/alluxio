@@ -11,18 +11,19 @@
 
 package alluxio.grpc;
 
+import alluxio.security.authentication.AuthType;
 import io.grpc.CallOptions;
 import io.grpc.Channel;
 import io.grpc.ClientCall;
 import io.grpc.ManagedChannel;
 import io.grpc.MethodDescriptor;
 
+import javax.security.auth.Subject;
 import java.util.concurrent.TimeUnit;
 
 /**
- * A simple wrapper around the {@link Channel} class in grpc. Outside of this module, this
- * class should be used to replace references to {@link Channel} for dependency management.
- * Note: This class is intended for internal use only.
+ * An authenticated gRPC channel.
+ * This channel can communicate with servers of type {@link GrpcServer}.
  */
 public final class GrpcChannel extends Channel {
   ManagedChannel mChannel;

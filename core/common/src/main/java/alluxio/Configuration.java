@@ -39,6 +39,7 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.annotation.concurrent.NotThreadSafe;
+import javax.security.sasl.SaslException;
 
 /**
  * <p>
@@ -433,8 +434,7 @@ public final class Configuration {
       List<alluxio.grpc.ConfigProperty> clusterConfig = null;
 
       try {
-        channel = GrpcChannelBuilder.forAddress(address)
-            .usePlaintext(true).build();
+        channel = GrpcChannelBuilder.forAddress(address).disableAuthentication().build();
         MetaMasterClientServiceGrpc.MetaMasterClientServiceBlockingStub client =
             MetaMasterClientServiceGrpc.newBlockingStub(channel);
         clusterConfig =
@@ -444,6 +444,9 @@ public final class Configuration {
         throw new UnavailableException(String.format(
             "Failed to handshake with master %s to load cluster default configuration values",
             address), e);
+      } catch(SaslException e) {
+        throw new RuntimeException(
+            "Can't receive authentication exception while authentication is disabled.", e);
       } finally {
         channel.shutdown();
       }

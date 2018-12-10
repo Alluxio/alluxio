@@ -16,9 +16,9 @@ import io.grpc.Server;
 import java.io.IOException;
 
 /**
- * A simple wrapper around the {@link Server} class in grpc. Outside of this module, this
- * class should be used to replace references to {@link Server} for dependency management.
- * Note: This class is intended for internal use only.
+ * An authenticated gRPC server.
+ * Corresponding gRPC channels to this server should be build by
+ * {@link GrpcChannelBuilder}.
  */
 public class GrpcServer {
   Server mServer;

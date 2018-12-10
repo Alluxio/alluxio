@@ -19,12 +19,10 @@ import alluxio.master.journal.JournalSystem;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.sink.MetricsServlet;
 import alluxio.metrics.sink.PrometheusMetricsServlet;
-import alluxio.security.authentication.DefaultAuthenticationServer;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.util.CommonUtils;
 import alluxio.util.JvmPauseMonitor;
-import alluxio.util.SecurityUtils;
 import alluxio.util.URIUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.grpc.GrpcServer;
@@ -37,7 +35,6 @@ import alluxio.web.WebServer;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import io.grpc.BindableService;
-import io.grpc.ServerInterceptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -85,9 +82,6 @@ public class AlluxioMasterProcess implements MasterProcess {
 
   /** The master registry. */
   private final MasterRegistry mRegistry;
-
-  /** The Authentication server for this process */
-  private final DefaultAuthenticationServer mAuthenticationServer;
 
   /** The web ui server. */
   private WebServer mWebServer;
@@ -160,7 +154,6 @@ public class AlluxioMasterProcess implements MasterProcess {
       }
       // Create masters.
       mRegistry = new MasterRegistry();
-      mAuthenticationServer = new DefaultAuthenticationServer();
       mSafeModeManager = new DefaultSafeModeManager();
       mBackupManager = new BackupManager(mRegistry);
       MasterContext context =
@@ -373,23 +366,18 @@ public class AlluxioMasterProcess implements MasterProcess {
       }
 
       LOG.info("Starting gRPC server on address {}", mRpcBindAddress);
-      GrpcServerBuilder serverBuilder =
-          GrpcServerBuilder.forAddress(mRpcBindAddress);
+      GrpcServerBuilder serverBuilder = GrpcServerBuilder.forAddress(mRpcBindAddress);
       for (Master master : mRegistry.getServers()) {
         registerServices(serverBuilder, master.getServices());
       }
+      // Expose version service from the server.
       serverBuilder.addService(new AlluxioVersionServiceHandler());
-      // Register authentication service for clients
-      // to authenticate with this server.
-      // TODO(ggezer) Embed this in {@link GrpcServer}
-      if(SecurityUtils.isAuthenticationEnabled()) {
-        serverBuilder.addService(mAuthenticationServer);
-        for (ServerInterceptor interceptor : mAuthenticationServer.getInterceptors()) {
-          serverBuilder.intercept(interceptor);
-        }
-      }
+
       mGrpcServer = serverBuilder.build().start();
       mSafeModeManager.notifyRpcServerStarted();
+      LOG.info("Started gRPC server on address {}", mRpcBindAddress);
+
+      // Wait until the server is shut down.
       mGrpcServer.awaitTermination();
     } catch (IOException e) {
       throw new RuntimeException(e);
