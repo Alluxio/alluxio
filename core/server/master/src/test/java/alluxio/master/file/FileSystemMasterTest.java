@@ -39,6 +39,8 @@ import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.UnexpectedAlluxioException;
+import alluxio.grpc.Command;
+import alluxio.grpc.CommandType;
 import alluxio.grpc.CompleteFilePOptions;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
@@ -51,6 +53,7 @@ import alluxio.grpc.LoadDescendantPType;
 import alluxio.grpc.LoadMetadataPOptions;
 import alluxio.grpc.LoadMetadataPType;
 import alluxio.grpc.MountPOptions;
+import alluxio.grpc.RegisterWorkerPOptions;
 import alluxio.grpc.SetAclPOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.heartbeat.HeartbeatContext;
@@ -63,19 +66,19 @@ import alluxio.master.block.BlockMaster;
 import alluxio.master.block.BlockMasterFactory;
 import alluxio.master.file.meta.PersistenceState;
 import alluxio.master.file.meta.TtlIntervalRule;
-import alluxio.master.file.options.CompleteFileContext;
-import alluxio.master.file.options.CreateDirectoryContext;
-import alluxio.master.file.options.CreateFileContext;
-import alluxio.master.file.options.DeleteContext;
-import alluxio.master.file.options.FreeContext;
-import alluxio.master.file.options.GetStatusContext;
-import alluxio.master.file.options.ListStatusContext;
-import alluxio.master.file.options.LoadMetadataContext;
-import alluxio.master.file.options.MountContext;
-import alluxio.master.file.options.RenameContext;
-import alluxio.master.file.options.SetAclContext;
-import alluxio.master.file.options.SetAttributeContext;
-import alluxio.master.file.options.WorkerHeartbeatContext;
+import alluxio.master.file.contexts.CompleteFileContext;
+import alluxio.master.file.contexts.CreateDirectoryContext;
+import alluxio.master.file.contexts.CreateFileContext;
+import alluxio.master.file.contexts.DeleteContext;
+import alluxio.master.file.contexts.FreeContext;
+import alluxio.master.file.contexts.GetStatusContext;
+import alluxio.master.file.contexts.ListStatusContext;
+import alluxio.master.file.contexts.LoadMetadataContext;
+import alluxio.master.file.contexts.MountContext;
+import alluxio.master.file.contexts.RenameContext;
+import alluxio.master.file.contexts.SetAclContext;
+import alluxio.master.file.contexts.SetAttributeContext;
+import alluxio.master.file.contexts.WorkerHeartbeatContext;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalTestUtils;
 import alluxio.master.metrics.MetricsMaster;
@@ -83,17 +86,14 @@ import alluxio.master.metrics.MetricsMasterFactory;
 import alluxio.metrics.Metric;
 import alluxio.security.GroupMappingServiceTestUtils;
 import alluxio.security.authorization.AclEntry;
-import alluxio.thrift.Command;
-import alluxio.thrift.RegisterWorkerTOptions;
 import alluxio.util.IdUtils;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.io.FileUtils;
-import alluxio.wire.CommandType;
 import alluxio.wire.FileBlockInfo;
 import alluxio.wire.FileInfo;
 import alluxio.wire.FileSystemCommand;
-import alluxio.wire.SetAclAction;
+import alluxio.grpc.SetAclAction;
 import alluxio.wire.UfsInfo;
 import alluxio.wire.WorkerNetAddress;
 
@@ -250,11 +250,11 @@ public final class FileSystemMasterTest {
     File file = mTestFolder.newFile();
     AlluxioURI path = new AlluxioURI("/test");
     mFileSystemMaster.createFile(path,
-        CreateFileContext.defaults(CreateFilePOptions.newBuilder().setPersisted(false)));
+        CreateFileContext.defaults().setPersisted(false));
 
     mThrown.expect(FileAlreadyExistsException.class);
     mFileSystemMaster.createFile(path,
-        CreateFileContext.defaults(CreateFilePOptions.newBuilder().setPersisted(true)));
+        CreateFileContext.defaults().setPersisted(true));
   }
 
   @Test
@@ -295,8 +295,7 @@ public final class FileSystemMasterTest {
         ImmutableMap.of("MEM", (long) Constants.KB), ImmutableList.of(blockId),
         ImmutableMap.<String, List<Long>>of(), mMetrics);
     // Verify the muted Free command on worker1.
-    assertEquals(new Command(alluxio.thrift.CommandType.Nothing, ImmutableList.<Long>of()),
-        heartbeat1);
+    assertEquals(Command.newBuilder().setCommandType(CommandType.Nothing).build(), heartbeat1);
     assertFalse(mBlockMaster.getLostBlocks().contains(blockId));
 
     // verify the file is deleted
@@ -1603,8 +1602,7 @@ public final class FileSystemMasterTest {
         ImmutableMap.of("MEM", (long) Constants.KB), ImmutableList.of(blockId),
         ImmutableMap.<String, List<Long>>of(), mMetrics);
     // Verify the muted Free command on worker1.
-    assertEquals(new Command(alluxio.thrift.CommandType.Nothing, ImmutableList.<Long>of()),
-        heartbeat);
+    assertEquals(Command.newBuilder().setCommandType(CommandType.Nothing).build(), heartbeat);
     assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
   }
 
@@ -1627,8 +1625,7 @@ public final class FileSystemMasterTest {
         ImmutableMap.of("MEM", (long) Constants.KB), ImmutableList.of(blockId),
         ImmutableMap.<String, List<Long>>of(), mMetrics);
     // Verify the muted Free command on worker1.
-    assertEquals(new Command(alluxio.thrift.CommandType.Nothing, ImmutableList.<Long>of()),
-        heartbeat);
+    assertEquals(Command.newBuilder().setCommandType(CommandType.Nothing).build(), heartbeat);
     assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
   }
 
@@ -1650,8 +1647,7 @@ public final class FileSystemMasterTest {
         ImmutableMap.of("MEM", (long) Constants.KB), ImmutableList.of(blockId),
         ImmutableMap.<String, List<Long>>of(), mMetrics);
     // Verify the muted Free command on worker1.
-    assertEquals(new Command(alluxio.thrift.CommandType.Nothing, ImmutableList.<Long>of()),
-        heartbeat);
+    assertEquals(Command.newBuilder().setCommandType(CommandType.Nothing).build(), heartbeat);
     assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
   }
 
@@ -1677,8 +1673,7 @@ public final class FileSystemMasterTest {
         ImmutableMap.of("MEM", (long) Constants.KB), ImmutableList.of(blockId),
         ImmutableMap.<String, List<Long>>of(), mMetrics);
     // Verify the muted Free command on worker1.
-    assertEquals(new Command(alluxio.thrift.CommandType.Nothing, ImmutableList.<Long>of()),
-        heartbeat);
+    assertEquals(Command.newBuilder().setCommandType(CommandType.Nothing).build(), heartbeat);
     assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
   }
 
@@ -2020,7 +2015,7 @@ public final class FileSystemMasterTest {
    */
   @Test
   public void free() throws Exception {
-    mNestedFileContext.getOptions().setPersisted(true);
+    mNestedFileContext.setPersisted(true);
     long blockId = createFileWithSingleBlock(NESTED_FILE_URI);
     assertEquals(1, mBlockMaster.getBlockInfo(blockId).getLocations().size());
 
@@ -2032,8 +2027,7 @@ public final class FileSystemMasterTest {
         ImmutableMap.of("MEM", (long) Constants.KB), ImmutableList.of(blockId),
         ImmutableMap.<String, List<Long>>of(), mMetrics);
     // Verify the muted Free command on worker1.
-    assertEquals(new Command(alluxio.thrift.CommandType.Nothing, ImmutableList.<Long>of()),
-        heartbeat2);
+    assertEquals(Command.newBuilder().setCommandType(CommandType.Nothing).build(), heartbeat2);
     assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
   }
 
@@ -2055,7 +2049,7 @@ public final class FileSystemMasterTest {
    */
   @Test
   public void freePinnedFileWithoutForce() throws Exception {
-    mNestedFileContext.getOptions().setPersisted(true);
+    mNestedFileContext.setPersisted(true);
     createFileWithSingleBlock(NESTED_FILE_URI);
     mFileSystemMaster.setAttribute(NESTED_FILE_URI,
         SetAttributeContext.defaults(SetAttributePOptions.newBuilder().setPinned(true)));
@@ -2071,7 +2065,7 @@ public final class FileSystemMasterTest {
    */
   @Test
   public void freePinnedFileWithForce() throws Exception {
-    mNestedFileContext.getOptions().setPersisted(true);
+    mNestedFileContext.setPersisted(true);
     long blockId = createFileWithSingleBlock(NESTED_FILE_URI);
     mFileSystemMaster.setAttribute(NESTED_FILE_URI,
         SetAttributeContext.defaults(SetAttributePOptions.newBuilder().setPinned(true)));
@@ -2086,8 +2080,7 @@ public final class FileSystemMasterTest {
         ImmutableMap.of("MEM", (long) Constants.KB), ImmutableList.of(blockId),
         ImmutableMap.<String, List<Long>>of(), mMetrics);
     // Verify the muted Free command on worker1.
-    assertEquals(new Command(alluxio.thrift.CommandType.Nothing, ImmutableList.<Long>of()),
-        heartbeat);
+    assertEquals(Command.newBuilder().setCommandType(CommandType.Nothing).build(), heartbeat);
     assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
   }
 
@@ -2096,7 +2089,7 @@ public final class FileSystemMasterTest {
    */
   @Test
   public void freeDirNonRecursive() throws Exception {
-    mNestedFileContext.getOptions().setPersisted(true);
+    mNestedFileContext.setPersisted(true);
     createFileWithSingleBlock(NESTED_FILE_URI);
     mThrown.expect(UnexpectedAlluxioException.class);
     mThrown.expectMessage(ExceptionMessage.CANNOT_FREE_NON_EMPTY_DIR.getMessage(NESTED_URI));
@@ -2110,7 +2103,7 @@ public final class FileSystemMasterTest {
    */
   @Test
   public void freeDir() throws Exception {
-    mNestedFileContext.getOptions().setPersisted(true);
+    mNestedFileContext.setPersisted(true);
     long blockId = createFileWithSingleBlock(NESTED_FILE_URI);
     assertEquals(1, mBlockMaster.getBlockInfo(blockId).getLocations().size());
 
@@ -2122,8 +2115,7 @@ public final class FileSystemMasterTest {
         ImmutableMap.of("MEM", (long) Constants.KB), ImmutableList.of(blockId),
         ImmutableMap.<String, List<Long>>of(), mMetrics);
     // Verify the muted Free command on worker1.
-    assertEquals(new Command(alluxio.thrift.CommandType.Nothing, ImmutableList.<Long>of()),
-        heartbeat3);
+    assertEquals(Command.newBuilder().setCommandType(CommandType.Nothing).build(), heartbeat3);
     assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
   }
 
@@ -2147,7 +2139,7 @@ public final class FileSystemMasterTest {
    */
   @Test
   public void freeDirWithPinnedFileAndNotForced() throws Exception {
-    mNestedFileContext.getOptions().setPersisted(true);
+    mNestedFileContext.setPersisted(true);
     createFileWithSingleBlock(NESTED_FILE_URI);
     mFileSystemMaster.setAttribute(NESTED_FILE_URI,
         SetAttributeContext.defaults(SetAttributePOptions.newBuilder().setPinned(true)));
@@ -2165,7 +2157,7 @@ public final class FileSystemMasterTest {
    */
   @Test
   public void freeDirWithPinnedFileAndForced() throws Exception {
-    mNestedFileContext.getOptions().setPersisted(true);
+    mNestedFileContext.setPersisted(true);
     long blockId = createFileWithSingleBlock(NESTED_FILE_URI);
     mFileSystemMaster.setAttribute(NESTED_FILE_URI,
         SetAttributeContext.defaults(SetAttributePOptions.newBuilder().setPinned(true)));
@@ -2177,8 +2169,7 @@ public final class FileSystemMasterTest {
         ImmutableMap.of("MEM", (long) Constants.KB), ImmutableList.of(blockId),
         ImmutableMap.<String, List<Long>>of(), mMetrics);
     // Verify the muted Free command on worker1.
-    assertEquals(new Command(alluxio.thrift.CommandType.Nothing, ImmutableList.<Long>of()),
-        heartbeat);
+    assertEquals(Command.newBuilder().setCommandType(CommandType.Nothing).build(), heartbeat);
     assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
   }
 
@@ -2353,7 +2344,7 @@ public final class FileSystemMasterTest {
     AlluxioURI ufsURI = createTempUfsDir("ufs/hello");
     mFileSystemMaster.mount(alluxioURI, ufsURI, MountContext.defaults());
     mFileSystemMaster.createDirectory(alluxioURI.join("dir"), CreateDirectoryContext
-        .defaults(CreateDirectoryPOptions.newBuilder().setPersisted(true)));
+        .defaults().setPersisted(true));
     mFileSystemMaster.unmount(alluxioURI);
     // after unmount, ufs path under previous mount point should still exist
     File file = new File(ufsURI.join("dir").toString());
@@ -2382,7 +2373,7 @@ public final class FileSystemMasterTest {
     mFileSystemMaster.mount(alluxioURI, ufsURI, MountContext.defaults());
     AlluxioURI dirURI = alluxioURI.join("dir");
     mFileSystemMaster.createDirectory(dirURI, CreateDirectoryContext
-        .defaults(CreateDirectoryPOptions.newBuilder().setPersisted(true)));
+        .defaults().setPersisted(true));
     mThrown.expect(InvalidPathException.class);
     mFileSystemMaster.unmount(dirURI);
   }
@@ -2440,7 +2431,7 @@ public final class FileSystemMasterTest {
 
     FileSystemCommand command = mFileSystemMaster
         .workerHeartbeat(mWorkerId1, Lists.newArrayList(fileId), WorkerHeartbeatContext.defaults());
-    assertEquals(CommandType.Persist, command.getCommandType());
+    assertEquals(alluxio.wire.CommandType.Persist, command.getCommandType());
     assertEquals(0, command.getCommandOptions().getPersistOptions().getFilesToPersist().size());
   }
 
@@ -2686,13 +2677,13 @@ public final class FileSystemMasterTest {
     mBlockMaster.workerRegister(mWorkerId1, Arrays.asList("MEM", "SSD"),
         ImmutableMap.of("MEM", (long) Constants.MB, "SSD", (long) Constants.MB),
         ImmutableMap.of("MEM", (long) Constants.KB, "SSD", (long) Constants.KB),
-        new HashMap<String, List<Long>>(), new RegisterWorkerTOptions());
+        new HashMap<String, List<Long>>(), RegisterWorkerPOptions.getDefaultInstance());
     mWorkerId2 = mBlockMaster.getWorkerId(
         new WorkerNetAddress().setHost("remote").setRpcPort(80).setDataPort(81).setWebPort(82));
     mBlockMaster.workerRegister(mWorkerId2, Arrays.asList("MEM", "SSD"),
         ImmutableMap.of("MEM", (long) Constants.MB, "SSD", (long) Constants.MB),
         ImmutableMap.of("MEM", (long) Constants.KB, "SSD", (long) Constants.KB),
-        new HashMap<String, List<Long>>(), new RegisterWorkerTOptions());
+        new HashMap<String, List<Long>>(), RegisterWorkerPOptions.getDefaultInstance());
   }
 
   private void stopServices() throws Exception {

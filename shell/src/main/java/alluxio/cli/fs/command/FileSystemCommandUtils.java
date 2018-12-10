@@ -18,7 +18,7 @@ import alluxio.client.file.FileSystemClientOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.util.grpc.GrpcUtils;
-import alluxio.wire.TtlAction;
+import alluxio.grpc.TtlAction;
 
 import java.io.IOException;
 
@@ -45,7 +45,7 @@ public final class FileSystemCommandUtils {
   public static void setTtl(FileSystem fs, AlluxioURI path, long ttlMs,
       TtlAction ttlAction) throws AlluxioException, IOException {
     SetAttributePOptions options = FileSystemClientOptions.getSetAttributeOptions().toBuilder()
-        .setRecursive(true).setTtl(ttlMs).setTtlAction(GrpcUtils.toProto(ttlAction)).build();
+        .setRecursive(true).setTtl(ttlMs).setTtlAction(ttlAction).build();
     fs.setAttribute(path, options);
   }
 

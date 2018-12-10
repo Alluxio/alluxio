@@ -9,71 +9,87 @@ package alluxio.grpc;
 public enum MasterInfoField
     implements com.google.protobuf.ProtocolMessageEnum {
   /**
-   * <code>MASTER_ADDRESS = 0;</code>
+   * <code>LEADER_MASTER_ADDRESS = 0;</code>
    */
-  MASTER_ADDRESS(0),
+  LEADER_MASTER_ADDRESS(0),
   /**
-   * <code>RPC_PORT = 1;</code>
+   * <code>MASTER_ADDRESSES = 1;</code>
    */
-  RPC_PORT(1),
+  MASTER_ADDRESSES(1),
   /**
-   * <code>SAFE_MODE = 2;</code>
+   * <code>RPC_PORT = 2;</code>
    */
-  SAFE_MODE(2),
+  RPC_PORT(2),
   /**
-   * <code>START_TIME_MS = 3;</code>
+   * <code>SAFE_MODE = 3;</code>
    */
-  START_TIME_MS(3),
+  SAFE_MODE(3),
   /**
-   * <code>UP_TIME_MS = 4;</code>
+   * <code>START_TIME_MS = 4;</code>
    */
-  UP_TIME_MS(4),
+  START_TIME_MS(4),
   /**
-   * <code>VERSION = 5;</code>
+   * <code>UP_TIME_MS = 5;</code>
    */
-  VERSION(5),
+  UP_TIME_MS(5),
   /**
-   * <code>WEB_PORT = 6;</code>
+   * <code>VERSION = 6;</code>
    */
-  WEB_PORT(6),
+  VERSION(6),
   /**
-   * <code>ZOOKEEPER_ADDRESSES = 7;</code>
+   * <code>WEB_PORT = 7;</code>
    */
-  ZOOKEEPER_ADDRESSES(7),
+  WEB_PORT(7),
+  /**
+   * <code>WORKER_ADDRESSES = 8;</code>
+   */
+  WORKER_ADDRESSES(8),
+  /**
+   * <code>ZOOKEEPER_ADDRESSES = 9;</code>
+   */
+  ZOOKEEPER_ADDRESSES(9),
   ;
 
   /**
-   * <code>MASTER_ADDRESS = 0;</code>
+   * <code>LEADER_MASTER_ADDRESS = 0;</code>
    */
-  public static final int MASTER_ADDRESS_VALUE = 0;
+  public static final int LEADER_MASTER_ADDRESS_VALUE = 0;
   /**
-   * <code>RPC_PORT = 1;</code>
+   * <code>MASTER_ADDRESSES = 1;</code>
    */
-  public static final int RPC_PORT_VALUE = 1;
+  public static final int MASTER_ADDRESSES_VALUE = 1;
   /**
-   * <code>SAFE_MODE = 2;</code>
+   * <code>RPC_PORT = 2;</code>
    */
-  public static final int SAFE_MODE_VALUE = 2;
+  public static final int RPC_PORT_VALUE = 2;
   /**
-   * <code>START_TIME_MS = 3;</code>
+   * <code>SAFE_MODE = 3;</code>
    */
-  public static final int START_TIME_MS_VALUE = 3;
+  public static final int SAFE_MODE_VALUE = 3;
   /**
-   * <code>UP_TIME_MS = 4;</code>
+   * <code>START_TIME_MS = 4;</code>
    */
-  public static final int UP_TIME_MS_VALUE = 4;
+  public static final int START_TIME_MS_VALUE = 4;
   /**
-   * <code>VERSION = 5;</code>
+   * <code>UP_TIME_MS = 5;</code>
    */
-  public static final int VERSION_VALUE = 5;
+  public static final int UP_TIME_MS_VALUE = 5;
   /**
-   * <code>WEB_PORT = 6;</code>
+   * <code>VERSION = 6;</code>
    */
-  public static final int WEB_PORT_VALUE = 6;
+  public static final int VERSION_VALUE = 6;
   /**
-   * <code>ZOOKEEPER_ADDRESSES = 7;</code>
+   * <code>WEB_PORT = 7;</code>
    */
-  public static final int ZOOKEEPER_ADDRESSES_VALUE = 7;
+  public static final int WEB_PORT_VALUE = 7;
+  /**
+   * <code>WORKER_ADDRESSES = 8;</code>
+   */
+  public static final int WORKER_ADDRESSES_VALUE = 8;
+  /**
+   * <code>ZOOKEEPER_ADDRESSES = 9;</code>
+   */
+  public static final int ZOOKEEPER_ADDRESSES_VALUE = 9;
 
 
   public final int getNumber() {
@@ -90,14 +106,16 @@ public enum MasterInfoField
 
   public static MasterInfoField forNumber(int value) {
     switch (value) {
-      case 0: return MASTER_ADDRESS;
-      case 1: return RPC_PORT;
-      case 2: return SAFE_MODE;
-      case 3: return START_TIME_MS;
-      case 4: return UP_TIME_MS;
-      case 5: return VERSION;
-      case 6: return WEB_PORT;
-      case 7: return ZOOKEEPER_ADDRESSES;
+      case 0: return LEADER_MASTER_ADDRESS;
+      case 1: return MASTER_ADDRESSES;
+      case 2: return RPC_PORT;
+      case 3: return SAFE_MODE;
+      case 4: return START_TIME_MS;
+      case 5: return UP_TIME_MS;
+      case 6: return VERSION;
+      case 7: return WEB_PORT;
+      case 8: return WORKER_ADDRESSES;
+      case 9: return ZOOKEEPER_ADDRESSES;
       default: return null;
     }
   }
@@ -124,7 +142,7 @@ public enum MasterInfoField
   }
   public static final com.google.protobuf.Descriptors.EnumDescriptor
       getDescriptor() {
-    return alluxio.grpc.MetaMasterProto.getDescriptor().getEnumTypes().get(0);
+    return alluxio.grpc.MetaMasterProto.getDescriptor().getEnumTypes().get(2);
   }
 
   private static final MasterInfoField[] VALUES = values();

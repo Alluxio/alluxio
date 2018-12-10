@@ -12,11 +12,11 @@
 package alluxio.cli.fsadmin.report;
 
 import alluxio.client.MetaMasterClient;
+import alluxio.grpc.MetricValue;
 import alluxio.metrics.ClientMetrics;
 import alluxio.metrics.MasterMetrics;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.WorkerMetrics;
-import alluxio.wire.MetricValue;
 
 import org.hamcrest.collection.IsIterableContainingInOrder;
 import org.junit.After;
@@ -70,62 +70,68 @@ public class MetricsCommandTest {
   private Map<String, MetricValue> generateMetricsMap() {
     Map<String, MetricValue> map = new HashMap<>();
     map.put(MetricsSystem.getClusterMetricName(ClientMetrics.BYTES_READ_LOCAL),
-        MetricValue.forLong(12312312312L));
+        MetricValue.newBuilder().setLongValue(12312312312L).build());
     map.put(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_READ_ALLUXIO),
-        MetricValue.forLong(421312312L));
+        MetricValue.newBuilder().setLongValue(421312312L).build());
     map.put(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_READ_UFS_ALL),
-        MetricValue.forLong(534214123L));
+        MetricValue.newBuilder().setLongValue(534214123L).build());
     map.put(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_WRITTEN_ALLUXIO),
-        MetricValue.forLong(23532L));
+        MetricValue.newBuilder().setLongValue(23532L).build());
     map.put(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_WRITTEN_UFS_ALL),
-        MetricValue.forLong(325324L));
+        MetricValue.newBuilder().setLongValue(325324L).build());
 
     map.put(MetricsSystem.getClusterMetricName(ClientMetrics.BYTES_READ_LOCAL_THROUGHPUT),
-        MetricValue.forLong(123125324L));
+        MetricValue.newBuilder().setLongValue(123125324L).build());
     map.put(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_READ_ALLUXIO_THROUGHPUT),
-        MetricValue.forLong(543534623L));
+        MetricValue.newBuilder().setLongValue(543534623L).build());
     map.put(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_READ_UFS_THROUGHPUT),
-        MetricValue.forLong(745632L));
+        MetricValue.newBuilder().setLongValue(745632L).build());
     map.put(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_WRITTEN_ALLUXIO_THROUGHPUT),
-        MetricValue.forLong(8423432L));
+        MetricValue.newBuilder().setLongValue(8423432L).build());
     map.put(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_WRITTEN_UFS_THROUGHPUT),
-        MetricValue.forLong(34264L));
+        MetricValue.newBuilder().setLongValue(34264L).build());
 
-    map.put(MasterMetrics.DIRECTORIES_CREATED, MetricValue.forLong(121L));
-    map.put(MasterMetrics.FILE_BLOCK_INFOS_GOT, MetricValue.forLong(31243412L));
-    map.put(MasterMetrics.FILE_INFOS_GOT, MetricValue.forLong(12312321434276L));
-    map.put(MasterMetrics.FILES_COMPLETED, MetricValue.forLong(0L));
-    map.put(MasterMetrics.FILES_CREATED, MetricValue.forLong(534L));
-    map.put(MasterMetrics.FILES_FREED, MetricValue.forLong(2141L));
-    map.put(MasterMetrics.FILES_PERSISTED, MetricValue.forLong(4171L));
-    map.put(MasterMetrics.NEW_BLOCKS_GOT, MetricValue.forLong(4L));
-    map.put(MasterMetrics.PATHS_DELETED, MetricValue.forLong(583L));
-    map.put(MasterMetrics.PATHS_MOUNTED, MetricValue.forLong(3635L));
-    map.put(MasterMetrics.PATHS_RENAMED, MetricValue.forLong(382L));
-    map.put(MasterMetrics.PATHS_UNMOUNTED, MetricValue.forLong(975L));
+    map.put(MasterMetrics.DIRECTORIES_CREATED, MetricValue.newBuilder().setLongValue(121L).build());
+    map.put(MasterMetrics.FILE_BLOCK_INFOS_GOT,
+        MetricValue.newBuilder().setLongValue(31243412L).build());
+    map.put(MasterMetrics.FILE_INFOS_GOT,
+        MetricValue.newBuilder().setLongValue(12312321434276L).build());
+    map.put(MasterMetrics.FILES_COMPLETED, MetricValue.newBuilder().setLongValue(0L).build());
+    map.put(MasterMetrics.FILES_CREATED, MetricValue.newBuilder().setLongValue(534L).build());
+    map.put(MasterMetrics.FILES_FREED, MetricValue.newBuilder().setLongValue(2141L).build());
+    map.put(MasterMetrics.FILES_PERSISTED, MetricValue.newBuilder().setLongValue(4171L).build());
+    map.put(MasterMetrics.NEW_BLOCKS_GOT, MetricValue.newBuilder().setLongValue(4L).build());
+    map.put(MasterMetrics.PATHS_DELETED, MetricValue.newBuilder().setLongValue(583L).build());
+    map.put(MasterMetrics.PATHS_MOUNTED, MetricValue.newBuilder().setLongValue(3635L).build());
+    map.put(MasterMetrics.PATHS_RENAMED, MetricValue.newBuilder().setLongValue(382L).build());
+    map.put(MasterMetrics.PATHS_UNMOUNTED, MetricValue.newBuilder().setLongValue(975L).build());
 
-    map.put(MasterMetrics.COMPLETE_FILE_OPS, MetricValue.forLong(813L));
-    map.put(MasterMetrics.CREATE_DIRECTORIES_OPS, MetricValue.forLong(325728397L));
-    map.put(MasterMetrics.CREATE_FILES_OPS, MetricValue.forLong(89L));
-    map.put(MasterMetrics.DELETE_PATHS_OPS, MetricValue.forLong(21L));
-    map.put(MasterMetrics.FREE_FILE_OPS, MetricValue.forLong(5213L));
-    map.put(MasterMetrics.GET_FILE_BLOCK_INFO_OPS, MetricValue.forLong(798L));
-    map.put(MasterMetrics.GET_FILE_INFO_OPS, MetricValue.forLong(32L));
-    map.put(MasterMetrics.GET_NEW_BLOCK_OPS, MetricValue.forLong(912572136653L));
-    map.put(MasterMetrics.MOUNT_OPS, MetricValue.forLong(953795L));
-    map.put(MasterMetrics.RENAME_PATH_OPS, MetricValue.forLong(29L));
-    map.put(MasterMetrics.SET_ACL_OPS, MetricValue.forLong(316L));
-    map.put(MasterMetrics.SET_ATTRIBUTE_OPS, MetricValue.forLong(0L));
-    map.put(MasterMetrics.UNMOUNT_OPS, MetricValue.forLong(1L));
+    map.put(MasterMetrics.COMPLETE_FILE_OPS, MetricValue.newBuilder().setLongValue(813L).build());
+    map.put(MasterMetrics.CREATE_DIRECTORIES_OPS,
+        MetricValue.newBuilder().setLongValue(325728397L).build());
+    map.put(MasterMetrics.CREATE_FILES_OPS, MetricValue.newBuilder().setLongValue(89L).build());
+    map.put(MasterMetrics.DELETE_PATHS_OPS, MetricValue.newBuilder().setLongValue(21L).build());
+    map.put(MasterMetrics.FREE_FILE_OPS, MetricValue.newBuilder().setLongValue(5213L).build());
+    map.put(MasterMetrics.GET_FILE_BLOCK_INFO_OPS,
+        MetricValue.newBuilder().setLongValue(798L).build());
+    map.put(MasterMetrics.GET_FILE_INFO_OPS, MetricValue.newBuilder().setLongValue(32L).build());
+    map.put(MasterMetrics.GET_NEW_BLOCK_OPS,
+        MetricValue.newBuilder().setLongValue(912572136653L).build());
+    map.put(MasterMetrics.MOUNT_OPS, MetricValue.newBuilder().setLongValue(953795L).build());
+    map.put(MasterMetrics.RENAME_PATH_OPS, MetricValue.newBuilder().setLongValue(29L).build());
+    map.put(MasterMetrics.SET_ACL_OPS, MetricValue.newBuilder().setLongValue(316L).build());
+    map.put(MasterMetrics.SET_ATTRIBUTE_OPS, MetricValue.newBuilder().setLongValue(0L).build());
+    map.put(MasterMetrics.UNMOUNT_OPS, MetricValue.newBuilder().setLongValue(1L).build());
 
     map.put("UfsSessionCount-Ufs:_alluxio_underFSStorage",
-        MetricValue.forLong(8535L));
+        MetricValue.newBuilder().setLongValue(8535L).build());
     map.put("UfsSessionCount-Ufs:file:___Users_alluxio_alluxioMountedFolder",
-        MetricValue.forLong(1231L));
-    map.put("master.CapacityTotal", MetricValue.forLong(1154531246129122L));
-    map.put("heap.used", MetricValue.forDouble(0.0028321312));
-    map.put("pools.Metaspace.usage", MetricValue.forDouble(0.95728));
-    map.put("pools.Metaspace.max", MetricValue.forLong(-1));
+        MetricValue.newBuilder().setLongValue(1231L).build());
+    map.put("master.CapacityTotal",
+        MetricValue.newBuilder().setLongValue(1154531246129122L).build());
+    map.put("heap.used", MetricValue.newBuilder().setDoubleValue(0.0028321312).build());
+    map.put("pools.Metaspace.usage", MetricValue.newBuilder().setDoubleValue(0.95728).build());
+    map.put("pools.Metaspace.max", MetricValue.newBuilder().setLongValue(-1).build());
     return map;
   }
 

@@ -28,6 +28,10 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;
+import alluxio.grpc.Command;
+import alluxio.grpc.CommandType;
+import alluxio.grpc.ConfigProperty;
+import alluxio.grpc.RegisterWorkerPOptions;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.heartbeat.HeartbeatThread;
@@ -44,11 +48,6 @@ import alluxio.proto.journal.Block.BlockContainerIdGeneratorEntry;
 import alluxio.proto.journal.Block.BlockInfoEntry;
 import alluxio.proto.journal.Block.DeleteBlockEntry;
 import alluxio.proto.journal.Journal.JournalEntry;
-import alluxio.thrift.BlockMasterClientService;
-import alluxio.thrift.BlockMasterWorkerService;
-import alluxio.thrift.Command;
-import alluxio.thrift.CommandType;
-import alluxio.thrift.RegisterWorkerTOptions;
 import alluxio.util.CommonUtils;
 import alluxio.util.IdUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
@@ -57,7 +56,6 @@ import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.Address;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
-import alluxio.wire.ConfigProperty;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
@@ -235,10 +233,10 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
   @Override
   public Map<String, TProcessor> getServices() {
     Map<String, TProcessor> services = new HashMap<>();
-    services.put(Constants.BLOCK_MASTER_CLIENT_SERVICE_NAME,
-        new BlockMasterClientService.Processor<>(new BlockMasterClientServiceHandler(this)));
-    services.put(Constants.BLOCK_MASTER_WORKER_SERVICE_NAME,
-        new BlockMasterWorkerService.Processor<>(new BlockMasterWorkerServiceHandler(this)));
+    //services.put(Constants.BLOCK_MASTER_CLIENT_SERVICE_NAME,
+    //   new BlockMasterClientService.Processor<>(new BlockMasterClientServiceHandler(this)));
+    //services.put(Constants.BLOCK_MASTER_WORKER_SERVICE_NAME,
+    //    new BlockMasterWorkerService.Processor<>(new BlockMasterWorkerServiceHandler(this)));
     return services;
   }
 
@@ -790,7 +788,7 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
   public void workerRegister(long workerId, List<String> storageTiers,
       Map<String, Long> totalBytesOnTiers, Map<String, Long> usedBytesOnTiers,
       Map<String, List<Long>> currentBlocksOnTiers,
-      RegisterWorkerTOptions options) throws NotFoundException {
+      RegisterWorkerPOptions options) throws NotFoundException {
 
     MasterWorkerInfo worker = mWorkers.getFirstByField(ID_INDEX, workerId);
 
@@ -817,14 +815,11 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
       processWorkerAddedBlocks(worker, currentBlocksOnTiers);
       processWorkerOrphanedBlocks(worker);
     }
-    if (options.isSetConfigList()) {
-      List<alluxio.wire.ConfigProperty> wireConfigList = options.getConfigList()
-          .stream().map(alluxio.wire.ConfigProperty::fromThrift)
-          .collect(Collectors.toList());
+    if (options.getConfigsCount() > 0) {
       for (BiConsumer<Address, List<ConfigProperty>> function : mWorkerRegisteredListeners) {
         WorkerNetAddress workerAddress = worker.getWorkerAddress();
         function.accept(new Address(workerAddress.getHost(), workerAddress.getRpcPort()),
-            wireConfigList);
+            options.getConfigsList());
       }
     }
 
@@ -840,7 +835,7 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
     MasterWorkerInfo worker = mWorkers.getFirstByField(ID_INDEX, workerId);
     if (worker == null) {
       LOG.warn("Could not find worker id: {} for heartbeat.", workerId);
-      return new Command(CommandType.Register, new ArrayList<Long>());
+      return Command.newBuilder().setCommandType(CommandType.Register).build();
     }
 
     synchronized (worker) {
@@ -856,9 +851,10 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
 
       List<Long> toRemoveBlocks = worker.getToRemoveBlocks();
       if (toRemoveBlocks.isEmpty()) {
-        return new Command(CommandType.Nothing, new ArrayList<Long>());
+        return Command.newBuilder().setCommandType(CommandType.Nothing).build();
       }
-      return new Command(CommandType.Free, toRemoveBlocks);
+      return Command.newBuilder().setCommandType(CommandType.Free).addAllData(toRemoveBlocks)
+          .build();
     }
   }
 

@@ -12,42 +12,35 @@
 package alluxio.master.keyvalue;
 
 import alluxio.AlluxioURI;
-import alluxio.Constants;
-import alluxio.RpcUtils;
-import alluxio.RpcUtils.RpcCallableThrowsIOException;
-import alluxio.exception.AlluxioException;
-import alluxio.thrift.AlluxioTException;
-import alluxio.thrift.CompletePartitionTOptions;
-import alluxio.thrift.CompletePartitionTResponse;
-import alluxio.thrift.CompleteStoreTOptions;
-import alluxio.thrift.CompleteStoreTResponse;
-import alluxio.thrift.CreateStoreTOptions;
-import alluxio.thrift.CreateStoreTResponse;
-import alluxio.thrift.DeleteStoreTOptions;
-import alluxio.thrift.DeleteStoreTResponse;
-import alluxio.thrift.GetPartitionInfoTOptions;
-import alluxio.thrift.GetPartitionInfoTResponse;
-import alluxio.thrift.GetServiceVersionTOptions;
-import alluxio.thrift.GetServiceVersionTResponse;
-import alluxio.thrift.KeyValueMasterClientService;
-import alluxio.thrift.MergeStoreTOptions;
-import alluxio.thrift.MergeStoreTResponse;
-import alluxio.thrift.PartitionInfo;
-import alluxio.thrift.RenameStoreTOptions;
-import alluxio.thrift.RenameStoreTResponse;
+import alluxio.grpc.CompletePartitionPRequest;
+import alluxio.grpc.CompletePartitionPResponse;
+import alluxio.grpc.CompleteStorePRequest;
+import alluxio.grpc.CompleteStorePResponse;
+import alluxio.grpc.CreateStorePRequest;
+import alluxio.grpc.CreateStorePResponse;
+import alluxio.grpc.DeleteStorePRequest;
+import alluxio.grpc.DeleteStorePResponse;
+import alluxio.grpc.GetPartitionInfoPRequest;
+import alluxio.grpc.GetPartitionInfoPResponse;
+import alluxio.grpc.KeyValueMasterClientServiceGrpc;
+import alluxio.grpc.MergeStorePRequest;
+import alluxio.grpc.MergeStorePResponse;
+import alluxio.grpc.RenameStorePRequest;
+import alluxio.grpc.RenameStorePResponse;
+import alluxio.util.RpcUtilsNew;
 
+import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.IOException;
 
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * This class is a Thrift handler for key-value master RPCs invoked by an Alluxio client.
+ * This class is a gRPC handler for key-value master RPCs invoked by an Alluxio client.
  */
 @ThreadSafe
-public final class KeyValueMasterClientServiceHandler implements KeyValueMasterClientService.Iface {
+public final class KeyValueMasterClientServiceHandler
+    extends KeyValueMasterClientServiceGrpc.KeyValueMasterClientServiceImplBase {
   private static final Logger LOG =
       LoggerFactory.getLogger(KeyValueMasterClientServiceHandler.class);
 
@@ -63,91 +56,70 @@ public final class KeyValueMasterClientServiceHandler implements KeyValueMasterC
   }
 
   @Override
-  public GetServiceVersionTResponse getServiceVersion(GetServiceVersionTOptions options) {
-    return new GetServiceVersionTResponse(Constants.KEY_VALUE_MASTER_CLIENT_SERVICE_VERSION);
+  public void completePartition(CompletePartitionPRequest request,
+      StreamObserver<CompletePartitionPResponse> responseObserver) {
+    RpcUtilsNew.call(LOG,
+        (RpcUtilsNew.RpcCallableThrowsIOException<CompletePartitionPResponse>) () -> {
+          mKeyValueMaster.completePartition(new AlluxioURI(request.getPath()),
+              request.getPartitionInfo());
+          return CompletePartitionPResponse.getDefaultInstance();
+        }, "completePartition", "request=%s", responseObserver, request);
   }
 
   @Override
-  public CompletePartitionTResponse completePartition(final String path, final PartitionInfo info,
-      CompletePartitionTOptions options) throws AlluxioTException {
-    return RpcUtils.call(new RpcCallableThrowsIOException<CompletePartitionTResponse>() {
-      @Override
-      public CompletePartitionTResponse call() throws AlluxioException, IOException {
-        mKeyValueMaster.completePartition(new AlluxioURI(path), info);
-        return new CompletePartitionTResponse();
-      }
-    });
+  public void completeStore(CompleteStorePRequest request,
+      StreamObserver<CompleteStorePResponse> responseObserver) {
+    RpcUtilsNew.call(LOG, (RpcUtilsNew.RpcCallableThrowsIOException<CompleteStorePResponse>) () -> {
+      mKeyValueMaster.completeStore(new AlluxioURI(request.getPath()));
+      return CompleteStorePResponse.getDefaultInstance();
+    }, "completeStore", "request=%s", responseObserver, request);
   }
 
   @Override
-  public CreateStoreTResponse createStore(final String path, CreateStoreTOptions options)
-      throws AlluxioTException {
-    return RpcUtils.call(new RpcCallableThrowsIOException<CreateStoreTResponse>() {
-      @Override
-      public CreateStoreTResponse call() throws AlluxioException, IOException {
-        mKeyValueMaster.createStore(new AlluxioURI(path));
-        return new CreateStoreTResponse();
-      }
-    });
+  public void createStore(CreateStorePRequest request,
+      StreamObserver<CreateStorePResponse> responseObserver) {
+    RpcUtilsNew.call(LOG, (RpcUtilsNew.RpcCallableThrowsIOException<CreateStorePResponse>) () -> {
+      mKeyValueMaster.createStore(new AlluxioURI(request.getPath()));
+      return CreateStorePResponse.getDefaultInstance();
+    }, "createStore", "request=%s", responseObserver, request);
   }
 
   @Override
-  public CompleteStoreTResponse completeStore(final String path, CompleteStoreTOptions options)
-      throws AlluxioTException {
-    return RpcUtils.call(new RpcCallableThrowsIOException<CompleteStoreTResponse>() {
-      @Override
-      public CompleteStoreTResponse call() throws AlluxioException, IOException {
-        mKeyValueMaster.completeStore(new AlluxioURI(path));
-        return new CompleteStoreTResponse();
-      }
-    });
+  public void deleteStore(DeleteStorePRequest request,
+      StreamObserver<DeleteStorePResponse> responseObserver) {
+    RpcUtilsNew.call(LOG, (RpcUtilsNew.RpcCallableThrowsIOException<DeleteStorePResponse>) () -> {
+      mKeyValueMaster.deleteStore(new AlluxioURI(request.getPath()));
+      return DeleteStorePResponse.getDefaultInstance();
+    }, "deleteStore", "request=%s", responseObserver, request);
   }
 
   @Override
-  public DeleteStoreTResponse deleteStore(final String path, DeleteStoreTOptions options)
-      throws AlluxioTException {
-    return RpcUtils.call(new RpcCallableThrowsIOException<DeleteStoreTResponse>() {
-      @Override
-      public DeleteStoreTResponse call() throws AlluxioException, IOException {
-        mKeyValueMaster.deleteStore(new AlluxioURI(path));
-        return new DeleteStoreTResponse();
-      }
-    });
+  public void getPartitionInfo(GetPartitionInfoPRequest request,
+      StreamObserver<GetPartitionInfoPResponse> responseObserver) {
+    RpcUtilsNew.call(LOG,
+        (RpcUtilsNew.RpcCallableThrowsIOException<GetPartitionInfoPResponse>) () -> {
+          return GetPartitionInfoPResponse.newBuilder().addAllPartitionInfo(
+              mKeyValueMaster.getPartitionInfo(new AlluxioURI(request.getPath()))).build();
+        }, "getPartitionInfo", "request=%s", responseObserver, request);
   }
 
   @Override
-  public GetPartitionInfoTResponse getPartitionInfo(final String path,
-      GetPartitionInfoTOptions options) throws AlluxioTException {
-    return RpcUtils.call(new RpcCallableThrowsIOException<GetPartitionInfoTResponse>() {
-      @Override
-      public GetPartitionInfoTResponse call() throws AlluxioException, IOException {
-        return new GetPartitionInfoTResponse(
-            mKeyValueMaster.getPartitionInfo(new AlluxioURI(path)));
-      }
-    });
+  public void mergeStore(MergeStorePRequest request,
+      StreamObserver<MergeStorePResponse> responseObserver) {
+    RpcUtilsNew.call(LOG, (RpcUtilsNew.RpcCallableThrowsIOException<MergeStorePResponse>) () -> {
+      mKeyValueMaster.mergeStore(new AlluxioURI(request.getFromPath()),
+          new AlluxioURI(request.getToPath()));
+      return MergeStorePResponse.getDefaultInstance();
+    }, "mergeStore", "request=%s", responseObserver, request);
   }
 
   @Override
-  public MergeStoreTResponse mergeStore(final String fromPath, final String toPath,
-      MergeStoreTOptions options) throws AlluxioTException {
-    return RpcUtils.call(new RpcCallableThrowsIOException<MergeStoreTResponse>() {
-      @Override
-      public MergeStoreTResponse call() throws AlluxioException, IOException {
-        mKeyValueMaster.mergeStore(new AlluxioURI(fromPath), new AlluxioURI(toPath));
-        return new MergeStoreTResponse();
-      }
-    });
-  }
-
-  @Override
-  public RenameStoreTResponse renameStore(final String oldPath, final String newPath,
-      RenameStoreTOptions options) throws AlluxioTException {
-    return RpcUtils.call(new RpcCallableThrowsIOException<RenameStoreTResponse>() {
-      @Override
-      public RenameStoreTResponse call() throws AlluxioException, IOException {
-        mKeyValueMaster.renameStore(new AlluxioURI(oldPath), new AlluxioURI(newPath));
-        return new RenameStoreTResponse();
-      }
-    });
+  public void renameStore(RenameStorePRequest request,
+      StreamObserver<RenameStorePResponse> responseObserver) {
+    RpcUtilsNew.call(LOG, (RpcUtilsNew.RpcCallableThrowsIOException<RenameStorePResponse>) () -> {
+      mKeyValueMaster.renameStore(new AlluxioURI(request.getOldPath()),
+          new AlluxioURI(request.getNewPath()));
+      return RenameStorePResponse.getDefaultInstance();
+    }, "renameStore", "request=%s", responseObserver, request);
   }
 }

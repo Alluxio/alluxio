@@ -17,13 +17,13 @@ import alluxio.exception.FileDoesNotExistException;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.FileSystemMasterClientRestServiceHandler;
-import alluxio.master.file.options.CompleteFileContext;
-import alluxio.master.file.options.CreateFileContext;
-import alluxio.master.file.options.GetStatusContext;
-import alluxio.master.file.options.ListStatusContext;
-import alluxio.master.file.options.MountContext;
+import alluxio.master.file.contexts.CompleteFileContext;
+import alluxio.master.file.contexts.CreateFileContext;
+import alluxio.master.file.contexts.GetStatusContext;
+import alluxio.master.file.contexts.ListStatusContext;
+import alluxio.master.file.contexts.MountContext;
 import alluxio.wire.FileInfo;
-import alluxio.wire.TtlAction;
+import alluxio.grpc.TtlAction;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -151,8 +151,7 @@ public final class FileSystemMasterClientRestApiTest extends RestApiTest {
   public void free() throws Exception {
     AlluxioURI uri = new AlluxioURI("/file");
     // Mark the file as persisted so the "free" works.
-    mFileSystemMaster.createFile(uri,
-        CreateFileContext.defaults(CreateFilePOptions.newBuilder().setPersisted(true)));
+    mFileSystemMaster.createFile(uri, CreateFileContext.defaults().setPersisted(true));
     mFileSystemMaster.completeFile(uri, CompleteFileContext.defaults());
 
     Map<String, String> params = new HashMap<>();

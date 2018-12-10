@@ -8,60 +8,51 @@ public interface CreateDirectoryPOptionsOrBuilder extends
     com.google.protobuf.MessageOrBuilder {
 
   /**
-   * <code>optional bool persisted = 1;</code>
-   */
-  boolean hasPersisted();
-  /**
-   * <code>optional bool persisted = 1;</code>
-   */
-  boolean getPersisted();
-
-  /**
-   * <code>optional bool recursive = 2;</code>
+   * <code>optional bool recursive = 1;</code>
    */
   boolean hasRecursive();
   /**
-   * <code>optional bool recursive = 2;</code>
+   * <code>optional bool recursive = 1;</code>
    */
   boolean getRecursive();
 
   /**
-   * <code>optional bool allowExists = 3;</code>
+   * <code>optional bool allowExists = 2;</code>
    */
   boolean hasAllowExists();
   /**
-   * <code>optional bool allowExists = 3;</code>
+   * <code>optional bool allowExists = 2;</code>
    */
   boolean getAllowExists();
 
   /**
-   * <code>optional int32 mode = 4;</code>
+   * <code>optional int32 mode = 3;</code>
    */
   boolean hasMode();
   /**
-   * <code>optional int32 mode = 4;</code>
+   * <code>optional int32 mode = 3;</code>
    */
   int getMode();
 
   /**
-   * <code>optional .alluxio.grpc.WritePType writeType = 5;</code>
+   * <code>optional .alluxio.grpc.WritePType writeType = 4;</code>
    */
   boolean hasWriteType();
   /**
-   * <code>optional .alluxio.grpc.WritePType writeType = 5;</code>
+   * <code>optional .alluxio.grpc.WritePType writeType = 4;</code>
    */
   alluxio.grpc.WritePType getWriteType();
 
   /**
-   * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 6;</code>
+   * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 5;</code>
    */
   boolean hasCommonOptions();
   /**
-   * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 6;</code>
+   * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 5;</code>
    */
   alluxio.grpc.FileSystemMasterCommonPOptions getCommonOptions();
   /**
-   * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 6;</code>
+   * <code>optional .alluxio.grpc.FileSystemMasterCommonPOptions commonOptions = 5;</code>
    */
   alluxio.grpc.FileSystemMasterCommonPOptionsOrBuilder getCommonOptionsOrBuilder();
 }

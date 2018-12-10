@@ -20,7 +20,7 @@ import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.WritePType;
 import alluxio.master.file.FileSystemMaster;
-import alluxio.master.file.options.CheckConsistencyContext;
+import alluxio.master.file.contexts.CheckConsistencyContext;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.underfs.UnderFileSystem;

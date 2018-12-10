@@ -16,7 +16,7 @@ private static final long serialVersionUID = 0L;
     super(builder);
   }
   private GetConfigurationPResponse() {
-    configList_ = java.util.Collections.emptyList();
+    configs_ = java.util.Collections.emptyList();
   }
 
   @java.lang.Override
@@ -52,10 +52,10 @@ private static final long serialVersionUID = 0L;
           }
           case 10: {
             if (!((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
-              configList_ = new java.util.ArrayList<alluxio.grpc.ConfigProperty>();
+              configs_ = new java.util.ArrayList<alluxio.grpc.ConfigProperty>();
               mutable_bitField0_ |= 0x00000001;
             }
-            configList_.add(
+            configs_.add(
                 input.readMessage(alluxio.grpc.ConfigProperty.PARSER, extensionRegistry));
             break;
           }
@@ -68,7 +68,7 @@ private static final long serialVersionUID = 0L;
           e).setUnfinishedMessage(this);
     } finally {
       if (((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
-        configList_ = java.util.Collections.unmodifiableList(configList_);
+        configs_ = java.util.Collections.unmodifiableList(configs_);
       }
       this.unknownFields = unknownFields.build();
       makeExtensionsImmutable();
@@ -86,39 +86,39 @@ private static final long serialVersionUID = 0L;
             alluxio.grpc.GetConfigurationPResponse.class, alluxio.grpc.GetConfigurationPResponse.Builder.class);
   }
 
-  public static final int CONFIGLIST_FIELD_NUMBER = 1;
-  private java.util.List<alluxio.grpc.ConfigProperty> configList_;
+  public static final int CONFIGS_FIELD_NUMBER = 1;
+  private java.util.List<alluxio.grpc.ConfigProperty> configs_;
   /**
-   * <code>repeated .alluxio.grpc.ConfigProperty configList = 1;</code>
+   * <code>repeated .alluxio.grpc.ConfigProperty configs = 1;</code>
    */
-  public java.util.List<alluxio.grpc.ConfigProperty> getConfigListList() {
-    return configList_;
+  public java.util.List<alluxio.grpc.ConfigProperty> getConfigsList() {
+    return configs_;
   }
   /**
-   * <code>repeated .alluxio.grpc.ConfigProperty configList = 1;</code>
+   * <code>repeated .alluxio.grpc.ConfigProperty configs = 1;</code>
    */
   public java.util.List<? extends alluxio.grpc.ConfigPropertyOrBuilder> 
-      getConfigListOrBuilderList() {
-    return configList_;
+      getConfigsOrBuilderList() {
+    return configs_;
   }
   /**
-   * <code>repeated .alluxio.grpc.ConfigProperty configList = 1;</code>
+   * <code>repeated .alluxio.grpc.ConfigProperty configs = 1;</code>
    */
-  public int getConfigListCount() {
-    return configList_.size();
+  public int getConfigsCount() {
+    return configs_.size();
   }
   /**
-   * <code>repeated .alluxio.grpc.ConfigProperty configList = 1;</code>
+   * <code>repeated .alluxio.grpc.ConfigProperty configs = 1;</code>
    */
-  public alluxio.grpc.ConfigProperty getConfigList(int index) {
-    return configList_.get(index);
+  public alluxio.grpc.ConfigProperty getConfigs(int index) {
+    return configs_.get(index);
   }
   /**
-   * <code>repeated .alluxio.grpc.ConfigProperty configList = 1;</code>
+   * <code>repeated .alluxio.grpc.ConfigProperty configs = 1;</code>
    */
-  public alluxio.grpc.ConfigPropertyOrBuilder getConfigListOrBuilder(
+  public alluxio.grpc.ConfigPropertyOrBuilder getConfigsOrBuilder(
       int index) {
-    return configList_.get(index);
+    return configs_.get(index);
   }
 
   private byte memoizedIsInitialized = -1;
@@ -133,8 +133,8 @@ private static final long serialVersionUID = 0L;
 
   public void writeTo(com.google.protobuf.CodedOutputStream output)
                       throws java.io.IOException {
-    for (int i = 0; i < configList_.size(); i++) {
-      output.writeMessage(1, configList_.get(i));
+    for (int i = 0; i < configs_.size(); i++) {
+      output.writeMessage(1, configs_.get(i));
     }
     unknownFields.writeTo(output);
   }
@@ -144,9 +144,9 @@ private static final long serialVersionUID = 0L;
     if (size != -1) return size;
 
     size = 0;
-    for (int i = 0; i < configList_.size(); i++) {
+    for (int i = 0; i < configs_.size(); i++) {
       size += com.google.protobuf.CodedOutputStream
-        .computeMessageSize(1, configList_.get(i));
+        .computeMessageSize(1, configs_.get(i));
     }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
@@ -164,8 +164,8 @@ private static final long serialVersionUID = 0L;
     alluxio.grpc.GetConfigurationPResponse other = (alluxio.grpc.GetConfigurationPResponse) obj;
 
     boolean result = true;
-    result = result && getConfigListList()
-        .equals(other.getConfigListList());
+    result = result && getConfigsList()
+        .equals(other.getConfigsList());
     result = result && unknownFields.equals(other.unknownFields);
     return result;
   }
@@ -177,9 +177,9 @@ private static final long serialVersionUID = 0L;
     }
     int hash = 41;
     hash = (19 * hash) + getDescriptor().hashCode();
-    if (getConfigListCount() > 0) {
-      hash = (37 * hash) + CONFIGLIST_FIELD_NUMBER;
-      hash = (53 * hash) + getConfigListList().hashCode();
+    if (getConfigsCount() > 0) {
+      hash = (37 * hash) + CONFIGS_FIELD_NUMBER;
+      hash = (53 * hash) + getConfigsList().hashCode();
     }
     hash = (29 * hash) + unknownFields.hashCode();
     memoizedHashCode = hash;
@@ -306,16 +306,16 @@ private static final long serialVersionUID = 0L;
     private void maybeForceBuilderInitialization() {
       if (com.google.protobuf.GeneratedMessageV3
               .alwaysUseFieldBuilders) {
-        getConfigListFieldBuilder();
+        getConfigsFieldBuilder();
       }
     }
     public Builder clear() {
       super.clear();
-      if (configListBuilder_ == null) {
-        configList_ = java.util.Collections.emptyList();
+      if (configsBuilder_ == null) {
+        configs_ = java.util.Collections.emptyList();
         bitField0_ = (bitField0_ & ~0x00000001);
       } else {
-        configListBuilder_.clear();
+        configsBuilder_.clear();
       }
       return this;
     }
@@ -340,14 +340,14 @@ private static final long serialVersionUID = 0L;
     public alluxio.grpc.GetConfigurationPResponse buildPartial() {
       alluxio.grpc.GetConfigurationPResponse result = new alluxio.grpc.GetConfigurationPResponse(this);
       int from_bitField0_ = bitField0_;
-      if (configListBuilder_ == null) {
+      if (configsBuilder_ == null) {
         if (((bitField0_ & 0x00000001) == 0x00000001)) {
-          configList_ = java.util.Collections.unmodifiableList(configList_);
+          configs_ = java.util.Collections.unmodifiableList(configs_);
           bitField0_ = (bitField0_ & ~0x00000001);
         }
-        result.configList_ = configList_;
+        result.configs_ = configs_;
       } else {
-        result.configList_ = configListBuilder_.build();
+        result.configs_ = configsBuilder_.build();
       }
       onBuilt();
       return result;
@@ -390,29 +390,29 @@ private static final long serialVersionUID = 0L;
 
     public Builder mergeFrom(alluxio.grpc.GetConfigurationPResponse other) {
       if (other == alluxio.grpc.GetConfigurationPResponse.getDefaultInstance()) return this;
-      if (configListBuilder_ == null) {
-        if (!other.configList_.isEmpty()) {
-          if (configList_.isEmpty()) {
-            configList_ = other.configList_;
+      if (configsBuilder_ == null) {
+        if (!other.configs_.isEmpty()) {
+          if (configs_.isEmpty()) {
+            configs_ = other.configs_;
             bitField0_ = (bitField0_ & ~0x00000001);
           } else {
-            ensureConfigListIsMutable();
-            configList_.addAll(other.configList_);
+            ensureConfigsIsMutable();
+            configs_.addAll(other.configs_);
           }
           onChanged();
         }
       } else {
-        if (!other.configList_.isEmpty()) {
-          if (configListBuilder_.isEmpty()) {
-            configListBuilder_.dispose();
-            configListBuilder_ = null;
-            configList_ = other.configList_;
+        if (!other.configs_.isEmpty()) {
+          if (configsBuilder_.isEmpty()) {
+            configsBuilder_.dispose();
+            configsBuilder_ = null;
+            configs_ = other.configs_;
             bitField0_ = (bitField0_ & ~0x00000001);
-            configListBuilder_ = 
+            configsBuilder_ = 
               com.google.protobuf.GeneratedMessageV3.alwaysUseFieldBuilders ?
-                 getConfigListFieldBuilder() : null;
+                 getConfigsFieldBuilder() : null;
           } else {
-            configListBuilder_.addAllMessages(other.configList_);
+            configsBuilder_.addAllMessages(other.configs_);
           }
         }
       }
@@ -444,244 +444,244 @@ private static final long serialVersionUID = 0L;
     }
     private int bitField0_;
 
-    private java.util.List<alluxio.grpc.ConfigProperty> configList_ =
+    private java.util.List<alluxio.grpc.ConfigProperty> configs_ =
       java.util.Collections.emptyList();
-    private void ensureConfigListIsMutable() {
+    private void ensureConfigsIsMutable() {
       if (!((bitField0_ & 0x00000001) == 0x00000001)) {
-        configList_ = new java.util.ArrayList<alluxio.grpc.ConfigProperty>(configList_);
+        configs_ = new java.util.ArrayList<alluxio.grpc.ConfigProperty>(configs_);
         bitField0_ |= 0x00000001;
        }
     }
 
     private com.google.protobuf.RepeatedFieldBuilderV3<
-        alluxio.grpc.ConfigProperty, alluxio.grpc.ConfigProperty.Builder, alluxio.grpc.ConfigPropertyOrBuilder> configListBuilder_;
+        alluxio.grpc.ConfigProperty, alluxio.grpc.ConfigProperty.Builder, alluxio.grpc.ConfigPropertyOrBuilder> configsBuilder_;
 
     /**
-     * <code>repeated .alluxio.grpc.ConfigProperty configList = 1;</code>
+     * <code>repeated .alluxio.grpc.ConfigProperty configs = 1;</code>
      */
-    public java.util.List<alluxio.grpc.ConfigProperty> getConfigListList() {
-      if (configListBuilder_ == null) {
-        return java.util.Collections.unmodifiableList(configList_);
+    public java.util.List<alluxio.grpc.ConfigProperty> getConfigsList() {
+      if (configsBuilder_ == null) {
+        return java.util.Collections.unmodifiableList(configs_);
       } else {
-        return configListBuilder_.getMessageList();
+        return configsBuilder_.getMessageList();
       }
     }
     /**
-     * <code>repeated .alluxio.grpc.ConfigProperty configList = 1;</code>
+     * <code>repeated .alluxio.grpc.ConfigProperty configs = 1;</code>
      */
-    public int getConfigListCount() {
-      if (configListBuilder_ == null) {
-        return configList_.size();
+    public int getConfigsCount() {
+      if (configsBuilder_ == null) {
+        return configs_.size();
       } else {
-        return configListBuilder_.getCount();
+        return configsBuilder_.getCount();
       }
     }
     /**
-     * <code>repeated .alluxio.grpc.ConfigProperty configList = 1;</code>
+     * <code>repeated .alluxio.grpc.ConfigProperty configs = 1;</code>
      */
-    public alluxio.grpc.ConfigProperty getConfigList(int index) {
-      if (configListBuilder_ == null) {
-        return configList_.get(index);
+    public alluxio.grpc.ConfigProperty getConfigs(int index) {
+      if (configsBuilder_ == null) {
+        return configs_.get(index);
       } else {
-        return configListBuilder_.getMessage(index);
+        return configsBuilder_.getMessage(index);
       }
     }
     /**
-     * <code>repeated .alluxio.grpc.ConfigProperty configList = 1;</code>
+     * <code>repeated .alluxio.grpc.ConfigProperty configs = 1;</code>
      */
-    public Builder setConfigList(
+    public Builder setConfigs(
         int index, alluxio.grpc.ConfigProperty value) {
-      if (configListBuilder_ == null) {
+      if (configsBuilder_ == null) {
         if (value == null) {
           throw new NullPointerException();
         }
-        ensureConfigListIsMutable();
-        configList_.set(index, value);
+        ensureConfigsIsMutable();
+        configs_.set(index, value);
         onChanged();
       } else {
-        configListBuilder_.setMessage(index, value);
+        configsBuilder_.setMessage(index, value);
       }
       return this;
     }
     /**
-     * <code>repeated .alluxio.grpc.ConfigProperty configList = 1;</code>
+     * <code>repeated .alluxio.grpc.ConfigProperty configs = 1;</code>
      */
-    public Builder setConfigList(
+    public Builder setConfigs(
         int index, alluxio.grpc.ConfigProperty.Builder builderForValue) {
-      if (configListBuilder_ == null) {
-        ensureConfigListIsMutable();
-        configList_.set(index, builderForValue.build());
+      if (configsBuilder_ == null) {
+        ensureConfigsIsMutable();
+        configs_.set(index, builderForValue.build());
         onChanged();
       } else {
-        configListBuilder_.setMessage(index, builderForValue.build());
+        configsBuilder_.setMessage(index, builderForValue.build());
       }
       return this;
     }
     /**
-     * <code>repeated .alluxio.grpc.ConfigProperty configList = 1;</code>
+     * <code>repeated .alluxio.grpc.ConfigProperty configs = 1;</code>
      */
-    public Builder addConfigList(alluxio.grpc.ConfigProperty value) {
-      if (configListBuilder_ == null) {
+    public Builder addConfigs(alluxio.grpc.ConfigProperty value) {
+      if (configsBuilder_ == null) {
         if (value == null) {
           throw new NullPointerException();
         }
-        ensureConfigListIsMutable();
-        configList_.add(value);
+        ensureConfigsIsMutable();
+        configs_.add(value);
         onChanged();
       } else {
-        configListBuilder_.addMessage(value);
+        configsBuilder_.addMessage(value);
       }
       return this;
     }
     /**
-     * <code>repeated .alluxio.grpc.ConfigProperty configList = 1;</code>
+     * <code>repeated .alluxio.grpc.ConfigProperty configs = 1;</code>
      */
-    public Builder addConfigList(
+    public Builder addConfigs(
         int index, alluxio.grpc.ConfigProperty value) {
-      if (configListBuilder_ == null) {
+      if (configsBuilder_ == null) {
         if (value == null) {
           throw new NullPointerException();
         }
-        ensureConfigListIsMutable();
-        configList_.add(index, value);
+        ensureConfigsIsMutable();
+        configs_.add(index, value);
         onChanged();
       } else {
-        configListBuilder_.addMessage(index, value);
+        configsBuilder_.addMessage(index, value);
       }
       return this;
     }
     /**
-     * <code>repeated .alluxio.grpc.ConfigProperty configList = 1;</code>
+     * <code>repeated .alluxio.grpc.ConfigProperty configs = 1;</code>
      */
-    public Builder addConfigList(
+    public Builder addConfigs(
         alluxio.grpc.ConfigProperty.Builder builderForValue) {
-      if (configListBuilder_ == null) {
-        ensureConfigListIsMutable();
-        configList_.add(builderForValue.build());
+      if (configsBuilder_ == null) {
+        ensureConfigsIsMutable();
+        configs_.add(builderForValue.build());
         onChanged();
       } else {
-        configListBuilder_.addMessage(builderForValue.build());
+        configsBuilder_.addMessage(builderForValue.build());
       }
       return this;
     }
     /**
-     * <code>repeated .alluxio.grpc.ConfigProperty configList = 1;</code>
+     * <code>repeated .alluxio.grpc.ConfigProperty configs = 1;</code>
      */
-    public Builder addConfigList(
+    public Builder addConfigs(
         int index, alluxio.grpc.ConfigProperty.Builder builderForValue) {
-      if (configListBuilder_ == null) {
-        ensureConfigListIsMutable();
-        configList_.add(index, builderForValue.build());
+      if (configsBuilder_ == null) {
+        ensureConfigsIsMutable();
+        configs_.add(index, builderForValue.build());
         onChanged();
       } else {
-        configListBuilder_.addMessage(index, builderForValue.build());
+        configsBuilder_.addMessage(index, builderForValue.build());
       }
       return this;
     }
     /**
-     * <code>repeated .alluxio.grpc.ConfigProperty configList = 1;</code>
+     * <code>repeated .alluxio.grpc.ConfigProperty configs = 1;</code>
      */
-    public Builder addAllConfigList(
+    public Builder addAllConfigs(
         java.lang.Iterable<? extends alluxio.grpc.ConfigProperty> values) {
-      if (configListBuilder_ == null) {
-        ensureConfigListIsMutable();
+      if (configsBuilder_ == null) {
+        ensureConfigsIsMutable();
         com.google.protobuf.AbstractMessageLite.Builder.addAll(
-            values, configList_);
+            values, configs_);
         onChanged();
       } else {
-        configListBuilder_.addAllMessages(values);
+        configsBuilder_.addAllMessages(values);
       }
       return this;
     }
     /**
-     * <code>repeated .alluxio.grpc.ConfigProperty configList = 1;</code>
+     * <code>repeated .alluxio.grpc.ConfigProperty configs = 1;</code>
      */
-    public Builder clearConfigList() {
-      if (configListBuilder_ == null) {
-        configList_ = java.util.Collections.emptyList();
+    public Builder clearConfigs() {
+      if (configsBuilder_ == null) {
+        configs_ = java.util.Collections.emptyList();
         bitField0_ = (bitField0_ & ~0x00000001);
         onChanged();
       } else {
-        configListBuilder_.clear();
+        configsBuilder_.clear();
       }
       return this;
     }
     /**
-     * <code>repeated .alluxio.grpc.ConfigProperty configList = 1;</code>
+     * <code>repeated .alluxio.grpc.ConfigProperty configs = 1;</code>
      */
-    public Builder removeConfigList(int index) {
-      if (configListBuilder_ == null) {
-        ensureConfigListIsMutable();
-        configList_.remove(index);
+    public Builder removeConfigs(int index) {
+      if (configsBuilder_ == null) {
+        ensureConfigsIsMutable();
+        configs_.remove(index);
         onChanged();
       } else {
-        configListBuilder_.remove(index);
+        configsBuilder_.remove(index);
       }
       return this;
     }
     /**
-     * <code>repeated .alluxio.grpc.ConfigProperty configList = 1;</code>
+     * <code>repeated .alluxio.grpc.ConfigProperty configs = 1;</code>
      */
-    public alluxio.grpc.ConfigProperty.Builder getConfigListBuilder(
+    public alluxio.grpc.ConfigProperty.Builder getConfigsBuilder(
         int index) {
-      return getConfigListFieldBuilder().getBuilder(index);
+      return getConfigsFieldBuilder().getBuilder(index);
     }
     /**
-     * <code>repeated .alluxio.grpc.ConfigProperty configList = 1;</code>
+     * <code>repeated .alluxio.grpc.ConfigProperty configs = 1;</code>
      */
-    public alluxio.grpc.ConfigPropertyOrBuilder getConfigListOrBuilder(
+    public alluxio.grpc.ConfigPropertyOrBuilder getConfigsOrBuilder(
         int index) {
-      if (configListBuilder_ == null) {
-        return configList_.get(index);  } else {
-        return configListBuilder_.getMessageOrBuilder(index);
+      if (configsBuilder_ == null) {
+        return configs_.get(index);  } else {
+        return configsBuilder_.getMessageOrBuilder(index);
       }
     }
     /**
-     * <code>repeated .alluxio.grpc.ConfigProperty configList = 1;</code>
+     * <code>repeated .alluxio.grpc.ConfigProperty configs = 1;</code>
      */
     public java.util.List<? extends alluxio.grpc.ConfigPropertyOrBuilder> 
-         getConfigListOrBuilderList() {
-      if (configListBuilder_ != null) {
-        return configListBuilder_.getMessageOrBuilderList();
+         getConfigsOrBuilderList() {
+      if (configsBuilder_ != null) {
+        return configsBuilder_.getMessageOrBuilderList();
       } else {
-        return java.util.Collections.unmodifiableList(configList_);
+        return java.util.Collections.unmodifiableList(configs_);
       }
     }
     /**
-     * <code>repeated .alluxio.grpc.ConfigProperty configList = 1;</code>
+     * <code>repeated .alluxio.grpc.ConfigProperty configs = 1;</code>
      */
-    public alluxio.grpc.ConfigProperty.Builder addConfigListBuilder() {
-      return getConfigListFieldBuilder().addBuilder(
+    public alluxio.grpc.ConfigProperty.Builder addConfigsBuilder() {
+      return getConfigsFieldBuilder().addBuilder(
           alluxio.grpc.ConfigProperty.getDefaultInstance());
     }
     /**
-     * <code>repeated .alluxio.grpc.ConfigProperty configList = 1;</code>
+     * <code>repeated .alluxio.grpc.ConfigProperty configs = 1;</code>
      */
-    public alluxio.grpc.ConfigProperty.Builder addConfigListBuilder(
+    public alluxio.grpc.ConfigProperty.Builder addConfigsBuilder(
         int index) {
-      return getConfigListFieldBuilder().addBuilder(
+      return getConfigsFieldBuilder().addBuilder(
           index, alluxio.grpc.ConfigProperty.getDefaultInstance());
     }
     /**
-     * <code>repeated .alluxio.grpc.ConfigProperty configList = 1;</code>
+     * <code>repeated .alluxio.grpc.ConfigProperty configs = 1;</code>
      */
     public java.util.List<alluxio.grpc.ConfigProperty.Builder> 
-         getConfigListBuilderList() {
-      return getConfigListFieldBuilder().getBuilderList();
+         getConfigsBuilderList() {
+      return getConfigsFieldBuilder().getBuilderList();
     }
     private com.google.protobuf.RepeatedFieldBuilderV3<
         alluxio.grpc.ConfigProperty, alluxio.grpc.ConfigProperty.Builder, alluxio.grpc.ConfigPropertyOrBuilder> 
-        getConfigListFieldBuilder() {
-      if (configListBuilder_ == null) {
-        configListBuilder_ = new com.google.protobuf.RepeatedFieldBuilderV3<
+        getConfigsFieldBuilder() {
+      if (configsBuilder_ == null) {
+        configsBuilder_ = new com.google.protobuf.RepeatedFieldBuilderV3<
             alluxio.grpc.ConfigProperty, alluxio.grpc.ConfigProperty.Builder, alluxio.grpc.ConfigPropertyOrBuilder>(
-                configList_,
+                configs_,
                 ((bitField0_ & 0x00000001) == 0x00000001),
                 getParentForChildren(),
                 isClean());
-        configList_ = null;
+        configs_ = null;
       }
-      return configListBuilder_;
+      return configsBuilder_;
     }
     public final Builder setUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {

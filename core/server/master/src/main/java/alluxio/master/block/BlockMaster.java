@@ -17,13 +17,13 @@ import alluxio.exception.BlockInfoException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;
+import alluxio.grpc.Command;
+import alluxio.grpc.ConfigProperty;
+import alluxio.grpc.RegisterWorkerPOptions;
 import alluxio.master.Master;
 import alluxio.metrics.Metric;
-import alluxio.thrift.Command;
-import alluxio.thrift.RegisterWorkerTOptions;
 import alluxio.wire.Address;
 import alluxio.wire.BlockInfo;
-import alluxio.wire.ConfigProperty;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
@@ -173,7 +173,7 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
   void workerRegister(long workerId, List<String> storageTiers,
       Map<String, Long> totalBytesOnTiers, Map<String, Long> usedBytesOnTiers,
       Map<String, List<Long>> currentBlocksOnTiers,
-      RegisterWorkerTOptions options) throws NotFoundException;
+      RegisterWorkerPOptions options) throws NotFoundException;
 
   /**
    * Updates metadata when a worker periodically heartbeats with the master.
@@ -186,8 +186,7 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
    * @return an optional command for the worker to execute
    */
   Command workerHeartbeat(long workerId, Map<String, Long> usedBytesOnTiers,
-      List<Long> removedBlockIds, Map<String, List<Long>> addedBlocksOnTiers,
-      List<Metric> metrics);
+      List<Long> removedBlockIds, Map<String, List<Long>> addedBlocksOnTiers, List<Metric> metrics);
 
   /**
    * @return the block ids of lost blocks in Alluxio

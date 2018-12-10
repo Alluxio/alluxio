@@ -31,7 +31,7 @@ import alluxio.grpc.ReadPType;
 import alluxio.master.MasterProcess;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.FileSystemMaster;
-import alluxio.master.file.options.ListStatusContext;
+import alluxio.master.file.contexts.ListStatusContext;
 import alluxio.security.LoginUser;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.util.SecurityUtils;

@@ -13,16 +13,16 @@ package alluxio.worker.job.command;
 
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ConnectionFailedException;
+import alluxio.grpc.CancelTaskCommand;
+import alluxio.grpc.JobCommand;
+import alluxio.grpc.RunTaskCommand;
+import alluxio.grpc.TaskInfo;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.job.JobConfig;
 import alluxio.job.JobWorkerContext;
 import alluxio.underfs.UfsManager;
 import alluxio.worker.job.JobMasterClient;
 import alluxio.job.util.SerializationUtils;
-import alluxio.thrift.CancelTaskCommand;
-import alluxio.thrift.JobCommand;
-import alluxio.thrift.RunTaskCommand;
-import alluxio.thrift.TaskInfo;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.JobWorkerIdRegistry;
@@ -80,7 +80,7 @@ public class CommandHandlingExecutor implements HeartbeatExecutor {
   public void heartbeat() {
     List<TaskInfo> taskStatusList = mTaskExecutorManager.getAndClearTaskUpdates();
 
-    List<JobCommand> commands;
+    List<alluxio.grpc.JobCommand> commands;
     try {
       commands = mMasterClient.heartbeat(JobWorkerIdRegistry.getWorkerId(), taskStatusList);
     } catch (AlluxioException | IOException e) {
@@ -111,14 +111,18 @@ public class CommandHandlingExecutor implements HeartbeatExecutor {
 
     @Override
     public void run() {
-      if (mCommand.isSetRunTaskCommand()) {
+      if (mCommand.hasRunTaskCommand()) {
         RunTaskCommand command = mCommand.getRunTaskCommand();
         long jobId = command.getJobId();
         int taskId = command.getTaskId();
         JobConfig jobConfig;
         try {
-          jobConfig = (JobConfig) SerializationUtils.deserialize(command.getJobConfig());
-          Serializable taskArgs = SerializationUtils.deserialize(command.getTaskArgs());
+          jobConfig =
+              (JobConfig) SerializationUtils.deserialize(command.getJobConfig().toByteArray());
+          Serializable taskArgs = null;
+          if(command.hasTaskArgs()) {
+            taskArgs = SerializationUtils.deserialize(command.getTaskArgs().toByteArray());
+          }
           JobWorkerContext context = new JobWorkerContext(jobId, taskId, mUfsManager);
           LOG.info("Received run task " + taskId + " for job " + jobId + " on worker "
               + JobWorkerIdRegistry.getWorkerId());
@@ -127,12 +131,12 @@ public class CommandHandlingExecutor implements HeartbeatExecutor {
           // TODO(yupeng) better error handling
           LOG.error("Failed to deserialize ", e);
         }
-      } else if (mCommand.isSetCancelTaskCommand()) {
+      } else if (mCommand.hasCancelTaskCommand()) {
         CancelTaskCommand command = mCommand.getCancelTaskCommand();
         long jobId = command.getJobId();
         int taskId = command.getTaskId();
         mTaskExecutorManager.cancelTask(jobId, taskId);
-      } else if (mCommand.isSetRegisterCommand()) {
+      } else if (mCommand.hasRegisterCommand()) {
         try {
           JobWorkerIdRegistry.registerWorker(mMasterClient, mWorkerNetAddress);
         } catch (ConnectionFailedException | IOException e) {

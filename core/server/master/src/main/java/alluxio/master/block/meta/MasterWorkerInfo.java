@@ -367,7 +367,7 @@ public final class MasterWorkerInfo {
    */
   public void updateUsedBytes(Map<String, Long> usedBytesOnTiers) {
     mUsedBytes = 0;
-    mUsedBytesOnTiers = usedBytesOnTiers;
+    mUsedBytesOnTiers = new HashMap<>(usedBytesOnTiers);
     for (long t : mUsedBytesOnTiers.values()) {
       mUsedBytes += t;
     }

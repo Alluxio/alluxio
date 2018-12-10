@@ -12,36 +12,30 @@
 package alluxio.master.meta;
 
 import alluxio.Configuration;
-import alluxio.Constants;
 import alluxio.PropertyKey;
-import alluxio.RpcUtils;
 import alluxio.RuntimeConstants;
+import alluxio.grpc.BackupPOptions;
+import alluxio.grpc.BackupPResponse;
+import alluxio.grpc.GetConfigReportPOptions;
+import alluxio.grpc.GetConfigReportPResponse;
+import alluxio.grpc.GetConfigurationPOptions;
+import alluxio.grpc.GetConfigurationPResponse;
+import alluxio.grpc.GetMasterInfoPOptions;
+import alluxio.grpc.GetMasterInfoPResponse;
+import alluxio.grpc.GetMetricsPOptions;
+import alluxio.grpc.GetMetricsPResponse;
+import alluxio.grpc.MasterInfo;
+import alluxio.grpc.MasterInfoField;
+import alluxio.grpc.MetaMasterClientServiceGrpc;
 import alluxio.metrics.MetricsSystem;
-import alluxio.thrift.AlluxioTException;
-import alluxio.thrift.BackupTOptions;
-import alluxio.thrift.BackupTResponse;
-import alluxio.thrift.GetConfigReportTOptions;
-import alluxio.thrift.GetConfigReportTResponse;
-import alluxio.thrift.GetConfigurationTOptions;
-import alluxio.thrift.GetConfigurationTResponse;
-import alluxio.thrift.GetMasterInfoTOptions;
-import alluxio.thrift.GetMasterInfoTResponse;
-import alluxio.thrift.GetMetricsTOptions;
-import alluxio.thrift.GetMetricsTResponse;
-import alluxio.thrift.GetServiceVersionTOptions;
-import alluxio.thrift.GetServiceVersionTResponse;
-import alluxio.thrift.MasterInfo;
-import alluxio.thrift.MasterInfoField;
-import alluxio.thrift.MetaMasterClientService;
+import alluxio.util.RpcUtilsNew;
 import alluxio.wire.Address;
 import alluxio.wire.BackupOptions;
-import alluxio.wire.GetConfigurationOptions;
-import alluxio.wire.MetricValue;
 
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Gauge;
 import com.codahale.metrics.MetricRegistry;
-import org.apache.thrift.TException;
+import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,9 +45,10 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
- * This class is a Thrift handler for meta master RPCs.
+ * This class is a gRPC handler for meta master RPCs.
  */
-public final class MetaMasterClientServiceHandler implements MetaMasterClientService.Iface {
+public final class MetaMasterClientServiceHandler
+    extends MetaMasterClientServiceGrpc.MetaMasterClientServiceImplBase {
   private static final Logger LOG = LoggerFactory.getLogger(MetaMasterClientServiceHandler.class);
 
   private final MetaMaster mMetaMaster;
@@ -66,107 +61,112 @@ public final class MetaMasterClientServiceHandler implements MetaMasterClientSer
   }
 
   @Override
-  public GetServiceVersionTResponse getServiceVersion(GetServiceVersionTOptions options) {
-    return new GetServiceVersionTResponse(Constants.META_MASTER_CLIENT_SERVICE_VERSION);
+  public void backup(BackupPOptions options, StreamObserver<BackupPResponse> responseObserver) {
+
+    RpcUtilsNew.call(LOG, (RpcUtilsNew.RpcCallableThrowsIOException<BackupPResponse>) () -> {
+      return mMetaMaster.backup(BackupOptions.fromProto(options)).toProto();
+    }, "backup", "options=%s", responseObserver, options);
   }
 
   @Override
-  public BackupTResponse backup(BackupTOptions options) throws AlluxioTException {
-    return RpcUtils.call((RpcUtils.RpcCallableThrowsIOException<BackupTResponse>) () -> mMetaMaster
-        .backup(BackupOptions.fromThrift(options)).toThrift());
+  public void getConfigReport(GetConfigReportPOptions options,
+      StreamObserver<GetConfigReportPResponse> responseObserver) {
+    RpcUtilsNew.call(LOG,
+        (RpcUtilsNew.RpcCallableThrowsIOException<GetConfigReportPResponse>) () -> {
+
+          return GetConfigReportPResponse.newBuilder()
+              .setReport(mMetaMaster.getConfigCheckReport().toProto()).build();
+        }, "getConfigReport", "options=%s", responseObserver, options);
   }
 
   @Override
-  public GetConfigReportTResponse getConfigReport(final GetConfigReportTOptions options)
-      throws TException {
-    return RpcUtils
-        .call((RpcUtils.RpcCallable<GetConfigReportTResponse>) () -> new GetConfigReportTResponse(
-            mMetaMaster.getConfigCheckReport().toThrift()));
+  public void getConfiguration(GetConfigurationPOptions options,
+      StreamObserver<GetConfigurationPResponse> responseObserver) {
+    RpcUtilsNew.call(LOG,
+        (RpcUtilsNew.RpcCallableThrowsIOException<GetConfigurationPResponse>) () -> {
+          return GetConfigurationPResponse.newBuilder()
+              .addAllConfigs(mMetaMaster.getConfiguration(options)).build();
+        }, "getConfiguration", "options=%s", responseObserver, options);
   }
 
   @Override
-  public GetConfigurationTResponse getConfiguration(GetConfigurationTOptions options)
-      throws AlluxioTException {
-    return RpcUtils.call((RpcUtils.RpcCallable<GetConfigurationTResponse>) () ->
-        (new GetConfigurationTResponse(
-            mMetaMaster.getConfiguration(GetConfigurationOptions.fromThrift(options)).stream()
-                .map(configProperty -> (configProperty.toThrift())).collect(Collectors.toList()))));
-  }
-
-  @Override
-  public GetMasterInfoTResponse getMasterInfo(final GetMasterInfoTOptions options)
-      throws TException {
-    return RpcUtils.call((RpcUtils.RpcCallable<GetMasterInfoTResponse>) () -> {
-      MasterInfo info = new alluxio.thrift.MasterInfo();
-      for (MasterInfoField field : options.getFilter() != null ? options.getFilter() : Arrays
-          .asList(MasterInfoField.values())) {
+  public void getMasterInfo(GetMasterInfoPOptions options,
+      StreamObserver<GetMasterInfoPResponse> responseObserver) {
+    RpcUtilsNew.call(LOG, (RpcUtilsNew.RpcCallableThrowsIOException<GetMasterInfoPResponse>) () -> {
+      MasterInfo.Builder masterInfo = MasterInfo.newBuilder();
+      for (MasterInfoField field : options.getFilterList() != null ? options.getFilterList()
+          : Arrays.asList(MasterInfoField.values())) {
         switch (field) {
           case LEADER_MASTER_ADDRESS:
-            info.setLeaderMasterAddress(mMetaMaster.getRpcAddress().toString());
+            masterInfo.setLeaderMasterAddress(mMetaMaster.getRpcAddress().toString());
             break;
           case MASTER_ADDRESSES:
-            info.setMasterAddresses(mMetaMaster.getMasterAddresses().stream()
-                .map(Address::toThrift).collect(Collectors.toList()));
+            masterInfo.addAllMasterAddresses(mMetaMaster.getMasterAddresses().stream()
+                .map(Address::toProto).collect(Collectors.toList()));
             break;
           case RPC_PORT:
-            info.setRpcPort(mMetaMaster.getRpcAddress().getPort());
+            masterInfo.setRpcPort(mMetaMaster.getRpcAddress().getPort());
             break;
           case SAFE_MODE:
-            info.setSafeMode(mMetaMaster.isInSafeMode());
+            masterInfo.setSafeMode(mMetaMaster.isInSafeMode());
             break;
           case START_TIME_MS:
-            info.setStartTimeMs(mMetaMaster.getStartTimeMs());
+            masterInfo.setStartTimeMs(mMetaMaster.getStartTimeMs());
             break;
           case UP_TIME_MS:
-            info.setUpTimeMs(mMetaMaster.getUptimeMs());
+            masterInfo.setUpTimeMs(mMetaMaster.getUptimeMs());
             break;
           case VERSION:
-            info.setVersion(RuntimeConstants.VERSION);
+            masterInfo.setVersion(RuntimeConstants.VERSION);
             break;
           case WEB_PORT:
-            info.setWebPort(mMetaMaster.getWebPort());
+            masterInfo.setWebPort(mMetaMaster.getWebPort());
             break;
           case WORKER_ADDRESSES:
-            info.setWorkerAddresses(mMetaMaster.getWorkerAddresses().stream()
-                .map(Address::toThrift).collect(Collectors.toList()));
+            masterInfo.addAllWorkerAddresses(mMetaMaster.getWorkerAddresses().stream()
+                .map(Address::toProto).collect(Collectors.toList()));
             break;
           case ZOOKEEPER_ADDRESSES:
             if (Configuration.isSet(PropertyKey.ZOOKEEPER_ADDRESS)) {
-              info.setZookeeperAddresses(Arrays.asList(Configuration.get(
-                  PropertyKey.ZOOKEEPER_ADDRESS).split(",")));
+              masterInfo.addAllZookeeperAddresses(
+                  Arrays.asList(Configuration.get(PropertyKey.ZOOKEEPER_ADDRESS).split(",")));
             }
             break;
           default:
             LOG.warn("Unrecognized meta master info field: " + field);
         }
       }
-      return new GetMasterInfoTResponse(info);
-    });
+      return GetMasterInfoPResponse.newBuilder().setMasterInfo(masterInfo).build();
+    }, "getMasterInfo", "options=%s", responseObserver, options);
   }
 
   @Override
-  public GetMetricsTResponse getMetrics(final GetMetricsTOptions options) throws TException {
-    return RpcUtils.call((RpcUtils.RpcCallable<GetMetricsTResponse>) () -> {
+  public void getMetrics(GetMetricsPOptions options,
+      StreamObserver<GetMetricsPResponse> responseObserver) {
+    RpcUtilsNew.call(LOG, (RpcUtilsNew.RpcCallableThrowsIOException<GetMetricsPResponse>) () -> {
+
       MetricRegistry mr = MetricsSystem.METRIC_REGISTRY;
-      Map<String, alluxio.thrift.MetricValue> metricsMap = new HashMap<>();
+      Map<String, alluxio.grpc.MetricValue> metricsMap = new HashMap<>();
 
       for (Map.Entry<String, Counter> entry : mr.getCounters().entrySet()) {
-        metricsMap.put(MetricsSystem.stripInstanceAndHost(entry.getKey()),
-            MetricValue.forLong(entry.getValue().getCount()).toThrift());
+        metricsMap.put(MetricsSystem.stripInstanceAndHost(entry.getKey()), alluxio.grpc.MetricValue
+            .newBuilder().setLongValue(entry.getValue().getCount()).build());
       }
 
       for (Map.Entry<String, Gauge> entry : mr.getGauges().entrySet()) {
         Object value = entry.getValue().getValue();
         if (value instanceof Integer) {
-          metricsMap.put(entry.getKey(), MetricValue.forLong(Long.valueOf((Integer) value))
-              .toThrift());
+          metricsMap.put(entry.getKey(), alluxio.grpc.MetricValue.newBuilder()
+              .setLongValue(Long.valueOf((Integer) value)).build());
         } else if (value instanceof Long) {
-          metricsMap.put(entry.getKey(), MetricValue.forLong((Long) value).toThrift());
+          metricsMap.put(entry.getKey(), alluxio.grpc.MetricValue.newBuilder()
+              .setLongValue(Long.valueOf((Integer) value)).build());
         } else if (value instanceof Double) {
-          metricsMap.put(entry.getKey(), MetricValue.forDouble((Double) value).toThrift());
+          metricsMap.put(entry.getKey(),
+              alluxio.grpc.MetricValue.newBuilder().setDoubleValue((Double) value).build());
         }
       }
-      return new GetMetricsTResponse(metricsMap);
-    });
+      return GetMetricsPResponse.newBuilder().putAllMetrics(metricsMap).build();
+    }, "getConfiguration", "options=%s", responseObserver, options);
   }
 }

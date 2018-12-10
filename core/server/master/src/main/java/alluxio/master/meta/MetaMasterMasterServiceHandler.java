@@ -11,33 +11,29 @@
 
 package alluxio.master.meta;
 
-import alluxio.Constants;
-import alluxio.RpcUtils;
-import alluxio.RpcUtils.RpcCallable;
-import alluxio.RpcUtils.RpcCallableThrowsIOException;
-import alluxio.thrift.AlluxioTException;
-import alluxio.thrift.GetMasterIdTOptions;
-import alluxio.thrift.GetMasterIdTResponse;
-import alluxio.thrift.GetServiceVersionTOptions;
-import alluxio.thrift.GetServiceVersionTResponse;
-import alluxio.thrift.MasterHeartbeatTOptions;
-import alluxio.thrift.MasterHeartbeatTResponse;
-import alluxio.thrift.MasterNetAddress;
-import alluxio.thrift.MetaMasterMasterService;
-import alluxio.thrift.RegisterMasterTOptions;
-import alluxio.thrift.RegisterMasterTResponse;
+import alluxio.grpc.GetMasterIdPRequest;
+import alluxio.grpc.GetMasterIdPResponse;
+import alluxio.grpc.MasterHeartbeatPRequest;
+import alluxio.grpc.MasterHeartbeatPResponse;
+import alluxio.grpc.MetaMasterMasterServiceGrpc;
+import alluxio.grpc.NetAddress;
+import alluxio.grpc.RegisterMasterPRequest;
+import alluxio.grpc.RegisterMasterPResponse;
+import alluxio.util.RpcUtilsNew;
 import alluxio.wire.Address;
 
+import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * This class is a Thrift handler for meta master RPCs invoked by an Alluxio standby master.
+ * This class is a gRPC handler for meta master RPCs invoked by an Alluxio standby master.
  */
 @NotThreadSafe
-public final class MetaMasterMasterServiceHandler implements MetaMasterMasterService.Iface {
+public final class MetaMasterMasterServiceHandler
+    extends MetaMasterMasterServiceGrpc.MetaMasterMasterServiceImplBase {
   private static final Logger LOG = LoggerFactory.getLogger(MetaMasterMasterServiceHandler.class);
 
   private final MetaMaster mMetaMaster;
@@ -47,39 +43,37 @@ public final class MetaMasterMasterServiceHandler implements MetaMasterMasterSer
    *
    * @param metaMaster the Alluxio meta master
    */
-  MetaMasterMasterServiceHandler(MetaMaster metaMaster) {
+  public MetaMasterMasterServiceHandler(MetaMaster metaMaster) {
     mMetaMaster = metaMaster;
   }
 
   @Override
-  public GetServiceVersionTResponse getServiceVersion(GetServiceVersionTOptions options) {
-    return new GetServiceVersionTResponse(Constants.META_MASTER_MASTER_SERVICE_VERSION);
+  public void getMasterId(GetMasterIdPRequest request,
+      StreamObserver<GetMasterIdPResponse> responseObserver) {
+    NetAddress masterAddress = request.getMasterAddress();
+    RpcUtilsNew.call(LOG, (RpcUtilsNew.RpcCallableThrowsIOException<GetMasterIdPResponse>) () -> {
+      return GetMasterIdPResponse.newBuilder()
+          .setMasterId(mMetaMaster.getMasterId(Address.fromProto(masterAddress))).build();
+    }, "getMasterId", "request=%s", responseObserver, request);
   }
 
   @Override
-  public GetMasterIdTResponse getMasterId(final MasterNetAddress address,
-      GetMasterIdTOptions options) throws AlluxioTException {
-    return RpcUtils.call(LOG, (RpcCallable<GetMasterIdTResponse>) () -> new GetMasterIdTResponse(
-        mMetaMaster.getMasterId(Address.fromThrift(address))), "GetMasterId",
-        "address=%s, options=%s", address, options);
+  public void registerMaster(RegisterMasterPRequest request,
+      StreamObserver<RegisterMasterPResponse> responseObserver) {
+    RpcUtilsNew.call(LOG,
+        (RpcUtilsNew.RpcCallableThrowsIOException<RegisterMasterPResponse>) () -> {
+          mMetaMaster.masterRegister(request.getMasterId(), request.getOptions());
+          return RegisterMasterPResponse.getDefaultInstance();
+        }, "registerMaster", "request=%s", responseObserver, request);
   }
 
   @Override
-  public MasterHeartbeatTResponse masterHeartbeat(final long masterId,
-      final MasterHeartbeatTOptions options) throws AlluxioTException {
-    return RpcUtils.call(
-        LOG,
-        (RpcCallable<MasterHeartbeatTResponse>) () -> new MasterHeartbeatTResponse(mMetaMaster
-            .masterHeartbeat(masterId)), "MasterHeartbeat",
-        "masterId=%s, options=%s", masterId, options);
-  }
-
-  @Override
-  public RegisterMasterTResponse registerMaster(final long masterId, RegisterMasterTOptions options)
-      throws AlluxioTException {
-    return RpcUtils.call(LOG, (RpcCallableThrowsIOException<RegisterMasterTResponse>) () -> {
-      mMetaMaster.masterRegister(masterId, options);
-      return new RegisterMasterTResponse();
-    }, "RegisterMaster", "masterId=%s, options=%s", masterId, options);
+  public void masterHeartbeat(MasterHeartbeatPRequest request,
+      StreamObserver<MasterHeartbeatPResponse> responseObserver) {
+    RpcUtilsNew.call(LOG,
+        (RpcUtilsNew.RpcCallableThrowsIOException<MasterHeartbeatPResponse>) () -> {
+          return MasterHeartbeatPResponse.newBuilder()
+              .setCommand(mMetaMaster.masterHeartbeat(request.getMasterId())).build();
+        }, "masterHeartbeat", "request=%s", responseObserver, request);
   }
 }

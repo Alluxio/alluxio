@@ -1,0 +1,148 @@
+syntax = "proto2";
+
+option java_multiple_files = true;
+option java_package = "alluxio.grpc";
+option java_outer_classname = "JobMasterProto";
+
+package alluxio.grpc;
+
+import "common.proto";
+
+enum Status {
+  UNKNOWN = 0;
+  CREATED = 1;
+  CANCELED = 2;
+  FAILED = 3;
+  RUNNING = 4;
+  COMPLETED = 5;
+}
+
+message TaskInfo {
+  optional int64 jobId = 1;
+  optional int32 taskId = 2;
+  optional Status status = 3;
+  optional string errorMessage = 4;
+  optional bytes result = 5;
+}
+
+message JobInfo {
+  optional int64 id = 1;
+  optional string errorMessage = 2;
+  repeated TaskInfo taskInfos = 3;
+  optional Status status = 4;
+  optional string result = 5;
+}
+
+message JobCommand {
+  optional RunTaskCommand runTaskCommand = 1;
+  optional CancelTaskCommand cancelTaskCommand = 2;
+  optional RegisterCommand registerCommand = 3;
+}
+
+message RunTaskCommand {
+  optional int64 jobId = 1;
+  optional int32 taskId = 2;
+  optional bytes jobConfig = 3;
+  optional bytes taskArgs = 4;
+}
+
+message RegisterCommand {}
+
+message CancelTaskCommand {
+  optional int64 jobId = 1;
+  optional int32 taskId = 2;
+}
+
+message CancelPOptions {}
+message CancelPRequest {
+  optional int64 jobId = 1;
+  optional CancelPOptions options = 2;
+}
+message CancelPResponse {}
+
+message GetJobStatusPOptions {}
+message GetJobStatusPRequest {
+  optional int64 jobId = 1;
+  optional GetJobStatusPOptions options = 2;
+}
+message GetJobStatusPResponse {
+  optional JobInfo jobInfo = 1;
+}
+
+message ListAllPOptions {}
+message ListAllPRequest {
+  optional ListAllPOptions options = 1;
+}
+message ListAllPResponse {
+  repeated int64 jobIds = 1;
+}
+
+message RunPOptions {}
+message RunPRequest {
+  optional bytes jobConfig = 1;
+  optional RunPOptions options = 2;
+}
+message RunPResponse {
+  optional int64 jobId = 1;
+}
+
+/**
+ * This interface contains job master service endpoints for job service clients.
+ */
+service JobMasterClientService {
+
+  /**
+   * Cancels the given job.
+   */
+  rpc Cancel(CancelPRequest) returns (CancelPResponse);
+
+  /**
+   * Gets the status of the given job.
+   */
+  rpc GetJobStatus(GetJobStatusPRequest) returns (GetJobStatusPResponse);
+
+  /**
+   * Lists ids of all known jobs.
+   */
+  rpc ListAll(ListAllPRequest) returns (ListAllPResponse);
+
+  /**
+   * Starts the given job, returning a job id.
+   */
+  rpc Run(RunPRequest) returns (RunPResponse);
+}
+
+message JobHeartbeatPOptions {}
+message JobHeartbeatPRequest {
+  optional int64 workerId = 1;
+  repeated TaskInfo taskInfos = 2;
+  optional JobHeartbeatPOptions options = 3;
+}
+message JobHeartbeatPResponse {
+  repeated JobCommand commands = 1;
+}
+
+message RegisterJobWorkerPOptions {}
+message RegisterJobWorkerPRequest {
+  optional grpc.WorkerNetAddress workerNetAddress = 1;
+  optional RegisterJobWorkerPOptions options = 2;
+}
+message RegisterJobWorkerPResponse {
+ optional int64 id = 1;
+}
+
+/**
+ * This interface contains job master service endpoints for job service workers.
+ */
+service JobMasterWorkerService {
+
+  /**
+   * Periodic worker heartbeat returns a list of commands for the worker to execute.
+   */
+  rpc Heartbeat(JobHeartbeatPRequest) returns (JobHeartbeatPResponse);
+
+  /**
+   * Returns a worker id for the given network address.
+   */
+  rpc RegisterJobWorker(RegisterJobWorkerPRequest) returns (RegisterJobWorkerPResponse);
+}

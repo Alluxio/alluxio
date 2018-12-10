@@ -13,23 +13,28 @@ package alluxio.worker.block;
 
 import alluxio.AbstractMasterClient;
 import alluxio.Constants;
+import alluxio.grpc.AlluxioServiceType;
+import alluxio.grpc.BlockHeartbeatPOptions;
+import alluxio.grpc.BlockHeartbeatPRequest;
+import alluxio.grpc.BlockMasterWorkerServiceGrpc;
+import alluxio.grpc.Command;
+import alluxio.grpc.CommitBlockInUfsPRequest;
+import alluxio.grpc.CommitBlockPRequest;
+import alluxio.grpc.ConfigProperty;
+import alluxio.grpc.GetWorkerIdPRequest;
+import alluxio.grpc.Metric;
+import alluxio.grpc.RegisterWorkerPOptions;
+import alluxio.grpc.RegisterWorkerPRequest;
+import alluxio.grpc.TierList;
 import alluxio.master.MasterClientConfig;
-import alluxio.thrift.AlluxioService;
-import alluxio.thrift.BlockHeartbeatTOptions;
-import alluxio.thrift.BlockMasterWorkerService;
-import alluxio.thrift.Command;
-import alluxio.thrift.CommitBlockTOptions;
-import alluxio.thrift.Metric;
-import alluxio.thrift.RegisterWorkerTOptions;
-import alluxio.wire.ConfigProperty;
+import alluxio.util.grpc.GrpcUtils;
 import alluxio.wire.WorkerNetAddress;
 
-import org.apache.thrift.TException;
-
 import java.io.IOException;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -41,7 +46,8 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class BlockMasterClient extends AbstractMasterClient {
-  private BlockMasterWorkerService.Client mClient = null;
+  // private BlockMasterWorkerService.Client mClient = null;
+  private BlockMasterWorkerServiceGrpc.BlockMasterWorkerServiceBlockingStub mGrpcClient = null;
 
   /**
    * Creates a new instance of {@link BlockMasterClient} for the worker.
@@ -53,8 +59,8 @@ public final class BlockMasterClient extends AbstractMasterClient {
   }
 
   @Override
-  protected AlluxioService.Client getClient() {
-    return mClient;
+  protected AlluxioServiceType getRemoteServiceType() {
+    return AlluxioServiceType.BLOCK_MASTER_WORKER_SERVICE;
   }
 
   @Override
@@ -69,7 +75,8 @@ public final class BlockMasterClient extends AbstractMasterClient {
 
   @Override
   protected void afterConnect() throws IOException {
-    mClient = new BlockMasterWorkerService.Client(mProtocol);
+    // mClient = new BlockMasterWorkerService.Client(mProtocol);
+    mGrpcClient = BlockMasterWorkerServiceGrpc.newBlockingStub(mChannel);
   }
 
   /**
@@ -84,8 +91,10 @@ public final class BlockMasterClient extends AbstractMasterClient {
   public synchronized void commitBlock(final long workerId, final long usedBytesOnTier,
       final String tierAlias, final long blockId, final long length) throws IOException {
     retryRPC((RpcCallable<Void>) () -> {
-      mClient.commitBlock(workerId, usedBytesOnTier, tierAlias, blockId, length,
-          new CommitBlockTOptions());
+      CommitBlockPRequest request =
+          CommitBlockPRequest.newBuilder().setWorkerId(workerId).setUsedBytesOnTier(usedBytesOnTier)
+              .setTierAlias(tierAlias).setBlockId(blockId).setLength(length).build();
+      mGrpcClient.commitBlock(request);
       return null;
     });
   }
@@ -98,12 +107,11 @@ public final class BlockMasterClient extends AbstractMasterClient {
    */
   public synchronized void commitBlockInUfs(final long blockId, final long length)
       throws IOException {
-    retryRPC(new RpcCallable<Void>() {
-      @Override
-      public Void call() throws TException {
-        mClient.commitBlockInUfs(blockId, length, new alluxio.thrift.CommitBlockInUfsTOptions());
-        return null;
-      }
+    retryRPC((RpcCallable<Void>) () -> {
+      CommitBlockInUfsPRequest request =
+          CommitBlockInUfsPRequest.newBuilder().setBlockId(blockId).setLength(length).build();
+      mGrpcClient.commitBlockInUfs(request);
+      return null;
     });
   }
 
@@ -114,13 +122,10 @@ public final class BlockMasterClient extends AbstractMasterClient {
    * @return a worker id
    */
   public synchronized long getId(final WorkerNetAddress address) throws IOException {
-    return retryRPC(new RpcCallable<Long>() {
-      @Override
-      public Long call() throws TException {
-//        return mClient.getWorkerId(address.toThrift(), new GetWorkerIdTOptions())
-//            .getWorkerId();
-        return null;
-      }
+    return retryRPC((RpcCallable<Long>) () -> {
+      GetWorkerIdPRequest request =
+          GetWorkerIdPRequest.newBuilder().setWorkerNetAddress(GrpcUtils.toProto(address)).build();
+      return mGrpcClient.getWorkerId(request).getWorkerId();
     });
   }
 
@@ -137,9 +142,17 @@ public final class BlockMasterClient extends AbstractMasterClient {
   public synchronized Command heartbeat(final long workerId,
       final Map<String, Long> usedBytesOnTiers, final List<Long> removedBlocks,
       final Map<String, List<Long>> addedBlocks, final List<Metric> metrics) throws IOException {
-    return retryRPC(() -> mClient.blockHeartbeat(workerId, usedBytesOnTiers, removedBlocks,
-        addedBlocks,
-        new BlockHeartbeatTOptions(metrics)).getCommand());
+    final BlockHeartbeatPOptions options =
+        BlockHeartbeatPOptions.newBuilder().addAllMetrics(metrics).build();
+    Map<String, TierList> addedBlocksMap = Collections.emptyMap();
+    for (String id : addedBlocks.keySet()) {
+      addedBlocksMap.put(id, TierList.newBuilder().addAllTiers(addedBlocks.get(id)).build());
+    }
+    final BlockHeartbeatPRequest request = BlockHeartbeatPRequest.newBuilder().setWorkerId(workerId)
+        .putAllUsedBytesOnTiers(usedBytesOnTiers).addAllRemovedBlockIds(removedBlocks)
+        .putAllAddedBlocksOnTiers(addedBlocksMap).setOptions(options).build();
+
+    return retryRPC(() -> mGrpcClient.blockHeartbeat(request).getCommand());
   }
 
   /**
@@ -155,14 +168,23 @@ public final class BlockMasterClient extends AbstractMasterClient {
   // TODO(yupeng): rename to workerBlockReport or workerInitialize?
   public synchronized void register(final long workerId, final List<String> storageTierAliases,
       final Map<String, Long> totalBytesOnTiers, final Map<String, Long> usedBytesOnTiers,
-      final Map<String, List<Long>> currentBlocksOnTiers,
-      final List<ConfigProperty> configList) throws IOException {
+      final Map<String, List<Long>> currentBlocksOnTiers, final List<ConfigProperty> configList)
+      throws IOException {
+
+    final RegisterWorkerPOptions options =
+        RegisterWorkerPOptions.newBuilder().addAllConfigs(configList).build();
+    Map<String, TierList> currentBlockOnTiersMap = new HashMap<>();
+    for (String id : currentBlocksOnTiers.keySet()) {
+      currentBlockOnTiersMap.put(id,
+          TierList.newBuilder().addAllTiers(currentBlocksOnTiers.get(id)).build());
+    }
+    final RegisterWorkerPRequest request = RegisterWorkerPRequest.newBuilder().setWorkerId(workerId)
+        .addAllStorageTiers(storageTierAliases).putAllTotalBytesOnTiers(totalBytesOnTiers)
+        .putAllUsedBytesOnTiers(usedBytesOnTiers).putAllCurrentBlocksOnTiers(currentBlockOnTiersMap)
+        .setOptions(options).build();
+
     retryRPC(() -> {
-      RegisterWorkerTOptions options = new RegisterWorkerTOptions();
-      options.setConfigList(configList.stream()
-          .map(ConfigProperty::toThrift).collect(Collectors.toList()));
-      mClient.registerWorker(workerId, storageTierAliases, totalBytesOnTiers, usedBytesOnTiers,
-          currentBlocksOnTiers, options);
+      mGrpcClient.registerWorker(request);
       return null;
     });
   }

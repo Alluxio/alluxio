@@ -8,36 +8,36 @@ public interface GetMetricsPResponseOrBuilder extends
     com.google.protobuf.MessageOrBuilder {
 
   /**
-   * <code>map&lt;string, .alluxio.grpc.MetricValue&gt; metricsMap = 1;</code>
+   * <code>map&lt;string, .alluxio.grpc.MetricValue&gt; metrics = 1;</code>
    */
-  int getMetricsMapCount();
+  int getMetricsCount();
   /**
-   * <code>map&lt;string, .alluxio.grpc.MetricValue&gt; metricsMap = 1;</code>
+   * <code>map&lt;string, .alluxio.grpc.MetricValue&gt; metrics = 1;</code>
    */
-  boolean containsMetricsMap(
+  boolean containsMetrics(
       java.lang.String key);
   /**
-   * Use {@link #getMetricsMapMap()} instead.
+   * Use {@link #getMetricsMap()} instead.
    */
   @java.lang.Deprecated
   java.util.Map<java.lang.String, alluxio.grpc.MetricValue>
-  getMetricsMap();
+  getMetrics();
   /**
-   * <code>map&lt;string, .alluxio.grpc.MetricValue&gt; metricsMap = 1;</code>
+   * <code>map&lt;string, .alluxio.grpc.MetricValue&gt; metrics = 1;</code>
    */
   java.util.Map<java.lang.String, alluxio.grpc.MetricValue>
-  getMetricsMapMap();
+  getMetricsMap();
   /**
-   * <code>map&lt;string, .alluxio.grpc.MetricValue&gt; metricsMap = 1;</code>
+   * <code>map&lt;string, .alluxio.grpc.MetricValue&gt; metrics = 1;</code>
    */
 
-  alluxio.grpc.MetricValue getMetricsMapOrDefault(
+  alluxio.grpc.MetricValue getMetricsOrDefault(
       java.lang.String key,
       alluxio.grpc.MetricValue defaultValue);
   /**
-   * <code>map&lt;string, .alluxio.grpc.MetricValue&gt; metricsMap = 1;</code>
+   * <code>map&lt;string, .alluxio.grpc.MetricValue&gt; metrics = 1;</code>
    */
 
-  alluxio.grpc.MetricValue getMetricsMapOrThrow(
+  alluxio.grpc.MetricValue getMetricsOrThrow(
       java.lang.String key);
 }

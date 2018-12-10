@@ -8,36 +8,36 @@ public interface GetMountTablePResponseOrBuilder extends
     com.google.protobuf.MessageOrBuilder {
 
   /**
-   * <code>map&lt;string, .alluxio.grpc.MountPointInfo&gt; mountTable = 1;</code>
+   * <code>map&lt;string, .alluxio.grpc.MountPointInfo&gt; mountPoints = 1;</code>
    */
-  int getMountTableCount();
+  int getMountPointsCount();
   /**
-   * <code>map&lt;string, .alluxio.grpc.MountPointInfo&gt; mountTable = 1;</code>
+   * <code>map&lt;string, .alluxio.grpc.MountPointInfo&gt; mountPoints = 1;</code>
    */
-  boolean containsMountTable(
+  boolean containsMountPoints(
       java.lang.String key);
   /**
-   * Use {@link #getMountTableMap()} instead.
+   * Use {@link #getMountPointsMap()} instead.
    */
   @java.lang.Deprecated
   java.util.Map<java.lang.String, alluxio.grpc.MountPointInfo>
-  getMountTable();
+  getMountPoints();
   /**
-   * <code>map&lt;string, .alluxio.grpc.MountPointInfo&gt; mountTable = 1;</code>
+   * <code>map&lt;string, .alluxio.grpc.MountPointInfo&gt; mountPoints = 1;</code>
    */
   java.util.Map<java.lang.String, alluxio.grpc.MountPointInfo>
-  getMountTableMap();
+  getMountPointsMap();
   /**
-   * <code>map&lt;string, .alluxio.grpc.MountPointInfo&gt; mountTable = 1;</code>
+   * <code>map&lt;string, .alluxio.grpc.MountPointInfo&gt; mountPoints = 1;</code>
    */
 
-  alluxio.grpc.MountPointInfo getMountTableOrDefault(
+  alluxio.grpc.MountPointInfo getMountPointsOrDefault(
       java.lang.String key,
       alluxio.grpc.MountPointInfo defaultValue);
   /**
-   * <code>map&lt;string, .alluxio.grpc.MountPointInfo&gt; mountTable = 1;</code>
+   * <code>map&lt;string, .alluxio.grpc.MountPointInfo&gt; mountPoints = 1;</code>
    */
 
-  alluxio.grpc.MountPointInfo getMountTableOrThrow(
+  alluxio.grpc.MountPointInfo getMountPointsOrThrow(
       java.lang.String key);
 }

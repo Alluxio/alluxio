@@ -13,7 +13,6 @@ package alluxio.worker.keyvalue;
 
 import alluxio.Constants;
 import alluxio.Server;
-import alluxio.thrift.KeyValueWorkerClientService;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.AbstractWorker;
@@ -66,8 +65,8 @@ public final class KeyValueWorker extends AbstractWorker {
   @Override
   public Map<String, TProcessor> getServices() {
     Map<String, TProcessor> services = new HashMap<>();
-    services.put(Constants.KEY_VALUE_WORKER_CLIENT_SERVICE_NAME,
-        new KeyValueWorkerClientService.Processor<>(mKeyValueServiceHandler));
+    //services.put(Constants.KEY_VALUE_WORKER_CLIENT_SERVICE_NAME,
+    //    new KeyValueWorkerClientService.Processor<>(mKeyValueServiceHandler));
     return services;
   }
 

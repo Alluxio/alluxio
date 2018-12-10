@@ -11,15 +11,19 @@
 
 package alluxio.wire;
 
+import alluxio.grpc.ConfigStatus;
+import alluxio.grpc.InconsistentProperties;
+import alluxio.grpc.Scope;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
- * Represents a configuration report which records the configuration checker results.
- * Since we check server-side configuration, Scope here only includes
- * SERVER, MASTER and WORKER. Scope.ALL will be considered as Scope.SERVER.
+ * Represents a configuration report which records the configuration checker results. Since we check
+ * server-side configuration, Scope here only includes SERVER, MASTER and WORKER. Scope.ALL will be
+ * considered as Scope.SERVER.
  */
 public class ConfigCheckReport {
   /** Record the configuration errors. */
@@ -53,24 +57,34 @@ public class ConfigCheckReport {
   }
 
   /**
-   * Creates a new instance of {@link ConfigCheckReport} from a thrift representation.
+   * Creates a new instance of {@link ConfigCheckReport} from a proto representation.
    *
-   * @param configCheckReport the thrift representation of a configuration check report
+   * @param configCheckReport the proto representation of a configuration check report
    */
-  public ConfigCheckReport(alluxio.thrift.ConfigCheckReport configCheckReport) {
+  public ConfigCheckReport(alluxio.grpc.ConfigCheckReport configCheckReport) {
     mConfigErrors = new HashMap<>();
-    for (Map.Entry<alluxio.thrift.Scope, List<alluxio.thrift.InconsistentProperty>> entry :
-        configCheckReport.getErrors().entrySet()) {
-      mConfigErrors.put(Scope.fromThrift(entry.getKey()), entry.getValue().stream()
-          .map(InconsistentProperty::fromThrift).collect(Collectors.toList()));
+    for (Map.Entry<String, InconsistentProperties> entry : configCheckReport.getErrorsMap()
+        .entrySet()) {
+      mConfigErrors.put(Scope.valueOf(entry.getKey()), entry.getValue().getPropertiesList().stream()
+          .map(InconsistentProperty::fromProto).collect(Collectors.toList()));
     }
     mConfigWarns = new HashMap<>();
-    for (Map.Entry<alluxio.thrift.Scope, List<alluxio.thrift.InconsistentProperty>> entry :
-        configCheckReport.getWarns().entrySet()) {
-      mConfigWarns.put(Scope.fromThrift(entry.getKey()), entry.getValue().stream()
-          .map(InconsistentProperty::fromThrift).collect(Collectors.toList()));
+    for (Map.Entry<String, InconsistentProperties> entry : configCheckReport.getWarnsMap()
+        .entrySet()) {
+      mConfigWarns.put(Scope.valueOf(entry.getKey()), entry.getValue().getPropertiesList().stream()
+          .map(InconsistentProperty::fromProto).collect(Collectors.toList()));
     }
-    mConfigStatus = ConfigStatus.fromThrift(configCheckReport.getStatus());
+    mConfigStatus = configCheckReport.getStatus();
+  }
+
+  /**
+   * Creates a new instance of {@link ConfigCheckReport} from proto representation.
+   *
+   * @param report the proto representation of a configuration check report
+   * @return the instance
+   */
+  public static ConfigCheckReport fromProto(alluxio.grpc.ConfigCheckReport report) {
+    return new ConfigCheckReport(report);
   }
 
   /**
@@ -95,60 +109,23 @@ public class ConfigCheckReport {
   }
 
   /**
-   * @return thrift representation of the configuration check report
+   * @return proto representation of the configuration check report
    */
-  public alluxio.thrift.ConfigCheckReport toThrift() {
-    Map<alluxio.thrift.Scope, List<alluxio.thrift.InconsistentProperty>> thriftErrors
-        = new HashMap<>();
-    for (Map.Entry<Scope, List<InconsistentProperty>> entry :
-        mConfigErrors.entrySet()) {
-      thriftErrors.put(entry.getKey().toThrift(), entry.getValue().stream()
-          .map(InconsistentProperty::toThrift).collect(Collectors.toList()));
+  public alluxio.grpc.ConfigCheckReport toProto() {
+    Map<String, InconsistentProperties> protoErrors = new HashMap<>();
+    for (Map.Entry<Scope, List<InconsistentProperty>> entry : mConfigErrors.entrySet()) {
+      protoErrors.put(entry.getKey().name(), InconsistentProperties.newBuilder().addAllProperties(
+          entry.getValue().stream().map(InconsistentProperty::toProto).collect(Collectors.toList()))
+          .build());
+    }
+    Map<String, InconsistentProperties> protoWarns = new HashMap<>();
+    for (Map.Entry<Scope, List<InconsistentProperty>> entry : mConfigWarns.entrySet()) {
+      protoWarns.put(entry.getKey().name(), InconsistentProperties.newBuilder().addAllProperties(
+          entry.getValue().stream().map(InconsistentProperty::toProto).collect(Collectors.toList()))
+          .build());
     }
 
-    Map<alluxio.thrift.Scope, List<alluxio.thrift.InconsistentProperty>> thriftWarns
-        = new HashMap<>();
-    for (Map.Entry<Scope, List<InconsistentProperty>> entry :
-        mConfigWarns.entrySet()) {
-      thriftWarns.put(entry.getKey().toThrift(), entry.getValue().stream()
-          .map(InconsistentProperty::toThrift).collect(Collectors.toList()));
-    }
-
-    return new alluxio.thrift.ConfigCheckReport().setErrors(thriftErrors)
-        .setWarns(thriftWarns).setStatus(mConfigStatus.toThrift());
-  }
-
-  /**
-   * Creates a new instance of {@link ConfigCheckReport} from thrift representation.
-   *
-   * @param report the thrift representation of a configuration check report
-   * @return the instance
-   */
-  public static ConfigCheckReport fromThrift(alluxio.thrift.ConfigCheckReport report) {
-    return new ConfigCheckReport(report);
-  }
-
-  /**
-   * Config status of the config check.
-   */
-  public enum ConfigStatus {
-    PASSED, // do not have configuration errors and warnings
-    WARN, // do not have configuration errors but have warnings
-    FAILED; // have configuration errors
-
-    /**
-     * @return the thrift representation of this configuration status field
-     */
-    public alluxio.thrift.ConfigStatus toThrift() {
-      return alluxio.thrift.ConfigStatus.valueOf(name());
-    }
-
-    /**
-     * @param field the thrift representation of the configuration status field to create
-     * @return the wire type version of the configuration status field
-     */
-    public static ConfigStatus fromThrift(alluxio.thrift.ConfigStatus field) {
-      return ConfigStatus.valueOf(field.name());
-    }
+    return alluxio.grpc.ConfigCheckReport.newBuilder().putAllErrors(protoErrors)
+        .putAllWarns(protoWarns).setStatus(mConfigStatus).build();
   }
 }

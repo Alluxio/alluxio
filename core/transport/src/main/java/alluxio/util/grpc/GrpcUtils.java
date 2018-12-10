@@ -14,11 +14,7 @@ package alluxio.util.grpc;
 import static alluxio.util.StreamUtils.map;
 
 import alluxio.Constants;
-import alluxio.file.options.CompleteUfsFileOptions;
-import alluxio.file.options.CreateUfsFileOptions;
 import alluxio.file.options.DescendantType;
-import alluxio.grpc.CompleteUfsFilePOptions;
-import alluxio.grpc.CreateUfsFilePOptions;
 import alluxio.grpc.ExistsPOptions;
 import alluxio.grpc.FileSystemCommandOptions;
 import alluxio.grpc.GetStatusPOptions;
@@ -29,8 +25,8 @@ import alluxio.grpc.PAcl;
 import alluxio.grpc.PAclAction;
 import alluxio.grpc.PAclEntry;
 import alluxio.grpc.PAclEntryType;
-import alluxio.grpc.PSetAclAction;
 import alluxio.grpc.PersistCommandOptions;
+import alluxio.grpc.Scope;
 import alluxio.proto.journal.File;
 import alluxio.security.authorization.AccessControlList;
 import alluxio.security.authorization.AclAction;
@@ -46,9 +42,8 @@ import alluxio.wire.FileSystemCommand;
 import alluxio.wire.LoadMetadataType;
 import alluxio.wire.MountPointInfo;
 import alluxio.wire.PersistFile;
-import alluxio.wire.SetAclAction;
 import alluxio.wire.TieredIdentity;
-import alluxio.wire.TtlAction;
+import alluxio.grpc.TtlAction;
 import alluxio.wire.UfsInfo;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
@@ -98,32 +93,6 @@ public final class GrpcUtils {
       }
     }
     return optionsBuilder.build();
-  }
-
-  /**
-   * Converts from proto type to wire type.
-   *
-   * @param pSetAclAction {@link PSetAclAction}
-   * @return {@link SetAclAction} equivalent
-   */
-  public static SetAclAction fromProto(PSetAclAction pSetAclAction) {
-    if (pSetAclAction == null) {
-      throw new IllegalStateException("Null proto set acl action.");
-    }
-    switch (pSetAclAction) {
-      case Replace:
-        return SetAclAction.REPLACE;
-      case Modify:
-        return SetAclAction.MODIFY;
-      case Remove:
-        return SetAclAction.REMOVE;
-      case RemoveAll:
-        return SetAclAction.REMOVE_ALL;
-      case RemoveDefault:
-        return SetAclAction.REMOVE_DEFAULT;
-      default:
-        throw new IllegalStateException("Unrecognized proto set acl action: " + pSetAclAction);
-    }
   }
 
   /**
@@ -252,7 +221,7 @@ public final class GrpcUtils {
         .setPinned(pInfo.getPinned()).setCacheable(pInfo.getCacheable())
         .setPersisted(pInfo.getPersisted()).setBlockIds(pInfo.getBlockIdsList())
         .setLastModificationTimeMs(pInfo.getLastModificationTimeMs()).setTtl(pInfo.getTtl())
-        .setTtlAction(fromProto(pInfo.getTtlAction())).setOwner(pInfo.getOwner())
+        .setTtlAction(pInfo.getTtlAction()).setOwner(pInfo.getOwner())
         .setGroup(pInfo.getGroup()).setMode(pInfo.getMode())
         .setPersistenceState(pInfo.getPersistenceState()).setMountPoint(pInfo.getMountPoint())
         .setFileBlockInfos(map(GrpcUtils::fromProto, pInfo.getFileBlockInfosList()))
@@ -315,26 +284,6 @@ public final class GrpcUtils {
         .setUfsUsedBytes(mountPointPInfo.getUfsUsedBytes())
         .setReadOnly(mountPointPInfo.getReadOnly())
         .setProperties(mountPointPInfo.getPropertiesMap()).setShared(mountPointPInfo.getShared());
-  }
-
-  /**
-   * Converts proto type to wire type.
-   *
-   * @param tTtlAction {@link TtlAction}
-   * @return {@link TtlAction} equivalent
-   */
-  public static TtlAction fromProto(alluxio.grpc.TtlAction tTtlAction) {
-    if (tTtlAction == null) {
-      return TtlAction.DELETE;
-    }
-    switch (tTtlAction) {
-      case DELETE:
-        return TtlAction.DELETE;
-      case FREE:
-        return TtlAction.FREE;
-      default:
-        throw new IllegalStateException("Unrecognized proto ttl action: " + tTtlAction);
-    }
   }
 
   /**
@@ -482,46 +431,6 @@ public final class GrpcUtils {
   }
 
   /**
-   * Converts options to proto type.
-   *
-   * @param options the options type to convert
-   * @return the converted proto type
-   */
-  public static CreateUfsFilePOptions toProto(CreateUfsFileOptions options) {
-    CreateUfsFilePOptions.Builder builder = CreateUfsFilePOptions.newBuilder();
-    if (!options.getOwner().isEmpty()) {
-      builder.setOwner(options.getOwner());
-    }
-    if (!options.getGroup().isEmpty()) {
-      builder.setGroup(options.getGroup());
-    }
-    if (options.getMode() != null && options.getMode().toShort() != Constants.INVALID_MODE) {
-      builder.setMode(options.getMode().toShort());
-    }
-    return builder.build();
-  }
-
-  /**
-   * Converts options to proto type.
-   *
-   * @param options the options type to convert
-   * @return the converted proto type
-   */
-  public static CompleteUfsFilePOptions toProto(CompleteUfsFileOptions options) {
-    CompleteUfsFilePOptions.Builder builder = CompleteUfsFilePOptions.newBuilder();
-    if (!options.getOwner().isEmpty()) {
-      builder.setOwner(options.getOwner());
-    }
-    if (!options.getGroup().isEmpty()) {
-      builder.setGroup(options.getGroup());
-    }
-    if (options.getMode() != null && options.getMode().toShort() != Constants.INVALID_MODE) {
-      builder.setMode(options.getMode().toShort());
-    }
-    return builder.build();
-  }
-
-  /**
    * Converts a wire type to a proto type.
    *
    * @param fileInfo the wire representation of a file information
@@ -544,7 +453,7 @@ public final class GrpcUtils {
         .setOwner(fileInfo.getOwner()).setGroup(fileInfo.getGroup()).setMode(fileInfo.getMode())
         .setPersistenceState(fileInfo.getPersistenceState()).setMountPoint(fileInfo.isMountPoint())
         .addAllFileBlockInfos(fileBlockInfos)
-        .setTtlAction(GrpcUtils.toProto(fileInfo.getTtlAction())).setMountId(fileInfo.getMountId())
+        .setTtlAction(fileInfo.getTtlAction()).setMountId(fileInfo.getMountId())
         .setInAlluxioPercentage(fileInfo.getInAlluxioPercentage())
         .setInMemoryPercentage(fileInfo.getInMemoryPercentage())
         .setUfsFingerprint(fileInfo.getUfsFingerprint())
@@ -606,8 +515,12 @@ public final class GrpcUtils {
    * @return converted proto representation
    */
   public static alluxio.grpc.LocalityTier toProto(TieredIdentity.LocalityTier localityTier) {
-    return alluxio.grpc.LocalityTier.newBuilder().setTierName(localityTier.getTierName())
-        .setValue(localityTier.getValue()).build();
+    alluxio.grpc.LocalityTier.Builder tier =
+        alluxio.grpc.LocalityTier.newBuilder().setTierName(localityTier.getTierName());
+    if (localityTier.getValue() != null) {
+      tier.setValue(localityTier.getValue());
+    }
+    return tier.build();
   }
 
   /**
@@ -626,29 +539,6 @@ public final class GrpcUtils {
   /**
    * Converts wire type to proto type.
    *
-   * @param aclAction the wire representation to convert
-   * @return the converted proto representation
-   */
-  public static alluxio.grpc.PSetAclAction toProto(SetAclAction aclAction) {
-    switch (aclAction) {
-      case REPLACE:
-        return PSetAclAction.Replace;
-      case MODIFY:
-        return PSetAclAction.Modify;
-      case REMOVE:
-        return PSetAclAction.Remove;
-      case REMOVE_ALL:
-        return PSetAclAction.RemoveAll;
-      case REMOVE_DEFAULT:
-        return PSetAclAction.RemoveDefault;
-      default:
-        throw new IllegalStateException("Unrecognized set acl action: " + aclAction);
-    }
-  }
-
-  /**
-   * Converts wire type to proto type.
-   *
    * @param tieredIdentity the wire representation to convert
    * @return the converted proto representation
    */
@@ -657,26 +547,6 @@ public final class GrpcUtils {
         .addAllTiers(
             tieredIdentity.getTiers().stream().map(GrpcUtils::toProto).collect(Collectors.toList()))
         .build();
-  }
-
-  /**
-   * Converts wire type to proto type.
-   *
-   * @param ttlAction {@link TtlAction}
-   * @return {@link TtlAction} equivalent
-   */
-  public static alluxio.grpc.TtlAction toProto(TtlAction ttlAction) {
-    if (ttlAction == null) {
-      return alluxio.grpc.TtlAction.DELETE;
-    }
-    switch (ttlAction) {
-      case DELETE:
-        return alluxio.grpc.TtlAction.DELETE;
-      case FREE:
-        return alluxio.grpc.TtlAction.FREE;
-      default:
-        throw new IllegalStateException("Unrecognized ttl action: " + ttlAction);
-    }
   }
 
   /**
@@ -712,14 +582,12 @@ public final class GrpcUtils {
     return address.build();
   }
 
-  private static final String COMMAND_TYPE_PROTOHEADER = "Command_";
-
   /**
    * @param commandType wire type
    * @return proto representation of given wire type
    */
   public static alluxio.grpc.CommandType toProto(CommandType commandType) {
-    return alluxio.grpc.CommandType.valueOf(COMMAND_TYPE_PROTOHEADER + commandType.name());
+    return alluxio.grpc.CommandType.valueOf(commandType.name());
   }
 
   /**
@@ -751,6 +619,25 @@ public final class GrpcUtils {
    * @return proto representation of given wire type
    */
   public static alluxio.grpc.UfsInfo toProto(UfsInfo ufsInfo) {
-    return alluxio.grpc.UfsInfo.newBuilder().setUri(ufsInfo.getUri().toString()).build();
+    return alluxio.grpc.UfsInfo.newBuilder().setUri(ufsInfo.getUri().toString())
+        .setProperties(ufsInfo.getMountOptions()).build();
+  }
+
+  /**
+   * @param source source enum
+   * @param target target enum
+   * @return true if target enum is contained within the source
+   */
+  public static boolean contains(Scope source, Scope target) {
+    return (source.getNumber() | target.getNumber()) == source.getNumber();
+  }
+
+  /**
+   * @param scope1 source1
+   * @param scope2 source2
+   * @return combined enum of given enums
+   */
+  public static Scope combine(Scope scope1, Scope scope2) {
+    return Scope.forNumber(scope1.getNumber() & scope2.getNumber());
   }
 }

@@ -15,7 +15,7 @@ import alluxio.Constants;
 import alluxio.exception.BlockInfoException;
 import alluxio.master.ProtobufUtils;
 import alluxio.master.block.BlockId;
-import alluxio.master.file.options.CreateFileContext;
+import alluxio.master.file.contexts.CreateFileContext;
 import alluxio.proto.journal.File.InodeFileEntry;
 import alluxio.proto.journal.File.UpdateInodeFileEntry;
 import alluxio.proto.journal.Journal.JournalEntry;
@@ -412,14 +412,14 @@ public final class InodeFile extends Inode<InodeFile> implements InodeFileView {
         .setReplicationMax(context.getOptions().getReplicationMax())
         .setReplicationMin(context.getOptions().getReplicationMin())
         .setTtl(context.getOptions().getCommonOptions().getTtl())
-        .setTtlAction(GrpcUtils.fromProto(context.getOptions().getCommonOptions().getTtlAction()))
+        .setTtlAction(context.getOptions().getCommonOptions().getTtlAction())
         .setParentId(parentId)
         .setLastModificationTimeMs(context.getOperationTimeMs(), true)
         .setOwner(context.getOwner())
         .setGroup(context.getGroup())
         .setMode((short) context.getOptions().getMode())
         .setAcl(context.getAcl())
-        .setPersistenceState(context.getOptions().getPersisted() ? PersistenceState.PERSISTED
+        .setPersistenceState(context.getPersisted() ? PersistenceState.PERSISTED
             : PersistenceState.NOT_PERSISTED);
   }
 

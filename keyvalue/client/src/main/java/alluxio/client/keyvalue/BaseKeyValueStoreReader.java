@@ -13,8 +13,8 @@ package alluxio.client.keyvalue;
 
 import alluxio.AlluxioURI;
 import alluxio.exception.AlluxioException;
+import alluxio.grpc.PartitionInfo;
 import alluxio.master.MasterClientConfig;
-import alluxio.thrift.PartitionInfo;
 import alluxio.util.io.BufferUtils;
 
 import com.google.common.base.Preconditions;
@@ -77,9 +77,9 @@ class BaseKeyValueStoreReader implements KeyValueStoreReader {
       int middle = (right + left) / 2;
       PartitionInfo partition = mPartitions.get(middle);
       // NOTE: keyStart and keyLimit are both inclusive
-      if (key.compareTo(partition.bufferForKeyStart()) < 0) {
+      if (key.compareTo(partition.getKeyStart().asReadOnlyByteBuffer()) < 0) {
         right = middle;
-      } else if (key.compareTo(partition.bufferForKeyLimit()) > 0) {
+      } else if (key.compareTo(partition.getKeyLimit().asReadOnlyByteBuffer()) > 0) {
         left = middle + 1;
       } else {
         // The key is either in this partition or not in the key-value store

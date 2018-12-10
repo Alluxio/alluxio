@@ -18,7 +18,7 @@ import alluxio.client.file.FileSystem;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.util.CommonUtils;
-import alluxio.wire.TtlAction;
+import alluxio.grpc.TtlAction;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;

@@ -11,7 +11,7 @@
 
 package alluxio.client.block.options;
 
-import alluxio.thrift.GetWorkerReportTOptions;
+import alluxio.grpc.GetWorkerReportPOptions;
 
 import com.google.common.base.Objects;
 
@@ -54,13 +54,13 @@ public final class GetWorkerReportOptions implements Serializable {
    *
    * @param options the thrift representation of a GetWorkerReportOptions
    */
-  public GetWorkerReportOptions(alluxio.thrift.GetWorkerReportTOptions options) {
-    mAddresses = options.getAddresses();
+  public GetWorkerReportOptions(alluxio.grpc.GetWorkerReportPOptions options) {
+    mAddresses = new HashSet<>(options.getAddressesList());
     mFieldRange = new HashSet<>();
-    for (alluxio.thrift.WorkerInfoField field: options.getFieldRange()) {
-      mFieldRange.add(WorkerInfoField.fromThrift(field));
+    for (alluxio.grpc.WorkerInfoField field: options.getFieldRangesList()) {
+      mFieldRange.add(WorkerInfoField.fromProto(field));
     }
-    mWorkerRange = WorkerRange.fromThrift(options.getWorkerRange());
+    mWorkerRange = WorkerRange.fromProto(options.getWorkerRange());
   }
 
   /**
@@ -140,20 +140,20 @@ public final class GetWorkerReportOptions implements Serializable {
   }
 
   /**
-   * @return Thrift representation of the options
+   * @return Proto representation of the options
    */
-  public GetWorkerReportTOptions toThrift() {
-    GetWorkerReportTOptions options = new GetWorkerReportTOptions();
-    options.setAddresses(mAddresses);
+  public GetWorkerReportPOptions toProto() {
+    GetWorkerReportPOptions.Builder optionsBuilder = GetWorkerReportPOptions.newBuilder();
+    optionsBuilder.addAllAddresses(mAddresses);
     if (mFieldRange != null) {
-      Set<alluxio.thrift.WorkerInfoField> thriftFieldRange = new HashSet<>();
+      Set<alluxio.grpc.WorkerInfoField> thriftFieldRange = new HashSet<>();
       for (WorkerInfoField field : mFieldRange) {
-        thriftFieldRange.add(field.toThrift());
+        thriftFieldRange.add(field.toProto());
       }
-      options.setFieldRange(thriftFieldRange);
+      optionsBuilder.addAllFieldRanges(thriftFieldRange);
     }
-    options.setWorkerRange(mWorkerRange.toThrift());
-    return options;
+    optionsBuilder.setWorkerRange(mWorkerRange.toProto());
+    return optionsBuilder.build();
   }
 
   /**
@@ -166,17 +166,17 @@ public final class GetWorkerReportOptions implements Serializable {
     SPECIFIED; // Combine with mAddresses to define worker range
 
     /**
-     * @return the thrift representation of this worker info filter type
+     * @return the proto representation of this worker info filter type
      */
-    public alluxio.thrift.WorkerRange toThrift() {
-      return alluxio.thrift.WorkerRange.valueOf(name());
+    public alluxio.grpc.WorkerRange toProto() {
+      return alluxio.grpc.WorkerRange.valueOf(name());
     }
 
     /**
-     * @param workerRange the thrift representation of the worker range to create
+     * @param workerRange the proto representation of the worker range to create
      * @return the wire type version of the worker range
      */
-    public static WorkerRange fromThrift(alluxio.thrift.WorkerRange workerRange) {
+    public static WorkerRange fromProto(alluxio.grpc.WorkerRange workerRange) {
       return WorkerRange.valueOf(workerRange.name());
     }
   }
@@ -196,18 +196,18 @@ public final class GetWorkerReportOptions implements Serializable {
     USED_BYTES_ON_TIERS;
 
     /**
-     * @return the thrift representation of this worker info fields
+     * @return the proto representation of this worker info fields
      */
-    public alluxio.thrift.WorkerInfoField toThrift() {
-      return alluxio.thrift.WorkerInfoField.valueOf(name());
+    public alluxio.grpc.WorkerInfoField toProto() {
+      return alluxio.grpc.WorkerInfoField.valueOf(name());
     }
 
     /**
-     * @param fieldRange the thrift representation of the worker info fields
+     * @param fieldRange the proto representation of the worker info fields
      * @return the wire type version of the worker info field
      */
-    public static WorkerInfoField fromThrift(
-        alluxio.thrift.WorkerInfoField fieldRange) {
+    public static WorkerInfoField fromProto(
+        alluxio.grpc.WorkerInfoField fieldRange) {
       return WorkerInfoField.valueOf(fieldRange.name());
     }
   }

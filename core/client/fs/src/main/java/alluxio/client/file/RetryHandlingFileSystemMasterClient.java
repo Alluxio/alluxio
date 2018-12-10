@@ -15,6 +15,7 @@ import alluxio.AbstractMasterClient;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.exception.status.AlluxioStatusException;
+import alluxio.grpc.AlluxioServiceType;
 import alluxio.grpc.CheckConsistencyPOptions;
 import alluxio.grpc.CheckConsistencyPRequest;
 import alluxio.grpc.CompleteFilePOptions;
@@ -50,9 +51,8 @@ import alluxio.grpc.UpdateUfsModePOptions;
 import alluxio.grpc.UpdateUfsModePRequest;
 import alluxio.master.MasterClientConfig;
 import alluxio.security.authorization.AclEntry;
-import alluxio.thrift.AlluxioService;
 import alluxio.util.grpc.GrpcUtils;
-import alluxio.wire.SetAclAction;
+import alluxio.grpc.SetAclAction;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -85,8 +85,8 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
   }
 
   @Override
-  protected AlluxioService.Client getClient() {
-    return null;
+  protected AlluxioServiceType getRemoteServiceType() {
+    return AlluxioServiceType.FILE_SYSTEM_MASTER_CLIENT_SERVICE;
   }
 
   @Override
@@ -187,7 +187,7 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
     return retryRPC(() -> {
       Map<String, alluxio.wire.MountPointInfo> mountTableWire = new HashMap<>();
       for (Map.Entry<String, alluxio.grpc.MountPointInfo> entry : mGrpcClient
-          .getMountTable(GetMountTablePRequest.newBuilder().build()).getMountTableMap()
+          .getMountTable(GetMountTablePRequest.newBuilder().build()).getMountPointsMap()
           .entrySet()) {
         mountTableWire.put(entry.getKey(), GrpcUtils.fromProto(entry.getValue()));
       }
@@ -202,7 +202,7 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
       List<URIStatus> result = new ArrayList<>();
       for (alluxio.grpc.FileInfo fileInfo : mGrpcClient.listStatus(ListStatusPRequest.newBuilder()
           .setPath(path.getPath()).setOptions(options).build())
-          .getFileInfoListList()) {
+          .getFileInfosList()) {
         result.add(new URIStatus(GrpcUtils.fromProto(fileInfo)));
       }
       return result;
@@ -235,7 +235,7 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
   public void setAcl(AlluxioURI path, SetAclAction action, List<AclEntry> entries,
       SetAclPOptions options) throws AlluxioStatusException {
     retryRPC(() -> mGrpcClient.setAcl(
-        SetAclPRequest.newBuilder().setPath(path.getPath()).setAction(GrpcUtils.toProto(action))
+        SetAclPRequest.newBuilder().setPath(path.getPath()).setAction(action)
             .addAllEntries(entries.stream().map(GrpcUtils::toProto).collect(Collectors.toList()))
             .setOptions(options).build()),
         "SetAcl");

@@ -19,7 +19,7 @@ import alluxio.security.authorization.AclActions;
 import alluxio.security.authorization.DefaultAccessControlList;
 import alluxio.util.interfaces.Scoped;
 import alluxio.wire.FileInfo;
-import alluxio.wire.TtlAction;
+import alluxio.grpc.TtlAction;
 
 import java.util.List;
 import java.util.Optional;

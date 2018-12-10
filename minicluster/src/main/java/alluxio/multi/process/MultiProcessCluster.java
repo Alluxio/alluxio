@@ -27,6 +27,7 @@ import alluxio.client.file.FileSystem.Factory;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.RetryHandlingFileSystemMasterClient;
 import alluxio.exception.status.UnavailableException;
+import alluxio.grpc.MasterInfo;
 import alluxio.master.LocalAlluxioCluster;
 import alluxio.master.MasterClientConfig;
 import alluxio.master.MasterInquireClient;
@@ -38,7 +39,6 @@ import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.util.io.PathUtils;
 import alluxio.util.network.NetworkAddressUtils;
-import alluxio.wire.MasterInfo;
 import alluxio.zookeeper.RestartableTestingServer;
 
 import com.google.common.base.Preconditions;
@@ -270,13 +270,13 @@ public final class MultiProcessCluster {
     CommonUtils.waitFor("all nodes registered", () -> {
       try {
         MasterInfo masterInfo = metaMasterClient.getMasterInfo(null);
-        int liveNodeNum = masterInfo.getMasterAddresses().size()
-            + masterInfo.getWorkerAddresses().size();
+        int liveNodeNum = masterInfo.getMasterAddressesList().size()
+            + masterInfo.getWorkerAddressesList().size();
         if (liveNodeNum == (mNumMasters + mNumWorkers)) {
           return true;
         } else {
-          LOG.info("Master addresses: {}. Worker addresses: {}", masterInfo.getMasterAddresses(),
-              masterInfo.getWorkerAddresses());
+          LOG.info("Master addresses: {}. Worker addresses: {}",
+              masterInfo.getMasterAddressesList(), masterInfo.getWorkerAddressesList());
           return false;
         }
       } catch (UnavailableException e) {

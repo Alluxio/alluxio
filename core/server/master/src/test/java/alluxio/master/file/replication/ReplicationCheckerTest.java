@@ -19,6 +19,7 @@ import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.RegisterWorkerPOptions;
 import alluxio.job.replicate.ReplicationHandler;
 import alluxio.master.MasterContext;
 import alluxio.master.MasterRegistry;
@@ -32,15 +33,14 @@ import alluxio.master.file.meta.InodeTree;
 import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.file.meta.MountTable;
 import alluxio.master.file.meta.options.MountInfo;
-import alluxio.master.file.options.CreateFileContext;
-import alluxio.master.file.options.CreatePathContext;
+import alluxio.master.file.contexts.CreateFileContext;
+import alluxio.master.file.contexts.CreatePathContext;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalTestUtils;
 import alluxio.master.journal.NoopJournalContext;
 import alluxio.master.metrics.MetricsMasterFactory;
 import alluxio.metrics.Metric;
 import alluxio.security.authorization.Mode;
-import alluxio.thrift.RegisterWorkerTOptions;
 import alluxio.underfs.UfsManager;
 import alluxio.wire.WorkerNetAddress;
 
@@ -198,7 +198,8 @@ public final class ReplicationCheckerTest {
     if (!mKnownWorkers.contains(workerId)) {
       // Do not re-register works, otherwise added block will be removed
       mBlockMaster.workerRegister(workerId, ImmutableList.of("MEM"), ImmutableMap.of("MEM", 100L),
-          ImmutableMap.of("MEM", 0L), NO_BLOCKS_ON_TIERS, new RegisterWorkerTOptions());
+          ImmutableMap.of("MEM", 0L), NO_BLOCKS_ON_TIERS,
+          RegisterWorkerPOptions.getDefaultInstance());
       mKnownWorkers.add(workerId);
     }
     return workerId;
@@ -290,9 +291,9 @@ public final class ReplicationCheckerTest {
     // Create a worker.
     long workerId = mBlockMaster.getWorkerId(new WorkerNetAddress().setHost("localhost")
         .setRpcPort(80).setDataPort(81).setWebPort(82));
-    mBlockMaster
-        .workerRegister(workerId, Collections.singletonList("MEM"), ImmutableMap.of("MEM", 100L),
-            ImmutableMap.of("MEM", 0L), NO_BLOCKS_ON_TIERS, new RegisterWorkerTOptions());
+    mBlockMaster.workerRegister(workerId, Collections.singletonList("MEM"),
+        ImmutableMap.of("MEM", 100L), ImmutableMap.of("MEM", 0L), NO_BLOCKS_ON_TIERS,
+        RegisterWorkerPOptions.getDefaultInstance());
     mBlockMaster.commitBlock(workerId, 50L, "MEM", blockId, 20L);
 
     // Indicate that blockId is removed on the worker.

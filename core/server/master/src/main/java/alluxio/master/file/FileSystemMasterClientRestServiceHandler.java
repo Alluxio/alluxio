@@ -22,30 +22,28 @@ import alluxio.grpc.LoadMetadataPType;
 import alluxio.grpc.MountPOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.master.MasterProcess;
-import alluxio.master.file.options.CompleteFileContext;
-import alluxio.master.file.options.CreateDirectoryContext;
-import alluxio.master.file.options.CreateFileContext;
-import alluxio.master.file.options.DeleteContext;
-import alluxio.master.file.options.FreeContext;
-import alluxio.master.file.options.ListStatusContext;
-import alluxio.master.file.options.MountContext;
-import alluxio.master.file.options.RenameContext;
-import alluxio.master.file.options.SetAttributeContext;
+import alluxio.master.file.contexts.CompleteFileContext;
+import alluxio.master.file.contexts.CreateDirectoryContext;
+import alluxio.master.file.contexts.CreateFileContext;
+import alluxio.master.file.contexts.DeleteContext;
+import alluxio.master.file.contexts.FreeContext;
+import alluxio.master.file.contexts.ListStatusContext;
+import alluxio.master.file.contexts.MountContext;
+import alluxio.master.file.contexts.RenameContext;
+import alluxio.master.file.contexts.SetAttributeContext;
 import alluxio.util.grpc.GrpcUtils;
 import alluxio.web.MasterWebServer;
 import alluxio.wire.FileInfo;
 import alluxio.wire.LoadMetadataType;
-import alluxio.wire.TtlAction;
+import alluxio.grpc.TtlAction;
 
 import com.google.common.base.Preconditions;
 import com.qmino.miredot.annotations.ReturnType;
 
 import java.util.List;
-import java.util.Optional;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.servlet.ServletContext;
-import javax.validation.constraints.Null;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -163,7 +161,7 @@ public final class FileSystemMasterClientRestServiceHandler {
         Preconditions.checkNotNull(path, "required 'path' parameter is missing");
         CreateDirectoryContext context = CreateDirectoryContext.defaults();
         if (persisted != null) {
-          context.getOptions().setPersisted(persisted);
+          context.setPersisted(persisted);
         }
         if (recursive != null) {
           context.getOptions().setRecursive(recursive);
@@ -201,7 +199,7 @@ public final class FileSystemMasterClientRestServiceHandler {
         Preconditions.checkNotNull(path, "required 'path' parameter is missing");
         CreateFileContext context = CreateFileContext.defaults();
         if (persisted != null) {
-          context.getOptions().setPersisted(persisted);
+          context.setPersisted(persisted);
         }
         if (recursive != null) {
             context.getOptions().setRecursive(recursive);
@@ -214,7 +212,7 @@ public final class FileSystemMasterClientRestServiceHandler {
               FileSystemMasterCommonPOptions.newBuilder();
           commonOptions.setTtl(ttl);
           if (ttlAction != null) {
-            commonOptions.setTtlAction(GrpcUtils.toProto(ttlAction));
+            commonOptions.setTtlAction(ttlAction);
           }
           context.getOptions().setCommonOptions(commonOptions);
         }
@@ -443,7 +441,7 @@ public final class FileSystemMasterClientRestServiceHandler {
           optionsBuilder.setTtl(ttl);
         }
         if (ttlAction != null) {
-          optionsBuilder.setTtlAction(GrpcUtils.toProto(ttlAction));
+          optionsBuilder.setTtlAction(ttlAction);
         }
         if (persisted != null) {
           optionsBuilder.setPersisted(persisted);

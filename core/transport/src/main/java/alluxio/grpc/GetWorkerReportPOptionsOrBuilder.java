@@ -43,17 +43,17 @@ public interface GetWorkerReportPOptionsOrBuilder extends
       getAddressesBytes(int index);
 
   /**
-   * <code>repeated .alluxio.grpc.WorkerInfoField fieldRange = 2;</code>
+   * <code>repeated .alluxio.grpc.WorkerInfoField fieldRanges = 2;</code>
    */
-  java.util.List<alluxio.grpc.WorkerInfoField> getFieldRangeList();
+  java.util.List<alluxio.grpc.WorkerInfoField> getFieldRangesList();
   /**
-   * <code>repeated .alluxio.grpc.WorkerInfoField fieldRange = 2;</code>
+   * <code>repeated .alluxio.grpc.WorkerInfoField fieldRanges = 2;</code>
    */
-  int getFieldRangeCount();
+  int getFieldRangesCount();
   /**
-   * <code>repeated .alluxio.grpc.WorkerInfoField fieldRange = 2;</code>
+   * <code>repeated .alluxio.grpc.WorkerInfoField fieldRanges = 2;</code>
    */
-  alluxio.grpc.WorkerInfoField getFieldRange(int index);
+  alluxio.grpc.WorkerInfoField getFieldRanges(int index);
 
   /**
    * <code>optional .alluxio.grpc.WorkerRange workerRange = 3;</code>

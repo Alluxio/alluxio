@@ -12,12 +12,12 @@
 package alluxio.client;
 
 import alluxio.exception.status.AlluxioStatusException;
+import alluxio.grpc.ConfigProperty;
+import alluxio.grpc.MasterInfo;
+import alluxio.grpc.MasterInfoField;
+import alluxio.grpc.MetricValue;
 import alluxio.wire.BackupResponse;
 import alluxio.wire.ConfigCheckReport;
-import alluxio.wire.ConfigProperty;
-import alluxio.wire.MasterInfo;
-import alluxio.wire.MasterInfo.MasterInfoField;
-import alluxio.wire.MetricValue;
 
 import java.io.Closeable;
 import java.io.IOException;

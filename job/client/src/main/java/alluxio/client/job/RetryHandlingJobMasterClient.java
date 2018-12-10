@@ -13,17 +13,18 @@ package alluxio.client.job;
 
 import alluxio.AbstractMasterClient;
 import alluxio.Constants;
+import alluxio.grpc.AlluxioServiceType;
+import alluxio.grpc.CancelPRequest;
+import alluxio.grpc.GetJobStatusPRequest;
+import alluxio.grpc.JobMasterClientServiceGrpc;
+import alluxio.grpc.ListAllPRequest;
+import alluxio.grpc.RunPRequest;
 import alluxio.job.JobConfig;
 import alluxio.job.util.SerializationUtils;
 import alluxio.job.wire.JobInfo;
-import alluxio.thrift.AlluxioService.Client;
-import alluxio.thrift.CancelTOptions;
-import alluxio.thrift.GetJobStatusTOptions;
-import alluxio.thrift.JobMasterClientService;
-import alluxio.thrift.ListAllTOptions;
-import alluxio.thrift.RunTOptions;
 import alluxio.worker.job.JobMasterClientConfig;
 
+import com.google.protobuf.ByteString;
 import org.apache.thrift.TException;
 
 import java.io.IOException;
@@ -42,7 +43,8 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class RetryHandlingJobMasterClient extends AbstractMasterClient
     implements JobMasterClient {
-  private JobMasterClientService.Client mClient = null;
+  // private JobMasterClientService.Client mClient = null;
+  private JobMasterClientServiceGrpc.JobMasterClientServiceBlockingStub mGrpcClient = null;
 
   /**
    * Creates a new job master client.
@@ -54,8 +56,8 @@ public final class RetryHandlingJobMasterClient extends AbstractMasterClient
   }
 
   @Override
-  protected Client getClient() {
-    return mClient;
+  protected AlluxioServiceType getRemoteServiceType() {
+    return AlluxioServiceType.JOB_MASTER_CLIENT_SERVICE;
   }
 
   @Override
@@ -76,14 +78,15 @@ public final class RetryHandlingJobMasterClient extends AbstractMasterClient
 
   @Override
   protected void afterConnect() throws IOException {
-    mClient = new JobMasterClientService.Client(mProtocol);
+    // mClient = new JobMasterClientService.Client(mProtocol);
+    mGrpcClient = JobMasterClientServiceGrpc.newBlockingStub(mJobChannel);
   }
 
   @Override
   public synchronized void cancel(final long jobId) throws IOException {
     retryRPC(new RpcCallable<Void>() {
-      public Void call() throws TException {
-        mClient.cancel(jobId, new CancelTOptions());
+      public Void call() {
+        mGrpcClient.cancel(CancelPRequest.newBuilder().setJobId(jobId).build());
         return null;
       }
     });
@@ -91,9 +94,10 @@ public final class RetryHandlingJobMasterClient extends AbstractMasterClient
 
   @Override
   public synchronized JobInfo getStatus(final long jobId) throws IOException {
-    return new JobInfo(retryRPC(new RpcCallable<alluxio.thrift.JobInfo>() {
-      public alluxio.thrift.JobInfo call() throws TException {
-        return mClient.getJobStatus(jobId, new GetJobStatusTOptions()).getJobInfo();
+    return new JobInfo(retryRPC(new RpcCallable<alluxio.grpc.JobInfo>() {
+      public alluxio.grpc.JobInfo call() throws TException {
+        return mGrpcClient.getJobStatus(GetJobStatusPRequest.newBuilder().setJobId(jobId).build())
+            .getJobInfo();
       }
     }));
   }
@@ -101,8 +105,8 @@ public final class RetryHandlingJobMasterClient extends AbstractMasterClient
   @Override
   public synchronized List<Long> list() throws IOException {
     return retryRPC(new RpcCallable<List<Long>>() {
-      public List<Long> call() throws TException {
-        return mClient.listAll(new ListAllTOptions()).getJobIdList();
+      public List<Long> call() {
+        return mGrpcClient.listAll(ListAllPRequest.getDefaultInstance()).getJobIdsList();
       }
     });
   }
@@ -112,7 +116,9 @@ public final class RetryHandlingJobMasterClient extends AbstractMasterClient
     final ByteBuffer configBytes = ByteBuffer.wrap(SerializationUtils.serialize(jobConfig));
     return retryRPC(new RpcCallable<Long>() {
       public Long call() throws TException {
-        return mClient.run(configBytes, new RunTOptions()).getJobId();
+        return mGrpcClient
+            .run(RunPRequest.newBuilder().setJobConfig(ByteString.copyFrom(configBytes)).build())
+            .getJobId();
       }
     });
   }

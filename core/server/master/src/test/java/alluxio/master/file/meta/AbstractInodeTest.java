@@ -15,8 +15,8 @@ import alluxio.Constants;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.master.block.BlockId;
-import alluxio.master.file.options.CreateDirectoryContext;
-import alluxio.master.file.options.CreateFileContext;
+import alluxio.master.file.contexts.CreateDirectoryContext;
+import alluxio.master.file.contexts.CreateFileContext;
 import alluxio.security.authorization.Mode;
 
 import org.junit.Rule;

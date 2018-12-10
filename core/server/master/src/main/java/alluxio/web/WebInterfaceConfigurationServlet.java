@@ -12,11 +12,11 @@
 package alluxio.web;
 
 import alluxio.PropertyKey;
+import alluxio.grpc.ConfigProperty;
+import alluxio.grpc.GetConfigurationPOptions;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.meta.MetaMaster;
 import alluxio.util.ConfigurationUtils;
-import alluxio.wire.ConfigProperty;
-import alluxio.wire.GetConfigurationOptions;
 
 import com.google.common.collect.Sets;
 import org.apache.commons.lang3.tuple.ImmutableTriple;
@@ -74,8 +74,8 @@ public final class WebInterfaceConfigurationServlet extends HttpServlet {
     TreeSet<Triple<String, String, String>> rtn = new TreeSet<>();
     Set<String> alluxioConfExcludes = Sets.newHashSet(
         PropertyKey.MASTER_WHITELIST.toString());
-    for (ConfigProperty configProperty :
-        mMetaMaster.getConfiguration(GetConfigurationOptions.defaults().setRawValue(true))) {
+    for (ConfigProperty configProperty : mMetaMaster
+        .getConfiguration(GetConfigurationPOptions.newBuilder().setRawValue(true).build())) {
       String confName = configProperty.getName();
       if (!alluxioConfExcludes.contains(confName)) {
         rtn.add(new ImmutableTriple<>(confName,

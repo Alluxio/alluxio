@@ -21,7 +21,7 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.PermissionDeniedException;
 import alluxio.master.MasterRegistry;
 import alluxio.master.file.FileSystemMaster;
-import alluxio.master.file.options.GetStatusContext;
+import alluxio.master.file.contexts.GetStatusContext;
 import alluxio.security.LoginUserTestUtils;
 import alluxio.security.authentication.AuthType;
 import alluxio.security.authentication.AuthenticatedClientUser;

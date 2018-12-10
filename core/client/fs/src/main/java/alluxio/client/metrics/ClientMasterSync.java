@@ -54,10 +54,10 @@ public final class ClientMasterSync implements HeartbeatExecutor {
 
   @Override
   public synchronized void heartbeat() throws InterruptedException {
-    List<alluxio.thrift.Metric> metrics = new ArrayList<>();
+    List<alluxio.grpc.Metric> metrics = new ArrayList<>();
     for (Metric metric : MetricsSystem.allClientMetrics()) {
       metric.setInstanceId(mContext.getId());
-      metrics.add(metric.toThrift());
+      metrics.add(metric.toProto());
     }
     try {
       mMasterClient.heartbeat(metrics);

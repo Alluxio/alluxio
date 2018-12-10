@@ -15,10 +15,10 @@ import alluxio.Configuration;
 import alluxio.ConfigurationValueOptions;
 import alluxio.PropertyKey;
 import alluxio.client.RetryHandlingMetaMasterClient;
+import alluxio.grpc.ConfigProperty;
 import alluxio.master.MasterClientConfig;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.FormatUtils;
-import alluxio.wire.ConfigProperty;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.cli.CommandLine;
@@ -175,11 +175,14 @@ public final class GetConf {
       // load local configuration
       for (PropertyKey key : Configuration.keySet()) {
         if (key.isBuiltIn()) {
-          confMap.put(key.getName(), new ConfigProperty()
-              .setName(key.getName())
-              .setValue(Configuration.getOrDefault(key, null,
-                  ConfigurationValueOptions.defaults().useDisplayValue(true)))
-              .setSource(Configuration.getSource(key).toString()));
+          ConfigProperty.Builder config = ConfigProperty.newBuilder().setName(key.getName())
+              .setSource(Configuration.getSource(key).toString());
+          String val = Configuration.getOrDefault(key, null,
+              ConfigurationValueOptions.defaults().useDisplayValue(true));
+          if (val != null) {
+            config.setValue(val);
+          }
+          confMap.put(key.getName(), config.build());
         }
       }
     }

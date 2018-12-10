@@ -17,7 +17,7 @@ import alluxio.client.cli.fs.AbstractFileSystemShellTest;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.URIStatus;
 import alluxio.grpc.WritePType;
-import alluxio.wire.TtlAction;
+import alluxio.grpc.TtlAction;
 
 import org.junit.Assert;
 import org.junit.Test;

@@ -12,7 +12,7 @@
 package alluxio.wire;
 
 import alluxio.AlluxioURI;
-import alluxio.thrift.BackupTResponse;
+import alluxio.grpc.BackupPResponse;
 
 import com.google.common.base.Preconditions;
 
@@ -35,18 +35,19 @@ public class BackupResponse {
   }
 
   /**
-   * @param tResp thrift options
-   * @return wire type options corresponding to the thrift options
+   * @param pResp proto options
+   * @return wire type options corresponding to the proto options
    */
-  public static BackupResponse fromThrift(BackupTResponse tResp) {
-    return new BackupResponse(new AlluxioURI(tResp.getBackupUri()), tResp.getHostname());
+  public static BackupResponse fromPoto(BackupPResponse pResp) {
+    return new BackupResponse(new AlluxioURI(pResp.getBackupUri()), pResp.getHostname());
   }
 
   /**
-   * @return the thrift options corresponding to these options
+   * @return the proto options corresponding to these options
    */
-  public BackupTResponse toThrift() {
-    return new BackupTResponse().setBackupUri(mBackupUri.toString()).setHostname(mHostname);
+  public BackupPResponse toProto() {
+    return BackupPResponse.newBuilder().setBackupUri(mBackupUri.toString()).setHostname(mHostname)
+        .build();
   }
 
   /**

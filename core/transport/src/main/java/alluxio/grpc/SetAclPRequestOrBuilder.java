@@ -38,7 +38,7 @@ public interface SetAclPRequestOrBuilder extends
    ** the set action to perform 
    * </pre>
    *
-   * <code>optional .alluxio.grpc.PSetAclAction action = 2;</code>
+   * <code>optional .alluxio.grpc.SetAclAction action = 2;</code>
    */
   boolean hasAction();
   /**
@@ -46,9 +46,9 @@ public interface SetAclPRequestOrBuilder extends
    ** the set action to perform 
    * </pre>
    *
-   * <code>optional .alluxio.grpc.PSetAclAction action = 2;</code>
+   * <code>optional .alluxio.grpc.SetAclAction action = 2;</code>
    */
-  alluxio.grpc.PSetAclAction getAction();
+  alluxio.grpc.SetAclAction getAction();
 
   /**
    * <pre>

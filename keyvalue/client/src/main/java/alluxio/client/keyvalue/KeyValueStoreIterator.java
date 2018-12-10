@@ -12,7 +12,7 @@
 package alluxio.client.keyvalue;
 
 import alluxio.exception.AlluxioException;
-import alluxio.thrift.PartitionInfo;
+import alluxio.grpc.PartitionInfo;
 
 import com.google.common.base.Preconditions;
 

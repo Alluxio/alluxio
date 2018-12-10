@@ -8,26 +8,26 @@ public interface GetWorkerInfoListPResponseOrBuilder extends
     com.google.protobuf.MessageOrBuilder {
 
   /**
-   * <code>repeated .alluxio.grpc.WorkerInfo workerInfoList = 1;</code>
+   * <code>repeated .alluxio.grpc.WorkerInfo workerInfos = 1;</code>
    */
   java.util.List<alluxio.grpc.WorkerInfo> 
-      getWorkerInfoListList();
+      getWorkerInfosList();
   /**
-   * <code>repeated .alluxio.grpc.WorkerInfo workerInfoList = 1;</code>
+   * <code>repeated .alluxio.grpc.WorkerInfo workerInfos = 1;</code>
    */
-  alluxio.grpc.WorkerInfo getWorkerInfoList(int index);
+  alluxio.grpc.WorkerInfo getWorkerInfos(int index);
   /**
-   * <code>repeated .alluxio.grpc.WorkerInfo workerInfoList = 1;</code>
+   * <code>repeated .alluxio.grpc.WorkerInfo workerInfos = 1;</code>
    */
-  int getWorkerInfoListCount();
+  int getWorkerInfosCount();
   /**
-   * <code>repeated .alluxio.grpc.WorkerInfo workerInfoList = 1;</code>
+   * <code>repeated .alluxio.grpc.WorkerInfo workerInfos = 1;</code>
    */
   java.util.List<? extends alluxio.grpc.WorkerInfoOrBuilder> 
-      getWorkerInfoListOrBuilderList();
+      getWorkerInfosOrBuilderList();
   /**
-   * <code>repeated .alluxio.grpc.WorkerInfo workerInfoList = 1;</code>
+   * <code>repeated .alluxio.grpc.WorkerInfo workerInfos = 1;</code>
    */
-  alluxio.grpc.WorkerInfoOrBuilder getWorkerInfoListOrBuilder(
+  alluxio.grpc.WorkerInfoOrBuilder getWorkerInfosOrBuilder(
       int index);
 }

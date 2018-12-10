@@ -39,7 +39,7 @@ import alluxio.security.authorization.Mode;
 import alluxio.util.ModeUtils;
 import alluxio.util.grpc.GrpcUtils;
 import alluxio.wire.LoadMetadataType;
-import alluxio.wire.TtlAction;
+import alluxio.grpc.TtlAction;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -85,9 +85,8 @@ public final class FileSystemClientOptions {
   public static ListStatusPOptions getListStatusOptions() {
     return ListStatusPOptions.newBuilder()
         .setCommonOptions(getCommonOptions().toBuilder()
-            .setTtl(Configuration.getMs(PropertyKey.USER_FILE_LOAD_TTL))
-            .setTtlAction(GrpcUtils.toProto(
-                Configuration.getEnum(PropertyKey.USER_FILE_LOAD_TTL_ACTION, TtlAction.class))))
+            .setTtl(Configuration.getMs(PropertyKey.USER_FILE_LOAD_TTL)).setTtlAction(
+                Configuration.getEnum(PropertyKey.USER_FILE_LOAD_TTL_ACTION, TtlAction.class)))
         .setLoadMetadataType(GrpcUtils.toProto(Configuration
             .getEnum(PropertyKey.USER_FILE_METADATA_LOAD_TYPE, LoadMetadataType.class)))
         .build();
@@ -103,8 +102,6 @@ public final class FileSystemClientOptions {
         .setWriteTier(Configuration.getInt(PropertyKey.USER_FILE_WRITE_TIER_DEFAULT))
         .setWriteType(Configuration
             .getEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class).toProto())
-        .setPersisted(Configuration
-            .getEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class).isThrough())
         .setMode(ModeUtils.applyFileUMask(Mode.defaults()).toShort())
         .setReplicationDurable(Configuration.getInt(PropertyKey.USER_FILE_REPLICATION_DURABLE))
         .setReplicationMin(Configuration.getInt(PropertyKey.USER_FILE_REPLICATION_MIN))
@@ -133,14 +130,11 @@ public final class FileSystemClientOptions {
   public static CreateDirectoryPOptions getCreateDirectoryOptions() {
     return CreateDirectoryPOptions.newBuilder()
         .setCommonOptions(getCommonOptions().toBuilder()
-            .setTtl(Configuration.getLong(PropertyKey.USER_FILE_CREATE_TTL))
-            .setTtlAction(GrpcUtils.toProto(
-                Configuration.getEnum(PropertyKey.USER_FILE_CREATE_TTL_ACTION, TtlAction.class))))
+            .setTtl(Configuration.getLong(PropertyKey.USER_FILE_CREATE_TTL)).setTtlAction(
+                Configuration.getEnum(PropertyKey.USER_FILE_CREATE_TTL_ACTION, TtlAction.class)))
         .setRecursive(false)
         .setWriteType(Configuration
             .getEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class).toProto())
-        .setPersisted(Configuration
-            .getEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class).isThrough())
         .setMode(ModeUtils.applyDirectoryUMask(Mode.defaults()).toShort()).setAllowExists(false)
         .build();
   }

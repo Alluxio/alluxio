@@ -24,9 +24,9 @@ import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.master.block.ContainerIdGenerable;
 import alluxio.master.file.RpcContext;
-import alluxio.master.file.options.CreateDirectoryContext;
-import alluxio.master.file.options.CreateFileContext;
-import alluxio.master.file.options.CreatePathContext;
+import alluxio.master.file.contexts.CreateDirectoryContext;
+import alluxio.master.file.contexts.CreateFileContext;
+import alluxio.master.file.contexts.CreatePathContext;
 import alluxio.master.file.state.InodesView;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.JournalEntryIterable;
@@ -651,10 +651,10 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
     // than inheriting the option of the final file to create, because it may not have
     // "execute" permission.
     CreateDirectoryContext missingDirContext = CreateDirectoryContext.defaults();
-    missingDirContext.getOptions().setPersisted(context.isPersisted());
-    missingDirContext.setOperationTimeMs(context.getOperationTimeMs());
     missingDirContext.getOptions().setCommonOptions(FileSystemMasterCommonPOptions.newBuilder()
-        .setTtl(context.getTtl()).setTtlAction(context.getTtlAction()));
+            .setTtl(context.getTtl()).setTtlAction(context.getTtlAction()));
+    missingDirContext.setPersisted(context.isPersisted());
+    missingDirContext.setOperationTimeMs(context.getOperationTimeMs());
     missingDirContext.setMountPoint(false);
     missingDirContext.setOwner(context.getOwner());
     missingDirContext.setGroup(context.getGroup());

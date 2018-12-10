@@ -16,19 +16,16 @@ import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.Source;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.UnavailableException;
-import alluxio.network.thrift.BootstrapClientTransport;
-import alluxio.network.thrift.ThriftUtils;
-import alluxio.thrift.GetConfigurationTOptions;
-import alluxio.thrift.MetaMasterClientService;
+import alluxio.grpc.ConfigProperty;
+import alluxio.grpc.GetConfigurationPOptions;
+import alluxio.grpc.MetaMasterClientServiceGrpc;
+import alluxio.grpc.Scope;
 import alluxio.util.ConfigurationUtils;
-import alluxio.wire.ConfigProperty;
-import alluxio.wire.Scope;
+import alluxio.util.grpc.GrpcChannel;
+import alluxio.util.grpc.GrpcChannelBuilder;
+import alluxio.util.grpc.GrpcUtils;
 
 import com.google.common.base.Preconditions;
-import org.apache.thrift.TException;
-import org.apache.thrift.protocol.TProtocol;
-import org.apache.thrift.transport.TSocket;
-import org.apache.thrift.transport.TTransport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,7 +37,6 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.stream.Collectors;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -432,38 +428,34 @@ public final class Configuration {
       }
       LOG.info("Alluxio client (version {}) is trying to bootstrap-connect with {}",
           RuntimeConstants.VERSION, address);
-      // A plain socket transport to bootstrap
-      TSocket socket = ThriftUtils.createThriftSocket(address);
-      TTransport bootstrapTransport = new BootstrapClientTransport(socket);
-      TProtocol protocol = ThriftUtils.createThriftProtocol(bootstrapTransport,
-          Constants.META_MASTER_CLIENT_SERVICE_NAME);
-      List<ConfigProperty> clusterConfig;
+
+      GrpcChannel channel = null;
+      List<alluxio.grpc.ConfigProperty> clusterConfig = null;
+
       try {
-        bootstrapTransport.open();
-        // We didn't use RetryHandlingMetaMasterClient because it inherits AbstractClient,
-        // and AbstractClient uses Configuration.loadClusterDefault inside.
-        MetaMasterClientService.Client client = new MetaMasterClientService.Client(protocol);
-        // The credential configuration properties use displayValue
-        clusterConfig = client.getConfiguration(new GetConfigurationTOptions().setRawValue(true))
-            .getConfigList()
-            .stream()
-            .map(ConfigProperty::fromThrift)
-            .collect(Collectors.toList());
-      } catch (TException e) {
+        // TODO(ggezer) review grpc channel initialization
+        channel = GrpcChannelBuilder.forAddress("localhost", 50051).usePlaintext(true).build();
+        MetaMasterClientServiceGrpc.MetaMasterClientServiceBlockingStub client =
+            MetaMasterClientServiceGrpc.newBlockingStub(channel);
+        clusterConfig =
+            client.getConfiguration(GetConfigurationPOptions.newBuilder().setRawValue(true).build())
+                .getConfigsList();
+      } catch (io.grpc.StatusRuntimeException e) {
         throw new UnavailableException(String.format(
             "Failed to handshake with master %s to load cluster default configuration values",
             address), e);
       } finally {
-        bootstrapTransport.close();
+        channel.shutdown();
       }
+
       // merge conf returned by master as the cluster default into Configuration
       Properties clusterProps = new Properties();
       for (ConfigProperty property : clusterConfig) {
         String name = property.getName();
         // TODO(binfan): support propagating unsetting properties from master
-        if (PropertyKey.isValid(name) && property.getValue() != null) {
+        if (PropertyKey.isValid(name) && property.hasValue()) {
           PropertyKey key = PropertyKey.fromString(name);
-          if (!key.getScope().contains(Scope.CLIENT)) {
+          if (!GrpcUtils.contains(key.getScope(), Scope.CLIENT)) {
             // Only propagate client properties.
             continue;
           }
@@ -472,6 +464,7 @@ public final class Configuration {
           LOG.debug("Loading cluster default: {} ({}) -> {}", key, key.getScope(), value);
         }
       }
+
       String clientVersion = Configuration.get(PropertyKey.VERSION);
       String clusterVersion = clusterProps.get(PropertyKey.VERSION).toString();
       if (!clientVersion.equals(clusterVersion)) {

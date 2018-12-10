@@ -106,6 +106,43 @@ public final class BlockMasterWorkerServiceGrpc {
      return getCommitBlockMethod;
   }
   @io.grpc.ExperimentalApi("https://github.com/grpc/grpc-java/issues/1901")
+  @java.lang.Deprecated // Use {@link #getCommitBlockInUfsMethod()} instead. 
+  public static final io.grpc.MethodDescriptor<alluxio.grpc.CommitBlockInUfsPRequest,
+      alluxio.grpc.CommitBlockInUfsPResponse> METHOD_COMMIT_BLOCK_IN_UFS = getCommitBlockInUfsMethodHelper();
+
+  private static volatile io.grpc.MethodDescriptor<alluxio.grpc.CommitBlockInUfsPRequest,
+      alluxio.grpc.CommitBlockInUfsPResponse> getCommitBlockInUfsMethod;
+
+  @io.grpc.ExperimentalApi("https://github.com/grpc/grpc-java/issues/1901")
+  public static io.grpc.MethodDescriptor<alluxio.grpc.CommitBlockInUfsPRequest,
+      alluxio.grpc.CommitBlockInUfsPResponse> getCommitBlockInUfsMethod() {
+    return getCommitBlockInUfsMethodHelper();
+  }
+
+  private static io.grpc.MethodDescriptor<alluxio.grpc.CommitBlockInUfsPRequest,
+      alluxio.grpc.CommitBlockInUfsPResponse> getCommitBlockInUfsMethodHelper() {
+    io.grpc.MethodDescriptor<alluxio.grpc.CommitBlockInUfsPRequest, alluxio.grpc.CommitBlockInUfsPResponse> getCommitBlockInUfsMethod;
+    if ((getCommitBlockInUfsMethod = BlockMasterWorkerServiceGrpc.getCommitBlockInUfsMethod) == null) {
+      synchronized (BlockMasterWorkerServiceGrpc.class) {
+        if ((getCommitBlockInUfsMethod = BlockMasterWorkerServiceGrpc.getCommitBlockInUfsMethod) == null) {
+          BlockMasterWorkerServiceGrpc.getCommitBlockInUfsMethod = getCommitBlockInUfsMethod = 
+              io.grpc.MethodDescriptor.<alluxio.grpc.CommitBlockInUfsPRequest, alluxio.grpc.CommitBlockInUfsPResponse>newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setFullMethodName(generateFullMethodName(
+                  "alluxio.grpc.BlockMasterWorkerService", "CommitBlockInUfs"))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  alluxio.grpc.CommitBlockInUfsPRequest.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  alluxio.grpc.CommitBlockInUfsPResponse.getDefaultInstance()))
+                  .setSchemaDescriptor(new BlockMasterWorkerServiceMethodDescriptorSupplier("CommitBlockInUfs"))
+                  .build();
+          }
+        }
+     }
+     return getCommitBlockInUfsMethod;
+  }
+  @io.grpc.ExperimentalApi("https://github.com/grpc/grpc-java/issues/1901")
   @java.lang.Deprecated // Use {@link #getGetWorkerIdMethod()} instead. 
   public static final io.grpc.MethodDescriptor<alluxio.grpc.GetWorkerIdPRequest,
       alluxio.grpc.GetWorkerIdPResponse> METHOD_GET_WORKER_ID = getGetWorkerIdMethodHelper();
@@ -236,6 +273,17 @@ public final class BlockMasterWorkerServiceGrpc {
     /**
      * <pre>
      **
+     * Marks the given block as committed which resides in UFS.
+     * </pre>
+     */
+    public void commitBlockInUfs(alluxio.grpc.CommitBlockInUfsPRequest request,
+        io.grpc.stub.StreamObserver<alluxio.grpc.CommitBlockInUfsPResponse> responseObserver) {
+      asyncUnimplementedUnaryCall(getCommitBlockInUfsMethodHelper(), responseObserver);
+    }
+
+    /**
+     * <pre>
+     **
      * Returns a worker id for the given network address.
      * </pre>
      */
@@ -271,6 +319,13 @@ public final class BlockMasterWorkerServiceGrpc {
                 alluxio.grpc.CommitBlockPRequest,
                 alluxio.grpc.CommitBlockPResponse>(
                   this, METHODID_COMMIT_BLOCK)))
+          .addMethod(
+            getCommitBlockInUfsMethodHelper(),
+            asyncUnaryCall(
+              new MethodHandlers<
+                alluxio.grpc.CommitBlockInUfsPRequest,
+                alluxio.grpc.CommitBlockInUfsPResponse>(
+                  this, METHODID_COMMIT_BLOCK_IN_UFS)))
           .addMethod(
             getGetWorkerIdMethodHelper(),
             asyncUnaryCall(
@@ -333,6 +388,18 @@ public final class BlockMasterWorkerServiceGrpc {
         io.grpc.stub.StreamObserver<alluxio.grpc.CommitBlockPResponse> responseObserver) {
       asyncUnaryCall(
           getChannel().newCall(getCommitBlockMethodHelper(), getCallOptions()), request, responseObserver);
+    }
+
+    /**
+     * <pre>
+     **
+     * Marks the given block as committed which resides in UFS.
+     * </pre>
+     */
+    public void commitBlockInUfs(alluxio.grpc.CommitBlockInUfsPRequest request,
+        io.grpc.stub.StreamObserver<alluxio.grpc.CommitBlockInUfsPResponse> responseObserver) {
+      asyncUnaryCall(
+          getChannel().newCall(getCommitBlockInUfsMethodHelper(), getCallOptions()), request, responseObserver);
     }
 
     /**
@@ -407,6 +474,17 @@ public final class BlockMasterWorkerServiceGrpc {
     /**
      * <pre>
      **
+     * Marks the given block as committed which resides in UFS.
+     * </pre>
+     */
+    public alluxio.grpc.CommitBlockInUfsPResponse commitBlockInUfs(alluxio.grpc.CommitBlockInUfsPRequest request) {
+      return blockingUnaryCall(
+          getChannel(), getCommitBlockInUfsMethodHelper(), getCallOptions(), request);
+    }
+
+    /**
+     * <pre>
+     **
      * Returns a worker id for the given network address.
      * </pre>
      */
@@ -476,6 +554,18 @@ public final class BlockMasterWorkerServiceGrpc {
     /**
      * <pre>
      **
+     * Marks the given block as committed which resides in UFS.
+     * </pre>
+     */
+    public com.google.common.util.concurrent.ListenableFuture<alluxio.grpc.CommitBlockInUfsPResponse> commitBlockInUfs(
+        alluxio.grpc.CommitBlockInUfsPRequest request) {
+      return futureUnaryCall(
+          getChannel().newCall(getCommitBlockInUfsMethodHelper(), getCallOptions()), request);
+    }
+
+    /**
+     * <pre>
+     **
      * Returns a worker id for the given network address.
      * </pre>
      */
@@ -500,8 +590,9 @@ public final class BlockMasterWorkerServiceGrpc {
 
   private static final int METHODID_BLOCK_HEARTBEAT = 0;
   private static final int METHODID_COMMIT_BLOCK = 1;
-  private static final int METHODID_GET_WORKER_ID = 2;
-  private static final int METHODID_REGISTER_WORKER = 3;
+  private static final int METHODID_COMMIT_BLOCK_IN_UFS = 2;
+  private static final int METHODID_GET_WORKER_ID = 3;
+  private static final int METHODID_REGISTER_WORKER = 4;
 
   private static final class MethodHandlers<Req, Resp> implements
       io.grpc.stub.ServerCalls.UnaryMethod<Req, Resp>,
@@ -527,6 +618,10 @@ public final class BlockMasterWorkerServiceGrpc {
         case METHODID_COMMIT_BLOCK:
           serviceImpl.commitBlock((alluxio.grpc.CommitBlockPRequest) request,
               (io.grpc.stub.StreamObserver<alluxio.grpc.CommitBlockPResponse>) responseObserver);
+          break;
+        case METHODID_COMMIT_BLOCK_IN_UFS:
+          serviceImpl.commitBlockInUfs((alluxio.grpc.CommitBlockInUfsPRequest) request,
+              (io.grpc.stub.StreamObserver<alluxio.grpc.CommitBlockInUfsPResponse>) responseObserver);
           break;
         case METHODID_GET_WORKER_ID:
           serviceImpl.getWorkerId((alluxio.grpc.GetWorkerIdPRequest) request,
@@ -599,6 +694,7 @@ public final class BlockMasterWorkerServiceGrpc {
               .setSchemaDescriptor(new BlockMasterWorkerServiceFileDescriptorSupplier())
               .addMethod(getBlockHeartbeatMethodHelper())
               .addMethod(getCommitBlockMethodHelper())
+              .addMethod(getCommitBlockInUfsMethodHelper())
               .addMethod(getGetWorkerIdMethodHelper())
               .addMethod(getRegisterWorkerMethodHelper())
               .build();

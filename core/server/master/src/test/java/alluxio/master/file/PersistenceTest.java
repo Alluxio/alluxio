@@ -36,12 +36,12 @@ import alluxio.master.MasterTestUtils;
 import alluxio.master.SafeModeManager;
 import alluxio.master.block.BlockMasterFactory;
 import alluxio.master.file.meta.PersistenceState;
-import alluxio.master.file.options.CompleteFileContext;
-import alluxio.master.file.options.CreateDirectoryContext;
-import alluxio.master.file.options.CreateFileContext;
-import alluxio.master.file.options.DeleteContext;
-import alluxio.master.file.options.GetStatusContext;
-import alluxio.master.file.options.RenameContext;
+import alluxio.master.file.contexts.CompleteFileContext;
+import alluxio.master.file.contexts.CreateDirectoryContext;
+import alluxio.master.file.contexts.CreateFileContext;
+import alluxio.master.file.contexts.DeleteContext;
+import alluxio.master.file.contexts.GetStatusContext;
+import alluxio.master.file.contexts.RenameContext;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalTestUtils;
 import alluxio.master.metrics.MetricsMasterFactory;
@@ -319,11 +319,11 @@ public final class PersistenceTest {
     AuthenticatedClientUser.set(LoginUser.get().getName());
     // Create src file and directory, checking the internal state.
     AlluxioURI alluxioDirSrc = new AlluxioURI("/src");
-    mFileSystemMaster.createDirectory(alluxioDirSrc, CreateDirectoryContext
-        .defaults(CreateDirectoryPOptions.newBuilder().setPersisted(true)));
+    mFileSystemMaster.createDirectory(alluxioDirSrc,
+        CreateDirectoryContext.defaults().setPersisted(true));
     AlluxioURI alluxioFileSrc = new AlluxioURI("/src/in_alluxio");
     long fileId = mFileSystemMaster.createFile(alluxioFileSrc,
-        CreateFileContext.defaults(CreateFilePOptions.newBuilder().setPersisted(true)));
+        CreateFileContext.defaults().setPersisted(false));
     Assert.assertEquals(PersistenceState.NOT_PERSISTED.toString(),
         mFileSystemMaster.getFileInfo(fileId).getPersistenceState());
 
@@ -364,8 +364,8 @@ public final class PersistenceTest {
     }
 
     // Rename the src file before the persist is commited.
-    mFileSystemMaster.createDirectory(new AlluxioURI("/dst"), CreateDirectoryContext
-        .defaults(CreateDirectoryPOptions.newBuilder().setPersisted(true)));
+    mFileSystemMaster.createDirectory(new AlluxioURI("/dst"),
+        CreateDirectoryContext.defaults().setPersisted(true));
     AlluxioURI alluxioFileDst = new AlluxioURI("/dst/in_alluxio");
     mFileSystemMaster.rename(alluxioFileSrc, alluxioFileDst, RenameContext.defaults());
 

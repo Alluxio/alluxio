@@ -18,11 +18,12 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.UnavailableException;
+import alluxio.grpc.PartitionInfo;
 import alluxio.master.MasterClientConfig;
-import alluxio.thrift.PartitionInfo;
 import alluxio.util.io.BufferUtils;
 
 import com.google.common.base.Preconditions;
+import com.google.protobuf.ByteString;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -179,7 +180,9 @@ class BaseKeyValueStoreWriter implements KeyValueStoreWriter {
     mWriter.close();
     List<Long> blockIds = mFileSystem.getStatus(getPartitionName()).getBlockIds();
     long blockId = blockIds.get(0);
-    PartitionInfo info = new PartitionInfo(mKeyStart, mKeyLimit, blockId, mWriter.keyCount());
+    PartitionInfo info = PartitionInfo.newBuilder().setBlockId(blockId)
+        .setKeyCount(mWriter.keyCount()).setKeyStart(ByteString.copyFrom(mKeyStart))
+        .setKeyLimit(ByteString.copyFrom(mKeyLimit)).build();
     try {
       mMasterClient.completePartition(mStoreUri, info);
     } catch (UnavailableException e) {

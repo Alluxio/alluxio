@@ -23,7 +23,7 @@ import alluxio.master.backcompat.FsTestOp;
 import alluxio.master.backcompat.Utils;
 import alluxio.security.authorization.Mode;
 import alluxio.security.authorization.ModeParser;
-import alluxio.wire.TtlAction;
+import alluxio.grpc.TtlAction;
 
 import java.util.Arrays;
 

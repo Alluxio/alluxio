@@ -13,6 +13,7 @@ package alluxio.worker.file;
 
 import alluxio.AbstractMasterClient;
 import alluxio.Constants;
+import alluxio.grpc.AlluxioServiceType;
 import alluxio.grpc.FileSystemCommand;
 import alluxio.grpc.FileSystemHeartbeatPOptions;
 import alluxio.grpc.FileSystemHeartbeatPRequest;
@@ -22,7 +23,6 @@ import alluxio.grpc.GetPinnedFileIdsPRequest;
 import alluxio.grpc.GetUfsInfoPRequest;
 import alluxio.grpc.UfsInfo;
 import alluxio.master.MasterClientConfig;
-import alluxio.thrift.AlluxioService;
 import alluxio.util.grpc.GrpcUtils;
 import alluxio.wire.FileInfo;
 
@@ -55,8 +55,8 @@ public final class FileSystemMasterClient extends AbstractMasterClient {
   }
 
   @Override
-  protected AlluxioService.Client getClient() {
-    return null;
+  protected AlluxioServiceType getRemoteServiceType() {
+    return AlluxioServiceType.FILE_SYSTEM_MASTER_WORKER_SERVICE;
   }
 
   @Override

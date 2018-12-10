@@ -48,7 +48,7 @@ import alluxio.security.authorization.AclEntry;
 import alluxio.uri.Authority;
 import alluxio.util.grpc.GrpcUtils;
 import alluxio.wire.MountPointInfo;
-import alluxio.wire.SetAclAction;
+import alluxio.grpc.SetAclAction;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -12,7 +12,7 @@
 package alluxio.master.file.meta;
 
 import alluxio.Constants;
-import alluxio.master.file.options.CreateDirectoryContext;
+import alluxio.master.file.contexts.CreateDirectoryContext;
 import alluxio.security.authorization.Mode;
 import alluxio.util.ModeUtils;
 import alluxio.wire.FileInfo;

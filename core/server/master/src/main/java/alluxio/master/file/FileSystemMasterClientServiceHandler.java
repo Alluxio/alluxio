@@ -65,23 +65,23 @@ import alluxio.grpc.UnmountPResponse;
 import alluxio.grpc.UpdateUfsModePOptions;
 import alluxio.grpc.UpdateUfsModePRequest;
 import alluxio.grpc.UpdateUfsModePResponse;
-import alluxio.master.file.options.CheckConsistencyContext;
-import alluxio.master.file.options.CompleteFileContext;
-import alluxio.master.file.options.CreateDirectoryContext;
-import alluxio.master.file.options.CreateFileContext;
-import alluxio.master.file.options.DeleteContext;
-import alluxio.master.file.options.FreeContext;
-import alluxio.master.file.options.GetStatusContext;
-import alluxio.master.file.options.ListStatusContext;
-import alluxio.master.file.options.MountContext;
-import alluxio.master.file.options.RenameContext;
-import alluxio.master.file.options.SetAclContext;
-import alluxio.master.file.options.SetAttributeContext;
+import alluxio.master.file.contexts.CheckConsistencyContext;
+import alluxio.master.file.contexts.CompleteFileContext;
+import alluxio.master.file.contexts.CreateDirectoryContext;
+import alluxio.master.file.contexts.CreateFileContext;
+import alluxio.master.file.contexts.DeleteContext;
+import alluxio.master.file.contexts.FreeContext;
+import alluxio.master.file.contexts.GetStatusContext;
+import alluxio.master.file.contexts.ListStatusContext;
+import alluxio.master.file.contexts.MountContext;
+import alluxio.master.file.contexts.RenameContext;
+import alluxio.master.file.contexts.SetAclContext;
+import alluxio.master.file.contexts.SetAttributeContext;
 import alluxio.underfs.UfsMode;
 import alluxio.util.RpcUtilsNew;
 import alluxio.util.grpc.GrpcUtils;
 import alluxio.wire.MountPointInfo;
-import alluxio.wire.SetAclAction;
+import alluxio.grpc.SetAclAction;
 
 import com.google.common.base.Preconditions;
 import io.grpc.stub.StreamObserver;
@@ -213,7 +213,7 @@ public final class FileSystemMasterClientServiceHandler
           ListStatusContext.defaults(options.toBuilder()))) {
         result.add(GrpcUtils.toProto(fileInfo));
       }
-      return ListStatusPResponse.newBuilder().addAllFileInfoList(result).build();
+      return ListStatusPResponse.newBuilder().addAllFileInfos(result).build();
     }, "ListStatus", "path=%s, options=%s", responseObserver, path, options);
   }
 
@@ -239,7 +239,7 @@ public final class FileSystemMasterClientServiceHandler
       for (Map.Entry<String, MountPointInfo> entry : mountTableWire.entrySet()) {
         mountTableProto.put(entry.getKey(), GrpcUtils.toProto(entry.getValue()));
       }
-      return GetMountTablePResponse.newBuilder().putAllMountTable(mountTableProto).build();
+      return GetMountTablePResponse.newBuilder().putAllMountPoints(mountTableProto).build();
     }, "GetMountTable", "", responseObserver);
   }
 
@@ -326,7 +326,7 @@ public final class FileSystemMasterClientServiceHandler
   public void setAcl(SetAclPRequest request,
                      StreamObserver<SetAclPResponse> responseObserver) {
     String alluxioPath = request.getPath();
-    SetAclAction aclAction = GrpcUtils.fromProto(request.getAction());
+    SetAclAction aclAction = request.getAction();
     List<PAclEntry> aclList = request.getEntriesList();
     SetAclPOptions options = request.getOptions();
     RpcUtilsNew.call(LOG, (RpcUtilsNew.RpcCallableThrowsIOException<SetAclPResponse>) () -> {

@@ -16,6 +16,7 @@ private static final long serialVersionUID = 0L;
     super(builder);
   }
   private GetConfigurationPOptions() {
+    rawValue_ = false;
   }
 
   @java.lang.Override
@@ -31,6 +32,7 @@ private static final long serialVersionUID = 0L;
     if (extensionRegistry == null) {
       throw new java.lang.NullPointerException();
     }
+    int mutable_bitField0_ = 0;
     com.google.protobuf.UnknownFieldSet.Builder unknownFields =
         com.google.protobuf.UnknownFieldSet.newBuilder();
     try {
@@ -46,6 +48,11 @@ private static final long serialVersionUID = 0L;
                 input, unknownFields, extensionRegistry, tag)) {
               done = true;
             }
+            break;
+          }
+          case 8: {
+            bitField0_ |= 0x00000001;
+            rawValue_ = input.readBool();
             break;
           }
         }
@@ -72,6 +79,22 @@ private static final long serialVersionUID = 0L;
             alluxio.grpc.GetConfigurationPOptions.class, alluxio.grpc.GetConfigurationPOptions.Builder.class);
   }
 
+  private int bitField0_;
+  public static final int RAWVALUE_FIELD_NUMBER = 1;
+  private boolean rawValue_;
+  /**
+   * <code>optional bool rawValue = 1;</code>
+   */
+  public boolean hasRawValue() {
+    return ((bitField0_ & 0x00000001) == 0x00000001);
+  }
+  /**
+   * <code>optional bool rawValue = 1;</code>
+   */
+  public boolean getRawValue() {
+    return rawValue_;
+  }
+
   private byte memoizedIsInitialized = -1;
   public final boolean isInitialized() {
     byte isInitialized = memoizedIsInitialized;
@@ -84,6 +107,9 @@ private static final long serialVersionUID = 0L;
 
   public void writeTo(com.google.protobuf.CodedOutputStream output)
                       throws java.io.IOException {
+    if (((bitField0_ & 0x00000001) == 0x00000001)) {
+      output.writeBool(1, rawValue_);
+    }
     unknownFields.writeTo(output);
   }
 
@@ -92,6 +118,10 @@ private static final long serialVersionUID = 0L;
     if (size != -1) return size;
 
     size = 0;
+    if (((bitField0_ & 0x00000001) == 0x00000001)) {
+      size += com.google.protobuf.CodedOutputStream
+        .computeBoolSize(1, rawValue_);
+    }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
     return size;
@@ -108,6 +138,11 @@ private static final long serialVersionUID = 0L;
     alluxio.grpc.GetConfigurationPOptions other = (alluxio.grpc.GetConfigurationPOptions) obj;
 
     boolean result = true;
+    result = result && (hasRawValue() == other.hasRawValue());
+    if (hasRawValue()) {
+      result = result && (getRawValue()
+          == other.getRawValue());
+    }
     result = result && unknownFields.equals(other.unknownFields);
     return result;
   }
@@ -119,6 +154,11 @@ private static final long serialVersionUID = 0L;
     }
     int hash = 41;
     hash = (19 * hash) + getDescriptor().hashCode();
+    if (hasRawValue()) {
+      hash = (37 * hash) + RAWVALUE_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashBoolean(
+          getRawValue());
+    }
     hash = (29 * hash) + unknownFields.hashCode();
     memoizedHashCode = hash;
     return hash;
@@ -248,6 +288,8 @@ private static final long serialVersionUID = 0L;
     }
     public Builder clear() {
       super.clear();
+      rawValue_ = false;
+      bitField0_ = (bitField0_ & ~0x00000001);
       return this;
     }
 
@@ -270,6 +312,13 @@ private static final long serialVersionUID = 0L;
 
     public alluxio.grpc.GetConfigurationPOptions buildPartial() {
       alluxio.grpc.GetConfigurationPOptions result = new alluxio.grpc.GetConfigurationPOptions(this);
+      int from_bitField0_ = bitField0_;
+      int to_bitField0_ = 0;
+      if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
+        to_bitField0_ |= 0x00000001;
+      }
+      result.rawValue_ = rawValue_;
+      result.bitField0_ = to_bitField0_;
       onBuilt();
       return result;
     }
@@ -311,6 +360,9 @@ private static final long serialVersionUID = 0L;
 
     public Builder mergeFrom(alluxio.grpc.GetConfigurationPOptions other) {
       if (other == alluxio.grpc.GetConfigurationPOptions.getDefaultInstance()) return this;
+      if (other.hasRawValue()) {
+        setRawValue(other.getRawValue());
+      }
       this.mergeUnknownFields(other.unknownFields);
       onChanged();
       return this;
@@ -335,6 +387,39 @@ private static final long serialVersionUID = 0L;
           mergeFrom(parsedMessage);
         }
       }
+      return this;
+    }
+    private int bitField0_;
+
+    private boolean rawValue_ ;
+    /**
+     * <code>optional bool rawValue = 1;</code>
+     */
+    public boolean hasRawValue() {
+      return ((bitField0_ & 0x00000001) == 0x00000001);
+    }
+    /**
+     * <code>optional bool rawValue = 1;</code>
+     */
+    public boolean getRawValue() {
+      return rawValue_;
+    }
+    /**
+     * <code>optional bool rawValue = 1;</code>
+     */
+    public Builder setRawValue(boolean value) {
+      bitField0_ |= 0x00000001;
+      rawValue_ = value;
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>optional bool rawValue = 1;</code>
+     */
+    public Builder clearRawValue() {
+      bitField0_ = (bitField0_ & ~0x00000001);
+      rawValue_ = false;
+      onChanged();
       return this;
     }
     public final Builder setUnknownFields(

@@ -29,7 +29,6 @@ import alluxio.master.MasterClientConfig;
 import alluxio.metrics.MetricsSystem;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.retry.RetryUtils;
-import alluxio.thrift.BlockWorkerClientService;
 import alluxio.underfs.UfsManager;
 import alluxio.util.CommonUtils;
 import alluxio.util.ThreadFactoryUtils;
@@ -51,7 +50,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -67,8 +66,6 @@ import javax.annotation.concurrent.ThreadSafe;
  * The class is responsible for managing all top level components of the Block Worker.
  *
  * This includes:
- *
- * Servers: {@link BlockWorkerClientServiceHandler} (RPC Server)
  *
  * Periodic Threads: {@link BlockMasterSync} (Worker to Master continuous communication)
  *
@@ -176,16 +173,9 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   }
 
   @Override
-  public BlockWorkerClientServiceHandler getWorkerServiceHandler() {
-    return new BlockWorkerClientServiceHandler(this);
-  }
-
-  @Override
   public Map<String, TProcessor> getServices() {
-    Map<String, TProcessor> services = new HashMap<>();
-    services.put(Constants.BLOCK_WORKER_CLIENT_SERVICE_NAME,
-        new BlockWorkerClientService.Processor<>(getWorkerServiceHandler()));
-    return services;
+    // TODO(ggezer) This class does not expose services anymore
+    return Collections.emptyMap();
   }
 
   @Override

@@ -31,7 +31,7 @@ import alluxio.security.authorization.Mode;
 import alluxio.security.group.GroupMappingService;
 import alluxio.util.CommonUtils;
 import alluxio.util.ModeUtils;
-import alluxio.wire.TtlAction;
+import alluxio.grpc.TtlAction;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;

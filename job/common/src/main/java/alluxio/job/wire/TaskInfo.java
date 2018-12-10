@@ -15,6 +15,7 @@ import alluxio.exception.status.InvalidArgumentException;
 import alluxio.job.util.SerializationUtils;
 
 import com.google.common.base.Objects;
+import com.google.protobuf.ByteString;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -40,20 +41,23 @@ public class TaskInfo {
   public TaskInfo() {}
 
   /**
-   * Constructs from the thrift format.
+   * Constructs from the proto format.
    *
-   * @param taskInfo the task info in thrift format
+   * @param taskInfo the task info in proto format
    * @throws IOException if the deserialization fails
    */
-  public TaskInfo(alluxio.thrift.TaskInfo taskInfo) throws IOException {
+  public TaskInfo(alluxio.grpc.TaskInfo taskInfo) throws IOException {
     mJobId = taskInfo.getJobId();
     mTaskId = taskInfo.getTaskId();
     mStatus = Status.valueOf(taskInfo.getStatus().name());
     mErrorMessage = taskInfo.getErrorMessage();
-    try {
-      mResult = SerializationUtils.deserialize(taskInfo.getResult());
-    } catch (ClassNotFoundException e) {
-      throw new InvalidArgumentException(e);
+    mResult = null;
+    if(taskInfo.hasResult()) {
+      try {
+        mResult = SerializationUtils.deserialize(taskInfo.getResult().toByteArray());
+      } catch (ClassNotFoundException e) {
+        throw new InvalidArgumentException(e);
+      }
     }
   }
 
@@ -138,13 +142,20 @@ public class TaskInfo {
   }
 
   /**
-   * @return thrift representation of the task info
+   * @return proto representation of the task info
    * @throws IOException if serialization fails
    */
-  public alluxio.thrift.TaskInfo toThrift() throws IOException {
+  public alluxio.grpc.TaskInfo toProto() throws IOException {
     ByteBuffer result =
         mResult == null ? null : ByteBuffer.wrap(SerializationUtils.serialize(mResult));
-    return new alluxio.thrift.TaskInfo(mJobId, mTaskId, mStatus.toThrift(), mErrorMessage, result);
+
+    alluxio.grpc.TaskInfo.Builder taskInfoBuilder =
+        alluxio.grpc.TaskInfo.newBuilder().setJobId(mJobId).setTaskId(mTaskId)
+            .setStatus(mStatus.toProto()).setErrorMessage(mErrorMessage);
+    if (result != null) {
+      taskInfoBuilder.setResult(ByteString.copyFrom(result));
+    }
+    return taskInfoBuilder.build();
   }
 
   @Override

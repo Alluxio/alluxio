@@ -23,11 +23,11 @@ import alluxio.master.file.meta.InodeView;
 import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.file.meta.TtlBucket;
 import alluxio.master.file.meta.TtlBucketList;
-import alluxio.master.file.options.DeleteContext;
-import alluxio.master.file.options.FreeContext;
+import alluxio.master.file.contexts.DeleteContext;
+import alluxio.master.file.contexts.FreeContext;
 import alluxio.master.journal.JournalContext;
 import alluxio.proto.journal.File.UpdateInodeEntry;
-import alluxio.wire.TtlAction;
+import alluxio.grpc.TtlAction;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -19,14 +19,14 @@ import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.client.MetaMasterClient;
+import alluxio.grpc.ConfigStatus;
+import alluxio.grpc.Scope;
 import alluxio.multi.process.MultiProcessCluster;
 import alluxio.multi.process.MultiProcessCluster.DeployMode;
 import alluxio.multi.process.PortCoordination;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.wire.ConfigCheckReport;
-import alluxio.wire.ConfigCheckReport.ConfigStatus;
 import alluxio.wire.InconsistentProperty;
-import alluxio.wire.Scope;
 
 import com.google.common.collect.ImmutableMap;
 import org.hamcrest.CoreMatchers;

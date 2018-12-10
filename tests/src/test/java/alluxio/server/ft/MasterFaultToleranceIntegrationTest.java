@@ -26,14 +26,14 @@ import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.URIStatus;
 import alluxio.collections.Pair;
 import alluxio.exception.AlluxioException;
+import alluxio.grpc.CommandType;
 import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.RegisterWorkerPOptions;
 import alluxio.grpc.WritePType;
 import alluxio.hadoop.HadoopClientTestUtils;
 import alluxio.master.MultiMasterLocalAlluxioCluster;
 import alluxio.master.block.BlockMaster;
 import alluxio.testutils.BaseIntegrationTest;
-import alluxio.thrift.CommandType;
-import alluxio.thrift.RegisterWorkerTOptions;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.util.io.PathUtils;
@@ -274,21 +274,23 @@ public class MasterFaultToleranceIntegrationTest extends BaseIntegrationTest {
       long workerId1a =
           blockMaster1.getWorkerId(new alluxio.wire.WorkerNetAddress().setHost("host1"));
       blockMaster1.workerRegister(workerId1a, Collections.EMPTY_LIST, Collections.EMPTY_MAP,
-          Collections.EMPTY_MAP, Collections.EMPTY_MAP, new RegisterWorkerTOptions());
+          Collections.EMPTY_MAP, Collections.EMPTY_MAP,
+          RegisterWorkerPOptions.getDefaultInstance());
 
       // Register worker 2
       long workerId2a =
           blockMaster1.getWorkerId(new alluxio.wire.WorkerNetAddress().setHost("host2"));
       blockMaster1.workerRegister(workerId2a, Collections.EMPTY_LIST, Collections.EMPTY_MAP,
-          Collections.EMPTY_MAP, Collections.EMPTY_MAP, new RegisterWorkerTOptions());
+          Collections.EMPTY_MAP, Collections.EMPTY_MAP,
+          RegisterWorkerPOptions.getDefaultInstance());
 
       assertEquals(2, blockMaster1.getWorkerCount());
       // Worker heartbeats should return "Nothing"
-      assertEquals(CommandType.Nothing, blockMaster1
-          .workerHeartbeat(workerId1a, Collections.EMPTY_MAP, Collections.EMPTY_LIST,
+      assertEquals(CommandType.Nothing,
+          blockMaster1.workerHeartbeat(workerId1a, Collections.EMPTY_MAP, Collections.EMPTY_LIST,
               Collections.EMPTY_MAP, Lists.newArrayList()).getCommandType());
-      assertEquals(CommandType.Nothing, blockMaster1
-          .workerHeartbeat(workerId2a, Collections.EMPTY_MAP, Collections.EMPTY_LIST,
+      assertEquals(CommandType.Nothing,
+          blockMaster1.workerHeartbeat(workerId2a, Collections.EMPTY_MAP, Collections.EMPTY_LIST,
               Collections.EMPTY_MAP, Lists.newArrayList()).getCommandType());
 
       assertTrue(cluster.stopLeader());
@@ -307,7 +309,8 @@ public class MasterFaultToleranceIntegrationTest extends BaseIntegrationTest {
       long workerId2b =
           blockMaster2.getWorkerId(new alluxio.wire.WorkerNetAddress().setHost("host2"));
       blockMaster2.workerRegister(workerId2b, Collections.EMPTY_LIST, Collections.EMPTY_MAP,
-          Collections.EMPTY_MAP, Collections.EMPTY_MAP, new RegisterWorkerTOptions());
+          Collections.EMPTY_MAP, Collections.EMPTY_MAP,
+          RegisterWorkerPOptions.getDefaultInstance());
 
       // Worker 1 tries to heartbeat (with original id), and should get "Register" in response.
       assertEquals(CommandType.Register, blockMaster2
@@ -318,7 +321,8 @@ public class MasterFaultToleranceIntegrationTest extends BaseIntegrationTest {
       long workerId1b =
           blockMaster2.getWorkerId(new alluxio.wire.WorkerNetAddress().setHost("host1"));
       blockMaster2.workerRegister(workerId1b, Collections.EMPTY_LIST, Collections.EMPTY_MAP,
-          Collections.EMPTY_MAP, Collections.EMPTY_MAP, new RegisterWorkerTOptions());
+          Collections.EMPTY_MAP, Collections.EMPTY_MAP,
+          RegisterWorkerPOptions.getDefaultInstance());
     } finally {
       cluster.stop();
     }

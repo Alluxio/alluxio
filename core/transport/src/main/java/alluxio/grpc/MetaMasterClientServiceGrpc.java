@@ -32,6 +32,43 @@ public final class MetaMasterClientServiceGrpc {
 
   // Static method descriptors that strictly reflect the proto.
   @io.grpc.ExperimentalApi("https://github.com/grpc/grpc-java/issues/1901")
+  @java.lang.Deprecated // Use {@link #getBackupMethod()} instead. 
+  public static final io.grpc.MethodDescriptor<alluxio.grpc.BackupPOptions,
+      alluxio.grpc.BackupPResponse> METHOD_BACKUP = getBackupMethodHelper();
+
+  private static volatile io.grpc.MethodDescriptor<alluxio.grpc.BackupPOptions,
+      alluxio.grpc.BackupPResponse> getBackupMethod;
+
+  @io.grpc.ExperimentalApi("https://github.com/grpc/grpc-java/issues/1901")
+  public static io.grpc.MethodDescriptor<alluxio.grpc.BackupPOptions,
+      alluxio.grpc.BackupPResponse> getBackupMethod() {
+    return getBackupMethodHelper();
+  }
+
+  private static io.grpc.MethodDescriptor<alluxio.grpc.BackupPOptions,
+      alluxio.grpc.BackupPResponse> getBackupMethodHelper() {
+    io.grpc.MethodDescriptor<alluxio.grpc.BackupPOptions, alluxio.grpc.BackupPResponse> getBackupMethod;
+    if ((getBackupMethod = MetaMasterClientServiceGrpc.getBackupMethod) == null) {
+      synchronized (MetaMasterClientServiceGrpc.class) {
+        if ((getBackupMethod = MetaMasterClientServiceGrpc.getBackupMethod) == null) {
+          MetaMasterClientServiceGrpc.getBackupMethod = getBackupMethod = 
+              io.grpc.MethodDescriptor.<alluxio.grpc.BackupPOptions, alluxio.grpc.BackupPResponse>newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setFullMethodName(generateFullMethodName(
+                  "alluxio.grpc.MetaMasterClientService", "Backup"))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  alluxio.grpc.BackupPOptions.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  alluxio.grpc.BackupPResponse.getDefaultInstance()))
+                  .setSchemaDescriptor(new MetaMasterClientServiceMethodDescriptorSupplier("Backup"))
+                  .build();
+          }
+        }
+     }
+     return getBackupMethod;
+  }
+  @io.grpc.ExperimentalApi("https://github.com/grpc/grpc-java/issues/1901")
   @java.lang.Deprecated // Use {@link #getGetConfigurationMethod()} instead. 
   public static final io.grpc.MethodDescriptor<alluxio.grpc.GetConfigurationPOptions,
       alluxio.grpc.GetConfigurationPResponse> METHOD_GET_CONFIGURATION = getGetConfigurationMethodHelper();
@@ -67,6 +104,43 @@ public final class MetaMasterClientServiceGrpc {
         }
      }
      return getGetConfigurationMethod;
+  }
+  @io.grpc.ExperimentalApi("https://github.com/grpc/grpc-java/issues/1901")
+  @java.lang.Deprecated // Use {@link #getGetConfigReportMethod()} instead. 
+  public static final io.grpc.MethodDescriptor<alluxio.grpc.GetConfigReportPOptions,
+      alluxio.grpc.GetConfigReportPResponse> METHOD_GET_CONFIG_REPORT = getGetConfigReportMethodHelper();
+
+  private static volatile io.grpc.MethodDescriptor<alluxio.grpc.GetConfigReportPOptions,
+      alluxio.grpc.GetConfigReportPResponse> getGetConfigReportMethod;
+
+  @io.grpc.ExperimentalApi("https://github.com/grpc/grpc-java/issues/1901")
+  public static io.grpc.MethodDescriptor<alluxio.grpc.GetConfigReportPOptions,
+      alluxio.grpc.GetConfigReportPResponse> getGetConfigReportMethod() {
+    return getGetConfigReportMethodHelper();
+  }
+
+  private static io.grpc.MethodDescriptor<alluxio.grpc.GetConfigReportPOptions,
+      alluxio.grpc.GetConfigReportPResponse> getGetConfigReportMethodHelper() {
+    io.grpc.MethodDescriptor<alluxio.grpc.GetConfigReportPOptions, alluxio.grpc.GetConfigReportPResponse> getGetConfigReportMethod;
+    if ((getGetConfigReportMethod = MetaMasterClientServiceGrpc.getGetConfigReportMethod) == null) {
+      synchronized (MetaMasterClientServiceGrpc.class) {
+        if ((getGetConfigReportMethod = MetaMasterClientServiceGrpc.getGetConfigReportMethod) == null) {
+          MetaMasterClientServiceGrpc.getGetConfigReportMethod = getGetConfigReportMethod = 
+              io.grpc.MethodDescriptor.<alluxio.grpc.GetConfigReportPOptions, alluxio.grpc.GetConfigReportPResponse>newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setFullMethodName(generateFullMethodName(
+                  "alluxio.grpc.MetaMasterClientService", "GetConfigReport"))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  alluxio.grpc.GetConfigReportPOptions.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  alluxio.grpc.GetConfigReportPResponse.getDefaultInstance()))
+                  .setSchemaDescriptor(new MetaMasterClientServiceMethodDescriptorSupplier("GetConfigReport"))
+                  .build();
+          }
+        }
+     }
+     return getGetConfigReportMethod;
   }
   @io.grpc.ExperimentalApi("https://github.com/grpc/grpc-java/issues/1901")
   @java.lang.Deprecated // Use {@link #getGetMasterInfoMethod()} instead. 
@@ -177,12 +251,34 @@ public final class MetaMasterClientServiceGrpc {
     /**
      * <pre>
      **
+     * Backs up the Alluxio master to the specified URI
+     * </pre>
+     */
+    public void backup(alluxio.grpc.BackupPOptions request,
+        io.grpc.stub.StreamObserver<alluxio.grpc.BackupPResponse> responseObserver) {
+      asyncUnimplementedUnaryCall(getBackupMethodHelper(), responseObserver);
+    }
+
+    /**
+     * <pre>
+     **
      * Returns a list of Alluxio runtime configuration information.
      * </pre>
      */
     public void getConfiguration(alluxio.grpc.GetConfigurationPOptions request,
         io.grpc.stub.StreamObserver<alluxio.grpc.GetConfigurationPResponse> responseObserver) {
       asyncUnimplementedUnaryCall(getGetConfigurationMethodHelper(), responseObserver);
+    }
+
+    /**
+     * <pre>
+     **
+     * Returns server-side configuration report.
+     * </pre>
+     */
+    public void getConfigReport(alluxio.grpc.GetConfigReportPOptions request,
+        io.grpc.stub.StreamObserver<alluxio.grpc.GetConfigReportPResponse> responseObserver) {
+      asyncUnimplementedUnaryCall(getGetConfigReportMethodHelper(), responseObserver);
     }
 
     /**
@@ -210,12 +306,26 @@ public final class MetaMasterClientServiceGrpc {
     @java.lang.Override public final io.grpc.ServerServiceDefinition bindService() {
       return io.grpc.ServerServiceDefinition.builder(getServiceDescriptor())
           .addMethod(
+            getBackupMethodHelper(),
+            asyncUnaryCall(
+              new MethodHandlers<
+                alluxio.grpc.BackupPOptions,
+                alluxio.grpc.BackupPResponse>(
+                  this, METHODID_BACKUP)))
+          .addMethod(
             getGetConfigurationMethodHelper(),
             asyncUnaryCall(
               new MethodHandlers<
                 alluxio.grpc.GetConfigurationPOptions,
                 alluxio.grpc.GetConfigurationPResponse>(
                   this, METHODID_GET_CONFIGURATION)))
+          .addMethod(
+            getGetConfigReportMethodHelper(),
+            asyncUnaryCall(
+              new MethodHandlers<
+                alluxio.grpc.GetConfigReportPOptions,
+                alluxio.grpc.GetConfigReportPResponse>(
+                  this, METHODID_GET_CONFIG_REPORT)))
           .addMethod(
             getGetMasterInfoMethodHelper(),
             asyncUnaryCall(
@@ -259,6 +369,18 @@ public final class MetaMasterClientServiceGrpc {
     /**
      * <pre>
      **
+     * Backs up the Alluxio master to the specified URI
+     * </pre>
+     */
+    public void backup(alluxio.grpc.BackupPOptions request,
+        io.grpc.stub.StreamObserver<alluxio.grpc.BackupPResponse> responseObserver) {
+      asyncUnaryCall(
+          getChannel().newCall(getBackupMethodHelper(), getCallOptions()), request, responseObserver);
+    }
+
+    /**
+     * <pre>
+     **
      * Returns a list of Alluxio runtime configuration information.
      * </pre>
      */
@@ -266,6 +388,18 @@ public final class MetaMasterClientServiceGrpc {
         io.grpc.stub.StreamObserver<alluxio.grpc.GetConfigurationPResponse> responseObserver) {
       asyncUnaryCall(
           getChannel().newCall(getGetConfigurationMethodHelper(), getCallOptions()), request, responseObserver);
+    }
+
+    /**
+     * <pre>
+     **
+     * Returns server-side configuration report.
+     * </pre>
+     */
+    public void getConfigReport(alluxio.grpc.GetConfigReportPOptions request,
+        io.grpc.stub.StreamObserver<alluxio.grpc.GetConfigReportPResponse> responseObserver) {
+      asyncUnaryCall(
+          getChannel().newCall(getGetConfigReportMethodHelper(), getCallOptions()), request, responseObserver);
     }
 
     /**
@@ -318,12 +452,34 @@ public final class MetaMasterClientServiceGrpc {
     /**
      * <pre>
      **
+     * Backs up the Alluxio master to the specified URI
+     * </pre>
+     */
+    public alluxio.grpc.BackupPResponse backup(alluxio.grpc.BackupPOptions request) {
+      return blockingUnaryCall(
+          getChannel(), getBackupMethodHelper(), getCallOptions(), request);
+    }
+
+    /**
+     * <pre>
+     **
      * Returns a list of Alluxio runtime configuration information.
      * </pre>
      */
     public alluxio.grpc.GetConfigurationPResponse getConfiguration(alluxio.grpc.GetConfigurationPOptions request) {
       return blockingUnaryCall(
           getChannel(), getGetConfigurationMethodHelper(), getCallOptions(), request);
+    }
+
+    /**
+     * <pre>
+     **
+     * Returns server-side configuration report.
+     * </pre>
+     */
+    public alluxio.grpc.GetConfigReportPResponse getConfigReport(alluxio.grpc.GetConfigReportPOptions request) {
+      return blockingUnaryCall(
+          getChannel(), getGetConfigReportMethodHelper(), getCallOptions(), request);
     }
 
     /**
@@ -374,6 +530,18 @@ public final class MetaMasterClientServiceGrpc {
     /**
      * <pre>
      **
+     * Backs up the Alluxio master to the specified URI
+     * </pre>
+     */
+    public com.google.common.util.concurrent.ListenableFuture<alluxio.grpc.BackupPResponse> backup(
+        alluxio.grpc.BackupPOptions request) {
+      return futureUnaryCall(
+          getChannel().newCall(getBackupMethodHelper(), getCallOptions()), request);
+    }
+
+    /**
+     * <pre>
+     **
      * Returns a list of Alluxio runtime configuration information.
      * </pre>
      */
@@ -381,6 +549,18 @@ public final class MetaMasterClientServiceGrpc {
         alluxio.grpc.GetConfigurationPOptions request) {
       return futureUnaryCall(
           getChannel().newCall(getGetConfigurationMethodHelper(), getCallOptions()), request);
+    }
+
+    /**
+     * <pre>
+     **
+     * Returns server-side configuration report.
+     * </pre>
+     */
+    public com.google.common.util.concurrent.ListenableFuture<alluxio.grpc.GetConfigReportPResponse> getConfigReport(
+        alluxio.grpc.GetConfigReportPOptions request) {
+      return futureUnaryCall(
+          getChannel().newCall(getGetConfigReportMethodHelper(), getCallOptions()), request);
     }
 
     /**
@@ -408,9 +588,11 @@ public final class MetaMasterClientServiceGrpc {
     }
   }
 
-  private static final int METHODID_GET_CONFIGURATION = 0;
-  private static final int METHODID_GET_MASTER_INFO = 1;
-  private static final int METHODID_GET_METRICS = 2;
+  private static final int METHODID_BACKUP = 0;
+  private static final int METHODID_GET_CONFIGURATION = 1;
+  private static final int METHODID_GET_CONFIG_REPORT = 2;
+  private static final int METHODID_GET_MASTER_INFO = 3;
+  private static final int METHODID_GET_METRICS = 4;
 
   private static final class MethodHandlers<Req, Resp> implements
       io.grpc.stub.ServerCalls.UnaryMethod<Req, Resp>,
@@ -429,9 +611,17 @@ public final class MetaMasterClientServiceGrpc {
     @java.lang.SuppressWarnings("unchecked")
     public void invoke(Req request, io.grpc.stub.StreamObserver<Resp> responseObserver) {
       switch (methodId) {
+        case METHODID_BACKUP:
+          serviceImpl.backup((alluxio.grpc.BackupPOptions) request,
+              (io.grpc.stub.StreamObserver<alluxio.grpc.BackupPResponse>) responseObserver);
+          break;
         case METHODID_GET_CONFIGURATION:
           serviceImpl.getConfiguration((alluxio.grpc.GetConfigurationPOptions) request,
               (io.grpc.stub.StreamObserver<alluxio.grpc.GetConfigurationPResponse>) responseObserver);
+          break;
+        case METHODID_GET_CONFIG_REPORT:
+          serviceImpl.getConfigReport((alluxio.grpc.GetConfigReportPOptions) request,
+              (io.grpc.stub.StreamObserver<alluxio.grpc.GetConfigReportPResponse>) responseObserver);
           break;
         case METHODID_GET_MASTER_INFO:
           serviceImpl.getMasterInfo((alluxio.grpc.GetMasterInfoPOptions) request,
@@ -502,7 +692,9 @@ public final class MetaMasterClientServiceGrpc {
         if (result == null) {
           serviceDescriptor = result = io.grpc.ServiceDescriptor.newBuilder(SERVICE_NAME)
               .setSchemaDescriptor(new MetaMasterClientServiceFileDescriptorSupplier())
+              .addMethod(getBackupMethodHelper())
               .addMethod(getGetConfigurationMethodHelper())
+              .addMethod(getGetConfigReportMethodHelper())
               .addMethod(getGetMasterInfoMethodHelper())
               .addMethod(getGetMetricsMethodHelper())
               .build();

@@ -15,11 +15,20 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
+import alluxio.master.block.BlockMaster;
+import alluxio.master.block.BlockMasterClientServiceHandler;
+import alluxio.master.block.BlockMasterWorkerServiceHandler;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.FileSystemMasterClientServiceHandler;
 import alluxio.master.file.FileSystemMasterJobServiceHandler;
 import alluxio.master.file.FileSystemMasterWorkerServiceHandler;
 import alluxio.master.journal.JournalSystem;
+import alluxio.master.meta.MetaMaster;
+import alluxio.master.meta.MetaMasterClientServiceHandler;
+import alluxio.master.meta.MetaMasterMasterServiceHandler;
+import alluxio.master.metrics.MetricsMaster;
+import alluxio.master.metrics.MetricsMasterClientServiceHandler;
+import alluxio.master.version.AlluxioVersionServiceHandler;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.sink.MetricsServlet;
 import alluxio.metrics.sink.PrometheusMetricsServlet;
@@ -379,11 +388,21 @@ public class AlluxioMasterProcess implements MasterProcess {
     ExecutorService executorService = Executors.newFixedThreadPool(mMaxWorkerThreads);
     try {
       FileSystemMaster master = getMaster(FileSystemMaster.class);
+      BlockMaster blockMaster = getMaster(BlockMaster.class);
+      MetaMaster metaMaster = getMaster(MetaMaster.class);
+      MetricsMaster metricsMaster = getMaster(MetricsMaster.class);
+
       LOG.info("Starting gRPC server on port {}", port);
       mGrpcServer = GrpcServerBuilder.forPort(port)
           .addService(new FileSystemMasterClientServiceHandler(master))
           .addService(new FileSystemMasterWorkerServiceHandler(master))
           .addService(new FileSystemMasterJobServiceHandler(master))
+          .addService(new BlockMasterClientServiceHandler(blockMaster))
+          .addService(new BlockMasterWorkerServiceHandler(blockMaster))
+          .addService(new MetaMasterClientServiceHandler(metaMaster))
+          .addService(new MetaMasterMasterServiceHandler(metaMaster))
+          .addService(new MetricsMasterClientServiceHandler(metricsMaster))
+          .addService(new AlluxioVersionServiceHandler())
           .executor(executorService)
           .build()
           .start();

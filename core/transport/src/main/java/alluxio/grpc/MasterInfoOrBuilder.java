@@ -8,109 +8,157 @@ public interface MasterInfoOrBuilder extends
     com.google.protobuf.MessageOrBuilder {
 
   /**
-   * <code>optional string masterAddress = 1;</code>
+   * <code>optional string leaderMasterAddress = 1;</code>
    */
-  boolean hasMasterAddress();
+  boolean hasLeaderMasterAddress();
   /**
-   * <code>optional string masterAddress = 1;</code>
+   * <code>optional string leaderMasterAddress = 1;</code>
    */
-  java.lang.String getMasterAddress();
+  java.lang.String getLeaderMasterAddress();
   /**
-   * <code>optional string masterAddress = 1;</code>
+   * <code>optional string leaderMasterAddress = 1;</code>
    */
   com.google.protobuf.ByteString
-      getMasterAddressBytes();
+      getLeaderMasterAddressBytes();
 
   /**
-   * <code>optional int32 rpcPort = 2;</code>
+   * <code>repeated .alluxio.grpc.NetAddress masterAddresses = 2;</code>
+   */
+  java.util.List<alluxio.grpc.NetAddress> 
+      getMasterAddressesList();
+  /**
+   * <code>repeated .alluxio.grpc.NetAddress masterAddresses = 2;</code>
+   */
+  alluxio.grpc.NetAddress getMasterAddresses(int index);
+  /**
+   * <code>repeated .alluxio.grpc.NetAddress masterAddresses = 2;</code>
+   */
+  int getMasterAddressesCount();
+  /**
+   * <code>repeated .alluxio.grpc.NetAddress masterAddresses = 2;</code>
+   */
+  java.util.List<? extends alluxio.grpc.NetAddressOrBuilder> 
+      getMasterAddressesOrBuilderList();
+  /**
+   * <code>repeated .alluxio.grpc.NetAddress masterAddresses = 2;</code>
+   */
+  alluxio.grpc.NetAddressOrBuilder getMasterAddressesOrBuilder(
+      int index);
+
+  /**
+   * <code>optional int32 rpcPort = 3;</code>
    */
   boolean hasRpcPort();
   /**
-   * <code>optional int32 rpcPort = 2;</code>
+   * <code>optional int32 rpcPort = 3;</code>
    */
   int getRpcPort();
 
   /**
-   * <code>optional bool safeMode = 3;</code>
+   * <code>optional bool safeMode = 4;</code>
    */
   boolean hasSafeMode();
   /**
-   * <code>optional bool safeMode = 3;</code>
+   * <code>optional bool safeMode = 4;</code>
    */
   boolean getSafeMode();
 
   /**
-   * <code>optional int64 startTimeMs = 4;</code>
+   * <code>optional int64 startTimeMs = 5;</code>
    */
   boolean hasStartTimeMs();
   /**
-   * <code>optional int64 startTimeMs = 4;</code>
+   * <code>optional int64 startTimeMs = 5;</code>
    */
   long getStartTimeMs();
 
   /**
-   * <code>optional int64 upTimeMs = 5;</code>
+   * <code>optional int64 upTimeMs = 6;</code>
    */
   boolean hasUpTimeMs();
   /**
-   * <code>optional int64 upTimeMs = 5;</code>
+   * <code>optional int64 upTimeMs = 6;</code>
    */
   long getUpTimeMs();
 
   /**
-   * <code>optional string version = 6;</code>
+   * <code>optional string version = 7;</code>
    */
   boolean hasVersion();
   /**
-   * <code>optional string version = 6;</code>
+   * <code>optional string version = 7;</code>
    */
   java.lang.String getVersion();
   /**
-   * <code>optional string version = 6;</code>
+   * <code>optional string version = 7;</code>
    */
   com.google.protobuf.ByteString
       getVersionBytes();
 
   /**
-   * <code>optional int32 webPort = 7;</code>
+   * <code>optional int32 webPort = 8;</code>
    */
   boolean hasWebPort();
   /**
-   * <code>optional int32 webPort = 7;</code>
+   * <code>optional int32 webPort = 8;</code>
    */
   int getWebPort();
 
   /**
+   * <code>repeated .alluxio.grpc.NetAddress workerAddresses = 9;</code>
+   */
+  java.util.List<alluxio.grpc.NetAddress> 
+      getWorkerAddressesList();
+  /**
+   * <code>repeated .alluxio.grpc.NetAddress workerAddresses = 9;</code>
+   */
+  alluxio.grpc.NetAddress getWorkerAddresses(int index);
+  /**
+   * <code>repeated .alluxio.grpc.NetAddress workerAddresses = 9;</code>
+   */
+  int getWorkerAddressesCount();
+  /**
+   * <code>repeated .alluxio.grpc.NetAddress workerAddresses = 9;</code>
+   */
+  java.util.List<? extends alluxio.grpc.NetAddressOrBuilder> 
+      getWorkerAddressesOrBuilderList();
+  /**
+   * <code>repeated .alluxio.grpc.NetAddress workerAddresses = 9;</code>
+   */
+  alluxio.grpc.NetAddressOrBuilder getWorkerAddressesOrBuilder(
+      int index);
+
+  /**
    * <pre>
-   * Null means zookeeper is not enabled
+   * Empty means zookeeper is not enabled
    * </pre>
    *
-   * <code>repeated string zookeeperAddresses = 8;</code>
+   * <code>repeated string zookeeperAddresses = 10;</code>
    */
   java.util.List<java.lang.String>
       getZookeeperAddressesList();
   /**
    * <pre>
-   * Null means zookeeper is not enabled
+   * Empty means zookeeper is not enabled
    * </pre>
    *
-   * <code>repeated string zookeeperAddresses = 8;</code>
+   * <code>repeated string zookeeperAddresses = 10;</code>
    */
   int getZookeeperAddressesCount();
   /**
    * <pre>
-   * Null means zookeeper is not enabled
+   * Empty means zookeeper is not enabled
    * </pre>
    *
-   * <code>repeated string zookeeperAddresses = 8;</code>
+   * <code>repeated string zookeeperAddresses = 10;</code>
    */
   java.lang.String getZookeeperAddresses(int index);
   /**
    * <pre>
-   * Null means zookeeper is not enabled
+   * Empty means zookeeper is not enabled
    * </pre>
    *
-   * <code>repeated string zookeeperAddresses = 8;</code>
+   * <code>repeated string zookeeperAddresses = 10;</code>
    */
   com.google.protobuf.ByteString
       getZookeeperAddressesBytes(int index);

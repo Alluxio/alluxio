@@ -60,7 +60,7 @@ private static final long serialVersionUID = 0L;
           }
           case 16: {
             int rawValue = input.readEnum();
-            alluxio.grpc.PSetAclAction value = alluxio.grpc.PSetAclAction.valueOf(rawValue);
+            alluxio.grpc.SetAclAction value = alluxio.grpc.SetAclAction.valueOf(rawValue);
             if (value == null) {
               unknownFields.mergeVarintField(2, rawValue);
             } else {
@@ -180,7 +180,7 @@ private static final long serialVersionUID = 0L;
    ** the set action to perform 
    * </pre>
    *
-   * <code>optional .alluxio.grpc.PSetAclAction action = 2;</code>
+   * <code>optional .alluxio.grpc.SetAclAction action = 2;</code>
    */
   public boolean hasAction() {
     return ((bitField0_ & 0x00000002) == 0x00000002);
@@ -190,11 +190,11 @@ private static final long serialVersionUID = 0L;
    ** the set action to perform 
    * </pre>
    *
-   * <code>optional .alluxio.grpc.PSetAclAction action = 2;</code>
+   * <code>optional .alluxio.grpc.SetAclAction action = 2;</code>
    */
-  public alluxio.grpc.PSetAclAction getAction() {
-    alluxio.grpc.PSetAclAction result = alluxio.grpc.PSetAclAction.valueOf(action_);
-    return result == null ? alluxio.grpc.PSetAclAction.Replace : result;
+  public alluxio.grpc.SetAclAction getAction() {
+    alluxio.grpc.SetAclAction result = alluxio.grpc.SetAclAction.valueOf(action_);
+    return result == null ? alluxio.grpc.SetAclAction.REPLACE : result;
   }
 
   public static final int ENTRIES_FIELD_NUMBER = 3;
@@ -800,7 +800,7 @@ private static final long serialVersionUID = 0L;
      ** the set action to perform 
      * </pre>
      *
-     * <code>optional .alluxio.grpc.PSetAclAction action = 2;</code>
+     * <code>optional .alluxio.grpc.SetAclAction action = 2;</code>
      */
     public boolean hasAction() {
       return ((bitField0_ & 0x00000002) == 0x00000002);
@@ -810,20 +810,20 @@ private static final long serialVersionUID = 0L;
      ** the set action to perform 
      * </pre>
      *
-     * <code>optional .alluxio.grpc.PSetAclAction action = 2;</code>
+     * <code>optional .alluxio.grpc.SetAclAction action = 2;</code>
      */
-    public alluxio.grpc.PSetAclAction getAction() {
-      alluxio.grpc.PSetAclAction result = alluxio.grpc.PSetAclAction.valueOf(action_);
-      return result == null ? alluxio.grpc.PSetAclAction.Replace : result;
+    public alluxio.grpc.SetAclAction getAction() {
+      alluxio.grpc.SetAclAction result = alluxio.grpc.SetAclAction.valueOf(action_);
+      return result == null ? alluxio.grpc.SetAclAction.REPLACE : result;
     }
     /**
      * <pre>
      ** the set action to perform 
      * </pre>
      *
-     * <code>optional .alluxio.grpc.PSetAclAction action = 2;</code>
+     * <code>optional .alluxio.grpc.SetAclAction action = 2;</code>
      */
-    public Builder setAction(alluxio.grpc.PSetAclAction value) {
+    public Builder setAction(alluxio.grpc.SetAclAction value) {
       if (value == null) {
         throw new NullPointerException();
       }
@@ -837,7 +837,7 @@ private static final long serialVersionUID = 0L;
      ** the set action to perform 
      * </pre>
      *
-     * <code>optional .alluxio.grpc.PSetAclAction action = 2;</code>
+     * <code>optional .alluxio.grpc.SetAclAction action = 2;</code>
      */
     public Builder clearAction() {
       bitField0_ = (bitField0_ & ~0x00000002);

@@ -51,15 +51,15 @@ private static final long serialVersionUID = 0L;
           }
           case 10: {
             if (!((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
-              metricsMap_ = com.google.protobuf.MapField.newMapField(
-                  MetricsMapDefaultEntryHolder.defaultEntry);
+              metrics_ = com.google.protobuf.MapField.newMapField(
+                  MetricsDefaultEntryHolder.defaultEntry);
               mutable_bitField0_ |= 0x00000001;
             }
             com.google.protobuf.MapEntry<java.lang.String, alluxio.grpc.MetricValue>
-            metricsMap__ = input.readMessage(
-                MetricsMapDefaultEntryHolder.defaultEntry.getParserForType(), extensionRegistry);
-            metricsMap_.getMutableMap().put(
-                metricsMap__.getKey(), metricsMap__.getValue());
+            metrics__ = input.readMessage(
+                MetricsDefaultEntryHolder.defaultEntry.getParserForType(), extensionRegistry);
+            metrics_.getMutableMap().put(
+                metrics__.getKey(), metrics__.getValue());
             break;
           }
         }
@@ -84,7 +84,7 @@ private static final long serialVersionUID = 0L;
       int number) {
     switch (number) {
       case 1:
-        return internalGetMetricsMap();
+        return internalGetMetrics();
       default:
         throw new RuntimeException(
             "Invalid map field number: " + number);
@@ -97,76 +97,76 @@ private static final long serialVersionUID = 0L;
             alluxio.grpc.GetMetricsPResponse.class, alluxio.grpc.GetMetricsPResponse.Builder.class);
   }
 
-  public static final int METRICSMAP_FIELD_NUMBER = 1;
-  private static final class MetricsMapDefaultEntryHolder {
+  public static final int METRICS_FIELD_NUMBER = 1;
+  private static final class MetricsDefaultEntryHolder {
     static final com.google.protobuf.MapEntry<
         java.lang.String, alluxio.grpc.MetricValue> defaultEntry =
             com.google.protobuf.MapEntry
             .<java.lang.String, alluxio.grpc.MetricValue>newDefaultInstance(
-                alluxio.grpc.MetaMasterProto.internal_static_alluxio_grpc_GetMetricsPResponse_MetricsMapEntry_descriptor, 
+                alluxio.grpc.MetaMasterProto.internal_static_alluxio_grpc_GetMetricsPResponse_MetricsEntry_descriptor, 
                 com.google.protobuf.WireFormat.FieldType.STRING,
                 "",
                 com.google.protobuf.WireFormat.FieldType.MESSAGE,
                 alluxio.grpc.MetricValue.getDefaultInstance());
   }
   private com.google.protobuf.MapField<
-      java.lang.String, alluxio.grpc.MetricValue> metricsMap_;
+      java.lang.String, alluxio.grpc.MetricValue> metrics_;
   private com.google.protobuf.MapField<java.lang.String, alluxio.grpc.MetricValue>
-  internalGetMetricsMap() {
-    if (metricsMap_ == null) {
+  internalGetMetrics() {
+    if (metrics_ == null) {
       return com.google.protobuf.MapField.emptyMapField(
-          MetricsMapDefaultEntryHolder.defaultEntry);
+          MetricsDefaultEntryHolder.defaultEntry);
     }
-    return metricsMap_;
+    return metrics_;
   }
 
-  public int getMetricsMapCount() {
-    return internalGetMetricsMap().getMap().size();
+  public int getMetricsCount() {
+    return internalGetMetrics().getMap().size();
   }
   /**
-   * <code>map&lt;string, .alluxio.grpc.MetricValue&gt; metricsMap = 1;</code>
+   * <code>map&lt;string, .alluxio.grpc.MetricValue&gt; metrics = 1;</code>
    */
 
-  public boolean containsMetricsMap(
+  public boolean containsMetrics(
       java.lang.String key) {
     if (key == null) { throw new java.lang.NullPointerException(); }
-    return internalGetMetricsMap().getMap().containsKey(key);
+    return internalGetMetrics().getMap().containsKey(key);
   }
   /**
-   * Use {@link #getMetricsMapMap()} instead.
+   * Use {@link #getMetricsMap()} instead.
    */
   @java.lang.Deprecated
+  public java.util.Map<java.lang.String, alluxio.grpc.MetricValue> getMetrics() {
+    return getMetricsMap();
+  }
+  /**
+   * <code>map&lt;string, .alluxio.grpc.MetricValue&gt; metrics = 1;</code>
+   */
+
   public java.util.Map<java.lang.String, alluxio.grpc.MetricValue> getMetricsMap() {
-    return getMetricsMapMap();
+    return internalGetMetrics().getMap();
   }
   /**
-   * <code>map&lt;string, .alluxio.grpc.MetricValue&gt; metricsMap = 1;</code>
+   * <code>map&lt;string, .alluxio.grpc.MetricValue&gt; metrics = 1;</code>
    */
 
-  public java.util.Map<java.lang.String, alluxio.grpc.MetricValue> getMetricsMapMap() {
-    return internalGetMetricsMap().getMap();
-  }
-  /**
-   * <code>map&lt;string, .alluxio.grpc.MetricValue&gt; metricsMap = 1;</code>
-   */
-
-  public alluxio.grpc.MetricValue getMetricsMapOrDefault(
+  public alluxio.grpc.MetricValue getMetricsOrDefault(
       java.lang.String key,
       alluxio.grpc.MetricValue defaultValue) {
     if (key == null) { throw new java.lang.NullPointerException(); }
     java.util.Map<java.lang.String, alluxio.grpc.MetricValue> map =
-        internalGetMetricsMap().getMap();
+        internalGetMetrics().getMap();
     return map.containsKey(key) ? map.get(key) : defaultValue;
   }
   /**
-   * <code>map&lt;string, .alluxio.grpc.MetricValue&gt; metricsMap = 1;</code>
+   * <code>map&lt;string, .alluxio.grpc.MetricValue&gt; metrics = 1;</code>
    */
 
-  public alluxio.grpc.MetricValue getMetricsMapOrThrow(
+  public alluxio.grpc.MetricValue getMetricsOrThrow(
       java.lang.String key) {
     if (key == null) { throw new java.lang.NullPointerException(); }
     java.util.Map<java.lang.String, alluxio.grpc.MetricValue> map =
-        internalGetMetricsMap().getMap();
+        internalGetMetrics().getMap();
     if (!map.containsKey(key)) {
       throw new java.lang.IllegalArgumentException();
     }
@@ -188,8 +188,8 @@ private static final long serialVersionUID = 0L;
     com.google.protobuf.GeneratedMessageV3
       .serializeStringMapTo(
         output,
-        internalGetMetricsMap(),
-        MetricsMapDefaultEntryHolder.defaultEntry,
+        internalGetMetrics(),
+        MetricsDefaultEntryHolder.defaultEntry,
         1);
     unknownFields.writeTo(output);
   }
@@ -200,14 +200,14 @@ private static final long serialVersionUID = 0L;
 
     size = 0;
     for (java.util.Map.Entry<java.lang.String, alluxio.grpc.MetricValue> entry
-         : internalGetMetricsMap().getMap().entrySet()) {
+         : internalGetMetrics().getMap().entrySet()) {
       com.google.protobuf.MapEntry<java.lang.String, alluxio.grpc.MetricValue>
-      metricsMap__ = MetricsMapDefaultEntryHolder.defaultEntry.newBuilderForType()
+      metrics__ = MetricsDefaultEntryHolder.defaultEntry.newBuilderForType()
           .setKey(entry.getKey())
           .setValue(entry.getValue())
           .build();
       size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(1, metricsMap__);
+          .computeMessageSize(1, metrics__);
     }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
@@ -225,8 +225,8 @@ private static final long serialVersionUID = 0L;
     alluxio.grpc.GetMetricsPResponse other = (alluxio.grpc.GetMetricsPResponse) obj;
 
     boolean result = true;
-    result = result && internalGetMetricsMap().equals(
-        other.internalGetMetricsMap());
+    result = result && internalGetMetrics().equals(
+        other.internalGetMetrics());
     result = result && unknownFields.equals(other.unknownFields);
     return result;
   }
@@ -238,9 +238,9 @@ private static final long serialVersionUID = 0L;
     }
     int hash = 41;
     hash = (19 * hash) + getDescriptor().hashCode();
-    if (!internalGetMetricsMap().getMap().isEmpty()) {
-      hash = (37 * hash) + METRICSMAP_FIELD_NUMBER;
-      hash = (53 * hash) + internalGetMetricsMap().hashCode();
+    if (!internalGetMetrics().getMap().isEmpty()) {
+      hash = (37 * hash) + METRICS_FIELD_NUMBER;
+      hash = (53 * hash) + internalGetMetrics().hashCode();
     }
     hash = (29 * hash) + unknownFields.hashCode();
     memoizedHashCode = hash;
@@ -352,7 +352,7 @@ private static final long serialVersionUID = 0L;
         int number) {
       switch (number) {
         case 1:
-          return internalGetMetricsMap();
+          return internalGetMetrics();
         default:
           throw new RuntimeException(
               "Invalid map field number: " + number);
@@ -363,7 +363,7 @@ private static final long serialVersionUID = 0L;
         int number) {
       switch (number) {
         case 1:
-          return internalGetMutableMetricsMap();
+          return internalGetMutableMetrics();
         default:
           throw new RuntimeException(
               "Invalid map field number: " + number);
@@ -393,7 +393,7 @@ private static final long serialVersionUID = 0L;
     }
     public Builder clear() {
       super.clear();
-      internalGetMutableMetricsMap().clear();
+      internalGetMutableMetrics().clear();
       return this;
     }
 
@@ -417,8 +417,8 @@ private static final long serialVersionUID = 0L;
     public alluxio.grpc.GetMetricsPResponse buildPartial() {
       alluxio.grpc.GetMetricsPResponse result = new alluxio.grpc.GetMetricsPResponse(this);
       int from_bitField0_ = bitField0_;
-      result.metricsMap_ = internalGetMetricsMap();
-      result.metricsMap_.makeImmutable();
+      result.metrics_ = internalGetMetrics();
+      result.metrics_.makeImmutable();
       onBuilt();
       return result;
     }
@@ -460,8 +460,8 @@ private static final long serialVersionUID = 0L;
 
     public Builder mergeFrom(alluxio.grpc.GetMetricsPResponse other) {
       if (other == alluxio.grpc.GetMetricsPResponse.getDefaultInstance()) return this;
-      internalGetMutableMetricsMap().mergeFrom(
-          other.internalGetMetricsMap());
+      internalGetMutableMetrics().mergeFrom(
+          other.internalGetMetrics());
       this.mergeUnknownFields(other.unknownFields);
       onChanged();
       return this;
@@ -491,94 +491,94 @@ private static final long serialVersionUID = 0L;
     private int bitField0_;
 
     private com.google.protobuf.MapField<
-        java.lang.String, alluxio.grpc.MetricValue> metricsMap_;
+        java.lang.String, alluxio.grpc.MetricValue> metrics_;
     private com.google.protobuf.MapField<java.lang.String, alluxio.grpc.MetricValue>
-    internalGetMetricsMap() {
-      if (metricsMap_ == null) {
+    internalGetMetrics() {
+      if (metrics_ == null) {
         return com.google.protobuf.MapField.emptyMapField(
-            MetricsMapDefaultEntryHolder.defaultEntry);
+            MetricsDefaultEntryHolder.defaultEntry);
       }
-      return metricsMap_;
+      return metrics_;
     }
     private com.google.protobuf.MapField<java.lang.String, alluxio.grpc.MetricValue>
-    internalGetMutableMetricsMap() {
+    internalGetMutableMetrics() {
       onChanged();;
-      if (metricsMap_ == null) {
-        metricsMap_ = com.google.protobuf.MapField.newMapField(
-            MetricsMapDefaultEntryHolder.defaultEntry);
+      if (metrics_ == null) {
+        metrics_ = com.google.protobuf.MapField.newMapField(
+            MetricsDefaultEntryHolder.defaultEntry);
       }
-      if (!metricsMap_.isMutable()) {
-        metricsMap_ = metricsMap_.copy();
+      if (!metrics_.isMutable()) {
+        metrics_ = metrics_.copy();
       }
-      return metricsMap_;
+      return metrics_;
     }
 
-    public int getMetricsMapCount() {
-      return internalGetMetricsMap().getMap().size();
+    public int getMetricsCount() {
+      return internalGetMetrics().getMap().size();
     }
     /**
-     * <code>map&lt;string, .alluxio.grpc.MetricValue&gt; metricsMap = 1;</code>
+     * <code>map&lt;string, .alluxio.grpc.MetricValue&gt; metrics = 1;</code>
      */
 
-    public boolean containsMetricsMap(
+    public boolean containsMetrics(
         java.lang.String key) {
       if (key == null) { throw new java.lang.NullPointerException(); }
-      return internalGetMetricsMap().getMap().containsKey(key);
+      return internalGetMetrics().getMap().containsKey(key);
     }
     /**
-     * Use {@link #getMetricsMapMap()} instead.
+     * Use {@link #getMetricsMap()} instead.
      */
     @java.lang.Deprecated
+    public java.util.Map<java.lang.String, alluxio.grpc.MetricValue> getMetrics() {
+      return getMetricsMap();
+    }
+    /**
+     * <code>map&lt;string, .alluxio.grpc.MetricValue&gt; metrics = 1;</code>
+     */
+
     public java.util.Map<java.lang.String, alluxio.grpc.MetricValue> getMetricsMap() {
-      return getMetricsMapMap();
+      return internalGetMetrics().getMap();
     }
     /**
-     * <code>map&lt;string, .alluxio.grpc.MetricValue&gt; metricsMap = 1;</code>
+     * <code>map&lt;string, .alluxio.grpc.MetricValue&gt; metrics = 1;</code>
      */
 
-    public java.util.Map<java.lang.String, alluxio.grpc.MetricValue> getMetricsMapMap() {
-      return internalGetMetricsMap().getMap();
-    }
-    /**
-     * <code>map&lt;string, .alluxio.grpc.MetricValue&gt; metricsMap = 1;</code>
-     */
-
-    public alluxio.grpc.MetricValue getMetricsMapOrDefault(
+    public alluxio.grpc.MetricValue getMetricsOrDefault(
         java.lang.String key,
         alluxio.grpc.MetricValue defaultValue) {
       if (key == null) { throw new java.lang.NullPointerException(); }
       java.util.Map<java.lang.String, alluxio.grpc.MetricValue> map =
-          internalGetMetricsMap().getMap();
+          internalGetMetrics().getMap();
       return map.containsKey(key) ? map.get(key) : defaultValue;
     }
     /**
-     * <code>map&lt;string, .alluxio.grpc.MetricValue&gt; metricsMap = 1;</code>
+     * <code>map&lt;string, .alluxio.grpc.MetricValue&gt; metrics = 1;</code>
      */
 
-    public alluxio.grpc.MetricValue getMetricsMapOrThrow(
+    public alluxio.grpc.MetricValue getMetricsOrThrow(
         java.lang.String key) {
       if (key == null) { throw new java.lang.NullPointerException(); }
       java.util.Map<java.lang.String, alluxio.grpc.MetricValue> map =
-          internalGetMetricsMap().getMap();
+          internalGetMetrics().getMap();
       if (!map.containsKey(key)) {
         throw new java.lang.IllegalArgumentException();
       }
       return map.get(key);
     }
 
-    public Builder clearMetricsMap() {
-      internalGetMutableMetricsMap().getMutableMap()
+    public Builder clearMetrics() {
+      internalGetMutableMetrics().getMutableMap()
           .clear();
       return this;
     }
     /**
-     * <code>map&lt;string, .alluxio.grpc.MetricValue&gt; metricsMap = 1;</code>
+     * <code>map&lt;string, .alluxio.grpc.MetricValue&gt; metrics = 1;</code>
      */
 
-    public Builder removeMetricsMap(
+    public Builder removeMetrics(
         java.lang.String key) {
       if (key == null) { throw new java.lang.NullPointerException(); }
-      internalGetMutableMetricsMap().getMutableMap()
+      internalGetMutableMetrics().getMutableMap()
           .remove(key);
       return this;
     }
@@ -587,28 +587,28 @@ private static final long serialVersionUID = 0L;
      */
     @java.lang.Deprecated
     public java.util.Map<java.lang.String, alluxio.grpc.MetricValue>
-    getMutableMetricsMap() {
-      return internalGetMutableMetricsMap().getMutableMap();
+    getMutableMetrics() {
+      return internalGetMutableMetrics().getMutableMap();
     }
     /**
-     * <code>map&lt;string, .alluxio.grpc.MetricValue&gt; metricsMap = 1;</code>
+     * <code>map&lt;string, .alluxio.grpc.MetricValue&gt; metrics = 1;</code>
      */
-    public Builder putMetricsMap(
+    public Builder putMetrics(
         java.lang.String key,
         alluxio.grpc.MetricValue value) {
       if (key == null) { throw new java.lang.NullPointerException(); }
       if (value == null) { throw new java.lang.NullPointerException(); }
-      internalGetMutableMetricsMap().getMutableMap()
+      internalGetMutableMetrics().getMutableMap()
           .put(key, value);
       return this;
     }
     /**
-     * <code>map&lt;string, .alluxio.grpc.MetricValue&gt; metricsMap = 1;</code>
+     * <code>map&lt;string, .alluxio.grpc.MetricValue&gt; metrics = 1;</code>
      */
 
-    public Builder putAllMetricsMap(
+    public Builder putAllMetrics(
         java.util.Map<java.lang.String, alluxio.grpc.MetricValue> values) {
-      internalGetMutableMetricsMap().getMutableMap()
+      internalGetMutableMetrics().getMutableMap()
           .putAll(values);
       return this;
     }

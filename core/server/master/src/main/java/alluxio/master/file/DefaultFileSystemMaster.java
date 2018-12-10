@@ -73,20 +73,20 @@ import alluxio.master.file.meta.UfsBlockLocationCache;
 import alluxio.master.file.meta.UfsSyncPathCache;
 import alluxio.master.file.meta.UfsSyncUtils;
 import alluxio.master.file.meta.options.MountInfo;
-import alluxio.master.file.options.CheckConsistencyContext;
-import alluxio.master.file.options.CompleteFileContext;
-import alluxio.master.file.options.CreateDirectoryContext;
-import alluxio.master.file.options.CreateFileContext;
-import alluxio.master.file.options.DeleteContext;
-import alluxio.master.file.options.FreeContext;
-import alluxio.master.file.options.GetStatusContext;
-import alluxio.master.file.options.ListStatusContext;
-import alluxio.master.file.options.LoadMetadataContext;
-import alluxio.master.file.options.MountContext;
-import alluxio.master.file.options.RenameContext;
-import alluxio.master.file.options.SetAclContext;
-import alluxio.master.file.options.SetAttributeContext;
-import alluxio.master.file.options.WorkerHeartbeatContext;
+import alluxio.master.file.contexts.CheckConsistencyContext;
+import alluxio.master.file.contexts.CompleteFileContext;
+import alluxio.master.file.contexts.CreateDirectoryContext;
+import alluxio.master.file.contexts.CreateFileContext;
+import alluxio.master.file.contexts.DeleteContext;
+import alluxio.master.file.contexts.FreeContext;
+import alluxio.master.file.contexts.GetStatusContext;
+import alluxio.master.file.contexts.ListStatusContext;
+import alluxio.master.file.contexts.LoadMetadataContext;
+import alluxio.master.file.contexts.MountContext;
+import alluxio.master.file.contexts.RenameContext;
+import alluxio.master.file.contexts.SetAclContext;
+import alluxio.master.file.contexts.SetAttributeContext;
+import alluxio.master.file.contexts.WorkerHeartbeatContext;
 import alluxio.master.journal.JournalContext;
 import alluxio.metrics.MasterMetrics;
 import alluxio.metrics.MetricsSystem;
@@ -139,7 +139,7 @@ import alluxio.wire.BlockLocation;
 import alluxio.wire.FileBlockInfo;
 import alluxio.wire.FileInfo;
 import alluxio.wire.MountPointInfo;
-import alluxio.wire.SetAclAction;
+import alluxio.grpc.SetAclAction;
 import alluxio.wire.WorkerInfo;
 
 import com.codahale.metrics.Counter;
@@ -406,7 +406,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   @Override
   public Map<String, TProcessor> getServices() {
     Map<String, TProcessor> services = new HashMap<>();
-    // TODO(ggezer) gRPC service initialization for masterprocess
     // services.put(Constants.FILE_SYSTEM_MASTER_CLIENT_SERVICE_NAME,
     //     new FileSystemMasterClientServiceProcessor(
     //         new FileSystemMasterClientServiceHandler(this)));
@@ -1288,7 +1287,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       syncMetadata(rpcContext, inodePath, lockingScheme, DescendantType.ONE);
 
       mMountTable.checkUnderWritableMountPoint(path);
-      if (context.getOptions().getPersisted()) {
+      if (context.getPersisted()) {
         // Check if ufs is writable
         checkUfsMode(path, OperationType.WRITE);
       }
@@ -1857,7 +1856,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       syncMetadata(rpcContext, inodePath, lockingScheme, DescendantType.ONE);
 
       mMountTable.checkUnderWritableMountPoint(path);
-      if (context.getOptions().getPersisted()) {
+      if (context.getPersisted()) {
         checkUfsMode(path, OperationType.WRITE);
       }
       createDirectoryInternal(rpcContext, inodePath, context);
@@ -1904,7 +1903,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
           .setUfsFingerprint(ufsFingerprint)
           .build());
 
-      if (context.getOptions().getPersisted()) {
+      if (context.getPersisted()) {
         // The path exists in UFS, so it is no longer absent.
         mUfsAbsentPathCache.processExisting(inodePath.getUri());
       }
@@ -2457,7 +2456,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     CreateFileContext createFileContext = CreateFileContext.defaults();
     createFileContext.getOptions().setBlockSizeBytes(ufsBlockSizeByte);
     createFileContext.getOptions().setRecursive(context.getOptions().getCreateAncestors());
-    createFileContext.getOptions().setPersisted(true);
     createFileContext.getOptions()
         .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder()
             .setTtl(context.getOptions().getCommonOptions().getTtl())
@@ -2465,6 +2463,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     createFileContext.setMetadataLoad(true);
     createFileContext.setOwner(context.getUfsStatus().getOwner());
     createFileContext.setGroup(context.getUfsStatus().getGroup());
+    createFileContext.setPersisted(true);
     short ufsMode = context.getUfsStatus().getMode();
     Mode mode = new Mode(ufsMode);
     Long ufsLastModified = context.getUfsStatus().getLastModifiedTime();
@@ -2525,13 +2524,14 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       }
     }
     CreateDirectoryContext createDirectoryContext = CreateDirectoryContext.defaults();
-    createDirectoryContext.getOptions().setPersisted(true)
+    createDirectoryContext.getOptions()
         .setRecursive(context.getOptions().getCreateAncestors()).setAllowExists(true)
         .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder()
             .setTtl(context.getOptions().getCommonOptions().getTtl())
             .setTtlAction(context.getOptions().getCommonOptions().getTtlAction()));
     createDirectoryContext.setMountPoint(mMountTable.isMountPoint(inodePath.getUri()));
     createDirectoryContext.setMetadataLoad(true);
+    createDirectoryContext.setPersisted(true);
     MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
 
     AlluxioURI ufsUri = resolution.getUri();
@@ -3387,14 +3387,12 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     }
     if (protoOptions.hasTtl()) {
       long ttl = protoOptions.getTtl();
-      if (inode.getTtl() != ttl
-          || GrpcUtils.toProto(inode.getTtlAction()) != protoOptions.getTtlAction()) {
+      if (inode.getTtl() != ttl || inode.getTtlAction() != protoOptions.getTtlAction()) {
         if (inode.getTtl() != ttl) {
           entry.setTtl(ttl);
         }
         entry.setLastModificationTimeMs(opTimeMs);
-        entry.setTtlAction(
-            ProtobufUtils.toProtobuf(GrpcUtils.fromProto(protoOptions.getTtlAction())));
+        entry.setTtlAction(ProtobufUtils.toProtobuf(protoOptions.getTtlAction()));
       }
     }
     if (protoOptions.hasPersisted()) {

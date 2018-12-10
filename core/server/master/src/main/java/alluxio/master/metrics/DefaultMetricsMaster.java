@@ -31,7 +31,6 @@ import alluxio.metrics.WorkerMetrics;
 import alluxio.metrics.aggregator.SingleTagValueAggregator;
 import alluxio.metrics.aggregator.SumInstancesAggregator;
 import alluxio.proto.journal.Journal.JournalEntry;
-import alluxio.thrift.MetricsMasterClientService;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.executor.ExecutorServiceFactory;
 
@@ -190,8 +189,8 @@ public class DefaultMetricsMaster extends AbstractMaster implements MetricsMaste
   @Override
   public Map<String, TProcessor> getServices() {
     Map<String, TProcessor> services = new HashMap<>();
-    services.put(Constants.METRICS_MASTER_CLIENT_SERVICE_NAME,
-        new MetricsMasterClientService.Processor<>(getMasterServiceHandler()));
+    //services.put(Constants.METRICS_MASTER_CLIENT_SERVICE_NAME,
+    //    new MetricsMasterClientService.Processor<>(getMasterServiceHandler()));
     return services;
   }
 

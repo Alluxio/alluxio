@@ -1,0 +1,112 @@
+syntax = "proto2";
+
+option java_multiple_files = true;
+option java_package = "alluxio.grpc";
+option java_outer_classname = "KeyValueMasterProto";
+
+package alluxio.grpc;
+
+/**
+ * Information about a key-value partition.
+ */
+message PartitionInfo {
+  optional bytes keyStart = 1;
+  optional bytes keyLimit = 2;
+  optional int64 blockId = 3;
+  optional int32 keyCount = 4;
+}
+
+message CompletePartitionPOptions {}
+message CompletePartitionPRequest {
+  optional string path = 1;
+  optional PartitionInfo partitionInfo = 2;
+  optional CompletePartitionPOptions options = 3;
+}
+message CompletePartitionPResponse {}
+
+message CompleteStorePOptions {}
+message CompleteStorePRequest {
+  optional string path = 1;
+  optional CompleteStorePOptions options = 2;
+}
+message CompleteStorePResponse {}
+
+message CreateStorePOptions {}
+message CreateStorePRequest {
+  optional string path = 1;
+  optional CreateStorePOptions options = 2;
+}
+message CreateStorePResponse {}
+
+message DeleteStorePOptions {}
+message DeleteStorePRequest {
+  optional string path = 1;
+  optional DeleteStorePOptions options = 2;
+}
+message DeleteStorePResponse {}
+
+message GetPartitionInfoPOptions {}
+message GetPartitionInfoPRequest {
+  optional string path = 1;
+  optional GetPartitionInfoPOptions options = 2;
+}
+message GetPartitionInfoPResponse {
+  repeated PartitionInfo partitionInfo = 1;
+}
+
+message MergeStorePOptions {}
+message MergeStorePRequest {
+  optional string fromPath = 1;
+  optional string toPath = 2;
+  optional MergeStorePOptions options = 3;
+}
+message MergeStorePResponse {}
+
+message RenameStorePOptions {}
+message RenameStorePRequest {
+  optional string oldPath = 1;
+  optional string newPath = 2;
+  optional RenameStorePOptions options = 3;
+}
+message RenameStorePResponse {}
+
+/**
+ * This interface contains key-value master service endpoints for Alluxio clients.
+ */
+service KeyValueMasterClientService {
+
+  /**
+   * Marks a partition complete and adds it to the store.
+   */
+  rpc CompletePartition(CompletePartitionPRequest) returns (CompletePartitionPResponse);
+
+  /**
+   * Marks a store complete with its filesystem path.
+   */
+  rpc completeStore(CompleteStorePRequest) returns (CompleteStorePResponse);
+
+  /**
+   * Creates a new key-value store on master.
+   */
+  rpc CreateStore(CreateStorePRequest) returns (CreateStorePResponse);
+
+  /**
+   * Deletes a completed key-value store.
+   */
+  rpc DeleteStore(DeleteStorePRequest) returns (DeleteStorePResponse);
+
+  /**
+   * Gets the partition information for the key-value store at the given filesystem path.
+   */
+  rpc GetPartitionInfo(GetPartitionInfoPRequest) returns (GetPartitionInfoPResponse);
+
+  /**
+   * Merges one completed key-value store to another completed key-value store.
+   */
+  rpc MergeStore(MergeStorePRequest) returns (MergeStorePResponse);
+
+  /**
+   * Renames a completed key-value store.
+   */
+  rpc RenameStore(RenameStorePRequest) returns (RenameStorePResponse);
+}

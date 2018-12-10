@@ -13,15 +13,14 @@ package alluxio.worker.job;
 
 import alluxio.AbstractMasterClient;
 import alluxio.Constants;
-import alluxio.thrift.AlluxioService.Client;
-import alluxio.thrift.JobCommand;
-import alluxio.thrift.JobHeartbeatTOptions;
-import alluxio.thrift.JobMasterWorkerService;
-import alluxio.thrift.RegisterJobWorkerTOptions;
-import alluxio.thrift.TaskInfo;
+import alluxio.grpc.AlluxioServiceType;
+import alluxio.grpc.JobCommand;
+import alluxio.grpc.JobHeartbeatPRequest;
+import alluxio.grpc.JobMasterWorkerServiceGrpc;
+import alluxio.grpc.RegisterJobWorkerPRequest;
+import alluxio.grpc.TaskInfo;
+import alluxio.util.grpc.GrpcUtils;
 import alluxio.wire.WorkerNetAddress;
-
-import org.apache.thrift.TException;
 
 import java.io.IOException;
 import java.util.List;
@@ -38,7 +37,7 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class RetryHandlingJobMasterClient extends AbstractMasterClient
     implements JobMasterClient {
-  private JobMasterWorkerService.Client mClient = null;
+  private JobMasterWorkerServiceGrpc.JobMasterWorkerServiceBlockingStub mGrpcClient = null;
 
   /**
    * Creates a new job master client.
@@ -50,8 +49,8 @@ public final class RetryHandlingJobMasterClient extends AbstractMasterClient
   }
 
   @Override
-  protected Client getClient() {
-    return mClient;
+  protected AlluxioServiceType getRemoteServiceType() {
+    return AlluxioServiceType.JOB_MASTER_WORKER_SERVICE;
   }
 
   @Override
@@ -71,16 +70,16 @@ public final class RetryHandlingJobMasterClient extends AbstractMasterClient
 
   @Override
   protected void afterConnect() {
-    mClient = new JobMasterWorkerService.Client(mProtocol);
+    //mClient = new JobMasterWorkerService.Client(mProtocol);
+    mGrpcClient = JobMasterWorkerServiceGrpc.newBlockingStub(mJobChannel);
   }
 
   @Override
   public synchronized long registerWorker(final WorkerNetAddress address) throws IOException {
     return retryRPC(new RpcCallable<Long>() {
-      public Long call() throws TException {
-        return mClient
-            .registerJobWorker(null, new RegisterJobWorkerTOptions())
-            .getId();
+      public Long call() {
+        return mGrpcClient.registerJobWorker(RegisterJobWorkerPRequest.newBuilder()
+            .setWorkerNetAddress(GrpcUtils.toProto(address)).build()).getId();
       }
     });
   }
@@ -91,8 +90,9 @@ public final class RetryHandlingJobMasterClient extends AbstractMasterClient
     return retryRPC(new RpcCallable<List<JobCommand>>() {
 
       @Override
-      public List<JobCommand> call() throws TException {
-        return mClient.heartbeat(workerId, taskInfoList, new JobHeartbeatTOptions()).getCommands();
+      public List<JobCommand> call() {
+        return mGrpcClient.heartbeat(JobHeartbeatPRequest.newBuilder().setWorkerId(workerId)
+            .addAllTaskInfos(taskInfoList).build()).getCommandsList();
       }
     });
   }

@@ -22,7 +22,7 @@ import alluxio.security.authorization.AclEntry;
 import alluxio.security.authorization.AclEntryType;
 import alluxio.security.authorization.DefaultAccessControlList;
 import alluxio.security.authorization.ExtendedACLEntries;
-import alluxio.wire.SetAclAction;
+import alluxio.grpc.SetAclAction;
 
 import com.google.protobuf.CodedInputStream;
 import com.google.protobuf.InvalidProtocolBufferException;
@@ -189,20 +189,20 @@ public final class ProtoUtils {
    * Converts wire type to proto type.
    *
    * @param aclAction the acl action to convert
-   * @return {@link File.SetAclAction} equivalent
+   * @return {@link File.PSetAclAction} equivalent
    */
-  public static File.SetAclAction toProto(SetAclAction aclAction) {
+  public static File.PSetAclAction toProto(SetAclAction aclAction) {
     switch (aclAction) {
       case REPLACE:
-        return File.SetAclAction.REPLACE;
+        return File.PSetAclAction.REPLACE;
       case MODIFY:
-        return File.SetAclAction.MODIFY;
+        return File.PSetAclAction.MODIFY;
       case REMOVE:
-        return File.SetAclAction.REMOVE;
+        return File.PSetAclAction.REMOVE;
       case REMOVE_ALL:
-        return File.SetAclAction.REMOVE_ALL;
+        return File.PSetAclAction.REMOVE_ALL;
       case REMOVE_DEFAULT:
-        return File.SetAclAction.REMOVE_DEFAULT;
+        return File.PSetAclAction.REMOVE_DEFAULT;
       default:
         throw new IllegalStateException("Unrecognized set acl action: " + aclAction);
     }
@@ -416,10 +416,10 @@ public final class ProtoUtils {
   /**
    * Converts proto type to wire type.
    *
-   * @param pSetAclAction {@link File.SetAclAction}
+   * @param pSetAclAction {@link File.PSetAclAction}
    * @return {@link SetAclAction} equivalent
    */
-  public static SetAclAction fromProto(File.SetAclAction pSetAclAction) {
+  public static SetAclAction fromProto(File.PSetAclAction pSetAclAction) {
     if (pSetAclAction == null) {
       throw new IllegalStateException("Null proto set acl action.");
     }

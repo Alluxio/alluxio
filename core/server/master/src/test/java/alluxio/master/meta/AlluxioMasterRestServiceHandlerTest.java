@@ -24,6 +24,7 @@ import static org.mockito.Mockito.when;
 import alluxio.ConfigurationRule;
 import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
+import alluxio.grpc.RegisterWorkerPOptions;
 import alluxio.master.MasterContext;
 import alluxio.master.MasterProcess;
 import alluxio.master.MasterRegistry;
@@ -36,7 +37,6 @@ import alluxio.master.metrics.MetricsMaster;
 import alluxio.master.metrics.MetricsMasterFactory;
 import alluxio.metrics.MasterMetrics;
 import alluxio.metrics.MetricsSystem;
-import alluxio.thrift.RegisterWorkerTOptions;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.UnderFileSystemFactory;
@@ -132,9 +132,11 @@ public final class AlluxioMasterRestServiceHandlerTest {
     List<String> tiers = Arrays.asList("MEM", "SSD");
 
     mBlockMaster.workerRegister(worker1, tiers, WORKER1_TOTAL_BYTES_ON_TIERS,
-        WORKER1_USED_BYTES_ON_TIERS, NO_BLOCKS_ON_TIERS, new RegisterWorkerTOptions());
+        WORKER1_USED_BYTES_ON_TIERS, NO_BLOCKS_ON_TIERS,
+        RegisterWorkerPOptions.getDefaultInstance());
     mBlockMaster.workerRegister(worker2, tiers, WORKER2_TOTAL_BYTES_ON_TIERS,
-        WORKER2_USED_BYTES_ON_TIERS, NO_BLOCKS_ON_TIERS, new RegisterWorkerTOptions());
+        WORKER2_USED_BYTES_ON_TIERS, NO_BLOCKS_ON_TIERS,
+        RegisterWorkerPOptions.getDefaultInstance());
 
     String filesPinnedProperty =
         MetricsSystem.getMetricName(MasterMetrics.FILES_PINNED);

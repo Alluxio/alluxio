@@ -16,8 +16,8 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.PropertyKey;
+import alluxio.grpc.ConfigProperty;
 import alluxio.wire.Address;
-import alluxio.wire.ConfigProperty;
 
 import org.apache.commons.lang.RandomStringUtils;
 import org.junit.Before;
@@ -42,11 +42,15 @@ public class ServerConfigurationStoreTest {
     PropertyKey keyEnforce = PropertyKey.NETWORK_NETTY_HEARTBEAT_TIMEOUT_MS;
     PropertyKey keyWarn = PropertyKey.WORKER_FREE_SPACE_TIMEOUT;
     mConfigListOne = Arrays.asList(
-        new ConfigProperty().setName(keyEnforce.getName()).setSource("Test").setValue("Value"),
-        new ConfigProperty().setName(keyWarn.getName()).setSource("Test").setValue("Value2"));
+        ConfigProperty.newBuilder().setName(keyEnforce.getName()).setSource("Test")
+            .setValue("Value").build(),
+        ConfigProperty.newBuilder().setName(keyWarn.getName()).setSource("Test").setValue("Value2")
+            .build());
     mConfigListTwo = Arrays.asList(
-        new ConfigProperty().setName(keyEnforce.getName()).setSource("Test").setValue("Value3"),
-        new ConfigProperty().setName(keyWarn.getName()).setSource("Test").setValue("Value4"));
+        ConfigProperty.newBuilder().setName(keyEnforce.getName()).setSource("Test")
+            .setValue("Value3").build(),
+        ConfigProperty.newBuilder().setName(keyWarn.getName()).setSource("Test").setValue("Value4")
+            .build());
     Random random = new Random();
     mAddressOne = new Address(RandomStringUtils.randomAlphanumeric(10), random.nextInt());
     mAddressTwo = new Address(RandomStringUtils.randomAlphanumeric(10), random.nextInt());
@@ -66,8 +70,8 @@ public class ServerConfigurationStoreTest {
   public void registerNewConfUnknownProperty() {
     Address testAddress = new Address("test", 0);
     ServerConfigurationStore configStore = new ServerConfigurationStore();
-    configStore.registerNewConf(testAddress, Arrays.asList(
-        new ConfigProperty().setName("unknown.property")
+    configStore.registerNewConf(testAddress,
+        Arrays.asList(ConfigProperty.newBuilder().setName("unknown.property").build()
     ));
     Map<Address, List<ConfigRecord>> confMap = configStore.getConfMap();
     assertTrue(confMap.containsKey(testAddress));

@@ -12,10 +12,10 @@
 package alluxio.cli.fsadmin.doctor;
 
 import alluxio.client.MetaMasterClient;
+import alluxio.grpc.ConfigStatus;
+import alluxio.grpc.Scope;
 import alluxio.wire.ConfigCheckReport;
-import alluxio.wire.ConfigCheckReport.ConfigStatus;
 import alluxio.wire.InconsistentProperty;
-import alluxio.wire.Scope;
 
 import java.io.IOException;
 import java.io.PrintStream;

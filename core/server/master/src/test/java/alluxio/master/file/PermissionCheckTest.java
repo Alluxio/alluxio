@@ -50,15 +50,15 @@ import alluxio.master.file.meta.InodeLockList;
 import alluxio.master.file.meta.InodeTree;
 import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.file.meta.MutableLockedInodePath;
-import alluxio.master.file.options.CompleteFileContext;
-import alluxio.master.file.options.CreateDirectoryContext;
-import alluxio.master.file.options.CreateFileContext;
-import alluxio.master.file.options.DeleteContext;
-import alluxio.master.file.options.FreeContext;
-import alluxio.master.file.options.GetStatusContext;
-import alluxio.master.file.options.ListStatusContext;
-import alluxio.master.file.options.RenameContext;
-import alluxio.master.file.options.SetAttributeContext;
+import alluxio.master.file.contexts.CompleteFileContext;
+import alluxio.master.file.contexts.CreateDirectoryContext;
+import alluxio.master.file.contexts.CreateFileContext;
+import alluxio.master.file.contexts.DeleteContext;
+import alluxio.master.file.contexts.FreeContext;
+import alluxio.master.file.contexts.GetStatusContext;
+import alluxio.master.file.contexts.ListStatusContext;
+import alluxio.master.file.contexts.RenameContext;
+import alluxio.master.file.contexts.SetAttributeContext;
 import alluxio.master.metrics.MetricsMaster;
 import alluxio.master.metrics.MetricsMasterFactory;
 import alluxio.security.GroupMappingServiceTestUtils;
@@ -349,9 +349,10 @@ public final class PermissionCheckTest {
     try (Closeable r = new AuthenticatedUserRule(user.getUser()).toResource()) {
       CreateFileContext context = CreateFileContext
           .defaults(
-              CreateFilePOptions.newBuilder().setRecursive(recursive).setPersisted(true))
+              CreateFilePOptions.newBuilder().setRecursive(recursive))
           .setOwner(SecurityUtils.getOwnerFromThriftClient())
-          .setGroup(SecurityUtils.getGroupFromThriftClient());
+          .setGroup(SecurityUtils.getGroupFromThriftClient())
+          .setPersisted(true);
 
       long fileId = mFileSystemMaster.createFile(new AlluxioURI(path), context);
 

@@ -124,7 +124,7 @@ private static final long serialVersionUID = 0L;
    */
   public alluxio.grpc.CommandType getCommandType() {
     alluxio.grpc.CommandType result = alluxio.grpc.CommandType.valueOf(commandType_);
-    return result == null ? alluxio.grpc.CommandType.Command_Unknown : result;
+    return result == null ? alluxio.grpc.CommandType.Unknown : result;
   }
 
   public static final int DATA_FIELD_NUMBER = 2;
@@ -490,7 +490,7 @@ private static final long serialVersionUID = 0L;
      */
     public alluxio.grpc.CommandType getCommandType() {
       alluxio.grpc.CommandType result = alluxio.grpc.CommandType.valueOf(commandType_);
-      return result == null ? alluxio.grpc.CommandType.Command_Unknown : result;
+      return result == null ? alluxio.grpc.CommandType.Unknown : result;
     }
     /**
      * <code>optional .alluxio.grpc.CommandType commandType = 1;</code>

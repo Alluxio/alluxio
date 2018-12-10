@@ -29,22 +29,14 @@ message BlockMasterInfo {
 }
 
 message GetBlockInfoPOptions {}
-message GetBlockInfoPResponse {
-  optional grpc.BlockInfo blockInfo = 1;
-}
 message GetBlockInfoPRequest {
   /** the id of the block */
   optional int64 blockId = 1;
 
   optional GetBlockInfoPOptions options = 2;
 }
-
-message GetBlockMasterInfoPOptions {
- repeated BlockMasterInfoField filter = 1;
-}
-
-message GetBlockMasterInfoPResponse {
- optional BlockMasterInfo blockMasterInfo = 1;
+message GetBlockInfoPResponse {
+  optional grpc.BlockInfo blockInfo = 1;
 }
 
 message GetCapacityBytesPOptions {}
@@ -52,9 +44,28 @@ message GetCapacityBytesPResponse {
   optional int64 bytes = 1;
 }
 
+message GetBlockMasterInfoPOptions {
+ repeated BlockMasterInfoField filters = 1;
+}
+message GetBlockMasterInfoPResponse {
+ optional BlockMasterInfo blockMasterInfo = 1;
+}
+
 message GetUsedBytesPOptions {}
 message GetUsedBytesPResponse {
   optional int64 bytes = 1;
+}
+
+message WorkerInfo {
+  optional int64 id = 1;
+  optional grpc.WorkerNetAddress address = 2;
+  optional int32 lastContactSec = 3;
+  optional string state = 4;
+  optional int64 capacityBytes = 5;
+  optional int64 usedBytes = 6;
+  optional int64 startTimeMs = 7;
+  map<string, int64> capacityBytesOnTiers = 8;
+  map<string, int64> usedBytesOnTiers = 9;
 }
 
 enum WorkerRange {
@@ -76,29 +87,15 @@ enum WorkerInfoField {
   WORKER_USED_BYTES_ON_TIERS = 9;
 }
 
-message WorkerInfo {
-  optional int64 id = 1;
-  optional grpc.WorkerNetAddress address = 2;
-  optional int32 lastContactSec = 3;
-  optional string state = 4;
-  optional int64 capacityBytes = 5;
-  optional int64 usedBytes = 6;
-  optional int64 startTimeMs = 7;
-  map<string, int64> capacityBytesOnTiers = 8;
-  map<string, int64> usedBytesOnTiers = 9;
-}
-
 message GetWorkerReportPOptions {
   /** addresses are only valid when workerRange is SPECIFIED */
   repeated string addresses = 1;
-  repeated WorkerInfoField fieldRange = 2;
+  repeated WorkerInfoField fieldRanges = 2;
   optional WorkerRange workerRange = 3;
 }
-
 message GetWorkerInfoListPOptions {}
-
 message GetWorkerInfoListPResponse {
-  repeated WorkerInfo workerInfoList = 1;
+  repeated WorkerInfo workerInfos = 1;
 }
 
 /**
@@ -141,9 +138,8 @@ message TierList {
   repeated int64 tiers = 1;
 }
 
-message BlockHeartbeatPOptions {}
-message BlockHeartbeatPResponse {
-  optional grpc.Command command = 1;
+message BlockHeartbeatPOptions {
+  repeated grpc.Metric metrics = 1;
 }
 message BlockHeartbeatPRequest {
   /** the id of the worker */
@@ -156,8 +152,10 @@ message BlockHeartbeatPRequest {
   map<string, TierList> addedBlocksOnTiers = 4;
   optional BlockHeartbeatPOptions options = 5;
 }
+message BlockHeartbeatPResponse {
+  optional grpc.Command command = 1;
+}
 
-message CommitBlockPOptions {}
 message CommitBlockPResponse {}
 message CommitBlockPRequest {
   /** the id of the worker */
@@ -173,18 +171,31 @@ message CommitBlockPRequest {
   optional CommitBlockPOptions options = 6;
 }
 
-message GetWorkerIdPOptions {}
-message GetWorkerIdPResponse {
-  optional int64 workerId = 1;
+message CommitBlockPOptions {}
+message CommitBlockInUfsPRequest {
+  /** the id of the worker */
+  optional int64 blockId = 1;
+  /** the space used in bytes on the target tier */
+  optional int64 length = 2;
+  optional CommitBlockInUfsPOptions options = 3;
 }
+
+message CommitBlockInUfsPOptions {}
+message CommitBlockInUfsPResponse {}
+
+message GetWorkerIdPOptions {}
 message GetWorkerIdPRequest {
   /** the worker network address */
   optional grpc.WorkerNetAddress workerNetAddress = 1;
   optional GetWorkerIdPOptions options = 2;
 }
+message GetWorkerIdPResponse {
+  optional int64 workerId = 1;
+}
 
-message RegisterWorkerPOptions {}
-message RegisterWorkerPResponse {}
+message RegisterWorkerPOptions {
+  repeated grpc.ConfigProperty configs = 1;
+}
 message RegisterWorkerPRequest {
   /** the id of the worker */
   optional int64 workerId = 1;
@@ -198,6 +209,7 @@ message RegisterWorkerPRequest {
   map<string, TierList> currentBlocksOnTiers = 5;
   optional RegisterWorkerPOptions options = 6;
 }
+message RegisterWorkerPResponse {}
 
 /**
  * This interface contains block master service endpoints for Alluxio workers.
@@ -213,6 +225,11 @@ service BlockMasterWorkerService {
    * Marks the given block as committed.
    */
   rpc CommitBlock(CommitBlockPRequest) returns(CommitBlockPResponse);
+
+  /**
+   * Marks the given block as committed which resides in UFS.
+   */
+  rpc CommitBlockInUfs(CommitBlockInUfsPRequest) returns(CommitBlockInUfsPResponse);
 
   /**
    * Returns a worker id for the given network address.

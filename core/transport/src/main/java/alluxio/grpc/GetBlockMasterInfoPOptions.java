@@ -16,7 +16,7 @@ private static final long serialVersionUID = 0L;
     super(builder);
   }
   private GetBlockMasterInfoPOptions() {
-    filter_ = java.util.Collections.emptyList();
+    filters_ = java.util.Collections.emptyList();
   }
 
   @java.lang.Override
@@ -57,10 +57,10 @@ private static final long serialVersionUID = 0L;
               unknownFields.mergeVarintField(1, rawValue);
             } else {
               if (!((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
-                filter_ = new java.util.ArrayList<java.lang.Integer>();
+                filters_ = new java.util.ArrayList<java.lang.Integer>();
                 mutable_bitField0_ |= 0x00000001;
               }
-              filter_.add(rawValue);
+              filters_.add(rawValue);
             }
             break;
           }
@@ -74,10 +74,10 @@ private static final long serialVersionUID = 0L;
                 unknownFields.mergeVarintField(1, rawValue);
               } else {
                 if (!((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
-                  filter_ = new java.util.ArrayList<java.lang.Integer>();
+                  filters_ = new java.util.ArrayList<java.lang.Integer>();
                   mutable_bitField0_ |= 0x00000001;
                 }
-                filter_.add(rawValue);
+                filters_.add(rawValue);
               }
             }
             input.popLimit(oldLimit);
@@ -92,7 +92,7 @@ private static final long serialVersionUID = 0L;
           e).setUnfinishedMessage(this);
     } finally {
       if (((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
-        filter_ = java.util.Collections.unmodifiableList(filter_);
+        filters_ = java.util.Collections.unmodifiableList(filters_);
       }
       this.unknownFields = unknownFields.build();
       makeExtensionsImmutable();
@@ -110,10 +110,10 @@ private static final long serialVersionUID = 0L;
             alluxio.grpc.GetBlockMasterInfoPOptions.class, alluxio.grpc.GetBlockMasterInfoPOptions.Builder.class);
   }
 
-  public static final int FILTER_FIELD_NUMBER = 1;
-  private java.util.List<java.lang.Integer> filter_;
+  public static final int FILTERS_FIELD_NUMBER = 1;
+  private java.util.List<java.lang.Integer> filters_;
   private static final com.google.protobuf.Internal.ListAdapter.Converter<
-      java.lang.Integer, alluxio.grpc.BlockMasterInfoField> filter_converter_ =
+      java.lang.Integer, alluxio.grpc.BlockMasterInfoField> filters_converter_ =
           new com.google.protobuf.Internal.ListAdapter.Converter<
               java.lang.Integer, alluxio.grpc.BlockMasterInfoField>() {
             public alluxio.grpc.BlockMasterInfoField convert(java.lang.Integer from) {
@@ -122,23 +122,23 @@ private static final long serialVersionUID = 0L;
             }
           };
   /**
-   * <code>repeated .alluxio.grpc.BlockMasterInfoField filter = 1;</code>
+   * <code>repeated .alluxio.grpc.BlockMasterInfoField filters = 1;</code>
    */
-  public java.util.List<alluxio.grpc.BlockMasterInfoField> getFilterList() {
+  public java.util.List<alluxio.grpc.BlockMasterInfoField> getFiltersList() {
     return new com.google.protobuf.Internal.ListAdapter<
-        java.lang.Integer, alluxio.grpc.BlockMasterInfoField>(filter_, filter_converter_);
+        java.lang.Integer, alluxio.grpc.BlockMasterInfoField>(filters_, filters_converter_);
   }
   /**
-   * <code>repeated .alluxio.grpc.BlockMasterInfoField filter = 1;</code>
+   * <code>repeated .alluxio.grpc.BlockMasterInfoField filters = 1;</code>
    */
-  public int getFilterCount() {
-    return filter_.size();
+  public int getFiltersCount() {
+    return filters_.size();
   }
   /**
-   * <code>repeated .alluxio.grpc.BlockMasterInfoField filter = 1;</code>
+   * <code>repeated .alluxio.grpc.BlockMasterInfoField filters = 1;</code>
    */
-  public alluxio.grpc.BlockMasterInfoField getFilter(int index) {
-    return filter_converter_.convert(filter_.get(index));
+  public alluxio.grpc.BlockMasterInfoField getFilters(int index) {
+    return filters_converter_.convert(filters_.get(index));
   }
 
   private byte memoizedIsInitialized = -1;
@@ -153,8 +153,8 @@ private static final long serialVersionUID = 0L;
 
   public void writeTo(com.google.protobuf.CodedOutputStream output)
                       throws java.io.IOException {
-    for (int i = 0; i < filter_.size(); i++) {
-      output.writeEnum(1, filter_.get(i));
+    for (int i = 0; i < filters_.size(); i++) {
+      output.writeEnum(1, filters_.get(i));
     }
     unknownFields.writeTo(output);
   }
@@ -166,12 +166,12 @@ private static final long serialVersionUID = 0L;
     size = 0;
     {
       int dataSize = 0;
-      for (int i = 0; i < filter_.size(); i++) {
+      for (int i = 0; i < filters_.size(); i++) {
         dataSize += com.google.protobuf.CodedOutputStream
-          .computeEnumSizeNoTag(filter_.get(i));
+          .computeEnumSizeNoTag(filters_.get(i));
       }
       size += dataSize;
-      size += 1 * filter_.size();
+      size += 1 * filters_.size();
     }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
@@ -189,7 +189,7 @@ private static final long serialVersionUID = 0L;
     alluxio.grpc.GetBlockMasterInfoPOptions other = (alluxio.grpc.GetBlockMasterInfoPOptions) obj;
 
     boolean result = true;
-    result = result && filter_.equals(other.filter_);
+    result = result && filters_.equals(other.filters_);
     result = result && unknownFields.equals(other.unknownFields);
     return result;
   }
@@ -201,9 +201,9 @@ private static final long serialVersionUID = 0L;
     }
     int hash = 41;
     hash = (19 * hash) + getDescriptor().hashCode();
-    if (getFilterCount() > 0) {
-      hash = (37 * hash) + FILTER_FIELD_NUMBER;
-      hash = (53 * hash) + filter_.hashCode();
+    if (getFiltersCount() > 0) {
+      hash = (37 * hash) + FILTERS_FIELD_NUMBER;
+      hash = (53 * hash) + filters_.hashCode();
     }
     hash = (29 * hash) + unknownFields.hashCode();
     memoizedHashCode = hash;
@@ -334,7 +334,7 @@ private static final long serialVersionUID = 0L;
     }
     public Builder clear() {
       super.clear();
-      filter_ = java.util.Collections.emptyList();
+      filters_ = java.util.Collections.emptyList();
       bitField0_ = (bitField0_ & ~0x00000001);
       return this;
     }
@@ -360,10 +360,10 @@ private static final long serialVersionUID = 0L;
       alluxio.grpc.GetBlockMasterInfoPOptions result = new alluxio.grpc.GetBlockMasterInfoPOptions(this);
       int from_bitField0_ = bitField0_;
       if (((bitField0_ & 0x00000001) == 0x00000001)) {
-        filter_ = java.util.Collections.unmodifiableList(filter_);
+        filters_ = java.util.Collections.unmodifiableList(filters_);
         bitField0_ = (bitField0_ & ~0x00000001);
       }
-      result.filter_ = filter_;
+      result.filters_ = filters_;
       onBuilt();
       return result;
     }
@@ -405,13 +405,13 @@ private static final long serialVersionUID = 0L;
 
     public Builder mergeFrom(alluxio.grpc.GetBlockMasterInfoPOptions other) {
       if (other == alluxio.grpc.GetBlockMasterInfoPOptions.getDefaultInstance()) return this;
-      if (!other.filter_.isEmpty()) {
-        if (filter_.isEmpty()) {
-          filter_ = other.filter_;
+      if (!other.filters_.isEmpty()) {
+        if (filters_.isEmpty()) {
+          filters_ = other.filters_;
           bitField0_ = (bitField0_ & ~0x00000001);
         } else {
-          ensureFilterIsMutable();
-          filter_.addAll(other.filter_);
+          ensureFiltersIsMutable();
+          filters_.addAll(other.filters_);
         }
         onChanged();
       }
@@ -443,75 +443,75 @@ private static final long serialVersionUID = 0L;
     }
     private int bitField0_;
 
-    private java.util.List<java.lang.Integer> filter_ =
+    private java.util.List<java.lang.Integer> filters_ =
       java.util.Collections.emptyList();
-    private void ensureFilterIsMutable() {
+    private void ensureFiltersIsMutable() {
       if (!((bitField0_ & 0x00000001) == 0x00000001)) {
-        filter_ = new java.util.ArrayList<java.lang.Integer>(filter_);
+        filters_ = new java.util.ArrayList<java.lang.Integer>(filters_);
         bitField0_ |= 0x00000001;
       }
     }
     /**
-     * <code>repeated .alluxio.grpc.BlockMasterInfoField filter = 1;</code>
+     * <code>repeated .alluxio.grpc.BlockMasterInfoField filters = 1;</code>
      */
-    public java.util.List<alluxio.grpc.BlockMasterInfoField> getFilterList() {
+    public java.util.List<alluxio.grpc.BlockMasterInfoField> getFiltersList() {
       return new com.google.protobuf.Internal.ListAdapter<
-          java.lang.Integer, alluxio.grpc.BlockMasterInfoField>(filter_, filter_converter_);
+          java.lang.Integer, alluxio.grpc.BlockMasterInfoField>(filters_, filters_converter_);
     }
     /**
-     * <code>repeated .alluxio.grpc.BlockMasterInfoField filter = 1;</code>
+     * <code>repeated .alluxio.grpc.BlockMasterInfoField filters = 1;</code>
      */
-    public int getFilterCount() {
-      return filter_.size();
+    public int getFiltersCount() {
+      return filters_.size();
     }
     /**
-     * <code>repeated .alluxio.grpc.BlockMasterInfoField filter = 1;</code>
+     * <code>repeated .alluxio.grpc.BlockMasterInfoField filters = 1;</code>
      */
-    public alluxio.grpc.BlockMasterInfoField getFilter(int index) {
-      return filter_converter_.convert(filter_.get(index));
+    public alluxio.grpc.BlockMasterInfoField getFilters(int index) {
+      return filters_converter_.convert(filters_.get(index));
     }
     /**
-     * <code>repeated .alluxio.grpc.BlockMasterInfoField filter = 1;</code>
+     * <code>repeated .alluxio.grpc.BlockMasterInfoField filters = 1;</code>
      */
-    public Builder setFilter(
+    public Builder setFilters(
         int index, alluxio.grpc.BlockMasterInfoField value) {
       if (value == null) {
         throw new NullPointerException();
       }
-      ensureFilterIsMutable();
-      filter_.set(index, value.getNumber());
+      ensureFiltersIsMutable();
+      filters_.set(index, value.getNumber());
       onChanged();
       return this;
     }
     /**
-     * <code>repeated .alluxio.grpc.BlockMasterInfoField filter = 1;</code>
+     * <code>repeated .alluxio.grpc.BlockMasterInfoField filters = 1;</code>
      */
-    public Builder addFilter(alluxio.grpc.BlockMasterInfoField value) {
+    public Builder addFilters(alluxio.grpc.BlockMasterInfoField value) {
       if (value == null) {
         throw new NullPointerException();
       }
-      ensureFilterIsMutable();
-      filter_.add(value.getNumber());
+      ensureFiltersIsMutable();
+      filters_.add(value.getNumber());
       onChanged();
       return this;
     }
     /**
-     * <code>repeated .alluxio.grpc.BlockMasterInfoField filter = 1;</code>
+     * <code>repeated .alluxio.grpc.BlockMasterInfoField filters = 1;</code>
      */
-    public Builder addAllFilter(
+    public Builder addAllFilters(
         java.lang.Iterable<? extends alluxio.grpc.BlockMasterInfoField> values) {
-      ensureFilterIsMutable();
+      ensureFiltersIsMutable();
       for (alluxio.grpc.BlockMasterInfoField value : values) {
-        filter_.add(value.getNumber());
+        filters_.add(value.getNumber());
       }
       onChanged();
       return this;
     }
     /**
-     * <code>repeated .alluxio.grpc.BlockMasterInfoField filter = 1;</code>
+     * <code>repeated .alluxio.grpc.BlockMasterInfoField filters = 1;</code>
      */
-    public Builder clearFilter() {
-      filter_ = java.util.Collections.emptyList();
+    public Builder clearFilters() {
+      filters_ = java.util.Collections.emptyList();
       bitField0_ = (bitField0_ & ~0x00000001);
       onChanged();
       return this;
