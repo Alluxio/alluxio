@@ -451,14 +451,14 @@ public class ActiveSyncManager implements JournalEntryIterable, JournalEntryRepl
    * Stop the sync manager.
    */
   public void stop() {
-    try {
-      for (long mountId : mFilterMap.keySet()) {
+    for (long mountId : mFilterMap.keySet()) {
+      try {
         stopSyncForMount(mountId);
+      } catch (IOException e) {
+        LOG.info("IOException encountered in stopping activeSyncManager {}", e);
+      } catch (InvalidPathException e) {
+        LOG.info("InvalidPathException encountered in stopping activeSyncManager {}", e);
       }
-    } catch (IOException e) {
-      LOG.info("IOException encountered in stopping activeSyncManager {}", e);
-    } catch (InvalidPathException e) {
-      LOG.info("InvalidPathException encountered in stopping activeSyncManager {}", e);
     }
   }
 }
