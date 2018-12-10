@@ -13,12 +13,16 @@ import net.jcip.annotations.GuardedBy;
 
 import javax.security.sasl.SaslException;
 import javax.security.sasl.SaslServer;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import static io.grpc.stub.ServerCalls.asyncUnimplementedStreamingCall;
@@ -26,14 +30,20 @@ import static io.grpc.stub.ServerCalls.asyncUnimplementedStreamingCall;
 public class DefaultAuthenticationServer extends
     AlluxioSaslClientServiceGrpc.AlluxioSaslClientServiceImplBase implements AuthenticationServer {
   @GuardedBy("mClientsLock")
-  private Map<UUID, AuthenticatedClientInfo> mClients;
-  private ReentrantReadWriteLock mClientsLock;
+  protected final Map<UUID, AuthenticatedClientInfo> mClients;
+  protected final ReentrantReadWriteLock mClientsLock;
+  protected final ScheduledExecutorService mScheduler;
 
-  // TODO(ggezer) Launch a periodic task for cleaning the clients
+  //TODO(gezer) configurable
+  protected final long mCleanupIntervalHour = 1L;
 
   public DefaultAuthenticationServer() {
     mClients = new HashMap<>();
     mClientsLock = new ReentrantReadWriteLock(true);
+    mScheduler = Executors.newScheduledThreadPool(1);
+    mScheduler.scheduleAtFixedRate(() -> {
+      cleanupStaleClients();
+    }, mCleanupIntervalHour, mCleanupIntervalHour, TimeUnit.HOURS);
   }
 
   @Override
@@ -85,6 +95,22 @@ public class DefaultAuthenticationServer extends
     }
   }
 
+  private void cleanupStaleClients() {
+    LocalTime cleanupTime = LocalTime.now();
+    List<UUID> staleClients = new ArrayList<>();
+    try (LockResource clientsLockShared = new LockResource(mClientsLock.readLock())) {
+      for(Map.Entry<UUID, AuthenticatedClientInfo> clientEntry : mClients.entrySet()) {
+        LocalTime lat = clientEntry.getValue().getLastAccessTime();
+        if(lat.plusHours(mCleanupIntervalHour).isBefore(cleanupTime)) {
+          staleClients.add(clientEntry.getKey());
+        }
+      }
+    }
+    for(UUID clientId : staleClients) {
+      unregisterClient(clientId);
+    }
+  }
+
   public List<ServerInterceptor> getInterceptors() {
     if (!SecurityUtils.isSecurityEnabled()) {
       return Collections.emptyList();
@@ -105,6 +131,7 @@ public class DefaultAuthenticationServer extends
   }
 
   class AuthenticatedClientInfo {
+    private LocalTime mLastAccessTime;
     private SaslServer mAuthenticatedServer;
     private String mAuthorizedUser;
 
@@ -119,6 +146,10 @@ public class DefaultAuthenticationServer extends
 
     public String getUserName() {
       return mAuthorizedUser;
+    }
+
+    public LocalTime getLastAccessTime() {
+      return mLastAccessTime;
     }
   }
 }

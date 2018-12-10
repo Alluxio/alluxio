@@ -8,23 +8,27 @@ import alluxio.grpc.SaslMessage;
 import alluxio.util.SecurityUtils;
 import alluxio.grpc.GrpcChannel;
 import alluxio.grpc.GrpcChannelBuilder;
+import io.grpc.Channel;
 import io.grpc.ClientInterceptor;
+import io.grpc.ManagedChannel;
+import io.grpc.ManagedChannelBuilder;
 import io.grpc.stub.StreamObserver;
 
 import javax.security.auth.Subject;
 import javax.security.sasl.AuthenticationException;
 import javax.security.sasl.SaslClient;
 import java.net.InetSocketAddress;
+import java.sql.Time;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 public class AuthenticatedChannelBuilder {
 
   protected Subject mParentSubject;
   protected InetSocketAddress mHostAddress;
-  protected GrpcChannelBuilder mChannelBuilder;
   protected AuthType mAuthType;
   protected UUID mClientId;
 
@@ -39,18 +43,25 @@ public class AuthenticatedChannelBuilder {
       AuthType authType) {
     mParentSubject = subject;
     mHostAddress = hostAddress;
-    mChannelBuilder = GrpcChannelBuilder.forAddress(mHostAddress);
     mAuthType = authType;
     mClientId = clientId;
   }
 
-  public GrpcChannelBuilder create() throws AuthenticationException {
+  /**
+   * Authenticates and augments given {@link GrpcChannelBuilder} instance.
+   *
+   * @param channelToAuthenticate the channel builder for augmentation with interceptors.
+   * @return channel builder
+   * @throws AuthenticationException
+   */
+  public ManagedChannelBuilder authenticate(ManagedChannelBuilder channelToAuthenticate)
+      throws AuthenticationException {
     if (mAuthType == AuthType.NOSASL) {
-      return mChannelBuilder;
+      return channelToAuthenticate;
     }
 
-    GrpcChannel authenticationChannel =
-        GrpcChannelBuilder.forAddress(mHostAddress).usePlaintext(true).build();
+    ManagedChannel authenticationChannel = ManagedChannelBuilder
+        .forAddress(mHostAddress.getHostName(), mHostAddress.getPort()).usePlaintext(true).build();
     try {
       SaslClient client =
           SaslParticipiantProvider.Factory.create(mAuthType).getSaslClient(mParentSubject);
@@ -66,15 +77,21 @@ public class AuthenticatedChannelBuilder {
       clientDriver.start(mClientId.toString());
 
       for (ClientInterceptor interceptor : getInterceptors()) {
-        mChannelBuilder.intercept(interceptor);
+        channelToAuthenticate.intercept(interceptor);
       }
 
-      return mChannelBuilder;
+      return channelToAuthenticate;
 
     } catch (UnauthenticatedException e) {
       throw new AuthenticationException(e.getMessage(), e);
     } finally {
       authenticationChannel.shutdown();
+      while (!authenticationChannel.isTerminated())
+        try {
+          authenticationChannel.awaitTermination(1, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+
+        }
     }
   }
 
