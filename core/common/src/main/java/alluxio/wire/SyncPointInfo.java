@@ -19,7 +19,7 @@ import alluxio.AlluxioURI;
  */
 public class SyncPointInfo {
   /**
-   * Indicates the sync status of the active sync point.
+   * Indicates the status of the initial sync of the active sync point.
    */
   public enum SyncStatus {
     // This state is possible when initial syncing is turned off

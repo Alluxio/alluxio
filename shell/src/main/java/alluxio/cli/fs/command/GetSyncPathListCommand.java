@@ -49,13 +49,13 @@ public class GetSyncPathListCommand extends AbstractFileSystemCommand{
       System.out.print(syncPointInfo.getSyncPointUri() + "\t");
       switch (syncPointInfo.getSyncStatus()) {
         case NOT_INITIALLY_SYNCED:
-          System.out.println("NEVER SYNCED");
+          System.out.println("Initial Sync Skipped");
           break;
         case INITIALLY_SYNCED:
-          System.out.println("INITIALLY SYNCED");
+          System.out.println("Initial Sync Done");
           break;
         case SYNCING:
-          System.out.println("SYNCING");
+          System.out.println("Initial Sync In Progress");
           break;
         default:
           System.out.println("Invalid Syncing Status");
