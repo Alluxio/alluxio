@@ -15,6 +15,8 @@ import static jnr.constants.platform.OpenFlags.O_RDONLY;
 import static jnr.constants.platform.OpenFlags.O_WRONLY;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Mockito.atLeast;
@@ -190,6 +192,7 @@ public class AlluxioFuseFileSystemTest {
     info.setGroup(AlluxioFuseUtils.getGroupName(userName));
     info.setFolder(true);
     info.setMode(123);
+    info.setCompleted(true);
     URIStatus status = new URIStatus(info);
 
     // mock fs
@@ -209,6 +212,43 @@ public class AlluxioFuseFileSystemTest {
     assertEquals(AlluxioFuseUtils.getUid(System.getProperty("user.name")), stat.st_uid.get());
     assertEquals(AlluxioFuseUtils.getGid(System.getProperty("user.name")), stat.st_gid.get());
     assertEquals(123 | FileStat.S_IFDIR, stat.st_mode.intValue());
+  }
+
+  @Test
+  public void getattrWithDelay() throws Exception {
+    String path = "/foo/bar";
+    AlluxioURI expectedPath = BASE_EXPECTED_URI.join("/foo/bar");
+
+    // set up status
+    FileInfo info = new FileInfo();
+    info.setLength(0);
+    info.setCompleted(false);
+    URIStatus status = new URIStatus(info);
+
+    // mock fs
+    when(mFileSystem.exists(any(AlluxioURI.class))).thenReturn(true);
+    when(mFileSystem.getStatus(any(AlluxioURI.class))).thenReturn(status);
+
+    FileStat stat = new FileStat(Runtime.getSystemRuntime());
+
+    // Use another thread to open file so that
+    // we could change the file status when opening it
+    Thread t = new Thread(() -> mFuseFs.getattr(path, stat));
+    t.start();
+    Thread.sleep(1000);
+
+    // If the file exists but is not completed, we will wait for the file to complete
+    verify(mFileSystem).exists(expectedPath);
+    verify(mFileSystem, atLeast(10)).getStatus(expectedPath);
+    assertEquals(0, stat.st_size.longValue());
+
+    info.setCompleted(true);
+    info.setLength(1000);
+
+    t.join();
+
+    // getattr() completed and set the file size
+    assertEquals(1000, stat.st_size.longValue());
   }
 
   @Test

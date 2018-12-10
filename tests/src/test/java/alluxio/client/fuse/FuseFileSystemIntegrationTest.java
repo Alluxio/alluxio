@@ -199,6 +199,23 @@ public class FuseFileSystemIntegrationTest {
   }
 
   @Test
+  public void ls() throws Exception {
+    String testFile = "/lsTestFile";
+    ShellUtils.execCommand("dd", "if=/dev/zero",
+        "of=" + sMountPoint + testFile, "count=10", "bs=" + 4 * Constants.MB);
+
+    // Fuse release() is async, Fuse getattr() will wait for file completed and get the
+    // right file size
+    String out = ShellUtils.execCommand("ls", "-sh", sMountPoint + testFile);
+    Assert.assertFalse(out.isEmpty());
+    Assert.assertEquals("40MB", out.split("\\s+")[0]);
+
+    Assert.assertTrue(sFileSystem.exists(new AlluxioURI(testFile)));
+    Assert.assertEquals(40 * Constants.MB,
+        sFileSystem.getStatus(new AlluxioURI(testFile)).getLength());
+  }
+
+  @Test
   public void head() throws Exception {
     String testFile = "/headTestFile";
     String content = "Alluxio Head Test File Content";
