@@ -22,8 +22,8 @@ public class AuthenticatedUserInjector implements ServerInterceptor {
   }
 
   private boolean IsWhiteListed(String methodName) {
-    return methodName.contains(AlluxioSaslClientServiceGrpc.SERVICE_NAME)
-        || methodName.contains(AlluxioVersionServiceGrpc.SERVICE_NAME);
+    return methodName.startsWith(AlluxioSaslClientServiceGrpc.SERVICE_NAME)
+        || methodName.startsWith(AlluxioVersionServiceGrpc.SERVICE_NAME);
   }
 
   @Override
