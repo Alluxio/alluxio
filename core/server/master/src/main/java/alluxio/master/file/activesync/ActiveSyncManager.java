@@ -447,6 +447,9 @@ public class ActiveSyncManager implements JournalEntryIterable, JournalEntryRepl
     return mExecutorService;
   }
 
+  /**
+   * Stop the sync manager.
+   */
   public void stop() {
     try {
       for (long mountId : mFilterMap.keySet()) {
