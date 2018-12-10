@@ -79,6 +79,7 @@ public final class AbstractClientTest {
     client.close();
   }
 
+  // TODO(ggezer) Fix after gRPC initialization
   // @Test
   public void supportedVersion() throws Exception {
     final AbstractClient client = mock(BaseTestClient.class);

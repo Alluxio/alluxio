@@ -36,11 +36,8 @@ public interface SaslParticipiantProvider {
         throws AuthenticationException {
       switch (authType) {
         case SIMPLE:
+        case CUSTOM:
           return new SaslParticipiantProviderPlain();
-        // case CUSTOM:
-        // String customProviderName =
-        // Configuration.get(PropertyKey.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER_CLASS);
-        // return new CustomAuthenticationProvider(customProviderName);
         default:
           throw new AuthenticationException("Unsupported AuthType: " + authType.getAuthName());
       }

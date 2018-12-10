@@ -9,15 +9,15 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master.version;
+package alluxio.master;
 
 import alluxio.Constants;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.AlluxioVersionServiceGrpc;
 import alluxio.grpc.GetServiceVersionPRequest;
 import alluxio.grpc.GetServiceVersionPResponse;
+import alluxio.RpcUtils;
 
-import alluxio.util.RpcUtilsNew;
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,13 +29,13 @@ import org.slf4j.LoggerFactory;
 public final class AlluxioVersionServiceHandler
     extends AlluxioVersionServiceGrpc.AlluxioVersionServiceImplBase {
   private static final Logger LOG =
-      LoggerFactory.getLogger(alluxio.master.version.AlluxioVersionServiceHandler.class);
+      LoggerFactory.getLogger(alluxio.master.AlluxioVersionServiceHandler.class);
 
   @Override
   public void getServiceVersion(GetServiceVersionPRequest request,
       StreamObserver<GetServiceVersionPResponse> responseObserver) {
-    RpcUtilsNew.call(LOG,
-        (RpcUtilsNew.RpcCallableThrowsIOException<GetServiceVersionPResponse>) () -> {
+    RpcUtils.call(LOG,
+        (RpcUtils.RpcCallableThrowsIOException<GetServiceVersionPResponse>) () -> {
           long serviceVersion;
           switch (request.getServiceType()) {
             case FILE_SYSTEM_MASTER_CLIENT_SERVICE:

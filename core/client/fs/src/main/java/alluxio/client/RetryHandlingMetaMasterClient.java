@@ -45,8 +45,7 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public class RetryHandlingMetaMasterClient extends AbstractMasterClient
     implements MetaMasterClient {
-  //private MetaMasterClientService.Client mClient;
-  private MetaMasterClientServiceGrpc.MetaMasterClientServiceBlockingStub mGrpcClient = null;
+  private MetaMasterClientServiceGrpc.MetaMasterClientServiceBlockingStub mClient = null;
 
   /**
    * Creates a new meta master client.
@@ -55,7 +54,6 @@ public class RetryHandlingMetaMasterClient extends AbstractMasterClient
    */
   public RetryHandlingMetaMasterClient(MasterClientConfig conf) {
     super(conf);
-    //mClient = null;
   }
 
   @Override
@@ -75,33 +73,32 @@ public class RetryHandlingMetaMasterClient extends AbstractMasterClient
 
   @Override
   protected void afterConnect() {
-    //mClient = new MetaMasterClientService.Client(mProtocol);
-    mGrpcClient = MetaMasterClientServiceGrpc.newBlockingStub(mChannel);
+    mClient = MetaMasterClientServiceGrpc.newBlockingStub(mChannel);
   }
 
   @Override
   public synchronized BackupResponse backup(String targetDirectory,
                                             boolean localFileSystem) throws IOException {
-    return retryRPC(() -> BackupResponse.fromPoto(mGrpcClient.backup(BackupPOptions.newBuilder()
+    return retryRPC(() -> BackupResponse.fromPoto(mClient.backup(BackupPOptions.newBuilder()
         .setTargetDirectory(targetDirectory).setLocalFileSystem(localFileSystem).build())));
   }
 
   @Override
   public synchronized ConfigCheckReport getConfigReport() throws IOException {
     return retryRPC(() -> ConfigCheckReport.fromProto(
-        mGrpcClient.getConfigReport(GetConfigReportPOptions.getDefaultInstance()).getReport()));
+        mClient.getConfigReport(GetConfigReportPOptions.getDefaultInstance()).getReport()));
   }
 
   @Override
   public synchronized List<ConfigProperty> getConfiguration() throws IOException {
-    return retryRPC(() -> mGrpcClient
+    return retryRPC(() -> mClient
         .getConfiguration(GetConfigurationPOptions.getDefaultInstance()).getConfigsList());
   }
 
   @Override
   public synchronized MasterInfo getMasterInfo(final Set<MasterInfoField> fields)
       throws IOException {
-    return retryRPC(() -> mGrpcClient
+    return retryRPC(() -> mClient
         .getMasterInfo(GetMasterInfoPOptions.newBuilder().addAllFilter(fields).build())
         .getMasterInfo());
   }
@@ -109,6 +106,6 @@ public class RetryHandlingMetaMasterClient extends AbstractMasterClient
   @Override
   public synchronized Map<String, MetricValue> getMetrics() throws AlluxioStatusException {
     return retryRPC(
-        () -> mGrpcClient.getMetrics(GetMetricsPOptions.getDefaultInstance()).getMetricsMap());
+        () -> mClient.getMetrics(GetMetricsPOptions.getDefaultInstance()).getMetricsMap());
   }
 }

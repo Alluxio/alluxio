@@ -37,7 +37,7 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class RetryHandlingJobMasterClient extends AbstractMasterClient
     implements JobMasterClient {
-  private JobMasterWorkerServiceGrpc.JobMasterWorkerServiceBlockingStub mGrpcClient = null;
+  private JobMasterWorkerServiceGrpc.JobMasterWorkerServiceBlockingStub mClient = null;
 
   /**
    * Creates a new job master client.
@@ -70,15 +70,14 @@ public final class RetryHandlingJobMasterClient extends AbstractMasterClient
 
   @Override
   protected void afterConnect() {
-    //mClient = new JobMasterWorkerService.Client(mProtocol);
-    mGrpcClient = JobMasterWorkerServiceGrpc.newBlockingStub(mChannel);
+    mClient = JobMasterWorkerServiceGrpc.newBlockingStub(mChannel);
   }
 
   @Override
   public synchronized long registerWorker(final WorkerNetAddress address) throws IOException {
     return retryRPC(new RpcCallable<Long>() {
       public Long call() {
-        return mGrpcClient.registerJobWorker(RegisterJobWorkerPRequest.newBuilder()
+        return mClient.registerJobWorker(RegisterJobWorkerPRequest.newBuilder()
             .setWorkerNetAddress(GrpcUtils.toProto(address)).build()).getId();
       }
     });
@@ -91,7 +90,7 @@ public final class RetryHandlingJobMasterClient extends AbstractMasterClient
 
       @Override
       public List<JobCommand> call() {
-        return mGrpcClient.heartbeat(JobHeartbeatPRequest.newBuilder().setWorkerId(workerId)
+        return mClient.heartbeat(JobHeartbeatPRequest.newBuilder().setWorkerId(workerId)
             .addAllTaskInfos(taskInfoList).build()).getCommandsList();
       }
     });

@@ -12,6 +12,7 @@
 package alluxio;
 
 import alluxio.exception.ExceptionMessage;
+import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.FailedPreconditionException;
 import alluxio.exception.status.Status;
@@ -219,9 +220,9 @@ public abstract class AbstractClient implements Client {
         beforeConnect();
         LOG.info("Alluxio client (version {}) is trying to connect with {} @ {}",
             RuntimeConstants.VERSION, getServiceName(), mAddress);
-        AuthenticatedChannelBuilder authClient =
+        AuthenticatedChannelBuilder channelBuilder =
             new AuthenticatedChannelBuilder(mClientId, mParentSubject, mAddress);
-        mChannel = authClient.create().usePlaintext(true).build();
+        mChannel = channelBuilder.create().usePlaintext(true).build();
         // Create stub for version service on host
         mVersionService = AlluxioVersionServiceGrpc.newBlockingStub(mChannel);
         mConnected = true;
@@ -256,10 +257,9 @@ public abstract class AbstractClient implements Client {
    */
   public synchronized void disconnect() {
     if (mConnected) {
-      //Preconditions.checkNotNull(mProtocol, PreconditionMessage.PROTOCOL_NULL_WHEN_CONNECTED);
+      Preconditions.checkNotNull(mChannel, PreconditionMessage.CHANNEL_NULL_WHEN_CONNECTED);
       LOG.debug("Disconnecting from the {} @ {}", getServiceName(), mAddress);
       beforeDisconnect();
-      //mProtocol.getTransport().close();
       mChannel.shutdown();
       mConnected = false;
       afterDisconnect();

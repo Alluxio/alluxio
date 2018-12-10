@@ -37,8 +37,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class KeyValueMasterClient extends AbstractMasterClient {
-  // private KeyValueMasterClientService.Client mClient = null;
-  private KeyValueMasterClientServiceGrpc.KeyValueMasterClientServiceBlockingStub mGrpcClient =
+  private KeyValueMasterClientServiceGrpc.KeyValueMasterClientServiceBlockingStub mClient =
       null;
 
   /**
@@ -67,9 +66,8 @@ public final class KeyValueMasterClient extends AbstractMasterClient {
 
   @Override
   protected void afterConnect() throws IOException {
-    // mClient = new KeyValueMasterClientService.Client(mProtocol);
     // TODO(ggezer) Host the service
-    mGrpcClient = KeyValueMasterClientServiceGrpc.newBlockingStub(mChannel);
+    mClient = KeyValueMasterClientServiceGrpc.newBlockingStub(mChannel);
   }
 
   /**
@@ -83,7 +81,7 @@ public final class KeyValueMasterClient extends AbstractMasterClient {
     retryRPC(new RpcCallable<Void>() {
       @Override
       public Void call() {
-        mGrpcClient.completePartition(CompletePartitionPRequest.newBuilder().setPath(path.getPath())
+        mClient.completePartition(CompletePartitionPRequest.newBuilder().setPath(path.getPath())
             .setPartitionInfo(info).build());
         return null;
       }
@@ -99,7 +97,7 @@ public final class KeyValueMasterClient extends AbstractMasterClient {
     retryRPC(new RpcCallable<Void>() {
       @Override
       public Void call() {
-        mGrpcClient
+        mClient
             .completeStore(CompleteStorePRequest.newBuilder().setPath(path.getPath()).build());
         return null;
       }
@@ -115,7 +113,7 @@ public final class KeyValueMasterClient extends AbstractMasterClient {
     retryRPC(new RpcCallable<Void>() {
       @Override
       public Void call() {
-        mGrpcClient.createStore(CreateStorePRequest.newBuilder().setPath(path.getPath()).build());
+        mClient.createStore(CreateStorePRequest.newBuilder().setPath(path.getPath()).build());
         return null;
       }
     });
@@ -132,7 +130,7 @@ public final class KeyValueMasterClient extends AbstractMasterClient {
     return retryRPC(new RpcCallable<List<PartitionInfo>>() {
       @Override
       public List<PartitionInfo> call() {
-        return mGrpcClient
+        return mClient
             .getPartitionInfo(GetPartitionInfoPRequest.newBuilder().setPath(path.getPath()).build())
             .getPartitionInfoList();
       }
@@ -148,7 +146,7 @@ public final class KeyValueMasterClient extends AbstractMasterClient {
     retryRPC(new RpcCallable<Void>() {
       @Override
       public Void call() {
-        mGrpcClient.deleteStore(DeleteStorePRequest.newBuilder().setPath(path.getPath()).build());
+        mClient.deleteStore(DeleteStorePRequest.newBuilder().setPath(path.getPath()).build());
         return null;
       }
     });
@@ -165,7 +163,7 @@ public final class KeyValueMasterClient extends AbstractMasterClient {
     retryRPC(new RpcCallable<Void>() {
       @Override
       public Void call() {
-        mGrpcClient.renameStore(RenameStorePRequest.newBuilder().setOldPath(oldPath.getPath())
+        mClient.renameStore(RenameStorePRequest.newBuilder().setOldPath(oldPath.getPath())
             .setNewPath(newPath.getPath()).build());
         return null;
       }
@@ -182,7 +180,7 @@ public final class KeyValueMasterClient extends AbstractMasterClient {
     retryRPC(new RpcCallable<Void>() {
       @Override
       public Void call() {
-        mGrpcClient.mergeStore(MergeStorePRequest.newBuilder().setFromPath(fromPath.getPath())
+        mClient.mergeStore(MergeStorePRequest.newBuilder().setFromPath(fromPath.getPath())
             .setToPath(toPath.getPath()).build());
         return null;
       }

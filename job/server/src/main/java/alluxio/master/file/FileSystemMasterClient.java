@@ -38,8 +38,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class FileSystemMasterClient extends AbstractMasterClient {
-  // TODO(ggezer) review grpc client initialization
-  private FileSystemMasterWorkerServiceGrpc.FileSystemMasterWorkerServiceBlockingStub mGrpcClient =
+  private FileSystemMasterWorkerServiceGrpc.FileSystemMasterWorkerServiceBlockingStub mClient =
           null;
 
   /**
@@ -68,7 +67,7 @@ public final class FileSystemMasterClient extends AbstractMasterClient {
 
   @Override
   protected void afterConnect() throws IOException {
-    mGrpcClient = FileSystemMasterWorkerServiceGrpc.newBlockingStub(mChannel);
+    mClient = FileSystemMasterWorkerServiceGrpc.newBlockingStub(mChannel);
   }
 
   /**
@@ -76,7 +75,7 @@ public final class FileSystemMasterClient extends AbstractMasterClient {
    * @return the file info for the given file id
    */
   public synchronized FileInfo getFileInfo(final long fileId) throws IOException {
-    return retryRPC(() -> GrpcUtils.fromProto(mGrpcClient
+    return retryRPC(() -> GrpcUtils.fromProto(mClient
         .getFileInfo(GetFileInfoPRequest.newBuilder().setFileId(fileId).build()).getFileInfo()));
   }
 
@@ -86,7 +85,7 @@ public final class FileSystemMasterClient extends AbstractMasterClient {
    * @throws IOException if an I/O error occurs
    */
   public synchronized UfsInfo getUfsInfo(final long mountId) throws IOException {
-    return retryRPC(() -> mGrpcClient
+    return retryRPC(() -> mClient
         .getUfsInfo(GetUfsInfoPRequest.newBuilder().setMountId(mountId).build()).getUfsInfo());
   }
 }

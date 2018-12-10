@@ -122,6 +122,7 @@ public final class MasterClientAuthenticationIntegrationTest extends BaseIntegra
       Thread.currentThread().setContextClassLoader(contextClassLoader);
     }
     Assert.assertTrue(masterClient.isConnected());
+    masterClient.close();
   }
 
   /**

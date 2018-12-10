@@ -37,8 +37,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class KeyValueWorkerClient extends AbstractClient {
-  // private KeyValueWorkerClientService.Client mClient = null;
-  private KeyValueWorkerClientServiceGrpc.KeyValueWorkerClientServiceBlockingStub mGrpcClient =
+  private KeyValueWorkerClientServiceGrpc.KeyValueWorkerClientServiceBlockingStub mClient =
       null;
 
   /**
@@ -67,9 +66,8 @@ public final class KeyValueWorkerClient extends AbstractClient {
 
   @Override
   protected void afterConnect() throws IOException {
-    // mClient = new KeyValueWorkerClientService.Client(mProtocol);
     // TODO(ggezer) Host the service
-    mGrpcClient = KeyValueWorkerClientServiceGrpc.newBlockingStub(mChannel);
+    mClient = KeyValueWorkerClientServiceGrpc.newBlockingStub(mChannel);
   }
 
   /**
@@ -84,7 +82,7 @@ public final class KeyValueWorkerClient extends AbstractClient {
     return retryRPC(new RpcCallable<ByteBuffer>() {
       @Override
       public ByteBuffer call() {
-        return ByteBuffer.wrap(mGrpcClient.get(
+        return ByteBuffer.wrap(mClient.get(
             GetPRequest.newBuilder().setBlockId(blockId).setKey(ByteString.copyFrom(key)).build())
             .getData().toByteArray());
       }
@@ -107,7 +105,7 @@ public final class KeyValueWorkerClient extends AbstractClient {
     return retryRPC(new RpcCallable<List<ByteBuffer>>() {
       @Override
       public List<ByteBuffer> call() {
-        return mGrpcClient
+        return mClient
             .getNextKeys(GetNextKeysPRequest.newBuilder().setBlockId(blockId)
                 .setKey(ByteString.copyFrom(key)).setNumKeys(numKeys).build())
             .getKeysList().stream().map((c) -> ByteBuffer.wrap(c.toByteArray()))
@@ -124,7 +122,7 @@ public final class KeyValueWorkerClient extends AbstractClient {
     return retryRPC(new RpcCallable<Integer>() {
       @Override
       public Integer call() {
-        return mGrpcClient.getSize(GetSizePRequest.newBuilder().setBlockId(blockId).build())
+        return mClient.getSize(GetSizePRequest.newBuilder().setBlockId(blockId).build())
             .getSize();
       }
     });

@@ -11,6 +11,7 @@
 
 package alluxio.master.block;
 
+import alluxio.RpcUtils;
 import alluxio.grpc.BlockHeartbeatPOptions;
 import alluxio.grpc.BlockHeartbeatPRequest;
 import alluxio.grpc.BlockHeartbeatPResponse;
@@ -26,7 +27,6 @@ import alluxio.grpc.RegisterWorkerPRequest;
 import alluxio.grpc.RegisterWorkerPResponse;
 import alluxio.grpc.TierList;
 import alluxio.metrics.Metric;
-import alluxio.util.RpcUtilsNew;
 import alluxio.util.grpc.GrpcUtils;
 
 import com.google.common.base.Preconditions;
@@ -74,8 +74,8 @@ public final class BlockMasterWorkerServiceHandler
     final List<Metric> metrics =
         options.getMetricsList().stream().map(Metric::fromProto).collect(Collectors.toList());
 
-    RpcUtilsNew.call(LOG,
-        (RpcUtilsNew.RpcCallableThrowsIOException<BlockHeartbeatPResponse>) () -> {
+    RpcUtils.call(LOG,
+        (RpcUtils.RpcCallableThrowsIOException<BlockHeartbeatPResponse>) () -> {
           return BlockHeartbeatPResponse.newBuilder()
               .setCommand(mBlockMaster.workerHeartbeat(workerId, usedBytesOnTiers, removedBlockIds,
                   addedBlocksOnTiersMap, metrics))
@@ -94,7 +94,7 @@ public final class BlockMasterWorkerServiceHandler
     final long blockId = request.getBlockId();
     final long length = request.getLength();
 
-    RpcUtilsNew.call(LOG, (RpcUtilsNew.RpcCallableThrowsIOException<CommitBlockPResponse>) () -> {
+    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<CommitBlockPResponse>) () -> {
       mBlockMaster.commitBlock(workerId, usedBytesOnTier, tierAlias, blockId, length);
       return CommitBlockPResponse.getDefaultInstance();
     }, "commitBlock", "request=%s", responseObserver, request);
@@ -104,8 +104,8 @@ public final class BlockMasterWorkerServiceHandler
   public void commitBlockInUfs(CommitBlockInUfsPRequest request,
       StreamObserver<CommitBlockInUfsPResponse> responseObserver) {
 
-    RpcUtilsNew.call(LOG,
-        (RpcUtilsNew.RpcCallableThrowsIOException<CommitBlockInUfsPResponse>) () -> {
+    RpcUtils.call(LOG,
+        (RpcUtils.RpcCallableThrowsIOException<CommitBlockInUfsPResponse>) () -> {
           mBlockMaster.commitBlockInUFS(request.getBlockId(), request.getLength());
           return CommitBlockInUfsPResponse.getDefaultInstance();
         }, "commitBlock", "request=%s", responseObserver, request);
@@ -114,7 +114,7 @@ public final class BlockMasterWorkerServiceHandler
   @Override
   public void getWorkerId(GetWorkerIdPRequest request,
       StreamObserver<GetWorkerIdPResponse> responseObserver) {
-    RpcUtilsNew.call(LOG, (RpcUtilsNew.RpcCallableThrowsIOException<GetWorkerIdPResponse>) () -> {
+    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<GetWorkerIdPResponse>) () -> {
       return GetWorkerIdPResponse.newBuilder()
           .setWorkerId(mBlockMaster.getWorkerId(GrpcUtils.fromProto(request.getWorkerNetAddress())))
           .build();
@@ -134,8 +134,8 @@ public final class BlockMasterWorkerServiceHandler
       currentBlocksOnTiersMap.put(id, currentBlocksOnTiers.get(id).getTiersList());
     }
     RegisterWorkerPOptions options = request.getOptions();
-    RpcUtilsNew.call(LOG,
-        (RpcUtilsNew.RpcCallableThrowsIOException<RegisterWorkerPResponse>) () -> {
+    RpcUtils.call(LOG,
+        (RpcUtils.RpcCallableThrowsIOException<RegisterWorkerPResponse>) () -> {
           mBlockMaster.workerRegister(workerId, storageTiers, totalBytesOnTiers, usedBytesOnTiers,
               currentBlocksOnTiersMap, options);
           return RegisterWorkerPResponse.getDefaultInstance();

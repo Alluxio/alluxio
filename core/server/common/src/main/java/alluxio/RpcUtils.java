@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.util;
+package alluxio;
 
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.AlluxioStatusException;
@@ -41,7 +41,7 @@ import java.io.IOException;
  * non-fatal errors will only be logged at the DEBUG level and failure metrics will not be
  * recorded.
  */
-public final class RpcUtilsNew {
+public final class RpcUtils {
   /**
    * An interface representing a callable which can only throw Alluxio exceptions.
    *
@@ -285,6 +285,35 @@ public final class RpcUtilsNew {
    * @param callable the callable to call
    * @param methodName the name of the method, used for metrics
    * @param description the format string of the description, used for logging
+   * @param args the arguments for the description
+   * @param <T> the return type of the callable
+   * @return the rpc result
+   */
+  public static <T> T nettyRPCAndLog(Logger logger, NettyRpcCallable<T> callable,
+                                     String methodName, String description, Object... args) {
+    // avoid string format for better performance if debug is off
+    String debugDesc = logger.isDebugEnabled() ? String.format(description, args) : null;
+    try (Timer.Context ctx = MetricsSystem.timer(getQualifiedMetricName(methodName)).time()) {
+      logger.debug("Enter: {}: {}", methodName, debugDesc);
+      T result = callable.call();
+      logger.debug("Exit (OK): {}: {}", methodName, debugDesc);
+      return result;
+    } catch (Exception e) {
+      logger
+              .warn("Exit (Error): {}: {}, Error={}", methodName, String.format(description, args), e);
+      MetricsSystem.counter(getQualifiedFailureMetricName(methodName)).inc();
+      callable.exceptionCaught(e);
+    }
+    return null;
+  }
+
+  /**
+   * Handles a netty RPC callable with logging.
+   *
+   * @param logger the logger to use for this call
+   * @param callable the callable to call
+   * @param methodName the name of the method, used for metrics
+   * @param description the format string of the description, used for logging
    * @param responseObserver gRPC response observer
    * @param args the arguments for the description
    * @param <T> the return type of the callable
@@ -323,5 +352,5 @@ public final class RpcUtilsNew {
      return name;
   }
 
-  private RpcUtilsNew() {} // prevent instantiation
+  private RpcUtils() {} // prevent instantiation
 }

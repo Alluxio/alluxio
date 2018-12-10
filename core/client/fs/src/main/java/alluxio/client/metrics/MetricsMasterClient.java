@@ -34,8 +34,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public class MetricsMasterClient extends AbstractMasterClient {
-  //private MetricsMasterClientService.Client mClient = null;
-  private MetricsMasterClientServiceGrpc.MetricsMasterClientServiceBlockingStub mGrpcClient = null;
+  private MetricsMasterClientServiceGrpc.MetricsMasterClientServiceBlockingStub mClient = null;
 
   /**
    * Creates a new metrics master client.
@@ -63,8 +62,7 @@ public class MetricsMasterClient extends AbstractMasterClient {
 
   @Override
   protected void afterConnect() {
-    //mClient = new MetricsMasterClientService.Client(mProtocol);
-    mGrpcClient = MetricsMasterClientServiceGrpc.newBlockingStub(mChannel);
+    mClient = MetricsMasterClientServiceGrpc.newBlockingStub(mChannel);
   }
 
   /**
@@ -79,7 +77,7 @@ public class MetricsMasterClient extends AbstractMasterClient {
       request.setClientId(FileSystemContext.get().getId());
       request.setHostname(NetworkAddressUtils.getClientHostName());
       request.setOptions(MetricsHeartbeatPOptions.newBuilder().addAllMetrics(metrics).build());
-      mGrpcClient.metricsHeartbeat(request.build());
+      mClient.metricsHeartbeat(request.build());
     } catch (io.grpc.StatusRuntimeException e) {
       throw new UnavailableException(e);
     }

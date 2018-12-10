@@ -11,6 +11,7 @@
 
 package alluxio.master.job;
 
+import alluxio.RpcUtils;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.CancelPRequest;
 import alluxio.grpc.CancelPResponse;
@@ -23,7 +24,6 @@ import alluxio.grpc.RunPRequest;
 import alluxio.grpc.RunPResponse;
 import alluxio.job.JobConfig;
 import alluxio.job.util.SerializationUtils;
-import alluxio.util.RpcUtilsNew;
 
 import com.google.common.base.Preconditions;
 import io.grpc.stub.StreamObserver;
@@ -50,7 +50,7 @@ public class JobMasterClientServiceHandler
 
   @Override
   public void cancel(CancelPRequest request, StreamObserver<CancelPResponse> responseObserver) {
-    RpcUtilsNew.call(LOG, (RpcUtilsNew.RpcCallableThrowsIOException<CancelPResponse>) () -> {
+    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<CancelPResponse>) () -> {
       mJobMaster.cancel(request.getJobId());
       return CancelPResponse.getDefaultInstance();
     }, "cancel", "request=%s", responseObserver, request);
@@ -59,7 +59,7 @@ public class JobMasterClientServiceHandler
   @Override
   public void getJobStatus(GetJobStatusPRequest request,
       StreamObserver<GetJobStatusPResponse> responseObserver) {
-    RpcUtilsNew.call(LOG, (RpcUtilsNew.RpcCallableThrowsIOException<GetJobStatusPResponse>) () -> {
+    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<GetJobStatusPResponse>) () -> {
       return GetJobStatusPResponse.newBuilder()
           .setJobInfo(mJobMaster.getStatus(request.getJobId()).toProto()).build();
     }, "getJobStatus", "request=%s", responseObserver, request);
@@ -67,14 +67,14 @@ public class JobMasterClientServiceHandler
 
   @Override
   public void listAll(ListAllPRequest request, StreamObserver<ListAllPResponse> responseObserver) {
-    RpcUtilsNew.call(LOG, (RpcUtilsNew.RpcCallableThrowsIOException<ListAllPResponse>) () -> {
+    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<ListAllPResponse>) () -> {
       return ListAllPResponse.newBuilder().addAllJobIds(mJobMaster.list()).build();
     }, "listAll", "request=%s", responseObserver, request);
   }
 
   @Override
   public void run(RunPRequest request, StreamObserver<RunPResponse> responseObserver) {
-    RpcUtilsNew.call(LOG, (RpcUtilsNew.RpcCallableThrowsIOException<RunPResponse>) () -> {
+    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<RunPResponse>) () -> {
       try {
         byte[] jobConfigBytes = request.getJobConfig().toByteArray();
         return RunPResponse.newBuilder()

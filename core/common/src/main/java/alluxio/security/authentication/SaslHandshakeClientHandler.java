@@ -28,11 +28,8 @@ public interface SaslHandshakeClientHandler {
         throws AuthenticationException {
       switch (authType) {
         case SIMPLE:
+        case CUSTOM:
           return new SaslHandshakeClientHandlerPlain(saslClient);
-        // case CUSTOM:
-        // String customProviderName =
-        // Configuration.get(PropertyKey.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER_CLASS);
-        // return new CustomAuthenticationProvider(customProviderName);
         default:
           throw new AuthenticationException("Unsupported AuthType: " + authType.getAuthName());
       }

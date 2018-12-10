@@ -16,13 +16,13 @@ import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
 import alluxio.master.job.JobMaster;
 import alluxio.master.journal.JournalSystem;
-import alluxio.master.version.AlluxioVersionServiceHandler;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.sink.MetricsServlet;
 import alluxio.security.authentication.DefaultAuthenticationServer;
 import alluxio.underfs.JobUfsManager;
 import alluxio.underfs.UfsManager;
 import alluxio.util.CommonUtils;
+import alluxio.util.SecurityUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.util.grpc.GrpcServer;
 import alluxio.util.grpc.GrpcServerBuilder;
@@ -39,6 +39,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.security.Security;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -292,10 +293,16 @@ public class AlluxioJobMasterProcess implements JobMasterProcess {
               GrpcServerBuilder.forAddress(mRpcBindAddress);
 
       registerServices(serverBuilder, mJobMaster.getServices());
+
       serverBuilder.addService(new AlluxioVersionServiceHandler());
-      serverBuilder.addService(mAuthenticationServer);
-      for (ServerInterceptor interceptor : mAuthenticationServer.getInterceptors()) {
-        serverBuilder.intercept(interceptor);
+      // Register authentication service for clients
+      // to authenticate with this server.
+      // TODO(ggezer) Embed this in {@link GrpcServer}
+      if(SecurityUtils.isAuthenticationEnabled()) {
+        serverBuilder.addService(mAuthenticationServer);
+        for (ServerInterceptor interceptor : mAuthenticationServer.getInterceptors()) {
+          serverBuilder.intercept(interceptor);
+        }
       }
       mGrpcServer = serverBuilder.build().start();
       mIsServing = true;

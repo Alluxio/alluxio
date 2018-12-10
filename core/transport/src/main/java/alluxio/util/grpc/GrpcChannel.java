@@ -52,9 +52,10 @@ public final class GrpcChannel extends Channel {
    */
   public void shutdown() {
     mChannel.shutdown();
-    while(!mChannel.isTerminated()) {
+    boolean terminated = false;
+    while(!terminated) {
       try {
-        mChannel.awaitTermination(1, TimeUnit.MINUTES);
+        terminated = mChannel.awaitTermination(1, TimeUnit.MINUTES);
       } catch (InterruptedException e) {
       }
     }

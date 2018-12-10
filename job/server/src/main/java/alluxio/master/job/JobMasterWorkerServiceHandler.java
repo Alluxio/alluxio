@@ -11,12 +11,12 @@
 
 package alluxio.master.job;
 
+import alluxio.RpcUtils;
 import alluxio.grpc.JobHeartbeatPRequest;
 import alluxio.grpc.JobHeartbeatPResponse;
 import alluxio.grpc.JobMasterWorkerServiceGrpc;
 import alluxio.grpc.RegisterJobWorkerPRequest;
 import alluxio.grpc.RegisterJobWorkerPResponse;
-import alluxio.util.RpcUtilsNew;
 import alluxio.util.grpc.GrpcUtils;
 
 import com.google.common.base.Preconditions;
@@ -52,7 +52,7 @@ public final class JobMasterWorkerServiceHandler
   public void heartbeat(JobHeartbeatPRequest request,
                         StreamObserver<JobHeartbeatPResponse> responseObserver) {
 
-    RpcUtilsNew.call(LOG, (RpcUtilsNew.RpcCallableThrowsIOException<JobHeartbeatPResponse>) () -> {
+    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<JobHeartbeatPResponse>) () -> {
       List<alluxio.job.wire.TaskInfo> wireTaskInfoList = Lists.newArrayList();
       for (alluxio.grpc.TaskInfo taskInfo : request.getTaskInfosList()) {
         try {
@@ -71,8 +71,8 @@ public final class JobMasterWorkerServiceHandler
   public void registerJobWorker(RegisterJobWorkerPRequest request,
       StreamObserver<RegisterJobWorkerPResponse> responseObserver) {
 
-    RpcUtilsNew.call(LOG,
-        (RpcUtilsNew.RpcCallableThrowsIOException<RegisterJobWorkerPResponse>) () -> {
+    RpcUtils.call(LOG,
+        (RpcUtils.RpcCallableThrowsIOException<RegisterJobWorkerPResponse>) () -> {
           return RegisterJobWorkerPResponse.newBuilder()
               .setId(mJobMaster.registerWorker(GrpcUtils.fromProto(request.getWorkerNetAddress())))
               .build();

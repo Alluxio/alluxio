@@ -46,8 +46,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class BlockMasterClient extends AbstractMasterClient {
-  // private BlockMasterWorkerService.Client mClient = null;
-  private BlockMasterWorkerServiceGrpc.BlockMasterWorkerServiceBlockingStub mGrpcClient = null;
+  private BlockMasterWorkerServiceGrpc.BlockMasterWorkerServiceBlockingStub mClient = null;
 
   /**
    * Creates a new instance of {@link BlockMasterClient} for the worker.
@@ -75,8 +74,7 @@ public final class BlockMasterClient extends AbstractMasterClient {
 
   @Override
   protected void afterConnect() throws IOException {
-    // mClient = new BlockMasterWorkerService.Client(mProtocol);
-    mGrpcClient = BlockMasterWorkerServiceGrpc.newBlockingStub(mChannel);
+    mClient = BlockMasterWorkerServiceGrpc.newBlockingStub(mChannel);
   }
 
   /**
@@ -94,7 +92,7 @@ public final class BlockMasterClient extends AbstractMasterClient {
       CommitBlockPRequest request =
           CommitBlockPRequest.newBuilder().setWorkerId(workerId).setUsedBytesOnTier(usedBytesOnTier)
               .setTierAlias(tierAlias).setBlockId(blockId).setLength(length).build();
-      mGrpcClient.commitBlock(request);
+      mClient.commitBlock(request);
       return null;
     });
   }
@@ -110,7 +108,7 @@ public final class BlockMasterClient extends AbstractMasterClient {
     retryRPC((RpcCallable<Void>) () -> {
       CommitBlockInUfsPRequest request =
           CommitBlockInUfsPRequest.newBuilder().setBlockId(blockId).setLength(length).build();
-      mGrpcClient.commitBlockInUfs(request);
+      mClient.commitBlockInUfs(request);
       return null;
     });
   }
@@ -125,7 +123,7 @@ public final class BlockMasterClient extends AbstractMasterClient {
     return retryRPC((RpcCallable<Long>) () -> {
       GetWorkerIdPRequest request =
           GetWorkerIdPRequest.newBuilder().setWorkerNetAddress(GrpcUtils.toProto(address)).build();
-      return mGrpcClient.getWorkerId(request).getWorkerId();
+      return mClient.getWorkerId(request).getWorkerId();
     });
   }
 
@@ -152,7 +150,7 @@ public final class BlockMasterClient extends AbstractMasterClient {
         .putAllUsedBytesOnTiers(usedBytesOnTiers).addAllRemovedBlockIds(removedBlocks)
         .putAllAddedBlocksOnTiers(addedBlocksMap).setOptions(options).build();
 
-    return retryRPC(() -> mGrpcClient.blockHeartbeat(request).getCommand());
+    return retryRPC(() -> mClient.blockHeartbeat(request).getCommand());
   }
 
   /**
@@ -184,7 +182,7 @@ public final class BlockMasterClient extends AbstractMasterClient {
         .setOptions(options).build();
 
     retryRPC(() -> {
-      mGrpcClient.registerWorker(request);
+      mClient.registerWorker(request);
       return null;
     });
   }

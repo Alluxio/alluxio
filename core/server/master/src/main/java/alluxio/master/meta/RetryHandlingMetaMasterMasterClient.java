@@ -38,8 +38,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class RetryHandlingMetaMasterMasterClient extends AbstractMasterClient {
-  // private MetaMasterMasterService.Client mClient = null;
-  private MetaMasterMasterServiceGrpc.MetaMasterMasterServiceBlockingStub mGrpcClient = null;
+  private MetaMasterMasterServiceGrpc.MetaMasterMasterServiceBlockingStub mClient = null;
 
   /**
    * Creates a instance of {@link RetryHandlingMetaMasterMasterClient}.
@@ -67,8 +66,7 @@ public final class RetryHandlingMetaMasterMasterClient extends AbstractMasterCli
 
   @Override
   protected void afterConnect() throws IOException {
-    //mClient = new MetaMasterMasterService.Client(mProtocol);
-    mGrpcClient = MetaMasterMasterServiceGrpc.newBlockingStub(mChannel);
+    mClient = MetaMasterMasterServiceGrpc.newBlockingStub(mChannel);
   }
 
   /**
@@ -78,7 +76,7 @@ public final class RetryHandlingMetaMasterMasterClient extends AbstractMasterCli
    * @return a master id
    */
   public synchronized long getId(final Address address) throws IOException {
-    return retryRPC(() -> mGrpcClient
+    return retryRPC(() -> mClient
         .getMasterId(GetMasterIdPRequest.newBuilder().setMasterAddress(address.toProto()).build())
         .getMasterId());
   }
@@ -91,7 +89,7 @@ public final class RetryHandlingMetaMasterMasterClient extends AbstractMasterCli
    * @return whether this master should re-register
    */
   public synchronized MetaCommand heartbeat(final long masterId) throws IOException {
-    return retryRPC(() -> mGrpcClient
+    return retryRPC(() -> mClient
         .masterHeartbeat(MasterHeartbeatPRequest.newBuilder().setMasterId(masterId).build())
         .getCommand());
   }
@@ -105,7 +103,7 @@ public final class RetryHandlingMetaMasterMasterClient extends AbstractMasterCli
   public synchronized void register(final long masterId, final List<ConfigProperty> configList)
       throws IOException {
     retryRPC(() -> {
-      mGrpcClient.registerMaster(RegisterMasterPRequest.newBuilder().setMasterId(masterId)
+      mClient.registerMaster(RegisterMasterPRequest.newBuilder().setMasterId(masterId)
           .setOptions(RegisterMasterPOptions.newBuilder().addAllConfigs(configList).build())
           .build());
       return null;
