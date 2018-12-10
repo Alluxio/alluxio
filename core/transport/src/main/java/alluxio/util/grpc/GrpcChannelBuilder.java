@@ -24,9 +24,9 @@ import java.net.InetSocketAddress;
  */
 public final class GrpcChannelBuilder {
 
-  ManagedChannelBuilder mChannelBuilder;
+  NettyChannelBuilder mChannelBuilder;
 
-  private GrpcChannelBuilder(ManagedChannelBuilder channelBuilder) {
+  private GrpcChannelBuilder(NettyChannelBuilder channelBuilder) {
     // mChannelBuilder = nettyChannelBuilder.nameResolverFactory(new DnsNameResolverProvider());
     mChannelBuilder = channelBuilder;
   }
@@ -39,7 +39,7 @@ public final class GrpcChannelBuilder {
    */
   public static GrpcChannelBuilder forAddress(InetSocketAddress address) {
     return new GrpcChannelBuilder(
-        ManagedChannelBuilder.forAddress(address.getHostName(), address.getPort()));
+        NettyChannelBuilder.forAddress(address.getHostName(), address.getPort()));
   }
 
   /**
