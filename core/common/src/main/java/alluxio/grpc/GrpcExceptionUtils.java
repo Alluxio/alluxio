@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.util.grpc;
+package alluxio.grpc;
 
 import alluxio.exception.status.AlluxioStatusException;
 

@@ -28,7 +28,7 @@ import alluxio.grpc.GetUsedBytesPResponse;
 import alluxio.grpc.GetWorkerInfoListPOptions;
 import alluxio.grpc.GetWorkerInfoListPResponse;
 import alluxio.grpc.GetWorkerReportPOptions;
-import alluxio.util.grpc.GrpcUtils;
+import alluxio.grpc.GrpcUtils;
 
 import com.google.common.base.Preconditions;
 import io.grpc.stub.StreamObserver;

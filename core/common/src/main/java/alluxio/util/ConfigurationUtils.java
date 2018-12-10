@@ -18,7 +18,7 @@ import alluxio.ConfigurationValueOptions;
 import alluxio.PropertyKey;
 import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.Scope;
-import alluxio.util.grpc.GrpcUtils;
+import alluxio.grpc.GrpcUtils;
 import alluxio.util.io.PathUtils;
 
 import org.slf4j.Logger;

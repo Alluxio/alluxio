@@ -18,7 +18,7 @@ import alluxio.metrics.Metric;
 import alluxio.metrics.MetricsSystem;
 import alluxio.security.User;
 import alluxio.security.authentication.AuthenticatedClientUser;
-import alluxio.util.grpc.GrpcExceptionUtils;
+import alluxio.grpc.GrpcExceptionUtils;
 
 import com.codahale.metrics.Timer;
 import io.grpc.stub.StreamObserver;

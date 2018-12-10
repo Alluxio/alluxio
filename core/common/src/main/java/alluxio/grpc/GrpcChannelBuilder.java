@@ -9,10 +9,9 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.util.grpc;
+package alluxio.grpc;
 
 import io.grpc.ClientInterceptor;
-import io.grpc.ManagedChannelBuilder;
 import io.grpc.netty.NettyChannelBuilder;
 
 import java.net.InetSocketAddress;

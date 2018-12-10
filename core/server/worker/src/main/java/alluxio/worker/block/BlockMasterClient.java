@@ -27,7 +27,7 @@ import alluxio.grpc.RegisterWorkerPOptions;
 import alluxio.grpc.RegisterWorkerPRequest;
 import alluxio.grpc.TierList;
 import alluxio.master.MasterClientConfig;
-import alluxio.util.grpc.GrpcUtils;
+import alluxio.grpc.GrpcUtils;
 import alluxio.wire.WorkerNetAddress;
 
 import java.io.IOException;

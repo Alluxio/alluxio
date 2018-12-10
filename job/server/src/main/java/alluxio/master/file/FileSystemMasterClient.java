@@ -19,7 +19,7 @@ import alluxio.grpc.GetFileInfoPRequest;
 import alluxio.grpc.GetUfsInfoPRequest;
 import alluxio.grpc.UfsInfo;
 import alluxio.master.MasterClientConfig;
-import alluxio.util.grpc.GrpcUtils;
+import alluxio.grpc.GrpcUtils;
 import alluxio.wire.FileInfo;
 
 // TODO(ggezer) GrpcException?

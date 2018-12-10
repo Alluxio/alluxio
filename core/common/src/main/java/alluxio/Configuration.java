@@ -21,9 +21,9 @@ import alluxio.grpc.GetConfigurationPOptions;
 import alluxio.grpc.MetaMasterClientServiceGrpc;
 import alluxio.grpc.Scope;
 import alluxio.util.ConfigurationUtils;
-import alluxio.util.grpc.GrpcChannel;
-import alluxio.util.grpc.GrpcChannelBuilder;
-import alluxio.util.grpc.GrpcUtils;
+import alluxio.grpc.GrpcChannel;
+import alluxio.grpc.GrpcChannelBuilder;
+import alluxio.grpc.GrpcUtils;
 
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;

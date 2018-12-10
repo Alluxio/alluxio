@@ -6,10 +6,9 @@ import alluxio.exception.status.UnauthenticatedException;
 import alluxio.grpc.AlluxioSaslClientServiceGrpc;
 import alluxio.grpc.SaslMessage;
 import alluxio.util.SecurityUtils;
-import alluxio.util.grpc.GrpcChannel;
-import alluxio.util.grpc.GrpcChannelBuilder;
+import alluxio.grpc.GrpcChannel;
+import alluxio.grpc.GrpcChannelBuilder;
 import io.grpc.ClientInterceptor;
-import io.grpc.ServerInterceptor;
 import io.grpc.stub.StreamObserver;
 
 import javax.security.auth.Subject;

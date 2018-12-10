@@ -27,9 +27,9 @@ import alluxio.retry.RetryPolicy;
 import alluxio.retry.RetryUtils;
 import alluxio.security.LoginUser;
 import alluxio.security.authentication.AuthenticatedChannelBuilder;
-import alluxio.util.grpc.GrpcChannel;
+import alluxio.grpc.GrpcChannel;
 import alluxio.util.SecurityUtils;
-import alluxio.util.grpc.GrpcExceptionUtils;
+import alluxio.grpc.GrpcExceptionUtils;
 
 import com.codahale.metrics.Timer;
 import com.google.common.base.Preconditions;
@@ -122,7 +122,7 @@ public abstract class AbstractClient implements Client {
                       GetServiceVersionPRequest.newBuilder().setServiceType(getRemoteServiceType()).build())
               .getVersion();
     } catch (Exception e) {
-      LOG.error("Failed to get remote service version for type: {}", getRemoteServiceType().name(), e);
+      LOG.error("Failed to get remote service version for type: {}. Error: {}", getRemoteServiceType().name(), e);
       return Constants.UNKNOWN_SERVICE_VERSION;
     }
   }

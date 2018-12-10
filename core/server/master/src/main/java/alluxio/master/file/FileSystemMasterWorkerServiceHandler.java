@@ -26,7 +26,7 @@ import alluxio.grpc.GetUfsInfoPOptions;
 import alluxio.grpc.GetUfsInfoPRequest;
 import alluxio.grpc.GetUfsInfoPResponse;
 import alluxio.master.file.contexts.WorkerHeartbeatContext;
-import alluxio.util.grpc.GrpcUtils;
+import alluxio.grpc.GrpcUtils;
 
 import com.google.common.base.Preconditions;
 import io.grpc.stub.StreamObserver;

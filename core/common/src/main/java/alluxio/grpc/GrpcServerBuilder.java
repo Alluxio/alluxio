@@ -9,14 +9,13 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.util.grpc;
+package alluxio.grpc;
 
 import io.grpc.BindableService;
 import io.grpc.ServerInterceptor;
 import io.grpc.netty.NettyServerBuilder;
 
 import java.net.InetSocketAddress;
-import java.util.List;
 import java.util.concurrent.Executor;
 
 import javax.annotation.Nullable;

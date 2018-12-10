@@ -9,24 +9,12 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.util.grpc;
+package alluxio.grpc;
 
 import static alluxio.util.StreamUtils.map;
 
 import alluxio.Constants;
 import alluxio.file.options.DescendantType;
-import alluxio.grpc.ExistsPOptions;
-import alluxio.grpc.FileSystemCommandOptions;
-import alluxio.grpc.GetStatusPOptions;
-import alluxio.grpc.LoadDescendantPType;
-import alluxio.grpc.LoadMetadataPType;
-import alluxio.grpc.MountPOptions;
-import alluxio.grpc.PAcl;
-import alluxio.grpc.PAclAction;
-import alluxio.grpc.PAclEntry;
-import alluxio.grpc.PAclEntryType;
-import alluxio.grpc.PersistCommandOptions;
-import alluxio.grpc.Scope;
 import alluxio.proto.journal.File;
 import alluxio.security.authorization.AccessControlList;
 import alluxio.security.authorization.AclAction;
@@ -43,7 +31,6 @@ import alluxio.wire.LoadMetadataType;
 import alluxio.wire.MountPointInfo;
 import alluxio.wire.PersistFile;
 import alluxio.wire.TieredIdentity;
-import alluxio.grpc.TtlAction;
 import alluxio.wire.UfsInfo;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;

@@ -24,8 +24,8 @@ import alluxio.underfs.UfsManager;
 import alluxio.util.CommonUtils;
 import alluxio.util.SecurityUtils;
 import alluxio.util.WaitForOptions;
-import alluxio.util.grpc.GrpcServer;
-import alluxio.util.grpc.GrpcServerBuilder;
+import alluxio.grpc.GrpcServer;
+import alluxio.grpc.GrpcServerBuilder;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.web.JobMasterWebServer;
@@ -39,10 +39,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.security.Security;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.TimeoutException;
 
 import javax.annotation.concurrent.NotThreadSafe;
