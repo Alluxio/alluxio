@@ -195,4 +195,24 @@ public final class PersistCommandTest extends AbstractFileSystemShellTest {
     checkFilePersisted(new AlluxioURI(filePath2), 20);
     checkFilePersisted(new AlluxioURI(filePath3), 30);
   }
+
+  @Test
+  public void persistParallel() throws Exception {
+    String filePath1 = "/testPersist1/parallel1";
+    String filePath2 = "/testPersist2/parallel2";
+    String filePath3 = "/testPersist2/parallel3";
+    FileSystemTestUtils.createByteFile(mFileSystem, filePath1, WriteType.MUST_CACHE, 30);
+    FileSystemTestUtils.createByteFile(mFileSystem, filePath2, WriteType.MUST_CACHE, 30);
+    FileSystemTestUtils.createByteFile(mFileSystem, filePath3, WriteType.MUST_CACHE, 30);
+
+    Assert.assertFalse(mFileSystem.getStatus(new AlluxioURI(filePath1)).isPersisted());
+    Assert.assertFalse(mFileSystem.getStatus(new AlluxioURI(filePath2)).isPersisted());
+    Assert.assertFalse(mFileSystem.getStatus(new AlluxioURI(filePath3)).isPersisted());
+
+    int ret = mFsShell.run("persist", "--parallelism", "3", "/*/parallel*");
+    Assert.assertEquals(0, ret);
+    checkFilePersisted(new AlluxioURI(filePath1), 30);
+    checkFilePersisted(new AlluxioURI(filePath2), 30);
+    checkFilePersisted(new AlluxioURI(filePath3), 30);
+  }
 }

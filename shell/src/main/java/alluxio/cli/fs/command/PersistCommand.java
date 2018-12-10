@@ -19,13 +19,22 @@ import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 
-import com.google.common.base.Joiner;
 import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -34,17 +43,38 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class PersistCommand extends AbstractFileSystemCommand {
+  private static final Option PARALLELISM_OPTION =
+      Option.builder()
+          .longOpt("parallelism")
+          .argName("# threads")
+          .numberOfArgs(1)
+          .desc("Number of concurrent persist operations.")
+          .required(false)
+          .build();
+
+  private final BlockingQueue<AlluxioURI> mToPersist;
+  private final AtomicInteger mFilesPersisted;
+  /** Total number of files to persist in a run. Should only be set by main thread. */
+  private int mTotalFilesToPersist;
 
   /**
    * @param fs the filesystem of Alluxio
    */
   public PersistCommand(FileSystem fs) {
     super(fs);
+    mToPersist = new LinkedBlockingQueue<>();
+    mFilesPersisted = new AtomicInteger(0);
+    mTotalFilesToPersist = 0;
   }
 
   @Override
   public String getCommandName() {
     return "persist";
+  }
+
+  @Override
+  public Options getOptions() {
+    return new Options().addOption(PARALLELISM_OPTION);
   }
 
   @Override
@@ -55,63 +85,103 @@ public final class PersistCommand extends AbstractFileSystemCommand {
   @Override
   protected void runPlainPath(AlluxioURI plainPath, CommandLine cl)
       throws AlluxioException, IOException {
-    persist(plainPath);
+    URIStatus status = mFileSystem.getStatus(plainPath);
+    queuePersist(status);
+  }
+
+  private void queuePersist(URIStatus status) throws AlluxioException, IOException {
+    AlluxioURI uri = new AlluxioURI(status.getPath());
+    if (status.isFolder()) {
+      List<URIStatus> statuses = mFileSystem.listStatus(uri);
+      for (URIStatus s : statuses) {
+        queuePersist(s);
+      }
+    } else if (status.isPersisted()) {
+      System.out.println(status.getPath() + " is already persisted, skipping.");
+    } else {
+      mToPersist.add(uri);
+    }
   }
 
   @Override
   public int run(CommandLine cl) throws AlluxioException, IOException {
+    resetState();
+    int parallelism = 1;
+    if (cl.hasOption(PARALLELISM_OPTION.getLongOpt())) {
+      String parellismOption = cl.getOptionValue(PARALLELISM_OPTION.getLongOpt());
+      parallelism = Integer.parseInt(parellismOption);
+    }
     String[] args = cl.getArgs();
     for (String path : args) {
       AlluxioURI inputPath = new AlluxioURI(path);
       runWildCardCmd(inputPath, cl);
     }
-    return 0;
-  }
-
-  /**
-   * Persists a file or directory currently stored only in Alluxio to the UnderFileSystem.
-   *
-   * @param filePath the {@link AlluxioURI} path to persist to the UnderFileSystem
-   */
-  private void persist(AlluxioURI filePath) throws AlluxioException, IOException {
-    URIStatus status = mFileSystem.getStatus(filePath);
-    if (status.isFolder()) {
-      List<URIStatus> statuses = mFileSystem.listStatus(filePath);
-      List<String> errorMessages = new ArrayList<>();
-      for (URIStatus uriStatus : statuses) {
-        AlluxioURI newPath = new AlluxioURI(uriStatus.getPath());
-        try {
-          persist(newPath);
-        } catch (Exception e) {
-          errorMessages.add(e.getMessage());
-        }
-      }
-      if (errorMessages.size() != 0) {
-        throw new IOException(Joiner.on('\n').join(errorMessages));
-      }
-    } else if (status.isPersisted()) {
-      System.out.println(filePath + " is already persisted");
-    } else {
-      try {
-        FileSystemUtils.persistFile(mFileSystem, filePath);
-      } catch (InterruptedException e) {
-        Thread.currentThread().interrupt();
-        throw new RuntimeException(e);
-      } catch (TimeoutException e) {
-        throw new RuntimeException(e);
-      }
-      System.out.println("persisted file " + filePath + " with size " + status.getLength());
+    mTotalFilesToPersist = mToPersist.size();
+    System.out.println("Found " + mTotalFilesToPersist + " files to persist.");
+    ExecutorService service = Executors.newFixedThreadPool(parallelism);
+    List<Future<Void>> persistCalls = new ArrayList<>(parallelism);
+    for (int i = 0; i < parallelism; i++) {
+      persistCalls.add(service.submit(new PersistCallable()));
     }
+    try {
+      for (Future<Void> call : persistCalls) {
+        call.get();
+      }
+    } catch (ExecutionException e) {
+      System.out.println("Fatal error: " + e);
+    } catch (InterruptedException e) {
+      System.out.println("Persist interrupted, exiting.");
+    }
+    return 0;
   }
 
   @Override
   public String getUsage() {
-    return "persist <path> [<path> ...]";
+    return "persist [--parallelism <#>] <path> [<path> ...]";
   }
 
   @Override
   public String getDescription() {
     return "Persists files or directories currently stored only in Alluxio to the "
         + "UnderFileSystem.";
+  }
+
+  /**
+   * Clears the queue to persist and internal variables. This class is not designed to be used
+   * concurrently or from an existing incomplete state.
+   */
+  private void resetState() {
+    mToPersist.clear();
+    mFilesPersisted.set(0);
+    mTotalFilesToPersist = 0;
+  }
+
+  /**
+   * Thread that polls the persist queue and persists files.
+   */
+  private class PersistCallable implements Callable<Void> {
+    @Override
+    public Void call() throws Exception {
+      AlluxioURI toPersist = mToPersist.poll();
+      while (toPersist != null) {
+        try {
+          FileSystemUtils.persistFile(mFileSystem, toPersist);
+          // There is a slight chance of out of order output to the client.
+          // If this becomes a problem we can consider locking instead of an atomic int.
+          String progress =
+              "(" + mFilesPersisted.incrementAndGet() + "/" + mTotalFilesToPersist + ")";
+          System.out.println(progress + " Persisted file " + toPersist);
+        } catch (InterruptedException e) {
+          Thread.currentThread().interrupt();
+          throw new RuntimeException(e);
+        } catch (TimeoutException e) {
+          throw new RuntimeException(e);
+        } catch (Exception e) {
+          System.out.println("Failed to persist file " + toPersist);
+        }
+        toPersist = mToPersist.poll();
+      }
+      return null;
+    }
   }
 }
