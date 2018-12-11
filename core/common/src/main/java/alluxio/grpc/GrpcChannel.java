@@ -52,7 +52,7 @@ public final class GrpcChannel extends Channel {
    * Shuts down channel immediately.
    */
   public void shutdown() {
-    mChannel.shutdown();
+    mChannel.shutdownNow();
     boolean terminated = false;
     while(!terminated) {
       try {

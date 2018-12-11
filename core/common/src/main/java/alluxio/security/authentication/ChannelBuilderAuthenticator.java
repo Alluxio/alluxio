@@ -53,10 +53,10 @@ public class ChannelBuilderAuthenticator {
     ManagedChannel authenticationChannel = ManagedChannelBuilder
         .forAddress(mHostAddress.getHostName(), mHostAddress.getPort()).usePlaintext(true).build();
     try {
-      SaslClient client =
+      SaslClient saslClient =
           SaslParticipiantProvider.Factory.create(mAuthType).getSaslClient(mParentSubject);
       SaslHandshakeClientHandler handshakeClient =
-          SaslHandshakeClientHandler.Factory.create(mAuthType, client);
+          SaslHandshakeClientHandler.Factory.create(mAuthType, saslClient);
 
       SaslStreamClientDriver clientDriver = new SaslStreamClientDriver(handshakeClient);
 
@@ -66,7 +66,7 @@ public class ChannelBuilderAuthenticator {
       // Start authentication with the target server
       clientDriver.start(mClientId.toString());
 
-      for (ClientInterceptor interceptor : getInterceptors()) {
+      for (ClientInterceptor interceptor : getInterceptors(saslClient)) {
         channelBuilderToAuthenticate.intercept(interceptor);
       }
 
@@ -85,7 +85,11 @@ public class ChannelBuilderAuthenticator {
     }
   }
 
-  public List<ClientInterceptor> getInterceptors() {
+  /**
+   * @param saslClient the Sasl client object that have been used for authentication
+   * @return the list of interceptors that will be attached to the newly authenticated channel.
+   */
+  private List<ClientInterceptor> getInterceptors(SaslClient saslClient) {
     if (!SecurityUtils.isSecurityEnabled()) {
       return Collections.emptyList();
     }
