@@ -181,18 +181,21 @@ public class FuseFileSystemIntegrationTest {
   }
 
   @Test
-  public void ddAndRm() throws Exception {
+  public void ddDuAndRm() throws Exception {
     String testFile = "/ddTestFile";
     ShellUtils.execCommand("dd", "if=/dev/zero",
-        "of=" + sMountPoint + testFile, "count=10", "bs=" + 4 * Constants.MB);
+        "of=" + sMountPoint + testFile, "count=10", "bs=" + 4 * Constants.KB);
 
     // Fuse release() is async
     // Open the file to make sure dd is completed
     ShellUtils.execCommand("head", "-c", "10", sMountPoint + testFile);
 
     Assert.assertTrue(sFileSystem.exists(new AlluxioURI(testFile)));
-    Assert.assertEquals(40 * Constants.MB,
+    Assert.assertEquals(40 * Constants.KB,
         sFileSystem.getStatus(new AlluxioURI(testFile)).getLength());
+
+    String output = ShellUtils.execCommand("du", "-k", sMountPoint + testFile);
+    Assert.assertEquals("40", output.split("\\s+")[0]);
 
     ShellUtils.execCommand("rm", sMountPoint + testFile);
     Assert.assertFalse(sFileSystem.exists(new AlluxioURI(testFile)));
@@ -207,6 +210,25 @@ public class FuseFileSystemIntegrationTest {
     }
     String result = ShellUtils.execCommand("head", "-c", "17", sMountPoint + testFile);
     Assert.assertEquals("Alluxio Head Test\n", result);
+  }
+
+  @Test
+  public void ls() throws Exception {
+    // ls -sh has different results in osx
+    Assume.assumeTrue(OSUtils.isLinux());
+    String testFile = "/lsTestFile";
+    ShellUtils.execCommand("dd", "if=/dev/zero",
+        "of=" + sMountPoint + testFile, "count=10", "bs=" + 4 * Constants.KB);
+
+    // Fuse release() is async, Fuse getattr() will wait for file completed and get the
+    // right file size
+    String out = ShellUtils.execCommand("ls", "-sh", sMountPoint + testFile);
+    Assert.assertFalse(out.isEmpty());
+    Assert.assertEquals("40K", out.split("\\s+")[0]);
+
+    Assert.assertTrue(sFileSystem.exists(new AlluxioURI(testFile)));
+    Assert.assertEquals(40 * Constants.KB,
+        sFileSystem.getStatus(new AlluxioURI(testFile)).getLength());
   }
 
   @Test
