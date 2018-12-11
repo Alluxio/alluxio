@@ -33,9 +33,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.TimeoutException;
-import java.util.concurrent.atomic.AtomicInteger;
 
+import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -52,8 +51,11 @@ public final class PersistCommand extends AbstractFileSystemCommand {
           .required(false)
           .build();
 
+  /** Lock for preventing out of order progress output. */
+  private final Object mProgressLock = new Object();
   private final BlockingQueue<AlluxioURI> mToPersist;
-  private final AtomicInteger mFilesPersisted;
+  @GuardedBy("mProgressLock")
+  private int mFilesPersisted;
   /** Total number of files to persist in a run. Should only be set by main thread. */
   private int mTotalFilesToPersist;
 
@@ -63,8 +65,8 @@ public final class PersistCommand extends AbstractFileSystemCommand {
   public PersistCommand(FileSystem fs) {
     super(fs);
     mToPersist = new LinkedBlockingQueue<>();
-    mFilesPersisted = new AtomicInteger(0);
     mTotalFilesToPersist = 0;
+    mFilesPersisted = 0;
   }
 
   @Override
@@ -106,7 +108,7 @@ public final class PersistCommand extends AbstractFileSystemCommand {
   @Override
   public int run(CommandLine cl) throws AlluxioException, IOException {
     resetState();
-    int parallelism = 1;
+    int parallelism = 4;
     if (cl.hasOption(PARALLELISM_OPTION.getLongOpt())) {
       String parellismOption = cl.getOptionValue(PARALLELISM_OPTION.getLongOpt());
       parallelism = Integer.parseInt(parellismOption);
@@ -152,8 +154,10 @@ public final class PersistCommand extends AbstractFileSystemCommand {
    */
   private void resetState() {
     mToPersist.clear();
-    mFilesPersisted.set(0);
     mTotalFilesToPersist = 0;
+    synchronized (mProgressLock) {
+      mFilesPersisted = 0;
+    }
   }
 
   /**
@@ -166,16 +170,14 @@ public final class PersistCommand extends AbstractFileSystemCommand {
       while (toPersist != null) {
         try {
           FileSystemUtils.persistFile(mFileSystem, toPersist);
-          // There is a slight chance of out of order output to the client.
-          // If this becomes a problem we can consider locking instead of an atomic int.
-          String progress =
-              "(" + mFilesPersisted.incrementAndGet() + "/" + mTotalFilesToPersist + ")";
-          System.out.println(progress + " Persisted file " + toPersist);
+          synchronized (mProgressLock) { // Lock prevents out of order progress output.
+            mFilesPersisted++;
+            String progress = "(" + mFilesPersisted + "/" + mTotalFilesToPersist + ")";
+            System.out.println(progress + " Persisted file " + toPersist);
+          }
         } catch (InterruptedException e) {
           Thread.currentThread().interrupt();
-          throw new RuntimeException(e);
-        } catch (TimeoutException e) {
-          throw new RuntimeException(e);
+          throw e;
         } catch (Exception e) {
           System.out.println("Failed to persist file " + toPersist);
         }
