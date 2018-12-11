@@ -1,7 +1,7 @@
 /*
- * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the "License"). You may not use this work except in compliance with the License, which is
- * available at www.apache.org/licenses/LICENSE-2.0
+ * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0 (the
+ * "License"). You may not use this work except in compliance with the License, which is available
+ * at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
  * either express or implied, as more fully set forth in the License.
@@ -16,8 +16,7 @@ import io.grpc.Server;
 import java.io.IOException;
 
 /**
- * An authenticated gRPC server.
- * Corresponding gRPC channels to this server should be build by
+ * An authenticated gRPC server. Corresponding gRPC channels to this server should be build by
  * {@link GrpcChannelBuilder}.
  */
 public class GrpcServer {
@@ -65,7 +64,7 @@ public class GrpcServer {
       try {
         mServer.awaitTermination();
       } catch (InterruptedException e) {
-        // TODO(ggezer) timeout
+        throw new RuntimeException("Interrupted while waiting for gRPC server to terminate", e);
       }
     }
   }
@@ -73,7 +72,7 @@ public class GrpcServer {
   /**
    * @return true if server is serving
    */
-  public boolean isServing(){
+  public boolean isServing() {
     return !mServer.isShutdown() && !mServer.isTerminated();
   }
 }

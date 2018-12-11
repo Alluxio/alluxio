@@ -19,6 +19,7 @@ import alluxio.master.journal.JournalSystem;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.sink.MetricsServlet;
 import alluxio.metrics.sink.PrometheusMetricsServlet;
+import alluxio.security.authentication.ClientIpAddressInjector;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.util.CommonUtils;
@@ -372,6 +373,8 @@ public class AlluxioMasterProcess implements MasterProcess {
       }
       // Expose version service from the server.
       serverBuilder.addService(new AlluxioVersionServiceHandler());
+      // Register interceptor for providing audit context with remote client's IP Address
+      serverBuilder.intercept(new ClientIpAddressInjector());
 
       mGrpcServer = serverBuilder.build().start();
       mSafeModeManager.notifyRpcServerStarted();

@@ -286,23 +286,16 @@ public class AlluxioJobMasterProcess implements JobMasterProcess {
       }
 
       LOG.info("Starting gRPC server on address {}", mRpcBindAddress);
-      GrpcServerBuilder serverBuilder =
-              GrpcServerBuilder.forAddress(mRpcBindAddress);
-
+      GrpcServerBuilder serverBuilder = GrpcServerBuilder.forAddress(mRpcBindAddress);
       registerServices(serverBuilder, mJobMaster.getServices());
-
+      // Expose version service from the server.
       serverBuilder.addService(new AlluxioVersionServiceHandler());
-      // Register authentication service for clients
-      // to authenticate with this server.
-      // TODO(ggezer) Embed this in {@link GrpcServer}
-      if(SecurityUtils.isAuthenticationEnabled()) {
-        serverBuilder.addService(mAuthenticationServer);
-        for (ServerInterceptor interceptor : mAuthenticationServer.getInterceptors()) {
-          serverBuilder.intercept(interceptor);
-        }
-      }
+
       mGrpcServer = serverBuilder.build().start();
       mIsServing = true;
+      LOG.info("Started gRPC server on address {}", mRpcBindAddress);
+      
+      // Wait until the server is shut down.
       mGrpcServer.awaitTermination();
 
     } catch (IOException e) {
