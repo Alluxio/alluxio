@@ -88,7 +88,6 @@ public final class RpcUtils {
    * @param responseObserver gRPC response observer
    * @param args the arguments for the description
    * @param <T> the return type of the callable
-   * @throws AlluxioTException if the callable throws an exception
    */
   public static <T> void call(Logger logger, RpcCallable<T> callable, String methodName,
       String description, StreamObserver<T> responseObserver, Object... args) {
@@ -111,7 +110,6 @@ public final class RpcUtils {
    * @param responseObserver gRPC response observer
    * @param args the arguments for the description
    * @param <T> the return type of the callable
-   * @throws AlluxioTException if the callable throws an exception
    */
   public static <T> void call(Logger logger, RpcCallable<T> callable, String methodName,
       boolean failureOk, String description, StreamObserver<T> responseObserver, Object... args) {
@@ -162,7 +160,6 @@ public final class RpcUtils {
    * @param callable the callable to call
    * @param responseObserver gRPC response observer
    * @param <T> the return type of the callable
-   * @throws AlluxioTException if the callable throws an exception
    */
   public static <T> void call(RpcCallableThrowsIOException<T> callable,
       StreamObserver<T> responseObserver) {
@@ -192,7 +189,6 @@ public final class RpcUtils {
    * @param responseObserver gRPC response observer
    * @param args the arguments for the description
    * @param <T> the return type of the callable
-   * @throws AlluxioTException if the callable throws an exception
    */
   public static <T> void call(Logger logger, RpcCallableThrowsIOException<T> callable,
       String methodName, String description, StreamObserver<T> responseObserver, Object... args) {
@@ -215,7 +211,6 @@ public final class RpcUtils {
    * @param responseObserver gRPC response observer
    * @param args the arguments for the description
    * @param <T> the return type of the callable
-   * @throws AlluxioTException if the callable throws an exception
    */
   public static <T> void call(Logger logger, RpcCallableThrowsIOException<T> callable,
       String methodName, boolean failureOk, String description, StreamObserver<T> responseObserver,
