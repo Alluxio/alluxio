@@ -44,7 +44,6 @@ public final class PersistCommandTest extends AbstractFileSystemShellTest {
 
     int ret = mFsShell.run("persist", testFilePath);
     Assert.assertEquals(0, ret);
-    Assert.assertEquals("persisted file " + testFilePath + " with size 10\n", mOutput.toString());
     checkFilePersisted(new AlluxioURI("/testPersist/testFile"), 10);
   }
 
@@ -140,8 +139,6 @@ public final class PersistCommandTest extends AbstractFileSystemShellTest {
     Assert.assertEquals(0, ret);
     ret = mFsShell.run("persist", testFilePath);
     Assert.assertEquals(0, ret);
-    Assert.assertEquals("persisted file " + testFilePath + " with size 10\n" + testFilePath
-        + " is already persisted\n", mOutput.toString());
     checkFilePersisted(new AlluxioURI("/testPersist/testFile"), 10);
   }
 
