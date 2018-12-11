@@ -6,6 +6,7 @@ import alluxio.PropertyKey;
 import alluxio.exception.status.UnauthenticatedException;
 import alluxio.security.LoginUser;
 import alluxio.security.User;
+import com.google.common.base.Verify;
 
 import javax.security.auth.Subject;
 import javax.security.sasl.Sasl;
@@ -76,7 +77,7 @@ public class SaslParticipiantProviderPlain implements SaslParticipiantProvider {
   @Override
   public SaslServer getSaslServer(Runnable runnable, String serverName) throws SaslException {
     AuthType authType =
-            Configuration.getEnum(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.class);
+        Configuration.getEnum(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.class);
     AuthenticationProvider provider = AuthenticationProvider.Factory.create(authType);
     return Sasl.createSaslServer(PlainSaslServerProvider.MECHANISM, null, serverName,
         new HashMap<String, String>(), new PlainSaslServerCallbackHandler(provider, runnable));

@@ -1,6 +1,9 @@
 package alluxio.security.authentication;
 
+import alluxio.exception.status.AlluxioStatusException;
+import alluxio.grpc.GrpcExceptionUtils;
 import alluxio.grpc.SaslMessage;
+import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
 
 import javax.security.sasl.SaslException;
@@ -25,20 +28,22 @@ public class SaslStreamServerDriver implements StreamObserver<SaslMessage> {
   @Override
   public void onNext(SaslMessage saslMessage) {
     try {
-      if(mSaslHandshakeServerHandler == null) {
+      if (mSaslHandshakeServerHandler == null) {
         // New authentication request
         AuthType authType = AuthType.valueOf(saslMessage.getAuthenticationName());
         mClientId = UUID.fromString(saslMessage.getClientId());
         // TODO(ggezer) wire server name
         mSaslServer = SaslParticipiantProvider.Factory.create(authType).getSaslServer("localhost");
-        mSaslHandshakeServerHandler = SaslHandshakeServerHandler.Factory.create(authType, mSaslServer);
+        mSaslHandshakeServerHandler =
+            SaslHandshakeServerHandler.Factory.create(authType, mSaslServer);
         // Unregister from registry if was authenticated before
         mAuthenticationServer.unregisterClient(mClientId);
       }
 
       mRequestObserver.onNext(mSaslHandshakeServerHandler.handleSaslMessage(saslMessage));
     } catch (SaslException e) {
-      mRequestObserver.onError(e);
+      mRequestObserver
+          .onError(Status.fromCode(Status.Code.UNAUTHENTICATED).withCause(e).asException());
     }
   }
 

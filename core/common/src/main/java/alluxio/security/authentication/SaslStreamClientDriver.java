@@ -1,7 +1,10 @@
 package alluxio.security.authentication;
 
+import alluxio.exception.status.AlluxioStatusException;
+import alluxio.grpc.GrpcExceptionUtils;
 import alluxio.grpc.SaslMessage;
 import com.google.common.util.concurrent.SettableFuture;
+import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
 
 import javax.security.sasl.AuthenticationException;
@@ -32,7 +35,8 @@ public class SaslStreamClientDriver implements StreamObserver<SaslMessage> {
       }
     } catch (SaslException e) {
       mAuthenticated.setException(e);
-      mRequestObserver.onError(e);
+      mRequestObserver
+          .onError(Status.fromCode(Status.Code.UNAUTHENTICATED).withCause(e).asException());
     }
   }
 

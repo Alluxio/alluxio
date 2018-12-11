@@ -25,16 +25,32 @@ import java.util.concurrent.TimeUnit;
 public class ChannelBuilderAuthenticator {
 
   protected Subject mParentSubject;
+  protected boolean mUseSubject;
+  protected String mUserName;
+  protected String mPassword;
+  protected String mImpersonationUser;
   protected InetSocketAddress mHostAddress;
   protected AuthType mAuthType;
   protected UUID mClientId;
 
   public ChannelBuilderAuthenticator(UUID clientId, Subject subject, InetSocketAddress hostAddress,
       AuthType authType) {
+    mClientId = clientId;
     mParentSubject = subject;
+    mUseSubject = true;
     mHostAddress = hostAddress;
     mAuthType = authType;
+  }
+
+  public ChannelBuilderAuthenticator(UUID clientId, String userName, String password,
+      String impersonationUser, InetSocketAddress hostAddress, AuthType authType) {
     mClientId = clientId;
+    mUserName = userName;
+    mPassword = password;
+    mUseSubject = false;
+    mImpersonationUser = impersonationUser;
+    mHostAddress = hostAddress;
+    mAuthType = authType;
   }
 
   /**
@@ -53,8 +69,14 @@ public class ChannelBuilderAuthenticator {
     ManagedChannel authenticationChannel = ManagedChannelBuilder
         .forAddress(mHostAddress.getHostName(), mHostAddress.getPort()).usePlaintext(true).build();
     try {
-      SaslClient saslClient =
-          SaslParticipiantProvider.Factory.create(mAuthType).getSaslClient(mParentSubject);
+      SaslClient saslClient;
+      if (mUseSubject) {
+        saslClient =
+            SaslParticipiantProvider.Factory.create(mAuthType).getSaslClient(mParentSubject);
+      } else {
+        saslClient = SaslParticipiantProvider.Factory.create(mAuthType).getSaslClient(mUserName,
+            mPassword, mImpersonationUser);
+      }
       SaslHandshakeClientHandler handshakeClient =
           SaslHandshakeClientHandler.Factory.create(mAuthType, saslClient);
 

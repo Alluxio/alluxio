@@ -24,20 +24,24 @@ import java.net.InetSocketAddress;
 import java.util.UUID;
 
 /**
- * A gRPC channel builder that authenticates with {@link GrpcServer} at the target
- * during channel building.
+ * A gRPC channel builder that authenticates with {@link GrpcServer} at the target during channel
+ * building.
  */
 public final class GrpcChannelBuilder {
 
-  NettyChannelBuilder mChannelBuilder;
-  InetSocketAddress mAddress;
-  Subject mParentSubject;
-  AuthType mAuthType;
+  protected NettyChannelBuilder mChannelBuilder;
+  protected InetSocketAddress mAddress;
+  protected Subject mParentSubject;
+  protected boolean mUseSubject;
+  protected String mUserName;
+  protected String mPassword;
+  protected String mImpersonationUser;
+  protected AuthType mAuthType;
 
   private GrpcChannelBuilder(InetSocketAddress address) {
     mAddress = address;
     mChannelBuilder = NettyChannelBuilder.forAddress(mAddress);
-    mParentSubject = null;
+    mUseSubject = true;
     mAuthType = Configuration.getEnum(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.class);
   }
 
@@ -59,6 +63,24 @@ public final class GrpcChannelBuilder {
    */
   public GrpcChannelBuilder setSubject(Subject subject) {
     mParentSubject = subject;
+    mUseSubject = true;
+    return this;
+  }
+
+  /**
+   * Sets authentication content. Calling this will reset the subject set by {@link #setSubject}.
+   * 
+   * @param userName the username
+   * @param password the password
+   * @param impersonationUser the impersonation user
+   * @return the updated {@link GrpcChannelBuilder} instance
+   */
+  public GrpcChannelBuilder setCredentials(String userName, String password,
+      String impersonationUser) {
+    mUserName = userName;
+    mPassword = password;
+    mImpersonationUser = impersonationUser;
+    mUseSubject = false;
     return this;
   }
 
@@ -100,8 +122,14 @@ public final class GrpcChannelBuilder {
    * @return the built {@link GrpcChannel}
    */
   public GrpcChannel build() throws AuthenticationException {
-    ChannelBuilderAuthenticator channelAuthenticator =
-        new ChannelBuilderAuthenticator(UUID.randomUUID(), mParentSubject, mAddress, mAuthType);
+    ChannelBuilderAuthenticator channelAuthenticator;
+    if (mUseSubject) {
+      channelAuthenticator =
+          new ChannelBuilderAuthenticator(UUID.randomUUID(), mParentSubject, mAddress, mAuthType);
+    } else {
+      channelAuthenticator = new ChannelBuilderAuthenticator(UUID.randomUUID(), mUserName,
+          mPassword, mImpersonationUser, mAddress, mAuthType);
+    }
     return new GrpcChannel(channelAuthenticator.authenticate(mChannelBuilder).build());
   }
 }

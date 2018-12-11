@@ -34,10 +34,11 @@ public class DefaultAuthenticationServer extends
   protected final ReentrantReadWriteLock mClientsLock;
   protected final ScheduledExecutorService mScheduler;
 
-  //TODO(gezer) configurable
+  // TODO(gezer) configurable
   protected final long mCleanupIntervalHour = 1L;
 
   public DefaultAuthenticationServer() {
+    checkSupported(Configuration.getEnum(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.class));
     mClients = new HashMap<>();
     mClientsLock = new ReentrantReadWriteLock(true);
     mScheduler = Executors.newScheduledThreadPool(1);
@@ -100,15 +101,26 @@ public class DefaultAuthenticationServer extends
     LocalTime cleanupTime = LocalTime.now();
     List<UUID> staleClients = new ArrayList<>();
     try (LockResource clientsLockShared = new LockResource(mClientsLock.readLock())) {
-      for(Map.Entry<UUID, AuthenticatedClientInfo> clientEntry : mClients.entrySet()) {
+      for (Map.Entry<UUID, AuthenticatedClientInfo> clientEntry : mClients.entrySet()) {
         LocalTime lat = clientEntry.getValue().getLastAccessTime();
-        if(lat.plusHours(mCleanupIntervalHour).isBefore(cleanupTime)) {
+        if (lat.plusHours(mCleanupIntervalHour).isBefore(cleanupTime)) {
           staleClients.add(clientEntry.getKey());
         }
       }
     }
-    for(UUID clientId : staleClients) {
+    for (UUID clientId : staleClients) {
       unregisterClient(clientId);
+    }
+  }
+
+  private void checkSupported(AuthType authType) {
+    switch (authType) {
+      case NOSASL:
+      case SIMPLE:
+      case CUSTOM:
+        return;
+      default:
+        throw new RuntimeException("Authentication type not supported:" + authType.name());
     }
   }
 
@@ -119,14 +131,12 @@ public class DefaultAuthenticationServer extends
     List<ServerInterceptor> interceptorsList = new ArrayList<>();
     AuthType authType =
         Configuration.getEnum(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.class);
+    checkSupported(authType);
     switch (authType) {
       case SIMPLE:
       case CUSTOM:
         interceptorsList.add(new AuthenticatedUserInjector(this));
         break;
-      default:
-        throw new RuntimeException(
-            String.format("Authentication type:%s not supported", authType.name()));
     }
     return interceptorsList;
   }
