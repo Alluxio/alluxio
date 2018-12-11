@@ -14,6 +14,7 @@ package alluxio.util.grpc;
 import io.grpc.Server;
 
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 
 /**
  * A simple wrapper around the {@link Server} class in grpc. Outside of this module, this
@@ -41,5 +42,30 @@ public class GrpcServer {
   public GrpcServer start() throws IOException {
     mServer = mServer.start();
     return this;
+  }
+
+
+  /**
+   * Start shutdown server and reject new requests.
+   */
+  public void shutdown() {
+    mServer.shutdown();
+  }
+
+  /**
+   * Wait for server to be terminted or until timeout is reached.
+   * @param timeout the maximum amount of time to wait until giving up
+   * @param unit time unit for the timeout
+   * @throws InterruptedException
+   */
+  public void awaitTermination(long timeout, TimeUnit unit) throws InterruptedException {
+    mServer.awaitTermination(timeout, unit);
+  }
+
+  /**
+   * @return whether the server is shutdown
+   */
+  public boolean isShutdown() {
+    return mServer.isShutdown();
   }
 }

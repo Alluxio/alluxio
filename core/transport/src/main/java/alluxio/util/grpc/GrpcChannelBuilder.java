@@ -13,6 +13,10 @@ package alluxio.util.grpc;
 
 import io.grpc.internal.DnsNameResolverProvider;
 import io.grpc.netty.NettyChannelBuilder;
+import io.netty.channel.Channel;
+
+import java.net.SocketAddress;
+import java.util.concurrent.TimeUnit;
 
 /**
  * A simple wrapper around the {@link NettyChannelBuilder} class in grpc. Outside of this module,
@@ -31,11 +35,22 @@ public final class GrpcChannelBuilder {
    * @return a new instance of {@link GrpcChannelBuilder}
    */
   public static GrpcChannelBuilder forAddress(String name, int port) {
-    return new GrpcChannelBuilder(NettyChannelBuilder.forAddress(name, port));
+    return new GrpcChannelBuilder(NettyChannelBuilder
+        .forAddress(name, port).nameResolverFactory(new DnsNameResolverProvider()));
+  }
+
+  /**
+   * Create a channel builder for given address.
+   *
+   * @param address the socket address
+   * @return a new instance of {@link GrpcChannelBuilder}
+   */
+  public static GrpcChannelBuilder forAddress(SocketAddress address) {
+    return new GrpcChannelBuilder(NettyChannelBuilder.forAddress(address));
   }
 
   private GrpcChannelBuilder(NettyChannelBuilder nettyChannelBuilder) {
-    mNettyChannelBuilder = nettyChannelBuilder.nameResolverFactory(new DnsNameResolverProvider());
+    mNettyChannelBuilder = nettyChannelBuilder;
   }
 
   /**
@@ -46,6 +61,35 @@ public final class GrpcChannelBuilder {
    */
   public GrpcChannelBuilder usePlaintext(boolean skipNegotiation) {
     mNettyChannelBuilder = mNettyChannelBuilder.usePlaintext(skipNegotiation);
+    return this;
+  }
+
+  /**
+   * Sets the time waiting for read activity after sending a keepalive ping.
+   */
+  public GrpcChannelBuilder keepAliveTimeout(long keepAliveTimeout, TimeUnit timeUnit) {
+    mNettyChannelBuilder = mNettyChannelBuilder.keepAliveTimeout(keepAliveTimeout, timeUnit);
+    return this;
+  }
+
+  /**
+   * Sets the maximum message size allowed for a single gRPC frame.
+   */
+  public GrpcChannelBuilder maxInboundMessageSize(int max) {
+    mNettyChannelBuilder = mNettyChannelBuilder.maxInboundMessageSize(max);
+    return this;
+  }
+
+  /**
+   * Sets the flow control window in bytes.
+   */
+  public GrpcChannelBuilder flowControlWindow(int flowControlWindow) {
+    mNettyChannelBuilder = mNettyChannelBuilder.flowControlWindow(flowControlWindow);
+    return this;
+  }
+
+  public GrpcChannelBuilder channelType(Class<? extends Channel> channelType) {
+    mNettyChannelBuilder = mNettyChannelBuilder.channelType(channelType);
     return this;
   }
 

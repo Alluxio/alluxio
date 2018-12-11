@@ -1,0 +1,63 @@
+syntax = "proto2";
+
+option java_multiple_files = true;
+option java_package = "alluxio.grpc";
+option java_outer_classname = "BlockWorkerProto";
+
+package alluxio.grpc;
+
+service BlockWorker {
+  rpc ReadBlock (ReadRequest) returns (stream ReadResponse);
+  rpc WriteBlock (stream WriteRequest) returns (stream WriteResponse);
+  // TODO(feng): Add more worker RPC
+}
+
+message Chunk {
+  optional bytes data = 1;
+}
+
+// The read/write request type. It can either be an Alluxio block operation or a UFS file operation.
+// next available id: 2
+enum RequestType {
+  ALLUXIO_BLOCK = 0;
+  UFS_FILE = 1;
+  UFS_FALLBACK_BLOCK = 2;
+}
+
+// The read request.
+// next available id: 8
+message ReadRequest {
+  optional int64 block_id = 1;
+  optional int64 offset = 2;
+  optional int64 length = 3;
+  // Whether the block should be promoted before reading
+  optional bool promote = 4;
+}
+
+message ReadResponse {
+  optional Chunk chunk = 1;
+}
+
+
+message WriteRequestCommand {
+  optional RequestType type = 1;
+  // The block ID or UFS file ID.
+  optional int64 id = 2;
+  optional int64 offset = 3;
+  // This is only applicable for block write.
+  optional int32 tier = 4;
+  optional bool flush = 5;
+  // Cancel, close and error will be handled by standard gRPC stream APIs.
+}
+
+message WriteRequest {
+  oneof value {
+    WriteRequestCommand command = 1;
+    Chunk chunk = 2;
+  }
+}
+
+message WriteResponse {
+  optional int64 offset = 1;
+  // Errors will be handled by standard gRPC stream APIs.
+}
