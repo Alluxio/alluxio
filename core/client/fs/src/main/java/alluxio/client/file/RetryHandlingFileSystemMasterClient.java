@@ -43,6 +43,7 @@ import alluxio.thrift.UnmountTOptions;
 import alluxio.wire.FileInfo;
 import alluxio.wire.MountPointInfo;
 import alluxio.wire.SetAclAction;
+import alluxio.wire.SyncPointInfo;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -145,10 +146,11 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
   }
 
   @Override
-  public synchronized List<String> getSyncPathList()
+  public synchronized List<SyncPointInfo> getSyncPathList()
       throws AlluxioStatusException {
-    return retryRPC(() -> mClient.getSyncPathList()
-        .getSyncPathList(), "GetSyncPathList");
+    return retryRPC(() -> mClient.getSyncPathList().getSyncPathList().stream()
+        .map(x -> alluxio.wire.SyncPointInfo.fromThrift(x)).collect(Collectors.toList()),
+        "GetSyncPathList");
   }
 
   @Override
