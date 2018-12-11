@@ -67,6 +67,7 @@ public class DefaultAuthenticationServer extends
 
     try (LockResource clientsLockShared = new LockResource(mClientsLock.readLock())) {
       if (mClients.containsKey(clientId)) {
+        AuthenticatedClientInfo clientInfo = mClients.get(clientId);
         return mClients.get(clientId).getUserName();
       } else {
         throw new UnauthenticatedException(
@@ -138,13 +139,22 @@ public class DefaultAuthenticationServer extends
     public AuthenticatedClientInfo(String authorizedUser, SaslServer authenticatedServer) {
       mAuthorizedUser = authorizedUser;
       mAuthenticatedServer = authenticatedServer;
+      mLastAccessTime = LocalTime.now();
+    }
+
+    private void updateLastAccessTime() {
+      synchronized (mLastAccessTime) {
+        mLastAccessTime = LocalTime.now();
+      }
     }
 
     public SaslServer getSaslServer() {
+      updateLastAccessTime();
       return mAuthenticatedServer;
     }
 
     public String getUserName() {
+      updateLastAccessTime();
       return mAuthorizedUser;
     }
 
