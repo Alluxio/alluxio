@@ -80,7 +80,8 @@ public class GrpcServerBuilder {
   }
 
   /**
-   * Build.
+   * Build the server.
+   * It attaches required services and interceptors for authentication.
    *
    * @return the built {@link GrpcServer}
    */

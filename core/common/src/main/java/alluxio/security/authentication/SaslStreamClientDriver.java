@@ -1,7 +1,5 @@
 package alluxio.security.authentication;
 
-import alluxio.exception.status.AlluxioStatusException;
-import alluxio.grpc.GrpcExceptionUtils;
 import alluxio.grpc.SaslMessage;
 import com.google.common.util.concurrent.SettableFuture;
 import io.grpc.Status;
@@ -10,16 +8,32 @@ import io.grpc.stub.StreamObserver;
 import javax.security.sasl.AuthenticationException;
 import javax.security.sasl.SaslException;
 
+/**
+ * Responsible for driving sasl traffic from client-side. Acts as a client's Sasl stream.
+ */
 public class SaslStreamClientDriver implements StreamObserver<SaslMessage> {
+  /** Server's sasl stream. */
   private StreamObserver<SaslMessage> mRequestObserver;
+  /** Handshake handler for client. */
   private SaslHandshakeClientHandler mSaslHandshakeClientHandler;
+  /** Used to wait until authentication is completed. */
   private SettableFuture<Boolean> mAuthenticated;
 
+  /**
+   * Creates client driver with given handshake handler.
+   *
+   * @param handshakeClient client handshake handler
+   */
   public SaslStreamClientDriver(SaslHandshakeClientHandler handshakeClient) {
     mSaslHandshakeClientHandler = handshakeClient;
     mAuthenticated = SettableFuture.create();
   }
 
+  /**
+   * Sets the server's Sasl stream.
+   *
+   * @param requestObserver server Sasl stream
+   */
   public void setServerObserver(StreamObserver<SaslMessage> requestObserver) {
     mRequestObserver = requestObserver;
   }
@@ -50,9 +64,16 @@ public class SaslStreamClientDriver implements StreamObserver<SaslMessage> {
     mAuthenticated.set(true);
   }
 
-  public void start(String clientId) throws AuthenticationException {
+  /**
+   * Starts authentication with the server and wait until completion.
+   * @param channelId channel that is authenticating with the server
+   * @throws AuthenticationException
+   */
+  public void start(String channelId) throws AuthenticationException {
     try {
-      mRequestObserver.onNext(mSaslHandshakeClientHandler.getInitialMessage(clientId));
+      // Send the server initial message.
+      mRequestObserver.onNext(mSaslHandshakeClientHandler.getInitialMessage(channelId));
+      // Wait until authentication status changes.
       mAuthenticated.get();
     } catch (Exception e) {
       throw new AuthenticationException(e.getMessage(), e);

@@ -44,7 +44,7 @@ public class SaslParticipantProviderTest {
         SaslParticipiantProvider.Factory.create(AuthType.SIMPLE);
     Assert.assertNotNull(simpleProvider);
     // Test allow null subject
-    SaslClient client = simpleProvider.getSaslClient(null);
+    SaslClient client = simpleProvider.createSaslClient(null);
     Assert.assertNotNull(client);
     Assert.assertEquals(PlainSaslServerProvider.MECHANISM, client.getMechanismName());
   }
@@ -58,7 +58,7 @@ public class SaslParticipantProviderTest {
     // Test null user
     mThrown.expect(UnauthenticatedException.class);
     mThrown.expectMessage("PLAIN: authorization ID and password must be specified");
-    SaslClient client = simpleProvider.getSaslClient(null, null, null);
+    SaslClient client = simpleProvider.createSaslClient(null, null, null);
   }
 
   @Test
@@ -70,7 +70,7 @@ public class SaslParticipantProviderTest {
     // Test null user
     mThrown.expect(UnauthenticatedException.class);
     mThrown.expectMessage("PLAIN: authorization ID and password must be specified");
-    SaslClient client = simpleProvider.getSaslClient("test", null, null);
+    SaslClient client = simpleProvider.createSaslClient("test", null, null);
   }
 
   @Test
@@ -82,7 +82,7 @@ public class SaslParticipantProviderTest {
     // Test null user
     mThrown.expect(UnauthenticatedException.class);
     mThrown.expectMessage("PLAIN: authorization ID and password must be specified");
-    SaslClient client = simpleProvider.getSaslClient(null, null, null);
+    SaslClient client = simpleProvider.createSaslClient(null, null, null);
   }
 
   @Test
@@ -94,7 +94,7 @@ public class SaslParticipantProviderTest {
     // Test null user
     mThrown.expect(UnauthenticatedException.class);
     mThrown.expectMessage("PLAIN: authorization ID and password must be specified");
-    SaslClient client = simpleProvider.getSaslClient("test", null, null);
+    SaslClient client = simpleProvider.createSaslClient("test", null, null);
   }
 
   @Test
@@ -102,7 +102,7 @@ public class SaslParticipantProviderTest {
     SaslParticipiantProvider simpleProvider =
         SaslParticipiantProvider.Factory.create(AuthType.SIMPLE);
     Assert.assertNotNull(simpleProvider);
-    SaslServer server = simpleProvider.getSaslServer("test");
+    SaslServer server = simpleProvider.createSaslServer("test");
     Assert.assertNotNull(server);
     Assert.assertEquals(PlainSaslServerProvider.MECHANISM, server.getMechanismName());
   }

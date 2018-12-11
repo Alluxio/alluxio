@@ -6,7 +6,6 @@ import alluxio.PropertyKey;
 import alluxio.exception.status.UnauthenticatedException;
 import alluxio.security.LoginUser;
 import alluxio.security.User;
-import com.google.common.base.Verify;
 
 import javax.security.auth.Subject;
 import javax.security.sasl.Sasl;
@@ -17,13 +16,17 @@ import java.security.Security;
 import java.util.HashMap;
 import java.util.Set;
 
+/**
+ * Implementation of {@link SaslParticipiantProvider} for plain authentication.
+ */
 public class SaslParticipiantProviderPlain implements SaslParticipiantProvider {
   static {
+    // Register Sasl server implementation for plain mechanism.
     Security.addProvider(new PlainSaslServerProvider());
   }
 
   @Override
-  public SaslClient getSaslClient(Subject subject) throws UnauthenticatedException {
+  public SaslClient createSaslClient(Subject subject) throws UnauthenticatedException {
     String username = null;
     String password = "noPassword";
 
@@ -50,12 +53,12 @@ public class SaslParticipiantProviderPlain implements SaslParticipiantProvider {
       // not enabling impersonation for the client.
       username = LoginUser.get().getName();
     }
-    return getSaslClient(username, password, impersonationUser);
+    return createSaslClient(username, password, impersonationUser);
 
   }
 
   @Override
-  public SaslClient getSaslClient(String username, String password, String impersonationUser)
+  public SaslClient createSaslClient(String username, String password, String impersonationUser)
       throws UnauthenticatedException {
     try {
       return Sasl.createSaslClient(new String[] {PlainSaslServerProvider.MECHANISM},
@@ -67,15 +70,15 @@ public class SaslParticipiantProviderPlain implements SaslParticipiantProvider {
   }
 
   @Override
-  public SaslServer getSaslServer(String serverName) throws SaslException {
-    return getSaslServer(new Runnable() {
+  public SaslServer createSaslServer(String serverName) throws SaslException {
+    return createSaslServer(new Runnable() {
       @Override
       public void run() {}
     }, serverName);
   }
 
   @Override
-  public SaslServer getSaslServer(Runnable runnable, String serverName) throws SaslException {
+  public SaslServer createSaslServer(Runnable runnable, String serverName) throws SaslException {
     AuthType authType =
         Configuration.getEnum(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.class);
     AuthenticationProvider provider = AuthenticationProvider.Factory.create(authType);

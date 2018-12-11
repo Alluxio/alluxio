@@ -8,6 +8,9 @@ import io.grpc.ServerCall;
 import io.grpc.ServerCallHandler;
 import io.grpc.ServerInterceptor;
 
+/**
+ * Server side interceptor that is used to put remote client's IP Address to TLS.
+ */
 public class ClientIpAddressInjector implements ServerInterceptor {
 
   /**
@@ -16,15 +19,15 @@ public class ClientIpAddressInjector implements ServerInterceptor {
    */
   private static ThreadLocal<String> sIpAddressThreadLocal = new ThreadLocal<>();
 
-  private boolean IsWhiteListed(String methodName) {
-    return !methodName.startsWith(FileSystemMasterClientServiceGrpc.SERVICE_NAME);
-  }
-
   /**
    * @return IP address of the gRPC client that is making the call.
    */
   public static String getIpAddress() {
     return sIpAddressThreadLocal.get();
+  }
+
+  private boolean IsWhiteListed(String methodName) {
+    return !methodName.startsWith(FileSystemMasterClientServiceGrpc.SERVICE_NAME);
   }
 
   @Override
@@ -35,10 +38,14 @@ public class ClientIpAddressInjector implements ServerInterceptor {
     } else {
       return new ForwardingServerCallListener.SimpleForwardingServerCallListener<ReqT>(
           next.startCall(call, headers)) {
+        /**
+         * onHalfClose is called on the same thread that calls the service handler.
+         */
         @Override
         public void onHalfClose() {
-          sIpAddressThreadLocal
-              .set(call.getAttributes().get(Grpc.TRANSPORT_ATTR_REMOTE_ADDR).toString());
+          String remoteIpAddress =
+              call.getAttributes().get(Grpc.TRANSPORT_ATTR_REMOTE_ADDR).toString();
+          sIpAddressThreadLocal.set(remoteIpAddress);
           super.onHalfClose();
         }
       };

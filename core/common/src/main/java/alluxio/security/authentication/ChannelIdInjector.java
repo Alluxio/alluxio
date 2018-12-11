@@ -6,15 +6,20 @@ import io.grpc.ClientCall;
 import io.grpc.ClientInterceptor;
 import io.grpc.ForwardingClientCall;
 import io.grpc.ForwardingClientCallListener;
-import io.grpc.Grpc;
 import io.grpc.Metadata;
 import io.grpc.MethodDescriptor;
 
 import java.util.UUID;
 
-public class ClientIdInjector implements ClientInterceptor {
+/**
+ * Client side interceptor that is used to augment outgoing metadata with the unique id for the
+ * channel that the RPC is being called on.
+ */
+public class ChannelIdInjector implements ClientInterceptor {
+
+  /** Metadata key for the channel Id */
   public static Metadata.Key<UUID> sClientIdKey =
-      Metadata.Key.of("client-id", new Metadata.AsciiMarshaller<UUID>() {
+      Metadata.Key.of("channel-id", new Metadata.AsciiMarshaller<UUID>() {
         @Override
         public String toAsciiString(UUID value) {
           return value.toString();
@@ -26,10 +31,15 @@ public class ClientIdInjector implements ClientInterceptor {
         }
       });
 
-  private UUID mClientId;
+  private UUID mChannelId;
 
-  public ClientIdInjector(UUID clientId) {
-    mClientId = clientId;
+  /**
+   * Creates the injector that augments the outgoing metadata with given Id.
+   * 
+   * @param channelId channel id
+   */
+  public ChannelIdInjector(UUID channelId) {
+    mChannelId = channelId;
   }
 
   @Override
@@ -39,8 +49,8 @@ public class ClientIdInjector implements ClientInterceptor {
         next.newCall(method, callOptions)) {
       @Override
       public void start(Listener<RespT> responseListener, Metadata headers) {
-        /* put custom header */
-        headers.put(sClientIdKey, mClientId);
+        // Put channel Id to headers.
+        headers.put(sClientIdKey, mChannelId);
         super.start(new ForwardingClientCallListener.SimpleForwardingClientCallListener<RespT>(
             responseListener) {
           @Override

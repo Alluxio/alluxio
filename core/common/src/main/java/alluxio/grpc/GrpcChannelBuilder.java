@@ -122,6 +122,7 @@ public final class GrpcChannelBuilder {
    * @return the built {@link GrpcChannel}
    */
   public GrpcChannel build() throws AuthenticationException {
+    // Create channel authenticator based on provided content.
     ChannelBuilderAuthenticator channelAuthenticator;
     if (mUseSubject) {
       channelAuthenticator =
@@ -130,6 +131,7 @@ public final class GrpcChannelBuilder {
       channelAuthenticator = new ChannelBuilderAuthenticator(UUID.randomUUID(), mUserName,
           mPassword, mImpersonationUser, mAddress, mAuthType);
     }
+    // Create the channel after authentication with the target.
     return new GrpcChannel(channelAuthenticator.authenticate(mChannelBuilder).build());
   }
 }

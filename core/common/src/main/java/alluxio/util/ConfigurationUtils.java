@@ -149,8 +149,10 @@ public final class ConfigurationUtils {
 
     List<ConfigProperty> configs = new ArrayList<>();
     List<PropertyKey> selectedKeys =
-        Configuration.keySet().stream().filter(key -> GrpcUtils.contains(key.getScope(), scope))
-            .filter(key -> key.isValid(key.getName())).collect(toList());
+        Configuration.keySet().stream()
+            .filter(key -> GrpcUtils.contains(key.getScope(), scope))
+            .filter(key -> key.isValid(key.getName()))
+            .collect(toList());
 
     for (PropertyKey key : selectedKeys) {
       ConfigProperty.Builder configProp = ConfigProperty.newBuilder().setName(key.getName())

@@ -6,10 +6,25 @@ import javax.security.sasl.AuthenticationException;
 import javax.security.sasl.SaslClient;
 import javax.security.sasl.SaslException;
 
+/**
+ * Interface for providing client-side handshake routines for a particular authentication scheme.
+ */
 public interface SaslHandshakeClientHandler {
+  /**
+   * Handles the given {@link SaslMessage} from the server.
+   *
+   * @param message server-side Sasl message to handle
+   * @return client's answer. null if client is completed.
+   * @throws SaslException
+   */
   public SaslMessage handleSaslMessage(SaslMessage message) throws SaslException;
 
-  public SaslMessage getInitialMessage(String clientId) throws SaslException;
+  /**
+   * @param channelId channe for which the authentication is happening
+   * @return the initial message for Sasl traffic to begin
+   * @throws SaslException
+   */
+  public SaslMessage getInitialMessage(String channelId) throws SaslException;
 
   /**
    * Factory for {@link SaslHandshakeClientHandler}.

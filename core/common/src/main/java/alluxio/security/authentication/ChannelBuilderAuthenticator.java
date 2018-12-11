@@ -3,7 +3,7 @@ package alluxio.security.authentication;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.exception.status.UnauthenticatedException;
-import alluxio.grpc.AlluxioSaslClientServiceGrpc;
+import alluxio.grpc.SaslAuthenticationServiceGrpc;
 import alluxio.grpc.SaslMessage;
 import alluxio.util.SecurityUtils;
 import alluxio.grpc.GrpcChannelBuilder;
@@ -22,42 +22,73 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * Used to authenticate with the target host. Used internally by {@link GrpcChannelBuilder}.
+ */
 public class ChannelBuilderAuthenticator {
 
-  protected Subject mParentSubject;
+  /** Whether to use mParentSubject as authentication user. */
   protected boolean mUseSubject;
+  /** Subject for authentication. */
+  protected Subject mParentSubject;
+
   protected String mUserName;
   protected String mPassword;
   protected String mImpersonationUser;
-  protected InetSocketAddress mHostAddress;
-  protected AuthType mAuthType;
-  protected UUID mClientId;
 
-  public ChannelBuilderAuthenticator(UUID clientId, Subject subject, InetSocketAddress hostAddress,
+  /** Target address. Expected to be serving {@link SaslAuthenticationServiceGrpc}. */
+  protected InetSocketAddress mHostAddress;
+
+  /** Authentication type to use with the target host. */
+  protected AuthType mAuthType;
+
+  /** Internal ID used to identify the channel that is being authenticated. */
+  protected UUID mChannelId;
+
+  /**
+   * Creates {@link ChannelBuilderAuthenticator} instance.
+   *
+   * @param channelId channel Id
+   * @param subject javax subject to use for authentication
+   * @param hostAddress address for service host
+   * @param authType authentication type
+   */
+  public ChannelBuilderAuthenticator(UUID channelId, Subject subject, InetSocketAddress hostAddress,
       AuthType authType) {
-    mClientId = clientId;
-    mParentSubject = subject;
     mUseSubject = true;
+    mChannelId = channelId;
+    mParentSubject = subject;
     mHostAddress = hostAddress;
     mAuthType = authType;
   }
 
-  public ChannelBuilderAuthenticator(UUID clientId, String userName, String password,
+  /**
+   * Creates {@link ChannelBuilderAuthenticator} instance.
+   *
+   * @param channelId channel id
+   * @param userName user name
+   * @param password user password
+   * @param impersonationUser impersonation user
+   * @param hostAddress address for service host
+   * @param authType authentication type
+   */
+  public ChannelBuilderAuthenticator(UUID channelId, String userName, String password,
       String impersonationUser, InetSocketAddress hostAddress, AuthType authType) {
-    mClientId = clientId;
+    mUseSubject = false;
+    mChannelId = channelId;
     mUserName = userName;
     mPassword = password;
-    mUseSubject = false;
     mImpersonationUser = impersonationUser;
     mHostAddress = hostAddress;
     mAuthType = authType;
   }
 
   /**
-   * Authenticates and augments given {@link GrpcChannelBuilder} instance.
+   * Authenticates given {@link ManagedChannelBuilder} instance. It attaches required interceptors
+   * to the channel based on authentication type.
    *
-   * @param channelBuilderToAuthenticate the channel builder for augmentation with interceptors.
-   * @return channel builder
+   * @param channelBuilderToAuthenticate the channel builder for augmentation with interceptors
+   * @return channel builder that is authenticated with the target host
    * @throws AuthenticationException
    */
   public ManagedChannelBuilder authenticate(ManagedChannelBuilder channelBuilderToAuthenticate)
@@ -66,43 +97,48 @@ public class ChannelBuilderAuthenticator {
       return channelBuilderToAuthenticate;
     }
 
+    // Create a channel for talking with target host's authentication service.
     ManagedChannel authenticationChannel = ManagedChannelBuilder
         .forAddress(mHostAddress.getHostName(), mHostAddress.getPort()).usePlaintext(true).build();
     try {
+      // Create SaslClient for authentication based on provided credentials.
       SaslClient saslClient;
       if (mUseSubject) {
         saslClient =
-            SaslParticipiantProvider.Factory.create(mAuthType).getSaslClient(mParentSubject);
+            SaslParticipiantProvider.Factory.create(mAuthType).createSaslClient(mParentSubject);
       } else {
-        saslClient = SaslParticipiantProvider.Factory.create(mAuthType).getSaslClient(mUserName,
+        saslClient = SaslParticipiantProvider.Factory.create(mAuthType).createSaslClient(mUserName,
             mPassword, mImpersonationUser);
       }
+
+      // Create authentication scheme specific handshake handler.
       SaslHandshakeClientHandler handshakeClient =
           SaslHandshakeClientHandler.Factory.create(mAuthType, saslClient);
-
+      // Create driver for driving sasl traffic from client side.
       SaslStreamClientDriver clientDriver = new SaslStreamClientDriver(handshakeClient);
-
+      // Start authentication call with the service and update the client driver.
       StreamObserver<SaslMessage> requestObserver =
-          AlluxioSaslClientServiceGrpc.newStub(authenticationChannel).authenticate(clientDriver);
+          SaslAuthenticationServiceGrpc.newStub(authenticationChannel).authenticate(clientDriver);
       clientDriver.setServerObserver(requestObserver);
-      // Start authentication with the target server
-      clientDriver.start(mClientId.toString());
-
+      // Start authentication traffic with the target.
+      clientDriver.start(mChannelId.toString());
+      // Authentication succeeded!
+      // Attach scheme specific interceptors to the channel.
       for (ClientInterceptor interceptor : getInterceptors(saslClient)) {
         channelBuilderToAuthenticate.intercept(interceptor);
       }
-
       return channelBuilderToAuthenticate;
 
     } catch (UnauthenticatedException e) {
       throw new AuthenticationException(e.getMessage(), e);
     } finally {
+      // Close the authentication channel.
+      // TODO(ggezer) Consider pooling authentication channels per target.
       authenticationChannel.shutdown();
       while (!authenticationChannel.isTerminated())
         try {
           authenticationChannel.awaitTermination(1, TimeUnit.SECONDS);
         } catch (InterruptedException e) {
-
         }
     }
   }
@@ -121,7 +157,7 @@ public class ChannelBuilderAuthenticator {
     switch (authType) {
       case SIMPLE:
       case CUSTOM:
-        interceptorsList.add(new ClientIdInjector(mClientId));
+        interceptorsList.add(new ChannelIdInjector(mChannelId));
         break;
       default:
         throw new RuntimeException(

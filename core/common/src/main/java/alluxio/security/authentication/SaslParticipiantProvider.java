@@ -8,16 +8,50 @@ import javax.security.sasl.SaslClient;
 import javax.security.sasl.SaslException;
 import javax.security.sasl.SaslServer;
 
+/**
+ * Interface for providing Sasl participiants (client/server) for particular authentication scheme.
+ */
 public interface SaslParticipiantProvider {
 
-  public SaslClient getSaslClient(Subject subject) throws UnauthenticatedException;
+  /**
+   * Creates {@link SaslClient} for given {@link Subject}.
+   *
+   * @param subject subject
+   * @return created {@link SaslClient}
+   * @throws UnauthenticatedException
+   */
+  public SaslClient createSaslClient(Subject subject) throws UnauthenticatedException;
 
-  public SaslClient getSaslClient(String username, String password, String impersonationUser)
+  /**
+   * Creates {@link SaslClient} for given authentication info.
+   *
+   * @param username user name
+   * @param password password
+   * @param impersonationUser impersonation user
+   * @return created {@link SaslClient}
+   * @throws UnauthenticatedException
+   */
+  public SaslClient createSaslClient(String username, String password, String impersonationUser)
       throws UnauthenticatedException;
 
-  public SaslServer getSaslServer(String serverName) throws SaslException;
+  /**
+   * Creates {@link SaslServer}.
+   *
+   * @param serverName server name
+   * @return created {@link SaslServer}
+   * @throws SaslException
+   */
+  public SaslServer createSaslServer(String serverName) throws SaslException;
 
-  public SaslServer getSaslServer(Runnable runnable, String serverName) throws SaslException;
+  /**
+   * Creates {@link SaslServer}.
+   *
+   * @param runnable callback for after authentication
+   * @param serverName server name
+   * @return created {@link SaslServer}
+   * @throws SaslException
+   */
+  public SaslServer createSaslServer(Runnable runnable, String serverName) throws SaslException;
 
   /**
    * Factory for {@link SaslParticipiantProvider}.

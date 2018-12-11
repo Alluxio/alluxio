@@ -8,10 +8,19 @@ import com.google.protobuf.ByteString;
 import javax.security.sasl.SaslClient;
 import javax.security.sasl.SaslException;
 
+/**
+ * Implementation of {@link SaslHandshakeClientHandler} for plain authentication.
+ */
 public class SaslHandshakeClientHandlerPlain implements SaslHandshakeClientHandler {
 
+  /** SaslClient that will be used. */
   private SaslClient mSaslClient;
 
+  /**
+   * Creates {@link SaslHandshakeClientHandlerPlain} with given {@link SaslClient}.
+   * 
+   * @param saslClient sasl client
+   */
   public SaslHandshakeClientHandlerPlain(SaslClient saslClient) {
     mSaslClient = saslClient;
   }
@@ -34,12 +43,13 @@ public class SaslHandshakeClientHandlerPlain implements SaslHandshakeClientHandl
         Preconditions.checkArgument(mSaslClient.isComplete());
         return null;
       default:
-        throw new SaslException("Don't know how to process");
+        throw new SaslException(
+            "Client can't process Sasl message type:" + message.getMessageType().name());
     }
   }
 
   @Override
-  public SaslMessage getInitialMessage(String clientId) throws SaslException {
+  public SaslMessage getInitialMessage(String channelId) throws SaslException {
     byte[] initiateSaslResponse = null;
     if (mSaslClient.hasInitialResponse()) {
       initiateSaslResponse = mSaslClient.evaluateChallenge(new byte[0]);
@@ -50,7 +60,7 @@ public class SaslHandshakeClientHandlerPlain implements SaslHandshakeClientHandl
     if (initiateSaslResponse != null) {
       initialResponse.setMessage(ByteString.copyFrom(initiateSaslResponse));
     }
-    initialResponse.setClientId(clientId);
+    initialResponse.setClientId(channelId);
     return initialResponse.build();
   }
 }

@@ -33,10 +33,10 @@ public final class AuthenticationServerProto {
       ".grpc.SaslMessageType\022\017\n\007message\030\002 \001(\014\022\020" +
       "\n\010clientId\030\003 \001(\t\022\032\n\022authenticationName\030\004" +
       " \001(\t*-\n\017SaslMessageType\022\r\n\tCHALLANGE\020\000\022\013" +
-      "\n\007SUCCESS\020\0012d\n\030AlluxioSaslClientService\022" +
-      "H\n\014authenticate\022\031.alluxio.grpc.SaslMessa" +
-      "ge\032\031.alluxio.grpc.SaslMessage(\0010\001B+\n\014all" +
-      "uxio.grpcB\031AuthenticationServerProtoP\001"
+      "\n\007SUCCESS\020\0012e\n\031SaslAuthenticationService" +
+      "\022H\n\014authenticate\022\031.alluxio.grpc.SaslMess" +
+      "age\032\031.alluxio.grpc.SaslMessage(\0010\001B+\n\014al" +
+      "luxio.grpcB\031AuthenticationServerProtoP\001"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {

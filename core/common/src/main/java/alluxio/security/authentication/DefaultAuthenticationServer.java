@@ -3,7 +3,7 @@ package alluxio.security.authentication;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.exception.status.UnauthenticatedException;
-import alluxio.grpc.AlluxioSaslClientServiceGrpc;
+import alluxio.grpc.SaslAuthenticationServiceGrpc;
 import alluxio.grpc.SaslMessage;
 import alluxio.resource.LockResource;
 import alluxio.util.SecurityUtils;
@@ -25,21 +25,30 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import static io.grpc.stub.ServerCalls.asyncUnimplementedStreamingCall;
-
-public class DefaultAuthenticationServer extends
-    AlluxioSaslClientServiceGrpc.AlluxioSaslClientServiceImplBase implements AuthenticationServer {
+/**
+ * Default implementation of {@link AuthenticationServer}. Its functions include: -> Authentication
+ * server against which client channels could get authenticated -> Registry for identity for known
+ * channels during RPC calls.
+ *
+ */
+public class DefaultAuthenticationServer
+    extends SaslAuthenticationServiceGrpc.SaslAuthenticationServiceImplBase
+    implements AuthenticationServer {
   @GuardedBy("mClientsLock")
-  protected final Map<UUID, AuthenticatedClientInfo> mClients;
+  /** List of channels authenticated against this server. */
+  protected final Map<UUID, AuthenticatedChannelInfo> mChannels;
+  /** Used to protect access to known channels */
   protected final ReentrantReadWriteLock mClientsLock;
+  /** Scheduler for periodic cleaning of channels registry */
   protected final ScheduledExecutorService mScheduler;
 
-  // TODO(gezer) configurable
+  /** Interval for clean-up task to fire. */
+  // TODO(gezer) make it configurable.
   protected final long mCleanupIntervalHour = 1L;
 
   public DefaultAuthenticationServer() {
     checkSupported(Configuration.getEnum(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.class));
-    mClients = new HashMap<>();
+    mChannels = new HashMap<>();
     mClientsLock = new ReentrantReadWriteLock(true);
     mScheduler = Executors.newScheduledThreadPool(1);
     mScheduler.scheduleAtFixedRate(() -> {
@@ -49,42 +58,47 @@ public class DefaultAuthenticationServer extends
 
   @Override
   public StreamObserver<SaslMessage> authenticate(StreamObserver<SaslMessage> responseObserver) {
+    // Create and return server sasl driver that will coordinate authentication traffic.
     SaslStreamServerDriver driver = new SaslStreamServerDriver(this);
     driver.setClientObserver(responseObserver);
     return driver;
   }
 
-  public void registerClient(UUID clientId, String authorizedUser, SaslServer saslServer) {
+
+  @Override
+  public void registerChannel(UUID channelId, String authorizedUser, SaslServer saslServer) {
     try (LockResource clientsLockExclusive = new LockResource(mClientsLock.writeLock())) {
-      if (mClients.containsKey(clientId)) {
-        throw new RuntimeException(String
-            .format("Client: %s already exists in authentication registry.", clientId.toString()));
+      if (mChannels.containsKey(channelId)) {
+        throw new RuntimeException(String.format(
+            "Channel: %s already exists in authentication registry.", channelId.toString()));
       }
-      mClients.put(clientId, new AuthenticatedClientInfo(authorizedUser, saslServer));
+      mChannels.put(channelId, new AuthenticatedChannelInfo(authorizedUser, saslServer));
     }
   }
 
-  public String getUserNameForClient(UUID clientId) throws UnauthenticatedException {
+  @Override
+  public String getUserNameForChannel(UUID channelId) throws UnauthenticatedException {
 
     try (LockResource clientsLockShared = new LockResource(mClientsLock.readLock())) {
-      if (mClients.containsKey(clientId)) {
-        AuthenticatedClientInfo clientInfo = mClients.get(clientId);
-        return mClients.get(clientId).getUserName();
+      if (mChannels.containsKey(channelId)) {
+        AuthenticatedChannelInfo clientInfo = mChannels.get(channelId);
+        return mChannels.get(channelId).getUserName();
       } else {
         throw new UnauthenticatedException(
-            String.format("Client:%s needs to be authenticated", clientId.toString()));
+            String.format("Client:%s needs to be authenticated", channelId.toString()));
       }
     }
   }
 
-  public void unregisterClient(UUID clientId) {
-    if (mClients.containsKey(clientId)) {
+  @Override
+  public void unregisterChannel(UUID channelId) {
+    if (mChannels.containsKey(channelId)) {
       SaslServer serverToDispose = null;
       try (LockResource clientsLockExclusive = new LockResource(mClientsLock.writeLock())) {
-        if (mClients.containsKey(clientId)) {
+        if (mChannels.containsKey(channelId)) {
           // Extract the Sasl server for disposing out of lock
-          serverToDispose = mClients.get(clientId).getSaslServer();
-          mClients.remove(clientId);
+          serverToDispose = mChannels.get(channelId).getSaslServer();
+          mChannels.remove(channelId);
         }
       }
       if (serverToDispose != null) {
@@ -97,22 +111,34 @@ public class DefaultAuthenticationServer extends
     }
   }
 
+  /**
+   * Primitive that is invoked periodically for cleaning the registry from clients that has become
+   * stale.
+   */
   private void cleanupStaleClients() {
     LocalTime cleanupTime = LocalTime.now();
+    // Get a list of stale clients under read lock.
     List<UUID> staleClients = new ArrayList<>();
     try (LockResource clientsLockShared = new LockResource(mClientsLock.readLock())) {
-      for (Map.Entry<UUID, AuthenticatedClientInfo> clientEntry : mClients.entrySet()) {
+      for (Map.Entry<UUID, AuthenticatedChannelInfo> clientEntry : mChannels.entrySet()) {
         LocalTime lat = clientEntry.getValue().getLastAccessTime();
         if (lat.plusHours(mCleanupIntervalHour).isBefore(cleanupTime)) {
           staleClients.add(clientEntry.getKey());
         }
       }
     }
+    // Unregister stale clients.
     for (UUID clientId : staleClients) {
-      unregisterClient(clientId);
+      unregisterChannel(clientId);
     }
   }
 
+  /**
+   * Used to check if given authentication is supported by the server.
+   * 
+   * @param authType authentication type
+   * @throws RuntimeException if not supported
+   */
   private void checkSupported(AuthType authType) {
     switch (authType) {
       case NOSASL:
@@ -124,6 +150,7 @@ public class DefaultAuthenticationServer extends
     }
   }
 
+  @Override
   public List<ServerInterceptor> getInterceptors() {
     if (!SecurityUtils.isSecurityEnabled()) {
       return Collections.emptyList();
@@ -141,12 +168,19 @@ public class DefaultAuthenticationServer extends
     return interceptorsList;
   }
 
-  class AuthenticatedClientInfo {
+  /**
+   * Represents a channel in authentication registry.
+   */
+  class AuthenticatedChannelInfo {
     private LocalTime mLastAccessTime;
     private SaslServer mAuthenticatedServer;
     private String mAuthorizedUser;
 
-    public AuthenticatedClientInfo(String authorizedUser, SaslServer authenticatedServer) {
+    /**
+     * @param authorizedUser authorized user
+     * @param authenticatedServer authenticated sasl server
+     */
+    public AuthenticatedChannelInfo(String authorizedUser, SaslServer authenticatedServer) {
       mAuthorizedUser = authorizedUser;
       mAuthenticatedServer = authenticatedServer;
       mLastAccessTime = LocalTime.now();
@@ -158,16 +192,25 @@ public class DefaultAuthenticationServer extends
       }
     }
 
+    /**
+     * @return the sasl server
+     */
     public SaslServer getSaslServer() {
       updateLastAccessTime();
       return mAuthenticatedServer;
     }
 
+    /**
+     * @return the user name
+     */
     public String getUserName() {
       updateLastAccessTime();
       return mAuthorizedUser;
     }
 
+    /**
+     * @return the last access time
+     */
     public LocalTime getLastAccessTime() {
       return mLastAccessTime;
     }

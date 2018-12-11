@@ -4,14 +4,23 @@ import alluxio.grpc.SaslMessage;
 import alluxio.grpc.SaslMessageType;
 
 import com.google.protobuf.ByteString;
+
 import javax.security.sasl.SaslException;
 import javax.security.sasl.SaslServer;
-import java.util.UUID;
 
+/**
+ * Implementation of {@link SaslHandshakeServerHandler} for plain authentication.
+ */
 public class SaslHandshakeServerHandlerPlain implements SaslHandshakeServerHandler {
 
+  /** SaslServer that will be used. */
   SaslServer mSaslServer;
 
+  /**
+   * Creates {@link SaslHandshakeServerHandlerPlain} with given {@link SaslServer}.
+   * 
+   * @param saslServer sasl server
+   */
   public SaslHandshakeServerHandlerPlain(SaslServer saslServer) {
     mSaslServer = saslServer;
   }
@@ -32,7 +41,8 @@ public class SaslHandshakeServerHandlerPlain implements SaslHandshakeServerHandl
         }
         return response.build();
       default:
-        throw new SaslException("Server can't handle SUCCESS Sasl message");
+        throw new SaslException(
+            "Server can't process Sasl message type:" + message.getMessageType().name());
     }
   }
 }

@@ -53,7 +53,7 @@ public class GrpcServer {
    * Stop serving.
    */
   public void stop() {
-    mServer.shutdown();
+    mServer.shutdownNow();
   }
 
   /**

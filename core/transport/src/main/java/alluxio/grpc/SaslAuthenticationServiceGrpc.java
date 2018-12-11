@@ -20,11 +20,11 @@ import static io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall;
 @javax.annotation.Generated(
     value = "by gRPC proto compiler (version 1.10.1)",
     comments = "Source: sasl_server.proto")
-public final class AlluxioSaslClientServiceGrpc {
+public final class SaslAuthenticationServiceGrpc {
 
-  private AlluxioSaslClientServiceGrpc() {}
+  private SaslAuthenticationServiceGrpc() {}
 
-  public static final String SERVICE_NAME = "alluxio.grpc.AlluxioSaslClientService";
+  public static final String SERVICE_NAME = "alluxio.grpc.SaslAuthenticationService";
 
   // Static method descriptors that strictly reflect the proto.
   @io.grpc.ExperimentalApi("https://github.com/grpc/grpc-java/issues/1901")
@@ -44,20 +44,20 @@ public final class AlluxioSaslClientServiceGrpc {
   private static io.grpc.MethodDescriptor<alluxio.grpc.SaslMessage,
       alluxio.grpc.SaslMessage> getAuthenticateMethodHelper() {
     io.grpc.MethodDescriptor<alluxio.grpc.SaslMessage, alluxio.grpc.SaslMessage> getAuthenticateMethod;
-    if ((getAuthenticateMethod = AlluxioSaslClientServiceGrpc.getAuthenticateMethod) == null) {
-      synchronized (AlluxioSaslClientServiceGrpc.class) {
-        if ((getAuthenticateMethod = AlluxioSaslClientServiceGrpc.getAuthenticateMethod) == null) {
-          AlluxioSaslClientServiceGrpc.getAuthenticateMethod = getAuthenticateMethod = 
+    if ((getAuthenticateMethod = SaslAuthenticationServiceGrpc.getAuthenticateMethod) == null) {
+      synchronized (SaslAuthenticationServiceGrpc.class) {
+        if ((getAuthenticateMethod = SaslAuthenticationServiceGrpc.getAuthenticateMethod) == null) {
+          SaslAuthenticationServiceGrpc.getAuthenticateMethod = getAuthenticateMethod = 
               io.grpc.MethodDescriptor.<alluxio.grpc.SaslMessage, alluxio.grpc.SaslMessage>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.BIDI_STREAMING)
               .setFullMethodName(generateFullMethodName(
-                  "alluxio.grpc.AlluxioSaslClientService", "authenticate"))
+                  "alluxio.grpc.SaslAuthenticationService", "authenticate"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.SaslMessage.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.SaslMessage.getDefaultInstance()))
-                  .setSchemaDescriptor(new AlluxioSaslClientServiceMethodDescriptorSupplier("authenticate"))
+                  .setSchemaDescriptor(new SaslAuthenticationServiceMethodDescriptorSupplier("authenticate"))
                   .build();
           }
         }
@@ -68,29 +68,29 @@ public final class AlluxioSaslClientServiceGrpc {
   /**
    * Creates a new async stub that supports all call types for the service
    */
-  public static AlluxioSaslClientServiceStub newStub(io.grpc.Channel channel) {
-    return new AlluxioSaslClientServiceStub(channel);
+  public static SaslAuthenticationServiceStub newStub(io.grpc.Channel channel) {
+    return new SaslAuthenticationServiceStub(channel);
   }
 
   /**
    * Creates a new blocking-style stub that supports unary and streaming output calls on the service
    */
-  public static AlluxioSaslClientServiceBlockingStub newBlockingStub(
+  public static SaslAuthenticationServiceBlockingStub newBlockingStub(
       io.grpc.Channel channel) {
-    return new AlluxioSaslClientServiceBlockingStub(channel);
+    return new SaslAuthenticationServiceBlockingStub(channel);
   }
 
   /**
    * Creates a new ListenableFuture-style stub that supports unary calls on the service
    */
-  public static AlluxioSaslClientServiceFutureStub newFutureStub(
+  public static SaslAuthenticationServiceFutureStub newFutureStub(
       io.grpc.Channel channel) {
-    return new AlluxioSaslClientServiceFutureStub(channel);
+    return new SaslAuthenticationServiceFutureStub(channel);
   }
 
   /**
    */
-  public static abstract class AlluxioSaslClientServiceImplBase implements io.grpc.BindableService {
+  public static abstract class SaslAuthenticationServiceImplBase implements io.grpc.BindableService {
 
     /**
      * <pre>
@@ -118,20 +118,20 @@ public final class AlluxioSaslClientServiceGrpc {
 
   /**
    */
-  public static final class AlluxioSaslClientServiceStub extends io.grpc.stub.AbstractStub<AlluxioSaslClientServiceStub> {
-    private AlluxioSaslClientServiceStub(io.grpc.Channel channel) {
+  public static final class SaslAuthenticationServiceStub extends io.grpc.stub.AbstractStub<SaslAuthenticationServiceStub> {
+    private SaslAuthenticationServiceStub(io.grpc.Channel channel) {
       super(channel);
     }
 
-    private AlluxioSaslClientServiceStub(io.grpc.Channel channel,
+    private SaslAuthenticationServiceStub(io.grpc.Channel channel,
         io.grpc.CallOptions callOptions) {
       super(channel, callOptions);
     }
 
     @java.lang.Override
-    protected AlluxioSaslClientServiceStub build(io.grpc.Channel channel,
+    protected SaslAuthenticationServiceStub build(io.grpc.Channel channel,
         io.grpc.CallOptions callOptions) {
-      return new AlluxioSaslClientServiceStub(channel, callOptions);
+      return new SaslAuthenticationServiceStub(channel, callOptions);
     }
 
     /**
@@ -149,39 +149,39 @@ public final class AlluxioSaslClientServiceGrpc {
 
   /**
    */
-  public static final class AlluxioSaslClientServiceBlockingStub extends io.grpc.stub.AbstractStub<AlluxioSaslClientServiceBlockingStub> {
-    private AlluxioSaslClientServiceBlockingStub(io.grpc.Channel channel) {
+  public static final class SaslAuthenticationServiceBlockingStub extends io.grpc.stub.AbstractStub<SaslAuthenticationServiceBlockingStub> {
+    private SaslAuthenticationServiceBlockingStub(io.grpc.Channel channel) {
       super(channel);
     }
 
-    private AlluxioSaslClientServiceBlockingStub(io.grpc.Channel channel,
+    private SaslAuthenticationServiceBlockingStub(io.grpc.Channel channel,
         io.grpc.CallOptions callOptions) {
       super(channel, callOptions);
     }
 
     @java.lang.Override
-    protected AlluxioSaslClientServiceBlockingStub build(io.grpc.Channel channel,
+    protected SaslAuthenticationServiceBlockingStub build(io.grpc.Channel channel,
         io.grpc.CallOptions callOptions) {
-      return new AlluxioSaslClientServiceBlockingStub(channel, callOptions);
+      return new SaslAuthenticationServiceBlockingStub(channel, callOptions);
     }
   }
 
   /**
    */
-  public static final class AlluxioSaslClientServiceFutureStub extends io.grpc.stub.AbstractStub<AlluxioSaslClientServiceFutureStub> {
-    private AlluxioSaslClientServiceFutureStub(io.grpc.Channel channel) {
+  public static final class SaslAuthenticationServiceFutureStub extends io.grpc.stub.AbstractStub<SaslAuthenticationServiceFutureStub> {
+    private SaslAuthenticationServiceFutureStub(io.grpc.Channel channel) {
       super(channel);
     }
 
-    private AlluxioSaslClientServiceFutureStub(io.grpc.Channel channel,
+    private SaslAuthenticationServiceFutureStub(io.grpc.Channel channel,
         io.grpc.CallOptions callOptions) {
       super(channel, callOptions);
     }
 
     @java.lang.Override
-    protected AlluxioSaslClientServiceFutureStub build(io.grpc.Channel channel,
+    protected SaslAuthenticationServiceFutureStub build(io.grpc.Channel channel,
         io.grpc.CallOptions callOptions) {
-      return new AlluxioSaslClientServiceFutureStub(channel, callOptions);
+      return new SaslAuthenticationServiceFutureStub(channel, callOptions);
     }
   }
 
@@ -192,10 +192,10 @@ public final class AlluxioSaslClientServiceGrpc {
       io.grpc.stub.ServerCalls.ServerStreamingMethod<Req, Resp>,
       io.grpc.stub.ServerCalls.ClientStreamingMethod<Req, Resp>,
       io.grpc.stub.ServerCalls.BidiStreamingMethod<Req, Resp> {
-    private final AlluxioSaslClientServiceImplBase serviceImpl;
+    private final SaslAuthenticationServiceImplBase serviceImpl;
     private final int methodId;
 
-    MethodHandlers(AlluxioSaslClientServiceImplBase serviceImpl, int methodId) {
+    MethodHandlers(SaslAuthenticationServiceImplBase serviceImpl, int methodId) {
       this.serviceImpl = serviceImpl;
       this.methodId = methodId;
     }
@@ -223,9 +223,9 @@ public final class AlluxioSaslClientServiceGrpc {
     }
   }
 
-  private static abstract class AlluxioSaslClientServiceBaseDescriptorSupplier
+  private static abstract class SaslAuthenticationServiceBaseDescriptorSupplier
       implements io.grpc.protobuf.ProtoFileDescriptorSupplier, io.grpc.protobuf.ProtoServiceDescriptorSupplier {
-    AlluxioSaslClientServiceBaseDescriptorSupplier() {}
+    SaslAuthenticationServiceBaseDescriptorSupplier() {}
 
     @java.lang.Override
     public com.google.protobuf.Descriptors.FileDescriptor getFileDescriptor() {
@@ -234,21 +234,21 @@ public final class AlluxioSaslClientServiceGrpc {
 
     @java.lang.Override
     public com.google.protobuf.Descriptors.ServiceDescriptor getServiceDescriptor() {
-      return getFileDescriptor().findServiceByName("AlluxioSaslClientService");
+      return getFileDescriptor().findServiceByName("SaslAuthenticationService");
     }
   }
 
-  private static final class AlluxioSaslClientServiceFileDescriptorSupplier
-      extends AlluxioSaslClientServiceBaseDescriptorSupplier {
-    AlluxioSaslClientServiceFileDescriptorSupplier() {}
+  private static final class SaslAuthenticationServiceFileDescriptorSupplier
+      extends SaslAuthenticationServiceBaseDescriptorSupplier {
+    SaslAuthenticationServiceFileDescriptorSupplier() {}
   }
 
-  private static final class AlluxioSaslClientServiceMethodDescriptorSupplier
-      extends AlluxioSaslClientServiceBaseDescriptorSupplier
+  private static final class SaslAuthenticationServiceMethodDescriptorSupplier
+      extends SaslAuthenticationServiceBaseDescriptorSupplier
       implements io.grpc.protobuf.ProtoMethodDescriptorSupplier {
     private final String methodName;
 
-    AlluxioSaslClientServiceMethodDescriptorSupplier(String methodName) {
+    SaslAuthenticationServiceMethodDescriptorSupplier(String methodName) {
       this.methodName = methodName;
     }
 
@@ -263,11 +263,11 @@ public final class AlluxioSaslClientServiceGrpc {
   public static io.grpc.ServiceDescriptor getServiceDescriptor() {
     io.grpc.ServiceDescriptor result = serviceDescriptor;
     if (result == null) {
-      synchronized (AlluxioSaslClientServiceGrpc.class) {
+      synchronized (SaslAuthenticationServiceGrpc.class) {
         result = serviceDescriptor;
         if (result == null) {
           serviceDescriptor = result = io.grpc.ServiceDescriptor.newBuilder(SERVICE_NAME)
-              .setSchemaDescriptor(new AlluxioSaslClientServiceFileDescriptorSupplier())
+              .setSchemaDescriptor(new SaslAuthenticationServiceFileDescriptorSupplier())
               .addMethod(getAuthenticateMethodHelper())
               .build();
         }
