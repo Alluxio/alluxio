@@ -344,4 +344,4 @@ This command will report potential problems that might prevent you from running 
 
 If you wish to modify how your Hive client logs information, see the detailed page within the Hive
 documentation that
-[explains how to configure logging for your Hive application][https://cwiki.apache.org/confluence/display/Hive/GettingStarted#GettingStarted-HiveLoggingErrorLogsHiveLogs]
+[explains how to configure logging for your Hive application](https://cwiki.apache.org/confluence/display/Hive/GettingStarted#GettingStarted-HiveLoggingErrorLogsHiveLogs).
