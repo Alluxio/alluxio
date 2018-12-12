@@ -12,8 +12,10 @@
 package alluxio.worker.grpc;
 
 import alluxio.Configuration;
+import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.network.ChannelType;
+import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.grpc.GrpcServer;
 import alluxio.util.grpc.GrpcServerBuilder;
 import alluxio.util.network.NettyUtils;
@@ -29,7 +31,6 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.net.SocketAddress;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -43,12 +44,13 @@ public final class GrpcDataServer implements DataServer {
 
   private final SocketAddress mSocketAddress;
   private final long mTimeoutMs =
-      Configuration.getMs(PropertyKey.WORKER_NETWORK_NETTY_SHUTDOWN_TIMEOUT);
-  private final long mQuietPeriodMs =
-      Configuration.getMs(PropertyKey.WORKER_NETWORK_NETTY_SHUTDOWN_QUIET_PERIOD);
+      Configuration.getMs(PropertyKey.WORKER_NETWORK_GRPC_SHUTDOWN_TIMEOUT);
   private final long mFlowControlWindow =
       Configuration.getBytes(PropertyKey.WORKER_NETWORK_GRPC_FLOWCONTROL_WINDOW);
-  private final int mThreadPoolSize;
+  private final long mQuietPeriodMs =
+      Configuration.getMs(PropertyKey.WORKER_NETWORK_NETTY_SHUTDOWN_QUIET_PERIOD);
+  private final int mThreadPoolSize =
+      Configuration.getInt(PropertyKey.WORKER_NETWORK_NETTY_WORKER_THREADS);
 
   private EventLoopGroup mBossGroup;
   private EventLoopGroup mWorkerGroup;
@@ -62,10 +64,10 @@ public final class GrpcDataServer implements DataServer {
    */
   public GrpcDataServer(final SocketAddress address, final WorkerProcess workerProcess) {
     mSocketAddress = address;
-    mThreadPoolSize =
-        Configuration.getInt(PropertyKey.WORKER_NETWORK_NETTY_WORKER_THREADS) + 1;
 
-    ExecutorService executorService = Executors.newFixedThreadPool(mThreadPoolSize);
+    ExecutorService executorService = ExecutorServiceFactories
+        .fixedThreadPool(Constants.BLOCK_WORKER_NAME, mThreadPoolSize)
+        .create();
     try {
       mServer = createServerBuilder(address, NettyUtils.WORKER_CHANNEL_TYPE)
           .addService(new BlockWorkerImpl(workerProcess))
@@ -74,10 +76,10 @@ public final class GrpcDataServer implements DataServer {
           .build()
           .start();
     } catch (IOException e) {
-      LOG.error("Server failed to start on " + address.toString(), e);
+      LOG.error("Server failed to start on {}", address.toString(), e);
       throw new RuntimeException(e);
     }
-    LOG.info("Server started, listening on " + address.toString());
+    LOG.info("Server started, listening on {}", address.toString());
   }
 
   private GrpcServerBuilder createServerBuilder(SocketAddress address, ChannelType type) {

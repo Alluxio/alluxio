@@ -1736,6 +1736,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
+  public static final PropertyKey WORKER_NETWORK_GRPC_SHUTDOWN_TIMEOUT =
+      new Builder(Name.WORKER_NETWORK_GRPC_SHUTDOWN_TIMEOUT)
+          .setDefaultValue("15sec")
+          .setDescription("Maximum amount of time to wait until the worker gRPC server "
+              + "is shutdown (regardless of the quiet period).")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
   public static final PropertyKey WORKER_NETWORK_NETTY_BACKLOG =
       new Builder(Name.WORKER_NETWORK_NETTY_BACKLOG)
           .setDescription("Netty socket option for SO_BACKLOG: the number of connections queued.")
@@ -3557,6 +3565,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String WORKER_MEMORY_SIZE = "alluxio.worker.memory.size";
     public static final String WORKER_NETWORK_GRPC_FLOWCONTROL_WINDOW =
         "alluxio.worker.network.grpc.flowcontrol.window";
+    public static final String WORKER_NETWORK_GRPC_SHUTDOWN_TIMEOUT =
+        "alluxio.worker.network.grpc.shutdown.timeout";
     public static final String WORKER_NETWORK_NETTY_BACKLOG =
         "alluxio.worker.network.netty.backlog";
     public static final String WORKER_NETWORK_NETTY_BOSS_THREADS =
