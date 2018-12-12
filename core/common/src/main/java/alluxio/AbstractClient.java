@@ -57,10 +57,6 @@ public abstract class AbstractClient implements Client {
   private final Supplier<RetryPolicy> mRetryPolicySupplier;
 
   protected InetSocketAddress mAddress;
-  protected TProtocol mProtocol;
-
-  /** Unique Id of this client */
-  protected UUID mClientId;
 
   /** Underlying channel to the target service */
   protected GrpcChannel mChannel;
@@ -103,7 +99,6 @@ public abstract class AbstractClient implements Client {
    */
   public AbstractClient(Subject subject, InetSocketAddress address,
       Supplier<RetryPolicy> retryPolicySupplier) {
-    mClientId = UUID.randomUUID();
     mAddress = address;
     mParentSubject = subject;
     mRetryPolicySupplier = retryPolicySupplier;
