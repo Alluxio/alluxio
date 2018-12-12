@@ -47,6 +47,28 @@ public final class WeakSafeReentrantReadWriteLock implements ReadWriteLock {
   }
 
   /**
+   * Queries the number of reentrant read holds on this lock by the current thread. A reader thread
+   * has a hold on a lock for each lock action that is not matched by an unlock action.
+   *
+   * @return the number of holds on the read lock by the current thread, or zero if the read lock is
+   *         not held by the current thread
+   */
+  public int getReadHoldCount() {
+    return mDelegate.getReadHoldCount();
+  }
+
+  /**
+   * Queries the number of reentrant write holds on this lock by the current thread. A writer thread
+   * has a hold on a lock for each lock action that is not matched by an unlock action.
+   *
+   * @return the number of holds on the write lock by the current thread, or zero if the write lock
+   *         is not held by the current thread
+   */
+  public int getWriteHoldCount() {
+    return mDelegate.getWriteHoldCount();
+  }
+
+  /**
    * Lock object that ensures a strong reference is retained to a specified object.
    */
   private static final class WeakSafeLock extends ForwardingLock {

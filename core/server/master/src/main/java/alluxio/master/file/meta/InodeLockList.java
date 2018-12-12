@@ -90,7 +90,7 @@ public class InodeLockList implements AutoCloseable {
    * @param inode the inode to lock
    * @param mode the mode to lock in
    */
-  public synchronized void lockInode(InodeView inode, LockMode mode) {
+  public void lockInode(InodeView inode, LockMode mode) {
     Preconditions.checkState(!endsInInode());
     Preconditions.checkState(inode.getName().equals(lastEntry().mEdge.getName()));
 
@@ -108,7 +108,7 @@ public class InodeLockList implements AutoCloseable {
    * @param childName the child to lock
    * @param mode the mode to lock in
    */
-  public synchronized void lockEdge(String childName, LockMode mode) {
+  public void lockEdge(String childName, LockMode mode) {
     Preconditions.checkState(endsInInode());
 
     InodeView lastInode = get(numLockedInodes() - 1);
@@ -142,12 +142,12 @@ public class InodeLockList implements AutoCloseable {
    * @param pathComponent the child name for the edge to add to the lock list
    */
   public synchronized void pushWriteLockedEdge(InodeView inode, String pathComponent) {
+    Preconditions.checkState(mLockMode == LockMode.WRITE);
+
     lockInode(inode, LockMode.READ);
-    lockEdge(pathComponent, mLockMode);
-    if (mLockMode == LockMode.WRITE) {
-      // downgrade the second to last edge lock.
-      downgradeNthToLastEdge(2);
-    }
+    lockEdge(pathComponent, LockMode.WRITE);
+    // downgrade the second to last edge lock.
+    downgradeNthToLastEdge(2);
   }
 
   /**

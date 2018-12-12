@@ -11,34 +11,106 @@
 
 package alluxio.master.file.meta;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
+import alluxio.master.file.meta.InodeTree.LockMode;
 import alluxio.master.file.options.CreateDirectoryOptions;
 
 import org.junit.Rule;
+import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import java.util.Arrays;
-import java.util.function.Predicate;
 
 /**
  * Unit tests for {@link InodeLockList}.
  */
 public class InodeLockListTest {
-  private static final InodeDirectory ROOT =
-      InodeDirectory.create(0, -1, "", CreateDirectoryOptions.defaults());
-  private static final InodeDirectory ROOT_CHILD =
-      InodeDirectory.create(1, 0, "1", CreateDirectoryOptions.defaults());
-
-  private static final InodeDirectory DISCONNECTED =
-      InodeDirectory.create(2, 100, "dc", CreateDirectoryOptions.defaults());
-  private static final InodeDirectory NONEXIST =
-      InodeDirectory.create(3, 0, "3", CreateDirectoryOptions.defaults());
-
-  private static final Predicate<Long> EXISTS_FN = Arrays.asList(0L, 1L, 2L)::contains;
+  // Directory structure is /a/b/c
+  private static final InodeView ROOT = inodeDir(0, -1, "");
+  private static final InodeView A = inodeDir(1, 0, "a");
+  private static final InodeView B = inodeDir(2, 1, "b");
+  private static final InodeView C = inodeDir(3, 2, "c");
 
   @Rule
   public ExpectedException mExpectedException = ExpectedException.none();
 
   private InodeLockManager mInodeLockManager = new InodeLockManager();
   private InodeLockList mLockList = new InodeLockList(mInodeLockManager);
-  //TODO(andrew): add tests
+
+  @Test
+  public void lockSimple() {
+    mLockList.lockRootEdge(LockMode.READ);
+    mLockList.lockInode(ROOT, LockMode.READ);
+    mLockList.lockEdge(A.getName(), LockMode.READ);
+    mLockList.lockInode(A, LockMode.READ);
+    assertEquals(mLockList.getLockMode(), LockMode.READ);
+    assertTrue(mLockList.endsInInode());
+    assertEquals(2, mLockList.numLockedInodes());
+    assertEquals(Arrays.asList(ROOT, A), mLockList.getInodes());
+
+    mLockList.lockEdge(B.getName(), LockMode.WRITE);
+    assertEquals(mLockList.getLockMode(), LockMode.WRITE);
+    assertFalse(mLockList.endsInInode());
+
+    checkReadLocked(ROOT, A);
+    checkIncomingEdgeReadLocked(A);
+    checkIncomingEdgeWriteLocked(B);
+  }
+
+  @Test
+  public void pushWriteLockedEdge() {
+    mLockList.lockRootEdge(LockMode.WRITE);
+    assertEquals(LockMode.WRITE, mLockList.getLockMode());
+    assertTrue(mLockList.getInodes().isEmpty());
+
+    mLockList.pushWriteLockedEdge(ROOT, "a");
+    assertEquals(LockMode.WRITE, mLockList.getLockMode());
+    assertEquals(Arrays.asList(ROOT), mLockList.getInodes());
+
+    mLockList.pushWriteLockedEdge(A, "b");
+    assertEquals(LockMode.WRITE, mLockList.getLockMode());
+    assertEquals(Arrays.asList(ROOT, A), mLockList.getInodes());
+
+    checkReadLocked(ROOT, A);
+    checkIncomingEdgeReadLocked(ROOT, A);
+    checkIncomingEdgeWriteLocked(B);
+  }
+
+  private void checkIncomingEdgeReadLocked(InodeView... inodes) {
+    checkEdgeLock(inodes, LockMode.READ);
+  }
+
+  private void checkIncomingEdgeWriteLocked(InodeView... inodes) {
+    checkEdgeLock(inodes, LockMode.WRITE);
+  }
+
+  private void checkEdgeLock(InodeView[] inodes, LockMode mode) {
+    for (InodeView inode : inodes) {
+      Edge edge = new Edge(inode.getParentId(), inode.getName());
+      if (mode == LockMode.READ) {
+        assertTrue(mInodeLockManager.isReadLockedByCurrentThread(edge));
+      } else {
+        assertTrue(mInodeLockManager.isWriteLockedByCurrentThread(edge));
+      }
+    }
+  }
+
+  private void checkReadLocked(InodeView... inodes) {
+    for (InodeView inode : inodes) {
+      assertTrue(mInodeLockManager.isReadLockedByCurrentThread(inode.getId()));
+    }
+  }
+
+  private void checkWriteLocked(InodeView... inodes) {
+    for (InodeView inode : inodes) {
+      assertTrue(mInodeLockManager.isWriteLockedByCurrentThread(inode.getId()));
+    }
+  }
+
+  private static InodeView inodeDir(long id, long parentId, String name) {
+    return InodeDirectory.create(id, parentId, name, CreateDirectoryOptions.defaults());
+  }
 }

@@ -16,6 +16,7 @@ import alluxio.master.file.meta.InodeTree.LockMode;
 import alluxio.resource.LockResource;
 import alluxio.util.interfaces.Scoped;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -44,14 +45,14 @@ public class InodeLockManager {
    * We use weak values so that when nothing holds a reference to
    * a lock, the garbage collector can remove the lock's entry from the cache.
    */
-  public final LoadingCache<Long, ReadWriteLock> mInodeLocks =
-      CacheBuilder.<Long, ReadWriteLock>newBuilder()
+  public final LoadingCache<Long, WeakSafeReentrantReadWriteLock> mInodeLocks =
+      CacheBuilder.<Long, WeakSafeReentrantReadWriteLock>newBuilder()
           .weakValues()
           .initialCapacity(1_000)
           .concurrencyLevel(100)
-          .build(new CacheLoader<Long, ReadWriteLock>() {
+          .build(new CacheLoader<Long, WeakSafeReentrantReadWriteLock>() {
             @Override
-            public ReadWriteLock load(Long key) {
+            public WeakSafeReentrantReadWriteLock load(Long key) {
               return new WeakSafeReentrantReadWriteLock();
             }
           });
@@ -59,14 +60,14 @@ public class InodeLockManager {
   /**
    * Cache for supplying edge locks, similar to mInodeLocks.
    */
-  public final LoadingCache<Edge, ReadWriteLock> mEdgeLocks =
-      CacheBuilder.<Long, ReadWriteLock>newBuilder()
+  public final LoadingCache<Edge, WeakSafeReentrantReadWriteLock> mEdgeLocks =
+      CacheBuilder.<Long, WeakSafeReentrantReadWriteLock>newBuilder()
           .weakValues()
           .initialCapacity(1_000)
           .concurrencyLevel(100)
-          .build(new CacheLoader<Edge, ReadWriteLock>() {
+          .build(new CacheLoader<Edge, WeakSafeReentrantReadWriteLock>() {
             @Override
-            public ReadWriteLock load(Edge key) {
+            public WeakSafeReentrantReadWriteLock load(Edge key) {
               return new WeakSafeReentrantReadWriteLock();
             }
           });
@@ -87,6 +88,26 @@ public class InodeLockManager {
               return new AtomicBoolean();
             }
           });
+
+  @VisibleForTesting
+  boolean isReadLockedByCurrentThread(long inodeId) {
+    return mInodeLocks.getUnchecked(inodeId).getReadHoldCount() > 0;
+  }
+
+  @VisibleForTesting
+  boolean isWriteLockedByCurrentThread(long inodeId) {
+    return mInodeLocks.getUnchecked(inodeId).getWriteHoldCount() > 0;
+  }
+
+  @VisibleForTesting
+  boolean isReadLockedByCurrentThread(Edge edge) {
+    return mEdgeLocks.getUnchecked(edge).getReadHoldCount() > 0;
+  }
+
+  @VisibleForTesting
+  boolean isWriteLockedByCurrentThread(Edge edge) {
+    return mEdgeLocks.getUnchecked(edge).getWriteHoldCount() > 0;
+  }
 
   /**
    * Acquires an inode lock.
