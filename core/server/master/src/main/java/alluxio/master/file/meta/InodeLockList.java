@@ -205,6 +205,7 @@ public class InodeLockList implements AutoCloseable {
     Preconditions.checkState(mLockMode == LockMode.WRITE);
 
     downgradeNthToLastEdge(1);
+    mLockMode = LockMode.READ;
   }
 
   /**

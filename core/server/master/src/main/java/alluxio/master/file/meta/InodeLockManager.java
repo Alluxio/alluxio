@@ -90,22 +90,22 @@ public class InodeLockManager {
           });
 
   @VisibleForTesting
-  boolean isReadLockedByCurrentThread(long inodeId) {
+  boolean inodeReadLockedByCurrentThread(long inodeId) {
     return mInodeLocks.getUnchecked(inodeId).getReadHoldCount() > 0;
   }
 
   @VisibleForTesting
-  boolean isWriteLockedByCurrentThread(long inodeId) {
+  boolean inodeWriteLockedByCurrentThread(long inodeId) {
     return mInodeLocks.getUnchecked(inodeId).getWriteHoldCount() > 0;
   }
 
   @VisibleForTesting
-  boolean isReadLockedByCurrentThread(Edge edge) {
+  boolean edgeReadLockedByCurrentThread(Edge edge) {
     return mEdgeLocks.getUnchecked(edge).getReadHoldCount() > 0;
   }
 
   @VisibleForTesting
-  boolean isWriteLockedByCurrentThread(Edge edge) {
+  boolean edgeWriteLockedByCurrentThread(Edge edge) {
     return mEdgeLocks.getUnchecked(edge).getWriteHoldCount() > 0;
   }
 
