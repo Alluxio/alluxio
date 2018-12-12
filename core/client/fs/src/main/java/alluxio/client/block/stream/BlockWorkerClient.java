@@ -43,18 +43,20 @@ import javax.security.auth.Subject;
 public class BlockWorkerClient implements Closeable {
   private static final Logger LOGGER = LoggerFactory.getLogger(BlockWorkerClient.class.getName());
 
-  GrpcChannel mChannel;
-  BlockWorkerGrpc.BlockWorkerBlockingStub mBlockingStub;
-  BlockWorkerGrpc.BlockWorkerStub mAsyncStub;
   private static final long KEEPALIVE_TIMEOUT_MS =
       Configuration.getMs(PropertyKey.USER_NETWORK_NETTY_TIMEOUT_MS);
+  private static final long GRPC_FLOWCONTROL_WINDOW =
+      Configuration.getMs(PropertyKey.USER_NETWORK_GRPC_FLOWCONTROL_WINDOW);
+  private static final long MAX_INBOUND_MESSAGE_SIZE =
+      Configuration.getMs(PropertyKey.USER_NETWORK_GRPC_MAX_INBOUND_MESSAGE_SIZE);
   private static final EventLoopGroup WORKER_GROUP = NettyUtils
       .createEventLoop(NettyUtils.USER_CHANNEL_TYPE,
           Configuration.getInt(PropertyKey.USER_NETWORK_NETTY_WORKER_THREADS),
           "netty-client-worker-%d", true);
 
-  final int mBlockSize;
-  final int mChunkSize;
+  private GrpcChannel mChannel;
+  private BlockWorkerGrpc.BlockWorkerBlockingStub mBlockingStub;
+  private BlockWorkerGrpc.BlockWorkerStub mAsyncStub;
 
   public static class Builder {
     private final GrpcChannelBuilder mChannelBuilder;
@@ -64,14 +66,18 @@ public class BlockWorkerClient implements Closeable {
     }
 
     public BlockWorkerClient build() {
-      int chunkSize = 65535;
-      long blockSizeBytes = Configuration.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
-      return new BlockWorkerClient(mChannelBuilder.build(), (int) blockSizeBytes, chunkSize);
+      return new BlockWorkerClient(mChannelBuilder.build());
     }
   }
 
+  /**
+   * Gets a builder for given user subject and address.
+   *
+   * @param subject the user subject
+   * @param address the address of the worker
+   * @return the builder for the client
+   */
   public static Builder getBuilder(Subject subject, SocketAddress address) {
-    int flowControlWindow = 256000;
     return new Builder(GrpcChannelBuilder
         .forAddress(address)
         .channelType(NettyUtils.getClientChannelClass(
@@ -79,19 +85,18 @@ public class BlockWorkerClient implements Closeable {
         .group(WORKER_GROUP)
         .usePlaintext(true)
         .keepAliveTimeout(KEEPALIVE_TIMEOUT_MS, TimeUnit.MILLISECONDS)
-        .maxInboundMessageSize(1024 * 1024 * 1024)
-        .flowControlWindow(flowControlWindow));
+        .maxInboundMessageSize((int) MAX_INBOUND_MESSAGE_SIZE)
+        .flowControlWindow((int) GRPC_FLOWCONTROL_WINDOW));
   }
 
-  public BlockWorkerClient(GrpcChannel channel, int blockSize, int chunkSize) {
+  /**
+   * Creates a client instance for communicating with block worker
+   * @param channel the gRPC channel
+   */
+  public BlockWorkerClient(GrpcChannel channel) {
     mChannel = channel;
-
     mBlockingStub = BlockWorkerGrpc.newBlockingStub(mChannel);
     mAsyncStub = BlockWorkerGrpc.newStub(mChannel);
-
-    mBlockSize = blockSize;
-    mChunkSize = chunkSize;
-
   }
 
   public boolean isHealthy() {

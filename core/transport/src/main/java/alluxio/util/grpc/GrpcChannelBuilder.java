@@ -70,6 +70,7 @@ public final class GrpcChannelBuilder {
    *
    * @param keepAliveTimeout the timeout for waiting after keepalive ping
    * @param timeUnit the time unit for the keepalive timeout
+   * @return the updated {@link GrpcChannelBuilder} instance
    */
   public GrpcChannelBuilder keepAliveTimeout(long keepAliveTimeout, TimeUnit timeUnit) {
     mNettyChannelBuilder = mNettyChannelBuilder.keepAliveTimeout(keepAliveTimeout, timeUnit);

@@ -72,7 +72,6 @@ public class GrpcServer {
     return mServer.isShutdown();
   }
 
-
   /**
    * @return the address the server is bound to, or null if the server is not bound to an inet
    *         socket address

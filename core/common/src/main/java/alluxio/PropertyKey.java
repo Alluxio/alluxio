@@ -2646,6 +2646,20 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "aggregated, so different applications must set their own ids or leave this value "
               + "unset to use a randomly generated id.")
           .build();
+  public static final PropertyKey USER_NETWORK_GRPC_FLOWCONTROL_WINDOW =
+      new Builder(Name.USER_NETWORK_GRPC_FLOWCONTROL_WINDOW)
+          .setDefaultValue("1MB")
+          .setDescription("The flow control window used by user gRPC connections.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey USER_NETWORK_GRPC_MAX_INBOUND_MESSAGE_SIZE =
+      new Builder(Name.USER_NETWORK_GRPC_MAX_INBOUND_MESSAGE_SIZE)
+          .setDefaultValue("4MB")
+          .setDescription("The max inbound message size used by user gRPC connections.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
   public static final PropertyKey USER_NETWORK_NETTY_CHANNEL =
       new Builder(Name.USER_NETWORK_NETTY_CHANNEL)
           .setDescription("Type of netty channels. If EPOLL is not available, this will "
@@ -3716,6 +3730,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String USER_METRICS_HEARTBEAT_INTERVAL_MS =
         "alluxio.user.metrics.heartbeat.interval";
     public static final String USER_APP_ID = "alluxio.user.app.id";
+    public static final String USER_NETWORK_GRPC_FLOWCONTROL_WINDOW =
+        "alluxio.worker.network.grpc.flowcontrol.window";
+    public static final String USER_NETWORK_GRPC_MAX_INBOUND_MESSAGE_SIZE =
+        "alluxio.worker.network.grpc.max.inbound.message.size";
     public static final String USER_NETWORK_NETTY_CHANNEL = "alluxio.user.network.netty.channel";
     public static final String USER_NETWORK_NETTY_TIMEOUT_MS =
         "alluxio.user.network.netty.timeout";

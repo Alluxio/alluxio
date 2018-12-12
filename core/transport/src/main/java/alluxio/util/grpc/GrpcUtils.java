@@ -43,7 +43,6 @@ import alluxio.wire.LoadMetadataType;
 import alluxio.wire.MountPointInfo;
 import alluxio.wire.PersistFile;
 import alluxio.wire.TieredIdentity;
-import alluxio.grpc.TtlAction;
 import alluxio.wire.UfsInfo;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
