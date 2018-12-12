@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.ConfigurationValueOptions;
 import alluxio.MasterStorageTierAssoc;
+import alluxio.PropertyKey;
 import alluxio.RestUtils;
 import alluxio.RuntimeConstants;
 import alluxio.master.MasterProcess;
@@ -24,12 +25,16 @@ import alluxio.master.file.StartupConsistencyCheck;
 import alluxio.master.file.meta.MountTable;
 import alluxio.metrics.MasterMetrics;
 import alluxio.metrics.MetricsSystem;
+import alluxio.util.CommonUtils;
+import alluxio.util.FormatUtils;
 import alluxio.util.LogUtils;
 import alluxio.web.MasterWebServer;
 import alluxio.wire.AlluxioMasterInfo;
 import alluxio.wire.Capacity;
+import alluxio.wire.ConfigCheckReport;
 import alluxio.wire.MountPointInfo;
 
+import alluxio.wire.WebUIOverview;
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Gauge;
 import com.codahale.metrics.MetricRegistry;
@@ -65,6 +70,7 @@ public final class AlluxioMasterRestServiceHandler {
 
   // endpoints
   public static final String GET_INFO = "info";
+  public static final String WEBUI_OVERVIEW = "webui_overview";
 
   // queries
   public static final String QUERY_RAW_CONFIGURATION = "raw_configuration";
@@ -95,6 +101,7 @@ public final class AlluxioMasterRestServiceHandler {
   private final MasterProcess mMasterProcess;
   private final BlockMaster mBlockMaster;
   private final FileSystemMaster mFileSystemMaster;
+  private final MetaMaster mMetaMaster;
 
   /**
    * Constructs a new {@link AlluxioMasterRestServiceHandler}.
@@ -107,6 +114,7 @@ public final class AlluxioMasterRestServiceHandler {
         .getAttribute(MasterWebServer.ALLUXIO_MASTER_SERVLET_RESOURCE_KEY);
     mBlockMaster = mMasterProcess.getMaster(BlockMaster.class);
     mFileSystemMaster = mMasterProcess.getMaster(FileSystemMaster.class);
+    mMetaMaster = mMasterProcess.getMaster(MetaMaster.class);
   }
 
   /**
@@ -116,6 +124,7 @@ public final class AlluxioMasterRestServiceHandler {
    *    it is null, which means false.
    * @return the response object
    */
+
   @GET
   @Path(GET_INFO)
   @ReturnType("alluxio.wire.AlluxioMasterInfo")
@@ -141,6 +150,88 @@ public final class AlluxioMasterRestServiceHandler {
           .setVersion(RuntimeConstants.VERSION)
           .setWorkers(mBlockMaster.getWorkerInfoList());
     });
+  }
+
+  /**
+   * @summary get the information rendered in the Web UI's overview page
+   * @return the response object
+   */
+  @GET
+  @Path(WEBUI_OVERVIEW)
+  @ReturnType("alluxio.wire.WebUIOverview")
+  public Response getWebUIOverview() {
+    return RestUtils.call(() -> {
+      StartupConsistencyCheck consistencyCheck = mFileSystemMaster.getStartupConsistencyCheck();
+      String consistencyCheckStatus = consistencyCheck.getStatus().toString();
+      int inconsistentPaths = 0;
+      List<AlluxioURI> inconsistentPathItems = null;
+      if (consistencyCheckStatus == StartupConsistencyCheck.Status.COMPLETE.toString()) {
+        inconsistentPaths = consistencyCheck.getInconsistentUris().size();
+        inconsistentPathItems = consistencyCheck.getInconsistentUris();
+      }
+
+      ConfigCheckReport report = mMetaMaster.getConfigCheckReport();
+
+      MountPointInfo mountInfo = null;
+      String diskCapacity;
+      String diskUsedCapacity;
+      String diskFreeCapacity;
+      try {
+        mountInfo = mFileSystemMaster.getMountPointInfo(new AlluxioURI(MountTable.ROOT));
+      } catch (Throwable e) {
+        diskCapacity = "UNKNOWN";
+        diskUsedCapacity = "UNKNOWN";
+        diskFreeCapacity = "UNKNOWN";
+      }
+      long capacityBytes = mountInfo.getUfsCapacityBytes();
+      long usedBytes = mountInfo.getUfsUsedBytes();
+      long freeBytes = -1;
+      if (capacityBytes >= 0 && usedBytes >= 0 && capacityBytes >= usedBytes) {
+        freeBytes = capacityBytes - usedBytes;
+      }
+
+      String totalSpace = "UNKNOWN";
+      if (capacityBytes >= 0) {
+        totalSpace = FormatUtils.getSizeFromBytes(capacityBytes);
+      }
+      diskCapacity = totalSpace;
+
+      String usedSpace = "UNKNOWN";
+      if (usedBytes >= 0) {
+        usedSpace = FormatUtils.getSizeFromBytes(usedBytes);
+      }
+      diskUsedCapacity = usedSpace;
+
+      String freeSpace = "UNKNOWN";
+      if (freeBytes >= 0) {
+        freeSpace = FormatUtils.getSizeFromBytes(freeBytes);
+      }
+      diskFreeCapacity = freeSpace;
+
+      return new WebUIOverview()
+          .setCapacity(getCapacityInternal())
+          .setConfigCheckErrorNum(report.getConfigErrors().values().stream().mapToInt(List::size).sum())
+          .setConfigCheckErrors(report.getConfigErrors())
+          .setConfigCheckStatus(report.getConfigStatus())
+          .setConfigCheckWarnNum(report.getConfigWarns().values().stream().mapToInt(List::size).sum())
+          .setConfigCheckWarns(report.getConfigWarns())
+          .setConsistencyCheckStatus(consistencyCheckStatus)
+          .setDebug(Configuration.getBoolean(PropertyKey.DEBUG))
+          .setDiskCapacity(diskCapacity)
+          .setDiskCapacity(totalSpace)
+          .setDiskFreeCapacity(diskFreeCapacity)
+          .setDiskUsedCapacity(diskUsedCapacity)
+          .setFreeCapacity(FormatUtils.getSizeFromBytes(mBlockMaster.getCapacityBytes() - mBlockMaster.getUsedBytes()))
+          .setInconsistentPathItems(inconsistentPathItems)
+          .setInconsistentPaths(inconsistentPaths)
+          .setLiveWorkerNodes(Integer.toString(mBlockMaster.getWorkerCount()))
+          .setMasterNodeAddress(mMasterProcess.getRpcAddress().toString())
+          .setStartTime(CommonUtils.convertMsToDate(mMetaMaster.getStartTimeMs()))
+//          .setStorageTierInfos(infos)
+          .setUptime(CommonUtils.convertMsToClockTime(System.currentTimeMillis() - mMetaMaster.getStartTimeMs()))
+          .setUsedCapacity(FormatUtils.getSizeFromBytes(mBlockMaster.getUsedBytes()))
+          .setVersion(RuntimeConstants.VERSION);
+      });
   }
 
   /**
