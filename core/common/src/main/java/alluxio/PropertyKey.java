@@ -1121,13 +1121,21 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
-  public static final PropertyKey MASTER_DAILY_BACKUP_HOUR =
-      new Builder(Name.MASTER_DAILY_BACKUP_HOUR)
-          .setDefaultValue("4")
-          .setDescription("Default hour for writing master metadata backups. "
-              + "This hour is based on 24-hour clock. E.g., at 10:04:15.250 PM the hour is 22."
-              + "Backing up metadata requires a pause in master metadata changes, "
-              + "so set this value to a off-peak hour "
+  public static final PropertyKey MASTER_DAILY_BACKUP_ENABLED =
+      new Builder(Name.MASTER_DAILY_BACKUP_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("Whether or not to enable the daily primary master"
+              + "metadata backup")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_DAILY_BACKUP_TIME =
+      new Builder(Name.MASTER_DAILY_BACKUP_TIME)
+          .setDefaultValue("5:30")
+          .setDescription("Default time for writing master metadata backups everyday. "
+              + "This time is based on 24-hour clock (E.g., at 10:04:15.250 PM the time is 22:04) "
+              + "and UTC time zone. Backing up metadata requires a pause "
+              + "in master metadata changes, so please set this value to a off-peak time "
               + "to avoid interfering with other users of the system.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
@@ -3523,8 +3531,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.cluster.metrics.update.interval";
     public static final String MASTER_CONNECTION_TIMEOUT_MS =
         "alluxio.master.connection.timeout";
-    public static final String MASTER_DAILY_BACKUP_HOUR =
-        "alluxio.master.daily.backup.hour";
+    public static final String MASTER_DAILY_BACKUP_ENABLED =
+        "alluxio.master.daily.backup.enabled";
+    public static final String MASTER_DAILY_BACKUP_TIME =
+        "alluxio.master.daily.backup.time";
     public static final String MASTER_FILE_ASYNC_PERSIST_HANDLER =
         "alluxio.master.file.async.persist.handler";
     public static final String MASTER_FORMAT_FILE_PREFIX = "alluxio.master.format.file_prefix";
