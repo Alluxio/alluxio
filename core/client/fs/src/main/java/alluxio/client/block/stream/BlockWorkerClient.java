@@ -58,13 +58,23 @@ public class BlockWorkerClient implements Closeable {
   private BlockWorkerGrpc.BlockWorkerBlockingStub mBlockingStub;
   private BlockWorkerGrpc.BlockWorkerStub mAsyncStub;
 
+  /**
+   * Builder for the block worker client.
+   */
   public static class Builder {
     private final GrpcChannelBuilder mChannelBuilder;
 
+    /**
+     * Creates a {@link Builder} for {@link BlockWorkerClient}.
+     * @param channelBuilder a gRPC channel builder
+     */
     public Builder(GrpcChannelBuilder channelBuilder) {
       mChannelBuilder = channelBuilder;
     }
 
+    /**
+     * @return a new {@link BlockWorkerClient}
+     */
     public BlockWorkerClient build() {
       return new BlockWorkerClient(mChannelBuilder.build());
     }
@@ -90,7 +100,8 @@ public class BlockWorkerClient implements Closeable {
   }
 
   /**
-   * Creates a client instance for communicating with block worker
+   * Creates a client instance for communicating with block worker.
+   *
    * @param channel the gRPC channel
    */
   public BlockWorkerClient(GrpcChannel channel) {
@@ -99,9 +110,12 @@ public class BlockWorkerClient implements Closeable {
     mAsyncStub = BlockWorkerGrpc.newStub(mChannel);
   }
 
-  public boolean isHealthy() {
+  /**
+   * @return whether the client is shutdown
+   */
+  public boolean isShutdown() {
     ConnectivityState state = mChannel.getState(false);
-    return state != ConnectivityState.SHUTDOWN;
+    return state == ConnectivityState.SHUTDOWN;
   }
 
   @Override
@@ -111,7 +125,7 @@ public class BlockWorkerClient implements Closeable {
       if (!mChannel.awaitTermination(
           Configuration.getMs(PropertyKey.WORKER_NETWORK_NETTY_SHUTDOWN_TIMEOUT),
           TimeUnit.MILLISECONDS)) {
-         LOGGER.warn("Failed to close gRPC channel for block worker.");
+        LOGGER.warn("Failed to close gRPC channel for block worker.");
       }
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
@@ -119,10 +133,22 @@ public class BlockWorkerClient implements Closeable {
     }
   }
 
+  /**
+   * Writes a block to the worker.
+   *
+   * @param responseObserver the stream observer for the server response
+   * @return the stream observer for the client request
+   */
   public StreamObserver<WriteRequest> writeBlock(StreamObserver<WriteResponse> responseObserver) {
     return mAsyncStub.writeBlock(responseObserver);
   }
 
+  /**
+   * Reads a block from the worker.
+   *
+   * @param request the read request
+   * @return the streamed response from server
+   */
   public Iterator<ReadResponse> readBlock(final ReadRequest request) {
     return mBlockingStub.readBlock(request);
   }

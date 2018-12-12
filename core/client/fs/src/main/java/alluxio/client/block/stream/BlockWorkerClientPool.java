@@ -11,6 +11,12 @@
 
 package alluxio.client.block.stream;
 
+import alluxio.Configuration;
+import alluxio.PropertyKey;
+import alluxio.resource.ResourcePool;
+
+import com.google.common.io.Closer;
+
 import java.io.IOException;
 import java.net.SocketAddress;
 import java.util.Queue;
@@ -18,12 +24,6 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 import javax.annotation.concurrent.ThreadSafe;
 import javax.security.auth.Subject;
-
-import com.google.common.io.Closer;
-
-import alluxio.Configuration;
-import alluxio.PropertyKey;
-import alluxio.resource.ResourcePool;
 
 /**
  * Class for managing block worker clients. After obtaining a client with

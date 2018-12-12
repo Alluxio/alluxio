@@ -413,7 +413,8 @@ public final class FileSystemContext implements Closeable {
    * @param workerNetAddress the address of the channel
    * @param client the client to release
    */
-  public void releaseBlockWorkerClient(WorkerNetAddress workerNetAddress, BlockWorkerClient client) {
+  public void releaseBlockWorkerClient(WorkerNetAddress workerNetAddress,
+      BlockWorkerClient client) {
     SocketAddress address = NetworkAddressUtils.getDataPortSocketAddress(workerNetAddress);
     ClientPoolKey key =
         new ClientPoolKey(address, TransportProviderUtils.getImpersonationUser(mParentSubject));

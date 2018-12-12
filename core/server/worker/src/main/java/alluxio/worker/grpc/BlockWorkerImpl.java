@@ -29,6 +29,11 @@ public class BlockWorkerImpl extends BlockWorkerGrpc.BlockWorkerImplBase {
   private static final Logger LOG = LoggerFactory.getLogger(BlockWorkerImpl.class);
   private WorkerProcess mWorkerProcess;
 
+  /**
+   * Creates a new implementation of gRPC BlockWorker interface.
+   *
+   * @param workerProcess the worker process
+   */
   public BlockWorkerImpl(WorkerProcess workerProcess) {
     mWorkerProcess = workerProcess;
   }
@@ -39,15 +44,18 @@ public class BlockWorkerImpl extends BlockWorkerGrpc.BlockWorkerImplBase {
   }
 
   @Override
-  public StreamObserver<alluxio.grpc.WriteRequest> writeBlock(final StreamObserver<WriteResponse> responseObserver) {
+  public StreamObserver<alluxio.grpc.WriteRequest> writeBlock(
+      final StreamObserver<WriteResponse> responseObserver) {
     // TODO(feng): Implements writeBlock
     return new StreamObserver<alluxio.grpc.WriteRequest>() {
       @Override
       public void onNext(WriteRequest request) {
       }
+
       @Override
       public void onError(Throwable t) {
       }
+
       @Override
       public void onCompleted() {
       }
