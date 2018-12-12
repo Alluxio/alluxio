@@ -66,9 +66,9 @@ public final class GrpcChannel extends Channel {
   }
 
   /**
-   * return the state of the connection
+   * Return the state of the connection.
    * @param requestConnection if set to true, the channel will establish a new connection if it is
-   *                          not currently connected.
+   *                          not currently connected
    * @return the state of the connection
    */
   public ConnectivityState getState(boolean requestConnection) {

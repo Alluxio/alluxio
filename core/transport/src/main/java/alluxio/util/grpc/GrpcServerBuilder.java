@@ -13,6 +13,7 @@ package alluxio.util.grpc;
 
 import io.grpc.BindableService;
 import io.grpc.netty.NettyServerBuilder;
+import io.netty.channel.EventLoopGroup;
 import io.netty.channel.ServerChannel;
 
 import java.net.SocketAddress;
@@ -85,11 +86,34 @@ public class GrpcServerBuilder {
 
   /**
    * Sets the netty channel type.
+   *
    * @param channelType the netty channel type for the server
    * @return an updated instance of this {@link GrpcServerBuilder}
    */
   public GrpcServerBuilder channelType(Class<? extends ServerChannel> channelType) {
     mNettyServerBuilder = mNettyServerBuilder.channelType(channelType);
+    return this;
+  }
+
+  /**
+   * Sets the boss {@link EventLoopGroup}.
+   *
+   * @param bossGroup the boss event loop group
+   * @return an updated instance of this {@link GrpcServerBuilder}
+   */
+  public GrpcServerBuilder bossEventLoopGroup(EventLoopGroup bossGroup) {
+    mNettyServerBuilder = mNettyServerBuilder.bossEventLoopGroup(bossGroup);
+    return this;
+  }
+
+  /**
+   * Sets the worker {@link EventLoopGroup}.
+   *
+   * @param workerGroup the worker event loop[ group
+   * @return an updated instance of this {@link GrpcServerBuilder}
+   */
+  public GrpcServerBuilder workerEventLoopGroup(EventLoopGroup workerGroup) {
+    mNettyServerBuilder = mNettyServerBuilder.workerEventLoopGroup(workerGroup);
     return this;
   }
 

@@ -14,6 +14,8 @@ package alluxio.util.grpc;
 import io.grpc.Server;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -44,7 +46,6 @@ public class GrpcServer {
     return this;
   }
 
-
   /**
    * Start shutdown server and reject new requests.
    */
@@ -53,13 +54,15 @@ public class GrpcServer {
   }
 
   /**
-   * Wait for server to be terminted or until timeout is reached.
+   * Wait for server to be terminated or until timeout is reached.
+   *
    * @param timeout the maximum amount of time to wait until giving up
    * @param unit time unit for the timeout
+   * @return whether the server is terminated
    * @throws InterruptedException
    */
-  public void awaitTermination(long timeout, TimeUnit unit) throws InterruptedException {
-    mServer.awaitTermination(timeout, unit);
+  public boolean awaitTermination(long timeout, TimeUnit unit) throws InterruptedException {
+    return mServer.awaitTermination(timeout, unit);
   }
 
   /**
@@ -67,5 +70,15 @@ public class GrpcServer {
    */
   public boolean isShutdown() {
     return mServer.isShutdown();
+  }
+
+
+  /**
+   * @return the address the server is bound to, or null if the server is not bound to an inet
+   *         socket address
+   */
+  public SocketAddress getBindAddress() {
+    int port = mServer.getPort();
+    return port >= 0 ? new InetSocketAddress(mServer.getPort()) : null;
   }
 }

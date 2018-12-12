@@ -14,6 +14,7 @@ package alluxio.util.grpc;
 import io.grpc.internal.DnsNameResolverProvider;
 import io.grpc.netty.NettyChannelBuilder;
 import io.netty.channel.Channel;
+import io.netty.channel.EventLoopGroup;
 
 import java.net.SocketAddress;
 import java.util.concurrent.TimeUnit;
@@ -66,6 +67,9 @@ public final class GrpcChannelBuilder {
 
   /**
    * Sets the time waiting for read activity after sending a keepalive ping.
+   *
+   * @param keepAliveTimeout the timeout for waiting after keepalive ping
+   * @param timeUnit the time unit for the keepalive timeout
    */
   public GrpcChannelBuilder keepAliveTimeout(long keepAliveTimeout, TimeUnit timeUnit) {
     mNettyChannelBuilder = mNettyChannelBuilder.keepAliveTimeout(keepAliveTimeout, timeUnit);
@@ -74,6 +78,9 @@ public final class GrpcChannelBuilder {
 
   /**
    * Sets the maximum message size allowed for a single gRPC frame.
+   *
+   * @param max the maximum inbound message size in bytes
+   * @return a new instance of {@link GrpcChannelBuilder}
    */
   public GrpcChannelBuilder maxInboundMessageSize(int max) {
     mNettyChannelBuilder = mNettyChannelBuilder.maxInboundMessageSize(max);
@@ -81,15 +88,35 @@ public final class GrpcChannelBuilder {
   }
 
   /**
-   * Sets the flow control window in bytes.
+   * Sets the flow control window.
+   *
+   * @param flowControlWindow the flow control window in bytes
+   * @return a new instance of {@link GrpcChannelBuilder}
    */
   public GrpcChannelBuilder flowControlWindow(int flowControlWindow) {
     mNettyChannelBuilder = mNettyChannelBuilder.flowControlWindow(flowControlWindow);
     return this;
   }
 
+  /**
+   * Sets the channel type.
+   *
+   * @param channelType the channel type
+   * @return a new instance of {@link GrpcChannelBuilder}
+   */
   public GrpcChannelBuilder channelType(Class<? extends Channel> channelType) {
     mNettyChannelBuilder = mNettyChannelBuilder.channelType(channelType);
+    return this;
+  }
+
+  /**
+   * Sets the event loop group.
+   *
+   * @param group the event loop group
+   * @return a new instance of {@link GrpcChannelBuilder}
+   */
+  public GrpcChannelBuilder group(EventLoopGroup group) {
+    mNettyChannelBuilder = mNettyChannelBuilder.eventLoopGroup(group);
     return this;
   }
 
