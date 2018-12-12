@@ -94,10 +94,10 @@ public class DefaultAsyncPersistHandlerTest {
   }
 
   /**
-   * Tests persistence after deletion of files
+   * Tests persistence after deletion of files.
    */
   @Test
-  public void persistenceFilefterDeletion() throws Exception {
+  public void persistenceFileAfterDeletion() throws Exception {
     DefaultAsyncPersistHandler handler =
         new DefaultAsyncPersistHandler(new FileSystemMasterView(mFileSystemMaster));
     AlluxioURI path = new AlluxioURI("/test");
