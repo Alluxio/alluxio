@@ -30,13 +30,13 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.BlockingQueue;
+import java.util.Queue;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -47,12 +47,13 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class PersistCommand extends AbstractFileSystemCommand {
   private static final Logger LOG = LoggerFactory.getLogger(PersistCommand.class);
+  private static final int DEFAULT_PARALLELISM = 4;
   private static final Option PARALLELISM_OPTION =
       Option.builder("p")
           .longOpt("parallelism")
           .argName("# threads")
           .numberOfArgs(1)
-          .desc("Number of concurrent persist operations.")
+          .desc("Number of concurrent persist operations, default: " + DEFAULT_PARALLELISM)
           .required(false)
           .build();
 
@@ -90,29 +91,42 @@ public final class PersistCommand extends AbstractFileSystemCommand {
 
   @Override
   public int run(CommandLine cl) throws AlluxioException, IOException {
-    int parallelism = 4;
+    // Parse arguments.
+    int parallelism = DEFAULT_PARALLELISM;
     if (cl.hasOption(PARALLELISM_OPTION.getLongOpt())) {
       String parellismOption = cl.getOptionValue(PARALLELISM_OPTION.getLongOpt());
       parallelism = Integer.parseInt(parellismOption);
     }
     String[] args = cl.getArgs();
+
+    // Gather files to persist and enqueue them.
     List<AlluxioURI> candidateUris = new ArrayList<>();
     for (String path : args) {
       candidateUris.addAll(FileSystemShellUtils.getAlluxioURIs(mFileSystem, new AlluxioURI(path)));
     }
-    final BlockingQueue<AlluxioURI> toPersist = new LinkedBlockingQueue<>();
+    final Queue<AlluxioURI> toPersist = new ConcurrentLinkedQueue<>();
     for (AlluxioURI uri : candidateUris) {
-      queuePersist(mFileSystem.getStatus(uri), toPersist);
+      queueNonPersistedRecursive(mFileSystem.getStatus(uri), toPersist);
     }
-    System.out.println("Found " + toPersist.size() + " files to persist.");
+    int totalFiles = toPersist.size();
+    System.out.println("Found " + totalFiles + " files to persist.");
+    if (totalFiles == 0) {
+      return 0;
+    }
+
+    // Launch persist tasks in parallel.
+    parallelism = Math.min(totalFiles, parallelism);
     ExecutorService service =
         Executors.newFixedThreadPool(parallelism, ThreadFactoryUtils.build("persist-cli-%d", true));
     final Object progressLock = new Object();
     AtomicInteger completedFiles = new AtomicInteger(0);
     List<Future<Void>> futures = new ArrayList<>(parallelism);
     for (int i = 0; i < parallelism; i++) {
-      futures.add(service.submit(new PersistCallable(toPersist, completedFiles, progressLock)));
+      futures.add(service.submit(new PersistCallable(toPersist, totalFiles, completedFiles,
+          progressLock)));
     }
+
+    // Await result.
     try {
       for (Future<Void> future : futures) {
         future.get();
@@ -129,13 +143,13 @@ public final class PersistCommand extends AbstractFileSystemCommand {
     return 0;
   }
 
-  private void queuePersist(URIStatus status, BlockingQueue<AlluxioURI> toPersist)
+  private void queueNonPersistedRecursive(URIStatus status, Queue<AlluxioURI> toPersist)
       throws AlluxioException, IOException {
     AlluxioURI uri = new AlluxioURI(status.getPath());
     if (status.isFolder()) {
       List<URIStatus> statuses = mFileSystem.listStatus(uri);
       for (URIStatus s : statuses) {
-        queuePersist(s, toPersist);
+        queueNonPersistedRecursive(s, toPersist);
       }
     } else if (!status.isPersisted()) {
       toPersist.add(uri);
@@ -146,21 +160,22 @@ public final class PersistCommand extends AbstractFileSystemCommand {
    * Thread that polls a persist queue and persists files.
    */
   private class PersistCallable implements Callable<Void> {
-    private final BlockingQueue<AlluxioURI> mToPersist;
+    private final Queue<AlluxioURI> mFilesToPersist;
     private final int mTotalFiles;
     private final Object mProgressLock;
     private final AtomicInteger mCompletedFiles;
 
-    PersistCallable(BlockingQueue<AlluxioURI> toPersist, AtomicInteger count, Object progressLock) {
-      mToPersist = toPersist;
-      mTotalFiles = toPersist.size();
+    PersistCallable(Queue<AlluxioURI> toPersist, int totalFiles, AtomicInteger completedFiles,
+        Object progressLock) {
+      mFilesToPersist = toPersist;
+      mTotalFiles = totalFiles;
       mProgressLock = progressLock;
-      mCompletedFiles = count;
+      mCompletedFiles = completedFiles;
     }
 
     @Override
     public Void call() throws Exception {
-      AlluxioURI toPersist = mToPersist.poll();
+      AlluxioURI toPersist = mFilesToPersist.poll();
       while (toPersist != null) {
         try {
           FileSystemUtils.persistFile(mFileSystem, toPersist);
@@ -175,7 +190,7 @@ public final class PersistCommand extends AbstractFileSystemCommand {
           System.out.println("Failed to persist file " + toPersist);
           LOG.error("Failed to persist file {}", toPersist, e);
         }
-        toPersist = mToPersist.poll();
+        toPersist = mFilesToPersist.poll();
       }
       return null;
     }

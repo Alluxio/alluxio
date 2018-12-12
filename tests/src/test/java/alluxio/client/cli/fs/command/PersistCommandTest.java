@@ -31,6 +31,9 @@ import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.Test;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Tests for persist command.
  */
@@ -194,22 +197,82 @@ public final class PersistCommandTest extends AbstractFileSystemShellTest {
   }
 
   @Test
-  public void persistParallel() throws Exception {
-    String filePath1 = "/testPersist1/parallel1";
-    String filePath2 = "/testPersist2/parallel2";
-    String filePath3 = "/testPersist2/parallel3";
-    FileSystemTestUtils.createByteFile(mFileSystem, filePath1, WriteType.MUST_CACHE, 30);
-    FileSystemTestUtils.createByteFile(mFileSystem, filePath2, WriteType.MUST_CACHE, 30);
+  public void persistRecursive() throws Exception {
+    String filePath1 = "/testPersistRecursive/testFile1";
+    String filePath2 = "/testPersistRecursive/testDir1/testFile2";
+    String filePath3 = "/testPersistRecursive/testDir1/testDir2/testFile3";
+    FileSystemTestUtils.createByteFile(mFileSystem, filePath1, WriteType.MUST_CACHE, 10);
+    FileSystemTestUtils.createByteFile(mFileSystem, filePath2, WriteType.MUST_CACHE, 20);
     FileSystemTestUtils.createByteFile(mFileSystem, filePath3, WriteType.MUST_CACHE, 30);
 
     Assert.assertFalse(mFileSystem.getStatus(new AlluxioURI(filePath1)).isPersisted());
     Assert.assertFalse(mFileSystem.getStatus(new AlluxioURI(filePath2)).isPersisted());
     Assert.assertFalse(mFileSystem.getStatus(new AlluxioURI(filePath3)).isPersisted());
 
-    int ret = mFsShell.run("persist", "--parallelism", "3", "/*/parallel*");
+    int ret = mFsShell.run("persist", "/testPersistRecursive");
     Assert.assertEquals(0, ret);
-    checkFilePersisted(new AlluxioURI(filePath1), 30);
-    checkFilePersisted(new AlluxioURI(filePath2), 30);
+    checkFilePersisted(new AlluxioURI(filePath1), 10);
+    checkFilePersisted(new AlluxioURI(filePath2), 20);
     checkFilePersisted(new AlluxioURI(filePath3), 30);
+  }
+
+  @Test
+  public void persistPartial() throws Exception {
+    String filePath1 = "/testPersistPartial/testFile1";
+    String filePath2 = "/testPersistPartial/testFile2";
+    String filePath3 = "/testPersistPartial/testFile3";
+    FileSystemTestUtils.createByteFile(mFileSystem, filePath1, WriteType.MUST_CACHE, 10);
+    FileSystemTestUtils.createByteFile(mFileSystem, filePath2, WriteType.MUST_CACHE, 20);
+    FileSystemTestUtils.createByteFile(mFileSystem, filePath3, WriteType.MUST_CACHE, 30);
+
+    Assert.assertFalse(mFileSystem.getStatus(new AlluxioURI(filePath1)).isPersisted());
+    Assert.assertFalse(mFileSystem.getStatus(new AlluxioURI(filePath2)).isPersisted());
+    Assert.assertFalse(mFileSystem.getStatus(new AlluxioURI(filePath3)).isPersisted());
+
+    // Persist testFile1 first.
+    int ret = mFsShell.run("persist", "/testPersistPartial/testFile1");
+    Assert.assertEquals(0, ret);
+    checkFilePersisted(new AlluxioURI(filePath1), 10);
+    Assert.assertFalse(mFileSystem.getStatus(new AlluxioURI(filePath2)).isPersisted());
+    Assert.assertFalse(mFileSystem.getStatus(new AlluxioURI(filePath3)).isPersisted());
+
+    // Persist entire directory.
+    ret = mFsShell.run("persist", "/testPersistPartial");
+    Assert.assertEquals(0, ret);
+    checkFilePersisted(new AlluxioURI(filePath1), 10);
+    checkFilePersisted(new AlluxioURI(filePath2), 20);
+    checkFilePersisted(new AlluxioURI(filePath3), 30);
+  }
+
+  @Test
+  public void persistParallelFilesEqParallelism() throws Exception {
+    persistParallel(10, 10);
+  }
+
+  @Test
+  public void persistParallelFilesLtParallelism() throws Exception {
+    persistParallel(10, 100);
+  }
+
+  @Test
+  public void persistParallelFilesGtParallelism() throws Exception {
+    persistParallel(2, 1);
+  }
+
+  public void persistParallel(int totalFiles, int parallelism) throws Exception {
+    int fileSize = 30;
+    List<AlluxioURI> files = new ArrayList<>(totalFiles);
+    for (int i = 0; i < totalFiles; i++) {
+      String path = "/testPersistParallel/" + i;
+      files.add(new AlluxioURI(path));
+      FileSystemTestUtils.createByteFile(mFileSystem, path, WriteType.MUST_CACHE, fileSize);
+      Assert.assertFalse(mFileSystem.getStatus(files.get(i)).isPersisted());
+    }
+
+    int ret = mFsShell.run("persist", "--parallelism", String.valueOf(parallelism), "/*");
+    Assert.assertEquals(0, ret);
+    for (AlluxioURI file : files) {
+      checkFilePersisted(file, fileSize);
+    }
   }
 }
