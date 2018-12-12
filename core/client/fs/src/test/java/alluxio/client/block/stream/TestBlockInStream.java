@@ -77,7 +77,7 @@ public class TestBlockInStream extends BlockInStream {
     /**
      * Creates an instance of {@link LocalFilePacketReader.Factory}.
      *
-     * @param data the data to awaitTermination
+     * @param data the data to serve
      */
     public Factory(byte[] data, boolean shortCircuit) {
       mData = data;

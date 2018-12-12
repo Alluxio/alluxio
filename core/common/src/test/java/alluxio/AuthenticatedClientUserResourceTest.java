@@ -22,7 +22,7 @@ import org.junit.Test;
 /**
  * Unit tests for {@link AuthenticatedClientUserResource}.
  */
-public final class AuthenticatedClientInfoUserResourceTest {
+public final class AuthenticatedClientUserResourceTest {
   private static final String TESTCASE_USER = "userA";
   private static final String ORIGINAL_USER = "alluxio";
 

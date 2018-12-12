@@ -21,7 +21,7 @@ import javax.annotation.Nullable;
 
 /**
  * <p>
- * Interface for determining the Alluxio worker location to awaitTermination a block write or UFS block read.
+ * Interface for determining the Alluxio worker location to serve a block write or UFS block read.
  * </p>
  *
  * <p>

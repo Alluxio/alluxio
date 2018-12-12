@@ -96,7 +96,7 @@ public final class TransportProviderTest {
   }
 
   /**
-   * In SIMPLE mode, the TTransport mechanism is PLAIN. When server create the connected
+   * In SIMPLE mode, the TTransport mechanism is PLAIN. When server authenticate the connected
    * client user, it use {@link SimpleAuthenticationProvider}.
    */
   @Test
@@ -173,7 +173,7 @@ public final class TransportProviderTest {
 
   /**
    * In SIMPLE mode, if client's password is empty, an exception should be thrown in server side.
-   * Although password is actually not used and we do not really create the user in SIMPLE
+   * Although password is actually not used and we do not really authenticate the user in SIMPLE
    * mode, we need the Plain SASL server has ability to check empty password.
    */
   @Test
@@ -198,7 +198,7 @@ public final class TransportProviderTest {
   }
 
   /**
-   * In CUSTOM mode, the TTransport mechanism is PLAIN. When server create the connected
+   * In CUSTOM mode, the TTransport mechanism is PLAIN. When server authenticate the connected
    * client user, it use configured AuthenticationProvider. If the username:password pair matches, a
    * connection should be built.
    */

@@ -37,7 +37,7 @@ import javax.annotation.Nullable;
 
 /**
  * PollingMasterInquireClient finds the address of the primary master by polling a list of master
- * addresses to see if their RPC servers are serving. This works because only primary masters awaitTermination
+ * addresses to see if their RPC servers are serving. This works because only primary masters serve
  * RPCs.
  */
 public class PollingMasterInquireClient implements MasterInquireClient {

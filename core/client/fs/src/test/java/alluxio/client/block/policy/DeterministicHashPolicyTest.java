@@ -102,7 +102,7 @@ public final class DeterministicHashPolicyTest {
           GetWorkerOptions.defaults().setBlockWorkerInfos(mWorkerInfos).setBlockId(1)
               .setBlockSize(2 * (long) Constants.GB)).getHost());
     }
-    // With sufficient traffic, 2 (= #shards) workers should be picked to awaitTermination the block.
+    // With sufficient traffic, 2 (= #shards) workers should be picked to serve the block.
     Assert.assertEquals(2, addresses1.size());
     Assert.assertEquals(2, addresses2.size());
     Assert.assertEquals(addresses1, addresses2);

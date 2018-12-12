@@ -49,10 +49,10 @@ import javax.annotation.concurrent.NotThreadSafe;
 public class AlluxioJobMasterProcess implements JobMasterProcess {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioJobMasterProcess.class);
 
-  /** Maximum number of threads to awaitTermination the rpc server. */
+  /** Maximum number of threads to serve the rpc server. */
   private final int mMaxWorkerThreads;
 
-  /** Minimum number of threads to awaitTermination the rpc server. */
+  /** Minimum number of threads to serve the rpc server. */
   private final int mMinWorkerThreads;
 
   /** The port for the RPC server. */

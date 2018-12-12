@@ -56,10 +56,10 @@ import javax.annotation.concurrent.NotThreadSafe;
 public class AlluxioMasterProcess implements MasterProcess {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioMasterProcess.class);
 
-  /** Maximum number of threads to awaitTermination the rpc server. */
+  /** Maximum number of threads to serve the rpc server. */
   private final int mMaxWorkerThreads;
 
-  /** Minimum number of threads to awaitTermination the rpc server. */
+  /** Minimum number of threads to serve the rpc server. */
   private final int mMinWorkerThreads;
 
   /** The port for the RPC server. */
@@ -389,7 +389,7 @@ public class AlluxioMasterProcess implements MasterProcess {
   }
 
   /**
-   * Stops serving, trying shutdown RPC server and web ui server and letting {@link MetricsSystem} shutdown
+   * Stops serving, trying stop RPC server and web ui server and letting {@link MetricsSystem} stop
    * all the sinks.
    */
   protected void stopServing() throws Exception {

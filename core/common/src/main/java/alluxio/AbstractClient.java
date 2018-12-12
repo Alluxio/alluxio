@@ -157,7 +157,7 @@ public abstract class AbstractClient implements Client {
   }
 
   /**
-   * This method is called after the connection is made to the remote. Implementations should authenticate
+   * This method is called after the connection is made to the remote. Implementations should create
    * internal state to finish the connection process.
    */
   protected void afterConnect() throws IOException {

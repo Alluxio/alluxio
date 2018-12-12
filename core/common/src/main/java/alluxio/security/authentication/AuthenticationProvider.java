@@ -51,8 +51,8 @@ public interface AuthenticationProvider {
   }
 
   /**
-   * The create method is called by the {@link PlainSaslServerCallbackHandler} in
-   * the {@link PlainSaslServer} layer to create users for their requests. If a user is to be
+   * The authenticate method is called by the {@link PlainSaslServerCallbackHandler} in
+   * the {@link PlainSaslServer} layer to authenticate users for their requests. If a user is to be
    * granted, return nothing/throw nothing. When a user is to be disallowed, throw an appropriate
    * {@link AuthenticationException}.
    *

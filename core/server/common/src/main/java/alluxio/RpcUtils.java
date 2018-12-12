@@ -1,7 +1,7 @@
 /*
- * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the "License"). You may not use this work except in compliance with the License, which is
- * available at www.apache.org/licenses/LICENSE-2.0
+ * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0 (the
+ * "License"). You may not use this work except in compliance with the License, which is available
+ * at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
  * either express or implied, as more fully set forth in the License.
@@ -29,32 +29,17 @@ import java.io.IOException;
 /**
  * Utilities for handling server RPC calls.
  *
- * There are three types of RPC calls:
- * 1. RPCs that only throw AlluxioException
- * 2. RPCs that throw AlluxioException and IOException
- * 3. Netty RPCs
+ * There are three types of RPC calls: 1. RPCs that only throw AlluxioException 2. RPCs that throw
+ * AlluxioException and IOException 3. Netty RPCs
  *
- * For each of these, there are two types of methods
- * 1. call(callable) - for internal methods, executes the method without any logging or metrics
- * 2. call(logger, callable, method name, failureOk, method description, arguments...) - for
- * client initiated methods, executes the method with logging and metrics. If failureOk is set,
- * non-fatal errors will only be logged at the DEBUG level and failure metrics will not be
- * recorded.
+ * For each of these, there are two types of methods 1. call(callable) - for internal methods,
+ * executes the method without any logging or metrics 2. call(logger, callable, method name,
+ * failureOk, method description, arguments...) - for client initiated methods, executes the method
+ * with logging and metrics. If failureOk is set, non-fatal errors will only be logged at the DEBUG
+ * level and failure metrics will not be recorded.
  */
 public final class RpcUtils {
-  /**
-   * An interface representing a callable which can only throw Alluxio exceptions.
-   *
-   * @param <T> the return type of the callable
-   */
-  public interface RpcCallable<T> {
-    /**
-     * The RPC implementation.
-     *
-     * @return the return value from the RPC
-     */
-    T call() throws AlluxioException;
-  }
+  private RpcUtils() {} // prevent instantiation
 
   /**
    * Calls the given {@link RpcCallable} and handles any exceptions thrown. No call history or
@@ -137,20 +122,6 @@ public final class RpcUtils {
       MetricsSystem.counter(getQualifiedFailureMetricName(methodName)).inc();
       responseObserver.onError(GrpcExceptionUtils.toGrpcStatusException(new InternalException(e)));
     }
-  }
-
-  /**
-   * An interface representing a callable which can only throw Alluxio or IO exceptions.
-   *
-   * @param <T> the return type of the callable
-   */
-  public interface RpcCallableThrowsIOException<T> {
-    /**
-     * The RPC implementation.
-     *
-     * @return the return value from the RPC
-     */
-    T call() throws AlluxioException, IOException;
   }
 
   /**
@@ -253,27 +224,6 @@ public final class RpcUtils {
   }
 
   /**
-   * An interface representing a netty RPC callable.
-   *
-   * @param <T> the return type of the callable
-   */
-  public interface NettyRpcCallable<T> {
-    /**
-     * The RPC implementation.
-     *
-     * @return the return value from the RPC
-     */
-    T call() throws Exception;
-
-    /**
-     * Handles exception.
-     *
-     * @param throwable the exception
-     */
-    void exceptionCaught(Throwable throwable);
-  }
-
-  /**
    * Handles a netty RPC callable with logging.
    *
    * @param logger the logger to use for this call
@@ -284,8 +234,8 @@ public final class RpcUtils {
    * @param <T> the return type of the callable
    * @return the rpc result
    */
-  public static <T> T nettyRPCAndLog(Logger logger, NettyRpcCallable<T> callable,
-                                     String methodName, String description, Object... args) {
+  public static <T> T nettyRPCAndLog(Logger logger, NettyRpcCallable<T> callable, String methodName,
+      String description, Object... args) {
     // avoid string format for better performance if debug is off
     String debugDesc = logger.isDebugEnabled() ? String.format(description, args) : null;
     try (Timer.Context ctx = MetricsSystem.timer(getQualifiedMetricName(methodName)).time()) {
@@ -294,8 +244,8 @@ public final class RpcUtils {
       logger.debug("Exit (OK): {}: {}", methodName, debugDesc);
       return result;
     } catch (Exception e) {
-      logger
-              .warn("Exit (Error): {}: {}, Error={}", methodName, String.format(description, args), e);
+      logger.warn("Exit (Error): {}: {}, Error={}", methodName, String.format(description, args),
+          e);
       MetricsSystem.counter(getQualifiedFailureMetricName(methodName)).inc();
       callable.exceptionCaught(e);
     }
@@ -324,8 +274,8 @@ public final class RpcUtils {
       responseObserver.onNext(result);
       responseObserver.onCompleted();
     } catch (Exception e) {
-      logger
-          .warn("Exit (Error): {}: {}, Error={}", methodName, String.format(description, args), e);
+      logger.warn("Exit (Error): {}: {}, Error={}", methodName, String.format(description, args),
+          e);
       MetricsSystem.counter(getQualifiedFailureMetricName(methodName)).inc();
       callable.exceptionCaught(e);
     }
@@ -341,11 +291,58 @@ public final class RpcUtils {
 
   private static String getQualifiedMetricNameInternal(String name) {
     User user = AuthenticatedClientUser.getOrNull();
-     if (user != null) {
+    if (user != null) {
       return Metric.getMetricNameWithUserTag(name, user.getName());
-     }
-     return name;
+    }
+    return name;
   }
 
-  private RpcUtils() {} // prevent instantiation
+  /**
+   * An interface representing a callable which can only throw Alluxio exceptions.
+   *
+   * @param <T> the return type of the callable
+   */
+  public interface RpcCallable<T> {
+    /**
+     * The RPC implementation.
+     *
+     * @return the return value from the RPC
+     */
+    T call() throws AlluxioException;
+  }
+
+  /**
+   * An interface representing a callable which can only throw Alluxio or IO exceptions.
+   *
+   * @param <T> the return type of the callable
+   */
+  public interface RpcCallableThrowsIOException<T> {
+    /**
+     * The RPC implementation.
+     *
+     * @return the return value from the RPC
+     */
+    T call() throws AlluxioException, IOException;
+  }
+
+  /**
+   * An interface representing a netty RPC callable.
+   *
+   * @param <T> the return type of the callable
+   */
+  public interface NettyRpcCallable<T> {
+    /**
+     * The RPC implementation.
+     *
+     * @return the return value from the RPC
+     */
+    T call() throws Exception;
+
+    /**
+     * Handles exception.
+     *
+     * @param throwable the exception
+     */
+    void exceptionCaught(Throwable throwable);
+  }
 }

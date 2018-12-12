@@ -74,7 +74,7 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
   /** Server for data requests and responses. */
   private DataServer mDataServer;
 
-  /** If started (i.e. not null), this server is used to awaitTermination local data transfer. */
+  /** If started (i.e. not null), this server is used to serve local data transfer. */
   private DataServer mDomainSocketDataServer;
 
   /** Whether the worker is serving the RPC server. */

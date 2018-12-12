@@ -101,7 +101,7 @@ public class TieredStoreIntegrationTest extends BaseIntegrationTest {
 
     HeartbeatScheduler.execute(HeartbeatContext.WORKER_BLOCK_SYNC);
 
-    // After the delete, the master should no longer awaitTermination the file
+    // After the delete, the master should no longer serve the file
     Assert.assertFalse(mFileSystem.exists(file));
 
     // However, the previous read should still be able to read it as the data still exists
@@ -140,7 +140,7 @@ public class TieredStoreIntegrationTest extends BaseIntegrationTest {
     // Confirm the pin with master
     Assert.assertTrue(mFileSystem.getStatus(file).isPinned());
     // Try to create a file that cannot be stored unless the previous file is evicted, expect an
-    // exception since worker cannot awaitTermination the request
+    // exception since worker cannot serve the request
     mThrown.expect(Exception.class);
     FileSystemTestUtils.createByteFile(mFileSystem, "/test2", WritePType.WRITE_MUST_CACHE,
         MEM_CAPACITY_BYTES);
