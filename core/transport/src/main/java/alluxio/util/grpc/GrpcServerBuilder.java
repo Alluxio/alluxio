@@ -109,7 +109,7 @@ public class GrpcServerBuilder {
   /**
    * Sets the worker {@link EventLoopGroup}.
    *
-   * @param workerGroup the worker event loop[ group
+   * @param workerGroup the worker event loop group
    * @return an updated instance of this {@link GrpcServerBuilder}
    */
   public GrpcServerBuilder workerEventLoopGroup(EventLoopGroup workerGroup) {
