@@ -36,12 +36,14 @@ public final class GrpcChannelBuilder {
   protected String mUserName;
   protected String mPassword;
   protected String mImpersonationUser;
+  protected boolean mAuthenticateChannel;
   protected AuthType mAuthType;
 
   private GrpcChannelBuilder(InetSocketAddress address) {
     mAddress = address;
     mChannelBuilder = NettyChannelBuilder.forAddress(mAddress);
     mUseSubject = true;
+    mAuthenticateChannel = true;
     mAuthType = Configuration.getEnum(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.class);
   }
 
@@ -90,7 +92,7 @@ public final class GrpcChannelBuilder {
    * @return the updated {@link GrpcChannelBuilder} instance
    */
   public GrpcChannelBuilder disableAuthentication() {
-    mAuthType = AuthType.NOSASL;
+    mAuthenticateChannel = false;
     return this;
   }
 
@@ -122,16 +124,19 @@ public final class GrpcChannelBuilder {
    * @return the built {@link GrpcChannel}
    */
   public GrpcChannel build() throws AuthenticationException {
-    // Create channel authenticator based on provided content.
-    ChannelBuilderAuthenticator channelAuthenticator;
-    if (mUseSubject) {
-      channelAuthenticator =
-          new ChannelBuilderAuthenticator(UUID.randomUUID(), mParentSubject, mAddress, mAuthType);
-    } else {
-      channelAuthenticator = new ChannelBuilderAuthenticator(UUID.randomUUID(), mUserName,
-          mPassword, mImpersonationUser, mAddress, mAuthType);
+    if (mAuthenticateChannel) {
+      // Create channel authenticator based on provided content.
+      ChannelBuilderAuthenticator channelAuthenticator;
+      if (mUseSubject) {
+        channelAuthenticator =
+            new ChannelBuilderAuthenticator(UUID.randomUUID(), mParentSubject, mAddress, mAuthType);
+      } else {
+        channelAuthenticator = new ChannelBuilderAuthenticator(UUID.randomUUID(), mUserName,
+            mPassword, mImpersonationUser, mAddress, mAuthType);
+      }
+      mChannelBuilder = channelAuthenticator.authenticate(mChannelBuilder);
     }
     // Create the channel after authentication with the target.
-    return new GrpcChannel(channelAuthenticator.authenticate(mChannelBuilder).build());
+    return new GrpcChannel(mChannelBuilder.build());
   }
 }

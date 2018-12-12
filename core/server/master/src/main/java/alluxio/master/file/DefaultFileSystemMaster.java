@@ -2374,7 +2374,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
                 PathUtils.concatPath(inodePath.getUri(), childStatus.getName()));
             if (mInodeTree.inodePathExists(childURI) && (childStatus.isFile()
                 || context.getOptions().getLoadDescendantType() != LoadDescendantPType.ALL)) {
-              // stop traversing if this is an existing file, or an existing directory without
+              // shutdown traversing if this is an existing file, or an existing directory without
               // loading all descendants.
               continue;
             }

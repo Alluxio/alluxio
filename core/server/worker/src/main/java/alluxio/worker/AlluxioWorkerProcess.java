@@ -320,7 +320,7 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
     TMultiplexedProcessor processor = new TMultiplexedProcessor();
 
     for (Worker worker : mRegistry.getServers()) {
-      //TODO(ggezer) remove thrift from worker process (and everywhere)
+      //TODO(ggezer) remove thrift.
       //registerServices(processor, worker.getServices());
     }
 

@@ -10,6 +10,8 @@ import alluxio.util.SecurityUtils;
 import io.grpc.ServerInterceptor;
 import io.grpc.stub.StreamObserver;
 import net.jcip.annotations.GuardedBy;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.security.sasl.SaslException;
 import javax.security.sasl.SaslServer;
@@ -34,6 +36,8 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 public class DefaultAuthenticationServer
     extends SaslAuthenticationServiceGrpc.SaslAuthenticationServiceImplBase
     implements AuthenticationServer {
+  private static final Logger LOG = LoggerFactory.getLogger(DefaultAuthenticationServer.class);
+
   @GuardedBy("mClientsLock")
   /** List of channels authenticated against this server. */
   protected final Map<UUID, AuthenticatedChannelInfo> mChannels;
@@ -73,6 +77,7 @@ public class DefaultAuthenticationServer
             "Channel: %s already exists in authentication registry.", channelId.toString()));
       }
       mChannels.put(channelId, new AuthenticatedChannelInfo(authorizedUser, saslServer));
+      LOG.debug("Registered new channel:" + channelId);
     }
   }
 
@@ -105,7 +110,7 @@ public class DefaultAuthenticationServer
         try {
           serverToDispose.dispose();
         } catch (SaslException e) {
-          // TODO(ggezer) log.
+          LOG.warn("Failed to dispose sasl client for channel:" + channelId, e);
         }
       }
     }
@@ -117,20 +122,23 @@ public class DefaultAuthenticationServer
    */
   private void cleanupStaleClients() {
     LocalTime cleanupTime = LocalTime.now();
+    LOG.debug("Starting cleanup authentication registry at {}", cleanupTime);
     // Get a list of stale clients under read lock.
-    List<UUID> staleClients = new ArrayList<>();
+    List<UUID> staleChannels = new ArrayList<>();
     try (LockResource clientsLockShared = new LockResource(mClientsLock.readLock())) {
       for (Map.Entry<UUID, AuthenticatedChannelInfo> clientEntry : mChannels.entrySet()) {
         LocalTime lat = clientEntry.getValue().getLastAccessTime();
         if (lat.plusHours(mCleanupIntervalHour).isBefore(cleanupTime)) {
-          staleClients.add(clientEntry.getKey());
+          staleChannels.add(clientEntry.getKey());
         }
       }
     }
     // Unregister stale clients.
-    for (UUID clientId : staleClients) {
+    LOG.debug("Found {} stale channels for cleanup.", staleChannels.size());
+    for (UUID clientId : staleChannels) {
       unregisterChannel(clientId);
     }
+    LOG.debug("Finished state channel cleanup at {}", LocalTime.now());
   }
 
   /**

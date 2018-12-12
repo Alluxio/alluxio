@@ -38,7 +38,7 @@ public class GrpcSecurityTest {
     GrpcChannelBuilder channelBuilder =
         GrpcChannelBuilder.forAddress(getServerConnectAddress(server));
     channelBuilder.build();
-    server.stop();
+    server.shutdown();
   }
 
   @Test
@@ -48,7 +48,7 @@ public class GrpcSecurityTest {
     GrpcChannelBuilder channelBuilder =
         GrpcChannelBuilder.forAddress(getServerConnectAddress(server));
     channelBuilder.build();
-    server.stop();
+    server.shutdown();
   }
 
   @Test
@@ -63,7 +63,7 @@ public class GrpcSecurityTest {
         GrpcChannelBuilder.forAddress(getServerConnectAddress(server));
     channelBuilder.setCredentials(ExactlyMatchAuthenticationProvider.USERNAME,
         ExactlyMatchAuthenticationProvider.PASSWORD, null).build();
-    server.stop();
+    server.shutdown();
   }
 
   @Test
@@ -78,7 +78,7 @@ public class GrpcSecurityTest {
         GrpcChannelBuilder.forAddress(getServerConnectAddress(server));
     mThrown.expect(AuthenticationException.class);
     channelBuilder.setCredentials("fail", "fail", null).build();
-    server.stop();
+    server.shutdown();
   }
 
 
@@ -90,7 +90,7 @@ public class GrpcSecurityTest {
     GrpcChannelBuilder channelBuilder =
         GrpcChannelBuilder.forAddress(getServerConnectAddress(server));
     channelBuilder.disableAuthentication().build();
-    server.stop();
+    server.shutdown();
   }
 
   @Test
@@ -102,7 +102,7 @@ public class GrpcSecurityTest {
         GrpcChannelBuilder.forAddress(getServerConnectAddress(server));
     mThrown.expect(AuthenticationException.class);
     channelBuilder.build();
-    server.stop();
+    server.shutdown();
   }
 
   private InetSocketAddress getServerConnectAddress(GrpcServer server) {

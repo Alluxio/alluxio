@@ -22,7 +22,6 @@ import alluxio.security.authentication.DefaultAuthenticationServer;
 import alluxio.underfs.JobUfsManager;
 import alluxio.underfs.UfsManager;
 import alluxio.util.CommonUtils;
-import alluxio.util.SecurityUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.grpc.GrpcServer;
 import alluxio.grpc.GrpcServerBuilder;
@@ -33,7 +32,6 @@ import alluxio.web.JobMasterWebServer;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import io.grpc.BindableService;
-import io.grpc.ServerInterceptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -281,8 +279,9 @@ public class AlluxioJobMasterProcess implements JobMasterProcess {
       if(mGrpcServer!= null) {
         // Server launched for auto bind.
         // Terminate it.
-        mGrpcServer.stop();
+        mGrpcServer.shutdown();
         mGrpcServer.awaitTermination();
+        mGrpcServer.shutdownNow();
       }
 
       LOG.info("Starting gRPC server on address {}", mRpcBindAddress);
@@ -306,8 +305,9 @@ public class AlluxioJobMasterProcess implements JobMasterProcess {
 
   protected void stopServing() throws Exception {
     if (mGrpcServer != null) {
-      mGrpcServer.stop();
+      mGrpcServer.shutdown();
       mGrpcServer.awaitTermination();
+      mGrpcServer.shutdownNow();
     }
     if (mWebServer != null) {
       mWebServer.stop();

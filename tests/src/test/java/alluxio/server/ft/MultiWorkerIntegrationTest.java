@@ -156,7 +156,7 @@ public final class MultiWorkerIntegrationTest extends BaseIntegrationTest {
 
   private void createFileOnWorker(int total, AlluxioURI filePath, WorkerNetAddress address)
       throws IOException {
-    // TODO(ggezer) Externalize the anonymous class
+    // TODO(ggezer) FileWriteLocationPolicy is not testable anymore.
     /*
     FileSystemTestUtils.createByteFile(mResource.get().getClient(), filePath,
         CreateFileOptions.defaults()

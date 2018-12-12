@@ -3,6 +3,7 @@ package alluxio.security.authentication;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.exception.status.UnauthenticatedException;
+import alluxio.grpc.GrpcChannel;
 import alluxio.grpc.SaslAuthenticationServiceGrpc;
 import alluxio.grpc.SaslMessage;
 import alluxio.util.SecurityUtils;
@@ -10,6 +11,7 @@ import alluxio.grpc.GrpcChannelBuilder;
 import io.grpc.ClientInterceptor;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
+import io.grpc.netty.NettyChannelBuilder;
 import io.grpc.stub.StreamObserver;
 
 import javax.security.auth.Subject;
@@ -27,7 +29,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class ChannelBuilderAuthenticator {
 
-  /** Whether to use mParentSubject as authentication user. */
+  /** Whether to use mnarentSubject as authentication user. */
   protected boolean mUseSubject;
   /** Subject for authentication. */
   protected Subject mParentSubject;
@@ -84,22 +86,23 @@ public class ChannelBuilderAuthenticator {
   }
 
   /**
-   * Authenticates given {@link ManagedChannelBuilder} instance. It attaches required interceptors
+   * Authenticates given {@link NettyChannelBuilder} instance. It attaches required interceptors
    * to the channel based on authentication type.
    *
    * @param channelBuilderToAuthenticate the channel builder for augmentation with interceptors
    * @return channel builder that is authenticated with the target host
    * @throws AuthenticationException
    */
-  public ManagedChannelBuilder authenticate(ManagedChannelBuilder channelBuilderToAuthenticate)
+  public NettyChannelBuilder authenticate(NettyChannelBuilder channelBuilderToAuthenticate)
       throws AuthenticationException {
     if (mAuthType == AuthType.NOSASL) {
       return channelBuilderToAuthenticate;
     }
 
     // Create a channel for talking with target host's authentication service.
-    ManagedChannel authenticationChannel = ManagedChannelBuilder
-        .forAddress(mHostAddress.getHostName(), mHostAddress.getPort()).usePlaintext(true).build();
+    // TODO(ggezer) Consider pooling authentication channels per target.
+    GrpcChannel authenticationChannel = GrpcChannelBuilder.forAddress(mHostAddress)
+        .disableAuthentication().usePlaintext(true).build();
     try {
       // Create SaslClient for authentication based on provided credentials.
       SaslClient saslClient;
@@ -133,13 +136,7 @@ public class ChannelBuilderAuthenticator {
       throw new AuthenticationException(e.getMessage(), e);
     } finally {
       // Close the authentication channel.
-      // TODO(ggezer) Consider pooling authentication channels per target.
       authenticationChannel.shutdown();
-      while (!authenticationChannel.isTerminated())
-        try {
-          authenticationChannel.awaitTermination(1, TimeUnit.SECONDS);
-        } catch (InterruptedException e) {
-        }
     }
   }
 
