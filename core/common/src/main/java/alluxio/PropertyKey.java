@@ -1121,6 +1121,17 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_DAILY_BACKUP_HOUR =
+      new Builder(Name.MASTER_DAILY_BACKUP_HOUR)
+          .setDefaultValue("4")
+          .setDescription("Default hour for writing master metadata backups. "
+              + "This hour is based on 24-hour clock. E.g., at 10:04:15.250 PM the hour is 22."
+              + "Backing up metadata requires a pause in master metadata changes, "
+              + "so set this value to a off-peak hour "
+              + "to avoid interfering with other users of the system.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.MASTER)
+          .build();
   public static final PropertyKey MASTER_FILE_ASYNC_PERSIST_HANDLER =
       new Builder(Name.MASTER_FILE_ASYNC_PERSIST_HANDLER)
           .setDefaultValue("alluxio.master.file.async.DefaultAsyncPersistHandler")
@@ -3512,6 +3523,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.cluster.metrics.update.interval";
     public static final String MASTER_CONNECTION_TIMEOUT_MS =
         "alluxio.master.connection.timeout";
+    public static final String MASTER_DAILY_BACKUP_HOUR =
+        "alluxio.master.daily.backup.hour";
     public static final String MASTER_FILE_ASYNC_PERSIST_HANDLER =
         "alluxio.master.file.async.persist.handler";
     public static final String MASTER_FORMAT_FILE_PREFIX = "alluxio.master.format.file_prefix";

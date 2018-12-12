@@ -29,6 +29,9 @@ import alluxio.master.CoreMaster;
 import alluxio.master.CoreMasterContext;
 import alluxio.master.MasterClientConfig;
 import alluxio.master.block.BlockMaster;
+import alluxio.master.file.FileSystemMaster;
+import alluxio.master.file.options.DeleteOptions;
+import alluxio.master.file.options.ListStatusOptions;
 import alluxio.master.meta.checkconf.ServerConfigurationChecker;
 import alluxio.master.meta.checkconf.ServerConfigurationStore;
 import alluxio.proto.journal.Journal.JournalEntry;
@@ -41,6 +44,7 @@ import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.util.ConfigurationUtils;
+import alluxio.util.FormatUtils;
 import alluxio.util.IdUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.executor.ExecutorServiceFactory;
@@ -52,6 +56,7 @@ import alluxio.wire.BackupOptions;
 import alluxio.wire.BackupResponse;
 import alluxio.wire.ConfigCheckReport;
 import alluxio.wire.ConfigProperty;
+import alluxio.wire.FileInfo;
 import alluxio.wire.GetConfigurationOptions;
 import alluxio.wire.Scope;
 
@@ -64,16 +69,21 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
+import java.text.SimpleDateFormat;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -107,6 +117,8 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
   /** Handle to the block master. */
   private final BlockMaster mBlockMaster;
 
+  private final FileSystemMaster mFileSystemMaster;
+
   /** The clock to use for determining the time. */
   private final Clock mClock = new SystemClock();
 
@@ -138,8 +150,9 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
    * @param blockMaster a block master handle
    * @param masterContext the context for Alluxio master
    */
-  DefaultMetaMaster(BlockMaster blockMaster, CoreMasterContext masterContext) {
-    this(blockMaster, masterContext,
+  DefaultMetaMaster(BlockMaster blockMaster, FileSystemMaster fileSystemMaster,
+      CoreMasterContext masterContext) {
+    this(blockMaster, fileSystemMaster, masterContext,
         ExecutorServiceFactories.cachedThreadPool(Constants.META_MASTER_NAME));
   }
 
@@ -151,13 +164,14 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
    * @param executorServiceFactory a factory for creating the executor service to use for running
    *        maintenance threads
    */
-  DefaultMetaMaster(BlockMaster blockMaster, CoreMasterContext masterContext,
-      ExecutorServiceFactory executorServiceFactory) {
+  DefaultMetaMaster(BlockMaster blockMaster, FileSystemMaster fileSystemMaster,
+      CoreMasterContext masterContext, ExecutorServiceFactory executorServiceFactory) {
     super(masterContext, new SystemClock(), executorServiceFactory);
     mMasterAddress =
         new Address().setHost(Configuration.getOrDefault(PropertyKey.MASTER_HOSTNAME, "localhost"))
             .setRpcPort(mPort);
     mBlockMaster = blockMaster;
+    mFileSystemMaster = fileSystemMaster;
     mBlockMaster.registerLostWorkerFoundListener(mWorkerConfigStore::lostNodeFound);
     mBlockMaster.registerWorkerLostListener(mWorkerConfigStore::handleNodeLost);
     mBlockMaster.registerNewWorkerConfListener(mWorkerConfigStore::registerNewConf);
@@ -215,6 +229,9 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
           new HeartbeatThread(HeartbeatContext.MASTER_LOG_CONFIG_REPORT_SCHEDULING,
           new LogConfigReportHeartbeatExecutor(),
           (int) Configuration.getMs(PropertyKey.MASTER_LOG_CONFIG_REPORT_HEARTBEAT_INTERVAL)));
+      getExecutorService().submit(
+          new HeartbeatThread(HeartbeatContext.MASTER_DAILY_BACKUP,
+              new DailyBackupHeartbeatExecutor(), (int) FormatUtils.parseTimeSize("1h")));
     } else {
       boolean haEnabled = Configuration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED);
       if (haEnabled) {
@@ -448,6 +465,63 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
         mFirst = false;
       } else {
         mConfigChecker.logConfigReport();
+      }
+    }
+
+    @Override
+    public void close() {
+      // Nothing to clean up
+    }
+  }
+
+  /**
+   * Periodically check if we need to take daily master metadata snapshot.
+   */
+  private final class DailyBackupHeartbeatExecutor implements HeartbeatExecutor {
+    private final Pattern mBackupPattern
+        = Pattern.compile("alluxio-backup-([0-9]+-[0-9]+-[0-9]+)-[^.]+.gz");
+    private final SimpleDateFormat mDateFormat = new SimpleDateFormat("yyyy-MM-dd");
+    private Calendar mCalendar = Calendar.getInstance();
+
+    @Override
+    public void heartbeat() {
+      mCalendar.setTime(new Date());
+      int hour = mCalendar.get(Calendar.HOUR_OF_DAY);
+      if (hour != Configuration.getInt(PropertyKey.MASTER_DAILY_BACKUP_HOUR)) {
+        return;
+      }
+      String dir = Configuration.get(PropertyKey.MASTER_BACKUP_DIRECTORY);
+      BackupOptions options = new BackupOptions(dir, false);
+      try {
+        BackupResponse resp = backup(options);
+        AlluxioURI backupUri = resp.getBackupUri();
+        LOG.info("Successfully backed up journal to %s%n", backupUri);
+      } catch (Exception e) {
+        LOG.error("Failed to execute daily backup at {}", dir, e);
+      }
+      try {
+        deleteOutdatedBackups(new AlluxioURI(dir));
+      } catch (Exception e) {
+        LOG.error("Failed to delete outdated backup files", e);
+      }
+    }
+
+    /**
+     * Deletes outdated backup files to avoid consuming too many spaces.
+     *
+     * @param uri the backup directory uri
+     */
+    private void deleteOutdatedBackups(AlluxioURI uri) throws Exception {
+      Date cleanBefore = new Date(new Date().getTime() - FormatUtils.parseTimeSize("3d"));
+      List<FileInfo> statuses = mFileSystemMaster.listStatus(uri, ListStatusOptions.defaults());
+      for (FileInfo status : statuses) {
+        Matcher matcher = mBackupPattern.matcher(status.getName());
+        if (matcher.matches()) {
+          Date fileDate = mDateFormat.parse(matcher.group(1));
+          if (fileDate.before(cleanBefore)) {
+            mFileSystemMaster.delete(new AlluxioURI(status.getPath()), DeleteOptions.defaults());
+          }
+        }
       }
     }
 
