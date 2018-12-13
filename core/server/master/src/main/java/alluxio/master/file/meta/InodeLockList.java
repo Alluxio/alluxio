@@ -276,7 +276,7 @@ public class InodeLockList implements AutoCloseable {
    * the inodes were locked
    */
   // TODO(david): change this API to not return a copy
-  public List<InodeView> getInodes() {
+  public List<InodeView> getLockedInodes() {
     return Lists.newArrayList(mLockedInodes);
   }
 
@@ -312,7 +312,7 @@ public class InodeLockList implements AutoCloseable {
   @Override
   public String toString() {
     String path =
-        getInodes().stream().map(inode -> inode.getName()).collect(Collectors.joining("/"));
+        getLockedInodes().stream().map(inode -> inode.getName()).collect(Collectors.joining("/"));
     return String.format("Locked Inodes: <%s>%n"
         + "Entries: %s%n"
         + "Lock Mode: %s", path, mEntries, mLockMode);

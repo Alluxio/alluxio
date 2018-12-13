@@ -48,7 +48,7 @@ public class InodeLockListTest extends BaseInodeLockingTest {
     assertEquals(mLockList.getLockMode(), LockMode.READ);
     assertTrue(mLockList.endsInInode());
     assertEquals(2, mLockList.numLockedInodes());
-    assertEquals(Arrays.asList(mRootDir, mDirA), mLockList.getInodes());
+    assertEquals(Arrays.asList(mRootDir, mDirA), mLockList.getLockedInodes());
 
     mLockList.lockEdge(mDirB.getName(), LockMode.WRITE);
     assertEquals(mLockList.getLockMode(), LockMode.WRITE);
@@ -64,15 +64,15 @@ public class InodeLockListTest extends BaseInodeLockingTest {
   public void pushWriteLockedEdge() {
     mLockList.lockRootEdge(LockMode.WRITE);
     assertEquals(LockMode.WRITE, mLockList.getLockMode());
-    assertTrue(mLockList.getInodes().isEmpty());
+    assertTrue(mLockList.getLockedInodes().isEmpty());
 
     mLockList.pushWriteLockedEdge(mRootDir, mDirA.getName());
     assertEquals(LockMode.WRITE, mLockList.getLockMode());
-    assertEquals(Arrays.asList(mRootDir), mLockList.getInodes());
+    assertEquals(Arrays.asList(mRootDir), mLockList.getLockedInodes());
 
     mLockList.pushWriteLockedEdge(mDirA, mDirB.getName());
     assertEquals(LockMode.WRITE, mLockList.getLockMode());
-    assertEquals(Arrays.asList(mRootDir, mDirA), mLockList.getInodes());
+    assertEquals(Arrays.asList(mRootDir, mDirA), mLockList.getLockedInodes());
 
     checkOnlyNodesReadLocked(mRootDir, mDirA);
     checkOnlyNodesWriteLocked();
@@ -88,7 +88,7 @@ public class InodeLockListTest extends BaseInodeLockingTest {
     mLockList.lockInode(mDirA, LockMode.WRITE);
 
     mLockList.unlockLastInode();
-    assertEquals(Arrays.asList(mRootDir), mLockList.getInodes());
+    assertEquals(Arrays.asList(mRootDir), mLockList.getLockedInodes());
     assertEquals(LockMode.READ, mLockList.getLockMode());
 
     mLockList.unlockLastEdge();
@@ -97,7 +97,7 @@ public class InodeLockListTest extends BaseInodeLockingTest {
     mLockList.lockEdge(mDirA.getName(), LockMode.READ);
     mLockList.lockInode(mDirA, LockMode.READ);
     mLockList.unlockLastInode();
-    assertEquals(Arrays.asList(mRootDir), mLockList.getInodes());
+    assertEquals(Arrays.asList(mRootDir), mLockList.getLockedInodes());
     assertEquals(LockMode.READ, mLockList.getLockMode());
 
     checkOnlyNodesReadLocked(mRootDir);
@@ -124,7 +124,7 @@ public class InodeLockListTest extends BaseInodeLockingTest {
     assertEquals(LockMode.READ, mLockList.getLockMode());
     mLockList.lockRootEdge(LockMode.READ);
     mLockList.lockInode(mRootDir, LockMode.WRITE);
-    assertEquals(Arrays.asList(mRootDir), mLockList.getInodes());
+    assertEquals(Arrays.asList(mRootDir), mLockList.getLockedInodes());
 
     checkOnlyNodesReadLocked();
     checkOnlyNodesWriteLocked(mRootDir);
@@ -141,12 +141,12 @@ public class InodeLockListTest extends BaseInodeLockingTest {
 
     mLockList.downgradeLastInode();
     assertEquals(LockMode.READ, mLockList.getLockMode());
-    assertEquals(Arrays.asList(mRootDir, mDirA), mLockList.getInodes());
+    assertEquals(Arrays.asList(mRootDir, mDirA), mLockList.getLockedInodes());
 
     mLockList.unlockLastInode();
     mLockList.lockInode(mDirA, LockMode.WRITE);
     assertEquals(LockMode.WRITE, mLockList.getLockMode());
-    assertEquals(Arrays.asList(mRootDir, mDirA), mLockList.getInodes());
+    assertEquals(Arrays.asList(mRootDir, mDirA), mLockList.getLockedInodes());
 
     checkOnlyNodesReadLocked(mRootDir);
     checkOnlyNodesWriteLocked(mDirA);
@@ -160,7 +160,7 @@ public class InodeLockListTest extends BaseInodeLockingTest {
     mLockList.lockInode(mRootDir, LockMode.WRITE);
     mLockList.downgradeLastInode();
     assertEquals(LockMode.READ, mLockList.getLockMode());
-    assertEquals(Arrays.asList(mRootDir), mLockList.getInodes());
+    assertEquals(Arrays.asList(mRootDir), mLockList.getLockedInodes());
 
     checkOnlyNodesReadLocked(mRootDir);
     checkOnlyNodesWriteLocked();
@@ -189,12 +189,12 @@ public class InodeLockListTest extends BaseInodeLockingTest {
   public void downgradeEdgeToInode() {
     mLockList.lockRootEdge(LockMode.WRITE);
     mLockList.downgradeEdgeToInode(mRootDir, LockMode.READ);
-    assertEquals(Arrays.asList(mRootDir), mLockList.getInodes());
+    assertEquals(Arrays.asList(mRootDir), mLockList.getLockedInodes());
     assertEquals(LockMode.READ, mLockList.getLockMode());
 
     mLockList.lockEdge(mDirA.getName(), LockMode.WRITE);
     mLockList.downgradeEdgeToInode(mDirA, LockMode.WRITE);
-    assertEquals(Arrays.asList(mRootDir, mDirA), mLockList.getInodes());
+    assertEquals(Arrays.asList(mRootDir, mDirA), mLockList.getLockedInodes());
     assertEquals(LockMode.WRITE, mLockList.getLockMode());
 
     checkOnlyNodesReadLocked(mRootDir);

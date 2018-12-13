@@ -69,10 +69,10 @@ public class CompositeInodeLockListTest extends BaseInodeLockingTest {
     mBase.lockEdge(mDirA.getName(), LockMode.READ);
     mComposite = new CompositeInodeLockList(mBase);
     assertEquals(LockMode.READ, mComposite.getLockMode());
-    assertEquals(Arrays.asList(mRootDir), mComposite.getInodes());
+    assertEquals(Arrays.asList(mRootDir), mComposite.getLockedInodes());
 
     mComposite.lockInode(mDirA, LockMode.READ);
-    assertEquals(Arrays.asList(mRootDir, mDirA), mComposite.getInodes());
+    assertEquals(Arrays.asList(mRootDir, mDirA), mComposite.getLockedInodes());
     assertEquals(2, mComposite.numLockedInodes());
     assertFalse(mComposite.isEmpty());
     assertEquals(mRootDir, mComposite.get(0));
@@ -93,11 +93,11 @@ public class CompositeInodeLockListTest extends BaseInodeLockingTest {
     mBase.lockInode(mRootDir, LockMode.READ);
     mComposite = new CompositeInodeLockList(mBase);
     assertEquals(LockMode.READ, mComposite.getLockMode());
-    assertEquals(Arrays.asList(mRootDir), mComposite.getInodes());
+    assertEquals(Arrays.asList(mRootDir), mComposite.getLockedInodes());
 
     mComposite.lockEdge(mDirA.getName(), LockMode.READ);
     mComposite.lockInode(mDirA, LockMode.READ);
-    assertEquals(Arrays.asList(mRootDir, mDirA), mComposite.getInodes());
+    assertEquals(Arrays.asList(mRootDir, mDirA), mComposite.getLockedInodes());
     assertEquals(2, mComposite.numLockedInodes());
     assertFalse(mComposite.isEmpty());
     assertEquals(mRootDir, mComposite.get(0));

@@ -37,13 +37,14 @@ import javax.annotation.concurrent.NotThreadSafe;
  *
  * mLockList manages the locks held by the LockedInodePath.
  *
- * The mInodes list holds inodes that are locked and known to exist. The inodes might not be
+ * The mExistingInodes list holds inodes that are locked and known to exist. The inodes might not be
  * individually locked - if one inode is write-locked, the inodes after it are implicitly
- * write-locked and may be added to mInodes. The inodes in mInodes are a prefix of the inodes
- * referenced by mPathComponents.
+ * write-locked and may be added to mExistingInodes. The inodes in mExistingInodes are a prefix of
+ * the inodes referenced by mPathComponents.
  *
- * If the full path exists, mInodes will have size equal to mPathComponents.length after traversal.
- * mInodes is always at least as long as the list of inodes directly locked by mLockList.
+ * If the full path exists, mExistingInodes will have size equal to mPathComponents.length after
+ * traversal. mExistingInodes is always at least as long as the list of inodes directly locked by
+ * mLockList.
  *
  * To create new inode paths from an existing path, use one of the lock*() methods. They return new
  * locked inode paths that can be modified and closed without affecting the original path. Modifying
@@ -53,19 +54,25 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public class LockedInodePath implements Closeable {
-  // Uri for the path represented.
-  protected final AlluxioURI mUri;
-  // The components of mUri.
-  protected final String[] mPathComponents;
-  // The inodes of mUri which currently exist.
-  protected final List<InodeView> mInodes;
-  // Lock list locking some portion of the path according to mLockPattern.
-  protected final InodeLockList mLockList;
-  // The locking pattern.
-  protected LockPattern mLockPattern;
-
-  // The root inode.
+  /** The root inode of the inode tree. */
   private final InodeView mRoot;
+
+  /** Uri for the path represented. */
+  protected final AlluxioURI mUri;
+  /** The components of mUri. */
+  protected final String[] mPathComponents;
+  /**
+   * The inodes of mUri which existed at the time of the last traversal. These inodes are all locked
+   * either explicitly or implicitly by the current thread. An inode is locked implicitly if one of
+   * its ancestor inodes or edges is write-locked.
+   *
+   * This list is always at always least as long as mLockList.getLockedInodes().
+   */
+  protected final List<InodeView> mExistingInodes;
+  /** Lock list locking some portion of the path according to mLockPattern. */
+  protected final InodeLockList mLockList;
+  /** The locking pattern. */
+  protected LockPattern mLockPattern;
 
   /**
    * Creates a new locked inode path.
@@ -79,7 +86,7 @@ public class LockedInodePath implements Closeable {
       LockPattern lockPattern) throws InvalidPathException {
     mUri = uri;
     mPathComponents = PathUtils.getPathComponents(uri.getPath());
-    mInodes = new ArrayList<>();
+    mExistingInodes = new ArrayList<>();
     mLockList = new InodeLockList(inodeLockManager);
     mLockPattern = lockPattern;
     mRoot = root;
@@ -97,7 +104,7 @@ public class LockedInodePath implements Closeable {
 
     mUri = uri;
     mPathComponents = pathComponents;
-    mInodes = new ArrayList<>(existingInodes);
+    mExistingInodes = new ArrayList<>(existingInodes);
     mLockList = new CompositeInodeLockList(lockList);
     mLockPattern = lockPattern;
     mRoot = existingInodes.get(0);
@@ -130,7 +137,7 @@ public class LockedInodePath implements Closeable {
     if (!fullPathExists()) {
       return null;
     }
-    return mInodes.get(mInodes.size() - 1);
+    return mExistingInodes.get(mExistingInodes.size() - 1);
   }
 
   /**
@@ -169,11 +176,11 @@ public class LockedInodePath implements Closeable {
    */
   @Nullable
   public InodeView getParentInodeOrNull() {
-    if (mPathComponents.length < 2 || mInodes.size() < (mPathComponents.length - 1)) {
+    if (mPathComponents.length < 2 || mExistingInodes.size() < (mPathComponents.length - 1)) {
       // The path is only the root, or the list of inodes is not long enough to contain the parent
       return null;
     }
-    return mInodes.get(mPathComponents.length - 2);
+    return mExistingInodes.get(mPathComponents.length - 2);
   }
 
   /**
@@ -181,14 +188,14 @@ public class LockedInodePath implements Closeable {
    *         thread has added or deleted inodes since the last call to traverse()
    */
   public InodeView getLastExistingInode() {
-    return mInodes.get(mInodes.size() - 1);
+    return mExistingInodes.get(mExistingInodes.size() - 1);
   }
 
   /**
    * @return a copy of the list of existing inodes, from the root
    */
   public List<InodeView> getInodeList() {
-    return new ArrayList<>(mInodes);
+    return new ArrayList<>(mExistingInodes);
   }
 
   /**
@@ -196,7 +203,7 @@ public class LockedInodePath implements Closeable {
    *         thread has added or deleted inodes since the last call to traverse()
    */
   public int getExistingInodeCount() {
-    return mInodes.size();
+    return mExistingInodes.size();
   }
 
   /**
@@ -211,7 +218,7 @@ public class LockedInodePath implements Closeable {
    *         the current thread has added or deleted inodes since the last call to traverse()
    */
   public boolean fullPathExists() {
-    return mInodes.size() == mPathComponents.length;
+    return mExistingInodes.size() == mPathComponents.length;
   }
 
   /**
@@ -235,7 +242,7 @@ public class LockedInodePath implements Closeable {
       mLockList.unlockLastInode();
       mLockList.unlockLastEdge();
     }
-    mInodes.remove(mInodes.size() - 1);
+    mExistingInodes.remove(mExistingInodes.size() - 1);
   }
 
   /**
@@ -248,12 +255,12 @@ public class LockedInodePath implements Closeable {
   public void addNextInode(InodeView inode) {
     Preconditions.checkState(mLockPattern == LockPattern.WRITE_EDGE);
     Preconditions.checkState(!fullPathExists());
-    Preconditions.checkState(inode.getName().equals(mPathComponents[mInodes.size()]));
+    Preconditions.checkState(inode.getName().equals(mPathComponents[mExistingInodes.size()]));
 
-    if (!isImplicitlyLocked() && mInodes.size() < mPathComponents.length - 1) {
-      mLockList.pushWriteLockedEdge(inode, mPathComponents[mInodes.size() + 1]);
+    if (!isImplicitlyLocked() && mExistingInodes.size() < mPathComponents.length - 1) {
+      mLockList.pushWriteLockedEdge(inode, mPathComponents[mExistingInodes.size() + 1]);
     }
-    mInodes.add(inode);
+    mExistingInodes.add(inode);
   }
 
   /**
@@ -289,17 +296,17 @@ public class LockedInodePath implements Closeable {
 
   private void downgradeEdgeToInode(LockMode lockMode) {
     if (fullPathExists()) {
-      Preconditions.checkState(mLockList.numLockedInodes() == mInodes.size() - 1);
-      mLockList.downgradeEdgeToInode(Iterables.getLast(mInodes), lockMode);
+      Preconditions.checkState(mLockList.numLockedInodes() == mExistingInodes.size() - 1);
+      mLockList.downgradeEdgeToInode(Iterables.getLast(mExistingInodes), lockMode);
       if (lockMode == LockMode.READ) {
         // Now that we've downgraded from write to read, we can only rely on directly locked inodes
         // to still exist.
-        while (mInodes.size() > mLockList.numLockedInodes()) {
-          mInodes.remove(mInodes.size() - 1);
+        while (mExistingInodes.size() > mLockList.numLockedInodes()) {
+          mExistingInodes.remove(mExistingInodes.size() - 1);
         }
       }
     } else {
-      Preconditions.checkState(mLockList.numLockedInodes() == mInodes.size());
+      Preconditions.checkState(mLockList.numLockedInodes() == mExistingInodes.size());
       mLockList.unlockLastEdge();
     }
   }
@@ -315,8 +322,8 @@ public class LockedInodePath implements Closeable {
     if (ancestorIndex < 0) {
       throw new FileDoesNotExistException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(mUri));
     }
-    ancestorIndex = Math.min(ancestorIndex, mInodes.size() - 1);
-    return mInodes.get(ancestorIndex);
+    ancestorIndex = Math.min(ancestorIndex, mExistingInodes.size() - 1);
+    return mExistingInodes.get(ancestorIndex);
   }
 
   /**
@@ -332,7 +339,8 @@ public class LockedInodePath implements Closeable {
    */
   public LockedInodePath lockDescendant(AlluxioURI descendantUri, LockPattern lockPattern)
       throws InvalidPathException {
-    LockedInodePath path = new LockedInodePath(descendantUri, mInodes, mLockList, lockPattern);
+    LockedInodePath path =
+        new LockedInodePath(descendantUri, mExistingInodes, mLockList, lockPattern);
     path.traverseOrClose();
     return path;
   }
@@ -366,8 +374,8 @@ public class LockedInodePath implements Closeable {
    */
   public LockedInodePath lockChild(InodeView child, LockPattern lockPattern,
       String[] childComponentsHint) throws InvalidPathException {
-    LockedInodePath path = new LockedInodePath(mUri.join(child.getName()), mInodes, mLockList,
-        childComponentsHint, lockPattern);
+    LockedInodePath path = new LockedInodePath(mUri.join(child.getName()), mExistingInodes,
+        mLockList, childComponentsHint, lockPattern);
     path.traverseOrClose();
     return path;
   }
@@ -388,8 +396,8 @@ public class LockedInodePath implements Closeable {
   public LockedInodePath lockFinalEdgeWrite() throws InvalidPathException {
     Preconditions.checkState(!fullPathExists());
 
-    LockedInodePath newPath =
-        new LockedInodePath(mUri, mInodes, mLockList, mPathComponents, LockPattern.WRITE_EDGE);
+    LockedInodePath newPath = new LockedInodePath(mUri, mExistingInodes, mLockList, mPathComponents,
+        LockPattern.WRITE_EDGE);
     newPath.traverse();
     return newPath;
   }
@@ -409,8 +417,8 @@ public class LockedInodePath implements Closeable {
    * ends in a write lock, traverse will populate the inodes list without taking any additional
    * locks.
    *
-   * On return, all existing inodes in the path are added to mInodes and the inodes are locked
-   * according to to {@link LockPattern}.
+   * On return, all existing inodes in the path are added to mExistingInodes and the inodes are
+   * locked according to to {@link LockPattern}.
    */
   public void traverse() throws InvalidPathException {
     if (mLockList.getLockMode() == LockMode.WRITE) {
@@ -423,7 +431,7 @@ public class LockedInodePath implements Closeable {
 
     // Each iteration either locks a new inode/edge or hits a missing inode and returns.
     while (!fullPathExists()) {
-      int lastInodeIndex = mLockList.getInodes().size() - 1;
+      int lastInodeIndex = mLockList.getLockedInodes().size() - 1;
       String nextComponent = mPathComponents[lastInodeIndex + 1];
       boolean isFinalComponent = lastInodeIndex == mPathComponents.length - 2;
 
@@ -434,10 +442,11 @@ public class LockedInodePath implements Closeable {
           mLockList.lockEdge(nextComponent, LockMode.READ);
         }
       } else { // Lock an inode next.
-        InodeView lastInode = mLockList.getInodes().get(lastInodeIndex);
+        InodeView lastInode = mLockList.getLockedInodes().get(lastInodeIndex);
         if (!lastInode.isDirectory()) {
-          throw new InvalidPathException("Traversal failed. Component " + lastInodeIndex + "("
-              + lastInode.getName() + ") is a file");
+          throw new InvalidPathException(String.format(
+              "Traversal failed for path %s. Component %s(%s) is a file, not a directory.", mUri,
+              lastInodeIndex, lastInode.getName()));
         }
         InodeView nextInode = lastInode.asDirectory().getChild(nextComponent);
         if (nextInode == null && mLockPattern == LockPattern.WRITE_EDGE && !isFinalComponent) {
@@ -466,18 +475,18 @@ public class LockedInodePath implements Closeable {
           } else if (mLockPattern == LockPattern.WRITE_INODE) {
             mLockList.lockInode(nextInode, LockMode.WRITE);
           } else if (mLockPattern == LockPattern.WRITE_EDGE) {
-            if (mLockList.numLockedInodes() == mInodes.size()) {
+            if (mLockList.numLockedInodes() == mExistingInodes.size()) {
               // Add the final inode, which is not locked but does exist.
-              mInodes.add(nextInode);
+              mExistingInodes.add(nextInode);
             }
           }
         } else {
           mLockList.lockInode(nextInode, LockMode.READ);
         }
 
-        // If mInodes.size() >= mLockList.numLockedInodes(), mInodes must already contain nextInode.
-        if (mLockList.numLockedInodes() > mInodes.size()) {
-          mInodes.add(nextInode);
+        // Avoid adding the inode if it is already in mExistingInodes.
+        if (mLockList.numLockedInodes() > mExistingInodes.size()) {
+          mExistingInodes.add(nextInode);
         }
       }
     }
@@ -500,27 +509,28 @@ public class LockedInodePath implements Closeable {
         mLockList.lockInode(mRoot, LockMode.READ);
       }
     }
-    if (mInodes.isEmpty()) {
-      mInodes.add(mRoot);
+    if (mExistingInodes.isEmpty()) {
+      mExistingInodes.add(mRoot);
     }
   }
 
   private void traverseWithoutLocking() throws InvalidPathException {
-    if (mInodes.isEmpty()) {
-      mInodes.add(mRoot);
+    if (mExistingInodes.isEmpty()) {
+      mExistingInodes.add(mRoot);
     }
 
-    for (int i = mInodes.size(); i < mPathComponents.length; i++) {
-      InodeView lastInode = mInodes.get(i - 1);
+    for (int i = mExistingInodes.size(); i < mPathComponents.length; i++) {
+      InodeView lastInode = mExistingInodes.get(i - 1);
       if (lastInode.isFile()) {
-        throw new InvalidPathException("Traversal failed. Component " + (i - 1) + "("
-            + lastInode.getName() + ") is a file");
+        throw new InvalidPathException(String.format(
+            "Traversal failed for path %s. Component %s(%s) is a file, not a directory.", mUri,
+            i - 1, lastInode.getName()));
       }
       InodeView nextInode = lastInode.asDirectory().getChild(mPathComponents[i]);
       if (nextInode == null) {
         return;
       }
-      mInodes.add(nextInode);
+      mExistingInodes.add(nextInode);
     }
   }
 
@@ -534,7 +544,7 @@ public class LockedInodePath implements Closeable {
    */
   private boolean isImplicitlyLocked() {
     return mLockList.getLockMode() == LockMode.WRITE
-        && mInodes.size() > mLockList.numLockedInodes();
+        && mExistingInodes.size() > mLockList.numLockedInodes();
   }
 
   @Override

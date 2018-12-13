@@ -42,10 +42,10 @@ public class CompositeInodeLockList extends InodeLockList {
   }
 
   @Override
-  public synchronized List<InodeView> getInodes() {
+  public synchronized List<InodeView> getLockedInodes() {
     // Combine the base list of inodes first.
     List<InodeView> ret = new ArrayList<>(mBaseLockList.numLockedInodes() + mLockedInodes.size());
-    ret.addAll(mBaseLockList.getInodes());
+    ret.addAll(mBaseLockList.getLockedInodes());
     ret.addAll(mLockedInodes);
     return ret;
   }
