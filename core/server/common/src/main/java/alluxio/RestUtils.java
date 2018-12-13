@@ -39,7 +39,9 @@ public final class RestUtils {
    * @param callable the callable to call
    * @return the response object
    */
-  public static <T> Response call(RestUtils.RestCallable<T> callable, boolean isCORS) {
+  public static <T> Response call(RestUtils.RestCallable<T> callable) {
+    boolean isCORS = Configuration.getBoolean(PropertyKey.DEBUG);
+
     try {
       // TODO(cc): reconsider how to enable authentication
       if (SecurityUtils.isSecurityEnabled() && AuthenticatedClientUser.get() == null) {
@@ -56,14 +58,6 @@ public final class RestUtils {
       LOG.warn("Unexpected error invoking rest endpoint: {}", e.getMessage());
       return createErrorResponse(e, isCORS);
     }
-  }
-
-  public static <T> Response call(RestUtils.RestCallable<T> callable) {
-    return call(callable, false);
-  }
-
-  public static <T> Response callCORS(RestUtils.RestCallable<T> callable) {
-    return call(callable, true);
   }
 
   /**

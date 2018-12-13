@@ -162,12 +162,7 @@ public final class AlluxioMasterRestServiceHandler {
   @Path(WEBUI_OVERVIEW)
   @ReturnType("alluxio.wire.WebUIOverview")
   public Response getWebUIOverview() {
-    String methodName = "call";
-    if (getBoolean(PropertyKey.DEBUG)) {
-      methodName = "callCORS";
-    }
-
-    return RestUtils.callCORS(() -> {
+    return RestUtils.call(() -> {
       StartupConsistencyCheck consistencyCheck = mFileSystemMaster.getStartupConsistencyCheck();
       String consistencyCheckStatus = consistencyCheck.getStatus().toString();
       int inconsistentPaths = 0;
