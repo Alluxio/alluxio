@@ -23,31 +23,27 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import javax.annotation.Nullable;
-import javax.annotation.concurrent.ThreadSafe;
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * Represents a locked path within the inode tree. All lock lists must start with the root. Both
  * inodes and edges are locked along the path.
  *
  * A lock list is either in read mode or write mode. In read mode, every lock in the list is a read
- * lock. In write mode, every lock is a read lock except for the final lock.
+ * lock. In write mode, every lock is a read lock except for the final lock. In write mode, the
+ * lock list cannot be extended (only the final lock is ever a write lock).
  *
  * For consistency across locking operations, lock lists begin with a fake edge leading to the root
  * inode. This enables the WRITE_EDGE pattern to be applied to the root.
+ *
+ * InodeLockLists are not thread safe and should not be passed across threads.
  */
-@ThreadSafe
+@NotThreadSafe
 public class InodeLockList implements AutoCloseable {
   private static final Logger LOG = LoggerFactory.getLogger(InodeLockList.class);
 
   private static final int INITIAL_CAPACITY = 4;
   private static final Edge ROOT_EDGE = new Edge(-1, "");
-
-  /**
-   * Whether the lock list starts with an inode. For normal lock lists this is always false, but it
-   * may be true for {@link CompositeInodeLockList}s if their base lock lists ends with an edge.
-   */
-  private final boolean mStartsWithInode;
 
   protected final InodeLockManager mInodeLockManager;
 
@@ -64,17 +60,6 @@ public class InodeLockList implements AutoCloseable {
    * @param inodeLockManager manager for inode locks
    */
   public InodeLockList(InodeLockManager inodeLockManager) {
-    this(inodeLockManager, false);
-  }
-
-  /**
-   * Creates a new lock list. This constructor is used by {@link CompositeInodeLockList} so that
-   * it can start with either an inode or an edge.
-   *
-   * @param inodeLockManager manager for inode locks
-   */
-  InodeLockList(InodeLockManager inodeLockManager, boolean startsWithInode) {
-    mStartsWithInode = startsWithInode;
     mInodeLockManager = inodeLockManager;
     mLockedInodes = new ArrayList<>(INITIAL_CAPACITY);
     mEntries = new ArrayList<>(INITIAL_CAPACITY);
@@ -91,12 +76,24 @@ public class InodeLockList implements AutoCloseable {
    * @param mode the mode to lock in
    */
   public void lockInode(InodeView inode, LockMode mode) {
+    Preconditions.checkState(mLockMode == LockMode.READ);
+
+    lockInodeInternal(inode, mode);
+    mLockMode = mode;
+  }
+
+  /**
+   * Locks the next inode without checking or updating the mode.
+   *
+   * @param inode the inode to lock
+   * @param mode the mode to lock in
+   */
+  private void lockInodeInternal(InodeView inode, LockMode mode) {
     Preconditions.checkState(!endsInInode());
-    Preconditions.checkState(inode.getName().equals(lastEntry().mEdge.getName()));
+    Preconditions.checkState(inode.getName().equals(((EdgeEntry) lastEntry()).getEdge().getName()));
 
     mLockedInodes.add(inode);
-    mEntries.add(Entry.forInode(mInodeLockManager.lockInode(inode, mode), inode));
-    mLockMode = mode;
+    mEntries.add(new InodeEntry(mInodeLockManager.lockInode(inode, mode), inode));
   }
 
   /**
@@ -110,11 +107,24 @@ public class InodeLockList implements AutoCloseable {
    */
   public void lockEdge(String childName, LockMode mode) {
     Preconditions.checkState(endsInInode());
+    Preconditions.checkState(mLockMode == LockMode.READ);
+
+    lockEdgeInternal(childName, mode);
+    mLockMode = mode;
+  }
+
+  /**
+   * Locks the next edge without checking or updating the mode.
+   *
+   * @param childName the child to lock
+   * @param mode the mode to lock in
+   */
+  public void lockEdgeInternal(String childName, LockMode mode) {
+    Preconditions.checkState(endsInInode());
 
     InodeView lastInode = get(numLockedInodes() - 1);
     Edge edge = new Edge(lastInode.getId(), childName);
-    mEntries.add(Entry.forEdge(mInodeLockManager.lockEdge(edge, mode), edge));
-    mLockMode = mode;
+    mEntries.add(new EdgeEntry(mInodeLockManager.lockEdge(edge, mode), edge));
   }
 
   /**
@@ -125,7 +135,7 @@ public class InodeLockList implements AutoCloseable {
   public void lockRootEdge(LockMode mode) {
     Preconditions.checkState(mEntries.isEmpty());
 
-    mEntries.add(Entry.forEdge(mInodeLockManager.lockEdge(ROOT_EDGE, mode), ROOT_EDGE));
+    mEntries.add(new EdgeEntry(mInodeLockManager.lockEdge(ROOT_EDGE, mode), ROOT_EDGE));
     mLockMode = mode;
   }
 
@@ -139,13 +149,15 @@ public class InodeLockList implements AutoCloseable {
    * renames.
    *
    * @param inode the inode to add to the lock list
-   * @param pathComponent the child name for the edge to add to the lock list
+   * @param childName the child name for the edge to add to the lock list
    */
-  public synchronized void pushWriteLockedEdge(InodeView inode, String pathComponent) {
+  public void pushWriteLockedEdge(InodeView inode, String childName) {
+    Preconditions.checkState(!endsInInode());
+    Preconditions.checkState(!mEntries.isEmpty());
     Preconditions.checkState(mLockMode == LockMode.WRITE);
 
-    lockInode(inode, LockMode.READ);
-    lockEdge(pathComponent, LockMode.WRITE);
+    lockInodeInternal(inode, LockMode.READ);
+    lockEdgeInternal(childName, LockMode.WRITE);
     // downgrade the second to last edge lock.
     downgradeNthToLastEdge(2);
   }
@@ -153,19 +165,16 @@ public class InodeLockList implements AutoCloseable {
   /**
    * @return whether this lock list ends in an inode (as opposed to an edge)
    */
-  public synchronized boolean endsInInode() {
-    if (mStartsWithInode) {
-      return mEntries.size() % 2 == 1;
-    } else {
-      return mEntries.size() % 2 == 0;
-    }
+  public boolean endsInInode() {
+    return lastEntry() instanceof InodeEntry;
   }
 
   /**
    * Unlocks the last locked inode.
    */
-  public synchronized void unlockLastInode() {
+  public void unlockLastInode() {
     Preconditions.checkState(endsInInode());
+    Preconditions.checkState(!mEntries.isEmpty());
 
     mLockedInodes.remove(mLockedInodes.size() - 1);
     mEntries.remove(mEntries.size() - 1).mLock.close();
@@ -175,8 +184,9 @@ public class InodeLockList implements AutoCloseable {
   /**
    * Unlocks the last locked edge.
    */
-  public synchronized void unlockLastEdge() {
+  public void unlockLastEdge() {
     Preconditions.checkState(!endsInInode());
+    Preconditions.checkState(!mEntries.isEmpty());
 
     mEntries.remove(mEntries.size() - 1).mLock.close();
     mLockMode = LockMode.READ;
@@ -188,20 +198,22 @@ public class InodeLockList implements AutoCloseable {
    */
   public void downgradeLastInode() {
     Preconditions.checkState(endsInInode());
+    Preconditions.checkState(!mEntries.isEmpty());
     Preconditions.checkState(mLockMode == LockMode.WRITE);
 
-    Entry last = mEntries.get(mEntries.size() - 1);
-    LockResource lock = mInodeLockManager.lockInode(last.mInode, LockMode.READ);
-    last.mLock.close();
-    mEntries.set(mEntries.size() - 1, Entry.forInode(lock, last.mInode));
+    InodeEntry last = (InodeEntry) mEntries.get(mEntries.size() - 1);
+    LockResource lock = mInodeLockManager.lockInode(last.getInode(), LockMode.READ);
+    last.getLock().close();
+    mEntries.set(mEntries.size() - 1, new InodeEntry(lock, last.mInode));
     mLockMode = LockMode.READ;
   }
 
   /**
    * Downgrades the last edge lock in the lock list from WRITE lock to READ lock.
    */
-  public synchronized void downgradeLastEdge() {
+  public void downgradeLastEdge() {
     Preconditions.checkNotNull(!endsInInode());
+    Preconditions.checkState(!mEntries.isEmpty());
     Preconditions.checkState(mLockMode == LockMode.WRITE);
 
     downgradeNthToLastEdge(1);
@@ -223,14 +235,15 @@ public class InodeLockList implements AutoCloseable {
    */
   public void downgradeEdgeToInode(InodeView inode, LockMode mode) {
     Preconditions.checkState(!endsInInode());
+    Preconditions.checkState(!mEntries.isEmpty());
     Preconditions.checkState(mLockMode == LockMode.WRITE);
 
-    Entry last = mEntries.get(mEntries.size() - 1);
+    EdgeEntry last = (EdgeEntry) mEntries.get(mEntries.size() - 1);
     LockResource inodeLock = mInodeLockManager.lockInode(inode, mode);
     LockResource edgeLock = mInodeLockManager.lockEdge(last.mEdge, LockMode.READ);
-    last.mLock.close();
-    mEntries.set(mEntries.size() - 1, Entry.forEdge(edgeLock, last.mEdge));
-    mEntries.add(Entry.forInode(inodeLock, inode));
+    last.getLock().close();
+    mEntries.set(mEntries.size() - 1, new EdgeEntry(edgeLock, last.getEdge()));
+    mEntries.add(new InodeEntry(inodeLock, inode));
     mLockedInodes.add(inode);
     mLockMode = mode;
   }
@@ -243,10 +256,10 @@ public class InodeLockList implements AutoCloseable {
     int endOffset = (endsInInode() ? 0 : -1) + 2 * i;
     int entryIndex = mEntries.size() - endOffset;
 
-    Entry entry = mEntries.get(entryIndex);
+    EdgeEntry entry = (EdgeEntry) mEntries.get(entryIndex);
     LockResource lock = mInodeLockManager.lockEdge(entry.mEdge, LockMode.READ);
-    entry.mLock.close();
-    mEntries.set(entryIndex, Entry.forEdge(lock, entry.mEdge));
+    entry.getLock().close();
+    mEntries.set(entryIndex, new EdgeEntry(lock, entry.getEdge()));
   }
 
   /**
@@ -261,7 +274,7 @@ public class InodeLockList implements AutoCloseable {
    * the inodes were locked
    */
   // TODO(david): change this API to not return a copy
-  public synchronized List<InodeView> getInodes() {
+  public List<InodeView> getInodes() {
     return Lists.newArrayList(mLockedInodes);
   }
 
@@ -269,21 +282,21 @@ public class InodeLockList implements AutoCloseable {
    * @param index the index of the list
    * @return the inode at the specified index
    */
-  public synchronized InodeView get(int index) {
+  public InodeView get(int index) {
     return mLockedInodes.get(index);
   }
 
   /**
    * @return the size of the list in terms of locked inodes
    */
-  public synchronized int numLockedInodes() {
+  public int numLockedInodes() {
     return mLockedInodes.size();
   }
 
   /**
    * @return true if the locklist is empty
    */
-  public synchronized boolean isEmpty() {
+  public boolean isEmpty() {
     return mEntries.isEmpty();
   }
 
@@ -304,38 +317,56 @@ public class InodeLockList implements AutoCloseable {
   }
 
   @Override
-  public synchronized void close() {
+  public void close() {
     mLockedInodes.clear();
     mEntries.forEach(entry -> entry.mLock.close());
+    mEntries.clear();
   }
 
-  protected static class Entry {
+  protected abstract static class Entry {
     private final LockResource mLock;
-    // entries are either mInode or mEdge.
-    @Nullable
-    private final InodeView mInode;
-    @Nullable
-    private final Edge mEdge;
 
-    private Entry(LockResource lock, InodeView inode, Edge edge) {
+    protected Entry(LockResource lock) {
       mLock = lock;
+    }
+
+    protected LockResource getLock() {
+      return mLock;
+    }
+  }
+
+  protected static class InodeEntry extends Entry {
+    private final InodeView mInode;
+
+    private InodeEntry(LockResource lock, InodeView inode) {
+      super(lock);
       mInode = inode;
-      mEdge = edge;
     }
 
-    public static Entry forEdge(LockResource lock, Edge edge) {
-      return new Entry(lock, null, edge);
-    }
-
-    public static Entry forInode(LockResource lock, InodeView inode) {
-      return new Entry(lock, inode, null);
+    public InodeView getInode() {
+      return mInode;
     }
 
     @Override
     public String toString() {
-      if (mInode != null) {
-        return "\"" + mInode.getName() + "\"";
-      }
+      return "\"" + mInode.getName() + "\"";
+    }
+  }
+
+  protected static class EdgeEntry extends Entry {
+    private final Edge mEdge;
+
+    private EdgeEntry(LockResource lock, Edge edge) {
+      super(lock);
+      mEdge = edge;
+    }
+
+    public Edge getEdge() {
+      return mEdge;
+    }
+
+    @Override
+    public String toString() {
       return mEdge.toString();
     }
   }

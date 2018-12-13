@@ -17,8 +17,8 @@ import com.google.common.base.Objects;
  * An edge in the inode tree. Edges point from parent inode ids to child inode names.
  */
 public final class Edge {
-  private long mId;
-  private String mName;
+  private final long mId;
+  private final String mName;
 
   /**
    * @param id parent inode id

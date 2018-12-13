@@ -85,22 +85,22 @@ public class LockedInodePath implements Closeable {
     mRoot = root;
   }
 
-  private LockedInodePath(AlluxioURI uri, List<InodeView> inodes, InodeLockList lockList,
+  private LockedInodePath(AlluxioURI uri, List<InodeView> existingInodes, InodeLockList lockList,
       LockPattern lockPattern) throws InvalidPathException {
-    this(uri, inodes, lockList, PathUtils.getPathComponents(uri.getPath()), lockPattern);
+    this(uri, existingInodes, lockList, PathUtils.getPathComponents(uri.getPath()), lockPattern);
   }
 
-  private LockedInodePath(AlluxioURI uri, List<InodeView> inodes, InodeLockList lockList,
+  private LockedInodePath(AlluxioURI uri, List<InodeView> existingInodes, InodeLockList lockList,
       String[] pathComponents, LockPattern lockPattern) {
-    Preconditions.checkState(!inodes.isEmpty());
+    Preconditions.checkState(!existingInodes.isEmpty());
     Preconditions.checkState(!lockList.isEmpty());
 
     mUri = uri;
     mPathComponents = pathComponents;
-    mInodes = new ArrayList<>(inodes);
-    mLockList = lockList;
+    mInodes = new ArrayList<>(existingInodes);
+    mLockList = new CompositeInodeLockList(lockList);
     mLockPattern = lockPattern;
-    mRoot = inodes.get(0);
+    mRoot = existingInodes.get(0);
   }
 
   /**
@@ -223,13 +223,15 @@ public class LockedInodePath implements Closeable {
 
   /**
    * Removes the last inode from the list. This is necessary when the last inode is deleted and we
-   * want to continue using the inodepath.
+   * want to continue using the inodepath. This operation is only supported when the path is
+   * complete.
    */
   public void removeLastInode() {
     Preconditions.checkState(fullPathExists());
 
     if (mLockPattern != LockPattern.WRITE_EDGE) {
       mLockList.unlockLastInode();
+      mLockList.unlockLastEdge();
     }
     mInodes.remove(mInodes.size() - 1);
   }
@@ -240,7 +242,7 @@ public class LockedInodePath implements Closeable {
    *
    * @param inode the inode to add
    */
-  public void extendInode(InodeView inode) {
+  public void addNextInode(InodeView inode) {
     Preconditions.checkState(mLockPattern == LockPattern.WRITE_EDGE);
     Preconditions.checkState(!fullPathExists());
     Preconditions.checkState(inode.getName().equals(mPathComponents[mInodes.size()]));
@@ -270,8 +272,10 @@ public class LockedInodePath implements Closeable {
         if (mLockPattern == LockPattern.WRITE_EDGE) {
           downgradeEdgeToInode(LockMode.WRITE);
         }
+        Preconditions.checkState(mLockPattern == LockPattern.WRITE_INODE);
         break;
       case WRITE_EDGE:
+        Preconditions.checkState(mLockPattern == LockPattern.WRITE_EDGE);
         break; // Nothing to do
       default:
         throw new IllegalStateException("Unknown lock pattern: " + desiredLockPattern);
@@ -322,8 +326,7 @@ public class LockedInodePath implements Closeable {
    */
   public LockedInodePath lockDescendant(AlluxioURI descendantUri, LockPattern lockPattern)
       throws InvalidPathException {
-    LockedInodePath path = new LockedInodePath(descendantUri, mInodes,
-        new CompositeInodeLockList(mLockList), lockPattern);
+    LockedInodePath path = new LockedInodePath(descendantUri, mInodes, mLockList, lockPattern);
     path.traverseOrClose();
     return path;
   }
@@ -357,17 +360,10 @@ public class LockedInodePath implements Closeable {
    */
   public LockedInodePath lockChild(InodeView child, LockPattern lockPattern,
       String[] childComponentsHint) throws InvalidPathException {
-    LockedInodePath path = new LockedInodePath(mUri.join(child.getName()), addInode(mInodes, child),
-        new CompositeInodeLockList(mLockList), childComponentsHint, lockPattern);
+    LockedInodePath path = new LockedInodePath(mUri.join(child.getName()), mInodes, mLockList,
+        childComponentsHint, lockPattern);
     path.traverseOrClose();
     return path;
-  }
-
-  private static List<InodeView> addInode(List<InodeView> inodes, InodeView inode) {
-    List<InodeView> list = new ArrayList<>(inodes.size() + 1);
-    list.addAll(inodes);
-    list.add(inode);
-    return list;
   }
 
   private static String[] addComponent(String[] components, String component) {
@@ -386,8 +382,8 @@ public class LockedInodePath implements Closeable {
   public LockedInodePath lockFinalEdgeWrite() throws InvalidPathException {
     Preconditions.checkState(!fullPathExists());
 
-    LockedInodePath newPath = new LockedInodePath(mUri, mInodes,
-        new CompositeInodeLockList(mLockList), mPathComponents, LockPattern.WRITE_EDGE);
+    LockedInodePath newPath =
+        new LockedInodePath(mUri, mInodes, mLockList, mPathComponents, LockPattern.WRITE_EDGE);
     newPath.traverse();
     return newPath;
   }

@@ -36,7 +36,7 @@ public class CompositeInodeLockList extends InodeLockList {
    * @param baseLockList the base {@link InodeLockList} to use
    */
   public CompositeInodeLockList(InodeLockList baseLockList) {
-    super(baseLockList.mInodeLockManager, !baseLockList.endsInInode());
+    super(baseLockList.mInodeLockManager);
     mBaseLockList = baseLockList;
     mLockMode = baseLockList.mLockMode;
   }

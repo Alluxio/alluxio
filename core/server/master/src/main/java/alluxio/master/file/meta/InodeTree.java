@@ -711,7 +711,7 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
         }
         mState.applyAndJournal(rpcContext, newDir);
 
-        inodePath.extendInode(newDir);
+        inodePath.addNextInode(newDir);
         dir = newDir;
 
         // Persist the directory *after* it exists in the inode tree. This prevents multiple
@@ -792,7 +792,7 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
     newInode.setPinned(currentInodeDirectory.isPinned());
 
     mState.applyAndJournal(rpcContext, newInode);
-    inodePath.extendInode(newInode);
+    inodePath.addNextInode(newInode);
 
     createdInodes.add(newInode);
     LOG.debug("createFile: File Created: {} parent: {}", newInode, currentInodeDirectory);
