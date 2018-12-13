@@ -11,29 +11,29 @@
 
 package alluxio.grpc;
 
-import alluxio.security.authentication.AuthType;
 import io.grpc.CallOptions;
 import io.grpc.Channel;
 import io.grpc.ClientCall;
-import io.grpc.ManagedChannel;
 import io.grpc.MethodDescriptor;
 
-import javax.security.auth.Subject;
-import java.util.concurrent.TimeUnit;
+import java.net.InetSocketAddress;
+
 
 /**
  * An authenticated gRPC channel.
  * This channel can communicate with servers of type {@link GrpcServer}.
  */
 public final class GrpcChannel extends Channel {
-  ManagedChannel mChannel;
+  protected InetSocketAddress mAddress;
+  protected Channel mChannel;
 
   /**
    * Create a new instance of {@link GrpcChannel}.
    *
    * @param channel the grpc channel to wrap
    */
-  public GrpcChannel(ManagedChannel channel) {
+  public GrpcChannel(InetSocketAddress address, Channel channel) {
+    mAddress = address;
     mChannel = channel;
   }
 
@@ -49,17 +49,9 @@ public final class GrpcChannel extends Channel {
   }
 
   /**
-   * Shuts down channel immediately.
+   * Shuts down the channel.
    */
   public void shutdown() {
-    mChannel.shutdown();
-    boolean terminated = false;
-    while(!terminated) {
-      try {
-        terminated = mChannel.awaitTermination(1, TimeUnit.MINUTES);
-      } catch (InterruptedException e) {
-      }
-    }
-    mChannel.shutdownNow();
+    GrpcManagedChannelPool.releaseManagedChannel(mAddress);
   }
 }

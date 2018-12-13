@@ -273,7 +273,7 @@ public class AlluxioJobMasterProcess implements JobMasterProcess {
    * {@link Master}s and meta services.
    */
   protected void startServingRPCServerNew() {
-    // TODO(ggezer) gRPC is leaking executor's threads.
+    // TODO(ggezer) Executor threads not reused until thread capacity is hit.
     //ExecutorService executorService = Executors.newFixedThreadPool(mMaxWorkerThreads);
     try {
       if(mGrpcServer!= null) {

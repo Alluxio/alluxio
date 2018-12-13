@@ -14,9 +14,9 @@ package alluxio.grpc;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.security.authentication.AuthType;
-import alluxio.security.authentication.ChannelBuilderAuthenticator;
-import io.grpc.ClientInterceptor;
-import io.grpc.netty.NettyChannelBuilder;
+import alluxio.security.authentication.ChannelAuthenticator;
+import io.grpc.Channel;
+import io.grpc.ManagedChannel;
 
 import javax.security.auth.Subject;
 import javax.security.sasl.AuthenticationException;
@@ -29,7 +29,7 @@ import java.util.UUID;
  */
 public final class GrpcChannelBuilder {
 
-  protected NettyChannelBuilder mChannelBuilder;
+  protected ManagedChannel mManagedChannel;
   protected InetSocketAddress mAddress;
   protected Subject mParentSubject;
   protected boolean mUseSubject;
@@ -41,7 +41,6 @@ public final class GrpcChannelBuilder {
 
   private GrpcChannelBuilder(InetSocketAddress address) {
     mAddress = address;
-    mChannelBuilder = NettyChannelBuilder.forAddress(mAddress);
     mUseSubject = true;
     mAuthenticateChannel = true;
     mAuthType = Configuration.getEnum(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.class);
@@ -54,7 +53,7 @@ public final class GrpcChannelBuilder {
    * @return a new instance of {@link GrpcChannelBuilder}
    */
   public static GrpcChannelBuilder forAddress(InetSocketAddress address) {
-    return new GrpcChannelBuilder(address).usePlaintext(true);
+    return new GrpcChannelBuilder(address);
   }
 
   /**
@@ -97,46 +96,27 @@ public final class GrpcChannelBuilder {
   }
 
   /**
-   * Whether to use plain text.
-   *
-   * @param skipNegotiation whether to skip negotiation
-   * @return the updated {@link GrpcChannelBuilder} instance
-   */
-  public GrpcChannelBuilder usePlaintext(boolean skipNegotiation) {
-    mChannelBuilder = mChannelBuilder.usePlaintext(skipNegotiation);
-    return this;
-  }
-
-  /**
-   * Registers given client interceptor.
-   * 
-   * @param interceptor client interceptor
-   * @return the updated {@link GrpcChannelBuilder} instance
-   */
-  public GrpcChannelBuilder intercept(ClientInterceptor interceptor) {
-    mChannelBuilder = mChannelBuilder.intercept(interceptor);
-    return this;
-  }
-
-  /**
    * Creates an authenticated channel of type {@link GrpcChannel}.
    * 
    * @return the built {@link GrpcChannel}
    */
   public GrpcChannel build() throws AuthenticationException {
+    mManagedChannel = GrpcManagedChannelPool.acquireManagedChannel(mAddress);
+    Channel channel = mManagedChannel;
+
     if (mAuthenticateChannel) {
       // Create channel authenticator based on provided content.
-      ChannelBuilderAuthenticator channelAuthenticator;
+      ChannelAuthenticator channelAuthenticator;
       if (mUseSubject) {
         channelAuthenticator =
-            new ChannelBuilderAuthenticator(UUID.randomUUID(), mParentSubject, mAddress, mAuthType);
+            new ChannelAuthenticator(UUID.randomUUID(), mParentSubject, mAddress, mAuthType);
       } else {
-        channelAuthenticator = new ChannelBuilderAuthenticator(UUID.randomUUID(), mUserName,
-            mPassword, mImpersonationUser, mAddress, mAuthType);
+        channelAuthenticator = new ChannelAuthenticator(UUID.randomUUID(), mUserName, mPassword,
+            mImpersonationUser, mAddress, mAuthType);
       }
-      mChannelBuilder = channelAuthenticator.authenticate(mChannelBuilder);
+      channel = channelAuthenticator.authenticate(mManagedChannel);
     }
     // Create the channel after authentication with the target.
-    return new GrpcChannel(mChannelBuilder.build());
+    return new GrpcChannel(mAddress, channel);
   }
 }

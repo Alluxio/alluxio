@@ -107,7 +107,6 @@ public class ZookeeperFailureIntegrationTest extends BaseIntegrationTest {
     try {
       GrpcChannel channel = GrpcChannelBuilder
               .forAddress(address)
-              .usePlaintext(true)
               .build();
       FileSystemMasterClientServiceGrpc.FileSystemMasterClientServiceBlockingStub client =
           FileSystemMasterClientServiceGrpc.newBlockingStub(channel);
