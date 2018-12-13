@@ -9,7 +9,9 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.security.authentication;
+package alluxio.security.authentication.plain;
+
+import alluxio.security.authentication.AuthenticationProvider;
 
 import javax.annotation.concurrent.ThreadSafe;
 import javax.security.sasl.AuthenticationException;

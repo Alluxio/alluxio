@@ -1,4 +1,4 @@
-package alluxio.security.authentication;
+package alluxio.security.authentication.plain;
 
 import alluxio.Configuration;
 import alluxio.Constants;
@@ -6,6 +6,10 @@ import alluxio.PropertyKey;
 import alluxio.exception.status.UnauthenticatedException;
 import alluxio.security.LoginUser;
 import alluxio.security.User;
+import alluxio.security.authentication.AuthType;
+import alluxio.security.authentication.AuthenticationProvider;
+import alluxio.security.authentication.SaslParticipiantProvider;
+import alluxio.security.authentication.TransportProviderUtils;
 
 import javax.security.auth.Subject;
 import javax.security.sasl.Sasl;

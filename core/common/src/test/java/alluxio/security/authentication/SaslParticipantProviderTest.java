@@ -1,6 +1,8 @@
 package alluxio.security.authentication;
 
 import alluxio.exception.status.UnauthenticatedException;
+import alluxio.security.authentication.plain.PlainSaslServerProvider;
+import alluxio.security.authentication.plain.SaslParticipiantProviderPlain;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;

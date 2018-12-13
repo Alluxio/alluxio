@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.security.authentication;
+package alluxio.security.authentication.plain;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -24,13 +24,14 @@ import javax.security.auth.callback.CallbackHandler;
 import javax.security.auth.callback.UnsupportedCallbackException;
 import javax.security.sasl.AuthorizeCallback;
 import javax.security.sasl.SaslException;
+import javax.security.sasl.SaslServer;
 
 /**
  * Tests the {@link PlainSaslServer} class.
  */
 public final class PlainSaslServerTest {
   private static byte sSEPARATOR = 0x00; // US-ASCII <NUL>
-  private PlainSaslServer mPlainSaslServer = null;
+  private SaslServer mPlainSaslServer = null;
 
   /**
    * The exception expected to be thrown.

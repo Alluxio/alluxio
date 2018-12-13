@@ -1,11 +1,11 @@
 package alluxio.security.authentication;
 
 import alluxio.grpc.SaslMessage;
+import alluxio.security.authentication.plain.SaslHandshakeServerHandlerPlain;
 
 import javax.security.sasl.AuthenticationException;
 import javax.security.sasl.SaslException;
 import javax.security.sasl.SaslServer;
-import java.util.UUID;
 
 /**
  * Interface for providing server-side handshake routines for a particular authentication scheme.

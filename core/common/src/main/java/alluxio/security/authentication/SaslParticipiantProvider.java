@@ -1,6 +1,7 @@
 package alluxio.security.authentication;
 
 import alluxio.exception.status.UnauthenticatedException;
+import alluxio.security.authentication.plain.SaslParticipiantProviderPlain;
 
 import javax.security.auth.Subject;
 import javax.security.sasl.AuthenticationException;

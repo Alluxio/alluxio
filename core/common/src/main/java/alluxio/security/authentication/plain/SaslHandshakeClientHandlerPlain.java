@@ -1,7 +1,9 @@
-package alluxio.security.authentication;
+package alluxio.security.authentication.plain;
 
 import alluxio.grpc.SaslMessage;
 import alluxio.grpc.SaslMessageType;
+import alluxio.security.authentication.AuthType;
+import alluxio.security.authentication.SaslHandshakeClientHandler;
 import com.google.common.base.Preconditions;
 import com.google.protobuf.ByteString;
 

@@ -13,6 +13,7 @@ package alluxio.security.authentication;
 
 import static org.junit.Assert.assertEquals;
 
+import alluxio.security.authentication.plain.PlainSaslClientCallbackHandler;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;

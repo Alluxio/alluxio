@@ -9,9 +9,11 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.security.authentication;
+package alluxio.security.authentication.plain;
 
 import alluxio.Configuration;
+import alluxio.security.authentication.AuthType;
+import alluxio.security.authentication.AuthenticationProvider;
 import alluxio.util.CommonUtils;
 
 import javax.annotation.concurrent.NotThreadSafe;

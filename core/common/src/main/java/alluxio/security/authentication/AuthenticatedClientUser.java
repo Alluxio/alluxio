@@ -14,6 +14,7 @@ package alluxio.security.authentication;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.security.User;
+import alluxio.security.authentication.plain.PlainSaslServer;
 import alluxio.util.SecurityUtils;
 
 import java.io.IOException;

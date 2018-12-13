@@ -1,6 +1,7 @@
 package alluxio.security.authentication;
 
 import alluxio.grpc.SaslMessage;
+import alluxio.security.authentication.plain.SaslHandshakeClientHandlerPlain;
 
 import javax.security.sasl.AuthenticationException;
 import javax.security.sasl.SaslClient;
