@@ -1,7 +1,7 @@
 /*
- * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the "License"). You may not use this work except in compliance with the License, which is
- * available at www.apache.org/licenses/LICENSE-2.0
+ * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0 (the
+ * "License"). You may not use this work except in compliance with the License, which is available
+ * at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
  * either express or implied, as more fully set forth in the License.
@@ -20,11 +20,11 @@ import java.net.InetSocketAddress;
 
 
 /**
- * An authenticated gRPC channel.
- * This channel can communicate with servers of type {@link GrpcServer}.
+ * An authenticated gRPC channel. This channel can communicate with servers of type
+ * {@link GrpcServer}.
  */
 public final class GrpcChannel extends Channel {
-  protected InetSocketAddress mAddress;
+  protected GrpcManagedChannelPool.ChannelKey mChannelKey;
   protected Channel mChannel;
 
   /**
@@ -32,8 +32,8 @@ public final class GrpcChannel extends Channel {
    *
    * @param channel the grpc channel to wrap
    */
-  public GrpcChannel(InetSocketAddress address, Channel channel) {
-    mAddress = address;
+  public GrpcChannel(GrpcManagedChannelPool.ChannelKey channelKey, Channel channel) {
+    mChannelKey = channelKey;
     mChannel = channel;
   }
 
@@ -52,6 +52,6 @@ public final class GrpcChannel extends Channel {
    * Shuts down the channel.
    */
   public void shutdown() {
-    GrpcManagedChannelPool.releaseManagedChannel(mAddress);
+    GrpcManagedChannelPool.releaseManagedChannel(mChannelKey);
   }
 }

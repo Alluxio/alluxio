@@ -2,6 +2,7 @@ package alluxio.grpc;
 
 import alluxio.resource.LockResource;
 import com.google.common.base.Verify;
+import io.grpc.Channel;
 import io.grpc.ManagedChannel;
 import io.grpc.netty.NettyChannelBuilder;
 
@@ -20,7 +21,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 public class GrpcManagedChannelPool {
   /** Channels per address. */
   @GuardedBy("mLock")
-  private static HashMap<InetSocketAddress, ManagedChannelReference> mChannels;
+  private static HashMap<ChannelKey, ManagedChannelReference> mChannels;
   /** Used to control access to mChannel */
   private static ReentrantReadWriteLock mLock;
 
@@ -31,22 +32,26 @@ public class GrpcManagedChannelPool {
 
   /**
    * Acquires and Increases the reference count for the singleton {@link ManagedChannel}.
-   * 
-   * @param address host address
+   *
+   * @param channelKey channel key
    * @return a {@link ManagedChannel}
    */
-  public static ManagedChannel acquireManagedChannel(InetSocketAddress address) {
+  public static ManagedChannel acquireManagedChannel(ChannelKey channelKey) {
     try (LockResource lockShared = new LockResource(mLock.readLock())) {
-      if (mChannels.containsKey(address)) {
-        return mChannels.get(address).reference();
+      if (mChannels.containsKey(channelKey)) {
+        return mChannels.get(channelKey).reference();
       }
     }
     try (LockResource lockExclusive = new LockResource(mLock.writeLock())) {
-      if (!mChannels.containsKey(address)) {
-        mChannels.put(address, new ManagedChannelReference(
-            NettyChannelBuilder.forAddress(address).usePlaintext().build()));
+      if (!mChannels.containsKey(channelKey)) {
+        NettyChannelBuilder channelBuilder = NettyChannelBuilder.forAddress(channelKey.mAddress);
+        if (channelKey.mPlain) {
+          channelBuilder.usePlaintext();
+        }
+
+        mChannels.put(channelKey, new ManagedChannelReference(channelBuilder.build()));
       }
-      return mChannels.get(address).reference();
+      return mChannels.get(channelKey).reference();
     }
   }
 
@@ -55,23 +60,23 @@ public class GrpcManagedChannelPool {
    *
    * It releases the {@link ManagedChannel} if reference count reaches zero.
    *
-   * @param address host address
+   * @param channelKey host address
    */
-  public static void releaseManagedChannel(InetSocketAddress address) {
+  public static void releaseManagedChannel(ChannelKey channelKey) {
 
     boolean disposeChannel = false;
     try (LockResource lockShared = new LockResource(mLock.readLock())) {
-      if (mChannels.containsKey(address) && mChannels.get(address).dereference()) {
+      if (mChannels.containsKey(channelKey) && mChannels.get(channelKey).dereference()) {
         disposeChannel = true;
       }
     }
 
     if (disposeChannel) {
       try (LockResource lockExclusive = new LockResource(mLock.writeLock())) {
-        if (mChannels.containsKey(address)) {
-          mChannels.get(address).reference();
-          if (mChannels.get(address).dereference()) {
-            ManagedChannel channel = mChannels.remove(address).reference();
+        if (mChannels.containsKey(channelKey)) {
+          mChannels.get(channelKey).reference();
+          if (mChannels.get(channelKey).dereference()) {
+            ManagedChannel channel = mChannels.remove(channelKey).reference();
             channel.shutdown();
             boolean isTerminated = false;
             while (!isTerminated) {
@@ -108,6 +113,48 @@ public class GrpcManagedChannelPool {
 
     private boolean dereference() {
       return mRefCount.decrementAndGet() <= 0;
+    }
+  }
+
+  /**
+   * Used to identify a unique {@link ManagedChannel} in the pool.
+   */
+  public static class ChannelKey {
+    private InetSocketAddress mAddress;;
+    private boolean mPlain;
+
+    private ChannelKey() {}
+
+    public static ChannelKey create() {
+      return new ChannelKey();
+    }
+
+    /**
+     * @param address destination address of the channel
+     * @return the modified {@link ChannelKey}
+     */
+    public ChannelKey setAddress(InetSocketAddress address) {
+      mAddress = address;
+      return this;
+    }
+
+    /**
+     * Plaintext channel with no transport security.
+     * 
+     * @return the modified {@link ChannelKey}
+     */
+    public ChannelKey usePlaintext() {
+      mPlain = true;
+      return this;
+    }
+
+    @Override
+    public boolean equals(Object other) {
+      if (other instanceof ChannelKey) {
+        ChannelKey otherKey = (ChannelKey) other;
+        return mAddress == otherKey.mAddress && mPlain == otherKey.mPlain;
+      }
+      return false;
     }
   }
 }

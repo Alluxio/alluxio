@@ -33,12 +33,10 @@ public class ChannelAuthenticator {
   /** Subject for authentication. */
   protected Subject mParentSubject;
 
+  /* Used in place of a subject. */
   protected String mUserName;
   protected String mPassword;
   protected String mImpersonationUser;
-
-  /** Target address. Expected to be serving {@link SaslAuthenticationServiceGrpc}. */
-  protected InetSocketAddress mHostAddress;
 
   /** Authentication type to use with the target host. */
   protected AuthType mAuthType;
@@ -49,38 +47,31 @@ public class ChannelAuthenticator {
   /**
    * Creates {@link ChannelAuthenticator} instance.
    *
-   * @param channelId channel Id
    * @param subject javax subject to use for authentication
-   * @param hostAddress address for service host
    * @param authType authentication type
    */
-  public ChannelAuthenticator(UUID channelId, Subject subject, InetSocketAddress hostAddress,
-      AuthType authType) {
+  public ChannelAuthenticator(Subject subject, AuthType authType) {
     mUseSubject = true;
-    mChannelId = channelId;
+    mChannelId = UUID.randomUUID();
     mParentSubject = subject;
-    mHostAddress = hostAddress;
     mAuthType = authType;
   }
 
   /**
    * Creates {@link ChannelAuthenticator} instance.
    *
-   * @param channelId channel id
    * @param userName user name
    * @param password user password
    * @param impersonationUser impersonation user
-   * @param hostAddress address for service host
    * @param authType authentication type
    */
-  public ChannelAuthenticator(UUID channelId, String userName, String password,
-      String impersonationUser, InetSocketAddress hostAddress, AuthType authType) {
+  public ChannelAuthenticator(String userName, String password, String impersonationUser,
+      AuthType authType) {
     mUseSubject = false;
-    mChannelId = channelId;
+    mChannelId = UUID.randomUUID();
     mUserName = userName;
     mPassword = password;
     mImpersonationUser = impersonationUser;
-    mHostAddress = hostAddress;
     mAuthType = authType;
   }
 
@@ -134,7 +125,7 @@ public class ChannelAuthenticator {
 
   /**
    * @param saslClient the Sasl client object that have been used for authentication
-   * @return the list of interceptors that will be attached to the newly authenticated channel.
+   * @return the list of interceptors that are required for configured authentication
    */
   private List<ClientInterceptor> getInterceptors(SaslClient saslClient) {
     if (!SecurityUtils.isSecurityEnabled()) {

@@ -28,19 +28,28 @@ import java.util.UUID;
  * building.
  */
 public final class GrpcChannelBuilder {
+  /** Key for acquiring the underlying managed channel. */
+  protected GrpcManagedChannelPool.ChannelKey mChannelKey;
 
-  protected ManagedChannel mManagedChannel;
-  protected InetSocketAddress mAddress;
-  protected Subject mParentSubject;
+  /** Whether to use mnarentSubject as authentication user. */
   protected boolean mUseSubject;
+  /** Subject for authentication. */
+  protected Subject mParentSubject;
+
+  /* Used in place of a subject. */
   protected String mUserName;
   protected String mPassword;
   protected String mImpersonationUser;
+
+  /** Whether to authenticate the channel with the server. */
   protected boolean mAuthenticateChannel;
+  /** Authentication type to use. */
   protected AuthType mAuthType;
 
   private GrpcChannelBuilder(InetSocketAddress address) {
-    mAddress = address;
+
+    mChannelKey = GrpcManagedChannelPool.ChannelKey.create();
+    mChannelKey.setAddress(address).usePlaintext();
     mUseSubject = true;
     mAuthenticateChannel = true;
     mAuthType = Configuration.getEnum(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.class);
@@ -101,22 +110,22 @@ public final class GrpcChannelBuilder {
    * @return the built {@link GrpcChannel}
    */
   public GrpcChannel build() throws AuthenticationException {
-    mManagedChannel = GrpcManagedChannelPool.acquireManagedChannel(mAddress);
-    Channel channel = mManagedChannel;
+    ManagedChannel underlyingChannel = GrpcManagedChannelPool.acquireManagedChannel(mChannelKey);
+    Channel clientChannel = underlyingChannel;
 
     if (mAuthenticateChannel) {
       // Create channel authenticator based on provided content.
       ChannelAuthenticator channelAuthenticator;
       if (mUseSubject) {
-        channelAuthenticator =
-            new ChannelAuthenticator(UUID.randomUUID(), mParentSubject, mAddress, mAuthType);
+        channelAuthenticator = new ChannelAuthenticator(mParentSubject, mAuthType);
       } else {
-        channelAuthenticator = new ChannelAuthenticator(UUID.randomUUID(), mUserName, mPassword,
-            mImpersonationUser, mAddress, mAuthType);
+        channelAuthenticator =
+            new ChannelAuthenticator(mUserName, mPassword, mImpersonationUser, mAuthType);
       }
-      channel = channelAuthenticator.authenticate(mManagedChannel);
+      // Get an authenticated wrapper channel over given managed channel.
+      clientChannel = channelAuthenticator.authenticate(underlyingChannel);
     }
     // Create the channel after authentication with the target.
-    return new GrpcChannel(mAddress, channel);
+    return new GrpcChannel(mChannelKey, clientChannel);
   }
 }
