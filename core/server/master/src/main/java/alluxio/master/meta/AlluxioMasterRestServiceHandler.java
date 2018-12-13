@@ -163,14 +163,7 @@ public final class AlluxioMasterRestServiceHandler {
   @ReturnType("alluxio.wire.WebUIOverview")
   public Response getWebUIOverview() {
     return RestUtils.call(() -> {
-      StartupConsistencyCheck consistencyCheck = mFileSystemMaster.getStartupConsistencyCheck();
-      String consistencyCheckStatus = consistencyCheck.getStatus().toString();
-      int inconsistentPaths = 0;
-      List<AlluxioURI> inconsistentPathItems = null;
-      if (consistencyCheckStatus == StartupConsistencyCheck.Status.COMPLETE.toString()) {
-        inconsistentPaths = consistencyCheck.getInconsistentUris().size();
-        inconsistentPathItems = consistencyCheck.getInconsistentUris();
-      }
+      alluxio.wire.StartupConsistencyCheck startupConsistencyCheck = getStartupConsistencyCheckInternal();
 
       ConfigCheckReport report = mMetaMaster.getConfigCheckReport();
 
@@ -217,15 +210,15 @@ public final class AlluxioMasterRestServiceHandler {
           .setConfigCheckStatus(report.getConfigStatus())
           .setConfigCheckWarnNum(report.getConfigWarns().values().stream().mapToInt(List::size).sum())
           .setConfigCheckWarns(report.getConfigWarns())
-          .setConsistencyCheckStatus(consistencyCheckStatus)
+          .setConsistencyCheckStatus(startupConsistencyCheck.getStatus())
           .setDebug(getBoolean(PropertyKey.DEBUG))
           .setDiskCapacity(diskCapacity)
           .setDiskCapacity(totalSpace)
           .setDiskFreeCapacity(diskFreeCapacity)
           .setDiskUsedCapacity(diskUsedCapacity)
           .setFreeCapacity(FormatUtils.getSizeFromBytes(mBlockMaster.getCapacityBytes() - mBlockMaster.getUsedBytes()))
-          .setInconsistentPathItems(inconsistentPathItems)
-          .setInconsistentPaths(inconsistentPaths)
+          .setInconsistentPathItems(startupConsistencyCheck.getInconsistentUris())
+          .setInconsistentPaths(startupConsistencyCheck.getInconsistentUris().size())
           .setLiveWorkerNodes(mBlockMaster.getWorkerCount())
           .setMasterNodeAddress(mMasterProcess.getRpcAddress().toString())
           .setStartTime(CommonUtils.convertMsToDate(mMetaMaster.getStartTimeMs()))
@@ -235,6 +228,7 @@ public final class AlluxioMasterRestServiceHandler {
           .setVersion(RuntimeConstants.VERSION);
       });
   }
+
 
 
   /**

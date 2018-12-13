@@ -11,8 +11,6 @@
 
 package alluxio.wire;
 
-import alluxio.AlluxioURI;
-
 import com.google.common.base.Objects;
 
 import java.io.Serializable;
@@ -38,7 +36,7 @@ public final class WebUIOverview implements Serializable {
   private String mDiskFreeCapacity;
   private String mDiskUsedCapacity;
   private String mFreeCapacity;
-  private List<AlluxioURI> mInconsistentPathItems;
+  private List<String> mInconsistentPathItems;
   private int mInconsistentPaths;
   private int mLiveWorkerNodes;
   private String mMasterNodeAddress;
@@ -141,7 +139,7 @@ public final class WebUIOverview implements Serializable {
   /**
    * @return inconsistent path items
    */
-  public List<AlluxioURI> getInconsistentPathItems() {
+  public List<String> getInconsistentPathItems() {
     return mInconsistentPathItems;
   }
 
@@ -261,7 +259,8 @@ public final class WebUIOverview implements Serializable {
    * @param consistencyCheckStatus
    * @return
    */
-  public WebUIOverview setConsistencyCheckStatus(String consistencyCheckStatus) {
+  public WebUIOverview setConsistencyCheckStatus(
+      String consistencyCheckStatus) {
     mConsistencyCheckStatus = consistencyCheckStatus;
     return this;
   }
@@ -315,7 +314,7 @@ public final class WebUIOverview implements Serializable {
    * @param inconsistentPathItems
    * @return
    */
-  public WebUIOverview setInconsistentPathItems(List<AlluxioURI> inconsistentPathItems) {
+  public WebUIOverview setInconsistentPathItems(List<String> inconsistentPathItems) {
     mInconsistentPathItems = inconsistentPathItems;
     return this;
   }

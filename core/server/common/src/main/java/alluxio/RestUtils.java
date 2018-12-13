@@ -156,9 +156,15 @@ public final class RestUtils {
     return rb.build();
   }
 
-
-  public static Response.ResponseBuilder makeCORS(Response.ResponseBuilder req, String returnMethod) {
-    Response.ResponseBuilder rb = req.header("Access-Control-Allow-Origin", "*")
+  /**
+   * Makes the responseBuilder CORS compatible
+   *
+   * @param responseBuilder the response builder
+   * @param returnMethod the modified response builder
+   * @return
+   */
+  public static Response.ResponseBuilder makeCORS(Response.ResponseBuilder responseBuilder, String returnMethod) {
+    Response.ResponseBuilder rb = responseBuilder.header("Access-Control-Allow-Origin", "*")
         .header("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
 
     if (!"".equals(returnMethod)) {
@@ -168,6 +174,12 @@ public final class RestUtils {
     return rb;
   }
 
+  /**
+   *  Makes the responseBuilder CORS compatible, assumes default methods
+   *
+   * @param req the modified response builder
+   * @return
+   */
   public static Response.ResponseBuilder makeCORS(Response.ResponseBuilder req) {
     return makeCORS(req, "");
   }
