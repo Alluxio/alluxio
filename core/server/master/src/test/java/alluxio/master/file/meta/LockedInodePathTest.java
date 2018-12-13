@@ -35,6 +35,7 @@ public class LockedInodePathTest extends BaseInodeLockingTest {
     if (mPath != null) {
       mPath.close();
     }
+    super.after();
   }
 
   @Test

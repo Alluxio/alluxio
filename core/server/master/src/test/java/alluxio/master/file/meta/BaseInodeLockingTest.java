@@ -23,6 +23,13 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 
+/**
+ * Base class for inode locking tests. This class provides utility methods and fields to help with
+ * testing.
+ *
+ * Subclasses should call super.after() in their @After methods to verify that all locks are
+ * released at the end of each test.
+ */
 public class BaseInodeLockingTest {
   protected InodeLockManager mInodeLockManager = new InodeLockManager();
 
@@ -43,6 +50,9 @@ public class BaseInodeLockingTest {
     checkOnlyIncomingEdgesWriteLocked();
   }
 
+  /**
+   * Checks that only the specified inodes are read-locked.
+   */
   protected void checkOnlyNodesReadLocked(InodeView... inodes) {
     HashSet<InodeView> shouldBeLocked = new HashSet<>(Arrays.asList(inodes));
     for (InodeView inode : inodes) {
@@ -57,6 +67,9 @@ public class BaseInodeLockingTest {
     }
   }
 
+  /**
+   * Checks that only the specified inodes are write-locked.
+   */
   protected void checkOnlyNodesWriteLocked(InodeView... inodes) {
     HashSet<InodeView> shouldBeLocked = new HashSet<>(Arrays.asList(inodes));
     for (InodeView inode : inodes) {
@@ -71,6 +84,9 @@ public class BaseInodeLockingTest {
     }
   }
 
+  /**
+   * Checks that only the edges leading to the specified inodes are read-locked.
+   */
   protected void checkOnlyIncomingEdgesReadLocked(InodeView... inodes) {
     HashSet<InodeView> shouldBeLocked = new HashSet<>(Arrays.asList(inodes));
     for (InodeView inode : inodes) {
@@ -87,6 +103,9 @@ public class BaseInodeLockingTest {
     }
   }
 
+  /**
+   * Checks that only the edges leading to the specified inodes are write-locked.
+   */
   protected void checkOnlyIncomingEdgesWriteLocked(InodeView... inodes) {
     HashSet<InodeView> shouldBeLocked = new HashSet<>(Arrays.asList(inodes));
     for (InodeView inode : inodes) {
@@ -103,6 +122,9 @@ public class BaseInodeLockingTest {
     }
   }
 
+  /**
+   * Checks that the specified edge is write-locked.
+   */
   protected void checkIncomingEdgeWriteLocked(long parentId, String childName) {
     Edge edge = new Edge(parentId, childName);
     assertTrue("Unexpected write lock state for edge " + edge,

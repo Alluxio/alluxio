@@ -36,6 +36,7 @@ public class InodeLockListTest extends BaseInodeLockingTest {
   @After
   public void after() {
     mLockList.close();
+    super.after();
   }
 
   @Test

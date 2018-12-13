@@ -47,7 +47,7 @@ public class InodeLockList implements AutoCloseable {
 
   protected final InodeLockManager mInodeLockManager;
 
-  /** The set of inodes that have been locked by the lock list. */
+  /** The inodes that have been locked by the lock list, ordered from the root. */
   protected List<InodeView> mLockedInodes;
   /** Entries for each lock in the lock list, ordered from the root. */
   protected List<Entry> mEntries;
@@ -162,10 +162,10 @@ public class InodeLockList implements AutoCloseable {
       return;
     }
 
+    int edgeIndex = mEntries.size() - 1;
     lockInodeInternal(inode, LockMode.READ);
     lockEdgeInternal(childName, LockMode.WRITE);
-    // downgrade the second to last edge lock.
-    downgradeNthToLastEdge(2);
+    downgradeEdge(edgeIndex);
   }
 
   /**
@@ -222,7 +222,7 @@ public class InodeLockList implements AutoCloseable {
     Preconditions.checkState(!mEntries.isEmpty());
     Preconditions.checkState(mLockMode == LockMode.WRITE);
 
-    downgradeNthToLastEdge(1);
+    downgradeEdge(mEntries.size() - 1);
     mLockMode = LockMode.READ;
   }
 
@@ -255,17 +255,13 @@ public class InodeLockList implements AutoCloseable {
   }
 
   /**
-   * Downgrades the nth to last edge from a write lock to a read lock. The read lock is taken before
-   * releasing the write lock.
+   * Downgrades the edge at the specified entry index.
    */
-  private void downgradeNthToLastEdge(int i) {
-    int endOffset = (endsInInode() ? 0 : -1) + 2 * i;
-    int entryIndex = mEntries.size() - endOffset;
-
-    EdgeEntry entry = (EdgeEntry) mEntries.get(entryIndex);
+  private void downgradeEdge(int edgeEntryIndex) {
+    EdgeEntry entry = (EdgeEntry) mEntries.get(edgeEntryIndex);
     LockResource lock = mInodeLockManager.lockEdge(entry.mEdge, LockMode.READ);
     entry.getLock().close();
-    mEntries.set(entryIndex, new EdgeEntry(lock, entry.getEdge()));
+    mEntries.set(edgeEntryIndex, new EdgeEntry(lock, entry.getEdge()));
   }
 
   /**
