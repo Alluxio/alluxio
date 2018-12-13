@@ -20,6 +20,7 @@ import alluxio.MasterStorageTierAssoc;
 import alluxio.PropertyKey;
 import alluxio.RestUtils;
 import alluxio.RuntimeConstants;
+import alluxio.StorageTierAssoc;
 import alluxio.master.MasterProcess;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.FileSystemMaster;
@@ -31,6 +32,7 @@ import alluxio.util.CommonUtils;
 import alluxio.util.FormatUtils;
 import alluxio.util.LogUtils;
 import alluxio.web.MasterWebServer;
+import alluxio.web.WebInterfaceGeneralServlet;
 import alluxio.wire.AlluxioMasterInfo;
 import alluxio.wire.Capacity;
 import alluxio.wire.ConfigCheckReport;
@@ -203,6 +205,21 @@ public final class AlluxioMasterRestServiceHandler {
       }
       diskFreeCapacity = freeSpace;
 
+      StorageTierAssoc globalStorageTierAssoc = mBlockMaster.getGlobalStorageTierAssoc();
+      List<WebUIOverview.StorageTierInfo> infos = new ArrayList<>();
+      Map<String, Long> totalBytesOnTiers = mBlockMaster.getTotalBytesOnTiers();
+      Map<String, Long> usedBytesOnTiers = mBlockMaster.getUsedBytesOnTiers();
+
+      for (int ordinal = 0; ordinal < globalStorageTierAssoc.size(); ordinal++) {
+        String tierAlias = globalStorageTierAssoc.getAlias(ordinal);
+        if (totalBytesOnTiers.containsKey(tierAlias) && totalBytesOnTiers.get(tierAlias) > 0) {
+          WebUIOverview.StorageTierInfo info =
+              new WebUIOverview.StorageTierInfo(tierAlias, totalBytesOnTiers.get(tierAlias),
+                  usedBytesOnTiers.get(tierAlias));
+          infos.add(info);
+        }
+      }
+
       return new WebUIOverview()
           .setCapacity(getCapacityInternal())
           .setConfigCheckErrorNum(report.getConfigErrors().values().stream().mapToInt(List::size).sum())
@@ -222,7 +239,7 @@ public final class AlluxioMasterRestServiceHandler {
           .setLiveWorkerNodes(mBlockMaster.getWorkerCount())
           .setMasterNodeAddress(mMasterProcess.getRpcAddress().toString())
           .setStartTime(CommonUtils.convertMsToDate(mMetaMaster.getStartTimeMs()))
-//          .setStorageTierInfos(infos)
+          .setStorageTierInfos(infos)
           .setUptime(CommonUtils.convertMsToClockTime(System.currentTimeMillis() - mMetaMaster.getStartTimeMs()))
           .setUsedCapacity(FormatUtils.getSizeFromBytes(mBlockMaster.getUsedBytes()))
           .setVersion(RuntimeConstants.VERSION);
