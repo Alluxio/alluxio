@@ -229,7 +229,7 @@ public class LockedInodePath implements Closeable {
   public void removeLastInode() {
     Preconditions.checkState(fullPathExists());
 
-    if (mLockPattern != LockPattern.WRITE_EDGE) {
+    if (mLockPattern != LockPattern.WRITE_EDGE && mLockList.numLockedInodes() == size()) {
       mLockList.unlockLastInode();
       mLockList.unlockLastEdge();
     }
@@ -271,8 +271,9 @@ public class LockedInodePath implements Closeable {
       case WRITE_INODE:
         if (mLockPattern == LockPattern.WRITE_EDGE) {
           downgradeEdgeToInode(LockMode.WRITE);
+        } else {
+          Preconditions.checkState(mLockPattern == LockPattern.WRITE_INODE);
         }
-        Preconditions.checkState(mLockPattern == LockPattern.WRITE_INODE);
         break;
       case WRITE_EDGE:
         Preconditions.checkState(mLockPattern == LockPattern.WRITE_EDGE);
