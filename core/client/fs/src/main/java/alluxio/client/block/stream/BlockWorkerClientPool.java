@@ -42,7 +42,7 @@ public final class BlockWorkerClientPool extends ResourcePool<BlockWorkerClient>
    * @param address address of the worker
    */
   public BlockWorkerClientPool(Subject subject, SocketAddress address) {
-    super(Configuration.getInt(PropertyKey.USER_BLOCK_WORKER_CLIENT_THREADS));
+    super(Configuration.getInt(PropertyKey.USER_BLOCK_WORKER_CLIENT_POOL_SIZE_MAX));
     mBuilder = BlockWorkerClient.getBuilder(subject, address);
     mClientList = new ConcurrentLinkedQueue<>();
   }

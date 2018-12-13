@@ -386,11 +386,11 @@ public final class FileSystemContext implements Closeable {
 
   /**
    * Acquires a block worker client from the client pools. If there is no available client instance
-   * available in the pool, it tries to create a new one. And an exception is thrown if it fails to
-   * create a new one.
+   * available in the pool, it tries to create a new one.
    *
    * @param workerNetAddress the network address of the channel
    * @return the acquired netty channel
+   * @throws IOException if it fails to create a new worker client
    */
   public BlockWorkerClient acquireBlockWorkerClient(final WorkerNetAddress workerNetAddress)
       throws IOException {

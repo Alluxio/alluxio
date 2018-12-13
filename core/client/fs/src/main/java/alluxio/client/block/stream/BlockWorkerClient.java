@@ -63,7 +63,7 @@ public interface BlockWorkerClient extends Closeable {
   StreamObserver<WriteRequest> writeBlock(StreamObserver<WriteResponse> responseObserver);
 
   /**
-   * Reads a block from the worker.
+   * Reads a block from the worker. A StatusRuntimeException will be thrown if any error occurs.
    *
    * @param request the read request
    * @return the streamed response from server

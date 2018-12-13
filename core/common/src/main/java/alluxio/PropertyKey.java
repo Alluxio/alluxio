@@ -2661,6 +2661,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
+  public static final PropertyKey USER_NETWORK_GRPC_KEEPALIVE_TIMEOUT_MS =
+      new Builder(Name.USER_NETWORK_GRPC_KEEPALIVE_TIMEOUT_MS)
+          .setDefaultValue("30sec")
+          .setDescription("The maximum time for a gRPC client (for block "
+              + "reads and block writes) to wait for a response from the data server.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
   public static final PropertyKey USER_NETWORK_GRPC_MAX_INBOUND_MESSAGE_SIZE =
       new Builder(Name.USER_NETWORK_GRPC_MAX_INBOUND_MESSAGE_SIZE)
           .setDefaultValue("4MB")
@@ -3742,6 +3750,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String USER_APP_ID = "alluxio.user.app.id";
     public static final String USER_NETWORK_GRPC_FLOWCONTROL_WINDOW =
         "alluxio.worker.network.grpc.flowcontrol.window";
+    public static final String USER_NETWORK_GRPC_KEEPALIVE_TIMEOUT_MS =
+        "alluxio.user.network.grpc.keepalive.timeout";
     public static final String USER_NETWORK_GRPC_MAX_INBOUND_MESSAGE_SIZE =
         "alluxio.worker.network.grpc.max.inbound.message.size";
     public static final String USER_NETWORK_NETTY_CHANNEL = "alluxio.user.network.netty.channel";

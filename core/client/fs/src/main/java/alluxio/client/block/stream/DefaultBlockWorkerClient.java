@@ -44,7 +44,7 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
       LoggerFactory.getLogger(DefaultBlockWorkerClient.class.getName());
 
   private static final long KEEPALIVE_TIMEOUT_MS =
-      Configuration.getMs(PropertyKey.USER_NETWORK_NETTY_TIMEOUT_MS);
+      Configuration.getMs(PropertyKey.USER_NETWORK_GRPC_KEEPALIVE_TIMEOUT_MS);
   private static final long GRPC_FLOWCONTROL_WINDOW =
       Configuration.getMs(PropertyKey.USER_NETWORK_GRPC_FLOWCONTROL_WINDOW);
   private static final long MAX_INBOUND_MESSAGE_SIZE =
@@ -81,7 +81,7 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
   /**
    * Gets a builder for given user subject and address.
    *
-   * @param subject the user subject
+   * @param subject the user subject, can be null if the user is not available
    * @param address the address of the worker
    * @return the builder for the client
    */
