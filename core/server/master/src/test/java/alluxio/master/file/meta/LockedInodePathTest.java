@@ -556,7 +556,8 @@ public class LockedInodePathTest extends BaseInodeLockingTest {
     mPath = new LockedInodePath(uri, mInodeLockManager, mRootDir, LockPattern.READ);
     mPath.traverse();
 
-    LockedInodePath childPath = mPath.lockDescendant(new AlluxioURI("/a/b/c"), LockPattern.WRITE_EDGE);
+    LockedInodePath childPath =
+        mPath.lockDescendant(new AlluxioURI("/a/b/c"), LockPattern.WRITE_EDGE);
     assertTrue(childPath.fullPathExists());
     assertEquals(Arrays.asList(mRootDir, mDirA, mDirB, mFileC), childPath.getInodeList());
 
@@ -579,7 +580,8 @@ public class LockedInodePathTest extends BaseInodeLockingTest {
     mPath = new LockedInodePath(uri, mInodeLockManager, mRootDir, LockPattern.WRITE_EDGE);
     mPath.traverse();
 
-    LockedInodePath childPath = mPath.lockDescendant(new AlluxioURI("/a/b/c"), LockPattern.WRITE_EDGE);
+    LockedInodePath childPath =
+        mPath.lockDescendant(new AlluxioURI("/a/b/c"), LockPattern.WRITE_EDGE);
     assertTrue(childPath.fullPathExists());
     assertEquals(Arrays.asList(mRootDir, mDirA, mDirB, mFileC), childPath.getInodeList());
 

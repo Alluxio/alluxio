@@ -530,7 +530,7 @@ public class LockedInodePath implements Closeable {
    * A path is implicitly locked if it ends with an inode that is not locked by the lock list. This
    * can only happen when one of the inodes or edges leading to that inode is write-locked.
    *
-   * @return whether the path is implicitly locked.
+   * @return whether the path is implicitly locked
    */
   private boolean isImplicitlyLocked() {
     return mLockList.getLockMode() == LockMode.WRITE
