@@ -14,7 +14,7 @@ package alluxio.master.file.meta;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.annotation.concurrent.ThreadSafe;
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * Manages the locks for a list of {@link Inode}s, based off an existing lock list. This does not
@@ -25,7 +25,7 @@ import javax.annotation.concurrent.ThreadSafe;
  *
  * Modification is only supported for the non-base part of the lock list.
  */
-@ThreadSafe
+@NotThreadSafe
 public class CompositeInodeLockList extends InodeLockList {
   /** The base lock list for this composite list. */
   private final InodeLockList mBaseLockList;
