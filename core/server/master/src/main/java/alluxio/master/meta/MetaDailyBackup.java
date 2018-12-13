@@ -15,8 +15,10 @@ import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.util.FormatUtils;
 import alluxio.util.ThreadFactoryUtils;
+import alluxio.util.URIUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.BackupOptions;
 import alluxio.wire.BackupResponse;
@@ -26,8 +28,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.Clock;
-import java.time.LocalDate;
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.TreeMap;
 import java.util.concurrent.Executors;
@@ -44,7 +47,7 @@ public final class MetaDailyBackup {
   private static final Logger LOG = LoggerFactory.getLogger(MetaDailyBackup.class);
 
   private final Pattern mBackupPattern
-      = Pattern.compile("alluxio-backup-([0-9]+)-([0-9]+)-([0-9]+)-[^.]+.gz");
+      = Pattern.compile("alluxio-backup-[0-9]+-[0-9]+-[0-9]+-([0-9]+).gz");
   private final int mMaxFile = Configuration.getInt(PropertyKey.MASTER_DAILY_BACKUP_FILE_MAX);
 
   private ScheduledFuture<?> mBackup;
@@ -66,7 +69,7 @@ public final class MetaDailyBackup {
   public void start() {
     Preconditions.checkState(mBackup == null && mScheduleExecutor == null);
     mScheduleExecutor = Executors.newSingleThreadScheduledExecutor(
-        ThreadFactoryUtils.build("MetaDailyBackup-%d", true));
+    ThreadFactoryUtils.build("MetaDailyBackup-%d", true));
 
     mBackup = mScheduleExecutor.scheduleAtFixedRate(new Runnable() {
           @Override
@@ -101,45 +104,67 @@ public final class MetaDailyBackup {
    */
   private void dailyBackup() {
     String dir = Configuration.get(PropertyKey.MASTER_BACKUP_DIRECTORY);
-    try {
-      BackupResponse resp = mMetaMaster.backup(new BackupOptions(dir, false));
-      LOG.info("Successfully backed up journal to %s%n", resp.getBackupUri());
-    } catch (Exception e) {
-      LOG.error("Failed to execute daily backup at {}", dir, e);
+    String rootUfs = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+    boolean isLocal = URIUtils.isLocalFilesystem(Configuration
+        .get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS));
+    if (isLocal) {
+      dir = PathUtils.concatPath(rootUfs, dir);
     }
     try {
-      deleteOldestBackups(dir);
+      BackupResponse resp = mMetaMaster.backup(new BackupOptions(dir, isLocal));
+      LOG.info("Successfully backed up journal to {}", resp.getBackupUri());
+      try {
+        deleteOldestBackups(dir, isLocal);
+      } catch (Exception e) {
+        LOG.error("Failed to delete outdated backup files at {}", dir, e);
+      }
     } catch (Exception e) {
-      LOG.error("Failed to delete outdated backup files", e);
+      LOG.error("Failed to execute daily backup at {}", dir, e);
     }
   }
 
   /**
    * Deletes oldest backup files to avoid consuming too many spaces.
+   *
+   * @param dir the backup directory
+   * @param isLocal whether the root ufs is local filesystem
    */
-  private void deleteOldestBackups(String dir) throws Exception {
-    UnderFileSystem ufs = UnderFileSystem.Factory.createForRoot();
+  private void deleteOldestBackups(String dir, boolean isLocal) throws Exception {
+    UnderFileSystem ufs;
+    if (isLocal) {
+      ufs = UnderFileSystem.Factory.create("/", UnderFileSystemConfiguration.defaults());
+    } else {
+      ufs = UnderFileSystem.Factory.createForRoot();
+    }
+
     UfsStatus[] statues = ufs.listStatus(dir);
     if (statues.length <= mMaxFile) {
       return;
     }
-    TreeMap<LocalDate, String> map = new TreeMap<>((a, b) -> (
-        a.isBefore(b) ? 1 : a.isAfter(b) ? -1 : 0));
+
+    // Sort the backup files according to create date from oldest to newest
+    TreeMap<LocalDateTime, String> dateToFile = new TreeMap<>((a, b) -> (
+        a.isBefore(b) ? -1 : a.isAfter(b) ? 1 : 0));
     for (UfsStatus status : statues) {
       if (status.isFile()) {
         Matcher matcher = mBackupPattern.matcher(status.getName());
         if (matcher.matches()) {
-          LocalDate date = LocalDate.of(Integer.parseInt(matcher.group(0)),
-              Integer.parseInt(matcher.group(1)), Integer.parseInt(matcher.group(2)));
-          map.put(date, status.getName());
+          LocalDateTime date = LocalDateTime.ofInstant(Instant
+              .ofEpochMilli(Long.parseLong(matcher.group(1))), ZoneId.of("UTC"));
+          dateToFile.put(date, status.getName());
         }
       }
     }
-    if (map.size() <= mMaxFile) {
+
+    // Delete the oldest files
+    int fileToDelete = dateToFile.size() - mMaxFile;
+    if (fileToDelete <= 0) {
       return;
     }
-    for (int i = 0; i < map.size() - mMaxFile; i++) {
-      ufs.deleteFile(PathUtils.concatPath(dir, map.pollFirstEntry().getValue()));
+    for (int i = 0; i < fileToDelete; i++) {
+      String toDeleteFile = PathUtils.concatPath(dir, dateToFile.pollFirstEntry().getValue());
+      ufs.deleteFile(toDeleteFile);
+      LOG.info("Deleted outdated metadata backup {}", toDeleteFile);
     }
   }
 
