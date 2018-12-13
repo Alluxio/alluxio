@@ -40,7 +40,7 @@ public final class WebUIOverview implements Serializable {
   private String mFreeCapacity;
   private List<AlluxioURI> mInconsistentPathItems;
   private int mInconsistentPaths;
-  private String mLiveWorkerNodes;
+  private int mLiveWorkerNodes;
   private String mMasterNodeAddress;
   private String mStartTime;
   private String mStorageTierInfos;
@@ -155,7 +155,7 @@ public final class WebUIOverview implements Serializable {
   /**
    * @return live worker nodes
    */
-  public String getLiveWorkerNodes() {
+  public int getLiveWorkerNodes() {
     return mLiveWorkerNodes;
   }
 
@@ -333,7 +333,7 @@ public final class WebUIOverview implements Serializable {
    * @param liveWorkerNodes
    * @return
    */
-  public WebUIOverview setLiveWorkerNodes(String liveWorkerNodes) {
+  public WebUIOverview setLiveWorkerNodes(int liveWorkerNodes) {
     mLiveWorkerNodes = liveWorkerNodes;
     return this;
   }

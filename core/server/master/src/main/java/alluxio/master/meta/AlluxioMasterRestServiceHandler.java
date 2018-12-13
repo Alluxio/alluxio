@@ -226,7 +226,7 @@ public final class AlluxioMasterRestServiceHandler {
           .setFreeCapacity(FormatUtils.getSizeFromBytes(mBlockMaster.getCapacityBytes() - mBlockMaster.getUsedBytes()))
           .setInconsistentPathItems(inconsistentPathItems)
           .setInconsistentPaths(inconsistentPaths)
-          .setLiveWorkerNodes(Integer.toString(mBlockMaster.getWorkerCount()))
+          .setLiveWorkerNodes(mBlockMaster.getWorkerCount())
           .setMasterNodeAddress(mMasterProcess.getRpcAddress().toString())
           .setStartTime(CommonUtils.convertMsToDate(mMetaMaster.getStartTimeMs()))
 //          .setStorageTierInfos(infos)
