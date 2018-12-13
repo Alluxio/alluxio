@@ -11,6 +11,8 @@
 
 package alluxio.master.meta;
 
+import static alluxio.Configuration.getBoolean;
+
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.ConfigurationValueOptions;
@@ -33,8 +35,8 @@ import alluxio.wire.AlluxioMasterInfo;
 import alluxio.wire.Capacity;
 import alluxio.wire.ConfigCheckReport;
 import alluxio.wire.MountPointInfo;
-
 import alluxio.wire.WebUIOverview;
+
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Gauge;
 import com.codahale.metrics.MetricRegistry;
@@ -160,7 +162,12 @@ public final class AlluxioMasterRestServiceHandler {
   @Path(WEBUI_OVERVIEW)
   @ReturnType("alluxio.wire.WebUIOverview")
   public Response getWebUIOverview() {
-    return RestUtils.call(() -> {
+    String methodName = "call";
+    if (getBoolean(PropertyKey.DEBUG)) {
+      methodName = "callCORS";
+    }
+
+    return RestUtils.callCORS(() -> {
       StartupConsistencyCheck consistencyCheck = mFileSystemMaster.getStartupConsistencyCheck();
       String consistencyCheckStatus = consistencyCheck.getStatus().toString();
       int inconsistentPaths = 0;
@@ -216,7 +223,7 @@ public final class AlluxioMasterRestServiceHandler {
           .setConfigCheckWarnNum(report.getConfigWarns().values().stream().mapToInt(List::size).sum())
           .setConfigCheckWarns(report.getConfigWarns())
           .setConsistencyCheckStatus(consistencyCheckStatus)
-          .setDebug(Configuration.getBoolean(PropertyKey.DEBUG))
+          .setDebug(getBoolean(PropertyKey.DEBUG))
           .setDiskCapacity(diskCapacity)
           .setDiskCapacity(totalSpace)
           .setDiskFreeCapacity(diskFreeCapacity)
@@ -233,6 +240,7 @@ public final class AlluxioMasterRestServiceHandler {
           .setVersion(RuntimeConstants.VERSION);
       });
   }
+
 
   /**
    * @summary get the configuration map, the keys are ordered alphabetically.

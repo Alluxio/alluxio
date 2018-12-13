@@ -39,7 +39,7 @@ public final class RestUtils {
    * @param callable the callable to call
    * @return the response object
    */
-  public static <T> Response call(RestUtils.RestCallable<T> callable) {
+  public static <T> Response call(RestUtils.RestCallable<T> callable, boolean isCORS) {
     try {
       // TODO(cc): reconsider how to enable authentication
       if (SecurityUtils.isSecurityEnabled() && AuthenticatedClientUser.get() == null) {
@@ -47,15 +47,23 @@ public final class RestUtils {
       }
     } catch (IOException e) {
       LOG.warn("Failed to set AuthenticatedClientUser in REST service handler: {}", e.getMessage());
-      return createErrorResponse(e);
+      return createErrorResponse(e, isCORS);
     }
 
     try {
-      return createResponse(callable.call());
+      return createResponse(callable.call(), isCORS);
     } catch (Exception e) {
       LOG.warn("Unexpected error invoking rest endpoint: {}", e.getMessage());
-      return createErrorResponse(e);
+      return createErrorResponse(e, isCORS);
     }
+  }
+
+  public static <T> Response call(RestUtils.RestCallable<T> callable) {
+    return call(callable, false);
+  }
+
+  public static <T> Response callCORS(RestUtils.RestCallable<T> callable) {
+    return call(callable, true);
   }
 
   /**
@@ -78,7 +86,7 @@ public final class RestUtils {
    * @param object the object to respond with
    * @return the response
    */
-  private static Response createResponse(Object object) {
+  private static Response createResponse(Object object, boolean isCORS) {
     if (object instanceof Void) {
       return Response.ok().build();
     }
@@ -88,10 +96,17 @@ public final class RestUtils {
       try {
         return Response.ok(mapper.writeValueAsString(object)).build();
       } catch (JsonProcessingException e) {
-        return createErrorResponse(e);
+        return createErrorResponse(e, isCORS);
       }
     }
-    return Response.ok(object).build();
+
+    Response.ResponseBuilder rb = Response.ok(object);
+
+    if (isCORS) {
+      return makeCORS(rb).build();
+    }
+
+    return rb.build();
   }
 
   /**
@@ -134,11 +149,35 @@ public final class RestUtils {
    * @param e the exception to be converted into {@link ErrorResponse} and encoded into json
    * @return the response
    */
-  private static Response createErrorResponse(Exception e) {
+  private static Response createErrorResponse(Exception e, boolean isCORS) {
     AlluxioStatusException se = AlluxioStatusException.fromThrowable(e);
     ErrorResponse response = new ErrorResponse(se.getStatus(), se.getMessage());
-    return Response.serverError().entity(response).build();
+
+    Response.ResponseBuilder rb = Response.serverError().entity(response);
+
+    if (isCORS) {
+      return makeCORS(rb).build();
+    }
+
+    return rb.build();
   }
+
+
+  public static Response.ResponseBuilder makeCORS(Response.ResponseBuilder req, String returnMethod) {
+    Response.ResponseBuilder rb = req.header("Access-Control-Allow-Origin", "*")
+        .header("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+
+    if (!"".equals(returnMethod)) {
+      rb.header("Access-Control-Allow-Headers", returnMethod);
+    }
+
+    return rb;
+  }
+
+  public static Response.ResponseBuilder makeCORS(Response.ResponseBuilder req) {
+    return makeCORS(req, "");
+  }
+
 
   private RestUtils() {} // prevent instantiation
 }
