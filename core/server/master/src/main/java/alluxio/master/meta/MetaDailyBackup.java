@@ -84,8 +84,8 @@ public final class MetaDailyBackup {
   private long getTimeToNextBackup() {
     LocalDateTime now = LocalDateTime.now(Clock.systemUTC());
     String[] hourAndMin = Configuration.get(PropertyKey.MASTER_DAILY_BACKUP_TIME).split(":");
-    int hour = Integer.valueOf(hourAndMin[0]);
-    int min = hourAndMin.length == 2 ? Integer.valueOf(hourAndMin[1]) : 0;
+    int hour = Integer.parseInt(hourAndMin[0]);
+    int min = hourAndMin.length == 2 ? Integer.parseInt(hourAndMin[1]) : 0;
     LocalDateTime nextBackupTime = LocalDateTime.of(now.getYear(),
         now.getMonth(), now.getDayOfMonth(), hour, min, 0);
     if (nextBackupTime.isBefore(now)) {
@@ -127,8 +127,8 @@ public final class MetaDailyBackup {
       if (status.isFile()) {
         Matcher matcher = mBackupPattern.matcher(status.getName());
         if (matcher.matches()) {
-          LocalDate date = LocalDate.of(Integer.valueOf(matcher.group(0)),
-              Integer.valueOf(matcher.group(1)), Integer.valueOf(matcher.group(2)));
+          LocalDate date = LocalDate.of(Integer.parseInt(matcher.group(0)),
+              Integer.parseInt(matcher.group(1)), Integer.parseInt(matcher.group(2)));
           map.put(date, status.getName());
         }
       }
