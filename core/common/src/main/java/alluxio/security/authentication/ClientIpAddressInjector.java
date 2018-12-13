@@ -26,30 +26,22 @@ public class ClientIpAddressInjector implements ServerInterceptor {
     return sIpAddressThreadLocal.get();
   }
 
-  private boolean IsWhiteListed(String methodName) {
-    return !methodName.startsWith(FileSystemMasterClientServiceGrpc.SERVICE_NAME);
-  }
-
   @Override
   public <ReqT, RespT> ServerCall.Listener<ReqT> interceptCall(ServerCall<ReqT, RespT> call,
       Metadata headers, ServerCallHandler<ReqT, RespT> next) {
-    if (IsWhiteListed(call.getMethodDescriptor().getFullMethodName())) {
-      return next.startCall(call, headers);
-    } else {
-      return new ForwardingServerCallListener.SimpleForwardingServerCallListener<ReqT>(
-          next.startCall(call, headers)) {
-        /**
-         * onHalfClose is called on the same thread that calls the service handler.
-         */
-        @Override
-        public void onHalfClose() {
-          String remoteIpAddress =
-              call.getAttributes().get(Grpc.TRANSPORT_ATTR_REMOTE_ADDR).toString();
-          sIpAddressThreadLocal.set(remoteIpAddress);
-          super.onHalfClose();
-        }
-      };
-    }
+    return new ForwardingServerCallListener.SimpleForwardingServerCallListener<ReqT>(
+        next.startCall(call, headers)) {
+      /**
+       * onHalfClose is called on the same thread that calls the service handler.
+       */
+      @Override
+      public void onHalfClose() {
+        String remoteIpAddress =
+            call.getAttributes().get(Grpc.TRANSPORT_ATTR_REMOTE_ADDR).toString();
+        sIpAddressThreadLocal.set(remoteIpAddress);
+        super.onHalfClose();
+      }
+    };
   }
 }
 

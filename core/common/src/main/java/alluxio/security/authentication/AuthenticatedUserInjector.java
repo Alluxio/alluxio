@@ -26,46 +26,31 @@ public class AuthenticatedUserInjector implements ServerInterceptor {
     mAuthenticationServer = authenticationServer;
   }
 
-  /**
-   * PS: Authentication and Versioning services don't require channel to be authenticated.
-   *
-   * @param methodName name of the RPC method being intercepted.
-   * @return true if the method that is being called need to be intercepted.
-   */
-  private boolean shouldIntercept(String methodName) {
-    return !(methodName.startsWith(SaslAuthenticationServiceGrpc.SERVICE_NAME)
-        || methodName.startsWith(AlluxioVersionServiceGrpc.SERVICE_NAME));
-  }
-
   @Override
   public <ReqT, RespT> ServerCall.Listener<ReqT> interceptCall(ServerCall<ReqT, RespT> call,
       Metadata headers, ServerCallHandler<ReqT, RespT> next) {
-    if (!shouldIntercept(call.getMethodDescriptor().getFullMethodName())) {
-      return next.startCall(call, headers);
-    } else {
-      return new ForwardingServerCallListener.SimpleForwardingServerCallListener<ReqT>(
-          next.startCall(call, headers)) {
-        /**
-         * onHalfClose is called on the same thread that calls the service handler.
-         */
-        @Override
-        public void onHalfClose() {
-          // Try to fetch channel Id from the metadata.
-          UUID channelId = headers.get(ChannelIdInjector.sClientIdKey);
-          if (channelId != null) {
-            try {
-              // Fetch authenticated username for this channel and set it.
-              String userName = mAuthenticationServer.getUserNameForChannel(channelId);
-              if (userName != null) {
-                AuthenticatedClientUser.set(userName);
-              }
-            } catch (UnauthenticatedException e) {
-              call.close(Status.UNAUTHENTICATED, headers);
+    return new ForwardingServerCallListener.SimpleForwardingServerCallListener<ReqT>(
+        next.startCall(call, headers)) {
+      /**
+       * onHalfClose is called on the same thread that calls the service handler.
+       */
+      @Override
+      public void onHalfClose() {
+        // Try to fetch channel Id from the metadata.
+        UUID channelId = headers.get(ChannelIdInjector.sClientIdKey);
+        if (channelId != null) {
+          try {
+            // Fetch authenticated username for this channel and set it.
+            String userName = mAuthenticationServer.getUserNameForChannel(channelId);
+            if (userName != null) {
+              AuthenticatedClientUser.set(userName);
             }
+          } catch (UnauthenticatedException e) {
+            call.close(Status.UNAUTHENTICATED, headers);
           }
-          super.onHalfClose();
         }
-      };
-    }
+        super.onHalfClose();
+      }
+    };
   }
 }

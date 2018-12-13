@@ -24,6 +24,7 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.NotFoundException;
 import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.GetConfigurationPOptions;
+import alluxio.grpc.GrpcService;
 import alluxio.grpc.MetaCommand;
 import alluxio.grpc.RegisterMasterPOptions;
 import alluxio.grpc.Scope;
@@ -55,8 +56,6 @@ import alluxio.wire.ConfigCheckReport;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterators;
-import io.grpc.BindableService;
-import org.apache.thrift.TProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -163,12 +162,12 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
   }
 
   @Override
-  public Map<String, BindableService> getServices() {
-    Map<String, BindableService> services = new HashMap<>();
+  public Map<String, GrpcService> getServices() {
+    Map<String, GrpcService> services = new HashMap<>();
     services.put(Constants.META_MASTER_CLIENT_SERVICE_NAME,
-        new MetaMasterClientServiceHandler(this));
+        new GrpcService(new MetaMasterClientServiceHandler(this)));
     services.put(Constants.META_MASTER_MASTER_SERVICE_NAME,
-        new MetaMasterMasterServiceHandler(this));
+        new GrpcService(new MetaMasterMasterServiceHandler(this)));
     return services;
   }
 

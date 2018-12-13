@@ -23,6 +23,7 @@ import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.WorkerOutOfSpaceException;
+import alluxio.grpc.GrpcService;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatThread;
 import alluxio.master.MasterClientConfig;
@@ -44,8 +45,6 @@ import alluxio.worker.file.FileSystemMasterClient;
 
 import com.codahale.metrics.Gauge;
 import com.google.common.base.Preconditions;
-import io.grpc.BindableService;
-import org.apache.thrift.TProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -174,7 +173,7 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   }
 
   @Override
-  public Map<String, BindableService> getServices() {
+  public Map<String, GrpcService> getServices() {
     return Collections.emptyMap();
   }
 

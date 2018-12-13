@@ -40,6 +40,7 @@ import alluxio.file.options.DescendantType;
 import alluxio.grpc.CompleteFilePOptions;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
+import alluxio.grpc.GrpcService;
 import alluxio.grpc.LoadDescendantPType;
 import alluxio.grpc.LoadMetadataPOptions;
 import alluxio.grpc.LoadMetadataPType;
@@ -151,7 +152,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Sets;
 import com.google.common.io.Closer;
-import io.grpc.BindableService;
+import io.grpc.ServerInterceptors;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -405,14 +406,15 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   }
 
   @Override
-  public Map<String, BindableService> getServices() {
-    Map<String, BindableService> services = new HashMap<>();
+  public Map<String, GrpcService> getServices() {
+    Map<String, GrpcService> services = new HashMap<>();
     services.put(Constants.FILE_SYSTEM_MASTER_CLIENT_SERVICE_NAME,
-        new FileSystemMasterClientServiceHandler(this));
+        new GrpcService(ServerInterceptors.intercept(new FileSystemMasterClientServiceHandler(this),
+            new ClientIpAddressInjector())));
     services.put(Constants.FILE_SYSTEM_MASTER_JOB_SERVICE_NAME,
-        new FileSystemMasterJobServiceHandler(this));
+        new GrpcService(new FileSystemMasterJobServiceHandler(this)));
     services.put(Constants.FILE_SYSTEM_MASTER_WORKER_SERVICE_NAME,
-        new FileSystemMasterWorkerServiceHandler(this));
+        new GrpcService(new FileSystemMasterWorkerServiceHandler(this)));
     return services;
   }
 

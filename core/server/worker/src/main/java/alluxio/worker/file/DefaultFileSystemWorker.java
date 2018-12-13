@@ -15,6 +15,7 @@ import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.Server;
+import alluxio.grpc.GrpcService;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatThread;
 import alluxio.master.MasterClientConfig;
@@ -28,8 +29,6 @@ import alluxio.worker.block.BlockWorker;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.util.concurrent.RateLimiter;
-import io.grpc.BindableService;
-import org.apache.thrift.TProcessor;
 
 import java.util.Collections;
 import java.util.Map;
@@ -92,7 +91,7 @@ public final class DefaultFileSystemWorker extends AbstractWorker implements Fil
   }
 
   @Override
-  public Map<String, BindableService> getServices() {
+  public Map<String, GrpcService> getServices() {
     return Collections.emptyMap();
   }
 

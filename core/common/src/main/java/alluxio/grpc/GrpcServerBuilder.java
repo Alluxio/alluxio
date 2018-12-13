@@ -16,6 +16,8 @@ import alluxio.security.authentication.DefaultAuthenticationServer;
 import alluxio.util.SecurityUtils;
 import io.grpc.BindableService;
 import io.grpc.ServerInterceptor;
+import io.grpc.ServerInterceptors;
+import io.grpc.ServerServiceDefinition;
 import io.grpc.netty.NettyServerBuilder;
 
 import java.net.InetSocketAddress;
@@ -33,7 +35,10 @@ public class GrpcServerBuilder {
 
   private GrpcServerBuilder(NettyServerBuilder nettyChannelBuilder) {
     mNettyServerBuilder = nettyChannelBuilder;
-    mAuthenticationServer = new DefaultAuthenticationServer();
+    if (SecurityUtils.isAuthenticationEnabled()) {
+      mAuthenticationServer = new DefaultAuthenticationServer();
+      addService(new GrpcService(mAuthenticationServer).disableAuthentication());
+    }
   }
 
   /**
@@ -60,10 +65,14 @@ public class GrpcServerBuilder {
   /**
    * Add a service to this server.
    *
-   * @param service the service to add
+   * @param serviceDefinition the service definition of new service
    * @return an updated instance of this {@link GrpcServerBuilder}
    */
-  public GrpcServerBuilder addService(BindableService service) {
+  public GrpcServerBuilder addService(GrpcService serviceDefinition) {
+    ServerServiceDefinition service = serviceDefinition.getServiceDefinition();
+    if (SecurityUtils.isAuthenticationEnabled() && serviceDefinition.isAuthenticated()) {
+      service = ServerInterceptors.intercept(service, mAuthenticationServer.getInterceptors());
+    }
     mNettyServerBuilder = mNettyServerBuilder.addService(service);
     return this;
   }
@@ -86,14 +95,6 @@ public class GrpcServerBuilder {
    * @return the built {@link GrpcServer}
    */
   public GrpcServer build() {
-    // Add authentication service and interceptors to server that is being built.
-    if (SecurityUtils.isAuthenticationEnabled()) {
-      mNettyServerBuilder.addService(mAuthenticationServer);
-      for (ServerInterceptor interceptor : mAuthenticationServer.getInterceptors()) {
-        mNettyServerBuilder.intercept(interceptor);
-      }
-    }
     return new GrpcServer(mNettyServerBuilder.build());
   }
-
 }

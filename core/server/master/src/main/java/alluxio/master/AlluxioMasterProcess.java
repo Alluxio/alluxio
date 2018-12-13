@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
+import alluxio.grpc.GrpcService;
 import alluxio.master.journal.JournalSystem;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.sink.MetricsServlet;
@@ -36,6 +37,7 @@ import alluxio.web.WebServer;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import io.grpc.BindableService;
+import io.grpc.ServerServiceDefinition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -344,10 +346,11 @@ public class AlluxioMasterProcess implements MasterProcess {
     }
   }
 
-  private void registerServices(GrpcServerBuilder serverBuilder, Map<String, BindableService> services) {
-    for (Map.Entry<String, BindableService> service : services.entrySet()) {
-      serverBuilder.addService( service.getValue());
-      LOG.info("registered service {}", service.getKey());
+  private void registerServices(GrpcServerBuilder serverBuilder,
+      Map<String, GrpcService> services) {
+    for (Map.Entry<String, GrpcService> serviceEntry : services.entrySet()) {
+      serverBuilder.addService(serviceEntry.getValue());
+      LOG.info("registered service {}", serviceEntry.getKey());
     }
   }
 
@@ -372,10 +375,9 @@ public class AlluxioMasterProcess implements MasterProcess {
       for (Master master : mRegistry.getServers()) {
         registerServices(serverBuilder, master.getServices());
       }
-      // Expose version service from the server.
-      serverBuilder.addService(new AlluxioVersionServiceHandler());
-      // Register interceptor for providing audit context with remote client's IP Address
-      serverBuilder.intercept(new ClientIpAddressInjector());
+      // Expose version service from the server with no authentication.
+      serverBuilder.addService(
+          new GrpcService(new AlluxioVersionServiceHandler()).disableAuthentication());
 
       mGrpcServer = serverBuilder.build().start();
       mSafeModeManager.notifyRpcServerStarted();

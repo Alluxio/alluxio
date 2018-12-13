@@ -31,6 +31,7 @@ import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.Command;
 import alluxio.grpc.CommandType;
 import alluxio.grpc.ConfigProperty;
+import alluxio.grpc.GrpcService;
 import alluxio.grpc.RegisterWorkerPOptions;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatExecutor;
@@ -64,9 +65,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterators;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import io.grpc.BindableService;
 import jersey.repackaged.com.google.common.base.Preconditions;
-import org.apache.thrift.TProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -232,12 +231,12 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
   }
 
   @Override
-  public Map<String, BindableService> getServices() {
-    Map<String, BindableService> services = new HashMap<>();
+  public Map<String, GrpcService> getServices() {
+    Map<String, GrpcService> services = new HashMap<>();
     services.put(Constants.BLOCK_MASTER_CLIENT_SERVICE_NAME,
-        new BlockMasterClientServiceHandler(this));
+        new GrpcService(new BlockMasterClientServiceHandler(this)));
     services.put(Constants.BLOCK_MASTER_WORKER_SERVICE_NAME,
-        new BlockMasterWorkerServiceHandler(this));
+        new GrpcService(new BlockMasterWorkerServiceHandler(this)));
     return services;
   }
 

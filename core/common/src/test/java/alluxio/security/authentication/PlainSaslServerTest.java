@@ -9,8 +9,10 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.security.authentication.plain;
+package alluxio.security.authentication;
 
+import alluxio.security.authentication.plain.PlainSaslServer;
+import alluxio.security.authentication.plain.PlainSaslServerProvider;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -44,7 +46,8 @@ public final class PlainSaslServerTest {
    */
   @Before
   public void before() throws Exception {
-    mPlainSaslServer = new PlainSaslServer(new MockCallbackHandler());
+    mPlainSaslServer = new PlainSaslServer.Factory().createSaslServer(
+        PlainSaslServerProvider.MECHANISM, null, null, null, new MockCallbackHandler());
   }
 
   /**
@@ -150,7 +153,8 @@ public final class PlainSaslServerTest {
   public void unauthorizedCallback() throws Exception {
     String testUser = "alluxio";
     String password = "anonymous";
-    mPlainSaslServer = new PlainSaslServer(new MockCallbackHandlerUnauthorized());
+    mPlainSaslServer = new PlainSaslServer.Factory().createSaslServer(
+        PlainSaslServerProvider.MECHANISM, null, null, null, new MockCallbackHandlerUnauthorized());
 
     mThrown.expect(SaslException.class);
     mThrown.expectMessage("Plain authentication failed: AuthorizeCallback authorized failure");

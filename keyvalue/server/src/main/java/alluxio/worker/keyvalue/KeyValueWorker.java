@@ -13,14 +13,13 @@ package alluxio.worker.keyvalue;
 
 import alluxio.Constants;
 import alluxio.Server;
+import alluxio.grpc.GrpcService;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.AbstractWorker;
 import alluxio.worker.block.BlockWorker;
 
 import com.google.common.collect.ImmutableSet;
-import io.grpc.BindableService;
-import org.apache.thrift.TProcessor;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -64,9 +63,10 @@ public final class KeyValueWorker extends AbstractWorker {
   }
 
   @Override
-  public Map<String, BindableService> getServices() {
-    Map<String, BindableService> services = new HashMap<>();
-    services.put(Constants.KEY_VALUE_WORKER_CLIENT_SERVICE_NAME, mKeyValueServiceHandler);
+  public Map<String, GrpcService> getServices() {
+    Map<String, GrpcService> services = new HashMap<>();
+    services.put(Constants.KEY_VALUE_WORKER_CLIENT_SERVICE_NAME,
+        new GrpcService(mKeyValueServiceHandler));
     return services;
   }
 

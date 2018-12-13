@@ -14,6 +14,7 @@ package alluxio.master;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
+import alluxio.grpc.GrpcService;
 import alluxio.master.job.JobMaster;
 import alluxio.master.journal.JournalSystem;
 import alluxio.metrics.MetricsSystem;
@@ -31,7 +32,6 @@ import alluxio.web.JobMasterWebServer;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
-import io.grpc.BindableService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -261,10 +261,10 @@ public class AlluxioJobMasterProcess implements JobMasterProcess {
   }
 
   private void registerServices(GrpcServerBuilder serverBuilder,
-      Map<String, BindableService> services) {
-    for (Map.Entry<String, BindableService> service : services.entrySet()) {
-      serverBuilder.addService(service.getValue());
-      LOG.info("registered service {}", service.getKey());
+      Map<String, GrpcService> services) {
+    for (Map.Entry<String, GrpcService> serviceEntry : services.entrySet()) {
+      serverBuilder.addService(serviceEntry.getValue());
+      LOG.info("registered service {}", serviceEntry.getKey());
     }
   }
 
@@ -287,8 +287,9 @@ public class AlluxioJobMasterProcess implements JobMasterProcess {
       LOG.info("Starting gRPC server on address {}", mRpcBindAddress);
       GrpcServerBuilder serverBuilder = GrpcServerBuilder.forAddress(mRpcBindAddress);
       registerServices(serverBuilder, mJobMaster.getServices());
-      // Expose version service from the server.
-      serverBuilder.addService(new AlluxioVersionServiceHandler());
+      // Expose version service from the server with no authentication.
+      serverBuilder.addService(
+          new GrpcService(new AlluxioVersionServiceHandler()).disableAuthentication());
 
       mGrpcServer = serverBuilder.build().start();
       mIsServing = true;
