@@ -548,4 +548,98 @@ public class LockedInodePathTest extends BaseInodeLockingTest {
     checkOnlyIncomingEdgesReadLocked(mRootDir, mDirA);
     checkOnlyIncomingEdgesWriteLocked();
   }
+
+  @Test
+  public void lockDescendantReadToWriteEdge() throws Exception {
+    AlluxioURI uri = new AlluxioURI("/");
+    mPath = new LockedInodePath(uri, mInodeLockManager, mRootDir, LockPattern.READ);
+    mPath.traverse();
+
+    LockedInodePath childPath = mPath.lockDescendant(new AlluxioURI("/a/b/c"), LockPattern.WRITE_EDGE);
+    assertTrue(childPath.fullPathExists());
+    assertEquals(Arrays.asList(mRootDir, mDirA, mDirB, mFileC), childPath.getInodeList());
+
+    checkOnlyNodesReadLocked(mRootDir, mDirA, mDirB);
+    checkOnlyNodesWriteLocked();
+    checkOnlyIncomingEdgesReadLocked(mRootDir, mDirA, mDirB);
+    checkOnlyIncomingEdgesWriteLocked(mFileC);
+
+    childPath.close();
+
+    checkOnlyNodesReadLocked(mRootDir);
+    checkOnlyNodesWriteLocked();
+    checkOnlyIncomingEdgesReadLocked(mRootDir);
+    checkOnlyIncomingEdgesWriteLocked();
+  }
+
+  @Test
+  public void lockDescendantWriteEdgeToWriteEdge() throws Exception {
+    AlluxioURI uri = new AlluxioURI("/");
+    mPath = new LockedInodePath(uri, mInodeLockManager, mRootDir, LockPattern.WRITE_EDGE);
+    mPath.traverse();
+
+    LockedInodePath childPath = mPath.lockDescendant(new AlluxioURI("/a/b/c"), LockPattern.WRITE_EDGE);
+    assertTrue(childPath.fullPathExists());
+    assertEquals(Arrays.asList(mRootDir, mDirA, mDirB, mFileC), childPath.getInodeList());
+
+    checkOnlyNodesReadLocked();
+    checkOnlyNodesWriteLocked();
+    checkOnlyIncomingEdgesReadLocked();
+    checkOnlyIncomingEdgesWriteLocked(mRootDir);
+
+    childPath.close();
+
+    checkOnlyNodesReadLocked();
+    checkOnlyNodesWriteLocked();
+    checkOnlyIncomingEdgesReadLocked();
+    checkOnlyIncomingEdgesWriteLocked(mRootDir);
+  }
+
+  @Test
+  public void lockFinalEdgeWrite() throws Exception {
+    ((InodeDirectory) mRootDir).removeChild("a");
+    AlluxioURI uri = new AlluxioURI("/a");
+    mPath = new LockedInodePath(uri, mInodeLockManager, mRootDir, LockPattern.READ);
+    mPath.traverse();
+
+    LockedInodePath writeLocked = mPath.lockFinalEdgeWrite();
+    assertFalse(writeLocked.fullPathExists());
+    assertEquals(Arrays.asList(mRootDir), writeLocked.getInodeList());
+
+    checkOnlyNodesReadLocked(mRootDir);
+    checkOnlyNodesWriteLocked();
+    checkOnlyIncomingEdgesReadLocked(mRootDir);
+    checkOnlyIncomingEdgesWriteLocked(mDirA);
+
+    writeLocked.close();
+
+    checkOnlyNodesReadLocked(mRootDir);
+    checkOnlyNodesWriteLocked();
+    checkOnlyIncomingEdgesReadLocked(mRootDir);
+    checkOnlyIncomingEdgesWriteLocked();
+  }
+
+  @Test
+  public void lockFinalEdgeWriteAlreadyLocked() throws Exception {
+    ((InodeDirectory) mRootDir).removeChild("a");
+    AlluxioURI uri = new AlluxioURI("/a");
+    mPath = new LockedInodePath(uri, mInodeLockManager, mRootDir, LockPattern.WRITE_EDGE);
+    mPath.traverse();
+
+    LockedInodePath writeLocked = mPath.lockFinalEdgeWrite();
+    assertFalse(writeLocked.fullPathExists());
+    assertEquals(Arrays.asList(mRootDir), writeLocked.getInodeList());
+
+    checkOnlyNodesReadLocked(mRootDir);
+    checkOnlyNodesWriteLocked();
+    checkOnlyIncomingEdgesReadLocked(mRootDir);
+    checkOnlyIncomingEdgesWriteLocked(mDirA);
+
+    writeLocked.close();
+
+    checkOnlyNodesReadLocked(mRootDir);
+    checkOnlyNodesWriteLocked();
+    checkOnlyIncomingEdgesReadLocked(mRootDir);
+    checkOnlyIncomingEdgesWriteLocked(mDirA);
+  }
 }
