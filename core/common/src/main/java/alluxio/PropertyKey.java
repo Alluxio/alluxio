@@ -1125,7 +1125,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.MASTER_DAILY_BACKUP_ENABLED)
           .setDefaultValue(false)
           .setDescription("Whether or not to enable the daily primary master"
-              + "metadata backup")
+              + "metadata backup.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_DAILY_BACKUP_FILE_MAX =
+      new Builder(Name.MASTER_DAILY_BACKUP_FILE_MAX)
+          .setDefaultValue(3)
+          .setDescription("The maximum of backup files to keep in the backup directory.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
@@ -3533,6 +3540,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.connection.timeout";
     public static final String MASTER_DAILY_BACKUP_ENABLED =
         "alluxio.master.daily.backup.enabled";
+    public static final String MASTER_DAILY_BACKUP_FILE_MAX =
+        "alluxio.master.daily.backup.file.max";
     public static final String MASTER_DAILY_BACKUP_TIME =
         "alluxio.master.daily.backup.time";
     public static final String MASTER_FILE_ASYNC_PERSIST_HANDLER =

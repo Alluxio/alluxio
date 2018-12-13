@@ -45,6 +45,7 @@ public final class MetaDailyBackup {
 
   private final Pattern mBackupPattern
       = Pattern.compile("alluxio-backup-([0-9]+)-([0-9]+)-([0-9]+)-[^.]+.gz");
+  private final int mMaxFile = Configuration.getInt(PropertyKey.MASTER_DAILY_BACKUP_FILE_MAX);
 
   private ScheduledFuture<?> mBackup;
   private MetaMaster mMetaMaster;
@@ -74,6 +75,7 @@ public final class MetaDailyBackup {
           }
         }, getTimeToNextBackup(), FormatUtils.parseTimeSize("1day"),
         TimeUnit.MILLISECONDS);
+    LOG.info("MetaDailyBackup scheduled.");
   }
 
   /**
@@ -118,7 +120,7 @@ public final class MetaDailyBackup {
   private void deleteOldestBackups(String dir) throws Exception {
     UnderFileSystem ufs = UnderFileSystem.Factory.createForRoot();
     UfsStatus[] statues = ufs.listStatus(dir);
-    if (statues.length < 4) {
+    if (statues.length <= mMaxFile) {
       return;
     }
     TreeMap<LocalDate, String> map = new TreeMap<>((a, b) -> (
@@ -133,10 +135,10 @@ public final class MetaDailyBackup {
         }
       }
     }
-    if (map.size() < 3) {
+    if (map.size() <= mMaxFile) {
       return;
     }
-    for (int i = 0; i < map.size() - 3; i++) {
+    for (int i = 0; i < map.size() - mMaxFile; i++) {
       ufs.deleteFile(PathUtils.concatPath(dir, map.pollFirstEntry().getValue()));
     }
   }
@@ -150,5 +152,6 @@ public final class MetaDailyBackup {
       mBackup = null;
     }
     mScheduleExecutor.shutdown();
+    LOG.info("MetaDailyBackup stopped.");
   }
 }
