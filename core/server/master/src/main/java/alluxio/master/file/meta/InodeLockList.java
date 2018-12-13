@@ -148,13 +148,19 @@ public class InodeLockList implements AutoCloseable {
    * throughout the process so that other threads cannot interfere with creates, deletes, or
    * renames.
    *
+   * For composite lock lists, this method will do nothing if the base lock is is write locked.
+   *
    * @param inode the inode to add to the lock list
    * @param childName the child name for the edge to add to the lock list
    */
   public void pushWriteLockedEdge(InodeView inode, String childName) {
     Preconditions.checkState(!endsInInode());
-    Preconditions.checkState(!mEntries.isEmpty());
     Preconditions.checkState(mLockMode == LockMode.WRITE);
+
+    if (mEntries.isEmpty()) {
+      // Cannot modify the base lock list, and the new inode is already implicitly locked.
+      return;
+    }
 
     lockInodeInternal(inode, LockMode.READ);
     lockEdgeInternal(childName, LockMode.WRITE);

@@ -986,7 +986,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
         try (LockedInodePath childInodePath =
             currInodePath.lockChild(child, LockPattern.READ, childComponentsHint)) {
           listStatusInternal(childInodePath, auditContext, nextDescendantType, statusList);
-        } catch (InvalidPathException e) {
+        } catch (InvalidPathException | FileDoesNotExistException e) {
           LOG.debug("Path \"{0}\" is invalid, has been ignored.",
               PathUtils.concatPath("/", childComponentsHint));
         }
@@ -2370,8 +2370,6 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
         loadFileMetadataInternal(rpcContext, inodePath, resolution, options);
       } else {
         loadDirectoryMetadata(rpcContext, inodePath, options);
-        // Pick up any newly loaded inodes.
-        mInodeTree.ensureFullInodePath(inodePath);
 
         if (options.getLoadDescendantType() != DescendantType.NONE) {
           ListOptions listOptions = ListOptions.defaults();

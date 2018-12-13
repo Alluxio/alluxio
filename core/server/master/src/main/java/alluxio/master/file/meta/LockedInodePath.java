@@ -229,7 +229,9 @@ public class LockedInodePath implements Closeable {
   public void removeLastInode() {
     Preconditions.checkState(fullPathExists());
 
-    if (mLockPattern != LockPattern.WRITE_EDGE && mLockList.numLockedInodes() == size()) {
+    if (!isImplicitlyLocked()) {
+      // WRITE_EDGE pattern always implicitly locks the list when the full path exists, so the lock
+      // list must end with an inode.
       mLockList.unlockLastInode();
       mLockList.unlockLastEdge();
     }
@@ -237,8 +239,9 @@ public class LockedInodePath implements Closeable {
   }
 
   /**
-   * Adds the next inode to the path. This reduces the scope of locking by only write-locking the
-   * new final edge.
+   * Adds the next inode to the path. This tries to reduce the scope of locking by moving the write
+   * lock forward to the new final edge, downgrading the previous write lock to a read lock. If the
+   * path is implicitly locked, the inode is added but no downgrade occurs.
    *
    * @param inode the inode to add
    */
@@ -247,11 +250,10 @@ public class LockedInodePath implements Closeable {
     Preconditions.checkState(!fullPathExists());
     Preconditions.checkState(inode.getName().equals(mPathComponents[mInodes.size()]));
 
-    mInodes.add(inode);
-    if (!fullPathExists()) {
-      // Push the write lock forward.
-      mLockList.pushWriteLockedEdge(inode, mPathComponents[mInodes.size()]);
+    if (!isImplicitlyLocked() && mInodes.size() < mPathComponents.length - 1) {
+      mLockList.pushWriteLockedEdge(inode, mPathComponents[mInodes.size() + 1]);
     }
+    mInodes.add(inode);
   }
 
   /**
@@ -263,6 +265,7 @@ public class LockedInodePath implements Closeable {
     switch (desiredLockPattern) {
       case READ:
         if (mLockPattern == LockPattern.WRITE_INODE) {
+          Preconditions.checkState(!isImplicitlyLocked());
           mLockList.downgradeLastInode();
         } else if (mLockPattern == LockPattern.WRITE_EDGE) {
           downgradeEdgeToInode(LockMode.READ);
@@ -286,6 +289,7 @@ public class LockedInodePath implements Closeable {
 
   private void downgradeEdgeToInode(LockMode lockMode) {
     if (fullPathExists()) {
+      Preconditions.checkState(mLockList.numLockedInodes() == mInodes.size() - 1);
       mLockList.downgradeEdgeToInode(Iterables.getLast(mInodes), lockMode);
       if (lockMode == LockMode.READ) {
         // Now that we've downgraded from write to read, we can only rely on directly locked inodes
@@ -295,6 +299,7 @@ public class LockedInodePath implements Closeable {
         }
       }
     } else {
+      Preconditions.checkState(mLockList.numLockedInodes() == mInodes.size());
       mLockList.unlockLastEdge();
     }
   }
@@ -517,6 +522,19 @@ public class LockedInodePath implements Closeable {
       }
       mInodes.add(nextInode);
     }
+  }
+
+  /**
+   * Returns whether the path is implicitly locked.
+   *
+   * A path is implicitly locked if it ends with an inode that is not locked by the lock list. This
+   * can only happen when one of the inodes or edges leading to that inode is write-locked.
+   *
+   * @return whether the path is implicitly locked.
+   */
+  private boolean isImplicitlyLocked() {
+    return mLockList.getLockMode() == LockMode.WRITE
+        && mInodes.size() > mLockList.numLockedInodes();
   }
 
   @Override

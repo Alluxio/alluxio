@@ -302,6 +302,31 @@ public class LockedInodePathTest extends BaseInodeLockingTest {
   }
 
   @Test
+  public void removeLastInodeImplicitlyLocked() throws Exception {
+    AlluxioURI uri = new AlluxioURI("/a");
+    mPath = new LockedInodePath(uri, mInodeLockManager, mRootDir, LockPattern.WRITE_EDGE);
+    mPath.traverse();
+
+    LockedInodePath pathC = mPath.lockDescendant(new AlluxioURI("/a/b/c"), LockPattern.READ);
+    assertTrue(pathC.fullPathExists());
+    pathC.removeLastInode();
+    assertFalse(pathC.fullPathExists());
+    assertEquals(Arrays.asList(mRootDir, mDirA, mDirB), pathC.getInodeList());
+
+    checkOnlyNodesReadLocked(mRootDir);
+    checkOnlyNodesWriteLocked();
+    checkOnlyIncomingEdgesReadLocked(mRootDir);
+    checkOnlyIncomingEdgesWriteLocked(mDirA);
+
+    pathC.close();
+
+    checkOnlyNodesReadLocked(mRootDir);
+    checkOnlyNodesWriteLocked();
+    checkOnlyIncomingEdgesReadLocked(mRootDir);
+    checkOnlyIncomingEdgesWriteLocked(mDirA);
+  }
+
+  @Test
   public void addNextFinalInode() throws Exception {
     AlluxioURI uri = new AlluxioURI("/a/missing");
     mPath = new LockedInodePath(uri, mInodeLockManager, mRootDir, LockPattern.WRITE_EDGE);
