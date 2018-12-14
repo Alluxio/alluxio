@@ -284,7 +284,8 @@ public final class Metric implements Serializable {
    */
   public static Metric fromProto(alluxio.grpc.Metric metric) {
     Metric created = new Metric(MetricsSystem.InstanceType.fromString(metric.getInstance()),
-            metric.getHostname(), metric.getInstanceId(), metric.getName(), metric.getValue());
+            metric.getHostname(), metric.hasInstanceId() ? metric.getInstanceId() : null,
+        metric.getName(), metric.getValue());
     for (Entry<String, String> entry : metric.getTagsMap().entrySet()) {
       created.addTag(entry.getKey(), entry.getValue());
     }
