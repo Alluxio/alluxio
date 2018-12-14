@@ -3751,11 +3751,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.metrics.heartbeat.interval";
     public static final String USER_APP_ID = "alluxio.user.app.id";
     public static final String USER_NETWORK_FLOWCONTROL_WINDOW =
-        "alluxio.worker.network.flowcontrol.window";
+        "alluxio.user.network.flowcontrol.window";
     public static final String USER_NETWORK_KEEPALIVE_TIMEOUT_MS =
         "alluxio.user.network.keepalive.timeout";
     public static final String USER_NETWORK_MAX_INBOUND_MESSAGE_SIZE =
-        "alluxio.worker.network.max.inbound.message.size";
+        "alluxio.user.network.max.inbound.message.size";
     public static final String USER_NETWORK_NETTY_CHANNEL = "alluxio.user.network.netty.channel";
     public static final String USER_NETWORK_NETTY_TIMEOUT_MS =
         "alluxio.user.network.netty.timeout";
