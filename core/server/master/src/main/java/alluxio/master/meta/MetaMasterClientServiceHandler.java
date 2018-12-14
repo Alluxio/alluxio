@@ -94,7 +94,7 @@ public final class MetaMasterClientServiceHandler
       StreamObserver<GetMasterInfoPResponse> responseObserver) {
     RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<GetMasterInfoPResponse>) () -> {
       MasterInfo.Builder masterInfo = MasterInfo.newBuilder();
-      for (MasterInfoField field : options.getFilterList() != null ? options.getFilterList()
+      for (MasterInfoField field : options.getFilterCount() > 0 ? options.getFilterList()
           : Arrays.asList(MasterInfoField.values())) {
         switch (field) {
           case LEADER_MASTER_ADDRESS:

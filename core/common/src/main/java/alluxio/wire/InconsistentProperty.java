@@ -138,7 +138,7 @@ public final class InconsistentProperty {
     Map<String, InconsistentPropertyValues> inconsistentPropsMap = new HashMap<>();
     for (Map.Entry<Optional<String>, List<String>> entry : mValues.entrySet()) {
       String pKey = OPTIONAL_STRING_VAL;
-      if (entry.getKey().isPresent()) {
+      if (entry.getKey().isPresent() && !entry.getKey().get().isEmpty()) {
         pKey = entry.getKey().get();
       }
       inconsistentPropsMap.put(pKey,
