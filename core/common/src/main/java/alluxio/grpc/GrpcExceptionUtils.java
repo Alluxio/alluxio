@@ -13,16 +13,25 @@ package alluxio.grpc;
 
 import alluxio.exception.status.AlluxioStatusException;
 
+import io.grpc.Metadata;
 import io.grpc.Status;
 import io.grpc.StatusException;
+import io.grpc.StatusRuntimeException;
+import org.apache.commons.lang.SerializationUtils;
 
 import javax.annotation.concurrent.ThreadSafe;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectInputStream;
 
 /**
  * Utility methods for conversion between alluxio and grpc status exceptions.
  */
 @ThreadSafe
 public final class GrpcExceptionUtils {
+  private static Metadata.Key<byte[]> sInnerCauseKey =
+      Metadata.Key.of("grpc-exception-cause-bin", Metadata.BINARY_BYTE_MARSHALLER);
 
   private GrpcExceptionUtils() {} // prevent instantiation
 
@@ -32,7 +41,7 @@ public final class GrpcExceptionUtils {
    * @param e the grpc exception
    * @return the alluxio status exception
    */
-  public static AlluxioStatusException fromGrpcStatusException(Exception e) {
+  public static AlluxioStatusException fromGrpcStatusException(StatusRuntimeException e) {
     alluxio.exception.status.Status alluxioStatus;
     switch (Status.fromThrowable(e).getCode()) {
       case ABORTED:
@@ -89,9 +98,13 @@ public final class GrpcExceptionUtils {
       default:
         alluxioStatus = alluxio.exception.status.Status.UNKNOWN;
     }
-    String message = (e.getCause() == null || e.getCause().getMessage() == null) ? e.getMessage()
-        : e.getCause().getMessage();
-    return AlluxioStatusException.from(alluxioStatus, message);
+
+
+    Throwable cause = e;
+    if (e.getTrailers().containsKey(sInnerCauseKey)) {
+      cause = (Throwable) SerializationUtils.deserialize(e.getTrailers().get(sInnerCauseKey));
+    }
+    return AlluxioStatusException.from(alluxioStatus, cause.getMessage());
   }
 
   /**
@@ -157,7 +170,11 @@ public final class GrpcExceptionUtils {
       default:
         code = Status.Code.UNKNOWN;
     }
-    return Status.fromCode(code).withDescription(e.getMessage()).asException();
+    Metadata trailers = new Metadata();
+    if(e.getCause() != null) {
+      trailers.put(sInnerCauseKey, SerializationUtils.serialize(e.getCause()));
+    }
+    return Status.fromCode(code).asException(trailers);
   }
 }
 

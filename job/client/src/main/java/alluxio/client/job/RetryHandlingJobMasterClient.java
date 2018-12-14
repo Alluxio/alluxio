@@ -25,7 +25,8 @@ import alluxio.job.wire.JobInfo;
 import alluxio.worker.job.JobMasterClientConfig;
 
 import com.google.protobuf.ByteString;
-import org.apache.thrift.TException;
+import io.grpc.StatusException;
+import io.grpc.StatusRuntimeException;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -93,7 +94,7 @@ public final class RetryHandlingJobMasterClient extends AbstractMasterClient
   @Override
   public synchronized JobInfo getStatus(final long jobId) throws IOException {
     return new JobInfo(retryRPC(new RpcCallable<alluxio.grpc.JobInfo>() {
-      public alluxio.grpc.JobInfo call() throws TException {
+      public alluxio.grpc.JobInfo call() throws StatusRuntimeException{
         return mClient.getJobStatus(GetJobStatusPRequest.newBuilder().setJobId(jobId).build())
             .getJobInfo();
       }
@@ -113,7 +114,7 @@ public final class RetryHandlingJobMasterClient extends AbstractMasterClient
   public synchronized long run(final JobConfig jobConfig) throws IOException {
     final ByteBuffer configBytes = ByteBuffer.wrap(SerializationUtils.serialize(jobConfig));
     return retryRPC(new RpcCallable<Long>() {
-      public Long call() throws TException {
+      public Long call() throws StatusRuntimeException {
         return mClient
             .run(RunPRequest.newBuilder().setJobConfig(ByteString.copyFrom(configBytes)).build())
             .getJobId();

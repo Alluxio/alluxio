@@ -33,6 +33,8 @@ import alluxio.grpc.GrpcExceptionUtils;
 
 import com.codahale.metrics.Timer;
 import com.google.common.base.Preconditions;
+import io.grpc.StatusException;
+import io.grpc.StatusRuntimeException;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TProtocol;
 import org.slf4j.Logger;
@@ -293,9 +295,9 @@ public abstract class AbstractClient implements Client {
      * The task where RPC happens.
      *
      * @return RPC result
-     * @throws TException when any exception defined in thrift happens
+     * @throws io.grpc.StatusException when any exception defined in thrift happens
      */
-    V call() throws TException;
+    V call() throws StatusRuntimeException;
   }
 
   /**
@@ -348,7 +350,7 @@ public abstract class AbstractClient implements Client {
       connect();
       try {
         return rpc.call();
-      } catch (Exception e) {
+      } catch (StatusRuntimeException e) {
         AlluxioStatusException se = GrpcExceptionUtils.fromGrpcStatusException(e);
         if (se.getStatus() == Status.UNAVAILABLE || se.getStatus() == Status.UNAUTHENTICATED) {
           ex = se;
