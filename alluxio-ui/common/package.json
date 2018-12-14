@@ -1,0 +1,53 @@
+{
+  "name": "@alluxio/common-ui",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "bootstrap": "~4.1.3",
+    "react": "~16.6.3",
+    "react-dom": "~16.6.3",
+    "react-router-dom": "~4.3.1",
+    "react-scripts-ts": "~3.1.0",
+    "reactstrap": "~6.5.0"
+  },
+  "scripts": {
+    "build-css": "node-sass-chokidar --include-path ./src --include-path ./node_modules src/ -o src/",
+    "watch-css": "npm run build-css && node-sass-chokidar --include-path ./src --include-path ./node_modules src/ -o src/ --watch --recursive",
+    "start-js": "react-scripts-ts start --watch --recursive",
+    "build-js": "react-scripts-ts build",
+    "start": "npm-run-all --parallel watch-css start-js",
+    "build": "npm-run-all --parallel build-css build-js",
+    "test": "react-scripts-ts test --env=jsdom --watch",
+    "test-ci": "CI=true react-scripts-ts test --env=jsdom",
+    "coverage": "react-scripts-ts test --env=jsdom --coverage --collectCoverageFrom=src/**/*tsx --collectCoverageFrom=!src/*tsx --watch",
+    "coverage-ci": "CI=true react-scripts-ts test --env=jsdom --coverage --collectCoverageFrom=src/**/*tsx --collectCoverageFrom=!src/*tsx",
+    "eject": "react-scripts-ts eject"
+  },
+  "devDependencies": {
+    "@types/bootstrap": "~4.1.3",
+    "@types/enzyme": "~3.1.15",
+    "@types/enzyme-adapter-react-16": "~1.0.3",
+    "@types/jest": "~23.3.10",
+    "@types/node": "~10.12.10",
+    "@types/react": "~16.7.9",
+    "@types/react-dom": "~16.0.11",
+    "@types/react-router-dom": "~4.3.1",
+    "@types/reactstrap": "~6.4.3",
+    "enzyme": "~3.7.0",
+    "enzyme-adapter-react-16": "~1.7.0",
+    "enzyme-to-json": "~3.3.4",
+    "node-sass-chokidar": "~1.3.4",
+    "npm-run-all": "~4.1.5",
+    "react-test-renderer": "~16.6.3",
+    "typescript": "~3.2.1"
+  },
+  "jest": {
+    "snapshotSerializers": [
+      "enzyme-to-json/serializer"
+    ]
+  },
+  "engines": {
+    "node": "10.11.0",
+    "npm": "6.4.1"
+  }
+}

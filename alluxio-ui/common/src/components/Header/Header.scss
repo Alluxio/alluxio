@@ -1,0 +1,67 @@
+.header {
+  margin-top: 0.5em;
+
+  .navbar {
+    padding: 0;
+
+    .navbar-brand {
+      padding: 0;
+
+      .headerLogo {
+        .brand {
+          padding: 0.25em;
+
+          .brandImage {
+            @media only screen {
+              img.brandSpin {
+                height: 1.75em;
+                width: 1.75em;
+                -webkit-animation: brandSpin 20s ease-in-out infinite;
+                -moz-animation: brandSpin 20s ease-in-out infinite;
+                animation: brandSpin 20s ease-in-out infinite;
+              }
+            }
+          }
+
+          .brandName {
+            color: #156fdb;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            transform: scaleY(0.8);
+            image-rendering: crisp-edges;
+          }
+        }
+
+        @keyframes brandSpin {
+          0%, 90% {
+            transform: rotateY(0deg);
+          }
+          95% {
+            transform: rotateY(90deg);
+          }
+          100% {
+            transform: rotateY(0deg);
+          }
+        }
+      }
+    }
+
+    .tabs {
+      margin-bottom: -0.9em;
+
+      .nav-tabs {
+        border: 0;
+
+        .nav-link {
+          font-weight: 600;
+          padding: 0.25em 0.5em;
+        }
+
+        .auto-refresh-button {
+          margin-top: -1.125em;
+          margin-right: 0.33em;
+        }
+      }
+    }
+  }
+}

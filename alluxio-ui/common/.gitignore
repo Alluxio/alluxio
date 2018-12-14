@@ -1,0 +1,14 @@
+# Applications
+build
+coverage
+dist
+docs
+docs-static/**/*.d.ts
+generated
+lib
+
+# Css
+src/**/*.css
+
+# Sass
+.sass-cache/

@@ -170,6 +170,7 @@
   </properties>
 
   <modules>
+    <module>alluxio-ui</module>
     <module>assembly</module>
     <module>core</module>
     <module>examples</module>
@@ -839,26 +840,6 @@
   <build>
     <pluginManagement>
       <plugins>
-        <plugin>
-          <groupId>com.github.eirslett</groupId>
-          <artifactId>frontend-maven-plugin</artifactId>
-          <!-- Use the latest released version:
-          https://repo1.maven.org/maven2/com/github/eirslett/frontend-maven-plugin/ -->
-          <version>1.6</version>
-          <executions>
-            <execution>
-              <id>install node and npm</id>
-              <goals>
-                <goal>install-node-and-npm</goal>
-              </goals>
-              <phase>generate-sources</phase>
-              <configuration>
-                <nodeVersion>v10.11.0</nodeVersion>
-                <npmVersion>6.4.1</npmVersion>
-              </configuration>
-            </execution>
-          </executions>
-        </plugin>
         <plugin>
           <groupId>com.coderplus.maven.plugins</groupId>
           <artifactId>copy-rename-maven-plugin</artifactId>

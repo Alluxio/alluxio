@@ -1,0 +1,16 @@
+{
+  "name": "root",
+  "private": true,
+  "devDependencies": {
+    "lerna": "~3.6.0"
+  },
+  "scripts": {
+    "clean": "lerna clean",
+    "bootstrap": "lerna bootstrap --no-ci",
+    "build": "lerna run build"
+  },
+  "engines": {
+    "node": "10.11.0",
+    "npm": "6.4.1"
+  }
+}

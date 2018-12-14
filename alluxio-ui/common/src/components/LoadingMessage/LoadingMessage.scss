@@ -1,0 +1,32 @@
+
+.loadingMessage {
+  padding: 1em;
+  color: #156fdb;
+
+  img.loadingMessageSpin {
+    height: 100px;
+    width: 100px;
+    -webkit-animation: loadingMessageSpin 4s linear infinite;
+    -moz-animation: loadingMessageSpin 4s linear infinite;
+    animation: loadingMessageSpin 4s linear infinite;
+  }
+}
+
+@-moz-keyframes loadingMessageSpin {
+  100% {
+    -moz-transform: rotateY(360deg);
+  }
+}
+
+@-webkit-keyframes loadingMessageSpin {
+  100% {
+    -webkit-transform: rotateY(360deg);
+  }
+}
+
+@keyframes loadingMessageSpin {
+  100% {
+    -webkit-transform: rotateY(360deg);
+    transform: rotateY(360deg);
+  }
+}
