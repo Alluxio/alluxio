@@ -207,8 +207,8 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
   public synchronized void mount(final AlluxioURI alluxioPath, final AlluxioURI ufsPath,
       final MountPOptions options) throws AlluxioStatusException {
     retryRPC(
-        () -> mClient.mount(MountPRequest.newBuilder().setAlluxioPath(alluxioPath.getPath())
-            .setUfsPath(ufsPath.getPath()).setOptions(options).build()),
+        () -> mClient.mount(MountPRequest.newBuilder().setAlluxioPath(alluxioPath.toString())
+            .setUfsPath(ufsPath.toString()).setOptions(options).build()),
         "Mount");
   }
 
@@ -254,7 +254,7 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
   @Override
   public synchronized void unmount(final AlluxioURI alluxioPath) throws AlluxioStatusException {
     retryRPC(() -> mClient
-        .unmount(UnmountPRequest.newBuilder().setAlluxioPath(alluxioPath.getPath())
+        .unmount(UnmountPRequest.newBuilder().setAlluxioPath(alluxioPath.toString())
             .setOptions(UnmountPOptions.newBuilder().build()).build()),
         "Unmount");
   }
