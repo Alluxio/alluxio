@@ -87,7 +87,6 @@ public class ActiveSyncer implements HeartbeatExecutor {
           // This returns a list of ufsUris that we need to sync.
           Set<AlluxioURI> ufsSyncPoints = syncInfo.getSyncPoints();
           for (AlluxioURI ufsUri : ufsSyncPoints) {
-
             AlluxioURI alluxioUri = mMountTable.reverseResolve(ufsUri);
             if (alluxioUri != null) {
               if (syncInfo.isForceSync()) {

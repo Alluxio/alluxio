@@ -3144,15 +3144,29 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
 
   @Override
   public boolean recordActiveSyncTxid(long txId, long mountId) {
-    try (RpcContext rpcContext = createRpcContext()) {
+    MountInfo mountInfo = mMountTable.getMountInfo(mountId);
+    AlluxioURI mountPath = null;
+    if (mountInfo != null) {
+      mountPath = mountInfo.getAlluxioUri();
+    } else {
+      return false;
+    }
 
+    LockingScheme lockingScheme = new LockingScheme(mountPath, LockPattern.READ, false);
+    try (RpcContext rpcContext = createRpcContext();
+         LockedInodePath inodePath = mInodeTree
+             .lockInodePath(lockingScheme.getPath(), lockingScheme.getMode())) {
       File.ActiveSyncTxIdEntry txIdEntry =
           File.ActiveSyncTxIdEntry.newBuilder().setTxId(txId).setMountId(mountId).build();
       rpcContext.journal(JournalEntry.newBuilder().setActiveSyncTxId(txIdEntry).build());
     } catch (UnavailableException e) {
       LOG.warn("Exception when recording activesync txid {}", e);
       return false;
+    } catch (InvalidPathException e) {
+      LOG.warn("InvalidPathException when recording activesync txid {}", e);
+      return false;
     }
+
     return true;
   }
 
