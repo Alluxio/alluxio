@@ -24,7 +24,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * This class is a gRPC handler that serves Alluxio service versions.
- * TODO(ggezer) Support selective version serving.
+ * TODO(ggezer) Integrate with GrpcServer for serving only exposed services' versions.
  */
 public final class AlluxioVersionServiceHandler
     extends AlluxioVersionServiceGrpc.AlluxioVersionServiceImplBase {

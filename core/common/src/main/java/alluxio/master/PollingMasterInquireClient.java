@@ -16,12 +16,14 @@ import static java.util.stream.Collectors.joining;
 import alluxio.Constants;
 import alluxio.exception.status.UnauthenticatedException;
 import alluxio.exception.status.UnavailableException;
+import alluxio.grpc.GrpcChannelBuilder;
 import alluxio.network.thrift.ThriftUtils;
 import alluxio.retry.RetryPolicy;
 import alluxio.security.authentication.TransportProvider;
 import alluxio.uri.Authority;
 import alluxio.uri.UnknownAuthority;
 
+import io.grpc.StatusRuntimeException;
 import org.apache.thrift.protocol.TProtocol;
 import org.apache.thrift.transport.TTransport;
 import org.apache.thrift.transport.TTransportException;
@@ -34,6 +36,7 @@ import java.util.Objects;
 import java.util.function.Supplier;
 
 import javax.annotation.Nullable;
+import javax.security.sasl.AuthenticationException;
 
 /**
  * PollingMasterInquireClient finds the address of the primary master by polling a list of master
@@ -79,10 +82,10 @@ public class PollingMasterInquireClient implements MasterInquireClient {
         pingMetaService(address);
         LOG.debug("Successfully connected to {}", address);
         return address;
-      } catch (TTransportException e) {
+      } catch (StatusRuntimeException e) {
         LOG.debug("Failed to connect to {}", address);
         continue;
-      } catch (UnauthenticatedException e) {
+      } catch (AuthenticationException e) {
         throw new RuntimeException(e);
       }
     }
@@ -90,12 +93,9 @@ public class PollingMasterInquireClient implements MasterInquireClient {
   }
 
   private void pingMetaService(InetSocketAddress address)
-      throws UnauthenticatedException, TTransportException {
-    TTransport transport = TransportProvider.Factory.create().getClientTransport(address);
-    TProtocol protocol =
-        ThriftUtils.createThriftProtocol(transport, Constants.META_MASTER_CLIENT_SERVICE_NAME);
-    protocol.getTransport().open();
-    protocol.getTransport().close();
+      throws AuthenticationException, StatusRuntimeException {
+    // TODO(ggezer) do a version check instead of relying on authentication.(NOSASL!)
+    GrpcChannelBuilder.forAddress(address).build().shutdown();
   }
 
   @Override

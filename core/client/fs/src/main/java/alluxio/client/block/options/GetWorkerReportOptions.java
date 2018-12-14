@@ -50,9 +50,9 @@ public final class GetWorkerReportOptions implements Serializable {
   }
 
   /**
-   * Creates a new instance of {@link GetWorkerReportOptions} from a thrift representation.
+   * Creates a new instance of {@link GetWorkerReportOptions} from a proto representation.
    *
-   * @param options the thrift representation of a GetWorkerReportOptions
+   * @param options the proto representation of a GetWorkerReportOptions
    */
   public GetWorkerReportOptions(alluxio.grpc.GetWorkerReportPOptions options) {
     mAddresses = new HashSet<>(options.getAddressesList());
@@ -186,14 +186,14 @@ public final class GetWorkerReportOptions implements Serializable {
    */
   public static enum WorkerInfoField {
     ADDRESS,
-    CAPACITY_BYTES,
-    CAPACITY_BYTES_ON_TIERS,
+    WORKER_CAPACITY_BYTES,
+    WORKER_CAPACITY_BYTES_ON_TIERS,
     ID,
     LAST_CONTACT_SEC,
     START_TIME_MS,
     STATE,
-    USED_BYTES,
-    USED_BYTES_ON_TIERS;
+    WORKER_USED_BYTES,
+    WORKER_USED_BYTES_ON_TIERS;
 
     /**
      * @return the proto representation of this worker info fields
