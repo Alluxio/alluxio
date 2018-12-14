@@ -216,8 +216,8 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
           (int) Configuration.getMs(PropertyKey.MASTER_MASTER_HEARTBEAT_INTERVAL)));
       getExecutorService().submit(
           new HeartbeatThread(HeartbeatContext.MASTER_LOG_CONFIG_REPORT_SCHEDULING,
-              new LogConfigReportHeartbeatExecutor(),
-              (int) Configuration.getMs(PropertyKey.MASTER_LOG_CONFIG_REPORT_HEARTBEAT_INTERVAL)));
+          new LogConfigReportHeartbeatExecutor(),
+          (int) Configuration.getMs(PropertyKey.MASTER_LOG_CONFIG_REPORT_HEARTBEAT_INTERVAL)));
 
       if (Configuration.getBoolean(PropertyKey.MASTER_DAILY_BACKUP_ENABLED)) {
         mDailyBackup = new MetaDailyBackup(this);

@@ -92,7 +92,7 @@ public final class MetaDailyBackup {
 
     long delayedTimeInMillis = getTimeToNextBackup();
     mBackup = mScheduleExecutor.scheduleAtFixedRate(this::dailyBackup,
-        delayedTimeInMillis, FormatUtils.parseTimeSize("5min"), TimeUnit.MILLISECONDS);
+        delayedTimeInMillis, FormatUtils.parseTimeSize("1day"), TimeUnit.MILLISECONDS);
     LOG.info("Daily metadata backup scheduled to start in {}",
         CommonUtils.convertMsToClockTime(delayedTimeInMillis));
   }
