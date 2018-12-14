@@ -1732,7 +1732,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey WORKER_NETWORK_GRPC_FLOWCONTROL_WINDOW =
       new Builder(Name.WORKER_NETWORK_GRPC_FLOWCONTROL_WINDOW)
           .setDefaultValue("1MB")
-          .setDescription("The flow control window used by worker gRPC connections.")
+          .setDescription("The HTTP2 flow control window used by worker gRPC connections. Larger "
+              + "value will allow more data to be buffered but will use more memory.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
@@ -2657,7 +2658,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey USER_NETWORK_GRPC_FLOWCONTROL_WINDOW =
       new Builder(Name.USER_NETWORK_GRPC_FLOWCONTROL_WINDOW)
           .setDefaultValue("1MB")
-          .setDescription("The flow control window used by user gRPC connections.")
+          .setDescription("The HTTP2 flow control window used by user gRPC connections. Larger "
+              + "value will allow more data to be buffered but will use more memory.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();

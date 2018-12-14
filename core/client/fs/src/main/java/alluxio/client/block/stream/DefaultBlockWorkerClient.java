@@ -59,34 +59,13 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
   private BlockWorkerGrpc.BlockWorkerStub mAsyncStub;
 
   /**
-   * Builder for {@link DefaultBlockWorkerClient}.
-   */
-  public static class Builder implements BlockWorkerClient.Builder {
-    private final GrpcChannelBuilder mChannelBuilder;
-
-    /**
-     * Creates a {@link Builder} for {@link DefaultBlockWorkerClient}.
-     * @param channelBuilder a gRPC channel builder
-     */
-    public Builder(GrpcChannelBuilder channelBuilder) {
-      mChannelBuilder = channelBuilder;
-    }
-
-    @Override
-    public BlockWorkerClient build() {
-      return new DefaultBlockWorkerClient(mChannelBuilder.build());
-    }
-  }
-
-  /**
-   * Gets a builder for given user subject and address.
+   * Creates a client instance for communicating with block worker.
    *
    * @param subject the user subject, can be null if the user is not available
    * @param address the address of the worker
-   * @return the builder for the client
    */
-  public static Builder getBuilder(Subject subject, SocketAddress address) {
-    return new Builder(GrpcChannelBuilder
+  public DefaultBlockWorkerClient(Subject subject, SocketAddress address) {
+    this(GrpcChannelBuilder
         .forAddress(address)
         .channelType(NettyUtils.getClientChannelClass(
             !(address instanceof InetSocketAddress)))
@@ -94,7 +73,7 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
         .usePlaintext(true)
         .keepAliveTimeout(KEEPALIVE_TIMEOUT_MS, TimeUnit.MILLISECONDS)
         .maxInboundMessageSize((int) MAX_INBOUND_MESSAGE_SIZE)
-        .flowControlWindow((int) GRPC_FLOWCONTROL_WINDOW));
+        .flowControlWindow((int) GRPC_FLOWCONTROL_WINDOW).build());
   }
 
   /**
@@ -118,10 +97,10 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
   public void close() throws IOException {
     mChannel.shutdown();
     try {
-      if (!mChannel.awaitTermination(
-          Configuration.getMs(PropertyKey.WORKER_NETWORK_NETTY_SHUTDOWN_TIMEOUT),
-          TimeUnit.MILLISECONDS)) {
-        LOGGER.warn("Failed to close gRPC channel for block worker.");
+      long timeout = Configuration.getMs(PropertyKey.WORKER_NETWORK_NETTY_SHUTDOWN_TIMEOUT);
+      if (!mChannel.awaitTermination(timeout, TimeUnit.MILLISECONDS)) {
+        LOGGER.warn("Timed out after {}ms to close gRPC channel {} to block worker.", timeout,
+            mChannel.authority());
       }
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();

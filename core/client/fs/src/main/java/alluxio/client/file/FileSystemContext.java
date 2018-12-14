@@ -16,7 +16,6 @@ import alluxio.PropertyKey;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.client.block.BlockMasterClientPool;
 import alluxio.client.block.stream.BlockWorkerClient;
-import alluxio.client.block.stream.BlockWorkerClientPool;
 import alluxio.client.metrics.ClientMasterSync;
 import alluxio.client.metrics.MetricsMasterClient;
 import alluxio.conf.InstancedConfiguration;
@@ -104,12 +103,8 @@ public final class FileSystemContext implements Closeable {
   private int mRefCount;
 
   // The netty data server channel pools.
-  private final ConcurrentHashMap<ClientPoolKey, NettyChannelPool>
+  private final ConcurrentHashMap<ChannelPoolKey, NettyChannelPool>
       mNettyChannelPools = new ConcurrentHashMap<>();
-
-  // The netty data server channel pools.
-  private final ConcurrentHashMap<ClientPoolKey, BlockWorkerClientPool>
-      mBlockWorkerClientPool = new ConcurrentHashMap<>();
 
   /** The shared master inquire client associated with the {@link FileSystemContext}. */
   @GuardedBy("this")
@@ -385,26 +380,14 @@ public final class FileSystemContext implements Closeable {
   }
 
   /**
-   * Acquires a block worker client from the client pools. If there is no available client instance
-   * available in the pool, it tries to create a new one.
+   * Acquires a block worker client. It may reuse the same connection if possible.
    *
    * @param workerNetAddress the network address of the channel
-   * @return the acquired netty channel
-   * @throws IOException if it fails to create a new worker client
+   * @return the acquired block worker
    */
-  public BlockWorkerClient acquireBlockWorkerClient(final WorkerNetAddress workerNetAddress)
-      throws IOException {
+  public BlockWorkerClient acquireBlockWorkerClient(final WorkerNetAddress workerNetAddress) {
     SocketAddress address = NetworkAddressUtils.getDataPortSocketAddress(workerNetAddress);
-    ClientPoolKey key =
-        new ClientPoolKey(address, TransportProviderUtils.getImpersonationUser(mParentSubject));
-    if (!mBlockWorkerClientPool.containsKey(key)) {
-      BlockWorkerClientPool pool = new BlockWorkerClientPool(mParentSubject, address);
-      if (mBlockWorkerClientPool.putIfAbsent(key, pool) != null) {
-        // This can happen if this function is called concurrently.
-        pool.close();
-      }
-    }
-    return mBlockWorkerClientPool.get(key).acquire();
+    return BlockWorkerClient.Factory.create(mParentSubject, address);
   }
 
   /**
@@ -416,18 +399,10 @@ public final class FileSystemContext implements Closeable {
   public void releaseBlockWorkerClient(WorkerNetAddress workerNetAddress,
       BlockWorkerClient client) {
     SocketAddress address = NetworkAddressUtils.getDataPortSocketAddress(workerNetAddress);
-    ClientPoolKey key =
-        new ClientPoolKey(address, TransportProviderUtils.getImpersonationUser(mParentSubject));
-    if (mBlockWorkerClientPool.containsKey(key)) {
-      mBlockWorkerClientPool.get(key).release(client);
-    } else {
-      LOG.warn("No client pool for key {}, closing client instead. Context is closed: {}",
-          key, mClosed.get());
-      try {
-        client.close();
-      } catch (IOException e) {
-        LOG.warn("Error closing block worker client for key {}", key, e);
-      }
+    try {
+      client.close();
+    } catch (IOException e) {
+      LOG.warn("Error closing block worker client for address {}", address, e);
     }
   }
 
@@ -441,8 +416,8 @@ public final class FileSystemContext implements Closeable {
    */
   public Channel acquireNettyChannel(final WorkerNetAddress workerNetAddress) throws IOException {
     SocketAddress address = NetworkAddressUtils.getDataPortSocketAddress(workerNetAddress);
-    ClientPoolKey key =
-        new ClientPoolKey(address, TransportProviderUtils.getImpersonationUser(mParentSubject));
+    ChannelPoolKey key =
+        new ChannelPoolKey(address, TransportProviderUtils.getImpersonationUser(mParentSubject));
     if (!mNettyChannelPools.containsKey(key)) {
       Bootstrap bs = NettyClient.createClientBootstrap(mParentSubject, address);
       bs.remoteAddress(address);
@@ -465,8 +440,8 @@ public final class FileSystemContext implements Closeable {
    */
   public void releaseNettyChannel(WorkerNetAddress workerNetAddress, Channel channel) {
     SocketAddress address = NetworkAddressUtils.getDataPortSocketAddress(workerNetAddress);
-    ClientPoolKey key =
-        new ClientPoolKey(address, TransportProviderUtils.getImpersonationUser(mParentSubject));
+    ChannelPoolKey key =
+        new ChannelPoolKey(address, TransportProviderUtils.getImpersonationUser(mParentSubject));
     if (mNettyChannelPools.containsKey(key)) {
       mNettyChannelPools.get(key).release(channel);
     } else {
@@ -603,11 +578,11 @@ public final class FileSystemContext implements Closeable {
    * Key for Netty channel pools. This requires both the worker address and the username, so that
    * netty channels are created for different users.
    */
-  private static final class ClientPoolKey {
+  private static final class ChannelPoolKey {
     private final SocketAddress mSocketAddress;
     private final String mUsername;
 
-    public ClientPoolKey(SocketAddress socketAddress, String username) {
+    public ChannelPoolKey(SocketAddress socketAddress, String username) {
       mSocketAddress = socketAddress;
       mUsername = username;
     }
@@ -622,10 +597,10 @@ public final class FileSystemContext implements Closeable {
       if (this == o) {
         return true;
       }
-      if (!(o instanceof ClientPoolKey)) {
+      if (!(o instanceof ChannelPoolKey)) {
         return false;
       }
-      ClientPoolKey that = (ClientPoolKey) o;
+      ChannelPoolKey that = (ChannelPoolKey) o;
       return Objects.equal(mSocketAddress, that.mSocketAddress)
           && Objects.equal(mUsername, that.mUsername);
     }

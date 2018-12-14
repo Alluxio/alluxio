@@ -17,11 +17,13 @@ import alluxio.grpc.WriteRequest;
 import alluxio.grpc.WriteResponse;
 
 import io.grpc.stub.StreamObserver;
+import io.grpc.StatusRuntimeException;
 
 import java.io.Closeable;
 import java.net.SocketAddress;
 import java.util.Iterator;
 
+import javax.annotation.Nullable;
 import javax.security.auth.Subject;
 
 /**
@@ -29,24 +31,19 @@ import javax.security.auth.Subject;
  */
 public interface BlockWorkerClient extends Closeable {
   /**
-   * Builder for the block worker client.
+   * Factory for block worker client.
    */
-  interface Builder {
+  class Factory {
     /**
+     * Creates a new block worker client.
+     *
+     * @param subject the user subject
+     * @param address the address of the worker
      * @return a new {@link BlockWorkerClient}
      */
-    BlockWorkerClient build();
-  }
-
-  /**
-   * Gets a builder for given user subject and address.
-   *
-   * @param subject the user subject
-   * @param address the address of the worker
-   * @return the builder for the client
-   */
-  static Builder getBuilder(Subject subject, SocketAddress address) {
-    return DefaultBlockWorkerClient.getBuilder(subject, address);
+    public static BlockWorkerClient create(@Nullable Subject subject, SocketAddress address) {
+      return new DefaultBlockWorkerClient(subject, address);
+    }
   }
 
   /**
@@ -55,7 +52,8 @@ public interface BlockWorkerClient extends Closeable {
   boolean isShutdown();
 
   /**
-   * Writes a block to the worker.
+   * Writes a block to the worker asynchronously. The caller should pass in a response observer
+   * for receiving server responses and handling errors.
    *
    * @param responseObserver the stream observer for the server response
    * @return the stream observer for the client request
@@ -67,6 +65,7 @@ public interface BlockWorkerClient extends Closeable {
    *
    * @param request the read request
    * @return the streamed response from server
+   * @throws StatusRuntimeException
    */
-  Iterator<ReadResponse> readBlock(final ReadRequest request);
+  Iterator<ReadResponse> readBlock(final ReadRequest request) throws StatusRuntimeException;
 }
