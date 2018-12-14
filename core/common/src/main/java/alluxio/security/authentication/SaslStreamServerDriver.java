@@ -1,6 +1,7 @@
 package alluxio.security.authentication;
 
 import alluxio.grpc.SaslMessage;
+
 import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
 
@@ -16,7 +17,7 @@ public class SaslStreamServerDriver implements StreamObserver<SaslMessage> {
   private StreamObserver<SaslMessage> mRequestObserver;
   /** Handshake handler for server. */
   private SaslHandshakeServerHandler mSaslHandshakeServerHandler;
-  /** Authentication server */
+  /** Authentication server. */
   private AuthenticationServer mAuthenticationServer;
   /** Id for client-side channel that is authenticating. */
   private UUID mChannelId;

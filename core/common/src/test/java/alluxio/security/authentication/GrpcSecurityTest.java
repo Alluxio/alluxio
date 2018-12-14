@@ -6,6 +6,7 @@ import alluxio.grpc.GrpcChannelBuilder;
 import alluxio.grpc.GrpcServer;
 import alluxio.grpc.GrpcServerBuilder;
 import alluxio.util.network.NetworkAddressUtils;
+
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -80,8 +81,6 @@ public class GrpcSecurityTest {
     channelBuilder.setCredentials("fail", "fail", null).build();
     server.shutdown();
   }
-
-
 
   @Test
   public void testDisabledAuthentication() throws Exception {

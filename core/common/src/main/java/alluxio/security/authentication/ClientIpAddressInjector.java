@@ -1,6 +1,5 @@
 package alluxio.security.authentication;
 
-import alluxio.grpc.FileSystemMasterClientServiceGrpc;
 import io.grpc.ForwardingServerCallListener;
 import io.grpc.Grpc;
 import io.grpc.Metadata;
@@ -20,7 +19,7 @@ public class ClientIpAddressInjector implements ServerInterceptor {
   private static ThreadLocal<String> sIpAddressThreadLocal = new ThreadLocal<>();
 
   /**
-   * @return IP address of the gRPC client that is making the call.
+   * @return IP address of the gRPC client that is making the call
    */
   public static String getIpAddress() {
     return sIpAddressThreadLocal.get();

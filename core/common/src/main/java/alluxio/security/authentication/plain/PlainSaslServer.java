@@ -12,6 +12,7 @@
 package alluxio.security.authentication.plain;
 
 import alluxio.security.authentication.AuthenticatedClientUser;
+
 import com.google.common.base.Preconditions;
 
 import java.util.Map;

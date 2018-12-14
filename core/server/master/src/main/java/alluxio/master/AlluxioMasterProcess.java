@@ -20,7 +20,6 @@ import alluxio.master.journal.JournalSystem;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.sink.MetricsServlet;
 import alluxio.metrics.sink.PrometheusMetricsServlet;
-import alluxio.security.authentication.ClientIpAddressInjector;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.util.CommonUtils;
@@ -36,8 +35,6 @@ import alluxio.web.WebServer;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
-import io.grpc.BindableService;
-import io.grpc.ServerServiceDefinition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -362,7 +359,7 @@ public class AlluxioMasterProcess implements MasterProcess {
     // TODO(ggezer) Executor threads not reused until thread capacity is hit.
     // ExecutorService executorService = Executors.newFixedThreadPool(mMaxWorkerThreads);
     try {
-      if(mGrpcServer!= null) {
+      if (mGrpcServer != null) {
         // Server launched for auto bind.
         // Terminate it.
         mGrpcServer.shutdown();

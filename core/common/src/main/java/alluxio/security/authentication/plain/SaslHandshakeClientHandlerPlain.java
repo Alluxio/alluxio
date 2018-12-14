@@ -4,6 +4,7 @@ import alluxio.grpc.SaslMessage;
 import alluxio.grpc.SaslMessageType;
 import alluxio.security.authentication.AuthType;
 import alluxio.security.authentication.SaslHandshakeClientHandler;
+
 import com.google.common.base.Preconditions;
 import com.google.protobuf.ByteString;
 
@@ -20,7 +21,7 @@ public class SaslHandshakeClientHandlerPlain implements SaslHandshakeClientHandl
 
   /**
    * Creates {@link SaslHandshakeClientHandlerPlain} with given {@link SaslClient}.
-   * 
+   *
    * @param saslClient sasl client
    */
   public SaslHandshakeClientHandlerPlain(SaslClient saslClient) {

@@ -13,20 +13,13 @@ package alluxio.master;
 
 import static java.util.stream.Collectors.joining;
 
-import alluxio.Constants;
-import alluxio.exception.status.UnauthenticatedException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.GrpcChannelBuilder;
-import alluxio.network.thrift.ThriftUtils;
 import alluxio.retry.RetryPolicy;
-import alluxio.security.authentication.TransportProvider;
 import alluxio.uri.Authority;
 import alluxio.uri.UnknownAuthority;
 
 import io.grpc.StatusRuntimeException;
-import org.apache.thrift.protocol.TProtocol;
-import org.apache.thrift.transport.TTransport;
-import org.apache.thrift.transport.TTransportException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

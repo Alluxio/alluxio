@@ -15,7 +15,7 @@ public interface SaslHandshakeClientHandler {
    * Handles the given {@link SaslMessage} from the server.
    *
    * @param message server-side Sasl message to handle
-   * @return client's answer. null if client is completed.
+   * @return client's answer. null if client is completed
    * @throws SaslException
    */
   public SaslMessage handleSaslMessage(SaslMessage message) throws SaslException;

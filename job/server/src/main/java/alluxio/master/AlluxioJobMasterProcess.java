@@ -276,7 +276,7 @@ public class AlluxioJobMasterProcess implements JobMasterProcess {
     // TODO(ggezer) Executor threads not reused until thread capacity is hit.
     //ExecutorService executorService = Executors.newFixedThreadPool(mMaxWorkerThreads);
     try {
-      if(mGrpcServer!= null) {
+      if (mGrpcServer != null) {
         // Server launched for auto bind.
         // Terminate it.
         mGrpcServer.shutdown();
@@ -294,15 +294,13 @@ public class AlluxioJobMasterProcess implements JobMasterProcess {
       mGrpcServer = serverBuilder.build().start();
       mIsServing = true;
       LOG.info("Started gRPC server on address {}", mRpcBindAddress);
-      
+
       // Wait until the server is shut down.
       mGrpcServer.awaitTermination();
-
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
   }
-
 
   protected void stopServing() throws Exception {
     if (mGrpcServer != null) {

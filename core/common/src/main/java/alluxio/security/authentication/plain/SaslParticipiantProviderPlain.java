@@ -58,7 +58,6 @@ public class SaslParticipiantProviderPlain implements SaslParticipiantProvider {
       username = LoginUser.get().getName();
     }
     return createSaslClient(username, password, impersonationUser);
-
   }
 
   @Override

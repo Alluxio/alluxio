@@ -2,8 +2,8 @@ package alluxio.security.authentication.plain;
 
 import alluxio.grpc.SaslMessage;
 import alluxio.grpc.SaslMessageType;
-
 import alluxio.security.authentication.SaslHandshakeServerHandler;
+
 import com.google.protobuf.ByteString;
 
 import javax.security.sasl.SaslException;
@@ -19,7 +19,7 @@ public class SaslHandshakeServerHandlerPlain implements SaslHandshakeServerHandl
 
   /**
    * Creates {@link SaslHandshakeServerHandlerPlain} with given {@link SaslServer}.
-   * 
+   *
    * @param saslServer sasl server
    */
   public SaslHandshakeServerHandlerPlain(SaslServer saslServer) {

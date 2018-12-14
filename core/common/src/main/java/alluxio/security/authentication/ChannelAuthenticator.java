@@ -7,6 +7,7 @@ import alluxio.grpc.SaslAuthenticationServiceGrpc;
 import alluxio.grpc.SaslMessage;
 import alluxio.util.SecurityUtils;
 import alluxio.grpc.GrpcChannelBuilder;
+
 import io.grpc.Channel;
 import io.grpc.ClientInterceptor;
 import io.grpc.ClientInterceptors;
@@ -17,7 +18,6 @@ import io.grpc.stub.StreamObserver;
 import javax.security.auth.Subject;
 import javax.security.sasl.AuthenticationException;
 import javax.security.sasl.SaslClient;
-import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -117,7 +117,6 @@ public class ChannelAuthenticator {
       Channel authenticatedChannel =
           ClientInterceptors.intercept(managedChannel, getInterceptors(saslClient));
       return authenticatedChannel;
-
     } catch (UnauthenticatedException e) {
       throw new AuthenticationException(e.getMessage(), e);
     }

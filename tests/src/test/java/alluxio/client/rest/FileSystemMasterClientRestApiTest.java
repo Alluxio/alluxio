@@ -14,7 +14,6 @@ package alluxio.client.rest;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.exception.FileDoesNotExistException;
-import alluxio.grpc.CreateFilePOptions;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.FileSystemMasterClientRestServiceHandler;
 import alluxio.master.file.contexts.CompleteFileContext;

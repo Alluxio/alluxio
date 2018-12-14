@@ -1,8 +1,6 @@
 package alluxio.security.authentication;
 
 import alluxio.exception.status.UnauthenticatedException;
-import alluxio.grpc.AlluxioVersionServiceGrpc;
-import alluxio.grpc.SaslAuthenticationServiceGrpc;
 
 import io.grpc.ForwardingServerCallListener;
 import io.grpc.Metadata;
@@ -22,6 +20,10 @@ public class AuthenticatedUserInjector implements ServerInterceptor {
 
   private AuthenticationServer mAuthenticationServer;
 
+  /**
+   * Creates {@link AuthenticationServer} with given authentication server.
+   * @param authenticationServer the authentication server
+   */
   public AuthenticatedUserInjector(AuthenticationServer authenticationServer) {
     mAuthenticationServer = authenticationServer;
   }

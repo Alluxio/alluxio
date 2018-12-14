@@ -1,6 +1,7 @@
 package alluxio.security.authentication;
 
 import alluxio.grpc.SaslMessage;
+
 import com.google.common.util.concurrent.SettableFuture;
 import io.grpc.Status;
 import io.grpc.stub.StreamObserver;

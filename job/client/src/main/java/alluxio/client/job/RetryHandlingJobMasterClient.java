@@ -25,7 +25,6 @@ import alluxio.job.wire.JobInfo;
 import alluxio.worker.job.JobMasterClientConfig;
 
 import com.google.protobuf.ByteString;
-import io.grpc.StatusException;
 import io.grpc.StatusRuntimeException;
 
 import java.io.IOException;
@@ -94,7 +93,7 @@ public final class RetryHandlingJobMasterClient extends AbstractMasterClient
   @Override
   public synchronized JobInfo getStatus(final long jobId) throws IOException {
     return new JobInfo(retryRPC(new RpcCallable<alluxio.grpc.JobInfo>() {
-      public alluxio.grpc.JobInfo call() throws StatusRuntimeException{
+      public alluxio.grpc.JobInfo call() throws StatusRuntimeException {
         return mClient.getJobStatus(GetJobStatusPRequest.newBuilder().setJobId(jobId).build())
             .getJobInfo();
       }

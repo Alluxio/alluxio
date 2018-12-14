@@ -15,7 +15,6 @@ import alluxio.grpc.InconsistentPropertyValues;
 
 import com.google.common.base.Objects;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;

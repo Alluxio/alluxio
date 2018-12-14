@@ -7,6 +7,7 @@ import alluxio.grpc.SaslAuthenticationServiceGrpc;
 import alluxio.grpc.SaslMessage;
 import alluxio.resource.LockResource;
 import alluxio.util.SecurityUtils;
+
 import io.grpc.ServerInterceptor;
 import io.grpc.stub.StreamObserver;
 import net.jcip.annotations.GuardedBy;
@@ -41,15 +42,18 @@ public class DefaultAuthenticationServer
   @GuardedBy("mClientsLock")
   /** List of channels authenticated against this server. */
   protected final Map<UUID, AuthenticatedChannelInfo> mChannels;
-  /** Used to protect access to known channels */
+  /** Used to protect access to known channels. */
   protected final ReentrantReadWriteLock mClientsLock;
-  /** Scheduler for periodic cleaning of channels registry */
+  /** Scheduler for periodic cleaning of channels registry. */
   protected final ScheduledExecutorService mScheduler;
 
   /** Interval for clean-up task to fire. */
   // TODO(gezer) make it configurable.
   protected final long mCleanupIntervalHour = 1L;
 
+  /**
+   * Creates {@link DefaultAuthenticationServer} instance.
+   */
   public DefaultAuthenticationServer() {
     checkSupported(Configuration.getEnum(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.class));
     mChannels = new HashMap<>();
@@ -67,7 +71,6 @@ public class DefaultAuthenticationServer
     driver.setClientObserver(responseObserver);
     return driver;
   }
-
 
   @Override
   public void registerChannel(UUID channelId, String authorizedUser, SaslServer saslServer) {
@@ -143,7 +146,7 @@ public class DefaultAuthenticationServer
 
   /**
    * Used to check if given authentication is supported by the server.
-   * 
+   *
    * @param authType authentication type
    * @throws RuntimeException if not supported
    */
@@ -172,6 +175,8 @@ public class DefaultAuthenticationServer
       case CUSTOM:
         interceptorsList.add(new AuthenticatedUserInjector(this));
         break;
+      default:
+        throw new RuntimeException("Unsupported authentication type:" + authType);
     }
     return interceptorsList;
   }

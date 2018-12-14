@@ -444,7 +444,7 @@ public final class Configuration {
         throw new UnavailableException(String.format(
             "Failed to handshake with master %s to load cluster default configuration values",
             address), e);
-      } catch(SaslException e) {
+      } catch (SaslException e) {
         throw new RuntimeException(
             "Can't receive authentication exception while authentication is disabled.", e);
       } finally {

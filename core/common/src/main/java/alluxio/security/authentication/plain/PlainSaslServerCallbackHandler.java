@@ -14,6 +14,7 @@ package alluxio.security.authentication.plain;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.authentication.AuthenticationProvider;
 import alluxio.security.authentication.ImpersonationAuthenticator;
+
 import com.google.common.base.Preconditions;
 
 import java.io.IOException;

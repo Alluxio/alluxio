@@ -13,6 +13,7 @@ package alluxio.security.authentication;
 
 import alluxio.security.authentication.plain.PlainSaslServer;
 import alluxio.security.authentication.plain.PlainSaslServerProvider;
+
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;

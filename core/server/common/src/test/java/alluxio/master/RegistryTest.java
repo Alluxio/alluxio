@@ -15,6 +15,7 @@ import alluxio.Registry;
 import alluxio.Server;
 
 import alluxio.grpc.GrpcService;
+
 import com.google.common.collect.ImmutableList;
 import org.junit.Assert;
 import org.junit.Rule;

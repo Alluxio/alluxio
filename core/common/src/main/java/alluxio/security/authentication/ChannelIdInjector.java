@@ -17,7 +17,7 @@ import java.util.UUID;
  */
 public class ChannelIdInjector implements ClientInterceptor {
 
-  /** Metadata key for the channel Id */
+  /** Metadata key for the channel Id. */
   public static Metadata.Key<UUID> sClientIdKey =
       Metadata.Key.of("channel-id", new Metadata.AsciiMarshaller<UUID>() {
         @Override
@@ -35,7 +35,7 @@ public class ChannelIdInjector implements ClientInterceptor {
 
   /**
    * Creates the injector that augments the outgoing metadata with given Id.
-   * 
+   *
    * @param channelId channel id
    */
   public ChannelIdInjector(UUID channelId) {

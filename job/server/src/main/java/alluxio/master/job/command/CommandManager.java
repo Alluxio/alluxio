@@ -61,7 +61,7 @@ public final class CommandManager {
     runTaskCommand.setTaskId(taskId);
     try {
       runTaskCommand.setJobConfig(ByteString.copyFrom(SerializationUtils.serialize(jobConfig)));
-      if(taskArgs != null) {
+      if (taskArgs != null) {
         runTaskCommand.setTaskArgs(ByteString.copyFrom(SerializationUtils.serialize(taskArgs)));
       }
     } catch (IOException e) {

@@ -33,16 +33,12 @@ import alluxio.grpc.GrpcExceptionUtils;
 
 import com.codahale.metrics.Timer;
 import com.google.common.base.Preconditions;
-import io.grpc.StatusException;
 import io.grpc.StatusRuntimeException;
-import org.apache.thrift.TException;
-import org.apache.thrift.protocol.TProtocol;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.util.UUID;
 import java.util.function.Supplier;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -60,10 +56,10 @@ public abstract class AbstractClient implements Client {
 
   protected InetSocketAddress mAddress;
 
-  /** Underlying channel to the target service */
+  /** Underlying channel to the target service. */
   protected GrpcChannel mChannel;
 
-  /** Used to query service version for the remote service type */
+  /** Used to query service version for the remote service type. */
   protected AlluxioVersionServiceGrpc.AlluxioVersionServiceBlockingStub mVersionService;
 
   /** Is true if this client is currently connected. */
@@ -115,11 +111,12 @@ public abstract class AbstractClient implements Client {
   protected long getRemoteServiceVersion() {
     try {
       return mVersionService
-              .getServiceVersion(
-                      GetServiceVersionPRequest.newBuilder().setServiceType(getRemoteServiceType()).build())
-              .getVersion();
+          .getServiceVersion(
+              GetServiceVersionPRequest.newBuilder().setServiceType(getRemoteServiceType()).build())
+          .getVersion();
     } catch (Exception e) {
-      LOG.error("Failed to get remote service version for type: {}. Error: {}", getRemoteServiceType().name(), e);
+      LOG.error("Failed to get remote service version for type: {}. Error: {}",
+          getRemoteServiceType().name(), e);
       return Constants.UNKNOWN_SERVICE_VERSION;
     }
   }

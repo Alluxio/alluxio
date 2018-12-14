@@ -44,8 +44,6 @@ import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import io.grpc.BindableService;
-import org.apache.thrift.TProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import net.jcip.annotations.GuardedBy;

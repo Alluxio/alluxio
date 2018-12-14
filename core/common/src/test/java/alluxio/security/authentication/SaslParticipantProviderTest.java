@@ -3,6 +3,7 @@ package alluxio.security.authentication;
 import alluxio.exception.status.UnauthenticatedException;
 import alluxio.security.authentication.plain.PlainSaslServerProvider;
 import alluxio.security.authentication.plain.SaslParticipiantProviderPlain;
+
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -29,14 +30,12 @@ public class SaslParticipantProviderTest {
     mThrown.expect(AuthenticationException.class);
     mThrown.expectMessage("Unsupported AuthType: " + AuthType.KERBEROS.getAuthName());
     SaslParticipiantProvider.Factory.create(AuthType.KERBEROS);
-
   }
 
   @Test
   public void testCreateSupportedProviders() throws AuthenticationException {
     SaslParticipiantProvider.Factory.create(AuthType.SIMPLE);
     SaslParticipiantProvider.Factory.create(AuthType.CUSTOM);
-
   }
 
   @Test

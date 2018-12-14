@@ -12,6 +12,7 @@
 package alluxio.security.authentication;
 
 import alluxio.security.authentication.plain.SimpleAuthenticationProvider;
+
 import org.junit.Test;
 
 /**
