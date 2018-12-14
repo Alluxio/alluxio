@@ -49,7 +49,7 @@ public final class MetaDailyBackup {
   private static final Logger LOG = LoggerFactory.getLogger(MetaDailyBackup.class);
 
   public static final String BACKUP_FILE_FORMAT = "alluxio-backup-%s-%s.gz";
-  private static final Pattern BACKUP_FILE_PATTERN
+  public static final Pattern BACKUP_FILE_PATTERN
       = Pattern.compile("alluxio-backup-[0-9]+-[0-9]+-[0-9]+-([0-9]+).gz");
 
   private final boolean mIsLocal;
