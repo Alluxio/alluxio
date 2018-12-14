@@ -86,15 +86,14 @@ alluxio.master.daily.backup.enabled=true
 ```
 
 The time to take daily snapshots is defined by `alluxio.master.daily.backup.time`. For example, if 
-a user specified `alluxio.master.daily.backup.time=5:30`, Alluxio primary master will back up its metadata at
-`alluxio.master.backup.directory` of Alluxio root under filesystem every day at `5:30`. 
+a user specified `alluxio.master.daily.backup.time=05:30`, the Alluxio primary master will back up its metadata 
+to the `alluxio.master.backup.directory` of the root UFS every day at 5:30am UTC. 
 We recommend setting the backup time to an off-peak time to avoid interfering with other users of the system.
 
-In the daily backup, the backup directory needs to be an absolute path of the Alluxio root under filesystem. 
-For example, if `alluxio.master.backup.directory=/alluxio_backups` and `alluxio.underfs.address=hdfs://192.168.1.1:9000/alluxio/underfs`, 
+In the daily backup, the backup directory needs to be an absolute path within the root UFS. 
+For example, if `alluxio.master.backup.directory=/alluxio_backups` 
+and `alluxio.master.mount.table.root.ufs=hdfs://192.168.1.1:9000/alluxio/underfs`, 
 the default backup directory would be `hdfs://192.168.1.1:9000/alluxio_backups`.
-If the `alluxio.underfs.address` is a local filesystem address, the backup directory
-should be an absolute path in this local filesystem. 
 
 The files to retain in the backup directory is limited by `alluxio.master.daily.backup.files.retained`.
 Users can set this property to the number of backup files they want to keep in the backup directory.

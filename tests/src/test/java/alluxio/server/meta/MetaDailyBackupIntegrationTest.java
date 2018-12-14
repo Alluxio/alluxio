@@ -13,8 +13,8 @@ package alluxio.server.meta;
 
 import alluxio.Configuration;
 import alluxio.PropertyKey;
+import alluxio.master.BackupManager;
 import alluxio.master.LocalAlluxioCluster;
-import alluxio.master.meta.MetaDailyBackup;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.util.FormatUtils;
 
@@ -37,8 +37,9 @@ public class MetaDailyBackupIntegrationTest extends BaseIntegrationTest {
 
   @Before
   public void before() throws Exception {
-    LocalDateTime backUpTime = LocalDateTime.now(Clock.systemUTC()).plusMinutes(2);
-    String backUpTimeString = backUpTime.getHour() + ":" + backUpTime.getMinute();
+    LocalDateTime backUpTime = LocalDateTime.now(Clock.systemUTC()).plusMinutes(1);
+    int min = backUpTime.getMinute();
+    String backUpTimeString = backUpTime.getHour() + ":" + (min < 10 ? "0" + min : min);
     mBackupDir = new File("/tmp/alluxio_backups");
 
     // Set the daily backup properties
@@ -62,7 +63,7 @@ public class MetaDailyBackupIntegrationTest extends BaseIntegrationTest {
   @Test
   public void backupTest() throws Exception {
     // Make sure daily backup is executed
-    Thread.sleep(FormatUtils.parseTimeSize("2min"));
+    Thread.sleep(FormatUtils.parseTimeSize("1min"));
 
     Assert.assertTrue(mBackupDir.exists());
     Assert.assertTrue(mBackupDir.isDirectory());
@@ -72,7 +73,7 @@ public class MetaDailyBackupIntegrationTest extends BaseIntegrationTest {
     boolean hasBackUpFile = false;
     for (File file : filesList) {
       if (file.isFile()) {
-        Matcher matcher = MetaDailyBackup.BACKUP_FILE_PATTERN.matcher(file.getName());
+        Matcher matcher = BackupManager.BACKUP_FILE_PATTERN.matcher(file.getName());
         if (matcher.matches()) {
           hasBackUpFile = true;
         }

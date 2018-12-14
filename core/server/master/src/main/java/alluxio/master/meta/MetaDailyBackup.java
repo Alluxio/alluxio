@@ -12,7 +12,9 @@
 package alluxio.master.meta;
 
 import alluxio.Configuration;
+import alluxio.Constants;
 import alluxio.PropertyKey;
+import alluxio.master.BackupManager;
 import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
@@ -40,26 +42,22 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Backing up primary master metadata everyday at a fixed UTC time.
  */
 public final class MetaDailyBackup {
   private static final Logger LOG = LoggerFactory.getLogger(MetaDailyBackup.class);
+  private static final long SHUTDOWN_TIMEOUT_MS = 5 * Constants.SECOND_MS;
 
-  public static final String BACKUP_FILE_FORMAT = "alluxio-backup-%s-%s.gz";
-  public static final Pattern BACKUP_FILE_PATTERN
-      = Pattern.compile("alluxio-backup-[0-9]+-[0-9]+-[0-9]+-([0-9]+).gz");
-
+  private final String mBackupDir;
   private final boolean mIsLocal;
   private final int mMaxFile;
   private final MetaMaster mMetaMaster;
+  private final ScheduledExecutorService mScheduledExecutor;
   private final UnderFileSystem mUnderfileSystem;
 
   private ScheduledFuture<?> mBackup;
-  private String mBackupDir;
-  private ScheduledExecutorService mScheduleExecutor;
 
   /**
    * Constructs a new {@link MetaDailyBackup}.
@@ -68,9 +66,10 @@ public final class MetaDailyBackup {
    */
   MetaDailyBackup(MetaMaster metaMaster) {
     mMetaMaster = metaMaster;
-    mMaxFile = Configuration.getInt(PropertyKey.MASTER_DAILY_BACKUP_FILES_RETAINED);
     mBackupDir = Configuration.get(PropertyKey.MASTER_BACKUP_DIRECTORY);
-
+    mMaxFile = Configuration.getInt(PropertyKey.MASTER_DAILY_BACKUP_FILES_RETAINED);
+    mScheduledExecutor = Executors.newSingleThreadScheduledExecutor(
+        ThreadFactoryUtils.build("MetaDailyBackup-%d", true));
     if (URIUtils.isLocalFilesystem(Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS))) {
       mIsLocal = true;
       mUnderfileSystem = UnderFileSystem.Factory
@@ -85,13 +84,10 @@ public final class MetaDailyBackup {
    * Starts {@link MetaDailyBackup}.
    */
   public void start() {
-    Preconditions.checkState(mBackup == null && mScheduleExecutor == null);
-
-    mScheduleExecutor = Executors.newSingleThreadScheduledExecutor(
-        ThreadFactoryUtils.build("MetaDailyBackup-%d", true));
+    Preconditions.checkState(mBackup == null);
 
     long delayedTimeInMillis = getTimeToNextBackup();
-    mBackup = mScheduleExecutor.scheduleAtFixedRate(this::dailyBackup,
+    mBackup = mScheduledExecutor.scheduleAtFixedRate(this::dailyBackup,
         delayedTimeInMillis, FormatUtils.parseTimeSize("1day"), TimeUnit.MILLISECONDS);
     LOG.info("Daily metadata backup scheduled to start in {}",
         CommonUtils.convertMsToClockTime(delayedTimeInMillis));
@@ -152,7 +148,7 @@ public final class MetaDailyBackup {
         a.isBefore(b) ? -1 : a.isAfter(b) ? 1 : 0));
     for (UfsStatus status : statuses) {
       if (status.isFile()) {
-        Matcher matcher = BACKUP_FILE_PATTERN.matcher(status.getName());
+        Matcher matcher = BackupManager.BACKUP_FILE_PATTERN.matcher(status.getName());
         if (matcher.matches()) {
           timeToFile.put(Instant.ofEpochMilli(Long.parseLong(matcher.group(1))),
               status.getName());
@@ -181,7 +177,16 @@ public final class MetaDailyBackup {
       mBackup.cancel(true);
       mBackup = null;
     }
-    mScheduleExecutor.shutdown();
     LOG.info("Daily metadata backup stopped.");
+
+    mScheduledExecutor.shutdownNow();
+    try {
+      if (!mScheduledExecutor.awaitTermination(SHUTDOWN_TIMEOUT_MS, TimeUnit.MILLISECONDS)) {
+        LOG.warn("Timed out waiting for daily metadata backup executor to shut down.");
+      }
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      LOG.warn("Interrupted while waiting for daily metadata backup executor service to shut down");
+    }
   }
 }
