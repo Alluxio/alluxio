@@ -378,7 +378,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
     mUfsManager = new MasterUfsManager();
     mMountTable = new MountTable(mUfsManager, getRootMountInfo(mUfsManager));
     mInodeTree = new InodeTree(mBlockMaster, mDirectoryIdGenerator, mMountTable);
-    mInodeLockManager = mInodeTree.getInodeLocker();
+    mInodeLockManager = mInodeTree.getInodeLockManager();
 
     // TODO(gene): Handle default config value for whitelist.
     mWhitelist = new PrefixList(Configuration.getList(PropertyKey.MASTER_WHITELIST, ","));
@@ -684,6 +684,9 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
         } catch (InvalidPathException e) {
           // This should not happen.
           LOG.error("An invalid path was discovered during the consistency check, skipping.", e);
+        } catch (Throwable t) {
+          LOG.error("Failed to check consistency", t);
+          throw t;
         }
         dirsToCheck.add(completionMarker);
         return inconsistentUris;
@@ -1068,7 +1071,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
       if (!checkConsistencyInternal(inodePath)) {
         inconsistentUris.add(inodePath.getUri());
       }
-      if (inodePath.getInode().isDirectory()) {
+      if (inode.isDirectory()) {
         InodeDirectoryView inodeDir = ((InodeDirectoryView) inode);
         for (InodeView child : inodeDir.getChildren()) {
           try (LockedInodePath childPath = inodePath.lockChild(child, LockPattern.READ)) {
@@ -2769,7 +2772,8 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
     mSyncManager.stopSyncForMount(resolution.getMountId());
 
     if (!inodePath.fullPathExists()) {
-      throw new FileDoesNotExistException("Path " + inodePath.getUri() + " does not exist");
+      throw new FileDoesNotExistException(
+          "Failed to unmount: Path " + inodePath.getUri() + " does not exist");
     }
 
     if (!mMountTable.delete(rpcContext, inodePath.getUri())) {
@@ -2977,6 +2981,11 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
              createAuditContext(commandName, path, null, inodePath.getInodeOrNull())) {
       try {
         mPermissionChecker.checkSetAttributePermission(inodePath, rootRequired, ownerRequired);
+        if (options.isRecursive()) {
+          for (LockedInodePath childPath : mInodeTree.getImplicitlyLockedDescendants(inodePath)) {
+            mPermissionChecker.checkSetAttributePermission(childPath, rootRequired, ownerRequired);
+          }
+        }
       } catch (AccessControlException e) {
         auditContext.setAllowed(false);
         throw e;
@@ -2989,7 +2998,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
         throw new FileDoesNotExistException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path));
       }
 
-      setAttributeInternal(rpcContext, inodePath, rootRequired, ownerRequired, options);
+      setAttributeInternal(rpcContext, inodePath, options);
       auditContext.setSucceeded(true);
     }
   }
@@ -3015,12 +3024,10 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
    *
    * @param rpcContext the rpc context
    * @param inodePath the {@link LockedInodePath} to set attribute for
-   * @param rootRequired indicates whether it requires to be the superuser
-   * @param ownerRequired indicates whether it requires to be the owner of this path
    * @param options attributes to be set, see {@link SetAttributeOptions}
    */
   private void setAttributeInternal(RpcContext rpcContext, LockedInodePath inodePath,
-      boolean rootRequired, boolean ownerRequired, SetAttributeOptions options)
+      SetAttributeOptions options)
       throws InvalidPathException, FileDoesNotExistException, AccessControlException, IOException {
     InodeView targetInode = inodePath.getInode();
     long opTimeMs = System.currentTimeMillis();
@@ -3208,6 +3215,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
         SyncResult result =
             syncInodeMetadata(rpcContext, inodePath, syncDescendantType, statusCache);
         if (result.getDeletedInode()) {
+          // If the inode was deleted, then the inode path should reflect the delete.
           inodePath.removeLastInode();
         }
         pathsToLoad = result.getPathsToLoad();

@@ -54,7 +54,10 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public class LockedInodePath implements Closeable {
-  /** The root inode of the inode tree. */
+  /**
+   * The root inode of the inode tree. This is needed to bootstrap the inode path. After traverse(),
+   * this will always be the first inode in mExistingInodes.
+   */
   private final InodeView mRoot;
 
   /** Uri for the path represented. */
@@ -66,7 +69,7 @@ public class LockedInodePath implements Closeable {
    * either explicitly or implicitly by the current thread. An inode is locked implicitly if one of
    * its ancestor inodes or edges is write-locked.
    *
-   * This list is always at always least as long as mLockList.getLockedInodes().
+   * mLockList.getLockedInodes() is always an inclusive prefix of this list.
    */
   protected final List<InodeView> mExistingInodes;
   /** Lock list locking some portion of the path according to mLockPattern. */

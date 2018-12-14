@@ -22,7 +22,6 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 
 import java.util.Optional;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReadWriteLock;
 
@@ -117,14 +116,7 @@ public class InodeLockManager {
    * @return a lock resource which must be closed to release the lock
    */
   public LockResource lockInode(InodeView inode, LockMode mode) {
-    switch (mode) {
-      case READ:
-        return new LockResource(mInodeLocks.getUnchecked(inode.getId()).readLock());
-      case WRITE:
-        return new LockResource(mInodeLocks.getUnchecked(inode.getId()).writeLock());
-      default:
-        throw new IllegalStateException("Unknown lock mode: " + mode);
-    }
+    return lock(mInodeLocks.getUnchecked(inode.getId()), mode);
   }
 
   /**
@@ -135,15 +127,7 @@ public class InodeLockManager {
    * @return a lock resource which must be closed to release the lock
    */
   public LockResource lockEdge(Edge edge, LockMode mode) {
-    ReadWriteLock lock = mEdgeLocks.getUnchecked(edge);
-    switch (mode) {
-      case READ:
-        return new LockResource(lock.readLock());
-      case WRITE:
-        return new LockResource(lock.writeLock());
-      default:
-        throw new IllegalStateException("Unknown lock mode: " + mode);
-    }
+    return lock(mEdgeLocks.getUnchecked(edge), mode);
   }
 
   /**
@@ -154,15 +138,21 @@ public class InodeLockManager {
    *         the lock is already taken
    */
   public Optional<Scoped> tryAcquirePersistingLock(long inodeId) {
-    AtomicBoolean lock;
-    try {
-      lock = mPersistingLocks.get(inodeId);
-    } catch (ExecutionException e) {
-      throw new RuntimeException(e); // not possible
-    }
+    AtomicBoolean lock = mPersistingLocks.getUnchecked(inodeId);
     if (lock.compareAndSet(false, true)) {
       return Optional.of(() -> lock.set(false));
     }
     return Optional.empty();
+  }
+
+  private LockResource lock(ReadWriteLock lock, LockMode mode) {
+    switch (mode) {
+      case READ:
+        return new LockResource(lock.readLock());
+      case WRITE:
+        return new LockResource(lock.writeLock());
+      default:
+        throw new IllegalStateException("Unknown lock mode: " + mode);
+    }
   }
 }

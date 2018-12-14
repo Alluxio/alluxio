@@ -582,7 +582,10 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
    * last existing inode in the path is /a/b/c and we want to create /a/b/c/d/e, the c->d edge must
    * be write locked.
    *
-   * When the method returns successfully, the final edge (e.g. d->e) will be write-locked.
+   * On success, createPath attempts to push the write lock forward as far as possible. For the
+   * above example, createPath would take a write lock on d->e, and downgrade the c->d lock from a
+   * write lock to a read lock. This may not be possible if inodePath is a composite path which
+   * doesn't own the write lock. In that case no downgrade will occur.
    *
    * @param rpcContext the rpc context
    * @param inodePath the path
@@ -688,41 +691,37 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
         .setTtl(options.getTtl())
         .setTtlAction(options.getTtlAction());
     for (int k = pathIndex; k < (pathComponents.length - 1); k++) {
-      InodeDirectoryView dir = null;
-      while (dir == null) {
-        InodeDirectory newDir = InodeDirectory.create(
-            mDirectoryIdGenerator.getNewDirectoryId(rpcContext.getJournalContext()),
-            currentInodeDirectory.getId(), pathComponents[k], missingDirOptions);
+      InodeDirectory newDir = InodeDirectory.create(
+          mDirectoryIdGenerator.getNewDirectoryId(rpcContext.getJournalContext()),
+          currentInodeDirectory.getId(), pathComponents[k], missingDirOptions);
 
-        newDir.setPinned(currentInodeDirectory.isPinned());
+      newDir.setPinned(currentInodeDirectory.isPinned());
 
-        // if the parent has default ACL, copy that default ACL as the new directory's default
-        // and access acl, ANDed with the umask
-        // if it is part of a metadata load operation, we ignore the umask and simply inherit
-        // the default ACL as the directory's new default and access ACL
-        short mode = options.isMetadataLoad() ? Mode.createFullAccess().toShort()
-            : newDir.getMode();
-        DefaultAccessControlList dAcl = currentInodeDirectory.getDefaultACL();
-        if (!dAcl.isEmpty()) {
-          Pair<AccessControlList, DefaultAccessControlList> pair =
-              dAcl.generateChildDirACL(mode);
-          newDir.setInternalAcl(pair.getFirst());
-          newDir.setDefaultACL(pair.getSecond());
-        }
-        mState.applyAndJournal(rpcContext, newDir);
+      // if the parent has default ACL, copy that default ACL as the new directory's default
+      // and access acl, ANDed with the umask
+      // if it is part of a metadata load operation, we ignore the umask and simply inherit
+      // the default ACL as the directory's new default and access ACL
+      short mode = options.isMetadataLoad() ? Mode.createFullAccess().toShort()
+          : newDir.getMode();
+      DefaultAccessControlList dAcl = currentInodeDirectory.getDefaultACL();
+      if (!dAcl.isEmpty()) {
+        Pair<AccessControlList, DefaultAccessControlList> pair =
+            dAcl.generateChildDirACL(mode);
+        newDir.setInternalAcl(pair.getFirst());
+        newDir.setDefaultACL(pair.getSecond());
+      }
+      mState.applyAndJournal(rpcContext, newDir);
 
-        inodePath.addNextInode(newDir);
-        dir = newDir;
+      inodePath.addNextInode(newDir);
 
-        // Persist the directory *after* it exists in the inode tree. This prevents multiple
-        // concurrent creates from trying to persist the same directory name.
-        if (options.isPersisted()) {
-          syncPersistExistingDirectory(rpcContext, dir);
-        }
+      // Persist the directory *after* it exists in the inode tree. This prevents multiple
+      // concurrent creates from trying to persist the same directory name.
+      if (options.isPersisted()) {
+        syncPersistExistingDirectory(rpcContext, newDir);
       }
 
-      createdInodes.add(dir);
-      currentInodeDirectory = dir;
+      createdInodes.add(newDir);
+      currentInodeDirectory = newDir;
     }
 
     // Create the final path component.
@@ -809,7 +808,8 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
    * @return all descendants
    */
   public List<LockedInodePath> getImplicitlyLockedDescendants(LockedInodePath inodePath) {
-    Preconditions.checkState(inodePath.getLockPattern().isWrite());
+    Preconditions.checkState(inodePath.getLockPattern() == LockPattern.WRITE_EDGE
+        || (inodePath.getLockPattern() == LockPattern.WRITE_INODE && inodePath.fullPathExists()));
 
     List<LockedInodePath> descendants = new ArrayList<>();
     gatherDescendants(inodePath, descendants);
@@ -971,7 +971,7 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
   /**
    * @return the inode lock manager for the inode tree
    */
-  public InodeLockManager getInodeLocker() {
+  public InodeLockManager getInodeLockManager() {
     return mInodeLockManager;
   }
 
