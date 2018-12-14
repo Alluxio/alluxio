@@ -1729,6 +1729,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
+  public static final PropertyKey WORKER_NETWORK_FLOWCONTROL_WINDOW =
+      new Builder(Name.WORKER_NETWORK_FLOWCONTROL_WINDOW)
+          .setDefaultValue("1MB")
+          .setDescription("The HTTP2 flow control window used by worker gRPC connections. Larger "
+              + "value will allow more data to be buffered but will use more memory.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
   public static final PropertyKey WORKER_NETWORK_NETTY_BACKLOG =
       new Builder(Name.WORKER_NETWORK_NETTY_BACKLOG)
           .setDescription("Netty socket option for SO_BACKLOG: the number of connections queued.")
@@ -1874,6 +1882,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue(2048)
           .setDescription("The maximum number of threads used to handle worker side RPCs in "
               + "the netty data server.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
+  public static final PropertyKey WORKER_NETWORK_SHUTDOWN_TIMEOUT =
+      new Builder(Name.WORKER_NETWORK_SHUTDOWN_TIMEOUT)
+          .setDefaultValue("15sec")
+          .setDescription("Maximum amount of time to wait until the worker gRPC server "
+              + "is shutdown (regardless of the quiet period).")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
@@ -2638,6 +2654,29 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "on initialization. Note that using the same app id will cause client info to be "
               + "aggregated, so different applications must set their own ids or leave this value "
               + "unset to use a randomly generated id.")
+          .build();
+  public static final PropertyKey USER_NETWORK_FLOWCONTROL_WINDOW =
+      new Builder(Name.USER_NETWORK_FLOWCONTROL_WINDOW)
+          .setDefaultValue("1MB")
+          .setDescription("The HTTP2 flow control window used by user gRPC connections. Larger "
+              + "value will allow more data to be buffered but will use more memory.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey USER_NETWORK_KEEPALIVE_TIMEOUT_MS =
+      new Builder(Name.USER_NETWORK_KEEPALIVE_TIMEOUT_MS)
+          .setDefaultValue("30sec")
+          .setDescription("The maximum time for a gRPC client (for block "
+              + "reads and block writes) to wait for a response from the data server.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey USER_NETWORK_MAX_INBOUND_MESSAGE_SIZE =
+      new Builder(Name.USER_NETWORK_MAX_INBOUND_MESSAGE_SIZE)
+          .setDefaultValue("4MB")
+          .setDescription("The max inbound message size used by user gRPC connections.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_NETWORK_NETTY_CHANNEL =
       new Builder(Name.USER_NETWORK_NETTY_CHANNEL)
@@ -3548,6 +3587,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.worker.network.netty.channel";
     public static final String WORKER_NETWORK_NETTY_FILE_TRANSFER_TYPE =
         "alluxio.worker.network.netty.file.transfer";
+    public static final String WORKER_NETWORK_FLOWCONTROL_WINDOW =
+        "alluxio.worker.network.flowcontrol.window";
     public static final String WORKER_NETWORK_NETTY_SHUTDOWN_QUIET_PERIOD =
         "alluxio.worker.network.netty.shutdown.quiet.period";
     public static final String WORKER_NETWORK_NETTY_SHUTDOWN_TIMEOUT =
@@ -3574,6 +3615,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.worker.network.netty.file.writer.threads.max";
     public static final String WORKER_NETWORK_NETTY_RPC_THREADS_MAX =
         "alluxio.worker.network.netty.rpc.threads.max";
+    public static final String WORKER_NETWORK_SHUTDOWN_TIMEOUT =
+        "alluxio.worker.network.shutdown.timeout";
     public static final String WORKER_BLOCK_MASTER_CLIENT_POOL_SIZE =
         "alluxio.worker.block.master.client.pool.size";
     public static final String WORKER_PRINCIPAL = "alluxio.worker.principal";
@@ -3707,6 +3750,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String USER_METRICS_HEARTBEAT_INTERVAL_MS =
         "alluxio.user.metrics.heartbeat.interval";
     public static final String USER_APP_ID = "alluxio.user.app.id";
+    public static final String USER_NETWORK_FLOWCONTROL_WINDOW =
+        "alluxio.user.network.flowcontrol.window";
+    public static final String USER_NETWORK_KEEPALIVE_TIMEOUT_MS =
+        "alluxio.user.network.keepalive.timeout";
+    public static final String USER_NETWORK_MAX_INBOUND_MESSAGE_SIZE =
+        "alluxio.user.network.max.inbound.message.size";
     public static final String USER_NETWORK_NETTY_CHANNEL = "alluxio.user.network.netty.channel";
     public static final String USER_NETWORK_NETTY_TIMEOUT_MS =
         "alluxio.user.network.netty.timeout";

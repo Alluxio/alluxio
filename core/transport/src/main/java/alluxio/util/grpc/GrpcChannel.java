@@ -14,8 +14,11 @@ package alluxio.util.grpc;
 import io.grpc.CallOptions;
 import io.grpc.Channel;
 import io.grpc.ClientCall;
+import io.grpc.ConnectivityState;
 import io.grpc.ManagedChannel;
 import io.grpc.MethodDescriptor;
+
+import java.util.concurrent.TimeUnit;
 
 /**
  * A simple wrapper around the {@link Channel} class in grpc. Outside of this module, this
@@ -50,5 +53,25 @@ public final class GrpcChannel extends Channel {
    */
   public void shutdown() {
     mChannel.shutdownNow();
+  }
+
+  /**
+   * Wait for channel to complete shutdown.
+   * @param timeout maximum time to wait before return
+   * @param unit unit of the timeout
+   * @return whether channel is terminated
+   */
+  public boolean awaitTermination(long timeout, TimeUnit unit) throws InterruptedException {
+    return mChannel.awaitTermination(timeout, unit);
+  }
+
+  /**
+   * Return the state of the connection.
+   * @param requestConnection if set to true, the channel will establish a new connection if it is
+   *                          not currently connected
+   * @return the state of the connection
+   */
+  public ConnectivityState getState(boolean requestConnection) {
+    return mChannel.getState(requestConnection);
   }
 }

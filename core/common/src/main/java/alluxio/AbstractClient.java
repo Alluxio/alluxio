@@ -65,7 +65,7 @@ public abstract class AbstractClient implements Client {
   protected GrpcChannel mChannel;
   protected GrpcChannel mJobChannel;
 
-  /** Used to query service version for the remote service type */
+  /** Used to query service version for the remote service type. */
   protected AlluxioVersionServiceGrpc.AlluxioVersionServiceBlockingStub mVersionService;
 
   /** Is true if this client is currently connected. */
@@ -108,8 +108,10 @@ public abstract class AbstractClient implements Client {
     mRetryPolicySupplier = retryPolicySupplier;
     mServiceVersion = Constants.UNKNOWN_SERVICE_VERSION;
     // TODO(ggezer) review grpc channel initialization
-    mChannel = GrpcChannelBuilder.forAddress("localhost", 50051).usePlaintext(true).build();
-    mJobChannel = GrpcChannelBuilder.forAddress("localhost", 50052).usePlaintext(true).build();
+    mChannel = GrpcChannelBuilder.forAddress("localhost", 50051).usePlaintext(true)
+        .build();
+    mJobChannel = GrpcChannelBuilder.forAddress("localhost", 50052).usePlaintext(true)
+        .build();
     mVersionService = AlluxioVersionServiceGrpc.newBlockingStub(mChannel);
   }
 
@@ -122,10 +124,12 @@ public abstract class AbstractClient implements Client {
     try {
       return mVersionService
               .getServiceVersion(
-                      GetServiceVersionPRequest.newBuilder().setServiceType(getRemoteServiceType()).build())
+                      GetServiceVersionPRequest.newBuilder().setServiceType(getRemoteServiceType())
+                          .build())
               .getVersion();
     } catch (Exception e) {
-      LOG.error("Failed to get remote service version for type: %s", getRemoteServiceType().name(), e);
+      LOG.error("Failed to get remote service version for type: %s", getRemoteServiceType().name(),
+          e);
       return Constants.UNKNOWN_SERVICE_VERSION;
     }
   }

@@ -15,6 +15,7 @@ import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.client.block.BlockMasterClientPool;
+import alluxio.client.block.stream.BlockWorkerClient;
 import alluxio.client.metrics.ClientMasterSync;
 import alluxio.client.metrics.MetricsMasterClient;
 import alluxio.conf.InstancedConfiguration;
@@ -376,6 +377,33 @@ public final class FileSystemContext implements Closeable {
         mBlockMasterClientPool.release(get());
       }
     };
+  }
+
+  /**
+   * Acquires a block worker client. It may reuse the same connection if possible.
+   *
+   * @param workerNetAddress the network address of the channel
+   * @return the acquired block worker
+   */
+  public BlockWorkerClient acquireBlockWorkerClient(final WorkerNetAddress workerNetAddress) {
+    SocketAddress address = NetworkAddressUtils.getDataPortSocketAddress(workerNetAddress);
+    return BlockWorkerClient.Factory.create(mParentSubject, address);
+  }
+
+  /**
+   * Releases a block worker client to the client pools.
+   *
+   * @param workerNetAddress the address of the channel
+   * @param client the client to release
+   */
+  public void releaseBlockWorkerClient(WorkerNetAddress workerNetAddress,
+      BlockWorkerClient client) {
+    SocketAddress address = NetworkAddressUtils.getDataPortSocketAddress(workerNetAddress);
+    try {
+      client.close();
+    } catch (IOException e) {
+      LOG.warn("Error closing block worker client for address {}", address, e);
+    }
   }
 
   /**
