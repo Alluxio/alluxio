@@ -3152,10 +3152,9 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
       return false;
     }
 
-    LockingScheme lockingScheme = new LockingScheme(mountPath, LockPattern.READ, false);
     try (RpcContext rpcContext = createRpcContext();
          LockedInodePath inodePath = mInodeTree
-             .lockInodePath(lockingScheme.getPath(), lockingScheme.getMode())) {
+             .lockInodePath(mountPath, LockPattern.READ)) {
       File.ActiveSyncTxIdEntry txIdEntry =
           File.ActiveSyncTxIdEntry.newBuilder().setTxId(txId).setMountId(mountId).build();
       rpcContext.journal(JournalEntry.newBuilder().setActiveSyncTxId(txIdEntry).build());
