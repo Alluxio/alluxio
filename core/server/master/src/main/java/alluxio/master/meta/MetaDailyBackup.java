@@ -52,10 +52,10 @@ public final class MetaDailyBackup {
 
   private final String mBackupDir;
   private final boolean mIsLocal;
-  private final int mMaxFile;
+  private final int mRetainedFiles;
   private final MetaMaster mMetaMaster;
   private final ScheduledExecutorService mScheduledExecutor;
-  private final UnderFileSystem mUnderfileSystem;
+  private final UnderFileSystem mUfs;
 
   private ScheduledFuture<?> mBackup;
 
@@ -67,16 +67,17 @@ public final class MetaDailyBackup {
   MetaDailyBackup(MetaMaster metaMaster) {
     mMetaMaster = metaMaster;
     mBackupDir = Configuration.get(PropertyKey.MASTER_BACKUP_DIRECTORY);
-    mMaxFile = Configuration.getInt(PropertyKey.MASTER_DAILY_BACKUP_FILES_RETAINED);
+    mRetainedFiles = Configuration.getInt(PropertyKey.MASTER_DAILY_BACKUP_FILES_RETAINED);
     mScheduledExecutor = Executors.newSingleThreadScheduledExecutor(
         ThreadFactoryUtils.build("MetaDailyBackup-%d", true));
+
     if (URIUtils.isLocalFilesystem(Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS))) {
       mIsLocal = true;
-      mUnderfileSystem = UnderFileSystem.Factory
+      mUfs = UnderFileSystem.Factory
           .create("/", UnderFileSystemConfiguration.defaults());
     } else {
       mIsLocal = false;
-      mUnderfileSystem = UnderFileSystem.Factory.createForRoot();
+      mUfs = UnderFileSystem.Factory.createForRoot();
     }
   }
 
@@ -85,7 +86,6 @@ public final class MetaDailyBackup {
    */
   public void start() {
     Preconditions.checkState(mBackup == null);
-
     long delayedTimeInMillis = getTimeToNextBackup();
     mBackup = mScheduledExecutor.scheduleAtFixedRate(this::dailyBackup,
         delayedTimeInMillis, FormatUtils.parseTimeSize("1day"), TimeUnit.MILLISECONDS);
@@ -138,8 +138,8 @@ public final class MetaDailyBackup {
    * Deletes stale backup files to avoid consuming too many spaces.
    */
   private void deleteOldestBackups() throws Exception {
-    UfsStatus[] statuses = mUnderfileSystem.listStatus(mBackupDir);
-    if (statuses.length <= mMaxFile) {
+    UfsStatus[] statuses = mUfs.listStatus(mBackupDir);
+    if (statuses.length <= mRetainedFiles) {
       return;
     }
 
@@ -157,14 +157,14 @@ public final class MetaDailyBackup {
     }
 
     // Delete the oldest files
-    int toDeleteFileNum = timeToFile.size() - mMaxFile;
+    int toDeleteFileNum = timeToFile.size() - mRetainedFiles;
     if (toDeleteFileNum <= 0) {
       return;
     }
     for (int i = 0; i < toDeleteFileNum; i++) {
       String toDeleteFile = PathUtils.concatPath(mBackupDir,
           timeToFile.pollFirstEntry().getValue());
-      mUnderfileSystem.deleteFile(toDeleteFile);
+      mUfs.deleteFile(toDeleteFile);
     }
     LOG.info("Deleted {} outdated metadata backup files at {}", toDeleteFileNum, mBackupDir);
   }
@@ -177,16 +177,17 @@ public final class MetaDailyBackup {
       mBackup.cancel(true);
       mBackup = null;
     }
-    LOG.info("Daily metadata backup stopped.");
+    LOG.info("Daily metadata backup stopped");
 
     mScheduledExecutor.shutdownNow();
+    String waitForMessage = "waiting for daily metadata backup executor service to shut down";
     try {
       if (!mScheduledExecutor.awaitTermination(SHUTDOWN_TIMEOUT_MS, TimeUnit.MILLISECONDS)) {
-        LOG.warn("Timed out waiting for daily metadata backup executor to shut down.");
+        LOG.warn("Timed out " + waitForMessage);
       }
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
-      LOG.warn("Interrupted while waiting for daily metadata backup executor service to shut down");
+      LOG.warn("Interrupted while " + waitForMessage);
     }
   }
 }

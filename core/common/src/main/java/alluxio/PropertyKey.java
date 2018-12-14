@@ -1140,10 +1140,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.MASTER_DAILY_BACKUP_TIME)
           .setDefaultValue("05:00")
           .setDescription("Default UTC time for writing daily master metadata backups. "
-              + "The accepted time format is hour:minute which is based on 24-hour clock "
+              + "The accepted time format is hour:minute which is based on a 24-hour clock "
               + "(E.g., 05:30, 06:00, and 22:04). "
               + "Backing up metadata requires a pause in master metadata changes, "
-              + "so please set this value to a off-peak time "
+              + "so please set this value to an off-peak time "
               + "to avoid interfering with other users of the system.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)

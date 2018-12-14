@@ -79,7 +79,7 @@ for additional backup options.
 
 Alluxio supports automatically taking primary master metadata snapshots every day at a fixed time 
 so that Alluxio metadata can be restored to at most one day before.
-This functionality is enabled by setting the following property in `conf/alluxio-site.properties`:
+This functionality is enabled by setting the following property in `${ALLUXIO_HOME}/conf/alluxio-site.properties`:
 
 ```
 alluxio.master.daily.backup.enabled=true
