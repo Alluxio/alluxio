@@ -1124,25 +1124,45 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey MASTER_DAILY_BACKUP_ENABLED =
       new Builder(Name.MASTER_DAILY_BACKUP_ENABLED)
           .setDefaultValue(false)
-          .setDescription("Whether or not to enable the daily primary master"
+          .setDescription("Whether or not to enable daily primary master "
               + "metadata backup.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
-  public static final PropertyKey MASTER_DAILY_BACKUP_FILE_MAX =
-      new Builder(Name.MASTER_DAILY_BACKUP_FILE_MAX)
+  public static final PropertyKey MASTER_DAILY_BACKUP_FILES_RETAINED =
+      new Builder(Name.MASTER_DAILY_BACKUP_FILES_RETAINED)
           .setDefaultValue(3)
-          .setDescription("The maximum of backup files to keep in the backup directory.")
+          .setDescription("The maximum number of backup files to keep in the backup directory.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_DAILY_BACKUP_LOCAL =
+      new Builder(Name.MASTER_DAILY_BACKUP_LOCAL)
+          .setDefaultValue(false)
+          .setDescription("By default, daily master metadata backup files are written "
+              + "to the backup directory of the root UFS. Set this value to true to enable "
+              + "writing daily backup files to the local filesystem of Alluxio primary master.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_DAILY_BACKUP_LOCAL_DIR =
+      new Builder(Name.MASTER_DAILY_BACKUP_LOCAL_DIR)
+          .setDefaultValue(String.format("${%s}/${%s}", Name.UNDERFS_ADDRESS,
+              Name.MASTER_BACKUP_DIRECTORY))
+          .setDescription("The directory in the local filesystem of Alluxio primary master"
+              + "to write daily metadata backup files to. "
+              + "Path of this directory should be absolute.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_DAILY_BACKUP_TIME =
       new Builder(Name.MASTER_DAILY_BACKUP_TIME)
-          .setDefaultValue("5:30")
-          .setDescription("Default time for writing master metadata backups everyday. "
-              + "This time is based on 24-hour clock (E.g., at 10:04:15.250 PM the time is 22:04) "
-              + "and UTC time zone. Backing up metadata requires a pause "
-              + "in master metadata changes, so please set this value to a off-peak time "
+          .setDefaultValue("05:00")
+          .setDescription("Default UTC time for writing master metadata backups everyday. "
+              + "The accepted time format is H:mm which is based on 24-hour clock "
+              + "(E.g., at 10:04:15.250 PM the time is 22:04). "
+              + "Backing up metadata requires a pause in master metadata changes, "
+              + "so please set this value to a off-peak time "
               + "to avoid interfering with other users of the system.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
@@ -3540,8 +3560,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.connection.timeout";
     public static final String MASTER_DAILY_BACKUP_ENABLED =
         "alluxio.master.daily.backup.enabled";
-    public static final String MASTER_DAILY_BACKUP_FILE_MAX =
-        "alluxio.master.daily.backup.file.max";
+    public static final String MASTER_DAILY_BACKUP_FILES_RETAINED =
+        "alluxio.master.daily.backup.files.retained";
+    public static final String MASTER_DAILY_BACKUP_LOCAL =
+        "alluxio.master.daily.backup.local";
+    public static final String MASTER_DAILY_BACKUP_LOCAL_DIR =
+        "alluxio.master.daily.backup.local.dir";
     public static final String MASTER_DAILY_BACKUP_TIME =
         "alluxio.master.daily.backup.time";
     public static final String MASTER_FILE_ASYNC_PERSIST_HANDLER =

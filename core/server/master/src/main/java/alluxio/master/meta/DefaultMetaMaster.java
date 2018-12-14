@@ -269,7 +269,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
     String backupFilePath;
     try (LockResource lr = new LockResource(mMasterContext.pauseStateLock())) {
       Instant now = Instant.now();
-      String backupFileName = String.format("alluxio-backup-%s-%s.gz",
+      String backupFileName = String.format(MetaDailyBackup.BACKUP_FILE_FORMAT,
           DateTimeFormatter.ISO_LOCAL_DATE.withZone(ZoneId.of("UTC")).format(now),
           now.toEpochMilli());
       backupFilePath = PathUtils.concatPath(dir, backupFileName);
