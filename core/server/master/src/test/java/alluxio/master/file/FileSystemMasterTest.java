@@ -2000,10 +2000,10 @@ public final class FileSystemMasterTest {
    */
   @Test
   public void renameToSubpath() throws Exception {
-    mThrown.expect(InvalidPathException.class);
-    mThrown.expectMessage("Traversal failed. Component 2(test) is a file");
-
     mFileSystemMaster.createFile(NESTED_URI, mNestedFileOptions);
+    mThrown.expect(InvalidPathException.class);
+    mThrown.expectMessage(
+        "Traversal failed for path /nested/test/file. Component 2(test) is a file, not a directory");
     mFileSystemMaster.rename(NESTED_URI, NESTED_FILE_URI, RenameOptions.defaults());
   }
 

@@ -478,7 +478,8 @@ public final class InodeTreeTest {
     createPath(mTree, NESTED_URI, sNestedFileOptions);
 
     mThrown.expect(InvalidPathException.class);
-    mThrown.expectMessage("Traversal failed. Component 2(test) is a file");
+    mThrown.expectMessage(
+        "Traversal failed for path /nested/test/test. Component 2(test) is a file, not a directory");
     createPath(mTree, new AlluxioURI("/nested/test/test"), sNestedFileOptions);
   }
 
