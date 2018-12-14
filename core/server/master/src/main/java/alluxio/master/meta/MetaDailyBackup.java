@@ -69,24 +69,15 @@ public final class MetaDailyBackup {
   MetaDailyBackup(MetaMaster metaMaster) {
     mMetaMaster = metaMaster;
     mMaxFile = Configuration.getInt(PropertyKey.MASTER_DAILY_BACKUP_FILES_RETAINED);
-
-    String rootUfs = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
-    boolean isBackupLocal = Configuration.getBoolean(PropertyKey.MASTER_DAILY_BACKUP_LOCAL);
-    boolean isRootLocal = URIUtils.isLocalFilesystem(rootUfs);
-
     mBackupDir = Configuration.get(PropertyKey.MASTER_BACKUP_DIRECTORY);
-    if (!isBackupLocal && !isRootLocal) {
-      mIsLocal = false;
-      mUnderfileSystem = UnderFileSystem.Factory.createForRoot();
-    } else {
+
+    if (URIUtils.isLocalFilesystem(Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS))) {
       mIsLocal = true;
       mUnderfileSystem = UnderFileSystem.Factory
           .create("/", UnderFileSystemConfiguration.defaults());
-      if (isBackupLocal) {
-        mBackupDir = Configuration.get(PropertyKey.MASTER_DAILY_BACKUP_LOCAL_DIR);
-      } else {
-        mBackupDir = PathUtils.concatPath(rootUfs, mBackupDir);
-      }
+    } else {
+      mIsLocal = false;
+      mUnderfileSystem = UnderFileSystem.Factory.createForRoot();
     }
   }
 
@@ -101,7 +92,7 @@ public final class MetaDailyBackup {
 
     long delayedTimeInMillis = getTimeToNextBackup();
     mBackup = mScheduleExecutor.scheduleAtFixedRate(this::dailyBackup,
-        delayedTimeInMillis, FormatUtils.parseTimeSize("1day"), TimeUnit.MILLISECONDS);
+        delayedTimeInMillis, FormatUtils.parseTimeSize("5min"), TimeUnit.MILLISECONDS);
     LOG.info("Daily metadata backup scheduled to start in {}",
         CommonUtils.convertMsToClockTime(delayedTimeInMillis));
   }

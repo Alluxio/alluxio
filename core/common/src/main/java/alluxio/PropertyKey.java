@@ -1083,10 +1083,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey MASTER_BACKUP_DIRECTORY =
       new Builder(Name.MASTER_BACKUP_DIRECTORY)
           .setDefaultValue("/alluxio_backups")
-          .setDescription("Default directory for writing master metadata backups. This path is"
-              + " relative to the root directory of the root UFS. For example, if the root ufs"
-              + " directory is hdfs://cluster/alluxio/data, the default backup directory will be"
-              + " hdfs://cluster/alluxio_backups")
+          .setDescription("Default directory for writing master metadata backups. This path is "
+              + "an absolute path of the root UFS. For example, if the root ufs "
+              + "directory is hdfs://host:port/alluxio/data, the default backup directory will be "
+              + "hdfs://host:port/alluxio_backups.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
@@ -1133,25 +1133,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.MASTER_DAILY_BACKUP_FILES_RETAINED)
           .setDefaultValue(3)
           .setDescription("The maximum number of backup files to keep in the backup directory.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
-          .setScope(Scope.MASTER)
-          .build();
-  public static final PropertyKey MASTER_DAILY_BACKUP_LOCAL =
-      new Builder(Name.MASTER_DAILY_BACKUP_LOCAL)
-          .setDefaultValue(false)
-          .setDescription("By default, daily master metadata backup files are written "
-              + "to the backup directory of the root UFS. Set this value to true to enable "
-              + "writing daily backup files to the local filesystem of Alluxio primary master.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
-          .setScope(Scope.MASTER)
-          .build();
-  public static final PropertyKey MASTER_DAILY_BACKUP_LOCAL_DIR =
-      new Builder(Name.MASTER_DAILY_BACKUP_LOCAL_DIR)
-          .setDefaultValue(String.format("${%s}/${%s}", Name.UNDERFS_ADDRESS,
-              Name.MASTER_BACKUP_DIRECTORY))
-          .setDescription("The directory in the local filesystem of Alluxio primary master"
-              + "to write daily metadata backup files to. "
-              + "Path of this directory should be absolute.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
@@ -3562,10 +3543,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.daily.backup.enabled";
     public static final String MASTER_DAILY_BACKUP_FILES_RETAINED =
         "alluxio.master.daily.backup.files.retained";
-    public static final String MASTER_DAILY_BACKUP_LOCAL =
-        "alluxio.master.daily.backup.local";
-    public static final String MASTER_DAILY_BACKUP_LOCAL_DIR =
-        "alluxio.master.daily.backup.local.dir";
     public static final String MASTER_DAILY_BACKUP_TIME =
         "alluxio.master.daily.backup.time";
     public static final String MASTER_FILE_ASYNC_PERSIST_HANDLER =
