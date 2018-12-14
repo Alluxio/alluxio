@@ -136,6 +136,7 @@
 
   <properties>
     <apache.curator.version>4.0.1</apache.curator.version>
+    <apache.curator-test.version>2.12.0</apache.curator-test.version>
     <aws.amazonaws.version>1.11.215</aws.amazonaws.version>
     <build.path>build</build.path>
     <cxf.version>2.7.0</cxf.version>
@@ -676,7 +677,7 @@
       <dependency>
         <groupId>org.apache.curator</groupId>
         <artifactId>curator-test</artifactId>
-        <version>${apache.curator.version}</version>
+        <version>${apache.curator-test.version}</version>
         <scope>test</scope>
       </dependency>
       <dependency>
