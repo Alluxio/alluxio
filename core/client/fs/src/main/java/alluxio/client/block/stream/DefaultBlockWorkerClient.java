@@ -44,11 +44,11 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
       LoggerFactory.getLogger(DefaultBlockWorkerClient.class.getName());
 
   private static final long KEEPALIVE_TIMEOUT_MS =
-      Configuration.getMs(PropertyKey.USER_NETWORK_GRPC_KEEPALIVE_TIMEOUT_MS);
+      Configuration.getMs(PropertyKey.USER_NETWORK_KEEPALIVE_TIMEOUT_MS);
   private static final long GRPC_FLOWCONTROL_WINDOW =
-      Configuration.getMs(PropertyKey.USER_NETWORK_GRPC_FLOWCONTROL_WINDOW);
+      Configuration.getMs(PropertyKey.USER_NETWORK_FLOWCONTROL_WINDOW);
   private static final long MAX_INBOUND_MESSAGE_SIZE =
-      Configuration.getMs(PropertyKey.USER_NETWORK_GRPC_MAX_INBOUND_MESSAGE_SIZE);
+      Configuration.getMs(PropertyKey.USER_NETWORK_MAX_INBOUND_MESSAGE_SIZE);
   private static final EventLoopGroup WORKER_GROUP = NettyUtils
       .createEventLoop(NettyUtils.USER_CHANNEL_TYPE,
           Configuration.getInt(PropertyKey.USER_NETWORK_NETTY_WORKER_THREADS),

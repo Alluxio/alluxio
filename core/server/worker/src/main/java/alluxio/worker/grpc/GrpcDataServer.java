@@ -44,9 +44,9 @@ public final class GrpcDataServer implements DataServer {
 
   private final SocketAddress mSocketAddress;
   private final long mTimeoutMs =
-      Configuration.getMs(PropertyKey.WORKER_NETWORK_GRPC_SHUTDOWN_TIMEOUT);
+      Configuration.getMs(PropertyKey.WORKER_NETWORK_SHUTDOWN_TIMEOUT);
   private final long mFlowControlWindow =
-      Configuration.getBytes(PropertyKey.WORKER_NETWORK_GRPC_FLOWCONTROL_WINDOW);
+      Configuration.getBytes(PropertyKey.WORKER_NETWORK_FLOWCONTROL_WINDOW);
   private final long mQuietPeriodMs =
       Configuration.getMs(PropertyKey.WORKER_NETWORK_NETTY_SHUTDOWN_QUIET_PERIOD);
   private final int mThreadPoolSize =
