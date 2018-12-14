@@ -3154,15 +3154,21 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
 
     try (RpcContext rpcContext = createRpcContext();
          LockedInodePath inodePath = mInodeTree
-             .lockInodePath(mountPath, LockPattern.READ)) {
+             .lockFullInodePath(mountPath, LockPattern.READ)) {
       File.ActiveSyncTxIdEntry txIdEntry =
           File.ActiveSyncTxIdEntry.newBuilder().setTxId(txId).setMountId(mountId).build();
       rpcContext.journal(JournalEntry.newBuilder().setActiveSyncTxId(txIdEntry).build());
     } catch (UnavailableException e) {
-      LOG.warn("Exception when recording activesync txid {}", e);
+      LOG.warn("Exception when recording activesync txid, path {}, exception {}",
+          mountPath, e);
       return false;
     } catch (InvalidPathException e) {
-      LOG.warn("InvalidPathException when recording activesync txid {}", e);
+      LOG.warn("InvalidPathException when recording activesync txid, path {}, exception {}",
+          mountPath, e);
+      return false;
+    } catch (FileDoesNotExistException e) {
+      LOG.warn("FileDoesNotExistException when recording activesync txid, path {}, exception {}",
+          mountPath, e);
       return false;
     }
 
