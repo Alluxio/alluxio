@@ -1,6 +1,6 @@
 import {all, fork, takeLatest} from 'redux-saga/effects';
 
-import {createSagaFetchGenerator} from '../../utilities';
+import {createSagaFetchGenerator} from '@alluxio/common-ui/src/utilities';
 import {fetchError, fetchSuccess} from './actions';
 import {OverviewActionTypes} from './types';
 

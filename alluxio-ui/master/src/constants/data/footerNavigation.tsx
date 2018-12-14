@@ -1,4 +1,4 @@
-import {INavigationData} from '..';
+import {INavigationData} from '@alluxio/common-ui/src/constants';
 
 export const footerNavigationData : INavigationData[] = [{
   innerText: 'Project Website',

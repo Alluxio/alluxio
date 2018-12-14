@@ -13,8 +13,8 @@ import {
   NavLink
 } from 'reactstrap';
 
-import logo from '@alluxio/common-ui/src/images/alluxio-mark-tight-sm.svg';
-import {INavigationData} from '../../../../master/src/constants/index';
+import {INavigationData} from '../../constants';
+import logo from '../../images/alluxio-mark-tight-sm.svg';
 
 import './Header.css';
 

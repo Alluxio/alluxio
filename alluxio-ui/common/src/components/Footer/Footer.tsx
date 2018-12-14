@@ -1,7 +1,7 @@
 import React from 'react';
 import {Nav, NavItem, NavLink} from 'reactstrap';
 
-import {INavigationData} from '../../../../master/src/constants/index';
+import {INavigationData} from '../../constants';
 
 import './Footer.css';
 

@@ -1,4 +1,4 @@
-import {INavigationData} from '..';
+import {INavigationData} from '@alluxio/common-ui/src/constants';
 
 export const headerNavigationData : INavigationData[] = [{
   innerText: 'Overview',
