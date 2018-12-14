@@ -176,9 +176,10 @@ public class MetricsCommand {
    * @return the formatted metric value
    */
   private String getFormattedValue(MetricValue metricValue) {
-    Double doubleValue = metricValue.getDoubleValue();
-    Long longValue = metricValue.getLongValue();
-    return doubleValue == null ? DECIMAL_FORMAT.format(longValue) :
-        DECIMAL_FORMAT.format(doubleValue);
+    if (metricValue.hasDoubleValue()) {
+      return DECIMAL_FORMAT.format(metricValue.getDoubleValue());
+    } else {
+      return DECIMAL_FORMAT.format(metricValue.getLongValue());
+    }
   }
 }

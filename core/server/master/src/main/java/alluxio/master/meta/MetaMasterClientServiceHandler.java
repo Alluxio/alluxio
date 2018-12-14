@@ -160,7 +160,7 @@ public final class MetaMasterClientServiceHandler
               .setLongValue(Long.valueOf((Integer) value)).build());
         } else if (value instanceof Long) {
           metricsMap.put(entry.getKey(), alluxio.grpc.MetricValue.newBuilder()
-              .setLongValue(Long.valueOf((Integer) value)).build());
+              .setLongValue(Long.valueOf((Long) value)).build());
         } else if (value instanceof Double) {
           metricsMap.put(entry.getKey(),
               alluxio.grpc.MetricValue.newBuilder().setDoubleValue((Double) value).build());
