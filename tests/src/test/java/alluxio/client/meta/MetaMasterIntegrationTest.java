@@ -27,6 +27,7 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 
@@ -48,7 +49,7 @@ public final class MetaMasterIntegrationTest extends BaseIntegrationTest {
   public void getInfoAllFields() throws Exception {
     try (MetaMasterClient client =
         new RetryHandlingMetaMasterClient(MasterClientConfig.defaults())) {
-      MasterInfo info = client.getMasterInfo(null);
+      MasterInfo info = client.getMasterInfo(Collections.emptySet());
       assertEquals(mWebPort, info.getWebPort());
     }
   }

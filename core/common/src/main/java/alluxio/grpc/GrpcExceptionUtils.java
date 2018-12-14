@@ -157,7 +157,7 @@ public final class GrpcExceptionUtils {
       default:
         code = Status.Code.UNKNOWN;
     }
-    return Status.fromCode(code).withCause(e).asException();
+    return Status.fromCode(code).withDescription(e.getMessage()).asException();
   }
 }
 
