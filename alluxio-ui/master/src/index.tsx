@@ -9,7 +9,15 @@ import {Helmet} from 'react-helmet';
 import configureStore from './configureStore';
 import {App} from './containers';
 
+// Order matters for the following files, so disable alphabetization
+// tslint:disable:ordered-imports
+import '../../node_modules/bootstrap/dist/css/bootstrap.css';
+import '../../node_modules/bootstrap/dist/css/bootstrap-grid.css';
+import '../../node_modules/bootstrap/dist/css/bootstrap-reboot.css';
+import '@alluxio/common-ui/public/fonts/fontawesome-free-5.3.1-web/css/all.css';
+import '@alluxio/common-ui/public/fonts/Source_Sans_Pro/SourceSansPro.css';
 import './index.css';
+// tslint:enable:ordered-imports
 
 const history = createBrowserHistory();
 history.listen((loc: Location, action: Action) => {

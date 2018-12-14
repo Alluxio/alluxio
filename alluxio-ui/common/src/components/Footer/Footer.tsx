@@ -31,7 +31,7 @@ export class Footer extends React.PureComponent<IFooterPrpos> {
 
   private renderNavItems(datas: INavigationData[]) {
     return datas.map((data: INavigationData) => (
-      <NavItem>
+      <NavItem key={data.url}>
         <NavLink href={data.url}>{data.innerText}</NavLink>
       </NavItem>
     ));

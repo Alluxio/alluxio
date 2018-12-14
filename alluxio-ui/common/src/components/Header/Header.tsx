@@ -100,7 +100,7 @@ export class Header extends React.PureComponent<IHeaderProps, IHeaderState> {
   private renderNavItems(datas: INavigationData[]) {
     const {pathname} = this.state;
     return datas.map((data: INavigationData) => (
-      <NavItem>
+      <NavItem key={data.url}>
         <NavLink tag={Link} to={data.url} active={pathname === data.url}>{data.innerText}</NavLink>
       </NavItem>
     ));
