@@ -2979,6 +2979,13 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
              .lockInodePath(lockingScheme.getPath(), lockingScheme.getPattern());
          FileSystemMasterAuditContext auditContext =
              createAuditContext(commandName, path, null, inodePath.getInodeOrNull())) {
+      mMountTable.checkUnderWritableMountPoint(path);
+      // Possible ufs sync.
+      syncMetadata(rpcContext, inodePath, lockingScheme,
+          options.isRecursive() ? DescendantType.ALL : DescendantType.ONE);
+      if (!inodePath.fullPathExists()) {
+        throw new FileDoesNotExistException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path));
+      }
       try {
         mPermissionChecker.checkSetAttributePermission(inodePath, rootRequired, ownerRequired);
         if (options.isRecursive()) {
@@ -2989,13 +2996,6 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
       } catch (AccessControlException e) {
         auditContext.setAllowed(false);
         throw e;
-      }
-      mMountTable.checkUnderWritableMountPoint(path);
-      // Possible ufs sync.
-      syncMetadata(rpcContext, inodePath, lockingScheme,
-          options.isRecursive() ? DescendantType.ALL : DescendantType.ONE);
-      if (!inodePath.fullPathExists()) {
-        throw new FileDoesNotExistException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path));
       }
 
       setAttributeInternal(rpcContext, inodePath, options);
