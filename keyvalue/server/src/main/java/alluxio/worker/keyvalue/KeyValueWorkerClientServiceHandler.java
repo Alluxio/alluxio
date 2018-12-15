@@ -71,7 +71,7 @@ public final class KeyValueWorkerClientServiceHandler
       if (value == null) {
         response.setData(ByteString.copyFrom(new byte[0]));
       } else {
-        response.setData(ByteString.copyFrom(value.array()));
+        response.setData(ByteString.copyFrom(value));
       }
       return response.build();
     }, "get", "request=%s", responseObserver, request);
@@ -91,16 +91,21 @@ public final class KeyValueWorkerClientServiceHandler
         PayloadReader payloadReader = reader.getPayloadReader();
 
         List<ByteString> ret = Lists.newArrayListWithExpectedSize(request.getNumKeys());
-        ByteBuffer currentKey = request.getKey().asReadOnlyByteBuffer();
+        ByteBuffer currentKey = null;
+        if(request.hasKey()) {
+          currentKey = request.getKey().asReadOnlyByteBuffer();
+        }
         for (int i = 0; i < request.getNumKeys(); i++) {
           ByteBuffer nextKey = index.nextKey(currentKey, payloadReader);
           if (nextKey == null) {
             break;
           }
-          ret.add(ByteString.copyFrom(copyAsNonDirectBuffer(nextKey)));
+          ret.add(ByteString.copyFrom(nextKey));
           currentKey = nextKey;
         }
-        response.addAllKeys(ret);
+        if (ret.size() > 0) {
+          response.addAllKeys(ret);
+        }
       } catch (InvalidWorkerStateException e) {
         // We shall never reach here
         LOG.error("Reaching invalid state to get all keys", e);
@@ -128,12 +133,6 @@ public final class KeyValueWorkerClientServiceHandler
       }
       return response.build();
     }, "getSize", "request=%s", responseObserver, request);
-  }
-
-  private ByteBuffer copyAsNonDirectBuffer(ByteBuffer directBuffer) {
-    // Thrift assumes the ByteBuffer returned has array() method, which is not true if the
-    // ByteBuffer is direct. We make a non-direct copy of the ByteBuffer to return.
-    return BufferUtils.cloneByteBuffer(directBuffer);
   }
 
   /**

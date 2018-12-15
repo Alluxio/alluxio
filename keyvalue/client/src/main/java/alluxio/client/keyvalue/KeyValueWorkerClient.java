@@ -105,11 +105,13 @@ public final class KeyValueWorkerClient extends AbstractClient {
     return retryRPC(new RpcCallable<List<ByteBuffer>>() {
       @Override
       public List<ByteBuffer> call() {
-        return mClient
-            .getNextKeys(GetNextKeysPRequest.newBuilder().setBlockId(blockId)
-                .setKey(ByteString.copyFrom(key)).setNumKeys(numKeys).build())
-            .getKeysList().stream().map((c) -> ByteBuffer.wrap(c.toByteArray()))
-            .collect(Collectors.toList());
+        GetNextKeysPRequest.Builder requestBuilder =
+            GetNextKeysPRequest.newBuilder().setBlockId(blockId).setNumKeys(numKeys);
+        if (key != null) {
+          requestBuilder.setKey(ByteString.copyFrom(key));
+        }
+        return mClient.getNextKeys(requestBuilder.build()).getKeysList().stream()
+            .map((c) -> ByteBuffer.wrap(c.toByteArray())).collect(Collectors.toList());
       }
     });
   }
