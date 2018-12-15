@@ -17,11 +17,8 @@ import alluxio.PropertyKey;
 import alluxio.master.BackupManager;
 import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
-import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.util.CommonUtils;
 import alluxio.util.FormatUtils;
-import alluxio.util.ThreadFactoryUtils;
-import alluxio.util.URIUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.BackupOptions;
 import alluxio.wire.BackupResponse;
@@ -37,7 +34,6 @@ import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.TreeMap;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -64,21 +60,13 @@ public final class MetaDailyBackup {
    *
    * @param metaMaster the meta master
    */
-  MetaDailyBackup(MetaMaster metaMaster) {
+  MetaDailyBackup(MetaMaster metaMaster, ScheduledExecutorService service, UnderFileSystem ufs) {
     mMetaMaster = metaMaster;
     mBackupDir = Configuration.get(PropertyKey.MASTER_BACKUP_DIRECTORY);
     mRetainedFiles = Configuration.getInt(PropertyKey.MASTER_DAILY_BACKUP_FILES_RETAINED);
-    mScheduledExecutor = Executors.newSingleThreadScheduledExecutor(
-        ThreadFactoryUtils.build("MetaDailyBackup-%d", true));
-
-    if (URIUtils.isLocalFilesystem(Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS))) {
-      mIsLocal = true;
-      mUfs = UnderFileSystem.Factory
-          .create("/", UnderFileSystemConfiguration.defaults());
-    } else {
-      mIsLocal = false;
-      mUfs = UnderFileSystem.Factory.createForRoot();
-    }
+    mScheduledExecutor = service;
+    mUfs = ufs;
+    mIsLocal = ufs.getUnderFSType().equals("local");
   }
 
   /**

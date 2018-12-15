@@ -43,6 +43,8 @@ import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.IdUtils;
+import alluxio.util.ThreadFactoryUtils;
+import alluxio.util.URIUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.executor.ExecutorServiceFactory;
 import alluxio.util.io.PathUtils;
@@ -75,6 +77,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -130,6 +133,9 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
   private final InetSocketAddress mRpcConnectAddress
       = NetworkAddressUtils.getConnectAddress(NetworkAddressUtils.ServiceType.MASTER_RPC);
 
+  /** The root ufs. */
+  private final UnderFileSystem mUfs;
+
   /** The address of this master. */
   private Address mMasterAddress;
 
@@ -165,6 +171,13 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
     mBlockMaster.registerLostWorkerFoundListener(mWorkerConfigStore::lostNodeFound);
     mBlockMaster.registerWorkerLostListener(mWorkerConfigStore::handleNodeLost);
     mBlockMaster.registerNewWorkerConfListener(mWorkerConfigStore::registerNewConf);
+
+    if (URIUtils.isLocalFilesystem(Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS))) {
+      mUfs = UnderFileSystem.Factory
+          .create("/", UnderFileSystemConfiguration.defaults());
+    } else {
+      mUfs = UnderFileSystem.Factory.createForRoot();
+    }
   }
 
   @Override
@@ -221,7 +234,8 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
           (int) Configuration.getMs(PropertyKey.MASTER_LOG_CONFIG_REPORT_HEARTBEAT_INTERVAL)));
 
       if (Configuration.getBoolean(PropertyKey.MASTER_DAILY_BACKUP_ENABLED)) {
-        mDailyBackup = new MetaDailyBackup(this);
+        mDailyBackup = new MetaDailyBackup(this, Executors.newSingleThreadScheduledExecutor(
+            ThreadFactoryUtils.build("MetaDailyBackup-%d", true)), mUfs);
         mDailyBackup.start();
       }
     } else {
@@ -254,12 +268,11 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
     if (dir == null) {
       dir = Configuration.get(PropertyKey.MASTER_BACKUP_DIRECTORY);
     }
-    UnderFileSystem ufs;
-    if (options.isLocalFileSystem()) {
+    UnderFileSystem ufs = mUfs;
+    if (options.isLocalFileSystem() && !ufs.getUnderFSType().equals("local")) {
       ufs = UnderFileSystem.Factory.create("/", UnderFileSystemConfiguration.defaults());
       LOG.info("Backing up to local filesystem in directory {}", dir);
     } else {
-      ufs = UnderFileSystem.Factory.createForRoot();
       LOG.info("Backing up to root UFS in directory {}", dir);
     }
     if (!ufs.isDirectory(dir)) {
