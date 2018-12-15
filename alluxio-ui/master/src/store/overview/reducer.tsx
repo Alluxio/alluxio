@@ -10,11 +10,9 @@ const initialState: IOverviewState = {
       'total': 0,
       'used': 100
     },
-    'configCheckErrorNum': 0,
-    'configCheckErrors': null,
-    'configCheckStatus': [],
-    'configCheckWarnNum': 0,
-    'configCheckWarns': null,
+    'configCheckErrors': [],
+    'configCheckStatus': '',
+    'configCheckWarns': [],
     'consistencyCheckStatus': '',
     'debug': false,
     'diskCapacity': '',
@@ -26,7 +24,14 @@ const initialState: IOverviewState = {
     'liveWorkerNodes': 0,
     'masterNodeAddress': '',
     'startTime': '',
-    'storageTierInfos': null,
+    'storageTierInfos': [{
+      'capacity': '',
+      'freeCapacity': '',
+      'freeSpacePercent': 0,
+      'storageTierAlias': '',
+      'usedCapacity': '',
+      'usedSpacePercent': 100
+    }],
     'uptime': '',
     'usedCapacity': '',
     'version': ''

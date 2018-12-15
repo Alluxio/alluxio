@@ -6,7 +6,7 @@ import {Dispatch} from 'redux';
 import {LoadingMessage} from '@alluxio/common-ui/src/components';
 import {IApplicationState} from '../../../store';
 import {fetchRequest} from '../../../store/overview/actions';
-import {IOverview} from '../../../store/overview/types';
+import {IOverview, IOverviewScopedPropertyIssue, IOverviewStorageTierInfo} from '../../../store/overview/types';
 
 import './Overview.css';
 
@@ -34,15 +34,6 @@ class Overview extends React.Component<AllProps> {
       return (
         <LoadingMessage/>
       );
-    }
-
-    let freeCapacity = Math.round((overview.capacity.total - overview.capacity.used) / overview.capacity.total * 100);
-    let usedCapacity = 100 - freeCapacity;
-    if (freeCapacity < 0) {
-      freeCapacity = 0;
-    }
-    if (usedCapacity > 100) {
-      usedCapacity = 100;
     }
 
     return (
@@ -77,10 +68,15 @@ class Overview extends React.Component<AllProps> {
                   <th scope="row">Startup Consistency Check</th>
                   <td>{overview.consistencyCheckStatus}</td>
                 </tr>
+                {this.renderInconsistendPaths(overview.inconsistentPathItems)}
                 <tr>
                   <th scope="row">Server Configuration Check</th>
-                  <td>{overview.configCheckStatus}</td>
+                  <td className={overview.configCheckStatus === 'FAILED' ? 'text-danger' : ''}>
+                    {overview.configCheckStatus}
+                  </td>
                 </tr>
+                {this.renderConfigurationIssues(overview.configCheckErrors, 'text-error')}
+                {this.renderConfigurationIssues(overview.configCheckWarns, 'text-warning')}
                 </tbody>
               </Table>
             </div>
@@ -119,17 +115,7 @@ class Overview extends React.Component<AllProps> {
                 </tr>
                 </thead>
                 <tbody>
-                <tr>
-                  <td>?</td>
-                  <td>{overview.diskFreeCapacity}</td>
-                  <td>{overview.usedCapacity}</td>
-                  <td>
-                    <Progress multi={true}>
-                      <Progress bar={true} color="success" value={`${freeCapacity}`}>{freeCapacity}% Free</Progress>
-                      <Progress bar={true} color="danger" value={`${usedCapacity}`}>{usedCapacity}% Used</Progress>
-                    </Progress>
-                  </td>
-                </tr>
+                {this.renderStorageTierInfos(overview.storageTierInfos)}
                 </tbody>
               </Table>
             </div>
@@ -137,6 +123,68 @@ class Overview extends React.Component<AllProps> {
         </div>
       </div>
     );
+  }
+
+  private renderInconsistendPaths(paths: string[]) {
+    if (!paths.length) {
+      return null;
+    }
+
+    return (
+      <tr>
+        <th scope="row" className="text-danger">Inconsistent Files on Startup (run fs checkConsistency for details)</th>
+        <td>
+          {paths.map((path: string) => <div key={path} className="text-danger">{path}</div>)}
+        </td>
+      </tr>
+    );
+  }
+
+  private renderConfigurationIssues(issues: IOverviewScopedPropertyIssue[], className: string) {
+    if (!issues.length) {
+      return null;
+    }
+
+    const errorMarkup = issues.map((issue: IOverviewScopedPropertyIssue) => {
+      let markup = '';
+      for (const scope of Object.keys(issue)) {
+        const scopeValue = issue[scope];
+        markup += `<div>${scope}`;
+        for (const property of Object.keys(scopeValue)) {
+          const propertyValue = scopeValue[property];
+          markup += `<div>${property}: ${propertyValue}</div>`;
+        }
+        markup += '</div>';
+      }
+      return markup;
+    });
+
+    return (
+      <tr>
+        <th scope="row" className={className}>Inconsistent Properties</th>
+        <td className={className}>
+          {errorMarkup}
+        </td>
+      </tr>
+    )
+  }
+
+  private renderStorageTierInfos(infos: IOverviewStorageTierInfo[]) {
+    return infos.map((info: IOverviewStorageTierInfo) => (
+      <tr key={info.storageTierAlias}>
+        <td>{info.storageTierAlias}</td>
+        <td>{info.capacity}</td>
+        <td>{info.usedCapacity}</td>
+        <td>
+          <Progress multi={true}>
+            <Progress bar={true} color="success" value={`${info.freeSpacePercent}`}>{info.freeSpacePercent}%
+              Free</Progress>
+            <Progress bar={true} color="danger" value={`${info.usedSpacePercent}`}>{info.usedSpacePercent}%
+              Used</Progress>
+          </Progress>
+        </td>
+      </tr>
+    ));
   }
 }
 

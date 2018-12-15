@@ -1,14 +1,27 @@
+export interface IOverviewStorageTierInfo {
+  'capacity': string;
+  'freeCapacity': string;
+  'freeSpacePercent': number;
+  'storageTierAlias': string;
+  'usedCapacity': string;
+  'usedSpacePercent': number;
+}
+
+export interface IOverviewScopedPropertyIssue {
+  [key: string]: {
+    [key: string]: string;
+  };
+}
+
 export interface IOverview {
   'debug': boolean;
   'capacity': {
     'total': number;
     'used': number;
   };
-  'configCheckErrorNum': number;
-  'configCheckErrors': any | null;
-  'configCheckStatus': string[];
-  'configCheckWarnNum': number;
-  'configCheckWarns': any | null;
+  'configCheckErrors': IOverviewScopedPropertyIssue[];
+  'configCheckStatus': string;
+  'configCheckWarns': IOverviewScopedPropertyIssue[];
   'consistencyCheckStatus': string;
   'diskCapacity': string;
   'diskFreeCapacity': string;
@@ -19,7 +32,7 @@ export interface IOverview {
   'liveWorkerNodes': number;
   'masterNodeAddress': string;
   'startTime': string;
-  'storageTierInfos': any | null;
+  'storageTierInfos': IOverviewStorageTierInfo[];
   'uptime': string;
   'usedCapacity': string;
   'version': string;

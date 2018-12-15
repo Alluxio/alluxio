@@ -69,7 +69,7 @@ export class Header extends React.PureComponent<IHeaderProps, IHeaderState> {
               </div>
             </div>
           </NavbarBrand>
-          <NavbarToggler onClick={this.toggleHamburgerMenu}/>
+          <NavbarToggler className="mr-1" onClick={this.toggleHamburgerMenu}/>
           <Collapse className={`d-lg-inline-flex justify-content-lg-center${isOpen ? '' : ' tabs'}`}
                     isOpen={isOpen} navbar={true}>
             <Nav tabs={!isOpen} vertical={isOpen}>

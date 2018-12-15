@@ -32,7 +32,6 @@ import alluxio.util.CommonUtils;
 import alluxio.util.FormatUtils;
 import alluxio.util.LogUtils;
 import alluxio.web.MasterWebServer;
-import alluxio.web.WebInterfaceGeneralServlet;
 import alluxio.wire.AlluxioMasterInfo;
 import alluxio.wire.Capacity;
 import alluxio.wire.ConfigCheckReport;
@@ -225,7 +224,6 @@ public final class AlluxioMasterRestServiceHandler {
           .setConfigCheckErrorNum(report.getConfigErrors().values().stream().mapToInt(List::size).sum())
           .setConfigCheckErrors(report.getConfigErrors())
           .setConfigCheckStatus(report.getConfigStatus())
-          .setConfigCheckWarnNum(report.getConfigWarns().values().stream().mapToInt(List::size).sum())
           .setConfigCheckWarns(report.getConfigWarns())
           .setConsistencyCheckStatus(startupConsistencyCheck.getStatus())
           .setDebug(getBoolean(PropertyKey.DEBUG))
@@ -235,7 +233,6 @@ public final class AlluxioMasterRestServiceHandler {
           .setDiskUsedCapacity(diskUsedCapacity)
           .setFreeCapacity(FormatUtils.getSizeFromBytes(mBlockMaster.getCapacityBytes() - mBlockMaster.getUsedBytes()))
           .setInconsistentPathItems(startupConsistencyCheck.getInconsistentUris())
-          .setInconsistentPaths(startupConsistencyCheck.getInconsistentUris().size())
           .setLiveWorkerNodes(mBlockMaster.getWorkerCount())
           .setMasterNodeAddress(mMasterProcess.getRpcAddress().toString())
           .setStartTime(CommonUtils.convertMsToDate(mMetaMaster.getStartTimeMs()))
@@ -245,8 +242,6 @@ public final class AlluxioMasterRestServiceHandler {
           .setVersion(RuntimeConstants.VERSION);
       });
   }
-
-
 
   /**
    * @summary get the configuration map, the keys are ordered alphabetically.
