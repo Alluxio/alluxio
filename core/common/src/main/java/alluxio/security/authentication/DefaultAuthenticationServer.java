@@ -166,7 +166,7 @@ public class DefaultAuthenticationServer
       case NOSASL:
       case SIMPLE:
       case CUSTOM:
-        return;
+        break;
       default:
         throw new RuntimeException("Authentication type not supported:" + authType.name());
     }
@@ -210,10 +210,15 @@ public class DefaultAuthenticationServer
       mLastAccessTime = LocalTime.now();
     }
 
-    private void updateLastAccessTime() {
-      synchronized (mLastAccessTime) {
-        mLastAccessTime = LocalTime.now();
-      }
+    private synchronized void updateLastAccessTime() {
+      mLastAccessTime = LocalTime.now();
+    }
+
+    /**
+     * @return the last access time
+     */
+    public synchronized LocalTime getLastAccessTime() {
+      return mLastAccessTime;
     }
 
     /**
@@ -230,13 +235,6 @@ public class DefaultAuthenticationServer
     public String getUserName() {
       updateLastAccessTime();
       return mAuthorizedUser;
-    }
-
-    /**
-     * @return the last access time
-     */
-    public LocalTime getLastAccessTime() {
-      return mLastAccessTime;
     }
   }
 }

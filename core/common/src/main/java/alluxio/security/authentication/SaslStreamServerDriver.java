@@ -25,7 +25,7 @@ import java.util.UUID;
  */
 public class SaslStreamServerDriver implements StreamObserver<SaslMessage> {
   /** Client's sasl stream. */
-  private StreamObserver<SaslMessage> mRequestObserver;
+  private StreamObserver<SaslMessage> mRequestObserver = null;
   /** Handshake handler for server. */
   private SaslHandshakeServerHandler mSaslHandshakeServerHandler;
   /** Authentication server. */
@@ -33,7 +33,7 @@ public class SaslStreamServerDriver implements StreamObserver<SaslMessage> {
   /** Id for client-side channel that is authenticating. */
   private UUID mChannelId;
   /** Sasl server that will be used for authentication. */
-  private SaslServer mSaslServer;
+  private SaslServer mSaslServer = null;
 
   /**
    * Creates {@link SaslStreamServerDriver} for given {@link AuthenticationServer}.

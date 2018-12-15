@@ -67,8 +67,9 @@ public final class BlockMasterWorkerServiceHandler
     final List<Long> removedBlockIds = request.getRemovedBlockIdsList();
     final Map<String, TierList> addedBlocksOnTiers = request.getAddedBlocksOnTiersMap();
     Map<String, List<Long>> addedBlocksOnTiersMap = new HashMap<>();
-    for (String id : addedBlocksOnTiers.keySet()) {
-      addedBlocksOnTiersMap.put(id, addedBlocksOnTiers.get(id).getTiersList());
+    for (Map.Entry<String, TierList> blockEntry : addedBlocksOnTiers.entrySet()) {
+      addedBlocksOnTiersMap.put(blockEntry.getKey(),
+          addedBlocksOnTiers.get(blockEntry.getKey()).getTiersList());
     }
     final BlockHeartbeatPOptions options = request.getOptions();
     final List<Metric> metrics =
@@ -130,8 +131,9 @@ public final class BlockMasterWorkerServiceHandler
     final Map<String, Long> usedBytesOnTiers = request.getUsedBytesOnTiersMap();
     final Map<String, TierList> currentBlocksOnTiers = request.getCurrentBlocksOnTiersMap();
     Map<String, List<Long>> currentBlocksOnTiersMap = new HashMap<>();
-    for (String id : currentBlocksOnTiers.keySet()) {
-      currentBlocksOnTiersMap.put(id, currentBlocksOnTiers.get(id).getTiersList());
+    for (Map.Entry<String, TierList> blockEntry : currentBlocksOnTiers.entrySet()) {
+      currentBlocksOnTiersMap.put(blockEntry.getKey(),
+          currentBlocksOnTiers.get(blockEntry.getKey()).getTiersList());
     }
     RegisterWorkerPOptions options = request.getOptions();
     RpcUtils.call(LOG,

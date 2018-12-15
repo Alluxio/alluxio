@@ -29,7 +29,7 @@ import java.util.UUID;
 public class ChannelIdInjector implements ClientInterceptor {
 
   /** Metadata key for the channel Id. */
-  public static Metadata.Key<UUID> sClientIdKey =
+  public static final Metadata.Key<UUID> sClientIdKey =
       Metadata.Key.of("channel-id", new Metadata.AsciiMarshaller<UUID>() {
         @Override
         public String toAsciiString(UUID value) {
@@ -42,6 +42,7 @@ public class ChannelIdInjector implements ClientInterceptor {
         }
       });
 
+  // TODO(ggezer) Consider more lightweight Id type.
   private UUID mChannelId;
 
   /**

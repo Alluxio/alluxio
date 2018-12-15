@@ -143,8 +143,9 @@ public final class BlockMasterClient extends AbstractMasterClient {
     final BlockHeartbeatPOptions options =
         BlockHeartbeatPOptions.newBuilder().addAllMetrics(metrics).build();
     Map<String, TierList> addedBlocksMap = Collections.emptyMap();
-    for (String id : addedBlocks.keySet()) {
-      addedBlocksMap.put(id, TierList.newBuilder().addAllTiers(addedBlocks.get(id)).build());
+    for (Map.Entry<String, List<Long>> blockEntry : addedBlocks.entrySet()) {
+      addedBlocksMap.put(blockEntry.getKey(),
+          TierList.newBuilder().addAllTiers(addedBlocks.get(blockEntry.getKey())).build());
     }
     final BlockHeartbeatPRequest request = BlockHeartbeatPRequest.newBuilder().setWorkerId(workerId)
         .putAllUsedBytesOnTiers(usedBytesOnTiers).addAllRemovedBlockIds(removedBlocks)
@@ -172,9 +173,9 @@ public final class BlockMasterClient extends AbstractMasterClient {
     final RegisterWorkerPOptions options =
         RegisterWorkerPOptions.newBuilder().addAllConfigs(configList).build();
     Map<String, TierList> currentBlockOnTiersMap = new HashMap<>();
-    for (String id : currentBlocksOnTiers.keySet()) {
-      currentBlockOnTiersMap.put(id,
-          TierList.newBuilder().addAllTiers(currentBlocksOnTiers.get(id)).build());
+    for (Map.Entry<String, List<Long>> blockEntry : currentBlocksOnTiers.entrySet()) {
+      currentBlockOnTiersMap.put(blockEntry.getKey(),
+          TierList.newBuilder().addAllTiers(currentBlocksOnTiers.get(blockEntry.getKey())).build());
     }
     final RegisterWorkerPRequest request = RegisterWorkerPRequest.newBuilder().setWorkerId(workerId)
         .addAllStorageTiers(storageTierAliases).putAllTotalBytesOnTiers(totalBytesOnTiers)

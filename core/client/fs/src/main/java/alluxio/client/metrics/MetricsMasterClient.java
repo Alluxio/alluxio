@@ -61,7 +61,7 @@ public class MetricsMasterClient extends AbstractMasterClient {
   }
 
   @Override
-  protected void afterConnect() {
+  protected synchronized void afterConnect() {
     mClient = MetricsMasterClientServiceGrpc.newBlockingStub(mChannel);
   }
 
