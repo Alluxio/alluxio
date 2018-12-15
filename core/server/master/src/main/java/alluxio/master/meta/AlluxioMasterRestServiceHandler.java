@@ -113,8 +113,8 @@ public final class AlluxioMasterRestServiceHandler {
    */
   public AlluxioMasterRestServiceHandler(@Context ServletContext context) {
     // Poor man's dependency injection through the Jersey application scope.
-    mMasterProcess = (MasterProcess) context
-        .getAttribute(MasterWebServer.ALLUXIO_MASTER_SERVLET_RESOURCE_KEY);
+    mMasterProcess =
+        (MasterProcess) context.getAttribute(MasterWebServer.ALLUXIO_MASTER_SERVLET_RESOURCE_KEY);
     mBlockMaster = mMasterProcess.getMaster(BlockMaster.class);
     mFileSystemMaster = mMasterProcess.getMaster(FileSystemMaster.class);
     mMetaMaster = mMasterProcess.getMaster(MetaMaster.class);
@@ -138,19 +138,15 @@ public final class AlluxioMasterRestServiceHandler {
       if (rawConfiguration != null) {
         rawConfig = rawConfiguration;
       }
-      return new AlluxioMasterInfo()
-          .setCapacity(getCapacityInternal())
+      return new AlluxioMasterInfo().setCapacity(getCapacityInternal())
           .setConfiguration(getConfigurationInternal(rawConfig))
-          .setLostWorkers(mBlockMaster.getLostWorkersInfoList())
-          .setMetrics(getMetricsInternal())
+          .setLostWorkers(mBlockMaster.getLostWorkersInfoList()).setMetrics(getMetricsInternal())
           .setMountPoints(getMountPointsInternal())
           .setRpcAddress(mMasterProcess.getRpcAddress().toString())
           .setStartTimeMs(mMasterProcess.getStartTimeMs())
           .setStartupConsistencyCheck(getStartupConsistencyCheckInternal())
-          .setTierCapacity(getTierCapacityInternal())
-          .setUfsCapacity(getUfsCapacityInternal())
-          .setUptimeMs(mMasterProcess.getUptimeMs())
-          .setVersion(RuntimeConstants.VERSION)
+          .setTierCapacity(getTierCapacityInternal()).setUfsCapacity(getUfsCapacityInternal())
+          .setUptimeMs(mMasterProcess.getUptimeMs()).setVersion(RuntimeConstants.VERSION)
           .setWorkers(mBlockMaster.getWorkerInfoList());
     });
   }
@@ -164,7 +160,8 @@ public final class AlluxioMasterRestServiceHandler {
   @ReturnType("alluxio.wire.WebUIOverview")
   public Response getWebUIOverview() {
     return RestUtils.call(() -> {
-      alluxio.wire.StartupConsistencyCheck startupConsistencyCheck = getStartupConsistencyCheckInternal();
+      alluxio.wire.StartupConsistencyCheck startupConsistencyCheck =
+          getStartupConsistencyCheckInternal();
 
       ConfigCheckReport report = mMetaMaster.getConfigCheckReport();
 
@@ -219,28 +216,25 @@ public final class AlluxioMasterRestServiceHandler {
         }
       }
 
-      return new WebUIOverview()
-          .setCapacity(getCapacityInternal())
-          .setConfigCheckErrorNum(report.getConfigErrors().values().stream().mapToInt(List::size).sum())
+      return new WebUIOverview().setCapacity(getCapacityInternal()).setConfigCheckErrorNum(
+          report.getConfigErrors().values().stream().mapToInt(List::size).sum())
           .setConfigCheckErrors(report.getConfigErrors())
           .setConfigCheckStatus(report.getConfigStatus())
           .setConfigCheckWarns(report.getConfigWarns())
           .setConsistencyCheckStatus(startupConsistencyCheck.getStatus())
-          .setDebug(getBoolean(PropertyKey.DEBUG))
-          .setDiskCapacity(diskCapacity)
-          .setDiskCapacity(totalSpace)
-          .setDiskFreeCapacity(diskFreeCapacity)
-          .setDiskUsedCapacity(diskUsedCapacity)
-          .setFreeCapacity(FormatUtils.getSizeFromBytes(mBlockMaster.getCapacityBytes() - mBlockMaster.getUsedBytes()))
+          .setDebug(getBoolean(PropertyKey.DEBUG)).setDiskCapacity(diskCapacity)
+          .setDiskCapacity(totalSpace).setDiskFreeCapacity(diskFreeCapacity)
+          .setDiskUsedCapacity(diskUsedCapacity).setFreeCapacity(FormatUtils
+              .getSizeFromBytes(mBlockMaster.getCapacityBytes() - mBlockMaster.getUsedBytes()))
           .setInconsistentPathItems(startupConsistencyCheck.getInconsistentUris())
           .setLiveWorkerNodes(mBlockMaster.getWorkerCount())
           .setMasterNodeAddress(mMasterProcess.getRpcAddress().toString())
           .setStartTime(CommonUtils.convertMsToDate(mMetaMaster.getStartTimeMs()))
-          .setStorageTierInfos(infos)
-          .setUptime(CommonUtils.convertMsToClockTime(System.currentTimeMillis() - mMetaMaster.getStartTimeMs()))
+          .setStorageTierInfos(infos).setUptime(CommonUtils
+              .convertMsToClockTime(System.currentTimeMillis() - mMetaMaster.getStartTimeMs()))
           .setUsedCapacity(FormatUtils.getSizeFromBytes(mBlockMaster.getUsedBytes()))
           .setVersion(RuntimeConstants.VERSION);
-      });
+    });
   }
 
   /**
@@ -484,7 +478,7 @@ public final class AlluxioMasterRestServiceHandler {
   @ReturnType("java.lang.Integer")
   @Deprecated
   public Response getWorkerCount() {
-    return RestUtils.call(()->mBlockMaster.getWorkerCount());
+    return RestUtils.call(() -> mBlockMaster.getWorkerCount());
   }
 
   /**
@@ -498,7 +492,7 @@ public final class AlluxioMasterRestServiceHandler {
   @ReturnType("java.util.List<alluxio.wire.WorkerInfo>")
   @Deprecated
   public Response getWorkerInfoList() {
-    return RestUtils.call(()-> mBlockMaster.getWorkerInfoList());
+    return RestUtils.call(() -> mBlockMaster.getWorkerInfoList());
   }
 
   private Capacity getCapacityInternal() {
@@ -519,8 +513,7 @@ public final class AlluxioMasterRestServiceHandler {
     // Only the gauge for pinned files is retrieved here, other gauges are statistics of
     // free/used
     // spaces, those statistics can be gotten via other REST apis.
-    String filesPinnedProperty =
-        MetricsSystem.getMetricName(MasterMetrics.FILES_PINNED);
+    String filesPinnedProperty = MetricsSystem.getMetricName(MasterMetrics.FILES_PINNED);
     @SuppressWarnings("unchecked") Gauge<Integer> filesPinned =
         (Gauge<Integer>) MetricsSystem.METRIC_REGISTRY.getGauges().get(filesPinnedProperty);
 
@@ -581,8 +574,8 @@ public final class AlluxioMasterRestServiceHandler {
   @POST
   @Path(LOG_LEVEL)
   @ReturnType("alluxio.wire.LogInfo")
-  public Response logLevel(@QueryParam(LOG_ARGUMENT_NAME) final String logName, @QueryParam
-      (LOG_ARGUMENT_LEVEL) final String level) {
+  public Response logLevel(@QueryParam(LOG_ARGUMENT_NAME) final String logName,
+      @QueryParam(LOG_ARGUMENT_LEVEL) final String level) {
     return RestUtils.call(() -> LogUtils.setLogLevel(logName, level));
   }
 }

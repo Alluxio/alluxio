@@ -26,414 +26,414 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class WebUIOverview implements Serializable {
-    private Capacity mCapacity;
-    private int mConfigCheckErrorNum;
-    private Map<Scope, List<InconsistentProperty>> mConfigCheckErrors;
-    private ConfigCheckReport.ConfigStatus mConfigCheckStatus;
-    private Map<Scope, List<InconsistentProperty>> mConfigCheckWarns;
-    private String mConsistencyCheckStatus;
-    private boolean mDebug;
-    private String mDiskCapacity;
-    private String mDiskFreeCapacity;
-    private String mDiskUsedCapacity;
-    private String mFreeCapacity;
-    private List<String> mInconsistentPathItems;
-    private int mLiveWorkerNodes;
-    private String mMasterNodeAddress;
-    private String mStartTime;
-    private List<StorageTierInfo> mStorageTierInfos;
-    private String mUptime;
-    private String mUsedCapacity;
-    private String mVersion;
+  private Capacity mCapacity;
+  private int mConfigCheckErrorNum;
+  private Map<Scope, List<InconsistentProperty>> mConfigCheckErrors;
+  private ConfigCheckReport.ConfigStatus mConfigCheckStatus;
+  private Map<Scope, List<InconsistentProperty>> mConfigCheckWarns;
+  private String mConsistencyCheckStatus;
+  private boolean mDebug;
+  private String mDiskCapacity;
+  private String mDiskFreeCapacity;
+  private String mDiskUsedCapacity;
+  private String mFreeCapacity;
+  private List<String> mInconsistentPathItems;
+  private int mLiveWorkerNodes;
+  private String mMasterNodeAddress;
+  private String mStartTime;
+  private List<StorageTierInfo> mStorageTierInfos;
+  private String mUptime;
+  private String mUsedCapacity;
+  private String mVersion;
 
-    /**
-     * Creates a new instance of {@link WebUIOverview}.
-     */
-    public WebUIOverview() {
+  /**
+   * Creates a new instance of {@link WebUIOverview}.
+   */
+  public WebUIOverview() {
+  }
+
+  /**
+   * Class to make referencing tiered storage information more intuitive.
+   */
+  public static final class StorageTierInfo {
+    private final String mStorageTierAlias;
+    private final long mCapacityBytes;
+    private final long mUsedBytes;
+    private final int mUsedPercent;
+    private final long mFreeBytes;
+    private final int mFreePercent;
+
+    public StorageTierInfo(String storageTierAlias, long capacityBytes, long usedBytes) {
+      mStorageTierAlias = storageTierAlias;
+      mCapacityBytes = capacityBytes;
+      mUsedBytes = usedBytes;
+      mFreeBytes = mCapacityBytes - mUsedBytes;
+      mUsedPercent = (int) (100L * mUsedBytes / mCapacityBytes);
+      mFreePercent = 100 - mUsedPercent;
     }
 
     /**
-     * Class to make referencing tiered storage information more intuitive.
+     * @return the storage alias
      */
-    public static final class StorageTierInfo {
-        private final String mStorageTierAlias;
-        private final long mCapacityBytes;
-        private final long mUsedBytes;
-        private final int mUsedPercent;
-        private final long mFreeBytes;
-        private final int mFreePercent;
-
-        public StorageTierInfo(String storageTierAlias, long capacityBytes, long usedBytes) {
-            mStorageTierAlias = storageTierAlias;
-            mCapacityBytes = capacityBytes;
-            mUsedBytes = usedBytes;
-            mFreeBytes = mCapacityBytes - mUsedBytes;
-            mUsedPercent = (int) (100L * mUsedBytes / mCapacityBytes);
-            mFreePercent = 100 - mUsedPercent;
-        }
-
-        /**
-         * @return the storage alias
-         */
-        public String getStorageTierAlias() {
-            return mStorageTierAlias;
-        }
-
-        /**
-         * @return the capacity
-         */
-        public String getCapacity() {
-            return FormatUtils.getSizeFromBytes(mCapacityBytes);
-        }
-
-        /**
-         * @return the free capacity
-         */
-        public String getFreeCapacity() {
-            return FormatUtils.getSizeFromBytes(mFreeBytes);
-        }
-
-        /**
-         * @return the free space as a percentage
-         */
-        public int getFreeSpacePercent() {
-            return mFreePercent;
-        }
-
-        /**
-         * @return the used capacity
-         */
-        public String getUsedCapacity() {
-            return FormatUtils.getSizeFromBytes(mUsedBytes);
-        }
-
-        /**
-         * @return the used space as a percentage
-         */
-        public int getUsedSpacePercent() {
-            return mUsedPercent;
-        }
+    public String getStorageTierAlias() {
+      return mStorageTierAlias;
     }
 
     /**
      * @return the capacity
      */
-    public Capacity getCapacity() {
-        return mCapacity;
-    }
-
-    /**
-     * @return the number of config check errors
-     */
-    public int getConfigCheckErrorNum() {
-        return mConfigCheckErrorNum;
-    }
-
-    /**
-     * @return the config check errors
-     */
-    public Map<Scope, List<InconsistentProperty>> getConfigCheckErrors() {
-        return mConfigCheckErrors;
-    }
-
-    /**
-     * @return the config check status
-     */
-    public ConfigCheckReport.ConfigStatus getConfigCheckStatus() {
-        return mConfigCheckStatus;
-    }
-
-    /**
-     * @return the config check warnings
-     */
-    public Map<Scope, List<InconsistentProperty>> getConfigCheckWarns() {
-        return mConfigCheckWarns;
-    }
-
-    /**
-     * @return the consistency check status
-     */
-    public String getConsistencyCheckStatus() {
-        return mConsistencyCheckStatus;
-    }
-
-    /**
-     * @return the debug value
-     */
-    public boolean getDebug() {
-        return mDebug;
-    }
-
-    /**
-     * @return the disk capacity
-     */
-    public String getDiskCapacity() {
-        return mDiskCapacity;
-    }
-
-    /**
-     * @return the free disk capacity
-     */
-    public String getDiskFreeCapacity() {
-        return mDiskFreeCapacity;
-    }
-
-    /**
-     * @return the used disk capacity
-     */
-    public String getDiskUsedCapacity() {
-        return mDiskUsedCapacity;
+    public String getCapacity() {
+      return FormatUtils.getSizeFromBytes(mCapacityBytes);
     }
 
     /**
      * @return the free capacity
      */
     public String getFreeCapacity() {
-        return mFreeCapacity;
+      return FormatUtils.getSizeFromBytes(mFreeBytes);
     }
 
     /**
-     * @return inconsistent path items
+     * @return the free space as a percentage
      */
-    public List<String> getInconsistentPathItems() {
-        return mInconsistentPathItems;
+    public int getFreeSpacePercent() {
+      return mFreePercent;
     }
 
     /**
-     * @return live worker nodes
-     */
-    public int getLiveWorkerNodes() {
-        return mLiveWorkerNodes;
-    }
-
-    /**
-     * @return the master node address
-     */
-    public String getMasterNodeAddress() {
-        return mMasterNodeAddress;
-    }
-
-    /**
-     * @return the start time
-     */
-    public String getStartTime() {
-        return mStartTime;
-    }
-
-    /**
-     * @return the storage tier infos
-     */
-    public List<StorageTierInfo> getStorageTierInfos() {
-        return mStorageTierInfos;
-    }
-
-    /**
-     * @return the uptime
-     */
-    public String getUptime() {
-        return mUptime;
-    }
-
-    /**
-     * @return used capacity
+     * @return the used capacity
      */
     public String getUsedCapacity() {
-        return mUsedCapacity;
+      return FormatUtils.getSizeFromBytes(mUsedBytes);
     }
 
     /**
-     * @return the version
+     * @return the used space as a percentage
      */
-    public String getVersion() {
-        return mVersion;
+    public int getUsedSpacePercent() {
+      return mUsedPercent;
     }
+  }
 
-    /**
-     * @param capacity
-     * @return
-     */
-    public WebUIOverview setCapacity(Capacity capacity) {
-        mCapacity = capacity;
-        return this;
-    }
+  /**
+   * @return the capacity
+   */
+  public Capacity getCapacity() {
+    return mCapacity;
+  }
 
-    /**
-     * @param configCheckErrorNum
-     * @return
-     */
-    public WebUIOverview setConfigCheckErrorNum(int configCheckErrorNum) {
-        mConfigCheckErrorNum = configCheckErrorNum;
-        return this;
-    }
+  /**
+   * @return the number of config check errors
+   */
+  public int getConfigCheckErrorNum() {
+    return mConfigCheckErrorNum;
+  }
 
-    /**
-     * @param configCheckErrors
-     * @return
-     */
-    public WebUIOverview setConfigCheckErrors(
-            Map<Scope, List<InconsistentProperty>> configCheckErrors) {
-        mConfigCheckErrors = configCheckErrors;
-        return this;
-    }
+  /**
+   * @return the config check errors
+   */
+  public Map<Scope, List<InconsistentProperty>> getConfigCheckErrors() {
+    return mConfigCheckErrors;
+  }
 
-    /**
-     * @param configCheckStatus
-     * @return
-     */
-    public WebUIOverview setConfigCheckStatus(ConfigCheckReport.ConfigStatus configCheckStatus) {
-        mConfigCheckStatus = configCheckStatus;
-        return this;
-    }
+  /**
+   * @return the config check status
+   */
+  public ConfigCheckReport.ConfigStatus getConfigCheckStatus() {
+    return mConfigCheckStatus;
+  }
 
-    /**
-     * @param configCheckWarns
-     * @return
-     */
-    public WebUIOverview setConfigCheckWarns(
-            Map<Scope, List<InconsistentProperty>> configCheckWarns) {
-        mConfigCheckWarns = configCheckWarns;
-        return this;
-    }
+  /**
+   * @return the config check warnings
+   */
+  public Map<Scope, List<InconsistentProperty>> getConfigCheckWarns() {
+    return mConfigCheckWarns;
+  }
 
-    /**
-     * @param consistencyCheckStatus
-     * @return
-     */
-    public WebUIOverview setConsistencyCheckStatus(
-            String consistencyCheckStatus) {
-        mConsistencyCheckStatus = consistencyCheckStatus;
-        return this;
-    }
+  /**
+   * @return the consistency check status
+   */
+  public String getConsistencyCheckStatus() {
+    return mConsistencyCheckStatus;
+  }
 
-    /**
-     * @param debug
-     * @return
-     */
-    public WebUIOverview setDebug(boolean debug) {
-        mDebug = debug;
-        return this;
-    }
+  /**
+   * @return the debug value
+   */
+  public boolean getDebug() {
+    return mDebug;
+  }
 
-    /**
-     * @param diskCapacity
-     * @return
-     */
-    public WebUIOverview setDiskCapacity(String diskCapacity) {
-        mDiskCapacity = diskCapacity;
-        return this;
-    }
+  /**
+   * @return the disk capacity
+   */
+  public String getDiskCapacity() {
+    return mDiskCapacity;
+  }
 
-    /**
-     * @param diskFreeCapacity
-     * @return
-     */
-    public WebUIOverview setDiskFreeCapacity(String diskFreeCapacity) {
-        mDiskFreeCapacity = diskFreeCapacity;
-        return this;
-    }
+  /**
+   * @return the free disk capacity
+   */
+  public String getDiskFreeCapacity() {
+    return mDiskFreeCapacity;
+  }
 
-    /**
-     * @param diskUsedCapacity
-     * @return
-     */
-    public WebUIOverview setDiskUsedCapacity(String diskUsedCapacity) {
-        mDiskUsedCapacity = diskUsedCapacity;
-        return this;
-    }
+  /**
+   * @return the used disk capacity
+   */
+  public String getDiskUsedCapacity() {
+    return mDiskUsedCapacity;
+  }
 
-    /**
-     * @param freeCapacity
-     * @return
-     */
-    public WebUIOverview setFreeCapacity(String freeCapacity) {
-        mFreeCapacity = freeCapacity;
-        return this;
-    }
+  /**
+   * @return the free capacity
+   */
+  public String getFreeCapacity() {
+    return mFreeCapacity;
+  }
 
-    /**
-     * @param inconsistentPathItems
-     * @return
-     */
-    public WebUIOverview setInconsistentPathItems(List<String> inconsistentPathItems) {
-        mInconsistentPathItems = inconsistentPathItems;
-        return this;
-    }
+  /**
+   * @return inconsistent path items
+   */
+  public List<String> getInconsistentPathItems() {
+    return mInconsistentPathItems;
+  }
 
-    /**
-     * @param liveWorkerNodes
-     * @return
-     */
-    public WebUIOverview setLiveWorkerNodes(int liveWorkerNodes) {
-        mLiveWorkerNodes = liveWorkerNodes;
-        return this;
-    }
+  /**
+   * @return live worker nodes
+   */
+  public int getLiveWorkerNodes() {
+    return mLiveWorkerNodes;
+  }
 
-    /**
-     * @param masterNodeAddress
-     * @return
-     */
-    public WebUIOverview setMasterNodeAddress(String masterNodeAddress) {
-        mMasterNodeAddress = masterNodeAddress;
-        return this;
-    }
+  /**
+   * @return the master node address
+   */
+  public String getMasterNodeAddress() {
+    return mMasterNodeAddress;
+  }
 
-    /**
-     * @param startTime
-     * @return
-     */
-    public WebUIOverview setStartTime(String startTime) {
-        mStartTime = startTime;
-        return this;
-    }
+  /**
+   * @return the start time
+   */
+  public String getStartTime() {
+    return mStartTime;
+  }
 
-    /**
-     * @param storageTierInfos
-     * @return
-     */
-    public WebUIOverview setStorageTierInfos(List<StorageTierInfo> storageTierInfos) {
-        mStorageTierInfos = storageTierInfos;
-        return this;
-    }
+  /**
+   * @return the storage tier infos
+   */
+  public List<StorageTierInfo> getStorageTierInfos() {
+    return mStorageTierInfos;
+  }
 
-    /**
-     * @param uptime
-     * @return
-     */
-    public WebUIOverview setUptime(String uptime) {
-        mUptime = uptime;
-        return this;
-    }
+  /**
+   * @return the uptime
+   */
+  public String getUptime() {
+    return mUptime;
+  }
 
-    /**
-     * @param usedCapacity
-     * @return
-     */
-    public WebUIOverview setUsedCapacity(String usedCapacity) {
-        mUsedCapacity = usedCapacity;
-        return this;
-    }
+  /**
+   * @return used capacity
+   */
+  public String getUsedCapacity() {
+    return mUsedCapacity;
+  }
 
-    /**
-     * @param version
-     * @return
-     */
-    public WebUIOverview setVersion(String version) {
-        mVersion = version;
-        return this;
-    }
+  /**
+   * @return the version
+   */
+  public String getVersion() {
+    return mVersion;
+  }
 
-    @Override
-    public String toString() {
-        return Objects.toStringHelper(this).add("capacity", mCapacity)
-                .add("configCheckErrorNum", mConfigCheckErrorNum)
-                .add("configCheckErrors", mConfigCheckErrors).add("configCheckStatus", mConfigCheckStatus)
-                .add("configCheckWarns", mConfigCheckWarns)
-                .add("consistencyCheckStatus", mConsistencyCheckStatus).add("debug", mDebug)
-                .add("diskCapacity", mDiskCapacity).add("diskFreeCapacity", mDiskFreeCapacity)
-                .add("diskUsedCapacity", mDiskUsedCapacity).add("freeCapacity", mFreeCapacity)
-                .add("inconsistentPathItems", mInconsistentPathItems).add("liveWorkerNodes", mLiveWorkerNodes)
-                .add("masterNodeAddress", mMasterNodeAddress).add("startTime", mStartTime)
-                .add("storageTierInfos", mStorageTierInfos).add("uptime", mUptime)
-                .add("usedCapacity", mUsedCapacity).add("version", mVersion).toString();
-    }
+  /**
+   * @param capacity
+   * @return
+   */
+  public WebUIOverview setCapacity(Capacity capacity) {
+    mCapacity = capacity;
+    return this;
+  }
+
+  /**
+   * @param configCheckErrorNum
+   * @return
+   */
+  public WebUIOverview setConfigCheckErrorNum(int configCheckErrorNum) {
+    mConfigCheckErrorNum = configCheckErrorNum;
+    return this;
+  }
+
+  /**
+   * @param configCheckErrors
+   * @return
+   */
+  public WebUIOverview setConfigCheckErrors(
+      Map<Scope, List<InconsistentProperty>> configCheckErrors) {
+    mConfigCheckErrors = configCheckErrors;
+    return this;
+  }
+
+  /**
+   * @param configCheckStatus
+   * @return
+   */
+  public WebUIOverview setConfigCheckStatus(ConfigCheckReport.ConfigStatus configCheckStatus) {
+    mConfigCheckStatus = configCheckStatus;
+    return this;
+  }
+
+  /**
+   * @param configCheckWarns
+   * @return
+   */
+  public WebUIOverview setConfigCheckWarns(
+      Map<Scope, List<InconsistentProperty>> configCheckWarns) {
+    mConfigCheckWarns = configCheckWarns;
+    return this;
+  }
+
+  /**
+   * @param consistencyCheckStatus
+   * @return
+   */
+  public WebUIOverview setConsistencyCheckStatus(String consistencyCheckStatus) {
+    mConsistencyCheckStatus = consistencyCheckStatus;
+    return this;
+  }
+
+  /**
+   * @param debug
+   * @return
+   */
+  public WebUIOverview setDebug(boolean debug) {
+    mDebug = debug;
+    return this;
+  }
+
+  /**
+   * @param diskCapacity
+   * @return
+   */
+  public WebUIOverview setDiskCapacity(String diskCapacity) {
+    mDiskCapacity = diskCapacity;
+    return this;
+  }
+
+  /**
+   * @param diskFreeCapacity
+   * @return
+   */
+  public WebUIOverview setDiskFreeCapacity(String diskFreeCapacity) {
+    mDiskFreeCapacity = diskFreeCapacity;
+    return this;
+  }
+
+  /**
+   * @param diskUsedCapacity
+   * @return
+   */
+  public WebUIOverview setDiskUsedCapacity(String diskUsedCapacity) {
+    mDiskUsedCapacity = diskUsedCapacity;
+    return this;
+  }
+
+  /**
+   * @param freeCapacity
+   * @return
+   */
+  public WebUIOverview setFreeCapacity(String freeCapacity) {
+    mFreeCapacity = freeCapacity;
+    return this;
+  }
+
+  /**
+   * @param inconsistentPathItems
+   * @return
+   */
+  public WebUIOverview setInconsistentPathItems(List<String> inconsistentPathItems) {
+    mInconsistentPathItems = inconsistentPathItems;
+    return this;
+  }
+
+  /**
+   * @param liveWorkerNodes
+   * @return
+   */
+  public WebUIOverview setLiveWorkerNodes(int liveWorkerNodes) {
+    mLiveWorkerNodes = liveWorkerNodes;
+    return this;
+  }
+
+  /**
+   * @param masterNodeAddress
+   * @return
+   */
+  public WebUIOverview setMasterNodeAddress(String masterNodeAddress) {
+    mMasterNodeAddress = masterNodeAddress;
+    return this;
+  }
+
+  /**
+   * @param startTime
+   * @return
+   */
+  public WebUIOverview setStartTime(String startTime) {
+    mStartTime = startTime;
+    return this;
+  }
+
+  /**
+   * @param storageTierInfos
+   * @return
+   */
+  public WebUIOverview setStorageTierInfos(List<StorageTierInfo> storageTierInfos) {
+    mStorageTierInfos = storageTierInfos;
+    return this;
+  }
+
+  /**
+   * @param uptime
+   * @return
+   */
+  public WebUIOverview setUptime(String uptime) {
+    mUptime = uptime;
+    return this;
+  }
+
+  /**
+   * @param usedCapacity
+   * @return
+   */
+  public WebUIOverview setUsedCapacity(String usedCapacity) {
+    mUsedCapacity = usedCapacity;
+    return this;
+  }
+
+  /**
+   * @param version
+   * @return
+   */
+  public WebUIOverview setVersion(String version) {
+    mVersion = version;
+    return this;
+  }
+
+  @Override
+  public String toString() {
+    return Objects.toStringHelper(this).add("capacity", mCapacity)
+        .add("configCheckErrorNum", mConfigCheckErrorNum)
+        .add("configCheckErrors", mConfigCheckErrors).add("configCheckStatus", mConfigCheckStatus)
+        .add("configCheckWarns", mConfigCheckWarns)
+        .add("consistencyCheckStatus", mConsistencyCheckStatus).add("debug", mDebug)
+        .add("diskCapacity", mDiskCapacity).add("diskFreeCapacity", mDiskFreeCapacity)
+        .add("diskUsedCapacity", mDiskUsedCapacity).add("freeCapacity", mFreeCapacity)
+        .add("inconsistentPathItems", mInconsistentPathItems)
+        .add("liveWorkerNodes", mLiveWorkerNodes).add("masterNodeAddress", mMasterNodeAddress)
+        .add("startTime", mStartTime).add("storageTierInfos", mStorageTierInfos)
+        .add("uptime", mUptime).add("usedCapacity", mUsedCapacity).add("version", mVersion)
+        .toString();
+  }
 }
