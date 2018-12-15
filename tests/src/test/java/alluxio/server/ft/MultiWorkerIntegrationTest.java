@@ -38,6 +38,7 @@ import alluxio.wire.WorkerNetAddress;
 import com.google.common.io.ByteStreams;
 import org.apache.commons.io.IOUtils;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -48,6 +49,7 @@ import java.util.List;
 
 /**
  * Tests a cluster containing multiple workers.
+ * TODO(ggezer) FileWriteLocationPolicy is not testable anymore.
  */
 public final class MultiWorkerIntegrationTest extends BaseIntegrationTest {
   private static final int NUM_WORKERS = 4;
@@ -81,6 +83,7 @@ public final class MultiWorkerIntegrationTest extends BaseIntegrationTest {
   }
 
   @Test
+  @Ignore
   @LocalAlluxioClusterResource.Config(confParams = {PropertyKey.Name.USER_SHORT_CIRCUIT_ENABLED,
       "false", PropertyKey.Name.USER_BLOCK_SIZE_BYTES_DEFAULT, "16MB",
       PropertyKey.Name.USER_NETWORK_NETTY_READER_PACKET_SIZE_BYTES, "64KB",
@@ -106,6 +109,7 @@ public final class MultiWorkerIntegrationTest extends BaseIntegrationTest {
   }
 
   @Test
+  @Ignore
   @LocalAlluxioClusterResource.Config(confParams = {PropertyKey.Name.USER_SHORT_CIRCUIT_ENABLED,
       "false", PropertyKey.Name.USER_BLOCK_SIZE_BYTES_DEFAULT, "4MB",
       PropertyKey.Name.USER_NETWORK_NETTY_READER_PACKET_SIZE_BYTES, "64KB",
@@ -131,6 +135,7 @@ public final class MultiWorkerIntegrationTest extends BaseIntegrationTest {
   }
 
   @Test
+  @Ignore
   @LocalAlluxioClusterResource.Config(confParams = {PropertyKey.Name.USER_SHORT_CIRCUIT_ENABLED,
       "false", PropertyKey.Name.USER_BLOCK_SIZE_BYTES_DEFAULT, "4MB",
       PropertyKey.Name.USER_NETWORK_NETTY_READER_PACKET_SIZE_BYTES, "64KB",
@@ -156,7 +161,6 @@ public final class MultiWorkerIntegrationTest extends BaseIntegrationTest {
 
   private void createFileOnWorker(int total, AlluxioURI filePath, WorkerNetAddress address)
       throws IOException {
-    // TODO(ggezer) FileWriteLocationPolicy is not testable anymore.
     /*
     FileSystemTestUtils.createByteFile(mResource.get().getClient(), filePath,
         CreateFileOptions.defaults()
