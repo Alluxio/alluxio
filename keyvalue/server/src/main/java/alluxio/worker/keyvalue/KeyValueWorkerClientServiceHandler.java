@@ -25,7 +25,6 @@ import alluxio.grpc.GetPResponse;
 import alluxio.grpc.GetSizePRequest;
 import alluxio.grpc.GetSizePResponse;
 import alluxio.grpc.KeyValueWorkerClientServiceGrpc;
-import alluxio.util.io.BufferUtils;
 import alluxio.worker.block.BlockWorker;
 import alluxio.worker.block.io.BlockReader;
 
@@ -92,7 +91,7 @@ public final class KeyValueWorkerClientServiceHandler
 
         List<ByteString> ret = Lists.newArrayListWithExpectedSize(request.getNumKeys());
         ByteBuffer currentKey = null;
-        if(request.hasKey()) {
+        if (request.hasKey()) {
           currentKey = request.getKey().asReadOnlyByteBuffer();
         }
         for (int i = 0; i < request.getNumKeys(); i++) {

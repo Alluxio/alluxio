@@ -29,7 +29,7 @@ import java.util.UUID;
 public class ChannelIdInjector implements ClientInterceptor {
 
   /** Metadata key for the channel Id. */
-  public static final Metadata.Key<UUID> sClientIdKey =
+  public static final Metadata.Key<UUID> S_CLIENT_ID_KEY =
       Metadata.Key.of("channel-id", new Metadata.AsciiMarshaller<UUID>() {
         @Override
         public String toAsciiString(UUID value) {
@@ -62,7 +62,7 @@ public class ChannelIdInjector implements ClientInterceptor {
       @Override
       public void start(Listener<RespT> responseListener, Metadata headers) {
         // Put channel Id to headers.
-        headers.put(sClientIdKey, mChannelId);
+        headers.put(S_CLIENT_ID_KEY, mChannelId);
         super.start(new ForwardingClientCallListener.SimpleForwardingClientCallListener<RespT>(
             responseListener) {
           @Override

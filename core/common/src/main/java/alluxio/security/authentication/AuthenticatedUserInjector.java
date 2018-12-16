@@ -50,7 +50,7 @@ public class AuthenticatedUserInjector implements ServerInterceptor {
       @Override
       public void onHalfClose() {
         // Try to fetch channel Id from the metadata.
-        UUID channelId = headers.get(ChannelIdInjector.sClientIdKey);
+        UUID channelId = headers.get(ChannelIdInjector.S_CLIENT_ID_KEY);
         if (channelId != null) {
           try {
             // Fetch authenticated username for this channel and set it.

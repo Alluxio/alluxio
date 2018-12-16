@@ -296,13 +296,13 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
     MetricsSystem.stopSinks();
   }
 
-  private void registerServices(GrpcServerBuilder serverBuilder, Map<String, GrpcService> services) {
+  private void registerServices(GrpcServerBuilder serverBuilder,
+      Map<String, GrpcService> services) {
     for (Map.Entry<String, GrpcService> service : services.entrySet()) {
       serverBuilder.addService(service.getValue());
       LOG.info("Registered worker service: {}", service.getKey());
     }
   }
-
 
   private GrpcServer createGrpcServer() {
     if (mGrpcServer != null) {
@@ -337,7 +337,8 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
   public boolean waitForReady(int timeoutMs) {
     try {
       CommonUtils.waitFor(this + " to start",
-          () -> mGrpcServer != null && mGrpcServer.isServing() && mRegistry.get(BlockWorker.class).getWorkerId() != null
+          () -> mGrpcServer != null && mGrpcServer.isServing()
+              && mRegistry.get(BlockWorker.class).getWorkerId() != null
               && mWebServer.getServer().isRunning(),
           WaitForOptions.defaults().setTimeoutMs(timeoutMs));
       return true;
