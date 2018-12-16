@@ -96,7 +96,7 @@ public final class MasterFailoverIntegrationTest extends BaseIntegrationTest {
     Thread.sleep(500);
     mMultiMasterLocalAlluxioCluster.stopZk();
     // Give master a chance to notice that ZK is dead and trigger failover.
-    Thread.sleep(1000);
+    Thread.sleep(5000);
     mMultiMasterLocalAlluxioCluster.restartZk();
     deleteThread.join();
     // After failing on the original master, the delete should be retried on the new master.
