@@ -6,36 +6,40 @@ package alluxio.proto.status;
 public final class Status {
   private Status() {}
   public static void registerAllExtensions(
+      com.google.protobuf.ExtensionRegistryLite registry) {
+  }
+
+  public static void registerAllExtensions(
       com.google.protobuf.ExtensionRegistry registry) {
+    registerAllExtensions(
+        (com.google.protobuf.ExtensionRegistryLite) registry);
   }
   /**
-   * Protobuf enum {@code alluxio.proto.status.PStatus}
-   *
    * <pre>
    * exception status for a response.
    * </pre>
+   *
+   * Protobuf enum {@code alluxio.proto.status.PStatus}
    */
   public enum PStatus
       implements com.google.protobuf.ProtocolMessageEnum {
     /**
-     * <code>OK = 0;</code>
-     *
      * <pre>
      * OK is returned on success.
      * </pre>
-     */
-    OK(0, 0),
-    /**
-     * <code>CANCELED = 1;</code>
      *
+     * <code>OK = 0;</code>
+     */
+    OK(0),
+    /**
      * <pre>
      * Canceled indicates the operation was cancelled (typically by the caller).
      * </pre>
-     */
-    CANCELED(1, 1),
-    /**
-     * <code>UNKNOWN = 2;</code>
      *
+     * <code>CANCELED = 1;</code>
+     */
+    CANCELED(1),
+    /**
      * <pre>
      * Unknown error.  An example of where this error may be returned is
      * if a Status value received from another address space belongs to
@@ -43,22 +47,22 @@ public final class Status {
      * errors raised by APIs that do not return enough error information
      * may be converted to this error.
      * </pre>
-     */
-    UNKNOWN(2, 2),
-    /**
-     * <code>INVALID_ARGUMENT = 3;</code>
      *
+     * <code>UNKNOWN = 2;</code>
+     */
+    UNKNOWN(2),
+    /**
      * <pre>
      * InvalidArgument indicates client specified an invalid argument.
      * Note that this differs from FailedPrecondition. It indicates arguments
      * that are problematic regardless of the state of the system
      * (e.g., a malformed file name).
      * </pre>
-     */
-    INVALID_ARGUMENT(3, 3),
-    /**
-     * <code>DEADLINE_EXCEEDED = 4;</code>
      *
+     * <code>INVALID_ARGUMENT = 3;</code>
+     */
+    INVALID_ARGUMENT(3),
+    /**
      * <pre>
      * DeadlineExceeded means operation expired before completion.
      * For operations that change the state of the system, this error may be
@@ -66,29 +70,29 @@ public final class Status {
      * example, a successful response from a server could have been delayed
      * long enough for the deadline to expire.
      * </pre>
-     */
-    DEADLINE_EXCEEDED(4, 4),
-    /**
-     * <code>NOT_FOUND = 5;</code>
      *
+     * <code>DEADLINE_EXCEEDED = 4;</code>
+     */
+    DEADLINE_EXCEEDED(4),
+    /**
      * <pre>
      * NotFound means some requested entity (e.g., file or directory) was
      * not found.
      * </pre>
-     */
-    NOT_FOUND(5, 5),
-    /**
-     * <code>ALREADY_EXISTS = 6;</code>
      *
+     * <code>NOT_FOUND = 5;</code>
+     */
+    NOT_FOUND(5),
+    /**
      * <pre>
      * AlreadyExists means an attempt to create an entity failed because one
      * already exists.
      * </pre>
-     */
-    ALREADY_EXISTS(6, 6),
-    /**
-     * <code>PERMISSION_DENIED = 7;</code>
      *
+     * <code>ALREADY_EXISTS = 6;</code>
+     */
+    ALREADY_EXISTS(6),
+    /**
      * <pre>
      * PermissionDenied indicates the caller does not have permission to
      * execute the specified operation. It must not be used for rejections
@@ -97,35 +101,34 @@ public final class Status {
      * used if the caller cannot be identified (use Unauthenticated
      * instead for those errors).
      * </pre>
-     */
-    PERMISSION_DENIED(7, 7),
-    /**
-     * <code>UNAUTHENTICATED = 16;</code>
      *
+     * <code>PERMISSION_DENIED = 7;</code>
+     */
+    PERMISSION_DENIED(7),
+    /**
      * <pre>
      * Unauthenticated indicates the request does not have valid
      * authentication credentials for the operation.
      * </pre>
-     */
-    UNAUTHENTICATED(8, 16),
-    /**
-     * <code>RESOURCE_EXHAUSTED = 8;</code>
      *
+     * <code>UNAUTHENTICATED = 16;</code>
+     */
+    UNAUTHENTICATED(16),
+    /**
      * <pre>
      * ResourceExhausted indicates some resource has been exhausted, perhaps
      * a per-user quota, or perhaps the entire file system is out of space.
      * </pre>
-     */
-    RESOURCE_EXHAUSTED(9, 8),
-    /**
-     * <code>FAILED_PRECONDITION = 9;</code>
      *
+     * <code>RESOURCE_EXHAUSTED = 8;</code>
+     */
+    RESOURCE_EXHAUSTED(8),
+    /**
      * <pre>
      * FailedPrecondition indicates operation was rejected because the
      * system is not in a state required for the operation's execution.
      * For example, directory to be deleted may be non-empty, an rmdir
      * operation is applied to a non-directory, etc.
-     *
      * A litmus test that may help a service implementor in deciding
      * between FailedPrecondition, Aborted, and Unavailable:
      *  (a) Use Unavailable if the client can retry just the failing call.
@@ -141,104 +144,100 @@ public final class Status {
      *      server does not match the condition. E.g., conflicting
      *      read-modify-write on the same resource.
      * </pre>
-     */
-    FAILED_PRECONDITION(10, 9),
-    /**
-     * <code>ABORTED = 10;</code>
      *
+     * <code>FAILED_PRECONDITION = 9;</code>
+     */
+    FAILED_PRECONDITION(9),
+    /**
      * <pre>
      * Aborted indicates the operation was aborted, typically due to a
      * concurrency issue like sequencer check failures, transaction aborts,
      * etc.
-     *
      * See litmus test above for deciding between FailedPrecondition,
      * Aborted, and Unavailable.
      * </pre>
-     */
-    ABORTED(11, 10),
-    /**
-     * <code>OUT_OF_RANGE = 11;</code>
      *
+     * <code>ABORTED = 10;</code>
+     */
+    ABORTED(10),
+    /**
      * <pre>
      * OutOfRange means operation was attempted past the valid range.
      * E.g., seeking or reading past end of file.
-     *
      * Unlike InvalidArgument, this error indicates a problem that may
      * be fixed if the system state changes. For example, a 32-bit file
      * system will generate InvalidArgument if asked to read at an
      * offset that is not in the range [0,2^32-1], but it will generate
      * OutOfRange if asked to read from an offset past the current
      * file size.
-     *
      * There is a fair bit of overlap between FailedPrecondition and
      * OutOfRange.  We recommend using OutOfRange (the more specific
      * error) when it applies so that callers who are iterating through
      * a space can easily look for an OutOfRange error to detect when
      * they are done.
      * </pre>
-     */
-    OUT_OF_RANGE(12, 11),
-    /**
-     * <code>UNIMPLEMENTED = 12;</code>
      *
+     * <code>OUT_OF_RANGE = 11;</code>
+     */
+    OUT_OF_RANGE(11),
+    /**
      * <pre>
      * Unimplemented indicates operation is not implemented or not
      * supported/enabled in this service.
      * </pre>
-     */
-    UNIMPLEMENTED(13, 12),
-    /**
-     * <code>INTERNAL = 13;</code>
      *
+     * <code>UNIMPLEMENTED = 12;</code>
+     */
+    UNIMPLEMENTED(12),
+    /**
      * <pre>
      * Internal errors.  Means some invariants expected by underlying
      * system has been broken.  If you see one of these errors,
      * something is very broken.
      * </pre>
-     */
-    INTERNAL(14, 13),
-    /**
-     * <code>UNAVAILABLE = 14;</code>
      *
+     * <code>INTERNAL = 13;</code>
+     */
+    INTERNAL(13),
+    /**
      * <pre>
      * Unavailable indicates the service is currently unavailable.
      * This is a most likely a transient condition and may be corrected
      * by retrying with a backoff.
-     *
      * See litmus test above for deciding between FailedPrecondition,
      * Aborted, and Unavailable.
      * </pre>
-     */
-    UNAVAILABLE(15, 14),
-    /**
-     * <code>DATA_LOSS = 15;</code>
      *
+     * <code>UNAVAILABLE = 14;</code>
+     */
+    UNAVAILABLE(14),
+    /**
      * <pre>
      * DataLoss indicates unrecoverable data loss or corruption.
      * </pre>
+     *
+     * <code>DATA_LOSS = 15;</code>
      */
-    DATA_LOSS(16, 15),
+    DATA_LOSS(15),
     ;
 
     /**
-     * <code>OK = 0;</code>
-     *
      * <pre>
      * OK is returned on success.
      * </pre>
+     *
+     * <code>OK = 0;</code>
      */
     public static final int OK_VALUE = 0;
     /**
-     * <code>CANCELED = 1;</code>
-     *
      * <pre>
      * Canceled indicates the operation was cancelled (typically by the caller).
      * </pre>
+     *
+     * <code>CANCELED = 1;</code>
      */
     public static final int CANCELED_VALUE = 1;
     /**
-     * <code>UNKNOWN = 2;</code>
-     *
      * <pre>
      * Unknown error.  An example of where this error may be returned is
      * if a Status value received from another address space belongs to
@@ -246,22 +245,22 @@ public final class Status {
      * errors raised by APIs that do not return enough error information
      * may be converted to this error.
      * </pre>
+     *
+     * <code>UNKNOWN = 2;</code>
      */
     public static final int UNKNOWN_VALUE = 2;
     /**
-     * <code>INVALID_ARGUMENT = 3;</code>
-     *
      * <pre>
      * InvalidArgument indicates client specified an invalid argument.
      * Note that this differs from FailedPrecondition. It indicates arguments
      * that are problematic regardless of the state of the system
      * (e.g., a malformed file name).
      * </pre>
+     *
+     * <code>INVALID_ARGUMENT = 3;</code>
      */
     public static final int INVALID_ARGUMENT_VALUE = 3;
     /**
-     * <code>DEADLINE_EXCEEDED = 4;</code>
-     *
      * <pre>
      * DeadlineExceeded means operation expired before completion.
      * For operations that change the state of the system, this error may be
@@ -269,29 +268,29 @@ public final class Status {
      * example, a successful response from a server could have been delayed
      * long enough for the deadline to expire.
      * </pre>
+     *
+     * <code>DEADLINE_EXCEEDED = 4;</code>
      */
     public static final int DEADLINE_EXCEEDED_VALUE = 4;
     /**
-     * <code>NOT_FOUND = 5;</code>
-     *
      * <pre>
      * NotFound means some requested entity (e.g., file or directory) was
      * not found.
      * </pre>
+     *
+     * <code>NOT_FOUND = 5;</code>
      */
     public static final int NOT_FOUND_VALUE = 5;
     /**
-     * <code>ALREADY_EXISTS = 6;</code>
-     *
      * <pre>
      * AlreadyExists means an attempt to create an entity failed because one
      * already exists.
      * </pre>
+     *
+     * <code>ALREADY_EXISTS = 6;</code>
      */
     public static final int ALREADY_EXISTS_VALUE = 6;
     /**
-     * <code>PERMISSION_DENIED = 7;</code>
-     *
      * <pre>
      * PermissionDenied indicates the caller does not have permission to
      * execute the specified operation. It must not be used for rejections
@@ -300,35 +299,34 @@ public final class Status {
      * used if the caller cannot be identified (use Unauthenticated
      * instead for those errors).
      * </pre>
+     *
+     * <code>PERMISSION_DENIED = 7;</code>
      */
     public static final int PERMISSION_DENIED_VALUE = 7;
     /**
-     * <code>UNAUTHENTICATED = 16;</code>
-     *
      * <pre>
      * Unauthenticated indicates the request does not have valid
      * authentication credentials for the operation.
      * </pre>
+     *
+     * <code>UNAUTHENTICATED = 16;</code>
      */
     public static final int UNAUTHENTICATED_VALUE = 16;
     /**
-     * <code>RESOURCE_EXHAUSTED = 8;</code>
-     *
      * <pre>
      * ResourceExhausted indicates some resource has been exhausted, perhaps
      * a per-user quota, or perhaps the entire file system is out of space.
      * </pre>
+     *
+     * <code>RESOURCE_EXHAUSTED = 8;</code>
      */
     public static final int RESOURCE_EXHAUSTED_VALUE = 8;
     /**
-     * <code>FAILED_PRECONDITION = 9;</code>
-     *
      * <pre>
      * FailedPrecondition indicates operation was rejected because the
      * system is not in a state required for the operation's execution.
      * For example, directory to be deleted may be non-empty, an rmdir
      * operation is applied to a non-directory, etc.
-     *
      * A litmus test that may help a service implementor in deciding
      * between FailedPrecondition, Aborted, and Unavailable:
      *  (a) Use Unavailable if the client can retry just the failing call.
@@ -344,88 +342,96 @@ public final class Status {
      *      server does not match the condition. E.g., conflicting
      *      read-modify-write on the same resource.
      * </pre>
+     *
+     * <code>FAILED_PRECONDITION = 9;</code>
      */
     public static final int FAILED_PRECONDITION_VALUE = 9;
     /**
-     * <code>ABORTED = 10;</code>
-     *
      * <pre>
      * Aborted indicates the operation was aborted, typically due to a
      * concurrency issue like sequencer check failures, transaction aborts,
      * etc.
-     *
      * See litmus test above for deciding between FailedPrecondition,
      * Aborted, and Unavailable.
      * </pre>
+     *
+     * <code>ABORTED = 10;</code>
      */
     public static final int ABORTED_VALUE = 10;
     /**
-     * <code>OUT_OF_RANGE = 11;</code>
-     *
      * <pre>
      * OutOfRange means operation was attempted past the valid range.
      * E.g., seeking or reading past end of file.
-     *
      * Unlike InvalidArgument, this error indicates a problem that may
      * be fixed if the system state changes. For example, a 32-bit file
      * system will generate InvalidArgument if asked to read at an
      * offset that is not in the range [0,2^32-1], but it will generate
      * OutOfRange if asked to read from an offset past the current
      * file size.
-     *
      * There is a fair bit of overlap between FailedPrecondition and
      * OutOfRange.  We recommend using OutOfRange (the more specific
      * error) when it applies so that callers who are iterating through
      * a space can easily look for an OutOfRange error to detect when
      * they are done.
      * </pre>
+     *
+     * <code>OUT_OF_RANGE = 11;</code>
      */
     public static final int OUT_OF_RANGE_VALUE = 11;
     /**
-     * <code>UNIMPLEMENTED = 12;</code>
-     *
      * <pre>
      * Unimplemented indicates operation is not implemented or not
      * supported/enabled in this service.
      * </pre>
+     *
+     * <code>UNIMPLEMENTED = 12;</code>
      */
     public static final int UNIMPLEMENTED_VALUE = 12;
     /**
-     * <code>INTERNAL = 13;</code>
-     *
      * <pre>
      * Internal errors.  Means some invariants expected by underlying
      * system has been broken.  If you see one of these errors,
      * something is very broken.
      * </pre>
+     *
+     * <code>INTERNAL = 13;</code>
      */
     public static final int INTERNAL_VALUE = 13;
     /**
-     * <code>UNAVAILABLE = 14;</code>
-     *
      * <pre>
      * Unavailable indicates the service is currently unavailable.
      * This is a most likely a transient condition and may be corrected
      * by retrying with a backoff.
-     *
      * See litmus test above for deciding between FailedPrecondition,
      * Aborted, and Unavailable.
      * </pre>
+     *
+     * <code>UNAVAILABLE = 14;</code>
      */
     public static final int UNAVAILABLE_VALUE = 14;
     /**
-     * <code>DATA_LOSS = 15;</code>
-     *
      * <pre>
      * DataLoss indicates unrecoverable data loss or corruption.
      * </pre>
+     *
+     * <code>DATA_LOSS = 15;</code>
      */
     public static final int DATA_LOSS_VALUE = 15;
 
 
-    public final int getNumber() { return value; }
+    public final int getNumber() {
+      return value;
+    }
 
+    /**
+     * @deprecated Use {@link #forNumber(int)} instead.
+     */
+    @java.lang.Deprecated
     public static PStatus valueOf(int value) {
+      return forNumber(value);
+    }
+
+    public static PStatus forNumber(int value) {
       switch (value) {
         case 0: return OK;
         case 1: return CANCELED;
@@ -452,17 +458,17 @@ public final class Status {
         internalGetValueMap() {
       return internalValueMap;
     }
-    private static com.google.protobuf.Internal.EnumLiteMap<PStatus>
-        internalValueMap =
+    private static final com.google.protobuf.Internal.EnumLiteMap<
+        PStatus> internalValueMap =
           new com.google.protobuf.Internal.EnumLiteMap<PStatus>() {
             public PStatus findValueByNumber(int number) {
-              return PStatus.valueOf(number);
+              return PStatus.forNumber(number);
             }
           };
 
     public final com.google.protobuf.Descriptors.EnumValueDescriptor
         getValueDescriptor() {
-      return getDescriptor().getValues().get(index);
+      return getDescriptor().getValues().get(ordinal());
     }
     public final com.google.protobuf.Descriptors.EnumDescriptor
         getDescriptorForType() {
@@ -484,11 +490,9 @@ public final class Status {
       return VALUES[desc.getIndex()];
     }
 
-    private final int index;
     private final int value;
 
-    private PStatus(int index, int value) {
-      this.index = index;
+    private PStatus(int value) {
       this.value = value;
     }
 
@@ -500,7 +504,7 @@ public final class Status {
       getDescriptor() {
     return descriptor;
   }
-  private static com.google.protobuf.Descriptors.FileDescriptor
+  private static  com.google.protobuf.Descriptors.FileDescriptor
       descriptor;
   static {
     java.lang.String[] descriptorData = {
@@ -516,13 +520,13 @@ public final class Status {
       "S\020\017"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
-      new com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner() {
-        public com.google.protobuf.ExtensionRegistry assignDescriptors(
-            com.google.protobuf.Descriptors.FileDescriptor root) {
-          descriptor = root;
-          return null;
-        }
-      };
+        new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
+          public com.google.protobuf.ExtensionRegistry assignDescriptors(
+              com.google.protobuf.Descriptors.FileDescriptor root) {
+            descriptor = root;
+            return null;
+          }
+        };
     com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
         new com.google.protobuf.Descriptors.FileDescriptor[] {

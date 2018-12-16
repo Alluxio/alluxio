@@ -6,12 +6,18 @@ package alluxio.proto.journal;
 public final class KeyValue {
   private KeyValue() {}
   public static void registerAllExtensions(
-      com.google.protobuf.ExtensionRegistry registry) {
+      com.google.protobuf.ExtensionRegistryLite registry) {
   }
-  public interface CompletePartitionEntryOrBuilder
-      extends com.google.protobuf.MessageOrBuilder {
 
-    // optional int64 store_id = 1;
+  public static void registerAllExtensions(
+      com.google.protobuf.ExtensionRegistry registry) {
+    registerAllExtensions(
+        (com.google.protobuf.ExtensionRegistryLite) registry);
+  }
+  public interface CompletePartitionEntryOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:alluxio.proto.journal.CompletePartitionEntry)
+      com.google.protobuf.MessageOrBuilder {
+
     /**
      * <code>optional int64 store_id = 1;</code>
      */
@@ -21,61 +27,58 @@ public final class KeyValue {
      */
     long getStoreId();
 
-    // optional string key_start = 2;
     /**
-     * <code>optional string key_start = 2;</code>
-     *
      * <pre>
      * inclusive
      * </pre>
+     *
+     * <code>optional string key_start = 2;</code>
      */
     boolean hasKeyStart();
     /**
-     * <code>optional string key_start = 2;</code>
-     *
      * <pre>
      * inclusive
      * </pre>
+     *
+     * <code>optional string key_start = 2;</code>
      */
     java.lang.String getKeyStart();
     /**
-     * <code>optional string key_start = 2;</code>
-     *
      * <pre>
      * inclusive
      * </pre>
+     *
+     * <code>optional string key_start = 2;</code>
      */
     com.google.protobuf.ByteString
         getKeyStartBytes();
 
-    // optional string key_limit = 3;
     /**
-     * <code>optional string key_limit = 3;</code>
-     *
      * <pre>
      * inclusive
      * </pre>
+     *
+     * <code>optional string key_limit = 3;</code>
      */
     boolean hasKeyLimit();
     /**
-     * <code>optional string key_limit = 3;</code>
-     *
      * <pre>
      * inclusive
      * </pre>
+     *
+     * <code>optional string key_limit = 3;</code>
      */
     java.lang.String getKeyLimit();
     /**
-     * <code>optional string key_limit = 3;</code>
-     *
      * <pre>
      * inclusive
      * </pre>
+     *
+     * <code>optional string key_limit = 3;</code>
      */
     com.google.protobuf.ByteString
         getKeyLimitBytes();
 
-    // optional int64 block_id = 4;
     /**
      * <code>optional int64 block_id = 4;</code>
      */
@@ -85,7 +88,6 @@ public final class KeyValue {
      */
     long getBlockId();
 
-    // optional int32 key_count = 5;
     /**
      * <code>optional int32 key_count = 5;</code>
      */
@@ -96,42 +98,42 @@ public final class KeyValue {
     int getKeyCount();
   }
   /**
-   * Protobuf type {@code alluxio.proto.journal.CompletePartitionEntry}
-   *
    * <pre>
    * next available id: 6
    * </pre>
+   *
+   * Protobuf type {@code alluxio.proto.journal.CompletePartitionEntry}
    */
-  public static final class CompletePartitionEntry extends
-      com.google.protobuf.GeneratedMessage
-      implements CompletePartitionEntryOrBuilder {
+  public  static final class CompletePartitionEntry extends
+      com.google.protobuf.GeneratedMessageV3 implements
+      // @@protoc_insertion_point(message_implements:alluxio.proto.journal.CompletePartitionEntry)
+      CompletePartitionEntryOrBuilder {
+  private static final long serialVersionUID = 0L;
     // Use CompletePartitionEntry.newBuilder() to construct.
-    private CompletePartitionEntry(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+    private CompletePartitionEntry(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
       super(builder);
-      this.unknownFields = builder.getUnknownFields();
     }
-    private CompletePartitionEntry(boolean noInit) { this.unknownFields = com.google.protobuf.UnknownFieldSet.getDefaultInstance(); }
-
-    private static final CompletePartitionEntry defaultInstance;
-    public static CompletePartitionEntry getDefaultInstance() {
-      return defaultInstance;
-    }
-
-    public CompletePartitionEntry getDefaultInstanceForType() {
-      return defaultInstance;
+    private CompletePartitionEntry() {
+      storeId_ = 0L;
+      keyStart_ = "";
+      keyLimit_ = "";
+      blockId_ = 0L;
+      keyCount_ = 0;
     }
 
-    private final com.google.protobuf.UnknownFieldSet unknownFields;
     @java.lang.Override
     public final com.google.protobuf.UnknownFieldSet
-        getUnknownFields() {
+    getUnknownFields() {
       return this.unknownFields;
     }
     private CompletePartitionEntry(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
-      initFields();
+      this();
+      if (extensionRegistry == null) {
+        throw new java.lang.NullPointerException();
+      }
       int mutable_bitField0_ = 0;
       com.google.protobuf.UnknownFieldSet.Builder unknownFields =
           com.google.protobuf.UnknownFieldSet.newBuilder();
@@ -144,8 +146,8 @@ public final class KeyValue {
               done = true;
               break;
             default: {
-              if (!parseUnknownField(input, unknownFields,
-                                     extensionRegistry, tag)) {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
                 done = true;
               }
               break;
@@ -156,13 +158,15 @@ public final class KeyValue {
               break;
             }
             case 18: {
+              com.google.protobuf.ByteString bs = input.readBytes();
               bitField0_ |= 0x00000002;
-              keyStart_ = input.readBytes();
+              keyStart_ = bs;
               break;
             }
             case 26: {
+              com.google.protobuf.ByteString bs = input.readBytes();
               bitField0_ |= 0x00000004;
-              keyLimit_ = input.readBytes();
+              keyLimit_ = bs;
               break;
             }
             case 32: {
@@ -181,7 +185,7 @@ public final class KeyValue {
         throw e.setUnfinishedMessage(this);
       } catch (java.io.IOException e) {
         throw new com.google.protobuf.InvalidProtocolBufferException(
-            e.getMessage()).setUnfinishedMessage(this);
+            e).setUnfinishedMessage(this);
       } finally {
         this.unknownFields = unknownFields.build();
         makeExtensionsImmutable();
@@ -192,30 +196,14 @@ public final class KeyValue {
       return alluxio.proto.journal.KeyValue.internal_static_alluxio_proto_journal_CompletePartitionEntry_descriptor;
     }
 
-    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+    protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return alluxio.proto.journal.KeyValue.internal_static_alluxio_proto_journal_CompletePartitionEntry_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
               alluxio.proto.journal.KeyValue.CompletePartitionEntry.class, alluxio.proto.journal.KeyValue.CompletePartitionEntry.Builder.class);
     }
 
-    public static com.google.protobuf.Parser<CompletePartitionEntry> PARSER =
-        new com.google.protobuf.AbstractParser<CompletePartitionEntry>() {
-      public CompletePartitionEntry parsePartialFrom(
-          com.google.protobuf.CodedInputStream input,
-          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-          throws com.google.protobuf.InvalidProtocolBufferException {
-        return new CompletePartitionEntry(input, extensionRegistry);
-      }
-    };
-
-    @java.lang.Override
-    public com.google.protobuf.Parser<CompletePartitionEntry> getParserForType() {
-      return PARSER;
-    }
-
     private int bitField0_;
-    // optional int64 store_id = 1;
     public static final int STORE_ID_FIELD_NUMBER = 1;
     private long storeId_;
     /**
@@ -231,25 +219,24 @@ public final class KeyValue {
       return storeId_;
     }
 
-    // optional string key_start = 2;
     public static final int KEY_START_FIELD_NUMBER = 2;
-    private java.lang.Object keyStart_;
+    private volatile java.lang.Object keyStart_;
     /**
-     * <code>optional string key_start = 2;</code>
-     *
      * <pre>
      * inclusive
      * </pre>
+     *
+     * <code>optional string key_start = 2;</code>
      */
     public boolean hasKeyStart() {
       return ((bitField0_ & 0x00000002) == 0x00000002);
     }
     /**
-     * <code>optional string key_start = 2;</code>
-     *
      * <pre>
      * inclusive
      * </pre>
+     *
+     * <code>optional string key_start = 2;</code>
      */
     public java.lang.String getKeyStart() {
       java.lang.Object ref = keyStart_;
@@ -266,11 +253,11 @@ public final class KeyValue {
       }
     }
     /**
-     * <code>optional string key_start = 2;</code>
-     *
      * <pre>
      * inclusive
      * </pre>
+     *
+     * <code>optional string key_start = 2;</code>
      */
     public com.google.protobuf.ByteString
         getKeyStartBytes() {
@@ -286,25 +273,24 @@ public final class KeyValue {
       }
     }
 
-    // optional string key_limit = 3;
     public static final int KEY_LIMIT_FIELD_NUMBER = 3;
-    private java.lang.Object keyLimit_;
+    private volatile java.lang.Object keyLimit_;
     /**
-     * <code>optional string key_limit = 3;</code>
-     *
      * <pre>
      * inclusive
      * </pre>
+     *
+     * <code>optional string key_limit = 3;</code>
      */
     public boolean hasKeyLimit() {
       return ((bitField0_ & 0x00000004) == 0x00000004);
     }
     /**
-     * <code>optional string key_limit = 3;</code>
-     *
      * <pre>
      * inclusive
      * </pre>
+     *
+     * <code>optional string key_limit = 3;</code>
      */
     public java.lang.String getKeyLimit() {
       java.lang.Object ref = keyLimit_;
@@ -321,11 +307,11 @@ public final class KeyValue {
       }
     }
     /**
-     * <code>optional string key_limit = 3;</code>
-     *
      * <pre>
      * inclusive
      * </pre>
+     *
+     * <code>optional string key_limit = 3;</code>
      */
     public com.google.protobuf.ByteString
         getKeyLimitBytes() {
@@ -341,7 +327,6 @@ public final class KeyValue {
       }
     }
 
-    // optional int64 block_id = 4;
     public static final int BLOCK_ID_FIELD_NUMBER = 4;
     private long blockId_;
     /**
@@ -357,7 +342,6 @@ public final class KeyValue {
       return blockId_;
     }
 
-    // optional int32 key_count = 5;
     public static final int KEY_COUNT_FIELD_NUMBER = 5;
     private int keyCount_;
     /**
@@ -373,17 +357,11 @@ public final class KeyValue {
       return keyCount_;
     }
 
-    private void initFields() {
-      storeId_ = 0L;
-      keyStart_ = "";
-      keyLimit_ = "";
-      blockId_ = 0L;
-      keyCount_ = 0;
-    }
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
-      if (isInitialized != -1) return isInitialized == 1;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
 
       memoizedIsInitialized = 1;
       return true;
@@ -391,15 +369,14 @@ public final class KeyValue {
 
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
-      getSerializedSize();
       if (((bitField0_ & 0x00000001) == 0x00000001)) {
         output.writeInt64(1, storeId_);
       }
       if (((bitField0_ & 0x00000002) == 0x00000002)) {
-        output.writeBytes(2, getKeyStartBytes());
+        com.google.protobuf.GeneratedMessageV3.writeString(output, 2, keyStart_);
       }
       if (((bitField0_ & 0x00000004) == 0x00000004)) {
-        output.writeBytes(3, getKeyLimitBytes());
+        com.google.protobuf.GeneratedMessageV3.writeString(output, 3, keyLimit_);
       }
       if (((bitField0_ & 0x00000008) == 0x00000008)) {
         output.writeInt64(4, blockId_);
@@ -407,12 +384,11 @@ public final class KeyValue {
       if (((bitField0_ & 0x00000010) == 0x00000010)) {
         output.writeInt32(5, keyCount_);
       }
-      getUnknownFields().writeTo(output);
+      unknownFields.writeTo(output);
     }
 
-    private int memoizedSerializedSize = -1;
     public int getSerializedSize() {
-      int size = memoizedSerializedSize;
+      int size = memoizedSize;
       if (size != -1) return size;
 
       size = 0;
@@ -421,12 +397,10 @@ public final class KeyValue {
           .computeInt64Size(1, storeId_);
       }
       if (((bitField0_ & 0x00000002) == 0x00000002)) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeBytesSize(2, getKeyStartBytes());
+        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(2, keyStart_);
       }
       if (((bitField0_ & 0x00000004) == 0x00000004)) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeBytesSize(3, getKeyLimitBytes());
+        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(3, keyLimit_);
       }
       if (((bitField0_ & 0x00000008) == 0x00000008)) {
         size += com.google.protobuf.CodedOutputStream
@@ -436,18 +410,96 @@ public final class KeyValue {
         size += com.google.protobuf.CodedOutputStream
           .computeInt32Size(5, keyCount_);
       }
-      size += getUnknownFields().getSerializedSize();
-      memoizedSerializedSize = size;
+      size += unknownFields.getSerializedSize();
+      memoizedSize = size;
       return size;
     }
 
-    private static final long serialVersionUID = 0L;
     @java.lang.Override
-    protected java.lang.Object writeReplace()
-        throws java.io.ObjectStreamException {
-      return super.writeReplace();
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof alluxio.proto.journal.KeyValue.CompletePartitionEntry)) {
+        return super.equals(obj);
+      }
+      alluxio.proto.journal.KeyValue.CompletePartitionEntry other = (alluxio.proto.journal.KeyValue.CompletePartitionEntry) obj;
+
+      boolean result = true;
+      result = result && (hasStoreId() == other.hasStoreId());
+      if (hasStoreId()) {
+        result = result && (getStoreId()
+            == other.getStoreId());
+      }
+      result = result && (hasKeyStart() == other.hasKeyStart());
+      if (hasKeyStart()) {
+        result = result && getKeyStart()
+            .equals(other.getKeyStart());
+      }
+      result = result && (hasKeyLimit() == other.hasKeyLimit());
+      if (hasKeyLimit()) {
+        result = result && getKeyLimit()
+            .equals(other.getKeyLimit());
+      }
+      result = result && (hasBlockId() == other.hasBlockId());
+      if (hasBlockId()) {
+        result = result && (getBlockId()
+            == other.getBlockId());
+      }
+      result = result && (hasKeyCount() == other.hasKeyCount());
+      if (hasKeyCount()) {
+        result = result && (getKeyCount()
+            == other.getKeyCount());
+      }
+      result = result && unknownFields.equals(other.unknownFields);
+      return result;
     }
 
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      if (hasStoreId()) {
+        hash = (37 * hash) + STORE_ID_FIELD_NUMBER;
+        hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+            getStoreId());
+      }
+      if (hasKeyStart()) {
+        hash = (37 * hash) + KEY_START_FIELD_NUMBER;
+        hash = (53 * hash) + getKeyStart().hashCode();
+      }
+      if (hasKeyLimit()) {
+        hash = (37 * hash) + KEY_LIMIT_FIELD_NUMBER;
+        hash = (53 * hash) + getKeyLimit().hashCode();
+      }
+      if (hasBlockId()) {
+        hash = (37 * hash) + BLOCK_ID_FIELD_NUMBER;
+        hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+            getBlockId());
+      }
+      if (hasKeyCount()) {
+        hash = (37 * hash) + KEY_COUNT_FIELD_NUMBER;
+        hash = (53 * hash) + getKeyCount();
+      }
+      hash = (29 * hash) + unknownFields.hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static alluxio.proto.journal.KeyValue.CompletePartitionEntry parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static alluxio.proto.journal.KeyValue.CompletePartitionEntry parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
     public static alluxio.proto.journal.KeyValue.CompletePartitionEntry parseFrom(
         com.google.protobuf.ByteString data)
         throws com.google.protobuf.InvalidProtocolBufferException {
@@ -471,65 +523,77 @@ public final class KeyValue {
     }
     public static alluxio.proto.journal.KeyValue.CompletePartitionEntry parseFrom(java.io.InputStream input)
         throws java.io.IOException {
-      return PARSER.parseFrom(input);
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
     }
     public static alluxio.proto.journal.KeyValue.CompletePartitionEntry parseFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
-      return PARSER.parseFrom(input, extensionRegistry);
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
     }
     public static alluxio.proto.journal.KeyValue.CompletePartitionEntry parseDelimitedFrom(java.io.InputStream input)
         throws java.io.IOException {
-      return PARSER.parseDelimitedFrom(input);
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input);
     }
     public static alluxio.proto.journal.KeyValue.CompletePartitionEntry parseDelimitedFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
-      return PARSER.parseDelimitedFrom(input, extensionRegistry);
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
     }
     public static alluxio.proto.journal.KeyValue.CompletePartitionEntry parseFrom(
         com.google.protobuf.CodedInputStream input)
         throws java.io.IOException {
-      return PARSER.parseFrom(input);
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
     }
     public static alluxio.proto.journal.KeyValue.CompletePartitionEntry parseFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
-      return PARSER.parseFrom(input, extensionRegistry);
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
-    public static Builder newBuilder() { return Builder.create(); }
     public Builder newBuilderForType() { return newBuilder(); }
-    public static Builder newBuilder(alluxio.proto.journal.KeyValue.CompletePartitionEntry prototype) {
-      return newBuilder().mergeFrom(prototype);
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
     }
-    public Builder toBuilder() { return newBuilder(this); }
+    public static Builder newBuilder(alluxio.proto.journal.KeyValue.CompletePartitionEntry prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
 
     @java.lang.Override
     protected Builder newBuilderForType(
-        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
       Builder builder = new Builder(parent);
       return builder;
     }
     /**
-     * Protobuf type {@code alluxio.proto.journal.CompletePartitionEntry}
-     *
      * <pre>
      * next available id: 6
      * </pre>
+     *
+     * Protobuf type {@code alluxio.proto.journal.CompletePartitionEntry}
      */
     public static final class Builder extends
-        com.google.protobuf.GeneratedMessage.Builder<Builder>
-       implements alluxio.proto.journal.KeyValue.CompletePartitionEntryOrBuilder {
+        com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:alluxio.proto.journal.CompletePartitionEntry)
+        alluxio.proto.journal.KeyValue.CompletePartitionEntryOrBuilder {
       public static final com.google.protobuf.Descriptors.Descriptor
           getDescriptor() {
         return alluxio.proto.journal.KeyValue.internal_static_alluxio_proto_journal_CompletePartitionEntry_descriptor;
       }
 
-      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return alluxio.proto.journal.KeyValue.internal_static_alluxio_proto_journal_CompletePartitionEntry_fieldAccessorTable
             .ensureFieldAccessorsInitialized(
@@ -542,18 +606,15 @@ public final class KeyValue {
       }
 
       private Builder(
-          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+          com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
         super(parent);
         maybeForceBuilderInitialization();
       }
       private void maybeForceBuilderInitialization() {
-        if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
+        if (com.google.protobuf.GeneratedMessageV3
+                .alwaysUseFieldBuilders) {
         }
       }
-      private static Builder create() {
-        return new Builder();
-      }
-
       public Builder clear() {
         super.clear();
         storeId_ = 0L;
@@ -567,10 +628,6 @@ public final class KeyValue {
         keyCount_ = 0;
         bitField0_ = (bitField0_ & ~0x00000010);
         return this;
-      }
-
-      public Builder clone() {
-        return create().mergeFrom(buildPartial());
       }
 
       public com.google.protobuf.Descriptors.Descriptor
@@ -619,6 +676,32 @@ public final class KeyValue {
         return result;
       }
 
+      public Builder clone() {
+        return (Builder) super.clone();
+      }
+      public Builder setField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.setField(field, value);
+      }
+      public Builder clearField(
+          com.google.protobuf.Descriptors.FieldDescriptor field) {
+        return (Builder) super.clearField(field);
+      }
+      public Builder clearOneof(
+          com.google.protobuf.Descriptors.OneofDescriptor oneof) {
+        return (Builder) super.clearOneof(oneof);
+      }
+      public Builder setRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          int index, java.lang.Object value) {
+        return (Builder) super.setRepeatedField(field, index, value);
+      }
+      public Builder addRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.addRepeatedField(field, value);
+      }
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof alluxio.proto.journal.KeyValue.CompletePartitionEntry) {
           return mergeFrom((alluxio.proto.journal.KeyValue.CompletePartitionEntry)other);
@@ -649,7 +732,8 @@ public final class KeyValue {
         if (other.hasKeyCount()) {
           setKeyCount(other.getKeyCount());
         }
-        this.mergeUnknownFields(other.getUnknownFields());
+        this.mergeUnknownFields(other.unknownFields);
+        onChanged();
         return this;
       }
 
@@ -666,7 +750,7 @@ public final class KeyValue {
           parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
         } catch (com.google.protobuf.InvalidProtocolBufferException e) {
           parsedMessage = (alluxio.proto.journal.KeyValue.CompletePartitionEntry) e.getUnfinishedMessage();
-          throw e;
+          throw e.unwrapIOException();
         } finally {
           if (parsedMessage != null) {
             mergeFrom(parsedMessage);
@@ -676,7 +760,6 @@ public final class KeyValue {
       }
       private int bitField0_;
 
-      // optional int64 store_id = 1;
       private long storeId_ ;
       /**
        * <code>optional int64 store_id = 1;</code>
@@ -709,42 +792,44 @@ public final class KeyValue {
         return this;
       }
 
-      // optional string key_start = 2;
       private java.lang.Object keyStart_ = "";
       /**
-       * <code>optional string key_start = 2;</code>
-       *
        * <pre>
        * inclusive
        * </pre>
+       *
+       * <code>optional string key_start = 2;</code>
        */
       public boolean hasKeyStart() {
         return ((bitField0_ & 0x00000002) == 0x00000002);
       }
       /**
-       * <code>optional string key_start = 2;</code>
-       *
        * <pre>
        * inclusive
        * </pre>
+       *
+       * <code>optional string key_start = 2;</code>
        */
       public java.lang.String getKeyStart() {
         java.lang.Object ref = keyStart_;
         if (!(ref instanceof java.lang.String)) {
-          java.lang.String s = ((com.google.protobuf.ByteString) ref)
-              .toStringUtf8();
-          keyStart_ = s;
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          if (bs.isValidUtf8()) {
+            keyStart_ = s;
+          }
           return s;
         } else {
           return (java.lang.String) ref;
         }
       }
       /**
-       * <code>optional string key_start = 2;</code>
-       *
        * <pre>
        * inclusive
        * </pre>
+       *
+       * <code>optional string key_start = 2;</code>
        */
       public com.google.protobuf.ByteString
           getKeyStartBytes() {
@@ -760,11 +845,11 @@ public final class KeyValue {
         }
       }
       /**
-       * <code>optional string key_start = 2;</code>
-       *
        * <pre>
        * inclusive
        * </pre>
+       *
+       * <code>optional string key_start = 2;</code>
        */
       public Builder setKeyStart(
           java.lang.String value) {
@@ -777,11 +862,11 @@ public final class KeyValue {
         return this;
       }
       /**
-       * <code>optional string key_start = 2;</code>
-       *
        * <pre>
        * inclusive
        * </pre>
+       *
+       * <code>optional string key_start = 2;</code>
        */
       public Builder clearKeyStart() {
         bitField0_ = (bitField0_ & ~0x00000002);
@@ -790,11 +875,11 @@ public final class KeyValue {
         return this;
       }
       /**
-       * <code>optional string key_start = 2;</code>
-       *
        * <pre>
        * inclusive
        * </pre>
+       *
+       * <code>optional string key_start = 2;</code>
        */
       public Builder setKeyStartBytes(
           com.google.protobuf.ByteString value) {
@@ -807,42 +892,44 @@ public final class KeyValue {
         return this;
       }
 
-      // optional string key_limit = 3;
       private java.lang.Object keyLimit_ = "";
       /**
-       * <code>optional string key_limit = 3;</code>
-       *
        * <pre>
        * inclusive
        * </pre>
+       *
+       * <code>optional string key_limit = 3;</code>
        */
       public boolean hasKeyLimit() {
         return ((bitField0_ & 0x00000004) == 0x00000004);
       }
       /**
-       * <code>optional string key_limit = 3;</code>
-       *
        * <pre>
        * inclusive
        * </pre>
+       *
+       * <code>optional string key_limit = 3;</code>
        */
       public java.lang.String getKeyLimit() {
         java.lang.Object ref = keyLimit_;
         if (!(ref instanceof java.lang.String)) {
-          java.lang.String s = ((com.google.protobuf.ByteString) ref)
-              .toStringUtf8();
-          keyLimit_ = s;
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          if (bs.isValidUtf8()) {
+            keyLimit_ = s;
+          }
           return s;
         } else {
           return (java.lang.String) ref;
         }
       }
       /**
-       * <code>optional string key_limit = 3;</code>
-       *
        * <pre>
        * inclusive
        * </pre>
+       *
+       * <code>optional string key_limit = 3;</code>
        */
       public com.google.protobuf.ByteString
           getKeyLimitBytes() {
@@ -858,11 +945,11 @@ public final class KeyValue {
         }
       }
       /**
-       * <code>optional string key_limit = 3;</code>
-       *
        * <pre>
        * inclusive
        * </pre>
+       *
+       * <code>optional string key_limit = 3;</code>
        */
       public Builder setKeyLimit(
           java.lang.String value) {
@@ -875,11 +962,11 @@ public final class KeyValue {
         return this;
       }
       /**
-       * <code>optional string key_limit = 3;</code>
-       *
        * <pre>
        * inclusive
        * </pre>
+       *
+       * <code>optional string key_limit = 3;</code>
        */
       public Builder clearKeyLimit() {
         bitField0_ = (bitField0_ & ~0x00000004);
@@ -888,11 +975,11 @@ public final class KeyValue {
         return this;
       }
       /**
-       * <code>optional string key_limit = 3;</code>
-       *
        * <pre>
        * inclusive
        * </pre>
+       *
+       * <code>optional string key_limit = 3;</code>
        */
       public Builder setKeyLimitBytes(
           com.google.protobuf.ByteString value) {
@@ -905,7 +992,6 @@ public final class KeyValue {
         return this;
       }
 
-      // optional int64 block_id = 4;
       private long blockId_ ;
       /**
        * <code>optional int64 block_id = 4;</code>
@@ -938,7 +1024,6 @@ public final class KeyValue {
         return this;
       }
 
-      // optional int32 key_count = 5;
       private int keyCount_ ;
       /**
        * <code>optional int32 key_count = 5;</code>
@@ -970,22 +1055,59 @@ public final class KeyValue {
         onChanged();
         return this;
       }
+      public final Builder setUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.setUnknownFields(unknownFields);
+      }
+
+      public final Builder mergeUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.mergeUnknownFields(unknownFields);
+      }
+
 
       // @@protoc_insertion_point(builder_scope:alluxio.proto.journal.CompletePartitionEntry)
     }
 
+    // @@protoc_insertion_point(class_scope:alluxio.proto.journal.CompletePartitionEntry)
+    private static final alluxio.proto.journal.KeyValue.CompletePartitionEntry DEFAULT_INSTANCE;
     static {
-      defaultInstance = new CompletePartitionEntry(true);
-      defaultInstance.initFields();
+      DEFAULT_INSTANCE = new alluxio.proto.journal.KeyValue.CompletePartitionEntry();
     }
 
-    // @@protoc_insertion_point(class_scope:alluxio.proto.journal.CompletePartitionEntry)
+    public static alluxio.proto.journal.KeyValue.CompletePartitionEntry getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    @java.lang.Deprecated public static final com.google.protobuf.Parser<CompletePartitionEntry>
+        PARSER = new com.google.protobuf.AbstractParser<CompletePartitionEntry>() {
+      public CompletePartitionEntry parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return new CompletePartitionEntry(input, extensionRegistry);
+      }
+    };
+
+    public static com.google.protobuf.Parser<CompletePartitionEntry> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<CompletePartitionEntry> getParserForType() {
+      return PARSER;
+    }
+
+    public alluxio.proto.journal.KeyValue.CompletePartitionEntry getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
   }
 
-  public interface CompleteStoreEntryOrBuilder
-      extends com.google.protobuf.MessageOrBuilder {
+  public interface CompleteStoreEntryOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:alluxio.proto.journal.CompleteStoreEntry)
+      com.google.protobuf.MessageOrBuilder {
 
-    // optional int64 store_id = 1;
     /**
      * <code>optional int64 store_id = 1;</code>
      */
@@ -996,42 +1118,38 @@ public final class KeyValue {
     long getStoreId();
   }
   /**
-   * Protobuf type {@code alluxio.proto.journal.CompleteStoreEntry}
-   *
    * <pre>
    * next available id: 2
    * </pre>
+   *
+   * Protobuf type {@code alluxio.proto.journal.CompleteStoreEntry}
    */
-  public static final class CompleteStoreEntry extends
-      com.google.protobuf.GeneratedMessage
-      implements CompleteStoreEntryOrBuilder {
+  public  static final class CompleteStoreEntry extends
+      com.google.protobuf.GeneratedMessageV3 implements
+      // @@protoc_insertion_point(message_implements:alluxio.proto.journal.CompleteStoreEntry)
+      CompleteStoreEntryOrBuilder {
+  private static final long serialVersionUID = 0L;
     // Use CompleteStoreEntry.newBuilder() to construct.
-    private CompleteStoreEntry(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+    private CompleteStoreEntry(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
       super(builder);
-      this.unknownFields = builder.getUnknownFields();
     }
-    private CompleteStoreEntry(boolean noInit) { this.unknownFields = com.google.protobuf.UnknownFieldSet.getDefaultInstance(); }
-
-    private static final CompleteStoreEntry defaultInstance;
-    public static CompleteStoreEntry getDefaultInstance() {
-      return defaultInstance;
+    private CompleteStoreEntry() {
+      storeId_ = 0L;
     }
 
-    public CompleteStoreEntry getDefaultInstanceForType() {
-      return defaultInstance;
-    }
-
-    private final com.google.protobuf.UnknownFieldSet unknownFields;
     @java.lang.Override
     public final com.google.protobuf.UnknownFieldSet
-        getUnknownFields() {
+    getUnknownFields() {
       return this.unknownFields;
     }
     private CompleteStoreEntry(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
-      initFields();
+      this();
+      if (extensionRegistry == null) {
+        throw new java.lang.NullPointerException();
+      }
       int mutable_bitField0_ = 0;
       com.google.protobuf.UnknownFieldSet.Builder unknownFields =
           com.google.protobuf.UnknownFieldSet.newBuilder();
@@ -1044,8 +1162,8 @@ public final class KeyValue {
               done = true;
               break;
             default: {
-              if (!parseUnknownField(input, unknownFields,
-                                     extensionRegistry, tag)) {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
                 done = true;
               }
               break;
@@ -1061,7 +1179,7 @@ public final class KeyValue {
         throw e.setUnfinishedMessage(this);
       } catch (java.io.IOException e) {
         throw new com.google.protobuf.InvalidProtocolBufferException(
-            e.getMessage()).setUnfinishedMessage(this);
+            e).setUnfinishedMessage(this);
       } finally {
         this.unknownFields = unknownFields.build();
         makeExtensionsImmutable();
@@ -1072,30 +1190,14 @@ public final class KeyValue {
       return alluxio.proto.journal.KeyValue.internal_static_alluxio_proto_journal_CompleteStoreEntry_descriptor;
     }
 
-    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+    protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return alluxio.proto.journal.KeyValue.internal_static_alluxio_proto_journal_CompleteStoreEntry_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
               alluxio.proto.journal.KeyValue.CompleteStoreEntry.class, alluxio.proto.journal.KeyValue.CompleteStoreEntry.Builder.class);
     }
 
-    public static com.google.protobuf.Parser<CompleteStoreEntry> PARSER =
-        new com.google.protobuf.AbstractParser<CompleteStoreEntry>() {
-      public CompleteStoreEntry parsePartialFrom(
-          com.google.protobuf.CodedInputStream input,
-          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-          throws com.google.protobuf.InvalidProtocolBufferException {
-        return new CompleteStoreEntry(input, extensionRegistry);
-      }
-    };
-
-    @java.lang.Override
-    public com.google.protobuf.Parser<CompleteStoreEntry> getParserForType() {
-      return PARSER;
-    }
-
     private int bitField0_;
-    // optional int64 store_id = 1;
     public static final int STORE_ID_FIELD_NUMBER = 1;
     private long storeId_;
     /**
@@ -1111,13 +1213,11 @@ public final class KeyValue {
       return storeId_;
     }
 
-    private void initFields() {
-      storeId_ = 0L;
-    }
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
-      if (isInitialized != -1) return isInitialized == 1;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
 
       memoizedIsInitialized = 1;
       return true;
@@ -1125,16 +1225,14 @@ public final class KeyValue {
 
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
-      getSerializedSize();
       if (((bitField0_ & 0x00000001) == 0x00000001)) {
         output.writeInt64(1, storeId_);
       }
-      getUnknownFields().writeTo(output);
+      unknownFields.writeTo(output);
     }
 
-    private int memoizedSerializedSize = -1;
     public int getSerializedSize() {
-      int size = memoizedSerializedSize;
+      int size = memoizedSize;
       if (size != -1) return size;
 
       size = 0;
@@ -1142,18 +1240,59 @@ public final class KeyValue {
         size += com.google.protobuf.CodedOutputStream
           .computeInt64Size(1, storeId_);
       }
-      size += getUnknownFields().getSerializedSize();
-      memoizedSerializedSize = size;
+      size += unknownFields.getSerializedSize();
+      memoizedSize = size;
       return size;
     }
 
-    private static final long serialVersionUID = 0L;
     @java.lang.Override
-    protected java.lang.Object writeReplace()
-        throws java.io.ObjectStreamException {
-      return super.writeReplace();
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof alluxio.proto.journal.KeyValue.CompleteStoreEntry)) {
+        return super.equals(obj);
+      }
+      alluxio.proto.journal.KeyValue.CompleteStoreEntry other = (alluxio.proto.journal.KeyValue.CompleteStoreEntry) obj;
+
+      boolean result = true;
+      result = result && (hasStoreId() == other.hasStoreId());
+      if (hasStoreId()) {
+        result = result && (getStoreId()
+            == other.getStoreId());
+      }
+      result = result && unknownFields.equals(other.unknownFields);
+      return result;
     }
 
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      if (hasStoreId()) {
+        hash = (37 * hash) + STORE_ID_FIELD_NUMBER;
+        hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+            getStoreId());
+      }
+      hash = (29 * hash) + unknownFields.hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static alluxio.proto.journal.KeyValue.CompleteStoreEntry parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static alluxio.proto.journal.KeyValue.CompleteStoreEntry parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
     public static alluxio.proto.journal.KeyValue.CompleteStoreEntry parseFrom(
         com.google.protobuf.ByteString data)
         throws com.google.protobuf.InvalidProtocolBufferException {
@@ -1177,65 +1316,77 @@ public final class KeyValue {
     }
     public static alluxio.proto.journal.KeyValue.CompleteStoreEntry parseFrom(java.io.InputStream input)
         throws java.io.IOException {
-      return PARSER.parseFrom(input);
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
     }
     public static alluxio.proto.journal.KeyValue.CompleteStoreEntry parseFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
-      return PARSER.parseFrom(input, extensionRegistry);
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
     }
     public static alluxio.proto.journal.KeyValue.CompleteStoreEntry parseDelimitedFrom(java.io.InputStream input)
         throws java.io.IOException {
-      return PARSER.parseDelimitedFrom(input);
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input);
     }
     public static alluxio.proto.journal.KeyValue.CompleteStoreEntry parseDelimitedFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
-      return PARSER.parseDelimitedFrom(input, extensionRegistry);
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
     }
     public static alluxio.proto.journal.KeyValue.CompleteStoreEntry parseFrom(
         com.google.protobuf.CodedInputStream input)
         throws java.io.IOException {
-      return PARSER.parseFrom(input);
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
     }
     public static alluxio.proto.journal.KeyValue.CompleteStoreEntry parseFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
-      return PARSER.parseFrom(input, extensionRegistry);
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
-    public static Builder newBuilder() { return Builder.create(); }
     public Builder newBuilderForType() { return newBuilder(); }
-    public static Builder newBuilder(alluxio.proto.journal.KeyValue.CompleteStoreEntry prototype) {
-      return newBuilder().mergeFrom(prototype);
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
     }
-    public Builder toBuilder() { return newBuilder(this); }
+    public static Builder newBuilder(alluxio.proto.journal.KeyValue.CompleteStoreEntry prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
 
     @java.lang.Override
     protected Builder newBuilderForType(
-        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
       Builder builder = new Builder(parent);
       return builder;
     }
     /**
-     * Protobuf type {@code alluxio.proto.journal.CompleteStoreEntry}
-     *
      * <pre>
      * next available id: 2
      * </pre>
+     *
+     * Protobuf type {@code alluxio.proto.journal.CompleteStoreEntry}
      */
     public static final class Builder extends
-        com.google.protobuf.GeneratedMessage.Builder<Builder>
-       implements alluxio.proto.journal.KeyValue.CompleteStoreEntryOrBuilder {
+        com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:alluxio.proto.journal.CompleteStoreEntry)
+        alluxio.proto.journal.KeyValue.CompleteStoreEntryOrBuilder {
       public static final com.google.protobuf.Descriptors.Descriptor
           getDescriptor() {
         return alluxio.proto.journal.KeyValue.internal_static_alluxio_proto_journal_CompleteStoreEntry_descriptor;
       }
 
-      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return alluxio.proto.journal.KeyValue.internal_static_alluxio_proto_journal_CompleteStoreEntry_fieldAccessorTable
             .ensureFieldAccessorsInitialized(
@@ -1248,27 +1399,20 @@ public final class KeyValue {
       }
 
       private Builder(
-          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+          com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
         super(parent);
         maybeForceBuilderInitialization();
       }
       private void maybeForceBuilderInitialization() {
-        if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
+        if (com.google.protobuf.GeneratedMessageV3
+                .alwaysUseFieldBuilders) {
         }
       }
-      private static Builder create() {
-        return new Builder();
-      }
-
       public Builder clear() {
         super.clear();
         storeId_ = 0L;
         bitField0_ = (bitField0_ & ~0x00000001);
         return this;
-      }
-
-      public Builder clone() {
-        return create().mergeFrom(buildPartial());
       }
 
       public com.google.protobuf.Descriptors.Descriptor
@@ -1301,6 +1445,32 @@ public final class KeyValue {
         return result;
       }
 
+      public Builder clone() {
+        return (Builder) super.clone();
+      }
+      public Builder setField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.setField(field, value);
+      }
+      public Builder clearField(
+          com.google.protobuf.Descriptors.FieldDescriptor field) {
+        return (Builder) super.clearField(field);
+      }
+      public Builder clearOneof(
+          com.google.protobuf.Descriptors.OneofDescriptor oneof) {
+        return (Builder) super.clearOneof(oneof);
+      }
+      public Builder setRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          int index, java.lang.Object value) {
+        return (Builder) super.setRepeatedField(field, index, value);
+      }
+      public Builder addRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.addRepeatedField(field, value);
+      }
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof alluxio.proto.journal.KeyValue.CompleteStoreEntry) {
           return mergeFrom((alluxio.proto.journal.KeyValue.CompleteStoreEntry)other);
@@ -1315,7 +1485,8 @@ public final class KeyValue {
         if (other.hasStoreId()) {
           setStoreId(other.getStoreId());
         }
-        this.mergeUnknownFields(other.getUnknownFields());
+        this.mergeUnknownFields(other.unknownFields);
+        onChanged();
         return this;
       }
 
@@ -1332,7 +1503,7 @@ public final class KeyValue {
           parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
         } catch (com.google.protobuf.InvalidProtocolBufferException e) {
           parsedMessage = (alluxio.proto.journal.KeyValue.CompleteStoreEntry) e.getUnfinishedMessage();
-          throw e;
+          throw e.unwrapIOException();
         } finally {
           if (parsedMessage != null) {
             mergeFrom(parsedMessage);
@@ -1342,7 +1513,6 @@ public final class KeyValue {
       }
       private int bitField0_;
 
-      // optional int64 store_id = 1;
       private long storeId_ ;
       /**
        * <code>optional int64 store_id = 1;</code>
@@ -1374,22 +1544,59 @@ public final class KeyValue {
         onChanged();
         return this;
       }
+      public final Builder setUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.setUnknownFields(unknownFields);
+      }
+
+      public final Builder mergeUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.mergeUnknownFields(unknownFields);
+      }
+
 
       // @@protoc_insertion_point(builder_scope:alluxio.proto.journal.CompleteStoreEntry)
     }
 
+    // @@protoc_insertion_point(class_scope:alluxio.proto.journal.CompleteStoreEntry)
+    private static final alluxio.proto.journal.KeyValue.CompleteStoreEntry DEFAULT_INSTANCE;
     static {
-      defaultInstance = new CompleteStoreEntry(true);
-      defaultInstance.initFields();
+      DEFAULT_INSTANCE = new alluxio.proto.journal.KeyValue.CompleteStoreEntry();
     }
 
-    // @@protoc_insertion_point(class_scope:alluxio.proto.journal.CompleteStoreEntry)
+    public static alluxio.proto.journal.KeyValue.CompleteStoreEntry getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    @java.lang.Deprecated public static final com.google.protobuf.Parser<CompleteStoreEntry>
+        PARSER = new com.google.protobuf.AbstractParser<CompleteStoreEntry>() {
+      public CompleteStoreEntry parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return new CompleteStoreEntry(input, extensionRegistry);
+      }
+    };
+
+    public static com.google.protobuf.Parser<CompleteStoreEntry> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<CompleteStoreEntry> getParserForType() {
+      return PARSER;
+    }
+
+    public alluxio.proto.journal.KeyValue.CompleteStoreEntry getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
   }
 
-  public interface CreateStoreEntryOrBuilder
-      extends com.google.protobuf.MessageOrBuilder {
+  public interface CreateStoreEntryOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:alluxio.proto.journal.CreateStoreEntry)
+      com.google.protobuf.MessageOrBuilder {
 
-    // optional int64 store_id = 1;
     /**
      * <code>optional int64 store_id = 1;</code>
      */
@@ -1400,42 +1607,38 @@ public final class KeyValue {
     long getStoreId();
   }
   /**
-   * Protobuf type {@code alluxio.proto.journal.CreateStoreEntry}
-   *
    * <pre>
    * next available id: 2
    * </pre>
+   *
+   * Protobuf type {@code alluxio.proto.journal.CreateStoreEntry}
    */
-  public static final class CreateStoreEntry extends
-      com.google.protobuf.GeneratedMessage
-      implements CreateStoreEntryOrBuilder {
+  public  static final class CreateStoreEntry extends
+      com.google.protobuf.GeneratedMessageV3 implements
+      // @@protoc_insertion_point(message_implements:alluxio.proto.journal.CreateStoreEntry)
+      CreateStoreEntryOrBuilder {
+  private static final long serialVersionUID = 0L;
     // Use CreateStoreEntry.newBuilder() to construct.
-    private CreateStoreEntry(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+    private CreateStoreEntry(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
       super(builder);
-      this.unknownFields = builder.getUnknownFields();
     }
-    private CreateStoreEntry(boolean noInit) { this.unknownFields = com.google.protobuf.UnknownFieldSet.getDefaultInstance(); }
-
-    private static final CreateStoreEntry defaultInstance;
-    public static CreateStoreEntry getDefaultInstance() {
-      return defaultInstance;
+    private CreateStoreEntry() {
+      storeId_ = 0L;
     }
 
-    public CreateStoreEntry getDefaultInstanceForType() {
-      return defaultInstance;
-    }
-
-    private final com.google.protobuf.UnknownFieldSet unknownFields;
     @java.lang.Override
     public final com.google.protobuf.UnknownFieldSet
-        getUnknownFields() {
+    getUnknownFields() {
       return this.unknownFields;
     }
     private CreateStoreEntry(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
-      initFields();
+      this();
+      if (extensionRegistry == null) {
+        throw new java.lang.NullPointerException();
+      }
       int mutable_bitField0_ = 0;
       com.google.protobuf.UnknownFieldSet.Builder unknownFields =
           com.google.protobuf.UnknownFieldSet.newBuilder();
@@ -1448,8 +1651,8 @@ public final class KeyValue {
               done = true;
               break;
             default: {
-              if (!parseUnknownField(input, unknownFields,
-                                     extensionRegistry, tag)) {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
                 done = true;
               }
               break;
@@ -1465,7 +1668,7 @@ public final class KeyValue {
         throw e.setUnfinishedMessage(this);
       } catch (java.io.IOException e) {
         throw new com.google.protobuf.InvalidProtocolBufferException(
-            e.getMessage()).setUnfinishedMessage(this);
+            e).setUnfinishedMessage(this);
       } finally {
         this.unknownFields = unknownFields.build();
         makeExtensionsImmutable();
@@ -1476,30 +1679,14 @@ public final class KeyValue {
       return alluxio.proto.journal.KeyValue.internal_static_alluxio_proto_journal_CreateStoreEntry_descriptor;
     }
 
-    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+    protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return alluxio.proto.journal.KeyValue.internal_static_alluxio_proto_journal_CreateStoreEntry_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
               alluxio.proto.journal.KeyValue.CreateStoreEntry.class, alluxio.proto.journal.KeyValue.CreateStoreEntry.Builder.class);
     }
 
-    public static com.google.protobuf.Parser<CreateStoreEntry> PARSER =
-        new com.google.protobuf.AbstractParser<CreateStoreEntry>() {
-      public CreateStoreEntry parsePartialFrom(
-          com.google.protobuf.CodedInputStream input,
-          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-          throws com.google.protobuf.InvalidProtocolBufferException {
-        return new CreateStoreEntry(input, extensionRegistry);
-      }
-    };
-
-    @java.lang.Override
-    public com.google.protobuf.Parser<CreateStoreEntry> getParserForType() {
-      return PARSER;
-    }
-
     private int bitField0_;
-    // optional int64 store_id = 1;
     public static final int STORE_ID_FIELD_NUMBER = 1;
     private long storeId_;
     /**
@@ -1515,13 +1702,11 @@ public final class KeyValue {
       return storeId_;
     }
 
-    private void initFields() {
-      storeId_ = 0L;
-    }
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
-      if (isInitialized != -1) return isInitialized == 1;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
 
       memoizedIsInitialized = 1;
       return true;
@@ -1529,16 +1714,14 @@ public final class KeyValue {
 
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
-      getSerializedSize();
       if (((bitField0_ & 0x00000001) == 0x00000001)) {
         output.writeInt64(1, storeId_);
       }
-      getUnknownFields().writeTo(output);
+      unknownFields.writeTo(output);
     }
 
-    private int memoizedSerializedSize = -1;
     public int getSerializedSize() {
-      int size = memoizedSerializedSize;
+      int size = memoizedSize;
       if (size != -1) return size;
 
       size = 0;
@@ -1546,18 +1729,59 @@ public final class KeyValue {
         size += com.google.protobuf.CodedOutputStream
           .computeInt64Size(1, storeId_);
       }
-      size += getUnknownFields().getSerializedSize();
-      memoizedSerializedSize = size;
+      size += unknownFields.getSerializedSize();
+      memoizedSize = size;
       return size;
     }
 
-    private static final long serialVersionUID = 0L;
     @java.lang.Override
-    protected java.lang.Object writeReplace()
-        throws java.io.ObjectStreamException {
-      return super.writeReplace();
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof alluxio.proto.journal.KeyValue.CreateStoreEntry)) {
+        return super.equals(obj);
+      }
+      alluxio.proto.journal.KeyValue.CreateStoreEntry other = (alluxio.proto.journal.KeyValue.CreateStoreEntry) obj;
+
+      boolean result = true;
+      result = result && (hasStoreId() == other.hasStoreId());
+      if (hasStoreId()) {
+        result = result && (getStoreId()
+            == other.getStoreId());
+      }
+      result = result && unknownFields.equals(other.unknownFields);
+      return result;
     }
 
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      if (hasStoreId()) {
+        hash = (37 * hash) + STORE_ID_FIELD_NUMBER;
+        hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+            getStoreId());
+      }
+      hash = (29 * hash) + unknownFields.hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static alluxio.proto.journal.KeyValue.CreateStoreEntry parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static alluxio.proto.journal.KeyValue.CreateStoreEntry parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
     public static alluxio.proto.journal.KeyValue.CreateStoreEntry parseFrom(
         com.google.protobuf.ByteString data)
         throws com.google.protobuf.InvalidProtocolBufferException {
@@ -1581,65 +1805,77 @@ public final class KeyValue {
     }
     public static alluxio.proto.journal.KeyValue.CreateStoreEntry parseFrom(java.io.InputStream input)
         throws java.io.IOException {
-      return PARSER.parseFrom(input);
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
     }
     public static alluxio.proto.journal.KeyValue.CreateStoreEntry parseFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
-      return PARSER.parseFrom(input, extensionRegistry);
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
     }
     public static alluxio.proto.journal.KeyValue.CreateStoreEntry parseDelimitedFrom(java.io.InputStream input)
         throws java.io.IOException {
-      return PARSER.parseDelimitedFrom(input);
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input);
     }
     public static alluxio.proto.journal.KeyValue.CreateStoreEntry parseDelimitedFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
-      return PARSER.parseDelimitedFrom(input, extensionRegistry);
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
     }
     public static alluxio.proto.journal.KeyValue.CreateStoreEntry parseFrom(
         com.google.protobuf.CodedInputStream input)
         throws java.io.IOException {
-      return PARSER.parseFrom(input);
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
     }
     public static alluxio.proto.journal.KeyValue.CreateStoreEntry parseFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
-      return PARSER.parseFrom(input, extensionRegistry);
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
-    public static Builder newBuilder() { return Builder.create(); }
     public Builder newBuilderForType() { return newBuilder(); }
-    public static Builder newBuilder(alluxio.proto.journal.KeyValue.CreateStoreEntry prototype) {
-      return newBuilder().mergeFrom(prototype);
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
     }
-    public Builder toBuilder() { return newBuilder(this); }
+    public static Builder newBuilder(alluxio.proto.journal.KeyValue.CreateStoreEntry prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
 
     @java.lang.Override
     protected Builder newBuilderForType(
-        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
       Builder builder = new Builder(parent);
       return builder;
     }
     /**
-     * Protobuf type {@code alluxio.proto.journal.CreateStoreEntry}
-     *
      * <pre>
      * next available id: 2
      * </pre>
+     *
+     * Protobuf type {@code alluxio.proto.journal.CreateStoreEntry}
      */
     public static final class Builder extends
-        com.google.protobuf.GeneratedMessage.Builder<Builder>
-       implements alluxio.proto.journal.KeyValue.CreateStoreEntryOrBuilder {
+        com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:alluxio.proto.journal.CreateStoreEntry)
+        alluxio.proto.journal.KeyValue.CreateStoreEntryOrBuilder {
       public static final com.google.protobuf.Descriptors.Descriptor
           getDescriptor() {
         return alluxio.proto.journal.KeyValue.internal_static_alluxio_proto_journal_CreateStoreEntry_descriptor;
       }
 
-      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return alluxio.proto.journal.KeyValue.internal_static_alluxio_proto_journal_CreateStoreEntry_fieldAccessorTable
             .ensureFieldAccessorsInitialized(
@@ -1652,27 +1888,20 @@ public final class KeyValue {
       }
 
       private Builder(
-          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+          com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
         super(parent);
         maybeForceBuilderInitialization();
       }
       private void maybeForceBuilderInitialization() {
-        if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
+        if (com.google.protobuf.GeneratedMessageV3
+                .alwaysUseFieldBuilders) {
         }
       }
-      private static Builder create() {
-        return new Builder();
-      }
-
       public Builder clear() {
         super.clear();
         storeId_ = 0L;
         bitField0_ = (bitField0_ & ~0x00000001);
         return this;
-      }
-
-      public Builder clone() {
-        return create().mergeFrom(buildPartial());
       }
 
       public com.google.protobuf.Descriptors.Descriptor
@@ -1705,6 +1934,32 @@ public final class KeyValue {
         return result;
       }
 
+      public Builder clone() {
+        return (Builder) super.clone();
+      }
+      public Builder setField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.setField(field, value);
+      }
+      public Builder clearField(
+          com.google.protobuf.Descriptors.FieldDescriptor field) {
+        return (Builder) super.clearField(field);
+      }
+      public Builder clearOneof(
+          com.google.protobuf.Descriptors.OneofDescriptor oneof) {
+        return (Builder) super.clearOneof(oneof);
+      }
+      public Builder setRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          int index, java.lang.Object value) {
+        return (Builder) super.setRepeatedField(field, index, value);
+      }
+      public Builder addRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.addRepeatedField(field, value);
+      }
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof alluxio.proto.journal.KeyValue.CreateStoreEntry) {
           return mergeFrom((alluxio.proto.journal.KeyValue.CreateStoreEntry)other);
@@ -1719,7 +1974,8 @@ public final class KeyValue {
         if (other.hasStoreId()) {
           setStoreId(other.getStoreId());
         }
-        this.mergeUnknownFields(other.getUnknownFields());
+        this.mergeUnknownFields(other.unknownFields);
+        onChanged();
         return this;
       }
 
@@ -1736,7 +1992,7 @@ public final class KeyValue {
           parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
         } catch (com.google.protobuf.InvalidProtocolBufferException e) {
           parsedMessage = (alluxio.proto.journal.KeyValue.CreateStoreEntry) e.getUnfinishedMessage();
-          throw e;
+          throw e.unwrapIOException();
         } finally {
           if (parsedMessage != null) {
             mergeFrom(parsedMessage);
@@ -1746,7 +2002,6 @@ public final class KeyValue {
       }
       private int bitField0_;
 
-      // optional int64 store_id = 1;
       private long storeId_ ;
       /**
        * <code>optional int64 store_id = 1;</code>
@@ -1778,22 +2033,59 @@ public final class KeyValue {
         onChanged();
         return this;
       }
+      public final Builder setUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.setUnknownFields(unknownFields);
+      }
+
+      public final Builder mergeUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.mergeUnknownFields(unknownFields);
+      }
+
 
       // @@protoc_insertion_point(builder_scope:alluxio.proto.journal.CreateStoreEntry)
     }
 
+    // @@protoc_insertion_point(class_scope:alluxio.proto.journal.CreateStoreEntry)
+    private static final alluxio.proto.journal.KeyValue.CreateStoreEntry DEFAULT_INSTANCE;
     static {
-      defaultInstance = new CreateStoreEntry(true);
-      defaultInstance.initFields();
+      DEFAULT_INSTANCE = new alluxio.proto.journal.KeyValue.CreateStoreEntry();
     }
 
-    // @@protoc_insertion_point(class_scope:alluxio.proto.journal.CreateStoreEntry)
+    public static alluxio.proto.journal.KeyValue.CreateStoreEntry getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    @java.lang.Deprecated public static final com.google.protobuf.Parser<CreateStoreEntry>
+        PARSER = new com.google.protobuf.AbstractParser<CreateStoreEntry>() {
+      public CreateStoreEntry parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return new CreateStoreEntry(input, extensionRegistry);
+      }
+    };
+
+    public static com.google.protobuf.Parser<CreateStoreEntry> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<CreateStoreEntry> getParserForType() {
+      return PARSER;
+    }
+
+    public alluxio.proto.journal.KeyValue.CreateStoreEntry getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
   }
 
-  public interface DeleteStoreEntryOrBuilder
-      extends com.google.protobuf.MessageOrBuilder {
+  public interface DeleteStoreEntryOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:alluxio.proto.journal.DeleteStoreEntry)
+      com.google.protobuf.MessageOrBuilder {
 
-    // optional int64 store_id = 1;
     /**
      * <code>optional int64 store_id = 1;</code>
      */
@@ -1804,42 +2096,38 @@ public final class KeyValue {
     long getStoreId();
   }
   /**
-   * Protobuf type {@code alluxio.proto.journal.DeleteStoreEntry}
-   *
    * <pre>
    * next available id: 2
    * </pre>
+   *
+   * Protobuf type {@code alluxio.proto.journal.DeleteStoreEntry}
    */
-  public static final class DeleteStoreEntry extends
-      com.google.protobuf.GeneratedMessage
-      implements DeleteStoreEntryOrBuilder {
+  public  static final class DeleteStoreEntry extends
+      com.google.protobuf.GeneratedMessageV3 implements
+      // @@protoc_insertion_point(message_implements:alluxio.proto.journal.DeleteStoreEntry)
+      DeleteStoreEntryOrBuilder {
+  private static final long serialVersionUID = 0L;
     // Use DeleteStoreEntry.newBuilder() to construct.
-    private DeleteStoreEntry(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+    private DeleteStoreEntry(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
       super(builder);
-      this.unknownFields = builder.getUnknownFields();
     }
-    private DeleteStoreEntry(boolean noInit) { this.unknownFields = com.google.protobuf.UnknownFieldSet.getDefaultInstance(); }
-
-    private static final DeleteStoreEntry defaultInstance;
-    public static DeleteStoreEntry getDefaultInstance() {
-      return defaultInstance;
+    private DeleteStoreEntry() {
+      storeId_ = 0L;
     }
 
-    public DeleteStoreEntry getDefaultInstanceForType() {
-      return defaultInstance;
-    }
-
-    private final com.google.protobuf.UnknownFieldSet unknownFields;
     @java.lang.Override
     public final com.google.protobuf.UnknownFieldSet
-        getUnknownFields() {
+    getUnknownFields() {
       return this.unknownFields;
     }
     private DeleteStoreEntry(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
-      initFields();
+      this();
+      if (extensionRegistry == null) {
+        throw new java.lang.NullPointerException();
+      }
       int mutable_bitField0_ = 0;
       com.google.protobuf.UnknownFieldSet.Builder unknownFields =
           com.google.protobuf.UnknownFieldSet.newBuilder();
@@ -1852,8 +2140,8 @@ public final class KeyValue {
               done = true;
               break;
             default: {
-              if (!parseUnknownField(input, unknownFields,
-                                     extensionRegistry, tag)) {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
                 done = true;
               }
               break;
@@ -1869,7 +2157,7 @@ public final class KeyValue {
         throw e.setUnfinishedMessage(this);
       } catch (java.io.IOException e) {
         throw new com.google.protobuf.InvalidProtocolBufferException(
-            e.getMessage()).setUnfinishedMessage(this);
+            e).setUnfinishedMessage(this);
       } finally {
         this.unknownFields = unknownFields.build();
         makeExtensionsImmutable();
@@ -1880,30 +2168,14 @@ public final class KeyValue {
       return alluxio.proto.journal.KeyValue.internal_static_alluxio_proto_journal_DeleteStoreEntry_descriptor;
     }
 
-    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+    protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return alluxio.proto.journal.KeyValue.internal_static_alluxio_proto_journal_DeleteStoreEntry_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
               alluxio.proto.journal.KeyValue.DeleteStoreEntry.class, alluxio.proto.journal.KeyValue.DeleteStoreEntry.Builder.class);
     }
 
-    public static com.google.protobuf.Parser<DeleteStoreEntry> PARSER =
-        new com.google.protobuf.AbstractParser<DeleteStoreEntry>() {
-      public DeleteStoreEntry parsePartialFrom(
-          com.google.protobuf.CodedInputStream input,
-          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-          throws com.google.protobuf.InvalidProtocolBufferException {
-        return new DeleteStoreEntry(input, extensionRegistry);
-      }
-    };
-
-    @java.lang.Override
-    public com.google.protobuf.Parser<DeleteStoreEntry> getParserForType() {
-      return PARSER;
-    }
-
     private int bitField0_;
-    // optional int64 store_id = 1;
     public static final int STORE_ID_FIELD_NUMBER = 1;
     private long storeId_;
     /**
@@ -1919,13 +2191,11 @@ public final class KeyValue {
       return storeId_;
     }
 
-    private void initFields() {
-      storeId_ = 0L;
-    }
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
-      if (isInitialized != -1) return isInitialized == 1;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
 
       memoizedIsInitialized = 1;
       return true;
@@ -1933,16 +2203,14 @@ public final class KeyValue {
 
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
-      getSerializedSize();
       if (((bitField0_ & 0x00000001) == 0x00000001)) {
         output.writeInt64(1, storeId_);
       }
-      getUnknownFields().writeTo(output);
+      unknownFields.writeTo(output);
     }
 
-    private int memoizedSerializedSize = -1;
     public int getSerializedSize() {
-      int size = memoizedSerializedSize;
+      int size = memoizedSize;
       if (size != -1) return size;
 
       size = 0;
@@ -1950,18 +2218,59 @@ public final class KeyValue {
         size += com.google.protobuf.CodedOutputStream
           .computeInt64Size(1, storeId_);
       }
-      size += getUnknownFields().getSerializedSize();
-      memoizedSerializedSize = size;
+      size += unknownFields.getSerializedSize();
+      memoizedSize = size;
       return size;
     }
 
-    private static final long serialVersionUID = 0L;
     @java.lang.Override
-    protected java.lang.Object writeReplace()
-        throws java.io.ObjectStreamException {
-      return super.writeReplace();
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof alluxio.proto.journal.KeyValue.DeleteStoreEntry)) {
+        return super.equals(obj);
+      }
+      alluxio.proto.journal.KeyValue.DeleteStoreEntry other = (alluxio.proto.journal.KeyValue.DeleteStoreEntry) obj;
+
+      boolean result = true;
+      result = result && (hasStoreId() == other.hasStoreId());
+      if (hasStoreId()) {
+        result = result && (getStoreId()
+            == other.getStoreId());
+      }
+      result = result && unknownFields.equals(other.unknownFields);
+      return result;
     }
 
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      if (hasStoreId()) {
+        hash = (37 * hash) + STORE_ID_FIELD_NUMBER;
+        hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+            getStoreId());
+      }
+      hash = (29 * hash) + unknownFields.hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static alluxio.proto.journal.KeyValue.DeleteStoreEntry parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static alluxio.proto.journal.KeyValue.DeleteStoreEntry parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
     public static alluxio.proto.journal.KeyValue.DeleteStoreEntry parseFrom(
         com.google.protobuf.ByteString data)
         throws com.google.protobuf.InvalidProtocolBufferException {
@@ -1985,65 +2294,77 @@ public final class KeyValue {
     }
     public static alluxio.proto.journal.KeyValue.DeleteStoreEntry parseFrom(java.io.InputStream input)
         throws java.io.IOException {
-      return PARSER.parseFrom(input);
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
     }
     public static alluxio.proto.journal.KeyValue.DeleteStoreEntry parseFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
-      return PARSER.parseFrom(input, extensionRegistry);
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
     }
     public static alluxio.proto.journal.KeyValue.DeleteStoreEntry parseDelimitedFrom(java.io.InputStream input)
         throws java.io.IOException {
-      return PARSER.parseDelimitedFrom(input);
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input);
     }
     public static alluxio.proto.journal.KeyValue.DeleteStoreEntry parseDelimitedFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
-      return PARSER.parseDelimitedFrom(input, extensionRegistry);
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
     }
     public static alluxio.proto.journal.KeyValue.DeleteStoreEntry parseFrom(
         com.google.protobuf.CodedInputStream input)
         throws java.io.IOException {
-      return PARSER.parseFrom(input);
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
     }
     public static alluxio.proto.journal.KeyValue.DeleteStoreEntry parseFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
-      return PARSER.parseFrom(input, extensionRegistry);
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
-    public static Builder newBuilder() { return Builder.create(); }
     public Builder newBuilderForType() { return newBuilder(); }
-    public static Builder newBuilder(alluxio.proto.journal.KeyValue.DeleteStoreEntry prototype) {
-      return newBuilder().mergeFrom(prototype);
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
     }
-    public Builder toBuilder() { return newBuilder(this); }
+    public static Builder newBuilder(alluxio.proto.journal.KeyValue.DeleteStoreEntry prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
 
     @java.lang.Override
     protected Builder newBuilderForType(
-        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
       Builder builder = new Builder(parent);
       return builder;
     }
     /**
-     * Protobuf type {@code alluxio.proto.journal.DeleteStoreEntry}
-     *
      * <pre>
      * next available id: 2
      * </pre>
+     *
+     * Protobuf type {@code alluxio.proto.journal.DeleteStoreEntry}
      */
     public static final class Builder extends
-        com.google.protobuf.GeneratedMessage.Builder<Builder>
-       implements alluxio.proto.journal.KeyValue.DeleteStoreEntryOrBuilder {
+        com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:alluxio.proto.journal.DeleteStoreEntry)
+        alluxio.proto.journal.KeyValue.DeleteStoreEntryOrBuilder {
       public static final com.google.protobuf.Descriptors.Descriptor
           getDescriptor() {
         return alluxio.proto.journal.KeyValue.internal_static_alluxio_proto_journal_DeleteStoreEntry_descriptor;
       }
 
-      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return alluxio.proto.journal.KeyValue.internal_static_alluxio_proto_journal_DeleteStoreEntry_fieldAccessorTable
             .ensureFieldAccessorsInitialized(
@@ -2056,27 +2377,20 @@ public final class KeyValue {
       }
 
       private Builder(
-          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+          com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
         super(parent);
         maybeForceBuilderInitialization();
       }
       private void maybeForceBuilderInitialization() {
-        if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
+        if (com.google.protobuf.GeneratedMessageV3
+                .alwaysUseFieldBuilders) {
         }
       }
-      private static Builder create() {
-        return new Builder();
-      }
-
       public Builder clear() {
         super.clear();
         storeId_ = 0L;
         bitField0_ = (bitField0_ & ~0x00000001);
         return this;
-      }
-
-      public Builder clone() {
-        return create().mergeFrom(buildPartial());
       }
 
       public com.google.protobuf.Descriptors.Descriptor
@@ -2109,6 +2423,32 @@ public final class KeyValue {
         return result;
       }
 
+      public Builder clone() {
+        return (Builder) super.clone();
+      }
+      public Builder setField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.setField(field, value);
+      }
+      public Builder clearField(
+          com.google.protobuf.Descriptors.FieldDescriptor field) {
+        return (Builder) super.clearField(field);
+      }
+      public Builder clearOneof(
+          com.google.protobuf.Descriptors.OneofDescriptor oneof) {
+        return (Builder) super.clearOneof(oneof);
+      }
+      public Builder setRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          int index, java.lang.Object value) {
+        return (Builder) super.setRepeatedField(field, index, value);
+      }
+      public Builder addRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.addRepeatedField(field, value);
+      }
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof alluxio.proto.journal.KeyValue.DeleteStoreEntry) {
           return mergeFrom((alluxio.proto.journal.KeyValue.DeleteStoreEntry)other);
@@ -2123,7 +2463,8 @@ public final class KeyValue {
         if (other.hasStoreId()) {
           setStoreId(other.getStoreId());
         }
-        this.mergeUnknownFields(other.getUnknownFields());
+        this.mergeUnknownFields(other.unknownFields);
+        onChanged();
         return this;
       }
 
@@ -2140,7 +2481,7 @@ public final class KeyValue {
           parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
         } catch (com.google.protobuf.InvalidProtocolBufferException e) {
           parsedMessage = (alluxio.proto.journal.KeyValue.DeleteStoreEntry) e.getUnfinishedMessage();
-          throw e;
+          throw e.unwrapIOException();
         } finally {
           if (parsedMessage != null) {
             mergeFrom(parsedMessage);
@@ -2150,7 +2491,6 @@ public final class KeyValue {
       }
       private int bitField0_;
 
-      // optional int64 store_id = 1;
       private long storeId_ ;
       /**
        * <code>optional int64 store_id = 1;</code>
@@ -2182,22 +2522,59 @@ public final class KeyValue {
         onChanged();
         return this;
       }
+      public final Builder setUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.setUnknownFields(unknownFields);
+      }
+
+      public final Builder mergeUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.mergeUnknownFields(unknownFields);
+      }
+
 
       // @@protoc_insertion_point(builder_scope:alluxio.proto.journal.DeleteStoreEntry)
     }
 
+    // @@protoc_insertion_point(class_scope:alluxio.proto.journal.DeleteStoreEntry)
+    private static final alluxio.proto.journal.KeyValue.DeleteStoreEntry DEFAULT_INSTANCE;
     static {
-      defaultInstance = new DeleteStoreEntry(true);
-      defaultInstance.initFields();
+      DEFAULT_INSTANCE = new alluxio.proto.journal.KeyValue.DeleteStoreEntry();
     }
 
-    // @@protoc_insertion_point(class_scope:alluxio.proto.journal.DeleteStoreEntry)
+    public static alluxio.proto.journal.KeyValue.DeleteStoreEntry getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    @java.lang.Deprecated public static final com.google.protobuf.Parser<DeleteStoreEntry>
+        PARSER = new com.google.protobuf.AbstractParser<DeleteStoreEntry>() {
+      public DeleteStoreEntry parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return new DeleteStoreEntry(input, extensionRegistry);
+      }
+    };
+
+    public static com.google.protobuf.Parser<DeleteStoreEntry> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<DeleteStoreEntry> getParserForType() {
+      return PARSER;
+    }
+
+    public alluxio.proto.journal.KeyValue.DeleteStoreEntry getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
   }
 
-  public interface RenameStoreEntryOrBuilder
-      extends com.google.protobuf.MessageOrBuilder {
+  public interface RenameStoreEntryOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:alluxio.proto.journal.RenameStoreEntry)
+      com.google.protobuf.MessageOrBuilder {
 
-    // optional int64 old_store_id = 1;
     /**
      * <code>optional int64 old_store_id = 1;</code>
      */
@@ -2207,7 +2584,6 @@ public final class KeyValue {
      */
     long getOldStoreId();
 
-    // optional int64 new_store_id = 2;
     /**
      * <code>optional int64 new_store_id = 2;</code>
      */
@@ -2218,42 +2594,39 @@ public final class KeyValue {
     long getNewStoreId();
   }
   /**
-   * Protobuf type {@code alluxio.proto.journal.RenameStoreEntry}
-   *
    * <pre>
    * next available id: 3
    * </pre>
+   *
+   * Protobuf type {@code alluxio.proto.journal.RenameStoreEntry}
    */
-  public static final class RenameStoreEntry extends
-      com.google.protobuf.GeneratedMessage
-      implements RenameStoreEntryOrBuilder {
+  public  static final class RenameStoreEntry extends
+      com.google.protobuf.GeneratedMessageV3 implements
+      // @@protoc_insertion_point(message_implements:alluxio.proto.journal.RenameStoreEntry)
+      RenameStoreEntryOrBuilder {
+  private static final long serialVersionUID = 0L;
     // Use RenameStoreEntry.newBuilder() to construct.
-    private RenameStoreEntry(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+    private RenameStoreEntry(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
       super(builder);
-      this.unknownFields = builder.getUnknownFields();
     }
-    private RenameStoreEntry(boolean noInit) { this.unknownFields = com.google.protobuf.UnknownFieldSet.getDefaultInstance(); }
-
-    private static final RenameStoreEntry defaultInstance;
-    public static RenameStoreEntry getDefaultInstance() {
-      return defaultInstance;
+    private RenameStoreEntry() {
+      oldStoreId_ = 0L;
+      newStoreId_ = 0L;
     }
 
-    public RenameStoreEntry getDefaultInstanceForType() {
-      return defaultInstance;
-    }
-
-    private final com.google.protobuf.UnknownFieldSet unknownFields;
     @java.lang.Override
     public final com.google.protobuf.UnknownFieldSet
-        getUnknownFields() {
+    getUnknownFields() {
       return this.unknownFields;
     }
     private RenameStoreEntry(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
-      initFields();
+      this();
+      if (extensionRegistry == null) {
+        throw new java.lang.NullPointerException();
+      }
       int mutable_bitField0_ = 0;
       com.google.protobuf.UnknownFieldSet.Builder unknownFields =
           com.google.protobuf.UnknownFieldSet.newBuilder();
@@ -2266,8 +2639,8 @@ public final class KeyValue {
               done = true;
               break;
             default: {
-              if (!parseUnknownField(input, unknownFields,
-                                     extensionRegistry, tag)) {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
                 done = true;
               }
               break;
@@ -2288,7 +2661,7 @@ public final class KeyValue {
         throw e.setUnfinishedMessage(this);
       } catch (java.io.IOException e) {
         throw new com.google.protobuf.InvalidProtocolBufferException(
-            e.getMessage()).setUnfinishedMessage(this);
+            e).setUnfinishedMessage(this);
       } finally {
         this.unknownFields = unknownFields.build();
         makeExtensionsImmutable();
@@ -2299,30 +2672,14 @@ public final class KeyValue {
       return alluxio.proto.journal.KeyValue.internal_static_alluxio_proto_journal_RenameStoreEntry_descriptor;
     }
 
-    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+    protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return alluxio.proto.journal.KeyValue.internal_static_alluxio_proto_journal_RenameStoreEntry_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
               alluxio.proto.journal.KeyValue.RenameStoreEntry.class, alluxio.proto.journal.KeyValue.RenameStoreEntry.Builder.class);
     }
 
-    public static com.google.protobuf.Parser<RenameStoreEntry> PARSER =
-        new com.google.protobuf.AbstractParser<RenameStoreEntry>() {
-      public RenameStoreEntry parsePartialFrom(
-          com.google.protobuf.CodedInputStream input,
-          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-          throws com.google.protobuf.InvalidProtocolBufferException {
-        return new RenameStoreEntry(input, extensionRegistry);
-      }
-    };
-
-    @java.lang.Override
-    public com.google.protobuf.Parser<RenameStoreEntry> getParserForType() {
-      return PARSER;
-    }
-
     private int bitField0_;
-    // optional int64 old_store_id = 1;
     public static final int OLD_STORE_ID_FIELD_NUMBER = 1;
     private long oldStoreId_;
     /**
@@ -2338,7 +2695,6 @@ public final class KeyValue {
       return oldStoreId_;
     }
 
-    // optional int64 new_store_id = 2;
     public static final int NEW_STORE_ID_FIELD_NUMBER = 2;
     private long newStoreId_;
     /**
@@ -2354,14 +2710,11 @@ public final class KeyValue {
       return newStoreId_;
     }
 
-    private void initFields() {
-      oldStoreId_ = 0L;
-      newStoreId_ = 0L;
-    }
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
-      if (isInitialized != -1) return isInitialized == 1;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
 
       memoizedIsInitialized = 1;
       return true;
@@ -2369,19 +2722,17 @@ public final class KeyValue {
 
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
-      getSerializedSize();
       if (((bitField0_ & 0x00000001) == 0x00000001)) {
         output.writeInt64(1, oldStoreId_);
       }
       if (((bitField0_ & 0x00000002) == 0x00000002)) {
         output.writeInt64(2, newStoreId_);
       }
-      getUnknownFields().writeTo(output);
+      unknownFields.writeTo(output);
     }
 
-    private int memoizedSerializedSize = -1;
     public int getSerializedSize() {
-      int size = memoizedSerializedSize;
+      int size = memoizedSize;
       if (size != -1) return size;
 
       size = 0;
@@ -2393,18 +2744,69 @@ public final class KeyValue {
         size += com.google.protobuf.CodedOutputStream
           .computeInt64Size(2, newStoreId_);
       }
-      size += getUnknownFields().getSerializedSize();
-      memoizedSerializedSize = size;
+      size += unknownFields.getSerializedSize();
+      memoizedSize = size;
       return size;
     }
 
-    private static final long serialVersionUID = 0L;
     @java.lang.Override
-    protected java.lang.Object writeReplace()
-        throws java.io.ObjectStreamException {
-      return super.writeReplace();
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof alluxio.proto.journal.KeyValue.RenameStoreEntry)) {
+        return super.equals(obj);
+      }
+      alluxio.proto.journal.KeyValue.RenameStoreEntry other = (alluxio.proto.journal.KeyValue.RenameStoreEntry) obj;
+
+      boolean result = true;
+      result = result && (hasOldStoreId() == other.hasOldStoreId());
+      if (hasOldStoreId()) {
+        result = result && (getOldStoreId()
+            == other.getOldStoreId());
+      }
+      result = result && (hasNewStoreId() == other.hasNewStoreId());
+      if (hasNewStoreId()) {
+        result = result && (getNewStoreId()
+            == other.getNewStoreId());
+      }
+      result = result && unknownFields.equals(other.unknownFields);
+      return result;
     }
 
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      if (hasOldStoreId()) {
+        hash = (37 * hash) + OLD_STORE_ID_FIELD_NUMBER;
+        hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+            getOldStoreId());
+      }
+      if (hasNewStoreId()) {
+        hash = (37 * hash) + NEW_STORE_ID_FIELD_NUMBER;
+        hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+            getNewStoreId());
+      }
+      hash = (29 * hash) + unknownFields.hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static alluxio.proto.journal.KeyValue.RenameStoreEntry parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static alluxio.proto.journal.KeyValue.RenameStoreEntry parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
     public static alluxio.proto.journal.KeyValue.RenameStoreEntry parseFrom(
         com.google.protobuf.ByteString data)
         throws com.google.protobuf.InvalidProtocolBufferException {
@@ -2428,65 +2830,77 @@ public final class KeyValue {
     }
     public static alluxio.proto.journal.KeyValue.RenameStoreEntry parseFrom(java.io.InputStream input)
         throws java.io.IOException {
-      return PARSER.parseFrom(input);
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
     }
     public static alluxio.proto.journal.KeyValue.RenameStoreEntry parseFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
-      return PARSER.parseFrom(input, extensionRegistry);
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
     }
     public static alluxio.proto.journal.KeyValue.RenameStoreEntry parseDelimitedFrom(java.io.InputStream input)
         throws java.io.IOException {
-      return PARSER.parseDelimitedFrom(input);
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input);
     }
     public static alluxio.proto.journal.KeyValue.RenameStoreEntry parseDelimitedFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
-      return PARSER.parseDelimitedFrom(input, extensionRegistry);
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
     }
     public static alluxio.proto.journal.KeyValue.RenameStoreEntry parseFrom(
         com.google.protobuf.CodedInputStream input)
         throws java.io.IOException {
-      return PARSER.parseFrom(input);
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
     }
     public static alluxio.proto.journal.KeyValue.RenameStoreEntry parseFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
-      return PARSER.parseFrom(input, extensionRegistry);
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
-    public static Builder newBuilder() { return Builder.create(); }
     public Builder newBuilderForType() { return newBuilder(); }
-    public static Builder newBuilder(alluxio.proto.journal.KeyValue.RenameStoreEntry prototype) {
-      return newBuilder().mergeFrom(prototype);
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
     }
-    public Builder toBuilder() { return newBuilder(this); }
+    public static Builder newBuilder(alluxio.proto.journal.KeyValue.RenameStoreEntry prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
 
     @java.lang.Override
     protected Builder newBuilderForType(
-        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
       Builder builder = new Builder(parent);
       return builder;
     }
     /**
-     * Protobuf type {@code alluxio.proto.journal.RenameStoreEntry}
-     *
      * <pre>
      * next available id: 3
      * </pre>
+     *
+     * Protobuf type {@code alluxio.proto.journal.RenameStoreEntry}
      */
     public static final class Builder extends
-        com.google.protobuf.GeneratedMessage.Builder<Builder>
-       implements alluxio.proto.journal.KeyValue.RenameStoreEntryOrBuilder {
+        com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:alluxio.proto.journal.RenameStoreEntry)
+        alluxio.proto.journal.KeyValue.RenameStoreEntryOrBuilder {
       public static final com.google.protobuf.Descriptors.Descriptor
           getDescriptor() {
         return alluxio.proto.journal.KeyValue.internal_static_alluxio_proto_journal_RenameStoreEntry_descriptor;
       }
 
-      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return alluxio.proto.journal.KeyValue.internal_static_alluxio_proto_journal_RenameStoreEntry_fieldAccessorTable
             .ensureFieldAccessorsInitialized(
@@ -2499,18 +2913,15 @@ public final class KeyValue {
       }
 
       private Builder(
-          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+          com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
         super(parent);
         maybeForceBuilderInitialization();
       }
       private void maybeForceBuilderInitialization() {
-        if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
+        if (com.google.protobuf.GeneratedMessageV3
+                .alwaysUseFieldBuilders) {
         }
       }
-      private static Builder create() {
-        return new Builder();
-      }
-
       public Builder clear() {
         super.clear();
         oldStoreId_ = 0L;
@@ -2518,10 +2929,6 @@ public final class KeyValue {
         newStoreId_ = 0L;
         bitField0_ = (bitField0_ & ~0x00000002);
         return this;
-      }
-
-      public Builder clone() {
-        return create().mergeFrom(buildPartial());
       }
 
       public com.google.protobuf.Descriptors.Descriptor
@@ -2558,6 +2965,32 @@ public final class KeyValue {
         return result;
       }
 
+      public Builder clone() {
+        return (Builder) super.clone();
+      }
+      public Builder setField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.setField(field, value);
+      }
+      public Builder clearField(
+          com.google.protobuf.Descriptors.FieldDescriptor field) {
+        return (Builder) super.clearField(field);
+      }
+      public Builder clearOneof(
+          com.google.protobuf.Descriptors.OneofDescriptor oneof) {
+        return (Builder) super.clearOneof(oneof);
+      }
+      public Builder setRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          int index, java.lang.Object value) {
+        return (Builder) super.setRepeatedField(field, index, value);
+      }
+      public Builder addRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.addRepeatedField(field, value);
+      }
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof alluxio.proto.journal.KeyValue.RenameStoreEntry) {
           return mergeFrom((alluxio.proto.journal.KeyValue.RenameStoreEntry)other);
@@ -2575,7 +3008,8 @@ public final class KeyValue {
         if (other.hasNewStoreId()) {
           setNewStoreId(other.getNewStoreId());
         }
-        this.mergeUnknownFields(other.getUnknownFields());
+        this.mergeUnknownFields(other.unknownFields);
+        onChanged();
         return this;
       }
 
@@ -2592,7 +3026,7 @@ public final class KeyValue {
           parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
         } catch (com.google.protobuf.InvalidProtocolBufferException e) {
           parsedMessage = (alluxio.proto.journal.KeyValue.RenameStoreEntry) e.getUnfinishedMessage();
-          throw e;
+          throw e.unwrapIOException();
         } finally {
           if (parsedMessage != null) {
             mergeFrom(parsedMessage);
@@ -2602,7 +3036,6 @@ public final class KeyValue {
       }
       private int bitField0_;
 
-      // optional int64 old_store_id = 1;
       private long oldStoreId_ ;
       /**
        * <code>optional int64 old_store_id = 1;</code>
@@ -2635,7 +3068,6 @@ public final class KeyValue {
         return this;
       }
 
-      // optional int64 new_store_id = 2;
       private long newStoreId_ ;
       /**
        * <code>optional int64 new_store_id = 2;</code>
@@ -2667,22 +3099,59 @@ public final class KeyValue {
         onChanged();
         return this;
       }
+      public final Builder setUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.setUnknownFields(unknownFields);
+      }
+
+      public final Builder mergeUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.mergeUnknownFields(unknownFields);
+      }
+
 
       // @@protoc_insertion_point(builder_scope:alluxio.proto.journal.RenameStoreEntry)
     }
 
+    // @@protoc_insertion_point(class_scope:alluxio.proto.journal.RenameStoreEntry)
+    private static final alluxio.proto.journal.KeyValue.RenameStoreEntry DEFAULT_INSTANCE;
     static {
-      defaultInstance = new RenameStoreEntry(true);
-      defaultInstance.initFields();
+      DEFAULT_INSTANCE = new alluxio.proto.journal.KeyValue.RenameStoreEntry();
     }
 
-    // @@protoc_insertion_point(class_scope:alluxio.proto.journal.RenameStoreEntry)
+    public static alluxio.proto.journal.KeyValue.RenameStoreEntry getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    @java.lang.Deprecated public static final com.google.protobuf.Parser<RenameStoreEntry>
+        PARSER = new com.google.protobuf.AbstractParser<RenameStoreEntry>() {
+      public RenameStoreEntry parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return new RenameStoreEntry(input, extensionRegistry);
+      }
+    };
+
+    public static com.google.protobuf.Parser<RenameStoreEntry> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<RenameStoreEntry> getParserForType() {
+      return PARSER;
+    }
+
+    public alluxio.proto.journal.KeyValue.RenameStoreEntry getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
   }
 
-  public interface MergeStoreEntryOrBuilder
-      extends com.google.protobuf.MessageOrBuilder {
+  public interface MergeStoreEntryOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:alluxio.proto.journal.MergeStoreEntry)
+      com.google.protobuf.MessageOrBuilder {
 
-    // optional int64 from_store_id = 1;
     /**
      * <code>optional int64 from_store_id = 1;</code>
      */
@@ -2692,7 +3161,6 @@ public final class KeyValue {
      */
     long getFromStoreId();
 
-    // optional int64 to_store_id = 2;
     /**
      * <code>optional int64 to_store_id = 2;</code>
      */
@@ -2703,42 +3171,39 @@ public final class KeyValue {
     long getToStoreId();
   }
   /**
-   * Protobuf type {@code alluxio.proto.journal.MergeStoreEntry}
-   *
    * <pre>
    * next available id: 3
    * </pre>
+   *
+   * Protobuf type {@code alluxio.proto.journal.MergeStoreEntry}
    */
-  public static final class MergeStoreEntry extends
-      com.google.protobuf.GeneratedMessage
-      implements MergeStoreEntryOrBuilder {
+  public  static final class MergeStoreEntry extends
+      com.google.protobuf.GeneratedMessageV3 implements
+      // @@protoc_insertion_point(message_implements:alluxio.proto.journal.MergeStoreEntry)
+      MergeStoreEntryOrBuilder {
+  private static final long serialVersionUID = 0L;
     // Use MergeStoreEntry.newBuilder() to construct.
-    private MergeStoreEntry(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+    private MergeStoreEntry(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
       super(builder);
-      this.unknownFields = builder.getUnknownFields();
     }
-    private MergeStoreEntry(boolean noInit) { this.unknownFields = com.google.protobuf.UnknownFieldSet.getDefaultInstance(); }
-
-    private static final MergeStoreEntry defaultInstance;
-    public static MergeStoreEntry getDefaultInstance() {
-      return defaultInstance;
+    private MergeStoreEntry() {
+      fromStoreId_ = 0L;
+      toStoreId_ = 0L;
     }
 
-    public MergeStoreEntry getDefaultInstanceForType() {
-      return defaultInstance;
-    }
-
-    private final com.google.protobuf.UnknownFieldSet unknownFields;
     @java.lang.Override
     public final com.google.protobuf.UnknownFieldSet
-        getUnknownFields() {
+    getUnknownFields() {
       return this.unknownFields;
     }
     private MergeStoreEntry(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
-      initFields();
+      this();
+      if (extensionRegistry == null) {
+        throw new java.lang.NullPointerException();
+      }
       int mutable_bitField0_ = 0;
       com.google.protobuf.UnknownFieldSet.Builder unknownFields =
           com.google.protobuf.UnknownFieldSet.newBuilder();
@@ -2751,8 +3216,8 @@ public final class KeyValue {
               done = true;
               break;
             default: {
-              if (!parseUnknownField(input, unknownFields,
-                                     extensionRegistry, tag)) {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
                 done = true;
               }
               break;
@@ -2773,7 +3238,7 @@ public final class KeyValue {
         throw e.setUnfinishedMessage(this);
       } catch (java.io.IOException e) {
         throw new com.google.protobuf.InvalidProtocolBufferException(
-            e.getMessage()).setUnfinishedMessage(this);
+            e).setUnfinishedMessage(this);
       } finally {
         this.unknownFields = unknownFields.build();
         makeExtensionsImmutable();
@@ -2784,30 +3249,14 @@ public final class KeyValue {
       return alluxio.proto.journal.KeyValue.internal_static_alluxio_proto_journal_MergeStoreEntry_descriptor;
     }
 
-    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+    protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return alluxio.proto.journal.KeyValue.internal_static_alluxio_proto_journal_MergeStoreEntry_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
               alluxio.proto.journal.KeyValue.MergeStoreEntry.class, alluxio.proto.journal.KeyValue.MergeStoreEntry.Builder.class);
     }
 
-    public static com.google.protobuf.Parser<MergeStoreEntry> PARSER =
-        new com.google.protobuf.AbstractParser<MergeStoreEntry>() {
-      public MergeStoreEntry parsePartialFrom(
-          com.google.protobuf.CodedInputStream input,
-          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-          throws com.google.protobuf.InvalidProtocolBufferException {
-        return new MergeStoreEntry(input, extensionRegistry);
-      }
-    };
-
-    @java.lang.Override
-    public com.google.protobuf.Parser<MergeStoreEntry> getParserForType() {
-      return PARSER;
-    }
-
     private int bitField0_;
-    // optional int64 from_store_id = 1;
     public static final int FROM_STORE_ID_FIELD_NUMBER = 1;
     private long fromStoreId_;
     /**
@@ -2823,7 +3272,6 @@ public final class KeyValue {
       return fromStoreId_;
     }
 
-    // optional int64 to_store_id = 2;
     public static final int TO_STORE_ID_FIELD_NUMBER = 2;
     private long toStoreId_;
     /**
@@ -2839,14 +3287,11 @@ public final class KeyValue {
       return toStoreId_;
     }
 
-    private void initFields() {
-      fromStoreId_ = 0L;
-      toStoreId_ = 0L;
-    }
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
-      if (isInitialized != -1) return isInitialized == 1;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
 
       memoizedIsInitialized = 1;
       return true;
@@ -2854,19 +3299,17 @@ public final class KeyValue {
 
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
-      getSerializedSize();
       if (((bitField0_ & 0x00000001) == 0x00000001)) {
         output.writeInt64(1, fromStoreId_);
       }
       if (((bitField0_ & 0x00000002) == 0x00000002)) {
         output.writeInt64(2, toStoreId_);
       }
-      getUnknownFields().writeTo(output);
+      unknownFields.writeTo(output);
     }
 
-    private int memoizedSerializedSize = -1;
     public int getSerializedSize() {
-      int size = memoizedSerializedSize;
+      int size = memoizedSize;
       if (size != -1) return size;
 
       size = 0;
@@ -2878,18 +3321,69 @@ public final class KeyValue {
         size += com.google.protobuf.CodedOutputStream
           .computeInt64Size(2, toStoreId_);
       }
-      size += getUnknownFields().getSerializedSize();
-      memoizedSerializedSize = size;
+      size += unknownFields.getSerializedSize();
+      memoizedSize = size;
       return size;
     }
 
-    private static final long serialVersionUID = 0L;
     @java.lang.Override
-    protected java.lang.Object writeReplace()
-        throws java.io.ObjectStreamException {
-      return super.writeReplace();
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof alluxio.proto.journal.KeyValue.MergeStoreEntry)) {
+        return super.equals(obj);
+      }
+      alluxio.proto.journal.KeyValue.MergeStoreEntry other = (alluxio.proto.journal.KeyValue.MergeStoreEntry) obj;
+
+      boolean result = true;
+      result = result && (hasFromStoreId() == other.hasFromStoreId());
+      if (hasFromStoreId()) {
+        result = result && (getFromStoreId()
+            == other.getFromStoreId());
+      }
+      result = result && (hasToStoreId() == other.hasToStoreId());
+      if (hasToStoreId()) {
+        result = result && (getToStoreId()
+            == other.getToStoreId());
+      }
+      result = result && unknownFields.equals(other.unknownFields);
+      return result;
     }
 
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      if (hasFromStoreId()) {
+        hash = (37 * hash) + FROM_STORE_ID_FIELD_NUMBER;
+        hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+            getFromStoreId());
+      }
+      if (hasToStoreId()) {
+        hash = (37 * hash) + TO_STORE_ID_FIELD_NUMBER;
+        hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+            getToStoreId());
+      }
+      hash = (29 * hash) + unknownFields.hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static alluxio.proto.journal.KeyValue.MergeStoreEntry parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static alluxio.proto.journal.KeyValue.MergeStoreEntry parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
     public static alluxio.proto.journal.KeyValue.MergeStoreEntry parseFrom(
         com.google.protobuf.ByteString data)
         throws com.google.protobuf.InvalidProtocolBufferException {
@@ -2913,65 +3407,77 @@ public final class KeyValue {
     }
     public static alluxio.proto.journal.KeyValue.MergeStoreEntry parseFrom(java.io.InputStream input)
         throws java.io.IOException {
-      return PARSER.parseFrom(input);
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
     }
     public static alluxio.proto.journal.KeyValue.MergeStoreEntry parseFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
-      return PARSER.parseFrom(input, extensionRegistry);
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
     }
     public static alluxio.proto.journal.KeyValue.MergeStoreEntry parseDelimitedFrom(java.io.InputStream input)
         throws java.io.IOException {
-      return PARSER.parseDelimitedFrom(input);
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input);
     }
     public static alluxio.proto.journal.KeyValue.MergeStoreEntry parseDelimitedFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
-      return PARSER.parseDelimitedFrom(input, extensionRegistry);
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
     }
     public static alluxio.proto.journal.KeyValue.MergeStoreEntry parseFrom(
         com.google.protobuf.CodedInputStream input)
         throws java.io.IOException {
-      return PARSER.parseFrom(input);
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
     }
     public static alluxio.proto.journal.KeyValue.MergeStoreEntry parseFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
-      return PARSER.parseFrom(input, extensionRegistry);
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
-    public static Builder newBuilder() { return Builder.create(); }
     public Builder newBuilderForType() { return newBuilder(); }
-    public static Builder newBuilder(alluxio.proto.journal.KeyValue.MergeStoreEntry prototype) {
-      return newBuilder().mergeFrom(prototype);
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
     }
-    public Builder toBuilder() { return newBuilder(this); }
+    public static Builder newBuilder(alluxio.proto.journal.KeyValue.MergeStoreEntry prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
 
     @java.lang.Override
     protected Builder newBuilderForType(
-        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
       Builder builder = new Builder(parent);
       return builder;
     }
     /**
-     * Protobuf type {@code alluxio.proto.journal.MergeStoreEntry}
-     *
      * <pre>
      * next available id: 3
      * </pre>
+     *
+     * Protobuf type {@code alluxio.proto.journal.MergeStoreEntry}
      */
     public static final class Builder extends
-        com.google.protobuf.GeneratedMessage.Builder<Builder>
-       implements alluxio.proto.journal.KeyValue.MergeStoreEntryOrBuilder {
+        com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:alluxio.proto.journal.MergeStoreEntry)
+        alluxio.proto.journal.KeyValue.MergeStoreEntryOrBuilder {
       public static final com.google.protobuf.Descriptors.Descriptor
           getDescriptor() {
         return alluxio.proto.journal.KeyValue.internal_static_alluxio_proto_journal_MergeStoreEntry_descriptor;
       }
 
-      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return alluxio.proto.journal.KeyValue.internal_static_alluxio_proto_journal_MergeStoreEntry_fieldAccessorTable
             .ensureFieldAccessorsInitialized(
@@ -2984,18 +3490,15 @@ public final class KeyValue {
       }
 
       private Builder(
-          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+          com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
         super(parent);
         maybeForceBuilderInitialization();
       }
       private void maybeForceBuilderInitialization() {
-        if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
+        if (com.google.protobuf.GeneratedMessageV3
+                .alwaysUseFieldBuilders) {
         }
       }
-      private static Builder create() {
-        return new Builder();
-      }
-
       public Builder clear() {
         super.clear();
         fromStoreId_ = 0L;
@@ -3003,10 +3506,6 @@ public final class KeyValue {
         toStoreId_ = 0L;
         bitField0_ = (bitField0_ & ~0x00000002);
         return this;
-      }
-
-      public Builder clone() {
-        return create().mergeFrom(buildPartial());
       }
 
       public com.google.protobuf.Descriptors.Descriptor
@@ -3043,6 +3542,32 @@ public final class KeyValue {
         return result;
       }
 
+      public Builder clone() {
+        return (Builder) super.clone();
+      }
+      public Builder setField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.setField(field, value);
+      }
+      public Builder clearField(
+          com.google.protobuf.Descriptors.FieldDescriptor field) {
+        return (Builder) super.clearField(field);
+      }
+      public Builder clearOneof(
+          com.google.protobuf.Descriptors.OneofDescriptor oneof) {
+        return (Builder) super.clearOneof(oneof);
+      }
+      public Builder setRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          int index, java.lang.Object value) {
+        return (Builder) super.setRepeatedField(field, index, value);
+      }
+      public Builder addRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.addRepeatedField(field, value);
+      }
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof alluxio.proto.journal.KeyValue.MergeStoreEntry) {
           return mergeFrom((alluxio.proto.journal.KeyValue.MergeStoreEntry)other);
@@ -3060,7 +3585,8 @@ public final class KeyValue {
         if (other.hasToStoreId()) {
           setToStoreId(other.getToStoreId());
         }
-        this.mergeUnknownFields(other.getUnknownFields());
+        this.mergeUnknownFields(other.unknownFields);
+        onChanged();
         return this;
       }
 
@@ -3077,7 +3603,7 @@ public final class KeyValue {
           parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
         } catch (com.google.protobuf.InvalidProtocolBufferException e) {
           parsedMessage = (alluxio.proto.journal.KeyValue.MergeStoreEntry) e.getUnfinishedMessage();
-          throw e;
+          throw e.unwrapIOException();
         } finally {
           if (parsedMessage != null) {
             mergeFrom(parsedMessage);
@@ -3087,7 +3613,6 @@ public final class KeyValue {
       }
       private int bitField0_;
 
-      // optional int64 from_store_id = 1;
       private long fromStoreId_ ;
       /**
        * <code>optional int64 from_store_id = 1;</code>
@@ -3120,7 +3645,6 @@ public final class KeyValue {
         return this;
       }
 
-      // optional int64 to_store_id = 2;
       private long toStoreId_ ;
       /**
        * <code>optional int64 to_store_id = 2;</code>
@@ -3152,54 +3676,91 @@ public final class KeyValue {
         onChanged();
         return this;
       }
+      public final Builder setUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.setUnknownFields(unknownFields);
+      }
+
+      public final Builder mergeUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.mergeUnknownFields(unknownFields);
+      }
+
 
       // @@protoc_insertion_point(builder_scope:alluxio.proto.journal.MergeStoreEntry)
     }
 
+    // @@protoc_insertion_point(class_scope:alluxio.proto.journal.MergeStoreEntry)
+    private static final alluxio.proto.journal.KeyValue.MergeStoreEntry DEFAULT_INSTANCE;
     static {
-      defaultInstance = new MergeStoreEntry(true);
-      defaultInstance.initFields();
+      DEFAULT_INSTANCE = new alluxio.proto.journal.KeyValue.MergeStoreEntry();
     }
 
-    // @@protoc_insertion_point(class_scope:alluxio.proto.journal.MergeStoreEntry)
+    public static alluxio.proto.journal.KeyValue.MergeStoreEntry getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    @java.lang.Deprecated public static final com.google.protobuf.Parser<MergeStoreEntry>
+        PARSER = new com.google.protobuf.AbstractParser<MergeStoreEntry>() {
+      public MergeStoreEntry parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return new MergeStoreEntry(input, extensionRegistry);
+      }
+    };
+
+    public static com.google.protobuf.Parser<MergeStoreEntry> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<MergeStoreEntry> getParserForType() {
+      return PARSER;
+    }
+
+    public alluxio.proto.journal.KeyValue.MergeStoreEntry getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
   }
 
-  private static com.google.protobuf.Descriptors.Descriptor
+  private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_alluxio_proto_journal_CompletePartitionEntry_descriptor;
-  private static
-    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+  private static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_alluxio_proto_journal_CompletePartitionEntry_fieldAccessorTable;
-  private static com.google.protobuf.Descriptors.Descriptor
+  private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_alluxio_proto_journal_CompleteStoreEntry_descriptor;
-  private static
-    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+  private static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_alluxio_proto_journal_CompleteStoreEntry_fieldAccessorTable;
-  private static com.google.protobuf.Descriptors.Descriptor
+  private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_alluxio_proto_journal_CreateStoreEntry_descriptor;
-  private static
-    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+  private static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_alluxio_proto_journal_CreateStoreEntry_fieldAccessorTable;
-  private static com.google.protobuf.Descriptors.Descriptor
+  private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_alluxio_proto_journal_DeleteStoreEntry_descriptor;
-  private static
-    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+  private static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_alluxio_proto_journal_DeleteStoreEntry_fieldAccessorTable;
-  private static com.google.protobuf.Descriptors.Descriptor
+  private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_alluxio_proto_journal_RenameStoreEntry_descriptor;
-  private static
-    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+  private static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_alluxio_proto_journal_RenameStoreEntry_fieldAccessorTable;
-  private static com.google.protobuf.Descriptors.Descriptor
+  private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_alluxio_proto_journal_MergeStoreEntry_descriptor;
-  private static
-    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+  private static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_alluxio_proto_journal_MergeStoreEntry_fieldAccessorTable;
 
   public static com.google.protobuf.Descriptors.FileDescriptor
       getDescriptor() {
     return descriptor;
   }
-  private static com.google.protobuf.Descriptors.FileDescriptor
+  private static  com.google.protobuf.Descriptors.FileDescriptor
       descriptor;
   static {
     java.lang.String[] descriptorData = {
@@ -3212,57 +3773,57 @@ public final class KeyValue {
       "\001 \001(\003\"$\n\020DeleteStoreEntry\022\020\n\010store_id\030\001 " +
       "\001(\003\">\n\020RenameStoreEntry\022\024\n\014old_store_id\030" +
       "\001 \001(\003\022\024\n\014new_store_id\030\002 \001(\003\"=\n\017MergeStor" +
-      "eEntry\022\025\n\rfrom_store_id\030\001 \001(\003\022\023\n\013to_stor",
+      "eEntry\022\025\n\rfrom_store_id\030\001 \001(\003\022\023\n\013to_stor" +
       "e_id\030\002 \001(\003"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
-      new com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner() {
-        public com.google.protobuf.ExtensionRegistry assignDescriptors(
-            com.google.protobuf.Descriptors.FileDescriptor root) {
-          descriptor = root;
-          internal_static_alluxio_proto_journal_CompletePartitionEntry_descriptor =
-            getDescriptor().getMessageTypes().get(0);
-          internal_static_alluxio_proto_journal_CompletePartitionEntry_fieldAccessorTable = new
-            com.google.protobuf.GeneratedMessage.FieldAccessorTable(
-              internal_static_alluxio_proto_journal_CompletePartitionEntry_descriptor,
-              new java.lang.String[] { "StoreId", "KeyStart", "KeyLimit", "BlockId", "KeyCount", });
-          internal_static_alluxio_proto_journal_CompleteStoreEntry_descriptor =
-            getDescriptor().getMessageTypes().get(1);
-          internal_static_alluxio_proto_journal_CompleteStoreEntry_fieldAccessorTable = new
-            com.google.protobuf.GeneratedMessage.FieldAccessorTable(
-              internal_static_alluxio_proto_journal_CompleteStoreEntry_descriptor,
-              new java.lang.String[] { "StoreId", });
-          internal_static_alluxio_proto_journal_CreateStoreEntry_descriptor =
-            getDescriptor().getMessageTypes().get(2);
-          internal_static_alluxio_proto_journal_CreateStoreEntry_fieldAccessorTable = new
-            com.google.protobuf.GeneratedMessage.FieldAccessorTable(
-              internal_static_alluxio_proto_journal_CreateStoreEntry_descriptor,
-              new java.lang.String[] { "StoreId", });
-          internal_static_alluxio_proto_journal_DeleteStoreEntry_descriptor =
-            getDescriptor().getMessageTypes().get(3);
-          internal_static_alluxio_proto_journal_DeleteStoreEntry_fieldAccessorTable = new
-            com.google.protobuf.GeneratedMessage.FieldAccessorTable(
-              internal_static_alluxio_proto_journal_DeleteStoreEntry_descriptor,
-              new java.lang.String[] { "StoreId", });
-          internal_static_alluxio_proto_journal_RenameStoreEntry_descriptor =
-            getDescriptor().getMessageTypes().get(4);
-          internal_static_alluxio_proto_journal_RenameStoreEntry_fieldAccessorTable = new
-            com.google.protobuf.GeneratedMessage.FieldAccessorTable(
-              internal_static_alluxio_proto_journal_RenameStoreEntry_descriptor,
-              new java.lang.String[] { "OldStoreId", "NewStoreId", });
-          internal_static_alluxio_proto_journal_MergeStoreEntry_descriptor =
-            getDescriptor().getMessageTypes().get(5);
-          internal_static_alluxio_proto_journal_MergeStoreEntry_fieldAccessorTable = new
-            com.google.protobuf.GeneratedMessage.FieldAccessorTable(
-              internal_static_alluxio_proto_journal_MergeStoreEntry_descriptor,
-              new java.lang.String[] { "FromStoreId", "ToStoreId", });
-          return null;
-        }
-      };
+        new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
+          public com.google.protobuf.ExtensionRegistry assignDescriptors(
+              com.google.protobuf.Descriptors.FileDescriptor root) {
+            descriptor = root;
+            return null;
+          }
+        };
     com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
         new com.google.protobuf.Descriptors.FileDescriptor[] {
         }, assigner);
+    internal_static_alluxio_proto_journal_CompletePartitionEntry_descriptor =
+      getDescriptor().getMessageTypes().get(0);
+    internal_static_alluxio_proto_journal_CompletePartitionEntry_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_alluxio_proto_journal_CompletePartitionEntry_descriptor,
+        new java.lang.String[] { "StoreId", "KeyStart", "KeyLimit", "BlockId", "KeyCount", });
+    internal_static_alluxio_proto_journal_CompleteStoreEntry_descriptor =
+      getDescriptor().getMessageTypes().get(1);
+    internal_static_alluxio_proto_journal_CompleteStoreEntry_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_alluxio_proto_journal_CompleteStoreEntry_descriptor,
+        new java.lang.String[] { "StoreId", });
+    internal_static_alluxio_proto_journal_CreateStoreEntry_descriptor =
+      getDescriptor().getMessageTypes().get(2);
+    internal_static_alluxio_proto_journal_CreateStoreEntry_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_alluxio_proto_journal_CreateStoreEntry_descriptor,
+        new java.lang.String[] { "StoreId", });
+    internal_static_alluxio_proto_journal_DeleteStoreEntry_descriptor =
+      getDescriptor().getMessageTypes().get(3);
+    internal_static_alluxio_proto_journal_DeleteStoreEntry_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_alluxio_proto_journal_DeleteStoreEntry_descriptor,
+        new java.lang.String[] { "StoreId", });
+    internal_static_alluxio_proto_journal_RenameStoreEntry_descriptor =
+      getDescriptor().getMessageTypes().get(4);
+    internal_static_alluxio_proto_journal_RenameStoreEntry_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_alluxio_proto_journal_RenameStoreEntry_descriptor,
+        new java.lang.String[] { "OldStoreId", "NewStoreId", });
+    internal_static_alluxio_proto_journal_MergeStoreEntry_descriptor =
+      getDescriptor().getMessageTypes().get(5);
+    internal_static_alluxio_proto_journal_MergeStoreEntry_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_alluxio_proto_journal_MergeStoreEntry_descriptor,
+        new java.lang.String[] { "FromStoreId", "ToStoreId", });
   }
 
   // @@protoc_insertion_point(outer_class_scope)

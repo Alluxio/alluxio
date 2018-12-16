@@ -6,37 +6,43 @@ package alluxio.proto.journal;
 public final class Job {
   private Job() {}
   public static void registerAllExtensions(
+      com.google.protobuf.ExtensionRegistryLite registry) {
+  }
+
+  public static void registerAllExtensions(
       com.google.protobuf.ExtensionRegistry registry) {
+    registerAllExtensions(
+        (com.google.protobuf.ExtensionRegistryLite) registry);
   }
   /**
-   * Protobuf enum {@code alluxio.proto.journal.Status}
-   *
    * <pre>
    * next available id: 6
    * </pre>
+   *
+   * Protobuf enum {@code alluxio.proto.journal.Status}
    */
   public enum Status
       implements com.google.protobuf.ProtocolMessageEnum {
     /**
      * <code>CREATED = 1;</code>
      */
-    CREATED(0, 1),
+    CREATED(1),
     /**
      * <code>CANCELED = 2;</code>
      */
-    CANCELED(1, 2),
+    CANCELED(2),
     /**
      * <code>FAILED = 3;</code>
      */
-    FAILED(2, 3),
+    FAILED(3),
     /**
      * <code>RUNNING = 4;</code>
      */
-    RUNNING(3, 4),
+    RUNNING(4),
     /**
      * <code>COMPLETED = 5;</code>
      */
-    COMPLETED(4, 5),
+    COMPLETED(5),
     ;
 
     /**
@@ -61,9 +67,19 @@ public final class Job {
     public static final int COMPLETED_VALUE = 5;
 
 
-    public final int getNumber() { return value; }
+    public final int getNumber() {
+      return value;
+    }
 
+    /**
+     * @deprecated Use {@link #forNumber(int)} instead.
+     */
+    @java.lang.Deprecated
     public static Status valueOf(int value) {
+      return forNumber(value);
+    }
+
+    public static Status forNumber(int value) {
       switch (value) {
         case 1: return CREATED;
         case 2: return CANCELED;
@@ -78,17 +94,17 @@ public final class Job {
         internalGetValueMap() {
       return internalValueMap;
     }
-    private static com.google.protobuf.Internal.EnumLiteMap<Status>
-        internalValueMap =
+    private static final com.google.protobuf.Internal.EnumLiteMap<
+        Status> internalValueMap =
           new com.google.protobuf.Internal.EnumLiteMap<Status>() {
             public Status findValueByNumber(int number) {
-              return Status.valueOf(number);
+              return Status.forNumber(number);
             }
           };
 
     public final com.google.protobuf.Descriptors.EnumValueDescriptor
         getValueDescriptor() {
-      return getDescriptor().getValues().get(index);
+      return getDescriptor().getValues().get(ordinal());
     }
     public final com.google.protobuf.Descriptors.EnumDescriptor
         getDescriptorForType() {
@@ -110,21 +126,19 @@ public final class Job {
       return VALUES[desc.getIndex()];
     }
 
-    private final int index;
     private final int value;
 
-    private Status(int index, int value) {
-      this.index = index;
+    private Status(int value) {
       this.value = value;
     }
 
     // @@protoc_insertion_point(enum_scope:alluxio.proto.journal.Status)
   }
 
-  public interface FinishJobEntryOrBuilder
-      extends com.google.protobuf.MessageOrBuilder {
+  public interface FinishJobEntryOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:alluxio.proto.journal.FinishJobEntry)
+      com.google.protobuf.MessageOrBuilder {
 
-    // optional int64 job_id = 1;
     /**
      * <code>optional int64 job_id = 1;</code>
      */
@@ -134,7 +148,6 @@ public final class Job {
      */
     long getJobId();
 
-    // repeated .alluxio.proto.journal.TaskInfo task_info = 2;
     /**
      * <code>repeated .alluxio.proto.journal.TaskInfo task_info = 2;</code>
      */
@@ -159,7 +172,6 @@ public final class Job {
     alluxio.proto.journal.Job.TaskInfoOrBuilder getTaskInfoOrBuilder(
         int index);
 
-    // optional .alluxio.proto.journal.Status status = 3;
     /**
      * <code>optional .alluxio.proto.journal.Status status = 3;</code>
      */
@@ -169,7 +181,6 @@ public final class Job {
      */
     alluxio.proto.journal.Job.Status getStatus();
 
-    // optional string error_message = 4;
     /**
      * <code>optional string error_message = 4;</code>
      */
@@ -184,7 +195,6 @@ public final class Job {
     com.google.protobuf.ByteString
         getErrorMessageBytes();
 
-    // optional string result = 5;
     /**
      * <code>optional string result = 5;</code>
      */
@@ -200,42 +210,42 @@ public final class Job {
         getResultBytes();
   }
   /**
-   * Protobuf type {@code alluxio.proto.journal.FinishJobEntry}
-   *
    * <pre>
    * next available id: 6
    * </pre>
+   *
+   * Protobuf type {@code alluxio.proto.journal.FinishJobEntry}
    */
-  public static final class FinishJobEntry extends
-      com.google.protobuf.GeneratedMessage
-      implements FinishJobEntryOrBuilder {
+  public  static final class FinishJobEntry extends
+      com.google.protobuf.GeneratedMessageV3 implements
+      // @@protoc_insertion_point(message_implements:alluxio.proto.journal.FinishJobEntry)
+      FinishJobEntryOrBuilder {
+  private static final long serialVersionUID = 0L;
     // Use FinishJobEntry.newBuilder() to construct.
-    private FinishJobEntry(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+    private FinishJobEntry(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
       super(builder);
-      this.unknownFields = builder.getUnknownFields();
     }
-    private FinishJobEntry(boolean noInit) { this.unknownFields = com.google.protobuf.UnknownFieldSet.getDefaultInstance(); }
-
-    private static final FinishJobEntry defaultInstance;
-    public static FinishJobEntry getDefaultInstance() {
-      return defaultInstance;
-    }
-
-    public FinishJobEntry getDefaultInstanceForType() {
-      return defaultInstance;
+    private FinishJobEntry() {
+      jobId_ = 0L;
+      taskInfo_ = java.util.Collections.emptyList();
+      status_ = 1;
+      errorMessage_ = "";
+      result_ = "";
     }
 
-    private final com.google.protobuf.UnknownFieldSet unknownFields;
     @java.lang.Override
     public final com.google.protobuf.UnknownFieldSet
-        getUnknownFields() {
+    getUnknownFields() {
       return this.unknownFields;
     }
     private FinishJobEntry(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
-      initFields();
+      this();
+      if (extensionRegistry == null) {
+        throw new java.lang.NullPointerException();
+      }
       int mutable_bitField0_ = 0;
       com.google.protobuf.UnknownFieldSet.Builder unknownFields =
           com.google.protobuf.UnknownFieldSet.newBuilder();
@@ -248,8 +258,8 @@ public final class Job {
               done = true;
               break;
             default: {
-              if (!parseUnknownField(input, unknownFields,
-                                     extensionRegistry, tag)) {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
                 done = true;
               }
               break;
@@ -264,7 +274,8 @@ public final class Job {
                 taskInfo_ = new java.util.ArrayList<alluxio.proto.journal.Job.TaskInfo>();
                 mutable_bitField0_ |= 0x00000002;
               }
-              taskInfo_.add(input.readMessage(alluxio.proto.journal.Job.TaskInfo.PARSER, extensionRegistry));
+              taskInfo_.add(
+                  input.readMessage(alluxio.proto.journal.Job.TaskInfo.PARSER, extensionRegistry));
               break;
             }
             case 24: {
@@ -274,18 +285,20 @@ public final class Job {
                 unknownFields.mergeVarintField(3, rawValue);
               } else {
                 bitField0_ |= 0x00000002;
-                status_ = value;
+                status_ = rawValue;
               }
               break;
             }
             case 34: {
+              com.google.protobuf.ByteString bs = input.readBytes();
               bitField0_ |= 0x00000004;
-              errorMessage_ = input.readBytes();
+              errorMessage_ = bs;
               break;
             }
             case 42: {
+              com.google.protobuf.ByteString bs = input.readBytes();
               bitField0_ |= 0x00000008;
-              result_ = input.readBytes();
+              result_ = bs;
               break;
             }
           }
@@ -294,7 +307,7 @@ public final class Job {
         throw e.setUnfinishedMessage(this);
       } catch (java.io.IOException e) {
         throw new com.google.protobuf.InvalidProtocolBufferException(
-            e.getMessage()).setUnfinishedMessage(this);
+            e).setUnfinishedMessage(this);
       } finally {
         if (((mutable_bitField0_ & 0x00000002) == 0x00000002)) {
           taskInfo_ = java.util.Collections.unmodifiableList(taskInfo_);
@@ -308,30 +321,14 @@ public final class Job {
       return alluxio.proto.journal.Job.internal_static_alluxio_proto_journal_FinishJobEntry_descriptor;
     }
 
-    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+    protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return alluxio.proto.journal.Job.internal_static_alluxio_proto_journal_FinishJobEntry_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
               alluxio.proto.journal.Job.FinishJobEntry.class, alluxio.proto.journal.Job.FinishJobEntry.Builder.class);
     }
 
-    public static com.google.protobuf.Parser<FinishJobEntry> PARSER =
-        new com.google.protobuf.AbstractParser<FinishJobEntry>() {
-      public FinishJobEntry parsePartialFrom(
-          com.google.protobuf.CodedInputStream input,
-          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-          throws com.google.protobuf.InvalidProtocolBufferException {
-        return new FinishJobEntry(input, extensionRegistry);
-      }
-    };
-
-    @java.lang.Override
-    public com.google.protobuf.Parser<FinishJobEntry> getParserForType() {
-      return PARSER;
-    }
-
     private int bitField0_;
-    // optional int64 job_id = 1;
     public static final int JOB_ID_FIELD_NUMBER = 1;
     private long jobId_;
     /**
@@ -347,7 +344,6 @@ public final class Job {
       return jobId_;
     }
 
-    // repeated .alluxio.proto.journal.TaskInfo task_info = 2;
     public static final int TASK_INFO_FIELD_NUMBER = 2;
     private java.util.List<alluxio.proto.journal.Job.TaskInfo> taskInfo_;
     /**
@@ -383,9 +379,8 @@ public final class Job {
       return taskInfo_.get(index);
     }
 
-    // optional .alluxio.proto.journal.Status status = 3;
     public static final int STATUS_FIELD_NUMBER = 3;
-    private alluxio.proto.journal.Job.Status status_;
+    private int status_;
     /**
      * <code>optional .alluxio.proto.journal.Status status = 3;</code>
      */
@@ -396,12 +391,12 @@ public final class Job {
      * <code>optional .alluxio.proto.journal.Status status = 3;</code>
      */
     public alluxio.proto.journal.Job.Status getStatus() {
-      return status_;
+      alluxio.proto.journal.Job.Status result = alluxio.proto.journal.Job.Status.valueOf(status_);
+      return result == null ? alluxio.proto.journal.Job.Status.CREATED : result;
     }
 
-    // optional string error_message = 4;
     public static final int ERROR_MESSAGE_FIELD_NUMBER = 4;
-    private java.lang.Object errorMessage_;
+    private volatile java.lang.Object errorMessage_;
     /**
      * <code>optional string error_message = 4;</code>
      */
@@ -442,9 +437,8 @@ public final class Job {
       }
     }
 
-    // optional string result = 5;
     public static final int RESULT_FIELD_NUMBER = 5;
-    private java.lang.Object result_;
+    private volatile java.lang.Object result_;
     /**
      * <code>optional string result = 5;</code>
      */
@@ -485,17 +479,11 @@ public final class Job {
       }
     }
 
-    private void initFields() {
-      jobId_ = 0L;
-      taskInfo_ = java.util.Collections.emptyList();
-      status_ = alluxio.proto.journal.Job.Status.CREATED;
-      errorMessage_ = "";
-      result_ = "";
-    }
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
-      if (isInitialized != -1) return isInitialized == 1;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
 
       memoizedIsInitialized = 1;
       return true;
@@ -503,7 +491,6 @@ public final class Job {
 
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
-      getSerializedSize();
       if (((bitField0_ & 0x00000001) == 0x00000001)) {
         output.writeInt64(1, jobId_);
       }
@@ -511,20 +498,19 @@ public final class Job {
         output.writeMessage(2, taskInfo_.get(i));
       }
       if (((bitField0_ & 0x00000002) == 0x00000002)) {
-        output.writeEnum(3, status_.getNumber());
+        output.writeEnum(3, status_);
       }
       if (((bitField0_ & 0x00000004) == 0x00000004)) {
-        output.writeBytes(4, getErrorMessageBytes());
+        com.google.protobuf.GeneratedMessageV3.writeString(output, 4, errorMessage_);
       }
       if (((bitField0_ & 0x00000008) == 0x00000008)) {
-        output.writeBytes(5, getResultBytes());
+        com.google.protobuf.GeneratedMessageV3.writeString(output, 5, result_);
       }
-      getUnknownFields().writeTo(output);
+      unknownFields.writeTo(output);
     }
 
-    private int memoizedSerializedSize = -1;
     public int getSerializedSize() {
-      int size = memoizedSerializedSize;
+      int size = memoizedSize;
       if (size != -1) return size;
 
       size = 0;
@@ -538,28 +524,99 @@ public final class Job {
       }
       if (((bitField0_ & 0x00000002) == 0x00000002)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeEnumSize(3, status_.getNumber());
+          .computeEnumSize(3, status_);
       }
       if (((bitField0_ & 0x00000004) == 0x00000004)) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeBytesSize(4, getErrorMessageBytes());
+        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(4, errorMessage_);
       }
       if (((bitField0_ & 0x00000008) == 0x00000008)) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeBytesSize(5, getResultBytes());
+        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(5, result_);
       }
-      size += getUnknownFields().getSerializedSize();
-      memoizedSerializedSize = size;
+      size += unknownFields.getSerializedSize();
+      memoizedSize = size;
       return size;
     }
 
-    private static final long serialVersionUID = 0L;
     @java.lang.Override
-    protected java.lang.Object writeReplace()
-        throws java.io.ObjectStreamException {
-      return super.writeReplace();
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof alluxio.proto.journal.Job.FinishJobEntry)) {
+        return super.equals(obj);
+      }
+      alluxio.proto.journal.Job.FinishJobEntry other = (alluxio.proto.journal.Job.FinishJobEntry) obj;
+
+      boolean result = true;
+      result = result && (hasJobId() == other.hasJobId());
+      if (hasJobId()) {
+        result = result && (getJobId()
+            == other.getJobId());
+      }
+      result = result && getTaskInfoList()
+          .equals(other.getTaskInfoList());
+      result = result && (hasStatus() == other.hasStatus());
+      if (hasStatus()) {
+        result = result && status_ == other.status_;
+      }
+      result = result && (hasErrorMessage() == other.hasErrorMessage());
+      if (hasErrorMessage()) {
+        result = result && getErrorMessage()
+            .equals(other.getErrorMessage());
+      }
+      result = result && (hasResult() == other.hasResult());
+      if (hasResult()) {
+        result = result && getResult()
+            .equals(other.getResult());
+      }
+      result = result && unknownFields.equals(other.unknownFields);
+      return result;
     }
 
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      if (hasJobId()) {
+        hash = (37 * hash) + JOB_ID_FIELD_NUMBER;
+        hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+            getJobId());
+      }
+      if (getTaskInfoCount() > 0) {
+        hash = (37 * hash) + TASK_INFO_FIELD_NUMBER;
+        hash = (53 * hash) + getTaskInfoList().hashCode();
+      }
+      if (hasStatus()) {
+        hash = (37 * hash) + STATUS_FIELD_NUMBER;
+        hash = (53 * hash) + status_;
+      }
+      if (hasErrorMessage()) {
+        hash = (37 * hash) + ERROR_MESSAGE_FIELD_NUMBER;
+        hash = (53 * hash) + getErrorMessage().hashCode();
+      }
+      if (hasResult()) {
+        hash = (37 * hash) + RESULT_FIELD_NUMBER;
+        hash = (53 * hash) + getResult().hashCode();
+      }
+      hash = (29 * hash) + unknownFields.hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static alluxio.proto.journal.Job.FinishJobEntry parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static alluxio.proto.journal.Job.FinishJobEntry parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
     public static alluxio.proto.journal.Job.FinishJobEntry parseFrom(
         com.google.protobuf.ByteString data)
         throws com.google.protobuf.InvalidProtocolBufferException {
@@ -583,65 +640,77 @@ public final class Job {
     }
     public static alluxio.proto.journal.Job.FinishJobEntry parseFrom(java.io.InputStream input)
         throws java.io.IOException {
-      return PARSER.parseFrom(input);
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
     }
     public static alluxio.proto.journal.Job.FinishJobEntry parseFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
-      return PARSER.parseFrom(input, extensionRegistry);
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
     }
     public static alluxio.proto.journal.Job.FinishJobEntry parseDelimitedFrom(java.io.InputStream input)
         throws java.io.IOException {
-      return PARSER.parseDelimitedFrom(input);
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input);
     }
     public static alluxio.proto.journal.Job.FinishJobEntry parseDelimitedFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
-      return PARSER.parseDelimitedFrom(input, extensionRegistry);
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
     }
     public static alluxio.proto.journal.Job.FinishJobEntry parseFrom(
         com.google.protobuf.CodedInputStream input)
         throws java.io.IOException {
-      return PARSER.parseFrom(input);
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
     }
     public static alluxio.proto.journal.Job.FinishJobEntry parseFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
-      return PARSER.parseFrom(input, extensionRegistry);
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
-    public static Builder newBuilder() { return Builder.create(); }
     public Builder newBuilderForType() { return newBuilder(); }
-    public static Builder newBuilder(alluxio.proto.journal.Job.FinishJobEntry prototype) {
-      return newBuilder().mergeFrom(prototype);
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
     }
-    public Builder toBuilder() { return newBuilder(this); }
+    public static Builder newBuilder(alluxio.proto.journal.Job.FinishJobEntry prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
 
     @java.lang.Override
     protected Builder newBuilderForType(
-        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
       Builder builder = new Builder(parent);
       return builder;
     }
     /**
-     * Protobuf type {@code alluxio.proto.journal.FinishJobEntry}
-     *
      * <pre>
      * next available id: 6
      * </pre>
+     *
+     * Protobuf type {@code alluxio.proto.journal.FinishJobEntry}
      */
     public static final class Builder extends
-        com.google.protobuf.GeneratedMessage.Builder<Builder>
-       implements alluxio.proto.journal.Job.FinishJobEntryOrBuilder {
+        com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:alluxio.proto.journal.FinishJobEntry)
+        alluxio.proto.journal.Job.FinishJobEntryOrBuilder {
       public static final com.google.protobuf.Descriptors.Descriptor
           getDescriptor() {
         return alluxio.proto.journal.Job.internal_static_alluxio_proto_journal_FinishJobEntry_descriptor;
       }
 
-      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return alluxio.proto.journal.Job.internal_static_alluxio_proto_journal_FinishJobEntry_fieldAccessorTable
             .ensureFieldAccessorsInitialized(
@@ -654,19 +723,16 @@ public final class Job {
       }
 
       private Builder(
-          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+          com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
         super(parent);
         maybeForceBuilderInitialization();
       }
       private void maybeForceBuilderInitialization() {
-        if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
+        if (com.google.protobuf.GeneratedMessageV3
+                .alwaysUseFieldBuilders) {
           getTaskInfoFieldBuilder();
         }
       }
-      private static Builder create() {
-        return new Builder();
-      }
-
       public Builder clear() {
         super.clear();
         jobId_ = 0L;
@@ -677,17 +743,13 @@ public final class Job {
         } else {
           taskInfoBuilder_.clear();
         }
-        status_ = alluxio.proto.journal.Job.Status.CREATED;
+        status_ = 1;
         bitField0_ = (bitField0_ & ~0x00000004);
         errorMessage_ = "";
         bitField0_ = (bitField0_ & ~0x00000008);
         result_ = "";
         bitField0_ = (bitField0_ & ~0x00000010);
         return this;
-      }
-
-      public Builder clone() {
-        return create().mergeFrom(buildPartial());
       }
 
       public com.google.protobuf.Descriptors.Descriptor
@@ -741,6 +803,32 @@ public final class Job {
         return result;
       }
 
+      public Builder clone() {
+        return (Builder) super.clone();
+      }
+      public Builder setField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.setField(field, value);
+      }
+      public Builder clearField(
+          com.google.protobuf.Descriptors.FieldDescriptor field) {
+        return (Builder) super.clearField(field);
+      }
+      public Builder clearOneof(
+          com.google.protobuf.Descriptors.OneofDescriptor oneof) {
+        return (Builder) super.clearOneof(oneof);
+      }
+      public Builder setRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          int index, java.lang.Object value) {
+        return (Builder) super.setRepeatedField(field, index, value);
+      }
+      public Builder addRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.addRepeatedField(field, value);
+      }
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof alluxio.proto.journal.Job.FinishJobEntry) {
           return mergeFrom((alluxio.proto.journal.Job.FinishJobEntry)other);
@@ -774,7 +862,7 @@ public final class Job {
               taskInfo_ = other.taskInfo_;
               bitField0_ = (bitField0_ & ~0x00000002);
               taskInfoBuilder_ = 
-                com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders ?
+                com.google.protobuf.GeneratedMessageV3.alwaysUseFieldBuilders ?
                    getTaskInfoFieldBuilder() : null;
             } else {
               taskInfoBuilder_.addAllMessages(other.taskInfo_);
@@ -794,7 +882,8 @@ public final class Job {
           result_ = other.result_;
           onChanged();
         }
-        this.mergeUnknownFields(other.getUnknownFields());
+        this.mergeUnknownFields(other.unknownFields);
+        onChanged();
         return this;
       }
 
@@ -811,7 +900,7 @@ public final class Job {
           parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
         } catch (com.google.protobuf.InvalidProtocolBufferException e) {
           parsedMessage = (alluxio.proto.journal.Job.FinishJobEntry) e.getUnfinishedMessage();
-          throw e;
+          throw e.unwrapIOException();
         } finally {
           if (parsedMessage != null) {
             mergeFrom(parsedMessage);
@@ -821,7 +910,6 @@ public final class Job {
       }
       private int bitField0_;
 
-      // optional int64 job_id = 1;
       private long jobId_ ;
       /**
        * <code>optional int64 job_id = 1;</code>
@@ -854,7 +942,6 @@ public final class Job {
         return this;
       }
 
-      // repeated .alluxio.proto.journal.TaskInfo task_info = 2;
       private java.util.List<alluxio.proto.journal.Job.TaskInfo> taskInfo_ =
         java.util.Collections.emptyList();
       private void ensureTaskInfoIsMutable() {
@@ -864,7 +951,7 @@ public final class Job {
          }
       }
 
-      private com.google.protobuf.RepeatedFieldBuilder<
+      private com.google.protobuf.RepeatedFieldBuilderV3<
           alluxio.proto.journal.Job.TaskInfo, alluxio.proto.journal.Job.TaskInfo.Builder, alluxio.proto.journal.Job.TaskInfoOrBuilder> taskInfoBuilder_;
 
       /**
@@ -996,7 +1083,8 @@ public final class Job {
           java.lang.Iterable<? extends alluxio.proto.journal.Job.TaskInfo> values) {
         if (taskInfoBuilder_ == null) {
           ensureTaskInfoIsMutable();
-          super.addAll(values, taskInfo_);
+          com.google.protobuf.AbstractMessageLite.Builder.addAll(
+              values, taskInfo_);
           onChanged();
         } else {
           taskInfoBuilder_.addAllMessages(values);
@@ -1079,11 +1167,11 @@ public final class Job {
            getTaskInfoBuilderList() {
         return getTaskInfoFieldBuilder().getBuilderList();
       }
-      private com.google.protobuf.RepeatedFieldBuilder<
+      private com.google.protobuf.RepeatedFieldBuilderV3<
           alluxio.proto.journal.Job.TaskInfo, alluxio.proto.journal.Job.TaskInfo.Builder, alluxio.proto.journal.Job.TaskInfoOrBuilder> 
           getTaskInfoFieldBuilder() {
         if (taskInfoBuilder_ == null) {
-          taskInfoBuilder_ = new com.google.protobuf.RepeatedFieldBuilder<
+          taskInfoBuilder_ = new com.google.protobuf.RepeatedFieldBuilderV3<
               alluxio.proto.journal.Job.TaskInfo, alluxio.proto.journal.Job.TaskInfo.Builder, alluxio.proto.journal.Job.TaskInfoOrBuilder>(
                   taskInfo_,
                   ((bitField0_ & 0x00000002) == 0x00000002),
@@ -1094,8 +1182,7 @@ public final class Job {
         return taskInfoBuilder_;
       }
 
-      // optional .alluxio.proto.journal.Status status = 3;
-      private alluxio.proto.journal.Job.Status status_ = alluxio.proto.journal.Job.Status.CREATED;
+      private int status_ = 1;
       /**
        * <code>optional .alluxio.proto.journal.Status status = 3;</code>
        */
@@ -1106,7 +1193,8 @@ public final class Job {
        * <code>optional .alluxio.proto.journal.Status status = 3;</code>
        */
       public alluxio.proto.journal.Job.Status getStatus() {
-        return status_;
+        alluxio.proto.journal.Job.Status result = alluxio.proto.journal.Job.Status.valueOf(status_);
+        return result == null ? alluxio.proto.journal.Job.Status.CREATED : result;
       }
       /**
        * <code>optional .alluxio.proto.journal.Status status = 3;</code>
@@ -1116,7 +1204,7 @@ public final class Job {
           throw new NullPointerException();
         }
         bitField0_ |= 0x00000004;
-        status_ = value;
+        status_ = value.getNumber();
         onChanged();
         return this;
       }
@@ -1125,12 +1213,11 @@ public final class Job {
        */
       public Builder clearStatus() {
         bitField0_ = (bitField0_ & ~0x00000004);
-        status_ = alluxio.proto.journal.Job.Status.CREATED;
+        status_ = 1;
         onChanged();
         return this;
       }
 
-      // optional string error_message = 4;
       private java.lang.Object errorMessage_ = "";
       /**
        * <code>optional string error_message = 4;</code>
@@ -1144,9 +1231,12 @@ public final class Job {
       public java.lang.String getErrorMessage() {
         java.lang.Object ref = errorMessage_;
         if (!(ref instanceof java.lang.String)) {
-          java.lang.String s = ((com.google.protobuf.ByteString) ref)
-              .toStringUtf8();
-          errorMessage_ = s;
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          if (bs.isValidUtf8()) {
+            errorMessage_ = s;
+          }
           return s;
         } else {
           return (java.lang.String) ref;
@@ -1204,7 +1294,6 @@ public final class Job {
         return this;
       }
 
-      // optional string result = 5;
       private java.lang.Object result_ = "";
       /**
        * <code>optional string result = 5;</code>
@@ -1218,9 +1307,12 @@ public final class Job {
       public java.lang.String getResult() {
         java.lang.Object ref = result_;
         if (!(ref instanceof java.lang.String)) {
-          java.lang.String s = ((com.google.protobuf.ByteString) ref)
-              .toStringUtf8();
-          result_ = s;
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          if (bs.isValidUtf8()) {
+            result_ = s;
+          }
           return s;
         } else {
           return (java.lang.String) ref;
@@ -1277,22 +1369,59 @@ public final class Job {
         onChanged();
         return this;
       }
+      public final Builder setUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.setUnknownFields(unknownFields);
+      }
+
+      public final Builder mergeUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.mergeUnknownFields(unknownFields);
+      }
+
 
       // @@protoc_insertion_point(builder_scope:alluxio.proto.journal.FinishJobEntry)
     }
 
+    // @@protoc_insertion_point(class_scope:alluxio.proto.journal.FinishJobEntry)
+    private static final alluxio.proto.journal.Job.FinishJobEntry DEFAULT_INSTANCE;
     static {
-      defaultInstance = new FinishJobEntry(true);
-      defaultInstance.initFields();
+      DEFAULT_INSTANCE = new alluxio.proto.journal.Job.FinishJobEntry();
     }
 
-    // @@protoc_insertion_point(class_scope:alluxio.proto.journal.FinishJobEntry)
+    public static alluxio.proto.journal.Job.FinishJobEntry getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    @java.lang.Deprecated public static final com.google.protobuf.Parser<FinishJobEntry>
+        PARSER = new com.google.protobuf.AbstractParser<FinishJobEntry>() {
+      public FinishJobEntry parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return new FinishJobEntry(input, extensionRegistry);
+      }
+    };
+
+    public static com.google.protobuf.Parser<FinishJobEntry> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<FinishJobEntry> getParserForType() {
+      return PARSER;
+    }
+
+    public alluxio.proto.journal.Job.FinishJobEntry getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
   }
 
-  public interface StartJobEntryOrBuilder
-      extends com.google.protobuf.MessageOrBuilder {
+  public interface StartJobEntryOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:alluxio.proto.journal.StartJobEntry)
+      com.google.protobuf.MessageOrBuilder {
 
-    // optional int64 job_id = 1;
     /**
      * <code>optional int64 job_id = 1;</code>
      */
@@ -1302,7 +1431,6 @@ public final class Job {
      */
     long getJobId();
 
-    // optional string name = 2;
     /**
      * <code>optional string name = 2;</code>
      */
@@ -1317,7 +1445,6 @@ public final class Job {
     com.google.protobuf.ByteString
         getNameBytes();
 
-    // optional bytes serialized_job_config = 3;
     /**
      * <code>optional bytes serialized_job_config = 3;</code>
      */
@@ -1328,42 +1455,40 @@ public final class Job {
     com.google.protobuf.ByteString getSerializedJobConfig();
   }
   /**
-   * Protobuf type {@code alluxio.proto.journal.StartJobEntry}
-   *
    * <pre>
    * next available id: 4
    * </pre>
+   *
+   * Protobuf type {@code alluxio.proto.journal.StartJobEntry}
    */
-  public static final class StartJobEntry extends
-      com.google.protobuf.GeneratedMessage
-      implements StartJobEntryOrBuilder {
+  public  static final class StartJobEntry extends
+      com.google.protobuf.GeneratedMessageV3 implements
+      // @@protoc_insertion_point(message_implements:alluxio.proto.journal.StartJobEntry)
+      StartJobEntryOrBuilder {
+  private static final long serialVersionUID = 0L;
     // Use StartJobEntry.newBuilder() to construct.
-    private StartJobEntry(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+    private StartJobEntry(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
       super(builder);
-      this.unknownFields = builder.getUnknownFields();
     }
-    private StartJobEntry(boolean noInit) { this.unknownFields = com.google.protobuf.UnknownFieldSet.getDefaultInstance(); }
-
-    private static final StartJobEntry defaultInstance;
-    public static StartJobEntry getDefaultInstance() {
-      return defaultInstance;
+    private StartJobEntry() {
+      jobId_ = 0L;
+      name_ = "";
+      serializedJobConfig_ = com.google.protobuf.ByteString.EMPTY;
     }
 
-    public StartJobEntry getDefaultInstanceForType() {
-      return defaultInstance;
-    }
-
-    private final com.google.protobuf.UnknownFieldSet unknownFields;
     @java.lang.Override
     public final com.google.protobuf.UnknownFieldSet
-        getUnknownFields() {
+    getUnknownFields() {
       return this.unknownFields;
     }
     private StartJobEntry(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
-      initFields();
+      this();
+      if (extensionRegistry == null) {
+        throw new java.lang.NullPointerException();
+      }
       int mutable_bitField0_ = 0;
       com.google.protobuf.UnknownFieldSet.Builder unknownFields =
           com.google.protobuf.UnknownFieldSet.newBuilder();
@@ -1376,8 +1501,8 @@ public final class Job {
               done = true;
               break;
             default: {
-              if (!parseUnknownField(input, unknownFields,
-                                     extensionRegistry, tag)) {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
                 done = true;
               }
               break;
@@ -1388,8 +1513,9 @@ public final class Job {
               break;
             }
             case 18: {
+              com.google.protobuf.ByteString bs = input.readBytes();
               bitField0_ |= 0x00000002;
-              name_ = input.readBytes();
+              name_ = bs;
               break;
             }
             case 26: {
@@ -1403,7 +1529,7 @@ public final class Job {
         throw e.setUnfinishedMessage(this);
       } catch (java.io.IOException e) {
         throw new com.google.protobuf.InvalidProtocolBufferException(
-            e.getMessage()).setUnfinishedMessage(this);
+            e).setUnfinishedMessage(this);
       } finally {
         this.unknownFields = unknownFields.build();
         makeExtensionsImmutable();
@@ -1414,30 +1540,14 @@ public final class Job {
       return alluxio.proto.journal.Job.internal_static_alluxio_proto_journal_StartJobEntry_descriptor;
     }
 
-    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+    protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return alluxio.proto.journal.Job.internal_static_alluxio_proto_journal_StartJobEntry_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
               alluxio.proto.journal.Job.StartJobEntry.class, alluxio.proto.journal.Job.StartJobEntry.Builder.class);
     }
 
-    public static com.google.protobuf.Parser<StartJobEntry> PARSER =
-        new com.google.protobuf.AbstractParser<StartJobEntry>() {
-      public StartJobEntry parsePartialFrom(
-          com.google.protobuf.CodedInputStream input,
-          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-          throws com.google.protobuf.InvalidProtocolBufferException {
-        return new StartJobEntry(input, extensionRegistry);
-      }
-    };
-
-    @java.lang.Override
-    public com.google.protobuf.Parser<StartJobEntry> getParserForType() {
-      return PARSER;
-    }
-
     private int bitField0_;
-    // optional int64 job_id = 1;
     public static final int JOB_ID_FIELD_NUMBER = 1;
     private long jobId_;
     /**
@@ -1453,9 +1563,8 @@ public final class Job {
       return jobId_;
     }
 
-    // optional string name = 2;
     public static final int NAME_FIELD_NUMBER = 2;
-    private java.lang.Object name_;
+    private volatile java.lang.Object name_;
     /**
      * <code>optional string name = 2;</code>
      */
@@ -1496,7 +1605,6 @@ public final class Job {
       }
     }
 
-    // optional bytes serialized_job_config = 3;
     public static final int SERIALIZED_JOB_CONFIG_FIELD_NUMBER = 3;
     private com.google.protobuf.ByteString serializedJobConfig_;
     /**
@@ -1512,15 +1620,11 @@ public final class Job {
       return serializedJobConfig_;
     }
 
-    private void initFields() {
-      jobId_ = 0L;
-      name_ = "";
-      serializedJobConfig_ = com.google.protobuf.ByteString.EMPTY;
-    }
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
-      if (isInitialized != -1) return isInitialized == 1;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
 
       memoizedIsInitialized = 1;
       return true;
@@ -1528,22 +1632,20 @@ public final class Job {
 
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
-      getSerializedSize();
       if (((bitField0_ & 0x00000001) == 0x00000001)) {
         output.writeInt64(1, jobId_);
       }
       if (((bitField0_ & 0x00000002) == 0x00000002)) {
-        output.writeBytes(2, getNameBytes());
+        com.google.protobuf.GeneratedMessageV3.writeString(output, 2, name_);
       }
       if (((bitField0_ & 0x00000004) == 0x00000004)) {
         output.writeBytes(3, serializedJobConfig_);
       }
-      getUnknownFields().writeTo(output);
+      unknownFields.writeTo(output);
     }
 
-    private int memoizedSerializedSize = -1;
     public int getSerializedSize() {
-      int size = memoizedSerializedSize;
+      int size = memoizedSize;
       if (size != -1) return size;
 
       size = 0;
@@ -1552,25 +1654,83 @@ public final class Job {
           .computeInt64Size(1, jobId_);
       }
       if (((bitField0_ & 0x00000002) == 0x00000002)) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeBytesSize(2, getNameBytes());
+        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(2, name_);
       }
       if (((bitField0_ & 0x00000004) == 0x00000004)) {
         size += com.google.protobuf.CodedOutputStream
           .computeBytesSize(3, serializedJobConfig_);
       }
-      size += getUnknownFields().getSerializedSize();
-      memoizedSerializedSize = size;
+      size += unknownFields.getSerializedSize();
+      memoizedSize = size;
       return size;
     }
 
-    private static final long serialVersionUID = 0L;
     @java.lang.Override
-    protected java.lang.Object writeReplace()
-        throws java.io.ObjectStreamException {
-      return super.writeReplace();
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof alluxio.proto.journal.Job.StartJobEntry)) {
+        return super.equals(obj);
+      }
+      alluxio.proto.journal.Job.StartJobEntry other = (alluxio.proto.journal.Job.StartJobEntry) obj;
+
+      boolean result = true;
+      result = result && (hasJobId() == other.hasJobId());
+      if (hasJobId()) {
+        result = result && (getJobId()
+            == other.getJobId());
+      }
+      result = result && (hasName() == other.hasName());
+      if (hasName()) {
+        result = result && getName()
+            .equals(other.getName());
+      }
+      result = result && (hasSerializedJobConfig() == other.hasSerializedJobConfig());
+      if (hasSerializedJobConfig()) {
+        result = result && getSerializedJobConfig()
+            .equals(other.getSerializedJobConfig());
+      }
+      result = result && unknownFields.equals(other.unknownFields);
+      return result;
     }
 
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      if (hasJobId()) {
+        hash = (37 * hash) + JOB_ID_FIELD_NUMBER;
+        hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+            getJobId());
+      }
+      if (hasName()) {
+        hash = (37 * hash) + NAME_FIELD_NUMBER;
+        hash = (53 * hash) + getName().hashCode();
+      }
+      if (hasSerializedJobConfig()) {
+        hash = (37 * hash) + SERIALIZED_JOB_CONFIG_FIELD_NUMBER;
+        hash = (53 * hash) + getSerializedJobConfig().hashCode();
+      }
+      hash = (29 * hash) + unknownFields.hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static alluxio.proto.journal.Job.StartJobEntry parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static alluxio.proto.journal.Job.StartJobEntry parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
     public static alluxio.proto.journal.Job.StartJobEntry parseFrom(
         com.google.protobuf.ByteString data)
         throws com.google.protobuf.InvalidProtocolBufferException {
@@ -1594,65 +1754,77 @@ public final class Job {
     }
     public static alluxio.proto.journal.Job.StartJobEntry parseFrom(java.io.InputStream input)
         throws java.io.IOException {
-      return PARSER.parseFrom(input);
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
     }
     public static alluxio.proto.journal.Job.StartJobEntry parseFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
-      return PARSER.parseFrom(input, extensionRegistry);
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
     }
     public static alluxio.proto.journal.Job.StartJobEntry parseDelimitedFrom(java.io.InputStream input)
         throws java.io.IOException {
-      return PARSER.parseDelimitedFrom(input);
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input);
     }
     public static alluxio.proto.journal.Job.StartJobEntry parseDelimitedFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
-      return PARSER.parseDelimitedFrom(input, extensionRegistry);
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
     }
     public static alluxio.proto.journal.Job.StartJobEntry parseFrom(
         com.google.protobuf.CodedInputStream input)
         throws java.io.IOException {
-      return PARSER.parseFrom(input);
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
     }
     public static alluxio.proto.journal.Job.StartJobEntry parseFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
-      return PARSER.parseFrom(input, extensionRegistry);
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
-    public static Builder newBuilder() { return Builder.create(); }
     public Builder newBuilderForType() { return newBuilder(); }
-    public static Builder newBuilder(alluxio.proto.journal.Job.StartJobEntry prototype) {
-      return newBuilder().mergeFrom(prototype);
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
     }
-    public Builder toBuilder() { return newBuilder(this); }
+    public static Builder newBuilder(alluxio.proto.journal.Job.StartJobEntry prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
 
     @java.lang.Override
     protected Builder newBuilderForType(
-        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
       Builder builder = new Builder(parent);
       return builder;
     }
     /**
-     * Protobuf type {@code alluxio.proto.journal.StartJobEntry}
-     *
      * <pre>
      * next available id: 4
      * </pre>
+     *
+     * Protobuf type {@code alluxio.proto.journal.StartJobEntry}
      */
     public static final class Builder extends
-        com.google.protobuf.GeneratedMessage.Builder<Builder>
-       implements alluxio.proto.journal.Job.StartJobEntryOrBuilder {
+        com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:alluxio.proto.journal.StartJobEntry)
+        alluxio.proto.journal.Job.StartJobEntryOrBuilder {
       public static final com.google.protobuf.Descriptors.Descriptor
           getDescriptor() {
         return alluxio.proto.journal.Job.internal_static_alluxio_proto_journal_StartJobEntry_descriptor;
       }
 
-      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return alluxio.proto.journal.Job.internal_static_alluxio_proto_journal_StartJobEntry_fieldAccessorTable
             .ensureFieldAccessorsInitialized(
@@ -1665,18 +1837,15 @@ public final class Job {
       }
 
       private Builder(
-          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+          com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
         super(parent);
         maybeForceBuilderInitialization();
       }
       private void maybeForceBuilderInitialization() {
-        if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
+        if (com.google.protobuf.GeneratedMessageV3
+                .alwaysUseFieldBuilders) {
         }
       }
-      private static Builder create() {
-        return new Builder();
-      }
-
       public Builder clear() {
         super.clear();
         jobId_ = 0L;
@@ -1686,10 +1855,6 @@ public final class Job {
         serializedJobConfig_ = com.google.protobuf.ByteString.EMPTY;
         bitField0_ = (bitField0_ & ~0x00000004);
         return this;
-      }
-
-      public Builder clone() {
-        return create().mergeFrom(buildPartial());
       }
 
       public com.google.protobuf.Descriptors.Descriptor
@@ -1730,6 +1895,32 @@ public final class Job {
         return result;
       }
 
+      public Builder clone() {
+        return (Builder) super.clone();
+      }
+      public Builder setField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.setField(field, value);
+      }
+      public Builder clearField(
+          com.google.protobuf.Descriptors.FieldDescriptor field) {
+        return (Builder) super.clearField(field);
+      }
+      public Builder clearOneof(
+          com.google.protobuf.Descriptors.OneofDescriptor oneof) {
+        return (Builder) super.clearOneof(oneof);
+      }
+      public Builder setRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          int index, java.lang.Object value) {
+        return (Builder) super.setRepeatedField(field, index, value);
+      }
+      public Builder addRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.addRepeatedField(field, value);
+      }
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof alluxio.proto.journal.Job.StartJobEntry) {
           return mergeFrom((alluxio.proto.journal.Job.StartJobEntry)other);
@@ -1752,7 +1943,8 @@ public final class Job {
         if (other.hasSerializedJobConfig()) {
           setSerializedJobConfig(other.getSerializedJobConfig());
         }
-        this.mergeUnknownFields(other.getUnknownFields());
+        this.mergeUnknownFields(other.unknownFields);
+        onChanged();
         return this;
       }
 
@@ -1769,7 +1961,7 @@ public final class Job {
           parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
         } catch (com.google.protobuf.InvalidProtocolBufferException e) {
           parsedMessage = (alluxio.proto.journal.Job.StartJobEntry) e.getUnfinishedMessage();
-          throw e;
+          throw e.unwrapIOException();
         } finally {
           if (parsedMessage != null) {
             mergeFrom(parsedMessage);
@@ -1779,7 +1971,6 @@ public final class Job {
       }
       private int bitField0_;
 
-      // optional int64 job_id = 1;
       private long jobId_ ;
       /**
        * <code>optional int64 job_id = 1;</code>
@@ -1812,7 +2003,6 @@ public final class Job {
         return this;
       }
 
-      // optional string name = 2;
       private java.lang.Object name_ = "";
       /**
        * <code>optional string name = 2;</code>
@@ -1826,9 +2016,12 @@ public final class Job {
       public java.lang.String getName() {
         java.lang.Object ref = name_;
         if (!(ref instanceof java.lang.String)) {
-          java.lang.String s = ((com.google.protobuf.ByteString) ref)
-              .toStringUtf8();
-          name_ = s;
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          if (bs.isValidUtf8()) {
+            name_ = s;
+          }
           return s;
         } else {
           return (java.lang.String) ref;
@@ -1886,7 +2079,6 @@ public final class Job {
         return this;
       }
 
-      // optional bytes serialized_job_config = 3;
       private com.google.protobuf.ByteString serializedJobConfig_ = com.google.protobuf.ByteString.EMPTY;
       /**
        * <code>optional bytes serialized_job_config = 3;</code>
@@ -1921,22 +2113,59 @@ public final class Job {
         onChanged();
         return this;
       }
+      public final Builder setUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.setUnknownFields(unknownFields);
+      }
+
+      public final Builder mergeUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.mergeUnknownFields(unknownFields);
+      }
+
 
       // @@protoc_insertion_point(builder_scope:alluxio.proto.journal.StartJobEntry)
     }
 
+    // @@protoc_insertion_point(class_scope:alluxio.proto.journal.StartJobEntry)
+    private static final alluxio.proto.journal.Job.StartJobEntry DEFAULT_INSTANCE;
     static {
-      defaultInstance = new StartJobEntry(true);
-      defaultInstance.initFields();
+      DEFAULT_INSTANCE = new alluxio.proto.journal.Job.StartJobEntry();
     }
 
-    // @@protoc_insertion_point(class_scope:alluxio.proto.journal.StartJobEntry)
+    public static alluxio.proto.journal.Job.StartJobEntry getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    @java.lang.Deprecated public static final com.google.protobuf.Parser<StartJobEntry>
+        PARSER = new com.google.protobuf.AbstractParser<StartJobEntry>() {
+      public StartJobEntry parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return new StartJobEntry(input, extensionRegistry);
+      }
+    };
+
+    public static com.google.protobuf.Parser<StartJobEntry> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<StartJobEntry> getParserForType() {
+      return PARSER;
+    }
+
+    public alluxio.proto.journal.Job.StartJobEntry getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
   }
 
-  public interface TaskInfoOrBuilder
-      extends com.google.protobuf.MessageOrBuilder {
+  public interface TaskInfoOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:alluxio.proto.journal.TaskInfo)
+      com.google.protobuf.MessageOrBuilder {
 
-    // optional int64 job_id = 1;
     /**
      * <code>optional int64 job_id = 1;</code>
      */
@@ -1946,7 +2175,6 @@ public final class Job {
      */
     long getJobId();
 
-    // optional int32 task_id = 2;
     /**
      * <code>optional int32 task_id = 2;</code>
      */
@@ -1956,7 +2184,6 @@ public final class Job {
      */
     int getTaskId();
 
-    // optional .alluxio.proto.journal.Status status = 3;
     /**
      * <code>optional .alluxio.proto.journal.Status status = 3;</code>
      */
@@ -1966,7 +2193,6 @@ public final class Job {
      */
     alluxio.proto.journal.Job.Status getStatus();
 
-    // optional string error_message = 4;
     /**
      * <code>optional string error_message = 4;</code>
      */
@@ -1981,7 +2207,6 @@ public final class Job {
     com.google.protobuf.ByteString
         getErrorMessageBytes();
 
-    // optional bytes result = 5;
     /**
      * <code>optional bytes result = 5;</code>
      */
@@ -1992,42 +2217,42 @@ public final class Job {
     com.google.protobuf.ByteString getResult();
   }
   /**
-   * Protobuf type {@code alluxio.proto.journal.TaskInfo}
-   *
    * <pre>
    * next available id: 6
    * </pre>
+   *
+   * Protobuf type {@code alluxio.proto.journal.TaskInfo}
    */
-  public static final class TaskInfo extends
-      com.google.protobuf.GeneratedMessage
-      implements TaskInfoOrBuilder {
+  public  static final class TaskInfo extends
+      com.google.protobuf.GeneratedMessageV3 implements
+      // @@protoc_insertion_point(message_implements:alluxio.proto.journal.TaskInfo)
+      TaskInfoOrBuilder {
+  private static final long serialVersionUID = 0L;
     // Use TaskInfo.newBuilder() to construct.
-    private TaskInfo(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+    private TaskInfo(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
       super(builder);
-      this.unknownFields = builder.getUnknownFields();
     }
-    private TaskInfo(boolean noInit) { this.unknownFields = com.google.protobuf.UnknownFieldSet.getDefaultInstance(); }
-
-    private static final TaskInfo defaultInstance;
-    public static TaskInfo getDefaultInstance() {
-      return defaultInstance;
-    }
-
-    public TaskInfo getDefaultInstanceForType() {
-      return defaultInstance;
+    private TaskInfo() {
+      jobId_ = 0L;
+      taskId_ = 0;
+      status_ = 1;
+      errorMessage_ = "";
+      result_ = com.google.protobuf.ByteString.EMPTY;
     }
 
-    private final com.google.protobuf.UnknownFieldSet unknownFields;
     @java.lang.Override
     public final com.google.protobuf.UnknownFieldSet
-        getUnknownFields() {
+    getUnknownFields() {
       return this.unknownFields;
     }
     private TaskInfo(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
-      initFields();
+      this();
+      if (extensionRegistry == null) {
+        throw new java.lang.NullPointerException();
+      }
       int mutable_bitField0_ = 0;
       com.google.protobuf.UnknownFieldSet.Builder unknownFields =
           com.google.protobuf.UnknownFieldSet.newBuilder();
@@ -2040,8 +2265,8 @@ public final class Job {
               done = true;
               break;
             default: {
-              if (!parseUnknownField(input, unknownFields,
-                                     extensionRegistry, tag)) {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
                 done = true;
               }
               break;
@@ -2063,13 +2288,14 @@ public final class Job {
                 unknownFields.mergeVarintField(3, rawValue);
               } else {
                 bitField0_ |= 0x00000004;
-                status_ = value;
+                status_ = rawValue;
               }
               break;
             }
             case 34: {
+              com.google.protobuf.ByteString bs = input.readBytes();
               bitField0_ |= 0x00000008;
-              errorMessage_ = input.readBytes();
+              errorMessage_ = bs;
               break;
             }
             case 42: {
@@ -2083,7 +2309,7 @@ public final class Job {
         throw e.setUnfinishedMessage(this);
       } catch (java.io.IOException e) {
         throw new com.google.protobuf.InvalidProtocolBufferException(
-            e.getMessage()).setUnfinishedMessage(this);
+            e).setUnfinishedMessage(this);
       } finally {
         this.unknownFields = unknownFields.build();
         makeExtensionsImmutable();
@@ -2094,30 +2320,14 @@ public final class Job {
       return alluxio.proto.journal.Job.internal_static_alluxio_proto_journal_TaskInfo_descriptor;
     }
 
-    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+    protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return alluxio.proto.journal.Job.internal_static_alluxio_proto_journal_TaskInfo_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
               alluxio.proto.journal.Job.TaskInfo.class, alluxio.proto.journal.Job.TaskInfo.Builder.class);
     }
 
-    public static com.google.protobuf.Parser<TaskInfo> PARSER =
-        new com.google.protobuf.AbstractParser<TaskInfo>() {
-      public TaskInfo parsePartialFrom(
-          com.google.protobuf.CodedInputStream input,
-          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-          throws com.google.protobuf.InvalidProtocolBufferException {
-        return new TaskInfo(input, extensionRegistry);
-      }
-    };
-
-    @java.lang.Override
-    public com.google.protobuf.Parser<TaskInfo> getParserForType() {
-      return PARSER;
-    }
-
     private int bitField0_;
-    // optional int64 job_id = 1;
     public static final int JOB_ID_FIELD_NUMBER = 1;
     private long jobId_;
     /**
@@ -2133,7 +2343,6 @@ public final class Job {
       return jobId_;
     }
 
-    // optional int32 task_id = 2;
     public static final int TASK_ID_FIELD_NUMBER = 2;
     private int taskId_;
     /**
@@ -2149,9 +2358,8 @@ public final class Job {
       return taskId_;
     }
 
-    // optional .alluxio.proto.journal.Status status = 3;
     public static final int STATUS_FIELD_NUMBER = 3;
-    private alluxio.proto.journal.Job.Status status_;
+    private int status_;
     /**
      * <code>optional .alluxio.proto.journal.Status status = 3;</code>
      */
@@ -2162,12 +2370,12 @@ public final class Job {
      * <code>optional .alluxio.proto.journal.Status status = 3;</code>
      */
     public alluxio.proto.journal.Job.Status getStatus() {
-      return status_;
+      alluxio.proto.journal.Job.Status result = alluxio.proto.journal.Job.Status.valueOf(status_);
+      return result == null ? alluxio.proto.journal.Job.Status.CREATED : result;
     }
 
-    // optional string error_message = 4;
     public static final int ERROR_MESSAGE_FIELD_NUMBER = 4;
-    private java.lang.Object errorMessage_;
+    private volatile java.lang.Object errorMessage_;
     /**
      * <code>optional string error_message = 4;</code>
      */
@@ -2208,7 +2416,6 @@ public final class Job {
       }
     }
 
-    // optional bytes result = 5;
     public static final int RESULT_FIELD_NUMBER = 5;
     private com.google.protobuf.ByteString result_;
     /**
@@ -2224,17 +2431,11 @@ public final class Job {
       return result_;
     }
 
-    private void initFields() {
-      jobId_ = 0L;
-      taskId_ = 0;
-      status_ = alluxio.proto.journal.Job.Status.CREATED;
-      errorMessage_ = "";
-      result_ = com.google.protobuf.ByteString.EMPTY;
-    }
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
-      if (isInitialized != -1) return isInitialized == 1;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
 
       memoizedIsInitialized = 1;
       return true;
@@ -2242,7 +2443,6 @@ public final class Job {
 
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
-      getSerializedSize();
       if (((bitField0_ & 0x00000001) == 0x00000001)) {
         output.writeInt64(1, jobId_);
       }
@@ -2250,20 +2450,19 @@ public final class Job {
         output.writeInt32(2, taskId_);
       }
       if (((bitField0_ & 0x00000004) == 0x00000004)) {
-        output.writeEnum(3, status_.getNumber());
+        output.writeEnum(3, status_);
       }
       if (((bitField0_ & 0x00000008) == 0x00000008)) {
-        output.writeBytes(4, getErrorMessageBytes());
+        com.google.protobuf.GeneratedMessageV3.writeString(output, 4, errorMessage_);
       }
       if (((bitField0_ & 0x00000010) == 0x00000010)) {
         output.writeBytes(5, result_);
       }
-      getUnknownFields().writeTo(output);
+      unknownFields.writeTo(output);
     }
 
-    private int memoizedSerializedSize = -1;
     public int getSerializedSize() {
-      int size = memoizedSerializedSize;
+      int size = memoizedSize;
       if (size != -1) return size;
 
       size = 0;
@@ -2277,28 +2476,103 @@ public final class Job {
       }
       if (((bitField0_ & 0x00000004) == 0x00000004)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeEnumSize(3, status_.getNumber());
+          .computeEnumSize(3, status_);
       }
       if (((bitField0_ & 0x00000008) == 0x00000008)) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeBytesSize(4, getErrorMessageBytes());
+        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(4, errorMessage_);
       }
       if (((bitField0_ & 0x00000010) == 0x00000010)) {
         size += com.google.protobuf.CodedOutputStream
           .computeBytesSize(5, result_);
       }
-      size += getUnknownFields().getSerializedSize();
-      memoizedSerializedSize = size;
+      size += unknownFields.getSerializedSize();
+      memoizedSize = size;
       return size;
     }
 
-    private static final long serialVersionUID = 0L;
     @java.lang.Override
-    protected java.lang.Object writeReplace()
-        throws java.io.ObjectStreamException {
-      return super.writeReplace();
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof alluxio.proto.journal.Job.TaskInfo)) {
+        return super.equals(obj);
+      }
+      alluxio.proto.journal.Job.TaskInfo other = (alluxio.proto.journal.Job.TaskInfo) obj;
+
+      boolean result = true;
+      result = result && (hasJobId() == other.hasJobId());
+      if (hasJobId()) {
+        result = result && (getJobId()
+            == other.getJobId());
+      }
+      result = result && (hasTaskId() == other.hasTaskId());
+      if (hasTaskId()) {
+        result = result && (getTaskId()
+            == other.getTaskId());
+      }
+      result = result && (hasStatus() == other.hasStatus());
+      if (hasStatus()) {
+        result = result && status_ == other.status_;
+      }
+      result = result && (hasErrorMessage() == other.hasErrorMessage());
+      if (hasErrorMessage()) {
+        result = result && getErrorMessage()
+            .equals(other.getErrorMessage());
+      }
+      result = result && (hasResult() == other.hasResult());
+      if (hasResult()) {
+        result = result && getResult()
+            .equals(other.getResult());
+      }
+      result = result && unknownFields.equals(other.unknownFields);
+      return result;
     }
 
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      if (hasJobId()) {
+        hash = (37 * hash) + JOB_ID_FIELD_NUMBER;
+        hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+            getJobId());
+      }
+      if (hasTaskId()) {
+        hash = (37 * hash) + TASK_ID_FIELD_NUMBER;
+        hash = (53 * hash) + getTaskId();
+      }
+      if (hasStatus()) {
+        hash = (37 * hash) + STATUS_FIELD_NUMBER;
+        hash = (53 * hash) + status_;
+      }
+      if (hasErrorMessage()) {
+        hash = (37 * hash) + ERROR_MESSAGE_FIELD_NUMBER;
+        hash = (53 * hash) + getErrorMessage().hashCode();
+      }
+      if (hasResult()) {
+        hash = (37 * hash) + RESULT_FIELD_NUMBER;
+        hash = (53 * hash) + getResult().hashCode();
+      }
+      hash = (29 * hash) + unknownFields.hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static alluxio.proto.journal.Job.TaskInfo parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static alluxio.proto.journal.Job.TaskInfo parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
     public static alluxio.proto.journal.Job.TaskInfo parseFrom(
         com.google.protobuf.ByteString data)
         throws com.google.protobuf.InvalidProtocolBufferException {
@@ -2322,65 +2596,77 @@ public final class Job {
     }
     public static alluxio.proto.journal.Job.TaskInfo parseFrom(java.io.InputStream input)
         throws java.io.IOException {
-      return PARSER.parseFrom(input);
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
     }
     public static alluxio.proto.journal.Job.TaskInfo parseFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
-      return PARSER.parseFrom(input, extensionRegistry);
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
     }
     public static alluxio.proto.journal.Job.TaskInfo parseDelimitedFrom(java.io.InputStream input)
         throws java.io.IOException {
-      return PARSER.parseDelimitedFrom(input);
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input);
     }
     public static alluxio.proto.journal.Job.TaskInfo parseDelimitedFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
-      return PARSER.parseDelimitedFrom(input, extensionRegistry);
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
     }
     public static alluxio.proto.journal.Job.TaskInfo parseFrom(
         com.google.protobuf.CodedInputStream input)
         throws java.io.IOException {
-      return PARSER.parseFrom(input);
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
     }
     public static alluxio.proto.journal.Job.TaskInfo parseFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
-      return PARSER.parseFrom(input, extensionRegistry);
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
-    public static Builder newBuilder() { return Builder.create(); }
     public Builder newBuilderForType() { return newBuilder(); }
-    public static Builder newBuilder(alluxio.proto.journal.Job.TaskInfo prototype) {
-      return newBuilder().mergeFrom(prototype);
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
     }
-    public Builder toBuilder() { return newBuilder(this); }
+    public static Builder newBuilder(alluxio.proto.journal.Job.TaskInfo prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
 
     @java.lang.Override
     protected Builder newBuilderForType(
-        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
       Builder builder = new Builder(parent);
       return builder;
     }
     /**
-     * Protobuf type {@code alluxio.proto.journal.TaskInfo}
-     *
      * <pre>
      * next available id: 6
      * </pre>
+     *
+     * Protobuf type {@code alluxio.proto.journal.TaskInfo}
      */
     public static final class Builder extends
-        com.google.protobuf.GeneratedMessage.Builder<Builder>
-       implements alluxio.proto.journal.Job.TaskInfoOrBuilder {
+        com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:alluxio.proto.journal.TaskInfo)
+        alluxio.proto.journal.Job.TaskInfoOrBuilder {
       public static final com.google.protobuf.Descriptors.Descriptor
           getDescriptor() {
         return alluxio.proto.journal.Job.internal_static_alluxio_proto_journal_TaskInfo_descriptor;
       }
 
-      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return alluxio.proto.journal.Job.internal_static_alluxio_proto_journal_TaskInfo_fieldAccessorTable
             .ensureFieldAccessorsInitialized(
@@ -2393,35 +2679,28 @@ public final class Job {
       }
 
       private Builder(
-          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+          com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
         super(parent);
         maybeForceBuilderInitialization();
       }
       private void maybeForceBuilderInitialization() {
-        if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
+        if (com.google.protobuf.GeneratedMessageV3
+                .alwaysUseFieldBuilders) {
         }
       }
-      private static Builder create() {
-        return new Builder();
-      }
-
       public Builder clear() {
         super.clear();
         jobId_ = 0L;
         bitField0_ = (bitField0_ & ~0x00000001);
         taskId_ = 0;
         bitField0_ = (bitField0_ & ~0x00000002);
-        status_ = alluxio.proto.journal.Job.Status.CREATED;
+        status_ = 1;
         bitField0_ = (bitField0_ & ~0x00000004);
         errorMessage_ = "";
         bitField0_ = (bitField0_ & ~0x00000008);
         result_ = com.google.protobuf.ByteString.EMPTY;
         bitField0_ = (bitField0_ & ~0x00000010);
         return this;
-      }
-
-      public Builder clone() {
-        return create().mergeFrom(buildPartial());
       }
 
       public com.google.protobuf.Descriptors.Descriptor
@@ -2470,6 +2749,32 @@ public final class Job {
         return result;
       }
 
+      public Builder clone() {
+        return (Builder) super.clone();
+      }
+      public Builder setField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.setField(field, value);
+      }
+      public Builder clearField(
+          com.google.protobuf.Descriptors.FieldDescriptor field) {
+        return (Builder) super.clearField(field);
+      }
+      public Builder clearOneof(
+          com.google.protobuf.Descriptors.OneofDescriptor oneof) {
+        return (Builder) super.clearOneof(oneof);
+      }
+      public Builder setRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          int index, java.lang.Object value) {
+        return (Builder) super.setRepeatedField(field, index, value);
+      }
+      public Builder addRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.addRepeatedField(field, value);
+      }
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof alluxio.proto.journal.Job.TaskInfo) {
           return mergeFrom((alluxio.proto.journal.Job.TaskInfo)other);
@@ -2498,7 +2803,8 @@ public final class Job {
         if (other.hasResult()) {
           setResult(other.getResult());
         }
-        this.mergeUnknownFields(other.getUnknownFields());
+        this.mergeUnknownFields(other.unknownFields);
+        onChanged();
         return this;
       }
 
@@ -2515,7 +2821,7 @@ public final class Job {
           parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
         } catch (com.google.protobuf.InvalidProtocolBufferException e) {
           parsedMessage = (alluxio.proto.journal.Job.TaskInfo) e.getUnfinishedMessage();
-          throw e;
+          throw e.unwrapIOException();
         } finally {
           if (parsedMessage != null) {
             mergeFrom(parsedMessage);
@@ -2525,7 +2831,6 @@ public final class Job {
       }
       private int bitField0_;
 
-      // optional int64 job_id = 1;
       private long jobId_ ;
       /**
        * <code>optional int64 job_id = 1;</code>
@@ -2558,7 +2863,6 @@ public final class Job {
         return this;
       }
 
-      // optional int32 task_id = 2;
       private int taskId_ ;
       /**
        * <code>optional int32 task_id = 2;</code>
@@ -2591,8 +2895,7 @@ public final class Job {
         return this;
       }
 
-      // optional .alluxio.proto.journal.Status status = 3;
-      private alluxio.proto.journal.Job.Status status_ = alluxio.proto.journal.Job.Status.CREATED;
+      private int status_ = 1;
       /**
        * <code>optional .alluxio.proto.journal.Status status = 3;</code>
        */
@@ -2603,7 +2906,8 @@ public final class Job {
        * <code>optional .alluxio.proto.journal.Status status = 3;</code>
        */
       public alluxio.proto.journal.Job.Status getStatus() {
-        return status_;
+        alluxio.proto.journal.Job.Status result = alluxio.proto.journal.Job.Status.valueOf(status_);
+        return result == null ? alluxio.proto.journal.Job.Status.CREATED : result;
       }
       /**
        * <code>optional .alluxio.proto.journal.Status status = 3;</code>
@@ -2613,7 +2917,7 @@ public final class Job {
           throw new NullPointerException();
         }
         bitField0_ |= 0x00000004;
-        status_ = value;
+        status_ = value.getNumber();
         onChanged();
         return this;
       }
@@ -2622,12 +2926,11 @@ public final class Job {
        */
       public Builder clearStatus() {
         bitField0_ = (bitField0_ & ~0x00000004);
-        status_ = alluxio.proto.journal.Job.Status.CREATED;
+        status_ = 1;
         onChanged();
         return this;
       }
 
-      // optional string error_message = 4;
       private java.lang.Object errorMessage_ = "";
       /**
        * <code>optional string error_message = 4;</code>
@@ -2641,9 +2944,12 @@ public final class Job {
       public java.lang.String getErrorMessage() {
         java.lang.Object ref = errorMessage_;
         if (!(ref instanceof java.lang.String)) {
-          java.lang.String s = ((com.google.protobuf.ByteString) ref)
-              .toStringUtf8();
-          errorMessage_ = s;
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          if (bs.isValidUtf8()) {
+            errorMessage_ = s;
+          }
           return s;
         } else {
           return (java.lang.String) ref;
@@ -2701,7 +3007,6 @@ public final class Job {
         return this;
       }
 
-      // optional bytes result = 5;
       private com.google.protobuf.ByteString result_ = com.google.protobuf.ByteString.EMPTY;
       /**
        * <code>optional bytes result = 5;</code>
@@ -2736,39 +3041,76 @@ public final class Job {
         onChanged();
         return this;
       }
+      public final Builder setUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.setUnknownFields(unknownFields);
+      }
+
+      public final Builder mergeUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.mergeUnknownFields(unknownFields);
+      }
+
 
       // @@protoc_insertion_point(builder_scope:alluxio.proto.journal.TaskInfo)
     }
 
+    // @@protoc_insertion_point(class_scope:alluxio.proto.journal.TaskInfo)
+    private static final alluxio.proto.journal.Job.TaskInfo DEFAULT_INSTANCE;
     static {
-      defaultInstance = new TaskInfo(true);
-      defaultInstance.initFields();
+      DEFAULT_INSTANCE = new alluxio.proto.journal.Job.TaskInfo();
     }
 
-    // @@protoc_insertion_point(class_scope:alluxio.proto.journal.TaskInfo)
+    public static alluxio.proto.journal.Job.TaskInfo getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    @java.lang.Deprecated public static final com.google.protobuf.Parser<TaskInfo>
+        PARSER = new com.google.protobuf.AbstractParser<TaskInfo>() {
+      public TaskInfo parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return new TaskInfo(input, extensionRegistry);
+      }
+    };
+
+    public static com.google.protobuf.Parser<TaskInfo> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<TaskInfo> getParserForType() {
+      return PARSER;
+    }
+
+    public alluxio.proto.journal.Job.TaskInfo getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
   }
 
-  private static com.google.protobuf.Descriptors.Descriptor
+  private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_alluxio_proto_journal_FinishJobEntry_descriptor;
-  private static
-    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+  private static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_alluxio_proto_journal_FinishJobEntry_fieldAccessorTable;
-  private static com.google.protobuf.Descriptors.Descriptor
+  private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_alluxio_proto_journal_StartJobEntry_descriptor;
-  private static
-    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+  private static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_alluxio_proto_journal_StartJobEntry_fieldAccessorTable;
-  private static com.google.protobuf.Descriptors.Descriptor
+  private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_alluxio_proto_journal_TaskInfo_descriptor;
-  private static
-    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+  private static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_alluxio_proto_journal_TaskInfo_fieldAccessorTable;
 
   public static com.google.protobuf.Descriptors.FileDescriptor
       getDescriptor() {
     return descriptor;
   }
-  private static com.google.protobuf.Descriptors.FileDescriptor
+  private static  com.google.protobuf.Descriptors.FileDescriptor
       descriptor;
   static {
     java.lang.String[] descriptorData = {
@@ -2781,41 +3123,41 @@ public final class Job {
       "id\030\001 \001(\003\022\014\n\004name\030\002 \001(\t\022\035\n\025serialized_job" +
       "_config\030\003 \001(\014\"\201\001\n\010TaskInfo\022\016\n\006job_id\030\001 \001" +
       "(\003\022\017\n\007task_id\030\002 \001(\005\022-\n\006status\030\003 \001(\0162\035.al" +
-      "luxio.proto.journal.Status\022\025\n\rerror_mess",
+      "luxio.proto.journal.Status\022\025\n\rerror_mess" +
       "age\030\004 \001(\t\022\016\n\006result\030\005 \001(\014*K\n\006Status\022\013\n\007C" +
       "REATED\020\001\022\014\n\010CANCELED\020\002\022\n\n\006FAILED\020\003\022\013\n\007RU" +
       "NNING\020\004\022\r\n\tCOMPLETED\020\005"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
-      new com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner() {
-        public com.google.protobuf.ExtensionRegistry assignDescriptors(
-            com.google.protobuf.Descriptors.FileDescriptor root) {
-          descriptor = root;
-          internal_static_alluxio_proto_journal_FinishJobEntry_descriptor =
-            getDescriptor().getMessageTypes().get(0);
-          internal_static_alluxio_proto_journal_FinishJobEntry_fieldAccessorTable = new
-            com.google.protobuf.GeneratedMessage.FieldAccessorTable(
-              internal_static_alluxio_proto_journal_FinishJobEntry_descriptor,
-              new java.lang.String[] { "JobId", "TaskInfo", "Status", "ErrorMessage", "Result", });
-          internal_static_alluxio_proto_journal_StartJobEntry_descriptor =
-            getDescriptor().getMessageTypes().get(1);
-          internal_static_alluxio_proto_journal_StartJobEntry_fieldAccessorTable = new
-            com.google.protobuf.GeneratedMessage.FieldAccessorTable(
-              internal_static_alluxio_proto_journal_StartJobEntry_descriptor,
-              new java.lang.String[] { "JobId", "Name", "SerializedJobConfig", });
-          internal_static_alluxio_proto_journal_TaskInfo_descriptor =
-            getDescriptor().getMessageTypes().get(2);
-          internal_static_alluxio_proto_journal_TaskInfo_fieldAccessorTable = new
-            com.google.protobuf.GeneratedMessage.FieldAccessorTable(
-              internal_static_alluxio_proto_journal_TaskInfo_descriptor,
-              new java.lang.String[] { "JobId", "TaskId", "Status", "ErrorMessage", "Result", });
-          return null;
-        }
-      };
+        new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
+          public com.google.protobuf.ExtensionRegistry assignDescriptors(
+              com.google.protobuf.Descriptors.FileDescriptor root) {
+            descriptor = root;
+            return null;
+          }
+        };
     com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
         new com.google.protobuf.Descriptors.FileDescriptor[] {
         }, assigner);
+    internal_static_alluxio_proto_journal_FinishJobEntry_descriptor =
+      getDescriptor().getMessageTypes().get(0);
+    internal_static_alluxio_proto_journal_FinishJobEntry_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_alluxio_proto_journal_FinishJobEntry_descriptor,
+        new java.lang.String[] { "JobId", "TaskInfo", "Status", "ErrorMessage", "Result", });
+    internal_static_alluxio_proto_journal_StartJobEntry_descriptor =
+      getDescriptor().getMessageTypes().get(1);
+    internal_static_alluxio_proto_journal_StartJobEntry_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_alluxio_proto_journal_StartJobEntry_descriptor,
+        new java.lang.String[] { "JobId", "Name", "SerializedJobConfig", });
+    internal_static_alluxio_proto_journal_TaskInfo_descriptor =
+      getDescriptor().getMessageTypes().get(2);
+    internal_static_alluxio_proto_journal_TaskInfo_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_alluxio_proto_journal_TaskInfo_descriptor,
+        new java.lang.String[] { "JobId", "TaskId", "Status", "ErrorMessage", "Result", });
   }
 
   // @@protoc_insertion_point(outer_class_scope)

@@ -198,7 +198,7 @@ message RenameEntry {
   optional string new_name = 5;
 }
 
-enum SetAclAction {
+enum PSetAclAction {
   REPLACE = 0;
   MODIFY = 1;
   REMOVE = 2;
@@ -210,7 +210,7 @@ enum SetAclAction {
 message SetAclEntry {
   optional int64 id = 1;
   optional int64 op_time_ms = 2;
-  optional SetAclAction action = 3;
+  optional PSetAclAction action = 3;
   repeated alluxio.proto.shared.AclEntry entries = 4;
   optional bool recursive = 5;
 }

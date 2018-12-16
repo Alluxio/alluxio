@@ -388,8 +388,8 @@ function main {
   ;;
   "protoGen")
     proto_version="$(protoc --version)"
-    if ! [[ ${proto_version} == *2.5.0* ]]; then
-      echo "protoGen requires protoc version 2.5.0, but <protoc --version> returns <${proto_version}>"
+    if ! [[ ${proto_version} == *3.5.1* ]]; then
+      echo "protoGen requires protoc version 3.5.1, but <protoc --version> returns <${proto_version}>"
       exit 1
     fi
     rm -rf ${BIN}/../core/transport/src/main/java/alluxio/proto
