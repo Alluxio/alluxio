@@ -73,8 +73,8 @@
                 <% } %>
                 <tr>
                   <% ConfigCheckReport configReport = ((ConfigCheckReport) request.getAttribute("configCheckReport")); %>
-                  <% ConfigCheckReport.ConfigStatus status = (ConfigCheckReport.ConfigStatus) request.getAttribute("configCheckStatus");%>
-                  <% if (status.equals(ConfigCheckReport.ConfigStatus.FAILED)) { %>
+                  <% alluxio.grpc.ConfigStatus status = (alluxio.grpc.ConfigStatus) request.getAttribute("configCheckStatus");%>
+                  <% if (status.equals(alluxio.grpc.ConfigStatus.FAILED)) { %>
                     <th><font color="red">Server Configuration Check:<font color="red"></th>
                     <th><font color="red"><%= status %><font color="red"></th>
                   <% } else { %>
@@ -242,7 +242,7 @@
                   <tr>
                     <th colspan="3"> <font color="red">Errors (those properties are required to be identical)</font></th>
                   </tr>
-                  <% for (Map.Entry<Scope, List<InconsistentProperty>> error : ((Map<Scope, List<InconsistentProperty>>) request.getAttribute("configCheckErrors")).entrySet()) { %>
+                  <% for (Map.Entry<alluxio.grpc.Scope, List<InconsistentProperty>> error : ((Map<alluxio.grpc.Scope, List<InconsistentProperty>>) request.getAttribute("configCheckErrors")).entrySet()) { %>
                     <% for (InconsistentProperty inconsistentProperty: error.getValue()) { %>
                       <% String scope = error.getKey().toString(); %>
                       <% String name = inconsistentProperty.getName(); %>
@@ -263,7 +263,7 @@
                   <tr>
                     <th colspan="3">Warnings (those properties are recommended to be identical)</th>
                   </tr>
-                  <% for (Map.Entry<Scope, List<InconsistentProperty>> warn : ((Map<Scope, List<InconsistentProperty>>) request.getAttribute("configCheckWarns")).entrySet()) { %>
+                  <% for (Map.Entry<alluxio.grpc.Scope, List<InconsistentProperty>> warn : ((Map<alluxio.grpc.Scope, List<InconsistentProperty>>) request.getAttribute("configCheckWarns")).entrySet()) { %>
                     <% for (InconsistentProperty inconsistentProperty: warn.getValue()) { %>
                       <% String scope = warn.getKey().toString(); %>
                       <% String name = inconsistentProperty.getName(); %>
