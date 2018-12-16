@@ -20,7 +20,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import javax.security.sasl.AuthenticationException;
 import javax.security.sasl.SaslClient;
 import javax.security.sasl.SaslException;
 import javax.security.sasl.SaslServer;
@@ -37,21 +36,20 @@ public class SaslParticipantProviderTest {
   public ExpectedException mThrown = ExpectedException.none();
 
   @Test
-  public void testCreateUnsupportedProvider() throws AuthenticationException {
-    mThrown.expect(AuthenticationException.class);
+  public void testCreateUnsupportedProvider() throws UnauthenticatedException {
+    mThrown.expect(UnauthenticatedException.class);
     mThrown.expectMessage("Unsupported AuthType: " + AuthType.KERBEROS.getAuthName());
     SaslParticipiantProvider.Factory.create(AuthType.KERBEROS);
   }
 
   @Test
-  public void testCreateSupportedProviders() throws AuthenticationException {
+  public void testCreateSupportedProviders() throws UnauthenticatedException {
     SaslParticipiantProvider.Factory.create(AuthType.SIMPLE);
     SaslParticipiantProvider.Factory.create(AuthType.CUSTOM);
   }
 
   @Test
-  public void testCreateClientSimpleNullSubject()
-      throws AuthenticationException, UnauthenticatedException {
+  public void testCreateClientSimpleNullSubject() throws UnauthenticatedException {
     SaslParticipiantProvider simpleProvider =
         SaslParticipiantProvider.Factory.create(AuthType.SIMPLE);
     Assert.assertNotNull(simpleProvider);
@@ -62,8 +60,7 @@ public class SaslParticipantProviderTest {
   }
 
   @Test
-  public void testCreateClientSimpleNullUser()
-      throws AuthenticationException, UnauthenticatedException {
+  public void testCreateClientSimpleNullUser() throws UnauthenticatedException {
     SaslParticipiantProvider simpleProvider =
         SaslParticipiantProvider.Factory.create(AuthType.SIMPLE);
     Assert.assertNotNull(simpleProvider);
@@ -74,8 +71,7 @@ public class SaslParticipantProviderTest {
   }
 
   @Test
-  public void testCreateClientSimpleNullPasword()
-      throws AuthenticationException, UnauthenticatedException {
+  public void testCreateClientSimpleNullPasword() throws UnauthenticatedException {
     SaslParticipiantProvider simpleProvider =
         SaslParticipiantProvider.Factory.create(AuthType.SIMPLE);
     Assert.assertNotNull(simpleProvider);
@@ -86,10 +82,9 @@ public class SaslParticipantProviderTest {
   }
 
   @Test
-  public void testCreateClientCustomNullUser()
-          throws AuthenticationException, UnauthenticatedException {
+  public void testCreateClientCustomNullUser() throws UnauthenticatedException {
     SaslParticipiantProvider simpleProvider =
-            SaslParticipiantProvider.Factory.create(AuthType.CUSTOM);
+        SaslParticipiantProvider.Factory.create(AuthType.CUSTOM);
     Assert.assertNotNull(simpleProvider);
     // Test null user
     mThrown.expect(UnauthenticatedException.class);
@@ -98,10 +93,9 @@ public class SaslParticipantProviderTest {
   }
 
   @Test
-  public void testCreateClientCustomNullPasword()
-          throws AuthenticationException, UnauthenticatedException {
+  public void testCreateClientCustomNullPasword() throws UnauthenticatedException {
     SaslParticipiantProvider simpleProvider =
-            SaslParticipiantProvider.Factory.create(AuthType.CUSTOM);
+        SaslParticipiantProvider.Factory.create(AuthType.CUSTOM);
     Assert.assertNotNull(simpleProvider);
     // Test null user
     mThrown.expect(UnauthenticatedException.class);
@@ -110,7 +104,7 @@ public class SaslParticipantProviderTest {
   }
 
   @Test
-  public void testCreateServerSimple() throws SaslException {
+  public void testCreateServerSimple() throws UnauthenticatedException, SaslException {
     SaslParticipiantProvider simpleProvider =
         SaslParticipiantProvider.Factory.create(AuthType.SIMPLE);
     Assert.assertNotNull(simpleProvider);

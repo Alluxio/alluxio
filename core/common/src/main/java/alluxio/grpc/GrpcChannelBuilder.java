@@ -13,15 +13,14 @@ package alluxio.grpc;
 
 import alluxio.Configuration;
 import alluxio.PropertyKey;
+import alluxio.exception.status.UnauthenticatedException;
 import alluxio.security.authentication.AuthType;
 import alluxio.security.authentication.ChannelAuthenticator;
 import io.grpc.Channel;
 import io.grpc.ManagedChannel;
 
 import javax.security.auth.Subject;
-import javax.security.sasl.AuthenticationException;
 import java.net.InetSocketAddress;
-import java.util.UUID;
 
 /**
  * A gRPC channel builder that authenticates with {@link GrpcServer} at the target during channel
@@ -109,7 +108,7 @@ public final class GrpcChannelBuilder {
    * 
    * @return the built {@link GrpcChannel}
    */
-  public GrpcChannel build() throws AuthenticationException {
+  public GrpcChannel build() throws UnauthenticatedException {
     ManagedChannel underlyingChannel = GrpcManagedChannelPool.acquireManagedChannel(mChannelKey);
     Channel clientChannel = underlyingChannel;
 

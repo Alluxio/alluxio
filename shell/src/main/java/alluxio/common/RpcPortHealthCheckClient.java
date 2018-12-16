@@ -60,7 +60,8 @@ public class RpcPortHealthCheckClient implements HealthCheckClient {
       } catch (ConnectionFailedException e) {
         LOG.debug("Failed to connect to {}", mNodeAddress);
       } catch (UnauthenticatedException e) {
-        throw new RuntimeException(e);
+        // TODO(ggezer) Revert after using NOSASL version checks in NetworkAddressUtils.pingService
+        // throw new RuntimeException(e);
       }
     }
     return false;

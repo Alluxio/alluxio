@@ -62,6 +62,8 @@ public class AuthenticatedUserInjector implements ServerInterceptor {
             call.close(Status.UNAUTHENTICATED, headers);
           }
         }
+        // TODO(ggezer) Consider closing the call as UNAUTHENTICATED when channelId is not found.
+        // TODO(ggezer) Requires MetaClientService to be served as unauthenticated.
         super.onHalfClose();
       }
     };

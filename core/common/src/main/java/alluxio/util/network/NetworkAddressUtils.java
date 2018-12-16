@@ -16,16 +16,13 @@ import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.exception.status.UnauthenticatedException;
-import alluxio.network.thrift.ThriftUtils;
-import alluxio.security.authentication.TransportProvider;
+import alluxio.grpc.GrpcChannelBuilder;
 import alluxio.util.CommonUtils;
 import alluxio.util.OSUtils;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Preconditions;
 import io.netty.channel.unix.DomainSocketAddress;
-import org.apache.thrift.protocol.TProtocol;
-import org.apache.thrift.transport.TTransportException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -717,20 +714,11 @@ public final class NetworkAddressUtils {
    * @throws ConnectionFailedException If there is a protocol transport error
    */
   public static void pingService(InetSocketAddress address, String serviceName)
-          throws UnauthenticatedException, ConnectionFailedException {
+      throws UnauthenticatedException, ConnectionFailedException {
     Preconditions.checkNotNull(address, "address");
     Preconditions.checkNotNull(serviceName, "serviceName");
-    Preconditions.checkArgument(!serviceName.isEmpty(),
-            "Cannot resolve for empty service name");
-    try {
-      TransportProvider transportProvider = TransportProvider.Factory.create();
-      TProtocol protocol =
-          ThriftUtils.createThriftProtocol(transportProvider.getClientTransport(address),
-              serviceName);
-      protocol.getTransport().open();
-      protocol.getTransport().close();
-    } catch (TTransportException e) {
-      throw new ConnectionFailedException(e.getMessage());
-    }
+    Preconditions.checkArgument(!serviceName.isEmpty(), "Cannot resolve for empty service name");
+    // TODO(ggezer) do a version check for given serviceName (NOSASL!)
+    GrpcChannelBuilder.forAddress(address).build().shutdown();
   }
 }

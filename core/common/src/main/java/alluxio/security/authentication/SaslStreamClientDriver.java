@@ -11,13 +11,13 @@
 
 package alluxio.security.authentication;
 
+import alluxio.exception.status.UnauthenticatedException;
 import alluxio.grpc.SaslMessage;
 
 import com.google.common.util.concurrent.SettableFuture;
 import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
 
-import javax.security.sasl.AuthenticationException;
 import javax.security.sasl.SaslException;
 
 /**
@@ -79,16 +79,16 @@ public class SaslStreamClientDriver implements StreamObserver<SaslMessage> {
   /**
    * Starts authentication with the server and wait until completion.
    * @param channelId channel that is authenticating with the server
-   * @throws AuthenticationException
+   * @throws UnauthenticatedException
    */
-  public void start(String channelId) throws AuthenticationException {
+  public void start(String channelId) throws UnauthenticatedException {
     try {
       // Send the server initial message.
       mRequestObserver.onNext(mSaslHandshakeClientHandler.getInitialMessage(channelId));
       // Wait until authentication status changes.
       mAuthenticated.get();
     } catch (Exception e) {
-      throw new AuthenticationException(e.getMessage(), e);
+      throw new UnauthenticatedException(e.getMessage(), e);
     }
   }
 }

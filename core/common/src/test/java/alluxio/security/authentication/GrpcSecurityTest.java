@@ -13,6 +13,7 @@ package alluxio.security.authentication;
 
 import alluxio.Configuration;
 import alluxio.PropertyKey;
+import alluxio.exception.status.UnauthenticatedException;
 import alluxio.grpc.GrpcChannelBuilder;
 import alluxio.grpc.GrpcServer;
 import alluxio.grpc.GrpcServerBuilder;
@@ -88,7 +89,7 @@ public class GrpcSecurityTest {
     server.start();
     GrpcChannelBuilder channelBuilder =
         GrpcChannelBuilder.forAddress(getServerConnectAddress(server));
-    mThrown.expect(AuthenticationException.class);
+    mThrown.expect(UnauthenticatedException.class);
     channelBuilder.setCredentials("fail", "fail", null).build();
     server.shutdown();
   }
@@ -110,7 +111,7 @@ public class GrpcSecurityTest {
     Configuration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE);
     GrpcChannelBuilder channelBuilder =
         GrpcChannelBuilder.forAddress(getServerConnectAddress(server));
-    mThrown.expect(AuthenticationException.class);
+    mThrown.expect(UnauthenticatedException.class);
     channelBuilder.build();
     server.shutdown();
   }

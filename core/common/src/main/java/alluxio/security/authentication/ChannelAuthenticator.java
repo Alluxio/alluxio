@@ -27,7 +27,6 @@ import io.grpc.netty.NettyChannelBuilder;
 import io.grpc.stub.StreamObserver;
 
 import javax.security.auth.Subject;
-import javax.security.sasl.AuthenticationException;
 import javax.security.sasl.SaslClient;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -92,45 +91,41 @@ public class ChannelAuthenticator {
    *
    * @param managedChannel the managed channel for whch authentication is taking place
    * @return channel that is augmented for authentication
-   * @throws AuthenticationException
+   * @throws UnauthenticatedException
    */
-  public Channel authenticate(ManagedChannel managedChannel) throws AuthenticationException {
+  public Channel authenticate(ManagedChannel managedChannel) throws UnauthenticatedException {
     if (mAuthType == AuthType.NOSASL) {
       return managedChannel;
     }
 
     // Create a channel for talking with target host's authentication service.
-    try {
-      // Create SaslClient for authentication based on provided credentials.
-      SaslClient saslClient;
-      if (mUseSubject) {
-        saslClient =
-            SaslParticipiantProvider.Factory.create(mAuthType).createSaslClient(mParentSubject);
-      } else {
-        saslClient = SaslParticipiantProvider.Factory.create(mAuthType).createSaslClient(mUserName,
-            mPassword, mImpersonationUser);
-      }
-
-      // Create authentication scheme specific handshake handler.
-      SaslHandshakeClientHandler handshakeClient =
-          SaslHandshakeClientHandler.Factory.create(mAuthType, saslClient);
-      // Create driver for driving sasl traffic from client side.
-      SaslStreamClientDriver clientDriver = new SaslStreamClientDriver(handshakeClient);
-      // Start authentication call with the service and update the client driver.
-      StreamObserver<SaslMessage> requestObserver =
-          SaslAuthenticationServiceGrpc.newStub(managedChannel).authenticate(clientDriver);
-      clientDriver.setServerObserver(requestObserver);
-      // Start authentication traffic with the target.
-      clientDriver.start(mChannelId.toString());
-      // Authentication succeeded!
-      // Attach scheme specific interceptors to the channel.
-
-      Channel authenticatedChannel =
-          ClientInterceptors.intercept(managedChannel, getInterceptors(saslClient));
-      return authenticatedChannel;
-    } catch (UnauthenticatedException e) {
-      throw new AuthenticationException(e.getMessage(), e);
+    // Create SaslClient for authentication based on provided credentials.
+    SaslClient saslClient;
+    if (mUseSubject) {
+      saslClient =
+          SaslParticipiantProvider.Factory.create(mAuthType).createSaslClient(mParentSubject);
+    } else {
+      saslClient = SaslParticipiantProvider.Factory.create(mAuthType).createSaslClient(mUserName,
+          mPassword, mImpersonationUser);
     }
+
+    // Create authentication scheme specific handshake handler.
+    SaslHandshakeClientHandler handshakeClient =
+        SaslHandshakeClientHandler.Factory.create(mAuthType, saslClient);
+    // Create driver for driving sasl traffic from client side.
+    SaslStreamClientDriver clientDriver = new SaslStreamClientDriver(handshakeClient);
+    // Start authentication call with the service and update the client driver.
+    StreamObserver<SaslMessage> requestObserver =
+        SaslAuthenticationServiceGrpc.newStub(managedChannel).authenticate(clientDriver);
+    clientDriver.setServerObserver(requestObserver);
+    // Start authentication traffic with the target.
+    clientDriver.start(mChannelId.toString());
+    // Authentication succeeded!
+    // Attach scheme specific interceptors to the channel.
+
+    Channel authenticatedChannel =
+        ClientInterceptors.intercept(managedChannel, getInterceptors(saslClient));
+    return authenticatedChannel;
   }
 
   /**

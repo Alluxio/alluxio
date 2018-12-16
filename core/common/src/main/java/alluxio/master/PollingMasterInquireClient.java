@@ -13,6 +13,7 @@ package alluxio.master;
 
 import static java.util.stream.Collectors.joining;
 
+import alluxio.exception.status.UnauthenticatedException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.GrpcChannelBuilder;
 import alluxio.retry.RetryPolicy;
@@ -29,7 +30,6 @@ import java.util.Objects;
 import java.util.function.Supplier;
 
 import javax.annotation.Nullable;
-import javax.security.sasl.AuthenticationException;
 
 /**
  * PollingMasterInquireClient finds the address of the primary master by polling a list of master
@@ -78,15 +78,16 @@ public class PollingMasterInquireClient implements MasterInquireClient {
       } catch (StatusRuntimeException e) {
         LOG.debug("Failed to connect to {}", address);
         continue;
-      } catch (AuthenticationException e) {
-        throw new RuntimeException(e);
+      } catch (UnauthenticatedException e) {
+        // TODO(ggezer) Revert after using NOSASL version checks in pingMetaService
+        // throw new RuntimeException(e);
       }
     }
     return null;
   }
 
   private void pingMetaService(InetSocketAddress address)
-      throws AuthenticationException, StatusRuntimeException {
+      throws UnauthenticatedException, StatusRuntimeException {
     // TODO(ggezer) do a version check instead of relying on authentication.(NOSASL!)
     GrpcChannelBuilder.forAddress(address).build().shutdown();
   }

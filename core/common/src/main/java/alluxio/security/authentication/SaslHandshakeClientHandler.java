@@ -11,10 +11,10 @@
 
 package alluxio.security.authentication;
 
+import alluxio.exception.status.UnauthenticatedException;
 import alluxio.grpc.SaslMessage;
 import alluxio.security.authentication.plain.SaslHandshakeClientHandlerPlain;
 
-import javax.security.sasl.AuthenticationException;
 import javax.security.sasl.SaslClient;
 import javax.security.sasl.SaslException;
 
@@ -49,16 +49,16 @@ public interface SaslHandshakeClientHandler {
     /**
      * @param authType authentication type to use
      * @return the generated {@link AuthenticationProvider}
-     * @throws AuthenticationException when unsupported authentication type is used
+     * @throws UnauthenticatedException when unsupported authentication type is used
      */
     public static SaslHandshakeClientHandler create(AuthType authType, SaslClient saslClient)
-        throws AuthenticationException {
+        throws UnauthenticatedException {
       switch (authType) {
         case SIMPLE:
         case CUSTOM:
           return new SaslHandshakeClientHandlerPlain(saslClient);
         default:
-          throw new AuthenticationException("Unsupported AuthType: " + authType.getAuthName());
+          throw new UnauthenticatedException("Unsupported AuthType: " + authType.getAuthName());
       }
     }
   }

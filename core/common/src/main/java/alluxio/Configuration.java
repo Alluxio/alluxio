@@ -15,6 +15,7 @@ import alluxio.conf.AlluxioProperties;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.Source;
 import alluxio.exception.status.AlluxioStatusException;
+import alluxio.exception.status.UnauthenticatedException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.GetConfigurationPOptions;
@@ -39,7 +40,6 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.annotation.concurrent.NotThreadSafe;
-import javax.security.sasl.SaslException;
 
 /**
  * <p>
@@ -444,9 +444,9 @@ public final class Configuration {
         throw new UnavailableException(String.format(
             "Failed to handshake with master %s to load cluster default configuration values",
             address), e);
-      } catch (SaslException e) {
+      } catch (UnauthenticatedException e) {
         throw new RuntimeException(
-            "Can't receive authentication exception while authentication is disabled.", e);
+            "Received authentication exception with authentication disabled.", e);
       } finally {
         channel.shutdown();
       }
