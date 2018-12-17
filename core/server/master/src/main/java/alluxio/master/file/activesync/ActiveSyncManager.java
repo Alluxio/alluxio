@@ -481,4 +481,21 @@ public class ActiveSyncManager implements JournalEntryIterable, JournalEntryRepl
   public ExecutorService getExecutor() {
     return mExecutorService;
   }
+
+  /**
+   * Stop the sync manager.
+   */
+  public void stop() {
+    for (long mountId : mFilterMap.keySet()) {
+      try {
+        stopSyncForMount(mountId);
+      } catch (IOException e) {
+        LOG.info("ActiveSyncManager stop: IOException stopping mountId {}, exception {}",
+            mountId,  e);
+      } catch (InvalidPathException e) {
+        LOG.info("ActiveSyncManager stop: InvalidPathException stopping mountId {}, exception {}",
+            mountId,  e);
+      }
+    }
+  }
 }
