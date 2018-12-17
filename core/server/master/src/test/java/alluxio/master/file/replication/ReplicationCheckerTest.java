@@ -307,7 +307,7 @@ public final class ReplicationCheckerTest {
 
   @Test
   public void heartbeatFileOverReplicatedBy1() throws Exception {
-    mFileContext.getOptions().setReplicationMin(1);
+    mFileContext.getOptions().setReplicationMax(1);
     long blockId = createBlockHelper(TEST_FILE_1, mFileContext);
     addBlockLocationHelper(blockId, 2);
 
@@ -319,7 +319,7 @@ public final class ReplicationCheckerTest {
 
   @Test
   public void heartbeatFileOverReplicatedBy10() throws Exception {
-    mFileContext.getOptions().setReplicationMin(1);
+    mFileContext.getOptions().setReplicationMax(1);
     long blockId = createBlockHelper(TEST_FILE_1, mFileContext);
     addBlockLocationHelper(blockId, 11);
 
@@ -331,9 +331,9 @@ public final class ReplicationCheckerTest {
 
   @Test
   public void heartbeatMultipleFilesOverReplicated() throws Exception {
-    mFileContext.getOptions().setReplicationMin(1);
+    mFileContext.getOptions().setReplicationMax(1);
     long blockId1 = createBlockHelper(TEST_FILE_1, mFileContext);
-    mFileContext.getOptions().setReplicationMin(2);
+    mFileContext.getOptions().setReplicationMax(2);
     long blockId2 = createBlockHelper(TEST_FILE_2, mFileContext);
     addBlockLocationHelper(blockId1, 2);
     addBlockLocationHelper(blockId2, 4);
