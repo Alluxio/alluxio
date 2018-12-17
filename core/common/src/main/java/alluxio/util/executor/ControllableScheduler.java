@@ -46,8 +46,7 @@ public class ControllableScheduler implements ScheduledExecutorService {
   }
 
   /**
-   * Runs all commands/tasks scheduled to be executed immediately but does
-   * not jump to future time.
+   * Runs all commands/tasks scheduled to be executed immediately.
    */
   public void runUntilIdle() {
     while (!schedulerIsIdle()) {
@@ -56,13 +55,13 @@ public class ControllableScheduler implements ScheduledExecutorService {
   }
 
   /**
-   * Runs the next mCommand scheduled to be executed immediately.
+   * Runs the next command scheduled to be executed immediately.
    */
   public void runNextPendingCommand() {
     ScheduledTask<?> scheduledTask = mDeltaQueue.pop();
     scheduledTask.run();
 
-    if (!scheduledTask.isCancelled() && scheduledTask.repeats()) {
+    if (!scheduledTask.isCancelled() && scheduledTask.isRepeat()) {
       mDeltaQueue.add(scheduledTask.mRepeatDelay, scheduledTask);
     }
   }
@@ -175,7 +174,7 @@ public class ControllableScheduler implements ScheduledExecutorService {
   }
 
   /**
-   * Converts Runnable to Callable.
+   * Converts runnable to callable.
    */
   private final class RunnableToCallableAdapter<T> implements Callable<T> {
     private final Runnable mRunnable;
@@ -202,7 +201,8 @@ public class ControllableScheduler implements ScheduledExecutorService {
   }
 
   /**
-   * Scheduled tasks support repeated tasks.
+   * {@link ScheduledTask} is a {@link ScheduledFuture} with extra supports for
+   * repeated tasks.
    */
   private final class ScheduledTask<T> implements ScheduledFuture<T>, Runnable {
     private final long mRepeatDelay;
@@ -214,9 +214,9 @@ public class ControllableScheduler implements ScheduledExecutorService {
     private boolean mIsDone = false;
 
     /**
-     * Constructs a new {@link ScheduledTask} with callable mCommand.
+     * Constructs a new {@link ScheduledTask} with a callable command.
      *
-     * @param command a callable mCommand
+     * @param command a callable command
      */
     public ScheduledTask(Callable<T> command) {
       mRepeatDelay = -1;
@@ -224,9 +224,9 @@ public class ControllableScheduler implements ScheduledExecutorService {
     }
 
     /**
-     * Constructs a new {@link ScheduledTask} with mRunnable mCommand.
+     * Constructs a new {@link ScheduledTask} with a runnable command.
      *
-     * @param command a mRunnable mCommand
+     * @param command a runnable command
      */
     public ScheduledTask(Runnable command) {
       this(-1, command);
@@ -236,7 +236,7 @@ public class ControllableScheduler implements ScheduledExecutorService {
      * Constructs a new {@link ScheduledTask} with repeat delay.
      *
      * @param repeatDelay the delay for repeated tasks
-     * @param command a mRunnable mCommand
+     * @param command a runnable command
      */
     public ScheduledTask(long repeatDelay, Runnable command) {
       mRepeatDelay = repeatDelay;
@@ -246,7 +246,7 @@ public class ControllableScheduler implements ScheduledExecutorService {
     /**
      * @return whether or not this task is a repeated task
      */
-    public boolean repeats() {
+    public boolean isRepeat() {
       return mRepeatDelay >= 0;
     }
 

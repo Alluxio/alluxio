@@ -140,7 +140,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
   private Address mMasterAddress;
 
   /** The metadata daily backup. */
-  private MetaDailyBackup mDailyBackup;
+  private DailyMetadataBackup mDailyBackup;
 
   /**
    * Creates a new instance of {@link DefaultMetaMaster}.
@@ -234,8 +234,8 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
           (int) Configuration.getMs(PropertyKey.MASTER_LOG_CONFIG_REPORT_HEARTBEAT_INTERVAL)));
 
       if (Configuration.getBoolean(PropertyKey.MASTER_DAILY_BACKUP_ENABLED)) {
-        mDailyBackup = new MetaDailyBackup(this, Executors.newSingleThreadScheduledExecutor(
-            ThreadFactoryUtils.build("MetaDailyBackup-%d", true)), mUfs);
+        mDailyBackup = new DailyMetadataBackup(this, Executors.newSingleThreadScheduledExecutor(
+            ThreadFactoryUtils.build("DailyMetadataBackup-%d", true)), mUfs);
         mDailyBackup.start();
       }
     } else {

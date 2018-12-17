@@ -42,8 +42,8 @@ import java.util.regex.Matcher;
 /**
  * Backing up primary master metadata everyday at a fixed UTC time.
  */
-public final class MetaDailyBackup {
-  private static final Logger LOG = LoggerFactory.getLogger(MetaDailyBackup.class);
+public final class DailyMetadataBackup {
+  private static final Logger LOG = LoggerFactory.getLogger(DailyMetadataBackup.class);
   private static final long SHUTDOWN_TIMEOUT_MS = 5 * Constants.SECOND_MS;
 
   private final String mBackupDir;
@@ -56,11 +56,12 @@ public final class MetaDailyBackup {
   private ScheduledFuture<?> mBackup;
 
   /**
-   * Constructs a new {@link MetaDailyBackup}.
+   * Constructs a new {@link DailyMetadataBackup}.
    *
    * @param metaMaster the meta master
    */
-  MetaDailyBackup(MetaMaster metaMaster, ScheduledExecutorService service, UnderFileSystem ufs) {
+  DailyMetadataBackup(MetaMaster metaMaster,
+      ScheduledExecutorService service, UnderFileSystem ufs) {
     mMetaMaster = metaMaster;
     mBackupDir = Configuration.get(PropertyKey.MASTER_BACKUP_DIRECTORY);
     mRetainedFiles = Configuration.getInt(PropertyKey.MASTER_DAILY_BACKUP_FILES_RETAINED);
@@ -70,7 +71,7 @@ public final class MetaDailyBackup {
   }
 
   /**
-   * Starts {@link MetaDailyBackup}.
+   * Starts {@link DailyMetadataBackup}.
    */
   public void start() {
     Preconditions.checkState(mBackup == null);
@@ -112,13 +113,14 @@ public final class MetaDailyBackup {
       } else {
         LOG.info("Successfully backed up journal to {}", resp.getBackupUri());
       }
-      try {
-        deleteOldestBackups();
-      } catch (Throwable t) {
-        LOG.error("Failed to delete outdated backup files at {}", mBackupDir, t);
-      }
     } catch (Throwable t) {
       LOG.error("Failed to execute daily backup at {}", mBackupDir, t);
+    }
+
+    try {
+      deleteOldestBackups();
+    } catch (Throwable t) {
+      LOG.error("Failed to delete outdated backup files at {}", mBackupDir, t);
     }
   }
 
@@ -158,7 +160,7 @@ public final class MetaDailyBackup {
   }
 
   /**
-   * Stops {@link MetaDailyBackup}.
+   * Stops {@link DailyMetadataBackup}.
    */
   public void stop() {
     if (mBackup != null) {

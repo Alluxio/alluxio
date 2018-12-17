@@ -14,12 +14,13 @@ package alluxio.util.executor;
 import javax.annotation.Nullable;
 
 /**
- * A delay queue with extra supports for passing the head element delay time.
+ * Dealta queue is a queue of {@link DelayNode}s with extra supports
+ * for ticking the clock ahead.
  *
  * @param <T> the type of the queue objects
  */
 public class DeltaQueue<T> {
-  private Node<T> mHead = null;
+  private DelayNode<T> mHead = null;
 
   /**
    * @return whether this queue is empty
@@ -50,7 +51,7 @@ public class DeltaQueue<T> {
    */
   public long delay(T element) {
     long ret = 0;
-    Node<T> next = mHead;
+    DelayNode<T> next = mHead;
     while (next != null) {
       ret += next.getDelay();
       if (next.getValue().equals(element)) {
@@ -71,9 +72,9 @@ public class DeltaQueue<T> {
    * @param value the value
    */
   public void add(long delay, T value) {
-    Node<T> newNode = new Node<T>(value, delay);
-    Node<T> prev = null;
-    Node<T> next = mHead;
+    DelayNode<T> newNode = new DelayNode<T>(value, delay);
+    DelayNode<T> prev = null;
+    DelayNode<T> next = mHead;
 
     while (next != null && next.getDelay() <= newNode.getDelay()) {
       newNode.setDelay(newNode.getDelay() - next.getDelay());
@@ -94,7 +95,7 @@ public class DeltaQueue<T> {
   }
 
   /**
-   * Jump to a future time period.
+   * Jumps to a future time period.
    * The time to jump is limited by the delay of the head element.
    *
    * @param duration the time period to jump
@@ -132,8 +133,8 @@ public class DeltaQueue<T> {
    * @return true if the element removed successfully, false otherwise
    */
   public boolean remove(T element) {
-    Node<T> prev = null;
-    Node<T> node = mHead;
+    DelayNode<T> prev = null;
+    DelayNode<T> node = mHead;
     while (node != null && node.getValue() != element) {
       prev = node;
       node = node.getNext();
@@ -144,7 +145,7 @@ public class DeltaQueue<T> {
     }
 
     if (node.getNext() != null) {
-      Node<T> nextNode = node.getNext();
+      DelayNode<T> nextNode = node.getNext();
       nextNode.setDelay(nextNode.getDelay() + node.getDelay());
     }
 
@@ -162,7 +163,7 @@ public class DeltaQueue<T> {
     StringBuilder sb = new StringBuilder();
     sb.append(getClass().getSimpleName()).append("[");
 
-    Node<T> node = mHead;
+    DelayNode<T> node = mHead;
     while (node != null) {
       if (node != mHead) {
         sb.append(", ");
@@ -176,20 +177,23 @@ public class DeltaQueue<T> {
   }
 
   /**
-   * A node in delta queue.
+   * A delay node in delta queue which records the value and the delay difference
+   * between the current node original delay and its previous node original delay.
+   * For example, if the head node is Head[value=1, delay=1000, next=Node2], the second node is
+   * Node2[value=2, delay=2000, next=Node3], the total delay of Node2 is 1000+2000=3000 millis.
    */
-  private static class Node<T> {
+  private static class DelayNode<T> {
     private final T mValue;
     private long mDelay;
-    private Node<T> mNext = null;
+    private DelayNode<T> mNext = null;
 
     /**
-     * Constructs a new {@link Node}.
+     * Constructs a new {@link DelayNode}.
      *
      * @param value a value
      * @param millis delay time in milliseconds
      */
-    public Node(T value, long millis) {
+    public DelayNode(T value, long millis) {
       mValue = value;
       mDelay = millis;
     }
@@ -212,7 +216,7 @@ public class DeltaQueue<T> {
      * @return the next node
      */
     @Nullable
-    public Node<T> getNext() {
+    public DelayNode<T> getNext() {
       return mNext;
     }
 
@@ -230,7 +234,7 @@ public class DeltaQueue<T> {
      *
      * @param next the next element
      */
-    public void setNext(Node<T> next) {
+    public void setNext(DelayNode<T> next) {
       mNext = next;
     }
   }
