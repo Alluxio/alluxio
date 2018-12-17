@@ -185,7 +185,7 @@ public final class CopyFromLocalCommandIntegrationTest extends AbstractFileSyste
     // Write the second file to the same location, which should cause an exception
     String[] cmd2 = {"copyFromLocal", testFile2.getPath(), alluxioFilePath.getPath()};
     Assert.assertEquals(-1, mFsShell.run(cmd2));
-    Assert.assertTrue(mOutput.toString().contains(alluxioFilePath.getPath() + " already exists\n"));
+    Assert.assertEquals(alluxioFilePath.getPath() + " already exists\n", mOutput.toString());
     // Make sure the original file is intact
     Assert.assertTrue(BufferUtils
         .equalIncreasingByteArray(LEN1, readContent(alluxioFilePath, LEN1)));
