@@ -21,7 +21,7 @@ class Data extends React.Component<AllProps> {
 
     return (
       <div className="data-page">
-        <div className="conteiner-fluid">
+        <div className="container-fluid">
           <div className="row">
             <div className="col-12">
               Data

@@ -7,15 +7,18 @@ export const headerNavigationData : INavigationData[] = [{
   innerText: 'Browse',
   url: '/browse'
 }, {
+  innerText: 'In-Alluxio Data',
+  url: '/data'
+}, {
+  innerText: 'Logs',
+  url: '/logs'
+}, {
   innerText: 'Configuration',
   url: '/config'
 }, {
   innerText: 'Workers',
   url: '/workers'
 }, {
-  innerText: 'In-Alluxio Data',
-  url: '/data'
-}, {
-  innerText: 'Logs',
-  url: '/logs'
+  innerText: 'Metrics',
+  url: '/metrics'
 }];

@@ -38,7 +38,7 @@ class Overview extends React.Component<AllProps> {
 
     return (
       <div className="overview-page">
-        <div className="conteiner-fluid">
+        <div className="container-fluid">
           <div className="row">
             <div className="col-md-6">
               <h5>Alluxio Summary</h5>

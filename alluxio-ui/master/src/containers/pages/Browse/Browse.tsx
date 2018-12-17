@@ -21,7 +21,7 @@ class Browse extends React.Component<AllProps> {
 
     return (
       <div className="browse-page">
-        <div className="conteiner-fluid">
+        <div className="container-fluid">
           <div className="row">
             <div className="col-12">
               Browse

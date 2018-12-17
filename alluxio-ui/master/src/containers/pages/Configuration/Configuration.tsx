@@ -21,7 +21,7 @@ class Configuration extends React.Component<AllProps> {
 
     return (
       <div className="configuration-page">
-        <div className="conteiner-fluid">
+        <div className="container-fluid">
           <div className="row">
             <div className="col-12">
               Configuration

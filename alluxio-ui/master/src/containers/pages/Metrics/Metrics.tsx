@@ -4,7 +4,7 @@ import {Dispatch} from 'redux';
 
 import {IApplicationState, IConnectedReduxProps} from '../../../store';
 
-import './Logs.css';
+import './Metrics.css';
 
 // tslint:disable:no-empty-interface // TODO: remove this line
 
@@ -16,15 +16,15 @@ interface IPropsFromDispatch {
 
 type AllProps = IPropsFromState & IPropsFromDispatch & IConnectedReduxProps;
 
-class Logs extends React.Component<AllProps> {
+class Metrics extends React.Component<AllProps> {
   public render() {
 
     return (
-      <div className="logs-page">
+      <div className="metrics-page">
         <div className="container-fluid">
           <div className="row">
             <div className="col-12">
-              Logs
+              Metrics
             </div>
           </div>
         </div>
@@ -42,4 +42,4 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
 export default connect(
   mapStateToProps,
   mapDispatchToProps
-)(Logs);
+)(Metrics);

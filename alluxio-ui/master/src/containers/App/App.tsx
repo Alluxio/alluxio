@@ -7,7 +7,7 @@ import {Dispatch, Store} from 'redux';
 
 import {Footer, Header} from '@alluxio/common-ui/src/components';
 import {
-  Browse, Configuration, Data, Logs, Overview, Workers
+  Browse, Configuration, Data, Logs, Metrics, Overview, Workers
 } from '..';
 import {footerNavigationData, headerNavigationData} from '../../constants';
 import {IApplicationState, IConnectedReduxProps} from '../../store';
@@ -60,6 +60,7 @@ class App extends React.Component<AllProps, IAppState> {
                 <Route path="/config" exact={true} component={Configuration}/>
                 <Route path="/data" exact={true} component={Data}/>
                 <Route path="/logs" exact={true} component={Logs}/>
+                <Route path="/metrics" exact={true} component={Metrics}/>
                 <Route path="/workers" exact={true} component={Workers}/>
                 <Route render={this.renderError}/>
               </Switch>

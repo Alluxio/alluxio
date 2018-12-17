@@ -56,7 +56,52 @@
         <inherited>false</inherited>
         <executions>
           <execution>
-            <id>Install npm dependencies for alluxio-ui packages</id>
+            <id>Clean lerna-managed dependencies</id>
+            <phase>clean</phase>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+            <configuration>
+              <executable>node/node</executable>
+              <arguments>
+                  <argument>node_modules/.bin/lerna</argument>
+                  <argument>clean</argument>
+                  <argument>--yes</argument>
+              </arguments>
+            </configuration>
+          </execution>
+          <execution>
+            <id>Remove built web applications</id>
+            <phase>clean</phase>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+            <configuration>
+              <executable>rm</executable>
+              <arguments>
+                <argument>-rf</argument>
+                <argument>common/build</argument>
+                <argument>master/build</argument>
+              </arguments>
+            </configuration>
+          </execution>
+          <execution>
+            <id>Remove cached node modules</id>
+            <phase>post-clean</phase>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+            <configuration>
+              <executable>rm</executable>
+              <arguments>
+                <argument>-rf</argument>
+                <argument>node</argument>
+                <argument>node_modules</argument>
+              </arguments>
+            </configuration>
+          </execution>
+          <execution>
+            <id>Install npm dependencies for packages</id>
             <phase>generate-sources</phase>
             <goals>
               <goal>exec</goal>
@@ -70,7 +115,7 @@
             </configuration>
           </execution>
           <execution>
-            <id>Build all alluxio-ui packages</id>
+            <id>Build all packages</id>
             <phase>generate-resources</phase>
             <goals>
               <goal>exec</goal>

@@ -16,42 +16,95 @@ import static alluxio.Configuration.getBoolean;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.ConfigurationValueOptions;
+import alluxio.Constants;
 import alluxio.MasterStorageTierAssoc;
 import alluxio.PropertyKey;
 import alluxio.RestUtils;
 import alluxio.RuntimeConstants;
 import alluxio.StorageTierAssoc;
+import alluxio.client.ReadType;
+import alluxio.client.file.FileInStream;
+import alluxio.client.file.FileSystem;
+import alluxio.client.file.URIStatus;
+import alluxio.client.file.options.OpenFileOptions;
+import alluxio.exception.AccessControlException;
+import alluxio.exception.AlluxioException;
+import alluxio.exception.FileDoesNotExistException;
+import alluxio.exception.InvalidPathException;
+import alluxio.exception.status.UnavailableException;
 import alluxio.master.MasterProcess;
 import alluxio.master.block.BlockMaster;
+import alluxio.master.block.DefaultBlockMaster;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.StartupConsistencyCheck;
 import alluxio.master.file.meta.MountTable;
+import alluxio.master.file.options.ListStatusOptions;
+import alluxio.metrics.ClientMetrics;
 import alluxio.metrics.MasterMetrics;
 import alluxio.metrics.MetricsSystem;
+import alluxio.metrics.WorkerMetrics;
+import alluxio.security.LoginUser;
+import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.util.CommonUtils;
+import alluxio.util.ConfigurationUtils;
 import alluxio.util.FormatUtils;
 import alluxio.util.LogUtils;
+import alluxio.util.SecurityUtils;
+import alluxio.util.io.PathUtils;
+import alluxio.util.webui.NodeInfo;
+import alluxio.util.webui.StorageTierInfo;
+import alluxio.util.webui.UIFileBlockInfo;
+import alluxio.util.webui.UIFileInfo;
+import alluxio.util.webui.WebUtils;
 import alluxio.web.MasterWebServer;
 import alluxio.wire.AlluxioMasterInfo;
+import alluxio.wire.BlockLocation;
 import alluxio.wire.Capacity;
 import alluxio.wire.ConfigCheckReport;
+import alluxio.wire.ConfigProperty;
+import alluxio.wire.FileBlockInfo;
+import alluxio.wire.FileInfo;
+import alluxio.wire.GetConfigurationOptions;
+import alluxio.wire.LoadMetadataType;
 import alluxio.wire.MountPointInfo;
+import alluxio.wire.WebUIBrowse;
+import alluxio.wire.WebUIConfiguration;
+import alluxio.wire.WebUIData;
+import alluxio.wire.WebUILogs;
+import alluxio.wire.WebUIMetrics;
 import alluxio.wire.WebUIOverview;
+import alluxio.wire.WebUIWorkers;
+import alluxio.wire.WorkerInfo;
+import alluxio.wire.WorkerNetAddress;
 
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Gauge;
+import com.codahale.metrics.Metric;
+import com.codahale.metrics.MetricFilter;
 import com.codahale.metrics.MetricRegistry;
+import com.google.common.collect.Sets;
 import com.qmino.miredot.annotations.ReturnType;
+import org.apache.commons.lang3.tuple.ImmutableTriple;
+import org.apache.commons.lang3.tuple.Triple;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FilenameFilter;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import java.util.TreeSet;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.servlet.ServletContext;
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -74,6 +127,12 @@ public final class AlluxioMasterRestServiceHandler {
   // endpoints
   public static final String GET_INFO = "info";
   public static final String WEBUI_OVERVIEW = "webui_overview";
+  public static final String WEBUI_BROWSE = "webui_browse";
+  public static final String WEBUI_DATA = "webui_data";
+  public static final String WEBUI_LOGS = "webui_logs";
+  public static final String WEBUI_CONFIG = "webui_config";
+  public static final String WEBUI_WORKERS = "webui_workers";
+  public static final String WEBUI_METRICS = "webui_metrics";
 
   // queries
   public static final String QUERY_RAW_CONFIGURATION = "raw_configuration";
@@ -202,16 +261,15 @@ public final class AlluxioMasterRestServiceHandler {
       diskFreeCapacity = freeSpace;
 
       StorageTierAssoc globalStorageTierAssoc = mBlockMaster.getGlobalStorageTierAssoc();
-      List<WebUIOverview.StorageTierInfo> infos = new ArrayList<>();
+      List<StorageTierInfo> infos = new ArrayList<>();
       Map<String, Long> totalBytesOnTiers = mBlockMaster.getTotalBytesOnTiers();
       Map<String, Long> usedBytesOnTiers = mBlockMaster.getUsedBytesOnTiers();
 
       for (int ordinal = 0; ordinal < globalStorageTierAssoc.size(); ordinal++) {
         String tierAlias = globalStorageTierAssoc.getAlias(ordinal);
         if (totalBytesOnTiers.containsKey(tierAlias) && totalBytesOnTiers.get(tierAlias) > 0) {
-          WebUIOverview.StorageTierInfo info =
-              new WebUIOverview.StorageTierInfo(tierAlias, totalBytesOnTiers.get(tierAlias),
-                  usedBytesOnTiers.get(tierAlias));
+          StorageTierInfo info = new StorageTierInfo(tierAlias, totalBytesOnTiers.get(tierAlias),
+              usedBytesOnTiers.get(tierAlias));
           infos.add(info);
         }
       }
@@ -234,6 +292,580 @@ public final class AlluxioMasterRestServiceHandler {
               .convertMsToClockTime(System.currentTimeMillis() - mMetaMaster.getStartTimeMs()))
           .setUsedCapacity(FormatUtils.getSizeFromBytes(mBlockMaster.getUsedBytes()))
           .setVersion(RuntimeConstants.VERSION);
+    });
+  }
+
+  /**
+   * Get the information required for the UI's browse page
+   * @param requestPath
+   * @param requestOffset
+   * @param requestEnd
+   * @param requestLimit
+   * @return
+   */
+  @GET
+  @Path(WEBUI_BROWSE)
+  @ReturnType("alluxio.wire.WebUIBrowse")
+  public Response getWebUIBrowse(@DefaultValue("/") @QueryParam("path") String requestPath,
+      @DefaultValue("0") @QueryParam("offset") String requestOffset,
+      @DefaultValue("") @QueryParam("end") String requestEnd,
+      @DefaultValue("") @QueryParam("limit") String requestLimit) {
+    return RestUtils.call(() -> {
+      if (!Configuration.getBoolean(PropertyKey.WEB_FILE_INFO_ENABLED)) {
+        return new WebUIBrowse();
+      }
+
+      if (SecurityUtils.isSecurityEnabled() && AuthenticatedClientUser.get() == null) {
+        AuthenticatedClientUser.set(LoginUser.get().getName());
+      }
+
+      AlluxioURI currentPath = new AlluxioURI(requestPath);
+      List<FileInfo> filesInfo = null;
+      List<UIFileBlockInfo> fileBlocks = null;
+      long offset = 0;
+      long viewingOffset = offset;
+      String accessControlException = "";
+      String blockSizeBytes = null;
+      String fatalError = "";
+      String fileData = null;
+      String fileDoesNotExistException = "";
+      String highestTierAlias = null;
+      String invalidPathError = "";
+      String invalidPathException = "";
+      UIFileInfo currentDirectory = null;
+      UIFileInfo[] pathInfos = null;
+
+      try {
+        long fileId = mFileSystemMaster.getFileId(currentPath);
+        FileInfo fileInfo = mFileSystemMaster.getFileInfo(fileId);
+        UIFileInfo currentFileInfo = new UIFileInfo(fileInfo);
+        if (currentFileInfo.getAbsolutePath() == null) {
+          throw new FileDoesNotExistException(currentPath.toString());
+        }
+        currentDirectory = currentFileInfo;
+        blockSizeBytes = currentFileInfo.getBlockSizeBytes();
+        if (!currentFileInfo.getIsDirectory()) {
+          long relativeOffset = 0;
+          try {
+            relativeOffset = Long.parseLong(requestOffset);
+          } catch (NumberFormatException e) {
+            relativeOffset = 0;
+          }
+          String endParam = requestEnd;
+          // If no param "end" presents, the offset is relative to the beginning; otherwise, it is
+          // relative to the end of the file.
+          if (endParam == null) {
+            offset = relativeOffset;
+          } else {
+            offset = fileInfo.getLength() - relativeOffset;
+          }
+          if (offset < 0) {
+            offset = 0;
+          } else if (offset > fileInfo.getLength()) {
+            offset = fileInfo.getLength();
+          }
+          try {
+            AlluxioURI path = new AlluxioURI(currentFileInfo.getAbsolutePath());
+            FileSystem fs = FileSystem.Factory.get();
+            URIStatus status = fs.getStatus(path);
+            if (status.isCompleted()) {
+              OpenFileOptions options = OpenFileOptions.defaults().setReadType(ReadType.NO_CACHE);
+              try (FileInStream is = fs.openFile(path, options)) {
+                int len = (int) Math.min(5 * Constants.KB, status.getLength() - offset);
+                byte[] data = new byte[len];
+                long skipped = is.skip(offset);
+                if (skipped < 0) {
+                  // nothing was skipped
+                  fileData = "Unable to traverse to offset; is file empty?";
+                } else if (skipped < offset) {
+                  // couldn't skip all the way to offset
+                  fileData = "Unable to traverse to offset; is offset larger than the file?";
+                } else {
+                  // read may not read up to len, so only convert what was read
+                  int read = is.read(data, 0, len);
+                  if (read < 0) {
+                    // stream couldn't read anything, skip went to EOF?
+                    fileData = "Unable to read file";
+                  } else {
+                    fileData = WebUtils.convertByteArrayToStringWithoutEscape(data, 0, read);
+                  }
+                }
+              }
+            } else {
+              fileData = "The requested file is not complete yet.";
+            }
+            List<UIFileBlockInfo> uiBlockInfo = new ArrayList<>();
+            for (FileBlockInfo fileBlockInfo : mMasterProcess.getMaster(FileSystemMaster.class)
+                .getFileBlockInfoList(path)) {
+              uiBlockInfo.add(new UIFileBlockInfo(fileBlockInfo));
+            }
+            fileBlocks = uiBlockInfo;
+            highestTierAlias =
+                mMasterProcess.getMaster(BlockMaster.class).getGlobalStorageTierAssoc().getAlias(0);
+          } catch (AlluxioException e) {
+            fatalError = "Error: Fatal Error " + e.getMessage();
+          }
+          viewingOffset = offset;
+        }
+
+        AlluxioURI path = new AlluxioURI(currentFileInfo.getAbsolutePath());
+        if (path.isRoot()) {
+          pathInfos = new UIFileInfo[0];
+        } else {
+          String[] splitPath = PathUtils.getPathComponents(path.toString());
+          fileId = mFileSystemMaster.getFileId(currentPath);
+          pathInfos[0] = new UIFileInfo(mFileSystemMaster.getFileInfo(fileId));
+          for (int i = 1; i < splitPath.length - 1; i++) {
+            currentPath = currentPath.join(splitPath[i]);
+            fileId = mFileSystemMaster.getFileId(currentPath);
+            pathInfos[i] = new UIFileInfo(mFileSystemMaster.getFileInfo(fileId));
+          }
+        }
+
+        filesInfo = mFileSystemMaster.listStatus(currentPath,
+            ListStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Always));
+      } catch (FileDoesNotExistException e) {
+        invalidPathError = "Error: Invalid Path " + e.getMessage();
+      } catch (InvalidPathException e) {
+        invalidPathError = "Error: Invalid Path " + e.getLocalizedMessage();
+      } catch (UnavailableException e) {
+        invalidPathError = "The service is temporarily unavailable. " + e.getMessage();
+      } catch (IOException e) {
+        invalidPathError = "Error: File " + currentPath + " is not available " + e.getMessage();
+      } catch (AccessControlException e) {
+        invalidPathError = "Error: File " + currentPath + " cannot be accessed " + e.getMessage();
+      }
+
+      List<UIFileInfo> fileInfos = new ArrayList<>(filesInfo.size());
+      for (FileInfo fileInfo : filesInfo) {
+        UIFileInfo toAdd = new UIFileInfo(fileInfo);
+        try {
+          if (!toAdd.getIsDirectory() && fileInfo.getLength() > 0) {
+            FileBlockInfo blockInfo =
+                mFileSystemMaster.getFileBlockInfoList(new AlluxioURI(toAdd.getAbsolutePath()))
+                    .get(0);
+            List<String> locations = new ArrayList<>();
+            // add the in-Alluxio block locations
+            for (BlockLocation location : blockInfo.getBlockInfo().getLocations()) {
+              WorkerNetAddress address = location.getWorkerAddress();
+              locations.add(address.getHost() + ":" + address.getDataPort());
+            }
+            // add underFS locations
+            locations.addAll(blockInfo.getUfsLocations());
+            toAdd.setFileLocations(locations);
+          }
+        } catch (FileDoesNotExistException e) {
+          fileDoesNotExistException = "Error: non-existing file " + e.getMessage();
+        } catch (InvalidPathException e) {
+          invalidPathException = "Error: invalid path " + e.getMessage();
+        } catch (AccessControlException e) {
+          accessControlException =
+              "Error: File " + currentPath + " cannot be accessed " + e.getMessage();
+        }
+        fileInfos.add(toAdd);
+      }
+      if (fileInfos.size() > 1) {
+        Collections.sort(fileInfos, UIFileInfo.PATH_STRING_COMPARE);
+      }
+
+      try {
+        int offsetInt = Integer.parseInt(requestOffset);
+        int limitInt = Integer.parseInt(requestLimit);
+        List<UIFileInfo> sub = fileInfos.subList(offsetInt, offsetInt + limitInt);
+        fileInfos = sub;
+      } catch (NumberFormatException e) {
+        fatalError = "Error: offset or limit parse error, " + e.getLocalizedMessage();
+      } catch (IndexOutOfBoundsException e) {
+        fatalError = "Error: offset or offset + limit is out of bound, " + e.getLocalizedMessage();
+      } catch (IllegalArgumentException e) {
+        fatalError = e.getLocalizedMessage();
+      }
+
+      return new WebUIBrowse().setAccessControlException(accessControlException)
+          .setBlockSizeBytes(blockSizeBytes).setCurrentDirectory(currentDirectory)
+          .setCurrentPath(currentPath.toString()).setDebug(getBoolean(PropertyKey.DEBUG))
+          .setFatalError(fatalError).setFileBlocks(fileBlocks).setFileData(fileData)
+          .setFileDoesNotExistException(fileDoesNotExistException)
+          .setHighestTierAlias(highestTierAlias).setInvalidPathError(invalidPathError)
+          .setInvalidPathException(invalidPathException)
+          .setMasterNodeAddress(mMasterProcess.getRpcAddress().toString())
+          .setNTotalFile(fileInfos == null ? 0 : fileInfos.size()).setPathInfos(pathInfos)
+          .setShowPermissions(getBoolean(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED))
+          .setViewingOffset(viewingOffset).setFileInfos(fileInfos);
+    });
+  }
+
+  @GET
+  @Path(WEBUI_DATA)
+  @ReturnType("alluxio.wire.WebUIData")
+  public Response getWebUIData(@DefaultValue("0") @QueryParam("offset") String requestOffset,
+      @DefaultValue("") @QueryParam("limit") String requestLimit) {
+    return RestUtils.call(() -> {
+      if (!Configuration.getBoolean(PropertyKey.WEB_FILE_INFO_ENABLED)) {
+        return new WebUIData();
+      }
+      if (SecurityUtils.isSecurityEnabled() && AuthenticatedClientUser.get() == null) {
+        AuthenticatedClientUser.set(LoginUser.get().getName());
+      }
+
+      String fatalError = "";
+      String permissionError = "";
+      List<AlluxioURI> inAlluxioFiles = mFileSystemMaster.getInAlluxioFiles();
+      Collections.sort(inAlluxioFiles);
+      int inAlluxioFileNum;
+
+      List<UIFileInfo> fileInfos = new ArrayList<>(inAlluxioFiles.size());
+      for (AlluxioURI file : inAlluxioFiles) {
+        try {
+          long fileId = mFileSystemMaster.getFileId(file);
+          FileInfo fileInfo = mFileSystemMaster.getFileInfo(fileId);
+          if (fileInfo != null && fileInfo.getInAlluxioPercentage() == 100) {
+            fileInfos.add(new UIFileInfo(fileInfo));
+          }
+        } catch (FileDoesNotExistException e) {
+          fatalError = "Error: File does not exist " + e.getLocalizedMessage();
+        } catch (AccessControlException e) {
+          permissionError = "Error: File " + file + " cannot be accessed " + e.getMessage();
+        }
+      }
+      inAlluxioFileNum = fileInfos.size();
+
+      try {
+        int offset = Integer.parseInt(requestOffset);
+        int limit = Integer.parseInt(requestLimit);
+        List<UIFileInfo> sub = fileInfos.subList(offset, offset + limit);
+      } catch (NumberFormatException e) {
+        fatalError = "Error: offset or limit parse error, " + e.getLocalizedMessage();
+      } catch (IndexOutOfBoundsException e) {
+        fatalError = "Error: offset or offset + limit is out of bound, " + e.getLocalizedMessage();
+      } catch (IllegalArgumentException e) {
+        fatalError = e.getLocalizedMessage();
+      }
+
+      return new WebUIData().setMasterNodeAddress(mMasterProcess.getRpcAddress().toString())
+          .setFatalError(fatalError).setPermissionError(permissionError)
+          .setShowPermissions(getBoolean(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED))
+          .setInAlluxioFileNum(inAlluxioFileNum).setFileInfos(fileInfos);
+    });
+  }
+
+  @GET
+  @Path(WEBUI_LOGS)
+  @ReturnType("alluxio.wire.WebUILogs")
+  public Response getWebUILogs(@DefaultValue("/") @QueryParam("path") String requestPath,
+      @DefaultValue("0") @QueryParam("offset") String requestOffset,
+      @DefaultValue("") @QueryParam("end") String requestEnd,
+      @DefaultValue("") @QueryParam("limit") String requestLimit) {
+    return RestUtils.call(() -> {
+      if (!Configuration.getBoolean(PropertyKey.WEB_FILE_INFO_ENABLED)) {
+        return new WebUILogs();
+      }
+
+      FilenameFilter LOG_FILE_FILTER = (dir, name) -> name.toLowerCase().endsWith(".log");
+      boolean debug = getBoolean(PropertyKey.DEBUG);
+      String invalidPathError = "";
+      long viewingOffset = 0;
+      String currentPath = "";
+      int nTotalFile = 0;
+      List<UIFileInfo> fileInfos = null;
+      String fatalError = "";
+      String logsPath = Configuration.get(PropertyKey.LOGS_DIR);
+      File logsDir = new File(logsPath);
+      String requestFile = requestPath;
+      String fileData = null;
+
+      if (requestFile == null || requestFile.isEmpty()) {
+        // List all log files in the log/ directory.
+
+        fileInfos = new ArrayList<>();
+        File[] logFiles = logsDir.listFiles(LOG_FILE_FILTER);
+        if (logFiles != null) {
+          for (File logFile : logFiles) {
+            String logFileName = logFile.getName();
+            fileInfos.add(new UIFileInfo(
+                new UIFileInfo.LocalFileInfo(logFileName, logFileName, logFile.length(),
+                    UIFileInfo.LocalFileInfo.EMPTY_CREATION_TIME, logFile.lastModified(),
+                    logFile.isDirectory())));
+          }
+        }
+        Collections.sort(fileInfos, UIFileInfo.PATH_STRING_COMPARE);
+        nTotalFile = fileInfos.size();
+
+        try {
+          int offset = Integer.parseInt(requestOffset);
+          int limit = Integer.parseInt(requestLimit);
+          List<UIFileInfo> sub = fileInfos.subList(offset, offset + limit);
+          fileInfos = sub;
+        } catch (NumberFormatException e) {
+          fatalError = "Error: offset or limit parse error, " + e.getLocalizedMessage();
+        } catch (IndexOutOfBoundsException e) {
+          fatalError =
+              "Error: offset or offset + limit is out of bound, " + e.getLocalizedMessage();
+        } catch (IllegalArgumentException e) {
+          fatalError = e.getLocalizedMessage();
+        }
+      } else {
+        // Request a specific log file.
+
+        // Only allow filenames as the path, to avoid arbitrary local path lookups.
+        requestFile = new File(requestFile).getName();
+        currentPath = requestFile;
+
+        File file = new File(logsDir, requestFile);
+
+        try {
+          long fileSize = file.length();
+          String offsetParam = requestOffset;
+          long relativeOffset = 0;
+          long offset;
+          try {
+            if (offsetParam != null) {
+              relativeOffset = Long.parseLong(offsetParam);
+            }
+          } catch (NumberFormatException e) {
+            relativeOffset = 0;
+          }
+          String endParam = requestEnd;
+          // If no param "end" presents, the offset is relative to the beginning; otherwise, it is
+          // relative to the end of the file.
+          if (endParam == null) {
+            offset = relativeOffset;
+          } else {
+            offset = fileSize - relativeOffset;
+          }
+          if (offset < 0) {
+            offset = 0;
+          } else if (offset > fileSize) {
+            offset = fileSize;
+          }
+
+          try (InputStream is = new FileInputStream(file)) {
+            fileSize = file.length();
+            int len = (int) Math.min(5 * Constants.KB, fileSize - offset);
+            byte[] data = new byte[len];
+            long skipped = is.skip(offset);
+            if (skipped < 0) {
+              // Nothing was skipped.
+              fileData = "Unable to traverse to offset; is file empty?";
+            } else if (skipped < offset) {
+              // Couldn't skip all the way to offset.
+              fileData = "Unable to traverse to offset; is offset larger than the file?";
+            } else {
+              // Read may not read up to len, so only convert what was read.
+              int read = is.read(data, 0, len);
+              if (read < 0) {
+                // Stream couldn't read anything, skip went to EOF?
+                fileData = "Unable to read file";
+              } else {
+                fileData = WebUtils.convertByteArrayToStringWithoutEscape(data, 0, read);
+              }
+            }
+          }
+
+          viewingOffset = offset;
+        } catch (IOException e) {
+          invalidPathError = "Error: File " + file + " is not available " + e.getMessage();
+        }
+      }
+
+      return new WebUILogs().setCurrentPath(currentPath).setDebug(debug).setFatalError(fatalError)
+          .setFileData(fileData).setFileInfos(fileInfos).setInvalidPathError(invalidPathError)
+          .setNTotalFile(nTotalFile).setViewingOffset(viewingOffset);
+    });
+  }
+
+  @GET
+  @Path(WEBUI_CONFIG)
+  @ReturnType("alluxio.wire.WebUIConfiguration")
+  public Response getWebUIConfiguration() {
+    return RestUtils.call(() -> {
+      TreeSet<Triple<String, String, String>> sortedProperties = new TreeSet<>();
+      Set<String> alluxioConfExcludes = Sets.newHashSet(PropertyKey.MASTER_WHITELIST.toString());
+      for (ConfigProperty configProperty : mMetaMaster
+          .getConfiguration(GetConfigurationOptions.defaults().setRawValue(true))) {
+        String confName = configProperty.getName();
+        if (!alluxioConfExcludes.contains(confName)) {
+          sortedProperties.add(new ImmutableTriple<>(confName,
+              ConfigurationUtils.valueAsString(configProperty.getValue()),
+              configProperty.getSource()));
+        }
+      }
+
+      return new WebUIConfiguration().setWhitelist(mFileSystemMaster.getWhiteList())
+          .setConfiguration(sortedProperties);
+    });
+  }
+
+  @GET
+  @Path(WEBUI_WORKERS)
+  @ReturnType("alluxio.wire.WebUIWorkers")
+  public Response getWebUIWorkers() {
+    return RestUtils.call(() -> {
+      List<WorkerInfo> workerInfos = mBlockMaster.getWorkerInfoList();
+      NodeInfo[] normalNodeInfos = WebUtils.generateOrderedNodeInfos(workerInfos);
+
+      List<WorkerInfo> lostWorkerInfos = mBlockMaster.getLostWorkersInfoList();
+      NodeInfo[] failedNodeInfos = WebUtils.generateOrderedNodeInfos(lostWorkerInfos);
+
+      return new WebUIWorkers().setDebug(getBoolean(PropertyKey.DEBUG))
+          .setNormalNodeInfos(normalNodeInfos).setFailedNodeInfos(failedNodeInfos);
+    });
+  }
+
+  @GET
+  @Path(WEBUI_METRICS)
+  @ReturnType("alluxio.wire.WebUIMetrics")
+  public Response getWebUIMetrics() {
+    return RestUtils.call(() -> {
+      MetricRegistry mr = MetricsSystem.METRIC_REGISTRY;
+
+      Long masterCapacityTotal = (Long) mr.getGauges()
+          .get(MetricsSystem.getMetricName(DefaultBlockMaster.Metrics.CAPACITY_TOTAL)).getValue();
+      Long masterCapacityUsed = (Long) mr.getGauges()
+          .get(MetricsSystem.getMetricName(DefaultBlockMaster.Metrics.CAPACITY_USED)).getValue();
+
+      int masterCapacityUsedPercentage =
+          (masterCapacityTotal > 0) ? (int) (100L * masterCapacityUsed / masterCapacityTotal) : 0;
+
+      Long masterUnderfsCapacityTotal =
+          (Long) mr.getGauges().get(MetricsSystem.getMetricName(MasterMetrics.UFS_CAPACITY_TOTAL))
+              .getValue();
+      Long masterUnderfsCapacityUsed =
+          (Long) mr.getGauges().get(MetricsSystem.getMetricName(MasterMetrics.UFS_CAPACITY_USED))
+              .getValue();
+
+      int masterUnderfsCapacityUsedPercentage = (masterUnderfsCapacityTotal > 0) ?
+          (int) (100L * masterUnderfsCapacityUsed / masterUnderfsCapacityTotal) : 0;
+
+      // cluster read size
+      Long bytesReadLocal = (Long) mr.getGauges()
+          .get(MetricsSystem.getClusterMetricName(ClientMetrics.BYTES_READ_LOCAL)).getValue();
+      Long bytesReadRemote = (Long) mr.getGauges()
+          .get(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_READ_ALLUXIO)).getValue();
+      Long bytesReadUfs = (Long) mr.getGauges()
+          .get(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_READ_UFS_ALL)).getValue();
+
+      // cluster cache hit and miss
+      long bytesReadTotal = bytesReadLocal + bytesReadRemote + bytesReadUfs;
+      double cacheHitLocalPercentage =
+          (bytesReadTotal > 0) ? (100D * bytesReadLocal / bytesReadTotal) : 0;
+      double cacheHitRemotePercentage =
+          (bytesReadTotal > 0) ? (100D * bytesReadRemote / bytesReadTotal) : 0;
+      double cacheMissPercentage =
+          (bytesReadTotal > 0) ? (100D * bytesReadUfs / bytesReadTotal) : 0;
+
+      // cluster write size
+      Long bytesWrittenAlluxio = (Long) mr.getGauges()
+          .get(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_WRITTEN_ALLUXIO)).getValue();
+      Long bytesWrittenUfs = (Long) mr.getGauges()
+          .get(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_WRITTEN_UFS_ALL)).getValue();
+
+      // cluster read throughput
+      Long bytesReadLocalThroughput = (Long) mr.getGauges()
+          .get(MetricsSystem.getClusterMetricName(ClientMetrics.BYTES_READ_LOCAL_THROUGHPUT))
+          .getValue();
+      Long bytesReadRemoteThroughput = (Long) mr.getGauges()
+          .get(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_READ_ALLUXIO_THROUGHPUT))
+          .getValue();
+      Long bytesReadUfsThroughput = (Long) mr.getGauges()
+          .get(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_READ_UFS_THROUGHPUT))
+          .getValue();
+
+      // cluster write throughput
+      Long bytesWrittenAlluxioThroughput = (Long) mr.getGauges()
+          .get(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_WRITTEN_ALLUXIO_THROUGHPUT))
+          .getValue();
+      Long bytesWrittenUfsThroughput = (Long) mr.getGauges()
+          .get(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_WRITTEN_UFS_THROUGHPUT))
+          .getValue();
+
+      // cluster per UFS read
+      Map<String, String> ufsReadSizeMap = new TreeMap<>();
+      for (Map.Entry<String, Gauge> entry : mr
+          .getGauges((name, metric) -> name.contains(WorkerMetrics.BYTES_READ_UFS)).entrySet()) {
+        alluxio.metrics.Metric metric =
+            alluxio.metrics.Metric.from(entry.getKey(), (long) entry.getValue().getValue());
+        ufsReadSizeMap.put(metric.getTags().get(WorkerMetrics.TAG_UFS),
+            FormatUtils.getSizeFromBytes((long) metric.getValue()));
+      }
+
+      // cluster per UFS write
+      Map<String, String> ufsWriteSizeMap = new TreeMap<>();
+      for (Map.Entry<String, Gauge> entry : mr
+          .getGauges((name, metric) -> name.contains(WorkerMetrics.BYTES_WRITTEN_UFS)).entrySet()) {
+        alluxio.metrics.Metric metric =
+            alluxio.metrics.Metric.from(entry.getKey(), (long) entry.getValue().getValue());
+        ufsWriteSizeMap.put(metric.getTags().get(WorkerMetrics.TAG_UFS),
+            FormatUtils.getSizeFromBytes((long) metric.getValue()));
+      }
+
+      // per UFS ops
+      Map<String, Map<String, Long>> ufsOpsMap = new TreeMap<>();
+      for (Map.Entry<String, Gauge> entry : mr
+          .getGauges((name, metric) -> name.contains(WorkerMetrics.UFS_OP_PREFIX)).entrySet()) {
+        alluxio.metrics.Metric metric =
+            alluxio.metrics.Metric.from(entry.getKey(), (long) entry.getValue().getValue());
+        if (!metric.getTags().containsKey(WorkerMetrics.TAG_UFS)) {
+          continue;
+        }
+        String ufs = metric.getTags().get(WorkerMetrics.TAG_UFS);
+        Map<String, Long> perUfsMap = ufsOpsMap.getOrDefault(ufs, new TreeMap<>());
+        perUfsMap.put(metric.getName().replaceFirst(WorkerMetrics.UFS_OP_PREFIX, ""),
+            (long) metric.getValue());
+        ufsOpsMap.put(ufs, perUfsMap);
+      }
+
+      Map<String, Counter> counters = mr.getCounters(new MetricFilter() {
+        @Override
+        public boolean matches(String name, Metric metric) {
+          return !(name.endsWith("Ops"));
+        }
+      });
+
+      Map<String, Counter> rpcInvocations = mr.getCounters(new MetricFilter() {
+        @Override
+        public boolean matches(String name, Metric metric) {
+          return name.endsWith("Ops");
+        }
+      });
+
+      Map<String, Metric> operations = new TreeMap<>();
+      // Remove the instance name from the metrics.
+      for (Map.Entry<String, Counter> entry : counters.entrySet()) {
+        operations.put(MetricsSystem.stripInstanceAndHost(entry.getKey()), entry.getValue());
+      }
+      String filesPinnedProperty = MetricsSystem.getMetricName(MasterMetrics.FILES_PINNED);
+      operations.put(MetricsSystem.stripInstanceAndHost(filesPinnedProperty),
+          mr.getGauges().get(filesPinnedProperty));
+
+      Map<String, Counter> rpcInvocationsUpdated = new TreeMap<>();
+      for (Map.Entry<String, Counter> entry : rpcInvocations.entrySet()) {
+        rpcInvocationsUpdated
+            .put(MetricsSystem.stripInstanceAndHost(entry.getKey()), entry.getValue());
+      }
+
+      return new WebUIMetrics().setMasterCapacityUsedPercentage(masterCapacityUsedPercentage)
+          .setMasterCapacityFreePercentage(100 - masterUnderfsCapacityUsedPercentage)
+          .setMasterUnderfsCapacityUsedPercentage(masterUnderfsCapacityUsedPercentage)
+          .setMasterUnderfsCapacityFreePercentage(100 - masterUnderfsCapacityUsedPercentage)
+          .setTotalBytesReadLocal(FormatUtils.getSizeFromBytes(bytesReadLocal))
+          .setTotalBytesReadRemote(FormatUtils.getSizeFromBytes(bytesReadRemote))
+          .setTotalBytesReadUfs(FormatUtils.getSizeFromBytes(bytesReadUfs))
+          .setCacheHitLocal(String.format("%.2f", cacheHitLocalPercentage))
+          .setCacheHitRemote(String.format("%.2f", cacheHitRemotePercentage))
+          .setCacheMiss(String.format("%.2f", cacheMissPercentage))
+          .setTotalBytesWrittenAlluxio(FormatUtils.getSizeFromBytes(bytesWrittenAlluxio))
+          .setTotalBytesWrittenUfs(FormatUtils.getSizeFromBytes(bytesWrittenUfs))
+          .setTotalBytesReadLocalThroughput(FormatUtils.getSizeFromBytes(bytesReadLocalThroughput))
+          .setTotalBytesReadRemoteThroughput(
+              FormatUtils.getSizeFromBytes(bytesReadRemoteThroughput))
+          .setTotalBytesReadUfsThroughput(FormatUtils.getSizeFromBytes(bytesReadUfsThroughput))
+          .setTotalBytesWrittenAlluxioThroughput(
+              FormatUtils.getSizeFromBytes(bytesWrittenAlluxioThroughput))
+          .setTotalBytesWrittenUfsThroughput(
+              FormatUtils.getSizeFromBytes(bytesWrittenUfsThroughput))
+          .setUfsReadSize(ufsReadSizeMap).setUfsWriteSize(ufsWriteSizeMap).setUfsOps(ufsOpsMap)
+          .setOperationMetrics(operations).setRpcInvocationMetrics(rpcInvocations);
     });
   }
 
