@@ -50,7 +50,7 @@ final class LostFileDetector implements HeartbeatExecutor {
       // update the state
       try (JournalContext journalContext = mFileSystemMaster.createJournalContext();
           LockedInodePath inodePath =
-              mInodeTree.lockFullInodePath(fileId, LockPattern.WRITE_LAST)) {
+              mInodeTree.lockFullInodePath(fileId, LockPattern.WRITE_INODE)) {
         InodeView inode = inodePath.getInode();
         if (inode.getPersistenceState() != PersistenceState.PERSISTED) {
           mInodeTree.updateInode(journalContext, UpdateInodeEntry.newBuilder()

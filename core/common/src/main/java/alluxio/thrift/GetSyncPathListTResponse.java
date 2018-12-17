@@ -46,7 +46,7 @@ public class GetSyncPathListTResponse implements org.apache.thrift.TBase<GetSync
     schemes.put(TupleScheme.class, new GetSyncPathListTResponseTupleSchemeFactory());
   }
 
-  private List<String> syncPathList; // required
+  private List<SyncPointInfo> syncPathList; // required
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
@@ -112,7 +112,7 @@ public class GetSyncPathListTResponse implements org.apache.thrift.TBase<GetSync
     Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
     tmpMap.put(_Fields.SYNC_PATH_LIST, new org.apache.thrift.meta_data.FieldMetaData("syncPathList", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.ListMetaData(org.apache.thrift.protocol.TType.LIST, 
-            new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING))));
+            new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, SyncPointInfo.class))));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(GetSyncPathListTResponse.class, metaDataMap);
   }
@@ -121,7 +121,7 @@ public class GetSyncPathListTResponse implements org.apache.thrift.TBase<GetSync
   }
 
   public GetSyncPathListTResponse(
-    List<String> syncPathList)
+    List<SyncPointInfo> syncPathList)
   {
     this();
     this.syncPathList = syncPathList;
@@ -132,7 +132,10 @@ public class GetSyncPathListTResponse implements org.apache.thrift.TBase<GetSync
    */
   public GetSyncPathListTResponse(GetSyncPathListTResponse other) {
     if (other.isSetSyncPathList()) {
-      List<String> __this__syncPathList = new ArrayList<String>(other.syncPathList);
+      List<SyncPointInfo> __this__syncPathList = new ArrayList<SyncPointInfo>(other.syncPathList.size());
+      for (SyncPointInfo other_element : other.syncPathList) {
+        __this__syncPathList.add(new SyncPointInfo(other_element));
+      }
       this.syncPathList = __this__syncPathList;
     }
   }
@@ -150,22 +153,22 @@ public class GetSyncPathListTResponse implements org.apache.thrift.TBase<GetSync
     return (this.syncPathList == null) ? 0 : this.syncPathList.size();
   }
 
-  public java.util.Iterator<String> getSyncPathListIterator() {
+  public java.util.Iterator<SyncPointInfo> getSyncPathListIterator() {
     return (this.syncPathList == null) ? null : this.syncPathList.iterator();
   }
 
-  public void addToSyncPathList(String elem) {
+  public void addToSyncPathList(SyncPointInfo elem) {
     if (this.syncPathList == null) {
-      this.syncPathList = new ArrayList<String>();
+      this.syncPathList = new ArrayList<SyncPointInfo>();
     }
     this.syncPathList.add(elem);
   }
 
-  public List<String> getSyncPathList() {
+  public List<SyncPointInfo> getSyncPathList() {
     return this.syncPathList;
   }
 
-  public GetSyncPathListTResponse setSyncPathList(List<String> syncPathList) {
+  public GetSyncPathListTResponse setSyncPathList(List<SyncPointInfo> syncPathList) {
     this.syncPathList = syncPathList;
     return this;
   }
@@ -191,7 +194,7 @@ public class GetSyncPathListTResponse implements org.apache.thrift.TBase<GetSync
       if (value == null) {
         unsetSyncPathList();
       } else {
-        setSyncPathList((List<String>)value);
+        setSyncPathList((List<SyncPointInfo>)value);
       }
       break;
 
@@ -349,11 +352,12 @@ public class GetSyncPathListTResponse implements org.apache.thrift.TBase<GetSync
             if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
               {
                 org.apache.thrift.protocol.TList _list8 = iprot.readListBegin();
-                struct.syncPathList = new ArrayList<String>(_list8.size);
-                String _elem9;
+                struct.syncPathList = new ArrayList<SyncPointInfo>(_list8.size);
+                SyncPointInfo _elem9;
                 for (int _i10 = 0; _i10 < _list8.size; ++_i10)
                 {
-                  _elem9 = iprot.readString();
+                  _elem9 = new SyncPointInfo();
+                  _elem9.read(iprot);
                   struct.syncPathList.add(_elem9);
                 }
                 iprot.readListEnd();
@@ -381,10 +385,10 @@ public class GetSyncPathListTResponse implements org.apache.thrift.TBase<GetSync
       if (struct.syncPathList != null) {
         oprot.writeFieldBegin(SYNC_PATH_LIST_FIELD_DESC);
         {
-          oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRING, struct.syncPathList.size()));
-          for (String _iter11 : struct.syncPathList)
+          oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, struct.syncPathList.size()));
+          for (SyncPointInfo _iter11 : struct.syncPathList)
           {
-            oprot.writeString(_iter11);
+            _iter11.write(oprot);
           }
           oprot.writeListEnd();
         }
@@ -415,9 +419,9 @@ public class GetSyncPathListTResponse implements org.apache.thrift.TBase<GetSync
       if (struct.isSetSyncPathList()) {
         {
           oprot.writeI32(struct.syncPathList.size());
-          for (String _iter12 : struct.syncPathList)
+          for (SyncPointInfo _iter12 : struct.syncPathList)
           {
-            oprot.writeString(_iter12);
+            _iter12.write(oprot);
           }
         }
       }
@@ -429,12 +433,13 @@ public class GetSyncPathListTResponse implements org.apache.thrift.TBase<GetSync
       BitSet incoming = iprot.readBitSet(1);
       if (incoming.get(0)) {
         {
-          org.apache.thrift.protocol.TList _list13 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRING, iprot.readI32());
-          struct.syncPathList = new ArrayList<String>(_list13.size);
-          String _elem14;
+          org.apache.thrift.protocol.TList _list13 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
+          struct.syncPathList = new ArrayList<SyncPointInfo>(_list13.size);
+          SyncPointInfo _elem14;
           for (int _i15 = 0; _i15 < _list13.size; ++_i15)
           {
-            _elem14 = iprot.readString();
+            _elem14 = new SyncPointInfo();
+            _elem14.read(iprot);
             struct.syncPathList.add(_elem14);
           }
         }

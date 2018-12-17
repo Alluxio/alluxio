@@ -21,9 +21,10 @@ import alluxio.wire.CommonOptions;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 
-import javax.annotation.concurrent.NotThreadSafe;
 import java.util.Collections;
 import java.util.List;
+
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * Method options for creating a directory.
@@ -157,8 +158,10 @@ public final class CreateDirectoryOptions extends CreatePathOptions<CreateDirect
 
   @Override
   public String toString() {
-    return toStringHelper().add("allowExists", mAllowExists)
+    return toStringHelper()
+        .add("allowExists", mAllowExists)
         .add("ufsStatus", mUfsStatus)
-        .add("defaultAcl", mDefaultAcl).toString();
+        .add("defaultAcl", mDefaultAcl)
+        .toString();
   }
 }

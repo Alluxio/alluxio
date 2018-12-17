@@ -26,12 +26,12 @@ import alluxio.master.MasterRegistry;
 import alluxio.master.MasterTestUtils;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.block.BlockMasterFactory;
+import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.file.meta.InodeDirectoryIdGenerator;
 import alluxio.master.file.meta.InodeFile;
 import alluxio.master.file.meta.InodeTree;
 import alluxio.master.file.meta.InodeTree.LockPattern;
 import alluxio.master.file.meta.InodeView;
-import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.file.meta.MountTable;
 import alluxio.master.file.meta.options.MountInfo;
 import alluxio.master.file.options.CreateFileOptions;
@@ -224,9 +224,8 @@ public final class PermissionCheckerTest {
    */
   private static void createAndSetPermission(String path, CreateFileOptions option)
       throws Exception {
-    try (
-        LockedInodePath inodePath = sTree
-            .lockInodePath(new AlluxioURI(path), LockPattern.WRITE_LAST)) {
+    try (LockedInodePath inodePath =
+        sTree.lockInodePath(new AlluxioURI(path), LockPattern.WRITE_EDGE)) {
       InodeTree.CreatePathResult result = sTree.createPath(RpcContext.NOOP, inodePath, option);
       ((InodeFile) result.getCreated().get(result.getCreated().size() - 1))
           .setOwner(option.getOwner()).setGroup(option.getGroup())

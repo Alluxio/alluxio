@@ -302,15 +302,22 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
       if (!mFileSystem.exists(turi)) {
         return -ErrorCodes.ENOENT();
       }
-      final URIStatus status = mFileSystem.getStatus(turi);
-
+      URIStatus status = mFileSystem.getStatus(turi);
+      if (!status.isCompleted()) {
+        if (!waitForFileCompleted(turi)) {
+          LOG.error("File {} is not completed", path);
+        }
+        status = mFileSystem.getStatus(turi);
+      }
       long size = status.getLength();
-      long blockSize = status.getBlockSizeBytes();
       stat.st_size.set(size);
-      // Sets block number and block size to fulfill du command needs
-      stat.st_blksize.set(blockSize);
-      // Does not consider replications
-      stat.st_blocks.set((int) Math.ceil((double) size / blockSize));
+
+      // Sets block number to fulfill du command needs
+      // `st_blksize` is ignored in `getattr` according to
+      // https://github.com/libfuse/libfuse/blob/d4a7ba44b022e3b63fc215374d87ed9e930d9974/include/fuse.h#L302
+      // According to http://man7.org/linux/man-pages/man2/stat.2.html,
+      // `st_blocks` is the number of 512B blocks allocated
+      stat.st_blocks.set((int) Math.ceil((double) size / 512));
 
       final long ctime_sec = status.getLastModificationTimeMs() / 1000;
       // Keeps only the "residual" nanoseconds not caputred in citme_sec
