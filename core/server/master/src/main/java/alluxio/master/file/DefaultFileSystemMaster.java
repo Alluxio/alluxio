@@ -608,6 +608,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
       mAsyncAuditLogWriter.stop();
       mAsyncAuditLogWriter = null;
     }
+    mSyncManager.stop();
     super.stop();
   }
 
