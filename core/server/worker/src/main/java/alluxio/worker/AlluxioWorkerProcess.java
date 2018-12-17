@@ -283,7 +283,7 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
       mDomainSocketDataServer.close();
       mDomainSocketDataServer = null;
     }
-    if(mGrpcServer != null) {
+    if (mGrpcServer != null) {
       mGrpcServer.shutdown();
       mGrpcServer.awaitTermination();
       mGrpcServer.shutdownNow();

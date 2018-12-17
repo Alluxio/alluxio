@@ -57,13 +57,17 @@ public class AuthenticatedUserInjector implements ServerInterceptor {
             String userName = mAuthenticationServer.getUserNameForChannel(channelId);
             if (userName != null) {
               AuthenticatedClientUser.set(userName);
+            } else {
+              AuthenticatedClientUser.set("");
             }
           } catch (UnauthenticatedException e) {
             call.close(Status.UNAUTHENTICATED, headers);
           }
+        } else {
+          // TODO(ggezer) Consider closing the call as UNAUTHENTICATED when channelId is not found.
+          // TODO(ggezer) Requires MetaClientService to be served as unauthenticated.
+          AuthenticatedClientUser.set("");
         }
-        // TODO(ggezer) Consider closing the call as UNAUTHENTICATED when channelId is not found.
-        // TODO(ggezer) Requires MetaClientService to be served as unauthenticated.
         super.onHalfClose();
       }
     };

@@ -29,8 +29,8 @@ public class CreateFileContext
    *
    * @param optionsBuilder options builder
    */
-  private CreateFileContext(CreateFilePOptions.Builder optionsBuilder, boolean merged) {
-    super(optionsBuilder, merged);
+  private CreateFileContext(CreateFilePOptions.Builder optionsBuilder) {
+    super(optionsBuilder);
     mCacheable = false;
   }
 
@@ -44,7 +44,7 @@ public class CreateFileContext
     CreateFilePOptions masterOptions = FileSystemMasterOptions.createFileDefaults();
     CreateFilePOptions.Builder mergedOptionsBuilder =
         masterOptions.toBuilder().mergeFrom(optionsBuilder.build());
-    return new CreateFileContext(mergedOptionsBuilder, true);
+    return new CreateFileContext(mergedOptionsBuilder);
   }
 
   /**
@@ -52,7 +52,7 @@ public class CreateFileContext
    */
   public static CreateFileContext defaults() {
     CreateFilePOptions masterOptions = FileSystemMasterOptions.createFileDefaults();
-    return new CreateFileContext(masterOptions.toBuilder(), false);
+    return new CreateFileContext(masterOptions.toBuilder());
   }
 
   protected CreateFileContext getThis() {
