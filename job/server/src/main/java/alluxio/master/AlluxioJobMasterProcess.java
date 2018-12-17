@@ -117,7 +117,7 @@ public class AlluxioJobMasterProcess implements JobMasterProcess {
           NetworkAddressUtils.getBindAddress(ServiceType.JOB_MASTER_RPC);
       if (configuredAddress.getPort() == 0) {
         mGrpcServer = GrpcServerBuilder.forAddress(configuredAddress).build().start();
-        mPort = mGrpcServer.getPort();
+        mPort = mGrpcServer.getBindPort();
         Configuration.set(PropertyKey.JOB_MASTER_RPC_PORT, Integer.toString(mPort));
       } else {
         mPort = configuredAddress.getPort();

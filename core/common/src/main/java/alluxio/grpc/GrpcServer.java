@@ -18,6 +18,9 @@ import alluxio.retry.RetryUtils;
 import io.grpc.Server;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.net.SocketAddress;
+import java.util.concurrent.TimeUnit;
 
 /**
  * An authenticated gRPC server. Corresponding gRPC channels to this server should be build by
@@ -48,9 +51,9 @@ public class GrpcServer {
   }
 
   /**
-   * @return the port that the server is binded to
+   * @return the port that server is bound to, or null if the server is not bound to an address yet.
    */
-  public int getPort() {
+  public int getBindPort() {
     return mServer.getPort();
   }
 
@@ -76,9 +79,22 @@ public class GrpcServer {
       try {
         mServer.awaitTermination();
       } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
         throw new RuntimeException("Interrupted while waiting for gRPC server to terminate", e);
       }
     }
+  }
+
+  /**
+   * Waits until the server is terminated.
+   * 
+   * @param timeout timeout duration to wait for termination
+   * @param timeUnit time unit for given timeout value
+   * @throws InterruptedException when interrupted
+   * @return {@code true} if the server has been terminated
+   */
+  public boolean awaitTermination(long timeout, TimeUnit timeUnit) throws InterruptedException {
+    return mServer.awaitTermination(timeout, timeUnit);
   }
 
   /**

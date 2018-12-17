@@ -18,9 +18,11 @@ import alluxio.security.authentication.AuthType;
 import alluxio.security.authentication.ChannelAuthenticator;
 import io.grpc.Channel;
 import io.grpc.ManagedChannel;
+import io.netty.channel.EventLoopGroup;
 
 import javax.security.auth.Subject;
-import java.net.InetSocketAddress;
+import java.net.SocketAddress;
+import java.util.concurrent.TimeUnit;
 
 /**
  * A gRPC channel builder that authenticates with {@link GrpcServer} at the target during channel
@@ -45,8 +47,7 @@ public final class GrpcChannelBuilder {
   /** Authentication type to use. */
   protected AuthType mAuthType;
 
-  private GrpcChannelBuilder(InetSocketAddress address) {
-
+  private GrpcChannelBuilder(SocketAddress address) {
     mChannelKey = GrpcManagedChannelPool.ChannelKey.create();
     mChannelKey.setAddress(address).usePlaintext();
     mUseSubject = true;
@@ -60,7 +61,7 @@ public final class GrpcChannelBuilder {
    * @param address the host address
    * @return a new instance of {@link GrpcChannelBuilder}
    */
-  public static GrpcChannelBuilder forAddress(InetSocketAddress address) {
+  public static GrpcChannelBuilder forAddress(SocketAddress address) {
     return new GrpcChannelBuilder(address);
   }
 
@@ -100,6 +101,62 @@ public final class GrpcChannelBuilder {
    */
   public GrpcChannelBuilder disableAuthentication() {
     mAuthenticateChannel = false;
+    return this;
+  }
+
+  /**
+   * Sets the time waiting for read activity after sending a keepalive ping.
+   *
+   * @param keepAliveTimeout the timeout for waiting after keepalive ping
+   * @param timeUnit the time unit for the keepalive timeout
+   * @return the updated {@link GrpcChannelBuilder} instance
+   */
+  public GrpcChannelBuilder setKeepAliveTimeout(long keepAliveTimeout, TimeUnit timeUnit) {
+    mChannelKey.setKeepAliveTimeout(keepAliveTimeout, timeUnit);
+    return this;
+  }
+
+  /**
+   * Sets the maximum message size allowed for a single gRPC frame.
+   *
+   * @param maxInboundMessaageSize the maximum inbound message size in bytes
+   * @return a new instance of {@link GrpcChannelBuilder}
+   */
+  public GrpcChannelBuilder setMaxInboundMessageSize(int maxInboundMessaageSize) {
+    mChannelKey.setMaxInboundMessageSize(maxInboundMessaageSize);
+    return this;
+  }
+
+  /**
+   * Sets the flow control window.
+   *
+   * @param flowControlWindow the flow control window in bytes
+   * @return a new instance of {@link GrpcChannelBuilder}
+   */
+  public GrpcChannelBuilder setFlowControlWindow(int flowControlWindow) {
+    mChannelKey.setFlowControlWindow(flowControlWindow);
+    return this;
+  }
+
+  /**
+   * Sets the channel type.
+   *
+   * @param channelType the channel type
+   * @return a new instance of {@link GrpcChannelBuilder}
+   */
+  public GrpcChannelBuilder setChannelType(Class<? extends io.netty.channel.Channel> channelType) {
+    mChannelKey.setChannelType(channelType);
+    return this;
+  }
+
+  /**
+   * Sets the event loop group.
+   *
+   * @param group the event loop group
+   * @return a new instance of {@link GrpcChannelBuilder}
+   */
+  public GrpcChannelBuilder setEventLoopGroup(EventLoopGroup group) {
+    mChannelKey.setEventLoopGroup(group);
     return this;
   }
 

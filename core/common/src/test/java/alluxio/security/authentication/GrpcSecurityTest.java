@@ -117,7 +117,7 @@ public class GrpcSecurityTest {
   }
 
   private InetSocketAddress getServerConnectAddress(GrpcServer server) {
-    return new InetSocketAddress(NetworkAddressUtils.getLocalHostName(), server.getPort());
+    return new InetSocketAddress(NetworkAddressUtils.getLocalHostName(), server.getBindPort());
   }
 
   private GrpcServer createServer(AuthType authType) {

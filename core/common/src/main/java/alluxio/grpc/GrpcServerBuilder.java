@@ -14,13 +14,15 @@ package alluxio.grpc;
 import alluxio.security.authentication.AuthenticationServer;
 import alluxio.security.authentication.DefaultAuthenticationServer;
 import alluxio.util.SecurityUtils;
-import io.grpc.BindableService;
+
 import io.grpc.ServerInterceptor;
 import io.grpc.ServerInterceptors;
 import io.grpc.ServerServiceDefinition;
 import io.grpc.netty.NettyServerBuilder;
+import io.netty.channel.EventLoopGroup;
+import io.netty.channel.ServerChannel;
 
-import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 import java.util.concurrent.Executor;
 
 import javax.annotation.Nullable;
@@ -47,7 +49,7 @@ public class GrpcServerBuilder {
    * @param address the address
    * @return a new instance of {@link GrpcServerBuilder}
    */
-  public static GrpcServerBuilder forAddress(InetSocketAddress address) {
+  public static GrpcServerBuilder forAddress(SocketAddress address) {
     return new GrpcServerBuilder(NettyServerBuilder.forAddress(address));
   }
 
@@ -59,6 +61,50 @@ public class GrpcServerBuilder {
    */
   public GrpcServerBuilder executor(@Nullable Executor executor) {
     mNettyServerBuilder = mNettyServerBuilder.executor(executor);
+    return this;
+  }
+
+  /**
+   * Sets flow control window.
+   * 
+   * @param flowControlWindow the HTTP2 flow control window
+   * @return an updated instance of this {@link GrpcServerBuilder}
+   */
+  public GrpcServerBuilder flowControlWindow(int flowControlWindow) {
+    mNettyServerBuilder = mNettyServerBuilder.flowControlWindow(flowControlWindow);
+    return this;
+  }
+
+  /**
+   * Sets the netty channel type.
+   *
+   * @param channelType the netty channel type for the server
+   * @return an updated instance of this {@link GrpcServerBuilder}
+   */
+  public GrpcServerBuilder channelType(Class<? extends ServerChannel> channelType) {
+    mNettyServerBuilder = mNettyServerBuilder.channelType(channelType);
+    return this;
+  }
+
+  /**
+   * Sets the boss {@link EventLoopGroup}.
+   *
+   * @param bossGroup the boss event loop group
+   * @return an updated instance of this {@link GrpcServerBuilder}
+   */
+  public GrpcServerBuilder bossEventLoopGroup(EventLoopGroup bossGroup) {
+    mNettyServerBuilder = mNettyServerBuilder.bossEventLoopGroup(bossGroup);
+    return this;
+  }
+
+  /**
+   * Sets the worker {@link EventLoopGroup}.
+   *
+   * @param workerGroup the worker event loop group
+   * @return an updated instance of this {@link GrpcServerBuilder}
+   */
+  public GrpcServerBuilder workerEventLoopGroup(EventLoopGroup workerGroup) {
+    mNettyServerBuilder = mNettyServerBuilder.workerEventLoopGroup(workerGroup);
     return this;
   }
 

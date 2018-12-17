@@ -134,7 +134,7 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
               NetworkAddressUtils.getBindAddress(ServiceType.WORKER_RPC);
       if (configuredBindAddress.getPort() == 0) {
         mGrpcServer = GrpcServerBuilder.forAddress(configuredBindAddress).build().start();
-        bindPort = mGrpcServer.getPort();
+        bindPort = mGrpcServer.getBindPort();
         Configuration.set(PropertyKey.WORKER_RPC_PORT, Integer.toString(bindPort));
       } else {
         bindPort = configuredBindAddress.getPort();

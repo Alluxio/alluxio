@@ -16,9 +16,6 @@ import io.grpc.Channel;
 import io.grpc.ClientCall;
 import io.grpc.MethodDescriptor;
 
-import java.net.InetSocketAddress;
-
-
 /**
  * An authenticated gRPC channel. This channel can communicate with servers of type
  * {@link GrpcServer}.
@@ -26,6 +23,7 @@ import java.net.InetSocketAddress;
 public final class GrpcChannel extends Channel {
   protected GrpcManagedChannelPool.ChannelKey mChannelKey;
   protected Channel mChannel;
+  protected boolean mchannelReleased;
 
   /**
    * Create a new instance of {@link GrpcChannel}.
@@ -35,6 +33,7 @@ public final class GrpcChannel extends Channel {
   public GrpcChannel(GrpcManagedChannelPool.ChannelKey channelKey, Channel channel) {
     mChannelKey = channelKey;
     mChannel = channel;
+    mchannelReleased = false;
   }
 
   @Override
@@ -53,5 +52,13 @@ public final class GrpcChannel extends Channel {
    */
   public void shutdown() {
     GrpcManagedChannelPool.releaseManagedChannel(mChannelKey);
+    mchannelReleased = true;
+  }
+
+  /**
+   * @return {@code true} if the channel has been shut down
+   */
+  public boolean isShutdown(){
+    return mchannelReleased;
   }
 }

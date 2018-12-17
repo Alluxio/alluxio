@@ -1,14 +1,16 @@
 package alluxio.grpc;
 
+import alluxio.collections.Pair;
 import alluxio.resource.LockResource;
 import com.google.common.base.Verify;
-import io.grpc.Channel;
 import io.grpc.ManagedChannel;
 import io.grpc.netty.NettyChannelBuilder;
+import io.netty.channel.EventLoopGroup;
 
 import javax.annotation.concurrent.GuardedBy;
-import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 import java.util.HashMap;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -44,12 +46,7 @@ public class GrpcManagedChannelPool {
     }
     try (LockResource lockExclusive = new LockResource(mLock.writeLock())) {
       if (!mChannels.containsKey(channelKey)) {
-        NettyChannelBuilder channelBuilder = NettyChannelBuilder.forAddress(channelKey.mAddress);
-        if (channelKey.mPlain) {
-          channelBuilder.usePlaintext();
-        }
-
-        mChannels.put(channelKey, new ManagedChannelReference(channelBuilder.build()));
+        mChannels.put(channelKey, new ManagedChannelReference(createManagedChannel(channelKey)));
       }
       return mChannels.get(channelKey).reference();
     }
@@ -95,6 +92,33 @@ public class GrpcManagedChannelPool {
   }
 
   /**
+   * Creates a {@link ManagedChannel} by given pool key.
+   *
+   * @param channelKey channel pool key
+   * @return the created channel
+   */
+  private static ManagedChannel createManagedChannel(ChannelKey channelKey) {
+    NettyChannelBuilder channelBuilder = NettyChannelBuilder.forAddress(channelKey.mAddress);
+    if (channelKey.mKeepAliveTimeout.isPresent()) {
+      channelBuilder.keepAliveTimeout(channelKey.mKeepAliveTimeout.get().getFirst(),
+          channelKey.mKeepAliveTimeout.get().getSecond());
+    }
+    if (channelKey.mMaxInboundMessageSize.isPresent()) {
+      channelBuilder.maxInboundMetadataSize(channelKey.mMaxInboundMessageSize.get());
+    }
+    if (channelKey.mFlowControlWindow.isPresent()) {
+      channelBuilder.flowControlWindow(channelKey.mFlowControlWindow.get());
+    }
+    if (channelKey.mEventLoopGroup.isPresent()) {
+      channelBuilder.eventLoopGroup(channelKey.mEventLoopGroup.get());
+    }
+    if (channelKey.mPlain) {
+      channelBuilder.usePlaintext();
+    }
+    return channelBuilder.build();
+  }
+
+  /**
    * Used as reference counting wrapper over {@link ManagedChannel}.
    */
   private static class ManagedChannelReference {
@@ -120,8 +144,13 @@ public class GrpcManagedChannelPool {
    * Used to identify a unique {@link ManagedChannel} in the pool.
    */
   public static class ChannelKey {
-    private InetSocketAddress mAddress;;
-    private boolean mPlain;
+    private SocketAddress mAddress;
+    private boolean mPlain = false;
+    private Optional<Pair<Long, TimeUnit>> mKeepAliveTimeout = Optional.empty();
+    private Optional<Integer> mMaxInboundMessageSize = Optional.empty();
+    private Optional<Integer> mFlowControlWindow = Optional.empty();
+    private Optional<Class<? extends io.netty.channel.Channel>> mChannelType = Optional.empty();
+    private Optional<EventLoopGroup> mEventLoopGroup = Optional.empty();
 
     private ChannelKey() {}
 
@@ -133,7 +162,7 @@ public class GrpcManagedChannelPool {
      * @param address destination address of the channel
      * @return the modified {@link ChannelKey}
      */
-    public ChannelKey setAddress(InetSocketAddress address) {
+    public ChannelKey setAddress(SocketAddress address) {
       mAddress = address;
       return this;
     }
@@ -148,11 +177,65 @@ public class GrpcManagedChannelPool {
       return this;
     }
 
+    /**
+     * @param keepAliveTimeout keep alive timeout for the underlying channel
+     * @param timeUnit timeout for the keepAliveTimeout parameter
+     * @return the modified {@link ChannelKey}
+     */
+    public ChannelKey setKeepAliveTimeout(long keepAliveTimeout, TimeUnit timeUnit) {
+      mKeepAliveTimeout = Optional.of(new Pair<>(keepAliveTimeout, timeUnit));
+      return this;
+    }
+
+    /**
+     * @param maxInboundMessageSize Max inbound message size for the underlying channel
+     * @return the modified {@link ChannelKey}
+     */
+    public ChannelKey setMaxInboundMessageSize(int maxInboundMessageSize) {
+      mMaxInboundMessageSize = Optional.of(maxInboundMessageSize);
+      return this;
+    }
+
+    /**
+     * @param flowControlWindow flow control window value for the underlying channel
+     * @return the modified {@link ChannelKey}
+     */
+    public ChannelKey setFlowControlWindow(int flowControlWindow) {
+      mFlowControlWindow = Optional.of(flowControlWindow);
+      return this;
+    }
+
+    /**
+     *
+     * @param channelType channel type for the underlying channel
+     * @return the modified {@link ChannelKey}
+     */
+    public ChannelKey setChannelType(Class<? extends io.netty.channel.Channel> channelType) {
+      mChannelType = Optional.of(channelType);
+      return this;
+    }
+
+    /**
+     *
+     * @param eventLoopGroup event loop group for the underlying channel
+     * @return the modified {@link ChannelKey}
+     */
+    public ChannelKey setEventLoopGroup(EventLoopGroup eventLoopGroup) {
+      mEventLoopGroup = Optional.of(eventLoopGroup);
+      return this;
+    }
+
     @Override
     public boolean equals(Object other) {
       if (other instanceof ChannelKey) {
         ChannelKey otherKey = (ChannelKey) other;
-        return mAddress == otherKey.mAddress && mPlain == otherKey.mPlain;
+        return mAddress == otherKey.mAddress
+            && mPlain == otherKey.mPlain
+            && mKeepAliveTimeout == otherKey.mKeepAliveTimeout
+            && mFlowControlWindow == otherKey.mFlowControlWindow
+            && mMaxInboundMessageSize == otherKey.mMaxInboundMessageSize
+            && mChannelType == otherKey.mChannelType
+            && mEventLoopGroup == otherKey.mEventLoopGroup;
       }
       return false;
     }
