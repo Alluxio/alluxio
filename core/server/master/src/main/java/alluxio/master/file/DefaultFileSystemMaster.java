@@ -504,7 +504,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
         MountInfo mountInfo = mMountTable.getMountTable().get(key);
         UnderFileSystemConfiguration ufsConf = UnderFileSystemConfiguration.defaults()
             .setMountSpecificConf(mountInfo.getOptions().getProperties());
-        mUfsManager.addMount(mountInfo.getMountId(), new AlluxioURI(key), ufsConf);
+        mUfsManager.addMount(mountInfo.getMountId(), mountInfo.getUfsUri(), ufsConf);
       }
       // Startup Checks and Periodic Threads.
       // Rebuild the list of persist jobs (mPersistJobs) and map of pending persist requests
@@ -3645,28 +3645,14 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
       throws InvalidPathException, IOException, ConnectionFailedException {
     try (LockResource r = new LockResource(mSyncManager.getSyncManagerLock())) {
       mSyncManager.startSync(lockedInodePath.getUri());
+      MountTable.Resolution resolution = mMountTable.resolve(lockedInodePath.getUri());
+      long mountId = resolution.getMountId();
       AddSyncPointEntry addSyncPoint =
           AddSyncPointEntry.newBuilder()
-              .setSyncpointPath(lockedInodePath.getUri().toString()).build();
+              .setSyncpointPath(lockedInodePath.getUri().toString())
+              .setMountId(mountId)
+              .build();
       rpcContext.journal(JournalEntry.newBuilder().setAddSyncPoint(addSyncPoint).build());
-    }
-  }
-
-  private void startSyncFromJournalEntry(AddSyncPointEntry addSyncPointEntry)
-      throws InvalidPathException, IOException {
-    try (LockedInodePath inodePath = mInodeTree
-        .lockInodePath(new AlluxioURI(addSyncPointEntry.getSyncpointPath()),
-            LockPattern.WRITE_LAST)) {
-      mSyncManager.addSyncPointFromJournal(inodePath.getUri());
-    }
-  }
-
-  private void stopSyncFromJournalEntry(RemoveSyncPointEntry removeSyncPointEntry)
-      throws InvalidPathException, IOException {
-    try (LockedInodePath inodePath = mInodeTree
-        .lockInodePath(new AlluxioURI(removeSyncPointEntry.getSyncpointPath()),
-            LockPattern.WRITE_LAST)) {
-      mSyncManager.stopSync(inodePath.getUri());
     }
   }
 
