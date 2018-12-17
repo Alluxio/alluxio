@@ -31,8 +31,7 @@ import java.util.List;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * Alluxio file system's file representation in the file system master. The inode must be locked
- * ({@link #lockRead()} or {@link #lockWrite()}) before methods are called.
+ * Alluxio file system's file representation in the file system master.
  */
 @NotThreadSafe
 public final class InodeFile extends Inode<InodeFile> implements InodeFileView {
