@@ -255,7 +255,8 @@ public final class GrpcUtils {
    * @return the converted wire type
    */
   public static TieredIdentity.LocalityTier fromProto(alluxio.grpc.LocalityTier localityPTier) {
-    return new TieredIdentity.LocalityTier(localityPTier.getTierName(), localityPTier.getValue());
+    return new TieredIdentity.LocalityTier(localityPTier.getTierName(),
+        localityPTier.hasValue() ? localityPTier.getValue() : null);
   }
 
   /**

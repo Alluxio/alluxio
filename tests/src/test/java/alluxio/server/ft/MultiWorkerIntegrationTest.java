@@ -26,6 +26,7 @@ import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.client.file.options.OutStreamOptions;
+import alluxio.client.file.policy.FileWriteLocationPolicy;
 import alluxio.client.file.policy.RoundRobinPolicy;
 import alluxio.grpc.WritePType;
 import alluxio.testutils.BaseIntegrationTest;
@@ -38,7 +39,6 @@ import alluxio.wire.WorkerNetAddress;
 import com.google.common.io.ByteStreams;
 import org.apache.commons.io.IOUtils;
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -46,15 +46,28 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
+import java.util.stream.StreamSupport;
 
 /**
  * Tests a cluster containing multiple workers.
- * TODO(ggezer) FileWriteLocationPolicy is not testable anymore.
  */
 public final class MultiWorkerIntegrationTest extends BaseIntegrationTest {
   private static final int NUM_WORKERS = 4;
   private static final int WORKER_MEMORY_SIZE_BYTES = Constants.MB;
   private static final int BLOCK_SIZE_BYTES = WORKER_MEMORY_SIZE_BYTES / 2;
+
+  public static class FindFirstFileWriteLocationPolicy implements FileWriteLocationPolicy {
+    // Set this prior to sending the create request to FSM.
+    private static WorkerNetAddress sWorkerAddress;
+
+    @Override
+    public WorkerNetAddress getWorkerForNextBlock(Iterable<BlockWorkerInfo> workerInfoList,
+        long blockSizeBytes) {
+      return StreamSupport.stream(workerInfoList.spliterator(), false)
+          .filter(x -> x.getNetAddress().equals(sWorkerAddress)).findFirst().get()
+          .getNetAddress();
+    }
+  }
 
   @Rule
   public LocalAlluxioClusterResource mResource =
@@ -83,7 +96,6 @@ public final class MultiWorkerIntegrationTest extends BaseIntegrationTest {
   }
 
   @Test
-  @Ignore
   @LocalAlluxioClusterResource.Config(confParams = {PropertyKey.Name.USER_SHORT_CIRCUIT_ENABLED,
       "false", PropertyKey.Name.USER_BLOCK_SIZE_BYTES_DEFAULT, "16MB",
       PropertyKey.Name.USER_NETWORK_NETTY_READER_PACKET_SIZE_BYTES, "64KB",
@@ -109,7 +121,6 @@ public final class MultiWorkerIntegrationTest extends BaseIntegrationTest {
   }
 
   @Test
-  @Ignore
   @LocalAlluxioClusterResource.Config(confParams = {PropertyKey.Name.USER_SHORT_CIRCUIT_ENABLED,
       "false", PropertyKey.Name.USER_BLOCK_SIZE_BYTES_DEFAULT, "4MB",
       PropertyKey.Name.USER_NETWORK_NETTY_READER_PACKET_SIZE_BYTES, "64KB",
@@ -135,7 +146,6 @@ public final class MultiWorkerIntegrationTest extends BaseIntegrationTest {
   }
 
   @Test
-  @Ignore
   @LocalAlluxioClusterResource.Config(confParams = {PropertyKey.Name.USER_SHORT_CIRCUIT_ENABLED,
       "false", PropertyKey.Name.USER_BLOCK_SIZE_BYTES_DEFAULT, "4MB",
       PropertyKey.Name.USER_NETWORK_NETTY_READER_PACKET_SIZE_BYTES, "64KB",
@@ -161,17 +171,13 @@ public final class MultiWorkerIntegrationTest extends BaseIntegrationTest {
 
   private void createFileOnWorker(int total, AlluxioURI filePath, WorkerNetAddress address)
       throws IOException {
-    /*
+    FindFirstFileWriteLocationPolicy.sWorkerAddress = address;
     FileSystemTestUtils.createByteFile(mResource.get().getClient(), filePath,
-        CreateFileOptions.defaults()
-            .setWriteType(WriteType.MUST_CACHE)
-            .setLocationPolicy((workerInfoList, blockSizeBytes) ->
-                StreamSupport.stream(workerInfoList.spliterator(), false)
-                    .filter(x -> x.getNetAddress().equals(address))
-                    .findFirst()
-                    .get()
-                    .getNetAddress()), total);
-   */
+        FileSystemClientOptions.getCreateFileOptions().toBuilder()
+            .setWriteType(WritePType.WRITE_MUST_CACHE)
+            .setFileWriteLocationPolicy(FindFirstFileWriteLocationPolicy.class.getName())
+            .build(),
+        total);
   }
 
   private void replicateFileBlocks(AlluxioURI filePath) throws Exception {
