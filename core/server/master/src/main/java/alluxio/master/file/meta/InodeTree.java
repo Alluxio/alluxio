@@ -919,7 +919,7 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
         PreconditionMessage.INVALID_REPLICATION_MAX_MIN_VALUE_NULL);
     Preconditions.checkArgument(replicationMin == null || replicationMin >= 0,
         PreconditionMessage.INVALID_REPLICATION_MIN_VALUE);
-    Preconditions.checkState(inodePath.getLockPattern() == LockPattern.WRITE_INODE);
+    Preconditions.checkState(inodePath.getLockPattern().isWrite());
 
     InodeView inode = inodePath.getInode();
 
