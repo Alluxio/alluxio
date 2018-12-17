@@ -359,7 +359,7 @@ public class AlluxioMasterProcess implements MasterProcess {
     // TODO(ggezer) Executor threads not reused until thread capacity is hit.
     // ExecutorService executorService = Executors.newFixedThreadPool(mMaxWorkerThreads);
     try {
-      if (mGrpcServer != null) {
+      if (mGrpcServer != null && mGrpcServer.isServing()) {
         // Server launched for auto bind.
         // Terminate it.
         mGrpcServer.shutdown();

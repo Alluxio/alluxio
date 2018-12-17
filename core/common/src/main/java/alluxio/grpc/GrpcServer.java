@@ -11,6 +11,10 @@
 
 package alluxio.grpc;
 
+import alluxio.retry.CountingRetry;
+import alluxio.retry.ExponentialBackoffRetry;
+import alluxio.retry.RetryPolicy;
+import alluxio.retry.RetryUtils;
 import io.grpc.Server;
 
 import java.io.IOException;
@@ -38,7 +42,8 @@ public class GrpcServer {
    * @throws IOException when unable to start serving
    */
   public GrpcServer start() throws IOException {
-    mServer = mServer.start();
+    RetryUtils.retry("Starting gRPC server", () -> mServer.start(),
+        new ExponentialBackoffRetry(100, 500, 5));
     return this;
   }
 
@@ -80,6 +85,6 @@ public class GrpcServer {
    * @return true if server is serving
    */
   public boolean isServing() {
-    return !mServer.isShutdown() && !mServer.isTerminated();
+    return !mServer.isShutdown() || !mServer.isTerminated();
   }
 }

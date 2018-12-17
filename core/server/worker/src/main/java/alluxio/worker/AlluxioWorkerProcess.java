@@ -241,8 +241,6 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
       mJvmPauseMonitor.start();
     }
 
-    mIsServingRPC = true;
-
     // Start serving RPC, this will block
     LOG.info("Alluxio worker version {} started. "
             + "bindHost={}, connectHost={}, rpcPort={}, dataPort={}, webPort={}",
@@ -253,6 +251,8 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
         NetworkAddressUtils.getPort(ServiceType.WORKER_DATA),
         NetworkAddressUtils.getPort(ServiceType.WORKER_WEB));
     createGrpcServer().start();
+    mIsServingRPC = true;
+
     mGrpcServer.awaitTermination();
     LOG.info("Alluxio worker ended");
   }
@@ -283,10 +283,11 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
       mDomainSocketDataServer.close();
       mDomainSocketDataServer = null;
     }
-    mGrpcServer.shutdown();
-    mGrpcServer.awaitTermination();
-    mGrpcServer.shutdownNow();
-
+    if(mGrpcServer != null) {
+      mGrpcServer.shutdown();
+      mGrpcServer.awaitTermination();
+      mGrpcServer.shutdownNow();
+    }
     mUfsManager.close();
     try {
       mWebServer.stop();
@@ -305,7 +306,7 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
   }
 
   private GrpcServer createGrpcServer() {
-    if (mGrpcServer != null) {
+    if (mGrpcServer != null && mGrpcServer.isServing()) {
       // Server launched for auto bind.
       // Terminate it.
       mGrpcServer.shutdown();
@@ -339,7 +340,7 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
       CommonUtils.waitFor(this + " to start",
           () -> mGrpcServer != null && mGrpcServer.isServing()
               && mRegistry.get(BlockWorker.class).getWorkerId() != null
-              && mWebServer.getServer().isRunning(),
+              && mWebServer != null && mWebServer.getServer().isRunning(),
           WaitForOptions.defaults().setTimeoutMs(timeoutMs));
       return true;
     } catch (InterruptedException e) {
