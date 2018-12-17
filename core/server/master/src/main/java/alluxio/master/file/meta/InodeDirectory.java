@@ -24,11 +24,6 @@ import alluxio.security.authorization.AccessControlList;
 import alluxio.security.authorization.DefaultAccessControlList;
 import alluxio.wire.FileInfo;
 
-import com.google.common.collect.ImmutableSet;
-
-import java.util.HashSet;
-import java.util.Set;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -70,40 +65,6 @@ public final class InodeDirectory extends Inode<InodeDirectory> implements Inode
     return this;
   }
 
-  /**
-   * Adds the given inode to the set of children.
-   *
-   * @param child the inode to add
-   * @return true if inode was added successfully, false otherwise
-   */
-  public boolean addChild(Inode<?> child) {
-    return mChildren.add(child);
-  }
-
-  @Override
-  public InodeView getChild(String name) {
-    return mChildren.getFirst(name);
-  }
-
-  @Override
-  public Set<InodeView> getChildren() {
-    return ImmutableSet.copyOf(mChildren.iterator());
-  }
-
-  @Override
-  public Set<Long> getChildrenIds() {
-    Set<Long> ret = new HashSet<>(mChildren.size());
-    for (Inode<?> child : mChildren) {
-      ret.add(child.getId());
-    }
-    return ret;
-  }
-
-  @Override
-  public int getNumberOfChildren() {
-    return mChildren.size();
-  }
-
   @Override
   public boolean isMountPoint() {
     return mMountPoint;
@@ -115,45 +76,8 @@ public final class InodeDirectory extends Inode<InodeDirectory> implements Inode
   }
 
   @Override
-  public synchronized boolean areDescendantsLoaded() {
-    if (!isDirectChildrenLoaded()) {
-      return false;
-    }
-    for (InodeView inode : getChildren()) {
-      if (inode.isDirectory()) {
-        InodeDirectory inodeDirectory = (InodeDirectory) inode;
-        if (!inodeDirectory.areDescendantsLoaded()) {
-          return false;
-        }
-      }
-    }
-    return true;
-  }
-
-  @Override
   public DefaultAccessControlList getDefaultACL() {
     return mDefaultAcl;
-  }
-
-  /**
-   * Removes the given inode from the directory.
-   *
-   * @param child the Inode to remove
-   * @return true if the inode was removed, false otherwise
-   */
-  public boolean removeChild(Inode<?> child) {
-    return mChildren.remove(child);
-  }
-
-  /**
-   * Removes the given child by its name from the directory.
-   *
-   * @param name the name of the Inode to remove
-   * @return true if the inode was removed, false otherwise
-   */
-  public boolean removeChild(String name) {
-    Inode<?> child = mChildren.getFirst(name);
-    return mChildren.remove(child);
   }
 
   /**

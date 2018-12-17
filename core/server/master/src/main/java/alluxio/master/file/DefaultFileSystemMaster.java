@@ -48,7 +48,6 @@ import alluxio.master.audit.AuditContext;
 import alluxio.master.block.BlockId;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.activesync.ActiveSyncManager;
-import alluxio.wire.SyncPointInfo;
 import alluxio.master.file.meta.FileSystemMasterView;
 import alluxio.master.file.meta.InodeDirectory;
 import alluxio.master.file.meta.InodeDirectoryIdGenerator;
@@ -86,6 +85,7 @@ import alluxio.master.file.options.SetAclOptions;
 import alluxio.master.file.options.SetAttributeOptions;
 import alluxio.master.file.options.WorkerHeartbeatOptions;
 import alluxio.master.journal.JournalContext;
+import alluxio.master.metastore.ReadOnlyInodeStore;
 import alluxio.metrics.MasterMetrics;
 import alluxio.metrics.MetricsSystem;
 import alluxio.proto.journal.File;
@@ -142,6 +142,7 @@ import alluxio.wire.FileInfo;
 import alluxio.wire.LoadMetadataType;
 import alluxio.wire.MountPointInfo;
 import alluxio.wire.SetAclAction;
+import alluxio.wire.SyncPointInfo;
 import alluxio.wire.WorkerInfo;
 
 import com.codahale.metrics.Counter;
@@ -303,6 +304,9 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
   /** This manages the file system inode structure. This must be journaled. */
   private final InodeTree mInodeTree;
 
+  /** Store for holding inodes. */
+  private final ReadOnlyInodeStore mInodeStore;
+
   /** This manages inode locking. */
   private final InodeLockManager mInodeLockManager;
 
@@ -377,7 +381,9 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
     mDirectoryIdGenerator = new InodeDirectoryIdGenerator(mBlockMaster);
     mUfsManager = new MasterUfsManager();
     mMountTable = new MountTable(mUfsManager, getRootMountInfo(mUfsManager));
-    mInodeTree = new InodeTree(mBlockMaster, mDirectoryIdGenerator, mMountTable);
+    mInodeStore = masterContext.getMetastore().getInodeStore();
+    mInodeTree = new InodeTree(masterContext.getMetastore().getInodeStore(), mBlockMaster,
+        mDirectoryIdGenerator, mMountTable);
     mInodeLockManager = mInodeTree.getInodeLockManager();
 
     // TODO(gene): Handle default config value for whitelist.
@@ -521,7 +527,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
         dirsToProcess.add((InodeDirectoryView) inodePath.getInode());
         while (!dirsToProcess.isEmpty()) {
           InodeDirectoryView dir = dirsToProcess.poll();
-          for (InodeView inode : dir.getChildren()) {
+          for (InodeView inode : mInodeStore.getChildren(dir.getId())) {
             if (inode.isDirectory()) {
               dirsToProcess.add((InodeDirectory) inode);
               continue;
@@ -665,7 +671,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
           if (!checkConsistencyInternal(dir)) {
             inconsistentUris.add(dir.getUri());
           }
-          for (InodeView child : dir.getInode().asDirectory().getChildren()) {
+          for (InodeView child : mInodeStore.getChildren(dir.getInode().getId())) {
             try (LockedInodePath childPath = dir.lockChild(child, LockPattern.READ)) {
               if (child.isDirectory()) {
                 dirsToCheck.add(child.getId());
@@ -914,7 +920,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
 
           boolean isLoaded = inodeDirectory.isDirectChildrenLoaded();
           if (listStatusOptions.isRecursive()) {
-            isLoaded = inodeDirectory.areDescendantsLoaded();
+            isLoaded = areDescendantsLoaded(inodeDirectory);
           }
           if (isLoaded) {
             // no need to load again.
@@ -977,8 +983,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
           ? DescendantType.ALL : DescendantType.NONE;
       // This is to generate a parsed child path components to be passed to lockChildPath
       String [] childComponentsHint = null;
-
-      for (InodeView child : inode.asDirectory().getChildren()) {
+      for (InodeView child : mInodeStore.getChildren(inode.getId())) {
         if (childComponentsHint == null) {
           String[] parentComponents = PathUtils.getPathComponents(currInodePath.getUri().getPath());
           childComponentsHint = new String[parentComponents.length + 1];
@@ -1013,6 +1018,20 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
         && mUfsAbsentPathCache.isAbsent(path))) {
       throw new FileDoesNotExistException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path));
     }
+  }
+
+  private boolean areDescendantsLoaded(InodeDirectoryView inode) {
+    if (!inode.isDirectChildrenLoaded()) {
+      return false;
+    }
+    for (InodeView child : mInodeStore.getChildren(inode.getId())) {
+      if (child.isDirectory()) {
+        if (!areDescendantsLoaded(child.asDirectory())) {
+          return false;
+        }
+      }
+    }
+    return true;
   }
 
   /**
@@ -1074,7 +1093,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
       }
       if (inode.isDirectory()) {
         InodeDirectoryView inodeDir = ((InodeDirectoryView) inode);
-        for (InodeView child : inodeDir.getChildren()) {
+        for (InodeView child : mInodeStore.getChildren(inodeDir.getId())) {
           try (LockedInodePath childPath = inodePath.lockChild(child, LockPattern.READ)) {
             checkConsistencyRecursive(childPath, inconsistentUris);
           }
@@ -1502,8 +1521,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
     }
 
     boolean recursive = deleteOptions.isRecursive();
-    if (inode.isDirectory() && !recursive
-        && ((InodeDirectoryView) inode).getNumberOfChildren() > 0) {
+    if (inode.isDirectory() && !recursive && mInodeStore.hasChildren(inode.getId())) {
       // inode is nonempty, and we don't want to delete a nonempty directory unless recursive is
       // true
       throw new DirectoryNotEmptyException(ExceptionMessage.DELETE_NONEMPTY_DIRECTORY_NONRECURSIVE,
@@ -1526,7 +1544,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
     // Prepare to delete persisted inodes
     UfsDeleter ufsDeleter = NoopUfsDeleter.INSTANCE;
     if (!deleteOptions.isAlluxioOnly()) {
-      ufsDeleter = new SafeUfsDeleter(mMountTable, inodesToDelete, deleteOptions);
+      ufsDeleter = new SafeUfsDeleter(mMountTable, mInodeStore, inodesToDelete, deleteOptions);
     }
 
     // Inodes to delete from tree after attempting to delete from UFS
@@ -1753,8 +1771,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
       }
     } else {
       // This inode is a directory.
-      Set<InodeView> children = ((InodeDirectoryView) inode).getChildren();
-      for (InodeView child : children) {
+      for (InodeView child : mInodeStore.getChildren(inode.getId())) {
         try (LockedInodePath childPath = inodePath.lockChild(child, LockPattern.READ)) {
           getInAlluxioFilesInternal(childPath, files);
         } catch (InvalidPathException e) {
@@ -1785,8 +1802,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
       }
     } else {
       // This inode is a directory.
-      Set<InodeView> children = ((InodeDirectoryView) inode).getChildren();
-      for (InodeView child : children) {
+      for (InodeView child : mInodeStore.getChildren(inode.getId())) {
         try (LockedInodePath childPath = inodePath.lockChild(child, LockPattern.READ)) {
           getInMemoryFilesInternal(childPath, files);
         } catch (InvalidPathException e) {
@@ -2231,8 +2247,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
       throws FileDoesNotExistException, UnexpectedAlluxioException,
       IOException, InvalidPathException, AccessControlException {
     InodeView inode = inodePath.getInode();
-    if (inode.isDirectory() && !options.isRecursive()
-        && ((InodeDirectoryView) inode).getNumberOfChildren() > 0) {
+    if (inode.isDirectory() && !options.isRecursive() && mInodeStore.hasChildren(inode.getId())) {
       // inode is nonempty, and we don't free a nonempty directory unless recursive is true
       throw new UnexpectedAlluxioException(
           ExceptionMessage.CANNOT_FREE_NON_EMPTY_DIR.getMessage(mInodeTree.getPath(inode)));
@@ -3406,7 +3421,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
         InodeDirectoryView inodeDir = (InodeDirectoryView) inode;
         // maps children name to inode
         Map<String, InodeView> inodeChildren = new HashMap<>();
-        for (InodeView child : inodeDir.getChildren()) {
+        for (InodeView child : mInodeStore.getChildren(inodeDir.getId())) {
           inodeChildren.put(child.getName(), child);
         }
 

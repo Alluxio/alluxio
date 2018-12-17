@@ -17,6 +17,7 @@ import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.master.file.meta.InodeTree.LockMode;
 import alluxio.master.file.meta.InodeTree.LockPattern;
+import alluxio.master.metastore.ReadOnlyInodeStore;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Preconditions;
@@ -25,6 +26,7 @@ import com.google.common.collect.Iterables;
 import java.io.Closeable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -59,6 +61,8 @@ public class LockedInodePath implements Closeable {
    * this will always be the first inode in mExistingInodes.
    */
   private final InodeView mRoot;
+  /** Inode store for looking up children. */
+  private final ReadOnlyInodeStore mInodeStore;
 
   /** Uri for the path represented. */
   protected final AlluxioURI mUri;
@@ -81,36 +85,34 @@ public class LockedInodePath implements Closeable {
    * Creates a new locked inode path.
    *
    * @param uri the uri for the path
+   * @param inodeStore the inode store for looking up inode children
    * @param inodeLockManager the inode lock manager
    * @param root the root inode
    * @param lockPattern the pattern to lock in
    */
-  public LockedInodePath(AlluxioURI uri, InodeLockManager inodeLockManager, InodeDirectoryView root,
-      LockPattern lockPattern) throws InvalidPathException {
+  public LockedInodePath(AlluxioURI uri, ReadOnlyInodeStore inodeStore,
+      InodeLockManager inodeLockManager, InodeDirectoryView root, LockPattern lockPattern)
+      throws InvalidPathException {
     mUri = uri;
     mPathComponents = PathUtils.getPathComponents(uri.getPath());
+    mInodeStore = inodeStore;
     mExistingInodes = new ArrayList<>();
     mLockList = new InodeLockList(inodeLockManager);
     mLockPattern = lockPattern;
     mRoot = root;
   }
 
-  private LockedInodePath(AlluxioURI uri, List<InodeView> existingInodes, InodeLockList lockList,
-      LockPattern lockPattern) throws InvalidPathException {
-    this(uri, existingInodes, lockList, PathUtils.getPathComponents(uri.getPath()), lockPattern);
-  }
-
-  private LockedInodePath(AlluxioURI uri, List<InodeView> existingInodes, InodeLockList lockList,
-      String[] pathComponents, LockPattern lockPattern) {
-    Preconditions.checkState(!existingInodes.isEmpty());
-    Preconditions.checkState(!lockList.isEmpty());
-
+  private LockedInodePath(AlluxioURI uri, LockedInodePath path, String[] pathComponents,
+      LockPattern lockPattern) {
+    Preconditions.checkState(!path.mExistingInodes.isEmpty());
+    Preconditions.checkState(!path.mLockList.isEmpty());
     mUri = uri;
     mPathComponents = pathComponents;
-    mExistingInodes = new ArrayList<>(existingInodes);
-    mLockList = new CompositeInodeLockList(lockList);
+    mInodeStore = path.mInodeStore;
+    mExistingInodes = new ArrayList<>(path.mExistingInodes);
+    mLockList = new CompositeInodeLockList(path.mLockList);
     mLockPattern = lockPattern;
-    mRoot = existingInodes.get(0);
+    mRoot = mExistingInodes.get(0);
   }
 
   /**
@@ -342,8 +344,8 @@ public class LockedInodePath implements Closeable {
    */
   public LockedInodePath lockDescendant(AlluxioURI descendantUri, LockPattern lockPattern)
       throws InvalidPathException {
-    LockedInodePath path =
-        new LockedInodePath(descendantUri, mExistingInodes, mLockList, lockPattern);
+    LockedInodePath path = new LockedInodePath(descendantUri, this,
+        PathUtils.getPathComponents(descendantUri.getPath()), lockPattern);
     path.traverseOrClose();
     return path;
   }
@@ -377,8 +379,8 @@ public class LockedInodePath implements Closeable {
    */
   public LockedInodePath lockChild(InodeView child, LockPattern lockPattern,
       String[] childComponentsHint) throws InvalidPathException {
-    LockedInodePath path = new LockedInodePath(mUri.join(child.getName()), mExistingInodes,
-        mLockList, childComponentsHint, lockPattern);
+    LockedInodePath path =
+        new LockedInodePath(mUri.join(child.getName()), this, childComponentsHint, lockPattern);
     path.traverseOrClose();
     return path;
   }
@@ -399,8 +401,8 @@ public class LockedInodePath implements Closeable {
   public LockedInodePath lockFinalEdgeWrite() throws InvalidPathException {
     Preconditions.checkState(!fullPathExists());
 
-    LockedInodePath newPath = new LockedInodePath(mUri, mExistingInodes, mLockList, mPathComponents,
-        LockPattern.WRITE_EDGE);
+    LockedInodePath newPath =
+        new LockedInodePath(mUri, this, mPathComponents, LockPattern.WRITE_EDGE);
     newPath.traverse();
     return newPath;
   }
@@ -451,26 +453,28 @@ public class LockedInodePath implements Closeable {
               "Traversal failed for path %s. Component %s(%s) is a file, not a directory.", mUri,
               lastInodeIndex, lastInode.getName()));
         }
-        InodeView nextInode = lastInode.asDirectory().getChild(nextComponent);
-        if (nextInode == null && mLockPattern == LockPattern.WRITE_EDGE && !isFinalComponent) {
+        Optional<InodeView> nextInodeOpt = mInodeStore.getChild(lastInode.getId(), nextComponent);
+        if (!nextInodeOpt.isPresent() && mLockPattern == LockPattern.WRITE_EDGE
+            && !isFinalComponent) {
           // This pattern requires that we obtain a write lock on the final edge, so we must
           // upgrade to a write lock.
           mLockList.unlockLastEdge();
           mLockList.lockEdge(nextComponent, LockMode.WRITE);
-          nextInode = lastInode.asDirectory().getChild(nextComponent);
-          if (nextInode != null) {
+          nextInodeOpt = mInodeStore.getChild(lastInode.getId(), nextComponent);
+          if (nextInodeOpt.isPresent()) {
             // The component must have been created between releasing the read lock and acquiring
             // the write lock. Downgrade and continue as normal.
             mLockList.downgradeLastEdge();
           }
         }
-        if (nextInode == null) {
+        if (!nextInodeOpt.isPresent()) {
           if (mLockPattern != LockPattern.WRITE_EDGE) {
             // Other lock patterns only lock up to the last existing inode.
             mLockList.unlockLastEdge();
           }
           return;
         }
+        InodeView nextInode = nextInodeOpt.get();
 
         if (isFinalComponent) {
           if (mLockPattern == LockPattern.READ) {
@@ -529,11 +533,11 @@ public class LockedInodePath implements Closeable {
             "Traversal failed for path %s. Component %s(%s) is a file, not a directory.", mUri,
             i - 1, lastInode.getName()));
       }
-      InodeView nextInode = lastInode.asDirectory().getChild(mPathComponents[i]);
-      if (nextInode == null) {
+      Optional<InodeView> nextInode = mInodeStore.getChild(lastInode.getId(), mPathComponents[i]);
+      if (!nextInode.isPresent()) {
         return;
       }
-      mExistingInodes.add(nextInode);
+      mExistingInodes.add(nextInode.get());
     }
   }
 
@@ -553,5 +557,10 @@ public class LockedInodePath implements Closeable {
   @Override
   public void close() {
     mLockList.close();
+  }
+
+  @Override
+  public String toString() {
+    return mUri.toString();
   }
 }

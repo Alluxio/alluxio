@@ -118,7 +118,8 @@ public final class InodeTreeTest {
         new InodeDirectoryIdGenerator(blockMaster);
     UfsManager ufsManager = mock(UfsManager.class);
     MountTable mountTable = new MountTable(ufsManager, mock(MountInfo.class));
-    mTree = new InodeTree(blockMaster, directoryIdGenerator, mountTable);
+    mTree = new InodeTree(context.getMetastore().getInodeStore(), blockMaster, directoryIdGenerator,
+        mountTable);
 
     mRegistry.start(true);
 
@@ -655,15 +656,16 @@ public final class InodeTreeTest {
 
     // test nested URI
     createPath(mTree, NESTED_FILE_URI, sNestedFileOptions);
-    InodeDirectory nested = (InodeDirectory) root.getChild("nested");
-    InodeDirectory test = (InodeDirectory) nested.getChild("test");
-    InodeView file = test.getChild("file");
+
+    InodeView nested = getInodeByPath(mTree, "/nested");
+    InodeView test = getInodeByPath(mTree, "/nested/test");
+    InodeView file = getInodeByPath(mTree, "/nested/test/file");
     verifyJournal(mTree, Arrays.asList(root, nested, test, file));
 
     // add a sibling of test and verify journaling is in correct order (breadth first)
     createPath(mTree, new AlluxioURI("/nested/test1/file1"), sNestedFileOptions);
-    InodeDirectory test1 = (InodeDirectory) nested.getChild("test1");
-    InodeView file1 = test1.getChild("file1");
+    InodeView test1 = getInodeByPath(mTree, "/nested/test1");
+    InodeView file1 = getInodeByPath(mTree, "/nested/test1/file1");
     verifyJournal(mTree, Arrays.asList(root, nested, test, test1, file, file1));
   }
 
@@ -672,11 +674,11 @@ public final class InodeTreeTest {
     createPath(mTree, NESTED_FILE_URI, sNestedFileOptions);
     createPath(mTree, new AlluxioURI("/nested/test1/file1"), sNestedFileOptions);
     InodeDirectoryView root = mTree.getRoot();
-    InodeDirectory nested = (InodeDirectory) root.getChild("nested");
-    InodeDirectory test = (InodeDirectory) nested.getChild("test");
-    InodeView file = test.getChild("file");
-    InodeDirectory test1 = (InodeDirectory) nested.getChild("test1");
-    InodeView file1 = test1.getChild("file1");
+    InodeView nested = getInodeByPath(mTree, "/nested");
+    InodeView test = getInodeByPath(mTree, "/nested/test");
+    InodeView file = getInodeByPath(mTree, "/nested/test/file");
+    InodeView test1 = getInodeByPath(mTree, "/nested/test1");
+    InodeView file1 = getInodeByPath(mTree, "/nested/test1/file1");
     // reset the tree
     mTree.replayJournalEntryFromJournal(root.toJournalEntry());
     // re-init the root since the tree was reset above
@@ -702,9 +704,9 @@ public final class InodeTreeTest {
   public void addInodeModeFromJournalWithEmptyOwnership() throws Exception {
     createPath(mTree, NESTED_FILE_URI, sNestedFileOptions);
     InodeDirectoryView root = mTree.getRoot();
-    InodeDirectory nested = (InodeDirectory) root.getChild("nested");
-    InodeDirectory test = (InodeDirectory) nested.getChild("test");
-    Inode<?> file = (Inode<?>) test.getChild("file");
+    Inode<?> nested = (Inode<?>) getInodeByPath(mTree, "/nested");
+    Inode<?> test = (Inode<?>) getInodeByPath(mTree, "/nested/test");
+    Inode<?> file = (Inode<?>) getInodeByPath(mTree, "/nested/test/file");
     Inode<?>[] inodeChildren = {nested, test, file};
     for (Inode<?> child : inodeChildren) {
       child.setOwner("");
@@ -783,6 +785,11 @@ public final class InodeTreeTest {
     try (LockedInodePath inodePath = root.lockInodePath(path, LockPattern.WRITE_EDGE)) {
       return root.createPath(RpcContext.NOOP, inodePath, options);
     }
+  }
+
+  // Helper to get an inode by path. The inode is unlocked before returning.
+  private static InodeView getInodeByPath(InodeTree root, String path) throws Exception {
+    return getInodeByPath(root, new AlluxioURI(path));
   }
 
   // Helper to get an inode by path. The inode is unlocked before returning.

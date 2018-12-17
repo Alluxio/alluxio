@@ -17,6 +17,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.AlluxioURI;
+import alluxio.exception.InvalidPathException;
 import alluxio.master.file.meta.InodeTree.LockPattern;
 
 import org.junit.After;
@@ -41,7 +42,7 @@ public class LockedInodePathTest extends BaseInodeLockingTest {
   @Test
   public void pathExistsReadLock() throws Exception {
     AlluxioURI uri = new AlluxioURI("/a/b/c");
-    mPath = new LockedInodePath(uri, mInodeLockManager, mRootDir, LockPattern.READ);
+    mPath = new LockedInodePath(uri, mInodeStore, mInodeLockManager, mRootDir, LockPattern.READ);
     assertEquals(uri, mPath.getUri());
     assertEquals(4, mPath.size());
 
@@ -66,10 +67,8 @@ public class LockedInodePathTest extends BaseInodeLockingTest {
 
   @Test
   public void pathExistsWriteLock() throws Exception {
-    AlluxioURI uri = new AlluxioURI("/a/b/c");
-    mPath = new LockedInodePath(uri, mInodeLockManager, mRootDir, LockPattern.WRITE_INODE);
+    mPath = create("/a/b/c", LockPattern.WRITE_INODE);
 
-    mPath.traverse();
     assertTrue(mPath.fullPathExists());
     assertEquals(Arrays.asList(mRootDir, mDirA, mDirB, mFileC), mPath.getInodeList());
     assertEquals(LockPattern.WRITE_INODE, mPath.getLockPattern());
@@ -82,10 +81,8 @@ public class LockedInodePathTest extends BaseInodeLockingTest {
 
   @Test
   public void pathExistsWriteEdgeLock() throws Exception {
-    AlluxioURI uri = new AlluxioURI("/a/b/c");
-    mPath = new LockedInodePath(uri, mInodeLockManager, mRootDir, LockPattern.WRITE_EDGE);
+    mPath = create("/a/b/c", LockPattern.WRITE_EDGE);
 
-    mPath.traverse();
     assertTrue(mPath.fullPathExists());
     assertEquals(mFileC, mPath.getInode());
     assertEquals(mFileC, mPath.getInodeOrNull());
@@ -106,10 +103,8 @@ public class LockedInodePathTest extends BaseInodeLockingTest {
 
   @Test
   public void missingLastReadLock() throws Exception {
-    AlluxioURI uri = new AlluxioURI("/a/b/missing");
-    mPath = new LockedInodePath(uri, mInodeLockManager, mRootDir, LockPattern.READ);
+    mPath = create("/a/b/missing", LockPattern.READ);
 
-    mPath.traverse();
     assertFalse(mPath.fullPathExists());
     assertNull(mPath.getInodeOrNull());
     assertEquals(mDirB, mPath.getLastExistingInode());
@@ -127,10 +122,8 @@ public class LockedInodePathTest extends BaseInodeLockingTest {
 
   @Test
   public void missingLastWriteLock() throws Exception {
-    AlluxioURI uri = new AlluxioURI("/a/b/missing");
-    mPath = new LockedInodePath(uri, mInodeLockManager, mRootDir, LockPattern.WRITE_INODE);
+    mPath = create("/a/b/missing", LockPattern.WRITE_INODE);
 
-    mPath.traverse();
     assertFalse(mPath.fullPathExists());
     assertNull(mPath.getInodeOrNull());
     assertEquals(mDirB, mPath.getLastExistingInode());
@@ -148,10 +141,8 @@ public class LockedInodePathTest extends BaseInodeLockingTest {
 
   @Test
   public void missingLastWriteEdgeLock() throws Exception {
-    AlluxioURI uri = new AlluxioURI("/a/b/missing");
-    mPath = new LockedInodePath(uri, mInodeLockManager, mRootDir, LockPattern.WRITE_EDGE);
+    mPath = create("/a/b/missing", LockPattern.WRITE_EDGE);
 
-    mPath.traverse();
     assertFalse(mPath.fullPathExists());
     assertNull(mPath.getInodeOrNull());
     assertEquals(mDirB, mPath.getLastExistingInode());
@@ -170,10 +161,8 @@ public class LockedInodePathTest extends BaseInodeLockingTest {
 
   @Test
   public void missingMultipleReadLock() throws Exception {
-    AlluxioURI uri = new AlluxioURI("/a/miss1/miss2");
-    mPath = new LockedInodePath(uri, mInodeLockManager, mRootDir, LockPattern.READ);
+    mPath = create("/a/miss1/miss2", LockPattern.READ);
 
-    mPath.traverse();
     assertFalse(mPath.fullPathExists());
     assertNull(mPath.getInodeOrNull());
     assertNull(mPath.getParentInodeOrNull());
@@ -190,10 +179,8 @@ public class LockedInodePathTest extends BaseInodeLockingTest {
 
   @Test
   public void missingMultipleWriteEdgeLock() throws Exception {
-    AlluxioURI uri = new AlluxioURI("/a/miss1/miss2");
-    mPath = new LockedInodePath(uri, mInodeLockManager, mRootDir, LockPattern.WRITE_EDGE);
+    mPath = create("/a/miss1/miss2", LockPattern.WRITE_EDGE);
 
-    mPath.traverse();
     assertFalse(mPath.fullPathExists());
     assertNull(mPath.getInodeOrNull());
     assertNull(mPath.getParentInodeOrNull());
@@ -211,10 +198,8 @@ public class LockedInodePathTest extends BaseInodeLockingTest {
 
   @Test
   public void readLockRoot() throws Exception {
-    AlluxioURI uri = new AlluxioURI("/");
-    mPath = new LockedInodePath(uri, mInodeLockManager, mRootDir, LockPattern.READ);
+    mPath = create("/", LockPattern.READ);
 
-    mPath.traverse();
     assertTrue(mPath.fullPathExists());
     assertEquals(mRootDir, mPath.getInodeOrNull());
     assertNull(mPath.getParentInodeOrNull());
@@ -230,10 +215,8 @@ public class LockedInodePathTest extends BaseInodeLockingTest {
 
   @Test
   public void writeLockRoot() throws Exception {
-    AlluxioURI uri = new AlluxioURI("/");
-    mPath = new LockedInodePath(uri, mInodeLockManager, mRootDir, LockPattern.WRITE_INODE);
+    mPath = create("/", LockPattern.WRITE_INODE);
 
-    mPath.traverse();
     assertTrue(mPath.fullPathExists());
     assertEquals(mRootDir, mPath.getInodeOrNull());
     assertNull(mPath.getParentInodeOrNull());
@@ -249,10 +232,8 @@ public class LockedInodePathTest extends BaseInodeLockingTest {
 
   @Test
   public void writeEdgeLockRoot() throws Exception {
-    AlluxioURI uri = new AlluxioURI("/");
-    mPath = new LockedInodePath(uri, mInodeLockManager, mRootDir, LockPattern.WRITE_EDGE);
+    mPath = create("/", LockPattern.WRITE_EDGE);
 
-    mPath.traverse();
     assertTrue(mPath.fullPathExists());
     assertEquals(mRootDir, mPath.getInodeOrNull());
     assertNull(mPath.getParentInodeOrNull());
@@ -268,10 +249,8 @@ public class LockedInodePathTest extends BaseInodeLockingTest {
 
   @Test
   public void removeLastReadLockedInode() throws Exception {
-    AlluxioURI uri = new AlluxioURI("/a");
-    mPath = new LockedInodePath(uri, mInodeLockManager, mRootDir, LockPattern.READ);
+    mPath = create("/a", LockPattern.READ);
 
-    mPath.traverse();
     mPath.removeLastInode();
     assertFalse(mPath.fullPathExists());
     assertNull(mPath.getInodeOrNull());
@@ -286,10 +265,8 @@ public class LockedInodePathTest extends BaseInodeLockingTest {
 
   @Test
   public void removeLastWriteEdgeLockedInode() throws Exception {
-    AlluxioURI uri = new AlluxioURI("/a");
-    mPath = new LockedInodePath(uri, mInodeLockManager, mRootDir, LockPattern.WRITE_EDGE);
+    mPath = create("/a", LockPattern.WRITE_EDGE);
 
-    mPath.traverse();
     mPath.removeLastInode();
     assertFalse(mPath.fullPathExists());
     assertNull(mPath.getInodeOrNull());
@@ -304,9 +281,7 @@ public class LockedInodePathTest extends BaseInodeLockingTest {
 
   @Test
   public void removeLastInodeImplicitlyLocked() throws Exception {
-    AlluxioURI uri = new AlluxioURI("/a");
-    mPath = new LockedInodePath(uri, mInodeLockManager, mRootDir, LockPattern.WRITE_EDGE);
-    mPath.traverse();
+    mPath = create("/a", LockPattern.WRITE_EDGE);
 
     LockedInodePath pathC = mPath.lockDescendant(new AlluxioURI("/a/b/c"), LockPattern.READ);
     assertTrue(pathC.fullPathExists());
@@ -329,14 +304,11 @@ public class LockedInodePathTest extends BaseInodeLockingTest {
 
   @Test
   public void addNextFinalInode() throws Exception {
-    AlluxioURI uri = new AlluxioURI("/a/missing");
-    mPath = new LockedInodePath(uri, mInodeLockManager, mRootDir, LockPattern.WRITE_EDGE);
+    mPath = create("/a/missing", LockPattern.WRITE_EDGE);
 
-    mPath.traverse();
     assertFalse(mPath.fullPathExists());
-
     InodeFile missingInode = inodeFile(10, mDirA.getId(), "missing");
-    ((InodeDirectory) mDirA).addChild(missingInode);
+    mInodeStore.addChild(mDirA.getId(), missingInode);
     mPath.addNextInode(missingInode);
     assertTrue(mPath.fullPathExists());
     assertEquals(Arrays.asList(mRootDir, mDirA, missingInode), mPath.getInodeList());
@@ -349,14 +321,11 @@ public class LockedInodePathTest extends BaseInodeLockingTest {
 
   @Test
   public void addNextSecondToLastInode() throws Exception {
-    AlluxioURI uri = new AlluxioURI("/a/miss1/miss2");
-    mPath = new LockedInodePath(uri, mInodeLockManager, mRootDir, LockPattern.WRITE_EDGE);
+    mPath = create("/a/miss1/miss2", LockPattern.WRITE_EDGE);
 
-    mPath.traverse();
     assertFalse(mPath.fullPathExists());
-
     InodeFile firstMissingInode = inodeFile(10, mDirA.getId(), "miss1");
-    ((InodeDirectory) mDirA).addChild(firstMissingInode);
+    mInodeStore.addChild(mDirA.getId(), firstMissingInode);
     mPath.addNextInode(firstMissingInode);
     assertFalse(mPath.fullPathExists());
     assertEquals(Arrays.asList(mRootDir, mDirA, firstMissingInode), mPath.getInodeList());
@@ -371,10 +340,8 @@ public class LockedInodePathTest extends BaseInodeLockingTest {
 
   @Test
   public void downgradeWriteEdgeToRead() throws Exception {
-    AlluxioURI uri = new AlluxioURI("/a/b/c");
-    mPath = new LockedInodePath(uri, mInodeLockManager, mRootDir, LockPattern.WRITE_EDGE);
+    mPath = create("/a/b/c", LockPattern.WRITE_EDGE);
 
-    mPath.traverse();
     mPath.downgradeToPattern(LockPattern.READ);
     assertTrue(mPath.fullPathExists());
     assertEquals(Arrays.asList(mRootDir, mDirA, mDirB, mFileC), mPath.getInodeList());
@@ -388,10 +355,8 @@ public class LockedInodePathTest extends BaseInodeLockingTest {
 
   @Test
   public void downgradeWriteEdgeToWriteInode() throws Exception {
-    AlluxioURI uri = new AlluxioURI("/a/b/c");
-    mPath = new LockedInodePath(uri, mInodeLockManager, mRootDir, LockPattern.WRITE_EDGE);
+    mPath = create("/a/b/c", LockPattern.WRITE_EDGE);
 
-    mPath.traverse();
     mPath.downgradeToPattern(LockPattern.WRITE_INODE);
     assertTrue(mPath.fullPathExists());
     assertEquals(Arrays.asList(mRootDir, mDirA, mDirB, mFileC), mPath.getInodeList());
@@ -405,10 +370,8 @@ public class LockedInodePathTest extends BaseInodeLockingTest {
 
   @Test
   public void downgradeWriteInodeToReadInode() throws Exception {
-    AlluxioURI uri = new AlluxioURI("/a/b/c");
-    mPath = new LockedInodePath(uri, mInodeLockManager, mRootDir, LockPattern.WRITE_INODE);
+    mPath = create("/a/b/c", LockPattern.WRITE_INODE);
 
-    mPath.traverse();
     mPath.downgradeToPattern(LockPattern.READ);
     assertTrue(mPath.fullPathExists());
     assertEquals(Arrays.asList(mRootDir, mDirA, mDirB, mFileC), mPath.getInodeList());
@@ -422,9 +385,7 @@ public class LockedInodePathTest extends BaseInodeLockingTest {
 
   @Test
   public void lockChildReadToWriteEdge() throws Exception {
-    AlluxioURI uri = new AlluxioURI("/a");
-    mPath = new LockedInodePath(uri, mInodeLockManager, mRootDir, LockPattern.READ);
-    mPath.traverse();
+    mPath = create("/a", LockPattern.READ);
 
     LockedInodePath childPath = mPath.lockChild(mDirB, LockPattern.WRITE_EDGE);
     assertEquals(Arrays.asList(mRootDir, mDirA, mDirB), childPath.getInodeList());
@@ -447,9 +408,7 @@ public class LockedInodePathTest extends BaseInodeLockingTest {
 
   @Test
   public void lockChildReadToWriteInode() throws Exception {
-    AlluxioURI uri = new AlluxioURI("/a");
-    mPath = new LockedInodePath(uri, mInodeLockManager, mRootDir, LockPattern.READ);
-    mPath.traverse();
+    mPath = create("/a", LockPattern.READ);
 
     LockedInodePath childPath = mPath.lockChild(mDirB, LockPattern.WRITE_INODE);
     assertEquals(Arrays.asList(mRootDir, mDirA, mDirB), childPath.getInodeList());
@@ -472,9 +431,7 @@ public class LockedInodePathTest extends BaseInodeLockingTest {
 
   @Test
   public void lockChildWriteInodeToWriteEdge() throws Exception {
-    AlluxioURI uri = new AlluxioURI("/a");
-    mPath = new LockedInodePath(uri, mInodeLockManager, mRootDir, LockPattern.WRITE_INODE);
-    mPath.traverse();
+    mPath = create("/a", LockPattern.WRITE_INODE);
 
     LockedInodePath childPath = mPath.lockChild(mDirB, LockPattern.WRITE_EDGE);
     assertEquals(Arrays.asList(mRootDir, mDirA, mDirB), childPath.getInodeList());
@@ -498,9 +455,7 @@ public class LockedInodePathTest extends BaseInodeLockingTest {
 
   @Test
   public void lockChildReadToRead() throws Exception {
-    AlluxioURI uri = new AlluxioURI("/a");
-    mPath = new LockedInodePath(uri, mInodeLockManager, mRootDir, LockPattern.READ);
-    mPath.traverse();
+    mPath = create("/a", LockPattern.READ);
 
     LockedInodePath childPath = mPath.lockChild(mDirB, LockPattern.READ);
     assertEquals(Arrays.asList(mRootDir, mDirA, mDirB), childPath.getInodeList());
@@ -523,9 +478,7 @@ public class LockedInodePathTest extends BaseInodeLockingTest {
 
   @Test
   public void lockChildMultipleReadExtensions() throws Exception {
-    AlluxioURI uri = new AlluxioURI("/a");
-    mPath = new LockedInodePath(uri, mInodeLockManager, mRootDir, LockPattern.READ);
-    mPath.traverse();
+    mPath = create("/a", LockPattern.READ);
 
     LockedInodePath childPath1 = mPath.lockChild(mDirB, LockPattern.READ);
     LockedInodePath childPath2 = childPath1.lockChild(mFileC, LockPattern.READ);
@@ -552,9 +505,7 @@ public class LockedInodePathTest extends BaseInodeLockingTest {
 
   @Test
   public void lockDescendantReadToWriteEdge() throws Exception {
-    AlluxioURI uri = new AlluxioURI("/");
-    mPath = new LockedInodePath(uri, mInodeLockManager, mRootDir, LockPattern.READ);
-    mPath.traverse();
+    mPath = create("/", LockPattern.READ);
 
     LockedInodePath childPath =
         mPath.lockDescendant(new AlluxioURI("/a/b/c"), LockPattern.WRITE_EDGE);
@@ -576,9 +527,7 @@ public class LockedInodePathTest extends BaseInodeLockingTest {
 
   @Test
   public void lockDescendantWriteEdgeToWriteEdge() throws Exception {
-    AlluxioURI uri = new AlluxioURI("/");
-    mPath = new LockedInodePath(uri, mInodeLockManager, mRootDir, LockPattern.WRITE_EDGE);
-    mPath.traverse();
+    mPath = create("/", LockPattern.WRITE_EDGE);
 
     LockedInodePath childPath =
         mPath.lockDescendant(new AlluxioURI("/a/b/c"), LockPattern.WRITE_EDGE);
@@ -600,9 +549,8 @@ public class LockedInodePathTest extends BaseInodeLockingTest {
 
   @Test
   public void lockFinalEdgeWrite() throws Exception {
-    ((InodeDirectory) mRootDir).removeChild("a");
-    AlluxioURI uri = new AlluxioURI("/a");
-    mPath = new LockedInodePath(uri, mInodeLockManager, mRootDir, LockPattern.READ);
+    mInodeStore.removeChild(mRootDir.getId(), "a");
+    mPath = create("/a", LockPattern.READ);
     mPath.traverse();
 
     LockedInodePath writeLocked = mPath.lockFinalEdgeWrite();
@@ -624,10 +572,8 @@ public class LockedInodePathTest extends BaseInodeLockingTest {
 
   @Test
   public void lockFinalEdgeWriteAlreadyLocked() throws Exception {
-    ((InodeDirectory) mRootDir).removeChild("a");
-    AlluxioURI uri = new AlluxioURI("/a");
-    mPath = new LockedInodePath(uri, mInodeLockManager, mRootDir, LockPattern.WRITE_EDGE);
-    mPath.traverse();
+    mInodeStore.removeChild(mRootDir.getId(), "a");
+    mPath = create("/a", LockPattern.WRITE_EDGE);
 
     LockedInodePath writeLocked = mPath.lockFinalEdgeWrite();
     assertFalse(writeLocked.fullPathExists());
@@ -644,5 +590,12 @@ public class LockedInodePathTest extends BaseInodeLockingTest {
     checkOnlyNodesWriteLocked();
     checkOnlyIncomingEdgesReadLocked(mRootDir);
     checkOnlyIncomingEdgesWriteLocked(mDirA);
+  }
+
+  private LockedInodePath create(String path, LockPattern lockPattern) throws InvalidPathException {
+    LockedInodePath lockedPath = new LockedInodePath(new AlluxioURI(path), mInodeStore,
+        mInodeLockManager, mRootDir, lockPattern);
+    lockedPath.traverse();
+    return lockedPath;
   }
 }
