@@ -61,7 +61,7 @@ public class MetricsMasterClient extends AbstractMasterClient {
   }
 
   @Override
-  protected synchronized void afterConnect() {
+  protected void afterConnect() {
     mClient = MetricsMasterClientServiceGrpc.newBlockingStub(mChannel);
   }
 
@@ -70,7 +70,7 @@ public class MetricsMasterClient extends AbstractMasterClient {
    *
    * @param metrics a list of client metrics
    */
-  public synchronized void heartbeat(final List<Metric> metrics) throws IOException {
+  public void heartbeat(final List<Metric> metrics) throws IOException {
     connect();
     try {
       MetricsHeartbeatPRequest.Builder request = MetricsHeartbeatPRequest.newBuilder();

@@ -30,11 +30,8 @@ import java.util.List;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * A wrapper for the thrift client to interact with the primary meta master,
+ * A wrapper for the gRPC client to interact with the primary meta master,
  * used by Alluxio standby masters.
- * <p/>
- * Since thrift clients are not thread safe, this class is a wrapper to provide thread safety, and
- * to provide retries.
  */
 @ThreadSafe
 public final class RetryHandlingMetaMasterMasterClient extends AbstractMasterClient {
@@ -75,7 +72,7 @@ public final class RetryHandlingMetaMasterMasterClient extends AbstractMasterCli
    * @param address the address to get a master id for
    * @return a master id
    */
-  public synchronized long getId(final Address address) throws IOException {
+  public long getId(final Address address) throws IOException {
     return retryRPC(() -> mClient
         .getMasterId(GetMasterIdPRequest.newBuilder().setMasterAddress(address.toProto()).build())
         .getMasterId());
@@ -88,7 +85,7 @@ public final class RetryHandlingMetaMasterMasterClient extends AbstractMasterCli
    * @param masterId the master id
    * @return whether this master should re-register
    */
-  public synchronized MetaCommand heartbeat(final long masterId) throws IOException {
+  public MetaCommand heartbeat(final long masterId) throws IOException {
     return retryRPC(() -> mClient
         .masterHeartbeat(MasterHeartbeatPRequest.newBuilder().setMasterId(masterId).build())
         .getCommand());
@@ -100,7 +97,7 @@ public final class RetryHandlingMetaMasterMasterClient extends AbstractMasterCli
    * @param masterId the master id of the standby master registering
    * @param configList the configuration of this master
    */
-  public synchronized void register(final long masterId, final List<ConfigProperty> configList)
+  public void register(final long masterId, final List<ConfigProperty> configList)
       throws IOException {
     retryRPC(() -> {
       mClient.registerMaster(RegisterMasterPRequest.newBuilder().setMasterId(masterId)

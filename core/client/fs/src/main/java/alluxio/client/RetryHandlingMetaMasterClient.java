@@ -37,10 +37,7 @@ import java.util.Set;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * A wrapper for the thrift client to interact with the meta master.
- *
- * Since thrift clients are not thread safe, this class is a wrapper to provide thread safety and
- * support for retries.
+ * A wrapper for the gRPC client to interact with the meta master.
  */
 @ThreadSafe
 public class RetryHandlingMetaMasterClient extends AbstractMasterClient
@@ -77,26 +74,26 @@ public class RetryHandlingMetaMasterClient extends AbstractMasterClient
   }
 
   @Override
-  public synchronized BackupResponse backup(String targetDirectory,
+  public BackupResponse backup(String targetDirectory,
                                             boolean localFileSystem) throws IOException {
     return retryRPC(() -> BackupResponse.fromPoto(mClient.backup(BackupPOptions.newBuilder()
         .setTargetDirectory(targetDirectory).setLocalFileSystem(localFileSystem).build())));
   }
 
   @Override
-  public synchronized ConfigCheckReport getConfigReport() throws IOException {
+  public ConfigCheckReport getConfigReport() throws IOException {
     return retryRPC(() -> ConfigCheckReport.fromProto(
         mClient.getConfigReport(GetConfigReportPOptions.getDefaultInstance()).getReport()));
   }
 
   @Override
-  public synchronized List<ConfigProperty> getConfiguration() throws IOException {
+  public List<ConfigProperty> getConfiguration() throws IOException {
     return retryRPC(() -> mClient
         .getConfiguration(GetConfigurationPOptions.getDefaultInstance()).getConfigsList());
   }
 
   @Override
-  public synchronized MasterInfo getMasterInfo(final Set<MasterInfoField> fields)
+  public MasterInfo getMasterInfo(final Set<MasterInfoField> fields)
       throws IOException {
     return retryRPC(() -> mClient
         .getMasterInfo(GetMasterInfoPOptions.newBuilder().addAllFilter(fields).build())
@@ -104,7 +101,7 @@ public class RetryHandlingMetaMasterClient extends AbstractMasterClient
   }
 
   @Override
-  public synchronized Map<String, MetricValue> getMetrics() throws AlluxioStatusException {
+  public Map<String, MetricValue> getMetrics() throws AlluxioStatusException {
     return retryRPC(
         () -> mClient.getMetrics(GetMetricsPOptions.getDefaultInstance()).getMetricsMap());
   }

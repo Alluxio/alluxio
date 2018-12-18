@@ -34,11 +34,8 @@ import java.util.List;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * A wrapper for the thrift client to interact with the job service master, used by job service
+ * A wrapper for the gRPC client to interact with the job service master, used by job service
  * clients.
- *
- * Since thrift clients are not thread safe, this class is a wrapper to provide thread safety, and
- * to provide retries.
  */
 @ThreadSafe
 public final class RetryHandlingJobMasterClient extends AbstractMasterClient
@@ -81,7 +78,7 @@ public final class RetryHandlingJobMasterClient extends AbstractMasterClient
   }
 
   @Override
-  public synchronized void cancel(final long jobId) throws IOException {
+  public void cancel(final long jobId) throws IOException {
     retryRPC(new RpcCallable<Void>() {
       public Void call() {
         mClient.cancel(CancelPRequest.newBuilder().setJobId(jobId).build());
@@ -91,7 +88,7 @@ public final class RetryHandlingJobMasterClient extends AbstractMasterClient
   }
 
   @Override
-  public synchronized JobInfo getStatus(final long jobId) throws IOException {
+  public JobInfo getStatus(final long jobId) throws IOException {
     return new JobInfo(retryRPC(new RpcCallable<alluxio.grpc.JobInfo>() {
       public alluxio.grpc.JobInfo call() throws StatusRuntimeException {
         return mClient.getJobStatus(GetJobStatusPRequest.newBuilder().setJobId(jobId).build())
@@ -101,7 +98,7 @@ public final class RetryHandlingJobMasterClient extends AbstractMasterClient
   }
 
   @Override
-  public synchronized List<Long> list() throws IOException {
+  public List<Long> list() throws IOException {
     return retryRPC(new RpcCallable<List<Long>>() {
       public List<Long> call() {
         return mClient.listAll(ListAllPRequest.getDefaultInstance()).getJobIdsList();
@@ -110,7 +107,7 @@ public final class RetryHandlingJobMasterClient extends AbstractMasterClient
   }
 
   @Override
-  public synchronized long run(final JobConfig jobConfig) throws IOException {
+  public long run(final JobConfig jobConfig) throws IOException {
     final ByteBuffer configBytes = ByteBuffer.wrap(SerializationUtils.serialize(jobConfig));
     return retryRPC(new RpcCallable<Long>() {
       public Long call() throws StatusRuntimeException {

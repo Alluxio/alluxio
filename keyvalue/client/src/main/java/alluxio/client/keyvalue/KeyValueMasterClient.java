@@ -32,8 +32,7 @@ import java.util.List;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * A wrapper for the thrift client to interact with the key-value master, used by Alluxio clients.
- * This wrapper provides thread safety, and retry mechanism.
+ * A wrapper for the gRPC client to interact with the key-value master, used by Alluxio clients.
  */
 @ThreadSafe
 public final class KeyValueMasterClient extends AbstractMasterClient {
@@ -75,7 +74,7 @@ public final class KeyValueMasterClient extends AbstractMasterClient {
    * @param path URI of the key-value store
    * @param info information of this completed partition
    */
-  public synchronized void completePartition(final AlluxioURI path, final PartitionInfo info)
+  public void completePartition(final AlluxioURI path, final PartitionInfo info)
       throws IOException {
     retryRPC(new RpcCallable<Void>() {
       @Override
@@ -92,7 +91,7 @@ public final class KeyValueMasterClient extends AbstractMasterClient {
    *
    * @param path URI of the key-value store
    */
-  public synchronized void completeStore(final AlluxioURI path) throws IOException {
+  public void completeStore(final AlluxioURI path) throws IOException {
     retryRPC(new RpcCallable<Void>() {
       @Override
       public Void call() {
@@ -108,7 +107,7 @@ public final class KeyValueMasterClient extends AbstractMasterClient {
    *
    * @param path URI of the key-value store
    */
-  public synchronized void createStore(final AlluxioURI path) throws IOException {
+  public void createStore(final AlluxioURI path) throws IOException {
     retryRPC(new RpcCallable<Void>() {
       @Override
       public Void call() {
@@ -124,7 +123,7 @@ public final class KeyValueMasterClient extends AbstractMasterClient {
    * @param path URI of the key-value store
    * @return a list of partition information
    */
-  public synchronized List<PartitionInfo> getPartitionInfo(final AlluxioURI path)
+  public List<PartitionInfo> getPartitionInfo(final AlluxioURI path)
       throws IOException {
     return retryRPC(new RpcCallable<List<PartitionInfo>>() {
       @Override
@@ -141,7 +140,7 @@ public final class KeyValueMasterClient extends AbstractMasterClient {
    *
    * @param path URI of the store
    */
-  public synchronized void deleteStore(final AlluxioURI path) throws IOException {
+  public void deleteStore(final AlluxioURI path) throws IOException {
     retryRPC(new RpcCallable<Void>() {
       @Override
       public Void call() {
@@ -157,7 +156,7 @@ public final class KeyValueMasterClient extends AbstractMasterClient {
    * @param oldPath old URI of the store
    * @param newPath new URI of the store
    */
-  public synchronized void renameStore(final AlluxioURI oldPath, final AlluxioURI newPath)
+  public void renameStore(final AlluxioURI oldPath, final AlluxioURI newPath)
       throws IOException {
     retryRPC(new RpcCallable<Void>() {
       @Override

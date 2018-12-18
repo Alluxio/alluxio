@@ -27,11 +27,8 @@ import java.io.IOException;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * A wrapper for the thrift client to interact with the file system master, used by Alluxio job
+ * A wrapper for the gRPC client to interact with the file system master, used by Alluxio job
  * service.
- * <p/>
- * Since thrift clients are not thread safe, this class is a wrapper to provide thread safety, and
- * to provide retries.
  */
 @ThreadSafe
 public final class FileSystemMasterClient extends AbstractMasterClient {
@@ -71,7 +68,7 @@ public final class FileSystemMasterClient extends AbstractMasterClient {
    * @param fileId the id of the file for which to get the {@link FileInfo}
    * @return the file info for the given file id
    */
-  public synchronized FileInfo getFileInfo(final long fileId) throws IOException {
+  public FileInfo getFileInfo(final long fileId) throws IOException {
     return retryRPC(() -> GrpcUtils.fromProto(mClient
         .getFileInfo(GetFileInfoPRequest.newBuilder().setFileId(fileId).build()).getFileInfo()));
   }
@@ -81,7 +78,7 @@ public final class FileSystemMasterClient extends AbstractMasterClient {
    * @return the ufs information for the give ufs
    * @throws IOException if an I/O error occurs
    */
-  public synchronized UfsInfo getUfsInfo(final long mountId) throws IOException {
+  public UfsInfo getUfsInfo(final long mountId) throws IOException {
     return retryRPC(() -> mClient
         .getUfsInfo(GetUfsInfoPRequest.newBuilder().setMountId(mountId).build()).getUfsInfo());
   }

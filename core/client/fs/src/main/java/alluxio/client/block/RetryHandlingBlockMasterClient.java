@@ -37,10 +37,7 @@ import java.util.stream.Collectors;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * A wrapper for the thrift client to interact with the block master, used by alluxio clients.
- *
- * Since thrift clients are not thread safe, this class is a wrapper to provide thread safety, and
- * to provide retries.
+ * A wrapper for the gRPC client to interact with the block master, used by alluxio clients.
  */
 @ThreadSafe
 public final class RetryHandlingBlockMasterClient extends AbstractMasterClient
@@ -77,7 +74,7 @@ public final class RetryHandlingBlockMasterClient extends AbstractMasterClient
   }
 
   @Override
-  public synchronized List<WorkerInfo> getWorkerInfoList() throws IOException {
+  public List<WorkerInfo> getWorkerInfoList() throws IOException {
     return retryRPC(() -> {
       List<WorkerInfo> result = new ArrayList<>();
       for (alluxio.grpc.WorkerInfo workerInfo : mClient
@@ -90,7 +87,7 @@ public final class RetryHandlingBlockMasterClient extends AbstractMasterClient
   }
 
   @Override
-  public synchronized List<WorkerInfo> getWorkerReport(final GetWorkerReportOptions options)
+  public List<WorkerInfo> getWorkerReport(final GetWorkerReportOptions options)
       throws IOException {
     return retryRPC(() -> {
       List<WorkerInfo> result = new ArrayList<>();
@@ -108,7 +105,7 @@ public final class RetryHandlingBlockMasterClient extends AbstractMasterClient
    * @param blockId the block id to get the BlockInfo for
    * @return the {@link BlockInfo}
    */
-  public synchronized BlockInfo getBlockInfo(final long blockId) throws IOException {
+  public BlockInfo getBlockInfo(final long blockId) throws IOException {
     return retryRPC(() -> {
       return GrpcUtils.fromProto(
           mClient.getBlockInfo(GetBlockInfoPRequest.newBuilder().setBlockId(blockId).build())
@@ -117,7 +114,7 @@ public final class RetryHandlingBlockMasterClient extends AbstractMasterClient
   }
 
   @Override
-  public synchronized BlockMasterInfo getBlockMasterInfo(final Set<BlockMasterInfoField> fields)
+  public BlockMasterInfo getBlockMasterInfo(final Set<BlockMasterInfoField> fields)
       throws IOException {
     return retryRPC(() -> {
       return BlockMasterInfo
@@ -133,7 +130,7 @@ public final class RetryHandlingBlockMasterClient extends AbstractMasterClient
    *
    * @return total capacity in bytes
    */
-  public synchronized long getCapacityBytes() throws IOException {
+  public long getCapacityBytes() throws IOException {
     return retryRPC(() -> mClient
         .getCapacityBytes(GetCapacityBytesPOptions.getDefaultInstance()).getBytes());
   }
@@ -143,7 +140,7 @@ public final class RetryHandlingBlockMasterClient extends AbstractMasterClient
    *
    * @return amount of used space in bytes
    */
-  public synchronized long getUsedBytes() throws IOException {
+  public long getUsedBytes() throws IOException {
     return retryRPC(
         () -> mClient.getUsedBytes(GetUsedBytesPOptions.getDefaultInstance()).getBytes());
   }

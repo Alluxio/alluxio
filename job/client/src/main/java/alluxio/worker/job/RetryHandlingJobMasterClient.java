@@ -28,11 +28,8 @@ import java.util.List;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * A wrapper for the thrift client to interact with the job service master, used by job service
+ * A wrapper for the gRPC client to interact with the job service master, used by job service
  * workers.
- *
- * Since thrift clients are not thread safe, this class is a wrapper to provide thread safety, and
- * to provide retries.
  */
 @ThreadSafe
 public final class RetryHandlingJobMasterClient extends AbstractMasterClient
@@ -74,7 +71,7 @@ public final class RetryHandlingJobMasterClient extends AbstractMasterClient
   }
 
   @Override
-  public synchronized long registerWorker(final WorkerNetAddress address) throws IOException {
+  public long registerWorker(final WorkerNetAddress address) throws IOException {
     return retryRPC(new RpcCallable<Long>() {
       public Long call() {
         return mClient.registerJobWorker(RegisterJobWorkerPRequest.newBuilder()
@@ -84,7 +81,7 @@ public final class RetryHandlingJobMasterClient extends AbstractMasterClient
   }
 
   @Override
-  public synchronized List<JobCommand> heartbeat(final long workerId,
+  public List<JobCommand> heartbeat(final long workerId,
       final List<TaskInfo> taskInfoList) throws IOException {
     return retryRPC(new RpcCallable<List<JobCommand>>() {
 

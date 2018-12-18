@@ -38,10 +38,8 @@ import java.util.Map;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * A wrapper for the thrift client to interact with the block master, used by alluxio worker.
+ * A wrapper for the gRPC client to interact with the block master, used by alluxio worker.
  * <p/>
- * Since thrift clients are not thread safe, this class is a wrapper to provide thread safety, and
- * to provide retries.
  */
 @ThreadSafe
 public final class BlockMasterClient extends AbstractMasterClient {
@@ -85,7 +83,7 @@ public final class BlockMasterClient extends AbstractMasterClient {
    * @param blockId the block id being committed
    * @param length the length of the block being committed
    */
-  public synchronized void commitBlock(final long workerId, final long usedBytesOnTier,
+  public void commitBlock(final long workerId, final long usedBytesOnTier,
       final String tierAlias, final long blockId, final long length) throws IOException {
     retryRPC((RpcCallable<Void>) () -> {
       CommitBlockPRequest request =
@@ -102,7 +100,7 @@ public final class BlockMasterClient extends AbstractMasterClient {
    * @param blockId the block id being committed
    * @param length the length of the block being committed
    */
-  public synchronized void commitBlockInUfs(final long blockId, final long length)
+  public void commitBlockInUfs(final long blockId, final long length)
       throws IOException {
     retryRPC((RpcCallable<Void>) () -> {
       CommitBlockInUfsPRequest request =
@@ -118,7 +116,7 @@ public final class BlockMasterClient extends AbstractMasterClient {
    * @param address the net address to get a worker id for
    * @return a worker id
    */
-  public synchronized long getId(final WorkerNetAddress address) throws IOException {
+  public long getId(final WorkerNetAddress address) throws IOException {
     return retryRPC((RpcCallable<Long>) () -> {
       GetWorkerIdPRequest request =
           GetWorkerIdPRequest.newBuilder().setWorkerNetAddress(GrpcUtils.toProto(address)).build();
@@ -136,7 +134,7 @@ public final class BlockMasterClient extends AbstractMasterClient {
    * @param metrics a list of worker metrics
    * @return an optional command for the worker to execute
    */
-  public synchronized Command heartbeat(final long workerId,
+  public Command heartbeat(final long workerId,
       final Map<String, Long> usedBytesOnTiers, final List<Long> removedBlocks,
       final Map<String, List<Long>> addedBlocks, final List<Metric> metrics) throws IOException {
     final BlockHeartbeatPOptions options =
@@ -164,7 +162,7 @@ public final class BlockMasterClient extends AbstractMasterClient {
    * @param configList a list of configurations
    */
   // TODO(yupeng): rename to workerBlockReport or workerInitialize?
-  public synchronized void register(final long workerId, final List<String> storageTierAliases,
+  public void register(final long workerId, final List<String> storageTierAliases,
       final Map<String, Long> totalBytesOnTiers, final Map<String, Long> usedBytesOnTiers,
       final Map<String, List<Long>> currentBlocksOnTiers, final List<ConfigProperty> configList)
       throws IOException {
