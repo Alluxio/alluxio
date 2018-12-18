@@ -117,6 +117,7 @@ public final class DailyMetadataBackup {
       }
     } catch (Throwable t) {
       LOG.error("Failed to execute daily backup at {}", mBackupDir, t);
+      return;
     }
 
     try {

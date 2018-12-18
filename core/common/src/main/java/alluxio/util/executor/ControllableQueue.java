@@ -11,6 +11,7 @@
 
 package alluxio.util.executor;
 
+import java.util.Comparator;
 import java.util.PriorityQueue;
 
 /**
@@ -28,10 +29,7 @@ public class ControllableQueue<T> {
    */
   public ControllableQueue() {
     mPastTime = 0;
-    mQueue = new PriorityQueue<>((n1, n2) -> {
-      long diff = n1.getDelay() - n2.getDelay();
-      return diff > 0 ? 1 : diff < 0 ? -1 : 0;
-    });
+    mQueue = new PriorityQueue<>(Comparator.comparing(DelayNode::getDelay));
   }
 
   /**
@@ -44,14 +42,14 @@ public class ControllableQueue<T> {
   /**
    * @return the value of head element
    */
-  public T getPeakValue() {
+  public T getHeadValue() {
     return mQueue.peek().getValue();
   }
 
   /**
    * @return the delay of head element
    */
-  public long getPeakDelay() {
+  public long getHeadDelay() {
     return mQueue.peek().getDelay() - mPastTime;
   }
 
@@ -78,7 +76,7 @@ public class ControllableQueue<T> {
    * @return the head element if it should be executed
    */
   public T pop() {
-    if (getPeakDelay() > 0) {
+    if (getHeadDelay() > 0) {
       throw new IllegalStateException("cannot pop the head element when it has a non-zero delay");
     }
     return mQueue.poll().getValue();

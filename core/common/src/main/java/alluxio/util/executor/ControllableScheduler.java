@@ -52,14 +52,14 @@ public class ControllableScheduler implements ScheduledExecutorService {
    * @return true if there are no commands pending immediate execution, false otherwise
    */
   public boolean schedulerIsIdle() {
-    return mQueue.isEmpty() || mQueue.getPeakDelay() > 0;
+    return mQueue.isEmpty() || mQueue.getHeadDelay() > 0;
   }
 
   /**
    * Runs the next command scheduled to be executed immediately.
    */
   public void runNextPendingCommand() {
-    long peakDelay = mQueue.getPeakDelay();
+    long peakDelay = mQueue.getHeadDelay();
     ScheduledTask<?> scheduledTask = mQueue.pop();
     scheduledTask.run();
     if (!scheduledTask.isCancelled() && scheduledTask.isRepeat()) {
