@@ -640,9 +640,13 @@ For example, `mv` can be used to re-organize your files.
 ### persist
 
 The `persist` command persists data in Alluxio storage into the under storage system.
-This is a data operation and will take time depending on how large the file is.
+This is a server side data operation and will take time depending on how large the file is.
 After persist is complete, the file in Alluxio will be backed by the file in the under storage,
 and will still be available if the Alluxio blocks are evicted or otherwise lost.
+
+If you are persisting multiple files, you can use the `--parallelism <#>` option to submit `#` of
+persist commands in parallel. For example, if your folder has 10,000 files, persisting with a
+parallelism factor of 10 will persist 10 files at a time until all 10,000 files are persisted.
 
 For example, `persist` can be used after filtering a series of temporary files for the ones containing useful data.
 
@@ -670,7 +674,7 @@ but the actual data may be deleted a while later.
 * Adding `-R` option deletes all contents of the directory and the directory itself.
 * Adding `-U` option skips the check for whether the UFS contents being deleted are in-sync with Alluxio
 before attempting to delete persisted directories.
-* Adding `--alluxioOnly` option removes data and metadata from Alluxio space only. 
+* Adding `--alluxioOnly` option removes data and metadata from Alluxio space only.
 The under storage system will not be affected.
 
 {% include Command-Line-Interface/rm2.md %}

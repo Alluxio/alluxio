@@ -49,7 +49,7 @@ public final class InconsistentProperty {
     mValues = inconsistentProperty.getValues().entrySet().stream()
         .collect(Collectors.toMap(
             e -> OptionalString.fromThrift(e.getKey()).getValue(),
-            e -> e.getValue()));
+            Map.Entry::getValue));
   }
 
   /**

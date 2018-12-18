@@ -26,6 +26,7 @@ import alluxio.exception.UnexpectedAlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.master.Master;
+import alluxio.wire.SyncPointInfo;
 import alluxio.master.file.meta.FileSystemMasterView;
 import alluxio.master.file.meta.PersistenceState;
 import alluxio.master.file.options.CheckConsistencyOptions;
@@ -510,7 +511,7 @@ public interface FileSystemMaster extends Master {
   /**
    * @return the list of sync path
    */
-  List<String> getSyncPathList() throws UnavailableException, AccessControlException;
+  List<SyncPointInfo> getSyncPathList() throws UnavailableException, AccessControlException;
 
   /**
    * starts active sync on a specified alluxioURI.

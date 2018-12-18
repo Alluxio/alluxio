@@ -41,17 +41,17 @@ public final class LockingScheme {
   /**
    * @return the desired mode for the locking
    */
-  LockPattern getDesiredMode() {
+  public LockPattern getDesiredPattern() {
     return mDesiredLockPattern;
   }
 
   /**
    * @return the mode that should be used to lock the path, considering if ufs sync should occur
    */
-  public LockPattern getMode() {
+  public LockPattern getPattern() {
     if (mShouldSync) {
-      // Syncing requires write.
-      return LockPattern.WRITE_LAST;
+      // Syncing needs to be able to delete the inode if it was deleted in the UFS.
+      return LockPattern.WRITE_EDGE;
     }
     return mDesiredLockPattern;
   }
