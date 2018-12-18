@@ -14,10 +14,10 @@ package alluxio.util.executor;
 import java.util.PriorityQueue;
 
 /**
- * Controllable queue is a priority queue with {@link DelayNode}s.
- * It supports tick the time forward and pop() nodes whose delay is smaller than the past time.
+ * A controllable queue is a priority queue with {@link DelayNode}s.
+ * It supports tick the time forward and pop nodes whose delay is smaller than the past time.
  *
- * @param <T> the type of the queue objects
+ * @param <T> the type of the value of {@link DelayNode}
  */
 public class ControllableQueue<T> {
   private long mPastTime;
@@ -102,8 +102,10 @@ public class ControllableQueue<T> {
   /**
    * A delay node in delta queue which records the value
    * and the total delay (which is the original delay plus the past time).
+   *
+   * @param <T> the type of the value
    */
-  private static class DelayNode<T> {
+  public static class DelayNode<T> {
     private final T mValue;
     private long mDelay;
 

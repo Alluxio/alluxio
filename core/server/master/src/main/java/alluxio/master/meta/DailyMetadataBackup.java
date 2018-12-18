@@ -48,8 +48,8 @@ public final class DailyMetadataBackup {
 
   private final String mBackupDir;
   private final boolean mIsLocal;
-  private final int mRetainedFiles;
   private final MetaMaster mMetaMaster;
+  private final int mRetainedFiles;
   private final ScheduledExecutorService mScheduledExecutor;
   private final UnderFileSystem mUfs;
 
@@ -59,6 +59,8 @@ public final class DailyMetadataBackup {
    * Constructs a new {@link DailyMetadataBackup}.
    *
    * @param metaMaster the meta master
+   * @param service a scheduled executor service
+   * @param ufs the under file system
    */
   DailyMetadataBackup(MetaMaster metaMaster,
       ScheduledExecutorService service, UnderFileSystem ufs) {
@@ -118,7 +120,7 @@ public final class DailyMetadataBackup {
     }
 
     try {
-      deleteOldestBackups();
+      deleteStaleBackups();
     } catch (Throwable t) {
       LOG.error("Failed to delete outdated backup files at {}", mBackupDir, t);
     }
@@ -127,7 +129,7 @@ public final class DailyMetadataBackup {
   /**
    * Deletes stale backup files to avoid consuming too many spaces.
    */
-  private void deleteOldestBackups() throws Exception {
+  private void deleteStaleBackups() throws Exception {
     UfsStatus[] statuses = mUfs.listStatus(mBackupDir);
     if (statuses.length <= mRetainedFiles) {
       return;
@@ -146,7 +148,6 @@ public final class DailyMetadataBackup {
       }
     }
 
-    // Delete the oldest files
     int toDeleteFileNum = timeToFile.size() - mRetainedFiles;
     if (toDeleteFileNum <= 0) {
       return;
@@ -156,7 +157,7 @@ public final class DailyMetadataBackup {
           timeToFile.pollFirstEntry().getValue());
       mUfs.deleteFile(toDeleteFile);
     }
-    LOG.info("Deleted {} outdated metadata backup files at {}", toDeleteFileNum, mBackupDir);
+    LOG.info("Deleted {} stale metadata backup files at {}", toDeleteFileNum, mBackupDir);
   }
 
   /**

@@ -106,13 +106,12 @@ public class DailyMetadataBackupTest {
    * @return the random generated ufs file statuses
    */
   private UfsStatus[] generateUfsStatuses(int num) {
-    Random random = new Random();
     UfsStatus[] statuses = new UfsFileStatus[num];
     for (int i = 0; i < statuses.length; i++) {
       statuses[i] = new UfsFileStatus(generateBackupFileName(),
-          CommonUtils.randomAlphaNumString(10), random.nextLong(), random.nextLong(),
+          CommonUtils.randomAlphaNumString(10), mRandom.nextLong(), mRandom.nextLong(),
           CommonUtils.randomAlphaNumString(10), CommonUtils.randomAlphaNumString(10),
-          (short) random.nextInt());
+          (short) mRandom.nextInt());
     }
     return statuses;
   }

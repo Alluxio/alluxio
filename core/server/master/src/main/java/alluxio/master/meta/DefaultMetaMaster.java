@@ -133,11 +133,11 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
   private final InetSocketAddress mRpcConnectAddress
       = NetworkAddressUtils.getConnectAddress(NetworkAddressUtils.ServiceType.MASTER_RPC);
 
-  /** The root ufs. */
-  private final UnderFileSystem mUfs;
-
   /** The address of this master. */
   private Address mMasterAddress;
+
+  /** The root ufs. */
+  private final UnderFileSystem mUfs;
 
   /** The metadata daily backup. */
   private DailyMetadataBackup mDailyBackup;

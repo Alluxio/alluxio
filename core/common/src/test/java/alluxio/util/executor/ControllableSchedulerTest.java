@@ -26,8 +26,10 @@ public class ControllableSchedulerTest {
     CountTask task = new CountTask();
     ControllableScheduler scheduler = new ControllableScheduler();
     scheduler.submit(task);
+    Assert.assertFalse(scheduler.schedulerIsIdle());
     scheduler.runNextPendingCommand();
     Assert.assertEquals(1, task.runTimes());
+    Assert.assertTrue(scheduler.schedulerIsIdle());
   }
 
   @Test
@@ -58,6 +60,7 @@ public class ControllableSchedulerTest {
     int daysToJump = random.nextInt(1000000000);
     scheduler.jumpAndExecute(daysToJump, TimeUnit.DAYS);
     Assert.assertEquals(daysToJump / periodDays + 1, task.runTimes());
+    Assert.assertTrue(scheduler.schedulerIsIdle());
   }
 
   /**

@@ -23,8 +23,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 /**
- * A controllable {@link ScheduledExecutorService} that supports jump to a future time, runs
- * next/all pending commands. This class is designed for test purpose.
+ * A controllable scheduler supports jump to a future time and run all
+ * commands within that time period.
+ * This class is designed for tests using {@link ScheduledExecutorService}.
  */
 public class ControllableScheduler implements ScheduledExecutorService {
   private final ControllableQueue<ScheduledTask<?>> mQueue = new ControllableQueue<>();
