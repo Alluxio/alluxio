@@ -27,7 +27,7 @@ import java.util.concurrent.TimeoutException;
  * next/all pending commands. This class is designed for test purpose.
  */
 public class ControllableScheduler implements ScheduledExecutorService {
-  private final DeltaQueue<ScheduledTask<?>> mDeltaQueue = new DeltaQueue<>();
+  private final ControllableQueue<ScheduledTask<?>> mQueue = new ControllableQueue<>();
 
   /**
    * Jumps to a future time by a given duration. All the commands/tasks scheduled
@@ -37,32 +37,11 @@ public class ControllableScheduler implements ScheduledExecutorService {
    * @param duration the duration
    * @param timeUnit the time unit of the duration
    */
-  public void jumpToFuture(long duration, TimeUnit timeUnit) {
+  public void jumpAndExecute(long duration, TimeUnit timeUnit) {
     long durationInMillis = TimeUnit.MILLISECONDS.convert(duration, timeUnit);
-    do {
-      durationInMillis = mDeltaQueue.tick(durationInMillis);
-      runUntilIdle();
-    } while (!mDeltaQueue.isEmpty() && durationInMillis > 0);
-  }
-
-  /**
-   * Runs all commands/tasks scheduled to be executed immediately.
-   */
-  public void runUntilIdle() {
+    mQueue.tick(durationInMillis);
     while (!schedulerIsIdle()) {
       runNextPendingCommand();
-    }
-  }
-
-  /**
-   * Runs the next command scheduled to be executed immediately.
-   */
-  public void runNextPendingCommand() {
-    ScheduledTask<?> scheduledTask = mDeltaQueue.pop();
-    scheduledTask.run();
-
-    if (!scheduledTask.isCancelled() && scheduledTask.isRepeat()) {
-      mDeltaQueue.add(scheduledTask.mRepeatDelay, scheduledTask);
     }
   }
 
@@ -72,7 +51,19 @@ public class ControllableScheduler implements ScheduledExecutorService {
    * @return true if there are no commands pending immediate execution, false otherwise
    */
   public boolean schedulerIsIdle() {
-    return mDeltaQueue.isEmpty() || mDeltaQueue.delay() > 0;
+    return mQueue.isEmpty() || mQueue.getPeakDelay() > 0;
+  }
+
+  /**
+   * Runs the next command scheduled to be executed immediately.
+   */
+  public void runNextPendingCommand() {
+    long peakDelay = mQueue.getPeakDelay();
+    ScheduledTask<?> scheduledTask = mQueue.pop();
+    scheduledTask.run();
+    if (!scheduledTask.isCancelled() && scheduledTask.isRepeat()) {
+      mQueue.add(scheduledTask.mRepeatDelay + peakDelay, scheduledTask);
+    }
   }
 
   @Override
@@ -83,14 +74,14 @@ public class ControllableScheduler implements ScheduledExecutorService {
   @Override
   public ScheduledFuture<?> schedule(Runnable command, long delay, TimeUnit unit) {
     ScheduledTask<Void> task = new ScheduledTask<Void>(command);
-    mDeltaQueue.add(TimeUnit.MILLISECONDS.convert(delay, unit), task);
+    mQueue.add(TimeUnit.MILLISECONDS.convert(delay, unit), task);
     return task;
   }
 
   @Override
   public <V> ScheduledFuture<V> schedule(Callable<V> callable, long delay, TimeUnit unit) {
     ScheduledTask<V> task = new ScheduledTask<V>(callable);
-    mDeltaQueue.add(TimeUnit.MILLISECONDS.convert(delay, unit), task);
+    mQueue.add(TimeUnit.MILLISECONDS.convert(delay, unit), task);
     return task;
   }
 
@@ -105,7 +96,7 @@ public class ControllableScheduler implements ScheduledExecutorService {
       long initialDelay, long delay, TimeUnit unit) {
     ScheduledTask<Object> task = new ScheduledTask<>(TimeUnit.MILLISECONDS.convert(delay, unit),
         command);
-    mDeltaQueue.add(TimeUnit.MILLISECONDS.convert(initialDelay, unit), task);
+    mQueue.add(TimeUnit.MILLISECONDS.convert(initialDelay, unit), task);
     return task;
   }
 
@@ -137,7 +128,7 @@ public class ControllableScheduler implements ScheduledExecutorService {
 
   @Override
   public <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> tasks,
-                                       long timeout, TimeUnit unit) throws InterruptedException {
+      long timeout, TimeUnit unit) throws InterruptedException {
     throw new UnsupportedOperationException("Operation not supported");
   }
 
@@ -257,13 +248,13 @@ public class ControllableScheduler implements ScheduledExecutorService {
 
     @Override
     public long getDelay(TimeUnit unit) {
-      return unit.convert(mDeltaQueue.delay(this), TimeUnit.MILLISECONDS);
+      throw new UnsupportedOperationException("Operation not supported");
     }
 
     @Override
     public boolean cancel(boolean mayInterruptIfRunning) {
       mIsCancelled = true;
-      return mDeltaQueue.remove(this);
+      return mQueue.remove(this);
     }
 
     @Override
