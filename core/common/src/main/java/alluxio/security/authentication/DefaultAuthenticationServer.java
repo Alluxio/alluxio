@@ -16,12 +16,10 @@ import alluxio.PropertyKey;
 import alluxio.exception.status.UnauthenticatedException;
 import alluxio.grpc.SaslAuthenticationServiceGrpc;
 import alluxio.grpc.SaslMessage;
-import alluxio.resource.LockResource;
 import alluxio.util.SecurityUtils;
 
 import io.grpc.ServerInterceptor;
 import io.grpc.stub.StreamObserver;
-import net.jcip.annotations.GuardedBy;
 import net.jcip.annotations.ThreadSafe;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,14 +29,13 @@ import javax.security.sasl.SaslServer;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
  * Default implementation of {@link AuthenticationServer}. Its functions include: -> Authentication
@@ -52,11 +49,8 @@ public class DefaultAuthenticationServer
     implements AuthenticationServer {
   private static final Logger LOG = LoggerFactory.getLogger(DefaultAuthenticationServer.class);
 
-  @GuardedBy("mClientsLock")
   /** List of channels authenticated against this server. */
-  protected final Map<UUID, AuthenticatedChannelInfo> mChannels;
-  /** Used to protect access to known channels. */
-  protected final ReentrantReadWriteLock mClientsLock;
+  protected final ConcurrentHashMap<UUID, AuthenticatedChannelInfo> mChannels;
   /** Scheduler for periodic cleaning of channels registry. */
   protected final ScheduledExecutorService mScheduler;
 
@@ -69,8 +63,7 @@ public class DefaultAuthenticationServer
    */
   public DefaultAuthenticationServer() {
     checkSupported(Configuration.getEnum(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.class));
-    mChannels = new HashMap<>();
-    mClientsLock = new ReentrantReadWriteLock(true);
+    mChannels = new ConcurrentHashMap<>();
     mScheduler = Executors.newScheduledThreadPool(1);
     mScheduler.scheduleAtFixedRate(() -> {
       cleanupStaleClients();
@@ -87,47 +80,35 @@ public class DefaultAuthenticationServer
 
   @Override
   public void registerChannel(UUID channelId, String authorizedUser, SaslServer saslServer) {
-    try (LockResource clientsLockExclusive = new LockResource(mClientsLock.writeLock())) {
-      if (mChannels.containsKey(channelId)) {
-        throw new RuntimeException(String.format(
-            "Channel: %s already exists in authentication registry.", channelId.toString()));
-      }
-      mChannels.put(channelId, new AuthenticatedChannelInfo(authorizedUser, saslServer));
-      LOG.debug("Registered new channel:" + channelId);
+    if (null != mChannels.putIfAbsent(channelId,
+        new AuthenticatedChannelInfo(authorizedUser, saslServer))) {
+      mChannels.remove(channelId);
+      throw new RuntimeException(String
+          .format("Channel: %s already exists in authentication registry.", channelId.toString()));
     }
+    LOG.debug("Registered new channel:" + channelId);
   }
 
   @Override
   public String getUserNameForChannel(UUID channelId) throws UnauthenticatedException {
-    try (LockResource clientsLockShared = new LockResource(mClientsLock.readLock())) {
-      if (mChannels.containsKey(channelId)) {
-        AuthenticatedChannelInfo clientInfo = mChannels.get(channelId);
-        return mChannels.get(channelId).getUserName();
-      } else {
-        throw new UnauthenticatedException(
-            String.format("Client:%s needs to be authenticated", channelId.toString()));
-      }
+    if (mChannels.containsKey(channelId)) {
+      AuthenticatedChannelInfo clientInfo = mChannels.get(channelId);
+      return clientInfo.getUserName();
+    } else {
+      throw new UnauthenticatedException(
+          String.format("Client:%s needs to be authenticated", channelId.toString()));
     }
   }
 
   @Override
   public void unregisterChannel(UUID channelId) {
-    if (mChannels.containsKey(channelId)) {
-      SaslServer serverToDispose = null;
-      try (LockResource clientsLockExclusive = new LockResource(mClientsLock.writeLock())) {
-        if (mChannels.containsKey(channelId)) {
-          // Extract the Sasl server for disposing out of lock
-          serverToDispose = mChannels.get(channelId).getSaslServer();
-          mChannels.remove(channelId);
-        }
-      }
-      if (serverToDispose != null) {
-        try {
-          serverToDispose.dispose();
-        } catch (SaslException e) {
-          LOG.warn("Failed to dispose sasl client for channel: {}. Error: {}", channelId,
-              e.getMessage());
-        }
+    AuthenticatedChannelInfo channelInfo = mChannels.remove(channelId);
+    if (channelInfo != null) {
+      try {
+        channelInfo.getSaslServer().dispose();
+      } catch (SaslException e) {
+        LOG.warn("Failed to dispose sasl client for channel-Id: {}. Error: {}", channelId,
+            e.getMessage());
       }
     }
   }
@@ -143,14 +124,13 @@ public class DefaultAuthenticationServer
     }
     // Get a list of stale clients under read lock.
     List<UUID> staleChannels = new ArrayList<>();
-    try (LockResource clientsLockShared = new LockResource(mClientsLock.readLock())) {
-      for (Map.Entry<UUID, AuthenticatedChannelInfo> clientEntry : mChannels.entrySet()) {
-        LocalTime lat = clientEntry.getValue().getLastAccessTime();
-        if (lat.plusHours(mCleanupIntervalHour).isBefore(cleanupTime)) {
-          staleChannels.add(clientEntry.getKey());
-        }
+    for (Map.Entry<UUID, AuthenticatedChannelInfo> clientEntry : mChannels.entrySet()) {
+      LocalTime lat = clientEntry.getValue().getLastAccessTime();
+      if (lat.plusHours(mCleanupIntervalHour).isBefore(cleanupTime)) {
+        staleChannels.add(clientEntry.getKey());
       }
     }
+
     // Unregister stale clients.
     if (LOG.isDebugEnabled()) {
       LOG.debug("Found {} stale channels for cleanup.", staleChannels.size());
@@ -230,7 +210,8 @@ public class DefaultAuthenticationServer
     }
 
     /**
-     * PS: Updates the last-access-time for this instance
+     * PS: Updates the last-access-time for this instance.
+     *
      * @return the sasl server
      */
     public SaslServer getSaslServer() {
@@ -239,7 +220,8 @@ public class DefaultAuthenticationServer
     }
 
     /**
-     * PS: Updates the last-access-time for this instance
+     * PS: Updates the last-access-time for this instance.
+     *
      * @return the user name
      */
     public String getUserName() {
