@@ -21,9 +21,9 @@ import io.grpc.MethodDescriptor;
  * {@link GrpcServer}.
  */
 public final class GrpcChannel extends Channel {
-  protected GrpcManagedChannelPool.ChannelKey mChannelKey;
-  protected Channel mChannel;
-  protected boolean mchannelReleased;
+  private GrpcManagedChannelPool.ChannelKey mChannelKey;
+  private Channel mChannel;
+  private boolean mchannelReleased;
 
   /**
    * Create a new instance of {@link GrpcChannel}.

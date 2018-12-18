@@ -42,10 +42,10 @@ public class SaslHandshakeClientHandlerPlain implements SaslHandshakeClientHandl
   @Override
   public SaslMessage handleSaslMessage(SaslMessage message) throws SaslException {
     switch (message.getMessageType()) {
-      case CHALLANGE:
+      case CHALLENGE:
         byte[] saslResponse = mSaslClient.evaluateChallenge(message.getMessage().toByteArray());
         SaslMessage.Builder response =
-            SaslMessage.newBuilder().setMessageType(SaslMessageType.CHALLANGE);
+            SaslMessage.newBuilder().setMessageType(SaslMessageType.CHALLENGE);
         if (saslResponse != null) {
           response.setMessage(ByteString.copyFrom(saslResponse));
         }
@@ -69,7 +69,7 @@ public class SaslHandshakeClientHandlerPlain implements SaslHandshakeClientHandl
       initiateSaslResponse = mSaslClient.evaluateChallenge(new byte[0]);
     }
     SaslMessage.Builder initialResponse =
-        SaslMessage.newBuilder().setMessageType(SaslMessageType.CHALLANGE)
+        SaslMessage.newBuilder().setMessageType(SaslMessageType.CHALLENGE)
             .setAuthenticationName(AuthType.SIMPLE.getAuthName());
     if (initiateSaslResponse != null) {
       initialResponse.setMessage(ByteString.copyFrom(initiateSaslResponse));

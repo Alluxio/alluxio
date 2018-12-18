@@ -40,13 +40,13 @@ public class SaslHandshakeServerHandlerPlain implements SaslHandshakeServerHandl
   @Override
   public SaslMessage handleSaslMessage(SaslMessage message) throws SaslException {
     switch (message.getMessageType()) {
-      case CHALLANGE:
+      case CHALLENGE:
         byte[] saslResponse = mSaslServer.evaluateResponse(message.getMessage().toByteArray());
         SaslMessage.Builder response = SaslMessage.newBuilder();
         if (mSaslServer.isComplete()) {
           response.setMessageType(SaslMessageType.SUCCESS);
         } else {
-          response.setMessageType(SaslMessageType.CHALLANGE);
+          response.setMessageType(SaslMessageType.CHALLENGE);
         }
         if (saslResponse != null) {
           response.setMessage(ByteString.copyFrom(saslResponse));

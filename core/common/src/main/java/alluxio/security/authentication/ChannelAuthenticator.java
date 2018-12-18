@@ -39,7 +39,7 @@ import java.util.UUID;
  */
 public class ChannelAuthenticator {
 
-  /** Whether to use mnarentSubject as authentication user. */
+  /** Whether to use mParentSubject as authentication user. */
   protected boolean mUseSubject;
   /** Subject for authentication. */
   protected Subject mParentSubject;

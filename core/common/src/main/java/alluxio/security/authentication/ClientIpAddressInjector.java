@@ -19,7 +19,7 @@ import io.grpc.ServerCallHandler;
 import io.grpc.ServerInterceptor;
 
 /**
- * Server side interceptor that is used to put remote client's IP Address to TLS.
+ * Server side interceptor that is used to put remote client's IP Address to thread local storage.
  */
 public class ClientIpAddressInjector implements ServerInterceptor {
 

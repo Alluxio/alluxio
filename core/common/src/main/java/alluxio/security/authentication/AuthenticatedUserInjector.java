@@ -20,13 +20,15 @@ import io.grpc.ServerCallHandler;
 import io.grpc.ServerInterceptor;
 import io.grpc.Status;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.util.UUID;
 
 /**
  * Server side interceptor for injecting authenticated user into TLS. This interceptor requires
- * {@link ChannelIdInjector} to have been injected the channel id from which the particular RPC is
+ * {@link ChannelIdInjector} to have injected the channel id from which the particular RPC is
  * being made.
  */
+@ThreadSafe
 public class AuthenticatedUserInjector implements ServerInterceptor {
 
   private AuthenticationServer mAuthenticationServer;

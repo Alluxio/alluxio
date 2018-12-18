@@ -9,9 +9,9 @@ package alluxio.grpc;
 public enum SaslMessageType
     implements com.google.protobuf.ProtocolMessageEnum {
   /**
-   * <code>CHALLANGE = 0;</code>
+   * <code>CHALLENGE = 0;</code>
    */
-  CHALLANGE(0),
+  CHALLENGE(0),
   /**
    * <code>SUCCESS = 1;</code>
    */
@@ -19,7 +19,7 @@ public enum SaslMessageType
   ;
 
   /**
-   * <code>CHALLANGE = 0;</code>
+   * <code>CHALLENGE = 0;</code>
    */
   public static final int CHALLANGE_VALUE = 0;
   /**
@@ -42,7 +42,7 @@ public enum SaslMessageType
 
   public static SaslMessageType forNumber(int value) {
     switch (value) {
-      case 0: return CHALLANGE;
+      case 0: return CHALLENGE;
       case 1: return SUCCESS;
       default: return null;
     }

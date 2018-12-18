@@ -7,7 +7,7 @@ option java_outer_classname = "AuthenticationServerProto";
 package alluxio.grpc;
 
 enum SaslMessageType {
-  CHALLANGE = 0;
+  CHALLENGE = 0;
   SUCCESS = 1;
 }
 

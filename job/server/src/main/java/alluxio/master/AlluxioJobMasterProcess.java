@@ -242,8 +242,7 @@ public class AlluxioJobMasterProcess implements JobMasterProcess {
         NetworkAddressUtils.getPort(ServiceType.JOB_MASTER_RPC),
         NetworkAddressUtils.getPort(ServiceType.JOB_MASTER_WEB));
 
-    startServingRPCServerNew();
-    //startServingRPCServer();
+    startServingRPCServer();
     LOG.info("Alluxio job master ended");
   }
 
@@ -268,7 +267,7 @@ public class AlluxioJobMasterProcess implements JobMasterProcess {
    * Starts the gRPC server. The AlluxioMaster registers the Services of registered
    * {@link Master}s and meta services.
    */
-  protected void startServingRPCServerNew() {
+  protected void startServingRPCServer() {
     // TODO(ggezer) Executor threads not reused until thread capacity is hit.
     //ExecutorService executorService = Executors.newFixedThreadPool(mMaxWorkerThreads);
     try {

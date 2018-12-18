@@ -20,12 +20,14 @@ import io.grpc.ForwardingClientCallListener;
 import io.grpc.Metadata;
 import io.grpc.MethodDescriptor;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.util.UUID;
 
 /**
  * Client side interceptor that is used to augment outgoing metadata with the unique id for the
  * channel that the RPC is being called on.
  */
+@ThreadSafe
 public class ChannelIdInjector implements ClientInterceptor {
 
   /** Metadata key for the channel Id. */

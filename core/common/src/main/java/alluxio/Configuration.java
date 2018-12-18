@@ -445,8 +445,9 @@ public final class Configuration {
             "Failed to handshake with master %s to load cluster default configuration values",
             address), e);
       } catch (UnauthenticatedException e) {
-        throw new RuntimeException(
-            "Received authentication exception with authentication disabled.", e);
+        throw new RuntimeException(String.format(
+            "Received authentication exception while accessing master %s with authentication disabled",
+            address), e);
       } finally {
         channel.shutdown();
       }

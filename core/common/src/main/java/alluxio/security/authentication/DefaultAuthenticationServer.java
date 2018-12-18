@@ -22,6 +22,7 @@ import alluxio.util.SecurityUtils;
 import io.grpc.ServerInterceptor;
 import io.grpc.stub.StreamObserver;
 import net.jcip.annotations.GuardedBy;
+import net.jcip.annotations.ThreadSafe;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,6 +46,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  * channels during RPC calls.
  *
  */
+@ThreadSafe
 public class DefaultAuthenticationServer
     extends SaslAuthenticationServiceGrpc.SaslAuthenticationServiceImplBase
     implements AuthenticationServer {
@@ -97,7 +99,6 @@ public class DefaultAuthenticationServer
 
   @Override
   public String getUserNameForChannel(UUID channelId) throws UnauthenticatedException {
-
     try (LockResource clientsLockShared = new LockResource(mClientsLock.readLock())) {
       if (mChannels.containsKey(channelId)) {
         AuthenticatedChannelInfo clientInfo = mChannels.get(channelId);
@@ -124,7 +125,8 @@ public class DefaultAuthenticationServer
         try {
           serverToDispose.dispose();
         } catch (SaslException e) {
-          LOG.warn("Failed to dispose sasl client for channel:" + channelId, e);
+          LOG.warn("Failed to dispose sasl client for channel: {}. Error: {}", channelId,
+              e.getMessage());
         }
       }
     }
@@ -136,7 +138,9 @@ public class DefaultAuthenticationServer
    */
   private void cleanupStaleClients() {
     LocalTime cleanupTime = LocalTime.now();
-    LOG.debug("Starting cleanup authentication registry at {}", cleanupTime);
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Starting cleanup authentication registry at {}", cleanupTime);
+    }
     // Get a list of stale clients under read lock.
     List<UUID> staleChannels = new ArrayList<>();
     try (LockResource clientsLockShared = new LockResource(mClientsLock.readLock())) {
@@ -148,11 +152,15 @@ public class DefaultAuthenticationServer
       }
     }
     // Unregister stale clients.
-    LOG.debug("Found {} stale channels for cleanup.", staleChannels.size());
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Found {} stale channels for cleanup.", staleChannels.size());
+    }
     for (UUID clientId : staleChannels) {
       unregisterChannel(clientId);
     }
-    LOG.debug("Finished state channel cleanup at {}", LocalTime.now());
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Finished state channel cleanup at {}", LocalTime.now());
+    }
   }
 
   /**
@@ -222,6 +230,7 @@ public class DefaultAuthenticationServer
     }
 
     /**
+     * PS: Updates the last-access-time for this instance
      * @return the sasl server
      */
     public SaslServer getSaslServer() {
@@ -230,6 +239,7 @@ public class DefaultAuthenticationServer
     }
 
     /**
+     * PS: Updates the last-access-time for this instance
      * @return the user name
      */
     public String getUserName() {
