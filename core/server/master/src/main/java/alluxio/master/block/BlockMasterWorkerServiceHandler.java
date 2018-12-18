@@ -68,8 +68,7 @@ public final class BlockMasterWorkerServiceHandler
     final Map<String, TierList> addedBlocksOnTiers = request.getAddedBlocksOnTiersMap();
     Map<String, List<Long>> addedBlocksOnTiersMap = new HashMap<>();
     for (Map.Entry<String, TierList> blockEntry : addedBlocksOnTiers.entrySet()) {
-      addedBlocksOnTiersMap.put(blockEntry.getKey(),
-          addedBlocksOnTiers.get(blockEntry.getKey()).getTiersList());
+      addedBlocksOnTiersMap.put(blockEntry.getKey(), blockEntry.getValue().getTiersList());
     }
     final BlockHeartbeatPOptions options = request.getOptions();
     final List<Metric> metrics =
@@ -132,8 +131,7 @@ public final class BlockMasterWorkerServiceHandler
     final Map<String, TierList> currentBlocksOnTiers = request.getCurrentBlocksOnTiersMap();
     Map<String, List<Long>> currentBlocksOnTiersMap = new HashMap<>();
     for (Map.Entry<String, TierList> blockEntry : currentBlocksOnTiers.entrySet()) {
-      currentBlocksOnTiersMap.put(blockEntry.getKey(),
-          currentBlocksOnTiers.get(blockEntry.getKey()).getTiersList());
+      currentBlocksOnTiersMap.put(blockEntry.getKey(), blockEntry.getValue().getTiersList());
     }
     RegisterWorkerPOptions options = request.getOptions();
     RpcUtils.call(LOG,

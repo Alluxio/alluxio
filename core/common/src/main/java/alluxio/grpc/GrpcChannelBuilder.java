@@ -33,7 +33,7 @@ public final class GrpcChannelBuilder {
   /** Key for acquiring the underlying managed channel. */
   protected GrpcManagedChannelPool.ChannelKey mChannelKey;
 
-  /** Whether to use mnarentSubject as authentication user. */
+  /** Whether to use mParentSubject as authentication user. */
   protected boolean mUseSubject;
   /** Subject for authentication. */
   protected Subject mParentSubject;
@@ -167,7 +167,8 @@ public final class GrpcChannelBuilder {
    * @return the built {@link GrpcChannel}
    */
   public GrpcChannel build() throws UnauthenticatedException, UnavailableException {
-    ManagedChannel underlyingChannel = GrpcManagedChannelPool.acquireManagedChannel(mChannelKey);
+    ManagedChannel underlyingChannel =
+        GrpcManagedChannelPool.INSTANCE().acquireManagedChannel(mChannelKey);
     Channel clientChannel = underlyingChannel;
 
     if (mAuthenticateChannel) {

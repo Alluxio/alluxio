@@ -47,7 +47,7 @@ public final class InconsistentProperty {
    */
   protected InconsistentProperty(alluxio.grpc.InconsistentProperty inconsistentProperty) {
     mName = inconsistentProperty.getName();
-    mValues = new HashMap<>();
+    mValues = new HashMap<>(inconsistentProperty.getValuesCount());
     for (Map.Entry<String, InconsistentPropertyValues> entry : inconsistentProperty.getValuesMap()
         .entrySet()) {
       if (entry.getKey().equals(OPTIONAL_STRING_VAL)) {

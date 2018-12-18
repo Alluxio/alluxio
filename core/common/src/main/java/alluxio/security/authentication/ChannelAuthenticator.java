@@ -105,9 +105,9 @@ public class ChannelAuthenticator {
     SaslClient saslClient;
     if (mUseSubject) {
       saslClient =
-          SaslParticipiantProvider.Factory.create(mAuthType).createSaslClient(mParentSubject);
+          SaslParticipantProvider.Factory.create(mAuthType).createSaslClient(mParentSubject);
     } else {
-      saslClient = SaslParticipiantProvider.Factory.create(mAuthType).createSaslClient(mUserName,
+      saslClient = SaslParticipantProvider.Factory.create(mAuthType).createSaslClient(mUserName,
           mPassword, mImpersonationUser);
     }
 
@@ -142,8 +142,11 @@ public class ChannelAuthenticator {
     AuthType authType =
         Configuration.getEnum(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.class);
     switch (authType) {
+      case NOSASL:
+        break;
       case SIMPLE:
       case CUSTOM:
+        // Plug channel id augmenting for SIMPLE/CUSTOM auth schemes.
         interceptorsList.add(new ChannelIdInjector(mChannelId));
         break;
       default:

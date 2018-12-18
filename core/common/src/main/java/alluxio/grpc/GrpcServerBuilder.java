@@ -32,15 +32,18 @@ import javax.annotation.Nullable;
 /**
  * Provides authenticated gRPC server creation.
  */
-public class GrpcServerBuilder {
+public final class GrpcServerBuilder {
 
-  NettyServerBuilder mNettyServerBuilder;
-  AuthenticationServer mAuthenticationServer;
-  Set<ServiceType> mServices;
+  /** Internal netty builder. */
+  private NettyServerBuilder mNettyServerBuilder;
+  /** Set of services that this server has. */
+  private Set<ServiceType> mServices;
+  /** Authentication server instance that will be used by this server. */
+  private AuthenticationServer mAuthenticationServer;
 
-  private GrpcServerBuilder(NettyServerBuilder nettyChannelBuilder) {
+  private GrpcServerBuilder(NettyServerBuilder nettyServerBuilder) {
     mServices = new HashSet<>();
-    mNettyServerBuilder = nettyChannelBuilder;
+    mNettyServerBuilder = nettyServerBuilder;
     if (SecurityUtils.isAuthenticationEnabled()) {
       mAuthenticationServer = new DefaultAuthenticationServer();
       addService(new GrpcService(mAuthenticationServer).disableAuthentication());

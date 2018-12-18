@@ -19,7 +19,7 @@ import alluxio.security.LoginUser;
 import alluxio.security.User;
 import alluxio.security.authentication.AuthType;
 import alluxio.security.authentication.AuthenticationProvider;
-import alluxio.security.authentication.SaslParticipiantProvider;
+import alluxio.security.authentication.SaslParticipantProvider;
 import alluxio.security.authentication.TransportProviderUtils;
 
 import javax.security.auth.Subject;
@@ -32,9 +32,9 @@ import java.util.HashMap;
 import java.util.Set;
 
 /**
- * Implementation of {@link SaslParticipiantProvider} for plain authentication.
+ * Implementation of {@link SaslParticipantProvider} for plain authentication.
  */
-public class SaslParticipiantProviderPlain implements SaslParticipiantProvider {
+public class SaslParticipantProviderPlain implements SaslParticipantProvider {
   static {
     // Register Sasl server implementation for plain mechanism.
     Security.addProvider(new PlainSaslServerProvider());

@@ -23,7 +23,7 @@ import java.util.UUID;
 /**
  * Interface for authentication server implementations.
  */
-interface AuthenticationServer extends BindableService {
+public interface AuthenticationServer extends BindableService {
   /**
    * Registers new user against given channel.
    *

@@ -12,7 +12,7 @@
 package alluxio.security.authentication;
 
 import alluxio.exception.status.UnauthenticatedException;
-import alluxio.security.authentication.plain.SaslParticipiantProviderPlain;
+import alluxio.security.authentication.plain.SaslParticipantProviderPlain;
 
 import javax.security.auth.Subject;
 import javax.security.sasl.SaslClient;
@@ -20,9 +20,9 @@ import javax.security.sasl.SaslException;
 import javax.security.sasl.SaslServer;
 
 /**
- * Interface for providing Sasl participiants (client/server) for particular authentication scheme.
+ * Interface for providing Sasl participants (client/server) for particular authentication scheme.
  */
-public interface SaslParticipiantProvider {
+public interface SaslParticipantProvider {
 
   /**
    * Creates {@link SaslClient} for given {@link Subject}.
@@ -65,7 +65,7 @@ public interface SaslParticipiantProvider {
   public SaslServer createSaslServer(Runnable runnable, String serverName) throws SaslException;
 
   /**
-   * Factory for {@link SaslParticipiantProvider}.
+   * Factory for {@link SaslParticipantProvider}.
    */
   class Factory {
 
@@ -77,12 +77,12 @@ public interface SaslParticipiantProvider {
      * @return the generated {@link AuthenticationProvider}
      * @throws UnauthenticatedException when unsupported authentication type is used
      */
-    public static SaslParticipiantProvider create(AuthType authType)
+    public static SaslParticipantProvider create(AuthType authType)
         throws UnauthenticatedException {
       switch (authType) {
         case SIMPLE:
         case CUSTOM:
-          return new SaslParticipiantProviderPlain();
+          return new SaslParticipantProviderPlain();
         default:
           throw new UnauthenticatedException("Unsupported AuthType: " + authType.getAuthName());
       }

@@ -28,7 +28,10 @@ import javax.security.sasl.SaslException;
 public class SaslHandshakeClientHandlerPlain implements SaslHandshakeClientHandler {
 
   /** SaslClient that will be used. */
-  private SaslClient mSaslClient;
+  private final SaslClient mSaslClient;
+
+  /** Initial challenge for client to start Sasl session. */
+  private static final byte[] S_PLAIN_INITIATE_CHANNEL = new byte[0];
 
   /**
    * Creates {@link SaslHandshakeClientHandlerPlain} with given {@link SaslClient}.
@@ -66,7 +69,7 @@ public class SaslHandshakeClientHandlerPlain implements SaslHandshakeClientHandl
   public SaslMessage getInitialMessage(String channelId) throws SaslException {
     byte[] initiateSaslResponse = null;
     if (mSaslClient.hasInitialResponse()) {
-      initiateSaslResponse = mSaslClient.evaluateChallenge(new byte[0]);
+      initiateSaslResponse = mSaslClient.evaluateChallenge(S_PLAIN_INITIATE_CHANNEL);
     }
     SaslMessage.Builder initialResponse =
         SaslMessage.newBuilder().setMessageType(SaslMessageType.CHALLENGE)

@@ -24,11 +24,11 @@ import javax.annotation.concurrent.ThreadSafe;
 /**
  * An instance of this class represents a client user connecting to {@link PlainSaslServer}.
  *
- * It is maintained in a {@link ThreadLocal} variable based on the Thrift RPC mechanism.
- * {@link org.apache.thrift.server.TThreadPoolServer} allocates a thread to serve a connection
- * from client side and take back it when connection is closed. During the thread alive cycle,
- * all the RPC happens in this thread. These RPC methods implemented in server side could
- * get the client user by this class.
+ * It is maintained in a {@link ThreadLocal} variable based on the gRPC mechanism.
+ * For plain authentication, every authenticated channel injects its channel-Id to outgoing
+ * RPC calls via {@link ChannelIdInjector}. Server-side interceptor,
+ * {@link AuthenticatedUserInjector}, will intercept that Id before calling the service call
+ * implementation and store it in this class in a thread local storage.
  */
 @ThreadSafe
 public final class AuthenticatedClientUser {

@@ -26,7 +26,7 @@ import javax.security.sasl.SaslServer;
 public class SaslHandshakeServerHandlerPlain implements SaslHandshakeServerHandler {
 
   /** SaslServer that will be used. */
-  SaslServer mSaslServer;
+  private final SaslServer mSaslServer;
 
   /**
    * Creates {@link SaslHandshakeServerHandlerPlain} with given {@link SaslServer}.

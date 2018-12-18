@@ -21,8 +21,8 @@ import io.grpc.MethodDescriptor;
  * {@link GrpcServer}.
  */
 public final class GrpcChannel extends Channel {
-  private GrpcManagedChannelPool.ChannelKey mChannelKey;
-  private Channel mChannel;
+  private final GrpcManagedChannelPool.ChannelKey mChannelKey;
+  private final Channel mChannel;
   private boolean mchannelReleased;
 
   /**
@@ -51,7 +51,7 @@ public final class GrpcChannel extends Channel {
    * Shuts down the channel.
    */
   public void shutdown() {
-    GrpcManagedChannelPool.releaseManagedChannel(mChannelKey);
+    GrpcManagedChannelPool.INSTANCE().releaseManagedChannel(mChannelKey);
     mchannelReleased = true;
   }
 

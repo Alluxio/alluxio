@@ -119,7 +119,7 @@ private static final long serialVersionUID = 0L;
    */
   public alluxio.grpc.SaslMessageType getMessageType() {
     alluxio.grpc.SaslMessageType result = alluxio.grpc.SaslMessageType.valueOf(messageType_);
-    return result == null ? alluxio.grpc.SaslMessageType.CHALLANGE : result;
+    return result == null ? alluxio.grpc.SaslMessageType.CHALLENGE : result;
   }
 
   public static final int MESSAGE_FIELD_NUMBER = 2;
@@ -604,7 +604,7 @@ private static final long serialVersionUID = 0L;
      */
     public alluxio.grpc.SaslMessageType getMessageType() {
       alluxio.grpc.SaslMessageType result = alluxio.grpc.SaslMessageType.valueOf(messageType_);
-      return result == null ? alluxio.grpc.SaslMessageType.CHALLANGE : result;
+      return result == null ? alluxio.grpc.SaslMessageType.CHALLENGE : result;
     }
     /**
      * <code>optional .alluxio.grpc.SaslMessageType messageType = 1;</code>

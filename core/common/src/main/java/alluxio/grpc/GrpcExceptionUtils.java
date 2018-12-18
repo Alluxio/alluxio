@@ -30,8 +30,9 @@ import java.io.ObjectInputStream;
  */
 @ThreadSafe
 public final class GrpcExceptionUtils {
-  private static Metadata.Key<byte[]> sInnerCauseKey =
-      Metadata.Key.of("grpc-exception-cause-bin", Metadata.BINARY_BYTE_MARSHALLER);
+  private static final String sInnerCauseKeyName = "grpc-exception-cause-bin";
+  private static final Metadata.Key<byte[]> sInnerCauseKey =
+      Metadata.Key.of(sInnerCauseKeyName, Metadata.BINARY_BYTE_MARSHALLER);
 
   private GrpcExceptionUtils() {} // prevent instantiation
 

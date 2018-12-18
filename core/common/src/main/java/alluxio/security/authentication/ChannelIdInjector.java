@@ -28,7 +28,7 @@ import java.util.UUID;
  * channel that the RPC is being called on.
  */
 @ThreadSafe
-public class ChannelIdInjector implements ClientInterceptor {
+public final class ChannelIdInjector implements ClientInterceptor {
 
   /** Metadata key for the channel Id. */
   public static final Metadata.Key<UUID> S_CLIENT_ID_KEY =
@@ -45,7 +45,7 @@ public class ChannelIdInjector implements ClientInterceptor {
       });
 
   // TODO(ggezer) Consider more lightweight Id type.
-  private UUID mChannelId;
+  private final UUID mChannelId;
 
   /**
    * Creates the injector that augments the outgoing metadata with given Id.

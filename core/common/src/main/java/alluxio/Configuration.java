@@ -446,8 +446,7 @@ public final class Configuration {
             address), e);
       } catch (UnauthenticatedException e) {
         throw new RuntimeException(String.format(
-            "Received authentication exception while accessing master %s with authentication disabled",
-            address), e);
+            "Received authentication exception with authentication disabled. Host:%s", address), e);
       } finally {
         channel.shutdown();
       }

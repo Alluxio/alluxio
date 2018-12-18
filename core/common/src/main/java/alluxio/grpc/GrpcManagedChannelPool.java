@@ -8,6 +8,7 @@ import io.grpc.netty.NettyChannelBuilder;
 import io.netty.channel.EventLoopGroup;
 
 import javax.annotation.concurrent.GuardedBy;
+import javax.annotation.concurrent.ThreadSafe;
 import java.net.SocketAddress;
 import java.util.HashMap;
 import java.util.Optional;
@@ -20,14 +21,32 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  *
  * This class is used internally by {@link GrpcChannelBuilder} and {@link GrpcChannel}.
  */
+@ThreadSafe
 public class GrpcManagedChannelPool {
-  /** Channels per address. */
-  @GuardedBy("mLock")
-  private static HashMap<ChannelKey, ManagedChannelReference> mChannels;
-  /** Used to control access to mChannel */
-  private static ReentrantReadWriteLock mLock;
+  // Singleton instance.
+  private static GrpcManagedChannelPool sInstance;
 
   static {
+    sInstance = new GrpcManagedChannelPool();
+  }
+
+  /**
+   * @return the singleton pool instance.
+   */
+  public static GrpcManagedChannelPool INSTANCE() {
+    return sInstance;
+  }
+
+  /** Channels per address. */
+  @GuardedBy("mLock")
+  private HashMap<ChannelKey, ManagedChannelReference> mChannels;
+  /** Used to control access to mChannel */
+  private ReentrantReadWriteLock mLock;
+
+  /**
+   * Creates a new {@link GrpcManagedChannelPool}.
+   */
+  public GrpcManagedChannelPool() {
     mChannels = new HashMap<>();
     mLock = new ReentrantReadWriteLock(true);
   }
@@ -38,7 +57,7 @@ public class GrpcManagedChannelPool {
    * @param channelKey channel key
    * @return a {@link ManagedChannel}
    */
-  public static ManagedChannel acquireManagedChannel(ChannelKey channelKey) {
+  public ManagedChannel acquireManagedChannel(ChannelKey channelKey) {
     try (LockResource lockShared = new LockResource(mLock.readLock())) {
       if (mChannels.containsKey(channelKey)) {
         return mChannels.get(channelKey).reference();
@@ -59,7 +78,7 @@ public class GrpcManagedChannelPool {
    *
    * @param channelKey host address
    */
-  public static void releaseManagedChannel(ChannelKey channelKey) {
+  public void releaseManagedChannel(ChannelKey channelKey) {
 
     boolean disposeChannel = false;
     try (LockResource lockShared = new LockResource(mLock.readLock())) {
@@ -97,7 +116,7 @@ public class GrpcManagedChannelPool {
    * @param channelKey channel pool key
    * @return the created channel
    */
-  private static ManagedChannel createManagedChannel(ChannelKey channelKey) {
+  private ManagedChannel createManagedChannel(ChannelKey channelKey) {
     NettyChannelBuilder channelBuilder = NettyChannelBuilder.forAddress(channelKey.mAddress);
     if (channelKey.mKeepAliveTimeout.isPresent()) {
       channelBuilder.keepAliveTimeout(channelKey.mKeepAliveTimeout.get().getFirst(),
@@ -121,7 +140,7 @@ public class GrpcManagedChannelPool {
   /**
    * Used as reference counting wrapper over {@link ManagedChannel}.
    */
-  private static class ManagedChannelReference {
+  private class ManagedChannelReference {
     private ManagedChannel mChannel;
     private AtomicInteger mRefCount;
 
@@ -130,11 +149,19 @@ public class GrpcManagedChannelPool {
       mRefCount = new AtomicInteger(0);
     }
 
+    /**
+     * @return the underlying {@link ManagedChannel} after increasing ref-count
+     */
     private ManagedChannel reference() {
       mRefCount.incrementAndGet();
       return mChannel;
     }
 
+    /**
+     * Decrement the ref-count for underlying {@link ManagedChannel}.
+     *
+     * @return {@code true} if underlying object is no longer referenced
+     */
     private boolean dereference() {
       return mRefCount.decrementAndGet() <= 0;
     }

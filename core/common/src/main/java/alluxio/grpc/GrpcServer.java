@@ -26,8 +26,8 @@ import java.util.concurrent.TimeUnit;
  * An authenticated gRPC server. Corresponding gRPC channels to this server should be build by
  * {@link GrpcChannelBuilder}.
  */
-public class GrpcServer {
-  Server mServer;
+public final class GrpcServer {
+  private Server mServer;
 
   /**
    * Create a new instance of {@link GrpcServer}.

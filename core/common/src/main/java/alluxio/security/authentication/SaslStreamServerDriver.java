@@ -65,7 +65,7 @@ public class SaslStreamServerDriver implements StreamObserver<SaslMessage> {
         AuthType authType = AuthType.valueOf(saslMessage.getAuthenticationName());
         // TODO(ggezer) wire server name?
         mSaslServer =
-            SaslParticipiantProvider.Factory.create(authType).createSaslServer("localhost");
+            SaslParticipantProvider.Factory.create(authType).createSaslServer("localhost");
         mSaslHandshakeServerHandler =
             SaslHandshakeServerHandler.Factory.create(authType, mSaslServer);
         // Unregister from registry if in case it was authenticated before.

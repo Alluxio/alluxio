@@ -24,14 +24,14 @@ import javax.annotation.concurrent.ThreadSafe;
 import java.util.UUID;
 
 /**
- * Server side interceptor for injecting authenticated user into TLS. This interceptor requires
- * {@link ChannelIdInjector} to have injected the channel id from which the particular RPC is
- * being made.
+ * Server side interceptor for setting authenticated user in {@link AuthenticatedClientUser}.
+ * This interceptor requires {@link ChannelIdInjector} to have injected the channel id from which
+ * the particular RPC is being made.
  */
 @ThreadSafe
-public class AuthenticatedUserInjector implements ServerInterceptor {
+public final class AuthenticatedUserInjector implements ServerInterceptor {
 
-  private AuthenticationServer mAuthenticationServer;
+  private final AuthenticationServer mAuthenticationServer;
 
   /**
    * Creates {@link AuthenticationServer} with given authentication server.
