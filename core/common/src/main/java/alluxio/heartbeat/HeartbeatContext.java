@@ -32,6 +32,7 @@ public final class HeartbeatContext {
   public static final String MASTER_BLOCK_INTEGRITY_CHECK = "Master Block Integrity Check";
   public static final String MASTER_CLUSTER_METRICS_UPDATER = "Master Cluster Metrics Updater";
   public static final String MASTER_CHECKPOINT_SCHEDULING = "Master Checkpoint Scheduling";
+  public static final String MASTER_DAILY_BACKUP = "Master Daily Backup";
   public static final String MASTER_FILE_RECOMPUTATION = "Master File Recomputation";
   public static final String MASTER_LOG_CONFIG_REPORT_SCHEDULING
       = "Master Log Config Report Scheduling";
@@ -52,6 +53,7 @@ public final class HeartbeatContext {
     sTimerClasses.put(MASTER_BLOCK_INTEGRITY_CHECK, SLEEPING_TIMER_CLASS);
     sTimerClasses.put(MASTER_CLUSTER_METRICS_UPDATER, SLEEPING_TIMER_CLASS);
     sTimerClasses.put(MASTER_CHECKPOINT_SCHEDULING, SLEEPING_TIMER_CLASS);
+    sTimerClasses.put(MASTER_DAILY_BACKUP, SLEEPING_TIMER_CLASS);
     sTimerClasses.put(MASTER_FILE_RECOMPUTATION, SLEEPING_TIMER_CLASS);
     sTimerClasses.put(MASTER_LOG_CONFIG_REPORT_SCHEDULING, SLEEPING_TIMER_CLASS);
     sTimerClasses.put(MASTER_LOST_FILES_DETECTION, SLEEPING_TIMER_CLASS);
