@@ -12,9 +12,6 @@
 package alluxio.master.file.meta;
 
 import alluxio.Constants;
-import alluxio.collections.FieldIndex;
-import alluxio.collections.IndexDefinition;
-import alluxio.collections.UniqueFieldIndex;
 import alluxio.master.ProtobufUtils;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.proto.journal.File.InodeDirectoryEntry;
@@ -31,17 +28,6 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class InodeDirectory extends Inode<InodeDirectory> implements InodeDirectoryView {
-  private static final IndexDefinition<Inode<?>, String> NAME_INDEX =
-      new IndexDefinition<Inode<?>, String>(true) {
-        @Override
-        public String getFieldValue(Inode<?> o) {
-          return o.getName();
-        }
-      };
-
-  /** Use UniqueFieldIndex directly for name index rather than using IndexedSet. */
-  private final FieldIndex<Inode<?>, String> mChildren = new UniqueFieldIndex<>(NAME_INDEX);
-
   private boolean mMountPoint;
 
   private boolean mDirectChildrenLoaded;
@@ -116,7 +102,6 @@ public final class InodeDirectory extends Inode<InodeDirectory> implements Inode
     ret.setFileId(getId());
     ret.setName(getName());
     ret.setPath(path);
-    ret.setLength(mChildren.size());
     ret.setBlockSizeBytes(0);
     ret.setCreationTimeMs(getCreationTimeMs());
     ret.setCompleted(true);
@@ -158,7 +143,7 @@ public final class InodeDirectory extends Inode<InodeDirectory> implements Inode
 
   @Override
   public String toString() {
-    return toStringHelper().add("mountPoint", mMountPoint).add("children", mChildren).toString();
+    return toStringHelper().add("mountPoint", mMountPoint).toString();
   }
 
   /**
