@@ -8,11 +8,11 @@ public interface GetServiceVersionPRequestOrBuilder extends
     com.google.protobuf.MessageOrBuilder {
 
   /**
-   * <code>optional .alluxio.grpc.AlluxioServiceType serviceType = 1;</code>
+   * <code>optional .alluxio.grpc.ServiceType serviceType = 1;</code>
    */
   boolean hasServiceType();
   /**
-   * <code>optional .alluxio.grpc.AlluxioServiceType serviceType = 1;</code>
+   * <code>optional .alluxio.grpc.ServiceType serviceType = 1;</code>
    */
-  alluxio.grpc.AlluxioServiceType getServiceType();
+  alluxio.grpc.ServiceType getServiceType();
 }

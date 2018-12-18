@@ -15,6 +15,7 @@ import alluxio.Registry;
 import alluxio.Server;
 
 import alluxio.grpc.GrpcService;
+import alluxio.grpc.ServiceType;
 
 import com.google.common.collect.ImmutableList;
 import org.junit.Assert;
@@ -39,7 +40,7 @@ public final class RegistryTest {
   public abstract class TestServer implements Server<Void> {
     @Override
     @Nullable
-    public Map<String, GrpcService> getServices() {
+    public Map<ServiceType, GrpcService> getServices() {
       return null;
     }
 

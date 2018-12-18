@@ -15,12 +15,15 @@ import static java.util.stream.Collectors.joining;
 
 import alluxio.exception.status.UnauthenticatedException;
 import alluxio.exception.status.UnavailableException;
+import alluxio.grpc.GetServiceVersionPRequest;
+import alluxio.grpc.GrpcChannel;
 import alluxio.grpc.GrpcChannelBuilder;
+import alluxio.grpc.ServiceType;
+import alluxio.grpc.ServiceVersionClientServiceGrpc;
 import alluxio.retry.RetryPolicy;
 import alluxio.uri.Authority;
 import alluxio.uri.UnknownAuthority;
 
-import io.grpc.StatusRuntimeException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -75,21 +78,24 @@ public class PollingMasterInquireClient implements MasterInquireClient {
         pingMetaService(address);
         LOG.debug("Successfully connected to {}", address);
         return address;
-      } catch (StatusRuntimeException e) {
+      } catch (UnavailableException e) {
         LOG.debug("Failed to connect to {}", address);
         continue;
       } catch (UnauthenticatedException e) {
-        // TODO(ggezer) Revert after using NOSASL version checks in pingMetaService
-        // throw new RuntimeException(e);
+        throw new RuntimeException(e);
       }
     }
     return null;
   }
 
   private void pingMetaService(InetSocketAddress address)
-      throws UnauthenticatedException, StatusRuntimeException {
-    // TODO(ggezer) do a version check instead of relying on authentication.(NOSASL!)
-    GrpcChannelBuilder.forAddress(address).build().shutdown();
+      throws UnauthenticatedException, UnavailableException {
+    GrpcChannel channel = GrpcChannelBuilder.forAddress(address).build();
+    ServiceVersionClientServiceGrpc.ServiceVersionClientServiceBlockingStub versionClient =
+        ServiceVersionClientServiceGrpc.newBlockingStub(channel);
+    versionClient.getServiceVersion(GetServiceVersionPRequest.newBuilder()
+        .setServiceType(ServiceType.META_MASTER_CLIENT_SERVICE).build());
+    channel.shutdown();
   }
 
   @Override

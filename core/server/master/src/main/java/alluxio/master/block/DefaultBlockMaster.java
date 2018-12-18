@@ -33,6 +33,7 @@ import alluxio.grpc.CommandType;
 import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.GrpcService;
 import alluxio.grpc.RegisterWorkerPOptions;
+import alluxio.grpc.ServiceType;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.heartbeat.HeartbeatThread;
@@ -231,11 +232,11 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
   }
 
   @Override
-  public Map<String, GrpcService> getServices() {
-    Map<String, GrpcService> services = new HashMap<>();
-    services.put(Constants.BLOCK_MASTER_CLIENT_SERVICE_NAME,
+  public Map<ServiceType, GrpcService> getServices() {
+    Map<ServiceType, GrpcService> services = new HashMap<>();
+    services.put(ServiceType.BLOCK_MASTER_CLIENT_SERVICE,
         new GrpcService(new BlockMasterClientServiceHandler(this)));
-    services.put(Constants.BLOCK_MASTER_WORKER_SERVICE_NAME,
+    services.put(ServiceType.BLOCK_MASTER_WORKER_SERVICE,
         new GrpcService(new BlockMasterWorkerServiceHandler(this)));
     return services;
   }

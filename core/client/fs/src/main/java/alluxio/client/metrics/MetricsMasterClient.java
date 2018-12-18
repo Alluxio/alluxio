@@ -15,11 +15,11 @@ import alluxio.AbstractMasterClient;
 import alluxio.Constants;
 import alluxio.client.file.FileSystemContext;
 import alluxio.exception.status.UnavailableException;
-import alluxio.grpc.AlluxioServiceType;
 import alluxio.grpc.Metric;
 import alluxio.grpc.MetricsHeartbeatPOptions;
 import alluxio.grpc.MetricsHeartbeatPRequest;
 import alluxio.grpc.MetricsMasterClientServiceGrpc;
+import alluxio.grpc.ServiceType;
 import alluxio.master.MasterClientConfig;
 import alluxio.retry.RetryUtils;
 import alluxio.util.network.NetworkAddressUtils;
@@ -46,8 +46,8 @@ public class MetricsMasterClient extends AbstractMasterClient {
   }
 
   @Override
-  protected AlluxioServiceType getRemoteServiceType() {
-    return AlluxioServiceType.METRICS_MASTER_CLIENT_SERVICE;
+  protected ServiceType getRemoteServiceType() {
+    return ServiceType.METRICS_MASTER_CLIENT_SERVICE;
   }
 
   @Override

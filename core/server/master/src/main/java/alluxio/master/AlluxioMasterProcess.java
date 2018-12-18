@@ -344,10 +344,10 @@ public class AlluxioMasterProcess implements MasterProcess {
   }
 
   private void registerServices(GrpcServerBuilder serverBuilder,
-      Map<String, GrpcService> services) {
-    for (Map.Entry<String, GrpcService> serviceEntry : services.entrySet()) {
-      serverBuilder.addService(serviceEntry.getValue());
-      LOG.info("registered service {}", serviceEntry.getKey());
+      Map<alluxio.grpc.ServiceType, GrpcService> services) {
+    for (Map.Entry<alluxio.grpc.ServiceType, GrpcService> serviceEntry : services.entrySet()) {
+      serverBuilder.addService(serviceEntry.getKey(), serviceEntry.getValue());
+      LOG.info("registered service {}", serviceEntry.getKey().name());
     }
   }
 
@@ -372,9 +372,6 @@ public class AlluxioMasterProcess implements MasterProcess {
       for (Master master : mRegistry.getServers()) {
         registerServices(serverBuilder, master.getServices());
       }
-      // Expose version service from the server with no authentication.
-      serverBuilder.addService(
-          new GrpcService(new AlluxioVersionServiceHandler()).disableAuthentication());
 
       mGrpcServer = serverBuilder.build().start();
       mSafeModeManager.notifyRpcServerStarted();

@@ -14,6 +14,7 @@ package alluxio.master;
 import alluxio.Server;
 import alluxio.exception.ExceptionMessage;
 import alluxio.grpc.GrpcService;
+import alluxio.grpc.ServiceType;
 import alluxio.master.journal.JournalContext;
 import alluxio.proto.journal.Journal.JournalEntry;
 
@@ -56,7 +57,7 @@ public class NoopMaster implements Master {
   }
 
   @Override
-  public Map<String, GrpcService> getServices() {
+  public Map<ServiceType, GrpcService> getServices() {
     return null;
   }
 

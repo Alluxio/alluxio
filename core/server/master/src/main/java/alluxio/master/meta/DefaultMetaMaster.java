@@ -28,6 +28,7 @@ import alluxio.grpc.GrpcService;
 import alluxio.grpc.MetaCommand;
 import alluxio.grpc.RegisterMasterPOptions;
 import alluxio.grpc.Scope;
+import alluxio.grpc.ServiceType;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.heartbeat.HeartbeatThread;
@@ -48,7 +49,6 @@ import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.executor.ExecutorServiceFactory;
 import alluxio.util.io.PathUtils;
 import alluxio.util.network.NetworkAddressUtils;
-import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.wire.Address;
 import alluxio.wire.BackupOptions;
 import alluxio.wire.BackupResponse;
@@ -162,11 +162,11 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
   }
 
   @Override
-  public Map<String, GrpcService> getServices() {
-    Map<String, GrpcService> services = new HashMap<>();
-    services.put(Constants.META_MASTER_CLIENT_SERVICE_NAME,
+  public Map<ServiceType, GrpcService> getServices() {
+    Map<ServiceType, GrpcService> services = new HashMap<>();
+    services.put(ServiceType.META_MASTER_CLIENT_SERVICE,
         new GrpcService(new MetaMasterClientServiceHandler(this)));
-    services.put(Constants.META_MASTER_MASTER_SERVICE_NAME,
+    services.put(ServiceType.META_MASTER_MASTER_SERVICE,
         new GrpcService(new MetaMasterMasterServiceHandler(this)));
     return services;
   }
@@ -274,7 +274,7 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
     }
     AlluxioURI backupUri = new AlluxioURI(new AlluxioURI(rootUfs), new AlluxioURI(backupFilePath));
     return new BackupResponse(backupUri,
-        NetworkAddressUtils.getConnectHost(ServiceType.MASTER_RPC));
+        NetworkAddressUtils.getConnectHost(NetworkAddressUtils.ServiceType.MASTER_RPC));
   }
 
   @Override

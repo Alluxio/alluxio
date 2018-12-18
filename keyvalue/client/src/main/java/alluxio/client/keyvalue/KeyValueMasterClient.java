@@ -14,7 +14,6 @@ package alluxio.client.keyvalue;
 import alluxio.AbstractMasterClient;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
-import alluxio.grpc.AlluxioServiceType;
 import alluxio.grpc.CompletePartitionPRequest;
 import alluxio.grpc.CompleteStorePRequest;
 import alluxio.grpc.CreateStorePRequest;
@@ -24,6 +23,7 @@ import alluxio.grpc.KeyValueMasterClientServiceGrpc;
 import alluxio.grpc.MergeStorePRequest;
 import alluxio.grpc.PartitionInfo;
 import alluxio.grpc.RenameStorePRequest;
+import alluxio.grpc.ServiceType;
 import alluxio.master.MasterClientConfig;
 
 import java.io.IOException;
@@ -50,8 +50,8 @@ public final class KeyValueMasterClient extends AbstractMasterClient {
   }
 
   @Override
-  protected AlluxioServiceType getRemoteServiceType() {
-    return AlluxioServiceType.KEY_VALUE_MASTER_CLIENT_SERVICE;
+  protected ServiceType getRemoteServiceType() {
+    return ServiceType.KEY_VALUE_MASTER_CLIENT_SERVICE;
   }
 
   @Override
@@ -66,7 +66,6 @@ public final class KeyValueMasterClient extends AbstractMasterClient {
 
   @Override
   protected void afterConnect() throws IOException {
-    // TODO(ggezer) Host the service
     mClient = KeyValueMasterClientServiceGrpc.newBlockingStub(mChannel);
   }
 

@@ -14,6 +14,7 @@ package alluxio.grpc;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.exception.status.UnauthenticatedException;
+import alluxio.exception.status.UnavailableException;
 import alluxio.security.authentication.AuthType;
 import alluxio.security.authentication.ChannelAuthenticator;
 import io.grpc.Channel;
@@ -165,7 +166,7 @@ public final class GrpcChannelBuilder {
    * 
    * @return the built {@link GrpcChannel}
    */
-  public GrpcChannel build() throws UnauthenticatedException {
+  public GrpcChannel build() throws UnauthenticatedException, UnavailableException {
     ManagedChannel underlyingChannel = GrpcManagedChannelPool.acquireManagedChannel(mChannelKey);
     Channel clientChannel = underlyingChannel;
 

@@ -20,11 +20,11 @@ import static io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall;
 @javax.annotation.Generated(
     value = "by gRPC proto compiler (version 1.10.1)",
     comments = "Source: version.proto")
-public final class AlluxioVersionServiceGrpc {
+public final class ServiceVersionClientServiceGrpc {
 
-  private AlluxioVersionServiceGrpc() {}
+  private ServiceVersionClientServiceGrpc() {}
 
-  public static final String SERVICE_NAME = "alluxio.grpc.AlluxioVersionService";
+  public static final String SERVICE_NAME = "alluxio.grpc.ServiceVersionClientService";
 
   // Static method descriptors that strictly reflect the proto.
   @io.grpc.ExperimentalApi("https://github.com/grpc/grpc-java/issues/1901")
@@ -44,20 +44,20 @@ public final class AlluxioVersionServiceGrpc {
   private static io.grpc.MethodDescriptor<alluxio.grpc.GetServiceVersionPRequest,
       alluxio.grpc.GetServiceVersionPResponse> getGetServiceVersionMethodHelper() {
     io.grpc.MethodDescriptor<alluxio.grpc.GetServiceVersionPRequest, alluxio.grpc.GetServiceVersionPResponse> getGetServiceVersionMethod;
-    if ((getGetServiceVersionMethod = AlluxioVersionServiceGrpc.getGetServiceVersionMethod) == null) {
-      synchronized (AlluxioVersionServiceGrpc.class) {
-        if ((getGetServiceVersionMethod = AlluxioVersionServiceGrpc.getGetServiceVersionMethod) == null) {
-          AlluxioVersionServiceGrpc.getGetServiceVersionMethod = getGetServiceVersionMethod = 
+    if ((getGetServiceVersionMethod = ServiceVersionClientServiceGrpc.getGetServiceVersionMethod) == null) {
+      synchronized (ServiceVersionClientServiceGrpc.class) {
+        if ((getGetServiceVersionMethod = ServiceVersionClientServiceGrpc.getGetServiceVersionMethod) == null) {
+          ServiceVersionClientServiceGrpc.getGetServiceVersionMethod = getGetServiceVersionMethod = 
               io.grpc.MethodDescriptor.<alluxio.grpc.GetServiceVersionPRequest, alluxio.grpc.GetServiceVersionPResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
               .setFullMethodName(generateFullMethodName(
-                  "alluxio.grpc.AlluxioVersionService", "getServiceVersion"))
+                  "alluxio.grpc.ServiceVersionClientService", "getServiceVersion"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.GetServiceVersionPRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.GetServiceVersionPResponse.getDefaultInstance()))
-                  .setSchemaDescriptor(new AlluxioVersionServiceMethodDescriptorSupplier("getServiceVersion"))
+                  .setSchemaDescriptor(new ServiceVersionClientServiceMethodDescriptorSupplier("getServiceVersion"))
                   .build();
           }
         }
@@ -68,29 +68,29 @@ public final class AlluxioVersionServiceGrpc {
   /**
    * Creates a new async stub that supports all call types for the service
    */
-  public static AlluxioVersionServiceStub newStub(io.grpc.Channel channel) {
-    return new AlluxioVersionServiceStub(channel);
+  public static ServiceVersionClientServiceStub newStub(io.grpc.Channel channel) {
+    return new ServiceVersionClientServiceStub(channel);
   }
 
   /**
    * Creates a new blocking-style stub that supports unary and streaming output calls on the service
    */
-  public static AlluxioVersionServiceBlockingStub newBlockingStub(
+  public static ServiceVersionClientServiceBlockingStub newBlockingStub(
       io.grpc.Channel channel) {
-    return new AlluxioVersionServiceBlockingStub(channel);
+    return new ServiceVersionClientServiceBlockingStub(channel);
   }
 
   /**
    * Creates a new ListenableFuture-style stub that supports unary calls on the service
    */
-  public static AlluxioVersionServiceFutureStub newFutureStub(
+  public static ServiceVersionClientServiceFutureStub newFutureStub(
       io.grpc.Channel channel) {
-    return new AlluxioVersionServiceFutureStub(channel);
+    return new ServiceVersionClientServiceFutureStub(channel);
   }
 
   /**
    */
-  public static abstract class AlluxioVersionServiceImplBase implements io.grpc.BindableService {
+  public static abstract class ServiceVersionClientServiceImplBase implements io.grpc.BindableService {
 
     /**
      * <pre>
@@ -119,20 +119,20 @@ public final class AlluxioVersionServiceGrpc {
 
   /**
    */
-  public static final class AlluxioVersionServiceStub extends io.grpc.stub.AbstractStub<AlluxioVersionServiceStub> {
-    private AlluxioVersionServiceStub(io.grpc.Channel channel) {
+  public static final class ServiceVersionClientServiceStub extends io.grpc.stub.AbstractStub<ServiceVersionClientServiceStub> {
+    private ServiceVersionClientServiceStub(io.grpc.Channel channel) {
       super(channel);
     }
 
-    private AlluxioVersionServiceStub(io.grpc.Channel channel,
+    private ServiceVersionClientServiceStub(io.grpc.Channel channel,
         io.grpc.CallOptions callOptions) {
       super(channel, callOptions);
     }
 
     @java.lang.Override
-    protected AlluxioVersionServiceStub build(io.grpc.Channel channel,
+    protected ServiceVersionClientServiceStub build(io.grpc.Channel channel,
         io.grpc.CallOptions callOptions) {
-      return new AlluxioVersionServiceStub(channel, callOptions);
+      return new ServiceVersionClientServiceStub(channel, callOptions);
     }
 
     /**
@@ -151,20 +151,20 @@ public final class AlluxioVersionServiceGrpc {
 
   /**
    */
-  public static final class AlluxioVersionServiceBlockingStub extends io.grpc.stub.AbstractStub<AlluxioVersionServiceBlockingStub> {
-    private AlluxioVersionServiceBlockingStub(io.grpc.Channel channel) {
+  public static final class ServiceVersionClientServiceBlockingStub extends io.grpc.stub.AbstractStub<ServiceVersionClientServiceBlockingStub> {
+    private ServiceVersionClientServiceBlockingStub(io.grpc.Channel channel) {
       super(channel);
     }
 
-    private AlluxioVersionServiceBlockingStub(io.grpc.Channel channel,
+    private ServiceVersionClientServiceBlockingStub(io.grpc.Channel channel,
         io.grpc.CallOptions callOptions) {
       super(channel, callOptions);
     }
 
     @java.lang.Override
-    protected AlluxioVersionServiceBlockingStub build(io.grpc.Channel channel,
+    protected ServiceVersionClientServiceBlockingStub build(io.grpc.Channel channel,
         io.grpc.CallOptions callOptions) {
-      return new AlluxioVersionServiceBlockingStub(channel, callOptions);
+      return new ServiceVersionClientServiceBlockingStub(channel, callOptions);
     }
 
     /**
@@ -182,20 +182,20 @@ public final class AlluxioVersionServiceGrpc {
 
   /**
    */
-  public static final class AlluxioVersionServiceFutureStub extends io.grpc.stub.AbstractStub<AlluxioVersionServiceFutureStub> {
-    private AlluxioVersionServiceFutureStub(io.grpc.Channel channel) {
+  public static final class ServiceVersionClientServiceFutureStub extends io.grpc.stub.AbstractStub<ServiceVersionClientServiceFutureStub> {
+    private ServiceVersionClientServiceFutureStub(io.grpc.Channel channel) {
       super(channel);
     }
 
-    private AlluxioVersionServiceFutureStub(io.grpc.Channel channel,
+    private ServiceVersionClientServiceFutureStub(io.grpc.Channel channel,
         io.grpc.CallOptions callOptions) {
       super(channel, callOptions);
     }
 
     @java.lang.Override
-    protected AlluxioVersionServiceFutureStub build(io.grpc.Channel channel,
+    protected ServiceVersionClientServiceFutureStub build(io.grpc.Channel channel,
         io.grpc.CallOptions callOptions) {
-      return new AlluxioVersionServiceFutureStub(channel, callOptions);
+      return new ServiceVersionClientServiceFutureStub(channel, callOptions);
     }
 
     /**
@@ -219,10 +219,10 @@ public final class AlluxioVersionServiceGrpc {
       io.grpc.stub.ServerCalls.ServerStreamingMethod<Req, Resp>,
       io.grpc.stub.ServerCalls.ClientStreamingMethod<Req, Resp>,
       io.grpc.stub.ServerCalls.BidiStreamingMethod<Req, Resp> {
-    private final AlluxioVersionServiceImplBase serviceImpl;
+    private final ServiceVersionClientServiceImplBase serviceImpl;
     private final int methodId;
 
-    MethodHandlers(AlluxioVersionServiceImplBase serviceImpl, int methodId) {
+    MethodHandlers(ServiceVersionClientServiceImplBase serviceImpl, int methodId) {
       this.serviceImpl = serviceImpl;
       this.methodId = methodId;
     }
@@ -251,9 +251,9 @@ public final class AlluxioVersionServiceGrpc {
     }
   }
 
-  private static abstract class AlluxioVersionServiceBaseDescriptorSupplier
+  private static abstract class ServiceVersionClientServiceBaseDescriptorSupplier
       implements io.grpc.protobuf.ProtoFileDescriptorSupplier, io.grpc.protobuf.ProtoServiceDescriptorSupplier {
-    AlluxioVersionServiceBaseDescriptorSupplier() {}
+    ServiceVersionClientServiceBaseDescriptorSupplier() {}
 
     @java.lang.Override
     public com.google.protobuf.Descriptors.FileDescriptor getFileDescriptor() {
@@ -262,21 +262,21 @@ public final class AlluxioVersionServiceGrpc {
 
     @java.lang.Override
     public com.google.protobuf.Descriptors.ServiceDescriptor getServiceDescriptor() {
-      return getFileDescriptor().findServiceByName("AlluxioVersionService");
+      return getFileDescriptor().findServiceByName("ServiceVersionClientService");
     }
   }
 
-  private static final class AlluxioVersionServiceFileDescriptorSupplier
-      extends AlluxioVersionServiceBaseDescriptorSupplier {
-    AlluxioVersionServiceFileDescriptorSupplier() {}
+  private static final class ServiceVersionClientServiceFileDescriptorSupplier
+      extends ServiceVersionClientServiceBaseDescriptorSupplier {
+    ServiceVersionClientServiceFileDescriptorSupplier() {}
   }
 
-  private static final class AlluxioVersionServiceMethodDescriptorSupplier
-      extends AlluxioVersionServiceBaseDescriptorSupplier
+  private static final class ServiceVersionClientServiceMethodDescriptorSupplier
+      extends ServiceVersionClientServiceBaseDescriptorSupplier
       implements io.grpc.protobuf.ProtoMethodDescriptorSupplier {
     private final String methodName;
 
-    AlluxioVersionServiceMethodDescriptorSupplier(String methodName) {
+    ServiceVersionClientServiceMethodDescriptorSupplier(String methodName) {
       this.methodName = methodName;
     }
 
@@ -291,11 +291,11 @@ public final class AlluxioVersionServiceGrpc {
   public static io.grpc.ServiceDescriptor getServiceDescriptor() {
     io.grpc.ServiceDescriptor result = serviceDescriptor;
     if (result == null) {
-      synchronized (AlluxioVersionServiceGrpc.class) {
+      synchronized (ServiceVersionClientServiceGrpc.class) {
         result = serviceDescriptor;
         if (result == null) {
           serviceDescriptor = result = io.grpc.ServiceDescriptor.newBuilder(SERVICE_NAME)
-              .setSchemaDescriptor(new AlluxioVersionServiceFileDescriptorSupplier())
+              .setSchemaDescriptor(new ServiceVersionClientServiceFileDescriptorSupplier())
               .addMethod(getGetServiceVersionMethodHelper())
               .build();
         }

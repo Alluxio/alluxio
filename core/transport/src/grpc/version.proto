@@ -7,7 +7,7 @@ option java_outer_classname = "VersionProto";
 package alluxio.grpc;
 
 
-enum AlluxioServiceType {
+enum ServiceType {
   FILE_SYSTEM_MASTER_CLIENT_SERVICE = 0;
   FILE_SYSTEM_MASTER_WORKER_SERVICE = 1;
   FILE_SYSTEM_MASTER_JOB_SERVICE = 2;
@@ -24,13 +24,13 @@ enum AlluxioServiceType {
 }
 
 message GetServiceVersionPRequest {
-  optional AlluxioServiceType serviceType = 1;
+  optional ServiceType serviceType = 1;
 }
 message GetServiceVersionPResponse {
   optional int64 version = 1;
 }
 
-service AlluxioVersionService {
+service ServiceVersionClientService {
 
   /**
    * Returns the version of the master service.

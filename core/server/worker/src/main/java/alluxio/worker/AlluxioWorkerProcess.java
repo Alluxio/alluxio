@@ -19,7 +19,6 @@ import alluxio.ServiceUtils;
 import alluxio.grpc.GrpcServer;
 import alluxio.grpc.GrpcServerBuilder;
 import alluxio.grpc.GrpcService;
-import alluxio.master.AlluxioVersionServiceHandler;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.sink.MetricsServlet;
 import alluxio.metrics.sink.PrometheusMetricsServlet;
@@ -298,10 +297,10 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
   }
 
   private void registerServices(GrpcServerBuilder serverBuilder,
-      Map<String, GrpcService> services) {
-    for (Map.Entry<String, GrpcService> service : services.entrySet()) {
-      serverBuilder.addService(service.getValue());
-      LOG.info("Registered worker service: {}", service.getKey());
+      Map<alluxio.grpc.ServiceType, GrpcService> services) {
+    for (Map.Entry<alluxio.grpc.ServiceType, GrpcService> service : services.entrySet()) {
+      serverBuilder.addService(service.getKey(), service.getValue());
+      LOG.info("Registered worker service: {}", service.getKey().name());
     }
   }
 
@@ -318,9 +317,6 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
     for (Worker worker : mRegistry.getServers()) {
       registerServices(serverBuilder, worker.getServices());
     }
-    // Expose version service from the server with no authentication.
-    serverBuilder.addService(
-            new GrpcService(new AlluxioVersionServiceHandler()).disableAuthentication());
 
     mGrpcServer = serverBuilder.build();
     return mGrpcServer;

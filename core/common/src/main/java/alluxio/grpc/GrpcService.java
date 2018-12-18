@@ -15,7 +15,7 @@ public class GrpcService {
 
   /**
    * Creates a new {@link GrpcService}.
-   * 
+   *
    * @param bindableService gRPC bindable service
    */
   public GrpcService(BindableService bindableService) {
@@ -24,7 +24,7 @@ public class GrpcService {
 
   /**
    * Creates a new {@link GrpcService}.
-   * 
+   *
    * @param serviceDefinition gRPC service definition
    */
   public GrpcService(ServerServiceDefinition serviceDefinition) {

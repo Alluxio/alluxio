@@ -14,7 +14,6 @@ package alluxio.client;
 import alluxio.AbstractMasterClient;
 import alluxio.Constants;
 import alluxio.exception.status.AlluxioStatusException;
-import alluxio.grpc.AlluxioServiceType;
 import alluxio.grpc.BackupPOptions;
 import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.GetConfigReportPOptions;
@@ -25,6 +24,7 @@ import alluxio.grpc.MasterInfo;
 import alluxio.grpc.MasterInfoField;
 import alluxio.grpc.MetaMasterClientServiceGrpc;
 import alluxio.grpc.MetricValue;
+import alluxio.grpc.ServiceType;
 import alluxio.master.MasterClientConfig;
 import alluxio.wire.BackupResponse;
 import alluxio.wire.ConfigCheckReport;
@@ -57,8 +57,8 @@ public class RetryHandlingMetaMasterClient extends AbstractMasterClient
   }
 
   @Override
-  protected AlluxioServiceType getRemoteServiceType() {
-    return AlluxioServiceType.META_MASTER_CLIENT_SERVICE;
+  protected ServiceType getRemoteServiceType() {
+    return ServiceType.META_MASTER_CLIENT_SERVICE;
   }
 
   @Override

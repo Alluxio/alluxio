@@ -16,6 +16,7 @@ import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.clock.SystemClock;
 import alluxio.grpc.GrpcService;
+import alluxio.grpc.ServiceType;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.heartbeat.HeartbeatThread;
@@ -187,9 +188,9 @@ public class DefaultMetricsMaster extends AbstractMaster implements MetricsMaste
   }
 
   @Override
-  public Map<String, GrpcService> getServices() {
-    Map<String, GrpcService> services = new HashMap<>();
-    services.put(Constants.METRICS_MASTER_CLIENT_SERVICE_NAME,
+  public Map<ServiceType, GrpcService> getServices() {
+    Map<ServiceType, GrpcService> services = new HashMap<>();
+    services.put(ServiceType.METRICS_MASTER_CLIENT_SERVICE,
         new GrpcService(getMasterServiceHandler()));
     return services;
   }

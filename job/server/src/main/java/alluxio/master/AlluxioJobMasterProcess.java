@@ -19,7 +19,6 @@ import alluxio.master.job.JobMaster;
 import alluxio.master.journal.JournalSystem;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.sink.MetricsServlet;
-import alluxio.security.authentication.DefaultAuthenticationServer;
 import alluxio.underfs.JobUfsManager;
 import alluxio.underfs.UfsManager;
 import alluxio.util.CommonUtils;
@@ -68,8 +67,6 @@ public class AlluxioJobMasterProcess implements JobMasterProcess {
 
   /** The master managing all job related metadata. */
   protected JobMaster mJobMaster;
-
-  private DefaultAuthenticationServer mAuthenticationServer;
 
   /** is true if the master is serving the RPC server. */
   private boolean mIsServing = false;
@@ -127,7 +124,6 @@ public class AlluxioJobMasterProcess implements JobMasterProcess {
 
       // Create master.
       createMaster();
-      mAuthenticationServer = new DefaultAuthenticationServer();
     } catch (Exception e) {
       LOG.error(e.getMessage(), e);
       throw Throwables.propagate(e);
@@ -261,10 +257,10 @@ public class AlluxioJobMasterProcess implements JobMasterProcess {
   }
 
   private void registerServices(GrpcServerBuilder serverBuilder,
-      Map<String, GrpcService> services) {
-    for (Map.Entry<String, GrpcService> serviceEntry : services.entrySet()) {
-      serverBuilder.addService(serviceEntry.getValue());
-      LOG.info("registered service {}", serviceEntry.getKey());
+      Map<alluxio.grpc.ServiceType, GrpcService> services) {
+    for (Map.Entry<alluxio.grpc.ServiceType, GrpcService> serviceEntry : services.entrySet()) {
+      serverBuilder.addService(serviceEntry.getKey(), serviceEntry.getValue());
+      LOG.info("registered service {}", serviceEntry.getKey().name());
     }
   }
 
@@ -287,9 +283,6 @@ public class AlluxioJobMasterProcess implements JobMasterProcess {
       LOG.info("Starting gRPC server on address {}", mRpcBindAddress);
       GrpcServerBuilder serverBuilder = GrpcServerBuilder.forAddress(mRpcBindAddress);
       registerServices(serverBuilder, mJobMaster.getServices());
-      // Expose version service from the server with no authentication.
-      serverBuilder.addService(
-          new GrpcService(new AlluxioVersionServiceHandler()).disableAuthentication());
 
       mGrpcServer = serverBuilder.build().start();
       mIsServing = true;

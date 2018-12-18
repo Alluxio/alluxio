@@ -23,6 +23,7 @@ import alluxio.exception.status.ResourceExhaustedException;
 import alluxio.grpc.GrpcService;
 import alluxio.grpc.JobCommand;
 import alluxio.grpc.RegisterCommand;
+import alluxio.grpc.ServiceType;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.heartbeat.HeartbeatThread;
@@ -167,11 +168,11 @@ public final class JobMaster extends AbstractNonJournaledMaster {
   }
 
   @Override
-  public Map<String, GrpcService> getServices() {
-    Map<String, GrpcService> services = Maps.newHashMap();
-    services.put(Constants.JOB_MASTER_CLIENT_SERVICE_NAME,
+  public Map<ServiceType, GrpcService> getServices() {
+    Map<ServiceType, GrpcService> services = Maps.newHashMap();
+    services.put(ServiceType.JOB_MASTER_CLIENT_SERVICE,
         new GrpcService(new JobMasterClientServiceHandler(this)));
-    services.put(Constants.JOB_MASTER_WORKER_SERVICE_NAME,
+    services.put(ServiceType.JOB_MASTER_WORKER_SERVICE,
         new GrpcService(new JobMasterWorkerServiceHandler(this)));
     return services;
   }

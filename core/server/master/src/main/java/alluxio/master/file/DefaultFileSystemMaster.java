@@ -45,6 +45,7 @@ import alluxio.grpc.LoadDescendantPType;
 import alluxio.grpc.LoadMetadataPOptions;
 import alluxio.grpc.LoadMetadataPType;
 import alluxio.grpc.MountPOptions;
+import alluxio.grpc.ServiceType;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatThread;
@@ -406,14 +407,13 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   }
 
   @Override
-  public Map<String, GrpcService> getServices() {
-    Map<String, GrpcService> services = new HashMap<>();
-    services.put(Constants.FILE_SYSTEM_MASTER_CLIENT_SERVICE_NAME,
-        new GrpcService(ServerInterceptors.intercept(new FileSystemMasterClientServiceHandler(this),
-            new ClientIpAddressInjector())));
-    services.put(Constants.FILE_SYSTEM_MASTER_JOB_SERVICE_NAME,
+  public Map<ServiceType, GrpcService> getServices() {
+    Map<ServiceType, GrpcService> services = new HashMap<>();
+    services.put(ServiceType.FILE_SYSTEM_MASTER_CLIENT_SERVICE, new GrpcService(ServerInterceptors
+        .intercept(new FileSystemMasterClientServiceHandler(this), new ClientIpAddressInjector())));
+    services.put(ServiceType.FILE_SYSTEM_MASTER_JOB_SERVICE,
         new GrpcService(new FileSystemMasterJobServiceHandler(this)));
-    services.put(Constants.FILE_SYSTEM_MASTER_WORKER_SERVICE_NAME,
+    services.put(ServiceType.FILE_SYSTEM_MASTER_WORKER_SERVICE,
         new GrpcService(new FileSystemMasterWorkerServiceHandler(this)));
     return services;
   }

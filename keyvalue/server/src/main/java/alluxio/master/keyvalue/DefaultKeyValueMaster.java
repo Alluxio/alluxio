@@ -26,6 +26,7 @@ import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.GrpcService;
 import alluxio.grpc.PartitionInfo;
+import alluxio.grpc.ServiceType;
 import alluxio.master.AbstractMaster;
 import alluxio.master.MasterContext;
 import alluxio.master.file.FileSystemMaster;
@@ -89,9 +90,9 @@ public class DefaultKeyValueMaster extends AbstractMaster implements KeyValueMas
   }
 
   @Override
-  public Map<String, GrpcService> getServices() {
-    Map<String, GrpcService> services = new HashMap<>();
-    services.put(Constants.KEY_VALUE_MASTER_CLIENT_SERVICE_NAME,
+  public Map<ServiceType, GrpcService> getServices() {
+    Map<ServiceType, GrpcService> services = new HashMap<>();
+    services.put(ServiceType.KEY_VALUE_MASTER_CLIENT_SERVICE,
         new GrpcService(new KeyValueMasterClientServiceHandler(this)));
     return services;
   }

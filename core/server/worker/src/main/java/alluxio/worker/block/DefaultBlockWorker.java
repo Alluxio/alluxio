@@ -24,6 +24,7 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.grpc.GrpcService;
+import alluxio.grpc.ServiceType;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatThread;
 import alluxio.master.MasterClientConfig;
@@ -173,7 +174,7 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   }
 
   @Override
-  public Map<String, GrpcService> getServices() {
+  public Map<ServiceType, GrpcService> getServices() {
     return Collections.emptyMap();
   }
 

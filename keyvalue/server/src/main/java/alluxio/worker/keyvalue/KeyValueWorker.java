@@ -14,6 +14,7 @@ package alluxio.worker.keyvalue;
 import alluxio.Constants;
 import alluxio.Server;
 import alluxio.grpc.GrpcService;
+import alluxio.grpc.ServiceType;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.AbstractWorker;
@@ -63,10 +64,9 @@ public final class KeyValueWorker extends AbstractWorker {
   }
 
   @Override
-  public Map<String, GrpcService> getServices() {
-    Map<String, GrpcService> services = new HashMap<>();
-    services.put(Constants.KEY_VALUE_WORKER_CLIENT_SERVICE_NAME,
-        new GrpcService(mKeyValueServiceHandler));
+  public Map<ServiceType, GrpcService> getServices() {
+    Map<ServiceType, GrpcService> services = new HashMap<>();
+    services.put(ServiceType.KEY_VALUE_WORKER_SERVICE, new GrpcService(mKeyValueServiceHandler));
     return services;
   }
 

@@ -14,13 +14,13 @@ package alluxio.client.block;
 import alluxio.AbstractMasterClient;
 import alluxio.Constants;
 import alluxio.client.block.options.GetWorkerReportOptions;
-import alluxio.grpc.AlluxioServiceType;
 import alluxio.grpc.BlockMasterClientServiceGrpc;
 import alluxio.grpc.GetBlockInfoPRequest;
 import alluxio.grpc.GetBlockMasterInfoPOptions;
 import alluxio.grpc.GetCapacityBytesPOptions;
 import alluxio.grpc.GetUsedBytesPOptions;
 import alluxio.grpc.GetWorkerInfoListPOptions;
+import alluxio.grpc.ServiceType;
 import alluxio.master.MasterClientConfig;
 import alluxio.grpc.GrpcUtils;
 import alluxio.wire.BlockInfo;
@@ -57,8 +57,8 @@ public final class RetryHandlingBlockMasterClient extends AbstractMasterClient
   }
 
   @Override
-  protected AlluxioServiceType getRemoteServiceType() {
-    return AlluxioServiceType.BLOCK_MASTER_CLIENT_SERVICE;
+  protected ServiceType getRemoteServiceType() {
+    return ServiceType.BLOCK_MASTER_CLIENT_SERVICE;
   }
 
   @Override

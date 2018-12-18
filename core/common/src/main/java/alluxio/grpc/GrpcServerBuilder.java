@@ -23,6 +23,8 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.ServerChannel;
 
 import java.net.SocketAddress;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.Executor;
 
 import javax.annotation.Nullable;
@@ -34,8 +36,10 @@ public class GrpcServerBuilder {
 
   NettyServerBuilder mNettyServerBuilder;
   AuthenticationServer mAuthenticationServer;
+  Set<ServiceType> mServices;
 
   private GrpcServerBuilder(NettyServerBuilder nettyChannelBuilder) {
+    mServices = new HashSet<>();
     mNettyServerBuilder = nettyChannelBuilder;
     if (SecurityUtils.isAuthenticationEnabled()) {
       mAuthenticationServer = new DefaultAuthenticationServer();
@@ -111,6 +115,18 @@ public class GrpcServerBuilder {
   /**
    * Add a service to this server.
    *
+   * @param serviceType the type of service
+   * @param serviceDefinition the service definition of new service
+   * @return an updated instance of this {@link GrpcServerBuilder}
+   */
+  public GrpcServerBuilder addService(ServiceType serviceType, GrpcService serviceDefinition) {
+    mServices.add(serviceType);
+    return addService(serviceDefinition);
+  }
+
+  /**
+   * Add a service to this server.
+   *
    * @param serviceDefinition the service definition of new service
    * @return an updated instance of this {@link GrpcServerBuilder}
    */
@@ -141,6 +157,8 @@ public class GrpcServerBuilder {
    * @return the built {@link GrpcServer}
    */
   public GrpcServer build() {
+    addService(new GrpcService(new ServiceVersionClientServiceHandler(mServices))
+        .disableAuthentication());
     return new GrpcServer(mNettyServerBuilder.build());
   }
 }

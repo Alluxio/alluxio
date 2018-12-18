@@ -14,6 +14,7 @@ package alluxio.client.block.stream;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.exception.status.UnauthenticatedException;
+import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.BlockWorkerGrpc;
 import alluxio.grpc.GrpcChannel;
 import alluxio.grpc.GrpcChannelBuilder;
@@ -72,7 +73,7 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
           .setKeepAliveTimeout(KEEPALIVE_TIMEOUT_MS, TimeUnit.MILLISECONDS)
           .setMaxInboundMessageSize((int) MAX_INBOUND_MESSAGE_SIZE)
           .setFlowControlWindow((int) GRPC_FLOWCONTROL_WINDOW).build();
-    } catch (UnauthenticatedException e) {
+    } catch (UnauthenticatedException | UnavailableException e) {
       throw new RuntimeException("Failed to build channel.", e);
     }
     mBlockingStub = BlockWorkerGrpc.newBlockingStub(mChannel);

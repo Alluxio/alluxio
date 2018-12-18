@@ -13,17 +13,14 @@ package alluxio.master.file;
 
 import alluxio.AbstractMasterClient;
 import alluxio.Constants;
-import alluxio.grpc.AlluxioServiceType;
 import alluxio.grpc.FileSystemMasterWorkerServiceGrpc;
 import alluxio.grpc.GetFileInfoPRequest;
 import alluxio.grpc.GetUfsInfoPRequest;
+import alluxio.grpc.ServiceType;
 import alluxio.grpc.UfsInfo;
 import alluxio.master.MasterClientConfig;
 import alluxio.grpc.GrpcUtils;
 import alluxio.wire.FileInfo;
-
-// TODO(ggezer) GrpcException?
-// import org.apache.thrift.TException;
 
 import java.io.IOException;
 
@@ -51,8 +48,8 @@ public final class FileSystemMasterClient extends AbstractMasterClient {
   }
 
   @Override
-  protected AlluxioServiceType getRemoteServiceType() {
-    return AlluxioServiceType.FILE_SYSTEM_MASTER_JOB_SERVICE;
+  protected ServiceType getRemoteServiceType() {
+    return ServiceType.FILE_SYSTEM_MASTER_JOB_SERVICE;
   }
 
   @Override

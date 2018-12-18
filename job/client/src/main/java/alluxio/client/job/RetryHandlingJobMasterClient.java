@@ -13,12 +13,12 @@ package alluxio.client.job;
 
 import alluxio.AbstractMasterClient;
 import alluxio.Constants;
-import alluxio.grpc.AlluxioServiceType;
 import alluxio.grpc.CancelPRequest;
 import alluxio.grpc.GetJobStatusPRequest;
 import alluxio.grpc.JobMasterClientServiceGrpc;
 import alluxio.grpc.ListAllPRequest;
 import alluxio.grpc.RunPRequest;
+import alluxio.grpc.ServiceType;
 import alluxio.job.JobConfig;
 import alluxio.job.util.SerializationUtils;
 import alluxio.job.wire.JobInfo;
@@ -55,8 +55,8 @@ public final class RetryHandlingJobMasterClient extends AbstractMasterClient
   }
 
   @Override
-  protected AlluxioServiceType getRemoteServiceType() {
-    return AlluxioServiceType.JOB_MASTER_CLIENT_SERVICE;
+  protected ServiceType getRemoteServiceType() {
+    return ServiceType.JOB_MASTER_CLIENT_SERVICE;
   }
 
   @Override

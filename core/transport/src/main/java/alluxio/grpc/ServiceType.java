@@ -4,9 +4,9 @@
 package alluxio.grpc;
 
 /**
- * Protobuf enum {@code alluxio.grpc.AlluxioServiceType}
+ * Protobuf enum {@code alluxio.grpc.ServiceType}
  */
-public enum AlluxioServiceType
+public enum ServiceType
     implements com.google.protobuf.ProtocolMessageEnum {
   /**
    * <code>FILE_SYSTEM_MASTER_CLIENT_SERVICE = 0;</code>
@@ -124,11 +124,11 @@ public enum AlluxioServiceType
    * @deprecated Use {@link #forNumber(int)} instead.
    */
   @java.lang.Deprecated
-  public static AlluxioServiceType valueOf(int value) {
+  public static ServiceType valueOf(int value) {
     return forNumber(value);
   }
 
-  public static AlluxioServiceType forNumber(int value) {
+  public static ServiceType forNumber(int value) {
     switch (value) {
       case 0: return FILE_SYSTEM_MASTER_CLIENT_SERVICE;
       case 1: return FILE_SYSTEM_MASTER_WORKER_SERVICE;
@@ -147,15 +147,15 @@ public enum AlluxioServiceType
     }
   }
 
-  public static com.google.protobuf.Internal.EnumLiteMap<AlluxioServiceType>
+  public static com.google.protobuf.Internal.EnumLiteMap<ServiceType>
       internalGetValueMap() {
     return internalValueMap;
   }
   private static final com.google.protobuf.Internal.EnumLiteMap<
-      AlluxioServiceType> internalValueMap =
-        new com.google.protobuf.Internal.EnumLiteMap<AlluxioServiceType>() {
-          public AlluxioServiceType findValueByNumber(int number) {
-            return AlluxioServiceType.forNumber(number);
+      ServiceType> internalValueMap =
+        new com.google.protobuf.Internal.EnumLiteMap<ServiceType>() {
+          public ServiceType findValueByNumber(int number) {
+            return ServiceType.forNumber(number);
           }
         };
 
@@ -172,9 +172,9 @@ public enum AlluxioServiceType
     return alluxio.grpc.VersionProto.getDescriptor().getEnumTypes().get(0);
   }
 
-  private static final AlluxioServiceType[] VALUES = values();
+  private static final ServiceType[] VALUES = values();
 
-  public static AlluxioServiceType valueOf(
+  public static ServiceType valueOf(
       com.google.protobuf.Descriptors.EnumValueDescriptor desc) {
     if (desc.getType() != getDescriptor()) {
       throw new java.lang.IllegalArgumentException(
@@ -185,10 +185,10 @@ public enum AlluxioServiceType
 
   private final int value;
 
-  private AlluxioServiceType(int value) {
+  private ServiceType(int value) {
     this.value = value;
   }
 
-  // @@protoc_insertion_point(enum_scope:alluxio.grpc.AlluxioServiceType)
+  // @@protoc_insertion_point(enum_scope:alluxio.grpc.ServiceType)
 }
 

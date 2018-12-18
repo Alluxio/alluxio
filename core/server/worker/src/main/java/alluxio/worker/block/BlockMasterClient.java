@@ -13,7 +13,6 @@ package alluxio.worker.block;
 
 import alluxio.AbstractMasterClient;
 import alluxio.Constants;
-import alluxio.grpc.AlluxioServiceType;
 import alluxio.grpc.BlockHeartbeatPOptions;
 import alluxio.grpc.BlockHeartbeatPRequest;
 import alluxio.grpc.BlockMasterWorkerServiceGrpc;
@@ -25,6 +24,7 @@ import alluxio.grpc.GetWorkerIdPRequest;
 import alluxio.grpc.Metric;
 import alluxio.grpc.RegisterWorkerPOptions;
 import alluxio.grpc.RegisterWorkerPRequest;
+import alluxio.grpc.ServiceType;
 import alluxio.grpc.TierList;
 import alluxio.master.MasterClientConfig;
 import alluxio.grpc.GrpcUtils;
@@ -57,8 +57,8 @@ public final class BlockMasterClient extends AbstractMasterClient {
   }
 
   @Override
-  protected AlluxioServiceType getRemoteServiceType() {
-    return AlluxioServiceType.BLOCK_MASTER_WORKER_SERVICE;
+  protected ServiceType getRemoteServiceType() {
+    return ServiceType.BLOCK_MASTER_WORKER_SERVICE;
   }
 
   @Override

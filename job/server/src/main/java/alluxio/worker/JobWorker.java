@@ -17,6 +17,7 @@ import alluxio.PropertyKey;
 import alluxio.Server;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.grpc.GrpcService;
+import alluxio.grpc.ServiceType;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatThread;
 import alluxio.metrics.MetricsSystem;
@@ -82,7 +83,7 @@ public final class JobWorker extends AbstractWorker {
   }
 
   @Override
-  public Map<String, GrpcService> getServices() {
+  public Map<ServiceType, GrpcService> getServices() {
     return Collections.emptyMap();
   }
 

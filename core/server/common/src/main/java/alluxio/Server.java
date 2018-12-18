@@ -12,6 +12,7 @@
 package alluxio;
 
 import alluxio.grpc.GrpcService;
+import alluxio.grpc.ServiceType;
 
 import java.io.IOException;
 import java.util.Map;
@@ -37,7 +38,7 @@ public interface Server<T> {
   /**
    * @return a map from service names to gRPC serviced that serve RPCs for this server
    */
-  Map<String, GrpcService> getServices();
+  Map<ServiceType, GrpcService> getServices();
 
   /**
    * Starts the Alluxio server.
