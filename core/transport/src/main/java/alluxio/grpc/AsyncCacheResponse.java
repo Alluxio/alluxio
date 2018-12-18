@@ -5,23 +5,21 @@ package alluxio.grpc;
 
 /**
  * <pre>
- * The data chunk.
- * next available id: 2
+ * Response for an async cache request
  * </pre>
  *
- * Protobuf type {@code alluxio.grpc.Chunk}
+ * Protobuf type {@code alluxio.grpc.AsyncCacheResponse}
  */
-public  final class Chunk extends
+public  final class AsyncCacheResponse extends
     com.google.protobuf.GeneratedMessageV3 implements
-    // @@protoc_insertion_point(message_implements:alluxio.grpc.Chunk)
-    ChunkOrBuilder {
+    // @@protoc_insertion_point(message_implements:alluxio.grpc.AsyncCacheResponse)
+    AsyncCacheResponseOrBuilder {
 private static final long serialVersionUID = 0L;
-  // Use Chunk.newBuilder() to construct.
-  private Chunk(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+  // Use AsyncCacheResponse.newBuilder() to construct.
+  private AsyncCacheResponse(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
     super(builder);
   }
-  private Chunk() {
-    data_ = com.google.protobuf.ByteString.EMPTY;
+  private AsyncCacheResponse() {
   }
 
   @java.lang.Override
@@ -29,7 +27,7 @@ private static final long serialVersionUID = 0L;
   getUnknownFields() {
     return this.unknownFields;
   }
-  private Chunk(
+  private AsyncCacheResponse(
       com.google.protobuf.CodedInputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
@@ -37,7 +35,6 @@ private static final long serialVersionUID = 0L;
     if (extensionRegistry == null) {
       throw new java.lang.NullPointerException();
     }
-    int mutable_bitField0_ = 0;
     com.google.protobuf.UnknownFieldSet.Builder unknownFields =
         com.google.protobuf.UnknownFieldSet.newBuilder();
     try {
@@ -55,11 +52,6 @@ private static final long serialVersionUID = 0L;
             }
             break;
           }
-          case 10: {
-            bitField0_ |= 0x00000001;
-            data_ = input.readBytes();
-            break;
-          }
         }
       }
     } catch (com.google.protobuf.InvalidProtocolBufferException e) {
@@ -74,30 +66,14 @@ private static final long serialVersionUID = 0L;
   }
   public static final com.google.protobuf.Descriptors.Descriptor
       getDescriptor() {
-    return alluxio.grpc.BlockWorkerProto.internal_static_alluxio_grpc_Chunk_descriptor;
+    return alluxio.grpc.BlockWorkerProto.internal_static_alluxio_grpc_AsyncCacheResponse_descriptor;
   }
 
   protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internalGetFieldAccessorTable() {
-    return alluxio.grpc.BlockWorkerProto.internal_static_alluxio_grpc_Chunk_fieldAccessorTable
+    return alluxio.grpc.BlockWorkerProto.internal_static_alluxio_grpc_AsyncCacheResponse_fieldAccessorTable
         .ensureFieldAccessorsInitialized(
-            alluxio.grpc.Chunk.class, alluxio.grpc.Chunk.Builder.class);
-  }
-
-  private int bitField0_;
-  public static final int DATA_FIELD_NUMBER = 1;
-  private com.google.protobuf.ByteString data_;
-  /**
-   * <code>optional bytes data = 1;</code>
-   */
-  public boolean hasData() {
-    return ((bitField0_ & 0x00000001) == 0x00000001);
-  }
-  /**
-   * <code>optional bytes data = 1;</code>
-   */
-  public com.google.protobuf.ByteString getData() {
-    return data_;
+            alluxio.grpc.AsyncCacheResponse.class, alluxio.grpc.AsyncCacheResponse.Builder.class);
   }
 
   private byte memoizedIsInitialized = -1;
@@ -112,9 +88,6 @@ private static final long serialVersionUID = 0L;
 
   public void writeTo(com.google.protobuf.CodedOutputStream output)
                       throws java.io.IOException {
-    if (((bitField0_ & 0x00000001) == 0x00000001)) {
-      output.writeBytes(1, data_);
-    }
     unknownFields.writeTo(output);
   }
 
@@ -123,10 +96,6 @@ private static final long serialVersionUID = 0L;
     if (size != -1) return size;
 
     size = 0;
-    if (((bitField0_ & 0x00000001) == 0x00000001)) {
-      size += com.google.protobuf.CodedOutputStream
-        .computeBytesSize(1, data_);
-    }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
     return size;
@@ -137,17 +106,12 @@ private static final long serialVersionUID = 0L;
     if (obj == this) {
      return true;
     }
-    if (!(obj instanceof alluxio.grpc.Chunk)) {
+    if (!(obj instanceof alluxio.grpc.AsyncCacheResponse)) {
       return super.equals(obj);
     }
-    alluxio.grpc.Chunk other = (alluxio.grpc.Chunk) obj;
+    alluxio.grpc.AsyncCacheResponse other = (alluxio.grpc.AsyncCacheResponse) obj;
 
     boolean result = true;
-    result = result && (hasData() == other.hasData());
-    if (hasData()) {
-      result = result && getData()
-          .equals(other.getData());
-    }
     result = result && unknownFields.equals(other.unknownFields);
     return result;
   }
@@ -159,78 +123,74 @@ private static final long serialVersionUID = 0L;
     }
     int hash = 41;
     hash = (19 * hash) + getDescriptor().hashCode();
-    if (hasData()) {
-      hash = (37 * hash) + DATA_FIELD_NUMBER;
-      hash = (53 * hash) + getData().hashCode();
-    }
     hash = (29 * hash) + unknownFields.hashCode();
     memoizedHashCode = hash;
     return hash;
   }
 
-  public static alluxio.grpc.Chunk parseFrom(
+  public static alluxio.grpc.AsyncCacheResponse parseFrom(
       java.nio.ByteBuffer data)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
-  public static alluxio.grpc.Chunk parseFrom(
+  public static alluxio.grpc.AsyncCacheResponse parseFrom(
       java.nio.ByteBuffer data,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static alluxio.grpc.Chunk parseFrom(
+  public static alluxio.grpc.AsyncCacheResponse parseFrom(
       com.google.protobuf.ByteString data)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
-  public static alluxio.grpc.Chunk parseFrom(
+  public static alluxio.grpc.AsyncCacheResponse parseFrom(
       com.google.protobuf.ByteString data,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static alluxio.grpc.Chunk parseFrom(byte[] data)
+  public static alluxio.grpc.AsyncCacheResponse parseFrom(byte[] data)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
-  public static alluxio.grpc.Chunk parseFrom(
+  public static alluxio.grpc.AsyncCacheResponse parseFrom(
       byte[] data,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static alluxio.grpc.Chunk parseFrom(java.io.InputStream input)
+  public static alluxio.grpc.AsyncCacheResponse parseFrom(java.io.InputStream input)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseWithIOException(PARSER, input);
   }
-  public static alluxio.grpc.Chunk parseFrom(
+  public static alluxio.grpc.AsyncCacheResponse parseFrom(
       java.io.InputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseWithIOException(PARSER, input, extensionRegistry);
   }
-  public static alluxio.grpc.Chunk parseDelimitedFrom(java.io.InputStream input)
+  public static alluxio.grpc.AsyncCacheResponse parseDelimitedFrom(java.io.InputStream input)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseDelimitedWithIOException(PARSER, input);
   }
-  public static alluxio.grpc.Chunk parseDelimitedFrom(
+  public static alluxio.grpc.AsyncCacheResponse parseDelimitedFrom(
       java.io.InputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
   }
-  public static alluxio.grpc.Chunk parseFrom(
+  public static alluxio.grpc.AsyncCacheResponse parseFrom(
       com.google.protobuf.CodedInputStream input)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseWithIOException(PARSER, input);
   }
-  public static alluxio.grpc.Chunk parseFrom(
+  public static alluxio.grpc.AsyncCacheResponse parseFrom(
       com.google.protobuf.CodedInputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
@@ -242,7 +202,7 @@ private static final long serialVersionUID = 0L;
   public static Builder newBuilder() {
     return DEFAULT_INSTANCE.toBuilder();
   }
-  public static Builder newBuilder(alluxio.grpc.Chunk prototype) {
+  public static Builder newBuilder(alluxio.grpc.AsyncCacheResponse prototype) {
     return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
   }
   public Builder toBuilder() {
@@ -258,29 +218,28 @@ private static final long serialVersionUID = 0L;
   }
   /**
    * <pre>
-   * The data chunk.
-   * next available id: 2
+   * Response for an async cache request
    * </pre>
    *
-   * Protobuf type {@code alluxio.grpc.Chunk}
+   * Protobuf type {@code alluxio.grpc.AsyncCacheResponse}
    */
   public static final class Builder extends
       com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
-      // @@protoc_insertion_point(builder_implements:alluxio.grpc.Chunk)
-      alluxio.grpc.ChunkOrBuilder {
+      // @@protoc_insertion_point(builder_implements:alluxio.grpc.AsyncCacheResponse)
+      alluxio.grpc.AsyncCacheResponseOrBuilder {
     public static final com.google.protobuf.Descriptors.Descriptor
         getDescriptor() {
-      return alluxio.grpc.BlockWorkerProto.internal_static_alluxio_grpc_Chunk_descriptor;
+      return alluxio.grpc.BlockWorkerProto.internal_static_alluxio_grpc_AsyncCacheResponse_descriptor;
     }
 
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
-      return alluxio.grpc.BlockWorkerProto.internal_static_alluxio_grpc_Chunk_fieldAccessorTable
+      return alluxio.grpc.BlockWorkerProto.internal_static_alluxio_grpc_AsyncCacheResponse_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
-              alluxio.grpc.Chunk.class, alluxio.grpc.Chunk.Builder.class);
+              alluxio.grpc.AsyncCacheResponse.class, alluxio.grpc.AsyncCacheResponse.Builder.class);
     }
 
-    // Construct using alluxio.grpc.Chunk.newBuilder()
+    // Construct using alluxio.grpc.AsyncCacheResponse.newBuilder()
     private Builder() {
       maybeForceBuilderInitialization();
     }
@@ -297,37 +256,28 @@ private static final long serialVersionUID = 0L;
     }
     public Builder clear() {
       super.clear();
-      data_ = com.google.protobuf.ByteString.EMPTY;
-      bitField0_ = (bitField0_ & ~0x00000001);
       return this;
     }
 
     public com.google.protobuf.Descriptors.Descriptor
         getDescriptorForType() {
-      return alluxio.grpc.BlockWorkerProto.internal_static_alluxio_grpc_Chunk_descriptor;
+      return alluxio.grpc.BlockWorkerProto.internal_static_alluxio_grpc_AsyncCacheResponse_descriptor;
     }
 
-    public alluxio.grpc.Chunk getDefaultInstanceForType() {
-      return alluxio.grpc.Chunk.getDefaultInstance();
+    public alluxio.grpc.AsyncCacheResponse getDefaultInstanceForType() {
+      return alluxio.grpc.AsyncCacheResponse.getDefaultInstance();
     }
 
-    public alluxio.grpc.Chunk build() {
-      alluxio.grpc.Chunk result = buildPartial();
+    public alluxio.grpc.AsyncCacheResponse build() {
+      alluxio.grpc.AsyncCacheResponse result = buildPartial();
       if (!result.isInitialized()) {
         throw newUninitializedMessageException(result);
       }
       return result;
     }
 
-    public alluxio.grpc.Chunk buildPartial() {
-      alluxio.grpc.Chunk result = new alluxio.grpc.Chunk(this);
-      int from_bitField0_ = bitField0_;
-      int to_bitField0_ = 0;
-      if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
-        to_bitField0_ |= 0x00000001;
-      }
-      result.data_ = data_;
-      result.bitField0_ = to_bitField0_;
+    public alluxio.grpc.AsyncCacheResponse buildPartial() {
+      alluxio.grpc.AsyncCacheResponse result = new alluxio.grpc.AsyncCacheResponse(this);
       onBuilt();
       return result;
     }
@@ -359,19 +309,16 @@ private static final long serialVersionUID = 0L;
       return (Builder) super.addRepeatedField(field, value);
     }
     public Builder mergeFrom(com.google.protobuf.Message other) {
-      if (other instanceof alluxio.grpc.Chunk) {
-        return mergeFrom((alluxio.grpc.Chunk)other);
+      if (other instanceof alluxio.grpc.AsyncCacheResponse) {
+        return mergeFrom((alluxio.grpc.AsyncCacheResponse)other);
       } else {
         super.mergeFrom(other);
         return this;
       }
     }
 
-    public Builder mergeFrom(alluxio.grpc.Chunk other) {
-      if (other == alluxio.grpc.Chunk.getDefaultInstance()) return this;
-      if (other.hasData()) {
-        setData(other.getData());
-      }
+    public Builder mergeFrom(alluxio.grpc.AsyncCacheResponse other) {
+      if (other == alluxio.grpc.AsyncCacheResponse.getDefaultInstance()) return this;
       this.mergeUnknownFields(other.unknownFields);
       onChanged();
       return this;
@@ -385,53 +332,17 @@ private static final long serialVersionUID = 0L;
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
-      alluxio.grpc.Chunk parsedMessage = null;
+      alluxio.grpc.AsyncCacheResponse parsedMessage = null;
       try {
         parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
       } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-        parsedMessage = (alluxio.grpc.Chunk) e.getUnfinishedMessage();
+        parsedMessage = (alluxio.grpc.AsyncCacheResponse) e.getUnfinishedMessage();
         throw e.unwrapIOException();
       } finally {
         if (parsedMessage != null) {
           mergeFrom(parsedMessage);
         }
       }
-      return this;
-    }
-    private int bitField0_;
-
-    private com.google.protobuf.ByteString data_ = com.google.protobuf.ByteString.EMPTY;
-    /**
-     * <code>optional bytes data = 1;</code>
-     */
-    public boolean hasData() {
-      return ((bitField0_ & 0x00000001) == 0x00000001);
-    }
-    /**
-     * <code>optional bytes data = 1;</code>
-     */
-    public com.google.protobuf.ByteString getData() {
-      return data_;
-    }
-    /**
-     * <code>optional bytes data = 1;</code>
-     */
-    public Builder setData(com.google.protobuf.ByteString value) {
-      if (value == null) {
-    throw new NullPointerException();
-  }
-  bitField0_ |= 0x00000001;
-      data_ = value;
-      onChanged();
-      return this;
-    }
-    /**
-     * <code>optional bytes data = 1;</code>
-     */
-    public Builder clearData() {
-      bitField0_ = (bitField0_ & ~0x00000001);
-      data_ = getDefaultInstance().getData();
-      onChanged();
       return this;
     }
     public final Builder setUnknownFields(
@@ -445,39 +356,39 @@ private static final long serialVersionUID = 0L;
     }
 
 
-    // @@protoc_insertion_point(builder_scope:alluxio.grpc.Chunk)
+    // @@protoc_insertion_point(builder_scope:alluxio.grpc.AsyncCacheResponse)
   }
 
-  // @@protoc_insertion_point(class_scope:alluxio.grpc.Chunk)
-  private static final alluxio.grpc.Chunk DEFAULT_INSTANCE;
+  // @@protoc_insertion_point(class_scope:alluxio.grpc.AsyncCacheResponse)
+  private static final alluxio.grpc.AsyncCacheResponse DEFAULT_INSTANCE;
   static {
-    DEFAULT_INSTANCE = new alluxio.grpc.Chunk();
+    DEFAULT_INSTANCE = new alluxio.grpc.AsyncCacheResponse();
   }
 
-  public static alluxio.grpc.Chunk getDefaultInstance() {
+  public static alluxio.grpc.AsyncCacheResponse getDefaultInstance() {
     return DEFAULT_INSTANCE;
   }
 
-  @java.lang.Deprecated public static final com.google.protobuf.Parser<Chunk>
-      PARSER = new com.google.protobuf.AbstractParser<Chunk>() {
-    public Chunk parsePartialFrom(
+  @java.lang.Deprecated public static final com.google.protobuf.Parser<AsyncCacheResponse>
+      PARSER = new com.google.protobuf.AbstractParser<AsyncCacheResponse>() {
+    public AsyncCacheResponse parsePartialFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
-      return new Chunk(input, extensionRegistry);
+      return new AsyncCacheResponse(input, extensionRegistry);
     }
   };
 
-  public static com.google.protobuf.Parser<Chunk> parser() {
+  public static com.google.protobuf.Parser<AsyncCacheResponse> parser() {
     return PARSER;
   }
 
   @java.lang.Override
-  public com.google.protobuf.Parser<Chunk> getParserForType() {
+  public com.google.protobuf.Parser<AsyncCacheResponse> getParserForType() {
     return PARSER;
   }
 
-  public alluxio.grpc.Chunk getDefaultInstanceForType() {
+  public alluxio.grpc.AsyncCacheResponse getDefaultInstanceForType() {
     return DEFAULT_INSTANCE;
   }
 

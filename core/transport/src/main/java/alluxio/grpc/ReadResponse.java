@@ -4,6 +4,11 @@
 package alluxio.grpc;
 
 /**
+ * <pre>
+ * The read response.
+ * next available id: 2
+ * </pre>
+ *
  * Protobuf type {@code alluxio.grpc.ReadResponse}
  */
 public  final class ReadResponse extends
@@ -265,6 +270,11 @@ private static final long serialVersionUID = 0L;
     return builder;
   }
   /**
+   * <pre>
+   * The read response.
+   * next available id: 2
+   * </pre>
+   *
    * Protobuf type {@code alluxio.grpc.ReadResponse}
    */
   public static final class Builder extends

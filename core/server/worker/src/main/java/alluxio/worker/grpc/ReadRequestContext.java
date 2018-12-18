@@ -9,14 +9,14 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.worker.netty;
-
-import com.codahale.metrics.Counter;
-import com.codahale.metrics.Meter;
+package alluxio.worker.grpc;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
+
+import com.codahale.metrics.Counter;
+import com.codahale.metrics.Meter;
 
 /**
  * Represents the context of a read request received from netty channel. This class serves the

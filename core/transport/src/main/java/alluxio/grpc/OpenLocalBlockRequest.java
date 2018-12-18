@@ -5,23 +5,23 @@ package alluxio.grpc;
 
 /**
  * <pre>
- * The data chunk.
- * next available id: 2
+ * next available id: 3
  * </pre>
  *
- * Protobuf type {@code alluxio.grpc.Chunk}
+ * Protobuf type {@code alluxio.grpc.OpenLocalBlockRequest}
  */
-public  final class Chunk extends
+public  final class OpenLocalBlockRequest extends
     com.google.protobuf.GeneratedMessageV3 implements
-    // @@protoc_insertion_point(message_implements:alluxio.grpc.Chunk)
-    ChunkOrBuilder {
+    // @@protoc_insertion_point(message_implements:alluxio.grpc.OpenLocalBlockRequest)
+    OpenLocalBlockRequestOrBuilder {
 private static final long serialVersionUID = 0L;
-  // Use Chunk.newBuilder() to construct.
-  private Chunk(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+  // Use OpenLocalBlockRequest.newBuilder() to construct.
+  private OpenLocalBlockRequest(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
     super(builder);
   }
-  private Chunk() {
-    data_ = com.google.protobuf.ByteString.EMPTY;
+  private OpenLocalBlockRequest() {
+    blockId_ = 0L;
+    promote_ = false;
   }
 
   @java.lang.Override
@@ -29,7 +29,7 @@ private static final long serialVersionUID = 0L;
   getUnknownFields() {
     return this.unknownFields;
   }
-  private Chunk(
+  private OpenLocalBlockRequest(
       com.google.protobuf.CodedInputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
@@ -55,9 +55,14 @@ private static final long serialVersionUID = 0L;
             }
             break;
           }
-          case 10: {
+          case 8: {
             bitField0_ |= 0x00000001;
-            data_ = input.readBytes();
+            blockId_ = input.readInt64();
+            break;
+          }
+          case 16: {
+            bitField0_ |= 0x00000002;
+            promote_ = input.readBool();
             break;
           }
         }
@@ -74,30 +79,45 @@ private static final long serialVersionUID = 0L;
   }
   public static final com.google.protobuf.Descriptors.Descriptor
       getDescriptor() {
-    return alluxio.grpc.BlockWorkerProto.internal_static_alluxio_grpc_Chunk_descriptor;
+    return alluxio.grpc.BlockWorkerProto.internal_static_alluxio_grpc_OpenLocalBlockRequest_descriptor;
   }
 
   protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internalGetFieldAccessorTable() {
-    return alluxio.grpc.BlockWorkerProto.internal_static_alluxio_grpc_Chunk_fieldAccessorTable
+    return alluxio.grpc.BlockWorkerProto.internal_static_alluxio_grpc_OpenLocalBlockRequest_fieldAccessorTable
         .ensureFieldAccessorsInitialized(
-            alluxio.grpc.Chunk.class, alluxio.grpc.Chunk.Builder.class);
+            alluxio.grpc.OpenLocalBlockRequest.class, alluxio.grpc.OpenLocalBlockRequest.Builder.class);
   }
 
   private int bitField0_;
-  public static final int DATA_FIELD_NUMBER = 1;
-  private com.google.protobuf.ByteString data_;
+  public static final int BLOCK_ID_FIELD_NUMBER = 1;
+  private long blockId_;
   /**
-   * <code>optional bytes data = 1;</code>
+   * <code>optional int64 block_id = 1;</code>
    */
-  public boolean hasData() {
+  public boolean hasBlockId() {
     return ((bitField0_ & 0x00000001) == 0x00000001);
   }
   /**
-   * <code>optional bytes data = 1;</code>
+   * <code>optional int64 block_id = 1;</code>
    */
-  public com.google.protobuf.ByteString getData() {
-    return data_;
+  public long getBlockId() {
+    return blockId_;
+  }
+
+  public static final int PROMOTE_FIELD_NUMBER = 2;
+  private boolean promote_;
+  /**
+   * <code>optional bool promote = 2;</code>
+   */
+  public boolean hasPromote() {
+    return ((bitField0_ & 0x00000002) == 0x00000002);
+  }
+  /**
+   * <code>optional bool promote = 2;</code>
+   */
+  public boolean getPromote() {
+    return promote_;
   }
 
   private byte memoizedIsInitialized = -1;
@@ -113,7 +133,10 @@ private static final long serialVersionUID = 0L;
   public void writeTo(com.google.protobuf.CodedOutputStream output)
                       throws java.io.IOException {
     if (((bitField0_ & 0x00000001) == 0x00000001)) {
-      output.writeBytes(1, data_);
+      output.writeInt64(1, blockId_);
+    }
+    if (((bitField0_ & 0x00000002) == 0x00000002)) {
+      output.writeBool(2, promote_);
     }
     unknownFields.writeTo(output);
   }
@@ -125,7 +148,11 @@ private static final long serialVersionUID = 0L;
     size = 0;
     if (((bitField0_ & 0x00000001) == 0x00000001)) {
       size += com.google.protobuf.CodedOutputStream
-        .computeBytesSize(1, data_);
+        .computeInt64Size(1, blockId_);
+    }
+    if (((bitField0_ & 0x00000002) == 0x00000002)) {
+      size += com.google.protobuf.CodedOutputStream
+        .computeBoolSize(2, promote_);
     }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
@@ -137,16 +164,21 @@ private static final long serialVersionUID = 0L;
     if (obj == this) {
      return true;
     }
-    if (!(obj instanceof alluxio.grpc.Chunk)) {
+    if (!(obj instanceof alluxio.grpc.OpenLocalBlockRequest)) {
       return super.equals(obj);
     }
-    alluxio.grpc.Chunk other = (alluxio.grpc.Chunk) obj;
+    alluxio.grpc.OpenLocalBlockRequest other = (alluxio.grpc.OpenLocalBlockRequest) obj;
 
     boolean result = true;
-    result = result && (hasData() == other.hasData());
-    if (hasData()) {
-      result = result && getData()
-          .equals(other.getData());
+    result = result && (hasBlockId() == other.hasBlockId());
+    if (hasBlockId()) {
+      result = result && (getBlockId()
+          == other.getBlockId());
+    }
+    result = result && (hasPromote() == other.hasPromote());
+    if (hasPromote()) {
+      result = result && (getPromote()
+          == other.getPromote());
     }
     result = result && unknownFields.equals(other.unknownFields);
     return result;
@@ -159,78 +191,84 @@ private static final long serialVersionUID = 0L;
     }
     int hash = 41;
     hash = (19 * hash) + getDescriptor().hashCode();
-    if (hasData()) {
-      hash = (37 * hash) + DATA_FIELD_NUMBER;
-      hash = (53 * hash) + getData().hashCode();
+    if (hasBlockId()) {
+      hash = (37 * hash) + BLOCK_ID_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+          getBlockId());
+    }
+    if (hasPromote()) {
+      hash = (37 * hash) + PROMOTE_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashBoolean(
+          getPromote());
     }
     hash = (29 * hash) + unknownFields.hashCode();
     memoizedHashCode = hash;
     return hash;
   }
 
-  public static alluxio.grpc.Chunk parseFrom(
+  public static alluxio.grpc.OpenLocalBlockRequest parseFrom(
       java.nio.ByteBuffer data)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
-  public static alluxio.grpc.Chunk parseFrom(
+  public static alluxio.grpc.OpenLocalBlockRequest parseFrom(
       java.nio.ByteBuffer data,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static alluxio.grpc.Chunk parseFrom(
+  public static alluxio.grpc.OpenLocalBlockRequest parseFrom(
       com.google.protobuf.ByteString data)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
-  public static alluxio.grpc.Chunk parseFrom(
+  public static alluxio.grpc.OpenLocalBlockRequest parseFrom(
       com.google.protobuf.ByteString data,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static alluxio.grpc.Chunk parseFrom(byte[] data)
+  public static alluxio.grpc.OpenLocalBlockRequest parseFrom(byte[] data)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
-  public static alluxio.grpc.Chunk parseFrom(
+  public static alluxio.grpc.OpenLocalBlockRequest parseFrom(
       byte[] data,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static alluxio.grpc.Chunk parseFrom(java.io.InputStream input)
+  public static alluxio.grpc.OpenLocalBlockRequest parseFrom(java.io.InputStream input)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseWithIOException(PARSER, input);
   }
-  public static alluxio.grpc.Chunk parseFrom(
+  public static alluxio.grpc.OpenLocalBlockRequest parseFrom(
       java.io.InputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseWithIOException(PARSER, input, extensionRegistry);
   }
-  public static alluxio.grpc.Chunk parseDelimitedFrom(java.io.InputStream input)
+  public static alluxio.grpc.OpenLocalBlockRequest parseDelimitedFrom(java.io.InputStream input)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseDelimitedWithIOException(PARSER, input);
   }
-  public static alluxio.grpc.Chunk parseDelimitedFrom(
+  public static alluxio.grpc.OpenLocalBlockRequest parseDelimitedFrom(
       java.io.InputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
   }
-  public static alluxio.grpc.Chunk parseFrom(
+  public static alluxio.grpc.OpenLocalBlockRequest parseFrom(
       com.google.protobuf.CodedInputStream input)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseWithIOException(PARSER, input);
   }
-  public static alluxio.grpc.Chunk parseFrom(
+  public static alluxio.grpc.OpenLocalBlockRequest parseFrom(
       com.google.protobuf.CodedInputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
@@ -242,7 +280,7 @@ private static final long serialVersionUID = 0L;
   public static Builder newBuilder() {
     return DEFAULT_INSTANCE.toBuilder();
   }
-  public static Builder newBuilder(alluxio.grpc.Chunk prototype) {
+  public static Builder newBuilder(alluxio.grpc.OpenLocalBlockRequest prototype) {
     return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
   }
   public Builder toBuilder() {
@@ -258,29 +296,28 @@ private static final long serialVersionUID = 0L;
   }
   /**
    * <pre>
-   * The data chunk.
-   * next available id: 2
+   * next available id: 3
    * </pre>
    *
-   * Protobuf type {@code alluxio.grpc.Chunk}
+   * Protobuf type {@code alluxio.grpc.OpenLocalBlockRequest}
    */
   public static final class Builder extends
       com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
-      // @@protoc_insertion_point(builder_implements:alluxio.grpc.Chunk)
-      alluxio.grpc.ChunkOrBuilder {
+      // @@protoc_insertion_point(builder_implements:alluxio.grpc.OpenLocalBlockRequest)
+      alluxio.grpc.OpenLocalBlockRequestOrBuilder {
     public static final com.google.protobuf.Descriptors.Descriptor
         getDescriptor() {
-      return alluxio.grpc.BlockWorkerProto.internal_static_alluxio_grpc_Chunk_descriptor;
+      return alluxio.grpc.BlockWorkerProto.internal_static_alluxio_grpc_OpenLocalBlockRequest_descriptor;
     }
 
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
-      return alluxio.grpc.BlockWorkerProto.internal_static_alluxio_grpc_Chunk_fieldAccessorTable
+      return alluxio.grpc.BlockWorkerProto.internal_static_alluxio_grpc_OpenLocalBlockRequest_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
-              alluxio.grpc.Chunk.class, alluxio.grpc.Chunk.Builder.class);
+              alluxio.grpc.OpenLocalBlockRequest.class, alluxio.grpc.OpenLocalBlockRequest.Builder.class);
     }
 
-    // Construct using alluxio.grpc.Chunk.newBuilder()
+    // Construct using alluxio.grpc.OpenLocalBlockRequest.newBuilder()
     private Builder() {
       maybeForceBuilderInitialization();
     }
@@ -297,36 +334,42 @@ private static final long serialVersionUID = 0L;
     }
     public Builder clear() {
       super.clear();
-      data_ = com.google.protobuf.ByteString.EMPTY;
+      blockId_ = 0L;
       bitField0_ = (bitField0_ & ~0x00000001);
+      promote_ = false;
+      bitField0_ = (bitField0_ & ~0x00000002);
       return this;
     }
 
     public com.google.protobuf.Descriptors.Descriptor
         getDescriptorForType() {
-      return alluxio.grpc.BlockWorkerProto.internal_static_alluxio_grpc_Chunk_descriptor;
+      return alluxio.grpc.BlockWorkerProto.internal_static_alluxio_grpc_OpenLocalBlockRequest_descriptor;
     }
 
-    public alluxio.grpc.Chunk getDefaultInstanceForType() {
-      return alluxio.grpc.Chunk.getDefaultInstance();
+    public alluxio.grpc.OpenLocalBlockRequest getDefaultInstanceForType() {
+      return alluxio.grpc.OpenLocalBlockRequest.getDefaultInstance();
     }
 
-    public alluxio.grpc.Chunk build() {
-      alluxio.grpc.Chunk result = buildPartial();
+    public alluxio.grpc.OpenLocalBlockRequest build() {
+      alluxio.grpc.OpenLocalBlockRequest result = buildPartial();
       if (!result.isInitialized()) {
         throw newUninitializedMessageException(result);
       }
       return result;
     }
 
-    public alluxio.grpc.Chunk buildPartial() {
-      alluxio.grpc.Chunk result = new alluxio.grpc.Chunk(this);
+    public alluxio.grpc.OpenLocalBlockRequest buildPartial() {
+      alluxio.grpc.OpenLocalBlockRequest result = new alluxio.grpc.OpenLocalBlockRequest(this);
       int from_bitField0_ = bitField0_;
       int to_bitField0_ = 0;
       if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
         to_bitField0_ |= 0x00000001;
       }
-      result.data_ = data_;
+      result.blockId_ = blockId_;
+      if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
+        to_bitField0_ |= 0x00000002;
+      }
+      result.promote_ = promote_;
       result.bitField0_ = to_bitField0_;
       onBuilt();
       return result;
@@ -359,18 +402,21 @@ private static final long serialVersionUID = 0L;
       return (Builder) super.addRepeatedField(field, value);
     }
     public Builder mergeFrom(com.google.protobuf.Message other) {
-      if (other instanceof alluxio.grpc.Chunk) {
-        return mergeFrom((alluxio.grpc.Chunk)other);
+      if (other instanceof alluxio.grpc.OpenLocalBlockRequest) {
+        return mergeFrom((alluxio.grpc.OpenLocalBlockRequest)other);
       } else {
         super.mergeFrom(other);
         return this;
       }
     }
 
-    public Builder mergeFrom(alluxio.grpc.Chunk other) {
-      if (other == alluxio.grpc.Chunk.getDefaultInstance()) return this;
-      if (other.hasData()) {
-        setData(other.getData());
+    public Builder mergeFrom(alluxio.grpc.OpenLocalBlockRequest other) {
+      if (other == alluxio.grpc.OpenLocalBlockRequest.getDefaultInstance()) return this;
+      if (other.hasBlockId()) {
+        setBlockId(other.getBlockId());
+      }
+      if (other.hasPromote()) {
+        setPromote(other.getPromote());
       }
       this.mergeUnknownFields(other.unknownFields);
       onChanged();
@@ -385,11 +431,11 @@ private static final long serialVersionUID = 0L;
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
-      alluxio.grpc.Chunk parsedMessage = null;
+      alluxio.grpc.OpenLocalBlockRequest parsedMessage = null;
       try {
         parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
       } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-        parsedMessage = (alluxio.grpc.Chunk) e.getUnfinishedMessage();
+        parsedMessage = (alluxio.grpc.OpenLocalBlockRequest) e.getUnfinishedMessage();
         throw e.unwrapIOException();
       } finally {
         if (parsedMessage != null) {
@@ -400,37 +446,66 @@ private static final long serialVersionUID = 0L;
     }
     private int bitField0_;
 
-    private com.google.protobuf.ByteString data_ = com.google.protobuf.ByteString.EMPTY;
+    private long blockId_ ;
     /**
-     * <code>optional bytes data = 1;</code>
+     * <code>optional int64 block_id = 1;</code>
      */
-    public boolean hasData() {
+    public boolean hasBlockId() {
       return ((bitField0_ & 0x00000001) == 0x00000001);
     }
     /**
-     * <code>optional bytes data = 1;</code>
+     * <code>optional int64 block_id = 1;</code>
      */
-    public com.google.protobuf.ByteString getData() {
-      return data_;
+    public long getBlockId() {
+      return blockId_;
     }
     /**
-     * <code>optional bytes data = 1;</code>
+     * <code>optional int64 block_id = 1;</code>
      */
-    public Builder setData(com.google.protobuf.ByteString value) {
-      if (value == null) {
-    throw new NullPointerException();
-  }
-  bitField0_ |= 0x00000001;
-      data_ = value;
+    public Builder setBlockId(long value) {
+      bitField0_ |= 0x00000001;
+      blockId_ = value;
       onChanged();
       return this;
     }
     /**
-     * <code>optional bytes data = 1;</code>
+     * <code>optional int64 block_id = 1;</code>
      */
-    public Builder clearData() {
+    public Builder clearBlockId() {
       bitField0_ = (bitField0_ & ~0x00000001);
-      data_ = getDefaultInstance().getData();
+      blockId_ = 0L;
+      onChanged();
+      return this;
+    }
+
+    private boolean promote_ ;
+    /**
+     * <code>optional bool promote = 2;</code>
+     */
+    public boolean hasPromote() {
+      return ((bitField0_ & 0x00000002) == 0x00000002);
+    }
+    /**
+     * <code>optional bool promote = 2;</code>
+     */
+    public boolean getPromote() {
+      return promote_;
+    }
+    /**
+     * <code>optional bool promote = 2;</code>
+     */
+    public Builder setPromote(boolean value) {
+      bitField0_ |= 0x00000002;
+      promote_ = value;
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>optional bool promote = 2;</code>
+     */
+    public Builder clearPromote() {
+      bitField0_ = (bitField0_ & ~0x00000002);
+      promote_ = false;
       onChanged();
       return this;
     }
@@ -445,39 +520,39 @@ private static final long serialVersionUID = 0L;
     }
 
 
-    // @@protoc_insertion_point(builder_scope:alluxio.grpc.Chunk)
+    // @@protoc_insertion_point(builder_scope:alluxio.grpc.OpenLocalBlockRequest)
   }
 
-  // @@protoc_insertion_point(class_scope:alluxio.grpc.Chunk)
-  private static final alluxio.grpc.Chunk DEFAULT_INSTANCE;
+  // @@protoc_insertion_point(class_scope:alluxio.grpc.OpenLocalBlockRequest)
+  private static final alluxio.grpc.OpenLocalBlockRequest DEFAULT_INSTANCE;
   static {
-    DEFAULT_INSTANCE = new alluxio.grpc.Chunk();
+    DEFAULT_INSTANCE = new alluxio.grpc.OpenLocalBlockRequest();
   }
 
-  public static alluxio.grpc.Chunk getDefaultInstance() {
+  public static alluxio.grpc.OpenLocalBlockRequest getDefaultInstance() {
     return DEFAULT_INSTANCE;
   }
 
-  @java.lang.Deprecated public static final com.google.protobuf.Parser<Chunk>
-      PARSER = new com.google.protobuf.AbstractParser<Chunk>() {
-    public Chunk parsePartialFrom(
+  @java.lang.Deprecated public static final com.google.protobuf.Parser<OpenLocalBlockRequest>
+      PARSER = new com.google.protobuf.AbstractParser<OpenLocalBlockRequest>() {
+    public OpenLocalBlockRequest parsePartialFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
-      return new Chunk(input, extensionRegistry);
+      return new OpenLocalBlockRequest(input, extensionRegistry);
     }
   };
 
-  public static com.google.protobuf.Parser<Chunk> parser() {
+  public static com.google.protobuf.Parser<OpenLocalBlockRequest> parser() {
     return PARSER;
   }
 
   @java.lang.Override
-  public com.google.protobuf.Parser<Chunk> getParserForType() {
+  public com.google.protobuf.Parser<OpenLocalBlockRequest> getParserForType() {
     return PARSER;
   }
 
-  public alluxio.grpc.Chunk getDefaultInstanceForType() {
+  public alluxio.grpc.OpenLocalBlockRequest getDefaultInstanceForType() {
     return DEFAULT_INSTANCE;
   }
 

@@ -9,9 +9,8 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.worker.netty;
+package alluxio.worker.grpc;
 
-import alluxio.proto.dataserver.Protocol;
 import alluxio.worker.block.io.BlockWriter;
 
 import javax.annotation.Nullable;
@@ -29,7 +28,7 @@ public final class BlockWriteRequestContext extends WriteRequestContext<BlockWri
   private java.io.OutputStream mOutputStream;
   private String mUfsPath;
 
-  BlockWriteRequestContext(Protocol.WriteRequest request, long bytesReserved) {
+  BlockWriteRequestContext(alluxio.grpc.WriteRequest request, long bytesReserved) {
     super(new BlockWriteRequest(request));
     mBytesReserved = bytesReserved;
   }

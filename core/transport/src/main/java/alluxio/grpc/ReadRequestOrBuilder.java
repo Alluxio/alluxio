@@ -50,4 +50,29 @@ public interface ReadRequestOrBuilder extends
    * <code>optional bool promote = 4;</code>
    */
   boolean getPromote();
+
+  /**
+   * <pre>
+   * This is only set for UFS block read.
+   * </pre>
+   *
+   * <code>optional .alluxio.proto.dataserver.OpenUfsBlockOptions open_ufs_block_options = 5;</code>
+   */
+  boolean hasOpenUfsBlockOptions();
+  /**
+   * <pre>
+   * This is only set for UFS block read.
+   * </pre>
+   *
+   * <code>optional .alluxio.proto.dataserver.OpenUfsBlockOptions open_ufs_block_options = 5;</code>
+   */
+  alluxio.proto.dataserver.Protocol.OpenUfsBlockOptions getOpenUfsBlockOptions();
+  /**
+   * <pre>
+   * This is only set for UFS block read.
+   * </pre>
+   *
+   * <code>optional .alluxio.proto.dataserver.OpenUfsBlockOptions open_ufs_block_options = 5;</code>
+   */
+  alluxio.proto.dataserver.Protocol.OpenUfsBlockOptionsOrBuilder getOpenUfsBlockOptionsOrBuilder();
 }

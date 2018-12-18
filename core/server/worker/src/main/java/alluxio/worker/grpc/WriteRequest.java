@@ -9,26 +9,25 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.worker.netty;
-
-import alluxio.proto.dataserver.Protocol;
-import alluxio.util.IdUtils;
+package alluxio.worker.grpc;
 
 import javax.annotation.concurrent.ThreadSafe;
+
+import alluxio.util.IdUtils;
 
 /**
  * Represents a write request received from netty channel.
  */
 @ThreadSafe
-class WriteRequest {
+public class WriteRequest {
   /** This ID can either be block ID or temp UFS file ID. */
   private final long mId;
 
   /** The session id associated with all temporary resources of this request. */
   private final long mSessionId;
 
-  WriteRequest(Protocol.WriteRequest request) {
-    mId = request.getId();
+  WriteRequest(alluxio.grpc.WriteRequest request) {
+    mId = request.getCommand().getId();
     mSessionId = IdUtils.createSessionId();
   }
 

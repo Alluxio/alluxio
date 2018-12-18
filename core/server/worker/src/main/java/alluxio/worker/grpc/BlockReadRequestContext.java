@@ -9,13 +9,12 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.worker.netty;
-
-import alluxio.proto.dataserver.Protocol;
-import alluxio.worker.block.io.BlockReader;
+package alluxio.worker.grpc;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
+
+import alluxio.worker.block.io.BlockReader;
 
 /**
  * Context of {@link BlockReadRequest}.
@@ -27,7 +26,7 @@ public final class BlockReadRequestContext extends ReadRequestContext<BlockReadR
   /**
    * @param request read request in proto
    */
-  public BlockReadRequestContext(Protocol.ReadRequest request) {
+  public BlockReadRequestContext(alluxio.grpc.ReadRequest request) {
     super(new BlockReadRequest(request));
   }
 

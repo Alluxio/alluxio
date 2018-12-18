@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.worker.netty;
+package alluxio.worker.grpc;
 
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
@@ -20,17 +20,16 @@ import alluxio.WorkerStorageTierAssoc;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.UnavailableException;
+import alluxio.grpc.ReadResponse;
 import alluxio.metrics.Metric;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.WorkerMetrics;
-import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.network.protocol.databuffer.DataBuffer;
+import alluxio.network.protocol.databuffer.DataByteBuffer;
 import alluxio.network.protocol.databuffer.DataFileChannel;
-import alluxio.network.protocol.databuffer.DataNettyBufferV2;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.retry.RetryPolicy;
 import alluxio.retry.TimeoutRetry;
-import alluxio.util.proto.ProtoMessage;
 import alluxio.worker.block.BlockLockManager;
 import alluxio.worker.block.BlockWorker;
 import alluxio.worker.block.UnderFileSystemBlockReader;
@@ -38,12 +37,13 @@ import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.LocalFileBlockReader;
 
 import com.google.common.base.Preconditions;
-import io.netty.buffer.ByteBuf;
-import io.netty.channel.Channel;
+import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+
 import java.io.File;
+import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.concurrent.ExecutorService;
 
@@ -65,6 +65,11 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
   private final BlockWorker mWorker;
   /** The transfer type used by the data server. */
   private final FileTransferType mTransferType;
+  private static byte[] mMockData = new byte[64 * Constants.MB];
+  static {
+    for (int i = 0; i < mMockData.length; i++)
+      mMockData[i] = (byte)(i % 47);
+  }
 
   /**
    * The packet reader to read from a local block worker.
@@ -76,8 +81,8 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
     /** An object storing the mapping of tier aliases to ordinals. */
     private final StorageTierAssoc mStorageTierAssoc = new WorkerStorageTierAssoc();
 
-    BlockPacketReader(BlockReadRequestContext context, Channel channel, BlockWorker blockWorker) {
-      super(context, channel);
+    BlockPacketReader(BlockReadRequestContext context, StreamObserver<ReadResponse> response, BlockWorker blockWorker) {
+      super(context, response);
       mWorker = blockWorker;
     }
 
@@ -101,9 +106,9 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
     }
 
     @Override
-    protected DataBuffer getDataBuffer(BlockReadRequestContext context, Channel channel,
+    protected DataBuffer getDataBuffer(BlockReadRequestContext context, StreamObserver<ReadResponse> response,
         long offset, int len) throws Exception {
-      openBlock(context, channel);
+      openBlock(context, response);
       BlockReader blockReader = context.getBlockReader();
       Preconditions.checkState(blockReader != null);
       if (mTransferType == FileTransferType.TRANSFER
@@ -111,25 +116,18 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
         return new DataFileChannel(new File(((LocalFileBlockReader) blockReader).getFilePath()),
             offset, len);
       } else {
-        ByteBuf buf = channel.alloc().buffer(len, len);
-        try {
-          while (buf.writableBytes() > 0 && blockReader.transferTo(buf) != -1) {
-          }
-          return new DataNettyBufferV2(buf);
-        } catch (Throwable e) {
-          buf.release();
-          throw e;
-        }
+        ByteBuffer buf = blockReader.read(offset, len);
+        return new DataByteBuffer(buf, len);
       }
     }
 
     /**
      * Opens the block if it is not open.
      *
-     * @param channel the netty channel
+     * @param response the netty channel
      * @throws Exception if it fails to open the block
      */
-    private void openBlock(BlockReadRequestContext context, Channel channel) throws Exception {
+    private void openBlock(BlockReadRequestContext context, StreamObserver<ReadResponse> response) throws Exception {
       if (context.getBlockReader() != null) {
         return;
       }
@@ -177,7 +175,8 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
 
         // When the block does not exist in Alluxio but exists in UFS, try to open the UFS block.
         Protocol.OpenUfsBlockOptions openUfsBlockOptions = request.getOpenUfsBlockOptions();
-        if (mWorker.openUfsBlock(request.getSessionId(), request.getId(), openUfsBlockOptions)) {
+        if (mWorker.openUfsBlock(request.getSessionId(), request.getId(),
+            Protocol.OpenUfsBlockOptions.parseFrom(openUfsBlockOptions.toByteString()))) {
           try {
             BlockReader reader =
                 mWorker.readUfsBlock(request.getSessionId(), request.getId(), request.getStart());
@@ -201,12 +200,6 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
             throw e;
           }
         }
-
-        ProtoMessage heartbeat = new ProtoMessage(Protocol.ReadResponse.newBuilder()
-            .setType(Protocol.ReadResponse.Type.UFS_READ_HEARTBEAT).build());
-        // Sends an empty buffer to the client to make sure that the client does not timeout when
-        // the server is waiting for the UFS block access.
-        channel.writeAndFlush(new RPCProtoMessage(heartbeat));
       }
       throw new UnavailableException(ExceptionMessage.UFS_BLOCK_ACCESS_TOKEN_UNAVAILABLE
           .getMessage(request.getId(), request.getOpenUfsBlockOptions().getUfsPath()));
@@ -227,13 +220,12 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
     mTransferType = fileTransferType;
   }
 
-  @Override
-  protected BlockReadRequestContext createRequestContext(Protocol.ReadRequest request) {
+  protected BlockReadRequestContext createRequestContext(alluxio.grpc.ReadRequest request) {
     return new BlockReadRequestContext(request);
   }
 
   @Override
-  protected PacketReader createPacketReader(BlockReadRequestContext context, Channel channel) {
-    return new BlockPacketReader(context, channel, mWorker);
+  protected PacketReader createPacketReader(BlockReadRequestContext context, StreamObserver<ReadResponse> response) {
+    return new BlockPacketReader(context, response, mWorker);
   }
 }

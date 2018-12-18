@@ -16,18 +16,17 @@ import alluxio.PropertyKey;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.OutStreamOptions;
-import alluxio.network.netty.NettyRPC;
-import alluxio.network.netty.NettyRPCContext;
-import alluxio.proto.dataserver.Protocol;
+import alluxio.exception.status.CanceledException;
+import alluxio.grpc.CreateLocalBlockRequest;
+import alluxio.grpc.CreateLocalBlockResponse;
 import alluxio.util.CommonUtils;
-import alluxio.util.proto.ProtoMessage;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.block.io.LocalFileBlockWriter;
 
 import com.google.common.base.Preconditions;
 import com.google.common.io.Closer;
+import io.grpc.Context;
 import io.netty.buffer.ByteBuf;
-import io.netty.channel.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,17 +43,14 @@ public final class LocalFilePacketWriter implements PacketWriter {
   private static final Logger LOG = LoggerFactory.getLogger(LocalFilePacketWriter.class);
   private static final long FILE_BUFFER_BYTES =
       Configuration.getBytes(PropertyKey.USER_FILE_BUFFER_BYTES);
-  private static final long WRITE_TIMEOUT_MS =
-      Configuration.getMs(PropertyKey.USER_NETWORK_NETTY_TIMEOUT_MS);
 
-  private final Channel mChannel;
+  private final BlockWorkerClient mBlockWorker;
   private final LocalFileBlockWriter mWriter;
-  private final long mBlockId;
   private final long mPacketSize;
-  private final ProtoMessage mCreateRequest;
-  private final NettyRPCContext mNettyRPCContext;
+  private final CreateLocalBlockRequest mCreateRequest;
   private final OutStreamOptions mOptions;
   private final Closer mCloser;
+  private final Context.CancellableContext mCancellableContext;
 
   /** The position to write the next byte at. */
   private long mPos;
@@ -80,29 +76,33 @@ public final class LocalFilePacketWriter implements PacketWriter {
 
     Closer closer = Closer.create();
     try {
-      final Channel channel = context.acquireNettyChannel(address);
+      final BlockWorkerClient blockWorker = context.acquireBlockWorkerClient(address);
       closer.register(new Closeable() {
         @Override
         public void close() throws IOException {
-          context.releaseNettyChannel(address, channel);
+          blockWorker.close();
         }
       });
-      Protocol.LocalBlockCreateRequest.Builder builder =
-          Protocol.LocalBlockCreateRequest.newBuilder().setBlockId(blockId)
+      CreateLocalBlockRequest.Builder builder =
+          CreateLocalBlockRequest.newBuilder().setBlockId(blockId)
               .setTier(options.getWriteTier()).setSpaceToReserve(FILE_BUFFER_BYTES);
       if (options.getWriteType() == WriteType.ASYNC_THROUGH
           && Configuration.getBoolean(PropertyKey.USER_FILE_UFS_TIER_ENABLED)) {
         builder.setCleanupOnFailure(false);
       }
-      ProtoMessage createRequest = new ProtoMessage(builder.build());
-      NettyRPCContext nettyRPCContext =
-          NettyRPCContext.defaults().setChannel(channel).setTimeout(WRITE_TIMEOUT_MS);
-      ProtoMessage message = NettyRPC.call(nettyRPCContext, createRequest);
-      Preconditions.checkState(message.isLocalBlockCreateResponse());
+      CreateLocalBlockRequest createRequest = builder.build();
+      Context.CancellableContext cancellableContext = Context.current().withCancellation();
+      Context previousContext = cancellableContext.attach();
+      CreateLocalBlockResponse response;
+      try {
+        response = blockWorker.createLocalBlock(createRequest);
+      } finally {
+        cancellableContext.detach(previousContext);
+      }
       LocalFileBlockWriter writer =
-          closer.register(new LocalFileBlockWriter(message.asLocalBlockCreateResponse().getPath()));
-      return new LocalFilePacketWriter(blockId, packetSize, options, channel,
-          writer, createRequest, nettyRPCContext, closer);
+          closer.register(new LocalFileBlockWriter(response.getPath()));
+      return new LocalFilePacketWriter(packetSize, options, blockWorker,
+          writer, createRequest, cancellableContext, closer);
     } catch (Exception e) {
       throw CommonUtils.closeAndRethrow(closer, e);
     }
@@ -139,9 +139,7 @@ public final class LocalFilePacketWriter implements PacketWriter {
     mClosed = true;
 
     try {
-      NettyRPC.call(mNettyRPCContext, new ProtoMessage(
-          Protocol.LocalBlockCompleteRequest.newBuilder().setBlockId(mBlockId).setCancel(true)
-              .build()));
+      mCancellableContext.cancel(new CanceledException("Operation canceled by client"));
     } catch (Exception e) {
       throw mCloser.rethrow(e);
     } finally {
@@ -161,10 +159,8 @@ public final class LocalFilePacketWriter implements PacketWriter {
 
     mCloser.register(new Closeable() {
       @Override
-      public void close() throws IOException {
-        Protocol.LocalBlockCompleteRequest request =
-            Protocol.LocalBlockCompleteRequest.newBuilder().setBlockId(mBlockId).build();
-        NettyRPC.call(mNettyRPCContext, new ProtoMessage(request));
+      public void close() {
+        mCancellableContext.close();
       }
     });
     mCloser.close();
@@ -172,22 +168,21 @@ public final class LocalFilePacketWriter implements PacketWriter {
 
   /**
    * Creates an instance of {@link LocalFilePacketWriter}.
-   *
-   * @param blockId the block ID
    * @param packetSize the packet size
    * @param options the output stream options
+   * @param cancellableContext
    */
-  private LocalFilePacketWriter(long blockId, long packetSize, OutStreamOptions options,
-      Channel channel, LocalFileBlockWriter writer,
-      ProtoMessage createRequest, NettyRPCContext nettyRPCContext, Closer closer) {
-    mChannel = channel;
+  private LocalFilePacketWriter(long packetSize, OutStreamOptions options,
+      BlockWorkerClient blockWorker, LocalFileBlockWriter writer,
+      CreateLocalBlockRequest createRequest, Context.CancellableContext cancellableContext,
+      Closer closer) {
+    mBlockWorker = blockWorker;
     mCloser = closer;
     mOptions = options;
     mWriter = writer;
     mCreateRequest = createRequest;
-    mNettyRPCContext = nettyRPCContext;
+    mCancellableContext = cancellableContext;
     mPosReserved += FILE_BUFFER_BYTES;
-    mBlockId = blockId;
     mPacketSize = packetSize;
   }
 
@@ -201,9 +196,8 @@ public final class LocalFilePacketWriter implements PacketWriter {
       return;
     }
     long toReserve = Math.max(pos - mPosReserved, FILE_BUFFER_BYTES);
-    NettyRPC.call(mNettyRPCContext, new ProtoMessage(
-        mCreateRequest.asLocalBlockCreateRequest().toBuilder().setSpaceToReserve(toReserve)
-            .setOnlyReserveSpace(true).build()));
+    mBlockWorker.createLocalBlock(mCreateRequest.toBuilder().setSpaceToReserve(toReserve)
+          .setOnlyReserveSpace(true).build());
     mPosReserved += toReserve;
   }
 }

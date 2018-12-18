@@ -6,11 +6,22 @@ option java_outer_classname = "BlockWorkerProto";
 
 package alluxio.grpc;
 
+import "common.proto";
+import "dataserver/protocol.proto";
+
 // The block worker service
 service BlockWorker {
   rpc ReadBlock (ReadRequest) returns (stream ReadResponse);
   rpc WriteBlock (stream WriteRequest) returns (stream WriteResponse);
-  // TODO(feng): Add more worker RPC
+
+  // Replaces ShortCircuitBlockReadHandler.
+  rpc OpenLocalBlock (OpenLocalBlockRequest) returns (stream OpenLocalBlockResponse);
+
+  // Replaces ShortCircuitBlockWriteHandler.
+  rpc CreateLocalBlock (CreateLocalBlockRequest) returns (stream CreateLocalBlockResponse);
+
+  rpc AsyncCache (AsyncCacheRequest) returns (AsyncCacheResponse);
+  rpc RemoveBlock (RemoveBlockRequest) returns (RemoveBlockResponse);
 }
 
 // The data chunk.
@@ -28,13 +39,16 @@ enum RequestType {
 }
 
 // The read request.
-// next available id: 5
+// next available id: 6
 message ReadRequest {
   optional int64 block_id = 1;
   optional int64 offset = 2;
   optional int64 length = 3;
   // Whether the block should be promoted before reading
   optional bool promote = 4;
+
+  // This is only set for UFS block read.
+  optional alluxio.proto.dataserver.OpenUfsBlockOptions open_ufs_block_options = 5;
 }
 
 // The read response.
@@ -44,7 +58,7 @@ message ReadResponse {
 }
 
 // The write request command.
-// next available id: 6
+// next available id: 8
 message WriteRequestCommand {
   optional RequestType type = 1;
   // The block ID or UFS file ID.
@@ -53,6 +67,8 @@ message WriteRequestCommand {
   // This is only applicable for block write.
   optional int32 tier = 4;
   optional bool flush = 5;
+  optional alluxio.proto.dataserver.CreateUfsFileOptions create_ufs_file_options = 6;
+  optional alluxio.proto.dataserver.CreateUfsBlockOptions create_ufs_block_options = 7;
   // Cancel, close and error will be handled by standard gRPC stream APIs.
 }
 
@@ -71,3 +87,51 @@ message WriteResponse {
   optional int64 offset = 1;
   // Errors will be handled by standard gRPC stream APIs.
 }
+
+// Request for caching a block asynchronously
+// next available id: 6
+message AsyncCacheRequest {
+  optional int64 block_id = 1;
+  // TODO(calvin): source host and port should be replace with WorkerNetAddress
+  optional string source_host = 2;
+  optional int32 source_port = 3;
+  optional alluxio.proto.dataserver.OpenUfsBlockOptions open_ufs_block_options = 4;
+  optional int64 length = 5;
+}
+
+// Response for an async cache request
+message AsyncCacheResponse {}
+
+
+// next available id: 3
+message OpenLocalBlockRequest {
+  optional int64 block_id = 1;
+  optional bool promote = 2;
+}
+
+// next available id: 2
+message OpenLocalBlockResponse {
+  optional string path = 1;
+}
+
+// next available id: 6
+message CreateLocalBlockRequest {
+  optional int64 block_id = 1;
+  optional int32 tier = 3;
+  optional int64 space_to_reserve = 4;
+  // If set, only reserve space for the block.
+  optional bool only_reserve_space = 5;
+  optional bool cleanup_on_failure = 6;
+}
+
+// next available id: 2
+message CreateLocalBlockResponse {
+  optional string path = 1;
+}
+
+// next available id: 2
+message RemoveBlockRequest {
+  optional int64 block_id = 1;
+}
+
+message RemoveBlockResponse {}

@@ -9,17 +9,16 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.worker.netty;
-
-import alluxio.proto.dataserver.Protocol;
-import alluxio.resource.CloseableResource;
-import alluxio.underfs.UnderFileSystem;
-import alluxio.underfs.options.CreateOptions;
+package alluxio.worker.grpc;
 
 import java.io.OutputStream;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
+
+import alluxio.resource.CloseableResource;
+import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.options.CreateOptions;
 
 /**
  * The UFS File write request internal representation.
@@ -30,7 +29,7 @@ public final class UfsFileWriteRequestContext extends WriteRequestContext<UfsFil
   private CreateOptions mCreateOptions;
   private OutputStream mOutputStream;
 
-  UfsFileWriteRequestContext(Protocol.WriteRequest request) {
+  UfsFileWriteRequestContext(alluxio.grpc.WriteRequest request) {
     super(new UfsFileWriteRequest(request));
   }
 

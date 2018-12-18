@@ -264,15 +264,20 @@ public final class RpcUtils {
    * @param <T> the return type of the callable
    */
   public static <T> void nettyRPCAndLog(Logger logger, NettyRpcCallable<T> callable,
-      String methodName, String description, StreamObserver<T> responseObserver, Object... args) {
+      String methodName, boolean sendResponse, boolean completeResponse, String description,
+      StreamObserver<T> responseObserver, Object... args) {
     // avoid string format for better performance if debug is off
     String debugDesc = logger.isDebugEnabled() ? String.format(description, args) : null;
     try (Timer.Context ctx = MetricsSystem.timer(getQualifiedMetricName(methodName)).time()) {
       logger.debug("Enter: {}: {}", methodName, debugDesc);
       T result = callable.call();
       logger.debug("Exit (OK): {}: {}", methodName, debugDesc);
-      responseObserver.onNext(result);
-      responseObserver.onCompleted();
+      if (sendResponse) {
+        responseObserver.onNext(result);
+      }
+      if (completeResponse) {
+        responseObserver.onCompleted();
+      }
     } catch (Exception e) {
       logger.warn("Exit (Error): {}: {}, Error={}", methodName, String.format(description, args),
           e);

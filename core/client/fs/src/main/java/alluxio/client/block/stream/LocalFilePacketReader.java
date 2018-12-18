@@ -16,19 +16,18 @@ import alluxio.PropertyKey;
 import alluxio.client.ReadType;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.InStreamOptions;
+import alluxio.grpc.OpenLocalBlockRequest;
+import alluxio.grpc.OpenLocalBlockResponse;
 import alluxio.metrics.ClientMetrics;
 import alluxio.metrics.MetricsSystem;
-import alluxio.network.netty.NettyRPC;
-import alluxio.network.netty.NettyRPCContext;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.DataByteBuffer;
 import alluxio.proto.dataserver.Protocol;
-import alluxio.util.proto.ProtoMessage;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.block.io.LocalFileBlockReader;
 
 import com.google.common.base.Preconditions;
-import io.netty.channel.Channel;
+import io.grpc.Context;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -96,14 +95,11 @@ public final class LocalFilePacketReader implements PacketReader {
    */
   @NotThreadSafe
   public static class Factory implements PacketReader.Factory {
-    private static final long READ_TIMEOUT_MS =
-        Configuration.getMs(PropertyKey.USER_NETWORK_NETTY_TIMEOUT_MS);
-    private final FileSystemContext mContext;
-    private final WorkerNetAddress mAddress;
-    private final Channel mChannel;
+    private final BlockWorkerClient mBlockWorker;
     private final long mBlockId;
     private final String mPath;
     private final long mPacketSize;
+    private final Context.CancellableContext mCancellableContext;
     private LocalFileBlockReader mReader;
     private boolean mClosed;
 
@@ -118,24 +114,23 @@ public final class LocalFilePacketReader implements PacketReader {
      */
     public Factory(FileSystemContext context, WorkerNetAddress address, long blockId,
         long packetSize, InStreamOptions options) throws IOException {
-      mContext = context;
-      mAddress = address;
       mBlockId = blockId;
       mPacketSize = packetSize;
 
-      mChannel = context.acquireNettyChannel(address);
+      mBlockWorker = context.acquireBlockWorkerClient(address);
       boolean isPromote = ReadType.fromProto(options.getOptions().getReadType()).isPromote();
-      Protocol.LocalBlockOpenRequest request = Protocol.LocalBlockOpenRequest.newBuilder()
+      OpenLocalBlockRequest request = OpenLocalBlockRequest.newBuilder()
           .setBlockId(mBlockId).setPromote(isPromote).build();
+      mCancellableContext = Context.current().withCancellation();
+      Context previousContext = mCancellableContext.attach();
       try {
-        ProtoMessage message = NettyRPC
-            .call(NettyRPCContext.defaults().setChannel(mChannel).setTimeout(READ_TIMEOUT_MS),
-                new ProtoMessage(request));
-        Preconditions.checkState(message.isLocalBlockOpenResponse());
-        mPath = message.asLocalBlockOpenResponse().getPath();
+        OpenLocalBlockResponse response = mBlockWorker.openLocalBlock(request);
+        mPath = response.getPath();
       } catch (Exception e) {
-        context.releaseNettyChannel(address, mChannel);
+        mCancellableContext.cancel(e);
         throw e;
+      } finally {
+        mCancellableContext.detach(previousContext);
       }
     }
 
@@ -162,14 +157,11 @@ public final class LocalFilePacketReader implements PacketReader {
       if (mReader != null) {
         mReader.close();
       }
-      Protocol.LocalBlockCloseRequest request =
-          Protocol.LocalBlockCloseRequest.newBuilder().setBlockId(mBlockId).build();
       try {
-        NettyRPC.call(NettyRPCContext.defaults().setChannel(mChannel).setTimeout(READ_TIMEOUT_MS),
-            new ProtoMessage(request));
+        mCancellableContext.close();
       } finally {
+        mBlockWorker.close();
         mClosed = true;
-        mContext.releaseNettyChannel(mAddress, mChannel);
       }
     }
   }

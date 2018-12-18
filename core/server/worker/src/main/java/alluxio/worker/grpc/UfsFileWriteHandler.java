@@ -9,12 +9,26 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.worker.netty;
+package alluxio.worker.grpc;
 
+import java.io.IOException;
+import java.util.concurrent.ExecutorService;
+
+import javax.annotation.concurrent.NotThreadSafe;
+
+import com.google.protobuf.ByteString;
+import io.grpc.stub.StreamObserver;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.codahale.metrics.Counter;
+import com.google.common.base.Preconditions;
+
+import alluxio.grpc.WriteRequest;
+import alluxio.grpc.WriteResponse;
 import alluxio.metrics.Metric;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.WorkerMetrics;
-import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.resource.CloseableResource;
 import alluxio.security.authorization.Mode;
@@ -22,18 +36,6 @@ import alluxio.underfs.UfsManager;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.util.proto.ProtoUtils;
-
-import com.codahale.metrics.Counter;
-import com.google.common.base.Preconditions;
-import io.netty.buffer.ByteBuf;
-import io.netty.channel.Channel;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.io.IOException;
-import java.util.concurrent.ExecutorService;
-
-import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * This handler handles writes to a file in the under file system. Due to the semantics enforced
@@ -58,150 +60,112 @@ public final class UfsFileWriteHandler extends AbstractWriteHandler<UfsFileWrite
   /**
    * Creates an instance of {@link UfsFileWriteHandler}.
    *
-   * @param executorService the executor service to run {@link PacketWriter}s
    * @param ufsManager the file data manager
    */
-  UfsFileWriteHandler(ExecutorService executorService, UfsManager ufsManager) {
-    super(executorService);
+  UfsFileWriteHandler(UfsManager ufsManager, StreamObserver<WriteResponse> responseObserver) {
+    super(responseObserver);
     mUfsManager = ufsManager;
   }
 
   @Override
-  protected boolean acceptMessage(Object object) {
-    if (!super.acceptMessage(object)) {
-      return false;
-    }
-    Protocol.WriteRequest request = ((RPCProtoMessage) object).getMessage().asWriteRequest();
-    return request.getType() == Protocol.RequestType.UFS_FILE;
-  }
-
-  @Override
-  protected UfsFileWriteRequestContext createRequestContext(Protocol.WriteRequest msg) {
+  protected UfsFileWriteRequestContext createRequestContext(WriteRequest msg) {
     return new UfsFileWriteRequestContext(msg);
   }
 
   @Override
-  protected void initRequestContext(UfsFileWriteRequestContext context) {
+  protected void completeRequest(UfsFileWriteRequestContext context)
+      throws Exception {
+    if (context == null) {
+      return;
+    }
+    if (context.getOutputStream() == null) {
+      createUfsFile(context);
+    }
+    Preconditions.checkState(context.getOutputStream() != null);
+    context.getOutputStream().close();
+    CreateOptions createOptions = context.getCreateOptions();
+    if (createOptions != null) {
+      try {
+        // Set the owner/group of the file to the correct owner.
+        context.getUfsResource().get()
+            .setOwner(context.getRequest().getUfsPath(), createOptions.getOwner(),
+                createOptions.getGroup());
+      } catch (IOException e) {
+        LOG.warn("Failed to update ownership for ufs path: {} owner: {} group: {} error: {}",
+            context.getRequest().getUfsPath(), createOptions.getOwner(), createOptions.getGroup(),
+            e.toString());
+      }
+    }
+    context.setOutputStream(null);
+    context.setCreateOptions(null);
+    context.getUfsResource().close();
   }
 
   @Override
-  protected PacketWriter createPacketWriter(UfsFileWriteRequestContext context, Channel channel) {
-    return new UfsFilePacketWriter(context, channel, mUfsManager);
-  }
-
-  /**
-   * The packet writer that writes to UFS.
-   */
-  public class UfsFilePacketWriter extends PacketWriter {
-    private final UfsManager mUfsManager;
-
-    /**
-     * @param context context of this packet writer
-     * @param channel netty channel
-     * @param ufsManager UFS manager
-     */
-    public UfsFilePacketWriter(UfsFileWriteRequestContext context, Channel channel,
-        UfsManager ufsManager) {
-      super(context, channel);
-      mUfsManager = ufsManager;
+  protected void cancelRequest(UfsFileWriteRequestContext context) throws Exception {
+    if (context == null) {
+      return;
     }
-
-    @Override
-    protected void completeRequest(UfsFileWriteRequestContext context, Channel channel)
-        throws Exception {
-      if (context == null) {
-        return;
-      }
-      if (context.getOutputStream() == null) {
-        createUfsFile(context, channel);
-      }
-      Preconditions.checkState(context.getOutputStream() != null);
+    UfsFileWriteRequest request = context.getRequest();
+    // TODO(calvin): Consider adding cancel to the ufs stream api.
+    if (context.getOutputStream() != null && context.getUfsResource() != null) {
       context.getOutputStream().close();
-      CreateOptions createOptions = context.getCreateOptions();
-      if (createOptions != null) {
-        try {
-          // Set the owner/group of the file to the correct owner.
-          context.getUfsResource().get()
-              .setOwner(context.getRequest().getUfsPath(), createOptions.getOwner(),
-                  createOptions.getGroup());
-        } catch (IOException e) {
-          LOG.warn("Failed to update ownership for ufs path: {} owner: {} group: {} error: {}",
-              context.getRequest().getUfsPath(), createOptions.getOwner(), createOptions.getGroup(),
-              e.toString());
-        }
-      }
+      context.getUfsResource().get().deleteFile(request.getUfsPath());
       context.setOutputStream(null);
       context.setCreateOptions(null);
       context.getUfsResource().close();
     }
+  }
 
-    @Override
-    protected void cancelRequest(UfsFileWriteRequestContext context) throws Exception {
-      if (context == null) {
-        return;
-      }
-      UfsFileWriteRequest request = context.getRequest();
-      // TODO(calvin): Consider adding cancel to the ufs stream api.
-      if (context.getOutputStream() != null && context.getUfsResource() != null) {
-        context.getOutputStream().close();
-        context.getUfsResource().get().deleteFile(request.getUfsPath());
-        context.setOutputStream(null);
-        context.setCreateOptions(null);
-        context.getUfsResource().close();
-      }
+  @Override
+  protected void cleanupRequest(UfsFileWriteRequestContext context) throws Exception {
+    cancelRequest(context);
+  }
+
+  @Override
+  protected void flushRequest(UfsFileWriteRequestContext context)
+      throws Exception {
+    Preconditions.checkState(context != null);
+    if (context.getOutputStream() != null) {
+      context.getOutputStream().flush();
     }
+  }
 
-    @Override
-    protected void cleanupRequest(UfsFileWriteRequestContext context) throws Exception {
-      cancelRequest(context);
+  @Override
+  protected void writeBuf(UfsFileWriteRequestContext context,
+      StreamObserver<WriteResponse> observer, ByteString buf, long pos) throws Exception {
+    Preconditions.checkState(context != null);
+    if (context.getOutputStream() == null) {
+      createUfsFile(context);
     }
+    buf.writeTo(context.getOutputStream());
+  }
 
-    @Override
-    protected void flushRequest(UfsFileWriteRequestContext context)
-        throws Exception {
-      Preconditions.checkState(context != null);
-      if (context.getOutputStream() != null) {
-        context.getOutputStream().flush();
-      }
+  private void createUfsFile(UfsFileWriteRequestContext context)
+      throws IOException {
+    UfsFileWriteRequest request = context.getRequest();
+    Preconditions.checkState(request != null);
+    Protocol.CreateUfsFileOptions createUfsFileOptions = request.getCreateUfsFileOptions();
+    UfsManager.UfsClient ufsClient = mUfsManager.get(createUfsFileOptions.getMountId());
+    CloseableResource<UnderFileSystem> ufsResource = ufsClient.acquireUfsResource();
+    context.setUfsResource(ufsResource);
+    UnderFileSystem ufs = ufsResource.get();
+    CreateOptions createOptions = CreateOptions.defaults()
+        .setOwner(createUfsFileOptions.getOwner()).setGroup(createUfsFileOptions.getGroup())
+        .setMode(new Mode((short) createUfsFileOptions.getMode()));
+    if (createUfsFileOptions.hasAcl()) {
+      // This acl information will be ignored by all but HDFS implementations
+      createOptions.setAcl(ProtoUtils.fromProto(createUfsFileOptions.getAcl()));
     }
-
-    @Override
-    protected void writeBuf(UfsFileWriteRequestContext context, Channel channel, ByteBuf buf,
-        long pos) throws Exception {
-      Preconditions.checkState(context != null);
-      if (context.getOutputStream() == null) {
-        createUfsFile(context, channel);
-      }
-
-      buf.readBytes(context.getOutputStream(), buf.readableBytes());
-    }
-
-    private void createUfsFile(UfsFileWriteRequestContext context, Channel channel)
-        throws IOException {
-      UfsFileWriteRequest request = context.getRequest();
-      Preconditions.checkState(request != null);
-      Protocol.CreateUfsFileOptions createUfsFileOptions = request.getCreateUfsFileOptions();
-      UfsManager.UfsClient ufsClient = mUfsManager.get(createUfsFileOptions.getMountId());
-      CloseableResource<UnderFileSystem> ufsResource = ufsClient.acquireUfsResource();
-      context.setUfsResource(ufsResource);
-      UnderFileSystem ufs = ufsResource.get();
-      CreateOptions createOptions = CreateOptions.defaults()
-          .setOwner(createUfsFileOptions.getOwner()).setGroup(createUfsFileOptions.getGroup())
-          .setMode(new Mode((short) createUfsFileOptions.getMode()));
-      if (createUfsFileOptions.hasAcl()) {
-        // This acl information will be ignored by all but HDFS implementations
-        createOptions.setAcl(ProtoUtils.fromProto(createUfsFileOptions.getAcl()));
-      }
-      context.setOutputStream(ufs.create(request.getUfsPath(), createOptions));
-      context.setCreateOptions(createOptions);
-      String ufsString = MetricsSystem.escape(ufsClient.getUfsMountPointUri());
-      String counterName = Metric.getMetricNameWithTags(WorkerMetrics.BYTES_WRITTEN_UFS,
-          WorkerMetrics.TAG_UFS, ufsString);
-      Counter counter = MetricsSystem.counter(counterName);
-      context.setCounter(counter);
-      String meterName = Metric.getMetricNameWithTags(WorkerMetrics.BYTES_WRITTEN_UFS_THROUGHPUT,
-          WorkerMetrics.TAG_UFS, ufsString);
-      context.setMeter(MetricsSystem.meter(meterName));
-    }
+    context.setOutputStream(ufs.create(request.getUfsPath(), createOptions));
+    context.setCreateOptions(createOptions);
+    String ufsString = MetricsSystem.escape(ufsClient.getUfsMountPointUri());
+    String counterName = Metric.getMetricNameWithTags(WorkerMetrics.BYTES_WRITTEN_UFS,
+        WorkerMetrics.TAG_UFS, ufsString);
+    Counter counter = MetricsSystem.counter(counterName);
+    context.setCounter(counter);
+    String meterName = Metric.getMetricNameWithTags(WorkerMetrics.BYTES_WRITTEN_UFS_THROUGHPUT,
+        WorkerMetrics.TAG_UFS, ufsString);
+    context.setMeter(MetricsSystem.meter(meterName));
   }
 }

@@ -5,23 +5,22 @@ package alluxio.grpc;
 
 /**
  * <pre>
- * The data chunk.
  * next available id: 2
  * </pre>
  *
- * Protobuf type {@code alluxio.grpc.Chunk}
+ * Protobuf type {@code alluxio.grpc.CreateLocalBlockResponse}
  */
-public  final class Chunk extends
+public  final class CreateLocalBlockResponse extends
     com.google.protobuf.GeneratedMessageV3 implements
-    // @@protoc_insertion_point(message_implements:alluxio.grpc.Chunk)
-    ChunkOrBuilder {
+    // @@protoc_insertion_point(message_implements:alluxio.grpc.CreateLocalBlockResponse)
+    CreateLocalBlockResponseOrBuilder {
 private static final long serialVersionUID = 0L;
-  // Use Chunk.newBuilder() to construct.
-  private Chunk(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+  // Use CreateLocalBlockResponse.newBuilder() to construct.
+  private CreateLocalBlockResponse(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
     super(builder);
   }
-  private Chunk() {
-    data_ = com.google.protobuf.ByteString.EMPTY;
+  private CreateLocalBlockResponse() {
+    path_ = "";
   }
 
   @java.lang.Override
@@ -29,7 +28,7 @@ private static final long serialVersionUID = 0L;
   getUnknownFields() {
     return this.unknownFields;
   }
-  private Chunk(
+  private CreateLocalBlockResponse(
       com.google.protobuf.CodedInputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
@@ -56,8 +55,9 @@ private static final long serialVersionUID = 0L;
             break;
           }
           case 10: {
+            com.google.protobuf.ByteString bs = input.readBytes();
             bitField0_ |= 0x00000001;
-            data_ = input.readBytes();
+            path_ = bs;
             break;
           }
         }
@@ -74,30 +74,57 @@ private static final long serialVersionUID = 0L;
   }
   public static final com.google.protobuf.Descriptors.Descriptor
       getDescriptor() {
-    return alluxio.grpc.BlockWorkerProto.internal_static_alluxio_grpc_Chunk_descriptor;
+    return alluxio.grpc.BlockWorkerProto.internal_static_alluxio_grpc_CreateLocalBlockResponse_descriptor;
   }
 
   protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internalGetFieldAccessorTable() {
-    return alluxio.grpc.BlockWorkerProto.internal_static_alluxio_grpc_Chunk_fieldAccessorTable
+    return alluxio.grpc.BlockWorkerProto.internal_static_alluxio_grpc_CreateLocalBlockResponse_fieldAccessorTable
         .ensureFieldAccessorsInitialized(
-            alluxio.grpc.Chunk.class, alluxio.grpc.Chunk.Builder.class);
+            alluxio.grpc.CreateLocalBlockResponse.class, alluxio.grpc.CreateLocalBlockResponse.Builder.class);
   }
 
   private int bitField0_;
-  public static final int DATA_FIELD_NUMBER = 1;
-  private com.google.protobuf.ByteString data_;
+  public static final int PATH_FIELD_NUMBER = 1;
+  private volatile java.lang.Object path_;
   /**
-   * <code>optional bytes data = 1;</code>
+   * <code>optional string path = 1;</code>
    */
-  public boolean hasData() {
+  public boolean hasPath() {
     return ((bitField0_ & 0x00000001) == 0x00000001);
   }
   /**
-   * <code>optional bytes data = 1;</code>
+   * <code>optional string path = 1;</code>
    */
-  public com.google.protobuf.ByteString getData() {
-    return data_;
+  public java.lang.String getPath() {
+    java.lang.Object ref = path_;
+    if (ref instanceof java.lang.String) {
+      return (java.lang.String) ref;
+    } else {
+      com.google.protobuf.ByteString bs = 
+          (com.google.protobuf.ByteString) ref;
+      java.lang.String s = bs.toStringUtf8();
+      if (bs.isValidUtf8()) {
+        path_ = s;
+      }
+      return s;
+    }
+  }
+  /**
+   * <code>optional string path = 1;</code>
+   */
+  public com.google.protobuf.ByteString
+      getPathBytes() {
+    java.lang.Object ref = path_;
+    if (ref instanceof java.lang.String) {
+      com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString.copyFromUtf8(
+              (java.lang.String) ref);
+      path_ = b;
+      return b;
+    } else {
+      return (com.google.protobuf.ByteString) ref;
+    }
   }
 
   private byte memoizedIsInitialized = -1;
@@ -113,7 +140,7 @@ private static final long serialVersionUID = 0L;
   public void writeTo(com.google.protobuf.CodedOutputStream output)
                       throws java.io.IOException {
     if (((bitField0_ & 0x00000001) == 0x00000001)) {
-      output.writeBytes(1, data_);
+      com.google.protobuf.GeneratedMessageV3.writeString(output, 1, path_);
     }
     unknownFields.writeTo(output);
   }
@@ -124,8 +151,7 @@ private static final long serialVersionUID = 0L;
 
     size = 0;
     if (((bitField0_ & 0x00000001) == 0x00000001)) {
-      size += com.google.protobuf.CodedOutputStream
-        .computeBytesSize(1, data_);
+      size += com.google.protobuf.GeneratedMessageV3.computeStringSize(1, path_);
     }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
@@ -137,16 +163,16 @@ private static final long serialVersionUID = 0L;
     if (obj == this) {
      return true;
     }
-    if (!(obj instanceof alluxio.grpc.Chunk)) {
+    if (!(obj instanceof alluxio.grpc.CreateLocalBlockResponse)) {
       return super.equals(obj);
     }
-    alluxio.grpc.Chunk other = (alluxio.grpc.Chunk) obj;
+    alluxio.grpc.CreateLocalBlockResponse other = (alluxio.grpc.CreateLocalBlockResponse) obj;
 
     boolean result = true;
-    result = result && (hasData() == other.hasData());
-    if (hasData()) {
-      result = result && getData()
-          .equals(other.getData());
+    result = result && (hasPath() == other.hasPath());
+    if (hasPath()) {
+      result = result && getPath()
+          .equals(other.getPath());
     }
     result = result && unknownFields.equals(other.unknownFields);
     return result;
@@ -159,78 +185,78 @@ private static final long serialVersionUID = 0L;
     }
     int hash = 41;
     hash = (19 * hash) + getDescriptor().hashCode();
-    if (hasData()) {
-      hash = (37 * hash) + DATA_FIELD_NUMBER;
-      hash = (53 * hash) + getData().hashCode();
+    if (hasPath()) {
+      hash = (37 * hash) + PATH_FIELD_NUMBER;
+      hash = (53 * hash) + getPath().hashCode();
     }
     hash = (29 * hash) + unknownFields.hashCode();
     memoizedHashCode = hash;
     return hash;
   }
 
-  public static alluxio.grpc.Chunk parseFrom(
+  public static alluxio.grpc.CreateLocalBlockResponse parseFrom(
       java.nio.ByteBuffer data)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
-  public static alluxio.grpc.Chunk parseFrom(
+  public static alluxio.grpc.CreateLocalBlockResponse parseFrom(
       java.nio.ByteBuffer data,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static alluxio.grpc.Chunk parseFrom(
+  public static alluxio.grpc.CreateLocalBlockResponse parseFrom(
       com.google.protobuf.ByteString data)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
-  public static alluxio.grpc.Chunk parseFrom(
+  public static alluxio.grpc.CreateLocalBlockResponse parseFrom(
       com.google.protobuf.ByteString data,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static alluxio.grpc.Chunk parseFrom(byte[] data)
+  public static alluxio.grpc.CreateLocalBlockResponse parseFrom(byte[] data)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
-  public static alluxio.grpc.Chunk parseFrom(
+  public static alluxio.grpc.CreateLocalBlockResponse parseFrom(
       byte[] data,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static alluxio.grpc.Chunk parseFrom(java.io.InputStream input)
+  public static alluxio.grpc.CreateLocalBlockResponse parseFrom(java.io.InputStream input)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseWithIOException(PARSER, input);
   }
-  public static alluxio.grpc.Chunk parseFrom(
+  public static alluxio.grpc.CreateLocalBlockResponse parseFrom(
       java.io.InputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseWithIOException(PARSER, input, extensionRegistry);
   }
-  public static alluxio.grpc.Chunk parseDelimitedFrom(java.io.InputStream input)
+  public static alluxio.grpc.CreateLocalBlockResponse parseDelimitedFrom(java.io.InputStream input)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseDelimitedWithIOException(PARSER, input);
   }
-  public static alluxio.grpc.Chunk parseDelimitedFrom(
+  public static alluxio.grpc.CreateLocalBlockResponse parseDelimitedFrom(
       java.io.InputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
   }
-  public static alluxio.grpc.Chunk parseFrom(
+  public static alluxio.grpc.CreateLocalBlockResponse parseFrom(
       com.google.protobuf.CodedInputStream input)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseWithIOException(PARSER, input);
   }
-  public static alluxio.grpc.Chunk parseFrom(
+  public static alluxio.grpc.CreateLocalBlockResponse parseFrom(
       com.google.protobuf.CodedInputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
@@ -242,7 +268,7 @@ private static final long serialVersionUID = 0L;
   public static Builder newBuilder() {
     return DEFAULT_INSTANCE.toBuilder();
   }
-  public static Builder newBuilder(alluxio.grpc.Chunk prototype) {
+  public static Builder newBuilder(alluxio.grpc.CreateLocalBlockResponse prototype) {
     return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
   }
   public Builder toBuilder() {
@@ -258,29 +284,28 @@ private static final long serialVersionUID = 0L;
   }
   /**
    * <pre>
-   * The data chunk.
    * next available id: 2
    * </pre>
    *
-   * Protobuf type {@code alluxio.grpc.Chunk}
+   * Protobuf type {@code alluxio.grpc.CreateLocalBlockResponse}
    */
   public static final class Builder extends
       com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
-      // @@protoc_insertion_point(builder_implements:alluxio.grpc.Chunk)
-      alluxio.grpc.ChunkOrBuilder {
+      // @@protoc_insertion_point(builder_implements:alluxio.grpc.CreateLocalBlockResponse)
+      alluxio.grpc.CreateLocalBlockResponseOrBuilder {
     public static final com.google.protobuf.Descriptors.Descriptor
         getDescriptor() {
-      return alluxio.grpc.BlockWorkerProto.internal_static_alluxio_grpc_Chunk_descriptor;
+      return alluxio.grpc.BlockWorkerProto.internal_static_alluxio_grpc_CreateLocalBlockResponse_descriptor;
     }
 
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
-      return alluxio.grpc.BlockWorkerProto.internal_static_alluxio_grpc_Chunk_fieldAccessorTable
+      return alluxio.grpc.BlockWorkerProto.internal_static_alluxio_grpc_CreateLocalBlockResponse_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
-              alluxio.grpc.Chunk.class, alluxio.grpc.Chunk.Builder.class);
+              alluxio.grpc.CreateLocalBlockResponse.class, alluxio.grpc.CreateLocalBlockResponse.Builder.class);
     }
 
-    // Construct using alluxio.grpc.Chunk.newBuilder()
+    // Construct using alluxio.grpc.CreateLocalBlockResponse.newBuilder()
     private Builder() {
       maybeForceBuilderInitialization();
     }
@@ -297,36 +322,36 @@ private static final long serialVersionUID = 0L;
     }
     public Builder clear() {
       super.clear();
-      data_ = com.google.protobuf.ByteString.EMPTY;
+      path_ = "";
       bitField0_ = (bitField0_ & ~0x00000001);
       return this;
     }
 
     public com.google.protobuf.Descriptors.Descriptor
         getDescriptorForType() {
-      return alluxio.grpc.BlockWorkerProto.internal_static_alluxio_grpc_Chunk_descriptor;
+      return alluxio.grpc.BlockWorkerProto.internal_static_alluxio_grpc_CreateLocalBlockResponse_descriptor;
     }
 
-    public alluxio.grpc.Chunk getDefaultInstanceForType() {
-      return alluxio.grpc.Chunk.getDefaultInstance();
+    public alluxio.grpc.CreateLocalBlockResponse getDefaultInstanceForType() {
+      return alluxio.grpc.CreateLocalBlockResponse.getDefaultInstance();
     }
 
-    public alluxio.grpc.Chunk build() {
-      alluxio.grpc.Chunk result = buildPartial();
+    public alluxio.grpc.CreateLocalBlockResponse build() {
+      alluxio.grpc.CreateLocalBlockResponse result = buildPartial();
       if (!result.isInitialized()) {
         throw newUninitializedMessageException(result);
       }
       return result;
     }
 
-    public alluxio.grpc.Chunk buildPartial() {
-      alluxio.grpc.Chunk result = new alluxio.grpc.Chunk(this);
+    public alluxio.grpc.CreateLocalBlockResponse buildPartial() {
+      alluxio.grpc.CreateLocalBlockResponse result = new alluxio.grpc.CreateLocalBlockResponse(this);
       int from_bitField0_ = bitField0_;
       int to_bitField0_ = 0;
       if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
         to_bitField0_ |= 0x00000001;
       }
-      result.data_ = data_;
+      result.path_ = path_;
       result.bitField0_ = to_bitField0_;
       onBuilt();
       return result;
@@ -359,18 +384,20 @@ private static final long serialVersionUID = 0L;
       return (Builder) super.addRepeatedField(field, value);
     }
     public Builder mergeFrom(com.google.protobuf.Message other) {
-      if (other instanceof alluxio.grpc.Chunk) {
-        return mergeFrom((alluxio.grpc.Chunk)other);
+      if (other instanceof alluxio.grpc.CreateLocalBlockResponse) {
+        return mergeFrom((alluxio.grpc.CreateLocalBlockResponse)other);
       } else {
         super.mergeFrom(other);
         return this;
       }
     }
 
-    public Builder mergeFrom(alluxio.grpc.Chunk other) {
-      if (other == alluxio.grpc.Chunk.getDefaultInstance()) return this;
-      if (other.hasData()) {
-        setData(other.getData());
+    public Builder mergeFrom(alluxio.grpc.CreateLocalBlockResponse other) {
+      if (other == alluxio.grpc.CreateLocalBlockResponse.getDefaultInstance()) return this;
+      if (other.hasPath()) {
+        bitField0_ |= 0x00000001;
+        path_ = other.path_;
+        onChanged();
       }
       this.mergeUnknownFields(other.unknownFields);
       onChanged();
@@ -385,11 +412,11 @@ private static final long serialVersionUID = 0L;
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
-      alluxio.grpc.Chunk parsedMessage = null;
+      alluxio.grpc.CreateLocalBlockResponse parsedMessage = null;
       try {
         parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
       } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-        parsedMessage = (alluxio.grpc.Chunk) e.getUnfinishedMessage();
+        parsedMessage = (alluxio.grpc.CreateLocalBlockResponse) e.getUnfinishedMessage();
         throw e.unwrapIOException();
       } finally {
         if (parsedMessage != null) {
@@ -400,37 +427,78 @@ private static final long serialVersionUID = 0L;
     }
     private int bitField0_;
 
-    private com.google.protobuf.ByteString data_ = com.google.protobuf.ByteString.EMPTY;
+    private java.lang.Object path_ = "";
     /**
-     * <code>optional bytes data = 1;</code>
+     * <code>optional string path = 1;</code>
      */
-    public boolean hasData() {
+    public boolean hasPath() {
       return ((bitField0_ & 0x00000001) == 0x00000001);
     }
     /**
-     * <code>optional bytes data = 1;</code>
+     * <code>optional string path = 1;</code>
      */
-    public com.google.protobuf.ByteString getData() {
-      return data_;
+    public java.lang.String getPath() {
+      java.lang.Object ref = path_;
+      if (!(ref instanceof java.lang.String)) {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        if (bs.isValidUtf8()) {
+          path_ = s;
+        }
+        return s;
+      } else {
+        return (java.lang.String) ref;
+      }
     }
     /**
-     * <code>optional bytes data = 1;</code>
+     * <code>optional string path = 1;</code>
      */
-    public Builder setData(com.google.protobuf.ByteString value) {
+    public com.google.protobuf.ByteString
+        getPathBytes() {
+      java.lang.Object ref = path_;
+      if (ref instanceof String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        path_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+    /**
+     * <code>optional string path = 1;</code>
+     */
+    public Builder setPath(
+        java.lang.String value) {
       if (value == null) {
     throw new NullPointerException();
   }
   bitField0_ |= 0x00000001;
-      data_ = value;
+      path_ = value;
       onChanged();
       return this;
     }
     /**
-     * <code>optional bytes data = 1;</code>
+     * <code>optional string path = 1;</code>
      */
-    public Builder clearData() {
+    public Builder clearPath() {
       bitField0_ = (bitField0_ & ~0x00000001);
-      data_ = getDefaultInstance().getData();
+      path_ = getDefaultInstance().getPath();
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>optional string path = 1;</code>
+     */
+    public Builder setPathBytes(
+        com.google.protobuf.ByteString value) {
+      if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000001;
+      path_ = value;
       onChanged();
       return this;
     }
@@ -445,39 +513,39 @@ private static final long serialVersionUID = 0L;
     }
 
 
-    // @@protoc_insertion_point(builder_scope:alluxio.grpc.Chunk)
+    // @@protoc_insertion_point(builder_scope:alluxio.grpc.CreateLocalBlockResponse)
   }
 
-  // @@protoc_insertion_point(class_scope:alluxio.grpc.Chunk)
-  private static final alluxio.grpc.Chunk DEFAULT_INSTANCE;
+  // @@protoc_insertion_point(class_scope:alluxio.grpc.CreateLocalBlockResponse)
+  private static final alluxio.grpc.CreateLocalBlockResponse DEFAULT_INSTANCE;
   static {
-    DEFAULT_INSTANCE = new alluxio.grpc.Chunk();
+    DEFAULT_INSTANCE = new alluxio.grpc.CreateLocalBlockResponse();
   }
 
-  public static alluxio.grpc.Chunk getDefaultInstance() {
+  public static alluxio.grpc.CreateLocalBlockResponse getDefaultInstance() {
     return DEFAULT_INSTANCE;
   }
 
-  @java.lang.Deprecated public static final com.google.protobuf.Parser<Chunk>
-      PARSER = new com.google.protobuf.AbstractParser<Chunk>() {
-    public Chunk parsePartialFrom(
+  @java.lang.Deprecated public static final com.google.protobuf.Parser<CreateLocalBlockResponse>
+      PARSER = new com.google.protobuf.AbstractParser<CreateLocalBlockResponse>() {
+    public CreateLocalBlockResponse parsePartialFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
-      return new Chunk(input, extensionRegistry);
+      return new CreateLocalBlockResponse(input, extensionRegistry);
     }
   };
 
-  public static com.google.protobuf.Parser<Chunk> parser() {
+  public static com.google.protobuf.Parser<CreateLocalBlockResponse> parser() {
     return PARSER;
   }
 
   @java.lang.Override
-  public com.google.protobuf.Parser<Chunk> getParserForType() {
+  public com.google.protobuf.Parser<CreateLocalBlockResponse> getParserForType() {
     return PARSER;
   }
 
-  public alluxio.grpc.Chunk getDefaultInstanceForType() {
+  public alluxio.grpc.CreateLocalBlockResponse getDefaultInstanceForType() {
     return DEFAULT_INSTANCE;
   }
 

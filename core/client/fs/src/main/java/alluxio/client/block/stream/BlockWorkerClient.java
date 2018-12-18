@@ -11,8 +11,15 @@
 
 package alluxio.client.block.stream;
 
+import alluxio.grpc.AsyncCacheRequest;
+import alluxio.grpc.CreateLocalBlockRequest;
+import alluxio.grpc.CreateLocalBlockResponse;
+import alluxio.grpc.OpenLocalBlockRequest;
+import alluxio.grpc.OpenLocalBlockResponse;
 import alluxio.grpc.ReadRequest;
 import alluxio.grpc.ReadResponse;
+import alluxio.grpc.RemoveBlockRequest;
+import alluxio.grpc.RemoveBlockResponse;
 import alluxio.grpc.WriteRequest;
 import alluxio.grpc.WriteResponse;
 
@@ -30,6 +37,7 @@ import javax.security.auth.Subject;
  * gRPC client for worker communication.
  */
 public interface BlockWorkerClient extends Closeable {
+
   /**
    * Factory for block worker client.
    */
@@ -68,4 +76,37 @@ public interface BlockWorkerClient extends Closeable {
    * @throws StatusRuntimeException if any error occurs
    */
   Iterator<ReadResponse> readBlock(final ReadRequest request) throws StatusRuntimeException;
+
+  /**
+   * Creates a local block on the worker.
+   *
+   * @param request the create block request
+   * @return the response from server
+   * @throws StatusRuntimeException if any error occurs
+   */
+  CreateLocalBlockResponse createLocalBlock(CreateLocalBlockRequest request);
+
+  /**
+   * Opens a local block.
+   *
+   * @param request the open block request
+   * @return the response from server
+   * @throws StatusRuntimeException if any error occurs
+   */
+  OpenLocalBlockResponse openLocalBlock(OpenLocalBlockRequest request);
+
+  /**
+   * Removes a block from worker
+   * @param request the remove block request
+   * @return the response from server
+   * @throws StatusRuntimeException if any error occurs
+   */
+  RemoveBlockResponse removeBlock(RemoveBlockRequest request);
+
+  /**
+   * Cache a block asynchronously.
+   *
+   * @param request the async cache request
+   */
+  void asyncCache(AsyncCacheRequest request);
 }

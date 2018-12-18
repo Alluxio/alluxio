@@ -52,7 +52,7 @@ public final class GrpcDataServer implements DataServer {
   private final long mQuietPeriodMs =
       Configuration.getMs(PropertyKey.WORKER_NETWORK_NETTY_SHUTDOWN_QUIET_PERIOD);
   private final int mThreadPoolSize =
-      Configuration.getInt(PropertyKey.WORKER_NETWORK_NETTY_WORKER_THREADS);
+      Configuration.getInt(PropertyKey.WORKER_NETWORK_NETTY_RPC_THREADS_MAX);
 
   private EventLoopGroup mBossGroup;
   private EventLoopGroup mWorkerGroup;
@@ -66,9 +66,10 @@ public final class GrpcDataServer implements DataServer {
    */
   public GrpcDataServer(final SocketAddress address, final WorkerProcess workerProcess) {
     mSocketAddress = address;
-
+    String threadPoolName = Constants.BLOCK_WORKER_NAME
+        + ((mSocketAddress instanceof DomainSocketAddress) ? "domain-socket" : "tcp-socket");
     ExecutorService executorService = ExecutorServiceFactories
-        .fixedThreadPool(Constants.BLOCK_WORKER_NAME, mThreadPoolSize)
+        .fixedThreadPool(threadPoolName, mThreadPoolSize)
         .create();
     try {
       mServer = createServerBuilder(address, NettyUtils.WORKER_CHANNEL_TYPE)

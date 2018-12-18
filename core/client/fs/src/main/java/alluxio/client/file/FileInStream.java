@@ -20,19 +20,16 @@ import alluxio.client.PositionedReadable;
 import alluxio.client.ReadType;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.stream.BlockInStream;
+import alluxio.client.block.stream.BlockWorkerClient;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.DeadlineExceededException;
 import alluxio.exception.status.UnavailableException;
-import alluxio.network.netty.NettyRPC;
-import alluxio.network.netty.NettyRPCContext;
-import alluxio.proto.dataserver.Protocol;
+import alluxio.grpc.AsyncCacheRequest;
 import alluxio.retry.CountingRetry;
-import alluxio.util.proto.ProtoMessage;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Preconditions;
-import io.netty.channel.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -350,19 +347,14 @@ public class FileInStream extends InputStream implements BoundedStream, Position
       try {
         // Construct the async cache request
         long blockLength = mOptions.getBlockInfo(blockId).getLength();
-        Protocol.AsyncCacheRequest request =
-            Protocol.AsyncCacheRequest.newBuilder().setBlockId(blockId).setLength(blockLength)
+        AsyncCacheRequest request =
+            AsyncCacheRequest.newBuilder().setBlockId(blockId).setLength(blockLength)
                 .setOpenUfsBlockOptions(mOptions.getOpenUfsBlockOptions(blockId))
                 .setSourceHost(dataSource.getHost()).setSourcePort(dataSource.getDataPort())
                 .build();
-        Channel channel = mContext.acquireNettyChannel(worker);
-        try {
-          NettyRPCContext rpcContext =
-              NettyRPCContext.defaults().setChannel(channel).setTimeout(channelTimeout);
-          NettyRPC.fireAndForget(rpcContext, new ProtoMessage(request));
+        try (BlockWorkerClient blockWorker = mContext.acquireBlockWorkerClient(worker)) {
+          blockWorker.asyncCache(request);
           mLastBlockIdCached = blockId;
-        } finally {
-          mContext.releaseNettyChannel(worker, channel);
         }
       } catch (Exception e) {
         LOG.warn("Failed to complete async cache request for block {} at worker {}: {}", blockId,

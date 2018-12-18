@@ -15,11 +15,19 @@ import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.exception.status.UnauthenticatedException;
 import alluxio.exception.status.UnavailableException;
+import alluxio.grpc.AsyncCacheRequest;
+import alluxio.grpc.AsyncCacheResponse;
 import alluxio.grpc.BlockWorkerGrpc;
+import alluxio.grpc.CreateLocalBlockRequest;
+import alluxio.grpc.CreateLocalBlockResponse;
 import alluxio.grpc.GrpcChannel;
 import alluxio.grpc.GrpcChannelBuilder;
+import alluxio.grpc.OpenLocalBlockRequest;
+import alluxio.grpc.OpenLocalBlockResponse;
 import alluxio.grpc.ReadRequest;
 import alluxio.grpc.ReadResponse;
+import alluxio.grpc.RemoveBlockRequest;
+import alluxio.grpc.RemoveBlockResponse;
 import alluxio.grpc.WriteRequest;
 import alluxio.grpc.WriteResponse;
 import alluxio.util.network.NettyUtils;
@@ -47,9 +55,9 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
   private static final long KEEPALIVE_TIMEOUT_MS =
       Configuration.getMs(PropertyKey.USER_NETWORK_KEEPALIVE_TIMEOUT_MS);
   private static final long GRPC_FLOWCONTROL_WINDOW =
-      Configuration.getMs(PropertyKey.USER_NETWORK_FLOWCONTROL_WINDOW);
+      Configuration.getBytes(PropertyKey.USER_NETWORK_FLOWCONTROL_WINDOW);
   private static final long MAX_INBOUND_MESSAGE_SIZE =
-      Configuration.getMs(PropertyKey.USER_NETWORK_MAX_INBOUND_MESSAGE_SIZE);
+      Configuration.getBytes(PropertyKey.USER_NETWORK_MAX_INBOUND_MESSAGE_SIZE);
   private static final EventLoopGroup WORKER_GROUP = NettyUtils
       .createEventLoop(NettyUtils.USER_CHANNEL_TYPE,
           Configuration.getInt(PropertyKey.USER_NETWORK_NETTY_WORKER_THREADS),
@@ -109,5 +117,41 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
   @Override
   public Iterator<ReadResponse> readBlock(final ReadRequest request) {
     return mBlockingStub.readBlock(request);
+  }
+
+  @Override
+  public CreateLocalBlockResponse createLocalBlock(final CreateLocalBlockRequest request) {
+    return mBlockingStub.createLocalBlock(request).next();
+  }
+
+  @Override
+  public OpenLocalBlockResponse openLocalBlock(final OpenLocalBlockRequest request) {
+    return mBlockingStub.openLocalBlock(request).next();
+  }
+
+  @Override
+  public RemoveBlockResponse removeBlock(final RemoveBlockRequest request) {
+    return mBlockingStub.removeBlock(request);
+  }
+
+  @Override
+  public void asyncCache(final AsyncCacheRequest request) {
+    mAsyncStub.withDeadlineAfter(Configuration.getMs(PropertyKey.USER_NETWORK_NETTY_TIMEOUT_MS),
+        TimeUnit.MILLISECONDS).asyncCache(request, new StreamObserver<AsyncCacheResponse>() {
+      @Override
+      public void onNext(AsyncCacheResponse value) {
+        // we don't use response from the RPC
+      }
+
+      @Override
+      public void onError(Throwable t) {
+        LOGGER.warn("Async cache request {} returned error:", request, t);
+      }
+
+      @Override
+      public void onCompleted() {
+        // we don't use response from the RPC
+      }
+    });
   }
 }

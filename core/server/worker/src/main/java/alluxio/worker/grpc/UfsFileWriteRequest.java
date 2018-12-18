@@ -9,11 +9,11 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.worker.netty;
-
-import alluxio.proto.dataserver.Protocol;
+package alluxio.worker.grpc;
 
 import javax.annotation.concurrent.ThreadSafe;
+
+import alluxio.proto.dataserver.Protocol;
 
 /**
  * The UFS File write request internal representation.
@@ -23,10 +23,10 @@ public final class UfsFileWriteRequest extends WriteRequest {
   private final String mUfsPath;
   private final Protocol.CreateUfsFileOptions mCreateUfsFileOptions;
 
-  UfsFileWriteRequest(Protocol.WriteRequest request) {
+  UfsFileWriteRequest(alluxio.grpc.WriteRequest request) {
     super(request);
-    mUfsPath = request.getCreateUfsFileOptions().getUfsPath();
-    mCreateUfsFileOptions = request.getCreateUfsFileOptions();
+    mUfsPath = request.getCommand().getCreateUfsFileOptions().getUfsPath();
+    mCreateUfsFileOptions = request.getCommand().getCreateUfsFileOptions();
   }
 
   /**

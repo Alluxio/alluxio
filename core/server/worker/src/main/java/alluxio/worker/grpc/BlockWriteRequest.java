@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.worker.netty;
+package alluxio.worker.grpc;
 
 import alluxio.proto.dataserver.Protocol;
 
@@ -27,11 +27,11 @@ public final class BlockWriteRequest extends WriteRequest {
   /**
    * @param request block request in proto
    */
-  BlockWriteRequest(Protocol.WriteRequest request) {
+  BlockWriteRequest(alluxio.grpc.WriteRequest request) {
     super(request);
-    mTier = request.getTier();
-    if (request.hasCreateUfsBlockOptions()) {
-      mCreateUfsBlockOptions = request.getCreateUfsBlockOptions();
+    mTier = request.getCommand().getTier();
+    if (request.getCommand().hasCreateUfsBlockOptions()) {
+      mCreateUfsBlockOptions = request.getCommand().getCreateUfsBlockOptions();
     } else {
       mCreateUfsBlockOptions = null;
     }

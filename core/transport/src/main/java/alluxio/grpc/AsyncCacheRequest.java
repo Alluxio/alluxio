@@ -5,26 +5,26 @@ package alluxio.grpc;
 
 /**
  * <pre>
- * The read request.
+ * Request for caching a block asynchronously
  * next available id: 6
  * </pre>
  *
- * Protobuf type {@code alluxio.grpc.ReadRequest}
+ * Protobuf type {@code alluxio.grpc.AsyncCacheRequest}
  */
-public  final class ReadRequest extends
+public  final class AsyncCacheRequest extends
     com.google.protobuf.GeneratedMessageV3 implements
-    // @@protoc_insertion_point(message_implements:alluxio.grpc.ReadRequest)
-    ReadRequestOrBuilder {
+    // @@protoc_insertion_point(message_implements:alluxio.grpc.AsyncCacheRequest)
+    AsyncCacheRequestOrBuilder {
 private static final long serialVersionUID = 0L;
-  // Use ReadRequest.newBuilder() to construct.
-  private ReadRequest(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+  // Use AsyncCacheRequest.newBuilder() to construct.
+  private AsyncCacheRequest(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
     super(builder);
   }
-  private ReadRequest() {
+  private AsyncCacheRequest() {
     blockId_ = 0L;
-    offset_ = 0L;
+    sourceHost_ = "";
+    sourcePort_ = 0;
     length_ = 0L;
-    promote_ = false;
   }
 
   @java.lang.Override
@@ -32,7 +32,7 @@ private static final long serialVersionUID = 0L;
   getUnknownFields() {
     return this.unknownFields;
   }
-  private ReadRequest(
+  private AsyncCacheRequest(
       com.google.protobuf.CodedInputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
@@ -63,24 +63,20 @@ private static final long serialVersionUID = 0L;
             blockId_ = input.readInt64();
             break;
           }
-          case 16: {
+          case 18: {
+            com.google.protobuf.ByteString bs = input.readBytes();
             bitField0_ |= 0x00000002;
-            offset_ = input.readInt64();
+            sourceHost_ = bs;
             break;
           }
           case 24: {
             bitField0_ |= 0x00000004;
-            length_ = input.readInt64();
+            sourcePort_ = input.readInt32();
             break;
           }
-          case 32: {
-            bitField0_ |= 0x00000008;
-            promote_ = input.readBool();
-            break;
-          }
-          case 42: {
+          case 34: {
             alluxio.proto.dataserver.Protocol.OpenUfsBlockOptions.Builder subBuilder = null;
-            if (((bitField0_ & 0x00000010) == 0x00000010)) {
+            if (((bitField0_ & 0x00000008) == 0x00000008)) {
               subBuilder = openUfsBlockOptions_.toBuilder();
             }
             openUfsBlockOptions_ = input.readMessage(alluxio.proto.dataserver.Protocol.OpenUfsBlockOptions.PARSER, extensionRegistry);
@@ -88,7 +84,12 @@ private static final long serialVersionUID = 0L;
               subBuilder.mergeFrom(openUfsBlockOptions_);
               openUfsBlockOptions_ = subBuilder.buildPartial();
             }
+            bitField0_ |= 0x00000008;
+            break;
+          }
+          case 40: {
             bitField0_ |= 0x00000010;
+            length_ = input.readInt64();
             break;
           }
         }
@@ -105,14 +106,14 @@ private static final long serialVersionUID = 0L;
   }
   public static final com.google.protobuf.Descriptors.Descriptor
       getDescriptor() {
-    return alluxio.grpc.BlockWorkerProto.internal_static_alluxio_grpc_ReadRequest_descriptor;
+    return alluxio.grpc.BlockWorkerProto.internal_static_alluxio_grpc_AsyncCacheRequest_descriptor;
   }
 
   protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internalGetFieldAccessorTable() {
-    return alluxio.grpc.BlockWorkerProto.internal_static_alluxio_grpc_ReadRequest_fieldAccessorTable
+    return alluxio.grpc.BlockWorkerProto.internal_static_alluxio_grpc_AsyncCacheRequest_fieldAccessorTable
         .ensureFieldAccessorsInitialized(
-            alluxio.grpc.ReadRequest.class, alluxio.grpc.ReadRequest.Builder.class);
+            alluxio.grpc.AsyncCacheRequest.class, alluxio.grpc.AsyncCacheRequest.Builder.class);
   }
 
   private int bitField0_;
@@ -131,90 +132,109 @@ private static final long serialVersionUID = 0L;
     return blockId_;
   }
 
-  public static final int OFFSET_FIELD_NUMBER = 2;
-  private long offset_;
+  public static final int SOURCE_HOST_FIELD_NUMBER = 2;
+  private volatile java.lang.Object sourceHost_;
   /**
-   * <code>optional int64 offset = 2;</code>
+   * <pre>
+   * TODO(calvin): source host and port should be replace with WorkerNetAddress
+   * </pre>
+   *
+   * <code>optional string source_host = 2;</code>
    */
-  public boolean hasOffset() {
+  public boolean hasSourceHost() {
     return ((bitField0_ & 0x00000002) == 0x00000002);
   }
   /**
-   * <code>optional int64 offset = 2;</code>
+   * <pre>
+   * TODO(calvin): source host and port should be replace with WorkerNetAddress
+   * </pre>
+   *
+   * <code>optional string source_host = 2;</code>
    */
-  public long getOffset() {
-    return offset_;
+  public java.lang.String getSourceHost() {
+    java.lang.Object ref = sourceHost_;
+    if (ref instanceof java.lang.String) {
+      return (java.lang.String) ref;
+    } else {
+      com.google.protobuf.ByteString bs = 
+          (com.google.protobuf.ByteString) ref;
+      java.lang.String s = bs.toStringUtf8();
+      if (bs.isValidUtf8()) {
+        sourceHost_ = s;
+      }
+      return s;
+    }
+  }
+  /**
+   * <pre>
+   * TODO(calvin): source host and port should be replace with WorkerNetAddress
+   * </pre>
+   *
+   * <code>optional string source_host = 2;</code>
+   */
+  public com.google.protobuf.ByteString
+      getSourceHostBytes() {
+    java.lang.Object ref = sourceHost_;
+    if (ref instanceof java.lang.String) {
+      com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString.copyFromUtf8(
+              (java.lang.String) ref);
+      sourceHost_ = b;
+      return b;
+    } else {
+      return (com.google.protobuf.ByteString) ref;
+    }
   }
 
-  public static final int LENGTH_FIELD_NUMBER = 3;
-  private long length_;
+  public static final int SOURCE_PORT_FIELD_NUMBER = 3;
+  private int sourcePort_;
   /**
-   * <code>optional int64 length = 3;</code>
+   * <code>optional int32 source_port = 3;</code>
    */
-  public boolean hasLength() {
+  public boolean hasSourcePort() {
     return ((bitField0_ & 0x00000004) == 0x00000004);
   }
   /**
-   * <code>optional int64 length = 3;</code>
+   * <code>optional int32 source_port = 3;</code>
    */
-  public long getLength() {
-    return length_;
+  public int getSourcePort() {
+    return sourcePort_;
   }
 
-  public static final int PROMOTE_FIELD_NUMBER = 4;
-  private boolean promote_;
+  public static final int OPEN_UFS_BLOCK_OPTIONS_FIELD_NUMBER = 4;
+  private alluxio.proto.dataserver.Protocol.OpenUfsBlockOptions openUfsBlockOptions_;
   /**
-   * <pre>
-   * Whether the block should be promoted before reading
-   * </pre>
-   *
-   * <code>optional bool promote = 4;</code>
+   * <code>optional .alluxio.proto.dataserver.OpenUfsBlockOptions open_ufs_block_options = 4;</code>
    */
-  public boolean hasPromote() {
+  public boolean hasOpenUfsBlockOptions() {
     return ((bitField0_ & 0x00000008) == 0x00000008);
   }
   /**
-   * <pre>
-   * Whether the block should be promoted before reading
-   * </pre>
-   *
-   * <code>optional bool promote = 4;</code>
-   */
-  public boolean getPromote() {
-    return promote_;
-  }
-
-  public static final int OPEN_UFS_BLOCK_OPTIONS_FIELD_NUMBER = 5;
-  private alluxio.proto.dataserver.Protocol.OpenUfsBlockOptions openUfsBlockOptions_;
-  /**
-   * <pre>
-   * This is only set for UFS block read.
-   * </pre>
-   *
-   * <code>optional .alluxio.proto.dataserver.OpenUfsBlockOptions open_ufs_block_options = 5;</code>
-   */
-  public boolean hasOpenUfsBlockOptions() {
-    return ((bitField0_ & 0x00000010) == 0x00000010);
-  }
-  /**
-   * <pre>
-   * This is only set for UFS block read.
-   * </pre>
-   *
-   * <code>optional .alluxio.proto.dataserver.OpenUfsBlockOptions open_ufs_block_options = 5;</code>
+   * <code>optional .alluxio.proto.dataserver.OpenUfsBlockOptions open_ufs_block_options = 4;</code>
    */
   public alluxio.proto.dataserver.Protocol.OpenUfsBlockOptions getOpenUfsBlockOptions() {
     return openUfsBlockOptions_ == null ? alluxio.proto.dataserver.Protocol.OpenUfsBlockOptions.getDefaultInstance() : openUfsBlockOptions_;
   }
   /**
-   * <pre>
-   * This is only set for UFS block read.
-   * </pre>
-   *
-   * <code>optional .alluxio.proto.dataserver.OpenUfsBlockOptions open_ufs_block_options = 5;</code>
+   * <code>optional .alluxio.proto.dataserver.OpenUfsBlockOptions open_ufs_block_options = 4;</code>
    */
   public alluxio.proto.dataserver.Protocol.OpenUfsBlockOptionsOrBuilder getOpenUfsBlockOptionsOrBuilder() {
     return openUfsBlockOptions_ == null ? alluxio.proto.dataserver.Protocol.OpenUfsBlockOptions.getDefaultInstance() : openUfsBlockOptions_;
+  }
+
+  public static final int LENGTH_FIELD_NUMBER = 5;
+  private long length_;
+  /**
+   * <code>optional int64 length = 5;</code>
+   */
+  public boolean hasLength() {
+    return ((bitField0_ & 0x00000010) == 0x00000010);
+  }
+  /**
+   * <code>optional int64 length = 5;</code>
+   */
+  public long getLength() {
+    return length_;
   }
 
   private byte memoizedIsInitialized = -1;
@@ -233,16 +253,16 @@ private static final long serialVersionUID = 0L;
       output.writeInt64(1, blockId_);
     }
     if (((bitField0_ & 0x00000002) == 0x00000002)) {
-      output.writeInt64(2, offset_);
+      com.google.protobuf.GeneratedMessageV3.writeString(output, 2, sourceHost_);
     }
     if (((bitField0_ & 0x00000004) == 0x00000004)) {
-      output.writeInt64(3, length_);
+      output.writeInt32(3, sourcePort_);
     }
     if (((bitField0_ & 0x00000008) == 0x00000008)) {
-      output.writeBool(4, promote_);
+      output.writeMessage(4, getOpenUfsBlockOptions());
     }
     if (((bitField0_ & 0x00000010) == 0x00000010)) {
-      output.writeMessage(5, getOpenUfsBlockOptions());
+      output.writeInt64(5, length_);
     }
     unknownFields.writeTo(output);
   }
@@ -257,20 +277,19 @@ private static final long serialVersionUID = 0L;
         .computeInt64Size(1, blockId_);
     }
     if (((bitField0_ & 0x00000002) == 0x00000002)) {
-      size += com.google.protobuf.CodedOutputStream
-        .computeInt64Size(2, offset_);
+      size += com.google.protobuf.GeneratedMessageV3.computeStringSize(2, sourceHost_);
     }
     if (((bitField0_ & 0x00000004) == 0x00000004)) {
       size += com.google.protobuf.CodedOutputStream
-        .computeInt64Size(3, length_);
+        .computeInt32Size(3, sourcePort_);
     }
     if (((bitField0_ & 0x00000008) == 0x00000008)) {
       size += com.google.protobuf.CodedOutputStream
-        .computeBoolSize(4, promote_);
+        .computeMessageSize(4, getOpenUfsBlockOptions());
     }
     if (((bitField0_ & 0x00000010) == 0x00000010)) {
       size += com.google.protobuf.CodedOutputStream
-        .computeMessageSize(5, getOpenUfsBlockOptions());
+        .computeInt64Size(5, length_);
     }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
@@ -282,10 +301,10 @@ private static final long serialVersionUID = 0L;
     if (obj == this) {
      return true;
     }
-    if (!(obj instanceof alluxio.grpc.ReadRequest)) {
+    if (!(obj instanceof alluxio.grpc.AsyncCacheRequest)) {
       return super.equals(obj);
     }
-    alluxio.grpc.ReadRequest other = (alluxio.grpc.ReadRequest) obj;
+    alluxio.grpc.AsyncCacheRequest other = (alluxio.grpc.AsyncCacheRequest) obj;
 
     boolean result = true;
     result = result && (hasBlockId() == other.hasBlockId());
@@ -293,25 +312,25 @@ private static final long serialVersionUID = 0L;
       result = result && (getBlockId()
           == other.getBlockId());
     }
-    result = result && (hasOffset() == other.hasOffset());
-    if (hasOffset()) {
-      result = result && (getOffset()
-          == other.getOffset());
+    result = result && (hasSourceHost() == other.hasSourceHost());
+    if (hasSourceHost()) {
+      result = result && getSourceHost()
+          .equals(other.getSourceHost());
     }
-    result = result && (hasLength() == other.hasLength());
-    if (hasLength()) {
-      result = result && (getLength()
-          == other.getLength());
-    }
-    result = result && (hasPromote() == other.hasPromote());
-    if (hasPromote()) {
-      result = result && (getPromote()
-          == other.getPromote());
+    result = result && (hasSourcePort() == other.hasSourcePort());
+    if (hasSourcePort()) {
+      result = result && (getSourcePort()
+          == other.getSourcePort());
     }
     result = result && (hasOpenUfsBlockOptions() == other.hasOpenUfsBlockOptions());
     if (hasOpenUfsBlockOptions()) {
       result = result && getOpenUfsBlockOptions()
           .equals(other.getOpenUfsBlockOptions());
+    }
+    result = result && (hasLength() == other.hasLength());
+    if (hasLength()) {
+      result = result && (getLength()
+          == other.getLength());
     }
     result = result && unknownFields.equals(other.unknownFields);
     return result;
@@ -329,93 +348,91 @@ private static final long serialVersionUID = 0L;
       hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
           getBlockId());
     }
-    if (hasOffset()) {
-      hash = (37 * hash) + OFFSET_FIELD_NUMBER;
-      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
-          getOffset());
+    if (hasSourceHost()) {
+      hash = (37 * hash) + SOURCE_HOST_FIELD_NUMBER;
+      hash = (53 * hash) + getSourceHost().hashCode();
+    }
+    if (hasSourcePort()) {
+      hash = (37 * hash) + SOURCE_PORT_FIELD_NUMBER;
+      hash = (53 * hash) + getSourcePort();
+    }
+    if (hasOpenUfsBlockOptions()) {
+      hash = (37 * hash) + OPEN_UFS_BLOCK_OPTIONS_FIELD_NUMBER;
+      hash = (53 * hash) + getOpenUfsBlockOptions().hashCode();
     }
     if (hasLength()) {
       hash = (37 * hash) + LENGTH_FIELD_NUMBER;
       hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
           getLength());
     }
-    if (hasPromote()) {
-      hash = (37 * hash) + PROMOTE_FIELD_NUMBER;
-      hash = (53 * hash) + com.google.protobuf.Internal.hashBoolean(
-          getPromote());
-    }
-    if (hasOpenUfsBlockOptions()) {
-      hash = (37 * hash) + OPEN_UFS_BLOCK_OPTIONS_FIELD_NUMBER;
-      hash = (53 * hash) + getOpenUfsBlockOptions().hashCode();
-    }
     hash = (29 * hash) + unknownFields.hashCode();
     memoizedHashCode = hash;
     return hash;
   }
 
-  public static alluxio.grpc.ReadRequest parseFrom(
+  public static alluxio.grpc.AsyncCacheRequest parseFrom(
       java.nio.ByteBuffer data)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
-  public static alluxio.grpc.ReadRequest parseFrom(
+  public static alluxio.grpc.AsyncCacheRequest parseFrom(
       java.nio.ByteBuffer data,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static alluxio.grpc.ReadRequest parseFrom(
+  public static alluxio.grpc.AsyncCacheRequest parseFrom(
       com.google.protobuf.ByteString data)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
-  public static alluxio.grpc.ReadRequest parseFrom(
+  public static alluxio.grpc.AsyncCacheRequest parseFrom(
       com.google.protobuf.ByteString data,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static alluxio.grpc.ReadRequest parseFrom(byte[] data)
+  public static alluxio.grpc.AsyncCacheRequest parseFrom(byte[] data)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
-  public static alluxio.grpc.ReadRequest parseFrom(
+  public static alluxio.grpc.AsyncCacheRequest parseFrom(
       byte[] data,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static alluxio.grpc.ReadRequest parseFrom(java.io.InputStream input)
+  public static alluxio.grpc.AsyncCacheRequest parseFrom(java.io.InputStream input)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseWithIOException(PARSER, input);
   }
-  public static alluxio.grpc.ReadRequest parseFrom(
+  public static alluxio.grpc.AsyncCacheRequest parseFrom(
       java.io.InputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseWithIOException(PARSER, input, extensionRegistry);
   }
-  public static alluxio.grpc.ReadRequest parseDelimitedFrom(java.io.InputStream input)
+  public static alluxio.grpc.AsyncCacheRequest parseDelimitedFrom(java.io.InputStream input)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseDelimitedWithIOException(PARSER, input);
   }
-  public static alluxio.grpc.ReadRequest parseDelimitedFrom(
+  public static alluxio.grpc.AsyncCacheRequest parseDelimitedFrom(
       java.io.InputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
   }
-  public static alluxio.grpc.ReadRequest parseFrom(
+  public static alluxio.grpc.AsyncCacheRequest parseFrom(
       com.google.protobuf.CodedInputStream input)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseWithIOException(PARSER, input);
   }
-  public static alluxio.grpc.ReadRequest parseFrom(
+  public static alluxio.grpc.AsyncCacheRequest parseFrom(
       com.google.protobuf.CodedInputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
@@ -427,7 +444,7 @@ private static final long serialVersionUID = 0L;
   public static Builder newBuilder() {
     return DEFAULT_INSTANCE.toBuilder();
   }
-  public static Builder newBuilder(alluxio.grpc.ReadRequest prototype) {
+  public static Builder newBuilder(alluxio.grpc.AsyncCacheRequest prototype) {
     return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
   }
   public Builder toBuilder() {
@@ -443,29 +460,29 @@ private static final long serialVersionUID = 0L;
   }
   /**
    * <pre>
-   * The read request.
+   * Request for caching a block asynchronously
    * next available id: 6
    * </pre>
    *
-   * Protobuf type {@code alluxio.grpc.ReadRequest}
+   * Protobuf type {@code alluxio.grpc.AsyncCacheRequest}
    */
   public static final class Builder extends
       com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
-      // @@protoc_insertion_point(builder_implements:alluxio.grpc.ReadRequest)
-      alluxio.grpc.ReadRequestOrBuilder {
+      // @@protoc_insertion_point(builder_implements:alluxio.grpc.AsyncCacheRequest)
+      alluxio.grpc.AsyncCacheRequestOrBuilder {
     public static final com.google.protobuf.Descriptors.Descriptor
         getDescriptor() {
-      return alluxio.grpc.BlockWorkerProto.internal_static_alluxio_grpc_ReadRequest_descriptor;
+      return alluxio.grpc.BlockWorkerProto.internal_static_alluxio_grpc_AsyncCacheRequest_descriptor;
     }
 
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
-      return alluxio.grpc.BlockWorkerProto.internal_static_alluxio_grpc_ReadRequest_fieldAccessorTable
+      return alluxio.grpc.BlockWorkerProto.internal_static_alluxio_grpc_AsyncCacheRequest_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
-              alluxio.grpc.ReadRequest.class, alluxio.grpc.ReadRequest.Builder.class);
+              alluxio.grpc.AsyncCacheRequest.class, alluxio.grpc.AsyncCacheRequest.Builder.class);
     }
 
-    // Construct using alluxio.grpc.ReadRequest.newBuilder()
+    // Construct using alluxio.grpc.AsyncCacheRequest.newBuilder()
     private Builder() {
       maybeForceBuilderInitialization();
     }
@@ -485,40 +502,40 @@ private static final long serialVersionUID = 0L;
       super.clear();
       blockId_ = 0L;
       bitField0_ = (bitField0_ & ~0x00000001);
-      offset_ = 0L;
+      sourceHost_ = "";
       bitField0_ = (bitField0_ & ~0x00000002);
-      length_ = 0L;
+      sourcePort_ = 0;
       bitField0_ = (bitField0_ & ~0x00000004);
-      promote_ = false;
-      bitField0_ = (bitField0_ & ~0x00000008);
       if (openUfsBlockOptionsBuilder_ == null) {
         openUfsBlockOptions_ = null;
       } else {
         openUfsBlockOptionsBuilder_.clear();
       }
+      bitField0_ = (bitField0_ & ~0x00000008);
+      length_ = 0L;
       bitField0_ = (bitField0_ & ~0x00000010);
       return this;
     }
 
     public com.google.protobuf.Descriptors.Descriptor
         getDescriptorForType() {
-      return alluxio.grpc.BlockWorkerProto.internal_static_alluxio_grpc_ReadRequest_descriptor;
+      return alluxio.grpc.BlockWorkerProto.internal_static_alluxio_grpc_AsyncCacheRequest_descriptor;
     }
 
-    public alluxio.grpc.ReadRequest getDefaultInstanceForType() {
-      return alluxio.grpc.ReadRequest.getDefaultInstance();
+    public alluxio.grpc.AsyncCacheRequest getDefaultInstanceForType() {
+      return alluxio.grpc.AsyncCacheRequest.getDefaultInstance();
     }
 
-    public alluxio.grpc.ReadRequest build() {
-      alluxio.grpc.ReadRequest result = buildPartial();
+    public alluxio.grpc.AsyncCacheRequest build() {
+      alluxio.grpc.AsyncCacheRequest result = buildPartial();
       if (!result.isInitialized()) {
         throw newUninitializedMessageException(result);
       }
       return result;
     }
 
-    public alluxio.grpc.ReadRequest buildPartial() {
-      alluxio.grpc.ReadRequest result = new alluxio.grpc.ReadRequest(this);
+    public alluxio.grpc.AsyncCacheRequest buildPartial() {
+      alluxio.grpc.AsyncCacheRequest result = new alluxio.grpc.AsyncCacheRequest(this);
       int from_bitField0_ = bitField0_;
       int to_bitField0_ = 0;
       if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
@@ -528,23 +545,23 @@ private static final long serialVersionUID = 0L;
       if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
         to_bitField0_ |= 0x00000002;
       }
-      result.offset_ = offset_;
+      result.sourceHost_ = sourceHost_;
       if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
         to_bitField0_ |= 0x00000004;
       }
-      result.length_ = length_;
+      result.sourcePort_ = sourcePort_;
       if (((from_bitField0_ & 0x00000008) == 0x00000008)) {
         to_bitField0_ |= 0x00000008;
-      }
-      result.promote_ = promote_;
-      if (((from_bitField0_ & 0x00000010) == 0x00000010)) {
-        to_bitField0_ |= 0x00000010;
       }
       if (openUfsBlockOptionsBuilder_ == null) {
         result.openUfsBlockOptions_ = openUfsBlockOptions_;
       } else {
         result.openUfsBlockOptions_ = openUfsBlockOptionsBuilder_.build();
       }
+      if (((from_bitField0_ & 0x00000010) == 0x00000010)) {
+        to_bitField0_ |= 0x00000010;
+      }
+      result.length_ = length_;
       result.bitField0_ = to_bitField0_;
       onBuilt();
       return result;
@@ -577,30 +594,32 @@ private static final long serialVersionUID = 0L;
       return (Builder) super.addRepeatedField(field, value);
     }
     public Builder mergeFrom(com.google.protobuf.Message other) {
-      if (other instanceof alluxio.grpc.ReadRequest) {
-        return mergeFrom((alluxio.grpc.ReadRequest)other);
+      if (other instanceof alluxio.grpc.AsyncCacheRequest) {
+        return mergeFrom((alluxio.grpc.AsyncCacheRequest)other);
       } else {
         super.mergeFrom(other);
         return this;
       }
     }
 
-    public Builder mergeFrom(alluxio.grpc.ReadRequest other) {
-      if (other == alluxio.grpc.ReadRequest.getDefaultInstance()) return this;
+    public Builder mergeFrom(alluxio.grpc.AsyncCacheRequest other) {
+      if (other == alluxio.grpc.AsyncCacheRequest.getDefaultInstance()) return this;
       if (other.hasBlockId()) {
         setBlockId(other.getBlockId());
       }
-      if (other.hasOffset()) {
-        setOffset(other.getOffset());
+      if (other.hasSourceHost()) {
+        bitField0_ |= 0x00000002;
+        sourceHost_ = other.sourceHost_;
+        onChanged();
       }
-      if (other.hasLength()) {
-        setLength(other.getLength());
-      }
-      if (other.hasPromote()) {
-        setPromote(other.getPromote());
+      if (other.hasSourcePort()) {
+        setSourcePort(other.getSourcePort());
       }
       if (other.hasOpenUfsBlockOptions()) {
         mergeOpenUfsBlockOptions(other.getOpenUfsBlockOptions());
+      }
+      if (other.hasLength()) {
+        setLength(other.getLength());
       }
       this.mergeUnknownFields(other.unknownFields);
       onChanged();
@@ -615,11 +634,11 @@ private static final long serialVersionUID = 0L;
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
-      alluxio.grpc.ReadRequest parsedMessage = null;
+      alluxio.grpc.AsyncCacheRequest parsedMessage = null;
       try {
         parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
       } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-        parsedMessage = (alluxio.grpc.ReadRequest) e.getUnfinishedMessage();
+        parsedMessage = (alluxio.grpc.AsyncCacheRequest) e.getUnfinishedMessage();
         throw e.unwrapIOException();
       } finally {
         if (parsedMessage != null) {
@@ -662,114 +681,134 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
-    private long offset_ ;
+    private java.lang.Object sourceHost_ = "";
     /**
-     * <code>optional int64 offset = 2;</code>
+     * <pre>
+     * TODO(calvin): source host and port should be replace with WorkerNetAddress
+     * </pre>
+     *
+     * <code>optional string source_host = 2;</code>
      */
-    public boolean hasOffset() {
+    public boolean hasSourceHost() {
       return ((bitField0_ & 0x00000002) == 0x00000002);
     }
     /**
-     * <code>optional int64 offset = 2;</code>
+     * <pre>
+     * TODO(calvin): source host and port should be replace with WorkerNetAddress
+     * </pre>
+     *
+     * <code>optional string source_host = 2;</code>
      */
-    public long getOffset() {
-      return offset_;
+    public java.lang.String getSourceHost() {
+      java.lang.Object ref = sourceHost_;
+      if (!(ref instanceof java.lang.String)) {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        if (bs.isValidUtf8()) {
+          sourceHost_ = s;
+        }
+        return s;
+      } else {
+        return (java.lang.String) ref;
+      }
     }
     /**
-     * <code>optional int64 offset = 2;</code>
+     * <pre>
+     * TODO(calvin): source host and port should be replace with WorkerNetAddress
+     * </pre>
+     *
+     * <code>optional string source_host = 2;</code>
      */
-    public Builder setOffset(long value) {
-      bitField0_ |= 0x00000002;
-      offset_ = value;
+    public com.google.protobuf.ByteString
+        getSourceHostBytes() {
+      java.lang.Object ref = sourceHost_;
+      if (ref instanceof String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        sourceHost_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+    /**
+     * <pre>
+     * TODO(calvin): source host and port should be replace with WorkerNetAddress
+     * </pre>
+     *
+     * <code>optional string source_host = 2;</code>
+     */
+    public Builder setSourceHost(
+        java.lang.String value) {
+      if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000002;
+      sourceHost_ = value;
       onChanged();
       return this;
     }
     /**
-     * <code>optional int64 offset = 2;</code>
+     * <pre>
+     * TODO(calvin): source host and port should be replace with WorkerNetAddress
+     * </pre>
+     *
+     * <code>optional string source_host = 2;</code>
      */
-    public Builder clearOffset() {
+    public Builder clearSourceHost() {
       bitField0_ = (bitField0_ & ~0x00000002);
-      offset_ = 0L;
+      sourceHost_ = getDefaultInstance().getSourceHost();
+      onChanged();
+      return this;
+    }
+    /**
+     * <pre>
+     * TODO(calvin): source host and port should be replace with WorkerNetAddress
+     * </pre>
+     *
+     * <code>optional string source_host = 2;</code>
+     */
+    public Builder setSourceHostBytes(
+        com.google.protobuf.ByteString value) {
+      if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000002;
+      sourceHost_ = value;
       onChanged();
       return this;
     }
 
-    private long length_ ;
+    private int sourcePort_ ;
     /**
-     * <code>optional int64 length = 3;</code>
+     * <code>optional int32 source_port = 3;</code>
      */
-    public boolean hasLength() {
+    public boolean hasSourcePort() {
       return ((bitField0_ & 0x00000004) == 0x00000004);
     }
     /**
-     * <code>optional int64 length = 3;</code>
+     * <code>optional int32 source_port = 3;</code>
      */
-    public long getLength() {
-      return length_;
+    public int getSourcePort() {
+      return sourcePort_;
     }
     /**
-     * <code>optional int64 length = 3;</code>
+     * <code>optional int32 source_port = 3;</code>
      */
-    public Builder setLength(long value) {
+    public Builder setSourcePort(int value) {
       bitField0_ |= 0x00000004;
-      length_ = value;
+      sourcePort_ = value;
       onChanged();
       return this;
     }
     /**
-     * <code>optional int64 length = 3;</code>
+     * <code>optional int32 source_port = 3;</code>
      */
-    public Builder clearLength() {
+    public Builder clearSourcePort() {
       bitField0_ = (bitField0_ & ~0x00000004);
-      length_ = 0L;
-      onChanged();
-      return this;
-    }
-
-    private boolean promote_ ;
-    /**
-     * <pre>
-     * Whether the block should be promoted before reading
-     * </pre>
-     *
-     * <code>optional bool promote = 4;</code>
-     */
-    public boolean hasPromote() {
-      return ((bitField0_ & 0x00000008) == 0x00000008);
-    }
-    /**
-     * <pre>
-     * Whether the block should be promoted before reading
-     * </pre>
-     *
-     * <code>optional bool promote = 4;</code>
-     */
-    public boolean getPromote() {
-      return promote_;
-    }
-    /**
-     * <pre>
-     * Whether the block should be promoted before reading
-     * </pre>
-     *
-     * <code>optional bool promote = 4;</code>
-     */
-    public Builder setPromote(boolean value) {
-      bitField0_ |= 0x00000008;
-      promote_ = value;
-      onChanged();
-      return this;
-    }
-    /**
-     * <pre>
-     * Whether the block should be promoted before reading
-     * </pre>
-     *
-     * <code>optional bool promote = 4;</code>
-     */
-    public Builder clearPromote() {
-      bitField0_ = (bitField0_ & ~0x00000008);
-      promote_ = false;
+      sourcePort_ = 0;
       onChanged();
       return this;
     }
@@ -778,21 +817,13 @@ private static final long serialVersionUID = 0L;
     private com.google.protobuf.SingleFieldBuilderV3<
         alluxio.proto.dataserver.Protocol.OpenUfsBlockOptions, alluxio.proto.dataserver.Protocol.OpenUfsBlockOptions.Builder, alluxio.proto.dataserver.Protocol.OpenUfsBlockOptionsOrBuilder> openUfsBlockOptionsBuilder_;
     /**
-     * <pre>
-     * This is only set for UFS block read.
-     * </pre>
-     *
-     * <code>optional .alluxio.proto.dataserver.OpenUfsBlockOptions open_ufs_block_options = 5;</code>
+     * <code>optional .alluxio.proto.dataserver.OpenUfsBlockOptions open_ufs_block_options = 4;</code>
      */
     public boolean hasOpenUfsBlockOptions() {
-      return ((bitField0_ & 0x00000010) == 0x00000010);
+      return ((bitField0_ & 0x00000008) == 0x00000008);
     }
     /**
-     * <pre>
-     * This is only set for UFS block read.
-     * </pre>
-     *
-     * <code>optional .alluxio.proto.dataserver.OpenUfsBlockOptions open_ufs_block_options = 5;</code>
+     * <code>optional .alluxio.proto.dataserver.OpenUfsBlockOptions open_ufs_block_options = 4;</code>
      */
     public alluxio.proto.dataserver.Protocol.OpenUfsBlockOptions getOpenUfsBlockOptions() {
       if (openUfsBlockOptionsBuilder_ == null) {
@@ -802,11 +833,7 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
-     * <pre>
-     * This is only set for UFS block read.
-     * </pre>
-     *
-     * <code>optional .alluxio.proto.dataserver.OpenUfsBlockOptions open_ufs_block_options = 5;</code>
+     * <code>optional .alluxio.proto.dataserver.OpenUfsBlockOptions open_ufs_block_options = 4;</code>
      */
     public Builder setOpenUfsBlockOptions(alluxio.proto.dataserver.Protocol.OpenUfsBlockOptions value) {
       if (openUfsBlockOptionsBuilder_ == null) {
@@ -818,15 +845,11 @@ private static final long serialVersionUID = 0L;
       } else {
         openUfsBlockOptionsBuilder_.setMessage(value);
       }
-      bitField0_ |= 0x00000010;
+      bitField0_ |= 0x00000008;
       return this;
     }
     /**
-     * <pre>
-     * This is only set for UFS block read.
-     * </pre>
-     *
-     * <code>optional .alluxio.proto.dataserver.OpenUfsBlockOptions open_ufs_block_options = 5;</code>
+     * <code>optional .alluxio.proto.dataserver.OpenUfsBlockOptions open_ufs_block_options = 4;</code>
      */
     public Builder setOpenUfsBlockOptions(
         alluxio.proto.dataserver.Protocol.OpenUfsBlockOptions.Builder builderForValue) {
@@ -836,19 +859,15 @@ private static final long serialVersionUID = 0L;
       } else {
         openUfsBlockOptionsBuilder_.setMessage(builderForValue.build());
       }
-      bitField0_ |= 0x00000010;
+      bitField0_ |= 0x00000008;
       return this;
     }
     /**
-     * <pre>
-     * This is only set for UFS block read.
-     * </pre>
-     *
-     * <code>optional .alluxio.proto.dataserver.OpenUfsBlockOptions open_ufs_block_options = 5;</code>
+     * <code>optional .alluxio.proto.dataserver.OpenUfsBlockOptions open_ufs_block_options = 4;</code>
      */
     public Builder mergeOpenUfsBlockOptions(alluxio.proto.dataserver.Protocol.OpenUfsBlockOptions value) {
       if (openUfsBlockOptionsBuilder_ == null) {
-        if (((bitField0_ & 0x00000010) == 0x00000010) &&
+        if (((bitField0_ & 0x00000008) == 0x00000008) &&
             openUfsBlockOptions_ != null &&
             openUfsBlockOptions_ != alluxio.proto.dataserver.Protocol.OpenUfsBlockOptions.getDefaultInstance()) {
           openUfsBlockOptions_ =
@@ -860,15 +879,11 @@ private static final long serialVersionUID = 0L;
       } else {
         openUfsBlockOptionsBuilder_.mergeFrom(value);
       }
-      bitField0_ |= 0x00000010;
+      bitField0_ |= 0x00000008;
       return this;
     }
     /**
-     * <pre>
-     * This is only set for UFS block read.
-     * </pre>
-     *
-     * <code>optional .alluxio.proto.dataserver.OpenUfsBlockOptions open_ufs_block_options = 5;</code>
+     * <code>optional .alluxio.proto.dataserver.OpenUfsBlockOptions open_ufs_block_options = 4;</code>
      */
     public Builder clearOpenUfsBlockOptions() {
       if (openUfsBlockOptionsBuilder_ == null) {
@@ -877,27 +892,19 @@ private static final long serialVersionUID = 0L;
       } else {
         openUfsBlockOptionsBuilder_.clear();
       }
-      bitField0_ = (bitField0_ & ~0x00000010);
+      bitField0_ = (bitField0_ & ~0x00000008);
       return this;
     }
     /**
-     * <pre>
-     * This is only set for UFS block read.
-     * </pre>
-     *
-     * <code>optional .alluxio.proto.dataserver.OpenUfsBlockOptions open_ufs_block_options = 5;</code>
+     * <code>optional .alluxio.proto.dataserver.OpenUfsBlockOptions open_ufs_block_options = 4;</code>
      */
     public alluxio.proto.dataserver.Protocol.OpenUfsBlockOptions.Builder getOpenUfsBlockOptionsBuilder() {
-      bitField0_ |= 0x00000010;
+      bitField0_ |= 0x00000008;
       onChanged();
       return getOpenUfsBlockOptionsFieldBuilder().getBuilder();
     }
     /**
-     * <pre>
-     * This is only set for UFS block read.
-     * </pre>
-     *
-     * <code>optional .alluxio.proto.dataserver.OpenUfsBlockOptions open_ufs_block_options = 5;</code>
+     * <code>optional .alluxio.proto.dataserver.OpenUfsBlockOptions open_ufs_block_options = 4;</code>
      */
     public alluxio.proto.dataserver.Protocol.OpenUfsBlockOptionsOrBuilder getOpenUfsBlockOptionsOrBuilder() {
       if (openUfsBlockOptionsBuilder_ != null) {
@@ -908,11 +915,7 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
-     * <pre>
-     * This is only set for UFS block read.
-     * </pre>
-     *
-     * <code>optional .alluxio.proto.dataserver.OpenUfsBlockOptions open_ufs_block_options = 5;</code>
+     * <code>optional .alluxio.proto.dataserver.OpenUfsBlockOptions open_ufs_block_options = 4;</code>
      */
     private com.google.protobuf.SingleFieldBuilderV3<
         alluxio.proto.dataserver.Protocol.OpenUfsBlockOptions, alluxio.proto.dataserver.Protocol.OpenUfsBlockOptions.Builder, alluxio.proto.dataserver.Protocol.OpenUfsBlockOptionsOrBuilder> 
@@ -927,6 +930,38 @@ private static final long serialVersionUID = 0L;
       }
       return openUfsBlockOptionsBuilder_;
     }
+
+    private long length_ ;
+    /**
+     * <code>optional int64 length = 5;</code>
+     */
+    public boolean hasLength() {
+      return ((bitField0_ & 0x00000010) == 0x00000010);
+    }
+    /**
+     * <code>optional int64 length = 5;</code>
+     */
+    public long getLength() {
+      return length_;
+    }
+    /**
+     * <code>optional int64 length = 5;</code>
+     */
+    public Builder setLength(long value) {
+      bitField0_ |= 0x00000010;
+      length_ = value;
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>optional int64 length = 5;</code>
+     */
+    public Builder clearLength() {
+      bitField0_ = (bitField0_ & ~0x00000010);
+      length_ = 0L;
+      onChanged();
+      return this;
+    }
     public final Builder setUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {
       return super.setUnknownFields(unknownFields);
@@ -938,39 +973,39 @@ private static final long serialVersionUID = 0L;
     }
 
 
-    // @@protoc_insertion_point(builder_scope:alluxio.grpc.ReadRequest)
+    // @@protoc_insertion_point(builder_scope:alluxio.grpc.AsyncCacheRequest)
   }
 
-  // @@protoc_insertion_point(class_scope:alluxio.grpc.ReadRequest)
-  private static final alluxio.grpc.ReadRequest DEFAULT_INSTANCE;
+  // @@protoc_insertion_point(class_scope:alluxio.grpc.AsyncCacheRequest)
+  private static final alluxio.grpc.AsyncCacheRequest DEFAULT_INSTANCE;
   static {
-    DEFAULT_INSTANCE = new alluxio.grpc.ReadRequest();
+    DEFAULT_INSTANCE = new alluxio.grpc.AsyncCacheRequest();
   }
 
-  public static alluxio.grpc.ReadRequest getDefaultInstance() {
+  public static alluxio.grpc.AsyncCacheRequest getDefaultInstance() {
     return DEFAULT_INSTANCE;
   }
 
-  @java.lang.Deprecated public static final com.google.protobuf.Parser<ReadRequest>
-      PARSER = new com.google.protobuf.AbstractParser<ReadRequest>() {
-    public ReadRequest parsePartialFrom(
+  @java.lang.Deprecated public static final com.google.protobuf.Parser<AsyncCacheRequest>
+      PARSER = new com.google.protobuf.AbstractParser<AsyncCacheRequest>() {
+    public AsyncCacheRequest parsePartialFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
-      return new ReadRequest(input, extensionRegistry);
+      return new AsyncCacheRequest(input, extensionRegistry);
     }
   };
 
-  public static com.google.protobuf.Parser<ReadRequest> parser() {
+  public static com.google.protobuf.Parser<AsyncCacheRequest> parser() {
     return PARSER;
   }
 
   @java.lang.Override
-  public com.google.protobuf.Parser<ReadRequest> getParserForType() {
+  public com.google.protobuf.Parser<AsyncCacheRequest> getParserForType() {
     return PARSER;
   }
 
-  public alluxio.grpc.ReadRequest getDefaultInstanceForType() {
+  public alluxio.grpc.AsyncCacheRequest getDefaultInstanceForType() {
     return DEFAULT_INSTANCE;
   }
 

@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.worker.netty;
+package alluxio.worker.grpc;
 
 import alluxio.proto.dataserver.Protocol;
 
@@ -28,9 +28,9 @@ public final class BlockReadRequest extends ReadRequest {
    *
    * @param request the block read request
    */
-  BlockReadRequest(Protocol.ReadRequest request) {
-    super(request.getBlockId(), request.getOffset(), request.getOffset() + request.getLength(),
-        request.getPacketSize());
+  BlockReadRequest(alluxio.grpc.ReadRequest request) {
+    super(request.getBlockId(), request.getOffset(),
+        request.getOffset() + request.getLength());
 
     if (request.hasOpenUfsBlockOptions()) {
       mOpenUfsBlockOptions = request.getOpenUfsBlockOptions();

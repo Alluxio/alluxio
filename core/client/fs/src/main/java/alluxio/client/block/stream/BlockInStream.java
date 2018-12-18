@@ -22,6 +22,7 @@ import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.NotFoundException;
+import alluxio.grpc.ReadRequest;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.util.io.BufferUtils;
@@ -103,10 +104,11 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
     long blockSize = info.getLength();
 
     // Construct the partial read request
-    Protocol.ReadRequest.Builder builder =
-        Protocol.ReadRequest.newBuilder().setBlockId(blockId).setPromote(readType.isPromote());
+    ReadRequest.Builder builder =
+        ReadRequest.newBuilder().setBlockId(blockId).setPromote(readType.isPromote());
     // Add UFS fallback options
-    builder.setOpenUfsBlockOptions(options.getOpenUfsBlockOptions(blockId));
+    builder.setOpenUfsBlockOptions(
+        Protocol.OpenUfsBlockOptions.parseFrom(options.getOpenUfsBlockOptions(blockId).toByteString()));
 
     boolean shortCircuit = Configuration.getBoolean(PropertyKey.USER_SHORT_CIRCUIT_ENABLED);
     boolean sourceSupportsDomainSocket = NettyUtils.isDomainSocketSupported(dataSource);
@@ -128,7 +130,7 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
     // Netty
     LOG.debug("Creating netty input stream for block {} @ {} from client {} reading through {}",
         blockId, dataSource, NetworkAddressUtils.getClientHostName(), dataSource);
-    return createNettyBlockInStream(context, dataSource, dataSourceType, builder.buildPartial(),
+    return createGrpcBlockInStream(context, dataSource, dataSourceType, builder.buildPartial(),
         blockSize, options);
   }
 
@@ -162,13 +164,11 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
    * @param options the in stream options
    * @return the {@link BlockInStream} created
    */
-  private static BlockInStream createNettyBlockInStream(FileSystemContext context,
+  private static BlockInStream createGrpcBlockInStream(FileSystemContext context,
       WorkerNetAddress address, BlockInStreamSource blockSource,
-      Protocol.ReadRequest readRequestPartial, long blockSize, InStreamOptions options) {
-    long packetSize =
-        Configuration.getBytes(PropertyKey.USER_NETWORK_NETTY_READER_PACKET_SIZE_BYTES);
-    PacketReader.Factory factory = new NettyPacketReader.Factory(context, address,
-        readRequestPartial.toBuilder().setPacketSize(packetSize).buildPartial());
+      ReadRequest readRequestPartial, long blockSize, InStreamOptions options) {
+    PacketReader.Factory factory = new GrpcDataReader.Factory(context, address,
+        readRequestPartial.toBuilder().buildPartial());
     return new BlockInStream(factory, address, blockSource, readRequestPartial.getBlockId(),
         blockSize);
   }
@@ -189,11 +189,9 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
   public static BlockInStream createRemoteBlockInStream(FileSystemContext context, long blockId,
       WorkerNetAddress address, BlockInStreamSource blockSource, long blockSize,
       Protocol.OpenUfsBlockOptions ufsOptions) {
-    long packetSize =
-        Configuration.getBytes(PropertyKey.USER_NETWORK_NETTY_READER_PACKET_SIZE_BYTES);
-    Protocol.ReadRequest readRequest = Protocol.ReadRequest.newBuilder().setBlockId(blockId)
-        .setOpenUfsBlockOptions(ufsOptions).setPacketSize(packetSize).buildPartial();
-    PacketReader.Factory factory = new NettyPacketReader.Factory(context, address,
+    ReadRequest readRequest = ReadRequest.newBuilder().setBlockId(blockId)
+        .setOpenUfsBlockOptions(ufsOptions).buildPartial();
+    PacketReader.Factory factory = new GrpcDataReader.Factory(context, address,
         readRequest.toBuilder().buildPartial());
     return new BlockInStream(factory, address, blockSource, blockId, blockSize);
   }

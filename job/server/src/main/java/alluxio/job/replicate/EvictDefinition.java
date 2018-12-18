@@ -11,22 +11,18 @@
 
 package alluxio.job.replicate;
 
-import alluxio.Configuration;
-import alluxio.PropertyKey;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.BlockWorkerInfo;
+import alluxio.client.block.stream.BlockWorkerClient;
 import alluxio.client.file.FileSystemContext;
 import alluxio.exception.status.NotFoundException;
+import alluxio.grpc.RemoveBlockRequest;
 import alluxio.job.AbstractVoidJobDefinition;
 import alluxio.job.JobMasterContext;
 import alluxio.job.JobWorkerContext;
 import alluxio.job.util.SerializableVoid;
-import alluxio.network.netty.NettyRPC;
-import alluxio.network.netty.NettyRPCContext;
-import alluxio.proto.dataserver.Protocol;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
-import alluxio.util.proto.ProtoMessage;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
 import alluxio.wire.WorkerInfo;
@@ -34,7 +30,6 @@ import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
-import io.netty.channel.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -134,21 +129,13 @@ public final class EvictDefinition
       throw new NotFoundException(message);
     }
 
-    Channel channel = null;
-    try {
-      channel = FileSystemContext.get().acquireNettyChannel(localNetAddress);
-      ProtoMessage request =
-          new ProtoMessage(Protocol.RemoveBlockRequest.newBuilder().setBlockId(blockId).build());
-      NettyRPC.call(NettyRPCContext.defaults().setChannel(channel).setTimeout(
-          Configuration.getMs(PropertyKey.USER_NETWORK_NETTY_TIMEOUT_MS)), request);
+    RemoveBlockRequest request = RemoveBlockRequest.newBuilder().setBlockId(blockId).build();
+    try (BlockWorkerClient blockWorker = FileSystemContext.get().acquireBlockWorkerClient(localNetAddress)) {
+        blockWorker.removeBlock(request);
     } catch (NotFoundException e) {
       // Instead of throwing this exception, we continue here because the block to evict does not
       // exist on this worker anyway.
       LOG.warn("Failed to delete block {} on {}: block does not exist", blockId, localNetAddress);
-    } finally {
-      if (channel != null) {
-        FileSystemContext.get().releaseNettyChannel(localNetAddress, channel);
-      }
     }
     return null;
   }

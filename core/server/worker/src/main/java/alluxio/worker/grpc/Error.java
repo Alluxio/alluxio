@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.worker.netty;
+package alluxio.worker.grpc;
 
 import alluxio.exception.status.AlluxioStatusException;
 
@@ -20,11 +20,11 @@ import javax.annotation.concurrent.ThreadSafe;
  * reader thread.
  */
 @ThreadSafe
-class Error {
+public class Error {
   final AlluxioStatusException mCause;
   final boolean mNotifyClient;
 
-  Error(AlluxioStatusException cause, boolean notifyClient) {
+  public Error(AlluxioStatusException cause, boolean notifyClient) {
     mCause = cause;
     mNotifyClient = notifyClient;
   }

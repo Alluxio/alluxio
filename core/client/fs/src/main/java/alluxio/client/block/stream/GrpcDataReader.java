@@ -11,49 +11,32 @@
 
 package alluxio.client.block.stream;
 
-import alluxio.Configuration;
-import alluxio.PropertyKey;
 import alluxio.client.file.FileSystemContext;
-import alluxio.exception.status.AlluxioStatusException;
-import alluxio.exception.status.CanceledException;
-import alluxio.exception.status.DeadlineExceededException;
-import alluxio.exception.status.UnavailableException;
-import alluxio.network.protocol.RPCProtoMessage;
+import alluxio.grpc.ReadRequest;
+import alluxio.grpc.ReadResponse;
 import alluxio.network.protocol.databuffer.DataBuffer;
-import alluxio.network.protocol.databuffer.DataNettyBufferV2;
-import alluxio.proto.dataserver.Protocol;
-import alluxio.proto.status.Status.PStatus;
-import alluxio.util.CommonUtils;
-import alluxio.util.network.NettyUtils;
-import alluxio.util.proto.ProtoMessage;
+import alluxio.network.protocol.databuffer.DataByteBuffer;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Preconditions;
-import com.google.common.base.Throwables;
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelFutureListener;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInboundHandlerAdapter;
+import com.google.protobuf.ByteString;
+import io.grpc.Context;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.TimeUnit;
+import java.util.Iterator;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * A netty packet reader that streams a region from a netty data server.
+ * A gRPC data reader that streams a region gRPC a netty data server.
  *
  * Protocol:
  * 1. The client sends a read request (id, offset, length).
- * 2. Once the server receives the request, it streams packets to the client. The streaming pauses
+ * 2. Once the server receives the request, it streams chunks to the client. The streaming pauses
  *    if the server's buffer is full and resumes if the buffer is not full.
- * 3. The client reads packets from the stream. Reading pauses if the client buffer is full and
+ * 3. The client reads chunks from the stream. Reading pauses if the client buffer is full and
  *    resumes if the buffer is not full. If the client can keep up with network speed, the buffer
  *    should have at most one packet.
  * 4. The client stops reading if it receives an empty packet which signifies the end of the stream.
@@ -64,43 +47,18 @@ import javax.annotation.concurrent.NotThreadSafe;
  * 7. To make it simple to handle errors, the channel is closed if any error occurs.
  */
 @NotThreadSafe
-public final class NettyPacketReader implements PacketReader {
-  private static final Logger LOG = LoggerFactory.getLogger(NettyPacketReader.class);
-
-  private static final int MAX_PACKETS_IN_FLIGHT =
-      Configuration.getInt(PropertyKey.USER_NETWORK_NETTY_READER_BUFFER_SIZE_PACKETS);
-  private static final long READ_TIMEOUT_MS =
-      Configuration.getMs(PropertyKey.USER_NETWORK_NETTY_TIMEOUT_MS);
-
-  /** Special packet that indicates an exception is caught. */
-  private static final ByteBuf THROWABLE = Unpooled.buffer(0);
-  /** Special packet that indicates this is a UFS read heartbeat sent by the server. */
-  private static final ByteBuf UFS_READ_HEARTBEAT = Unpooled.buffer(0);
-  /** Special packet that indicates the EOF is reached or the stream is cancelled. */
-  private static final ByteBuf EOF_OR_CANCELLED = Unpooled.buffer(0);
+public final class GrpcDataReader implements PacketReader {
+  private static final Logger LOG = LoggerFactory.getLogger(GrpcDataReader.class);
 
   private final FileSystemContext mContext;
-  private final Channel mChannel;
-  private final Protocol.ReadRequest mReadRequest;
+  private final BlockWorkerClient mClient;
+  private final ReadRequest mReadRequest;
   private final WorkerNetAddress mAddress;
 
-  /**
-   * This queue contains buffers read from netty. Its length is bounded by MAX_PACKETS_IN_FLIGHT.
-   * Only the netty I/O thread can push to the queue. Only the client thread can poll from the
-   * queue.
-   */
-  private final BlockingQueue<ByteBuf> mPackets = new LinkedBlockingQueue<>();
-  /**
-   * The exception caught when reading packets from the netty channel. This is only updated
-   * by the netty I/O thread. The client thread only reads it after THROWABLE is found in
-   * mPackets queue.
-   */
-  private volatile Throwable mPacketReaderException;
+  private final Iterator<ReadResponse> mIterator;
+  private final Context.CancellableContext mCancellableContext;
 
-  /**
-   * The next pos to read. This is only updated by the client thread (not touched by the netty
-   * I/O thread).
-   */
+  /** The next pos to read. */
   private long mPosToRead;
   /**
    * This is true only when an empty packet (EOF or CANCELLED) is received. This is only updated
@@ -111,24 +69,28 @@ public final class NettyPacketReader implements PacketReader {
   private boolean mClosed = false;
 
   /**
-   * Creates an instance of {@link NettyPacketReader}. If this is used to read a block remotely, it
+   * Creates an instance of {@link GrpcDataReader}. If this is used to read a block remotely, it
    * requires the block to be locked beforehand and the lock ID is passed to this class.
    *
    * @param context the file system context
-   * @param address the netty data server address
+   * @param address the data server address
    * @param readRequest the read request
    */
-  private NettyPacketReader(FileSystemContext context, WorkerNetAddress address,
-      Protocol.ReadRequest readRequest) throws IOException {
+  private GrpcDataReader(FileSystemContext context, WorkerNetAddress address,
+      ReadRequest readRequest) throws IOException {
     mContext = context;
     mAddress = address;
     mPosToRead = readRequest.getOffset();
     mReadRequest = readRequest;
 
-    mChannel = mContext.acquireNettyChannel(address);
-    mChannel.pipeline().addLast(new PacketReadHandler());
-    mChannel.writeAndFlush(new RPCProtoMessage(new ProtoMessage(mReadRequest)))
-        .addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
+    mClient = mContext.acquireBlockWorkerClient(address);
+    mCancellableContext = Context.current().withCancellation();
+    Context previousContext = mCancellableContext.attach();
+    try {
+      mIterator = mClient.readBlock(mReadRequest);
+    } finally {
+      mCancellableContext.detach(previousContext);
+    }
   }
 
   @Override
@@ -138,204 +100,51 @@ public final class NettyPacketReader implements PacketReader {
 
   @Override
   public DataBuffer readPacket() throws IOException {
-    Preconditions.checkState(!mClosed, "PacketReader is closed while reading packets.");
-    // TODO(peis): Have a better criteria to resume so that we can have fewer state changes.
-    if (!tooManyPacketsPending()) {
-      NettyUtils.enableAutoRead(mChannel);
-    }
-    ByteBuf buf;
+    Preconditions.checkState(!mClosed, "Data reader is closed while reading packets.");
+    ByteString buf;
     try {
-      while ((buf = mPackets.poll(READ_TIMEOUT_MS, TimeUnit.MILLISECONDS)) == UFS_READ_HEARTBEAT) {
+      if (!mIterator.hasNext()) {
+        mDone = true;
+        return null;
       }
-    } catch (InterruptedException e) {
-      Thread.currentThread().interrupt();
-      throw new CanceledException(e);
+    } catch (RuntimeException e) {
+      close();
+      throw new IOException(e.getMessage(), e.getCause());
     }
-    if (buf == null) {
-      throw new DeadlineExceededException(String
-          .format("Timeout to read %d from %s.", mReadRequest.getBlockId(), mChannel.toString()));
-    }
-    if (buf == THROWABLE) {
-      Preconditions.checkNotNull(mPacketReaderException, "mPacketReaderException");
-      Throwables.propagateIfPossible(mPacketReaderException, IOException.class);
-      throw AlluxioStatusException.fromCheckedException(mPacketReaderException);
-    }
-    if (buf == EOF_OR_CANCELLED) {
-      mDone = true;
-      return null;
-    }
-    mPosToRead += buf.readableBytes();
+    ReadResponse response = mIterator.next();
+    Preconditions.checkState(response.hasChunk(), "response should either has chunk or code");
+    buf = response.getChunk().getData();
+    mPosToRead += buf.size();
     Preconditions.checkState(mPosToRead - mReadRequest.getOffset() <= mReadRequest.getLength());
-    return new DataNettyBufferV2(buf);
+    return new DataByteBuffer(buf.asReadOnlyByteBuffer(), buf.size());
   }
 
   @Override
   public void close() {
-    if (mClosed) {
+    if (mClosed || mDone || mClient.isShutdown()) {
       return;
     }
-    try {
-      if (mDone) {
-        return;
-      }
-      if (!mChannel.isOpen()) {
-        return;
-      }
-      if (remaining() > 0) {
-        Protocol.ReadRequest cancelRequest = mReadRequest.toBuilder().setCancel(true).build();
-        mChannel.writeAndFlush(new RPCProtoMessage(new ProtoMessage(cancelRequest)))
-            .addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
-      }
-
-      try {
-        readAndDiscardAll();
-      } catch (IOException e) {
-        LOG.warn("Failed to close the NettyBlockReader (block: {}, address: {}) with exception {}.",
-            mReadRequest.getBlockId(), mAddress, e.getMessage());
-        CommonUtils.closeChannel(mChannel);
-        return;
-      }
-    } finally {
-      if (mChannel.isOpen()) {
-        mChannel.pipeline().removeLast();
-
-        // Make sure "autoread" is on before releasing the channel.
-        NettyUtils.enableAutoRead(mChannel);
-      }
-      mContext.releaseNettyChannel(mAddress, mChannel);
-      mClosed = true;
-    }
+    mCancellableContext.close();
+    mClosed = true;
   }
 
   /**
-   * Reads and discards everything read from the channel until it reaches end of the stream.
-   */
-  private void readAndDiscardAll() throws IOException {
-    DataBuffer buf;
-    do {
-      buf = readPacket();
-      if (buf != null) {
-        buf.release();
-      }
-      // A null packet indicates the end of the stream.
-    } while (buf != null);
-  }
-
-  /**
-   * @return bytes remaining
-   */
-  private long remaining() {
-    return mReadRequest.getOffset() + mReadRequest.getLength() - mPosToRead;
-  }
-
-  /**
-   * @return true if there are too many packets pending
-   */
-  private boolean tooManyPacketsPending() {
-    return mPackets.size() >= MAX_PACKETS_IN_FLIGHT;
-  }
-
-  /**
-   * The netty handler that reads packets from the channel.
-   */
-  private class PacketReadHandler extends ChannelInboundHandlerAdapter {
-    /**
-     * Default constructor.
-     */
-    PacketReadHandler() {}
-
-    @Override
-    public void channelRead(ChannelHandlerContext ctx, Object msg) throws IOException {
-      // Precondition check is not used here to avoid calling msg.getClass().getCanonicalName()
-      // all the time.
-      if (!(msg instanceof RPCProtoMessage)) {
-        throw new IllegalStateException(String
-            .format("Incorrect response type %s, %s.", msg.getClass().getCanonicalName(), msg));
-      }
-
-      ByteBuf buf;
-      RPCProtoMessage response = (RPCProtoMessage) msg;
-      ProtoMessage message = response.getMessage();
-      if (message.isReadResponse()) {
-        Preconditions.checkState(
-            message.asReadResponse().getType() == Protocol.ReadResponse.Type.UFS_READ_HEARTBEAT);
-        buf = UFS_READ_HEARTBEAT;
-      } else if (message.isResponse()) {
-        // Canceled is considered a valid status and handled in the reader. We avoid creating a
-        // CanceledException as an optimization.
-        if (message.asResponse().getStatus() != PStatus.CANCELED) {
-          CommonUtils.unwrapResponseFrom(response.getMessage().asResponse(), ctx.channel());
-        }
-
-        DataBuffer dataBuffer = response.getPayloadDataBuffer();
-        if (dataBuffer == null) {
-          buf = EOF_OR_CANCELLED;
-        } else {
-          Preconditions.checkState(dataBuffer.getNettyOutput() instanceof ByteBuf);
-          buf = (ByteBuf) dataBuffer.getNettyOutput();
-        }
-      } else {
-        throw new IllegalStateException(
-            String.format("Incorrect response type %s.", message.toString()));
-      }
-
-      if (tooManyPacketsPending()) {
-        NettyUtils.disableAutoRead(ctx.channel());
-      }
-      mPackets.offer(buf);
-    }
-
-    @Override
-    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-      LOG.error("Exception is caught while reading block {} from channel {}:",
-          mReadRequest.getBlockId(), ctx.channel(), cause);
-
-      // NOTE: The netty I/O thread associated with mChannel is the only thread that can update
-      // mPacketReaderException and push to mPackets. So it is safe to do the following without
-      // synchronization.
-      // Make sure to set mPacketReaderException before pushing THROWABLE to mPackets.
-      if (mPacketReaderException == null) {
-        mPacketReaderException = cause;
-        mPackets.offer(THROWABLE);
-      }
-      ctx.close();
-    }
-
-    @Override
-    public void channelUnregistered(ChannelHandlerContext ctx) {
-      LOG.warn("Channel is closed while reading block {} from channel {}.",
-          mReadRequest.getBlockId(), ctx.channel());
-
-      // NOTE: The netty I/O thread associated with mChannel is the only thread that can update
-      // mPacketReaderException and push to mPackets. So it is safe to do the following without
-      // synchronization.
-      // Make sure to set mPacketReaderException before pushing THROWABLE to mPackets.
-      if (mPacketReaderException == null) {
-        mPacketReaderException =
-            new UnavailableException(String.format("Channel %s is closed.", mChannel.toString()));
-        mPackets.offer(THROWABLE);
-      }
-      ctx.fireChannelUnregistered();
-    }
-  }
-
-  /**
-   * Factory class to create {@link NettyPacketReader}s.
+   * Factory class to create {@link GrpcDataReader}s.
    */
   public static class Factory implements PacketReader.Factory {
     private final FileSystemContext mContext;
     private final WorkerNetAddress mAddress;
-    private final Protocol.ReadRequest mReadRequestPartial;
+    private final ReadRequest mReadRequestPartial;
 
     /**
-     * Creates an instance of {@link NettyPacketReader.Factory} for block reads.
+     * Creates an instance of {@link GrpcDataReader.Factory} for block reads.
      *
      * @param context the file system context
      * @param address the worker address
      * @param readRequestPartial the partial read request
      */
     public Factory(FileSystemContext context, WorkerNetAddress address,
-        Protocol.ReadRequest readRequestPartial) {
+        ReadRequest readRequestPartial) {
       mContext = context;
       mAddress = address;
       mReadRequestPartial = readRequestPartial;
@@ -343,7 +152,7 @@ public final class NettyPacketReader implements PacketReader {
 
     @Override
     public PacketReader create(long offset, long len) throws IOException {
-      return new NettyPacketReader(mContext, mAddress,
+      return new GrpcDataReader(mContext, mAddress,
           mReadRequestPartial.toBuilder().setOffset(offset).setLength(len).build());
     }
 

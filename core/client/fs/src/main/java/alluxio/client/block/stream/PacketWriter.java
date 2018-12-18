@@ -17,7 +17,7 @@ import alluxio.client.Cancelable;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.OutStreamOptions;
-import alluxio.proto.dataserver.Protocol;
+import alluxio.grpc.RequestType;
 import alluxio.util.CommonUtils;
 import alluxio.util.network.NettyUtils;
 import alluxio.util.network.NetworkAddressUtils;
@@ -71,8 +71,8 @@ public interface PacketWriter extends Closeable, Cancelable {
       } else {
         LOG.debug("Creating netty output stream for block {} @ {} from client {}", blockId, address,
             NetworkAddressUtils.getClientHostName());
-        return NettyPacketWriter
-            .create(context, address, blockId, blockSize, Protocol.RequestType.ALLUXIO_BLOCK,
+        return GrpcDataWriter
+            .create(context, address, blockId, blockSize, RequestType.ALLUXIO_BLOCK,
                 options);
       }
     }

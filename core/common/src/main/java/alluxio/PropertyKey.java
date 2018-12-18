@@ -1593,7 +1593,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey WORKER_DATA_SERVER_CLASS =
       new Builder(Name.WORKER_DATA_SERVER_CLASS)
-          .setDefaultValue("alluxio.worker.netty.NettyDataServer")
+          .setDefaultValue("alluxio.worker.grpc.GrpcDataServer")
           .setDescription("Selects the networking stack to run the worker with. Valid options "
               + "are: `alluxio.worker.netty.NettyDataServer`.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)

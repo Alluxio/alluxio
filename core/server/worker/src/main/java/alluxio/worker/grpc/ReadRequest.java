@@ -9,11 +9,11 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.worker.netty;
-
-import alluxio.util.IdUtils;
+package alluxio.worker.grpc;
 
 import javax.annotation.concurrent.ThreadSafe;
+
+import alluxio.util.IdUtils;
 
 /**
  * Represents a read request received from netty channel.
@@ -23,14 +23,12 @@ class ReadRequest {
   private final long mId;
   private final long mStart;
   private final long mEnd;
-  private final long mPacketSize;
   private final long mSessionId;
 
-  ReadRequest(long id, long start, long end, long packetSize) {
+  ReadRequest(long id, long start, long end) {
     mId = id;
     mStart = start;
     mEnd = end;
-    mPacketSize = packetSize;
     mSessionId = IdUtils.createSessionId();
   }
 
@@ -60,12 +58,5 @@ class ReadRequest {
    */
   public long getEnd() {
     return mEnd;
-  }
-
-  /**
-   * @return the packet size in bytes of this read request
-   */
-  public long getPacketSize() {
-    return mPacketSize;
   }
 }
