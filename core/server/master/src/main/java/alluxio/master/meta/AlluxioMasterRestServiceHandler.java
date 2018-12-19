@@ -476,7 +476,7 @@ public final class AlluxioMasterRestServiceHandler {
         limit = limit > fileInfos.size() ? fileInfos.size() : limit;
         long sum = Math.addExact(offset, limit); // should throw an exception in case of overflow
         sum = sum > Integer.MAX_VALUE ? Integer.MAX_VALUE : sum;
-        fileInfos = fileInfos.subList((int)offset, (int)sum);
+        fileInfos = fileInfos.subList((int) offset, (int) sum);
       } catch (NumberFormatException e) {
         fatalError = "Error: offset or limit parse error, " + e.getLocalizedMessage();
       } catch (IndexOutOfBoundsException e) {
@@ -573,16 +573,15 @@ public final class AlluxioMasterRestServiceHandler {
       long viewingOffset = 0;
       String currentPath = "";
       int nTotalFile = 0;
-      List<UIFileInfo> fileInfos = null;
+      List<UIFileInfo> fileInfos = new ArrayList<>();
       String fatalError = "";
       String logsPath = Configuration.get(PropertyKey.LOGS_DIR);
       File logsDir = new File(logsPath);
-      String fileData = null;
+      String fileData = "";
 
       if (requestPath == null || requestPath.isEmpty()) {
         // List all log files in the log/ directory.
 
-        fileInfos = new ArrayList<>();
         File[] logFiles = logsDir.listFiles(LOG_FILE_FILTER);
         if (logFiles != null) {
           for (File logFile : logFiles) {
@@ -597,14 +596,9 @@ public final class AlluxioMasterRestServiceHandler {
         nTotalFile = fileInfos.size();
 
         try {
-          long offset = Long.parseLong(requestOffset);
-          offset = offset > Integer.MAX_VALUE ? Integer.MAX_VALUE : offset;
-          offset = offset < Integer.MIN_VALUE ? Integer.MIN_VALUE : offset;
+          int offset = Integer.parseInt(requestOffset);
           int limit = Integer.parseInt(requestLimit);
-          limit = limit > fileInfos.size() ? fileInfos.size() : limit;
-          long sum = Math.addExact(offset, limit); // should throw an exception in case of overflow
-          sum = sum > Integer.MAX_VALUE ? Integer.MAX_VALUE : sum;
-          fileInfos = fileInfos.subList((int)offset, (int)sum);
+          fileInfos = fileInfos.subList(offset, offset + limit);
         } catch (NumberFormatException e) {
           fatalError = "Error: offset or limit parse error, " + e.getLocalizedMessage();
         } catch (IndexOutOfBoundsException e) {
@@ -620,10 +614,10 @@ public final class AlluxioMasterRestServiceHandler {
         String requestFile = new File(requestPath).getName();
         currentPath = requestFile;
 
-        File file = new File(logsDir, requestFile);
+        File logFile = new File(logsDir, requestFile);
 
         try {
-          long fileSize = file.length();
+          long fileSize = logFile.length();
           String offsetParam = requestOffset;
           long relativeOffset = 0;
           long offset;
@@ -648,8 +642,8 @@ public final class AlluxioMasterRestServiceHandler {
             offset = fileSize;
           }
 
-          try (InputStream is = new FileInputStream(file)) {
-            fileSize = file.length();
+          try (InputStream is = new FileInputStream(logFile)) {
+            fileSize = logFile.length();
             int len = (int) Math.min(5 * Constants.KB, fileSize - offset);
             byte[] data = new byte[len];
             long skipped = is.skip(offset);
@@ -673,7 +667,7 @@ public final class AlluxioMasterRestServiceHandler {
 
           viewingOffset = offset;
         } catch (IOException e) {
-          invalidPathError = "Error: File " + file + " is not available " + e.getMessage();
+          invalidPathError = "Error: File " + logFile + " is not available " + e.getMessage();
         }
       }
 
