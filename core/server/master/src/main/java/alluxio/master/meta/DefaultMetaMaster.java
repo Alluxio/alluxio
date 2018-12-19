@@ -25,13 +25,8 @@ import alluxio.exception.status.NotFoundException;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.heartbeat.HeartbeatThread;
-<<<<<<< HEAD
 import alluxio.master.AbstractMaster;
-=======
 import alluxio.master.BackupManager;
-import alluxio.master.CoreMaster;
-import alluxio.master.CoreMasterContext;
->>>>>>> 8c4f853d5a... [ALLUXIO-3384] daily backup (#8197)
 import alluxio.master.MasterClientConfig;
 import alluxio.master.MasterContext;
 import alluxio.master.SafeModeManager;
