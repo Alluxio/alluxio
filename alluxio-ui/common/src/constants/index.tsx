@@ -1,1 +1,1 @@
-export * from './data/navigation';
+export * from './types/navigation';

@@ -43,7 +43,8 @@ public final class WebUIConfiguration implements Serializable {
     return mWhitelist;
   }
 
-  public WebUIConfiguration setConfiguration(TreeSet<Triple<String, String, String>> configuration) {
+  public WebUIConfiguration setConfiguration(
+      TreeSet<Triple<String, String, String>> configuration) {
     mConfiguration = configuration;
     return this;
   }

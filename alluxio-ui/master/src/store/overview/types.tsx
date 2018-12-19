@@ -7,9 +7,9 @@ export interface IOverviewStorageTierInfo {
   'usedSpacePercent': number;
 }
 
-export interface IOverviewScopedPropertyIssue {
-  [key: string]: {
-    [key: string]: string;
+export type IOverviewScopedPropertyIssue = {
+  [scopeKey in 'MASTER' | 'WORKER' | 'CLIENT' | 'SERVER' | 'ALL' | 'NONE']: {// This is derived from 'alluxio/core/common/src/main/java/alluxio/wire/Scope.java'
+    [propertyKey: string]: string; // we allow any string as a property key here
   };
 }
 
@@ -46,6 +46,6 @@ export const enum OverviewActionTypes {
 
 export interface IOverviewState {
   readonly loading: boolean;
-  readonly  overview: IOverview;
+  readonly overview: IOverview;
   readonly errors?: string;
 }

@@ -114,15 +114,9 @@ public final class WebUILogs implements Serializable {
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this)
-        .add("mCurrentPath", mCurrentPath)
-        .add("mDebug", mDebug)
-        .add("mFatalError", mFatalError)
-        .add("mFileData", mFileData)
-        .add("mFileInfos", mFileInfos)
-        .add("mInvalidPathError", mInvalidPathError)
-        .add("mNTotalFile", mNTotalFile)
-        .add("mViewingOffset", mViewingOffset)
-        .toString();
+    return Objects.toStringHelper(this).add("mCurrentPath", mCurrentPath).add("mDebug", mDebug)
+        .add("mFatalError", mFatalError).add("mFileData", mFileData).add("mFileInfos", mFileInfos)
+        .add("mInvalidPathError", mInvalidPathError).add("mNTotalFile", mNTotalFile)
+        .add("mViewingOffset", mViewingOffset).toString();
   }
 }

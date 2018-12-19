@@ -309,7 +309,7 @@ public final class AlluxioMasterRestServiceHandler {
   public Response getWebUIBrowse(@DefaultValue("/") @QueryParam("path") String requestPath,
       @DefaultValue("0") @QueryParam("offset") String requestOffset,
       @DefaultValue("") @QueryParam("end") String requestEnd,
-      @DefaultValue("") @QueryParam("limit") String requestLimit) {
+      @DefaultValue("20") @QueryParam("limit") String requestLimit) {
     return RestUtils.call(() -> {
       if (!Configuration.getBoolean(PropertyKey.WEB_FILE_INFO_ENABLED)) {
         return new WebUIBrowse();
@@ -325,11 +325,11 @@ public final class AlluxioMasterRestServiceHandler {
       long offset = 0;
       long viewingOffset = offset;
       String accessControlException = "";
-      String blockSizeBytes = null;
+      String blockSizeBytes = "";
       String fatalError = "";
-      String fileData = null;
+      String fileData = "";
       String fileDoesNotExistException = "";
-      String highestTierAlias = null;
+      String highestTierAlias = "";
       String invalidPathError = "";
       String invalidPathException = "";
       UIFileInfo currentDirectory = null;
@@ -469,10 +469,14 @@ public final class AlluxioMasterRestServiceHandler {
       }
 
       try {
-        int offsetInt = Integer.parseInt(requestOffset);
-        int limitInt = Integer.parseInt(requestLimit);
-        List<UIFileInfo> sub = fileInfos.subList(offsetInt, offsetInt + limitInt);
-        fileInfos = sub;
+        offset = Long.parseLong(requestOffset);
+        offset = offset > Integer.MAX_VALUE ? Integer.MAX_VALUE : offset;
+        offset = offset < Integer.MIN_VALUE ? Integer.MIN_VALUE : offset;
+        int limit = Integer.parseInt(requestLimit);
+        limit = limit > fileInfos.size() ? fileInfos.size() : limit;
+        long sum = Math.addExact(offset, limit); // should throw an exception in case of overflow
+        sum = sum > Integer.MAX_VALUE ? Integer.MAX_VALUE : sum;
+        fileInfos = fileInfos.subList((int)offset, (int)sum);
       } catch (NumberFormatException e) {
         fatalError = "Error: offset or limit parse error, " + e.getLocalizedMessage();
       } catch (IndexOutOfBoundsException e) {
@@ -499,7 +503,7 @@ public final class AlluxioMasterRestServiceHandler {
   @Path(WEBUI_DATA)
   @ReturnType("alluxio.wire.WebUIData")
   public Response getWebUIData(@DefaultValue("0") @QueryParam("offset") String requestOffset,
-      @DefaultValue("") @QueryParam("limit") String requestLimit) {
+      @DefaultValue("20") @QueryParam("limit") String requestLimit) {
     return RestUtils.call(() -> {
       if (!Configuration.getBoolean(PropertyKey.WEB_FILE_INFO_ENABLED)) {
         return new WebUIData();
@@ -533,7 +537,9 @@ public final class AlluxioMasterRestServiceHandler {
       try {
         int offset = Integer.parseInt(requestOffset);
         int limit = Integer.parseInt(requestLimit);
-        List<UIFileInfo> sub = fileInfos.subList(offset, offset + limit);
+        limit = limit > fileInfos.size() ? fileInfos.size() : limit;
+        int sum = Math.addExact(offset, limit);
+        fileInfos = fileInfos.subList(offset, sum);
       } catch (NumberFormatException e) {
         fatalError = "Error: offset or limit parse error, " + e.getLocalizedMessage();
       } catch (IndexOutOfBoundsException e) {
@@ -552,10 +558,10 @@ public final class AlluxioMasterRestServiceHandler {
   @GET
   @Path(WEBUI_LOGS)
   @ReturnType("alluxio.wire.WebUILogs")
-  public Response getWebUILogs(@DefaultValue("/") @QueryParam("path") String requestPath,
+  public Response getWebUILogs(@DefaultValue("") @QueryParam("path") String requestPath,
       @DefaultValue("0") @QueryParam("offset") String requestOffset,
       @DefaultValue("") @QueryParam("end") String requestEnd,
-      @DefaultValue("") @QueryParam("limit") String requestLimit) {
+      @DefaultValue("20") @QueryParam("limit") String requestLimit) {
     return RestUtils.call(() -> {
       if (!Configuration.getBoolean(PropertyKey.WEB_FILE_INFO_ENABLED)) {
         return new WebUILogs();
@@ -571,10 +577,9 @@ public final class AlluxioMasterRestServiceHandler {
       String fatalError = "";
       String logsPath = Configuration.get(PropertyKey.LOGS_DIR);
       File logsDir = new File(logsPath);
-      String requestFile = requestPath;
       String fileData = null;
 
-      if (requestFile == null || requestFile.isEmpty()) {
+      if (requestPath == null || requestPath.isEmpty()) {
         // List all log files in the log/ directory.
 
         fileInfos = new ArrayList<>();
@@ -592,10 +597,14 @@ public final class AlluxioMasterRestServiceHandler {
         nTotalFile = fileInfos.size();
 
         try {
-          int offset = Integer.parseInt(requestOffset);
+          long offset = Long.parseLong(requestOffset);
+          offset = offset > Integer.MAX_VALUE ? Integer.MAX_VALUE : offset;
+          offset = offset < Integer.MIN_VALUE ? Integer.MIN_VALUE : offset;
           int limit = Integer.parseInt(requestLimit);
-          List<UIFileInfo> sub = fileInfos.subList(offset, offset + limit);
-          fileInfos = sub;
+          limit = limit > fileInfos.size() ? fileInfos.size() : limit;
+          long sum = Math.addExact(offset, limit); // should throw an exception in case of overflow
+          sum = sum > Integer.MAX_VALUE ? Integer.MAX_VALUE : sum;
+          fileInfos = fileInfos.subList((int)offset, (int)sum);
         } catch (NumberFormatException e) {
           fatalError = "Error: offset or limit parse error, " + e.getLocalizedMessage();
         } catch (IndexOutOfBoundsException e) {
@@ -608,7 +617,7 @@ public final class AlluxioMasterRestServiceHandler {
         // Request a specific log file.
 
         // Only allow filenames as the path, to avoid arbitrary local path lookups.
-        requestFile = new File(requestFile).getName();
+        String requestFile = new File(requestPath).getName();
         currentPath = requestFile;
 
         File file = new File(logsDir, requestFile);
