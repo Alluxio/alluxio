@@ -11,7 +11,7 @@ const initialState: IMetricsState = {
     'cacheMiss': '0.00',
     'masterCapacityFreePercentage': 0,
     'masterCapacityUsedPercentage': 0,
-    'masterUnderfsCapacityFreePercentage': 53,
+    'masterUnderfsCapacityFreePercentage': 0,
     'masterUnderfsCapacityUsedPercentage': 0,
     'operationMetrics': {},
     'rpcInvocationMetrics': {},
@@ -29,7 +29,6 @@ const initialState: IMetricsState = {
     'ufsReadSize': {},
     'ufsWriteSize': {}
   }
-
 };
 
 export const metricsReducer: Reducer<IMetricsState> = (state = initialState, action) => {
