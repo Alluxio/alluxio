@@ -146,7 +146,7 @@ class ShortCircuitBlockReadHandler {
         mResponseObserver.onError(AlluxioStatusException.fromThrowable(e));
         mLockId = BlockLockManager.INVALID_LOCK_ID;
       }
-    }, "CloseBlock", false, true, "Session=%d, Request=%s",
+    }, "CloseBlock", false, false, "Session=%d, Request=%s",
         mResponseObserver, mSessionId, mRequest);
   }
 }

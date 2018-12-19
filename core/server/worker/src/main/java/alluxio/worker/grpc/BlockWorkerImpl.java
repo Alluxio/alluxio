@@ -13,6 +13,7 @@ package alluxio.worker.grpc;
 
 import alluxio.Configuration;
 import alluxio.PropertyKey;
+import alluxio.RpcUtils;
 import alluxio.grpc.AsyncCacheRequest;
 import alluxio.grpc.AsyncCacheResponse;
 import alluxio.grpc.BlockWorkerGrpc;
@@ -89,7 +90,7 @@ public class BlockWorkerImpl extends BlockWorkerGrpc.BlockWorkerImplBase {
     return requestObserver;
   }
 
-  private class WriteRequestStreamObserver implements StreamObserver<alluxio.grpc.WriteRequest> {
+  private class WriteRequestStreamObserver implements StreamObserver<WriteRequest> {
     private final StreamObserver<WriteResponse> mResponseObserver;
     private AbstractWriteHandler mWriteHandler;
 
@@ -176,28 +177,72 @@ public class BlockWorkerImpl extends BlockWorkerGrpc.BlockWorkerImplBase {
   }
 
   @Override
-  public void createLocalBlock(CreateLocalBlockRequest request,
+  public StreamObserver<CreateLocalBlockRequest> createLocalBlock(
       StreamObserver<CreateLocalBlockResponse> responseObserver) {
+    CreateLocalBlockRequestStreamObserver requestObserver =
+        new CreateLocalBlockRequestStreamObserver(responseObserver);
     final ServerCallStreamObserver<CreateLocalBlockResponse> serverCallStreamObserver =
         (ServerCallStreamObserver<CreateLocalBlockResponse>) responseObserver;
-    ShortCircuitBlockWriteHandler handler = new ShortCircuitBlockWriteHandler(
-        mWorkerProcess.getWorker(BlockWorker.class), request, responseObserver);
-    serverCallStreamObserver.setOnCancelHandler(() -> {
-      Preconditions.checkState(Context.current().isCancelled());
-      Status status = Contexts.statusFromCancelled(Context.current());
-      if (status.getCode() == Status.Code.CANCELLED) {
-        handler.handleBlockCompleteRequest(Context.current().cancellationCause() != null);
-      } else {
-        handler.exceptionCaught(status.getCause());
+    serverCallStreamObserver.setOnCancelHandler(requestObserver::onCancel);
+    return requestObserver;
+  }
+
+  private class CreateLocalBlockRequestStreamObserver
+      implements StreamObserver<CreateLocalBlockRequest> {
+    private final StreamObserver<CreateLocalBlockResponse> mResponseObserver;
+    private ShortCircuitBlockWriteHandler mWriteHandler;
+
+    public CreateLocalBlockRequestStreamObserver(
+        StreamObserver<CreateLocalBlockResponse> responseObserver) {
+      mResponseObserver = responseObserver;
+    }
+
+    @Override
+    public void onNext(CreateLocalBlockRequest request) {
+      try {
+        if (mWriteHandler == null) {
+          mWriteHandler = new ShortCircuitBlockWriteHandler(
+              mWorkerProcess.getWorker(BlockWorker.class), request, mResponseObserver);
+        }
+        mWriteHandler.handleBlockCreateRequest();
+      } catch(Exception e) {
+        mWriteHandler.exceptionCaught(e);
       }
-    });
-    handler.handleBlockCreateRequest();
+    }
+
+    @Override
+    public void onError(Throwable t) {
+      if (mWriteHandler == null) {
+        // close the response stream if the client error before sending a write request
+        mResponseObserver.onCompleted();
+      } else {
+        mWriteHandler.exceptionCaught(t);
+      }
+    }
+
+    @Override
+    public void onCompleted() {
+      try {
+        mWriteHandler.handleBlockCompleteRequest(false);
+      } catch (Exception e) {
+        mResponseObserver.onError(e);
+      }
+    }
+
+    /**
+     * Handles cancel event from the client.
+     */
+    public void onCancel() {
+      if (mWriteHandler != null) {
+        mWriteHandler.handleBlockCompleteRequest(true);
+      }
+    }
   }
 
   @Override
   public void asyncCache(AsyncCacheRequest request,
       StreamObserver<AsyncCacheResponse> responseObserver) {
-    RpcUtilsNew.call(LOG, (RpcUtilsNew.RpcCallableThrowsIOException<AsyncCacheResponse>) () -> {
+    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<AsyncCacheResponse>) () -> {
       mRequestManager.submitRequest(request);
       return AsyncCacheResponse.getDefaultInstance();
     }, "asyncCache", "request=%s", responseObserver, request);
@@ -207,7 +252,7 @@ public class BlockWorkerImpl extends BlockWorkerGrpc.BlockWorkerImplBase {
   public void removeBlock(RemoveBlockRequest request,
       StreamObserver<RemoveBlockResponse> responseObserver) {
     final long sessionId = IdUtils.createSessionId();
-    RpcUtilsNew.call(LOG, (RpcUtilsNew.RpcCallableThrowsIOException<RemoveBlockResponse>) () -> {
+    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<RemoveBlockResponse>) () -> {
       mWorkerProcess.getWorker(BlockWorker.class).removeBlock(sessionId, request.getBlockId());
       return RemoveBlockResponse.getDefaultInstance();
     }, "removeBlock", "request=%s", responseObserver, request);

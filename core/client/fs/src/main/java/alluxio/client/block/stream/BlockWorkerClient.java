@@ -80,12 +80,11 @@ public interface BlockWorkerClient extends Closeable {
   /**
    * Creates a local block on the worker.
    *
-   * @param request the create block request
-   * @return the response from server
-   * @throws StatusRuntimeException if any error occurs
+   * @param responseObserver the stream observer for the server response
+   * @return the stream observer for the client request
    */
-  CreateLocalBlockResponse createLocalBlock(CreateLocalBlockRequest request);
-
+  StreamObserver<CreateLocalBlockRequest> createLocalBlock(
+      StreamObserver<CreateLocalBlockResponse> responseObserver);
   /**
    * Opens a local block.
    *

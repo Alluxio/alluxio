@@ -120,8 +120,9 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
   }
 
   @Override
-  public CreateLocalBlockResponse createLocalBlock(final CreateLocalBlockRequest request) {
-    return mBlockingStub.createLocalBlock(request).next();
+  public StreamObserver<CreateLocalBlockRequest> createLocalBlock(
+      StreamObserver<CreateLocalBlockResponse> responseObserver) {
+    return mAsyncStub.createLocalBlock(responseObserver);
   }
 
   @Override

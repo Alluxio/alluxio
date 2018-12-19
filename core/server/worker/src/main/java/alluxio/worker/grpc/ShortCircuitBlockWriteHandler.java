@@ -76,7 +76,7 @@ class ShortCircuitBlockWriteHandler {
    * Handles request to create local block. No exceptions should be
    * thrown.
    */
-  public  void handleBlockCreateRequest() {
+  public void handleBlockCreateRequest() {
     final String methodName = mRequest.getOnlyReserveSpace() ? "ReserveSpace" : "CreateBlock";
     RpcUtilsNew.nettyRPCAndLog(LOG, new RpcUtilsNew.NettyRpcCallable<CreateLocalBlockResponse>() {
       @Override

@@ -11,32 +11,34 @@
 
 package alluxio.client.block.stream;
 
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 import alluxio.ConfigurationRule;
-import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.OutStreamOptions;
-import alluxio.network.protocol.RPCProtoMessage;
-import alluxio.network.protocol.databuffer.DataBuffer;
-import alluxio.network.protocol.databuffer.DataNettyBufferV2;
-import alluxio.proto.dataserver.Protocol;
-import alluxio.util.CommonUtils;
+import alluxio.grpc.Chunk;
+import alluxio.grpc.RequestType;
+import alluxio.grpc.WriteRequest;
 import alluxio.util.ThreadFactoryUtils;
-import alluxio.util.WaitForOptions;
 import alluxio.util.io.BufferUtils;
 import alluxio.wire.WorkerNetAddress;
 
+import com.google.protobuf.ByteString;
+import io.grpc.stub.ClientCallStreamObserver;
+import io.grpc.stub.StreamObserver;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
-import io.netty.channel.embedded.EmbeddedChannel;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
@@ -49,12 +51,11 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.TimeoutException;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({FileSystemContext.class, WorkerNetAddress.class})
-public final class NettyPacketWriterTest {
-  private static final Logger LOG = LoggerFactory.getLogger(NettyPacketWriterTest.class);
+public final class GrpcDataWriterTest {
+  private static final Logger LOG = LoggerFactory.getLogger(GrpcDataWriterTest.class);
 
   private static final int PACKET_SIZE = 1024;
   private static final ExecutorService EXECUTOR = Executors.newFixedThreadPool(4,
@@ -66,8 +67,8 @@ public final class NettyPacketWriterTest {
 
   private FileSystemContext mContext;
   private WorkerNetAddress mAddress;
-  private EmbeddedChannel mChannel;
-
+  private BlockWorkerClient mClient;
+  private ClientCallStreamObserver<WriteRequest> mRequestObserver;
   @Rule
   public ConfigurationRule mConfigurationRule =
       new ConfigurationRule(PropertyKey.USER_NETWORK_NETTY_WRITER_PACKET_SIZE_BYTES,
@@ -78,14 +79,17 @@ public final class NettyPacketWriterTest {
     mContext = PowerMockito.mock(FileSystemContext.class);
     mAddress = mock(WorkerNetAddress.class);
 
-    mChannel = new EmbeddedChannel();
-    PowerMockito.when(mContext.acquireNettyChannel(mAddress)).thenReturn(mChannel);
-    PowerMockito.doNothing().when(mContext).releaseNettyChannel(mAddress, mChannel);
+    mClient = mock(BlockWorkerClient.class);
+    mRequestObserver = mock(ClientCallStreamObserver.class);
+    PowerMockito.when(mContext.acquireBlockWorkerClient(mAddress)).thenReturn(mClient);
+    PowerMockito.doNothing().when(mContext).releaseBlockWorkerClient(mAddress, mClient);
+    PowerMockito.when(mClient.writeBlock(any(StreamObserver.class))).thenReturn(mRequestObserver);
+    PowerMockito.when(mRequestObserver.isReady()).thenReturn(true);
   }
 
   @After
   public void after() throws Exception {
-    mChannel.close();
+    mClient.close();
   }
 
   /**
@@ -93,11 +97,11 @@ public final class NettyPacketWriterTest {
    */
   @Test(timeout = 1000 * 60)
   public void writeEmptyFile() throws Exception {
-    Future<Long> checksumActual;
+    long checksumActual;
     try (PacketWriter writer = create(10)) {
-      checksumActual = verifyWriteRequests(mChannel, 0, 10);
+      checksumActual = verifyWriteRequests(mClient, 0, 10);
     }
-    Assert.assertEquals(0, checksumActual.get().longValue());
+    Assert.assertEquals(0, checksumActual);
   }
 
   /**
@@ -106,15 +110,15 @@ public final class NettyPacketWriterTest {
    */
   @Test(timeout = 1000 * 60)
   public void writeFullFile() throws Exception {
-    Future<Long> checksumActual;
+    long checksumActual;
     Future<Long> checksumExpected;
     long length = PACKET_SIZE * 1024 + PACKET_SIZE / 3;
     try (PacketWriter writer = create(length)) {
       checksumExpected = writeFile(writer, length, 0, length - 1);
       checksumExpected.get();
-      checksumActual = verifyWriteRequests(mChannel, 0, length - 1);
+      checksumActual = verifyWriteRequests(mClient, 0, length - 1);
     }
-    Assert.assertEquals(checksumExpected.get(), checksumActual.get());
+    Assert.assertEquals(checksumExpected.get().longValue(), checksumActual);
   }
 
   /**
@@ -123,15 +127,15 @@ public final class NettyPacketWriterTest {
    */
   @Test(timeout = 1000 * 60)
   public void writeFileChecksumOfPartialFile() throws Exception {
-    Future<Long> checksumActual;
+    long checksumActual;
     Future<Long> checksumExpected;
     long length = PACKET_SIZE * 1024 + PACKET_SIZE / 3;
     try (PacketWriter writer = create(length)) {
       checksumExpected = writeFile(writer, length, 10, length / 3);
       checksumExpected.get();
-      checksumActual = verifyWriteRequests(mChannel, 10, length / 3);
+      checksumActual = verifyWriteRequests(mClient, 10, length / 3);
     }
-    Assert.assertEquals(checksumExpected.get(), checksumActual.get());
+    Assert.assertEquals(checksumExpected.get().longValue(), checksumActual);
   }
 
   /**
@@ -139,15 +143,15 @@ public final class NettyPacketWriterTest {
    */
   @Test(timeout = 1000 * 60)
   public void writeFileUnknownLength() throws Exception {
-    Future<Long> checksumActual;
+    long checksumActual;
     Future<Long> checksumExpected;
     long length = PACKET_SIZE * 1024;
     try (PacketWriter writer = create(Long.MAX_VALUE)) {
       checksumExpected = writeFile(writer, length, 10, length / 3);
       checksumExpected.get();
-      checksumActual = verifyWriteRequests(mChannel, 10, length / 3);
+      checksumActual = verifyWriteRequests(mClient, 10, length / 3);
     }
-    Assert.assertEquals(checksumExpected.get(), checksumActual.get());
+    Assert.assertEquals(checksumExpected.get().longValue(), checksumActual);
   }
 
   /**
@@ -155,15 +159,15 @@ public final class NettyPacketWriterTest {
    */
   @Test(timeout = 1000 * 60)
   public void writeFileManyPackets() throws Exception {
-    Future<Long> checksumActual;
+    long checksumActual;
     Future<Long> checksumExpected;
     long length = PACKET_SIZE * 30000 + PACKET_SIZE / 3;
     try (PacketWriter writer = create(Long.MAX_VALUE)) {
       checksumExpected = writeFile(writer, length, 10, length / 3);
       checksumExpected.get();
-      checksumActual = verifyWriteRequests(mChannel, 10, length / 3);
+      checksumActual = verifyWriteRequests(mClient, 10, length / 3);
     }
-    Assert.assertEquals(checksumExpected.get(), checksumActual.get());
+    Assert.assertEquals(checksumExpected.get().longValue(), checksumActual);
   }
 
   /**
@@ -174,8 +178,8 @@ public final class NettyPacketWriterTest {
    */
   private PacketWriter create(long length) throws Exception {
     PacketWriter writer =
-        NettyPacketWriter.create(mContext, mAddress, BLOCK_ID, length,
-            Protocol.RequestType.ALLUXIO_BLOCK,
+        GrpcDataWriter.create(mContext, mAddress, BLOCK_ID, length,
+            RequestType.ALLUXIO_BLOCK,
             OutStreamOptions.defaults().setWriteTier(TIER));
     return writer;
   }
@@ -231,54 +235,42 @@ public final class NettyPacketWriterTest {
 
   /**
    * Verifies the packets written. After receiving the last packet, it will also send an EOF to
-   * the channel.
+   * the client.
    *
    * @param checksumStart the start position to calculate the checksum
    * @param checksumEnd the end position to calculate the checksum
    * @return the checksum of the data read starting from checksumStart
    */
-  private Future<Long> verifyWriteRequests(final EmbeddedChannel channel, final long checksumStart,
+  private long verifyWriteRequests(final BlockWorkerClient client, final long checksumStart,
       final long checksumEnd) {
-    return EXECUTOR.submit(new Callable<Long>() {
-      @Override
-      public Long call() throws TimeoutException, InterruptedException {
-        try {
-          long checksum = 0;
-          long pos = 0;
-          while (true) {
-            RPCProtoMessage request = (RPCProtoMessage) CommonUtils.waitForResult("write request",
-                () -> channel.readOutbound(),
-                WaitForOptions.defaults().setTimeoutMs(Constants.MINUTE_MS));
-            validateWriteRequest(request.getMessage().asWriteRequest(), pos);
-
-            DataBuffer buffer = request.getPayloadDataBuffer();
-            // Last packet.
-            if (buffer == null) {
-              channel.writeInbound(RPCProtoMessage.createOkResponse(null));
-              return checksum;
+    try {
+      ArgumentCaptor<WriteRequest> requestCaptor = ArgumentCaptor.forClass(WriteRequest.class);
+      verify(mRequestObserver, atLeastOnce()).onNext(requestCaptor.capture());
+      ArgumentCaptor<StreamObserver> captor = ArgumentCaptor.forClass(StreamObserver.class);
+      verify(mClient).writeBlock(captor.capture());
+      captor.getValue().onCompleted();
+      long checksum = 0;
+      long pos = 0;
+      for (WriteRequest request : requestCaptor.getAllValues()) {
+        validateWriteRequest(request, pos);
+        if (request.hasChunk()) {
+          Chunk chunk = request.getChunk();
+          Assert.assertTrue(chunk.hasData());
+          ByteString buf = chunk.getData();
+          for (byte b : buf.toByteArray()) {
+            if (pos >= checksumStart && pos <= checksumEnd) {
+              checksum += BufferUtils.byteToInt(b);
             }
-            try {
-              Assert.assertTrue(buffer instanceof DataNettyBufferV2);
-              ByteBuf buf = (ByteBuf) buffer.getNettyOutput();
-              while (buf.readableBytes() > 0) {
-                if (pos >= checksumStart && pos <= checksumEnd) {
-                  checksum += BufferUtils.byteToInt(buf.readByte());
-                } else {
-                  buf.readByte();
-                }
-                pos++;
-              }
-            } finally {
-              buffer.release();
-            }
+            pos++;
           }
-        } catch (Throwable throwable) {
-          LOG.error("Failed to verify write requests.", throwable);
-          Assert.fail();
-          throw throwable;
         }
       }
-    });
+      return checksum;
+    } catch (Throwable throwable) {
+      LOG.error("Failed to verify write requests.", throwable);
+      Assert.fail();
+      throw throwable;
+    }
   }
 
   /**
@@ -287,8 +279,12 @@ public final class NettyPacketWriterTest {
    * @param request the request
    * @param offset the offset
    */
-  private void validateWriteRequest(Protocol.WriteRequest request, long offset) {
-    Assert.assertEquals(BLOCK_ID, request.getId());
-    Assert.assertEquals(offset, request.getOffset());
+  private void validateWriteRequest(WriteRequest request, long offset) {
+    if (request.hasCommand()) {
+      Assert.assertEquals(BLOCK_ID, request.getCommand().getId());
+      Assert.assertEquals(offset, request.getCommand().getOffset());
+    } else {
+      Assert.assertTrue(request.hasChunk());
+    }
   }
 }

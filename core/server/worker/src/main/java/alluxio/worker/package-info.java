@@ -24,7 +24,7 @@
  * This service is the main interaction between users and worker for reading and writing blocks.
  * The {@link alluxio.worker.DataServer} interface defines how to start/stop, and get port details;
  * to start, object init is used. The implementation of this interface is in
- * {@link alluxio.worker.netty.NettyDataServer}. It creates an {@link alluxio.worker.DataServer}
+ * {@link alluxio.worker.grpc.GrpcDataServer}. It creates an {@link alluxio.worker.DataServer}
  * instance based on Netty which is an asynchronous event-driven network application framework.
  *
  * Data server handles the following types of block requests:

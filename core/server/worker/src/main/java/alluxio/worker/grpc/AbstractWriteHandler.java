@@ -110,6 +110,7 @@ abstract class AbstractWriteHandler<T extends WriteRequestContext<?>> {
    * Handles request complete event.
    */
   public void onComplete() {
+    Preconditions.checkState(mContext != null);
     try (LockResource lr = new LockResource(mLock)) {
       completeRequest(mContext);
       replySuccess();
@@ -139,7 +140,7 @@ abstract class AbstractWriteHandler<T extends WriteRequestContext<?>> {
    */
   public void onError(Throwable cause) {
     LOG.error("Exception thrown while handling write request {}:",
-        mContext != null ? "unknown" : mContext.getRequest(), cause);
+        mContext == null ? "unknown" : mContext.getRequest(), cause);
     abort(new Error(AlluxioStatusException.fromThrowable(cause), false));
   }
 

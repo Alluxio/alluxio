@@ -127,21 +127,21 @@ public final class BlockWorkerProto {
       "eBlockRequest\022\020\n\010block_id\030\001 \001(\003\"\025\n\023Remov" +
       "eBlockResponse*F\n\013RequestType\022\021\n\rALLUXIO" +
       "_BLOCK\020\000\022\014\n\010UFS_FILE\020\001\022\026\n\022UFS_FALLBACK_B" +
-      "LOCK\020\0022\207\004\n\013BlockWorker\022D\n\tReadBlock\022\031.al" +
+      "LOCK\020\0022\211\004\n\013BlockWorker\022D\n\tReadBlock\022\031.al" +
       "luxio.grpc.ReadRequest\032\032.alluxio.grpc.Re" +
       "adResponse0\001\022I\n\nWriteBlock\022\032.alluxio.grp" +
       "c.WriteRequest\032\033.alluxio.grpc.WriteRespo" +
       "nse(\0010\001\022]\n\016OpenLocalBlock\022#.alluxio.grpc" +
       ".OpenLocalBlockRequest\032$.alluxio.grpc.Op" +
-      "enLocalBlockResponse0\001\022c\n\020CreateLocalBlo" +
+      "enLocalBlockResponse0\001\022e\n\020CreateLocalBlo" +
       "ck\022%.alluxio.grpc.CreateLocalBlockReques" +
       "t\032&.alluxio.grpc.CreateLocalBlockRespons" +
-      "e0\001\022O\n\nAsyncCache\022\037.alluxio.grpc.AsyncCa" +
-      "cheRequest\032 .alluxio.grpc.AsyncCacheResp" +
-      "onse\022R\n\013RemoveBlock\022 .alluxio.grpc.Remov" +
-      "eBlockRequest\032!.alluxio.grpc.RemoveBlock" +
-      "ResponseB\"\n\014alluxio.grpcB\020BlockWorkerPro" +
-      "toP\001"
+      "e(\0010\001\022O\n\nAsyncCache\022\037.alluxio.grpc.Async" +
+      "CacheRequest\032 .alluxio.grpc.AsyncCacheRe" +
+      "sponse\022R\n\013RemoveBlock\022 .alluxio.grpc.Rem" +
+      "oveBlockRequest\032!.alluxio.grpc.RemoveBlo" +
+      "ckResponseB\"\n\014alluxio.grpcB\020BlockWorkerP" +
+      "rotoP\001"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {

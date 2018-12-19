@@ -14,26 +14,29 @@ package alluxio.client.block.stream;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 import alluxio.ConfigurationRule;
-import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.OutStreamOptions;
 import alluxio.exception.status.ResourceExhaustedException;
-import alluxio.network.protocol.RPCProtoMessage;
-import alluxio.network.protocol.databuffer.DataBuffer;
-import alluxio.network.protocol.databuffer.DataNettyBufferV2;
-import alluxio.proto.dataserver.Protocol;
+import alluxio.grpc.Chunk;
+import alluxio.grpc.RequestType;
+import alluxio.grpc.WriteRequest;
 import alluxio.util.CommonUtils;
 import alluxio.util.ThreadFactoryUtils;
-import alluxio.util.WaitForOptions;
 import alluxio.util.io.BufferUtils;
 import alluxio.wire.WorkerNetAddress;
 
+import com.google.protobuf.ByteString;
+import io.grpc.stub.ClientCallStreamObserver;
+import io.grpc.stub.StreamObserver;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
-import io.netty.channel.embedded.EmbeddedChannel;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -41,6 +44,7 @@ import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -60,7 +64,7 @@ import java.util.concurrent.TimeoutException;
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({FileSystemContext.class, WorkerNetAddress.class})
 public class UfsFallbackLocalFilePacketWriterTest {
-  private static final Logger LOG = LoggerFactory.getLogger(NettyPacketWriterTest.class);
+  private static final Logger LOG = LoggerFactory.getLogger(GrpcDataWriterTest.class);
 
   /**
    * A packet writer implementation which will throw a ResourceExhaustedException on writes when the
@@ -132,7 +136,8 @@ public class UfsFallbackLocalFilePacketWriterTest {
   private FixedCapacityTestPacketWriter mLocalWriter;
   private FileSystemContext mContext;
   private WorkerNetAddress mAddress;
-  private EmbeddedChannel mChannel;
+  private BlockWorkerClient mClient;
+  private ClientCallStreamObserver<WriteRequest> mRequestObserver;
 
   @Rule
   public ConfigurationRule mConfigurationRule =
@@ -144,14 +149,17 @@ public class UfsFallbackLocalFilePacketWriterTest {
     mContext = PowerMockito.mock(FileSystemContext.class);
     mAddress = Mockito.mock(WorkerNetAddress.class);
 
-    mChannel = new EmbeddedChannel();
-    PowerMockito.when(mContext.acquireNettyChannel(mAddress)).thenReturn(mChannel);
-    PowerMockito.doNothing().when(mContext).releaseNettyChannel(mAddress, mChannel);
+    mClient = mock(BlockWorkerClient.class);
+    mRequestObserver = mock(ClientCallStreamObserver.class);
+    PowerMockito.when(mContext.acquireBlockWorkerClient(mAddress)).thenReturn(mClient);
+    PowerMockito.doNothing().when(mContext).releaseBlockWorkerClient(mAddress, mClient);
+    PowerMockito.when(mClient.writeBlock(any(StreamObserver.class))).thenReturn(mRequestObserver);
+    PowerMockito.when(mRequestObserver.isReady()).thenReturn(true);
   }
 
   @After
   public void after() throws Exception {
-    mChannel.close();
+    mClient.close();
   }
 
   /**
@@ -203,7 +211,7 @@ public class UfsFallbackLocalFilePacketWriterTest {
     try (PacketWriter writer = create(blockSize, 1)) {
       expected = writeData(writer, blockSize);
       actualLocal = getLocalWrite(mBuffer);
-      actualUfs = getUfsWrite(mChannel);
+      actualUfs = getUfsWrite(mClient);
       expected.get();
     }
     assertEquals(blockSize, expected.get().getBytes());
@@ -223,7 +231,7 @@ public class UfsFallbackLocalFilePacketWriterTest {
     try (PacketWriter writer = create(blockSize, PACKET_SIZE)) {
       expected = writeData(writer, blockSize);
       actualLocal = getLocalWrite(mBuffer);
-      actualUfs = getUfsWrite(mChannel);
+      actualUfs = getUfsWrite(mClient);
       expected.get();
     }
     assertEquals(blockSize, expected.get().getBytes());
@@ -241,9 +249,9 @@ public class UfsFallbackLocalFilePacketWriterTest {
     long blockSize = PACKET_SIZE * 1024 + PACKET_SIZE / 3;
     try (PacketWriter writer = create(blockSize, PACKET_SIZE * 1024)) {
       expected = writeData(writer, blockSize);
-      actualLocal = getLocalWrite(mBuffer);
-      actualUfs = getUfsWrite(mChannel);
       expected.get();
+      actualLocal = getLocalWrite(mBuffer);
+      actualUfs = getUfsWrite(mClient);
     }
     assertEquals(blockSize, expected.get().getBytes());
     assertEquals(PACKET_SIZE * 1024, actualLocal.get().getBytes());
@@ -271,7 +279,7 @@ public class UfsFallbackLocalFilePacketWriterTest {
     long blockSize = PACKET_SIZE * 2 + PACKET_SIZE / 3;
     try (PacketWriter writer = create(blockSize, PACKET_SIZE)) {
       byte[] data = new byte[1];
-      Future<WriteSummary> actualUfs = getUfsWrite(mChannel);
+      Future<WriteSummary> actualUfs = getUfsWrite(mClient);
       for (long pos = 0; pos < blockSize; pos++) {
         assertEquals(pos, writer.pos());
         ByteBuf buf = Unpooled.wrappedBuffer(data);
@@ -347,45 +355,38 @@ public class UfsFallbackLocalFilePacketWriterTest {
    *
    * @return the checksum of the data read starting from checksumStart
    */
-  private Future<WriteSummary> getUfsWrite(final EmbeddedChannel channel) {
+  private Future<WriteSummary> getUfsWrite(final BlockWorkerClient channel) {
     return EXECUTOR.submit(new Callable<WriteSummary>() {
       @Override
       public WriteSummary call() throws TimeoutException, InterruptedException {
         try {
+          ArgumentCaptor<WriteRequest> requestCaptor = ArgumentCaptor.forClass(WriteRequest.class);
+          verify(mRequestObserver, atLeastOnce()).onNext(requestCaptor.capture());
+          ArgumentCaptor<StreamObserver> captor = ArgumentCaptor.forClass(StreamObserver.class);
+          verify(mClient).writeBlock(captor.capture());
+          captor.getValue().onCompleted();
           long checksum = 0;
           long pos = 0;
           long len = 0;
-          while (true) {
-            RPCProtoMessage request = (RPCProtoMessage) CommonUtils.waitForResult("write request",
-                () -> channel.readOutbound(),
-                WaitForOptions.defaults().setTimeoutMs(Constants.MINUTE_MS));
-            Protocol.WriteRequest writeRequest = request.getMessage().asWriteRequest();
+          for (WriteRequest writeRequest : requestCaptor.getAllValues()) {
             validateWriteRequest(writeRequest, pos);
-            DataBuffer buffer = request.getPayloadDataBuffer();
-            // Last packet.
-            if (writeRequest.hasEof() && writeRequest.getEof()) {
-              assertTrue(buffer == null);
-              channel.writeInbound(RPCProtoMessage.createOkResponse(null));
-              return new WriteSummary(len, checksum);
-            }
-            // UFS block init
-            if (writeRequest.getCreateUfsBlockOptions().hasBytesInBlockStore()) {
-              assertTrue(buffer == null);
-              pos += writeRequest.getCreateUfsBlockOptions().getBytesInBlockStore();
+            if (writeRequest.hasCommand()
+                && writeRequest.getCommand().getCreateUfsBlockOptions().hasBytesInBlockStore()) {
+              pos += writeRequest.getCommand().getCreateUfsBlockOptions().getBytesInBlockStore();
               continue;
             }
-            try {
-              Assert.assertTrue(buffer instanceof DataNettyBufferV2);
-              ByteBuf buf = (ByteBuf) buffer.getNettyOutput();
-              while (buf.readableBytes() > 0) {
-                checksum += BufferUtils.byteToInt(buf.readByte());
+            if (writeRequest.hasChunk()) {
+              Chunk chunk = writeRequest.getChunk();
+              Assert.assertTrue(chunk.hasData());
+              ByteString buf = chunk.getData();
+              for (byte b : buf.toByteArray()) {
+                checksum += BufferUtils.byteToInt(b);
                 pos++;
                 len++;
               }
-            } finally {
-              buffer.release();
             }
           }
+          return new WriteSummary(len, checksum);
         } catch (Throwable throwable) {
           fail("Failed to verify write requests." + throwable.getMessage());
           throw throwable;
@@ -419,11 +420,15 @@ public class UfsFallbackLocalFilePacketWriterTest {
    * @param request the request
    * @param offset the offset
    */
-  private void validateWriteRequest(Protocol.WriteRequest request, long offset) {
-    assertEquals(Protocol.RequestType.UFS_FALLBACK_BLOCK, request.getType());
-    assertEquals(BLOCK_ID, request.getId());
-    assertEquals(offset, request.getOffset());
-    assertTrue(request.hasCreateUfsBlockOptions());
-    assertEquals(MOUNT_ID, request.getCreateUfsBlockOptions().getMountId());
+  private void validateWriteRequest(WriteRequest request, long offset) {
+    if (request.hasCommand()) {
+      assertEquals(RequestType.UFS_FALLBACK_BLOCK, request.getCommand().getType());
+      assertEquals(BLOCK_ID, request.getCommand().getId());
+      assertEquals(offset, request.getCommand().getOffset());
+      assertTrue(request.getCommand().hasCreateUfsBlockOptions());
+      assertEquals(MOUNT_ID, request.getCommand().getCreateUfsBlockOptions().getMountId());
+    } else {
+      assertTrue(request.hasChunk());
+    }
   }
 }

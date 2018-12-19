@@ -11,19 +11,18 @@
 
 package alluxio.client.fs;
 
+import alluxio.client.block.stream.BlockWorkerClient;
 import alluxio.client.file.FileSystemContext;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
-import alluxio.util.CommonUtils;
 import alluxio.wire.WorkerNetAddress;
 
-import io.netty.channel.Channel;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
-public final class NettyChannelCloseIntegrationTest extends BaseIntegrationTest {
+public final class BlockWorkerClientCloseIntegrationTest extends BaseIntegrationTest {
   @Rule
   public LocalAlluxioClusterResource mClusterResource =
       new LocalAlluxioClusterResource.Builder().build();
@@ -36,28 +35,13 @@ public final class NettyChannelCloseIntegrationTest extends BaseIntegrationTest 
   }
 
   @Test
-  public void closeAsync() throws Exception {
+  public void close() throws Exception {
     for (int i = 0; i < 1000; i++) {
-      Channel channel = FileSystemContext.get().acquireNettyChannel(mWorkerNetAddress);
-      Assert.assertTrue(channel.isOpen());
-      // Note: If you replace closeChannel with channel.close(), this test fails with high
-      // probability.
-      CommonUtils.closeChannel(channel);
-      Assert.assertTrue(!channel.isOpen());
-      FileSystemContext.get().releaseNettyChannel(mWorkerNetAddress, channel);
-    }
-  }
-
-  @Test
-  public void closeSync() throws Exception {
-    for (int i = 0; i < 1000; i++) {
-      Channel channel = FileSystemContext.get().acquireNettyChannel(mWorkerNetAddress);
-      Assert.assertTrue(channel.isOpen());
-      // Note: If you replace closeChannel with channel.close(), this test fails with high
-      // probability.
-      CommonUtils.closeChannelSync(channel);
-      Assert.assertTrue(!channel.isOpen());
-      FileSystemContext.get().releaseNettyChannel(mWorkerNetAddress, channel);
+      BlockWorkerClient client = FileSystemContext.get().acquireBlockWorkerClient(mWorkerNetAddress);
+      Assert.assertFalse(client.isShutdown());
+      client.close();
+      Assert.assertTrue(client.isShutdown());
+      FileSystemContext.get().releaseBlockWorkerClient(mWorkerNetAddress, client);
     }
   }
 }

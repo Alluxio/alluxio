@@ -18,7 +18,7 @@ service BlockWorker {
   rpc OpenLocalBlock (OpenLocalBlockRequest) returns (stream OpenLocalBlockResponse);
 
   // Replaces ShortCircuitBlockWriteHandler.
-  rpc CreateLocalBlock (CreateLocalBlockRequest) returns (stream CreateLocalBlockResponse);
+  rpc CreateLocalBlock (stream CreateLocalBlockRequest) returns (stream CreateLocalBlockResponse);
 
   rpc AsyncCache (AsyncCacheRequest) returns (AsyncCacheResponse);
   rpc RemoveBlock (RemoveBlockRequest) returns (RemoveBlockResponse);
