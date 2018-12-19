@@ -11,9 +11,6 @@
 
 package alluxio.worker.grpc;
 
-import alluxio.Configuration;
-import alluxio.PropertyKey;
-import alluxio.RpcUtils;
 import alluxio.grpc.AsyncCacheRequest;
 import alluxio.grpc.AsyncCacheResponse;
 import alluxio.grpc.BlockWorkerGrpc;
@@ -49,7 +46,6 @@ public class BlockWorkerImpl extends BlockWorkerGrpc.BlockWorkerImplBase {
   private static final Logger LOG = LoggerFactory.getLogger(BlockWorkerImpl.class);
 
   private WorkerProcess mWorkerProcess;
-  private FileTransferType mFileTransferType;
   private final AsyncCacheRequestManager mRequestManager;
 
   /**
@@ -59,8 +55,6 @@ public class BlockWorkerImpl extends BlockWorkerGrpc.BlockWorkerImplBase {
    */
   public BlockWorkerImpl(WorkerProcess workerProcess) {
     mWorkerProcess = workerProcess;
-    mFileTransferType = Configuration
-        .getEnum(PropertyKey.WORKER_NETWORK_NETTY_FILE_TRANSFER_TYPE, FileTransferType.class);
     mRequestManager = new AsyncCacheRequestManager(
         GrpcExecutors.ASYNC_CACHE_MANAGER_EXECUTOR, mWorkerProcess.getWorker(BlockWorker.class));
   }
@@ -70,7 +64,7 @@ public class BlockWorkerImpl extends BlockWorkerGrpc.BlockWorkerImplBase {
     final ServerCallStreamObserver<ReadResponse> serverCallStreamObserver =
         (ServerCallStreamObserver<ReadResponse>) responseObserver;
     BlockReadHandler readHandler = new BlockReadHandler(GrpcExecutors.BLOCK_READER_EXECUTOR,
-        mWorkerProcess.getWorker(BlockWorker.class), mFileTransferType);
+        mWorkerProcess.getWorker(BlockWorker.class));
     serverCallStreamObserver.setOnReadyHandler(readHandler::onReady);
     serverCallStreamObserver.setOnCancelHandler(readHandler::onCancel);
     try {
@@ -82,7 +76,8 @@ public class BlockWorkerImpl extends BlockWorkerGrpc.BlockWorkerImplBase {
   }
 
   @Override
-  public StreamObserver<alluxio.grpc.WriteRequest> writeBlock(final StreamObserver<WriteResponse> responseObserver) {
+  public StreamObserver<alluxio.grpc.WriteRequest> writeBlock(
+      final StreamObserver<WriteResponse> responseObserver) {
     WriteRequestStreamObserver requestObserver = new WriteRequestStreamObserver(responseObserver);
     ServerCallStreamObserver<WriteResponse> serverResponseObserver =
         (ServerCallStreamObserver<WriteResponse>) responseObserver;
@@ -123,7 +118,7 @@ public class BlockWorkerImpl extends BlockWorkerGrpc.BlockWorkerImplBase {
           mWriteHandler = createWriterHandler(request);
         }
         mWriteHandler.write(request);
-      } catch(Exception e) {
+      } catch (Exception e) {
         mWriteHandler.onError(e);
       }
     }
@@ -205,7 +200,7 @@ public class BlockWorkerImpl extends BlockWorkerGrpc.BlockWorkerImplBase {
               mWorkerProcess.getWorker(BlockWorker.class), request, mResponseObserver);
         }
         mWriteHandler.handleBlockCreateRequest();
-      } catch(Exception e) {
+      } catch (Exception e) {
         mWriteHandler.exceptionCaught(e);
       }
     }
@@ -213,7 +208,7 @@ public class BlockWorkerImpl extends BlockWorkerGrpc.BlockWorkerImplBase {
     @Override
     public void onError(Throwable t) {
       if (mWriteHandler == null) {
-        // close the response stream if the client error before sending a write request
+        // closes the response stream if the client sends error before sending a write request
         mResponseObserver.onCompleted();
       } else {
         mWriteHandler.exceptionCaught(t);
@@ -242,7 +237,7 @@ public class BlockWorkerImpl extends BlockWorkerGrpc.BlockWorkerImplBase {
   @Override
   public void asyncCache(AsyncCacheRequest request,
       StreamObserver<AsyncCacheResponse> responseObserver) {
-    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<AsyncCacheResponse>) () -> {
+    RpcUtilsNew.call(LOG, (RpcUtilsNew.RpcCallableThrowsIOException<AsyncCacheResponse>) () -> {
       mRequestManager.submitRequest(request);
       return AsyncCacheResponse.getDefaultInstance();
     }, "asyncCache", "request=%s", responseObserver, request);
@@ -252,7 +247,7 @@ public class BlockWorkerImpl extends BlockWorkerGrpc.BlockWorkerImplBase {
   public void removeBlock(RemoveBlockRequest request,
       StreamObserver<RemoveBlockResponse> responseObserver) {
     final long sessionId = IdUtils.createSessionId();
-    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<RemoveBlockResponse>) () -> {
+    RpcUtilsNew.call(LOG, (RpcUtilsNew.RpcCallableThrowsIOException<RemoveBlockResponse>) () -> {
       mWorkerProcess.getWorker(BlockWorker.class).removeBlock(sessionId, request.getBlockId());
       return RemoveBlockResponse.getDefaultInstance();
     }, "removeBlock", "request=%s", responseObserver, request);

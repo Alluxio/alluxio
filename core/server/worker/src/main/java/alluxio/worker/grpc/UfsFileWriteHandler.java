@@ -11,19 +11,6 @@
 
 package alluxio.worker.grpc;
 
-import java.io.IOException;
-import java.util.concurrent.ExecutorService;
-
-import javax.annotation.concurrent.NotThreadSafe;
-
-import com.google.protobuf.ByteString;
-import io.grpc.stub.StreamObserver;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.codahale.metrics.Counter;
-import com.google.common.base.Preconditions;
-
 import alluxio.grpc.WriteRequest;
 import alluxio.grpc.WriteResponse;
 import alluxio.metrics.Metric;
@@ -36,6 +23,17 @@ import alluxio.underfs.UfsManager;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.util.proto.ProtoUtils;
+
+import com.codahale.metrics.Counter;
+import com.google.common.base.Preconditions;
+import com.google.protobuf.ByteString;
+import io.grpc.stub.StreamObserver;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * This handler handles writes to a file in the under file system. Due to the semantics enforced

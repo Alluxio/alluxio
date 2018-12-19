@@ -19,11 +19,6 @@ import alluxio.PropertyKey;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.ReadRequest;
 import alluxio.grpc.ReadResponse;
-import alluxio.network.protocol.databuffer.DataBuffer;
-import alluxio.network.protocol.databuffer.DataFileChannel;
-import alluxio.network.protocol.databuffer.DataNettyBufferV2;
-import alluxio.proto.status.Status;
-import alluxio.proto.status.Status.PStatus;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.util.io.BufferUtils;
@@ -31,10 +26,6 @@ import alluxio.util.io.BufferUtils;
 import com.google.protobuf.ByteString;
 import io.grpc.stub.ServerCallStreamObserver;
 import io.grpc.stub.StreamObserver;
-import io.netty.buffer.ByteBuf;
-import io.netty.channel.ChannelPipeline;
-import io.netty.channel.FileRegion;
-import io.netty.channel.embedded.EmbeddedChannel;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -45,8 +36,7 @@ import org.mockito.ArgumentCaptor;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.channels.WritableByteChannel;
+import java.util.List;
 import java.util.Random;
 import java.util.concurrent.TimeoutException;
 
@@ -59,6 +49,8 @@ public abstract class ReadHandlerTest {
   protected AbstractReadHandler mReadHandlerNoException;
   protected AbstractReadHandler mReadHandler;
   protected ServerCallStreamObserver<ReadResponse> mResponseObserver;
+  protected boolean mResponseCompleted;
+  protected Throwable mError;
 
   @Rule
   public TemporaryFolder mTestFolder = new TemporaryFolder();
@@ -85,24 +77,6 @@ public abstract class ReadHandlerTest {
     long end = PACKET_SIZE * 10 - 99;
     long checksumExpected = populateInputFile(PACKET_SIZE * 10, start, end);
     mReadHandler.readBlock(buildReadRequest(start, end + 1 - start), mResponseObserver);
-    checkAllReadResponses(mResponseObserver, checksumExpected);
-  }
-
-  /**
-   * Handles multiple read requests within a channel sequentially.
-   */
-  @Test
-  public void reuseChannel() throws Exception {
-    long fileSize = PACKET_SIZE * 5;
-    long checksumExpected = populateInputFile(fileSize, 0, fileSize - 1);
-    mReadHandler.readBlock(buildReadRequest(0, fileSize), mResponseObserver);
-    checkAllReadResponses(mResponseObserver, checksumExpected);
-
-    fileSize = fileSize / 2 + 1;
-    long start = 3;
-    long end = fileSize - 1;
-    checksumExpected = populateInputFile(fileSize, start, end);
-    mReadHandler.readBlock(buildReadRequest(start, end - start + 1), mResponseObserver);
     checkAllReadResponses(mResponseObserver, checksumExpected);
   }
 
@@ -180,16 +154,13 @@ public abstract class ReadHandlerTest {
    */
   protected void checkAllReadResponses(StreamObserver<ReadResponse> responseObserver,
       long checksumExpected) throws Exception {
-    boolean eof = false;
     long checksumActual = 0;
-    while (!eof) {
-      ReadResponse readResponse = waitForOneResponse(responseObserver);
+    for (ReadResponse readResponse : waitForResponses(responseObserver)) {
       if (readResponse == null) {
         Assert.fail();
         break;
       }
-      ByteString buffer = checkReadResponse(readResponse, PStatus.OK);
-      eof = buffer == null;
+      ByteString buffer = checkReadResponse(readResponse);
       if (buffer != null) {
         for (byte b : buffer) {
           checksumActual += BufferUtils.byteToInt(b);
@@ -197,27 +168,24 @@ public abstract class ReadHandlerTest {
       }
     }
     Assert.assertEquals(checksumExpected, checksumActual);
-    Assert.assertTrue(eof);
   }
 
   /**
    * Checks the read response message given the expected error code.
    *
    * @param readResponse the read response
-   * @param statusExpected the expected error code
    * @return the data buffer extracted from the read response
    */
-  protected ByteString checkReadResponse(ReadResponse readResponse, PStatus statusExpected) {
-    DataBuffer buffer = null;
+  protected ByteString checkReadResponse(ReadResponse readResponse) {
     Assert.assertTrue(readResponse.hasChunk());
     Assert.assertTrue(readResponse.getChunk().hasData());
     return readResponse.getChunk().getData();
   }
 
-  protected void checkCancel(StreamObserver<ReadResponse> responseObserver) {
-    verify(responseObserver).onError(null);
+  protected void checkCancel(StreamObserver<ReadResponse> responseObserver)
+      throws TimeoutException, InterruptedException {
+    Assert.assertEquals(null, waitForError(responseObserver));
   }
-
 
   /**
    * Waits for one read response message.
@@ -225,9 +193,27 @@ public abstract class ReadHandlerTest {
    * @param responseObserver the response stream observer
    * @return the read response
    */
-  protected ReadResponse waitForOneResponse(final StreamObserver<ReadResponse> responseObserver) {
+  protected List<ReadResponse> waitForResponses(final StreamObserver<ReadResponse> responseObserver)
+      throws TimeoutException, InterruptedException {
+    CommonUtils.waitFor("response", () -> mResponseCompleted || mError != null,
+        WaitForOptions.defaults().setTimeoutMs(Constants.MINUTE_MS));
     ArgumentCaptor<ReadResponse> captor = ArgumentCaptor.forClass(ReadResponse.class);
     verify(responseObserver).onNext(captor.capture());
+    return captor.getAllValues();
+  }
+
+  /**
+   * Waits for one read response message.
+   *
+   * @param responseObserver the response stream observer
+   * @return the read response
+   */
+  protected Throwable waitForError(final StreamObserver<ReadResponse> responseObserver)
+      throws TimeoutException, InterruptedException {
+    CommonUtils.waitFor("response", () -> mResponseCompleted || mError != null,
+        WaitForOptions.defaults().setTimeoutMs(Constants.MINUTE_MS));
+    ArgumentCaptor<Throwable> captor = ArgumentCaptor.forClass(Throwable.class);
+    verify(responseObserver).onError(captor.capture());
     return captor.getValue();
   }
 

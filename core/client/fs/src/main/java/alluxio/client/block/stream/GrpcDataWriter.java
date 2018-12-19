@@ -36,9 +36,6 @@ import io.grpc.stub.ClientCallStreamObserver;
 import io.grpc.stub.ClientResponseObserver;
 import io.grpc.stub.StreamObserver;
 import io.netty.buffer.ByteBuf;
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelFutureListener;
-import io.netty.util.concurrent.Future;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -59,7 +56,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * 2. The server reads chunks from the stream and writes them to the block worker. See the server
  *    side implementation for details.
  * 3. The client can either complete or cancel the stream to end the write request. The
- *    client has to wait for the response from the data server for the EOF or CANCEL packet to make
+ *    client has to wait for the comeplte or cancel response from the data server to make
  *    sure that the server has cleaned its states.
  * 4. To make it simple to handle errors, the stream is closed if any error occurs.
  *
@@ -86,14 +83,11 @@ public final class GrpcDataWriter implements PacketWriter {
   private final ClientCallStreamObserver<WriteRequest> mRequestStream;
   private final long mPacketSize;
 
-  private boolean mClosed;
-
   /**
-   * Uses to gurantee the operation ordering.
+   * Uses to guarantee the operation ordering.
    *
-   * NOTE: {@link Channel#writeAndFlush(Object)} is async.
-   * Netty I/O thread executes the {@link ChannelFutureListener#operationComplete(Future)}
-   * before writing any new message to the wire, which may introduce another layer of ordering.
+   * NOTE: {@link StreamObserver} events are async.
+   * gRPC worker threads executes the response {@link StreamObserver} events.
    */
   private final ReentrantLock mLock = new ReentrantLock();
 
@@ -132,7 +126,7 @@ public final class GrpcDataWriter implements PacketWriter {
   public static GrpcDataWriter create(FileSystemContext context, WorkerNetAddress address,
       long id, long length, RequestType type, OutStreamOptions options)
       throws IOException {
-    long packetSize = Configuration.getBytes(PropertyKey.USER_NETWORK_NETTY_WRITER_PACKET_SIZE_BYTES);
+    long packetSize = Configuration.getBytes(PropertyKey.USER_NETWORK_WRITER_PACKET_SIZE_BYTES);
     BlockWorkerClient grpcClient = context.acquireBlockWorkerClient(address);
     return new GrpcDataWriter(context, address, id, length, packetSize, type, options,
         grpcClient);
@@ -232,7 +226,7 @@ public final class GrpcDataWriter implements PacketWriter {
    *
    * @param pos number of bytes already written to block store
    */
-  public void writeFallbackInitPacket(long pos) {
+  public void writeFallbackInitRequest(long pos) {
     Preconditions.checkState(mPartialRequest.getType() == RequestType.UFS_FALLBACK_BLOCK);
     Protocol.CreateUfsBlockOptions ufsBlockOptions = mPartialRequest.getCreateUfsBlockOptions()
         .toBuilder().setBytesInBlockStore(pos).build();
@@ -247,7 +241,7 @@ public final class GrpcDataWriter implements PacketWriter {
 
   @Override
   public void cancel() {
-    if (mClosed) {
+    if (mClient.isShutdown()) {
       return;
     }
     sendCancel();
@@ -263,8 +257,8 @@ public final class GrpcDataWriter implements PacketWriter {
           .setCommand(mPartialRequest.toBuilder().setOffset(mPosToQueue).setFlush(true))
           .build();
       mRequestStream.onNext(writeRequest);
-      if (mPosToQueue != mPosWritten &&
-          !mFlushedOrFailed.await(FLUSH_TIMEOUT_MS, TimeUnit.MILLISECONDS)) {
+      if (mPosToQueue != mPosWritten
+          && !mFlushedOrFailed.await(FLUSH_TIMEOUT_MS, TimeUnit.MILLISECONDS)) {
         throw new DeadlineExceededException(
             String.format("Timeout flushing to %s for request %s after %dms.",
                 mAddress, mPartialRequest, FLUSH_TIMEOUT_MS));
@@ -277,7 +271,7 @@ public final class GrpcDataWriter implements PacketWriter {
 
   @Override
   public void close() throws IOException {
-    if (mClosed) {
+    if (mClient.isShutdown()) {
       return;
     }
     sendEof();
@@ -307,7 +301,6 @@ public final class GrpcDataWriter implements PacketWriter {
     } finally {
       mLock.unlock();
       mContext.releaseBlockWorkerClient(mAddress, mClient);
-      mClosed = true;
     }
   }
 
@@ -357,7 +350,8 @@ public final class GrpcDataWriter implements PacketWriter {
   }
 
   // An observer for write response stream that handles async events.
-  private final class WriteStreamObserver implements ClientResponseObserver<WriteRequest, WriteResponse> {
+  private final class WriteStreamObserver
+      implements ClientResponseObserver<WriteRequest, WriteResponse> {
 
     @Override
     public void onNext(WriteResponse response) {

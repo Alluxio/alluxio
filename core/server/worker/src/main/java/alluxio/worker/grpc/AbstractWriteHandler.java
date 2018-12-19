@@ -86,6 +86,9 @@ abstract class AbstractWriteHandler<T extends WriteRequestContext<?>> {
     try (LockResource lr = new LockResource(mLock)) {
       if (mContext == null) {
         mContext = createRequestContext(writeRequest);
+      } else {
+        Preconditions.checkState(!mContext.isDoneUnsafe(),
+            "invalid request after write request is completed.");
       }
       validateWriteRequest(writeRequest);
       if (writeRequest.hasCommand()) {
@@ -206,7 +209,7 @@ abstract class AbstractWriteHandler<T extends WriteRequestContext<?>> {
   }
 
   /**
-   * Creates a new request context. This method must be exception free.
+   * Creates a new request context.
    *
    * @param msg the block write request
    */

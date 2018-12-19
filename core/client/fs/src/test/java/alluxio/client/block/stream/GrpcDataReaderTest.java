@@ -23,7 +23,6 @@ import alluxio.grpc.ReadRequest;
 import alluxio.grpc.ReadResponse;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.DataByteBuffer;
-import alluxio.network.protocol.databuffer.DataNettyBufferV2;
 import alluxio.util.io.BufferUtils;
 import alluxio.wire.WorkerNetAddress;
 
@@ -196,7 +195,6 @@ public final class GrpcDataReaderTest {
    * @param client the worker client
    * @param offset the offset
    * @param length the length
-   * @param cancel whether the request is closed
    */
   private void validateReadRequestSent(final BlockWorkerClient client, long offset, long length,
       boolean closed) throws TimeoutException, InterruptedException {

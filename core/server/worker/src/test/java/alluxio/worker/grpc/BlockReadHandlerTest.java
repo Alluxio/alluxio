@@ -11,22 +11,22 @@
 
 package alluxio.worker.grpc;
 
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.anyLong;
-import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
+import alluxio.exception.status.FailedPreconditionException;
 import alluxio.grpc.ReadRequest;
-import alluxio.grpc.ReadResponse;
-import alluxio.proto.status.Status;
 import alluxio.worker.block.BlockWorker;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.LocalFileBlockReader;
 
 import io.grpc.stub.ServerCallStreamObserver;
-import io.grpc.stub.StreamObserver;
 import io.netty.util.ResourceLeakDetector;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -47,31 +47,17 @@ public final class BlockReadHandlerTest extends ReadHandlerTest {
     doNothing().when(mBlockWorker).accessBlock(anyLong(), anyLong());
     mResponseObserver = Mockito.mock(ServerCallStreamObserver.class);
     Mockito.when(mResponseObserver.isReady()).thenReturn(true);
-    mReadHandler = new BlockReadHandler(GrpcExecutors.BLOCK_READER_EXECUTOR, mBlockWorker,
-            FileTransferType.MAPPED);
+    doAnswer(args -> {
+      mResponseCompleted = true;
+      return null;
+    }).when(mResponseObserver).onCompleted();
+    doAnswer(args -> {
+      mError = args.getArgumentAt(0, Throwable.class);
+      return null;
+    }).when(mResponseObserver).onError(any(Throwable.class));
+    mReadHandler = new BlockReadHandler(GrpcExecutors.BLOCK_READER_EXECUTOR, mBlockWorker);
     mReadHandlerNoException = new BlockReadHandler(
-        GrpcExecutors.BLOCK_READER_EXECUTOR, mBlockWorker, FileTransferType.MAPPED);
-  }
-
-  /**
-   * Tests the {@link FileTransferType#TRANSFER} type.
-   */
-  @Test
-  public void transferType() throws Exception {
-    BlockReadHandler readHandler = new BlockReadHandler(GrpcExecutors.BLOCK_READER_EXECUTOR,
-        mBlockWorker, FileTransferType.TRANSFER);
-
-    long fileSize = PACKET_SIZE * 2;
-    long checksumExpected = populateInputFile(fileSize, 0, fileSize - 1);
-
-    BlockReader blockReader = spy(mBlockReader);
-    // Do not call close here so that we can check result. It will be closed explicitly.
-    doNothing().when(blockReader).close();
-    when(mBlockWorker.readBlockRemote(anyLong(), anyLong(), anyLong()))
-        .thenReturn(blockReader);
-    readHandler.readBlock(buildReadRequest(0, fileSize), mResponseObserver);
-    checkAllReadResponses(mResponseObserver, checksumExpected);
-    mBlockReader.close();
+        GrpcExecutors.BLOCK_READER_EXECUTOR, mBlockWorker);
   }
 
   /**
@@ -83,8 +69,8 @@ public final class BlockReadHandlerTest extends ReadHandlerTest {
     populateInputFile(0, 0, fileSize - 1);
     mBlockReader.close();
     mReadHandlerNoException.readBlock(buildReadRequest(0, fileSize), mResponseObserver);
-    ReadResponse response = waitForOneResponse(mResponseObserver);
-    checkReadResponse(response, Status.PStatus.FAILED_PRECONDITION);
+    Throwable t = waitForError(mResponseObserver);
+    Assert.assertTrue(t instanceof FailedPreconditionException);
   }
 
   @Override

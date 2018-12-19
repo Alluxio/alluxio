@@ -119,7 +119,7 @@ public final class UfsFallbackLocalFilePacketWriter implements PacketWriter {
         // Instruct the server to write the previously transferred data from temp block to UFS only
         // when there is data already written.
         if (pos > 0) {
-          mGrpcDataWriter.writeFallbackInitPacket(pos);
+          mGrpcDataWriter.writeFallbackInitRequest(pos);
         }
       } catch (Exception e) {
         // packet.refcount-- on exception

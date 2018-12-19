@@ -26,7 +26,6 @@ import alluxio.wire.BlockInfo;
 import alluxio.wire.FileInfo;
 import alluxio.wire.WorkerNetAddress;
 
-import io.netty.channel.Channel;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;

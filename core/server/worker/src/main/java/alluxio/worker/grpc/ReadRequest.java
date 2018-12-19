@@ -11,9 +11,9 @@
 
 package alluxio.worker.grpc;
 
-import javax.annotation.concurrent.ThreadSafe;
-
 import alluxio.util.IdUtils;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Represents a read request received from netty channel.

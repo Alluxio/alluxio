@@ -141,7 +141,7 @@ public class UfsFallbackLocalFilePacketWriterTest {
 
   @Rule
   public ConfigurationRule mConfigurationRule =
-      new ConfigurationRule(PropertyKey.USER_NETWORK_NETTY_WRITER_PACKET_SIZE_BYTES,
+      new ConfigurationRule(PropertyKey.USER_NETWORK_WRITER_PACKET_SIZE_BYTES,
           String.valueOf(PACKET_SIZE));
 
   @Before

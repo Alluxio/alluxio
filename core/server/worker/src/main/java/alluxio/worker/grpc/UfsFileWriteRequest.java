@@ -11,9 +11,9 @@
 
 package alluxio.worker.grpc;
 
-import javax.annotation.concurrent.ThreadSafe;
-
 import alluxio.proto.dataserver.Protocol;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * The UFS File write request internal representation.

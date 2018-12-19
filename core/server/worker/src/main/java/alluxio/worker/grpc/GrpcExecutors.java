@@ -28,7 +28,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * Executors for gRPC block server.
  */
 @ThreadSafe
-public final class GrpcExecutors {
+final class GrpcExecutors {
   private static final long THREAD_STOP_MS = Constants.SECOND_MS * 10;
   private static final int THREADS_MIN = 4;
 

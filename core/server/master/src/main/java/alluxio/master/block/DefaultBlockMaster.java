@@ -567,7 +567,6 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
       synchronized (worker) {
         // Loop until block metadata is successfully locked.
         while (true) {
-
           boolean newBlock = false;
           MasterBlockInfo block = mBlocks.get(blockId);
           if (block == null) {

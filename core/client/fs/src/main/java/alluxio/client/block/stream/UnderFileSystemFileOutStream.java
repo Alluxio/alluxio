@@ -14,7 +14,6 @@ package alluxio.client.block.stream;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.OutStreamOptions;
 import alluxio.grpc.RequestType;
-import alluxio.proto.dataserver.Protocol;
 import alluxio.wire.WorkerNetAddress;
 
 import java.io.IOException;

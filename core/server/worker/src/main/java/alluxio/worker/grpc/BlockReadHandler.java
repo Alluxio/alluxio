@@ -26,7 +26,6 @@ import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.WorkerMetrics;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.DataByteBuffer;
-import alluxio.network.protocol.databuffer.DataFileChannel;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.retry.RetryPolicy;
 import alluxio.retry.TimeoutRetry;
@@ -34,15 +33,12 @@ import alluxio.worker.block.BlockLockManager;
 import alluxio.worker.block.BlockWorker;
 import alluxio.worker.block.UnderFileSystemBlockReader;
 import alluxio.worker.block.io.BlockReader;
-import alluxio.worker.block.io.LocalFileBlockReader;
 
 import com.google.common.base.Preconditions;
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
-import java.io.File;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.concurrent.ExecutorService;
@@ -63,13 +59,6 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
 
   /** The Block Worker. */
   private final BlockWorker mWorker;
-  /** The transfer type used by the data server. */
-  private final FileTransferType mTransferType;
-  private static byte[] mMockData = new byte[64 * Constants.MB];
-  static {
-    for (int i = 0; i < mMockData.length; i++)
-      mMockData[i] = (byte)(i % 47);
-  }
 
   /**
    * The packet reader to read from a local block worker.
@@ -81,7 +70,8 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
     /** An object storing the mapping of tier aliases to ordinals. */
     private final StorageTierAssoc mStorageTierAssoc = new WorkerStorageTierAssoc();
 
-    BlockPacketReader(BlockReadRequestContext context, StreamObserver<ReadResponse> response, BlockWorker blockWorker) {
+    BlockPacketReader(BlockReadRequestContext context, StreamObserver<ReadResponse> response,
+        BlockWorker blockWorker) {
       super(context, response);
       mWorker = blockWorker;
     }
@@ -106,28 +96,23 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
     }
 
     @Override
-    protected DataBuffer getDataBuffer(BlockReadRequestContext context, StreamObserver<ReadResponse> response,
-        long offset, int len) throws Exception {
+    protected DataBuffer getDataBuffer(BlockReadRequestContext context,
+        StreamObserver<ReadResponse> response, long offset, int len) throws Exception {
       openBlock(context, response);
       BlockReader blockReader = context.getBlockReader();
       Preconditions.checkState(blockReader != null);
-      if (mTransferType == FileTransferType.TRANSFER
-          && (blockReader instanceof LocalFileBlockReader)) {
-        return new DataFileChannel(new File(((LocalFileBlockReader) blockReader).getFilePath()),
-            offset, len);
-      } else {
-        ByteBuffer buf = blockReader.read(offset, len);
-        return new DataByteBuffer(buf, len);
-      }
+      ByteBuffer buf = blockReader.read(offset, len);
+      return new DataByteBuffer(buf, len);
     }
 
     /**
      * Opens the block if it is not open.
      *
-     * @param response the netty channel
+     * @param response the read response stream
      * @throws Exception if it fails to open the block
      */
-    private void openBlock(BlockReadRequestContext context, StreamObserver<ReadResponse> response) throws Exception {
+    private void openBlock(BlockReadRequestContext context, StreamObserver<ReadResponse> response)
+        throws Exception {
       if (context.getBlockReader() != null) {
         return;
       }
@@ -211,13 +196,10 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
    *
    * @param executorService the executor service to run {@link PacketReader}s
    * @param blockWorker the block worker
-   * @param fileTransferType the file transfer type
    */
-  public BlockReadHandler(ExecutorService executorService, BlockWorker blockWorker,
-      FileTransferType fileTransferType) {
+  public BlockReadHandler(ExecutorService executorService, BlockWorker blockWorker) {
     super(executorService);
     mWorker = blockWorker;
-    mTransferType = fileTransferType;
   }
 
   protected BlockReadRequestContext createRequestContext(alluxio.grpc.ReadRequest request) {
@@ -225,7 +207,8 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
   }
 
   @Override
-  protected PacketReader createPacketReader(BlockReadRequestContext context, StreamObserver<ReadResponse> response) {
+  protected PacketReader createPacketReader(BlockReadRequestContext context,
+      StreamObserver<ReadResponse> response) {
     return new BlockPacketReader(context, response, mWorker);
   }
 }

@@ -107,8 +107,7 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
     ReadRequest.Builder builder =
         ReadRequest.newBuilder().setBlockId(blockId).setPromote(readType.isPromote());
     // Add UFS fallback options
-    builder.setOpenUfsBlockOptions(
-        Protocol.OpenUfsBlockOptions.parseFrom(options.getOpenUfsBlockOptions(blockId).toByteString()));
+    builder.setOpenUfsBlockOptions(options.getOpenUfsBlockOptions(blockId));
 
     boolean shortCircuit = Configuration.getBoolean(PropertyKey.USER_SHORT_CIRCUIT_ENABLED);
     boolean sourceSupportsDomainSocket = NettyUtils.isDomainSocketSupported(dataSource);
@@ -121,14 +120,14 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
         return createLocalBlockInStream(context, dataSource, blockId, blockSize, options);
       } catch (NotFoundException e) {
         // Failed to do short circuit read because the block is not available in Alluxio.
-        // We will try to read via netty. So this exception is ignored.
+        // We will try to read via gRPC. So this exception is ignored.
         LOG.warn("Failed to create short circuit input stream for block {} @ {}. Falling back to "
             + "network transfer", blockId, dataSource);
       }
     }
 
-    // Netty
-    LOG.debug("Creating netty input stream for block {} @ {} from client {} reading through {}",
+    // gRPC
+    LOG.debug("Creating gRPC input stream for block {} @ {} from client {} reading through {}",
         blockId, dataSource, NetworkAddressUtils.getClientHostName(), dataSource);
     return createGrpcBlockInStream(context, dataSource, dataSourceType, builder.buildPartial(),
         blockSize, options);
@@ -138,7 +137,7 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
    * Creates a {@link BlockInStream} to read from a local file.
    *
    * @param context the file system context
-   * @param address the network address of the netty data server to read from
+   * @param address the network address of the gRPC data server to read from
    * @param blockId the block ID
    * @param length the block length
    * @param options the in stream options
@@ -154,10 +153,10 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
   }
 
   /**
-   * Creates a {@link BlockInStream} to read from a netty data server.
+   * Creates a {@link BlockInStream} to read from a gRPC data server.
    *
    * @param context the file system context
-   * @param address the address of the netty data server
+   * @param address the address of the gRPC data server
    * @param blockSource the source location of the block
    * @param blockSize the block size
    * @param readRequestPartial the partial read request
@@ -180,7 +179,7 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
    *
    * @param context the file system context
    * @param blockId the block id
-   * @param address the address of the netty data server
+   * @param address the address of the gRPC data server
    * @param blockSource the source location of the block
    * @param blockSize the size of the block
    * @param ufsOptions the ufs read options
@@ -200,7 +199,7 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
    * Creates an instance of {@link BlockInStream}.
    *
    * @param packetReaderFactory the packet reader factory
-   * @param address the address of the netty data server
+   * @param address the address of the gRPC data server
    * @param blockSource the source location of the block
    * @param id the ID (either block ID or UFS file ID)
    * @param length the length

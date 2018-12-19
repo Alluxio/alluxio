@@ -117,7 +117,8 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>> {
    * @param request the block read request
    * @throws InvalidArgumentException if the request is invalid
    */
-  private void validateReadRequest(alluxio.grpc.ReadRequest request) throws InvalidArgumentException {
+  private void validateReadRequest(alluxio.grpc.ReadRequest request)
+      throws InvalidArgumentException {
     if (request.getBlockId() < 0) {
       throw new InvalidArgumentException(
           String.format("Invalid blockId (%d) in read request.", request.getBlockId()));
@@ -188,7 +189,8 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>> {
    * @param channel channel
    * @return the packet reader for this handler
    */
-  protected abstract PacketReader createPacketReader(T context, StreamObserver<ReadResponse> channel);
+  protected abstract PacketReader createPacketReader(T context,
+      StreamObserver<ReadResponse> channel);
 
   public void onCancel() {
     setCancel();

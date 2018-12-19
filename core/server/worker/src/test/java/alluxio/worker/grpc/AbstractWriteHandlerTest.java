@@ -12,7 +12,6 @@
 package alluxio.worker.grpc;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.verify;
 
 import alluxio.Constants;
@@ -23,14 +22,11 @@ import alluxio.grpc.WriteRequestCommand;
 import alluxio.grpc.WriteResponse;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.DataByteArrayChannel;
-import alluxio.proto.status.Status.PStatus;
 import alluxio.util.io.BufferUtils;
 
 import com.google.protobuf.ByteString;
 import io.grpc.stub.StreamObserver;
 import io.netty.buffer.ByteBuf;
-import io.netty.channel.embedded.EmbeddedChannel;
-import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -40,7 +36,6 @@ import org.mockito.ArgumentCaptor;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Random;
-import java.util.concurrent.TimeoutException;
 
 /**
  * Unit tests for {@link AbstractWriteHandler}.
@@ -127,7 +122,7 @@ public abstract class AbstractWriteHandlerTest {
     // Wait the first packet to finish
     checkComplete(mResponseObserver);
     // Send second request
-    mExpectedException.expect(InvalidArgumentException.class);
+    mExpectedException.expect(IllegalStateException.class);
     mWriteHandler.write(newWriteRequestCommand(0));
     mWriteHandler.write(newWriteRequest(dataBuffer));
     mWriteHandler.onComplete();
@@ -141,7 +136,7 @@ public abstract class AbstractWriteHandlerTest {
     // Wait the first packet to finish
     checkComplete(mResponseObserver);
     // Send second request
-    mExpectedException.expect(InvalidArgumentException.class);
+    mExpectedException.expect(IllegalStateException.class);
     mWriteHandler.write(newWriteRequestCommand(0));
     mWriteHandler.onComplete();
   }
@@ -156,17 +151,6 @@ public abstract class AbstractWriteHandlerTest {
     mWriteHandler.write(newWriteRequestCommand(0));
     mWriteHandler.onComplete();
     mWriteHandler.onError(new IOException("test exception"));
-  }
-
-  /**
-   * Checks the given write response is expected and matches the given error code.
-   *
-   * @param expectedStatus the expected status code
-   * @param writeResponse the write response
-   */
-  protected void checkWriteResponse(PStatus expectedStatus, WriteResponse writeResponse) {
-    assertTrue(writeResponse.hasOffset());
-    assertTrue(writeResponse.getOffset() > 0);
   }
 
   /**
@@ -192,18 +176,6 @@ public abstract class AbstractWriteHandlerTest {
 
     assertEquals(expectedChecksum, actualChecksum);
     assertEquals(size, actualSize);
-  }
-
-  /**
-   * Waits for a response.
-   *
-   * @return the response
-   */
-  protected WriteResponse waitForResponse(final StreamObserver<WriteResponse> responseObserver)
-      throws TimeoutException, InterruptedException {
-    ArgumentCaptor<WriteResponse> captor = ArgumentCaptor.forClass(WriteResponse.class);
-    verify(responseObserver).onNext(captor.capture());
-    return captor.getValue();
   }
 
   /**

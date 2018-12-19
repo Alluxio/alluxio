@@ -11,12 +11,12 @@
 
 package alluxio.worker.grpc;
 
+import com.codahale.metrics.Counter;
+import com.codahale.metrics.Meter;
+
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
-
-import com.codahale.metrics.Counter;
-import com.codahale.metrics.Meter;
 
 /**
  * Represents the context of a read request received from netty channel. This class serves the

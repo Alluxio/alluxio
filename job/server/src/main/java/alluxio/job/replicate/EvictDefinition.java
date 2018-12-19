@@ -130,8 +130,9 @@ public final class EvictDefinition
     }
 
     RemoveBlockRequest request = RemoveBlockRequest.newBuilder().setBlockId(blockId).build();
-    try (BlockWorkerClient blockWorker = FileSystemContext.get().acquireBlockWorkerClient(localNetAddress)) {
-        blockWorker.removeBlock(request);
+    try (BlockWorkerClient blockWorker =
+             FileSystemContext.get().acquireBlockWorkerClient(localNetAddress)) {
+      blockWorker.removeBlock(request);
     } catch (NotFoundException e) {
       // Instead of throwing this exception, we continue here because the block to evict does not
       // exist on this worker anyway.

@@ -29,8 +29,7 @@ public final class BlockReadRequest extends ReadRequest {
    * @param request the block read request
    */
   BlockReadRequest(alluxio.grpc.ReadRequest request) {
-    super(request.getBlockId(), request.getOffset(),
-        request.getOffset() + request.getLength());
+    super(request.getBlockId(), request.getOffset(), request.getOffset() + request.getLength());
 
     if (request.hasOpenUfsBlockOptions()) {
       mOpenUfsBlockOptions = request.getOpenUfsBlockOptions();

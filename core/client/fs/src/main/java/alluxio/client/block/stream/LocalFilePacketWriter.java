@@ -16,7 +16,6 @@ import alluxio.PropertyKey;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.OutStreamOptions;
-import alluxio.exception.status.CanceledException;
 import alluxio.exception.status.DeadlineExceededException;
 import alluxio.grpc.CreateLocalBlockRequest;
 import alluxio.grpc.CreateLocalBlockResponse;
@@ -27,7 +26,6 @@ import alluxio.worker.block.io.LocalFileBlockWriter;
 
 import com.google.common.base.Preconditions;
 import com.google.common.io.Closer;
-import io.grpc.Context;
 import io.grpc.stub.ClientCallStreamObserver;
 import io.grpc.stub.StreamObserver;
 import io.netty.buffer.ByteBuf;
@@ -106,7 +104,8 @@ public final class LocalFilePacketWriter implements PacketWriter {
       request.onNext(createRequest);
       try (LockResource lr = new LockResource(responseObserver.getLock())) {
         if (responseObserver.getResponse() == null
-            && !responseObserver.getCreatedOrFailed().await(READ_TIMEOUT_MS, TimeUnit.MILLISECONDS)) {
+            && !responseObserver.getCreatedOrFailed()
+            .await(READ_TIMEOUT_MS, TimeUnit.MILLISECONDS)) {
           throw new DeadlineExceededException(
               String.format("Timeout waiting for create request to complete %s",
                   createRequest.toString()));
@@ -115,7 +114,8 @@ public final class LocalFilePacketWriter implements PacketWriter {
       LocalFileBlockWriter writer =
           closer.register(new LocalFileBlockWriter(responseObserver.getResponse().getPath()));
       return new LocalFilePacketWriter(packetSize, options, blockWorker,
-          writer, createRequest, (ClientCallStreamObserver<CreateLocalBlockRequest>)request, responseObserver, closer);
+          writer, createRequest, (ClientCallStreamObserver<CreateLocalBlockRequest>) request,
+          responseObserver, closer);
     } catch (Exception e) {
       throw CommonUtils.closeAndRethrow(closer, e);
     }
@@ -184,7 +184,8 @@ public final class LocalFilePacketWriter implements PacketWriter {
         } catch (InterruptedException e) {
           Thread.currentThread().interrupt();
           throw new RuntimeException(String.format(
-              "Interrupted while closing local file for request %s.", mCreateRequest.toString()), e);
+              "Interrupted while closing local file for request %s.", mCreateRequest.toString()),
+              e);
         }
       }
     });
@@ -227,8 +228,7 @@ public final class LocalFilePacketWriter implements PacketWriter {
     mRequestObserver.onNext(mCreateRequest.toBuilder().setSpaceToReserve(toReserve)
           .setOnlyReserveSpace(true).build());
     try (LockResource lr = new LockResource(mResponseObserver.getLock())) {
-      if (!mResponseObserver.isCompleted()
-          && !mResponseObserver.getCompletedOrFailed()
+      if (!mResponseObserver.getReservedOrFailed()
           .await(READ_TIMEOUT_MS, TimeUnit.MILLISECONDS)) {
         throw new DeadlineExceededException(String.format(
             "Timeout reserving space for request %s.", mCreateRequest.toString()));
@@ -290,6 +290,7 @@ public final class LocalFilePacketWriter implements PacketWriter {
     public ReentrantLock getLock() {
       return mLock;
     }
+
     public boolean isCompleted() {
       return mCompleted;
     }

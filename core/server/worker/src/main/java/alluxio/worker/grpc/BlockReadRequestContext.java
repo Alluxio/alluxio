@@ -11,10 +11,10 @@
 
 package alluxio.worker.grpc;
 
+import alluxio.worker.block.io.BlockReader;
+
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
-
-import alluxio.worker.block.io.BlockReader;
 
 /**
  * Context of {@link BlockReadRequest}.

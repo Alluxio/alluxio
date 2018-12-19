@@ -2735,13 +2735,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
-  public static final PropertyKey USER_NETWORK_NETTY_WRITER_PACKET_SIZE_BYTES =
-      new Builder(Name.USER_NETWORK_NETTY_WRITER_PACKET_SIZE_BYTES)
-          .setDefaultValue("64KB")
-          .setDescription("When a client writes to a remote worker, the maximum packet size.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.CLIENT)
-          .build();
   public static final PropertyKey USER_NETWORK_NETTY_WRITER_BUFFER_SIZE_PACKETS =
       new Builder(Name.USER_NETWORK_NETTY_WRITER_BUFFER_SIZE_PACKETS)
           .setDefaultValue(16)
@@ -2777,6 +2770,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.USER_NETWORK_NETTY_READER_PACKET_SIZE_BYTES)
           .setDefaultValue("64KB")
           .setDescription("When a client reads from a remote worker, the maximum packet size.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey USER_NETWORK_WRITER_PACKET_SIZE_BYTES =
+      new Builder(Name.USER_NETWORK_WRITER_PACKET_SIZE_BYTES)
+          .setDefaultValue("64KB")
+          .setDescription("When a client writes to a remote worker, the maximum packet size.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
@@ -3782,8 +3782,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.network.netty.channel.pool.gc.threshold";
     public static final String USER_NETWORK_NETTY_CHANNEL_POOL_DISABLED =
         "alluxio.user.network.netty.channel.pool.disabled";
-    public static final String USER_NETWORK_NETTY_WRITER_PACKET_SIZE_BYTES =
-        "alluxio.user.network.netty.writer.packet.size.bytes";
     public static final String USER_NETWORK_NETTY_WRITER_BUFFER_SIZE_PACKETS =
         "alluxio.user.network.netty.writer.buffer.size.packets";
     public static final String USER_NETWORK_NETTY_READER_BUFFER_SIZE_PACKETS =
@@ -3794,6 +3792,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.network.netty.reader.packet.size.bytes";
     public static final String USER_NETWORK_SOCKET_TIMEOUT =
         "alluxio.user.network.socket.timeout";
+    public static final String USER_NETWORK_WRITER_PACKET_SIZE_BYTES =
+        "alluxio.user.network.writer.packet.size.bytes";
     public static final String USER_RPC_RETRY_BASE_SLEEP_MS =
         "alluxio.user.rpc.retry.base.sleep";
     public static final String USER_RPC_RETRY_MAX_DURATION =

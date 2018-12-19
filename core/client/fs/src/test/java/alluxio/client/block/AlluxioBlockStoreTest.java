@@ -210,7 +210,8 @@ public final class AlluxioBlockStoreTest {
   @Test
   public void getOutStreamLocal() throws Exception {
     File file = File.createTempFile("test", ".tmp");
-    CreateLocalBlockResponse response = CreateLocalBlockResponse.newBuilder().setPath(file.getAbsolutePath()).build();
+    CreateLocalBlockResponse response = CreateLocalBlockResponse.newBuilder()
+        .setPath(file.getAbsolutePath()).build();
     when(mWorkerClient.createLocalBlock(any(StreamObserver.class)))
         .thenAnswer(new Answer() {
           public Object answer(InvocationOnMock invocation) {
@@ -245,7 +246,8 @@ public final class AlluxioBlockStoreTest {
   @Test
   public void getOutStreamWithReplicated() throws Exception {
     File file = File.createTempFile("test", ".tmp");
-    CreateLocalBlockResponse response = CreateLocalBlockResponse.newBuilder().setPath(file.getAbsolutePath()).build();
+    CreateLocalBlockResponse response = CreateLocalBlockResponse.newBuilder()
+        .setPath(file.getAbsolutePath()).build();
     when(mWorkerClient.createLocalBlock(any(StreamObserver.class)))
         .thenAnswer(new Answer() {
           public Object answer(InvocationOnMock invocation) {
@@ -327,7 +329,6 @@ public final class AlluxioBlockStoreTest {
     // Mock away gRPC usage.
     OpenLocalBlockResponse response = OpenLocalBlockResponse.newBuilder().setPath("/tmp").build();
     when(mWorkerClient.openLocalBlock(any(OpenLocalBlockRequest.class))).thenReturn(response);
-
 
     BlockInfo info = new BlockInfo().setBlockId(BLOCK_ID).setLocations(Arrays
         .asList(new BlockLocation().setWorkerAddress(remote),

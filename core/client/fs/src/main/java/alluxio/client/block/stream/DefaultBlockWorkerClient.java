@@ -64,6 +64,7 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
           "netty-client-worker-%d", true);
 
   private GrpcChannel mChannel;
+  private SocketAddress mAddress;
   private BlockWorkerGrpc.BlockWorkerBlockingStub mBlockingStub;
   private BlockWorkerGrpc.BlockWorkerStub mAsyncStub;
 
@@ -86,6 +87,7 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
     }
     mBlockingStub = BlockWorkerGrpc.newBlockingStub(mChannel);
     mAsyncStub = BlockWorkerGrpc.newStub(mChannel);
+    mAddress = address;
   }
 
   /**
@@ -139,20 +141,20 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
   public void asyncCache(final AsyncCacheRequest request) {
     mAsyncStub.withDeadlineAfter(Configuration.getMs(PropertyKey.USER_NETWORK_NETTY_TIMEOUT_MS),
         TimeUnit.MILLISECONDS).asyncCache(request, new StreamObserver<AsyncCacheResponse>() {
-      @Override
-      public void onNext(AsyncCacheResponse value) {
-        // we don't use response from the RPC
-      }
+          @Override
+          public void onNext(AsyncCacheResponse value) {
+            // we don't use response from the RPC
+          }
 
-      @Override
-      public void onError(Throwable t) {
-        LOGGER.warn("Async cache request {} returned error:", request, t);
-      }
+          @Override
+          public void onError(Throwable t) {
+            LOGGER.warn("Error sending async cache request {} to worker {}.", request, mAddress, t);
+          }
 
-      @Override
-      public void onCompleted() {
-        // we don't use response from the RPC
-      }
-    });
+          @Override
+          public void onCompleted() {
+            // we don't use response from the RPC
+          }
+        });
   }
 }

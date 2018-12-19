@@ -51,6 +51,7 @@ public final class BlockWriteHandler extends AbstractWriteHandler<BlockWriteRequ
    * Creates an instance of {@link BlockWriteHandler}.
    *
    * @param blockWorker the block worker
+   * @param responseObserver the stream observer for the write response
    */
   BlockWriteHandler(BlockWorker blockWorker, StreamObserver<WriteResponse> responseObserver) {
     super(responseObserver);

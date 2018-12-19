@@ -37,7 +37,6 @@ import alluxio.wire.WorkerNetAddress;
 import com.codahale.metrics.Gauge;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Objects;
-import io.netty.channel.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -260,11 +259,6 @@ public final class FileSystemContext implements Closeable {
     mBlockMasterClientPool.close();
     mBlockMasterClientPool = null;
     mMasterInquireClient = null;
-
-//    for (NettyChannelPool pool : mNettyChannelPools.values()) {
-//      pool.close();
-//    }
-//    mNettyChannelPools.clear();
 
     synchronized (this) {
       if (mMetricsMasterClient != null) {

@@ -11,12 +11,12 @@
 
 package alluxio.worker.grpc;
 
-import javax.annotation.concurrent.ThreadSafe;
-
 import alluxio.util.IdUtils;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 /**
- * Represents a write request received from netty channel.
+ * Represents a write request received from gRPC channel.
  */
 @ThreadSafe
 public class WriteRequest {

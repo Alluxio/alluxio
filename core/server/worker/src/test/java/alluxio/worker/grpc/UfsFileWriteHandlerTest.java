@@ -14,9 +14,7 @@ package alluxio.worker.grpc;
 import alluxio.AlluxioURI;
 import alluxio.exception.status.UnknownException;
 import alluxio.grpc.RequestType;
-import alluxio.grpc.WriteResponse;
 import alluxio.proto.dataserver.Protocol;
-import alluxio.proto.status.Status.PStatus;
 import alluxio.underfs.UfsManager;
 import alluxio.underfs.UfsManager.UfsClient;
 import alluxio.underfs.UnderFileSystem;
@@ -79,7 +77,8 @@ public final class UfsFileWriteHandlerTest extends AbstractWriteHandlerTest {
     Protocol.CreateUfsFileOptions createUfsFileOptions =
         Protocol.CreateUfsFileOptions.newBuilder().setUfsPath("/test").setOwner("owner")
             .setGroup("group").setMode(0).setMountId(TEST_MOUNT_ID).build();
-    return super.newWriteRequestCommand(offset).toBuilder().setCommand(super.newWriteRequestCommand(offset).getCommand().toBuilder()
+    return super.newWriteRequestCommand(offset).toBuilder()
+        .setCommand(super.newWriteRequestCommand(offset).getCommand().toBuilder()
         .setCreateUfsFileOptions(createUfsFileOptions)).build();
   }
 

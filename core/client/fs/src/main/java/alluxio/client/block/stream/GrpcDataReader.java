@@ -30,21 +30,17 @@ import java.util.Iterator;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * A gRPC data reader that streams a region gRPC a netty data server.
+ * A gRPC data reader that streams a region from gRPC data server.
  *
  * Protocol:
  * 1. The client sends a read request (id, offset, length).
  * 2. Once the server receives the request, it streams chunks to the client. The streaming pauses
  *    if the server's buffer is full and resumes if the buffer is not full.
  * 3. The client reads chunks from the stream. Reading pauses if the client buffer is full and
- *    resumes if the buffer is not full. If the client can keep up with network speed, the buffer
- *    should have at most one packet.
- * 4. The client stops reading if it receives an empty packet which signifies the end of the stream.
- * 5. The client can cancel the read request at anytime. The cancel request is ignored by the
+ *    resumes if the buffer is not full.
+ * 4. The client can cancel the read request at anytime. The cancel request is ignored by the
  *    server if everything has been sent to channel.
- * 6. If the client wants to reuse the channel, the client must read all the packets in the channel
- *    before releasing the channel to the channel pool.
- * 7. To make it simple to handle errors, the channel is closed if any error occurs.
+ * 5. To make it simple to handle errors, the channel is closed if any error occurs.
  */
 @NotThreadSafe
 public final class GrpcDataReader implements PacketReader {
@@ -56,17 +52,12 @@ public final class GrpcDataReader implements PacketReader {
   private final WorkerNetAddress mAddress;
 
   private final Iterator<ReadResponse> mIterator;
+
+  /** The gRPC context for cancelling the response stream. */
   private final Context.CancellableContext mCancellableContext;
 
   /** The next pos to read. */
   private long mPosToRead;
-  /**
-   * This is true only when an empty packet (EOF or CANCELLED) is received. This is only updated
-   * by the client thread (not touched by the netty I/O thread).
-   */
-  private boolean mDone = false;
-
-  private boolean mClosed = false;
 
   /**
    * Creates an instance of {@link GrpcDataReader}. If this is used to read a block remotely, it
@@ -100,11 +91,11 @@ public final class GrpcDataReader implements PacketReader {
 
   @Override
   public DataBuffer readPacket() throws IOException {
-    Preconditions.checkState(!mClosed, "Data reader is closed while reading packets.");
+    Preconditions.checkState(!mClient.isShutdown(),
+        "Data reader is closed while reading packets.");
     ByteString buf;
     try {
       if (!mIterator.hasNext()) {
-        mDone = true;
         return null;
       }
     } catch (RuntimeException e) {
@@ -112,7 +103,7 @@ public final class GrpcDataReader implements PacketReader {
       throw new IOException(e.getMessage(), e.getCause());
     }
     ReadResponse response = mIterator.next();
-    Preconditions.checkState(response.hasChunk(), "response should either has chunk or code");
+    Preconditions.checkState(response.hasChunk(), "response should always contain chunk");
     buf = response.getChunk().getData();
     mPosToRead += buf.size();
     Preconditions.checkState(mPosToRead - mReadRequest.getOffset() <= mReadRequest.getLength());
@@ -120,12 +111,12 @@ public final class GrpcDataReader implements PacketReader {
   }
 
   @Override
-  public void close() {
-    if (mClosed || mDone || mClient.isShutdown()) {
+  public void close() throws IOException {
+    if (mClient.isShutdown()) {
       return;
     }
     mCancellableContext.close();
-    mClosed = true;
+    mClient.close();
   }
 
   /**

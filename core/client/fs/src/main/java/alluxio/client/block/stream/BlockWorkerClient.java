@@ -85,6 +85,7 @@ public interface BlockWorkerClient extends Closeable {
    */
   StreamObserver<CreateLocalBlockRequest> createLocalBlock(
       StreamObserver<CreateLocalBlockResponse> responseObserver);
+
   /**
    * Opens a local block.
    *
@@ -95,7 +96,7 @@ public interface BlockWorkerClient extends Closeable {
   OpenLocalBlockResponse openLocalBlock(OpenLocalBlockRequest request);
 
   /**
-   * Removes a block from worker
+   * Removes a block from worker.
    * @param request the remove block request
    * @return the response from server
    * @throws StatusRuntimeException if any error occurs
@@ -103,7 +104,7 @@ public interface BlockWorkerClient extends Closeable {
   RemoveBlockResponse removeBlock(RemoveBlockRequest request);
 
   /**
-   * Cache a block asynchronously.
+   * Caches a block asynchronously.
    *
    * @param request the async cache request
    */

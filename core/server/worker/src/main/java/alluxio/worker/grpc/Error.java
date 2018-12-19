@@ -20,7 +20,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * reader thread.
  */
 @ThreadSafe
-public class Error {
+class Error {
   final AlluxioStatusException mCause;
   final boolean mNotifyClient;
 

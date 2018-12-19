@@ -11,14 +11,14 @@
 
 package alluxio.worker.grpc;
 
+import alluxio.resource.CloseableResource;
+import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.options.CreateOptions;
+
 import java.io.OutputStream;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
-
-import alluxio.resource.CloseableResource;
-import alluxio.underfs.UnderFileSystem;
-import alluxio.underfs.options.CreateOptions;
 
 /**
  * The UFS File write request internal representation.
