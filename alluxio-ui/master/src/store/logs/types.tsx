@@ -1,13 +1,13 @@
 // tslint:disable:no-empty-interface // TODO: remove this line
 
-import {IUiFileInfo} from '../../constants';
+import {IFileInfo} from '../../constants';
 
 export interface ILogs {
   'currentPath': string;
   'debug': boolean;
   'fatalError': string;
   'fileData': null;
-  'fileInfos': IUiFileInfo[];
+  'fileInfos': IFileInfo[];
   'invalidPathError': string;
   'ntotalFile': number;
   'viewingOffset': number;

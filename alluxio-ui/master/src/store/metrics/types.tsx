@@ -1,6 +1,42 @@
 // tslint:disable:no-empty-interface // TODO: remove this line
 
+import {ICounter} from '../../constants';
+
 export interface IMetrics {
+  cacheHitLocal: string;
+  cacheHitRemote: string;
+  cacheMiss: string;
+  masterCapacityFreePercentage: number;
+  masterCapacityUsedPercentage: number;
+  masterUnderfsCapacityFreePercentage: number;
+  masterUnderfsCapacityUsedPercentage: number;
+  totalBytesReadLocal: string;
+  totalBytesReadLocalThroughput: string;
+  totalBytesReadRemote: string;
+  totalBytesReadRemoteThroughput: string;
+  totalBytesReadUfs: string;
+  totalBytesReadUfsThroughput: string;
+  totalBytesWrittenAlluxio: string;
+  totalBytesWrittenAlluxioThroughput: string;
+  totalBytesWrittenUfs: string;
+  totalBytesWrittenUfsThroughput: string;
+  ufsOps: {
+    [key: string]: {
+      [key: string]: number;
+    };
+  },
+  ufsReadSize: {
+    [key: string]: string;
+  },
+  ufsWriteSize: {
+    [key: string]: string;
+  },
+  operationMetrics: {
+    [key: string]: ICounter;
+  },
+  rpcInvocationMetrics: {
+    [key:string]: ICounter;
+  }
 }
 
 export const enum MetricsActionTypes {

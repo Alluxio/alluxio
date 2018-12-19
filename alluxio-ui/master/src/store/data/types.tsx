@@ -1,8 +1,8 @@
-import {IUiFileInfo} from '../../constants';
+import {IFileInfo} from '../../constants';
 
 export interface IData {
   'fatalError': string;
-  'fileInfos': IUiFileInfo[],
+  'fileInfos': IFileInfo[],
   'inAlluxioFileNum': number;
   'masterNodeAddress': string;
   'permissionError': string;

@@ -6,6 +6,9 @@ const initialState: IWorkersState = {
   errors: undefined,
   loading: false,
   workers: {
+    'debug': false,
+    'failedNodeInfos': [],
+    'normalNodeInfos': []
   }
 };
 

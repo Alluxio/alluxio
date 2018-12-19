@@ -1,22 +1,22 @@
-import {IUiFileBlockInfo, IUiFileInfo} from '../../constants';
+import {IFileBlockInfo, IFileInfo} from '../../constants';
 
 export interface IBrowse {
   'accessControlException': string;
   'blockSizeBytes': string;
-  'currentDirectory': IUiFileInfo;
+  'currentDirectory': IFileInfo;
   'currentPath': string;
   'debug': boolean;
   'fatalError': string;
-  'fileBlocks': IUiFileBlockInfo[],
+  'fileBlocks': IFileBlockInfo[],
   'fileData': string,
   'fileDoesNotExistException': string;
-  'fileInfos': IUiFileInfo[];
+  'fileInfos': IFileInfo[];
   'highestTierAlias': string,
   'invalidPathError': string;
   'invalidPathException': string;
   'masterNodeAddress': string;
   'ntotalFile': number;
-  'pathInfos': IUiFileInfo[];
+  'pathInfos': IFileInfo[];
   'showPermissions': boolean;
   'viewingOffset': number;
 }

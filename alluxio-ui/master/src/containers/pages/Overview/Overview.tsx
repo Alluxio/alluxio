@@ -4,9 +4,10 @@ import {Progress, Table} from 'reactstrap';
 import {Dispatch} from 'redux';
 
 import {LoadingMessage} from '@alluxio/common-ui/src/components';
+import {IScopedPropertyInfo, IStorageTierInfo} from '../../../constants';
 import {IApplicationState} from '../../../store';
 import {fetchRequest} from '../../../store/overview/actions';
-import {IOverview, IOverviewScopedPropertyIssue, IOverviewStorageTierInfo} from '../../../store/overview/types';
+import {IOverview} from '../../../store/overview/types';
 
 import './Overview.css';
 
@@ -140,12 +141,12 @@ class Overview extends React.Component<AllProps> {
     );
   }
 
-  private renderConfigurationIssues(issues: IOverviewScopedPropertyIssue[], className: string) {
+  private renderConfigurationIssues(issues: IScopedPropertyInfo[], className: string) {
     if (!issues.length) {
       return null;
     }
 
-    const errorMarkup = issues.map((issue: IOverviewScopedPropertyIssue) => {
+    const errorMarkup = issues.map((issue: IScopedPropertyInfo) => {
       let markup = '';
       for (const scope of Object.keys(issue)) {
         const scopeValue = issue[scope];
@@ -169,8 +170,8 @@ class Overview extends React.Component<AllProps> {
     )
   }
 
-  private renderStorageTierInfos(infos: IOverviewStorageTierInfo[]) {
-    return infos.map((info: IOverviewStorageTierInfo) => (
+  private renderStorageTierInfos(infos: IStorageTierInfo[]) {
+    return infos.map((info: IStorageTierInfo) => (
       <tr key={info.storageTierAlias}>
         <td>{info.storageTierAlias}</td>
         <td>{info.capacity}</td>

@@ -1,4 +1,4 @@
-export interface IUiFileBlockInfo {
+export interface IFileBlockInfo {
   'blockLength': number;
   'id': number;
   'inTier': boolean;

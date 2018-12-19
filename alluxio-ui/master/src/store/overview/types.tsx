@@ -1,17 +1,4 @@
-export interface IOverviewStorageTierInfo {
-  'capacity': string;
-  'freeCapacity': string;
-  'freeSpacePercent': number;
-  'storageTierAlias': string;
-  'usedCapacity': string;
-  'usedSpacePercent': number;
-}
-
-export type IOverviewScopedPropertyIssue = {
-  [scopeKey in 'MASTER' | 'WORKER' | 'CLIENT' | 'SERVER' | 'ALL' | 'NONE']: {// This is derived from 'alluxio/core/common/src/main/java/alluxio/wire/Scope.java'
-    [propertyKey: string]: string; // we allow any string as a property key here
-  };
-}
+import {IScopedPropertyInfo, IStorageTierInfo} from '../../constants';
 
 export interface IOverview {
   'debug': boolean;
@@ -19,9 +6,9 @@ export interface IOverview {
     'total': number;
     'used': number;
   };
-  'configCheckErrors': IOverviewScopedPropertyIssue[];
+  'configCheckErrors': IScopedPropertyInfo[];
   'configCheckStatus': string;
-  'configCheckWarns': IOverviewScopedPropertyIssue[];
+  'configCheckWarns': IScopedPropertyInfo[];
   'consistencyCheckStatus': string;
   'diskCapacity': string;
   'diskFreeCapacity': string;
@@ -32,7 +19,7 @@ export interface IOverview {
   'liveWorkerNodes': number;
   'masterNodeAddress': string;
   'startTime': string;
-  'storageTierInfos': IOverviewStorageTierInfo[];
+  'storageTierInfos': IStorageTierInfo[];
   'uptime': string;
   'usedCapacity': string;
   'version': string;

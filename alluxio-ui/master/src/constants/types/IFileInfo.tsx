@@ -1,10 +1,10 @@
-import {IUiFileBlockInfo} from '..';
+import {IFileBlockInfo} from '..';
 
-export interface IUiFileInfo {
+export interface IFileInfo {
   'absolutePath': string;
   'blockSizeBytes': string;
   'blocksOnTier': {
-    [tierAlias: string]: IUiFileBlockInfo[];
+    [tierAlias: string]: IFileBlockInfo[];
   };
   'creationTime': string;
   'fileLocations': string[];
