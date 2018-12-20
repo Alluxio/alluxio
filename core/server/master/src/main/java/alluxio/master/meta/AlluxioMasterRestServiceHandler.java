@@ -86,8 +86,6 @@ import com.google.common.collect.Sets;
 import com.qmino.miredot.annotations.ReturnType;
 import org.apache.commons.lang3.tuple.ImmutableTriple;
 import org.apache.commons.lang3.tuple.Triple;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -125,8 +123,6 @@ import javax.ws.rs.core.Response;
 public final class AlluxioMasterRestServiceHandler {
 
   public static final String SERVICE_PREFIX = "master";
-  private static final Logger LOG = LoggerFactory.getLogger(AlluxioMasterRestServiceHandler.class);
-
 
   // endpoints
   public static final String GET_INFO = "info";
