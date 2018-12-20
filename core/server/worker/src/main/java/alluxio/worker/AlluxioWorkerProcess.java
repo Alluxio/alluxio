@@ -19,6 +19,7 @@ import alluxio.ServiceUtils;
 import alluxio.grpc.GrpcServer;
 import alluxio.grpc.GrpcServerBuilder;
 import alluxio.grpc.GrpcService;
+import alluxio.master.Master;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.sink.MetricsServlet;
 import alluxio.metrics.sink.PrometheusMetricsServlet;
@@ -249,10 +250,8 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
         NetworkAddressUtils.getPort(ServiceType.WORKER_RPC),
         NetworkAddressUtils.getPort(ServiceType.WORKER_DATA),
         NetworkAddressUtils.getPort(ServiceType.WORKER_WEB));
-    createGrpcServer().start();
-    mIsServingRPC = true;
 
-    mGrpcServer.awaitTermination();
+    startServingRPCServer();
     LOG.info("Alluxio worker ended");
   }
 
@@ -276,16 +275,16 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
     mRegistry.stop();
   }
 
-  private void stopServing() throws IOException {
+  private void stopServing() throws Exception {
     mDataServer.close();
     if (mDomainSocketDataServer != null) {
       mDomainSocketDataServer.close();
       mDomainSocketDataServer = null;
     }
     if (mGrpcServer != null) {
-      mGrpcServer.shutdown();
-      mGrpcServer.awaitTermination();
-      mGrpcServer.shutdownNow();
+      if(!mGrpcServer.shutdown()){
+        LOG.warn("RPC server shutdown timed out.");
+      };
     }
     mUfsManager.close();
     try {
@@ -304,22 +303,29 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
     }
   }
 
-  private GrpcServer createGrpcServer() {
-    if (mGrpcServer != null && mGrpcServer.isServing()) {
-      // Server launched for auto bind.
-      // Terminate it.
-      mGrpcServer.shutdown();
-      mGrpcServer.awaitTermination();
-      mGrpcServer.shutdownNow();
-    }
-    LOG.info("Starting gRPC server on address {}", mRpcAddress);
-    GrpcServerBuilder serverBuilder = GrpcServerBuilder.forAddress(mRpcAddress);
-    for (Worker worker : mRegistry.getServers()) {
-      registerServices(serverBuilder, worker.getServices());
-    }
+  private void startServingRPCServer() {
+    try {
+      if (mGrpcServer != null && mGrpcServer.isServing()) {
+        // Server launched for auto bind.
+        // Terminate it.
+        mGrpcServer.shutdown();
+      }
 
-    mGrpcServer = serverBuilder.build();
-    return mGrpcServer;
+      LOG.info("Starting gRPC server on address {}", mRpcAddress);
+      GrpcServerBuilder serverBuilder = GrpcServerBuilder.forAddress(mRpcAddress);
+      for (Worker worker : mRegistry.getServers()) {
+        registerServices(serverBuilder, worker.getServices());
+      }
+
+      mGrpcServer = serverBuilder.build().start();
+      mIsServingRPC = true;
+      LOG.info("Started gRPC server on address {}", mRpcAddress);
+
+      // Wait until the server is shut down.
+      mGrpcServer.awaitTermination();
+    } catch (IOException | InterruptedException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   /**

@@ -139,7 +139,7 @@ public final class BlockMasterClient extends AbstractMasterClient {
       final Map<String, List<Long>> addedBlocks, final List<Metric> metrics) throws IOException {
     final BlockHeartbeatPOptions options =
         BlockHeartbeatPOptions.newBuilder().addAllMetrics(metrics).build();
-    Map<String, TierList> addedBlocksMap = new HashMap<>();
+    Map<String, TierList> addedBlocksMap = new HashMap<>(addedBlocks.size());
     for (Map.Entry<String, List<Long>> blockEntry : addedBlocks.entrySet()) {
       addedBlocksMap.put(blockEntry.getKey(),
           TierList.newBuilder().addAllTiers(blockEntry.getValue()).build());

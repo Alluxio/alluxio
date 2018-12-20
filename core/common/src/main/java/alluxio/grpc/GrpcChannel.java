@@ -23,7 +23,7 @@ import io.grpc.MethodDescriptor;
 public final class GrpcChannel extends Channel {
   private final GrpcManagedChannelPool.ChannelKey mChannelKey;
   private final Channel mChannel;
-  private boolean mchannelReleased;
+  private boolean mChannelReleased;
 
   /**
    * Create a new instance of {@link GrpcChannel}.
@@ -33,7 +33,7 @@ public final class GrpcChannel extends Channel {
   public GrpcChannel(GrpcManagedChannelPool.ChannelKey channelKey, Channel channel) {
     mChannelKey = channelKey;
     mChannel = channel;
-    mchannelReleased = false;
+    mChannelReleased = false;
   }
 
   @Override
@@ -52,13 +52,13 @@ public final class GrpcChannel extends Channel {
    */
   public void shutdown() {
     GrpcManagedChannelPool.INSTANCE().releaseManagedChannel(mChannelKey);
-    mchannelReleased = true;
+    mChannelReleased = true;
   }
 
   /**
    * @return {@code true} if the channel has been shut down
    */
   public boolean isShutdown(){
-    return mchannelReleased;
+    return mChannelReleased;
   }
 }

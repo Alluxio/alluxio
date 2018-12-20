@@ -1,5 +1,7 @@
 package alluxio.grpc;
 
+import alluxio.Configuration;
+import alluxio.PropertyKey;
 import alluxio.collections.Pair;
 import alluxio.resource.LockResource;
 import com.google.common.base.Verify;
@@ -37,6 +39,11 @@ public class GrpcManagedChannelPool {
     return sInstance;
   }
 
+  /*
+   * Concurrently shutting down gRPC channels may cause incomplete RPC messages
+   * bouncing back and forth between client and server. This lock is used to serialize
+   * channel shut downs in a single JVM boundary.
+   */
   /** Channels per address. */
   @GuardedBy("mLock")
   private HashMap<ChannelKey, ManagedChannelReference> mChannels;
@@ -97,9 +104,15 @@ public class GrpcManagedChannelPool {
             boolean isTerminated = false;
             while (!isTerminated) {
               try {
-                isTerminated = channel.awaitTermination(5, TimeUnit.SECONDS);
+                isTerminated = channel.awaitTermination(
+                    Configuration.getMs(PropertyKey.MASTER_GRPC_CHANNEL_SHUTDOWN_TIMEOUT),
+                    TimeUnit.MILLISECONDS);
               } catch (InterruptedException e) {
-                // Keep trying to close the channel.
+                Thread.currentThread().interrupt();
+                throw new RuntimeException(
+                    String.format("Interrupted while trying to close a gRPC channel to:%s",
+                        channelKey.mAddress),
+                    e);
               }
             }
             channel.shutdownNow();

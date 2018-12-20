@@ -18,6 +18,7 @@ import alluxio.grpc.SaslAuthenticationServiceGrpc;
 import alluxio.grpc.SaslMessage;
 import alluxio.util.SecurityUtils;
 
+import alluxio.util.ThreadFactoryUtils;
 import io.grpc.ServerInterceptor;
 import io.grpc.stub.StreamObserver;
 import net.jcip.annotations.ThreadSafe;
@@ -64,7 +65,8 @@ public class DefaultAuthenticationServer
   public DefaultAuthenticationServer() {
     checkSupported(Configuration.getEnum(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.class));
     mChannels = new ConcurrentHashMap<>();
-    mScheduler = Executors.newScheduledThreadPool(1);
+    mScheduler = Executors.newScheduledThreadPool(1,
+        ThreadFactoryUtils.build("auth-cleanup", true));
     mScheduler.scheduleAtFixedRate(() -> {
       cleanupStaleClients();
     }, mCleanupIntervalHour, mCleanupIntervalHour, TimeUnit.HOURS);
@@ -119,9 +121,7 @@ public class DefaultAuthenticationServer
    */
   private void cleanupStaleClients() {
     LocalTime cleanupTime = LocalTime.now();
-    if (LOG.isDebugEnabled()) {
-      LOG.debug("Starting cleanup authentication registry at {}", cleanupTime);
-    }
+    LOG.debug("Starting cleanup authentication registry at {}", cleanupTime);
     // Get a list of stale clients under read lock.
     List<UUID> staleChannels = new ArrayList<>();
     for (Map.Entry<UUID, AuthenticatedChannelInfo> clientEntry : mChannels.entrySet()) {
@@ -132,15 +132,11 @@ public class DefaultAuthenticationServer
     }
 
     // Unregister stale clients.
-    if (LOG.isDebugEnabled()) {
-      LOG.debug("Found {} stale channels for cleanup.", staleChannels.size());
-    }
+    LOG.debug("Found {} stale channels for cleanup.", staleChannels.size());
     for (UUID clientId : staleChannels) {
       unregisterChannel(clientId);
     }
-    if (LOG.isDebugEnabled()) {
-      LOG.debug("Finished state channel cleanup at {}", LocalTime.now());
-    }
+    LOG.debug("Finished state channel cleanup at {}", LocalTime.now());
   }
 
   /**
@@ -182,6 +178,8 @@ public class DefaultAuthenticationServer
 
   /**
    * Represents a channel in authentication registry.
+   * It's used internally to store and retrieve authentication principals
+   * and Sasl objects per channel.
    */
   class AuthenticatedChannelInfo {
     private LocalTime mLastAccessTime;

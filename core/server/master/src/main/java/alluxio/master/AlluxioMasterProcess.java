@@ -363,8 +363,6 @@ public class AlluxioMasterProcess implements MasterProcess {
         // Server launched for auto bind.
         // Terminate it.
         mGrpcServer.shutdown();
-        mGrpcServer.awaitTermination();
-        mGrpcServer.shutdownNow();
       }
 
       LOG.info("Starting gRPC server on address {}", mRpcBindAddress);
@@ -379,7 +377,7 @@ public class AlluxioMasterProcess implements MasterProcess {
 
       // Wait until the server is shut down.
       mGrpcServer.awaitTermination();
-    } catch (IOException e) {
+    } catch (IOException | InterruptedException e) {
       throw new RuntimeException(e);
     }
   }
@@ -390,9 +388,9 @@ public class AlluxioMasterProcess implements MasterProcess {
    */
   protected void stopServing() throws Exception {
     if (mGrpcServer != null) {
-      mGrpcServer.shutdown();
-      mGrpcServer.awaitTermination();
-      mGrpcServer.shutdownNow();
+      if(!mGrpcServer.shutdown()){
+        LOG.warn("RPC Server shutdown timed out.");
+      }
     }
     if (mJvmPauseMonitor != null) {
       mJvmPauseMonitor.stop();

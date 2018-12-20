@@ -11,6 +11,8 @@
 
 package alluxio.grpc;
 
+import alluxio.Configuration;
+import alluxio.PropertyKey;
 import alluxio.retry.CountingRetry;
 import alluxio.retry.ExponentialBackoffRetry;
 import alluxio.retry.RetryPolicy;
@@ -58,43 +60,30 @@ public final class GrpcServer {
   }
 
   /**
-   * Stop serving.
+   * Shuts down the server.
+   *
+   * @return {@code true} if the server was successfully terminated.
+   * @throws InterruptedException
    */
-  public void shutdown() {
+  public boolean shutdown() throws InterruptedException {
     mServer.shutdown();
-  }
-
-  /**
-   * Stop serving immediately.
-   */
-  public void shutdownNow() {
+    boolean terminated = mServer.awaitTermination(
+        Configuration.getMs(PropertyKey.MASTER_GRPC_SERVER_SHUTDOWN_TIMEOUT),
+        TimeUnit.MILLISECONDS);
     mServer.shutdownNow();
+    return terminated;
   }
 
   /**
    * Waits until the server is terminated.
+   * PS: This call waits uninterruptably.
    */
-  public void awaitTermination() {
-    while (!mServer.isTerminated()) {
-      try {
-        mServer.awaitTermination();
-      } catch (InterruptedException e) {
-        Thread.currentThread().interrupt();
-        throw new RuntimeException("Interrupted while waiting for gRPC server to terminate", e);
-      }
+  public void awaitTermination(){
+    try {
+      mServer.awaitTermination();
+    } catch(InterruptedException e) {
+      // Ignore.
     }
-  }
-
-  /**
-   * Waits until the server is terminated.
-   * 
-   * @param timeout timeout duration to wait for termination
-   * @param timeUnit time unit for given timeout value
-   * @throws InterruptedException when interrupted
-   * @return {@code true} if the server has been terminated
-   */
-  public boolean awaitTermination(long timeout, TimeUnit timeUnit) throws InterruptedException {
-    return mServer.awaitTermination(timeout, timeUnit);
   }
 
   /**

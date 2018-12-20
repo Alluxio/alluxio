@@ -139,9 +139,7 @@ public class ChannelAuthenticator {
       return Collections.emptyList();
     }
     List<ClientInterceptor> interceptorsList = new ArrayList<>();
-    AuthType authType =
-        Configuration.getEnum(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.class);
-    switch (authType) {
+    switch (mAuthType) {
       case NOSASL:
         break;
       case SIMPLE:
@@ -151,7 +149,7 @@ public class ChannelAuthenticator {
         break;
       default:
         throw new RuntimeException(
-            String.format("Authentication type:%s not supported", authType.name()));
+            String.format("Authentication type:%s not supported", mAuthType.name()));
     }
     return interceptorsList;
   }

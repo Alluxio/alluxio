@@ -111,9 +111,9 @@ public final class GrpcDataServer implements DataServer {
     if (mServer != null) {
       try {
         mServer.shutdown();
-        boolean completed = mServer.awaitTermination(mTimeoutMs, TimeUnit.MILLISECONDS);
+        boolean completed = mServer.shutdown();
         if (!completed) {
-          LOG.warn("Server shutdown timed out.");
+          LOG.warn("RPC Server shutdown timed out.");
         }
         completed = mBossGroup.shutdownGracefully(mQuietPeriodMs, mTimeoutMs, TimeUnit.MILLISECONDS)
             .awaitUninterruptibly(mTimeoutMs);

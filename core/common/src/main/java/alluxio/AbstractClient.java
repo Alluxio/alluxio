@@ -285,7 +285,7 @@ public abstract class AbstractClient implements Client {
      * The task where RPC happens.
      *
      * @return RPC result
-     * @throws io.grpc.StatusException when any exception defined in thrift happens
+     * @throws StatusRuntimeException when any exception defined in thrift happens
      */
     V call() throws StatusRuntimeException;
   }

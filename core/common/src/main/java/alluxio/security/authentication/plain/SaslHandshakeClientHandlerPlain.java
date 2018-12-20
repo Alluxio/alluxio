@@ -26,12 +26,11 @@ import javax.security.sasl.SaslException;
  * Implementation of {@link SaslHandshakeClientHandler} for plain authentication.
  */
 public class SaslHandshakeClientHandlerPlain implements SaslHandshakeClientHandler {
+  /** Initial challenge for client to start Sasl session. */
+  private static final byte[] S_PLAIN_INITIATE_CHANNEL = new byte[0];
 
   /** SaslClient that will be used. */
   private final SaslClient mSaslClient;
-
-  /** Initial challenge for client to start Sasl session. */
-  private static final byte[] S_PLAIN_INITIATE_CHANNEL = new byte[0];
 
   /**
    * Creates {@link SaslHandshakeClientHandlerPlain} with given {@link SaslClient}.
