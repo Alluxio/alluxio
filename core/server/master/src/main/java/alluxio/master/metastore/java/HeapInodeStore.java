@@ -15,13 +15,10 @@ import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeView;
 import alluxio.master.metastore.InodeStore;
 
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -29,7 +26,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class HeapInodeStore implements InodeStore {
   private final Map<Long, Inode<?>> mInodes = new ConcurrentHashMap<>();
-  private final Map<Long, Map<String, Inode<?>>> mEdges = new ConcurrentHashMap<>();
+  private final Map<Long, TreeMap<String, Inode<?>>> mEdges = new ConcurrentHashMap<>();
 
   @Override
   public void remove(InodeView inode) {
@@ -49,7 +46,7 @@ public class HeapInodeStore implements InodeStore {
 
   @Override
   public void addChild(long parentId, InodeView child) {
-    mEdges.putIfAbsent(parentId, new HashMap<>());
+    mEdges.putIfAbsent(parentId, new TreeMap<>());
     mEdges.get(parentId).put(child.getName(), (Inode<?>) child);
   }
 
@@ -80,9 +77,8 @@ public class HeapInodeStore implements InodeStore {
     if (!mEdges.containsKey(id)) {
       return Collections.emptySet();
     }
-    List<Inode<?>> children = new ArrayList<>(mEdges.get(id).values());
-    Collections.sort(children, Comparator.comparing(Inode::getName));
-    return children;
+
+    return mEdges.get(id).values();
   }
 
   @Override
