@@ -16,7 +16,6 @@ import alluxio.PropertyKey;
 import alluxio.client.ReadType;
 import alluxio.client.block.policy.BlockLocationPolicy;
 import alluxio.client.block.policy.options.CreateOptions;
-import alluxio.client.file.FileSystemClientOptions;
 import alluxio.client.file.URIStatus;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.master.block.BlockId;

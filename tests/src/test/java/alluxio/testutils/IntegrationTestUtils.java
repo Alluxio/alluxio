@@ -14,7 +14,6 @@ package alluxio.testutils;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.client.file.FileSystem;
-import alluxio.client.file.FileSystemClientOptions;
 import alluxio.client.file.FileSystemMasterClient;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.heartbeat.HeartbeatContext;

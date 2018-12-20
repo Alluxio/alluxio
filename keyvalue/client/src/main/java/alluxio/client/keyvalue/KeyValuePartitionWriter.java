@@ -17,7 +17,6 @@ import alluxio.PropertyKey;
 import alluxio.client.Cancelable;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
-import alluxio.client.file.FileSystemClientOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.grpc.CreateFilePOptions;
 

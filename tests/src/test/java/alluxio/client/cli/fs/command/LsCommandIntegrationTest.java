@@ -14,7 +14,6 @@ package alluxio.client.cli.fs.command;
 import alluxio.AlluxioURI;
 import alluxio.PropertyKey;
 import alluxio.cli.fs.command.LsCommand;
-import alluxio.client.file.FileSystemClientOptions;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;

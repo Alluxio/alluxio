@@ -15,7 +15,6 @@ import alluxio.AlluxioURI;
 import alluxio.PropertyKey;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
-import alluxio.client.file.FileSystemClientOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.MountPOptions;
 import alluxio.grpc.WritePType;

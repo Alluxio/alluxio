@@ -22,7 +22,6 @@ import alluxio.PropertyKey;
 import alluxio.PropertyKey.Name;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.client.file.FileSystem;
-import alluxio.client.file.FileSystemClientOptions;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.DirectoryNotEmptyException;

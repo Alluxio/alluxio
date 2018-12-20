@@ -15,7 +15,6 @@ import alluxio.AlluxioURI;
 import alluxio.client.ReadType;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileSystem;
-import alluxio.client.file.FileSystemClientOptions;
 import alluxio.examples.BasicNonByteBufferOperations;
 import alluxio.examples.BasicOperations;
 import alluxio.grpc.DeletePOptions;

@@ -14,7 +14,6 @@ package alluxio.client.fs;
 import alluxio.AlluxioURI;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
-import alluxio.client.file.FileSystemClientOptions;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.exception.PreconditionMessage;
 import alluxio.grpc.CreateFilePOptions;

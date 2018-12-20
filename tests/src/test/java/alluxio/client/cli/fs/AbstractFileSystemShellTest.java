@@ -20,7 +20,6 @@ import alluxio.cli.fs.FileSystemShell;
 import alluxio.cli.job.JobShell;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
-import alluxio.client.file.FileSystemClientOptions;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.exception.AlluxioException;
 import alluxio.grpc.OpenFilePOptions;

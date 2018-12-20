@@ -19,7 +19,6 @@ import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.client.MetaMasterClient;
 import alluxio.client.RetryHandlingMetaMasterClient;
-import alluxio.client.file.FileSystemClientOptions;
 import alluxio.client.file.FileSystemMasterClient;
 import alluxio.client.file.RetryHandlingFileSystemMasterClient;
 import alluxio.exception.AccessControlException;

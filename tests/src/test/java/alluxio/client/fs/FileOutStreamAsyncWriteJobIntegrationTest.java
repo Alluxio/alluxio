@@ -12,7 +12,6 @@
 package alluxio.client.fs;
 
 import alluxio.AlluxioURI;
-import alluxio.client.file.FileSystemClientOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.TtlAction;

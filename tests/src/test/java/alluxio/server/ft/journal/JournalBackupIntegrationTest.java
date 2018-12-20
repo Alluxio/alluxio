@@ -22,7 +22,6 @@ import alluxio.PropertyKey;
 import alluxio.client.MetaMasterClient;
 import alluxio.client.RetryHandlingMetaMasterClient;
 import alluxio.client.file.FileSystem;
-import alluxio.client.file.FileSystemClientOptions;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.WritePType;
 import alluxio.master.MasterClientConfig;
