@@ -30,8 +30,8 @@ public final class Utils {
    * @param path the file path
    */
   public static void createFile(FileSystem fs, AlluxioURI path) throws Exception {
-    try (FileOutStream out = fs.createFile(path, FileSystemClientOptions.getCreateFileOptions()
-        .toBuilder().setBlockSizeBytes(Constants.KB).setRecursive(true).build())) {
+    try (FileOutStream out = fs.createFile(path, CreateFilePOptions.newBuilder()
+        .setBlockSizeBytes(Constants.KB).setRecursive(true).build())) {
       out.write("test".getBytes());
     }
   }

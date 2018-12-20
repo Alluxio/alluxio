@@ -69,19 +69,35 @@ public final class OutStreamOptions {
    */
   public OutStreamOptions(CreateFilePOptions options) {
     this();
-    mBlockSizeBytes = options.getBlockSizeBytes();
-    try {
-      mLocationPolicy = (FileWriteLocationPolicy) CommonUtils.createNewClassInstance(
-          Class.forName(options.getFileWriteLocationPolicy()), new Class[] {}, new Object[] {});
-    } catch (Exception e) {
-      throw new RuntimeException(e);
+    if (options.hasBlockSizeBytes()) {
+      mBlockSizeBytes = options.getBlockSizeBytes();
     }
-    mMode = new Mode((short) options.getMode());
-    mReplicationDurable = options.getReplicationDurable();
-    mReplicationMin = options.getReplicationMin();
-    mReplicationMax = options.getReplicationMax();
-    mWriteTier = options.getWriteTier();
-    mWriteType = WriteType.fromProto(options.getWriteType());
+    if (options.hasMode()) {
+      mMode = new Mode((short) options.getMode());
+    }
+    if (options.hasReplicationDurable()) {
+      mReplicationDurable = options.getReplicationDurable();
+    }
+    if (options.hasReplicationMin()) {
+      mReplicationMin = options.getReplicationMin();
+    }
+    if (options.hasReplicationMax()) {
+      mReplicationMax = options.getReplicationMax();
+    }
+    if (options.hasWriteTier()) {
+      mWriteTier = options.getWriteTier();
+    }
+    if (options.hasWriteType()) {
+      mWriteType = WriteType.fromProto(options.getWriteType());
+    }
+    if (options.hasFileWriteLocationPolicy()) {
+      try {
+        mLocationPolicy = (FileWriteLocationPolicy) CommonUtils.createNewClassInstance(
+            Class.forName(options.getFileWriteLocationPolicy()), new Class[] {}, new Object[] {});
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
+    }
   }
 
   private OutStreamOptions() {

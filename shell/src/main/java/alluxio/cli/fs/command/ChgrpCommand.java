@@ -75,8 +75,8 @@ public final class ChgrpCommand extends AbstractFileSystemCommand {
    */
   private void chgrp(AlluxioURI path, String group, boolean recursive)
       throws AlluxioException, IOException {
-    SetAttributePOptions options = FileSystemClientOptions.getSetAttributeOptions().toBuilder()
-        .setGroup(group).setRecursive(recursive).build();
+    SetAttributePOptions options =
+        SetAttributePOptions.newBuilder().setGroup(group).setRecursive(recursive).build();
     mFileSystem.setAttribute(path, options);
     System.out.println("Changed group of " + path + " to " + group);
   }

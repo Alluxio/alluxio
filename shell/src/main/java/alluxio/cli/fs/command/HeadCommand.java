@@ -71,7 +71,7 @@ public final class HeadCommand extends AbstractFileSystemCommand {
     if (status.isFolder()) {
       throw new IOException(ExceptionMessage.PATH_MUST_BE_FILE.getMessage(plainPath));
     }
-    OpenFilePOptions options = FileSystemClientOptions.getOpenFileOptions();
+    OpenFilePOptions options = OpenFilePOptions.getDefaultInstance();
     try (FileInStream is = mFileSystem.openFile(plainPath, options)) {
       long bytesToRead;
       if (status.getLength() > mNumOfBytes) {

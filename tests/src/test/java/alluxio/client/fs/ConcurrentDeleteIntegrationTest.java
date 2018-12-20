@@ -59,10 +59,10 @@ public class ConcurrentDeleteIntegrationTest extends BaseIntegrationTest {
    * Options to mark a created file as persisted. Note that this does not actually persist the
    * file but flag the file to be treated as persisted, which will invoke ufs operations.
    */
-  private static CreateFilePOptions sCreatePersistedFileOptions = FileSystemClientOptions
-      .getCreateFileOptions().toBuilder().setWriteType(WritePType.WRITE_THROUGH).build();
-  private static CreateDirectoryPOptions sCreatePersistedDirOptions = FileSystemClientOptions
-      .getCreateDirectoryOptions().toBuilder().setWriteType(WritePType.WRITE_THROUGH).build();
+  private static CreateFilePOptions sCreatePersistedFileOptions =
+      CreateFilePOptions.newBuilder().setWriteType(WritePType.WRITE_THROUGH).build();
+  private static CreateDirectoryPOptions sCreatePersistedDirOptions =
+      CreateDirectoryPOptions.newBuilder().setWriteType(WritePType.WRITE_THROUGH).build();
 
   private FileSystem mFileSystem;
 

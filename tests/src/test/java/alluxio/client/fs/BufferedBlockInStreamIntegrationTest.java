@@ -63,10 +63,13 @@ public final class BufferedBlockInStreamIntegrationTest extends BaseIntegrationT
 
   private static List<CreateFilePOptions> getOptionSet() {
     List<CreateFilePOptions> ret = new ArrayList<>(3);
-    CreateFilePOptions optionsDefault = FileSystemClientOptions.getCreateFileOptions();
-    ret.add(optionsDefault.toBuilder().setWriteType(WritePType.WRITE_CACHE_THROUGH).build());
-    ret.add(optionsDefault.toBuilder().setWriteType(WritePType.WRITE_MUST_CACHE).build());
-    ret.add(optionsDefault.toBuilder().setWriteType(WritePType.WRITE_THROUGH).build());
+    CreateFilePOptions optionsDefault = CreateFilePOptions.getDefaultInstance();
+    ret.add(optionsDefault.toBuilder().setWriteType(WritePType.WRITE_CACHE_THROUGH)
+        .setRecursive(true).build());
+    ret.add(optionsDefault.toBuilder().setWriteType(WritePType.WRITE_MUST_CACHE).setRecursive(true)
+        .build());
+    ret.add(optionsDefault.toBuilder().setWriteType(WritePType.WRITE_THROUGH).setRecursive(true)
+        .build());
     return ret;
   }
 

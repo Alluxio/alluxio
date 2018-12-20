@@ -70,10 +70,8 @@ public class TieredStoreIntegrationTest extends BaseIntegrationTest {
   @Before
   public final void before() throws Exception {
     mFileSystem = mLocalAlluxioClusterResource.get().getClient();
-    mSetPinned =
-        FileSystemClientOptions.getSetAttributeOptions().toBuilder().setPinned(true).build();
-    mSetUnpinned =
-        FileSystemClientOptions.getSetAttributeOptions().toBuilder().setPinned(false).build();
+    mSetPinned = SetAttributePOptions.newBuilder().setPinned(true).build();
+    mSetUnpinned = SetAttributePOptions.newBuilder().setPinned(false).build();
   }
 
   /**
@@ -91,8 +89,8 @@ public class TieredStoreIntegrationTest extends BaseIntegrationTest {
 
     Assert.assertEquals(100, mFileSystem.getStatus(file).getInAlluxioPercentage());
     // Open the file
-    OpenFilePOptions options = FileSystemClientOptions.getOpenFileOptions().toBuilder()
-        .setReadType(ReadPType.READ_CACHE).build();
+    OpenFilePOptions options =
+        OpenFilePOptions.newBuilder().setReadType(ReadPType.READ_CACHE).build();
     FileInStream in = mFileSystem.openFile(file, options);
     Assert.assertEquals(0, in.read());
 
@@ -223,8 +221,8 @@ public class TieredStoreIntegrationTest extends BaseIntegrationTest {
       Assert.assertEquals(100, file2Info.getInAlluxioPercentage());
     }
 
-    FileInStream is = mFileSystem.openFile(toPromote, FileSystemClientOptions.getOpenFileOptions()
-        .toBuilder().setReadType(ReadPType.READ_CACHE_PROMOTE).build());
+    FileInStream is = mFileSystem.openFile(toPromote,
+        OpenFilePOptions.newBuilder().setReadType(ReadPType.READ_CACHE_PROMOTE).build());
     byte[] buf = new byte[toPromoteLen];
     int len = is.read(buf);
     is.close();

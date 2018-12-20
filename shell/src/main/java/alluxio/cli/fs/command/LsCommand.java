@@ -228,8 +228,7 @@ public final class LsCommand extends AbstractFileSystemCommand {
       return;
     }
 
-    ListStatusPOptions.Builder optionsBuilder =
-        FileSystemClientOptions.getListStatusOptions().toBuilder();
+    ListStatusPOptions.Builder optionsBuilder = ListStatusPOptions.newBuilder();
     if (forceLoadMetadata) {
       optionsBuilder.setLoadMetadataType(LoadMetadataPType.ALWAYS);
     }

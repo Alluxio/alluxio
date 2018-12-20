@@ -19,6 +19,7 @@ import alluxio.PropertyKey;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemClientOptions;
 import alluxio.client.file.URIStatus;
+import alluxio.grpc.DeletePOptions;
 import alluxio.master.LocalAlluxioCluster;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
@@ -58,8 +59,7 @@ public final class JournalReplayIntegrationTest extends BaseIntegrationTest {
     AlluxioURI alluxioPath = new AlluxioURI("/mnt");
     AlluxioURI ufsPath = new AlluxioURI(mFolder.newFolder().getAbsolutePath());
     mFs.mount(alluxioPath, ufsPath);
-    mFs.delete(alluxioPath,
-        FileSystemClientOptions.getDeleteOptions().toBuilder().setRecursive(true).build());
+    mFs.delete(alluxioPath, DeletePOptions.newBuilder().setRecursive(true).build());
     mFs.mount(alluxioPath, ufsPath);
     mCluster.restartMasters();
     List<URIStatus> status = mFs.listStatus(new AlluxioURI("/"));

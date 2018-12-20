@@ -17,6 +17,7 @@ import static org.junit.Assert.assertTrue;
 import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemClientOptions;
+import alluxio.grpc.DeletePOptions;
 import alluxio.master.backcompat.FsTestOp;
 import alluxio.master.backcompat.Utils;
 
@@ -39,8 +40,7 @@ public final class Delete extends FsTestOp {
     fs.delete(NESTED);
 
     Utils.createFile(fs, RECURSIVE);
-    fs.delete(RECURSIVE.getParent(),
-        FileSystemClientOptions.getDeleteOptions().toBuilder().setRecursive(true).build());
+    fs.delete(RECURSIVE.getParent(), DeletePOptions.newBuilder().setRecursive(true).build());
   }
 
   @Override

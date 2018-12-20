@@ -493,11 +493,9 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     FileSystem fs = mLocalAlluxioClusterResource.get().getClient();
     for (int i = 0; i < 3; i++) {
       FileSystemTestUtils.createByteFile(fs, PathUtils.concatPath(dir, "file" + i), 100,
-          FileSystemClientOptions.getCreateFileOptions().toBuilder()
-              .setWriteType(WritePType.WRITE_MUST_CACHE).build());
+          CreateFilePOptions.newBuilder().setWriteType(WritePType.WRITE_MUST_CACHE).build());
     }
-    fs.delete(dir,
-        FileSystemClientOptions.getDeleteOptions().toBuilder().setRecursive(true).build());
+    fs.delete(dir, DeletePOptions.newBuilder().setRecursive(true).build());
     assertFalse(fs.exists(dir));
     // Make sure that the blocks are cleaned up
     BlockMasterClient blockClient = BlockMasterClient.Factory.create(MasterClientConfig.defaults());

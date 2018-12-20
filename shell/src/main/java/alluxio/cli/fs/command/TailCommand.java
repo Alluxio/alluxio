@@ -69,7 +69,7 @@ public final class TailCommand extends AbstractFileSystemCommand {
     if (status.isFolder()) {
       throw new IOException(ExceptionMessage.PATH_MUST_BE_FILE.getMessage(path));
     }
-    OpenFilePOptions options = FileSystemClientOptions.getOpenFileOptions();
+    OpenFilePOptions options = OpenFilePOptions.getDefaultInstance();
     try (FileInStream is = mFileSystem.openFile(path, options)) {
       byte[] buf = new byte[numOfBytes];
       long bytesToRead;

@@ -57,8 +57,14 @@ public final class GrpcUtils {
    * @return the converted proto options
    */
   public static GetStatusPOptions toGetStatusOptions(ExistsPOptions existsOptions) {
-    return GetStatusPOptions.newBuilder().setLoadMetadataType(existsOptions.getLoadMetadataType())
-            .setCommonOptions(existsOptions.getCommonOptions()).build();
+    GetStatusPOptions.Builder getStatusOptionsBuilder = GetStatusPOptions.newBuilder();
+    if (existsOptions.hasCommonOptions()) {
+      getStatusOptionsBuilder.setCommonOptions(existsOptions.getCommonOptions());
+    }
+    if (existsOptions.hasLoadMetadataType()) {
+      getStatusOptionsBuilder.setLoadMetadataType(existsOptions.getLoadMetadataType());
+    }
+    return getStatusOptionsBuilder.build();
   }
 
   /**

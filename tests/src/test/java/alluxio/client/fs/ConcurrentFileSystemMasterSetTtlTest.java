@@ -18,6 +18,8 @@ import alluxio.PropertyKey;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemClientOptions;
 import alluxio.collections.ConcurrentHashSet;
+import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.TtlAction;
 import alluxio.grpc.WritePType;
 import alluxio.heartbeat.HeartbeatContext;
@@ -92,8 +94,10 @@ public class ConcurrentFileSystemMasterSetTtlTest extends BaseIntegrationTest {
 
     for (int i = 0; i < numThreads; i++) {
       files[i] = new AlluxioURI("/file" + i);
-      mFileSystem.createFile(files[i], FileSystemClientOptions.getCreateFileOptions().toBuilder()
-          .setWriteType(WritePType.WRITE_MUST_CACHE).build()).close();
+      mFileSystem
+          .createFile(files[i],
+              CreateFilePOptions.newBuilder().setWriteType(WritePType.WRITE_MUST_CACHE).build())
+          .close();
       ttls[i] = random.nextInt(2 * TTL_INTERVAL_MS);
     }
 
@@ -127,9 +131,8 @@ public class ConcurrentFileSystemMasterSetTtlTest extends BaseIntegrationTest {
           try {
             AuthenticatedClientUser.set(TEST_USER);
             barrier.await();
-            mFileSystem.setAttribute(paths[iteration],
-                FileSystemClientOptions.getSetAttributeOptions().toBuilder().setTtl(ttls[iteration])
-                    .setTtlAction(TtlAction.DELETE).build());
+            mFileSystem.setAttribute(paths[iteration], SetAttributePOptions.newBuilder()
+                .setTtl(ttls[iteration]).setTtlAction(TtlAction.DELETE).build());
           } catch (Exception e) {
             throw new RuntimeException(e);
           }

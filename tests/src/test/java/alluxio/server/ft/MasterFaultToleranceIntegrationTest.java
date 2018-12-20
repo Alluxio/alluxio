@@ -28,6 +28,7 @@ import alluxio.collections.Pair;
 import alluxio.exception.AlluxioException;
 import alluxio.grpc.CommandType;
 import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.RegisterWorkerPOptions;
 import alluxio.grpc.WritePType;
 import alluxio.hadoop.HadoopClientTestUtils;
@@ -183,7 +184,7 @@ public class MasterFaultToleranceIntegrationTest extends BaseIntegrationTest {
         // AlluxioURI(AlluxioURI.SEPARATOR))) because root node can not be deleted.
         for (URIStatus file : mFileSystem.listStatus(new AlluxioURI(AlluxioURI.SEPARATOR))) {
           mFileSystem.delete(new AlluxioURI(file.getPath()),
-              FileSystemClientOptions.getDeleteOptions().toBuilder().setRecursive(true).build());
+              DeletePOptions.newBuilder().setRecursive(true).build());
         }
         answer.clear();
         faultTestDataCheck(answer);
@@ -203,8 +204,8 @@ public class MasterFaultToleranceIntegrationTest extends BaseIntegrationTest {
   @Test
   public void createFiles() throws Exception {
     int clients = 10;
-    CreateFilePOptions option = FileSystemClientOptions.getCreateFileOptions().toBuilder()
-        .setBlockSizeBytes(1024).setWriteType(WritePType.WRITE_THROUGH).build();
+    CreateFilePOptions option = CreateFilePOptions.newBuilder().setBlockSizeBytes(1024)
+        .setWriteType(WritePType.WRITE_THROUGH).build();
     for (int k = 0; k < clients; k++) {
       mFileSystem.createFile(new AlluxioURI(AlluxioURI.SEPARATOR + k), option).close();
     }

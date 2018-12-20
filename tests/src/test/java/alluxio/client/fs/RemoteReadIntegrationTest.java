@@ -111,14 +111,12 @@ public class RemoteReadIntegrationTest extends BaseIntegrationTest {
   @Before
   public final void before() throws Exception {
     mFileSystem = mLocalAlluxioClusterResource.get().getClient();
-    mWriteAlluxio = FileSystemClientOptions.getCreateFileOptions().toBuilder()
-            .setWriteType(WritePType.WRITE_MUST_CACHE).build();
-    mWriteUnderStore = FileSystemClientOptions.getCreateFileOptions().toBuilder()
-        .setWriteType(WritePType.WRITE_THROUGH).build();
-    mReadCache = FileSystemClientOptions.getOpenFileOptions().toBuilder()
-        .setReadType(ReadPType.READ_CACHE_PROMOTE).build();
-    mReadNoCache = FileSystemClientOptions.getOpenFileOptions().toBuilder()
-        .setReadType(ReadPType.READ_NO_CACHE).build();
+    mWriteAlluxio = CreateFilePOptions.newBuilder().setWriteType(WritePType.WRITE_MUST_CACHE)
+        .setRecursive(true).build();
+    mWriteUnderStore = CreateFilePOptions.newBuilder().setWriteType(WritePType.WRITE_THROUGH)
+        .setRecursive(true).build();
+    mReadCache = OpenFilePOptions.newBuilder().setReadType(ReadPType.READ_CACHE_PROMOTE).build();
+    mReadNoCache = OpenFilePOptions.newBuilder().setReadType(ReadPType.READ_NO_CACHE).build();
   }
 
   /**

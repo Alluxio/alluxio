@@ -17,6 +17,7 @@ import alluxio.PropertyKey;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystemClientOptions;
 import alluxio.client.file.URIStatus;
+import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.WritePType;
 import alluxio.master.file.meta.PersistenceState;
 import alluxio.testutils.IntegrationTestUtils;
@@ -52,8 +53,8 @@ public final class PersistPermissionIntegrationTest extends AbstractFileOutStrea
     Assume.assumeTrue(UnderFileSystemUtils.isLocal(mUfs) || UnderFileSystemUtils.isHdfs(mUfs));
 
     AlluxioURI filePath = new AlluxioURI(PathUtils.uniqPath());
-    FileOutStream os = mFileSystem.createFile(filePath, FileSystemClientOptions
-        .getCreateFileOptions().toBuilder().setWriteType(WritePType.WRITE_CACHE_THROUGH).build());
+    FileOutStream os = mFileSystem.createFile(filePath, CreateFilePOptions.newBuilder()
+        .setWriteType(WritePType.WRITE_CACHE_THROUGH).setRecursive(true).build());
     os.write((byte) 0);
     os.write((byte) 1);
     os.close();
@@ -78,8 +79,8 @@ public final class PersistPermissionIntegrationTest extends AbstractFileOutStrea
     Assume.assumeTrue(UnderFileSystemUtils.isLocal(mUfs) || UnderFileSystemUtils.isHdfs(mUfs));
 
     AlluxioURI filePath = new AlluxioURI(PathUtils.uniqPath());
-    FileOutStream os = mFileSystem.createFile(filePath, FileSystemClientOptions
-        .getCreateFileOptions().toBuilder().setWriteType(WritePType.WRITE_ASYNC_THROUGH).build());
+    FileOutStream os = mFileSystem.createFile(filePath, CreateFilePOptions.newBuilder()
+        .setWriteType(WritePType.WRITE_ASYNC_THROUGH).setRecursive(true).build());
     os.write((byte) 0);
     os.write((byte) 1);
     os.close();
@@ -110,8 +111,8 @@ public final class PersistPermissionIntegrationTest extends AbstractFileOutStrea
     Assume.assumeTrue(UnderFileSystemUtils.isLocal(mUfs) || UnderFileSystemUtils.isHdfs(mUfs));
 
     AlluxioURI filePath = new AlluxioURI(PathUtils.uniqPath());
-    mFileSystem.createFile(filePath, FileSystemClientOptions.getCreateFileOptions().toBuilder()
-        .setWriteType(WritePType.WRITE_ASYNC_THROUGH).build()).close();
+    mFileSystem.createFile(filePath, CreateFilePOptions.newBuilder()
+        .setWriteType(WritePType.WRITE_ASYNC_THROUGH).setRecursive(true).build()).close();
 
     // check the file is completed but not persisted
     URIStatus status = mFileSystem.getStatus(filePath);

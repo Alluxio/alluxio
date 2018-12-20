@@ -20,6 +20,7 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemClientOptions;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.exception.AlluxioException;
+import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.WritePType;
 import alluxio.master.LocalAlluxioCluster;
 import alluxio.testutils.LocalAlluxioClusterResource;
@@ -115,8 +116,7 @@ public final class FileSystemShellUtilsTest {
      *                                └── foobar4
      */
     if (fs.exists(new AlluxioURI(TEST_DIR))) {
-      fs.delete(new AlluxioURI(TEST_DIR),
-          FileSystemClientOptions.getDeleteOptions().toBuilder().setRecursive(true).build());
+      fs.delete(new AlluxioURI(TEST_DIR), DeletePOptions.newBuilder().setRecursive(true).build());
     }
     fs.createDirectory(new AlluxioURI(TEST_DIR));
     fs.createDirectory(new AlluxioURI(TEST_DIR + "/foo"));

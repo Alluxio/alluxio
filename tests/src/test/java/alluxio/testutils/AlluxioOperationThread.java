@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemClientOptions;
 import alluxio.client.file.FileSystemTestUtils;
+import alluxio.grpc.CreateFilePOptions;
 import alluxio.util.CommonUtils;
 
 import com.google.common.base.Preconditions;
@@ -123,8 +124,7 @@ public class AlluxioOperationThread extends Thread {
 
   private AlluxioURI createFile() {
     String file = "/file" + ThreadLocalRandom.current().nextLong();
-    FileSystemTestUtils.createByteFile(mFs, file, 100,
-        FileSystemClientOptions.getCreateFileOptions());
+    FileSystemTestUtils.createByteFile(mFs, file, 100, CreateFilePOptions.getDefaultInstance());
     return new AlluxioURI(file);
   }
 }

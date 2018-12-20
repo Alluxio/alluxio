@@ -19,6 +19,7 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemClientOptions;
 import alluxio.client.file.URIStatus;
 import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.ReadPType;
 import alluxio.master.LocalAlluxioJobCluster;
 import alluxio.testutils.BaseIntegrationTest;
@@ -128,8 +129,8 @@ public abstract class AbstractFileOutStreamIntegrationTest extends BaseIntegrati
   protected void checkFileInAlluxio(AlluxioURI filePath, int fileLen) throws Exception {
     URIStatus status = mFileSystem.getStatus(filePath);
     Assert.assertEquals(fileLen, status.getLength());
-    try (FileInStream is = mFileSystem.openFile(filePath, FileSystemClientOptions
-        .getOpenFileOptions().toBuilder().setReadType(ReadPType.READ_NO_CACHE).build())) {
+    try (FileInStream is = mFileSystem.openFile(filePath,
+        OpenFilePOptions.newBuilder().setReadType(ReadPType.READ_NO_CACHE).build())) {
       byte[] res = new byte[(int) status.getLength()];
       Assert.assertEquals((int) status.getLength(), is.read(res));
       Assert.assertTrue(BufferUtils.equalIncreasingByteArray(fileLen, res));

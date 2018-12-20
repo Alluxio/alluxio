@@ -13,6 +13,7 @@ package alluxio.client.fs;
 
 import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystemClientOptions;
+import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.TtlAction;
 import alluxio.grpc.WritePType;
@@ -40,9 +41,8 @@ import org.junit.Test;
 public final class FileOutStreamAsyncWriteJobIntegrationTest
     extends AbstractFileOutStreamIntegrationTest {
   private static final int LEN = 1024;
-  private static final SetAttributePOptions TEST_OPTIONS =
-      FileSystemClientOptions.getSetAttributeOptions().toBuilder().setMode((short) 0555)
-          .setTtl(12345678L).setTtlAction(TtlAction.DELETE).build();
+  private static final SetAttributePOptions TEST_OPTIONS = SetAttributePOptions.newBuilder()
+      .setMode((short) 0555).setTtl(12345678L).setTtlAction(TtlAction.DELETE).build();
 
   private AlluxioURI mUri = new AlluxioURI(PathUtils.uniqPath());
 
@@ -52,8 +52,8 @@ public final class FileOutStreamAsyncWriteJobIntegrationTest
    * @return ths URIStatus of this file after creation
    */
   private URIStatus createAsyncFile() throws Exception {
-    writeIncreasingByteArrayToFile(mUri, LEN, FileSystemClientOptions.getCreateFileOptions()
-        .toBuilder().setWriteType(WritePType.WRITE_ASYNC_THROUGH).build());
+    writeIncreasingByteArrayToFile(mUri, LEN, CreateFilePOptions.newBuilder()
+        .setWriteType(WritePType.WRITE_ASYNC_THROUGH).setRecursive(true).build());
     return mFileSystem.getStatus(mUri);
   }
 

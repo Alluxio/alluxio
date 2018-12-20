@@ -52,8 +52,8 @@ public final class MkdirCommand extends AbstractFileSystemCommand {
     for (String path : args) {
       AlluxioURI inputPath = new AlluxioURI(path);
 
-      CreateDirectoryPOptions options = FileSystemClientOptions.getCreateDirectoryOptions()
-          .toBuilder().setRecursive(true).build();
+      CreateDirectoryPOptions options =
+          CreateDirectoryPOptions.newBuilder().setRecursive(true).build();
       mFileSystem.createDirectory(inputPath, options);
       System.out.println("Successfully created directory " + inputPath);
     }

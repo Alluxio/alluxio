@@ -106,7 +106,7 @@ public final class ConfigurationTestUtils {
     // default write type becomes MUST_CACHE, set this value to CACHE_THROUGH for tests.
     // default Alluxio storage is STORE, and under storage is SYNC_PERSIST for tests.
     // TODO(binfan): eliminate this setting after updating integration tests
-    conf.put(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, "CACHE_THROUGH");
+    //conf.put(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, "CACHE_THROUGH");
 
     conf.put(PropertyKey.WEB_THREADS, "1");
     conf.put(PropertyKey.WEB_RESOURCES, PathUtils

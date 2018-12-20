@@ -21,6 +21,8 @@ import alluxio.exception.AccessControlException;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.LoadMetadataPOptions;
+import alluxio.grpc.MountPOptions;
 import alluxio.grpc.WritePType;
 import alluxio.master.LocalAlluxioCluster;
 import alluxio.testutils.BaseIntegrationTest;
@@ -73,7 +75,7 @@ public class ReadOnlyMountIntegrationTest extends BaseIntegrationTest {
     // Add a readonly mount point.
     mFileSystem.createDirectory(new AlluxioURI("/mnt"));
     mFileSystem.mount(new AlluxioURI(MOUNT_PATH), new AlluxioURI(ufsMountDir),
-        FileSystemClientOptions.getMountOptions().toBuilder().setReadOnly(true).build());
+        MountPOptions.newBuilder().setReadOnly(true).build());
   }
 
   @After
@@ -84,8 +86,8 @@ public class ReadOnlyMountIntegrationTest extends BaseIntegrationTest {
 
   @Test
   public void createFile() throws IOException, AlluxioException {
-    CreateFilePOptions writeBoth = FileSystemClientOptions.getCreateFileOptions().toBuilder()
-        .setWriteType(WritePType.WRITE_CACHE_THROUGH).build();
+    CreateFilePOptions writeBoth =
+        CreateFilePOptions.newBuilder().setWriteType(WritePType.WRITE_CACHE_THROUGH).build();
 
     AlluxioURI uri = new AlluxioURI(FILE_PATH + "_create");
     try {
@@ -142,8 +144,7 @@ public class ReadOnlyMountIntegrationTest extends BaseIntegrationTest {
     Assert.assertNotNull(mFileSystem.getStatus(fileUri));
 
     fileUri = new AlluxioURI(SUB_FILE_PATH);
-    mFileSystem.loadMetadata(fileUri,
-        FileSystemClientOptions.getLoadMetadataOptions().toBuilder().setRecursive(true).build());
+    mFileSystem.loadMetadata(fileUri, LoadMetadataPOptions.newBuilder().setRecursive(true).build());
     try {
       mFileSystem.delete(fileUri);
       Assert.fail("deleteFile should not succeed under a readonly mount.");
@@ -162,8 +163,7 @@ public class ReadOnlyMountIntegrationTest extends BaseIntegrationTest {
     Assert.assertNotNull(mFileSystem.getStatus(fileUri));
 
     fileUri = new AlluxioURI(SUB_FILE_PATH);
-    mFileSystem.loadMetadata(fileUri,
-        FileSystemClientOptions.getLoadMetadataOptions().toBuilder().setRecursive(true).build());
+    mFileSystem.loadMetadata(fileUri, LoadMetadataPOptions.newBuilder().setRecursive(true).build());
     Assert.assertNotNull(mFileSystem.getStatus(fileUri));
   }
 
@@ -269,9 +269,8 @@ public class ReadOnlyMountIntegrationTest extends BaseIntegrationTest {
 //    } catch (FileDoesNotExistException e) {
 //      Assert.assertEquals(e.getMessage(),
 //          ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(SUB_FILE_PATH));
-//    }
-    mFileSystem.loadMetadata(fileUri,
-        FileSystemClientOptions.getLoadMetadataOptions().toBuilder().setRecursive(true).build());
+    // }
+    mFileSystem.loadMetadata(fileUri, LoadMetadataPOptions.newBuilder().setRecursive(true).build());
     Assert.assertNotNull(mFileSystem.getStatus(fileUri));
   }
 
@@ -284,8 +283,7 @@ public class ReadOnlyMountIntegrationTest extends BaseIntegrationTest {
     inStream.close();
 
     fileUri = new AlluxioURI(SUB_FILE_PATH);
-    mFileSystem.loadMetadata(fileUri,
-        FileSystemClientOptions.getLoadMetadataOptions().toBuilder().setRecursive(true).build());
+    mFileSystem.loadMetadata(fileUri, LoadMetadataPOptions.newBuilder().setRecursive(true).build());
     inStream = mFileSystem.openFile(fileUri);
     Assert.assertNotNull(inStream);
     inStream.close();

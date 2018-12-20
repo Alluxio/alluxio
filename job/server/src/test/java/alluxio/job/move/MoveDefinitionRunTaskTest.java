@@ -133,14 +133,12 @@ public final class MoveDefinitionRunTaskTest {
   // TODO(ggezer) Fix matching for proto type.
   public void writeTypeTest() throws Exception {
     runTask(TEST_SOURCE, TEST_SOURCE, TEST_DESTINATION, WriteType.CACHE_THROUGH);
-    verify(mMockFileSystem).createFile(eq(new AlluxioURI(TEST_DESTINATION)),
-        Matchers.eq(FileSystemClientOptions.getCreateFileOptions().toBuilder()
-            .setWriteType(WritePType.WRITE_CACHE_THROUGH)).build());
+    verify(mMockFileSystem).createFile(eq(new AlluxioURI(TEST_DESTINATION)), Matchers
+        .eq(CreateFilePOptions.newBuilder().setWriteType(WritePType.WRITE_CACHE_THROUGH)).build());
 
     runTask(TEST_SOURCE, TEST_SOURCE, TEST_DESTINATION, WriteType.MUST_CACHE);
-    verify(mMockFileSystem).createFile(eq(new AlluxioURI(TEST_DESTINATION)),
-        Matchers.eq(FileSystemClientOptions.getCreateFileOptions().toBuilder()
-            .setWriteType(WritePType.WRITE_MUST_CACHE)).build());
+    verify(mMockFileSystem).createFile(eq(new AlluxioURI(TEST_DESTINATION)), Matchers
+        .eq(CreateFilePOptions.newBuilder().setWriteType(WritePType.WRITE_MUST_CACHE)).build());
   }
 
   /**

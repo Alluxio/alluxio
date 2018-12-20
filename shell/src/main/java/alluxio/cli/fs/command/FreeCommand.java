@@ -71,8 +71,8 @@ public final class FreeCommand extends AbstractFileSystemCommand {
       throws AlluxioException, IOException {
     int interval =
         Math.toIntExact(Configuration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS));
-    FreePOptions options = FileSystemClientOptions.getFreeOptions().toBuilder().setRecursive(true)
-        .setForced(cl.hasOption("f")).build();
+    FreePOptions options =
+        FreePOptions.newBuilder().setRecursive(true).setForced(cl.hasOption("f")).build();
     mFileSystem.free(path, options);
     try {
       CommonUtils.waitFor("file to be freed. Another user may be loading it.", () -> {

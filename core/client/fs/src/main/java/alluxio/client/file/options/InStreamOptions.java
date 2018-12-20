@@ -11,6 +11,8 @@
 
 package alluxio.client.file.options;
 
+import alluxio.Configuration;
+import alluxio.PropertyKey;
 import alluxio.client.ReadType;
 import alluxio.client.block.policy.BlockLocationPolicy;
 import alluxio.client.block.policy.options.CreateOptions;
@@ -46,7 +48,7 @@ public final class InStreamOptions {
    * @param status the file to create the options for
    */
   public InStreamOptions(URIStatus status) {
-    this(status, FileSystemClientOptions.getOpenFileOptions());
+    this(status, OpenFilePOptions.getDefaultInstance());
   }
 
   /**
@@ -55,11 +57,24 @@ public final class InStreamOptions {
    * @param options OpenFile options
    */
   public InStreamOptions(URIStatus status, OpenFilePOptions options) {
+    // Create OpenOptions builder with default options.
+    OpenFilePOptions.Builder openOptionsBuilder = OpenFilePOptions.newBuilder()
+        .setReadType(Configuration.getEnum(PropertyKey.USER_FILE_READ_TYPE_DEFAULT, ReadType.class)
+            .toProto())
+        .setFileReadLocationPolicy(
+            Configuration.get(PropertyKey.USER_UFS_BLOCK_READ_LOCATION_POLICY))
+        .setHashingNumberOfShards(Configuration
+            .getInt(PropertyKey.USER_UFS_BLOCK_READ_LOCATION_POLICY_DETERMINISTIC_HASH_SHARDS))
+        .setMaxUfsReadConcurrency(
+            Configuration.getInt(PropertyKey.USER_UFS_BLOCK_READ_CONCURRENCY_MAX));
+    // Merge default options with given options.
+    OpenFilePOptions openOptions = openOptionsBuilder.mergeFrom(options).build();
+
     mStatus = status;
-    mProtoOptions = options;
-    CreateOptions blockLocationPolicyCreateOptions = CreateOptions.defaults()
-            .setLocationPolicyClassName(options.getFileReadLocationPolicy())
-            .setDeterministicHashPolicyNumShards(options.getHashingNumberOfShards());
+    mProtoOptions = openOptions;
+    CreateOptions blockLocationPolicyCreateOptions =
+        CreateOptions.defaults().setLocationPolicyClassName(openOptions.getFileReadLocationPolicy())
+            .setDeterministicHashPolicyNumShards(openOptions.getHashingNumberOfShards());
     mUfsReadLocationPolicy = BlockLocationPolicy.Factory.create(blockLocationPolicyCreateOptions);
   }
 

@@ -56,10 +56,8 @@ public class BasicOperations implements Callable<Boolean> {
    */
   public BasicOperations(AlluxioURI filePath, ReadType readType, WriteType writeType) {
     mFilePath = filePath;
-    mReadOptions = FileSystemClientOptions.getOpenFileOptions().toBuilder()
-        .setReadType(readType.toProto()).build();
-    mWriteOptions = FileSystemClientOptions.getCreateFileOptions().toBuilder()
-        .setWriteType(writeType.toProto()).build();
+    mReadOptions = OpenFilePOptions.newBuilder().setReadType(readType.toProto()).build();
+    mWriteOptions = CreateFilePOptions.newBuilder().setWriteType(writeType.toProto()).build();
   }
 
   @Override

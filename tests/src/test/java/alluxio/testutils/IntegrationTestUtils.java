@@ -16,6 +16,7 @@ import alluxio.Constants;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemClientOptions;
 import alluxio.client.file.FileSystemMasterClient;
+import alluxio.grpc.GetStatusPOptions;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.master.MasterClientConfig;
@@ -61,8 +62,7 @@ public final class IntegrationTestUtils {
         FileSystemMasterClient.Factory.create(MasterClientConfig.defaults())) {
       CommonUtils.waitFor(uri + " to be persisted", () -> {
         try {
-          return client.getStatus(uri,
-              FileSystemClientOptions.getGetStatusOptions()).isPersisted();
+          return client.getStatus(uri, GetStatusPOptions.getDefaultInstance()).isPersisted();
         } catch (Exception e) {
           throw Throwables.propagate(e);
         }

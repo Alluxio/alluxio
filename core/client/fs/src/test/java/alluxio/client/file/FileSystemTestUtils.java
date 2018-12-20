@@ -71,7 +71,7 @@ public final class FileSystemTestUtils {
   public static void createByteFile(FileSystem fs, AlluxioURI fileURI,
       WritePType writeType, int len) {
     CreateFilePOptions options =
-        FileSystemClientOptions.getCreateFileOptions().toBuilder().setWriteType(writeType).build();
+        CreateFilePOptions.newBuilder().setRecursive(true).setWriteType(writeType).build();
     createByteFile(fs, fileURI, options, len);
   }
 
@@ -107,9 +107,8 @@ public final class FileSystemTestUtils {
    */
   public static void createByteFile(FileSystem fs, String fileName, WritePType writeType, int len,
       long blockCapacityByte) {
-    CreateFilePOptions options = FileSystemClientOptions.getCreateFileOptions().toBuilder()
-        .setWriteType(writeType).setBlockSizeBytes(blockCapacityByte)
-        .build();
+    CreateFilePOptions options = CreateFilePOptions.newBuilder().setWriteType(writeType)
+        .setBlockSizeBytes(blockCapacityByte).setRecursive(true).build();
     createByteFile(fs, new AlluxioURI(fileName), options, len);
   }
 
@@ -144,8 +143,7 @@ public final class FileSystemTestUtils {
    */
   public static void loadFile(FileSystem fs, String fileName) {
     try (FileInStream is = fs.openFile(new AlluxioURI(fileName),
-        FileSystemClientOptions.getOpenFileOptions().toBuilder()
-            .setReadType(ReadPType.READ_CACHE).build())) {
+        OpenFilePOptions.newBuilder().setReadType(ReadPType.READ_CACHE).build())) {
       IOUtils.copy(is, ByteStreams.nullOutputStream());
     } catch (IOException | AlluxioException e) {
       throw new RuntimeException(e);
@@ -161,11 +159,9 @@ public final class FileSystemTestUtils {
    */
   public static OpenFilePOptions toOpenFileOptions(CreateFilePOptions op) {
     if (WriteType.fromProto(op.getWriteType()).getAlluxioStorageType().isStore()) {
-      return FileSystemClientOptions.getOpenFileOptions().toBuilder()
-          .setReadType(ReadPType.READ_CACHE).build();
+      return OpenFilePOptions.newBuilder().setReadType(ReadPType.READ_CACHE).build();
     }
-    return FileSystemClientOptions.getOpenFileOptions().toBuilder()
-        .setReadType(ReadPType.READ_NO_CACHE).build();
+    return OpenFilePOptions.newBuilder().setReadType(ReadPType.READ_NO_CACHE).build();
   }
 
   private FileSystemTestUtils() {} // prevent instantiation

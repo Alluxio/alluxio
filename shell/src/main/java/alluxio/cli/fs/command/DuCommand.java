@@ -87,8 +87,7 @@ public final class DuCommand extends AbstractFileSystemCommand {
   protected void runPlainPath(AlluxioURI path, CommandLine cl)
       throws AlluxioException, IOException {
 
-    ListStatusPOptions listOptions =
-        FileSystemClientOptions.getListStatusOptions().toBuilder().setRecursive(true).build();
+    ListStatusPOptions listOptions = ListStatusPOptions.newBuilder().setRecursive(true).build();
     List<URIStatus> statuses = mFileSystem.listStatus(path, listOptions);
     if (statuses == null || statuses.size() == 0) {
       return;

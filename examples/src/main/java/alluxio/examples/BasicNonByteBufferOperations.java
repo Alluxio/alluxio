@@ -92,8 +92,8 @@ public final class BasicNonByteBufferOperations implements Callable<Boolean> {
 
   private FileOutStream createFile(FileSystem fileSystem, AlluxioURI filePath,
       boolean deleteIfExists) throws IOException, AlluxioException {
-    CreateFilePOptions options = FileSystemClientOptions.getCreateFileOptions().toBuilder()
-        .setWriteType(mWriteType.toProto()).build();
+    CreateFilePOptions options =
+        CreateFilePOptions.newBuilder().setWriteType(mWriteType.toProto()).build();
     if (!fileSystem.exists(filePath)) {
       // file doesn't exist yet, so create it
       return fileSystem.createFile(filePath, options);
@@ -107,8 +107,8 @@ public final class BasicNonByteBufferOperations implements Callable<Boolean> {
   }
 
   private boolean read(FileSystem alluxioClient) throws IOException, AlluxioException {
-    OpenFilePOptions options = FileSystemClientOptions.getOpenFileOptions().toBuilder()
-        .setReadType(mReadType.toProto()).build();
+    OpenFilePOptions options =
+        OpenFilePOptions.newBuilder().setReadType(mReadType.toProto()).build();
     boolean pass = true;
     long startTimeMs = CommonUtils.getCurrentMs();
     try (DataInputStream input = new DataInputStream(alluxioClient.openFile(mFilePath, options))) {

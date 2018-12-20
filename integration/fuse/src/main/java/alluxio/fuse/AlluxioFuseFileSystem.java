@@ -119,8 +119,7 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
   public int chmod(String path, @mode_t long mode) {
     AlluxioURI uri = mPathResolverCache.getUnchecked(path);
 
-    SetAttributePOptions options =
-        FileSystemClientOptions.getSetAttributeOptions().toBuilder().setMode((short) mode).build();
+    SetAttributePOptions options = SetAttributePOptions.newBuilder().setMode((short) mode).build();
     try {
       mFileSystem.setAttribute(uri, options);
     } catch (IOException | AlluxioException e) {
@@ -158,8 +157,7 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
         return -ErrorCodes.EFAULT();
       }
 
-      SetAttributePOptions.Builder optionsBuilder =
-          FileSystemClientOptions.getSetAttributeOptions().toBuilder().setGroup(groupName);
+      SetAttributePOptions.Builder optionsBuilder = SetAttributePOptions.newBuilder();
       final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
 
       if (uid != -1 && uid != 4294967295L) {

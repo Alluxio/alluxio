@@ -27,7 +27,9 @@ import alluxio.client.file.URIStatus;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
+import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.WritePType;
 import alluxio.job.AbstractVoidJobDefinition;
 import alluxio.job.JobMasterContext;
@@ -229,8 +231,7 @@ public final class MoveDefinition
    */
   private void moveDirectory(String path, String source, String destination) throws Exception {
     String newDir = computeTargetPath(path, source, destination);
-    mFileSystem.createDirectory(new AlluxioURI(newDir),
-        FileSystemClientOptions.getCreateDirectoryOptions());
+    mFileSystem.createDirectory(new AlluxioURI(newDir), CreateDirectoryPOptions.getDefaultInstance());
   }
 
   /**
@@ -285,7 +286,7 @@ public final class MoveDefinition
       try {
         LOG.debug("Deleting {}", config.getSource());
         mFileSystem.delete(new AlluxioURI(config.getSource()),
-            FileSystemClientOptions.getDeleteOptions().toBuilder().setRecursive(true).build());
+            DeletePOptions.newBuilder().setRecursive(true).build());
       } catch (FileDoesNotExistException e) {
         // It's already deleted, possibly by another worker.
       }
@@ -305,7 +306,7 @@ public final class MoveDefinition
     LOG.debug("Moving {} to {}", source, destination);
 
     CreateFilePOptions createOptions =
-        FileSystemClientOptions.getCreateFileOptions().toBuilder().setWriteType(writeType).build();
+        CreateFilePOptions.newBuilder().setWriteType(writeType).build();
 
     try (FileOutStream out = fileSystem.createFile(new AlluxioURI(destination), createOptions)) {
       try (FileInStream in = fileSystem.openFile(new AlluxioURI(source))) {

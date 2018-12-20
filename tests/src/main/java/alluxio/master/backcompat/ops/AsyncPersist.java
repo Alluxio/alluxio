@@ -19,6 +19,7 @@ import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemClientOptions;
 import alluxio.exception.AlluxioException;
+import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.WritePType;
 import alluxio.master.backcompat.FsTestOp;
 import alluxio.util.CommonUtils;
@@ -34,14 +35,13 @@ public final class AsyncPersist extends FsTestOp {
 
   @Override
   public void apply(FileSystem fs) throws Exception {
-    try (FileOutStream out = fs.createFile(FILE,
-        FileSystemClientOptions.getCreateFileOptions().toBuilder().setBlockSizeBytes(Constants.KB)
-            .setWriteType(WritePType.WRITE_ASYNC_THROUGH).build())) {
+    try (FileOutStream out = fs.createFile(FILE, CreateFilePOptions.newBuilder()
+        .setBlockSizeBytes(Constants.KB).setWriteType(WritePType.WRITE_ASYNC_THROUGH).build())) {
       out.write("test".getBytes());
     }
     // Nested file
-    try (FileOutStream out = fs.createFile(NESTED_FILE,
-        FileSystemClientOptions.getCreateFileOptions().toBuilder().setBlockSizeBytes(Constants.KB)
+    try (FileOutStream out =
+        fs.createFile(NESTED_FILE, CreateFilePOptions.newBuilder().setBlockSizeBytes(Constants.KB)
             .setWriteType(WritePType.WRITE_ASYNC_THROUGH).setRecursive(true).build())) {
       out.write("test".getBytes());
     }

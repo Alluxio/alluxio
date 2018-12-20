@@ -140,8 +140,8 @@ public final class PersistDefinition
       FileSystem fs = FileSystem.Factory.get();
       long bytesWritten;
       try (Closer closer = Closer.create()) {
-        OpenFilePOptions options = FileSystemClientOptions.getOpenFileOptions().toBuilder()
-            .setReadType(ReadPType.READ_NO_CACHE).build();
+        OpenFilePOptions options =
+            OpenFilePOptions.newBuilder().setReadType(ReadPType.READ_NO_CACHE).build();
         FileInStream in = closer.register(fs.openFile(uri, options));
         AlluxioURI dstPath = new AlluxioURI(ufsPath);
         // Create ancestor directories from top to the bottom. We cannot use recursive create

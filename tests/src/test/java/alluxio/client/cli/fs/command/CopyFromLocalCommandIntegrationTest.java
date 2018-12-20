@@ -22,6 +22,7 @@ import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
 import alluxio.client.cli.fs.FileSystemShellUtilsTest;
+import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.ReadPType;
 import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.util.io.BufferUtils;
@@ -160,8 +161,8 @@ public final class CopyFromLocalCommandIntegrationTest extends AbstractFileSyste
     Assert.assertNotNull(status);
     Assert.assertEquals(SIZE_BYTES, status.getLength());
 
-    try (FileInStream tfis = mFileSystem.openFile(uri, FileSystemClientOptions.getOpenFileOptions()
-        .toBuilder().setReadType(ReadPType.READ_NO_CACHE).build())) {
+    try (FileInStream tfis = mFileSystem.openFile(uri,
+        OpenFilePOptions.newBuilder().setReadType(ReadPType.READ_NO_CACHE).build())) {
       byte[] read = new byte[SIZE_BYTES];
       tfis.read(read);
       Assert.assertTrue(BufferUtils.equalIncreasingByteArray(SIZE_BYTES, read));

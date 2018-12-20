@@ -49,9 +49,9 @@ public interface KeyValuePartitionWriter extends Closeable, Cancelable {
         throws AlluxioException, IOException {
       Preconditions.checkNotNull(uri, "uri");
       FileSystem fs = FileSystem.Factory.get();
-      CreateFilePOptions options = FileSystemClientOptions.getCreateFileOptions().toBuilder()
+      CreateFilePOptions options = CreateFilePOptions.newBuilder()
           .setBlockSizeBytes(Configuration.getBytes(PropertyKey.KEY_VALUE_PARTITION_SIZE_BYTES_MAX))
-          .build();
+          .setRecursive(true).build();
       FileOutStream fileOutStream = fs.createFile(uri, options);
       return new BaseKeyValuePartitionWriter(fileOutStream);
     }

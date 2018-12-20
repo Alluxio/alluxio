@@ -70,8 +70,7 @@ public class CapacityUsageIntegrationTest extends BaseIntegrationTest {
       buf.put((byte) k);
     }
 
-    CreateFilePOptions options =
-        FileSystemClientOptions.getCreateFileOptions().toBuilder().setWriteType(writeType).build();
+    CreateFilePOptions options = CreateFilePOptions.newBuilder().setWriteType(writeType).build();
     FileOutStream os = mFileSystem.createFile(filePath, options);
     os.write(buf.array());
     os.close();

@@ -164,7 +164,7 @@ public final class MoveDefinitionSelectExecutorsTest {
     setPathToNotExist("/dst/src");
     assignMoves("/src", "/dst/src");
     verify(mMockFileSystem).createDirectory(eq(new AlluxioURI("/dst/src/nested")),
-        Matchers.eq(FileSystemClientOptions.getCreateDirectoryOptions()));
+        Matchers.eq(CreateDirectoryPOptions.getDefaultInstance()));
   }
 
   @Test

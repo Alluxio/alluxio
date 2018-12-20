@@ -100,8 +100,8 @@ public final class SetFaclCommand extends AbstractFileSystemCommand {
   @Override
   protected void runPlainPath(AlluxioURI path, CommandLine cl)
       throws AlluxioException, IOException {
-    SetAclPOptions options = FileSystemClientOptions.getSetAclOptions().toBuilder()
-        .setRecursive(cl.hasOption(RECURSIVE_OPTION.getOpt())).build();
+    SetAclPOptions options =
+        SetAclPOptions.newBuilder().setRecursive(cl.hasOption(RECURSIVE_OPTION.getOpt())).build();
 
     List<AclEntry> entries = Collections.emptyList();
     SetAclAction action = SetAclAction.REPLACE;

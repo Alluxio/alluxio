@@ -70,11 +70,10 @@ public class ConcurrentRenameIntegrationTest extends BaseIntegrationTest {
    * Options to mark a created file as persisted. Note that this does not actually persist the
    * file but flag the file to be treated as persisted, which will invoke ufs operations.
    */
-  private static CreateFilePOptions sCreatePersistedFileOptions = FileSystemClientOptions
-      .getCreateFileOptions().toBuilder().setWriteType(WritePType.WRITE_THROUGH).build();
-  private static CreateDirectoryPOptions sCreatePersistedDirOptions =
-      FileSystemClientOptions.getCreateDirectoryOptions().toBuilder()
-          .setWriteType(WritePType.WRITE_THROUGH).setRecursive(true).build();
+  private static CreateFilePOptions sCreatePersistedFileOptions =
+      CreateFilePOptions.newBuilder().setWriteType(WritePType.WRITE_THROUGH).build();
+  private static CreateDirectoryPOptions sCreatePersistedDirOptions = CreateDirectoryPOptions
+      .newBuilder().setWriteType(WritePType.WRITE_THROUGH).setRecursive(true).build();
 
   private FileSystem mFileSystem;
 
@@ -385,11 +384,11 @@ public class ConcurrentRenameIntegrationTest extends BaseIntegrationTest {
     AlluxioURI dir2 = new AlluxioURI("/root/parent/dir2");
     AlluxioURI dst = new AlluxioURI("/dst");
     mFileSystem.createDirectory(dir1,
-        FileSystemClientOptions.getCreateDirectoryOptions().toBuilder().setRecursive(true).build());
+        CreateDirectoryPOptions.newBuilder().setRecursive(true).build());
     mFileSystem.createDirectory(dir2,
-        FileSystemClientOptions.getCreateDirectoryOptions().toBuilder().setRecursive(true).build());
+        CreateDirectoryPOptions.newBuilder().setRecursive(true).build());
     mFileSystem.createDirectory(dst,
-        FileSystemClientOptions.getCreateDirectoryOptions().toBuilder().setRecursive(true).build());
+        CreateDirectoryPOptions.newBuilder().setRecursive(true).build());
     for (int i = 0; i < numThreads; i++) {
       // Dir1 has even files, dir2 has odd files.
       srcs[i] = i % 2 == 0 ? dir1.join("file" + i) : dir2.join("file" + i);
@@ -495,8 +494,9 @@ public class ConcurrentRenameIntegrationTest extends BaseIntegrationTest {
     };
     for (int i = 0; i < iterations; i++) {
       // Don't want sleeping ufs behavior, so do not write to ufs
-      mFileSystem.createFile(file, FileSystemClientOptions.getCreateFileOptions().toBuilder()
-          .setWriteType(WritePType.WRITE_MUST_CACHE).build())
+      mFileSystem
+          .createFile(file,
+              CreateFilePOptions.newBuilder().setWriteType(WritePType.WRITE_MUST_CACHE).build())
           .close();
       Thread renamer = new Thread(new Runnable() {
         @Override
