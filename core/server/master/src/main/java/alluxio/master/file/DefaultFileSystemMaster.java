@@ -48,7 +48,6 @@ import alluxio.master.audit.AuditContext;
 import alluxio.master.block.BlockId;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.activesync.ActiveSyncManager;
-import alluxio.wire.SyncPointInfo;
 import alluxio.master.file.meta.FileSystemMasterView;
 import alluxio.master.file.meta.InodeDirectory;
 import alluxio.master.file.meta.InodeDirectoryIdGenerator;
@@ -142,6 +141,7 @@ import alluxio.wire.FileInfo;
 import alluxio.wire.LoadMetadataType;
 import alluxio.wire.MountPointInfo;
 import alluxio.wire.SetAclAction;
+import alluxio.wire.SyncPointInfo;
 import alluxio.wire.WorkerInfo;
 
 import com.codahale.metrics.Counter;
