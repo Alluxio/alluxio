@@ -37,8 +37,11 @@ import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * This class is a gRPC handler for key-value master RPCs invoked by an Alluxio client.
+ *
+ * @deprecated This class is deprecated since version 2.0
  */
 @ThreadSafe
+@Deprecated
 public final class KeyValueMasterClientServiceHandler
     extends KeyValueMasterClientServiceGrpc.KeyValueMasterClientServiceImplBase {
   private static final Logger LOG =
