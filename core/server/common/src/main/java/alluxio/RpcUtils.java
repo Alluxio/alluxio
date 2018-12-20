@@ -258,6 +258,8 @@ public final class RpcUtils {
    * @param logger the logger to use for this call
    * @param callable the callable to call
    * @param methodName the name of the method, used for metrics
+   * @param sendResponse whether a response should send to the client
+   * @param completeResponse whether onComplete should be called on the response observer
    * @param description the format string of the description, used for logging
    * @param responseObserver gRPC response observer
    * @param args the arguments for the description
