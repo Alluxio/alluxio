@@ -121,7 +121,8 @@ public final class GetConfTest {
   @Test
   public void getConfFromMaster() throws Exception {
     // Prepare mock meta master client
-    RetryHandlingMetaMasterConfigClient client = Mockito.mock(RetryHandlingMetaMasterConfigClient.class);
+    RetryHandlingMetaMasterConfigClient client =
+        Mockito.mock(RetryHandlingMetaMasterConfigClient.class);
     List<ConfigProperty> configList = prepareConfigList();
     Mockito.when(client.getConfiguration()).thenReturn(configList);
 
@@ -138,7 +139,8 @@ public final class GetConfTest {
   @Test
   public void getConfFromMasterWithSource() throws Exception {
     // Prepare mock meta master client
-    RetryHandlingMetaMasterConfigClient client = Mockito.mock(RetryHandlingMetaMasterConfigClient.class);
+    RetryHandlingMetaMasterConfigClient client =
+        Mockito.mock(RetryHandlingMetaMasterConfigClient.class);
     List<ConfigProperty> configList = prepareConfigList();
     Mockito.when(client.getConfiguration()).thenReturn(configList);
     assertEquals(0, GetConf.getConfImpl(() -> client, "--master", "--source"));

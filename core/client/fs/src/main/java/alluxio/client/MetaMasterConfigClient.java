@@ -11,31 +11,21 @@
 
 package alluxio.client;
 
-import alluxio.exception.status.AlluxioStatusException;
 import alluxio.grpc.ConfigProperty;
-import alluxio.grpc.MasterInfo;
-import alluxio.grpc.MasterInfoField;
-import alluxio.grpc.MetricValue;
-import alluxio.wire.BackupResponse;
-import alluxio.wire.ConfigCheckReport;
 
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import javax.annotation.Nullable;
 
 /**
  * Interface for a meta master config client.
  */
 public interface MetaMasterConfigClient extends Closeable {
 
-    /**
-     * Gets the runtime configuration information.
-     *
-     * @return a list of configuration information
-     */
-    List<ConfigProperty> getConfiguration() throws IOException;
+  /**
+   * Gets the runtime configuration information.
+   *
+   * @return a list of configuration information
+   */
+  List<ConfigProperty> getConfiguration() throws IOException;
 }

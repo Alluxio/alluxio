@@ -19,7 +19,6 @@ import alluxio.exception.status.UnauthenticatedException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.GetConfigurationPOptions;
-import alluxio.grpc.MetaMasterClientServiceGrpc;
 import alluxio.grpc.MetaMasterConfigurationServiceGrpc;
 import alluxio.grpc.Scope;
 import alluxio.util.ConfigurationUtils;

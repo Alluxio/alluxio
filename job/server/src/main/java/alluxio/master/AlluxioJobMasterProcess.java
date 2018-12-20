@@ -294,7 +294,7 @@ public class AlluxioJobMasterProcess implements JobMasterProcess {
 
   protected void stopServing() throws Exception {
     if (mGrpcServer != null) {
-      if(!mGrpcServer.shutdown()) {
+      if (!mGrpcServer.shutdown()) {
         LOG.warn("RPC Server shutdown timed out.");
       }
     }

@@ -388,7 +388,7 @@ public class AlluxioMasterProcess implements MasterProcess {
    */
   protected void stopServing() throws Exception {
     if (mGrpcServer != null) {
-      if(!mGrpcServer.shutdown()){
+      if (!mGrpcServer.shutdown()) {
         LOG.warn("RPC Server shutdown timed out.");
       }
     }

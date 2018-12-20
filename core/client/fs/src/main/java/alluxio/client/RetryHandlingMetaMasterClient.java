@@ -15,9 +15,7 @@ import alluxio.AbstractMasterClient;
 import alluxio.Constants;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.grpc.BackupPOptions;
-import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.GetConfigReportPOptions;
-import alluxio.grpc.GetConfigurationPOptions;
 import alluxio.grpc.GetMasterInfoPOptions;
 import alluxio.grpc.GetMetricsPOptions;
 import alluxio.grpc.MasterInfo;
@@ -30,7 +28,6 @@ import alluxio.wire.BackupResponse;
 import alluxio.wire.ConfigCheckReport;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 

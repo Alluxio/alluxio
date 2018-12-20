@@ -19,7 +19,6 @@ import alluxio.ServiceUtils;
 import alluxio.grpc.GrpcServer;
 import alluxio.grpc.GrpcServerBuilder;
 import alluxio.grpc.GrpcService;
-import alluxio.master.Master;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.sink.MetricsServlet;
 import alluxio.metrics.sink.PrometheusMetricsServlet;
@@ -282,9 +281,9 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
       mDomainSocketDataServer = null;
     }
     if (mGrpcServer != null) {
-      if(!mGrpcServer.shutdown()){
+      if (!mGrpcServer.shutdown()) {
         LOG.warn("RPC server shutdown timed out.");
-      };
+      }
     }
     mUfsManager.close();
     try {

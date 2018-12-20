@@ -17,8 +17,8 @@ import alluxio.exception.status.UnauthenticatedException;
 import alluxio.grpc.SaslAuthenticationServiceGrpc;
 import alluxio.grpc.SaslMessage;
 import alluxio.util.SecurityUtils;
-
 import alluxio.util.ThreadFactoryUtils;
+
 import io.grpc.ServerInterceptor;
 import io.grpc.stub.StreamObserver;
 import net.jcip.annotations.ThreadSafe;

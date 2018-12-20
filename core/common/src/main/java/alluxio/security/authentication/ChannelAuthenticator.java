@@ -11,8 +11,6 @@
 
 package alluxio.security.authentication;
 
-import alluxio.Configuration;
-import alluxio.PropertyKey;
 import alluxio.exception.status.UnauthenticatedException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.SaslAuthenticationServiceGrpc;
