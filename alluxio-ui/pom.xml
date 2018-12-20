@@ -19,7 +19,7 @@
   <name>Alluxio UI</name>
   <description>Alluxio web UI pom</description>
   <build>
-    <!--<plugins>-->
+    <plugins>
       <!--<plugin>-->
         <!--<groupId>com.github.eirslett</groupId>-->
         <!--<artifactId>frontend-maven-plugin</artifactId>-->
@@ -55,36 +55,6 @@
         <!--<groupId>org.codehaus.mojo</groupId>-->
         <!--<inherited>false</inherited>-->
         <!--<executions>-->
-          <!--<execution>-->
-            <!--<id>Clean lerna-managed dependencies</id>-->
-            <!--<phase>clean</phase>-->
-            <!--<goals>-->
-              <!--<goal>exec</goal>-->
-            <!--</goals>-->
-            <!--<configuration>-->
-              <!--<executable>node/node</executable>-->
-              <!--<arguments>-->
-                  <!--<argument>node_modules/.bin/lerna</argument>-->
-                  <!--<argument>clean</argument>-->
-                  <!--<argument>&#45;&#45;yes</argument>-->
-              <!--</arguments>-->
-            <!--</configuration>-->
-          <!--</execution>-->
-          <!--<execution>-->
-            <!--<id>Remove built web applications</id>-->
-            <!--<phase>clean</phase>-->
-            <!--<goals>-->
-              <!--<goal>exec</goal>-->
-            <!--</goals>-->
-            <!--<configuration>-->
-              <!--<executable>rm</executable>-->
-              <!--<arguments>-->
-                <!--<argument>-rf</argument>-->
-                <!--<argument>common/build</argument>-->
-                <!--<argument>master/build</argument>-->
-              <!--</arguments>-->
-            <!--</configuration>-->
-          <!--</execution>-->
           <!--<execution>-->
             <!--<id>Remove cached node modules</id>-->
             <!--<phase>post-clean</phase>-->
@@ -131,6 +101,6 @@
           <!--</execution>-->
         <!--</executions>-->
       <!--</plugin>-->
-    <!--</plugins>-->
+    </plugins>
   </build>
 </project>
