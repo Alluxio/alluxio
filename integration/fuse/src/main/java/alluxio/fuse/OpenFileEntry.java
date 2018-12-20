@@ -13,10 +13,12 @@ package alluxio.fuse;
 
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
+import com.google.common.base.Preconditions;
 
 import java.io.Closeable;
 import java.io.IOException;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -31,15 +33,31 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 final class OpenFileEntry implements Closeable {
+  private final long mId;
   private final FileInStream mIn;
   private final FileOutStream mOut;
+
+  // Path is likely to be changed when rename is called
+  private String mPath;
   /** the next write offset.  */
   private long mOffset;
 
-  public OpenFileEntry(FileInStream in, FileOutStream out) {
+  public OpenFileEntry(long id, String path, FileInStream in, FileOutStream out) {
+    Preconditions.checkArgument(id != -1 && !path.isEmpty());
+    Preconditions.checkArgument(in != null || out != null);
+    mId = id;
     mIn = in;
     mOut = out;
+    mPath = path;
     mOffset = -1;
+  }
+
+  public long getId() {
+    return mId;
+  }
+
+  public String getPath() {
+    return mPath;
   }
 
   /**
@@ -48,6 +66,7 @@ final class OpenFileEntry implements Closeable {
    *
    * @return an opened input stream for the open alluxio file, or null
    */
+  @Nullable
   public FileInStream getIn() {
     return mIn;
   }
@@ -58,6 +77,7 @@ final class OpenFileEntry implements Closeable {
    *
    * @return an opened input stream for the open alluxio file, or null
    */
+  @Nullable
   public FileOutStream getOut() {
     return mOut;
   }
@@ -67,6 +87,10 @@ final class OpenFileEntry implements Closeable {
    */
   public long getWriteOffset() {
     return mOffset;
+  }
+
+  public void setPath(String path) {
+    mPath = path;
   }
 
   /**
