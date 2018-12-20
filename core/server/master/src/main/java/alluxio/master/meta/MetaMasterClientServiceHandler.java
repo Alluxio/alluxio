@@ -19,8 +19,6 @@ import alluxio.grpc.BackupPOptions;
 import alluxio.grpc.BackupPResponse;
 import alluxio.grpc.GetConfigReportPOptions;
 import alluxio.grpc.GetConfigReportPResponse;
-import alluxio.grpc.GetConfigurationPOptions;
-import alluxio.grpc.GetConfigurationPResponse;
 import alluxio.grpc.GetMasterInfoPOptions;
 import alluxio.grpc.GetMasterInfoPResponse;
 import alluxio.grpc.GetMetricsPOptions;
@@ -77,16 +75,6 @@ public final class MetaMasterClientServiceHandler
           return GetConfigReportPResponse.newBuilder()
               .setReport(mMetaMaster.getConfigCheckReport().toProto()).build();
         }, "getConfigReport", "options=%s", responseObserver, options);
-  }
-
-  @Override
-  public void getConfiguration(GetConfigurationPOptions options,
-      StreamObserver<GetConfigurationPResponse> responseObserver) {
-    RpcUtils.call(LOG,
-        (RpcUtils.RpcCallableThrowsIOException<GetConfigurationPResponse>) () -> {
-          return GetConfigurationPResponse.newBuilder()
-              .addAllConfigs(mMetaMaster.getConfiguration(options)).build();
-        }, "getConfiguration", "options=%s", responseObserver, options);
   }
 
   @Override

@@ -87,12 +87,6 @@ public class RetryHandlingMetaMasterClient extends AbstractMasterClient
   }
 
   @Override
-  public List<ConfigProperty> getConfiguration() throws IOException {
-    return retryRPC(() -> mClient
-        .getConfiguration(GetConfigurationPOptions.getDefaultInstance()).getConfigsList());
-  }
-
-  @Override
   public MasterInfo getMasterInfo(final Set<MasterInfoField> fields)
       throws IOException {
     return retryRPC(() -> mClient

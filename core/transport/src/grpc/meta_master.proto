@@ -108,6 +108,17 @@ message GetMetricsPResponse {
 }
 
 /**
+  * This interface contains meta master service endpoints for Alluxio clients
+  * to query cluster configuration.
+  */
+service MetaMasterConfigurationService {
+  /**
+   * Returns a list of Alluxio runtime configuration information.
+   */
+  rpc GetConfiguration(GetConfigurationPOptions) returns (GetConfigurationPResponse);
+}
+
+/**
   * This interface contains meta master service endpoints for Alluxio clients.
   */
 service MetaMasterClientService {
@@ -116,11 +127,6 @@ service MetaMasterClientService {
    * Backs up the Alluxio master to the specified URI
    */
   rpc Backup(BackupPOptions) returns (BackupPResponse);
-
-  /**
-   * Returns a list of Alluxio runtime configuration information.
-   */
-  rpc GetConfiguration(GetConfigurationPOptions) returns (GetConfigurationPResponse);
 
   /**
    * Returns server-side configuration report.

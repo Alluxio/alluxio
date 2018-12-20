@@ -20,6 +20,7 @@ import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.GetConfigurationPOptions;
 import alluxio.grpc.MetaMasterClientServiceGrpc;
+import alluxio.grpc.MetaMasterConfigurationServiceGrpc;
 import alluxio.grpc.Scope;
 import alluxio.util.ConfigurationUtils;
 import alluxio.grpc.GrpcChannel;
@@ -435,8 +436,8 @@ public final class Configuration {
 
       try {
         channel = GrpcChannelBuilder.forAddress(address).disableAuthentication().build();
-        MetaMasterClientServiceGrpc.MetaMasterClientServiceBlockingStub client =
-            MetaMasterClientServiceGrpc.newBlockingStub(channel);
+        MetaMasterConfigurationServiceGrpc.MetaMasterConfigurationServiceBlockingStub client =
+            MetaMasterConfigurationServiceGrpc.newBlockingStub(channel);
         clusterConfig =
             client.getConfiguration(GetConfigurationPOptions.newBuilder().setRawValue(true).build())
                 .getConfigsList();

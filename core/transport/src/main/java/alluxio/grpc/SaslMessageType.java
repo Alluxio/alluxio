@@ -21,7 +21,7 @@ public enum SaslMessageType
   /**
    * <code>CHALLENGE = 0;</code>
    */
-  public static final int CHALLANGE_VALUE = 0;
+  public static final int CHALLENGE_VALUE = 0;
   /**
    * <code>SUCCESS = 1;</code>
    */

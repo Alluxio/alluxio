@@ -32,7 +32,7 @@ public final class AuthenticationServerProto {
       "slMessage\0222\n\013messageType\030\001 \001(\0162\035.alluxio" +
       ".grpc.SaslMessageType\022\017\n\007message\030\002 \001(\014\022\020" +
       "\n\010clientId\030\003 \001(\t\022\032\n\022authenticationName\030\004" +
-      " \001(\t*-\n\017SaslMessageType\022\r\n\tCHALLANGE\020\000\022\013" +
+      " \001(\t*-\n\017SaslMessageType\022\r\n\tCHALLENGE\020\000\022\013" +
       "\n\007SUCCESS\020\0012e\n\031SaslAuthenticationService" +
       "\022H\n\014authenticate\022\031.alluxio.grpc.SaslMess" +
       "age\032\031.alluxio.grpc.SaslMessage(\0010\001B+\n\014al" +

@@ -164,6 +164,8 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
   @Override
   public Map<ServiceType, GrpcService> getServices() {
     Map<ServiceType, GrpcService> services = new HashMap<>();
+    services.put(ServiceType.META_MASTER_CONFIG_SERVICE,
+        new GrpcService(new MetaMasterConfigurationServiceHandler(this)).disableAuthentication());
     services.put(ServiceType.META_MASTER_CLIENT_SERVICE,
         new GrpcService(new MetaMasterClientServiceHandler(this)));
     services.put(ServiceType.META_MASTER_MASTER_SERVICE,

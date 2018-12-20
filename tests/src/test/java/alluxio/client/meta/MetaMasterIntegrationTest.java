@@ -14,7 +14,9 @@ package alluxio.client.meta;
 import static org.junit.Assert.assertEquals;
 
 import alluxio.client.MetaMasterClient;
+import alluxio.client.MetaMasterConfigClient;
 import alluxio.client.RetryHandlingMetaMasterClient;
+import alluxio.client.RetryHandlingMetaMasterConfigClient;
 import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.MasterInfo;
 import alluxio.grpc.MasterInfoField;
@@ -66,8 +68,8 @@ public final class MetaMasterIntegrationTest extends BaseIntegrationTest {
 
   @Test
   public void getConfigurationWebPort() throws Exception {
-    try (MetaMasterClient client =
-             new RetryHandlingMetaMasterClient(MasterClientConfig.defaults())) {
+    try (MetaMasterConfigClient client =
+             new RetryHandlingMetaMasterConfigClient(MasterClientConfig.defaults())) {
       List<ConfigProperty> configList = client.getConfiguration();
       int configWebPort = -1;
       for (ConfigProperty info : configList) {

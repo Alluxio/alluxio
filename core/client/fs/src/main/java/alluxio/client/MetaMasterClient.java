@@ -50,13 +50,6 @@ public interface MetaMasterClient extends Closeable {
   ConfigCheckReport getConfigReport() throws IOException;
 
   /**
-   * Gets the runtime configuration information.
-   *
-   * @return a list of configuration information
-   */
-  List<ConfigProperty> getConfiguration() throws IOException;
-
-  /**
    * @param masterInfoFields optional list of fields to query; if null all fields will be queried
    * @return the requested master info
    */

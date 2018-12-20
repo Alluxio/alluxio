@@ -18,7 +18,7 @@ import alluxio.PropertyKey;
 import alluxio.SystemOutRule;
 import alluxio.SystemPropertyRule;
 import alluxio.cli.GetConf;
-import alluxio.client.RetryHandlingMetaMasterClient;
+import alluxio.client.RetryHandlingMetaMasterConfigClient;
 import alluxio.grpc.ConfigProperty;
 
 import com.google.common.collect.ImmutableMap;
@@ -121,7 +121,7 @@ public final class GetConfTest {
   @Test
   public void getConfFromMaster() throws Exception {
     // Prepare mock meta master client
-    RetryHandlingMetaMasterClient client = Mockito.mock(RetryHandlingMetaMasterClient.class);
+    RetryHandlingMetaMasterConfigClient client = Mockito.mock(RetryHandlingMetaMasterConfigClient.class);
     List<ConfigProperty> configList = prepareConfigList();
     Mockito.when(client.getConfiguration()).thenReturn(configList);
 
@@ -138,7 +138,7 @@ public final class GetConfTest {
   @Test
   public void getConfFromMasterWithSource() throws Exception {
     // Prepare mock meta master client
-    RetryHandlingMetaMasterClient client = Mockito.mock(RetryHandlingMetaMasterClient.class);
+    RetryHandlingMetaMasterConfigClient client = Mockito.mock(RetryHandlingMetaMasterConfigClient.class);
     List<ConfigProperty> configList = prepareConfigList();
     Mockito.when(client.getConfiguration()).thenReturn(configList);
     assertEquals(0, GetConf.getConfImpl(() -> client, "--master", "--source"));

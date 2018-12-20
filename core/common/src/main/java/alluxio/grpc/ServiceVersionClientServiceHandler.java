@@ -62,6 +62,9 @@ public final class ServiceVersionClientServiceHandler
       case BLOCK_MASTER_WORKER_SERVICE:
         serviceVersion = Constants.BLOCK_MASTER_WORKER_SERVICE_VERSION;
         break;
+      case META_MASTER_CONFIG_SERVICE:
+        serviceVersion = Constants.META_MASTER_CONFIG_SERVICE_VERSION;
+        break;
       case META_MASTER_CLIENT_SERVICE:
         serviceVersion = Constants.META_MASTER_CLIENT_SERVICE_VERSION;
         break;
