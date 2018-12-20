@@ -78,7 +78,6 @@ public class ActiveSyncer implements HeartbeatExecutor {
       return;
     }
 
-    boolean syncResult = false;
     try {
       UfsManager.UfsClient ufsclient = mMountTable.getUfsClient(mMountId);
       try (CloseableResource<UnderFileSystem> ufsResource = ufsclient.acquireUfsResource()) {
@@ -108,9 +107,7 @@ public class ActiveSyncer implements HeartbeatExecutor {
                 }, RetryUtils.defaultActiveSyncClientRetry());
               }
               // Journal the latest processed txId
-              if (syncResult) {
-                mFileSystemMaster.recordActiveSyncTxid(syncInfo.getTxId(), mMountId);
-              }
+              mFileSystemMaster.recordActiveSyncTxid(syncInfo.getTxId(), mMountId);
             }
           }
         }
