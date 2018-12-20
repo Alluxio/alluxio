@@ -38,6 +38,7 @@ export class Header extends React.PureComponent<IHeaderProps, IHeaderState> {
     this.toggleHamburgerMenu = this.toggleHamburgerMenu.bind(this);
     this.toggleAutoRefresh = this.toggleAutoRefresh.bind(this);
     this.renderNavItems = this.renderNavItems.bind(this);
+    this.closeHeaderOnClick = this.closeHeaderOnClick.bind(this);
     this.state = {isAutoRefreshing: false, isOpen: false, pathname};
   }
 
@@ -101,9 +102,13 @@ export class Header extends React.PureComponent<IHeaderProps, IHeaderState> {
     const {pathname} = this.state;
     return datas.map((data: INavigationData) => (
       <NavItem key={data.url}>
-        <NavLink tag={Link} to={data.url} active={pathname === data.url}>{data.innerText}</NavLink>
+        <NavLink tag={Link} to={data.url} active={pathname === data.url} onClick={this.closeHeaderOnClick}>{data.innerText}</NavLink>
       </NavItem>
     ));
+  }
+
+  private closeHeaderOnClick() {
+    this.setState({isOpen: false});
   }
 
   private toggleAutoRefresh() {

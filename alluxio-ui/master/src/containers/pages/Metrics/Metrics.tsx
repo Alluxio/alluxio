@@ -2,7 +2,7 @@ import React from 'react';
 import {connect} from 'react-redux';
 import {Dispatch} from 'redux';
 
-import {IApplicationState, IConnectedReduxProps} from '../../../store';
+import {IApplicationState} from '../../../store';
 
 import './Metrics.css';
 
@@ -14,7 +14,7 @@ interface IPropsFromState {
 interface IPropsFromDispatch {
 }
 
-type AllProps = IPropsFromState & IPropsFromDispatch & IConnectedReduxProps;
+type AllProps = IPropsFromState & IPropsFromDispatch;
 
 class Metrics extends React.Component<AllProps> {
   public render() {

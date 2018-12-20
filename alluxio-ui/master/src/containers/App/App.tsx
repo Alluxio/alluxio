@@ -10,7 +10,7 @@ import {
   Browse, Configuration, Data, Logs, Metrics, Overview, Workers
 } from '..';
 import {footerNavigationData, headerNavigationData} from '../../constants';
-import {IApplicationState, IConnectedReduxProps} from '../../store';
+import {IApplicationState} from '../../store';
 
 import './App.css';
 
@@ -32,7 +32,7 @@ interface IAppState {
   isAtTop: boolean;
 }
 
-type AllProps = IPropsFromState & IPropsFromDispatch & IAppProps & IConnectedReduxProps;
+type AllProps = IPropsFromState & IPropsFromDispatch & IAppProps;
 
 class App extends React.Component<AllProps, IAppState> {
   constructor(props: AllProps) {
