@@ -110,7 +110,6 @@ public final class GrpcDataServer implements DataServer {
   public void close() {
     if (mServer != null) {
       try {
-        mServer.shutdown();
         boolean completed = mServer.shutdown();
         if (!completed) {
           LOG.warn("RPC Server shutdown timed out.");

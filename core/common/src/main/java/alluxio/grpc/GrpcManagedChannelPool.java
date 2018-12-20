@@ -110,7 +110,7 @@ public class GrpcManagedChannelPool {
               } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 throw new RuntimeException(
-                    String.format("Interrupted while trying to close a gRPC channel to:%s",
+                    String.format("Interrupted while trying to close a gRPC channel to: %s",
                         channelKey.mAddress),
                     e);
               }

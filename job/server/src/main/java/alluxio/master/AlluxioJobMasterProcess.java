@@ -31,7 +31,6 @@ import alluxio.web.JobMasterWebServer;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
-import jline.internal.Log;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -296,7 +295,7 @@ public class AlluxioJobMasterProcess implements JobMasterProcess {
   protected void stopServing() throws Exception {
     if (mGrpcServer != null) {
       if(!mGrpcServer.shutdown()) {
-        Log.warn("RPC Server shutdown timed out.");
+        LOG.warn("RPC Server shutdown timed out.");
       }
     }
     if (mWebServer != null) {
