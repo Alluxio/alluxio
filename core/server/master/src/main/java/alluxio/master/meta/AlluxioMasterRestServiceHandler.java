@@ -86,6 +86,8 @@ import com.google.common.collect.Sets;
 import com.qmino.miredot.annotations.ReturnType;
 import org.apache.commons.lang3.tuple.ImmutableTriple;
 import org.apache.commons.lang3.tuple.Triple;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -123,6 +125,8 @@ import javax.ws.rs.core.Response;
 public final class AlluxioMasterRestServiceHandler {
 
   public static final String SERVICE_PREFIX = "master";
+  private static final Logger LOG = LoggerFactory.getLogger(AlluxioMasterRestServiceHandler.class);
+
 
   // endpoints
   public static final String GET_INFO = "info";
@@ -308,7 +312,7 @@ public final class AlluxioMasterRestServiceHandler {
   @ReturnType("alluxio.wire.WebUIBrowse")
   public Response getWebUIBrowse(@DefaultValue("/") @QueryParam("path") String requestPath,
       @DefaultValue("0") @QueryParam("offset") String requestOffset,
-      @DefaultValue("") @QueryParam("end") String requestEnd,
+      @QueryParam("end") String requestEnd,
       @DefaultValue("20") @QueryParam("limit") String requestLimit) {
     return RestUtils.call(() -> {
       if (!Configuration.getBoolean(PropertyKey.WEB_FILE_INFO_ENABLED)) {
@@ -340,7 +344,7 @@ public final class AlluxioMasterRestServiceHandler {
         FileInfo fileInfo = mFileSystemMaster.getFileInfo(fileId);
         UIFileInfo currentFileInfo = new UIFileInfo(fileInfo);
         if (currentFileInfo.getAbsolutePath() == null) {
-          throw new FileDoesNotExistException(currentPath.toString());
+          invalidPathError = "Error: Invalid Path " + new FileDoesNotExistException(currentPath.toString()).getMessage();
         }
         currentDirectory = currentFileInfo;
         blockSizeBytes = currentFileInfo.getBlockSizeBytes();
@@ -413,6 +417,8 @@ public final class AlluxioMasterRestServiceHandler {
           pathInfos = new UIFileInfo[0];
         } else {
           String[] splitPath = PathUtils.getPathComponents(path.toString());
+          pathInfos = new UIFileInfo[splitPath.length - 1];
+          currentPath = new AlluxioURI(AlluxioURI.SEPARATOR);
           fileId = mFileSystemMaster.getFileId(currentPath);
           pathInfos[0] = new UIFileInfo(mFileSystemMaster.getFileInfo(fileId));
           for (int i = 1; i < splitPath.length - 1; i++) {
@@ -560,7 +566,7 @@ public final class AlluxioMasterRestServiceHandler {
   @ReturnType("alluxio.wire.WebUILogs")
   public Response getWebUILogs(@DefaultValue("") @QueryParam("path") String requestPath,
       @DefaultValue("0") @QueryParam("offset") String requestOffset,
-      @DefaultValue("") @QueryParam("end") String requestEnd,
+      @QueryParam("end") String requestEnd,
       @DefaultValue("20") @QueryParam("limit") String requestLimit) {
     return RestUtils.call(() -> {
       if (!Configuration.getBoolean(PropertyKey.WEB_FILE_INFO_ENABLED)) {
