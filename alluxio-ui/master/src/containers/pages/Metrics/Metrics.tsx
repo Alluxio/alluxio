@@ -225,43 +225,43 @@ class Metrics extends React.Component<AllProps> {
                 <tbody>
                 <tr>
                   <th>CompleteFile Operations</th>
-                  <th>{metrics.rpcInvocationMetrics.CompleteFileOps && metrics.rpcInvocationMetrics.CompleteFileOps.count}</th>
+                  <td>{metrics.rpcInvocationMetrics['Master.CompleteFileOps'] && metrics.rpcInvocationMetrics['Master.CompleteFileOps'].count}</td>
                   <th>CreateDirectory Operations</th>
-                  <th>{metrics.rpcInvocationMetrics.CreateDirectoryOps && metrics.rpcInvocationMetrics.CreateDirectoryOps.count}</th>
+                  <td>{metrics.rpcInvocationMetrics['Master.CreateDirectoryOps'] && metrics.rpcInvocationMetrics['Master.CreateDirectoryOps'].count}</td>
                 </tr>
                 <tr>
                   <th>CreateFile Operations</th>
-                  <th>{metrics.rpcInvocationMetrics.CreateFileOps && metrics.rpcInvocationMetrics.CreateFileOps.count}</th>
+                  <td>{metrics.rpcInvocationMetrics['Master.CreateFileOps'] && metrics.rpcInvocationMetrics['Master.CreateFileOps'].count}</td>
                   <th>DeletePath Operations</th>
-                  <th>{metrics.rpcInvocationMetrics.DeletePathOps && metrics.rpcInvocationMetrics.DeletePathOps.count}</th>
+                  <td>{metrics.rpcInvocationMetrics['Master.DeletePathOps'] && metrics.rpcInvocationMetrics['Master.DeletePathOps'].count}</td>
                 </tr>
                 <tr>
                   <th>FreeFile Operations</th>
-                  <th>{metrics.rpcInvocationMetrics.FreeFileOps && metrics.rpcInvocationMetrics.FreeFileOps.count}</th>
+                  <td>{metrics.rpcInvocationMetrics['Master.FreeFileOps'] && metrics.rpcInvocationMetrics['Master.FreeFileOps'].count}</td>
                   <th>GetFileBlockInfo Operations</th>
-                  <th>{metrics.rpcInvocationMetrics.GetFileBlockInfoOps && metrics.rpcInvocationMetrics.GetFileBlockInfoOps.count}</th>
+                  <td>{metrics.rpcInvocationMetrics['Master.GetFileBlockInfoOps'] && metrics.rpcInvocationMetrics['Master.GetFileBlockInfoOps'].count}</td>
                 </tr>
                 <tr>
                   <th>GetFileInfo Operations</th>
-                  <th>{metrics.rpcInvocationMetrics.GetFileInfoOps && metrics.rpcInvocationMetrics.GetFileInfoOps.count}</th>
+                  <td>{metrics.rpcInvocationMetrics['Master.GetFileInfoOps'] && metrics.rpcInvocationMetrics['Master.GetFileInfoOps'].count}</td>
                   <th>GetNewBlock Operations</th>
-                  <th>{metrics.rpcInvocationMetrics.GetNewBlockOps && metrics.rpcInvocationMetrics.GetNewBlockOps.count}</th>
+                  <td>{metrics.rpcInvocationMetrics['Master.GetNewBlockOps'] && metrics.rpcInvocationMetrics['Master.GetNewBlockOps'].count}</td>
                 </tr>
                 <tr>
                   <th>Mount Operations</th>
-                  <th>{metrics.rpcInvocationMetrics.MountOps && metrics.rpcInvocationMetrics.MountOps.count}</th>
+                  <td>{metrics.rpcInvocationMetrics['Master.MountOps'] && metrics.rpcInvocationMetrics['Master.MountOps'].count}</td>
                   <th>RenamePath Operations</th>
-                  <th>{metrics.rpcInvocationMetrics.RenamePathOps && metrics.rpcInvocationMetrics.RenamePathOps.count}</th>
+                  <td>{metrics.rpcInvocationMetrics['Master.RenamePathOps'] && metrics.rpcInvocationMetrics['Master.RenamePathOps'].count}</td>
                 </tr>
                 <tr>
                   <th>SetAcl Operations</th>
-                  <th>{metrics.rpcInvocationMetrics.SetAclOps && metrics.rpcInvocationMetrics.SetAclOps.count}</th>
+                  <td>{metrics.rpcInvocationMetrics['Master.SetAclOps'] && metrics.rpcInvocationMetrics['Master.SetAclOps'].count}</td>
                   <th>SetAttribute Operations</th>
-                  <th>{metrics.rpcInvocationMetrics.SetAttributeOps && metrics.rpcInvocationMetrics.SetAttributeOps.count}</th>
+                  <td>{metrics.rpcInvocationMetrics['Master.SetAttributeOps'] && metrics.rpcInvocationMetrics['Master.SetAttributeOps'].count}</td>
                 </tr>
                 <tr>
                   <th>Unmount Operations</th>
-                  <th>{metrics.rpcInvocationMetrics.UnmountOps && metrics.rpcInvocationMetrics.UnmountOps.count}</th>
+                  <td>{metrics.rpcInvocationMetrics['Master.UnmountOps'] && metrics.rpcInvocationMetrics['Master.UnmountOps'].count}</td>
                 </tr>
                 </tbody>
               </Table>
