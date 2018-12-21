@@ -134,7 +134,6 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
       if (configuredBindAddress.getPort() == 0) {
         mGrpcServer = GrpcServerBuilder.forAddress(configuredBindAddress).build().start();
         bindPort = mGrpcServer.getBindPort();
-        Configuration.set(PropertyKey.WORKER_RPC_PORT, Integer.toString(bindPort));
       } else {
         bindPort = configuredBindAddress.getPort();
       }
@@ -317,6 +316,7 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
       }
 
       mGrpcServer = serverBuilder.build().start();
+      Configuration.set(PropertyKey.WORKER_RPC_PORT, Integer.toString(mGrpcServer.getBindPort()));
       mIsServingRPC = true;
       LOG.info("Started gRPC server on address {}", mRpcAddress);
 
