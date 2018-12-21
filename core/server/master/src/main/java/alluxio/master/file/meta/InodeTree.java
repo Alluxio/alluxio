@@ -669,7 +669,7 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
       }
     }
     if ((pathIndex < (pathComponents.length - 1)
-        || !mInodeStore.hasChild(currentInodeDirectory.getId(), name))
+        || !mInodeStore.getChild(currentInodeDirectory, name).isPresent())
         && options.getOperationTimeMs() > currentInodeDirectory.getLastModificationTimeMs()) {
       // (1) There are components in parent paths that need to be created. Or
       // (2) The last component of the path needs to be created.
@@ -826,7 +826,7 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
       return;
     }
     InodeDirectoryView dir = (InodeDirectoryView) inode;
-    for (InodeView child : mInodeStore.getChildren(dir.getId())) {
+    for (InodeView child : mInodeStore.getChildren(dir)) {
       LockedInodePath childPath;
       try {
         childPath = inodePath.lockChild(child, LockPattern.WRITE_EDGE);
@@ -889,7 +889,7 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
     if (inode.isDirectory()) {
       assert inode instanceof InodeDirectoryView;
       // inode is a directory. Set the pinned state for all children.
-      for (InodeView child : mInodeStore.getChildren(inode.getId())) {
+      for (InodeView child : mInodeStore.getChildren(inode.asDirectory())) {
         try (LockedInodePath childPath =
             inodePath.lockChild(child, LockPattern.WRITE_INODE)) {
           // No need for additional locking since the parent is write-locked.
@@ -943,7 +943,7 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
           .setLastModificationTimeMs(opTimeMs)
           .build());
     } else {
-      for (InodeView child : mInodeStore.getChildren(inode.getId())) {
+      for (InodeView child : mInodeStore.getChildren(inode.asDirectory())) {
         try (LockedInodePath tempInodePath =
             inodePath.lockChild(child, LockPattern.WRITE_INODE)) {
           // No need for additional locking since the parent is write-locked.
@@ -1005,7 +1005,7 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
         }
         InodeView inode = inodes.poll();
         if (inode.isDirectory()) {
-          Iterables.addAll(inodes, mInodeStore.getChildren(inode.getId()));
+          Iterables.addAll(inodes, mInodeStore.getChildren(inode.asDirectory()));
         }
         return inode.toJournalEntry();
       }

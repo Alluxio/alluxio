@@ -528,7 +528,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
         dirsToProcess.add((InodeDirectoryView) inodePath.getInode());
         while (!dirsToProcess.isEmpty()) {
           InodeDirectoryView dir = dirsToProcess.poll();
-          for (InodeView inode : mInodeStore.getChildren(dir.getId())) {
+          for (InodeView inode : mInodeStore.getChildren(dir)) {
             if (inode.isDirectory()) {
               dirsToProcess.add((InodeDirectory) inode);
               continue;
@@ -672,7 +672,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
           if (!checkConsistencyInternal(dir)) {
             inconsistentUris.add(dir.getUri());
           }
-          for (InodeView child : mInodeStore.getChildren(dir.getInode().getId())) {
+          for (InodeView child : mInodeStore.getChildren(dir.getInode().asDirectory())) {
             try (LockedInodePath childPath = dir.lockChild(child, LockPattern.READ)) {
               if (child.isDirectory()) {
                 dirsToCheck.add(child.getId());
@@ -843,7 +843,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
     AlluxioURI uri = inodePath.getUri();
     FileInfo fileInfo = inode.generateClientFileInfo(uri.toString());
     if (fileInfo.isFolder()) {
-      fileInfo.setLength(Iterables.size(mInodeStore.getChildren(inode.getId())));
+      fileInfo.setLength(Iterables.size(mInodeStore.getChildren(inode.asDirectory())));
     }
     fileInfo.setInMemoryPercentage(getInMemoryPercentage(inode));
     fileInfo.setInAlluxioPercentage(getInAlluxioPercentage(inode));
@@ -987,7 +987,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
           ? DescendantType.ALL : DescendantType.NONE;
       // This is to generate a parsed child path components to be passed to lockChildPath
       String [] childComponentsHint = null;
-      for (InodeView child : mInodeStore.getChildren(inode.getId())) {
+      for (InodeView child : mInodeStore.getChildren(inode.asDirectory())) {
         if (childComponentsHint == null) {
           String[] parentComponents = PathUtils.getPathComponents(currInodePath.getUri().getPath());
           childComponentsHint = new String[parentComponents.length + 1];
@@ -1028,7 +1028,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
     if (!inode.isDirectChildrenLoaded()) {
       return false;
     }
-    for (InodeView child : mInodeStore.getChildren(inode.getId())) {
+    for (InodeView child : mInodeStore.getChildren(inode)) {
       if (child.isDirectory()) {
         if (!areDescendantsLoaded(child.asDirectory())) {
           return false;
@@ -1097,7 +1097,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
       }
       if (inode.isDirectory()) {
         InodeDirectoryView inodeDir = ((InodeDirectoryView) inode);
-        for (InodeView child : mInodeStore.getChildren(inodeDir.getId())) {
+        for (InodeView child : mInodeStore.getChildren(inodeDir)) {
           try (LockedInodePath childPath = inodePath.lockChild(child, LockPattern.READ)) {
             checkConsistencyRecursive(childPath, inconsistentUris);
           }
@@ -1525,7 +1525,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
     }
 
     boolean recursive = deleteOptions.isRecursive();
-    if (inode.isDirectory() && !recursive && mInodeStore.hasChildren(inode.getId())) {
+    if (inode.isDirectory() && !recursive && mInodeStore.hasChildren(inode.asDirectory())) {
       // inode is nonempty, and we don't want to delete a nonempty directory unless recursive is
       // true
       throw new DirectoryNotEmptyException(ExceptionMessage.DELETE_NONEMPTY_DIRECTORY_NONRECURSIVE,
@@ -1775,7 +1775,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
       }
     } else {
       // This inode is a directory.
-      for (InodeView child : mInodeStore.getChildren(inode.getId())) {
+      for (InodeView child : mInodeStore.getChildren(inode.asDirectory())) {
         try (LockedInodePath childPath = inodePath.lockChild(child, LockPattern.READ)) {
           getInAlluxioFilesInternal(childPath, files);
         } catch (InvalidPathException e) {
@@ -1806,7 +1806,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
       }
     } else {
       // This inode is a directory.
-      for (InodeView child : mInodeStore.getChildren(inode.getId())) {
+      for (InodeView child : mInodeStore.getChildren(inode.asDirectory())) {
         try (LockedInodePath childPath = inodePath.lockChild(child, LockPattern.READ)) {
           getInMemoryFilesInternal(childPath, files);
         } catch (InvalidPathException e) {
@@ -2251,7 +2251,8 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
       throws FileDoesNotExistException, UnexpectedAlluxioException,
       IOException, InvalidPathException, AccessControlException {
     InodeView inode = inodePath.getInode();
-    if (inode.isDirectory() && !options.isRecursive() && mInodeStore.hasChildren(inode.getId())) {
+    if (inode.isDirectory() && !options.isRecursive()
+        && mInodeStore.hasChildren(inode.asDirectory())) {
       // inode is nonempty, and we don't free a nonempty directory unless recursive is true
       throw new UnexpectedAlluxioException(
           ExceptionMessage.CANNOT_FREE_NON_EMPTY_DIR.getMessage(mInodeTree.getPath(inode)));
@@ -3425,7 +3426,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
         InodeDirectoryView inodeDir = (InodeDirectoryView) inode;
         // maps children name to inode
         Map<String, InodeView> inodeChildren = new HashMap<>();
-        for (InodeView child : mInodeStore.getChildren(inodeDir.getId())) {
+        for (InodeView child : mInodeStore.getChildren(inodeDir)) {
           inodeChildren.put(child.getName(), child);
         }
 

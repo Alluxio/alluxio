@@ -12,6 +12,7 @@
 package alluxio.master.metastore.rocks;
 
 import alluxio.master.file.meta.Inode;
+import alluxio.master.file.meta.InodeDirectoryView;
 import alluxio.master.file.meta.InodeView;
 import alluxio.master.metastore.InodeStore;
 
@@ -56,22 +57,17 @@ public class RocksFileStore implements InodeStore {
   }
 
   @Override
-  public boolean hasChild(long parentId, String name) {
-    return false;
-  }
-
-  @Override
-  public Iterable<? extends InodeView> getChildren(long id) {
+  public Iterable<? extends InodeView> getChildren(InodeDirectoryView inode) {
     return null;
   }
 
   @Override
-  public Optional<InodeView> getChild(long id, String pathComponent) {
+  public Optional<InodeView> getChild(InodeDirectoryView inode, String name) {
     return Optional.empty();
   }
 
   @Override
-  public boolean hasChildren(long id) {
+  public boolean hasChildren(InodeDirectoryView inode) {
     return false;
   }
 }

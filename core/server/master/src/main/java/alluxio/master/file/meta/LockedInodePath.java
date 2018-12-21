@@ -453,14 +453,14 @@ public class LockedInodePath implements Closeable {
               "Traversal failed for path %s. Component %s(%s) is a file, not a directory.", mUri,
               lastInodeIndex, lastInode.getName()));
         }
-        Optional<InodeView> nextInodeOpt = mInodeStore.getChild(lastInode.getId(), nextComponent);
+        Optional<InodeView> nextInodeOpt = mInodeStore.getChild(lastInode.asDirectory(), nextComponent);
         if (!nextInodeOpt.isPresent() && mLockPattern == LockPattern.WRITE_EDGE
             && !isFinalComponent) {
           // This pattern requires that we obtain a write lock on the final edge, so we must
           // upgrade to a write lock.
           mLockList.unlockLastEdge();
           mLockList.lockEdge(nextComponent, LockMode.WRITE);
-          nextInodeOpt = mInodeStore.getChild(lastInode.getId(), nextComponent);
+          nextInodeOpt = mInodeStore.getChild(lastInode.asDirectory(), nextComponent);
           if (nextInodeOpt.isPresent()) {
             // The component must have been created between releasing the read lock and acquiring
             // the write lock. Downgrade and continue as normal.
@@ -533,7 +533,8 @@ public class LockedInodePath implements Closeable {
             "Traversal failed for path %s. Component %s(%s) is a file, not a directory.", mUri,
             i - 1, lastInode.getName()));
       }
-      Optional<InodeView> nextInode = mInodeStore.getChild(lastInode.getId(), mPathComponents[i]);
+      Optional<InodeView> nextInode =
+          mInodeStore.getChild(lastInode.asDirectory(), mPathComponents[i]);
       if (!nextInode.isPresent()) {
         return;
       }

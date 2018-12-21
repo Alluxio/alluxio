@@ -12,6 +12,7 @@
 package alluxio.master.metastore.java;
 
 import alluxio.master.file.meta.Inode;
+import alluxio.master.file.meta.InodeDirectoryView;
 import alluxio.master.file.meta.InodeView;
 import alluxio.master.metastore.InodeStore;
 
@@ -68,30 +69,25 @@ public class HeapInodeStore implements InodeStore {
   }
 
   @Override
-  public boolean hasChild(long parentId, String name) {
-    return mEdges.containsKey(parentId) && mEdges.get(parentId).containsKey(name);
-  }
-
-  @Override
-  public Iterable<? extends InodeView> getChildren(long id) {
-    if (!mEdges.containsKey(id)) {
+  public Iterable<? extends InodeView> getChildren(InodeDirectoryView dir) {
+    if (!mEdges.containsKey(dir.getId())) {
       return Collections.emptySet();
     }
 
-    return mEdges.get(id).values();
+    return mEdges.get(dir.getId()).values();
   }
 
   @Override
-  public Optional<InodeView> getChild(long parentId, String child) {
-    if (!mEdges.containsKey(parentId)) {
+  public Optional<InodeView> getChild(InodeDirectoryView dir, String child) {
+    if (!mEdges.containsKey(dir.getId())) {
       return Optional.empty();
     }
-    return Optional.ofNullable(mEdges.get(parentId).get(child));
+    return Optional.ofNullable(mEdges.get(dir.getId()).get(child));
   }
 
   @Override
-  public boolean hasChildren(long id) {
-    return mEdges.containsKey(id) && !mEdges.get(id).isEmpty();
+  public boolean hasChildren(InodeDirectoryView dir) {
+    return mEdges.containsKey(dir.getId()) && !mEdges.get(dir.getId()).isEmpty();
   }
 
   @Override

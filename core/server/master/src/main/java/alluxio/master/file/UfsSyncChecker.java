@@ -87,7 +87,7 @@ public final class UfsSyncChecker {
         .toArray(UfsStatus[]::new);
     Arrays.sort(ufsChildren, Comparator.comparing(UfsStatus::getName));
     int ufsPos = 0;
-    for (InodeView alluxioInode : mInodeStore.getChildren(inode.getId())) {
+    for (InodeView alluxioInode : mInodeStore.getChildren(inode)) {
       if (ufsPos >= ufsChildren.length) {
         break;
       }

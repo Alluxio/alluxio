@@ -664,6 +664,7 @@
         <version>${hadoop.version}</version>
         <scope>test</scope>
       </dependency>
+      <!-- TODO(andrew): Update to a non-rc version before final Alluxio release -->
       <dependency>
         <groupId>org.hamcrest</groupId>
         <artifactId>hamcrest</artifactId>

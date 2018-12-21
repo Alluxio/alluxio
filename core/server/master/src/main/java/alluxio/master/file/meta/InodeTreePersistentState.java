@@ -61,17 +61,6 @@ import java.util.function.Supplier;
 public class InodeTreePersistentState implements JournalEntryReplayable {
   private static final Logger LOG = LoggerFactory.getLogger(InodeTreePersistentState.class);
 
-  private static final IndexDefinition<Inode<?>, Long> ID_INDEX =
-      new IndexDefinition<Inode<?>, Long>(true) {
-        @Override
-        public Long getFieldValue(Inode<?> o) {
-          return o.getId();
-        }
-      };
-
-  /** All inodes, indexed by ID. */
-//  private final FieldIndex<Inode<?>, Long> mExistingInodes = new UniqueFieldIndex<>(ID_INDEX);
-
   private final InodeStore mInodeStore;
 
   /** The root of the entire file system. */
@@ -339,7 +328,7 @@ public class InodeTreePersistentState implements JournalEntryReplayable {
       while (!dirsToDelete.isEmpty()) {
         InodeDirectory dir = dirsToDelete.poll();
         mInodeStore.remove(inode);
-        for (InodeView child : mInodeStore.getChildren(dir.getId())) {
+        for (InodeView child : mInodeStore.getChildren(dir)) {
           if (child.isDirectory()) {
             dirsToDelete.add((InodeDirectory) child);
           } else {
@@ -604,7 +593,7 @@ public class InodeTreePersistentState implements JournalEntryReplayable {
   private long getIdFromPath(Path path) {
     InodeView curr = mRoot;
     for (Path component : path) {
-      curr = mInodeStore.getChild(curr.getId(), component.toString()).get();
+      curr = mInodeStore.getChild(curr.asDirectory(), component.toString()).get();
     }
     return curr.getId();
   }
