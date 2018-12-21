@@ -1338,13 +1338,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
-  public static final PropertyKey MASTER_THRIFT_SHUTDOWN_TIMEOUT =
-         new Builder(Name.MASTER_THRIFT_SHUTDOWN_TIMEOUT)
-         .setDefaultValue("60sec")
-         .setDescription("Maximum time to wait for thrift servers to stop on shutdown")
-         .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-         .setScope(Scope.MASTER)
-         .build();
   public static final PropertyKey MASTER_GRPC_CHANNEL_SHUTDOWN_TIMEOUT =
       new Builder(Name.MASTER_GRPC_CHANNEL_SHUTDOWN_TIMEOUT)
           .setDefaultValue("60sec")
