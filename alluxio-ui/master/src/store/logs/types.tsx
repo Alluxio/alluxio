@@ -1,5 +1,3 @@
-// tslint:disable:no-empty-interface // TODO: remove this line
-
 import {IFileInfo} from '@alluxio/common-ui/src/constants';
 
 export interface ILogs {

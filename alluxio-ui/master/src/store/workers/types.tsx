@@ -1,5 +1,3 @@
-// tslint:disable:no-empty-interface // TODO: remove this line
-
 import {INodeInfo} from '../../constants';
 
 export interface IWorkers {
