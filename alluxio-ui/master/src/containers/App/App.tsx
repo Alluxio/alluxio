@@ -48,11 +48,11 @@ class App extends React.Component<AllProps, IAppState> {
     return (
       <Provider store={store}>
         <ConnectedRouter history={history as any}>
-          <div className="App">
+          <div className="App pt-5 pb-4">
             <div className="container-fluid sticky-top header-wrapper">
               <Header history={history} data={headerNavigationData}/>
             </div>
-            <div className="pages container-fluid mt-3 mb-3">
+            <div className="pages container-fluid mt-3">
               <Switch>
                 <Route exact={true} path="/" render={this.redirectToOverview}/>
                 <Route path="/overview" exact={true} component={Overview}/>
