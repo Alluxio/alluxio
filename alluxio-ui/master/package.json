@@ -22,6 +22,7 @@
     "reactstrap": "~6.5.0",
     "redux": "~4.0.1",
     "redux-saga": "~0.16.2",
+    "source-sans-pro": "^2.40.0",
     "typesafe-actions": "~2.0.4"
   },
   "scripts": {

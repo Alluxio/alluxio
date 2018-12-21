@@ -11,9 +11,10 @@ import {App} from './containers';
 
 // Order matters for the following files, so disable alphabetization
 // tslint:disable:ordered-imports
-import '../../node_modules/bootstrap/dist/css/bootstrap.css';
-import '../../node_modules/bootstrap/dist/css/bootstrap-grid.css';
-import '../../node_modules/bootstrap/dist/css/bootstrap-reboot.css';
+import 'source-sans-pro/source-sans-pro.css';
+import 'bootstrap/dist/css/bootstrap.min.css';
+import 'bootstrap/dist/css/bootstrap-grid.min.css';
+import 'bootstrap/dist/css/bootstrap-reboot.min.css';
 import './index.css';
 // tslint:enable:ordered-imports
 

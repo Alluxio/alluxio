@@ -13,7 +13,8 @@
     "react-dom": "~16.6.3",
     "react-router-dom": "~4.3.1",
     "react-scripts-ts": "~3.1.0",
-    "reactstrap": "~6.5.0"
+    "reactstrap": "~6.5.0",
+    "source-sans-pro": "^2.40.0"
   },
   "scripts": {
     "build-css": "node-sass-chokidar --include-path ./src --include-path ./node_modules src/ -o src/",
