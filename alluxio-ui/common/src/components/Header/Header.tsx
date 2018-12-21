@@ -1,3 +1,5 @@
+import {faCheckSquare, faSquare} from '@fortawesome/free-regular-svg-icons'
+import {FontAwesomeIcon} from '@fortawesome/react-fontawesome'
 import {Action, Location} from 'history';
 import React from 'react';
 import {Link} from 'react-router-dom';
@@ -85,8 +87,7 @@ export class Header extends React.PureComponent<IHeaderProps, IHeaderState> {
                   <Button size="sm" outline={true}
                           color={isAutoRefreshing ? 'primary' : 'secondary'}
                           onClick={this.toggleAutoRefresh} active={isAutoRefreshing}>
-                    <i className={isAutoRefreshing ? 'far fa-check-square' : 'far fa-square'}
-                       aria-hidden="true"/>&nbsp;
+                    <FontAwesomeIcon icon={isAutoRefreshing ? faCheckSquare : faSquare}/>&nbsp;
                     Auto Refresh
                   </Button>
                 </ButtonGroup>
@@ -102,7 +103,8 @@ export class Header extends React.PureComponent<IHeaderProps, IHeaderState> {
     const {pathname} = this.state;
     return datas.map((data: INavigationData) => (
       <NavItem key={data.url}>
-        <NavLink tag={Link} to={data.url} active={pathname === data.url} onClick={this.closeHeaderOnClick}>{data.innerText}</NavLink>
+        <NavLink tag={Link} to={data.url} active={pathname === data.url}
+                 onClick={this.closeHeaderOnClick}>{data.innerText}</NavLink>
       </NavItem>
     ));
   }

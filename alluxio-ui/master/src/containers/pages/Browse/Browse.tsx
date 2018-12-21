@@ -1,3 +1,5 @@
+import {faFile, faFolder} from '@fortawesome/free-solid-svg-icons'
+import {FontAwesomeIcon} from '@fortawesome/react-fontawesome'
 import React from 'react';
 import {connect} from 'react-redux';
 import {Link} from 'react-router-dom';
@@ -183,7 +185,7 @@ class Browse extends React.Component<AllProps, IBrowseState> {
           <tbody>
           {fileInfos.map((fileInfo: IFileInfo) => (
             <tr key={fileInfo.absolutePath}>
-              <td><i className={fileInfo.isDirectory ? 'fas fa-folder' : 'fas fa-file'} aria-hidden="true"/></td>
+              <td><FontAwesomeIcon icon={fileInfo.isDirectory ? faFolder : faFile}/></td>
               <td>
                 {this.renderFileNameLink(fileInfo.absolutePath, queryStringSuffix)}
               </td>

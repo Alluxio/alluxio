@@ -1,3 +1,5 @@
+import {faCheckSquare, faSquare} from '@fortawesome/free-regular-svg-icons'
+import {FontAwesomeIcon} from '@fortawesome/react-fontawesome'
 import React from 'react';
 import {Link} from 'react-router-dom';
 import {Button, ButtonGroup, Form, FormGroup, Input, Label} from 'reactstrap';
@@ -81,10 +83,10 @@ public render(): JSX.Element {
             <Label for="viewDataFileEnd" className="mr-sm-2">Relative to</Label>
             <ButtonGroup id="viewDataFileEnd" className="auto-refresh-button">
               <Button size="sm" outline={!!end} color="secondary" onClick={beginInputHandler}>
-                <i className={!end ? 'far fa-check-square' : 'far fa-square'} aria-hidden="true"/>&nbsp;begin
+                <FontAwesomeIcon icon={!end ? faCheckSquare : faSquare}/>&nbsp;begin
               </Button>
               <Button size="sm" outline={!end} color="secondary" onClick={endInputHandler}>
-                <i className={!!end ? 'far fa-check-square' : 'far fa-square'} aria-hidden="true"/>&nbsp;end
+                <FontAwesomeIcon icon={!!end ? faCheckSquare : faSquare}/>&nbsp;end
               </Button>
             </ButtonGroup>
           </FormGroup>
