@@ -326,6 +326,7 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
         synchronized (mOpenFiles) {
           opening = mOpenFiles.contains(PATH_INDEX, path);
         }
+        // Only block when release() returned but not finished
         if (!opening && !waitForFileCompleted(turi)) {
           LOG.error("File {} is not completed", path);
         }
@@ -612,7 +613,7 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
   }
 
   /**
-   * Releases the resources associated to an open file.
+   * Releases the resources associated to an open file. Release() is async.
    *
    * Guaranteed to be called once for each open() or create().
    *
@@ -626,8 +627,8 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
     LOG.trace("release({})", path);
     OpenFileEntry oe;
     synchronized (mOpenFiles) {
-      // synchronized the mOpenFiles as earlier as possible so that hopefully
-      // the following getAttr will be blocked waiting for the file to be completed
+      // Synchronized as earlier as possible so that hopefully the following getattr()
+      // will be blocked waiting for the {@link FileOutStream.close()} to be completed
       final long fd = fi.fh.get();
       oe = mOpenFiles.getFirstByField(ID_INDEX, fd);
       mOpenFiles.remove(oe);

@@ -44,12 +44,12 @@ final class OpenFileEntry implements Closeable {
   private long mOffset;
 
   /**
-   * Constructs a new {@link OpenFileEntry} for an Alluxio file
+   * Constructs a new {@link OpenFileEntry} for an Alluxio file.
    *
    * @param id the id of the file
    * @param path the path of the file
-   * @param in the file input stream of the file
-   * @param out the file output stream of the file
+   * @param in the input stream of the file
+   * @param out the output stream of the file
    */
   public OpenFileEntry(long id, String path, FileInStream in, FileOutStream out) {
     Preconditions.checkArgument(id != -1 && !path.isEmpty());
