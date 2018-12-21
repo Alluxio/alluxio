@@ -1,12 +1,12 @@
 // tslint:disable:no-empty-interface // TODO: remove this line
 
-import {IFileInfo} from '../../constants';
+import {IFileInfo} from '@alluxio/common-ui/src/constants';
 
 export interface ILogs {
   'currentPath': string;
   'debug': boolean;
   'fatalError': string;
-  'fileData': null;
+  'fileData': string;
   'fileInfos': IFileInfo[];
   'invalidPathError': string;
   'ntotalFile': number;

@@ -5,12 +5,12 @@ import {INavigationData} from '../../constants';
 
 import './Footer.css';
 
-interface IFooterPrpos {
+interface IFooterProps {
   data: INavigationData[];
 }
 
-export class Footer extends React.PureComponent<IFooterPrpos> {
-  constructor(props: IFooterPrpos) {
+export class Footer extends React.PureComponent<IFooterProps> {
+  constructor(props: IFooterProps) {
     super(props);
 
     this.renderNavItems = this.renderNavItems.bind(this);

@@ -1,12 +1,12 @@
 import React from 'react';
 import {connect} from 'react-redux';
 import {Link} from 'react-router-dom';
-import {Button, ButtonGroup, Form, FormGroup, Input, Label, Table} from 'reactstrap';
+import {Button, Form, FormGroup, Input, Label, Table} from 'reactstrap';
 import {Dispatch} from 'redux';
 
-import {LoadingMessage} from '@alluxio/common-ui/src/components';
+import {FileView, LoadingMessage} from '@alluxio/common-ui/src/components';
+import {IFileBlockInfo, IFileInfo} from '@alluxio/common-ui/src/constants';
 import {createDebouncedFunction, parseQuerystring} from '@alluxio/common-ui/src/utilities';
-import {IFileBlockInfo, IFileInfo} from '../../../constants';
 import {IApplicationState} from '../../../store';
 import {fetchRequest} from '../../../store/browse/actions';
 import {IBrowse} from '../../../store/browse/types';
@@ -108,44 +108,10 @@ class Browse extends React.Component<AllProps, IBrowseState> {
     const endInputHandler = this.createInputHandler('end', value => '1').bind(this);
     return (
       <React.Fragment>
-        <h5>
-          {browse.currentDirectory.absolutePath}: <small>First 5KB from {browse.viewingOffset} in ASCII</small>
-        </h5>
-        <Form className="mb-3 browse-file-form" id="browseFileForm" inline={true}>
-          <FormGroup className="mb-2 mr-sm-2 w-100">
-            <Input className="w-100" type="textarea" value={browse.fileData} style={{height: textAreaHeight}}
-                   readOnly={true}/>
-          </FormGroup>
-        </Form>
-        <hr/>
-        <Form className="mb-3 browse-file-settings-form" id="browseFileSettingsForm" inline={true}>
-          <FormGroup className="col-5">
-            <Label for="browseFileOffset" className="mr-sm-2">Display from byte offset</Label>
-            <Input className="col-3" type="text" id="browseFileOffset" placeholder="Enter an offset"
-                   value={offset || '0'}
-                   onChange={offsetInputHandler}/>
-          </FormGroup>
-          <FormGroup className="col-5">
-            <Label for="browseFileEnd" className="mr-sm-2">Relative to</Label>
-            <ButtonGroup id="browseFileEnd" className="auto-refresh-button">
-              <Button size="sm" outline={!!end} color="secondary" onClick={beginInputHandler}>
-                <i className={!end ? 'far fa-check-square' : 'far fa-square'} aria-hidden="true"/>&nbsp;begin
-              </Button>
-              <Button size="sm" outline={!end} color="secondary" onClick={endInputHandler}>
-                <i className={!!end ? 'far fa-check-square' : 'far fa-square'} aria-hidden="true"/>&nbsp;end
-              </Button>
-            </ButtonGroup>
-          </FormGroup>
-          <FormGroup className="col-2">
-            <Button tag={Link} to={`/browse?path=${path}${queryStringSuffix}`} color="primary"
-                    disabled={offset === lastFetched.offset && end === lastFetched.end}>Go</Button>
-          </FormGroup>
-          <FormGroup className="col-4">
-            <a href={`${process.env.REACT_APP_API_DOWNLOAD}?path=${encodeURIComponent(path || '')}`}>
-              Download
-            </a>
-          </FormGroup>
-        </Form>
+        <FileView allowDownload={true} beginInputHandler={beginInputHandler} end={end} endInputHandler={endInputHandler}
+                  lastFetched={lastFetched} offset={offset} offsetInputHandler={offsetInputHandler} path={path}
+                  queryStringPrefix="/browse" queryStringSuffix={queryStringSuffix} textAreaHeight={textAreaHeight}
+                  viewData={browse}/>
         <hr/>
         <h6>Detailed blocks information (block capacity is {browse.blockSizeBytes} Bytes):</h6>
         <Table hover={true}>
@@ -168,7 +134,7 @@ class Browse extends React.Component<AllProps, IBrowseState> {
               </td>
               <td>
                 {fileBlock.locations.map((location: string) => (
-                  <div>{location}</div>
+                  <div key={location}>{location}</div>
                 ))}
               </td>
             </tr>

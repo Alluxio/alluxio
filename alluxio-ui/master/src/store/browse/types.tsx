@@ -1,4 +1,4 @@
-import {IFileBlockInfo, IFileInfo} from '../../constants';
+import {IFileBlockInfo, IFileInfo} from '@alluxio/common-ui/src/constants';
 
 export interface IBrowse {
   'accessControlException': string;

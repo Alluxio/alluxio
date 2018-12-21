@@ -1,4 +1,4 @@
-import {IFileInfo} from '../../constants';
+import {IFileInfo} from '@alluxio/common-ui/src/constants';
 
 export interface IData {
   'fatalError': string;

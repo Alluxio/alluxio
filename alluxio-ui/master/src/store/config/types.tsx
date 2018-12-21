@@ -3,9 +3,7 @@
 import {IConfigTriple} from '../../constants';
 
 export interface IConfig {
-  configuration: {
-    [key: string]: IConfigTriple
-  };
+  configuration: IConfigTriple[];
   whitelist: string[];
 }
 

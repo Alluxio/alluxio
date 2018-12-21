@@ -9,7 +9,7 @@ const initialState: ILogsState = {
     'currentPath': '',
     'debug': false,
     'fatalError': '',
-    'fileData': null,
+    'fileData': '',
     'fileInfos': [],
     'invalidPathError': '',
     'ntotalFile': 0,

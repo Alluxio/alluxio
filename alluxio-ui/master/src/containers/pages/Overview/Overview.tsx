@@ -116,7 +116,21 @@ class Overview extends React.Component<AllProps> {
                 </tr>
                 </thead>
                 <tbody>
-                {this.renderStorageTierInfos(overview.storageTierInfos)}
+                {overview.storageTierInfos.map((info: IStorageTierInfo) => (
+                  <tr key={info.storageTierAlias}>
+                    <td>{info.storageTierAlias}</td>
+                    <td>{info.capacity}</td>
+                    <td>{info.usedCapacity}</td>
+                    <td>
+                      <Progress multi={true}>
+                        <Progress bar={true} color="success" value={`${info.freeSpacePercent}`}>{info.freeSpacePercent}%
+                          Free</Progress>
+                        <Progress bar={true} color="danger" value={`${info.usedSpacePercent}`}>{info.usedSpacePercent}%
+                          Used</Progress>
+                      </Progress>
+                    </td>
+                  </tr>
+                ))}
                 </tbody>
               </Table>
             </div>
@@ -168,24 +182,6 @@ class Overview extends React.Component<AllProps> {
         </td>
       </tr>
     )
-  }
-
-  private renderStorageTierInfos(infos: IStorageTierInfo[]) {
-    return infos.map((info: IStorageTierInfo) => (
-      <tr key={info.storageTierAlias}>
-        <td>{info.storageTierAlias}</td>
-        <td>{info.capacity}</td>
-        <td>{info.usedCapacity}</td>
-        <td>
-          <Progress multi={true}>
-            <Progress bar={true} color="success" value={`${info.freeSpacePercent}`}>{info.freeSpacePercent}%
-              Free</Progress>
-            <Progress bar={true} color="danger" value={`${info.usedSpacePercent}`}>{info.usedSpacePercent}%
-              Used</Progress>
-          </Progress>
-        </td>
-      </tr>
-    ));
   }
 }
 

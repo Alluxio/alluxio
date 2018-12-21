@@ -4,7 +4,7 @@ import {ConfigActionTypes, IConfigState} from './types';
 
 const initialState: IConfigState = {
   config: {
-    configuration: {},
+    configuration: [],
     whitelist: []
   },
   errors: undefined,

@@ -4,8 +4,8 @@ import {Table} from 'reactstrap';
 import {Dispatch} from 'redux';
 
 import {LoadingMessage} from '@alluxio/common-ui/src/components';
+import {IFileInfo} from '@alluxio/common-ui/src/constants';
 import {parseQuerystring} from '@alluxio/common-ui/src/utilities';
-import {IFileInfo} from '../../../constants';
 import {IApplicationState} from '../../../store';
 import {fetchRequest} from '../../../store/data/actions';
 import {IData} from '../../../store/data/types';
