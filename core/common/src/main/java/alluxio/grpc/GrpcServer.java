@@ -76,14 +76,9 @@ public final class GrpcServer {
 
   /**
    * Waits until the server is terminated.
-   * PS: This call waits uninterruptably.
    */
-  public void awaitTermination(){
-    try {
-      mServer.awaitTermination();
-    } catch(InterruptedException e) {
-      // Ignore.
-    }
+  public void awaitTermination() throws InterruptedException{
+    mServer.awaitTermination();
   }
 
   /**
