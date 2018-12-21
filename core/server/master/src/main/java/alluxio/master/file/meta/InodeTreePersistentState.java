@@ -13,7 +13,6 @@ package alluxio.master.file.meta;
 
 import alluxio.ProcessUtils;
 import alluxio.collections.ConcurrentHashSet;
-import alluxio.collections.IndexDefinition;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.JournalEntryReplayable;
 import alluxio.master.metastore.InodeStore;

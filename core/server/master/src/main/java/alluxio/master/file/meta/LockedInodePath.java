@@ -453,7 +453,8 @@ public class LockedInodePath implements Closeable {
               "Traversal failed for path %s. Component %s(%s) is a file, not a directory.", mUri,
               lastInodeIndex, lastInode.getName()));
         }
-        Optional<InodeView> nextInodeOpt = mInodeStore.getChild(lastInode.asDirectory(), nextComponent);
+        Optional<InodeView> nextInodeOpt =
+            mInodeStore.getChild(lastInode.asDirectory(), nextComponent);
         if (!nextInodeOpt.isPresent() && mLockPattern == LockPattern.WRITE_EDGE
             && !isFinalComponent) {
           // This pattern requires that we obtain a write lock on the final edge, so we must

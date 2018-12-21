@@ -1153,6 +1153,7 @@
             <exclude>**/vagrant/**/*</exclude>
 
             <!-- Build and Packaging Exclusions -->
+            <exclude>alluxio-ui/node_modules/*</exclude>
             <exclude>build/**/*</exclude>
             <exclude>conf/alluxio-env.sh</exclude>
             <exclude>conf/alluxio-site.properties</exclude>
