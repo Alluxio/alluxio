@@ -43,7 +43,6 @@ interface IBrowseState {
 type AllProps = IPropsFromState & IPropsFromDispatch;
 
 class Browse extends React.Component<AllProps, IBrowseState> {
-  private readonly pathInput = React.createRef<Input>();
   private readonly textAreaResizeMs = 100;
   private readonly debouncedUpdateTextAreaHeight = createDebouncedFunction(this.updateTextAreaHeight.bind(this), this.textAreaResizeMs, true);
 
@@ -114,7 +113,8 @@ class Browse extends React.Component<AllProps, IBrowseState> {
         </h5>
         <Form className="mb-3 browse-file-form" id="browseFileForm" inline={true}>
           <FormGroup className="mb-2 mr-sm-2 w-100">
-            <Input className="w-100" type="textarea" value={browse.fileData} style={{height: textAreaHeight}} readOnly={true}/>
+            <Input className="w-100" type="textarea" value={browse.fileData} style={{height: textAreaHeight}}
+                   readOnly={true}/>
           </FormGroup>
         </Form>
         <hr/>
@@ -191,8 +191,8 @@ class Browse extends React.Component<AllProps, IBrowseState> {
           </FormGroup>
           <FormGroup className="mb-2 mr-sm-2">
             <Label for="browsePath" className="mr-sm-2">Path</Label>
-            <Input type="text" id="browsePath" placeholder="Enter a Path" ref={this.pathInput}
-                   value={path || '/'} onChange={pathInputHandler}/>
+            <Input type="text" id="browsePath" placeholder="Enter a Path" value={path || '/'}
+                   onChange={pathInputHandler}/>
           </FormGroup>
           <FormGroup className="mb-2 mr-sm-2">
             <Button tag={Link} to={`/browse?path=${path}${queryStringSuffix}`} color="primary"
@@ -216,7 +216,7 @@ class Browse extends React.Component<AllProps, IBrowseState> {
           </thead>
           <tbody>
           {fileInfos.map((fileInfo: IFileInfo) => (
-            <tr key={fileInfo.name}>
+            <tr key={fileInfo.absolutePath}>
               <td><i className={fileInfo.isDirectory ? 'fas fa-folder' : 'fas fa-file'} aria-hidden="true"/></td>
               <td>
                 {this.renderFileNameLink(fileInfo.absolutePath, queryStringSuffix)}
