@@ -59,7 +59,7 @@ public final class BlockWriteHandlerTest extends AbstractWriteHandlerTest {
   public void writeFailure() throws Exception {
     mWriteHandler.write(newWriteRequestCommand(0));
     mBlockWriter.close();
-    mWriteHandler.write(newWriteRequest(newDataBuffer(PACKET_SIZE)));
+    mWriteHandler.write(newWriteRequest(newDataBuffer(CHUNK_SIZE)));
     Throwable t = getError(mResponseObserver);
     Assert.assertTrue(t instanceof FailedPreconditionException);
   }

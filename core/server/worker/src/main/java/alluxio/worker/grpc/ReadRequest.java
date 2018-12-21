@@ -23,12 +23,14 @@ class ReadRequest {
   private final long mId;
   private final long mStart;
   private final long mEnd;
+  private final long mChunkSize;
   private final long mSessionId;
 
-  ReadRequest(long id, long start, long end) {
+  ReadRequest(long id, long start, long end, long chunkSize) {
     mId = id;
     mStart = start;
     mEnd = end;
+    mChunkSize = chunkSize;
     mSessionId = IdUtils.createSessionId();
   }
 
@@ -58,5 +60,12 @@ class ReadRequest {
    */
   public long getEnd() {
     return mEnd;
+  }
+
+  /**
+   * @return the chunk size in bytes of this read request
+   */
+  public long getChunkSize() {
+    return mChunkSize;
   }
 }

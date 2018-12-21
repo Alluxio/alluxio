@@ -63,36 +63,36 @@ import java.util.concurrent.TimeoutException;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({FileSystemContext.class, WorkerNetAddress.class})
-public class UfsFallbackLocalFilePacketWriterTest {
+public class UfsFallbackLocalFileDataWriterTest {
   private static final Logger LOG = LoggerFactory.getLogger(GrpcDataWriterTest.class);
 
   /**
-   * A packet writer implementation which will throw a ResourceExhaustedException on writes when the
+   * A data writer implementation which will throw a ResourceExhaustedException on writes when the
    * given ByteBuffer is full.
    */
-  public static class FixedCapacityTestPacketWriter extends TestPacketWriter {
+  public static class FixedCapacityTestDataWriter extends TestDataWriter {
     private final long mCapacity;
     private final ByteBuffer mBuffer;
     private boolean mIsLocalWorkerFull = false;
     private boolean mClosed = false;
     private boolean mCanceled = false;
 
-    public FixedCapacityTestPacketWriter(ByteBuffer buffer) {
+    public FixedCapacityTestDataWriter(ByteBuffer buffer) {
       super(buffer);
       mCapacity = buffer.capacity();
       mBuffer = buffer;
     }
 
     @Override
-    public void writePacket(ByteBuf packet) throws IOException {
-      if (pos() + packet.readableBytes() > mCapacity) {
+    public void writeChunk(ByteBuf chunk) throws IOException {
+      if (pos() + chunk.readableBytes() > mCapacity) {
         mIsLocalWorkerFull = true;
       }
       if (mIsLocalWorkerFull) {
         throw new ResourceExhaustedException("no more space!");
       }
       synchronized (mBuffer) {
-        super.writePacket(packet);
+        super.writeChunk(chunk);
       }
     }
 
@@ -124,7 +124,7 @@ public class UfsFallbackLocalFilePacketWriterTest {
     }
   }
 
-  private static final int PACKET_SIZE = 1024;
+  private static final int CHUNK_SIZE = 1024;
   private static final ExecutorService EXECUTOR =
       Executors.newFixedThreadPool(4, ThreadFactoryUtils.build("test-executor-%d", true));
 
@@ -133,7 +133,7 @@ public class UfsFallbackLocalFilePacketWriterTest {
   private static final long MOUNT_ID = 9L;
 
   private ByteBuffer mBuffer;
-  private FixedCapacityTestPacketWriter mLocalWriter;
+  private FixedCapacityTestDataWriter mLocalWriter;
   private FileSystemContext mContext;
   private WorkerNetAddress mAddress;
   private BlockWorkerClient mClient;
@@ -141,8 +141,8 @@ public class UfsFallbackLocalFilePacketWriterTest {
 
   @Rule
   public ConfigurationRule mConfigurationRule =
-      new ConfigurationRule(PropertyKey.USER_NETWORK_WRITER_PACKET_SIZE_BYTES,
-          String.valueOf(PACKET_SIZE));
+      new ConfigurationRule(PropertyKey.USER_NETWORK_WRITER_CHUNK_SIZE_BYTES,
+          String.valueOf(CHUNK_SIZE));
 
   @Before
   public void before() throws Exception {
@@ -163,24 +163,24 @@ public class UfsFallbackLocalFilePacketWriterTest {
   }
 
   /**
-   * Creates a {@link PacketWriter}.
+   * Creates a {@link DataWriter}.
    *
    * @param blockSize the block length
    * @param workerCapacity the capacity of the local worker
-   * @return the packet writer instance
+   * @return the data writer instance
    */
-  private PacketWriter create(long blockSize, long workerCapacity) throws Exception {
+  private DataWriter create(long blockSize, long workerCapacity) throws Exception {
     mBuffer = ByteBuffer.allocate((int) workerCapacity);
-    mLocalWriter = new FixedCapacityTestPacketWriter(mBuffer);
-    PacketWriter writer =
-        new UfsFallbackLocalFilePacketWriter(mLocalWriter, null, mContext, mAddress, BLOCK_ID,
+    mLocalWriter = new FixedCapacityTestDataWriter(mBuffer);
+    DataWriter writer =
+        new UfsFallbackLocalFileDataWriter(mLocalWriter, null, mContext, mAddress, BLOCK_ID,
             blockSize, OutStreamOptions.defaults().setMountId(MOUNT_ID));
     return writer;
   }
 
   @Test
   public void emptyBlock() throws Exception {
-    try (PacketWriter writer = create(1, 1)) {
+    try (DataWriter writer = create(1, 1)) {
       writer.flush();
       assertEquals(0, writer.pos());
     }
@@ -191,8 +191,8 @@ public class UfsFallbackLocalFilePacketWriterTest {
   public void noFallback() throws Exception {
     Future<WriteSummary> expected;
     Future<WriteSummary> actualLocal;
-    long blockSize = PACKET_SIZE * 1024 + PACKET_SIZE / 3;
-    try (PacketWriter writer = create(blockSize, blockSize)) {
+    long blockSize = CHUNK_SIZE * 1024 + CHUNK_SIZE / 3;
+    try (DataWriter writer = create(blockSize, blockSize)) {
       expected = writeData(writer, blockSize);
       actualLocal = getLocalWrite(mBuffer);
       expected.get();
@@ -203,12 +203,12 @@ public class UfsFallbackLocalFilePacketWriterTest {
 
   @Ignore("Flaky test")
   @Test(timeout = 1000 * 60)
-  public void fallbackOnFirstPacket() throws Exception {
+  public void fallbackOnFirstChunk() throws Exception {
     Future<WriteSummary> expected;
     Future<WriteSummary> actualLocal;
     Future<WriteSummary> actualUfs;
-    long blockSize = PACKET_SIZE * 1024 + PACKET_SIZE / 3;
-    try (PacketWriter writer = create(blockSize, 1)) {
+    long blockSize = CHUNK_SIZE * 1024 + CHUNK_SIZE / 3;
+    try (DataWriter writer = create(blockSize, 1)) {
       expected = writeData(writer, blockSize);
       actualLocal = getLocalWrite(mBuffer);
       actualUfs = getUfsWrite(mClient);
@@ -223,39 +223,39 @@ public class UfsFallbackLocalFilePacketWriterTest {
 
   @Ignore("Flaky test")
   @Test(timeout = 1000 * 60)
-  public void fallbackOnSecondPacket() throws Exception {
+  public void fallbackOnSecondChunk() throws Exception {
     Future<WriteSummary> expected;
     Future<WriteSummary> actualLocal;
     Future<WriteSummary> actualUfs;
-    long blockSize = PACKET_SIZE * 1024 + PACKET_SIZE / 3;
-    try (PacketWriter writer = create(blockSize, PACKET_SIZE)) {
+    long blockSize = CHUNK_SIZE * 1024 + CHUNK_SIZE / 3;
+    try (DataWriter writer = create(blockSize, CHUNK_SIZE)) {
       expected = writeData(writer, blockSize);
       actualLocal = getLocalWrite(mBuffer);
       actualUfs = getUfsWrite(mClient);
       expected.get();
     }
     assertEquals(blockSize, expected.get().getBytes());
-    assertEquals(PACKET_SIZE, actualLocal.get().getBytes());
-    assertEquals(blockSize - PACKET_SIZE, actualUfs.get().getBytes());
+    assertEquals(CHUNK_SIZE, actualLocal.get().getBytes());
+    assertEquals(blockSize - CHUNK_SIZE, actualUfs.get().getBytes());
     assertEquals(expected.get().getChecksum(),
         actualLocal.get().getChecksum() + actualUfs.get().getChecksum());
   }
 
   @Test(timeout = 1000 * 60)
-  public void fallbackOnLastPacket() throws Exception {
+  public void fallbackOnLastChunk() throws Exception {
     Future<WriteSummary> expected;
     Future<WriteSummary> actualLocal;
     Future<WriteSummary> actualUfs;
-    long blockSize = PACKET_SIZE * 1024 + PACKET_SIZE / 3;
-    try (PacketWriter writer = create(blockSize, PACKET_SIZE * 1024)) {
+    long blockSize = CHUNK_SIZE * 1024 + CHUNK_SIZE / 3;
+    try (DataWriter writer = create(blockSize, CHUNK_SIZE * 1024)) {
       expected = writeData(writer, blockSize);
       expected.get();
       actualLocal = getLocalWrite(mBuffer);
       actualUfs = getUfsWrite(mClient);
     }
     assertEquals(blockSize, expected.get().getBytes());
-    assertEquals(PACKET_SIZE * 1024, actualLocal.get().getBytes());
-    assertEquals(blockSize - PACKET_SIZE * 1024, actualUfs.get().getBytes());
+    assertEquals(CHUNK_SIZE * 1024, actualLocal.get().getBytes());
+    assertEquals(blockSize - CHUNK_SIZE * 1024, actualUfs.get().getBytes());
     assertEquals(expected.get().getChecksum(),
         actualLocal.get().getChecksum() + actualUfs.get().getChecksum());
   }
@@ -263,27 +263,27 @@ public class UfsFallbackLocalFilePacketWriterTest {
   @Test(timeout = 1000 * 60)
   @Ignore("Flaky test")
   public void flush() throws Exception {
-    long blockSize = PACKET_SIZE * 1024 + PACKET_SIZE / 3;
-    try (PacketWriter writer = create(blockSize, PACKET_SIZE)) {
+    long blockSize = CHUNK_SIZE * 1024 + CHUNK_SIZE / 3;
+    try (DataWriter writer = create(blockSize, CHUNK_SIZE)) {
       Future<WriteSummary> expected;
-      expected = writeData(writer, PACKET_SIZE);
+      expected = writeData(writer, CHUNK_SIZE);
       expected.get();
       writer.flush();
-      assertEquals(PACKET_SIZE, mBuffer.position());
+      assertEquals(CHUNK_SIZE, mBuffer.position());
     }
   }
 
   @Test(timeout = 1000 * 60)
   @Ignore("Flaky test")
   public void pos() throws Exception {
-    long blockSize = PACKET_SIZE * 2 + PACKET_SIZE / 3;
-    try (PacketWriter writer = create(blockSize, PACKET_SIZE)) {
+    long blockSize = CHUNK_SIZE * 2 + CHUNK_SIZE / 3;
+    try (DataWriter writer = create(blockSize, CHUNK_SIZE)) {
       byte[] data = new byte[1];
       Future<WriteSummary> actualUfs = getUfsWrite(mClient);
       for (long pos = 0; pos < blockSize; pos++) {
         assertEquals(pos, writer.pos());
         ByteBuf buf = Unpooled.wrappedBuffer(data);
-        writer.writePacket(buf);
+        writer.writeChunk(buf);
       }
       actualUfs.get();
     }
@@ -308,13 +308,13 @@ public class UfsFallbackLocalFilePacketWriterTest {
   }
 
   /**
-   * Writes packets via the given packet writer and returns a checksum for a region of the data
+   * Writes chunks via the given data writer and returns a checksum for a region of the data
    * written.
    *
    * @param length the length
    * @return the checksum
    */
-  private Future<WriteSummary> writeData(final PacketWriter writer, final long length)
+  private Future<WriteSummary> writeData(final DataWriter writer, final long length)
       throws Exception {
     return EXECUTOR.submit(new Callable<WriteSummary>() {
       @Override
@@ -323,12 +323,12 @@ public class UfsFallbackLocalFilePacketWriterTest {
           long checksum = 0;
           long remaining = length;
           while (remaining > 0) {
-            int bytesToWrite = (int) Math.min(remaining, PACKET_SIZE);
+            int bytesToWrite = (int) Math.min(remaining, CHUNK_SIZE);
             byte[] data = new byte[bytesToWrite];
             RANDOM.nextBytes(data);
             ByteBuf buf = Unpooled.wrappedBuffer(data);
             try {
-              writer.writePacket(buf);
+              writer.writeChunk(buf);
             } catch (Exception e) {
               fail(e.getMessage());
               throw e;
@@ -350,7 +350,7 @@ public class UfsFallbackLocalFilePacketWriterTest {
   }
 
   /**
-   * Verifies the packets written. After receiving the last packet, it will also send an EOF to
+   * Verifies the chunks written. After receiving the last chunk, it will also send an EOF to
    * the channel.
    *
    * @return the checksum of the data read starting from checksumStart

@@ -65,7 +65,7 @@ public final class BlockReadHandlerTest extends ReadHandlerTest {
    */
   @Test
   public void readFailure() throws Exception {
-    long fileSize = PACKET_SIZE * 10 + 1;
+    long fileSize = CHUNK_SIZE * 10 + 1;
     populateInputFile(0, 0, fileSize - 1);
     mBlockReader.close();
     mReadHandlerNoException.readBlock(buildReadRequest(0, fileSize), mResponseObserver);

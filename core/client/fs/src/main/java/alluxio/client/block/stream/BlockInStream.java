@@ -41,8 +41,8 @@ import java.io.InputStream;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * Provides an {@link InputStream} implementation that is based on {@link PacketReader}s to
- * stream data packet by packet.
+ * Provides an {@link InputStream} implementation that is based on {@link DataReader}s to
+ * stream data chunk by chunk.
  */
 @NotThreadSafe
 public class BlockInStream extends InputStream implements BoundedStream, Seekable,
@@ -65,11 +65,11 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
 
   /** Current position of the stream, relative to the start of the block. */
   private long mPos = 0;
-  /** The current packet. */
-  private DataBuffer mCurrentPacket;
+  /** The current data chunk. */
+  private DataBuffer mCurrentChunk;
 
-  private PacketReader mPacketReader;
-  private final PacketReader.Factory mPacketReaderFactory;
+  private DataReader mDataReader;
+  private final DataReader.Factory mDataReaderFactory;
 
   private boolean mClosed = false;
   private boolean mEOF = false;
@@ -146,9 +146,9 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
   private static BlockInStream createLocalBlockInStream(FileSystemContext context,
       WorkerNetAddress address, long blockId, long length, InStreamOptions options)
       throws IOException {
-    long packetSize = Configuration.getBytes(PropertyKey.USER_LOCAL_READER_PACKET_SIZE_BYTES);
+    long chunkSize = Configuration.getBytes(PropertyKey.USER_LOCAL_READER_CHUNK_SIZE_BYTES);
     return new BlockInStream(
-        new LocalFilePacketReader.Factory(context, address, blockId, packetSize, options),
+        new LocalFileDataReader.Factory(context, address, blockId, chunkSize, options),
         address, BlockInStreamSource.LOCAL, blockId, length);
   }
 
@@ -166,8 +166,10 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
   private static BlockInStream createGrpcBlockInStream(FileSystemContext context,
       WorkerNetAddress address, BlockInStreamSource blockSource,
       ReadRequest readRequestPartial, long blockSize, InStreamOptions options) {
-    PacketReader.Factory factory = new GrpcDataReader.Factory(context, address,
-        readRequestPartial.toBuilder().buildPartial());
+    long chunkSize =
+        Configuration.getBytes(PropertyKey.USER_NETWORK_READER_CHUNK_SIZE_BYTES);
+    DataReader.Factory factory = new GrpcDataReader.Factory(context, address,
+        readRequestPartial.toBuilder().setChunkSize(chunkSize).buildPartial());
     return new BlockInStream(factory, address, blockSource, readRequestPartial.getBlockId(),
         blockSize);
   }
@@ -188,9 +190,11 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
   public static BlockInStream createRemoteBlockInStream(FileSystemContext context, long blockId,
       WorkerNetAddress address, BlockInStreamSource blockSource, long blockSize,
       Protocol.OpenUfsBlockOptions ufsOptions) {
+    long chunkSize =
+        Configuration.getBytes(PropertyKey.USER_NETWORK_READER_CHUNK_SIZE_BYTES);
     ReadRequest readRequest = ReadRequest.newBuilder().setBlockId(blockId)
-        .setOpenUfsBlockOptions(ufsOptions).buildPartial();
-    PacketReader.Factory factory = new GrpcDataReader.Factory(context, address,
+        .setOpenUfsBlockOptions(ufsOptions).setChunkSize(chunkSize).buildPartial();
+    DataReader.Factory factory = new GrpcDataReader.Factory(context, address,
         readRequest.toBuilder().buildPartial());
     return new BlockInStream(factory, address, blockSource, blockId, blockSize);
   }
@@ -198,15 +202,15 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
   /**
    * Creates an instance of {@link BlockInStream}.
    *
-   * @param packetReaderFactory the packet reader factory
+   * @param dataReaderFactory the data reader factory
    * @param address the address of the gRPC data server
    * @param blockSource the source location of the block
    * @param id the ID (either block ID or UFS file ID)
    * @param length the length
    */
-  protected BlockInStream(PacketReader.Factory packetReaderFactory, WorkerNetAddress address,
+  protected BlockInStream(DataReader.Factory dataReaderFactory, WorkerNetAddress address,
       BlockInStreamSource blockSource, long id, long length) {
-    mPacketReaderFactory = packetReaderFactory;
+    mDataReaderFactory = dataReaderFactory;
     mAddress = address;
     mInStreamSource = blockSource;
     mId = id;
@@ -243,19 +247,19 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
       return 0;
     }
 
-    readPacket();
-    if (mCurrentPacket == null) {
+    readChunk();
+    if (mCurrentChunk == null) {
       mEOF = true;
     }
     if (mEOF) {
-      closePacketReader();
+      closeDataReader();
       Preconditions
           .checkState(mPos >= mLength, PreconditionMessage.BLOCK_LENGTH_INCONSISTENT.toString(),
               mId, mLength, mPos);
       return -1;
     }
-    int toRead = Math.min(len, mCurrentPacket.readableBytes());
-    mCurrentPacket.readBytes(b, off, toRead);
+    int toRead = Math.min(len, mCurrentChunk.readableBytes());
+    mCurrentChunk.readBytes(b, off, toRead);
     mPos += toRead;
     return toRead;
   }
@@ -270,13 +274,13 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
     }
 
     int lenCopy = len;
-    try (PacketReader reader = mPacketReaderFactory.create(pos, len)) {
-      // We try to read len bytes instead of returning after reading one packet because
-      // it is not free to create/close a PacketReader.
+    try (DataReader reader = mDataReaderFactory.create(pos, len)) {
+      // We try to read len bytes instead of returning after reading one chunk because
+      // it is not free to create/close a DataReader.
       while (len > 0) {
         DataBuffer dataBuffer = null;
         try {
-          dataBuffer = reader.readPacket();
+          dataBuffer = reader.readChunk();
           if (dataBuffer == null) {
             break;
           }
@@ -317,7 +321,7 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
       mEOF = false;
     }
 
-    closePacketReader();
+    closeDataReader();
     mPos = pos;
   }
 
@@ -331,56 +335,56 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
     long toSkip = Math.min(remaining(), n);
     mPos += toSkip;
 
-    closePacketReader();
+    closeDataReader();
     return toSkip;
   }
 
   @Override
   public void close() throws IOException {
     try {
-      closePacketReader();
+      closeDataReader();
     } finally {
-      mPacketReaderFactory.close();
+      mDataReaderFactory.close();
     }
     mClosed = true;
   }
 
   /**
-   * @return whether the packet in stream is reading packets directly from a local file
+   * @return whether the reader is reading data directly from a local file
    */
   public boolean isShortCircuit() {
-    return mPacketReaderFactory.isShortCircuit();
+    return mDataReaderFactory.isShortCircuit();
   }
 
   /**
-   * Reads a new packet from the channel if all of the current packet is read.
+   * Reads a new chunk from the channel if all of the current chunk is read.
    */
-  private void readPacket() throws IOException {
-    if (mPacketReader == null) {
-      mPacketReader = mPacketReaderFactory.create(mPos, mLength - mPos);
+  private void readChunk() throws IOException {
+    if (mDataReader == null) {
+      mDataReader = mDataReaderFactory.create(mPos, mLength - mPos);
     }
 
-    if (mCurrentPacket != null && mCurrentPacket.readableBytes() == 0) {
-      mCurrentPacket.release();
-      mCurrentPacket = null;
+    if (mCurrentChunk != null && mCurrentChunk.readableBytes() == 0) {
+      mCurrentChunk.release();
+      mCurrentChunk = null;
     }
-    if (mCurrentPacket == null) {
-      mCurrentPacket = mPacketReader.readPacket();
+    if (mCurrentChunk == null) {
+      mCurrentChunk = mDataReader.readChunk();
     }
   }
 
   /**
-   * Close the current packet reader.
+   * Close the current data reader.
    */
-  private void closePacketReader() throws IOException {
-    if (mCurrentPacket != null) {
-      mCurrentPacket.release();
-      mCurrentPacket = null;
+  private void closeDataReader() throws IOException {
+    if (mCurrentChunk != null) {
+      mCurrentChunk.release();
+      mCurrentChunk = null;
     }
-    if (mPacketReader != null) {
-      mPacketReader.close();
+    if (mDataReader != null) {
+      mDataReader.close();
     }
-    mPacketReader = null;
+    mDataReader = null;
   }
 
   /**

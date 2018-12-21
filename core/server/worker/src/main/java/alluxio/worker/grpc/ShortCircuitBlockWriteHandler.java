@@ -105,7 +105,7 @@ class ShortCircuitBlockWriteHandler {
       @Override
       public void exceptionCaught(Throwable throwable) {
         if (mSessionId != INVALID_SESSION_ID) {
-          // In case the client is a UfsFallbackPacketWriter, DO NOT clean the temp blocks.
+          // In case the client is a UfsFallbackDataWriter, DO NOT clean the temp blocks.
           if (throwable instanceof alluxio.exception.WorkerOutOfSpaceException
               && mRequest.hasCleanupOnFailure() && !mRequest.getCleanupOnFailure()) {
             mResponseObserver.onError(AlluxioStatusException.fromThrowable(throwable));

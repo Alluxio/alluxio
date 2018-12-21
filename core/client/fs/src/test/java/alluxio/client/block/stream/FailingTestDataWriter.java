@@ -17,43 +17,16 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 
 /**
- * A {@link PacketWriter} which writes data to a bytebuffer.
+ * A packet writer implementation which always throws an exception on writes.
  */
-public class TestPacketWriter implements PacketWriter {
-  private final ByteBuffer mBuffer;
-
-  public TestPacketWriter(ByteBuffer buffer) {
-    mBuffer = buffer;
+public class FailingTestDataWriter extends TestDataWriter {
+  public FailingTestDataWriter(ByteBuffer buffer) {
+    super(buffer);
   }
 
   @Override
-  public void writePacket(ByteBuf packet) throws IOException {
-    mBuffer.limit(mBuffer.position() + packet.readableBytes());
-    packet.readBytes(mBuffer);
-  }
-
-  @Override
-  public void cancel() {
-    return;
-  }
-
-  @Override
-  public void flush() {
-    return;
-  }
-
-  @Override
-  public int packetSize() {
-    return 128;
-  }
-
-  @Override
-  public long pos() {
-    return mBuffer.position();
-  }
-
-  @Override
-  public void close() {
-    return;
+  public void writeChunk(ByteBuf chunk) throws IOException {
+    chunk.release();
+    throw new IOException();
   }
 }

@@ -43,11 +43,11 @@ public class UnderFileSystemFileOutStream extends BlockOutStream {
   }
 
   /**
-   * Constructs a new {@link UnderFileSystemFileOutStream} with only one {@link PacketWriter}.
+   * Constructs a new {@link UnderFileSystemFileOutStream} with only one {@link DataWriter}.
    *
-   * @param packetWriter the packet writer
+   * @param dataWriter the data writer
    */
-  protected UnderFileSystemFileOutStream(PacketWriter packetWriter, WorkerNetAddress address) {
-    super(packetWriter, Long.MAX_VALUE, address);
+  protected UnderFileSystemFileOutStream(DataWriter dataWriter, WorkerNetAddress address) {
+    super(dataWriter, Long.MAX_VALUE, address);
   }
 }

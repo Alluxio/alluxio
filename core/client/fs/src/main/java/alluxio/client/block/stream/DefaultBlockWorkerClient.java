@@ -134,7 +134,9 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
 
   @Override
   public RemoveBlockResponse removeBlock(final RemoveBlockRequest request) {
-    return mBlockingStub.removeBlock(request);
+    return mBlockingStub.withDeadlineAfter(
+        Configuration.getMs(PropertyKey.USER_NETWORK_NETTY_TIMEOUT_MS), TimeUnit.MILLISECONDS)
+        .removeBlock(request);
   }
 
   @Override

@@ -36,14 +36,13 @@ import javax.annotation.concurrent.NotThreadSafe;
  * 1. The client sends a read request (id, offset, length).
  * 2. Once the server receives the request, it streams chunks to the client. The streaming pauses
  *    if the server's buffer is full and resumes if the buffer is not full.
- * 3. The client reads chunks from the stream. Reading pauses if the client buffer is full and
- *    resumes if the buffer is not full.
+ * 3. The client reads chunks from the stream using an iterator.
  * 4. The client can cancel the read request at anytime. The cancel request is ignored by the
  *    server if everything has been sent to channel.
  * 5. To make it simple to handle errors, the channel is closed if any error occurs.
  */
 @NotThreadSafe
-public final class GrpcDataReader implements PacketReader {
+public final class GrpcDataReader implements DataReader {
   private static final Logger LOG = LoggerFactory.getLogger(GrpcDataReader.class);
 
   private final FileSystemContext mContext;
@@ -60,8 +59,7 @@ public final class GrpcDataReader implements PacketReader {
   private long mPosToRead;
 
   /**
-   * Creates an instance of {@link GrpcDataReader}. If this is used to read a block remotely, it
-   * requires the block to be locked beforehand and the lock ID is passed to this class.
+   * Creates an instance of {@link GrpcDataReader}.
    *
    * @param context the file system context
    * @param address the data server address
@@ -90,9 +88,9 @@ public final class GrpcDataReader implements PacketReader {
   }
 
   @Override
-  public DataBuffer readPacket() throws IOException {
+  public DataBuffer readChunk() throws IOException {
     Preconditions.checkState(!mClient.isShutdown(),
-        "Data reader is closed while reading packets.");
+        "Data reader is closed while reading data chunks.");
     ByteString buf;
     try {
       if (!mIterator.hasNext()) {
@@ -122,7 +120,7 @@ public final class GrpcDataReader implements PacketReader {
   /**
    * Factory class to create {@link GrpcDataReader}s.
    */
-  public static class Factory implements PacketReader.Factory {
+  public static class Factory implements DataReader.Factory {
     private final FileSystemContext mContext;
     private final WorkerNetAddress mAddress;
     private final ReadRequest mReadRequestPartial;
@@ -142,7 +140,7 @@ public final class GrpcDataReader implements PacketReader {
     }
 
     @Override
-    public PacketReader create(long offset, long len) throws IOException {
+    public DataReader create(long offset, long len) throws IOException {
       return new GrpcDataReader(mContext, mAddress,
           mReadRequestPartial.toBuilder().setOffset(offset).setLength(len).build());
     }

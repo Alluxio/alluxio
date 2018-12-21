@@ -16,7 +16,7 @@ import alluxio.exception.status.AlluxioStatusException;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * A wrapper on an error used to pass error information from the netty I/O thread to the packet
+ * A wrapper on an error used to pass error information from the netty I/O thread to the data
  * reader thread.
  */
 @ThreadSafe

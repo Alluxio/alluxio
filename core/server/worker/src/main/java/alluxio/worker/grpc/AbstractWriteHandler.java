@@ -171,7 +171,7 @@ abstract class AbstractWriteHandler<T extends WriteRequestContext<?>> {
       writeBuf(mContext, mResponseObserver, buf, mContext.getPos());
       incrementMetrics(readableBytes);
     } catch (Exception e) {
-      LOG.error("Failed to write packet for request {}", mContext.getRequest(), e);
+      LOG.error("Failed to write data for request {}", mContext.getRequest(), e);
       Throwables.throwIfUnchecked(e);
       abort(new Error(AlluxioStatusException.fromCheckedException(e), true));
     }

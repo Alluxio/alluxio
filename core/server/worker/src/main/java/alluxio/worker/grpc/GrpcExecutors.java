@@ -42,7 +42,7 @@ final class GrpcExecutors {
       new ThreadPoolExecutor(THREADS_MIN + 4,
           Configuration.getInt(PropertyKey.WORKER_NETWORK_NETTY_BLOCK_READER_THREADS_MAX),
           THREAD_STOP_MS, TimeUnit.MILLISECONDS, new SynchronousQueue<>(),
-          ThreadFactoryUtils.build("BlockPacketReaderExecutor-%d", true));
+          ThreadFactoryUtils.build("BlockDataReaderExecutor-%d", true));
 
   /**
    * Private constructor.

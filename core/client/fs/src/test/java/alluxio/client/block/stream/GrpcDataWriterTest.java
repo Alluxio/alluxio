@@ -57,7 +57,7 @@ import java.util.concurrent.Future;
 public final class GrpcDataWriterTest {
   private static final Logger LOG = LoggerFactory.getLogger(GrpcDataWriterTest.class);
 
-  private static final int PACKET_SIZE = 1024;
+  private static final int CHUNK_SIZE = 1024;
   private static final ExecutorService EXECUTOR = Executors.newFixedThreadPool(4,
       ThreadFactoryUtils.build("test-executor-%d", true));
 
@@ -71,8 +71,8 @@ public final class GrpcDataWriterTest {
   private ClientCallStreamObserver<WriteRequest> mRequestObserver;
   @Rule
   public ConfigurationRule mConfigurationRule =
-      new ConfigurationRule(PropertyKey.USER_NETWORK_WRITER_PACKET_SIZE_BYTES,
-          String.valueOf(PACKET_SIZE));
+      new ConfigurationRule(PropertyKey.USER_NETWORK_WRITER_CHUNK_SIZE_BYTES,
+          String.valueOf(CHUNK_SIZE));
 
   @Before
   public void before() throws Exception {
@@ -98,7 +98,7 @@ public final class GrpcDataWriterTest {
   @Test(timeout = 1000 * 60)
   public void writeEmptyFile() throws Exception {
     long checksumActual;
-    try (PacketWriter writer = create(10)) {
+    try (DataWriter writer = create(10)) {
       checksumActual = verifyWriteRequests(mClient, 0, 10);
     }
     Assert.assertEquals(0, checksumActual);
@@ -112,8 +112,8 @@ public final class GrpcDataWriterTest {
   public void writeFullFile() throws Exception {
     long checksumActual;
     Future<Long> checksumExpected;
-    long length = PACKET_SIZE * 1024 + PACKET_SIZE / 3;
-    try (PacketWriter writer = create(length)) {
+    long length = CHUNK_SIZE * 1024 + CHUNK_SIZE / 3;
+    try (DataWriter writer = create(length)) {
       checksumExpected = writeFile(writer, length, 0, length - 1);
       checksumExpected.get();
       checksumActual = verifyWriteRequests(mClient, 0, length - 1);
@@ -129,8 +129,8 @@ public final class GrpcDataWriterTest {
   public void writeFileChecksumOfPartialFile() throws Exception {
     long checksumActual;
     Future<Long> checksumExpected;
-    long length = PACKET_SIZE * 1024 + PACKET_SIZE / 3;
-    try (PacketWriter writer = create(length)) {
+    long length = CHUNK_SIZE * 1024 + CHUNK_SIZE / 3;
+    try (DataWriter writer = create(length)) {
       checksumExpected = writeFile(writer, length, 10, length / 3);
       checksumExpected.get();
       checksumActual = verifyWriteRequests(mClient, 10, length / 3);
@@ -145,8 +145,8 @@ public final class GrpcDataWriterTest {
   public void writeFileUnknownLength() throws Exception {
     long checksumActual;
     Future<Long> checksumExpected;
-    long length = PACKET_SIZE * 1024;
-    try (PacketWriter writer = create(Long.MAX_VALUE)) {
+    long length = CHUNK_SIZE * 1024;
+    try (DataWriter writer = create(Long.MAX_VALUE)) {
       checksumExpected = writeFile(writer, length, 10, length / 3);
       checksumExpected.get();
       checksumActual = verifyWriteRequests(mClient, 10, length / 3);
@@ -155,14 +155,14 @@ public final class GrpcDataWriterTest {
   }
 
   /**
-   * Writes lots of packets.
+   * Writes lots of chunks.
    */
   @Test(timeout = 1000 * 60)
-  public void writeFileManyPackets() throws Exception {
+  public void writeFileManyChunks() throws Exception {
     long checksumActual;
     Future<Long> checksumExpected;
-    long length = PACKET_SIZE * 30000 + PACKET_SIZE / 3;
-    try (PacketWriter writer = create(Long.MAX_VALUE)) {
+    long length = CHUNK_SIZE * 30000 + CHUNK_SIZE / 3;
+    try (DataWriter writer = create(Long.MAX_VALUE)) {
       checksumExpected = writeFile(writer, length, 10, length / 3);
       checksumExpected.get();
       checksumActual = verifyWriteRequests(mClient, 10, length / 3);
@@ -171,13 +171,13 @@ public final class GrpcDataWriterTest {
   }
 
   /**
-   * Creates a {@link PacketWriter}.
+   * Creates a {@link DataWriter}.
    *
    * @param length the length
-   * @return the packet writer instance
+   * @return the data writer instance
    */
-  private PacketWriter create(long length) throws Exception {
-    PacketWriter writer =
+  private DataWriter create(long length) throws Exception {
+    DataWriter writer =
         GrpcDataWriter.create(mContext, mAddress, BLOCK_ID, length,
             RequestType.ALLUXIO_BLOCK,
             OutStreamOptions.defaults().setWriteTier(TIER));
@@ -185,7 +185,7 @@ public final class GrpcDataWriterTest {
   }
 
   /**
-   * Writes packets via the given packet writer and returns a checksum for a region of the data
+   * Writes chunks of data via the given data writer and returns a checksum for a region of the data
    * written.
    *
    * @param length the length
@@ -193,7 +193,7 @@ public final class GrpcDataWriterTest {
    * @param end the end position to calculate the checksum
    * @return the checksum
    */
-  private Future<Long> writeFile(final PacketWriter writer, final long length,
+  private Future<Long> writeFile(final DataWriter writer, final long length,
       final long start, final long end) throws Exception {
     return EXECUTOR.submit(new Callable<Long>() {
       @Override
@@ -204,12 +204,12 @@ public final class GrpcDataWriterTest {
 
           long remaining = length;
           while (remaining > 0) {
-            int bytesToWrite = (int) Math.min(remaining, PACKET_SIZE);
+            int bytesToWrite = (int) Math.min(remaining, CHUNK_SIZE);
             byte[] data = new byte[bytesToWrite];
             RANDOM.nextBytes(data);
             ByteBuf buf = Unpooled.wrappedBuffer(data);
             try {
-              writer.writePacket(buf);
+              writer.writeChunk(buf);
             } catch (Exception e) {
               Assert.fail(e.getMessage());
               throw e;

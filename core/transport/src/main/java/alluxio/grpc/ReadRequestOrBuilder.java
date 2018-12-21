@@ -52,11 +52,20 @@ public interface ReadRequestOrBuilder extends
   boolean getPromote();
 
   /**
+   * <code>optional int64 chunk_size = 5;</code>
+   */
+  boolean hasChunkSize();
+  /**
+   * <code>optional int64 chunk_size = 5;</code>
+   */
+  long getChunkSize();
+
+  /**
    * <pre>
    * This is only set for UFS block read.
    * </pre>
    *
-   * <code>optional .alluxio.proto.dataserver.OpenUfsBlockOptions open_ufs_block_options = 5;</code>
+   * <code>optional .alluxio.proto.dataserver.OpenUfsBlockOptions open_ufs_block_options = 6;</code>
    */
   boolean hasOpenUfsBlockOptions();
   /**
@@ -64,7 +73,7 @@ public interface ReadRequestOrBuilder extends
    * This is only set for UFS block read.
    * </pre>
    *
-   * <code>optional .alluxio.proto.dataserver.OpenUfsBlockOptions open_ufs_block_options = 5;</code>
+   * <code>optional .alluxio.proto.dataserver.OpenUfsBlockOptions open_ufs_block_options = 6;</code>
    */
   alluxio.proto.dataserver.Protocol.OpenUfsBlockOptions getOpenUfsBlockOptions();
   /**
@@ -72,7 +81,7 @@ public interface ReadRequestOrBuilder extends
    * This is only set for UFS block read.
    * </pre>
    *
-   * <code>optional .alluxio.proto.dataserver.OpenUfsBlockOptions open_ufs_block_options = 5;</code>
+   * <code>optional .alluxio.proto.dataserver.OpenUfsBlockOptions open_ufs_block_options = 6;</code>
    */
   alluxio.proto.dataserver.Protocol.OpenUfsBlockOptionsOrBuilder getOpenUfsBlockOptionsOrBuilder();
 }

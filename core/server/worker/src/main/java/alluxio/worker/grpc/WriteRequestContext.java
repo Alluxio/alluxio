@@ -32,7 +32,7 @@ public class WriteRequestContext<T extends WriteRequest> {
 
   /**
    * The error seen in either the netty I/O thread (e.g. failed to read from the network) or the
-   * packet writer thread (e.g. failed to write the packet).
+   * data writer thread (e.g. failed to write the data).
    */
   @GuardedBy("AbstractWriteHandler#mLock")
   private alluxio.worker.grpc.Error mError;
@@ -42,7 +42,7 @@ public class WriteRequestContext<T extends WriteRequest> {
    */
   private long mPos;
   /**
-   * The next pos to write to the block worker. This is only updated by the packet writer
+   * The next pos to write to the block worker. This is only updated by the data writer
    * thread. The netty I/O reads this only for sanity check during initialization.
    *
    * Using "volatile" because we want any value change of this variable to be

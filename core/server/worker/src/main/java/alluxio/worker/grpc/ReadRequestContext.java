@@ -31,11 +31,11 @@ public class ReadRequestContext<T extends ReadRequest> {
   private final T mRequest;
 
   /**
-   * Set to true if the packet reader is active. The following invariants must be maintained:
-   * 1. If true, there will be at least one more packet (data, eof or error) to be sent to netty.
-   * 2. If false, there will be no more packets sent to netty until it is set to true again.
+   * Set to true if the data reader is active. The following invariants must be maintained:
+   * 1. If true, there will be at least one more message (data, eof or error) to be sent to gRPC.
+   * 2. If false, there will be no more message sent to gRPC until it is set to true again.
    */
-  private boolean mPacketReaderActive;
+  private boolean mDataReaderActive;
   /**
    * The next pos to queue to the netty buffer. mPosToQueue - mPosToWrite is the bytes that are
    * in netty buffer.
@@ -45,27 +45,27 @@ public class ReadRequestContext<T extends ReadRequest> {
   private long mPosToWrite;
 
   /**
-   * mEof, mCancel and mError are the notifications processed by the packet reader thread. They can
-   * be set by either the netty I/O thread or the packet reader thread. mError overrides mCancel
+   * mEof, mCancel and mError are the notifications processed by the data reader thread. They can
+   * be set by either the gRPC I/O thread or the data reader thread. mError overrides mCancel
    * and mEof, mEof overrides mCancel.
    *
    * These notifications determine 3 ways to complete a read request.
    * 1. mEof: The read request is fulfilled. All the data requested by the client or all the data in
-   *    the block/file has been read. The packet reader replies a SUCCESS response when processing
+   *    the block/file has been read. The data reader replies a SUCCESS response when processing
    *    mEof.
    * 2. mCancel: The read request is cancelled by the client. A cancel request is ignored if mEof
-   *    is set. The packet reader replies a CANCEL response when processing mCancel.
+   *    is set. The data reader replies a CANCEL response when processing mCancel.
    *    Note: The client can send a cancel request after the server has sent a SUCCESS response. But
    *    it is not possible for the client to send a CANCEL request after the channel has been
    *    released. So it is impossible for a CANCEL request from one read request to cancel
    *    another read request.
    * 3. mError: mError is set whenever an error occurs. It can be from an exception when reading
-   *    packet, or writing packet to netty or the client closes the channel etc. An ERROR response
-   *    is optionally sent to the client when packet reader thread process mError. The channel
+   *    data, or writing data to netty or the client closes the channel etc. An ERROR response
+   *    is optionally sent to the client when data reader thread process mError. The channel
    *    is closed after this error response is sent.
    *
    * Note: it is guaranteed that only one of SUCCESS and CANCEL responses is sent at most once
-   * because the packet reader thread won't be restarted as long as mCancel or mEof is set except
+   * because the data reader thread won't be restarted as long as mCancel or mEof is set except
    * when error happens (mError overrides mCancel and mEof).
    */
   private boolean mEof;
@@ -85,7 +85,7 @@ public class ReadRequestContext<T extends ReadRequest> {
     mRequest = request;
     mPosToQueue = 0;
     mPosToWrite = 0;
-    mPacketReaderActive = false;
+    mDataReaderActive = false;
     mEof = false;
     mCancel = false;
     mError = null;
@@ -100,11 +100,11 @@ public class ReadRequestContext<T extends ReadRequest> {
   }
 
   /**
-   * @return whether the packet reader is active
+   * @return whether the data reader is active
    */
   @GuardedBy("AbstractReadHandler#mLock")
-  public boolean isPacketReaderActive() {
-    return mPacketReaderActive;
+  public boolean isDataReaderActive() {
+    return mDataReaderActive;
   }
 
   /**
@@ -124,7 +124,7 @@ public class ReadRequestContext<T extends ReadRequest> {
   }
 
   /**
-   * @return true when the packet reader replies a SUCCESS response, false otherwise
+   * @return true when the data reader replies a SUCCESS response, false otherwise
    */
   @GuardedBy("AbstractReadHandler#mLock")
   public boolean isEof() {
@@ -175,8 +175,8 @@ public class ReadRequestContext<T extends ReadRequest> {
    * @param packetReaderActive packet reader state to set
    */
   @GuardedBy("AbstractReadHandler#mLock")
-  public void setPacketReaderActive(boolean packetReaderActive) {
-    mPacketReaderActive = packetReaderActive;
+  public void setDataReaderActive(boolean packetReaderActive) {
+    mDataReaderActive = packetReaderActive;
   }
 
   /**

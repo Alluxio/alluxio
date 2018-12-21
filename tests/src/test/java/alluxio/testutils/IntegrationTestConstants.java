@@ -16,7 +16,7 @@ package alluxio.testutils;
  */
 public class IntegrationTestConstants {
   // DataServer variations.
-  public static final String NETTY_DATA_SERVER = "alluxio.worker.grpc.GrpcDataServer";
+  public static final String GRPC_DATA_SERVER = "alluxio.worker.grpc.GrpcDataServer";
 
   // Netty transfer types.
   public static final String MAPPED_TRANSFER = "MAPPED";

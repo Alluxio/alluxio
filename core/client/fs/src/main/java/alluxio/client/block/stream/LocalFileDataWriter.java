@@ -41,18 +41,18 @@ import java.util.concurrent.locks.ReentrantLock;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * A local packet writer that simply writes packets to a local file.
+ * A local data writer that simply writes packets to a local file.
  */
 @NotThreadSafe
-public final class LocalFilePacketWriter implements PacketWriter {
-  private static final Logger LOG = LoggerFactory.getLogger(LocalFilePacketWriter.class);
+public final class LocalFileDataWriter implements DataWriter {
+  private static final Logger LOG = LoggerFactory.getLogger(LocalFileDataWriter.class);
   private static final long FILE_BUFFER_BYTES =
       Configuration.getBytes(PropertyKey.USER_FILE_BUFFER_BYTES);
   private static final long READ_TIMEOUT_MS =
       Configuration.getMs(PropertyKey.USER_NETWORK_NETTY_TIMEOUT_MS);
   private final BlockWorkerClient mBlockWorker;
   private final LocalFileBlockWriter mWriter;
-  private final long mPacketSize;
+  private final long mChunkSize;
   private final CreateLocalBlockRequest mCreateRequest;
   private final OutStreamOptions mOptions;
   private final Closer mCloser;
@@ -67,19 +67,19 @@ public final class LocalFilePacketWriter implements PacketWriter {
   private boolean mClosed = false;
 
   /**
-   * Creates an instance of {@link LocalFilePacketWriter}. This requires the block to be locked
+   * Creates an instance of {@link LocalFileDataWriter}. This requires the block to be locked
    * beforehand.
    *
    * @param context the file system context
    * @param address the worker network address
    * @param blockId the block ID
    * @param options the output stream options
-   * @return the {@link LocalFilePacketWriter} created
+   * @return the {@link LocalFileDataWriter} created
    */
-  public static LocalFilePacketWriter create(final FileSystemContext context,
+  public static LocalFileDataWriter create(final FileSystemContext context,
       final WorkerNetAddress address,
       long blockId, OutStreamOptions options) throws IOException {
-    long packetSize = Configuration.getBytes(PropertyKey.USER_LOCAL_WRITER_PACKET_SIZE_BYTES);
+    long chunkSize = Configuration.getBytes(PropertyKey.USER_LOCAL_WRITER_CHUNK_SIZE_BYTES);
 
     Closer closer = Closer.create();
     try {
@@ -113,7 +113,7 @@ public final class LocalFilePacketWriter implements PacketWriter {
       }
       LocalFileBlockWriter writer =
           closer.register(new LocalFileBlockWriter(responseObserver.getResponse().getPath()));
-      return new LocalFilePacketWriter(packetSize, options, blockWorker,
+      return new LocalFileDataWriter(chunkSize, options, blockWorker,
           writer, createRequest, (ClientCallStreamObserver<CreateLocalBlockRequest>) request,
           responseObserver, closer);
     } catch (Exception e) {
@@ -127,14 +127,14 @@ public final class LocalFilePacketWriter implements PacketWriter {
   }
 
   @Override
-  public int packetSize() {
-    return (int) mPacketSize;
+  public int chunkSize() {
+    return (int) mChunkSize;
   }
 
   @Override
-  public void writePacket(final ByteBuf buf) throws IOException {
+  public void writeChunk(final ByteBuf buf) throws IOException {
     try {
-      Preconditions.checkState(!mClosed, "PacketWriter is closed while writing packets.");
+      Preconditions.checkState(!mClosed, "DataWriter is closed while writing chunks.");
       int sz = buf.readableBytes();
       ensureReserved(mPos + sz);
       mPos += sz;
@@ -193,13 +193,13 @@ public final class LocalFilePacketWriter implements PacketWriter {
   }
 
   /**
-   * Creates an instance of {@link LocalFilePacketWriter}.
+   * Creates an instance of {@link LocalFileDataWriter}.
    * @param packetSize the packet size
    * @param options the output stream options
    * @param request
    * @param responseObserver the response observer
    */
-  private LocalFilePacketWriter(long packetSize, OutStreamOptions options,
+  private LocalFileDataWriter(long packetSize, OutStreamOptions options,
       BlockWorkerClient blockWorker, LocalFileBlockWriter writer,
       CreateLocalBlockRequest createRequest,
       ClientCallStreamObserver<CreateLocalBlockRequest> request, ResponseObserver responseObserver,
@@ -212,7 +212,7 @@ public final class LocalFilePacketWriter implements PacketWriter {
     mRequestObserver = request;
     mResponseObserver = responseObserver;
     mPosReserved += FILE_BUFFER_BYTES;
-    mPacketSize = packetSize;
+    mChunkSize = packetSize;
   }
 
   /**

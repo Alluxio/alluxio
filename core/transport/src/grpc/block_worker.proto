@@ -46,9 +46,10 @@ message ReadRequest {
   optional int64 length = 3;
   // Whether the block should be promoted before reading
   optional bool promote = 4;
+  optional int64 chunk_size = 5;
 
   // This is only set for UFS block read.
-  optional alluxio.proto.dataserver.OpenUfsBlockOptions open_ufs_block_options = 5;
+  optional alluxio.proto.dataserver.OpenUfsBlockOptions open_ufs_block_options = 6;
 }
 
 // The read response.

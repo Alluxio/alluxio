@@ -48,7 +48,7 @@ import java.util.concurrent.TimeoutException;
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({FileSystemContext.class, WorkerNetAddress.class})
 public final class GrpcDataReaderTest {
-  private static final int PACKET_SIZE = 1024;
+  private static final int CHUNK_SIZE = 1024;
   private static final ExecutorService EXECUTOR = Executors.newFixedThreadPool(4);
 
   private static final Random RANDOM = new Random();
@@ -65,7 +65,7 @@ public final class GrpcDataReaderTest {
     mContext = PowerMockito.mock(FileSystemContext.class);
     mAddress = mock(WorkerNetAddress.class);
     ReadRequest readRequest =
-        ReadRequest.newBuilder().setBlockId(BLOCK_ID).build();
+        ReadRequest.newBuilder().setBlockId(BLOCK_ID).setChunkSize(CHUNK_SIZE).build();
     mFactory = new GrpcDataReader.Factory(mContext, mAddress, readRequest);
 
     mClient = mock(BlockWorkerClient.class);
@@ -84,10 +84,10 @@ public final class GrpcDataReaderTest {
   @Test
   public void readEmptyFile() throws Exception {
     setReadResponses(mClient, 0, 0, 0);
-    try (PacketReader reader = create(0, 10)) {
-      assertEquals(null, reader.readPacket());
+    try (DataReader reader = create(0, 10)) {
+      assertEquals(null, reader.readChunk());
     }
-    validateReadRequestSent(mClient, 0, 10, false);
+    validateReadRequestSent(mClient, 0, 10, false, CHUNK_SIZE);
   }
 
   /**
@@ -95,13 +95,13 @@ public final class GrpcDataReaderTest {
    */
   @Test(timeout = 1000 * 60)
   public void readFullFile() throws Exception {
-    long length = PACKET_SIZE * 1024 + PACKET_SIZE / 3;
+    long length = CHUNK_SIZE * 1024 + CHUNK_SIZE / 3;
     long checksum = setReadResponses(mClient, length, 0, length - 1);
-    try (PacketReader reader = create(0, length)) {
-      long checksumActual = checkPackets(reader, 0, length);
+    try (DataReader reader = create(0, length)) {
+      long checksumActual = checkChunks(reader, 0, length);
       assertEquals(checksum, checksumActual);
     }
-    validateReadRequestSent(mClient, 0, length, true);
+    validateReadRequestSent(mClient, 0, length, true, CHUNK_SIZE);
   }
 
   /**
@@ -109,17 +109,17 @@ public final class GrpcDataReaderTest {
    */
   @Test(timeout = 1000 * 60)
   public void readPartialFile() throws Exception {
-    long length = PACKET_SIZE * 1024 + PACKET_SIZE / 3;
+    long length = CHUNK_SIZE * 1024 + CHUNK_SIZE / 3;
     long offset = 10;
     long checksumStart = 100;
     long bytesToRead = length / 3;
     long checksum = setReadResponses(mClient, length, checksumStart, bytesToRead - 1);
 
-    try (PacketReader reader = create(offset, length)) {
-      long checksumActual = checkPackets(reader, checksumStart, bytesToRead);
+    try (DataReader reader = create(offset, length)) {
+      long checksumActual = checkChunks(reader, checksumStart, bytesToRead);
       assertEquals(checksum, checksumActual);
     }
-    validateReadRequestSent(mClient, offset, length, true);
+    validateReadRequestSent(mClient, offset, length, true, CHUNK_SIZE);
   }
 
   /**
@@ -127,50 +127,50 @@ public final class GrpcDataReaderTest {
    */
   @Test(timeout = 1000 * 60)
   public void fileLengthUnknown() throws Exception {
-    long lengthActual = PACKET_SIZE * 1024 + PACKET_SIZE / 3;
+    long lengthActual = CHUNK_SIZE * 1024 + CHUNK_SIZE / 3;
     long checksumStart = 100;
     long bytesToRead = lengthActual / 3;
     long checksum = setReadResponses(mClient, lengthActual, checksumStart, bytesToRead - 1);
-    try (PacketReader reader = create(0, Long.MAX_VALUE)) {
-      long checksumActual = checkPackets(reader, checksumStart, bytesToRead);
+    try (DataReader reader = create(0, Long.MAX_VALUE)) {
+      long checksumActual = checkChunks(reader, checksumStart, bytesToRead);
       assertEquals(checksum, checksumActual);
     }
-    validateReadRequestSent(mClient, 0, Long.MAX_VALUE, true);
+    validateReadRequestSent(mClient, 0, Long.MAX_VALUE, true, CHUNK_SIZE);
   }
 
   /**
-   * Creates a {@link PacketReader}.
+   * Creates a {@link DataReader}.
    *
    * @param offset the offset
    * @param length the length
-   * @return the packet reader instance
+   * @return the data reader instance
    */
-  private PacketReader create(long offset, long length) throws Exception {
-    PacketReader reader = mFactory.create(offset, length);
+  private DataReader create(long offset, long length) throws Exception {
+    DataReader reader = mFactory.create(offset, length);
     return reader;
   }
 
   /**
-   * Reads the packets from the given {@link PacketReader}.
+   * Reads the chunks from the given {@link DataReader}.
    *
-   * @param reader the packet reader
+   * @param reader the data reader
    * @param checksumStart the start position to calculate the checksum
    * @param bytesToRead bytes to read
    * @return the checksum of the data read starting from checksumStart
    */
-  private long checkPackets(PacketReader reader, long checksumStart, long bytesToRead)
+  private long checkChunks(DataReader reader, long checksumStart, long bytesToRead)
       throws Exception {
     long pos = 0;
     long checksum = 0;
 
     while (true) {
-      DataBuffer packet = reader.readPacket();
-      if (packet == null) {
+      DataBuffer chunk = reader.readChunk();
+      if (chunk == null) {
         break;
       }
       try {
-        assertTrue(packet instanceof DataByteBuffer);
-        ByteBuf buf = (ByteBuf) packet.getNettyOutput();
+        assertTrue(chunk instanceof DataByteBuffer);
+        ByteBuf buf = (ByteBuf) chunk.getNettyOutput();
         byte[] bytes = new byte[buf.readableBytes()];
         buf.readBytes(bytes);
         for (int i = 0; i < bytes.length; i++) {
@@ -183,7 +183,7 @@ public final class GrpcDataReaderTest {
           }
         }
       } finally {
-        packet.release();
+        chunk.release();
       }
     }
     return checksum;
@@ -197,7 +197,7 @@ public final class GrpcDataReaderTest {
    * @param length the length
    */
   private void validateReadRequestSent(final BlockWorkerClient client, long offset, long length,
-      boolean closed) throws TimeoutException, InterruptedException {
+      boolean closed, int chunkSize) throws TimeoutException, InterruptedException {
     ArgumentCaptor<ReadRequest> captor = ArgumentCaptor.forClass(ReadRequest.class);
     verify(client).readBlock(captor.capture());
     ReadRequest readRequest = captor.getValue();
@@ -206,6 +206,7 @@ public final class GrpcDataReaderTest {
     assertEquals(offset, readRequest.getOffset());
     assertEquals(length, readRequest.getLength());
     assertEquals(closed, mGrpcContext.isCancelled());
+    assertEquals(chunkSize, readRequest.getChunkSize());
   }
 
   /**
@@ -225,7 +226,7 @@ public final class GrpcDataReaderTest {
     long remaining = length;
     List<ReadResponse> responses = new ArrayList<ReadResponse>();
     while (remaining > 0) {
-      int bytesToSend = (int) Math.min(remaining, PACKET_SIZE);
+      int bytesToSend = (int) Math.min(remaining, CHUNK_SIZE);
       byte[] data = new byte[bytesToSend];
       RANDOM.nextBytes(data);
       responses.add(ReadResponse.newBuilder()

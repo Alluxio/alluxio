@@ -33,16 +33,16 @@ import java.io.IOException;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * The interface to write packets.
+ * The interface to write data.
  */
-public interface PacketWriter extends Closeable, Cancelable {
+public interface DataWriter extends Closeable, Cancelable {
 
   /**
-   * Factory for {@link PacketWriter}.
+   * Factory for {@link DataWriter}.
    */
   @ThreadSafe
   class Factory {
-    public static final Logger LOG = LoggerFactory.getLogger(PacketWriter.Factory.class);
+    public static final Logger LOG = LoggerFactory.getLogger(DataWriter.Factory.class);
 
     private Factory() {} // prevent instantiation
 
@@ -52,9 +52,9 @@ public interface PacketWriter extends Closeable, Cancelable {
      * @param blockSize the block size in bytes
      * @param address the Alluxio worker address
      * @param options the out stream options
-     * @return the {@link PacketWriter} instance
+     * @return the {@link DataWriter} instance
      */
-    public static PacketWriter create(FileSystemContext context, long blockId, long blockSize,
+    public static DataWriter create(FileSystemContext context, long blockId, long blockSize,
         WorkerNetAddress address, OutStreamOptions options) throws IOException {
       if (CommonUtils.isLocalHost(address) && Configuration
           .getBoolean(PropertyKey.USER_SHORT_CIRCUIT_ENABLED) && !NettyUtils
@@ -63,11 +63,11 @@ public interface PacketWriter extends Closeable, Cancelable {
             && Configuration.getBoolean(PropertyKey.USER_FILE_UFS_TIER_ENABLED)) {
           LOG.info("Creating UFS-fallback short circuit output stream for block {} @ {}", blockId,
               address);
-          return UfsFallbackLocalFilePacketWriter.create(
+          return UfsFallbackLocalFileDataWriter.create(
               context, address, blockId, blockSize, options);
         }
         LOG.debug("Creating short circuit output stream for block {} @ {}", blockId, address);
-        return LocalFilePacketWriter.create(context, address, blockId, options);
+        return LocalFileDataWriter.create(context, address, blockId, options);
       } else {
         LOG.debug("Creating netty output stream for block {} @ {} from client {}", blockId, address,
             NetworkAddressUtils.getClientHostName());
@@ -79,22 +79,22 @@ public interface PacketWriter extends Closeable, Cancelable {
   }
 
   /**
-   * Writes a packet. This method takes the ownership of this packet even if it fails to write
-   * the packet.
+   * Writes a chunk. This method takes the ownership of this chunk even if it fails to write
+   * the chunk.
    *
-   * @param packet the packet
+   * @param chunk the chunk
    */
-  void writePacket(ByteBuf packet) throws IOException;
+  void writeChunk(ByteBuf chunk) throws IOException;
 
   /**
-   *  Flushes all the pending packets.
+   *  Flushes all the pending chunks.
    */
   void flush() throws IOException;
 
   /**
-   * @return the packet size in bytes used
+   * @return the chunk size in bytes used
    */
-  int packetSize();
+  int chunkSize();
 
   /**
    * @return the current pos which is the same as the totally number of bytes written so far

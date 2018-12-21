@@ -32,40 +32,40 @@ import java.nio.ByteBuffer;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * A packet reader that simply reads packets from a local file.
+ * A data reader that simply reads packets from a local file.
  */
 @NotThreadSafe
-public final class LocalFilePacketReader implements PacketReader {
+public final class LocalFileDataReader implements DataReader {
   /** The file reader to read a local block. */
   private final LocalFileBlockReader mReader;
   private final long mEnd;
-  private final long mPacketSize;
+  private final long mChunkSize;
   private long mPos;
   private boolean mClosed;
 
   /**
-   * Creates an instance of {@link LocalFilePacketReader}.
+   * Creates an instance of {@link LocalFileDataReader}.
    *
    * @param reader the file reader to the block path
    * @param offset the offset
    * @param len the length to read
-   * @param packetSize the packet size
+   * @param chunkSize the chunk size
    */
-  private LocalFilePacketReader(LocalFileBlockReader reader, long offset, long len, long packetSize)
+  private LocalFileDataReader(LocalFileBlockReader reader, long offset, long len, long chunkSize)
       throws IOException {
     mReader = reader;
-    Preconditions.checkArgument(packetSize > 0);
+    Preconditions.checkArgument(chunkSize > 0);
     mPos = offset;
     mEnd = Math.min(mReader.getLength(), offset + len);
-    mPacketSize = packetSize;
+    mChunkSize = chunkSize;
   }
 
   @Override
-  public DataBuffer readPacket() throws IOException {
+  public DataBuffer readChunk() throws IOException {
     if (mPos >= mEnd) {
       return null;
     }
-    ByteBuffer buffer = mReader.read(mPos, Math.min(mPacketSize, mEnd - mPos));
+    ByteBuffer buffer = mReader.read(mPos, Math.min(mChunkSize, mEnd - mPos));
     DataBuffer dataBuffer = new DataByteBuffer(buffer, buffer.remaining());
     mPos += dataBuffer.getLength();
     MetricsSystem.counter(ClientMetrics.BYTES_READ_LOCAL).inc(dataBuffer.getLength());
@@ -88,14 +88,14 @@ public final class LocalFilePacketReader implements PacketReader {
   }
 
   /**
-   * Factory class to create {@link LocalFilePacketReader}s.
+   * Factory class to create {@link LocalFileDataReader}s.
    */
   @NotThreadSafe
-  public static class Factory implements PacketReader.Factory {
+  public static class Factory implements DataReader.Factory {
     private final BlockWorkerClient mBlockWorker;
     private final long mBlockId;
     private final String mPath;
-    private final long mPacketSize;
+    private final long mChunkSize;
     private final Context.CancellableContext mCancellableContext;
     private LocalFileBlockReader mReader;
     private boolean mClosed;
@@ -106,13 +106,13 @@ public final class LocalFilePacketReader implements PacketReader {
      * @param context the file system context
      * @param address the worker address
      * @param blockId the block ID
-     * @param packetSize the packet size
+     * @param chunkSize the packet size
      * @param options the instream options
      */
     public Factory(FileSystemContext context, WorkerNetAddress address, long blockId,
-        long packetSize, InStreamOptions options) throws IOException {
+        long chunkSize, InStreamOptions options) throws IOException {
       mBlockId = blockId;
-      mPacketSize = packetSize;
+      mChunkSize = chunkSize;
 
       mBlockWorker = context.acquireBlockWorkerClient(address);
       boolean isPromote = ReadType.fromProto(options.getOptions().getReadType()).isPromote();
@@ -132,13 +132,13 @@ public final class LocalFilePacketReader implements PacketReader {
     }
 
     @Override
-    public PacketReader create(long offset, long len) throws IOException {
+    public DataReader create(long offset, long len) throws IOException {
       if (mReader == null) {
         mReader = new LocalFileBlockReader(mPath);
       }
       Preconditions.checkState(mReader.getUsageCount() == 0);
       mReader.increaseUsageCount();
-      return new LocalFilePacketReader(mReader, offset, len, mPacketSize);
+      return new LocalFileDataReader(mReader, offset, len, mChunkSize);
     }
 
     @Override

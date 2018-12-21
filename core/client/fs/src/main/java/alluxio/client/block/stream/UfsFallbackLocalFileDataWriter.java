@@ -26,13 +26,13 @@ import java.io.IOException;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * A packet writer that writes to local first and fallback to UFS block writes when the block
+ * A data writer that writes to local first and fallback to UFS block writes when the block
  * storage on this local worker is full.
  */
 @NotThreadSafe
-public final class UfsFallbackLocalFilePacketWriter implements PacketWriter {
-  private static final Logger LOG = LoggerFactory.getLogger(UfsFallbackLocalFilePacketWriter.class);
-  private final PacketWriter mLocalFilePacketWriter;
+public final class UfsFallbackLocalFileDataWriter implements DataWriter {
+  private static final Logger LOG = LoggerFactory.getLogger(UfsFallbackLocalFileDataWriter.class);
+  private final DataWriter mLocalFileDataWriter;
   private final FileSystemContext mContext;
   private final WorkerNetAddress mWorkerNetAddress;
   private final long mBlockSize;
@@ -47,53 +47,53 @@ public final class UfsFallbackLocalFilePacketWriter implements PacketWriter {
    * @param blockId the block ID
    * @param blockSize the block size
    * @param options the output stream options
-   * @return the {@link UfsFallbackLocalFilePacketWriter} instance created
+   * @return the {@link UfsFallbackLocalFileDataWriter} instance created
    */
-  public static UfsFallbackLocalFilePacketWriter create(FileSystemContext context,
+  public static UfsFallbackLocalFileDataWriter create(FileSystemContext context,
       WorkerNetAddress address, long blockId, long blockSize, OutStreamOptions options)
       throws IOException {
     try {
-      LocalFilePacketWriter localFilePacketWriter =
-          LocalFilePacketWriter.create(context, address, blockId, options);
-      return new UfsFallbackLocalFilePacketWriter(localFilePacketWriter, null, context, address,
+      LocalFileDataWriter localFilePacketWriter =
+          LocalFileDataWriter.create(context, address, blockId, options);
+      return new UfsFallbackLocalFileDataWriter(localFilePacketWriter, null, context, address,
           blockId, blockSize, options);
     } catch (ResourceExhaustedException e) {
       LOG.warn("Fallback to create new block {} in UFS due to a failure of insufficient space on "
           + "the local worker: {}", blockId, e.getMessage());
     }
-    // Failed to create the local writer due to insufficient space, fallback to netty packet writer
+    // Failed to create the local writer due to insufficient space, fallback to netty data writer
     // directly
     GrpcDataWriter grpcDataWriter = GrpcDataWriter
         .create(context, address, blockId, blockSize, RequestType.UFS_FALLBACK_BLOCK,
             options);
-    return new UfsFallbackLocalFilePacketWriter(null, grpcDataWriter, context, address, blockId,
+    return new UfsFallbackLocalFileDataWriter(null, grpcDataWriter, context, address, blockId,
         blockSize, options);
   }
 
-  UfsFallbackLocalFilePacketWriter(PacketWriter localFilePacketWriter,
+  UfsFallbackLocalFileDataWriter(DataWriter localFileDataWriter,
       GrpcDataWriter grpcDataWriter, FileSystemContext context,
       final WorkerNetAddress address, long blockId, long blockSize, OutStreamOptions options) {
-    mLocalFilePacketWriter = localFilePacketWriter;
+    mLocalFileDataWriter = localFileDataWriter;
     mGrpcDataWriter = grpcDataWriter;
     mBlockId = blockId;
     mContext = context;
     mWorkerNetAddress = address;
     mBlockSize = blockSize;
     mOutStreamOptions = options;
-    mIsWritingToLocal = mLocalFilePacketWriter != null;
+    mIsWritingToLocal = mLocalFileDataWriter != null;
   }
 
   @Override
-  public void writePacket(ByteBuf packet) throws IOException {
+  public void writeChunk(ByteBuf chunk) throws IOException {
     if (mIsWritingToLocal) {
-      long pos = mLocalFilePacketWriter.pos();
+      long pos = mLocalFileDataWriter.pos();
       try {
-        // packet.refcount++ to ensure packet not garbage-collected if writePacket fails
-        packet.retain();
-        // packet.refcount-- inside regardless of exception
-        mLocalFilePacketWriter.writePacket(packet);
-        // packet.refcount-- on success
-        packet.release();
+        // chunk.refcount++ to ensure chunk not garbage-collected if writeChunk fails
+        chunk.retain();
+        // chunk.refcount-- inside regardless of exception
+        mLocalFileDataWriter.writeChunk(chunk);
+        // chunk.refcount-- on success
+        chunk.release();
         return;
       } catch (ResourceExhaustedException e) {
         LOG.warn("Fallback to write to UFS for block {} due to a failure of insufficient space "
@@ -104,15 +104,15 @@ public final class UfsFallbackLocalFilePacketWriter implements PacketWriter {
         if (pos == 0) {
           // Nothing has been written to temp block, we can cancel this failed local writer and
           // cleanup the temp block.
-          mLocalFilePacketWriter.cancel();
+          mLocalFileDataWriter.cancel();
         } else {
-          // Note that, we can not cancel mLocalFilePacketWriter now as the cancel message may
+          // Note that, we can not cancel mLocalFileDataWriter now as the cancel message may
           // arrive and clean the temp block before it is written to UFS.
-          mLocalFilePacketWriter.flush();
+          mLocalFileDataWriter.flush();
         }
-        // Close the block writer. We do not close the mLocalFilePacketWriter to prevent the worker
+        // Close the block writer. We do not close the mLocalFileDataWriter to prevent the worker
         // completes the block, commit it and remove it.
-        //mLocalFilePacketWriter.getWriter().close();
+        //mLocalFileDataWriter.getWriter().close();
         mGrpcDataWriter = GrpcDataWriter
             .create(mContext, mWorkerNetAddress, mBlockId, mBlockSize,
                 RequestType.UFS_FALLBACK_BLOCK, mOutStreamOptions);
@@ -122,36 +122,36 @@ public final class UfsFallbackLocalFilePacketWriter implements PacketWriter {
           mGrpcDataWriter.writeFallbackInitRequest(pos);
         }
       } catch (Exception e) {
-        // packet.refcount-- on exception
-        packet.release();
+        // chunk.refcount-- on exception
+        chunk.release();
         throw new IOException("Failed to switch to writing block " + mBlockId + " to UFS", e);
       }
     }
-    mGrpcDataWriter.writePacket(packet); // refcount-- inside to release packet
+    mGrpcDataWriter.writeChunk(chunk); // refcount-- inside to release chunk
   }
 
   @Override
   public void flush() throws IOException {
     if (mIsWritingToLocal) {
-      mLocalFilePacketWriter.flush();
+      mLocalFileDataWriter.flush();
     } else {
       mGrpcDataWriter.flush();
     }
   }
 
   @Override
-  public int packetSize() {
+  public int chunkSize() {
     if (mIsWritingToLocal) {
-      return mLocalFilePacketWriter.packetSize();
+      return mLocalFileDataWriter.chunkSize();
     } else {
-      return mGrpcDataWriter.packetSize();
+      return mGrpcDataWriter.chunkSize();
     }
   }
 
   @Override
   public long pos() {
     if (mIsWritingToLocal) {
-      return mLocalFilePacketWriter.pos();
+      return mLocalFileDataWriter.pos();
     } else {
       return mGrpcDataWriter.pos();
     }
@@ -160,11 +160,11 @@ public final class UfsFallbackLocalFilePacketWriter implements PacketWriter {
   @Override
   public void cancel() throws IOException {
     if (mIsWritingToLocal) {
-      mLocalFilePacketWriter.cancel();
+      mLocalFileDataWriter.cancel();
     } else {
       // Clean up the state of previous temp block left over
-      if (mLocalFilePacketWriter != null) {
-        mLocalFilePacketWriter.cancel();
+      if (mLocalFileDataWriter != null) {
+        mLocalFileDataWriter.cancel();
       }
       mGrpcDataWriter.cancel();
     }
@@ -173,11 +173,11 @@ public final class UfsFallbackLocalFilePacketWriter implements PacketWriter {
   @Override
   public void close() throws IOException {
     if (mIsWritingToLocal) {
-      mLocalFilePacketWriter.close();
+      mLocalFileDataWriter.close();
     } else {
       // Clean up the state of previous temp block left over
-      if (mLocalFilePacketWriter != null) {
-        mLocalFilePacketWriter.cancel();
+      if (mLocalFileDataWriter != null) {
+        mLocalFileDataWriter.cancel();
       }
       mGrpcDataWriter.close();
     }

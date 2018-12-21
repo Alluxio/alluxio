@@ -109,7 +109,7 @@ public final class FileInStreamIntegrationTest extends BaseIntegrationTest {
    */
   @Test
   @LocalAlluxioClusterResource.Config(
-      confParams = {PropertyKey.Name.USER_NETWORK_NETTY_READER_PACKET_SIZE_BYTES, "64KB"})
+      confParams = {PropertyKey.Name.USER_NETWORK_READER_CHUNK_SIZE_BYTES, "64KB"})
   public void readTest1() throws Exception {
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (CreateFilePOptions op : getOptionSet()) {
@@ -152,7 +152,7 @@ public final class FileInStreamIntegrationTest extends BaseIntegrationTest {
    */
   @Test
   @LocalAlluxioClusterResource.Config(
-      confParams = {PropertyKey.Name.USER_NETWORK_NETTY_READER_PACKET_SIZE_BYTES, "64KB"})
+      confParams = {PropertyKey.Name.USER_NETWORK_READER_CHUNK_SIZE_BYTES, "64KB"})
   public void readTest2() throws Exception {
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (CreateFilePOptions op : getOptionSet()) {
@@ -179,7 +179,7 @@ public final class FileInStreamIntegrationTest extends BaseIntegrationTest {
    */
   @Test
   @LocalAlluxioClusterResource.Config(
-      confParams = {PropertyKey.Name.USER_NETWORK_NETTY_READER_PACKET_SIZE_BYTES, "64KB"})
+      confParams = {PropertyKey.Name.USER_NETWORK_READER_CHUNK_SIZE_BYTES, "64KB"})
   public void readTest3() throws Exception {
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (CreateFilePOptions op : getOptionSet()) {
@@ -397,7 +397,7 @@ public final class FileInStreamIntegrationTest extends BaseIntegrationTest {
   @LocalAlluxioClusterResource.Config(
       confParams = {PropertyKey.Name.USER_SHORT_CIRCUIT_ENABLED, "false",
           PropertyKey.Name.USER_BLOCK_SIZE_BYTES_DEFAULT, "16MB",
-          PropertyKey.Name.USER_NETWORK_NETTY_READER_PACKET_SIZE_BYTES, "64KB",
+          PropertyKey.Name.USER_NETWORK_READER_CHUNK_SIZE_BYTES, "64KB",
           PropertyKey.Name.WORKER_MEMORY_SIZE, "1GB"})
   public void remoteReadLargeFile() throws Exception {
     // write a file outside of Alluxio

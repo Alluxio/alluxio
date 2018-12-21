@@ -42,7 +42,7 @@ import java.util.Random;
  */
 public abstract class AbstractWriteHandlerTest {
   private static final Random RANDOM = new Random();
-  protected static final int PACKET_SIZE = 1024;
+  protected static final int CHUNK_SIZE = 1024;
   protected static final long TEST_BLOCK_ID = 1L;
   protected static final long TEST_MOUNT_ID = 10L;
   protected AbstractWriteHandler mWriteHandler;
@@ -66,10 +66,10 @@ public abstract class AbstractWriteHandlerTest {
     long checksum = 0;
     mWriteHandler.write(newWriteRequestCommand(0));
     for (int i = 0; i < 128; i++) {
-      DataBuffer dataBuffer = newDataBuffer(PACKET_SIZE);
+      DataBuffer dataBuffer = newDataBuffer(CHUNK_SIZE);
       checksum += getChecksum(dataBuffer);
       mWriteHandler.write(newWriteRequest(dataBuffer));
-      len += PACKET_SIZE;
+      len += CHUNK_SIZE;
     }
     // EOF.
     mWriteHandler.onComplete();
@@ -83,10 +83,10 @@ public abstract class AbstractWriteHandlerTest {
     long checksum = 0;
     mWriteHandler.write(newWriteRequestCommand(0));
     for (int i = 0; i < 1; i++) {
-      DataBuffer dataBuffer = newDataBuffer(PACKET_SIZE);
+      DataBuffer dataBuffer = newDataBuffer(CHUNK_SIZE);
       checksum += getChecksum(dataBuffer);
       mWriteHandler.write(newWriteRequest(dataBuffer));
-      len += PACKET_SIZE;
+      len += CHUNK_SIZE;
     }
     // Cancel.
     mWriteHandler.onCancel();
@@ -115,11 +115,11 @@ public abstract class AbstractWriteHandlerTest {
   @Test
   public void writeTwoRequests() throws Exception {
     // Send first request
-    DataBuffer dataBuffer = newDataBuffer(PACKET_SIZE);
+    DataBuffer dataBuffer = newDataBuffer(CHUNK_SIZE);
     mWriteHandler.write(newWriteRequestCommand(0));
     mWriteHandler.write(newWriteRequest(dataBuffer));
     mWriteHandler.onComplete();
-    // Wait the first packet to finish
+    // Wait the first chunk to finish
     checkComplete(mResponseObserver);
     // Send second request
     mExpectedException.expect(IllegalStateException.class);
@@ -133,7 +133,7 @@ public abstract class AbstractWriteHandlerTest {
     // Send first request
     mWriteHandler.write(newWriteRequestCommand(0));
     mWriteHandler.onCancel();
-    // Wait the first packet to finish
+    // Wait the first chunk to finish
     checkComplete(mResponseObserver);
     // Send second request
     mExpectedException.expect(IllegalStateException.class);

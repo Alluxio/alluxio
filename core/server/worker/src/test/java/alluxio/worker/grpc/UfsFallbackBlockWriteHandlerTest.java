@@ -95,7 +95,7 @@ public class UfsFallbackBlockWriteHandlerTest extends AbstractWriteHandlerTest {
 
     // create a partial block in block store first
     mBlockStore.createBlock(TEST_SESSION_ID, TEST_BLOCK_ID,
-        BlockStoreLocation.anyDirInTier("MEM"), PACKET_SIZE);
+        BlockStoreLocation.anyDirInTier("MEM"), CHUNK_SIZE);
     BlockWriter writer = mBlockStore.getBlockWriter(TEST_SESSION_ID, TEST_BLOCK_ID);
     DataBuffer buffer = newDataBuffer(PARTIAL_WRITTEN);
     mPartialChecksum = getChecksum(buffer);
@@ -118,13 +118,13 @@ public class UfsFallbackBlockWriteHandlerTest extends AbstractWriteHandlerTest {
 
   @Test
   public void tempBlockWritten() throws Exception {
-    DataBuffer buffer = newDataBuffer(PACKET_SIZE);
+    DataBuffer buffer = newDataBuffer(CHUNK_SIZE);
     long checksum = mPartialChecksum + getChecksum(buffer);
     mWriteHandler.write(newFallbackInitRequest(PARTIAL_WRITTEN));
     mWriteHandler.write(newWriteRequest(buffer));
     mWriteHandler.onComplete();
     checkComplete(mResponseObserver);
-    checkWriteData(checksum, PARTIAL_WRITTEN + PACKET_SIZE);
+    checkWriteData(checksum, PARTIAL_WRITTEN + CHUNK_SIZE);
   }
 
   protected WriteRequest newFallbackInitRequest(long bytesInBlockStore) {

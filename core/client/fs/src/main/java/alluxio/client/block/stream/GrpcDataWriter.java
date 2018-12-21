@@ -64,7 +64,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * writing.
  */
 @NotThreadSafe
-public final class GrpcDataWriter implements PacketWriter {
+public final class GrpcDataWriter implements DataWriter {
   private static final Logger LOG = LoggerFactory.getLogger(GrpcDataWriter.class);
 
   private static final long WRITE_TIMEOUT_MS =
@@ -81,7 +81,7 @@ public final class GrpcDataWriter implements PacketWriter {
   private final long mLength;
   private final WriteRequestCommand mPartialRequest;
   private final ClientCallStreamObserver<WriteRequest> mRequestStream;
-  private final long mPacketSize;
+  private final long mChunkSize;
 
   /**
    * Uses to guarantee the operation ordering.
@@ -126,9 +126,9 @@ public final class GrpcDataWriter implements PacketWriter {
   public static GrpcDataWriter create(FileSystemContext context, WorkerNetAddress address,
       long id, long length, RequestType type, OutStreamOptions options)
       throws IOException {
-    long packetSize = Configuration.getBytes(PropertyKey.USER_NETWORK_WRITER_PACKET_SIZE_BYTES);
+    long chunkSize = Configuration.getBytes(PropertyKey.USER_NETWORK_WRITER_CHUNK_SIZE_BYTES);
     BlockWorkerClient grpcClient = context.acquireBlockWorkerClient(address);
-    return new GrpcDataWriter(context, address, id, length, packetSize, type, options,
+    return new GrpcDataWriter(context, address, id, length, chunkSize, type, options,
         grpcClient);
   }
 
@@ -139,13 +139,13 @@ public final class GrpcDataWriter implements PacketWriter {
    * @param address the data server address
    * @param id the block or UFS file Id
    * @param length the length of the block or file to write, set to Long.MAX_VALUE if unknown
-   * @param packetSize the packet size
+   * @param chunkSize the chunk size
    * @param type type of the write request
    * @param options details of the write request which are constant for all requests
    * @param client the block worker client
    */
   private GrpcDataWriter(FileSystemContext context, final WorkerNetAddress address, long id,
-      long length, long packetSize, RequestType type, OutStreamOptions options,
+      long length, long chunkSize, RequestType type, OutStreamOptions options,
       BlockWorkerClient client) {
     mContext = context;
     mAddress = address;
@@ -177,7 +177,7 @@ public final class GrpcDataWriter implements PacketWriter {
       builder.setCreateUfsBlockOptions(ufsBlockOptions);
     }
     mPartialRequest = builder.buildPartial();
-    mPacketSize = packetSize;
+    mChunkSize = chunkSize;
     mClient = client;
     StreamObserver<WriteResponse> responseObserver = new WriteStreamObserver();
     mRequestStream = (ClientCallStreamObserver<WriteRequest>) mClient.writeBlock(responseObserver);
@@ -193,7 +193,7 @@ public final class GrpcDataWriter implements PacketWriter {
   }
 
   @Override
-  public void writePacket(final ByteBuf buf) throws IOException {
+  public void writeChunk(final ByteBuf buf) throws IOException {
     try (LockResource lr = new LockResource(mLock)) {
       while (true) {
         if (mError != null) {
@@ -284,13 +284,13 @@ public final class GrpcDataWriter implements PacketWriter {
         try {
           if (mError != null) {
             throw new UnavailableException(
-                "Failed to write data packet due to " + mError.getMessage(),
+                "Failed to write data chunk due to " + mError.getMessage(),
                 mError);
           }
           if (!mDoneOrFailed.await(CLOSE_TIMEOUT_MS, TimeUnit.MILLISECONDS)) {
             mRequestStream.onCompleted();
             throw new DeadlineExceededException(String.format(
-                "Timeout closing PacketWriter to %s for request %s after %dms.",
+                "Timeout closing DataWriter to %s for request %s after %dms.",
                 mAddress, mPartialRequest, CLOSE_TIMEOUT_MS));
           }
         } catch (InterruptedException e) {
@@ -318,7 +318,7 @@ public final class GrpcDataWriter implements PacketWriter {
   }
 
   /**
-   * Sends a CANCEL packet to end the write request of the stream.
+   * Sends a CANCEL message to end the write request of the stream.
    */
   private void sendCancel() {
     try (LockResource lr = new LockResource(mLock)) {
@@ -331,8 +331,8 @@ public final class GrpcDataWriter implements PacketWriter {
   }
 
   @Override
-  public int packetSize() {
-    return (int) mPacketSize;
+  public int chunkSize() {
+    return (int) mChunkSize;
   }
 
   /**

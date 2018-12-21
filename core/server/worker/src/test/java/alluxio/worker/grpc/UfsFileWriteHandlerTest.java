@@ -65,9 +65,9 @@ public final class UfsFileWriteHandlerTest extends AbstractWriteHandlerTest {
   @Test
   public void writeFailure() throws Exception {
     mWriteHandler.write(newWriteRequestCommand(0));
-    mWriteHandler.write(newWriteRequest(newDataBuffer(PACKET_SIZE)));
+    mWriteHandler.write(newWriteRequest(newDataBuffer(CHUNK_SIZE)));
     mOutputStream.close();
-    mWriteHandler.write(newWriteRequest(newDataBuffer(PACKET_SIZE)));
+    mWriteHandler.write(newWriteRequest(newDataBuffer(CHUNK_SIZE)));
     Throwable t = getError(mResponseObserver);
     Assert.assertTrue(t instanceof UnknownException);
   }

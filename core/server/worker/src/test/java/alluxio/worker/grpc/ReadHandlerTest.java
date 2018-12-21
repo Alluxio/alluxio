@@ -41,8 +41,8 @@ import java.util.Random;
 import java.util.concurrent.TimeoutException;
 
 public abstract class ReadHandlerTest {
-  protected static final long PACKET_SIZE =
-      Configuration.getBytes(PropertyKey.USER_NETWORK_NETTY_READER_PACKET_SIZE_BYTES);
+  protected static final long CHUNK_SIZE =
+      Configuration.getBytes(PropertyKey.USER_NETWORK_READER_CHUNK_SIZE_BYTES);
   private final Random mRandom = new Random();
 
   protected String mFile;
@@ -63,8 +63,8 @@ public abstract class ReadHandlerTest {
    */
   @Test
   public void readFullFile() throws Exception {
-    long checksumExpected = populateInputFile(PACKET_SIZE * 10, 0, PACKET_SIZE * 10 - 1);
-    mReadHandler.readBlock(buildReadRequest(0, PACKET_SIZE * 10), mResponseObserver);
+    long checksumExpected = populateInputFile(CHUNK_SIZE * 10, 0, CHUNK_SIZE * 10 - 1);
+    mReadHandler.readBlock(buildReadRequest(0, CHUNK_SIZE * 10), mResponseObserver);
     checkAllReadResponses(mResponseObserver, checksumExpected);
   }
 
@@ -74,8 +74,8 @@ public abstract class ReadHandlerTest {
   @Test
   public void readPartialFile() throws Exception {
     long start = 3;
-    long end = PACKET_SIZE * 10 - 99;
-    long checksumExpected = populateInputFile(PACKET_SIZE * 10, start, end);
+    long end = CHUNK_SIZE * 10 - 99;
+    long checksumExpected = populateInputFile(CHUNK_SIZE * 10, start, end);
     mReadHandler.readBlock(buildReadRequest(start, end + 1 - start), mResponseObserver);
     checkAllReadResponses(mResponseObserver, checksumExpected);
   }
@@ -95,7 +95,7 @@ public abstract class ReadHandlerTest {
    */
   @Test
   public void cancelRequest() throws Exception {
-    long fileSize = PACKET_SIZE * 100 + 1;
+    long fileSize = CHUNK_SIZE * 100 + 1;
     populateInputFile(fileSize, 0, fileSize - 1);
     mReadHandler.readBlock(buildReadRequest(0, fileSize), mResponseObserver);
     mReadHandler.onCancel();
@@ -110,8 +110,8 @@ public abstract class ReadHandlerTest {
 
   @Test
   public void ErrorReceivedAfterRequest() throws Exception {
-    populateInputFile(PACKET_SIZE * 10, 0, PACKET_SIZE * 10 - 1);
-    mReadHandler.readBlock(buildReadRequest(0, PACKET_SIZE * 10), mResponseObserver);
+    populateInputFile(CHUNK_SIZE * 10, 0, CHUNK_SIZE * 10 - 1);
+    mReadHandler.readBlock(buildReadRequest(0, CHUNK_SIZE * 10), mResponseObserver);
     mReadHandler.onError(new IOException("test error"));
   }
 

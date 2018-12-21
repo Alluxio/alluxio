@@ -17,16 +17,16 @@ import java.io.Closeable;
 import java.io.IOException;
 
 /**
- * The interface to read packets.
+ * The interface to read data chunks.
  */
-public interface PacketReader extends Closeable {
+public interface DataReader extends Closeable {
 
   /**
-   * Reads a packet. The caller needs to release the packet.
+   * Reads a chunk. The caller needs to release the chunk.
    *
    * @return the data buffer or null if EOF is reached
    */
-  DataBuffer readPacket() throws IOException;
+  DataBuffer readChunk() throws IOException;
 
   /**
    * @return the current stream position
@@ -34,20 +34,20 @@ public interface PacketReader extends Closeable {
   long pos();
 
   /**
-   * The factory interface to create {@link PacketReader}s.
+   * The factory interface to create {@link DataReader}s.
    */
   interface Factory extends Closeable {
     /**
-     * Creates an instance of {@link PacketReader}.
+     * Creates an instance of {@link DataReader}.
      *
      * @param offset the stream offset
      * @param len the length of the stream
      * @return the created object
      */
-    PacketReader create(long offset, long len) throws IOException;
+    DataReader create(long offset, long len) throws IOException;
 
     /**
-     * @return whether this factory generates packet readers which perform short-circuit reads
+     * @return whether this factory generates data readers which perform short-circuit reads
      */
     boolean isShortCircuit();
   }

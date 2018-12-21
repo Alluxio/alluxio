@@ -61,16 +61,16 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
   private final BlockWorker mWorker;
 
   /**
-   * The packet reader to read from a local block worker.
+   * The data reader to read from a local block worker.
    */
   @NotThreadSafe
-  public final class BlockPacketReader extends PacketReader {
+  public final class BlockDataReader extends DataReader {
     /** The Block Worker. */
     private final BlockWorker mWorker;
     /** An object storing the mapping of tier aliases to ordinals. */
     private final StorageTierAssoc mStorageTierAssoc = new WorkerStorageTierAssoc();
 
-    BlockPacketReader(BlockReadRequestContext context, StreamObserver<ReadResponse> response,
+    BlockDataReader(BlockReadRequestContext context, StreamObserver<ReadResponse> response,
         BlockWorker blockWorker) {
       super(context, response);
       mWorker = blockWorker;
@@ -194,7 +194,7 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
   /**
    * Creates an instance of {@link AbstractReadHandler}.
    *
-   * @param executorService the executor service to run {@link PacketReader}s
+   * @param executorService the executor service to run {@link DataReader}s
    * @param blockWorker the block worker
    */
   public BlockReadHandler(ExecutorService executorService, BlockWorker blockWorker) {
@@ -207,8 +207,8 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
   }
 
   @Override
-  protected PacketReader createPacketReader(BlockReadRequestContext context,
+  protected DataReader createDataReader(BlockReadRequestContext context,
       StreamObserver<ReadResponse> response) {
-    return new BlockPacketReader(context, response, mWorker);
+    return new BlockDataReader(context, response, mWorker);
   }
 }

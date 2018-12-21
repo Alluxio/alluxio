@@ -19,15 +19,15 @@ import java.nio.ByteBuffer;
 import javax.annotation.Nullable;
 
 /**
- * A {@link PacketReader} which serves data from a given byte array.
+ * A {@link DataReader} which serves data from a given byte array.
  */
-public class TestPacketReader implements PacketReader {
+public class TestDataReader implements DataReader {
   private final byte[] mData;
   private long mPos;
   private long mEnd;
-  private long mPacketSize = 128;
+  private long mChunkSize = 128;
 
-  public TestPacketReader(byte[] data, long offset, long length) {
+  public TestDataReader(byte[] data, long offset, long length) {
     mData = data;
     mPos = offset;
     mEnd = offset + length;
@@ -35,11 +35,11 @@ public class TestPacketReader implements PacketReader {
 
   @Override
   @Nullable
-  public DataBuffer readPacket() {
+  public DataBuffer readChunk() {
     if (mPos >= mEnd || mPos >= mData.length) {
       return null;
     }
-    int bytesToRead = (int) (Math.min(Math.min(mPacketSize, mEnd - mPos), mData.length - mPos));
+    int bytesToRead = (int) (Math.min(Math.min(mChunkSize, mEnd - mPos), mData.length - mPos));
     ByteBuffer buffer = ByteBuffer.wrap(mData, (int) mPos, bytesToRead);
     DataBuffer dataBuffer = new DataByteBuffer(buffer, buffer.remaining());
     mPos += dataBuffer.getLength();

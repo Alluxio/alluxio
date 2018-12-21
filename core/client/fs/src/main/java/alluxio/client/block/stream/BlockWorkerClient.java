@@ -69,7 +69,8 @@ public interface BlockWorkerClient extends Closeable {
   StreamObserver<WriteRequest> writeBlock(StreamObserver<WriteResponse> responseObserver);
 
   /**
-   * Reads a block from the worker.
+   * Reads a block from the worker. When client is done with the file, it should close the stream
+   * using the gRPC context.
    *
    * @param request the read request
    * @return the streamed response from server
@@ -78,7 +79,12 @@ public interface BlockWorkerClient extends Closeable {
   Iterator<ReadResponse> readBlock(final ReadRequest request) throws StatusRuntimeException;
 
   /**
-   * Creates a local block on the worker.
+   * Creates a local block on the worker. This is a two stage operations:
+   * 1. Client sends a create request through the request stream. Server will respond with the name
+   *    of the file to write to.
+   * 2. When client is done with the file, it should signal complete or cancel on the request stream
+   *    based on the intent. The server will signal complete on the response stream once the
+   *    operation is done.
    *
    * @param responseObserver the stream observer for the server response
    * @return the stream observer for the client request
@@ -87,7 +93,10 @@ public interface BlockWorkerClient extends Closeable {
       StreamObserver<CreateLocalBlockResponse> responseObserver);
 
   /**
-   * Opens a local block.
+   * Opens a local block. This is a two stage operations:
+   * 1. Client sends a open request through the request stream. Server will respond with the name
+   *    of the file to read from.
+   * 2. When client is done with the file, it should close the stream using the gRPC context.
    *
    * @param request the open block request
    * @return the response from server
