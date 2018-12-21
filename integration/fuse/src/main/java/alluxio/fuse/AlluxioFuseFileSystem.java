@@ -28,7 +28,6 @@ import alluxio.security.authorization.Mode;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 
-import alluxio.wire.WorkerNetAddress;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.cache.CacheBuilder;
@@ -40,7 +39,6 @@ import jnr.ffi.types.mode_t;
 import jnr.ffi.types.off_t;
 import jnr.ffi.types.size_t;
 import jnr.ffi.types.uid_t;
-import org.apache.zookeeper.Op;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.serce.jnrfuse.ErrorCodes;
@@ -53,9 +51,7 @@ import ru.serce.jnrfuse.struct.Timespec;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.TimeoutException;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -93,7 +89,7 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
         }
       };
 
-  private static final IndexDefinition<OpenFileEntry,String> PATH_INDEX =
+  private static final IndexDefinition<OpenFileEntry, String> PATH_INDEX =
       new IndexDefinition<OpenFileEntry, String>(true) {
         @Override
         public String getFieldValue(OpenFileEntry o) {
@@ -110,7 +106,6 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
   private final Path mAlluxioRootPath;
   // Keeps a cache of the most recently translated paths from String to Alluxio URI
   private final LoadingCache<String, AlluxioURI> mPathResolverCache;
-
 
   // Table of open files with corresponding InputStreams and OutputStreams
   private final IndexedSet<OpenFileEntry> mOpenFiles;
@@ -250,8 +245,8 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
           return -ErrorCodes.EMFILE();
         }
 
-        final OpenFileEntry ofe = new OpenFileEntry(mNextOpenFileId, path, null, mFileSystem.createFile(uri));
-        mOpenFiles.add(ofe);
+        mOpenFiles.add(new OpenFileEntry(mNextOpenFileId, path,
+            null, mFileSystem.createFile(uri)));
         LOG.debug("Alluxio OutStream created for {}", path);
         fi.fh.set(mNextOpenFileId);
 
@@ -473,8 +468,9 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
           LOG.error("Cannot open {}: too many open files", uri);
           return ErrorCodes.EMFILE();
         }
-        final OpenFileEntry ofe = new OpenFileEntry(mNextOpenFileId, path, mFileSystem.openFile(uri), null);
-        mOpenFiles.add(ofe);
+
+        mOpenFiles.add(new OpenFileEntry(mNextOpenFileId, path,
+            mFileSystem.openFile(uri), null));
         fi.fh.set(mNextOpenFileId);
 
         // Assuming I will never wrap around (2^64 open files are quite a lot anyway)
@@ -630,8 +626,8 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
     LOG.trace("release({})", path);
     OpenFileEntry oe;
     synchronized (mOpenFiles) {
-      // synchronized the mOpenFiles as earlier as possible
-      // so that hopefully the following getAttr will be blocked waiting for the file to be completed
+      // synchronized the mOpenFiles as earlier as possible so that hopefully
+      // the following getAttr will be blocked waiting for the file to be completed
       final long fd = fi.fh.get();
       oe = mOpenFiles.getFirstByField(ID_INDEX, fd);
       mOpenFiles.remove(oe);

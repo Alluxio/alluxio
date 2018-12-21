@@ -13,6 +13,7 @@ package alluxio.fuse;
 
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
+
 import com.google.common.base.Preconditions;
 
 import java.io.Closeable;
@@ -37,11 +38,19 @@ final class OpenFileEntry implements Closeable {
   private final FileInStream mIn;
   private final FileOutStream mOut;
 
-  // Path is likely to be changed when rename is called
+  // Path is likely to be changed when fuse rename() is called
   private String mPath;
   /** the next write offset.  */
   private long mOffset;
 
+  /**
+   * Constructs a new {@link OpenFileEntry} for an Alluxio file
+   *
+   * @param id the id of the file
+   * @param path the path of the file
+   * @param in the file input stream of the file
+   * @param out the file output stream of the file
+   */
   public OpenFileEntry(long id, String path, FileInStream in, FileOutStream out) {
     Preconditions.checkArgument(id != -1 && !path.isEmpty());
     Preconditions.checkArgument(in != null || out != null);
@@ -52,10 +61,16 @@ final class OpenFileEntry implements Closeable {
     mOffset = -1;
   }
 
+  /**
+   * @return the id of the file
+   */
   public long getId() {
     return mId;
   }
 
+  /**
+   * @return the path of the file
+   */
   public String getPath() {
     return mPath;
   }
@@ -89,6 +104,12 @@ final class OpenFileEntry implements Closeable {
     return mOffset;
   }
 
+  /**
+   * Sets the path of the file. The file path can be changed
+   * if fuse rename() is called.
+   *
+   * @param path the new path of the file
+   */
   public void setPath(String path) {
     mPath = path;
   }
