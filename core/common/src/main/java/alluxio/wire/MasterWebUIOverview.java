@@ -25,7 +25,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Alluxio WebUI overview information.
  */
 @NotThreadSafe
-public final class WebUIOverview implements Serializable {
+public final class MasterWebUIOverview implements Serializable {
   private Capacity mCapacity;
   private int mConfigCheckErrorNum;
   private Map<Scope, List<InconsistentProperty>> mConfigCheckErrors;
@@ -47,9 +47,9 @@ public final class WebUIOverview implements Serializable {
   private String mVersion;
 
   /**
-   * Creates a new instance of {@link WebUIOverview}.
+   * Creates a new instance of {@link MasterWebUIOverview}.
    */
-  public WebUIOverview() {
+  public MasterWebUIOverview() {
   }
 
   /**
@@ -189,7 +189,7 @@ public final class WebUIOverview implements Serializable {
    * @param capacity
    * @return
    */
-  public WebUIOverview setCapacity(Capacity capacity) {
+  public MasterWebUIOverview setCapacity(Capacity capacity) {
     mCapacity = capacity;
     return this;
   }
@@ -198,7 +198,7 @@ public final class WebUIOverview implements Serializable {
    * @param configCheckErrorNum
    * @return
    */
-  public WebUIOverview setConfigCheckErrorNum(int configCheckErrorNum) {
+  public MasterWebUIOverview setConfigCheckErrorNum(int configCheckErrorNum) {
     mConfigCheckErrorNum = configCheckErrorNum;
     return this;
   }
@@ -207,7 +207,7 @@ public final class WebUIOverview implements Serializable {
    * @param configCheckErrors
    * @return
    */
-  public WebUIOverview setConfigCheckErrors(
+  public MasterWebUIOverview setConfigCheckErrors(
       Map<Scope, List<InconsistentProperty>> configCheckErrors) {
     mConfigCheckErrors = configCheckErrors;
     return this;
@@ -217,7 +217,7 @@ public final class WebUIOverview implements Serializable {
    * @param configCheckStatus
    * @return
    */
-  public WebUIOverview setConfigCheckStatus(ConfigCheckReport.ConfigStatus configCheckStatus) {
+  public MasterWebUIOverview setConfigCheckStatus(ConfigCheckReport.ConfigStatus configCheckStatus) {
     mConfigCheckStatus = configCheckStatus;
     return this;
   }
@@ -226,7 +226,7 @@ public final class WebUIOverview implements Serializable {
    * @param configCheckWarns
    * @return
    */
-  public WebUIOverview setConfigCheckWarns(
+  public MasterWebUIOverview setConfigCheckWarns(
       Map<Scope, List<InconsistentProperty>> configCheckWarns) {
     mConfigCheckWarns = configCheckWarns;
     return this;
@@ -236,7 +236,7 @@ public final class WebUIOverview implements Serializable {
    * @param consistencyCheckStatus
    * @return
    */
-  public WebUIOverview setConsistencyCheckStatus(String consistencyCheckStatus) {
+  public MasterWebUIOverview setConsistencyCheckStatus(String consistencyCheckStatus) {
     mConsistencyCheckStatus = consistencyCheckStatus;
     return this;
   }
@@ -245,7 +245,7 @@ public final class WebUIOverview implements Serializable {
    * @param debug
    * @return
    */
-  public WebUIOverview setDebug(boolean debug) {
+  public MasterWebUIOverview setDebug(boolean debug) {
     mDebug = debug;
     return this;
   }
@@ -254,7 +254,7 @@ public final class WebUIOverview implements Serializable {
    * @param diskCapacity
    * @return
    */
-  public WebUIOverview setDiskCapacity(String diskCapacity) {
+  public MasterWebUIOverview setDiskCapacity(String diskCapacity) {
     mDiskCapacity = diskCapacity;
     return this;
   }
@@ -263,7 +263,7 @@ public final class WebUIOverview implements Serializable {
    * @param diskFreeCapacity
    * @return
    */
-  public WebUIOverview setDiskFreeCapacity(String diskFreeCapacity) {
+  public MasterWebUIOverview setDiskFreeCapacity(String diskFreeCapacity) {
     mDiskFreeCapacity = diskFreeCapacity;
     return this;
   }
@@ -272,7 +272,7 @@ public final class WebUIOverview implements Serializable {
    * @param diskUsedCapacity
    * @return
    */
-  public WebUIOverview setDiskUsedCapacity(String diskUsedCapacity) {
+  public MasterWebUIOverview setDiskUsedCapacity(String diskUsedCapacity) {
     mDiskUsedCapacity = diskUsedCapacity;
     return this;
   }
@@ -281,7 +281,7 @@ public final class WebUIOverview implements Serializable {
    * @param freeCapacity
    * @return
    */
-  public WebUIOverview setFreeCapacity(String freeCapacity) {
+  public MasterWebUIOverview setFreeCapacity(String freeCapacity) {
     mFreeCapacity = freeCapacity;
     return this;
   }
@@ -290,7 +290,7 @@ public final class WebUIOverview implements Serializable {
    * @param inconsistentPathItems
    * @return
    */
-  public WebUIOverview setInconsistentPathItems(List<String> inconsistentPathItems) {
+  public MasterWebUIOverview setInconsistentPathItems(List<String> inconsistentPathItems) {
     mInconsistentPathItems = inconsistentPathItems;
     return this;
   }
@@ -299,7 +299,7 @@ public final class WebUIOverview implements Serializable {
    * @param liveWorkerNodes
    * @return
    */
-  public WebUIOverview setLiveWorkerNodes(int liveWorkerNodes) {
+  public MasterWebUIOverview setLiveWorkerNodes(int liveWorkerNodes) {
     mLiveWorkerNodes = liveWorkerNodes;
     return this;
   }
@@ -308,7 +308,7 @@ public final class WebUIOverview implements Serializable {
    * @param masterNodeAddress
    * @return
    */
-  public WebUIOverview setMasterNodeAddress(String masterNodeAddress) {
+  public MasterWebUIOverview setMasterNodeAddress(String masterNodeAddress) {
     mMasterNodeAddress = masterNodeAddress;
     return this;
   }
@@ -317,7 +317,7 @@ public final class WebUIOverview implements Serializable {
    * @param startTime
    * @return
    */
-  public WebUIOverview setStartTime(String startTime) {
+  public MasterWebUIOverview setStartTime(String startTime) {
     mStartTime = startTime;
     return this;
   }
@@ -326,7 +326,7 @@ public final class WebUIOverview implements Serializable {
    * @param storageTierInfos
    * @return
    */
-  public WebUIOverview setStorageTierInfos(List<StorageTierInfo> storageTierInfos) {
+  public MasterWebUIOverview setStorageTierInfos(List<StorageTierInfo> storageTierInfos) {
     mStorageTierInfos = storageTierInfos;
     return this;
   }
@@ -335,7 +335,7 @@ public final class WebUIOverview implements Serializable {
    * @param uptime
    * @return
    */
-  public WebUIOverview setUptime(String uptime) {
+  public MasterWebUIOverview setUptime(String uptime) {
     mUptime = uptime;
     return this;
   }
@@ -344,7 +344,7 @@ public final class WebUIOverview implements Serializable {
    * @param usedCapacity
    * @return
    */
-  public WebUIOverview setUsedCapacity(String usedCapacity) {
+  public MasterWebUIOverview setUsedCapacity(String usedCapacity) {
     mUsedCapacity = usedCapacity;
     return this;
   }
@@ -353,7 +353,7 @@ public final class WebUIOverview implements Serializable {
    * @param version
    * @return
    */
-  public WebUIOverview setVersion(String version) {
+  public MasterWebUIOverview setVersion(String version) {
     mVersion = version;
     return this;
   }

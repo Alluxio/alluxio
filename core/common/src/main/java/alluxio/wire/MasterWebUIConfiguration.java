@@ -24,14 +24,14 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Alluxio WebUI configuration information.
  */
 @NotThreadSafe
-public final class WebUIConfiguration implements Serializable {
+public final class MasterWebUIConfiguration implements Serializable {
   private TreeSet<Triple<String, String, String>> mConfiguration;
   private List<String> mWhitelist;
 
   /**
-   * Creates a new instance of {@link WebUIConfiguration}.
+   * Creates a new instance of {@link MasterWebUIConfiguration}.
    */
-  public WebUIConfiguration() {
+  public MasterWebUIConfiguration() {
   }
 
 
@@ -43,13 +43,13 @@ public final class WebUIConfiguration implements Serializable {
     return mWhitelist;
   }
 
-  public WebUIConfiguration setConfiguration(
+  public MasterWebUIConfiguration setConfiguration(
       TreeSet<Triple<String, String, String>> configuration) {
     mConfiguration = configuration;
     return this;
   }
 
-  public WebUIConfiguration setWhitelist(List<String> whitelist) {
+  public MasterWebUIConfiguration setWhitelist(List<String> whitelist) {
     mWhitelist = whitelist;
     return this;
   }

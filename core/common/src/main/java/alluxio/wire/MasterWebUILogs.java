@@ -24,7 +24,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Alluxio WebUI logs information.
  */
 @NotThreadSafe
-public final class WebUILogs implements Serializable {
+public final class MasterWebUILogs implements Serializable {
   private String mCurrentPath;
   private boolean mDebug;
   private String mFatalError;
@@ -35,9 +35,9 @@ public final class WebUILogs implements Serializable {
   private long mViewingOffset;
 
   /**
-   * Creates a new instance of {@link WebUIWorkers}.
+   * Creates a new instance of {@link MasterWebUIWorkers}.
    */
-  public WebUILogs() {
+  public MasterWebUILogs() {
   }
 
   public String getCurrentPath() {
@@ -72,42 +72,42 @@ public final class WebUILogs implements Serializable {
     return mViewingOffset;
   }
 
-  public WebUILogs setCurrentPath(String currentPath) {
+  public MasterWebUILogs setCurrentPath(String currentPath) {
     mCurrentPath = currentPath;
     return this;
   }
 
-  public WebUILogs setDebug(boolean debug) {
+  public MasterWebUILogs setDebug(boolean debug) {
     mDebug = debug;
     return this;
   }
 
-  public WebUILogs setFatalError(String fatalError) {
+  public MasterWebUILogs setFatalError(String fatalError) {
     mFatalError = fatalError;
     return this;
   }
 
-  public WebUILogs setFileData(String fileData) {
+  public MasterWebUILogs setFileData(String fileData) {
     mFileData = fileData;
     return this;
   }
 
-  public WebUILogs setFileInfos(List<UIFileInfo> fileInfos) {
+  public MasterWebUILogs setFileInfos(List<UIFileInfo> fileInfos) {
     mFileInfos = fileInfos;
     return this;
   }
 
-  public WebUILogs setInvalidPathError(String invalidPathError) {
+  public MasterWebUILogs setInvalidPathError(String invalidPathError) {
     mInvalidPathError = invalidPathError;
     return this;
   }
 
-  public WebUILogs setNTotalFile(int nTotalFile) {
+  public MasterWebUILogs setNTotalFile(int nTotalFile) {
     mNTotalFile = nTotalFile;
     return this;
   }
 
-  public WebUILogs setViewingOffset(long viewingOffset) {
+  public MasterWebUILogs setViewingOffset(long viewingOffset) {
     mViewingOffset = viewingOffset;
     return this;
   }

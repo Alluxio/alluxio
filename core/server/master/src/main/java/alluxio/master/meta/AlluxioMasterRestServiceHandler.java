@@ -66,14 +66,14 @@ import alluxio.wire.FileBlockInfo;
 import alluxio.wire.FileInfo;
 import alluxio.wire.GetConfigurationOptions;
 import alluxio.wire.LoadMetadataType;
+import alluxio.wire.MasterWebUILogs;
+import alluxio.wire.MasterWebUIMetrics;
 import alluxio.wire.MountPointInfo;
-import alluxio.wire.WebUIBrowse;
-import alluxio.wire.WebUIConfiguration;
-import alluxio.wire.WebUIData;
-import alluxio.wire.WebUILogs;
-import alluxio.wire.WebUIMetrics;
-import alluxio.wire.WebUIOverview;
-import alluxio.wire.WebUIWorkers;
+import alluxio.wire.MasterWebUIBrowse;
+import alluxio.wire.MasterWebUIConfiguration;
+import alluxio.wire.MasterWebUIData;
+import alluxio.wire.MasterWebUIOverview;
+import alluxio.wire.MasterWebUIWorkers;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
@@ -216,7 +216,7 @@ public final class AlluxioMasterRestServiceHandler {
    */
   @GET
   @Path(WEBUI_OVERVIEW)
-  @ReturnType("alluxio.wire.WebUIOverview")
+  @ReturnType("alluxio.wire.MasterWebUIOverview")
   public Response getWebUIOverview() {
     return RestUtils.call(() -> {
       alluxio.wire.StartupConsistencyCheck startupConsistencyCheck =
@@ -274,7 +274,7 @@ public final class AlluxioMasterRestServiceHandler {
         }
       }
 
-      return new WebUIOverview().setCapacity(getCapacityInternal()).setConfigCheckErrorNum(
+      return new MasterWebUIOverview().setCapacity(getCapacityInternal()).setConfigCheckErrorNum(
           report.getConfigErrors().values().stream().mapToInt(List::size).sum())
           .setConfigCheckErrors(report.getConfigErrors())
           .setConfigCheckStatus(report.getConfigStatus())
@@ -305,14 +305,14 @@ public final class AlluxioMasterRestServiceHandler {
    */
   @GET
   @Path(WEBUI_BROWSE)
-  @ReturnType("alluxio.wire.WebUIBrowse")
+  @ReturnType("alluxio.wire.MasterWebUIBrowse")
   public Response getWebUIBrowse(@DefaultValue("/") @QueryParam("path") String requestPath,
       @DefaultValue("0") @QueryParam("offset") String requestOffset,
       @QueryParam("end") String requestEnd,
       @DefaultValue("20") @QueryParam("limit") String requestLimit) {
     return RestUtils.call(() -> {
       if (!Configuration.getBoolean(PropertyKey.WEB_FILE_INFO_ENABLED)) {
-        return new WebUIBrowse();
+        return new MasterWebUIBrowse();
       }
 
       if (SecurityUtils.isSecurityEnabled() && AuthenticatedClientUser.get() == null) {
@@ -487,7 +487,7 @@ public final class AlluxioMasterRestServiceHandler {
         fatalError = e.getLocalizedMessage();
       }
 
-      return new WebUIBrowse().setAccessControlException(accessControlException)
+      return new MasterWebUIBrowse().setAccessControlException(accessControlException)
           .setBlockSizeBytes(blockSizeBytes).setCurrentDirectory(currentDirectory)
           .setCurrentPath(currentPath.toString()).setDebug(getBoolean(PropertyKey.DEBUG))
           .setFatalError(fatalError).setFileBlocks(fileBlocks).setFileData(fileData)
@@ -503,12 +503,12 @@ public final class AlluxioMasterRestServiceHandler {
 
   @GET
   @Path(WEBUI_DATA)
-  @ReturnType("alluxio.wire.WebUIData")
+  @ReturnType("alluxio.wire.MasterWebUIData")
   public Response getWebUIData(@DefaultValue("0") @QueryParam("offset") String requestOffset,
       @DefaultValue("20") @QueryParam("limit") String requestLimit) {
     return RestUtils.call(() -> {
       if (!Configuration.getBoolean(PropertyKey.WEB_FILE_INFO_ENABLED)) {
-        return new WebUIData();
+        return new MasterWebUIData();
       }
       if (SecurityUtils.isSecurityEnabled() && AuthenticatedClientUser.get() == null) {
         AuthenticatedClientUser.set(LoginUser.get().getName());
@@ -550,7 +550,7 @@ public final class AlluxioMasterRestServiceHandler {
         fatalError = e.getLocalizedMessage();
       }
 
-      return new WebUIData().setMasterNodeAddress(mMasterProcess.getRpcAddress().toString())
+      return new MasterWebUIData().setMasterNodeAddress(mMasterProcess.getRpcAddress().toString())
           .setFatalError(fatalError).setPermissionError(permissionError)
           .setShowPermissions(getBoolean(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED))
           .setInAlluxioFileNum(inAlluxioFileNum).setFileInfos(fileInfos);
@@ -559,14 +559,14 @@ public final class AlluxioMasterRestServiceHandler {
 
   @GET
   @Path(WEBUI_LOGS)
-  @ReturnType("alluxio.wire.WebUILogs")
+  @ReturnType("alluxio.wire.MasterWebUILogs")
   public Response getWebUILogs(@DefaultValue("") @QueryParam("path") String requestPath,
       @DefaultValue("0") @QueryParam("offset") String requestOffset,
       @QueryParam("end") String requestEnd,
       @DefaultValue("20") @QueryParam("limit") String requestLimit) {
     return RestUtils.call(() -> {
       if (!Configuration.getBoolean(PropertyKey.WEB_FILE_INFO_ENABLED)) {
-        return new WebUILogs();
+        return new MasterWebUILogs();
       }
 
       FilenameFilter LOG_FILE_FILTER = (dir, name) -> name.toLowerCase().endsWith(".log");
@@ -673,7 +673,7 @@ public final class AlluxioMasterRestServiceHandler {
         }
       }
 
-      return new WebUILogs().setCurrentPath(currentPath).setDebug(debug).setFatalError(fatalError)
+      return new MasterWebUILogs().setCurrentPath(currentPath).setDebug(debug).setFatalError(fatalError)
           .setFileData(fileData).setFileInfos(fileInfos).setInvalidPathError(invalidPathError)
           .setNTotalFile(nTotalFile).setViewingOffset(viewingOffset);
     });
@@ -681,7 +681,7 @@ public final class AlluxioMasterRestServiceHandler {
 
   @GET
   @Path(WEBUI_CONFIG)
-  @ReturnType("alluxio.wire.WebUIConfiguration")
+  @ReturnType("alluxio.wire.MasterWebUIConfiguration")
   public Response getWebUIConfiguration() {
     return RestUtils.call(() -> {
       TreeSet<Triple<String, String, String>> sortedProperties = new TreeSet<>();
@@ -696,14 +696,14 @@ public final class AlluxioMasterRestServiceHandler {
         }
       }
 
-      return new WebUIConfiguration().setWhitelist(mFileSystemMaster.getWhiteList())
+      return new MasterWebUIConfiguration().setWhitelist(mFileSystemMaster.getWhiteList())
           .setConfiguration(sortedProperties);
     });
   }
 
   @GET
   @Path(WEBUI_WORKERS)
-  @ReturnType("alluxio.wire.WebUIWorkers")
+  @ReturnType("alluxio.wire.MasterWebUIWorkers")
   public Response getWebUIWorkers() {
     return RestUtils.call(() -> {
       List<WorkerInfo> workerInfos = mBlockMaster.getWorkerInfoList();
@@ -712,14 +712,14 @@ public final class AlluxioMasterRestServiceHandler {
       List<WorkerInfo> lostWorkerInfos = mBlockMaster.getLostWorkersInfoList();
       NodeInfo[] failedNodeInfos = WebUtils.generateOrderedNodeInfos(lostWorkerInfos);
 
-      return new WebUIWorkers().setDebug(getBoolean(PropertyKey.DEBUG))
+      return new MasterWebUIWorkers().setDebug(getBoolean(PropertyKey.DEBUG))
           .setNormalNodeInfos(normalNodeInfos).setFailedNodeInfos(failedNodeInfos);
     });
   }
 
   @GET
   @Path(WEBUI_METRICS)
-  @ReturnType("alluxio.wire.WebUIMetrics")
+  @ReturnType("alluxio.wire.MasterWebUIMetrics")
   public Response getWebUIMetrics() {
     return RestUtils.call(() -> {
       MetricRegistry mr = MetricsSystem.METRIC_REGISTRY;
@@ -849,7 +849,7 @@ public final class AlluxioMasterRestServiceHandler {
             .put(MetricsSystem.stripInstanceAndHost(entry.getKey()), entry.getValue());
       }
 
-      return new WebUIMetrics().setMasterCapacityUsedPercentage(masterCapacityUsedPercentage)
+      return new MasterWebUIMetrics().setMasterCapacityUsedPercentage(masterCapacityUsedPercentage)
           .setMasterCapacityFreePercentage(100 - masterUnderfsCapacityUsedPercentage)
           .setMasterUnderfsCapacityUsedPercentage(masterUnderfsCapacityUsedPercentage)
           .setMasterUnderfsCapacityFreePercentage(100 - masterUnderfsCapacityUsedPercentage)

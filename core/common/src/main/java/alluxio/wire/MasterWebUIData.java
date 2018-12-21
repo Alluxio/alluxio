@@ -24,7 +24,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Alluxio WebUI memory information.
  */
 @NotThreadSafe
-public final class WebUIData implements Serializable {
+public final class MasterWebUIData implements Serializable {
   private String mFatalError;
   private List<UIFileInfo> mFileInfos;
   private int mInAlluxioFileNum;
@@ -33,9 +33,9 @@ public final class WebUIData implements Serializable {
   private boolean mShowPermissions;
 
   /**
-   * Creates a new instance of {@link WebUIData}.
+   * Creates a new instance of {@link MasterWebUIData}.
    */
-  public WebUIData() {
+  public MasterWebUIData() {
   }
 
   public String getFatalError() {
@@ -62,32 +62,32 @@ public final class WebUIData implements Serializable {
     return mShowPermissions;
   }
 
-  public WebUIData setFatalError(String FatalError) {
+  public MasterWebUIData setFatalError(String FatalError) {
     mFatalError = FatalError;
     return this;
   }
 
-  public WebUIData setFileInfos(List<UIFileInfo> FileInfos) {
+  public MasterWebUIData setFileInfos(List<UIFileInfo> FileInfos) {
     mFileInfos = FileInfos;
     return this;
   }
 
-  public WebUIData setInAlluxioFileNum(int InAlluxioFileNum) {
+  public MasterWebUIData setInAlluxioFileNum(int InAlluxioFileNum) {
     mInAlluxioFileNum = InAlluxioFileNum;
     return this;
   }
 
-  public WebUIData setMasterNodeAddress(String MasterNodeAddress) {
+  public MasterWebUIData setMasterNodeAddress(String MasterNodeAddress) {
     mMasterNodeAddress = MasterNodeAddress;
     return this;
   }
 
-  public WebUIData setPermissionError(String PermissionError) {
+  public MasterWebUIData setPermissionError(String PermissionError) {
     mPermissionError = PermissionError;
     return this;
   }
 
-  public WebUIData setShowPermissions(boolean ShowPermissions) {
+  public MasterWebUIData setShowPermissions(boolean ShowPermissions) {
     mShowPermissions = ShowPermissions;
     return this;
   }

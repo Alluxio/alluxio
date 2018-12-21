@@ -28,7 +28,7 @@
   "scripts": {
     "build-css": "node-sass-chokidar --include-path ./src --include-path ./node_modules src/ -o src/",
     "watch-css": "npm run build-css && node-sass-chokidar --include-path ./src --include-path ./node_modules src/ -o src/ --watch --recursive",
-    "start-js": "react-app-rewired start --scripts-version react-scripts-ts --watch --recursive",
+    "start-js": "PORT=3002 react-app-rewired start --scripts-version react-scripts-ts --watch --recursive",
     "build-js": "react-app-rewired build --scripts-version react-scripts-ts",
     "start": "npm-run-all --parallel watch-css start-js",
     "build": "npm-run-all --parallel build-css build-js",

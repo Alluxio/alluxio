@@ -1,6 +1,6 @@
 {
-  "short_name": "Alluxio Master",
-  "name": "Alluxio Master UI",
+  "short_name": "Alluxio Worker",
+  "name": "Alluxio Worker UI",
   "icons": [
     {
       "src": "favicon.ico",

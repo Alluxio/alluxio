@@ -25,7 +25,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Alluxio WebUI browse information.
  */
 @NotThreadSafe
-public final class WebUIBrowse implements Serializable {
+public final class MasterWebUIBrowse implements Serializable {
   private String mAccessControlException;
   private String mBlockSizeBytes;
   private UIFileInfo mCurrentDirectory;
@@ -46,9 +46,9 @@ public final class WebUIBrowse implements Serializable {
   private long mViewingOffset;
 
   /**
-   * Creates a new instance of {@link WebUIBrowse}.
+   * Creates a new instance of {@link MasterWebUIBrowse}.
    */
-  public WebUIBrowse() {
+  public MasterWebUIBrowse() {
   }
 
   public String getAccessControlException() {
@@ -123,92 +123,92 @@ public final class WebUIBrowse implements Serializable {
     return mViewingOffset;
   }
 
-  public WebUIBrowse setAccessControlException(String accessControlException) {
+  public MasterWebUIBrowse setAccessControlException(String accessControlException) {
     mAccessControlException = accessControlException;
     return this;
   }
 
-  public WebUIBrowse setBlockSizeBytes(String blockSizeBytes) {
+  public MasterWebUIBrowse setBlockSizeBytes(String blockSizeBytes) {
     mBlockSizeBytes = blockSizeBytes;
     return this;
   }
 
-  public WebUIBrowse setCurrentDirectory(UIFileInfo currentDirectory) {
+  public MasterWebUIBrowse setCurrentDirectory(UIFileInfo currentDirectory) {
     mCurrentDirectory = currentDirectory;
     return this;
   }
 
-  public WebUIBrowse setCurrentPath(String currentPath) {
+  public MasterWebUIBrowse setCurrentPath(String currentPath) {
     mCurrentPath = currentPath;
     return this;
   }
 
-  public WebUIBrowse setDebug(boolean debug) {
+  public MasterWebUIBrowse setDebug(boolean debug) {
     mDebug = debug;
     return this;
   }
 
-  public WebUIBrowse setFatalError(String fatalError) {
+  public MasterWebUIBrowse setFatalError(String fatalError) {
     mFatalError = fatalError;
     return this;
   }
 
-  public WebUIBrowse setFileBlocks(List<UIFileBlockInfo> fileBlocks) {
+  public MasterWebUIBrowse setFileBlocks(List<UIFileBlockInfo> fileBlocks) {
     mFileBlocks = fileBlocks;
     return this;
   }
 
-  public WebUIBrowse setFileData(String fileData) {
+  public MasterWebUIBrowse setFileData(String fileData) {
     mFileData = fileData;
     return this;
   }
 
-  public WebUIBrowse setFileDoesNotExistException(String fileDoesNotExistException) {
+  public MasterWebUIBrowse setFileDoesNotExistException(String fileDoesNotExistException) {
     mFileDoesNotExistException = fileDoesNotExistException;
     return this;
   }
 
-  public WebUIBrowse setFileInfos(List<UIFileInfo> fileInfos) {
+  public MasterWebUIBrowse setFileInfos(List<UIFileInfo> fileInfos) {
     mFileInfos = fileInfos;
     return this;
   }
 
-  public WebUIBrowse setHighestTierAlias(String highestTierAlias) {
+  public MasterWebUIBrowse setHighestTierAlias(String highestTierAlias) {
     mHighestTierAlias = highestTierAlias;
     return this;
   }
 
-  public WebUIBrowse setInvalidPathError(String invalidPathError) {
+  public MasterWebUIBrowse setInvalidPathError(String invalidPathError) {
     mInvalidPathError = invalidPathError;
     return this;
   }
 
-  public WebUIBrowse setInvalidPathException(String invalidPathException) {
+  public MasterWebUIBrowse setInvalidPathException(String invalidPathException) {
     mInvalidPathException = invalidPathException;
     return this;
   }
 
-  public WebUIBrowse setMasterNodeAddress(String masterNodeAddress) {
+  public MasterWebUIBrowse setMasterNodeAddress(String masterNodeAddress) {
     mMasterNodeAddress = masterNodeAddress;
     return this;
   }
 
-  public WebUIBrowse setNTotalFile(int nTotalFile) {
+  public MasterWebUIBrowse setNTotalFile(int nTotalFile) {
     mNTotalFile = nTotalFile;
     return this;
   }
 
-  public WebUIBrowse setPathInfos(UIFileInfo[] pathInfos) {
+  public MasterWebUIBrowse setPathInfos(UIFileInfo[] pathInfos) {
     mPathInfos = pathInfos;
     return this;
   }
 
-  public WebUIBrowse setShowPermissions(boolean showPermissions) {
+  public MasterWebUIBrowse setShowPermissions(boolean showPermissions) {
     mShowPermissions = showPermissions;
     return this;
   }
 
-  public WebUIBrowse setViewingOffset(long viewingOffset) {
+  public MasterWebUIBrowse setViewingOffset(long viewingOffset) {
     mViewingOffset = viewingOffset;
     return this;
   }

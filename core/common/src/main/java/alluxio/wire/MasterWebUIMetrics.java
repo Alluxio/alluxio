@@ -24,7 +24,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Alluxio WebUI metrics information.
  */
 @NotThreadSafe
-public final class WebUIMetrics implements Serializable {
+public final class MasterWebUIMetrics implements Serializable {
   private String mCacheHitLocal;
   private String mCacheHitRemote;
   private String mCacheMiss;
@@ -49,9 +49,9 @@ public final class WebUIMetrics implements Serializable {
   private Map<String, Counter> mRpcInvocationMetrics;
 
   /**
-   * Creates a new instance of {@link WebUIMetrics}.
+   * Creates a new instance of {@link MasterWebUIMetrics}.
    */
-  public WebUIMetrics() {
+  public MasterWebUIMetrics() {
   }
 
   public String getCacheHitLocal() {
@@ -142,115 +142,115 @@ public final class WebUIMetrics implements Serializable {
     return mRpcInvocationMetrics;
   }
 
-  public WebUIMetrics setCacheHitLocal(String CacheHitLocal) {
+  public MasterWebUIMetrics setCacheHitLocal(String CacheHitLocal) {
     mCacheHitLocal = CacheHitLocal;
     return this;
   }
 
-  public WebUIMetrics setCacheHitRemote(String CacheHitRemote) {
+  public MasterWebUIMetrics setCacheHitRemote(String CacheHitRemote) {
     mCacheHitRemote = CacheHitRemote;
     return this;
   }
 
-  public WebUIMetrics setCacheMiss(String CacheMiss) {
+  public MasterWebUIMetrics setCacheMiss(String CacheMiss) {
     mCacheMiss = CacheMiss;
     return this;
   }
 
-  public WebUIMetrics setMasterCapacityFreePercentage(int MasterCapacityFreePercentage) {
+  public MasterWebUIMetrics setMasterCapacityFreePercentage(int MasterCapacityFreePercentage) {
     mMasterCapacityFreePercentage = MasterCapacityFreePercentage;
     return this;
   }
 
-  public WebUIMetrics setMasterCapacityUsedPercentage(int MasterCapacityUsedPercentage) {
+  public MasterWebUIMetrics setMasterCapacityUsedPercentage(int MasterCapacityUsedPercentage) {
     mMasterCapacityUsedPercentage = MasterCapacityUsedPercentage;
     return this;
   }
 
-  public WebUIMetrics setMasterUnderfsCapacityFreePercentage(
+  public MasterWebUIMetrics setMasterUnderfsCapacityFreePercentage(
       int MasterUnderfsCapacityFreePercentage) {
     mMasterUnderfsCapacityFreePercentage = MasterUnderfsCapacityFreePercentage;
     return this;
   }
 
-  public WebUIMetrics setMasterUnderfsCapacityUsedPercentage(
+  public MasterWebUIMetrics setMasterUnderfsCapacityUsedPercentage(
       int MasterUnderfsCapacityUsedPercentage) {
     mMasterUnderfsCapacityUsedPercentage = MasterUnderfsCapacityUsedPercentage;
     return this;
   }
 
-  public WebUIMetrics setTotalBytesReadLocal(String TotalBytesReadLocal) {
+  public MasterWebUIMetrics setTotalBytesReadLocal(String TotalBytesReadLocal) {
     mTotalBytesReadLocal = TotalBytesReadLocal;
     return this;
   }
 
-  public WebUIMetrics setTotalBytesReadLocalThroughput(String TotalBytesReadLocalThroughput) {
+  public MasterWebUIMetrics setTotalBytesReadLocalThroughput(String TotalBytesReadLocalThroughput) {
     mTotalBytesReadLocalThroughput = TotalBytesReadLocalThroughput;
     return this;
   }
 
-  public WebUIMetrics setTotalBytesReadRemote(String TotalBytesReadRemote) {
+  public MasterWebUIMetrics setTotalBytesReadRemote(String TotalBytesReadRemote) {
     mTotalBytesReadRemote = TotalBytesReadRemote;
     return this;
   }
 
-  public WebUIMetrics setTotalBytesReadRemoteThroughput(String TotalBytesReadRemoteThroughput) {
+  public MasterWebUIMetrics setTotalBytesReadRemoteThroughput(String TotalBytesReadRemoteThroughput) {
     mTotalBytesReadRemoteThroughput = TotalBytesReadRemoteThroughput;
     return this;
   }
 
-  public WebUIMetrics setTotalBytesReadUfs(String TotalBytesReadUfs) {
+  public MasterWebUIMetrics setTotalBytesReadUfs(String TotalBytesReadUfs) {
     mTotalBytesReadUfs = TotalBytesReadUfs;
     return this;
   }
 
-  public WebUIMetrics setTotalBytesReadUfsThroughput(String TotalBytesReadUfsThroughput) {
+  public MasterWebUIMetrics setTotalBytesReadUfsThroughput(String TotalBytesReadUfsThroughput) {
     mTotalBytesReadUfsThroughput = TotalBytesReadUfsThroughput;
     return this;
   }
 
-  public WebUIMetrics setTotalBytesWrittenAlluxio(String TotalBytesWrittenAlluxio) {
+  public MasterWebUIMetrics setTotalBytesWrittenAlluxio(String TotalBytesWrittenAlluxio) {
     mTotalBytesWrittenAlluxio = TotalBytesWrittenAlluxio;
     return this;
   }
 
-  public WebUIMetrics setTotalBytesWrittenAlluxioThroughput(
+  public MasterWebUIMetrics setTotalBytesWrittenAlluxioThroughput(
       String TotalBytesWrittenAlluxioThroughput) {
     mTotalBytesWrittenAlluxioThroughput = TotalBytesWrittenAlluxioThroughput;
     return this;
   }
 
-  public WebUIMetrics setTotalBytesWrittenUfs(String TotalBytesWrittenUfs) {
+  public MasterWebUIMetrics setTotalBytesWrittenUfs(String TotalBytesWrittenUfs) {
     mTotalBytesWrittenUfs = TotalBytesWrittenUfs;
     return this;
   }
 
-  public WebUIMetrics setTotalBytesWrittenUfsThroughput(String TotalBytesWrittenUfsThroughput) {
+  public MasterWebUIMetrics setTotalBytesWrittenUfsThroughput(String TotalBytesWrittenUfsThroughput) {
     mTotalBytesWrittenUfsThroughput = TotalBytesWrittenUfsThroughput;
     return this;
   }
 
-  public WebUIMetrics setUfsOps(Map<String, Map<String, Long>> UfsOps) {
+  public MasterWebUIMetrics setUfsOps(Map<String, Map<String, Long>> UfsOps) {
     mUfsOps = UfsOps;
     return this;
   }
 
-  public WebUIMetrics setUfsReadSize(Map<String, String> UfsReadSize) {
+  public MasterWebUIMetrics setUfsReadSize(Map<String, String> UfsReadSize) {
     mUfsReadSize = UfsReadSize;
     return this;
   }
 
-  public WebUIMetrics setUfsWriteSize(Map<String, String> UfsWriteSize) {
+  public MasterWebUIMetrics setUfsWriteSize(Map<String, String> UfsWriteSize) {
     mUfsWriteSize = UfsWriteSize;
     return this;
   }
 
-  public WebUIMetrics setOperationMetrics(Map<String, Metric> operationMetrics) {
+  public MasterWebUIMetrics setOperationMetrics(Map<String, Metric> operationMetrics) {
     mOperationMetrics = operationMetrics;
     return this;
   }
 
-  public WebUIMetrics setRpcInvocationMetrics(Map<String, Counter> rpcInvocationMetrics) {
+  public MasterWebUIMetrics setRpcInvocationMetrics(Map<String, Counter> rpcInvocationMetrics) {
     mRpcInvocationMetrics = rpcInvocationMetrics;
     return this;
   }

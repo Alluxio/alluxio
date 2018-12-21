@@ -23,15 +23,15 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Alluxio WebUI workers information.
  */
 @NotThreadSafe
-public final class WebUIWorkers implements Serializable {
+public final class MasterWebUIWorkers implements Serializable {
   private boolean mDebug;
   private NodeInfo[] mFailedNodeInfos;
   private NodeInfo[] mNormalNodeInfos;
 
   /**
-   * Creates a new instance of {@link WebUIWorkers}.
+   * Creates a new instance of {@link MasterWebUIWorkers}.
    */
-  public WebUIWorkers() {
+  public MasterWebUIWorkers() {
   }
 
   public boolean getDebug() {
@@ -46,17 +46,17 @@ public final class WebUIWorkers implements Serializable {
     return mNormalNodeInfos;
   }
 
-  public WebUIWorkers setDebug(boolean Debug) {
+  public MasterWebUIWorkers setDebug(boolean Debug) {
     mDebug = Debug;
     return this;
   }
 
-  public WebUIWorkers setFailedNodeInfos(NodeInfo[] FailedNodeInfos) {
+  public MasterWebUIWorkers setFailedNodeInfos(NodeInfo[] FailedNodeInfos) {
     mFailedNodeInfos = FailedNodeInfos;
     return this;
   }
 
-  public WebUIWorkers setNormalNodeInfos(NodeInfo[] NormalNodeInfos) {
+  public MasterWebUIWorkers setNormalNodeInfos(NodeInfo[] NormalNodeInfos) {
     mNormalNodeInfos = NormalNodeInfos;
     return this;
   }
