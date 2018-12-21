@@ -1,7 +1,8 @@
 {
   "packages": [
+    "common",
     "master",
-    "common"
+    "worker"
   ],
   "hoist": true,
   "version": "1.0.0"

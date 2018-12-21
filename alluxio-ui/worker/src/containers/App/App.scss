@@ -1,0 +1,15 @@
+.App {
+  .pages {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+
+  .header-wrapper {
+    position: fixed;
+  }
+
+  .footer-wrapper {
+    position: fixed;
+    bottom: 0;
+  }
+}

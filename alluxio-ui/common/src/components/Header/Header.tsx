@@ -17,6 +17,7 @@ import {
 
 import {INavigationData} from '../../constants';
 import logo from '../../images/alluxio-mark-tight-sm.svg';
+import {isExternalLink} from '../../utilities';
 
 import './Header.css';
 
@@ -101,12 +102,14 @@ export class Header extends React.PureComponent<IHeaderProps, IHeaderState> {
 
   private renderNavItems(datas: INavigationData[]) {
     const {pathname} = this.state;
-    return datas.map((data: INavigationData) => (
-      <NavItem key={data.url}>
-        <NavLink tag={Link} to={data.url} active={pathname === data.url}
-                 onClick={this.closeHeaderOnClick}>{data.innerText}</NavLink>
+    return datas.map((data: INavigationData) => {
+      const url = typeof data.url === 'function' ? data.url() : data.url;
+      return (
+      <NavItem key={url}>
+        <NavLink tag={isExternalLink(url) ? NavLink : Link} to={url} href={url}
+                 active={pathname === url} onClick={this.closeHeaderOnClick}>{data.innerText}</NavLink>
       </NavItem>
-    ));
+    )});
   }
 
   private closeHeaderOnClick() {

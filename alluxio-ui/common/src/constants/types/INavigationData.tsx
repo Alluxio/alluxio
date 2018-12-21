@@ -2,5 +2,5 @@ export interface INavigationData {
   attributes?: any;
   innerNavs?: INavigationData[];
   innerText: string;
-  url?: string;
+  url?: string | (() => string);
 }

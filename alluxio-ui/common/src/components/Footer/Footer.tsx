@@ -30,10 +30,12 @@ export class Footer extends React.PureComponent<IFooterProps> {
   }
 
   private renderNavItems(datas: INavigationData[]) {
-    return datas.map((data: INavigationData) => (
-      <NavItem key={data.url}>
-        <NavLink href={data.url}>{data.innerText}</NavLink>
+    return datas.map((data: INavigationData) => {
+      const url = typeof data.url === 'function' ? data.url() : data.url;
+      return (
+      <NavItem key={url}>
+        <NavLink href={url}>{data.innerText}</NavLink>
       </NavItem>
-    ));
+    )});
   }
 }
