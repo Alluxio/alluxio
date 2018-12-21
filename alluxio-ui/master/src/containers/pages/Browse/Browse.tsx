@@ -1,10 +1,12 @@
 import React from 'react';
 import {connect} from 'react-redux';
-import {Button, Form, FormGroup, Input, Label, Table} from 'reactstrap';
+import {Link} from 'react-router-dom';
+import {Button, ButtonGroup, Form, FormGroup, Input, Label, Table} from 'reactstrap';
 import {Dispatch} from 'redux';
 
 import {LoadingMessage} from '@alluxio/common-ui/src/components';
-import {IFileInfo} from '../../../constants';
+import {createDebouncedFunction, parseQuerystring} from '@alluxio/common-ui/src/utilities';
+import {IFileBlockInfo, IFileInfo} from '../../../constants';
 import {IApplicationState} from '../../../store';
 import {fetchRequest} from '../../../store/browse/actions';
 import {IBrowse} from '../../../store/browse/types';
@@ -15,6 +17,9 @@ interface IPropsFromState {
   browse: IBrowse;
   errors: string;
   loading: boolean;
+  location: {
+    search: string;
+  };
 }
 
 interface IPropsFromDispatch {
@@ -22,37 +27,60 @@ interface IPropsFromDispatch {
 }
 
 interface IBrowseState {
-  end: boolean;
-  limit: number;
-  offset: number;
-  path: string;
+  end?: string;
+  limit?: string;
+  offset?: string;
+  path?: string;
+  lastFetched: {
+    end?: string;
+    limit?: string;
+    offset?: string;
+    path?: string;
+  };
+  textAreaHeight?: number;
 }
 
 type AllProps = IPropsFromState & IPropsFromDispatch;
 
 class Browse extends React.Component<AllProps, IBrowseState> {
   private readonly pathInput = React.createRef<Input>();
+  private readonly textAreaResizeMs = 100;
+  private readonly debouncedUpdateTextAreaHeight = createDebouncedFunction(this.updateTextAreaHeight.bind(this), this.textAreaResizeMs, true);
 
   constructor(props: AllProps) {
     super(props);
-    this.rootButtonHandler = this.rootButtonHandler.bind(this);
-    this.goButtonHandler = this.goButtonHandler.bind(this);
 
-    this.state = {
-      end: false,
-      limit: 20,
-      offset: 0,
-      path: '/'
+    const {path, offset, limit, end} = parseQuerystring(this.props.location.search);
+    this.state = {end, limit, offset, path: path || '/', lastFetched: {}};
+  }
+
+  public componentDidUpdate(prevProps: AllProps) {
+    if (this.props.location.search !== prevProps.location.search) {
+      const {path, offset, limit, end} = parseQuerystring(this.props.location.search);
+      this.setState({path, offset, limit, end});
+      this.fetchData(path, offset, limit, end);
     }
   }
 
   public componentWillMount() {
-    this.props.fetchRequest();
+    const {path, offset, limit, end} = this.state;
+    this.fetchData(path, offset, limit, end);
+    this.updateTextAreaHeight();
+  }
+
+  public componentDidMount() {
+    window.addEventListener('resize', this.debouncedUpdateTextAreaHeight);
+  }
+
+  public componentWillUnmount() {
+    window.removeEventListener('resize', this.debouncedUpdateTextAreaHeight);
   }
 
   public render() {
     const {browse, loading} = this.props;
-    const {path} = this.state;
+    let queryStringSuffix = ['offset', 'limit', 'end'].filter((key: string) => this.state[key] !== undefined)
+      .map((key: string) => `${key}=${this.state[key]}`).join('&');
+    queryStringSuffix = queryStringSuffix ? '&' + queryStringSuffix : queryStringSuffix;
 
     if (loading) {
       return (
@@ -65,41 +93,8 @@ class Browse extends React.Component<AllProps, IBrowseState> {
         <div className="container-fluid">
           <div className="row">
             <div className="col-12">
-              <h5>Browse</h5>
-              <div>
-                <Form id="browseForm" inline={true}>
-                  <FormGroup className="mb-2 mr-sm-2">
-                    <Button inverse={true} onClick={this.rootButtonHandler}>Root</Button>
-                  </FormGroup>
-                  <FormGroup className="mb-2 mr-sm-2">
-                    <Label for="browsePath" className="mr-sm-2">Path</Label>
-                    <Input type="text" id="browsePath" placeholder="Enter a Path" ref={this.pathInput}
-                           value={path}/>
-                  </FormGroup>
-                  <FormGroup className="mb-2 mr-sm-2">
-                    <Button color="primary">Go</Button>
-                  </FormGroup>
-                </Form>
-              </div>
-              <Table hover={true}>
-                <thead>
-                <tr>
-                  <th/>
-                  <th>File Name</th>
-                  <th>Block Size</th>
-                  <th>In-Alluxio</th>
-                  <th>Mode</th>
-                  <th>Owner</th>
-                  <th>Group</th>
-                  <th>Persistence State</th>
-                  <th>Pin</th>
-                  <th>Creation Time</th>
-                </tr>
-                </thead>
-                <tbody>
-                {this.renderIndexBody(browse.fileInfos)}
-                </tbody>
-              </Table>
+              {!browse.currentDirectory.isDirectory && this.renderFileView(browse, queryStringSuffix)}
+              {browse.currentDirectory.isDirectory && this.renderDirectoryListing(browse.fileInfos, queryStringSuffix)}
             </div>
           </div>
         </div>
@@ -107,39 +102,172 @@ class Browse extends React.Component<AllProps, IBrowseState> {
     );
   }
 
-  private renderIndexBody(fileInfos: IFileInfo[]) {
-    return fileInfos.map((fileInfo: IFileInfo) => (
-      <tr key={fileInfo.name}>
-        <td><i className={fileInfo.isDirectory ? 'fas fa-folder' : 'fas fa-file'} aria-hidden="true"/></td>
-        <td>{fileInfo.name}</td>
-        <td>{fileInfo.size}</td>
-        <td>{fileInfo.inAlluxio}</td>
-        <td>{fileInfo.mode}</td>
-        <td>{fileInfo.owner}</td>
-        <td>{fileInfo.group}</td>
-        <td>{fileInfo.persistenceState}</td>
-        <td>{fileInfo.pinned}</td>
-        <td>{fileInfo.creationTime}</td>
-      </tr>
-    ));
+  private renderFileView(browse: IBrowse, queryStringSuffix: string) {
+    const {textAreaHeight, path, offset, end, lastFetched} = this.state;
+    const offsetInputHandler = this.createInputHandler('offset', value => value).bind(this);
+    const beginInputHandler = this.createInputHandler('end', value => undefined).bind(this);
+    const endInputHandler = this.createInputHandler('end', value => '1').bind(this);
+    return (
+      <React.Fragment>
+        <h5>
+          {browse.currentDirectory.absolutePath}: <small>First 5KB from {browse.viewingOffset} in ASCII</small>
+        </h5>
+        <Form className="mb-3 browse-file-form" id="browseFileForm" inline={true}>
+          <FormGroup className="mb-2 mr-sm-2 w-100">
+            <Input className="w-100" type="textarea" value={browse.fileData} style={{height: textAreaHeight}} readOnly={true}/>
+          </FormGroup>
+        </Form>
+        <hr/>
+        <Form className="mb-3 browse-file-settings-form" id="browseFileSettingsForm" inline={true}>
+          <FormGroup className="col-5">
+            <Label for="browseFileOffset" className="mr-sm-2">Display from byte offset</Label>
+            <Input className="col-3" type="text" id="browseFileOffset" placeholder="Enter an offset"
+                   value={offset || '0'}
+                   onChange={offsetInputHandler}/>
+          </FormGroup>
+          <FormGroup className="col-5">
+            <Label for="browseFileEnd" className="mr-sm-2">Relative to</Label>
+            <ButtonGroup id="browseFileEnd" className="auto-refresh-button">
+              <Button size="sm" outline={!!end} color="secondary" onClick={beginInputHandler}>
+                <i className={!end ? 'far fa-check-square' : 'far fa-square'} aria-hidden="true"/>&nbsp;begin
+              </Button>
+              <Button size="sm" outline={!end} color="secondary" onClick={endInputHandler}>
+                <i className={!!end ? 'far fa-check-square' : 'far fa-square'} aria-hidden="true"/>&nbsp;end
+              </Button>
+            </ButtonGroup>
+          </FormGroup>
+          <FormGroup className="col-2">
+            <Button tag={Link} to={`/browse?path=${path}${queryStringSuffix}`} color="primary"
+                    disabled={offset === lastFetched.offset && end === lastFetched.end}>Go</Button>
+          </FormGroup>
+          <FormGroup className="col-4">
+            <a href={`${process.env.REACT_APP_API_DOWNLOAD}?path=${encodeURIComponent(path || '')}`}>
+              Download
+            </a>
+          </FormGroup>
+        </Form>
+        <hr/>
+        <h6>Detailed blocks information (block capacity is {browse.blockSizeBytes} Bytes):</h6>
+        <Table hover={true}>
+          <thead>
+          <tr>
+            <th>ID</th>
+            <th>Size (Byte)</th>
+            <th>In {browse.highestTierAlias}</th>
+            <th>Locations</th>
+          </tr>
+          </thead>
+          <tbody>
+          {browse.fileBlocks.map((fileBlock: IFileBlockInfo) => (
+            <tr key={fileBlock.id}>
+              <td>{fileBlock.id}</td>
+              <td>{fileBlock.blockLength}</td>
+              <td>
+                {/*TODO: fix this to be part of the fileBlock in the api*/}
+                {browse.highestTierAlias ? 'YES' : 'NO'}
+              </td>
+              <td>
+                {fileBlock.locations.map((location: string) => (
+                  <div>{location}</div>
+                ))}
+              </td>
+            </tr>
+          ))}
+          </tbody>
+        </Table>
+      </React.Fragment>
+    );
   }
 
-  private rootButtonHandler() {
-    const newPath = '/';
-    this.setPath(newPath);
+  private renderDirectoryListing(fileInfos: IFileInfo[], queryStringSuffix: string) {
+    const {path, lastFetched} = this.state;
+    const pathInputHandler = this.createInputHandler('path', value => value).bind(this);
+    return (
+      <React.Fragment>
+        <Form className="mb-3 browse-directory-form" id="browseDirectoryForm" inline={true}>
+          <FormGroup className="mb-2 mr-sm-2">
+            <Button tag={Link} to={`/browse?path=/${queryStringSuffix}`} color="secondary"
+                    outline={true} disabled={'/' === lastFetched.path}>Root</Button>
+          </FormGroup>
+          <FormGroup className="mb-2 mr-sm-2">
+            <Label for="browsePath" className="mr-sm-2">Path</Label>
+            <Input type="text" id="browsePath" placeholder="Enter a Path" ref={this.pathInput}
+                   value={path || '/'} onChange={pathInputHandler}/>
+          </FormGroup>
+          <FormGroup className="mb-2 mr-sm-2">
+            <Button tag={Link} to={`/browse?path=${path}${queryStringSuffix}`} color="primary"
+                    disabled={path === lastFetched.path}>Go</Button>
+          </FormGroup>
+        </Form>
+        <Table hover={true}>
+          <thead>
+          <tr>
+            <th/>
+            <th>File Name</th>
+            <th>Block Size</th>
+            <th>In-Alluxio</th>
+            <th>Mode</th>
+            <th>Owner</th>
+            <th>Group</th>
+            <th>Persistence State</th>
+            <th>Pin</th>
+            <th>Creation Time</th>
+          </tr>
+          </thead>
+          <tbody>
+          {fileInfos.map((fileInfo: IFileInfo) => (
+            <tr key={fileInfo.name}>
+              <td><i className={fileInfo.isDirectory ? 'fas fa-folder' : 'fas fa-file'} aria-hidden="true"/></td>
+              <td>
+                {this.renderFileNameLink(fileInfo.absolutePath, queryStringSuffix)}
+              </td>
+              <td>{fileInfo.size}</td>
+              <td>{fileInfo.inAlluxio}</td>
+              <td>{fileInfo.mode}</td>
+              <td>{fileInfo.owner}</td>
+              <td>{fileInfo.group}</td>
+              <td>{fileInfo.persistenceState}</td>
+              <td>{fileInfo.pinned}</td>
+              <td>{fileInfo.creationTime}</td>
+            </tr>
+          ))}
+          </tbody>
+        </Table>
+      </React.Fragment>
+    )
   }
 
-  private goButtonHandler() {
-    const newPath = this.pathInput.current ? '' + this.pathInput.current.props.value : '';
-    this.setPath(newPath)
-  }
-
-  private setPath(newPath: string) {
-    const {path} = this.state;
-    if (path !== newPath) {
-      this.setState({path});
-      this.props.fetchRequest(path);
+  private renderFileNameLink(filePath: string, queryStringSuffix: string) {
+    const {lastFetched} = this.state;
+    if (filePath === lastFetched.path) {
+      return (
+        filePath
+      );
     }
+
+    return (
+      <Link to={`/browse?path=${filePath}${queryStringSuffix}`}>
+        {filePath}
+      </Link>
+    );
+  }
+
+  private fetchData(path?: string, offset?: string, limit?: string, end?: string) {
+    this.setState({lastFetched: {path, offset, limit, end}});
+    this.props.fetchRequest(path, offset, limit, end);
+  }
+
+  private createInputHandler(stateKey: string, stateValueCallback: (value: string) => string | undefined) {
+    return (event: React.ChangeEvent<HTMLInputElement>) => {
+      const value = event.target.value;
+      const state = {};
+      state[stateKey] = stateValueCallback(value);
+      this.setState(state);
+    };
+  }
+
+  private updateTextAreaHeight() {
+    this.setState({textAreaHeight: window.innerHeight / 2});
   }
 }
 
@@ -150,7 +278,7 @@ const mapStateToProps = ({browse}: IApplicationState) => ({
 });
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
-  fetchRequest: (path?: string, offset?: number, limit?: number, end?: boolean) => dispatch(fetchRequest(path, offset, limit, end))
+  fetchRequest: (path?: string, offset?: string, limit?: string, end?: string) => dispatch(fetchRequest(path, offset, limit, end))
 });
 
 export default connect(

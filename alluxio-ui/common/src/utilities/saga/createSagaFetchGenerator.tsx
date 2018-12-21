@@ -11,7 +11,10 @@ export const createSagaFetchGenerator = (endpoint: string, successFunction: Acti
     }
 
     if (params.payload.queryString) {
-      const queryString = Object.keys(params.payload.queryString).map(key => key + '=' + params.payload.queryString[key]).join('&');
+      const queryString = Object.keys(params.payload.queryString)
+        .filter(key => params.payload.queryString[key] !== undefined)
+        .map(key => key + '=' + encodeURIComponent(params.payload.queryString[key]))
+        .join('&');
       apiEndpoint += `?${queryString}`;
     }
   }

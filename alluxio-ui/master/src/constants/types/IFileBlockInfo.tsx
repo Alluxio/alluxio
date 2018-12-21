@@ -3,5 +3,5 @@ export interface IFileBlockInfo {
   'id': number;
   'inTier': boolean;
   'lastAccessTimeMs': number;
-  'location': string[];
+  'locations': string[];
 }
