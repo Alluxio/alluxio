@@ -1,6 +1,6 @@
 import React from 'react';
 import {connect} from 'react-redux';
-import {Table} from 'reactstrap';
+import {Progress, Table} from 'reactstrap';
 import {Dispatch} from 'redux';
 
 import {LoadingMessage} from '@alluxio/common-ui/src/components';
@@ -53,6 +53,7 @@ class Workers extends React.Component<AllProps> {
                   <th>State</th>
                   <th>Workers Capacity</th>
                   <th>Space Used</th>
+                  <th>Space Usage</th>
                 </tr>
                 </thead>
                 <tbody>
@@ -65,6 +66,14 @@ class Workers extends React.Component<AllProps> {
                     <td>{nodeInfo.state}</td>
                     <td>{nodeInfo.capacity}</td>
                     <td>{nodeInfo.usedMemory}</td>
+                    <td>
+                      <Progress multi={true}>
+                        <Progress bar={true} color="success"
+                                  value={`${nodeInfo.freeSpacePercent}`}>{nodeInfo.freeSpacePercent}% Free</Progress>
+                        <Progress bar={true} color="danger"
+                                  value={`${nodeInfo.usedSpacePercent}`}>{nodeInfo.usedSpacePercent}% Used</Progress>
+                      </Progress>
+                    </td>
                   </tr>
                 ))}
                 </tbody>
