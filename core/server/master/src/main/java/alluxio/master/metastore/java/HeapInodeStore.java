@@ -19,15 +19,16 @@ import alluxio.master.metastore.InodeStore;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
-import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentSkipListMap;
 
 /**
  * FileStore implementation using on-heap data structures.
  */
 public class HeapInodeStore implements InodeStore {
   private final Map<Long, Inode<?>> mInodes = new ConcurrentHashMap<>();
-  private final Map<Long, TreeMap<String, Inode<?>>> mEdges = new ConcurrentHashMap<>();
+  // Map from inode id to children of that inode. The internal maps are ordered by child name.
+  private final Map<Long, Map<String, Inode<?>>> mEdges = new ConcurrentHashMap<>();
 
   @Override
   public void remove(InodeView inode) {
@@ -47,15 +48,13 @@ public class HeapInodeStore implements InodeStore {
 
   @Override
   public void addChild(long parentId, InodeView child) {
-    mEdges.putIfAbsent(parentId, new TreeMap<>());
+    mEdges.putIfAbsent(parentId, new ConcurrentSkipListMap<>());
     mEdges.get(parentId).put(child.getName(), (Inode<?>) child);
   }
 
   @Override
   public void removeChild(long parentId, String name) {
-    if (mEdges.containsKey(parentId)) {
-      mEdges.get(parentId).remove(name);
-    }
+    children(parentId).remove(name);
   }
 
   @Override
@@ -70,29 +69,26 @@ public class HeapInodeStore implements InodeStore {
 
   @Override
   public Iterable<? extends InodeView> getChildren(InodeDirectoryView dir) {
-    if (!mEdges.containsKey(dir.getId())) {
-      return Collections.emptySet();
-    }
-
-    return mEdges.get(dir.getId()).values();
+    return children(dir.getId()).values();
   }
 
   @Override
   public Optional<InodeView> getChild(InodeDirectoryView dir, String child) {
-    if (!mEdges.containsKey(dir.getId())) {
-      return Optional.empty();
-    }
-    return Optional.ofNullable(mEdges.get(dir.getId()).get(child));
+    return Optional.ofNullable(children(dir.getId()).get(child));
   }
 
   @Override
   public boolean hasChildren(InodeDirectoryView dir) {
-    return mEdges.containsKey(dir.getId()) && !mEdges.get(dir.getId()).isEmpty();
+    return !children(dir.getId()).isEmpty();
   }
 
   @Override
   public void clear() {
     mInodes.clear();
     mEdges.clear();
+  }
+
+  private Map<String, Inode<?>> children(long id) {
+    return mEdges.getOrDefault(id, Collections.emptyMap());
   }
 }
