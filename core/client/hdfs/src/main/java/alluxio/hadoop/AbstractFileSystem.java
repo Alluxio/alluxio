@@ -497,8 +497,8 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     synchronized (INIT_LOCK) {
       if (sInitialized) {
         if (!connectDetailsMatch(uriConfProperties, conf)) {
-          LOG.warn(ExceptionMessage.DIFFERENT_CONNECTION_DETAILS.getMessage(
-              FileSystemContext.get().getMasterInquireClient().getConnectDetails()));
+          ConnectDetails connectDetails = mContext.getMasterInquireClient().getConnectDetails();
+          LOG.warn(ExceptionMessage.DIFFERENT_CONNECTION_DETAILS.getMessage(connectDetails));
           initializeInternal(uriConfProperties, conf);
         }
       } else {
@@ -531,7 +531,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     // This must be reset to pick up the change to the master address.
     LOG.info("Initializing filesystem context with connect details {}",
         Factory.getConnectDetails(Configuration.global()));
-    FileSystemContext.get().reset(Configuration.global());
+    FileSystemContext.get(getHadoopSubject()).reset(Configuration.global());
   }
 
   /**
@@ -577,7 +577,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     alluxioConf.merge(uriConfProperties, Source.RUNTIME);
 
     ConnectDetails newDetails = Factory.getConnectDetails(alluxioConf);
-    ConnectDetails oldDetails = FileSystemContext.get()
+    ConnectDetails oldDetails = FileSystemContext.get(getHadoopSubject())
         .getMasterInquireClient().getConnectDetails();
 
     return newDetails.equals(oldDetails);
@@ -589,15 +589,9 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
    */
   private void updateFileSystemAndContext() {
     Subject subject = getHadoopSubject();
-    if (subject != null) {
-      LOG.debug("Using Hadoop subject: {}", subject);
-      mContext = FileSystemContext.get(subject);
-      mFileSystem = FileSystem.Factory.get(mContext);
-    } else {
-      LOG.debug("No Hadoop subject. Using FileSystem Context without subject.");
-      mContext = FileSystemContext.get();
-      mFileSystem = FileSystem.Factory.get(mContext);
-    }
+    LOG.debug("Using Hadoop subject: {}", subject);
+    mContext = FileSystemContext.get(subject);
+    mFileSystem = FileSystem.Factory.get(mContext);
   }
 
   /**
