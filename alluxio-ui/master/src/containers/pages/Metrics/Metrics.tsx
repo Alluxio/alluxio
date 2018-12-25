@@ -79,19 +79,19 @@ class Metrics extends React.Component<AllProps> {
                 <tbody>
                 <tr>
                   <th>Short-circuit Read</th>
-                  <td>{metrics.totalBytesReadLocalThroughput}</td>
+                  <td>{metrics.totalBytesReadLocal}</td>
                   <th>From Remote Instances</th>
-                  <td>{metrics.totalBytesReadRemoteThroughput}</td>
+                  <td>{metrics.totalBytesReadRemote}</td>
                 </tr>
                 <tr>
                   <th>Under Filesystem Read</th>
-                  <td>{metrics.totalBytesReadUfsThroughput}</td>
+                  <td>{metrics.totalBytesReadUfs}</td>
                 </tr>
                 <tr>
                   <th>Alluxio Write</th>
-                  <td>{metrics.totalBytesWrittenAlluxioThroughput}</td>
+                  <td>{metrics.totalBytesWrittenAlluxio}</td>
                   <th>Under Filesystem Write</th>
-                  <td>{metrics.totalBytesWrittenUfsThroughput}</td>
+                  <td>{metrics.totalBytesWrittenUfs}</td>
                 </tr>
                 </tbody>
               </Table>

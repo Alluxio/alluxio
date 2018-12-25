@@ -257,23 +257,23 @@ public final class MasterWebUIMetrics implements Serializable {
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this).add("mCacheHitLocal", mCacheHitLocal)
-        .add("mCacheHitRemote", mCacheHitRemote).add("mCacheMiss", mCacheMiss)
-        .add("mMasterCapacityFreePercentage", mMasterCapacityFreePercentage)
-        .add("mMasterCapacityUsedPercentage", mMasterCapacityUsedPercentage)
-        .add("mMasterUnderfsCapacityFreePercentage", mMasterUnderfsCapacityFreePercentage)
-        .add("mMasterUnderfsCapacityUsedPercentage", mMasterUnderfsCapacityUsedPercentage)
-        .add("mTotalBytesReadLocal", mTotalBytesReadLocal)
-        .add("mTotalBytesReadLocalThroughput", mTotalBytesReadLocalThroughput)
-        .add("mTotalBytesReadRemote", mTotalBytesReadRemote)
-        .add("mTotalBytesReadRemoteThroughput", mTotalBytesReadRemoteThroughput)
-        .add("mTotalBytesReadUfs", mTotalBytesReadUfs)
-        .add("mTotalBytesReadUfsThroughput", mTotalBytesReadUfsThroughput)
-        .add("mTotalBytesWrittenAlluxio", mTotalBytesWrittenAlluxio)
-        .add("mTotalBytesWrittenAlluxioThroughput", mTotalBytesWrittenAlluxioThroughput)
-        .add("mTotalBytesWrittenUfs", mTotalBytesWrittenUfs)
-        .add("mTotalBytesWrittenUfsThroughput", mTotalBytesWrittenUfsThroughput)
-        .add("mUfsOps", mUfsOps).add("mUfsReadSize", mUfsReadSize)
-        .add("mUfsWriteSize", mUfsWriteSize).toString();
+    return Objects.toStringHelper(this).add("cacheHitLocal", mCacheHitLocal)
+        .add("cacheHitRemote", mCacheHitRemote).add("cacheMiss", mCacheMiss)
+        .add("masterCapacityFreePercentage", mMasterCapacityFreePercentage)
+        .add("masterCapacityUsedPercentage", mMasterCapacityUsedPercentage)
+        .add("masterUnderfsCapacityFreePercentage", mMasterUnderfsCapacityFreePercentage)
+        .add("masterUnderfsCapacityUsedPercentage", mMasterUnderfsCapacityUsedPercentage)
+        .add("totalBytesReadLocal", mTotalBytesReadLocal)
+        .add("totalBytesReadLocalThroughput", mTotalBytesReadLocalThroughput)
+        .add("totalBytesReadRemote", mTotalBytesReadRemote)
+        .add("totalBytesReadRemoteThroughput", mTotalBytesReadRemoteThroughput)
+        .add("totalBytesReadUfs", mTotalBytesReadUfs)
+        .add("totalBytesReadUfsThroughput", mTotalBytesReadUfsThroughput)
+        .add("totalBytesWrittenAlluxio", mTotalBytesWrittenAlluxio)
+        .add("totalBytesWrittenAlluxioThroughput", mTotalBytesWrittenAlluxioThroughput)
+        .add("totalBytesWrittenUfs", mTotalBytesWrittenUfs)
+        .add("totalBytesWrittenUfsThroughput", mTotalBytesWrittenUfsThroughput)
+        .add("ufsOps", mUfsOps).add("ufsReadSize", mUfsReadSize)
+        .add("ufsWriteSize", mUfsWriteSize).toString();
   }
 }

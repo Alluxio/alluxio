@@ -63,8 +63,8 @@ public final class MasterWebUIWorkers implements Serializable {
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this).add("mDebug", mDebug)
-        .add("mFailedNodeInfos", mFailedNodeInfos).add("mNormalNodeInfos", mNormalNodeInfos)
+    return Objects.toStringHelper(this).add("debug", mDebug)
+        .add("failedNodeInfos", mFailedNodeInfos).add("normalNodeInfos", mNormalNodeInfos)
         .toString();
   }
 }

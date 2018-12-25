@@ -56,7 +56,7 @@ public final class MasterWebUIConfiguration implements Serializable {
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this).add("mConfiguration", mConfiguration)
-        .add("mWhitelist", mWhitelist).toString();
+    return Objects.toStringHelper(this).add("configuration", mConfiguration)
+        .add("whitelist", mWhitelist).toString();
   }
 }

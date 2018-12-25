@@ -14,6 +14,7 @@ package alluxio.worker;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.ConfigurationValueOptions;
+import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.RestUtils;
 import alluxio.RuntimeConstants;
@@ -25,6 +26,7 @@ import alluxio.exception.AlluxioException;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.master.block.BlockId;
+import alluxio.metrics.MasterMetrics;
 import alluxio.metrics.MetricsSystem;
 import alluxio.util.FormatUtils;
 import alluxio.util.LogUtils;
@@ -33,11 +35,14 @@ import alluxio.util.webui.UIFileInfo;
 import alluxio.util.webui.UIStorageDir;
 import alluxio.util.webui.UIUsageOnTier;
 import alluxio.util.webui.UIWorkerInfo;
+import alluxio.util.webui.WebUtils;
 import alluxio.web.WorkerWebServer;
 import alluxio.wire.AlluxioWorkerInfo;
 import alluxio.wire.Capacity;
 import alluxio.wire.LogInfo;
 import alluxio.wire.WorkerWebUIBlockInfo;
+import alluxio.wire.WorkerWebUILogs;
+import alluxio.wire.WorkerWebUIMetrics;
 import alluxio.wire.WorkerWebUIOverview;
 import alluxio.worker.block.BlockStoreMeta;
 import alluxio.worker.block.BlockWorker;
@@ -46,11 +51,18 @@ import alluxio.worker.block.meta.BlockMeta;
 
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Gauge;
+import com.codahale.metrics.Metric;
+import com.codahale.metrics.MetricFilter;
 import com.codahale.metrics.MetricRegistry;
+import com.fasterxml.jackson.databind.annotation.JsonAppend;
 import com.qmino.miredot.annotations.ReturnType;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FilenameFilter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -259,7 +271,8 @@ public final class AlluxioWorkerRestServiceHandler {
       BlockStoreMeta storeMeta = mBlockWorker.getStoreMetaFull();
       for (List<Long> blockIds : storeMeta.getBlockList().values()) {
         for (long blockId : blockIds) {
-          long fileId = BlockId.createBlockId(BlockId.getContainerId(blockId), BlockId.getMaxSequenceNumber());
+          long fileId = BlockId
+              .createBlockId(BlockId.getContainerId(blockId), BlockId.getMaxSequenceNumber());
           unsortedFileIds.add(fileId);
         }
       }
@@ -302,6 +315,188 @@ public final class AlluxioWorkerRestServiceHandler {
             "Error: offset or offset + limit is out ofbound, " + e.getLocalizedMessage());
       } catch (Exception e) {
         response.setFatalError(e.getLocalizedMessage());
+      }
+
+      return response;
+    });
+  }
+
+  /**
+   * @summary get the information rendered in the Web UI's metrics page
+   * @return the response object
+   */
+  @GET
+  @Path(WEBUI_METRICS)
+  @ReturnType("alluxio.wire.MasterWebUIMetrics")
+  public Response getWebUIMetrics() {
+    return RestUtils.call(() -> {
+      WorkerWebUIMetrics response = new WorkerWebUIMetrics();
+
+      MetricRegistry mr = MetricsSystem.METRIC_REGISTRY;
+
+      Long workerCapacityTotal = (Long) mr.getGauges()
+          .get(MetricsSystem.getMetricName(DefaultBlockWorker.Metrics.CAPACITY_TOTAL)).getValue();
+      Long workerCapacityUsed = (Long) mr.getGauges()
+          .get(MetricsSystem.getMetricName(DefaultBlockWorker.Metrics.CAPACITY_USED)).getValue();
+
+      int workerCapacityUsedPercentage =
+          (workerCapacityTotal > 0) ? (int) (100L * workerCapacityUsed / workerCapacityTotal) : 0;
+
+      response.setWorkerCapacityUsedPercentage(workerCapacityUsedPercentage);
+      response.setWorkerCapacityFreePercentage(100 - workerCapacityUsedPercentage);
+
+      Map<String, Counter> counters = mr.getCounters(new MetricFilter() {
+        @Override
+        public boolean matches(String name, Metric metric) {
+          return !(name.endsWith("Ops"));
+        }
+      });
+
+      Map<String, Counter> rpcInvocations = mr.getCounters(new MetricFilter() {
+        @Override
+        public boolean matches(String name, Metric metric) {
+          return name.endsWith("Ops");
+        }
+      });
+
+      Map<String, Metric> operations = new TreeMap<>();
+      // Remove the instance name from the metrics.
+      for (Map.Entry<String, Counter> entry : counters.entrySet()) {
+        operations.put(MetricsSystem.stripInstanceAndHost(entry.getKey()), entry.getValue());
+      }
+      String filesPinnedProperty = MetricsSystem.getMetricName(MasterMetrics.FILES_PINNED);
+      operations.put(MetricsSystem.stripInstanceAndHost(filesPinnedProperty),
+          mr.getGauges().get(filesPinnedProperty));
+
+      response.setOperationMetrics(operations);
+
+      Map<String, Counter> rpcInvocationsUpdated = new TreeMap<>();
+      for (Map.Entry<String, Counter> entry : rpcInvocations.entrySet()) {
+        rpcInvocationsUpdated
+            .put(MetricsSystem.stripInstanceAndHost(entry.getKey()), entry.getValue());
+      }
+
+      response.setRpcInvocationMetrics(rpcInvocations);
+
+      return response;
+    });
+  }
+
+  @GET
+  @Path(WEBUI_LOGS)
+  @ReturnType("alluxio.wire.WorkerWebUILogs")
+  public Response getWebUILogs(@DefaultValue("") @QueryParam("path") String requestPath,
+      @DefaultValue("0") @QueryParam("offset") String requestOffset,
+      @QueryParam("end") String requestEnd,
+      @DefaultValue("20") @QueryParam("limit") String requestLimit) {
+    return RestUtils.call(() -> {
+      WorkerWebUILogs response = new WorkerWebUILogs();
+
+      if (!Configuration.getBoolean(PropertyKey.WEB_FILE_INFO_ENABLED)) {
+        return response;
+      }
+
+      response.setDebug(Configuration.getBoolean(PropertyKey.DEBUG)).setInvalidPathError("")
+          .setViewingOffset(0).setCurrentPath("");
+
+      FilenameFilter LOG_FILE_FILTER = (dir, name) -> name.toLowerCase().endsWith(".log");
+      String logsPath = Configuration.get(PropertyKey.LOGS_DIR);
+      File logsDir = new File(logsPath);
+      String requestFile = requestPath;
+
+      if (requestFile == null || requestFile.isEmpty()) {
+        // List all log files in the log/ directory.
+
+        List<UIFileInfo> fileInfos = new ArrayList<>();
+        File[] logFiles = logsDir.listFiles(LOG_FILE_FILTER);
+        if (logFiles != null) {
+          for (File logFile : logFiles) {
+            String logFileName = logFile.getName();
+            fileInfos.add(new UIFileInfo(
+                new UIFileInfo.LocalFileInfo(logFileName, logFileName, logFile.length(),
+                    UIFileInfo.LocalFileInfo.EMPTY_CREATION_TIME, logFile.lastModified(),
+                    logFile.isDirectory())));
+          }
+        }
+        Collections.sort(fileInfos, UIFileInfo.PATH_STRING_COMPARE);
+        response.setNTotalFile(fileInfos.size());
+
+        try {
+          int offset = Integer.parseInt(requestOffset);
+          int limit = Integer.parseInt(requestLimit);
+          List<UIFileInfo> sub = fileInfos.subList(offset, offset + limit);
+          response.setFileInfos(sub);
+        } catch (NumberFormatException e) {
+          response.setFatalError("Error: offset or limit parse error, " + e.getLocalizedMessage());
+        } catch (IndexOutOfBoundsException e) {
+          response.setFatalError(
+              "Error: offset or offset + limit is out of bound, " + e.getLocalizedMessage());
+        } catch (IllegalArgumentException e) {
+          response.setFatalError(e.getLocalizedMessage());
+        }
+      } else {
+        // Request a specific log file.
+
+        // Only allow filenames as the path, to avoid arbitrary local path lookups.
+        requestFile = new File(requestFile).getName();
+        response.setCurrentPath(requestFile);
+
+        File logFile = new File(logsDir, requestFile);
+
+        try {
+          long fileSize = logFile.length();
+          String offsetParam = requestOffset;
+          long relativeOffset = 0;
+          long offset;
+          try {
+            if (offsetParam != null) {
+              relativeOffset = Long.parseLong(offsetParam);
+            }
+          } catch (NumberFormatException e) {
+            relativeOffset = 0;
+          }
+          String endParam = requestEnd;
+          // If no param "end" presents, the offset is relative to the beginning; otherwise, it is
+          // relative to the end of the file.
+          if (endParam == null) {
+            offset = relativeOffset;
+          } else {
+            offset = fileSize - relativeOffset;
+          }
+          if (offset < 0) {
+            offset = 0;
+          } else if (offset > fileSize) {
+            offset = fileSize;
+          }
+
+          String fileData;
+          try (InputStream is = new FileInputStream(logFile)) {
+            fileSize = logFile.length();
+            int len = (int) Math.min(5 * Constants.KB, fileSize - offset);
+            byte[] data = new byte[len];
+            long skipped = is.skip(offset);
+            if (skipped < 0) {
+              // Nothing was skipped.
+              fileData = "Unable to traverse to offset; is file empty?";
+            } else if (skipped < offset) {
+              // Couldn't skip all the way to offset.
+              fileData = "Unable to traverse to offset; is offset larger than the file?";
+            } else {
+              // Read may not read up to len, so only convert what was read.
+              int read = is.read(data, 0, len);
+              if (read < 0) {
+                // Stream couldn't read anything, skip went to EOF?
+                fileData = "Unable to read file";
+              } else {
+                fileData = WebUtils.convertByteArrayToStringWithoutEscape(data, 0, read);
+              }
+            }
+          }
+          response.setFileData(fileData).setViewingOffset(offset);
+        } catch (IOException e) {
+          response.setInvalidPathError(
+              "Error: File " + logFile + " is not available " + e.getMessage());
+        }
       }
 
       return response;

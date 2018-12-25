@@ -215,15 +215,15 @@ public final class MasterWebUIBrowse implements Serializable {
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this).add("mAccessControlException", mAccessControlException)
-        .add("mBlockSizeBytes", mBlockSizeBytes).add("mCurrentDirectory", mCurrentDirectory)
-        .add("mCurrentPath", mCurrentPath).add("mDebug", mDebug).add("mFatalError", mFatalError)
-        .add("mFileBlocks", mFileBlocks).add("mFileData", mFileData)
-        .add("mFileDoesNotExistException", mFileDoesNotExistException).add("mFileInfos", mFileInfos)
-        .add("mHighestTierAlias", mHighestTierAlias).add("mInvalidPathError", mInvalidPathError)
-        .add("mInvalidPathException", mInvalidPathException)
-        .add("mMasterNodeAddress", mMasterNodeAddress).add("mNTotalFile", mNTotalFile)
-        .add("mPathInfos", mPathInfos).add("mShowPermissions", mShowPermissions)
-        .add("mViewingOffset", mViewingOffset).toString();
+    return Objects.toStringHelper(this).add("accessControlException", mAccessControlException)
+        .add("blockSizeBytes", mBlockSizeBytes).add("currentDirectory", mCurrentDirectory)
+        .add("currentPath", mCurrentPath).add("debug", mDebug).add("fatalError", mFatalError)
+        .add("fileBlocks", mFileBlocks).add("fileData", mFileData)
+        .add("fileDoesNotExistException", mFileDoesNotExistException).add("fileInfos", mFileInfos)
+        .add("highestTierAlias", mHighestTierAlias).add("invalidPathError", mInvalidPathError)
+        .add("invalidPathException", mInvalidPathException)
+        .add("masterNodeAddress", mMasterNodeAddress).add("nTotalFile", mNTotalFile)
+        .add("pathInfos", mPathInfos).add("showPermissions", mShowPermissions)
+        .add("viewingOffset", mViewingOffset).toString();
   }
 }

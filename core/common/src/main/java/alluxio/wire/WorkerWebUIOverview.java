@@ -96,9 +96,9 @@ public final class WorkerWebUIOverview implements Serializable {
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this).add("mCapacityBytes", mCapacityBytes)
-        .add("mStorageDirs", mStorageDirs).add("mUsageOnTiers", mUsageOnTiers)
-        .add("mUsedBytes", mUsedBytes).add("mVersion", mVersion).add("mWorkerInfo", mWorkerInfo)
+    return Objects.toStringHelper(this).add("capacityBytes", mCapacityBytes)
+        .add("storageDirs", mStorageDirs).add("usageOnTiers", mUsageOnTiers)
+        .add("usedBytes", mUsedBytes).add("version", mVersion).add("workerInfo", mWorkerInfo)
         .toString();
   }
 }

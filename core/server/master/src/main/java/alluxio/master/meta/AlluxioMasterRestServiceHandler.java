@@ -219,49 +219,38 @@ public final class AlluxioMasterRestServiceHandler {
   @ReturnType("alluxio.wire.MasterWebUIOverview")
   public Response getWebUIOverview() {
     return RestUtils.call(() -> {
-      alluxio.wire.StartupConsistencyCheck startupConsistencyCheck =
-          getStartupConsistencyCheckInternal();
+      MasterWebUIOverview response = new MasterWebUIOverview();
+
+      response.setDebug(Configuration.getBoolean(PropertyKey.DEBUG))
+          .setMasterNodeAddress(mMasterProcess.getRpcAddress().toString()).setUptime(CommonUtils
+          .convertMsToClockTime(System.currentTimeMillis() - mMetaMaster.getStartTimeMs()))
+          .setStartTime(CommonUtils.convertMsToDate(mMetaMaster.getStartTimeMs()))
+          .setVersion(RuntimeConstants.VERSION)
+          .setLiveWorkerNodes(Integer.toString(mBlockMaster.getWorkerCount()))
+          .setCapacity(FormatUtils.getSizeFromBytes(mBlockMaster.getCapacityBytes()))
+          .setUsedCapacity(FormatUtils.getSizeFromBytes(mBlockMaster.getUsedBytes()))
+          .setFreeCapacity(FormatUtils
+              .getSizeFromBytes(mBlockMaster.getCapacityBytes() - mBlockMaster.getUsedBytes()));
+
+      StartupConsistencyCheck check = mFileSystemMaster.getStartupConsistencyCheck();
+      response.setConsistencyCheckStatus(check.getStatus().toString());
+      if (check.getStatus() == StartupConsistencyCheck.Status.COMPLETE) {
+        response.setInconsistentPaths(check.getInconsistentUris().size());
+        response.setInconsistentPathItems(check.getInconsistentUris());
+      } else {
+        response.setInconsistentPaths(0);
+      }
 
       ConfigCheckReport report = mMetaMaster.getConfigCheckReport();
-
-      MountPointInfo mountInfo = null;
-      String diskCapacity;
-      String diskUsedCapacity;
-      String diskFreeCapacity;
-      try {
-        mountInfo = mFileSystemMaster.getMountPointInfo(new AlluxioURI(MountTable.ROOT));
-      } catch (Throwable e) {
-        diskCapacity = "UNKNOWN";
-        diskUsedCapacity = "UNKNOWN";
-        diskFreeCapacity = "UNKNOWN";
-      }
-      long capacityBytes = mountInfo.getUfsCapacityBytes();
-      long usedBytes = mountInfo.getUfsUsedBytes();
-      long freeBytes = -1;
-      if (capacityBytes >= 0 && usedBytes >= 0 && capacityBytes >= usedBytes) {
-        freeBytes = capacityBytes - usedBytes;
-      }
-
-      String totalSpace = "UNKNOWN";
-      if (capacityBytes >= 0) {
-        totalSpace = FormatUtils.getSizeFromBytes(capacityBytes);
-      }
-      diskCapacity = totalSpace;
-
-      String usedSpace = "UNKNOWN";
-      if (usedBytes >= 0) {
-        usedSpace = FormatUtils.getSizeFromBytes(usedBytes);
-      }
-      diskUsedCapacity = usedSpace;
-
-      String freeSpace = "UNKNOWN";
-      if (freeBytes >= 0) {
-        freeSpace = FormatUtils.getSizeFromBytes(freeBytes);
-      }
-      diskFreeCapacity = freeSpace;
+      response.setConfigCheckStatus(report.getConfigStatus())
+          .setConfigCheckErrors(report.getConfigErrors())
+          .setConfigCheckWarns(report.getConfigWarns()).setConfigCheckErrorNum(
+          report.getConfigErrors().values().stream().mapToInt(List::size).sum())
+          .setConfigCheckWarnNum(
+              report.getConfigWarns().values().stream().mapToInt(List::size).sum());
 
       StorageTierAssoc globalStorageTierAssoc = mBlockMaster.getGlobalStorageTierAssoc();
-      List<StorageTierInfo> infos = new ArrayList<>();
+      List<StorageTierInfo> infosList = new ArrayList<>();
       Map<String, Long> totalBytesOnTiers = mBlockMaster.getTotalBytesOnTiers();
       Map<String, Long> usedBytesOnTiers = mBlockMaster.getUsedBytesOnTiers();
 
@@ -270,28 +259,46 @@ public final class AlluxioMasterRestServiceHandler {
         if (totalBytesOnTiers.containsKey(tierAlias) && totalBytesOnTiers.get(tierAlias) > 0) {
           StorageTierInfo info = new StorageTierInfo(tierAlias, totalBytesOnTiers.get(tierAlias),
               usedBytesOnTiers.get(tierAlias));
-          infos.add(info);
+          infosList.add(info);
         }
       }
 
-      return new MasterWebUIOverview().setCapacity(getCapacityInternal()).setConfigCheckErrorNum(
-          report.getConfigErrors().values().stream().mapToInt(List::size).sum())
-          .setConfigCheckErrors(report.getConfigErrors())
-          .setConfigCheckStatus(report.getConfigStatus())
-          .setConfigCheckWarns(report.getConfigWarns())
-          .setConsistencyCheckStatus(startupConsistencyCheck.getStatus())
-          .setDebug(getBoolean(PropertyKey.DEBUG)).setDiskCapacity(diskCapacity)
-          .setDiskCapacity(totalSpace).setDiskFreeCapacity(diskFreeCapacity)
-          .setDiskUsedCapacity(diskUsedCapacity).setFreeCapacity(FormatUtils
-              .getSizeFromBytes(mBlockMaster.getCapacityBytes() - mBlockMaster.getUsedBytes()))
-          .setInconsistentPathItems(startupConsistencyCheck.getInconsistentUris())
-          .setLiveWorkerNodes(mBlockMaster.getWorkerCount())
-          .setMasterNodeAddress(mMasterProcess.getRpcAddress().toString())
-          .setStartTime(CommonUtils.convertMsToDate(mMetaMaster.getStartTimeMs()))
-          .setStorageTierInfos(infos).setUptime(CommonUtils
-              .convertMsToClockTime(System.currentTimeMillis() - mMetaMaster.getStartTimeMs()))
-          .setUsedCapacity(FormatUtils.getSizeFromBytes(mBlockMaster.getUsedBytes()))
-          .setVersion(RuntimeConstants.VERSION);
+      response.setStorageTierInfos(infosList);
+
+      MountPointInfo mountInfo;
+      try {
+        mountInfo = mFileSystemMaster.getMountPointInfo(new AlluxioURI(MountTable.ROOT));
+
+        long capacityBytes = mountInfo.getUfsCapacityBytes();
+        long usedBytes = mountInfo.getUfsUsedBytes();
+        long freeBytes = -1;
+        if (capacityBytes >= 0 && usedBytes >= 0 && capacityBytes >= usedBytes) {
+          freeBytes = capacityBytes - usedBytes;
+        }
+
+        String totalSpace = "UNKNOWN";
+        if (capacityBytes >= 0) {
+          totalSpace = FormatUtils.getSizeFromBytes(capacityBytes);
+        }
+        response.setDiskCapacity(totalSpace);
+
+        String usedSpace = "UNKNOWN";
+        if (usedBytes >= 0) {
+          usedSpace = FormatUtils.getSizeFromBytes(usedBytes);
+        }
+        response.setDiskUsedCapacity(usedSpace);
+
+        String freeSpace = "UNKNOWN";
+        if (freeBytes >= 0) {
+          freeSpace = FormatUtils.getSizeFromBytes(freeBytes);
+        }
+        response.setDiskFreeCapacity(freeSpace);
+      } catch (Throwable e) {
+        response.setDiskCapacity("UNKNOWN").setDiskUsedCapacity("UNKNOWN")
+            .setDiskFreeCapacity("UNKNOWN");
+      }
+
+      return response;
     });
   }
 
@@ -311,50 +318,48 @@ public final class AlluxioMasterRestServiceHandler {
       @QueryParam("end") String requestEnd,
       @DefaultValue("20") @QueryParam("limit") String requestLimit) {
     return RestUtils.call(() -> {
-      if (!Configuration.getBoolean(PropertyKey.WEB_FILE_INFO_ENABLED)) {
-        return new MasterWebUIBrowse();
-      }
+      MasterWebUIBrowse response = new MasterWebUIBrowse();
 
+      if (!Configuration.getBoolean(PropertyKey.WEB_FILE_INFO_ENABLED)) {
+        return response;
+      }
       if (SecurityUtils.isSecurityEnabled() && AuthenticatedClientUser.get() == null) {
         AuthenticatedClientUser.set(LoginUser.get().getName());
       }
-
-      AlluxioURI currentPath = new AlluxioURI(requestPath);
-      List<FileInfo> filesInfo = null;
-      List<UIFileBlockInfo> fileBlocks = null;
-      long offset = 0;
-      long viewingOffset = offset;
-      String accessControlException = "";
-      String blockSizeBytes = "";
-      String fatalError = "";
-      String fileData = "";
-      String fileDoesNotExistException = "";
-      String highestTierAlias = "";
-      String invalidPathError = "";
-      String invalidPathException = "";
-      UIFileInfo currentDirectory = null;
-      UIFileInfo[] pathInfos = null;
+      response.setDebug(Configuration.getBoolean(PropertyKey.DEBUG)).setShowPermissions(
+          Configuration.getBoolean(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED))
+          .setMasterNodeAddress(mMasterProcess.getRpcAddress().toString()).setInvalidPathError("");
+      List<FileInfo> filesInfo;
+      String path = requestPath;
+      if (path == null || path.isEmpty()) {
+        path = AlluxioURI.SEPARATOR;
+      }
+      AlluxioURI currentPath = new AlluxioURI(path);
+      response.setCurrentPath(currentPath.toString()).setViewingOffset(0);
+      FileSystemMaster fileSystemMaster = mMasterProcess.getMaster(FileSystemMaster.class);
 
       try {
-        long fileId = mFileSystemMaster.getFileId(currentPath);
-        FileInfo fileInfo = mFileSystemMaster.getFileInfo(fileId);
+        long fileId = fileSystemMaster.getFileId(currentPath);
+        FileInfo fileInfo = fileSystemMaster.getFileInfo(fileId);
         UIFileInfo currentFileInfo = new UIFileInfo(fileInfo);
         if (currentFileInfo.getAbsolutePath() == null) {
-          invalidPathError = "Error: Invalid Path " + new FileDoesNotExistException(currentPath.toString()).getMessage();
+          throw new FileDoesNotExistException(currentPath.toString());
         }
-        currentDirectory = currentFileInfo;
-        blockSizeBytes = currentFileInfo.getBlockSizeBytes();
+        response.setCurrentDirectory(currentFileInfo)
+            .setBlockSizeBytes(currentFileInfo.getBlockSizeBytes());
         if (!currentFileInfo.getIsDirectory()) {
           long relativeOffset = 0;
+          long offset;
           try {
-            relativeOffset = Long.parseLong(requestOffset);
+            if (requestOffset != null) {
+              relativeOffset = Long.parseLong(requestOffset);
+            }
           } catch (NumberFormatException e) {
             relativeOffset = 0;
           }
-          String endParam = requestEnd;
           // If no param "end" presents, the offset is relative to the beginning; otherwise, it is
           // relative to the end of the file.
-          if (endParam == null) {
+          if (requestEnd == null) {
             offset = relativeOffset;
           } else {
             offset = fileInfo.getLength() - relativeOffset;
@@ -365,12 +370,13 @@ public final class AlluxioMasterRestServiceHandler {
             offset = fileInfo.getLength();
           }
           try {
-            AlluxioURI path = new AlluxioURI(currentFileInfo.getAbsolutePath());
+            AlluxioURI absolutePath = new AlluxioURI(currentFileInfo.getAbsolutePath());
             FileSystem fs = FileSystem.Factory.get();
-            URIStatus status = fs.getStatus(path);
+            String fileData;
+            URIStatus status = fs.getStatus(absolutePath);
             if (status.isCompleted()) {
               OpenFileOptions options = OpenFileOptions.defaults().setReadType(ReadType.NO_CACHE);
-              try (FileInStream is = fs.openFile(path, options)) {
+              try (FileInStream is = fs.openFile(absolutePath, options)) {
                 int len = (int) Math.min(5 * Constants.KB, status.getLength() - offset);
                 byte[] data = new byte[len];
                 long skipped = is.skip(offset);
@@ -396,46 +402,54 @@ public final class AlluxioMasterRestServiceHandler {
             }
             List<UIFileBlockInfo> uiBlockInfo = new ArrayList<>();
             for (FileBlockInfo fileBlockInfo : mMasterProcess.getMaster(FileSystemMaster.class)
-                .getFileBlockInfoList(path)) {
+                .getFileBlockInfoList(absolutePath)) {
               uiBlockInfo.add(new UIFileBlockInfo(fileBlockInfo));
             }
-            fileBlocks = uiBlockInfo;
-            highestTierAlias =
-                mMasterProcess.getMaster(BlockMaster.class).getGlobalStorageTierAssoc().getAlias(0);
+            response.setFileBlocks(uiBlockInfo).setFileData(fileData).setHighestTierAlias(
+                mMasterProcess.getMaster(BlockMaster.class).getGlobalStorageTierAssoc()
+                    .getAlias(0));
           } catch (AlluxioException e) {
-            fatalError = "Error: Fatal Error " + e.getMessage();
+            throw new IOException(e);
           }
-          viewingOffset = offset;
+          response.setViewingOffset(offset);
+          return response;
         }
 
-        AlluxioURI path = new AlluxioURI(currentFileInfo.getAbsolutePath());
-        if (path.isRoot()) {
-          pathInfos = new UIFileInfo[0];
+        if (currentPath.isRoot()) {
+          response.setPathInfos(new UIFileInfo[0]);
         } else {
-          String[] splitPath = PathUtils.getPathComponents(path.toString());
-          pathInfos = new UIFileInfo[splitPath.length - 1];
+          String[] splitPath = PathUtils.getPathComponents(currentPath.toString());
+          UIFileInfo[] pathInfos = new UIFileInfo[splitPath.length - 1];
           currentPath = new AlluxioURI(AlluxioURI.SEPARATOR);
-          fileId = mFileSystemMaster.getFileId(currentPath);
-          pathInfos[0] = new UIFileInfo(mFileSystemMaster.getFileInfo(fileId));
+          fileId = fileSystemMaster.getFileId(currentPath);
+          pathInfos[0] = new UIFileInfo(fileSystemMaster.getFileInfo(fileId));
           for (int i = 1; i < splitPath.length - 1; i++) {
             currentPath = currentPath.join(splitPath[i]);
-            fileId = mFileSystemMaster.getFileId(currentPath);
-            pathInfos[i] = new UIFileInfo(mFileSystemMaster.getFileInfo(fileId));
+            fileId = fileSystemMaster.getFileId(currentPath);
+            pathInfos[i] = new UIFileInfo(fileSystemMaster.getFileInfo(fileId));
           }
+          response.setPathInfos(pathInfos);
         }
 
-        filesInfo = mFileSystemMaster.listStatus(currentPath,
+        filesInfo = fileSystemMaster.listStatus(currentPath,
             ListStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Always));
       } catch (FileDoesNotExistException e) {
-        invalidPathError = "Error: Invalid Path " + e.getMessage();
+        response.setInvalidPathError("Error: Invalid Path " + e.getMessage());
+        return response;
       } catch (InvalidPathException e) {
-        invalidPathError = "Error: Invalid Path " + e.getLocalizedMessage();
+        response.setInvalidPathError("Error: Invalid Path " + e.getLocalizedMessage());
+        return response;
       } catch (UnavailableException e) {
-        invalidPathError = "The service is temporarily unavailable. " + e.getMessage();
+        response.setInvalidPathError("The service is temporarily unavailable. " + e.getMessage());
+        return response;
       } catch (IOException e) {
-        invalidPathError = "Error: File " + currentPath + " is not available " + e.getMessage();
+        response.setInvalidPathError(
+            "Error: File " + currentPath + " is not available " + e.getMessage());
+        return response;
       } catch (AccessControlException e) {
-        invalidPathError = "Error: File " + currentPath + " cannot be accessed " + e.getMessage();
+        response.setInvalidPathError(
+            "Error: File " + currentPath + " cannot be accessed " + e.getMessage());
+        return response;
       }
 
       List<UIFileInfo> fileInfos = new ArrayList<>(filesInfo.size());
@@ -444,7 +458,7 @@ public final class AlluxioMasterRestServiceHandler {
         try {
           if (!toAdd.getIsDirectory() && fileInfo.getLength() > 0) {
             FileBlockInfo blockInfo =
-                mFileSystemMaster.getFileBlockInfoList(new AlluxioURI(toAdd.getAbsolutePath()))
+                fileSystemMaster.getFileBlockInfoList(new AlluxioURI(toAdd.getAbsolutePath()))
                     .get(0);
             List<String> locations = new ArrayList<>();
             // add the in-Alluxio block locations
@@ -457,47 +471,42 @@ public final class AlluxioMasterRestServiceHandler {
             toAdd.setFileLocations(locations);
           }
         } catch (FileDoesNotExistException e) {
-          fileDoesNotExistException = "Error: non-existing file " + e.getMessage();
+          response.setFileDoesNotExistException("Error: non-existing file " + e.getMessage());
+          return response;
         } catch (InvalidPathException e) {
-          invalidPathException = "Error: invalid path " + e.getMessage();
+          response.setInvalidPathException("Error: invalid path " + e.getMessage());
+          return response;
         } catch (AccessControlException e) {
-          accessControlException =
-              "Error: File " + currentPath + " cannot be accessed " + e.getMessage();
+          response.setAccessControlException(
+              "Error: File " + currentPath + " cannot be accessed " + e.getMessage());
+          return response;
         }
         fileInfos.add(toAdd);
       }
-      if (fileInfos.size() > 1) {
-        Collections.sort(fileInfos, UIFileInfo.PATH_STRING_COMPARE);
-      }
+      Collections.sort(fileInfos, UIFileInfo.PATH_STRING_COMPARE);
+
+      response.setNTotalFile(fileInfos.size());
 
       try {
-        offset = Long.parseLong(requestOffset);
-        offset = offset > Integer.MAX_VALUE ? Integer.MAX_VALUE : offset;
-        offset = offset < Integer.MIN_VALUE ? Integer.MIN_VALUE : offset;
+        int offset = Integer.parseInt(requestOffset);
         int limit = Integer.parseInt(requestLimit);
         limit = limit > fileInfos.size() ? fileInfos.size() : limit;
-        long sum = Math.addExact(offset, limit); // should throw an exception in case of overflow
-        sum = sum > Integer.MAX_VALUE ? Integer.MAX_VALUE : sum;
-        fileInfos = fileInfos.subList((int) offset, (int) sum);
+        int sum = Math.addExact(offset, limit);
+        fileInfos = fileInfos.subList(offset, sum);
+        response.setFileInfos(fileInfos);
       } catch (NumberFormatException e) {
-        fatalError = "Error: offset or limit parse error, " + e.getLocalizedMessage();
-      } catch (IndexOutOfBoundsException e) {
-        fatalError = "Error: offset or offset + limit is out of bound, " + e.getLocalizedMessage();
+        response.setFatalError("Error: offset or limit parse error, " + e.getLocalizedMessage());
+        return response;
+      } catch (ArithmeticException e) {
+        response.setFatalError(
+            "Error: offset or offset + limit is out of bound, " + e.getLocalizedMessage());
+        return response;
       } catch (IllegalArgumentException e) {
-        fatalError = e.getLocalizedMessage();
+        response.setFatalError(e.getLocalizedMessage());
+        return response;
       }
 
-      return new MasterWebUIBrowse().setAccessControlException(accessControlException)
-          .setBlockSizeBytes(blockSizeBytes).setCurrentDirectory(currentDirectory)
-          .setCurrentPath(currentPath.toString()).setDebug(getBoolean(PropertyKey.DEBUG))
-          .setFatalError(fatalError).setFileBlocks(fileBlocks).setFileData(fileData)
-          .setFileDoesNotExistException(fileDoesNotExistException)
-          .setHighestTierAlias(highestTierAlias).setInvalidPathError(invalidPathError)
-          .setInvalidPathException(invalidPathException)
-          .setMasterNodeAddress(mMasterProcess.getRpcAddress().toString())
-          .setNTotalFile(fileInfos == null ? 0 : fileInfos.size()).setPathInfos(pathInfos)
-          .setShowPermissions(getBoolean(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED))
-          .setViewingOffset(viewingOffset).setFileInfos(fileInfos);
+      return response;
     });
   }
 
@@ -507,34 +516,42 @@ public final class AlluxioMasterRestServiceHandler {
   public Response getWebUIData(@DefaultValue("0") @QueryParam("offset") String requestOffset,
       @DefaultValue("20") @QueryParam("limit") String requestLimit) {
     return RestUtils.call(() -> {
+      MasterWebUIData response = new MasterWebUIData();
+
       if (!Configuration.getBoolean(PropertyKey.WEB_FILE_INFO_ENABLED)) {
-        return new MasterWebUIData();
+        return response;
       }
+
       if (SecurityUtils.isSecurityEnabled() && AuthenticatedClientUser.get() == null) {
         AuthenticatedClientUser.set(LoginUser.get().getName());
       }
+      response.setMasterNodeAddress(mMasterProcess.getRpcAddress().toString()).setFatalError("")
+          .setShowPermissions(
+              Configuration.getBoolean(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED));
 
-      String fatalError = "";
-      String permissionError = "";
-      List<AlluxioURI> inAlluxioFiles = mFileSystemMaster.getInAlluxioFiles();
+      FileSystemMaster fileSystemMaster = mMasterProcess.getMaster(FileSystemMaster.class);
+
+      List<AlluxioURI> inAlluxioFiles = fileSystemMaster.getInAlluxioFiles();
       Collections.sort(inAlluxioFiles);
-      int inAlluxioFileNum;
 
       List<UIFileInfo> fileInfos = new ArrayList<>(inAlluxioFiles.size());
       for (AlluxioURI file : inAlluxioFiles) {
         try {
-          long fileId = mFileSystemMaster.getFileId(file);
-          FileInfo fileInfo = mFileSystemMaster.getFileInfo(fileId);
+          long fileId = fileSystemMaster.getFileId(file);
+          FileInfo fileInfo = fileSystemMaster.getFileInfo(fileId);
           if (fileInfo != null && fileInfo.getInAlluxioPercentage() == 100) {
             fileInfos.add(new UIFileInfo(fileInfo));
           }
         } catch (FileDoesNotExistException e) {
-          fatalError = "Error: File does not exist " + e.getLocalizedMessage();
+          response.setFatalError("Error: File does not exist " + e.getLocalizedMessage());
+          return response;
         } catch (AccessControlException e) {
-          permissionError = "Error: File " + file + " cannot be accessed " + e.getMessage();
+          response
+              .setPermissionError("Error: File " + file + " cannot be accessed " + e.getMessage());
+          return response;
         }
       }
-      inAlluxioFileNum = fileInfos.size();
+      response.setInAlluxioFileNum(fileInfos.size());
 
       try {
         int offset = Integer.parseInt(requestOffset);
@@ -542,18 +559,20 @@ public final class AlluxioMasterRestServiceHandler {
         limit = limit > fileInfos.size() ? fileInfos.size() : limit;
         int sum = Math.addExact(offset, limit);
         fileInfos = fileInfos.subList(offset, sum);
+        response.setFileInfos(fileInfos);
       } catch (NumberFormatException e) {
-        fatalError = "Error: offset or limit parse error, " + e.getLocalizedMessage();
-      } catch (IndexOutOfBoundsException e) {
-        fatalError = "Error: offset or offset + limit is out of bound, " + e.getLocalizedMessage();
+        response.setFatalError("Error: offset or limit parse error, " + e.getLocalizedMessage());
+        return response;
+      } catch (ArithmeticException e) {
+        response.setFatalError(
+            "Error: offset or offset + limit is out of bound, " + e.getLocalizedMessage());
+        return response;
       } catch (IllegalArgumentException e) {
-        fatalError = e.getLocalizedMessage();
+        response.setFatalError(e.getLocalizedMessage());
+        return response;
       }
 
-      return new MasterWebUIData().setMasterNodeAddress(mMasterProcess.getRpcAddress().toString())
-          .setFatalError(fatalError).setPermissionError(permissionError)
-          .setShowPermissions(getBoolean(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED))
-          .setInAlluxioFileNum(inAlluxioFileNum).setFileInfos(fileInfos);
+      return response;
     });
   }
 
@@ -565,25 +584,26 @@ public final class AlluxioMasterRestServiceHandler {
       @QueryParam("end") String requestEnd,
       @DefaultValue("20") @QueryParam("limit") String requestLimit) {
     return RestUtils.call(() -> {
-      if (!Configuration.getBoolean(PropertyKey.WEB_FILE_INFO_ENABLED)) {
-        return new MasterWebUILogs();
-      }
-
       FilenameFilter LOG_FILE_FILTER = (dir, name) -> name.toLowerCase().endsWith(".log");
-      boolean debug = getBoolean(PropertyKey.DEBUG);
-      String invalidPathError = "";
-      long viewingOffset = 0;
-      String currentPath = "";
-      int nTotalFile = 0;
-      List<UIFileInfo> fileInfos = new ArrayList<>();
-      String fatalError = "";
+      MasterWebUILogs response = new MasterWebUILogs();
+
+      if (!Configuration.getBoolean(PropertyKey.WEB_FILE_INFO_ENABLED)) {
+        return response;
+      }
+      response.setDebug(Configuration.getBoolean(PropertyKey.DEBUG)).setInvalidPathError("")
+          .setViewingOffset(0).setCurrentPath("");
+      //response.setDownloadLogFile(1);
+      //response.setBaseUrl("./browseLogs");
+      //response.setShowPermissions(false);
+
       String logsPath = Configuration.get(PropertyKey.LOGS_DIR);
       File logsDir = new File(logsPath);
-      String fileData = "";
+      String requestFile = requestPath;
 
-      if (requestPath == null || requestPath.isEmpty()) {
+      if (requestFile == null || requestFile.isEmpty()) {
         // List all log files in the log/ directory.
 
+        List<UIFileInfo> fileInfos = new ArrayList<>();
         File[] logFiles = logsDir.listFiles(LOG_FILE_FILTER);
         if (logFiles != null) {
           for (File logFile : logFiles) {
@@ -595,26 +615,32 @@ public final class AlluxioMasterRestServiceHandler {
           }
         }
         Collections.sort(fileInfos, UIFileInfo.PATH_STRING_COMPARE);
-        nTotalFile = fileInfos.size();
+        response.setNTotalFile(fileInfos.size());
 
         try {
           int offset = Integer.parseInt(requestOffset);
           int limit = Integer.parseInt(requestLimit);
-          fileInfos = fileInfos.subList(offset, offset + limit);
+          limit = limit > fileInfos.size() ? fileInfos.size() : limit;
+          int sum = Math.addExact(offset, limit);
+          fileInfos = fileInfos.subList(offset, sum);
+          response.setFileInfos(fileInfos);
         } catch (NumberFormatException e) {
-          fatalError = "Error: offset or limit parse error, " + e.getLocalizedMessage();
-        } catch (IndexOutOfBoundsException e) {
-          fatalError =
-              "Error: offset or offset + limit is out of bound, " + e.getLocalizedMessage();
+          response.setFatalError("Error: offset or limit parse error, " + e.getLocalizedMessage());
+          return response;
+        } catch (ArithmeticException e) {
+          response.setFatalError(
+              "Error: offset or offset + limit is out of bound, " + e.getLocalizedMessage());
+          return response;
         } catch (IllegalArgumentException e) {
-          fatalError = e.getLocalizedMessage();
+          response.setFatalError(e.getLocalizedMessage());
+          return response;
         }
       } else {
         // Request a specific log file.
 
         // Only allow filenames as the path, to avoid arbitrary local path lookups.
-        String requestFile = new File(requestPath).getName();
-        currentPath = requestFile;
+        requestFile = new File(requestFile).getName();
+        response.setCurrentPath(requestFile);
 
         File logFile = new File(logsDir, requestFile);
 
@@ -644,6 +670,7 @@ public final class AlluxioMasterRestServiceHandler {
             offset = fileSize;
           }
 
+          String fileData;
           try (InputStream is = new FileInputStream(logFile)) {
             fileSize = logFile.length();
             int len = (int) Math.min(5 * Constants.KB, fileSize - offset);
@@ -666,16 +693,14 @@ public final class AlluxioMasterRestServiceHandler {
               }
             }
           }
-
-          viewingOffset = offset;
+          response.setFileData(fileData).setViewingOffset(offset);
         } catch (IOException e) {
-          invalidPathError = "Error: File " + logFile + " is not available " + e.getMessage();
+          response.setInvalidPathError(
+              "Error: File " + logFile + " is not available " + e.getMessage());
         }
       }
 
-      return new MasterWebUILogs().setCurrentPath(currentPath).setDebug(debug).setFatalError(fatalError)
-          .setFileData(fileData).setFileInfos(fileInfos).setInvalidPathError(invalidPathError)
-          .setNTotalFile(nTotalFile).setViewingOffset(viewingOffset);
+      return response;
     });
   }
 
@@ -684,6 +709,10 @@ public final class AlluxioMasterRestServiceHandler {
   @ReturnType("alluxio.wire.MasterWebUIConfiguration")
   public Response getWebUIConfiguration() {
     return RestUtils.call(() -> {
+      MasterWebUIConfiguration response = new MasterWebUIConfiguration();
+
+      response.setWhitelist(mFileSystemMaster.getWhiteList());
+
       TreeSet<Triple<String, String, String>> sortedProperties = new TreeSet<>();
       Set<String> alluxioConfExcludes = Sets.newHashSet(PropertyKey.MASTER_WHITELIST.toString());
       for (ConfigProperty configProperty : mMetaMaster
@@ -696,8 +725,9 @@ public final class AlluxioMasterRestServiceHandler {
         }
       }
 
-      return new MasterWebUIConfiguration().setWhitelist(mFileSystemMaster.getWhiteList())
-          .setConfiguration(sortedProperties);
+      response.setConfiguration(sortedProperties);
+
+      return response;
     });
   }
 
@@ -706,14 +736,19 @@ public final class AlluxioMasterRestServiceHandler {
   @ReturnType("alluxio.wire.MasterWebUIWorkers")
   public Response getWebUIWorkers() {
     return RestUtils.call(() -> {
+      MasterWebUIWorkers response = new MasterWebUIWorkers();
+
+      response.setDebug(getBoolean(PropertyKey.DEBUG));
+
       List<WorkerInfo> workerInfos = mBlockMaster.getWorkerInfoList();
       NodeInfo[] normalNodeInfos = WebUtils.generateOrderedNodeInfos(workerInfos);
+      response.setNormalNodeInfos(normalNodeInfos);
 
       List<WorkerInfo> lostWorkerInfos = mBlockMaster.getLostWorkersInfoList();
       NodeInfo[] failedNodeInfos = WebUtils.generateOrderedNodeInfos(lostWorkerInfos);
+      response.setFailedNodeInfos(failedNodeInfos);
 
-      return new MasterWebUIWorkers().setDebug(getBoolean(PropertyKey.DEBUG))
-          .setNormalNodeInfos(normalNodeInfos).setFailedNodeInfos(failedNodeInfos);
+      return response;
     });
   }
 
@@ -722,6 +757,8 @@ public final class AlluxioMasterRestServiceHandler {
   @ReturnType("alluxio.wire.MasterWebUIMetrics")
   public Response getWebUIMetrics() {
     return RestUtils.call(() -> {
+      MasterWebUIMetrics response = new MasterWebUIMetrics();
+
       MetricRegistry mr = MetricsSystem.METRIC_REGISTRY;
 
       Long masterCapacityTotal = (Long) mr.getGauges()
@@ -731,6 +768,8 @@ public final class AlluxioMasterRestServiceHandler {
 
       int masterCapacityUsedPercentage =
           (masterCapacityTotal > 0) ? (int) (100L * masterCapacityUsed / masterCapacityTotal) : 0;
+      response.setMasterCapacityUsedPercentage(masterCapacityUsedPercentage)
+          .setMasterCapacityFreePercentage(100 - masterCapacityUsedPercentage);
 
       Long masterUnderfsCapacityTotal =
           (Long) mr.getGauges().get(MetricsSystem.getMetricName(MasterMetrics.UFS_CAPACITY_TOTAL))
@@ -741,6 +780,8 @@ public final class AlluxioMasterRestServiceHandler {
 
       int masterUnderfsCapacityUsedPercentage = (masterUnderfsCapacityTotal > 0) ?
           (int) (100L * masterUnderfsCapacityUsed / masterUnderfsCapacityTotal) : 0;
+      response.setMasterUnderfsCapacityUsedPercentage(masterUnderfsCapacityUsedPercentage)
+          .setMasterUnderfsCapacityFreePercentage(100 - masterUnderfsCapacityUsedPercentage);
 
       // cluster read size
       Long bytesReadLocal = (Long) mr.getGauges()
@@ -749,6 +790,9 @@ public final class AlluxioMasterRestServiceHandler {
           .get(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_READ_ALLUXIO)).getValue();
       Long bytesReadUfs = (Long) mr.getGauges()
           .get(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_READ_UFS_ALL)).getValue();
+      response.setTotalBytesReadLocal(FormatUtils.getSizeFromBytes(bytesReadLocal))
+          .setTotalBytesReadRemote(FormatUtils.getSizeFromBytes(bytesReadRemote))
+          .setTotalBytesReadUfs(FormatUtils.getSizeFromBytes(bytesReadUfs));
 
       // cluster cache hit and miss
       long bytesReadTotal = bytesReadLocal + bytesReadRemote + bytesReadUfs;
@@ -759,11 +803,17 @@ public final class AlluxioMasterRestServiceHandler {
       double cacheMissPercentage =
           (bytesReadTotal > 0) ? (100D * bytesReadUfs / bytesReadTotal) : 0;
 
+      response.setCacheHitLocal(String.format("%.2f", cacheHitLocalPercentage))
+          .setCacheHitRemote(String.format("%.2f", cacheHitRemotePercentage))
+          .setCacheMiss(String.format("%.2f", cacheMissPercentage));
+
       // cluster write size
       Long bytesWrittenAlluxio = (Long) mr.getGauges()
           .get(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_WRITTEN_ALLUXIO)).getValue();
       Long bytesWrittenUfs = (Long) mr.getGauges()
           .get(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_WRITTEN_UFS_ALL)).getValue();
+      response.setTotalBytesWrittenAlluxio(FormatUtils.getSizeFromBytes(bytesWrittenAlluxio))
+          .setTotalBytesWrittenUfs(FormatUtils.getSizeFromBytes(bytesWrittenUfs));
 
       // cluster read throughput
       Long bytesReadLocalThroughput = (Long) mr.getGauges()
@@ -775,6 +825,11 @@ public final class AlluxioMasterRestServiceHandler {
       Long bytesReadUfsThroughput = (Long) mr.getGauges()
           .get(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_READ_UFS_THROUGHPUT))
           .getValue();
+      response
+          .setTotalBytesReadLocalThroughput(FormatUtils.getSizeFromBytes(bytesReadLocalThroughput))
+          .setTotalBytesReadRemoteThroughput(
+              FormatUtils.getSizeFromBytes(bytesReadRemoteThroughput))
+          .setTotalBytesReadUfsThroughput(FormatUtils.getSizeFromBytes(bytesReadUfsThroughput));
 
       // cluster write throughput
       Long bytesWrittenAlluxioThroughput = (Long) mr.getGauges()
@@ -783,6 +838,10 @@ public final class AlluxioMasterRestServiceHandler {
       Long bytesWrittenUfsThroughput = (Long) mr.getGauges()
           .get(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_WRITTEN_UFS_THROUGHPUT))
           .getValue();
+      response.setTotalBytesWrittenAlluxioThroughput(
+          FormatUtils.getSizeFromBytes(bytesWrittenAlluxioThroughput))
+          .setTotalBytesWrittenUfsThroughput(
+              FormatUtils.getSizeFromBytes(bytesWrittenUfsThroughput));
 
       // cluster per UFS read
       Map<String, String> ufsReadSizeMap = new TreeMap<>();
@@ -793,6 +852,7 @@ public final class AlluxioMasterRestServiceHandler {
         ufsReadSizeMap.put(metric.getTags().get(WorkerMetrics.TAG_UFS),
             FormatUtils.getSizeFromBytes((long) metric.getValue()));
       }
+      response.setUfsReadSize(ufsReadSizeMap);
 
       // cluster per UFS write
       Map<String, String> ufsWriteSizeMap = new TreeMap<>();
@@ -803,6 +863,7 @@ public final class AlluxioMasterRestServiceHandler {
         ufsWriteSizeMap.put(metric.getTags().get(WorkerMetrics.TAG_UFS),
             FormatUtils.getSizeFromBytes((long) metric.getValue()));
       }
+      response.setUfsWriteSize(ufsWriteSizeMap);
 
       // per UFS ops
       Map<String, Map<String, Long>> ufsOpsMap = new TreeMap<>();
@@ -819,6 +880,8 @@ public final class AlluxioMasterRestServiceHandler {
             (long) metric.getValue());
         ufsOpsMap.put(ufs, perUfsMap);
       }
+      response.setUfsOps(ufsOpsMap);
+
 
       Map<String, Counter> counters = mr.getCounters(new MetricFilter() {
         @Override
@@ -849,28 +912,9 @@ public final class AlluxioMasterRestServiceHandler {
             .put(MetricsSystem.stripInstanceAndHost(entry.getKey()), entry.getValue());
       }
 
-      return new MasterWebUIMetrics().setMasterCapacityUsedPercentage(masterCapacityUsedPercentage)
-          .setMasterCapacityFreePercentage(100 - masterUnderfsCapacityUsedPercentage)
-          .setMasterUnderfsCapacityUsedPercentage(masterUnderfsCapacityUsedPercentage)
-          .setMasterUnderfsCapacityFreePercentage(100 - masterUnderfsCapacityUsedPercentage)
-          .setTotalBytesReadLocal(FormatUtils.getSizeFromBytes(bytesReadLocal))
-          .setTotalBytesReadRemote(FormatUtils.getSizeFromBytes(bytesReadRemote))
-          .setTotalBytesReadUfs(FormatUtils.getSizeFromBytes(bytesReadUfs))
-          .setCacheHitLocal(String.format("%.2f", cacheHitLocalPercentage))
-          .setCacheHitRemote(String.format("%.2f", cacheHitRemotePercentage))
-          .setCacheMiss(String.format("%.2f", cacheMissPercentage))
-          .setTotalBytesWrittenAlluxio(FormatUtils.getSizeFromBytes(bytesWrittenAlluxio))
-          .setTotalBytesWrittenUfs(FormatUtils.getSizeFromBytes(bytesWrittenUfs))
-          .setTotalBytesReadLocalThroughput(FormatUtils.getSizeFromBytes(bytesReadLocalThroughput))
-          .setTotalBytesReadRemoteThroughput(
-              FormatUtils.getSizeFromBytes(bytesReadRemoteThroughput))
-          .setTotalBytesReadUfsThroughput(FormatUtils.getSizeFromBytes(bytesReadUfsThroughput))
-          .setTotalBytesWrittenAlluxioThroughput(
-              FormatUtils.getSizeFromBytes(bytesWrittenAlluxioThroughput))
-          .setTotalBytesWrittenUfsThroughput(
-              FormatUtils.getSizeFromBytes(bytesWrittenUfsThroughput))
-          .setUfsReadSize(ufsReadSizeMap).setUfsWriteSize(ufsWriteSizeMap).setUfsOps(ufsOpsMap)
-          .setOperationMetrics(operations).setRpcInvocationMetrics(rpcInvocations);
+      response.setOperationMetrics(operations).setRpcInvocationMetrics(rpcInvocationsUpdated);
+
+      return response;
     });
   }
 

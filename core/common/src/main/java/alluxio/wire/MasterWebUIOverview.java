@@ -11,6 +11,7 @@
 
 package alluxio.wire;
 
+import alluxio.AlluxioURI;
 import alluxio.util.webui.StorageTierInfo;
 
 import com.google.common.base.Objects;
@@ -26,22 +27,24 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class MasterWebUIOverview implements Serializable {
-  private Capacity mCapacity;
-  private int mConfigCheckErrorNum;
-  private Map<Scope, List<InconsistentProperty>> mConfigCheckErrors;
+  private boolean mDebug;
+  private String mCapacity;
   private ConfigCheckReport.ConfigStatus mConfigCheckStatus;
+  private int mComfigCheckWarnNum;
+  private int mConfigCheckErrorNum;
+  private int mInconsistentPaths;
+  private String mLiveWorkerNodes;
+  private List<StorageTierInfo> mStorageTierInfos;
+  private List<AlluxioURI> mInconsistentPathItems;
+  private Map<Scope, List<InconsistentProperty>> mConfigCheckErrors;
   private Map<Scope, List<InconsistentProperty>> mConfigCheckWarns;
   private String mConsistencyCheckStatus;
-  private boolean mDebug;
   private String mDiskCapacity;
   private String mDiskFreeCapacity;
   private String mDiskUsedCapacity;
   private String mFreeCapacity;
-  private List<String> mInconsistentPathItems;
-  private int mLiveWorkerNodes;
   private String mMasterNodeAddress;
   private String mStartTime;
-  private List<StorageTierInfo> mStorageTierInfos;
   private String mUptime;
   private String mUsedCapacity;
   private String mVersion;
@@ -55,7 +58,7 @@ public final class MasterWebUIOverview implements Serializable {
   /**
    * @return the capacity
    */
-  public Capacity getCapacity() {
+  public String getCapacity() {
     return mCapacity;
   }
 
@@ -132,14 +135,14 @@ public final class MasterWebUIOverview implements Serializable {
   /**
    * @return inconsistent path items
    */
-  public List<String> getInconsistentPathItems() {
+  public List<AlluxioURI> getInconsistentPathItems() {
     return mInconsistentPathItems;
   }
 
   /**
    * @return live worker nodes
    */
-  public int getLiveWorkerNodes() {
+  public String getLiveWorkerNodes() {
     return mLiveWorkerNodes;
   }
 
@@ -186,10 +189,21 @@ public final class MasterWebUIOverview implements Serializable {
   }
 
   /**
+   * @return
+   */
+  public int getInconsistentPaths() {
+    return mInconsistentPaths;
+  }
+
+  public int getComfigCheckWarnNum() {
+    return mComfigCheckWarnNum;
+  }
+
+  /**
    * @param capacity
    * @return
    */
-  public MasterWebUIOverview setCapacity(Capacity capacity) {
+  public MasterWebUIOverview setCapacity(String capacity) {
     mCapacity = capacity;
     return this;
   }
@@ -217,7 +231,8 @@ public final class MasterWebUIOverview implements Serializable {
    * @param configCheckStatus
    * @return
    */
-  public MasterWebUIOverview setConfigCheckStatus(ConfigCheckReport.ConfigStatus configCheckStatus) {
+  public MasterWebUIOverview setConfigCheckStatus(
+      ConfigCheckReport.ConfigStatus configCheckStatus) {
     mConfigCheckStatus = configCheckStatus;
     return this;
   }
@@ -290,7 +305,7 @@ public final class MasterWebUIOverview implements Serializable {
    * @param inconsistentPathItems
    * @return
    */
-  public MasterWebUIOverview setInconsistentPathItems(List<String> inconsistentPathItems) {
+  public MasterWebUIOverview setInconsistentPathItems(List<AlluxioURI> inconsistentPathItems) {
     mInconsistentPathItems = inconsistentPathItems;
     return this;
   }
@@ -299,7 +314,7 @@ public final class MasterWebUIOverview implements Serializable {
    * @param liveWorkerNodes
    * @return
    */
-  public MasterWebUIOverview setLiveWorkerNodes(int liveWorkerNodes) {
+  public MasterWebUIOverview setLiveWorkerNodes(String liveWorkerNodes) {
     mLiveWorkerNodes = liveWorkerNodes;
     return this;
   }
@@ -358,6 +373,24 @@ public final class MasterWebUIOverview implements Serializable {
     return this;
   }
 
+  /**
+   * @param size
+   * @return
+   */
+  public MasterWebUIOverview setInconsistentPaths(int size) {
+    mInconsistentPaths = size;
+    return this;
+  }
+
+  /**
+   * @param configCheckWarnNum
+   * @return
+   */
+  public MasterWebUIOverview setConfigCheckWarnNum(int configCheckWarnNum) {
+    mComfigCheckWarnNum = configCheckWarnNum;
+    return this;
+  }
+
   @Override
   public String toString() {
     return Objects.toStringHelper(this).add("capacity", mCapacity)
@@ -371,6 +404,6 @@ public final class MasterWebUIOverview implements Serializable {
         .add("liveWorkerNodes", mLiveWorkerNodes).add("masterNodeAddress", mMasterNodeAddress)
         .add("startTime", mStartTime).add("storageTierInfos", mStorageTierInfos)
         .add("uptime", mUptime).add("usedCapacity", mUsedCapacity).add("version", mVersion)
-        .toString();
+        .add("inconsistentPaths", mInconsistentPaths).toString();
   }
 }

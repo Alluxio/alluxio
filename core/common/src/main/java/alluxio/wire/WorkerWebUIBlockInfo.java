@@ -117,10 +117,10 @@ public final class WorkerWebUIBlockInfo implements Serializable {
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this).add("mBlockSizeBytes", mBlockSizeBytes)
-        .add("mFatalError", mFatalError).add("mFileBlocksOnTier", mFileBlocksOnTier)
-        .add("mInvalidPathError", mInvalidPathError).add("mNTotalFile", mNTotalFile)
-        .add("mFileInfos", mFileInfos).add("mOrderedTierAliases", mOrderedTierAliases)
-        .add("mPath", mPath).toString();
+    return Objects.toStringHelper(this).add("blockSizeBytes", mBlockSizeBytes)
+        .add("fatalError", mFatalError).add("fileBlocksOnTier", mFileBlocksOnTier)
+        .add("invalidPathError", mInvalidPathError).add("totalFile", mNTotalFile)
+        .add("fileInfos", mFileInfos).add("orderedTierAliases", mOrderedTierAliases)
+        .add("path", mPath).toString();
   }
 }

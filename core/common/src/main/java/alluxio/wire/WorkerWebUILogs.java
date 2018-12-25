@@ -24,7 +24,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Alluxio WebUI logs information.
  */
 @NotThreadSafe
-public final class MasterWebUILogs implements Serializable {
+public final class WorkerWebUILogs implements Serializable {
   private String mCurrentPath;
   private boolean mDebug;
   private String mFatalError;
@@ -37,7 +37,7 @@ public final class MasterWebUILogs implements Serializable {
   /**
    * Creates a new instance of {@link MasterWebUIWorkers}.
    */
-  public MasterWebUILogs() {
+  public WorkerWebUILogs() {
   }
 
   public String getCurrentPath() {
@@ -72,49 +72,49 @@ public final class MasterWebUILogs implements Serializable {
     return mViewingOffset;
   }
 
-  public MasterWebUILogs setCurrentPath(String currentPath) {
+  public WorkerWebUILogs setCurrentPath(String currentPath) {
     mCurrentPath = currentPath;
     return this;
   }
 
-  public MasterWebUILogs setDebug(boolean debug) {
+  public WorkerWebUILogs setDebug(boolean debug) {
     mDebug = debug;
     return this;
   }
 
-  public MasterWebUILogs setFatalError(String fatalError) {
+  public WorkerWebUILogs setFatalError(String fatalError) {
     mFatalError = fatalError;
     return this;
   }
 
-  public MasterWebUILogs setFileData(String fileData) {
+  public WorkerWebUILogs setFileData(String fileData) {
     mFileData = fileData;
     return this;
   }
 
-  public MasterWebUILogs setFileInfos(List<UIFileInfo> fileInfos) {
+  public WorkerWebUILogs setFileInfos(List<UIFileInfo> fileInfos) {
     mFileInfos = fileInfos;
     return this;
   }
 
-  public MasterWebUILogs setInvalidPathError(String invalidPathError) {
+  public WorkerWebUILogs setInvalidPathError(String invalidPathError) {
     mInvalidPathError = invalidPathError;
     return this;
   }
 
-  public MasterWebUILogs setNTotalFile(int nTotalFile) {
+  public WorkerWebUILogs setNTotalFile(int nTotalFile) {
     mNTotalFile = nTotalFile;
     return this;
   }
 
-  public MasterWebUILogs setViewingOffset(long viewingOffset) {
+  public WorkerWebUILogs setViewingOffset(long viewingOffset) {
     mViewingOffset = viewingOffset;
     return this;
   }
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this).add("currentPath", mCurrentPath).add("debug", mDebug)
+    return Objects.toStringHelper(this).add("currentPath", mCurrentPath).add("cebug", mDebug)
         .add("fatalError", mFatalError).add("fileData", mFileData).add("fileInfos", mFileInfos)
         .add("invalidPathError", mInvalidPathError).add("nTotalFile", mNTotalFile)
         .add("viewingOffset", mViewingOffset).toString();

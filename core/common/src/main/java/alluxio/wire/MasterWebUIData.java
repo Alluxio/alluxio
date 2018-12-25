@@ -94,9 +94,9 @@ public final class MasterWebUIData implements Serializable {
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this).add("mFatalError", mFatalError)
-        .add("mFileInfos", mFileInfos).add("mInAlluxioFileNum", mInAlluxioFileNum)
-        .add("mMasterNodeAddress", mMasterNodeAddress).add("mPermissionError", mPermissionError)
-        .add("mShowPermissions", mShowPermissions).toString();
+    return Objects.toStringHelper(this).add("fatalError", mFatalError)
+        .add("fileInfos", mFileInfos).add("inAlluxioFileNum", mInAlluxioFileNum)
+        .add("masterNodeAddress", mMasterNodeAddress).add("permissionError", mPermissionError)
+        .add("showPermissions", mShowPermissions).toString();
   }
 }

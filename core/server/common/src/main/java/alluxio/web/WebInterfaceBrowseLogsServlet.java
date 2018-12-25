@@ -56,15 +56,15 @@ public final class WebInterfaceBrowseLogsServlet extends HttpServlet {
   /**
    * This function displays 5KB of a file from a specific offset if it is in ASCII format.
    *
-   * @param file the local file to display
+   * @param logFile the local file to display
    * @param request the {@link HttpServletRequest} object
    * @param offset where the file starts to display
    */
-  private void displayLocalFile(File file, HttpServletRequest request, long offset)
+  private void displayLocalFile(File logFile, HttpServletRequest request, long offset)
       throws IOException {
     String fileData;
-    try (InputStream is = new FileInputStream(file)) {
-      long fileSize = file.length();
+    try (InputStream is = new FileInputStream(logFile)) {
+      long fileSize = logFile.length();
       int len = (int) Math.min(5 * Constants.KB, fileSize - offset);
       byte[] data = new byte[len];
       long skipped = is.skip(offset);
