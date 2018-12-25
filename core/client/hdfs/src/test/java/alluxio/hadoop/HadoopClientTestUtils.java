@@ -20,6 +20,9 @@ import org.powermock.core.classloader.MockClassLoader;
 import org.powermock.reflect.Whitebox;
 
 import java.net.URL;
+import java.util.Map;
+
+import javax.security.auth.Subject;
 
 /**
  * Utility methods for the Hadoop client tests.
@@ -35,7 +38,11 @@ public final class HadoopClientTestUtils {
   public static void resetClient() {
     try {
       Configuration.set(PropertyKey.USER_METRICS_COLLECTION_ENABLED, false);
-      FileSystemContext.get().reset(Configuration.global());
+      Map<Subject, FileSystemContext> cache =
+          Whitebox.getInternalState(FileSystemContext.class, "CONTEXT_CACHE");
+      for (Subject subject : cache.keySet()) {
+        FileSystemContext.get(subject).reset(Configuration.global());
+      }
       Whitebox.setInternalState(AbstractFileSystem.class, "sInitialized", false);
     } catch (Exception e) {
       throw new RuntimeException(e);

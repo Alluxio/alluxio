@@ -96,7 +96,6 @@ public class AbstractFileSystemTest {
   private static final Logger LOG = LoggerFactory.getLogger(AbstractFileSystemTest.class);
 
   private FileSystemContext mMockFileSystemContext;
-  private FileSystemContext mMockFileSystemContextCustomized;
   private FileSystemMasterClient mMockFileSystemMasterClient;
   private MasterInquireClient mMockMasterInquireClient;
 
@@ -646,19 +645,15 @@ public class AbstractFileSystemTest {
 
   private void mockFileSystemContextAndMasterClient() throws Exception {
     mMockFileSystemContext = PowerMockito.mock(FileSystemContext.class);
-    mMockFileSystemContextCustomized = PowerMockito.mock(FileSystemContext.class);
     mMockMasterInquireClient = Mockito.mock(MasterInquireClient.class);
     when(mMockMasterInquireClient.getConnectDetails()).thenReturn(
         new SingleMasterConnectDetails(new InetSocketAddress("defaultHost", 1)));
     PowerMockito.mockStatic(FileSystemContext.class);
-    PowerMockito.when(FileSystemContext.get()).thenReturn(mMockFileSystemContext);
     PowerMockito.when(FileSystemContext.get(any(Subject.class)))
-        .thenReturn(mMockFileSystemContextCustomized);
+        .thenReturn(mMockFileSystemContext);
     PowerMockito.when(FileSystemContext.get()).thenReturn(mMockFileSystemContext);
     mMockFileSystemMasterClient = mock(FileSystemMasterClient.class);
     when(mMockFileSystemContext.acquireMasterClient())
-        .thenReturn(mMockFileSystemMasterClient);
-    when(mMockFileSystemContextCustomized.acquireMasterClient())
         .thenReturn(mMockFileSystemMasterClient);
     when(mMockFileSystemContext.getMasterInquireClient()).thenReturn(mMockMasterInquireClient);
     doNothing().when(mMockFileSystemMasterClient).connect();
