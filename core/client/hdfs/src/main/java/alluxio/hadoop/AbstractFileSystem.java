@@ -497,7 +497,8 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     synchronized (INIT_LOCK) {
       if (sInitialized) {
         if (!connectDetailsMatch(uriConfProperties, conf)) {
-          ConnectDetails connectDetails = mContext.getMasterInquireClient().getConnectDetails();
+          ConnectDetails connectDetails = FileSystemContext.get(getHadoopSubject())
+              .getMasterInquireClient().getConnectDetails();
           LOG.warn(ExceptionMessage.DIFFERENT_CONNECTION_DETAILS.getMessage(connectDetails));
           initializeInternal(uriConfProperties, conf);
         }
