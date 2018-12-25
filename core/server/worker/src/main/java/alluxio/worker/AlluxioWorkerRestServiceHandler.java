@@ -390,16 +390,18 @@ public final class AlluxioWorkerRestServiceHandler {
       @QueryParam("end") String requestEnd,
       @DefaultValue("20") @QueryParam("limit") String requestLimit) {
     return RestUtils.call(() -> {
+      FilenameFilter LOG_FILE_FILTER = (dir, name) -> name.toLowerCase().endsWith(".log");
       WorkerWebUILogs response = new WorkerWebUILogs();
 
       if (!Configuration.getBoolean(PropertyKey.WEB_FILE_INFO_ENABLED)) {
         return response;
       }
-
       response.setDebug(Configuration.getBoolean(PropertyKey.DEBUG)).setInvalidPathError("")
           .setViewingOffset(0).setCurrentPath("");
+      //response.setDownloadLogFile(1);
+      //response.setBaseUrl("./browseLogs");
+      //response.setShowPermissions(false);
 
-      FilenameFilter LOG_FILE_FILTER = (dir, name) -> name.toLowerCase().endsWith(".log");
       String logsPath = Configuration.get(PropertyKey.LOGS_DIR);
       File logsDir = new File(logsPath);
       String requestFile = requestPath;
@@ -424,15 +426,20 @@ public final class AlluxioWorkerRestServiceHandler {
         try {
           int offset = Integer.parseInt(requestOffset);
           int limit = Integer.parseInt(requestLimit);
-          List<UIFileInfo> sub = fileInfos.subList(offset, offset + limit);
-          response.setFileInfos(sub);
+          limit = limit > fileInfos.size() ? fileInfos.size() : limit;
+          int sum = Math.addExact(offset, limit);
+          fileInfos = fileInfos.subList(offset, sum);
+          response.setFileInfos(fileInfos);
         } catch (NumberFormatException e) {
           response.setFatalError("Error: offset or limit parse error, " + e.getLocalizedMessage());
-        } catch (IndexOutOfBoundsException e) {
+          return response;
+        } catch (ArithmeticException e) {
           response.setFatalError(
               "Error: offset or offset + limit is out of bound, " + e.getLocalizedMessage());
+          return response;
         } catch (IllegalArgumentException e) {
           response.setFatalError(e.getLocalizedMessage());
+          return response;
         }
       } else {
         // Request a specific log file.
