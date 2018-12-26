@@ -322,12 +322,14 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
       }
       URIStatus status = mFileSystem.getStatus(turi);
       if (!status.isCompleted()) {
-        boolean opening;
+        boolean writing;
         synchronized (mOpenFiles) {
-          opening = mOpenFiles.contains(PATH_INDEX, path);
+          // Fuse release() returns but does not finish is not considered as writing here
+          writing = mOpenFiles.contains(PATH_INDEX, path);
         }
-        // Only block when release() returned but not finished
-        if (!opening && !waitForFileCompleted(turi)) {
+        // Always block waiting for file to be completed except when the file is writing
+        // We do not want to block the writing process
+        if (!writing && !waitForFileCompleted(turi)) {
           LOG.error("File {} is not completed", path);
         }
         status = mFileSystem.getStatus(turi);
