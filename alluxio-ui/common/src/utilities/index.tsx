@@ -4,6 +4,7 @@ export * from './saga/createSagaPostGenerator';
 export * from './misc/createDebouncedFunction';
 export * from './misc/parseQueryString';
 export * from './misc/isExternalLink';
+export * from './misc/bytesToString';
 
 export * from './handlers/createInputHandler';
 export * from './handlers/createDropdownItemHandler';

@@ -6,6 +6,16 @@ const initialState: IOverviewState = {
   errors: undefined,
   loading: false,
   overview: {
+    'capacityBytes': '',
+    'storageDirs': [],
+    'usageOnTiers': [],
+    'usedBytes': '',
+    'version': '',
+    'workerInfo': {
+      'startTime': '',
+      'uptime': '',
+      'workerAddress': ''
+    }
   }
 };
 

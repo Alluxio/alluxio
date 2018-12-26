@@ -54,7 +54,6 @@ import com.codahale.metrics.Gauge;
 import com.codahale.metrics.Metric;
 import com.codahale.metrics.MetricFilter;
 import com.codahale.metrics.MetricRegistry;
-import com.fasterxml.jackson.databind.annotation.JsonAppend;
 import com.qmino.miredot.annotations.ReturnType;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 

@@ -1,6 +1,16 @@
-// tslint:disable:no-empty-interface // TODO: remove this line
+import {IStorageTierInfo} from '../../constants';
 
 export interface IOverview {
+  'capacityBytes': string;
+  'usedBytes': string;
+  'workerInfo': {
+    'workerAddress': string;
+    'startTime': string;
+    'uptime': string;
+  };
+  'usageOnTiers':IStorageTierInfo[];
+  'storageDirs': IStorageTierInfo[];
+  'version': string;
 }
 
 export const enum OverviewActionTypes {

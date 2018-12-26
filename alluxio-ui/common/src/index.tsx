@@ -9,7 +9,6 @@ import 'source-sans-pro/source-sans-pro.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap/dist/css/bootstrap-grid.min.css';
 import 'bootstrap/dist/css/bootstrap-reboot.min.css';
-import './index.css';
 // tslint:enable:ordered-imports
 
 ReactDOM.render(
