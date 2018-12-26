@@ -25,10 +25,11 @@ import alluxio.master.file.RpcContext;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
 import alluxio.master.file.options.CreatePathOptions;
-import alluxio.master.file.state.InodesView;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.JournalEntryIterable;
 import alluxio.master.journal.JournalEntryReplayable;
+import alluxio.master.metastore.InodeStore;
+import alluxio.master.metastore.ReadOnlyInodeStore;
 import alluxio.proto.journal.File.DeleteFileEntry;
 import alluxio.proto.journal.File.NewBlockEntry;
 import alluxio.proto.journal.File.RenameEntry;
@@ -51,6 +52,7 @@ import alluxio.underfs.options.MkdirsOptions;
 import alluxio.util.interfaces.Scoped;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Iterables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -181,8 +183,7 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
   /** Manager for inode locking. */
   private final InodeLockManager mInodeLockManager;
 
-  /** Unmodifiable view of all inodes in the inode tree. */
-  private final InodesView mInodes;
+  private final ReadOnlyInodeStore mInodeStore;
 
   /**
    * Class for managing the persistent state of the inode tree. All metadata changes must go
@@ -203,15 +204,16 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
   private final InodeDirectoryIdGenerator mDirectoryIdGenerator;
 
   /**
+   * @param inodeStore the inode store
    * @param containerIdGenerator the container id generator to use to get new container ids
    * @param directoryIdGenerator the directory id generator to use to get new directory ids
    * @param mountTable the mount table to manage the file system mount points
    */
-  public InodeTree(ContainerIdGenerable containerIdGenerator,
+  public InodeTree(InodeStore inodeStore, ContainerIdGenerable containerIdGenerator,
       InodeDirectoryIdGenerator directoryIdGenerator, MountTable mountTable) {
     mTtlBuckets = new TtlBucketList();
-    mState = new InodeTreePersistentState(mTtlBuckets);
-    mInodes = mState.getInodesView();
+    mState = new InodeTreePersistentState(inodeStore, mTtlBuckets);
+    mInodeStore = inodeStore;
     mContainerIdGenerator = containerIdGenerator;
     mDirectoryIdGenerator = directoryIdGenerator;
     mMountTable = mountTable;
@@ -325,7 +327,7 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
    * @return the number of total inodes
    */
   public int getSize() {
-    return mInodes.size();
+    return mInodeStore.size();
   }
 
   /**
@@ -340,7 +342,7 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
    * @return whether the inode exists
    */
   public boolean inodeIdExists(long id) {
-    return mInodes.containsId(id);
+    return mInodeStore.get(id).isPresent();
   }
 
   /**
@@ -354,7 +356,8 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
    */
   public LockedInodePath lockInodePath(AlluxioURI uri, LockPattern lockPattern)
       throws InvalidPathException {
-    LockedInodePath inodePath = new LockedInodePath(uri, mInodeLockManager, getRoot(), lockPattern);
+    LockedInodePath inodePath =
+        new LockedInodePath(uri, mInodeStore, mInodeLockManager, getRoot(), lockPattern);
     try {
       inodePath.traverse();
     } catch (Throwable t) {
@@ -424,13 +427,13 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
       throws FileDoesNotExistException {
     int count = 0;
     while (true) {
-      InodeView inode = mInodes.getById(id);
-      if (inode == null) {
+      Optional<InodeView> inode = mInodeStore.get(id);
+      if (!inode.isPresent()) {
         throw new FileDoesNotExistException(ExceptionMessage.INODE_DOES_NOT_EXIST.getMessage(id));
       }
       // Compute the path given the target inode.
       StringBuilder builder = new StringBuilder();
-      computePathForInode(inode, builder);
+      computePathForInode(inode.get(), builder);
       AlluxioURI uri = new AlluxioURI(builder.toString());
 
       boolean valid = false;
@@ -542,13 +545,13 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
       builder.append(AlluxioURI.SEPARATOR);
       builder.append(name);
     } else {
-      InodeView parentInode = mInodes.getById(parentId);
-      if (parentInode == null) {
+      Optional<InodeView> parentInode = mInodeStore.get(parentId);
+      if (!parentInode.isPresent()) {
         throw new FileDoesNotExistException(
             ExceptionMessage.INODE_DOES_NOT_EXIST.getMessage(parentId));
       }
 
-      computePathForInode(parentInode, builder);
+      computePathForInode(parentInode.get(), builder);
       builder.append(AlluxioURI.SEPARATOR);
       builder.append(name);
     }
@@ -665,7 +668,8 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
         }
       }
     }
-    if ((pathIndex < (pathComponents.length - 1) || currentInodeDirectory.getChild(name) == null)
+    if ((pathIndex < (pathComponents.length - 1)
+        || !mInodeStore.getChild(currentInodeDirectory, name).isPresent())
         && options.getOperationTimeMs() > currentInodeDirectory.getLastModificationTimeMs()) {
       // (1) There are components in parent paths that need to be created. Or
       // (2) The last component of the path needs to be created.
@@ -822,8 +826,8 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
       return;
     }
     InodeDirectoryView dir = (InodeDirectoryView) inode;
-    for (InodeView child : dir.getChildren()) {
-      LockedInodePath childPath = null;
+    for (InodeView child : mInodeStore.getChildren(dir)) {
+      LockedInodePath childPath;
       try {
         childPath = inodePath.lockChild(child, LockPattern.WRITE_EDGE);
       } catch (InvalidPathException e) {
@@ -845,13 +849,8 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
    */
   public void deleteInode(RpcContext rpcContext, LockedInodePath inodePath, long opTimeMs)
       throws FileDoesNotExistException {
+    Preconditions.checkState(inodePath.getLockPattern() == LockPattern.WRITE_EDGE);
     InodeView inode = inodePath.getInode();
-    InodeDirectoryView parent = (InodeDirectoryView) mInodes.getById(inode.getParentId());
-    if (parent == null) {
-      LOG.warn("Parent id not found: {} deleting inode: {}", inode.getParentId(), inode);
-      throw new FileDoesNotExistException(
-          ExceptionMessage.INODE_DOES_NOT_EXIST.getMessage(inode.getParentId()));
-    }
 
     mState.applyAndJournal(rpcContext, DeleteFileEntry.newBuilder()
         .setId(inode.getId())
@@ -890,7 +889,7 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
     if (inode.isDirectory()) {
       assert inode instanceof InodeDirectoryView;
       // inode is a directory. Set the pinned state for all children.
-      for (InodeView child : ((InodeDirectoryView) inode).getChildren()) {
+      for (InodeView child : mInodeStore.getChildren(inode.asDirectory())) {
         try (LockedInodePath childPath =
             inodePath.lockChild(child, LockPattern.WRITE_INODE)) {
           // No need for additional locking since the parent is write-locked.
@@ -944,7 +943,7 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
           .setLastModificationTimeMs(opTimeMs)
           .build());
     } else {
-      for (InodeView child : inode.asDirectory().getChildren()) {
+      for (InodeView child : mInodeStore.getChildren(inode.asDirectory())) {
         try (LockedInodePath tempInodePath =
             inodePath.lockChild(child, LockPattern.WRITE_INODE)) {
           // No need for additional locking since the parent is write-locked.
@@ -1006,7 +1005,7 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
         }
         InodeView inode = inodes.poll();
         if (inode.isDirectory()) {
-          inodes.addAll(((InodeDirectoryView) inode).getChildren());
+          Iterables.addAll(inodes, mInodeStore.getChildren(inode.asDirectory()));
         }
         return inode.toJournalEntry();
       }
@@ -1036,7 +1035,6 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
    */
   public void syncPersistExistingDirectory(Supplier<JournalContext> context, InodeDirectoryView dir)
       throws IOException, InvalidPathException, FileDoesNotExistException {
-    Preconditions.checkState(mInodes.containsId(dir.getId()));
     RetryPolicy retry =
         new ExponentialBackoffRetry(PERSIST_WAIT_BASE_SLEEP_MS, PERSIST_WAIT_MAX_SLEEP_MS,
             PERSIST_WAIT_MAX_RETRIES);
@@ -1095,7 +1093,6 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
    */
   public void syncPersistNewDirectory(InodeDirectory dir)
       throws InvalidPathException, FileDoesNotExistException, IOException {
-    Preconditions.checkState(!mInodes.containsId(dir.getId()));
     dir.setPersistenceState(PersistenceState.TO_BE_PERSISTED);
     syncPersistDirectory(dir).ifPresent(status -> {
       // If the directory already exists in the UFS, update our metadata to match the UFS.

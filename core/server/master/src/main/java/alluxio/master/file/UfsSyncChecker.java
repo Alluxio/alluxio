@@ -16,7 +16,9 @@ import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeDirectory;
+import alluxio.master.file.meta.InodeView;
 import alluxio.master.file.meta.MountTable;
+import alluxio.master.metastore.ReadOnlyInodeStore;
 import alluxio.resource.CloseableResource;
 import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
@@ -28,13 +30,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -53,6 +54,8 @@ public final class UfsSyncChecker {
 
   /** This manages the file system mount points. */
   private final MountTable mMountTable;
+  /** This manages inode tree state. */
+  private final ReadOnlyInodeStore mInodeStore;
 
   /** Directories in sync with the UFS. */
   private Map<AlluxioURI, Inode<?>> mSyncedDirectories = new HashMap<>();
@@ -61,10 +64,12 @@ public final class UfsSyncChecker {
    * Create a new instance of {@link UfsSyncChecker}.
    *
    * @param mountTable to resolve path in under storage
+   * @param inodeStore to look up inode children
    */
-  public UfsSyncChecker(MountTable mountTable) {
+  public UfsSyncChecker(MountTable mountTable, ReadOnlyInodeStore inodeStore) {
     mListedDirectories = new HashMap<>();
     mMountTable = mountTable;
+    mInodeStore = inodeStore;
   }
   /**
    * Check if immediate children of directory are in sync with UFS.
@@ -81,20 +86,18 @@ public final class UfsSyncChecker {
         .filter(ufsStatus -> !PathUtils.isTemporaryFileName(ufsStatus.getName()))
         .toArray(UfsStatus[]::new);
     Arrays.sort(ufsChildren, Comparator.comparing(UfsStatus::getName));
-    int numInodeChildren = inode.getChildren().size();
-    Inode[] inodeChildren = inode.getChildren().toArray(new Inode[numInodeChildren]);
-    Arrays.sort(inodeChildren, Comparator.comparing(Inode::getName));
     int ufsPos = 0;
-    int inodePos = 0;
-    while (ufsPos < ufsChildren.length && inodePos < numInodeChildren) {
+    for (InodeView alluxioInode : mInodeStore.getChildren(inode)) {
+      if (ufsPos >= ufsChildren.length) {
+        break;
+      }
       String ufsName = ufsChildren[ufsPos].getName();
       if (ufsName.endsWith(AlluxioURI.SEPARATOR)) {
         ufsName = ufsName.substring(0, ufsName.length() - 1);
       }
-      if (ufsName.equals(inodeChildren[inodePos].getName())) {
+      if (ufsName.equals(alluxioInode.getName())) {
         ufsPos++;
       }
-      inodePos++;
     }
 
     if (ufsPos == ufsChildren.length) {
@@ -108,11 +111,7 @@ public final class UfsSyncChecker {
         mSyncedDirectories.remove(currentPath.getParent());
         currentPath = currentPath.getParent();
       }
-      LOG.debug("Inode children ({}) for Alluxio URI {} do not match children in Ufs ({})",
-          Arrays.stream(inodeChildren).map(inodeChild -> inodeChild.getName())
-              .collect(Collectors.joining(",")),
-          alluxioUri.toString(), Arrays.stream(ufsChildren).map(ufsStatus -> ufsStatus.getName())
-              .collect(Collectors.joining(",")));
+      LOG.debug("Ufs file {} does not match any file in Alluxio", ufsChildren[ufsPos]);
     }
   }
 

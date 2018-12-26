@@ -12,9 +12,6 @@
 package alluxio.master.file.meta;
 
 import alluxio.Constants;
-import alluxio.collections.FieldIndex;
-import alluxio.collections.IndexDefinition;
-import alluxio.collections.UniqueFieldIndex;
 import alluxio.master.ProtobufUtils;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.proto.journal.File.InodeDirectoryEntry;
@@ -24,11 +21,6 @@ import alluxio.security.authorization.AccessControlList;
 import alluxio.security.authorization.DefaultAccessControlList;
 import alluxio.wire.FileInfo;
 
-import com.google.common.collect.ImmutableSet;
-
-import java.util.HashSet;
-import java.util.Set;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -36,17 +28,6 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class InodeDirectory extends Inode<InodeDirectory> implements InodeDirectoryView {
-  private static final IndexDefinition<Inode<?>, String> NAME_INDEX =
-      new IndexDefinition<Inode<?>, String>(true) {
-        @Override
-        public String getFieldValue(Inode<?> o) {
-          return o.getName();
-        }
-      };
-
-  /** Use UniqueFieldIndex directly for name index rather than using IndexedSet. */
-  private final FieldIndex<Inode<?>, String> mChildren = new UniqueFieldIndex<>(NAME_INDEX);
-
   private boolean mMountPoint;
 
   private boolean mDirectChildrenLoaded;
@@ -70,40 +51,6 @@ public final class InodeDirectory extends Inode<InodeDirectory> implements Inode
     return this;
   }
 
-  /**
-   * Adds the given inode to the set of children.
-   *
-   * @param child the inode to add
-   * @return true if inode was added successfully, false otherwise
-   */
-  public boolean addChild(Inode<?> child) {
-    return mChildren.add(child);
-  }
-
-  @Override
-  public InodeView getChild(String name) {
-    return mChildren.getFirst(name);
-  }
-
-  @Override
-  public Set<InodeView> getChildren() {
-    return ImmutableSet.copyOf(mChildren.iterator());
-  }
-
-  @Override
-  public Set<Long> getChildrenIds() {
-    Set<Long> ret = new HashSet<>(mChildren.size());
-    for (Inode<?> child : mChildren) {
-      ret.add(child.getId());
-    }
-    return ret;
-  }
-
-  @Override
-  public int getNumberOfChildren() {
-    return mChildren.size();
-  }
-
   @Override
   public boolean isMountPoint() {
     return mMountPoint;
@@ -115,45 +62,8 @@ public final class InodeDirectory extends Inode<InodeDirectory> implements Inode
   }
 
   @Override
-  public synchronized boolean areDescendantsLoaded() {
-    if (!isDirectChildrenLoaded()) {
-      return false;
-    }
-    for (InodeView inode : getChildren()) {
-      if (inode.isDirectory()) {
-        InodeDirectory inodeDirectory = (InodeDirectory) inode;
-        if (!inodeDirectory.areDescendantsLoaded()) {
-          return false;
-        }
-      }
-    }
-    return true;
-  }
-
-  @Override
   public DefaultAccessControlList getDefaultACL() {
     return mDefaultAcl;
-  }
-
-  /**
-   * Removes the given inode from the directory.
-   *
-   * @param child the Inode to remove
-   * @return true if the inode was removed, false otherwise
-   */
-  public boolean removeChild(Inode<?> child) {
-    return mChildren.remove(child);
-  }
-
-  /**
-   * Removes the given child by its name from the directory.
-   *
-   * @param name the name of the Inode to remove
-   * @return true if the inode was removed, false otherwise
-   */
-  public boolean removeChild(String name) {
-    Inode<?> child = mChildren.getFirst(name);
-    return mChildren.remove(child);
   }
 
   /**
@@ -192,7 +102,6 @@ public final class InodeDirectory extends Inode<InodeDirectory> implements Inode
     ret.setFileId(getId());
     ret.setName(getName());
     ret.setPath(path);
-    ret.setLength(mChildren.size());
     ret.setBlockSizeBytes(0);
     ret.setCreationTimeMs(getCreationTimeMs());
     ret.setCompleted(true);
@@ -234,7 +143,7 @@ public final class InodeDirectory extends Inode<InodeDirectory> implements Inode
 
   @Override
   public String toString() {
-    return toStringHelper().add("mountPoint", mMountPoint).add("children", mChildren).toString();
+    return toStringHelper().add("mountPoint", mMountPoint).toString();
   }
 
   /**

@@ -16,7 +16,6 @@ import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.security.authorization.Mode;
 import alluxio.wire.FileInfo;
 
-import com.google.common.collect.Sets;
 import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -27,39 +26,6 @@ import org.slf4j.LoggerFactory;
  */
 public final class InodeDirectoryTest extends AbstractInodeTest {
   private static final Logger LOG = LoggerFactory.getLogger(InodeDirectoryTest.class);
-
-  /**
-   * Tests the {@link InodeDirectory#addChild(Inode)} method.
-   */
-  @Test
-  public void addChildren() {
-    InodeDirectory inodeDirectory = createInodeDirectory();
-    InodeFile inodeFile1 = createInodeFile(2);
-    InodeFile inodeFile2 = createInodeFile(3);
-    inodeDirectory.addChild(inodeFile1);
-    inodeDirectory.addChild(inodeFile2);
-    Assert.assertEquals(Sets.newHashSet(createInodeFileId(2), createInodeFileId(3)),
-        inodeDirectory.getChildrenIds());
-  }
-
-  /**
-   * Tests the {@link InodeDirectory#removeChild(String)} method after multiple children have been
-   * added.
-   */
-  @Test
-  public void batchRemoveChild() {
-    InodeDirectory inodeDirectory = createInodeDirectory();
-    InodeFile inodeFile1 = createInodeFile(1);
-    InodeFile inodeFile2 = createInodeFile(2);
-    InodeFile inodeFile3 = createInodeFile(3);
-    inodeDirectory.addChild(inodeFile1);
-    inodeDirectory.addChild(inodeFile2);
-    inodeDirectory.addChild(inodeFile3);
-    Assert.assertEquals(3, inodeDirectory.getNumberOfChildren());
-    inodeDirectory.removeChild("testFile1");
-    Assert.assertEquals(2, inodeDirectory.getNumberOfChildren());
-    Assert.assertFalse(inodeDirectory.getChildrenIds().contains(createInodeFileId(1)));
-  }
 
   /**
    * Tests the {@link InodeDirectory#equals(Object)} method.
@@ -99,33 +65,6 @@ public final class InodeDirectoryTest extends AbstractInodeTest {
   }
 
   /**
-   * Tests the {@link InodeDirectory#removeChild(Inode)} method.
-   */
-  @Test
-  public void removeChild() {
-    InodeDirectory inodeDirectory = createInodeDirectory();
-    InodeFile inodeFile1 = createInodeFile(1);
-    inodeDirectory.addChild(inodeFile1);
-    Assert.assertEquals(1, inodeDirectory.getNumberOfChildren());
-    inodeDirectory.removeChild(inodeFile1);
-    Assert.assertEquals(0, inodeDirectory.getNumberOfChildren());
-  }
-
-  /**
-   * Tests the {@link InodeDirectory#removeChild(Inode)} method with a non-existent child.
-   */
-  @Test
-  public void removeNonExistentChild() {
-    InodeDirectory inodeDirectory = createInodeDirectory();
-    InodeFile inodeFile1 = createInodeFile(2);
-    InodeFile inodeFile2 = createInodeFile(3);
-    inodeDirectory.addChild(inodeFile1);
-    Assert.assertEquals(1, inodeDirectory.getNumberOfChildren());
-    inodeDirectory.removeChild(inodeFile2);
-    Assert.assertEquals(1, inodeDirectory.getNumberOfChildren());
-  }
-
-  /**
    * Tests the {@link InodeDirectory#setDeleted(boolean)} method.
    */
   @Test
@@ -136,20 +75,6 @@ public final class InodeDirectoryTest extends AbstractInodeTest {
     Assert.assertTrue(inode1.isDeleted());
     inode1.setDeleted(false);
     Assert.assertFalse(inode1.isDeleted());
-  }
-
-  /**
-   * Tests that the {@link InodeDirectory#addChild(Inode)} method only created one child with the
-   * same id.
-   */
-  @Test
-  public void sameIdChildren() {
-    InodeDirectory inodeDirectory = createInodeDirectory();
-    InodeFile inodeFile1 = createInodeFile(1);
-    inodeDirectory.addChild(inodeFile1);
-    inodeDirectory.addChild(inodeFile1);
-    Assert.assertTrue(inodeDirectory.getChildrenIds().contains(createInodeFileId(1)));
-    Assert.assertEquals(1, inodeDirectory.getNumberOfChildren());
   }
 
   /**
@@ -210,32 +135,6 @@ public final class InodeDirectoryTest extends AbstractInodeTest {
     Assert.assertEquals(0, inode1.getParentId());
     inode1.setParentId(2);
     Assert.assertEquals(2, inode1.getParentId());
-  }
-
-  /**
-   * Tests the {@link InodeDirectory#getChild(String)} methods.
-   */
-  @Test
-  public void getChild() {
-    // large number of small files
-    InodeDirectory inodeDirectory = createInodeDirectory();
-    int nFiles = (int) 1E5;
-    Inode<?>[] inodes = new Inode[nFiles];
-    for (int i = 0; i < nFiles; i++) {
-      inodes[i] = createInodeFile(i + 1);
-      inodeDirectory.addChild(inodes[i]);
-    }
-
-    Runtime runtime = Runtime.getRuntime();
-    LOG.info(String.format("Used Memory = %dB when number of files = %d",
-        runtime.totalMemory() - runtime.freeMemory(), nFiles));
-
-    long start = System.currentTimeMillis();
-    for (int i = 0; i < nFiles; i++) {
-      Assert.assertEquals(inodes[i], inodeDirectory.getChild(String.format("testFile%d", i + 1)));
-    }
-    LOG.info(String.format("getChild(String name) called sequentially %d times, cost %d ms", nFiles,
-        System.currentTimeMillis() - start));
   }
 
   /**

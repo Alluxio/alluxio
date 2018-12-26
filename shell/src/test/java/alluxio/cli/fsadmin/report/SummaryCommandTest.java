@@ -15,7 +15,6 @@ import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import alluxio.cli.fsadmin.report.SummaryCommand;
 import alluxio.client.MetaMasterClient;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.util.CommonUtils;
@@ -131,7 +130,6 @@ public class SummaryCommandTest {
         "        Tier: RAM  Size: 6.10KB",
         "    Free Capacity: 1248.94KB");
     List<String> testOutput = Arrays.asList(output.split("\n"));
-    Assert.assertThat(testOutput,
-        IsIterableContainingInOrder.contains(expectedOutput.toArray()));
+    Assert.assertThat(testOutput, IsIterableContainingInOrder.contains(expectedOutput.toArray()));
   }
 }

@@ -12,7 +12,7 @@
 package alluxio.master.metastore.java;
 
 import alluxio.master.metastore.BlockStore;
-import alluxio.master.metastore.FileStore;
+import alluxio.master.metastore.InodeStore;
 import alluxio.master.metastore.Metastore;
 
 /**
@@ -20,12 +20,13 @@ import alluxio.master.metastore.Metastore;
  */
 public class HeapMetastore implements Metastore {
 
+  private final InodeStore mInodeStore = new HeapInodeStore();
   private final BlockStore mBlockStore = new HeapBlockStore();
 
   @Override
   // TODO(andrew): implement this
-  public FileStore getFileStore() {
-    return null;
+  public InodeStore getInodeStore() {
+    return mInodeStore;
   }
 
   @Override

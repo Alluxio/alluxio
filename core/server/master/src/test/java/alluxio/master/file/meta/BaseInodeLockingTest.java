@@ -16,6 +16,8 @@ import static org.junit.Assert.assertTrue;
 
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
+import alluxio.master.metastore.InodeStore;
+import alluxio.master.metastore.java.HeapInodeStore;
 
 import org.junit.After;
 
@@ -32,6 +34,7 @@ import java.util.List;
  */
 public class BaseInodeLockingTest {
   protected InodeLockManager mInodeLockManager = new InodeLockManager();
+  protected InodeStore mInodeStore = new HeapInodeStore();
 
   // Directory structure is /a/b/c
   protected InodeFileView mFileC = inodeFile(3, 2, "c");
@@ -131,17 +134,17 @@ public class BaseInodeLockingTest {
         mInodeLockManager.edgeWriteLockedByCurrentThread(edge));
   }
 
-  protected static InodeDirectory inodeDir(long id, long parentId, String name,
+  protected InodeDirectory inodeDir(long id, long parentId, String name,
       InodeView... children) {
     InodeDirectory dir =
         InodeDirectory.create(id, parentId, name, CreateDirectoryOptions.defaults());
     for (InodeView child : children) {
-      dir.addChild((Inode<?>) child);
+      mInodeStore.addChild(dir.getId(), child);
     }
     return dir;
   }
 
-  protected static InodeFile inodeFile(long id, long parentId, String name) {
+  protected InodeFile inodeFile(long id, long parentId, String name) {
     return InodeFile.create(id, parentId, name, 0, CreateFileOptions.defaults());
   }
 }

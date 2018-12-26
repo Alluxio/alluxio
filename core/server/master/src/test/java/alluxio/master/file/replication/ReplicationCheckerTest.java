@@ -128,7 +128,8 @@ public final class ReplicationCheckerTest {
     InodeDirectoryIdGenerator directoryIdGenerator = new InodeDirectoryIdGenerator(mBlockMaster);
     UfsManager manager = mock(UfsManager.class);
     MountTable mountTable = new MountTable(manager, mock(MountInfo.class));
-    mInodeTree = new InodeTree(mBlockMaster, directoryIdGenerator, mountTable);
+    mInodeTree = new InodeTree(context.getMetastore().getInodeStore(), mBlockMaster,
+        directoryIdGenerator, mountTable);
 
     journalSystem.start();
     journalSystem.gainPrimacy();

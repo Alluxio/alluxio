@@ -11,34 +11,10 @@
 
 package alluxio.master.file.meta;
 
-import java.util.Set;
-
 /**
  * Read-only interface for an inode directory.
  */
 public interface InodeDirectoryView extends InodeView {
-
-  /**
-   * @param name the name of the child
-   * @return the inode with the given name, or null if there is no child with that name
-   */
-  InodeView getChild(String name);
-
-  /**
-   * @return an unmodifiable set of the children inodes
-   */
-  Set<InodeView> getChildren();
-
-  /**
-   * @return the ids of the children
-   */
-  Set<Long> getChildrenIds();
-
-  /**
-   * @return the number of children in the directory
-   */
-  int getNumberOfChildren();
-
   /**
    * @return true if the inode is a mount point, false otherwise
    */
@@ -48,11 +24,4 @@ public interface InodeDirectoryView extends InodeView {
    * @return true if we have loaded all the direct children's metadata once
    */
   boolean isDirectChildrenLoaded();
-
-  /**
-   * Before calling this method, the caller should hold at least a READ LOCK on the inode.
-   *
-   * @return true if we have loaded all the direct and indirect children's metadata once
-   */
-  boolean areDescendantsLoaded();
 }
