@@ -1342,18 +1342,17 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
    * @param rpcContext the rpc context
    * @param inodePath the path to be created
    * @param options method options
-   * @return {@link InodeTree.CreatePathResult} with the path creation result
+   * @return the list of created inodes
    */
-  InodeTree.CreatePathResult createFileInternal(RpcContext rpcContext, LockedInodePath inodePath,
+  List<InodeView> createFileInternal(RpcContext rpcContext, LockedInodePath inodePath,
       CreateFileOptions options)
       throws InvalidPathException, FileAlreadyExistsException, BlockInfoException, IOException,
       FileDoesNotExistException {
     if (mWhitelist.inList(inodePath.getUri().toString())) {
       options.setCacheable(true);
     }
-    InodeTree.CreatePathResult createResult = mInodeTree.createPath(rpcContext, inodePath, options);
     // If the create succeeded, the list of created inodes will not be empty.
-    List<InodeView> created = createResult.getCreated();
+    List<InodeView> created = mInodeTree.createPath(rpcContext, inodePath, options);
     InodeFileView inode = (InodeFileView) created.get(created.size() - 1);
 
     if (options.isPersisted()) {
@@ -1364,7 +1363,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
 
     Metrics.FILES_CREATED.inc();
     Metrics.DIRECTORIES_CREATED.inc();
-    return createResult;
+    return created;
   }
 
   @Override
@@ -1441,8 +1440,8 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
   }
 
   @Override
-  public int getNumberOfPaths() {
-    return mInodeTree.getSize();
+  public long estimateNumberOfPaths() {
+    return mInodeTree.estimateSize();
   }
 
   @Override
@@ -1924,17 +1923,15 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
    * @param rpcContext the rpc context
    * @param inodePath the path of the directory
    * @param options method options
-   * @return an {@link alluxio.master.file.meta.InodeTree.CreatePathResult} representing the
-   *         modified inodes and created inodes during path creation
+   * @return a list of created inodes
    */
-  private InodeTree.CreatePathResult createDirectoryInternal(RpcContext rpcContext,
+  private List<InodeView> createDirectoryInternal(RpcContext rpcContext,
       LockedInodePath inodePath, CreateDirectoryOptions options) throws InvalidPathException,
       FileAlreadyExistsException, IOException, FileDoesNotExistException {
     Preconditions.checkState(inodePath.getLockPattern() == LockPattern.WRITE_EDGE);
 
     try {
-      InodeTree.CreatePathResult createResult =
-          mInodeTree.createPath(rpcContext, inodePath, options);
+      List<InodeView> createResult = mInodeTree.createPath(rpcContext, inodePath, options);
       InodeDirectoryView inodeDirectory = (InodeDirectoryView) inodePath.getInode();
 
       String ufsFingerprint = Constants.INVALID_UFS_FINGERPRINT;
@@ -4242,8 +4239,8 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
           master::getNumberOfPinnedFiles);
 
       MetricsSystem.registerGaugeIfAbsent(MetricsSystem
-              .getMetricName(MasterMetrics.PATHS_TOTAL),
-          () -> master.getNumberOfPaths());
+              .getMetricName(MasterMetrics.TOTAL_PATHS_ESTIMATE),
+          () -> master.estimateNumberOfPaths());
 
       final String ufsDataFolder = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
 

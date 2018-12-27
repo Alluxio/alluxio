@@ -16,9 +16,7 @@ import alluxio.PropertyKey;
 import alluxio.master.metastore.BlockStore;
 import alluxio.proto.meta.Block.BlockLocation;
 import alluxio.proto.meta.Block.BlockMeta;
-import alluxio.util.CommonUtils;
 import alluxio.util.io.FileUtils;
-import alluxio.util.io.PathUtils;
 
 import com.google.common.primitives.Longs;
 import org.rocksdb.ColumnFamilyDescriptor;
@@ -45,6 +43,9 @@ import java.util.Optional;
  */
 public class RocksBlockStore implements BlockStore {
   private static final Logger LOG = LoggerFactory.getLogger(RocksBlockStore.class);
+  private static final String BLOCKS_DB_NAME = "blocks";
+  private static final String BLOCK_META_COLUMN = "block-meta";
+  private static final String BLOCK_LOCATIONS_COLUMN = "block-locations";
 
   private final String mBaseDir;
 
@@ -60,7 +61,7 @@ public class RocksBlockStore implements BlockStore {
   public RocksBlockStore() throws RocksDBException {
     mBaseDir = Configuration.get(PropertyKey.MASTER_METASTORE_DIR);
     RocksDB.loadLibrary();
-    initDb(mBaseDir);
+    initDb();
   }
 
   @Override
@@ -103,7 +104,7 @@ public class RocksBlockStore implements BlockStore {
   @Override
   public void clear() {
     try {
-      initDb(mBaseDir);
+      initDb();
     } catch (RocksDBException e) {
       throw new RuntimeException(e);
     }
@@ -127,7 +128,7 @@ public class RocksBlockStore implements BlockStore {
 
   @Override
   public void addLocation(long id, BlockLocation location) {
-    byte[] key = toByteArray(id, location.getWorkerId());
+    byte[] key = RocksUtils.toByteArray(id, location.getWorkerId());
     try {
       mDb.put(mBlockLocationsColumn, key, location.toByteArray());
     } catch (RocksDBException e) {
@@ -137,7 +138,7 @@ public class RocksBlockStore implements BlockStore {
 
   @Override
   public void removeLocation(long blockId, long workerId) {
-    byte[] key = toByteArray(blockId, workerId);
+    byte[] key = RocksUtils.toByteArray(blockId, workerId);
     try {
       mDb.delete(mBlockLocationsColumn, key);
     } catch (RocksDBException e) {
@@ -169,23 +170,7 @@ public class RocksBlockStore implements BlockStore {
     };
   }
 
-  // Implementation based on
-  // https://google.github.io/guava/releases/21.0/api/docs/src-html/com/google/common/primitives/
-  // Longs.html#line.267
-  private byte[] toByteArray(long long1, long long2) {
-    byte[] key = new byte[16];
-    for (int i = 7; i >= 0; i--) {
-      key[i] = (byte) (long1 & 0xffL);
-      long1 >>= 8;
-    }
-    for (int i = 15; i >= 8; i--) {
-      key[i] = (byte) (long2 & 0xffL);
-      long2 >>= 8;
-    }
-    return key;
-  }
-
-  private void initDb(String baseDir) throws RocksDBException {
+  private void initDb() throws RocksDBException {
     if (mDb != null) {
       try {
         // Column handles must be closed before closing the db, or an exception gets thrown.
@@ -202,15 +187,15 @@ public class RocksBlockStore implements BlockStore {
         throw new RuntimeException(e);
       }
     }
-    new File(baseDir).mkdirs();
+    new File(mBaseDir).mkdirs();
 
     ColumnFamilyOptions cfOpts = new ColumnFamilyOptions()
         .useFixedLengthPrefixExtractor(8); // We always search using the initial long key
 
     List<ColumnFamilyDescriptor> cfDescriptors = Arrays.asList(
         new ColumnFamilyDescriptor(RocksDB.DEFAULT_COLUMN_FAMILY, cfOpts),
-        new ColumnFamilyDescriptor("block-meta".getBytes(), cfOpts),
-        new ColumnFamilyDescriptor("block-locations".getBytes(), cfOpts)
+        new ColumnFamilyDescriptor(BLOCK_META_COLUMN.getBytes(), cfOpts),
+        new ColumnFamilyDescriptor(BLOCK_LOCATIONS_COLUMN.getBytes(), cfOpts)
     );
 
     DBOptions options = new DBOptions()
@@ -219,19 +204,12 @@ public class RocksBlockStore implements BlockStore {
 
     // a list which will hold the handles for the column families once the db is opened
     List<ColumnFamilyHandle> columns = new ArrayList<>();
-    mDbPath = newDbPath(baseDir);
+    mDbPath = RocksUtils.generateDbPath(mBaseDir, BLOCKS_DB_NAME);
     mDb = RocksDB.open(options, mDbPath, cfDescriptors, columns);
     mDefaultColumn = columns.get(0);
     mBlockMetaColumn = columns.get(1);
     mBlockLocationsColumn = columns.get(2);
 
     LOG.info("Created new rocks database under path {}", mDbPath);
-  }
-
-  private static String newDbPath(String baseDir) {
-    // We use a unique subdirectory to avoid conflicts with the previous RocksDB instance when we
-    // re-create the db in initDB().
-    return PathUtils.concatPath(baseDir,
-        "blocks-" + System.currentTimeMillis() + "-" + CommonUtils.randomAlphaNumString(3));
   }
 }

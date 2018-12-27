@@ -21,9 +21,9 @@ import java.util.Optional;
  */
 public interface ReadOnlyInodeStore {
   /**
-   * @return the number of inodes in the inode store
+   * @return an estimate for the number of inodes in the inode store
    */
-  int size();
+  long estimateSize();
 
   /**
    * @param id an inode id

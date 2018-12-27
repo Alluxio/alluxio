@@ -25,11 +25,12 @@ import alluxio.master.MasterTestUtils;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.block.BlockMasterFactory;
 import alluxio.master.file.RpcContext;
-import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.file.meta.InodeDirectoryIdGenerator;
 import alluxio.master.file.meta.InodeFile;
 import alluxio.master.file.meta.InodeTree;
 import alluxio.master.file.meta.InodeTree.LockPattern;
+import alluxio.master.file.meta.InodeView;
+import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.file.meta.MountTable;
 import alluxio.master.file.meta.options.MountInfo;
 import alluxio.master.file.options.CreateFileOptions;
@@ -37,6 +38,7 @@ import alluxio.master.file.options.CreatePathOptions;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalTestUtils;
 import alluxio.master.journal.NoopJournalContext;
+import alluxio.master.metastore.InodeStore;
 import alluxio.master.metrics.MetricsMasterFactory;
 import alluxio.metrics.Metric;
 import alluxio.security.authorization.Mode;
@@ -106,6 +108,7 @@ public final class ReplicationCheckerTest {
     }
   }
 
+  private InodeStore mInodeStore;
   private InodeTree mInodeTree;
   private BlockMaster mBlockMaster;
   private ReplicationChecker mReplicationChecker;
@@ -128,7 +131,8 @@ public final class ReplicationCheckerTest {
     InodeDirectoryIdGenerator directoryIdGenerator = new InodeDirectoryIdGenerator(mBlockMaster);
     UfsManager manager = mock(UfsManager.class);
     MountTable mountTable = new MountTable(manager, mock(MountInfo.class));
-    mInodeTree = new InodeTree(context.getMetastore().getInodeStore(), mBlockMaster,
+    mInodeStore = context.getMetastore().getInodeStore();
+    mInodeTree = new InodeTree(mInodeStore, mBlockMaster,
         directoryIdGenerator, mountTable);
 
     journalSystem.start();
@@ -158,13 +162,14 @@ public final class ReplicationCheckerTest {
    */
   private long createBlockHelper(AlluxioURI path, CreatePathOptions<?> options) throws Exception {
     try (LockedInodePath inodePath = mInodeTree.lockInodePath(path, LockPattern.WRITE_EDGE)) {
-      InodeTree.CreatePathResult result =
-          mInodeTree.createPath(RpcContext.NOOP, inodePath, options);
-      InodeFile inodeFile = (InodeFile) result.getCreated().get(0);
+      List<InodeView> created = mInodeTree.createPath(RpcContext.NOOP, inodePath, options);
+
+      InodeFile inodeFile = (InodeFile) created.get(0);
       inodeFile.setBlockSizeBytes(1);
       inodeFile.setBlockIds(Arrays.asList(inodeFile.getNewBlockId()));
       inodeFile.setCompleted(true);
-      return ((InodeFile) result.getCreated().get(0)).getBlockIdByIndex(0);
+      mInodeStore.writeInode(inodeFile);
+      return ((InodeFile) created.get(0)).getBlockIdByIndex(0);
     }
   }
 

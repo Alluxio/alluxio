@@ -37,11 +37,6 @@ public class HeapInodeStore implements InodeStore {
   }
 
   @Override
-  public void setModificationTimeMs(long id, long opTimeMs) {
-    mInodes.get(id).setLastModificationTimeMs(opTimeMs);
-  }
-
-  @Override
   public void writeInode(Inode<?> inode) {
     mInodes.putIfAbsent(inode.getId(), inode);
   }
@@ -58,7 +53,7 @@ public class HeapInodeStore implements InodeStore {
   }
 
   @Override
-  public int size() {
+  public long estimateSize() {
     return mInodes.size();
   }
 

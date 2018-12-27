@@ -1,6 +1,0 @@
-syntax = "proto2";
-
-package alluxio.proto.meta;
-
-// Protocol buffers used for storing file system master metadata.
-

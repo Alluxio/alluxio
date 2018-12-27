@@ -29,12 +29,6 @@ public interface InodeStore extends ReadOnlyInodeStore {
   void remove(InodeView inode);
 
   /**
-   * @param id an inode id
-   * @param opTimeMs the last modification time to set
-   */
-  void setModificationTimeMs(long id, long opTimeMs);
-
-  /**
    * Adds the given inode, or overwrites it if it exists.
    *
    * @param inode the inode to write

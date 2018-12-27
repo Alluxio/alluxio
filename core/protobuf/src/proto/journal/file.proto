@@ -3,6 +3,7 @@ syntax = "proto2";
 package alluxio.proto.journal;
 
 import "shared/acl.proto";
+import "shared/types.proto";
 
 // Journal entry messages for the file master.
 
@@ -68,7 +69,6 @@ message DeleteMountPointEntry {
   optional string alluxio_path = 1;
 }
 
-
 // Creates a new block for a file inode.
 // next available id: 2
 message NewBlockEntry {
@@ -89,7 +89,7 @@ message UpdateInodeEntry {
   optional string group = 10;
   optional int32 mode = 11;
   optional int64 ttl = 12;
-  optional PTtlAction ttlAction = 13 [default = DELETE];
+  optional alluxio.proto.shared.PTtlAction ttlAction = 13 [default = DELETE];
   optional alluxio.proto.shared.AccessControlList acl = 14;
   optional string ufs_fingerprint = 15;
 }
@@ -133,7 +133,7 @@ message InodeDirectoryEntry {
   optional bool mount_point = 11;
   optional bool direct_children_loaded = 12;
   optional int64 ttl = 13;
-  optional PTtlAction ttlAction = 14 [default = DELETE];
+  optional alluxio.proto.shared.PTtlAction ttlAction = 14 [default = DELETE];
   optional alluxio.proto.shared.AccessControlList acl = 15;
   optional alluxio.proto.shared.AccessControlList defaultAcl = 16;
 }
@@ -142,11 +142,6 @@ message InodeDirectoryEntry {
 message InodeDirectoryIdGeneratorEntry {
   optional int64 container_id = 1;
   optional int64 sequence_number = 2;
-}
-
-enum PTtlAction {
-  DELETE = 0;
-  FREE = 1;
 }
 
 // next available id: 25
@@ -167,7 +162,7 @@ message InodeFileEntry {
   optional string owner = 14;
   optional string group = 15;
   optional int32 mode = 16;
-  optional PTtlAction ttlAction = 17 [default = DELETE];
+  optional alluxio.proto.shared.PTtlAction ttlAction = 17 [default = DELETE];
   optional string ufs_fingerprint = 18;
   optional alluxio.proto.shared.AccessControlList acl = 19;
   optional int32 replication_max = 20;
@@ -200,7 +195,7 @@ message ReinitializeFileEntry {
   optional string path = 1;
   optional int64 block_size_bytes = 2;
   optional int64 ttl = 3;
-  optional PTtlAction ttlAction = 4 [default = DELETE];
+  optional alluxio.proto.shared.PTtlAction ttlAction = 4 [default = DELETE];
 }
 
 // next available id: 6
@@ -241,7 +236,7 @@ message SetAttributeEntry {
   optional string owner = 6;
   optional string group = 7;
   optional int32 permission = 8;
-  optional PTtlAction ttlAction = 9 [default = DELETE];
+  optional alluxio.proto.shared.PTtlAction ttlAction = 9 [default = DELETE];
   optional string ufs_fingerprint = 10;
   optional int64 persistJobId = 11;
   optional string tempUfsPath = 12;

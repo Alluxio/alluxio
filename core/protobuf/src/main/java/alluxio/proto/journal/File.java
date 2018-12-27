@@ -9,88 +9,6 @@ public final class File {
       com.google.protobuf.ExtensionRegistry registry) {
   }
   /**
-   * Protobuf enum {@code alluxio.proto.journal.PTtlAction}
-   */
-  public enum PTtlAction
-      implements com.google.protobuf.ProtocolMessageEnum {
-    /**
-     * <code>DELETE = 0;</code>
-     */
-    DELETE(0, 0),
-    /**
-     * <code>FREE = 1;</code>
-     */
-    FREE(1, 1),
-    ;
-
-    /**
-     * <code>DELETE = 0;</code>
-     */
-    public static final int DELETE_VALUE = 0;
-    /**
-     * <code>FREE = 1;</code>
-     */
-    public static final int FREE_VALUE = 1;
-
-
-    public final int getNumber() { return value; }
-
-    public static PTtlAction valueOf(int value) {
-      switch (value) {
-        case 0: return DELETE;
-        case 1: return FREE;
-        default: return null;
-      }
-    }
-
-    public static com.google.protobuf.Internal.EnumLiteMap<PTtlAction>
-        internalGetValueMap() {
-      return internalValueMap;
-    }
-    private static com.google.protobuf.Internal.EnumLiteMap<PTtlAction>
-        internalValueMap =
-          new com.google.protobuf.Internal.EnumLiteMap<PTtlAction>() {
-            public PTtlAction findValueByNumber(int number) {
-              return PTtlAction.valueOf(number);
-            }
-          };
-
-    public final com.google.protobuf.Descriptors.EnumValueDescriptor
-        getValueDescriptor() {
-      return getDescriptor().getValues().get(index);
-    }
-    public final com.google.protobuf.Descriptors.EnumDescriptor
-        getDescriptorForType() {
-      return getDescriptor();
-    }
-    public static final com.google.protobuf.Descriptors.EnumDescriptor
-        getDescriptor() {
-      return alluxio.proto.journal.File.getDescriptor().getEnumTypes().get(0);
-    }
-
-    private static final PTtlAction[] VALUES = values();
-
-    public static PTtlAction valueOf(
-        com.google.protobuf.Descriptors.EnumValueDescriptor desc) {
-      if (desc.getType() != getDescriptor()) {
-        throw new java.lang.IllegalArgumentException(
-          "EnumValueDescriptor is not for this type.");
-      }
-      return VALUES[desc.getIndex()];
-    }
-
-    private final int index;
-    private final int value;
-
-    private PTtlAction(int index, int value) {
-      this.index = index;
-      this.value = value;
-    }
-
-    // @@protoc_insertion_point(enum_scope:alluxio.proto.journal.PTtlAction)
-  }
-
-  /**
    * Protobuf enum {@code alluxio.proto.journal.SetAclAction}
    */
   public enum SetAclAction
@@ -174,7 +92,7 @@ public final class File {
     }
     public static final com.google.protobuf.Descriptors.EnumDescriptor
         getDescriptor() {
-      return alluxio.proto.journal.File.getDescriptor().getEnumTypes().get(1);
+      return alluxio.proto.journal.File.getDescriptor().getEnumTypes().get(0);
     }
 
     private static final SetAclAction[] VALUES = values();
@@ -265,7 +183,7 @@ public final class File {
     }
     public static final com.google.protobuf.Descriptors.EnumDescriptor
         getDescriptor() {
-      return alluxio.proto.journal.File.getDescriptor().getEnumTypes().get(2);
+      return alluxio.proto.journal.File.getDescriptor().getEnumTypes().get(1);
     }
 
     private static final UfsMode[] VALUES = values();
@@ -6632,15 +6550,15 @@ public final class File {
      */
     long getTtl();
 
-    // optional .alluxio.proto.journal.PTtlAction ttlAction = 13 [default = DELETE];
+    // optional .alluxio.proto.shared.PTtlAction ttlAction = 13 [default = DELETE];
     /**
-     * <code>optional .alluxio.proto.journal.PTtlAction ttlAction = 13 [default = DELETE];</code>
+     * <code>optional .alluxio.proto.shared.PTtlAction ttlAction = 13 [default = DELETE];</code>
      */
     boolean hasTtlAction();
     /**
-     * <code>optional .alluxio.proto.journal.PTtlAction ttlAction = 13 [default = DELETE];</code>
+     * <code>optional .alluxio.proto.shared.PTtlAction ttlAction = 13 [default = DELETE];</code>
      */
-    alluxio.proto.journal.File.PTtlAction getTtlAction();
+    alluxio.proto.shared.Types.PTtlAction getTtlAction();
 
     // optional .alluxio.proto.shared.AccessControlList acl = 14;
     /**
@@ -6788,7 +6706,7 @@ public final class File {
             }
             case 104: {
               int rawValue = input.readEnum();
-              alluxio.proto.journal.File.PTtlAction value = alluxio.proto.journal.File.PTtlAction.valueOf(rawValue);
+              alluxio.proto.shared.Types.PTtlAction value = alluxio.proto.shared.Types.PTtlAction.valueOf(rawValue);
               if (value == null) {
                 unknownFields.mergeVarintField(13, rawValue);
               } else {
@@ -7155,19 +7073,19 @@ public final class File {
       return ttl_;
     }
 
-    // optional .alluxio.proto.journal.PTtlAction ttlAction = 13 [default = DELETE];
+    // optional .alluxio.proto.shared.PTtlAction ttlAction = 13 [default = DELETE];
     public static final int TTLACTION_FIELD_NUMBER = 13;
-    private alluxio.proto.journal.File.PTtlAction ttlAction_;
+    private alluxio.proto.shared.Types.PTtlAction ttlAction_;
     /**
-     * <code>optional .alluxio.proto.journal.PTtlAction ttlAction = 13 [default = DELETE];</code>
+     * <code>optional .alluxio.proto.shared.PTtlAction ttlAction = 13 [default = DELETE];</code>
      */
     public boolean hasTtlAction() {
       return ((bitField0_ & 0x00001000) == 0x00001000);
     }
     /**
-     * <code>optional .alluxio.proto.journal.PTtlAction ttlAction = 13 [default = DELETE];</code>
+     * <code>optional .alluxio.proto.shared.PTtlAction ttlAction = 13 [default = DELETE];</code>
      */
-    public alluxio.proto.journal.File.PTtlAction getTtlAction() {
+    public alluxio.proto.shared.Types.PTtlAction getTtlAction() {
       return ttlAction_;
     }
 
@@ -7249,7 +7167,7 @@ public final class File {
       group_ = "";
       mode_ = 0;
       ttl_ = 0L;
-      ttlAction_ = alluxio.proto.journal.File.PTtlAction.DELETE;
+      ttlAction_ = alluxio.proto.shared.Types.PTtlAction.DELETE;
       acl_ = alluxio.proto.shared.Acl.AccessControlList.getDefaultInstance();
       ufsFingerprint_ = "";
     }
@@ -7524,7 +7442,7 @@ public final class File {
         bitField0_ = (bitField0_ & ~0x00000400);
         ttl_ = 0L;
         bitField0_ = (bitField0_ & ~0x00000800);
-        ttlAction_ = alluxio.proto.journal.File.PTtlAction.DELETE;
+        ttlAction_ = alluxio.proto.shared.Types.PTtlAction.DELETE;
         bitField0_ = (bitField0_ & ~0x00001000);
         if (aclBuilder_ == null) {
           acl_ = alluxio.proto.shared.Acl.AccessControlList.getDefaultInstance();
@@ -8284,24 +8202,24 @@ public final class File {
         return this;
       }
 
-      // optional .alluxio.proto.journal.PTtlAction ttlAction = 13 [default = DELETE];
-      private alluxio.proto.journal.File.PTtlAction ttlAction_ = alluxio.proto.journal.File.PTtlAction.DELETE;
+      // optional .alluxio.proto.shared.PTtlAction ttlAction = 13 [default = DELETE];
+      private alluxio.proto.shared.Types.PTtlAction ttlAction_ = alluxio.proto.shared.Types.PTtlAction.DELETE;
       /**
-       * <code>optional .alluxio.proto.journal.PTtlAction ttlAction = 13 [default = DELETE];</code>
+       * <code>optional .alluxio.proto.shared.PTtlAction ttlAction = 13 [default = DELETE];</code>
        */
       public boolean hasTtlAction() {
         return ((bitField0_ & 0x00001000) == 0x00001000);
       }
       /**
-       * <code>optional .alluxio.proto.journal.PTtlAction ttlAction = 13 [default = DELETE];</code>
+       * <code>optional .alluxio.proto.shared.PTtlAction ttlAction = 13 [default = DELETE];</code>
        */
-      public alluxio.proto.journal.File.PTtlAction getTtlAction() {
+      public alluxio.proto.shared.Types.PTtlAction getTtlAction() {
         return ttlAction_;
       }
       /**
-       * <code>optional .alluxio.proto.journal.PTtlAction ttlAction = 13 [default = DELETE];</code>
+       * <code>optional .alluxio.proto.shared.PTtlAction ttlAction = 13 [default = DELETE];</code>
        */
-      public Builder setTtlAction(alluxio.proto.journal.File.PTtlAction value) {
+      public Builder setTtlAction(alluxio.proto.shared.Types.PTtlAction value) {
         if (value == null) {
           throw new NullPointerException();
         }
@@ -8311,11 +8229,11 @@ public final class File {
         return this;
       }
       /**
-       * <code>optional .alluxio.proto.journal.PTtlAction ttlAction = 13 [default = DELETE];</code>
+       * <code>optional .alluxio.proto.shared.PTtlAction ttlAction = 13 [default = DELETE];</code>
        */
       public Builder clearTtlAction() {
         bitField0_ = (bitField0_ & ~0x00001000);
-        ttlAction_ = alluxio.proto.journal.File.PTtlAction.DELETE;
+        ttlAction_ = alluxio.proto.shared.Types.PTtlAction.DELETE;
         onChanged();
         return this;
       }
@@ -10769,15 +10687,15 @@ public final class File {
      */
     long getTtl();
 
-    // optional .alluxio.proto.journal.PTtlAction ttlAction = 14 [default = DELETE];
+    // optional .alluxio.proto.shared.PTtlAction ttlAction = 14 [default = DELETE];
     /**
-     * <code>optional .alluxio.proto.journal.PTtlAction ttlAction = 14 [default = DELETE];</code>
+     * <code>optional .alluxio.proto.shared.PTtlAction ttlAction = 14 [default = DELETE];</code>
      */
     boolean hasTtlAction();
     /**
-     * <code>optional .alluxio.proto.journal.PTtlAction ttlAction = 14 [default = DELETE];</code>
+     * <code>optional .alluxio.proto.shared.PTtlAction ttlAction = 14 [default = DELETE];</code>
      */
-    alluxio.proto.journal.File.PTtlAction getTtlAction();
+    alluxio.proto.shared.Types.PTtlAction getTtlAction();
 
     // optional .alluxio.proto.shared.AccessControlList acl = 15;
     /**
@@ -10929,7 +10847,7 @@ public final class File {
             }
             case 112: {
               int rawValue = input.readEnum();
-              alluxio.proto.journal.File.PTtlAction value = alluxio.proto.journal.File.PTtlAction.valueOf(rawValue);
+              alluxio.proto.shared.Types.PTtlAction value = alluxio.proto.shared.Types.PTtlAction.valueOf(rawValue);
               if (value == null) {
                 unknownFields.mergeVarintField(14, rawValue);
               } else {
@@ -11320,19 +11238,19 @@ public final class File {
       return ttl_;
     }
 
-    // optional .alluxio.proto.journal.PTtlAction ttlAction = 14 [default = DELETE];
+    // optional .alluxio.proto.shared.PTtlAction ttlAction = 14 [default = DELETE];
     public static final int TTLACTION_FIELD_NUMBER = 14;
-    private alluxio.proto.journal.File.PTtlAction ttlAction_;
+    private alluxio.proto.shared.Types.PTtlAction ttlAction_;
     /**
-     * <code>optional .alluxio.proto.journal.PTtlAction ttlAction = 14 [default = DELETE];</code>
+     * <code>optional .alluxio.proto.shared.PTtlAction ttlAction = 14 [default = DELETE];</code>
      */
     public boolean hasTtlAction() {
       return ((bitField0_ & 0x00002000) == 0x00002000);
     }
     /**
-     * <code>optional .alluxio.proto.journal.PTtlAction ttlAction = 14 [default = DELETE];</code>
+     * <code>optional .alluxio.proto.shared.PTtlAction ttlAction = 14 [default = DELETE];</code>
      */
-    public alluxio.proto.journal.File.PTtlAction getTtlAction() {
+    public alluxio.proto.shared.Types.PTtlAction getTtlAction() {
       return ttlAction_;
     }
 
@@ -11394,7 +11312,7 @@ public final class File {
       mountPoint_ = false;
       directChildrenLoaded_ = false;
       ttl_ = 0L;
-      ttlAction_ = alluxio.proto.journal.File.PTtlAction.DELETE;
+      ttlAction_ = alluxio.proto.shared.Types.PTtlAction.DELETE;
       acl_ = alluxio.proto.shared.Acl.AccessControlList.getDefaultInstance();
       defaultAcl_ = alluxio.proto.shared.Acl.AccessControlList.getDefaultInstance();
     }
@@ -11679,7 +11597,7 @@ public final class File {
         bitField0_ = (bitField0_ & ~0x00000800);
         ttl_ = 0L;
         bitField0_ = (bitField0_ & ~0x00001000);
-        ttlAction_ = alluxio.proto.journal.File.PTtlAction.DELETE;
+        ttlAction_ = alluxio.proto.shared.Types.PTtlAction.DELETE;
         bitField0_ = (bitField0_ & ~0x00002000);
         if (aclBuilder_ == null) {
           acl_ = alluxio.proto.shared.Acl.AccessControlList.getDefaultInstance();
@@ -12485,24 +12403,24 @@ public final class File {
         return this;
       }
 
-      // optional .alluxio.proto.journal.PTtlAction ttlAction = 14 [default = DELETE];
-      private alluxio.proto.journal.File.PTtlAction ttlAction_ = alluxio.proto.journal.File.PTtlAction.DELETE;
+      // optional .alluxio.proto.shared.PTtlAction ttlAction = 14 [default = DELETE];
+      private alluxio.proto.shared.Types.PTtlAction ttlAction_ = alluxio.proto.shared.Types.PTtlAction.DELETE;
       /**
-       * <code>optional .alluxio.proto.journal.PTtlAction ttlAction = 14 [default = DELETE];</code>
+       * <code>optional .alluxio.proto.shared.PTtlAction ttlAction = 14 [default = DELETE];</code>
        */
       public boolean hasTtlAction() {
         return ((bitField0_ & 0x00002000) == 0x00002000);
       }
       /**
-       * <code>optional .alluxio.proto.journal.PTtlAction ttlAction = 14 [default = DELETE];</code>
+       * <code>optional .alluxio.proto.shared.PTtlAction ttlAction = 14 [default = DELETE];</code>
        */
-      public alluxio.proto.journal.File.PTtlAction getTtlAction() {
+      public alluxio.proto.shared.Types.PTtlAction getTtlAction() {
         return ttlAction_;
       }
       /**
-       * <code>optional .alluxio.proto.journal.PTtlAction ttlAction = 14 [default = DELETE];</code>
+       * <code>optional .alluxio.proto.shared.PTtlAction ttlAction = 14 [default = DELETE];</code>
        */
-      public Builder setTtlAction(alluxio.proto.journal.File.PTtlAction value) {
+      public Builder setTtlAction(alluxio.proto.shared.Types.PTtlAction value) {
         if (value == null) {
           throw new NullPointerException();
         }
@@ -12512,11 +12430,11 @@ public final class File {
         return this;
       }
       /**
-       * <code>optional .alluxio.proto.journal.PTtlAction ttlAction = 14 [default = DELETE];</code>
+       * <code>optional .alluxio.proto.shared.PTtlAction ttlAction = 14 [default = DELETE];</code>
        */
       public Builder clearTtlAction() {
         bitField0_ = (bitField0_ & ~0x00002000);
-        ttlAction_ = alluxio.proto.journal.File.PTtlAction.DELETE;
+        ttlAction_ = alluxio.proto.shared.Types.PTtlAction.DELETE;
         onChanged();
         return this;
       }
@@ -13438,15 +13356,15 @@ public final class File {
      */
     int getMode();
 
-    // optional .alluxio.proto.journal.PTtlAction ttlAction = 17 [default = DELETE];
+    // optional .alluxio.proto.shared.PTtlAction ttlAction = 17 [default = DELETE];
     /**
-     * <code>optional .alluxio.proto.journal.PTtlAction ttlAction = 17 [default = DELETE];</code>
+     * <code>optional .alluxio.proto.shared.PTtlAction ttlAction = 17 [default = DELETE];</code>
      */
     boolean hasTtlAction();
     /**
-     * <code>optional .alluxio.proto.journal.PTtlAction ttlAction = 17 [default = DELETE];</code>
+     * <code>optional .alluxio.proto.shared.PTtlAction ttlAction = 17 [default = DELETE];</code>
      */
-    alluxio.proto.journal.File.PTtlAction getTtlAction();
+    alluxio.proto.shared.Types.PTtlAction getTtlAction();
 
     // optional string ufs_fingerprint = 18;
     /**
@@ -13685,7 +13603,7 @@ public final class File {
             }
             case 136: {
               int rawValue = input.readEnum();
-              alluxio.proto.journal.File.PTtlAction value = alluxio.proto.journal.File.PTtlAction.valueOf(rawValue);
+              alluxio.proto.shared.Types.PTtlAction value = alluxio.proto.shared.Types.PTtlAction.valueOf(rawValue);
               if (value == null) {
                 unknownFields.mergeVarintField(17, rawValue);
               } else {
@@ -14151,19 +14069,19 @@ public final class File {
       return mode_;
     }
 
-    // optional .alluxio.proto.journal.PTtlAction ttlAction = 17 [default = DELETE];
+    // optional .alluxio.proto.shared.PTtlAction ttlAction = 17 [default = DELETE];
     public static final int TTLACTION_FIELD_NUMBER = 17;
-    private alluxio.proto.journal.File.PTtlAction ttlAction_;
+    private alluxio.proto.shared.Types.PTtlAction ttlAction_;
     /**
-     * <code>optional .alluxio.proto.journal.PTtlAction ttlAction = 17 [default = DELETE];</code>
+     * <code>optional .alluxio.proto.shared.PTtlAction ttlAction = 17 [default = DELETE];</code>
      */
     public boolean hasTtlAction() {
       return ((bitField0_ & 0x00008000) == 0x00008000);
     }
     /**
-     * <code>optional .alluxio.proto.journal.PTtlAction ttlAction = 17 [default = DELETE];</code>
+     * <code>optional .alluxio.proto.shared.PTtlAction ttlAction = 17 [default = DELETE];</code>
      */
-    public alluxio.proto.journal.File.PTtlAction getTtlAction() {
+    public alluxio.proto.shared.Types.PTtlAction getTtlAction() {
       return ttlAction_;
     }
 
@@ -14356,7 +14274,7 @@ public final class File {
       owner_ = "";
       group_ = "";
       mode_ = 0;
-      ttlAction_ = alluxio.proto.journal.File.PTtlAction.DELETE;
+      ttlAction_ = alluxio.proto.shared.Types.PTtlAction.DELETE;
       ufsFingerprint_ = "";
       acl_ = alluxio.proto.shared.Acl.AccessControlList.getDefaultInstance();
       replicationMax_ = 0;
@@ -14712,7 +14630,7 @@ public final class File {
         bitField0_ = (bitField0_ & ~0x00004000);
         mode_ = 0;
         bitField0_ = (bitField0_ & ~0x00008000);
-        ttlAction_ = alluxio.proto.journal.File.PTtlAction.DELETE;
+        ttlAction_ = alluxio.proto.shared.Types.PTtlAction.DELETE;
         bitField0_ = (bitField0_ & ~0x00010000);
         ufsFingerprint_ = "";
         bitField0_ = (bitField0_ & ~0x00020000);
@@ -15720,24 +15638,24 @@ public final class File {
         return this;
       }
 
-      // optional .alluxio.proto.journal.PTtlAction ttlAction = 17 [default = DELETE];
-      private alluxio.proto.journal.File.PTtlAction ttlAction_ = alluxio.proto.journal.File.PTtlAction.DELETE;
+      // optional .alluxio.proto.shared.PTtlAction ttlAction = 17 [default = DELETE];
+      private alluxio.proto.shared.Types.PTtlAction ttlAction_ = alluxio.proto.shared.Types.PTtlAction.DELETE;
       /**
-       * <code>optional .alluxio.proto.journal.PTtlAction ttlAction = 17 [default = DELETE];</code>
+       * <code>optional .alluxio.proto.shared.PTtlAction ttlAction = 17 [default = DELETE];</code>
        */
       public boolean hasTtlAction() {
         return ((bitField0_ & 0x00010000) == 0x00010000);
       }
       /**
-       * <code>optional .alluxio.proto.journal.PTtlAction ttlAction = 17 [default = DELETE];</code>
+       * <code>optional .alluxio.proto.shared.PTtlAction ttlAction = 17 [default = DELETE];</code>
        */
-      public alluxio.proto.journal.File.PTtlAction getTtlAction() {
+      public alluxio.proto.shared.Types.PTtlAction getTtlAction() {
         return ttlAction_;
       }
       /**
-       * <code>optional .alluxio.proto.journal.PTtlAction ttlAction = 17 [default = DELETE];</code>
+       * <code>optional .alluxio.proto.shared.PTtlAction ttlAction = 17 [default = DELETE];</code>
        */
-      public Builder setTtlAction(alluxio.proto.journal.File.PTtlAction value) {
+      public Builder setTtlAction(alluxio.proto.shared.Types.PTtlAction value) {
         if (value == null) {
           throw new NullPointerException();
         }
@@ -15747,11 +15665,11 @@ public final class File {
         return this;
       }
       /**
-       * <code>optional .alluxio.proto.journal.PTtlAction ttlAction = 17 [default = DELETE];</code>
+       * <code>optional .alluxio.proto.shared.PTtlAction ttlAction = 17 [default = DELETE];</code>
        */
       public Builder clearTtlAction() {
         bitField0_ = (bitField0_ & ~0x00010000);
-        ttlAction_ = alluxio.proto.journal.File.PTtlAction.DELETE;
+        ttlAction_ = alluxio.proto.shared.Types.PTtlAction.DELETE;
         onChanged();
         return this;
       }
@@ -17657,15 +17575,15 @@ public final class File {
      */
     long getTtl();
 
-    // optional .alluxio.proto.journal.PTtlAction ttlAction = 4 [default = DELETE];
+    // optional .alluxio.proto.shared.PTtlAction ttlAction = 4 [default = DELETE];
     /**
-     * <code>optional .alluxio.proto.journal.PTtlAction ttlAction = 4 [default = DELETE];</code>
+     * <code>optional .alluxio.proto.shared.PTtlAction ttlAction = 4 [default = DELETE];</code>
      */
     boolean hasTtlAction();
     /**
-     * <code>optional .alluxio.proto.journal.PTtlAction ttlAction = 4 [default = DELETE];</code>
+     * <code>optional .alluxio.proto.shared.PTtlAction ttlAction = 4 [default = DELETE];</code>
      */
-    alluxio.proto.journal.File.PTtlAction getTtlAction();
+    alluxio.proto.shared.Types.PTtlAction getTtlAction();
   }
   /**
    * Protobuf type {@code alluxio.proto.journal.ReinitializeFileEntry}
@@ -17739,7 +17657,7 @@ public final class File {
             }
             case 32: {
               int rawValue = input.readEnum();
-              alluxio.proto.journal.File.PTtlAction value = alluxio.proto.journal.File.PTtlAction.valueOf(rawValue);
+              alluxio.proto.shared.Types.PTtlAction value = alluxio.proto.shared.Types.PTtlAction.valueOf(rawValue);
               if (value == null) {
                 unknownFields.mergeVarintField(4, rawValue);
               } else {
@@ -17863,19 +17781,19 @@ public final class File {
       return ttl_;
     }
 
-    // optional .alluxio.proto.journal.PTtlAction ttlAction = 4 [default = DELETE];
+    // optional .alluxio.proto.shared.PTtlAction ttlAction = 4 [default = DELETE];
     public static final int TTLACTION_FIELD_NUMBER = 4;
-    private alluxio.proto.journal.File.PTtlAction ttlAction_;
+    private alluxio.proto.shared.Types.PTtlAction ttlAction_;
     /**
-     * <code>optional .alluxio.proto.journal.PTtlAction ttlAction = 4 [default = DELETE];</code>
+     * <code>optional .alluxio.proto.shared.PTtlAction ttlAction = 4 [default = DELETE];</code>
      */
     public boolean hasTtlAction() {
       return ((bitField0_ & 0x00000008) == 0x00000008);
     }
     /**
-     * <code>optional .alluxio.proto.journal.PTtlAction ttlAction = 4 [default = DELETE];</code>
+     * <code>optional .alluxio.proto.shared.PTtlAction ttlAction = 4 [default = DELETE];</code>
      */
-    public alluxio.proto.journal.File.PTtlAction getTtlAction() {
+    public alluxio.proto.shared.Types.PTtlAction getTtlAction() {
       return ttlAction_;
     }
 
@@ -17883,7 +17801,7 @@ public final class File {
       path_ = "";
       blockSizeBytes_ = 0L;
       ttl_ = 0L;
-      ttlAction_ = alluxio.proto.journal.File.PTtlAction.DELETE;
+      ttlAction_ = alluxio.proto.shared.Types.PTtlAction.DELETE;
     }
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
@@ -18060,7 +17978,7 @@ public final class File {
         bitField0_ = (bitField0_ & ~0x00000002);
         ttl_ = 0L;
         bitField0_ = (bitField0_ & ~0x00000004);
-        ttlAction_ = alluxio.proto.journal.File.PTtlAction.DELETE;
+        ttlAction_ = alluxio.proto.shared.Types.PTtlAction.DELETE;
         bitField0_ = (bitField0_ & ~0x00000008);
         return this;
       }
@@ -18303,24 +18221,24 @@ public final class File {
         return this;
       }
 
-      // optional .alluxio.proto.journal.PTtlAction ttlAction = 4 [default = DELETE];
-      private alluxio.proto.journal.File.PTtlAction ttlAction_ = alluxio.proto.journal.File.PTtlAction.DELETE;
+      // optional .alluxio.proto.shared.PTtlAction ttlAction = 4 [default = DELETE];
+      private alluxio.proto.shared.Types.PTtlAction ttlAction_ = alluxio.proto.shared.Types.PTtlAction.DELETE;
       /**
-       * <code>optional .alluxio.proto.journal.PTtlAction ttlAction = 4 [default = DELETE];</code>
+       * <code>optional .alluxio.proto.shared.PTtlAction ttlAction = 4 [default = DELETE];</code>
        */
       public boolean hasTtlAction() {
         return ((bitField0_ & 0x00000008) == 0x00000008);
       }
       /**
-       * <code>optional .alluxio.proto.journal.PTtlAction ttlAction = 4 [default = DELETE];</code>
+       * <code>optional .alluxio.proto.shared.PTtlAction ttlAction = 4 [default = DELETE];</code>
        */
-      public alluxio.proto.journal.File.PTtlAction getTtlAction() {
+      public alluxio.proto.shared.Types.PTtlAction getTtlAction() {
         return ttlAction_;
       }
       /**
-       * <code>optional .alluxio.proto.journal.PTtlAction ttlAction = 4 [default = DELETE];</code>
+       * <code>optional .alluxio.proto.shared.PTtlAction ttlAction = 4 [default = DELETE];</code>
        */
-      public Builder setTtlAction(alluxio.proto.journal.File.PTtlAction value) {
+      public Builder setTtlAction(alluxio.proto.shared.Types.PTtlAction value) {
         if (value == null) {
           throw new NullPointerException();
         }
@@ -18330,11 +18248,11 @@ public final class File {
         return this;
       }
       /**
-       * <code>optional .alluxio.proto.journal.PTtlAction ttlAction = 4 [default = DELETE];</code>
+       * <code>optional .alluxio.proto.shared.PTtlAction ttlAction = 4 [default = DELETE];</code>
        */
       public Builder clearTtlAction() {
         bitField0_ = (bitField0_ & ~0x00000008);
-        ttlAction_ = alluxio.proto.journal.File.PTtlAction.DELETE;
+        ttlAction_ = alluxio.proto.shared.Types.PTtlAction.DELETE;
         onChanged();
         return this;
       }
@@ -20387,15 +20305,15 @@ public final class File {
      */
     int getPermission();
 
-    // optional .alluxio.proto.journal.PTtlAction ttlAction = 9 [default = DELETE];
+    // optional .alluxio.proto.shared.PTtlAction ttlAction = 9 [default = DELETE];
     /**
-     * <code>optional .alluxio.proto.journal.PTtlAction ttlAction = 9 [default = DELETE];</code>
+     * <code>optional .alluxio.proto.shared.PTtlAction ttlAction = 9 [default = DELETE];</code>
      */
     boolean hasTtlAction();
     /**
-     * <code>optional .alluxio.proto.journal.PTtlAction ttlAction = 9 [default = DELETE];</code>
+     * <code>optional .alluxio.proto.shared.PTtlAction ttlAction = 9 [default = DELETE];</code>
      */
-    alluxio.proto.journal.File.PTtlAction getTtlAction();
+    alluxio.proto.shared.Types.PTtlAction getTtlAction();
 
     // optional string ufs_fingerprint = 10;
     /**
@@ -20554,7 +20472,7 @@ public final class File {
             }
             case 72: {
               int rawValue = input.readEnum();
-              alluxio.proto.journal.File.PTtlAction value = alluxio.proto.journal.File.PTtlAction.valueOf(rawValue);
+              alluxio.proto.shared.Types.PTtlAction value = alluxio.proto.shared.Types.PTtlAction.valueOf(rawValue);
               if (value == null) {
                 unknownFields.mergeVarintField(9, rawValue);
               } else {
@@ -20810,19 +20728,19 @@ public final class File {
       return permission_;
     }
 
-    // optional .alluxio.proto.journal.PTtlAction ttlAction = 9 [default = DELETE];
+    // optional .alluxio.proto.shared.PTtlAction ttlAction = 9 [default = DELETE];
     public static final int TTLACTION_FIELD_NUMBER = 9;
-    private alluxio.proto.journal.File.PTtlAction ttlAction_;
+    private alluxio.proto.shared.Types.PTtlAction ttlAction_;
     /**
-     * <code>optional .alluxio.proto.journal.PTtlAction ttlAction = 9 [default = DELETE];</code>
+     * <code>optional .alluxio.proto.shared.PTtlAction ttlAction = 9 [default = DELETE];</code>
      */
     public boolean hasTtlAction() {
       return ((bitField0_ & 0x00000100) == 0x00000100);
     }
     /**
-     * <code>optional .alluxio.proto.journal.PTtlAction ttlAction = 9 [default = DELETE];</code>
+     * <code>optional .alluxio.proto.shared.PTtlAction ttlAction = 9 [default = DELETE];</code>
      */
-    public alluxio.proto.journal.File.PTtlAction getTtlAction() {
+    public alluxio.proto.shared.Types.PTtlAction getTtlAction() {
       return ttlAction_;
     }
 
@@ -20969,7 +20887,7 @@ public final class File {
       owner_ = "";
       group_ = "";
       permission_ = 0;
-      ttlAction_ = alluxio.proto.journal.File.PTtlAction.DELETE;
+      ttlAction_ = alluxio.proto.shared.Types.PTtlAction.DELETE;
       ufsFingerprint_ = "";
       persistJobId_ = 0L;
       tempUfsPath_ = "";
@@ -21231,7 +21149,7 @@ public final class File {
         bitField0_ = (bitField0_ & ~0x00000040);
         permission_ = 0;
         bitField0_ = (bitField0_ & ~0x00000080);
-        ttlAction_ = alluxio.proto.journal.File.PTtlAction.DELETE;
+        ttlAction_ = alluxio.proto.shared.Types.PTtlAction.DELETE;
         bitField0_ = (bitField0_ & ~0x00000100);
         ufsFingerprint_ = "";
         bitField0_ = (bitField0_ & ~0x00000200);
@@ -21766,24 +21684,24 @@ public final class File {
         return this;
       }
 
-      // optional .alluxio.proto.journal.PTtlAction ttlAction = 9 [default = DELETE];
-      private alluxio.proto.journal.File.PTtlAction ttlAction_ = alluxio.proto.journal.File.PTtlAction.DELETE;
+      // optional .alluxio.proto.shared.PTtlAction ttlAction = 9 [default = DELETE];
+      private alluxio.proto.shared.Types.PTtlAction ttlAction_ = alluxio.proto.shared.Types.PTtlAction.DELETE;
       /**
-       * <code>optional .alluxio.proto.journal.PTtlAction ttlAction = 9 [default = DELETE];</code>
+       * <code>optional .alluxio.proto.shared.PTtlAction ttlAction = 9 [default = DELETE];</code>
        */
       public boolean hasTtlAction() {
         return ((bitField0_ & 0x00000100) == 0x00000100);
       }
       /**
-       * <code>optional .alluxio.proto.journal.PTtlAction ttlAction = 9 [default = DELETE];</code>
+       * <code>optional .alluxio.proto.shared.PTtlAction ttlAction = 9 [default = DELETE];</code>
        */
-      public alluxio.proto.journal.File.PTtlAction getTtlAction() {
+      public alluxio.proto.shared.Types.PTtlAction getTtlAction() {
         return ttlAction_;
       }
       /**
-       * <code>optional .alluxio.proto.journal.PTtlAction ttlAction = 9 [default = DELETE];</code>
+       * <code>optional .alluxio.proto.shared.PTtlAction ttlAction = 9 [default = DELETE];</code>
        */
-      public Builder setTtlAction(alluxio.proto.journal.File.PTtlAction value) {
+      public Builder setTtlAction(alluxio.proto.shared.Types.PTtlAction value) {
         if (value == null) {
           throw new NullPointerException();
         }
@@ -21793,11 +21711,11 @@ public final class File {
         return this;
       }
       /**
-       * <code>optional .alluxio.proto.journal.PTtlAction ttlAction = 9 [default = DELETE];</code>
+       * <code>optional .alluxio.proto.shared.PTtlAction ttlAction = 9 [default = DELETE];</code>
        */
       public Builder clearTtlAction() {
         bitField0_ = (bitField0_ & ~0x00000100);
-        ttlAction_ = alluxio.proto.journal.File.PTtlAction.DELETE;
+        ttlAction_ = alluxio.proto.shared.Types.PTtlAction.DELETE;
         onChanged();
         return this;
       }
@@ -22759,103 +22677,102 @@ public final class File {
   static {
     java.lang.String[] descriptorData = {
       "\n\022journal/file.proto\022\025alluxio.proto.jour" +
-      "nal\032\020shared/acl.proto\"-\n\017StringPairEntry" +
-      "\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t\"6\n\023ActiveSy" +
-      "ncTxIdEntry\022\020\n\010mount_id\030\001 \001(\003\022\r\n\005tx_id\030\002" +
-      " \001(\003\"+\n\021AddSyncPointEntry\022\026\n\016syncpoint_p" +
-      "ath\030\001 \001(\t\".\n\024RemoveSyncPointEntry\022\026\n\016syn" +
-      "cpoint_path\030\001 \001(\t\"\254\001\n\022AddMountPointEntry" +
-      "\022\024\n\014alluxio_path\030\001 \001(\t\022\020\n\010ufs_path\030\002 \001(\t" +
-      "\022\020\n\010readOnly\030\003 \001(\010\022:\n\nproperties\030\004 \003(\0132&" +
-      ".alluxio.proto.journal.StringPairEntry\022\016",
-      "\n\006shared\030\005 \001(\010\022\020\n\010mount_id\030\006 \001(\003\"+\n\030Asyn" +
-      "cPersistRequestEntry\022\017\n\007file_id\030\001 \001(\003\"o\n" +
-      "\021CompleteFileEntry\022\021\n\tblock_ids\030\001 \003(\003\022\n\n" +
-      "\002id\030\002 \001(\003\022\016\n\006length\030\003 \001(\003\022\022\n\nop_time_ms\030" +
-      "\004 \001(\003\022\027\n\017ufs_fingerprint\030\005 \001(\t\"Y\n\017Delete" +
-      "FileEntry\022\n\n\002id\030\001 \001(\003\022\021\n\trecursive\030\002 \001(\010" +
-      "\022\022\n\nop_time_ms\030\003 \001(\003\022\023\n\013alluxioOnly\030\004 \001(" +
-      "\010\"-\n\025DeleteMountPointEntry\022\024\n\014alluxio_pa" +
-      "th\030\001 \001(\t\"\033\n\rNewBlockEntry\022\n\n\002id\030\001 \001(\003\"\222\003" +
-      "\n\020UpdateInodeEntry\022\n\n\002id\030\001 \001(\003\022\021\n\tparent",
-      "_id\030\002 \001(\003\022\014\n\004name\030\003 \001(\t\022\031\n\021persistence_s" +
-      "tate\030\004 \001(\t\022\016\n\006pinned\030\005 \001(\010\022\030\n\020creation_t" +
-      "ime_ms\030\006 \001(\003\022!\n\031last_modification_time_m" +
-      "s\030\007 \001(\003\022#\n\033overwrite_modification_time\030\010" +
-      " \001(\010\022\r\n\005owner\030\t \001(\t\022\r\n\005group\030\n \001(\t\022\014\n\004mo" +
-      "de\030\013 \001(\005\022\013\n\003ttl\030\014 \001(\003\022<\n\tttlAction\030\r \001(\016" +
-      "2!.alluxio.proto.journal.PTtlAction:\006DEL" +
-      "ETE\0224\n\003acl\030\016 \001(\0132\'.alluxio.proto.shared." +
-      "AccessControlList\022\027\n\017ufs_fingerprint\030\017 \001" +
-      "(\t\"\231\001\n\031UpdateInodeDirectoryEntry\022\n\n\002id\030\001",
-      " \001(\003\022\023\n\013mount_point\030\002 \001(\010\022\036\n\026direct_chil" +
-      "dren_loaded\030\003 \001(\010\022;\n\ndefaultAcl\030\004 \001(\0132\'." +
-      "alluxio.proto.shared.AccessControlList\"\347" +
-      "\001\n\024UpdateInodeFileEntry\022\n\n\002id\030\001 \001(\003\022\030\n\020b" +
-      "lock_size_bytes\030\002 \001(\003\022\016\n\006length\030\003 \001(\003\022\021\n" +
-      "\tcompleted\030\004 \001(\010\022\021\n\tcacheable\030\005 \001(\010\022\022\n\ns" +
-      "et_blocks\030\007 \003(\003\022\027\n\017replication_max\030\010 \001(\005" +
-      "\022\027\n\017replication_min\030\t \001(\005\022\026\n\016persist_job" +
-      "_id\030\n \001(\003\022\025\n\rtemp_ufs_path\030\013 \001(\t\"\311\003\n\023Ino" +
-      "deDirectoryEntry\022\n\n\002id\030\001 \001(\003\022\021\n\tparent_i",
-      "d\030\002 \001(\003\022\014\n\004name\030\003 \001(\t\022\031\n\021persistence_sta" +
-      "te\030\004 \001(\t\022\016\n\006pinned\030\005 \001(\010\022\030\n\020creation_tim" +
-      "e_ms\030\006 \001(\003\022!\n\031last_modification_time_ms\030" +
-      "\007 \001(\003\022\r\n\005owner\030\010 \001(\t\022\r\n\005group\030\t \001(\t\022\014\n\004m" +
-      "ode\030\n \001(\005\022\023\n\013mount_point\030\013 \001(\010\022\036\n\026direct" +
-      "_children_loaded\030\014 \001(\010\022\013\n\003ttl\030\r \001(\003\022<\n\tt" +
-      "tlAction\030\016 \001(\0162!.alluxio.proto.journal.P" +
-      "TtlAction:\006DELETE\0224\n\003acl\030\017 \001(\0132\'.alluxio" +
-      ".proto.shared.AccessControlList\022;\n\ndefau" +
-      "ltAcl\030\020 \001(\0132\'.alluxio.proto.shared.Acces",
-      "sControlList\"O\n\036InodeDirectoryIdGenerato" +
-      "rEntry\022\024\n\014container_id\030\001 \001(\003\022\027\n\017sequence" +
-      "_number\030\002 \001(\003\"\311\004\n\016InodeFileEntry\022\n\n\002id\030\001" +
-      " \001(\003\022\021\n\tparent_id\030\002 \001(\003\022\014\n\004name\030\003 \001(\t\022\031\n" +
-      "\021persistence_state\030\004 \001(\t\022\016\n\006pinned\030\005 \001(\010" +
-      "\022\030\n\020creation_time_ms\030\006 \001(\003\022!\n\031last_modif" +
-      "ication_time_ms\030\007 \001(\003\022\030\n\020block_size_byte" +
-      "s\030\010 \001(\003\022\016\n\006length\030\t \001(\003\022\021\n\tcompleted\030\n \001" +
-      "(\010\022\021\n\tcacheable\030\013 \001(\010\022\016\n\006blocks\030\014 \003(\003\022\013\n" +
-      "\003ttl\030\r \001(\003\022\r\n\005owner\030\016 \001(\t\022\r\n\005group\030\017 \001(\t",
-      "\022\014\n\004mode\030\020 \001(\005\022<\n\tttlAction\030\021 \001(\0162!.allu" +
-      "xio.proto.journal.PTtlAction:\006DELETE\022\027\n\017" +
-      "ufs_fingerprint\030\022 \001(\t\0224\n\003acl\030\023 \001(\0132\'.all" +
-      "uxio.proto.shared.AccessControlList\022\027\n\017r" +
-      "eplication_max\030\024 \001(\005\022\027\n\017replication_min\030" +
-      "\025 \001(\005\022\026\n\016persist_job_id\030\026 \001(\003\022\025\n\rtemp_uf" +
-      "s_path\030\027 \001(\t\022\033\n\023replication_durable\030\030 \001(" +
-      "\005\"O\n\036InodeLastModificationTimeEntry\022\n\n\002i" +
-      "d\030\001 \001(\003\022!\n\031last_modification_time_ms\030\002 \001" +
-      "(\003\"#\n\025PersistDirectoryEntry\022\n\n\002id\030\001 \001(\003\"",
-      "B\n\020PersistFileEntry\022\n\n\002id\030\001 \001(\003\022\016\n\006lengt" +
-      "h\030\002 \001(\003\022\022\n\nop_time_ms\030\003 \001(\003\"\212\001\n\025Reinitia" +
-      "lizeFileEntry\022\014\n\004path\030\001 \001(\t\022\030\n\020block_siz" +
-      "e_bytes\030\002 \001(\003\022\013\n\003ttl\030\003 \001(\003\022<\n\tttlAction\030" +
-      "\004 \001(\0162!.alluxio.proto.journal.PTtlAction" +
-      ":\006DELETE\"h\n\013RenameEntry\022\n\n\002id\030\001 \001(\003\022\020\n\010d" +
-      "st_path\030\002 \001(\t\022\022\n\nop_time_ms\030\003 \001(\003\022\025\n\rnew" +
-      "_parent_id\030\004 \001(\003\022\020\n\010new_name\030\005 \001(\t\"\246\001\n\013S" +
-      "etAclEntry\022\n\n\002id\030\001 \001(\003\022\022\n\nop_time_ms\030\002 \001" +
-      "(\003\0223\n\006action\030\003 \001(\0162#.alluxio.proto.journ",
-      "al.SetAclAction\022/\n\007entries\030\004 \003(\0132\036.allux" +
-      "io.proto.shared.AclEntry\022\021\n\trecursive\030\005 " +
-      "\001(\010\"\311\002\n\021SetAttributeEntry\022\n\n\002id\030\001 \001(\003\022\022\n" +
-      "\nop_time_ms\030\002 \001(\003\022\016\n\006pinned\030\003 \001(\010\022\013\n\003ttl" +
-      "\030\004 \001(\003\022\021\n\tpersisted\030\005 \001(\010\022\r\n\005owner\030\006 \001(\t" +
-      "\022\r\n\005group\030\007 \001(\t\022\022\n\npermission\030\010 \001(\005\022<\n\tt" +
-      "tlAction\030\t \001(\0162!.alluxio.proto.journal.P" +
-      "TtlAction:\006DELETE\022\027\n\017ufs_fingerprint\030\n \001" +
-      "(\t\022\024\n\014persistJobId\030\013 \001(\003\022\023\n\013tempUfsPath\030" +
-      "\014 \001(\t\022\027\n\017replication_max\030\r \001(\005\022\027\n\017replic",
-      "ation_min\030\016 \001(\005\"b\n\022UpdateUfsModeEntry\022\017\n" +
-      "\007ufsPath\030\001 \001(\t\022;\n\007ufsMode\030\002 \001(\0162\036.alluxi" +
-      "o.proto.journal.UfsMode:\nREAD_WRITE*\"\n\nP" +
-      "TtlAction\022\n\n\006DELETE\020\000\022\010\n\004FREE\020\001*W\n\014SetAc" +
-      "lAction\022\013\n\007REPLACE\020\000\022\n\n\006MODIFY\020\001\022\n\n\006REMO" +
-      "VE\020\002\022\016\n\nREMOVE_ALL\020\003\022\022\n\016REMOVE_DEFAULT\020\004" +
-      "*7\n\007UfsMode\022\r\n\tNO_ACCESS\020\000\022\r\n\tREAD_ONLY\020" +
-      "\001\022\016\n\nREAD_WRITE\020\002"
+      "nal\032\020shared/acl.proto\032\022shared/types.prot" +
+      "o\"-\n\017StringPairEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005val" +
+      "ue\030\002 \001(\t\"6\n\023ActiveSyncTxIdEntry\022\020\n\010mount" +
+      "_id\030\001 \001(\003\022\r\n\005tx_id\030\002 \001(\003\"+\n\021AddSyncPoint" +
+      "Entry\022\026\n\016syncpoint_path\030\001 \001(\t\".\n\024RemoveS" +
+      "yncPointEntry\022\026\n\016syncpoint_path\030\001 \001(\t\"\254\001" +
+      "\n\022AddMountPointEntry\022\024\n\014alluxio_path\030\001 \001" +
+      "(\t\022\020\n\010ufs_path\030\002 \001(\t\022\020\n\010readOnly\030\003 \001(\010\022:" +
+      "\n\nproperties\030\004 \003(\0132&.alluxio.proto.journ",
+      "al.StringPairEntry\022\016\n\006shared\030\005 \001(\010\022\020\n\010mo" +
+      "unt_id\030\006 \001(\003\"+\n\030AsyncPersistRequestEntry" +
+      "\022\017\n\007file_id\030\001 \001(\003\"o\n\021CompleteFileEntry\022\021" +
+      "\n\tblock_ids\030\001 \003(\003\022\n\n\002id\030\002 \001(\003\022\016\n\006length\030" +
+      "\003 \001(\003\022\022\n\nop_time_ms\030\004 \001(\003\022\027\n\017ufs_fingerp" +
+      "rint\030\005 \001(\t\"Y\n\017DeleteFileEntry\022\n\n\002id\030\001 \001(" +
+      "\003\022\021\n\trecursive\030\002 \001(\010\022\022\n\nop_time_ms\030\003 \001(\003" +
+      "\022\023\n\013alluxioOnly\030\004 \001(\010\"-\n\025DeleteMountPoin" +
+      "tEntry\022\024\n\014alluxio_path\030\001 \001(\t\"\033\n\rNewBlock" +
+      "Entry\022\n\n\002id\030\001 \001(\003\"\221\003\n\020UpdateInodeEntry\022\n",
+      "\n\002id\030\001 \001(\003\022\021\n\tparent_id\030\002 \001(\003\022\014\n\004name\030\003 " +
+      "\001(\t\022\031\n\021persistence_state\030\004 \001(\t\022\016\n\006pinned" +
+      "\030\005 \001(\010\022\030\n\020creation_time_ms\030\006 \001(\003\022!\n\031last" +
+      "_modification_time_ms\030\007 \001(\003\022#\n\033overwrite" +
+      "_modification_time\030\010 \001(\010\022\r\n\005owner\030\t \001(\t\022" +
+      "\r\n\005group\030\n \001(\t\022\014\n\004mode\030\013 \001(\005\022\013\n\003ttl\030\014 \001(" +
+      "\003\022;\n\tttlAction\030\r \001(\0162 .alluxio.proto.sha" +
+      "red.PTtlAction:\006DELETE\0224\n\003acl\030\016 \001(\0132\'.al" +
+      "luxio.proto.shared.AccessControlList\022\027\n\017" +
+      "ufs_fingerprint\030\017 \001(\t\"\231\001\n\031UpdateInodeDir",
+      "ectoryEntry\022\n\n\002id\030\001 \001(\003\022\023\n\013mount_point\030\002" +
+      " \001(\010\022\036\n\026direct_children_loaded\030\003 \001(\010\022;\n\n" +
+      "defaultAcl\030\004 \001(\0132\'.alluxio.proto.shared." +
+      "AccessControlList\"\347\001\n\024UpdateInodeFileEnt" +
+      "ry\022\n\n\002id\030\001 \001(\003\022\030\n\020block_size_bytes\030\002 \001(\003" +
+      "\022\016\n\006length\030\003 \001(\003\022\021\n\tcompleted\030\004 \001(\010\022\021\n\tc" +
+      "acheable\030\005 \001(\010\022\022\n\nset_blocks\030\007 \003(\003\022\027\n\017re" +
+      "plication_max\030\010 \001(\005\022\027\n\017replication_min\030\t" +
+      " \001(\005\022\026\n\016persist_job_id\030\n \001(\003\022\025\n\rtemp_ufs" +
+      "_path\030\013 \001(\t\"\310\003\n\023InodeDirectoryEntry\022\n\n\002i",
+      "d\030\001 \001(\003\022\021\n\tparent_id\030\002 \001(\003\022\014\n\004name\030\003 \001(\t" +
+      "\022\031\n\021persistence_state\030\004 \001(\t\022\016\n\006pinned\030\005 " +
+      "\001(\010\022\030\n\020creation_time_ms\030\006 \001(\003\022!\n\031last_mo" +
+      "dification_time_ms\030\007 \001(\003\022\r\n\005owner\030\010 \001(\t\022" +
+      "\r\n\005group\030\t \001(\t\022\014\n\004mode\030\n \001(\005\022\023\n\013mount_po" +
+      "int\030\013 \001(\010\022\036\n\026direct_children_loaded\030\014 \001(" +
+      "\010\022\013\n\003ttl\030\r \001(\003\022;\n\tttlAction\030\016 \001(\0162 .allu" +
+      "xio.proto.shared.PTtlAction:\006DELETE\0224\n\003a" +
+      "cl\030\017 \001(\0132\'.alluxio.proto.shared.AccessCo" +
+      "ntrolList\022;\n\ndefaultAcl\030\020 \001(\0132\'.alluxio.",
+      "proto.shared.AccessControlList\"O\n\036InodeD" +
+      "irectoryIdGeneratorEntry\022\024\n\014container_id" +
+      "\030\001 \001(\003\022\027\n\017sequence_number\030\002 \001(\003\"\310\004\n\016Inod" +
+      "eFileEntry\022\n\n\002id\030\001 \001(\003\022\021\n\tparent_id\030\002 \001(" +
+      "\003\022\014\n\004name\030\003 \001(\t\022\031\n\021persistence_state\030\004 \001" +
+      "(\t\022\016\n\006pinned\030\005 \001(\010\022\030\n\020creation_time_ms\030\006" +
+      " \001(\003\022!\n\031last_modification_time_ms\030\007 \001(\003\022" +
+      "\030\n\020block_size_bytes\030\010 \001(\003\022\016\n\006length\030\t \001(" +
+      "\003\022\021\n\tcompleted\030\n \001(\010\022\021\n\tcacheable\030\013 \001(\010\022" +
+      "\016\n\006blocks\030\014 \003(\003\022\013\n\003ttl\030\r \001(\003\022\r\n\005owner\030\016 ",
+      "\001(\t\022\r\n\005group\030\017 \001(\t\022\014\n\004mode\030\020 \001(\005\022;\n\tttlA" +
+      "ction\030\021 \001(\0162 .alluxio.proto.shared.PTtlA" +
+      "ction:\006DELETE\022\027\n\017ufs_fingerprint\030\022 \001(\t\0224" +
+      "\n\003acl\030\023 \001(\0132\'.alluxio.proto.shared.Acces" +
+      "sControlList\022\027\n\017replication_max\030\024 \001(\005\022\027\n" +
+      "\017replication_min\030\025 \001(\005\022\026\n\016persist_job_id" +
+      "\030\026 \001(\003\022\025\n\rtemp_ufs_path\030\027 \001(\t\022\033\n\023replica" +
+      "tion_durable\030\030 \001(\005\"O\n\036InodeLastModificat" +
+      "ionTimeEntry\022\n\n\002id\030\001 \001(\003\022!\n\031last_modific" +
+      "ation_time_ms\030\002 \001(\003\"#\n\025PersistDirectoryE",
+      "ntry\022\n\n\002id\030\001 \001(\003\"B\n\020PersistFileEntry\022\n\n\002" +
+      "id\030\001 \001(\003\022\016\n\006length\030\002 \001(\003\022\022\n\nop_time_ms\030\003" +
+      " \001(\003\"\211\001\n\025ReinitializeFileEntry\022\014\n\004path\030\001" +
+      " \001(\t\022\030\n\020block_size_bytes\030\002 \001(\003\022\013\n\003ttl\030\003 " +
+      "\001(\003\022;\n\tttlAction\030\004 \001(\0162 .alluxio.proto.s" +
+      "hared.PTtlAction:\006DELETE\"h\n\013RenameEntry\022" +
+      "\n\n\002id\030\001 \001(\003\022\020\n\010dst_path\030\002 \001(\t\022\022\n\nop_time" +
+      "_ms\030\003 \001(\003\022\025\n\rnew_parent_id\030\004 \001(\003\022\020\n\010new_" +
+      "name\030\005 \001(\t\"\246\001\n\013SetAclEntry\022\n\n\002id\030\001 \001(\003\022\022" +
+      "\n\nop_time_ms\030\002 \001(\003\0223\n\006action\030\003 \001(\0162#.all",
+      "uxio.proto.journal.SetAclAction\022/\n\007entri" +
+      "es\030\004 \003(\0132\036.alluxio.proto.shared.AclEntry" +
+      "\022\021\n\trecursive\030\005 \001(\010\"\310\002\n\021SetAttributeEntr" +
+      "y\022\n\n\002id\030\001 \001(\003\022\022\n\nop_time_ms\030\002 \001(\003\022\016\n\006pin" +
+      "ned\030\003 \001(\010\022\013\n\003ttl\030\004 \001(\003\022\021\n\tpersisted\030\005 \001(" +
+      "\010\022\r\n\005owner\030\006 \001(\t\022\r\n\005group\030\007 \001(\t\022\022\n\npermi" +
+      "ssion\030\010 \001(\005\022;\n\tttlAction\030\t \001(\0162 .alluxio" +
+      ".proto.shared.PTtlAction:\006DELETE\022\027\n\017ufs_" +
+      "fingerprint\030\n \001(\t\022\024\n\014persistJobId\030\013 \001(\003\022" +
+      "\023\n\013tempUfsPath\030\014 \001(\t\022\027\n\017replication_max\030",
+      "\r \001(\005\022\027\n\017replication_min\030\016 \001(\005\"b\n\022Update" +
+      "UfsModeEntry\022\017\n\007ufsPath\030\001 \001(\t\022;\n\007ufsMode" +
+      "\030\002 \001(\0162\036.alluxio.proto.journal.UfsMode:\n" +
+      "READ_WRITE*W\n\014SetAclAction\022\013\n\007REPLACE\020\000\022" +
+      "\n\n\006MODIFY\020\001\022\n\n\006REMOVE\020\002\022\016\n\nREMOVE_ALL\020\003\022" +
+      "\022\n\016REMOVE_DEFAULT\020\004*7\n\007UfsMode\022\r\n\tNO_ACC" +
+      "ESS\020\000\022\r\n\tREAD_ONLY\020\001\022\016\n\nREAD_WRITE\020\002"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
       new com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner() {
@@ -23013,6 +22930,7 @@ public final class File {
       .internalBuildGeneratedFileFrom(descriptorData,
         new com.google.protobuf.Descriptors.FileDescriptor[] {
           alluxio.proto.shared.Acl.getDescriptor(),
+          alluxio.proto.shared.Types.getDescriptor(),
         }, assigner);
   }
 

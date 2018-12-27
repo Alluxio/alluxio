@@ -19,6 +19,8 @@ import alluxio.master.file.options.CreateFileOptions;
 import alluxio.proto.journal.File.InodeFileEntry;
 import alluxio.proto.journal.File.UpdateInodeFileEntry;
 import alluxio.proto.journal.Journal.JournalEntry;
+import alluxio.proto.meta.InodeMeta;
+import alluxio.proto.meta.InodeMeta.InodeOrBuilder;
 import alluxio.security.authorization.AccessControlList;
 import alluxio.security.authorization.DefaultAccessControlList;
 import alluxio.wire.FileInfo;
@@ -446,5 +448,49 @@ public final class InodeFile extends Inode<InodeFile> implements InodeFileView {
         .setAcl(AccessControlList.toProtoBuf(mAcl))
         .build();
     return JournalEntry.newBuilder().setInodeFile(inodeFile).build();
+  }
+
+  @Override
+  public InodeMeta.Inode toProto() {
+    return super.toProtoBuilder()
+        .setBlockSizeBytes(getBlockSizeBytes())
+        .addAllBlocks(getBlockIds())
+        .setIsCacheable(isCacheable())
+        .setIsCompleted(isCompleted())
+        .setLength(getLength())
+        .setReplicationDurable(getReplicationDurable())
+        .setReplicationMax(getReplicationMax())
+        .setReplicationMin(getReplicationMin())
+        .setPersistJobId(getPersistJobId())
+        .setPersistJobTempUfsPath(getTempUfsPath())
+        .build();
+  }
+
+  /**
+   * @param inode a protocol buffer inode
+   * @return the {@link InodeFile} for the inode
+   */
+  public static InodeFile fromProto(InodeOrBuilder inode) {
+    return new InodeFile(BlockId.getContainerId(inode.getId()))
+        .setCreationTimeMs(inode.getCreationTimeMs())
+        .setLastModificationTimeMs(inode.getLastModifiedMs(), true)
+        .setTtl(inode.getTtl())
+        .setTtlAction(ProtobufUtils.fromProtobuf(inode.getTtlAction()))
+        .setName(inode.getName())
+        .setParentId(inode.getParentId())
+        .setPersistenceState(PersistenceState.valueOf(inode.getPersistenceState()))
+        .setPinned(inode.getIsPinned())
+        .setInternalAcl(AccessControlList.fromProtoBuf(inode.getAccessAcl()))
+        .setUfsFingerprint(inode.getUfsFingerprint())
+        .setBlockSizeBytes(inode.getBlockSizeBytes())
+        .setBlockIds(inode.getBlocksList())
+        .setCacheable(inode.getIsCacheable())
+        .setCompleted(inode.getIsCompleted())
+        .setLength(inode.getLength())
+        .setReplicationDurable(inode.getReplicationDurable())
+        .setReplicationMax(inode.getReplicationMax())
+        .setReplicationMin(inode.getReplicationMin())
+        .setPersistJobId(inode.getPersistJobId())
+        .setTempUfsPath(inode.getPersistJobTempUfsPath());
   }
 }
