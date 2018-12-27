@@ -289,7 +289,7 @@ public class RocksInodeStore implements InodeStore {
       byte[] name = new byte[key.length - Longs.BYTES];
       System.arraycopy(key, 0, id, 0, Longs.BYTES);
       System.arraycopy(key, Longs.BYTES, name, 0, key.length - Longs.BYTES);
-      sb.append(String.format("<%s,%s>->%s\n", Longs.fromByteArray(id), new String(name),
+      sb.append(String.format("<%s,%s>->%s%n", Longs.fromByteArray(id), new String(name),
           Longs.fromByteArray(edgeIter.value())));
       edgeIter.next();
     }
