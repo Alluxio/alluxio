@@ -5,7 +5,6 @@ option java_package = "alluxio.proto.journal";
 
 import "journal/block.proto";
 import "journal/file.proto";
-import "journal/job.proto";
 import "journal/key_value.proto";
 import "journal/lineage.proto";
 
@@ -17,7 +16,7 @@ import "journal/lineage.proto";
 // and Spark. We use protobuf version 2.5.0 instead, which is compatible with Hadoop and Spark.
 //
 
-// next available id: 42
+// next available id: 40
 message JournalEntry {
   optional int64 sequence_number = 1;
   optional ActiveSyncTxIdEntry active_sync_tx_id = 34;
@@ -36,14 +35,13 @@ message JournalEntry {
   optional DeleteLineageEntry delete_lineage = 7;
   optional DeleteMountPointEntry delete_mount_point = 8;
   optional DeleteStoreEntry delete_store = 25;
-  optional FinishJobEntry finish_job = 39;
   optional InodeDirectoryEntry inode_directory = 9;
   optional InodeDirectoryIdGeneratorEntry inode_directory_id_generator = 10;
   optional InodeFileEntry inode_file = 11;
   optional InodeLastModificationTimeEntry inode_last_modification_time = 12;
   // This journal entry is a list of other entries. when a journal entry
   // contains other journal entries, all other optional fields must be unset.
-  repeated JournalEntry journal_entries = 40;
+  repeated JournalEntry journal_entries = 39;
   // deprecated, lineage is no longer supported
   optional LineageEntry lineage = 13;
   // deprecated, lineage is no longer supported
@@ -58,7 +56,6 @@ message JournalEntry {
   optional RenameStoreEntry rename_store = 28;
   optional SetAclEntry set_acl = 31;
   optional SetAttributeEntry set_attribute = 27;
-  optional StartJobEntry start_job = 41;
   optional UpdateUfsModeEntry update_ufs_mode = 30;
   optional UpdateInodeEntry update_inode = 35;
   optional UpdateInodeDirectoryEntry update_inode_directory = 36;
