@@ -28,6 +28,10 @@ interface IPropsFromDispatch {
   fetchRequest: typeof fetchRequest;
 }
 
+interface IBrowseProps {
+  refreshValue: boolean;
+}
+
 interface IBrowseState {
   end?: string;
   limit?: string;
@@ -42,7 +46,7 @@ interface IBrowseState {
   textAreaHeight?: number;
 }
 
-type AllProps = IPropsFromState & IPropsFromDispatch;
+type AllProps = IPropsFromState & IPropsFromDispatch & IBrowseProps;
 
 class Browse extends React.Component<AllProps, IBrowseState> {
   private readonly textAreaResizeMs = 100;
@@ -53,6 +57,14 @@ class Browse extends React.Component<AllProps, IBrowseState> {
 
     const {path, offset, limit, end} = parseQuerystring(this.props.location.search);
     this.state = {end, limit, offset, path: path || '/', lastFetched: {}};
+  }
+
+  public componentWillReceiveProps(props: AllProps) {
+    const {refreshValue} = this.props;
+    if (props.refreshValue !== refreshValue) {
+      const {path, offset, limit, end} = this.state;
+      this.fetchData(path, offset, limit, end);
+    }
   }
 
   public componentDidUpdate(prevProps: AllProps) {

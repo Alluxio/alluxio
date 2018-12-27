@@ -21,9 +21,20 @@ interface IPropsFromDispatch {
   fetchRequest: typeof fetchRequest;
 }
 
-type AllProps = IPropsFromState & IPropsFromDispatch;
+interface IWorkersProps {
+  refreshValue: boolean;
+}
+
+type AllProps = IPropsFromState & IPropsFromDispatch & IWorkersProps;
 
 class Workers extends React.Component<AllProps> {
+  public componentWillReceiveProps(props: AllProps) {
+    const {refreshValue} = this.props;
+    if (props.refreshValue !== refreshValue) {
+      this.props.fetchRequest();
+    }
+  }
+
   public componentWillMount() {
     this.props.fetchRequest();
   }

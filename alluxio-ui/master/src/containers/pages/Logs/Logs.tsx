@@ -26,6 +26,10 @@ interface IPropsFromDispatch {
   fetchRequest: typeof fetchRequest;
 }
 
+interface ILogsProps {
+  refreshValue: boolean;
+}
+
 interface ILogsState {
   end?: string;
   limit?: string;
@@ -40,7 +44,7 @@ interface ILogsState {
   textAreaHeight?: number;
 }
 
-type AllProps = IPropsFromState & IPropsFromDispatch;
+type AllProps = IPropsFromState & IPropsFromDispatch & ILogsProps;
 
 class Logs extends React.Component<AllProps, ILogsState> {
   private readonly textAreaResizeMs = 100;
@@ -51,6 +55,14 @@ class Logs extends React.Component<AllProps, ILogsState> {
 
     const {path, offset, limit, end} = parseQuerystring(this.props.location.search);
     this.state = {end, limit, offset, path, lastFetched: {}};
+  }
+
+  public componentWillReceiveProps(props: AllProps) {
+    const {refreshValue} = this.props;
+    if (props.refreshValue !== refreshValue) {
+      const {path, offset, limit, end} = this.state;
+      this.fetchData(path, offset, limit, end);
+    }
   }
 
   public componentDidUpdate(prevProps: AllProps) {

@@ -25,6 +25,10 @@ interface IPropsFromDispatch {
   fetchRequest: typeof fetchRequest;
 }
 
+interface IDataProps {
+  refreshValue: boolean;
+}
+
 interface IDataState {
   limit?: string;
   offset?: string;
@@ -34,7 +38,7 @@ interface IDataState {
   }
 }
 
-type AllProps = IPropsFromState & IPropsFromDispatch;
+type AllProps = IPropsFromState & IPropsFromDispatch & IDataProps;
 
 class Data extends React.Component<AllProps, IDataState> {
   constructor(props: AllProps) {
@@ -42,6 +46,14 @@ class Data extends React.Component<AllProps, IDataState> {
 
     const {offset, limit} = parseQuerystring(this.props.location.search);
     this.state = {offset, limit, lastFetched: {}};
+  }
+
+  public componentWillReceiveProps(props: AllProps) {
+    const {refreshValue} = this.props;
+    if (props.refreshValue !== refreshValue) {
+      const {offset, limit} = this.state;
+      this.fetchData(offset, limit);
+    }
   }
 
   public componentDidUpdate(prevProps: AllProps) {

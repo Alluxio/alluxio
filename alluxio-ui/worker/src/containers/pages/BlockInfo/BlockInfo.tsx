@@ -26,6 +26,10 @@ interface IPropsFromDispatch {
   fetchRequest: typeof fetchRequest;
 }
 
+interface IBlockInfoProps {
+  refreshValue: boolean;
+}
+
 interface IBlockInfoState {
   end?: string;
   limit?: string;
@@ -39,7 +43,7 @@ interface IBlockInfoState {
   };
 }
 
-type AllProps = IPropsFromState & IPropsFromDispatch;
+type AllProps = IPropsFromState & IPropsFromDispatch & IBlockInfoProps;
 
 class BlockInfo extends React.Component<AllProps, IBlockInfoState> {
   constructor(props: AllProps) {
@@ -47,6 +51,14 @@ class BlockInfo extends React.Component<AllProps, IBlockInfoState> {
 
     const {path, offset, limit, end} = parseQuerystring(this.props.location.search);
     this.state = {end, limit, offset, path: path || '/', lastFetched: {}};
+  }
+
+  public componentWillReceiveProps(props: AllProps) {
+    const {refreshValue} = this.props;
+    if (props.refreshValue !== refreshValue) {
+      const {path, offset, limit, end} = this.state;
+      this.fetchData(path, offset, limit, end);
+    }
   }
 
   public componentDidUpdate(prevProps: AllProps) {

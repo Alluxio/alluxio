@@ -20,9 +20,20 @@ interface IPropsFromDispatch {
   fetchRequest: typeof fetchRequest;
 }
 
-type AllProps = IPropsFromState & IPropsFromDispatch;
+interface IMetricsProps {
+  refreshValue: boolean;
+}
+
+type AllProps = IPropsFromState & IPropsFromDispatch & IMetricsProps;
 
 class Metrics extends React.Component<AllProps> {
+  public componentWillReceiveProps(props: AllProps) {
+    const {refreshValue} = this.props;
+    if (props.refreshValue !== refreshValue) {
+      this.props.fetchRequest();
+    }
+  }
+
   public componentWillMount() {
     this.props.fetchRequest();
   }

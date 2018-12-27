@@ -12,11 +12,6 @@ import {IApplicationState} from '../../store';
 
 import './App.css';
 
-// tslint:disable:no-empty-interface // TODO: remove this line
-
-interface IPropsFromState {
-}
-
 interface IPropsFromDispatch {
   [key: string]: any;
 }
@@ -27,17 +22,30 @@ interface IAppProps {
 }
 
 interface IAppState {
-  isAtTop: boolean;
+  refreshValue: boolean;
 }
 
-type AllProps = IPropsFromState & IPropsFromDispatch & IAppProps;
+type AllProps = IPropsFromDispatch & IAppProps;
 
 class App extends React.Component<AllProps, IAppState> {
+  private readonly refreshInterval = 30000;
+  private intervalHandle: any;
+
   constructor(props: AllProps) {
     super(props);
 
     this.renderError = this.renderError.bind(this);
     this.redirectToOverview = this.redirectToOverview.bind(this);
+    this.flipRefreshValue = this.flipRefreshValue.bind(this);
+    this.setAutoRefresh = this.setAutoRefresh.bind(this);
+    this.renderOverview = this.renderOverview.bind(this);
+    this.renderBlockInfo = this.renderBlockInfo.bind(this);
+    this.renderLogs = this.renderLogs.bind(this);
+    this.renderMetrics = this.renderMetrics.bind(this);
+
+    this.state = {
+      refreshValue: false
+    };
   }
 
   public render() {
@@ -48,15 +56,15 @@ class App extends React.Component<AllProps, IAppState> {
         <ConnectedRouter history={history as any}>
           <div className="App pt-5 pb-4">
             <div className="container-fluid sticky-top header-wrapper">
-              <Header history={history} data={headerNavigationData}/>
+              <Header history={history} data={headerNavigationData} autoRefreshCallback={this.setAutoRefresh}/>
             </div>
             <div className="pages container-fluid mt-3">
               <Switch>
                 <Route exact={true} path="/" render={this.redirectToOverview}/>
-                <Route path="/overview" exact={true} component={Overview}/>
-                <Route path="/blockInfo" exact={true} component={BlockInfo}/>
-                <Route path="/logs" exact={true} component={Logs}/>
-                <Route path="/metrics" exact={true} component={Metrics}/>
+                <Route path="/overview" exact={true} component={this.renderOverview}/>
+                <Route path="/blockInfo" exact={true} component={this.renderBlockInfo}/>
+                <Route path="/logs" exact={true} component={this.renderLogs}/>
+                <Route path="/metrics" exact={true} component={this.renderMetrics}/>
                 <Route render={this.renderError}/>
               </Switch>
             </div>
@@ -75,8 +83,47 @@ class App extends React.Component<AllProps, IAppState> {
     );
   }
 
+  private renderOverview(routerProps: RouteComponentProps<any, StaticContext, any>) {
+    return (
+      <Overview {...routerProps} refreshValue={this.state.refreshValue}/>
+    );
+  }
+
+  private renderBlockInfo(routerProps: RouteComponentProps<any, StaticContext, any>) {
+    return (
+      <BlockInfo {...routerProps} refreshValue={this.state.refreshValue}/>
+    );
+  }
+
+  private renderLogs(routerProps: RouteComponentProps<any, StaticContext, any>) {
+    return (
+      <Logs {...routerProps} refreshValue={this.state.refreshValue}/>
+    );
+  }
+
+  private renderMetrics(routerProps: RouteComponentProps<any, StaticContext, any>) {
+    return (
+      <Metrics {...routerProps} refreshValue={this.state.refreshValue}/>
+    );
+  }
+
   private renderError(routerProps: RouteComponentProps<any, StaticContext, any>) {
     return null;
+  }
+
+  private flipRefreshValue() {
+    this.setState({refreshValue: !this.state.refreshValue});
+  }
+
+  private setAutoRefresh(shouldAutoRefresh: boolean) {
+    if (shouldAutoRefresh && !this.intervalHandle) {
+      this.intervalHandle = setInterval(this.flipRefreshValue, this.refreshInterval);
+    } else {
+      if (this.intervalHandle) {
+        clearInterval(this.intervalHandle);
+        this.intervalHandle = null;
+      }
+    }
   }
 }
 
