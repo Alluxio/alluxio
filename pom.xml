@@ -134,7 +134,7 @@
     </repository>
     <repository>
       <id>alluxio.artifacts</id>
-      <url>s3://alluxio.artifacts/release</url>
+      <url>http://alluxio.artifacts.s3-website-us-east-1.amazonaws.com/release</url>
     </repository>
   </repositories>
 
