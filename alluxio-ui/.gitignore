@@ -1,6 +1,0 @@
-# Node
-lerna-debug.log
-node
-node_modules
-npm-debug.log*
-yarn-error.log
