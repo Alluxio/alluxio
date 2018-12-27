@@ -120,7 +120,7 @@ class Data extends React.Component<AllProps, IDataState> {
             <td>{fileInfo.mode}</td>
             <td>{fileInfo.owner}</td>
             <td>{fileInfo.group}</td>
-            <td>{fileInfo.pinned}</td>
+            <td>{fileInfo.pinned ? 'YES' : 'NO'}</td>
             <td>{fileInfo.creationTime}</td>
             <td>{fileInfo.modificationTime}</td>
           </tr>

@@ -211,7 +211,7 @@ class Browse extends React.Component<AllProps, IBrowseState> {
                 {this.renderFileNameLink(fileInfo.absolutePath, queryStringSuffix)}
               </td>
               <td>{fileInfo.size}</td>
-              <td>{fileInfo.inAlluxio}</td>
+              <td>{fileInfo.inAlluxio ? 'YES' : 'NO'}</td>
               <td>{fileInfo.mode}</td>
               <td>{fileInfo.owner}</td>
               <td>{fileInfo.group}</td>

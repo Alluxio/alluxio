@@ -155,9 +155,9 @@ class Logs extends React.Component<AllProps, ILogsState> {
             </td>
             <td>{fileInfo.size}</td>
             <td>{fileInfo.blockSizeBytes}</td>
-            <td>{fileInfo.inAlluxio}</td>
+            <td>{fileInfo.inAlluxioPercentage}%</td>
             <td>{fileInfo.persistenceState}</td>
-            <td>{fileInfo.pinned}</td>
+            <td>{fileInfo.pinned ? 'YES' : 'NO'}</td>
             <td>{fileInfo.creationTime}</td>
             <td>{fileInfo.modificationTime}</td>
             <td>{fileInfo.id}</td>
