@@ -4,6 +4,7 @@ import {Link} from 'react-router-dom';
 import {Alert, Table} from 'reactstrap';
 import {Dispatch} from 'redux';
 
+import {Paginator} from '@alluxio/common-ui/src/components';
 import {IFileBlockInfo, IFileInfo} from '@alluxio/common-ui/src/constants';
 import {parseQuerystring} from '@alluxio/common-ui/src/utilities';
 import {IApplicationState} from '../../../store';
@@ -93,7 +94,7 @@ class BlockInfo extends React.Component<AllProps, IBlockInfoState> {
           <div className="row">
             <div className="col-12">
               {blockInfo.blockSizeBytes && this.renderBlockInfoView(blockInfo)}
-              {!blockInfo.blockSizeBytes && this.renderBlockInfoListing(blockInfo.fileInfos, blockInfo.orderedTierAliases, queryStringSuffix)}
+              {!blockInfo.blockSizeBytes && this.renderBlockInfoListing(blockInfo, blockInfo.orderedTierAliases, queryStringSuffix)}
             </div>
           </div>
         </div>
@@ -136,7 +137,9 @@ class BlockInfo extends React.Component<AllProps, IBlockInfoState> {
     );
   }
 
-  private renderBlockInfoListing(fileInfos: IFileInfo[], tierAliases: string[], queryStringSuffix: string) {
+  private renderBlockInfoListing(blockInfo: IBlockInfo, tierAliases: string[], queryStringSuffix: string) {
+    const fileInfos = blockInfo.fileInfos;
+    const {path, offset, limit} = this.state;
     return (
       <React.Fragment>
         <Table hover={true}>
@@ -166,6 +169,7 @@ class BlockInfo extends React.Component<AllProps, IBlockInfoState> {
           ))}
           </tbody>
         </Table>
+        <Paginator baseUrl={'/blockInfo'} path={path} total={blockInfo.ntotalFile} offset={offset} limit={limit}/>
       </React.Fragment>
     )
   }

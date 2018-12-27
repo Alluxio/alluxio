@@ -3,6 +3,7 @@ import {connect} from 'react-redux';
 import {Alert, Table} from 'reactstrap';
 import {Dispatch} from 'redux';
 
+import {Paginator} from '@alluxio/common-ui/src/components';
 import {IFileInfo} from '@alluxio/common-ui/src/constants';
 import {parseQuerystring} from '@alluxio/common-ui/src/utilities';
 import {IApplicationState} from '../../../store';
@@ -67,6 +68,7 @@ class Data extends React.Component<AllProps, IDataState> {
   }
 
   public render() {
+    const {offset, limit} = this.state;
     const {data, errors} = this.props;
 
     if (errors || data.permissionError || data.fatalError) {
@@ -80,11 +82,12 @@ class Data extends React.Component<AllProps, IDataState> {
     }
 
     return (
-      <div className="browse-page">
+      <div className="data-page">
         <div className="container-fluid">
           <div className="row">
             <div className="col-12">
               {this.renderFileListing(data.fileInfos)}
+              <Paginator baseUrl={'/data'} total={data.inAlluxioFileNum} offset={offset} limit={limit}/>
             </div>
           </div>
         </div>

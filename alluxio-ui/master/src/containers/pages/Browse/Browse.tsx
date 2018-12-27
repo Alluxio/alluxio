@@ -6,7 +6,7 @@ import {Link} from 'react-router-dom';
 import {Alert, Button, Form, FormGroup, Input, Label, Table} from 'reactstrap';
 import {Dispatch} from 'redux';
 
-import {FileView} from '@alluxio/common-ui/src/components';
+import {FileView, Paginator} from '@alluxio/common-ui/src/components';
 import {IFileBlockInfo, IFileInfo} from '@alluxio/common-ui/src/constants';
 import {createDebouncedFunction, parseQuerystring} from '@alluxio/common-ui/src/utilities';
 import {IApplicationState} from '../../../store';
@@ -115,7 +115,7 @@ class Browse extends React.Component<AllProps, IBrowseState> {
           <div className="row">
             <div className="col-12">
               {!browse.currentDirectory.isDirectory && this.renderFileView(browse, queryStringSuffix)}
-              {browse.currentDirectory.isDirectory && this.renderDirectoryListing(browse.fileInfos, queryStringSuffix)}
+              {browse.currentDirectory.isDirectory && this.renderDirectoryListing(browse, queryStringSuffix)}
             </div>
           </div>
         </div>
@@ -167,8 +167,9 @@ class Browse extends React.Component<AllProps, IBrowseState> {
     );
   }
 
-  private renderDirectoryListing(fileInfos: IFileInfo[], queryStringSuffix: string) {
-    const {path, lastFetched} = this.state;
+  private renderDirectoryListing(browse: IBrowse, queryStringSuffix: string) {
+    const {path, lastFetched, offset, limit} = this.state;
+    const fileInfos = browse.fileInfos;
     const pathInputHandler = this.createInputHandler('path', value => value).bind(this);
     return (
       <React.Fragment>
@@ -221,6 +222,7 @@ class Browse extends React.Component<AllProps, IBrowseState> {
           ))}
           </tbody>
         </Table>
+        <Paginator baseUrl={'/browse'} path={path} total={browse.ntotalFile} offset={offset} limit={limit}/>
       </React.Fragment>
     )
   }
