@@ -18,6 +18,7 @@ import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Mockito.atLeast;
+import static org.mockito.Mockito.atMost;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -235,8 +236,54 @@ public class AlluxioFuseFileSystemTest {
     t.start();
     Thread.sleep(1000);
 
-    // If the file exists but is not completed, we will wait for the file to complete
+    // If the file is not being written and is not completed,
+    // we will wait for the file to complete
     verify(mFileSystem).exists(expectedPath);
+    verify(mFileSystem, atLeast(10)).getStatus(expectedPath);
+    assertEquals(0, stat.st_size.longValue());
+
+    info.setCompleted(true);
+    info.setLength(1000);
+
+    t.join();
+
+    assertEquals(1000, stat.st_size.longValue());
+  }
+
+  @Test
+  public void getattrWhenWriting() throws Exception {
+    String path = "/foo/bar";
+    AlluxioURI expectedPath = BASE_EXPECTED_URI.join(path);
+
+    FileOutStream fos = mock(FileOutStream.class);
+    when(mFileSystem.createFile(expectedPath)).thenReturn(fos);
+
+    mFuseFs.create(path, 0, mFileInfo);
+
+    // Prepare file status
+    FileInfo info = new FileInfo();
+    info.setLength(0);
+    info.setCompleted(false);
+    URIStatus status = new URIStatus(info);
+
+    when(mFileSystem.exists(any(AlluxioURI.class))).thenReturn(true);
+    when(mFileSystem.getStatus(any(AlluxioURI.class))).thenReturn(status);
+
+    FileStat stat = new FileStat(Runtime.getSystemRuntime());
+
+    // getattr() will not be blocked when writing
+    mFuseFs.getattr(path, stat);
+    // If getattr() is blocking, it will continuously get status of the file
+    verify(mFileSystem, atMost(2)).getStatus(expectedPath);
+    assertEquals(0, stat.st_size.longValue());
+
+    mFuseFs.release(path, mFileInfo);
+
+    // getattr() will be blocked waiting for the file to be completed
+    // If release() is called (returned) but does not finished
+    Thread t = new Thread(() -> mFuseFs.getattr(path, stat));
+    t.start();
+    Thread.sleep(1000);
     verify(mFileSystem, atLeast(10)).getStatus(expectedPath);
     assertEquals(0, stat.st_size.longValue());
 
