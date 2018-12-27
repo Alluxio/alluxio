@@ -212,12 +212,12 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
   public InodeTree(InodeStore inodeStore, ContainerIdGenerable containerIdGenerator,
       InodeDirectoryIdGenerator directoryIdGenerator, MountTable mountTable) {
     mTtlBuckets = new TtlBucketList();
-    mState = new InodeTreePersistentState(inodeStore, mTtlBuckets);
+    mInodeLockManager = new InodeLockManager();
+    mState = new InodeTreePersistentState(inodeStore, mInodeLockManager, mTtlBuckets);
     mInodeStore = inodeStore;
     mContainerIdGenerator = containerIdGenerator;
     mDirectoryIdGenerator = directoryIdGenerator;
     mMountTable = mountTable;
-    mInodeLockManager = new InodeLockManager();
   }
 
   /**
@@ -665,18 +665,6 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
           syncPersistExistingDirectory(rpcContext, (InodeDirectoryView) inode);
         }
       }
-    }
-    if ((pathIndex < (pathComponents.length - 1)
-        || !mInodeStore.getChild(currentInodeDirectory, name).isPresent())
-        && options.getOperationTimeMs() > currentInodeDirectory.getLastModificationTimeMs()) {
-      // (1) There are components in parent paths that need to be created. Or
-      // (2) The last component of the path needs to be created.
-      // In these two cases, the last traversed Inode will be modified if the new timestamp is after
-      // the existing last modified time.
-      mState.applyAndJournal(rpcContext, UpdateInodeEntry.newBuilder()
-          .setId(currentInodeDirectory.getId())
-          .setLastModificationTimeMs(options.getOperationTimeMs())
-          .build());
     }
 
     // Fill in the ancestor directories that were missing.

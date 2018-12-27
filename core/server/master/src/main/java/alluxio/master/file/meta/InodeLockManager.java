@@ -20,9 +20,11 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.google.common.util.concurrent.Striped;
 
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 
 /**
@@ -44,7 +46,7 @@ public class InodeLockManager {
    * We use weak values so that when nothing holds a reference to
    * a lock, the garbage collector can remove the lock's entry from the cache.
    */
-  public final LoadingCache<Long, WeakSafeReentrantReadWriteLock> mInodeLocks =
+  private final LoadingCache<Long, WeakSafeReentrantReadWriteLock> mInodeLocks =
       CacheBuilder.<Long, WeakSafeReentrantReadWriteLock>newBuilder()
           .weakValues()
           .initialCapacity(1_000)
@@ -59,7 +61,7 @@ public class InodeLockManager {
   /**
    * Cache for supplying edge locks, similar to mInodeLocks.
    */
-  public final LoadingCache<Edge, WeakSafeReentrantReadWriteLock> mEdgeLocks =
+  private final LoadingCache<Edge, WeakSafeReentrantReadWriteLock> mEdgeLocks =
       CacheBuilder.<Long, WeakSafeReentrantReadWriteLock>newBuilder()
           .weakValues()
           .initialCapacity(1_000)
@@ -70,6 +72,17 @@ public class InodeLockManager {
               return new WeakSafeReentrantReadWriteLock();
             }
           });
+
+  /**
+   * Locks for guarding changes to last modified time on read-locked inodes.
+   *
+   * When renaming, creating, or deleting, we update the last modified time of the parent inode
+   * while holding only a read lock. In the presence of concurrent operations, this could cause the
+   * last modified time to decrease, which is not allowed. To avoid this, we guard the update to
+   * last modified time using one of these locks, striped by inode id. A thread should never acquire
+   * more than one of these locks at the same time.
+   */
+  private final Striped<Lock> mLastModifiedLocks = Striped.lock(1_000);
 
   /**
    * Cache for supplying inode persistence locks. Before a thread can persist an inode, it must
@@ -143,6 +156,16 @@ public class InodeLockManager {
       return Optional.of(() -> lock.set(false));
     }
     return Optional.empty();
+  }
+
+  /**
+   * Acquires the lock for modifying an inodes last modified time.
+   *
+   * @param inodeId the id of the inode to lock
+   * @return a lock resource which must be closed to release the lock
+   */
+  public LockResource lockLastModified(long inodeId) {
+    return new LockResource(mLastModifiedLocks.get(inodeId));
   }
 
   private LockResource lock(ReadWriteLock lock, LockMode mode) {

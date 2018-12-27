@@ -291,12 +291,6 @@ public final class InodeTreeTest {
     assertEquals("file", created.get(0).getName());
   }
 
-  private InodeView getInode(AlluxioURI inode) throws Exception {
-    try (LockedInodePath path = mTree.lockFullInodePath(inode, LockPattern.READ)) {
-      return path.getInode();
-    }
-  }
-
   /**
    * Tests that an exception is thrown when trying to create the root path twice.
    */
