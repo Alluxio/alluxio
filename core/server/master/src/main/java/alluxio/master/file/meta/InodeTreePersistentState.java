@@ -347,7 +347,6 @@ public class InodeTreePersistentState implements JournalEntryReplayable {
   private long apply(NewBlockEntry entry) {
     InodeFile inode = (InodeFile) mInodeStore.get(entry.getId()).get();
     long newBlockId = inode.getNewBlockId();
-    mInodeStore.setModificationTimeMs(entry.getId(), System.currentTimeMillis());
     mInodeStore.writeInode(inode);
     return newBlockId;
   }
@@ -427,7 +426,6 @@ public class InodeTreePersistentState implements JournalEntryReplayable {
     InodeDirectory dir = (InodeDirectory) inode;
 
     dir.updateFromEntry(entry);
-    mInodeStore.setModificationTimeMs(entry.getId(), System.currentTimeMillis());
     mInodeStore.writeInode(inode);
   }
 
@@ -445,7 +443,6 @@ public class InodeTreePersistentState implements JournalEntryReplayable {
     InodeFile file = (InodeFile) inode;
 
     file.updateFromEntry(entry);
-    mInodeStore.setModificationTimeMs(entry.getId(), System.currentTimeMillis());
     mInodeStore.writeInode(inode);
   }
 
