@@ -87,6 +87,9 @@ public interface MasterInquireClient {
         return ZkMasterInquireClient.getClient(conf.get(PropertyKey.ZOOKEEPER_ADDRESS),
             conf.get(PropertyKey.ZOOKEEPER_ELECTION_PATH),
             conf.get(PropertyKey.ZOOKEEPER_LEADER_PATH));
+      } else if (alluxio.util.ConfigurationUtils.getMasterRpcAddresses(conf).size() > 1) {
+        return new PollingMasterInquireClient(
+            alluxio.util.ConfigurationUtils.getMasterRpcAddresses(conf));
       } else {
         return new SingleMasterInquireClient(
             NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, conf));
@@ -98,6 +101,10 @@ public interface MasterInquireClient {
         return ZkMasterInquireClient.getClient(Configuration.get(PropertyKey.ZOOKEEPER_ADDRESS),
             Configuration.get(PropertyKey.ZOOKEEPER_JOB_ELECTION_PATH),
             Configuration.get(PropertyKey.ZOOKEEPER_JOB_LEADER_PATH));
+      } else if (alluxio.util.ConfigurationUtils.getJobMasterRpcAddresses(Configuration.global())
+          .size() > 1) {
+        return new PollingMasterInquireClient(
+            alluxio.util.ConfigurationUtils.getJobMasterRpcAddresses(Configuration.global()));
       } else {
         return new SingleMasterInquireClient(
             NetworkAddressUtils.getConnectAddress(ServiceType.JOB_MASTER_RPC));

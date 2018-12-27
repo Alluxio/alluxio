@@ -13,10 +13,12 @@ package alluxio.util;
 
 import static java.util.stream.Collectors.toList;
 
+import alluxio.AlluxioConfiguration;
 import alluxio.Configuration;
 import alluxio.ConfigurationValueOptions;
 import alluxio.PropertyKey;
 import alluxio.util.io.PathUtils;
+import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.ConfigProperty;
 import alluxio.wire.Scope;
 
@@ -27,7 +29,9 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.InetSocketAddress;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
@@ -40,6 +44,76 @@ public final class ConfigurationUtils {
   private static final Logger LOG = LoggerFactory.getLogger(ConfigurationUtils.class);
 
   private ConfigurationUtils() {} // prevent instantiation
+
+  /**
+   * Gets the RPC addresses of all masters based on the configuration.
+   *
+   * @param conf the configuration to use
+   * @return the master rpc addresses
+   */
+  public static List<InetSocketAddress> getMasterRpcAddresses(AlluxioConfiguration conf) {
+    if (conf.isSet(PropertyKey.MASTER_RPC_ADDRESSES)) {
+      return parseInetSocketAddresses(conf.getList(PropertyKey.MASTER_RPC_ADDRESSES, ","));
+    } else {
+      int rpcPort = NetworkAddressUtils.getPort(NetworkAddressUtils.ServiceType.MASTER_RPC, conf);
+      return getRpcAddresses(PropertyKey.MASTER_EMBEDDED_JOURNAL_ADDRESSES, rpcPort, conf);
+    }
+  }
+
+  /**
+   * Gets the RPC addresses of all job masters based on the configuration.
+   *
+   * @param conf the configuration to use
+   * @return the job master rpc addresses
+   */
+  public static List<InetSocketAddress> getJobMasterRpcAddresses(AlluxioConfiguration conf) {
+    int jobRpcPort = NetworkAddressUtils.getPort(NetworkAddressUtils.ServiceType.JOB_MASTER_RPC);
+    if (conf.isSet(PropertyKey.JOB_MASTER_RPC_ADDRESSES)) {
+      return parseInetSocketAddresses(
+          conf.getList(PropertyKey.JOB_MASTER_RPC_ADDRESSES, ","));
+    } else if (conf.isSet(PropertyKey.JOB_MASTER_EMBEDDED_JOURNAL_ADDRESSES)) {
+      return getRpcAddresses(PropertyKey.JOB_MASTER_EMBEDDED_JOURNAL_ADDRESSES, jobRpcPort, conf);
+    } else if (conf.isSet(PropertyKey.MASTER_RPC_ADDRESSES)) {
+      return getRpcAddresses(PropertyKey.MASTER_RPC_ADDRESSES, jobRpcPort, conf);
+    } else {
+      return getRpcAddresses(PropertyKey.MASTER_EMBEDDED_JOURNAL_ADDRESSES, jobRpcPort, conf);
+    }
+  }
+
+  /**
+   * @param addressesKey configuration key for a list of addresses
+   * @param overridePort the port to use
+   * @param conf the configuration to use
+   * @return a list of inet addresses using the hostnames from addressesKey with the port
+   *         overridePort
+   */
+  private static List<InetSocketAddress> getRpcAddresses(
+      PropertyKey addressesKey, int overridePort, AlluxioConfiguration conf) {
+    List<InetSocketAddress> addresses =
+        parseInetSocketAddresses(conf.getList(addressesKey, ","));
+    List<InetSocketAddress> newAddresses = new ArrayList<>(addresses.size());
+    for (InetSocketAddress addr : addresses) {
+      newAddresses.add(new InetSocketAddress(addr.getHostName(), overridePort));
+    }
+    return newAddresses;
+  }
+
+  /**
+   * @param addresses a list of address strings in the form "hostname:port"
+   * @return a list of InetSocketAddresses representing the given address strings
+   */
+  private static List<InetSocketAddress> parseInetSocketAddresses(List<String> addresses) {
+    List<InetSocketAddress> inetSocketAddresses =
+        new ArrayList<>(addresses.size());
+    for (String address : addresses) {
+      try {
+        inetSocketAddresses.add(NetworkAddressUtils.parseInetSocketAddress(address));
+      } catch (IOException e) {
+        throw new IllegalArgumentException("Failed to parse host:port: " + address, e);
+      }
+    }
+    return inetSocketAddresses;
+  }
 
   /**
    * Loads properties from a resource.

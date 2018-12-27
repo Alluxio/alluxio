@@ -128,6 +128,10 @@ public enum ExceptionMessage {
   JOURNAL_FLUSH_FAILURE("Failed to flush journal file ({0}): {1}"),
   UNEXPECTED_JOURNAL_ENTRY("Unexpected entry in journal: {0}"),
 
+  // Raft journal
+  FAILED_RAFT_BOOTSTRAP("Failed to bootstrap raft cluster with addresses {0}: {1}"),
+  FAILED_RAFT_CONNECT("Failed to connect to raft cluster with addresses {0}: {1}"),
+
   // file
   CANNOT_READ_DIRECTORY("Cannot read from {0} because it is a directory"),
   DELETE_FAILED_DIR_CHILDREN(
