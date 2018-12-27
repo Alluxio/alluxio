@@ -5,4 +5,3 @@ export * from './types/IConfigTriple';
 export * from './types/INodeInfo';
 export * from './types/IScopedPropertyInfo';
 export * from './types/IStorageTierInfo';
-export * from './types/ICounter';
