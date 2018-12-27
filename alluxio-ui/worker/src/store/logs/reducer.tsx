@@ -6,6 +6,14 @@ const initialState: ILogsState = {
   errors: undefined,
   loading: false,
   logs: {
+    'currentPath': '',
+    'debug': false,
+    'fatalError': '',
+    'fileData': '',
+    'fileInfos': [],
+    'invalidPathError': '',
+    'ntotalFile': 0,
+    'viewingOffset': 0
   }
 };
 

@@ -1,6 +1,14 @@
-// tslint:disable:no-empty-interface // TODO: remove this line
+import {ICounter} from '@alluxio/common-ui/src/constants';
 
 export interface IMetrics {
+  workerCapacityFreePercentage: number;
+  workerCapacityUsedPercentage: number;
+  operationMetrics: {
+    [key: string]: ICounter;
+  },
+  rpcInvocationMetrics: {
+    [key:string]: ICounter;
+  }
 }
 
 export const enum MetricsActionTypes {

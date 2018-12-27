@@ -1,8 +1,11 @@
 import React from 'react';
 import {connect} from 'react-redux';
+import {Link} from 'react-router-dom';
+import {Table} from 'reactstrap';
 import {Dispatch} from 'redux';
 
-import {LoadingMessage} from '@alluxio/common-ui/src/components';
+import {FileView, LoadingMessage} from '@alluxio/common-ui/src/components';
+import {IFileInfo} from '@alluxio/common-ui/src/constants';
 import {createDebouncedFunction, parseQuerystring} from '@alluxio/common-ui/src/utilities';
 import {IApplicationState} from '../../../store';
 import {fetchRequest} from '../../../store/logs/actions';
@@ -73,7 +76,10 @@ class Logs extends React.Component<AllProps, ILogsState> {
   }
 
   public render() {
-    const {loading} = this.props;
+    const {logs, loading} = this.props;
+    let queryStringSuffix = ['offset', 'limit', 'end'].filter((key: string) => this.state[key] !== undefined)
+      .map((key: string) => `${key}=${this.state[key]}`).join('&');
+    queryStringSuffix = queryStringSuffix ? '&' + queryStringSuffix : queryStringSuffix;
 
     if (loading) {
       return (
@@ -86,7 +92,8 @@ class Logs extends React.Component<AllProps, ILogsState> {
         <div className="container-fluid">
           <div className="row">
             <div className="col-12">
-              Logs
+              {logs.fileData && this.renderFileView(logs, queryStringSuffix)}
+              {!logs.fileData && this.renderDirectoryListing(logs.fileInfos, queryStringSuffix)}
             </div>
           </div>
         </div>
@@ -94,9 +101,95 @@ class Logs extends React.Component<AllProps, ILogsState> {
     );
   }
 
+  private renderFileView(logs: ILogs, queryStringSuffix: string) {
+    const {textAreaHeight, path, offset, end, lastFetched} = this.state;
+    const offsetInputHandler = this.createInputHandler('offset', value => value).bind(this);
+    const beginInputHandler = this.createInputHandler('end', value => undefined).bind(this);
+    const endInputHandler = this.createInputHandler('end', value => '1').bind(this);
+    return (
+        <FileView beginInputHandler={beginInputHandler} end={end} endInputHandler={endInputHandler}
+                  lastFetched={lastFetched} offset={offset} offsetInputHandler={offsetInputHandler} path={path}
+                  queryStringPrefix="/logs" queryStringSuffix={queryStringSuffix} textAreaHeight={textAreaHeight}
+                  viewData={logs}/>
+    );
+  }
+
+  private renderDirectoryListing(fileInfos: IFileInfo[], queryStringSuffix: string) {
+    return (
+      <Table hover={true}>
+        <thead>
+        <tr>
+          <th>File Name</th>
+          <th>Size</th>
+          <th>Block Size</th>
+          <th>In-Alluxio</th>
+          <th>Persistence State</th>
+          <th>Pin</th>
+          <th>Creation Time</th>
+          <th>Modification Time</th>
+          <th>[D]DepID</th>
+          <th>[D]INumber</th>
+          <th>[D]UnderfsPath</th>
+          <th>[D]File Locations</th>
+        </tr>
+        </thead>
+        <tbody>
+        {fileInfos.map((fileInfo: IFileInfo) => (
+          <tr key={fileInfo.absolutePath}>
+            <td>
+              {this.renderFileNameLink(fileInfo.absolutePath, queryStringSuffix)}
+            </td>
+            <td>{fileInfo.size}</td>
+            <td>{fileInfo.blockSizeBytes}</td>
+            <td>{fileInfo.inAlluxio}</td>
+            <td>{fileInfo.persistenceState}</td>
+            <td>{fileInfo.pinned}</td>
+            <td>{fileInfo.creationTime}</td>
+            <td>{fileInfo.modificationTime}</td>
+            <td>{fileInfo.id}</td>
+            <td>
+              {/*TODO: what goes here?*/}
+            </td>
+            <td>{fileInfo.absolutePath}</td>
+            <td>
+              {fileInfo.fileLocations.map((location: string) => (
+                <div key={location}>{location}</div>
+              ))}
+            </td>
+          </tr>
+        ))}
+        </tbody>
+      </Table>
+    )
+  }
+
+  private renderFileNameLink(filePath: string, queryStringSuffix: string) {
+    const {lastFetched} = this.state;
+    if (filePath === lastFetched.path) {
+      return (
+        filePath
+      );
+    }
+
+    return (
+      <Link to={`/logs?path=${filePath}${queryStringSuffix}`}>
+        {filePath}
+      </Link>
+    );
+  }
+
   private fetchData(path?: string, offset?: string, limit?: string, end?: string) {
     this.setState({lastFetched: {path, offset, limit, end}});
     this.props.fetchRequest(path, offset, limit, end);
+  }
+
+  private createInputHandler(stateKey: string, stateValueCallback: (value: string) => string | undefined) {
+    return (event: React.ChangeEvent<HTMLInputElement>) => {
+      const value = event.target.value;
+      const state = {};
+      state[stateKey] = stateValueCallback(value);
+      this.setState(state);
+    };
   }
 
   private updateTextAreaHeight() {

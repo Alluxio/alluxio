@@ -6,28 +6,10 @@ const initialState: IMetricsState = {
   errors: undefined,
   loading: false,
   metrics: {
-    'cacheHitLocal': '',
-    'cacheHitRemote': '',
-    'cacheMiss': '0.00',
-    'masterCapacityFreePercentage': 0,
-    'masterCapacityUsedPercentage': 0,
-    'masterUnderfsCapacityFreePercentage': 0,
-    'masterUnderfsCapacityUsedPercentage': 0,
     'operationMetrics': {},
     'rpcInvocationMetrics': {},
-    'totalBytesReadLocal': '',
-    'totalBytesReadLocalThroughput': '',
-    'totalBytesReadRemote': '',
-    'totalBytesReadRemoteThroughput': '',
-    'totalBytesReadUfs': '',
-    'totalBytesReadUfsThroughput': '',
-    'totalBytesWrittenAlluxio': '',
-    'totalBytesWrittenAlluxioThroughput': '',
-    'totalBytesWrittenUfs': '',
-    'totalBytesWrittenUfsThroughput': '',
-    'ufsOps': {},
-    'ufsReadSize': {},
-    'ufsWriteSize': {}
+    'workerCapacityFreePercentage': 0,
+    'workerCapacityUsedPercentage': 0
   }
 };
 

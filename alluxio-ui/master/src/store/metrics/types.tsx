@@ -1,4 +1,4 @@
-import {ICounter} from '../../constants';
+import {ICounter} from '@alluxio/common-ui/src/constants';
 
 export interface IMetrics {
   cacheHitLocal: string;
