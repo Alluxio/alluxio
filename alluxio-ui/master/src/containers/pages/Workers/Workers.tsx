@@ -3,7 +3,6 @@ import {connect} from 'react-redux';
 import {Alert, Progress, Table} from 'reactstrap';
 import {Dispatch} from 'redux';
 
-import {LoadingMessage} from '@alluxio/common-ui/src/components';
 import {INodeInfo} from '../../../constants';
 import {IApplicationState} from '../../../store';
 import {fetchRequest} from '../../../store/workers/actions';
@@ -38,13 +37,7 @@ class Workers extends React.Component<AllProps> {
   }
 
   public render() {
-    const {errors, loading, workers} = this.props;
-
-    if (loading) {
-      return (
-        <LoadingMessage/>
-      );
-    }
+    const {errors, workers} = this.props;
 
     if (errors) {
       return (

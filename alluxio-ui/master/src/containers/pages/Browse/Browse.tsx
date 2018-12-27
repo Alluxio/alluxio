@@ -6,7 +6,7 @@ import {Link} from 'react-router-dom';
 import {Alert, Button, Form, FormGroup, Input, Label, Table} from 'reactstrap';
 import {Dispatch} from 'redux';
 
-import {FileView, LoadingMessage} from '@alluxio/common-ui/src/components';
+import {FileView} from '@alluxio/common-ui/src/components';
 import {IFileBlockInfo, IFileInfo} from '@alluxio/common-ui/src/constants';
 import {createDebouncedFunction, parseQuerystring} from '@alluxio/common-ui/src/utilities';
 import {IApplicationState} from '../../../store';
@@ -90,16 +90,10 @@ class Browse extends React.Component<AllProps, IBrowseState> {
   }
 
   public render() {
-    const {errors, browse, loading} = this.props;
+    const {errors, browse} = this.props;
     let queryStringSuffix = ['offset', 'limit', 'end'].filter((key: string) => this.state[key] !== undefined)
       .map((key: string) => `${key}=${this.state[key]}`).join('&');
     queryStringSuffix = queryStringSuffix ? '&' + queryStringSuffix : queryStringSuffix;
-
-    if (loading) {
-      return (
-        <LoadingMessage/>
-      );
-    }
 
     if (errors || browse.accessControlException || browse.fatalError || browse.fileDoesNotExistException ||
       browse.invalidPathError || browse.invalidPathException) {

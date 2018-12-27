@@ -4,7 +4,6 @@ import {Link} from 'react-router-dom';
 import {Alert, Table} from 'reactstrap';
 import {Dispatch} from 'redux';
 
-import {LoadingMessage} from '@alluxio/common-ui/src/components';
 import {IFileBlockInfo, IFileInfo} from '@alluxio/common-ui/src/constants';
 import {parseQuerystring} from '@alluxio/common-ui/src/utilities';
 import {IApplicationState} from '../../../store';
@@ -73,16 +72,10 @@ class BlockInfo extends React.Component<AllProps, IBlockInfoState> {
   }
 
   public render() {
-    const {errors, blockInfo, loading} = this.props;
+    const {errors, blockInfo} = this.props;
     let queryStringSuffix = ['offset', 'limit', 'end'].filter((key: string) => this.state[key] !== undefined)
       .map((key: string) => `${key}=${this.state[key]}`).join('&');
     queryStringSuffix = queryStringSuffix ? '&' + queryStringSuffix : queryStringSuffix;
-
-    if (loading) {
-      return (
-        <LoadingMessage/>
-      );
-    }
 
     if (errors || blockInfo.invalidPathError || blockInfo.fatalError) {
       return (

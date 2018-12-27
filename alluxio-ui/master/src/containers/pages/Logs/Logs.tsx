@@ -4,7 +4,7 @@ import {Link} from 'react-router-dom';
 import {Alert, Table} from 'reactstrap';
 import {Dispatch} from 'redux';
 
-import {FileView, LoadingMessage} from '@alluxio/common-ui/src/components';
+import {FileView} from '@alluxio/common-ui/src/components';
 import {IFileInfo} from '@alluxio/common-ui/src/constants';
 import {createDebouncedFunction, parseQuerystring} from '@alluxio/common-ui/src/utilities';
 import {IApplicationState} from '../../../store';
@@ -86,16 +86,10 @@ class Logs extends React.Component<AllProps, ILogsState> {
   }
 
   public render() {
-    const {errors, logs, loading} = this.props;
+    const {errors, logs} = this.props;
     let queryStringSuffix = ['offset', 'limit', 'end'].filter((key: string) => this.state[key] !== undefined)
       .map((key: string) => `${key}=${this.state[key]}`).join('&');
     queryStringSuffix = queryStringSuffix ? '&' + queryStringSuffix : queryStringSuffix;
-
-    if (loading) {
-      return (
-        <LoadingMessage/>
-      );
-    }
 
     if (errors || logs.invalidPathError || logs.fatalError) {
       return (

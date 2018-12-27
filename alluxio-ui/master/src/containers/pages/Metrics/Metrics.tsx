@@ -3,7 +3,6 @@ import {connect} from 'react-redux';
 import {Alert, Progress, Table} from 'reactstrap';
 import {Dispatch} from 'redux';
 
-import {LoadingMessage} from '@alluxio/common-ui/src/components';
 import {IApplicationState} from '../../../store';
 import {fetchRequest} from '../../../store/metrics/actions';
 import {IMetrics} from '../../../store/metrics/types';
@@ -37,13 +36,7 @@ class Metrics extends React.Component<AllProps> {
   }
 
   public render() {
-    const {errors, loading, metrics} = this.props;
-
-    if (loading) {
-      return (
-        <LoadingMessage/>
-      );
-    }
+    const {errors, metrics} = this.props;
 
     if (errors) {
       return (

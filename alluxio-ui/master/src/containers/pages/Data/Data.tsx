@@ -3,7 +3,6 @@ import {connect} from 'react-redux';
 import {Alert, Table} from 'reactstrap';
 import {Dispatch} from 'redux';
 
-import {LoadingMessage} from '@alluxio/common-ui/src/components';
 import {IFileInfo} from '@alluxio/common-ui/src/constants';
 import {parseQuerystring} from '@alluxio/common-ui/src/utilities';
 import {IApplicationState} from '../../../store';
@@ -68,13 +67,7 @@ class Data extends React.Component<AllProps, IDataState> {
   }
 
   public render() {
-    const {data, errors, loading} = this.props;
-
-    if (loading) {
-      return (
-        <LoadingMessage/>
-      );
-    }
+    const {data, errors} = this.props;
 
     if (errors || data.permissionError || data.fatalError) {
       return (

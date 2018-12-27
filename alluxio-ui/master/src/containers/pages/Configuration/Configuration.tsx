@@ -3,7 +3,6 @@ import {connect} from 'react-redux';
 import {Alert, Table} from 'reactstrap';
 import {Dispatch} from 'redux';
 
-import {LoadingMessage} from '@alluxio/common-ui/src/components';
 import {IConfigTriple} from '../../../constants';
 import {IApplicationState} from '../../../store';
 import {fetchRequest} from '../../../store/config/actions';
@@ -38,13 +37,7 @@ class Configuration extends React.Component<AllProps> {
   }
 
   public render() {
-    const {errors, loading, config} = this.props;
-
-    if (loading) {
-      return (
-        <LoadingMessage/>
-      );
-    }
+    const {errors, config} = this.props;
 
     if (errors) {
       return (

@@ -3,7 +3,6 @@ import {connect} from 'react-redux';
 import {Alert, Progress, Table} from 'reactstrap';
 import {Dispatch} from 'redux';
 
-import {LoadingMessage} from '@alluxio/common-ui/src/components';
 import {bytesToString} from '@alluxio/common-ui/src/utilities';
 import {IStorageTierInfo} from '../../../constants';
 import {IApplicationState} from '../../../store';
@@ -39,13 +38,7 @@ class Overview extends React.Component<AllProps> {
   }
 
   public render() {
-    const {errors, loading, overview} = this.props;
-
-    if (loading) {
-      return (
-        <LoadingMessage/>
-      );
-    }
+    const {errors, overview} = this.props;
 
     if (errors) {
       return (
