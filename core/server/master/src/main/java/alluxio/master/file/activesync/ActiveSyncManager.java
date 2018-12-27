@@ -219,6 +219,13 @@ public class ActiveSyncManager implements JournalEntryIterable, JournalEntryRepl
     }
   }
 
+  /**
+   * Apply AddSyncPoint entry and journal the entry.
+   *
+   * @param context journal context
+   * @param entry addSyncPoint entry
+   * @return true if successfully applied and journaled
+   */
   public boolean applyAndJournal(Supplier<JournalContext> context, AddSyncPointEntry entry)
       throws ConnectionFailedException, IOException, InvalidPathException {
     long mountId = entry.getMountId();
@@ -251,7 +258,15 @@ public class ActiveSyncManager implements JournalEntryIterable, JournalEntryRepl
     return true;
   }
 
-  public boolean applyAndJournal(Supplier<JournalContext> context, RemoveSyncPointEntry entry) throws InvalidPathException {
+  /**
+   * Apply removeSyncPoint entry and journal the entry.
+   *
+   * @param context journal context
+   * @param entry removeSyncPoint entry
+   * @return true if successfully applied and journaled
+   */
+  public boolean applyAndJournal(Supplier<JournalContext> context, RemoveSyncPointEntry entry)
+      throws InvalidPathException {
     AlluxioURI uri = new AlluxioURI(entry.getSyncpointPath());
     try {
       stopSync(uri);

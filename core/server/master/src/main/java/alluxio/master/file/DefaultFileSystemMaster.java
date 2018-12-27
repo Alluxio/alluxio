@@ -3617,7 +3617,8 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
     return mSyncManager.getSyncPathList();
   }
 
-  private void startSyncAndJournal(RpcContext rpcContext, AlluxioURI uri) throws ConnectionFailedException, IOException {
+  private void startSyncAndJournal(RpcContext rpcContext, AlluxioURI uri)
+      throws ConnectionFailedException, IOException {
     try (LockResource r = new LockResource(mSyncManager.getSyncManagerLock())) {
       MountTable.Resolution resolution = mMountTable.resolve(uri);
       long mountId = resolution.getMountId();
