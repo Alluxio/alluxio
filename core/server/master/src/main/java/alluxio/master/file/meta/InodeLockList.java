@@ -90,7 +90,9 @@ public class InodeLockList implements AutoCloseable {
    */
   private void lockInodeInternal(InodeView inode, LockMode mode) {
     Preconditions.checkState(!endsInInode());
-    Preconditions.checkState(inode.getName().equals(((EdgeEntry) lastEntry()).getEdge().getName()));
+    String lastEdgeName = ((EdgeEntry) lastEntry()).getEdge().getName();
+    Preconditions.checkState(inode.getName().equals(lastEdgeName),
+        "Expected to lock inode %s but locked inode %s", lastEdgeName, inode.getName());
 
     mLockedInodes.add(inode);
     mEntries.add(new InodeEntry(mInodeLockManager.lockInode(inode, mode), inode));

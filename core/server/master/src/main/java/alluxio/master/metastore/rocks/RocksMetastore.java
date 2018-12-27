@@ -14,7 +14,6 @@ package alluxio.master.metastore.rocks;
 import alluxio.master.metastore.BlockStore;
 import alluxio.master.metastore.InodeStore;
 import alluxio.master.metastore.Metastore;
-import alluxio.master.metastore.java.HeapInodeStore;
 
 import org.rocksdb.RocksDBException;
 
@@ -30,7 +29,7 @@ public class RocksMetastore implements Metastore {
    */
   public RocksMetastore() {
     try {
-      mInodeStore = new HeapInodeStore();
+      mInodeStore = new RocksInodeStore();
       mBlockStore = new RocksBlockStore();
     } catch (RocksDBException e) {
       throw new RuntimeException(e);

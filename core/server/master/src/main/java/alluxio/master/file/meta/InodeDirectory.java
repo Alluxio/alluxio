@@ -17,6 +17,8 @@ import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.proto.journal.File.InodeDirectoryEntry;
 import alluxio.proto.journal.File.UpdateInodeDirectoryEntry;
 import alluxio.proto.journal.Journal.JournalEntry;
+import alluxio.proto.meta.InodeMeta;
+import alluxio.proto.meta.InodeMeta.InodeOrBuilder;
 import alluxio.security.authorization.AccessControlList;
 import alluxio.security.authorization.DefaultAccessControlList;
 import alluxio.wire.FileInfo;
@@ -143,7 +145,8 @@ public final class InodeDirectory extends Inode<InodeDirectory> implements Inode
 
   @Override
   public String toString() {
-    return toStringHelper().add("mountPoint", mMountPoint).toString();
+    return toStringHelper().add("mountPoint", mMountPoint)
+        .add("directChildrenLoaded", mDirectChildrenLoaded).toString();
   }
 
   /**
@@ -228,5 +231,37 @@ public final class InodeDirectory extends Inode<InodeDirectory> implements Inode
         .setDefaultAcl(AccessControlList.toProtoBuf(mDefaultAcl))
         .build();
     return JournalEntry.newBuilder().setInodeDirectory(inodeDirectory).build();
+  }
+
+  @Override
+  public InodeMeta.Inode toProto() {
+    return super.toProtoBuilder()
+        .setIsMountPoint(isMountPoint())
+        .setHasDirectChildrenLoaded(isDirectChildrenLoaded())
+        .setDefaultAcl(AccessControlList.toProtoBuf(getDefaultACL()))
+        .build();
+  }
+
+  /**
+   * @param inode a protocol buffer inode
+   * @param modificationTimeMs the lasty modification time for the inode
+   * @return the {@link InodeDirectory} representation for the inode
+   */
+  public static InodeDirectory fromProto(InodeOrBuilder inode, long modificationTimeMs) {
+    return new InodeDirectory(inode.getId())
+        .setCreationTimeMs(inode.getCreationTimeMs())
+        .setLastModificationTimeMs(modificationTimeMs, true)
+        .setTtl(inode.getTtl())
+        .setTtlAction(ProtobufUtils.fromProtobuf(inode.getTtlAction()))
+        .setName(inode.getName())
+        .setParentId(inode.getParentId())
+        .setPersistenceState(PersistenceState.valueOf(inode.getPersistenceState()))
+        .setPinned(inode.getIsPinned())
+        .setInternalAcl(AccessControlList.fromProtoBuf(inode.getAccessAcl()))
+        .setUfsFingerprint(inode.getUfsFingerprint())
+        .setMountPoint(inode.getIsMountPoint())
+        .setDirectChildrenLoaded(inode.getHasDirectChildrenLoaded())
+        .setDefaultACL((DefaultAccessControlList)
+            DefaultAccessControlList.fromProtoBuf(inode.getDefaultAcl()));
   }
 }

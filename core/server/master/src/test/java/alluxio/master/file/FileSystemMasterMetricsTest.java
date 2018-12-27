@@ -50,8 +50,8 @@ public class FileSystemMasterMetricsTest {
 
   @Test
   public void testMetricsPathsTotal() {
-    when(mFileSystemMaster.getNumberOfPaths()).thenReturn(90);
-    assertEquals(90, getGauge(MasterMetrics.PATHS_TOTAL));
+    when(mFileSystemMaster.estimateNumberOfPaths()).thenReturn(90);
+    assertEquals(90, getGauge(MasterMetrics.TOTAL_PATHS_ESTIMATE));
   }
 
   @Test

@@ -62,9 +62,6 @@ public class InodeTreePersistentState implements JournalEntryReplayable {
 
   private final InodeStore mInodeStore;
 
-  /** The root of the entire file system. */
-  private InodeDirectory mRoot = null;
-
   /**
    * A set of inode ids representing pinned inode files. These are not part of the journaled state,
    * but this class keeps the set of pinned inodes up to date whenever the inode tree is modified.
@@ -104,7 +101,7 @@ public class InodeTreePersistentState implements JournalEntryReplayable {
    * @return the root of the inode tree
    */
   public InodeDirectoryView getRoot() {
-    return mRoot;
+    return (InodeDirectoryView) mInodeStore.get(0).orElse(null);
   }
 
   /**
@@ -316,6 +313,7 @@ public class InodeTreePersistentState implements JournalEntryReplayable {
     InodeView inode = mInodeStore.get(id).get();
 
     mInodeStore.remove(inode);
+    mInodeStore.removeChild(inode.getParentId(), inode.getName());
     mInodeStore.setModificationTimeMs(inode.getParentId(), entry.getOpTimeMs());
     mPinnedInodeFileIds.remove(id);
     mReplicationLimitedFileIds.remove(id);
@@ -349,6 +347,7 @@ public class InodeTreePersistentState implements JournalEntryReplayable {
   private long apply(NewBlockEntry entry) {
     InodeFile inode = (InodeFile) mInodeStore.get(entry.getId()).get();
     long newBlockId = inode.getNewBlockId();
+    mInodeStore.setModificationTimeMs(entry.getId(), System.currentTimeMillis());
     mInodeStore.writeInode(inode);
     return newBlockId;
   }
@@ -383,6 +382,7 @@ public class InodeTreePersistentState implements JournalEntryReplayable {
       default:
         LOG.warn("Unrecognized acl action: " + entry.getAction());
     }
+    mInodeStore.setModificationTimeMs(entry.getId(), entry.getOpTimeMs());
     mInodeStore.writeInode(inode);
   }
 
@@ -416,6 +416,7 @@ public class InodeTreePersistentState implements JournalEntryReplayable {
         mPinnedInodeFileIds.remove(entry.getId());
       }
     }
+    mInodeStore.setModificationTimeMs(entry.getId(), entry.getLastModificationTimeMs());
     mInodeStore.writeInode(inode);
   }
 
@@ -426,6 +427,7 @@ public class InodeTreePersistentState implements JournalEntryReplayable {
     InodeDirectory dir = (InodeDirectory) inode;
 
     dir.updateFromEntry(entry);
+    mInodeStore.setModificationTimeMs(entry.getId(), System.currentTimeMillis());
     mInodeStore.writeInode(inode);
   }
 
@@ -443,6 +445,7 @@ public class InodeTreePersistentState implements JournalEntryReplayable {
     InodeFile file = (InodeFile) inode;
 
     file.updateFromEntry(entry);
+    mInodeStore.setModificationTimeMs(entry.getId(), System.currentTimeMillis());
     mInodeStore.writeInode(inode);
   }
 
@@ -536,12 +539,12 @@ public class InodeTreePersistentState implements JournalEntryReplayable {
       mInodeStore.clear();
       mInodeStore.writeInode(inode);
       mPinnedInodeFileIds.clear();
-      mRoot = (InodeDirectory) inode;
       return;
     }
-    // inode should be added to mExistingInodes before getting added to its parent list, because it
+    // inode should be added to the indoe store before getting added to its parent list, because it
     // becomes visible at this point.
     mInodeStore.writeInode(inode);
+    mInodeStore.setModificationTimeMs(inode.getId(), inode.getLastModificationTimeMs());
     mInodeStore.addChild(inode.getParentId(), inode);
     if (inode.isFile()) {
       InodeFile file = (InodeFile) inode;
@@ -570,6 +573,7 @@ public class InodeTreePersistentState implements JournalEntryReplayable {
     inode.setName(entry.getNewName());
     mInodeStore.addChild(newParent, inode);
     inode.setParentId(newParent);
+    mInodeStore.writeInode(inode);
     mInodeStore.setModificationTimeMs(oldParent, entry.getOpTimeMs());
     mInodeStore.setModificationTimeMs(newParent, entry.getOpTimeMs());
     return true;
@@ -590,7 +594,7 @@ public class InodeTreePersistentState implements JournalEntryReplayable {
   }
 
   private long getIdFromPath(Path path) {
-    InodeView curr = mRoot;
+    InodeView curr = getRoot();
     for (Path component : path) {
       curr = mInodeStore.getChild(curr.asDirectory(), component.toString()).get();
     }
@@ -601,7 +605,6 @@ public class InodeTreePersistentState implements JournalEntryReplayable {
    * Resets the inode tree state.
    */
   public void reset() {
-    mRoot = null;
     mInodeStore.clear();
     mReplicationLimitedFileIds.clear();
     mPinnedInodeFileIds.clear();

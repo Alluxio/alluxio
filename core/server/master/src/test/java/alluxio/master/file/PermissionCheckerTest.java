@@ -227,8 +227,8 @@ public final class PermissionCheckerTest {
       throws Exception {
     try (LockedInodePath inodePath =
         sTree.lockInodePath(new AlluxioURI(path), LockPattern.WRITE_EDGE)) {
-      InodeTree.CreatePathResult result = sTree.createPath(RpcContext.NOOP, inodePath, option);
-      ((InodeFile) result.getCreated().get(result.getCreated().size() - 1))
+      List<InodeView> result = sTree.createPath(RpcContext.NOOP, inodePath, option);
+      ((InodeFile) result.get(result.size() - 1))
           .setOwner(option.getOwner()).setGroup(option.getGroup())
           .setMode(option.getMode().toShort());
     }

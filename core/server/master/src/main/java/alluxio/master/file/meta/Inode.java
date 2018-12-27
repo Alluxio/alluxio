@@ -14,6 +14,8 @@ package alluxio.master.file.meta;
 import alluxio.Constants;
 import alluxio.master.ProtobufUtils;
 import alluxio.proto.journal.File.UpdateInodeEntry;
+import alluxio.proto.meta.InodeMeta;
+import alluxio.proto.meta.InodeMeta.InodeOrBuilder;
 import alluxio.security.authorization.AccessControlList;
 import alluxio.security.authorization.AclAction;
 import alluxio.security.authorization.AclActions;
@@ -528,5 +530,33 @@ public abstract class Inode<T> implements InodeView {
         .add("group", mAcl.getOwningGroup())
         .add("permission", mAcl.getMode())
         .add("ufsFingerprint", mUfsFingerprint);
+  }
+
+  protected InodeMeta.Inode.Builder toProtoBuilder() {
+    return InodeMeta.Inode.newBuilder()
+        .setId(getId())
+        .setCreationTimeMs(getCreationTimeMs())
+        .setIsDirectory(isDirectory())
+        .setTtl(getTtl())
+        .setTtlAction(ProtobufUtils.toProtobuf(getTtlAction()))
+        .setName(getName())
+        .setParentId(getParentId())
+        .setPersistenceState(getPersistenceState().name())
+        .setIsPinned(isPinned())
+        .setAccessAcl(AccessControlList.toProtoBuf(getACL()))
+        .setUfsFingerprint(getUfsFingerprint());
+  }
+
+  /**
+   * @param inode a protocol buffer inode
+   * @param modificationTimeMs the last modification time for the inode
+   * @return the {@link Inode} representation for the inode
+   */
+  public static Inode<?> fromProto(InodeOrBuilder inode, long modificationTimeMs) {
+    if (inode.getIsDirectory()) {
+      return InodeDirectory.fromProto(inode, modificationTimeMs);
+    } else {
+      return InodeFile.fromProto(inode, modificationTimeMs);
+    }
   }
 }

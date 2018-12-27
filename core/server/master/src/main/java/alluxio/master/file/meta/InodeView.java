@@ -12,6 +12,7 @@
 package alluxio.master.file.meta;
 
 import alluxio.master.journal.JournalEntryRepresentable;
+import alluxio.proto.meta.InodeMeta;
 import alluxio.security.authorization.AccessControlList;
 import alluxio.security.authorization.AclAction;
 import alluxio.security.authorization.AclActions;
@@ -166,4 +167,9 @@ public interface InodeView extends JournalEntryRepresentable {
    * @return the inode as an inode directory
    */
   InodeDirectoryView asDirectory();
+
+  /**
+   * @return the protocol buffer representation of the inode
+   */
+  InodeMeta.Inode toProto();
 }

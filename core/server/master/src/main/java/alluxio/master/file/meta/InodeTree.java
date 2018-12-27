@@ -593,8 +593,7 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
    * @param rpcContext the rpc context
    * @param inodePath the path
    * @param options method options
-   * @return a {@link CreatePathResult} representing the modified inodes and created inodes during
-   *         path creation
+   * @return a list of created inodes
    * @throws FileAlreadyExistsException when there is already a file at path if we want to create a
    *         directory there
    * @throws BlockInfoException when blockSizeBytes is invalid
@@ -604,7 +603,7 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
    * @throws FileDoesNotExistException if the parent of the path does not exist and the recursive
    *         option is false
    */
-  public CreatePathResult createPath(RpcContext rpcContext, LockedInodePath inodePath,
+  public List<InodeView> createPath(RpcContext rpcContext, LockedInodePath inodePath,
       CreatePathOptions<?> options) throws FileAlreadyExistsException, BlockInfoException,
       InvalidPathException, IOException, FileDoesNotExistException {
     Preconditions.checkState(inodePath.getLockPattern() == LockPattern.WRITE_EDGE);
@@ -620,7 +619,7 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
     if (inodePath.fullPathExists()) {
       if (options instanceof CreateDirectoryOptions
           && ((CreateDirectoryOptions) options).isAllowExists()) {
-        return new CreatePathResult(new ArrayList<>(), new ArrayList<>());
+        return new ArrayList<>();
       } else {
         throw new FileAlreadyExistsException(path);
       }
@@ -658,7 +657,6 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
     InodeDirectoryView currentInodeDirectory = (InodeDirectoryView) ancestorInode;
 
     List<InodeView> createdInodes = new ArrayList<>();
-    List<InodeView> modifiedInodes = new ArrayList<>();
     if (options.isPersisted()) {
       // Synchronously persist directories. These inodes are already READ locked.
       for (InodeView inode : inodePath.getInodeList()) {
@@ -679,7 +677,6 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
           .setId(currentInodeDirectory.getId())
           .setLastModificationTimeMs(options.getOperationTimeMs())
           .build());
-      modifiedInodes.add(currentInodeDirectory);
     }
 
     // Fill in the ancestor directories that were missing.
@@ -799,7 +796,7 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
 
     createdInodes.add(newInode);
     LOG.debug("createFile: File Created: {} parent: {}", newInode, currentInodeDirectory);
-    return new CreatePathResult(modifiedInodes, createdInodes);
+    return createdInodes;
   }
 
   /**
@@ -1141,43 +1138,5 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
       }
     }
     return Optional.empty();
-  }
-
-  /**
-   * Represents the results of creating a path in the inode tree. This keeps track of inodes which
-   * were modified, and inodes which were newly created during the path creation.
-   *
-   * In particular, a {@link CreatePathResult} consists of an ordered list of modified inodes and an
-   * ordered list of created inodes. Appending the latter to the former produces a list of inodes
-   * starting with the root inode and ending in the inode corresponding to the created path.
-   */
-  public static final class CreatePathResult {
-    private final List<InodeView> mModified;
-    private final List<InodeView> mCreated;
-
-    /**
-     * Constructs the results of modified and created inodes when creating a path.
-     *
-     * @param modified a list of modified inodes
-     * @param created a list of created inodes
-     */
-    CreatePathResult(List<InodeView> modified, List<InodeView> created) {
-      mModified = Preconditions.checkNotNull(modified, "modified");
-      mCreated = Preconditions.checkNotNull(created, "created");
-    }
-
-    /**
-     * @return the list of inodes modified during path creation
-     */
-    public List<InodeView> getModified() {
-      return mModified;
-    }
-
-    /**
-     * @return the list of inodes created during path creation
-     */
-    public List<InodeView> getCreated() {
-      return mCreated;
-    }
   }
 }

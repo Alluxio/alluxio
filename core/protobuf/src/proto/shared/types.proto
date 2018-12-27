@@ -1,0 +1,8 @@
+syntax = "proto2";
+
+package alluxio.proto.shared;
+
+enum PTtlAction {
+    DELETE = 0;
+    FREE = 1;
+}
