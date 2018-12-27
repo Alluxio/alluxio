@@ -8,8 +8,6 @@ import {IApplicationState} from '../../../store';
 import {fetchRequest} from '../../../store/metrics/actions';
 import {IMetrics} from '../../../store/metrics/types';
 
-import './Metrics.css';
-
 interface IPropsFromState {
   errors: string;
   loading: boolean;

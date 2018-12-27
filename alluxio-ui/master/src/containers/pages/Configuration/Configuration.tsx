@@ -9,8 +9,6 @@ import {IApplicationState} from '../../../store';
 import {fetchRequest} from '../../../store/config/actions';
 import {IConfig} from '../../../store/config/types';
 
-import './Configuration.css';
-
 interface IPropsFromState {
   errors: string;
   loading: boolean;

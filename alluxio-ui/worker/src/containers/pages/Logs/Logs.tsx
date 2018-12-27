@@ -11,8 +11,6 @@ import {IApplicationState} from '../../../store';
 import {fetchRequest} from '../../../store/logs/actions';
 import {ILogs} from '../../../store/logs/types';
 
-import './Logs.css';
-
 interface IPropsFromState {
   errors: string;
   loading: boolean;

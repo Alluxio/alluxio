@@ -11,8 +11,6 @@ import {IApplicationState} from '../../../store';
 import {fetchRequest} from '../../../store/blockInfo/actions';
 import {IBlockInfo} from '../../../store/blockInfo/types';
 
-import './BlockInfo.css';
-
 interface IPropsFromState {
   blockInfo: IBlockInfo;
   errors: string;

@@ -6,8 +6,6 @@ import {Button, ButtonGroup, Form, FormGroup, Input, Label} from 'reactstrap';
 
 import {IFileInfo} from '../../constants';
 
-import './FileView.css';
-
 interface IFileViewProps {
   allowDownload?: boolean;
   beginInputHandler: (event: React.MouseEvent<HTMLButtonElement>) => void;

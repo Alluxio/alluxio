@@ -9,8 +9,6 @@ import {IApplicationState} from '../../../store';
 import {fetchRequest} from '../../../store/overview/actions';
 import {IOverview} from '../../../store/overview/types';
 
-import './Overview.css';
-
 interface IPropsFromState {
   errors: string;
   loading: boolean;

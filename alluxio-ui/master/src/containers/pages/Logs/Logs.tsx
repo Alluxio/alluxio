@@ -11,8 +11,6 @@ import {IApplicationState} from '../../../store';
 import {fetchRequest} from '../../../store/logs/actions';
 import {ILogs} from '../../../store/logs/types';
 
-import './Logs.css';
-
 interface IPropsFromState {
   errors: string;
   loading: boolean;
@@ -156,7 +154,7 @@ class Logs extends React.Component<AllProps, ILogsState> {
         </tr>
         </thead>
         <tbody>
-        {fileInfos.map((fileInfo: IFileInfo) => (
+        {fileInfos && fileInfos.map((fileInfo: IFileInfo) => (
           <tr key={fileInfo.absolutePath}>
             <td>
               {this.renderFileNameLink(fileInfo.absolutePath, queryStringSuffix)}

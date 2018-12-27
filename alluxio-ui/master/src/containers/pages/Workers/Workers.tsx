@@ -9,8 +9,6 @@ import {IApplicationState} from '../../../store';
 import {fetchRequest} from '../../../store/workers/actions';
 import {IWorkers} from '../../../store/workers/types';
 
-import './Workers.css';
-
 interface IPropsFromState {
   errors: string;
   loading: boolean;

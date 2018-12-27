@@ -10,8 +10,6 @@ import {IApplicationState} from '../../../store';
 import {fetchRequest} from '../../../store/data/actions';
 import {IData} from '../../../store/data/types';
 
-import './Data.css';
-
 interface IPropsFromState {
   data: IData;
   errors: string;
