@@ -17,6 +17,7 @@ import alluxio.Constants;
 import alluxio.exception.status.UnauthenticatedException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.network.thrift.ThriftUtils;
+import alluxio.retry.ExponentialBackoffRetry;
 import alluxio.retry.RetryPolicy;
 import alluxio.security.authentication.TransportProvider;
 import alluxio.uri.Authority;
@@ -50,7 +51,7 @@ public class PollingMasterInquireClient implements MasterInquireClient {
    * @param masterAddresses the potential master addresses
    */
   public PollingMasterInquireClient(List<InetSocketAddress> masterAddresses) {
-    this(masterAddresses, () -> new alluxio.retry.ExponentialBackoffRetry(20, 2000, 30));
+    this(masterAddresses, () -> new ExponentialBackoffRetry(20, 2000, 30));
   }
 
   /**
