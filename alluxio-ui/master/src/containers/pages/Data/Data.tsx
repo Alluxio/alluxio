@@ -1,6 +1,6 @@
 import React from 'react';
 import {connect} from 'react-redux';
-import {Table} from 'reactstrap';
+import {Alert, Table} from 'reactstrap';
 import {Dispatch} from 'redux';
 
 import {LoadingMessage} from '@alluxio/common-ui/src/components';
@@ -58,11 +58,21 @@ class Data extends React.Component<AllProps, IDataState> {
   }
 
   public render() {
-    const {data, loading} = this.props;
+    const {data, errors, loading} = this.props;
 
     if (loading) {
       return (
         <LoadingMessage/>
+      );
+    }
+
+    if (errors || data.permissionError || data.fatalError) {
+      return (
+        <Alert color="danger">
+          {errors && <div>Unable to reach the api endpoint for this page.</div>}
+          {data.permissionError && <div>{data.permissionError}</div>}
+          {data.fatalError && <div>{data.fatalError}</div>}
+        </Alert>
       );
     }
 

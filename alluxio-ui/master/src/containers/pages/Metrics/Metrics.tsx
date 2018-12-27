@@ -1,6 +1,6 @@
 import React from 'react';
 import {connect} from 'react-redux';
-import {Progress, Table} from 'reactstrap';
+import {Alert, Progress, Table} from 'reactstrap';
 import {Dispatch} from 'redux';
 
 import {LoadingMessage} from '@alluxio/common-ui/src/components';
@@ -28,11 +28,19 @@ class Metrics extends React.Component<AllProps> {
   }
 
   public render() {
-    const {loading, metrics} = this.props;
+    const {errors, loading, metrics} = this.props;
 
     if (loading) {
       return (
         <LoadingMessage/>
+      );
+    }
+
+    if (errors) {
+      return (
+        <Alert color="danger">
+          Unable to reach the api endpoint for this page.
+        </Alert>
       );
     }
 

@@ -3,7 +3,7 @@ import {FontAwesomeIcon} from '@fortawesome/react-fontawesome'
 import React from 'react';
 import {connect} from 'react-redux';
 import {Link} from 'react-router-dom';
-import {Button, Form, FormGroup, Input, Label, Table} from 'reactstrap';
+import {Alert, Button, Form, FormGroup, Input, Label, Table} from 'reactstrap';
 import {Dispatch} from 'redux';
 
 import {FileView, LoadingMessage} from '@alluxio/common-ui/src/components';
@@ -78,7 +78,7 @@ class Browse extends React.Component<AllProps, IBrowseState> {
   }
 
   public render() {
-    const {browse, loading} = this.props;
+    const {errors, browse, loading} = this.props;
     let queryStringSuffix = ['offset', 'limit', 'end'].filter((key: string) => this.state[key] !== undefined)
       .map((key: string) => `${key}=${this.state[key]}`).join('&');
     queryStringSuffix = queryStringSuffix ? '&' + queryStringSuffix : queryStringSuffix;
@@ -86,6 +86,20 @@ class Browse extends React.Component<AllProps, IBrowseState> {
     if (loading) {
       return (
         <LoadingMessage/>
+      );
+    }
+
+    if (errors || browse.accessControlException || browse.fatalError || browse.fileDoesNotExistException ||
+      browse.invalidPathError || browse.invalidPathException) {
+      return (
+        <Alert color="danger">
+          {errors && <div>Unable to reach the api endpoint for this page.</div>}
+          {browse.accessControlException && <div>{browse.accessControlException}</div>}
+          {browse.fatalError && <div>{browse.fatalError}</div>}
+          {browse.fileDoesNotExistException && <div>{browse.fileDoesNotExistException}</div>}
+          {browse.invalidPathError && <div>{browse.invalidPathError}</div>}
+          {browse.invalidPathException && <div>{browse.invalidPathException}</div>}
+        </Alert>
       );
     }
 

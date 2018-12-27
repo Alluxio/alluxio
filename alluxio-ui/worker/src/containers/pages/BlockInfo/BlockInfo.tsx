@@ -1,7 +1,7 @@
 import React from 'react';
 import {connect} from 'react-redux';
 import {Link} from 'react-router-dom';
-import {Table} from 'reactstrap';
+import {Alert, Table} from 'reactstrap';
 import {Dispatch} from 'redux';
 
 import {LoadingMessage} from '@alluxio/common-ui/src/components';
@@ -63,7 +63,7 @@ class BlockInfo extends React.Component<AllProps, IBlockInfoState> {
   }
 
   public render() {
-    const {blockInfo, loading} = this.props;
+    const {errors, blockInfo, loading} = this.props;
     let queryStringSuffix = ['offset', 'limit', 'end'].filter((key: string) => this.state[key] !== undefined)
       .map((key: string) => `${key}=${this.state[key]}`).join('&');
     queryStringSuffix = queryStringSuffix ? '&' + queryStringSuffix : queryStringSuffix;
@@ -71,6 +71,16 @@ class BlockInfo extends React.Component<AllProps, IBlockInfoState> {
     if (loading) {
       return (
         <LoadingMessage/>
+      );
+    }
+
+    if (errors || blockInfo.invalidPathError || blockInfo.fatalError) {
+      return (
+        <Alert color="danger">
+          {errors && <div>Unable to reach the api endpoint for this page.</div>}
+          {blockInfo.invalidPathError && <div>{blockInfo.invalidPathError}</div>}
+          {blockInfo.fatalError && <div>{blockInfo.fatalError}</div>}
+        </Alert>
       );
     }
 

@@ -1,7 +1,7 @@
 import React from 'react';
 import {connect} from 'react-redux';
 import {Link} from 'react-router-dom';
-import {Table} from 'reactstrap';
+import {Alert, Table} from 'reactstrap';
 import {Dispatch} from 'redux';
 
 import {FileView, LoadingMessage} from '@alluxio/common-ui/src/components';
@@ -76,7 +76,7 @@ class Logs extends React.Component<AllProps, ILogsState> {
   }
 
   public render() {
-    const {logs, loading} = this.props;
+    const {errors, logs, loading} = this.props;
     let queryStringSuffix = ['offset', 'limit', 'end'].filter((key: string) => this.state[key] !== undefined)
       .map((key: string) => `${key}=${this.state[key]}`).join('&');
     queryStringSuffix = queryStringSuffix ? '&' + queryStringSuffix : queryStringSuffix;
@@ -84,6 +84,16 @@ class Logs extends React.Component<AllProps, ILogsState> {
     if (loading) {
       return (
         <LoadingMessage/>
+      );
+    }
+
+    if (errors || logs.invalidPathError || logs.fatalError) {
+      return (
+        <Alert color="danger">
+          {errors && <div>Unable to reach the api endpoint for this page.</div>}
+          {logs.invalidPathError && <div>{logs.invalidPathError}</div>}
+          {logs.fatalError && <div>{logs.fatalError}</div>}
+        </Alert>
       );
     }
 
