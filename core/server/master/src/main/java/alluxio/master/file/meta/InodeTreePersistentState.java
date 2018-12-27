@@ -314,7 +314,6 @@ public class InodeTreePersistentState implements JournalEntryReplayable {
 
     mInodeStore.remove(inode);
     mInodeStore.removeChild(inode.getParentId(), inode.getName());
-    mInodeStore.setModificationTimeMs(inode.getParentId(), entry.getOpTimeMs());
     mPinnedInodeFileIds.remove(id);
     mReplicationLimitedFileIds.remove(id);
 
@@ -381,7 +380,6 @@ public class InodeTreePersistentState implements JournalEntryReplayable {
       default:
         LOG.warn("Unrecognized acl action: " + entry.getAction());
     }
-    mInodeStore.setModificationTimeMs(entry.getId(), entry.getOpTimeMs());
     mInodeStore.writeInode(inode);
   }
 
@@ -415,7 +413,6 @@ public class InodeTreePersistentState implements JournalEntryReplayable {
         mPinnedInodeFileIds.remove(entry.getId());
       }
     }
-    mInodeStore.setModificationTimeMs(entry.getId(), entry.getLastModificationTimeMs());
     mInodeStore.writeInode(inode);
   }
 
@@ -541,7 +538,6 @@ public class InodeTreePersistentState implements JournalEntryReplayable {
     // inode should be added to the inode store before getting added to its parent list, because it
     // becomes visible at this point.
     mInodeStore.writeInode(inode);
-    mInodeStore.setModificationTimeMs(inode.getId(), inode.getLastModificationTimeMs());
     mInodeStore.addChild(inode.getParentId(), inode);
     if (inode.isFile()) {
       InodeFile file = (InodeFile) inode;
@@ -571,9 +567,15 @@ public class InodeTreePersistentState implements JournalEntryReplayable {
     mInodeStore.addChild(newParent, inode);
     inode.setParentId(newParent);
     mInodeStore.writeInode(inode);
-    mInodeStore.setModificationTimeMs(oldParent, entry.getOpTimeMs());
-    mInodeStore.setModificationTimeMs(newParent, entry.getOpTimeMs());
+    updateLastModified(oldParent, entry.getOpTimeMs());
+    updateLastModified(newParent, entry.getOpTimeMs());
     return true;
+  }
+
+  private void updateLastModified(long id, long opTimeMs) {
+    Inode<?> inode = (Inode<?>) mInodeStore.get(id).get();
+    inode.setLastModificationTimeMs(opTimeMs);
+    mInodeStore.writeInode(inode);
   }
 
   private RenameEntry rewriteDeprecatedRenameEntry(RenameEntry entry) {

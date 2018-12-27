@@ -539,6 +539,7 @@ public abstract class Inode<T> implements InodeView {
         .setIsDirectory(isDirectory())
         .setTtl(getTtl())
         .setTtlAction(ProtobufUtils.toProtobuf(getTtlAction()))
+        .setLastModifiedMs(getLastModificationTimeMs())
         .setName(getName())
         .setParentId(getParentId())
         .setPersistenceState(getPersistenceState().name())
@@ -549,14 +550,13 @@ public abstract class Inode<T> implements InodeView {
 
   /**
    * @param inode a protocol buffer inode
-   * @param modificationTimeMs the last modification time for the inode
    * @return the {@link Inode} representation for the inode
    */
-  public static Inode<?> fromProto(InodeOrBuilder inode, long modificationTimeMs) {
+  public static Inode<?> fromProto(InodeOrBuilder inode) {
     if (inode.getIsDirectory()) {
-      return InodeDirectory.fromProto(inode, modificationTimeMs);
+      return InodeDirectory.fromProto(inode);
     } else {
-      return InodeFile.fromProto(inode, modificationTimeMs);
+      return InodeFile.fromProto(inode);
     }
   }
 }

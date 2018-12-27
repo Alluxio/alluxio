@@ -468,13 +468,12 @@ public final class InodeFile extends Inode<InodeFile> implements InodeFileView {
 
   /**
    * @param inode a protocol buffer inode
-   * @param modificationTimeMs the last modification time for the inode
    * @return the {@link InodeFile} for the inode
    */
-  public static InodeFile fromProto(InodeOrBuilder inode, long modificationTimeMs) {
+  public static InodeFile fromProto(InodeOrBuilder inode) {
     return new InodeFile(BlockId.getContainerId(inode.getId()))
         .setCreationTimeMs(inode.getCreationTimeMs())
-        .setLastModificationTimeMs(modificationTimeMs, true)
+        .setLastModificationTimeMs(inode.getLastModifiedMs(), true)
         .setTtl(inode.getTtl())
         .setTtlAction(ProtobufUtils.fromProtobuf(inode.getTtlAction()))
         .setName(inode.getName())

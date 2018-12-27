@@ -23,7 +23,7 @@ public interface ReadOnlyInodeStore {
   /**
    * @return an estimate for the number of inodes in the inode store
    */
-  int estimateSize();
+  long estimateSize();
 
   /**
    * @param id an inode id

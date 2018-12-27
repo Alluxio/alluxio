@@ -57,7 +57,6 @@ public class RocksInodeStore implements InodeStore {
   private ColumnFamilyHandle mDefaultColumn;
   private ColumnFamilyHandle mInodesColumn;
   private ColumnFamilyHandle mEdgesColumn;
-  private ColumnFamilyHandle mLastModifiedColumn;
 
   /**
    * Creates and initializes a rocks block store.
@@ -71,19 +70,11 @@ public class RocksInodeStore implements InodeStore {
   @Override
   public void remove(InodeView inode) {
     try {
-      mDb.delete(mInodesColumn, Longs.toByteArray(inode.getId()));
-      mDb.deleteRange(mEdgesColumn, Longs.toByteArray(inode.getId()),
-          Longs.toByteArray(inode.getId() + 1));
-      mDb.delete(mLastModifiedColumn, Longs.toByteArray(inode.getId()));
-    } catch (RocksDBException e) {
-      throw new RuntimeException(e);
-    }
-  }
-
-  @Override
-  public void setModificationTimeMs(long id, long opTimeMs) {
-    try {
-      mDb.put(mLastModifiedColumn, Longs.toByteArray(id), Longs.toByteArray(opTimeMs));
+      byte[] id = Longs.toByteArray(inode.getId());
+      mDb.delete(mInodesColumn, id);
+      // This works because we write longs big-endian, so only the edges coming out of id (<id,
+      // "...">) are between <id, ""> (inclusive) and <id+1, ""> (exclusive).
+      mDb.deleteRange(mEdgesColumn, id, Longs.toByteArray(inode.getId() + 1));
     } catch (RocksDBException e) {
       throw new RuntimeException(e);
     }
@@ -93,8 +84,6 @@ public class RocksInodeStore implements InodeStore {
   public void writeInode(Inode<?> inode) {
     try {
       mDb.put(mInodesColumn, Longs.toByteArray(inode.getId()), inode.toProto().toByteArray());
-      mDb.put(mLastModifiedColumn, Longs.toByteArray(inode.getId()),
-          Longs.toByteArray(inode.getLastModificationTimeMs()));
     } catch (RocksDBException e) {
       throw new RuntimeException(e);
     }
@@ -129,9 +118,9 @@ public class RocksInodeStore implements InodeStore {
   }
 
   @Override
-  public int estimateSize() {
+  public long estimateSize() {
     try {
-      return Integer.parseInt(mDb.getProperty(mInodesColumn, "rocksdb.estimate-num-keys"));
+      return Long.parseLong(mDb.getProperty(mInodesColumn, "rocksdb.estimate-num-keys"));
     } catch (RocksDBException e) {
       throw new RuntimeException(e);
     }
@@ -149,16 +138,8 @@ public class RocksInodeStore implements InodeStore {
       return Optional.empty();
     }
     try {
-      return Optional.of(Inode.fromProto(InodeMeta.Inode.parseFrom(inode), getLastModifiedMs(id)));
+      return Optional.of(Inode.fromProto(InodeMeta.Inode.parseFrom(inode)));
     } catch (Exception e) {
-      throw new RuntimeException(e);
-    }
-  }
-
-  private long getLastModifiedMs(long id) {
-    try {
-      return Longs.fromByteArray(mDb.get(mLastModifiedColumn, Longs.toByteArray(id)));
-    } catch (RocksDBException e) {
       throw new RuntimeException(e);
     }
   }
@@ -221,7 +202,6 @@ public class RocksInodeStore implements InodeStore {
         mDefaultColumn.close();
         mInodesColumn.close();
         mEdgesColumn.close();
-        mLastModifiedColumn.close();
         mDb.close();
       } catch (Throwable t) {
         LOG.error("Failed to close previous rocks database at {}", mDbPath, t);
@@ -256,7 +236,6 @@ public class RocksInodeStore implements InodeStore {
     mDefaultColumn = columns.get(0);
     mInodesColumn = columns.get(1);
     mEdgesColumn = columns.get(2);
-    mLastModifiedColumn = columns.get(3);
 
     LOG.info("Created new rocks database under path {}", mDbPath);
   }
@@ -272,8 +251,7 @@ public class RocksInodeStore implements InodeStore {
     while (inodeIter.isValid()) {
       Inode<?> inode;
       try {
-        InodeMeta.Inode inodeMeta = InodeMeta.Inode.parseFrom(inodeIter.value());
-        inode = Inode.fromProto(inodeMeta, getLastModifiedMs(inodeMeta.getId()));
+        inode = Inode.fromProto(InodeMeta.Inode.parseFrom(inodeIter.value()));
       } catch (Exception e) {
         throw new RuntimeException(e);
       }

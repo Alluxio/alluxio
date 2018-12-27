@@ -231,7 +231,7 @@ public interface FileSystemMaster extends Master {
   /**
    * @return the number of files and directories
    */
-  int estimateNumberOfPaths();
+  long estimateNumberOfPaths();
 
   /**
    * @return the number of pinned files and directories

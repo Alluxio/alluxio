@@ -244,13 +244,12 @@ public final class InodeDirectory extends Inode<InodeDirectory> implements Inode
 
   /**
    * @param inode a protocol buffer inode
-   * @param modificationTimeMs the lasty modification time for the inode
    * @return the {@link InodeDirectory} representation for the inode
    */
-  public static InodeDirectory fromProto(InodeOrBuilder inode, long modificationTimeMs) {
+  public static InodeDirectory fromProto(InodeOrBuilder inode) {
     return new InodeDirectory(inode.getId())
         .setCreationTimeMs(inode.getCreationTimeMs())
-        .setLastModificationTimeMs(modificationTimeMs, true)
+        .setLastModificationTimeMs(inode.getLastModifiedMs(), true)
         .setTtl(inode.getTtl())
         .setTtlAction(ProtobufUtils.fromProtobuf(inode.getTtlAction()))
         .setName(inode.getName())

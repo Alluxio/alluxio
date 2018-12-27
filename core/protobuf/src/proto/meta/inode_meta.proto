@@ -11,7 +11,7 @@ import "shared/types.proto";
  * General inode metadata. This includes most inode metadata, but does not include the inode's
  * children or time of last modification.
  *
- * next available id: 25
+ * next available id: 26
  */
 message Inode {
     optional int64 id = 1;
@@ -21,6 +21,7 @@ message Inode {
     optional int64 ttl = 4;
     optional alluxio.proto.shared.PTtlAction ttl_action = 5;
 
+    optional int64 last_modified_ms = 25;
     optional string name = 6;
     optional int64 parent_id = 7;
     optional string persistence_state = 8;
