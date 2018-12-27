@@ -1,7 +1,16 @@
 import {faFastForward, faForward} from '@fortawesome/free-solid-svg-icons';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome'
 import React from 'react';
-import {Pagination, PaginationItem, PaginationLink} from 'reactstrap';
+import {Link} from 'react-router-dom';
+import {
+  DropdownItem,
+  DropdownMenu,
+  DropdownToggle,
+  Pagination,
+  PaginationItem,
+  PaginationLink,
+  UncontrolledButtonDropdown,
+} from 'reactstrap';
 
 import './Paginator.css';
 
@@ -39,13 +48,14 @@ export class Paginator extends React.PureComponent<IPaginagorProps> {
       <div className="paginator text-center">
         <Pagination>
           <PaginationItem disabled={currentPage === firstPage}>
-            <PaginationLink href={`${baseUrl}?offset=0${limit ? `&limit=${limit}` : ''}${path ? `&path=${path}` : ''}`}>
+            <PaginationLink tag={Link}
+                            to={`${baseUrl}?offset=0${limit ? `&limit=${limit}` : ''}${path ? `&path=${path}` : ''}`}>
               <FontAwesomeIcon icon={faFastForward} flip="horizontal"/>
             </PaginationLink>
           </PaginationItem>
           <PaginationItem disabled={prevPage < 1}>
-            <PaginationLink
-              href={`${baseUrl}?offset=${prevPage * numLimit}${limit ? `&limit=${limit}` : ''}${path ? `&path=${path}` : ''}`}>
+            <PaginationLink tag={Link}
+                            to={`${baseUrl}?offset=${prevPage * numLimit}${limit ? `&limit=${limit}` : ''}${path ? `&path=${path}` : ''}`}>
               <FontAwesomeIcon icon={faForward} flip="horizontal"/>
             </PaginationLink>
           </PaginationItem>
@@ -55,16 +65,34 @@ export class Paginator extends React.PureComponent<IPaginagorProps> {
             </PaginationLink>
           </PaginationItem>
           <PaginationItem disabled={nextPage > numPages}>
-            <PaginationLink
-              href={`${baseUrl}?offset=${(nextPage - 1) * numLimit}${limit ? `&limit=${limit}` : ''}${path ? `&path=${path}` : ''}`}>
+            <PaginationLink tag={Link}
+                            to={`${baseUrl}?offset=${(nextPage - 1) * numLimit}${limit ? `&limit=${limit}` : ''}${path ? `&path=${path}` : ''}`}>
               <FontAwesomeIcon icon={faForward}/>
             </PaginationLink>
           </PaginationItem>
           <PaginationItem disabled={currentPage === lastPage}>
-            <PaginationLink
-              href={`${baseUrl}?offset=${(lastPage - 1) * numLimit}${limit ? `&limit=${limit}` : ''}${path ? `&path=${path}` : ''}`}>
+            <PaginationLink tag={Link}
+                            to={`${baseUrl}?offset=${(lastPage - 1) * numLimit}${limit ? `&limit=${limit}` : ''}${path ? `&path=${path}` : ''}`}>
               <FontAwesomeIcon icon={faFastForward}/>
             </PaginationLink>
+          </PaginationItem>
+          <PaginationItem className="ml-2">
+            <UncontrolledButtonDropdown>
+              <DropdownToggle caret={true}>
+                View {numLimit} rows
+              </DropdownToggle>
+              <DropdownMenu>
+                <DropdownItem tag={Link}
+                              to={`${baseUrl}?offset=${0}&limit=${20}${path ? `&path=${path}` : ''}`}
+                              disabled={numLimit === 20}>View 20 rows</DropdownItem>
+                <DropdownItem tag={Link}
+                              to={`${baseUrl}?offset=${0}&limit=${100}${path ? `&path=${path}` : ''}`}
+                              disabled={numLimit === 100}>View 100 rows</DropdownItem>
+                <DropdownItem tag={Link}
+                              to={`${baseUrl}?offset=${0}&limit=${500}${path ? `&path=${path}` : ''}`}
+                              disabled={numLimit === 500}>View 500 rows</DropdownItem>
+              </DropdownMenu>
+            </UncontrolledButtonDropdown>
           </PaginationItem>
         </Pagination>
       </div>
