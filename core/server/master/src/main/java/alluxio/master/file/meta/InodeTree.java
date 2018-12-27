@@ -324,10 +324,10 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
   }
 
   /**
-   * @return the number of total inodes
+   * @return an estimate for the total number of inodes
    */
-  public int getSize() {
-    return mInodeStore.size();
+  public int estimateSize() {
+    return mInodeStore.estimateSize();
   }
 
   /**

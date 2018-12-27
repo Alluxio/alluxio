@@ -58,7 +58,7 @@ public class HeapInodeStore implements InodeStore {
   }
 
   @Override
-  public int size() {
+  public int estimateSize() {
     return mInodes.size();
   }
 

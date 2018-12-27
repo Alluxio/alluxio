@@ -541,7 +541,7 @@ public class InodeTreePersistentState implements JournalEntryReplayable {
       mPinnedInodeFileIds.clear();
       return;
     }
-    // inode should be added to the indoe store before getting added to its parent list, because it
+    // inode should be added to the inode store before getting added to its parent list, because it
     // becomes visible at this point.
     mInodeStore.writeInode(inode);
     mInodeStore.setModificationTimeMs(inode.getId(), inode.getLastModificationTimeMs());

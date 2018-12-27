@@ -11,7 +11,7 @@ import "shared/types.proto";
  * General inode metadata. This includes most inode metadata, but does not include the inode's
  * children or time of last modification.
  *
- * next available id: 2
+ * next available id: 25
  */
 message Inode {
     optional int64 id = 1;
@@ -35,15 +35,15 @@ message Inode {
 
     // file only
     optional int64 block_size_bytes = 15;
-    repeated int64 blocks = 23;
-    optional bool is_cacheable = 24;
-    optional bool is_completed = 16;
-    optional int64 length = 17;
-    optional int32 replication_durable = 18;
-    optional int32 replication_max = 19;
-    optional int32 replication_min = 20;
+    repeated int64 blocks = 16;
+    optional bool is_cacheable = 17;
+    optional bool is_completed = 18;
+    optional int64 length = 19;
+    optional int32 replication_durable = 20;
+    optional int32 replication_max = 21;
+    optional int32 replication_min = 22;
 
     // Used for recovering in-progress file persist jobs on master start.
-    optional int64 persist_job_id = 21;
-    optional string persist_job_temp_ufs_path = 22;
+    optional int64 persist_job_id = 23;
+    optional string persist_job_temp_ufs_path = 24;
 }

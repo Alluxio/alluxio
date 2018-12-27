@@ -21,7 +21,6 @@ import alluxio.proto.meta.InodeMeta;
 import alluxio.util.io.FileUtils;
 
 import com.google.common.primitives.Longs;
-import com.google.protobuf.InvalidProtocolBufferException;
 import org.rocksdb.ColumnFamilyDescriptor;
 import org.rocksdb.ColumnFamilyHandle;
 import org.rocksdb.ColumnFamilyOptions;
@@ -130,7 +129,7 @@ public class RocksInodeStore implements InodeStore {
   }
 
   @Override
-  public int size() {
+  public int estimateSize() {
     try {
       return Integer.parseInt(mDb.getProperty(mInodesColumn, "rocksdb.estimate-num-keys"));
     } catch (RocksDBException e) {
@@ -151,7 +150,7 @@ public class RocksInodeStore implements InodeStore {
     }
     try {
       return Optional.of(Inode.fromProto(InodeMeta.Inode.parseFrom(inode), getLastModifiedMs(id)));
-    } catch (InvalidProtocolBufferException e) {
+    } catch (Exception e) {
       throw new RuntimeException(e);
     }
   }
@@ -237,7 +236,7 @@ public class RocksInodeStore implements InodeStore {
     new File(mBaseDir).mkdirs();
 
     ColumnFamilyOptions cfOpts = new ColumnFamilyOptions()
-        .useFixedLengthPrefixExtractor(8); // We always search using the initial long key
+        .useFixedLengthPrefixExtractor(Longs.BYTES); // We always search using the initial long key
 
     List<ColumnFamilyDescriptor> cfDescriptors = Arrays.asList(
         new ColumnFamilyDescriptor(RocksDB.DEFAULT_COLUMN_FAMILY, cfOpts),
@@ -275,7 +274,7 @@ public class RocksInodeStore implements InodeStore {
       try {
         InodeMeta.Inode inodeMeta = InodeMeta.Inode.parseFrom(inodeIter.value());
         inode = Inode.fromProto(inodeMeta, getLastModifiedMs(inodeMeta.getId()));
-      } catch (InvalidProtocolBufferException e) {
+      } catch (Exception e) {
         throw new RuntimeException(e);
       }
       sb.append("Inode " + Longs.fromByteArray(inodeIter.key()) + ": " + inode + "\n");
@@ -286,10 +285,10 @@ public class RocksInodeStore implements InodeStore {
     edgeIter.seekToFirst();
     while (edgeIter.isValid()) {
       byte[] key = edgeIter.key();
-      byte[] id = new byte[8];
-      byte[] name = new byte[key.length - 8];
-      System.arraycopy(key, 0, id, 0, 8);
-      System.arraycopy(key, 8, name, 0, key.length - 8);
+      byte[] id = new byte[Longs.BYTES];
+      byte[] name = new byte[key.length - Longs.BYTES];
+      System.arraycopy(key, 0, id, 0, Longs.BYTES);
+      System.arraycopy(key, Longs.BYTES, name, 0, key.length - Longs.BYTES);
       sb.append(String.format("<%s,%s>->%s\n", Longs.fromByteArray(id), new String(name),
           Longs.fromByteArray(edgeIter.value())));
       edgeIter.next();

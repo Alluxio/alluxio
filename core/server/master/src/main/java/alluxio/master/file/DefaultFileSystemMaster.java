@@ -1441,7 +1441,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
 
   @Override
   public int estimateNumberOfPaths() {
-    return mInodeTree.getSize();
+    return mInodeTree.estimateSize();
   }
 
   @Override

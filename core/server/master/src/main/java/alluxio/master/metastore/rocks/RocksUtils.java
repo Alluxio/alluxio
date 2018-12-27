@@ -14,6 +14,8 @@ package alluxio.master.metastore.rocks;
 import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
 
+import com.google.common.primitives.Longs;
+
 /**
  * Convenience methods for working with RocksDB.
  */
@@ -40,14 +42,14 @@ public final class RocksUtils {
    * @return a byte array formed by writing the two long values as bytes
    */
   public static byte[] toByteArray(long long1, long long2) {
-    byte[] key = new byte[16];
-    for (int i = 7; i >= 0; i--) {
+    byte[] key = new byte[2 * Longs.BYTES];
+    for (int i = Longs.BYTES - 1; i >= 0; i--) {
       key[i] = (byte) (long1 & 0xffL);
-      long1 >>= 8;
+      long1 >>= Byte.SIZE;
     }
-    for (int i = 15; i >= 8; i--) {
+    for (int i = 2 * Longs.BYTES - 1; i >= Longs.BYTES; i--) {
       key[i] = (byte) (long2 & 0xffL);
-      long2 >>= 8;
+      long2 >>= Byte.SIZE;
     }
     return key;
   }
@@ -60,12 +62,12 @@ public final class RocksUtils {
   public static byte[] toByteArray(long n, String str) {
     byte[] strBytes = str.getBytes();
 
-    byte[] key = new byte[8 + strBytes.length];
-    for (int i = 7; i >= 0; i--) {
+    byte[] key = new byte[Longs.BYTES + strBytes.length];
+    for (int i = Longs.BYTES - 1; i >= 0; i--) {
       key[i] = (byte) (n & 0xffL);
-      n >>= 8;
+      n >>= Byte.SIZE;
     }
-    System.arraycopy(strBytes, 0, key, 8, strBytes.length);
+    System.arraycopy(strBytes, 0, key, Longs.BYTES, strBytes.length);
     return key;
   }
 }
