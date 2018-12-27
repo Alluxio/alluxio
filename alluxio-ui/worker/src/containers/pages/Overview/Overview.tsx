@@ -47,7 +47,7 @@ class Overview extends React.Component<AllProps> {
               <Table hover={true}>
                 <tbody>
                 <tr>
-                  <th scope="row">Master Address</th>
+                  <th scope="row">Worker Address</th>
                   <td>{overview.workerInfo.workerAddress}</td>
                 </tr>
                 <tr>

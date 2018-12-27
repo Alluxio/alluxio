@@ -56,6 +56,8 @@ import com.codahale.metrics.MetricFilter;
 import com.codahale.metrics.MetricRegistry;
 import com.qmino.miredot.annotations.ReturnType;
 import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -221,16 +223,17 @@ public final class AlluxioWorkerRestServiceHandler {
   @GET
   @Path(WEBUI_BLOCKINFO)
   @ReturnType("alluxio.wire.MasterWebUIBlockInfo")
-  public Response getWebUIBlockInfo(@DefaultValue("/") @QueryParam("path") String requestPath,
+  public Response getWebUIBlockInfo(@QueryParam("path") String requestPath,
       @DefaultValue("0") @QueryParam("offset") String requestOffset,
       @DefaultValue("20") @QueryParam("limit") String requestLimit) {
     return RestUtils.call(() -> {
+      Logger LOG = LoggerFactory.getLogger(AlluxioWorkerRestServiceHandler.class);
       WorkerWebUIBlockInfo response = new WorkerWebUIBlockInfo();
 
       if (!Configuration.getBoolean(PropertyKey.WEB_FILE_INFO_ENABLED)) {
         return response;
       }
-      response.setFatalError("");
+      response.setFatalError("").setInvalidPathError("");
       if (!(requestPath == null || requestPath.isEmpty())) {
         // Display file block info
         try {
@@ -283,7 +286,9 @@ public final class AlluxioWorkerRestServiceHandler {
       try {
         int offset = Integer.parseInt(requestOffset);
         int limit = Integer.parseInt(requestLimit);
-        List<Long> subFileIds = fileIds.subList(offset, offset + limit);
+        limit = limit > fileIds.size() ? fileIds.size() : limit;
+        int sum = Math.addExact(offset, limit);
+        List<Long> subFileIds = fileIds.subList(offset, sum);
         List<UIFileInfo> uiFileInfos = new ArrayList<>(subFileIds.size());
         for (long fileId : subFileIds) {
           try {
@@ -299,17 +304,17 @@ public final class AlluxioWorkerRestServiceHandler {
                 uiFileInfo
                     .addBlock(blockMeta.getBlockLocation().tierAlias(), blockId, blockSize, -1);
               }
+              uiFileInfos.add(uiFileInfo);
             }
           } catch (Exception e) {
             // The file might have been deleted, log a warning and ignore this file.
-            //            LOG.warn("Unable to get file info for fileId {}. {}", fileId, e
-            // .getMessage());
+            LOG.warn("Unable to get file info for fileId {}. {}", fileId, e.getMessage());
           }
         }
         response.setFileInfos(uiFileInfos);
       } catch (NumberFormatException e) {
         response.setFatalError("Error: offset or limit parse error, " + e.getLocalizedMessage());
-      } catch (IndexOutOfBoundsException e) {
+      } catch (ArithmeticException e) {
         response.setFatalError(
             "Error: offset or offset + limit is out ofbound, " + e.getLocalizedMessage());
       } catch (Exception e) {

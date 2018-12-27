@@ -4,6 +4,14 @@ import {BlockInfoActionTypes, IBlockInfoState} from './types';
 
 const initialState: IBlockInfoState = {
   blockInfo: {
+    'blockSizeBytes': '',
+    'fatalError': '',
+    'fileBlocksOnTier': [],
+    'fileInfos': [],
+    'invalidPathError': '',
+    'ntotalFile': 0,
+    'orderedTierAliases': [],
+    'path': ''
   },
   errors: undefined,
   loading: false

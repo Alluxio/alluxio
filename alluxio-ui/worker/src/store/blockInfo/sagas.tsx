@@ -4,7 +4,7 @@ import {createSagaFetchGenerator} from '@alluxio/common-ui/src/utilities';
 import {fetchError, fetchSuccess} from './actions';
 import {BlockInfoActionTypes} from './types';
 
-const API_ENDPOINT = `${process.env.REACT_APP_API_ROOT}/webui_blockInfo`;
+const API_ENDPOINT = `${process.env.REACT_APP_API_ROOT}/webui_blockinfo`;
 
 const watchRequest = function* () {
   yield takeLatest(BlockInfoActionTypes.FETCH_REQUEST, createSagaFetchGenerator(API_ENDPOINT, fetchSuccess, fetchError));

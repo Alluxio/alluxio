@@ -1,6 +1,16 @@
-// tslint:disable:no-empty-interface // TODO: remove this line
+import {IFileBlockInfo, IFileInfo} from '@alluxio/common-ui/src/constants';
 
 export interface IBlockInfo {
+  'blockSizeBytes': string;
+  'fatalError': string;
+  'fileBlocksOnTier': Array<{
+    [tierAlias: string]: IFileBlockInfo[];
+  }>;
+  'fileInfos': IFileInfo[];
+  'invalidPathError': string;
+  'ntotalFile': number;
+  'orderedTierAliases': string[];
+  'path': string;
 }
 
 export const enum BlockInfoActionTypes {
