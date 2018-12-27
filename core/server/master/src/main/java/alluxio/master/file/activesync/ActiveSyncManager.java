@@ -13,6 +13,7 @@ package alluxio.master.file.activesync;
 
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
+import alluxio.ProcessUtils;
 import alluxio.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.SyncInfo;
@@ -23,9 +24,12 @@ import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatThread;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.meta.MountTable;
+import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.JournalEntryIterable;
 import alluxio.master.journal.JournalEntryReplayable;
 import alluxio.proto.journal.File;
+import alluxio.proto.journal.File.AddSyncPointEntry;
+import alluxio.proto.journal.File.RemoveSyncPointEntry;
 import alluxio.proto.journal.Journal;
 import alluxio.resource.CloseableResource;
 import alluxio.resource.LockResource;
@@ -53,6 +57,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Supplier;
 
 /**
  * Manager for the Active UFS sync process.
@@ -214,37 +219,54 @@ public class ActiveSyncManager implements JournalEntryIterable, JournalEntryRepl
     }
   }
 
-  /**
-   * start active sync on a sync point.
-   *
-   * @param syncPoint sync point
-   * @return true if sync point correctly added
-   */
-  public boolean startSync(AlluxioURI syncPoint)
-      throws InvalidPathException, IOException, ConnectionFailedException {
-    boolean initSync = false;
-    try (LockResource r = new LockResource(mSyncManagerLock)) {
-      if (startSyncInternal(syncPoint)) {
-        MountTable.Resolution resolution = mMountTable.resolve(syncPoint);
-        long mountId = resolution.getMountId();
-        launchPollingThread(mountId, mExecutorService, SyncInfo.INVALID_TXID);
-        initSync = true;
-      } else {
-        return false;
-      }
-    }
+  public boolean applyAndJournal(Supplier<JournalContext> context, AddSyncPointEntry entry)
+      throws ConnectionFailedException, IOException, InvalidPathException {
+    long mountId = entry.getMountId();
+    AlluxioURI uri = new AlluxioURI(entry.getSyncpointPath());
+    boolean launchPollingThread = false;
     try {
-      // Initial sync after adding a sync point
-      if (initSync && Configuration.getBoolean(PropertyKey.MASTER_ACTIVE_UFS_SYNC_INITIAL_SYNC)) {
-        mFileSystemMaster.activeSyncMetadata(syncPoint, null, getExecutor());
+      launchPollingThread = startSyncInternal(uri);
+      context.get().append(Journal.JournalEntry.newBuilder().setAddSyncPoint(entry).build());
+    } catch (InvalidPathException e) {
+      LOG.info("Resolution of path {} failed", uri);
+      return false;
+    } catch (Throwable t) {
+      ProcessUtils.fatalError(LOG, t, "Failed to apply %s", entry);
+      throw t; // fatalError will usually system.exit
+    }
+
+    if (launchPollingThread) {
+      launchPollingThread(mountId, mExecutorService, SyncInfo.INVALID_TXID);
+      try {
+        if (Configuration.getBoolean(PropertyKey.MASTER_ACTIVE_UFS_SYNC_INITIAL_SYNC)) {
+          mFileSystemMaster.activeSyncMetadata(uri, null, getExecutor());
+        }
+      } catch (IOException e) {
+        LOG.warn("Network connection error causing initial sync to fail for {}", uri);
+        stopSync(uri);
+        throw new ConnectionFailedException("Add sync point"
+            + uri.toString() + "failed because of network error");
       }
-    } catch (IOException e) {
-      LOG.warn("Network connection error causing initial sync to fail");
-      stopSync(syncPoint);
-      throw new ConnectionFailedException("Adding syncpoint"
-          + syncPoint.toString() + "failed because of network error");
     }
     return true;
+  }
+
+  public boolean applyAndJournal(Supplier<JournalContext> context, RemoveSyncPointEntry entry) throws InvalidPathException {
+    AlluxioURI uri = new AlluxioURI(entry.getSyncpointPath());
+    try {
+      stopSync(uri);
+      context.get().append(Journal.JournalEntry.newBuilder().setRemoveSyncPoint(entry).build());
+      return true;
+    } catch (InvalidPathException e) {
+      LOG.info("Path resolution failed for path {}, and the exception is {}", uri, e);
+      throw e;
+      // Do not journal since none of the state is actually changed in the memory
+    } catch (IOException e) {
+      LOG.info("IO exception encountered when removing {} as a sync point", uri);
+      // Do journal since the state has already changed in the memory
+      context.get().append(Journal.JournalEntry.newBuilder().setRemoveSyncPoint(entry).build());
+      return true;
+    }
   }
 
   private boolean startSyncFromJournal(AlluxioURI syncPoint, long mountId)
@@ -265,16 +287,14 @@ public class ActiveSyncManager implements JournalEntryIterable, JournalEntryRepl
     }
   }
 
-  private boolean startSyncInternal(AlluxioURI syncPoint) throws InvalidPathException, IOException {
+  private boolean startSyncInternal(AlluxioURI syncPoint) throws InvalidPathException {
     LOG.debug("adding syncPoint {}", syncPoint.getPath());
     if (!isActivelySynced(syncPoint)) {
-      MountTable.Resolution resolution = mMountTable.resolve(syncPoint);
+      MountTable.Resolution resolution;
+      resolution = mMountTable.resolve(syncPoint);
+
       long mountId = resolution.getMountId();
       try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
-        if (!ufsResource.get().supportsActiveSync()) {
-          throw new UnsupportedOperationException("Active Syncing is not supported on this UFS type"
-              + ufsResource.get().getUnderFSType());
-        }
         Future<?> syncFuture = mExecutorService.submit(
             () -> {
               try {
@@ -331,20 +351,6 @@ public class ActiveSyncManager implements JournalEntryIterable, JournalEntryRepl
 
       if (mFilterMap.containsKey(mountId)) {
         mFilterMap.get(mountId).remove(syncPoint);
-
-        if (mFilterMap.get(mountId).isEmpty()) {
-          // syncPoint removed was the last syncPoint for the rootPath
-          mFilterMap.remove(mountId);
-          try (CloseableResource<UnderFileSystem> ufs = resolution.acquireUfsResource()) {
-            ufs.get().stopActiveSyncPolling();
-          } catch (IOException e) {
-            LOG.warn("Encountered IOException when trying to stop polling thread {}", e);
-          }
-          Future<?> future = mPollerMap.remove(mountId);
-          if (future != null) {
-            future.cancel(true);
-          }
-        }
         mSyncPathList.remove(syncPoint);
         Future<?> syncFuture = mSyncPathStatus.remove(syncPoint);
         if (syncFuture != null) {
@@ -352,6 +358,22 @@ public class ActiveSyncManager implements JournalEntryIterable, JournalEntryRepl
         }
         try (CloseableResource<UnderFileSystem> ufs = resolution.acquireUfsResource()) {
           ufs.get().stopSync(resolution.getUri());
+        }
+
+        if (mFilterMap.get(mountId).isEmpty()) {
+          // syncPoint removed was the last syncPoint for the mountId
+          mFilterMap.remove(mountId);
+
+          Future<?> future = mPollerMap.remove(mountId);
+          if (future != null) {
+            future.cancel(true);
+          }
+
+          try (CloseableResource<UnderFileSystem> ufs = resolution.acquireUfsResource()) {
+            ufs.get().stopActiveSyncPolling();
+          } catch (IOException e) {
+            LOG.warn("Encountered IOException when trying to stop polling thread {}", e);
+          }
         }
       } else {
         mSyncPathList.remove(syncPoint);

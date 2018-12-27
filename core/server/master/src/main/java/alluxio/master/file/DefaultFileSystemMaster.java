@@ -3617,18 +3617,24 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
     return mSyncManager.getSyncPathList();
   }
 
-  private void startSyncAndJournal(RpcContext rpcContext, AlluxioURI uri)
-      throws InvalidPathException, IOException, ConnectionFailedException {
+  private void startSyncAndJournal(RpcContext rpcContext, AlluxioURI uri) throws ConnectionFailedException, IOException {
     try (LockResource r = new LockResource(mSyncManager.getSyncManagerLock())) {
-      mSyncManager.startSync(uri);
       MountTable.Resolution resolution = mMountTable.resolve(uri);
       long mountId = resolution.getMountId();
+      try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
+        if (!ufsResource.get().supportsActiveSync()) {
+          throw new UnsupportedOperationException("Active Syncing is not supported on this UFS type"
+              + ufsResource.get().getUnderFSType());
+        }
+      }
       AddSyncPointEntry addSyncPoint =
           AddSyncPointEntry.newBuilder()
               .setSyncpointPath(uri.toString())
               .setMountId(mountId)
               .build();
-      rpcContext.journal(JournalEntry.newBuilder().setAddSyncPoint(addSyncPoint).build());
+      mSyncManager.applyAndJournal(rpcContext, addSyncPoint);
+    } catch (InvalidPathException e) {
+      LOG.info("Exception occurred while trying to resolve {}, exception is {}", uri, e);
     }
   }
 
@@ -3657,11 +3663,10 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
       LockingScheme lockingScheme, LockedInodePath lockedInodePath)
       throws IOException, InvalidPathException {
     try (LockResource r = new LockResource(mSyncManager.getSyncManagerLock())) {
-      mSyncManager.stopSync(lockedInodePath.getUri());
       RemoveSyncPointEntry removeSyncPoint =
           File.RemoveSyncPointEntry.newBuilder()
               .setSyncpointPath(lockedInodePath.getUri().toString()).build();
-      rpcContext.journal(JournalEntry.newBuilder().setRemoveSyncPoint(removeSyncPoint).build());
+      mSyncManager.applyAndJournal(rpcContext, removeSyncPoint);
     }
   }
 
