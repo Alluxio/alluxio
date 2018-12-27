@@ -160,7 +160,7 @@ class BlockInfo extends React.Component<AllProps, IBlockInfoState> {
               <td>{this.renderFileNameLink(fileInfo.absolutePath, queryStringSuffix)}</td>
               {tierAliases.map((tierAlias: string) => (
                 // TODO: figure out how to get this
-                <td key={tierAlias}/>
+                <td key={tierAlias}>{tierAlias === 'MEM' && `${fileInfo.inAlluxioPercentage}%`}</td>
               ))}
               <td>{fileInfo.size}</td>
               <td>{fileInfo.creationTime}</td>
