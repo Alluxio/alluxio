@@ -148,7 +148,7 @@ class Logs extends React.Component<AllProps, ILogsState> {
         </tr>
         </thead>
         <tbody>
-        {fileInfos.map((fileInfo: IFileInfo) => (
+        {fileInfos && fileInfos.map((fileInfo: IFileInfo) => (
           <tr key={fileInfo.absolutePath}>
             <td>
               {this.renderFileNameLink(fileInfo.absolutePath, queryStringSuffix)}

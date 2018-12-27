@@ -109,7 +109,7 @@ class Data extends React.Component<AllProps, IDataState> {
         </tr>
         </thead>
         <tbody>
-        {fileInfos.map((fileInfo: IFileInfo) => (
+        {fileInfos && fileInfos.map((fileInfo: IFileInfo) => (
           <tr key={fileInfo.absolutePath}>
             <td>{fileInfo.absolutePath}</td>
             <td>{fileInfo.size}</td>

@@ -203,7 +203,7 @@ class Browse extends React.Component<AllProps, IBrowseState> {
           </tr>
           </thead>
           <tbody>
-          {fileInfos.map((fileInfo: IFileInfo) => (
+          {fileInfos && fileInfos.map((fileInfo: IFileInfo) => (
             <tr key={fileInfo.absolutePath}>
               <td><FontAwesomeIcon icon={fileInfo.isDirectory ? faFolder : faFile}/></td>
               <td>

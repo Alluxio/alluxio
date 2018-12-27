@@ -152,7 +152,7 @@ class BlockInfo extends React.Component<AllProps, IBlockInfoState> {
           </tr>
           </thead>
           <tbody>
-          {fileInfos.map((fileInfo: IFileInfo) => (
+          {fileInfos && fileInfos.map((fileInfo: IFileInfo) => (
             <tr key={fileInfo.absolutePath}>
               <td>{this.renderFileNameLink(fileInfo.absolutePath, queryStringSuffix)}</td>
               {tierAliases.map((tierAlias: string) => (
