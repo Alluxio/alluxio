@@ -1,22 +1,73 @@
-Alluxio (formerly Tachyon)
-=======
+![logo](docs/resources/alluxio_logo.png "Alluxio")
 
-The master branch is in version 2.0.0-SNAPSHOT:
+[![License](https://img.shields.io/github/license/alluxio/alluxio.svg)](https://github.com/Alluxio/alluxio/blob/master/LICENSE)
+[![GitHub release](https://img.shields.io/github/release/alluxio/alluxio/all.svg)](https://github.com/alluxio/alluxio/releases)
+[![Docker Pulls](https://img.shields.io/docker/pulls/alluxio/alluxio.svg)](https://hub.docker.com/r/alluxio/alluxio)
+[![Documentation](https://img.shields.io/badge/api-reference-blue.svg)](https://www.alluxio.org/docs)
+[![Slack](https://img.shields.io/badge/slack-alluxio-blue.svg?logo=slack)](https://www.alluxio.org/slack)
+[![Twitter Follow](https://img.shields.io/twitter/follow/alluxio.svg?label=Follow&style=social)](https://twitter.com/intent/follow?screen_name=alluxio)
 
-- [Alluxio Open Source Website](http://www.alluxio.org/) | [Alluxio Latest Release Document](https://www.alluxio.org/download/releases/) | [Master Branch Document](https://www.alluxio.org/docs/master/en/) | [Alluxio Inc.](http://www.alluxio.com/)
-- [Contribute to Alluxio](http://alluxio.org/documentation/master/en/Contributing-to-Alluxio.html) and
-[New Contributor Tasks](https://alluxio.atlassian.net/issues/?jql=project%20%3D%20ALLUXIO%20AND%20labels%20%3D%20NewContributor%20AND%20status%20%3D%20Open%20AND%20Assignee%20%3D%20null)
-  - Please limit 2 tasks per new contributor. Afterwards, try some [beginner tasks](https://alluxio.atlassian.net/issues/?jql=project%20%3D%20ALLUXIO%20AND%20labels%20%3D%20Beginner%20AND%20status%20%3D%20Open) or [intermediate tasks](https://alluxio.atlassian.net/issues/?jql=project%20%3D%20ALLUXIO%20AND%20labels%20%3D%20Intermediate%20AND%20status%20%3D%20Open),
-  or ask in the [Developer Mailing List](https://groups.google.com/forum/#!forum/alluxio-dev).
-- [Releases](http://alluxio.org/releases/)
-- [Downloads](http://www.alluxio.org/download)
-- [JIRA](https://alluxio.atlassian.net/browse/ALLUXIO)
-- [User Mailing List](https://groups.google.com/forum/?fromgroups#!forum/alluxio-users)
-- [Bay Area Meetup Group](http://www.meetup.com/Alluxio)
+## What is Alluxio
+[Alluxio](https://www.alluxio.org) (formerly known as Tachyon)
+is a virtual distributed storage system. It bridges the gap between
+computation frameworks and storage systems, enabling computation applications to connect to
+numerous storage systems through a common interface. Read more about
+[Alluxio Overview](https://www.alluxio.org/docs/1.8/en/Overview.html).
 
-## Building applications with Alluxio
+## Who Uses Alluxio
 
-### Dependency Information
+Alluxio is used in production to manage Petabytes of data in many leading companies, with
+the largest deployment exceeding 1300 workers. Find more use cases at
+[Powered by Alluxio](https://www.alluxio.org/community/powered-by-alluxio).
+
+## Download Alluxio
+
+### Binary download
+
+Prebuilt binaries are available to download at https://www.alluxio.org/download .
+
+### Docker
+
+Download and start an Alluxio master and a worker. More details can be found in [documentation](https://www.alluxio.org/docs/1.8/en/deploy/Running-Alluxio-On-Docker.html).
+
+```bash
+# launch a master
+$ docker run -d --net=host
+    -v /mnt/data:/opt/alluxio/underFSStorage
+    alluxio/alluxio master
+# launch a worker
+$ docker run -d --net=host --shm-size=1G
+    -e ALLUXIO_WORKER_MEMORY_SIZE=1G
+    -v /mnt/data:/opt/alluxio/underFSStorage
+    -e ALLUXIO_MASTER_HOSTNAME=localhost
+    alluxio/alluxio worker
+```
+
+### MacOS Homebrew
+
+```bash
+$ brew install alluxio
+```
+
+## Quick Start
+
+Please follow the [Guide to Get Started](http://www.alluxio.org/docs/1.8/en/Getting-Started.html)
+to run a simple example with Alluxio.
+
+## Report a Bug
+
+To report bugs, suggest improvements, or create new feature requests, please open a [Github Issue](https://github.com/alluxio/alluxio/issues). Our previous [Alluxio JIRA system](https://alluxio.atlassian.net) has been deprecated since December 2018.
+
+## Join the Community
+
+Please use the following to reach members of the community:
+
+* Slack: [alluxio-community channel](https://www.alluxio.org/slack)
+* Mailing List: [alluxio-users](https://groups.google.com/forum/?fromgroups#!forum/alluxio-users)
+* Meetup Group: [Bay Area Meetup](http://www.meetup.com/Alluxio)
+* Twitter: [@alluxio](https://twitter.com/alluxio)
+
+## Depend on Alluxio
 
 For Alluxio versions 1.4 or earlier, use the `alluxio-core-client` artifact.
 
@@ -26,7 +77,7 @@ performance and access to Alluxio-specific functionality. If you want to use oth
 include the appropriate client artifact. For example, `alluxio-core-client-hdfs` provides a client
 implementing HDFS's file system API.
 
-#### Apache Maven
+### Apache Maven
 ```xml
 <dependency>
   <groupId>org.alluxio</groupId>
@@ -35,20 +86,7 @@ implementing HDFS's file system API.
 </dependency>
 ```
 
-#### Gradle
-
-```groovy
-compile 'org.alluxio:alluxio-core-client-fs:1.8.1'
-```
-
-#### Apache Ant
-```xml
-<dependency org="org.alluxio" name="alluxio" rev="1.8.1">
-  <artifact name="alluxio-core-client-fs" type="jar" />
-</dependency>
-```
-
-#### SBT
+### SBT
 ```
 libraryDependencies += "org.alluxio" % "alluxio-core-client-fs" % "1.8.1"
 ```
@@ -61,3 +99,14 @@ work to the project under the project's open source license. Whether or not you 
 explicitly, by submitting any copyrighted material via pull request, email, or other means you agree
 to license the material under the project's open source license and warrant that you have the legal
 authority to do so.
+For a more detailed step-by-step guide, please read
+[how to contribute to Alluxio](https://www.alluxio.org/docs/1.8/en/contributor/Contributor-Getting-Started.html).
+For new contributor, please take 2 [new contributor tasks](https://github.com/Alluxio/new-contributor-tasks).
+
+## Useful Links
+
+- [Alluxio Project Website](https://www.alluxio.org/)
+- [Alluxio Inc. Website](https://www.alluxio.com/)
+- [Downloads](https://www.alluxio.org/download)
+- [Releases and Notes](https://www.alluxio.org/download/releases/)
+- [Documentation](https://www.alluxio.org/docs/)
