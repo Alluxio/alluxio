@@ -20,6 +20,8 @@ import alluxio.security.authorization.DefaultAccessControlList;
 import alluxio.wire.FileInfo;
 import alluxio.wire.TtlAction;
 
+import com.google.common.base.Preconditions;
+
 import java.util.List;
 
 /**
@@ -186,8 +188,10 @@ public abstract class ReadOnlyInode implements InodeView {
       return (ReadOnlyInode) delegate;
     }
     if (delegate.isFile()) {
+      Preconditions.checkState(delegate instanceof InodeFileView);
       return new ReadOnlyInodeFile((InodeFileView) delegate);
     } else {
+      Preconditions.checkState(delegate instanceof InodeDirectoryView);
       return new ReadOnlyInodeDirectory((InodeDirectoryView) delegate);
     }
   }
