@@ -39,7 +39,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * @param <T> the concrete subclass of this object
  */
 @NotThreadSafe
-public abstract class Inode<T> implements InodeView {
+public abstract class Inode<T extends Inode> implements InodeView {
   private static final Logger LOG = LoggerFactory.getLogger(Inode.class);
   protected long mCreationTimeMs;
   private boolean mDeleted;
@@ -445,14 +445,6 @@ public abstract class Inode<T> implements InodeView {
   @Override
   public AclActions getPermission(String user, List<String> groups) {
     return mAcl.getPermission(user, groups);
-  }
-
-  @Override
-  public InodeDirectoryView asDirectory() {
-    if (!isDirectory()) {
-      throw new IllegalStateException(String.format("Inode %s is not a directory", mName));
-    }
-    return (InodeDirectoryView) this;
   }
 
   /**

@@ -77,7 +77,7 @@ public final class TtlBucketList {
    *
    * @param inode the inode to be inserted
    */
-  public void insert(InodeView inode) {
+  public void insert(ReadOnlyInode inode) {
     if (inode.getTtl() == Constants.NO_TTL) {
       return;
     }

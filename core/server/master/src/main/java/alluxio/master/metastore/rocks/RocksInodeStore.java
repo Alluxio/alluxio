@@ -16,6 +16,7 @@ import alluxio.PropertyKey;
 import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeDirectoryView;
 import alluxio.master.file.meta.InodeView;
+import alluxio.master.file.meta.ReadOnlyInode;
 import alluxio.master.metastore.InodeStore;
 import alluxio.proto.meta.InodeMeta;
 import alluxio.util.io.FileUtils;
@@ -127,7 +128,7 @@ public class RocksInodeStore implements InodeStore {
   }
 
   @Override
-  public Optional<InodeView> get(long id) {
+  public Optional<Inode<?>> getMutable(long id) {
     byte[] inode;
     try {
       inode = mDb.get(mInodesColumn, Longs.toByteArray(id));
@@ -145,18 +146,18 @@ public class RocksInodeStore implements InodeStore {
   }
 
   @Override
-  public Iterable<? extends InodeView> getChildren(InodeDirectoryView inode) {
+  public Iterable<? extends ReadOnlyInode> getChildren(InodeDirectoryView inode) {
     RocksIterator iter =
         mDb.newIterator(mEdgesColumn, new ReadOptions().setPrefixSameAsStart(true));
     iter.seek(Longs.toByteArray(inode.getId()));
-    return () -> new Iterator<InodeView>() {
+    return () -> new Iterator<ReadOnlyInode>() {
       @Override
       public boolean hasNext() {
         return iter.isValid();
       }
 
       @Override
-      public InodeView next() {
+      public ReadOnlyInode next() {
         try {
           return get(Longs.fromByteArray(iter.value())).get();
         } catch (Exception e) {
@@ -169,7 +170,7 @@ public class RocksInodeStore implements InodeStore {
   }
 
   @Override
-  public Optional<InodeView> getChild(InodeDirectoryView inode, String name) {
+  public Optional<ReadOnlyInode> getChild(InodeDirectoryView inode, String name) {
     byte[] id;
     try {
       id = mDb.get(mEdgesColumn, RocksUtils.toByteArray(inode.getId(), name));
@@ -179,7 +180,7 @@ public class RocksInodeStore implements InodeStore {
     if (id == null) {
       return Optional.empty();
     }
-    Optional<InodeView> child = get(Longs.fromByteArray(id));
+    Optional<ReadOnlyInode> child = get(Longs.fromByteArray(id));
     if (!child.isPresent()) {
       LOG.warn("Found child edge {}->{}={}, but inode {} does not exist", inode.getId(), name,
           Longs.fromByteArray(id), Longs.fromByteArray(id));

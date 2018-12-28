@@ -49,21 +49,20 @@ import alluxio.master.block.BlockId;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.activesync.ActiveSyncManager;
 import alluxio.master.file.meta.FileSystemMasterView;
-import alluxio.master.file.meta.InodeDirectory;
 import alluxio.master.file.meta.InodeDirectoryIdGenerator;
 import alluxio.master.file.meta.InodeDirectoryView;
-import alluxio.master.file.meta.InodeFile;
-import alluxio.master.file.meta.InodeFileView;
 import alluxio.master.file.meta.InodeLockManager;
 import alluxio.master.file.meta.InodePathPair;
 import alluxio.master.file.meta.InodeTree;
 import alluxio.master.file.meta.InodeTree.LockMode;
 import alluxio.master.file.meta.InodeTree.LockPattern;
-import alluxio.master.file.meta.InodeView;
 import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.file.meta.LockingScheme;
 import alluxio.master.file.meta.MountTable;
 import alluxio.master.file.meta.PersistenceState;
+import alluxio.master.file.meta.ReadOnlyInode;
+import alluxio.master.file.meta.ReadOnlyInodeDirectory;
+import alluxio.master.file.meta.ReadOnlyInodeFile;
 import alluxio.master.file.meta.UfsAbsentPathCache;
 import alluxio.master.file.meta.UfsBlockLocationCache;
 import alluxio.master.file.meta.UfsSyncPathCache;
@@ -85,6 +84,7 @@ import alluxio.master.file.options.SetAclOptions;
 import alluxio.master.file.options.SetAttributeOptions;
 import alluxio.master.file.options.WorkerHeartbeatOptions;
 import alluxio.master.journal.JournalContext;
+import alluxio.master.metastore.DelegatingReadOnlyInodeStore;
 import alluxio.master.metastore.ReadOnlyInodeStore;
 import alluxio.metrics.MasterMetrics;
 import alluxio.metrics.MetricsSystem;
@@ -382,7 +382,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
     mDirectoryIdGenerator = new InodeDirectoryIdGenerator(mBlockMaster);
     mUfsManager = new MasterUfsManager();
     mMountTable = new MountTable(mUfsManager, getRootMountInfo(mUfsManager));
-    mInodeStore = masterContext.getMetastore().getInodeStore();
+    mInodeStore = new DelegatingReadOnlyInodeStore(masterContext.getMetastore().getInodeStore());
     mInodeTree = new InodeTree(masterContext.getMetastore().getInodeStore(), mBlockMaster,
         mDirectoryIdGenerator, mMountTable);
     mInodeLockManager = mInodeTree.getInodeLockManager();
@@ -487,7 +487,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
     if (isPrimary) {
       LOG.info("Starting fs master as primary");
 
-      InodeDirectoryView root = mInodeTree.getRoot();
+      ReadOnlyInodeDirectory root = mInodeTree.getRoot();
       if (root == null) {
         try (JournalContext context = createJournalContext()) {
           mInodeTree.initializeRoot(SecurityUtils.getOwnerFromLoginModule(),
@@ -524,16 +524,16 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
       try (LockedInodePath inodePath = mInodeTree.lockInodePath(new AlluxioURI("/"),
           LockPattern.WRITE_INODE)) {
         // Walk the inode tree looking for files in the TO_BE_PERSISTED state.
-        java.util.Queue<InodeDirectoryView> dirsToProcess = new java.util.LinkedList<>();
-        dirsToProcess.add((InodeDirectoryView) inodePath.getInode());
+        java.util.Queue<ReadOnlyInodeDirectory> dirsToProcess = new java.util.LinkedList<>();
+        dirsToProcess.add((ReadOnlyInodeDirectory) inodePath.getInode());
         while (!dirsToProcess.isEmpty()) {
-          InodeDirectoryView dir = dirsToProcess.poll();
-          for (InodeView inode : mInodeStore.getChildren(dir)) {
+          ReadOnlyInodeDirectory dir = dirsToProcess.poll();
+          for (ReadOnlyInode inode : mInodeStore.getChildren(dir)) {
             if (inode.isDirectory()) {
-              dirsToProcess.add((InodeDirectory) inode);
+              dirsToProcess.add((ReadOnlyInodeDirectory) inode);
               continue;
             }
-            InodeFileView inodeFile = (InodeFileView) inode;
+            ReadOnlyInodeFile inodeFile = (ReadOnlyInodeFile) inode;
             if (!inodeFile.getPersistenceState().equals(PersistenceState.TO_BE_PERSISTED)) {
               continue;
             }
@@ -672,7 +672,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
           if (!checkConsistencyInternal(dir)) {
             inconsistentUris.add(dir.getUri());
           }
-          for (InodeView child : mInodeStore.getChildren(dir.getInode().asDirectory())) {
+          for (ReadOnlyInode child : mInodeStore.getChildren(dir.getInode().asDirectory())) {
             try (LockedInodePath childPath = dir.lockChild(child, LockPattern.READ)) {
               if (child.isDirectory()) {
                 dirsToCheck.add(child.getId());
@@ -839,7 +839,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
    */
   private FileInfo getFileInfoInternal(LockedInodePath inodePath)
       throws FileDoesNotExistException, UnavailableException {
-    InodeView inode = inodePath.getInode();
+    ReadOnlyInode inode = inodePath.getInode();
     AlluxioURI uri = inodePath.getUri();
     FileInfo fileInfo = inode.generateClientFileInfo(uri.toString());
     if (fileInfo.isFolder()) {
@@ -847,7 +847,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
     }
     fileInfo.setInMemoryPercentage(getInMemoryPercentage(inode));
     fileInfo.setInAlluxioPercentage(getInAlluxioPercentage(inode));
-    if (inode instanceof InodeFile) {
+    if (inode.isFile()) {
       try {
         fileInfo.setFileBlockInfos(getFileBlockInfoListInternal(inodePath));
       } catch (InvalidPathException e) {
@@ -915,12 +915,12 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
               .setLoadDescendantType(loadDescendantType)
               .setTtl(listStatusOptions.getCommonOptions().getTtl())
               .setTtlAction(listStatusOptions.getCommonOptions().getTtlAction());
-      InodeView inode;
+      ReadOnlyInode inode;
       if (inodePath.fullPathExists()) {
         inode = inodePath.getInode();
         if (inode.isDirectory()
             && listStatusOptions.getLoadMetadataType() != LoadMetadataType.Always) {
-          InodeDirectoryView inodeDirectory = (InodeDirectoryView) inode;
+          ReadOnlyInodeDirectory inodeDirectory = inode.asDirectory();
 
           boolean isLoaded = inodeDirectory.isDirectChildrenLoaded();
           if (listStatusOptions.isRecursive()) {
@@ -970,7 +970,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
       DescendantType descendantType, List<FileInfo> statusList)
       throws FileDoesNotExistException, UnavailableException,
       AccessControlException, InvalidPathException {
-    InodeView inode = currInodePath.getInode();
+    ReadOnlyInode inode = currInodePath.getInode();
     if (inode.isDirectory() && descendantType != DescendantType.NONE) {
       try {
         // TODO(david): Return the error message when we do not have permission
@@ -987,7 +987,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
           ? DescendantType.ALL : DescendantType.NONE;
       // This is to generate a parsed child path components to be passed to lockChildPath
       String [] childComponentsHint = null;
-      for (InodeView child : mInodeStore.getChildren(inode.asDirectory())) {
+      for (ReadOnlyInode child : mInodeStore.getChildren(inode.asDirectory())) {
         if (childComponentsHint == null) {
           String[] parentComponents = PathUtils.getPathComponents(currInodePath.getUri().getPath());
           childComponentsHint = new String[parentComponents.length + 1];
@@ -1028,7 +1028,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
     if (!inode.isDirectChildrenLoaded()) {
       return false;
     }
-    for (InodeView child : mInodeStore.getChildren(inode)) {
+    for (ReadOnlyInode child : mInodeStore.getChildren(inode)) {
       if (child.isDirectory()) {
         if (!areDescendantsLoaded(child.asDirectory())) {
           return false;
@@ -1090,14 +1090,14 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
 
   private void checkConsistencyRecursive(LockedInodePath inodePath,
       List<AlluxioURI> inconsistentUris) throws IOException, FileDoesNotExistException {
-    InodeView inode = inodePath.getInode();
+    ReadOnlyInode inode = inodePath.getInode();
     try {
       if (!checkConsistencyInternal(inodePath)) {
         inconsistentUris.add(inodePath.getUri());
       }
       if (inode.isDirectory()) {
-        InodeDirectoryView inodeDir = ((InodeDirectoryView) inode);
-        for (InodeView child : mInodeStore.getChildren(inodeDir)) {
+        ReadOnlyInodeDirectory inodeDir = inode.asDirectory();
+        for (ReadOnlyInode child : mInodeStore.getChildren(inodeDir)) {
           try (LockedInodePath childPath = inodePath.lockChild(child, LockPattern.READ)) {
             checkConsistencyRecursive(childPath, inconsistentUris);
           }
@@ -1126,7 +1126,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
    */
   private boolean checkConsistencyInternal(LockedInodePath inodePath) throws InvalidPathException,
       IOException {
-    InodeView inode;
+    ReadOnlyInode inode;
     try {
       inode = inodePath.getInode();
     } catch (FileDoesNotExistException e) {
@@ -1146,7 +1146,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
       if (inode.isDirectory()) {
         return ufs.isDirectory(ufsPath);
       } else {
-        InodeFileView file = (InodeFileView) inode;
+        ReadOnlyInodeFile file = (ReadOnlyInodeFile) inode;
         return ufs.isFile(ufsPath)
             && ufs.getFileStatus(ufsPath).getContentLength() == file.getLength();
       }
@@ -1187,13 +1187,13 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
       CompleteFileOptions options)
       throws InvalidPathException, FileDoesNotExistException, BlockInfoException,
       FileAlreadyCompletedException, InvalidFileSizeException, UnavailableException {
-    InodeView inode = inodePath.getInode();
+    ReadOnlyInode inode = inodePath.getInode();
     if (!inode.isFile()) {
       throw new FileDoesNotExistException(
           ExceptionMessage.PATH_MUST_BE_FILE.getMessage(inodePath.getUri()));
     }
 
-    InodeFileView fileInode = (InodeFileView) inode;
+    ReadOnlyInodeFile fileInode = (ReadOnlyInodeFile) inode;
     List<Long> blockIdList = fileInode.getBlockIds();
     List<BlockInfo> blockInfoList = mBlockMaster.getBlockInfoList(blockIdList);
     if (!fileInode.isPersisted() && blockInfoList.size() != blockIdList.size()) {
@@ -1251,7 +1251,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
       FileAlreadyCompletedException, UnavailableException {
     Preconditions.checkState(inodePath.getLockPattern().isWrite());
 
-    InodeFileView inode = inodePath.getInodeFile();
+    ReadOnlyInodeFile inode = inodePath.getInodeFile();
     if (inode.isCompleted() && inode.getLength() != Constants.UNKNOWN_SIZE) {
       throw new FileAlreadyCompletedException("File " + getName() + " has already been completed.");
     }
@@ -1344,7 +1344,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
    * @param options method options
    * @return the list of created inodes
    */
-  List<InodeView> createFileInternal(RpcContext rpcContext, LockedInodePath inodePath,
+  List<ReadOnlyInode> createFileInternal(RpcContext rpcContext, LockedInodePath inodePath,
       CreateFileOptions options)
       throws InvalidPathException, FileAlreadyExistsException, BlockInfoException, IOException,
       FileDoesNotExistException {
@@ -1352,8 +1352,8 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
       options.setCacheable(true);
     }
     // If the create succeeded, the list of created inodes will not be empty.
-    List<InodeView> created = mInodeTree.createPath(rpcContext, inodePath, options);
-    InodeFileView inode = (InodeFileView) created.get(created.size() - 1);
+    List<ReadOnlyInode> created = mInodeTree.createPath(rpcContext, inodePath, options);
+    ReadOnlyInodeFile inode = (ReadOnlyInodeFile) created.get(created.size() - 1);
 
     if (options.isPersisted()) {
       // The path exists in UFS, so it is no longer absent. The ancestors exist in UFS, but the
@@ -1518,7 +1518,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
       return;
     }
     long opTimeMs = System.currentTimeMillis();
-    InodeView inode = inodePath.getInode();
+    ReadOnlyInode inode = inodePath.getInode();
     if (inode == null) {
       return;
     }
@@ -1562,7 +1562,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
     for (int i = inodesToDelete.size() - 1; i >= 0; i--) {
       Pair<AlluxioURI, LockedInodePath> inodePairToDelete = inodesToDelete.get(i);
       AlluxioURI alluxioUriToDelete = inodePairToDelete.getFirst();
-      InodeView inodeToDelete = inodePairToDelete.getSecond().getInode();
+      ReadOnlyInode inodeToDelete = inodePairToDelete.getSecond().getInode();
 
       String failureReason = null;
       if (unsafeInodes.contains(inodeToDelete.getId())) {
@@ -1656,7 +1656,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
    */
   private List<FileBlockInfo> getFileBlockInfoListInternal(LockedInodePath inodePath)
       throws InvalidPathException, FileDoesNotExistException, UnavailableException {
-    InodeFileView file = inodePath.getInodeFile();
+    ReadOnlyInodeFile file = inodePath.getInodeFile();
     List<BlockInfo> blockInfoList = mBlockMaster.getBlockInfoList(file.getBlockIds());
 
     List<FileBlockInfo> ret = new ArrayList<>();
@@ -1676,7 +1676,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
    */
   private FileBlockInfo generateFileBlockInfo(LockedInodePath inodePath, BlockInfo blockInfo)
       throws FileDoesNotExistException {
-    InodeFileView file = inodePath.getInodeFile();
+    ReadOnlyInodeFile file = inodePath.getInodeFile();
     FileBlockInfo fileBlockInfo = new FileBlockInfo();
     fileBlockInfo.setBlockInfo(blockInfo);
     fileBlockInfo.setUfsLocations(new ArrayList<>());
@@ -1704,7 +1704,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
    *
    * @return true if the file is fully in Alluxio, false otherwise
    */
-  private boolean isFullyInAlluxio(InodeFileView inode) throws UnavailableException {
+  private boolean isFullyInAlluxio(ReadOnlyInodeFile inode) throws UnavailableException {
     return getInAlluxioPercentage(inode) == 100;
   }
 
@@ -1714,7 +1714,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
    *
    * @return true if the file is fully in Alluxio, false otherwise
    */
-  private boolean isFullyInMemory(InodeFileView inode) throws UnavailableException {
+  private boolean isFullyInMemory(ReadOnlyInodeFile inode) throws UnavailableException {
     return getInMemoryPercentage(inode) == 100;
   }
 
@@ -1763,18 +1763,18 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
    */
   private void getInAlluxioFilesInternal(LockedInodePath inodePath, List<AlluxioURI> files)
       throws UnavailableException {
-    InodeView inode = inodePath.getInodeOrNull();
+    ReadOnlyInode inode = inodePath.getInodeOrNull();
     if (inode == null) {
       return;
     }
 
     if (inode.isFile()) {
-      if (isFullyInAlluxio((InodeFileView) inode)) {
+      if (isFullyInAlluxio((ReadOnlyInodeFile) inode)) {
         files.add(inodePath.getUri());
       }
     } else {
       // This inode is a directory.
-      for (InodeView child : mInodeStore.getChildren(inode.asDirectory())) {
+      for (ReadOnlyInode child : mInodeStore.getChildren(inode.asDirectory())) {
         try (LockedInodePath childPath = inodePath.lockChild(child, LockPattern.READ)) {
           getInAlluxioFilesInternal(childPath, files);
         } catch (InvalidPathException e) {
@@ -1794,18 +1794,18 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
    */
   private void getInMemoryFilesInternal(LockedInodePath inodePath, List<AlluxioURI> files)
       throws UnavailableException {
-    InodeView inode = inodePath.getInodeOrNull();
+    ReadOnlyInode inode = inodePath.getInodeOrNull();
     if (inode == null) {
       return;
     }
 
     if (inode.isFile()) {
-      if (isFullyInMemory((InodeFileView) inode)) {
+      if (isFullyInMemory((ReadOnlyInodeFile) inode)) {
         files.add(inodePath.getUri());
       }
     } else {
       // This inode is a directory.
-      for (InodeView child : mInodeStore.getChildren(inode.asDirectory())) {
+      for (ReadOnlyInode child : mInodeStore.getChildren(inode.asDirectory())) {
         try (LockedInodePath childPath = inodePath.lockChild(child, LockPattern.READ)) {
           getInMemoryFilesInternal(childPath, files);
         } catch (InvalidPathException e) {
@@ -1823,11 +1823,11 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
    * @param inode the inode
    * @return the in memory percentage
    */
-  private int getInMemoryPercentage(InodeView inode) throws UnavailableException {
+  private int getInMemoryPercentage(ReadOnlyInode inode) throws UnavailableException {
     if (!inode.isFile()) {
       return 0;
     }
-    InodeFileView inodeFile = (InodeFileView) inode;
+    ReadOnlyInodeFile inodeFile = (ReadOnlyInodeFile) inode;
 
     long length = inodeFile.getLength();
     if (length == 0) {
@@ -1850,11 +1850,11 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
    * @param inode the inode
    * @return the in alluxio percentage
    */
-  private int getInAlluxioPercentage(InodeView inode) throws UnavailableException {
+  private int getInAlluxioPercentage(ReadOnlyInode inode) throws UnavailableException {
     if (!inode.isFile()) {
       return 0;
     }
-    InodeFileView inodeFile = (InodeFileView) inode;
+    ReadOnlyInodeFile inodeFile = (ReadOnlyInodeFile) inode;
 
     long length = inodeFile.getLength();
     if (length == 0) {
@@ -1925,14 +1925,14 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
    * @param options method options
    * @return a list of created inodes
    */
-  private List<InodeView> createDirectoryInternal(RpcContext rpcContext,
+  private List<ReadOnlyInode> createDirectoryInternal(RpcContext rpcContext,
       LockedInodePath inodePath, CreateDirectoryOptions options) throws InvalidPathException,
       FileAlreadyExistsException, IOException, FileDoesNotExistException {
     Preconditions.checkState(inodePath.getLockPattern() == LockPattern.WRITE_EDGE);
 
     try {
-      List<InodeView> createResult = mInodeTree.createPath(rpcContext, inodePath, options);
-      InodeDirectoryView inodeDirectory = (InodeDirectoryView) inodePath.getInode();
+      List<ReadOnlyInode> createResult = mInodeTree.createPath(rpcContext, inodePath, options);
+      ReadOnlyInodeDirectory inodeDirectory = inodePath.getInode().asDirectory();
 
       String ufsFingerprint = Constants.INVALID_UFS_FINGERPRINT;
       if (inodeDirectory.isPersisted()) {
@@ -2022,7 +2022,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
           ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(srcInodePath.getUri()));
     }
 
-    InodeView srcInode = srcInodePath.getInode();
+    ReadOnlyInode srcInode = srcInodePath.getInode();
     // Renaming path to itself is a no-op.
     if (srcInodePath.getUri().equals(dstInodePath.getUri())) {
       return;
@@ -2055,12 +2055,12 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
     }
 
     // Get the inodes of the src and dst parents.
-    InodeView srcParentInode = srcInodePath.getParentInodeDirectory();
+    ReadOnlyInode srcParentInode = srcInodePath.getParentInodeDirectory();
     if (!srcParentInode.isDirectory()) {
       throw new InvalidPathException(
           ExceptionMessage.PATH_MUST_HAVE_VALID_PARENT.getMessage(srcInodePath.getUri()));
     }
-    InodeView dstParentInode = dstInodePath.getParentInodeDirectory();
+    ReadOnlyInode dstParentInode = dstInodePath.getParentInodeDirectory();
     if (!dstParentInode.isDirectory()) {
       throw new InvalidPathException(
           ExceptionMessage.PATH_MUST_HAVE_VALID_PARENT.getMessage(dstInodePath.getUri()));
@@ -2096,11 +2096,11 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
     // 4. Remove the source inode (reverting the name) from the source parent.
     // 5. Set the last modification times for both source and destination parent inodes.
 
-    InodeView srcInode = srcInodePath.getInode();
+    ReadOnlyInode srcInode = srcInodePath.getInode();
     AlluxioURI srcPath = srcInodePath.getUri();
     AlluxioURI dstPath = dstInodePath.getUri();
-    InodeDirectoryView srcParentInode = srcInodePath.getParentInodeDirectory();
-    InodeDirectoryView dstParentInode = dstInodePath.getParentInodeDirectory();
+    ReadOnlyInodeDirectory srcParentInode = srcInodePath.getParentInodeDirectory();
+    ReadOnlyInodeDirectory dstParentInode = dstInodePath.getParentInodeDirectory();
     String srcName = srcPath.getName();
     String dstName = dstPath.getName();
 
@@ -2128,19 +2128,19 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
         // parents here because the permission for the ancestors can be different.
 
         // inodes from the same mount point as the dst
-        Stack<InodeDirectoryView> sameMountDirs = new Stack<>();
-        List<InodeView> dstInodeList = dstInodePath.getInodeList();
+        Stack<ReadOnlyInodeDirectory> sameMountDirs = new Stack<>();
+        List<ReadOnlyInode> dstInodeList = dstInodePath.getInodeList();
         for (int i = dstInodeList.size() - 1; i >= 0; i--) {
           // Since dstInodePath is guaranteed not to be a full path, all inodes in the incomplete
           // path are guaranteed to be a directory.
-          InodeDirectoryView dir = (InodeDirectoryView) dstInodeList.get(i);
+          ReadOnlyInodeDirectory dir = dstInodeList.get(i).asDirectory();
           sameMountDirs.push(dir);
           if (dir.isMountPoint()) {
             break;
           }
         }
         while (!sameMountDirs.empty()) {
-          InodeDirectoryView dir = sameMountDirs.pop();
+          ReadOnlyInodeDirectory dir = sameMountDirs.pop();
           if (!dir.isPersisted()) {
             mInodeTree.syncPersistExistingDirectory(rpcContext, dir);
           }
@@ -2189,16 +2189,16 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
    */
   private void propagatePersistedInternal(Supplier<JournalContext> journalContext,
       LockedInodePath inodePath) throws FileDoesNotExistException {
-    InodeView inode = inodePath.getInode();
+    ReadOnlyInode inode = inodePath.getInode();
 
-    List<InodeView> inodes = inodePath.getInodeList();
+    List<ReadOnlyInode> inodes = inodePath.getInodeList();
     // Traverse the inodes from target inode to the root.
     Collections.reverse(inodes);
     // Skip the first, to not examine the target inode itself.
     inodes = inodes.subList(1, inodes.size());
 
-    List<InodeView> persistedInodes = new ArrayList<>();
-    for (InodeView ancestor : inodes) {
+    List<ReadOnlyInode> persistedInodes = new ArrayList<>();
+    for (ReadOnlyInode ancestor : inodes) {
       // the path is already locked.
       AlluxioURI path = mInodeTree.getPath(ancestor);
       if (mMountTable.isMountPoint(path)) {
@@ -2247,7 +2247,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
   private void freeInternal(RpcContext rpcContext, LockedInodePath inodePath, FreeOptions options)
       throws FileDoesNotExistException, UnexpectedAlluxioException,
       IOException, InvalidPathException, AccessControlException {
-    InodeView inode = inodePath.getInode();
+    ReadOnlyInode inode = inodePath.getInode();
     if (inode.isDirectory() && !options.isRecursive()
         && mInodeStore.hasChildren(inode.asDirectory())) {
       // inode is nonempty, and we don't free a nonempty directory unless recursive is true
@@ -2255,12 +2255,12 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
           ExceptionMessage.CANNOT_FREE_NON_EMPTY_DIR.getMessage(mInodeTree.getPath(inode)));
     }
     long opTimeMs = System.currentTimeMillis();
-    List<InodeView> freeInodes = new ArrayList<>();
+    List<ReadOnlyInode> freeInodes = new ArrayList<>();
     freeInodes.add(inode);
     List<LockedInodePath> descendants = mInodeTree.getImplicitlyLockedDescendants(inodePath);
     descendants.add(inodePath);
     for (LockedInodePath descedant : descendants) {
-      InodeView freeInode = descedant.getInodeOrNull();
+      ReadOnlyInode freeInode = descedant.getInodeOrNull();
 
       if (freeInode != null && freeInode.isFile()) {
         if (freeInode.getPersistenceState() != PersistenceState.PERSISTED) {
@@ -2278,7 +2278,8 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
           setAttributeSingleFile(rpcContext, descedant, true, opTimeMs, setAttributeOptions);
         }
         // Remove corresponding blocks from workers.
-        mBlockMaster.removeBlocks(((InodeFileView) freeInode).getBlockIds(), false /* delete */);
+        mBlockMaster.removeBlocks(((ReadOnlyInodeFile) freeInode).getBlockIds(),
+            false /* delete */);
       }
     }
 
@@ -2377,7 +2378,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
       UnderFileSystem ufs = ufsResource.get();
       if (options.getUfsStatus() == null && !ufs.exists(ufsUri.toString())) {
         // uri does not exist in ufs
-        InodeDirectoryView inode = (InodeDirectoryView) inodePath.getInode();
+        ReadOnlyInodeDirectory inode = inodePath.getInode().asDirectory();
         mInodeTree.setDirectChildrenLoaded(rpcContext, inode);
         return;
       }
@@ -2444,7 +2445,8 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
               }
             }
           }
-          mInodeTree.setDirectChildrenLoaded(rpcContext, inodePath.getInode().asDirectory());
+          mInodeTree.setDirectChildrenLoaded(rpcContext,
+              (ReadOnlyInodeDirectory) inodePath.getInode());
         }
       }
     } catch (IOException e) {
@@ -2624,7 +2626,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
     boolean loadDirectChildren = false;
     if (inodeExists) {
       try {
-        InodeView inode = inodePath.getInode();
+        ReadOnlyInode inode = inodePath.getInode();
         loadDirectChildren =
             inode.isDirectory() && (options.getLoadDescendantType() != DescendantType.NONE);
       } catch (FileDoesNotExistException e) {
@@ -2887,7 +2889,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
 
   private void setUfsAcl(LockedInodePath inodePath)
       throws InvalidPathException, AccessControlException {
-    InodeView inode = inodePath.getInodeOrNull();
+    ReadOnlyInode inode = inodePath.getInodeOrNull();
 
     checkUfsMode(inodePath.getUri(), OperationType.WRITE);
     MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
@@ -2901,7 +2903,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
         try {
           List<AclEntry> entries = new ArrayList<>(inode.getACL().getEntries());
           if (inode.isDirectory()) {
-            InodeDirectoryView inodeDirectory = (InodeDirectoryView) inode;
+            ReadOnlyInodeDirectory inodeDirectory = (ReadOnlyInodeDirectory) inode;
             entries.addAll(inodeDirectory.getDefaultACL().getEntries());
           }
           ufs.setAclEntries(ufsUri, entries);
@@ -2917,7 +2919,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
       throws IOException, FileDoesNotExistException {
     Preconditions.checkState(inodePath.getLockPattern().isWrite());
 
-    InodeView inode = inodePath.getInode();
+    ReadOnlyInode inode = inodePath.getInode();
 
     // Check that we are not removing an extended mask.
     if (action == SetAclAction.REMOVE) {
@@ -3047,7 +3049,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
   private void setAttributeInternal(RpcContext rpcContext, LockedInodePath inodePath,
       SetAttributeOptions options)
       throws InvalidPathException, FileDoesNotExistException, AccessControlException, IOException {
-    InodeView targetInode = inodePath.getInode();
+    ReadOnlyInode targetInode = inodePath.getInode();
     long opTimeMs = System.currentTimeMillis();
     if (options.isRecursive() && targetInode.isDirectory()) {
       for (LockedInodePath childPath : mInodeTree.getImplicitlyLockedDescendants(inodePath)) {
@@ -3346,9 +3348,9 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
         DeleteOptions.defaults().setRecursive(true).setAlluxioOnly(true).setUnchecked(true);
 
     // The requested path already exists in Alluxio.
-    InodeView inode = inodePath.getInode();
+    ReadOnlyInode inode = inodePath.getInode();
 
-    if (inode instanceof InodeFileView && !((InodeFileView) inode).isCompleted()) {
+    if (inode instanceof ReadOnlyInodeFile && !((ReadOnlyInodeFile) inode).isCompleted()) {
       // Do not sync an incomplete file, since the UFS file is expected to not exist.
       return SyncResult.defaults();
     }
@@ -3418,12 +3420,12 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
         AlluxioURI mountUri = new AlluxioURI(mMountTable.getMountPoint(inodePath.getUri()));
         pathsToLoad.add(mountUri.getPath());
       }
-      if (syncPlan.toSyncChildren() && inode instanceof InodeDirectory
+      if (syncPlan.toSyncChildren() && inode.isDirectory()
           && syncDescendantType != DescendantType.NONE) {
-        InodeDirectoryView inodeDir = (InodeDirectoryView) inode;
+        ReadOnlyInodeDirectory inodeDir = (ReadOnlyInodeDirectory) inode;
         // maps children name to inode
-        Map<String, InodeView> inodeChildren = new HashMap<>();
-        for (InodeView child : mInodeStore.getChildren(inodeDir)) {
+        Map<String, ReadOnlyInode> inodeChildren = new HashMap<>();
+        for (ReadOnlyInode child : mInodeStore.getChildren(inodeDir)) {
           inodeChildren.put(child.getName(), child);
         }
 
@@ -3442,7 +3444,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
         }
 
         // Iterate over Alluxio children and process persisted children.
-        for (Map.Entry<String, InodeView> inodeEntry : inodeChildren.entrySet()) {
+        for (Map.Entry<String, ReadOnlyInode> inodeEntry : inodeChildren.entrySet()) {
           if (!inodeEntry.getValue().isPersisted()) {
             // Ignore non-persisted inodes.
             continue;
@@ -3504,7 +3506,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
   private void setAttributeSingleFile(RpcContext rpcContext, LockedInodePath inodePath,
       boolean updateUfs, long opTimeMs, SetAttributeOptions options)
       throws FileDoesNotExistException, InvalidPathException, AccessControlException {
-    InodeView inode = inodePath.getInode();
+    ReadOnlyInode inode = inodePath.getInode();
     if (options.getPinned() != null) {
       mInodeTree.setPinned(rpcContext, inodePath, options.getPinned(), opTimeMs);
     }
@@ -3526,9 +3528,9 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
     }
     if (options.getPersisted() != null) {
       Preconditions.checkArgument(inode.isFile(), PreconditionMessage.PERSIST_ONLY_FOR_FILE);
-      Preconditions.checkArgument(((InodeFileView) inode).isCompleted(),
+      Preconditions.checkArgument(((ReadOnlyInodeFile) inode).isCompleted(),
           PreconditionMessage.FILE_TO_PERSIST_MUST_BE_COMPLETE);
-      InodeFileView file = (InodeFileView) inode;
+      ReadOnlyInodeFile file = (ReadOnlyInodeFile) inode;
       // TODO(manugoyal) figure out valid behavior in the un-persist case
       Preconditions
           .checkArgument(options.getPersisted(), PreconditionMessage.ERR_SET_STATE_UNPERSIST);
@@ -3543,7 +3545,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
     boolean modeChanged = (options.getMode() != Constants.INVALID_MODE);
     // If the file is persisted in UFS, also update corresponding owner/group/permission.
     if ((ownerGroupChanged || modeChanged) && updateUfs && inode.isPersisted()) {
-      if ((inode instanceof InodeFileView) && !((InodeFileView) inode).isCompleted()) {
+      if ((inode instanceof ReadOnlyInodeFile) && !((ReadOnlyInodeFile) inode).isCompleted()) {
         LOG.debug("Alluxio does not propagate chown/chgrp/chmod to UFS for incomplete files.");
       } else {
         checkUfsMode(inodePath.getUri(), OperationType.WRITE);
@@ -3734,7 +3736,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
       try (JournalContext journalContext = createJournalContext();
            LockedInodePath inodePath = mInodeTree
                .lockFullInodePath(fileId, LockPattern.WRITE_INODE)) {
-        InodeFileView inode = inodePath.getInodeFile();
+        ReadOnlyInodeFile inode = inodePath.getInodeFile();
         switch (inode.getPersistenceState()) {
           case LOST:
             // fall through
@@ -3773,7 +3775,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
       AlluxioURI uri;
       String tempUfsPath;
       try (LockedInodePath inodePath = mInodeTree.lockFullInodePath(fileId, LockPattern.READ)) {
-        InodeFileView inode = inodePath.getInodeFile();
+        ReadOnlyInodeFile inode = inodePath.getInodeFile();
         uri = inodePath.getUri();
         switch (inode.getPersistenceState()) {
           case LOST:
@@ -3821,7 +3823,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
       try (JournalContext journalContext = createJournalContext();
            LockedInodePath inodePath = mInodeTree
                .lockFullInodePath(fileId, LockPattern.WRITE_INODE)) {
-        InodeFileView inode = inodePath.getInodeFile();
+        ReadOnlyInodeFile inode = inodePath.getInodeFile();
         mInodeTree.updateInodeFile(journalContext, UpdateInodeFileEntry.newBuilder()
             .setId(inode.getId())
             .setPersistJobId(jobId)
@@ -3937,7 +3939,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
       try (JournalContext journalContext = createJournalContext();
           LockedInodePath inodePath = mInodeTree
               .lockFullInodePath(fileId, LockPattern.WRITE_INODE)) {
-        InodeFileView inode = inodePath.getInodeFile();
+        ReadOnlyInodeFile inode = inodePath.getInodeFile();
         MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
         ufsClient = mUfsManager.get(resolution.getMountId());
         switch (inode.getPersistenceState()) {
@@ -4301,7 +4303,8 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
    * @return newly-created {@link FileSystemMasterAuditContext} instance
    */
   private FileSystemMasterAuditContext createAuditContext(String command, AlluxioURI srcPath,
-      @Nullable AlluxioURI dstPath, @Nullable InodeView srcInode) throws AccessControlException {
+      @Nullable AlluxioURI dstPath, @Nullable ReadOnlyInode srcInode)
+      throws AccessControlException {
     FileSystemMasterAuditContext auditContext =
         new FileSystemMasterAuditContext(mAsyncAuditLogWriter);
     if (mAsyncAuditLogWriter != null) {

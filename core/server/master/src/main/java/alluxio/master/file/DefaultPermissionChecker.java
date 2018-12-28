@@ -18,7 +18,7 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.PreconditionMessage;
 import alluxio.master.file.meta.InodeTree;
-import alluxio.master.file.meta.InodeView;
+import alluxio.master.file.meta.ReadOnlyInode;
 import alluxio.master.file.meta.LockedInodePath;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.authorization.AclAction;
@@ -74,7 +74,7 @@ public class DefaultPermissionChecker implements PermissionChecker {
 
     // collects existing inodes info on the path. Note that, not all the components of the path have
     // corresponding inodes.
-    List<InodeView> inodeList = inodePath.getInodeList();
+    List<ReadOnlyInode> inodeList = inodePath.getInodeList();
 
     // collects user and groups
     String user = AuthenticatedClientUser.getClientUser();
@@ -95,7 +95,7 @@ public class DefaultPermissionChecker implements PermissionChecker {
     }
 
     // collects inodes info on the path
-    List<InodeView> inodeList = inodePath.getInodeList();
+    List<ReadOnlyInode> inodeList = inodePath.getInodeList();
 
     // collects user and groups
     String user = AuthenticatedClientUser.getClientUser();
@@ -110,7 +110,7 @@ public class DefaultPermissionChecker implements PermissionChecker {
       return Mode.Bits.NONE;
     }
     // collects inodes info on the path
-    List<InodeView> inodeList = inodePath.getInodeList();
+    List<ReadOnlyInode> inodeList = inodePath.getInodeList();
 
     // collects user and groups
     try {
@@ -164,7 +164,7 @@ public class DefaultPermissionChecker implements PermissionChecker {
   private void checkOwner(LockedInodePath inodePath)
       throws AccessControlException, InvalidPathException {
     // collects inodes info on the path
-    List<InodeView> inodeList = inodePath.getInodeList();
+    List<ReadOnlyInode> inodeList = inodePath.getInodeList();
 
     // collects user and groups
     String user = AuthenticatedClientUser.getClientUser();
@@ -207,10 +207,11 @@ public class DefaultPermissionChecker implements PermissionChecker {
    * @throws AccessControlException if permission checking fails
    */
   protected void checkInodeList(String user, List<String> groups, Mode.Bits bits,
-      String path, List<InodeView> inodeList, boolean checkIsOwner) throws AccessControlException {
+      String path, List<ReadOnlyInode> inodeList, boolean checkIsOwner)
+      throws AccessControlException {
     int size = inodeList.size();
-    Preconditions
-        .checkArgument(size > 0, PreconditionMessage.EMPTY_FILE_INFO_LIST_FOR_PERMISSION_CHECK);
+    Preconditions.checkArgument(size > 0,
+        PreconditionMessage.EMPTY_FILE_INFO_LIST_FOR_PERMISSION_CHECK);
 
     // bypass checking permission for super user or super group of Alluxio file system.
     if (isPrivilegedUser(user, groups)) {
@@ -222,7 +223,7 @@ public class DefaultPermissionChecker implements PermissionChecker {
       checkInode(user, groups, inodeList.get(i), Mode.Bits.EXECUTE, path);
     }
 
-    InodeView inode = inodeList.get(inodeList.size() - 1);
+    ReadOnlyInode inode = inodeList.get(inodeList.size() - 1);
     if (checkIsOwner) {
       if (inode == null || user.equals(inode.getOwner())) {
         return;
@@ -243,7 +244,7 @@ public class DefaultPermissionChecker implements PermissionChecker {
    * @param path the path to check permission on
    * @throws AccessControlException if permission checking fails
    */
-  private void checkInode(String user, List<String> groups, InodeView inode, Mode.Bits bits,
+  private void checkInode(String user, List<String> groups, ReadOnlyInode inode, Mode.Bits bits,
       String path) throws AccessControlException {
     if (inode == null) {
       return;
@@ -266,10 +267,10 @@ public class DefaultPermissionChecker implements PermissionChecker {
    * @return the permission
    */
   private Mode.Bits getPermissionInternal(String user, List<String> groups, String path,
-      List<InodeView> inodeList) {
+      List<ReadOnlyInode> inodeList) {
     int size = inodeList.size();
-    Preconditions
-        .checkArgument(size > 0, PreconditionMessage.EMPTY_FILE_INFO_LIST_FOR_PERMISSION_CHECK);
+    Preconditions.checkArgument(size > 0,
+        PreconditionMessage.EMPTY_FILE_INFO_LIST_FOR_PERMISSION_CHECK);
 
     // bypass checking permission for super user or super group of Alluxio file system.
     if (isPrivilegedUser(user, groups)) {
@@ -285,7 +286,7 @@ public class DefaultPermissionChecker implements PermissionChecker {
       }
     }
 
-    InodeView inode = inodeList.get(inodeList.size() - 1);
+    ReadOnlyInode inode = inodeList.get(inodeList.size() - 1);
     if (inode == null) {
       return Mode.Bits.NONE;
     }
@@ -298,7 +299,7 @@ public class DefaultPermissionChecker implements PermissionChecker {
   }
 
   private static String toExceptionMessage(String user, Mode.Bits bits, String path,
-      InodeView inode) {
+      ReadOnlyInode inode) {
     StringBuilder sb =
         new StringBuilder().append("user=").append(user).append(", ").append("access=").append(bits)
             .append(", ").append("path=").append(path).append(": ").append("failed at ")

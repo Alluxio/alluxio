@@ -29,9 +29,10 @@ import alluxio.master.file.meta.InodeDirectoryIdGenerator;
 import alluxio.master.file.meta.InodeFile;
 import alluxio.master.file.meta.InodeTree;
 import alluxio.master.file.meta.InodeTree.LockPattern;
-import alluxio.master.file.meta.InodeView;
 import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.file.meta.MountTable;
+import alluxio.master.file.meta.ReadOnlyInode;
+import alluxio.master.file.meta.ReadOnlyInodeFile;
 import alluxio.master.file.meta.options.MountInfo;
 import alluxio.master.file.options.CreateFileOptions;
 import alluxio.master.file.options.CreatePathOptions;
@@ -162,14 +163,14 @@ public final class ReplicationCheckerTest {
    */
   private long createBlockHelper(AlluxioURI path, CreatePathOptions<?> options) throws Exception {
     try (LockedInodePath inodePath = mInodeTree.lockInodePath(path, LockPattern.WRITE_EDGE)) {
-      List<InodeView> created = mInodeTree.createPath(RpcContext.NOOP, inodePath, options);
+      List<ReadOnlyInode> created = mInodeTree.createPath(RpcContext.NOOP, inodePath, options);
 
-      InodeFile inodeFile = (InodeFile) created.get(0);
+      InodeFile inodeFile = (InodeFile) mInodeStore.getMutable(created.get(0).getId()).get();
       inodeFile.setBlockSizeBytes(1);
       inodeFile.setBlockIds(Arrays.asList(inodeFile.getNewBlockId()));
       inodeFile.setCompleted(true);
       mInodeStore.writeInode(inodeFile);
-      return ((InodeFile) created.get(0)).getBlockIdByIndex(0);
+      return ((ReadOnlyInodeFile) created.get(0)).getBlockIdByIndex(0);
     }
   }
 
