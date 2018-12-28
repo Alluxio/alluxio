@@ -136,7 +136,8 @@ public class BaseInodeLockingTest {
 
   protected ReadOnlyInodeDirectory inodeDir(long id, long parentId, String name,
       ReadOnlyInode... children) {
-    InodeDirectory dir = InodeDirectory.create(id, parentId, name, CreateDirectoryOptions.defaults());
+    InodeDirectory dir =
+        InodeDirectory.create(id, parentId, name, CreateDirectoryOptions.defaults());
     mInodeStore.writeInode(dir);
     for (ReadOnlyInode child : children) {
       mInodeStore.addChild(dir.getId(), child);
