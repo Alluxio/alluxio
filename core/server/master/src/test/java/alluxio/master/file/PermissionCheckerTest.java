@@ -27,12 +27,12 @@ import alluxio.master.MasterTestUtils;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.block.BlockMasterFactory;
 import alluxio.master.file.meta.Inode;
+import alluxio.master.file.meta.MutableInode;
 import alluxio.master.file.meta.InodeDirectoryIdGenerator;
 import alluxio.master.file.meta.InodeTree;
 import alluxio.master.file.meta.InodeTree.LockPattern;
 import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.file.meta.MountTable;
-import alluxio.master.file.meta.ReadOnlyInode;
 import alluxio.master.file.meta.options.MountInfo;
 import alluxio.master.file.options.CreateFileOptions;
 import alluxio.master.journal.NoopJournalContext;
@@ -229,8 +229,8 @@ public final class PermissionCheckerTest {
       throws Exception {
     try (LockedInodePath inodePath =
         sTree.lockInodePath(new AlluxioURI(path), LockPattern.WRITE_EDGE)) {
-      List<ReadOnlyInode> result = sTree.createPath(RpcContext.NOOP, inodePath, option);
-      Inode<?> inode = sInodeStore.getMutable(result.get(result.size() - 1).getId()).get();
+      List<Inode> result = sTree.createPath(RpcContext.NOOP, inodePath, option);
+      MutableInode<?> inode = sInodeStore.getMutable(result.get(result.size() - 1).getId()).get();
       inode.setOwner(option.getOwner())
           .setGroup(option.getGroup())
           .setMode(option.getMode().toShort());
@@ -243,7 +243,7 @@ public final class PermissionCheckerTest {
    * @param expectedInodes the expected inodes names
    * @param inodes the inodes for test
    */
-  private static void verifyInodesList(String[] expectedInodes, List<ReadOnlyInode> inodes) {
+  private static void verifyInodesList(String[] expectedInodes, List<Inode> inodes) {
     String[] inodesName = new String[inodes.size()];
     for (int i = 0; i < inodes.size(); i++) {
       inodesName[i] = inodes.get(i).getName();

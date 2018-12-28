@@ -11,8 +11,8 @@
 
 package alluxio.master.metastore;
 
+import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeDirectoryView;
-import alluxio.master.file.meta.ReadOnlyInode;
 
 import java.util.Optional;
 
@@ -35,17 +35,17 @@ public class DelegatingReadOnlyInodeStore implements ReadOnlyInodeStore {
   }
 
   @Override
-  public Optional<ReadOnlyInode> get(long id) {
+  public Optional<Inode> get(long id) {
     return mDelegate.get(id);
   }
 
   @Override
-  public Iterable<? extends ReadOnlyInode> getChildren(InodeDirectoryView inode) {
+  public Iterable<? extends Inode> getChildren(InodeDirectoryView inode) {
     return mDelegate.getChildren(inode);
   }
 
   @Override
-  public Optional<ReadOnlyInode> getChild(InodeDirectoryView inode, String name) {
+  public Optional<Inode> getChild(InodeDirectoryView inode, String name) {
     return mDelegate.getChild(inode, name);
   }
 

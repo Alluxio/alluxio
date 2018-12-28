@@ -41,20 +41,20 @@ public abstract class AbstractInodeTest {
   }
 
   /**
-   * @return the {@link InodeDirectory} representation
+   * @return the inode directory representation
    */
-  protected static InodeDirectory createInodeDirectory() {
-    return InodeDirectory.create(1, 0, "test1",
+  protected static MutableInodeDirectory createInodeDirectory() {
+    return MutableInodeDirectory.create(1, 0, "test1",
         CreateDirectoryOptions.defaults().setOwner(TEST_OWNER).setGroup(TEST_GROUP)
             .setMode(TEST_DIR_MODE));
   }
 
   /**
    * @param id block container id of this inode
-   * @return the {@link InodeFile} representation
+   * @return the inode file representation
    */
-  protected InodeFile createInodeFile(long id) {
-    return InodeFile.create(id, 1, "testFile" + id, 0,
+  protected MutableInodeFile createInodeFile(long id) {
+    return MutableInodeFile.create(id, 1, "testFile" + id, 0,
         CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB).setOwner(TEST_OWNER)
             .setGroup(TEST_GROUP).setMode(TEST_FILE_MODE));
   }

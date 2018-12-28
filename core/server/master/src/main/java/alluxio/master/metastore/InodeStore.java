@@ -11,9 +11,9 @@
 
 package alluxio.master.metastore;
 
-import alluxio.master.file.meta.Inode;
+import alluxio.master.file.meta.MutableInode;
 import alluxio.master.file.meta.InodeView;
-import alluxio.master.file.meta.ReadOnlyInode;
+import alluxio.master.file.meta.Inode;
 
 import java.util.Optional;
 
@@ -28,11 +28,11 @@ public interface InodeStore extends ReadOnlyInodeStore {
    * @param id an inode id
    * @return the inode with the given id, if it exists
    */
-  Optional<Inode<?>> getMutable(long id);
+  Optional<MutableInode<?>> getMutable(long id);
 
   @Override
-  default Optional<ReadOnlyInode> get(long id) {
-    return getMutable(id).map(inode -> ReadOnlyInode.wrap(inode));
+  default Optional<Inode> get(long id) {
+    return getMutable(id).map(inode -> Inode.wrap(inode));
   }
 
   /**
@@ -47,7 +47,7 @@ public interface InodeStore extends ReadOnlyInodeStore {
    *
    * @param inode the inode to write
    */
-  void writeInode(Inode<?> inode);
+  void writeInode(MutableInode<?> inode);
 
   /**
    * Removes all inodes and edges.

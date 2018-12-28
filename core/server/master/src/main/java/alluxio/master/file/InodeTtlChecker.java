@@ -19,7 +19,7 @@ import alluxio.master.ProtobufUtils;
 import alluxio.master.file.meta.InodeTree;
 import alluxio.master.file.meta.InodeTree.LockPattern;
 import alluxio.master.file.meta.LockedInodePath;
-import alluxio.master.file.meta.ReadOnlyInode;
+import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.TtlBucket;
 import alluxio.master.file.meta.TtlBucketList;
 import alluxio.master.file.options.DeleteOptions;
@@ -59,7 +59,7 @@ final class InodeTtlChecker implements HeartbeatExecutor {
   public void heartbeat() {
     Set<TtlBucket> expiredBuckets = mTtlBuckets.getExpiredBuckets(System.currentTimeMillis());
     for (TtlBucket bucket : expiredBuckets) {
-      for (ReadOnlyInode inode : bucket.getInodes()) {
+      for (Inode inode : bucket.getInodes()) {
         AlluxioURI path = null;
         try (LockedInodePath inodePath =
             mInodeTree.lockFullInodePath(inode.getId(), LockPattern.READ)) {

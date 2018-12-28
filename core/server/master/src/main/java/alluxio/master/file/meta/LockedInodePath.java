@@ -60,7 +60,7 @@ public class LockedInodePath implements Closeable {
    * The root inode of the inode tree. This is needed to bootstrap the inode path. After traverse(),
    * this will always be the first inode in mExistingInodes.
    */
-  private final ReadOnlyInode mRoot;
+  private final Inode mRoot;
   /** Inode store for looking up children. */
   private final ReadOnlyInodeStore mInodeStore;
 
@@ -75,7 +75,7 @@ public class LockedInodePath implements Closeable {
    *
    * mLockList.getLockedInodes() is always an inclusive prefix of this list.
    */
-  protected final List<ReadOnlyInode> mExistingInodes;
+  protected final List<Inode> mExistingInodes;
   /** Lock list locking some portion of the path according to mLockPattern. */
   protected final InodeLockList mLockList;
   /** The locking pattern. */
@@ -91,7 +91,7 @@ public class LockedInodePath implements Closeable {
    * @param lockPattern the pattern to lock in
    */
   public LockedInodePath(AlluxioURI uri, ReadOnlyInodeStore inodeStore,
-      InodeLockManager inodeLockManager, ReadOnlyInodeDirectory root, LockPattern lockPattern)
+      InodeLockManager inodeLockManager, InodeDirectory root, LockPattern lockPattern)
       throws InvalidPathException {
     mUri = uri;
     mPathComponents = PathUtils.getPathComponents(uri.getPath());
@@ -126,8 +126,8 @@ public class LockedInodePath implements Closeable {
    * @return the target inode
    * @throws FileDoesNotExistException if the target inode does not exist
    */
-  public ReadOnlyInode getInode() throws FileDoesNotExistException {
-    ReadOnlyInode inode = getInodeOrNull();
+  public Inode getInode() throws FileDoesNotExistException {
+    Inode inode = getInodeOrNull();
     if (inode == null) {
       throw new FileDoesNotExistException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(mUri));
     }
@@ -138,7 +138,7 @@ public class LockedInodePath implements Closeable {
    * @return the target inode, or null if it does not exist
    */
   @Nullable
-  public ReadOnlyInode getInodeOrNull() {
+  public Inode getInodeOrNull() {
     if (!fullPathExists()) {
       return null;
     }
@@ -146,11 +146,11 @@ public class LockedInodePath implements Closeable {
   }
 
   /**
-   * @return the target inode as an {@link InodeFile}
+   * @return the target inode as an {@link MutableInodeFile}
    * @throws FileDoesNotExistException if the target inode does not exist, or it is not a file
    */
-  public ReadOnlyInodeFile getInodeFile() throws FileDoesNotExistException {
-    ReadOnlyInode inode = getInode();
+  public InodeFile getInodeFile() throws FileDoesNotExistException {
+    Inode inode = getInode();
     if (!inode.isFile()) {
       throw new FileDoesNotExistException(ExceptionMessage.PATH_MUST_BE_FILE.getMessage(mUri));
     }
@@ -162,9 +162,9 @@ public class LockedInodePath implements Closeable {
    * @throws InvalidPathException if the parent inode is not a directory
    * @throws FileDoesNotExistException if the parent of the target does not exist
    */
-  public ReadOnlyInodeDirectory getParentInodeDirectory()
+  public InodeDirectory getParentInodeDirectory()
       throws InvalidPathException, FileDoesNotExistException {
-    ReadOnlyInode inode = getParentInodeOrNull();
+    Inode inode = getParentInodeOrNull();
     if (inode == null) {
       throw new FileDoesNotExistException(
           ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(mUri.getParent()));
@@ -173,14 +173,14 @@ public class LockedInodePath implements Closeable {
       throw new InvalidPathException(
           ExceptionMessage.PATH_MUST_HAVE_VALID_PARENT.getMessage(mUri));
     }
-    return (ReadOnlyInodeDirectory) inode;
+    return (InodeDirectory) inode;
   }
 
   /**
    * @return the parent of the target inode, or null if the parent does not exist
    */
   @Nullable
-  public ReadOnlyInode getParentInodeOrNull() {
+  public Inode getParentInodeOrNull() {
     if (mPathComponents.length < 2 || mExistingInodes.size() < (mPathComponents.length - 1)) {
       // The path is only the root, or the list of inodes is not long enough to contain the parent
       return null;
@@ -192,14 +192,14 @@ public class LockedInodePath implements Closeable {
    * @return the last existing inode on the inode path. This could be out of date if the current
    *         thread has added or deleted inodes since the last call to traverse()
    */
-  public ReadOnlyInode getLastExistingInode() {
+  public Inode getLastExistingInode() {
     return mExistingInodes.get(mExistingInodes.size() - 1);
   }
 
   /**
    * @return a copy of the list of existing inodes, from the root
    */
-  public List<ReadOnlyInode> getInodeList() {
+  public List<Inode> getInodeList() {
     return new ArrayList<>(mExistingInodes);
   }
 
@@ -257,7 +257,7 @@ public class LockedInodePath implements Closeable {
    *
    * @param inode the inode to add
    */
-  public void addNextInode(ReadOnlyInode inode) {
+  public void addNextInode(Inode inode) {
     Preconditions.checkState(mLockPattern == LockPattern.WRITE_EDGE);
     Preconditions.checkState(!fullPathExists());
     Preconditions.checkState(inode.getName().equals(mPathComponents[mExistingInodes.size()]));
@@ -322,7 +322,7 @@ public class LockedInodePath implements Closeable {
    * @return the closest ancestor inode
    * @throws FileDoesNotExistException if an ancestor does not exist
    */
-  public ReadOnlyInode getAncestorInode() throws FileDoesNotExistException {
+  public Inode getAncestorInode() throws FileDoesNotExistException {
     int ancestorIndex = mPathComponents.length - 2;
     if (ancestorIndex < 0) {
       throw new FileDoesNotExistException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(mUri));
@@ -363,13 +363,13 @@ public class LockedInodePath implements Closeable {
    * @param lockPattern the lock pattern
    * @return the new locked path
    */
-  public LockedInodePath lockChild(ReadOnlyInode child, LockPattern lockPattern)
+  public LockedInodePath lockChild(Inode child, LockPattern lockPattern)
       throws InvalidPathException {
     return lockChild(child, lockPattern, addComponent(mPathComponents, child.getName()));
   }
 
   /**
-   * Efficient version of {@link #lockChild(ReadOnlyInode, LockPattern)} for when the child path
+   * Efficient version of {@link #lockChild(Inode, LockPattern)} for when the child path
    * components are already known.
    *
    * @param child the child inode
@@ -377,7 +377,7 @@ public class LockedInodePath implements Closeable {
    * @param childComponentsHint path components for the new path
    * @return the new locked path
    */
-  public LockedInodePath lockChild(ReadOnlyInode child, LockPattern lockPattern,
+  public LockedInodePath lockChild(Inode child, LockPattern lockPattern,
       String[] childComponentsHint) throws InvalidPathException {
     LockedInodePath path =
         new LockedInodePath(mUri.join(child.getName()), this, childComponentsHint, lockPattern);
@@ -447,13 +447,13 @@ public class LockedInodePath implements Closeable {
           mLockList.lockEdge(nextComponent, LockMode.READ);
         }
       } else { // Lock an inode next.
-        ReadOnlyInode lastInode = mLockList.getLockedInodes().get(lastInodeIndex);
+        Inode lastInode = mLockList.getLockedInodes().get(lastInodeIndex);
         if (!lastInode.isDirectory()) {
           throw new InvalidPathException(String.format(
               "Traversal failed for path %s. Component %s(%s) is a file, not a directory.", mUri,
               lastInodeIndex, lastInode.getName()));
         }
-        Optional<ReadOnlyInode> nextInodeOpt =
+        Optional<Inode> nextInodeOpt =
             mInodeStore.getChild(lastInode.asDirectory(), nextComponent);
         if (!nextInodeOpt.isPresent() && mLockPattern == LockPattern.WRITE_EDGE
             && !isFinalComponent) {
@@ -475,7 +475,7 @@ public class LockedInodePath implements Closeable {
           }
           return;
         }
-        ReadOnlyInode nextInode = nextInodeOpt.get();
+        Inode nextInode = nextInodeOpt.get();
 
         if (isFinalComponent) {
           if (mLockPattern == LockPattern.READ) {
@@ -528,13 +528,13 @@ public class LockedInodePath implements Closeable {
     }
 
     for (int i = mExistingInodes.size(); i < mPathComponents.length; i++) {
-      ReadOnlyInode lastInode = mExistingInodes.get(i - 1);
+      Inode lastInode = mExistingInodes.get(i - 1);
       if (lastInode.isFile()) {
         throw new InvalidPathException(String.format(
             "Traversal failed for path %s. Component %s(%s) is a file, not a directory.", mUri,
             i - 1, lastInode.getName()));
       }
-      Optional<ReadOnlyInode> nextInode =
+      Optional<Inode> nextInode =
           mInodeStore.getChild(lastInode.asDirectory(), mPathComponents[i]);
       if (!nextInode.isPresent()) {
         return;
