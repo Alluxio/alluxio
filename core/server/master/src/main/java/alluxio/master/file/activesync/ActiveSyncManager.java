@@ -234,21 +234,17 @@ public class ActiveSyncManager implements JournalEntryIterable, JournalEntryRepl
    * @param context journal context
    * @param entry addSyncPoint entry
    * @param resolution mount table resolution for the sync point contained in the entry
-   * @return true if successfully applied and journaled
    */
-  public boolean applyAndJournal(Supplier<JournalContext> context, AddSyncPointEntry entry,
+  public void applyAndJournal(Supplier<JournalContext> context, AddSyncPointEntry entry,
       MountTable.Resolution resolution) {
     AlluxioURI uri = new AlluxioURI(entry.getSyncpointPath());
-    boolean launchPollingThread;
     try {
-      launchPollingThread = startSyncInternal(uri, resolution);
+      startSyncInternal(uri, resolution);
       context.get().append(Journal.JournalEntry.newBuilder().setAddSyncPoint(entry).build());
     } catch (Throwable t) {
       ProcessUtils.fatalError(LOG, t, "Failed to apply %s", entry);
       throw t; // fatalError will usually system.exit
     }
-
-    return launchPollingThread;
   }
 
   /**
@@ -288,33 +284,29 @@ public class ActiveSyncManager implements JournalEntryIterable, JournalEntryRepl
     }
   }
 
-  private boolean startSyncInternal(AlluxioURI syncPoint, MountTable.Resolution resolution) {
+  private void startSyncInternal(AlluxioURI syncPoint, MountTable.Resolution resolution) {
     LOG.debug("adding syncPoint {}", syncPoint.getPath());
-    if (!isActivelySynced(syncPoint)) {
-      long mountId = resolution.getMountId();
-      try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
-        Future<?> syncFuture = mExecutorService.submit(
-            () -> {
-              try {
-                ufsResource.get().startSync(resolution.getUri());
-              } catch (IOException e) {
-                LOG.info(ExceptionMessage.FAILED_INITIAL_SYNC.getMessage(
-                    resolution.getUri()), e);
-              }
-            });
-        mSyncPathStatus.put(syncPoint, syncFuture);
-        // Add the new sync point to the filter map
-        if (mFilterMap.containsKey(mountId)) {
-          mFilterMap.get(mountId).add(syncPoint);
-        } else {
-          mFilterMap.put(mountId, new CopyOnWriteArrayList<>(Arrays.asList(syncPoint)));
-        }
-        // Add to the sync point list
-        mSyncPathList.add(syncPoint);
+
+    long mountId = resolution.getMountId();
+    try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
+      Future<?> syncFuture = mExecutorService.submit(
+          () -> {
+            try {
+              ufsResource.get().startSync(resolution.getUri());
+            } catch (IOException e) {
+              LOG.info(ExceptionMessage.FAILED_INITIAL_SYNC.getMessage(
+                  resolution.getUri()), e);
+            }
+          });
+      mSyncPathStatus.put(syncPoint, syncFuture);
+      // Add the new sync point to the filter map
+      if (mFilterMap.containsKey(mountId)) {
+        mFilterMap.get(mountId).add(syncPoint);
+      } else {
+        mFilterMap.put(mountId, new CopyOnWriteArrayList<>(Arrays.asList(syncPoint)));
       }
-      return true;
-    } else {
-      return false;
+      // Add to the sync point list
+      mSyncPathList.add(syncPoint);
     }
   }
 

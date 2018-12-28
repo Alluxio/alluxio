@@ -3630,24 +3630,31 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
               + ufsResource.get().getUnderFSType());
         }
       }
+
+      if (mSyncManager.isActivelySynced(uri)) {
+        throw new InvalidPathException("URI" + uri + " is already a sync point");
+      }
       AddSyncPointEntry addSyncPoint =
           AddSyncPointEntry.newBuilder()
               .setSyncpointPath(uri.toString())
               .setMountId(mountId)
               .build();
-      boolean success = mSyncManager.applyAndJournal(rpcContext, addSyncPoint, resolution);
-      if (success) {
-        mSyncManager.launchPollingThread(mountId, SyncInfo.INVALID_TXID);
-        try {
-          if (Configuration.getBoolean(PropertyKey.MASTER_ACTIVE_UFS_SYNC_INITIAL_SYNC)) {
-            activeSyncMetadata(uri, null, mSyncManager.getExecutor());
-          }
-        } catch (IOException e) {
-          LOG.warn("Network connection error causing initial sync to fail for {}", uri);
-          mSyncManager.stopSyncInternal(uri, resolution);
-          throw new ConnectionFailedException("Add sync point"
-              + uri.toString() + "failed because of network error");
+      mSyncManager.applyAndJournal(rpcContext, addSyncPoint, resolution);
+      mSyncManager.launchPollingThread(mountId, SyncInfo.INVALID_TXID);
+      try {
+        if (Configuration.getBoolean(PropertyKey.MASTER_ACTIVE_UFS_SYNC_INITIAL_SYNC)) {
+          activeSyncMetadata(uri, null, mSyncManager.getExecutor());
         }
+      } catch (IOException e) {
+        LOG.warn("Network connection error causing initial sync to fail for {}", uri);
+
+        RemoveSyncPointEntry removeSyncPoint =
+            File.RemoveSyncPointEntry.newBuilder()
+                .setSyncpointPath(uri.toString()).build();
+        mSyncManager.applyAndJournal(rpcContext, removeSyncPoint, resolution);
+
+        throw new ConnectionFailedException("Add sync point"
+            + uri.toString() + "failed because of network error");
       }
     } catch (InvalidPathException e) {
       LOG.info("Exception occurred while trying to resolve {}, exception is {}", uri, e);
