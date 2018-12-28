@@ -195,8 +195,9 @@ public final class ConfigurationUtils {
    */
   public static boolean jobMasterHostConfigured() {
     boolean usingZk = Configuration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED)
-        && Configuration.containsKey(PropertyKey.ZOOKEEPER_ADDRESS);
-    return Configuration.isSet(PropertyKey.JOB_MASTER_HOSTNAME) || usingZk;
+        && Configuration.isSet(PropertyKey.ZOOKEEPER_ADDRESS);
+    return Configuration.isSet(PropertyKey.JOB_MASTER_HOSTNAME) || usingZk
+        || getJobMasterRpcAddresses(Configuration.global()).size() > 1;
   }
 
   /**
