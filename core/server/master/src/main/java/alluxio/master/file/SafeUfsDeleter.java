@@ -16,10 +16,9 @@ import alluxio.collections.Pair;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
-import alluxio.master.file.meta.InodeDirectory;
-import alluxio.master.file.meta.InodeView;
 import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.file.meta.MountTable;
+import alluxio.master.file.meta.ReadOnlyInode;
 import alluxio.master.file.options.DeleteOptions;
 import alluxio.master.metastore.ReadOnlyInodeStore;
 import alluxio.resource.CloseableResource;
@@ -61,18 +60,18 @@ public final class SafeUfsDeleter implements UfsDeleter {
       mUfsSyncChecker = new UfsSyncChecker(mMountTable, inodeStore);
       for (Pair<AlluxioURI, LockedInodePath> inodePair : inodes) {
         AlluxioURI alluxioUri = inodePair.getFirst();
-        InodeView inode = inodePair.getSecond().getInodeOrNull();
+        ReadOnlyInode inode = inodePair.getSecond().getInodeOrNull();
         // Mount points are not deleted recursively as we need to preserve the directory itself
         if (inode != null && inode.isPersisted() && inode.isDirectory()
             && !mMountTable.isMountPoint(alluxioUri)) {
-          mUfsSyncChecker.checkDirectory((InodeDirectory) inode, alluxioUri);
+          mUfsSyncChecker.checkDirectory(inode.asDirectory(), alluxioUri);
         }
       }
     }
   }
 
   @Override
-  public void delete(AlluxioURI alluxioUri, InodeView inode)
+  public void delete(AlluxioURI alluxioUri, ReadOnlyInode inode)
       throws IOException, InvalidPathException {
     MountTable.Resolution resolution = mMountTable.resolve(alluxioUri);
     String ufsUri = resolution.getUri().toString();

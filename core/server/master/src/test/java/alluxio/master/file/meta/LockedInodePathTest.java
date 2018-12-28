@@ -307,7 +307,7 @@ public class LockedInodePathTest extends BaseInodeLockingTest {
     mPath = create("/a/missing", LockPattern.WRITE_EDGE);
 
     assertFalse(mPath.fullPathExists());
-    InodeFile missingInode = inodeFile(10, mDirA.getId(), "missing");
+    ReadOnlyInodeFile missingInode = inodeFile(10, mDirA.getId(), "missing");
     mInodeStore.addChild(mDirA.getId(), missingInode);
     mPath.addNextInode(missingInode);
     assertTrue(mPath.fullPathExists());
@@ -324,7 +324,7 @@ public class LockedInodePathTest extends BaseInodeLockingTest {
     mPath = create("/a/miss1/miss2", LockPattern.WRITE_EDGE);
 
     assertFalse(mPath.fullPathExists());
-    InodeFile firstMissingInode = inodeFile(10, mDirA.getId(), "miss1");
+    ReadOnlyInodeFile firstMissingInode = inodeFile(10, mDirA.getId(), "miss1");
     mInodeStore.addChild(mDirA.getId(), firstMissingInode);
     mPath.addNextInode(firstMissingInode);
     assertFalse(mPath.fullPathExists());

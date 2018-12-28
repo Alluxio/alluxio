@@ -37,12 +37,12 @@ public class BaseInodeLockingTest {
   protected InodeStore mInodeStore = new HeapInodeStore();
 
   // Directory structure is /a/b/c
-  protected InodeFileView mFileC = inodeFile(3, 2, "c");
-  protected InodeDirectoryView mDirB = inodeDir(2, 1, "b", mFileC);
-  protected InodeDirectoryView mDirA = inodeDir(1, 0, "a", mDirB);
-  protected InodeDirectoryView mRootDir = inodeDir(0, -1, "", mDirA);
+  protected ReadOnlyInodeFile mFileC = inodeFile(3, 2, "c");
+  protected ReadOnlyInodeDirectory mDirB = inodeDir(2, 1, "b", mFileC);
+  protected ReadOnlyInodeDirectory mDirA = inodeDir(1, 0, "a", mDirB);
+  protected ReadOnlyInodeDirectory mRootDir = inodeDir(0, -1, "", mDirA);
 
-  protected List<InodeView> mAllInodes = Arrays.asList(mRootDir, mDirA, mDirB, mFileC);
+  protected List<ReadOnlyInode> mAllInodes = Arrays.asList(mRootDir, mDirA, mDirB, mFileC);
 
   @After
   public void after() {
@@ -56,13 +56,13 @@ public class BaseInodeLockingTest {
   /**
    * Checks that only the specified inodes are read-locked.
    */
-  protected void checkOnlyNodesReadLocked(InodeView... inodes) {
-    HashSet<InodeView> shouldBeLocked = new HashSet<>(Arrays.asList(inodes));
-    for (InodeView inode : inodes) {
+  protected void checkOnlyNodesReadLocked(ReadOnlyInode... inodes) {
+    HashSet<ReadOnlyInode> shouldBeLocked = new HashSet<>(Arrays.asList(inodes));
+    for (ReadOnlyInode inode : inodes) {
       assertTrue("Expected inode " + inode.getId() + " to be read locked",
           mInodeLockManager.inodeReadLockedByCurrentThread(inode.getId()));
     }
-    for (InodeView inode : mAllInodes) {
+    for (ReadOnlyInode inode : mAllInodes) {
       if (!shouldBeLocked.contains(inode)) {
         assertFalse("Expected inode " + inode.getId() + " to not be read locked",
             mInodeLockManager.inodeReadLockedByCurrentThread(inode.getId()));
@@ -73,13 +73,13 @@ public class BaseInodeLockingTest {
   /**
    * Checks that only the specified inodes are write-locked.
    */
-  protected void checkOnlyNodesWriteLocked(InodeView... inodes) {
-    HashSet<InodeView> shouldBeLocked = new HashSet<>(Arrays.asList(inodes));
-    for (InodeView inode : inodes) {
+  protected void checkOnlyNodesWriteLocked(ReadOnlyInode... inodes) {
+    HashSet<ReadOnlyInode> shouldBeLocked = new HashSet<>(Arrays.asList(inodes));
+    for (ReadOnlyInode inode : inodes) {
       assertTrue("Expected inode " + inode.getId() + " to be write locked",
           mInodeLockManager.inodeWriteLockedByCurrentThread(inode.getId()));
     }
-    for (InodeView inode : mAllInodes) {
+    for (ReadOnlyInode inode : mAllInodes) {
       if (!shouldBeLocked.contains(inode)) {
         assertFalse("Expected inode " + inode.getId() + " to not be write locked",
             mInodeLockManager.inodeWriteLockedByCurrentThread(inode.getId()));
@@ -90,14 +90,14 @@ public class BaseInodeLockingTest {
   /**
    * Checks that only the edges leading to the specified inodes are read-locked.
    */
-  protected void checkOnlyIncomingEdgesReadLocked(InodeView... inodes) {
-    HashSet<InodeView> shouldBeLocked = new HashSet<>(Arrays.asList(inodes));
-    for (InodeView inode : inodes) {
+  protected void checkOnlyIncomingEdgesReadLocked(ReadOnlyInode... inodes) {
+    HashSet<ReadOnlyInode> shouldBeLocked = new HashSet<>(Arrays.asList(inodes));
+    for (ReadOnlyInode inode : inodes) {
       Edge edge = new Edge(inode.getParentId(), inode.getName());
       assertTrue("Expected edge " + edge + " to be read locked",
           mInodeLockManager.edgeReadLockedByCurrentThread(edge));
     }
-    for (InodeView inode : mAllInodes) {
+    for (ReadOnlyInode inode : mAllInodes) {
       if (!shouldBeLocked.contains(inode)) {
         Edge edge = new Edge(inode.getParentId(), inode.getName());
         assertFalse("Expected edge " + edge + " to not be read locked",
@@ -109,14 +109,14 @@ public class BaseInodeLockingTest {
   /**
    * Checks that only the edges leading to the specified inodes are write-locked.
    */
-  protected void checkOnlyIncomingEdgesWriteLocked(InodeView... inodes) {
-    HashSet<InodeView> shouldBeLocked = new HashSet<>(Arrays.asList(inodes));
-    for (InodeView inode : inodes) {
+  protected void checkOnlyIncomingEdgesWriteLocked(ReadOnlyInode... inodes) {
+    HashSet<ReadOnlyInode> shouldBeLocked = new HashSet<>(Arrays.asList(inodes));
+    for (ReadOnlyInode inode : inodes) {
       Edge edge = new Edge(inode.getParentId(), inode.getName());
       assertTrue("Expected edge " + edge + " to be write locked",
           mInodeLockManager.edgeWriteLockedByCurrentThread(edge));
     }
-    for (InodeView inode : mAllInodes) {
+    for (ReadOnlyInode inode : mAllInodes) {
       if (!shouldBeLocked.contains(inode)) {
         Edge edge = new Edge(inode.getParentId(), inode.getName());
         assertFalse("Expected edge " + edge + " to not be write locked",
@@ -134,17 +134,20 @@ public class BaseInodeLockingTest {
         mInodeLockManager.edgeWriteLockedByCurrentThread(edge));
   }
 
-  protected InodeDirectory inodeDir(long id, long parentId, String name,
-      InodeView... children) {
+  protected ReadOnlyInodeDirectory inodeDir(long id, long parentId, String name,
+      ReadOnlyInode... children) {
     InodeDirectory dir =
         InodeDirectory.create(id, parentId, name, CreateDirectoryOptions.defaults());
-    for (InodeView child : children) {
+    mInodeStore.writeInode(dir);
+    for (ReadOnlyInode child : children) {
       mInodeStore.addChild(dir.getId(), child);
     }
-    return dir;
+    return ReadOnlyInode.wrap(dir).asDirectory();
   }
 
-  protected InodeFile inodeFile(long id, long parentId, String name) {
-    return InodeFile.create(id, parentId, name, 0, CreateFileOptions.defaults());
+  protected ReadOnlyInodeFile inodeFile(long id, long parentId, String name) {
+    InodeFile file = InodeFile.create(id, parentId, name, 0, CreateFileOptions.defaults());
+    mInodeStore.writeInode(file);
+    return ReadOnlyInode.wrap(file).asFile();
   }
 }

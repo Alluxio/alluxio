@@ -11,9 +11,6 @@
 
 package alluxio.master.file.meta;
 
-import alluxio.master.file.options.CreateDirectoryOptions;
-import alluxio.master.file.options.CreateFileOptions;
-
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -70,15 +67,13 @@ public class TtlBucketTest {
   }
 
   /**
-   * Tests the {@link TtlBucket#addInode(Inode)} and {@link TtlBucket#removeInode(Inode)}
-   * methods.
+   * Tests the {@link TtlBucket#addInode(ReadOnlyInode)} and
+   * {@link TtlBucket#removeInode(InodeView)} methods.
    */
   @Test
   public void addAndRemoveInodeFile() {
-    InodeFile mFileTtl1 =
-        InodeFile.create(0, 0, "test1", 0, CreateFileOptions.defaults().setTtl(1));
-    InodeFile mFileTtl2 =
-        InodeFile.create(1, 0, "test1", 0, CreateFileOptions.defaults().setTtl(2));
+    ReadOnlyInode mFileTtl1 = TtlTestUtils.createFileWithIdAndTtl(0, 1);
+    ReadOnlyInode mFileTtl2 = TtlTestUtils.createFileWithIdAndTtl(1, 2);
     Assert.assertTrue(mBucket.getInodes().isEmpty());
 
     mBucket.addInode(mFileTtl1);
@@ -101,15 +96,13 @@ public class TtlBucketTest {
   }
 
   /**
-   * Tests the {@link TtlBucket#addInode(Inode)} and {@link TtlBucket#removeInode(Inode)}
-   * methods.
+   * Tests the {@link TtlBucket#addInode(ReadOnlyInode)} and
+   * {@link TtlBucket#removeInode(InodeView)} methods.
    */
   @Test
   public void addAndRemoveInodeDirectory() {
-    InodeDirectory mDirectoryTtl1 =
-            InodeDirectory.create(0, 0, "test1", CreateDirectoryOptions.defaults().setTtl(1));
-    InodeDirectory mDirectoryTtl2 =
-            InodeDirectory.create(1, 0, "test1", CreateDirectoryOptions.defaults().setTtl(2));
+    ReadOnlyInode mDirectoryTtl1 = TtlTestUtils.createDirectoryWithIdAndTtl(0, 1);
+    ReadOnlyInode mDirectoryTtl2 = TtlTestUtils.createDirectoryWithIdAndTtl(1, 2);
     Assert.assertTrue(mBucket.getInodes().isEmpty());
 
     mBucket.addInode(mDirectoryTtl1);

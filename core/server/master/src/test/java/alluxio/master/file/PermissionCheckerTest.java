@@ -26,16 +26,17 @@ import alluxio.master.MasterRegistry;
 import alluxio.master.MasterTestUtils;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.block.BlockMasterFactory;
-import alluxio.master.file.meta.LockedInodePath;
+import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeDirectoryIdGenerator;
-import alluxio.master.file.meta.InodeFile;
 import alluxio.master.file.meta.InodeTree;
 import alluxio.master.file.meta.InodeTree.LockPattern;
-import alluxio.master.file.meta.InodeView;
+import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.file.meta.MountTable;
+import alluxio.master.file.meta.ReadOnlyInode;
 import alluxio.master.file.meta.options.MountInfo;
 import alluxio.master.file.options.CreateFileOptions;
 import alluxio.master.journal.NoopJournalContext;
+import alluxio.master.metastore.InodeStore;
 import alluxio.master.metrics.MetricsMaster;
 import alluxio.master.metrics.MetricsMasterFactory;
 import alluxio.security.GroupMappingServiceTestUtils;
@@ -103,6 +104,7 @@ public final class PermissionCheckerTest {
   private static CreateFileOptions sWeirdFileOptions;
   private static CreateFileOptions sNestedFileOptions;
 
+  private static InodeStore sInodeStore;
   private static InodeTree sTree;
   private static MasterRegistry sRegistry;
   private static MetricsMaster sMetricsMaster;
@@ -184,8 +186,8 @@ public final class PermissionCheckerTest {
     InodeDirectoryIdGenerator directoryIdGenerator = new InodeDirectoryIdGenerator(blockMaster);
     UfsManager ufsManager = mock(UfsManager.class);
     MountTable mountTable = new MountTable(ufsManager, mock(MountInfo.class));
-    sTree = new InodeTree(masterContext.getMetastore().getInodeStore(), blockMaster,
-        directoryIdGenerator, mountTable);
+    sInodeStore = masterContext.getMetastore().getInodeStore();
+    sTree = new InodeTree(sInodeStore, blockMaster, directoryIdGenerator, mountTable);
 
     sRegistry.start(true);
 
@@ -227,10 +229,12 @@ public final class PermissionCheckerTest {
       throws Exception {
     try (LockedInodePath inodePath =
         sTree.lockInodePath(new AlluxioURI(path), LockPattern.WRITE_EDGE)) {
-      List<InodeView> result = sTree.createPath(RpcContext.NOOP, inodePath, option);
-      ((InodeFile) result.get(result.size() - 1))
-          .setOwner(option.getOwner()).setGroup(option.getGroup())
+      List<ReadOnlyInode> result = sTree.createPath(RpcContext.NOOP, inodePath, option);
+      Inode<?> inode = sInodeStore.getMutable(result.get(result.size() - 1).getId()).get();
+      inode.setOwner(option.getOwner())
+          .setGroup(option.getGroup())
           .setMode(option.getMode().toShort());
+      sInodeStore.writeInode(inode);
     }
   }
 
@@ -239,7 +243,7 @@ public final class PermissionCheckerTest {
    * @param expectedInodes the expected inodes names
    * @param inodes the inodes for test
    */
-  private static void verifyInodesList(String[] expectedInodes, List<InodeView> inodes) {
+  private static void verifyInodesList(String[] expectedInodes, List<ReadOnlyInode> inodes) {
     String[] inodesName = new String[inodes.size()];
     for (int i = 0; i < inodes.size(); i++) {
       inodesName[i] = inodes.get(i).getName();

@@ -39,7 +39,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * @param <T> the concrete subclass of this object
  */
 @NotThreadSafe
-public abstract class Inode<T> implements InodeView {
+public abstract class Inode<T extends Inode> implements InodeView {
   private static final Logger LOG = LoggerFactory.getLogger(Inode.class);
   protected long mCreationTimeMs;
   private boolean mDeleted;
@@ -447,12 +447,35 @@ public abstract class Inode<T> implements InodeView {
     return mAcl.getPermission(user, groups);
   }
 
-  @Override
-  public InodeDirectoryView asDirectory() {
+  /**
+   * Casts the inode as an {@link ReadOnlyInodeDirectory} if it is one, otherwise throws an
+   * exception.
+   *
+   * This gives convenience in method chaining, e.g.
+   *
+   * inode.asDirectory().getChildren()
+   *
+   * instead of
+   *
+   * ((InodeDirectory) inode).getChildren()
+   *
+   * @return the inode as an inode directory
+   */
+  public InodeDirectory asDirectory() {
     if (!isDirectory()) {
-      throw new IllegalStateException(String.format("Inode %s is not a directory", mName));
+      throw new IllegalStateException(String.format("Inode %s is not a directory", getName()));
     }
-    return (InodeDirectoryView) this;
+    return (InodeDirectory) this;
+  }
+
+  /**
+   * @return the inode as an inode file
+   */
+  public InodeFile asFile() {
+    if (isDirectory()) {
+      throw new IllegalStateException(String.format("Inode %s is not a file", getName()));
+    }
+    return (InodeFile) this;
   }
 
   /**
