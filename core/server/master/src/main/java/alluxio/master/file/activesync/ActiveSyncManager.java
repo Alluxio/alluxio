@@ -266,8 +266,7 @@ public class ActiveSyncManager implements JournalEntryIterable, JournalEntryRepl
     }
   }
 
-  private boolean startSyncFromJournal(AlluxioURI syncPoint, long mountId)
-      throws InvalidPathException, IOException {
+  private boolean startSyncFromJournal(AlluxioURI syncPoint, long mountId) {
     LOG.debug("adding syncPoint {}", syncPoint.getPath());
     if (!isActivelySynced(syncPoint)) {
       // Add the new sync point to the filter map
