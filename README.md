@@ -1,18 +1,15 @@
-<div align="left" height="100px">
-  <img src="http://www.alluxio.org/static/media/alluxio-logo-horizontal-tight.a41c789d.svg"><br><br>
-</div>
+![logo](docs/resources/alluxio_logo.png "Alluxio")
 
-[![GitHub release](https://img.shields.io/github/release/alluxio/alluxio/all.svg?style=flat-square)](https://github.com/alluxio/alluxio/releases)
+
+[![GitHub release](https://img.shields.io/github/release/alluxio/alluxio/all.svg)](https://github.com/alluxio/alluxio/releases)
 [![Docker Pulls](https://img.shields.io/docker/pulls/alluxio/alluxio.svg)](https://hub.docker.com/r/alluxio/alluxio)
 [![Documentation](https://img.shields.io/badge/api-reference-blue.svg)](https://www.alluxio.org/docs)
 [![Slack](https://img.shields.io/badge/slack-alluxio-blue.svg?logo=slack)](https://www.alluxio.org/slack)
 [![Twitter Follow](https://img.shields.io/twitter/follow/alluxio.svg?label=Follow&style=social)](https://twitter.com/intent/follow?screen_name=alluxio)
 
-Alluxio (formerly Tachyon)
-=======
-
 ## What is Alluxio
-Alluxio is a virtual distributed storage system. It bridges the gap between
+[Alluxio](https://www.alluxio.org) (formerly known as Tachyon)
+is a virtual distributed storage system. It bridges the gap between
 computation frameworks and storage systems, enabling computation applications to connect to
 numerous storage systems through a common interface. Read more about
 [Alluxio Overview](https://www.alluxio.org/docs/1.8/en/Overview.html).
@@ -20,25 +17,25 @@ numerous storage systems through a common interface. Read more about
 ## Who Uses Alluxio
 
 Alluxio is used in production to manage Petabytes of data in many leading companies, with
-the largest deployment exceeding 1300 workers. See more details at
+the largest deployment exceeding 1300 workers. Find more use cases at
 [Powered by Alluxio](https://www.alluxio.org/community/powered-by-alluxio).
 
 ## Download Alluxio
 
 ### Binary download
 
-Prebuilt binaries are available to download at https://www.alluxio.org/download
+Prebuilt binaries are available to download at https://www.alluxio.org/download .
 
 ### Docker
 
 Download and start an Alluxio master and a worker. More details can be found in [documentation](https://www.alluxio.org/docs/1.8/en/deploy/Running-Alluxio-On-Docker.html).
 
 ```bash
-# master
+# launch a master
 $ docker run -d --net=host
     -v /mnt/data:/opt/alluxio/underFSStorage
     alluxio/alluxio master
-# worker
+# launch a worker
 $ docker run -d --net=host --shm-size=1G
     -e ALLUXIO_WORKER_MEMORY_SIZE=1G
     -v /mnt/data:/opt/alluxio/underFSStorage
@@ -54,24 +51,23 @@ $ brew install alluxio
 
 ## Quick Start
 
-Please follow the [Guide to Get Started](http://www.alluxio.org/docs/1.8/en/Getting-Started.html) with Alluxio.
+Please follow the [Guide to Get Started](http://www.alluxio.org/docs/1.8/en/Getting-Started.html)
+to run a simple example with Alluxio.
 
 ## Report a Bug
 
-To file bugs, suggest improvements, or create new feature requests, please open an [Github Issue](https://github.com/alluxio/alluxio/issues). Our previous [Alluxio JIRA system](https://alluxio.atlassian.net) has been deprecated since December, 2018.
+To report bugs, suggest improvements, or create new feature requests, please open a [Github Issue](https://github.com/alluxio/alluxio/issues). Our previous [Alluxio JIRA system](https://alluxio.atlassian.net) has been deprecated since December 2018.
 
 ## Join the Community
 
 Please use the following to reach members of the community:
 
-* Slack: Join our [slack channel](https://www.alluxio.org/slack)
+* Slack: [alluxio-community channel](https://www.alluxio.org/slack)
 * Mailing List: [alluxio-users](https://groups.google.com/forum/?fromgroups#!forum/alluxio-users)
 * Meetup Group: [Bay Area Meetup](http://www.meetup.com/Alluxio)
 * Twitter: [@alluxio](https://twitter.com/alluxio)
 
-## Build applications with Alluxio
-
-### Dependency Information
+## Depend on Alluxio
 
 For Alluxio versions 1.4 or earlier, use the `alluxio-core-client` artifact.
 
@@ -103,13 +99,14 @@ work to the project under the project's open source license. Whether or not you 
 explicitly, by submitting any copyrighted material via pull request, email, or other means you agree
 to license the material under the project's open source license and warrant that you have the legal
 authority to do so.
-For more detailed step-by-step tutorials, please read
-[Contribute to Alluxio](https://www.alluxio.org/docs/1.8/en/contributor/Contributor-Getting-Started.html). For [new contributor tasks](https://github.com/Alluxio/new-contributor-tasks), please limit 2 tasks per new contributor.
+For a more detailed step-by-step guide, please read
+[how to contribute to Alluxio](https://www.alluxio.org/docs/1.8/en/contributor/Contributor-Getting-Started.html).
+For new contributor, please take 2 [new contributor tasks](https://github.com/Alluxio/new-contributor-tasks).
 
 ## Useful Links
 
 - [Alluxio Project Website](https://www.alluxio.org/)
 - [Alluxio Inc. Website](https://www.alluxio.com/)
 - [Downloads](https://www.alluxio.org/download)
-- [Alluxio Releases and Notes](https://www.alluxio.org/download/releases/)
+- [Releases and Notes](https://www.alluxio.org/download/releases/)
 - [Documentation](https://www.alluxio.org/docs/)
