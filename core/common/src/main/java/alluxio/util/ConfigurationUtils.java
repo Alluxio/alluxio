@@ -206,7 +206,8 @@ public final class ConfigurationUtils {
   public static boolean masterHostConfigured() {
     boolean usingZk = Configuration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED)
         && Configuration.isSet(PropertyKey.ZOOKEEPER_ADDRESS);
-    return Configuration.isSet(PropertyKey.MASTER_HOSTNAME) || usingZk;
+    return Configuration.isSet(PropertyKey.MASTER_HOSTNAME) || usingZk
+        || getMasterRpcAddresses(Configuration.global()).size() > 1;
   }
 
   /**
