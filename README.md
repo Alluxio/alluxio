@@ -1,6 +1,6 @@
 ![logo](docs/resources/alluxio_logo.png "Alluxio")
 
-
+[![License](https://img.shields.io/github/license/alluxio/alluxio.svg)](https://github.com/Alluxio/alluxio/blob/master/LICENSE)
 [![GitHub release](https://img.shields.io/github/release/alluxio/alluxio/all.svg)](https://github.com/alluxio/alluxio/releases)
 [![Docker Pulls](https://img.shields.io/docker/pulls/alluxio/alluxio.svg)](https://hub.docker.com/r/alluxio/alluxio)
 [![Documentation](https://img.shields.io/badge/api-reference-blue.svg)](https://www.alluxio.org/docs)
