@@ -1,1 +1,1 @@
-export const isExternalLink = (url: string | undefined) => !!url && !url.match(/^\/[^/].*/);
+export const isExternalLink = (url: string | undefined) => !!url && !/^\/[^/].*/.test(url);

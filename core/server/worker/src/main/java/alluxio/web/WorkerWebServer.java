@@ -17,11 +17,20 @@ import alluxio.worker.WorkerProcess;
 import alluxio.worker.block.BlockWorker;
 
 import com.google.common.base.Preconditions;
+import org.eclipse.jetty.servlet.DefaultServlet;
+import org.eclipse.jetty.servlet.ErrorPageErrorHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
+import org.eclipse.jetty.util.resource.Resource;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.servlet.ServletContainer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.servlet.ServletException;
@@ -47,6 +56,7 @@ public final class WorkerWebServer extends WebServer {
       BlockWorker blockWorker, String connectHost, long startTimeMs) {
     super("Alluxio worker web service", webAddress);
     Preconditions.checkNotNull(blockWorker, "Block worker cannot be null");
+    Logger LOG = LoggerFactory.getLogger(WorkerWebServer.class);
     // REST configuration
     ResourceConfig config = new ResourceConfig().packages("alluxio.worker", "alluxio.worker.block");
     // Override the init method to inject a reference to AlluxioWorker into the servlet context.
@@ -63,5 +73,24 @@ public final class WorkerWebServer extends WebServer {
 
     ServletHolder servletHolder = new ServletHolder("Alluxio Worker Web Service", servlet);
     mWebAppContext.addServlet(servletHolder, PathUtils.concatPath(Constants.REST_API_PREFIX, "*"));
+
+    // STATIC assets
+    try {
+      String resourceDirPathString = "alluxio-ui/worker/build/";
+      ClassLoader cl = WorkerWebServer.class.getClassLoader();
+      URL resourceDir = cl.getResource(resourceDirPathString);
+      URI webRootUri = resourceDir.toURI();
+      mWebAppContext.setBaseResource(Resource.newResource(webRootUri));
+      mWebAppContext.setWelcomeFiles(new String[] {"index.html"});
+      mWebAppContext.setResourceBase(resourceDirPathString);
+      mWebAppContext.addServlet(DefaultServlet.class, "/");
+      ErrorPageErrorHandler errorHandler = new ErrorPageErrorHandler();
+      errorHandler.addErrorPage(404, "/"); // TODO: william - consider a rewrite rule instead of an error handler
+      mWebAppContext.setErrorHandler(errorHandler);
+    } catch (URISyntaxException e) {
+      LOG.error("ERROR: unable to set base resource path", e);
+    } catch (MalformedURLException e) {
+      LOG.error("ERROR: resource path is malformed", e);
+    }
   }
 }

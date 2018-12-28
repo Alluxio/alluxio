@@ -173,7 +173,7 @@ public final class AlluxioWorkerRestServiceHandler {
    */
   @GET
   @Path(WEBUI_OVERVIEW)
-  @ReturnType("alluxio.wire.MasterWebUIOverview")
+  @ReturnType("alluxio.wire.WorkerWebUIOverview")
   public Response getWebUIOverview() {
     return RestUtils.call(() -> {
       WorkerWebUIOverview response = new WorkerWebUIOverview();
@@ -222,7 +222,7 @@ public final class AlluxioWorkerRestServiceHandler {
    */
   @GET
   @Path(WEBUI_BLOCKINFO)
-  @ReturnType("alluxio.wire.MasterWebUIBlockInfo")
+  @ReturnType("alluxio.wire.WorkerWebUIBlockInfo")
   public Response getWebUIBlockInfo(@QueryParam("path") String requestPath,
       @DefaultValue("0") @QueryParam("offset") String requestOffset,
       @DefaultValue("20") @QueryParam("limit") String requestLimit) {
@@ -331,7 +331,7 @@ public final class AlluxioWorkerRestServiceHandler {
    */
   @GET
   @Path(WEBUI_METRICS)
-  @ReturnType("alluxio.wire.MasterWebUIMetrics")
+  @ReturnType("alluxio.wire.WorkerWebUIMetrics")
   public Response getWebUIMetrics() {
     return RestUtils.call(() -> {
       WorkerWebUIMetrics response = new WorkerWebUIMetrics();

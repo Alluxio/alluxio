@@ -17,11 +17,20 @@ import alluxio.master.file.FileSystemMaster;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Preconditions;
+import org.eclipse.jetty.servlet.DefaultServlet;
+import org.eclipse.jetty.servlet.ErrorPageErrorHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
+import org.eclipse.jetty.util.resource.Resource;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.servlet.ServletContainer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.servlet.ServletException;
@@ -45,14 +54,14 @@ public final class MasterWebServer extends WebServer {
       final MasterProcess masterProcess) {
     super(serviceName, address);
     Preconditions.checkNotNull(masterProcess, "Alluxio master cannot be null");
-
-    mWebAppContext.addServlet(new ServletHolder( // TODO: william - migrate this into a REST api endpoint
-            new WebInterfaceDownloadServlet(masterProcess.getMaster(FileSystemMaster.class))),
-        "/download");
-
+    Logger LOG = LoggerFactory.getLogger(MasterWebServer.class);
+    mWebAppContext
+        .addServlet(new ServletHolder( // TODO: william - migrate this into a REST api endpoint
+                new WebInterfaceDownloadServlet(masterProcess.getMaster(FileSystemMaster.class))),
+            "/download");
     // REST configuration
-    ResourceConfig config = new ResourceConfig().packages("alluxio.master", "alluxio.master.block",
-        "alluxio.master.file");
+    ResourceConfig config = new ResourceConfig()
+        .packages("alluxio.master", "alluxio.master.block", "alluxio.master.file");
     // Override the init method to inject a reference to AlluxioMaster into the servlet context.
     // ServletContext may not be modified until after super.init() is called.
     ServletContainer servlet = new ServletContainer(config) {
@@ -67,5 +76,24 @@ public final class MasterWebServer extends WebServer {
 
     ServletHolder servletHolder = new ServletHolder("Alluxio Master Web Service", servlet);
     mWebAppContext.addServlet(servletHolder, PathUtils.concatPath(Constants.REST_API_PREFIX, "*"));
+
+    // STATIC assets
+    try {
+      String resourceDirPathString = "alluxio-ui/master/build/";
+      ClassLoader cl = MasterWebServer.class.getClassLoader();
+      URL resourceDir = cl.getResource(resourceDirPathString);
+      URI webRootUri = resourceDir.toURI();
+      mWebAppContext.setBaseResource(Resource.newResource(webRootUri));
+      mWebAppContext.setWelcomeFiles(new String[] {"index.html"});
+      mWebAppContext.setResourceBase(resourceDirPathString);
+      mWebAppContext.addServlet(DefaultServlet.class, "/");
+      ErrorPageErrorHandler errorHandler = new ErrorPageErrorHandler();
+      errorHandler.addErrorPage(404, "/"); // TODO: william - consider a rewrite rule instead of an error handler
+      mWebAppContext.setErrorHandler(errorHandler);
+    } catch (URISyntaxException e) {
+      LOG.error("ERROR: unable to set base resource path", e);
+    } catch (MalformedURLException e) {
+      LOG.error("ERROR: resource path is malformed", e);
+    }
   }
 }
