@@ -386,6 +386,14 @@ public final class AlluxioWorkerRestServiceHandler {
     });
   }
 
+  /**
+   * @summary get the information required in the Web UI's logs page
+   * @param requestPath
+   * @param requestOffset
+   * @param requestEnd
+   * @param requestLimit
+   * @return
+   */
   @GET
   @Path(WEBUI_LOGS)
   @ReturnType("alluxio.wire.WorkerWebUILogs")

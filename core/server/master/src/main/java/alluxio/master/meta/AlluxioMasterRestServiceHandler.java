@@ -303,7 +303,7 @@ public final class AlluxioMasterRestServiceHandler {
   }
 
   /**
-   * Get the information required for the UI's browse page
+   * @summary get the information required in the Web UI's browse page
    * @param requestPath
    * @param requestOffset
    * @param requestEnd
@@ -510,6 +510,12 @@ public final class AlluxioMasterRestServiceHandler {
     });
   }
 
+  /**
+   * @summary get the information required in the Web UI's data page
+   * @param requestOffset
+   * @param requestLimit
+   * @return
+   */
   @GET
   @Path(WEBUI_DATA)
   @ReturnType("alluxio.wire.MasterWebUIData")
@@ -576,6 +582,14 @@ public final class AlluxioMasterRestServiceHandler {
     });
   }
 
+  /**
+   * @summary get the information required in the Web UI's logs page
+   * @param requestPath
+   * @param requestOffset
+   * @param requestEnd
+   * @param requestLimit
+   * @return
+   */
   @GET
   @Path(WEBUI_LOGS)
   @ReturnType("alluxio.wire.MasterWebUILogs")
@@ -704,6 +718,10 @@ public final class AlluxioMasterRestServiceHandler {
     });
   }
 
+  /**
+   * @summary get the information required in the Web UI's configuration page
+   * @return
+   */
   @GET
   @Path(WEBUI_CONFIG)
   @ReturnType("alluxio.wire.MasterWebUIConfiguration")
@@ -731,6 +749,10 @@ public final class AlluxioMasterRestServiceHandler {
     });
   }
 
+  /**
+   * @summary ges the information required for the Web UI's workers page
+   * @return
+   */
   @GET
   @Path(WEBUI_WORKERS)
   @ReturnType("alluxio.wire.MasterWebUIWorkers")
@@ -752,6 +774,10 @@ public final class AlluxioMasterRestServiceHandler {
     });
   }
 
+  /**
+   * @summary get the information required in the Web UI's metrics page
+   * @return
+   */
   @GET
   @Path(WEBUI_METRICS)
   @ReturnType("alluxio.wire.MasterWebUIMetrics")

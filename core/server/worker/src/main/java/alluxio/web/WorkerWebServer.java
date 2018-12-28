@@ -47,21 +47,6 @@ public final class WorkerWebServer extends WebServer {
       BlockWorker blockWorker, String connectHost, long startTimeMs) {
     super("Alluxio worker web service", webAddress);
     Preconditions.checkNotNull(blockWorker, "Block worker cannot be null");
-
-    InetSocketAddress workerAddress = new InetSocketAddress(connectHost, getLocalPort());
-
-    mWebAppContext.addServlet(new ServletHolder(new WebInterfaceWorkerGeneralServlet(
-        blockWorker, workerAddress, startTimeMs)), "/home");
-    mWebAppContext.addServlet(new ServletHolder(new WebInterfaceWorkerBlockInfoServlet(
-        blockWorker)), "/blockInfo");
-    mWebAppContext.addServlet(new ServletHolder(new WebInterfaceDownloadLocalServlet()),
-        "/downloadLocal");
-    mWebAppContext.addServlet(new ServletHolder(new WebInterfaceBrowseLogsServlet(false)),
-        "/browseLogs");
-    mWebAppContext.addServlet(new ServletHolder(new WebInterfaceHeaderServlet()), "/header");
-    mWebAppContext
-        .addServlet(new ServletHolder(new WebInterfaceWorkerMetricsServlet()), "/metricsui");
-
     // REST configuration
     ResourceConfig config = new ResourceConfig().packages("alluxio.worker", "alluxio.worker.block");
     // Override the init method to inject a reference to AlluxioWorker into the servlet context.
