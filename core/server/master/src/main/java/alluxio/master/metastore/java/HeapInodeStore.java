@@ -12,9 +12,9 @@
 package alluxio.master.metastore.java;
 
 import alluxio.master.file.meta.Inode;
+import alluxio.master.file.meta.MutableInode;
 import alluxio.master.file.meta.InodeDirectoryView;
 import alluxio.master.file.meta.InodeView;
-import alluxio.master.file.meta.ReadOnlyInode;
 import alluxio.master.metastore.InodeStore;
 import alluxio.util.StreamUtils;
 
@@ -28,9 +28,9 @@ import java.util.concurrent.ConcurrentSkipListMap;
  * FileStore implementation using on-heap data structures.
  */
 public class HeapInodeStore implements InodeStore {
-  private final Map<Long, Inode<?>> mInodes = new ConcurrentHashMap<>();
+  private final Map<Long, MutableInode<?>> mInodes = new ConcurrentHashMap<>();
   // Map from inode id to children of that inode. The internal maps are ordered by child name.
-  private final Map<Long, Map<String, Inode<?>>> mEdges = new ConcurrentHashMap<>();
+  private final Map<Long, Map<String, MutableInode<?>>> mEdges = new ConcurrentHashMap<>();
 
   @Override
   public void remove(InodeView inode) {
@@ -39,7 +39,7 @@ public class HeapInodeStore implements InodeStore {
   }
 
   @Override
-  public void writeInode(Inode<?> inode) {
+  public void writeInode(MutableInode<?> inode) {
     mInodes.putIfAbsent(inode.getId(), inode);
   }
 
@@ -60,18 +60,18 @@ public class HeapInodeStore implements InodeStore {
   }
 
   @Override
-  public Optional<Inode<?>> getMutable(long id) {
+  public Optional<MutableInode<?>> getMutable(long id) {
     return Optional.ofNullable(mInodes.get(id));
   }
 
   @Override
-  public Iterable<? extends ReadOnlyInode> getChildren(InodeDirectoryView dir) {
-    return StreamUtils.map(ReadOnlyInode::wrap, children(dir.getId()).values());
+  public Iterable<? extends Inode> getChildren(InodeDirectoryView dir) {
+    return StreamUtils.map(Inode::wrap, children(dir.getId()).values());
   }
 
   @Override
-  public Optional<ReadOnlyInode> getChild(InodeDirectoryView dir, String child) {
-    return Optional.ofNullable(children(dir.getId()).get(child)).map(ReadOnlyInode::wrap);
+  public Optional<Inode> getChild(InodeDirectoryView dir, String child) {
+    return Optional.ofNullable(children(dir.getId()).get(child)).map(Inode::wrap);
   }
 
   @Override
@@ -85,7 +85,7 @@ public class HeapInodeStore implements InodeStore {
     mEdges.clear();
   }
 
-  private Map<String, Inode<?>> children(long id) {
+  private Map<String, MutableInode<?>> children(long id) {
     return mEdges.getOrDefault(id, Collections.emptyMap());
   }
 }

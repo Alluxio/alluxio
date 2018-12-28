@@ -110,7 +110,7 @@ public class InodeLockListTest extends BaseInodeLockingTest {
   public void unlockLastAll() {
     mLockList.lockRootEdge(LockMode.READ);
     mLockList.lockInode(mRootDir, LockMode.READ);
-    for (ReadOnlyInode inode : Arrays.asList(mDirA, mDirB, mFileC)) {
+    for (Inode inode : Arrays.asList(mDirA, mDirB, mFileC)) {
       mLockList.lockEdge(inode.getName(), LockMode.READ);
       mLockList.lockInode(inode, LockMode.READ);
     }

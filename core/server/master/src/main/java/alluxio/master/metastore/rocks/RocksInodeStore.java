@@ -14,9 +14,9 @@ package alluxio.master.metastore.rocks;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.master.file.meta.Inode;
+import alluxio.master.file.meta.MutableInode;
 import alluxio.master.file.meta.InodeDirectoryView;
 import alluxio.master.file.meta.InodeView;
-import alluxio.master.file.meta.ReadOnlyInode;
 import alluxio.master.metastore.InodeStore;
 import alluxio.proto.meta.InodeMeta;
 import alluxio.util.io.FileUtils;
@@ -82,7 +82,7 @@ public class RocksInodeStore implements InodeStore {
   }
 
   @Override
-  public void writeInode(Inode<?> inode) {
+  public void writeInode(MutableInode<?> inode) {
     try {
       mDb.put(mInodesColumn, Longs.toByteArray(inode.getId()), inode.toProto().toByteArray());
     } catch (RocksDBException e) {
@@ -128,7 +128,7 @@ public class RocksInodeStore implements InodeStore {
   }
 
   @Override
-  public Optional<Inode<?>> getMutable(long id) {
+  public Optional<MutableInode<?>> getMutable(long id) {
     byte[] inode;
     try {
       inode = mDb.get(mInodesColumn, Longs.toByteArray(id));
@@ -139,25 +139,25 @@ public class RocksInodeStore implements InodeStore {
       return Optional.empty();
     }
     try {
-      return Optional.of(Inode.fromProto(InodeMeta.Inode.parseFrom(inode)));
+      return Optional.of(MutableInode.fromProto(InodeMeta.Inode.parseFrom(inode)));
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
   }
 
   @Override
-  public Iterable<? extends ReadOnlyInode> getChildren(InodeDirectoryView inode) {
+  public Iterable<? extends Inode> getChildren(InodeDirectoryView inode) {
     RocksIterator iter =
         mDb.newIterator(mEdgesColumn, new ReadOptions().setPrefixSameAsStart(true));
     iter.seek(Longs.toByteArray(inode.getId()));
-    return () -> new Iterator<ReadOnlyInode>() {
+    return () -> new Iterator<Inode>() {
       @Override
       public boolean hasNext() {
         return iter.isValid();
       }
 
       @Override
-      public ReadOnlyInode next() {
+      public Inode next() {
         try {
           return get(Longs.fromByteArray(iter.value())).get();
         } catch (Exception e) {
@@ -170,7 +170,7 @@ public class RocksInodeStore implements InodeStore {
   }
 
   @Override
-  public Optional<ReadOnlyInode> getChild(InodeDirectoryView inode, String name) {
+  public Optional<Inode> getChild(InodeDirectoryView inode, String name) {
     byte[] id;
     try {
       id = mDb.get(mEdgesColumn, RocksUtils.toByteArray(inode.getId(), name));
@@ -180,7 +180,7 @@ public class RocksInodeStore implements InodeStore {
     if (id == null) {
       return Optional.empty();
     }
-    Optional<ReadOnlyInode> child = get(Longs.fromByteArray(id));
+    Optional<Inode> child = get(Longs.fromByteArray(id));
     if (!child.isPresent()) {
       LOG.warn("Found child edge {}->{}={}, but inode {} does not exist", inode.getId(), name,
           Longs.fromByteArray(id), Longs.fromByteArray(id));
@@ -250,9 +250,9 @@ public class RocksInodeStore implements InodeStore {
     RocksIterator inodeIter = mDb.newIterator(mInodesColumn);
     inodeIter.seekToFirst();
     while (inodeIter.isValid()) {
-      Inode<?> inode;
+      MutableInode<?> inode;
       try {
-        inode = Inode.fromProto(InodeMeta.Inode.parseFrom(inodeIter.value()));
+        inode = MutableInode.fromProto(InodeMeta.Inode.parseFrom(inodeIter.value()));
       } catch (Exception e) {
         throw new RuntimeException(e);
       }

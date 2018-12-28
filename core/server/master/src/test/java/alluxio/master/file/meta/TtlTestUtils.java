@@ -14,13 +14,13 @@ package alluxio.master.file.meta;
 import alluxio.master.file.options.CreateFileOptions;
 
 public class TtlTestUtils {
-  public static ReadOnlyInode createFileWithIdAndTtl(long id, long ttl) {
-    return ReadOnlyInode
-        .wrap(InodeFile.create(id, 0, "ignored", 0, CreateFileOptions.defaults().setTtl(ttl)));
+  public static Inode createFileWithIdAndTtl(long id, long ttl) {
+    return Inode.wrap(
+        MutableInodeFile.create(id, 0, "ignored", 0, CreateFileOptions.defaults().setTtl(ttl)));
   }
 
-  public static ReadOnlyInode createDirectoryWithIdAndTtl(long id, long ttl) {
-    return ReadOnlyInode
-        .wrap(InodeFile.create(id, 0, "ignored", 0, CreateFileOptions.defaults().setTtl(ttl)));
+  public static Inode createDirectoryWithIdAndTtl(long id, long ttl) {
+    return Inode.wrap(
+        MutableInodeFile.create(id, 0, "ignored", 0, CreateFileOptions.defaults().setTtl(ttl)));
   }
 }

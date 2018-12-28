@@ -67,13 +67,13 @@ public class TtlBucketTest {
   }
 
   /**
-   * Tests the {@link TtlBucket#addInode(ReadOnlyInode)} and
+   * Tests the {@link TtlBucket#addInode(Inode)} and
    * {@link TtlBucket#removeInode(InodeView)} methods.
    */
   @Test
   public void addAndRemoveInodeFile() {
-    ReadOnlyInode mFileTtl1 = TtlTestUtils.createFileWithIdAndTtl(0, 1);
-    ReadOnlyInode mFileTtl2 = TtlTestUtils.createFileWithIdAndTtl(1, 2);
+    Inode mFileTtl1 = TtlTestUtils.createFileWithIdAndTtl(0, 1);
+    Inode mFileTtl2 = TtlTestUtils.createFileWithIdAndTtl(1, 2);
     Assert.assertTrue(mBucket.getInodes().isEmpty());
 
     mBucket.addInode(mFileTtl1);
@@ -96,13 +96,13 @@ public class TtlBucketTest {
   }
 
   /**
-   * Tests the {@link TtlBucket#addInode(ReadOnlyInode)} and
+   * Tests the {@link TtlBucket#addInode(Inode)} and
    * {@link TtlBucket#removeInode(InodeView)} methods.
    */
   @Test
   public void addAndRemoveInodeDirectory() {
-    ReadOnlyInode mDirectoryTtl1 = TtlTestUtils.createDirectoryWithIdAndTtl(0, 1);
-    ReadOnlyInode mDirectoryTtl2 = TtlTestUtils.createDirectoryWithIdAndTtl(1, 2);
+    Inode mDirectoryTtl1 = TtlTestUtils.createDirectoryWithIdAndTtl(0, 1);
+    Inode mDirectoryTtl2 = TtlTestUtils.createDirectoryWithIdAndTtl(1, 2);
     Assert.assertTrue(mBucket.getInodes().isEmpty());
 
     mBucket.addInode(mDirectoryTtl1);

@@ -44,7 +44,7 @@ public final class TtlBucket implements Comparable<TtlBucket> {
    * A collection of inodes whose ttl value is in the range of this bucket's interval. The mapping
    * is from inode id to inode.
    */
-  private final ConcurrentHashMap<Long, ReadOnlyInode> mInodes;
+  private final ConcurrentHashMap<Long, Inode> mInodes;
 
   /**
    * Creates a new instance of {@link TtlBucket}.
@@ -82,7 +82,7 @@ public final class TtlBucket implements Comparable<TtlBucket> {
    * @return the set of all inodes in the bucket backed by the internal set, changes made to the
    *         returned set will be shown in the internal set, and vice versa
    */
-  public Collection<ReadOnlyInode> getInodes() {
+  public Collection<Inode> getInodes() {
     return mInodes.values();
   }
 
@@ -91,7 +91,7 @@ public final class TtlBucket implements Comparable<TtlBucket> {
    *
    * @param inode the inode to be added
    */
-  public void addInode(ReadOnlyInode inode) {
+  public void addInode(Inode inode) {
     mInodes.put(inode.getId(), inode);
   }
 

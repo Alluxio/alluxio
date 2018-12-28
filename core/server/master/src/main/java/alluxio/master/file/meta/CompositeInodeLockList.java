@@ -17,7 +17,7 @@ import java.util.List;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * Manages the locks for a list of {@link Inode}s, based off an existing lock list. This does not
+ * Manages the locks for a list of inodes, based off an existing lock list. This does not
  * modify the base lock list, and when this lock list is closed, the base lock list is not closed.
  * The purpose of this class is to allow lock lists to be temporarily extended and then restored.
  *
@@ -42,9 +42,9 @@ public class CompositeInodeLockList extends InodeLockList {
   }
 
   @Override
-  public synchronized List<ReadOnlyInode> getLockedInodes() {
+  public synchronized List<Inode> getLockedInodes() {
     // Combine the base list of inodes first.
-    List<ReadOnlyInode> ret =
+    List<Inode> ret =
         new ArrayList<>(mBaseLockList.numLockedInodes() + mLockedInodes.size());
     ret.addAll(mBaseLockList.getLockedInodes());
     ret.addAll(mLockedInodes);
@@ -52,7 +52,7 @@ public class CompositeInodeLockList extends InodeLockList {
   }
 
   @Override
-  public synchronized ReadOnlyInode get(int index) {
+  public synchronized Inode get(int index) {
     if (index < mBaseLockList.numLockedInodes()) {
       return mBaseLockList.get(index);
     }
