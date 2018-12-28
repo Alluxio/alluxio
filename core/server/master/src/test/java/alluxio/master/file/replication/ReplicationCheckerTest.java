@@ -164,7 +164,7 @@ public final class ReplicationCheckerTest {
     try (LockedInodePath inodePath = mInodeTree.lockInodePath(path, LockPattern.WRITE_EDGE)) {
       List<ReadOnlyInode> created = mInodeTree.createPath(RpcContext.NOOP, inodePath, options);
 
-      InodeFile inodeFile = (InodeFile) mInodeStore.getMutable(created.get(0).getId()).get();
+      InodeFile inodeFile = mInodeStore.getMutable(created.get(0).getId()).get().asFile();
       inodeFile.setBlockSizeBytes(1);
       inodeFile.setBlockIds(Arrays.asList(inodeFile.getNewBlockId()));
       inodeFile.setCompleted(true);

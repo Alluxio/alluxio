@@ -448,6 +448,37 @@ public abstract class Inode<T extends Inode> implements InodeView {
   }
 
   /**
+   * Casts the inode as an {@link ReadOnlyInodeDirectory} if it is one, otherwise throws an
+   * exception.
+   *
+   * This gives convenience in method chaining, e.g.
+   *
+   * inode.asDirectory().getChildren()
+   *
+   * instead of
+   *
+   * ((InodeDirectory) inode).getChildren()
+   *
+   * @return the inode as an inode directory
+   */
+  public InodeDirectory asDirectory() {
+    if (!isDirectory()) {
+      throw new IllegalStateException(String.format("Inode %s is not a directory", getName()));
+    }
+    return (InodeDirectory) this;
+  }
+
+  /**
+   * @return the inode as an inode file
+   */
+  public InodeFile asFile() {
+    if (isDirectory()) {
+      throw new IllegalStateException(String.format("Inode %s is not a file", getName()));
+    }
+    return (InodeFile) this;
+  }
+
+  /**
    * Updates this inode's state from the given entry.
    *
    * @param entry the entry

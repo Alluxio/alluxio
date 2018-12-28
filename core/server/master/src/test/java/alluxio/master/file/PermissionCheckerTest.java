@@ -187,8 +187,7 @@ public final class PermissionCheckerTest {
     UfsManager ufsManager = mock(UfsManager.class);
     MountTable mountTable = new MountTable(ufsManager, mock(MountInfo.class));
     sInodeStore = masterContext.getMetastore().getInodeStore();
-    sTree = new InodeTree(sInodeStore, blockMaster,
-        directoryIdGenerator, mountTable);
+    sTree = new InodeTree(sInodeStore, blockMaster, directoryIdGenerator, mountTable);
 
     sRegistry.start(true);
 

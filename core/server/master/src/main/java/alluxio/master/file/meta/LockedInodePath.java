@@ -154,7 +154,7 @@ public class LockedInodePath implements Closeable {
     if (!inode.isFile()) {
       throw new FileDoesNotExistException(ExceptionMessage.PATH_MUST_BE_FILE.getMessage(mUri));
     }
-    return (ReadOnlyInodeFile) inode;
+    return inode.asFile();
   }
 
   /**

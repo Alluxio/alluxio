@@ -142,12 +142,12 @@ public class BaseInodeLockingTest {
     for (ReadOnlyInode child : children) {
       mInodeStore.addChild(dir.getId(), child);
     }
-    return (ReadOnlyInodeDirectory) ReadOnlyInode.wrap(dir);
+    return ReadOnlyInode.wrap(dir).asDirectory();
   }
 
   protected ReadOnlyInodeFile inodeFile(long id, long parentId, String name) {
     InodeFile file = InodeFile.create(id, parentId, name, 0, CreateFileOptions.defaults());
     mInodeStore.writeInode(file);
-    return (ReadOnlyInodeFile) ReadOnlyInode.wrap(file);
+    return ReadOnlyInode.wrap(file).asFile();
   }
 }

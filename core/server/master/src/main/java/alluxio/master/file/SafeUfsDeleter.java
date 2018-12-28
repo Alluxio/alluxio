@@ -19,7 +19,6 @@ import alluxio.exception.InvalidPathException;
 import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.file.meta.MountTable;
 import alluxio.master.file.meta.ReadOnlyInode;
-import alluxio.master.file.meta.ReadOnlyInodeDirectory;
 import alluxio.master.file.options.DeleteOptions;
 import alluxio.master.metastore.ReadOnlyInodeStore;
 import alluxio.resource.CloseableResource;
@@ -65,7 +64,7 @@ public final class SafeUfsDeleter implements UfsDeleter {
         // Mount points are not deleted recursively as we need to preserve the directory itself
         if (inode != null && inode.isPersisted() && inode.isDirectory()
             && !mMountTable.isMountPoint(alluxioUri)) {
-          mUfsSyncChecker.checkDirectory((ReadOnlyInodeDirectory) inode, alluxioUri);
+          mUfsSyncChecker.checkDirectory(inode.asDirectory(), alluxioUri);
         }
       }
     }

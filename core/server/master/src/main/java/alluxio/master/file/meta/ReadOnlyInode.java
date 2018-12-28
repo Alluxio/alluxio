@@ -191,6 +191,17 @@ public abstract class ReadOnlyInode implements InodeView {
   }
 
   /**
+   * @return the inode as an inode file
+   */
+  public ReadOnlyInodeFile asFile() {
+    if (isDirectory()) {
+      throw new IllegalStateException(
+          String.format("Inode %s is not a file", mDelegate.getName()));
+    }
+    return (ReadOnlyInodeFile) this;
+  }
+
+  /**
    * Wraps an InodeView, providing read-only access. Modifications to the underlying inode will
    * affect the created read-only inode.
    *

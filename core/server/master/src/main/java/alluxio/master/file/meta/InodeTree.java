@@ -656,7 +656,7 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
       throw new InvalidPathException("Could not traverse to parent directory of path " + path
           + ". Component " + pathComponents[pathIndex - 1] + " is not a directory.");
     }
-    InodeDirectoryView currentInodeDirectory = (ReadOnlyInodeDirectory) ancestorInode;
+    InodeDirectoryView currentInodeDirectory = ancestorInode.asDirectory();
 
     List<ReadOnlyInode> createdInodes = new ArrayList<>();
     if (options.isPersisted()) {
@@ -664,7 +664,7 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
       for (ReadOnlyInode inode : inodePath.getInodeList()) {
         if (!inode.isPersisted()) {
           // This cast is safe because we've already verified that the file inode doesn't exist.
-          syncPersistExistingDirectory(rpcContext, (ReadOnlyInodeDirectory) inode);
+          syncPersistExistingDirectory(rpcContext, inode.asDirectory());
         }
       }
     }
@@ -824,8 +824,7 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
     if (inode == null || inode.isFile()) {
       return;
     }
-    ReadOnlyInodeDirectory dir = (ReadOnlyInodeDirectory) inode;
-    for (ReadOnlyInode child : mInodeStore.getChildren(dir)) {
+    for (ReadOnlyInode child : mInodeStore.getChildren(inode.asDirectory())) {
       LockedInodePath childPath;
       try {
         childPath = inodePath.lockChild(child, LockPattern.WRITE_EDGE);
@@ -858,8 +857,7 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
         .build());
 
     if (inode.isFile()) {
-      rpcContext.getBlockDeletionContext()
-          .registerBlocksForDeletion(((ReadOnlyInodeFile) inode).getBlockIds());
+      rpcContext.getBlockDeletionContext().registerBlocksForDeletion(inode.asFile().getBlockIds());
     }
   }
 
@@ -922,7 +920,7 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
     ReadOnlyInode inode = inodePath.getInode();
 
     if (inode.isFile()) {
-      ReadOnlyInodeFile inodeFile = (ReadOnlyInodeFile) inode;
+      ReadOnlyInodeFile inodeFile = inode.asFile();
       int newMax = (replicationMax == null) ? inodeFile.getReplicationMax() : replicationMax;
       int newMin = (replicationMin == null) ? inodeFile.getReplicationMin() : replicationMin;
 

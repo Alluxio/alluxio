@@ -525,15 +525,15 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
           LockPattern.WRITE_INODE)) {
         // Walk the inode tree looking for files in the TO_BE_PERSISTED state.
         java.util.Queue<ReadOnlyInodeDirectory> dirsToProcess = new java.util.LinkedList<>();
-        dirsToProcess.add((ReadOnlyInodeDirectory) inodePath.getInode());
+        dirsToProcess.add(inodePath.getInode().asDirectory());
         while (!dirsToProcess.isEmpty()) {
           ReadOnlyInodeDirectory dir = dirsToProcess.poll();
           for (ReadOnlyInode inode : mInodeStore.getChildren(dir)) {
             if (inode.isDirectory()) {
-              dirsToProcess.add((ReadOnlyInodeDirectory) inode);
+              dirsToProcess.add(inode.asDirectory());
               continue;
             }
-            ReadOnlyInodeFile inodeFile = (ReadOnlyInodeFile) inode;
+            ReadOnlyInodeFile inodeFile = inode.asFile();
             if (!inodeFile.getPersistenceState().equals(PersistenceState.TO_BE_PERSISTED)) {
               continue;
             }
@@ -1146,9 +1146,8 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
       if (inode.isDirectory()) {
         return ufs.isDirectory(ufsPath);
       } else {
-        ReadOnlyInodeFile file = (ReadOnlyInodeFile) inode;
         return ufs.isFile(ufsPath)
-            && ufs.getFileStatus(ufsPath).getContentLength() == file.getLength();
+            && ufs.getFileStatus(ufsPath).getContentLength() == inode.asFile().getLength();
       }
     }
   }
@@ -1193,7 +1192,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
           ExceptionMessage.PATH_MUST_BE_FILE.getMessage(inodePath.getUri()));
     }
 
-    ReadOnlyInodeFile fileInode = (ReadOnlyInodeFile) inode;
+    ReadOnlyInodeFile fileInode = inode.asFile();
     List<Long> blockIdList = fileInode.getBlockIds();
     List<BlockInfo> blockInfoList = mBlockMaster.getBlockInfoList(blockIdList);
     if (!fileInode.isPersisted() && blockInfoList.size() != blockIdList.size()) {
@@ -1353,7 +1352,6 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
     }
     // If the create succeeded, the list of created inodes will not be empty.
     List<ReadOnlyInode> created = mInodeTree.createPath(rpcContext, inodePath, options);
-    ReadOnlyInodeFile inode = (ReadOnlyInodeFile) created.get(created.size() - 1);
 
     if (options.isPersisted()) {
       // The path exists in UFS, so it is no longer absent. The ancestors exist in UFS, but the
@@ -1769,7 +1767,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
     }
 
     if (inode.isFile()) {
-      if (isFullyInAlluxio((ReadOnlyInodeFile) inode)) {
+      if (isFullyInAlluxio(inode.asFile())) {
         files.add(inodePath.getUri());
       }
     } else {
@@ -1800,7 +1798,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
     }
 
     if (inode.isFile()) {
-      if (isFullyInMemory((ReadOnlyInodeFile) inode)) {
+      if (isFullyInMemory(inode.asFile())) {
         files.add(inodePath.getUri());
       }
     } else {
@@ -1827,7 +1825,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
     if (!inode.isFile()) {
       return 0;
     }
-    ReadOnlyInodeFile inodeFile = (ReadOnlyInodeFile) inode;
+    ReadOnlyInodeFile inodeFile = inode.asFile();
 
     long length = inodeFile.getLength();
     if (length == 0) {
@@ -1854,7 +1852,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
     if (!inode.isFile()) {
       return 0;
     }
-    ReadOnlyInodeFile inodeFile = (ReadOnlyInodeFile) inode;
+    ReadOnlyInodeFile inodeFile = inode.asFile();
 
     long length = inodeFile.getLength();
     if (length == 0) {
@@ -2278,8 +2276,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
           setAttributeSingleFile(rpcContext, descedant, true, opTimeMs, setAttributeOptions);
         }
         // Remove corresponding blocks from workers.
-        mBlockMaster.removeBlocks(((ReadOnlyInodeFile) freeInode).getBlockIds(),
-            false /* delete */);
+        mBlockMaster.removeBlocks(freeInode.asFile().getBlockIds(), false /* delete */);
       }
     }
 
@@ -2445,8 +2442,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
               }
             }
           }
-          mInodeTree.setDirectChildrenLoaded(rpcContext,
-              (ReadOnlyInodeDirectory) inodePath.getInode());
+          mInodeTree.setDirectChildrenLoaded(rpcContext, inodePath.getInode().asDirectory());
         }
       }
     } catch (IOException e) {
@@ -2903,8 +2899,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
         try {
           List<AclEntry> entries = new ArrayList<>(inode.getACL().getEntries());
           if (inode.isDirectory()) {
-            ReadOnlyInodeDirectory inodeDirectory = (ReadOnlyInodeDirectory) inode;
-            entries.addAll(inodeDirectory.getDefaultACL().getEntries());
+            entries.addAll(inode.asDirectory().getDefaultACL().getEntries());
           }
           ufs.setAclEntries(ufsUri, entries);
         } catch (IOException e) {
@@ -3350,7 +3345,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
     // The requested path already exists in Alluxio.
     ReadOnlyInode inode = inodePath.getInode();
 
-    if (inode instanceof ReadOnlyInodeFile && !((ReadOnlyInodeFile) inode).isCompleted()) {
+    if (inode instanceof ReadOnlyInodeFile && !inode.asFile().isCompleted()) {
       // Do not sync an incomplete file, since the UFS file is expected to not exist.
       return SyncResult.defaults();
     }
@@ -3422,10 +3417,9 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
       }
       if (syncPlan.toSyncChildren() && inode.isDirectory()
           && syncDescendantType != DescendantType.NONE) {
-        ReadOnlyInodeDirectory inodeDir = (ReadOnlyInodeDirectory) inode;
         // maps children name to inode
         Map<String, ReadOnlyInode> inodeChildren = new HashMap<>();
-        for (ReadOnlyInode child : mInodeStore.getChildren(inodeDir)) {
+        for (ReadOnlyInode child : mInodeStore.getChildren(inode.asDirectory())) {
           inodeChildren.put(child.getName(), child);
         }
 
@@ -3528,13 +3522,12 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
     }
     if (options.getPersisted() != null) {
       Preconditions.checkArgument(inode.isFile(), PreconditionMessage.PERSIST_ONLY_FOR_FILE);
-      Preconditions.checkArgument(((ReadOnlyInodeFile) inode).isCompleted(),
+      Preconditions.checkArgument(inode.asFile().isCompleted(),
           PreconditionMessage.FILE_TO_PERSIST_MUST_BE_COMPLETE);
-      ReadOnlyInodeFile file = (ReadOnlyInodeFile) inode;
       // TODO(manugoyal) figure out valid behavior in the un-persist case
       Preconditions
           .checkArgument(options.getPersisted(), PreconditionMessage.ERR_SET_STATE_UNPERSIST);
-      if (!file.isPersisted()) {
+      if (!inode.asFile().isPersisted()) {
         entry.setPersistenceState(PersistenceState.PERSISTED.name());
         entry.setLastModificationTimeMs(options.getOperationTimeMs());
         propagatePersistedInternal(rpcContext, inodePath);
@@ -3545,7 +3538,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
     boolean modeChanged = (options.getMode() != Constants.INVALID_MODE);
     // If the file is persisted in UFS, also update corresponding owner/group/permission.
     if ((ownerGroupChanged || modeChanged) && updateUfs && inode.isPersisted()) {
-      if ((inode instanceof ReadOnlyInodeFile) && !((ReadOnlyInodeFile) inode).isCompleted()) {
+      if ((inode instanceof ReadOnlyInodeFile) && !inode.asFile().isCompleted()) {
         LOG.debug("Alluxio does not propagate chown/chgrp/chmod to UFS for incomplete files.");
       } else {
         checkUfsMode(inodePath.getUri(), OperationType.WRITE);
