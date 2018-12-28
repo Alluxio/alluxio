@@ -44,9 +44,9 @@ import alluxio.master.metrics.MetricsMasterFactory;
 import alluxio.security.authorization.Mode;
 import alluxio.underfs.UfsManager;
 import alluxio.util.CommonUtils;
+import alluxio.util.StreamUtils;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.junit.After;
 import org.junit.Assert;
@@ -287,8 +287,7 @@ public final class InodeTreeTest {
     created = createPath(mTree, NESTED_FILE_URI, options);
 
     // test directory was modified
-    assertNotEquals(lastModTime,
-        getInodeByPath(NESTED_URI.getParent()).getLastModificationTimeMs());
+    assertNotEquals(lastModTime, getInodeByPath(NESTED_URI).getLastModificationTimeMs());
     // file was created
     assertEquals(1, created.size());
     assertEquals("file", created.get(0).getName());
@@ -530,24 +529,18 @@ public final class InodeTreeTest {
    */
   @Test
   public void streamToJournalCheckpoint() throws Exception {
-    MutableInode<?> root = getInodeByPath("/");
-
-    // test root
-    verifyJournal(mTree, Lists.newArrayList(root));
+    verifyJournal(mTree, Arrays.asList(getInodeByPath("/")));
 
     // test nested URI
     createPath(mTree, NESTED_FILE_URI, sNestedFileOptions);
 
-    MutableInode<?> nested = getInodeByPath("/nested");
-    MutableInode<?> test = getInodeByPath("/nested/test");
-    MutableInode<?> file = getInodeByPath("/nested/test/file");
-    verifyJournal(mTree, Arrays.asList(root, nested, test, file));
+    verifyJournal(mTree, StreamUtils.map(path -> getInodeByPath(path),
+        Arrays.asList("/", "/nested", "/nested/test", "/nested/test/file")));
 
     // add a sibling of test and verify journaling is in correct order (breadth first)
     createPath(mTree, new AlluxioURI("/nested/test1/file1"), sNestedFileOptions);
-    MutableInode<?> test1 = getInodeByPath("/nested/test1");
-    MutableInode<?> file1 = getInodeByPath("/nested/test1/file1");
-    verifyJournal(mTree, Arrays.asList(root, nested, test, test1, file, file1));
+    verifyJournal(mTree, StreamUtils.map(path -> getInodeByPath(path), Arrays.asList("/",
+        "/nested", "/nested/test", "/nested/test1", "/nested/test/file", "/nested/test1/file1")));
   }
 
   @Test
@@ -668,8 +661,12 @@ public final class InodeTreeTest {
   }
 
   // Helper to get an inode by path. The inode is unlocked before returning.
-  private MutableInode<?> getInodeByPath(String path) throws Exception {
-    return getInodeByPath(new AlluxioURI(path));
+  private MutableInode<?> getInodeByPath(String path) {
+    try {
+      return getInodeByPath(new AlluxioURI(path));
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
   }
 
   // Helper to get an inode by path. The inode is unlocked before returning.

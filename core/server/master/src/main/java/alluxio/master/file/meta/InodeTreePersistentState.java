@@ -33,6 +33,7 @@ import alluxio.proto.journal.File.UpdateInodeEntry;
 import alluxio.proto.journal.File.UpdateInodeEntry.Builder;
 import alluxio.proto.journal.File.UpdateInodeFileEntry;
 import alluxio.proto.journal.Journal.JournalEntry;
+import alluxio.resource.LockResource;
 import alluxio.security.authorization.AclEntry;
 import alluxio.security.authorization.DefaultAccessControlList;
 import alluxio.util.StreamUtils;
@@ -61,6 +62,7 @@ public class InodeTreePersistentState implements JournalEntryReplayable {
   private static final Logger LOG = LoggerFactory.getLogger(InodeTreePersistentState.class);
 
   private final InodeStore mInodeStore;
+  private final InodeLockManager mInodeLockManager;
 
   /**
    * A set of inode ids representing pinned inode files. These are not part of the journaled state,
@@ -89,11 +91,14 @@ public class InodeTreePersistentState implements JournalEntryReplayable {
 
   /**
    * @param inodeStore file store which holds inode metadata
+   * @param lockManager manager for inode locks
    * @param ttlBucketList reference to the ttl bucket list so that the list can be updated when the
    *        inode tree is modified
    */
-  public InodeTreePersistentState(InodeStore inodeStore, TtlBucketList ttlBucketList) {
+  public InodeTreePersistentState(InodeStore inodeStore, InodeLockManager lockManager,
+      TtlBucketList ttlBucketList) {
     mInodeStore = inodeStore;
+    mInodeLockManager = lockManager;
     mTtlBuckets = ttlBucketList;
   }
 
@@ -571,9 +576,13 @@ public class InodeTreePersistentState implements JournalEntryReplayable {
   }
 
   private void updateLastModified(long id, long opTimeMs) {
-    MutableInode<?> inode = mInodeStore.getMutable(id).get();
-    inode.setLastModificationTimeMs(opTimeMs);
-    mInodeStore.writeInode(inode);
+    try (LockResource lr = mInodeLockManager.lockLastModified(id)) {
+      MutableInode<?> inode = mInodeStore.getMutable(id).get();
+      if (inode.getLastModificationTimeMs() < opTimeMs) {
+        inode.setLastModificationTimeMs(opTimeMs);
+        mInodeStore.writeInode(inode);
+      }
+    }
   }
 
   private RenameEntry rewriteDeprecatedRenameEntry(RenameEntry entry) {
