@@ -14,7 +14,9 @@ package alluxio.master.metastore.java;
 import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeDirectoryView;
 import alluxio.master.file.meta.InodeView;
+import alluxio.master.file.meta.ReadOnlyInode;
 import alluxio.master.metastore.InodeStore;
+import alluxio.util.StreamUtils;
 
 import java.util.Collections;
 import java.util.Map;
@@ -44,7 +46,7 @@ public class HeapInodeStore implements InodeStore {
   @Override
   public void addChild(long parentId, InodeView child) {
     mEdges.putIfAbsent(parentId, new ConcurrentSkipListMap<>());
-    mEdges.get(parentId).put(child.getName(), (Inode<?>) child);
+    mEdges.get(parentId).put(child.getName(), mInodes.get(child.getId()));
   }
 
   @Override
@@ -58,18 +60,18 @@ public class HeapInodeStore implements InodeStore {
   }
 
   @Override
-  public Optional<InodeView> get(long id) {
+  public Optional<Inode<?>> getMutable(long id) {
     return Optional.ofNullable(mInodes.get(id));
   }
 
   @Override
-  public Iterable<? extends InodeView> getChildren(InodeDirectoryView dir) {
-    return children(dir.getId()).values();
+  public Iterable<? extends ReadOnlyInode> getChildren(InodeDirectoryView dir) {
+    return StreamUtils.map(ReadOnlyInode::wrap, children(dir.getId()).values());
   }
 
   @Override
-  public Optional<InodeView> getChild(InodeDirectoryView dir, String child) {
-    return Optional.ofNullable(children(dir.getId()).get(child));
+  public Optional<ReadOnlyInode> getChild(InodeDirectoryView dir, String child) {
+    return Optional.ofNullable(children(dir.getId()).get(child)).map(ReadOnlyInode::wrap);
   }
 
   @Override

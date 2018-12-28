@@ -84,7 +84,7 @@ public final class AsyncUfsAbsentPathCache implements UfsAbsentPathCache {
   }
 
   @Override
-  public void process(AlluxioURI path, List<InodeView> prefixInodes) {
+  public void process(AlluxioURI path, List<ReadOnlyInode> prefixInodes) {
     mPool.submit(new ProcessPathTask(path, prefixInodes));
   }
 
@@ -291,13 +291,13 @@ public final class AsyncUfsAbsentPathCache implements UfsAbsentPathCache {
    */
   private final class ProcessPathTask implements Runnable {
     private final AlluxioURI mPath;
-    private final List<InodeView> mPrefixInodes;
+    private final List<ReadOnlyInode> mPrefixInodes;
 
     /**
      * @param path the path to add
      * @param prefixInodes the existing inodes for the path prefix
      */
-    private ProcessPathTask(AlluxioURI path, List<InodeView> prefixInodes) {
+    private ProcessPathTask(AlluxioURI path, List<ReadOnlyInode> prefixInodes) {
       mPath = path;
       mPrefixInodes = prefixInodes;
     }

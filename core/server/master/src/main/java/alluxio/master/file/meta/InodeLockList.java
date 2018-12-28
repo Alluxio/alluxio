@@ -48,7 +48,7 @@ public class InodeLockList implements AutoCloseable {
   protected final InodeLockManager mInodeLockManager;
 
   /** The inodes that have been locked by the lock list, ordered from the root. */
-  protected List<InodeView> mLockedInodes;
+  protected List<ReadOnlyInode> mLockedInodes;
   /** Entries for each lock in the lock list, ordered from the root. */
   protected List<Entry> mEntries;
   /** The current lock mode for the lock list, either read or write. */
@@ -75,7 +75,7 @@ public class InodeLockList implements AutoCloseable {
    * @param inode the inode to lock
    * @param mode the mode to lock in
    */
-  public void lockInode(InodeView inode, LockMode mode) {
+  public void lockInode(ReadOnlyInode inode, LockMode mode) {
     Preconditions.checkState(mLockMode == LockMode.READ);
 
     lockInodeInternal(inode, mode);
@@ -88,7 +88,7 @@ public class InodeLockList implements AutoCloseable {
    * @param inode the inode to lock
    * @param mode the mode to lock in
    */
-  private void lockInodeInternal(InodeView inode, LockMode mode) {
+  private void lockInodeInternal(ReadOnlyInode inode, LockMode mode) {
     Preconditions.checkState(!endsInInode());
     String lastEdgeName = ((EdgeEntry) lastEntry()).getEdge().getName();
     Preconditions.checkState(inode.getName().equals(lastEdgeName),
@@ -124,7 +124,7 @@ public class InodeLockList implements AutoCloseable {
   public void lockEdgeInternal(String childName, LockMode mode) {
     Preconditions.checkState(endsInInode());
 
-    InodeView lastInode = get(numLockedInodes() - 1);
+    ReadOnlyInode lastInode = get(numLockedInodes() - 1);
     Edge edge = new Edge(lastInode.getId(), childName);
     mEntries.add(new EdgeEntry(mInodeLockManager.lockEdge(edge, mode), edge));
   }
@@ -155,7 +155,7 @@ public class InodeLockList implements AutoCloseable {
    * @param inode the inode to add to the lock list
    * @param childName the child name for the edge to add to the lock list
    */
-  public void pushWriteLockedEdge(InodeView inode, String childName) {
+  public void pushWriteLockedEdge(ReadOnlyInode inode, String childName) {
     Preconditions.checkState(!endsInInode());
     Preconditions.checkState(mLockMode == LockMode.WRITE);
 
@@ -241,7 +241,7 @@ public class InodeLockList implements AutoCloseable {
    * @param inode the next inode in the lock list
    * @param mode the mode to downgrade to
    */
-  public void downgradeEdgeToInode(InodeView inode, LockMode mode) {
+  public void downgradeEdgeToInode(ReadOnlyInode inode, LockMode mode) {
     Preconditions.checkState(!endsInInode());
     Preconditions.checkState(!mEntries.isEmpty());
     Preconditions.checkState(mLockMode == LockMode.WRITE);
@@ -278,7 +278,7 @@ public class InodeLockList implements AutoCloseable {
    * the inodes were locked
    */
   // TODO(david): change this API to not return a copy
-  public List<InodeView> getLockedInodes() {
+  public List<ReadOnlyInode> getLockedInodes() {
     return Lists.newArrayList(mLockedInodes);
   }
 
@@ -286,7 +286,7 @@ public class InodeLockList implements AutoCloseable {
    * @param index the index of the list
    * @return the inode at the specified index
    */
-  public InodeView get(int index) {
+  public ReadOnlyInode get(int index) {
     return mLockedInodes.get(index);
   }
 
@@ -340,14 +340,14 @@ public class InodeLockList implements AutoCloseable {
   }
 
   protected static class InodeEntry extends Entry {
-    private final InodeView mInode;
+    private final ReadOnlyInode mInode;
 
-    private InodeEntry(LockResource lock, InodeView inode) {
+    private InodeEntry(LockResource lock, ReadOnlyInode inode) {
       super(lock);
       mInode = inode;
     }
 
-    public InodeView getInode() {
+    public ReadOnlyInode getInode() {
       return mInode;
     }
 

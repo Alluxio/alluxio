@@ -9,22 +9,18 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master.file;
+package alluxio.master.file.meta;
 
-import alluxio.AlluxioURI;
-import alluxio.master.file.meta.ReadOnlyInode;
+import alluxio.master.file.options.CreateFileOptions;
 
-import javax.annotation.concurrent.ThreadSafe;
+public class TtlTestUtils {
+  public static ReadOnlyInode createFileWithIdAndTtl(long id, long ttl) {
+    return ReadOnlyInode
+        .wrap(InodeFile.create(id, 0, "ignored", 0, CreateFileOptions.defaults().setTtl(ttl)));
+  }
 
-/**
- * A noop version of the {@link UfsDeleter}.
- */
-@ThreadSafe
-public final class NoopUfsDeleter implements UfsDeleter {
-  public static final NoopUfsDeleter INSTANCE = new NoopUfsDeleter();
-
-  @Override
-  public void delete(AlluxioURI alluxioUri, ReadOnlyInode inode) {
-    // do nothing
+  public static ReadOnlyInode createDirectoryWithIdAndTtl(long id, long ttl) {
+    return ReadOnlyInode
+        .wrap(InodeFile.create(id, 0, "ignored", 0, CreateFileOptions.defaults().setTtl(ttl)));
   }
 }

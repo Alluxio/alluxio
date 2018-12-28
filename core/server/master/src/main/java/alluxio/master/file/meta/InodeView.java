@@ -154,21 +154,6 @@ public interface InodeView extends JournalEntryRepresentable {
   AclActions getPermission(String user, List<String> groups);
 
   /**
-   * Casts the inode as an {@link InodeDirectoryView} if it is one, otherwise throws an exception.
-   *
-   * This gives convenience in method chaining, e.g.
-   *
-   * inode.asDirectory().getChildren()
-   *
-   * instead of
-   *
-   * ((InodeDirectoryView) inode).getChildren()
-   *
-   * @return the inode as an inode directory
-   */
-  InodeDirectoryView asDirectory();
-
-  /**
    * @return the protocol buffer representation of the inode
    */
   InodeMeta.Inode toProto();

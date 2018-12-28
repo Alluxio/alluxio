@@ -13,6 +13,9 @@ package alluxio.master.metastore;
 
 import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeView;
+import alluxio.master.file.meta.ReadOnlyInode;
+
+import java.util.Optional;
 
 /**
  * Inode metadata storage.
@@ -21,6 +24,17 @@ import alluxio.master.file.meta.InodeView;
  * relationships between them.
  */
 public interface InodeStore extends ReadOnlyInodeStore {
+  /**
+   * @param id an inode id
+   * @return the inode with the given id, if it exists
+   */
+  Optional<Inode<?>> getMutable(long id);
+
+  @Override
+  default Optional<ReadOnlyInode> get(long id) {
+    return getMutable(id).map(inode -> ReadOnlyInode.wrap(inode));
+  }
+
   /**
    * Removes an inode from the inode store. The edge leading to it will also be removed.
    *
