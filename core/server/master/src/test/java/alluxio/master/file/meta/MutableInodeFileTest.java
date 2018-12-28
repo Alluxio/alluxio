@@ -28,63 +28,63 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Unit tests for {@link InodeFile}.
+ * Unit tests for {@link MutableInodeFile}.
  */
-public final class InodeFileTest extends AbstractInodeTest {
+public final class MutableInodeFileTest extends AbstractInodeTest {
   private static final long LENGTH = 100;
 
   @Rule
   public ExpectedException mExpectedException = ExpectedException.none();
 
   /**
-   * Tests the {@link InodeFile#equals(Object)} method.
+   * Tests the {@link MutableInodeFile#equals(Object)} method.
    */
   @Test
   public void equals() {
-    InodeFile inode1 = createInodeFile(1);
+    MutableInodeFile inode1 = createInodeFile(1);
     // self equal
     assertEquals(inode1, inode1);
-    InodeFile inode2 = createInodeFile(1);
+    MutableInodeFile inode2 = createInodeFile(1);
     // equal with same id
     assertEquals(inode1, inode2);
-    InodeFile inode3 = createInodeFile(3);
+    MutableInodeFile inode3 = createInodeFile(3);
     assertFalse(inode1.equals(inode3));
   }
 
   /**
-   * Tests the {@link InodeFile#getId()} method.
+   * Tests the {@link MutableInodeFile#getId()} method.
    */
   @Test
   public void getId() {
-    InodeFile inode1 = createInodeFile(1);
+    MutableInodeFile inode1 = createInodeFile(1);
     assertEquals(createInodeFileId(1), inode1.getId());
   }
 
   /**
-   * Tests the {@link InodeFile#setLength(long)} method.
+   * Tests the {@link MutableInodeFile#setLength(long)} method.
    */
   @Test
   public void setLength() {
-    InodeFile inodeFile = createInodeFile(1);
+    MutableInodeFile inodeFile = createInodeFile(1);
     inodeFile.setLength(LENGTH);
     assertEquals(LENGTH, inodeFile.getLength());
   }
 
   /**
-   * Tests the {@link InodeFile#getBlockSizeBytes()} method.
+   * Tests the {@link MutableInodeFile#getBlockSizeBytes()} method.
    */
   @Test
   public void getBlockSizeBytes() {
-    InodeFile inode1 = createInodeFile(1);
+    MutableInodeFile inode1 = createInodeFile(1);
     assertEquals(Constants.KB, inode1.getBlockSizeBytes());
   }
 
   /**
-   * Tests the {@link InodeFile#getBlockIdByIndex(int)} method.
+   * Tests the {@link MutableInodeFile#getBlockIdByIndex(int)} method.
    */
   @Test
   public void getBlockIdByIndex() throws Exception {
-    InodeFile inodeFile = createInodeFile(1);
+    MutableInodeFile inodeFile = createInodeFile(1);
     List<Long> blockIds = new ArrayList<>();
     final int NUM_BLOCKS = 3;
     for (int i = 0; i < NUM_BLOCKS; i++) {
@@ -110,11 +110,11 @@ public final class InodeFileTest extends AbstractInodeTest {
   }
 
   /**
-   * Tests the {@link InodeFile#setCompleted(boolean)} method.
+   * Tests the {@link MutableInodeFile#setCompleted(boolean)} method.
    */
   @Test
   public void setCompleted() {
-    InodeFile inode1 = createInodeFile(1);
+    MutableInodeFile inode1 = createInodeFile(1);
     assertFalse(inode1.isCompleted());
 
     inode1.setCompleted(true);
@@ -122,11 +122,11 @@ public final class InodeFileTest extends AbstractInodeTest {
   }
 
   /**
-   * Tests the {@link InodeFile#getMode()} method.
+   * Tests the {@link MutableInodeFile#getMode()} method.
    */
   @Test
   public void permissionStatus() {
-    InodeFile inode1 = createInodeFile(1);
+    MutableInodeFile inode1 = createInodeFile(1);
     assertEquals(TEST_OWNER, inode1.getOwner());
     assertEquals(TEST_GROUP, inode1.getGroup());
     assertEquals(Mode.defaults().applyFileUMask().toShort(), inode1.getMode());

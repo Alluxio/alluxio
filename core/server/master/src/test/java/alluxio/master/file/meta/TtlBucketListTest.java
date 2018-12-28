@@ -30,11 +30,11 @@ public final class TtlBucketListTest {
   private static final long BUCKET1_END = BUCKET1_START + BUCKET_INTERVAL;
   private static final long BUCKET2_START = BUCKET1_END;
   private static final long BUCKET2_END = BUCKET2_START + BUCKET_INTERVAL;
-  private static final ReadOnlyInode BUCKET1_FILE1 =
+  private static final Inode BUCKET1_FILE1 =
       TtlTestUtils.createFileWithIdAndTtl(0, BUCKET1_START);
-  private static final ReadOnlyInode BUCKET1_FILE2 =
+  private static final Inode BUCKET1_FILE2 =
       TtlTestUtils.createFileWithIdAndTtl(1, BUCKET1_END - 1);
-  private static final ReadOnlyInode BUCKET2_FILE =
+  private static final Inode BUCKET2_FILE =
       TtlTestUtils.createFileWithIdAndTtl(2, BUCKET2_START);
 
   private TtlBucketList mBucketList;
@@ -57,14 +57,14 @@ public final class TtlBucketListTest {
   }
 
   private void assertExpired(List<TtlBucket> expiredBuckets, int bucketIndex,
-      ReadOnlyInode... inodes) {
+      Inode... inodes) {
     TtlBucket bucket = expiredBuckets.get(bucketIndex);
     Assert.assertEquals(inodes.length, bucket.getInodes().size());
     Assert.assertTrue(bucket.getInodes().containsAll(Lists.newArrayList(inodes)));
   }
 
   /**
-   * Tests the {@link TtlBucketList#insert(ReadOnlyInode)} method.
+   * Tests the {@link TtlBucketList#insert(Inode)} method.
    */
   @Test
   public void insert() {

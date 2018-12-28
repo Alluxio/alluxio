@@ -12,7 +12,7 @@
 package alluxio.master.metastore;
 
 import alluxio.master.file.meta.InodeDirectoryView;
-import alluxio.master.file.meta.ReadOnlyInode;
+import alluxio.master.file.meta.Inode;
 
 import java.util.Optional;
 
@@ -29,20 +29,20 @@ public interface ReadOnlyInodeStore {
    * @param id an inode id
    * @return the inode with the given id, if it exists
    */
-  Optional<ReadOnlyInode> get(long id);
+  Optional<Inode> get(long id);
 
   /**
    * @param inode an inode directory
    * @return an iterable over the children of the inode with the given id
    */
-  Iterable<? extends ReadOnlyInode> getChildren(InodeDirectoryView inode);
+  Iterable<? extends Inode> getChildren(InodeDirectoryView inode);
 
   /**
    * @param inode an inode directory
    * @param name an inode name
    * @return the child of the inode with the given name
    */
-  Optional<ReadOnlyInode> getChild(InodeDirectoryView inode, String name);
+  Optional<Inode> getChild(InodeDirectoryView inode, String name);
 
   /**
    * @param inode an inode directory

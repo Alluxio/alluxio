@@ -16,7 +16,7 @@ import alluxio.exception.status.UnavailableException;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.master.file.meta.InodeTree;
 import alluxio.master.file.meta.InodeTree.LockPattern;
-import alluxio.master.file.meta.ReadOnlyInode;
+import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.file.meta.PersistenceState;
 import alluxio.master.journal.JournalContext;
@@ -51,7 +51,7 @@ final class LostFileDetector implements HeartbeatExecutor {
       try (JournalContext journalContext = mFileSystemMaster.createJournalContext();
           LockedInodePath inodePath =
               mInodeTree.lockFullInodePath(fileId, LockPattern.WRITE_INODE)) {
-        ReadOnlyInode inode = inodePath.getInode();
+        Inode inode = inodePath.getInode();
         if (inode.getPersistenceState() != PersistenceState.PERSISTED) {
           mInodeTree.updateInode(journalContext, UpdateInodeEntry.newBuilder()
               .setId(inode.getId())

@@ -14,9 +14,9 @@ package alluxio.master.file;
 import alluxio.AlluxioURI;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
+import alluxio.master.file.meta.Inode;
+import alluxio.master.file.meta.InodeDirectory;
 import alluxio.master.file.meta.MountTable;
-import alluxio.master.file.meta.ReadOnlyInode;
-import alluxio.master.file.meta.ReadOnlyInodeDirectory;
 import alluxio.master.metastore.ReadOnlyInodeStore;
 import alluxio.resource.CloseableResource;
 import alluxio.underfs.UfsStatus;
@@ -57,7 +57,7 @@ public final class UfsSyncChecker {
   private final ReadOnlyInodeStore mInodeStore;
 
   /** Directories in sync with the UFS. */
-  private Map<AlluxioURI, ReadOnlyInodeDirectory> mSyncedDirectories = new HashMap<>();
+  private Map<AlluxioURI, InodeDirectory> mSyncedDirectories = new HashMap<>();
 
   /**
    * Create a new instance of {@link UfsSyncChecker}.
@@ -77,7 +77,7 @@ public final class UfsSyncChecker {
    * @param inode read-locked directory to check
    * @param alluxioUri path of directory to to check
    */
-  public void checkDirectory(ReadOnlyInodeDirectory inode, AlluxioURI alluxioUri)
+  public void checkDirectory(InodeDirectory inode, AlluxioURI alluxioUri)
       throws FileDoesNotExistException, InvalidPathException, IOException {
     Preconditions.checkArgument(inode.isPersisted());
     UfsStatus[] ufsChildren = getChildrenInUFS(alluxioUri);
@@ -87,7 +87,7 @@ public final class UfsSyncChecker {
         .toArray(UfsStatus[]::new);
     Arrays.sort(ufsChildren, Comparator.comparing(UfsStatus::getName));
     int ufsPos = 0;
-    for (ReadOnlyInode alluxioInode : mInodeStore.getChildren(inode)) {
+    for (Inode alluxioInode : mInodeStore.getChildren(inode)) {
       if (ufsPos >= ufsChildren.length) {
         break;
       }
@@ -117,7 +117,7 @@ public final class UfsSyncChecker {
 
   /**
    * Based on directories for which
-   * {@link UfsSyncChecker#checkDirectory(ReadOnlyInodeDirectory, AlluxioURI)} was called, this
+   * {@link UfsSyncChecker#checkDirectory(InodeDirectory, AlluxioURI)} was called, this
    * method returns whether any un-synced entries were found.
    *
    * @param alluxioUri path of directory to check

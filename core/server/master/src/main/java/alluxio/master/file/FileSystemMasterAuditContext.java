@@ -14,7 +14,7 @@ package alluxio.master.file;
 import alluxio.AlluxioURI;
 import alluxio.master.audit.AsyncUserAccessAuditLogWriter;
 import alluxio.master.audit.AuditContext;
-import alluxio.master.file.meta.ReadOnlyInode;
+import alluxio.master.file.meta.Inode;
 import alluxio.security.authentication.AuthType;
 import alluxio.security.authorization.Mode;
 
@@ -34,7 +34,7 @@ public final class FileSystemMasterAuditContext implements AuditContext {
   private String mUgi;
   private AuthType mAuthType;
   private String mIp;
-  private ReadOnlyInode mSrcInode;
+  private Inode mSrcInode;
 
   @Override
   public FileSystemMasterAuditContext setAllowed(boolean allowed) {
@@ -120,7 +120,7 @@ public final class FileSystemMasterAuditContext implements AuditContext {
    * @param srcInode the source inode of this operation
    * @return this {@link AuditContext} instance
    */
-  public FileSystemMasterAuditContext setSrcInode(ReadOnlyInode srcInode) {
+  public FileSystemMasterAuditContext setSrcInode(Inode srcInode) {
     mSrcInode = srcInode;
     return this;
   }

@@ -31,7 +31,7 @@ import alluxio.master.CoreMasterContext;
 import alluxio.master.MasterRegistry;
 import alluxio.master.MasterTestUtils;
 import alluxio.master.block.BlockMasterFactory;
-import alluxio.master.file.meta.InodeDirectory;
+import alluxio.master.file.meta.MutableInodeDirectory;
 import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
@@ -225,8 +225,8 @@ public final class PermissionCheckTest {
     }
   }
 
-  private InodeDirectory getRootInode() {
-    return InodeDirectory.create(0, -1, "",
+  private MutableInodeDirectory getRootInode() {
+    return MutableInodeDirectory.create(0, -1, "",
         CreateDirectoryOptions.defaults().setOwner(TEST_USER_ADMIN.getUser())
             .setGroup(TEST_USER_ADMIN.getGroup()).setMode(TEST_DIR_MODE));
   }
