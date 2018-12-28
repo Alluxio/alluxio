@@ -3138,7 +3138,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
       File.ActiveSyncTxIdEntry txIdEntry =
           File.ActiveSyncTxIdEntry.newBuilder().setTxId(txId).setMountId(mountId).build();
       rpcContext.journal(JournalEntry.newBuilder().setActiveSyncTxId(txIdEntry).build());
-    } catch (UnavailableException |InvalidPathException | FileDoesNotExistException e) {
+    } catch (UnavailableException | InvalidPathException | FileDoesNotExistException e) {
       LOG.warn("Exception when recording activesync txid, path {}, exception {}",
           mountPath, e);
       return false;
