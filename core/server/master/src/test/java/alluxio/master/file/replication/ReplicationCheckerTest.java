@@ -32,7 +32,6 @@ import alluxio.master.file.meta.InodeTree.LockPattern;
 import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.file.meta.MountTable;
 import alluxio.master.file.meta.ReadOnlyInode;
-import alluxio.master.file.meta.ReadOnlyInodeFile;
 import alluxio.master.file.meta.options.MountInfo;
 import alluxio.master.file.options.CreateFileOptions;
 import alluxio.master.file.options.CreatePathOptions;
@@ -170,7 +169,7 @@ public final class ReplicationCheckerTest {
       inodeFile.setBlockIds(Arrays.asList(inodeFile.getNewBlockId()));
       inodeFile.setCompleted(true);
       mInodeStore.writeInode(inodeFile);
-      return ((ReadOnlyInodeFile) created.get(0)).getBlockIdByIndex(0);
+      return inodeFile.getBlockIdByIndex(0);
     }
   }
 

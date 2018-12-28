@@ -154,6 +154,20 @@ public abstract class ReadOnlyInode implements InodeView {
     return mDelegate.toJournalEntry();
   }
 
+  @Override
+  public boolean equals(Object other) {
+    if (!(other instanceof ReadOnlyInode)) {
+      return false;
+    }
+    ReadOnlyInode otherInode = (ReadOnlyInode) other;
+    return mDelegate.equals(otherInode.mDelegate);
+  }
+
+  @Override
+  public int hashCode() {
+    return mDelegate.hashCode();
+  }
+
   /**
    * Casts the inode as an {@link ReadOnlyInodeDirectory} if it is one, otherwise throws an
    * exception.
