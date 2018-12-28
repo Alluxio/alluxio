@@ -244,7 +244,7 @@ public class DefaultPermissionChecker implements PermissionChecker {
    * @throws AccessControlException if permission checking fails
    */
   private void checkInode(String user, List<String> groups, Inode inode, Mode.Bits bits,
-           String path) throws AccessControlException {
+      String path) throws AccessControlException {
     if (inode == null) {
       return;
     }

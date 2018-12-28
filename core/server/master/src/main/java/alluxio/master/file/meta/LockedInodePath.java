@@ -378,7 +378,7 @@ public class LockedInodePath implements Closeable {
    * @return the new locked path
    */
   public LockedInodePath lockChild(Inode child, LockPattern lockPattern,
-          String[] childComponentsHint) throws InvalidPathException {
+      String[] childComponentsHint) throws InvalidPathException {
     LockedInodePath path =
         new LockedInodePath(mUri.join(child.getName()), this, childComponentsHint, lockPattern);
     path.traverseOrClose();
