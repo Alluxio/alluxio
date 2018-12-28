@@ -124,6 +124,8 @@ public class JournalEntryAssociationTest {
     int expectedNumFields = JournalEntry.getDescriptor().getFields().size();
     // subtract 1 for sequence_number
     expectedNumFields--;
+    // subtract 1 for journal_entries
+    expectedNumFields--;
     assertEquals(expectedNumFields, ENTRIES.size());
   }
 }

@@ -30,8 +30,10 @@ import alluxio.exception.status.UnavailableException;
 import alluxio.master.LocalAlluxioCluster;
 import alluxio.master.MasterClientConfig;
 import alluxio.master.MasterInquireClient;
+import alluxio.master.PollingMasterInquireClient;
 import alluxio.master.SingleMasterInquireClient;
 import alluxio.master.ZkMasterInquireClient;
+import alluxio.master.journal.JournalType;
 import alluxio.multi.process.PortCoordination.ReservedPort;
 import alluxio.network.PortUtils;
 import alluxio.util.CommonUtils;
@@ -83,7 +85,7 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class MultiProcessCluster {
   public static final String ALLUXIO_USE_FIXED_TEST_PORTS = "ALLUXIO_USE_FIXED_TEST_PORTS";
-  public static final int PORTS_PER_MASTER = 2;
+  public static final int PORTS_PER_MASTER = 3;
   public static final int PORTS_PER_WORKER = 3;
 
   private static final Logger LOG = LoggerFactory.getLogger(MultiProcessCluster.class);
@@ -163,6 +165,20 @@ public final class MultiProcessCluster {
         mProperties.put(PropertyKey.MASTER_HOSTNAME, masterAddress.getHostname());
         mProperties.put(PropertyKey.MASTER_RPC_PORT, Integer.toString(masterAddress.getRpcPort()));
         mProperties.put(PropertyKey.MASTER_WEB_PORT, Integer.toString(masterAddress.getWebPort()));
+        break;
+      case EMBEDDED_HA:
+        List<String> journalAddresses = new ArrayList<>();
+        List<String> rpcAddresses = new ArrayList<>();
+        for (MasterNetAddress address : mMasterAddresses) {
+          journalAddresses
+              .add(String.format("%s:%d", address.getHostname(), address.getEmbeddedJournalPort()));
+          rpcAddresses.add(String.format("%s:%d", address.getHostname(), address.getRpcPort()));
+        }
+        mProperties.put(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED.toString());
+        mProperties.put(PropertyKey.MASTER_EMBEDDED_JOURNAL_ADDRESSES,
+            com.google.common.base.Joiner.on(",").join(journalAddresses));
+        mProperties.put(PropertyKey.MASTER_RPC_ADDRESSES,
+            com.google.common.base.Joiner.on(",").join(rpcAddresses));
         break;
       case ZOOKEEPER_HA:
         mCuratorServer = mCloser.register(
@@ -433,6 +449,19 @@ public final class MultiProcessCluster {
    */
   public synchronized void updateDeployMode(DeployMode mode) {
     mDeployMode = mode;
+    if (mDeployMode == DeployMode.EMBEDDED_HA) {
+      // Ensure that the journal properties are set correctly.
+      for (int i = 0; i < mMasters.size(); i++) {
+        Master master = mMasters.get(i);
+        MasterNetAddress address = mMasterAddresses.get(i);
+        master.updateConf(PropertyKey.MASTER_EMBEDDED_JOURNAL_PORT,
+            Integer.toString(address.getEmbeddedJournalPort()));
+
+        File journalDir = new File(mWorkDir, "journal" + i);
+        journalDir.mkdirs();
+        master.updateConf(PropertyKey.MASTER_JOURNAL_FOLDER, journalDir.getAbsolutePath());
+      }
+    }
   }
 
   /**
@@ -490,6 +519,13 @@ public final class MultiProcessCluster {
     conf.put(PropertyKey.MASTER_HOSTNAME, address.getHostname());
     conf.put(PropertyKey.MASTER_RPC_PORT, Integer.toString(address.getRpcPort()));
     conf.put(PropertyKey.MASTER_WEB_PORT, Integer.toString(address.getWebPort()));
+    conf.put(PropertyKey.MASTER_EMBEDDED_JOURNAL_PORT,
+        Integer.toString(address.getEmbeddedJournalPort()));
+    if (mDeployMode.equals(DeployMode.EMBEDDED_HA)) {
+      File journalDir = new File(mWorkDir, "journal" + i);
+      journalDir.mkdirs();
+      conf.put(PropertyKey.MASTER_JOURNAL_FOLDER, journalDir.getAbsolutePath());
+    }
     Master master = mCloser.register(new Master(logsDir, conf));
     mMasters.add(master);
     return master;
@@ -533,6 +569,14 @@ public final class MultiProcessCluster {
    * Formats the cluster journal.
    */
   public synchronized void formatJournal() throws IOException {
+    if (mDeployMode == DeployMode.EMBEDDED_HA) {
+      for (Master master : mMasters) {
+        File journalDir = new File(master.getConf().get(PropertyKey.MASTER_JOURNAL_FOLDER));
+        FileUtils.deleteDirectory(journalDir);
+        journalDir.mkdirs();
+      }
+      return;
+    }
     try (Closeable c = new ConfigurationRule(PropertyKey.MASTER_JOURNAL_FOLDER,
         mProperties.get(PropertyKey.MASTER_JOURNAL_FOLDER)).toResource()) {
       Format.format(Format.Mode.MASTER);
@@ -551,6 +595,12 @@ public final class MultiProcessCluster {
             "Running with multiple masters requires Zookeeper to be enabled");
         return new SingleMasterInquireClient(new InetSocketAddress(
             mMasterAddresses.get(0).getHostname(), mMasterAddresses.get(0).getRpcPort()));
+      case EMBEDDED_HA:
+        List<InetSocketAddress> addresses = new ArrayList<>(mMasterAddresses.size());
+        for (MasterNetAddress address : mMasterAddresses) {
+          addresses.add(new InetSocketAddress(address.getHostname(), address.getRpcPort()));
+        }
+        return new PollingMasterInquireClient(addresses);
       case ZOOKEEPER_HA:
         return ZkMasterInquireClient.getClient(mCuratorServer.getConnectString(),
             Configuration.get(PropertyKey.ZOOKEEPER_ELECTION_PATH),
@@ -611,8 +661,8 @@ public final class MultiProcessCluster {
   private List<MasterNetAddress> generateMasterAddresses(int numMasters) throws IOException {
     List<MasterNetAddress> addrs = new ArrayList<>();
     for (int i = 0; i < numMasters; i++) {
-      addrs.add(
-          new MasterNetAddress(NetworkAddressUtils.getLocalHostName(), getNewPort(), getNewPort()));
+      addrs.add(new MasterNetAddress(NetworkAddressUtils.getLocalHostName(),
+          getNewPort(), getNewPort(), getNewPort()));
     }
     return addrs;
   }
@@ -625,6 +675,7 @@ public final class MultiProcessCluster {
    * Deploy mode for the cluster.
    */
   public enum DeployMode {
+    EMBEDDED_HA,
     NON_HA, ZOOKEEPER_HA
   }
 
