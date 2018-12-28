@@ -33,6 +33,14 @@ public class PortCoordination {
       // add ports here to avoid conflicting with other processes on those ports.
   ));
 
+  public static final List<ReservedPort> EMBEDDED_JOURNAL_FAILOVER = allocate(3, 0);
+  public static final List<ReservedPort> EMBEDDED_JOURNAL_RESTART = allocate(3, 0);
+  public static final List<ReservedPort> EMBEDDED_JOURNAL_RESTART_STRESS = allocate(3, 0);
+
+  public static final List<ReservedPort> JOURNAL_MIGRATION = allocate(3, 1);
+
+  public static final List<ReservedPort> BACKUP_RESTORE_EMBEDDED = allocate(3, 1);
+
   public static final List<ReservedPort> CONFIG_CHECKER_MULTI_WORKERS = allocate(1, 2);
   public static final List<ReservedPort> CONFIG_CHECKER_MULTI_NODES = allocate(2, 2);
   public static final List<ReservedPort> CONFIG_CHECKER_UNSET_VS_SET = allocate(2, 0);

@@ -1148,6 +1148,48 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_EMBEDDED_JOURNAL_ADDRESSES =
+      new Builder(Name.MASTER_EMBEDDED_JOURNAL_ADDRESSES)
+          .setDescription("A comma-separated list of journal addresses for all masters in the "
+              + "cluster. The format is 'hostname1:port1,hostname2:port2,...'. Required when using "
+              + "the embedded journal")
+          .setDefaultValue(String.format("localhost:${%s}", Name.MASTER_EMBEDDED_JOURNAL_PORT))
+          .build();
+  public static final PropertyKey MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT =
+      new Builder(Name.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT)
+          .setDescription(
+              "The election timeout for the embedded journal. When this period elapses without a "
+                  + "master receiving any messages, the master will attempt to become the primary.")
+          .setDefaultValue("5s")
+          .build();
+  public static final PropertyKey MASTER_EMBEDDED_JOURNAL_HEARTBEAT_INTERVAL =
+      new Builder(Name.MASTER_EMBEDDED_JOURNAL_HEARTBEAT_INTERVAL)
+          .setDescription(
+              "The period between sending heartbeats from the embedded journal primary to "
+                  + "followers. This should be less than half of the election timeout "
+                  + "(alluxio.master.embedded.journal.election.timeout).")
+          .setDefaultValue("1s")
+          .build();
+  public static final PropertyKey MASTER_EMBEDDED_JOURNAL_PORT =
+      new Builder(Name.MASTER_EMBEDDED_JOURNAL_PORT)
+          .setDescription("The port to use for embedded journal communication with other masters.")
+          .setDefaultValue(19200)
+          .build();
+  public static final PropertyKey MASTER_EMBEDDED_JOURNAL_STORAGE_LEVEL =
+      new Builder(Name.MASTER_EMBEDDED_JOURNAL_STORAGE_LEVEL)
+          .setDescription("The storage level for storing embedded journal logs. Use DISK for "
+              + "maximum durability. Use MAPPED for better performance, but some risk of "
+              + "losing state in case of power loss or host failure. Use MEMORY for "
+              + "optimal performance, but no state persistence across cluster restarts.")
+          .setDefaultValue("DISK")
+          .build();
+  public static final PropertyKey MASTER_RPC_ADDRESSES =
+      new Builder(Name.MASTER_RPC_ADDRESSES).setDescription(
+          "A list of comma-separated host:port RPC addresses where the client should look for "
+              + "masters when using multiple masters without Zookeeper. This property is not "
+              + "used when Zookeeper is enabled, since Zookeeper already stores the master "
+              + "addresses.")
+          .build();
   public static final PropertyKey MASTER_FILE_ASYNC_PERSIST_HANDLER =
       new Builder(Name.MASTER_FILE_ASYNC_PERSIST_HANDLER)
           .setDefaultValue("alluxio.master.file.async.DefaultAsyncPersistHandler")
@@ -1219,7 +1261,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey MASTER_JOURNAL_FOLDER =
       new Builder(Name.MASTER_JOURNAL_FOLDER)
           .setDefaultValue(String.format("${%s}/journal", Name.WORK_DIR))
-          .setDescription("The path to store master journal logs.")
+          .setDescription("The path to store master journal logs. When using the UFS journal this "
+              + "could be a URI like hdfs://namenode:port/alluxio/journal. When using the embedded "
+              + "journal this must be a local path")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
@@ -1237,7 +1281,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.MASTER_JOURNAL_TYPE)
           .setDefaultValue("UFS")
           .setDescription("The type of journal to use. Valid options are UFS (store journal in "
-              + "UFS) and NOOP (do not use a journal).")
+              + "UFS), EMBEDDED (use a journal embedded in the masters), and NOOP (do not use a "
+              + "journal)")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
@@ -3298,6 +3343,21 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey JOB_WORKER_WEB_PORT =
       new Builder(Name.JOB_WORKER_WEB_PORT).setDefaultValue(30003).build();
 
+  public static final PropertyKey JOB_MASTER_RPC_ADDRESSES =
+      new Builder(Name.JOB_MASTER_RPC_ADDRESSES).build();
+  public static final PropertyKey JOB_MASTER_EMBEDDED_JOURNAL_ADDRESSES =
+      new Builder(Name.JOB_MASTER_EMBEDDED_JOURNAL_ADDRESSES)
+          .setDescription("A comma-separated list of journal addresses for all job masters in the "
+              + "cluster. The format is 'hostname1:port1,hostname2:port2,...'. Defaults to the "
+              + "journal addresses set for the Alluxio masters, but with the job master embedded "
+              + "journal port.")
+          .build();
+  public static final PropertyKey JOB_MASTER_EMBEDDED_JOURNAL_PORT =
+      new Builder(Name.JOB_MASTER_EMBEDDED_JOURNAL_PORT)
+          .setDescription(
+              "The port to use for embedded journal communication with other job masters.")
+          .setDefaultValue(20003).build();
+
   public static final PropertyKey ZOOKEEPER_JOB_ELECTION_PATH =
       new Builder(Name.ZOOKEEPER_JOB_ELECTION_PATH).setDefaultValue("/job_election").build();
   public static final PropertyKey ZOOKEEPER_JOB_LEADER_PATH =
@@ -3573,6 +3633,21 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.journal.tailer.shutdown.quiet.wait.time";
     public static final String MASTER_JOURNAL_TAILER_SLEEP_TIME_MS =
         "alluxio.master.journal.tailer.sleep.time";
+    public static final String MASTER_RPC_ADDRESSES = "alluxio.master.rpc.addresses";
+    public static final String MASTER_EMBEDDED_JOURNAL_ADDRESSES =
+        "alluxio.master.embedded.journal.addresses";
+    public static final String MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT =
+        "alluxio.master.embedded.journal.election.timeout";
+    public static final String MASTER_EMBEDDED_JOURNAL_HEARTBEAT_INTERVAL =
+        "alluxio.master.embedded.journal.heartbeat.interval";
+    public static final String MASTER_EMBEDDED_JOURNAL_PORT =
+        "alluxio.master.embedded.journal.port";
+    public static final String MASTER_EMBEDDED_JOURNAL_SNAPSHOT_TIME =
+        "alluxio.master.embedded.journal.snapshot.time";
+    public static final String MASTER_EMBEDDED_JOURNAL_SNAPSHOT_FREQUENCY =
+        "alluxio.master.embedded.journal.snapshot.frequency";
+    public static final String MASTER_EMBEDDED_JOURNAL_STORAGE_LEVEL =
+        "alluxio.master.embedded.journal.storage.level";
     public static final String MASTER_KEYTAB_KEY_FILE = "alluxio.master.keytab.file";
     public static final String MASTER_PERSISTENCE_CHECKER_INTERVAL_MS =
         "alluxio.master.persistence.checker.interval.ms";
@@ -3976,6 +4051,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String JOB_MASTER_WEB_BIND_HOST = "alluxio.job.master.web.bind.host";
     public static final String JOB_MASTER_WEB_HOSTNAME = "alluxio.job.master.web.hostname";
     public static final String JOB_MASTER_WEB_PORT = "alluxio.job.master.web.port";
+
+    public static final String JOB_MASTER_RPC_ADDRESSES = "alluxio.job.master.rpc.addresses";
+    public static final String JOB_MASTER_EMBEDDED_JOURNAL_ADDRESSES =
+        "alluxio.job.master.embedded.journal.addresses";
+    public static final String JOB_MASTER_EMBEDDED_JOURNAL_PORT =
+        "alluxio.job.master.embedded.journal.port";
 
     public static final String JOB_WORKER_BIND_HOST = "alluxio.job.worker.bind.host";
     public static final String JOB_WORKER_DATA_PORT = "alluxio.job.worker.data.port";

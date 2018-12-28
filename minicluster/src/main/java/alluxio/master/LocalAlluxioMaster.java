@@ -17,6 +17,7 @@ import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
+import alluxio.master.journal.JournalType;
 import alluxio.util.io.FileUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
@@ -110,6 +111,11 @@ public final class LocalAlluxioMaster {
     mMasterThread.setName("MasterThread-" + System.identityHashCode(mMasterThread));
     mMasterThread.start();
     TestUtils.waitForReady(mMasterProcess);
+    // Don't start a secondary master when using the Raft journal.
+    if (Configuration.getEnum(PropertyKey.MASTER_JOURNAL_TYPE,
+        JournalType.class) == JournalType.EMBEDDED) {
+      return;
+    }
     mSecondaryMaster = new AlluxioSecondaryMaster();
     Runnable runSecondaryMaster = new Runnable() {
       @Override
