@@ -1589,9 +1589,12 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
         failedUris.add(new Pair<>(alluxioUriToDelete.toString(), failureReason));
       }
     }
-
-    MountTable.Resolution resolution = mSyncManager.stopSyncCheck(inodePath.getUri());
-    mSyncManager.stopSyncInternal(inodePath.getUri(), resolution);
+    try {
+      MountTable.Resolution resolution = mSyncManager.stopSyncCheck(inodePath.getUri());
+      mSyncManager.stopSyncInternal(inodePath.getUri(), resolution);
+    } catch (InvalidPathException e) {
+      // stop sync failed, possibly because this is not a sync point
+    }
 
     // Delete Inodes
     for (Pair<AlluxioURI, LockedInodePath> delInodePair : revisedInodesToDelete) {

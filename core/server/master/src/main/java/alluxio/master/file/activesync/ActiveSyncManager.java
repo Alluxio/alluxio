@@ -333,7 +333,7 @@ public class ActiveSyncManager implements JournalEntryIterable, JournalEntryRepl
   public MountTable.Resolution stopSyncCheck(AlluxioURI syncPoint) throws InvalidPathException {
     if (!mSyncPathList.contains(syncPoint)) {
       LOG.debug("syncPoint not found {}", syncPoint.getPath());
-      throw new InvalidPathException("Sync Point Not Found" + syncPoint);
+      throw new InvalidPathException("Sync Point Not Found " + syncPoint);
     }
     MountTable.Resolution resolution = mMountTable.resolve(syncPoint);
     return resolution;
