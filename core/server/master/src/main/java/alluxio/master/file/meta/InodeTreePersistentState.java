@@ -545,7 +545,6 @@ public class InodeTreePersistentState implements JournalEntryReplayable {
     // becomes visible at this point.
     mInodeStore.writeInode(inode);
     mInodeStore.addChild(inode.getParentId(), inode);
-    updateLastModified(inode.getParentId(), inode.getCreationTimeMs());
     if (inode.isFile()) {
       InodeFile file = (InodeFile) inode;
       if (file.getReplicationMin() > 0) {

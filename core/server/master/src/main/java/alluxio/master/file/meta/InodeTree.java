@@ -666,6 +666,24 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
         }
       }
     }
+    if ((pathIndex < (pathComponents.length - 1)
+        || !mInodeStore.getChild(currentInodeDirectory, name).isPresent())
+        && options.getOperationTimeMs() > currentInodeDirectory.getLastModificationTimeMs()) {
+      // (1) There are components in parent paths that need to be created. Or
+      // (2) The last component of the path needs to be created.
+      // In these two cases, the last traversed Inode will be modified if the new timestamp is after
+      // the existing last modified time.
+      long currentId = currentInodeDirectory.getId();
+      try (LockResource lr = mInodeLockManager.lockLastModified(currentId)) {
+        long updatedLastModified = mInodeStore.get(currentId).get().getLastModificationTimeMs();
+        if (updatedLastModified < options.getOperationTimeMs()) {
+          mState.applyAndJournal(rpcContext, UpdateInodeEntry.newBuilder()
+              .setId(currentId)
+              .setLastModificationTimeMs(options.getOperationTimeMs())
+              .build());
+        }
+      }
+    }
 
     // Fill in the ancestor directories that were missing.
     // NOTE, we set the mode of missing ancestor directories to be the default value, rather
