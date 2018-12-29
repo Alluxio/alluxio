@@ -56,8 +56,8 @@
         <inherited>false</inherited>
         <executions>
           <execution>
-            <id>Remove cached node modules</id>
-            <phase>post-clean</phase>
+            <id>Remove cached node modules and built web applications</id>
+            <phase>clean</phase>
             <goals>
               <goal>exec</goal>
             </goals>
@@ -67,6 +67,12 @@
                 <argument>-rf</argument>
                 <argument>node</argument>
                 <argument>node_modules</argument>
+                <argument>common/build</argument>
+                <argument>common/node_modules</argument>
+                <argument>master/build</argument>
+                <argument>master/node_modules</argument>
+                <argument>worker/build</argument>
+                <argument>worker/node_modules</argument>
               </arguments>
             </configuration>
           </execution>
@@ -79,8 +85,8 @@
             <configuration>
               <executable>node/node</executable>
               <arguments>
-                  <argument>node_modules/.bin/lerna</argument>
-                  <argument>bootstrap</argument>
+                <argument>node_modules/.bin/lerna</argument>
+                <argument>bootstrap</argument>
               </arguments>
             </configuration>
           </execution>
@@ -93,9 +99,9 @@
             <configuration>
               <executable>node/node</executable>
               <arguments>
-                  <argument>node_modules/.bin/lerna</argument>
-                  <argument>run</argument>
-                  <argument>build</argument>
+                <argument>node_modules/.bin/lerna</argument>
+                <argument>run</argument>
+                <argument>build</argument>
               </arguments>
             </configuration>
           </execution>
