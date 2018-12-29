@@ -25,8 +25,10 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class MasterWebUIConfiguration implements Serializable {
-  private TreeSet<Triple<String, String, String>> mConfiguration;
+  private static final long serialVersionUID = 6589358568781503724L;
+
   private List<String> mWhitelist;
+  private TreeSet<Triple<String, String, String>> mConfiguration;
 
   /**
    * Creates a new instance of {@link MasterWebUIConfiguration}.
@@ -34,21 +36,42 @@ public final class MasterWebUIConfiguration implements Serializable {
   public MasterWebUIConfiguration() {
   }
 
-
+  /**
+   * Gets configuration.
+   *
+   * @return the configuration
+   */
   public TreeSet<Triple<String, String, String>> getConfiguration() {
     return mConfiguration;
   }
 
+  /**
+   * Gets whitelist.
+   *
+   * @return the whitelist
+   */
   public List<String> getWhitelist() {
     return mWhitelist;
   }
 
+  /**
+   * Sets configuration.
+   *
+   * @param configuration the configuration
+   * @return the configuration
+   */
   public MasterWebUIConfiguration setConfiguration(
       TreeSet<Triple<String, String, String>> configuration) {
     mConfiguration = configuration;
     return this;
   }
 
+  /**
+   * Sets whitelist.
+   *
+   * @param whitelist the whitelist
+   * @return the whitelist
+   */
   public MasterWebUIConfiguration setWhitelist(List<String> whitelist) {
     mWhitelist = whitelist;
     return this;

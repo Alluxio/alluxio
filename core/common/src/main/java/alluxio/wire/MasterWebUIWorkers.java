@@ -24,6 +24,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class MasterWebUIWorkers implements Serializable {
+  private static final long serialVersionUID = 6589358568781503724L;
+
   private boolean mDebug;
   private NodeInfo[] mFailedNodeInfos;
   private NodeInfo[] mNormalNodeInfos;
@@ -34,30 +36,63 @@ public final class MasterWebUIWorkers implements Serializable {
   public MasterWebUIWorkers() {
   }
 
+  /**
+   * Gets debug.
+   *
+   * @return the debug
+   */
   public boolean getDebug() {
     return mDebug;
   }
 
+  /**
+   * Get failed node infos node info [ ].
+   *
+   * @return the node info [ ]
+   */
   public NodeInfo[] getFailedNodeInfos() {
     return mFailedNodeInfos;
   }
 
+  /**
+   * Get normal node infos node info [ ].
+   *
+   * @return the node info [ ]
+   */
   public NodeInfo[] getNormalNodeInfos() {
     return mNormalNodeInfos;
   }
 
+  /**
+   * Sets debug.
+   *
+   * @param Debug the debug
+   * @return the debug
+   */
   public MasterWebUIWorkers setDebug(boolean Debug) {
     mDebug = Debug;
     return this;
   }
 
+  /**
+   * Sets failed node infos.
+   *
+   * @param FailedNodeInfos the failed node infos
+   * @return the failed node infos
+   */
   public MasterWebUIWorkers setFailedNodeInfos(NodeInfo[] FailedNodeInfos) {
-    mFailedNodeInfos = FailedNodeInfos;
+    mFailedNodeInfos = FailedNodeInfos.clone();
     return this;
   }
 
+  /**
+   * Sets normal node infos.
+   *
+   * @param NormalNodeInfos the normal node infos
+   * @return the normal node infos
+   */
   public MasterWebUIWorkers setNormalNodeInfos(NodeInfo[] NormalNodeInfos) {
-    mNormalNodeInfos = NormalNodeInfos;
+    mNormalNodeInfos = NormalNodeInfos.clone();
     return this;
   }
 

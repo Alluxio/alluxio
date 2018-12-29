@@ -1,3 +1,14 @@
+/*
+ * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+ * (the "License"). You may not use this work except in compliance with the License, which is
+ * available at www.apache.org/licenses/LICENSE-2.0
+ *
+ * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+ * either express or implied, as more fully set forth in the License.
+ *
+ * See the NOTICE file distributed with this work for information regarding copyright ownership.
+ */
+
 package alluxio.util.webui;
 
 import alluxio.wire.BlockLocation;
@@ -70,6 +81,8 @@ public final class UIFileBlockInfo {
   }
 
   /**
+   * Is in tier boolean.
+   *
    * @param tierAlias the alias for the tier
    * @return true if the block is in the given tier alias in some worker, false otherwise
    */
@@ -78,6 +91,8 @@ public final class UIFileBlockInfo {
   }
 
   /**
+   * Gets block length.
+   *
    * @return the block length
    */
   public long getBlockLength() {
@@ -85,6 +100,8 @@ public final class UIFileBlockInfo {
   }
 
   /**
+   * Gets id.
+   *
    * @return the block id
    */
   public long getID() {
@@ -92,6 +109,8 @@ public final class UIFileBlockInfo {
   }
 
   /**
+   * Gets last access time ms.
+   *
    * @return the block last access time in milliseconds
    */
   public long getLastAccessTimeMs() {
@@ -99,6 +118,8 @@ public final class UIFileBlockInfo {
   }
 
   /**
+   * Gets locations.
+   *
    * @return the block locations
    */
   public List<String> getLocations() {

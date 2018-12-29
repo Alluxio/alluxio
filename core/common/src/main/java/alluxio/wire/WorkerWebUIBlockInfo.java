@@ -27,13 +27,15 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class WorkerWebUIBlockInfo implements Serializable {
+  private static final long serialVersionUID = 6589358568781503724L;
+
+  private int mNTotalFile;
+  private List<ImmutablePair<String, List<UIFileBlockInfo>>> mFileBlocksOnTier;
+  private List<String> mOrderedTierAliases;
+  private List<UIFileInfo> mFileInfos;
   private String mBlockSizeBytes;
   private String mFatalError;
-  private List<ImmutablePair<String, List<UIFileBlockInfo>>> mFileBlocksOnTier;
-  private List<UIFileInfo> mFileInfos;
   private String mInvalidPathError;
-  private int mNTotalFile;
-  private List<String> mOrderedTierAliases;
   private String mPath;
 
   /**
@@ -42,74 +44,162 @@ public final class WorkerWebUIBlockInfo implements Serializable {
   public WorkerWebUIBlockInfo() {
   }
 
+  /**
+   * Gets block size bytes.
+   *
+   * @return the block size bytes
+   */
   public String getBlockSizeBytes() {
     return mBlockSizeBytes;
   }
 
+  /**
+   * Gets fatal error.
+   *
+   * @return the fatal error
+   */
   public String getFatalError() {
     return mFatalError;
   }
 
+  /**
+   * Gets file blocks on tier.
+   *
+   * @return the file blocks on tier
+   */
   public List<ImmutablePair<String, List<UIFileBlockInfo>>> getFileBlocksOnTier() {
     return mFileBlocksOnTier;
   }
 
+  /**
+   * Gets invalid path error.
+   *
+   * @return the invalid path error
+   */
   public String getInvalidPathError() {
     return mInvalidPathError;
   }
 
+  /**
+   * Gets n total file.
+   *
+   * @return the n total file
+   */
   public int getNTotalFile() {
     return mNTotalFile;
   }
 
+  /**
+   * Gets ordered tier aliases.
+   *
+   * @return the ordered tier aliases
+   */
   public List<String> getOrderedTierAliases() {
     return mOrderedTierAliases;
   }
 
+  /**
+   * Gets path.
+   *
+   * @return the path
+   */
   public String getPath() {
     return mPath;
   }
 
+  /**
+   * Gets file infos.
+   *
+   * @return the file infos
+   */
   public List<UIFileInfo> getFileInfos() {
     return mFileInfos;
   }
 
+  /**
+   * Sets block size bytes.
+   *
+   * @param BlockSizeBytes the block size bytes
+   * @return the block size bytes
+   */
   public WorkerWebUIBlockInfo setBlockSizeBytes(String BlockSizeBytes) {
     mBlockSizeBytes = BlockSizeBytes;
     return this;
   }
 
+  /**
+   * Sets fatal error.
+   *
+   * @param FatalError the fatal error
+   * @return the fatal error
+   */
   public WorkerWebUIBlockInfo setFatalError(String FatalError) {
     mFatalError = FatalError;
     return this;
   }
 
+  /**
+   * Sets file blocks on tier.
+   *
+   * @param FileBlocksOnTier the file blocks on tier
+   * @return the file blocks on tier
+   */
   public WorkerWebUIBlockInfo setFileBlocksOnTier(
       List<ImmutablePair<String, List<UIFileBlockInfo>>> FileBlocksOnTier) {
     mFileBlocksOnTier = FileBlocksOnTier;
     return this;
   }
 
+  /**
+   * Sets invalid path error.
+   *
+   * @param InvalidPathError the invalid path error
+   * @return the invalid path error
+   */
   public WorkerWebUIBlockInfo setInvalidPathError(String InvalidPathError) {
     mInvalidPathError = InvalidPathError;
     return this;
   }
 
+  /**
+   * Sets n total file.
+   *
+   * @param NTotalFile the n total file
+   * @return the n total file
+   */
   public WorkerWebUIBlockInfo setNTotalFile(int NTotalFile) {
     mNTotalFile = NTotalFile;
     return this;
   }
 
+  /**
+   * Sets ordered tier aliases.
+   *
+   * @param OrderedTierAliases the ordered tier aliases
+   * @return the ordered tier aliases
+   */
   public WorkerWebUIBlockInfo setOrderedTierAliases(List<String> OrderedTierAliases) {
     mOrderedTierAliases = OrderedTierAliases;
     return this;
   }
 
+  /**
+   * Sets path.
+   *
+   * @param Path the path
+   * @return the path
+   */
   public WorkerWebUIBlockInfo setPath(String Path) {
     mPath = Path;
     return this;
   }
 
+  /**
+   * Sets file infos.
+   *
+   * @param FileInfos the file infos
+   * @return the file infos
+   */
   public WorkerWebUIBlockInfo setFileInfos(List<UIFileInfo> FileInfos) {
     mFileInfos = FileInfos;
     return this;

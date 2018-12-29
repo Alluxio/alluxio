@@ -40,6 +40,7 @@ import javax.servlet.ServletException;
  */
 @NotThreadSafe
 public final class WorkerWebServer extends WebServer {
+  private static final Logger LOG = LoggerFactory.getLogger(WorkerWebServer.class);
 
   public static final String ALLUXIO_WORKER_SERVLET_RESOURCE_KEY = "Alluxio Worker";
 
@@ -56,7 +57,6 @@ public final class WorkerWebServer extends WebServer {
       BlockWorker blockWorker, String connectHost, long startTimeMs) {
     super("Alluxio worker web service", webAddress);
     Preconditions.checkNotNull(blockWorker, "Block worker cannot be null");
-    Logger LOG = LoggerFactory.getLogger(WorkerWebServer.class);
     // REST configuration
     ResourceConfig config = new ResourceConfig().packages("alluxio.worker", "alluxio.worker.block");
     // Override the init method to inject a reference to AlluxioWorker into the servlet context.
@@ -84,8 +84,9 @@ public final class WorkerWebServer extends WebServer {
       mWebAppContext.setWelcomeFiles(new String[] {"index.html"});
       mWebAppContext.setResourceBase(resourceDirPathString);
       mWebAppContext.addServlet(DefaultServlet.class, "/");
+      // TODO(william): consider a rewrite rule instead of an error handler
       ErrorPageErrorHandler errorHandler = new ErrorPageErrorHandler();
-      errorHandler.addErrorPage(404, "/"); // TODO: william - consider a rewrite rule instead of an error handler
+      errorHandler.addErrorPage(404, "/");
       mWebAppContext.setErrorHandler(errorHandler);
     } catch (URISyntaxException e) {
       LOG.error("ERROR: unable to set base resource path", e);

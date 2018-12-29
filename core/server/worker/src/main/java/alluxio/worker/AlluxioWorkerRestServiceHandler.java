@@ -93,6 +93,8 @@ import javax.ws.rs.core.Response;
 @Path(AlluxioWorkerRestServiceHandler.SERVICE_PREFIX)
 @Produces(MediaType.APPLICATION_JSON)
 public final class AlluxioWorkerRestServiceHandler {
+  private static final Logger LOG = LoggerFactory.getLogger(AlluxioWorkerRestServiceHandler.class);
+
   public static final String SERVICE_PREFIX = "worker";
 
   // endpoints
@@ -168,7 +170,8 @@ public final class AlluxioWorkerRestServiceHandler {
   }
 
   /**
-   * @summary get the information rendered in the Web UI's overview page
+   * Gets web ui overview page data.
+   *
    * @return the response object
    */
   @GET
@@ -217,7 +220,11 @@ public final class AlluxioWorkerRestServiceHandler {
   }
 
   /**
-   * @summary get the information rendered in the Web UI's blockInfo page
+   * Gets web ui block info page data.
+   *
+   * @param requestPath the request path
+   * @param requestOffset the request offset
+   * @param requestLimit the request limit
    * @return the response object
    */
   @GET
@@ -227,7 +234,6 @@ public final class AlluxioWorkerRestServiceHandler {
       @DefaultValue("0") @QueryParam("offset") String requestOffset,
       @DefaultValue("20") @QueryParam("limit") String requestLimit) {
     return RestUtils.call(() -> {
-      Logger LOG = LoggerFactory.getLogger(AlluxioWorkerRestServiceHandler.class);
       WorkerWebUIBlockInfo response = new WorkerWebUIBlockInfo();
 
       if (!Configuration.getBoolean(PropertyKey.WEB_FILE_INFO_ENABLED)) {
@@ -326,7 +332,8 @@ public final class AlluxioWorkerRestServiceHandler {
   }
 
   /**
-   * @summary get the information rendered in the Web UI's metrics page
+   * Gets web ui metrics page data.
+   *
    * @return the response object
    */
   @GET
@@ -387,12 +394,13 @@ public final class AlluxioWorkerRestServiceHandler {
   }
 
   /**
-   * @summary get the information required in the Web UI's logs page
-   * @param requestPath
-   * @param requestOffset
-   * @param requestEnd
-   * @param requestLimit
-   * @return
+   * Gets web ui logs page data.
+   *
+   * @param requestPath the request path
+   * @param requestOffset the request offset
+   * @param requestEnd the request end
+   * @param requestLimit the request limit
+   * @return the response object
    */
   @GET
   @Path(WEBUI_LOGS)
@@ -402,7 +410,7 @@ public final class AlluxioWorkerRestServiceHandler {
       @QueryParam("end") String requestEnd,
       @DefaultValue("20") @QueryParam("limit") String requestLimit) {
     return RestUtils.call(() -> {
-      FilenameFilter LOG_FILE_FILTER = (dir, name) -> name.toLowerCase().endsWith(".log");
+      FilenameFilter filenameFilter = (dir, name) -> name.toLowerCase().endsWith(".log");
       WorkerWebUILogs response = new WorkerWebUILogs();
 
       if (!Configuration.getBoolean(PropertyKey.WEB_FILE_INFO_ENABLED)) {
@@ -422,7 +430,7 @@ public final class AlluxioWorkerRestServiceHandler {
         // List all log files in the log/ directory.
 
         List<UIFileInfo> fileInfos = new ArrayList<>();
-        File[] logFiles = logsDir.listFiles(LOG_FILE_FILTER);
+        File[] logFiles = logsDir.listFiles(filenameFilter);
         if (logFiles != null) {
           for (File logFile : logFiles) {
             String logFileName = logFile.getName();

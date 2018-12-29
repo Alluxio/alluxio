@@ -11,7 +11,6 @@
 
 package alluxio.wire;
 
-import alluxio.AlluxioURI;
 import alluxio.util.webui.StorageTierInfo;
 
 import com.google.common.base.Objects;
@@ -27,22 +26,24 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class MasterWebUIOverview implements Serializable {
+  private static final long serialVersionUID = 6589358568781503724L;
+
   private boolean mDebug;
-  private String mCapacity;
   private ConfigCheckReport.ConfigStatus mConfigCheckStatus;
   private int mComfigCheckWarnNum;
   private int mConfigCheckErrorNum;
   private int mInconsistentPaths;
-  private String mLiveWorkerNodes;
   private List<StorageTierInfo> mStorageTierInfos;
-  private List<AlluxioURI> mInconsistentPathItems;
+  private List<String> mInconsistentPathItems;
   private Map<Scope, List<InconsistentProperty>> mConfigCheckErrors;
   private Map<Scope, List<InconsistentProperty>> mConfigCheckWarns;
+  private String mCapacity;
   private String mConsistencyCheckStatus;
   private String mDiskCapacity;
   private String mDiskFreeCapacity;
   private String mDiskUsedCapacity;
   private String mFreeCapacity;
+  private String mLiveWorkerNodes;
   private String mMasterNodeAddress;
   private String mStartTime;
   private String mUptime;
@@ -56,6 +57,8 @@ public final class MasterWebUIOverview implements Serializable {
   }
 
   /**
+   * Gets capacity.
+   *
    * @return the capacity
    */
   public String getCapacity() {
@@ -63,6 +66,8 @@ public final class MasterWebUIOverview implements Serializable {
   }
 
   /**
+   * Gets config check error num.
+   *
    * @return the number of config check errors
    */
   public int getConfigCheckErrorNum() {
@@ -70,6 +75,8 @@ public final class MasterWebUIOverview implements Serializable {
   }
 
   /**
+   * Gets config check errors.
+   *
    * @return the config check errors
    */
   public Map<Scope, List<InconsistentProperty>> getConfigCheckErrors() {
@@ -77,6 +84,8 @@ public final class MasterWebUIOverview implements Serializable {
   }
 
   /**
+   * Gets config check status.
+   *
    * @return the config check status
    */
   public ConfigCheckReport.ConfigStatus getConfigCheckStatus() {
@@ -84,6 +93,8 @@ public final class MasterWebUIOverview implements Serializable {
   }
 
   /**
+   * Gets config check warns.
+   *
    * @return the config check warnings
    */
   public Map<Scope, List<InconsistentProperty>> getConfigCheckWarns() {
@@ -91,6 +102,8 @@ public final class MasterWebUIOverview implements Serializable {
   }
 
   /**
+   * Gets consistency check status.
+   *
    * @return the consistency check status
    */
   public String getConsistencyCheckStatus() {
@@ -98,6 +111,8 @@ public final class MasterWebUIOverview implements Serializable {
   }
 
   /**
+   * Gets debug.
+   *
    * @return the debug value
    */
   public boolean getDebug() {
@@ -105,6 +120,8 @@ public final class MasterWebUIOverview implements Serializable {
   }
 
   /**
+   * Gets disk capacity.
+   *
    * @return the disk capacity
    */
   public String getDiskCapacity() {
@@ -112,6 +129,8 @@ public final class MasterWebUIOverview implements Serializable {
   }
 
   /**
+   * Gets disk free capacity.
+   *
    * @return the free disk capacity
    */
   public String getDiskFreeCapacity() {
@@ -119,6 +138,8 @@ public final class MasterWebUIOverview implements Serializable {
   }
 
   /**
+   * Gets disk used capacity.
+   *
    * @return the used disk capacity
    */
   public String getDiskUsedCapacity() {
@@ -126,6 +147,8 @@ public final class MasterWebUIOverview implements Serializable {
   }
 
   /**
+   * Gets free capacity.
+   *
    * @return the free capacity
    */
   public String getFreeCapacity() {
@@ -133,13 +156,17 @@ public final class MasterWebUIOverview implements Serializable {
   }
 
   /**
+   * Gets inconsistent path items.
+   *
    * @return inconsistent path items
    */
-  public List<AlluxioURI> getInconsistentPathItems() {
+  public List<String> getInconsistentPathItems() {
     return mInconsistentPathItems;
   }
 
   /**
+   * Gets live worker nodes.
+   *
    * @return live worker nodes
    */
   public String getLiveWorkerNodes() {
@@ -147,6 +174,8 @@ public final class MasterWebUIOverview implements Serializable {
   }
 
   /**
+   * Gets master node address.
+   *
    * @return the master node address
    */
   public String getMasterNodeAddress() {
@@ -154,6 +183,8 @@ public final class MasterWebUIOverview implements Serializable {
   }
 
   /**
+   * Gets start time.
+   *
    * @return the start time
    */
   public String getStartTime() {
@@ -161,6 +192,8 @@ public final class MasterWebUIOverview implements Serializable {
   }
 
   /**
+   * Gets storage tier infos.
+   *
    * @return the storage tier infos
    */
   public List<StorageTierInfo> getStorageTierInfos() {
@@ -168,6 +201,8 @@ public final class MasterWebUIOverview implements Serializable {
   }
 
   /**
+   * Gets uptime.
+   *
    * @return the uptime
    */
   public String getUptime() {
@@ -175,6 +210,8 @@ public final class MasterWebUIOverview implements Serializable {
   }
 
   /**
+   * Gets used capacity.
+   *
    * @return used capacity
    */
   public String getUsedCapacity() {
@@ -182,6 +219,8 @@ public final class MasterWebUIOverview implements Serializable {
   }
 
   /**
+   * Gets version.
+   *
    * @return the version
    */
   public String getVersion() {
@@ -189,19 +228,28 @@ public final class MasterWebUIOverview implements Serializable {
   }
 
   /**
-   * @return
+   * Gets inconsistent paths.
+   *
+   * @return inconsistent paths
    */
   public int getInconsistentPaths() {
     return mInconsistentPaths;
   }
 
+  /**
+   * Gets comfig check warn num.
+   *
+   * @return the comfig check warn num
+   */
   public int getComfigCheckWarnNum() {
     return mComfigCheckWarnNum;
   }
 
   /**
-   * @param capacity
-   * @return
+   * Sets capacity.
+   *
+   * @param capacity the capacity
+   * @return capacity
    */
   public MasterWebUIOverview setCapacity(String capacity) {
     mCapacity = capacity;
@@ -209,8 +257,10 @@ public final class MasterWebUIOverview implements Serializable {
   }
 
   /**
-   * @param configCheckErrorNum
-   * @return
+   * Sets config check error num.
+   *
+   * @param configCheckErrorNum the config check error num
+   * @return config check error num
    */
   public MasterWebUIOverview setConfigCheckErrorNum(int configCheckErrorNum) {
     mConfigCheckErrorNum = configCheckErrorNum;
@@ -218,8 +268,10 @@ public final class MasterWebUIOverview implements Serializable {
   }
 
   /**
-   * @param configCheckErrors
-   * @return
+   * Sets config check errors.
+   *
+   * @param configCheckErrors the config check errors
+   * @return config check errors
    */
   public MasterWebUIOverview setConfigCheckErrors(
       Map<Scope, List<InconsistentProperty>> configCheckErrors) {
@@ -228,8 +280,10 @@ public final class MasterWebUIOverview implements Serializable {
   }
 
   /**
-   * @param configCheckStatus
-   * @return
+   * Sets config check status.
+   *
+   * @param configCheckStatus the config check status
+   * @return config check status
    */
   public MasterWebUIOverview setConfigCheckStatus(
       ConfigCheckReport.ConfigStatus configCheckStatus) {
@@ -238,8 +292,10 @@ public final class MasterWebUIOverview implements Serializable {
   }
 
   /**
-   * @param configCheckWarns
-   * @return
+   * Sets config check warns.
+   *
+   * @param configCheckWarns the config check warns
+   * @return config check warns
    */
   public MasterWebUIOverview setConfigCheckWarns(
       Map<Scope, List<InconsistentProperty>> configCheckWarns) {
@@ -248,8 +304,10 @@ public final class MasterWebUIOverview implements Serializable {
   }
 
   /**
-   * @param consistencyCheckStatus
-   * @return
+   * Sets consistency check status.
+   *
+   * @param consistencyCheckStatus the consistency check status
+   * @return consistency check status
    */
   public MasterWebUIOverview setConsistencyCheckStatus(String consistencyCheckStatus) {
     mConsistencyCheckStatus = consistencyCheckStatus;
@@ -257,8 +315,10 @@ public final class MasterWebUIOverview implements Serializable {
   }
 
   /**
-   * @param debug
-   * @return
+   * Sets debug.
+   *
+   * @param debug the debug
+   * @return debug
    */
   public MasterWebUIOverview setDebug(boolean debug) {
     mDebug = debug;
@@ -266,8 +326,10 @@ public final class MasterWebUIOverview implements Serializable {
   }
 
   /**
-   * @param diskCapacity
-   * @return
+   * Sets disk capacity.
+   *
+   * @param diskCapacity the disk capacity
+   * @return disk capacity
    */
   public MasterWebUIOverview setDiskCapacity(String diskCapacity) {
     mDiskCapacity = diskCapacity;
@@ -275,8 +337,10 @@ public final class MasterWebUIOverview implements Serializable {
   }
 
   /**
-   * @param diskFreeCapacity
-   * @return
+   * Sets disk free capacity.
+   *
+   * @param diskFreeCapacity the disk free capacity
+   * @return disk free capacity
    */
   public MasterWebUIOverview setDiskFreeCapacity(String diskFreeCapacity) {
     mDiskFreeCapacity = diskFreeCapacity;
@@ -284,8 +348,10 @@ public final class MasterWebUIOverview implements Serializable {
   }
 
   /**
-   * @param diskUsedCapacity
-   * @return
+   * Sets disk used capacity.
+   *
+   * @param diskUsedCapacity the disk used capacity
+   * @return disk used capacity
    */
   public MasterWebUIOverview setDiskUsedCapacity(String diskUsedCapacity) {
     mDiskUsedCapacity = diskUsedCapacity;
@@ -293,8 +359,10 @@ public final class MasterWebUIOverview implements Serializable {
   }
 
   /**
-   * @param freeCapacity
-   * @return
+   * Sets free capacity.
+   *
+   * @param freeCapacity the free capacity
+   * @return free capacity
    */
   public MasterWebUIOverview setFreeCapacity(String freeCapacity) {
     mFreeCapacity = freeCapacity;
@@ -302,17 +370,21 @@ public final class MasterWebUIOverview implements Serializable {
   }
 
   /**
-   * @param inconsistentPathItems
-   * @return
+   * Sets inconsistent path items.
+   *
+   * @param inconsistentPathItems the inconsistent path items
+   * @return inconsistent path items
    */
-  public MasterWebUIOverview setInconsistentPathItems(List<AlluxioURI> inconsistentPathItems) {
+  public MasterWebUIOverview setInconsistentPathItems(List<String> inconsistentPathItems) {
     mInconsistentPathItems = inconsistentPathItems;
     return this;
   }
 
   /**
-   * @param liveWorkerNodes
-   * @return
+   * Sets live worker nodes.
+   *
+   * @param liveWorkerNodes the live worker nodes
+   * @return live worker nodes
    */
   public MasterWebUIOverview setLiveWorkerNodes(String liveWorkerNodes) {
     mLiveWorkerNodes = liveWorkerNodes;
@@ -320,8 +392,10 @@ public final class MasterWebUIOverview implements Serializable {
   }
 
   /**
-   * @param masterNodeAddress
-   * @return
+   * Sets master node address.
+   *
+   * @param masterNodeAddress the master node address
+   * @return master node address
    */
   public MasterWebUIOverview setMasterNodeAddress(String masterNodeAddress) {
     mMasterNodeAddress = masterNodeAddress;
@@ -329,8 +403,10 @@ public final class MasterWebUIOverview implements Serializable {
   }
 
   /**
-   * @param startTime
-   * @return
+   * Sets start time.
+   *
+   * @param startTime the start time
+   * @return start time
    */
   public MasterWebUIOverview setStartTime(String startTime) {
     mStartTime = startTime;
@@ -338,8 +414,10 @@ public final class MasterWebUIOverview implements Serializable {
   }
 
   /**
-   * @param storageTierInfos
-   * @return
+   * Sets storage tier infos.
+   *
+   * @param storageTierInfos the storage tier infos
+   * @return storage tier infos
    */
   public MasterWebUIOverview setStorageTierInfos(List<StorageTierInfo> storageTierInfos) {
     mStorageTierInfos = storageTierInfos;
@@ -347,8 +425,10 @@ public final class MasterWebUIOverview implements Serializable {
   }
 
   /**
-   * @param uptime
-   * @return
+   * Sets uptime.
+   *
+   * @param uptime the uptime
+   * @return uptime
    */
   public MasterWebUIOverview setUptime(String uptime) {
     mUptime = uptime;
@@ -356,8 +436,10 @@ public final class MasterWebUIOverview implements Serializable {
   }
 
   /**
-   * @param usedCapacity
-   * @return
+   * Sets used capacity.
+   *
+   * @param usedCapacity the used capacity
+   * @return used capacity
    */
   public MasterWebUIOverview setUsedCapacity(String usedCapacity) {
     mUsedCapacity = usedCapacity;
@@ -365,8 +447,10 @@ public final class MasterWebUIOverview implements Serializable {
   }
 
   /**
-   * @param version
-   * @return
+   * Sets version.
+   *
+   * @param version the version
+   * @return version
    */
   public MasterWebUIOverview setVersion(String version) {
     mVersion = version;
@@ -374,8 +458,10 @@ public final class MasterWebUIOverview implements Serializable {
   }
 
   /**
-   * @param size
-   * @return
+   * Sets inconsistent paths.
+   *
+   * @param size the size
+   * @return inconsistent paths
    */
   public MasterWebUIOverview setInconsistentPaths(int size) {
     mInconsistentPaths = size;
@@ -383,8 +469,10 @@ public final class MasterWebUIOverview implements Serializable {
   }
 
   /**
-   * @param configCheckWarnNum
-   * @return
+   * Sets config check warn num.
+   *
+   * @param configCheckWarnNum the config check warn num
+   * @return config check warn num
    */
   public MasterWebUIOverview setConfigCheckWarnNum(int configCheckWarnNum) {
     mComfigCheckWarnNum = configCheckWarnNum;

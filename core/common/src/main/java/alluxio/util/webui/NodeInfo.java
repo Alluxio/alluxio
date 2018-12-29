@@ -1,3 +1,14 @@
+/*
+ * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+ * (the "License"). You may not use this work except in compliance with the License, which is
+ * available at www.apache.org/licenses/LICENSE-2.0
+ *
+ * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+ * either express or implied, as more fully set forth in the License.
+ *
+ * See the NOTICE file distributed with this work for information regarding copyright ownership.
+ */
+
 package alluxio.util.webui;
 
 import alluxio.util.FormatUtils;
@@ -21,6 +32,11 @@ public final class NodeInfo implements Comparable<NodeInfo> {
   private final String mUptimeClockTime;
   private final long mWorkerId;
 
+  /**
+   * Instantiates a new Node info.
+   *
+   * @param workerInfo the worker info
+   */
   public NodeInfo(WorkerInfo workerInfo) {
     mHost = workerInfo.getAddress().getHost();
     mWebPort = workerInfo.getAddress().getWebPort();
@@ -41,6 +57,8 @@ public final class NodeInfo implements Comparable<NodeInfo> {
   }
 
   /**
+   * Gets capacity.
+   *
    * @return the worker capacity in bytes
    */
   public String getCapacity() {
@@ -48,6 +66,8 @@ public final class NodeInfo implements Comparable<NodeInfo> {
   }
 
   /**
+   * Gets free space percent.
+   *
    * @return the worker free space as a percentage
    */
   public int getFreeSpacePercent() {
@@ -55,6 +75,8 @@ public final class NodeInfo implements Comparable<NodeInfo> {
   }
 
   /**
+   * Gets last heartbeat.
+   *
    * @return the time of the last worker heartbeat
    */
   public String getLastHeartbeat() {
@@ -62,6 +84,8 @@ public final class NodeInfo implements Comparable<NodeInfo> {
   }
 
   /**
+   * Gets host.
+   *
    * @return the worker host
    */
   public String getHost() {
@@ -69,6 +93,8 @@ public final class NodeInfo implements Comparable<NodeInfo> {
   }
 
   /**
+   * Gets web port.
+   *
    * @return the worker port
    */
   public int getWebPort() {
@@ -76,6 +102,8 @@ public final class NodeInfo implements Comparable<NodeInfo> {
   }
 
   /**
+   * Gets state.
+   *
    * @return the worker state
    */
   public String getState() {
@@ -83,6 +111,8 @@ public final class NodeInfo implements Comparable<NodeInfo> {
   }
 
   /**
+   * Gets uptime clock time.
+   *
    * @return the worker uptime
    */
   public String getUptimeClockTime() {
@@ -90,6 +120,8 @@ public final class NodeInfo implements Comparable<NodeInfo> {
   }
 
   /**
+   * Gets used memory.
+   *
    * @return the worker used capacity in bytes
    */
   public String getUsedMemory() {
@@ -97,6 +129,8 @@ public final class NodeInfo implements Comparable<NodeInfo> {
   }
 
   /**
+   * Gets used space percent.
+   *
    * @return the worker used space as a percentage
    */
   public int getUsedSpacePercent() {
@@ -104,6 +138,8 @@ public final class NodeInfo implements Comparable<NodeInfo> {
   }
 
   /**
+   * Gets worker id.
+   *
    * @return the worker id
    */
   public long getWorkerId() {

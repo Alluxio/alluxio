@@ -27,9 +27,11 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class WorkerWebUIOverview implements Serializable {
-  private String mCapacityBytes;
+  private static final long serialVersionUID = 6589358568781503724L;
+
   private List<UIStorageDir> mStorageDirs;
   private List<UIUsageOnTier> mUsageOnTiers;
+  private String mCapacityBytes;
   private String mUsedBytes;
   private String mVersion;
   private UIWorkerInfo mWorkerInfo;
@@ -40,55 +42,121 @@ public final class WorkerWebUIOverview implements Serializable {
   public WorkerWebUIOverview() {
   }
 
+  /**
+   * Gets capacity bytes.
+   *
+   * @return the capacity bytes
+   */
   public String getCapacityBytes() {
     return mCapacityBytes;
   }
 
+  /**
+   * Gets storage dirs.
+   *
+   * @return the storage dirs
+   */
   public List<UIStorageDir> getStorageDirs() {
     return mStorageDirs;
   }
 
+  /**
+   * Gets usage on tiers.
+   *
+   * @return the usage on tiers
+   */
   public List<UIUsageOnTier> getUsageOnTiers() {
     return mUsageOnTiers;
   }
 
+  /**
+   * Gets used bytes.
+   *
+   * @return the used bytes
+   */
   public String getUsedBytes() {
     return mUsedBytes;
   }
 
+  /**
+   * Gets version.
+   *
+   * @return the version
+   */
   public String getVersion() {
     return mVersion;
   }
 
+  /**
+   * Gets worker info.
+   *
+   * @return the worker info
+   */
   public UIWorkerInfo getWorkerInfo() {
     return mWorkerInfo;
   }
 
+  /**
+   * Sets capacity bytes.
+   *
+   * @param CapacityBytes the capacity bytes
+   * @return the capacity bytes
+   */
   public WorkerWebUIOverview setCapacityBytes(String CapacityBytes) {
     mCapacityBytes = CapacityBytes;
     return this;
   }
 
+  /**
+   * Sets storage dirs.
+   *
+   * @param StorageDirs the storage dirs
+   * @return the storage dirs
+   */
   public WorkerWebUIOverview setStorageDirs(List<UIStorageDir> StorageDirs) {
     mStorageDirs = StorageDirs;
     return this;
   }
 
+  /**
+   * Sets usage on tiers.
+   *
+   * @param UsageOnTiers the usage on tiers
+   * @return the usage on tiers
+   */
   public WorkerWebUIOverview setUsageOnTiers(List<UIUsageOnTier> UsageOnTiers) {
     mUsageOnTiers = UsageOnTiers;
     return this;
   }
 
+  /**
+   * Sets used bytes.
+   *
+   * @param UsedBytes the used bytes
+   * @return the used bytes
+   */
   public WorkerWebUIOverview setUsedBytes(String UsedBytes) {
     mUsedBytes = UsedBytes;
     return this;
   }
 
+  /**
+   * Sets version.
+   *
+   * @param Version the version
+   * @return the version
+   */
   public WorkerWebUIOverview setVersion(String Version) {
     mVersion = Version;
     return this;
   }
 
+  /**
+   * Sets worker info.
+   *
+   * @param WorkerInfo the worker info
+   * @return the worker info
+   */
   public WorkerWebUIOverview setWorkerInfo(UIWorkerInfo WorkerInfo) {
     mWorkerInfo = WorkerInfo;
     return this;

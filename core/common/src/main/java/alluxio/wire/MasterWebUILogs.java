@@ -25,14 +25,16 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class MasterWebUILogs implements Serializable {
-  private String mCurrentPath;
+  private static final long serialVersionUID = 6589358568781503724L;
+
   private boolean mDebug;
+  private int mNTotalFile;
+  private List<UIFileInfo> mFileInfos;
+  private long mViewingOffset;
+  private String mCurrentPath;
   private String mFatalError;
   private String mFileData;
-  private List<UIFileInfo> mFileInfos;
   private String mInvalidPathError;
-  private int mNTotalFile;
-  private long mViewingOffset;
 
   /**
    * Creates a new instance of {@link MasterWebUIWorkers}.
@@ -40,73 +42,161 @@ public final class MasterWebUILogs implements Serializable {
   public MasterWebUILogs() {
   }
 
+  /**
+   * Gets current path.
+   *
+   * @return the current path
+   */
   public String getCurrentPath() {
     return mCurrentPath;
   }
 
+  /**
+   * Gets debug.
+   *
+   * @return the debug
+   */
   public boolean getDebug() {
     return mDebug;
   }
 
+  /**
+   * Gets fatal error.
+   *
+   * @return the fatal error
+   */
   public String getFatalError() {
     return mFatalError;
   }
 
+  /**
+   * Gets file data.
+   *
+   * @return the file data
+   */
   public String getFileData() {
     return mFileData;
   }
 
+  /**
+   * Gets file infos.
+   *
+   * @return the file infos
+   */
   public List<UIFileInfo> getFileInfos() {
     return mFileInfos;
   }
 
+  /**
+   * Gets invalid path error.
+   *
+   * @return the invalid path error
+   */
   public String getInvalidPathError() {
     return mInvalidPathError;
   }
 
+  /**
+   * Gets n total file.
+   *
+   * @return the n total file
+   */
   public int getNTotalFile() {
     return mNTotalFile;
   }
 
+  /**
+   * Gets viewing offset.
+   *
+   * @return the viewing offset
+   */
   public long getViewingOffset() {
     return mViewingOffset;
   }
 
+  /**
+   * Sets current path.
+   *
+   * @param currentPath the current path
+   * @return the current path
+   */
   public MasterWebUILogs setCurrentPath(String currentPath) {
     mCurrentPath = currentPath;
     return this;
   }
 
+  /**
+   * Sets debug.
+   *
+   * @param debug the debug
+   * @return the debug
+   */
   public MasterWebUILogs setDebug(boolean debug) {
     mDebug = debug;
     return this;
   }
 
+  /**
+   * Sets fatal error.
+   *
+   * @param fatalError the fatal error
+   * @return the fatal error
+   */
   public MasterWebUILogs setFatalError(String fatalError) {
     mFatalError = fatalError;
     return this;
   }
 
+  /**
+   * Sets file data.
+   *
+   * @param fileData the file data
+   * @return the file data
+   */
   public MasterWebUILogs setFileData(String fileData) {
     mFileData = fileData;
     return this;
   }
 
+  /**
+   * Sets file infos.
+   *
+   * @param fileInfos the file infos
+   * @return the file infos
+   */
   public MasterWebUILogs setFileInfos(List<UIFileInfo> fileInfos) {
     mFileInfos = fileInfos;
     return this;
   }
 
+  /**
+   * Sets invalid path error.
+   *
+   * @param invalidPathError the invalid path error
+   * @return the invalid path error
+   */
   public MasterWebUILogs setInvalidPathError(String invalidPathError) {
     mInvalidPathError = invalidPathError;
     return this;
   }
 
+  /**
+   * Sets n total file.
+   *
+   * @param nTotalFile the n total file
+   * @return the n total file
+   */
   public MasterWebUILogs setNTotalFile(int nTotalFile) {
     mNTotalFile = nTotalFile;
     return this;
   }
 
+  /**
+   * Sets viewing offset.
+   *
+   * @param viewingOffset the viewing offset
+   * @return the viewing offset
+   */
   public MasterWebUILogs setViewingOffset(long viewingOffset) {
     mViewingOffset = viewingOffset;
     return this;

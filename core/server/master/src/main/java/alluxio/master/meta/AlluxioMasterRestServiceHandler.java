@@ -101,6 +101,7 @@ import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.servlet.ServletContext;
@@ -211,7 +212,8 @@ public final class AlluxioMasterRestServiceHandler {
   }
 
   /**
-   * @summary get the information rendered in the Web UI's overview page
+   * Gets web ui overview page data.
+   *
    * @return the response object
    */
   @GET
@@ -236,7 +238,11 @@ public final class AlluxioMasterRestServiceHandler {
       response.setConsistencyCheckStatus(check.getStatus().toString());
       if (check.getStatus() == StartupConsistencyCheck.Status.COMPLETE) {
         response.setInconsistentPaths(check.getInconsistentUris().size());
-        response.setInconsistentPathItems(check.getInconsistentUris());
+        List<AlluxioURI> inconsistentUris = check.getInconsistentUris();
+        List<String> inconsistentUriStrings =
+            inconsistentUris.stream().map(inconsistentUri -> inconsistentUri.toString())
+                .collect(Collectors.toList());
+        response.setInconsistentPathItems(inconsistentUriStrings);
       } else {
         response.setInconsistentPaths(0);
       }
@@ -303,12 +309,13 @@ public final class AlluxioMasterRestServiceHandler {
   }
 
   /**
-   * @summary get the information required in the Web UI's browse page
-   * @param requestPath
-   * @param requestOffset
-   * @param requestEnd
-   * @param requestLimit
-   * @return
+   * Gets web ui browse page data.
+   *
+   * @param requestPath the request path
+   * @param requestOffset the request offset
+   * @param requestEnd the request end
+   * @param requestLimit the request limit
+   * @return the response object
    */
   @GET
   @Path(WEBUI_BROWSE)
@@ -336,11 +343,10 @@ public final class AlluxioMasterRestServiceHandler {
       }
       AlluxioURI currentPath = new AlluxioURI(path);
       response.setCurrentPath(currentPath.toString()).setViewingOffset(0);
-      FileSystemMaster fileSystemMaster = mMasterProcess.getMaster(FileSystemMaster.class);
 
       try {
-        long fileId = fileSystemMaster.getFileId(currentPath);
-        FileInfo fileInfo = fileSystemMaster.getFileInfo(fileId);
+        long fileId = mFileSystemMaster.getFileId(currentPath);
+        FileInfo fileInfo = mFileSystemMaster.getFileInfo(fileId);
         UIFileInfo currentFileInfo = new UIFileInfo(fileInfo);
         if (currentFileInfo.getAbsolutePath() == null) {
           throw new FileDoesNotExistException(currentPath.toString());
@@ -401,13 +407,12 @@ public final class AlluxioMasterRestServiceHandler {
               fileData = "The requested file is not complete yet.";
             }
             List<UIFileBlockInfo> uiBlockInfo = new ArrayList<>();
-            for (FileBlockInfo fileBlockInfo : mMasterProcess.getMaster(FileSystemMaster.class)
+            for (FileBlockInfo fileBlockInfo : mFileSystemMaster
                 .getFileBlockInfoList(absolutePath)) {
               uiBlockInfo.add(new UIFileBlockInfo(fileBlockInfo));
             }
-            response.setFileBlocks(uiBlockInfo).setFileData(fileData).setHighestTierAlias(
-                mMasterProcess.getMaster(BlockMaster.class).getGlobalStorageTierAssoc()
-                    .getAlias(0));
+            response.setFileBlocks(uiBlockInfo).setFileData(fileData)
+                .setHighestTierAlias(mBlockMaster.getGlobalStorageTierAssoc().getAlias(0));
           } catch (AlluxioException e) {
             throw new IOException(e);
           }
@@ -421,17 +426,17 @@ public final class AlluxioMasterRestServiceHandler {
           String[] splitPath = PathUtils.getPathComponents(currentPath.toString());
           UIFileInfo[] pathInfos = new UIFileInfo[splitPath.length - 1];
           currentPath = new AlluxioURI(AlluxioURI.SEPARATOR);
-          fileId = fileSystemMaster.getFileId(currentPath);
-          pathInfos[0] = new UIFileInfo(fileSystemMaster.getFileInfo(fileId));
+          fileId = mFileSystemMaster.getFileId(currentPath);
+          pathInfos[0] = new UIFileInfo(mFileSystemMaster.getFileInfo(fileId));
           for (int i = 1; i < splitPath.length - 1; i++) {
             currentPath = currentPath.join(splitPath[i]);
-            fileId = fileSystemMaster.getFileId(currentPath);
-            pathInfos[i] = new UIFileInfo(fileSystemMaster.getFileInfo(fileId));
+            fileId = mFileSystemMaster.getFileId(currentPath);
+            pathInfos[i] = new UIFileInfo(mFileSystemMaster.getFileInfo(fileId));
           }
           response.setPathInfos(pathInfos);
         }
 
-        filesInfo = fileSystemMaster.listStatus(currentPath,
+        filesInfo = mFileSystemMaster.listStatus(currentPath,
             ListStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Always));
       } catch (FileDoesNotExistException e) {
         response.setInvalidPathError("Error: Invalid Path " + e.getMessage());
@@ -458,7 +463,7 @@ public final class AlluxioMasterRestServiceHandler {
         try {
           if (!toAdd.getIsDirectory() && fileInfo.getLength() > 0) {
             FileBlockInfo blockInfo =
-                fileSystemMaster.getFileBlockInfoList(new AlluxioURI(toAdd.getAbsolutePath()))
+                mFileSystemMaster.getFileBlockInfoList(new AlluxioURI(toAdd.getAbsolutePath()))
                     .get(0);
             List<String> locations = new ArrayList<>();
             // add the in-Alluxio block locations
@@ -511,10 +516,11 @@ public final class AlluxioMasterRestServiceHandler {
   }
 
   /**
-   * @summary get the information required in the Web UI's data page
-   * @param requestOffset
-   * @param requestLimit
-   * @return
+   * Gets web ui data page data.
+   *
+   * @param requestOffset the request offset
+   * @param requestLimit the request limit
+   * @return the response object
    */
   @GET
   @Path(WEBUI_DATA)
@@ -535,16 +541,14 @@ public final class AlluxioMasterRestServiceHandler {
           .setShowPermissions(
               Configuration.getBoolean(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED));
 
-      FileSystemMaster fileSystemMaster = mMasterProcess.getMaster(FileSystemMaster.class);
-
-      List<AlluxioURI> inAlluxioFiles = fileSystemMaster.getInAlluxioFiles();
+      List<AlluxioURI> inAlluxioFiles = mFileSystemMaster.getInAlluxioFiles();
       Collections.sort(inAlluxioFiles);
 
       List<UIFileInfo> fileInfos = new ArrayList<>(inAlluxioFiles.size());
       for (AlluxioURI file : inAlluxioFiles) {
         try {
-          long fileId = fileSystemMaster.getFileId(file);
-          FileInfo fileInfo = fileSystemMaster.getFileInfo(fileId);
+          long fileId = mFileSystemMaster.getFileId(file);
+          FileInfo fileInfo = mFileSystemMaster.getFileInfo(fileId);
           if (fileInfo != null && fileInfo.getInAlluxioPercentage() == 100) {
             fileInfos.add(new UIFileInfo(fileInfo));
           }
@@ -583,12 +587,13 @@ public final class AlluxioMasterRestServiceHandler {
   }
 
   /**
-   * @summary get the information required in the Web UI's logs page
-   * @param requestPath
-   * @param requestOffset
-   * @param requestEnd
-   * @param requestLimit
-   * @return
+   * Gets web ui logs page data.
+   *
+   * @param requestPath the request path
+   * @param requestOffset the request offset
+   * @param requestEnd the request end
+   * @param requestLimit the request limit
+   * @return the response object
    */
   @GET
   @Path(WEBUI_LOGS)
@@ -598,7 +603,7 @@ public final class AlluxioMasterRestServiceHandler {
       @QueryParam("end") String requestEnd,
       @DefaultValue("20") @QueryParam("limit") String requestLimit) {
     return RestUtils.call(() -> {
-      FilenameFilter LOG_FILE_FILTER = (dir, name) -> name.toLowerCase().endsWith(".log");
+      FilenameFilter filenameFilter = (dir, name) -> name.toLowerCase().endsWith(".log");
       MasterWebUILogs response = new MasterWebUILogs();
 
       if (!Configuration.getBoolean(PropertyKey.WEB_FILE_INFO_ENABLED)) {
@@ -618,7 +623,7 @@ public final class AlluxioMasterRestServiceHandler {
         // List all log files in the log/ directory.
 
         List<UIFileInfo> fileInfos = new ArrayList<>();
-        File[] logFiles = logsDir.listFiles(LOG_FILE_FILTER);
+        File[] logFiles = logsDir.listFiles(filenameFilter);
         if (logFiles != null) {
           for (File logFile : logFiles) {
             String logFileName = logFile.getName();
@@ -719,8 +724,9 @@ public final class AlluxioMasterRestServiceHandler {
   }
 
   /**
-   * @summary get the information required in the Web UI's configuration page
-   * @return
+   * Gets web ui configuration page data.
+   *
+   * @return the response object
    */
   @GET
   @Path(WEBUI_CONFIG)
@@ -750,8 +756,9 @@ public final class AlluxioMasterRestServiceHandler {
   }
 
   /**
-   * @summary ges the information required for the Web UI's workers page
-   * @return
+   * Gets web ui workers page data.
+   *
+   * @return the response object
    */
   @GET
   @Path(WEBUI_WORKERS)
@@ -775,8 +782,9 @@ public final class AlluxioMasterRestServiceHandler {
   }
 
   /**
-   * @summary get the information required in the Web UI's metrics page
-   * @return
+   * Gets web ui metrics page data.
+   *
+   * @return the response object
    */
   @GET
   @Path(WEBUI_METRICS)
@@ -804,8 +812,9 @@ public final class AlluxioMasterRestServiceHandler {
           (Long) mr.getGauges().get(MetricsSystem.getMetricName(MasterMetrics.UFS_CAPACITY_USED))
               .getValue();
 
-      int masterUnderfsCapacityUsedPercentage = (masterUnderfsCapacityTotal > 0) ?
-          (int) (100L * masterUnderfsCapacityUsed / masterUnderfsCapacityTotal) : 0;
+      int masterUnderfsCapacityUsedPercentage =
+          (masterUnderfsCapacityTotal > 0) ? (int) (100L * masterUnderfsCapacityUsed
+              / masterUnderfsCapacityTotal) : 0;
       response.setMasterUnderfsCapacityUsedPercentage(masterUnderfsCapacityUsedPercentage)
           .setMasterUnderfsCapacityFreePercentage(100 - masterUnderfsCapacityUsedPercentage);
 
@@ -907,7 +916,6 @@ public final class AlluxioMasterRestServiceHandler {
         ufsOpsMap.put(ufs, perUfsMap);
       }
       response.setUfsOps(ufsOpsMap);
-
 
       Map<String, Counter> counters = mr.getCounters(new MetricFilter() {
         @Override

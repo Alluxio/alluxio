@@ -40,6 +40,7 @@ import javax.servlet.ServletException;
  */
 @NotThreadSafe
 public final class MasterWebServer extends WebServer {
+  private static final Logger LOG = LoggerFactory.getLogger(MasterWebServer.class);
 
   public static final String ALLUXIO_MASTER_SERVLET_RESOURCE_KEY = "Alluxio Master";
 
@@ -54,9 +55,8 @@ public final class MasterWebServer extends WebServer {
       final MasterProcess masterProcess) {
     super(serviceName, address);
     Preconditions.checkNotNull(masterProcess, "Alluxio master cannot be null");
-    Logger LOG = LoggerFactory.getLogger(MasterWebServer.class);
     mWebAppContext
-        .addServlet(new ServletHolder( // TODO: william - migrate this into a REST api endpoint
+        .addServlet(new ServletHolder(// TODO(william): migrate this into a REST api endpoint
                 new WebInterfaceDownloadServlet(masterProcess.getMaster(FileSystemMaster.class))),
             "/download");
     // REST configuration
@@ -88,7 +88,8 @@ public final class MasterWebServer extends WebServer {
       mWebAppContext.setResourceBase(resourceDirPathString);
       mWebAppContext.addServlet(DefaultServlet.class, "/");
       ErrorPageErrorHandler errorHandler = new ErrorPageErrorHandler();
-      errorHandler.addErrorPage(404, "/"); // TODO: william - consider a rewrite rule instead of an error handler
+      errorHandler.addErrorPage(404,
+          "/"); // TODO(william): consider a rewrite rule instead of an error handler
       mWebAppContext.setErrorHandler(errorHandler);
     } catch (URISyntaxException e) {
       LOG.error("ERROR: unable to set base resource path", e);

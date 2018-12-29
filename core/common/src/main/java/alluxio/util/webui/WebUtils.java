@@ -21,6 +21,9 @@ import java.util.Collection;
 
 import javax.annotation.concurrent.ThreadSafe;
 
+/**
+ * The type Web utils.
+ */
 @ThreadSafe
 public final class WebUtils {
   /**

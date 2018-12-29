@@ -25,10 +25,12 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class WorkerWebUIMetrics implements Serializable {
-  private long mWorkerCapacityUsedPercentage;
+  private static final long serialVersionUID = 6589358568781503724L;
+
   private long mWorkerCapacityFreePercentage;
-  private Map<String, Metric> mOperationMetrics;
+  private long mWorkerCapacityUsedPercentage;
   private Map<String, Counter> mRpcInvocationMetrics;
+  private Map<String, Metric> mOperationMetrics;
 
   /**
    * Creates a new instance of {@link WorkerWebUIMetrics}.
@@ -36,37 +38,81 @@ public final class WorkerWebUIMetrics implements Serializable {
   public WorkerWebUIMetrics() {
   }
 
+  /**
+   * Gets worker capacity used percentage.
+   *
+   * @return the worker capacity used percentage
+   */
   public long getWorkerCapacityUsedPercentage() {
     return mWorkerCapacityUsedPercentage;
   }
 
+  /**
+   * Gets worker capacity free percentage.
+   *
+   * @return the worker capacity free percentage
+   */
   public long getWorkerCapacityFreePercentage() {
     return mWorkerCapacityFreePercentage;
   }
 
+  /**
+   * Gets operation metrics.
+   *
+   * @return the operation metrics
+   */
   public Map<String, Metric> getOperationMetrics() {
     return mOperationMetrics;
   }
 
+  /**
+   * Gets rpc invocation metrics.
+   *
+   * @return the rpc invocation metrics
+   */
   public Map<String, Counter> getRpcInvocationMetrics() {
     return mRpcInvocationMetrics;
   }
 
+  /**
+   * Sets worker capacity used percentage.
+   *
+   * @param WorkerCapacityUsedPercentage the worker capacity used percentage
+   * @return the worker capacity used percentage
+   */
   public WorkerWebUIMetrics setWorkerCapacityUsedPercentage(long WorkerCapacityUsedPercentage) {
     mWorkerCapacityUsedPercentage = WorkerCapacityUsedPercentage;
     return this;
   }
 
+  /**
+   * Sets worker capacity free percentage.
+   *
+   * @param WorkerCapacityFreePercentage the worker capacity free percentage
+   * @return the worker capacity free percentage
+   */
   public WorkerWebUIMetrics setWorkerCapacityFreePercentage(long WorkerCapacityFreePercentage) {
     mWorkerCapacityFreePercentage = WorkerCapacityFreePercentage;
     return this;
   }
 
+  /**
+   * Sets operation metrics.
+   *
+   * @param OperationMetrics the operation metrics
+   * @return the operation metrics
+   */
   public WorkerWebUIMetrics setOperationMetrics(Map<String, Metric> OperationMetrics) {
     mOperationMetrics = OperationMetrics;
     return this;
   }
 
+  /**
+   * Sets rpc invocation metrics.
+   *
+   * @param RpcInvocationMetrics the rpc invocation metrics
+   * @return the rpc invocation metrics
+   */
   public WorkerWebUIMetrics setRpcInvocationMetrics(Map<String, Counter> RpcInvocationMetrics) {
     mRpcInvocationMetrics = RpcInvocationMetrics;
     return this;

@@ -43,9 +43,14 @@ public final class UIFileInfo {
       Ordering.natural().onResultOf(
           (Function<UIFileInfo, Comparable<String>>) input -> input.mAbsolutePath);
 
-  // Simple class for describing a file on the local filesystem.
+  /**
+   * The type Local file info.
+   */
   @ThreadSafe
   public static class LocalFileInfo {
+    /**
+     * The constant EMPTY_CREATION_TIME.
+     */
     public static final long EMPTY_CREATION_TIME = 0;
 
     private final String mName;
@@ -179,6 +184,8 @@ public final class UIFileInfo {
   }
 
   /**
+   * Gets absolute path.
+   *
    * @return the absolute path
    */
   public String getAbsolutePath() {
@@ -186,6 +193,8 @@ public final class UIFileInfo {
   }
 
   /**
+   * Gets block size bytes.
+   *
    * @return the block size (in bytes)
    */
   public String getBlockSizeBytes() {
@@ -197,6 +206,8 @@ public final class UIFileInfo {
   }
 
   /**
+   * Gets blocks on tier.
+   *
    * @return a mapping from tiers to file blocks
    */
   public Map<String, List<UIFileBlockInfo>> getBlocksOnTier() {
@@ -204,6 +215,8 @@ public final class UIFileInfo {
   }
 
   /**
+   * Gets creation time.
+   *
    * @return the creation time (in milliseconds)
    */
   public String getCreationTime() {
@@ -214,6 +227,8 @@ public final class UIFileInfo {
   }
 
   /**
+   * Gets modification time.
+   *
    * @return the modification time (in milliseconds)
    */
   public String getModificationTime() {
@@ -221,6 +236,8 @@ public final class UIFileInfo {
   }
 
   /**
+   * Gets file locations.
+   *
    * @return the file locations
    */
   public List<String> getFileLocations() {
@@ -228,6 +245,8 @@ public final class UIFileInfo {
   }
 
   /**
+   * Gets id.
+   *
    * @return the file id
    */
   public long getId() {
@@ -235,6 +254,8 @@ public final class UIFileInfo {
   }
 
   /**
+   * Gets in alluxio.
+   *
    * @return whether the file is present in memory
    */
   public boolean getInAlluxio() {
@@ -242,6 +263,8 @@ public final class UIFileInfo {
   }
 
   /**
+   * Gets in alluxio percentage.
+   *
    * @return the percentage of the file present in memory
    */
   public int getInAlluxioPercentage() {
@@ -249,6 +272,8 @@ public final class UIFileInfo {
   }
 
   /**
+   * Gets is directory.
+   *
    * @return whether the object represents a directory
    */
   public boolean getIsDirectory() {
@@ -256,6 +281,8 @@ public final class UIFileInfo {
   }
 
   /**
+   * Is pinned boolean.
+   *
    * @return whether the file is pinned
    */
   public boolean isPinned() {
@@ -263,6 +290,8 @@ public final class UIFileInfo {
   }
 
   /**
+   * Gets persistence state.
+   *
    * @return the {@link PersistenceState} of the file
    */
   public String getPersistenceState() {
@@ -270,6 +299,8 @@ public final class UIFileInfo {
   }
 
   /**
+   * Gets on tier percentage.
+   *
    * @param tierAlias a tier alias
    * @return the percentage of the file stored in the given tier
    */
@@ -279,6 +310,8 @@ public final class UIFileInfo {
   }
 
   /**
+   * Gets name.
+   *
    * @return the file name
    */
   public String getName() {
@@ -290,6 +323,8 @@ public final class UIFileInfo {
   }
 
   /**
+   * Gets size.
+   *
    * @return the file size
    */
   public String getSize() {
@@ -301,6 +336,8 @@ public final class UIFileInfo {
   }
 
   /**
+   * Sets file locations.
+   *
    * @param fileLocations the file locations to use
    */
   public void setFileLocations(List<String> fileLocations) {
@@ -309,6 +346,8 @@ public final class UIFileInfo {
   }
 
   /**
+   * Gets owner.
+   *
    * @return the owner of the file
    */
   public String getOwner() {
@@ -316,6 +355,8 @@ public final class UIFileInfo {
   }
 
   /**
+   * Gets group.
+   *
    * @return the group of the file
    */
   public String getGroup() {
@@ -323,6 +364,8 @@ public final class UIFileInfo {
   }
 
   /**
+   * Gets mode.
+   *
    * @return the mode of the file
    */
   public String getMode() {

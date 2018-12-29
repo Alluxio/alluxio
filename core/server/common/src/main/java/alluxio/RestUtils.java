@@ -123,6 +123,8 @@ public final class RestUtils {
     }
 
     /**
+     * Gets status.
+     *
      * @return the status
      */
     public Status getStatus() {
@@ -130,7 +132,9 @@ public final class RestUtils {
     }
 
     /**
-     * @return the error message
+     * Gets message.
+     *
+     * @return the message
      */
     public String getMessage() {
       return mMessage;
@@ -157,13 +161,14 @@ public final class RestUtils {
   }
 
   /**
-   * Makes the responseBuilder CORS compatible
+   * Makes the responseBuilder CORS compatible.
    *
    * @param responseBuilder the response builder
    * @param returnMethod the modified response builder
-   * @return
+   * @return response builder
    */
-  public static Response.ResponseBuilder makeCORS(Response.ResponseBuilder responseBuilder, String returnMethod) {
+  public static Response.ResponseBuilder makeCORS(Response.ResponseBuilder responseBuilder,
+      String returnMethod) {
     Response.ResponseBuilder rb = responseBuilder.header("Access-Control-Allow-Origin", "*")
         .header("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
 
@@ -175,15 +180,15 @@ public final class RestUtils {
   }
 
   /**
-   *  Makes the responseBuilder CORS compatible, assumes default methods
+   *  Makes the responseBuilder CORS compatible, assumes default methods.
    *
    * @param req the modified response builder
-   * @return
+   * @return response builder
    */
   public static Response.ResponseBuilder makeCORS(Response.ResponseBuilder req) {
     return makeCORS(req, "");
   }
 
-
-  private RestUtils() {} // prevent instantiation
+  private RestUtils() {
+  } // prevent instantiation
 }
