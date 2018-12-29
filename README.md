@@ -14,10 +14,15 @@ computation frameworks and storage systems, enabling computation applications to
 numerous storage systems through a common interface. Read more about
 [Alluxio Overview](https://www.alluxio.org/docs/1.8/en/Overview.html).
 
+The Alluxio project originated from a research project called Tachyon at AMPLab, UC Berkeley,
+which was the data layer of the Berkeley Data Analytics Stack ([BDAS](https://amplab.cs.berkeley.edu/bdas/)).
+For more details, please refer to Haoyuan Li's PhD dissertation 
+[Alluxio: A Virtual Distributed File System](https://www2.eecs.berkeley.edu/Pubs/TechRpts/2018/EECS-2018-29.html).
+
 ## Who Uses Alluxio
 
 Alluxio is used in production to manage Petabytes of data in many leading companies, with
-the largest deployment exceeding 1300 workers. Find more use cases at
+the largest deployment exceeding 1300 nodes. Find more use cases at
 [Powered by Alluxio](https://www.alluxio.org/community/powered-by-alluxio).
 
 ## Download Alluxio
