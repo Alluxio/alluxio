@@ -65,20 +65,28 @@ public final class GrpcServer {
    * @return {@code true} if the server was successfully terminated.
    * @throws InterruptedException
    */
-  public boolean shutdown() throws InterruptedException {
+  public boolean shutdown() {
     mServer.shutdown();
-    boolean terminated = mServer.awaitTermination(
-        Configuration.getMs(PropertyKey.MASTER_GRPC_SERVER_SHUTDOWN_TIMEOUT),
-        TimeUnit.MILLISECONDS);
-    mServer.shutdownNow();
-    return terminated;
+    try {
+      return mServer.awaitTermination(
+          Configuration.getMs(PropertyKey.MASTER_GRPC_SERVER_SHUTDOWN_TIMEOUT),
+          TimeUnit.MILLISECONDS);
+    } catch (InterruptedException ie) {
+      return false;
+    } finally {
+      mServer.shutdownNow();
+    }
   }
 
   /**
    * Waits until the server is terminated.
    */
-  public void awaitTermination() throws InterruptedException{
-    mServer.awaitTermination();
+  public void awaitTermination(){
+    try {
+      mServer.awaitTermination();
+    } catch (InterruptedException ie) {
+      // Allow thread to exit.
+    }
   }
 
   /**

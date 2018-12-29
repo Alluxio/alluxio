@@ -109,25 +109,19 @@ public final class GrpcDataServer implements DataServer {
   @Override
   public void close() {
     if (mServer != null) {
-      try {
-        boolean completed = mServer.shutdown();
-        if (!completed) {
-          LOG.warn("RPC Server shutdown timed out.");
-        }
-        completed = mBossGroup.shutdownGracefully(mQuietPeriodMs, mTimeoutMs, TimeUnit.MILLISECONDS)
-            .awaitUninterruptibly(mTimeoutMs);
-        if (!completed) {
-          LOG.warn("Forced boss group shutdown because graceful shutdown timed out.");
-        }
-        completed = mWorkerGroup
-            .shutdownGracefully(mQuietPeriodMs, mTimeoutMs, TimeUnit.MILLISECONDS)
-            .awaitUninterruptibly(mTimeoutMs);
-        if (!completed) {
-          LOG.warn("Forced worker group shutdown because graceful shutdown timed out.");
-        }
-      } catch (InterruptedException e) {
-        Thread.currentThread().interrupt();
-        throw new RuntimeException("gRPC server shutdown interrupted", e);
+      boolean completed = mServer.shutdown();
+      if (!completed) {
+        LOG.warn("RPC Server shutdown timed out.");
+      }
+      completed = mBossGroup.shutdownGracefully(mQuietPeriodMs, mTimeoutMs, TimeUnit.MILLISECONDS)
+          .awaitUninterruptibly(mTimeoutMs);
+      if (!completed) {
+        LOG.warn("Forced boss group shutdown because graceful shutdown timed out.");
+      }
+      completed = mWorkerGroup.shutdownGracefully(mQuietPeriodMs, mTimeoutMs, TimeUnit.MILLISECONDS)
+          .awaitUninterruptibly(mTimeoutMs);
+      if (!completed) {
+        LOG.warn("Forced worker group shutdown because graceful shutdown timed out.");
       }
     }
   }

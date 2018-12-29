@@ -69,9 +69,6 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
   /** If started (i.e. not null), this server is used to serve local data transfer. */
   private DataServer mDomainSocketDataServer;
 
-  /** Whether the worker is serving the RPC server. */
-  private boolean mIsServingRPC = false;
-
   private final MetricsServlet mMetricsServlet = new MetricsServlet(MetricsSystem.METRIC_REGISTRY);
   private final PrometheusMetricsServlet mPMetricsServlet = new PrometheusMetricsServlet(
       MetricsSystem.METRIC_REGISTRY);
@@ -255,14 +252,17 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
 
   @Override
   public void stop() throws Exception {
-    if (mIsServingRPC) {
+    if (isServing()) {
       stopServing();
       if (mJvmPauseMonitor != null) {
         mJvmPauseMonitor.stop();
       }
       stopWorkers();
-      mIsServingRPC = false;
     }
+  }
+
+  private boolean isServing() {
+    return mGrpcServer != null && mGrpcServer.isServing();
   }
 
   private void startWorkers() throws Exception {
@@ -317,12 +317,11 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
 
       mGrpcServer = serverBuilder.build().start();
       Configuration.set(PropertyKey.WORKER_RPC_PORT, Integer.toString(mGrpcServer.getBindPort()));
-      mIsServingRPC = true;
       LOG.info("Started gRPC server on address {}", mRpcAddress);
 
       // Wait until the server is shut down.
       mGrpcServer.awaitTermination();
-    } catch (IOException | InterruptedException e) {
+    } catch (IOException e) {
       throw new RuntimeException(e);
     }
   }

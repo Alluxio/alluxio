@@ -287,7 +287,7 @@ public class AlluxioJobMasterProcess implements JobMasterProcess {
 
       // Wait until the server is shut down.
       mGrpcServer.awaitTermination();
-    } catch (IOException | InterruptedException e) {
+    } catch (IOException e) {
       throw new RuntimeException(e);
     }
   }
