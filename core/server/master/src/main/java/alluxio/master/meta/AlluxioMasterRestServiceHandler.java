@@ -187,7 +187,6 @@ public final class AlluxioMasterRestServiceHandler {
    *    it is null, which means false.
    * @return the response object
    */
-
   @GET
   @Path(GET_INFO)
   @ReturnType("alluxio.wire.AlluxioMasterInfo")
