@@ -52,6 +52,7 @@
       </plugin>
       <plugin>
         <artifactId>exec-maven-plugin</artifactId>
+        <version>1.4.0</version>
         <groupId>org.codehaus.mojo</groupId>
         <inherited>false</inherited>
         <executions>
