@@ -86,6 +86,8 @@ import com.google.common.collect.Sets;
 import com.qmino.miredot.annotations.ReturnType;
 import org.apache.commons.lang3.tuple.ImmutableTriple;
 import org.apache.commons.lang3.tuple.Triple;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -122,6 +124,7 @@ import javax.ws.rs.core.Response;
 @Path(AlluxioMasterRestServiceHandler.SERVICE_PREFIX)
 @Produces(MediaType.APPLICATION_JSON)
 public final class AlluxioMasterRestServiceHandler {
+  private static final Logger LOG = LoggerFactory.getLogger(AlluxioMasterRestServiceHandler.class);
 
   public static final String SERVICE_PREFIX = "master";
 
@@ -424,7 +427,6 @@ public final class AlluxioMasterRestServiceHandler {
         } else {
           String[] splitPath = PathUtils.getPathComponents(currentPath.toString());
           UIFileInfo[] pathInfos = new UIFileInfo[splitPath.length - 1];
-          currentPath = new AlluxioURI(AlluxioURI.SEPARATOR);
           fileId = mFileSystemMaster.getFileId(currentPath);
           pathInfos[0] = new UIFileInfo(mFileSystemMaster.getFileInfo(fileId));
           for (int i = 1; i < splitPath.length - 1; i++) {
