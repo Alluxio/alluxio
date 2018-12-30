@@ -101,21 +101,15 @@ public class GrpcManagedChannelPool {
           if (mChannels.get(channelKey).dereference()) {
             ManagedChannel channel = mChannels.remove(channelKey).reference();
             channel.shutdown();
-            boolean isTerminated = false;
-            while (!isTerminated) {
-              try {
-                isTerminated = channel.awaitTermination(
-                    Configuration.getMs(PropertyKey.MASTER_GRPC_CHANNEL_SHUTDOWN_TIMEOUT),
-                    TimeUnit.MILLISECONDS);
-              } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                throw new RuntimeException(
-                    String.format("Interrupted while trying to close a gRPC channel to: %s",
-                        channelKey.mAddress),
-                    e);
-              }
+            try {
+              channel.awaitTermination(
+                  Configuration.getMs(PropertyKey.MASTER_GRPC_CHANNEL_SHUTDOWN_TIMEOUT),
+                  TimeUnit.MILLISECONDS);
+            } catch (InterruptedException e) {
+              // Allow thread to exit.
+            } finally {
+              channel.shutdownNow();
             }
-            channel.shutdownNow();
             Verify.verify(channel.isTerminated());
           }
         }

@@ -93,8 +93,7 @@ public class SaslStreamClientDriver implements StreamObserver<SaslMessage> {
     } catch (SaslException se) {
       throw new UnauthenticatedException(se.getMessage(), se);
     } catch (InterruptedException ie) {
-      Thread.currentThread().interrupt();
-      throw new RuntimeException(ie);
+      throw new UnauthenticatedException(ie.getMessage(), ie);
     } catch (ExecutionException e) {
       Throwable cause = e.getCause();
       if (cause != null && cause instanceof StatusRuntimeException) {
