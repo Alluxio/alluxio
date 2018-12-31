@@ -13,15 +13,11 @@ package alluxio.grpc;
 
 import alluxio.Configuration;
 import alluxio.PropertyKey;
-import alluxio.retry.CountingRetry;
 import alluxio.retry.ExponentialBackoffRetry;
-import alluxio.retry.RetryPolicy;
 import alluxio.retry.RetryUtils;
 import io.grpc.Server;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.net.SocketAddress;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -30,6 +26,9 @@ import java.util.concurrent.TimeUnit;
  */
 public final class GrpcServer {
   private Server mServer;
+
+  /** Set to TRUE when the server has been successfully started. **/
+  private boolean mStarted = false;
 
   /**
    * Create a new instance of {@link GrpcServer}.
@@ -49,6 +48,7 @@ public final class GrpcServer {
   public GrpcServer start() throws IOException {
     RetryUtils.retry("Starting gRPC server", () -> mServer.start(),
         new ExponentialBackoffRetry(100, 500, 5));
+    mStarted = true;
     return this;
   }
 
@@ -72,6 +72,7 @@ public final class GrpcServer {
           Configuration.getMs(PropertyKey.MASTER_GRPC_SERVER_SHUTDOWN_TIMEOUT),
           TimeUnit.MILLISECONDS);
     } catch (InterruptedException ie) {
+      Thread.currentThread().interrupt();
       return false;
     } finally {
       mServer.shutdownNow();
@@ -81,10 +82,11 @@ public final class GrpcServer {
   /**
    * Waits until the server is terminated.
    */
-  public void awaitTermination(){
+  public void awaitTermination() {
     try {
       mServer.awaitTermination();
     } catch (InterruptedException ie) {
+      Thread.currentThread().interrupt();
       // Allow thread to exit.
     }
   }
@@ -93,6 +95,6 @@ public final class GrpcServer {
    * @return true if server is serving
    */
   public boolean isServing() {
-    return !mServer.isShutdown() || !mServer.isTerminated();
+    return mStarted && !mServer.isShutdown() || !mServer.isTerminated();
   }
 }

@@ -212,7 +212,7 @@ public class AlluxioMasterProcess implements MasterProcess {
   public boolean waitForReady(int timeoutMs) {
     try {
       CommonUtils.waitFor(this + " to start",
-          () -> mGrpcServer != null && mGrpcServer.isServing() && mWebServer != null
+          () -> isServing() && mWebServer != null
               && mWebServer.getServer().isRunning(),
           WaitForOptions.defaults().setTimeoutMs(timeoutMs));
       return true;
@@ -391,7 +391,7 @@ public class AlluxioMasterProcess implements MasterProcess {
    * all the sinks.
    */
   protected void stopServing() throws Exception {
-    if (mGrpcServer != null) {
+    if (isServing()) {
       if (!mGrpcServer.shutdown()) {
         LOG.warn("RPC Server shutdown timed out.");
       }

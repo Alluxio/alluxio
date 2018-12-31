@@ -106,11 +106,12 @@ public class GrpcManagedChannelPool {
                   Configuration.getMs(PropertyKey.MASTER_GRPC_CHANNEL_SHUTDOWN_TIMEOUT),
                   TimeUnit.MILLISECONDS);
             } catch (InterruptedException e) {
+              Thread.currentThread().interrupt();
               // Allow thread to exit.
             } finally {
               channel.shutdownNow();
             }
-            Verify.verify(channel.isTerminated());
+            Verify.verify(channel.isShutdown());
           }
         }
       }

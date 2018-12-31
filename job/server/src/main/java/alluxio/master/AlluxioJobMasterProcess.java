@@ -73,9 +73,6 @@ public class AlluxioJobMasterProcess implements JobMasterProcess {
   /** The master managing all job related metadata. */
   protected JobMaster mJobMaster;
 
-  /** is true if the master is serving the RPC server. */
-  private boolean mIsServing = false;
-
   /** The start time for when the master started. */
   private final long mStartTimeMs = System.currentTimeMillis();
 
@@ -161,7 +158,7 @@ public class AlluxioJobMasterProcess implements JobMasterProcess {
 
   @Override
   public boolean isServing() {
-    return mIsServing;
+    return mGrpcServer != null && mGrpcServer.isServing();
   }
 
   @Override
@@ -176,8 +173,7 @@ public class AlluxioJobMasterProcess implements JobMasterProcess {
   public boolean waitForReady(int timeoutMs) {
     try {
       CommonUtils.waitFor(this + " to start",
-          () -> mGrpcServer != null && mGrpcServer.isServing()
-                  && mWebServer != null && mWebServer.getServer().isRunning(),
+          () -> isServing() && mWebServer != null && mWebServer.getServer().isRunning(),
           WaitForOptions.defaults().setTimeoutMs(timeoutMs));
       return true;
     } catch (InterruptedException e) {
@@ -207,7 +203,7 @@ public class AlluxioJobMasterProcess implements JobMasterProcess {
    */
   public void stop() throws Exception {
     LOG.info("Stopping RPC server on {} @ {}", this, mRpcBindAddress);
-    if (mIsServing) {
+    if (isServing()) {
       stopServing();
       stopMaster();
       mJournalSystem.stop();
@@ -287,7 +283,6 @@ public class AlluxioJobMasterProcess implements JobMasterProcess {
       registerServices(serverBuilder, mJobMaster.getServices());
 
       mGrpcServer = serverBuilder.build().start();
-      mIsServing = true;
       LOG.info("Started gRPC server on address {}", mRpcBindAddress);
 
       // Wait until the server is shut down.
@@ -298,7 +293,7 @@ public class AlluxioJobMasterProcess implements JobMasterProcess {
   }
 
   protected void stopServing() throws Exception {
-    if (mGrpcServer != null) {
+    if (isServing()) {
       if (!mGrpcServer.shutdown()) {
         LOG.warn("RPC Server shutdown timed out.");
       }
@@ -307,7 +302,6 @@ public class AlluxioJobMasterProcess implements JobMasterProcess {
       mWebServer.stop();
       mWebServer = null;
     }
-    mIsServing = false;
   }
 
   @Override

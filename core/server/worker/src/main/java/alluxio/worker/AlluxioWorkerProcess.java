@@ -283,7 +283,7 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
       mDomainSocketDataServer.close();
       mDomainSocketDataServer = null;
     }
-    if (mGrpcServer != null) {
+    if (isServing()) {
       if (!mGrpcServer.shutdown()) {
         LOG.warn("RPC server shutdown timed out.");
       }
@@ -342,8 +342,7 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
   public boolean waitForReady(int timeoutMs) {
     try {
       CommonUtils.waitFor(this + " to start",
-          () -> mGrpcServer != null && mGrpcServer.isServing()
-              && mRegistry.get(BlockWorker.class).getWorkerId() != null
+          () -> isServing() && mRegistry.get(BlockWorker.class).getWorkerId() != null
               && mWebServer != null && mWebServer.getServer().isRunning(),
           WaitForOptions.defaults().setTimeoutMs(timeoutMs));
       return true;
