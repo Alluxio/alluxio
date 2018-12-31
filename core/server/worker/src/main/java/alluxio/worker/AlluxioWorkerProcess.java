@@ -45,6 +45,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.net.ServerSocket;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -81,6 +82,9 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
 
   /** gRPC server. */
   private GrpcServer mGrpcServer;
+
+  /** Used for auto binding. **/
+  private ServerSocket mBindSocket;
 
   /** The address for the rpc server. */
   private InetSocketAddress mRpcAddress;
@@ -129,8 +133,8 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
       InetSocketAddress configuredBindAddress =
               NetworkAddressUtils.getBindAddress(ServiceType.WORKER_RPC);
       if (configuredBindAddress.getPort() == 0) {
-        mGrpcServer = GrpcServerBuilder.forAddress(configuredBindAddress).build().start();
-        bindPort = mGrpcServer.getBindPort();
+        mBindSocket = new ServerSocket(0);
+        bindPort = mBindSocket.getLocalPort();
       } else {
         bindPort = configuredBindAddress.getPort();
       }
@@ -303,10 +307,10 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
 
   private void startServingRPCServer() {
     try {
-      if (mGrpcServer != null && mGrpcServer.isServing()) {
-        // Server launched for auto bind.
-        // Terminate it.
-        mGrpcServer.shutdown();
+      if (mBindSocket != null) {
+        // Socket opened for auto bind.
+        // Close it.
+        mBindSocket.close();
       }
 
       LOG.info("Starting gRPC server on address {}", mRpcAddress);

@@ -41,6 +41,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetSocketAddress;
+import java.net.ServerSocket;
 import java.util.Map;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.Lock;
@@ -88,6 +89,9 @@ public class AlluxioMasterProcess implements MasterProcess {
 
   /** The RPC server. */
   private GrpcServer mGrpcServer;
+
+  /** Used for auto binding. **/
+  private ServerSocket mBindSocket;
 
   /** The start time for when the master started. */
   private final long mStartTimeMs = System.currentTimeMillis();
@@ -138,8 +142,8 @@ public class AlluxioMasterProcess implements MasterProcess {
       InetSocketAddress configuredBindAddress =
           NetworkAddressUtils.getBindAddress(ServiceType.MASTER_RPC);
       if (configuredBindAddress.getPort() == 0) {
-        mGrpcServer = GrpcServerBuilder.forAddress(configuredBindAddress).build().start();
-        mPort = mGrpcServer.getBindPort();
+        mBindSocket = new ServerSocket(0);
+        mPort = mBindSocket.getLocalPort();
         Configuration.set(PropertyKey.MASTER_RPC_PORT, Integer.toString(mPort));
       } else {
         mPort = configuredBindAddress.getPort();
@@ -359,10 +363,10 @@ public class AlluxioMasterProcess implements MasterProcess {
     // TODO(ggezer) Executor threads not reused until thread capacity is hit.
     // ExecutorService executorService = Executors.newFixedThreadPool(mMaxWorkerThreads);
     try {
-      if (mGrpcServer != null && mGrpcServer.isServing()) {
-        // Server launched for auto bind.
-        // Terminate it.
-        mGrpcServer.shutdown();
+      if (mBindSocket != null) {
+        // Server socket opened for auto bind.
+        // Close it.
+        mBindSocket.close();
       }
 
       LOG.info("Starting gRPC server on address {}", mRpcBindAddress);

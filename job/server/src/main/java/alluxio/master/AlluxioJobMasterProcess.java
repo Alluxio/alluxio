@@ -36,6 +36,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.net.ServerSocket;
 import java.util.Map;
 import java.util.concurrent.TimeoutException;
 
@@ -57,7 +58,11 @@ public class AlluxioJobMasterProcess implements JobMasterProcess {
   /** The port for the RPC server. */
   private final int mPort;
 
+  /** The RPC server. */
   private GrpcServer mGrpcServer;
+
+  /** Used for auto binding. **/
+  private ServerSocket mBindSocket;
 
   /** The connect address for the rpc server. */
   private final InetSocketAddress mRpcConnectAddress;
@@ -113,8 +118,8 @@ public class AlluxioJobMasterProcess implements JobMasterProcess {
       InetSocketAddress configuredAddress =
           NetworkAddressUtils.getBindAddress(ServiceType.JOB_MASTER_RPC);
       if (configuredAddress.getPort() == 0) {
-        mGrpcServer = GrpcServerBuilder.forAddress(configuredAddress).build().start();
-        mPort = mGrpcServer.getBindPort();
+        mBindSocket = new ServerSocket(0);
+        mPort = mBindSocket.getLocalPort();
         Configuration.set(PropertyKey.JOB_MASTER_RPC_PORT, Integer.toString(mPort));
       } else {
         mPort = configuredAddress.getPort();
@@ -271,10 +276,10 @@ public class AlluxioJobMasterProcess implements JobMasterProcess {
     // TODO(ggezer) Executor threads not reused until thread capacity is hit.
     //ExecutorService executorService = Executors.newFixedThreadPool(mMaxWorkerThreads);
     try {
-      if (mGrpcServer != null) {
-        // Server launched for auto bind.
-        // Terminate it.
-        mGrpcServer.shutdown();
+      if (mBindSocket != null) {
+        // Server socket opened for auto bind.
+        // Close it.
+        mBindSocket.close();
       }
 
       LOG.info("Starting gRPC server on address {}", mRpcBindAddress);
