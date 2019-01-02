@@ -122,6 +122,43 @@ public class AlluxioURITest {
   }
 
   @Test
+  public void basicMultiMasterUri() {
+    AlluxioURI uri = new AlluxioURI("alluxio://host1:19998,host2:19998,host3:19998/xy z/a b c");
+
+    assertTrue(uri.hasAuthority());
+    assertEquals("host1:19998,host2:19998,host3:19998", uri.getAuthority().toString());
+    assertTrue(uri.getAuthority() instanceof alluxio.uri.MultiMasterAuthority);
+
+    assertEquals(2, uri.getDepth());
+    assertEquals("a b c", uri.getName());
+    assertEquals("alluxio://host1:19998,host2:19998,host3:19998/xy z", uri.getParent().toString());
+    assertEquals("alluxio://host1:19998,host2:19998,host3:19998/",
+        uri.getParent().getParent().toString());
+    assertEquals("/xy z/a b c", uri.getPath());
+    assertEquals("alluxio", uri.getScheme());
+    assertTrue(uri.hasScheme());
+    assertTrue(uri.isAbsolute());
+    assertTrue(uri.isPathAbsolute());
+    assertEquals("alluxio://host1:19998,host2:19998,host3:19998/xy z/a b c/d",
+        uri.join("/d").toString());
+    assertEquals("alluxio://host1:19998,host2:19998,host3:19998/xy z/a b c/d",
+        uri.join(new AlluxioURI("/d")).toString());
+    assertEquals("alluxio://host1:19998,host2:19998,host3:19998/xy z/a b c", uri.toString());
+  }
+
+  @Test
+  public void semicolonMultiMasterUri() {
+    AlluxioURI uri =
+        new AlluxioURI("alluxio://host1:1323;host2:54325;host3:64354/xy z/a b c");
+    assertTrue(uri.hasAuthority());
+    assertEquals("host1:1323;host2:54325;host3:64354", uri.getAuthority().toString());
+    assertTrue(uri.getAuthority() instanceof alluxio.uri.MultiMasterAuthority);
+    alluxio.uri.MultiMasterAuthority authority
+        = (alluxio.uri.MultiMasterAuthority) uri.getAuthority();
+    assertEquals("host1:1323,host2:54325,host3:64354", authority.getMasterAddresses());
+  }
+
+  @Test
   public void basicZookeeperUri() {
     AlluxioURI uri =
         new AlluxioURI("alluxio://zk@host1:2181,host2:2181,host3:2181/xy z/a b c");
