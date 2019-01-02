@@ -560,11 +560,6 @@ public class InodeTreePersistentState implements JournalEntryReplayable {
     MutableInode<?> inode = mInodeStore.getMutable(entry.getId()).get();
     long oldParent = inode.getParentId();
     long newParent = entry.getNewParentId();
-    if (oldParent == newParent) {
-      inode.setName(entry.getNewName());
-      mInodeStore.writeInode(inode);
-      return;
-    }
 
     mInodeStore.removeChild(oldParent, inode.getName());
     inode.setName(entry.getNewName());
@@ -572,8 +567,12 @@ public class InodeTreePersistentState implements JournalEntryReplayable {
     inode.setParentId(newParent);
     mInodeStore.writeInode(inode);
 
-    updateLastModifiedAndChildCount(oldParent, entry.getOpTimeMs(), -1);
-    updateLastModifiedAndChildCount(newParent, entry.getOpTimeMs(), 1);
+    if (oldParent == newParent) {
+      updateLastModifiedAndChildCount(oldParent, entry.getOpTimeMs(), 0);
+    } else {
+      updateLastModifiedAndChildCount(oldParent, entry.getOpTimeMs(), -1);
+      updateLastModifiedAndChildCount(newParent, entry.getOpTimeMs(), 1);
+    }
   }
 
   /**
@@ -584,17 +583,24 @@ public class InodeTreePersistentState implements JournalEntryReplayable {
    * changed.
    *
    * @param id the inode to update
-   * @param lastModifiedMs the new last modified time
+   * @param opTimeMs the time of the operation that modified the inode
    * @param deltaChildCount the change in inode directory child count
    */
-  private void updateLastModifiedAndChildCount(long id, long lastModifiedMs, long deltaChildCount) {
+  private void updateLastModifiedAndChildCount(long id, long opTimeMs, long deltaChildCount) {
     try (LockResource lr = mInodeLockManager.lockUpdate(id)) {
       MutableInodeDirectory inode = mInodeStore.getMutable(id).get().asDirectory();
-      if (inode.getLastModificationTimeMs() < lastModifiedMs) {
-        inode.setLastModificationTimeMs(lastModifiedMs);
+      boolean madeUpdate = false;
+      if (inode.getLastModificationTimeMs() < opTimeMs) {
+        inode.setLastModificationTimeMs(opTimeMs);
+        madeUpdate = true;
       }
-      inode.setChildCount(inode.getChildCount() + deltaChildCount);
-      mInodeStore.writeInode(inode);
+      if (deltaChildCount != 0) {
+        inode.setChildCount(inode.getChildCount() + deltaChildCount);
+        madeUpdate = true;
+      }
+      if (madeUpdate) {
+        mInodeStore.writeInode(inode);
+      }
     }
   }
 
