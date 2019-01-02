@@ -32,9 +32,8 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class MutableInodeDirectory extends MutableInode<MutableInodeDirectory>
     implements InodeDirectoryView {
   private boolean mMountPoint;
-
   private boolean mDirectChildrenLoaded;
-
+  private long mChildCount;
   private DefaultAccessControlList mDefaultAcl;
 
   /**
@@ -46,6 +45,7 @@ public final class MutableInodeDirectory extends MutableInode<MutableInodeDirect
     super(id, true);
     mMountPoint = false;
     mDirectChildrenLoaded = false;
+    mChildCount = 0;
     mDefaultAcl = new DefaultAccessControlList(mAcl);
   }
 
@@ -62,6 +62,11 @@ public final class MutableInodeDirectory extends MutableInode<MutableInodeDirect
   @Override
   public synchronized boolean isDirectChildrenLoaded() {
     return mDirectChildrenLoaded;
+  }
+
+  @Override
+  public long getChildCount() {
+    return mChildCount;
   }
 
   @Override
@@ -84,6 +89,15 @@ public final class MutableInodeDirectory extends MutableInode<MutableInodeDirect
    */
   public synchronized MutableInodeDirectory setDirectChildrenLoaded(boolean directChildrenLoaded) {
     mDirectChildrenLoaded = directChildrenLoaded;
+    return getThis();
+  }
+
+  /**
+   * @param childCount the child count to set
+   * @return the updated object
+   */
+  public MutableInodeDirectory setChildCount(long childCount) {
+    mChildCount = childCount;
     return getThis();
   }
 
@@ -239,6 +253,7 @@ public final class MutableInodeDirectory extends MutableInode<MutableInodeDirect
     return super.toProtoBuilder()
         .setIsMountPoint(isMountPoint())
         .setHasDirectChildrenLoaded(isDirectChildrenLoaded())
+        .setChildCount(getChildCount())
         .setDefaultAcl(AccessControlList.toProtoBuf(getDefaultACL()))
         .build();
   }
@@ -261,6 +276,7 @@ public final class MutableInodeDirectory extends MutableInode<MutableInodeDirect
         .setUfsFingerprint(inode.getUfsFingerprint())
         .setMountPoint(inode.getIsMountPoint())
         .setDirectChildrenLoaded(inode.getHasDirectChildrenLoaded())
+        .setChildCount(inode.getChildCount())
         .setDefaultACL((DefaultAccessControlList)
             DefaultAccessControlList.fromProtoBuf(inode.getDefaultAcl()));
   }

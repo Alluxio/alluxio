@@ -24,4 +24,9 @@ public interface InodeDirectoryView extends InodeView {
    * @return true if we have loaded all the direct children's metadata once
    */
   boolean isDirectChildrenLoaded();
+
+  /**
+   * @return the number of children contained in the directory
+   */
+  long getChildCount();
 }

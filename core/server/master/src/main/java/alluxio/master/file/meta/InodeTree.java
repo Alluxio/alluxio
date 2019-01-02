@@ -675,7 +675,7 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
       // In these two cases, the last traversed Inode will be modified if the new timestamp is after
       // the existing last modified time.
       long currentId = currentInodeDirectory.getId();
-      try (LockResource lr = mInodeLockManager.lockLastModified(currentId)) {
+      try (LockResource lr = mInodeLockManager.lockParentUpdate(currentId)) {
         long updatedLastModified = mInodeStore.get(currentId).get().getLastModificationTimeMs();
         if (updatedLastModified < options.getOperationTimeMs()) {
           mState.applyAndJournal(rpcContext, UpdateInodeEntry.newBuilder()

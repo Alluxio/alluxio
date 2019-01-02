@@ -11,7 +11,7 @@ import "shared/types.proto";
  * General inode metadata. This includes most inode metadata, but does not include the inode's
  * children or time of last modification.
  *
- * next available id: 26
+ * next available id: 27
  */
 message Inode {
     optional int64 id = 1;
@@ -32,6 +32,7 @@ message Inode {
     // directory only
     optional bool is_mount_point = 12;
     optional bool has_direct_children_loaded = 13;
+    optional int64 child_count = 26;
     optional alluxio.proto.shared.AccessControlList default_acl = 14;
 
     // file only

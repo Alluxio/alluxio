@@ -34,4 +34,9 @@ public class InodeDirectory extends Inode implements InodeDirectoryView {
   public boolean isDirectChildrenLoaded() {
     return mDelegate.isDirectChildrenLoaded();
   }
+
+  @Override
+  public long getChildCount() {
+    return mDelegate.getChildCount();
+  }
 }

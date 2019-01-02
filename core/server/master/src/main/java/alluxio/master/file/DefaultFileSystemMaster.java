@@ -151,7 +151,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang.StringUtils;
@@ -843,7 +842,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
     AlluxioURI uri = inodePath.getUri();
     FileInfo fileInfo = inode.generateClientFileInfo(uri.toString());
     if (fileInfo.isFolder()) {
-      fileInfo.setLength(Iterables.size(mInodeStore.getChildren(inode.asDirectory())));
+      fileInfo.setLength(inode.asDirectory().getChildCount());
     }
     fileInfo.setInMemoryPercentage(getInMemoryPercentage(inode));
     fileInfo.setInAlluxioPercentage(getInAlluxioPercentage(inode));

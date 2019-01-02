@@ -319,7 +319,7 @@ public class InodeTreePersistentState implements JournalEntryReplayable {
 
     mInodeStore.remove(inode);
     mInodeStore.removeChild(inode.getParentId(), inode.getName());
-    updateLastModified(inode.getParentId(), entry.getOpTimeMs());
+    updateLastModifiedAndChildCount(inode.getParentId(), entry.getOpTimeMs(), -1);
     mPinnedInodeFileIds.remove(id);
     mReplicationLimitedFileIds.remove(id);
 
@@ -542,6 +542,8 @@ public class InodeTreePersistentState implements JournalEntryReplayable {
     // becomes visible at this point.
     mInodeStore.writeInode(inode);
     mInodeStore.addChild(inode.getParentId(), inode);
+    // Only update size, last modified time is updated separately.
+    updateLastModifiedAndChildCount(inode.getParentId(), Long.MIN_VALUE, 1);
     if (inode.isFile()) {
       MutableInodeFile file = inode.asFile();
       if (file.getReplicationMin() > 0) {
@@ -570,18 +572,30 @@ public class InodeTreePersistentState implements JournalEntryReplayable {
     mInodeStore.addChild(newParent, inode);
     inode.setParentId(newParent);
     mInodeStore.writeInode(inode);
-    updateLastModified(oldParent, entry.getOpTimeMs());
-    updateLastModified(newParent, entry.getOpTimeMs());
+    updateLastModifiedAndChildCount(oldParent, entry.getOpTimeMs(), -1);
+    updateLastModifiedAndChildCount(newParent, entry.getOpTimeMs(), 1);
     return true;
   }
 
-  private void updateLastModified(long id, long opTimeMs) {
-    try (LockResource lr = mInodeLockManager.lockLastModified(id)) {
-      MutableInode<?> inode = mInodeStore.getMutable(id).get();
-      if (inode.getLastModificationTimeMs() < opTimeMs) {
-        inode.setLastModificationTimeMs(opTimeMs);
-        mInodeStore.writeInode(inode);
+  /**
+   * Updates the last modified time (LMT) for the indicated inode directory, and updates its child
+   * count.
+   *
+   * If the inode's LMT is already greater than the specified time, the inode's LMT will not be
+   * changed.
+   *
+   * @param id the inode to update
+   * @param lastModifiedMs the new last modified time
+   * @param deltaChildCount the change in inode directory child count
+   */
+  private void updateLastModifiedAndChildCount(long id, long lastModifiedMs, long deltaChildCount) {
+    try (LockResource lr = mInodeLockManager.lockParentUpdate(id)) {
+      MutableInodeDirectory inode = mInodeStore.getMutable(id).get().asDirectory();
+      if (inode.getLastModificationTimeMs() < lastModifiedMs) {
+        inode.setLastModificationTimeMs(lastModifiedMs);
       }
+      inode.setChildCount(inode.getChildCount() + deltaChildCount);
+      mInodeStore.writeInode(inode);
     }
   }
 
