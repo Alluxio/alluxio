@@ -210,17 +210,11 @@ public class InodeTreePersistentState implements JournalEntryReplayable {
    *
    * @param context journal context supplier
    * @param entry rename entry
-   * @return whether the inode was successfully renamed. Returns false if another inode was
-   *         concurrently added with the same name. On false return, no state is changed,
-   *         and no journal entry is written
    */
-  public boolean applyAndJournal(Supplier<JournalContext> context, RenameEntry entry) {
+  public void applyAndJournal(Supplier<JournalContext> context, RenameEntry entry) {
     try {
-      if (applyRename(entry)) {
-        context.get().append(JournalEntry.newBuilder().setRename(entry).build());
-        return true;
-      }
-      return false;
+      applyRename(entry);
+      context.get().append(JournalEntry.newBuilder().setRename(entry).build());
     } catch (Throwable t) {
       ProcessUtils.fatalError(LOG, t, "Failed to apply %s", entry);
       throw t; // fatalError will usually system.exit
@@ -360,7 +354,7 @@ public class InodeTreePersistentState implements JournalEntryReplayable {
     if (entry.hasDstPath()) {
       entry = rewriteDeprecatedRenameEntry(entry);
     }
-    Preconditions.checkState(applyRename(entry));
+    applyRename(entry);
   }
 
   private void apply(SetAclEntry entry) {
@@ -562,19 +556,24 @@ public class InodeTreePersistentState implements JournalEntryReplayable {
     mTtlBuckets.insert(Inode.wrap(inode));
   }
 
-  private boolean applyRename(RenameEntry entry) {
+  private void applyRename(RenameEntry entry) {
     MutableInode<?> inode = mInodeStore.getMutable(entry.getId()).get();
     long oldParent = inode.getParentId();
     long newParent = entry.getNewParentId();
-    mInodeStore.removeChild(oldParent, inode.getName());
+    if (oldParent == newParent) {
+      inode.setName(entry.getNewName());
+      mInodeStore.writeInode(inode);
+      return;
+    }
 
+    mInodeStore.removeChild(oldParent, inode.getName());
     inode.setName(entry.getNewName());
     mInodeStore.addChild(newParent, inode);
     inode.setParentId(newParent);
     mInodeStore.writeInode(inode);
+
     updateLastModifiedAndChildCount(oldParent, entry.getOpTimeMs(), -1);
     updateLastModifiedAndChildCount(newParent, entry.getOpTimeMs(), 1);
-    return true;
   }
 
   /**
@@ -589,7 +588,7 @@ public class InodeTreePersistentState implements JournalEntryReplayable {
    * @param deltaChildCount the change in inode directory child count
    */
   private void updateLastModifiedAndChildCount(long id, long lastModifiedMs, long deltaChildCount) {
-    try (LockResource lr = mInodeLockManager.lockParentUpdate(id)) {
+    try (LockResource lr = mInodeLockManager.lockUpdate(id)) {
       MutableInodeDirectory inode = mInodeStore.getMutable(id).get().asDirectory();
       if (inode.getLastModificationTimeMs() < lastModifiedMs) {
         inode.setLastModificationTimeMs(lastModifiedMs);

@@ -160,12 +160,13 @@ public class InodeLockManager {
   }
 
   /**
-   * Acquires the lock for modifying an inodes last modified time or size.
+   * Acquires the lock for modifying an inodes last modified time or size. As a pre-requisite, the
+   * current thread should already hold a read lock on the inode.
    *
    * @param inodeId the id of the inode to lock
    * @return a lock resource which must be closed to release the lock
    */
-  public LockResource lockParentUpdate(long inodeId) {
+  public LockResource lockUpdate(long inodeId) {
     return new LockResource(mParentUpdateLocks.get(inodeId));
   }
 

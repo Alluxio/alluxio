@@ -2102,15 +2102,16 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
     String dstName = dstPath.getName();
 
     LOG.debug("Renaming {} to {}", srcPath, dstPath);
+    if (dstInodePath.fullPathExists()) {
+      throw new InvalidPathException("Destination path: " + dstPath + " already exists.");
+    }
 
-    if (!mInodeTree.rename(rpcContext, RenameEntry.newBuilder()
+    mInodeTree.rename(rpcContext, RenameEntry.newBuilder()
         .setId(srcInode.getId())
         .setOpTimeMs(options.getOperationTimeMs())
         .setNewParentId(dstParentInode.getId())
         .setNewName(dstName)
-        .build())) {
-      throw new InvalidPathException("Destination path: " + dstPath + " already exists.");
-    }
+        .build());
 
     // 3. Do UFS operations if necessary.
     // If the source file is persisted, rename it in the UFS.
@@ -2163,14 +2164,12 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
       }
     } catch (Exception e) {
       // On failure, revert changes and throw exception.
-      if (!mInodeTree.rename(rpcContext, RenameEntry.newBuilder()
+      mInodeTree.rename(rpcContext, RenameEntry.newBuilder()
           .setId(srcInode.getId())
           .setOpTimeMs(options.getOperationTimeMs())
           .setNewName(srcName)
           .setNewParentId(srcParentInode.getId())
-          .build())) {
-        LOG.error("Failed to revert rename changes. Alluxio metadata may be inconsistent.");
-      }
+          .build());
       throw e;
     }
 

@@ -299,10 +299,9 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
   /**
    * @param context journal context supplier
    * @param entry an entry representing a rename operation
-   * @return whether the operation succeeded
    */
-  public boolean rename(Supplier<JournalContext> context, RenameEntry entry) {
-    return mState.applyAndJournal(context, entry);
+  public void rename(Supplier<JournalContext> context, RenameEntry entry) {
+    mState.applyAndJournal(context, entry);
   }
 
   /**
@@ -675,7 +674,7 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
       // In these two cases, the last traversed Inode will be modified if the new timestamp is after
       // the existing last modified time.
       long currentId = currentInodeDirectory.getId();
-      try (LockResource lr = mInodeLockManager.lockParentUpdate(currentId)) {
+      try (LockResource lr = mInodeLockManager.lockUpdate(currentId)) {
         long updatedLastModified = mInodeStore.get(currentId).get().getLastModificationTimeMs();
         if (updatedLastModified < options.getOperationTimeMs()) {
           mState.applyAndJournal(rpcContext, UpdateInodeEntry.newBuilder()
