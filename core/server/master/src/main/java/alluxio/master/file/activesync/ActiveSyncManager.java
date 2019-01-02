@@ -43,7 +43,6 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.concurrent.NotThreadSafe;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -450,10 +449,27 @@ public class ActiveSyncManager implements JournalEntryIterable, JournalEntryRepl
     }
   }
 
+  private void apply(AddSyncPointEntry addSyncPoint) {
+    AlluxioURI syncPoint = new AlluxioURI(addSyncPoint.getSyncpointPath());
+    long mountId = addSyncPoint.getMountId();
+
+    LOG.debug("adding syncPoint {}", syncPoint.getPath());
+    // Add the new sync point to the filter map
+    if (mFilterMap.containsKey(mountId)) {
+      mFilterMap.get(mountId).add(syncPoint);
+    } else {
+      ArrayList<AlluxioURI> list = new ArrayList<>();
+      list.add(syncPoint);
+      mFilterMap.put(mountId, list);
+    }
+    // Add to the sync point list
+    mSyncPathList.add(syncPoint);
+  }
+
   /**
    * Clean up tasks to stop sync point after we have journaled.
    *
-   * @param syncPoint
+   * @param syncPoint the sync point to stop
    * @throws InvalidPathException
    */
   public void stopSyncPostJournal(AlluxioURI syncPoint) throws InvalidPathException {
@@ -489,23 +505,6 @@ public class ActiveSyncManager implements JournalEntryIterable, JournalEntryRepl
         LOG.warn("Encountered IOException when trying to stop polling thread {}", e);
       }
     }
-  }
-
-  private void apply(AddSyncPointEntry addSyncPoint) {
-    AlluxioURI syncPoint = new AlluxioURI(addSyncPoint.getSyncpointPath());
-    long mountId = addSyncPoint.getMountId();
-
-    LOG.debug("adding syncPoint {}", syncPoint.getPath());
-    // Add the new sync point to the filter map
-    if (mFilterMap.containsKey(mountId)) {
-      mFilterMap.get(mountId).add(syncPoint);
-    } else {
-      ArrayList<AlluxioURI> list = new ArrayList<>();
-      list.add(syncPoint);
-      mFilterMap.put(mountId, list);
-    }
-    // Add to the sync point list
-    mSyncPathList.add(syncPoint);
   }
 
   private Iterator<Journal.JournalEntry> getTxIdIterator() {
@@ -607,29 +606,45 @@ public class ActiveSyncManager implements JournalEntryIterable, JournalEntryRepl
       mFileSystemMaster.activeSyncMetadata(uri, null, getExecutor());
     }
   }
+
+  /**
+   * Continue to start sync after we have journaled the operation.
+   *
+   * @param uri the sync point that we are trying to start
+   */
   public void startSyncPostJournal(AlluxioURI uri) throws InvalidPathException, IOException {
     MountTable.Resolution resolution = mMountTable.resolve(uri);
     startInitSync(uri, resolution);
     launchPollingThread(resolution.getMountId(), SyncInfo.INVALID_TXID);
   }
 
+  /**
+   * Recover from a stop sync operation.
+   *
+   * @param uri uri to stop sync
+   * @param mountId mount id of the uri
+   */
   public void recoverFromStopSync(AlluxioURI uri, long mountId) {
     if (mSyncPathStatus.containsKey(uri)) {
       // nothing to recover from, since the syncPathStatus still contains syncPoint
       return;
     }
     try {
-      // the init sync thread has been removed, to reestablish synchronization, we need to sync again
+      // the init sync thread has been removed, to reestablish sync, we need to sync again
       MountTable.Resolution resolution = mMountTable.resolve(uri);
       startInitSync(uri, resolution);
       launchPollingThread(resolution.getMountId(), SyncInfo.INVALID_TXID);
     } catch (Throwable t) {
       LOG.warn("Recovering from stop syncing failed {}", t);
     }
-
   }
 
-
+  /**
+   * Recover from start sync operation.
+   *
+   * @param uri uri to start sync
+   * @param mountId mount id of the uri
+   */
   public void recoverFromStartSync(AlluxioURI uri, long mountId) {
     // if the init sync has been launched, we need to stop it
     if (mSyncPathStatus.containsKey(uri)) {

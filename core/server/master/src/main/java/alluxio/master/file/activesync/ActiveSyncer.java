@@ -13,7 +13,6 @@ package alluxio.master.file.activesync;
 
 import alluxio.AlluxioURI;
 import alluxio.SyncInfo;
-import alluxio.exception.InvalidPathException;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.meta.MountTable;
@@ -60,22 +59,11 @@ public class ActiveSyncer implements HeartbeatExecutor {
   }
 
   @Override
-  public void heartbeat() throws InterruptedException {
+  public void heartbeat() {
     LOG.debug("start Active Syncer heartbeat");
 
     List<AlluxioURI> filterList =  mSyncManager.getFilterList(mMountId);
-    /*
-    List<AlluxioURI> ufsUriList = filterList.stream().map(alluxioURI ->
-        {
-          try {
-            return mMountTable.resolve(alluxioURI).getUri();
-          } catch (InvalidPathException e) {
-            LOG.warn("Invalid path " + alluxioURI.getPath());
-            return null;
-          }
-        }
-        ).collect(Collectors.toList());
-    */
+
     if (filterList == null || filterList.isEmpty()) {
       return;
     }
