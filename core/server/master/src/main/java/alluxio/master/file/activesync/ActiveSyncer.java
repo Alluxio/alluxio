@@ -64,6 +64,7 @@ public class ActiveSyncer implements HeartbeatExecutor {
     LOG.debug("start Active Syncer heartbeat");
 
     List<AlluxioURI> filterList =  mSyncManager.getFilterList(mMountId);
+    /*
     List<AlluxioURI> ufsUriList = filterList.stream().map(alluxioURI ->
         {
           try {
@@ -74,6 +75,7 @@ public class ActiveSyncer implements HeartbeatExecutor {
           }
         }
         ).collect(Collectors.toList());
+    */
     if (filterList == null || filterList.isEmpty()) {
       return;
     }

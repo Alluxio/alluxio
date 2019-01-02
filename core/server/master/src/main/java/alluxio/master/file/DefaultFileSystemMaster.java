@@ -16,7 +16,6 @@ import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.Server;
-import alluxio.SyncInfo;
 import alluxio.clock.SystemClock;
 import alluxio.collections.Pair;
 import alluxio.collections.PrefixList;
@@ -1590,10 +1589,10 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
       }
     }
     try {
-      MountTable.Resolution resolution = mSyncManager.stopSyncCheck(inodePath.getUri());
+      MountTable.Resolution resolution = mSyncManager.resolveSyncPoint(inodePath.getUri());
       mSyncManager.stopSyncInternal(inodePath.getUri(), resolution);
     } catch (InvalidPathException e) {
-      // stop sync failed, possibly because this is not a sync point
+      // stop sync failed, because this is not a sync point
     }
 
     // Delete Inodes
@@ -3610,12 +3609,12 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
   }
 
   @Override
-  public List<SyncPointInfo> getSyncPathList() throws UnavailableException {
+  public List<SyncPointInfo> getSyncPathList() {
     return mSyncManager.getSyncPathList();
   }
 
   private void startSyncAndJournal(RpcContext rpcContext, AlluxioURI uri)
-      throws ConnectionFailedException, InvalidPathException {
+      throws InvalidPathException, IOException {
     try (LockResource r = new LockResource(mSyncManager.getSyncManagerLock())) {
       MountTable.Resolution resolution = mMountTable.resolve(uri);
       long mountId = resolution.getMountId();
@@ -3634,26 +3633,18 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
               .setSyncpointPath(uri.toString())
               .setMountId(mountId)
               .build();
-      mSyncManager.applyAndJournal(rpcContext, addSyncPoint, resolution);
-      mSyncManager.launchPollingThread(mountId, SyncInfo.INVALID_TXID);
+      mSyncManager.applyAndJournal(rpcContext, addSyncPoint);
       try {
-        if (Configuration.getBoolean(PropertyKey.MASTER_ACTIVE_UFS_SYNC_INITIAL_SYNC)) {
-          activeSyncMetadata(uri, null, mSyncManager.getExecutor());
-        }
-      } catch (IOException e) {
-        LOG.warn("Network connection error causing initial sync to fail for {}", uri);
-
+        mSyncManager.startSyncPostJournal(uri);
+      } catch (Throwable e) {
+        // revert state;
         RemoveSyncPointEntry removeSyncPoint =
             File.RemoveSyncPointEntry.newBuilder()
                 .setSyncpointPath(uri.toString()).build();
-        mSyncManager.applyAndJournal(rpcContext, removeSyncPoint, resolution);
-
-        throw new ConnectionFailedException("Add sync point"
-            + uri.toString() + "failed because of network error");
+        mSyncManager.applyAndJournal(rpcContext, removeSyncPoint);
+        mSyncManager.recoverFromStartSync(uri, resolution.getMountId());
+        throw e;
       }
-    } catch (InvalidPathException e) {
-      LOG.info("Exception occurred while trying to resolve {}, exception is {}", uri, e);
-      throw e;
     }
   }
 
@@ -3682,11 +3673,25 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
       LockingScheme lockingScheme, LockedInodePath lockedInodePath)
       throws IOException, InvalidPathException {
     try (LockResource r = new LockResource(mSyncManager.getSyncManagerLock())) {
-      RemoveSyncPointEntry removeSyncPoint =
-          File.RemoveSyncPointEntry.newBuilder()
-              .setSyncpointPath(lockedInodePath.getUri().toString()).build();
-      MountTable.Resolution resolution = mSyncManager.stopSyncCheck(lockedInodePath.getUri());
-      mSyncManager.applyAndJournal(rpcContext, removeSyncPoint, resolution);
+      MountTable.Resolution resolution = mSyncManager.resolveSyncPoint(lockedInodePath.getUri());
+      AlluxioURI uri = lockedInodePath.getUri();
+      RemoveSyncPointEntry removeSyncPoint = File.RemoveSyncPointEntry.newBuilder()
+              .setSyncpointPath(lockedInodePath.getUri().toString())
+              .setMountId(resolution.getMountId())
+              .build();
+      mSyncManager.applyAndJournal(rpcContext, removeSyncPoint);
+
+      try {
+        mSyncManager.stopSyncPostJournal(lockedInodePath.getUri());
+      } catch (Throwable e) {
+        // revert state;
+        AddSyncPointEntry addSyncPoint =
+            File.AddSyncPointEntry.newBuilder()
+                .setSyncpointPath(uri.toString()).build();
+        mSyncManager.applyAndJournal(rpcContext, addSyncPoint);
+        mSyncManager.recoverFromStopSync(uri, resolution.getMountId());
+        throw e;
+      }
     }
   }
 
