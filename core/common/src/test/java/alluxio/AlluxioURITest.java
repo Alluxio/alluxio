@@ -18,6 +18,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeTrue;
 
 import alluxio.uri.Authority;
+import alluxio.uri.MultiMasterAuthority;
 import alluxio.uri.NoAuthority;
 import alluxio.uri.SingleMasterAuthority;
 import alluxio.uri.UnknownAuthority;
@@ -127,7 +128,7 @@ public class AlluxioURITest {
 
     assertTrue(uri.hasAuthority());
     assertEquals("host1:19998,host2:19998,host3:19998", uri.getAuthority().toString());
-    assertTrue(uri.getAuthority() instanceof alluxio.uri.MultiMasterAuthority);
+    assertTrue(uri.getAuthority() instanceof MultiMasterAuthority);
 
     assertEquals(2, uri.getDepth());
     assertEquals("a b c", uri.getName());
@@ -152,9 +153,8 @@ public class AlluxioURITest {
         new AlluxioURI("alluxio://host1:1323;host2:54325;host3:64354/xy z/a b c");
     assertTrue(uri.hasAuthority());
     assertEquals("host1:1323;host2:54325;host3:64354", uri.getAuthority().toString());
-    assertTrue(uri.getAuthority() instanceof alluxio.uri.MultiMasterAuthority);
-    alluxio.uri.MultiMasterAuthority authority
-        = (alluxio.uri.MultiMasterAuthority) uri.getAuthority();
+    assertTrue(uri.getAuthority() instanceof MultiMasterAuthority);
+    MultiMasterAuthority authority = (MultiMasterAuthority) uri.getAuthority();
     assertEquals("host1:1323,host2:54325,host3:64354", authority.getMasterAddresses());
   }
 
