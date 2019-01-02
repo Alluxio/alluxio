@@ -1588,11 +1588,10 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
         failedUris.add(new Pair<>(alluxioUriToDelete.toString(), failureReason));
       }
     }
-    try {
-      MountTable.Resolution resolution = mSyncManager.resolveSyncPoint(inodePath.getUri());
+
+    MountTable.Resolution resolution = mSyncManager.resolveSyncPoint(inodePath.getUri());
+    if (resolution != null) {
       mSyncManager.stopSyncInternal(inodePath.getUri(), resolution);
-    } catch (InvalidPathException e) {
-      // stop sync failed, because this is not a sync point
     }
 
     // Delete Inodes
@@ -3124,12 +3123,10 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
   @Override
   public boolean recordActiveSyncTxid(long txId, long mountId) {
     MountInfo mountInfo = mMountTable.getMountInfo(mountId);
-    AlluxioURI mountPath = null;
-    if (mountInfo != null) {
-      mountPath = mountInfo.getAlluxioUri();
-    } else {
+    if (mountInfo == null) {
       return false;
     }
+    AlluxioURI mountPath = mountInfo.getAlluxioUri();
 
     try (RpcContext rpcContext = createRpcContext();
          LockedInodePath inodePath = mInodeTree
@@ -3626,7 +3623,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
       }
 
       if (mSyncManager.isActivelySynced(uri)) {
-        throw new InvalidPathException("URI" + uri + " is already a sync point");
+        throw new InvalidPathException("URI " + uri + " is already a sync point");
       }
       AddSyncPointEntry addSyncPoint =
           AddSyncPointEntry.newBuilder()
@@ -3674,6 +3671,9 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
       throws IOException, InvalidPathException {
     try (LockResource r = new LockResource(mSyncManager.getSyncManagerLock())) {
       MountTable.Resolution resolution = mSyncManager.resolveSyncPoint(lockedInodePath.getUri());
+      if (resolution == null) {
+        throw new InvalidPathException(lockedInodePath.getUri() + " is not a sync point.");
+      }
       AlluxioURI uri = lockedInodePath.getUri();
       RemoveSyncPointEntry removeSyncPoint = File.RemoveSyncPointEntry.newBuilder()
               .setSyncpointPath(lockedInodePath.getUri().toString())
@@ -3703,7 +3703,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
         LockedInodePath inodePath =
             mInodeTree.lockInodePath(lockingScheme.getPath(), lockingScheme.getPattern());
         FileSystemMasterAuditContext auditContext =
-             createAuditContext("stopSyncInternal", syncPoint, null,
+             createAuditContext("stopSync", syncPoint, null,
                  inodePath.getParentInodeOrNull())) {
       try {
         mPermissionChecker.checkParentPermission(Mode.Bits.WRITE, inodePath);

@@ -155,7 +155,7 @@ public class ActiveSyncManager implements JournalEntryIterable, JournalEntryRepl
 
       try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
         if (!ufsResource.get().supportsActiveSync()) {
-          throw new UnsupportedOperationException("Active Sync is not supported on this UFS type "
+          throw new UnsupportedOperationException("Active Sync is not supported on this UFS type: "
               + ufsResource.get().getUnderFSType());
         }
         ufsResource.get().startSync(resolution.getUri());
@@ -253,7 +253,9 @@ public class ActiveSyncManager implements JournalEntryIterable, JournalEntryRepl
     if (mFilterMap.containsKey(mountId)) {
       for (AlluxioURI uri : mFilterMap.get(mountId)) {
         MountTable.Resolution resolution = resolveSyncPoint(uri);
-        stopSyncInternal(uri, resolution);
+        if (resolution != null) {
+          stopSyncInternal(uri, resolution);
+        }
       }
     }
   }
@@ -267,7 +269,7 @@ public class ActiveSyncManager implements JournalEntryIterable, JournalEntryRepl
   public MountTable.Resolution resolveSyncPoint(AlluxioURI syncPoint) throws InvalidPathException {
     if (!mSyncPathList.contains(syncPoint)) {
       LOG.debug("syncPoint not found {}", syncPoint.getPath());
-      throw new InvalidPathException("Sync Point Not Found " + syncPoint);
+      return null;
     }
     MountTable.Resolution resolution = mMountTable.resolve(syncPoint);
     return resolution;
@@ -277,55 +279,25 @@ public class ActiveSyncManager implements JournalEntryIterable, JournalEntryRepl
    *
    * @param syncPoint sync point to be stopped
    * @param resolution path resolution for the sync point
-   * @return true if stop sync successfull
    */
-  public boolean stopSyncInternal(AlluxioURI syncPoint, MountTable.Resolution resolution) {
+  public void stopSyncInternal(AlluxioURI syncPoint, MountTable.Resolution resolution) {
     try (LockResource r = new LockResource(mSyncManagerLock)) {
       LOG.debug("stop syncPoint {}", syncPoint.getPath());
-      long mountId = resolution.getMountId();
-
-      if (mFilterMap.containsKey(mountId)) {
-        mFilterMap.get(mountId).remove(syncPoint);
-        mSyncPathList.remove(syncPoint);
-        Future<?> syncFuture = mSyncPathStatus.remove(syncPoint);
-        if (syncFuture != null) {
-          syncFuture.cancel(true);
-        }
-        try (CloseableResource<UnderFileSystem> ufs = resolution.acquireUfsResource()) {
-          ufs.get().stopSync(resolution.getUri());
-        } catch (IOException e) {
-          LOG.info("Ufs IOException for uri {}, exception is {}", syncPoint, e);
-        }
-
-        if (mFilterMap.get(mountId).isEmpty()) {
-          // syncPoint removed was the last syncPoint for the mountId
-          mFilterMap.remove(mountId);
-
-          Future<?> future = mPollerMap.remove(mountId);
-          if (future != null) {
-            future.cancel(true);
-          }
-
-          try (CloseableResource<UnderFileSystem> ufs = resolution.acquireUfsResource()) {
-            ufs.get().stopActiveSyncPolling();
-          } catch (IOException e) {
-            LOG.warn("Encountered IOException when trying to stop polling thread {}", e);
-          }
-        }
-      } else {
-        mSyncPathList.remove(syncPoint);
-        try (CloseableResource<UnderFileSystem> ufs = resolution.acquireUfsResource()) {
-          ufs.get().stopSync(resolution.getUri());
-        } catch (IOException e) {
-          LOG.info("Ufs IOException for uri {}, exception is {}", syncPoint, e);
-        }
-
-        // We should not be in this situation
-        throw new RuntimeException(
-            String.format("mountId for the syncPoint %s not found in the filterMap",
-            syncPoint.toString()));
+      RemoveSyncPointEntry removeSyncPoint = File.RemoveSyncPointEntry.newBuilder()
+          .setSyncpointPath(syncPoint.toString())
+          .setMountId(resolution.getMountId())
+          .build();
+      apply(removeSyncPoint);
+      try {
+        stopSyncPostJournal(syncPoint);
+      } catch (Throwable e) {
+        // revert state;
+        AddSyncPointEntry addSyncPoint =
+            File.AddSyncPointEntry.newBuilder()
+                .setSyncpointPath(syncPoint.toString()).build();
+        apply(addSyncPoint);
+        recoverFromStopSync(syncPoint, resolution.getMountId());
       }
-      return true;
     }
   }
 
@@ -384,12 +356,19 @@ public class ActiveSyncManager implements JournalEntryIterable, JournalEntryRepl
           throw new NoSuchElementException();
         }
         String syncPointPath = mEntry.getPath();
-        long mountId = 0;
-        try {
-          MountTable.Resolution resolution = mMountTable.resolve(mEntry);
-          mountId = resolution.getMountId();
-        } catch (InvalidPathException e) {
-          LOG.info("Path resolution failed for {}, exception {}", syncPointPath, e);
+        long mountId = -1;
+        while (mountId == -1) {
+          try {
+            syncPointPath = mEntry.getPath();
+            MountTable.Resolution resolution = mMountTable.resolve(mEntry);
+            mountId = resolution.getMountId();
+          } catch (InvalidPathException e) {
+            LOG.info("Path resolution failed for {}, exception {}", syncPointPath, e);
+            mEntry = null;
+            if (!hasNext()) {
+              throw new NoSuchElementException();
+            }
+          }
         }
         mEntry = null;
 
