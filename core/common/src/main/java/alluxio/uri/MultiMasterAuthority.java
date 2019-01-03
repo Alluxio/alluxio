@@ -36,7 +36,7 @@ public class MultiMasterAuthority implements Authority {
     Preconditions.checkArgument(authority != null && authority.length() != 0,
         "authority should not be null or empty string");
     mAuthority = authority;
-    mMasterAddresses = authority.replaceAll(";", ",");
+    mMasterAddresses = authority.replaceAll("[;+]", ",");
   }
 
   /**
