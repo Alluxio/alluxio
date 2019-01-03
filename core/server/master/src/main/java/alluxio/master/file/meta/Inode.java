@@ -27,6 +27,7 @@ import alluxio.util.proto.ProtoUtils;
 import alluxio.wire.FileInfo;
 import alluxio.grpc.TtlAction;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -608,8 +609,8 @@ public abstract class Inode<T> implements InodeView {
     return mId == that.mId;
   }
 
-  protected Objects.ToStringHelper toStringHelper() {
-    return Objects.toStringHelper(this).add("id", mId).add("name", mName).add("parentId", mParentId)
+  protected MoreObjects.ToStringHelper toStringHelper() {
+    return MoreObjects.toStringHelper(this).add("id", mId).add("name", mName).add("parentId", mParentId)
         .add("creationTimeMs", mCreationTimeMs).add("pinned", mPinned).add("deleted", mDeleted)
         .add("ttl", mTtl).add("ttlAction", mTtlAction)
         .add("directory", mDirectory).add("persistenceState", mPersistenceState)

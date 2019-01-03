@@ -11,6 +11,7 @@
 
 package alluxio.metrics;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
@@ -294,7 +295,7 @@ public final class Metric implements Serializable {
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this).add("instanceType", mInstanceType)
+    return MoreObjects.toStringHelper(this).add("instanceType", mInstanceType)
         .add("hostname", mHostname).add("instanceId", mInstanceId).add("name", mName)
         .add("value", mValue).add("tags", mTags).toString();
   }

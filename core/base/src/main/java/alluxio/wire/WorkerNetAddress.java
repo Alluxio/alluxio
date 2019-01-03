@@ -15,6 +15,7 @@ import alluxio.Constants;
 import alluxio.annotation.PublicApi;
 import alluxio.wire.TieredIdentity.LocalityTier;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 
@@ -168,7 +169,7 @@ public final class WorkerNetAddress implements Serializable {
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this)
+    return MoreObjects.toStringHelper(this)
         .add("host", mHost)
         .add("rpcPort", mRpcPort)
         .add("dataPort", mDataPort)

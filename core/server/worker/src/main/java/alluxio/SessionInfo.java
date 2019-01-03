@@ -11,6 +11,7 @@
 
 package alluxio;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 
@@ -65,7 +66,7 @@ public class SessionInfo {
 
   @Override
   public synchronized String toString() {
-    return Objects.toStringHelper(this).add("sessionId", mSessionId)
+    return MoreObjects.toStringHelper(this).add("sessionId", mSessionId)
         .add("lastHeartbeatMs", mLastHeartbeatMs).toString();
   }
 

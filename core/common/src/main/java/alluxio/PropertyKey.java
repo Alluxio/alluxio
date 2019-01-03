@@ -17,6 +17,7 @@ import alluxio.util.OSUtils;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
@@ -269,7 +270,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
 
     @Override
     public String toString() {
-      return Objects.toStringHelper(this)
+      return MoreObjects.toStringHelper(this)
           .add("alias", mAlias)
           .add("defaultValue", mDefaultValue)
           .add("description", mDescription)
@@ -4025,7 +4026,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
 
     @Override
     public String toString() {
-      return Objects.toStringHelper(this).add("format", mFormat).add("pattern", mPattern)
+      return MoreObjects.toStringHelper(this).add("format", mFormat).add("pattern", mPattern)
           .toString();
     }
 

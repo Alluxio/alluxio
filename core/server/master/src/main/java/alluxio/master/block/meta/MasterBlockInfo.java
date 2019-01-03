@@ -13,6 +13,7 @@ package alluxio.master.block.meta;
 
 import alluxio.Constants;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -148,6 +149,6 @@ public final class MasterBlockInfo {
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this).add("blockId", mBlockId).add("length", mLength).toString();
+    return MoreObjects.toStringHelper(this).add("blockId", mBlockId).add("length", mLength).toString();
   }
 }

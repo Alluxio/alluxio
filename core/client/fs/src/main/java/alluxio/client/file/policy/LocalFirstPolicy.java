@@ -110,7 +110,7 @@ public final class LocalFirstPolicy implements FileWriteLocationPolicy, BlockLoc
 
   @Override
   public String toString() {
-    return com.google.common.base.Objects.toStringHelper(this)
+    return com.google.common.base.MoreObjects.toStringHelper(this)
         .add("tieredIdentity", mTieredIdentity)
         .toString();
   }

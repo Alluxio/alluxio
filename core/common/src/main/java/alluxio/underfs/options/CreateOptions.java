@@ -16,6 +16,7 @@ import alluxio.security.authorization.AccessControlList;
 import alluxio.security.authorization.Mode;
 import alluxio.util.ModeUtils;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -187,7 +188,7 @@ public final class CreateOptions {
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this)
+    return MoreObjects.toStringHelper(this)
         .add("acl", mAcl)
         .add("createParent", mCreateParent)
         .add("ensureAtomic", mEnsureAtomic)

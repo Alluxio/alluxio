@@ -13,6 +13,7 @@ package alluxio.job;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 
@@ -65,7 +66,7 @@ public class TestJobConfig implements JobConfig {
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this).add("FilePath", mFilePath).toString();
+    return MoreObjects.toStringHelper(this).add("FilePath", mFilePath).toString();
   }
 
   @Override

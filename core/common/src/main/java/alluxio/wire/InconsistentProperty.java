@@ -13,6 +13,7 @@ package alluxio.wire;
 
 import alluxio.grpc.InconsistentPropertyValues;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 
 import java.util.HashMap;
@@ -109,7 +110,7 @@ public final class InconsistentProperty {
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this)
+    return MoreObjects.toStringHelper(this)
         .add("key", mName)
         .add("values", formatValues(mValues))
         .toString();

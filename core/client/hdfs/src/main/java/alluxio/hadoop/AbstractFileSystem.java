@@ -301,7 +301,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
             // Case 1: Fallback to use under file system locations with co-located workers.
             Map<String, WorkerNetAddress> finalWorkerHosts = getHostToWorkerMap();
             locations = fileBlockInfo.getUfsLocations().stream().map(
-                location -> finalWorkerHosts.get(HostAndPort.fromString(location).getHostText()))
+                location -> finalWorkerHosts.get(HostAndPort.fromString(location).getHost()))
                 .filter(Objects::nonNull).collect(toList());
           }
           if (locations.isEmpty() && Configuration
@@ -315,7 +315,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
             .map(worker -> HostAndPort.fromParts(worker.getHost(), worker.getDataPort()))
             .collect(toList());
         String[] names = addresses.stream().map(HostAndPort::toString).toArray(String[]::new);
-        String[] hosts = addresses.stream().map(HostAndPort::getHostText).toArray(String[]::new);
+        String[] hosts = addresses.stream().map(HostAndPort::getHost).toArray(String[]::new);
         blockLocations.add(
             new BlockLocation(names, hosts, offset, fileBlockInfo.getBlockInfo().getLength()));
       }

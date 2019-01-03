@@ -11,6 +11,7 @@
 
 package alluxio.metrics;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 
 /**
@@ -61,7 +62,7 @@ public class MetricsFilter {
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this).add("instanceType", mInstanceType).add("name", mName)
+    return MoreObjects.toStringHelper(this).add("instanceType", mInstanceType).add("name", mName)
         .toString();
   }
 }

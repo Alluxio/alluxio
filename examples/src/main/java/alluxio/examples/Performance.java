@@ -611,7 +611,7 @@ public final class Performance {
 
     CommonUtils.warmUpLoop();
 
-    Configuration.set(PropertyKey.MASTER_HOSTNAME, masterAddress.getHostText());
+    Configuration.set(PropertyKey.MASTER_HOSTNAME, masterAddress.getHost());
     Configuration.set(PropertyKey.MASTER_RPC_PORT, Integer.toString(masterAddress.getPort()));
 
     if (testCase == 1) {

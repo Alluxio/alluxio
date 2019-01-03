@@ -22,6 +22,7 @@ import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.block.meta.UnderFileSystemBlockMeta;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -315,7 +316,7 @@ public final class UnderFileSystemBlockStore implements SessionCleanable {
 
     @Override
     public String toString() {
-      return Objects.toStringHelper(this).add("blockId", mBlockId).add("sessionId", mSessionId)
+      return MoreObjects.toStringHelper(this).add("blockId", mBlockId).add("sessionId", mSessionId)
           .toString();
     }
   }

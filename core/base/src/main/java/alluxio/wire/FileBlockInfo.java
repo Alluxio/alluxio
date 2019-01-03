@@ -13,6 +13,7 @@ package alluxio.wire;
 
 import alluxio.annotation.PublicApi;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 
@@ -109,7 +110,7 @@ public final class FileBlockInfo implements Serializable {
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this).add("blockInfo", mBlockInfo).add("offset", mOffset)
+    return MoreObjects.toStringHelper(this).add("blockInfo", mBlockInfo).add("offset", mOffset)
         .add("ufsLocations", mUfsLocations).toString();
   }
 }

@@ -14,6 +14,7 @@ package alluxio.worker.block.evictor;
 import alluxio.collections.Pair;
 import alluxio.worker.block.BlockStoreLocation;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 
@@ -69,6 +70,6 @@ public final class EvictionPlan {
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this).add("toMove", mToMove).add("toEvict", mToEvict).toString();
+    return MoreObjects.toStringHelper(this).add("toMove", mToMove).add("toEvict", mToEvict).toString();
   }
 }

@@ -16,6 +16,7 @@ import alluxio.job.JobConfig;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 
@@ -105,7 +106,7 @@ public final class ReplicateConfig implements JobConfig {
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this)
+    return MoreObjects.toStringHelper(this)
         .add("blockId", mBlockId)
         .add("path", mPath)
         .add("replicas", mReplicas)

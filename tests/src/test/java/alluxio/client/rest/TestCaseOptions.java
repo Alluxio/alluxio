@@ -11,6 +11,7 @@
 
 package alluxio.client.rest;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 
 import java.io.InputStream;
@@ -150,7 +151,7 @@ public final class TestCaseOptions {
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this)
+    return MoreObjects.toStringHelper(this)
         .add("body", mBody)
         .add("input stream", mInputStream)
         .add("pretty print", mPrettyPrint)

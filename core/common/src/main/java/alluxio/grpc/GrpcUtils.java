@@ -473,7 +473,7 @@ public final class GrpcUtils {
     List<alluxio.grpc.WorkerNetAddress> ufsLocations = new ArrayList<>();
     for (String ufsLocation : fileBlockInfo.getUfsLocations()) {
       HostAndPort address = HostAndPort.fromString(ufsLocation);
-      ufsLocations.add(alluxio.grpc.WorkerNetAddress.newBuilder().setHost(address.getHostText())
+      ufsLocations.add(alluxio.grpc.WorkerNetAddress.newBuilder().setHost(address.getHost())
           .setDataPort(address.getPortOrDefault(-1)).build());
     }
     return alluxio.grpc.FileBlockInfo.newBuilder()

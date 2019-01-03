@@ -88,7 +88,7 @@ import javax.annotation.Nullable;
  * <li>standard deviation of i/o rate</li>
  * </ul>
  */
-@Ignore
+// @Ignore
 // TODO(ggezer) Restore test
 // Hadoop clients before 2.7.0 are incompatible with the bumped Guava version.
 public class DFSIOIntegrationTest extends BaseIntegrationTest implements Tool {

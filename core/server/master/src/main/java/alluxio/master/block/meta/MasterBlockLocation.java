@@ -11,6 +11,7 @@
 
 package alluxio.master.block.meta;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -70,7 +71,7 @@ public final class MasterBlockLocation {
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this)
+    return MoreObjects.toStringHelper(this)
         .add("workerId", mWorkerId)
         .add("tierAlias", mTierAlias)
         .toString();
