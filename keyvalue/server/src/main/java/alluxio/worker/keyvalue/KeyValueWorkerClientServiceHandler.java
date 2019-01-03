@@ -11,6 +11,7 @@
 
 package alluxio.worker.keyvalue;
 
+import alluxio.RpcUtils;
 import alluxio.Sessions;
 import alluxio.client.keyvalue.ByteBufferKeyValuePartitionReader;
 import alluxio.client.keyvalue.Index;
@@ -24,8 +25,6 @@ import alluxio.grpc.GetPResponse;
 import alluxio.grpc.GetSizePRequest;
 import alluxio.grpc.GetSizePResponse;
 import alluxio.grpc.KeyValueWorkerClientServiceGrpc;
-import alluxio.util.RpcUtilsNew;
-import alluxio.util.io.BufferUtils;
 import alluxio.worker.block.BlockWorker;
 import alluxio.worker.block.io.BlockReader;
 
@@ -64,14 +63,14 @@ public final class KeyValueWorkerClientServiceHandler
 
   @Override
   public void get(GetPRequest request, StreamObserver<GetPResponse> responseObserver) {
-    RpcUtilsNew.call(LOG, (RpcUtilsNew.RpcCallableThrowsIOException<GetPResponse>) () -> {
+    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<GetPResponse>) () -> {
       ByteBuffer value =
           getInternal(request.getBlockId(), request.getKey().asReadOnlyByteBuffer());
       GetPResponse.Builder response = GetPResponse.newBuilder();
       if (value == null) {
         response.setData(ByteString.copyFrom(new byte[0]));
       } else {
-        response.setData(ByteString.copyFrom(value.array()));
+        response.setData(ByteString.copyFrom(value));
       }
       return response.build();
     }, "get", "request=%s", responseObserver, request);
@@ -80,7 +79,7 @@ public final class KeyValueWorkerClientServiceHandler
   @Override
   public void getNextKeys(GetNextKeysPRequest request,
       StreamObserver<GetNextKeysPResponse> responseObserver) {
-    RpcUtilsNew.call(LOG, (RpcUtilsNew.RpcCallableThrowsIOException<GetNextKeysPResponse>) () -> {
+    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<GetNextKeysPResponse>) () -> {
       final long sessionId = Sessions.KEYVALUE_SESSION_ID;
       final long lockId = mBlockWorker.lockBlock(sessionId, request.getBlockId());
       GetNextKeysPResponse.Builder response = GetNextKeysPResponse.newBuilder();
@@ -91,16 +90,21 @@ public final class KeyValueWorkerClientServiceHandler
         PayloadReader payloadReader = reader.getPayloadReader();
 
         List<ByteString> ret = Lists.newArrayListWithExpectedSize(request.getNumKeys());
-        ByteBuffer currentKey = request.getKey().asReadOnlyByteBuffer();
+        ByteBuffer currentKey = null;
+        if (request.hasKey()) {
+          currentKey = request.getKey().asReadOnlyByteBuffer();
+        }
         for (int i = 0; i < request.getNumKeys(); i++) {
           ByteBuffer nextKey = index.nextKey(currentKey, payloadReader);
           if (nextKey == null) {
             break;
           }
-          ret.add(ByteString.copyFrom(copyAsNonDirectBuffer(nextKey)));
+          ret.add(ByteString.copyFrom(nextKey));
           currentKey = nextKey;
         }
-        response.addAllKeys(ret);
+        if (ret.size() > 0) {
+          response.addAllKeys(ret);
+        }
       } catch (InvalidWorkerStateException e) {
         // We shall never reach here
         LOG.error("Reaching invalid state to get all keys", e);
@@ -114,7 +118,7 @@ public final class KeyValueWorkerClientServiceHandler
   // TODO(cc): Try to remove the duplicated try-catch logic in other methods like getNextKeys.
   @Override
   public void getSize(GetSizePRequest request, StreamObserver<GetSizePResponse> responseObserver) {
-    RpcUtilsNew.call(LOG, (RpcUtilsNew.RpcCallableThrowsIOException<GetSizePResponse>) () -> {
+    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<GetSizePResponse>) () -> {
       final long sessionId = Sessions.KEYVALUE_SESSION_ID;
       final long lockId = mBlockWorker.lockBlock(sessionId, request.getBlockId());
       GetSizePResponse.Builder response = GetSizePResponse.newBuilder().setSize(0);
@@ -128,12 +132,6 @@ public final class KeyValueWorkerClientServiceHandler
       }
       return response.build();
     }, "getSize", "request=%s", responseObserver, request);
-  }
-
-  private ByteBuffer copyAsNonDirectBuffer(ByteBuffer directBuffer) {
-    // Thrift assumes the ByteBuffer returned has array() method, which is not true if the
-    // ByteBuffer is direct. We make a non-direct copy of the ByteBuffer to return.
-    return BufferUtils.cloneByteBuffer(directBuffer);
   }
 
   /**

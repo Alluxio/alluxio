@@ -14,10 +14,11 @@ package alluxio.worker.grpc;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
+import alluxio.grpc.GrpcServer;
+import alluxio.grpc.GrpcServerBuilder;
+import alluxio.grpc.GrpcService;
 import alluxio.network.ChannelType;
 import alluxio.util.executor.ExecutorServiceFactories;
-import alluxio.util.grpc.GrpcServer;
-import alluxio.util.grpc.GrpcServerBuilder;
 import alluxio.util.network.NettyUtils;
 import alluxio.worker.DataServer;
 import alluxio.worker.WorkerProcess;
@@ -29,6 +30,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -70,7 +72,7 @@ public final class GrpcDataServer implements DataServer {
         .create();
     try {
       mServer = createServerBuilder(address, NettyUtils.WORKER_CHANNEL_TYPE)
-          .addService(new BlockWorkerImpl(workerProcess))
+          .addService(new GrpcService(new BlockWorkerImpl(workerProcess)))
           .executor(executorService)
           .flowControlWindow((int) mFlowControlWindow)
           .build()
@@ -107,38 +109,34 @@ public final class GrpcDataServer implements DataServer {
   @Override
   public void close() {
     if (mServer != null) {
-      try {
-        mServer.shutdown();
-        boolean completed = mServer.awaitTermination(mTimeoutMs, TimeUnit.MILLISECONDS);
-        if (!completed) {
-          LOG.warn("Server shutdown timed out.");
-        }
-        completed = mBossGroup.shutdownGracefully(mQuietPeriodMs, mTimeoutMs, TimeUnit.MILLISECONDS)
-            .awaitUninterruptibly(mTimeoutMs);
-        if (!completed) {
-          LOG.warn("Forced boss group shutdown because graceful shutdown timed out.");
-        }
-        completed = mWorkerGroup
-            .shutdownGracefully(mQuietPeriodMs, mTimeoutMs, TimeUnit.MILLISECONDS)
-            .awaitUninterruptibly(mTimeoutMs);
-        if (!completed) {
-          LOG.warn("Forced worker group shutdown because graceful shutdown timed out.");
-        }
-      } catch (InterruptedException e) {
-        Thread.currentThread().interrupt();
-        throw new RuntimeException("gRPC server shutdown interrupted", e);
+      boolean completed = mServer.shutdown();
+      if (!completed) {
+        LOG.warn("RPC Server shutdown timed out.");
+      }
+      completed = mBossGroup.shutdownGracefully(mQuietPeriodMs, mTimeoutMs, TimeUnit.MILLISECONDS)
+          .awaitUninterruptibly(mTimeoutMs);
+      if (!completed) {
+        LOG.warn("Forced boss group shutdown because graceful shutdown timed out.");
+      }
+      completed = mWorkerGroup.shutdownGracefully(mQuietPeriodMs, mTimeoutMs, TimeUnit.MILLISECONDS)
+          .awaitUninterruptibly(mTimeoutMs);
+      if (!completed) {
+        LOG.warn("Forced worker group shutdown because graceful shutdown timed out.");
       }
     }
   }
 
   @Override
   public SocketAddress getBindAddress() {
-    SocketAddress address = mServer.getBindAddress();
-    return address == null ? mSocketAddress : address;
+    int port = mServer.getBindPort();
+    if (port < 0) {
+      return null;
+    }
+    return new InetSocketAddress(port);
   }
 
   @Override
   public boolean isClosed() {
-    return mServer.isShutdown();
+    return !mServer.isServing();
   }
 }

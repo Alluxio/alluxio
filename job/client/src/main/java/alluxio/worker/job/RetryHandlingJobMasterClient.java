@@ -13,13 +13,13 @@ package alluxio.worker.job;
 
 import alluxio.AbstractMasterClient;
 import alluxio.Constants;
-import alluxio.grpc.AlluxioServiceType;
 import alluxio.grpc.JobCommand;
 import alluxio.grpc.JobHeartbeatPRequest;
 import alluxio.grpc.JobMasterWorkerServiceGrpc;
 import alluxio.grpc.RegisterJobWorkerPRequest;
+import alluxio.grpc.ServiceType;
 import alluxio.grpc.TaskInfo;
-import alluxio.util.grpc.GrpcUtils;
+import alluxio.grpc.GrpcUtils;
 import alluxio.wire.WorkerNetAddress;
 
 import java.io.IOException;
@@ -28,16 +28,13 @@ import java.util.List;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * A wrapper for the thrift client to interact with the job service master, used by job service
+ * A wrapper for the gRPC client to interact with the job service master, used by job service
  * workers.
- *
- * Since thrift clients are not thread safe, this class is a wrapper to provide thread safety, and
- * to provide retries.
  */
 @ThreadSafe
 public final class RetryHandlingJobMasterClient extends AbstractMasterClient
     implements JobMasterClient {
-  private JobMasterWorkerServiceGrpc.JobMasterWorkerServiceBlockingStub mGrpcClient = null;
+  private JobMasterWorkerServiceGrpc.JobMasterWorkerServiceBlockingStub mClient = null;
 
   /**
    * Creates a new job master client.
@@ -49,8 +46,8 @@ public final class RetryHandlingJobMasterClient extends AbstractMasterClient
   }
 
   @Override
-  protected AlluxioServiceType getRemoteServiceType() {
-    return AlluxioServiceType.JOB_MASTER_WORKER_SERVICE;
+  protected ServiceType getRemoteServiceType() {
+    return ServiceType.JOB_MASTER_WORKER_SERVICE;
   }
 
   @Override
@@ -70,28 +67,27 @@ public final class RetryHandlingJobMasterClient extends AbstractMasterClient
 
   @Override
   protected void afterConnect() {
-    //mClient = new JobMasterWorkerService.Client(mProtocol);
-    mGrpcClient = JobMasterWorkerServiceGrpc.newBlockingStub(mJobChannel);
+    mClient = JobMasterWorkerServiceGrpc.newBlockingStub(mChannel);
   }
 
   @Override
-  public synchronized long registerWorker(final WorkerNetAddress address) throws IOException {
+  public long registerWorker(final WorkerNetAddress address) throws IOException {
     return retryRPC(new RpcCallable<Long>() {
       public Long call() {
-        return mGrpcClient.registerJobWorker(RegisterJobWorkerPRequest.newBuilder()
+        return mClient.registerJobWorker(RegisterJobWorkerPRequest.newBuilder()
             .setWorkerNetAddress(GrpcUtils.toProto(address)).build()).getId();
       }
     });
   }
 
   @Override
-  public synchronized List<JobCommand> heartbeat(final long workerId,
+  public List<JobCommand> heartbeat(final long workerId,
       final List<TaskInfo> taskInfoList) throws IOException {
     return retryRPC(new RpcCallable<List<JobCommand>>() {
 
       @Override
       public List<JobCommand> call() {
-        return mGrpcClient.heartbeat(JobHeartbeatPRequest.newBuilder().setWorkerId(workerId)
+        return mClient.heartbeat(JobHeartbeatPRequest.newBuilder().setWorkerId(workerId)
             .addAllTaskInfos(taskInfoList).build()).getCommandsList();
       }
     });

@@ -24,8 +24,8 @@ import alluxio.multi.process.PortCoordination;
 import alluxio.testutils.AlluxioOperationThread;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.util.CommonUtils;
-import alluxio.util.grpc.GrpcChannel;
-import alluxio.util.grpc.GrpcChannelBuilder;
+import alluxio.grpc.GrpcChannel;
+import alluxio.grpc.GrpcChannelBuilder;
 
 import com.google.common.collect.ImmutableMap;
 import org.junit.After;
@@ -106,8 +106,7 @@ public class ZookeeperFailureIntegrationTest extends BaseIntegrationTest {
         new InetSocketAddress(netAddress.getHostname(), netAddress.getRpcPort());
     try {
       GrpcChannel channel = GrpcChannelBuilder
-              .forAddress(address.getHostName(), address.getPort())
-              .usePlaintext(true)
+              .forAddress(address)
               .build();
       FileSystemMasterClientServiceGrpc.FileSystemMasterClientServiceBlockingStub client =
           FileSystemMasterClientServiceGrpc.newBlockingStub(channel);

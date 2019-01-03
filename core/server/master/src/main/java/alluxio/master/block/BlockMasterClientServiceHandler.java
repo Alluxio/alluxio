@@ -11,6 +11,7 @@
 
 package alluxio.master.block;
 
+import alluxio.RpcUtils;
 import alluxio.client.block.options.GetWorkerReportOptions;
 import alluxio.grpc.BlockMasterClientServiceGrpc;
 import alluxio.grpc.BlockMasterInfo;
@@ -27,8 +28,7 @@ import alluxio.grpc.GetUsedBytesPResponse;
 import alluxio.grpc.GetWorkerInfoListPOptions;
 import alluxio.grpc.GetWorkerInfoListPResponse;
 import alluxio.grpc.GetWorkerReportPOptions;
-import alluxio.util.RpcUtilsNew;
-import alluxio.util.grpc.GrpcUtils;
+import alluxio.grpc.GrpcUtils;
 
 import com.google.common.base.Preconditions;
 import io.grpc.stub.StreamObserver;
@@ -64,7 +64,7 @@ public final class BlockMasterClientServiceHandler
     long blockId = request.getBlockId();
     GetBlockInfoPOptions options = request.getOptions();
 
-    RpcUtilsNew.call(LOG, (RpcUtilsNew.RpcCallableThrowsIOException<GetBlockInfoPResponse>) () -> {
+    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<GetBlockInfoPResponse>) () -> {
 
       return GetBlockInfoPResponse.newBuilder()
           .setBlockInfo(GrpcUtils.toProto(mBlockMaster.getBlockInfo(blockId))).build();
@@ -75,8 +75,8 @@ public final class BlockMasterClientServiceHandler
   public void getBlockMasterInfo(GetBlockMasterInfoPOptions options,
       StreamObserver<GetBlockMasterInfoPResponse> responseObserver) {
 
-    RpcUtilsNew.call(LOG,
-        (RpcUtilsNew.RpcCallableThrowsIOException<GetBlockMasterInfoPResponse>) () -> {
+    RpcUtils.call(LOG,
+        (RpcUtils.RpcCallableThrowsIOException<GetBlockMasterInfoPResponse>) () -> {
 
           BlockMasterInfo.Builder infoBuilder = BlockMasterInfo.newBuilder();
           for (BlockMasterInfoField field : (options.getFiltersCount() != 0)
@@ -117,8 +117,8 @@ public final class BlockMasterClientServiceHandler
   @Override
   public void getCapacityBytes(GetCapacityBytesPOptions options,
       StreamObserver<GetCapacityBytesPResponse> responseObserver) {
-    RpcUtilsNew.call(LOG,
-        (RpcUtilsNew.RpcCallableThrowsIOException<GetCapacityBytesPResponse>) () -> {
+    RpcUtils.call(LOG,
+        (RpcUtils.RpcCallableThrowsIOException<GetCapacityBytesPResponse>) () -> {
 
           return GetCapacityBytesPResponse.newBuilder().setBytes(mBlockMaster.getCapacityBytes())
               .build();
@@ -128,7 +128,7 @@ public final class BlockMasterClientServiceHandler
   @Override
   public void getUsedBytes(GetUsedBytesPOptions options,
       StreamObserver<GetUsedBytesPResponse> responseObserver) {
-    RpcUtilsNew.call(LOG, (RpcUtilsNew.RpcCallableThrowsIOException<GetUsedBytesPResponse>) () -> {
+    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<GetUsedBytesPResponse>) () -> {
 
       return GetUsedBytesPResponse.newBuilder().setBytes(mBlockMaster.getUsedBytes()).build();
     }, "getUsedBytes", "options=%s", responseObserver, options);
@@ -137,8 +137,8 @@ public final class BlockMasterClientServiceHandler
   @Override
   public void getWorkerInfoList(GetWorkerInfoListPOptions options,
       StreamObserver<GetWorkerInfoListPResponse> responseObserver) {
-    RpcUtilsNew.call(LOG,
-        (RpcUtilsNew.RpcCallableThrowsIOException<GetWorkerInfoListPResponse>) () -> {
+    RpcUtils.call(LOG,
+        (RpcUtils.RpcCallableThrowsIOException<GetWorkerInfoListPResponse>) () -> {
 
           return GetWorkerInfoListPResponse.newBuilder().addAllWorkerInfos(mBlockMaster
               .getWorkerInfoList().stream().map(GrpcUtils::toProto).collect(Collectors.toList()))
@@ -149,8 +149,8 @@ public final class BlockMasterClientServiceHandler
   @Override
   public void getWorkerReport(GetWorkerReportPOptions options,
       StreamObserver<GetWorkerInfoListPResponse> responseObserver) {
-    RpcUtilsNew.call(LOG,
-        (RpcUtilsNew.RpcCallableThrowsIOException<GetWorkerInfoListPResponse>) () -> {
+    RpcUtils.call(LOG,
+        (RpcUtils.RpcCallableThrowsIOException<GetWorkerInfoListPResponse>) () -> {
 
           return GetWorkerInfoListPResponse.newBuilder()
               .addAllWorkerInfos(

@@ -135,13 +135,14 @@
   </repositories>
 
   <properties>
-    <apache.curator.version>2.1.0-incubating</apache.curator.version>
+    <apache.curator.version>4.0.1</apache.curator.version>
+    <apache.curator-test.version>2.12.0</apache.curator-test.version>
     <aws.amazonaws.version>1.11.215</aws.amazonaws.version>
     <build.path>build</build.path>
     <cxf.version>2.7.0</cxf.version>
     <glusterfs-hadoop.version>2.3.13</glusterfs-hadoop.version>
     <gmetric4j.version>1.0.7</gmetric4j.version>
-    <grpc.version>1.12.0</grpc.version>
+    <grpc.version>1.17.1</grpc.version>
     <hadoop.version>2.2.0</hadoop.version>
     <hadoop-openstack.version>2.6.0</hadoop-openstack.version>
     <java.version>1.8</java.version>
@@ -339,7 +340,7 @@
       <dependency>
         <groupId>io.netty</groupId>
         <artifactId>netty-all</artifactId>
-        <version>4.1.22.Final</version>
+        <version>4.1.30.Final</version>
       </dependency>
       <dependency>
         <groupId>io.prometheus</groupId>
@@ -676,7 +677,7 @@
       <dependency>
         <groupId>org.apache.curator</groupId>
         <artifactId>curator-test</artifactId>
-        <version>${apache.curator.version}</version>
+        <version>${apache.curator-test.version}</version>
         <scope>test</scope>
       </dependency>
       <dependency>

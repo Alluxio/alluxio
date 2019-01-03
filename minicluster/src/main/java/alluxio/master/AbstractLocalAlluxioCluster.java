@@ -239,6 +239,9 @@ public abstract class AbstractLocalAlluxioCluster {
    * Stops the workers.
    */
   public void stopWorkers() throws Exception {
+    if (mWorkers == null) {
+      return;
+    }
     for (WorkerProcess worker : mWorkers) {
       worker.stop();
     }

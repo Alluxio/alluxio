@@ -12,7 +12,6 @@
 package alluxio.client;
 
 import alluxio.exception.status.AlluxioStatusException;
-import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.MasterInfo;
 import alluxio.grpc.MasterInfoField;
 import alluxio.grpc.MetricValue;
@@ -21,7 +20,6 @@ import alluxio.wire.ConfigCheckReport;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -48,13 +46,6 @@ public interface MetaMasterClient extends Closeable {
    * @return configuration check report
    */
   ConfigCheckReport getConfigReport() throws IOException;
-
-  /**
-   * Gets the runtime configuration information.
-   *
-   * @return a list of configuration information
-   */
-  List<ConfigProperty> getConfiguration() throws IOException;
 
   /**
    * @param masterInfoFields optional list of fields to query; if null all fields will be queried

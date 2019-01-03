@@ -15,15 +15,16 @@ import alluxio.conf.AlluxioProperties;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.Source;
 import alluxio.exception.status.AlluxioStatusException;
+import alluxio.exception.status.UnauthenticatedException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.GetConfigurationPOptions;
-import alluxio.grpc.MetaMasterClientServiceGrpc;
+import alluxio.grpc.MetaMasterConfigurationServiceGrpc;
 import alluxio.grpc.Scope;
 import alluxio.util.ConfigurationUtils;
-import alluxio.util.grpc.GrpcChannel;
-import alluxio.util.grpc.GrpcChannelBuilder;
-import alluxio.util.grpc.GrpcUtils;
+import alluxio.grpc.GrpcChannel;
+import alluxio.grpc.GrpcChannelBuilder;
+import alluxio.grpc.GrpcUtils;
 
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
@@ -433,10 +434,9 @@ public final class Configuration {
       List<alluxio.grpc.ConfigProperty> clusterConfig = null;
 
       try {
-        // TODO(ggezer) review grpc channel initialization
-        channel = GrpcChannelBuilder.forAddress("localhost", 50051).usePlaintext(true).build();
-        MetaMasterClientServiceGrpc.MetaMasterClientServiceBlockingStub client =
-            MetaMasterClientServiceGrpc.newBlockingStub(channel);
+        channel = GrpcChannelBuilder.forAddress(address).disableAuthentication().build();
+        MetaMasterConfigurationServiceGrpc.MetaMasterConfigurationServiceBlockingStub client =
+            MetaMasterConfigurationServiceGrpc.newBlockingStub(channel);
         clusterConfig =
             client.getConfiguration(GetConfigurationPOptions.newBuilder().setRawValue(true).build())
                 .getConfigsList();
@@ -444,6 +444,9 @@ public final class Configuration {
         throw new UnavailableException(String.format(
             "Failed to handshake with master %s to load cluster default configuration values",
             address), e);
+      } catch (UnauthenticatedException e) {
+        throw new RuntimeException(String.format(
+            "Received authentication exception with authentication disabled. Host:%s", address), e);
       } finally {
         channel.shutdown();
       }

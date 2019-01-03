@@ -41,7 +41,6 @@ public final class BlockWorkerFactory implements WorkerFactory {
   public BlockWorker create(WorkerRegistry registry, UfsManager ufsManager) {
     LOG.info("Creating {} ", BlockWorker.class.getName());
     BlockWorker blockWorker = new DefaultBlockWorker(ufsManager);
-    // TODO(ggezer) not serving anymore
     registry.add(BlockWorker.class, blockWorker);
     return blockWorker;
   }

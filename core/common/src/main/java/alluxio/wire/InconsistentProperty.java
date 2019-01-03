@@ -15,7 +15,6 @@ import alluxio.grpc.InconsistentPropertyValues;
 
 import com.google.common.base.Objects;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -48,11 +47,13 @@ public final class InconsistentProperty {
    */
   protected InconsistentProperty(alluxio.grpc.InconsistentProperty inconsistentProperty) {
     mName = inconsistentProperty.getName();
-    mValues = Collections.emptyMap();
+    mValues = new HashMap<>(inconsistentProperty.getValuesCount());
     for (Map.Entry<String, InconsistentPropertyValues> entry : inconsistentProperty.getValuesMap()
         .entrySet()) {
       if (entry.getKey().equals(OPTIONAL_STRING_VAL)) {
         mValues.put(Optional.empty(), entry.getValue().getValuesList());
+      } else {
+        mValues.put(Optional.of(entry.getKey()), entry.getValue().getValuesList());
       }
     }
   }
@@ -133,10 +134,10 @@ public final class InconsistentProperty {
    * @return an inconsistent property of proto construct
    */
   public alluxio.grpc.InconsistentProperty toProto() {
-    Map<String, InconsistentPropertyValues> inconsistentPropsMap = Collections.emptyMap();
+    Map<String, InconsistentPropertyValues> inconsistentPropsMap = new HashMap<>();
     for (Map.Entry<Optional<String>, List<String>> entry : mValues.entrySet()) {
       String pKey = OPTIONAL_STRING_VAL;
-      if (entry.getKey().isPresent()) {
+      if (entry.getKey().isPresent() && !entry.getKey().get().isEmpty()) {
         pKey = entry.getKey().get();
       }
       inconsistentPropsMap.put(pKey,

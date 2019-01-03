@@ -14,7 +14,7 @@ package alluxio.cli;
 import alluxio.Configuration;
 import alluxio.ConfigurationValueOptions;
 import alluxio.PropertyKey;
-import alluxio.client.RetryHandlingMetaMasterClient;
+import alluxio.client.RetryHandlingMetaMasterConfigClient;
 import alluxio.grpc.ConfigProperty;
 import alluxio.master.MasterClientConfig;
 import alluxio.util.ConfigurationUtils;
@@ -139,19 +139,19 @@ public final class GetConf {
    */
   public static int getConf(String... args) {
     return getConfImpl(
-        () -> new RetryHandlingMetaMasterClient(MasterClientConfig.defaults()), args);
+        () -> new RetryHandlingMetaMasterConfigClient(MasterClientConfig.defaults()), args);
   }
 
   /**
    * Implements get configuration.
    *
-   * @param clientSupplier a functor to return a client of meta master
+   * @param clientSupplier a functor to return a config client of meta master
    * @param args list of arguments
    * @return 0 on success, 1 on failures
    */
   @VisibleForTesting
   public static int getConfImpl(
-      Supplier<RetryHandlingMetaMasterClient> clientSupplier, String... args) {
+      Supplier<RetryHandlingMetaMasterConfigClient> clientSupplier, String... args) {
     CommandLineParser parser = new DefaultParser();
     CommandLine cmd;
     try {
@@ -165,7 +165,7 @@ public final class GetConf {
     Map<String, ConfigProperty> confMap = new HashMap<>();
     if (cmd.hasOption(MASTER_OPTION_NAME)) {
       // load cluster-wide configuration
-      try (RetryHandlingMetaMasterClient client = clientSupplier.get()) {
+      try (RetryHandlingMetaMasterConfigClient client = clientSupplier.get()) {
         client.getConfiguration().forEach(prop -> confMap.put(prop.getName(), prop));
       } catch (IOException e) {
         System.out.println("Unable to get master-side configuration: " + e.getMessage());

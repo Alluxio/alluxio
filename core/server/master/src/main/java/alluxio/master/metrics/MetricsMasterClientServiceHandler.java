@@ -11,11 +11,11 @@
 
 package alluxio.master.metrics;
 
+import alluxio.RpcUtils;
 import alluxio.grpc.MetricsHeartbeatPRequest;
 import alluxio.grpc.MetricsHeartbeatPResponse;
 import alluxio.grpc.MetricsMasterClientServiceGrpc;
 import alluxio.metrics.Metric;
-import alluxio.util.RpcUtilsNew;
 
 import com.google.common.base.Preconditions;
 
@@ -50,8 +50,8 @@ public final class MetricsMasterClientServiceHandler
   @Override
   public void metricsHeartbeat(MetricsHeartbeatPRequest request,
       StreamObserver<MetricsHeartbeatPResponse> responseObserver) {
-    RpcUtilsNew.call(LOG,
-        (RpcUtilsNew.RpcCallableThrowsIOException<MetricsHeartbeatPResponse>) () -> {
+    RpcUtils.call(LOG,
+        (RpcUtils.RpcCallableThrowsIOException<MetricsHeartbeatPResponse>) () -> {
 
           List<Metric> metrics = Lists.newArrayList();
           for (alluxio.grpc.Metric metric : request.getOptions().getMetricsList()) {

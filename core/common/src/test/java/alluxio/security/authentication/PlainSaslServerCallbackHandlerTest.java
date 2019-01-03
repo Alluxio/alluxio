@@ -14,6 +14,7 @@ package alluxio.security.authentication;
 import alluxio.ConfigurationRule;
 import alluxio.ConfigurationTestUtils;
 import alluxio.PropertyKey;
+import alluxio.security.authentication.plain.PlainSaslServerCallbackHandler;
 
 import org.junit.After;
 import org.junit.Before;

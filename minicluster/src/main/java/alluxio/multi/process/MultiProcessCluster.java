@@ -55,6 +55,7 @@ import java.io.IOException;
 import java.lang.ProcessBuilder.Redirect;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -269,7 +270,7 @@ public final class MultiProcessCluster {
     MetaMasterClient metaMasterClient = getMetaMasterClient();
     CommonUtils.waitFor("all nodes registered", () -> {
       try {
-        MasterInfo masterInfo = metaMasterClient.getMasterInfo(null);
+        MasterInfo masterInfo = metaMasterClient.getMasterInfo(Collections.emptySet());
         int liveNodeNum = masterInfo.getMasterAddressesList().size()
             + masterInfo.getWorkerAddressesList().size();
         if (liveNodeNum == (mNumMasters + mNumWorkers)) {

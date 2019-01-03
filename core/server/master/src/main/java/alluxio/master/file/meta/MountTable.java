@@ -34,7 +34,7 @@ import alluxio.resource.LockResource;
 import alluxio.underfs.UfsManager;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.IdUtils;
-import alluxio.util.grpc.GrpcUtils;
+import alluxio.grpc.GrpcUtils;
 import alluxio.util.io.PathUtils;
 
 import org.slf4j.Logger;

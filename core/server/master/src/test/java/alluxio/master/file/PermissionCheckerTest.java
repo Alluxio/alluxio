@@ -175,7 +175,7 @@ public final class PermissionCheckerTest {
         .setOwner(TEST_USER_1.getUser()).setGroup(TEST_USER_1.getGroup());
     sNestedFileContext = CreateFileContext
         .defaults(CreateFilePOptions.newBuilder().setBlockSizeBytes(Constants.KB)
-            .setMode(TEST_NORMAL_MODE.toShort()))
+            .setMode(TEST_NORMAL_MODE.toShort()).setRecursive(true))
         .setOwner(TEST_USER_1.getUser()).setGroup(TEST_USER_1.getGroup());
 
     // setup an InodeTree

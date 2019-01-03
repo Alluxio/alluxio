@@ -397,12 +397,6 @@ public final class FileSystemIntegrationTest extends BaseIntegrationTest {
   }
 
   @Test
-  public void loadMetadataNonexistingPath() throws Exception {
-    mThrown.expect(FileDoesNotExistException.class);
-    mFileSystem.loadMetadata(new AlluxioURI("/path"));
-  }
-
-  @Test
   public void openFileNonexistingPath() throws Exception {
     AlluxioURI path = new AlluxioURI("/path");
     mThrown.expect(FileDoesNotExistException.class);

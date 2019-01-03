@@ -52,7 +52,7 @@ private static final long serialVersionUID = 0L;
           }
           case 8: {
             int rawValue = input.readEnum();
-            alluxio.grpc.AlluxioServiceType value = alluxio.grpc.AlluxioServiceType.valueOf(rawValue);
+            alluxio.grpc.ServiceType value = alluxio.grpc.ServiceType.valueOf(rawValue);
             if (value == null) {
               unknownFields.mergeVarintField(1, rawValue);
             } else {
@@ -89,17 +89,17 @@ private static final long serialVersionUID = 0L;
   public static final int SERVICETYPE_FIELD_NUMBER = 1;
   private int serviceType_;
   /**
-   * <code>optional .alluxio.grpc.AlluxioServiceType serviceType = 1;</code>
+   * <code>optional .alluxio.grpc.ServiceType serviceType = 1;</code>
    */
   public boolean hasServiceType() {
     return ((bitField0_ & 0x00000001) == 0x00000001);
   }
   /**
-   * <code>optional .alluxio.grpc.AlluxioServiceType serviceType = 1;</code>
+   * <code>optional .alluxio.grpc.ServiceType serviceType = 1;</code>
    */
-  public alluxio.grpc.AlluxioServiceType getServiceType() {
-    alluxio.grpc.AlluxioServiceType result = alluxio.grpc.AlluxioServiceType.valueOf(serviceType_);
-    return result == null ? alluxio.grpc.AlluxioServiceType.FILE_SYSTEM_MASTER_CLIENT_SERVICE : result;
+  public alluxio.grpc.ServiceType getServiceType() {
+    alluxio.grpc.ServiceType result = alluxio.grpc.ServiceType.valueOf(serviceType_);
+    return result == null ? alluxio.grpc.ServiceType.FILE_SYSTEM_MASTER_CLIENT_SERVICE : result;
   }
 
   private byte memoizedIsInitialized = -1;
@@ -398,22 +398,22 @@ private static final long serialVersionUID = 0L;
 
     private int serviceType_ = 0;
     /**
-     * <code>optional .alluxio.grpc.AlluxioServiceType serviceType = 1;</code>
+     * <code>optional .alluxio.grpc.ServiceType serviceType = 1;</code>
      */
     public boolean hasServiceType() {
       return ((bitField0_ & 0x00000001) == 0x00000001);
     }
     /**
-     * <code>optional .alluxio.grpc.AlluxioServiceType serviceType = 1;</code>
+     * <code>optional .alluxio.grpc.ServiceType serviceType = 1;</code>
      */
-    public alluxio.grpc.AlluxioServiceType getServiceType() {
-      alluxio.grpc.AlluxioServiceType result = alluxio.grpc.AlluxioServiceType.valueOf(serviceType_);
-      return result == null ? alluxio.grpc.AlluxioServiceType.FILE_SYSTEM_MASTER_CLIENT_SERVICE : result;
+    public alluxio.grpc.ServiceType getServiceType() {
+      alluxio.grpc.ServiceType result = alluxio.grpc.ServiceType.valueOf(serviceType_);
+      return result == null ? alluxio.grpc.ServiceType.FILE_SYSTEM_MASTER_CLIENT_SERVICE : result;
     }
     /**
-     * <code>optional .alluxio.grpc.AlluxioServiceType serviceType = 1;</code>
+     * <code>optional .alluxio.grpc.ServiceType serviceType = 1;</code>
      */
-    public Builder setServiceType(alluxio.grpc.AlluxioServiceType value) {
+    public Builder setServiceType(alluxio.grpc.ServiceType value) {
       if (value == null) {
         throw new NullPointerException();
       }
@@ -423,7 +423,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>optional .alluxio.grpc.AlluxioServiceType serviceType = 1;</code>
+     * <code>optional .alluxio.grpc.ServiceType serviceType = 1;</code>
      */
     public Builder clearServiceType() {
       bitField0_ = (bitField0_ & ~0x00000001);

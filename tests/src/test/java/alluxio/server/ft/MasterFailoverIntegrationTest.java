@@ -72,7 +72,7 @@ public final class MasterFailoverIntegrationTest extends BaseIntegrationTest {
         new MultiMasterLocalAlluxioCluster(2);
     mMultiMasterLocalAlluxioCluster.initConfiguration();
     Configuration.set(PropertyKey.USER_RPC_RETRY_MAX_DURATION, "15sec");
-    Configuration.set(PropertyKey.MASTER_THRIFT_SHUTDOWN_TIMEOUT, "30sec");
+    Configuration.set(PropertyKey.MASTER_GRPC_SERVER_SHUTDOWN_TIMEOUT, "30sec");
     Configuration.set(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS,
         DelegatingUnderFileSystemFactory.DELEGATING_SCHEME + "://" + LOCAL_UFS_PATH);
     mMultiMasterLocalAlluxioCluster.start();
@@ -96,7 +96,7 @@ public final class MasterFailoverIntegrationTest extends BaseIntegrationTest {
     Thread.sleep(500);
     mMultiMasterLocalAlluxioCluster.stopZk();
     // Give master a chance to notice that ZK is dead and trigger failover.
-    Thread.sleep(1000);
+    Thread.sleep(5000);
     mMultiMasterLocalAlluxioCluster.restartZk();
     deleteThread.join();
     // After failing on the original master, the delete should be retried on the new master.

@@ -15,11 +15,11 @@ import alluxio.AbstractMasterClient;
 import alluxio.Constants;
 import alluxio.client.file.FileSystemContext;
 import alluxio.exception.status.UnavailableException;
-import alluxio.grpc.AlluxioServiceType;
 import alluxio.grpc.Metric;
 import alluxio.grpc.MetricsHeartbeatPOptions;
 import alluxio.grpc.MetricsHeartbeatPRequest;
 import alluxio.grpc.MetricsMasterClientServiceGrpc;
+import alluxio.grpc.ServiceType;
 import alluxio.master.MasterClientConfig;
 import alluxio.retry.RetryUtils;
 import alluxio.util.network.NetworkAddressUtils;
@@ -34,8 +34,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public class MetricsMasterClient extends AbstractMasterClient {
-  //private MetricsMasterClientService.Client mClient = null;
-  private MetricsMasterClientServiceGrpc.MetricsMasterClientServiceBlockingStub mGrpcClient = null;
+  private MetricsMasterClientServiceGrpc.MetricsMasterClientServiceBlockingStub mClient = null;
 
   /**
    * Creates a new metrics master client.
@@ -47,8 +46,8 @@ public class MetricsMasterClient extends AbstractMasterClient {
   }
 
   @Override
-  protected AlluxioServiceType getRemoteServiceType() {
-    return AlluxioServiceType.METRICS_MASTER_CLIENT_SERVICE;
+  protected ServiceType getRemoteServiceType() {
+    return ServiceType.METRICS_MASTER_CLIENT_SERVICE;
   }
 
   @Override
@@ -63,8 +62,7 @@ public class MetricsMasterClient extends AbstractMasterClient {
 
   @Override
   protected void afterConnect() {
-    //mClient = new MetricsMasterClientService.Client(mProtocol);
-    mGrpcClient = MetricsMasterClientServiceGrpc.newBlockingStub(mChannel);
+    mClient = MetricsMasterClientServiceGrpc.newBlockingStub(mChannel);
   }
 
   /**
@@ -72,14 +70,14 @@ public class MetricsMasterClient extends AbstractMasterClient {
    *
    * @param metrics a list of client metrics
    */
-  public synchronized void heartbeat(final List<Metric> metrics) throws IOException {
+  public void heartbeat(final List<Metric> metrics) throws IOException {
     connect();
     try {
       MetricsHeartbeatPRequest.Builder request = MetricsHeartbeatPRequest.newBuilder();
       request.setClientId(FileSystemContext.get().getId());
       request.setHostname(NetworkAddressUtils.getClientHostName());
       request.setOptions(MetricsHeartbeatPOptions.newBuilder().addAllMetrics(metrics).build());
-      mGrpcClient.metricsHeartbeat(request.build());
+      mClient.metricsHeartbeat(request.build());
     } catch (io.grpc.StatusRuntimeException e) {
       throw new UnavailableException(e);
     }

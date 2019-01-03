@@ -1338,13 +1338,20 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
-  public static final PropertyKey MASTER_THRIFT_SHUTDOWN_TIMEOUT =
-         new Builder(Name.MASTER_THRIFT_SHUTDOWN_TIMEOUT)
-         .setDefaultValue("60sec")
-         .setDescription("Maximum time to wait for thrift servers to stop on shutdown")
-         .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-         .setScope(Scope.MASTER)
-         .build();
+  public static final PropertyKey MASTER_GRPC_CHANNEL_SHUTDOWN_TIMEOUT =
+      new Builder(Name.MASTER_GRPC_CHANNEL_SHUTDOWN_TIMEOUT)
+          .setDefaultValue("60sec")
+          .setDescription("Maximum time to wait for gRPC channel to stop on shutdown")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_GRPC_SERVER_SHUTDOWN_TIMEOUT =
+      new Builder(Name.MASTER_GRPC_SERVER_SHUTDOWN_TIMEOUT)
+          .setDefaultValue("60sec")
+          .setDescription("Maximum time to wait for gRPC server to stop on shutdown")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
   public static final PropertyKey MASTER_TIERED_STORE_GLOBAL_LEVEL0_ALIAS =
       new Builder(Name.MASTER_TIERED_STORE_GLOBAL_LEVEL0_ALIAS)
           .setDefaultValue("MEM")
@@ -2632,7 +2639,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey USER_METRICS_COLLECTION_ENABLED =
       new Builder(Name.USER_METRICS_COLLECTION_ENABLED)
-          .setDefaultValue(true)
+          .setDefaultValue(false)
           .setDescription("Enable collecting the client-side metrics and hearbeat them to master")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
@@ -3498,6 +3505,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.startup.consistency.check.enabled";
     public static final String MASTER_THRIFT_SHUTDOWN_TIMEOUT =
         "alluxio.master.thrift.shutdown.timeout";
+    public static final String MASTER_GRPC_CHANNEL_SHUTDOWN_TIMEOUT =
+            "alluxio.master.grpc.channel.shutdown.timeout";
+    public static final String MASTER_GRPC_SERVER_SHUTDOWN_TIMEOUT =
+            "alluxio.master.grpc.server.shutdown.timeout";
     public static final String MASTER_TIERED_STORE_GLOBAL_LEVEL0_ALIAS =
         "alluxio.master.tieredstore.global.level0.alias";
     public static final String MASTER_TIERED_STORE_GLOBAL_LEVEL1_ALIAS =

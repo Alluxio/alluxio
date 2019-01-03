@@ -83,6 +83,7 @@ public final class Constants {
   public static final long FILE_SYSTEM_MASTER_WORKER_SERVICE_VERSION = 2;
   public static final long BLOCK_MASTER_CLIENT_SERVICE_VERSION = 2;
   public static final long BLOCK_MASTER_WORKER_SERVICE_VERSION = 2;
+  public static final long META_MASTER_CONFIG_SERVICE_VERSION = 2;
   public static final long META_MASTER_CLIENT_SERVICE_VERSION = 2;
   public static final long META_MASTER_MASTER_SERVICE_VERSION = 1;
   public static final long METRICS_MASTER_CLIENT_SERVICE_VERSION = 2;
@@ -106,6 +107,7 @@ public final class Constants {
   public static final String FILE_SYSTEM_MASTER_WORKER_SERVICE_NAME = "FileSystemMasterWorker";
   // TODO(binfan): set META_MASTER_CLIENT_SERVICE_NAME to "MetaMasterClient" after 2.0.
   // Its value is "MetaMaster" for backwards compatibility so 1.7 clients can talk to 1.8 MetaMaster
+  public static final String META_MASTER_CONFIG_SERVICE_NAME = "MetaMaster";
   public static final String META_MASTER_CLIENT_SERVICE_NAME = "MetaMaster";
   public static final String META_MASTER_MASTER_SERVICE_NAME = "MetaMasterMaster";
   public static final String METRICS_MASTER_CLIENT_SERVICE_NAME = "MetricsMasterClient";

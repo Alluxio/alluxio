@@ -18,6 +18,9 @@ import alluxio.exception.status.UnauthenticatedException;
 import alluxio.network.thrift.ThriftUtils;
 import alluxio.security.LoginUser;
 import alluxio.security.User;
+import alluxio.security.authentication.plain.PlainSaslClientCallbackHandler;
+import alluxio.security.authentication.plain.PlainSaslServerCallbackHandler;
+import alluxio.security.authentication.plain.PlainSaslServerProvider;
 
 import org.apache.thrift.transport.TSaslClientTransport;
 import org.apache.thrift.transport.TSaslServerTransport;

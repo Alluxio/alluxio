@@ -236,28 +236,29 @@ public final class MetaMasterProto {
       "\014\n\010WEB_PORT\020\007\022\024\n\020WORKER_ADDRESSES\020\010\022\027\n\023Z" +
       "OOKEEPER_ADDRESSES\020\t*Y\n\013MetaCommand\022\027\n\023M" +
       "etaCommand_Unknown\020\000\022\027\n\023MetaCommand_Noth" +
-      "ing\020\001\022\030\n\024MetaCommand_Register\020\0022\326\003\n\027Meta" +
-      "MasterClientService\022E\n\006Backup\022\034.alluxio." +
-      "grpc.BackupPOptions\032\035.alluxio.grpc.Backu" +
-      "pPResponse\022c\n\020GetConfiguration\022&.alluxio" +
-      ".grpc.GetConfigurationPOptions\032\'.alluxio" +
-      ".grpc.GetConfigurationPResponse\022`\n\017GetCo" +
-      "nfigReport\022%.alluxio.grpc.GetConfigRepor" +
-      "tPOptions\032&.alluxio.grpc.GetConfigReport" +
-      "PResponse\022Z\n\rGetMasterInfo\022#.alluxio.grp" +
-      "c.GetMasterInfoPOptions\032$.alluxio.grpc.G" +
-      "etMasterInfoPResponse\022Q\n\nGetMetrics\022 .al" +
-      "luxio.grpc.GetMetricsPOptions\032!.alluxio." +
-      "grpc.GetMetricsPResponse2\260\002\n\027MetaMasterM" +
-      "asterService\022T\n\013GetMasterId\022!.alluxio.gr" +
-      "pc.GetMasterIdPRequest\032\".alluxio.grpc.Ge" +
-      "tMasterIdPResponse\022]\n\016RegisterMaster\022$.a" +
-      "lluxio.grpc.RegisterMasterPRequest\032%.all" +
-      "uxio.grpc.RegisterMasterPResponse\022`\n\017Mas" +
-      "terHeartbeat\022%.alluxio.grpc.MasterHeartb" +
-      "eatPRequest\032&.alluxio.grpc.MasterHeartbe" +
-      "atPResponseB!\n\014alluxio.grpcB\017MetaMasterP" +
-      "rotoP\001"
+      "ing\020\001\022\030\n\024MetaCommand_Register\020\0022\205\001\n\036Meta" +
+      "MasterConfigurationService\022c\n\020GetConfigu" +
+      "ration\022&.alluxio.grpc.GetConfigurationPO" +
+      "ptions\032\'.alluxio.grpc.GetConfigurationPR" +
+      "esponse2\361\002\n\027MetaMasterClientService\022E\n\006B" +
+      "ackup\022\034.alluxio.grpc.BackupPOptions\032\035.al" +
+      "luxio.grpc.BackupPResponse\022`\n\017GetConfigR" +
+      "eport\022%.alluxio.grpc.GetConfigReportPOpt" +
+      "ions\032&.alluxio.grpc.GetConfigReportPResp" +
+      "onse\022Z\n\rGetMasterInfo\022#.alluxio.grpc.Get" +
+      "MasterInfoPOptions\032$.alluxio.grpc.GetMas" +
+      "terInfoPResponse\022Q\n\nGetMetrics\022 .alluxio" +
+      ".grpc.GetMetricsPOptions\032!.alluxio.grpc." +
+      "GetMetricsPResponse2\260\002\n\027MetaMasterMaster" +
+      "Service\022T\n\013GetMasterId\022!.alluxio.grpc.Ge" +
+      "tMasterIdPRequest\032\".alluxio.grpc.GetMast" +
+      "erIdPResponse\022]\n\016RegisterMaster\022$.alluxi" +
+      "o.grpc.RegisterMasterPRequest\032%.alluxio." +
+      "grpc.RegisterMasterPResponse\022`\n\017MasterHe" +
+      "artbeat\022%.alluxio.grpc.MasterHeartbeatPR" +
+      "equest\032&.alluxio.grpc.MasterHeartbeatPRe" +
+      "sponseB!\n\014alluxio.grpcB\017MetaMasterProtoP" +
+      "\001"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {

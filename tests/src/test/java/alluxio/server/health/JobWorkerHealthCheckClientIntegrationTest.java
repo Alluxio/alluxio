@@ -14,11 +14,12 @@ package alluxio.server.health;
 import alluxio.HealthCheckClient;
 import alluxio.PropertyKey;
 import alluxio.jobworker.JobWorkerHealthCheckClient;
-import alluxio.master.LocalAlluxioCluster;
+import alluxio.master.LocalAlluxioJobCluster;
 import alluxio.retry.CountingRetry;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
 
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -33,16 +34,21 @@ public class JobWorkerHealthCheckClientIntegrationTest extends BaseIntegrationTe
       new LocalAlluxioClusterResource.Builder().setProperty(PropertyKey.JOB_WORKER_RPC_PORT, 0)
           .build();
 
-  private LocalAlluxioCluster mLocalAlluxioCluster = null;
+  private LocalAlluxioJobCluster mLocalAlluxioJobCluster = null;
   private HealthCheckClient mHealthCheckClient;
 
   @Before
   public final void before() throws Exception {
-    mLocalAlluxioCluster = mLocalAlluxioClusterResource.get();
-    InetSocketAddress address =
-        new InetSocketAddress(mLocalAlluxioCluster.getWorkerAddress().getHost(),
-            mLocalAlluxioCluster.getWorkerAddress().getRpcPort());
+    mLocalAlluxioJobCluster = new LocalAlluxioJobCluster();
+    mLocalAlluxioJobCluster.start();
+    // TODO(ggezer) call getWorker() after turning JobWorkerProcess into a gRPC server.
+    InetSocketAddress address = mLocalAlluxioJobCluster.getMaster().getRpcAddress();
     mHealthCheckClient = new JobWorkerHealthCheckClient(address, () -> new CountingRetry(1));
+  }
+
+  @After
+  public final void after() throws Exception {
+    mLocalAlluxioJobCluster.stop();
   }
 
   @Test
@@ -51,8 +57,8 @@ public class JobWorkerHealthCheckClientIntegrationTest extends BaseIntegrationTe
   }
 
   @Test
-  public void isServingStopFS() throws Exception {
-    mLocalAlluxioCluster.stopFS();
+  public void isServingStopJobs() throws Exception {
+    mLocalAlluxioJobCluster.stop();
     Assert.assertFalse(mHealthCheckClient.isServing());
   }
 }

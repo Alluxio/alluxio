@@ -17,28 +17,23 @@ import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.FailedPreconditionException;
 import alluxio.exception.status.Status;
 import alluxio.exception.status.UnavailableException;
-import alluxio.grpc.AlluxioServiceType;
-import alluxio.grpc.AlluxioVersionServiceGrpc;
 import alluxio.grpc.GetServiceVersionPRequest;
+import alluxio.grpc.GrpcChannelBuilder;
+import alluxio.grpc.ServiceType;
+import alluxio.grpc.ServiceVersionClientServiceGrpc;
 import alluxio.metrics.CommonMetrics;
 import alluxio.metrics.Metric;
 import alluxio.metrics.MetricsSystem;
-import alluxio.network.thrift.ThriftUtils;
 import alluxio.retry.RetryPolicy;
 import alluxio.retry.RetryUtils;
 import alluxio.security.LoginUser;
-import alluxio.security.authentication.TransportProvider;
-import alluxio.util.grpc.GrpcChannel;
-import alluxio.util.grpc.GrpcChannelBuilder;
+import alluxio.grpc.GrpcChannel;
 import alluxio.util.SecurityUtils;
-import alluxio.util.grpc.GrpcExceptionUtils;
+import alluxio.grpc.GrpcExceptionUtils;
 
 import com.codahale.metrics.Timer;
 import com.google.common.base.Preconditions;
-import org.apache.thrift.TException;
-import org.apache.thrift.protocol.TProtocol;
-import org.apache.thrift.transport.TTransport;
-import org.apache.thrift.transport.TTransportException;
+import io.grpc.StatusRuntimeException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -60,13 +55,12 @@ public abstract class AbstractClient implements Client {
   private final Supplier<RetryPolicy> mRetryPolicySupplier;
 
   protected InetSocketAddress mAddress;
-  protected TProtocol mProtocol;
 
+  /** Underlying channel to the target service. */
   protected GrpcChannel mChannel;
-  protected GrpcChannel mJobChannel;
 
   /** Used to query service version for the remote service type. */
-  protected AlluxioVersionServiceGrpc.AlluxioVersionServiceBlockingStub mVersionService;
+  protected ServiceVersionClientServiceGrpc.ServiceVersionClientServiceBlockingStub mVersionService;
 
   /** Is true if this client is currently connected. */
   protected boolean mConnected = false;
@@ -107,31 +101,21 @@ public abstract class AbstractClient implements Client {
     mParentSubject = subject;
     mRetryPolicySupplier = retryPolicySupplier;
     mServiceVersion = Constants.UNKNOWN_SERVICE_VERSION;
-    // TODO(ggezer) review grpc channel initialization
-    mChannel = GrpcChannelBuilder.forAddress("localhost", 50051).usePlaintext(true)
-        .build();
-    mJobChannel = GrpcChannelBuilder.forAddress("localhost", 50052).usePlaintext(true)
-        .build();
-    mVersionService = AlluxioVersionServiceGrpc.newBlockingStub(mChannel);
   }
 
   /**
    * @return the type of remote service
    */
-  protected abstract AlluxioServiceType getRemoteServiceType();
+  protected abstract ServiceType getRemoteServiceType();
 
-  protected long getRemoteServiceVersion() {
-    try {
-      return mVersionService
-              .getServiceVersion(
-                      GetServiceVersionPRequest.newBuilder().setServiceType(getRemoteServiceType())
-                          .build())
-              .getVersion();
-    } catch (Exception e) {
-      LOG.error("Failed to get remote service version for type: %s", getRemoteServiceType().name(),
-          e);
-      return Constants.UNKNOWN_SERVICE_VERSION;
-    }
+  protected long getRemoteServiceVersion() throws AlluxioStatusException {
+    return retryRPC(new RpcCallable<Long>() {
+      public Long call() {
+        return mVersionService.getServiceVersion(
+            GetServiceVersionPRequest.newBuilder().setServiceType(getRemoteServiceType()).build())
+            .getVersion();
+      }
+    });
   }
 
   /**
@@ -151,11 +135,7 @@ public abstract class AbstractClient implements Client {
    */
   protected void checkVersion(long clientVersion) throws IOException {
     if (mServiceVersion == Constants.UNKNOWN_SERVICE_VERSION) {
-      try {
-        mServiceVersion = getRemoteServiceVersion();
-      } catch (Exception e) {
-        throw new IOException(e);
-      }
+      mServiceVersion = getRemoteServiceVersion();
       if (mServiceVersion != clientVersion) {
         throw new IOException(ExceptionMessage.INCOMPATIBLE_VERSION.getMessage(getServiceName(),
             clientVersion, mServiceVersion));
@@ -227,17 +207,16 @@ public abstract class AbstractClient implements Client {
         beforeConnect();
         LOG.info("Alluxio client (version {}) is trying to connect with {} @ {}",
             RuntimeConstants.VERSION, getServiceName(), mAddress);
-        // The wrapper transport
-        TTransport clientTransport =
-            TransportProvider.Factory.create().getClientTransport(mParentSubject, mAddress);
-        mProtocol = ThriftUtils.createThriftProtocol(clientTransport, getServiceName());
-        mProtocol.getTransport().open();
-        LOG.info("Client registered with {} @ {}", getServiceName(), mAddress);
+        mChannel = GrpcChannelBuilder.forAddress(mAddress).setSubject(mParentSubject).build();
+        // Create stub for version service on host
+        mVersionService = ServiceVersionClientServiceGrpc.newBlockingStub(mChannel);
         mConnected = true;
         afterConnect();
         checkVersion(getServiceVersion());
+        LOG.info("Alluxio client (version {}) is connected with {} @ {}", RuntimeConstants.VERSION,
+            getServiceName(), mAddress);
         return;
-      } catch (IOException | TTransportException e) {
+      } catch (IOException e) {
         LOG.warn("Failed to connect ({}) with {} @ {}: {}", retryPolicy.getAttemptCount(),
             getServiceName(), mAddress, e.getMessage());
         if (e.getCause() instanceof java.net.SocketTimeoutException) {
@@ -265,10 +244,10 @@ public abstract class AbstractClient implements Client {
    */
   public synchronized void disconnect() {
     if (mConnected) {
-      Preconditions.checkNotNull(mProtocol, PreconditionMessage.PROTOCOL_NULL_WHEN_CONNECTED);
+      Preconditions.checkNotNull(mChannel, PreconditionMessage.CHANNEL_NULL_WHEN_CONNECTED);
       LOG.debug("Disconnecting from the {} @ {}", getServiceName(), mAddress);
       beforeDisconnect();
-      mProtocol.getTransport().close();
+      mChannel.shutdown();
       mConnected = false;
       afterDisconnect();
     }
@@ -306,9 +285,9 @@ public abstract class AbstractClient implements Client {
      * The task where RPC happens.
      *
      * @return RPC result
-     * @throws TException when any exception defined in thrift happens
+     * @throws StatusRuntimeException when any exception defined in thrift happens
      */
-    V call() throws TException;
+    V call() throws StatusRuntimeException;
   }
 
   /**
@@ -361,9 +340,9 @@ public abstract class AbstractClient implements Client {
       connect();
       try {
         return rpc.call();
-      } catch (Exception e) {
+      } catch (StatusRuntimeException e) {
         AlluxioStatusException se = GrpcExceptionUtils.fromGrpcStatusException(e);
-        if (se.getStatus() == Status.UNAVAILABLE) {
+        if (se.getStatus() == Status.UNAVAILABLE || se.getStatus() == Status.UNAUTHENTICATED) {
           ex = se;
         } else {
           throw se;

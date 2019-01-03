@@ -16,7 +16,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import alluxio.exception.status.UnavailableException;
-import alluxio.grpc.AlluxioServiceType;
+import alluxio.grpc.ServiceType;
 import alluxio.retry.CountingRetry;
 
 import org.junit.Rule;
@@ -40,8 +40,8 @@ public final class AbstractClientTest {
     }
 
     @Override
-    protected AlluxioServiceType getRemoteServiceType() {
-      return AlluxioServiceType.UNKNOWN_SERVICE;
+    protected ServiceType getRemoteServiceType() {
+      return ServiceType.UNKNOWN_SERVICE;
     }
 
     @Override
@@ -79,6 +79,7 @@ public final class AbstractClientTest {
     client.close();
   }
 
+  // TODO(ggezer) Fix after gRPC initialization
   // @Test
   public void supportedVersion() throws Exception {
     final AbstractClient client = mock(BaseTestClient.class);

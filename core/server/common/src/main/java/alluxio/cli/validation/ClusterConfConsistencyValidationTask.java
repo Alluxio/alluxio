@@ -14,7 +14,7 @@ package alluxio.cli.validation;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.grpc.Scope;
-import alluxio.util.grpc.GrpcUtils;
+import alluxio.grpc.GrpcUtils;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;

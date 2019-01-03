@@ -18,6 +18,7 @@ import alluxio.grpc.TtlAction;
 import alluxio.grpc.WritePType;
 import alluxio.security.authorization.AclEntry;
 import alluxio.security.authorization.Mode;
+import alluxio.util.SecurityUtils;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
@@ -70,12 +71,15 @@ public abstract class CreatePathContext<T extends GeneratedMessageV3.Builder<?>,
     mMetadataLoad = false;
     mGroup = "";
     mOwner = "";
+    if (SecurityUtils.isAuthenticationEnabled()) {
+      mOwner = SecurityUtils.getOwnerFromGrpcClient();
+      mGroup = SecurityUtils.getGroupFromGrpcClient();
+    }
     // Initialize mPersisted based on proto write type.
     WritePType writeType = WritePType.WRITE_NONE;
     if (optionsBuilder instanceof CreateFilePOptions.Builder) {
       writeType = ((CreateFilePOptions.Builder) optionsBuilder).getWriteType();
-    }
-    else if (optionsBuilder instanceof CreateDirectoryPOptions.Builder) {
+    } else if (optionsBuilder instanceof CreateDirectoryPOptions.Builder) {
       writeType = ((CreateDirectoryPOptions.Builder) optionsBuilder).getWriteType();
     }
     mPersisted = WriteType.fromProto(writeType).isThrough();

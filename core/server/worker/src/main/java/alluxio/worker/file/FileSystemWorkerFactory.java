@@ -43,7 +43,6 @@ public final class FileSystemWorkerFactory implements WorkerFactory {
     LOG.info("Creating {} ", FileSystemWorker.class.getName());
     BlockWorker blockWorker = registry.get(BlockWorker.class);
     FileSystemWorker fileSystemWorker = new DefaultFileSystemWorker(blockWorker, ufsManager);
-    // TODO(ggezer) not serving anymore
     registry.add(FileSystemWorker.class, fileSystemWorker);
     return fileSystemWorker;
   }

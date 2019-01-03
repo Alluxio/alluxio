@@ -6,12 +6,18 @@ package alluxio.proto.journal;
 public final class Lineage {
   private Lineage() {}
   public static void registerAllExtensions(
-      com.google.protobuf.ExtensionRegistry registry) {
+      com.google.protobuf.ExtensionRegistryLite registry) {
   }
-  public interface DeleteLineageEntryOrBuilder
-      extends com.google.protobuf.MessageOrBuilder {
 
-    // optional int64 lineage_id = 1;
+  public static void registerAllExtensions(
+      com.google.protobuf.ExtensionRegistry registry) {
+    registerAllExtensions(
+        (com.google.protobuf.ExtensionRegistryLite) registry);
+  }
+  public interface DeleteLineageEntryOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:alluxio.proto.journal.DeleteLineageEntry)
+      com.google.protobuf.MessageOrBuilder {
+
     /**
      * <code>optional int64 lineage_id = 1;</code>
      */
@@ -21,7 +27,6 @@ public final class Lineage {
      */
     long getLineageId();
 
-    // optional bool cascade = 2;
     /**
      * <code>optional bool cascade = 2;</code>
      */
@@ -32,42 +37,39 @@ public final class Lineage {
     boolean getCascade();
   }
   /**
-   * Protobuf type {@code alluxio.proto.journal.DeleteLineageEntry}
-   *
    * <pre>
    * next available id: 3
    * </pre>
+   *
+   * Protobuf type {@code alluxio.proto.journal.DeleteLineageEntry}
    */
-  public static final class DeleteLineageEntry extends
-      com.google.protobuf.GeneratedMessage
-      implements DeleteLineageEntryOrBuilder {
+  public  static final class DeleteLineageEntry extends
+      com.google.protobuf.GeneratedMessageV3 implements
+      // @@protoc_insertion_point(message_implements:alluxio.proto.journal.DeleteLineageEntry)
+      DeleteLineageEntryOrBuilder {
+  private static final long serialVersionUID = 0L;
     // Use DeleteLineageEntry.newBuilder() to construct.
-    private DeleteLineageEntry(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+    private DeleteLineageEntry(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
       super(builder);
-      this.unknownFields = builder.getUnknownFields();
     }
-    private DeleteLineageEntry(boolean noInit) { this.unknownFields = com.google.protobuf.UnknownFieldSet.getDefaultInstance(); }
-
-    private static final DeleteLineageEntry defaultInstance;
-    public static DeleteLineageEntry getDefaultInstance() {
-      return defaultInstance;
+    private DeleteLineageEntry() {
+      lineageId_ = 0L;
+      cascade_ = false;
     }
 
-    public DeleteLineageEntry getDefaultInstanceForType() {
-      return defaultInstance;
-    }
-
-    private final com.google.protobuf.UnknownFieldSet unknownFields;
     @java.lang.Override
     public final com.google.protobuf.UnknownFieldSet
-        getUnknownFields() {
+    getUnknownFields() {
       return this.unknownFields;
     }
     private DeleteLineageEntry(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
-      initFields();
+      this();
+      if (extensionRegistry == null) {
+        throw new java.lang.NullPointerException();
+      }
       int mutable_bitField0_ = 0;
       com.google.protobuf.UnknownFieldSet.Builder unknownFields =
           com.google.protobuf.UnknownFieldSet.newBuilder();
@@ -80,8 +82,8 @@ public final class Lineage {
               done = true;
               break;
             default: {
-              if (!parseUnknownField(input, unknownFields,
-                                     extensionRegistry, tag)) {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
                 done = true;
               }
               break;
@@ -102,7 +104,7 @@ public final class Lineage {
         throw e.setUnfinishedMessage(this);
       } catch (java.io.IOException e) {
         throw new com.google.protobuf.InvalidProtocolBufferException(
-            e.getMessage()).setUnfinishedMessage(this);
+            e).setUnfinishedMessage(this);
       } finally {
         this.unknownFields = unknownFields.build();
         makeExtensionsImmutable();
@@ -113,30 +115,14 @@ public final class Lineage {
       return alluxio.proto.journal.Lineage.internal_static_alluxio_proto_journal_DeleteLineageEntry_descriptor;
     }
 
-    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+    protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return alluxio.proto.journal.Lineage.internal_static_alluxio_proto_journal_DeleteLineageEntry_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
               alluxio.proto.journal.Lineage.DeleteLineageEntry.class, alluxio.proto.journal.Lineage.DeleteLineageEntry.Builder.class);
     }
 
-    public static com.google.protobuf.Parser<DeleteLineageEntry> PARSER =
-        new com.google.protobuf.AbstractParser<DeleteLineageEntry>() {
-      public DeleteLineageEntry parsePartialFrom(
-          com.google.protobuf.CodedInputStream input,
-          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-          throws com.google.protobuf.InvalidProtocolBufferException {
-        return new DeleteLineageEntry(input, extensionRegistry);
-      }
-    };
-
-    @java.lang.Override
-    public com.google.protobuf.Parser<DeleteLineageEntry> getParserForType() {
-      return PARSER;
-    }
-
     private int bitField0_;
-    // optional int64 lineage_id = 1;
     public static final int LINEAGE_ID_FIELD_NUMBER = 1;
     private long lineageId_;
     /**
@@ -152,7 +138,6 @@ public final class Lineage {
       return lineageId_;
     }
 
-    // optional bool cascade = 2;
     public static final int CASCADE_FIELD_NUMBER = 2;
     private boolean cascade_;
     /**
@@ -168,14 +153,11 @@ public final class Lineage {
       return cascade_;
     }
 
-    private void initFields() {
-      lineageId_ = 0L;
-      cascade_ = false;
-    }
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
-      if (isInitialized != -1) return isInitialized == 1;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
 
       memoizedIsInitialized = 1;
       return true;
@@ -183,19 +165,17 @@ public final class Lineage {
 
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
-      getSerializedSize();
       if (((bitField0_ & 0x00000001) == 0x00000001)) {
         output.writeInt64(1, lineageId_);
       }
       if (((bitField0_ & 0x00000002) == 0x00000002)) {
         output.writeBool(2, cascade_);
       }
-      getUnknownFields().writeTo(output);
+      unknownFields.writeTo(output);
     }
 
-    private int memoizedSerializedSize = -1;
     public int getSerializedSize() {
-      int size = memoizedSerializedSize;
+      int size = memoizedSize;
       if (size != -1) return size;
 
       size = 0;
@@ -207,18 +187,69 @@ public final class Lineage {
         size += com.google.protobuf.CodedOutputStream
           .computeBoolSize(2, cascade_);
       }
-      size += getUnknownFields().getSerializedSize();
-      memoizedSerializedSize = size;
+      size += unknownFields.getSerializedSize();
+      memoizedSize = size;
       return size;
     }
 
-    private static final long serialVersionUID = 0L;
     @java.lang.Override
-    protected java.lang.Object writeReplace()
-        throws java.io.ObjectStreamException {
-      return super.writeReplace();
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof alluxio.proto.journal.Lineage.DeleteLineageEntry)) {
+        return super.equals(obj);
+      }
+      alluxio.proto.journal.Lineage.DeleteLineageEntry other = (alluxio.proto.journal.Lineage.DeleteLineageEntry) obj;
+
+      boolean result = true;
+      result = result && (hasLineageId() == other.hasLineageId());
+      if (hasLineageId()) {
+        result = result && (getLineageId()
+            == other.getLineageId());
+      }
+      result = result && (hasCascade() == other.hasCascade());
+      if (hasCascade()) {
+        result = result && (getCascade()
+            == other.getCascade());
+      }
+      result = result && unknownFields.equals(other.unknownFields);
+      return result;
     }
 
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      if (hasLineageId()) {
+        hash = (37 * hash) + LINEAGE_ID_FIELD_NUMBER;
+        hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+            getLineageId());
+      }
+      if (hasCascade()) {
+        hash = (37 * hash) + CASCADE_FIELD_NUMBER;
+        hash = (53 * hash) + com.google.protobuf.Internal.hashBoolean(
+            getCascade());
+      }
+      hash = (29 * hash) + unknownFields.hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static alluxio.proto.journal.Lineage.DeleteLineageEntry parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static alluxio.proto.journal.Lineage.DeleteLineageEntry parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
     public static alluxio.proto.journal.Lineage.DeleteLineageEntry parseFrom(
         com.google.protobuf.ByteString data)
         throws com.google.protobuf.InvalidProtocolBufferException {
@@ -242,65 +273,77 @@ public final class Lineage {
     }
     public static alluxio.proto.journal.Lineage.DeleteLineageEntry parseFrom(java.io.InputStream input)
         throws java.io.IOException {
-      return PARSER.parseFrom(input);
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
     }
     public static alluxio.proto.journal.Lineage.DeleteLineageEntry parseFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
-      return PARSER.parseFrom(input, extensionRegistry);
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
     }
     public static alluxio.proto.journal.Lineage.DeleteLineageEntry parseDelimitedFrom(java.io.InputStream input)
         throws java.io.IOException {
-      return PARSER.parseDelimitedFrom(input);
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input);
     }
     public static alluxio.proto.journal.Lineage.DeleteLineageEntry parseDelimitedFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
-      return PARSER.parseDelimitedFrom(input, extensionRegistry);
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
     }
     public static alluxio.proto.journal.Lineage.DeleteLineageEntry parseFrom(
         com.google.protobuf.CodedInputStream input)
         throws java.io.IOException {
-      return PARSER.parseFrom(input);
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
     }
     public static alluxio.proto.journal.Lineage.DeleteLineageEntry parseFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
-      return PARSER.parseFrom(input, extensionRegistry);
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
-    public static Builder newBuilder() { return Builder.create(); }
     public Builder newBuilderForType() { return newBuilder(); }
-    public static Builder newBuilder(alluxio.proto.journal.Lineage.DeleteLineageEntry prototype) {
-      return newBuilder().mergeFrom(prototype);
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
     }
-    public Builder toBuilder() { return newBuilder(this); }
+    public static Builder newBuilder(alluxio.proto.journal.Lineage.DeleteLineageEntry prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
 
     @java.lang.Override
     protected Builder newBuilderForType(
-        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
       Builder builder = new Builder(parent);
       return builder;
     }
     /**
-     * Protobuf type {@code alluxio.proto.journal.DeleteLineageEntry}
-     *
      * <pre>
      * next available id: 3
      * </pre>
+     *
+     * Protobuf type {@code alluxio.proto.journal.DeleteLineageEntry}
      */
     public static final class Builder extends
-        com.google.protobuf.GeneratedMessage.Builder<Builder>
-       implements alluxio.proto.journal.Lineage.DeleteLineageEntryOrBuilder {
+        com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:alluxio.proto.journal.DeleteLineageEntry)
+        alluxio.proto.journal.Lineage.DeleteLineageEntryOrBuilder {
       public static final com.google.protobuf.Descriptors.Descriptor
           getDescriptor() {
         return alluxio.proto.journal.Lineage.internal_static_alluxio_proto_journal_DeleteLineageEntry_descriptor;
       }
 
-      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return alluxio.proto.journal.Lineage.internal_static_alluxio_proto_journal_DeleteLineageEntry_fieldAccessorTable
             .ensureFieldAccessorsInitialized(
@@ -313,18 +356,15 @@ public final class Lineage {
       }
 
       private Builder(
-          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+          com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
         super(parent);
         maybeForceBuilderInitialization();
       }
       private void maybeForceBuilderInitialization() {
-        if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
+        if (com.google.protobuf.GeneratedMessageV3
+                .alwaysUseFieldBuilders) {
         }
       }
-      private static Builder create() {
-        return new Builder();
-      }
-
       public Builder clear() {
         super.clear();
         lineageId_ = 0L;
@@ -332,10 +372,6 @@ public final class Lineage {
         cascade_ = false;
         bitField0_ = (bitField0_ & ~0x00000002);
         return this;
-      }
-
-      public Builder clone() {
-        return create().mergeFrom(buildPartial());
       }
 
       public com.google.protobuf.Descriptors.Descriptor
@@ -372,6 +408,32 @@ public final class Lineage {
         return result;
       }
 
+      public Builder clone() {
+        return (Builder) super.clone();
+      }
+      public Builder setField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.setField(field, value);
+      }
+      public Builder clearField(
+          com.google.protobuf.Descriptors.FieldDescriptor field) {
+        return (Builder) super.clearField(field);
+      }
+      public Builder clearOneof(
+          com.google.protobuf.Descriptors.OneofDescriptor oneof) {
+        return (Builder) super.clearOneof(oneof);
+      }
+      public Builder setRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          int index, java.lang.Object value) {
+        return (Builder) super.setRepeatedField(field, index, value);
+      }
+      public Builder addRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.addRepeatedField(field, value);
+      }
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof alluxio.proto.journal.Lineage.DeleteLineageEntry) {
           return mergeFrom((alluxio.proto.journal.Lineage.DeleteLineageEntry)other);
@@ -389,7 +451,8 @@ public final class Lineage {
         if (other.hasCascade()) {
           setCascade(other.getCascade());
         }
-        this.mergeUnknownFields(other.getUnknownFields());
+        this.mergeUnknownFields(other.unknownFields);
+        onChanged();
         return this;
       }
 
@@ -406,7 +469,7 @@ public final class Lineage {
           parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
         } catch (com.google.protobuf.InvalidProtocolBufferException e) {
           parsedMessage = (alluxio.proto.journal.Lineage.DeleteLineageEntry) e.getUnfinishedMessage();
-          throw e;
+          throw e.unwrapIOException();
         } finally {
           if (parsedMessage != null) {
             mergeFrom(parsedMessage);
@@ -416,7 +479,6 @@ public final class Lineage {
       }
       private int bitField0_;
 
-      // optional int64 lineage_id = 1;
       private long lineageId_ ;
       /**
        * <code>optional int64 lineage_id = 1;</code>
@@ -449,7 +511,6 @@ public final class Lineage {
         return this;
       }
 
-      // optional bool cascade = 2;
       private boolean cascade_ ;
       /**
        * <code>optional bool cascade = 2;</code>
@@ -481,22 +542,59 @@ public final class Lineage {
         onChanged();
         return this;
       }
+      public final Builder setUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.setUnknownFields(unknownFields);
+      }
+
+      public final Builder mergeUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.mergeUnknownFields(unknownFields);
+      }
+
 
       // @@protoc_insertion_point(builder_scope:alluxio.proto.journal.DeleteLineageEntry)
     }
 
+    // @@protoc_insertion_point(class_scope:alluxio.proto.journal.DeleteLineageEntry)
+    private static final alluxio.proto.journal.Lineage.DeleteLineageEntry DEFAULT_INSTANCE;
     static {
-      defaultInstance = new DeleteLineageEntry(true);
-      defaultInstance.initFields();
+      DEFAULT_INSTANCE = new alluxio.proto.journal.Lineage.DeleteLineageEntry();
     }
 
-    // @@protoc_insertion_point(class_scope:alluxio.proto.journal.DeleteLineageEntry)
+    public static alluxio.proto.journal.Lineage.DeleteLineageEntry getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    @java.lang.Deprecated public static final com.google.protobuf.Parser<DeleteLineageEntry>
+        PARSER = new com.google.protobuf.AbstractParser<DeleteLineageEntry>() {
+      public DeleteLineageEntry parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return new DeleteLineageEntry(input, extensionRegistry);
+      }
+    };
+
+    public static com.google.protobuf.Parser<DeleteLineageEntry> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<DeleteLineageEntry> getParserForType() {
+      return PARSER;
+    }
+
+    public alluxio.proto.journal.Lineage.DeleteLineageEntry getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
   }
 
-  public interface LineageEntryOrBuilder
-      extends com.google.protobuf.MessageOrBuilder {
+  public interface LineageEntryOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:alluxio.proto.journal.LineageEntry)
+      com.google.protobuf.MessageOrBuilder {
 
-    // optional int64 id = 1;
     /**
      * <code>optional int64 id = 1;</code>
      */
@@ -506,7 +604,6 @@ public final class Lineage {
      */
     long getId();
 
-    // repeated int64 input_files = 2;
     /**
      * <code>repeated int64 input_files = 2;</code>
      */
@@ -520,7 +617,6 @@ public final class Lineage {
      */
     long getInputFiles(int index);
 
-    // repeated int64 output_file_ids = 3;
     /**
      * <code>repeated int64 output_file_ids = 3;</code>
      */
@@ -534,7 +630,6 @@ public final class Lineage {
      */
     long getOutputFileIds(int index);
 
-    // optional string job_command = 4;
     /**
      * <code>optional string job_command = 4;</code>
      */
@@ -549,7 +644,6 @@ public final class Lineage {
     com.google.protobuf.ByteString
         getJobCommandBytes();
 
-    // optional string job_output_path = 5;
     /**
      * <code>optional string job_output_path = 5;</code>
      */
@@ -564,7 +658,6 @@ public final class Lineage {
     com.google.protobuf.ByteString
         getJobOutputPathBytes();
 
-    // optional int64 creation_time_ms = 6;
     /**
      * <code>optional int64 creation_time_ms = 6;</code>
      */
@@ -575,42 +668,43 @@ public final class Lineage {
     long getCreationTimeMs();
   }
   /**
-   * Protobuf type {@code alluxio.proto.journal.LineageEntry}
-   *
    * <pre>
    * next available id: 7
    * </pre>
+   *
+   * Protobuf type {@code alluxio.proto.journal.LineageEntry}
    */
-  public static final class LineageEntry extends
-      com.google.protobuf.GeneratedMessage
-      implements LineageEntryOrBuilder {
+  public  static final class LineageEntry extends
+      com.google.protobuf.GeneratedMessageV3 implements
+      // @@protoc_insertion_point(message_implements:alluxio.proto.journal.LineageEntry)
+      LineageEntryOrBuilder {
+  private static final long serialVersionUID = 0L;
     // Use LineageEntry.newBuilder() to construct.
-    private LineageEntry(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+    private LineageEntry(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
       super(builder);
-      this.unknownFields = builder.getUnknownFields();
     }
-    private LineageEntry(boolean noInit) { this.unknownFields = com.google.protobuf.UnknownFieldSet.getDefaultInstance(); }
-
-    private static final LineageEntry defaultInstance;
-    public static LineageEntry getDefaultInstance() {
-      return defaultInstance;
-    }
-
-    public LineageEntry getDefaultInstanceForType() {
-      return defaultInstance;
+    private LineageEntry() {
+      id_ = 0L;
+      inputFiles_ = java.util.Collections.emptyList();
+      outputFileIds_ = java.util.Collections.emptyList();
+      jobCommand_ = "";
+      jobOutputPath_ = "";
+      creationTimeMs_ = 0L;
     }
 
-    private final com.google.protobuf.UnknownFieldSet unknownFields;
     @java.lang.Override
     public final com.google.protobuf.UnknownFieldSet
-        getUnknownFields() {
+    getUnknownFields() {
       return this.unknownFields;
     }
     private LineageEntry(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
-      initFields();
+      this();
+      if (extensionRegistry == null) {
+        throw new java.lang.NullPointerException();
+      }
       int mutable_bitField0_ = 0;
       com.google.protobuf.UnknownFieldSet.Builder unknownFields =
           com.google.protobuf.UnknownFieldSet.newBuilder();
@@ -623,8 +717,8 @@ public final class Lineage {
               done = true;
               break;
             default: {
-              if (!parseUnknownField(input, unknownFields,
-                                     extensionRegistry, tag)) {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
                 done = true;
               }
               break;
@@ -677,13 +771,15 @@ public final class Lineage {
               break;
             }
             case 34: {
+              com.google.protobuf.ByteString bs = input.readBytes();
               bitField0_ |= 0x00000002;
-              jobCommand_ = input.readBytes();
+              jobCommand_ = bs;
               break;
             }
             case 42: {
+              com.google.protobuf.ByteString bs = input.readBytes();
               bitField0_ |= 0x00000004;
-              jobOutputPath_ = input.readBytes();
+              jobOutputPath_ = bs;
               break;
             }
             case 48: {
@@ -697,7 +793,7 @@ public final class Lineage {
         throw e.setUnfinishedMessage(this);
       } catch (java.io.IOException e) {
         throw new com.google.protobuf.InvalidProtocolBufferException(
-            e.getMessage()).setUnfinishedMessage(this);
+            e).setUnfinishedMessage(this);
       } finally {
         if (((mutable_bitField0_ & 0x00000002) == 0x00000002)) {
           inputFiles_ = java.util.Collections.unmodifiableList(inputFiles_);
@@ -714,30 +810,14 @@ public final class Lineage {
       return alluxio.proto.journal.Lineage.internal_static_alluxio_proto_journal_LineageEntry_descriptor;
     }
 
-    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+    protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return alluxio.proto.journal.Lineage.internal_static_alluxio_proto_journal_LineageEntry_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
               alluxio.proto.journal.Lineage.LineageEntry.class, alluxio.proto.journal.Lineage.LineageEntry.Builder.class);
     }
 
-    public static com.google.protobuf.Parser<LineageEntry> PARSER =
-        new com.google.protobuf.AbstractParser<LineageEntry>() {
-      public LineageEntry parsePartialFrom(
-          com.google.protobuf.CodedInputStream input,
-          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-          throws com.google.protobuf.InvalidProtocolBufferException {
-        return new LineageEntry(input, extensionRegistry);
-      }
-    };
-
-    @java.lang.Override
-    public com.google.protobuf.Parser<LineageEntry> getParserForType() {
-      return PARSER;
-    }
-
     private int bitField0_;
-    // optional int64 id = 1;
     public static final int ID_FIELD_NUMBER = 1;
     private long id_;
     /**
@@ -753,7 +833,6 @@ public final class Lineage {
       return id_;
     }
 
-    // repeated int64 input_files = 2;
     public static final int INPUT_FILES_FIELD_NUMBER = 2;
     private java.util.List<java.lang.Long> inputFiles_;
     /**
@@ -776,7 +855,6 @@ public final class Lineage {
       return inputFiles_.get(index);
     }
 
-    // repeated int64 output_file_ids = 3;
     public static final int OUTPUT_FILE_IDS_FIELD_NUMBER = 3;
     private java.util.List<java.lang.Long> outputFileIds_;
     /**
@@ -799,9 +877,8 @@ public final class Lineage {
       return outputFileIds_.get(index);
     }
 
-    // optional string job_command = 4;
     public static final int JOB_COMMAND_FIELD_NUMBER = 4;
-    private java.lang.Object jobCommand_;
+    private volatile java.lang.Object jobCommand_;
     /**
      * <code>optional string job_command = 4;</code>
      */
@@ -842,9 +919,8 @@ public final class Lineage {
       }
     }
 
-    // optional string job_output_path = 5;
     public static final int JOB_OUTPUT_PATH_FIELD_NUMBER = 5;
-    private java.lang.Object jobOutputPath_;
+    private volatile java.lang.Object jobOutputPath_;
     /**
      * <code>optional string job_output_path = 5;</code>
      */
@@ -885,7 +961,6 @@ public final class Lineage {
       }
     }
 
-    // optional int64 creation_time_ms = 6;
     public static final int CREATION_TIME_MS_FIELD_NUMBER = 6;
     private long creationTimeMs_;
     /**
@@ -901,18 +976,11 @@ public final class Lineage {
       return creationTimeMs_;
     }
 
-    private void initFields() {
-      id_ = 0L;
-      inputFiles_ = java.util.Collections.emptyList();
-      outputFileIds_ = java.util.Collections.emptyList();
-      jobCommand_ = "";
-      jobOutputPath_ = "";
-      creationTimeMs_ = 0L;
-    }
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
-      if (isInitialized != -1) return isInitialized == 1;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
 
       memoizedIsInitialized = 1;
       return true;
@@ -920,7 +988,6 @@ public final class Lineage {
 
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
-      getSerializedSize();
       if (((bitField0_ & 0x00000001) == 0x00000001)) {
         output.writeInt64(1, id_);
       }
@@ -931,20 +998,19 @@ public final class Lineage {
         output.writeInt64(3, outputFileIds_.get(i));
       }
       if (((bitField0_ & 0x00000002) == 0x00000002)) {
-        output.writeBytes(4, getJobCommandBytes());
+        com.google.protobuf.GeneratedMessageV3.writeString(output, 4, jobCommand_);
       }
       if (((bitField0_ & 0x00000004) == 0x00000004)) {
-        output.writeBytes(5, getJobOutputPathBytes());
+        com.google.protobuf.GeneratedMessageV3.writeString(output, 5, jobOutputPath_);
       }
       if (((bitField0_ & 0x00000008) == 0x00000008)) {
         output.writeInt64(6, creationTimeMs_);
       }
-      getUnknownFields().writeTo(output);
+      unknownFields.writeTo(output);
     }
 
-    private int memoizedSerializedSize = -1;
     public int getSerializedSize() {
-      int size = memoizedSerializedSize;
+      int size = memoizedSize;
       if (size != -1) return size;
 
       size = 0;
@@ -971,29 +1037,108 @@ public final class Lineage {
         size += 1 * getOutputFileIdsList().size();
       }
       if (((bitField0_ & 0x00000002) == 0x00000002)) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeBytesSize(4, getJobCommandBytes());
+        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(4, jobCommand_);
       }
       if (((bitField0_ & 0x00000004) == 0x00000004)) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeBytesSize(5, getJobOutputPathBytes());
+        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(5, jobOutputPath_);
       }
       if (((bitField0_ & 0x00000008) == 0x00000008)) {
         size += com.google.protobuf.CodedOutputStream
           .computeInt64Size(6, creationTimeMs_);
       }
-      size += getUnknownFields().getSerializedSize();
-      memoizedSerializedSize = size;
+      size += unknownFields.getSerializedSize();
+      memoizedSize = size;
       return size;
     }
 
-    private static final long serialVersionUID = 0L;
     @java.lang.Override
-    protected java.lang.Object writeReplace()
-        throws java.io.ObjectStreamException {
-      return super.writeReplace();
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof alluxio.proto.journal.Lineage.LineageEntry)) {
+        return super.equals(obj);
+      }
+      alluxio.proto.journal.Lineage.LineageEntry other = (alluxio.proto.journal.Lineage.LineageEntry) obj;
+
+      boolean result = true;
+      result = result && (hasId() == other.hasId());
+      if (hasId()) {
+        result = result && (getId()
+            == other.getId());
+      }
+      result = result && getInputFilesList()
+          .equals(other.getInputFilesList());
+      result = result && getOutputFileIdsList()
+          .equals(other.getOutputFileIdsList());
+      result = result && (hasJobCommand() == other.hasJobCommand());
+      if (hasJobCommand()) {
+        result = result && getJobCommand()
+            .equals(other.getJobCommand());
+      }
+      result = result && (hasJobOutputPath() == other.hasJobOutputPath());
+      if (hasJobOutputPath()) {
+        result = result && getJobOutputPath()
+            .equals(other.getJobOutputPath());
+      }
+      result = result && (hasCreationTimeMs() == other.hasCreationTimeMs());
+      if (hasCreationTimeMs()) {
+        result = result && (getCreationTimeMs()
+            == other.getCreationTimeMs());
+      }
+      result = result && unknownFields.equals(other.unknownFields);
+      return result;
     }
 
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      if (hasId()) {
+        hash = (37 * hash) + ID_FIELD_NUMBER;
+        hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+            getId());
+      }
+      if (getInputFilesCount() > 0) {
+        hash = (37 * hash) + INPUT_FILES_FIELD_NUMBER;
+        hash = (53 * hash) + getInputFilesList().hashCode();
+      }
+      if (getOutputFileIdsCount() > 0) {
+        hash = (37 * hash) + OUTPUT_FILE_IDS_FIELD_NUMBER;
+        hash = (53 * hash) + getOutputFileIdsList().hashCode();
+      }
+      if (hasJobCommand()) {
+        hash = (37 * hash) + JOB_COMMAND_FIELD_NUMBER;
+        hash = (53 * hash) + getJobCommand().hashCode();
+      }
+      if (hasJobOutputPath()) {
+        hash = (37 * hash) + JOB_OUTPUT_PATH_FIELD_NUMBER;
+        hash = (53 * hash) + getJobOutputPath().hashCode();
+      }
+      if (hasCreationTimeMs()) {
+        hash = (37 * hash) + CREATION_TIME_MS_FIELD_NUMBER;
+        hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+            getCreationTimeMs());
+      }
+      hash = (29 * hash) + unknownFields.hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static alluxio.proto.journal.Lineage.LineageEntry parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static alluxio.proto.journal.Lineage.LineageEntry parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
     public static alluxio.proto.journal.Lineage.LineageEntry parseFrom(
         com.google.protobuf.ByteString data)
         throws com.google.protobuf.InvalidProtocolBufferException {
@@ -1017,65 +1162,77 @@ public final class Lineage {
     }
     public static alluxio.proto.journal.Lineage.LineageEntry parseFrom(java.io.InputStream input)
         throws java.io.IOException {
-      return PARSER.parseFrom(input);
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
     }
     public static alluxio.proto.journal.Lineage.LineageEntry parseFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
-      return PARSER.parseFrom(input, extensionRegistry);
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
     }
     public static alluxio.proto.journal.Lineage.LineageEntry parseDelimitedFrom(java.io.InputStream input)
         throws java.io.IOException {
-      return PARSER.parseDelimitedFrom(input);
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input);
     }
     public static alluxio.proto.journal.Lineage.LineageEntry parseDelimitedFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
-      return PARSER.parseDelimitedFrom(input, extensionRegistry);
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
     }
     public static alluxio.proto.journal.Lineage.LineageEntry parseFrom(
         com.google.protobuf.CodedInputStream input)
         throws java.io.IOException {
-      return PARSER.parseFrom(input);
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
     }
     public static alluxio.proto.journal.Lineage.LineageEntry parseFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
-      return PARSER.parseFrom(input, extensionRegistry);
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
-    public static Builder newBuilder() { return Builder.create(); }
     public Builder newBuilderForType() { return newBuilder(); }
-    public static Builder newBuilder(alluxio.proto.journal.Lineage.LineageEntry prototype) {
-      return newBuilder().mergeFrom(prototype);
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
     }
-    public Builder toBuilder() { return newBuilder(this); }
+    public static Builder newBuilder(alluxio.proto.journal.Lineage.LineageEntry prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
 
     @java.lang.Override
     protected Builder newBuilderForType(
-        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
       Builder builder = new Builder(parent);
       return builder;
     }
     /**
-     * Protobuf type {@code alluxio.proto.journal.LineageEntry}
-     *
      * <pre>
      * next available id: 7
      * </pre>
+     *
+     * Protobuf type {@code alluxio.proto.journal.LineageEntry}
      */
     public static final class Builder extends
-        com.google.protobuf.GeneratedMessage.Builder<Builder>
-       implements alluxio.proto.journal.Lineage.LineageEntryOrBuilder {
+        com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:alluxio.proto.journal.LineageEntry)
+        alluxio.proto.journal.Lineage.LineageEntryOrBuilder {
       public static final com.google.protobuf.Descriptors.Descriptor
           getDescriptor() {
         return alluxio.proto.journal.Lineage.internal_static_alluxio_proto_journal_LineageEntry_descriptor;
       }
 
-      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return alluxio.proto.journal.Lineage.internal_static_alluxio_proto_journal_LineageEntry_fieldAccessorTable
             .ensureFieldAccessorsInitialized(
@@ -1088,18 +1245,15 @@ public final class Lineage {
       }
 
       private Builder(
-          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+          com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
         super(parent);
         maybeForceBuilderInitialization();
       }
       private void maybeForceBuilderInitialization() {
-        if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
+        if (com.google.protobuf.GeneratedMessageV3
+                .alwaysUseFieldBuilders) {
         }
       }
-      private static Builder create() {
-        return new Builder();
-      }
-
       public Builder clear() {
         super.clear();
         id_ = 0L;
@@ -1115,10 +1269,6 @@ public final class Lineage {
         creationTimeMs_ = 0L;
         bitField0_ = (bitField0_ & ~0x00000020);
         return this;
-      }
-
-      public Builder clone() {
-        return create().mergeFrom(buildPartial());
       }
 
       public com.google.protobuf.Descriptors.Descriptor
@@ -1173,6 +1323,32 @@ public final class Lineage {
         return result;
       }
 
+      public Builder clone() {
+        return (Builder) super.clone();
+      }
+      public Builder setField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.setField(field, value);
+      }
+      public Builder clearField(
+          com.google.protobuf.Descriptors.FieldDescriptor field) {
+        return (Builder) super.clearField(field);
+      }
+      public Builder clearOneof(
+          com.google.protobuf.Descriptors.OneofDescriptor oneof) {
+        return (Builder) super.clearOneof(oneof);
+      }
+      public Builder setRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          int index, java.lang.Object value) {
+        return (Builder) super.setRepeatedField(field, index, value);
+      }
+      public Builder addRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.addRepeatedField(field, value);
+      }
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof alluxio.proto.journal.Lineage.LineageEntry) {
           return mergeFrom((alluxio.proto.journal.Lineage.LineageEntry)other);
@@ -1220,7 +1396,8 @@ public final class Lineage {
         if (other.hasCreationTimeMs()) {
           setCreationTimeMs(other.getCreationTimeMs());
         }
-        this.mergeUnknownFields(other.getUnknownFields());
+        this.mergeUnknownFields(other.unknownFields);
+        onChanged();
         return this;
       }
 
@@ -1237,7 +1414,7 @@ public final class Lineage {
           parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
         } catch (com.google.protobuf.InvalidProtocolBufferException e) {
           parsedMessage = (alluxio.proto.journal.Lineage.LineageEntry) e.getUnfinishedMessage();
-          throw e;
+          throw e.unwrapIOException();
         } finally {
           if (parsedMessage != null) {
             mergeFrom(parsedMessage);
@@ -1247,7 +1424,6 @@ public final class Lineage {
       }
       private int bitField0_;
 
-      // optional int64 id = 1;
       private long id_ ;
       /**
        * <code>optional int64 id = 1;</code>
@@ -1280,7 +1456,6 @@ public final class Lineage {
         return this;
       }
 
-      // repeated int64 input_files = 2;
       private java.util.List<java.lang.Long> inputFiles_ = java.util.Collections.emptyList();
       private void ensureInputFilesIsMutable() {
         if (!((bitField0_ & 0x00000002) == 0x00000002)) {
@@ -1332,7 +1507,8 @@ public final class Lineage {
       public Builder addAllInputFiles(
           java.lang.Iterable<? extends java.lang.Long> values) {
         ensureInputFilesIsMutable();
-        super.addAll(values, inputFiles_);
+        com.google.protobuf.AbstractMessageLite.Builder.addAll(
+            values, inputFiles_);
         onChanged();
         return this;
       }
@@ -1346,7 +1522,6 @@ public final class Lineage {
         return this;
       }
 
-      // repeated int64 output_file_ids = 3;
       private java.util.List<java.lang.Long> outputFileIds_ = java.util.Collections.emptyList();
       private void ensureOutputFileIdsIsMutable() {
         if (!((bitField0_ & 0x00000004) == 0x00000004)) {
@@ -1398,7 +1573,8 @@ public final class Lineage {
       public Builder addAllOutputFileIds(
           java.lang.Iterable<? extends java.lang.Long> values) {
         ensureOutputFileIdsIsMutable();
-        super.addAll(values, outputFileIds_);
+        com.google.protobuf.AbstractMessageLite.Builder.addAll(
+            values, outputFileIds_);
         onChanged();
         return this;
       }
@@ -1412,7 +1588,6 @@ public final class Lineage {
         return this;
       }
 
-      // optional string job_command = 4;
       private java.lang.Object jobCommand_ = "";
       /**
        * <code>optional string job_command = 4;</code>
@@ -1426,9 +1601,12 @@ public final class Lineage {
       public java.lang.String getJobCommand() {
         java.lang.Object ref = jobCommand_;
         if (!(ref instanceof java.lang.String)) {
-          java.lang.String s = ((com.google.protobuf.ByteString) ref)
-              .toStringUtf8();
-          jobCommand_ = s;
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          if (bs.isValidUtf8()) {
+            jobCommand_ = s;
+          }
           return s;
         } else {
           return (java.lang.String) ref;
@@ -1486,7 +1664,6 @@ public final class Lineage {
         return this;
       }
 
-      // optional string job_output_path = 5;
       private java.lang.Object jobOutputPath_ = "";
       /**
        * <code>optional string job_output_path = 5;</code>
@@ -1500,9 +1677,12 @@ public final class Lineage {
       public java.lang.String getJobOutputPath() {
         java.lang.Object ref = jobOutputPath_;
         if (!(ref instanceof java.lang.String)) {
-          java.lang.String s = ((com.google.protobuf.ByteString) ref)
-              .toStringUtf8();
-          jobOutputPath_ = s;
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          if (bs.isValidUtf8()) {
+            jobOutputPath_ = s;
+          }
           return s;
         } else {
           return (java.lang.String) ref;
@@ -1560,7 +1740,6 @@ public final class Lineage {
         return this;
       }
 
-      // optional int64 creation_time_ms = 6;
       private long creationTimeMs_ ;
       /**
        * <code>optional int64 creation_time_ms = 6;</code>
@@ -1592,22 +1771,59 @@ public final class Lineage {
         onChanged();
         return this;
       }
+      public final Builder setUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.setUnknownFields(unknownFields);
+      }
+
+      public final Builder mergeUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.mergeUnknownFields(unknownFields);
+      }
+
 
       // @@protoc_insertion_point(builder_scope:alluxio.proto.journal.LineageEntry)
     }
 
+    // @@protoc_insertion_point(class_scope:alluxio.proto.journal.LineageEntry)
+    private static final alluxio.proto.journal.Lineage.LineageEntry DEFAULT_INSTANCE;
     static {
-      defaultInstance = new LineageEntry(true);
-      defaultInstance.initFields();
+      DEFAULT_INSTANCE = new alluxio.proto.journal.Lineage.LineageEntry();
     }
 
-    // @@protoc_insertion_point(class_scope:alluxio.proto.journal.LineageEntry)
+    public static alluxio.proto.journal.Lineage.LineageEntry getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    @java.lang.Deprecated public static final com.google.protobuf.Parser<LineageEntry>
+        PARSER = new com.google.protobuf.AbstractParser<LineageEntry>() {
+      public LineageEntry parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return new LineageEntry(input, extensionRegistry);
+      }
+    };
+
+    public static com.google.protobuf.Parser<LineageEntry> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<LineageEntry> getParserForType() {
+      return PARSER;
+    }
+
+    public alluxio.proto.journal.Lineage.LineageEntry getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
   }
 
-  public interface LineageIdGeneratorEntryOrBuilder
-      extends com.google.protobuf.MessageOrBuilder {
+  public interface LineageIdGeneratorEntryOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:alluxio.proto.journal.LineageIdGeneratorEntry)
+      com.google.protobuf.MessageOrBuilder {
 
-    // optional int64 sequence_number = 1;
     /**
      * <code>optional int64 sequence_number = 1;</code>
      */
@@ -1618,42 +1834,38 @@ public final class Lineage {
     long getSequenceNumber();
   }
   /**
-   * Protobuf type {@code alluxio.proto.journal.LineageIdGeneratorEntry}
-   *
    * <pre>
    * next available id: 2
    * </pre>
+   *
+   * Protobuf type {@code alluxio.proto.journal.LineageIdGeneratorEntry}
    */
-  public static final class LineageIdGeneratorEntry extends
-      com.google.protobuf.GeneratedMessage
-      implements LineageIdGeneratorEntryOrBuilder {
+  public  static final class LineageIdGeneratorEntry extends
+      com.google.protobuf.GeneratedMessageV3 implements
+      // @@protoc_insertion_point(message_implements:alluxio.proto.journal.LineageIdGeneratorEntry)
+      LineageIdGeneratorEntryOrBuilder {
+  private static final long serialVersionUID = 0L;
     // Use LineageIdGeneratorEntry.newBuilder() to construct.
-    private LineageIdGeneratorEntry(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+    private LineageIdGeneratorEntry(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
       super(builder);
-      this.unknownFields = builder.getUnknownFields();
     }
-    private LineageIdGeneratorEntry(boolean noInit) { this.unknownFields = com.google.protobuf.UnknownFieldSet.getDefaultInstance(); }
-
-    private static final LineageIdGeneratorEntry defaultInstance;
-    public static LineageIdGeneratorEntry getDefaultInstance() {
-      return defaultInstance;
+    private LineageIdGeneratorEntry() {
+      sequenceNumber_ = 0L;
     }
 
-    public LineageIdGeneratorEntry getDefaultInstanceForType() {
-      return defaultInstance;
-    }
-
-    private final com.google.protobuf.UnknownFieldSet unknownFields;
     @java.lang.Override
     public final com.google.protobuf.UnknownFieldSet
-        getUnknownFields() {
+    getUnknownFields() {
       return this.unknownFields;
     }
     private LineageIdGeneratorEntry(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
-      initFields();
+      this();
+      if (extensionRegistry == null) {
+        throw new java.lang.NullPointerException();
+      }
       int mutable_bitField0_ = 0;
       com.google.protobuf.UnknownFieldSet.Builder unknownFields =
           com.google.protobuf.UnknownFieldSet.newBuilder();
@@ -1666,8 +1878,8 @@ public final class Lineage {
               done = true;
               break;
             default: {
-              if (!parseUnknownField(input, unknownFields,
-                                     extensionRegistry, tag)) {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
                 done = true;
               }
               break;
@@ -1683,7 +1895,7 @@ public final class Lineage {
         throw e.setUnfinishedMessage(this);
       } catch (java.io.IOException e) {
         throw new com.google.protobuf.InvalidProtocolBufferException(
-            e.getMessage()).setUnfinishedMessage(this);
+            e).setUnfinishedMessage(this);
       } finally {
         this.unknownFields = unknownFields.build();
         makeExtensionsImmutable();
@@ -1694,30 +1906,14 @@ public final class Lineage {
       return alluxio.proto.journal.Lineage.internal_static_alluxio_proto_journal_LineageIdGeneratorEntry_descriptor;
     }
 
-    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+    protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return alluxio.proto.journal.Lineage.internal_static_alluxio_proto_journal_LineageIdGeneratorEntry_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
               alluxio.proto.journal.Lineage.LineageIdGeneratorEntry.class, alluxio.proto.journal.Lineage.LineageIdGeneratorEntry.Builder.class);
     }
 
-    public static com.google.protobuf.Parser<LineageIdGeneratorEntry> PARSER =
-        new com.google.protobuf.AbstractParser<LineageIdGeneratorEntry>() {
-      public LineageIdGeneratorEntry parsePartialFrom(
-          com.google.protobuf.CodedInputStream input,
-          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-          throws com.google.protobuf.InvalidProtocolBufferException {
-        return new LineageIdGeneratorEntry(input, extensionRegistry);
-      }
-    };
-
-    @java.lang.Override
-    public com.google.protobuf.Parser<LineageIdGeneratorEntry> getParserForType() {
-      return PARSER;
-    }
-
     private int bitField0_;
-    // optional int64 sequence_number = 1;
     public static final int SEQUENCE_NUMBER_FIELD_NUMBER = 1;
     private long sequenceNumber_;
     /**
@@ -1733,13 +1929,11 @@ public final class Lineage {
       return sequenceNumber_;
     }
 
-    private void initFields() {
-      sequenceNumber_ = 0L;
-    }
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
-      if (isInitialized != -1) return isInitialized == 1;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
 
       memoizedIsInitialized = 1;
       return true;
@@ -1747,16 +1941,14 @@ public final class Lineage {
 
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
-      getSerializedSize();
       if (((bitField0_ & 0x00000001) == 0x00000001)) {
         output.writeInt64(1, sequenceNumber_);
       }
-      getUnknownFields().writeTo(output);
+      unknownFields.writeTo(output);
     }
 
-    private int memoizedSerializedSize = -1;
     public int getSerializedSize() {
-      int size = memoizedSerializedSize;
+      int size = memoizedSize;
       if (size != -1) return size;
 
       size = 0;
@@ -1764,18 +1956,59 @@ public final class Lineage {
         size += com.google.protobuf.CodedOutputStream
           .computeInt64Size(1, sequenceNumber_);
       }
-      size += getUnknownFields().getSerializedSize();
-      memoizedSerializedSize = size;
+      size += unknownFields.getSerializedSize();
+      memoizedSize = size;
       return size;
     }
 
-    private static final long serialVersionUID = 0L;
     @java.lang.Override
-    protected java.lang.Object writeReplace()
-        throws java.io.ObjectStreamException {
-      return super.writeReplace();
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof alluxio.proto.journal.Lineage.LineageIdGeneratorEntry)) {
+        return super.equals(obj);
+      }
+      alluxio.proto.journal.Lineage.LineageIdGeneratorEntry other = (alluxio.proto.journal.Lineage.LineageIdGeneratorEntry) obj;
+
+      boolean result = true;
+      result = result && (hasSequenceNumber() == other.hasSequenceNumber());
+      if (hasSequenceNumber()) {
+        result = result && (getSequenceNumber()
+            == other.getSequenceNumber());
+      }
+      result = result && unknownFields.equals(other.unknownFields);
+      return result;
     }
 
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      if (hasSequenceNumber()) {
+        hash = (37 * hash) + SEQUENCE_NUMBER_FIELD_NUMBER;
+        hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+            getSequenceNumber());
+      }
+      hash = (29 * hash) + unknownFields.hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static alluxio.proto.journal.Lineage.LineageIdGeneratorEntry parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static alluxio.proto.journal.Lineage.LineageIdGeneratorEntry parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
     public static alluxio.proto.journal.Lineage.LineageIdGeneratorEntry parseFrom(
         com.google.protobuf.ByteString data)
         throws com.google.protobuf.InvalidProtocolBufferException {
@@ -1799,65 +2032,77 @@ public final class Lineage {
     }
     public static alluxio.proto.journal.Lineage.LineageIdGeneratorEntry parseFrom(java.io.InputStream input)
         throws java.io.IOException {
-      return PARSER.parseFrom(input);
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
     }
     public static alluxio.proto.journal.Lineage.LineageIdGeneratorEntry parseFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
-      return PARSER.parseFrom(input, extensionRegistry);
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
     }
     public static alluxio.proto.journal.Lineage.LineageIdGeneratorEntry parseDelimitedFrom(java.io.InputStream input)
         throws java.io.IOException {
-      return PARSER.parseDelimitedFrom(input);
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input);
     }
     public static alluxio.proto.journal.Lineage.LineageIdGeneratorEntry parseDelimitedFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
-      return PARSER.parseDelimitedFrom(input, extensionRegistry);
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
     }
     public static alluxio.proto.journal.Lineage.LineageIdGeneratorEntry parseFrom(
         com.google.protobuf.CodedInputStream input)
         throws java.io.IOException {
-      return PARSER.parseFrom(input);
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
     }
     public static alluxio.proto.journal.Lineage.LineageIdGeneratorEntry parseFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
-      return PARSER.parseFrom(input, extensionRegistry);
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
-    public static Builder newBuilder() { return Builder.create(); }
     public Builder newBuilderForType() { return newBuilder(); }
-    public static Builder newBuilder(alluxio.proto.journal.Lineage.LineageIdGeneratorEntry prototype) {
-      return newBuilder().mergeFrom(prototype);
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
     }
-    public Builder toBuilder() { return newBuilder(this); }
+    public static Builder newBuilder(alluxio.proto.journal.Lineage.LineageIdGeneratorEntry prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
 
     @java.lang.Override
     protected Builder newBuilderForType(
-        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
       Builder builder = new Builder(parent);
       return builder;
     }
     /**
-     * Protobuf type {@code alluxio.proto.journal.LineageIdGeneratorEntry}
-     *
      * <pre>
      * next available id: 2
      * </pre>
+     *
+     * Protobuf type {@code alluxio.proto.journal.LineageIdGeneratorEntry}
      */
     public static final class Builder extends
-        com.google.protobuf.GeneratedMessage.Builder<Builder>
-       implements alluxio.proto.journal.Lineage.LineageIdGeneratorEntryOrBuilder {
+        com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:alluxio.proto.journal.LineageIdGeneratorEntry)
+        alluxio.proto.journal.Lineage.LineageIdGeneratorEntryOrBuilder {
       public static final com.google.protobuf.Descriptors.Descriptor
           getDescriptor() {
         return alluxio.proto.journal.Lineage.internal_static_alluxio_proto_journal_LineageIdGeneratorEntry_descriptor;
       }
 
-      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return alluxio.proto.journal.Lineage.internal_static_alluxio_proto_journal_LineageIdGeneratorEntry_fieldAccessorTable
             .ensureFieldAccessorsInitialized(
@@ -1870,27 +2115,20 @@ public final class Lineage {
       }
 
       private Builder(
-          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+          com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
         super(parent);
         maybeForceBuilderInitialization();
       }
       private void maybeForceBuilderInitialization() {
-        if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
+        if (com.google.protobuf.GeneratedMessageV3
+                .alwaysUseFieldBuilders) {
         }
       }
-      private static Builder create() {
-        return new Builder();
-      }
-
       public Builder clear() {
         super.clear();
         sequenceNumber_ = 0L;
         bitField0_ = (bitField0_ & ~0x00000001);
         return this;
-      }
-
-      public Builder clone() {
-        return create().mergeFrom(buildPartial());
       }
 
       public com.google.protobuf.Descriptors.Descriptor
@@ -1923,6 +2161,32 @@ public final class Lineage {
         return result;
       }
 
+      public Builder clone() {
+        return (Builder) super.clone();
+      }
+      public Builder setField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.setField(field, value);
+      }
+      public Builder clearField(
+          com.google.protobuf.Descriptors.FieldDescriptor field) {
+        return (Builder) super.clearField(field);
+      }
+      public Builder clearOneof(
+          com.google.protobuf.Descriptors.OneofDescriptor oneof) {
+        return (Builder) super.clearOneof(oneof);
+      }
+      public Builder setRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          int index, java.lang.Object value) {
+        return (Builder) super.setRepeatedField(field, index, value);
+      }
+      public Builder addRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.addRepeatedField(field, value);
+      }
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof alluxio.proto.journal.Lineage.LineageIdGeneratorEntry) {
           return mergeFrom((alluxio.proto.journal.Lineage.LineageIdGeneratorEntry)other);
@@ -1937,7 +2201,8 @@ public final class Lineage {
         if (other.hasSequenceNumber()) {
           setSequenceNumber(other.getSequenceNumber());
         }
-        this.mergeUnknownFields(other.getUnknownFields());
+        this.mergeUnknownFields(other.unknownFields);
+        onChanged();
         return this;
       }
 
@@ -1954,7 +2219,7 @@ public final class Lineage {
           parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
         } catch (com.google.protobuf.InvalidProtocolBufferException e) {
           parsedMessage = (alluxio.proto.journal.Lineage.LineageIdGeneratorEntry) e.getUnfinishedMessage();
-          throw e;
+          throw e.unwrapIOException();
         } finally {
           if (parsedMessage != null) {
             mergeFrom(parsedMessage);
@@ -1964,7 +2229,6 @@ public final class Lineage {
       }
       private int bitField0_;
 
-      // optional int64 sequence_number = 1;
       private long sequenceNumber_ ;
       /**
        * <code>optional int64 sequence_number = 1;</code>
@@ -1996,39 +2260,76 @@ public final class Lineage {
         onChanged();
         return this;
       }
+      public final Builder setUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.setUnknownFields(unknownFields);
+      }
+
+      public final Builder mergeUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.mergeUnknownFields(unknownFields);
+      }
+
 
       // @@protoc_insertion_point(builder_scope:alluxio.proto.journal.LineageIdGeneratorEntry)
     }
 
+    // @@protoc_insertion_point(class_scope:alluxio.proto.journal.LineageIdGeneratorEntry)
+    private static final alluxio.proto.journal.Lineage.LineageIdGeneratorEntry DEFAULT_INSTANCE;
     static {
-      defaultInstance = new LineageIdGeneratorEntry(true);
-      defaultInstance.initFields();
+      DEFAULT_INSTANCE = new alluxio.proto.journal.Lineage.LineageIdGeneratorEntry();
     }
 
-    // @@protoc_insertion_point(class_scope:alluxio.proto.journal.LineageIdGeneratorEntry)
+    public static alluxio.proto.journal.Lineage.LineageIdGeneratorEntry getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    @java.lang.Deprecated public static final com.google.protobuf.Parser<LineageIdGeneratorEntry>
+        PARSER = new com.google.protobuf.AbstractParser<LineageIdGeneratorEntry>() {
+      public LineageIdGeneratorEntry parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return new LineageIdGeneratorEntry(input, extensionRegistry);
+      }
+    };
+
+    public static com.google.protobuf.Parser<LineageIdGeneratorEntry> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<LineageIdGeneratorEntry> getParserForType() {
+      return PARSER;
+    }
+
+    public alluxio.proto.journal.Lineage.LineageIdGeneratorEntry getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
   }
 
-  private static com.google.protobuf.Descriptors.Descriptor
+  private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_alluxio_proto_journal_DeleteLineageEntry_descriptor;
-  private static
-    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+  private static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_alluxio_proto_journal_DeleteLineageEntry_fieldAccessorTable;
-  private static com.google.protobuf.Descriptors.Descriptor
+  private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_alluxio_proto_journal_LineageEntry_descriptor;
-  private static
-    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+  private static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_alluxio_proto_journal_LineageEntry_fieldAccessorTable;
-  private static com.google.protobuf.Descriptors.Descriptor
+  private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_alluxio_proto_journal_LineageIdGeneratorEntry_descriptor;
-  private static
-    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+  private static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_alluxio_proto_journal_LineageIdGeneratorEntry_fieldAccessorTable;
 
   public static com.google.protobuf.Descriptors.FileDescriptor
       getDescriptor() {
     return descriptor;
   }
-  private static com.google.protobuf.Descriptors.FileDescriptor
+  private static  com.google.protobuf.Descriptors.FileDescriptor
       descriptor;
   static {
     java.lang.String[] descriptorData = {
@@ -2042,35 +2343,35 @@ public final class Lineage {
       "\027\n\017sequence_number\030\001 \001(\003"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
-      new com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner() {
-        public com.google.protobuf.ExtensionRegistry assignDescriptors(
-            com.google.protobuf.Descriptors.FileDescriptor root) {
-          descriptor = root;
-          internal_static_alluxio_proto_journal_DeleteLineageEntry_descriptor =
-            getDescriptor().getMessageTypes().get(0);
-          internal_static_alluxio_proto_journal_DeleteLineageEntry_fieldAccessorTable = new
-            com.google.protobuf.GeneratedMessage.FieldAccessorTable(
-              internal_static_alluxio_proto_journal_DeleteLineageEntry_descriptor,
-              new java.lang.String[] { "LineageId", "Cascade", });
-          internal_static_alluxio_proto_journal_LineageEntry_descriptor =
-            getDescriptor().getMessageTypes().get(1);
-          internal_static_alluxio_proto_journal_LineageEntry_fieldAccessorTable = new
-            com.google.protobuf.GeneratedMessage.FieldAccessorTable(
-              internal_static_alluxio_proto_journal_LineageEntry_descriptor,
-              new java.lang.String[] { "Id", "InputFiles", "OutputFileIds", "JobCommand", "JobOutputPath", "CreationTimeMs", });
-          internal_static_alluxio_proto_journal_LineageIdGeneratorEntry_descriptor =
-            getDescriptor().getMessageTypes().get(2);
-          internal_static_alluxio_proto_journal_LineageIdGeneratorEntry_fieldAccessorTable = new
-            com.google.protobuf.GeneratedMessage.FieldAccessorTable(
-              internal_static_alluxio_proto_journal_LineageIdGeneratorEntry_descriptor,
-              new java.lang.String[] { "SequenceNumber", });
-          return null;
-        }
-      };
+        new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
+          public com.google.protobuf.ExtensionRegistry assignDescriptors(
+              com.google.protobuf.Descriptors.FileDescriptor root) {
+            descriptor = root;
+            return null;
+          }
+        };
     com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
         new com.google.protobuf.Descriptors.FileDescriptor[] {
         }, assigner);
+    internal_static_alluxio_proto_journal_DeleteLineageEntry_descriptor =
+      getDescriptor().getMessageTypes().get(0);
+    internal_static_alluxio_proto_journal_DeleteLineageEntry_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_alluxio_proto_journal_DeleteLineageEntry_descriptor,
+        new java.lang.String[] { "LineageId", "Cascade", });
+    internal_static_alluxio_proto_journal_LineageEntry_descriptor =
+      getDescriptor().getMessageTypes().get(1);
+    internal_static_alluxio_proto_journal_LineageEntry_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_alluxio_proto_journal_LineageEntry_descriptor,
+        new java.lang.String[] { "Id", "InputFiles", "OutputFileIds", "JobCommand", "JobOutputPath", "CreationTimeMs", });
+    internal_static_alluxio_proto_journal_LineageIdGeneratorEntry_descriptor =
+      getDescriptor().getMessageTypes().get(2);
+    internal_static_alluxio_proto_journal_LineageIdGeneratorEntry_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_alluxio_proto_journal_LineageIdGeneratorEntry_descriptor,
+        new java.lang.String[] { "SequenceNumber", });
   }
 
   // @@protoc_insertion_point(outer_class_scope)

@@ -14,15 +14,15 @@ package alluxio.client.block;
 import alluxio.AbstractMasterClient;
 import alluxio.Constants;
 import alluxio.client.block.options.GetWorkerReportOptions;
-import alluxio.grpc.AlluxioServiceType;
 import alluxio.grpc.BlockMasterClientServiceGrpc;
 import alluxio.grpc.GetBlockInfoPRequest;
 import alluxio.grpc.GetBlockMasterInfoPOptions;
 import alluxio.grpc.GetCapacityBytesPOptions;
 import alluxio.grpc.GetUsedBytesPOptions;
 import alluxio.grpc.GetWorkerInfoListPOptions;
+import alluxio.grpc.ServiceType;
 import alluxio.master.MasterClientConfig;
-import alluxio.util.grpc.GrpcUtils;
+import alluxio.grpc.GrpcUtils;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockMasterInfo;
 import alluxio.wire.BlockMasterInfo.BlockMasterInfoField;
@@ -37,16 +37,12 @@ import java.util.stream.Collectors;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * A wrapper for the thrift client to interact with the block master, used by alluxio clients.
- *
- * Since thrift clients are not thread safe, this class is a wrapper to provide thread safety, and
- * to provide retries.
+ * A wrapper for the gRPC client to interact with the block master, used by alluxio clients.
  */
 @ThreadSafe
 public final class RetryHandlingBlockMasterClient extends AbstractMasterClient
     implements BlockMasterClient {
-  private BlockMasterClientServiceGrpc.BlockMasterClientServiceBlockingStub mGrpcClient = null;
-  //private BlockMasterClientService.Client mClient = null;
+  private BlockMasterClientServiceGrpc.BlockMasterClientServiceBlockingStub mClient = null;
 
   /**
    * Creates a new block master client.
@@ -58,8 +54,8 @@ public final class RetryHandlingBlockMasterClient extends AbstractMasterClient
   }
 
   @Override
-  protected AlluxioServiceType getRemoteServiceType() {
-    return AlluxioServiceType.BLOCK_MASTER_CLIENT_SERVICE;
+  protected ServiceType getRemoteServiceType() {
+    return ServiceType.BLOCK_MASTER_CLIENT_SERVICE;
   }
 
   @Override
@@ -74,15 +70,14 @@ public final class RetryHandlingBlockMasterClient extends AbstractMasterClient
 
   @Override
   protected void afterConnect() {
-    //mClient = new BlockMasterClientService.Client(mProtocol);
-    mGrpcClient = BlockMasterClientServiceGrpc.newBlockingStub(mChannel);
+    mClient = BlockMasterClientServiceGrpc.newBlockingStub(mChannel);
   }
 
   @Override
-  public synchronized List<WorkerInfo> getWorkerInfoList() throws IOException {
+  public List<WorkerInfo> getWorkerInfoList() throws IOException {
     return retryRPC(() -> {
       List<WorkerInfo> result = new ArrayList<>();
-      for (alluxio.grpc.WorkerInfo workerInfo : mGrpcClient
+      for (alluxio.grpc.WorkerInfo workerInfo : mClient
           .getWorkerInfoList(GetWorkerInfoListPOptions.getDefaultInstance())
           .getWorkerInfosList()) {
         result.add(GrpcUtils.fromProto(workerInfo));
@@ -92,11 +87,11 @@ public final class RetryHandlingBlockMasterClient extends AbstractMasterClient
   }
 
   @Override
-  public synchronized List<WorkerInfo> getWorkerReport(final GetWorkerReportOptions options)
+  public List<WorkerInfo> getWorkerReport(final GetWorkerReportOptions options)
       throws IOException {
     return retryRPC(() -> {
       List<WorkerInfo> result = new ArrayList<>();
-      for (alluxio.grpc.WorkerInfo workerInfo : mGrpcClient.getWorkerReport(options.toProto())
+      for (alluxio.grpc.WorkerInfo workerInfo : mClient.getWorkerReport(options.toProto())
           .getWorkerInfosList()) {
         result.add(GrpcUtils.fromProto(workerInfo));
       }
@@ -110,20 +105,20 @@ public final class RetryHandlingBlockMasterClient extends AbstractMasterClient
    * @param blockId the block id to get the BlockInfo for
    * @return the {@link BlockInfo}
    */
-  public synchronized BlockInfo getBlockInfo(final long blockId) throws IOException {
+  public BlockInfo getBlockInfo(final long blockId) throws IOException {
     return retryRPC(() -> {
       return GrpcUtils.fromProto(
-          mGrpcClient.getBlockInfo(GetBlockInfoPRequest.newBuilder().setBlockId(blockId).build())
+          mClient.getBlockInfo(GetBlockInfoPRequest.newBuilder().setBlockId(blockId).build())
               .getBlockInfo());
     });
   }
 
   @Override
-  public synchronized BlockMasterInfo getBlockMasterInfo(final Set<BlockMasterInfoField> fields)
+  public BlockMasterInfo getBlockMasterInfo(final Set<BlockMasterInfoField> fields)
       throws IOException {
     return retryRPC(() -> {
       return BlockMasterInfo
-          .fromProto(mGrpcClient.getBlockMasterInfo(GetBlockMasterInfoPOptions.newBuilder()
+          .fromProto(mClient.getBlockMasterInfo(GetBlockMasterInfoPOptions.newBuilder()
               .addAllFilters(
                   fields.stream().map(BlockMasterInfoField::toProto).collect(Collectors.toList()))
               .build()).getBlockMasterInfo());
@@ -135,8 +130,8 @@ public final class RetryHandlingBlockMasterClient extends AbstractMasterClient
    *
    * @return total capacity in bytes
    */
-  public synchronized long getCapacityBytes() throws IOException {
-    return retryRPC(() -> mGrpcClient
+  public long getCapacityBytes() throws IOException {
+    return retryRPC(() -> mClient
         .getCapacityBytes(GetCapacityBytesPOptions.getDefaultInstance()).getBytes());
   }
 
@@ -145,8 +140,8 @@ public final class RetryHandlingBlockMasterClient extends AbstractMasterClient
    *
    * @return amount of used space in bytes
    */
-  public synchronized long getUsedBytes() throws IOException {
+  public long getUsedBytes() throws IOException {
     return retryRPC(
-        () -> mGrpcClient.getUsedBytes(GetUsedBytesPOptions.getDefaultInstance()).getBytes());
+        () -> mClient.getUsedBytes(GetUsedBytesPOptions.getDefaultInstance()).getBytes());
   }
 }

@@ -199,7 +199,7 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
   public void loadRecursive() throws Exception {
     Configuration.set(PropertyKey.USER_FILE_METADATA_LOAD_TYPE, LoadMetadataType.Once.toString());
     ListStatusPOptions options =
-        FileSystemClientOptions.getListStatusOptions().toBuilder().setRecursive(false).build();
+        FileSystemClientOptions.getListStatusOptions().toBuilder().setRecursive(true).build();
     for (int i = 0; i < 5; i++) {
       for (int j = 0; j < 5; j++) {
         new File(mLocalUfsPath + "/dir" + i + "/dir" + j + "/").mkdirs();

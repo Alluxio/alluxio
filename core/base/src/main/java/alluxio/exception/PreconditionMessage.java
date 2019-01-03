@@ -68,8 +68,8 @@ public enum PreconditionMessage {
   PERMISSION_MODE_IS_NULL("Mode cannot be null when constructing Permission"),
   PERMISSION_OWNER_IS_NULL("Owner cannot be null when constructing Permission"),
   PERSIST_ONLY_FOR_FILE("Only files can be persisted"),
-  PROTOCOL_NULL_WHEN_CONNECTED(
-      "The client protocol should never be null when the client is connected"),
+  CHANNEL_NULL_WHEN_CONNECTED(
+      "The client channel should never be null when the client is connected"),
   REMOTE_CLIENT_BUT_LOCAL_HOSTNAME(
       "Acquire Remote Worker Client cannot not be called with local hostname"),
   S3_BUCKET_MUST_BE_SET("The %s system property must be set to use the S3UnderStorageCluster"),

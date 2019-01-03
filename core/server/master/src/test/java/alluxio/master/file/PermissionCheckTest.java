@@ -87,7 +87,6 @@ import java.util.HashMap;
 import java.util.List;
 
 /**
- * TODO(ggezer) Fix permissions
  * Unit test for {@link FileSystemMaster} when permission check is enabled by configure
  * alluxio.security.authorization.permission.enabled=true.
  */
@@ -350,8 +349,8 @@ public final class PermissionCheckTest {
       CreateFileContext context = CreateFileContext
           .defaults(
               CreateFilePOptions.newBuilder().setRecursive(recursive))
-          .setOwner(SecurityUtils.getOwnerFromThriftClient())
-          .setGroup(SecurityUtils.getGroupFromThriftClient())
+          .setOwner(SecurityUtils.getOwnerFromGrpcClient())
+          .setGroup(SecurityUtils.getGroupFromGrpcClient())
           .setPersisted(true);
 
       long fileId = mFileSystemMaster.createFile(new AlluxioURI(path), context);
@@ -407,8 +406,8 @@ public final class PermissionCheckTest {
     try (Closeable r = new AuthenticatedUserRule(user.getUser()).toResource()) {
       CreateDirectoryContext context = CreateDirectoryContext
           .defaults(CreateDirectoryPOptions.newBuilder().setRecursive(recursive))
-          .setOwner(SecurityUtils.getOwnerFromThriftClient())
-          .setGroup(SecurityUtils.getGroupFromThriftClient());
+          .setOwner(SecurityUtils.getOwnerFromGrpcClient())
+          .setGroup(SecurityUtils.getGroupFromGrpcClient());
       mFileSystemMaster.createDirectory(new AlluxioURI(path), context);
 
       FileInfo fileInfo =
@@ -947,9 +946,15 @@ public final class PermissionCheckTest {
   private void verifySetAcl(TestUser runUser, String path, String owner, String group,
       short mode, boolean recursive) throws Exception {
     try (Closeable r = new AuthenticatedUserRule(runUser.getUser()).toResource()) {
-      mFileSystemMaster.setAttribute(new AlluxioURI(path),
-          SetAttributeContext.defaults(SetAttributePOptions.newBuilder().setOwner(owner)
-              .setGroup(group).setMode(mode).setRecursive(recursive)));
+      SetAttributeContext context = SetAttributeContext
+          .defaults(SetAttributePOptions.newBuilder().setMode(mode).setRecursive(recursive));
+      if (owner != null) {
+        context.getOptions().setOwner(owner);
+      }
+      if (group != null) {
+        context.getOptions().setGroup(group);
+      }
+      mFileSystemMaster.setAttribute(new AlluxioURI(path), context);
     }
     try (Closeable r = new AuthenticatedUserRule(TEST_USER_ADMIN.getUser()).toResource()) {
       FileInfo fileInfo =

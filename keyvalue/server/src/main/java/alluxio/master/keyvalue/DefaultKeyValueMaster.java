@@ -24,7 +24,9 @@ import alluxio.exception.InvalidPathException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.DeletePOptions;
+import alluxio.grpc.GrpcService;
 import alluxio.grpc.PartitionInfo;
+import alluxio.grpc.ServiceType;
 import alluxio.master.AbstractMaster;
 import alluxio.master.MasterContext;
 import alluxio.master.file.FileSystemMaster;
@@ -43,7 +45,6 @@ import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterators;
 import com.google.protobuf.ByteString;
-import org.apache.thrift.TProcessor;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -89,10 +90,10 @@ public class DefaultKeyValueMaster extends AbstractMaster implements KeyValueMas
   }
 
   @Override
-  public Map<String, TProcessor> getServices() {
-    Map<String, TProcessor> services = new HashMap<>();
-    //services.put(Constants.KEY_VALUE_MASTER_CLIENT_SERVICE_NAME,
-    // new KeyValueMasterClientService.Processor<>(new KeyValueMasterClientServiceHandler(this)));
+  public Map<ServiceType, GrpcService> getServices() {
+    Map<ServiceType, GrpcService> services = new HashMap<>();
+    services.put(ServiceType.KEY_VALUE_MASTER_CLIENT_SERVICE,
+        new GrpcService(new KeyValueMasterClientServiceHandler(this)));
     return services;
   }
 

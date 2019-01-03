@@ -14,11 +14,11 @@ package alluxio.client.keyvalue;
 import alluxio.AbstractClient;
 import alluxio.Constants;
 import alluxio.exception.AlluxioException;
-import alluxio.grpc.AlluxioServiceType;
 import alluxio.grpc.GetNextKeysPRequest;
 import alluxio.grpc.GetPRequest;
 import alluxio.grpc.GetSizePRequest;
 import alluxio.grpc.KeyValueWorkerClientServiceGrpc;
+import alluxio.grpc.ServiceType;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.WorkerNetAddress;
 
@@ -37,8 +37,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class KeyValueWorkerClient extends AbstractClient {
-  // private KeyValueWorkerClientService.Client mClient = null;
-  private KeyValueWorkerClientServiceGrpc.KeyValueWorkerClientServiceBlockingStub mGrpcClient =
+  private KeyValueWorkerClientServiceGrpc.KeyValueWorkerClientServiceBlockingStub mClient =
       null;
 
   /**
@@ -51,8 +50,8 @@ public final class KeyValueWorkerClient extends AbstractClient {
   }
 
   @Override
-  protected AlluxioServiceType getRemoteServiceType() {
-    return AlluxioServiceType.KEY_VALUE_WORKER_SERVICE;
+  protected ServiceType getRemoteServiceType() {
+    return ServiceType.KEY_VALUE_WORKER_SERVICE;
   }
 
   @Override
@@ -67,9 +66,7 @@ public final class KeyValueWorkerClient extends AbstractClient {
 
   @Override
   protected void afterConnect() throws IOException {
-    // mClient = new KeyValueWorkerClientService.Client(mProtocol);
-    // TODO(ggezer) Host the service
-    mGrpcClient = KeyValueWorkerClientServiceGrpc.newBlockingStub(mChannel);
+    mClient = KeyValueWorkerClientServiceGrpc.newBlockingStub(mChannel);
   }
 
   /**
@@ -79,12 +76,12 @@ public final class KeyValueWorkerClient extends AbstractClient {
    * @param key the key to get the value for
    * @return ByteBuffer of value, or null if not found
    */
-  public synchronized ByteBuffer get(final long blockId, final ByteBuffer key)
+  public ByteBuffer get(final long blockId, final ByteBuffer key)
       throws IOException {
     return retryRPC(new RpcCallable<ByteBuffer>() {
       @Override
       public ByteBuffer call() {
-        return ByteBuffer.wrap(mGrpcClient.get(
+        return ByteBuffer.wrap(mClient.get(
             GetPRequest.newBuilder().setBlockId(blockId).setKey(ByteString.copyFrom(key)).build())
             .getData().toByteArray());
       }
@@ -102,16 +99,18 @@ public final class KeyValueWorkerClient extends AbstractClient {
    * @param numKeys maximum number of next keys to fetch
    * @return the next batch of keys
    */
-  public synchronized List<ByteBuffer> getNextKeys(final long blockId, final ByteBuffer key,
+  public List<ByteBuffer> getNextKeys(final long blockId, final ByteBuffer key,
       final int numKeys) throws IOException {
     return retryRPC(new RpcCallable<List<ByteBuffer>>() {
       @Override
       public List<ByteBuffer> call() {
-        return mGrpcClient
-            .getNextKeys(GetNextKeysPRequest.newBuilder().setBlockId(blockId)
-                .setKey(ByteString.copyFrom(key)).setNumKeys(numKeys).build())
-            .getKeysList().stream().map((c) -> ByteBuffer.wrap(c.toByteArray()))
-            .collect(Collectors.toList());
+        GetNextKeysPRequest.Builder requestBuilder =
+            GetNextKeysPRequest.newBuilder().setBlockId(blockId).setNumKeys(numKeys);
+        if (key != null) {
+          requestBuilder.setKey(ByteString.copyFrom(key));
+        }
+        return mClient.getNextKeys(requestBuilder.build()).getKeysList().stream()
+            .map((c) -> ByteBuffer.wrap(c.toByteArray())).collect(Collectors.toList());
       }
     });
   }
@@ -120,11 +119,11 @@ public final class KeyValueWorkerClient extends AbstractClient {
    * @param blockId the id of the partition
    * @return the number of key-value pairs in the partition
    */
-  public synchronized int getSize(final long blockId) throws IOException, AlluxioException {
+  public int getSize(final long blockId) throws IOException, AlluxioException {
     return retryRPC(new RpcCallable<Integer>() {
       @Override
       public Integer call() {
-        return mGrpcClient.getSize(GetSizePRequest.newBuilder().setBlockId(blockId).build())
+        return mClient.getSize(GetSizePRequest.newBuilder().setBlockId(blockId).build())
             .getSize();
       }
     });

@@ -12,11 +12,11 @@
 package alluxio.master;
 
 import alluxio.Server;
+import alluxio.grpc.GrpcService;
+import alluxio.grpc.ServiceType;
 import alluxio.master.journal.JournalContext;
 import alluxio.proto.journal.Journal;
 import alluxio.proto.journal.Journal.JournalEntry;
-
-import org.apache.thrift.TProcessor;
 
 import java.io.IOException;
 import java.util.ArrayDeque;
@@ -39,7 +39,7 @@ public final class MockMaster implements Master {
 
   @Override
   @Nullable
-  public Map<String, TProcessor> getServices() {
+  public Map<ServiceType, GrpcService> getServices() {
     return null;
   }
 

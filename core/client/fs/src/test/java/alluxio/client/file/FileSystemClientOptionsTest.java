@@ -33,7 +33,7 @@ import alluxio.grpc.UpdateUfsModePOptions;
 import alluxio.grpc.WritePType;
 import alluxio.security.authorization.Mode;
 import alluxio.util.ModeUtils;
-import alluxio.util.grpc.GrpcUtils;
+import alluxio.grpc.GrpcUtils;
 import alluxio.wire.LoadMetadataType;
 
 import org.junit.Assert;

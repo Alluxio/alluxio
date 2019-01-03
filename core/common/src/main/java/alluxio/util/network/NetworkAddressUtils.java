@@ -14,18 +14,19 @@ package alluxio.util.network;
 import alluxio.AlluxioConfiguration;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
-import alluxio.exception.ConnectionFailedException;
 import alluxio.exception.status.UnauthenticatedException;
-import alluxio.network.thrift.ThriftUtils;
-import alluxio.security.authentication.TransportProvider;
+import alluxio.exception.status.UnavailableException;
+import alluxio.grpc.GetServiceVersionPRequest;
+import alluxio.grpc.GrpcChannel;
+import alluxio.grpc.GrpcChannelBuilder;
+import alluxio.grpc.ServiceVersionClientServiceGrpc;
 import alluxio.util.CommonUtils;
 import alluxio.util.OSUtils;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Preconditions;
+import io.grpc.StatusRuntimeException;
 import io.netty.channel.unix.DomainSocketAddress;
-import org.apache.thrift.protocol.TProtocol;
-import org.apache.thrift.transport.TTransportException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -712,25 +713,19 @@ public final class NetworkAddressUtils {
    * Thrift protocol for performing service communication.
    *
    * @param address the network address to ping
-   * @param serviceName the Alluxio service name
+   * @param serviceType the Alluxio service type
    * @throws UnauthenticatedException If the user is not authenticated
-   * @throws ConnectionFailedException If there is a protocol transport error
+   * @throws StatusRuntimeException If the host not reachable or does not serve the given service
    */
-  public static void pingService(InetSocketAddress address, String serviceName)
-          throws UnauthenticatedException, ConnectionFailedException {
+  public static void pingService(InetSocketAddress address, alluxio.grpc.ServiceType serviceType)
+      throws UnauthenticatedException, UnavailableException {
     Preconditions.checkNotNull(address, "address");
-    Preconditions.checkNotNull(serviceName, "serviceName");
-    Preconditions.checkArgument(!serviceName.isEmpty(),
-            "Cannot resolve for empty service name");
-    try {
-      TransportProvider transportProvider = TransportProvider.Factory.create();
-      TProtocol protocol =
-          ThriftUtils.createThriftProtocol(transportProvider.getClientTransport(address),
-              serviceName);
-      protocol.getTransport().open();
-      protocol.getTransport().close();
-    } catch (TTransportException e) {
-      throw new ConnectionFailedException(e.getMessage());
-    }
+    Preconditions.checkNotNull(serviceType, "serviceType");
+    GrpcChannel channel = GrpcChannelBuilder.forAddress(address).build();
+    ServiceVersionClientServiceGrpc.ServiceVersionClientServiceBlockingStub versionClient =
+        ServiceVersionClientServiceGrpc.newBlockingStub(channel);
+    versionClient.getServiceVersion(
+        GetServiceVersionPRequest.newBuilder().setServiceType(serviceType).build());
+    channel.shutdown();
   }
 }

@@ -24,9 +24,11 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.NotFoundException;
 import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.GetConfigurationPOptions;
+import alluxio.grpc.GrpcService;
 import alluxio.grpc.MetaCommand;
 import alluxio.grpc.RegisterMasterPOptions;
 import alluxio.grpc.Scope;
+import alluxio.grpc.ServiceType;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.heartbeat.HeartbeatThread;
@@ -47,7 +49,6 @@ import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.executor.ExecutorServiceFactory;
 import alluxio.util.io.PathUtils;
 import alluxio.util.network.NetworkAddressUtils;
-import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.wire.Address;
 import alluxio.wire.BackupOptions;
 import alluxio.wire.BackupResponse;
@@ -55,7 +56,6 @@ import alluxio.wire.ConfigCheckReport;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterators;
-import org.apache.thrift.TProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -162,12 +162,14 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
   }
 
   @Override
-  public Map<String, TProcessor> getServices() {
-    Map<String, TProcessor> services = new HashMap<>();
-    //services.put(Constants.META_MASTER_CLIENT_SERVICE_NAME,
-    //    new MetaMasterClientService.Processor<>(new MetaMasterClientServiceHandler(this)));
-    //services.put(Constants.META_MASTER_MASTER_SERVICE_NAME,
-    //    new MetaMasterMasterService.Processor<>(new MetaMasterMasterServiceHandler(this)));
+  public Map<ServiceType, GrpcService> getServices() {
+    Map<ServiceType, GrpcService> services = new HashMap<>();
+    services.put(ServiceType.META_MASTER_CONFIG_SERVICE,
+        new GrpcService(new MetaMasterConfigurationServiceHandler(this)).disableAuthentication());
+    services.put(ServiceType.META_MASTER_CLIENT_SERVICE,
+        new GrpcService(new MetaMasterClientServiceHandler(this)));
+    services.put(ServiceType.META_MASTER_MASTER_SERVICE,
+        new GrpcService(new MetaMasterMasterServiceHandler(this)));
     return services;
   }
 
@@ -274,7 +276,7 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
     }
     AlluxioURI backupUri = new AlluxioURI(new AlluxioURI(rootUfs), new AlluxioURI(backupFilePath));
     return new BackupResponse(backupUri,
-        NetworkAddressUtils.getConnectHost(ServiceType.MASTER_RPC));
+        NetworkAddressUtils.getConnectHost(NetworkAddressUtils.ServiceType.MASTER_RPC));
   }
 
   @Override

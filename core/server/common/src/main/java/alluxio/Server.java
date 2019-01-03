@@ -11,7 +11,8 @@
 
 package alluxio;
 
-import org.apache.thrift.TProcessor;
+import alluxio.grpc.GrpcService;
+import alluxio.grpc.ServiceType;
 
 import java.io.IOException;
 import java.util.Map;
@@ -35,10 +36,9 @@ public interface Server<T> {
   String getName();
 
   /**
-   * TODO(ggezer) Implement in all inheritors for gRPC.
-   * @return a map from service names to {@link TProcessor}s that serve RPCs for this server
+   * @return a map from service names to gRPC serviced that serve RPCs for this server
    */
-  Map<String, TProcessor> getServices();
+  Map<ServiceType, GrpcService> getServices();
 
   /**
    * Starts the Alluxio server.

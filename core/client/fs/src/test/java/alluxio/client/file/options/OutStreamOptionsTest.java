@@ -22,16 +22,15 @@ import alluxio.LoginUserRule;
 import alluxio.PropertyKey;
 import alluxio.client.AlluxioStorageType;
 import alluxio.client.UnderStorageType;
-
 import alluxio.client.WriteType;
 import alluxio.client.file.policy.FileWriteLocationPolicy;
 import alluxio.client.file.policy.LocalFirstPolicy;
 import alluxio.client.file.policy.RoundRobinPolicy;
+import alluxio.grpc.TtlAction;
 import alluxio.security.authorization.Mode;
 import alluxio.security.group.GroupMappingService;
 import alluxio.util.CommonUtils;
 import alluxio.util.ModeUtils;
-import alluxio.grpc.TtlAction;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
@@ -84,9 +83,8 @@ public class OutStreamOptionsTest {
     assertEquals(alluxioType, options.getAlluxioStorageType());
     assertEquals(64 * Constants.MB, options.getBlockSizeBytes());
     assertTrue(options.getLocationPolicy() instanceof LocalFirstPolicy);
-    // TODO(ggezer) revert
-    // assertEquals("test_user", options.getOwner());
-    // assertEquals("test_group", options.getGroup());
+    assertEquals("test_user", options.getOwner());
+    assertEquals("test_group", options.getGroup());
     assertEquals(ModeUtils.applyFileUMask(Mode.defaults()), options.getMode());
     assertEquals(Constants.NO_TTL, options.getTtl());
     assertEquals(TtlAction.DELETE, options.getTtlAction());

@@ -11,6 +11,7 @@
 
 package alluxio.master.file;
 
+import alluxio.RpcUtils;
 import alluxio.grpc.FileSystemHeartbeatPOptions;
 import alluxio.grpc.FileSystemHeartbeatPRequest;
 import alluxio.grpc.FileSystemHeartbeatPResponse;
@@ -25,8 +26,7 @@ import alluxio.grpc.GetUfsInfoPOptions;
 import alluxio.grpc.GetUfsInfoPRequest;
 import alluxio.grpc.GetUfsInfoPResponse;
 import alluxio.master.file.contexts.WorkerHeartbeatContext;
-import alluxio.util.RpcUtilsNew;
-import alluxio.util.grpc.GrpcUtils;
+import alluxio.grpc.GrpcUtils;
 
 import com.google.common.base.Preconditions;
 import io.grpc.stub.StreamObserver;
@@ -63,8 +63,8 @@ public final class FileSystemMasterWorkerServiceHandler
     final List<Long> persistedFiles = request.getPersistedFilesList();
     FileSystemHeartbeatPOptions options = request.getOptions();
 
-    RpcUtilsNew.call(LOG,
-        (RpcUtilsNew.RpcCallableThrowsIOException<FileSystemHeartbeatPResponse>)
+    RpcUtils.call(LOG,
+        (RpcUtils.RpcCallableThrowsIOException<FileSystemHeartbeatPResponse>)
         () -> FileSystemHeartbeatPResponse
             .newBuilder()
             .setCommand(GrpcUtils.toProto(mFileSystemMaster.workerHeartbeat(workerId,
@@ -81,8 +81,8 @@ public final class FileSystemMasterWorkerServiceHandler
     final long fileId = request.getFileId();
     GetFileInfoPOptions options = request.getOptions();
 
-    RpcUtilsNew.call(LOG,
-        (RpcUtilsNew.RpcCallableThrowsIOException<GetFileInfoPResponse>) () -> GetFileInfoPResponse
+    RpcUtils.call(LOG,
+        (RpcUtils.RpcCallableThrowsIOException<GetFileInfoPResponse>) () -> GetFileInfoPResponse
             .newBuilder().setFileInfo(GrpcUtils.toProto(mFileSystemMaster.getFileInfo(fileId)))
             .build(),
         "getFileInfo", "fileId=%s, options=%s", responseObserver, fileId, options);
@@ -94,8 +94,8 @@ public final class FileSystemMasterWorkerServiceHandler
 
     GetPinnedFileIdsPOptions options = request.getOptions();
 
-    RpcUtilsNew.call(LOG,
-        (RpcUtilsNew.RpcCallableThrowsIOException<GetPinnedFileIdsPResponse>)
+    RpcUtils.call(LOG,
+        (RpcUtils.RpcCallableThrowsIOException<GetPinnedFileIdsPResponse>)
         () -> GetPinnedFileIdsPResponse
             .newBuilder().addAllPinnedFileIds(mFileSystemMaster.getPinIdList()).build(),
         "getPinnedFileIds", "options=%s", responseObserver, options);
@@ -108,8 +108,8 @@ public final class FileSystemMasterWorkerServiceHandler
     final long mountId = request.getMountId();
     GetUfsInfoPOptions options = request.getOptions();
 
-    RpcUtilsNew.call(LOG,
-        (RpcUtilsNew.RpcCallableThrowsIOException<GetUfsInfoPResponse>) () -> GetUfsInfoPResponse
+    RpcUtils.call(LOG,
+        (RpcUtils.RpcCallableThrowsIOException<GetUfsInfoPResponse>) () -> GetUfsInfoPResponse
             .newBuilder().setUfsInfo(GrpcUtils.toProto(mFileSystemMaster.getUfsInfo(mountId)))
             .build(),
         "getUfsInfo", "mountId=%s, options=%s", responseObserver, mountId, options);

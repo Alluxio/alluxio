@@ -191,10 +191,10 @@ public final class MasterWorkerInfo {
         case ADDRESS:
           info.setAddress(mWorkerAddress);
           break;
-        case CAPACITY_BYTES:
+        case WORKER_CAPACITY_BYTES:
           info.setCapacityBytes(mCapacityBytes);
           break;
-        case CAPACITY_BYTES_ON_TIERS:
+        case WORKER_CAPACITY_BYTES_ON_TIERS:
           info.setCapacityBytesOnTiers(mTotalBytesOnTiers);
           break;
         case ID:
@@ -214,10 +214,10 @@ public final class MasterWorkerInfo {
             info.setState(LOST_WORKER_STATE);
           }
           break;
-        case USED_BYTES:
+        case WORKER_USED_BYTES:
           info.setUsedBytes(mUsedBytes);
           break;
-        case USED_BYTES_ON_TIERS:
+        case WORKER_USED_BYTES_ON_TIERS:
           info.setUsedBytesOnTiers(mUsedBytesOnTiers);
           break;
         default:

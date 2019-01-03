@@ -13,18 +13,17 @@ package alluxio.master;
 
 import static java.util.stream.Collectors.joining;
 
-import alluxio.Constants;
 import alluxio.exception.status.UnauthenticatedException;
 import alluxio.exception.status.UnavailableException;
-import alluxio.network.thrift.ThriftUtils;
+import alluxio.grpc.GetServiceVersionPRequest;
+import alluxio.grpc.GrpcChannel;
+import alluxio.grpc.GrpcChannelBuilder;
+import alluxio.grpc.ServiceType;
+import alluxio.grpc.ServiceVersionClientServiceGrpc;
 import alluxio.retry.RetryPolicy;
-import alluxio.security.authentication.TransportProvider;
 import alluxio.uri.Authority;
 import alluxio.uri.UnknownAuthority;
 
-import org.apache.thrift.protocol.TProtocol;
-import org.apache.thrift.transport.TTransport;
-import org.apache.thrift.transport.TTransportException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -79,7 +78,7 @@ public class PollingMasterInquireClient implements MasterInquireClient {
         pingMetaService(address);
         LOG.debug("Successfully connected to {}", address);
         return address;
-      } catch (TTransportException e) {
+      } catch (UnavailableException e) {
         LOG.debug("Failed to connect to {}", address);
         continue;
       } catch (UnauthenticatedException e) {
@@ -90,12 +89,13 @@ public class PollingMasterInquireClient implements MasterInquireClient {
   }
 
   private void pingMetaService(InetSocketAddress address)
-      throws UnauthenticatedException, TTransportException {
-    TTransport transport = TransportProvider.Factory.create().getClientTransport(address);
-    TProtocol protocol =
-        ThriftUtils.createThriftProtocol(transport, Constants.META_MASTER_CLIENT_SERVICE_NAME);
-    protocol.getTransport().open();
-    protocol.getTransport().close();
+      throws UnauthenticatedException, UnavailableException {
+    GrpcChannel channel = GrpcChannelBuilder.forAddress(address).build();
+    ServiceVersionClientServiceGrpc.ServiceVersionClientServiceBlockingStub versionClient =
+        ServiceVersionClientServiceGrpc.newBlockingStub(channel);
+    versionClient.getServiceVersion(GetServiceVersionPRequest.newBuilder()
+        .setServiceType(ServiceType.META_MASTER_CLIENT_SERVICE).build());
+    channel.shutdown();
   }
 
   @Override

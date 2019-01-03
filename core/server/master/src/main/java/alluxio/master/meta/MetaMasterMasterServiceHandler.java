@@ -11,6 +11,7 @@
 
 package alluxio.master.meta;
 
+import alluxio.RpcUtils;
 import alluxio.grpc.GetMasterIdPRequest;
 import alluxio.grpc.GetMasterIdPResponse;
 import alluxio.grpc.MasterHeartbeatPRequest;
@@ -19,7 +20,6 @@ import alluxio.grpc.MetaMasterMasterServiceGrpc;
 import alluxio.grpc.NetAddress;
 import alluxio.grpc.RegisterMasterPRequest;
 import alluxio.grpc.RegisterMasterPResponse;
-import alluxio.util.RpcUtilsNew;
 import alluxio.wire.Address;
 
 import io.grpc.stub.StreamObserver;
@@ -51,7 +51,7 @@ public final class MetaMasterMasterServiceHandler
   public void getMasterId(GetMasterIdPRequest request,
       StreamObserver<GetMasterIdPResponse> responseObserver) {
     NetAddress masterAddress = request.getMasterAddress();
-    RpcUtilsNew.call(LOG, (RpcUtilsNew.RpcCallableThrowsIOException<GetMasterIdPResponse>) () -> {
+    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<GetMasterIdPResponse>) () -> {
       return GetMasterIdPResponse.newBuilder()
           .setMasterId(mMetaMaster.getMasterId(Address.fromProto(masterAddress))).build();
     }, "getMasterId", "request=%s", responseObserver, request);
@@ -60,8 +60,8 @@ public final class MetaMasterMasterServiceHandler
   @Override
   public void registerMaster(RegisterMasterPRequest request,
       StreamObserver<RegisterMasterPResponse> responseObserver) {
-    RpcUtilsNew.call(LOG,
-        (RpcUtilsNew.RpcCallableThrowsIOException<RegisterMasterPResponse>) () -> {
+    RpcUtils.call(LOG,
+        (RpcUtils.RpcCallableThrowsIOException<RegisterMasterPResponse>) () -> {
           mMetaMaster.masterRegister(request.getMasterId(), request.getOptions());
           return RegisterMasterPResponse.getDefaultInstance();
         }, "registerMaster", "request=%s", responseObserver, request);
@@ -70,8 +70,8 @@ public final class MetaMasterMasterServiceHandler
   @Override
   public void masterHeartbeat(MasterHeartbeatPRequest request,
       StreamObserver<MasterHeartbeatPResponse> responseObserver) {
-    RpcUtilsNew.call(LOG,
-        (RpcUtilsNew.RpcCallableThrowsIOException<MasterHeartbeatPResponse>) () -> {
+    RpcUtils.call(LOG,
+        (RpcUtils.RpcCallableThrowsIOException<MasterHeartbeatPResponse>) () -> {
           return MasterHeartbeatPResponse.newBuilder()
               .setCommand(mMetaMaster.masterHeartbeat(request.getMasterId())).build();
         }, "masterHeartbeat", "request=%s", responseObserver, request);

@@ -73,7 +73,6 @@ public class SummaryCommand {
    * Prints Alluxio meta master information.
    */
   private void printMetaMasterInfo() throws IOException {
-    // TODO(ggezer) master/worker addresses missing in summary
     mIndentationLevel++;
     Set<MasterInfoField> masterInfoFilter = new HashSet<>(Arrays
         .asList(MasterInfoField.LEADER_MASTER_ADDRESS, MasterInfoField.WEB_PORT,

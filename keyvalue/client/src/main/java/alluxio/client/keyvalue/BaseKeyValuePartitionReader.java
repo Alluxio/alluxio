@@ -84,6 +84,8 @@ final class BaseKeyValuePartitionReader implements KeyValuePartitionReader {
   private ByteBuffer getInternal(ByteBuffer key) throws IOException, AlluxioException {
     Preconditions.checkState(!mClosed, "Can not query a reader closed");
     ByteBuffer value = mClient.get(mBlockId, key);
+    key.rewind();
+    value.rewind();
     if (value.remaining() == 0) {
       return null;
     }
@@ -107,8 +109,10 @@ final class BaseKeyValuePartitionReader implements KeyValuePartitionReader {
 
     @Override
     public KeyValuePair next() throws IOException, AlluxioException {
-      KeyValuePair ret = new KeyValuePair(mNextKey, get(mNextKey));
-      mNextKey = nextKey(mNextKey);
+      ByteBuffer currentKey = mNextKey;
+      KeyValuePair ret = new KeyValuePair(currentKey, get(currentKey));
+      mNextKey = nextKey(currentKey);
+      currentKey.rewind();
       return ret;
     }
 

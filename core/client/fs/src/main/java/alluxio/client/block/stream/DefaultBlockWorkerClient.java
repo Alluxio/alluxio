@@ -13,16 +13,17 @@ package alluxio.client.block.stream;
 
 import alluxio.Configuration;
 import alluxio.PropertyKey;
+import alluxio.exception.status.UnauthenticatedException;
+import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.BlockWorkerGrpc;
+import alluxio.grpc.GrpcChannel;
+import alluxio.grpc.GrpcChannelBuilder;
 import alluxio.grpc.ReadRequest;
 import alluxio.grpc.ReadResponse;
 import alluxio.grpc.WriteRequest;
 import alluxio.grpc.WriteResponse;
-import alluxio.util.grpc.GrpcChannel;
-import alluxio.util.grpc.GrpcChannelBuilder;
 import alluxio.util.network.NettyUtils;
 
-import io.grpc.ConnectivityState;
 import io.grpc.stub.StreamObserver;
 import io.netty.channel.EventLoopGroup;
 import org.slf4j.Logger;
@@ -65,15 +66,18 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
    * @param address the address of the worker
    */
   public DefaultBlockWorkerClient(Subject subject, SocketAddress address) {
-    this(GrpcChannelBuilder
-        .forAddress(address)
-        .channelType(NettyUtils.getClientChannelClass(
-            !(address instanceof InetSocketAddress)))
-        .group(WORKER_GROUP)
-        .usePlaintext(true)
-        .keepAliveTimeout(KEEPALIVE_TIMEOUT_MS, TimeUnit.MILLISECONDS)
-        .maxInboundMessageSize((int) MAX_INBOUND_MESSAGE_SIZE)
-        .flowControlWindow((int) GRPC_FLOWCONTROL_WINDOW).build());
+    try {
+      mChannel = GrpcChannelBuilder.forAddress(address).setSubject(subject)
+          .setChannelType(NettyUtils.getClientChannelClass(!(address instanceof InetSocketAddress)))
+          .setEventLoopGroup(WORKER_GROUP)
+          .setKeepAliveTimeout(KEEPALIVE_TIMEOUT_MS, TimeUnit.MILLISECONDS)
+          .setMaxInboundMessageSize((int) MAX_INBOUND_MESSAGE_SIZE)
+          .setFlowControlWindow((int) GRPC_FLOWCONTROL_WINDOW).build();
+    } catch (UnauthenticatedException | UnavailableException e) {
+      throw new RuntimeException("Failed to build channel.", e);
+    }
+    mBlockingStub = BlockWorkerGrpc.newBlockingStub(mChannel);
+    mAsyncStub = BlockWorkerGrpc.newStub(mChannel);
   }
 
   /**
@@ -89,23 +93,12 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
 
   @Override
   public boolean isShutdown() {
-    ConnectivityState state = mChannel.getState(false);
-    return state == ConnectivityState.SHUTDOWN;
+    return mChannel.isShutdown();
   }
 
   @Override
   public void close() throws IOException {
     mChannel.shutdown();
-    try {
-      long timeout = Configuration.getMs(PropertyKey.WORKER_NETWORK_NETTY_SHUTDOWN_TIMEOUT);
-      if (!mChannel.awaitTermination(timeout, TimeUnit.MILLISECONDS)) {
-        LOGGER.warn("Timed out after {}ms to close gRPC channel {} to block worker.", timeout,
-            mChannel.authority());
-      }
-    } catch (InterruptedException e) {
-      Thread.currentThread().interrupt();
-      throw new RuntimeException(e);
-    }
   }
 
   @Override

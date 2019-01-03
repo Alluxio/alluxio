@@ -52,7 +52,7 @@ public class TaskInfo {
     mStatus = Status.valueOf(taskInfo.getStatus().name());
     mErrorMessage = taskInfo.getErrorMessage();
     mResult = null;
-    if(taskInfo.hasResult()) {
+    if (taskInfo.hasResult()) {
       try {
         mResult = SerializationUtils.deserialize(taskInfo.getResult().toByteArray());
       } catch (ClassNotFoundException e) {

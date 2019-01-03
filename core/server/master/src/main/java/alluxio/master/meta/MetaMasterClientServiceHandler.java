@@ -11,6 +11,7 @@
 
 package alluxio.master.meta;
 
+import alluxio.RpcUtils;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
@@ -18,8 +19,6 @@ import alluxio.grpc.BackupPOptions;
 import alluxio.grpc.BackupPResponse;
 import alluxio.grpc.GetConfigReportPOptions;
 import alluxio.grpc.GetConfigReportPResponse;
-import alluxio.grpc.GetConfigurationPOptions;
-import alluxio.grpc.GetConfigurationPResponse;
 import alluxio.grpc.GetMasterInfoPOptions;
 import alluxio.grpc.GetMasterInfoPResponse;
 import alluxio.grpc.GetMetricsPOptions;
@@ -28,7 +27,6 @@ import alluxio.grpc.MasterInfo;
 import alluxio.grpc.MasterInfoField;
 import alluxio.grpc.MetaMasterClientServiceGrpc;
 import alluxio.metrics.MetricsSystem;
-import alluxio.util.RpcUtilsNew;
 import alluxio.wire.Address;
 import alluxio.wire.BackupOptions;
 
@@ -63,7 +61,7 @@ public final class MetaMasterClientServiceHandler
   @Override
   public void backup(BackupPOptions options, StreamObserver<BackupPResponse> responseObserver) {
 
-    RpcUtilsNew.call(LOG, (RpcUtilsNew.RpcCallableThrowsIOException<BackupPResponse>) () -> {
+    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<BackupPResponse>) () -> {
       return mMetaMaster.backup(BackupOptions.fromProto(options)).toProto();
     }, "backup", "options=%s", responseObserver, options);
   }
@@ -71,8 +69,8 @@ public final class MetaMasterClientServiceHandler
   @Override
   public void getConfigReport(GetConfigReportPOptions options,
       StreamObserver<GetConfigReportPResponse> responseObserver) {
-    RpcUtilsNew.call(LOG,
-        (RpcUtilsNew.RpcCallableThrowsIOException<GetConfigReportPResponse>) () -> {
+    RpcUtils.call(LOG,
+        (RpcUtils.RpcCallableThrowsIOException<GetConfigReportPResponse>) () -> {
 
           return GetConfigReportPResponse.newBuilder()
               .setReport(mMetaMaster.getConfigCheckReport().toProto()).build();
@@ -80,21 +78,11 @@ public final class MetaMasterClientServiceHandler
   }
 
   @Override
-  public void getConfiguration(GetConfigurationPOptions options,
-      StreamObserver<GetConfigurationPResponse> responseObserver) {
-    RpcUtilsNew.call(LOG,
-        (RpcUtilsNew.RpcCallableThrowsIOException<GetConfigurationPResponse>) () -> {
-          return GetConfigurationPResponse.newBuilder()
-              .addAllConfigs(mMetaMaster.getConfiguration(options)).build();
-        }, "getConfiguration", "options=%s", responseObserver, options);
-  }
-
-  @Override
   public void getMasterInfo(GetMasterInfoPOptions options,
       StreamObserver<GetMasterInfoPResponse> responseObserver) {
-    RpcUtilsNew.call(LOG, (RpcUtilsNew.RpcCallableThrowsIOException<GetMasterInfoPResponse>) () -> {
+    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<GetMasterInfoPResponse>) () -> {
       MasterInfo.Builder masterInfo = MasterInfo.newBuilder();
-      for (MasterInfoField field : options.getFilterList() != null ? options.getFilterList()
+      for (MasterInfoField field : options.getFilterCount() > 0 ? options.getFilterList()
           : Arrays.asList(MasterInfoField.values())) {
         switch (field) {
           case LEADER_MASTER_ADDRESS:
@@ -143,7 +131,7 @@ public final class MetaMasterClientServiceHandler
   @Override
   public void getMetrics(GetMetricsPOptions options,
       StreamObserver<GetMetricsPResponse> responseObserver) {
-    RpcUtilsNew.call(LOG, (RpcUtilsNew.RpcCallableThrowsIOException<GetMetricsPResponse>) () -> {
+    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<GetMetricsPResponse>) () -> {
 
       MetricRegistry mr = MetricsSystem.METRIC_REGISTRY;
       Map<String, alluxio.grpc.MetricValue> metricsMap = new HashMap<>();
@@ -160,7 +148,7 @@ public final class MetaMasterClientServiceHandler
               .setLongValue(Long.valueOf((Integer) value)).build());
         } else if (value instanceof Long) {
           metricsMap.put(entry.getKey(), alluxio.grpc.MetricValue.newBuilder()
-              .setLongValue(Long.valueOf((Integer) value)).build());
+              .setLongValue(Long.valueOf((Long) value)).build());
         } else if (value instanceof Double) {
           metricsMap.put(entry.getKey(),
               alluxio.grpc.MetricValue.newBuilder().setDoubleValue((Double) value).build());

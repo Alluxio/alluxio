@@ -105,8 +105,6 @@ public final class LoadCommand extends AbstractFileSystemCommand {
               + " there must be a local worker available");
           return;
         }
-        // TODO(ggezer) Double check deprecated field
-        //options.setCacheLocationPolicy(new LocalFirstPolicy());
       } else if (status.getInAlluxioPercentage() == 100) {
         // The file has already been fully loaded into Alluxio.
         System.out.println(filePath + " already in Alluxio fully");

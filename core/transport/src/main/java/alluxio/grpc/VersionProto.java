@@ -33,26 +33,26 @@ public final class VersionProto {
       descriptor;
   static {
     java.lang.String[] descriptorData = {
-      "\n\rversion.proto\022\014alluxio.grpc\"R\n\031GetServ" +
-      "iceVersionPRequest\0225\n\013serviceType\030\001 \001(\0162" +
-      " .alluxio.grpc.AlluxioServiceType\"-\n\032Get" +
-      "ServiceVersionPResponse\022\017\n\007version\030\001 \001(\003" +
-      "*\301\003\n\022AlluxioServiceType\022%\n!FILE_SYSTEM_M" +
-      "ASTER_CLIENT_SERVICE\020\000\022%\n!FILE_SYSTEM_MA" +
-      "STER_WORKER_SERVICE\020\001\022\"\n\036FILE_SYSTEM_MAS" +
-      "TER_JOB_SERVICE\020\002\022\037\n\033BLOCK_MASTER_CLIENT" +
-      "_SERVICE\020\003\022\037\n\033BLOCK_MASTER_WORKER_SERVIC" +
-      "E\020\004\022\036\n\032META_MASTER_CLIENT_SERVICE\020\005\022\036\n\032M" +
-      "ETA_MASTER_MASTER_SERVICE\020\006\022!\n\035METRICS_M" +
-      "ASTER_CLIENT_SERVICE\020\007\022\035\n\031JOB_MASTER_CLI" +
-      "ENT_SERVICE\020\010\022\035\n\031JOB_MASTER_WORKER_SERVI" +
-      "CE\020\t\022#\n\037KEY_VALUE_MASTER_CLIENT_SERVICE\020" +
-      "\n\022\034\n\030KEY_VALUE_WORKER_SERVICE\020\013\022\023\n\017UNKNO" +
-      "WN_SERVICE\020\0142\177\n\025AlluxioVersionService\022f\n" +
-      "\021getServiceVersion\022\'.alluxio.grpc.GetSer" +
-      "viceVersionPRequest\032(.alluxio.grpc.GetSe" +
-      "rviceVersionPResponseB\036\n\014alluxio.grpcB\014V" +
-      "ersionProtoP\001"
+      "\n\rversion.proto\022\014alluxio.grpc\"K\n\031GetServ" +
+      "iceVersionPRequest\022.\n\013serviceType\030\001 \001(\0162" +
+      "\031.alluxio.grpc.ServiceType\"-\n\032GetService" +
+      "VersionPResponse\022\017\n\007version\030\001 \001(\003*\332\003\n\013Se" +
+      "rviceType\022%\n!FILE_SYSTEM_MASTER_CLIENT_S" +
+      "ERVICE\020\000\022%\n!FILE_SYSTEM_MASTER_WORKER_SE" +
+      "RVICE\020\001\022\"\n\036FILE_SYSTEM_MASTER_JOB_SERVIC" +
+      "E\020\002\022\037\n\033BLOCK_MASTER_CLIENT_SERVICE\020\003\022\037\n\033" +
+      "BLOCK_MASTER_WORKER_SERVICE\020\004\022\036\n\032META_MA" +
+      "STER_CONFIG_SERVICE\020\005\022\036\n\032META_MASTER_CLI" +
+      "ENT_SERVICE\020\006\022\036\n\032META_MASTER_MASTER_SERV" +
+      "ICE\020\007\022!\n\035METRICS_MASTER_CLIENT_SERVICE\020\010" +
+      "\022\035\n\031JOB_MASTER_CLIENT_SERVICE\020\t\022\035\n\031JOB_M" +
+      "ASTER_WORKER_SERVICE\020\n\022#\n\037KEY_VALUE_MAST" +
+      "ER_CLIENT_SERVICE\020\013\022\034\n\030KEY_VALUE_WORKER_" +
+      "SERVICE\020\014\022\023\n\017UNKNOWN_SERVICE\020\r2\205\001\n\033Servi" +
+      "ceVersionClientService\022f\n\021getServiceVers" +
+      "ion\022\'.alluxio.grpc.GetServiceVersionPReq" +
+      "uest\032(.alluxio.grpc.GetServiceVersionPRe" +
+      "sponseB\036\n\014alluxio.grpcB\014VersionProtoP\001"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {

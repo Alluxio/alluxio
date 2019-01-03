@@ -40,10 +40,12 @@ import alluxio.file.options.DescendantType;
 import alluxio.grpc.CompleteFilePOptions;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
+import alluxio.grpc.GrpcService;
 import alluxio.grpc.LoadDescendantPType;
 import alluxio.grpc.LoadMetadataPOptions;
 import alluxio.grpc.LoadMetadataPType;
 import alluxio.grpc.MountPOptions;
+import alluxio.grpc.ServiceType;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatThread;
@@ -102,6 +104,7 @@ import alluxio.retry.CountingRetry;
 import alluxio.retry.RetryPolicy;
 import alluxio.security.authentication.AuthType;
 import alluxio.security.authentication.AuthenticatedClientUser;
+import alluxio.security.authentication.ClientIpAddressInjector;
 import alluxio.security.authorization.AccessControlList;
 import alluxio.security.authorization.AclEntry;
 import alluxio.security.authorization.AclEntryType;
@@ -123,7 +126,7 @@ import alluxio.util.ModeUtils;
 import alluxio.util.SecurityUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.executor.ExecutorServiceFactory;
-import alluxio.util.grpc.GrpcUtils;
+import alluxio.grpc.GrpcUtils;
 import alluxio.util.interfaces.Scoped;
 import alluxio.util.io.PathUtils;
 import alluxio.util.network.NetworkAddressUtils;
@@ -150,8 +153,8 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Sets;
 import com.google.common.io.Closer;
+import io.grpc.ServerInterceptors;
 import org.apache.commons.lang.StringUtils;
-import org.apache.thrift.TProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -404,17 +407,14 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   }
 
   @Override
-  public Map<String, TProcessor> getServices() {
-    Map<String, TProcessor> services = new HashMap<>();
-    // services.put(Constants.FILE_SYSTEM_MASTER_CLIENT_SERVICE_NAME,
-    //     new FileSystemMasterClientServiceProcessor(
-    //         new FileSystemMasterClientServiceHandler(this)));
-    // services.put(Constants.FILE_SYSTEM_MASTER_JOB_SERVICE_NAME,
-    //     new alluxio.thrift.FileSystemMasterJobService.Processor<>(
-    //         new FileSystemMasterJobServiceHandler(this)));
-    //services.put(Constants.FILE_SYSTEM_MASTER_WORKER_SERVICE_NAME,
-    //    new FileSystemMasterWorkerService.Processor<>(
-    //        new FileSystemMasterWorkerServiceHandler(this)));
+  public Map<ServiceType, GrpcService> getServices() {
+    Map<ServiceType, GrpcService> services = new HashMap<>();
+    services.put(ServiceType.FILE_SYSTEM_MASTER_CLIENT_SERVICE, new GrpcService(ServerInterceptors
+        .intercept(new FileSystemMasterClientServiceHandler(this), new ClientIpAddressInjector())));
+    services.put(ServiceType.FILE_SYSTEM_MASTER_JOB_SERVICE,
+        new GrpcService(new FileSystemMasterJobServiceHandler(this)));
+    services.put(ServiceType.FILE_SYSTEM_MASTER_WORKER_SERVICE,
+        new GrpcService(new FileSystemMasterWorkerServiceHandler(this)));
     return services;
   }
 
@@ -4126,8 +4126,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
           Configuration.getEnum(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.class);
       auditContext.setUgi(ugi)
           .setAuthType(authType)
-          // TODO(ggezer) Find an equivalent for gRPC handlers
-          // .setIp(FileSystemMasterClientServiceProcessor.getClientIp())
+          .setIp(ClientIpAddressInjector.getIpAddress())
           .setCommand(command).setSrcPath(srcPath).setDstPath(dstPath)
           .setSrcInode(srcInode).setAllowed(true);
     }

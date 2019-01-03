@@ -71,10 +71,10 @@ public final class SecurityUtils {
   }
 
   /**
-   * @return the owner fetched from the Thrift client, or empty string if the fetch fails or
+   * @return the owner fetched from the gRPC client, or empty string if the fetch fails or
    *         authentication is disabled
    */
-  public static String getOwnerFromThriftClient() {
+  public static String getOwnerFromGrpcClient() {
     try {
       User user = AuthenticatedClientUser.get();
       if (user == null) {
@@ -99,10 +99,10 @@ public final class SecurityUtils {
   }
 
   /**
-   * @return the group fetched from the Thrift client, or empty string if the fetch fails or
+   * @return the group fetched from the gRPC client, or empty string if the fetch fails or
    *         authentication is disabled
    */
-  public static String getGroupFromThriftClient() {
+  public static String getGroupFromGrpcClient() {
     try {
       User user = AuthenticatedClientUser.get();
       if (user == null) {
