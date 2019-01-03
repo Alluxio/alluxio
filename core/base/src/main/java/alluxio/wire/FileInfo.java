@@ -612,7 +612,10 @@ public final class FileInfo implements Serializable {
 
   @Override
   public String toString() {
-    return MoreObjects.toStringHelper(this).add("fileId", mFileId).add("name", mName).add("path", mPath)
+    return MoreObjects.toStringHelper(this)
+        .add("fileId", mFileId)
+        .add("name", mName)
+        .add("path", mPath)
         .add("ufsPath", mUfsPath).add("length", mLength).add("blockSizeBytes", mBlockSizeBytes)
         .add("creationTimeMs", mCreationTimeMs).add("completed", mCompleted).add("folder", mFolder)
         .add("pinned", mPinned).add("cacheable", mCacheable).add("persisted", mPersisted)

@@ -17,7 +17,6 @@ import alluxio.client.block.policy.options.GetWorkerOptions;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.MoreObjects;
-import com.google.common.base.Objects;
 
 import javax.annotation.concurrent.ThreadSafe;
 

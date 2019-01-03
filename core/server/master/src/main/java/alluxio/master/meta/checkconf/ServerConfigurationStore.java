@@ -17,6 +17,7 @@ import alluxio.wire.Address;
 
 import com.google.common.base.Preconditions;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -24,8 +25,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * This class is responsible for recording server-side configuration.

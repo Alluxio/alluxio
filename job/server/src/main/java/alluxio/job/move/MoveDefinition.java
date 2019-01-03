@@ -230,7 +230,8 @@ public final class MoveDefinition
    */
   private void moveDirectory(String path, String source, String destination) throws Exception {
     String newDir = computeTargetPath(path, source, destination);
-    mFileSystem.createDirectory(new AlluxioURI(newDir), CreateDirectoryPOptions.getDefaultInstance());
+    mFileSystem.createDirectory(new AlluxioURI(newDir),
+        CreateDirectoryPOptions.getDefaultInstance());
   }
 
   /**

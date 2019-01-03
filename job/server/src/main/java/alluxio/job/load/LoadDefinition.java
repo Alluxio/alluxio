@@ -30,7 +30,6 @@ import alluxio.wire.FileBlockInfo;
 import alluxio.wire.WorkerInfo;
 
 import com.google.common.base.MoreObjects;
-import com.google.common.base.Objects;
 import com.google.common.collect.LinkedListMultimap;
 import com.google.common.collect.Multimap;
 import org.slf4j.Logger;

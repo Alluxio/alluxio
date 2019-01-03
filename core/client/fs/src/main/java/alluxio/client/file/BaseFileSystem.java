@@ -32,7 +32,6 @@ import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.ExistsPOptions;
-import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.grpc.FreePOptions;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.GrpcUtils;
@@ -51,8 +50,6 @@ import alluxio.security.authorization.AclEntry;
 import alluxio.uri.Authority;
 import alluxio.wire.MountPointInfo;
 
-import com.google.protobuf.AbstractMessage;
-import com.google.protobuf.GeneratedMessageV3;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -523,18 +520,5 @@ public class BaseFileSystem implements FileSystem {
       }
     }
     return;
-  }
-
-  /**
-   * Merges given
-   * @param defaultBuilder
-   * @param options
-   * @param <T>
-   * @param <K>
-   * @return
-   */
-  private <T extends GeneratedMessageV3.Builder, K extends AbstractMessage> K mergeWithDefaults(
-      T defaultBuilder, K options) {
-    return (K) defaultBuilder.mergeFrom(options).build();
   }
 }

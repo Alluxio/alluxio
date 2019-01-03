@@ -108,7 +108,9 @@ public final class BlockLocation implements Serializable {
 
   @Override
   public String toString() {
-    return MoreObjects.toStringHelper(this).add("workerId", mWorkerId).add("address", mWorkerAddress)
+    return MoreObjects.toStringHelper(this)
+        .add("workerId", mWorkerId)
+        .add("address", mWorkerAddress)
         .add("tierAlias", mTierAlias).toString();
   }
 }

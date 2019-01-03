@@ -13,9 +13,8 @@ package alluxio.master.meta.checkconf;
 
 import alluxio.PropertyKey;
 
-import java.util.Optional;
-
 import javax.annotation.Nullable;
+import java.util.Optional;
 
 /**
  * An Alluxio configuration record.
