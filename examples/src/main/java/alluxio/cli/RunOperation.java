@@ -35,12 +35,13 @@ public class RunOperation {
   enum Operation {
     CreateFile,
     CreateEmptyFile,
-    CreateAndDeleteEmptyFile;
+    CreateAndDeleteEmptyFile,
+    ListStatus,
   }
 
   @Parameter(names = {"-op", "-operation"},
       description = "the operation to perform. Options are [CreateEmptyFile, "
-          + "CreateAndDeleteEmptyFile, CreateFile]",
+          + "CreateAndDeleteEmptyFile, CreateFile, ListDir]",
       required = true)
   private Operation mOperation;
   @Parameter(names = {"-n", "-num"},
@@ -143,6 +144,9 @@ public class RunOperation {
           try (FileOutStream file = mFileSystem.createFile(uri)) {
             file.write(mFiledata);
           }
+          break;
+        case ListStatus:
+          mFileSystem.listStatus(new AlluxioURI(mDir));
           break;
         default:
           throw new IllegalStateException("Unknown operation: " + mOperation);

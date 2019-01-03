@@ -11,9 +11,9 @@
 
 package alluxio.master.metastore;
 
-import alluxio.master.file.meta.MutableInode;
-import alluxio.master.file.meta.InodeView;
 import alluxio.master.file.meta.Inode;
+import alluxio.master.file.meta.InodeView;
+import alluxio.master.file.meta.MutableInode;
 
 import java.util.Optional;
 

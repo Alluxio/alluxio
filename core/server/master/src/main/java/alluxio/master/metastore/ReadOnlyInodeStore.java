@@ -32,10 +32,25 @@ public interface ReadOnlyInodeStore {
   Optional<Inode> get(long id);
 
   /**
+   * Returns an iterable for the ids of the children of the given directory.
+   *
+   * @param inode the inode to list child ids for
+   * @return the child ids iterable
+   */
+  Iterable<Long> getChildIds(InodeDirectoryView inode);
+
+  /**
    * @param inode an inode directory
    * @return an iterable over the children of the inode with the given id
    */
   Iterable<? extends Inode> getChildren(InodeDirectoryView inode);
+
+  /**
+   * @param inode an inode directory
+   * @param name an inode name
+   * @return the id of the child of the inode with the given name
+   */
+  Optional<Long> getChildId(InodeDirectoryView inode, String name);
 
   /**
    * @param inode an inode directory

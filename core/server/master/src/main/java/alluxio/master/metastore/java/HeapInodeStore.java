@@ -65,8 +65,18 @@ public class HeapInodeStore implements InodeStore {
   }
 
   @Override
+  public Iterable<Long> getChildIds(InodeDirectoryView dir) {
+    return StreamUtils.map(MutableInode::getId, children(dir.getId()).values());
+  }
+
+  @Override
   public Iterable<? extends Inode> getChildren(InodeDirectoryView dir) {
     return StreamUtils.map(Inode::wrap, children(dir.getId()).values());
+  }
+
+  @Override
+  public Optional<Long> getChildId(InodeDirectoryView dir, String child) {
+    return Optional.ofNullable(children(dir.getId()).get(child)).map(MutableInode::getId);
   }
 
   @Override

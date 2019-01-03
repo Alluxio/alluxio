@@ -1151,6 +1151,20 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_METASTORE_INODE_CACHE_SIZE =
+      new Builder(Name.MASTER_METASTORE_INODE_CACHE_SIZE)
+          .setDefaultValue("1000000")
+          .setDescription("The number of inodes to cache on-heap.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_METASTORE_ROCKS_IN_MEMORY =
+      new Builder(Name.MASTER_METASTORE_ROCKS_IN_MEMORY)
+          .setDefaultValue("false")
+          .setDescription("Whether the RocksDB metastore is in-memory.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.MASTER)
+          .build();
   public static final PropertyKey MASTER_METASTORE_DIR =
       new Builder(Name.MASTER_METASTORE_DIR)
           .setDefaultValue(String.format("${%s}/metastore", Name.WORK_DIR))
@@ -3556,6 +3570,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.journal.tailer.sleep.time";
     public static final String MASTER_KEYTAB_KEY_FILE = "alluxio.master.keytab.file";
     public static final String MASTER_METASTORE = "alluxio.master.metastore";
+    public static final String MASTER_METASTORE_ROCKS_IN_MEMORY =
+        "alluxio.master.metastore.rocks.in.memory";
+    public static final String MASTER_METASTORE_INODE_CACHE_SIZE =
+        "alluxio.master.metastore.inode.cache.size";
     public static final String MASTER_METASTORE_DIR = "alluxio.master.metastore.dir";
     public static final String MASTER_PERSISTENCE_CHECKER_INTERVAL_MS =
         "alluxio.master.persistence.checker.interval.ms";
