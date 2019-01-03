@@ -12,6 +12,7 @@
 package alluxio.uri;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
@@ -62,6 +63,30 @@ public class AuthorityTest {
     assertEquals("localhost:19998", authority.toString());
     assertEquals("localhost", authority.getHost());
     assertEquals(19998, authority.getPort());
+  }
+
+  @Test
+  public void multiMasterAuthorityTest() {
+    MultiMasterAuthority authority =
+        (MultiMasterAuthority) Authority.fromString("host1:19998,host2:19998,host3:19998");
+    assertEquals("host1:19998,host2:19998,host3:19998", authority.toString());
+    assertEquals("host1:19998,host2:19998,host3:19998", authority.getMasterAddresses());
+
+    authority = (MultiMasterAuthority) Authority
+         .fromString("127.0.0.1:213,127.0.0.2:532423,127.0.0.3:3213");
+    assertEquals("127.0.0.1:213,127.0.0.2:532423,127.0.0.3:3213", authority.toString());
+    assertEquals("127.0.0.1:213,127.0.0.2:532423,127.0.0.3:3213", authority.getMasterAddresses());
+
+    authority = (MultiMasterAuthority) Authority.fromString("host1:19998;host2:19998;host3:19998");
+    assertEquals("host1:19998;host2:19998;host3:19998", authority.toString());
+    assertEquals("host1:19998,host2:19998,host3:19998", authority.getMasterAddresses());
+
+    assertFalse(Authority.fromString("localhost:19998")
+        instanceof MultiMasterAuthority);
+    assertFalse(Authority.fromString("localhost:abc,127.0.0.1:dsa")
+        instanceof MultiMasterAuthority);
+    assertFalse(Authority.fromString(",,,") instanceof MultiMasterAuthority);
+    assertFalse(Authority.fromString(";;;") instanceof MultiMasterAuthority);
   }
 
   @Test
