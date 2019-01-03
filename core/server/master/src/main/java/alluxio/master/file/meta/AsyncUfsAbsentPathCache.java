@@ -236,7 +236,7 @@ public final class AsyncUfsAbsentPathCache implements UfsAbsentPathCache {
           PathUtils.concatPath(AlluxioURI.SEPARATOR, baseComponents));
       List<AlluxioURI> components = new ArrayList<>(fullComponents.length - startComponentIndex);
       for (int i = startComponentIndex; i < fullComponents.length; i++) {
-        uri = uri.join(fullComponents[i]);
+        uri = uri.joinUnsafe(fullComponents[i]);
         components.add(uri);
       }
       return components;
