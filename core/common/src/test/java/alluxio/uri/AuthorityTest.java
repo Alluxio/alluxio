@@ -12,6 +12,7 @@
 package alluxio.uri;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
@@ -80,12 +81,12 @@ public class AuthorityTest {
     assertEquals("host1:19998;host2:19998;host3:19998", authority.toString());
     assertEquals("host1:19998,host2:19998,host3:19998", authority.getMasterAddresses());
 
-    org.junit.Assert.assertFalse(Authority.fromString("localhost:19998")
+    assertFalse(Authority.fromString("localhost:19998")
         instanceof MultiMasterAuthority);
-    org.junit.Assert.assertFalse(Authority.fromString("localhost:abc,127.0.0.1:dsa")
+    assertFalse(Authority.fromString("localhost:abc,127.0.0.1:dsa")
         instanceof MultiMasterAuthority);
-    org.junit.Assert.assertFalse(Authority.fromString(",,,") instanceof MultiMasterAuthority);
-    org.junit.Assert.assertFalse(Authority.fromString(";;;") instanceof MultiMasterAuthority);
+    assertFalse(Authority.fromString(",,,") instanceof MultiMasterAuthority);
+    assertFalse(Authority.fromString(";;;") instanceof MultiMasterAuthority);
   }
 
   @Test
