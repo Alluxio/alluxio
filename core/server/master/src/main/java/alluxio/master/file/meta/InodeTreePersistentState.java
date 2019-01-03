@@ -312,7 +312,6 @@ public class InodeTreePersistentState implements JournalEntryReplayable {
     Inode inode = mInodeStore.get(id).get();
 
     mInodeStore.remove(inode);
-    mInodeStore.removeChild(inode.getParentId(), inode.getName());
     updateLastModifiedAndChildCount(inode.getParentId(), entry.getOpTimeMs(), -1);
     mPinnedInodeFileIds.remove(id);
     mReplicationLimitedFileIds.remove(id);

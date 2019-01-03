@@ -14,9 +14,9 @@ package alluxio.master.metastore.rocks;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.master.file.meta.Inode;
-import alluxio.master.file.meta.MutableInode;
 import alluxio.master.file.meta.InodeDirectoryView;
 import alluxio.master.file.meta.InodeView;
+import alluxio.master.file.meta.MutableInode;
 import alluxio.master.metastore.InodeStore;
 import alluxio.proto.meta.InodeMeta;
 import alluxio.util.io.FileUtils;
@@ -73,9 +73,7 @@ public class RocksInodeStore implements InodeStore {
     try {
       byte[] id = Longs.toByteArray(inode.getId());
       mDb.delete(mInodesColumn, id);
-      // This works because we write longs big-endian, so only the edges coming out of id (<id,
-      // "...">) are between <id, ""> (inclusive) and <id+1, ""> (exclusive).
-      mDb.deleteRange(mEdgesColumn, id, Longs.toByteArray(inode.getId() + 1));
+      removeChild(inode.getParentId(), inode.getName());
     } catch (RocksDBException e) {
       throw new RuntimeException(e);
     }
