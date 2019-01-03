@@ -210,17 +210,11 @@ public class InodeTreePersistentState implements JournalEntryReplayable {
    *
    * @param context journal context supplier
    * @param entry rename entry
-   * @return whether the inode was successfully renamed. Returns false if another inode was
-   *         concurrently added with the same name. On false return, no state is changed,
-   *         and no journal entry is written
    */
-  public boolean applyAndJournal(Supplier<JournalContext> context, RenameEntry entry) {
+  public void applyAndJournal(Supplier<JournalContext> context, RenameEntry entry) {
     try {
-      if (applyRename(entry)) {
-        context.get().append(JournalEntry.newBuilder().setRename(entry).build());
-        return true;
-      }
-      return false;
+      applyRename(entry);
+      context.get().append(JournalEntry.newBuilder().setRename(entry).build());
     } catch (Throwable t) {
       ProcessUtils.fatalError(LOG, t, "Failed to apply %s", entry);
       throw t; // fatalError will usually system.exit
@@ -319,7 +313,7 @@ public class InodeTreePersistentState implements JournalEntryReplayable {
 
     mInodeStore.remove(inode);
     mInodeStore.removeChild(inode.getParentId(), inode.getName());
-    updateLastModified(inode.getParentId(), entry.getOpTimeMs());
+    updateLastModifiedAndChildCount(inode.getParentId(), entry.getOpTimeMs(), -1);
     mPinnedInodeFileIds.remove(id);
     mReplicationLimitedFileIds.remove(id);
 
@@ -360,7 +354,7 @@ public class InodeTreePersistentState implements JournalEntryReplayable {
     if (entry.hasDstPath()) {
       entry = rewriteDeprecatedRenameEntry(entry);
     }
-    Preconditions.checkState(applyRename(entry));
+    applyRename(entry);
   }
 
   private void apply(SetAclEntry entry) {
@@ -542,6 +536,8 @@ public class InodeTreePersistentState implements JournalEntryReplayable {
     // becomes visible at this point.
     mInodeStore.writeInode(inode);
     mInodeStore.addChild(inode.getParentId(), inode);
+    // Only update size, last modified time is updated separately.
+    updateLastModifiedAndChildCount(inode.getParentId(), Long.MIN_VALUE, 1);
     if (inode.isFile()) {
       MutableInodeFile file = inode.asFile();
       if (file.getReplicationMin() > 0) {
@@ -560,26 +556,49 @@ public class InodeTreePersistentState implements JournalEntryReplayable {
     mTtlBuckets.insert(Inode.wrap(inode));
   }
 
-  private boolean applyRename(RenameEntry entry) {
+  private void applyRename(RenameEntry entry) {
     MutableInode<?> inode = mInodeStore.getMutable(entry.getId()).get();
     long oldParent = inode.getParentId();
     long newParent = entry.getNewParentId();
-    mInodeStore.removeChild(oldParent, inode.getName());
 
+    mInodeStore.removeChild(oldParent, inode.getName());
     inode.setName(entry.getNewName());
     mInodeStore.addChild(newParent, inode);
     inode.setParentId(newParent);
     mInodeStore.writeInode(inode);
-    updateLastModified(oldParent, entry.getOpTimeMs());
-    updateLastModified(newParent, entry.getOpTimeMs());
-    return true;
+
+    if (oldParent == newParent) {
+      updateLastModifiedAndChildCount(oldParent, entry.getOpTimeMs(), 0);
+    } else {
+      updateLastModifiedAndChildCount(oldParent, entry.getOpTimeMs(), -1);
+      updateLastModifiedAndChildCount(newParent, entry.getOpTimeMs(), 1);
+    }
   }
 
-  private void updateLastModified(long id, long opTimeMs) {
-    try (LockResource lr = mInodeLockManager.lockLastModified(id)) {
-      MutableInode<?> inode = mInodeStore.getMutable(id).get();
+  /**
+   * Updates the last modified time (LMT) for the indicated inode directory, and updates its child
+   * count.
+   *
+   * If the inode's LMT is already greater than the specified time, the inode's LMT will not be
+   * changed.
+   *
+   * @param id the inode to update
+   * @param opTimeMs the time of the operation that modified the inode
+   * @param deltaChildCount the change in inode directory child count
+   */
+  private void updateLastModifiedAndChildCount(long id, long opTimeMs, long deltaChildCount) {
+    try (LockResource lr = mInodeLockManager.lockUpdate(id)) {
+      MutableInodeDirectory inode = mInodeStore.getMutable(id).get().asDirectory();
+      boolean madeUpdate = false;
       if (inode.getLastModificationTimeMs() < opTimeMs) {
         inode.setLastModificationTimeMs(opTimeMs);
+        madeUpdate = true;
+      }
+      if (deltaChildCount != 0) {
+        inode.setChildCount(inode.getChildCount() + deltaChildCount);
+        madeUpdate = true;
+      }
+      if (madeUpdate) {
         mInodeStore.writeInode(inode);
       }
     }

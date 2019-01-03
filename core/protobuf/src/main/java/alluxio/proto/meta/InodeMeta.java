@@ -178,6 +178,16 @@ public final class InodeMeta {
      */
     boolean getHasDirectChildrenLoaded();
 
+    // optional int64 child_count = 26;
+    /**
+     * <code>optional int64 child_count = 26;</code>
+     */
+    boolean hasChildCount();
+    /**
+     * <code>optional int64 child_count = 26;</code>
+     */
+    long getChildCount();
+
     // optional .alluxio.proto.shared.AccessControlList default_acl = 14;
     /**
      * <code>optional .alluxio.proto.shared.AccessControlList default_acl = 14;</code>
@@ -325,7 +335,7 @@ public final class InodeMeta {
    * General inode metadata. This includes most inode metadata, but does not include the inode's
    * children or time of last modification.
    *
-   * next available id: 26
+   * next available id: 27
    * </pre>
    */
   public static final class Inode extends
@@ -457,7 +467,7 @@ public final class InodeMeta {
             }
             case 114: {
               alluxio.proto.shared.Acl.AccessControlList.Builder subBuilder = null;
-              if (((bitField0_ & 0x00004000) == 0x00004000)) {
+              if (((bitField0_ & 0x00008000) == 0x00008000)) {
                 subBuilder = defaultAcl_.toBuilder();
               }
               defaultAcl_ = input.readMessage(alluxio.proto.shared.Acl.AccessControlList.PARSER, extensionRegistry);
@@ -465,18 +475,18 @@ public final class InodeMeta {
                 subBuilder.mergeFrom(defaultAcl_);
                 defaultAcl_ = subBuilder.buildPartial();
               }
-              bitField0_ |= 0x00004000;
+              bitField0_ |= 0x00008000;
               break;
             }
             case 120: {
-              bitField0_ |= 0x00008000;
+              bitField0_ |= 0x00010000;
               blockSizeBytes_ = input.readInt64();
               break;
             }
             case 128: {
-              if (!((mutable_bitField0_ & 0x00010000) == 0x00010000)) {
+              if (!((mutable_bitField0_ & 0x00020000) == 0x00020000)) {
                 blocks_ = new java.util.ArrayList<java.lang.Long>();
-                mutable_bitField0_ |= 0x00010000;
+                mutable_bitField0_ |= 0x00020000;
               }
               blocks_.add(input.readInt64());
               break;
@@ -484,9 +494,9 @@ public final class InodeMeta {
             case 130: {
               int length = input.readRawVarint32();
               int limit = input.pushLimit(length);
-              if (!((mutable_bitField0_ & 0x00010000) == 0x00010000) && input.getBytesUntilLimit() > 0) {
+              if (!((mutable_bitField0_ & 0x00020000) == 0x00020000) && input.getBytesUntilLimit() > 0) {
                 blocks_ = new java.util.ArrayList<java.lang.Long>();
-                mutable_bitField0_ |= 0x00010000;
+                mutable_bitField0_ |= 0x00020000;
               }
               while (input.getBytesUntilLimit() > 0) {
                 blocks_.add(input.readInt64());
@@ -495,48 +505,53 @@ public final class InodeMeta {
               break;
             }
             case 136: {
-              bitField0_ |= 0x00010000;
+              bitField0_ |= 0x00020000;
               isCacheable_ = input.readBool();
               break;
             }
             case 144: {
-              bitField0_ |= 0x00020000;
+              bitField0_ |= 0x00040000;
               isCompleted_ = input.readBool();
               break;
             }
             case 152: {
-              bitField0_ |= 0x00040000;
+              bitField0_ |= 0x00080000;
               length_ = input.readInt64();
               break;
             }
             case 160: {
-              bitField0_ |= 0x00080000;
+              bitField0_ |= 0x00100000;
               replicationDurable_ = input.readInt32();
               break;
             }
             case 168: {
-              bitField0_ |= 0x00100000;
+              bitField0_ |= 0x00200000;
               replicationMax_ = input.readInt32();
               break;
             }
             case 176: {
-              bitField0_ |= 0x00200000;
+              bitField0_ |= 0x00400000;
               replicationMin_ = input.readInt32();
               break;
             }
             case 184: {
-              bitField0_ |= 0x00400000;
+              bitField0_ |= 0x00800000;
               persistJobId_ = input.readInt64();
               break;
             }
             case 194: {
-              bitField0_ |= 0x00800000;
+              bitField0_ |= 0x01000000;
               persistJobTempUfsPath_ = input.readBytes();
               break;
             }
             case 200: {
               bitField0_ |= 0x00000020;
               lastModifiedMs_ = input.readInt64();
+              break;
+            }
+            case 208: {
+              bitField0_ |= 0x00004000;
+              childCount_ = input.readInt64();
               break;
             }
           }
@@ -547,7 +562,7 @@ public final class InodeMeta {
         throw new com.google.protobuf.InvalidProtocolBufferException(
             e.getMessage()).setUnfinishedMessage(this);
       } finally {
-        if (((mutable_bitField0_ & 0x00010000) == 0x00010000)) {
+        if (((mutable_bitField0_ & 0x00020000) == 0x00020000)) {
           blocks_ = java.util.Collections.unmodifiableList(blocks_);
         }
         this.unknownFields = unknownFields.build();
@@ -901,6 +916,22 @@ public final class InodeMeta {
       return hasDirectChildrenLoaded_;
     }
 
+    // optional int64 child_count = 26;
+    public static final int CHILD_COUNT_FIELD_NUMBER = 26;
+    private long childCount_;
+    /**
+     * <code>optional int64 child_count = 26;</code>
+     */
+    public boolean hasChildCount() {
+      return ((bitField0_ & 0x00004000) == 0x00004000);
+    }
+    /**
+     * <code>optional int64 child_count = 26;</code>
+     */
+    public long getChildCount() {
+      return childCount_;
+    }
+
     // optional .alluxio.proto.shared.AccessControlList default_acl = 14;
     public static final int DEFAULT_ACL_FIELD_NUMBER = 14;
     private alluxio.proto.shared.Acl.AccessControlList defaultAcl_;
@@ -908,7 +939,7 @@ public final class InodeMeta {
      * <code>optional .alluxio.proto.shared.AccessControlList default_acl = 14;</code>
      */
     public boolean hasDefaultAcl() {
-      return ((bitField0_ & 0x00004000) == 0x00004000);
+      return ((bitField0_ & 0x00008000) == 0x00008000);
     }
     /**
      * <code>optional .alluxio.proto.shared.AccessControlList default_acl = 14;</code>
@@ -934,7 +965,7 @@ public final class InodeMeta {
      * </pre>
      */
     public boolean hasBlockSizeBytes() {
-      return ((bitField0_ & 0x00008000) == 0x00008000);
+      return ((bitField0_ & 0x00010000) == 0x00010000);
     }
     /**
      * <code>optional int64 block_size_bytes = 15;</code>
@@ -977,7 +1008,7 @@ public final class InodeMeta {
      * <code>optional bool is_cacheable = 17;</code>
      */
     public boolean hasIsCacheable() {
-      return ((bitField0_ & 0x00010000) == 0x00010000);
+      return ((bitField0_ & 0x00020000) == 0x00020000);
     }
     /**
      * <code>optional bool is_cacheable = 17;</code>
@@ -993,7 +1024,7 @@ public final class InodeMeta {
      * <code>optional bool is_completed = 18;</code>
      */
     public boolean hasIsCompleted() {
-      return ((bitField0_ & 0x00020000) == 0x00020000);
+      return ((bitField0_ & 0x00040000) == 0x00040000);
     }
     /**
      * <code>optional bool is_completed = 18;</code>
@@ -1009,7 +1040,7 @@ public final class InodeMeta {
      * <code>optional int64 length = 19;</code>
      */
     public boolean hasLength() {
-      return ((bitField0_ & 0x00040000) == 0x00040000);
+      return ((bitField0_ & 0x00080000) == 0x00080000);
     }
     /**
      * <code>optional int64 length = 19;</code>
@@ -1025,7 +1056,7 @@ public final class InodeMeta {
      * <code>optional int32 replication_durable = 20;</code>
      */
     public boolean hasReplicationDurable() {
-      return ((bitField0_ & 0x00080000) == 0x00080000);
+      return ((bitField0_ & 0x00100000) == 0x00100000);
     }
     /**
      * <code>optional int32 replication_durable = 20;</code>
@@ -1041,7 +1072,7 @@ public final class InodeMeta {
      * <code>optional int32 replication_max = 21;</code>
      */
     public boolean hasReplicationMax() {
-      return ((bitField0_ & 0x00100000) == 0x00100000);
+      return ((bitField0_ & 0x00200000) == 0x00200000);
     }
     /**
      * <code>optional int32 replication_max = 21;</code>
@@ -1057,7 +1088,7 @@ public final class InodeMeta {
      * <code>optional int32 replication_min = 22;</code>
      */
     public boolean hasReplicationMin() {
-      return ((bitField0_ & 0x00200000) == 0x00200000);
+      return ((bitField0_ & 0x00400000) == 0x00400000);
     }
     /**
      * <code>optional int32 replication_min = 22;</code>
@@ -1077,7 +1108,7 @@ public final class InodeMeta {
      * </pre>
      */
     public boolean hasPersistJobId() {
-      return ((bitField0_ & 0x00400000) == 0x00400000);
+      return ((bitField0_ & 0x00800000) == 0x00800000);
     }
     /**
      * <code>optional int64 persist_job_id = 23;</code>
@@ -1097,7 +1128,7 @@ public final class InodeMeta {
      * <code>optional string persist_job_temp_ufs_path = 24;</code>
      */
     public boolean hasPersistJobTempUfsPath() {
-      return ((bitField0_ & 0x00800000) == 0x00800000);
+      return ((bitField0_ & 0x01000000) == 0x01000000);
     }
     /**
      * <code>optional string persist_job_temp_ufs_path = 24;</code>
@@ -1148,6 +1179,7 @@ public final class InodeMeta {
       ufsFingerprint_ = "";
       isMountPoint_ = false;
       hasDirectChildrenLoaded_ = false;
+      childCount_ = 0L;
       defaultAcl_ = alluxio.proto.shared.Acl.AccessControlList.getDefaultInstance();
       blockSizeBytes_ = 0L;
       blocks_ = java.util.Collections.emptyList();
@@ -1211,41 +1243,44 @@ public final class InodeMeta {
       if (((bitField0_ & 0x00002000) == 0x00002000)) {
         output.writeBool(13, hasDirectChildrenLoaded_);
       }
-      if (((bitField0_ & 0x00004000) == 0x00004000)) {
+      if (((bitField0_ & 0x00008000) == 0x00008000)) {
         output.writeMessage(14, defaultAcl_);
       }
-      if (((bitField0_ & 0x00008000) == 0x00008000)) {
+      if (((bitField0_ & 0x00010000) == 0x00010000)) {
         output.writeInt64(15, blockSizeBytes_);
       }
       for (int i = 0; i < blocks_.size(); i++) {
         output.writeInt64(16, blocks_.get(i));
       }
-      if (((bitField0_ & 0x00010000) == 0x00010000)) {
+      if (((bitField0_ & 0x00020000) == 0x00020000)) {
         output.writeBool(17, isCacheable_);
       }
-      if (((bitField0_ & 0x00020000) == 0x00020000)) {
+      if (((bitField0_ & 0x00040000) == 0x00040000)) {
         output.writeBool(18, isCompleted_);
       }
-      if (((bitField0_ & 0x00040000) == 0x00040000)) {
+      if (((bitField0_ & 0x00080000) == 0x00080000)) {
         output.writeInt64(19, length_);
       }
-      if (((bitField0_ & 0x00080000) == 0x00080000)) {
+      if (((bitField0_ & 0x00100000) == 0x00100000)) {
         output.writeInt32(20, replicationDurable_);
       }
-      if (((bitField0_ & 0x00100000) == 0x00100000)) {
+      if (((bitField0_ & 0x00200000) == 0x00200000)) {
         output.writeInt32(21, replicationMax_);
       }
-      if (((bitField0_ & 0x00200000) == 0x00200000)) {
+      if (((bitField0_ & 0x00400000) == 0x00400000)) {
         output.writeInt32(22, replicationMin_);
       }
-      if (((bitField0_ & 0x00400000) == 0x00400000)) {
+      if (((bitField0_ & 0x00800000) == 0x00800000)) {
         output.writeInt64(23, persistJobId_);
       }
-      if (((bitField0_ & 0x00800000) == 0x00800000)) {
+      if (((bitField0_ & 0x01000000) == 0x01000000)) {
         output.writeBytes(24, getPersistJobTempUfsPathBytes());
       }
       if (((bitField0_ & 0x00000020) == 0x00000020)) {
         output.writeInt64(25, lastModifiedMs_);
+      }
+      if (((bitField0_ & 0x00004000) == 0x00004000)) {
+        output.writeInt64(26, childCount_);
       }
       getUnknownFields().writeTo(output);
     }
@@ -1308,11 +1343,11 @@ public final class InodeMeta {
         size += com.google.protobuf.CodedOutputStream
           .computeBoolSize(13, hasDirectChildrenLoaded_);
       }
-      if (((bitField0_ & 0x00004000) == 0x00004000)) {
+      if (((bitField0_ & 0x00008000) == 0x00008000)) {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(14, defaultAcl_);
       }
-      if (((bitField0_ & 0x00008000) == 0x00008000)) {
+      if (((bitField0_ & 0x00010000) == 0x00010000)) {
         size += com.google.protobuf.CodedOutputStream
           .computeInt64Size(15, blockSizeBytes_);
       }
@@ -1325,41 +1360,45 @@ public final class InodeMeta {
         size += dataSize;
         size += 2 * getBlocksList().size();
       }
-      if (((bitField0_ & 0x00010000) == 0x00010000)) {
+      if (((bitField0_ & 0x00020000) == 0x00020000)) {
         size += com.google.protobuf.CodedOutputStream
           .computeBoolSize(17, isCacheable_);
       }
-      if (((bitField0_ & 0x00020000) == 0x00020000)) {
+      if (((bitField0_ & 0x00040000) == 0x00040000)) {
         size += com.google.protobuf.CodedOutputStream
           .computeBoolSize(18, isCompleted_);
       }
-      if (((bitField0_ & 0x00040000) == 0x00040000)) {
+      if (((bitField0_ & 0x00080000) == 0x00080000)) {
         size += com.google.protobuf.CodedOutputStream
           .computeInt64Size(19, length_);
       }
-      if (((bitField0_ & 0x00080000) == 0x00080000)) {
+      if (((bitField0_ & 0x00100000) == 0x00100000)) {
         size += com.google.protobuf.CodedOutputStream
           .computeInt32Size(20, replicationDurable_);
       }
-      if (((bitField0_ & 0x00100000) == 0x00100000)) {
+      if (((bitField0_ & 0x00200000) == 0x00200000)) {
         size += com.google.protobuf.CodedOutputStream
           .computeInt32Size(21, replicationMax_);
       }
-      if (((bitField0_ & 0x00200000) == 0x00200000)) {
+      if (((bitField0_ & 0x00400000) == 0x00400000)) {
         size += com.google.protobuf.CodedOutputStream
           .computeInt32Size(22, replicationMin_);
       }
-      if (((bitField0_ & 0x00400000) == 0x00400000)) {
+      if (((bitField0_ & 0x00800000) == 0x00800000)) {
         size += com.google.protobuf.CodedOutputStream
           .computeInt64Size(23, persistJobId_);
       }
-      if (((bitField0_ & 0x00800000) == 0x00800000)) {
+      if (((bitField0_ & 0x01000000) == 0x01000000)) {
         size += com.google.protobuf.CodedOutputStream
           .computeBytesSize(24, getPersistJobTempUfsPathBytes());
       }
       if (((bitField0_ & 0x00000020) == 0x00000020)) {
         size += com.google.protobuf.CodedOutputStream
           .computeInt64Size(25, lastModifiedMs_);
+      }
+      if (((bitField0_ & 0x00004000) == 0x00004000)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(26, childCount_);
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
@@ -1447,7 +1486,7 @@ public final class InodeMeta {
      * General inode metadata. This includes most inode metadata, but does not include the inode's
      * children or time of last modification.
      *
-     * next available id: 26
+     * next available id: 27
      * </pre>
      */
     public static final class Builder extends
@@ -1519,32 +1558,34 @@ public final class InodeMeta {
         bitField0_ = (bitField0_ & ~0x00001000);
         hasDirectChildrenLoaded_ = false;
         bitField0_ = (bitField0_ & ~0x00002000);
+        childCount_ = 0L;
+        bitField0_ = (bitField0_ & ~0x00004000);
         if (defaultAclBuilder_ == null) {
           defaultAcl_ = alluxio.proto.shared.Acl.AccessControlList.getDefaultInstance();
         } else {
           defaultAclBuilder_.clear();
         }
-        bitField0_ = (bitField0_ & ~0x00004000);
-        blockSizeBytes_ = 0L;
         bitField0_ = (bitField0_ & ~0x00008000);
-        blocks_ = java.util.Collections.emptyList();
+        blockSizeBytes_ = 0L;
         bitField0_ = (bitField0_ & ~0x00010000);
-        isCacheable_ = false;
+        blocks_ = java.util.Collections.emptyList();
         bitField0_ = (bitField0_ & ~0x00020000);
-        isCompleted_ = false;
+        isCacheable_ = false;
         bitField0_ = (bitField0_ & ~0x00040000);
-        length_ = 0L;
+        isCompleted_ = false;
         bitField0_ = (bitField0_ & ~0x00080000);
-        replicationDurable_ = 0;
+        length_ = 0L;
         bitField0_ = (bitField0_ & ~0x00100000);
-        replicationMax_ = 0;
+        replicationDurable_ = 0;
         bitField0_ = (bitField0_ & ~0x00200000);
-        replicationMin_ = 0;
+        replicationMax_ = 0;
         bitField0_ = (bitField0_ & ~0x00400000);
-        persistJobId_ = 0L;
+        replicationMin_ = 0;
         bitField0_ = (bitField0_ & ~0x00800000);
-        persistJobTempUfsPath_ = "";
+        persistJobId_ = 0L;
         bitField0_ = (bitField0_ & ~0x01000000);
+        persistJobTempUfsPath_ = "";
+        bitField0_ = (bitField0_ & ~0x02000000);
         return this;
       }
 
@@ -1636,50 +1677,54 @@ public final class InodeMeta {
         if (((from_bitField0_ & 0x00004000) == 0x00004000)) {
           to_bitField0_ |= 0x00004000;
         }
+        result.childCount_ = childCount_;
+        if (((from_bitField0_ & 0x00008000) == 0x00008000)) {
+          to_bitField0_ |= 0x00008000;
+        }
         if (defaultAclBuilder_ == null) {
           result.defaultAcl_ = defaultAcl_;
         } else {
           result.defaultAcl_ = defaultAclBuilder_.build();
         }
-        if (((from_bitField0_ & 0x00008000) == 0x00008000)) {
-          to_bitField0_ |= 0x00008000;
-        }
-        result.blockSizeBytes_ = blockSizeBytes_;
-        if (((bitField0_ & 0x00010000) == 0x00010000)) {
-          blocks_ = java.util.Collections.unmodifiableList(blocks_);
-          bitField0_ = (bitField0_ & ~0x00010000);
-        }
-        result.blocks_ = blocks_;
-        if (((from_bitField0_ & 0x00020000) == 0x00020000)) {
+        if (((from_bitField0_ & 0x00010000) == 0x00010000)) {
           to_bitField0_ |= 0x00010000;
         }
-        result.isCacheable_ = isCacheable_;
+        result.blockSizeBytes_ = blockSizeBytes_;
+        if (((bitField0_ & 0x00020000) == 0x00020000)) {
+          blocks_ = java.util.Collections.unmodifiableList(blocks_);
+          bitField0_ = (bitField0_ & ~0x00020000);
+        }
+        result.blocks_ = blocks_;
         if (((from_bitField0_ & 0x00040000) == 0x00040000)) {
           to_bitField0_ |= 0x00020000;
         }
-        result.isCompleted_ = isCompleted_;
+        result.isCacheable_ = isCacheable_;
         if (((from_bitField0_ & 0x00080000) == 0x00080000)) {
           to_bitField0_ |= 0x00040000;
         }
-        result.length_ = length_;
+        result.isCompleted_ = isCompleted_;
         if (((from_bitField0_ & 0x00100000) == 0x00100000)) {
           to_bitField0_ |= 0x00080000;
         }
-        result.replicationDurable_ = replicationDurable_;
+        result.length_ = length_;
         if (((from_bitField0_ & 0x00200000) == 0x00200000)) {
           to_bitField0_ |= 0x00100000;
         }
-        result.replicationMax_ = replicationMax_;
+        result.replicationDurable_ = replicationDurable_;
         if (((from_bitField0_ & 0x00400000) == 0x00400000)) {
           to_bitField0_ |= 0x00200000;
         }
-        result.replicationMin_ = replicationMin_;
+        result.replicationMax_ = replicationMax_;
         if (((from_bitField0_ & 0x00800000) == 0x00800000)) {
           to_bitField0_ |= 0x00400000;
         }
-        result.persistJobId_ = persistJobId_;
+        result.replicationMin_ = replicationMin_;
         if (((from_bitField0_ & 0x01000000) == 0x01000000)) {
           to_bitField0_ |= 0x00800000;
+        }
+        result.persistJobId_ = persistJobId_;
+        if (((from_bitField0_ & 0x02000000) == 0x02000000)) {
+          to_bitField0_ |= 0x01000000;
         }
         result.persistJobTempUfsPath_ = persistJobTempUfsPath_;
         result.bitField0_ = to_bitField0_;
@@ -1746,6 +1791,9 @@ public final class InodeMeta {
         if (other.hasHasDirectChildrenLoaded()) {
           setHasDirectChildrenLoaded(other.getHasDirectChildrenLoaded());
         }
+        if (other.hasChildCount()) {
+          setChildCount(other.getChildCount());
+        }
         if (other.hasDefaultAcl()) {
           mergeDefaultAcl(other.getDefaultAcl());
         }
@@ -1755,7 +1803,7 @@ public final class InodeMeta {
         if (!other.blocks_.isEmpty()) {
           if (blocks_.isEmpty()) {
             blocks_ = other.blocks_;
-            bitField0_ = (bitField0_ & ~0x00010000);
+            bitField0_ = (bitField0_ & ~0x00020000);
           } else {
             ensureBlocksIsMutable();
             blocks_.addAll(other.blocks_);
@@ -1784,7 +1832,7 @@ public final class InodeMeta {
           setPersistJobId(other.getPersistJobId());
         }
         if (other.hasPersistJobTempUfsPath()) {
-          bitField0_ |= 0x01000000;
+          bitField0_ |= 0x02000000;
           persistJobTempUfsPath_ = other.persistJobTempUfsPath_;
           onChanged();
         }
@@ -2503,6 +2551,39 @@ public final class InodeMeta {
         return this;
       }
 
+      // optional int64 child_count = 26;
+      private long childCount_ ;
+      /**
+       * <code>optional int64 child_count = 26;</code>
+       */
+      public boolean hasChildCount() {
+        return ((bitField0_ & 0x00004000) == 0x00004000);
+      }
+      /**
+       * <code>optional int64 child_count = 26;</code>
+       */
+      public long getChildCount() {
+        return childCount_;
+      }
+      /**
+       * <code>optional int64 child_count = 26;</code>
+       */
+      public Builder setChildCount(long value) {
+        bitField0_ |= 0x00004000;
+        childCount_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional int64 child_count = 26;</code>
+       */
+      public Builder clearChildCount() {
+        bitField0_ = (bitField0_ & ~0x00004000);
+        childCount_ = 0L;
+        onChanged();
+        return this;
+      }
+
       // optional .alluxio.proto.shared.AccessControlList default_acl = 14;
       private alluxio.proto.shared.Acl.AccessControlList defaultAcl_ = alluxio.proto.shared.Acl.AccessControlList.getDefaultInstance();
       private com.google.protobuf.SingleFieldBuilder<
@@ -2511,7 +2592,7 @@ public final class InodeMeta {
        * <code>optional .alluxio.proto.shared.AccessControlList default_acl = 14;</code>
        */
       public boolean hasDefaultAcl() {
-        return ((bitField0_ & 0x00004000) == 0x00004000);
+        return ((bitField0_ & 0x00008000) == 0x00008000);
       }
       /**
        * <code>optional .alluxio.proto.shared.AccessControlList default_acl = 14;</code>
@@ -2536,7 +2617,7 @@ public final class InodeMeta {
         } else {
           defaultAclBuilder_.setMessage(value);
         }
-        bitField0_ |= 0x00004000;
+        bitField0_ |= 0x00008000;
         return this;
       }
       /**
@@ -2550,7 +2631,7 @@ public final class InodeMeta {
         } else {
           defaultAclBuilder_.setMessage(builderForValue.build());
         }
-        bitField0_ |= 0x00004000;
+        bitField0_ |= 0x00008000;
         return this;
       }
       /**
@@ -2558,7 +2639,7 @@ public final class InodeMeta {
        */
       public Builder mergeDefaultAcl(alluxio.proto.shared.Acl.AccessControlList value) {
         if (defaultAclBuilder_ == null) {
-          if (((bitField0_ & 0x00004000) == 0x00004000) &&
+          if (((bitField0_ & 0x00008000) == 0x00008000) &&
               defaultAcl_ != alluxio.proto.shared.Acl.AccessControlList.getDefaultInstance()) {
             defaultAcl_ =
               alluxio.proto.shared.Acl.AccessControlList.newBuilder(defaultAcl_).mergeFrom(value).buildPartial();
@@ -2569,7 +2650,7 @@ public final class InodeMeta {
         } else {
           defaultAclBuilder_.mergeFrom(value);
         }
-        bitField0_ |= 0x00004000;
+        bitField0_ |= 0x00008000;
         return this;
       }
       /**
@@ -2582,14 +2663,14 @@ public final class InodeMeta {
         } else {
           defaultAclBuilder_.clear();
         }
-        bitField0_ = (bitField0_ & ~0x00004000);
+        bitField0_ = (bitField0_ & ~0x00008000);
         return this;
       }
       /**
        * <code>optional .alluxio.proto.shared.AccessControlList default_acl = 14;</code>
        */
       public alluxio.proto.shared.Acl.AccessControlList.Builder getDefaultAclBuilder() {
-        bitField0_ |= 0x00004000;
+        bitField0_ |= 0x00008000;
         onChanged();
         return getDefaultAclFieldBuilder().getBuilder();
       }
@@ -2630,7 +2711,7 @@ public final class InodeMeta {
        * </pre>
        */
       public boolean hasBlockSizeBytes() {
-        return ((bitField0_ & 0x00008000) == 0x00008000);
+        return ((bitField0_ & 0x00010000) == 0x00010000);
       }
       /**
        * <code>optional int64 block_size_bytes = 15;</code>
@@ -2650,7 +2731,7 @@ public final class InodeMeta {
        * </pre>
        */
       public Builder setBlockSizeBytes(long value) {
-        bitField0_ |= 0x00008000;
+        bitField0_ |= 0x00010000;
         blockSizeBytes_ = value;
         onChanged();
         return this;
@@ -2663,7 +2744,7 @@ public final class InodeMeta {
        * </pre>
        */
       public Builder clearBlockSizeBytes() {
-        bitField0_ = (bitField0_ & ~0x00008000);
+        bitField0_ = (bitField0_ & ~0x00010000);
         blockSizeBytes_ = 0L;
         onChanged();
         return this;
@@ -2672,9 +2753,9 @@ public final class InodeMeta {
       // repeated int64 blocks = 16;
       private java.util.List<java.lang.Long> blocks_ = java.util.Collections.emptyList();
       private void ensureBlocksIsMutable() {
-        if (!((bitField0_ & 0x00010000) == 0x00010000)) {
+        if (!((bitField0_ & 0x00020000) == 0x00020000)) {
           blocks_ = new java.util.ArrayList<java.lang.Long>(blocks_);
-          bitField0_ |= 0x00010000;
+          bitField0_ |= 0x00020000;
          }
       }
       /**
@@ -2730,7 +2811,7 @@ public final class InodeMeta {
        */
       public Builder clearBlocks() {
         blocks_ = java.util.Collections.emptyList();
-        bitField0_ = (bitField0_ & ~0x00010000);
+        bitField0_ = (bitField0_ & ~0x00020000);
         onChanged();
         return this;
       }
@@ -2741,7 +2822,7 @@ public final class InodeMeta {
        * <code>optional bool is_cacheable = 17;</code>
        */
       public boolean hasIsCacheable() {
-        return ((bitField0_ & 0x00020000) == 0x00020000);
+        return ((bitField0_ & 0x00040000) == 0x00040000);
       }
       /**
        * <code>optional bool is_cacheable = 17;</code>
@@ -2753,7 +2834,7 @@ public final class InodeMeta {
        * <code>optional bool is_cacheable = 17;</code>
        */
       public Builder setIsCacheable(boolean value) {
-        bitField0_ |= 0x00020000;
+        bitField0_ |= 0x00040000;
         isCacheable_ = value;
         onChanged();
         return this;
@@ -2762,7 +2843,7 @@ public final class InodeMeta {
        * <code>optional bool is_cacheable = 17;</code>
        */
       public Builder clearIsCacheable() {
-        bitField0_ = (bitField0_ & ~0x00020000);
+        bitField0_ = (bitField0_ & ~0x00040000);
         isCacheable_ = false;
         onChanged();
         return this;
@@ -2774,7 +2855,7 @@ public final class InodeMeta {
        * <code>optional bool is_completed = 18;</code>
        */
       public boolean hasIsCompleted() {
-        return ((bitField0_ & 0x00040000) == 0x00040000);
+        return ((bitField0_ & 0x00080000) == 0x00080000);
       }
       /**
        * <code>optional bool is_completed = 18;</code>
@@ -2786,7 +2867,7 @@ public final class InodeMeta {
        * <code>optional bool is_completed = 18;</code>
        */
       public Builder setIsCompleted(boolean value) {
-        bitField0_ |= 0x00040000;
+        bitField0_ |= 0x00080000;
         isCompleted_ = value;
         onChanged();
         return this;
@@ -2795,7 +2876,7 @@ public final class InodeMeta {
        * <code>optional bool is_completed = 18;</code>
        */
       public Builder clearIsCompleted() {
-        bitField0_ = (bitField0_ & ~0x00040000);
+        bitField0_ = (bitField0_ & ~0x00080000);
         isCompleted_ = false;
         onChanged();
         return this;
@@ -2807,7 +2888,7 @@ public final class InodeMeta {
        * <code>optional int64 length = 19;</code>
        */
       public boolean hasLength() {
-        return ((bitField0_ & 0x00080000) == 0x00080000);
+        return ((bitField0_ & 0x00100000) == 0x00100000);
       }
       /**
        * <code>optional int64 length = 19;</code>
@@ -2819,7 +2900,7 @@ public final class InodeMeta {
        * <code>optional int64 length = 19;</code>
        */
       public Builder setLength(long value) {
-        bitField0_ |= 0x00080000;
+        bitField0_ |= 0x00100000;
         length_ = value;
         onChanged();
         return this;
@@ -2828,7 +2909,7 @@ public final class InodeMeta {
        * <code>optional int64 length = 19;</code>
        */
       public Builder clearLength() {
-        bitField0_ = (bitField0_ & ~0x00080000);
+        bitField0_ = (bitField0_ & ~0x00100000);
         length_ = 0L;
         onChanged();
         return this;
@@ -2840,7 +2921,7 @@ public final class InodeMeta {
        * <code>optional int32 replication_durable = 20;</code>
        */
       public boolean hasReplicationDurable() {
-        return ((bitField0_ & 0x00100000) == 0x00100000);
+        return ((bitField0_ & 0x00200000) == 0x00200000);
       }
       /**
        * <code>optional int32 replication_durable = 20;</code>
@@ -2852,7 +2933,7 @@ public final class InodeMeta {
        * <code>optional int32 replication_durable = 20;</code>
        */
       public Builder setReplicationDurable(int value) {
-        bitField0_ |= 0x00100000;
+        bitField0_ |= 0x00200000;
         replicationDurable_ = value;
         onChanged();
         return this;
@@ -2861,7 +2942,7 @@ public final class InodeMeta {
        * <code>optional int32 replication_durable = 20;</code>
        */
       public Builder clearReplicationDurable() {
-        bitField0_ = (bitField0_ & ~0x00100000);
+        bitField0_ = (bitField0_ & ~0x00200000);
         replicationDurable_ = 0;
         onChanged();
         return this;
@@ -2873,7 +2954,7 @@ public final class InodeMeta {
        * <code>optional int32 replication_max = 21;</code>
        */
       public boolean hasReplicationMax() {
-        return ((bitField0_ & 0x00200000) == 0x00200000);
+        return ((bitField0_ & 0x00400000) == 0x00400000);
       }
       /**
        * <code>optional int32 replication_max = 21;</code>
@@ -2885,7 +2966,7 @@ public final class InodeMeta {
        * <code>optional int32 replication_max = 21;</code>
        */
       public Builder setReplicationMax(int value) {
-        bitField0_ |= 0x00200000;
+        bitField0_ |= 0x00400000;
         replicationMax_ = value;
         onChanged();
         return this;
@@ -2894,7 +2975,7 @@ public final class InodeMeta {
        * <code>optional int32 replication_max = 21;</code>
        */
       public Builder clearReplicationMax() {
-        bitField0_ = (bitField0_ & ~0x00200000);
+        bitField0_ = (bitField0_ & ~0x00400000);
         replicationMax_ = 0;
         onChanged();
         return this;
@@ -2906,7 +2987,7 @@ public final class InodeMeta {
        * <code>optional int32 replication_min = 22;</code>
        */
       public boolean hasReplicationMin() {
-        return ((bitField0_ & 0x00400000) == 0x00400000);
+        return ((bitField0_ & 0x00800000) == 0x00800000);
       }
       /**
        * <code>optional int32 replication_min = 22;</code>
@@ -2918,7 +2999,7 @@ public final class InodeMeta {
        * <code>optional int32 replication_min = 22;</code>
        */
       public Builder setReplicationMin(int value) {
-        bitField0_ |= 0x00400000;
+        bitField0_ |= 0x00800000;
         replicationMin_ = value;
         onChanged();
         return this;
@@ -2927,7 +3008,7 @@ public final class InodeMeta {
        * <code>optional int32 replication_min = 22;</code>
        */
       public Builder clearReplicationMin() {
-        bitField0_ = (bitField0_ & ~0x00400000);
+        bitField0_ = (bitField0_ & ~0x00800000);
         replicationMin_ = 0;
         onChanged();
         return this;
@@ -2943,7 +3024,7 @@ public final class InodeMeta {
        * </pre>
        */
       public boolean hasPersistJobId() {
-        return ((bitField0_ & 0x00800000) == 0x00800000);
+        return ((bitField0_ & 0x01000000) == 0x01000000);
       }
       /**
        * <code>optional int64 persist_job_id = 23;</code>
@@ -2963,7 +3044,7 @@ public final class InodeMeta {
        * </pre>
        */
       public Builder setPersistJobId(long value) {
-        bitField0_ |= 0x00800000;
+        bitField0_ |= 0x01000000;
         persistJobId_ = value;
         onChanged();
         return this;
@@ -2976,7 +3057,7 @@ public final class InodeMeta {
        * </pre>
        */
       public Builder clearPersistJobId() {
-        bitField0_ = (bitField0_ & ~0x00800000);
+        bitField0_ = (bitField0_ & ~0x01000000);
         persistJobId_ = 0L;
         onChanged();
         return this;
@@ -2988,7 +3069,7 @@ public final class InodeMeta {
        * <code>optional string persist_job_temp_ufs_path = 24;</code>
        */
       public boolean hasPersistJobTempUfsPath() {
-        return ((bitField0_ & 0x01000000) == 0x01000000);
+        return ((bitField0_ & 0x02000000) == 0x02000000);
       }
       /**
        * <code>optional string persist_job_temp_ufs_path = 24;</code>
@@ -3028,7 +3109,7 @@ public final class InodeMeta {
         if (value == null) {
     throw new NullPointerException();
   }
-  bitField0_ |= 0x01000000;
+  bitField0_ |= 0x02000000;
         persistJobTempUfsPath_ = value;
         onChanged();
         return this;
@@ -3037,7 +3118,7 @@ public final class InodeMeta {
        * <code>optional string persist_job_temp_ufs_path = 24;</code>
        */
       public Builder clearPersistJobTempUfsPath() {
-        bitField0_ = (bitField0_ & ~0x01000000);
+        bitField0_ = (bitField0_ & ~0x02000000);
         persistJobTempUfsPath_ = getDefaultInstance().getPersistJobTempUfsPath();
         onChanged();
         return this;
@@ -3050,7 +3131,7 @@ public final class InodeMeta {
         if (value == null) {
     throw new NullPointerException();
   }
-  bitField0_ |= 0x01000000;
+  bitField0_ |= 0x02000000;
         persistJobTempUfsPath_ = value;
         onChanged();
         return this;
@@ -3083,7 +3164,7 @@ public final class InodeMeta {
     java.lang.String[] descriptorData = {
       "\n\025meta/inode_meta.proto\022\022alluxio.proto.m" +
       "eta\032\020shared/acl.proto\032\022shared/types.prot" +
-      "o\"\257\005\n\005Inode\022\n\n\002id\030\001 \001(\003\022\030\n\020creation_time" +
+      "o\"\304\005\n\005Inode\022\n\n\002id\030\001 \001(\003\022\030\n\020creation_time" +
       "_ms\030\002 \001(\003\022\024\n\014is_directory\030\003 \001(\010\022\013\n\003ttl\030\004" +
       " \001(\003\0224\n\nttl_action\030\005 \001(\0162 .alluxio.proto" +
       ".shared.PTtlAction\022\030\n\020last_modified_ms\030\031" +
@@ -3092,15 +3173,15 @@ public final class InodeMeta {
       "\001(\010\022;\n\naccess_acl\030\n \001(\0132\'.alluxio.proto." +
       "shared.AccessControlList\022\027\n\017ufs_fingerpr",
       "int\030\013 \001(\t\022\026\n\016is_mount_point\030\014 \001(\010\022\"\n\032has" +
-      "_direct_children_loaded\030\r \001(\010\022<\n\013default" +
-      "_acl\030\016 \001(\0132\'.alluxio.proto.shared.Access" +
-      "ControlList\022\030\n\020block_size_bytes\030\017 \001(\003\022\016\n" +
-      "\006blocks\030\020 \003(\003\022\024\n\014is_cacheable\030\021 \001(\010\022\024\n\014i" +
-      "s_completed\030\022 \001(\010\022\016\n\006length\030\023 \001(\003\022\033\n\023rep" +
-      "lication_durable\030\024 \001(\005\022\027\n\017replication_ma" +
-      "x\030\025 \001(\005\022\027\n\017replication_min\030\026 \001(\005\022\026\n\016pers" +
-      "ist_job_id\030\027 \001(\003\022!\n\031persist_job_temp_ufs" +
-      "_path\030\030 \001(\t"
+      "_direct_children_loaded\030\r \001(\010\022\023\n\013child_c" +
+      "ount\030\032 \001(\003\022<\n\013default_acl\030\016 \001(\0132\'.alluxi" +
+      "o.proto.shared.AccessControlList\022\030\n\020bloc" +
+      "k_size_bytes\030\017 \001(\003\022\016\n\006blocks\030\020 \003(\003\022\024\n\014is" +
+      "_cacheable\030\021 \001(\010\022\024\n\014is_completed\030\022 \001(\010\022\016" +
+      "\n\006length\030\023 \001(\003\022\033\n\023replication_durable\030\024 " +
+      "\001(\005\022\027\n\017replication_max\030\025 \001(\005\022\027\n\017replicat" +
+      "ion_min\030\026 \001(\005\022\026\n\016persist_job_id\030\027 \001(\003\022!\n" +
+      "\031persist_job_temp_ufs_path\030\030 \001(\t"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
       new com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner() {
@@ -3112,7 +3193,7 @@ public final class InodeMeta {
           internal_static_alluxio_proto_meta_Inode_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_alluxio_proto_meta_Inode_descriptor,
-              new java.lang.String[] { "Id", "CreationTimeMs", "IsDirectory", "Ttl", "TtlAction", "LastModifiedMs", "Name", "ParentId", "PersistenceState", "IsPinned", "AccessAcl", "UfsFingerprint", "IsMountPoint", "HasDirectChildrenLoaded", "DefaultAcl", "BlockSizeBytes", "Blocks", "IsCacheable", "IsCompleted", "Length", "ReplicationDurable", "ReplicationMax", "ReplicationMin", "PersistJobId", "PersistJobTempUfsPath", });
+              new java.lang.String[] { "Id", "CreationTimeMs", "IsDirectory", "Ttl", "TtlAction", "LastModifiedMs", "Name", "ParentId", "PersistenceState", "IsPinned", "AccessAcl", "UfsFingerprint", "IsMountPoint", "HasDirectChildrenLoaded", "ChildCount", "DefaultAcl", "BlockSizeBytes", "Blocks", "IsCacheable", "IsCompleted", "Length", "ReplicationDurable", "ReplicationMax", "ReplicationMin", "PersistJobId", "PersistJobTempUfsPath", });
           return null;
         }
       };

@@ -151,7 +151,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang.StringUtils;
@@ -843,7 +842,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
     AlluxioURI uri = inodePath.getUri();
     FileInfo fileInfo = inode.generateClientFileInfo(uri.toString());
     if (fileInfo.isFolder()) {
-      fileInfo.setLength(Iterables.size(mInodeStore.getChildren(inode.asDirectory())));
+      fileInfo.setLength(inode.asDirectory().getChildCount());
     }
     fileInfo.setInMemoryPercentage(getInMemoryPercentage(inode));
     fileInfo.setInAlluxioPercentage(getInAlluxioPercentage(inode));
@@ -2103,15 +2102,16 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
     String dstName = dstPath.getName();
 
     LOG.debug("Renaming {} to {}", srcPath, dstPath);
+    if (dstInodePath.fullPathExists()) {
+      throw new InvalidPathException("Destination path: " + dstPath + " already exists.");
+    }
 
-    if (!mInodeTree.rename(rpcContext, RenameEntry.newBuilder()
+    mInodeTree.rename(rpcContext, RenameEntry.newBuilder()
         .setId(srcInode.getId())
         .setOpTimeMs(options.getOperationTimeMs())
         .setNewParentId(dstParentInode.getId())
         .setNewName(dstName)
-        .build())) {
-      throw new InvalidPathException("Destination path: " + dstPath + " already exists.");
-    }
+        .build());
 
     // 3. Do UFS operations if necessary.
     // If the source file is persisted, rename it in the UFS.
@@ -2164,14 +2164,12 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
       }
     } catch (Exception e) {
       // On failure, revert changes and throw exception.
-      if (!mInodeTree.rename(rpcContext, RenameEntry.newBuilder()
+      mInodeTree.rename(rpcContext, RenameEntry.newBuilder()
           .setId(srcInode.getId())
           .setOpTimeMs(options.getOperationTimeMs())
           .setNewName(srcName)
           .setNewParentId(srcParentInode.getId())
-          .build())) {
-        LOG.error("Failed to revert rename changes. Alluxio metadata may be inconsistent.");
-      }
+          .build());
       throw e;
     }
 

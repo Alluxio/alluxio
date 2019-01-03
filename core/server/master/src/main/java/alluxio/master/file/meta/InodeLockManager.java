@@ -74,15 +74,16 @@ public class InodeLockManager {
           });
 
   /**
-   * Locks for guarding changes to last modified time on read-locked inodes.
+   * Locks for guarding changes to last modified time and size on read-locked parent inodes.
    *
-   * When renaming, creating, or deleting, we update the last modified time of the parent inode
-   * while holding only a read lock. In the presence of concurrent operations, this could cause the
-   * last modified time to decrease, which is not allowed. To avoid this, we guard the update to
-   * last modified time using one of these locks, striped by inode id. A thread should never acquire
-   * more than one of these locks at the same time.
+   * When renaming, creating, or deleting, we update the last modified time and size of the parent
+   * inode while holding only a read lock. In the presence of concurrent operations, this could
+   * cause the last modified time to decrease, or lead to incorrect directory sizes. To avoid this,
+   * we guard the parent inode read-modify-write with this lock. To avoid deadlock, a thread should
+   * never acquire more than one of these locks at the same time, and no other locks should be taken
+   * while holding one of these locks.
    */
-  private final Striped<Lock> mLastModifiedLocks = Striped.lock(1_000);
+  private final Striped<Lock> mParentUpdateLocks = Striped.lock(1_000);
 
   /**
    * Cache for supplying inode persistence locks. Before a thread can persist an inode, it must
@@ -159,13 +160,14 @@ public class InodeLockManager {
   }
 
   /**
-   * Acquires the lock for modifying an inodes last modified time.
+   * Acquires the lock for modifying an inodes last modified time or size. As a pre-requisite, the
+   * current thread should already hold a read lock on the inode.
    *
    * @param inodeId the id of the inode to lock
    * @return a lock resource which must be closed to release the lock
    */
-  public LockResource lockLastModified(long inodeId) {
-    return new LockResource(mLastModifiedLocks.get(inodeId));
+  public LockResource lockUpdate(long inodeId) {
+    return new LockResource(mParentUpdateLocks.get(inodeId));
   }
 
   private LockResource lock(ReadWriteLock lock, LockMode mode) {
