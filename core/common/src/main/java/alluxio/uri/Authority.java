@@ -24,9 +24,9 @@ import java.util.regex.Pattern;
 public interface Authority extends Comparable<Authority>, Serializable {
   Logger LOG = LoggerFactory.getLogger(Authority.class);
   Pattern SINGLE_MASTER_AUTH = Pattern.compile("^([^:,;]+):(\\d+)$");
-  // We allow zookeeper authorities to be delimited by ',' ';' or '+'.
+  // We allow zookeeper/multi_master authorities to be delimited by ',' ';' or '+'.
   Pattern ZOOKEEPER_AUTH = Pattern.compile("^zk@([^:,;+]+:\\d+([,;+][^:,;+]+:\\d+)*)$");
-  Pattern MULTI_MASTERS_AUTH = Pattern.compile("^[^:,;]+:\\d+([,;][^:,;]+:\\d+)+$");
+  Pattern MULTI_MASTERS_AUTH = Pattern.compile("^[^:,;+]+:\\d+([,;+][^:,;+]+:\\d+)+$");
 
   /**
    * Gets the Authority object from the input string.
