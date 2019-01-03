@@ -21,7 +21,7 @@ import alluxio.retry.ExponentialBackoffRetry;
 import alluxio.retry.RetryPolicy;
 import alluxio.security.authentication.TransportProvider;
 import alluxio.uri.Authority;
-import alluxio.uri.UnknownAuthority;
+import alluxio.uri.MultiMasterAuthority;
 
 import org.apache.thrift.protocol.TProtocol;
 import org.apache.thrift.transport.TTransport;
@@ -138,8 +138,7 @@ public class PollingMasterInquireClient implements MasterInquireClient {
 
     @Override
     public Authority toAuthority() {
-      // TODO(andrew): add authority type for multiple masters
-      return new UnknownAuthority(mAddresses.stream()
+      return new MultiMasterAuthority(mAddresses.stream()
           .map(addr -> addr.getHostString() + ":" + addr.getPort()).collect(joining(",")));
     }
 
