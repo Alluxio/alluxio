@@ -11,6 +11,7 @@
 
 package alluxio.worker.grpc;
 
+import alluxio.RpcUtils;
 import alluxio.StorageTierAssoc;
 import alluxio.WorkerStorageTierAssoc;
 import alluxio.exception.ExceptionMessage;
@@ -19,7 +20,6 @@ import alluxio.exception.status.AlluxioStatusException;
 import alluxio.grpc.CreateLocalBlockRequest;
 import alluxio.grpc.CreateLocalBlockResponse;
 import alluxio.util.IdUtils;
-import alluxio.util.RpcUtilsNew;
 import alluxio.worker.block.BlockWorker;
 
 import io.grpc.Context;
@@ -78,7 +78,7 @@ class ShortCircuitBlockWriteHandler {
    */
   public void handleBlockCreateRequest() {
     final String methodName = mRequest.getOnlyReserveSpace() ? "ReserveSpace" : "CreateBlock";
-    RpcUtilsNew.nettyRPCAndLog(LOG, new RpcUtilsNew.NettyRpcCallable<CreateLocalBlockResponse>() {
+    RpcUtils.nettyRPCAndLog(LOG, new RpcUtils.NettyRpcCallable<CreateLocalBlockResponse>() {
       @Override
       public CreateLocalBlockResponse call() throws Exception {
         if (mRequest.getOnlyReserveSpace()) {
@@ -126,7 +126,7 @@ class ShortCircuitBlockWriteHandler {
    */
   public void handleBlockCompleteRequest(boolean isCanceled) {
     final String methodName = isCanceled ? "AbortBlock" : "CommitBlock";
-    RpcUtilsNew.nettyRPCAndLog(LOG, new RpcUtilsNew.NettyRpcCallable<CreateLocalBlockResponse>() {
+    RpcUtils.nettyRPCAndLog(LOG, new RpcUtils.NettyRpcCallable<CreateLocalBlockResponse>() {
         @Override
         public CreateLocalBlockResponse call() throws Exception {
           Context newContext = Context.current().fork();

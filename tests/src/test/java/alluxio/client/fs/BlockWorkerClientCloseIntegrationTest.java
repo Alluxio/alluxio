@@ -37,7 +37,8 @@ public final class BlockWorkerClientCloseIntegrationTest extends BaseIntegration
   @Test
   public void close() throws Exception {
     for (int i = 0; i < 1000; i++) {
-      BlockWorkerClient client = FileSystemContext.get().acquireBlockWorkerClient(mWorkerNetAddress);
+      BlockWorkerClient client = FileSystemContext.get()
+          .acquireBlockWorkerClient(mWorkerNetAddress);
       Assert.assertFalse(client.isShutdown());
       client.close();
       Assert.assertTrue(client.isShutdown());

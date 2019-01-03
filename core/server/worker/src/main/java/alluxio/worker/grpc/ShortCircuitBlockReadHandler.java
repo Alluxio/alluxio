@@ -11,6 +11,7 @@
 
 package alluxio.worker.grpc;
 
+import alluxio.RpcUtils;
 import alluxio.StorageTierAssoc;
 import alluxio.WorkerStorageTierAssoc;
 import alluxio.exception.BlockDoesNotExistException;
@@ -20,7 +21,6 @@ import alluxio.exception.status.AlluxioStatusException;
 import alluxio.grpc.OpenLocalBlockRequest;
 import alluxio.grpc.OpenLocalBlockResponse;
 import alluxio.util.IdUtils;
-import alluxio.util.RpcUtilsNew;
 import alluxio.worker.block.BlockLockManager;
 import alluxio.worker.block.BlockWorker;
 
@@ -78,7 +78,7 @@ class ShortCircuitBlockReadHandler {
    * Handles block open request.
    */
   public void handleBlockOpenRequest() {
-    RpcUtilsNew.nettyRPCAndLog(LOG, new RpcUtilsNew.NettyRpcCallable<OpenLocalBlockResponse>() {
+    RpcUtils.nettyRPCAndLog(LOG, new RpcUtils.NettyRpcCallable<OpenLocalBlockResponse>() {
       @Override
       public OpenLocalBlockResponse call() throws Exception {
         if (mLockId == BlockLockManager.INVALID_LOCK_ID) {
@@ -129,7 +129,7 @@ class ShortCircuitBlockReadHandler {
    *
    */
   public void handleBlockCloseRequest() {
-    RpcUtilsNew.nettyRPCAndLog(LOG, new RpcUtilsNew.NettyRpcCallable<OpenLocalBlockResponse>() {
+    RpcUtils.nettyRPCAndLog(LOG, new RpcUtils.NettyRpcCallable<OpenLocalBlockResponse>() {
       @Override
       public OpenLocalBlockResponse call() throws Exception {
         if (mLockId != BlockLockManager.INVALID_LOCK_ID) {
