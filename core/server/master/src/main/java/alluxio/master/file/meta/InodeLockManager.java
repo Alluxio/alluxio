@@ -48,7 +48,7 @@ public class InodeLockManager {
       CacheBuilder.<Long, WeakSafeReentrantReadWriteLock>newBuilder()
           .weakValues()
           .initialCapacity(1_000)
-          .concurrencyLevel(100)
+          .concurrencyLevel(1000)
           .build(new CacheLoader<Long, WeakSafeReentrantReadWriteLock>() {
             @Override
             public WeakSafeReentrantReadWriteLock load(Long key) {
@@ -63,7 +63,7 @@ public class InodeLockManager {
       CacheBuilder.<Long, WeakSafeReentrantReadWriteLock>newBuilder()
           .weakValues()
           .initialCapacity(1_000)
-          .concurrencyLevel(10000)
+          .concurrencyLevel(1000)
           .build(new CacheLoader<Edge, WeakSafeReentrantReadWriteLock>() {
             @Override
             public WeakSafeReentrantReadWriteLock load(Edge key) {
