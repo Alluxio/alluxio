@@ -156,7 +156,8 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
         return -ErrorCodes.EFAULT();
       }
 
-      SetAttributePOptions.Builder optionsBuilder = SetAttributePOptions.newBuilder();
+      SetAttributePOptions.Builder optionsBuilder =
+          SetAttributePOptions.newBuilder().setGroup(groupName);
       final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
 
       if (uid != -1 && uid != 4294967295L) {
