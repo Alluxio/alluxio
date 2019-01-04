@@ -12,7 +12,6 @@
 package alluxio.uri;
 
 import com.google.common.base.Objects;
-import com.google.common.base.Preconditions;
 
 /**
  * A multi-master authority implementation.
@@ -20,23 +19,18 @@ import com.google.common.base.Preconditions;
 public class MultiMasterAuthority implements Authority {
   private static final long serialVersionUID = 2580736424809131651L;
 
-  /** The original authority string. */
-  private final String mAuthority;
   /**
    * The master addresses transform from the original authority string.
-   * Semicolons in authority are replaced by commas to match our
+   * Semicolons and plus signs in authority are replaced by commas to match our
    * internal property format.
    */
   private final String mMasterAddresses;
 
   /**
-   * @param authority the authority string of the URI
+   * @param masterAddresses the multi master addresses
    */
-  public MultiMasterAuthority(String authority) {
-    Preconditions.checkArgument(authority != null && authority.length() != 0,
-        "authority should not be null or empty string");
-    mAuthority = authority;
-    mMasterAddresses = authority.replaceAll("[;+]", ",");
+  public MultiMasterAuthority(String masterAddresses) {
+    mMasterAddresses = masterAddresses;
   }
 
   /**
@@ -65,11 +59,11 @@ public class MultiMasterAuthority implements Authority {
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mAuthority);
+    return Objects.hashCode(mMasterAddresses);
   }
 
   @Override
   public String toString() {
-    return mAuthority;
+    return mMasterAddresses;
   }
 }
