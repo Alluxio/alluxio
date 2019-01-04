@@ -44,7 +44,8 @@ import javax.annotation.concurrent.NotThreadSafe;
 public class GrpcBlockingStream<ReqT, ResT> {
   private final StreamObserver<ResT> mResponseObserver;
   private final ClientCallStreamObserver<ReqT> mRequestObserver;
-  private final BlockingQueue<Object> mResponses = new ArrayBlockingQueue<>(2);
+  /** Buffer that stores responses to be consumed by {@link GrpcBlockingStream#receive(long)}. */
+  private final BlockingQueue<Object> mResponses;
   private boolean mCompleted = false;
   private boolean mClosed = false;
   private boolean mCanceled = false;
@@ -64,8 +65,11 @@ public class GrpcBlockingStream<ReqT, ResT> {
 
   /**
    * @param rpcFunc the gRPC bi-directional stream stub function
+   * @param bufferSize maximum number of incoming messages the buffer can hold
    */
-  public GrpcBlockingStream(Function<StreamObserver<ResT>, StreamObserver<ReqT>> rpcFunc) {
+  public GrpcBlockingStream(Function<StreamObserver<ResT>, StreamObserver<ReqT>> rpcFunc,
+      int bufferSize) {
+    mResponses = new ArrayBlockingQueue<>(bufferSize);
     mResponseObserver = new ResponseStreamObserver();
     mRequestObserver = (ClientCallStreamObserver) rpcFunc.apply(mResponseObserver);
   }
@@ -107,12 +111,15 @@ public class GrpcBlockingStream<ReqT, ResT> {
    *
    * @param timeoutMs maximum time to wait before giving up and throwing
    *                  a {@link DeadlineExceededException}
-   * @return the response
+   * @return the response message, or null if the inbound stream is completed
    * @throws IOException if any error occurs
    */
   public ResT receive(long timeoutMs) throws IOException {
     if (mCompleted) {
       return null;
+    }
+    if (mError != null) {
+      throw mError;
     }
     try {
       Object response = mResponses.poll(timeoutMs, TimeUnit.MILLISECONDS);
@@ -177,6 +184,7 @@ public class GrpcBlockingStream<ReqT, ResT> {
         mResponses.put(response);
       } catch (InterruptedException e) {
         Thread.currentThread().interrupt();
+        mError = new CanceledException(e);
         throw new RuntimeException(e);
       }
     }
@@ -193,6 +201,8 @@ public class GrpcBlockingStream<ReqT, ResT> {
         }
       } catch (InterruptedException e) {
         Thread.currentThread().interrupt();
+        mError = new CanceledException(e);
+        mError.addSuppressed(t);
         throw new RuntimeException(e);
       }
     }
@@ -203,6 +213,7 @@ public class GrpcBlockingStream<ReqT, ResT> {
         mResponses.put(this);
       } catch (InterruptedException e) {
         Thread.currentThread().interrupt();
+        mError = new CanceledException(e);
         throw new RuntimeException(e);
       }
     }

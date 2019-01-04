@@ -45,6 +45,8 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class GrpcDataReader implements DataReader {
   private static final Logger LOG = LoggerFactory.getLogger(GrpcDataReader.class);
 
+  private static final int READ_BUFFER_SIZE =
+      (int) Configuration.getMs(PropertyKey.USER_NETWORK_NETTY_READER_BUFFER_SIZE_PACKETS);
   private static final long READ_TIMEOUT_MS =
       Configuration.getMs(PropertyKey.USER_NETWORK_NETTY_TIMEOUT_MS);
   private final FileSystemContext mContext;
@@ -72,7 +74,7 @@ public final class GrpcDataReader implements DataReader {
     mReadRequest = readRequest;
 
     mClient = mContext.acquireBlockWorkerClient(address);
-    mStream = new GrpcBlockingStream<>(mClient::readBlock);
+    mStream = new GrpcBlockingStream<>(mClient::readBlock, READ_BUFFER_SIZE);
     mStream.send(mReadRequest, READ_TIMEOUT_MS);
   }
 

@@ -22,21 +22,17 @@ import alluxio.grpc.WriteRequest;
 import alluxio.grpc.WriteRequestCommand;
 import alluxio.grpc.WriteResponse;
 import alluxio.proto.dataserver.Protocol;
-import alluxio.resource.LockResource;
 import alluxio.util.proto.ProtoUtils;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Preconditions;
 import com.google.protobuf.UnsafeByteOperations;
-import io.grpc.stub.StreamObserver;
 import io.netty.buffer.ByteBuf;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.concurrent.locks.ReentrantLock;
 
-import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -59,6 +55,8 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class GrpcDataWriter implements DataWriter {
   private static final Logger LOG = LoggerFactory.getLogger(GrpcDataWriter.class);
 
+  private static final int WRITE_BUFFER_SIZE =
+      (int) Configuration.getMs(PropertyKey.USER_NETWORK_NETTY_WRITER_BUFFER_SIZE_PACKETS);
   private static final long WRITE_TIMEOUT_MS =
       Configuration.getMs(PropertyKey.USER_NETWORK_NETTY_TIMEOUT_MS);
   private static final long CLOSE_TIMEOUT_MS =
@@ -76,17 +74,8 @@ public final class GrpcDataWriter implements DataWriter {
   private final GrpcBlockingStream<WriteRequest, WriteResponse> mStream;
 
   /**
-   * Uses to guarantee the operation ordering.
-   *
-   * NOTE: {@link StreamObserver} events are async.
-   * gRPC worker threads executes the response {@link StreamObserver} events.
-   */
-  private final ReentrantLock mLock = new ReentrantLock();
-
-  /**
    * The next pos to queue to the buffer.
    */
-  @GuardedBy("mLock")
   private long mPosToQueue;
 
   /**
@@ -154,23 +143,19 @@ public final class GrpcDataWriter implements DataWriter {
     mPartialRequest = builder.buildPartial();
     mChunkSize = chunkSize;
     mClient = client;
-    mStream = new GrpcBlockingStream<>(mClient::writeBlock);
+    mStream = new GrpcBlockingStream<>(mClient::writeBlock, WRITE_BUFFER_SIZE);
     mStream.send(WriteRequest.newBuilder().setCommand(mPartialRequest.toBuilder()).build(),
         WRITE_TIMEOUT_MS);
   }
 
   @Override
   public long pos() {
-    try (LockResource lr = new LockResource(mLock)) {
-      return mPosToQueue;
-    }
+    return mPosToQueue;
   }
 
   @Override
   public void writeChunk(final ByteBuf buf) throws IOException {
-    try (LockResource lr = new LockResource(mLock)) {
-      mPosToQueue += buf.readableBytes();
-    }
+    mPosToQueue += buf.readableBytes();
     mStream.send(WriteRequest.newBuilder().setCommand(mPartialRequest).setChunk(
         Chunk.newBuilder()
             .setData(UnsafeByteOperations.unsafeWrap(buf.nioBuffer()))
@@ -191,9 +176,7 @@ public final class GrpcDataWriter implements DataWriter {
     WriteRequest writeRequest = WriteRequest.newBuilder().setCommand(
         mPartialRequest.toBuilder().setOffset(0).setCreateUfsBlockOptions(ufsBlockOptions))
         .build();
-    try (LockResource lr = new LockResource(mLock)) {
-      mPosToQueue = pos;
-    }
+    mPosToQueue = pos;
     mStream.send(writeRequest, WRITE_TIMEOUT_MS);
   }
 
@@ -202,29 +185,27 @@ public final class GrpcDataWriter implements DataWriter {
     if (mClient.isShutdown()) {
       return;
     }
-    sendCancel();
+    mStream.cancel();
   }
 
   @Override
   public void flush() throws IOException {
-    try (LockResource lr = new LockResource(mLock)) {
-      if (mStream.isClosed() || mStream.isCanceled() || mPosToQueue == 0) {
-        return;
-      }
-      WriteRequest writeRequest = WriteRequest.newBuilder()
-          .setCommand(mPartialRequest.toBuilder().setOffset(mPosToQueue).setFlush(true))
-          .build();
-      mStream.send(writeRequest, WRITE_TIMEOUT_MS);
-      long posWritten;
-      do {
-        WriteResponse response = mStream.receive(FLUSH_TIMEOUT_MS);
-        if (response == null) {
-          throw new UnavailableException(String.format(
-              "Flush request %s is not acked before complete.", writeRequest));
-        }
-        posWritten = response.getOffset();
-      } while (mPosToQueue != posWritten);
+    if (mStream.isClosed() || mStream.isCanceled() || mPosToQueue == 0) {
+      return;
     }
+    WriteRequest writeRequest = WriteRequest.newBuilder()
+        .setCommand(mPartialRequest.toBuilder().setOffset(mPosToQueue).setFlush(true))
+        .build();
+    mStream.send(writeRequest, WRITE_TIMEOUT_MS);
+    long posWritten;
+    do {
+      WriteResponse response = mStream.receive(FLUSH_TIMEOUT_MS);
+      if (response == null) {
+        throw new UnavailableException(String.format(
+            "Flush request %s to worker %s is not acked before complete.", writeRequest, mAddress));
+      }
+      posWritten = response.getOffset();
+    } while (mPosToQueue != posWritten);
   }
 
   @Override
@@ -232,33 +213,13 @@ public final class GrpcDataWriter implements DataWriter {
     if (mClient.isShutdown()) {
       return;
     }
-    sendEof();
-    mLock.lock();
+    mStream.close();
     try {
       while (mStream.receive(CLOSE_TIMEOUT_MS) != null) {
-        // wait until receives empty(response stream closed)
+        // wait until receives null(response stream closed)
       }
     } finally {
-      mLock.unlock();
       mContext.releaseBlockWorkerClient(mAddress, mClient);
-    }
-  }
-
-  /**
-   * Sends an EOF message to end the write request of the stream.
-   */
-  private void sendEof() {
-    try (LockResource lr = new LockResource(mLock)) {
-      mStream.close();
-    }
-  }
-
-  /**
-   * Sends a CANCEL message to end the write request of the stream.
-   */
-  private void sendCancel() {
-    try (LockResource lr = new LockResource(mLock)) {
-      mStream.cancel();
     }
   }
 
