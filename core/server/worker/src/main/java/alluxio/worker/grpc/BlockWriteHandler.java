@@ -28,8 +28,6 @@ import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.nio.ByteBuffer;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -123,6 +121,6 @@ public final class BlockWriteHandler extends AbstractWriteHandler<BlockWriteRequ
     Preconditions.checkState(context.getBlockWriter() != null);
     int sz = buf.size();
     Preconditions.checkState(
-        context.getBlockWriter().append(ByteBuffer.wrap(buf.toByteArray()))  == sz);
+        context.getBlockWriter().append(buf.asReadOnlyByteBuffer())  == sz);
   }
 }

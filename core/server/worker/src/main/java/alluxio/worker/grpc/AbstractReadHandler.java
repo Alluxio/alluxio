@@ -21,10 +21,10 @@ import alluxio.grpc.ReadResponse;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.resource.LockResource;
 
-import com.google.protobuf.ByteString;
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Meter;
 import com.google.common.base.Preconditions;
+import com.google.protobuf.UnsafeByteOperations;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 import io.grpc.stub.ServerCallStreamObserver;
@@ -310,7 +310,7 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>>
 
         if (chunk != null) {
           ReadResponse response = ReadResponse.newBuilder().setChunk(Chunk.newBuilder()
-              .setData(ByteString.copyFrom(chunk.getReadOnlyByteBuffer())).build())
+              .setData(UnsafeByteOperations.unsafeWrap(chunk.getReadOnlyByteBuffer())).build())
               .build();
           mResponse.onNext(response);
           incrementMetrics(chunk.getLength());

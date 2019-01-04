@@ -27,7 +27,7 @@ import alluxio.util.proto.ProtoUtils;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Preconditions;
-import com.google.protobuf.ByteString;
+import com.google.protobuf.UnsafeByteOperations;
 import io.grpc.stub.StreamObserver;
 import io.netty.buffer.ByteBuf;
 import org.slf4j.Logger;
@@ -73,6 +73,7 @@ public final class GrpcDataWriter implements DataWriter {
   private final long mLength;
   private final WriteRequestCommand mPartialRequest;
   private final long mChunkSize;
+  private final GrpcBlockingStream<WriteRequest, WriteResponse> mStream;
 
   /**
    * Uses to guarantee the operation ordering.
@@ -81,17 +82,12 @@ public final class GrpcDataWriter implements DataWriter {
    * gRPC worker threads executes the response {@link StreamObserver} events.
    */
   private final ReentrantLock mLock = new ReentrantLock();
-  private final GrpcBlockingStream<WriteRequest, WriteResponse> mStream;
 
   /**
    * The next pos to queue to the buffer.
    */
   @GuardedBy("mLock")
   private long mPosToQueue;
-  @GuardedBy("mLock")
-  private boolean mEOFSent;
-  @GuardedBy("mLock")
-  private boolean mCancelSent;
 
   /**
    * @param context the file system context
@@ -176,7 +172,9 @@ public final class GrpcDataWriter implements DataWriter {
       mPosToQueue += buf.readableBytes();
     }
     mStream.send(WriteRequest.newBuilder().setCommand(mPartialRequest).setChunk(
-        Chunk.newBuilder().setData(ByteString.copyFrom(buf.nioBuffer())).build()).build(),
+        Chunk.newBuilder()
+            .setData(UnsafeByteOperations.unsafeWrap(buf.nioBuffer()))
+            .build()).build(),
         WRITE_TIMEOUT_MS);
   }
 
@@ -210,7 +208,7 @@ public final class GrpcDataWriter implements DataWriter {
   @Override
   public void flush() throws IOException {
     try (LockResource lr = new LockResource(mLock)) {
-      if (mEOFSent || mCancelSent || mPosToQueue == 0) {
+      if (mStream.isClosed() || mStream.isCanceled() || mPosToQueue == 0) {
         return;
       }
       WriteRequest writeRequest = WriteRequest.newBuilder()
@@ -251,12 +249,8 @@ public final class GrpcDataWriter implements DataWriter {
    */
   private void sendEof() {
     try (LockResource lr = new LockResource(mLock)) {
-      if (mEOFSent || mCancelSent) {
-        return;
-      }
-      mEOFSent = true;
+      mStream.close();
     }
-    mStream.close();
   }
 
   /**
@@ -264,12 +258,8 @@ public final class GrpcDataWriter implements DataWriter {
    */
   private void sendCancel() {
     try (LockResource lr = new LockResource(mLock)) {
-      if (mEOFSent || mCancelSent) {
-        return;
-      }
-      mCancelSent = true;
+      mStream.cancel();
     }
-    mStream.cancel();
   }
 
   @Override

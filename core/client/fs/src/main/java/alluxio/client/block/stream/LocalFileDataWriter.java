@@ -55,8 +55,6 @@ public final class LocalFileDataWriter implements DataWriter {
   /** The number of bytes reserved on the block worker to hold the block. */
   private long mPosReserved;
 
-  private boolean mClosed = false;
-
   /**
    * Creates an instance of {@link LocalFileDataWriter}. This requires the block to be locked
    * beforehand.
@@ -116,7 +114,8 @@ public final class LocalFileDataWriter implements DataWriter {
   @Override
   public void writeChunk(final ByteBuf buf) throws IOException {
     try {
-      Preconditions.checkState(!mClosed, "DataWriter is closed while writing chunks.");
+      Preconditions.checkState(!mStream.isCanceled() && !mStream.isClosed(),
+          "DataWriter is closed while writing chunks.");
       int sz = buf.readableBytes();
       ensureReserved(mPos + sz);
       mPos += sz;
@@ -128,11 +127,9 @@ public final class LocalFileDataWriter implements DataWriter {
 
   @Override
   public void cancel() throws IOException {
-    if (mClosed) {
+    if (mStream.isClosed() || mStream.isCanceled()) {
       return;
     }
-    mClosed = true;
-
     try {
       mStream.cancel();
     } catch (Exception e) {
@@ -147,11 +144,9 @@ public final class LocalFileDataWriter implements DataWriter {
 
   @Override
   public void close() throws IOException {
-    if (mClosed) {
+    if (mStream.isClosed() || mStream.isCanceled()) {
       return;
     }
-    mClosed = true;
-
     mCloser.register(new Closeable() {
       @Override
       public void close() throws IOException {

@@ -46,6 +46,8 @@ public class GrpcBlockingStream<ReqT, ResT> {
   private final ClientCallStreamObserver<ReqT> mRequestObserver;
   private final BlockingQueue<Object> mResponses = new ArrayBlockingQueue<>(2);
   private boolean mCompleted = false;
+  private boolean mClosed = false;
+  private boolean mCanceled = false;
 
   /**
    * Uses to guarantee the operation ordering.
@@ -136,14 +138,34 @@ public class GrpcBlockingStream<ReqT, ResT> {
    * Closes the stream.
    */
   public void close() {
-    mRequestObserver.onCompleted();
+    if (!mCanceled && !mClosed) {
+      mClosed = true;
+      mRequestObserver.onCompleted();
+    }
   }
 
   /**
    * Cancels the stream.
    */
   public void cancel() {
-    mRequestObserver.cancel("Request is cancelled by user.", null);
+    if (!mCanceled && !mClosed) {
+      mCanceled = true;
+      mRequestObserver.cancel("Request is cancelled by user.", null);
+    }
+  }
+
+  /**
+   * @return whether the stream is closed
+   */
+  public boolean isClosed() {
+    return mClosed;
+  }
+
+  /**
+   * @return whether the stream is canceled
+   */
+  public boolean isCanceled() {
+    return mCanceled;
   }
 
   private final class ResponseStreamObserver

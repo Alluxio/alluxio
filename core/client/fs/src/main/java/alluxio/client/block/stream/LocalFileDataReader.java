@@ -124,6 +124,7 @@ public final class LocalFileDataReader implements DataReader {
       mStream = new GrpcBlockingStream<>(mBlockWorker::openLocalBlock);
       mStream.send(request, READ_TIMEOUT_MS);
       OpenLocalBlockResponse response = mStream.receive(READ_TIMEOUT_MS);
+      Preconditions.checkState(response.hasPath());
       mPath = response.getPath();
     }
 
