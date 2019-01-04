@@ -50,7 +50,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.net.ConnectException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -241,7 +240,7 @@ public final class AlluxioBlockStore {
 
     try {
       return BlockInStream.create(mContext, info, dataSource, dataSourceType, options);
-    } catch (ConnectException e) {
+    } catch (UnavailableException e) {
       //When BlockInStream created failed, it will update the passed-in failedWorkers
       //to attempt to avoid reading from this failed worker in next try.
       failedWorkers.put(dataSource, System.currentTimeMillis());

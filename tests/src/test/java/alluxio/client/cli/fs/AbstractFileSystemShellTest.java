@@ -29,6 +29,8 @@ import alluxio.master.LocalAlluxioCluster;
 import alluxio.master.LocalAlluxioJobCluster;
 import alluxio.master.job.JobMaster;
 import alluxio.security.LoginUserTestUtils;
+import alluxio.util.CommonUtils;
+import alluxio.util.WaitForOptions;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.io.PathUtils;
 
@@ -259,6 +261,13 @@ public abstract class AbstractFileSystemShellTest extends AbstractShellIntegrati
   protected void checkFilePersisted(AlluxioURI uri, int size) throws Exception {
     assertTrue(mFileSystem.getStatus(uri).isPersisted());
     mFileSystem.free(uri);
+    CommonUtils.waitFor("file to be completely freed", () -> {
+      try {
+        return mFileSystem.getStatus(uri).getInAlluxioPercentage() == 0;
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
+    }, WaitForOptions.defaults().setTimeoutMs(10000));
     try (FileInStream tfis = mFileSystem.openFile(uri)) {
       byte[] actual = new byte[size];
       tfis.read(actual);

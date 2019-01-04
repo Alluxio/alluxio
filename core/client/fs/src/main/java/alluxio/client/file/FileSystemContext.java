@@ -369,7 +369,8 @@ public final class FileSystemContext implements Closeable {
    * @param workerNetAddress the network address of the channel
    * @return the acquired block worker
    */
-  public BlockWorkerClient acquireBlockWorkerClient(final WorkerNetAddress workerNetAddress) {
+  public BlockWorkerClient acquireBlockWorkerClient(final WorkerNetAddress workerNetAddress)
+      throws IOException {
     SocketAddress address = NetworkAddressUtils.getDataPortSocketAddress(workerNetAddress);
     return BlockWorkerClient.Factory.create(mParentSubject, address);
   }

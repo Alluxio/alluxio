@@ -23,17 +23,13 @@ import alluxio.grpc.ReadRequest;
 import alluxio.grpc.ReadResponse;
 import alluxio.grpc.RemoveBlockRequest;
 import alluxio.grpc.RemoveBlockResponse;
-import alluxio.grpc.WriteRequest;
 import alluxio.grpc.WriteResponse;
 import alluxio.util.IdUtils;
 import alluxio.worker.WorkerProcess;
 import alluxio.worker.block.AsyncCacheRequestManager;
 import alluxio.worker.block.BlockWorker;
 
-import com.google.common.base.Preconditions;
-import io.grpc.Context;
-import io.grpc.Contexts;
-import io.grpc.Status;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.grpc.stub.ServerCallStreamObserver;
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
@@ -42,6 +38,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Server side implementation of the gRPC BlockWorker interface.
  */
+@SuppressFBWarnings("BC_UNCONFIRMED_CAST")
 public class BlockWorkerImpl extends BlockWorkerGrpc.BlockWorkerImplBase {
   private static final Logger LOG = LoggerFactory.getLogger(BlockWorkerImpl.class);
 
@@ -60,178 +57,41 @@ public class BlockWorkerImpl extends BlockWorkerGrpc.BlockWorkerImplBase {
   }
 
   @Override
-  public void readBlock(ReadRequest request, StreamObserver<ReadResponse> responseObserver) {
-    final ServerCallStreamObserver<ReadResponse> serverCallStreamObserver =
-        (ServerCallStreamObserver<ReadResponse>) responseObserver;
+  public StreamObserver<ReadRequest> readBlock(StreamObserver<ReadResponse> responseObserver) {
     BlockReadHandler readHandler = new BlockReadHandler(GrpcExecutors.BLOCK_READER_EXECUTOR,
-        mWorkerProcess.getWorker(BlockWorker.class));
+        mWorkerProcess.getWorker(BlockWorker.class), responseObserver);
+    ServerCallStreamObserver<ReadResponse> serverCallStreamObserver =
+        (ServerCallStreamObserver<ReadResponse>) responseObserver;
     serverCallStreamObserver.setOnReadyHandler(readHandler::onReady);
-    serverCallStreamObserver.setOnCancelHandler(readHandler::onCancel);
-    try {
-      readHandler.readBlock(request, responseObserver);
-    } catch (Exception e) {
-      readHandler.onError(e);
-      responseObserver.onError(e);
-    }
+    return readHandler;
   }
 
   @Override
   public StreamObserver<alluxio.grpc.WriteRequest> writeBlock(
       final StreamObserver<WriteResponse> responseObserver) {
-    WriteRequestStreamObserver requestObserver = new WriteRequestStreamObserver(responseObserver);
+    DelegationWriteHandler handler = new DelegationWriteHandler(mWorkerProcess, responseObserver);
     ServerCallStreamObserver<WriteResponse> serverResponseObserver =
         (ServerCallStreamObserver<WriteResponse>) responseObserver;
-    serverResponseObserver.setOnCancelHandler(requestObserver::onCancel);
-    return requestObserver;
-  }
-
-  private class WriteRequestStreamObserver implements StreamObserver<WriteRequest> {
-    private final StreamObserver<WriteResponse> mResponseObserver;
-    private AbstractWriteHandler mWriteHandler;
-
-    public WriteRequestStreamObserver(StreamObserver<WriteResponse> responseObserver) {
-      mResponseObserver = responseObserver;
-    }
-
-    private AbstractWriteHandler createWriterHandler(WriteRequest request) {
-      switch (request.getCommand().getType()) {
-        case ALLUXIO_BLOCK:
-          return new BlockWriteHandler(mWorkerProcess.getWorker(BlockWorker.class),
-              mResponseObserver);
-        case UFS_FILE:
-          return new UfsFileWriteHandler(mWorkerProcess.getUfsManager(),
-              mResponseObserver);
-        case UFS_FALLBACK_BLOCK:
-          return new UfsFallbackBlockWriteHandler(
-              mWorkerProcess.getWorker(BlockWorker.class), mWorkerProcess.getUfsManager(),
-              mResponseObserver);
-        default:
-          throw new IllegalArgumentException(String.format("Invalid request type %s",
-              request.getCommand().getType().name()));
-      }
-    }
-
-    @Override
-    public void onNext(WriteRequest request) {
-      try {
-        if (mWriteHandler == null) {
-          mWriteHandler = createWriterHandler(request);
-        }
-        mWriteHandler.write(request);
-      } catch (Exception e) {
-        mWriteHandler.onError(e);
-      }
-    }
-
-    @Override
-    public void onError(Throwable t) {
-      if (mWriteHandler == null) {
-        // close the response stream if the client error before sending a write request
-        mResponseObserver.onCompleted();
-      } else {
-        mWriteHandler.onError(t);
-      }
-    }
-
-    @Override
-    public void onCompleted() {
-      try {
-        mWriteHandler.onComplete();
-      } catch (Exception e) {
-        mResponseObserver.onError(e);
-      }
-    }
-
-    /**
-     * Handles cancel event from the client.
-     */
-    public void onCancel() {
-      if (mWriteHandler != null) {
-        mWriteHandler.onCancel();
-      }
-    }
+    serverResponseObserver.setOnCancelHandler(handler::onCancel);
+    return handler;
   }
 
   @Override
-  public void openLocalBlock(OpenLocalBlockRequest request,
-      StreamObserver<OpenLocalBlockResponse> responseObserver) {
-    final ServerCallStreamObserver<OpenLocalBlockResponse> serverCallStreamObserver =
-        (ServerCallStreamObserver<OpenLocalBlockResponse>) responseObserver;
-    ShortCircuitBlockReadHandler handler = new ShortCircuitBlockReadHandler(
-        mWorkerProcess.getWorker(BlockWorker.class), request, responseObserver);
-    serverCallStreamObserver.setOnCancelHandler(() -> {
-      Preconditions.checkState(Context.current().isCancelled());
-      Status status = Contexts.statusFromCancelled(Context.current());
-      if (status.getCode() == Status.Code.CANCELLED) {
-        handler.handleBlockCloseRequest();
-      } else {
-        handler.exceptionCaught(status.getCause());
-      }
-    });
-    handler.handleBlockOpenRequest();
+  public StreamObserver<OpenLocalBlockRequest> openLocalBlock(
+          StreamObserver<OpenLocalBlockResponse> responseObserver) {
+    return new ShortCircuitBlockReadHandler(mWorkerProcess.getWorker(BlockWorker.class),
+        responseObserver);
   }
 
   @Override
   public StreamObserver<CreateLocalBlockRequest> createLocalBlock(
       StreamObserver<CreateLocalBlockResponse> responseObserver) {
-    CreateLocalBlockRequestStreamObserver requestObserver =
-        new CreateLocalBlockRequestStreamObserver(responseObserver);
-    final ServerCallStreamObserver<CreateLocalBlockResponse> serverCallStreamObserver =
+    ShortCircuitBlockWriteHandler handler = new ShortCircuitBlockWriteHandler(
+        mWorkerProcess.getWorker(BlockWorker.class), responseObserver);
+    ServerCallStreamObserver<CreateLocalBlockResponse> serverCallStreamObserver =
         (ServerCallStreamObserver<CreateLocalBlockResponse>) responseObserver;
-    serverCallStreamObserver.setOnCancelHandler(requestObserver::onCancel);
-    return requestObserver;
-  }
-
-  private class CreateLocalBlockRequestStreamObserver
-      implements StreamObserver<CreateLocalBlockRequest> {
-    private final StreamObserver<CreateLocalBlockResponse> mResponseObserver;
-    private ShortCircuitBlockWriteHandler mWriteHandler;
-
-    public CreateLocalBlockRequestStreamObserver(
-        StreamObserver<CreateLocalBlockResponse> responseObserver) {
-      mResponseObserver = responseObserver;
-    }
-
-    @Override
-    public void onNext(CreateLocalBlockRequest request) {
-      try {
-        if (mWriteHandler == null) {
-          mWriteHandler = new ShortCircuitBlockWriteHandler(
-              mWorkerProcess.getWorker(BlockWorker.class), request, mResponseObserver);
-        }
-        mWriteHandler.handleBlockCreateRequest();
-      } catch (Exception e) {
-        mWriteHandler.exceptionCaught(e);
-      }
-    }
-
-    @Override
-    public void onError(Throwable t) {
-      if (mWriteHandler == null) {
-        // closes the response stream if the client sends error before sending a write request
-        mResponseObserver.onCompleted();
-      } else {
-        mWriteHandler.exceptionCaught(t);
-      }
-    }
-
-    @Override
-    public void onCompleted() {
-      try {
-        mWriteHandler.handleBlockCompleteRequest(false);
-      } catch (Exception e) {
-        mResponseObserver.onError(e);
-      }
-    }
-
-    /**
-     * Handles cancel event from the client.
-     */
-    public void onCancel() {
-      if (mWriteHandler != null) {
-        mWriteHandler.handleBlockCompleteRequest(true);
-      }
-    }
+    serverCallStreamObserver.setOnCancelHandler(handler::onCancel);
+    return handler;
   }
 
   @Override
@@ -246,7 +106,7 @@ public class BlockWorkerImpl extends BlockWorkerGrpc.BlockWorkerImplBase {
   @Override
   public void removeBlock(RemoveBlockRequest request,
       StreamObserver<RemoveBlockResponse> responseObserver) {
-    final long sessionId = IdUtils.createSessionId();
+    long sessionId = IdUtils.createSessionId();
     RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<RemoveBlockResponse>) () -> {
       mWorkerProcess.getWorker(BlockWorker.class).removeBlock(sessionId, request.getBlockId());
       return RemoveBlockResponse.getDefaultInstance();

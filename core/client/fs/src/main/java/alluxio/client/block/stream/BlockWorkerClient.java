@@ -27,8 +27,8 @@ import io.grpc.stub.StreamObserver;
 import io.grpc.StatusRuntimeException;
 
 import java.io.Closeable;
+import java.io.IOException;
 import java.net.SocketAddress;
-import java.util.Iterator;
 
 import javax.annotation.Nullable;
 import javax.security.auth.Subject;
@@ -49,7 +49,8 @@ public interface BlockWorkerClient extends Closeable {
      * @param address the address of the worker
      * @return a new {@link BlockWorkerClient}
      */
-    public static BlockWorkerClient create(@Nullable Subject subject, SocketAddress address) {
+    public static BlockWorkerClient create(@Nullable Subject subject, SocketAddress address)
+        throws IOException {
       return new DefaultBlockWorkerClient(subject, address);
     }
   }
@@ -72,11 +73,10 @@ public interface BlockWorkerClient extends Closeable {
    * Reads a block from the worker. When client is done with the file, it should close the stream
    * using the gRPC context.
    *
-   * @param request the read request
-   * @return the streamed response from server
-   * @throws StatusRuntimeException if any error occurs
+   * @param responseObserver the stream observer for the server response
+   * @return the stream observer for the client request
    */
-  Iterator<ReadResponse> readBlock(final ReadRequest request) throws StatusRuntimeException;
+  StreamObserver<ReadRequest> readBlock(StreamObserver<ReadResponse> responseObserver);
 
   /**
    * Creates a local block on the worker. This is a two stage operations:
@@ -96,13 +96,13 @@ public interface BlockWorkerClient extends Closeable {
    * Opens a local block. This is a two stage operations:
    * 1. Client sends a open request through the request stream. Server will respond with the name
    *    of the file to read from.
-   * 2. When client is done with the file, it should close the stream using the gRPC context.
+   * 2. When client is done with the file, it should close the stream.
    *
-   * @param request the open block request
-   * @return the response from server
-   * @throws StatusRuntimeException if any error occurs
+   * @param responseObserver the stream observer for the server response
+   * @return the stream observer for the client request
    */
-  OpenLocalBlockResponse openLocalBlock(OpenLocalBlockRequest request);
+  StreamObserver<OpenLocalBlockRequest> openLocalBlock(
+      StreamObserver<OpenLocalBlockResponse> responseObserver);
 
   /**
    * Removes a block from worker.

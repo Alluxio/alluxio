@@ -16,6 +16,7 @@ import alluxio.PropertyKey;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.Chunk;
+import alluxio.grpc.GrpcExceptionUtils;
 import alluxio.grpc.ReadResponse;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.resource.LockResource;
@@ -31,7 +32,6 @@ import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -61,7 +61,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  * @param <T> type of read request
  */
 @NotThreadSafe
-abstract class AbstractReadHandler<T extends ReadRequestContext<?>> {
+abstract class AbstractReadHandler<T extends ReadRequestContext<?>>
+    implements StreamObserver<alluxio.grpc.ReadRequest> {
   private static final Logger LOG = LoggerFactory.getLogger(AbstractReadHandler.class);
   private static final long MAX_CHUNK_SIZE =
       Configuration.getBytes(PropertyKey.WORKER_NETWORK_READER_MAX_CHUNK_SIZE_BYTES);
@@ -84,33 +85,41 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>> {
    * Creates an instance of {@link AbstractReadHandler}.
    *
    * @param executorService the executor service to run {@link DataReader}s
+   * @param responseObserver the response observer of the
    */
-  AbstractReadHandler(ExecutorService executorService) {
+  AbstractReadHandler(ExecutorService executorService,
+      StreamObserver<ReadResponse> responseObserver) {
     mDataReaderExecutor = executorService;
+    mResponseObserver = responseObserver;
   }
 
-  public void readBlock(alluxio.grpc.ReadRequest request,  StreamObserver<ReadResponse> response)
-      throws Exception {
-    mResponseObserver = response;
+  @Override
+  public void onNext(alluxio.grpc.ReadRequest request) {
     // Expected state: context equals null as this handler is new for request.
     // Otherwise, notify the client an illegal state. Note that, we reset the context before
     // validation msg as validation may require to update error in context.
     try (LockResource lr = new LockResource(mLock)) {
       Preconditions.checkState(mContext == null || !mContext.isDataReaderActive());
       mContext = createRequestContext(request);
-    }
-    validateReadRequest(request);
-    try (LockResource lr = new LockResource(mLock)) {
+      validateReadRequest(request);
       mContext.setPosToQueue(mContext.getRequest().getStart());
       mContext.setPosToWrite(mContext.getRequest().getStart());
-      mDataReaderExecutor.submit(createDataReader(mContext, response));
+      mDataReaderExecutor.submit(createDataReader(mContext, mResponseObserver));
       mContext.setDataReaderActive(true);
+    } catch (Exception e) {
+      mResponseObserver.onError(GrpcExceptionUtils.fromThrowable(e));
     }
   }
 
+  @Override
   public void onError(Throwable cause) {
     LOG.error("Exception caught in AbstractReadHandler:", cause);
     setError(new Error(AlluxioStatusException.fromThrowable(cause), false));
+  }
+
+  @Override
+  public void onCompleted() {
+    setCancel();
   }
 
   /**
@@ -194,10 +203,6 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>> {
   protected abstract DataReader createDataReader(T context,
       StreamObserver<ReadResponse> channel);
 
-  public void onCancel() {
-    setCancel();
-  }
-
   public void onReady() {
     try (LockResource lr = new LockResource(mLock)) {
       if (shouldRestartDataReader()) {
@@ -212,7 +217,7 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>> {
    */
   @GuardedBy("mLock")
   private boolean shouldRestartDataReader() {
-    return !mContext.isDataReaderActive()
+    return mContext != null && !mContext.isDataReaderActive()
         && mContext.getPosToQueue() < mContext.getRequest().getEnd()
         && mContext.getError() == null && !mContext.isCancel() && !mContext.isEof();
   }
@@ -325,8 +330,6 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>> {
       } else if (eof || cancel) {
         try {
           completeRequest(mContext);
-        } catch (IOException e) {
-          setError(new Error(AlluxioStatusException.fromIOException(e), true));
         } catch (Exception e) {
           setError(new Error(AlluxioStatusException.fromThrowable(e), true));
         }
@@ -363,7 +366,7 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>> {
      */
     private void replyError(Error error) {
       try {
-        mResponse.onError(error.getCause());
+        mResponse.onError(GrpcExceptionUtils.toGrpcStatusException(error.getCause()));
       } catch (StatusRuntimeException e) {
         // Ignores the error when client already closed the stream.
         if (e.getStatus().getCode() != Status.Code.CANCELLED) {
@@ -394,7 +397,7 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>> {
       try {
         Preconditions.checkState(!mContext.isDoneUnsafe());
         mContext.setDoneUnsafe(true);
-        mResponse.onError(null);
+        mResponse.onCompleted();
       } catch (StatusRuntimeException e) {
         if (e.getStatus().getCode() != Status.Code.CANCELLED) {
           throw e;

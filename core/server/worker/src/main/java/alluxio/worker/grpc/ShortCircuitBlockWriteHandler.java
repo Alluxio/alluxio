@@ -19,9 +19,11 @@ import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.grpc.CreateLocalBlockRequest;
 import alluxio.grpc.CreateLocalBlockResponse;
+import alluxio.grpc.GrpcExceptionUtils;
 import alluxio.util.IdUtils;
 import alluxio.worker.block.BlockWorker;
 
+import com.google.common.base.Preconditions;
 import io.grpc.Context;
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
@@ -33,7 +35,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Netty handler that handles short circuit read requests.
  */
 @NotThreadSafe
-class ShortCircuitBlockWriteHandler {
+class ShortCircuitBlockWriteHandler implements StreamObserver<CreateLocalBlockRequest> {
   private static final Logger LOG =
       LoggerFactory.getLogger(ShortCircuitBlockWriteHandler.class);
 
@@ -43,8 +45,8 @@ class ShortCircuitBlockWriteHandler {
   private final BlockWorker mBlockWorker;
   /** An object storing the mapping of tier aliases to ordinals. */
   private final StorageTierAssoc mStorageTierAssoc = new WorkerStorageTierAssoc();
-  private final CreateLocalBlockRequest mRequest;
   private final StreamObserver<CreateLocalBlockResponse> mResponseObserver;
+  private CreateLocalBlockRequest mRequest = null;
 
   private long mSessionId = INVALID_SESSION_ID;
 
@@ -54,48 +56,39 @@ class ShortCircuitBlockWriteHandler {
    * @param blockWorker the block worker
    */
   ShortCircuitBlockWriteHandler(BlockWorker blockWorker,
-      CreateLocalBlockRequest request,
       StreamObserver<CreateLocalBlockResponse> responseObserver) {
     mBlockWorker = blockWorker;
-    mRequest = request;
     mResponseObserver = responseObserver;
-  }
-
-  public void exceptionCaught(Throwable throwable) {
-    // The RPC handlers do not throw exceptions. All the exception seen here is either
-    // network exception or some runtime exception (e.g. NullPointerException).
-    LOG.error("Failed to handle RPCs.", throwable);
-    if (mSessionId != INVALID_SESSION_ID) {
-      mBlockWorker.cleanupSession(mSessionId);
-      mSessionId = INVALID_SESSION_ID;
-    }
-    mResponseObserver.onError(throwable);
   }
 
   /**
    * Handles request to create local block. No exceptions should be
    * thrown.
+   * @param request a create request
    */
-  public void handleBlockCreateRequest() {
-    final String methodName = mRequest.getOnlyReserveSpace() ? "ReserveSpace" : "CreateBlock";
+  @Override
+  public void onNext(CreateLocalBlockRequest request) {
+    final String methodName = request.getOnlyReserveSpace() ? "ReserveSpace" : "CreateBlock";
     RpcUtils.nettyRPCAndLog(LOG, new RpcUtils.NettyRpcCallable<CreateLocalBlockResponse>() {
       @Override
       public CreateLocalBlockResponse call() throws Exception {
-        if (mRequest.getOnlyReserveSpace()) {
+        if (request.getOnlyReserveSpace()) {
           mBlockWorker
-              .requestSpace(mSessionId, mRequest.getBlockId(), mRequest.getSpaceToReserve());
+              .requestSpace(mSessionId, request.getBlockId(), request.getSpaceToReserve());
           return CreateLocalBlockResponse.newBuilder().build();
         } else {
+          Preconditions.checkState(mRequest == null);
+          mRequest = request;
           if (mSessionId == INVALID_SESSION_ID) {
             mSessionId = IdUtils.createSessionId();
-            String path = mBlockWorker.createBlock(mSessionId, mRequest.getBlockId(),
-                mStorageTierAssoc.getAlias(mRequest.getTier()), mRequest.getSpaceToReserve());
+            String path = mBlockWorker.createBlock(mSessionId, request.getBlockId(),
+                mStorageTierAssoc.getAlias(request.getTier()), request.getSpaceToReserve());
             CreateLocalBlockResponse response =
                 CreateLocalBlockResponse.newBuilder().setPath(path).build();
             return response;
           } else {
             LOG.warn("Create block {} without closing the previous session {}.",
-                mRequest.getBlockId(), mSessionId);
+                request.getBlockId(), mSessionId);
             throw new InvalidWorkerStateException(
                 ExceptionMessage.SESSION_NOT_CLOSED.getMessage(mSessionId));
           }
@@ -107,17 +100,42 @@ class ShortCircuitBlockWriteHandler {
         if (mSessionId != INVALID_SESSION_ID) {
           // In case the client is a UfsFallbackDataWriter, DO NOT clean the temp blocks.
           if (throwable instanceof alluxio.exception.WorkerOutOfSpaceException
-              && mRequest.hasCleanupOnFailure() && !mRequest.getCleanupOnFailure()) {
-            mResponseObserver.onError(AlluxioStatusException.fromThrowable(throwable));
+              && request.hasCleanupOnFailure() && !request.getCleanupOnFailure()) {
+            mResponseObserver.onError(GrpcExceptionUtils.toGrpcStatusException(
+                AlluxioStatusException.fromThrowable(throwable)));
             return;
           }
           mBlockWorker.cleanupSession(mSessionId);
           mSessionId = INVALID_SESSION_ID;
         }
-        mResponseObserver.onError(AlluxioStatusException.fromThrowable(throwable));
+        mResponseObserver.onError(GrpcExceptionUtils.fromThrowable(throwable));
       }
     }, methodName, true, false, "Session=%d, Request=%s",
-        mResponseObserver, mSessionId, mRequest);
+        mResponseObserver, mSessionId, request);
+  }
+
+  @Override
+  public void onCompleted() {
+    handleBlockCompleteRequest(false);
+  }
+
+  /**
+   * Handles cancel event from the client.
+   */
+  public void onCancel() {
+    handleBlockCompleteRequest(true);
+  }
+
+  @Override
+  public void onError(Throwable t) {
+    // The RPC handlers do not throw exceptions. All the exception seen here is either
+    // network exception or some runtime exception (e.g. NullPointerException).
+    LOG.error("Failed to handle RPCs.", t);
+    if (mSessionId != INVALID_SESSION_ID) {
+      mBlockWorker.cleanupSession(mSessionId);
+      mSessionId = INVALID_SESSION_ID;
+    }
+    mResponseObserver.onError(GrpcExceptionUtils.fromThrowable(t));
   }
 
   /**
@@ -129,6 +147,9 @@ class ShortCircuitBlockWriteHandler {
     RpcUtils.nettyRPCAndLog(LOG, new RpcUtils.NettyRpcCallable<CreateLocalBlockResponse>() {
         @Override
         public CreateLocalBlockResponse call() throws Exception {
+          if (mRequest == null) {
+            return null;
+          }
           Context newContext = Context.current().fork();
           Context previousContext = newContext.attach();
           try {
@@ -146,10 +167,10 @@ class ShortCircuitBlockWriteHandler {
 
         @Override
         public void exceptionCaught(Throwable throwable) {
-          mResponseObserver.onError(AlluxioStatusException.fromThrowable(throwable));
+          mResponseObserver.onError(GrpcExceptionUtils.fromThrowable(throwable));
           mSessionId = INVALID_SESSION_ID;
         }
-      }, methodName, false, true, "Session=%d, Request=%s",
+      }, methodName, false, !isCanceled, "Session=%d, Request=%s",
         mResponseObserver, mSessionId, mRequest);
   }
 }

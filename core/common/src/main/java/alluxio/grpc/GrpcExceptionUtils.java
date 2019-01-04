@@ -176,5 +176,15 @@ public final class GrpcExceptionUtils {
     }
     return Status.fromCode(code).asException(trailers);
   }
+
+  /**
+   * Converts a throwable to a gRPC exception.
+   *
+   * @param e throwable
+   * @return gRPC exception
+   */
+  public static StatusException fromThrowable(Throwable e) {
+    return toGrpcStatusException(AlluxioStatusException.fromThrowable(e));
+  }
 }
 

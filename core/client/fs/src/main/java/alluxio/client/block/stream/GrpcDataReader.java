@@ -11,6 +11,8 @@
 
 package alluxio.client.block.stream;
 
+import alluxio.Configuration;
+import alluxio.PropertyKey;
 import alluxio.client.file.FileSystemContext;
 import alluxio.grpc.ReadRequest;
 import alluxio.grpc.ReadResponse;
@@ -20,12 +22,10 @@ import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Preconditions;
 import com.google.protobuf.ByteString;
-import io.grpc.Context;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.Iterator;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -45,15 +45,14 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class GrpcDataReader implements DataReader {
   private static final Logger LOG = LoggerFactory.getLogger(GrpcDataReader.class);
 
+  private static final long READ_TIMEOUT_MS =
+      Configuration.getMs(PropertyKey.USER_NETWORK_NETTY_TIMEOUT_MS);
   private final FileSystemContext mContext;
   private final BlockWorkerClient mClient;
   private final ReadRequest mReadRequest;
   private final WorkerNetAddress mAddress;
 
-  private final Iterator<ReadResponse> mIterator;
-
-  /** The gRPC context for cancelling the response stream. */
-  private final Context.CancellableContext mCancellableContext;
+  private final GrpcBlockingStream<ReadRequest, ReadResponse> mStream;
 
   /** The next pos to read. */
   private long mPosToRead;
@@ -73,13 +72,8 @@ public final class GrpcDataReader implements DataReader {
     mReadRequest = readRequest;
 
     mClient = mContext.acquireBlockWorkerClient(address);
-    mCancellableContext = Context.current().withCancellation();
-    Context previousContext = mCancellableContext.attach();
-    try {
-      mIterator = mClient.readBlock(mReadRequest);
-    } finally {
-      mCancellableContext.detach(previousContext);
-    }
+    mStream = new GrpcBlockingStream<>(mClient::readBlock);
+    mStream.send(mReadRequest, READ_TIMEOUT_MS);
   }
 
   @Override
@@ -92,15 +86,10 @@ public final class GrpcDataReader implements DataReader {
     Preconditions.checkState(!mClient.isShutdown(),
         "Data reader is closed while reading data chunks.");
     ByteString buf;
-    try {
-      if (!mIterator.hasNext()) {
-        return null;
-      }
-    } catch (RuntimeException e) {
-      close();
-      throw new IOException(e.getMessage(), e.getCause());
+    ReadResponse response = mStream.receive(READ_TIMEOUT_MS);
+    if (response == null) {
+      return null;
     }
-    ReadResponse response = mIterator.next();
     Preconditions.checkState(response.hasChunk(), "response should always contain chunk");
     buf = response.getChunk().getData();
     mPosToRead += buf.size();
@@ -113,8 +102,10 @@ public final class GrpcDataReader implements DataReader {
     if (mClient.isShutdown()) {
       return;
     }
-    mCancellableContext.close();
-    mClient.close();
+    mStream.close();
+    while (mStream.receive(READ_TIMEOUT_MS) != null) {
+      // wait until stream is closed from server.
+    }
   }
 
   /**

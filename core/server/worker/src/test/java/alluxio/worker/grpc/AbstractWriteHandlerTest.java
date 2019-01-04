@@ -12,10 +12,10 @@
 package alluxio.worker.grpc;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.verify;
 
 import alluxio.Constants;
-import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.Chunk;
 import alluxio.grpc.RequestType;
 import alluxio.grpc.WriteRequestCommand;
@@ -25,6 +25,8 @@ import alluxio.network.protocol.databuffer.DataByteArrayChannel;
 import alluxio.util.io.BufferUtils;
 
 import com.google.protobuf.ByteString;
+import io.grpc.Status;
+import io.grpc.StatusException;
 import io.grpc.stub.StreamObserver;
 import io.netty.buffer.ByteBuf;
 import org.junit.Rule;
@@ -56,7 +58,7 @@ public abstract class AbstractWriteHandlerTest {
   @Test
   public void writeEmptyFile() throws Exception {
     mWriteHandler.write(newWriteRequestCommand(0));
-    mWriteHandler.onComplete();
+    mWriteHandler.onCompleted();
     checkComplete(mResponseObserver);
   }
 
@@ -72,7 +74,7 @@ public abstract class AbstractWriteHandlerTest {
       len += CHUNK_SIZE;
     }
     // EOF.
-    mWriteHandler.onComplete();
+    mWriteHandler.onCompleted();
     checkComplete(mResponseObserver);
     checkWriteData(checksum, len);
   }
@@ -100,45 +102,16 @@ public abstract class AbstractWriteHandlerTest {
   @Test
   public void writeInvalidOffsetFirstRequest() throws Exception {
     // The write request contains an invalid offset
-    mExpectedException.expect(InvalidArgumentException.class);
     mWriteHandler.write(newWriteRequestCommand(1));
+    checkErrorCode(mResponseObserver, Status.Code.INVALID_ARGUMENT);
   }
 
   @Test
   public void writeInvalidOffsetLaterRequest() throws Exception {
     mWriteHandler.write(newWriteRequestCommand(0));
     // The write request contains an invalid offset
-    mExpectedException.expect(InvalidArgumentException.class);
     mWriteHandler.write(newWriteRequestCommand(1));
-  }
-
-  @Test
-  public void writeTwoRequests() throws Exception {
-    // Send first request
-    DataBuffer dataBuffer = newDataBuffer(CHUNK_SIZE);
-    mWriteHandler.write(newWriteRequestCommand(0));
-    mWriteHandler.write(newWriteRequest(dataBuffer));
-    mWriteHandler.onComplete();
-    // Wait the first chunk to finish
-    checkComplete(mResponseObserver);
-    // Send second request
-    mExpectedException.expect(IllegalStateException.class);
-    mWriteHandler.write(newWriteRequestCommand(0));
-    mWriteHandler.write(newWriteRequest(dataBuffer));
-    mWriteHandler.onComplete();
-  }
-
-  @Test
-  public void writeCancelAndRequests() throws Exception {
-    // Send first request
-    mWriteHandler.write(newWriteRequestCommand(0));
-    mWriteHandler.onCancel();
-    // Wait the first chunk to finish
-    checkComplete(mResponseObserver);
-    // Send second request
-    mExpectedException.expect(IllegalStateException.class);
-    mWriteHandler.write(newWriteRequestCommand(0));
-    mWriteHandler.onComplete();
+    checkErrorCode(mResponseObserver, Status.Code.INVALID_ARGUMENT);
   }
 
   @Test
@@ -149,7 +122,7 @@ public abstract class AbstractWriteHandlerTest {
   @Test
   public void ErrorReceivedAfterRequest() throws Exception {
     mWriteHandler.write(newWriteRequestCommand(0));
-    mWriteHandler.onComplete();
+    mWriteHandler.onCompleted();
     mWriteHandler.onError(new IOException("test exception"));
   }
 
@@ -190,10 +163,22 @@ public abstract class AbstractWriteHandlerTest {
   }
 
   /**
+   * Checks an error is returned with given code.
+   *
+   * @param responseObserver the response stream observer
+   * @param code the expected error code
+   */
+  protected void checkErrorCode(final StreamObserver<WriteResponse> responseObserver,
+      Status.Code code) {
+    Throwable t = getError(responseObserver);
+    assertTrue(t instanceof StatusException);
+    assertEquals(code, ((StatusException) t).getStatus().getCode());
+  }
+
+  /**
    * Checks that the response is completed.
    */
   protected void checkComplete(final StreamObserver<WriteResponse> responseObserver) {
-    ArgumentCaptor<Throwable> captor = ArgumentCaptor.forClass(Throwable.class);
     verify(responseObserver).onCompleted();
   }
 

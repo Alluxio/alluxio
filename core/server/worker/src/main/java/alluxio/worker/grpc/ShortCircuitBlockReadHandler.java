@@ -17,13 +17,14 @@ import alluxio.WorkerStorageTierAssoc;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidWorkerStateException;
-import alluxio.exception.status.AlluxioStatusException;
+import alluxio.grpc.GrpcExceptionUtils;
 import alluxio.grpc.OpenLocalBlockRequest;
 import alluxio.grpc.OpenLocalBlockResponse;
 import alluxio.util.IdUtils;
 import alluxio.worker.block.BlockLockManager;
 import alluxio.worker.block.BlockWorker;
 
+import com.google.common.base.Preconditions;
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,10 +32,10 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * Netty handler that handles short circuit read requests.
+ * gRPC handler that handles short circuit read requests.
  */
 @NotThreadSafe
-class ShortCircuitBlockReadHandler {
+class ShortCircuitBlockReadHandler implements StreamObserver<OpenLocalBlockRequest> {
   private static final Logger LOG =
       LoggerFactory.getLogger(ShortCircuitBlockReadHandler.class);
 
@@ -42,7 +43,7 @@ class ShortCircuitBlockReadHandler {
   /** The block worker. */
   private final BlockWorker mWorker;
   private final StreamObserver<OpenLocalBlockResponse> mResponseObserver;
-  private final OpenLocalBlockRequest mRequest;
+  private OpenLocalBlockRequest mRequest;
   /** The lock Id of the block being read. */
   private long mLockId;
   private long mSessionId;
@@ -51,36 +52,24 @@ class ShortCircuitBlockReadHandler {
    * Creates an instance of {@link ShortCircuitBlockReadHandler}.
    *
    * @param blockWorker the block worker
-   * @param request the local block open request
    */
   ShortCircuitBlockReadHandler(BlockWorker blockWorker,
-      OpenLocalBlockRequest request,
       StreamObserver<OpenLocalBlockResponse> responseObserver) {
     mWorker = blockWorker;
     mLockId = BlockLockManager.INVALID_LOCK_ID;
-    mRequest = request;
     mResponseObserver = responseObserver;
-  }
-
-  public void exceptionCaught(Throwable throwable) {
-    if (mLockId != BlockLockManager.INVALID_LOCK_ID) {
-      try {
-        mWorker.unlockBlock(mLockId);
-      } catch (BlockDoesNotExistException e) {
-        LOG.warn("Failed to unlock lock {} with error {}.", mLockId, e.getMessage());
-      }
-      mWorker.cleanupSession(mSessionId);
-    }
-    mResponseObserver.onError(throwable);
   }
 
   /**
    * Handles block open request.
    */
-  public void handleBlockOpenRequest() {
+  @Override
+  public void onNext(OpenLocalBlockRequest request) {
     RpcUtils.nettyRPCAndLog(LOG, new RpcUtils.NettyRpcCallable<OpenLocalBlockResponse>() {
       @Override
       public OpenLocalBlockResponse call() throws Exception {
+        Preconditions.checkState(mRequest == null);
+        mRequest = request;
         if (mLockId == BlockLockManager.INVALID_LOCK_ID) {
           mSessionId = IdUtils.createSessionId();
           // TODO(calvin): Update the locking logic so this can be done better
@@ -118,24 +107,37 @@ class ShortCircuitBlockReadHandler {
           }
           mLockId = BlockLockManager.INVALID_LOCK_ID;
         }
-        mResponseObserver.onError(AlluxioStatusException.fromThrowable(e));
+        mResponseObserver.onError(GrpcExceptionUtils.fromThrowable(e));
       }
     }, "OpenBlock", true, false, "Session=%d, Request=%s",
         mResponseObserver, mSessionId, mRequest);
   }
 
+  @Override
+  public void onError(Throwable t) {
+    if (mLockId != BlockLockManager.INVALID_LOCK_ID) {
+      try {
+        mWorker.unlockBlock(mLockId);
+      } catch (BlockDoesNotExistException e) {
+        LOG.warn("Failed to unlock lock {} with error {}.", mLockId, e.getMessage());
+      }
+      mWorker.cleanupSession(mSessionId);
+    }
+    mResponseObserver.onError(GrpcExceptionUtils.fromThrowable(t));
+  }
+
   /**
    * Handles block close request. No exceptions should be thrown.
-   *
    */
-  public void handleBlockCloseRequest() {
+  @Override
+  public void onCompleted() {
     RpcUtils.nettyRPCAndLog(LOG, new RpcUtils.NettyRpcCallable<OpenLocalBlockResponse>() {
       @Override
       public OpenLocalBlockResponse call() throws Exception {
         if (mLockId != BlockLockManager.INVALID_LOCK_ID) {
           mWorker.unlockBlock(mLockId);
           mLockId = BlockLockManager.INVALID_LOCK_ID;
-        } else {
+        } else if (mRequest != null) {
           LOG.warn("Close a closed block {}.", mRequest.getBlockId());
         }
         return null;
@@ -143,10 +145,10 @@ class ShortCircuitBlockReadHandler {
 
       @Override
       public void exceptionCaught(Throwable e) {
-        mResponseObserver.onError(AlluxioStatusException.fromThrowable(e));
+        mResponseObserver.onError(GrpcExceptionUtils.fromThrowable(e));
         mLockId = BlockLockManager.INVALID_LOCK_ID;
       }
-    }, "CloseBlock", false, false, "Session=%d, Request=%s",
+    }, "CloseBlock", false, true, "Session=%d, Request=%s",
         mResponseObserver, mSessionId, mRequest);
   }
 }

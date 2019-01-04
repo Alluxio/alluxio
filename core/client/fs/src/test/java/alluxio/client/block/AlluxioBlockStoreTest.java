@@ -29,12 +29,11 @@ import alluxio.client.file.options.InStreamOptions;
 import alluxio.client.file.options.OutStreamOptions;
 import alluxio.client.file.policy.FileWriteLocationPolicy;
 import alluxio.exception.status.NotFoundException;
-import alluxio.grpc.CreateLocalBlockResponse;
-import alluxio.grpc.OpenFilePOptions;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.UnavailableException;
-import alluxio.grpc.OpenLocalBlockRequest;
+import alluxio.grpc.CreateLocalBlockResponse;
+import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.OpenLocalBlockResponse;
 import alluxio.network.TieredIdentityFactory;
 import alluxio.resource.DummyCloseableResource;
@@ -64,7 +63,6 @@ import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.ConnectException;
 import java.util.AbstractMap;
 import java.util.Arrays;
 import java.util.Collections;
@@ -72,6 +70,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -90,6 +90,8 @@ public final class AlluxioBlockStoreTest {
       .setHost(WORKER_HOSTNAME_LOCAL);
   private static final WorkerNetAddress WORKER_NET_ADDRESS_REMOTE = new WorkerNetAddress()
       .setHost(WORKER_HOSTNAME_REMOTE);
+  private ClientCallStreamObserver mStreamObserver;
+  private static final ExecutorService EXECUTOR = Executors.newFixedThreadPool(4);
 
   /**
    * A mock class used to return controlled result when selecting workers.
@@ -162,10 +164,12 @@ public final class AlluxioBlockStoreTest {
 
     when(mContext.acquireBlockWorkerClient(any(WorkerNetAddress.class)))
         .thenReturn(mWorkerClient);
+    mStreamObserver = PowerMockito.mock(ClientCallStreamObserver.class);
     when(mWorkerClient.writeBlock(any(StreamObserver.class)))
-        .thenReturn(PowerMockito.mock(ClientCallStreamObserver.class));
-    when(mWorkerClient.openLocalBlock(any(OpenLocalBlockRequest.class)))
-        .thenReturn(OpenLocalBlockResponse.newBuilder().setPath("").build());
+        .thenReturn(mStreamObserver);
+    when(mWorkerClient.openLocalBlock(any(StreamObserver.class)))
+        .thenReturn(mStreamObserver);
+    when(mStreamObserver.isReady()).thenReturn(true);
   }
 
   @Test
@@ -218,7 +222,7 @@ public final class AlluxioBlockStoreTest {
             StreamObserver<CreateLocalBlockResponse> observer =
                 invocation.getArgumentAt(0, StreamObserver.class);
             observer.onNext(response);
-            return PowerMockito.mock(ClientCallStreamObserver.class);
+            return mStreamObserver;
           }
         });
 
@@ -254,7 +258,7 @@ public final class AlluxioBlockStoreTest {
             StreamObserver<CreateLocalBlockResponse> observer =
                 invocation.getArgumentAt(0, StreamObserver.class);
             observer.onNext(response);
-            return PowerMockito.mock(ClientCallStreamObserver.class);
+            return mStreamObserver;
           }
         });
 
@@ -328,7 +332,16 @@ public final class AlluxioBlockStoreTest {
 
     // Mock away gRPC usage.
     OpenLocalBlockResponse response = OpenLocalBlockResponse.newBuilder().setPath("/tmp").build();
-    when(mWorkerClient.openLocalBlock(any(OpenLocalBlockRequest.class))).thenReturn(response);
+    when(mWorkerClient.openLocalBlock(any(StreamObserver.class)))
+            .thenAnswer(new Answer() {
+              public Object answer(InvocationOnMock invocation) {
+                StreamObserver<OpenLocalBlockResponse> observer =
+                        invocation.getArgumentAt(0, StreamObserver.class);
+                observer.onNext(response);
+                observer.onCompleted();
+                return mStreamObserver;
+              }
+            });
 
     BlockInfo info = new BlockInfo().setBlockId(BLOCK_ID).setLocations(Arrays
         .asList(new BlockLocation().setWorkerAddress(remote),
@@ -428,7 +441,7 @@ public final class AlluxioBlockStoreTest {
     }
     workers[workers.length - 1] = new WorkerNetAddress().setHost(WORKER_HOSTNAME_LOCAL);
     when(mContext.acquireBlockWorkerClient(WORKER_NET_ADDRESS_LOCAL))
-        .thenThrow(new ConnectException("failed to connect to "
+        .thenThrow(new UnavailableException("failed to connect to "
             + WORKER_NET_ADDRESS_LOCAL.getHost()));
     BlockInfo info = new BlockInfo().setBlockId(BLOCK_ID)
         .setLocations(Arrays.stream(blockLocations).mapToObj(x ->

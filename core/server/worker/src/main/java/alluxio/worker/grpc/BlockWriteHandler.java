@@ -36,6 +36,9 @@ import javax.annotation.concurrent.NotThreadSafe;
  * This handler handles block write request. Check more information in
  * {@link AbstractWriteHandler}.
  */
+@edu.umd.cs.findbugs.annotations.SuppressFBWarnings(value = "BC_UNCONFIRMED_CAST_OF_RETURN_VALUE",
+    justification = "false positive with superclass generics, "
+        + "see more description in https://sourceforge.net/p/findbugs/bugs/1242/")
 @NotThreadSafe
 public final class BlockWriteHandler extends AbstractWriteHandler<BlockWriteRequestContext> {
   private static final Logger LOG = LoggerFactory.getLogger(BlockWriteHandler.class);

@@ -18,24 +18,18 @@ import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.anyLong;
 import static org.mockito.Mockito.when;
 
-import alluxio.exception.status.FailedPreconditionException;
 import alluxio.grpc.ReadRequest;
 import alluxio.worker.block.BlockWorker;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.LocalFileBlockReader;
 
+import io.grpc.Status;
 import io.grpc.stub.ServerCallStreamObserver;
 import io.netty.util.ResourceLeakDetector;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.Mockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({LocalFileBlockReader.class})
 public final class BlockReadHandlerTest extends ReadHandlerTest {
   private BlockWorker mBlockWorker;
   private BlockReader mBlockReader;
@@ -52,12 +46,14 @@ public final class BlockReadHandlerTest extends ReadHandlerTest {
       return null;
     }).when(mResponseObserver).onCompleted();
     doAnswer(args -> {
+      mResponseCompleted = true;
       mError = args.getArgumentAt(0, Throwable.class);
       return null;
     }).when(mResponseObserver).onError(any(Throwable.class));
-    mReadHandler = new BlockReadHandler(GrpcExecutors.BLOCK_READER_EXECUTOR, mBlockWorker);
+    mReadHandler = new BlockReadHandler(GrpcExecutors.BLOCK_READER_EXECUTOR, mBlockWorker,
+        mResponseObserver);
     mReadHandlerNoException = new BlockReadHandler(
-        GrpcExecutors.BLOCK_READER_EXECUTOR, mBlockWorker);
+        GrpcExecutors.BLOCK_READER_EXECUTOR, mBlockWorker, mResponseObserver);
   }
 
   /**
@@ -68,9 +64,8 @@ public final class BlockReadHandlerTest extends ReadHandlerTest {
     long fileSize = CHUNK_SIZE * 10 + 1;
     populateInputFile(0, 0, fileSize - 1);
     mBlockReader.close();
-    mReadHandlerNoException.readBlock(buildReadRequest(0, fileSize), mResponseObserver);
-    Throwable t = waitForError(mResponseObserver);
-    Assert.assertTrue(t instanceof FailedPreconditionException);
+    mReadHandlerNoException.onNext(buildReadRequest(0, fileSize));
+    checkErrorCode(mResponseObserver, Status.Code.FAILED_PRECONDITION);
   }
 
   @Override
@@ -84,7 +79,7 @@ public final class BlockReadHandlerTest extends ReadHandlerTest {
   protected ReadRequest buildReadRequest(long offset, long len) {
     ReadRequest readRequest =
         ReadRequest.newBuilder().setBlockId(1L).setOffset(offset).setLength(len)
-            .build();
+            .setChunkSize(CHUNK_SIZE).build();
     return readRequest;
   }
 }

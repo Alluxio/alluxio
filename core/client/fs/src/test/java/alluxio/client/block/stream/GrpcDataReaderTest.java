@@ -14,7 +14,9 @@ package alluxio.client.block.stream;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 import alluxio.client.file.FileSystemContext;
@@ -27,7 +29,8 @@ import alluxio.util.io.BufferUtils;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.protobuf.ByteString;
-import io.grpc.Context;
+import io.grpc.stub.ClientCallStreamObserver;
+import io.grpc.stub.StreamObserver;
 import io.netty.buffer.ByteBuf;
 import org.junit.After;
 import org.junit.Before;
@@ -58,7 +61,7 @@ public final class GrpcDataReaderTest {
   private WorkerNetAddress mAddress;
   private BlockWorkerClient mClient;
   private GrpcDataReader.Factory mFactory;
-  private Context mGrpcContext;
+  private ClientCallStreamObserver<ReadRequest> mRequestObserver;
 
   @Before
   public void before() throws Exception {
@@ -69,8 +72,11 @@ public final class GrpcDataReaderTest {
     mFactory = new GrpcDataReader.Factory(mContext, mAddress, readRequest);
 
     mClient = mock(BlockWorkerClient.class);
+    mRequestObserver = mock(ClientCallStreamObserver.class);
     PowerMockito.when(mContext.acquireBlockWorkerClient(mAddress)).thenReturn(mClient);
     PowerMockito.doNothing().when(mContext).releaseBlockWorkerClient(mAddress, mClient);
+    PowerMockito.when(mClient.readBlock(any(StreamObserver.class))).thenReturn(mRequestObserver);
+    PowerMockito.when(mRequestObserver.isReady()).thenReturn(true);
   }
 
   @After
@@ -83,11 +89,11 @@ public final class GrpcDataReaderTest {
    */
   @Test
   public void readEmptyFile() throws Exception {
-    setReadResponses(mClient, 0, 0, 0);
     try (DataReader reader = create(0, 10)) {
+      setReadResponses(mClient, 0, 0, 0);
       assertEquals(null, reader.readChunk());
     }
-    validateReadRequestSent(mClient, 0, 10, false, CHUNK_SIZE);
+    validateReadRequestSent(mClient, 0, 10, true, CHUNK_SIZE);
   }
 
   /**
@@ -96,8 +102,8 @@ public final class GrpcDataReaderTest {
   @Test(timeout = 1000 * 60)
   public void readFullFile() throws Exception {
     long length = CHUNK_SIZE * 1024 + CHUNK_SIZE / 3;
-    long checksum = setReadResponses(mClient, length, 0, length - 1);
     try (DataReader reader = create(0, length)) {
+      long checksum = setReadResponses(mClient, length, 0, length - 1);
       long checksumActual = checkChunks(reader, 0, length);
       assertEquals(checksum, checksumActual);
     }
@@ -113,9 +119,9 @@ public final class GrpcDataReaderTest {
     long offset = 10;
     long checksumStart = 100;
     long bytesToRead = length / 3;
-    long checksum = setReadResponses(mClient, length, checksumStart, bytesToRead - 1);
 
     try (DataReader reader = create(offset, length)) {
+      long checksum = setReadResponses(mClient, length, checksumStart, bytesToRead - 1);
       long checksumActual = checkChunks(reader, checksumStart, bytesToRead);
       assertEquals(checksum, checksumActual);
     }
@@ -130,8 +136,8 @@ public final class GrpcDataReaderTest {
     long lengthActual = CHUNK_SIZE * 1024 + CHUNK_SIZE / 3;
     long checksumStart = 100;
     long bytesToRead = lengthActual / 3;
-    long checksum = setReadResponses(mClient, lengthActual, checksumStart, bytesToRead - 1);
     try (DataReader reader = create(0, Long.MAX_VALUE)) {
+      long checksum = setReadResponses(mClient, lengthActual, checksumStart, bytesToRead - 1);
       long checksumActual = checkChunks(reader, checksumStart, bytesToRead);
       assertEquals(checksum, checksumActual);
     }
@@ -198,14 +204,17 @@ public final class GrpcDataReaderTest {
    */
   private void validateReadRequestSent(final BlockWorkerClient client, long offset, long length,
       boolean closed, int chunkSize) throws TimeoutException, InterruptedException {
-    ArgumentCaptor<ReadRequest> captor = ArgumentCaptor.forClass(ReadRequest.class);
-    verify(client).readBlock(captor.capture());
-    ReadRequest readRequest = captor.getValue();
+    ArgumentCaptor<ReadRequest> requestCaptor = ArgumentCaptor.forClass(ReadRequest.class);
+    verify(mRequestObserver, atLeastOnce()).onNext(requestCaptor.capture());
+    ArgumentCaptor<StreamObserver> captor = ArgumentCaptor.forClass(StreamObserver.class);
+    verify(mClient).readBlock(captor.capture());
+    ReadRequest readRequest = requestCaptor.getValue();
+    captor.getValue().onCompleted();
+    verify(mRequestObserver, closed ? atLeastOnce() : never()).onCompleted();
     assertTrue(readRequest != null);
     assertEquals(BLOCK_ID, readRequest.getBlockId());
     assertEquals(offset, readRequest.getOffset());
     assertEquals(length, readRequest.getLength());
-    assertEquals(closed, mGrpcContext.isCancelled());
     assertEquals(chunkSize, readRequest.getChunkSize());
   }
 
@@ -224,7 +233,10 @@ public final class GrpcDataReaderTest {
     long pos = 0;
 
     long remaining = length;
-    List<ReadResponse> responses = new ArrayList<ReadResponse>();
+    ArgumentCaptor<StreamObserver> captor = ArgumentCaptor.forClass(StreamObserver.class);
+    verify(mClient).readBlock(captor.capture());
+    StreamObserver<ReadResponse> responseObserver = captor.getValue();
+    List<ReadResponse> responses = new ArrayList<>();
     while (remaining > 0) {
       int bytesToSend = (int) Math.min(remaining, CHUNK_SIZE);
       byte[] data = new byte[bytesToSend];
@@ -240,12 +252,12 @@ public final class GrpcDataReaderTest {
         pos++;
       }
     }
-    PowerMockito.when(client.readBlock(any(ReadRequest.class)))
-        .thenAnswer(args -> {
-          mGrpcContext = Context.current();
-          return responses.iterator();
-        });
-
+    EXECUTOR.submit(() -> {
+      for (ReadResponse response : responses) {
+        responseObserver.onNext(response);
+      }
+      responseObserver.onCompleted();
+    });
     return checksum;
   }
 }

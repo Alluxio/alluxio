@@ -22,6 +22,7 @@ import alluxio.grpc.CreateLocalBlockRequest;
 import alluxio.grpc.CreateLocalBlockResponse;
 import alluxio.grpc.GrpcChannel;
 import alluxio.grpc.GrpcChannelBuilder;
+import alluxio.grpc.GrpcExceptionUtils;
 import alluxio.grpc.OpenLocalBlockRequest;
 import alluxio.grpc.OpenLocalBlockResponse;
 import alluxio.grpc.ReadRequest;
@@ -32,6 +33,7 @@ import alluxio.grpc.WriteRequest;
 import alluxio.grpc.WriteResponse;
 import alluxio.util.network.NettyUtils;
 
+import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
 import io.netty.channel.EventLoopGroup;
 import org.slf4j.Logger;
@@ -40,7 +42,6 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
-import java.util.Iterator;
 import java.util.concurrent.TimeUnit;
 
 import javax.security.auth.Subject;
@@ -74,7 +75,7 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
    * @param subject the user subject, can be null if the user is not available
    * @param address the address of the worker
    */
-  public DefaultBlockWorkerClient(Subject subject, SocketAddress address) {
+  public DefaultBlockWorkerClient(Subject subject, SocketAddress address) throws IOException {
     try {
       mChannel = GrpcChannelBuilder.forAddress(address).setSubject(subject)
           .setChannelType(NettyUtils.getClientChannelClass(!(address instanceof InetSocketAddress)))
@@ -84,6 +85,8 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
           .setFlowControlWindow((int) GRPC_FLOWCONTROL_WINDOW).build();
     } catch (UnauthenticatedException | UnavailableException e) {
       throw new RuntimeException("Failed to build channel.", e);
+    } catch (StatusRuntimeException e) {
+      throw GrpcExceptionUtils.fromGrpcStatusException(e);
     }
     mBlockingStub = BlockWorkerGrpc.newBlockingStub(mChannel);
     mAsyncStub = BlockWorkerGrpc.newStub(mChannel);
@@ -117,8 +120,8 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
   }
 
   @Override
-  public Iterator<ReadResponse> readBlock(final ReadRequest request) {
-    return mBlockingStub.readBlock(request);
+  public StreamObserver<ReadRequest> readBlock(StreamObserver<ReadResponse> responseObserver) {
+    return mAsyncStub.readBlock(responseObserver);
   }
 
   @Override
@@ -128,8 +131,9 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
   }
 
   @Override
-  public OpenLocalBlockResponse openLocalBlock(final OpenLocalBlockRequest request) {
-    return mBlockingStub.openLocalBlock(request).next();
+  public StreamObserver<OpenLocalBlockRequest> openLocalBlock(
+      StreamObserver<OpenLocalBlockResponse> responseObserver) {
+    return mAsyncStub.openLocalBlock(responseObserver);
   }
 
   @Override

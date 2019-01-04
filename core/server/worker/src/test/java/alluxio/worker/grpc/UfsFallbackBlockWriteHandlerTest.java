@@ -15,7 +15,6 @@ import alluxio.AlluxioTestDirectory;
 import alluxio.AlluxioURI;
 import alluxio.ConfigurationRule;
 import alluxio.PropertyKey;
-import alluxio.exception.status.NotFoundException;
 import alluxio.grpc.RequestType;
 import alluxio.grpc.WriteRequest;
 import alluxio.network.protocol.databuffer.DataBuffer;
@@ -29,6 +28,7 @@ import alluxio.worker.block.BlockWorker;
 import alluxio.worker.block.TieredBlockStore;
 import alluxio.worker.block.io.BlockWriter;
 
+import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
 import io.netty.buffer.ByteBuf;
 import org.junit.After;
@@ -111,9 +111,9 @@ public class UfsFallbackBlockWriteHandlerTest extends AbstractWriteHandlerTest {
   @Test
   public void noTempBlockFound() throws Exception {
     // remove the block partially created
-    mExpectedException.expect(NotFoundException.class);
     mBlockStore.abortBlock(TEST_SESSION_ID, TEST_BLOCK_ID);
     mWriteHandler.write(newFallbackInitRequest(PARTIAL_WRITTEN));
+    checkErrorCode(mResponseObserver, Status.Code.NOT_FOUND);
   }
 
   @Test
@@ -122,7 +122,7 @@ public class UfsFallbackBlockWriteHandlerTest extends AbstractWriteHandlerTest {
     long checksum = mPartialChecksum + getChecksum(buffer);
     mWriteHandler.write(newFallbackInitRequest(PARTIAL_WRITTEN));
     mWriteHandler.write(newWriteRequest(buffer));
-    mWriteHandler.onComplete();
+    mWriteHandler.onCompleted();
     checkComplete(mResponseObserver);
     checkWriteData(checksum, PARTIAL_WRITTEN + CHUNK_SIZE);
   }

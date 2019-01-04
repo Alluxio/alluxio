@@ -14,6 +14,7 @@ package alluxio.worker.grpc;
 import alluxio.client.block.stream.GrpcDataWriter;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.InvalidArgumentException;
+import alluxio.grpc.GrpcExceptionUtils;
 import alluxio.grpc.WriteRequest;
 import alluxio.grpc.WriteRequestCommand;
 import alluxio.grpc.WriteResponse;
@@ -81,8 +82,7 @@ abstract class AbstractWriteHandler<T extends WriteRequestContext<?>> {
    *
    * @param writeRequest the request from the client
    */
-  public void write(WriteRequest writeRequest)
-      throws Exception {
+  public void write(WriteRequest writeRequest) {
     try (LockResource lr = new LockResource(mLock)) {
       if (mContext == null) {
         mContext = createRequestContext(writeRequest);
@@ -106,13 +106,15 @@ abstract class AbstractWriteHandler<T extends WriteRequestContext<?>> {
             "invalid data size from write request message");
         writeData(data);
       }
+    } catch (Exception e) {
+      abort(new Error(AlluxioStatusException.fromThrowable(e), true));
     }
   }
 
   /**
    * Handles request complete event.
    */
-  public void onComplete() {
+  public void onCompleted() {
     Preconditions.checkState(mContext != null);
     try (LockResource lr = new LockResource(mLock)) {
       completeRequest(mContext);
@@ -288,7 +290,7 @@ abstract class AbstractWriteHandler<T extends WriteRequestContext<?>> {
     }
 
     if (error.isNotifyClient()) {
-      mResponseObserver.onError(error.getCause());
+      mResponseObserver.onError(GrpcExceptionUtils.toGrpcStatusException(error.getCause()));
     }
   }
 

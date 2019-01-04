@@ -11,14 +11,13 @@
 
 package alluxio.worker.grpc;
 
-import alluxio.exception.status.FailedPreconditionException;
 import alluxio.grpc.RequestType;
 import alluxio.worker.block.BlockWorker;
 import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.block.io.LocalFileBlockWriter;
 
+import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -60,8 +59,7 @@ public final class BlockWriteHandlerTest extends AbstractWriteHandlerTest {
     mWriteHandler.write(newWriteRequestCommand(0));
     mBlockWriter.close();
     mWriteHandler.write(newWriteRequest(newDataBuffer(CHUNK_SIZE)));
-    Throwable t = getError(mResponseObserver);
-    Assert.assertTrue(t instanceof FailedPreconditionException);
+    checkErrorCode(mResponseObserver, Status.Code.FAILED_PRECONDITION);
   }
 
   @Override

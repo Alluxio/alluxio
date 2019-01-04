@@ -15,9 +15,6 @@ import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.OutStreamOptions;
-import alluxio.exception.status.AlluxioStatusException;
-import alluxio.exception.status.CanceledException;
-import alluxio.exception.status.DeadlineExceededException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.Chunk;
 import alluxio.grpc.RequestType;
@@ -30,18 +27,13 @@ import alluxio.util.proto.ProtoUtils;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Preconditions;
-import com.google.common.base.Throwables;
 import com.google.protobuf.ByteString;
-import io.grpc.stub.ClientCallStreamObserver;
-import io.grpc.stub.ClientResponseObserver;
 import io.grpc.stub.StreamObserver;
 import io.netty.buffer.ByteBuf;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
 import javax.annotation.concurrent.GuardedBy;
@@ -56,7 +48,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * 2. The server reads chunks from the stream and writes them to the block worker. See the server
  *    side implementation for details.
  * 3. The client can either complete or cancel the stream to end the write request. The
- *    client has to wait for the comeplte or cancel response from the data server to make
+ *    client has to wait for the complete or cancel response from the data server to make
  *    sure that the server has cleaned its states.
  * 4. To make it simple to handle errors, the stream is closed if any error occurs.
  *
@@ -80,7 +72,6 @@ public final class GrpcDataWriter implements DataWriter {
   private final WorkerNetAddress mAddress;
   private final long mLength;
   private final WriteRequestCommand mPartialRequest;
-  private final ClientCallStreamObserver<WriteRequest> mRequestStream;
   private final long mChunkSize;
 
   /**
@@ -90,9 +81,7 @@ public final class GrpcDataWriter implements DataWriter {
    * gRPC worker threads executes the response {@link StreamObserver} events.
    */
   private final ReentrantLock mLock = new ReentrantLock();
-
-  @GuardedBy("mLock")
-  private long mPosWritten;
+  private final GrpcBlockingStream<WriteRequest, WriteResponse> mStream;
 
   /**
    * The next pos to queue to the buffer.
@@ -100,19 +89,9 @@ public final class GrpcDataWriter implements DataWriter {
   @GuardedBy("mLock")
   private long mPosToQueue;
   @GuardedBy("mLock")
-  private Throwable mError;
-  @GuardedBy("mLock")
-  private boolean mDone;
-  @GuardedBy("mLock")
   private boolean mEOFSent;
   @GuardedBy("mLock")
   private boolean mCancelSent;
-  /** This condition is met if mError != null or mDone = true. */
-  private final Condition mDoneOrFailed = mLock.newCondition();
-  /** This condition is met if mError != null or flush is completed. */
-  private final Condition mFlushedOrFailed = mLock.newCondition();
-  /** This condition is met if mError != null or client is ready to send data. */
-  private final Condition mReadyOrFailed = mLock.newCondition();
 
   /**
    * @param context the file system context
@@ -146,7 +125,7 @@ public final class GrpcDataWriter implements DataWriter {
    */
   private GrpcDataWriter(FileSystemContext context, final WorkerNetAddress address, long id,
       long length, long chunkSize, RequestType type, OutStreamOptions options,
-      BlockWorkerClient client) {
+      BlockWorkerClient client) throws IOException {
     mContext = context;
     mAddress = address;
     mLength = length;
@@ -179,10 +158,9 @@ public final class GrpcDataWriter implements DataWriter {
     mPartialRequest = builder.buildPartial();
     mChunkSize = chunkSize;
     mClient = client;
-    StreamObserver<WriteResponse> responseObserver = new WriteStreamObserver();
-    mRequestStream = (ClientCallStreamObserver<WriteRequest>) mClient.writeBlock(responseObserver);
-    mRequestStream.onNext(WriteRequest.newBuilder().setCommand(
-        mPartialRequest.toBuilder()).build());
+    mStream = new GrpcBlockingStream<>(mClient::writeBlock);
+    mStream.send(WriteRequest.newBuilder().setCommand(mPartialRequest.toBuilder()).build(),
+        WRITE_TIMEOUT_MS);
   }
 
   @Override
@@ -195,29 +173,11 @@ public final class GrpcDataWriter implements DataWriter {
   @Override
   public void writeChunk(final ByteBuf buf) throws IOException {
     try (LockResource lr = new LockResource(mLock)) {
-      while (true) {
-        if (mError != null) {
-          Throwables.propagateIfPossible(mError, IOException.class);
-          throw AlluxioStatusException.fromCheckedException(mError);
-        }
-        if (mRequestStream.isReady()) {
-          mPosToQueue += buf.readableBytes();
-          break;
-        }
-        try {
-          if (!mReadyOrFailed.await(WRITE_TIMEOUT_MS, TimeUnit.MILLISECONDS)) {
-            throw new DeadlineExceededException(
-                String.format("Timeout writing to %s for request %s after %dms.",
-                    mAddress, mPartialRequest, WRITE_TIMEOUT_MS));
-          }
-        } catch (InterruptedException e) {
-          Thread.currentThread().interrupt();
-          throw new CanceledException(e);
-        }
-      }
+      mPosToQueue += buf.readableBytes();
     }
-    mRequestStream.onNext(WriteRequest.newBuilder().setCommand(mPartialRequest).setChunk(
-        Chunk.newBuilder().setData(ByteString.copyFrom(buf.nioBuffer())).build()).build());
+    mStream.send(WriteRequest.newBuilder().setCommand(mPartialRequest).setChunk(
+        Chunk.newBuilder().setData(ByteString.copyFrom(buf.nioBuffer())).build()).build(),
+        WRITE_TIMEOUT_MS);
   }
 
   /**
@@ -226,7 +186,7 @@ public final class GrpcDataWriter implements DataWriter {
    *
    * @param pos number of bytes already written to block store
    */
-  public void writeFallbackInitRequest(long pos) {
+  public void writeFallbackInitRequest(long pos) throws IOException {
     Preconditions.checkState(mPartialRequest.getType() == RequestType.UFS_FALLBACK_BLOCK);
     Protocol.CreateUfsBlockOptions ufsBlockOptions = mPartialRequest.getCreateUfsBlockOptions()
         .toBuilder().setBytesInBlockStore(pos).build();
@@ -236,7 +196,7 @@ public final class GrpcDataWriter implements DataWriter {
     try (LockResource lr = new LockResource(mLock)) {
       mPosToQueue = pos;
     }
-    mRequestStream.onNext(writeRequest);
+    mStream.send(writeRequest, WRITE_TIMEOUT_MS);
   }
 
   @Override
@@ -256,16 +216,16 @@ public final class GrpcDataWriter implements DataWriter {
       WriteRequest writeRequest = WriteRequest.newBuilder()
           .setCommand(mPartialRequest.toBuilder().setOffset(mPosToQueue).setFlush(true))
           .build();
-      mRequestStream.onNext(writeRequest);
-      if (mPosToQueue != mPosWritten
-          && !mFlushedOrFailed.await(FLUSH_TIMEOUT_MS, TimeUnit.MILLISECONDS)) {
-        throw new DeadlineExceededException(
-            String.format("Timeout flushing to %s for request %s after %dms.",
-                mAddress, mPartialRequest, FLUSH_TIMEOUT_MS));
-      }
-    } catch (InterruptedException e) {
-      Thread.currentThread().interrupt();
-      throw new CanceledException(e);
+      mStream.send(writeRequest, WRITE_TIMEOUT_MS);
+      long posWritten;
+      do {
+        WriteResponse response = mStream.receive(FLUSH_TIMEOUT_MS);
+        if (response == null) {
+          throw new UnavailableException(String.format(
+              "Flush request %s is not acked before complete.", writeRequest));
+        }
+        posWritten = response.getOffset();
+      } while (mPosToQueue != posWritten);
     }
   }
 
@@ -277,26 +237,8 @@ public final class GrpcDataWriter implements DataWriter {
     sendEof();
     mLock.lock();
     try {
-      while (true) {
-        if (mDone) {
-          return;
-        }
-        try {
-          if (mError != null) {
-            throw new UnavailableException(
-                "Failed to write data chunk due to " + mError.getMessage(),
-                mError);
-          }
-          if (!mDoneOrFailed.await(CLOSE_TIMEOUT_MS, TimeUnit.MILLISECONDS)) {
-            mRequestStream.onCompleted();
-            throw new DeadlineExceededException(String.format(
-                "Timeout closing DataWriter to %s for request %s after %dms.",
-                mAddress, mPartialRequest, CLOSE_TIMEOUT_MS));
-          }
-        } catch (InterruptedException e) {
-          Thread.currentThread().interrupt();
-          throw new CanceledException(e);
-        }
+      while (mStream.receive(CLOSE_TIMEOUT_MS) != null) {
+        // wait until receives empty(response stream closed)
       }
     } finally {
       mLock.unlock();
@@ -314,7 +256,7 @@ public final class GrpcDataWriter implements DataWriter {
       }
       mEOFSent = true;
     }
-    mRequestStream.onCompleted();
+    mStream.close();
   }
 
   /**
@@ -327,72 +269,12 @@ public final class GrpcDataWriter implements DataWriter {
       }
       mCancelSent = true;
     }
-    mRequestStream.cancel("Request is cancelled by user.", null);
+    mStream.cancel();
   }
 
   @Override
   public int chunkSize() {
     return (int) mChunkSize;
-  }
-
-  /**
-   * Updates the channel exception to be the given exception e, or adds e to suppressed exceptions.
-   *
-   * @param e Exception received
-   */
-  @GuardedBy("mLock")
-  private void updateException(Throwable e) {
-    if (mError == null || mError == e) {
-      mError = e;
-    } else {
-      mError.addSuppressed(e);
-    }
-  }
-
-  // An observer for write response stream that handles async events.
-  private final class WriteStreamObserver
-      implements ClientResponseObserver<WriteRequest, WriteResponse> {
-
-    @Override
-    public void onNext(WriteResponse response) {
-      // currently only flush expects a response
-      Preconditions.checkState(response.hasOffset(), "missing offset in flush response");
-      try (LockResource lr = new LockResource(mLock)) {
-        mPosWritten = response.getOffset();
-        Preconditions.checkState(mPosToQueue == mPosWritten,
-            "No data should be sent before flush is acked.");
-        Preconditions.checkState(mPosToQueue <= mLength);
-        mFlushedOrFailed.signal();
-      }
-    }
-
-    @Override
-    public void onError(Throwable t) {
-      try (LockResource lr = new LockResource(mLock)) {
-        updateException(t);
-        mDoneOrFailed.signal();
-        mFlushedOrFailed.signal();
-        mReadyOrFailed.signal();
-      }
-    }
-
-    @Override
-    public void onCompleted() {
-      try (LockResource lr = new LockResource(mLock)) {
-        mDone = true;
-        mDoneOrFailed.signal();
-        mFlushedOrFailed.signal();
-      }
-    }
-
-    @Override
-    public void beforeStart(ClientCallStreamObserver<WriteRequest> requestStream) {
-      requestStream.setOnReadyHandler(() -> {
-        try (LockResource lr = new LockResource(mLock)) {
-          mReadyOrFailed.signal();
-        }
-      });
-    }
   }
 }
 

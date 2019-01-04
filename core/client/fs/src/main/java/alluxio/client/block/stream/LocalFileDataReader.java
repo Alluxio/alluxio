@@ -11,6 +11,8 @@
 
 package alluxio.client.block.stream;
 
+import alluxio.Configuration;
+import alluxio.PropertyKey;
 import alluxio.client.ReadType;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.InStreamOptions;
@@ -24,7 +26,6 @@ import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.block.io.LocalFileBlockReader;
 
 import com.google.common.base.Preconditions;
-import io.grpc.Context;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -36,6 +37,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class LocalFileDataReader implements DataReader {
+  private static final long READ_TIMEOUT_MS =
+      Configuration.getMs(PropertyKey.USER_NETWORK_NETTY_TIMEOUT_MS);
   /** The file reader to read a local block. */
   private final LocalFileBlockReader mReader;
   private final long mEnd;
@@ -96,7 +99,7 @@ public final class LocalFileDataReader implements DataReader {
     private final long mBlockId;
     private final String mPath;
     private final long mChunkSize;
-    private final Context.CancellableContext mCancellableContext;
+    private final GrpcBlockingStream<OpenLocalBlockRequest, OpenLocalBlockResponse> mStream;
     private LocalFileBlockReader mReader;
     private boolean mClosed;
 
@@ -118,17 +121,10 @@ public final class LocalFileDataReader implements DataReader {
       boolean isPromote = ReadType.fromProto(options.getOptions().getReadType()).isPromote();
       OpenLocalBlockRequest request = OpenLocalBlockRequest.newBuilder()
           .setBlockId(mBlockId).setPromote(isPromote).build();
-      mCancellableContext = Context.current().withCancellation();
-      Context previousContext = mCancellableContext.attach();
-      try {
-        OpenLocalBlockResponse response = mBlockWorker.openLocalBlock(request);
-        mPath = response.getPath();
-      } catch (Exception e) {
-        mCancellableContext.cancel(e);
-        throw e;
-      } finally {
-        mCancellableContext.detach(previousContext);
-      }
+      mStream = new GrpcBlockingStream<>(mBlockWorker::openLocalBlock);
+      mStream.send(request, READ_TIMEOUT_MS);
+      OpenLocalBlockResponse response = mStream.receive(READ_TIMEOUT_MS);
+      mPath = response.getPath();
     }
 
     @Override
@@ -155,7 +151,7 @@ public final class LocalFileDataReader implements DataReader {
         mReader.close();
       }
       try {
-        mCancellableContext.close();
+        mStream.close();
       } finally {
         mBlockWorker.close();
         mClosed = true;

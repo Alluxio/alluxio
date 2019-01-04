@@ -12,7 +12,6 @@
 package alluxio.worker.grpc;
 
 import alluxio.AlluxioURI;
-import alluxio.exception.status.UnknownException;
 import alluxio.grpc.RequestType;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.underfs.UfsManager;
@@ -20,9 +19,9 @@ import alluxio.underfs.UfsManager.UfsClient;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
 
+import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -68,8 +67,7 @@ public final class UfsFileWriteHandlerTest extends AbstractWriteHandlerTest {
     mWriteHandler.write(newWriteRequest(newDataBuffer(CHUNK_SIZE)));
     mOutputStream.close();
     mWriteHandler.write(newWriteRequest(newDataBuffer(CHUNK_SIZE)));
-    Throwable t = getError(mResponseObserver);
-    Assert.assertTrue(t instanceof UnknownException);
+    checkErrorCode(mResponseObserver, Status.Code.UNKNOWN);
   }
 
   @Override

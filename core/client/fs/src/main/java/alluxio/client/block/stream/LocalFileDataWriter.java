@@ -16,27 +16,20 @@ import alluxio.PropertyKey;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.OutStreamOptions;
-import alluxio.exception.status.DeadlineExceededException;
 import alluxio.grpc.CreateLocalBlockRequest;
 import alluxio.grpc.CreateLocalBlockResponse;
-import alluxio.resource.LockResource;
 import alluxio.util.CommonUtils;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.block.io.LocalFileBlockWriter;
 
 import com.google.common.base.Preconditions;
 import com.google.common.io.Closer;
-import io.grpc.stub.ClientCallStreamObserver;
-import io.grpc.stub.StreamObserver;
 import io.netty.buffer.ByteBuf;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.ReentrantLock;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -48,16 +41,14 @@ public final class LocalFileDataWriter implements DataWriter {
   private static final Logger LOG = LoggerFactory.getLogger(LocalFileDataWriter.class);
   private static final long FILE_BUFFER_BYTES =
       Configuration.getBytes(PropertyKey.USER_FILE_BUFFER_BYTES);
-  private static final long READ_TIMEOUT_MS =
+  private static final long WRITE_TIMEOUT_MS =
       Configuration.getMs(PropertyKey.USER_NETWORK_NETTY_TIMEOUT_MS);
   private final BlockWorkerClient mBlockWorker;
   private final LocalFileBlockWriter mWriter;
   private final long mChunkSize;
   private final CreateLocalBlockRequest mCreateRequest;
-  private final OutStreamOptions mOptions;
   private final Closer mCloser;
-  private final ResponseObserver mResponseObserver;
-  private final ClientCallStreamObserver<CreateLocalBlockRequest> mRequestObserver;
+  private final GrpcBlockingStream<CreateLocalBlockRequest, CreateLocalBlockResponse> mStream;
 
   /** The position to write the next byte at. */
   private long mPos;
@@ -98,24 +89,15 @@ public final class LocalFileDataWriter implements DataWriter {
         builder.setCleanupOnFailure(false);
       }
       CreateLocalBlockRequest createRequest = builder.build();
-      ResponseObserver responseObserver = new ResponseObserver();
-      StreamObserver<CreateLocalBlockRequest> request =
-          blockWorker.createLocalBlock(responseObserver);
-      request.onNext(createRequest);
-      try (LockResource lr = new LockResource(responseObserver.getLock())) {
-        if (responseObserver.getResponse() == null
-            && !responseObserver.getCreatedOrFailed()
-            .await(READ_TIMEOUT_MS, TimeUnit.MILLISECONDS)) {
-          throw new DeadlineExceededException(
-              String.format("Timeout waiting for create request to complete %s",
-                  createRequest.toString()));
-        }
-      }
+      GrpcBlockingStream<CreateLocalBlockRequest, CreateLocalBlockResponse> stream =
+          new GrpcBlockingStream<>(blockWorker::createLocalBlock);
+      stream.send(createRequest, WRITE_TIMEOUT_MS);
+      CreateLocalBlockResponse response = stream.receive(WRITE_TIMEOUT_MS);
+      Preconditions.checkState(response != null && response.hasPath());
       LocalFileBlockWriter writer =
-          closer.register(new LocalFileBlockWriter(responseObserver.getResponse().getPath()));
-      return new LocalFileDataWriter(chunkSize, options, blockWorker,
-          writer, createRequest, (ClientCallStreamObserver<CreateLocalBlockRequest>) request,
-          responseObserver, closer);
+          closer.register(new LocalFileBlockWriter(response.getPath()));
+      return new LocalFileDataWriter(chunkSize, blockWorker,
+          writer, createRequest, stream, closer);
     } catch (Exception e) {
       throw CommonUtils.closeAndRethrow(closer, e);
     }
@@ -152,7 +134,7 @@ public final class LocalFileDataWriter implements DataWriter {
     mClosed = true;
 
     try {
-      mRequestObserver.cancel("Operation canceled by client", null);
+      mStream.cancel();
     } catch (Exception e) {
       throw mCloser.rethrow(e);
     } finally {
@@ -173,20 +155,9 @@ public final class LocalFileDataWriter implements DataWriter {
     mCloser.register(new Closeable() {
       @Override
       public void close() throws IOException {
-        mRequestObserver.onCompleted();
-        try (LockResource lr = new LockResource(mResponseObserver.getLock())) {
-          if (!mResponseObserver.isCompleted()
-              && !mResponseObserver.getCompletedOrFailed()
-              .await(READ_TIMEOUT_MS, TimeUnit.MILLISECONDS)) {
-            throw new DeadlineExceededException(String.format(
-                "Timeout closing local file for request %s.", mCreateRequest.toString()));
-          }
-        } catch (InterruptedException e) {
-          Thread.currentThread().interrupt();
-          throw new RuntimeException(String.format(
-              "Interrupted while closing local file for request %s.", mCreateRequest.toString()),
-              e);
-        }
+        mStream.close();
+        // Waiting for server to ack the close request
+        Preconditions.checkState(mStream.receive(WRITE_TIMEOUT_MS) == null);
       }
     });
     mCloser.close();
@@ -194,23 +165,24 @@ public final class LocalFileDataWriter implements DataWriter {
 
   /**
    * Creates an instance of {@link LocalFileDataWriter}.
+   *
    * @param packetSize the packet size
-   * @param options the output stream options
-   * @param request
-   * @param responseObserver the response observer
+   * @param blockWorker the block worker
+   * @param writer the file writer
+   * @param createRequest the request
+   * @param stream the gRPC stream
+   * @param closer the closer
    */
-  private LocalFileDataWriter(long packetSize, OutStreamOptions options,
+  private LocalFileDataWriter(long packetSize,
       BlockWorkerClient blockWorker, LocalFileBlockWriter writer,
       CreateLocalBlockRequest createRequest,
-      ClientCallStreamObserver<CreateLocalBlockRequest> request, ResponseObserver responseObserver,
+      GrpcBlockingStream<CreateLocalBlockRequest, CreateLocalBlockResponse> stream,
       Closer closer) {
     mBlockWorker = blockWorker;
     mCloser = closer;
-    mOptions = options;
     mWriter = writer;
     mCreateRequest = createRequest;
-    mRequestObserver = request;
-    mResponseObserver = responseObserver;
+    mStream = stream;
     mPosReserved += FILE_BUFFER_BYTES;
     mChunkSize = packetSize;
   }
@@ -225,91 +197,15 @@ public final class LocalFileDataWriter implements DataWriter {
       return;
     }
     long toReserve = Math.max(pos - mPosReserved, FILE_BUFFER_BYTES);
-    mRequestObserver.onNext(mCreateRequest.toBuilder().setSpaceToReserve(toReserve)
-          .setOnlyReserveSpace(true).build());
-    try (LockResource lr = new LockResource(mResponseObserver.getLock())) {
-      if (!mResponseObserver.getReservedOrFailed()
-          .await(READ_TIMEOUT_MS, TimeUnit.MILLISECONDS)) {
-        throw new DeadlineExceededException(String.format(
-            "Timeout reserving space for request %s.", mCreateRequest.toString()));
-      }
-    } catch (InterruptedException e) {
-      Thread.currentThread().interrupt();
-      throw new RuntimeException(String.format(
-          "Interrupted reserving space for request %s.", mCreateRequest.toString()), e);
-    }
+    CreateLocalBlockRequest request = mCreateRequest.toBuilder().setSpaceToReserve(toReserve)
+        .setOnlyReserveSpace(true).build();
+    mStream.send(request, WRITE_TIMEOUT_MS);
+    CreateLocalBlockResponse response = mStream.receive(WRITE_TIMEOUT_MS);
+    Preconditions.checkState(response != null,
+        String.format("Stream closed while waiting for reserve request %s", request.toString()));
+    Preconditions.checkState(!response.hasPath(),
+        String.format("Invalid response for reserve request %s", request.toString()));
     mPosReserved += toReserve;
-  }
-
-  private static class ResponseObserver implements StreamObserver<CreateLocalBlockResponse> {
-    private final ReentrantLock mLock = new ReentrantLock();
-    /** This condition is met if mError != null or create response is returned. */
-    private final Condition mCreatedOrFailed = mLock.newCondition();
-    /** This condition is met if mError != null or reserveSpace response is returned. */
-    private final Condition mReservedOrFailed = mLock.newCondition();
-    /** This condition is met if mError != null or complete response is returned. */
-    private final Condition mCompletedOrFailed = mLock.newCondition();
-    private CreateLocalBlockResponse mResponse = null;
-    private boolean mCompleted = false;
-    private Throwable mError = null;
-
-    @Override
-    public void onNext(CreateLocalBlockResponse createLocalBlockResponse) {
-      try (LockResource lr = new LockResource(mLock)) {
-        if (createLocalBlockResponse.hasPath()) {
-          mResponse = createLocalBlockResponse;
-          mCreatedOrFailed.signal();
-        } else {
-          mReservedOrFailed.signal();
-        }
-      }
-    }
-
-    @Override
-    public void onError(Throwable throwable) {
-      try (LockResource lr = new LockResource(mLock)) {
-        mError = throwable;
-        mCreatedOrFailed.signal();
-        mReservedOrFailed.signal();
-        mCompletedOrFailed.signal();
-      }
-    }
-
-    @Override
-    public void onCompleted() {
-      try (LockResource lr = new LockResource(mLock)) {
-        mCompleted = true;
-        mCompletedOrFailed.signal();
-      }
-    }
-
-    public CreateLocalBlockResponse getResponse() {
-      return mResponse;
-    }
-
-    public ReentrantLock getLock() {
-      return mLock;
-    }
-
-    public boolean isCompleted() {
-      return mCompleted;
-    }
-
-    public Throwable getError() {
-      return mError;
-    }
-
-    public Condition getCompletedOrFailed() {
-      return mCompletedOrFailed;
-    }
-
-    public Condition getCreatedOrFailed() {
-      return mCreatedOrFailed;
-    }
-
-    public Condition getReservedOrFailed() {
-      return mReservedOrFailed;
-    }
   }
 }
 

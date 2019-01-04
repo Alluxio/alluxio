@@ -6,16 +6,15 @@ option java_outer_classname = "BlockWorkerProto";
 
 package alluxio.grpc;
 
-import "common.proto";
 import "dataserver/protocol.proto";
 
 // The block worker service
 service BlockWorker {
-  rpc ReadBlock (ReadRequest) returns (stream ReadResponse);
+  rpc ReadBlock (stream ReadRequest) returns (stream ReadResponse);
   rpc WriteBlock (stream WriteRequest) returns (stream WriteResponse);
 
   // Replaces ShortCircuitBlockReadHandler.
-  rpc OpenLocalBlock (OpenLocalBlockRequest) returns (stream OpenLocalBlockResponse);
+  rpc OpenLocalBlock (stream OpenLocalBlockRequest) returns (stream OpenLocalBlockResponse);
 
   // Replaces ShortCircuitBlockWriteHandler.
   rpc CreateLocalBlock (stream CreateLocalBlockRequest) returns (stream CreateLocalBlockResponse);

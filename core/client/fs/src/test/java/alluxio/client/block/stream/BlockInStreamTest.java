@@ -19,18 +19,21 @@ import alluxio.PropertyKey;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.InStreamOptions;
-import alluxio.grpc.OpenLocalBlockRequest;
 import alluxio.grpc.OpenLocalBlockResponse;
 import alluxio.util.network.NettyUtils;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.FileInfo;
 import alluxio.wire.WorkerNetAddress;
 
+import io.grpc.stub.ClientCallStreamObserver;
+import io.grpc.stub.StreamObserver;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Matchers;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
@@ -51,8 +54,18 @@ public class BlockInStreamTest {
   @Before
   public void before() throws Exception {
     BlockWorkerClient workerClient = PowerMockito.mock(BlockWorkerClient.class);
-    OpenLocalBlockResponse response = OpenLocalBlockResponse.getDefaultInstance();
-    when(workerClient.openLocalBlock(any(OpenLocalBlockRequest.class))).thenReturn(response);
+    ClientCallStreamObserver requestObserver = PowerMockito.mock(ClientCallStreamObserver.class);
+    when(requestObserver.isReady()).thenReturn(true);
+    when(workerClient.openLocalBlock(any(StreamObserver.class)))
+        .thenAnswer(new Answer() {
+          public Object answer(InvocationOnMock invocation) {
+            StreamObserver<OpenLocalBlockResponse> observer =
+                invocation.getArgumentAt(0, StreamObserver.class);
+            observer.onNext(OpenLocalBlockResponse.newBuilder().setPath("/tmp").build());
+            observer.onCompleted();
+            return requestObserver;
+          }
+        });
     mMockContext = PowerMockito.mock(FileSystemContext.class);
     PowerMockito.when(mMockContext.acquireBlockWorkerClient(Matchers.any(WorkerNetAddress.class)))
         .thenReturn(workerClient);

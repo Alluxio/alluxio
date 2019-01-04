@@ -193,12 +193,13 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
 
   /**
    * Creates an instance of {@link AbstractReadHandler}.
-   *
-   * @param executorService the executor service to run {@link DataReader}s
+   *  @param executorService the executor service to run {@link DataReader}s
    * @param blockWorker the block worker
+   * @param responseObserver the response observer of the gRPC stream
    */
-  public BlockReadHandler(ExecutorService executorService, BlockWorker blockWorker) {
-    super(executorService);
+  public BlockReadHandler(ExecutorService executorService, BlockWorker blockWorker,
+      StreamObserver<ReadResponse> responseObserver) {
+    super(executorService, responseObserver);
     mWorker = blockWorker;
   }
 

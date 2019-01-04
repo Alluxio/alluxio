@@ -52,7 +52,7 @@ public final class BlockWorkerGrpc {
         if ((getReadBlockMethod = BlockWorkerGrpc.getReadBlockMethod) == null) {
           BlockWorkerGrpc.getReadBlockMethod = getReadBlockMethod = 
               io.grpc.MethodDescriptor.<alluxio.grpc.ReadRequest, alluxio.grpc.ReadResponse>newBuilder()
-              .setType(io.grpc.MethodDescriptor.MethodType.SERVER_STREAMING)
+              .setType(io.grpc.MethodDescriptor.MethodType.BIDI_STREAMING)
               .setFullMethodName(generateFullMethodName(
                   "alluxio.grpc.BlockWorker", "ReadBlock"))
               .setSampledToLocalTracing(true)
@@ -126,7 +126,7 @@ public final class BlockWorkerGrpc {
         if ((getOpenLocalBlockMethod = BlockWorkerGrpc.getOpenLocalBlockMethod) == null) {
           BlockWorkerGrpc.getOpenLocalBlockMethod = getOpenLocalBlockMethod = 
               io.grpc.MethodDescriptor.<alluxio.grpc.OpenLocalBlockRequest, alluxio.grpc.OpenLocalBlockResponse>newBuilder()
-              .setType(io.grpc.MethodDescriptor.MethodType.SERVER_STREAMING)
+              .setType(io.grpc.MethodDescriptor.MethodType.BIDI_STREAMING)
               .setFullMethodName(generateFullMethodName(
                   "alluxio.grpc.BlockWorker", "OpenLocalBlock"))
               .setSampledToLocalTracing(true)
@@ -285,9 +285,9 @@ public final class BlockWorkerGrpc {
 
     /**
      */
-    public void readBlock(alluxio.grpc.ReadRequest request,
+    public io.grpc.stub.StreamObserver<alluxio.grpc.ReadRequest> readBlock(
         io.grpc.stub.StreamObserver<alluxio.grpc.ReadResponse> responseObserver) {
-      asyncUnimplementedUnaryCall(getReadBlockMethodHelper(), responseObserver);
+      return asyncUnimplementedStreamingCall(getReadBlockMethodHelper(), responseObserver);
     }
 
     /**
@@ -302,9 +302,9 @@ public final class BlockWorkerGrpc {
      * Replaces ShortCircuitBlockReadHandler.
      * </pre>
      */
-    public void openLocalBlock(alluxio.grpc.OpenLocalBlockRequest request,
+    public io.grpc.stub.StreamObserver<alluxio.grpc.OpenLocalBlockRequest> openLocalBlock(
         io.grpc.stub.StreamObserver<alluxio.grpc.OpenLocalBlockResponse> responseObserver) {
-      asyncUnimplementedUnaryCall(getOpenLocalBlockMethodHelper(), responseObserver);
+      return asyncUnimplementedStreamingCall(getOpenLocalBlockMethodHelper(), responseObserver);
     }
 
     /**
@@ -335,7 +335,7 @@ public final class BlockWorkerGrpc {
       return io.grpc.ServerServiceDefinition.builder(getServiceDescriptor())
           .addMethod(
             getReadBlockMethodHelper(),
-            asyncServerStreamingCall(
+            asyncBidiStreamingCall(
               new MethodHandlers<
                 alluxio.grpc.ReadRequest,
                 alluxio.grpc.ReadResponse>(
@@ -349,7 +349,7 @@ public final class BlockWorkerGrpc {
                   this, METHODID_WRITE_BLOCK)))
           .addMethod(
             getOpenLocalBlockMethodHelper(),
-            asyncServerStreamingCall(
+            asyncBidiStreamingCall(
               new MethodHandlers<
                 alluxio.grpc.OpenLocalBlockRequest,
                 alluxio.grpc.OpenLocalBlockResponse>(
@@ -402,10 +402,10 @@ public final class BlockWorkerGrpc {
 
     /**
      */
-    public void readBlock(alluxio.grpc.ReadRequest request,
+    public io.grpc.stub.StreamObserver<alluxio.grpc.ReadRequest> readBlock(
         io.grpc.stub.StreamObserver<alluxio.grpc.ReadResponse> responseObserver) {
-      asyncServerStreamingCall(
-          getChannel().newCall(getReadBlockMethodHelper(), getCallOptions()), request, responseObserver);
+      return asyncBidiStreamingCall(
+          getChannel().newCall(getReadBlockMethodHelper(), getCallOptions()), responseObserver);
     }
 
     /**
@@ -421,10 +421,10 @@ public final class BlockWorkerGrpc {
      * Replaces ShortCircuitBlockReadHandler.
      * </pre>
      */
-    public void openLocalBlock(alluxio.grpc.OpenLocalBlockRequest request,
+    public io.grpc.stub.StreamObserver<alluxio.grpc.OpenLocalBlockRequest> openLocalBlock(
         io.grpc.stub.StreamObserver<alluxio.grpc.OpenLocalBlockResponse> responseObserver) {
-      asyncServerStreamingCall(
-          getChannel().newCall(getOpenLocalBlockMethodHelper(), getCallOptions()), request, responseObserver);
+      return asyncBidiStreamingCall(
+          getChannel().newCall(getOpenLocalBlockMethodHelper(), getCallOptions()), responseObserver);
     }
 
     /**
@@ -474,25 +474,6 @@ public final class BlockWorkerGrpc {
     protected BlockWorkerBlockingStub build(io.grpc.Channel channel,
         io.grpc.CallOptions callOptions) {
       return new BlockWorkerBlockingStub(channel, callOptions);
-    }
-
-    /**
-     */
-    public java.util.Iterator<alluxio.grpc.ReadResponse> readBlock(
-        alluxio.grpc.ReadRequest request) {
-      return blockingServerStreamingCall(
-          getChannel(), getReadBlockMethodHelper(), getCallOptions(), request);
-    }
-
-    /**
-     * <pre>
-     * Replaces ShortCircuitBlockReadHandler.
-     * </pre>
-     */
-    public java.util.Iterator<alluxio.grpc.OpenLocalBlockResponse> openLocalBlock(
-        alluxio.grpc.OpenLocalBlockRequest request) {
-      return blockingServerStreamingCall(
-          getChannel(), getOpenLocalBlockMethodHelper(), getCallOptions(), request);
     }
 
     /**
@@ -548,11 +529,11 @@ public final class BlockWorkerGrpc {
     }
   }
 
-  private static final int METHODID_READ_BLOCK = 0;
-  private static final int METHODID_OPEN_LOCAL_BLOCK = 1;
-  private static final int METHODID_ASYNC_CACHE = 2;
-  private static final int METHODID_REMOVE_BLOCK = 3;
-  private static final int METHODID_WRITE_BLOCK = 4;
+  private static final int METHODID_ASYNC_CACHE = 0;
+  private static final int METHODID_REMOVE_BLOCK = 1;
+  private static final int METHODID_READ_BLOCK = 2;
+  private static final int METHODID_WRITE_BLOCK = 3;
+  private static final int METHODID_OPEN_LOCAL_BLOCK = 4;
   private static final int METHODID_CREATE_LOCAL_BLOCK = 5;
 
   private static final class MethodHandlers<Req, Resp> implements
@@ -572,14 +553,6 @@ public final class BlockWorkerGrpc {
     @java.lang.SuppressWarnings("unchecked")
     public void invoke(Req request, io.grpc.stub.StreamObserver<Resp> responseObserver) {
       switch (methodId) {
-        case METHODID_READ_BLOCK:
-          serviceImpl.readBlock((alluxio.grpc.ReadRequest) request,
-              (io.grpc.stub.StreamObserver<alluxio.grpc.ReadResponse>) responseObserver);
-          break;
-        case METHODID_OPEN_LOCAL_BLOCK:
-          serviceImpl.openLocalBlock((alluxio.grpc.OpenLocalBlockRequest) request,
-              (io.grpc.stub.StreamObserver<alluxio.grpc.OpenLocalBlockResponse>) responseObserver);
-          break;
         case METHODID_ASYNC_CACHE:
           serviceImpl.asyncCache((alluxio.grpc.AsyncCacheRequest) request,
               (io.grpc.stub.StreamObserver<alluxio.grpc.AsyncCacheResponse>) responseObserver);
@@ -598,9 +571,15 @@ public final class BlockWorkerGrpc {
     public io.grpc.stub.StreamObserver<Req> invoke(
         io.grpc.stub.StreamObserver<Resp> responseObserver) {
       switch (methodId) {
+        case METHODID_READ_BLOCK:
+          return (io.grpc.stub.StreamObserver<Req>) serviceImpl.readBlock(
+              (io.grpc.stub.StreamObserver<alluxio.grpc.ReadResponse>) responseObserver);
         case METHODID_WRITE_BLOCK:
           return (io.grpc.stub.StreamObserver<Req>) serviceImpl.writeBlock(
               (io.grpc.stub.StreamObserver<alluxio.grpc.WriteResponse>) responseObserver);
+        case METHODID_OPEN_LOCAL_BLOCK:
+          return (io.grpc.stub.StreamObserver<Req>) serviceImpl.openLocalBlock(
+              (io.grpc.stub.StreamObserver<alluxio.grpc.OpenLocalBlockResponse>) responseObserver);
         case METHODID_CREATE_LOCAL_BLOCK:
           return (io.grpc.stub.StreamObserver<Req>) serviceImpl.createLocalBlock(
               (io.grpc.stub.StreamObserver<alluxio.grpc.CreateLocalBlockResponse>) responseObserver);
