@@ -38,10 +38,13 @@ import org.apache.hadoop.util.StringUtils;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
 import org.junit.AfterClass;
+import org.junit.AssumptionViolatedException;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
-import org.junit.Ignore;
 import org.junit.Test;
+import org.junit.rules.TestRule;
+import org.junit.runner.Description;
+import org.junit.runners.model.Statement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -88,10 +91,29 @@ import javax.annotation.Nullable;
  * <li>standard deviation of i/o rate</li>
  * </ul>
  */
-// @Ignore
-// TODO(ggezer) Restore test
-// Hadoop clients before 2.7.0 are incompatible with the bumped Guava version.
 public class DFSIOIntegrationTest extends BaseIntegrationTest implements Tool {
+  /**
+   * A rule that is used to enforce supported hadoop client versions before running this test.
+   * Value for system property, "alluxio.hadoop.version", is injected by surefire plugin.
+   */
+  private static class HadoopVersionRule implements TestRule {
+    @Override
+    public Statement apply(Statement base, Description description) {
+      return new Statement() {
+        @Override
+        public void evaluate() throws Throwable {
+          String hadoopVersion = System.getProperty("alluxio.hadoop.version");
+          if (hadoopVersion.startsWith("2.4") || hadoopVersion.startsWith("2.5")
+              || hadoopVersion.startsWith("2.6")) {
+            throw new AssumptionViolatedException("Hadoop version not supported. Skipping test!");
+          } else {
+            base.evaluate();
+          }
+        }
+      };
+    }
+  }
+
   // Constants for DFSIOIntegrationTest
   private static final Logger LOG = LoggerFactory.getLogger(DFSIOIntegrationTest.class);
 
@@ -217,6 +239,9 @@ public class DFSIOIntegrationTest extends BaseIntegrationTest implements Tool {
   }
 
   private static DFSIOIntegrationTest sBench;
+
+  @ClassRule
+  public static HadoopVersionRule sHadoopVersionRule = new HadoopVersionRule();
 
   @BeforeClass
   public static void beforeClass() throws Exception {
