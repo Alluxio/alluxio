@@ -974,7 +974,7 @@
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-shade-plugin</artifactId>
           <!-- Needs to be 2.4.2 or later to prevent MSHADE-148 -->
-          <version>2.4.3</version>
+          <version>3.2.1</version>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
