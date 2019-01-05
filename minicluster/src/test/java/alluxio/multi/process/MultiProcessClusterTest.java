@@ -41,6 +41,7 @@ public final class MultiProcessClusterTest {
         .build();
     try {
       mCluster.start();
+      mCluster.waitForAllNodesRegistered(60 * Constants.SECOND_MS);
       FileSystem fs = mCluster.getFileSystemClient();
       createAndOpenFile(fs);
       mCluster.notifySuccess();
@@ -59,6 +60,7 @@ public final class MultiProcessClusterTest {
         .build();
     try {
       mCluster.start();
+      mCluster.waitForAllNodesRegistered(60 * Constants.SECOND_MS);
       FileSystem fs = mCluster.getFileSystemClient();
       createAndOpenFile(fs);
       mCluster.notifySuccess();

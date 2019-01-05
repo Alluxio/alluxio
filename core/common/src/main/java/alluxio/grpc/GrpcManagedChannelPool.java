@@ -136,6 +136,9 @@ public class GrpcManagedChannelPool {
     if (channelKey.mFlowControlWindow.isPresent()) {
       channelBuilder.flowControlWindow(channelKey.mFlowControlWindow.get());
     }
+    if (channelKey.mChannelType.isPresent()) {
+      channelBuilder.channelType(channelKey.mChannelType.get());
+    }
     if (channelKey.mEventLoopGroup.isPresent()) {
       channelBuilder.eventLoopGroup(channelKey.mEventLoopGroup.get());
     }
