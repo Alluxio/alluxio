@@ -104,6 +104,7 @@
                 <argument>node_modules/.bin/lerna</argument>
                 <argument>run</argument>
                 <argument>build</argument>
+                <argument>-- --unsafe-perm</argument>
               </arguments>
             </configuration>
           </execution>
