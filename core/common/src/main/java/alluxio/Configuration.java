@@ -451,7 +451,7 @@ public final class Configuration {
         throw new RuntimeException(String.format(
             "Received authentication exception with authentication disabled. Host:%s", address), e);
       } finally {
-        if(channel != null) {
+        if (channel != null) {
           channel.shutdown();
         }
       }
