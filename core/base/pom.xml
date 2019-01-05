@@ -63,7 +63,7 @@
     <!-- Internal dependencies -->
     <dependency>
       <groupId>org.alluxio</groupId>
-      <artifactId>alluxio-core-transport-options</artifactId>
+      <artifactId>alluxio-core-transport</artifactId>
       <version>${project.version}</version>
     </dependency>
   </dependencies>

@@ -60,18 +60,8 @@
 
     <!-- Internal dependencies -->
     <dependency>
-      <groupId>org.alluxio</groupId>
-      <artifactId>alluxio-core-transport-options</artifactId>
-      <version>${project.version}</version>
+      <groupId>io.netty</groupId>
+      <artifactId>netty-all</artifactId>
     </dependency>
-    <dependency>
-      <groupId>org.alluxio</groupId>
-      <artifactId>alluxio-core-base</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-      <dependency>
-          <groupId>io.netty</groupId>
-          <artifactId>netty-all</artifactId>
-      </dependency>
   </dependencies>
 </project>

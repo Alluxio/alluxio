@@ -4,36 +4,36 @@
 package alluxio.grpc;
 
 /**
- * Protobuf enum {@code alluxio.grpc.PAclAction}
+ * Protobuf enum {@code alluxio.grpc.UfsPMode}
  */
-public enum PAclAction
+public enum UfsPMode
     implements com.google.protobuf.ProtocolMessageEnum {
   /**
-   * <code>Read = 0;</code>
+   * <code>NO_ACCESS = 1;</code>
    */
-  Read(0),
+  NO_ACCESS(1),
   /**
-   * <code>Write = 1;</code>
+   * <code>READ_ONLY = 2;</code>
    */
-  Write(1),
+  READ_ONLY(2),
   /**
-   * <code>Execute = 2;</code>
+   * <code>READ_WRITE = 3;</code>
    */
-  Execute(2),
+  READ_WRITE(3),
   ;
 
   /**
-   * <code>Read = 0;</code>
+   * <code>NO_ACCESS = 1;</code>
    */
-  public static final int Read_VALUE = 0;
+  public static final int NO_ACCESS_VALUE = 1;
   /**
-   * <code>Write = 1;</code>
+   * <code>READ_ONLY = 2;</code>
    */
-  public static final int Write_VALUE = 1;
+  public static final int READ_ONLY_VALUE = 2;
   /**
-   * <code>Execute = 2;</code>
+   * <code>READ_WRITE = 3;</code>
    */
-  public static final int Execute_VALUE = 2;
+  public static final int READ_WRITE_VALUE = 3;
 
 
   public final int getNumber() {
@@ -44,28 +44,28 @@ public enum PAclAction
    * @deprecated Use {@link #forNumber(int)} instead.
    */
   @java.lang.Deprecated
-  public static PAclAction valueOf(int value) {
+  public static UfsPMode valueOf(int value) {
     return forNumber(value);
   }
 
-  public static PAclAction forNumber(int value) {
+  public static UfsPMode forNumber(int value) {
     switch (value) {
-      case 0: return Read;
-      case 1: return Write;
-      case 2: return Execute;
+      case 1: return NO_ACCESS;
+      case 2: return READ_ONLY;
+      case 3: return READ_WRITE;
       default: return null;
     }
   }
 
-  public static com.google.protobuf.Internal.EnumLiteMap<PAclAction>
+  public static com.google.protobuf.Internal.EnumLiteMap<UfsPMode>
       internalGetValueMap() {
     return internalValueMap;
   }
   private static final com.google.protobuf.Internal.EnumLiteMap<
-      PAclAction> internalValueMap =
-        new com.google.protobuf.Internal.EnumLiteMap<PAclAction>() {
-          public PAclAction findValueByNumber(int number) {
-            return PAclAction.forNumber(number);
+      UfsPMode> internalValueMap =
+        new com.google.protobuf.Internal.EnumLiteMap<UfsPMode>() {
+          public UfsPMode findValueByNumber(int number) {
+            return UfsPMode.forNumber(number);
           }
         };
 
@@ -79,12 +79,12 @@ public enum PAclAction
   }
   public static final com.google.protobuf.Descriptors.EnumDescriptor
       getDescriptor() {
-    return alluxio.grpc.FileSystemMasterProto.getDescriptor().getEnumTypes().get(5);
+    return alluxio.grpc.FileSystemMasterProto.getDescriptor().getEnumTypes().get(7);
   }
 
-  private static final PAclAction[] VALUES = values();
+  private static final UfsPMode[] VALUES = values();
 
-  public static PAclAction valueOf(
+  public static UfsPMode valueOf(
       com.google.protobuf.Descriptors.EnumValueDescriptor desc) {
     if (desc.getType() != getDescriptor()) {
       throw new java.lang.IllegalArgumentException(
@@ -95,10 +95,10 @@ public enum PAclAction
 
   private final int value;
 
-  private PAclAction(int value) {
+  private UfsPMode(int value) {
     this.value = value;
   }
 
-  // @@protoc_insertion_point(enum_scope:alluxio.grpc.PAclAction)
+  // @@protoc_insertion_point(enum_scope:alluxio.grpc.UfsPMode)
 }
 

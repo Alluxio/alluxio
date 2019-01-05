@@ -4,36 +4,36 @@
 package alluxio.grpc;
 
 /**
- * Protobuf enum {@code alluxio.grpc.PAclAction}
+ * Protobuf enum {@code alluxio.grpc.LoadDescendantPType}
  */
-public enum PAclAction
+public enum LoadDescendantPType
     implements com.google.protobuf.ProtocolMessageEnum {
   /**
-   * <code>Read = 0;</code>
+   * <code>NONE = 0;</code>
    */
-  Read(0),
+  NONE(0),
   /**
-   * <code>Write = 1;</code>
+   * <code>ONE = 1;</code>
    */
-  Write(1),
+  ONE(1),
   /**
-   * <code>Execute = 2;</code>
+   * <code>ALL = 2;</code>
    */
-  Execute(2),
+  ALL(2),
   ;
 
   /**
-   * <code>Read = 0;</code>
+   * <code>NONE = 0;</code>
    */
-  public static final int Read_VALUE = 0;
+  public static final int NONE_VALUE = 0;
   /**
-   * <code>Write = 1;</code>
+   * <code>ONE = 1;</code>
    */
-  public static final int Write_VALUE = 1;
+  public static final int ONE_VALUE = 1;
   /**
-   * <code>Execute = 2;</code>
+   * <code>ALL = 2;</code>
    */
-  public static final int Execute_VALUE = 2;
+  public static final int ALL_VALUE = 2;
 
 
   public final int getNumber() {
@@ -44,28 +44,28 @@ public enum PAclAction
    * @deprecated Use {@link #forNumber(int)} instead.
    */
   @java.lang.Deprecated
-  public static PAclAction valueOf(int value) {
+  public static LoadDescendantPType valueOf(int value) {
     return forNumber(value);
   }
 
-  public static PAclAction forNumber(int value) {
+  public static LoadDescendantPType forNumber(int value) {
     switch (value) {
-      case 0: return Read;
-      case 1: return Write;
-      case 2: return Execute;
+      case 0: return NONE;
+      case 1: return ONE;
+      case 2: return ALL;
       default: return null;
     }
   }
 
-  public static com.google.protobuf.Internal.EnumLiteMap<PAclAction>
+  public static com.google.protobuf.Internal.EnumLiteMap<LoadDescendantPType>
       internalGetValueMap() {
     return internalValueMap;
   }
   private static final com.google.protobuf.Internal.EnumLiteMap<
-      PAclAction> internalValueMap =
-        new com.google.protobuf.Internal.EnumLiteMap<PAclAction>() {
-          public PAclAction findValueByNumber(int number) {
-            return PAclAction.forNumber(number);
+      LoadDescendantPType> internalValueMap =
+        new com.google.protobuf.Internal.EnumLiteMap<LoadDescendantPType>() {
+          public LoadDescendantPType findValueByNumber(int number) {
+            return LoadDescendantPType.forNumber(number);
           }
         };
 
@@ -79,12 +79,12 @@ public enum PAclAction
   }
   public static final com.google.protobuf.Descriptors.EnumDescriptor
       getDescriptor() {
-    return alluxio.grpc.FileSystemMasterProto.getDescriptor().getEnumTypes().get(5);
+    return alluxio.grpc.FileSystemMasterProto.getDescriptor().getEnumTypes().get(3);
   }
 
-  private static final PAclAction[] VALUES = values();
+  private static final LoadDescendantPType[] VALUES = values();
 
-  public static PAclAction valueOf(
+  public static LoadDescendantPType valueOf(
       com.google.protobuf.Descriptors.EnumValueDescriptor desc) {
     if (desc.getType() != getDescriptor()) {
       throw new java.lang.IllegalArgumentException(
@@ -95,10 +95,10 @@ public enum PAclAction
 
   private final int value;
 
-  private PAclAction(int value) {
+  private LoadDescendantPType(int value) {
     this.value = value;
   }
 
-  // @@protoc_insertion_point(enum_scope:alluxio.grpc.PAclAction)
+  // @@protoc_insertion_point(enum_scope:alluxio.grpc.LoadDescendantPType)
 }
 
