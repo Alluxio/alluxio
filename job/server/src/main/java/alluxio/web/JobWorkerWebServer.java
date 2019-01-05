@@ -58,6 +58,6 @@ public final class JobWorkerWebServer extends WebServer {
     };
 
     ServletHolder servletHolder = new ServletHolder("Alluxio Job Worker Web Service", servlet);
-    mWebAppContext.addServlet(servletHolder, PathUtils.concatPath(Constants.REST_API_PREFIX, "*"));
+    mServletContextHandler.addServlet(servletHolder, PathUtils.concatPath(Constants.REST_API_PREFIX, "*"));
   }
 }

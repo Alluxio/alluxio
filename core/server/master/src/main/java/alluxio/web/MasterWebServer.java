@@ -55,7 +55,7 @@ public final class MasterWebServer extends WebServer {
       final MasterProcess masterProcess) {
     super(serviceName, address);
     Preconditions.checkNotNull(masterProcess, "Alluxio master cannot be null");
-    mWebAppContext
+    mServletContextHandler
         .addServlet(new ServletHolder(// TODO(william): migrate this into a REST api endpoint
                 new WebInterfaceDownloadServlet(masterProcess.getMaster(FileSystemMaster.class))),
             "/download");
@@ -75,22 +75,25 @@ public final class MasterWebServer extends WebServer {
     };
 
     ServletHolder servletHolder = new ServletHolder("Alluxio Master Web Service", servlet);
-    mWebAppContext.addServlet(servletHolder, PathUtils.concatPath(Constants.REST_API_PREFIX, "*"));
+    mServletContextHandler.addServlet(servletHolder, PathUtils.concatPath(Constants.REST_API_PREFIX, "*"));
 
     // STATIC assets
     try {
       String resourceDirPathString = "alluxio-ui/master/build/";
       ClassLoader cl = MasterWebServer.class.getClassLoader();
       URL resourceDir = cl.getResource(resourceDirPathString);
+      if (resourceDir == null) {
+        return;
+      }
       URI webRootUri = resourceDir.toURI();
-      mWebAppContext.setBaseResource(Resource.newResource(webRootUri));
-      mWebAppContext.setWelcomeFiles(new String[] {"index.html"});
-      mWebAppContext.setResourceBase(resourceDirPathString);
-      mWebAppContext.addServlet(DefaultServlet.class, "/");
+      mServletContextHandler.setBaseResource(Resource.newResource(webRootUri));
+      mServletContextHandler.setWelcomeFiles(new String[] {"index.html"});
+      mServletContextHandler.setResourceBase(resourceDirPathString);
+      mServletContextHandler.addServlet(DefaultServlet.class, "/");
       ErrorPageErrorHandler errorHandler = new ErrorPageErrorHandler();
       errorHandler.addErrorPage(404,
           "/"); // TODO(william): consider a rewrite rule instead of an error handler
-      mWebAppContext.setErrorHandler(errorHandler);
+      mServletContextHandler.setErrorHandler(errorHandler);
     } catch (URISyntaxException e) {
       LOG.error("ERROR: unable to set base resource path", e);
     } catch (MalformedURLException e) {

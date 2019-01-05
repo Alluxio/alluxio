@@ -45,6 +45,7 @@
             </goals>
             <phase>generate-sources</phase>
             <configuration>
+              <arguments>--unsafe-perms</arguments>
               <arguments>install</arguments>
             </configuration>
           </execution>

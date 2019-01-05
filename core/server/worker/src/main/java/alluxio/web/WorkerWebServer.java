@@ -72,22 +72,25 @@ public final class WorkerWebServer extends WebServer {
     };
 
     ServletHolder servletHolder = new ServletHolder("Alluxio Worker Web Service", servlet);
-    mWebAppContext.addServlet(servletHolder, PathUtils.concatPath(Constants.REST_API_PREFIX, "*"));
+    mServletContextHandler.addServlet(servletHolder, PathUtils.concatPath(Constants.REST_API_PREFIX, "*"));
 
     // STATIC assets
     try {
       String resourceDirPathString = "alluxio-ui/worker/build/";
       ClassLoader cl = WorkerWebServer.class.getClassLoader();
       URL resourceDir = cl.getResource(resourceDirPathString);
+      if (resourceDir == null) {
+        return;
+      }
       URI webRootUri = resourceDir.toURI();
-      mWebAppContext.setBaseResource(Resource.newResource(webRootUri));
-      mWebAppContext.setWelcomeFiles(new String[] {"index.html"});
-      mWebAppContext.setResourceBase(resourceDirPathString);
-      mWebAppContext.addServlet(DefaultServlet.class, "/");
+      mServletContextHandler.setBaseResource(Resource.newResource(webRootUri));
+      mServletContextHandler.setWelcomeFiles(new String[] {"index.html"});
+      mServletContextHandler.setResourceBase(resourceDirPathString);
+      mServletContextHandler.addServlet(DefaultServlet.class, "/");
       // TODO(william): consider a rewrite rule instead of an error handler
       ErrorPageErrorHandler errorHandler = new ErrorPageErrorHandler();
       errorHandler.addErrorPage(404, "/");
-      mWebAppContext.setErrorHandler(errorHandler);
+      mServletContextHandler.setErrorHandler(errorHandler);
     } catch (URISyntaxException e) {
       LOG.error("ERROR: unable to set base resource path", e);
     } catch (MalformedURLException e) {
