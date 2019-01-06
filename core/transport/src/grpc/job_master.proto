@@ -6,7 +6,7 @@ option java_outer_classname = "JobMasterProto";
 
 package alluxio.grpc.job;
 
-import "common.proto";
+import "grpc/common.proto";
 
 enum Status {
   UNKNOWN = 0;

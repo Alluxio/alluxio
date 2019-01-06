@@ -6,7 +6,7 @@ option java_outer_classname = "BlockMasterProto";
 
 package alluxio.grpc.block;
 
-import "common.proto";
+import "grpc/common.proto";
 
 enum BlockMasterInfoField {
   CAPACITY_BYTES = 1;

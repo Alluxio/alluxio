@@ -2,8 +2,8 @@ syntax = "proto2";
 
 package alluxio.proto.dataserver;
 
-import "dataserver/status.proto";
-import "shared/acl.proto";
+import "proto/dataserver/status.proto";
+import "proto/shared/acl.proto";
 
 // Options to open a UFS block.
 // next available id: 7

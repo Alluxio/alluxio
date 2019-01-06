@@ -6,7 +6,7 @@ option java_outer_classname = "MetricMasterProto";
 
 package alluxio.grpc.metric;
 
-import "common.proto";
+import "grpc/common.proto";
 
 message MetricsHeartbeatPOptions {
   repeated grpc.Metric metrics = 1;

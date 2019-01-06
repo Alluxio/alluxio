@@ -6,7 +6,7 @@ option java_outer_classname = "FileSystemMasterProto";
 
 package alluxio.grpc.file;
 
-import "common.proto";
+import "grpc/common.proto";
 
 enum WritePType {
   WRITE_MUST_CACHE = 0;

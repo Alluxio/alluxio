@@ -6,7 +6,7 @@ option java_outer_classname = "MetaMasterProto";
 
 package alluxio.grpc.meta;
 
-import "common.proto";
+import "grpc/common.proto";
 
 message BackupPOptions {
  optional string targetDirectory = 1;
