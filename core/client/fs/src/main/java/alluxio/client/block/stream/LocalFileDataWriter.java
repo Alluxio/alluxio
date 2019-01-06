@@ -153,8 +153,7 @@ public final class LocalFileDataWriter implements DataWriter {
       @Override
       public void close() throws IOException {
         mStream.close();
-        // Waiting for server to ack the close request
-        Preconditions.checkState(mStream.receive(WRITE_TIMEOUT_MS) == null);
+        mStream.waitForComplete(WRITE_TIMEOUT_MS);
       }
     });
     mCloser.close();

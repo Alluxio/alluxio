@@ -105,9 +105,7 @@ public final class GrpcDataReader implements DataReader {
       return;
     }
     mStream.close();
-    while (mStream.receive(READ_TIMEOUT_MS) != null) {
-      // wait until stream is closed from server.
-    }
+    mStream.waitForComplete(READ_TIMEOUT_MS);
   }
 
   /**

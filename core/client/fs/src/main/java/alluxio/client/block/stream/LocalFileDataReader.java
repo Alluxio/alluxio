@@ -155,6 +155,7 @@ public final class LocalFileDataReader implements DataReader {
       }
       try {
         mStream.close();
+        mStream.waitForComplete(READ_TIMEOUT_MS);
       } finally {
         mBlockWorker.close();
         mClosed = true;

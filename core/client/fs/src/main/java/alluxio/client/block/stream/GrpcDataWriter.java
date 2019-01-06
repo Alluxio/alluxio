@@ -215,9 +215,7 @@ public final class GrpcDataWriter implements DataWriter {
     }
     mStream.close();
     try {
-      while (mStream.receive(CLOSE_TIMEOUT_MS) != null) {
-        // wait until receives null(response stream closed)
-      }
+      mStream.waitForComplete(CLOSE_TIMEOUT_MS);
     } finally {
       mContext.releaseBlockWorkerClient(mAddress, mClient);
     }

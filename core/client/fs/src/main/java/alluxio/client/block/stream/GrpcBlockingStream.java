@@ -14,10 +14,11 @@ package alluxio.client.block.stream;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.CanceledException;
 import alluxio.exception.status.DeadlineExceededException;
+import alluxio.exception.status.Status;
+import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.GrpcExceptionUtils;
 import alluxio.resource.LockResource;
 
-import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 import io.grpc.stub.ClientCallStreamObserver;
 import io.grpc.stub.ClientResponseObserver;
@@ -59,7 +60,7 @@ public class GrpcBlockingStream<ReqT, ResT> {
   private final ReentrantLock mLock = new ReentrantLock();
 
   @GuardedBy("mLock")
-  private IOException mError;
+  private Throwable mError;
   /** This condition is met if mError != null or client is ready to send data. */
   private final Condition mReadyOrFailed = mLock.newCondition();
 
@@ -83,11 +84,12 @@ public class GrpcBlockingStream<ReqT, ResT> {
    * @throws IOException if any error occurs
    */
   public void send(ReqT request, long timeoutMs) throws IOException {
+    if (mClosed || mCanceled) {
+      throw new CanceledException("Stream is already closed or canceled.");
+    }
     try (LockResource lr = new LockResource(mLock)) {
       while (true) {
-        if (mError != null) {
-          throw mError;
-        }
+        checkError();
         if (mRequestObserver.isReady()) {
           break;
         }
@@ -118,8 +120,8 @@ public class GrpcBlockingStream<ReqT, ResT> {
     if (mCompleted) {
       return null;
     }
-    if (mError != null) {
-      throw mError;
+    if (mCanceled) {
+      throw new CanceledException("Stream is already canceled.");
     }
     try {
       Object response = mResponses.poll(timeoutMs, TimeUnit.MILLISECONDS);
@@ -131,9 +133,7 @@ public class GrpcBlockingStream<ReqT, ResT> {
         mCompleted = true;
         return null;
       }
-      if (response instanceof IOException) {
-        throw (IOException) response;
-      }
+      checkError();
       return (ResT) response;
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
@@ -142,10 +142,10 @@ public class GrpcBlockingStream<ReqT, ResT> {
   }
 
   /**
-   * Closes the stream.
+   * Closes the outbound stream.
    */
   public void close() {
-    if (!mCanceled && !mClosed) {
+    if (isOpen()) {
       mClosed = true;
       mRequestObserver.onCompleted();
     }
@@ -155,9 +155,32 @@ public class GrpcBlockingStream<ReqT, ResT> {
    * Cancels the stream.
    */
   public void cancel() {
-    if (!mCanceled && !mClosed) {
+    if (isOpen()) {
       mCanceled = true;
       mRequestObserver.cancel("Request is cancelled by user.", null);
+    }
+  }
+
+  /**
+   * Wait for server to complete the inbound stream.
+   *
+   * @param timeoutMs maximum time to wait for server response
+   */
+  public void waitForComplete(long timeoutMs) throws IOException {
+    if (mCompleted || mCanceled) {
+      return;
+    }
+    while (receive(timeoutMs) != null) {
+      // wait until inbound stream is closed from server.
+    }
+  }
+
+  /**
+   * @return whether the stream is open
+   */
+  public boolean isOpen() {
+    try (LockResource lr = new LockResource(mLock)) {
+      return !mClosed && !mCanceled && mError == null;
     }
   }
 
@@ -175,6 +198,31 @@ public class GrpcBlockingStream<ReqT, ResT> {
     return mCanceled;
   }
 
+  private void checkError() throws IOException {
+    try (LockResource lr = new LockResource(mLock)) {
+      if (mError != null) {
+        // prevents rethrowing the same error
+        mCanceled = true;
+        throw toAlluxioStatusException(mError);
+      }
+    }
+  }
+
+  private AlluxioStatusException toAlluxioStatusException(Throwable t) {
+    AlluxioStatusException ex;
+    if (t instanceof StatusRuntimeException) {
+      ex = GrpcExceptionUtils.fromGrpcStatusException((StatusRuntimeException) t);
+      if (ex.getStatus() == Status.CANCELED) {
+        // Streams are canceled when server is shutdown. Convert it to UnavailableException for
+        // client to retry.
+        ex = new UnavailableException("Stream is canceled by server.", ex);
+      }
+    } else {
+      ex = AlluxioStatusException.fromThrowable(mError);
+    }
+    return ex;
+  }
+
   private final class ResponseStreamObserver
       implements ClientResponseObserver<ReqT, ResT> {
 
@@ -183,38 +231,24 @@ public class GrpcBlockingStream<ReqT, ResT> {
       try {
         mResponses.put(response);
       } catch (InterruptedException e) {
-        Thread.currentThread().interrupt();
-        mError = new CanceledException(e);
-        throw new RuntimeException(e);
+        handleInterruptedException(e);
       }
     }
 
     @Override
     public void onError(Throwable t) {
       try (LockResource lr = new LockResource(mLock)) {
-        if (t instanceof StatusRuntimeException
-            && ((StatusRuntimeException) t).getStatus().getCode() == Status.Code.CANCELLED) {
-          mResponses.put(this);
-        } else {
-          updateException(t);
-          mReadyOrFailed.signal();
-        }
-      } catch (InterruptedException e) {
-        Thread.currentThread().interrupt();
-        mError = new CanceledException(e);
-        mError.addSuppressed(t);
-        throw new RuntimeException(e);
+        updateException(t);
+        mReadyOrFailed.signal();
       }
     }
 
     @Override
     public void onCompleted() {
-      try (LockResource lr = new LockResource(mLock)) {
+      try {
         mResponses.put(this);
       } catch (InterruptedException e) {
-        Thread.currentThread().interrupt();
-        mError = new CanceledException(e);
-        throw new RuntimeException(e);
+        handleInterruptedException(e);
       }
     }
 
@@ -227,6 +261,14 @@ public class GrpcBlockingStream<ReqT, ResT> {
       });
     }
 
+    private void handleInterruptedException(InterruptedException e) {
+      Thread.currentThread().interrupt();
+      try (LockResource lr = new LockResource(mLock)) {
+        updateException(e);
+      }
+      throw new RuntimeException(e);
+    }
+
     /**
      * Updates the channel exception to be the given exception e, or adds e to
      * suppressed exceptions.
@@ -235,21 +277,9 @@ public class GrpcBlockingStream<ReqT, ResT> {
      */
     @GuardedBy("mLock")
     private void updateException(Throwable e) {
-      AlluxioStatusException ex;
-      if (e instanceof StatusRuntimeException) {
-        ex = GrpcExceptionUtils.fromGrpcStatusException((StatusRuntimeException) e);
-      } else {
-        ex = AlluxioStatusException.fromThrowable(mError);
-      }
       if (mError == null || mError == e) {
-        mError = ex;
-        try {
-          mResponses.put(AlluxioStatusException.fromCheckedException(mError));
-        } catch (InterruptedException e1) {
-          Thread.currentThread().interrupt();
-          throw new RuntimeException(
-              String.format("Interrupted while processing error %s", e.getMessage()));
-        }
+        mError = e;
+        mResponses.offer(e);
       } else {
         mError.addSuppressed(e);
       }
