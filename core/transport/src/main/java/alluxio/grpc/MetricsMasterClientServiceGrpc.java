@@ -22,31 +22,25 @@ import static io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall;
  * </pre>
  */
 @javax.annotation.Generated(
-    value = "by gRPC proto compiler (version 1.10.1)",
-    comments = "Source: metric_master.proto")
+    value = "by gRPC proto compiler (version 1.17.1)",
+    comments = "Source: grpc/metric_master.proto")
 public final class MetricsMasterClientServiceGrpc {
 
   private MetricsMasterClientServiceGrpc() {}
 
-  public static final String SERVICE_NAME = "alluxio.grpc.MetricsMasterClientService";
+  public static final String SERVICE_NAME = "alluxio.grpc.metric.MetricsMasterClientService";
 
   // Static method descriptors that strictly reflect the proto.
-  @io.grpc.ExperimentalApi("https://github.com/grpc/grpc-java/issues/1901")
-  @java.lang.Deprecated // Use {@link #getMetricsHeartbeatMethod()} instead. 
-  public static final io.grpc.MethodDescriptor<alluxio.grpc.MetricsHeartbeatPRequest,
-      alluxio.grpc.MetricsHeartbeatPResponse> METHOD_METRICS_HEARTBEAT = getMetricsHeartbeatMethodHelper();
-
   private static volatile io.grpc.MethodDescriptor<alluxio.grpc.MetricsHeartbeatPRequest,
       alluxio.grpc.MetricsHeartbeatPResponse> getMetricsHeartbeatMethod;
 
-  @io.grpc.ExperimentalApi("https://github.com/grpc/grpc-java/issues/1901")
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + "MetricsHeartbeat",
+      requestType = alluxio.grpc.MetricsHeartbeatPRequest.class,
+      responseType = alluxio.grpc.MetricsHeartbeatPResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
   public static io.grpc.MethodDescriptor<alluxio.grpc.MetricsHeartbeatPRequest,
       alluxio.grpc.MetricsHeartbeatPResponse> getMetricsHeartbeatMethod() {
-    return getMetricsHeartbeatMethodHelper();
-  }
-
-  private static io.grpc.MethodDescriptor<alluxio.grpc.MetricsHeartbeatPRequest,
-      alluxio.grpc.MetricsHeartbeatPResponse> getMetricsHeartbeatMethodHelper() {
     io.grpc.MethodDescriptor<alluxio.grpc.MetricsHeartbeatPRequest, alluxio.grpc.MetricsHeartbeatPResponse> getMetricsHeartbeatMethod;
     if ((getMetricsHeartbeatMethod = MetricsMasterClientServiceGrpc.getMetricsHeartbeatMethod) == null) {
       synchronized (MetricsMasterClientServiceGrpc.class) {
@@ -55,7 +49,7 @@ public final class MetricsMasterClientServiceGrpc {
               io.grpc.MethodDescriptor.<alluxio.grpc.MetricsHeartbeatPRequest, alluxio.grpc.MetricsHeartbeatPResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
               .setFullMethodName(generateFullMethodName(
-                  "alluxio.grpc.MetricsMasterClientService", "MetricsHeartbeat"))
+                  "alluxio.grpc.metric.MetricsMasterClientService", "MetricsHeartbeat"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.MetricsHeartbeatPRequest.getDefaultInstance()))
@@ -108,13 +102,13 @@ public final class MetricsMasterClientServiceGrpc {
      */
     public void metricsHeartbeat(alluxio.grpc.MetricsHeartbeatPRequest request,
         io.grpc.stub.StreamObserver<alluxio.grpc.MetricsHeartbeatPResponse> responseObserver) {
-      asyncUnimplementedUnaryCall(getMetricsHeartbeatMethodHelper(), responseObserver);
+      asyncUnimplementedUnaryCall(getMetricsHeartbeatMethod(), responseObserver);
     }
 
     @java.lang.Override public final io.grpc.ServerServiceDefinition bindService() {
       return io.grpc.ServerServiceDefinition.builder(getServiceDescriptor())
           .addMethod(
-            getMetricsHeartbeatMethodHelper(),
+            getMetricsHeartbeatMethod(),
             asyncUnaryCall(
               new MethodHandlers<
                 alluxio.grpc.MetricsHeartbeatPRequest,
@@ -155,7 +149,7 @@ public final class MetricsMasterClientServiceGrpc {
     public void metricsHeartbeat(alluxio.grpc.MetricsHeartbeatPRequest request,
         io.grpc.stub.StreamObserver<alluxio.grpc.MetricsHeartbeatPResponse> responseObserver) {
       asyncUnaryCall(
-          getChannel().newCall(getMetricsHeartbeatMethodHelper(), getCallOptions()), request, responseObserver);
+          getChannel().newCall(getMetricsHeartbeatMethod(), getCallOptions()), request, responseObserver);
     }
   }
 
@@ -189,7 +183,7 @@ public final class MetricsMasterClientServiceGrpc {
      */
     public alluxio.grpc.MetricsHeartbeatPResponse metricsHeartbeat(alluxio.grpc.MetricsHeartbeatPRequest request) {
       return blockingUnaryCall(
-          getChannel(), getMetricsHeartbeatMethodHelper(), getCallOptions(), request);
+          getChannel(), getMetricsHeartbeatMethod(), getCallOptions(), request);
     }
   }
 
@@ -224,7 +218,7 @@ public final class MetricsMasterClientServiceGrpc {
     public com.google.common.util.concurrent.ListenableFuture<alluxio.grpc.MetricsHeartbeatPResponse> metricsHeartbeat(
         alluxio.grpc.MetricsHeartbeatPRequest request) {
       return futureUnaryCall(
-          getChannel().newCall(getMetricsHeartbeatMethodHelper(), getCallOptions()), request);
+          getChannel().newCall(getMetricsHeartbeatMethod(), getCallOptions()), request);
     }
   }
 
@@ -312,7 +306,7 @@ public final class MetricsMasterClientServiceGrpc {
         if (result == null) {
           serviceDescriptor = result = io.grpc.ServiceDescriptor.newBuilder(SERVICE_NAME)
               .setSchemaDescriptor(new MetricsMasterClientServiceFileDescriptorSupplier())
-              .addMethod(getMetricsHeartbeatMethodHelper())
+              .addMethod(getMetricsHeartbeatMethod())
               .build();
         }
       }

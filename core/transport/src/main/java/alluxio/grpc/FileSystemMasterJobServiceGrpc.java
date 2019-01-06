@@ -22,31 +22,25 @@ import static io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall;
  * </pre>
  */
 @javax.annotation.Generated(
-    value = "by gRPC proto compiler (version 1.10.1)",
-    comments = "Source: file_system_master.proto")
+    value = "by gRPC proto compiler (version 1.17.1)",
+    comments = "Source: grpc/file_system_master.proto")
 public final class FileSystemMasterJobServiceGrpc {
 
   private FileSystemMasterJobServiceGrpc() {}
 
-  public static final String SERVICE_NAME = "alluxio.grpc.FileSystemMasterJobService";
+  public static final String SERVICE_NAME = "alluxio.grpc.file.FileSystemMasterJobService";
 
   // Static method descriptors that strictly reflect the proto.
-  @io.grpc.ExperimentalApi("https://github.com/grpc/grpc-java/issues/1901")
-  @java.lang.Deprecated // Use {@link #getGetFileInfoMethod()} instead. 
-  public static final io.grpc.MethodDescriptor<alluxio.grpc.GetFileInfoPRequest,
-      alluxio.grpc.GetFileInfoPResponse> METHOD_GET_FILE_INFO = getGetFileInfoMethodHelper();
-
   private static volatile io.grpc.MethodDescriptor<alluxio.grpc.GetFileInfoPRequest,
       alluxio.grpc.GetFileInfoPResponse> getGetFileInfoMethod;
 
-  @io.grpc.ExperimentalApi("https://github.com/grpc/grpc-java/issues/1901")
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + "GetFileInfo",
+      requestType = alluxio.grpc.GetFileInfoPRequest.class,
+      responseType = alluxio.grpc.GetFileInfoPResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
   public static io.grpc.MethodDescriptor<alluxio.grpc.GetFileInfoPRequest,
       alluxio.grpc.GetFileInfoPResponse> getGetFileInfoMethod() {
-    return getGetFileInfoMethodHelper();
-  }
-
-  private static io.grpc.MethodDescriptor<alluxio.grpc.GetFileInfoPRequest,
-      alluxio.grpc.GetFileInfoPResponse> getGetFileInfoMethodHelper() {
     io.grpc.MethodDescriptor<alluxio.grpc.GetFileInfoPRequest, alluxio.grpc.GetFileInfoPResponse> getGetFileInfoMethod;
     if ((getGetFileInfoMethod = FileSystemMasterJobServiceGrpc.getGetFileInfoMethod) == null) {
       synchronized (FileSystemMasterJobServiceGrpc.class) {
@@ -55,7 +49,7 @@ public final class FileSystemMasterJobServiceGrpc {
               io.grpc.MethodDescriptor.<alluxio.grpc.GetFileInfoPRequest, alluxio.grpc.GetFileInfoPResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
               .setFullMethodName(generateFullMethodName(
-                  "alluxio.grpc.FileSystemMasterJobService", "GetFileInfo"))
+                  "alluxio.grpc.file.FileSystemMasterJobService", "GetFileInfo"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.GetFileInfoPRequest.getDefaultInstance()))
@@ -68,22 +62,17 @@ public final class FileSystemMasterJobServiceGrpc {
      }
      return getGetFileInfoMethod;
   }
-  @io.grpc.ExperimentalApi("https://github.com/grpc/grpc-java/issues/1901")
-  @java.lang.Deprecated // Use {@link #getGetUfsInfoMethod()} instead. 
-  public static final io.grpc.MethodDescriptor<alluxio.grpc.GetUfsInfoPRequest,
-      alluxio.grpc.GetUfsInfoPResponse> METHOD_GET_UFS_INFO = getGetUfsInfoMethodHelper();
 
   private static volatile io.grpc.MethodDescriptor<alluxio.grpc.GetUfsInfoPRequest,
       alluxio.grpc.GetUfsInfoPResponse> getGetUfsInfoMethod;
 
-  @io.grpc.ExperimentalApi("https://github.com/grpc/grpc-java/issues/1901")
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + "GetUfsInfo",
+      requestType = alluxio.grpc.GetUfsInfoPRequest.class,
+      responseType = alluxio.grpc.GetUfsInfoPResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
   public static io.grpc.MethodDescriptor<alluxio.grpc.GetUfsInfoPRequest,
       alluxio.grpc.GetUfsInfoPResponse> getGetUfsInfoMethod() {
-    return getGetUfsInfoMethodHelper();
-  }
-
-  private static io.grpc.MethodDescriptor<alluxio.grpc.GetUfsInfoPRequest,
-      alluxio.grpc.GetUfsInfoPResponse> getGetUfsInfoMethodHelper() {
     io.grpc.MethodDescriptor<alluxio.grpc.GetUfsInfoPRequest, alluxio.grpc.GetUfsInfoPResponse> getGetUfsInfoMethod;
     if ((getGetUfsInfoMethod = FileSystemMasterJobServiceGrpc.getGetUfsInfoMethod) == null) {
       synchronized (FileSystemMasterJobServiceGrpc.class) {
@@ -92,7 +81,7 @@ public final class FileSystemMasterJobServiceGrpc {
               io.grpc.MethodDescriptor.<alluxio.grpc.GetUfsInfoPRequest, alluxio.grpc.GetUfsInfoPResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
               .setFullMethodName(generateFullMethodName(
-                  "alluxio.grpc.FileSystemMasterJobService", "GetUfsInfo"))
+                  "alluxio.grpc.file.FileSystemMasterJobService", "GetUfsInfo"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.GetUfsInfoPRequest.getDefaultInstance()))
@@ -144,7 +133,7 @@ public final class FileSystemMasterJobServiceGrpc {
      */
     public void getFileInfo(alluxio.grpc.GetFileInfoPRequest request,
         io.grpc.stub.StreamObserver<alluxio.grpc.GetFileInfoPResponse> responseObserver) {
-      asyncUnimplementedUnaryCall(getGetFileInfoMethodHelper(), responseObserver);
+      asyncUnimplementedUnaryCall(getGetFileInfoMethod(), responseObserver);
     }
 
     /**
@@ -155,20 +144,20 @@ public final class FileSystemMasterJobServiceGrpc {
      */
     public void getUfsInfo(alluxio.grpc.GetUfsInfoPRequest request,
         io.grpc.stub.StreamObserver<alluxio.grpc.GetUfsInfoPResponse> responseObserver) {
-      asyncUnimplementedUnaryCall(getGetUfsInfoMethodHelper(), responseObserver);
+      asyncUnimplementedUnaryCall(getGetUfsInfoMethod(), responseObserver);
     }
 
     @java.lang.Override public final io.grpc.ServerServiceDefinition bindService() {
       return io.grpc.ServerServiceDefinition.builder(getServiceDescriptor())
           .addMethod(
-            getGetFileInfoMethodHelper(),
+            getGetFileInfoMethod(),
             asyncUnaryCall(
               new MethodHandlers<
                 alluxio.grpc.GetFileInfoPRequest,
                 alluxio.grpc.GetFileInfoPResponse>(
                   this, METHODID_GET_FILE_INFO)))
           .addMethod(
-            getGetUfsInfoMethodHelper(),
+            getGetUfsInfoMethod(),
             asyncUnaryCall(
               new MethodHandlers<
                 alluxio.grpc.GetUfsInfoPRequest,
@@ -208,7 +197,7 @@ public final class FileSystemMasterJobServiceGrpc {
     public void getFileInfo(alluxio.grpc.GetFileInfoPRequest request,
         io.grpc.stub.StreamObserver<alluxio.grpc.GetFileInfoPResponse> responseObserver) {
       asyncUnaryCall(
-          getChannel().newCall(getGetFileInfoMethodHelper(), getCallOptions()), request, responseObserver);
+          getChannel().newCall(getGetFileInfoMethod(), getCallOptions()), request, responseObserver);
     }
 
     /**
@@ -220,7 +209,7 @@ public final class FileSystemMasterJobServiceGrpc {
     public void getUfsInfo(alluxio.grpc.GetUfsInfoPRequest request,
         io.grpc.stub.StreamObserver<alluxio.grpc.GetUfsInfoPResponse> responseObserver) {
       asyncUnaryCall(
-          getChannel().newCall(getGetUfsInfoMethodHelper(), getCallOptions()), request, responseObserver);
+          getChannel().newCall(getGetUfsInfoMethod(), getCallOptions()), request, responseObserver);
     }
   }
 
@@ -253,7 +242,7 @@ public final class FileSystemMasterJobServiceGrpc {
      */
     public alluxio.grpc.GetFileInfoPResponse getFileInfo(alluxio.grpc.GetFileInfoPRequest request) {
       return blockingUnaryCall(
-          getChannel(), getGetFileInfoMethodHelper(), getCallOptions(), request);
+          getChannel(), getGetFileInfoMethod(), getCallOptions(), request);
     }
 
     /**
@@ -264,7 +253,7 @@ public final class FileSystemMasterJobServiceGrpc {
      */
     public alluxio.grpc.GetUfsInfoPResponse getUfsInfo(alluxio.grpc.GetUfsInfoPRequest request) {
       return blockingUnaryCall(
-          getChannel(), getGetUfsInfoMethodHelper(), getCallOptions(), request);
+          getChannel(), getGetUfsInfoMethod(), getCallOptions(), request);
     }
   }
 
@@ -298,7 +287,7 @@ public final class FileSystemMasterJobServiceGrpc {
     public com.google.common.util.concurrent.ListenableFuture<alluxio.grpc.GetFileInfoPResponse> getFileInfo(
         alluxio.grpc.GetFileInfoPRequest request) {
       return futureUnaryCall(
-          getChannel().newCall(getGetFileInfoMethodHelper(), getCallOptions()), request);
+          getChannel().newCall(getGetFileInfoMethod(), getCallOptions()), request);
     }
 
     /**
@@ -310,7 +299,7 @@ public final class FileSystemMasterJobServiceGrpc {
     public com.google.common.util.concurrent.ListenableFuture<alluxio.grpc.GetUfsInfoPResponse> getUfsInfo(
         alluxio.grpc.GetUfsInfoPRequest request) {
       return futureUnaryCall(
-          getChannel().newCall(getGetUfsInfoMethodHelper(), getCallOptions()), request);
+          getChannel().newCall(getGetUfsInfoMethod(), getCallOptions()), request);
     }
   }
 
@@ -403,8 +392,8 @@ public final class FileSystemMasterJobServiceGrpc {
         if (result == null) {
           serviceDescriptor = result = io.grpc.ServiceDescriptor.newBuilder(SERVICE_NAME)
               .setSchemaDescriptor(new FileSystemMasterJobServiceFileDescriptorSupplier())
-              .addMethod(getGetFileInfoMethodHelper())
-              .addMethod(getGetUfsInfoMethodHelper())
+              .addMethod(getGetFileInfoMethod())
+              .addMethod(getGetUfsInfoMethod())
               .build();
         }
       }

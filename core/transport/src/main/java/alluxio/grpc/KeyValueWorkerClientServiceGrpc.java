@@ -18,31 +18,25 @@ import static io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall;
 /**
  */
 @javax.annotation.Generated(
-    value = "by gRPC proto compiler (version 1.10.1)",
-    comments = "Source: key_value_worker.proto")
+    value = "by gRPC proto compiler (version 1.17.1)",
+    comments = "Source: grpc/key_value_worker.proto")
 public final class KeyValueWorkerClientServiceGrpc {
 
   private KeyValueWorkerClientServiceGrpc() {}
 
-  public static final String SERVICE_NAME = "alluxio.grpc.KeyValueWorkerClientService";
+  public static final String SERVICE_NAME = "alluxio.grpc.keyvalue.KeyValueWorkerClientService";
 
   // Static method descriptors that strictly reflect the proto.
-  @io.grpc.ExperimentalApi("https://github.com/grpc/grpc-java/issues/1901")
-  @java.lang.Deprecated // Use {@link #getGetMethod()} instead. 
-  public static final io.grpc.MethodDescriptor<alluxio.grpc.GetPRequest,
-      alluxio.grpc.GetPResponse> METHOD_GET = getGetMethodHelper();
-
   private static volatile io.grpc.MethodDescriptor<alluxio.grpc.GetPRequest,
       alluxio.grpc.GetPResponse> getGetMethod;
 
-  @io.grpc.ExperimentalApi("https://github.com/grpc/grpc-java/issues/1901")
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + "Get",
+      requestType = alluxio.grpc.GetPRequest.class,
+      responseType = alluxio.grpc.GetPResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
   public static io.grpc.MethodDescriptor<alluxio.grpc.GetPRequest,
       alluxio.grpc.GetPResponse> getGetMethod() {
-    return getGetMethodHelper();
-  }
-
-  private static io.grpc.MethodDescriptor<alluxio.grpc.GetPRequest,
-      alluxio.grpc.GetPResponse> getGetMethodHelper() {
     io.grpc.MethodDescriptor<alluxio.grpc.GetPRequest, alluxio.grpc.GetPResponse> getGetMethod;
     if ((getGetMethod = KeyValueWorkerClientServiceGrpc.getGetMethod) == null) {
       synchronized (KeyValueWorkerClientServiceGrpc.class) {
@@ -51,7 +45,7 @@ public final class KeyValueWorkerClientServiceGrpc {
               io.grpc.MethodDescriptor.<alluxio.grpc.GetPRequest, alluxio.grpc.GetPResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
               .setFullMethodName(generateFullMethodName(
-                  "alluxio.grpc.KeyValueWorkerClientService", "Get"))
+                  "alluxio.grpc.keyvalue.KeyValueWorkerClientService", "Get"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.GetPRequest.getDefaultInstance()))
@@ -64,22 +58,17 @@ public final class KeyValueWorkerClientServiceGrpc {
      }
      return getGetMethod;
   }
-  @io.grpc.ExperimentalApi("https://github.com/grpc/grpc-java/issues/1901")
-  @java.lang.Deprecated // Use {@link #getGetNextKeysMethod()} instead. 
-  public static final io.grpc.MethodDescriptor<alluxio.grpc.GetNextKeysPRequest,
-      alluxio.grpc.GetNextKeysPResponse> METHOD_GET_NEXT_KEYS = getGetNextKeysMethodHelper();
 
   private static volatile io.grpc.MethodDescriptor<alluxio.grpc.GetNextKeysPRequest,
       alluxio.grpc.GetNextKeysPResponse> getGetNextKeysMethod;
 
-  @io.grpc.ExperimentalApi("https://github.com/grpc/grpc-java/issues/1901")
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + "GetNextKeys",
+      requestType = alluxio.grpc.GetNextKeysPRequest.class,
+      responseType = alluxio.grpc.GetNextKeysPResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
   public static io.grpc.MethodDescriptor<alluxio.grpc.GetNextKeysPRequest,
       alluxio.grpc.GetNextKeysPResponse> getGetNextKeysMethod() {
-    return getGetNextKeysMethodHelper();
-  }
-
-  private static io.grpc.MethodDescriptor<alluxio.grpc.GetNextKeysPRequest,
-      alluxio.grpc.GetNextKeysPResponse> getGetNextKeysMethodHelper() {
     io.grpc.MethodDescriptor<alluxio.grpc.GetNextKeysPRequest, alluxio.grpc.GetNextKeysPResponse> getGetNextKeysMethod;
     if ((getGetNextKeysMethod = KeyValueWorkerClientServiceGrpc.getGetNextKeysMethod) == null) {
       synchronized (KeyValueWorkerClientServiceGrpc.class) {
@@ -88,7 +77,7 @@ public final class KeyValueWorkerClientServiceGrpc {
               io.grpc.MethodDescriptor.<alluxio.grpc.GetNextKeysPRequest, alluxio.grpc.GetNextKeysPResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
               .setFullMethodName(generateFullMethodName(
-                  "alluxio.grpc.KeyValueWorkerClientService", "GetNextKeys"))
+                  "alluxio.grpc.keyvalue.KeyValueWorkerClientService", "GetNextKeys"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.GetNextKeysPRequest.getDefaultInstance()))
@@ -101,22 +90,17 @@ public final class KeyValueWorkerClientServiceGrpc {
      }
      return getGetNextKeysMethod;
   }
-  @io.grpc.ExperimentalApi("https://github.com/grpc/grpc-java/issues/1901")
-  @java.lang.Deprecated // Use {@link #getGetSizeMethod()} instead. 
-  public static final io.grpc.MethodDescriptor<alluxio.grpc.GetSizePRequest,
-      alluxio.grpc.GetSizePResponse> METHOD_GET_SIZE = getGetSizeMethodHelper();
 
   private static volatile io.grpc.MethodDescriptor<alluxio.grpc.GetSizePRequest,
       alluxio.grpc.GetSizePResponse> getGetSizeMethod;
 
-  @io.grpc.ExperimentalApi("https://github.com/grpc/grpc-java/issues/1901")
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + "GetSize",
+      requestType = alluxio.grpc.GetSizePRequest.class,
+      responseType = alluxio.grpc.GetSizePResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
   public static io.grpc.MethodDescriptor<alluxio.grpc.GetSizePRequest,
       alluxio.grpc.GetSizePResponse> getGetSizeMethod() {
-    return getGetSizeMethodHelper();
-  }
-
-  private static io.grpc.MethodDescriptor<alluxio.grpc.GetSizePRequest,
-      alluxio.grpc.GetSizePResponse> getGetSizeMethodHelper() {
     io.grpc.MethodDescriptor<alluxio.grpc.GetSizePRequest, alluxio.grpc.GetSizePResponse> getGetSizeMethod;
     if ((getGetSizeMethod = KeyValueWorkerClientServiceGrpc.getGetSizeMethod) == null) {
       synchronized (KeyValueWorkerClientServiceGrpc.class) {
@@ -125,7 +109,7 @@ public final class KeyValueWorkerClientServiceGrpc {
               io.grpc.MethodDescriptor.<alluxio.grpc.GetSizePRequest, alluxio.grpc.GetSizePResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
               .setFullMethodName(generateFullMethodName(
-                  "alluxio.grpc.KeyValueWorkerClientService", "GetSize"))
+                  "alluxio.grpc.keyvalue.KeyValueWorkerClientService", "GetSize"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.GetSizePRequest.getDefaultInstance()))
@@ -174,7 +158,7 @@ public final class KeyValueWorkerClientServiceGrpc {
      */
     public void get(alluxio.grpc.GetPRequest request,
         io.grpc.stub.StreamObserver<alluxio.grpc.GetPResponse> responseObserver) {
-      asyncUnimplementedUnaryCall(getGetMethodHelper(), responseObserver);
+      asyncUnimplementedUnaryCall(getGetMethod(), responseObserver);
     }
 
     /**
@@ -187,7 +171,7 @@ public final class KeyValueWorkerClientServiceGrpc {
      */
     public void getNextKeys(alluxio.grpc.GetNextKeysPRequest request,
         io.grpc.stub.StreamObserver<alluxio.grpc.GetNextKeysPResponse> responseObserver) {
-      asyncUnimplementedUnaryCall(getGetNextKeysMethodHelper(), responseObserver);
+      asyncUnimplementedUnaryCall(getGetNextKeysMethod(), responseObserver);
     }
 
     /**
@@ -198,27 +182,27 @@ public final class KeyValueWorkerClientServiceGrpc {
      */
     public void getSize(alluxio.grpc.GetSizePRequest request,
         io.grpc.stub.StreamObserver<alluxio.grpc.GetSizePResponse> responseObserver) {
-      asyncUnimplementedUnaryCall(getGetSizeMethodHelper(), responseObserver);
+      asyncUnimplementedUnaryCall(getGetSizeMethod(), responseObserver);
     }
 
     @java.lang.Override public final io.grpc.ServerServiceDefinition bindService() {
       return io.grpc.ServerServiceDefinition.builder(getServiceDescriptor())
           .addMethod(
-            getGetMethodHelper(),
+            getGetMethod(),
             asyncUnaryCall(
               new MethodHandlers<
                 alluxio.grpc.GetPRequest,
                 alluxio.grpc.GetPResponse>(
                   this, METHODID_GET)))
           .addMethod(
-            getGetNextKeysMethodHelper(),
+            getGetNextKeysMethod(),
             asyncUnaryCall(
               new MethodHandlers<
                 alluxio.grpc.GetNextKeysPRequest,
                 alluxio.grpc.GetNextKeysPResponse>(
                   this, METHODID_GET_NEXT_KEYS)))
           .addMethod(
-            getGetSizeMethodHelper(),
+            getGetSizeMethod(),
             asyncUnaryCall(
               new MethodHandlers<
                 alluxio.grpc.GetSizePRequest,
@@ -255,7 +239,7 @@ public final class KeyValueWorkerClientServiceGrpc {
     public void get(alluxio.grpc.GetPRequest request,
         io.grpc.stub.StreamObserver<alluxio.grpc.GetPResponse> responseObserver) {
       asyncUnaryCall(
-          getChannel().newCall(getGetMethodHelper(), getCallOptions()), request, responseObserver);
+          getChannel().newCall(getGetMethod(), getCallOptions()), request, responseObserver);
     }
 
     /**
@@ -269,7 +253,7 @@ public final class KeyValueWorkerClientServiceGrpc {
     public void getNextKeys(alluxio.grpc.GetNextKeysPRequest request,
         io.grpc.stub.StreamObserver<alluxio.grpc.GetNextKeysPResponse> responseObserver) {
       asyncUnaryCall(
-          getChannel().newCall(getGetNextKeysMethodHelper(), getCallOptions()), request, responseObserver);
+          getChannel().newCall(getGetNextKeysMethod(), getCallOptions()), request, responseObserver);
     }
 
     /**
@@ -281,7 +265,7 @@ public final class KeyValueWorkerClientServiceGrpc {
     public void getSize(alluxio.grpc.GetSizePRequest request,
         io.grpc.stub.StreamObserver<alluxio.grpc.GetSizePResponse> responseObserver) {
       asyncUnaryCall(
-          getChannel().newCall(getGetSizeMethodHelper(), getCallOptions()), request, responseObserver);
+          getChannel().newCall(getGetSizeMethod(), getCallOptions()), request, responseObserver);
     }
   }
 
@@ -311,7 +295,7 @@ public final class KeyValueWorkerClientServiceGrpc {
      */
     public alluxio.grpc.GetPResponse get(alluxio.grpc.GetPRequest request) {
       return blockingUnaryCall(
-          getChannel(), getGetMethodHelper(), getCallOptions(), request);
+          getChannel(), getGetMethod(), getCallOptions(), request);
     }
 
     /**
@@ -324,7 +308,7 @@ public final class KeyValueWorkerClientServiceGrpc {
      */
     public alluxio.grpc.GetNextKeysPResponse getNextKeys(alluxio.grpc.GetNextKeysPRequest request) {
       return blockingUnaryCall(
-          getChannel(), getGetNextKeysMethodHelper(), getCallOptions(), request);
+          getChannel(), getGetNextKeysMethod(), getCallOptions(), request);
     }
 
     /**
@@ -335,7 +319,7 @@ public final class KeyValueWorkerClientServiceGrpc {
      */
     public alluxio.grpc.GetSizePResponse getSize(alluxio.grpc.GetSizePRequest request) {
       return blockingUnaryCall(
-          getChannel(), getGetSizeMethodHelper(), getCallOptions(), request);
+          getChannel(), getGetSizeMethod(), getCallOptions(), request);
     }
   }
 
@@ -366,7 +350,7 @@ public final class KeyValueWorkerClientServiceGrpc {
     public com.google.common.util.concurrent.ListenableFuture<alluxio.grpc.GetPResponse> get(
         alluxio.grpc.GetPRequest request) {
       return futureUnaryCall(
-          getChannel().newCall(getGetMethodHelper(), getCallOptions()), request);
+          getChannel().newCall(getGetMethod(), getCallOptions()), request);
     }
 
     /**
@@ -380,7 +364,7 @@ public final class KeyValueWorkerClientServiceGrpc {
     public com.google.common.util.concurrent.ListenableFuture<alluxio.grpc.GetNextKeysPResponse> getNextKeys(
         alluxio.grpc.GetNextKeysPRequest request) {
       return futureUnaryCall(
-          getChannel().newCall(getGetNextKeysMethodHelper(), getCallOptions()), request);
+          getChannel().newCall(getGetNextKeysMethod(), getCallOptions()), request);
     }
 
     /**
@@ -392,7 +376,7 @@ public final class KeyValueWorkerClientServiceGrpc {
     public com.google.common.util.concurrent.ListenableFuture<alluxio.grpc.GetSizePResponse> getSize(
         alluxio.grpc.GetSizePRequest request) {
       return futureUnaryCall(
-          getChannel().newCall(getGetSizeMethodHelper(), getCallOptions()), request);
+          getChannel().newCall(getGetSizeMethod(), getCallOptions()), request);
     }
   }
 
@@ -490,9 +474,9 @@ public final class KeyValueWorkerClientServiceGrpc {
         if (result == null) {
           serviceDescriptor = result = io.grpc.ServiceDescriptor.newBuilder(SERVICE_NAME)
               .setSchemaDescriptor(new KeyValueWorkerClientServiceFileDescriptorSupplier())
-              .addMethod(getGetMethodHelper())
-              .addMethod(getGetNextKeysMethodHelper())
-              .addMethod(getGetSizeMethodHelper())
+              .addMethod(getGetMethod())
+              .addMethod(getGetNextKeysMethod())
+              .addMethod(getGetSizeMethod())
               .build();
         }
       }

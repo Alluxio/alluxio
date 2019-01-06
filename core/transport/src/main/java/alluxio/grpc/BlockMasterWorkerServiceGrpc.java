@@ -22,31 +22,25 @@ import static io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall;
  * </pre>
  */
 @javax.annotation.Generated(
-    value = "by gRPC proto compiler (version 1.10.1)",
-    comments = "Source: block_master.proto")
+    value = "by gRPC proto compiler (version 1.17.1)",
+    comments = "Source: grpc/block_master.proto")
 public final class BlockMasterWorkerServiceGrpc {
 
   private BlockMasterWorkerServiceGrpc() {}
 
-  public static final String SERVICE_NAME = "alluxio.grpc.BlockMasterWorkerService";
+  public static final String SERVICE_NAME = "alluxio.grpc.block.BlockMasterWorkerService";
 
   // Static method descriptors that strictly reflect the proto.
-  @io.grpc.ExperimentalApi("https://github.com/grpc/grpc-java/issues/1901")
-  @java.lang.Deprecated // Use {@link #getBlockHeartbeatMethod()} instead. 
-  public static final io.grpc.MethodDescriptor<alluxio.grpc.BlockHeartbeatPRequest,
-      alluxio.grpc.BlockHeartbeatPResponse> METHOD_BLOCK_HEARTBEAT = getBlockHeartbeatMethodHelper();
-
   private static volatile io.grpc.MethodDescriptor<alluxio.grpc.BlockHeartbeatPRequest,
       alluxio.grpc.BlockHeartbeatPResponse> getBlockHeartbeatMethod;
 
-  @io.grpc.ExperimentalApi("https://github.com/grpc/grpc-java/issues/1901")
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + "BlockHeartbeat",
+      requestType = alluxio.grpc.BlockHeartbeatPRequest.class,
+      responseType = alluxio.grpc.BlockHeartbeatPResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
   public static io.grpc.MethodDescriptor<alluxio.grpc.BlockHeartbeatPRequest,
       alluxio.grpc.BlockHeartbeatPResponse> getBlockHeartbeatMethod() {
-    return getBlockHeartbeatMethodHelper();
-  }
-
-  private static io.grpc.MethodDescriptor<alluxio.grpc.BlockHeartbeatPRequest,
-      alluxio.grpc.BlockHeartbeatPResponse> getBlockHeartbeatMethodHelper() {
     io.grpc.MethodDescriptor<alluxio.grpc.BlockHeartbeatPRequest, alluxio.grpc.BlockHeartbeatPResponse> getBlockHeartbeatMethod;
     if ((getBlockHeartbeatMethod = BlockMasterWorkerServiceGrpc.getBlockHeartbeatMethod) == null) {
       synchronized (BlockMasterWorkerServiceGrpc.class) {
@@ -55,7 +49,7 @@ public final class BlockMasterWorkerServiceGrpc {
               io.grpc.MethodDescriptor.<alluxio.grpc.BlockHeartbeatPRequest, alluxio.grpc.BlockHeartbeatPResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
               .setFullMethodName(generateFullMethodName(
-                  "alluxio.grpc.BlockMasterWorkerService", "BlockHeartbeat"))
+                  "alluxio.grpc.block.BlockMasterWorkerService", "BlockHeartbeat"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.BlockHeartbeatPRequest.getDefaultInstance()))
@@ -68,22 +62,17 @@ public final class BlockMasterWorkerServiceGrpc {
      }
      return getBlockHeartbeatMethod;
   }
-  @io.grpc.ExperimentalApi("https://github.com/grpc/grpc-java/issues/1901")
-  @java.lang.Deprecated // Use {@link #getCommitBlockMethod()} instead. 
-  public static final io.grpc.MethodDescriptor<alluxio.grpc.CommitBlockPRequest,
-      alluxio.grpc.CommitBlockPResponse> METHOD_COMMIT_BLOCK = getCommitBlockMethodHelper();
 
   private static volatile io.grpc.MethodDescriptor<alluxio.grpc.CommitBlockPRequest,
       alluxio.grpc.CommitBlockPResponse> getCommitBlockMethod;
 
-  @io.grpc.ExperimentalApi("https://github.com/grpc/grpc-java/issues/1901")
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + "CommitBlock",
+      requestType = alluxio.grpc.CommitBlockPRequest.class,
+      responseType = alluxio.grpc.CommitBlockPResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
   public static io.grpc.MethodDescriptor<alluxio.grpc.CommitBlockPRequest,
       alluxio.grpc.CommitBlockPResponse> getCommitBlockMethod() {
-    return getCommitBlockMethodHelper();
-  }
-
-  private static io.grpc.MethodDescriptor<alluxio.grpc.CommitBlockPRequest,
-      alluxio.grpc.CommitBlockPResponse> getCommitBlockMethodHelper() {
     io.grpc.MethodDescriptor<alluxio.grpc.CommitBlockPRequest, alluxio.grpc.CommitBlockPResponse> getCommitBlockMethod;
     if ((getCommitBlockMethod = BlockMasterWorkerServiceGrpc.getCommitBlockMethod) == null) {
       synchronized (BlockMasterWorkerServiceGrpc.class) {
@@ -92,7 +81,7 @@ public final class BlockMasterWorkerServiceGrpc {
               io.grpc.MethodDescriptor.<alluxio.grpc.CommitBlockPRequest, alluxio.grpc.CommitBlockPResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
               .setFullMethodName(generateFullMethodName(
-                  "alluxio.grpc.BlockMasterWorkerService", "CommitBlock"))
+                  "alluxio.grpc.block.BlockMasterWorkerService", "CommitBlock"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.CommitBlockPRequest.getDefaultInstance()))
@@ -105,22 +94,17 @@ public final class BlockMasterWorkerServiceGrpc {
      }
      return getCommitBlockMethod;
   }
-  @io.grpc.ExperimentalApi("https://github.com/grpc/grpc-java/issues/1901")
-  @java.lang.Deprecated // Use {@link #getCommitBlockInUfsMethod()} instead. 
-  public static final io.grpc.MethodDescriptor<alluxio.grpc.CommitBlockInUfsPRequest,
-      alluxio.grpc.CommitBlockInUfsPResponse> METHOD_COMMIT_BLOCK_IN_UFS = getCommitBlockInUfsMethodHelper();
 
   private static volatile io.grpc.MethodDescriptor<alluxio.grpc.CommitBlockInUfsPRequest,
       alluxio.grpc.CommitBlockInUfsPResponse> getCommitBlockInUfsMethod;
 
-  @io.grpc.ExperimentalApi("https://github.com/grpc/grpc-java/issues/1901")
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + "CommitBlockInUfs",
+      requestType = alluxio.grpc.CommitBlockInUfsPRequest.class,
+      responseType = alluxio.grpc.CommitBlockInUfsPResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
   public static io.grpc.MethodDescriptor<alluxio.grpc.CommitBlockInUfsPRequest,
       alluxio.grpc.CommitBlockInUfsPResponse> getCommitBlockInUfsMethod() {
-    return getCommitBlockInUfsMethodHelper();
-  }
-
-  private static io.grpc.MethodDescriptor<alluxio.grpc.CommitBlockInUfsPRequest,
-      alluxio.grpc.CommitBlockInUfsPResponse> getCommitBlockInUfsMethodHelper() {
     io.grpc.MethodDescriptor<alluxio.grpc.CommitBlockInUfsPRequest, alluxio.grpc.CommitBlockInUfsPResponse> getCommitBlockInUfsMethod;
     if ((getCommitBlockInUfsMethod = BlockMasterWorkerServiceGrpc.getCommitBlockInUfsMethod) == null) {
       synchronized (BlockMasterWorkerServiceGrpc.class) {
@@ -129,7 +113,7 @@ public final class BlockMasterWorkerServiceGrpc {
               io.grpc.MethodDescriptor.<alluxio.grpc.CommitBlockInUfsPRequest, alluxio.grpc.CommitBlockInUfsPResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
               .setFullMethodName(generateFullMethodName(
-                  "alluxio.grpc.BlockMasterWorkerService", "CommitBlockInUfs"))
+                  "alluxio.grpc.block.BlockMasterWorkerService", "CommitBlockInUfs"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.CommitBlockInUfsPRequest.getDefaultInstance()))
@@ -142,22 +126,17 @@ public final class BlockMasterWorkerServiceGrpc {
      }
      return getCommitBlockInUfsMethod;
   }
-  @io.grpc.ExperimentalApi("https://github.com/grpc/grpc-java/issues/1901")
-  @java.lang.Deprecated // Use {@link #getGetWorkerIdMethod()} instead. 
-  public static final io.grpc.MethodDescriptor<alluxio.grpc.GetWorkerIdPRequest,
-      alluxio.grpc.GetWorkerIdPResponse> METHOD_GET_WORKER_ID = getGetWorkerIdMethodHelper();
 
   private static volatile io.grpc.MethodDescriptor<alluxio.grpc.GetWorkerIdPRequest,
       alluxio.grpc.GetWorkerIdPResponse> getGetWorkerIdMethod;
 
-  @io.grpc.ExperimentalApi("https://github.com/grpc/grpc-java/issues/1901")
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + "GetWorkerId",
+      requestType = alluxio.grpc.GetWorkerIdPRequest.class,
+      responseType = alluxio.grpc.GetWorkerIdPResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
   public static io.grpc.MethodDescriptor<alluxio.grpc.GetWorkerIdPRequest,
       alluxio.grpc.GetWorkerIdPResponse> getGetWorkerIdMethod() {
-    return getGetWorkerIdMethodHelper();
-  }
-
-  private static io.grpc.MethodDescriptor<alluxio.grpc.GetWorkerIdPRequest,
-      alluxio.grpc.GetWorkerIdPResponse> getGetWorkerIdMethodHelper() {
     io.grpc.MethodDescriptor<alluxio.grpc.GetWorkerIdPRequest, alluxio.grpc.GetWorkerIdPResponse> getGetWorkerIdMethod;
     if ((getGetWorkerIdMethod = BlockMasterWorkerServiceGrpc.getGetWorkerIdMethod) == null) {
       synchronized (BlockMasterWorkerServiceGrpc.class) {
@@ -166,7 +145,7 @@ public final class BlockMasterWorkerServiceGrpc {
               io.grpc.MethodDescriptor.<alluxio.grpc.GetWorkerIdPRequest, alluxio.grpc.GetWorkerIdPResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
               .setFullMethodName(generateFullMethodName(
-                  "alluxio.grpc.BlockMasterWorkerService", "GetWorkerId"))
+                  "alluxio.grpc.block.BlockMasterWorkerService", "GetWorkerId"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.GetWorkerIdPRequest.getDefaultInstance()))
@@ -179,22 +158,17 @@ public final class BlockMasterWorkerServiceGrpc {
      }
      return getGetWorkerIdMethod;
   }
-  @io.grpc.ExperimentalApi("https://github.com/grpc/grpc-java/issues/1901")
-  @java.lang.Deprecated // Use {@link #getRegisterWorkerMethod()} instead. 
-  public static final io.grpc.MethodDescriptor<alluxio.grpc.RegisterWorkerPRequest,
-      alluxio.grpc.RegisterWorkerPResponse> METHOD_REGISTER_WORKER = getRegisterWorkerMethodHelper();
 
   private static volatile io.grpc.MethodDescriptor<alluxio.grpc.RegisterWorkerPRequest,
       alluxio.grpc.RegisterWorkerPResponse> getRegisterWorkerMethod;
 
-  @io.grpc.ExperimentalApi("https://github.com/grpc/grpc-java/issues/1901")
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + "RegisterWorker",
+      requestType = alluxio.grpc.RegisterWorkerPRequest.class,
+      responseType = alluxio.grpc.RegisterWorkerPResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
   public static io.grpc.MethodDescriptor<alluxio.grpc.RegisterWorkerPRequest,
       alluxio.grpc.RegisterWorkerPResponse> getRegisterWorkerMethod() {
-    return getRegisterWorkerMethodHelper();
-  }
-
-  private static io.grpc.MethodDescriptor<alluxio.grpc.RegisterWorkerPRequest,
-      alluxio.grpc.RegisterWorkerPResponse> getRegisterWorkerMethodHelper() {
     io.grpc.MethodDescriptor<alluxio.grpc.RegisterWorkerPRequest, alluxio.grpc.RegisterWorkerPResponse> getRegisterWorkerMethod;
     if ((getRegisterWorkerMethod = BlockMasterWorkerServiceGrpc.getRegisterWorkerMethod) == null) {
       synchronized (BlockMasterWorkerServiceGrpc.class) {
@@ -203,7 +177,7 @@ public final class BlockMasterWorkerServiceGrpc {
               io.grpc.MethodDescriptor.<alluxio.grpc.RegisterWorkerPRequest, alluxio.grpc.RegisterWorkerPResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
               .setFullMethodName(generateFullMethodName(
-                  "alluxio.grpc.BlockMasterWorkerService", "RegisterWorker"))
+                  "alluxio.grpc.block.BlockMasterWorkerService", "RegisterWorker"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.RegisterWorkerPRequest.getDefaultInstance()))
@@ -256,7 +230,7 @@ public final class BlockMasterWorkerServiceGrpc {
      */
     public void blockHeartbeat(alluxio.grpc.BlockHeartbeatPRequest request,
         io.grpc.stub.StreamObserver<alluxio.grpc.BlockHeartbeatPResponse> responseObserver) {
-      asyncUnimplementedUnaryCall(getBlockHeartbeatMethodHelper(), responseObserver);
+      asyncUnimplementedUnaryCall(getBlockHeartbeatMethod(), responseObserver);
     }
 
     /**
@@ -267,7 +241,7 @@ public final class BlockMasterWorkerServiceGrpc {
      */
     public void commitBlock(alluxio.grpc.CommitBlockPRequest request,
         io.grpc.stub.StreamObserver<alluxio.grpc.CommitBlockPResponse> responseObserver) {
-      asyncUnimplementedUnaryCall(getCommitBlockMethodHelper(), responseObserver);
+      asyncUnimplementedUnaryCall(getCommitBlockMethod(), responseObserver);
     }
 
     /**
@@ -278,7 +252,7 @@ public final class BlockMasterWorkerServiceGrpc {
      */
     public void commitBlockInUfs(alluxio.grpc.CommitBlockInUfsPRequest request,
         io.grpc.stub.StreamObserver<alluxio.grpc.CommitBlockInUfsPResponse> responseObserver) {
-      asyncUnimplementedUnaryCall(getCommitBlockInUfsMethodHelper(), responseObserver);
+      asyncUnimplementedUnaryCall(getCommitBlockInUfsMethod(), responseObserver);
     }
 
     /**
@@ -289,7 +263,7 @@ public final class BlockMasterWorkerServiceGrpc {
      */
     public void getWorkerId(alluxio.grpc.GetWorkerIdPRequest request,
         io.grpc.stub.StreamObserver<alluxio.grpc.GetWorkerIdPResponse> responseObserver) {
-      asyncUnimplementedUnaryCall(getGetWorkerIdMethodHelper(), responseObserver);
+      asyncUnimplementedUnaryCall(getGetWorkerIdMethod(), responseObserver);
     }
 
     /**
@@ -300,41 +274,41 @@ public final class BlockMasterWorkerServiceGrpc {
      */
     public void registerWorker(alluxio.grpc.RegisterWorkerPRequest request,
         io.grpc.stub.StreamObserver<alluxio.grpc.RegisterWorkerPResponse> responseObserver) {
-      asyncUnimplementedUnaryCall(getRegisterWorkerMethodHelper(), responseObserver);
+      asyncUnimplementedUnaryCall(getRegisterWorkerMethod(), responseObserver);
     }
 
     @java.lang.Override public final io.grpc.ServerServiceDefinition bindService() {
       return io.grpc.ServerServiceDefinition.builder(getServiceDescriptor())
           .addMethod(
-            getBlockHeartbeatMethodHelper(),
+            getBlockHeartbeatMethod(),
             asyncUnaryCall(
               new MethodHandlers<
                 alluxio.grpc.BlockHeartbeatPRequest,
                 alluxio.grpc.BlockHeartbeatPResponse>(
                   this, METHODID_BLOCK_HEARTBEAT)))
           .addMethod(
-            getCommitBlockMethodHelper(),
+            getCommitBlockMethod(),
             asyncUnaryCall(
               new MethodHandlers<
                 alluxio.grpc.CommitBlockPRequest,
                 alluxio.grpc.CommitBlockPResponse>(
                   this, METHODID_COMMIT_BLOCK)))
           .addMethod(
-            getCommitBlockInUfsMethodHelper(),
+            getCommitBlockInUfsMethod(),
             asyncUnaryCall(
               new MethodHandlers<
                 alluxio.grpc.CommitBlockInUfsPRequest,
                 alluxio.grpc.CommitBlockInUfsPResponse>(
                   this, METHODID_COMMIT_BLOCK_IN_UFS)))
           .addMethod(
-            getGetWorkerIdMethodHelper(),
+            getGetWorkerIdMethod(),
             asyncUnaryCall(
               new MethodHandlers<
                 alluxio.grpc.GetWorkerIdPRequest,
                 alluxio.grpc.GetWorkerIdPResponse>(
                   this, METHODID_GET_WORKER_ID)))
           .addMethod(
-            getRegisterWorkerMethodHelper(),
+            getRegisterWorkerMethod(),
             asyncUnaryCall(
               new MethodHandlers<
                 alluxio.grpc.RegisterWorkerPRequest,
@@ -375,7 +349,7 @@ public final class BlockMasterWorkerServiceGrpc {
     public void blockHeartbeat(alluxio.grpc.BlockHeartbeatPRequest request,
         io.grpc.stub.StreamObserver<alluxio.grpc.BlockHeartbeatPResponse> responseObserver) {
       asyncUnaryCall(
-          getChannel().newCall(getBlockHeartbeatMethodHelper(), getCallOptions()), request, responseObserver);
+          getChannel().newCall(getBlockHeartbeatMethod(), getCallOptions()), request, responseObserver);
     }
 
     /**
@@ -387,7 +361,7 @@ public final class BlockMasterWorkerServiceGrpc {
     public void commitBlock(alluxio.grpc.CommitBlockPRequest request,
         io.grpc.stub.StreamObserver<alluxio.grpc.CommitBlockPResponse> responseObserver) {
       asyncUnaryCall(
-          getChannel().newCall(getCommitBlockMethodHelper(), getCallOptions()), request, responseObserver);
+          getChannel().newCall(getCommitBlockMethod(), getCallOptions()), request, responseObserver);
     }
 
     /**
@@ -399,7 +373,7 @@ public final class BlockMasterWorkerServiceGrpc {
     public void commitBlockInUfs(alluxio.grpc.CommitBlockInUfsPRequest request,
         io.grpc.stub.StreamObserver<alluxio.grpc.CommitBlockInUfsPResponse> responseObserver) {
       asyncUnaryCall(
-          getChannel().newCall(getCommitBlockInUfsMethodHelper(), getCallOptions()), request, responseObserver);
+          getChannel().newCall(getCommitBlockInUfsMethod(), getCallOptions()), request, responseObserver);
     }
 
     /**
@@ -411,7 +385,7 @@ public final class BlockMasterWorkerServiceGrpc {
     public void getWorkerId(alluxio.grpc.GetWorkerIdPRequest request,
         io.grpc.stub.StreamObserver<alluxio.grpc.GetWorkerIdPResponse> responseObserver) {
       asyncUnaryCall(
-          getChannel().newCall(getGetWorkerIdMethodHelper(), getCallOptions()), request, responseObserver);
+          getChannel().newCall(getGetWorkerIdMethod(), getCallOptions()), request, responseObserver);
     }
 
     /**
@@ -423,7 +397,7 @@ public final class BlockMasterWorkerServiceGrpc {
     public void registerWorker(alluxio.grpc.RegisterWorkerPRequest request,
         io.grpc.stub.StreamObserver<alluxio.grpc.RegisterWorkerPResponse> responseObserver) {
       asyncUnaryCall(
-          getChannel().newCall(getRegisterWorkerMethodHelper(), getCallOptions()), request, responseObserver);
+          getChannel().newCall(getRegisterWorkerMethod(), getCallOptions()), request, responseObserver);
     }
   }
 
@@ -457,7 +431,7 @@ public final class BlockMasterWorkerServiceGrpc {
      */
     public alluxio.grpc.BlockHeartbeatPResponse blockHeartbeat(alluxio.grpc.BlockHeartbeatPRequest request) {
       return blockingUnaryCall(
-          getChannel(), getBlockHeartbeatMethodHelper(), getCallOptions(), request);
+          getChannel(), getBlockHeartbeatMethod(), getCallOptions(), request);
     }
 
     /**
@@ -468,7 +442,7 @@ public final class BlockMasterWorkerServiceGrpc {
      */
     public alluxio.grpc.CommitBlockPResponse commitBlock(alluxio.grpc.CommitBlockPRequest request) {
       return blockingUnaryCall(
-          getChannel(), getCommitBlockMethodHelper(), getCallOptions(), request);
+          getChannel(), getCommitBlockMethod(), getCallOptions(), request);
     }
 
     /**
@@ -479,7 +453,7 @@ public final class BlockMasterWorkerServiceGrpc {
      */
     public alluxio.grpc.CommitBlockInUfsPResponse commitBlockInUfs(alluxio.grpc.CommitBlockInUfsPRequest request) {
       return blockingUnaryCall(
-          getChannel(), getCommitBlockInUfsMethodHelper(), getCallOptions(), request);
+          getChannel(), getCommitBlockInUfsMethod(), getCallOptions(), request);
     }
 
     /**
@@ -490,7 +464,7 @@ public final class BlockMasterWorkerServiceGrpc {
      */
     public alluxio.grpc.GetWorkerIdPResponse getWorkerId(alluxio.grpc.GetWorkerIdPRequest request) {
       return blockingUnaryCall(
-          getChannel(), getGetWorkerIdMethodHelper(), getCallOptions(), request);
+          getChannel(), getGetWorkerIdMethod(), getCallOptions(), request);
     }
 
     /**
@@ -501,7 +475,7 @@ public final class BlockMasterWorkerServiceGrpc {
      */
     public alluxio.grpc.RegisterWorkerPResponse registerWorker(alluxio.grpc.RegisterWorkerPRequest request) {
       return blockingUnaryCall(
-          getChannel(), getRegisterWorkerMethodHelper(), getCallOptions(), request);
+          getChannel(), getRegisterWorkerMethod(), getCallOptions(), request);
     }
   }
 
@@ -536,7 +510,7 @@ public final class BlockMasterWorkerServiceGrpc {
     public com.google.common.util.concurrent.ListenableFuture<alluxio.grpc.BlockHeartbeatPResponse> blockHeartbeat(
         alluxio.grpc.BlockHeartbeatPRequest request) {
       return futureUnaryCall(
-          getChannel().newCall(getBlockHeartbeatMethodHelper(), getCallOptions()), request);
+          getChannel().newCall(getBlockHeartbeatMethod(), getCallOptions()), request);
     }
 
     /**
@@ -548,7 +522,7 @@ public final class BlockMasterWorkerServiceGrpc {
     public com.google.common.util.concurrent.ListenableFuture<alluxio.grpc.CommitBlockPResponse> commitBlock(
         alluxio.grpc.CommitBlockPRequest request) {
       return futureUnaryCall(
-          getChannel().newCall(getCommitBlockMethodHelper(), getCallOptions()), request);
+          getChannel().newCall(getCommitBlockMethod(), getCallOptions()), request);
     }
 
     /**
@@ -560,7 +534,7 @@ public final class BlockMasterWorkerServiceGrpc {
     public com.google.common.util.concurrent.ListenableFuture<alluxio.grpc.CommitBlockInUfsPResponse> commitBlockInUfs(
         alluxio.grpc.CommitBlockInUfsPRequest request) {
       return futureUnaryCall(
-          getChannel().newCall(getCommitBlockInUfsMethodHelper(), getCallOptions()), request);
+          getChannel().newCall(getCommitBlockInUfsMethod(), getCallOptions()), request);
     }
 
     /**
@@ -572,7 +546,7 @@ public final class BlockMasterWorkerServiceGrpc {
     public com.google.common.util.concurrent.ListenableFuture<alluxio.grpc.GetWorkerIdPResponse> getWorkerId(
         alluxio.grpc.GetWorkerIdPRequest request) {
       return futureUnaryCall(
-          getChannel().newCall(getGetWorkerIdMethodHelper(), getCallOptions()), request);
+          getChannel().newCall(getGetWorkerIdMethod(), getCallOptions()), request);
     }
 
     /**
@@ -584,7 +558,7 @@ public final class BlockMasterWorkerServiceGrpc {
     public com.google.common.util.concurrent.ListenableFuture<alluxio.grpc.RegisterWorkerPResponse> registerWorker(
         alluxio.grpc.RegisterWorkerPRequest request) {
       return futureUnaryCall(
-          getChannel().newCall(getRegisterWorkerMethodHelper(), getCallOptions()), request);
+          getChannel().newCall(getRegisterWorkerMethod(), getCallOptions()), request);
     }
   }
 
@@ -692,11 +666,11 @@ public final class BlockMasterWorkerServiceGrpc {
         if (result == null) {
           serviceDescriptor = result = io.grpc.ServiceDescriptor.newBuilder(SERVICE_NAME)
               .setSchemaDescriptor(new BlockMasterWorkerServiceFileDescriptorSupplier())
-              .addMethod(getBlockHeartbeatMethodHelper())
-              .addMethod(getCommitBlockMethodHelper())
-              .addMethod(getCommitBlockInUfsMethodHelper())
-              .addMethod(getGetWorkerIdMethodHelper())
-              .addMethod(getRegisterWorkerMethodHelper())
+              .addMethod(getBlockHeartbeatMethod())
+              .addMethod(getCommitBlockMethod())
+              .addMethod(getCommitBlockInUfsMethod())
+              .addMethod(getGetWorkerIdMethod())
+              .addMethod(getRegisterWorkerMethod())
               .build();
         }
       }

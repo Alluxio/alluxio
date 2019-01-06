@@ -18,31 +18,25 @@ import static io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall;
 /**
  */
 @javax.annotation.Generated(
-    value = "by gRPC proto compiler (version 1.10.1)",
-    comments = "Source: sasl_server.proto")
+    value = "by gRPC proto compiler (version 1.17.1)",
+    comments = "Source: grpc/sasl_server.proto")
 public final class SaslAuthenticationServiceGrpc {
 
   private SaslAuthenticationServiceGrpc() {}
 
-  public static final String SERVICE_NAME = "alluxio.grpc.SaslAuthenticationService";
+  public static final String SERVICE_NAME = "alluxio.grpc.sasl.SaslAuthenticationService";
 
   // Static method descriptors that strictly reflect the proto.
-  @io.grpc.ExperimentalApi("https://github.com/grpc/grpc-java/issues/1901")
-  @java.lang.Deprecated // Use {@link #getAuthenticateMethod()} instead. 
-  public static final io.grpc.MethodDescriptor<alluxio.grpc.SaslMessage,
-      alluxio.grpc.SaslMessage> METHOD_AUTHENTICATE = getAuthenticateMethodHelper();
-
   private static volatile io.grpc.MethodDescriptor<alluxio.grpc.SaslMessage,
       alluxio.grpc.SaslMessage> getAuthenticateMethod;
 
-  @io.grpc.ExperimentalApi("https://github.com/grpc/grpc-java/issues/1901")
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + "authenticate",
+      requestType = alluxio.grpc.SaslMessage.class,
+      responseType = alluxio.grpc.SaslMessage.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.BIDI_STREAMING)
   public static io.grpc.MethodDescriptor<alluxio.grpc.SaslMessage,
       alluxio.grpc.SaslMessage> getAuthenticateMethod() {
-    return getAuthenticateMethodHelper();
-  }
-
-  private static io.grpc.MethodDescriptor<alluxio.grpc.SaslMessage,
-      alluxio.grpc.SaslMessage> getAuthenticateMethodHelper() {
     io.grpc.MethodDescriptor<alluxio.grpc.SaslMessage, alluxio.grpc.SaslMessage> getAuthenticateMethod;
     if ((getAuthenticateMethod = SaslAuthenticationServiceGrpc.getAuthenticateMethod) == null) {
       synchronized (SaslAuthenticationServiceGrpc.class) {
@@ -51,7 +45,7 @@ public final class SaslAuthenticationServiceGrpc {
               io.grpc.MethodDescriptor.<alluxio.grpc.SaslMessage, alluxio.grpc.SaslMessage>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.BIDI_STREAMING)
               .setFullMethodName(generateFullMethodName(
-                  "alluxio.grpc.SaslAuthenticationService", "authenticate"))
+                  "alluxio.grpc.sasl.SaslAuthenticationService", "authenticate"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.SaslMessage.getDefaultInstance()))
@@ -100,13 +94,13 @@ public final class SaslAuthenticationServiceGrpc {
      */
     public io.grpc.stub.StreamObserver<alluxio.grpc.SaslMessage> authenticate(
         io.grpc.stub.StreamObserver<alluxio.grpc.SaslMessage> responseObserver) {
-      return asyncUnimplementedStreamingCall(getAuthenticateMethodHelper(), responseObserver);
+      return asyncUnimplementedStreamingCall(getAuthenticateMethod(), responseObserver);
     }
 
     @java.lang.Override public final io.grpc.ServerServiceDefinition bindService() {
       return io.grpc.ServerServiceDefinition.builder(getServiceDescriptor())
           .addMethod(
-            getAuthenticateMethodHelper(),
+            getAuthenticateMethod(),
             asyncBidiStreamingCall(
               new MethodHandlers<
                 alluxio.grpc.SaslMessage,
@@ -143,7 +137,7 @@ public final class SaslAuthenticationServiceGrpc {
     public io.grpc.stub.StreamObserver<alluxio.grpc.SaslMessage> authenticate(
         io.grpc.stub.StreamObserver<alluxio.grpc.SaslMessage> responseObserver) {
       return asyncBidiStreamingCall(
-          getChannel().newCall(getAuthenticateMethodHelper(), getCallOptions()), responseObserver);
+          getChannel().newCall(getAuthenticateMethod(), getCallOptions()), responseObserver);
     }
   }
 
@@ -268,7 +262,7 @@ public final class SaslAuthenticationServiceGrpc {
         if (result == null) {
           serviceDescriptor = result = io.grpc.ServiceDescriptor.newBuilder(SERVICE_NAME)
               .setSchemaDescriptor(new SaslAuthenticationServiceFileDescriptorSupplier())
-              .addMethod(getAuthenticateMethodHelper())
+              .addMethod(getAuthenticateMethod())
               .build();
         }
       }

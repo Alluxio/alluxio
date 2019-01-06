@@ -18,31 +18,25 @@ import static io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall;
 /**
  */
 @javax.annotation.Generated(
-    value = "by gRPC proto compiler (version 1.10.1)",
-    comments = "Source: version.proto")
+    value = "by gRPC proto compiler (version 1.17.1)",
+    comments = "Source: grpc/version.proto")
 public final class ServiceVersionClientServiceGrpc {
 
   private ServiceVersionClientServiceGrpc() {}
 
-  public static final String SERVICE_NAME = "alluxio.grpc.ServiceVersionClientService";
+  public static final String SERVICE_NAME = "alluxio.grpc.version.ServiceVersionClientService";
 
   // Static method descriptors that strictly reflect the proto.
-  @io.grpc.ExperimentalApi("https://github.com/grpc/grpc-java/issues/1901")
-  @java.lang.Deprecated // Use {@link #getGetServiceVersionMethod()} instead. 
-  public static final io.grpc.MethodDescriptor<alluxio.grpc.GetServiceVersionPRequest,
-      alluxio.grpc.GetServiceVersionPResponse> METHOD_GET_SERVICE_VERSION = getGetServiceVersionMethodHelper();
-
   private static volatile io.grpc.MethodDescriptor<alluxio.grpc.GetServiceVersionPRequest,
       alluxio.grpc.GetServiceVersionPResponse> getGetServiceVersionMethod;
 
-  @io.grpc.ExperimentalApi("https://github.com/grpc/grpc-java/issues/1901")
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + "getServiceVersion",
+      requestType = alluxio.grpc.GetServiceVersionPRequest.class,
+      responseType = alluxio.grpc.GetServiceVersionPResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
   public static io.grpc.MethodDescriptor<alluxio.grpc.GetServiceVersionPRequest,
       alluxio.grpc.GetServiceVersionPResponse> getGetServiceVersionMethod() {
-    return getGetServiceVersionMethodHelper();
-  }
-
-  private static io.grpc.MethodDescriptor<alluxio.grpc.GetServiceVersionPRequest,
-      alluxio.grpc.GetServiceVersionPResponse> getGetServiceVersionMethodHelper() {
     io.grpc.MethodDescriptor<alluxio.grpc.GetServiceVersionPRequest, alluxio.grpc.GetServiceVersionPResponse> getGetServiceVersionMethod;
     if ((getGetServiceVersionMethod = ServiceVersionClientServiceGrpc.getGetServiceVersionMethod) == null) {
       synchronized (ServiceVersionClientServiceGrpc.class) {
@@ -51,7 +45,7 @@ public final class ServiceVersionClientServiceGrpc {
               io.grpc.MethodDescriptor.<alluxio.grpc.GetServiceVersionPRequest, alluxio.grpc.GetServiceVersionPResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
               .setFullMethodName(generateFullMethodName(
-                  "alluxio.grpc.ServiceVersionClientService", "getServiceVersion"))
+                  "alluxio.grpc.version.ServiceVersionClientService", "getServiceVersion"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.GetServiceVersionPRequest.getDefaultInstance()))
@@ -101,13 +95,13 @@ public final class ServiceVersionClientServiceGrpc {
      */
     public void getServiceVersion(alluxio.grpc.GetServiceVersionPRequest request,
         io.grpc.stub.StreamObserver<alluxio.grpc.GetServiceVersionPResponse> responseObserver) {
-      asyncUnimplementedUnaryCall(getGetServiceVersionMethodHelper(), responseObserver);
+      asyncUnimplementedUnaryCall(getGetServiceVersionMethod(), responseObserver);
     }
 
     @java.lang.Override public final io.grpc.ServerServiceDefinition bindService() {
       return io.grpc.ServerServiceDefinition.builder(getServiceDescriptor())
           .addMethod(
-            getGetServiceVersionMethodHelper(),
+            getGetServiceVersionMethod(),
             asyncUnaryCall(
               new MethodHandlers<
                 alluxio.grpc.GetServiceVersionPRequest,
@@ -145,7 +139,7 @@ public final class ServiceVersionClientServiceGrpc {
     public void getServiceVersion(alluxio.grpc.GetServiceVersionPRequest request,
         io.grpc.stub.StreamObserver<alluxio.grpc.GetServiceVersionPResponse> responseObserver) {
       asyncUnaryCall(
-          getChannel().newCall(getGetServiceVersionMethodHelper(), getCallOptions()), request, responseObserver);
+          getChannel().newCall(getGetServiceVersionMethod(), getCallOptions()), request, responseObserver);
     }
   }
 
@@ -176,7 +170,7 @@ public final class ServiceVersionClientServiceGrpc {
      */
     public alluxio.grpc.GetServiceVersionPResponse getServiceVersion(alluxio.grpc.GetServiceVersionPRequest request) {
       return blockingUnaryCall(
-          getChannel(), getGetServiceVersionMethodHelper(), getCallOptions(), request);
+          getChannel(), getGetServiceVersionMethod(), getCallOptions(), request);
     }
   }
 
@@ -208,7 +202,7 @@ public final class ServiceVersionClientServiceGrpc {
     public com.google.common.util.concurrent.ListenableFuture<alluxio.grpc.GetServiceVersionPResponse> getServiceVersion(
         alluxio.grpc.GetServiceVersionPRequest request) {
       return futureUnaryCall(
-          getChannel().newCall(getGetServiceVersionMethodHelper(), getCallOptions()), request);
+          getChannel().newCall(getGetServiceVersionMethod(), getCallOptions()), request);
     }
   }
 
@@ -296,7 +290,7 @@ public final class ServiceVersionClientServiceGrpc {
         if (result == null) {
           serviceDescriptor = result = io.grpc.ServiceDescriptor.newBuilder(SERVICE_NAME)
               .setSchemaDescriptor(new ServiceVersionClientServiceFileDescriptorSupplier())
-              .addMethod(getGetServiceVersionMethodHelper())
+              .addMethod(getGetServiceVersionMethod())
               .build();
         }
       }
