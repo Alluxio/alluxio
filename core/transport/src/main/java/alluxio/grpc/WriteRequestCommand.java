@@ -544,11 +544,7 @@ private static final long serialVersionUID = 0L;
   /**
    * <pre>
    * The write request command.
-<<<<<<< HEAD
    * next available id: 8
-=======
-   * next available id: 6
->>>>>>> Merge transport and transport-options modules
    * </pre>
    *
    * Protobuf type {@code alluxio.grpc.block.WriteRequestCommand}

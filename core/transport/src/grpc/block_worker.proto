@@ -6,7 +6,7 @@ option java_outer_classname = "BlockWorkerProto";
 
 package alluxio.grpc.block;
 
-import "dataserver/protocol.proto";
+import "proto/dataserver/protocol.proto";
 
 // The block worker service
 service BlockWorker {

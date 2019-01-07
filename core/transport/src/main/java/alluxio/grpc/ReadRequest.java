@@ -482,11 +482,7 @@ private static final long serialVersionUID = 0L;
   /**
    * <pre>
    * The read request.
-<<<<<<< HEAD
    * next available id: 6
-=======
-   * next available id: 5
->>>>>>> Merge transport and transport-options modules
    * </pre>
    *
    * Protobuf type {@code alluxio.grpc.block.ReadRequest}
