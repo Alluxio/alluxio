@@ -20,6 +20,7 @@ import alluxio.client.WriteType;
 import alluxio.client.file.FileSystem;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.FileAlreadyExistsException;
+import alluxio.exception.status.CanceledException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.master.LocalAlluxioCluster;
 import alluxio.master.journal.JournalSystem;
@@ -130,7 +131,11 @@ public class JournalIntegrationTest {
         } catch (UnavailableException e) {
           // Ignore - this happen if the client is interrupted while trying to connect.
         } catch (IOException | AlluxioException e) {
-          mException.set(e);
+          if (e.getCause() instanceof CanceledException) {
+            // Ignore - this happen if the client is interrupted while trying to connect.
+          } else {
+            mException.set(e);
+          }
         }
       }
     }
