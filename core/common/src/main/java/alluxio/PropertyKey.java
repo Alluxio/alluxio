@@ -1593,7 +1593,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey WORKER_DATA_SERVER_CLASS =
       new Builder(Name.WORKER_DATA_SERVER_CLASS)
-          .setDefaultValue("alluxio.worker.netty.NettyDataServer")
+          .setDefaultValue("alluxio.worker.grpc.GrpcDataServer")
           .setDescription("Selects the networking stack to run the worker with. Valid options "
               + "are: `alluxio.worker.netty.NettyDataServer`.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
@@ -1889,6 +1889,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue(2048)
           .setDescription("The maximum number of threads used to handle worker side RPCs in "
               + "the netty data server.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
+  public static final PropertyKey WORKER_NETWORK_READER_MAX_CHUNK_SIZE_BYTES =
+      new Builder(Name.WORKER_NETWORK_READER_MAX_CHUNK_SIZE_BYTES)
+          .setDefaultValue("2MB")
+          .setDescription("When a client read from a remote worker, the maximum chunk size.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
@@ -2623,17 +2630,17 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
       .setScope(Scope.CLIENT)
       .build();
-  public static final PropertyKey USER_LOCAL_READER_PACKET_SIZE_BYTES =
-      new Builder(Name.USER_LOCAL_READER_PACKET_SIZE_BYTES)
+  public static final PropertyKey USER_LOCAL_READER_CHUNK_SIZE_BYTES =
+      new Builder(Name.USER_LOCAL_READER_CHUNK_SIZE_BYTES)
           .setDefaultValue("8MB")
-          .setDescription("When a client reads from a local worker, the maximum data packet size.")
+          .setDescription("When a client reads from a local worker, the maximum data chunk size.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
-  public static final PropertyKey USER_LOCAL_WRITER_PACKET_SIZE_BYTES =
-      new Builder(Name.USER_LOCAL_WRITER_PACKET_SIZE_BYTES)
+  public static final PropertyKey USER_LOCAL_WRITER_CHUNK_SIZE_BYTES =
+      new Builder(Name.USER_LOCAL_WRITER_CHUNK_SIZE_BYTES)
           .setDefaultValue("64KB")
-          .setDescription("When a client writes to a local worker, the maximum data packet size.")
+          .setDescription("When a client writes to a local worker, the maximum data chunk size.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
@@ -2735,13 +2742,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
-  public static final PropertyKey USER_NETWORK_NETTY_WRITER_PACKET_SIZE_BYTES =
-      new Builder(Name.USER_NETWORK_NETTY_WRITER_PACKET_SIZE_BYTES)
-          .setDefaultValue("64KB")
-          .setDescription("When a client writes to a remote worker, the maximum packet size.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.CLIENT)
-          .build();
   public static final PropertyKey USER_NETWORK_NETTY_WRITER_BUFFER_SIZE_PACKETS =
       new Builder(Name.USER_NETWORK_NETTY_WRITER_BUFFER_SIZE_PACKETS)
           .setDefaultValue(16)
@@ -2773,10 +2773,17 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
-  public static final PropertyKey USER_NETWORK_NETTY_READER_PACKET_SIZE_BYTES =
-      new Builder(Name.USER_NETWORK_NETTY_READER_PACKET_SIZE_BYTES)
+  public static final PropertyKey USER_NETWORK_READER_CHUNK_SIZE_BYTES =
+      new Builder(Name.USER_NETWORK_READER_CHUNK_SIZE_BYTES)
           .setDefaultValue("64KB")
-          .setDescription("When a client reads from a remote worker, the maximum packet size.")
+          .setDescription("When a client reads from a remote worker, the maximum chunk size.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey USER_NETWORK_WRITER_CHUNK_SIZE_BYTES =
+      new Builder(Name.USER_NETWORK_WRITER_CHUNK_SIZE_BYTES)
+          .setDefaultValue("64KB")
+          .setDescription("When a client writes to a remote worker, the maximum packet size.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
@@ -3626,6 +3633,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.worker.network.netty.file.writer.threads.max";
     public static final String WORKER_NETWORK_NETTY_RPC_THREADS_MAX =
         "alluxio.worker.network.netty.rpc.threads.max";
+    public static final String WORKER_NETWORK_READER_MAX_CHUNK_SIZE_BYTES =
+        "alluxio.worker.network.reader.max.chunk.size.bytes";
     public static final String WORKER_NETWORK_SHUTDOWN_TIMEOUT =
         "alluxio.worker.network.shutdown.timeout";
     public static final String WORKER_BLOCK_MASTER_CLIENT_POOL_SIZE =
@@ -3752,10 +3761,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.file.write.tier.default";
     public static final String USER_HEARTBEAT_INTERVAL_MS = "alluxio.user.heartbeat.interval";
     public static final String USER_HOSTNAME = "alluxio.user.hostname";
-    public static final String USER_LOCAL_READER_PACKET_SIZE_BYTES =
-        "alluxio.user.local.reader.packet.size.bytes";
-    public static final String USER_LOCAL_WRITER_PACKET_SIZE_BYTES =
-        "alluxio.user.local.writer.packet.size.bytes";
+    public static final String USER_LOCAL_READER_CHUNK_SIZE_BYTES =
+        "alluxio.user.local.reader.chunk.size.bytes";
+    public static final String USER_LOCAL_WRITER_CHUNK_SIZE_BYTES =
+        "alluxio.user.local.writer.chunk.size.bytes";
     public static final String USER_METRICS_COLLECTION_ENABLED =
         "alluxio.user.metrics.collection.enabled";
     public static final String USER_METRICS_HEARTBEAT_INTERVAL_MS =
@@ -3782,18 +3791,18 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.network.netty.channel.pool.gc.threshold";
     public static final String USER_NETWORK_NETTY_CHANNEL_POOL_DISABLED =
         "alluxio.user.network.netty.channel.pool.disabled";
-    public static final String USER_NETWORK_NETTY_WRITER_PACKET_SIZE_BYTES =
-        "alluxio.user.network.netty.writer.packet.size.bytes";
     public static final String USER_NETWORK_NETTY_WRITER_BUFFER_SIZE_PACKETS =
         "alluxio.user.network.netty.writer.buffer.size.packets";
     public static final String USER_NETWORK_NETTY_READER_BUFFER_SIZE_PACKETS =
         "alluxio.user.network.netty.reader.buffer.size.packets";
     public static final String USER_NETWORK_NETTY_READER_CANCEL_ENABLED =
         "alluxio.user.network.netty.reader.cancel.enabled";
-    public static final String USER_NETWORK_NETTY_READER_PACKET_SIZE_BYTES =
-        "alluxio.user.network.netty.reader.packet.size.bytes";
+    public static final String USER_NETWORK_READER_CHUNK_SIZE_BYTES =
+        "alluxio.user.network.reader.chunk.size.bytes";
     public static final String USER_NETWORK_SOCKET_TIMEOUT =
         "alluxio.user.network.socket.timeout";
+    public static final String USER_NETWORK_WRITER_CHUNK_SIZE_BYTES =
+        "alluxio.user.network.writer.chunk.size.bytes";
     public static final String USER_RPC_RETRY_BASE_SLEEP_MS =
         "alluxio.user.rpc.retry.base.sleep";
     public static final String USER_RPC_RETRY_MAX_DURATION =

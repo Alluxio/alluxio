@@ -412,6 +412,7 @@ function main {
       protoc \
         --java_out=${BIN}/../core/transport/src/main/java \
         --proto_path=${BIN}/../core/transport/src/grpc --proto_path=${BIN}/../core/transport-options/src/grpc \
+        --proto_path=${BIN}/../core/transport/src/proto \
         --plugin=protoc-gen-grpc-java=${BIN}/protoc-gen-grpc-java-1.10.1-osx-x86_64.exe \
         --grpc-java_out=${BIN}/../core/transport/src/main/java \
         ${src_file}

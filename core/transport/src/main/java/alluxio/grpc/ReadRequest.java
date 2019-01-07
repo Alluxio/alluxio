@@ -6,7 +6,7 @@ package alluxio.grpc;
 /**
  * <pre>
  * The read request.
- * next available id: 8
+ * next available id: 6
  * </pre>
  *
  * Protobuf type {@code alluxio.grpc.ReadRequest}
@@ -25,6 +25,7 @@ private static final long serialVersionUID = 0L;
     offset_ = 0L;
     length_ = 0L;
     promote_ = false;
+    chunkSize_ = 0L;
   }
 
   @java.lang.Override
@@ -76,6 +77,24 @@ private static final long serialVersionUID = 0L;
           case 32: {
             bitField0_ |= 0x00000008;
             promote_ = input.readBool();
+            break;
+          }
+          case 40: {
+            bitField0_ |= 0x00000010;
+            chunkSize_ = input.readInt64();
+            break;
+          }
+          case 50: {
+            alluxio.proto.dataserver.Protocol.OpenUfsBlockOptions.Builder subBuilder = null;
+            if (((bitField0_ & 0x00000020) == 0x00000020)) {
+              subBuilder = openUfsBlockOptions_.toBuilder();
+            }
+            openUfsBlockOptions_ = input.readMessage(alluxio.proto.dataserver.Protocol.OpenUfsBlockOptions.PARSER, extensionRegistry);
+            if (subBuilder != null) {
+              subBuilder.mergeFrom(openUfsBlockOptions_);
+              openUfsBlockOptions_ = subBuilder.buildPartial();
+            }
+            bitField0_ |= 0x00000020;
             break;
           }
         }
@@ -171,6 +190,54 @@ private static final long serialVersionUID = 0L;
     return promote_;
   }
 
+  public static final int CHUNK_SIZE_FIELD_NUMBER = 5;
+  private long chunkSize_;
+  /**
+   * <code>optional int64 chunk_size = 5;</code>
+   */
+  public boolean hasChunkSize() {
+    return ((bitField0_ & 0x00000010) == 0x00000010);
+  }
+  /**
+   * <code>optional int64 chunk_size = 5;</code>
+   */
+  public long getChunkSize() {
+    return chunkSize_;
+  }
+
+  public static final int OPEN_UFS_BLOCK_OPTIONS_FIELD_NUMBER = 6;
+  private alluxio.proto.dataserver.Protocol.OpenUfsBlockOptions openUfsBlockOptions_;
+  /**
+   * <pre>
+   * This is only set for UFS block read.
+   * </pre>
+   *
+   * <code>optional .alluxio.proto.dataserver.OpenUfsBlockOptions open_ufs_block_options = 6;</code>
+   */
+  public boolean hasOpenUfsBlockOptions() {
+    return ((bitField0_ & 0x00000020) == 0x00000020);
+  }
+  /**
+   * <pre>
+   * This is only set for UFS block read.
+   * </pre>
+   *
+   * <code>optional .alluxio.proto.dataserver.OpenUfsBlockOptions open_ufs_block_options = 6;</code>
+   */
+  public alluxio.proto.dataserver.Protocol.OpenUfsBlockOptions getOpenUfsBlockOptions() {
+    return openUfsBlockOptions_ == null ? alluxio.proto.dataserver.Protocol.OpenUfsBlockOptions.getDefaultInstance() : openUfsBlockOptions_;
+  }
+  /**
+   * <pre>
+   * This is only set for UFS block read.
+   * </pre>
+   *
+   * <code>optional .alluxio.proto.dataserver.OpenUfsBlockOptions open_ufs_block_options = 6;</code>
+   */
+  public alluxio.proto.dataserver.Protocol.OpenUfsBlockOptionsOrBuilder getOpenUfsBlockOptionsOrBuilder() {
+    return openUfsBlockOptions_ == null ? alluxio.proto.dataserver.Protocol.OpenUfsBlockOptions.getDefaultInstance() : openUfsBlockOptions_;
+  }
+
   private byte memoizedIsInitialized = -1;
   public final boolean isInitialized() {
     byte isInitialized = memoizedIsInitialized;
@@ -195,6 +262,12 @@ private static final long serialVersionUID = 0L;
     if (((bitField0_ & 0x00000008) == 0x00000008)) {
       output.writeBool(4, promote_);
     }
+    if (((bitField0_ & 0x00000010) == 0x00000010)) {
+      output.writeInt64(5, chunkSize_);
+    }
+    if (((bitField0_ & 0x00000020) == 0x00000020)) {
+      output.writeMessage(6, getOpenUfsBlockOptions());
+    }
     unknownFields.writeTo(output);
   }
 
@@ -218,6 +291,14 @@ private static final long serialVersionUID = 0L;
     if (((bitField0_ & 0x00000008) == 0x00000008)) {
       size += com.google.protobuf.CodedOutputStream
         .computeBoolSize(4, promote_);
+    }
+    if (((bitField0_ & 0x00000010) == 0x00000010)) {
+      size += com.google.protobuf.CodedOutputStream
+        .computeInt64Size(5, chunkSize_);
+    }
+    if (((bitField0_ & 0x00000020) == 0x00000020)) {
+      size += com.google.protobuf.CodedOutputStream
+        .computeMessageSize(6, getOpenUfsBlockOptions());
     }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
@@ -255,6 +336,16 @@ private static final long serialVersionUID = 0L;
       result = result && (getPromote()
           == other.getPromote());
     }
+    result = result && (hasChunkSize() == other.hasChunkSize());
+    if (hasChunkSize()) {
+      result = result && (getChunkSize()
+          == other.getChunkSize());
+    }
+    result = result && (hasOpenUfsBlockOptions() == other.hasOpenUfsBlockOptions());
+    if (hasOpenUfsBlockOptions()) {
+      result = result && getOpenUfsBlockOptions()
+          .equals(other.getOpenUfsBlockOptions());
+    }
     result = result && unknownFields.equals(other.unknownFields);
     return result;
   }
@@ -285,6 +376,15 @@ private static final long serialVersionUID = 0L;
       hash = (37 * hash) + PROMOTE_FIELD_NUMBER;
       hash = (53 * hash) + com.google.protobuf.Internal.hashBoolean(
           getPromote());
+    }
+    if (hasChunkSize()) {
+      hash = (37 * hash) + CHUNK_SIZE_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+          getChunkSize());
+    }
+    if (hasOpenUfsBlockOptions()) {
+      hash = (37 * hash) + OPEN_UFS_BLOCK_OPTIONS_FIELD_NUMBER;
+      hash = (53 * hash) + getOpenUfsBlockOptions().hashCode();
     }
     hash = (29 * hash) + unknownFields.hashCode();
     memoizedHashCode = hash;
@@ -382,7 +482,7 @@ private static final long serialVersionUID = 0L;
   /**
    * <pre>
    * The read request.
-   * next available id: 8
+   * next available id: 6
    * </pre>
    *
    * Protobuf type {@code alluxio.grpc.ReadRequest}
@@ -416,6 +516,7 @@ private static final long serialVersionUID = 0L;
     private void maybeForceBuilderInitialization() {
       if (com.google.protobuf.GeneratedMessageV3
               .alwaysUseFieldBuilders) {
+        getOpenUfsBlockOptionsFieldBuilder();
       }
     }
     public Builder clear() {
@@ -428,6 +529,14 @@ private static final long serialVersionUID = 0L;
       bitField0_ = (bitField0_ & ~0x00000004);
       promote_ = false;
       bitField0_ = (bitField0_ & ~0x00000008);
+      chunkSize_ = 0L;
+      bitField0_ = (bitField0_ & ~0x00000010);
+      if (openUfsBlockOptionsBuilder_ == null) {
+        openUfsBlockOptions_ = null;
+      } else {
+        openUfsBlockOptionsBuilder_.clear();
+      }
+      bitField0_ = (bitField0_ & ~0x00000020);
       return this;
     }
 
@@ -468,6 +577,18 @@ private static final long serialVersionUID = 0L;
         to_bitField0_ |= 0x00000008;
       }
       result.promote_ = promote_;
+      if (((from_bitField0_ & 0x00000010) == 0x00000010)) {
+        to_bitField0_ |= 0x00000010;
+      }
+      result.chunkSize_ = chunkSize_;
+      if (((from_bitField0_ & 0x00000020) == 0x00000020)) {
+        to_bitField0_ |= 0x00000020;
+      }
+      if (openUfsBlockOptionsBuilder_ == null) {
+        result.openUfsBlockOptions_ = openUfsBlockOptions_;
+      } else {
+        result.openUfsBlockOptions_ = openUfsBlockOptionsBuilder_.build();
+      }
       result.bitField0_ = to_bitField0_;
       onBuilt();
       return result;
@@ -521,6 +642,12 @@ private static final long serialVersionUID = 0L;
       }
       if (other.hasPromote()) {
         setPromote(other.getPromote());
+      }
+      if (other.hasChunkSize()) {
+        setChunkSize(other.getChunkSize());
+      }
+      if (other.hasOpenUfsBlockOptions()) {
+        mergeOpenUfsBlockOptions(other.getOpenUfsBlockOptions());
       }
       this.mergeUnknownFields(other.unknownFields);
       onChanged();
@@ -692,6 +819,192 @@ private static final long serialVersionUID = 0L;
       promote_ = false;
       onChanged();
       return this;
+    }
+
+    private long chunkSize_ ;
+    /**
+     * <code>optional int64 chunk_size = 5;</code>
+     */
+    public boolean hasChunkSize() {
+      return ((bitField0_ & 0x00000010) == 0x00000010);
+    }
+    /**
+     * <code>optional int64 chunk_size = 5;</code>
+     */
+    public long getChunkSize() {
+      return chunkSize_;
+    }
+    /**
+     * <code>optional int64 chunk_size = 5;</code>
+     */
+    public Builder setChunkSize(long value) {
+      bitField0_ |= 0x00000010;
+      chunkSize_ = value;
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>optional int64 chunk_size = 5;</code>
+     */
+    public Builder clearChunkSize() {
+      bitField0_ = (bitField0_ & ~0x00000010);
+      chunkSize_ = 0L;
+      onChanged();
+      return this;
+    }
+
+    private alluxio.proto.dataserver.Protocol.OpenUfsBlockOptions openUfsBlockOptions_ = null;
+    private com.google.protobuf.SingleFieldBuilderV3<
+        alluxio.proto.dataserver.Protocol.OpenUfsBlockOptions, alluxio.proto.dataserver.Protocol.OpenUfsBlockOptions.Builder, alluxio.proto.dataserver.Protocol.OpenUfsBlockOptionsOrBuilder> openUfsBlockOptionsBuilder_;
+    /**
+     * <pre>
+     * This is only set for UFS block read.
+     * </pre>
+     *
+     * <code>optional .alluxio.proto.dataserver.OpenUfsBlockOptions open_ufs_block_options = 6;</code>
+     */
+    public boolean hasOpenUfsBlockOptions() {
+      return ((bitField0_ & 0x00000020) == 0x00000020);
+    }
+    /**
+     * <pre>
+     * This is only set for UFS block read.
+     * </pre>
+     *
+     * <code>optional .alluxio.proto.dataserver.OpenUfsBlockOptions open_ufs_block_options = 6;</code>
+     */
+    public alluxio.proto.dataserver.Protocol.OpenUfsBlockOptions getOpenUfsBlockOptions() {
+      if (openUfsBlockOptionsBuilder_ == null) {
+        return openUfsBlockOptions_ == null ? alluxio.proto.dataserver.Protocol.OpenUfsBlockOptions.getDefaultInstance() : openUfsBlockOptions_;
+      } else {
+        return openUfsBlockOptionsBuilder_.getMessage();
+      }
+    }
+    /**
+     * <pre>
+     * This is only set for UFS block read.
+     * </pre>
+     *
+     * <code>optional .alluxio.proto.dataserver.OpenUfsBlockOptions open_ufs_block_options = 6;</code>
+     */
+    public Builder setOpenUfsBlockOptions(alluxio.proto.dataserver.Protocol.OpenUfsBlockOptions value) {
+      if (openUfsBlockOptionsBuilder_ == null) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        openUfsBlockOptions_ = value;
+        onChanged();
+      } else {
+        openUfsBlockOptionsBuilder_.setMessage(value);
+      }
+      bitField0_ |= 0x00000020;
+      return this;
+    }
+    /**
+     * <pre>
+     * This is only set for UFS block read.
+     * </pre>
+     *
+     * <code>optional .alluxio.proto.dataserver.OpenUfsBlockOptions open_ufs_block_options = 6;</code>
+     */
+    public Builder setOpenUfsBlockOptions(
+        alluxio.proto.dataserver.Protocol.OpenUfsBlockOptions.Builder builderForValue) {
+      if (openUfsBlockOptionsBuilder_ == null) {
+        openUfsBlockOptions_ = builderForValue.build();
+        onChanged();
+      } else {
+        openUfsBlockOptionsBuilder_.setMessage(builderForValue.build());
+      }
+      bitField0_ |= 0x00000020;
+      return this;
+    }
+    /**
+     * <pre>
+     * This is only set for UFS block read.
+     * </pre>
+     *
+     * <code>optional .alluxio.proto.dataserver.OpenUfsBlockOptions open_ufs_block_options = 6;</code>
+     */
+    public Builder mergeOpenUfsBlockOptions(alluxio.proto.dataserver.Protocol.OpenUfsBlockOptions value) {
+      if (openUfsBlockOptionsBuilder_ == null) {
+        if (((bitField0_ & 0x00000020) == 0x00000020) &&
+            openUfsBlockOptions_ != null &&
+            openUfsBlockOptions_ != alluxio.proto.dataserver.Protocol.OpenUfsBlockOptions.getDefaultInstance()) {
+          openUfsBlockOptions_ =
+            alluxio.proto.dataserver.Protocol.OpenUfsBlockOptions.newBuilder(openUfsBlockOptions_).mergeFrom(value).buildPartial();
+        } else {
+          openUfsBlockOptions_ = value;
+        }
+        onChanged();
+      } else {
+        openUfsBlockOptionsBuilder_.mergeFrom(value);
+      }
+      bitField0_ |= 0x00000020;
+      return this;
+    }
+    /**
+     * <pre>
+     * This is only set for UFS block read.
+     * </pre>
+     *
+     * <code>optional .alluxio.proto.dataserver.OpenUfsBlockOptions open_ufs_block_options = 6;</code>
+     */
+    public Builder clearOpenUfsBlockOptions() {
+      if (openUfsBlockOptionsBuilder_ == null) {
+        openUfsBlockOptions_ = null;
+        onChanged();
+      } else {
+        openUfsBlockOptionsBuilder_.clear();
+      }
+      bitField0_ = (bitField0_ & ~0x00000020);
+      return this;
+    }
+    /**
+     * <pre>
+     * This is only set for UFS block read.
+     * </pre>
+     *
+     * <code>optional .alluxio.proto.dataserver.OpenUfsBlockOptions open_ufs_block_options = 6;</code>
+     */
+    public alluxio.proto.dataserver.Protocol.OpenUfsBlockOptions.Builder getOpenUfsBlockOptionsBuilder() {
+      bitField0_ |= 0x00000020;
+      onChanged();
+      return getOpenUfsBlockOptionsFieldBuilder().getBuilder();
+    }
+    /**
+     * <pre>
+     * This is only set for UFS block read.
+     * </pre>
+     *
+     * <code>optional .alluxio.proto.dataserver.OpenUfsBlockOptions open_ufs_block_options = 6;</code>
+     */
+    public alluxio.proto.dataserver.Protocol.OpenUfsBlockOptionsOrBuilder getOpenUfsBlockOptionsOrBuilder() {
+      if (openUfsBlockOptionsBuilder_ != null) {
+        return openUfsBlockOptionsBuilder_.getMessageOrBuilder();
+      } else {
+        return openUfsBlockOptions_ == null ?
+            alluxio.proto.dataserver.Protocol.OpenUfsBlockOptions.getDefaultInstance() : openUfsBlockOptions_;
+      }
+    }
+    /**
+     * <pre>
+     * This is only set for UFS block read.
+     * </pre>
+     *
+     * <code>optional .alluxio.proto.dataserver.OpenUfsBlockOptions open_ufs_block_options = 6;</code>
+     */
+    private com.google.protobuf.SingleFieldBuilderV3<
+        alluxio.proto.dataserver.Protocol.OpenUfsBlockOptions, alluxio.proto.dataserver.Protocol.OpenUfsBlockOptions.Builder, alluxio.proto.dataserver.Protocol.OpenUfsBlockOptionsOrBuilder> 
+        getOpenUfsBlockOptionsFieldBuilder() {
+      if (openUfsBlockOptionsBuilder_ == null) {
+        openUfsBlockOptionsBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+            alluxio.proto.dataserver.Protocol.OpenUfsBlockOptions, alluxio.proto.dataserver.Protocol.OpenUfsBlockOptions.Builder, alluxio.proto.dataserver.Protocol.OpenUfsBlockOptionsOrBuilder>(
+                getOpenUfsBlockOptions(),
+                getParentForChildren(),
+                isClean());
+        openUfsBlockOptions_ = null;
+      }
+      return openUfsBlockOptionsBuilder_;
     }
     public final Builder setUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {

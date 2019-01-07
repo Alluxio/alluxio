@@ -12,13 +12,11 @@
 package alluxio.worker.grpc;
 
 import alluxio.Configuration;
-import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.grpc.GrpcServer;
 import alluxio.grpc.GrpcServerBuilder;
 import alluxio.grpc.GrpcService;
 import alluxio.network.ChannelType;
-import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.network.NettyUtils;
 import alluxio.worker.DataServer;
 import alluxio.worker.WorkerProcess;
@@ -32,7 +30,6 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -51,8 +48,6 @@ public final class GrpcDataServer implements DataServer {
       Configuration.getBytes(PropertyKey.WORKER_NETWORK_FLOWCONTROL_WINDOW);
   private final long mQuietPeriodMs =
       Configuration.getMs(PropertyKey.WORKER_NETWORK_NETTY_SHUTDOWN_QUIET_PERIOD);
-  private final int mThreadPoolSize =
-      Configuration.getInt(PropertyKey.WORKER_NETWORK_NETTY_WORKER_THREADS);
 
   private EventLoopGroup mBossGroup;
   private EventLoopGroup mWorkerGroup;
@@ -66,14 +61,9 @@ public final class GrpcDataServer implements DataServer {
    */
   public GrpcDataServer(final SocketAddress address, final WorkerProcess workerProcess) {
     mSocketAddress = address;
-
-    ExecutorService executorService = ExecutorServiceFactories
-        .fixedThreadPool(Constants.BLOCK_WORKER_NAME, mThreadPoolSize)
-        .create();
     try {
       mServer = createServerBuilder(address, NettyUtils.WORKER_CHANNEL_TYPE)
           .addService(new GrpcService(new BlockWorkerImpl(workerProcess)))
-          .executor(executorService)
           .flowControlWindow((int) mFlowControlWindow)
           .build()
           .start();

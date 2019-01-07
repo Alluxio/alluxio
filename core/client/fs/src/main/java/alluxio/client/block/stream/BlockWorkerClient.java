@@ -11,8 +11,15 @@
 
 package alluxio.client.block.stream;
 
+import alluxio.grpc.AsyncCacheRequest;
+import alluxio.grpc.CreateLocalBlockRequest;
+import alluxio.grpc.CreateLocalBlockResponse;
+import alluxio.grpc.OpenLocalBlockRequest;
+import alluxio.grpc.OpenLocalBlockResponse;
 import alluxio.grpc.ReadRequest;
 import alluxio.grpc.ReadResponse;
+import alluxio.grpc.RemoveBlockRequest;
+import alluxio.grpc.RemoveBlockResponse;
 import alluxio.grpc.WriteRequest;
 import alluxio.grpc.WriteResponse;
 
@@ -20,8 +27,8 @@ import io.grpc.stub.StreamObserver;
 import io.grpc.StatusRuntimeException;
 
 import java.io.Closeable;
+import java.io.IOException;
 import java.net.SocketAddress;
-import java.util.Iterator;
 
 import javax.annotation.Nullable;
 import javax.security.auth.Subject;
@@ -30,6 +37,7 @@ import javax.security.auth.Subject;
  * gRPC client for worker communication.
  */
 public interface BlockWorkerClient extends Closeable {
+
   /**
    * Factory for block worker client.
    */
@@ -41,7 +49,8 @@ public interface BlockWorkerClient extends Closeable {
      * @param address the address of the worker
      * @return a new {@link BlockWorkerClient}
      */
-    public static BlockWorkerClient create(@Nullable Subject subject, SocketAddress address) {
+    public static BlockWorkerClient create(@Nullable Subject subject, SocketAddress address)
+        throws IOException {
       return new DefaultBlockWorkerClient(subject, address);
     }
   }
@@ -61,11 +70,52 @@ public interface BlockWorkerClient extends Closeable {
   StreamObserver<WriteRequest> writeBlock(StreamObserver<WriteResponse> responseObserver);
 
   /**
-   * Reads a block from the worker.
+   * Reads a block from the worker. When client is done with the file, it should close the stream
+   * using the gRPC context.
    *
-   * @param request the read request
-   * @return the streamed response from server
+   * @param responseObserver the stream observer for the server response
+   * @return the stream observer for the client request
+   */
+  StreamObserver<ReadRequest> readBlock(StreamObserver<ReadResponse> responseObserver);
+
+  /**
+   * Creates a local block on the worker. This is a two stage operations:
+   * 1. Client sends a create request through the request stream. Server will respond with the name
+   *    of the file to write to.
+   * 2. When client is done with the file, it should signal complete or cancel on the request stream
+   *    based on the intent. The server will signal complete on the response stream once the
+   *    operation is done.
+   *
+   * @param responseObserver the stream observer for the server response
+   * @return the stream observer for the client request
+   */
+  StreamObserver<CreateLocalBlockRequest> createLocalBlock(
+      StreamObserver<CreateLocalBlockResponse> responseObserver);
+
+  /**
+   * Opens a local block. This is a two stage operations:
+   * 1. Client sends a open request through the request stream. Server will respond with the name
+   *    of the file to read from.
+   * 2. When client is done with the file, it should close the stream.
+   *
+   * @param responseObserver the stream observer for the server response
+   * @return the stream observer for the client request
+   */
+  StreamObserver<OpenLocalBlockRequest> openLocalBlock(
+      StreamObserver<OpenLocalBlockResponse> responseObserver);
+
+  /**
+   * Removes a block from worker.
+   * @param request the remove block request
+   * @return the response from server
    * @throws StatusRuntimeException if any error occurs
    */
-  Iterator<ReadResponse> readBlock(final ReadRequest request) throws StatusRuntimeException;
+  RemoveBlockResponse removeBlock(RemoveBlockRequest request);
+
+  /**
+   * Caches a block asynchronously.
+   *
+   * @param request the async cache request
+   */
+  void asyncCache(AsyncCacheRequest request);
 }

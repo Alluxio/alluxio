@@ -60,19 +60,49 @@ public interface WriteRequestCommandOrBuilder extends
   int getTier();
 
   /**
-   * <pre>
-   * Cancel, close and error will be handled by standard gRPC stream APIs.
-   * </pre>
-   *
    * <code>optional bool flush = 5;</code>
    */
   boolean hasFlush();
+  /**
+   * <code>optional bool flush = 5;</code>
+   */
+  boolean getFlush();
+
+  /**
+   * <code>optional .alluxio.proto.dataserver.CreateUfsFileOptions create_ufs_file_options = 6;</code>
+   */
+  boolean hasCreateUfsFileOptions();
+  /**
+   * <code>optional .alluxio.proto.dataserver.CreateUfsFileOptions create_ufs_file_options = 6;</code>
+   */
+  alluxio.proto.dataserver.Protocol.CreateUfsFileOptions getCreateUfsFileOptions();
+  /**
+   * <code>optional .alluxio.proto.dataserver.CreateUfsFileOptions create_ufs_file_options = 6;</code>
+   */
+  alluxio.proto.dataserver.Protocol.CreateUfsFileOptionsOrBuilder getCreateUfsFileOptionsOrBuilder();
+
   /**
    * <pre>
    * Cancel, close and error will be handled by standard gRPC stream APIs.
    * </pre>
    *
-   * <code>optional bool flush = 5;</code>
+   * <code>optional .alluxio.proto.dataserver.CreateUfsBlockOptions create_ufs_block_options = 7;</code>
    */
-  boolean getFlush();
+  boolean hasCreateUfsBlockOptions();
+  /**
+   * <pre>
+   * Cancel, close and error will be handled by standard gRPC stream APIs.
+   * </pre>
+   *
+   * <code>optional .alluxio.proto.dataserver.CreateUfsBlockOptions create_ufs_block_options = 7;</code>
+   */
+  alluxio.proto.dataserver.Protocol.CreateUfsBlockOptions getCreateUfsBlockOptions();
+  /**
+   * <pre>
+   * Cancel, close and error will be handled by standard gRPC stream APIs.
+   * </pre>
+   *
+   * <code>optional .alluxio.proto.dataserver.CreateUfsBlockOptions create_ufs_block_options = 7;</code>
+   */
+  alluxio.proto.dataserver.Protocol.CreateUfsBlockOptionsOrBuilder getCreateUfsBlockOptionsOrBuilder();
 }

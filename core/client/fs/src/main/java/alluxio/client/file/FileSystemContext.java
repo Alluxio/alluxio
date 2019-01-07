@@ -26,11 +26,7 @@ import alluxio.heartbeat.HeartbeatThread;
 import alluxio.master.MasterClientConfig;
 import alluxio.master.MasterInquireClient;
 import alluxio.metrics.MetricsSystem;
-import alluxio.network.netty.NettyChannelPool;
-import alluxio.network.netty.NettyClient;
 import alluxio.resource.CloseableResource;
-import alluxio.security.authentication.TransportProviderUtils;
-import alluxio.util.CommonUtils;
 import alluxio.util.IdUtils;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.ThreadUtils;
@@ -41,8 +37,6 @@ import alluxio.wire.WorkerNetAddress;
 import com.codahale.metrics.Gauge;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Objects;
-import io.netty.bootstrap.Bootstrap;
-import io.netty.channel.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,7 +48,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -101,10 +94,6 @@ public final class FileSystemContext implements Closeable {
   private final String mAppId;
   @GuardedBy("CONTEXT_CACHE_LOCK")
   private int mRefCount;
-
-  // The netty data server channel pools.
-  private final ConcurrentHashMap<ChannelPoolKey, NettyChannelPool>
-      mNettyChannelPools = new ConcurrentHashMap<>();
 
   /** The shared master inquire client associated with the {@link FileSystemContext}. */
   @GuardedBy("this")
@@ -271,11 +260,6 @@ public final class FileSystemContext implements Closeable {
     mBlockMasterClientPool = null;
     mMasterInquireClient = null;
 
-    for (NettyChannelPool pool : mNettyChannelPools.values()) {
-      pool.close();
-    }
-    mNettyChannelPools.clear();
-
     synchronized (this) {
       if (mMetricsMasterClient != null) {
         ThreadUtils.shutdownAndAwaitTermination(mExecutorService,
@@ -385,7 +369,8 @@ public final class FileSystemContext implements Closeable {
    * @param workerNetAddress the network address of the channel
    * @return the acquired block worker
    */
-  public BlockWorkerClient acquireBlockWorkerClient(final WorkerNetAddress workerNetAddress) {
+  public BlockWorkerClient acquireBlockWorkerClient(final WorkerNetAddress workerNetAddress)
+      throws IOException {
     SocketAddress address = NetworkAddressUtils.getDataPortSocketAddress(workerNetAddress);
     return BlockWorkerClient.Factory.create(mParentSubject, address);
   }
@@ -403,51 +388,6 @@ public final class FileSystemContext implements Closeable {
       client.close();
     } catch (IOException e) {
       LOG.warn("Error closing block worker client for address {}", address, e);
-    }
-  }
-
-  /**
-   * Acquires a netty channel from the channel pools. If there is no available client instance
-   * available in the pool, it tries to create a new one. And an exception is thrown if it fails to
-   * create a new one.
-   *
-   * @param workerNetAddress the network address of the channel
-   * @return the acquired netty channel
-   */
-  public Channel acquireNettyChannel(final WorkerNetAddress workerNetAddress) throws IOException {
-    SocketAddress address = NetworkAddressUtils.getDataPortSocketAddress(workerNetAddress);
-    ChannelPoolKey key =
-        new ChannelPoolKey(address, TransportProviderUtils.getImpersonationUser(mParentSubject));
-    if (!mNettyChannelPools.containsKey(key)) {
-      Bootstrap bs = NettyClient.createClientBootstrap(mParentSubject, address);
-      bs.remoteAddress(address);
-      NettyChannelPool pool = new NettyChannelPool(bs,
-          Configuration.getInt(PropertyKey.USER_NETWORK_NETTY_CHANNEL_POOL_SIZE_MAX),
-          Configuration.getMs(PropertyKey.USER_NETWORK_NETTY_CHANNEL_POOL_GC_THRESHOLD_MS));
-      if (mNettyChannelPools.putIfAbsent(key, pool) != null) {
-        // This can happen if this function is called concurrently.
-        pool.close();
-      }
-    }
-    return mNettyChannelPools.get(key).acquire();
-  }
-
-  /**
-   * Releases a netty channel to the channel pools.
-   *
-   * @param workerNetAddress the address of the channel
-   * @param channel the channel to release
-   */
-  public void releaseNettyChannel(WorkerNetAddress workerNetAddress, Channel channel) {
-    SocketAddress address = NetworkAddressUtils.getDataPortSocketAddress(workerNetAddress);
-    ChannelPoolKey key =
-        new ChannelPoolKey(address, TransportProviderUtils.getImpersonationUser(mParentSubject));
-    if (mNettyChannelPools.containsKey(key)) {
-      mNettyChannelPools.get(key).release(channel);
-    } else {
-      LOG.warn("No channel pool for key {}, closing channel instead. Context is closed: {}",
-          key, mClosed.get());
-      CommonUtils.closeChannel(channel);
     }
   }
 
@@ -558,14 +498,12 @@ public final class FileSystemContext implements Closeable {
   @ThreadSafe
   private static final class Metrics {
     private static void initializeGauges() {
-      MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName("NettyConnectionsOpen"),
+      MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName("GrpcConnectionsOpen"),
           new Gauge<Long>() {
             @Override
             public Long getValue() {
               long ret = 0;
-              for (NettyChannelPool pool : get().mNettyChannelPools.values()) {
-                ret += pool.size();
-              }
+              // TODO(feng): use gRPC API to collect metrics for connections
               return ret;
             }
           });

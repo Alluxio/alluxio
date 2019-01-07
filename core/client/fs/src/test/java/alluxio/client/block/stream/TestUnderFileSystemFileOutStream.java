@@ -31,7 +31,7 @@ public class TestUnderFileSystemFileOutStream extends UnderFileSystemFileOutStre
    * @param data the data to test
    */
   public TestUnderFileSystemFileOutStream(ByteBuffer data) {
-    super(new TestPacketWriter(data), new WorkerNetAddress());
+    super(new TestDataWriter(data), new WorkerNetAddress());
     mData = data;
     mClosed = false;
     mCanceled = false;

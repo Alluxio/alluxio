@@ -258,21 +258,28 @@ public final class RpcUtils {
    * @param logger the logger to use for this call
    * @param callable the callable to call
    * @param methodName the name of the method, used for metrics
+   * @param sendResponse whether a response should send to the client
+   * @param completeResponse whether onComplete should be called on the response observer
    * @param description the format string of the description, used for logging
    * @param responseObserver gRPC response observer
    * @param args the arguments for the description
    * @param <T> the return type of the callable
    */
   public static <T> void nettyRPCAndLog(Logger logger, NettyRpcCallable<T> callable,
-      String methodName, String description, StreamObserver<T> responseObserver, Object... args) {
+      String methodName, boolean sendResponse, boolean completeResponse, String description,
+      StreamObserver<T> responseObserver, Object... args) {
     // avoid string format for better performance if debug is off
     String debugDesc = logger.isDebugEnabled() ? String.format(description, args) : null;
     try (Timer.Context ctx = MetricsSystem.timer(getQualifiedMetricName(methodName)).time()) {
       logger.debug("Enter: {}: {}", methodName, debugDesc);
       T result = callable.call();
       logger.debug("Exit (OK): {}: {}", methodName, debugDesc);
-      responseObserver.onNext(result);
-      responseObserver.onCompleted();
+      if (sendResponse) {
+        responseObserver.onNext(result);
+      }
+      if (completeResponse) {
+        responseObserver.onCompleted();
+      }
     } catch (Exception e) {
       logger.warn("Exit (Error): {}: {}, Error={}", methodName, String.format(description, args),
           e);

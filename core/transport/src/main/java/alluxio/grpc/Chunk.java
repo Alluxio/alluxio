@@ -4,6 +4,11 @@
 package alluxio.grpc;
 
 /**
+ * <pre>
+ * The data chunk.
+ * next available id: 2
+ * </pre>
+ *
  * Protobuf type {@code alluxio.grpc.Chunk}
  */
 public  final class Chunk extends
@@ -252,6 +257,11 @@ private static final long serialVersionUID = 0L;
     return builder;
   }
   /**
+   * <pre>
+   * The data chunk.
+   * next available id: 2
+   * </pre>
+   *
    * Protobuf type {@code alluxio.grpc.Chunk}
    */
   public static final class Builder extends

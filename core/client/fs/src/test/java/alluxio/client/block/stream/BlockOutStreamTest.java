@@ -23,14 +23,14 @@ import java.nio.ByteBuffer;
  * Tests {@link BlockOutStream}.
  */
 public class BlockOutStreamTest {
-  private static final int PACKET_SIZE = 128;
+  private static final int CHUNK_SIZE = 128;
 
   @Test
   public void packetWriteException() throws Exception {
-    PacketWriter writer = new FailingTestPacketWriter(ByteBuffer.allocate(PACKET_SIZE));
-    BlockOutStream bos = new BlockOutStream(writer, PACKET_SIZE, new WorkerNetAddress());
+    DataWriter writer = new FailingTestDataWriter(ByteBuffer.allocate(CHUNK_SIZE));
+    BlockOutStream bos = new BlockOutStream(writer, CHUNK_SIZE, new WorkerNetAddress());
     try {
-      bos.write(new byte[PACKET_SIZE]);
+      bos.write(new byte[CHUNK_SIZE]);
       Assert.fail("Expected write to throw an exception.");
     } catch (IOException e) {
       // Exception expected, continue.

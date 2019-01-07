@@ -4,6 +4,11 @@
 package alluxio.grpc;
 
 /**
+ * <pre>
+ * The write request.
+ * next available id: 3
+ * </pre>
+ *
  * Protobuf type {@code alluxio.grpc.WriteRequest}
  */
 public  final class WriteRequest extends
@@ -374,6 +379,11 @@ private static final long serialVersionUID = 0L;
     return builder;
   }
   /**
+   * <pre>
+   * The write request.
+   * next available id: 3
+   * </pre>
+   *
    * Protobuf type {@code alluxio.grpc.WriteRequest}
    */
   public static final class Builder extends

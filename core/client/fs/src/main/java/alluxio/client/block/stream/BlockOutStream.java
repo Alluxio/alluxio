@@ -33,8 +33,8 @@ import java.util.List;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * Provides an {@link OutputStream} implementation that is based on {@link PacketWriter} which
- * streams data packet by packet.
+ * Provides an {@link OutputStream} implementation that is based on {@link DataWriter} which
+ * streams data chunk by chunk.
  */
 @NotThreadSafe
 public class BlockOutStream extends OutputStream implements BoundedStream, Cancelable {
@@ -44,9 +44,9 @@ public class BlockOutStream extends OutputStream implements BoundedStream, Cance
   /** Length of the stream. If unknown, set to Long.MAX_VALUE. */
   private final long mLength;
   private final WorkerNetAddress mAddress;
-  private ByteBuf mCurrentPacket = null;
+  private ByteBuf mCurrentChunk = null;
 
-  private final List<PacketWriter> mPacketWriters;
+  private final List<DataWriter> mDataWriters;
   private boolean mClosed;
 
   /**
@@ -61,25 +61,25 @@ public class BlockOutStream extends OutputStream implements BoundedStream, Cance
    */
   public static BlockOutStream create(FileSystemContext context, long blockId, long blockSize,
       WorkerNetAddress address, OutStreamOptions options) throws IOException {
-    PacketWriter packetWriter =
-        PacketWriter.Factory.create(context, blockId, blockSize, address, options);
-    return new BlockOutStream(packetWriter, blockSize, address);
+    DataWriter dataWriter =
+        DataWriter.Factory.create(context, blockId, blockSize, address, options);
+    return new BlockOutStream(dataWriter, blockSize, address);
   }
 
   /**
-   * Constructs a new {@link BlockOutStream} with only one {@link PacketWriter}.
+   * Constructs a new {@link BlockOutStream} with only one {@link DataWriter}.
    *
-   * @param packetWriter the packet writer
+   * @param dataWriter the data writer
    * @param length the length of the stream
    * @param address the Alluxio worker address
    */
-  protected BlockOutStream(PacketWriter packetWriter, long length, WorkerNetAddress address) {
+  protected BlockOutStream(DataWriter dataWriter, long length, WorkerNetAddress address) {
     mCloser = Closer.create();
     mLength = length;
     mAddress = address;
-    mPacketWriters = new ArrayList<>(1);
-    mPacketWriters.add(packetWriter);
-    mCloser.register(packetWriter);
+    mDataWriters = new ArrayList<>(1);
+    mDataWriters.add(dataWriter);
+    mCloser.register(dataWriter);
     mClosed = false;
   }
 
@@ -89,10 +89,10 @@ public class BlockOutStream extends OutputStream implements BoundedStream, Cance
   @Override
   public long remaining() {
     long pos = Long.MAX_VALUE;
-    for (PacketWriter packetWriter : mPacketWriters) {
-      pos = Math.min(pos, packetWriter.pos());
+    for (DataWriter dataWriter : mDataWriters) {
+      pos = Math.min(pos, dataWriter.pos());
     }
-    return mLength - pos - (mCurrentPacket != null ? mCurrentPacket.readableBytes() : 0);
+    return mLength - pos - (mCurrentChunk != null ? mCurrentChunk.readableBytes() : 0);
   }
 
   /**
@@ -108,30 +108,30 @@ public class BlockOutStream extends OutputStream implements BoundedStream, Cance
   public static BlockOutStream createReplicatedBlockOutStream(FileSystemContext context,
       long blockId, long blockSize, java.util.List<WorkerNetAddress> workerNetAddresses,
       OutStreamOptions options) throws IOException {
-    List<PacketWriter> packetWriters = new ArrayList<>();
+    List<DataWriter> dataWriters = new ArrayList<>();
     for (WorkerNetAddress address: workerNetAddresses) {
-      PacketWriter packetWriter =
-            PacketWriter.Factory.create(context, blockId, blockSize, address, options);
-      packetWriters.add(packetWriter);
+      DataWriter dataWriter =
+            DataWriter.Factory.create(context, blockId, blockSize, address, options);
+      dataWriters.add(dataWriter);
     }
-    return new BlockOutStream(packetWriters, blockSize, workerNetAddresses);
+    return new BlockOutStream(dataWriters, blockSize, workerNetAddresses);
   }
 
   /**
-   * Constructs a new {@link BlockOutStream} with only one {@link PacketWriter}.
+   * Constructs a new {@link BlockOutStream} with only one {@link DataWriter}.
    *
-   * @param packetWriters the packet writer
+   * @param dataWriters the data writer
    * @param length the length of the stream
    * @param workerNetAddresses the worker network addresses
    */
-  protected BlockOutStream(List<PacketWriter> packetWriters, long length,
+  protected BlockOutStream(List<DataWriter> dataWriters, long length,
       java.util.List<WorkerNetAddress> workerNetAddresses) {
     mCloser = Closer.create();
     mLength = length;
     mAddress = workerNetAddresses.get(0);
-    mPacketWriters = packetWriters;
-    for (PacketWriter packetWriter : packetWriters) {
-      mCloser.register(packetWriter);
+    mDataWriters = dataWriters;
+    for (DataWriter dataWriter : dataWriters) {
+      mCloser.register(dataWriter);
     }
     mClosed = false;
   }
@@ -139,8 +139,8 @@ public class BlockOutStream extends OutputStream implements BoundedStream, Cance
   @Override
   public void write(int b) throws IOException {
     Preconditions.checkState(remaining() > 0, PreconditionMessage.ERR_END_OF_BLOCK);
-    updateCurrentPacket(false);
-    mCurrentPacket.writeByte(b);
+    updateCurrentChunk(false);
+    mCurrentChunk.writeByte(b);
   }
 
   @Override
@@ -155,13 +155,13 @@ public class BlockOutStream extends OutputStream implements BoundedStream, Cance
     }
 
     while (len > 0) {
-      updateCurrentPacket(false);
-      int toWrite = Math.min(len, mCurrentPacket.writableBytes());
-      mCurrentPacket.writeBytes(b, off, toWrite);
+      updateCurrentChunk(false);
+      int toWrite = Math.min(len, mCurrentChunk.writableBytes());
+      mCurrentChunk.writeBytes(b, off, toWrite);
       off += toWrite;
       len -= toWrite;
     }
-    updateCurrentPacket(false);
+    updateCurrentChunk(false);
   }
 
   /**
@@ -187,13 +187,13 @@ public class BlockOutStream extends OutputStream implements BoundedStream, Cance
     }
 
     while (len > 0) {
-      updateCurrentPacket(false);
-      int toWrite = Math.min(len, mCurrentPacket.writableBytes());
-      mCurrentPacket.writeBytes(buf, off, toWrite);
+      updateCurrentChunk(false);
+      int toWrite = Math.min(len, mCurrentChunk.writableBytes());
+      mCurrentChunk.writeBytes(buf, off, toWrite);
       off += toWrite;
       len -= toWrite;
     }
-    updateCurrentPacket(false);
+    updateCurrentChunk(false);
   }
 
   @Override
@@ -201,9 +201,9 @@ public class BlockOutStream extends OutputStream implements BoundedStream, Cance
     if (mClosed) {
       return;
     }
-    updateCurrentPacket(true);
-    for (PacketWriter packetWriter : mPacketWriters) {
-      packetWriter.flush();
+    updateCurrentChunk(true);
+    for (DataWriter dataWriter : mDataWriters) {
+      dataWriter.flush();
     }
   }
 
@@ -212,12 +212,12 @@ public class BlockOutStream extends OutputStream implements BoundedStream, Cance
     if (mClosed) {
       return;
     }
-    releaseCurrentPacket();
+    releaseCurrentChunk();
 
     IOException exception = null;
-    for (PacketWriter packetWriter : mPacketWriters) {
+    for (DataWriter dataWriter : mDataWriters) {
       try {
-        packetWriter.cancel();
+        dataWriter.cancel();
       } catch (IOException e) {
         if (exception != null) {
           exception.addSuppressed(e);
@@ -237,7 +237,7 @@ public class BlockOutStream extends OutputStream implements BoundedStream, Cance
       return;
     }
     try {
-      updateCurrentPacket(true);
+      updateCurrentChunk(true);
     } catch (Throwable t) {
       throw mCloser.rethrow(t);
     } finally {
@@ -254,53 +254,53 @@ public class BlockOutStream extends OutputStream implements BoundedStream, Cance
   }
 
   /**
-   * Updates the current packet.
+   * Updates the current chunk.
    *
-   * @param lastPacket if the current packet is the last packet
+   * @param lastChunk if the current packet is the last packet
    */
-  private void updateCurrentPacket(boolean lastPacket) throws IOException {
+  private void updateCurrentChunk(boolean lastChunk) throws IOException {
     // Early return for the most common case.
-    if (mCurrentPacket != null && mCurrentPacket.writableBytes() > 0 && !lastPacket) {
+    if (mCurrentChunk != null && mCurrentChunk.writableBytes() > 0 && !lastChunk) {
       return;
     }
 
-    if (mCurrentPacket == null) {
-      if (!lastPacket) {
-        mCurrentPacket = allocateBuffer();
+    if (mCurrentChunk == null) {
+      if (!lastChunk) {
+        mCurrentChunk = allocateBuffer();
       }
       return;
     }
 
-    if (mCurrentPacket.writableBytes() == 0 || lastPacket) {
+    if (mCurrentChunk.writableBytes() == 0 || lastChunk) {
       try {
-        if (mCurrentPacket.readableBytes() > 0) {
-          for (PacketWriter packetWriter : mPacketWriters) {
-            mCurrentPacket.retain();
-            packetWriter.writePacket(mCurrentPacket.duplicate());
+        if (mCurrentChunk.readableBytes() > 0) {
+          for (DataWriter dataWriter : mDataWriters) {
+            mCurrentChunk.retain();
+            dataWriter.writeChunk(mCurrentChunk.duplicate());
           }
         } else {
-          Preconditions.checkState(lastPacket);
+          Preconditions.checkState(lastChunk);
         }
       } finally {
         // If the packet has bytes to read, we increment its refcount explicitly for every packet
         // writer. So we need to release here. If the packet has no bytes to read, then it has
         // to be the last packet. It needs to be released as well.
-        mCurrentPacket.release();
-        mCurrentPacket = null;
+        mCurrentChunk.release();
+        mCurrentChunk = null;
       }
     }
-    if (!lastPacket) {
-      mCurrentPacket = allocateBuffer();
+    if (!lastChunk) {
+      mCurrentChunk = allocateBuffer();
     }
   }
 
   /**
    * Releases the current packet.
    */
-  private void releaseCurrentPacket() {
-    if (mCurrentPacket != null) {
-      mCurrentPacket.release();
-      mCurrentPacket = null;
+  private void releaseCurrentChunk() {
+    if (mCurrentChunk != null) {
+      mCurrentChunk.release();
+      mCurrentChunk = null;
     }
   }
 
@@ -308,6 +308,6 @@ public class BlockOutStream extends OutputStream implements BoundedStream, Cance
    * @return a newly allocated byte buffer of the user defined default size
    */
   private ByteBuf allocateBuffer() {
-    return PooledByteBufAllocator.DEFAULT.buffer(mPacketWriters.get(0).packetSize());
+    return PooledByteBufAllocator.DEFAULT.buffer(mDataWriters.get(0).chunkSize());
   }
 }

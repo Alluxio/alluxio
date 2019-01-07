@@ -23,6 +23,7 @@ import alluxio.exception.AlluxioException;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
 import alluxio.client.cli.fs.FileSystemShellUtilsTest;
 import alluxio.grpc.ReadPType;
+import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.util.io.BufferUtils;
 
 import org.hamcrest.CoreMatchers;
@@ -140,6 +141,8 @@ public final class CopyFromLocalCommandIntegrationTest extends AbstractFileSyste
   }
 
   @Test
+  @LocalAlluxioClusterResource.Config(
+      confParams = {PropertyKey.Name.WORKER_TIERED_STORE_RESERVER_ENABLED, "false"})
   public void copyFromLocalLarge() throws IOException, AlluxioException {
     File testFile = new File(mLocalAlluxioCluster.getAlluxioHome() + "/testFile");
     testFile.createNewFile();

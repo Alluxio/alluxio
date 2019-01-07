@@ -64,7 +64,7 @@ public class ConfigurationDocGeneratorTest {
     return Arrays.asList(new Object[][]{
         {TYPE.CSV, new Pair<>(PropertyKey.HOME,
             "common-configuration.csv")},
-        {TYPE.CSV, new Pair<>(PropertyKey.USER_LOCAL_READER_PACKET_SIZE_BYTES,
+        {TYPE.CSV, new Pair<>(PropertyKey.USER_LOCAL_READER_CHUNK_SIZE_BYTES,
             "user-configuration.csv")},
         {TYPE.CSV, new Pair<>(PropertyKey.MASTER_CONNECTION_TIMEOUT_MS,
             "master-configuration.csv")},
@@ -78,7 +78,7 @@ public class ConfigurationDocGeneratorTest {
             "cluster-management-configuration.csv")},
         {TYPE.YML, new Pair<>(PropertyKey.HOME,
             "common-configuration.yml")},
-        {TYPE.YML, new Pair<>(PropertyKey.USER_LOCAL_READER_PACKET_SIZE_BYTES,
+        {TYPE.YML, new Pair<>(PropertyKey.USER_LOCAL_READER_CHUNK_SIZE_BYTES,
             "user-configuration.yml")},
         {TYPE.YML, new Pair<>(PropertyKey.MASTER_CONNECTION_TIMEOUT_MS,
             "master-configuration.yml")},

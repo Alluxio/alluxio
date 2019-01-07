@@ -21,6 +21,7 @@ import alluxio.client.block.policy.BlockLocationPolicy;
 import alluxio.client.block.policy.options.GetWorkerOptions;
 import alluxio.client.block.stream.BlockInStream;
 import alluxio.client.block.stream.BlockOutStream;
+import alluxio.client.block.stream.BlockWorkerClient;
 import alluxio.client.file.FileSystemClientOptions;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
@@ -28,18 +29,15 @@ import alluxio.client.file.options.InStreamOptions;
 import alluxio.client.file.options.OutStreamOptions;
 import alluxio.client.file.policy.FileWriteLocationPolicy;
 import alluxio.exception.status.NotFoundException;
-import alluxio.grpc.OpenFilePOptions;
-import alluxio.network.netty.NettyRPC;
-import alluxio.network.netty.NettyRPCContext;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.UnavailableException;
+import alluxio.grpc.CreateLocalBlockResponse;
+import alluxio.grpc.OpenFilePOptions;
+import alluxio.grpc.OpenLocalBlockResponse;
 import alluxio.network.TieredIdentityFactory;
-import alluxio.network.protocol.RPCMessageDecoder;
-import alluxio.proto.dataserver.Protocol;
 import alluxio.resource.DummyCloseableResource;
 import alluxio.util.network.NetworkAddressUtils;
-import alluxio.util.proto.ProtoMessage;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
 import alluxio.wire.FileBlockInfo;
@@ -50,21 +48,21 @@ import alluxio.wire.WorkerNetAddress;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelHandler;
-import io.netty.channel.ChannelPipeline;
+import io.grpc.stub.ClientCallStreamObserver;
+import io.grpc.stub.StreamObserver;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.ConnectException;
 import java.util.AbstractMap;
 import java.util.Arrays;
 import java.util.Collections;
@@ -72,6 +70,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -80,7 +80,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * Tests for {@link AlluxioBlockStore}.
  */
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({FileSystemContext.class, NettyRPC.class})
+@PrepareForTest({FileSystemContext.class})
 public final class AlluxioBlockStoreTest {
   private static final long BLOCK_ID = 3L;
   private static final long BLOCK_LENGTH = 100L;
@@ -90,6 +90,8 @@ public final class AlluxioBlockStoreTest {
       .setHost(WORKER_HOSTNAME_LOCAL);
   private static final WorkerNetAddress WORKER_NET_ADDRESS_REMOTE = new WorkerNetAddress()
       .setHost(WORKER_HOSTNAME_REMOTE);
+  private ClientCallStreamObserver mStreamObserver;
+  private static final ExecutorService EXECUTOR = Executors.newFixedThreadPool(4);
 
   /**
    * A mock class used to return controlled result when selecting workers.
@@ -142,17 +144,15 @@ public final class AlluxioBlockStoreTest {
   public ExpectedException mException = ExpectedException.none();
 
   private BlockMasterClient mMasterClient;
+  private BlockWorkerClient mWorkerClient;
   private AlluxioBlockStore mBlockStore;
-  private Channel mChannel;
-  private ChannelPipeline mPipeline;
   private WorkerNetAddress mLocalAddr;
   private FileSystemContext mContext;
 
   @Before
   public void before() throws Exception {
     mMasterClient = PowerMockito.mock(BlockMasterClient.class);
-    mChannel = PowerMockito.mock(Channel.class);
-    mPipeline = PowerMockito.mock(ChannelPipeline.class);
+    mWorkerClient = PowerMockito.mock(BlockWorkerClient.class);
 
     mContext = PowerMockito.mock(FileSystemContext.class);
     when(mContext.acquireBlockMasterClientResource())
@@ -162,11 +162,14 @@ public final class AlluxioBlockStoreTest {
     mBlockStore = new AlluxioBlockStore(mContext,
         TieredIdentityFactory.fromString("node=" + WORKER_HOSTNAME_LOCAL));
 
-    when(mContext.acquireNettyChannel(any(WorkerNetAddress.class)))
-        .thenReturn(mChannel);
-    when(mChannel.pipeline()).thenReturn(mPipeline);
-    when(mPipeline.last()).thenReturn(new RPCMessageDecoder());
-    when(mPipeline.addLast(any(ChannelHandler.class))).thenReturn(mPipeline);
+    when(mContext.acquireBlockWorkerClient(any(WorkerNetAddress.class)))
+        .thenReturn(mWorkerClient);
+    mStreamObserver = PowerMockito.mock(ClientCallStreamObserver.class);
+    when(mWorkerClient.writeBlock(any(StreamObserver.class)))
+        .thenReturn(mStreamObserver);
+    when(mWorkerClient.openLocalBlock(any(StreamObserver.class)))
+        .thenReturn(mStreamObserver);
+    when(mStreamObserver.isReady()).thenReturn(true);
   }
 
   @Test
@@ -211,11 +214,17 @@ public final class AlluxioBlockStoreTest {
   @Test
   public void getOutStreamLocal() throws Exception {
     File file = File.createTempFile("test", ".tmp");
-    ProtoMessage message = new ProtoMessage(
-        Protocol.LocalBlockCreateResponse.newBuilder().setPath(file.getAbsolutePath()).build());
-    PowerMockito.mockStatic(NettyRPC.class);
-    when(NettyRPC.call(any(NettyRPCContext.class), any(ProtoMessage.class)))
-        .thenReturn(message);
+    CreateLocalBlockResponse response = CreateLocalBlockResponse.newBuilder()
+        .setPath(file.getAbsolutePath()).build();
+    when(mWorkerClient.createLocalBlock(any(StreamObserver.class)))
+        .thenAnswer(new Answer() {
+          public Object answer(InvocationOnMock invocation) {
+            StreamObserver<CreateLocalBlockResponse> observer =
+                invocation.getArgumentAt(0, StreamObserver.class);
+            observer.onNext(response);
+            return mStreamObserver;
+          }
+        });
 
     OutStreamOptions options = OutStreamOptions.defaults().setBlockSizeBytes(BLOCK_LENGTH)
         .setLocationPolicy(new MockFileWriteLocationPolicy(
@@ -240,11 +249,19 @@ public final class AlluxioBlockStoreTest {
 
   @Test
   public void getOutStreamWithReplicated() throws Exception {
-    PowerMockito.mockStatic(NettyRPC.class);
     File file = File.createTempFile("test", ".tmp");
-    ProtoMessage response = new ProtoMessage(
-        Protocol.LocalBlockCreateResponse.newBuilder().setPath(file.getAbsolutePath()).build());
-    when(NettyRPC.call(any(NettyRPCContext.class), any(ProtoMessage.class))).thenReturn(response);
+    CreateLocalBlockResponse response = CreateLocalBlockResponse.newBuilder()
+        .setPath(file.getAbsolutePath()).build();
+    when(mWorkerClient.createLocalBlock(any(StreamObserver.class)))
+        .thenAnswer(new Answer() {
+          public Object answer(InvocationOnMock invocation) {
+            StreamObserver<CreateLocalBlockResponse> observer =
+                invocation.getArgumentAt(0, StreamObserver.class);
+            observer.onNext(response);
+            return mStreamObserver;
+          }
+        });
+
     when(mMasterClient.getWorkerInfoList()).thenReturn(Lists
         .newArrayList(new alluxio.wire.WorkerInfo().setAddress(WORKER_NET_ADDRESS_LOCAL),
             new alluxio.wire.WorkerInfo().setAddress(WORKER_NET_ADDRESS_REMOTE)));
@@ -313,12 +330,18 @@ public final class AlluxioBlockStoreTest {
     WorkerNetAddress remote = new WorkerNetAddress().setHost("remote");
     WorkerNetAddress local = new WorkerNetAddress().setHost(WORKER_HOSTNAME_LOCAL);
 
-    // Mock away Netty usage.
-    ProtoMessage message = new ProtoMessage(
-        Protocol.LocalBlockOpenResponse.newBuilder().setPath("/tmp").build());
-    PowerMockito.mockStatic(NettyRPC.class);
-    when(NettyRPC.call(any(NettyRPCContext.class), any(ProtoMessage.class)))
-        .thenReturn(message);
+    // Mock away gRPC usage.
+    OpenLocalBlockResponse response = OpenLocalBlockResponse.newBuilder().setPath("/tmp").build();
+    when(mWorkerClient.openLocalBlock(any(StreamObserver.class)))
+            .thenAnswer(new Answer() {
+              public Object answer(InvocationOnMock invocation) {
+                StreamObserver<OpenLocalBlockResponse> observer =
+                        invocation.getArgumentAt(0, StreamObserver.class);
+                observer.onNext(response);
+                observer.onCompleted();
+                return mStreamObserver;
+              }
+            });
 
     BlockInfo info = new BlockInfo().setBlockId(BLOCK_ID).setLocations(Arrays
         .asList(new BlockLocation().setWorkerAddress(remote),
@@ -417,8 +440,8 @@ public final class AlluxioBlockStoreTest {
       workers[i] = new WorkerNetAddress().setHost(String.format("worker-%d", i));
     }
     workers[workers.length - 1] = new WorkerNetAddress().setHost(WORKER_HOSTNAME_LOCAL);
-    when(mContext.acquireNettyChannel(WORKER_NET_ADDRESS_LOCAL))
-        .thenThrow(new ConnectException("failed to connect to "
+    when(mContext.acquireBlockWorkerClient(WORKER_NET_ADDRESS_LOCAL))
+        .thenThrow(new UnavailableException("failed to connect to "
             + WORKER_NET_ADDRESS_LOCAL.getHost()));
     BlockInfo info = new BlockInfo().setBlockId(BLOCK_ID)
         .setLocations(Arrays.stream(blockLocations).mapToObj(x ->

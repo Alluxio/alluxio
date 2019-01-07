@@ -83,9 +83,9 @@ public class RemoteReadIntegrationTest extends BaseIntegrationTest {
   public static Collection<Object[]> data() {
     // creates a new instance of RemoteBlockInStreamTest for each network type
     List<Object[]> list = new ArrayList<>();
-    list.add(new Object[] {IntegrationTestConstants.NETTY_DATA_SERVER,
+    list.add(new Object[] {IntegrationTestConstants.GRPC_DATA_SERVER,
         IntegrationTestConstants.MAPPED_TRANSFER});
-    list.add(new Object[] {IntegrationTestConstants.NETTY_DATA_SERVER,
+    list.add(new Object[] {IntegrationTestConstants.GRPC_DATA_SERVER,
         IntegrationTestConstants.FILE_CHANNEL_TRANSFER});
     return list;
   }

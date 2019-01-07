@@ -6,7 +6,7 @@ package alluxio.grpc;
 /**
  * <pre>
  * The read/write request type. It can either be an Alluxio block operation or a UFS file operation.
- * next available id: 2
+ * next available id: 3
  * </pre>
  *
  * Protobuf enum {@code alluxio.grpc.RequestType}
