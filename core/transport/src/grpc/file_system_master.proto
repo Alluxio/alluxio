@@ -9,18 +9,18 @@ package alluxio.grpc.file;
 import "grpc/common.proto";
 
 enum WritePType {
-  WRITE_MUST_CACHE = 0;
-  WRITE_TRY_CACHE = 1;
-  WRITE_CACHE_THROUGH = 2;
-  WRITE_THROUGH = 3;
-  WRITE_ASYNC_THROUGH = 4;
-  WRITE_NONE = 5;
+  WRITE_MUST_CACHE = 1;
+  WRITE_TRY_CACHE = 2;
+  WRITE_CACHE_THROUGH = 3;
+  WRITE_THROUGH = 4;
+  WRITE_ASYNC_THROUGH = 5;
+  WRITE_NONE = 6;
 }
 
 enum ReadPType {
-  READ_NO_CACHE = 0;
-  READ_CACHE = 1;
-  READ_CACHE_PROMOTE = 2;
+  READ_NO_CACHE = 1;
+  READ_CACHE = 2;
+  READ_CACHE_PROMOTE = 3;
 }
 
 enum LoadMetadataPType {

@@ -9,31 +9,31 @@ package alluxio.grpc;
 public enum ReadPType
     implements com.google.protobuf.ProtocolMessageEnum {
   /**
-   * <code>READ_NO_CACHE = 0;</code>
+   * <code>READ_NO_CACHE = 1;</code>
    */
-  READ_NO_CACHE(0),
+  READ_NO_CACHE(1),
   /**
-   * <code>READ_CACHE = 1;</code>
+   * <code>READ_CACHE = 2;</code>
    */
-  READ_CACHE(1),
+  READ_CACHE(2),
   /**
-   * <code>READ_CACHE_PROMOTE = 2;</code>
+   * <code>READ_CACHE_PROMOTE = 3;</code>
    */
-  READ_CACHE_PROMOTE(2),
+  READ_CACHE_PROMOTE(3),
   ;
 
   /**
-   * <code>READ_NO_CACHE = 0;</code>
+   * <code>READ_NO_CACHE = 1;</code>
    */
-  public static final int READ_NO_CACHE_VALUE = 0;
+  public static final int READ_NO_CACHE_VALUE = 1;
   /**
-   * <code>READ_CACHE = 1;</code>
+   * <code>READ_CACHE = 2;</code>
    */
-  public static final int READ_CACHE_VALUE = 1;
+  public static final int READ_CACHE_VALUE = 2;
   /**
-   * <code>READ_CACHE_PROMOTE = 2;</code>
+   * <code>READ_CACHE_PROMOTE = 3;</code>
    */
-  public static final int READ_CACHE_PROMOTE_VALUE = 2;
+  public static final int READ_CACHE_PROMOTE_VALUE = 3;
 
 
   public final int getNumber() {
@@ -50,9 +50,9 @@ public enum ReadPType
 
   public static ReadPType forNumber(int value) {
     switch (value) {
-      case 0: return READ_NO_CACHE;
-      case 1: return READ_CACHE;
-      case 2: return READ_CACHE_PROMOTE;
+      case 1: return READ_NO_CACHE;
+      case 2: return READ_CACHE;
+      case 3: return READ_CACHE_PROMOTE;
       default: return null;
     }
   }

@@ -16,7 +16,7 @@ private static final long serialVersionUID = 0L;
     super(builder);
   }
   private OpenFilePOptions() {
-    readType_ = 0;
+    readType_ = 1;
     maxUfsReadConcurrency_ = 0;
     fileReadLocationPolicy_ = "";
     hashingNumberOfShards_ = 0;
@@ -482,7 +482,7 @@ private static final long serialVersionUID = 0L;
     }
     public Builder clear() {
       super.clear();
-      readType_ = 0;
+      readType_ = 1;
       bitField0_ = (bitField0_ & ~0x00000001);
       maxUfsReadConcurrency_ = 0;
       bitField0_ = (bitField0_ & ~0x00000002);
@@ -631,7 +631,7 @@ private static final long serialVersionUID = 0L;
     }
     private int bitField0_;
 
-    private int readType_ = 0;
+    private int readType_ = 1;
     /**
      * <code>optional .alluxio.grpc.file.ReadPType readType = 1;</code>
      */
@@ -662,7 +662,7 @@ private static final long serialVersionUID = 0L;
      */
     public Builder clearReadType() {
       bitField0_ = (bitField0_ & ~0x00000001);
-      readType_ = 0;
+      readType_ = 1;
       onChanged();
       return this;
     }

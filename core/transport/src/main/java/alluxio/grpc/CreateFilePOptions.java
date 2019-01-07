@@ -24,7 +24,7 @@ private static final long serialVersionUID = 0L;
     replicationDurable_ = 0;
     fileWriteLocationPolicy_ = "";
     writeTier_ = 0;
-    writeType_ = 0;
+    writeType_ = 1;
   }
 
   @java.lang.Override
@@ -685,7 +685,7 @@ private static final long serialVersionUID = 0L;
       bitField0_ = (bitField0_ & ~0x00000040);
       writeTier_ = 0;
       bitField0_ = (bitField0_ & ~0x00000080);
-      writeType_ = 0;
+      writeType_ = 1;
       bitField0_ = (bitField0_ & ~0x00000100);
       if (commonOptionsBuilder_ == null) {
         commonOptions_ = null;
@@ -1163,7 +1163,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
-    private int writeType_ = 0;
+    private int writeType_ = 1;
     /**
      * <code>optional .alluxio.grpc.file.WritePType writeType = 9;</code>
      */
@@ -1194,7 +1194,7 @@ private static final long serialVersionUID = 0L;
      */
     public Builder clearWriteType() {
       bitField0_ = (bitField0_ & ~0x00000100);
-      writeType_ = 0;
+      writeType_ = 1;
       onChanged();
       return this;
     }

@@ -84,21 +84,18 @@ public enum ReadType {
     return mValue == CACHE_PROMOTE.mValue;
   }
 
-  // TODO(ggezer) Eliminate below parsers/converters for ReadType
-  private static final String PROTOHEADER = "READ_";
-
   /**
    * @param readPType proto type
    * @return wire type for given proto type
    */
   public static ReadType fromProto(ReadPType readPType) {
-    return ReadType.valueOf(readPType.name().substring(PROTOHEADER.length()));
+    return ReadType.values()[readPType.getNumber() - 1];
   }
 
   /**
    * @return proto representation of this instance
    */
   public ReadPType toProto() {
-    return ReadPType.valueOf(PROTOHEADER + this.name());
+    return ReadPType.values()[mValue - 1];
   }
 }
