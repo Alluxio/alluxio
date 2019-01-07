@@ -328,9 +328,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
 
   @Override
   public short getDefaultReplication() {
-    // TODO(ggezer) remove method.
-    //return (short) Math.max(1, FileSystemClientOptions.getCreateFileOptions().getReplicationMin()
-    return 1;
+    return (short) Math.max(1, Configuration.getInt(PropertyKey.USER_FILE_REPLICATION_MIN));
   }
 
   @Override
