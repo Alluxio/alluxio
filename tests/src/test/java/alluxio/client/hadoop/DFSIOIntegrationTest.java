@@ -103,8 +103,8 @@ public class DFSIOIntegrationTest extends BaseIntegrationTest implements Tool {
         @Override
         public void evaluate() throws Throwable {
           String hadoopVersion = System.getProperty("alluxio.hadoop.version");
-          if (hadoopVersion.startsWith("2.4") || hadoopVersion.startsWith("2.5")
-              || hadoopVersion.startsWith("2.6")) {
+          if (hadoopVersion != null && (hadoopVersion.startsWith("2.4")
+              || hadoopVersion.startsWith("2.5") || hadoopVersion.startsWith("2.6"))) {
             throw new AssumptionViolatedException("Hadoop version not supported. Skipping test!");
           } else {
             base.evaluate();
