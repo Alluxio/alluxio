@@ -45,7 +45,7 @@
             </goals>
             <phase>generate-sources</phase>
             <configuration>
-              <arguments>install --unsafe-perm</arguments>
+              <arguments>install</arguments>
             </configuration>
           </execution>
         </executions>
@@ -88,7 +88,6 @@
               <arguments>
                 <argument>node_modules/.bin/lerna</argument>
                 <argument>bootstrap</argument>
-                <argument>-- --unsafe-perm</argument>
               </arguments>
             </configuration>
           </execution>
@@ -104,7 +103,6 @@
                 <argument>node_modules/.bin/lerna</argument>
                 <argument>run</argument>
                 <argument>build</argument>
-                <argument>-- --unsafe-perm</argument>
               </arguments>
             </configuration>
           </execution>
