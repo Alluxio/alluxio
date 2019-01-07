@@ -163,7 +163,6 @@ public class AlluxioURITest {
     AlluxioURI uri =
         new AlluxioURI("alluxio://host1:526+host2:54325+host3:624/xy z/a b c");
     assertTrue(uri.hasAuthority());
-    assertEquals("host1:526+host2:54325+host3:624", uri.getAuthority().toString());
     assertTrue(uri.getAuthority() instanceof MultiMasterAuthority);
     MultiMasterAuthority authority = (MultiMasterAuthority) uri.getAuthority();
     assertEquals("host1:526,host2:54325,host3:624", authority.getMasterAddresses());
