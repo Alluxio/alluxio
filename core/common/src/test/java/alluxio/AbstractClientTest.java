@@ -68,7 +68,7 @@ public final class AbstractClientTest {
     client.connect();
   }
 
-  // TODO(ggezer) Fix after gRPC initialization
+  // TODO(ggezer) Fix
   // @Test
   public void unsupportedVersion() throws Exception {
     //mExpectedException.expect(IOException.class);
@@ -79,7 +79,7 @@ public final class AbstractClientTest {
     client.close();
   }
 
-  // TODO(ggezer) Fix after gRPC initialization
+  // TODO(ggezer) Fix
   // @Test
   public void supportedVersion() throws Exception {
     final AbstractClient client = mock(BaseTestClient.class);

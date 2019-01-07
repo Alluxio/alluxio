@@ -129,7 +129,7 @@ public final class MoveDefinitionRunTaskTest {
    */
   @Test
   @Ignore
-  // TODO(ggezer) Fix matching for proto type.
+  // TODO(ggezer) Fix.
   public void writeTypeTest() throws Exception {
     runTask(TEST_SOURCE, TEST_SOURCE, TEST_DESTINATION, WriteType.CACHE_THROUGH);
     verify(mMockFileSystem).createFile(eq(new AlluxioURI(TEST_DESTINATION)), Matchers

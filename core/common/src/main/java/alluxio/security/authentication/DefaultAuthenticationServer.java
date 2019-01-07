@@ -56,7 +56,7 @@ public class DefaultAuthenticationServer
   protected final ScheduledExecutorService mScheduler;
 
   /** Interval for clean-up task to fire. */
-  // TODO(gezer) make it configurable.
+  // TODO(ggezer) make it configurable.
   protected final long mCleanupIntervalHour = 1L;
 
   /**
