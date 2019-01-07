@@ -114,6 +114,13 @@ If the leader master fails, a standby master will automatically be chosen to tak
 new leader. Once the new leader starts serving, Alluxio clients and workers proceed as usual. Note
 that during the failover to a standby master, clients may experience brief delays or transient errors.
 
+Alluxio can either use an embedded journal or UFS-based journal for maintaining state across restarts. 
+The embedded journal comes with its own leader election, while UFS journaling relies on Zookeeper for leader election. 
+This guide discusses how to run Alluxio with a UFS-based journal and Zookeeper. 
+See [this doc]({{ '/en/operation/Journal.html' | relativize_url }}#Embedded-Journal-Configuration).
+for documentation on how to use the embedded journal. The embedded journal is appropriate when no fast, 
+non-object storage such as HDFS or NFS is available, or no Zookeeper cluster is available.
+
 ### Prerequisites
 
 * Multiple master nodes, and 1 or more worker nodes
