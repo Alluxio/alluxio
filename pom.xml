@@ -1173,6 +1173,7 @@
             <exclude>**/dev/scripts/vendor/**</exclude>
             <exclude>**/dev/scripts/src/vendor/**</exclude>
             <exclude>**/vagrant/**/*</exclude>
+            <exclude>**/\?/.java/**/*</exclude>
 
             <!-- Build and Packaging Exclusions -->
             <exclude>build/**/*</exclude>
