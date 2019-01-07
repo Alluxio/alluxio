@@ -57,7 +57,7 @@ public class DefaultAuthenticationServer
 
   /** Interval for clean-up task to fire. */
   protected final long mCleanupIntervalMs =
-      Configuration.getMs(PropertyKey.MASTER_GRPC_SERVER_SHUTDOWN_TIMEOUT);
+      Configuration.getMs(PropertyKey.AUTHENTICATION_STALE_CHANNEL_PURGE_INTERVAL);
 
   /**
    * Creates {@link DefaultAuthenticationServer} instance.
