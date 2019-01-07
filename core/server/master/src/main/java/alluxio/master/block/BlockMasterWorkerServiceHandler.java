@@ -80,7 +80,6 @@ public final class BlockMasterWorkerServiceHandler
               .setCommand(mBlockMaster.workerHeartbeat(workerId, usedBytesOnTiers, removedBlockIds,
                   addedBlocksOnTiersMap, metrics))
               .build();
-          // TODO(ggezer) Check if output of request type is intelligible enough.
         }, "blockHeartbeat", "request=%s", responseObserver, request);
   }
 
