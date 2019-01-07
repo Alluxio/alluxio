@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 #
 # The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
 # (the "License"). You may not use this work except in compliance with the License, which is
@@ -9,16 +10,15 @@
 # See the NOTICE file distributed with this work for information regarding copyright ownership.
 #
 
-# See https://hub.docker.com/r/alluxio/alluxio-maven for instructions on running the image.
+#
+# This script is run from inside the Docker container
+#
+set -e
 
-FROM maven:3.5.4-jdk-8
+# Set things up so that the current user has a real name and can authenticate.
+myuid=$(id -u)
+mygid=$(id -g)
+echo "$myuid:x:$myuid:$mygid:anonymous uid:/home/jenkins:/bin/false" >> /etc/passwd
 
-# need to create /.config to avoid npm errors
-RUN mkdir -p /home/jenkins && \
-    chmod -R 777 /home/jenkins && \
-    chmod g+w /etc/passwd && \
-    mkdir -p /.config && \
-    chmod -R 777 /.config && \
-    apt-get update -y && \
-    apt-get install -y golang-go ruby ruby-dev make build-essential fuse && \
-    gem install jekyll bundler
+git clean -fdx
+mvn -Duser.home=/home/jenkins -T 4C clean install -PcompileJsp -Pdeveloper -Dmaven.javadoc.skip -Dsurefire.forkCount=8
