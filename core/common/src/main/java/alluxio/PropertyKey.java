@@ -3063,6 +3063,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.CLIENT)
           .build();
+  public static final PropertyKey AUTHENTICATION_STALE_CHANNEL_PURGE_INTERVAL =
+      new Builder(Name.AUTHENTICATION_STALE_CHANNEL_PURGE_INTERVAL)
+          .setDefaultValue("60min")
+          .setDescription("Interval at which stale channels will be removed from "
+              + "authentication cache.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
 
   //
   // Mesos and Yarn related properties
@@ -3860,6 +3868,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String SECURITY_LOGIN_IMPERSONATION_USERNAME =
         "alluxio.security.login.impersonation.username";
     public static final String SECURITY_LOGIN_USERNAME = "alluxio.security.login.username";
+    public static final String AUTHENTICATION_STALE_CHANNEL_PURGE_INTERVAL =
+        "alluxio.security.purge.interval";
 
     //
     // Job service
