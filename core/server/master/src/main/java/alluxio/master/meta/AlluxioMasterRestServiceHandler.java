@@ -324,7 +324,7 @@ public final class AlluxioMasterRestServiceHandler {
   @ReturnType("alluxio.wire.MasterWebUIBrowse")
   public Response getWebUIBrowse(@DefaultValue("/") @QueryParam("path") String requestPath,
       @DefaultValue("0") @QueryParam("offset") String requestOffset,
-      @QueryParam("end") String requestEnd,
+      @DefaultValue("") @QueryParam("end") String requestEnd,
       @DefaultValue("20") @QueryParam("limit") String requestLimit) {
     return RestUtils.call(() -> {
       MasterWebUIBrowse response = new MasterWebUIBrowse();
@@ -367,7 +367,7 @@ public final class AlluxioMasterRestServiceHandler {
           }
           // If no param "end" presents, the offset is relative to the beginning; otherwise, it is
           // relative to the end of the file.
-          if (requestEnd == null) {
+          if (requestEnd.equals("")) {
             offset = relativeOffset;
           } else {
             offset = fileInfo.getLength() - relativeOffset;
@@ -601,7 +601,7 @@ public final class AlluxioMasterRestServiceHandler {
   @ReturnType("alluxio.wire.MasterWebUILogs")
   public Response getWebUILogs(@DefaultValue("") @QueryParam("path") String requestPath,
       @DefaultValue("0") @QueryParam("offset") String requestOffset,
-      @QueryParam("end") String requestEnd,
+      @DefaultValue("") @QueryParam("end") String requestEnd,
       @DefaultValue("20") @QueryParam("limit") String requestLimit) {
     return RestUtils.call(() -> {
       FilenameFilter filenameFilter = (dir, name) -> name.toLowerCase().endsWith(".log");
@@ -679,7 +679,7 @@ public final class AlluxioMasterRestServiceHandler {
           String endParam = requestEnd;
           // If no param "end" presents, the offset is relative to the beginning; otherwise, it is
           // relative to the end of the file.
-          if (endParam == null) {
+          if (endParam.equals("")) {
             offset = relativeOffset;
           } else {
             offset = fileSize - relativeOffset;
