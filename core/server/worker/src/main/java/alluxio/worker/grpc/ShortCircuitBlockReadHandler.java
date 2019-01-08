@@ -65,7 +65,7 @@ class ShortCircuitBlockReadHandler implements StreamObserver<OpenLocalBlockReque
    */
   @Override
   public void onNext(OpenLocalBlockRequest request) {
-    RpcUtils.nettyRPCAndLog(LOG, new RpcUtils.NettyRpcCallable<OpenLocalBlockResponse>() {
+    RpcUtils.streamingRPCAndLog(LOG, new RpcUtils.StreamingRpcCallable<OpenLocalBlockResponse>() {
       @Override
       public OpenLocalBlockResponse call() throws Exception {
         Preconditions.checkState(mRequest == null);
@@ -131,7 +131,7 @@ class ShortCircuitBlockReadHandler implements StreamObserver<OpenLocalBlockReque
    */
   @Override
   public void onCompleted() {
-    RpcUtils.nettyRPCAndLog(LOG, new RpcUtils.NettyRpcCallable<OpenLocalBlockResponse>() {
+    RpcUtils.streamingRPCAndLog(LOG, new RpcUtils.StreamingRpcCallable<OpenLocalBlockResponse>() {
       @Override
       public OpenLocalBlockResponse call() throws Exception {
         if (mLockId != BlockLockManager.INVALID_LOCK_ID) {

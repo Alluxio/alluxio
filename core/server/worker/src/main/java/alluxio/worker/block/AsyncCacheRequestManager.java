@@ -120,7 +120,7 @@ public class AsyncCacheRequestManager {
       });
     } catch (Exception e) {
       // RuntimeExceptions (e.g. RejectedExecutionException) may be thrown in extreme cases when the
-      // netty thread pool is drained due to highly concurrent caching workloads. In these cases,
+      // gRPC thread pool is drained due to highly concurrent caching workloads. In these cases,
       // return as async caching is at best effort.
       LOG.warn("Failed to submit async cache request.\n{}\nError: {}", request, e);
       ASYNC_CACHE_FAILED_BLOCKS.inc();

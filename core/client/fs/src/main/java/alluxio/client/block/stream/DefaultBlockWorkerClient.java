@@ -135,13 +135,13 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
   @Override
   public RemoveBlockResponse removeBlock(final RemoveBlockRequest request) {
     return mBlockingStub.withDeadlineAfter(
-        Configuration.getMs(PropertyKey.USER_NETWORK_NETTY_TIMEOUT_MS), TimeUnit.MILLISECONDS)
+        Configuration.getMs(PropertyKey.USER_NETWORK_DATA_TIMEOUT_MS), TimeUnit.MILLISECONDS)
         .removeBlock(request);
   }
 
   @Override
   public void asyncCache(final AsyncCacheRequest request) {
-    mAsyncStub.withDeadlineAfter(Configuration.getMs(PropertyKey.USER_NETWORK_NETTY_TIMEOUT_MS),
+    mAsyncStub.withDeadlineAfter(Configuration.getMs(PropertyKey.USER_NETWORK_DATA_TIMEOUT_MS),
         TimeUnit.MILLISECONDS).asyncCache(request, new StreamObserver<AsyncCacheResponse>() {
           @Override
           public void onNext(AsyncCacheResponse value) {

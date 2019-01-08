@@ -19,8 +19,9 @@ import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * Represents the context of a read request received from netty channel. This class serves the
- * shared states of the request and can be accessed concurrently by the netty thread and I/O thread.
+ * Represents the context of a read request received from gRPC stream. This class serves the
+ * shared states of the request and can be accessed concurrently by the gRPC event thread and
+ * I/O thread.
  *
  * @param <T> type of read request
  */
@@ -37,12 +38,9 @@ public class ReadRequestContext<T extends ReadRequest> {
    */
   private boolean mDataReaderActive;
   /**
-   * The next pos to queue to the netty buffer. mPosToQueue - mPosToWrite is the bytes that are
-   * in netty buffer.
+   * The next pos to queue to the read buffer.
    */
   private long mPosToQueue;
-  /** The next pos to write to the channel. */
-  private long mPosToWrite;
 
   /**
    * mEof, mCancel and mError are the notifications processed by the data reader thread. They can
@@ -60,7 +58,7 @@ public class ReadRequestContext<T extends ReadRequest> {
    *    released. So it is impossible for a CANCEL request from one read request to cancel
    *    another read request.
    * 3. mError: mError is set whenever an error occurs. It can be from an exception when reading
-   *    data, or writing data to netty or the client closes the channel etc. An ERROR response
+   *    data, or writing data to stream or the client closes the channel etc. An ERROR response
    *    is optionally sent to the client when data reader thread process mError. The channel
    *    is closed after this error response is sent.
    *
@@ -84,7 +82,6 @@ public class ReadRequestContext<T extends ReadRequest> {
   public ReadRequestContext(T request) {
     mRequest = request;
     mPosToQueue = 0;
-    mPosToWrite = 0;
     mDataReaderActive = false;
     mEof = false;
     mCancel = false;
@@ -108,19 +105,11 @@ public class ReadRequestContext<T extends ReadRequest> {
   }
 
   /**
-   * @return the next position to queue to the netty buffer
+   * @return the next position to queue to the read buffer
    */
   @GuardedBy("AbstractReadHandler#mLock")
   public long getPosToQueue() {
     return mPosToQueue;
-  }
-
-  /**
-   * @return the next position to write to the channel
-   */
-  @GuardedBy("AbstractReadHandler#mLock")
-  public long getPosToWrite() {
-    return mPosToWrite;
   }
 
   /**
@@ -185,14 +174,6 @@ public class ReadRequestContext<T extends ReadRequest> {
   @GuardedBy("AbstractReadHandler#mLock")
   public void setPosToQueue(long posToQueue) {
     mPosToQueue = posToQueue;
-  }
-
-  /**
-   * @param posToWrite the next pos to write to the channel to set
-   */
-  @GuardedBy("AbstractReadHandler#mLock")
-  public void setPosToWrite(long posToWrite) {
-    mPosToWrite = posToWrite;
   }
 
   /**

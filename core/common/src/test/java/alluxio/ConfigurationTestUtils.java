@@ -119,7 +119,7 @@ public final class ConfigurationTestUtils {
 
     // Shutdown data server quickly. Graceful shutdown is unnecessarily slow.
     conf.put(PropertyKey.WORKER_NETWORK_NETTY_SHUTDOWN_QUIET_PERIOD, "0ms");
-    conf.put(PropertyKey.WORKER_NETWORK_NETTY_SHUTDOWN_TIMEOUT, "0ms");
+    conf.put(PropertyKey.WORKER_NETWORK_SHUTDOWN_TIMEOUT, "0ms");
 
     conf.put(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_ALIAS.format(0), "MEM");
     conf.put(PropertyKey.USER_RPC_RETRY_MAX_DURATION, "1s");

@@ -61,7 +61,7 @@ public final class UfsFallbackLocalFileDataWriter implements DataWriter {
       LOG.warn("Fallback to create new block {} in UFS due to a failure of insufficient space on "
           + "the local worker: {}", blockId, e.getMessage());
     }
-    // Failed to create the local writer due to insufficient space, fallback to netty data writer
+    // Failed to create the local writer due to insufficient space, fallback to gRPC data writer
     // directly
     GrpcDataWriter grpcDataWriter = GrpcDataWriter
         .create(context, address, blockId, blockSize, RequestType.UFS_FALLBACK_BLOCK,

@@ -69,7 +69,7 @@ public interface DataWriter extends Closeable, Cancelable {
         LOG.debug("Creating short circuit output stream for block {} @ {}", blockId, address);
         return LocalFileDataWriter.create(context, address, blockId, options);
       } else {
-        LOG.debug("Creating netty output stream for block {} @ {} from client {}", blockId, address,
+        LOG.debug("Creating gRPC output stream for block {} @ {} from client {}", blockId, address,
             NetworkAddressUtils.getClientHostName());
         return GrpcDataWriter
             .create(context, address, blockId, blockSize, RequestType.ALLUXIO_BLOCK,

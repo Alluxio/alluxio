@@ -35,8 +35,6 @@ import alluxio.wire.WorkerNetAddress;
 
 import com.codahale.metrics.Gauge;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.MoreObjects;
-import com.google.common.base.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -497,45 +495,5 @@ public final class FileSystemContext implements Closeable {
     }
 
     private Metrics() {} // prevent instantiation
-  }
-
-  /**
-   * Key for Netty channel pools. This requires both the worker address and the username, so that
-   * netty channels are created for different users.
-   */
-  private static final class ChannelPoolKey {
-    private final SocketAddress mSocketAddress;
-    private final String mUsername;
-
-    public ChannelPoolKey(SocketAddress socketAddress, String username) {
-      mSocketAddress = socketAddress;
-      mUsername = username;
-    }
-
-    @Override
-    public int hashCode() {
-      return Objects.hashCode(mSocketAddress, mUsername);
-    }
-
-    @Override
-    public boolean equals(Object o) {
-      if (this == o) {
-        return true;
-      }
-      if (!(o instanceof ChannelPoolKey)) {
-        return false;
-      }
-      ChannelPoolKey that = (ChannelPoolKey) o;
-      return Objects.equal(mSocketAddress, that.mSocketAddress)
-          && Objects.equal(mUsername, that.mUsername);
-    }
-
-    @Override
-    public String toString() {
-      return MoreObjects.toStringHelper(this)
-          .add("socketAddress", mSocketAddress)
-          .add("username", mUsername)
-          .toString();
-    }
   }
 }

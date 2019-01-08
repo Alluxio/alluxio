@@ -32,7 +32,7 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * Netty handler that handles short circuit read requests.
+ * A handler that handles short circuit read requests.
  */
 @NotThreadSafe
 class ShortCircuitBlockWriteHandler implements StreamObserver<CreateLocalBlockRequest> {
@@ -69,7 +69,7 @@ class ShortCircuitBlockWriteHandler implements StreamObserver<CreateLocalBlockRe
   @Override
   public void onNext(CreateLocalBlockRequest request) {
     final String methodName = request.getOnlyReserveSpace() ? "ReserveSpace" : "CreateBlock";
-    RpcUtils.nettyRPCAndLog(LOG, new RpcUtils.NettyRpcCallable<CreateLocalBlockResponse>() {
+    RpcUtils.streamingRPCAndLog(LOG, new RpcUtils.StreamingRpcCallable<CreateLocalBlockResponse>() {
       @Override
       public CreateLocalBlockResponse call() throws Exception {
         if (request.getOnlyReserveSpace()) {
@@ -144,7 +144,7 @@ class ShortCircuitBlockWriteHandler implements StreamObserver<CreateLocalBlockRe
    */
   public void handleBlockCompleteRequest(boolean isCanceled) {
     final String methodName = isCanceled ? "AbortBlock" : "CommitBlock";
-    RpcUtils.nettyRPCAndLog(LOG, new RpcUtils.NettyRpcCallable<CreateLocalBlockResponse>() {
+    RpcUtils.streamingRPCAndLog(LOG, new RpcUtils.StreamingRpcCallable<CreateLocalBlockResponse>() {
         @Override
         public CreateLocalBlockResponse call() throws Exception {
           if (mRequest == null) {

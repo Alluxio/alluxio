@@ -21,8 +21,12 @@ import alluxio.util.network.NettyUtils;
 import alluxio.worker.DataServer;
 import alluxio.worker.WorkerProcess;
 
+import io.netty.buffer.PooledByteBufAllocator;
+import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.ServerChannel;
+import io.netty.channel.epoll.EpollChannelOption;
+import io.netty.channel.epoll.EpollMode;
 import io.netty.channel.unix.DomainSocketAddress;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -90,10 +94,20 @@ public final class GrpcDataServer implements DataServer {
             true);
     Class<? extends ServerChannel> socketChannelClass = NettyUtils.getServerChannelClass(
         mSocketAddress instanceof DomainSocketAddress);
+    if (type == ChannelType.EPOLL) {
+      builder.withChildOption(EpollChannelOption.EPOLL_MODE, EpollMode.LEVEL_TRIGGERED);
+    }
     return builder
         .bossEventLoopGroup(mBossGroup)
         .workerEventLoopGroup(mWorkerGroup)
-        .channelType(socketChannelClass);
+        .channelType(socketChannelClass)
+        .withChildOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
+        // set write buffer
+        // this is the default, but its recommended to set it in case of change in future netty.
+        .withChildOption(ChannelOption.WRITE_BUFFER_HIGH_WATER_MARK,
+            (int) Configuration.getBytes(PropertyKey.WORKER_NETWORK_NETTY_WATERMARK_HIGH))
+        .withChildOption(ChannelOption.WRITE_BUFFER_LOW_WATER_MARK,
+            (int) Configuration.getBytes(PropertyKey.WORKER_NETWORK_NETTY_WATERMARK_LOW));
   }
 
   @Override

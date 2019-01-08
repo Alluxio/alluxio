@@ -19,6 +19,7 @@ import io.grpc.ServerInterceptor;
 import io.grpc.ServerInterceptors;
 import io.grpc.ServerServiceDefinition;
 import io.grpc.netty.NettyServerBuilder;
+import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.ServerChannel;
 
@@ -90,6 +91,18 @@ public final class GrpcServerBuilder {
    */
   public GrpcServerBuilder channelType(Class<? extends ServerChannel> channelType) {
     mNettyServerBuilder = mNettyServerBuilder.channelType(channelType);
+    return this;
+  }
+
+  /**
+   * Sets a netty channel option.
+   *
+   * @param option the option to be set
+   * @param value the new value
+   * @return an updated instance of this {@link GrpcServerBuilder}
+   */
+  public <T> GrpcServerBuilder withChildOption(ChannelOption<T> option, T value) {
+    mNettyServerBuilder = mNettyServerBuilder.withChildOption(option, value);
     return this;
   }
 
