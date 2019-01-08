@@ -100,7 +100,7 @@ public class GrpcBlockingStream<ReqT, ResT> {
         try {
           if (!mReadyOrFailed.await(timeoutMs, TimeUnit.MILLISECONDS)) {
             throw new DeadlineExceededException(
-                String.format("Timeout sending request %s after %dms.", request, timeoutMs));
+                formatErrorMessage("Timeout sending request %s after %dms.", request, timeoutMs));
           }
         } catch (InterruptedException e) {
           Thread.currentThread().interrupt();
