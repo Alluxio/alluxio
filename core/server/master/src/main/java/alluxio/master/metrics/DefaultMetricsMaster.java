@@ -20,8 +20,8 @@ import alluxio.grpc.ServiceType;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.heartbeat.HeartbeatThread;
-import alluxio.master.AbstractMaster;
-import alluxio.master.MasterContext;
+import alluxio.master.CoreMaster;
+import alluxio.master.CoreMasterContext;
 import alluxio.metrics.ClientMetrics;
 import alluxio.metrics.Metric;
 import alluxio.metrics.MetricsAggregator;
@@ -53,7 +53,7 @@ import java.util.Set;
 /**
  * Default implementation of the metrics master.
  */
-public class DefaultMetricsMaster extends AbstractMaster implements MetricsMaster {
+public class DefaultMetricsMaster extends CoreMaster implements MetricsMaster {
   private final Map<String, MetricsAggregator> mMetricsAggregatorRegistry = new HashMap<>();
   private final Set<MultiValueMetricsAggregator> mMultiValueMetricsAggregatorRegistry =
       new HashSet<>();
@@ -65,7 +65,7 @@ public class DefaultMetricsMaster extends AbstractMaster implements MetricsMaste
    *
    * @param masterContext the context for metrics master
    */
-  DefaultMetricsMaster(MasterContext masterContext) {
+  DefaultMetricsMaster(CoreMasterContext masterContext) {
     this(masterContext, new SystemClock(),
         ExecutorServiceFactories.cachedThreadPool(Constants.METRICS_MASTER_NAME));
   }
@@ -78,7 +78,7 @@ public class DefaultMetricsMaster extends AbstractMaster implements MetricsMaste
    * @param executorServiceFactory a factory for creating the executor service to use for running
    *        maintenance threads
    */
-  DefaultMetricsMaster(MasterContext masterContext, Clock clock,
+  DefaultMetricsMaster(CoreMasterContext masterContext, Clock clock,
       ExecutorServiceFactory executorServiceFactory) {
     super(masterContext, clock, executorServiceFactory);
     mMetricsStore = new MetricsStore();

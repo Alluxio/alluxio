@@ -401,7 +401,7 @@ start_monitor() {
 run_safe() {
   while [ 1 ]
   do
-    RUN=$(ps -ef | grep "alluxio.master.AlluxioMaster" | grep "java" | awk '{ print $1; }')
+    RUN=$(ps -ef | grep "alluxio.master.AlluxioMaster" | grep "java" | wc | awk '{ print $1; }')
     if [[ ${RUN} -eq 0 ]]; then
       echo "Restarting the system master..."
       start_master
@@ -517,7 +517,12 @@ main() {
     local)
       start_master "${FORMAT}"
       ALLUXIO_MASTER_SECONDARY=true
-      start_master
+      # We only start a secondary master when using a UFS journal.
+      local journal_type=$(${BIN}/alluxio getConf ${ALLUXIO_MASTER_JAVA_OPTS} \
+                           alluxio.master.journal.type | awk '{print toupper($0)}')
+      if [[ ${journal_type} == "UFS" ]]; then
+          start_master
+      fi
       ALLUXIO_MASTER_SECONDARY=false
       start_job_master
       sleep 2

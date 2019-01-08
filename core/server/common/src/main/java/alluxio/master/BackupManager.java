@@ -28,6 +28,7 @@ import java.io.OutputStream;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 /**
  * Manages creating and restoring from backups.
@@ -36,6 +37,15 @@ import java.util.Map;
  */
 public class BackupManager {
   private static final Logger LOG = LoggerFactory.getLogger(BackupManager.class);
+
+  /**
+   * The name format of the backup files (E.g., alluxio-backup-2018-12-14-1544749081561.gz).
+   * The first value is the current local date of UTC time zone. The second value is
+   * the number of milliseconds from the epoch of 1970-01-01T00:00:00Z to the current time.
+   */
+  public static final String BACKUP_FILE_FORMAT = "alluxio-backup-%s-%s.gz";
+  public static final Pattern BACKUP_FILE_PATTERN
+      = Pattern.compile("alluxio-backup-[0-9]+-[0-9]+-[0-9]+-([0-9]+).gz");
 
   private final MasterRegistry mRegistry;
 

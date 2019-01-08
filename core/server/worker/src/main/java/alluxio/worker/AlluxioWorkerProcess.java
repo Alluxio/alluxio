@@ -15,7 +15,6 @@ import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
-import alluxio.ServiceUtils;
 import alluxio.grpc.GrpcServer;
 import alluxio.grpc.GrpcServerBuilder;
 import alluxio.grpc.GrpcService;
@@ -49,6 +48,7 @@ import java.net.ServerSocket;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.ServiceLoader;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeoutException;
@@ -108,7 +108,8 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
       mUfsManager = new WorkerUfsManager();
       mRegistry = new WorkerRegistry();
       List<Callable<Void>> callables = new ArrayList<>();
-      for (final WorkerFactory factory : ServiceUtils.getWorkerServiceLoader()) {
+      for (final WorkerFactory factory : ServiceLoader.load(WorkerFactory.class,
+          WorkerFactory.class.getClassLoader())) {
         callables.add(() -> {
           if (factory.isEnabled()) {
             factory.create(mRegistry, mUfsManager);

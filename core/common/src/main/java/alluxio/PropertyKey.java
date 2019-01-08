@@ -853,6 +853,20 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
+  public static final PropertyKey UNDERFS_KODO_REQUESTS_MAX =
+      new Builder(Name.UNDERFS_KODO_REQUESTS_MAX)
+          .setDefaultValue(64)
+          .setDescription("The maximum number of kodo connections.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_KODO_CONNECT_TIMEOUT =
+      new Builder(Name.UNDERFS_KODO_CONNECT_TIMEOUT)
+          .setDefaultValue("50sec")
+          .setDescription("The connect timeout of kodo.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
 
   //
   // UFS access control related properties
@@ -985,6 +999,31 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey KODO_ACCESS_KEY =
+      new Builder(Name.KODO_ACCESS_KEY)
+          .setDescription("The access key of Kodo bucket.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey KODO_SECRET_KEY =
+      new Builder(Name.KODO_SECRET_KEY)
+          .setDescription("The secret key of Kodo bucket.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .setDisplayType(DisplayType.CREDENTIALS)
+          .build();
+  public static final PropertyKey KODO_DOWNLOAD_HOST =
+      new Builder(Name.KODO_DOWNLOAD_HOST)
+          .setDescription("The download domain of Kodo bucket.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey KODO_ENDPOINT =
+      new Builder(Name.KODO_ENDPOINT)
+          .setDescription("The endpoint of Kodo bucket.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
 
   //
   // Mount table related properties
@@ -1045,10 +1084,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey MASTER_BACKUP_DIRECTORY =
       new Builder(Name.MASTER_BACKUP_DIRECTORY)
           .setDefaultValue("/alluxio_backups")
-          .setDescription("Default directory for writing master metadata backups. This path is"
-              + " relative to the root directory of the root UFS. For example, if the root ufs"
-              + " directory is hdfs://cluster/alluxio/data, the default backup directory will be"
-              + " hdfs://cluster/alluxio_backups")
+          .setDescription("Default directory for writing master metadata backups. This path is "
+              + "an absolute path of the root UFS. For example, if the root ufs "
+              + "directory is hdfs://host:port/alluxio/data, the default backup directory will be "
+              + "hdfs://host:port/alluxio_backups.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
@@ -1082,6 +1121,75 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "A value of 0 means never timeout")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_DAILY_BACKUP_ENABLED =
+      new Builder(Name.MASTER_DAILY_BACKUP_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("Whether or not to enable daily primary master "
+              + "metadata backup.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_DAILY_BACKUP_FILES_RETAINED =
+      new Builder(Name.MASTER_DAILY_BACKUP_FILES_RETAINED)
+          .setDefaultValue(3)
+          .setDescription("The maximum number of backup files to keep in the backup directory.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_DAILY_BACKUP_TIME =
+      new Builder(Name.MASTER_DAILY_BACKUP_TIME)
+          .setDefaultValue("05:00")
+          .setDescription("Default UTC time for writing daily master metadata backups. "
+              + "The accepted time format is hour:minute which is based on a 24-hour clock "
+              + "(E.g., 05:30, 06:00, and 22:04). "
+              + "Backing up metadata requires a pause in master metadata changes, "
+              + "so please set this value to an off-peak time "
+              + "to avoid interfering with other users of the system.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_EMBEDDED_JOURNAL_ADDRESSES =
+      new Builder(Name.MASTER_EMBEDDED_JOURNAL_ADDRESSES)
+          .setDescription("A comma-separated list of journal addresses for all masters in the "
+              + "cluster. The format is 'hostname1:port1,hostname2:port2,...'. Required when using "
+              + "the embedded journal")
+          .setDefaultValue(String.format("localhost:${%s}", Name.MASTER_EMBEDDED_JOURNAL_PORT))
+          .build();
+  public static final PropertyKey MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT =
+      new Builder(Name.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT)
+          .setDescription(
+              "The election timeout for the embedded journal. When this period elapses without a "
+                  + "master receiving any messages, the master will attempt to become the primary.")
+          .setDefaultValue("5s")
+          .build();
+  public static final PropertyKey MASTER_EMBEDDED_JOURNAL_HEARTBEAT_INTERVAL =
+      new Builder(Name.MASTER_EMBEDDED_JOURNAL_HEARTBEAT_INTERVAL)
+          .setDescription(
+              "The period between sending heartbeats from the embedded journal primary to "
+                  + "followers. This should be less than half of the election timeout "
+                  + "(alluxio.master.embedded.journal.election.timeout).")
+          .setDefaultValue("1s")
+          .build();
+  public static final PropertyKey MASTER_EMBEDDED_JOURNAL_PORT =
+      new Builder(Name.MASTER_EMBEDDED_JOURNAL_PORT)
+          .setDescription("The port to use for embedded journal communication with other masters.")
+          .setDefaultValue(19200)
+          .build();
+  public static final PropertyKey MASTER_EMBEDDED_JOURNAL_STORAGE_LEVEL =
+      new Builder(Name.MASTER_EMBEDDED_JOURNAL_STORAGE_LEVEL)
+          .setDescription("The storage level for storing embedded journal logs. Use DISK for "
+              + "maximum durability. Use MAPPED for better performance, but some risk of "
+              + "losing state in case of power loss or host failure. Use MEMORY for "
+              + "optimal performance, but no state persistence across cluster restarts.")
+          .setDefaultValue("DISK")
+          .build();
+  public static final PropertyKey MASTER_RPC_ADDRESSES =
+      new Builder(Name.MASTER_RPC_ADDRESSES).setDescription(
+          "A list of comma-separated host:port RPC addresses where the client should look for "
+              + "masters when using multiple masters without Zookeeper. This property is not "
+              + "used when Zookeeper is enabled, since Zookeeper already stores the master "
+              + "addresses.")
           .build();
   public static final PropertyKey MASTER_FILE_ASYNC_PERSIST_HANDLER =
       new Builder(Name.MASTER_FILE_ASYNC_PERSIST_HANDLER)
@@ -1154,7 +1262,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey MASTER_JOURNAL_FOLDER =
       new Builder(Name.MASTER_JOURNAL_FOLDER)
           .setDefaultValue(String.format("${%s}/journal", Name.WORK_DIR))
-          .setDescription("The path to store master journal logs.")
+          .setDescription("The path to store master journal logs. When using the UFS journal this "
+              + "could be a URI like hdfs://namenode:port/alluxio/journal. When using the embedded "
+              + "journal this must be a local path")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
@@ -1172,7 +1282,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.MASTER_JOURNAL_TYPE)
           .setDefaultValue("UFS")
           .setDescription("The type of journal to use. Valid options are UFS (store journal in "
-              + "UFS) and NOOP (do not use a journal).")
+              + "UFS), EMBEDDED (use a journal embedded in the masters), and NOOP (do not use a "
+              + "journal)")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
@@ -1390,6 +1501,66 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_ACTIVE_UFS_SYNC_RETRY_TIMEOUT =
+      new Builder(Name.MASTER_ACTIVE_UFS_SYNC_RETRY_TIMEOUT)
+          .setDescription("Retry period before active ufs syncer gives up on connecting to the ufs")
+          .setDefaultValue("1hour")
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_ACTIVE_UFS_SYNC_INTERVAL =
+      new Builder(Name.MASTER_ACTIVE_UFS_SYNC_INTERVAL)
+          .setDefaultValue("30sec")
+          .setDescription("Time interval to periodically actively sync UFS")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_ACTIVE_UFS_SYNC_BATCH_INTERVAL =
+      new Builder(Name.MASTER_ACTIVE_UFS_SYNC_BATCH_INTERVAL)
+          .setDefaultValue("1sec")
+          .setDescription("Time interval to batch incoming events for active syncing UFS")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_ACTIVE_UFS_SYNC_MAX_AGE =
+      new Builder(Name.MASTER_ACTIVE_UFS_SYNC_MAX_AGE)
+          .setDefaultValue("10")
+          .setDescription("The maximum number of intervals we will wait to find a quiet "
+            + "period before we have to sync the directories")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_ACTIVE_UFS_SYNC_INITIAL_SYNC =
+      new Builder(Name.MASTER_ACTIVE_UFS_SYNC_INITIAL_SYNC)
+          .setDefaultValue("true")
+          .setDescription("Perform an initial sync when we add a sync point")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .setIsHidden(true)
+          .build();
+  public static final PropertyKey MASTER_ACTIVE_UFS_SYNC_MAX_ACTIVITY =
+      new Builder(Name.MASTER_ACTIVE_UFS_SYNC_MAX_ACTIVITY)
+          .setAlias(new String[]{"alluxio.master.activesync.maxactivity"})
+          .setDefaultValue("10")
+          .setDescription("Max number of changes in a directory "
+              + "to be considered for active syncing")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_ACTIVE_UFS_POLL_TIMEOUT =
+      new Builder(Name.MASTER_ACTIVE_UFS_SYNC_POLL_TIMEOUT)
+          .setDefaultValue("10sec")
+          .setDescription("Max time to wait before timing out a polling operation")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_ACTIVE_UFS_SYNC_EVENT_RATE_INTERVAL =
+      new Builder(Name.MASTER_ACTIVE_UFS_SYNC_EVENT_RATE_INTERVAL)
+          .setDefaultValue("60sec")
+          .setDescription("The time interval we use to estimate incoming event rate")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
+
   public static final PropertyKey MASTER_UFS_BLOCK_LOCATION_CACHE_CAPACITY =
       new Builder(Name.MASTER_UFS_BLOCK_LOCATION_CACHE_CAPACITY)
           .setDefaultValue(1000000)
@@ -1937,6 +2108,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue("1min")
           .setDescription("Timeout between worker and client connection "
               + "indicating a lost session connection.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
+  public static final PropertyKey WORKER_STORAGE_CHECKER_ENABLED =
+      new Builder(Name.WORKER_STORAGE_CHECKER_ENABLED)
+          .setDefaultValue(true)
+          .setDescription("Whether periodic storage health checker is enabled on Alluxio workers.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
@@ -3227,6 +3405,21 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey JOB_WORKER_WEB_PORT =
       new Builder(Name.JOB_WORKER_WEB_PORT).setDefaultValue(30003).build();
 
+  public static final PropertyKey JOB_MASTER_RPC_ADDRESSES =
+      new Builder(Name.JOB_MASTER_RPC_ADDRESSES).build();
+  public static final PropertyKey JOB_MASTER_EMBEDDED_JOURNAL_ADDRESSES =
+      new Builder(Name.JOB_MASTER_EMBEDDED_JOURNAL_ADDRESSES)
+          .setDescription("A comma-separated list of journal addresses for all job masters in the "
+              + "cluster. The format is 'hostname1:port1,hostname2:port2,...'. Defaults to the "
+              + "journal addresses set for the Alluxio masters, but with the job master embedded "
+              + "journal port.")
+          .build();
+  public static final PropertyKey JOB_MASTER_EMBEDDED_JOURNAL_PORT =
+      new Builder(Name.JOB_MASTER_EMBEDDED_JOURNAL_PORT)
+          .setDescription(
+              "The port to use for embedded journal communication with other job masters.")
+          .setDefaultValue(20003).build();
+
   public static final PropertyKey ZOOKEEPER_JOB_ELECTION_PATH =
       new Builder(Name.ZOOKEEPER_JOB_ELECTION_PATH).setDefaultValue("/job_election").build();
   public static final PropertyKey ZOOKEEPER_JOB_LEADER_PATH =
@@ -3417,6 +3610,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String UNDERFS_S3_THREADS_MAX = "alluxio.underfs.s3.threads.max";
     public static final String UNDERFS_S3_UPLOAD_THREADS_MAX =
         "alluxio.underfs.s3.upload.threads.max";
+    public static final String KODO_ENDPOINT = "alluxio.underfs.kodo.endpoint";
+    public static final String KODO_DOWNLOAD_HOST = "alluxio.underfs.kodo.downloadhost";
+    public static final String UNDERFS_KODO_CONNECT_TIMEOUT =
+        "alluxio.underfs.kodo.connect.timeout";
+    public static final String UNDERFS_KODO_REQUESTS_MAX = "alluxio.underfs.kodo.requests.max";
 
     //
     // UFS access control related properties
@@ -3444,6 +3642,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String SWIFT_TENANT_KEY = "fs.swift.tenant";
     public static final String SWIFT_USE_PUBLIC_URI_KEY = "fs.swift.use.public.url";
     public static final String SWIFT_USER_KEY = "fs.swift.user";
+    public static final String KODO_ACCESS_KEY = "fs.kodo.accesskey";
+    public static final String KODO_SECRET_KEY = "fs.kodo.secretkey";
 
     //
     // Master related properties
@@ -3461,6 +3661,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.cluster.metrics.update.interval";
     public static final String MASTER_CONNECTION_TIMEOUT_MS =
         "alluxio.master.connection.timeout";
+    public static final String MASTER_DAILY_BACKUP_ENABLED =
+        "alluxio.master.daily.backup.enabled";
+    public static final String MASTER_DAILY_BACKUP_FILES_RETAINED =
+        "alluxio.master.daily.backup.files.retained";
+    public static final String MASTER_DAILY_BACKUP_TIME =
+        "alluxio.master.daily.backup.time";
     public static final String MASTER_FILE_ASYNC_PERSIST_HANDLER =
         "alluxio.master.file.async.persist.handler";
     public static final String MASTER_FORMAT_FILE_PREFIX = "alluxio.master.format.file_prefix";
@@ -3489,6 +3695,21 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.journal.tailer.shutdown.quiet.wait.time";
     public static final String MASTER_JOURNAL_TAILER_SLEEP_TIME_MS =
         "alluxio.master.journal.tailer.sleep.time";
+    public static final String MASTER_RPC_ADDRESSES = "alluxio.master.rpc.addresses";
+    public static final String MASTER_EMBEDDED_JOURNAL_ADDRESSES =
+        "alluxio.master.embedded.journal.addresses";
+    public static final String MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT =
+        "alluxio.master.embedded.journal.election.timeout";
+    public static final String MASTER_EMBEDDED_JOURNAL_HEARTBEAT_INTERVAL =
+        "alluxio.master.embedded.journal.heartbeat.interval";
+    public static final String MASTER_EMBEDDED_JOURNAL_PORT =
+        "alluxio.master.embedded.journal.port";
+    public static final String MASTER_EMBEDDED_JOURNAL_SNAPSHOT_TIME =
+        "alluxio.master.embedded.journal.snapshot.time";
+    public static final String MASTER_EMBEDDED_JOURNAL_SNAPSHOT_FREQUENCY =
+        "alluxio.master.embedded.journal.snapshot.frequency";
+    public static final String MASTER_EMBEDDED_JOURNAL_STORAGE_LEVEL =
+        "alluxio.master.embedded.journal.storage.level";
     public static final String MASTER_KEYTAB_KEY_FILE = "alluxio.master.keytab.file";
     public static final String MASTER_PERSISTENCE_CHECKER_INTERVAL_MS =
         "alluxio.master.persistence.checker.interval.ms";
@@ -3535,6 +3756,22 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.tieredstore.global.levels";
     public static final String MASTER_TTL_CHECKER_INTERVAL_MS =
         "alluxio.master.ttl.checker.interval";
+    public static final String MASTER_ACTIVE_UFS_SYNC_RETRY_TIMEOUT =
+        "alluxio.master.activesync.retry.timeout";
+    public static final String MASTER_ACTIVE_UFS_SYNC_BATCH_INTERVAL =
+        "alluxio.master.activesync.batchinterval";
+    public static final String MASTER_ACTIVE_UFS_SYNC_INTERVAL =
+        "alluxio.master.activesync.interval";
+    public static final String MASTER_ACTIVE_UFS_SYNC_MAX_ACTIVITY =
+        "alluxio.master.activesync.maxactivity";
+    public static final String MASTER_ACTIVE_UFS_SYNC_POLL_TIMEOUT =
+        "alluxio.master.activesync.polltimeout";
+    public static final String MASTER_ACTIVE_UFS_SYNC_EVENT_RATE_INTERVAL =
+        "alluxio.master.activesync.eventrate.interval";
+    public static final String MASTER_ACTIVE_UFS_SYNC_MAX_AGE =
+        "alluxio.master.activesync.maxage";
+    public static final String MASTER_ACTIVE_UFS_SYNC_INITIAL_SYNC =
+        "alluxio.master.activesync.initialsync";
     public static final String MASTER_UFS_BLOCK_LOCATION_CACHE_CAPACITY =
         "alluxio.master.ufs.block.location.cache.capacity";
     public static final String MASTER_UFS_PATH_CACHE_CAPACITY =
@@ -3651,6 +3888,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String WORKER_PRINCIPAL = "alluxio.worker.principal";
     public static final String WORKER_RPC_PORT = "alluxio.worker.port";
     public static final String WORKER_SESSION_TIMEOUT_MS = "alluxio.worker.session.timeout";
+    public static final String WORKER_STORAGE_CHECKER_ENABLED =
+        "alluxio.worker.storage.checker.enabled";
     public static final String WORKER_TIERED_STORE_BLOCK_LOCK_READERS =
         "alluxio.worker.tieredstore.block.lock.readers";
     public static final String WORKER_TIERED_STORE_BLOCK_LOCKS =
@@ -3892,6 +4131,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String JOB_MASTER_WEB_BIND_HOST = "alluxio.job.master.web.bind.host";
     public static final String JOB_MASTER_WEB_HOSTNAME = "alluxio.job.master.web.hostname";
     public static final String JOB_MASTER_WEB_PORT = "alluxio.job.master.web.port";
+
+    public static final String JOB_MASTER_RPC_ADDRESSES = "alluxio.job.master.rpc.addresses";
+    public static final String JOB_MASTER_EMBEDDED_JOURNAL_ADDRESSES =
+        "alluxio.job.master.embedded.journal.addresses";
+    public static final String JOB_MASTER_EMBEDDED_JOURNAL_PORT =
+        "alluxio.job.master.embedded.journal.port";
 
     public static final String JOB_WORKER_BIND_HOST = "alluxio.job.worker.bind.host";
     public static final String JOB_WORKER_DATA_PORT = "alluxio.job.worker.data.port";

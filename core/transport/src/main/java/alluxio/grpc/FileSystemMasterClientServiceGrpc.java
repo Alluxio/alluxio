@@ -223,6 +223,38 @@ public final class FileSystemMasterClientServiceGrpc {
      return getGetMountTableMethod;
   }
 
+  private static volatile io.grpc.MethodDescriptor<alluxio.grpc.GetSyncPathListPRequest,
+      alluxio.grpc.GetSyncPathListPResponse> getGetSyncPathListMethod;
+
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + "GetSyncPathList",
+      requestType = alluxio.grpc.GetSyncPathListPRequest.class,
+      responseType = alluxio.grpc.GetSyncPathListPResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
+  public static io.grpc.MethodDescriptor<alluxio.grpc.GetSyncPathListPRequest,
+      alluxio.grpc.GetSyncPathListPResponse> getGetSyncPathListMethod() {
+    io.grpc.MethodDescriptor<alluxio.grpc.GetSyncPathListPRequest, alluxio.grpc.GetSyncPathListPResponse> getGetSyncPathListMethod;
+    if ((getGetSyncPathListMethod = FileSystemMasterClientServiceGrpc.getGetSyncPathListMethod) == null) {
+      synchronized (FileSystemMasterClientServiceGrpc.class) {
+        if ((getGetSyncPathListMethod = FileSystemMasterClientServiceGrpc.getGetSyncPathListMethod) == null) {
+          FileSystemMasterClientServiceGrpc.getGetSyncPathListMethod = getGetSyncPathListMethod = 
+              io.grpc.MethodDescriptor.<alluxio.grpc.GetSyncPathListPRequest, alluxio.grpc.GetSyncPathListPResponse>newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setFullMethodName(generateFullMethodName(
+                  "alluxio.grpc.file.FileSystemMasterClientService", "GetSyncPathList"))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  alluxio.grpc.GetSyncPathListPRequest.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  alluxio.grpc.GetSyncPathListPResponse.getDefaultInstance()))
+                  .setSchemaDescriptor(new FileSystemMasterClientServiceMethodDescriptorSupplier("GetSyncPathList"))
+                  .build();
+          }
+        }
+     }
+     return getGetSyncPathListMethod;
+  }
+
   private static volatile io.grpc.MethodDescriptor<alluxio.grpc.GetNewBlockIdForFilePRequest,
       alluxio.grpc.GetNewBlockIdForFilePResponse> getGetNewBlockIdForFileMethod;
 
@@ -511,6 +543,70 @@ public final class FileSystemMasterClientServiceGrpc {
      return getSetAttributeMethod;
   }
 
+  private static volatile io.grpc.MethodDescriptor<alluxio.grpc.StartSyncPRequest,
+      alluxio.grpc.StartSyncPResponse> getStartSyncMethod;
+
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + "StartSync",
+      requestType = alluxio.grpc.StartSyncPRequest.class,
+      responseType = alluxio.grpc.StartSyncPResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
+  public static io.grpc.MethodDescriptor<alluxio.grpc.StartSyncPRequest,
+      alluxio.grpc.StartSyncPResponse> getStartSyncMethod() {
+    io.grpc.MethodDescriptor<alluxio.grpc.StartSyncPRequest, alluxio.grpc.StartSyncPResponse> getStartSyncMethod;
+    if ((getStartSyncMethod = FileSystemMasterClientServiceGrpc.getStartSyncMethod) == null) {
+      synchronized (FileSystemMasterClientServiceGrpc.class) {
+        if ((getStartSyncMethod = FileSystemMasterClientServiceGrpc.getStartSyncMethod) == null) {
+          FileSystemMasterClientServiceGrpc.getStartSyncMethod = getStartSyncMethod = 
+              io.grpc.MethodDescriptor.<alluxio.grpc.StartSyncPRequest, alluxio.grpc.StartSyncPResponse>newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setFullMethodName(generateFullMethodName(
+                  "alluxio.grpc.file.FileSystemMasterClientService", "StartSync"))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  alluxio.grpc.StartSyncPRequest.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  alluxio.grpc.StartSyncPResponse.getDefaultInstance()))
+                  .setSchemaDescriptor(new FileSystemMasterClientServiceMethodDescriptorSupplier("StartSync"))
+                  .build();
+          }
+        }
+     }
+     return getStartSyncMethod;
+  }
+
+  private static volatile io.grpc.MethodDescriptor<alluxio.grpc.StopSyncPRequest,
+      alluxio.grpc.StopSyncPResponse> getStopSyncMethod;
+
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + "StopSync",
+      requestType = alluxio.grpc.StopSyncPRequest.class,
+      responseType = alluxio.grpc.StopSyncPResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
+  public static io.grpc.MethodDescriptor<alluxio.grpc.StopSyncPRequest,
+      alluxio.grpc.StopSyncPResponse> getStopSyncMethod() {
+    io.grpc.MethodDescriptor<alluxio.grpc.StopSyncPRequest, alluxio.grpc.StopSyncPResponse> getStopSyncMethod;
+    if ((getStopSyncMethod = FileSystemMasterClientServiceGrpc.getStopSyncMethod) == null) {
+      synchronized (FileSystemMasterClientServiceGrpc.class) {
+        if ((getStopSyncMethod = FileSystemMasterClientServiceGrpc.getStopSyncMethod) == null) {
+          FileSystemMasterClientServiceGrpc.getStopSyncMethod = getStopSyncMethod = 
+              io.grpc.MethodDescriptor.<alluxio.grpc.StopSyncPRequest, alluxio.grpc.StopSyncPResponse>newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setFullMethodName(generateFullMethodName(
+                  "alluxio.grpc.file.FileSystemMasterClientService", "StopSync"))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  alluxio.grpc.StopSyncPRequest.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  alluxio.grpc.StopSyncPResponse.getDefaultInstance()))
+                  .setSchemaDescriptor(new FileSystemMasterClientServiceMethodDescriptorSupplier("StopSync"))
+                  .build();
+          }
+        }
+     }
+     return getStopSyncMethod;
+  }
+
   private static volatile io.grpc.MethodDescriptor<alluxio.grpc.UnmountPRequest,
       alluxio.grpc.UnmountPResponse> getUnmountMethod;
 
@@ -675,6 +771,17 @@ public final class FileSystemMasterClientServiceGrpc {
     /**
      * <pre>
      **
+     * Returns a list of paths that are being actively synced by Alluxio
+     * </pre>
+     */
+    public void getSyncPathList(alluxio.grpc.GetSyncPathListPRequest request,
+        io.grpc.stub.StreamObserver<alluxio.grpc.GetSyncPathListPResponse> responseObserver) {
+      asyncUnimplementedUnaryCall(getGetSyncPathListMethod(), responseObserver);
+    }
+
+    /**
+     * <pre>
+     **
      * Generates a new block id for the given file.
      * </pre>
      */
@@ -778,6 +885,28 @@ public final class FileSystemMasterClientServiceGrpc {
     /**
      * <pre>
      **
+     * Start the active syncing of the directory or file
+     * </pre>
+     */
+    public void startSync(alluxio.grpc.StartSyncPRequest request,
+        io.grpc.stub.StreamObserver<alluxio.grpc.StartSyncPResponse> responseObserver) {
+      asyncUnimplementedUnaryCall(getStartSyncMethod(), responseObserver);
+    }
+
+    /**
+     * <pre>
+     **
+     * Start the active syncing of the directory or file
+     * </pre>
+     */
+    public void stopSync(alluxio.grpc.StopSyncPRequest request,
+        io.grpc.stub.StreamObserver<alluxio.grpc.StopSyncPResponse> responseObserver) {
+      asyncUnimplementedUnaryCall(getStopSyncMethod(), responseObserver);
+    }
+
+    /**
+     * <pre>
+     **
      * Deletes an existing "mount point", voiding the Alluxio namespace at the given path. The path
      * should correspond to an existing mount point. Any files in its subtree that are backed by UFS
      * will be persisted before they are removed from the Alluxio namespace.
@@ -844,6 +973,13 @@ public final class FileSystemMasterClientServiceGrpc {
                 alluxio.grpc.GetMountTablePResponse>(
                   this, METHODID_GET_MOUNT_TABLE)))
           .addMethod(
+            getGetSyncPathListMethod(),
+            asyncUnaryCall(
+              new MethodHandlers<
+                alluxio.grpc.GetSyncPathListPRequest,
+                alluxio.grpc.GetSyncPathListPResponse>(
+                  this, METHODID_GET_SYNC_PATH_LIST)))
+          .addMethod(
             getGetNewBlockIdForFileMethod(),
             asyncUnaryCall(
               new MethodHandlers<
@@ -906,6 +1042,20 @@ public final class FileSystemMasterClientServiceGrpc {
                 alluxio.grpc.SetAttributePRequest,
                 alluxio.grpc.SetAttributePResponse>(
                   this, METHODID_SET_ATTRIBUTE)))
+          .addMethod(
+            getStartSyncMethod(),
+            asyncUnaryCall(
+              new MethodHandlers<
+                alluxio.grpc.StartSyncPRequest,
+                alluxio.grpc.StartSyncPResponse>(
+                  this, METHODID_START_SYNC)))
+          .addMethod(
+            getStopSyncMethod(),
+            asyncUnaryCall(
+              new MethodHandlers<
+                alluxio.grpc.StopSyncPRequest,
+                alluxio.grpc.StopSyncPResponse>(
+                  this, METHODID_STOP_SYNC)))
           .addMethod(
             getUnmountMethod(),
             asyncUnaryCall(
@@ -1021,6 +1171,18 @@ public final class FileSystemMasterClientServiceGrpc {
     /**
      * <pre>
      **
+     * Returns a list of paths that are being actively synced by Alluxio
+     * </pre>
+     */
+    public void getSyncPathList(alluxio.grpc.GetSyncPathListPRequest request,
+        io.grpc.stub.StreamObserver<alluxio.grpc.GetSyncPathListPResponse> responseObserver) {
+      asyncUnaryCall(
+          getChannel().newCall(getGetSyncPathListMethod(), getCallOptions()), request, responseObserver);
+    }
+
+    /**
+     * <pre>
+     **
      * Generates a new block id for the given file.
      * </pre>
      */
@@ -1128,6 +1290,30 @@ public final class FileSystemMasterClientServiceGrpc {
         io.grpc.stub.StreamObserver<alluxio.grpc.SetAttributePResponse> responseObserver) {
       asyncUnaryCall(
           getChannel().newCall(getSetAttributeMethod(), getCallOptions()), request, responseObserver);
+    }
+
+    /**
+     * <pre>
+     **
+     * Start the active syncing of the directory or file
+     * </pre>
+     */
+    public void startSync(alluxio.grpc.StartSyncPRequest request,
+        io.grpc.stub.StreamObserver<alluxio.grpc.StartSyncPResponse> responseObserver) {
+      asyncUnaryCall(
+          getChannel().newCall(getStartSyncMethod(), getCallOptions()), request, responseObserver);
+    }
+
+    /**
+     * <pre>
+     **
+     * Start the active syncing of the directory or file
+     * </pre>
+     */
+    public void stopSync(alluxio.grpc.StopSyncPRequest request,
+        io.grpc.stub.StreamObserver<alluxio.grpc.StopSyncPResponse> responseObserver) {
+      asyncUnaryCall(
+          getChannel().newCall(getStopSyncMethod(), getCallOptions()), request, responseObserver);
     }
 
     /**
@@ -1248,6 +1434,17 @@ public final class FileSystemMasterClientServiceGrpc {
     /**
      * <pre>
      **
+     * Returns a list of paths that are being actively synced by Alluxio
+     * </pre>
+     */
+    public alluxio.grpc.GetSyncPathListPResponse getSyncPathList(alluxio.grpc.GetSyncPathListPRequest request) {
+      return blockingUnaryCall(
+          getChannel(), getGetSyncPathListMethod(), getCallOptions(), request);
+    }
+
+    /**
+     * <pre>
+     **
      * Generates a new block id for the given file.
      * </pre>
      */
@@ -1346,6 +1543,28 @@ public final class FileSystemMasterClientServiceGrpc {
     public alluxio.grpc.SetAttributePResponse setAttribute(alluxio.grpc.SetAttributePRequest request) {
       return blockingUnaryCall(
           getChannel(), getSetAttributeMethod(), getCallOptions(), request);
+    }
+
+    /**
+     * <pre>
+     **
+     * Start the active syncing of the directory or file
+     * </pre>
+     */
+    public alluxio.grpc.StartSyncPResponse startSync(alluxio.grpc.StartSyncPRequest request) {
+      return blockingUnaryCall(
+          getChannel(), getStartSyncMethod(), getCallOptions(), request);
+    }
+
+    /**
+     * <pre>
+     **
+     * Start the active syncing of the directory or file
+     * </pre>
+     */
+    public alluxio.grpc.StopSyncPResponse stopSync(alluxio.grpc.StopSyncPRequest request) {
+      return blockingUnaryCall(
+          getChannel(), getStopSyncMethod(), getCallOptions(), request);
     }
 
     /**
@@ -1470,6 +1689,18 @@ public final class FileSystemMasterClientServiceGrpc {
     /**
      * <pre>
      **
+     * Returns a list of paths that are being actively synced by Alluxio
+     * </pre>
+     */
+    public com.google.common.util.concurrent.ListenableFuture<alluxio.grpc.GetSyncPathListPResponse> getSyncPathList(
+        alluxio.grpc.GetSyncPathListPRequest request) {
+      return futureUnaryCall(
+          getChannel().newCall(getGetSyncPathListMethod(), getCallOptions()), request);
+    }
+
+    /**
+     * <pre>
+     **
      * Generates a new block id for the given file.
      * </pre>
      */
@@ -1582,6 +1813,30 @@ public final class FileSystemMasterClientServiceGrpc {
     /**
      * <pre>
      **
+     * Start the active syncing of the directory or file
+     * </pre>
+     */
+    public com.google.common.util.concurrent.ListenableFuture<alluxio.grpc.StartSyncPResponse> startSync(
+        alluxio.grpc.StartSyncPRequest request) {
+      return futureUnaryCall(
+          getChannel().newCall(getStartSyncMethod(), getCallOptions()), request);
+    }
+
+    /**
+     * <pre>
+     **
+     * Start the active syncing of the directory or file
+     * </pre>
+     */
+    public com.google.common.util.concurrent.ListenableFuture<alluxio.grpc.StopSyncPResponse> stopSync(
+        alluxio.grpc.StopSyncPRequest request) {
+      return futureUnaryCall(
+          getChannel().newCall(getStopSyncMethod(), getCallOptions()), request);
+    }
+
+    /**
+     * <pre>
+     **
      * Deletes an existing "mount point", voiding the Alluxio namespace at the given path. The path
      * should correspond to an existing mount point. Any files in its subtree that are backed by UFS
      * will be persisted before they are removed from the Alluxio namespace.
@@ -1612,17 +1867,20 @@ public final class FileSystemMasterClientServiceGrpc {
   private static final int METHODID_CREATE_FILE = 3;
   private static final int METHODID_FREE = 4;
   private static final int METHODID_GET_MOUNT_TABLE = 5;
-  private static final int METHODID_GET_NEW_BLOCK_ID_FOR_FILE = 6;
-  private static final int METHODID_GET_STATUS = 7;
-  private static final int METHODID_LIST_STATUS = 8;
-  private static final int METHODID_MOUNT = 9;
-  private static final int METHODID_REMOVE = 10;
-  private static final int METHODID_RENAME = 11;
-  private static final int METHODID_SCHEDULE_ASYNC_PERSISTENCE = 12;
-  private static final int METHODID_SET_ACL = 13;
-  private static final int METHODID_SET_ATTRIBUTE = 14;
-  private static final int METHODID_UNMOUNT = 15;
-  private static final int METHODID_UPDATE_UFS_MODE = 16;
+  private static final int METHODID_GET_SYNC_PATH_LIST = 6;
+  private static final int METHODID_GET_NEW_BLOCK_ID_FOR_FILE = 7;
+  private static final int METHODID_GET_STATUS = 8;
+  private static final int METHODID_LIST_STATUS = 9;
+  private static final int METHODID_MOUNT = 10;
+  private static final int METHODID_REMOVE = 11;
+  private static final int METHODID_RENAME = 12;
+  private static final int METHODID_SCHEDULE_ASYNC_PERSISTENCE = 13;
+  private static final int METHODID_SET_ACL = 14;
+  private static final int METHODID_SET_ATTRIBUTE = 15;
+  private static final int METHODID_START_SYNC = 16;
+  private static final int METHODID_STOP_SYNC = 17;
+  private static final int METHODID_UNMOUNT = 18;
+  private static final int METHODID_UPDATE_UFS_MODE = 19;
 
   private static final class MethodHandlers<Req, Resp> implements
       io.grpc.stub.ServerCalls.UnaryMethod<Req, Resp>,
@@ -1665,6 +1923,10 @@ public final class FileSystemMasterClientServiceGrpc {
           serviceImpl.getMountTable((alluxio.grpc.GetMountTablePRequest) request,
               (io.grpc.stub.StreamObserver<alluxio.grpc.GetMountTablePResponse>) responseObserver);
           break;
+        case METHODID_GET_SYNC_PATH_LIST:
+          serviceImpl.getSyncPathList((alluxio.grpc.GetSyncPathListPRequest) request,
+              (io.grpc.stub.StreamObserver<alluxio.grpc.GetSyncPathListPResponse>) responseObserver);
+          break;
         case METHODID_GET_NEW_BLOCK_ID_FOR_FILE:
           serviceImpl.getNewBlockIdForFile((alluxio.grpc.GetNewBlockIdForFilePRequest) request,
               (io.grpc.stub.StreamObserver<alluxio.grpc.GetNewBlockIdForFilePResponse>) responseObserver);
@@ -1700,6 +1962,14 @@ public final class FileSystemMasterClientServiceGrpc {
         case METHODID_SET_ATTRIBUTE:
           serviceImpl.setAttribute((alluxio.grpc.SetAttributePRequest) request,
               (io.grpc.stub.StreamObserver<alluxio.grpc.SetAttributePResponse>) responseObserver);
+          break;
+        case METHODID_START_SYNC:
+          serviceImpl.startSync((alluxio.grpc.StartSyncPRequest) request,
+              (io.grpc.stub.StreamObserver<alluxio.grpc.StartSyncPResponse>) responseObserver);
+          break;
+        case METHODID_STOP_SYNC:
+          serviceImpl.stopSync((alluxio.grpc.StopSyncPRequest) request,
+              (io.grpc.stub.StreamObserver<alluxio.grpc.StopSyncPResponse>) responseObserver);
           break;
         case METHODID_UNMOUNT:
           serviceImpl.unmount((alluxio.grpc.UnmountPRequest) request,
@@ -1776,6 +2046,7 @@ public final class FileSystemMasterClientServiceGrpc {
               .addMethod(getCreateFileMethod())
               .addMethod(getFreeMethod())
               .addMethod(getGetMountTableMethod())
+              .addMethod(getGetSyncPathListMethod())
               .addMethod(getGetNewBlockIdForFileMethod())
               .addMethod(getGetStatusMethod())
               .addMethod(getListStatusMethod())
@@ -1785,6 +2056,8 @@ public final class FileSystemMasterClientServiceGrpc {
               .addMethod(getScheduleAsyncPersistenceMethod())
               .addMethod(getSetAclMethod())
               .addMethod(getSetAttributeMethod())
+              .addMethod(getStartSyncMethod())
+              .addMethod(getStopSyncMethod())
               .addMethod(getUnmountMethod())
               .addMethod(getUpdateUfsModeMethod())
               .build();

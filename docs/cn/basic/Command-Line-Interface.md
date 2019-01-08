@@ -1,4 +1,4 @@
----
+﻿---
 layout: global
 title: 命令行接口
 group: Basic
@@ -25,17 +25,23 @@ Usage: alluxio fs [generic options]
 >
 >大多数需要路径参数的命令可以使用通配符以便简化使用，例如：
 >
->{% include Command-Line-Interface/rm.md %}
+>```bash
+>$ ./bin/alluxio fs rm '/data/2014*'
+>```
 >
 >该示例命令会将`data`文件夹下以`2014`为文件名前缀的所有文件删除。
 >
 >注意有些shell会尝试自动补全输入路径，从而引起奇怪的错误（注意：以下例子中的数字可能不是21，这取决于你的本地文件系统中匹配文件的个数）：
 >
->{% include Command-Line-Interface/rm-error.md %}
+>```bash
+>rm takes 1 arguments,  not 21
+>```
 >
 >作为一种绕开这个问题的方式，你可以禁用自动补全功能（跟具体shell有关，例如`set -f`），或者使用转义通配符，例如：
 >
->{% include Command-Line-Interface/escape.md %}
+>```bash
+>$ ./bin/alluxio fs cat /\\*
+>```
 >
 >注意是两个转义符号，这是因为该shell脚本最终会调用一个java程序运行，该java程序将获取到转义输入参数（cat /\\*）。
 
@@ -60,7 +66,9 @@ Usage: alluxio fs [generic options]
 
 例如，当测试一个新的计算任务时，`cat`命令可以用来快速确认其输出结果：
 
-{% include Command-Line-Interface/cat.md %}
+```bash
+$ ./bin/alluxio fs cat /output/part-00000
+```
 
 ### checkConsistency
 
@@ -73,7 +81,13 @@ Usage: alluxio fs [generic options]
 
 例如，`checkConsistency`命令可以用来周期性地检查命名空间的完整性：
 
-{% include Command-Line-Interface/checkConsistency.md %}
+```bash
+# List each inconsistent file or directory
+$ ./bin/alluxio fs checkConsistency /
+#
+# Repair the inconsistent files or directories
+$ ./bin/alluxio fs checkConsistency -r /
+```
 
 ### checksum
 

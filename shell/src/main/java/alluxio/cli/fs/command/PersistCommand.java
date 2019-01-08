@@ -13,19 +13,31 @@ package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
 import alluxio.cli.CommandUtils;
+import alluxio.cli.fs.FileSystemShellUtils;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemUtils;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
+import alluxio.util.ThreadFactoryUtils;
 
-import com.google.common.base.Joiner;
 import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.TimeoutException;
+import java.util.Queue;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -34,6 +46,16 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class PersistCommand extends AbstractFileSystemCommand {
+  private static final Logger LOG = LoggerFactory.getLogger(PersistCommand.class);
+  private static final int DEFAULT_PARALLELISM = 4;
+  private static final Option PARALLELISM_OPTION =
+      Option.builder("p")
+          .longOpt("parallelism")
+          .argName("# threads")
+          .numberOfArgs(1)
+          .desc("Number of concurrent persist operations, default: " + DEFAULT_PARALLELISM)
+          .required(false)
+          .build();
 
   /**
    * @param fs the filesystem of Alluxio
@@ -48,70 +70,129 @@ public final class PersistCommand extends AbstractFileSystemCommand {
   }
 
   @Override
+  public Options getOptions() {
+    return new Options().addOption(PARALLELISM_OPTION);
+  }
+
+  @Override
   public void validateArgs(CommandLine cl) throws InvalidArgumentException {
     CommandUtils.checkNumOfArgsNoLessThan(this, cl, 1);
   }
 
   @Override
-  protected void runPlainPath(AlluxioURI plainPath, CommandLine cl)
-      throws AlluxioException, IOException {
-    persist(plainPath);
-  }
-
-  @Override
-  public int run(CommandLine cl) throws AlluxioException, IOException {
-    String[] args = cl.getArgs();
-    for (String path : args) {
-      AlluxioURI inputPath = new AlluxioURI(path);
-      runWildCardCmd(inputPath, cl);
-    }
-    return 0;
-  }
-
-  /**
-   * Persists a file or directory currently stored only in Alluxio to the UnderFileSystem.
-   *
-   * @param filePath the {@link AlluxioURI} path to persist to the UnderFileSystem
-   */
-  private void persist(AlluxioURI filePath) throws AlluxioException, IOException {
-    URIStatus status = mFileSystem.getStatus(filePath);
-    if (status.isFolder()) {
-      List<URIStatus> statuses = mFileSystem.listStatus(filePath);
-      List<String> errorMessages = new ArrayList<>();
-      for (URIStatus uriStatus : statuses) {
-        AlluxioURI newPath = new AlluxioURI(uriStatus.getPath());
-        try {
-          persist(newPath);
-        } catch (Exception e) {
-          errorMessages.add(e.getMessage());
-        }
-      }
-      if (errorMessages.size() != 0) {
-        throw new IOException(Joiner.on('\n').join(errorMessages));
-      }
-    } else if (status.isPersisted()) {
-      System.out.println(filePath + " is already persisted");
-    } else {
-      try {
-        FileSystemUtils.persistFile(mFileSystem, filePath);
-      } catch (InterruptedException e) {
-        Thread.currentThread().interrupt();
-        throw new RuntimeException(e);
-      } catch (TimeoutException e) {
-        throw new RuntimeException(e);
-      }
-      System.out.println("persisted file " + filePath + " with size " + status.getLength());
-    }
-  }
-
-  @Override
   public String getUsage() {
-    return "persist <path> [<path> ...]";
+    return "persist [-p|--parallelism <#>] <path> [<path> ...]";
   }
 
   @Override
   public String getDescription() {
-    return "Persists files or directories currently stored only in Alluxio to the "
-        + "UnderFileSystem.";
+    return "Persists files or directories currently stored only in Alluxio to the UnderFileSystem.";
+  }
+
+  @Override
+  public int run(CommandLine cl) throws AlluxioException, IOException {
+    // Parse arguments.
+    int parallelism = DEFAULT_PARALLELISM;
+    if (cl.hasOption(PARALLELISM_OPTION.getLongOpt())) {
+      String parellismOption = cl.getOptionValue(PARALLELISM_OPTION.getLongOpt());
+      parallelism = Integer.parseInt(parellismOption);
+    }
+    String[] args = cl.getArgs();
+
+    // Gather files to persist and enqueue them.
+    List<AlluxioURI> candidateUris = new ArrayList<>();
+    for (String path : args) {
+      candidateUris.addAll(FileSystemShellUtils.getAlluxioURIs(mFileSystem, new AlluxioURI(path)));
+    }
+    final Queue<AlluxioURI> toPersist = new ConcurrentLinkedQueue<>();
+    for (AlluxioURI uri : candidateUris) {
+      queueNonPersistedRecursive(mFileSystem.getStatus(uri), toPersist);
+    }
+    int totalFiles = toPersist.size();
+    System.out.println("Found " + totalFiles + " files to persist.");
+    if (totalFiles == 0) {
+      return 0;
+    }
+
+    // Launch persist tasks in parallel.
+    parallelism = Math.min(totalFiles, parallelism);
+    ExecutorService service =
+        Executors.newFixedThreadPool(parallelism, ThreadFactoryUtils.build("persist-cli-%d", true));
+    final Object progressLock = new Object();
+    AtomicInteger completedFiles = new AtomicInteger(0);
+    List<Future<Void>> futures = new ArrayList<>(parallelism);
+    for (int i = 0; i < parallelism; i++) {
+      futures.add(service.submit(new PersistCallable(toPersist, totalFiles, completedFiles,
+          progressLock)));
+    }
+
+    // Await result.
+    try {
+      for (Future<Void> future : futures) {
+        future.get();
+      }
+    } catch (ExecutionException e) {
+      System.out.println("Fatal error: " + e);
+      return -1;
+    } catch (InterruptedException e) {
+      System.out.println("Persist interrupted, exiting.");
+      return -1;
+    } finally {
+      service.shutdownNow();
+    }
+    return 0;
+  }
+
+  private void queueNonPersistedRecursive(URIStatus status, Queue<AlluxioURI> toPersist)
+      throws AlluxioException, IOException {
+    AlluxioURI uri = new AlluxioURI(status.getPath());
+    if (status.isFolder()) {
+      List<URIStatus> statuses = mFileSystem.listStatus(uri);
+      for (URIStatus s : statuses) {
+        queueNonPersistedRecursive(s, toPersist);
+      }
+    } else if (!status.isPersisted()) {
+      toPersist.add(uri);
+    }
+  }
+
+  /**
+   * Thread that polls a persist queue and persists files.
+   */
+  private class PersistCallable implements Callable<Void> {
+    private final Queue<AlluxioURI> mFilesToPersist;
+    private final int mTotalFiles;
+    private final Object mProgressLock;
+    private final AtomicInteger mCompletedFiles;
+
+    PersistCallable(Queue<AlluxioURI> toPersist, int totalFiles, AtomicInteger completedFiles,
+        Object progressLock) {
+      mFilesToPersist = toPersist;
+      mTotalFiles = totalFiles;
+      mProgressLock = progressLock;
+      mCompletedFiles = completedFiles;
+    }
+
+    @Override
+    public Void call() throws Exception {
+      AlluxioURI toPersist = mFilesToPersist.poll();
+      while (toPersist != null) {
+        try {
+          FileSystemUtils.persistFile(mFileSystem, toPersist);
+          synchronized (mProgressLock) { // Prevents out of order progress tracking.
+            String progress = "(" + mCompletedFiles.incrementAndGet() + "/" + mTotalFiles + ")";
+            System.out.println(progress + " Successfully persisted file: " + toPersist);
+          }
+        } catch (InterruptedException e) {
+          Thread.currentThread().interrupt();
+          throw e;
+        } catch (Exception e) {
+          System.out.println("Failed to persist file " + toPersist);
+          LOG.error("Failed to persist file {}", toPersist, e);
+        }
+        toPersist = mFilesToPersist.poll();
+      }
+      return null;
+    }
   }
 }

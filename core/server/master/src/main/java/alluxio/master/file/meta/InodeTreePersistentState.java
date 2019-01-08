@@ -314,17 +314,11 @@ public class InodeTreePersistentState implements JournalEntryReplayable {
    *
    * @param context journal context supplier
    * @param inode an inode to add and create a journal entry for
-   * @return whether the inode was successfully added. Returns false if another inode was
-   *         concurrently added with the same name. On false return, no state is changed,
-   *         and no journal entry is written
    */
-  public boolean applyAndJournal(Supplier<JournalContext> context, Inode<?> inode) {
+  public void applyAndJournal(Supplier<JournalContext> context, Inode<?> inode) {
     try {
-      if (applyInode(inode)) {
-        context.get().append(inode.toJournalEntry());
-        return true;
-      }
-      return false;
+      applyInode(inode);
+      context.get().append(inode.toJournalEntry());
     } catch (Throwable t) {
       ProcessUtils.fatalError(LOG, t, "Failed to apply %s", inode);
       throw t; // fatalError will usually system.exit
@@ -366,13 +360,11 @@ public class InodeTreePersistentState implements JournalEntryReplayable {
   }
 
   private void apply(InodeDirectoryEntry entry) {
-    Preconditions.checkState(applyInode(InodeDirectory.fromJournalEntry(entry)));
+    applyInode(InodeDirectory.fromJournalEntry(entry));
   }
 
   private void apply(InodeFileEntry entry) {
-    if (!applyInode(InodeFile.fromJournalEntry(entry))) {
-      throw new RuntimeException("Failed to apply " + entry);
-    }
+    applyInode(InodeFile.fromJournalEntry(entry));
   }
 
   private long apply(NewBlockEntry entry) {
@@ -552,24 +544,23 @@ public class InodeTreePersistentState implements JournalEntryReplayable {
   // Helper methods
   ////
 
-  private boolean applyInode(Inode<?> inode) {
+  private void applyInode(Inode<?> inode) {
     if (inode.isDirectory() && inode.getName().equals(InodeTree.ROOT_INODE_NAME)) {
       // This is the root inode. Clear all the state, and set the root.
       mInodes.clear();
       mInodes.add(inode);
       mPinnedInodeFileIds.clear();
       mRoot = (InodeDirectory) inode;
-      return true;
+      return;
     }
     // inode should be added to mInodes before getting added to its parent list, because it
     // becomes visible at this point.
     mInodes.add(inode);
     InodeDirectory parent = (InodeDirectory) mInodes.getFirst(inode.getParentId());
     if (!parent.addChild(inode)) {
-      LOG.debug("Failed to add inode {} because another inode with the same name already exists",
-          inode.getName());
-      mInodes.remove(inode);
-      return false;
+      throw new IllegalStateException(String.format(
+          "Failed to add inode %s because another inode with the same name already exists",
+          inode.getName()));
     }
     if (inode.isFile()) {
       InodeFile file = (InodeFile) inode;
@@ -587,7 +578,6 @@ public class InodeTreePersistentState implements JournalEntryReplayable {
     }
     // Add the file to TTL buckets, the insert automatically rejects files w/ Constants.NO_TTL
     mTtlBuckets.insert(inode);
-    return true;
   }
 
   private boolean applyRename(RenameEntry entry) {

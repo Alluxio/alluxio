@@ -13,6 +13,8 @@ package alluxio.worker.grpc;
 
 import alluxio.util.IdUtils;
 
+import com.google.common.base.MoreObjects;
+
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -43,5 +45,19 @@ public class WriteRequest {
    */
   public long getSessionId() {
     return mSessionId;
+  }
+
+  /**
+   * @return a {@link MoreObjects.ToStringHelper}, inheriting classes should call super
+   */
+  protected MoreObjects.ToStringHelper toStringHelper() {
+    return MoreObjects.toStringHelper(this)
+        .add("id", mId)
+        .add("sessionId", mSessionId);
+  }
+
+  @Override
+  public final String toString() {
+    return toStringHelper().toString();
   }
 }

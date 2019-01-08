@@ -63,6 +63,8 @@ public final class BlockMasterWorkerServiceHandler
       StreamObserver<BlockHeartbeatPResponse> responseObserver) {
 
     final long workerId = request.getWorkerId();
+    final Map<String, Long> capacityBytesOnTiers =
+        request.getOptions().getCapacityBytesOnTiersMap();
     final Map<String, Long> usedBytesOnTiers = request.getUsedBytesOnTiersMap();
     final List<Long> removedBlockIds = request.getRemovedBlockIdsList();
     final Map<String, TierList> addedBlocksOnTiers = request.getAddedBlocksOnTiersMap();
@@ -74,13 +76,11 @@ public final class BlockMasterWorkerServiceHandler
     final List<Metric> metrics =
         options.getMetricsList().stream().map(Metric::fromProto).collect(Collectors.toList());
 
-    RpcUtils.call(LOG,
-        (RpcUtils.RpcCallableThrowsIOException<BlockHeartbeatPResponse>) () -> {
-          return BlockHeartbeatPResponse.newBuilder()
-              .setCommand(mBlockMaster.workerHeartbeat(workerId, usedBytesOnTiers, removedBlockIds,
-                  addedBlocksOnTiersMap, metrics))
-              .build();
-        }, "blockHeartbeat", "request=%s", responseObserver, request);
+    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<BlockHeartbeatPResponse>) () -> {
+      return BlockHeartbeatPResponse.newBuilder().setCommand(mBlockMaster.workerHeartbeat(workerId,
+          capacityBytesOnTiers, usedBytesOnTiers, removedBlockIds, addedBlocksOnTiersMap, metrics))
+          .build();
+    }, "blockHeartbeat", "request=%s", responseObserver, request);
   }
 
   @Override

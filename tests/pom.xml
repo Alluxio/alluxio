@@ -215,6 +215,11 @@
       <artifactId>alluxio-underfs-local</artifactId>
       <version>${project.version}</version>
     </dependency>
+    <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-integration-fuse</artifactId>
+      <version>${project.version}</version>
+    </dependency>
   </dependencies>
 
   <profiles>
