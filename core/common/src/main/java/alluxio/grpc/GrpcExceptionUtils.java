@@ -100,11 +100,11 @@ public final class GrpcExceptionUtils {
         alluxioStatus = alluxio.exception.status.Status.UNKNOWN;
     }
 
-    Throwable cause = (e.getCause() != null) ? e.getCause() : e;
+    Throwable innerMostCause = (e.getCause() != null) ? e.getCause() : e;
     if (e.getTrailers() != null && e.getTrailers().containsKey(sInnerCauseKey)) {
-      cause = (Throwable) SerializationUtils.deserialize(e.getTrailers().get(sInnerCauseKey));
+      innerMostCause = (Throwable) SerializationUtils.deserialize(e.getTrailers().get(sInnerCauseKey));
     }
-    return AlluxioStatusException.from(alluxioStatus, cause.getMessage());
+    return AlluxioStatusException.from(alluxioStatus, innerMostCause.getMessage());
   }
 
   /**
@@ -171,9 +171,8 @@ public final class GrpcExceptionUtils {
         code = Status.Code.UNKNOWN;
     }
     Metadata trailers = new Metadata();
-    if(e.getCause() != null) {
-      trailers.put(sInnerCauseKey, SerializationUtils.serialize(e.getCause()));
-    }
+    Throwable innerMostCause = (e.getCause() != null) ? e.getCause() : e;
+    trailers.put(sInnerCauseKey, SerializationUtils.serialize(innerMostCause));
     return Status.fromCode(code).asException(trailers);
   }
 

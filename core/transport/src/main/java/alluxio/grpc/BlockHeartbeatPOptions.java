@@ -59,6 +59,19 @@ private static final long serialVersionUID = 0L;
                 input.readMessage(alluxio.grpc.Metric.PARSER, extensionRegistry));
             break;
           }
+          case 18: {
+            if (!((mutable_bitField0_ & 0x00000002) == 0x00000002)) {
+              capacityBytesOnTiers_ = com.google.protobuf.MapField.newMapField(
+                  CapacityBytesOnTiersDefaultEntryHolder.defaultEntry);
+              mutable_bitField0_ |= 0x00000002;
+            }
+            com.google.protobuf.MapEntry<java.lang.String, java.lang.Long>
+            capacityBytesOnTiers__ = input.readMessage(
+                CapacityBytesOnTiersDefaultEntryHolder.defaultEntry.getParserForType(), extensionRegistry);
+            capacityBytesOnTiers_.getMutableMap().put(
+                capacityBytesOnTiers__.getKey(), capacityBytesOnTiers__.getValue());
+            break;
+          }
         }
       }
     } catch (com.google.protobuf.InvalidProtocolBufferException e) {
@@ -79,6 +92,17 @@ private static final long serialVersionUID = 0L;
     return alluxio.grpc.BlockMasterProto.internal_static_alluxio_grpc_block_BlockHeartbeatPOptions_descriptor;
   }
 
+  @SuppressWarnings({"rawtypes"})
+  protected com.google.protobuf.MapField internalGetMapField(
+      int number) {
+    switch (number) {
+      case 2:
+        return internalGetCapacityBytesOnTiers();
+      default:
+        throw new RuntimeException(
+            "Invalid map field number: " + number);
+    }
+  }
   protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internalGetFieldAccessorTable() {
     return alluxio.grpc.BlockMasterProto.internal_static_alluxio_grpc_block_BlockHeartbeatPOptions_fieldAccessorTable
@@ -121,6 +145,82 @@ private static final long serialVersionUID = 0L;
     return metrics_.get(index);
   }
 
+  public static final int CAPACITYBYTESONTIERS_FIELD_NUMBER = 2;
+  private static final class CapacityBytesOnTiersDefaultEntryHolder {
+    static final com.google.protobuf.MapEntry<
+        java.lang.String, java.lang.Long> defaultEntry =
+            com.google.protobuf.MapEntry
+            .<java.lang.String, java.lang.Long>newDefaultInstance(
+                alluxio.grpc.BlockMasterProto.internal_static_alluxio_grpc_block_BlockHeartbeatPOptions_CapacityBytesOnTiersEntry_descriptor, 
+                com.google.protobuf.WireFormat.FieldType.STRING,
+                "",
+                com.google.protobuf.WireFormat.FieldType.INT64,
+                0L);
+  }
+  private com.google.protobuf.MapField<
+      java.lang.String, java.lang.Long> capacityBytesOnTiers_;
+  private com.google.protobuf.MapField<java.lang.String, java.lang.Long>
+  internalGetCapacityBytesOnTiers() {
+    if (capacityBytesOnTiers_ == null) {
+      return com.google.protobuf.MapField.emptyMapField(
+          CapacityBytesOnTiersDefaultEntryHolder.defaultEntry);
+    }
+    return capacityBytesOnTiers_;
+  }
+
+  public int getCapacityBytesOnTiersCount() {
+    return internalGetCapacityBytesOnTiers().getMap().size();
+  }
+  /**
+   * <code>map&lt;string, int64&gt; capacityBytesOnTiers = 2;</code>
+   */
+
+  public boolean containsCapacityBytesOnTiers(
+      java.lang.String key) {
+    if (key == null) { throw new java.lang.NullPointerException(); }
+    return internalGetCapacityBytesOnTiers().getMap().containsKey(key);
+  }
+  /**
+   * Use {@link #getCapacityBytesOnTiersMap()} instead.
+   */
+  @java.lang.Deprecated
+  public java.util.Map<java.lang.String, java.lang.Long> getCapacityBytesOnTiers() {
+    return getCapacityBytesOnTiersMap();
+  }
+  /**
+   * <code>map&lt;string, int64&gt; capacityBytesOnTiers = 2;</code>
+   */
+
+  public java.util.Map<java.lang.String, java.lang.Long> getCapacityBytesOnTiersMap() {
+    return internalGetCapacityBytesOnTiers().getMap();
+  }
+  /**
+   * <code>map&lt;string, int64&gt; capacityBytesOnTiers = 2;</code>
+   */
+
+  public long getCapacityBytesOnTiersOrDefault(
+      java.lang.String key,
+      long defaultValue) {
+    if (key == null) { throw new java.lang.NullPointerException(); }
+    java.util.Map<java.lang.String, java.lang.Long> map =
+        internalGetCapacityBytesOnTiers().getMap();
+    return map.containsKey(key) ? map.get(key) : defaultValue;
+  }
+  /**
+   * <code>map&lt;string, int64&gt; capacityBytesOnTiers = 2;</code>
+   */
+
+  public long getCapacityBytesOnTiersOrThrow(
+      java.lang.String key) {
+    if (key == null) { throw new java.lang.NullPointerException(); }
+    java.util.Map<java.lang.String, java.lang.Long> map =
+        internalGetCapacityBytesOnTiers().getMap();
+    if (!map.containsKey(key)) {
+      throw new java.lang.IllegalArgumentException();
+    }
+    return map.get(key);
+  }
+
   private byte memoizedIsInitialized = -1;
   public final boolean isInitialized() {
     byte isInitialized = memoizedIsInitialized;
@@ -136,6 +236,12 @@ private static final long serialVersionUID = 0L;
     for (int i = 0; i < metrics_.size(); i++) {
       output.writeMessage(1, metrics_.get(i));
     }
+    com.google.protobuf.GeneratedMessageV3
+      .serializeStringMapTo(
+        output,
+        internalGetCapacityBytesOnTiers(),
+        CapacityBytesOnTiersDefaultEntryHolder.defaultEntry,
+        2);
     unknownFields.writeTo(output);
   }
 
@@ -147,6 +253,16 @@ private static final long serialVersionUID = 0L;
     for (int i = 0; i < metrics_.size(); i++) {
       size += com.google.protobuf.CodedOutputStream
         .computeMessageSize(1, metrics_.get(i));
+    }
+    for (java.util.Map.Entry<java.lang.String, java.lang.Long> entry
+         : internalGetCapacityBytesOnTiers().getMap().entrySet()) {
+      com.google.protobuf.MapEntry<java.lang.String, java.lang.Long>
+      capacityBytesOnTiers__ = CapacityBytesOnTiersDefaultEntryHolder.defaultEntry.newBuilderForType()
+          .setKey(entry.getKey())
+          .setValue(entry.getValue())
+          .build();
+      size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(2, capacityBytesOnTiers__);
     }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
@@ -166,6 +282,8 @@ private static final long serialVersionUID = 0L;
     boolean result = true;
     result = result && getMetricsList()
         .equals(other.getMetricsList());
+    result = result && internalGetCapacityBytesOnTiers().equals(
+        other.internalGetCapacityBytesOnTiers());
     result = result && unknownFields.equals(other.unknownFields);
     return result;
   }
@@ -180,6 +298,10 @@ private static final long serialVersionUID = 0L;
     if (getMetricsCount() > 0) {
       hash = (37 * hash) + METRICS_FIELD_NUMBER;
       hash = (53 * hash) + getMetricsList().hashCode();
+    }
+    if (!internalGetCapacityBytesOnTiers().getMap().isEmpty()) {
+      hash = (37 * hash) + CAPACITYBYTESONTIERS_FIELD_NUMBER;
+      hash = (53 * hash) + internalGetCapacityBytesOnTiers().hashCode();
     }
     hash = (29 * hash) + unknownFields.hashCode();
     memoizedHashCode = hash;
@@ -286,6 +408,28 @@ private static final long serialVersionUID = 0L;
       return alluxio.grpc.BlockMasterProto.internal_static_alluxio_grpc_block_BlockHeartbeatPOptions_descriptor;
     }
 
+    @SuppressWarnings({"rawtypes"})
+    protected com.google.protobuf.MapField internalGetMapField(
+        int number) {
+      switch (number) {
+        case 2:
+          return internalGetCapacityBytesOnTiers();
+        default:
+          throw new RuntimeException(
+              "Invalid map field number: " + number);
+      }
+    }
+    @SuppressWarnings({"rawtypes"})
+    protected com.google.protobuf.MapField internalGetMutableMapField(
+        int number) {
+      switch (number) {
+        case 2:
+          return internalGetMutableCapacityBytesOnTiers();
+        default:
+          throw new RuntimeException(
+              "Invalid map field number: " + number);
+      }
+    }
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return alluxio.grpc.BlockMasterProto.internal_static_alluxio_grpc_block_BlockHeartbeatPOptions_fieldAccessorTable
@@ -317,6 +461,7 @@ private static final long serialVersionUID = 0L;
       } else {
         metricsBuilder_.clear();
       }
+      internalGetMutableCapacityBytesOnTiers().clear();
       return this;
     }
 
@@ -349,6 +494,8 @@ private static final long serialVersionUID = 0L;
       } else {
         result.metrics_ = metricsBuilder_.build();
       }
+      result.capacityBytesOnTiers_ = internalGetCapacityBytesOnTiers();
+      result.capacityBytesOnTiers_.makeImmutable();
       onBuilt();
       return result;
     }
@@ -416,6 +563,8 @@ private static final long serialVersionUID = 0L;
           }
         }
       }
+      internalGetMutableCapacityBytesOnTiers().mergeFrom(
+          other.internalGetCapacityBytesOnTiers());
       this.mergeUnknownFields(other.unknownFields);
       onChanged();
       return this;
@@ -682,6 +831,129 @@ private static final long serialVersionUID = 0L;
         metrics_ = null;
       }
       return metricsBuilder_;
+    }
+
+    private com.google.protobuf.MapField<
+        java.lang.String, java.lang.Long> capacityBytesOnTiers_;
+    private com.google.protobuf.MapField<java.lang.String, java.lang.Long>
+    internalGetCapacityBytesOnTiers() {
+      if (capacityBytesOnTiers_ == null) {
+        return com.google.protobuf.MapField.emptyMapField(
+            CapacityBytesOnTiersDefaultEntryHolder.defaultEntry);
+      }
+      return capacityBytesOnTiers_;
+    }
+    private com.google.protobuf.MapField<java.lang.String, java.lang.Long>
+    internalGetMutableCapacityBytesOnTiers() {
+      onChanged();;
+      if (capacityBytesOnTiers_ == null) {
+        capacityBytesOnTiers_ = com.google.protobuf.MapField.newMapField(
+            CapacityBytesOnTiersDefaultEntryHolder.defaultEntry);
+      }
+      if (!capacityBytesOnTiers_.isMutable()) {
+        capacityBytesOnTiers_ = capacityBytesOnTiers_.copy();
+      }
+      return capacityBytesOnTiers_;
+    }
+
+    public int getCapacityBytesOnTiersCount() {
+      return internalGetCapacityBytesOnTiers().getMap().size();
+    }
+    /**
+     * <code>map&lt;string, int64&gt; capacityBytesOnTiers = 2;</code>
+     */
+
+    public boolean containsCapacityBytesOnTiers(
+        java.lang.String key) {
+      if (key == null) { throw new java.lang.NullPointerException(); }
+      return internalGetCapacityBytesOnTiers().getMap().containsKey(key);
+    }
+    /**
+     * Use {@link #getCapacityBytesOnTiersMap()} instead.
+     */
+    @java.lang.Deprecated
+    public java.util.Map<java.lang.String, java.lang.Long> getCapacityBytesOnTiers() {
+      return getCapacityBytesOnTiersMap();
+    }
+    /**
+     * <code>map&lt;string, int64&gt; capacityBytesOnTiers = 2;</code>
+     */
+
+    public java.util.Map<java.lang.String, java.lang.Long> getCapacityBytesOnTiersMap() {
+      return internalGetCapacityBytesOnTiers().getMap();
+    }
+    /**
+     * <code>map&lt;string, int64&gt; capacityBytesOnTiers = 2;</code>
+     */
+
+    public long getCapacityBytesOnTiersOrDefault(
+        java.lang.String key,
+        long defaultValue) {
+      if (key == null) { throw new java.lang.NullPointerException(); }
+      java.util.Map<java.lang.String, java.lang.Long> map =
+          internalGetCapacityBytesOnTiers().getMap();
+      return map.containsKey(key) ? map.get(key) : defaultValue;
+    }
+    /**
+     * <code>map&lt;string, int64&gt; capacityBytesOnTiers = 2;</code>
+     */
+
+    public long getCapacityBytesOnTiersOrThrow(
+        java.lang.String key) {
+      if (key == null) { throw new java.lang.NullPointerException(); }
+      java.util.Map<java.lang.String, java.lang.Long> map =
+          internalGetCapacityBytesOnTiers().getMap();
+      if (!map.containsKey(key)) {
+        throw new java.lang.IllegalArgumentException();
+      }
+      return map.get(key);
+    }
+
+    public Builder clearCapacityBytesOnTiers() {
+      internalGetMutableCapacityBytesOnTiers().getMutableMap()
+          .clear();
+      return this;
+    }
+    /**
+     * <code>map&lt;string, int64&gt; capacityBytesOnTiers = 2;</code>
+     */
+
+    public Builder removeCapacityBytesOnTiers(
+        java.lang.String key) {
+      if (key == null) { throw new java.lang.NullPointerException(); }
+      internalGetMutableCapacityBytesOnTiers().getMutableMap()
+          .remove(key);
+      return this;
+    }
+    /**
+     * Use alternate mutation accessors instead.
+     */
+    @java.lang.Deprecated
+    public java.util.Map<java.lang.String, java.lang.Long>
+    getMutableCapacityBytesOnTiers() {
+      return internalGetMutableCapacityBytesOnTiers().getMutableMap();
+    }
+    /**
+     * <code>map&lt;string, int64&gt; capacityBytesOnTiers = 2;</code>
+     */
+    public Builder putCapacityBytesOnTiers(
+        java.lang.String key,
+        long value) {
+      if (key == null) { throw new java.lang.NullPointerException(); }
+      
+      internalGetMutableCapacityBytesOnTiers().getMutableMap()
+          .put(key, value);
+      return this;
+    }
+    /**
+     * <code>map&lt;string, int64&gt; capacityBytesOnTiers = 2;</code>
+     */
+
+    public Builder putAllCapacityBytesOnTiers(
+        java.util.Map<java.lang.String, java.lang.Long> values) {
+      internalGetMutableCapacityBytesOnTiers().getMutableMap()
+          .putAll(values);
+      return this;
     }
     public final Builder setUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {

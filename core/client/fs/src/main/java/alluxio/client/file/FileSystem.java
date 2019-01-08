@@ -32,12 +32,13 @@ import alluxio.grpc.LoadMetadataPOptions;
 import alluxio.grpc.MountPOptions;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.RenamePOptions;
+import alluxio.grpc.SetAclAction;
 import alluxio.grpc.SetAclPOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.UnmountPOptions;
 import alluxio.security.authorization.AclEntry;
 import alluxio.wire.MountPointInfo;
-import alluxio.grpc.SetAclAction;
+import alluxio.wire.SyncPointInfo;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -292,6 +293,13 @@ public interface FileSystem {
   Map<String, MountPointInfo> getMountTable() throws IOException, AlluxioException;
 
   /**
+   * Lists all the actively synced paths.
+   *
+   * @return a list of actively synced paths
+   */
+  List<SyncPointInfo> getSyncPathList() throws IOException, AlluxioException;
+
+  /**
    * Convenience method for {@link #openFile(AlluxioURI, OpenFilePOptions)} with default options.
    *
    * @param path the file to read from
@@ -357,6 +365,20 @@ public interface FileSystem {
    * @throws FileDoesNotExistException if the given file does not exist
    */
   void setAcl(AlluxioURI path, SetAclAction action, List<AclEntry> entries, SetAclPOptions options)
+      throws FileDoesNotExistException, IOException, AlluxioException;
+
+  /**
+   * Starts the active syncing process on an Alluxio path.
+   * @param path the path to sync
+   */
+  void startSync(AlluxioURI path)
+      throws FileDoesNotExistException, IOException, AlluxioException;
+
+  /**
+   * Stops the active syncing process on an Alluxio path.
+   * @param path the path to stop syncing
+   */
+  void stopSync(AlluxioURI path)
       throws FileDoesNotExistException, IOException, AlluxioException;
 
   /**

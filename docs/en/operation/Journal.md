@@ -75,6 +75,29 @@ alluxio.master.backup.directory=/alluxio/backups
 See the [backup command documentation]({{ '/en/operation/Admin-CLI.html' | relativize_url }}#backup)
 for additional backup options.
 
+### Automatically backing up the journal
+
+Alluxio supports automatically taking primary master metadata snapshots every day at a fixed time 
+so that Alluxio metadata can be restored to at most one day before.
+This functionality is enabled by setting the following property in `${ALLUXIO_HOME}/conf/alluxio-site.properties`:
+
+```
+alluxio.master.daily.backup.enabled=true
+```
+
+The time to take daily snapshots is defined by `alluxio.master.daily.backup.time`. For example, if 
+a user specified `alluxio.master.daily.backup.time=05:30`, the Alluxio primary master will back up its metadata 
+to the `alluxio.master.backup.directory` of the root UFS every day at 5:30am UTC. 
+We recommend setting the backup time to an off-peak time to avoid interfering with other users of the system.
+
+In the daily backup, the backup directory needs to be an absolute path within the root UFS. 
+For example, if `alluxio.master.backup.directory=/alluxio_backups` 
+and `alluxio.master.mount.table.root.ufs=hdfs://192.168.1.1:9000/alluxio/underfs`, 
+the default backup directory would be `hdfs://192.168.1.1:9000/alluxio_backups`.
+
+The files to retain in the backup directory is limited by `alluxio.master.daily.backup.files.retained`.
+Users can set this property to the number of backup files they want to keep in the backup directory.
+
 ### Restoring from a backup
 
 To restore the Alluxio system from a journal backup, stop the system, format the

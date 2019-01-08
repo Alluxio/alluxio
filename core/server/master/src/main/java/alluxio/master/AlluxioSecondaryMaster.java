@@ -55,8 +55,13 @@ public final class AlluxioSecondaryMaster implements Process {
       mStartTimeMs = System.currentTimeMillis();
       mPort = Configuration.getInt(PropertyKey.MASTER_RPC_PORT);
       // Create masters.
-      MasterUtils.createMasters(mRegistry,
-          new MasterContext(mJournalSystem, mSafeModeManager, mBackupManager, mStartTimeMs, mPort));
+      MasterUtils.createMasters(mRegistry, CoreMasterContext.newBuilder()
+          .setJournalSystem(mJournalSystem)
+          .setSafeModeManager(mSafeModeManager)
+          .setBackupManager(mBackupManager)
+          .setStartTimeMs(mStartTimeMs)
+          .setPort(mPort)
+          .build());
       // Check that journals of each service have been formatted.
       if (!mJournalSystem.isFormatted()) {
         throw new RuntimeException(

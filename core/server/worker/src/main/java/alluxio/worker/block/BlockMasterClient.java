@@ -128,17 +128,19 @@ public final class BlockMasterClient extends AbstractMasterClient {
    * The method the worker should periodically execute to heartbeat back to the master.
    *
    * @param workerId the worker id
+   * @param capacityBytesOnTiers a mapping from storage tier alias to capacity bytes
    * @param usedBytesOnTiers a mapping from storage tier alias to used bytes
    * @param removedBlocks a list of block removed from this worker
    * @param addedBlocks a mapping from storage tier alias to added blocks
    * @param metrics a list of worker metrics
    * @return an optional command for the worker to execute
    */
-  public Command heartbeat(final long workerId,
-      final Map<String, Long> usedBytesOnTiers, final List<Long> removedBlocks,
-      final Map<String, List<Long>> addedBlocks, final List<Metric> metrics) throws IOException {
-    final BlockHeartbeatPOptions options =
-        BlockHeartbeatPOptions.newBuilder().addAllMetrics(metrics).build();
+  public synchronized Command heartbeat(final long workerId,
+      final Map<String, Long> capacityBytesOnTiers, final Map<String, Long> usedBytesOnTiers,
+      final List<Long> removedBlocks, final Map<String, List<Long>> addedBlocks,
+      final List<Metric> metrics) throws IOException {
+    final BlockHeartbeatPOptions options = BlockHeartbeatPOptions.newBuilder()
+        .addAllMetrics(metrics).putAllCapacityBytesOnTiers(capacityBytesOnTiers).build();
     Map<String, TierList> addedBlocksMap = new HashMap<>(addedBlocks.size());
     for (Map.Entry<String, List<Long>> blockEntry : addedBlocks.entrySet()) {
       addedBlocksMap.put(blockEntry.getKey(),

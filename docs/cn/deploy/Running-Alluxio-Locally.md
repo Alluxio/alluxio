@@ -50,7 +50,7 @@ $ ./bin/alluxio-start.sh local
 
 ## 验证Alluxio是否运行
 
-为了确认Alluxio处于运行状态，用户可以访问**[http://localhost:19999](http://localhost:19999)**，或者查看`logs`文件夹下的日志。
+为了确认Alluxio处于运行状态，用户可以访问 **[http://localhost:19999](http://localhost:19999)**，或者查看`logs`文件夹下的日志。
 
 运行一个更全面的系统完整性检查：
 
@@ -104,7 +104,7 @@ $ ./bin/alluxio-start.sh local NoMount
 选项：
 
 * 通过超级用户身份启动Alluxio。
-* 在[suderors](https://help.ubuntu.com/community/Sudoers)中增加启动Alluxio的用户。
+* 在[sudoers](https://help.ubuntu.com/community/Sudoers)中增加启动Alluxio的用户。
 * 在Linux文件 `/etc/sudoers`下添加下面一行，赋予当前用户(e.g., "alluxio")有限的sudo权限
 `alluxio ALL=(ALL) NOPASSWD: /bin/mount * /mnt/ramdisk, /bin/umount * /mnt/ramdisk, /bin/mkdir * /mnt/ramdisk, /bin/chmod * /mnt/ramdisk`
 这允许"alluxio"用户应用sudo权限在一个具体路径`/mnt/ramdisk` 下执行命令mount, umount, mkdir 和 chmod (假设命令在 `/bin/`)

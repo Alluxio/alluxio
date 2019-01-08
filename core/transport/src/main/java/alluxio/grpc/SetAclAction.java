@@ -97,7 +97,7 @@ public enum SetAclAction
   }
   public static final com.google.protobuf.Descriptors.EnumDescriptor
       getDescriptor() {
-    return alluxio.grpc.FileSystemMasterProto.getDescriptor().getEnumTypes().get(6);
+    return alluxio.grpc.FileSystemMasterProto.getDescriptor().getEnumTypes().get(7);
   }
 
   private static final SetAclAction[] VALUES = values();

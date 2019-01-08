@@ -59,7 +59,7 @@ import alluxio.grpc.SetAttributePOptions;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
-import alluxio.master.MasterContext;
+import alluxio.master.CoreMasterContext;
 import alluxio.master.MasterRegistry;
 import alluxio.master.MasterTestUtils;
 import alluxio.master.block.BlockMaster;
@@ -291,7 +291,7 @@ public final class FileSystemMasterTest {
     }
 
     // Update the heartbeat of removedBlockId received from worker 1.
-    Command heartbeat1 = mBlockMaster.workerHeartbeat(mWorkerId1,
+    Command heartbeat1 = mBlockMaster.workerHeartbeat(mWorkerId1, null,
         ImmutableMap.of("MEM", (long) Constants.KB), ImmutableList.of(blockId),
         ImmutableMap.<String, List<Long>>of(), mMetrics);
     // Verify the muted Free command on worker1.
@@ -480,10 +480,15 @@ public final class FileSystemMasterTest {
     // Add a file to the UFS.
     Files.createFile(
         Paths.get(ufsMount.join(DIR_TOP_LEVEL).join(FILE_PREFIX + (DIR_WIDTH)).getPath()));
-    mThrown.expect(IOException.class);
     // delete top-level directory
-    mFileSystemMaster.delete(new AlluxioURI(MOUNT_URI).join(DIR_TOP_LEVEL), DeleteContext.defaults(
-        DeletePOptions.newBuilder().setRecursive(true).setAlluxioOnly(false).setUnchecked(false)));
+    try {
+      mFileSystemMaster.delete(new AlluxioURI(MOUNT_URI).join(DIR_TOP_LEVEL),
+          DeleteContext.defaults(DeletePOptions.newBuilder().setRecursive(true)
+              .setAlluxioOnly(false).setUnchecked(false)));
+      fail();
+    } catch (IOException e) {
+      // Expected
+    }
     // Check all that could be deleted.
     List<AlluxioURI> except = new ArrayList<>();
     except.add(new AlluxioURI(MOUNT_URI).join(DIR_TOP_LEVEL));
@@ -1181,7 +1186,7 @@ public final class FileSystemMasterTest {
     // Alluxio mount point should not exist after unmounting.
     try {
       mFileSystemMaster.getFileInfo(new AlluxioURI("/mnt/local"), GET_STATUS_CONTEXT);
-      fail("getFileInfo() for a non-existent URI (before mounting) should fail.");
+      fail("getFileInfo() for a non-existent URI (after mounting) should fail.");
     } catch (FileDoesNotExistException e) {
       // Expected case.
     }
@@ -1442,6 +1447,45 @@ public final class FileSystemMasterTest {
   }
 
   @Test
+  public void setAclWithoutOwner() throws Exception {
+    createFileWithSingleBlock(NESTED_FILE_URI);
+    mFileSystemMaster.setAttribute(NESTED_URI,
+        SetAttributeContext.defaults(SetAttributePOptions.newBuilder().setMode((short) 0777)));
+    Set<String> entries = Sets.newHashSet(mFileSystemMaster
+        .getFileInfo(NESTED_FILE_URI, GET_STATUS_CONTEXT).convertAclToStringEntries());
+    assertEquals(3, entries.size());
+
+    try (AuthenticatedClientUserResource userA = new AuthenticatedClientUserResource("userA")) {
+      Set<String> newEntries = Sets.newHashSet("user::rwx", "group::rwx", "other::rwx");
+      mThrown.expect(AccessControlException.class);
+      mFileSystemMaster.setAcl(NESTED_FILE_URI, SetAclAction.REPLACE,
+          newEntries.stream().map(AclEntry::fromCliString).collect(Collectors.toList()),
+          SetAclContext.defaults());
+    }
+  }
+
+  @Test
+  public void setAclNestedWithoutOwner() throws Exception {
+    createFileWithSingleBlock(NESTED_FILE_URI);
+    mFileSystemMaster.setAttribute(NESTED_URI, SetAttributeContext
+        .defaults(SetAttributePOptions.newBuilder().setMode((short) 0777).setOwner("userA")));
+    Set<String> entries = Sets.newHashSet(mFileSystemMaster
+        .getFileInfo(NESTED_FILE_URI, GET_STATUS_CONTEXT).convertAclToStringEntries());
+    assertEquals(3, entries.size());
+    // recursive setAcl should fail if one of the child is not owned by the user
+    mThrown.expect(AccessControlException.class);
+    try (AuthenticatedClientUserResource userA = new AuthenticatedClientUserResource("userA")) {
+      Set<String> newEntries = Sets.newHashSet("user::rwx", "group::rwx", "other::rwx");
+      mFileSystemMaster.setAcl(NESTED_URI, SetAclAction.REPLACE,
+          newEntries.stream().map(AclEntry::fromCliString).collect(Collectors.toList()),
+          SetAclContext.defaults(SetAclPOptions.newBuilder().setRecursive(true)));
+      entries = Sets.newHashSet(mFileSystemMaster.getFileInfo(NESTED_FILE_URI, GET_STATUS_CONTEXT)
+          .convertAclToStringEntries());
+      assertEquals(newEntries, entries);
+    }
+  }
+
+  @Test
   public void removeExtendedAclMask() throws Exception {
     mFileSystemMaster.createDirectory(NESTED_URI, CreateDirectoryContext
         .defaults(CreateDirectoryPOptions.newBuilder().setRecursive(true)));
@@ -1598,7 +1642,7 @@ public final class FileSystemMasterTest {
     // Set ttl & operation.
     mFileSystemMaster.setAttribute(NESTED_FILE_URI, SetAttributeContext.defaults(
         SetAttributePOptions.newBuilder().setTtl(0).setTtlAction(alluxio.grpc.TtlAction.FREE)));
-    Command heartbeat = mBlockMaster.workerHeartbeat(mWorkerId1,
+    Command heartbeat = mBlockMaster.workerHeartbeat(mWorkerId1, null,
         ImmutableMap.of("MEM", (long) Constants.KB), ImmutableList.of(blockId),
         ImmutableMap.<String, List<Long>>of(), mMetrics);
     // Verify the muted Free command on worker1.
@@ -1621,7 +1665,7 @@ public final class FileSystemMasterTest {
     stopServices();
     startServices();
 
-    Command heartbeat = mBlockMaster.workerHeartbeat(mWorkerId1,
+    Command heartbeat = mBlockMaster.workerHeartbeat(mWorkerId1, null,
         ImmutableMap.of("MEM", (long) Constants.KB), ImmutableList.of(blockId),
         ImmutableMap.<String, List<Long>>of(), mMetrics);
     // Verify the muted Free command on worker1.
@@ -1643,7 +1687,7 @@ public final class FileSystemMasterTest {
     // Set ttl & operation.
     mFileSystemMaster.setAttribute(NESTED_URI, SetAttributeContext.defaults(
         SetAttributePOptions.newBuilder().setTtl(0).setTtlAction(alluxio.grpc.TtlAction.FREE)));
-    Command heartbeat = mBlockMaster.workerHeartbeat(mWorkerId1,
+    Command heartbeat = mBlockMaster.workerHeartbeat(mWorkerId1, null,
         ImmutableMap.of("MEM", (long) Constants.KB), ImmutableList.of(blockId),
         ImmutableMap.<String, List<Long>>of(), mMetrics);
     // Verify the muted Free command on worker1.
@@ -1669,7 +1713,7 @@ public final class FileSystemMasterTest {
     stopServices();
     startServices();
 
-    Command heartbeat = mBlockMaster.workerHeartbeat(mWorkerId1,
+    Command heartbeat = mBlockMaster.workerHeartbeat(mWorkerId1, null,
         ImmutableMap.of("MEM", (long) Constants.KB), ImmutableList.of(blockId),
         ImmutableMap.<String, List<Long>>of(), mMetrics);
     // Verify the muted Free command on worker1.
@@ -1878,7 +1922,7 @@ public final class FileSystemMasterTest {
 
     // Both pinned flag and ttl value.
     mFileSystemMaster.setAttribute(NESTED_FILE_URI,
-        SetAttributeContext.defaults(SetAttributePOptions.newBuilder().setTtl(1)));
+        SetAttributeContext.defaults(SetAttributePOptions.newBuilder().setPinned(false).setTtl(1)));
     fileInfo = mFileSystemMaster.getFileInfo(NESTED_FILE_URI, GET_STATUS_CONTEXT);
     assertFalse(fileInfo.isPinned());
     assertEquals(1, fileInfo.getTtl());
@@ -2003,10 +2047,10 @@ public final class FileSystemMasterTest {
    */
   @Test
   public void renameToSubpath() throws Exception {
-    mThrown.expect(InvalidPathException.class);
-    mThrown.expectMessage("Traversal failed. Component 2(test) is a file");
-
     mFileSystemMaster.createFile(NESTED_URI, mNestedFileContext);
+    mThrown.expect(InvalidPathException.class);
+    mThrown.expectMessage("Traversal failed for path /nested/test/file. "
+        + "Component 2(test) is a file, not a directory");
     mFileSystemMaster.rename(NESTED_URI, NESTED_FILE_URI, RenameContext.defaults());
   }
 
@@ -2023,7 +2067,7 @@ public final class FileSystemMasterTest {
     mFileSystemMaster.free(NESTED_FILE_URI, FreeContext.defaults(FreePOptions.newBuilder()
         .setForced(false).setRecursive(false)));
     // Update the heartbeat of removedBlockId received from worker 1.
-    Command heartbeat2 = mBlockMaster.workerHeartbeat(mWorkerId1,
+    Command heartbeat2 = mBlockMaster.workerHeartbeat(mWorkerId1, null,
         ImmutableMap.of("MEM", (long) Constants.KB), ImmutableList.of(blockId),
         ImmutableMap.<String, List<Long>>of(), mMetrics);
     // Verify the muted Free command on worker1.
@@ -2076,7 +2120,7 @@ public final class FileSystemMasterTest {
     mFileSystemMaster.free(NESTED_FILE_URI,
         FreeContext.defaults(FreePOptions.newBuilder().setForced(true)));
     // Update the heartbeat of removedBlockId received from worker 1.
-    Command heartbeat = mBlockMaster.workerHeartbeat(mWorkerId1,
+    Command heartbeat = mBlockMaster.workerHeartbeat(mWorkerId1, null,
         ImmutableMap.of("MEM", (long) Constants.KB), ImmutableList.of(blockId),
         ImmutableMap.<String, List<Long>>of(), mMetrics);
     // Verify the muted Free command on worker1.
@@ -2111,7 +2155,7 @@ public final class FileSystemMasterTest {
     mFileSystemMaster.free(NESTED_FILE_URI.getParent(),
         FreeContext.defaults(FreePOptions.newBuilder().setForced(true).setRecursive(true)));
     // Update the heartbeat of removedBlockId received from worker 1.
-    Command heartbeat3 = mBlockMaster.workerHeartbeat(mWorkerId1,
+    Command heartbeat3 = mBlockMaster.workerHeartbeat(mWorkerId1, null,
         ImmutableMap.of("MEM", (long) Constants.KB), ImmutableList.of(blockId),
         ImmutableMap.<String, List<Long>>of(), mMetrics);
     // Verify the muted Free command on worker1.
@@ -2165,7 +2209,7 @@ public final class FileSystemMasterTest {
     mFileSystemMaster.free(NESTED_FILE_URI.getParent(),
         FreeContext.defaults(FreePOptions.newBuilder().setForced(true).setRecursive(true)));
     // Update the heartbeat of removedBlockId received from worker 1.
-    Command heartbeat = mBlockMaster.workerHeartbeat(mWorkerId1,
+    Command heartbeat = mBlockMaster.workerHeartbeat(mWorkerId1, null,
         ImmutableMap.of("MEM", (long) Constants.KB), ImmutableList.of(blockId),
         ImmutableMap.<String, List<Long>>of(), mMetrics);
     // Verify the muted Free command on worker1.
@@ -2657,7 +2701,7 @@ public final class FileSystemMasterTest {
   private void startServices() throws Exception {
     mRegistry = new MasterRegistry();
     mJournalSystem = JournalTestUtils.createJournalSystem(mJournalFolder);
-    MasterContext masterContext = MasterTestUtils.testMasterContext(mJournalSystem);
+    CoreMasterContext masterContext = MasterTestUtils.testMasterContext(mJournalSystem);
     mMetricsMaster = new MetricsMasterFactory().create(mRegistry, masterContext);
     mRegistry.add(MetricsMaster.class, mMetricsMaster);
     mMetrics = Lists.newArrayList();

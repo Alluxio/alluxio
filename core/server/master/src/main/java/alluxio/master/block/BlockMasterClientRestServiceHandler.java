@@ -15,7 +15,6 @@ import alluxio.Constants;
 import alluxio.RestUtils;
 import alluxio.master.MasterProcess;
 import alluxio.web.MasterWebServer;
-import alluxio.wire.BlockInfo;
 
 import com.google.common.base.Preconditions;
 import com.qmino.miredot.annotations.ReturnType;
@@ -67,12 +66,7 @@ public final class BlockMasterClientRestServiceHandler {
   @Path(SERVICE_NAME)
   @ReturnType("java.lang.String")
   public Response getServiceName() {
-    return RestUtils.call(new RestUtils.RestCallable<String>() {
-      @Override
-      public String call() throws Exception {
-        return Constants.BLOCK_MASTER_CLIENT_SERVICE_NAME;
-      }
-    });
+    return RestUtils.call(() -> Constants.BLOCK_MASTER_CLIENT_SERVICE_NAME);
   }
 
   /**
@@ -95,12 +89,9 @@ public final class BlockMasterClientRestServiceHandler {
   @Path(GET_BLOCK_INFO)
   @ReturnType("alluxio.wire.BlockInfo")
   public Response getBlockInfo(@QueryParam("blockId") final Long blockId) {
-    return RestUtils.call(new RestUtils.RestCallable<BlockInfo>() {
-      @Override
-      public BlockInfo call() throws Exception {
-        Preconditions.checkNotNull(blockId, "required 'blockId' parameter is missing");
-        return mBlockMaster.getBlockInfo(blockId);
-      }
+    return RestUtils.call(() -> {
+      Preconditions.checkNotNull(blockId, "required 'blockId' parameter is missing");
+      return mBlockMaster.getBlockInfo(blockId);
     });
   }
 }

@@ -132,6 +132,10 @@
       <name>MireDot Releases</name>
       <url>http://nexus.qmino.com/content/repositories/miredot</url>
     </repository>
+    <repository>
+      <id>alluxio.artifacts</id>
+      <url>http://alluxio.artifacts.s3-website-us-east-1.amazonaws.com/release</url>
+    </repository>
   </repositories>
 
   <properties>
@@ -139,6 +143,7 @@
     <apache.curator-test.version>2.12.0</apache.curator-test.version>
     <aws.amazonaws.version>1.11.215</aws.amazonaws.version>
     <build.path>build</build.path>
+    <copycat.version>1.2.12</copycat.version>
     <cxf.version>2.7.0</cxf.version>
     <glusterfs-hadoop.version>2.3.13</glusterfs-hadoop.version>
     <gmetric4j.version>1.0.7</gmetric4j.version>
@@ -163,6 +168,7 @@
     <surefire.forkCount>2</surefire.forkCount>
     <surefire.useSystemClassLoader>true</surefire.useSystemClassLoader>
     <surefire.excludesFile>slow-tests</surefire.excludesFile>
+    <surefire.rerunFailingTestsCount>1</surefire.rerunFailingTestsCount>
     <test.output.redirect>true</test.output.redirect>
   </properties>
 
@@ -528,6 +534,22 @@
         <groupId>org.apache.httpcomponents</groupId>
         <artifactId>httpcore</artifactId>
         <version>4.4.6</version>
+      </dependency>
+      <dependency>
+        <groupId>io.atomix.copycat.alluxio</groupId>
+        <artifactId>copycat-server</artifactId>
+        <version>${copycat.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.atomix.copycat.alluxio</groupId>
+        <artifactId>copycat-client</artifactId>
+        <version>${copycat.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.atomix.catalyst</groupId>
+        <artifactId>catalyst-netty</artifactId>
+        <!-- catalyst-netty is versioned independently of other Atomix services -->
+        <version>1.2.1</version>
       </dependency>
       <dependency>
         <groupId>org.apache.mesos</groupId>
@@ -989,6 +1011,7 @@
             <argLine>-Djava.net.preferIPv4Stack=true</argLine>
             <excludesFile>${build.path}/surefire/${surefire.excludesFile}</excludesFile>
             <forkCount>${surefire.forkCount}</forkCount>
+            <rerunFailingTestsCount>${surefire.rerunFailingTestsCount}</rerunFailingTestsCount>
             <redirectTestOutputToFile>${test.output.redirect}</redirectTestOutputToFile>
             <reuseForks>false</reuseForks>
             <runOrder>alphabetical</runOrder>
@@ -1011,7 +1034,7 @@
         <plugin>
           <groupId>org.codehaus.mojo</groupId>
           <artifactId>findbugs-maven-plugin</artifactId>
-          <version>3.0.2</version>
+          <version>3.0.5</version>
         </plugin>
         <plugin>
           <groupId>org.codehaus.mojo</groupId>

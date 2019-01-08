@@ -274,7 +274,6 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
   /**
    * Tests concurrent rename of files.
    */
-  @Ignore("https://alluxio.atlassian.net/browse/ALLUXIO-2908")
   @Test
   public void concurrentRename() throws Exception {
     ConcurrentCreator concurrentCreator =

@@ -12,13 +12,19 @@
 package alluxio.job.persist;
 
 import alluxio.AlluxioURI;
+import alluxio.PropertyKey;
 import alluxio.client.file.FileOutStream;
+import alluxio.client.file.FileSystemContext;
+import alluxio.client.file.FileSystemMasterClient;
 import alluxio.client.file.URIStatus;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.WritePType;
 import alluxio.job.JobIntegrationTest;
 import alluxio.master.file.meta.PersistenceState;
+import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.util.CommonUtils;
+import alluxio.util.WaitForOptions;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -60,5 +66,54 @@ public final class PersistIntegrationTest extends JobIntegrationTest {
     // run the persist job again without the overwrite flag and check it fails
     final long jobId = mJobMaster.run(new PersistConfig("/test", 1, false, status.getUfsPath()));
     waitForJobFailure(jobId);
+  }
+
+  @Test
+  @LocalAlluxioClusterResource.Config(
+      confParams = {
+          PropertyKey.Name.MASTER_PERSISTENCE_MAX_TOTAL_WAIT_TIME_MS, "1ms",
+          PropertyKey.Name.MASTER_PERSISTENCE_CHECKER_INTERVAL_MS, "50ms",
+          PropertyKey.Name.MASTER_PERSISTENCE_SCHEDULER_INTERVAL_MS, "50ms"})
+  public void persistTimeoutTest() throws Exception {
+    // write a file in alluxio only
+    AlluxioURI filePath = new AlluxioURI(TEST_URI);
+    FileOutStream os = mFileSystem.createFile(filePath,
+        CreateFilePOptions.newBuilder().setWriteType(WritePType.WRITE_MUST_CACHE).build());
+    os.write((byte) 0);
+    os.write((byte) 1);
+    os.close();
+    // check the file is completed but not persisted
+    URIStatus status = mFileSystem.getStatus(filePath);
+    Assert.assertEquals(PersistenceState.NOT_PERSISTED.toString(), status.getPersistenceState());
+    Assert.assertTrue(status.isCompleted());
+    // kill job worker
+    mLocalAlluxioJobCluster.getWorker().stop();
+    // persist the file
+    FileSystemContext context = FileSystemContext.get();
+    FileSystemMasterClient client = context.acquireMasterClient();
+    try {
+      client.scheduleAsyncPersist(new AlluxioURI(TEST_URI));
+    } finally {
+      context.releaseMasterClient(client);
+    }
+    CommonUtils.waitFor("persist timeout", () -> {
+      try {
+        return PersistenceState.NOT_PERSISTED.toString().equals(
+            mFileSystem.getStatus(filePath).getPersistenceState());
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
+    }, WaitForOptions.defaults().setTimeoutMs(10000));
+    // verify timeout and reverted to not persisted
+    status = mFileSystem.getStatus(filePath);
+    Assert.assertEquals(PersistenceState.NOT_PERSISTED.toString(), status.getPersistenceState());
+    // restart master
+    mLocalAlluxioClusterResource.get().restartMasters();
+    // verify not persisted
+    status = mFileSystem.getStatus(filePath);
+    Assert.assertEquals(PersistenceState.NOT_PERSISTED.toString(), status.getPersistenceState());
+    String ufsPath = status.getUfsPath();
+    UnderFileSystem ufs = UnderFileSystem.Factory.create(ufsPath);
+    Assert.assertFalse(ufs.exists(ufsPath));
   }
 }

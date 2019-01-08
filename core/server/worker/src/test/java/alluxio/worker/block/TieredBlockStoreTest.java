@@ -659,4 +659,38 @@ public final class TieredBlockStoreTest {
 
     mBlockStore.removeBlock(SESSION_ID1, BLOCK_ID1);
   }
+
+  /**
+   * Tests that check storage fails when a directory is inaccessible.
+   */
+  @Test
+  public void checkStorageFailed() throws Exception {
+    TieredBlockStoreTestUtils.cache(SESSION_ID1, BLOCK_ID1, BLOCK_SIZE, mTestDir1, mMetaManager,
+        mEvictor);
+    TieredBlockStoreTestUtils.cache(SESSION_ID1, BLOCK_ID2, BLOCK_SIZE, mTestDir2, mMetaManager,
+        mEvictor);
+    BlockStoreMeta oldMeta = mBlockStore.getBlockStoreMeta();
+    FileUtils.deletePathRecursively(mTestDir2.getDirPath());
+    assertTrue("check storage should fail if one of the directory is not accessible",
+        mBlockStore.checkStorage());
+    BlockStoreMeta meta = mBlockStore.getBlockStoreMetaFull();
+    long usedByteInDir = mTestDir2.getCapacityBytes() - mTestDir2.getAvailableBytes();
+    assertFalse("failed storage path should be removed",
+        meta.getDirectoryPathsOnTiers().get(FIRST_TIER_ALIAS).contains(mTestDir2.getDirPath()));
+    assertEquals("failed storage path quota should be deducted from store capacity",
+        oldMeta.getCapacityBytes() - mTestDir2.getCapacityBytes(), meta.getCapacityBytes());
+    assertEquals("failed storage path used bytes should be deducted from store used bytes",
+        oldMeta.getUsedBytes() - usedByteInDir,
+        meta.getUsedBytes());
+    assertEquals("failed storage path quota should be deducted from tier capacity",
+        oldMeta.getCapacityBytesOnTiers().get(FIRST_TIER_ALIAS) - mTestDir2.getCapacityBytes(),
+        (long) meta.getCapacityBytesOnTiers().get(FIRST_TIER_ALIAS));
+    assertEquals("failed storage path used bytes should be deducted from tier used bytes",
+        oldMeta.getUsedBytesOnTiers().get(FIRST_TIER_ALIAS) - usedByteInDir,
+        (long) meta.getUsedBytesOnTiers().get(FIRST_TIER_ALIAS));
+    assertFalse("blocks in failed storage path should be removed",
+        meta.getBlockList().get(FIRST_TIER_ALIAS).contains(BLOCK_ID2));
+    assertTrue("blocks in working storage path should be retained",
+        meta.getBlockList().get(FIRST_TIER_ALIAS).contains(BLOCK_ID1));
+  }
 }

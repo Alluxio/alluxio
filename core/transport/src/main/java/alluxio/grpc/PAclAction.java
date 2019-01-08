@@ -79,7 +79,7 @@ public enum PAclAction
   }
   public static final com.google.protobuf.Descriptors.EnumDescriptor
       getDescriptor() {
-    return alluxio.grpc.FileSystemMasterProto.getDescriptor().getEnumTypes().get(5);
+    return alluxio.grpc.FileSystemMasterProto.getDescriptor().getEnumTypes().get(6);
   }
 
   private static final PAclAction[] VALUES = values();

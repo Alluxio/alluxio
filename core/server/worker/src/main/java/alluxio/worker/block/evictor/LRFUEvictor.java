@@ -171,6 +171,11 @@ public final class LRFUEvictor extends AbstractEvictor {
   }
 
   @Override
+  public void onBlockLost(long blockId) {
+    updateOnRemoveBlock(blockId);
+  }
+
+  @Override
   protected void onRemoveBlockFromIterator(long blockId) {
     mBlockIdToLastUpdateTime.remove(blockId);
     mBlockIdToCRFValue.remove(blockId);

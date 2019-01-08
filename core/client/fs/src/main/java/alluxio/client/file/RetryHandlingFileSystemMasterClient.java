@@ -33,6 +33,7 @@ import alluxio.grpc.GetNewBlockIdForFilePOptions;
 import alluxio.grpc.GetNewBlockIdForFilePRequest;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.GetStatusPRequest;
+import alluxio.grpc.GetSyncPathListPRequest;
 import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.ListStatusPRequest;
@@ -47,12 +48,15 @@ import alluxio.grpc.SetAclPOptions;
 import alluxio.grpc.SetAclPRequest;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.SetAttributePRequest;
+import alluxio.grpc.StartSyncPRequest;
+import alluxio.grpc.StopSyncPRequest;
 import alluxio.grpc.UnmountPOptions;
 import alluxio.grpc.UnmountPRequest;
 import alluxio.grpc.UpdateUfsModePOptions;
 import alluxio.grpc.UpdateUfsModePRequest;
 import alluxio.master.MasterClientConfig;
 import alluxio.security.authorization.AclEntry;
+import alluxio.wire.SyncPointInfo;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -163,6 +167,13 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
   }
 
   @Override
+  public synchronized List<SyncPointInfo> getSyncPathList() throws AlluxioStatusException {
+    return retryRPC(() -> mClient.getSyncPathList(GetSyncPathListPRequest.getDefaultInstance())
+        .getSyncPathsList().stream().map(x -> alluxio.wire.SyncPointInfo.fromProto(x))
+        .collect(Collectors.toList()), "GetSyncPathList");
+  }
+
+  @Override
   public long getNewBlockIdForFile(final AlluxioURI path)
       throws AlluxioStatusException {
     return retryRPC(
@@ -247,6 +258,19 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
         () -> mClient.scheduleAsyncPersistence(
             ScheduleAsyncPersistencePRequest.newBuilder().setPath(path.getPath()).build()),
         "ScheduleAsyncPersist");
+  }
+
+  @Override
+  public synchronized void startSync(final AlluxioURI path) throws AlluxioStatusException {
+    retryRPC(
+        () -> mClient.startSync(StartSyncPRequest.newBuilder().setPath(path.getPath()).build()),
+        "StartSync");
+  }
+
+  @Override
+  public synchronized void stopSync(final AlluxioURI path) throws AlluxioStatusException {
+    retryRPC(() -> mClient.stopSync(StopSyncPRequest.newBuilder().setPath(path.getPath()).build()),
+        "StopSync");
   }
 
   @Override

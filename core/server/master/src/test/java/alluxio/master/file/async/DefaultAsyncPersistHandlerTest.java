@@ -16,6 +16,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import alluxio.AlluxioURI;
+import alluxio.exception.FileDoesNotExistException;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.meta.FileSystemMasterView;
 import alluxio.wire.BlockInfo;
@@ -90,5 +91,33 @@ public class DefaultAsyncPersistHandlerTest {
     // no persist scheduled on any worker
     assertEquals(0, handler.pollFilesToPersist(1).size());
     assertEquals(0, handler.pollFilesToPersist(2).size());
+  }
+
+  /**
+   * Tests persistence after deletion of files.
+   */
+  @Test
+  public void persistenceFileAfterDeletion() throws Exception {
+    DefaultAsyncPersistHandler handler =
+        new DefaultAsyncPersistHandler(new FileSystemMasterView(mFileSystemMaster));
+    AlluxioURI path = new AlluxioURI("/test");
+    long blockId = 0;
+    long workerId = 1;
+    long fileId = 2;
+    List<FileBlockInfo> blockInfoList = new ArrayList<>();
+    BlockLocation location = new BlockLocation().setWorkerId(workerId);
+    blockInfoList.add(new FileBlockInfo().setBlockInfo(
+        new BlockInfo().setBlockId(blockId).setLocations(Lists.newArrayList(location))));
+    when(mFileSystemMaster.getFileBlockInfoList(path)).thenReturn(blockInfoList);
+    when(mFileSystemMaster.getFileId(path)).thenReturn(fileId);
+    when(mFileSystemMaster.getPath(fileId)).thenReturn(path);
+    when(mFileSystemMaster.getFileInfo(fileId))
+        .thenReturn(new FileInfo().setLength(1).setCompleted(true));
+
+    handler.scheduleAsyncPersistence(path);
+    when(mFileSystemMaster.getFileInfo(fileId))
+        .thenThrow(new FileDoesNotExistException("no file"));
+    List<PersistFile> persistFiles = handler.pollFilesToPersist(workerId);
+    assertEquals(0, persistFiles.size());
   }
 }

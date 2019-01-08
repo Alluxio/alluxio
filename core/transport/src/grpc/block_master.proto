@@ -140,6 +140,7 @@ message TierList {
 
 message BlockHeartbeatPOptions {
   repeated grpc.Metric metrics = 1;
+  map<string, int64> capacityBytesOnTiers = 2;
 }
 message BlockHeartbeatPRequest {
   /** the id of the worker */
