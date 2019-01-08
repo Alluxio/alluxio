@@ -25,15 +25,11 @@ import org.eclipse.jetty.server.handler.DefaultHandler;
 import org.eclipse.jetty.server.handler.HandlerList;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
-import org.eclipse.jetty.webapp.WebAppContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 
 import javax.annotation.concurrent.NotThreadSafe;
 

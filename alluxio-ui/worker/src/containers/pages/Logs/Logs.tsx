@@ -6,7 +6,7 @@ import {Dispatch} from 'redux';
 
 import {FileView} from '@alluxio/common-ui/src/components';
 import {IFileInfo} from '@alluxio/common-ui/src/constants';
-import {createDebouncedFunction, parseQuerystring} from '@alluxio/common-ui/src/utilities';
+import {getDebouncedFunction, parseQuerystring} from '@alluxio/common-ui/src/utilities';
 import {IApplicationState} from '../../../store';
 import {fetchRequest} from '../../../store/logs/actions';
 import {ILogs} from '../../../store/logs/types';
@@ -46,7 +46,7 @@ type AllProps = IPropsFromState & IPropsFromDispatch & ILogsProps;
 
 class Logs extends React.Component<AllProps, ILogsState> {
   private readonly textAreaResizeMs = 100;
-  private readonly debouncedUpdateTextAreaHeight = createDebouncedFunction(this.updateTextAreaHeight.bind(this), this.textAreaResizeMs, true);
+  private readonly debouncedUpdateTextAreaHeight = getDebouncedFunction(this.updateTextAreaHeight.bind(this), this.textAreaResizeMs, true);
 
   constructor(props: AllProps) {
     super(props);

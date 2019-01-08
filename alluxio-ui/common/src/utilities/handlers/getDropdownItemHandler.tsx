@@ -1,13 +1,13 @@
 import React from 'react';
 
-import {createDropdownItemValidator, FieldValidatorFunctionsType} from './createDropdownItemValidator';
+import {FieldValidatorFunctionsType, getDropdownItemValidator} from './getDropdownItemValidator';
 
 type DropdownValidatorFunctionType = (this: any, event: React.FormEvent<HTMLElement>, isFormSubmission: boolean) => void;
 
-export const createDropdownItemHandler = (elementId: string, elementName: string, fieldValidatorFunctions: FieldValidatorFunctionsType) => {
+export const getDropdownItemHandler = (elementId: string, elementName: string, fieldValidatorFunctions: FieldValidatorFunctionsType) => {
   let inputValidatorFunction: DropdownValidatorFunctionType;
   if (fieldValidatorFunctions.length) {
-    inputValidatorFunction = createDropdownItemValidator(elementId, elementName, fieldValidatorFunctions);
+    inputValidatorFunction = getDropdownItemValidator(elementId, elementName, fieldValidatorFunctions);
   }
 
   return function(this: any, event: React.MouseEvent<HTMLElement>, isFormSubmission?: boolean) {

@@ -1,13 +1,13 @@
 import React from 'react';
 
-import {createInputValidator, FieldValidatorFunctionsType} from './createInputValidator';
+import {FieldValidatorFunctionsType, getInputValidator} from './getInputValidator';
 
 export type InputValidatorFunctionType = (this: any, event: React.FormEvent<HTMLInputElement>) => void;
 
-export const createInputHandler = (elementId: string, elementName: string, fieldValidatorFunctions: FieldValidatorFunctionsType) => {
+export const getInputHandler = (elementId: string, elementName: string, fieldValidatorFunctions: FieldValidatorFunctionsType) => {
   let inputValidatorFunction: InputValidatorFunctionType;
   if (fieldValidatorFunctions.length) {
-    inputValidatorFunction = createInputValidator(elementId, elementName, fieldValidatorFunctions);
+    inputValidatorFunction = getInputValidator(elementId, elementName, fieldValidatorFunctions);
   }
 
   return function(this: any, event: React.FormEvent<HTMLInputElement>) {

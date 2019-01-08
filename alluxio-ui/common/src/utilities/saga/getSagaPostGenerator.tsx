@@ -2,7 +2,7 @@ import axios from 'axios';
 import {call, put} from 'redux-saga/effects';
 import {ActionType} from 'typesafe-actions';
 
-export const createSagaPostGenerator = (endpoint: string, successFunction: ActionType<any>, errorFunction: ActionType<any>) => function* (params: any) {
+export const getSagaPostGenerator = (endpoint: string, successFunction: ActionType<any>, errorFunction: ActionType<any>) => function* (params: any) {
   let apiEndpoint = endpoint;
 
   if (params && params.payload) {
@@ -31,7 +31,7 @@ export const createSagaPostGenerator = (endpoint: string, successFunction: Actio
     if (err instanceof Error) {
       yield put(errorFunction(err.stack!));
     } else {
-      yield put(errorFunction('An unknown fetch error occurred in versions.'));
+      yield put(errorFunction('An unknown post error occurred.'));
     }
   }
 };

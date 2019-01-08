@@ -6,6 +6,7 @@ import {Redirect, Route, RouteComponentProps, Switch} from 'react-router-dom';
 import {Dispatch, Store} from 'redux';
 
 import {Footer, Header} from '@alluxio/common-ui/src/components';
+import {getRoutedViewRenderer} from '@alluxio/common-ui/src/utilities';
 import {BlockInfo, Logs, Metrics, Overview} from '..';
 import {footerNavigationData, headerNavigationData} from '../../constants';
 import {IApplicationState} from '../../store';
@@ -34,14 +35,8 @@ class App extends React.Component<AllProps, IAppState> {
   constructor(props: AllProps) {
     super(props);
 
-    this.renderError = this.renderError.bind(this);
-    this.redirectToOverview = this.redirectToOverview.bind(this);
     this.flipRefreshValue = this.flipRefreshValue.bind(this);
     this.setAutoRefresh = this.setAutoRefresh.bind(this);
-    this.renderOverview = this.renderOverview.bind(this);
-    this.renderBlockInfo = this.renderBlockInfo.bind(this);
-    this.renderLogs = this.renderLogs.bind(this);
-    this.renderMetrics = this.renderMetrics.bind(this);
 
     this.state = {
       refreshValue: false
@@ -50,6 +45,7 @@ class App extends React.Component<AllProps, IAppState> {
 
   public render() {
     const {store, history} = this.props;
+    const {refreshValue} = this.state;
 
     return (
       <Provider store={store}>
@@ -61,11 +57,11 @@ class App extends React.Component<AllProps, IAppState> {
             <div className="pages container-fluid mt-3">
               <Switch>
                 <Route exact={true} path="/" render={this.redirectToOverview}/>
-                <Route path="/overview" exact={true} component={this.renderOverview}/>
-                <Route path="/blockInfo" exact={true} component={this.renderBlockInfo}/>
-                <Route path="/logs" exact={true} component={this.renderLogs}/>
-                <Route path="/metrics" exact={true} component={this.renderMetrics}/>
-                <Route render={this.renderError}/>
+                <Route path="/overview" exact={true} render={getRoutedViewRenderer(Overview, {refreshValue})}/>
+                <Route path="/blockInfo" exact={true} render={getRoutedViewRenderer(BlockInfo, {refreshValue})}/>
+                <Route path="/logs" exact={true} render={getRoutedViewRenderer(Logs, {refreshValue})}/>
+                <Route path="/metrics" exact={true} render={getRoutedViewRenderer(Metrics, {refreshValue})}/>
+                <Route render={this.redirectToOverview}/>
               </Switch>
             </div>
             <div className="container-fluid footer-wrapper">
@@ -81,34 +77,6 @@ class App extends React.Component<AllProps, IAppState> {
     return (
       <Redirect to="/overview"/>
     );
-  }
-
-  private renderOverview(routerProps: RouteComponentProps<any, StaticContext, any>) {
-    return (
-      <Overview {...routerProps} refreshValue={this.state.refreshValue}/>
-    );
-  }
-
-  private renderBlockInfo(routerProps: RouteComponentProps<any, StaticContext, any>) {
-    return (
-      <BlockInfo {...routerProps} refreshValue={this.state.refreshValue}/>
-    );
-  }
-
-  private renderLogs(routerProps: RouteComponentProps<any, StaticContext, any>) {
-    return (
-      <Logs {...routerProps} refreshValue={this.state.refreshValue}/>
-    );
-  }
-
-  private renderMetrics(routerProps: RouteComponentProps<any, StaticContext, any>) {
-    return (
-      <Metrics {...routerProps} refreshValue={this.state.refreshValue}/>
-    );
-  }
-
-  private renderError(routerProps: RouteComponentProps<any, StaticContext, any>) {
-    return null;
   }
 
   private flipRefreshValue() {

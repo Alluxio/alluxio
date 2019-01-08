@@ -3,7 +3,7 @@ import React from 'react';
 export type FieldValidatorFunctionType = (name: string, value: string) => string;
 export type FieldValidatorFunctionsType = FieldValidatorFunctionType[];
 
-export const createDropdownItemValidator = (elementId: string, elementName: string, fieldValidatorFunctions: FieldValidatorFunctionsType) => (
+export const getDropdownItemValidator = (elementId: string, elementName: string, fieldValidatorFunctions: FieldValidatorFunctionsType) => (
   function (this: any, event: React.FormEvent<HTMLInputElement>, isFormSubmission: boolean = false) {
     const element = document.getElementById(elementId);
     const elementValue = element && element.getAttribute('value') || '';

@@ -3,7 +3,7 @@ import React from 'react';
 export type FieldValidatorFunctionType = (name: string, value: string) => string;
 export type FieldValidatorFunctionsType = FieldValidatorFunctionType[];
 
-export const createInputValidator = (elementId: string, elementName: string, fieldValidatorFunctions: FieldValidatorFunctionsType) =>
+export const getInputValidator = (elementId: string, elementName: string, fieldValidatorFunctions: FieldValidatorFunctionsType) =>
   function (this: any, event: React.FormEvent<HTMLInputElement>) {
     const element = document.getElementById(elementId);
     const elementValue = element && element.getAttribute('value') || '';

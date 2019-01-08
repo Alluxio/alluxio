@@ -6,6 +6,7 @@ import {Redirect, Route, RouteComponentProps, Switch} from 'react-router-dom';
 import {Dispatch, Store} from 'redux';
 
 import {Footer, Header} from '@alluxio/common-ui/src/components';
+import {getRoutedViewRenderer} from '@alluxio/common-ui/src/utilities';
 import {
   Browse, Configuration, Data, Logs, Metrics, Overview, Workers
 } from '..';
@@ -36,17 +37,8 @@ class App extends React.Component<AllProps, IAppState> {
   constructor(props: AllProps) {
     super(props);
 
-    this.renderError = this.renderError.bind(this);
-    this.redirectToOverview = this.redirectToOverview.bind(this);
     this.flipRefreshValue = this.flipRefreshValue.bind(this);
     this.setAutoRefresh = this.setAutoRefresh.bind(this);
-    this.renderOverview = this.renderOverview.bind(this);
-    this.renderBrowse = this.renderBrowse.bind(this);
-    this.renderConfiguration = this.renderConfiguration.bind(this);
-    this.renderData = this.renderData.bind(this);
-    this.renderLogs = this.renderLogs.bind(this);
-    this.renderMetrics = this.renderMetrics.bind(this);
-    this.renderWorkers = this.renderWorkers.bind(this);
 
     this.state = {
       refreshValue: false
@@ -55,6 +47,7 @@ class App extends React.Component<AllProps, IAppState> {
 
   public render() {
     const {store, history} = this.props;
+    const {refreshValue} = this.state;
 
     return (
       <Provider store={store}>
@@ -66,14 +59,14 @@ class App extends React.Component<AllProps, IAppState> {
             <div className="pages container-fluid mt-3">
               <Switch>
                 <Route exact={true} path="/" render={this.redirectToOverview}/>
-                <Route path="/overview" exact={true} render={this.renderOverview}/>
-                <Route path="/browse" exact={true} render={this.renderBrowse}/>
-                <Route path="/config" exact={true} component={this.renderConfiguration}/>
-                <Route path="/data" exact={true} component={this.renderData}/>
-                <Route path="/logs" exact={true} component={this.renderLogs}/>
-                <Route path="/metrics" exact={true} component={this.renderMetrics}/>
-                <Route path="/workers" exact={true} component={this.renderWorkers}/>
-                <Route render={this.renderError}/>
+                <Route path="/overview" exact={true} render={getRoutedViewRenderer(Overview, {refreshValue})}/>
+                <Route path="/browse" exact={true} render={getRoutedViewRenderer(Browse, {refreshValue})}/>
+                <Route path="/config" exact={true} render={getRoutedViewRenderer(Configuration, {refreshValue})}/>
+                <Route path="/data" exact={true} render={getRoutedViewRenderer(Data, {refreshValue})}/>
+                <Route path="/logs" exact={true} render={getRoutedViewRenderer(Logs, {refreshValue})}/>
+                <Route path="/metrics" exact={true} render={getRoutedViewRenderer(Metrics, {refreshValue})}/>
+                <Route path="/workers" exact={true} render={getRoutedViewRenderer(Workers, {refreshValue})}/>
+                <Route render={this.redirectToOverview}/>
               </Switch>
             </div>
             <div className="container-fluid footer-wrapper">
@@ -89,52 +82,6 @@ class App extends React.Component<AllProps, IAppState> {
     return (
       <Redirect to="/overview"/>
     );
-  }
-
-  private renderOverview(routerProps: RouteComponentProps<any, StaticContext, any>) {
-    return (
-      <Overview {...routerProps} refreshValue={this.state.refreshValue}/>
-    );
-  }
-
-  private renderBrowse(routerProps: RouteComponentProps<any, StaticContext, any>) {
-    return (
-      <Browse {...routerProps} refreshValue={this.state.refreshValue}/>
-    );
-  }
-
-  private renderConfiguration(routerProps: RouteComponentProps<any, StaticContext, any>) {
-    return (
-      <Configuration {...routerProps} refreshValue={this.state.refreshValue}/>
-    );
-  }
-
-  private renderData(routerProps: RouteComponentProps<any, StaticContext, any>) {
-    return (
-      <Data {...routerProps} refreshValue={this.state.refreshValue}/>
-    );
-  }
-
-  private renderLogs(routerProps: RouteComponentProps<any, StaticContext, any>) {
-    return (
-      <Logs {...routerProps} refreshValue={this.state.refreshValue}/>
-    );
-  }
-
-  private renderMetrics(routerProps: RouteComponentProps<any, StaticContext, any>) {
-    return (
-      <Metrics {...routerProps} refreshValue={this.state.refreshValue}/>
-    );
-  }
-
-  private renderWorkers(routerProps: RouteComponentProps<any, StaticContext, any>) {
-    return (
-      <Workers {...routerProps} refreshValue={this.state.refreshValue}/>
-    );
-  }
-
-  private renderError(routerProps: RouteComponentProps<any, StaticContext, any>) {
-    return null;
   }
 
   private flipRefreshValue() {
