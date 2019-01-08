@@ -20,5 +20,10 @@ myuid=$(id -u)
 mygid=$(id -g)
 echo "$myuid:x:$myuid:$mygid:anonymous uid:/home/jenkins:/bin/false" >> /etc/passwd
 
+if [ -z ${ALLUXIO_BUILD_FORKCOUNT} ]
+then
+  ALLUXIO_BUILD_FORKCOUNT=4
+fi
+
 git clean -fdx
-mvn -Duser.home=/home/jenkins -T 4C clean install -PcompileJsp -Pdeveloper -Dmaven.javadoc.skip -Dsurefire.forkCount=8 $@
+mvn -Duser.home=/home/jenkins -T 4C clean install -PcompileJsp -Pdeveloper -Dmaven.javadoc.skip -Dsurefire.forkCount=${ALLUXIO_BUILD_FORKCOUNT} $@
