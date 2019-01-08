@@ -12,8 +12,8 @@
 package alluxio.master.file.contexts;
 
 import alluxio.client.WriteType;
-import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.CreateDirectoryPOptions;
+import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.TtlAction;
 import alluxio.grpc.WritePType;
 import alluxio.security.authorization.AclEntry;

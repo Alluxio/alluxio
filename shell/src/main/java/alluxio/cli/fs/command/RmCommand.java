@@ -14,7 +14,6 @@ package alluxio.cli.fs.command;
 import alluxio.AlluxioURI;
 import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystem;
-import alluxio.client.file.FileSystemClientOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
@@ -91,9 +90,9 @@ public final class RmCommand extends AbstractFileSystemCommand {
           path.getPath() + " is a directory, to remove it, please use \"rm -R <path>\"");
     }
     boolean isAlluxioOnly = cl.hasOption(REMOVE_ALLUXIO_ONLY.getLongOpt());
-    DeletePOptions options = FileSystemClientOptions.getDeleteOptions().toBuilder()
-        .setRecursive(recursive).setAlluxioOnly(isAlluxioOnly)
-        .setUnchecked(cl.hasOption(REMOVE_UNCHECKED_OPTION_CHAR)).build();
+    DeletePOptions options =
+        DeletePOptions.newBuilder().setRecursive(recursive).setAlluxioOnly(isAlluxioOnly)
+            .setUnchecked(cl.hasOption(REMOVE_UNCHECKED_OPTION_CHAR)).build();
 
     mFileSystem.delete(path, options);
     if (!isAlluxioOnly) {

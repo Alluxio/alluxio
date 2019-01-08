@@ -16,7 +16,6 @@ import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
-import alluxio.client.file.FileSystemClientOptions;
 import alluxio.client.file.FileSystemUtils;
 import alluxio.exception.AlluxioException;
 import alluxio.grpc.CreateFilePOptions;
@@ -55,8 +54,8 @@ public class FileSystemUtilsIntegrationTest extends BaseIntegrationTest {
   @BeforeClass
   public static void beforeClass() throws Exception {
     sFileSystem = sLocalAlluxioClusterResource.get().getClient();
-    sWriteBoth = FileSystemClientOptions.getCreateFileOptions().toBuilder()
-        .setWriteType(WritePType.WRITE_CACHE_THROUGH).build();
+    sWriteBoth = CreateFilePOptions.newBuilder().setWriteType(WritePType.WRITE_CACHE_THROUGH)
+        .setRecursive(true).build();
   }
 
   @Test

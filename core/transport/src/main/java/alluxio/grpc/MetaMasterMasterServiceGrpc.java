@@ -22,31 +22,25 @@ import static io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall;
  * </pre>
  */
 @javax.annotation.Generated(
-    value = "by gRPC proto compiler (version 1.10.1)",
-    comments = "Source: meta_master.proto")
+    value = "by gRPC proto compiler (version 1.17.1)",
+    comments = "Source: grpc/meta_master.proto")
 public final class MetaMasterMasterServiceGrpc {
 
   private MetaMasterMasterServiceGrpc() {}
 
-  public static final String SERVICE_NAME = "alluxio.grpc.MetaMasterMasterService";
+  public static final String SERVICE_NAME = "alluxio.grpc.meta.MetaMasterMasterService";
 
   // Static method descriptors that strictly reflect the proto.
-  @io.grpc.ExperimentalApi("https://github.com/grpc/grpc-java/issues/1901")
-  @java.lang.Deprecated // Use {@link #getGetMasterIdMethod()} instead. 
-  public static final io.grpc.MethodDescriptor<alluxio.grpc.GetMasterIdPRequest,
-      alluxio.grpc.GetMasterIdPResponse> METHOD_GET_MASTER_ID = getGetMasterIdMethodHelper();
-
   private static volatile io.grpc.MethodDescriptor<alluxio.grpc.GetMasterIdPRequest,
       alluxio.grpc.GetMasterIdPResponse> getGetMasterIdMethod;
 
-  @io.grpc.ExperimentalApi("https://github.com/grpc/grpc-java/issues/1901")
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + "GetMasterId",
+      requestType = alluxio.grpc.GetMasterIdPRequest.class,
+      responseType = alluxio.grpc.GetMasterIdPResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
   public static io.grpc.MethodDescriptor<alluxio.grpc.GetMasterIdPRequest,
       alluxio.grpc.GetMasterIdPResponse> getGetMasterIdMethod() {
-    return getGetMasterIdMethodHelper();
-  }
-
-  private static io.grpc.MethodDescriptor<alluxio.grpc.GetMasterIdPRequest,
-      alluxio.grpc.GetMasterIdPResponse> getGetMasterIdMethodHelper() {
     io.grpc.MethodDescriptor<alluxio.grpc.GetMasterIdPRequest, alluxio.grpc.GetMasterIdPResponse> getGetMasterIdMethod;
     if ((getGetMasterIdMethod = MetaMasterMasterServiceGrpc.getGetMasterIdMethod) == null) {
       synchronized (MetaMasterMasterServiceGrpc.class) {
@@ -55,7 +49,7 @@ public final class MetaMasterMasterServiceGrpc {
               io.grpc.MethodDescriptor.<alluxio.grpc.GetMasterIdPRequest, alluxio.grpc.GetMasterIdPResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
               .setFullMethodName(generateFullMethodName(
-                  "alluxio.grpc.MetaMasterMasterService", "GetMasterId"))
+                  "alluxio.grpc.meta.MetaMasterMasterService", "GetMasterId"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.GetMasterIdPRequest.getDefaultInstance()))
@@ -68,22 +62,17 @@ public final class MetaMasterMasterServiceGrpc {
      }
      return getGetMasterIdMethod;
   }
-  @io.grpc.ExperimentalApi("https://github.com/grpc/grpc-java/issues/1901")
-  @java.lang.Deprecated // Use {@link #getRegisterMasterMethod()} instead. 
-  public static final io.grpc.MethodDescriptor<alluxio.grpc.RegisterMasterPRequest,
-      alluxio.grpc.RegisterMasterPResponse> METHOD_REGISTER_MASTER = getRegisterMasterMethodHelper();
 
   private static volatile io.grpc.MethodDescriptor<alluxio.grpc.RegisterMasterPRequest,
       alluxio.grpc.RegisterMasterPResponse> getRegisterMasterMethod;
 
-  @io.grpc.ExperimentalApi("https://github.com/grpc/grpc-java/issues/1901")
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + "RegisterMaster",
+      requestType = alluxio.grpc.RegisterMasterPRequest.class,
+      responseType = alluxio.grpc.RegisterMasterPResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
   public static io.grpc.MethodDescriptor<alluxio.grpc.RegisterMasterPRequest,
       alluxio.grpc.RegisterMasterPResponse> getRegisterMasterMethod() {
-    return getRegisterMasterMethodHelper();
-  }
-
-  private static io.grpc.MethodDescriptor<alluxio.grpc.RegisterMasterPRequest,
-      alluxio.grpc.RegisterMasterPResponse> getRegisterMasterMethodHelper() {
     io.grpc.MethodDescriptor<alluxio.grpc.RegisterMasterPRequest, alluxio.grpc.RegisterMasterPResponse> getRegisterMasterMethod;
     if ((getRegisterMasterMethod = MetaMasterMasterServiceGrpc.getRegisterMasterMethod) == null) {
       synchronized (MetaMasterMasterServiceGrpc.class) {
@@ -92,7 +81,7 @@ public final class MetaMasterMasterServiceGrpc {
               io.grpc.MethodDescriptor.<alluxio.grpc.RegisterMasterPRequest, alluxio.grpc.RegisterMasterPResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
               .setFullMethodName(generateFullMethodName(
-                  "alluxio.grpc.MetaMasterMasterService", "RegisterMaster"))
+                  "alluxio.grpc.meta.MetaMasterMasterService", "RegisterMaster"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.RegisterMasterPRequest.getDefaultInstance()))
@@ -105,22 +94,17 @@ public final class MetaMasterMasterServiceGrpc {
      }
      return getRegisterMasterMethod;
   }
-  @io.grpc.ExperimentalApi("https://github.com/grpc/grpc-java/issues/1901")
-  @java.lang.Deprecated // Use {@link #getMasterHeartbeatMethod()} instead. 
-  public static final io.grpc.MethodDescriptor<alluxio.grpc.MasterHeartbeatPRequest,
-      alluxio.grpc.MasterHeartbeatPResponse> METHOD_MASTER_HEARTBEAT = getMasterHeartbeatMethodHelper();
 
   private static volatile io.grpc.MethodDescriptor<alluxio.grpc.MasterHeartbeatPRequest,
       alluxio.grpc.MasterHeartbeatPResponse> getMasterHeartbeatMethod;
 
-  @io.grpc.ExperimentalApi("https://github.com/grpc/grpc-java/issues/1901")
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + "MasterHeartbeat",
+      requestType = alluxio.grpc.MasterHeartbeatPRequest.class,
+      responseType = alluxio.grpc.MasterHeartbeatPResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
   public static io.grpc.MethodDescriptor<alluxio.grpc.MasterHeartbeatPRequest,
       alluxio.grpc.MasterHeartbeatPResponse> getMasterHeartbeatMethod() {
-    return getMasterHeartbeatMethodHelper();
-  }
-
-  private static io.grpc.MethodDescriptor<alluxio.grpc.MasterHeartbeatPRequest,
-      alluxio.grpc.MasterHeartbeatPResponse> getMasterHeartbeatMethodHelper() {
     io.grpc.MethodDescriptor<alluxio.grpc.MasterHeartbeatPRequest, alluxio.grpc.MasterHeartbeatPResponse> getMasterHeartbeatMethod;
     if ((getMasterHeartbeatMethod = MetaMasterMasterServiceGrpc.getMasterHeartbeatMethod) == null) {
       synchronized (MetaMasterMasterServiceGrpc.class) {
@@ -129,7 +113,7 @@ public final class MetaMasterMasterServiceGrpc {
               io.grpc.MethodDescriptor.<alluxio.grpc.MasterHeartbeatPRequest, alluxio.grpc.MasterHeartbeatPResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
               .setFullMethodName(generateFullMethodName(
-                  "alluxio.grpc.MetaMasterMasterService", "MasterHeartbeat"))
+                  "alluxio.grpc.meta.MetaMasterMasterService", "MasterHeartbeat"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.MasterHeartbeatPRequest.getDefaultInstance()))
@@ -182,7 +166,7 @@ public final class MetaMasterMasterServiceGrpc {
      */
     public void getMasterId(alluxio.grpc.GetMasterIdPRequest request,
         io.grpc.stub.StreamObserver<alluxio.grpc.GetMasterIdPResponse> responseObserver) {
-      asyncUnimplementedUnaryCall(getGetMasterIdMethodHelper(), responseObserver);
+      asyncUnimplementedUnaryCall(getGetMasterIdMethod(), responseObserver);
     }
 
     /**
@@ -193,7 +177,7 @@ public final class MetaMasterMasterServiceGrpc {
      */
     public void registerMaster(alluxio.grpc.RegisterMasterPRequest request,
         io.grpc.stub.StreamObserver<alluxio.grpc.RegisterMasterPResponse> responseObserver) {
-      asyncUnimplementedUnaryCall(getRegisterMasterMethodHelper(), responseObserver);
+      asyncUnimplementedUnaryCall(getRegisterMasterMethod(), responseObserver);
     }
 
     /**
@@ -204,27 +188,27 @@ public final class MetaMasterMasterServiceGrpc {
      */
     public void masterHeartbeat(alluxio.grpc.MasterHeartbeatPRequest request,
         io.grpc.stub.StreamObserver<alluxio.grpc.MasterHeartbeatPResponse> responseObserver) {
-      asyncUnimplementedUnaryCall(getMasterHeartbeatMethodHelper(), responseObserver);
+      asyncUnimplementedUnaryCall(getMasterHeartbeatMethod(), responseObserver);
     }
 
     @java.lang.Override public final io.grpc.ServerServiceDefinition bindService() {
       return io.grpc.ServerServiceDefinition.builder(getServiceDescriptor())
           .addMethod(
-            getGetMasterIdMethodHelper(),
+            getGetMasterIdMethod(),
             asyncUnaryCall(
               new MethodHandlers<
                 alluxio.grpc.GetMasterIdPRequest,
                 alluxio.grpc.GetMasterIdPResponse>(
                   this, METHODID_GET_MASTER_ID)))
           .addMethod(
-            getRegisterMasterMethodHelper(),
+            getRegisterMasterMethod(),
             asyncUnaryCall(
               new MethodHandlers<
                 alluxio.grpc.RegisterMasterPRequest,
                 alluxio.grpc.RegisterMasterPResponse>(
                   this, METHODID_REGISTER_MASTER)))
           .addMethod(
-            getMasterHeartbeatMethodHelper(),
+            getMasterHeartbeatMethod(),
             asyncUnaryCall(
               new MethodHandlers<
                 alluxio.grpc.MasterHeartbeatPRequest,
@@ -265,7 +249,7 @@ public final class MetaMasterMasterServiceGrpc {
     public void getMasterId(alluxio.grpc.GetMasterIdPRequest request,
         io.grpc.stub.StreamObserver<alluxio.grpc.GetMasterIdPResponse> responseObserver) {
       asyncUnaryCall(
-          getChannel().newCall(getGetMasterIdMethodHelper(), getCallOptions()), request, responseObserver);
+          getChannel().newCall(getGetMasterIdMethod(), getCallOptions()), request, responseObserver);
     }
 
     /**
@@ -277,7 +261,7 @@ public final class MetaMasterMasterServiceGrpc {
     public void registerMaster(alluxio.grpc.RegisterMasterPRequest request,
         io.grpc.stub.StreamObserver<alluxio.grpc.RegisterMasterPResponse> responseObserver) {
       asyncUnaryCall(
-          getChannel().newCall(getRegisterMasterMethodHelper(), getCallOptions()), request, responseObserver);
+          getChannel().newCall(getRegisterMasterMethod(), getCallOptions()), request, responseObserver);
     }
 
     /**
@@ -289,7 +273,7 @@ public final class MetaMasterMasterServiceGrpc {
     public void masterHeartbeat(alluxio.grpc.MasterHeartbeatPRequest request,
         io.grpc.stub.StreamObserver<alluxio.grpc.MasterHeartbeatPResponse> responseObserver) {
       asyncUnaryCall(
-          getChannel().newCall(getMasterHeartbeatMethodHelper(), getCallOptions()), request, responseObserver);
+          getChannel().newCall(getMasterHeartbeatMethod(), getCallOptions()), request, responseObserver);
     }
   }
 
@@ -323,7 +307,7 @@ public final class MetaMasterMasterServiceGrpc {
      */
     public alluxio.grpc.GetMasterIdPResponse getMasterId(alluxio.grpc.GetMasterIdPRequest request) {
       return blockingUnaryCall(
-          getChannel(), getGetMasterIdMethodHelper(), getCallOptions(), request);
+          getChannel(), getGetMasterIdMethod(), getCallOptions(), request);
     }
 
     /**
@@ -334,7 +318,7 @@ public final class MetaMasterMasterServiceGrpc {
      */
     public alluxio.grpc.RegisterMasterPResponse registerMaster(alluxio.grpc.RegisterMasterPRequest request) {
       return blockingUnaryCall(
-          getChannel(), getRegisterMasterMethodHelper(), getCallOptions(), request);
+          getChannel(), getRegisterMasterMethod(), getCallOptions(), request);
     }
 
     /**
@@ -345,7 +329,7 @@ public final class MetaMasterMasterServiceGrpc {
      */
     public alluxio.grpc.MasterHeartbeatPResponse masterHeartbeat(alluxio.grpc.MasterHeartbeatPRequest request) {
       return blockingUnaryCall(
-          getChannel(), getMasterHeartbeatMethodHelper(), getCallOptions(), request);
+          getChannel(), getMasterHeartbeatMethod(), getCallOptions(), request);
     }
   }
 
@@ -380,7 +364,7 @@ public final class MetaMasterMasterServiceGrpc {
     public com.google.common.util.concurrent.ListenableFuture<alluxio.grpc.GetMasterIdPResponse> getMasterId(
         alluxio.grpc.GetMasterIdPRequest request) {
       return futureUnaryCall(
-          getChannel().newCall(getGetMasterIdMethodHelper(), getCallOptions()), request);
+          getChannel().newCall(getGetMasterIdMethod(), getCallOptions()), request);
     }
 
     /**
@@ -392,7 +376,7 @@ public final class MetaMasterMasterServiceGrpc {
     public com.google.common.util.concurrent.ListenableFuture<alluxio.grpc.RegisterMasterPResponse> registerMaster(
         alluxio.grpc.RegisterMasterPRequest request) {
       return futureUnaryCall(
-          getChannel().newCall(getRegisterMasterMethodHelper(), getCallOptions()), request);
+          getChannel().newCall(getRegisterMasterMethod(), getCallOptions()), request);
     }
 
     /**
@@ -404,7 +388,7 @@ public final class MetaMasterMasterServiceGrpc {
     public com.google.common.util.concurrent.ListenableFuture<alluxio.grpc.MasterHeartbeatPResponse> masterHeartbeat(
         alluxio.grpc.MasterHeartbeatPRequest request) {
       return futureUnaryCall(
-          getChannel().newCall(getMasterHeartbeatMethodHelper(), getCallOptions()), request);
+          getChannel().newCall(getMasterHeartbeatMethod(), getCallOptions()), request);
     }
   }
 
@@ -502,9 +486,9 @@ public final class MetaMasterMasterServiceGrpc {
         if (result == null) {
           serviceDescriptor = result = io.grpc.ServiceDescriptor.newBuilder(SERVICE_NAME)
               .setSchemaDescriptor(new MetaMasterMasterServiceFileDescriptorSupplier())
-              .addMethod(getGetMasterIdMethodHelper())
-              .addMethod(getRegisterMasterMethodHelper())
-              .addMethod(getMasterHeartbeatMethodHelper())
+              .addMethod(getGetMasterIdMethod())
+              .addMethod(getRegisterMasterMethod())
+              .addMethod(getMasterHeartbeatMethod())
               .build();
         }
       }

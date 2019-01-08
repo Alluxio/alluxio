@@ -29,6 +29,7 @@
     <failIfNoTests>false</failIfNoTests>
     <!-- The shading prefix should match the artifact ID, replacing '-' with '.' -->
     <shading.prefix>alluxio.core.transport</shading.prefix>
+    <skip.protoc>true</skip.protoc>
   </properties>
 
   <dependencies>
@@ -60,18 +61,51 @@
 
     <!-- Internal dependencies -->
     <dependency>
-      <groupId>org.alluxio</groupId>
-      <artifactId>alluxio-core-transport-options</artifactId>
-      <version>${project.version}</version>
+      <groupId>io.netty</groupId>
+      <artifactId>netty-all</artifactId>
     </dependency>
-    <dependency>
-      <groupId>org.alluxio</groupId>
-      <artifactId>alluxio-core-base</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-      <dependency>
-          <groupId>io.netty</groupId>
-          <artifactId>netty-all</artifactId>
-      </dependency>
   </dependencies>
+
+  <profiles>
+    <profile>
+      <id>generate</id>
+      <properties>
+        <skip.protoc>false</skip.protoc>
+      </properties>
+    </profile>
+  </profiles>
+
+  <build>
+    <extensions>
+      <extension>
+        <groupId>kr.motd.maven</groupId>
+        <artifactId>os-maven-plugin</artifactId>
+        <version>1.5.0.Final</version>
+      </extension>
+    </extensions>
+    <plugins>
+      <plugin>
+        <groupId>org.xolstice.maven.plugins</groupId>
+        <artifactId>protobuf-maven-plugin</artifactId>
+        <version>0.5.0</version>
+        <configuration>
+          <protocArtifact>com.google.protobuf:protoc:${protobuf.version}:exe:${os.detected.classifier}</protocArtifact>
+          <pluginId>grpc-java</pluginId>
+          <pluginArtifact>io.grpc:protoc-gen-grpc-java:${grpc.version}:exe:${os.detected.classifier}</pluginArtifact>
+          <protoSourceRoot>src</protoSourceRoot>
+          <outputDirectory>src/main/java</outputDirectory>
+          <clearOutputDirectory>false</clearOutputDirectory>
+          <skip>${skip.protoc}</skip>
+        </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>compile</goal>
+              <goal>compile-custom</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
 </project>

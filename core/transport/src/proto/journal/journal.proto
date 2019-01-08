@@ -3,10 +3,10 @@ syntax = "proto2";
 package alluxio.proto.journal;
 option java_package = "alluxio.proto.journal";
 
-import "journal/block.proto";
-import "journal/file.proto";
-import "journal/key_value.proto";
-import "journal/lineage.proto";
+import "proto/journal/block.proto";
+import "proto/journal/file.proto";
+import "proto/journal/key_value.proto";
+import "proto/journal/lineage.proto";
 
 // Wraps around all types of Alluxio journal entries.
 //

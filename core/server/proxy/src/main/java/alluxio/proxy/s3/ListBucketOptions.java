@@ -11,6 +11,7 @@
 
 package alluxio.proxy.s3;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 
 /**
@@ -104,7 +105,7 @@ public final class ListBucketOptions {
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this)
+    return MoreObjects.toStringHelper(this)
         .add("continuationToken", mContinuationToken)
         .add("maxKeys", mMaxKeys)
         .add("prefix", mPrefix)

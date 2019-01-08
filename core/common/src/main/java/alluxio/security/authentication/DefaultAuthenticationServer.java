@@ -56,8 +56,8 @@ public class DefaultAuthenticationServer
   protected final ScheduledExecutorService mScheduler;
 
   /** Interval for clean-up task to fire. */
-  // TODO(gezer) make it configurable.
-  protected final long mCleanupIntervalHour = 1L;
+  protected final long mCleanupIntervalMs =
+      Configuration.getMs(PropertyKey.AUTHENTICATION_STALE_CHANNEL_PURGE_INTERVAL);
 
   /**
    * Creates {@link DefaultAuthenticationServer} instance.
@@ -69,7 +69,7 @@ public class DefaultAuthenticationServer
         ThreadFactoryUtils.build("auth-cleanup", true));
     mScheduler.scheduleAtFixedRate(() -> {
       cleanupStaleClients();
-    }, mCleanupIntervalHour, mCleanupIntervalHour, TimeUnit.HOURS);
+    }, mCleanupIntervalMs, mCleanupIntervalMs, TimeUnit.MILLISECONDS);
   }
 
   @Override
@@ -126,7 +126,7 @@ public class DefaultAuthenticationServer
     List<UUID> staleChannels = new ArrayList<>();
     for (Map.Entry<UUID, AuthenticatedChannelInfo> clientEntry : mChannels.entrySet()) {
       LocalTime lat = clientEntry.getValue().getLastAccessTime();
-      if (lat.plusHours(mCleanupIntervalHour).isBefore(cleanupTime)) {
+      if (lat.plusSeconds(mCleanupIntervalMs / 1000).isBefore(cleanupTime)) {
         staleChannels.add(clientEntry.getKey());
       }
     }

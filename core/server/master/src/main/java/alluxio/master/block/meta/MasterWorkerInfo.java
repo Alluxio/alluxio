@@ -19,7 +19,7 @@ import alluxio.util.CommonUtils;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
-import com.google.common.base.Objects;
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
 import org.slf4j.Logger;
@@ -332,7 +332,7 @@ public final class MasterWorkerInfo {
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this).add("id", mId).add("workerAddress", mWorkerAddress)
+    return MoreObjects.toStringHelper(this).add("id", mId).add("workerAddress", mWorkerAddress)
         .add("capacityBytes", mCapacityBytes).add("usedBytes", mUsedBytes)
         .add("lastUpdatedTimeMs", mLastUpdatedTimeMs).add("blocks", mBlocks).toString();
   }

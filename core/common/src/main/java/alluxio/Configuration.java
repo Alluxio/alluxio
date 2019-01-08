@@ -19,6 +19,7 @@ import alluxio.exception.status.UnauthenticatedException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.GetConfigurationPOptions;
+import alluxio.grpc.GrpcExceptionUtils;
 import alluxio.grpc.MetaMasterConfigurationServiceGrpc;
 import alluxio.grpc.Scope;
 import alluxio.util.ConfigurationUtils;
@@ -441,6 +442,8 @@ public final class Configuration {
             client.getConfiguration(GetConfigurationPOptions.newBuilder().setRawValue(true).build())
                 .getConfigsList();
       } catch (io.grpc.StatusRuntimeException e) {
+        AlluxioStatusException ase = GrpcExceptionUtils.fromGrpcStatusException(e);
+        LOG.warn("Failed to handshake with master {} : {}", address, ase.getMessage());
         throw new UnavailableException(String.format(
             "Failed to handshake with master %s to load cluster default configuration values",
             address), e);
@@ -448,7 +451,9 @@ public final class Configuration {
         throw new RuntimeException(String.format(
             "Received authentication exception with authentication disabled. Host:%s", address), e);
       } finally {
-        channel.shutdown();
+        if (channel != null) {
+          channel.shutdown();
+        }
       }
 
       // merge conf returned by master as the cluster default into Configuration

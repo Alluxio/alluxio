@@ -13,7 +13,6 @@ package alluxio.cli.fsadmin.command;
 
 import alluxio.AlluxioURI;
 import alluxio.cli.CommandUtils;
-import alluxio.client.file.FileSystemClientOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.UfsPMode;
@@ -89,8 +88,7 @@ public final class UfsCommand extends AbstractFsAdminCommand {
           System.out.println("Unrecognized mode");
           return -1;
       }
-      UpdateUfsModePOptions options =
-          FileSystemClientOptions.getUpdateUfsModeOptions().toBuilder().setUfsMode(mode).build();
+      UpdateUfsModePOptions options = UpdateUfsModePOptions.newBuilder().setUfsMode(mode).build();
       mFsClient.updateUfsMode(ufsUri, options);
       System.out.println("Ufs mode updated");
       return 0;

@@ -3381,8 +3381,10 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     }
     UpdateInodeEntry.Builder entry = UpdateInodeEntry.newBuilder().setId(inode.getId());
     if (protoOptions.hasReplicationMax() || protoOptions.hasReplicationMin()) {
-      Integer replicationMax = protoOptions.getReplicationMax();
-      Integer replicationMin = protoOptions.getReplicationMin();
+      Integer replicationMax =
+          protoOptions.hasReplicationMax() ? protoOptions.getReplicationMax() : null;
+      Integer replicationMin =
+          protoOptions.hasReplicationMin() ? protoOptions.getReplicationMin() : null;
       mInodeTree.setReplication(rpcContext, inodePath, replicationMax, replicationMin, opTimeMs);
     }
     if (protoOptions.hasTtl()) {

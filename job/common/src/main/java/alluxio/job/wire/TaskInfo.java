@@ -14,6 +14,7 @@ package alluxio.job.wire;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.job.util.SerializationUtils;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.protobuf.ByteString;
 
@@ -179,7 +180,7 @@ public class TaskInfo {
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this).add("jobId", mJobId).add("taskId", mTaskId)
+    return MoreObjects.toStringHelper(this).add("jobId", mJobId).add("taskId", mTaskId)
         .add("status", mStatus).add("errorMessage", mErrorMessage).add("result", mResult)
         .toString();
   }

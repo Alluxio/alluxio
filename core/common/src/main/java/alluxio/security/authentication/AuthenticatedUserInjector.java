@@ -53,6 +53,7 @@ public final class AuthenticatedUserInjector implements ServerInterceptor {
       public void onHalfClose() {
         // Try to fetch channel Id from the metadata.
         UUID channelId = headers.get(ChannelIdInjector.S_CLIENT_ID_KEY);
+        boolean callClosed = false;
         if (channelId != null) {
           try {
             // Fetch authenticated username for this channel and set it.
@@ -64,11 +65,17 @@ public final class AuthenticatedUserInjector implements ServerInterceptor {
             }
           } catch (UnauthenticatedException e) {
             call.close(Status.UNAUTHENTICATED, headers);
+            callClosed = true;
           }
         } else {
           call.close(Status.UNAUTHENTICATED, headers);
+          callClosed = true;
         }
-        super.onHalfClose();
+        // Move the call up to the handler chain,
+        // if we have not closed the call already due to authentication error.
+        if (!callClosed) {
+          super.onHalfClose();
+        }
       }
     };
   }

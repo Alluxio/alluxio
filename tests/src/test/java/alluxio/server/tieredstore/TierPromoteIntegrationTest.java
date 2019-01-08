@@ -17,7 +17,8 @@ import alluxio.PropertyKey;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
-import alluxio.client.file.FileSystemClientOptions;
+import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.ReadPType;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
@@ -98,13 +99,16 @@ public class TierPromoteIntegrationTest extends BaseIntegrationTest {
     AlluxioURI path3 = new AlluxioURI(PathUtils.uniqPath());
 
     // Write three files, first file should be in ssd, the others should be in memory
-    FileOutStream os1 = mFileSystem.createFile(path1);
+    FileOutStream os1 =
+        mFileSystem.createFile(path1, CreateFilePOptions.newBuilder().setRecursive(true).build());
     os1.write(BufferUtils.getIncreasingByteArray(size));
     os1.close();
-    FileOutStream os2 = mFileSystem.createFile(path2);
+    FileOutStream os2 =
+        mFileSystem.createFile(path2, CreateFilePOptions.newBuilder().setRecursive(true).build());
     os2.write(BufferUtils.getIncreasingByteArray(size));
     os2.close();
-    FileOutStream os3 = mFileSystem.createFile(path3);
+    FileOutStream os3 =
+        mFileSystem.createFile(path3, CreateFilePOptions.newBuilder().setRecursive(true).build());
     os3.write(BufferUtils.getIncreasingByteArray(size));
     os3.close();
 
@@ -115,8 +119,8 @@ public class TierPromoteIntegrationTest extends BaseIntegrationTest {
     Assert.assertFalse(mFileSystem.getStatus(path1).getFileBlockInfos().isEmpty());
 
     // After reading with CACHE_PROMOTE, the file should be in memory
-    FileInStream in = mFileSystem.openFile(path1, FileSystemClientOptions.getOpenFileOptions()
-        .toBuilder().setReadType(ReadPType.READ_CACHE_PROMOTE).build());
+    FileInStream in = mFileSystem.openFile(path1,
+        OpenFilePOptions.newBuilder().setReadType(ReadPType.READ_CACHE_PROMOTE).build());
     byte[] buf = new byte[size];
     while (in.read(buf) != -1) {
       // read the entire file

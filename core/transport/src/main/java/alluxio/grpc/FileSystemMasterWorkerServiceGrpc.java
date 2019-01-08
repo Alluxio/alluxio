@@ -22,31 +22,25 @@ import static io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall;
  * </pre>
  */
 @javax.annotation.Generated(
-    value = "by gRPC proto compiler (version 1.10.1)",
-    comments = "Source: file_system_master.proto")
+    value = "by gRPC proto compiler (version 1.17.1)",
+    comments = "Source: grpc/file_system_master.proto")
 public final class FileSystemMasterWorkerServiceGrpc {
 
   private FileSystemMasterWorkerServiceGrpc() {}
 
-  public static final String SERVICE_NAME = "alluxio.grpc.FileSystemMasterWorkerService";
+  public static final String SERVICE_NAME = "alluxio.grpc.file.FileSystemMasterWorkerService";
 
   // Static method descriptors that strictly reflect the proto.
-  @io.grpc.ExperimentalApi("https://github.com/grpc/grpc-java/issues/1901")
-  @java.lang.Deprecated // Use {@link #getFileSystemHeartbeatMethod()} instead. 
-  public static final io.grpc.MethodDescriptor<alluxio.grpc.FileSystemHeartbeatPRequest,
-      alluxio.grpc.FileSystemHeartbeatPResponse> METHOD_FILE_SYSTEM_HEARTBEAT = getFileSystemHeartbeatMethodHelper();
-
   private static volatile io.grpc.MethodDescriptor<alluxio.grpc.FileSystemHeartbeatPRequest,
       alluxio.grpc.FileSystemHeartbeatPResponse> getFileSystemHeartbeatMethod;
 
-  @io.grpc.ExperimentalApi("https://github.com/grpc/grpc-java/issues/1901")
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + "FileSystemHeartbeat",
+      requestType = alluxio.grpc.FileSystemHeartbeatPRequest.class,
+      responseType = alluxio.grpc.FileSystemHeartbeatPResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
   public static io.grpc.MethodDescriptor<alluxio.grpc.FileSystemHeartbeatPRequest,
       alluxio.grpc.FileSystemHeartbeatPResponse> getFileSystemHeartbeatMethod() {
-    return getFileSystemHeartbeatMethodHelper();
-  }
-
-  private static io.grpc.MethodDescriptor<alluxio.grpc.FileSystemHeartbeatPRequest,
-      alluxio.grpc.FileSystemHeartbeatPResponse> getFileSystemHeartbeatMethodHelper() {
     io.grpc.MethodDescriptor<alluxio.grpc.FileSystemHeartbeatPRequest, alluxio.grpc.FileSystemHeartbeatPResponse> getFileSystemHeartbeatMethod;
     if ((getFileSystemHeartbeatMethod = FileSystemMasterWorkerServiceGrpc.getFileSystemHeartbeatMethod) == null) {
       synchronized (FileSystemMasterWorkerServiceGrpc.class) {
@@ -55,7 +49,7 @@ public final class FileSystemMasterWorkerServiceGrpc {
               io.grpc.MethodDescriptor.<alluxio.grpc.FileSystemHeartbeatPRequest, alluxio.grpc.FileSystemHeartbeatPResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
               .setFullMethodName(generateFullMethodName(
-                  "alluxio.grpc.FileSystemMasterWorkerService", "FileSystemHeartbeat"))
+                  "alluxio.grpc.file.FileSystemMasterWorkerService", "FileSystemHeartbeat"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.FileSystemHeartbeatPRequest.getDefaultInstance()))
@@ -68,22 +62,17 @@ public final class FileSystemMasterWorkerServiceGrpc {
      }
      return getFileSystemHeartbeatMethod;
   }
-  @io.grpc.ExperimentalApi("https://github.com/grpc/grpc-java/issues/1901")
-  @java.lang.Deprecated // Use {@link #getGetFileInfoMethod()} instead. 
-  public static final io.grpc.MethodDescriptor<alluxio.grpc.GetFileInfoPRequest,
-      alluxio.grpc.GetFileInfoPResponse> METHOD_GET_FILE_INFO = getGetFileInfoMethodHelper();
 
   private static volatile io.grpc.MethodDescriptor<alluxio.grpc.GetFileInfoPRequest,
       alluxio.grpc.GetFileInfoPResponse> getGetFileInfoMethod;
 
-  @io.grpc.ExperimentalApi("https://github.com/grpc/grpc-java/issues/1901")
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + "GetFileInfo",
+      requestType = alluxio.grpc.GetFileInfoPRequest.class,
+      responseType = alluxio.grpc.GetFileInfoPResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
   public static io.grpc.MethodDescriptor<alluxio.grpc.GetFileInfoPRequest,
       alluxio.grpc.GetFileInfoPResponse> getGetFileInfoMethod() {
-    return getGetFileInfoMethodHelper();
-  }
-
-  private static io.grpc.MethodDescriptor<alluxio.grpc.GetFileInfoPRequest,
-      alluxio.grpc.GetFileInfoPResponse> getGetFileInfoMethodHelper() {
     io.grpc.MethodDescriptor<alluxio.grpc.GetFileInfoPRequest, alluxio.grpc.GetFileInfoPResponse> getGetFileInfoMethod;
     if ((getGetFileInfoMethod = FileSystemMasterWorkerServiceGrpc.getGetFileInfoMethod) == null) {
       synchronized (FileSystemMasterWorkerServiceGrpc.class) {
@@ -92,7 +81,7 @@ public final class FileSystemMasterWorkerServiceGrpc {
               io.grpc.MethodDescriptor.<alluxio.grpc.GetFileInfoPRequest, alluxio.grpc.GetFileInfoPResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
               .setFullMethodName(generateFullMethodName(
-                  "alluxio.grpc.FileSystemMasterWorkerService", "GetFileInfo"))
+                  "alluxio.grpc.file.FileSystemMasterWorkerService", "GetFileInfo"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.GetFileInfoPRequest.getDefaultInstance()))
@@ -105,22 +94,17 @@ public final class FileSystemMasterWorkerServiceGrpc {
      }
      return getGetFileInfoMethod;
   }
-  @io.grpc.ExperimentalApi("https://github.com/grpc/grpc-java/issues/1901")
-  @java.lang.Deprecated // Use {@link #getGetPinnedFileIdsMethod()} instead. 
-  public static final io.grpc.MethodDescriptor<alluxio.grpc.GetPinnedFileIdsPRequest,
-      alluxio.grpc.GetPinnedFileIdsPResponse> METHOD_GET_PINNED_FILE_IDS = getGetPinnedFileIdsMethodHelper();
 
   private static volatile io.grpc.MethodDescriptor<alluxio.grpc.GetPinnedFileIdsPRequest,
       alluxio.grpc.GetPinnedFileIdsPResponse> getGetPinnedFileIdsMethod;
 
-  @io.grpc.ExperimentalApi("https://github.com/grpc/grpc-java/issues/1901")
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + "GetPinnedFileIds",
+      requestType = alluxio.grpc.GetPinnedFileIdsPRequest.class,
+      responseType = alluxio.grpc.GetPinnedFileIdsPResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
   public static io.grpc.MethodDescriptor<alluxio.grpc.GetPinnedFileIdsPRequest,
       alluxio.grpc.GetPinnedFileIdsPResponse> getGetPinnedFileIdsMethod() {
-    return getGetPinnedFileIdsMethodHelper();
-  }
-
-  private static io.grpc.MethodDescriptor<alluxio.grpc.GetPinnedFileIdsPRequest,
-      alluxio.grpc.GetPinnedFileIdsPResponse> getGetPinnedFileIdsMethodHelper() {
     io.grpc.MethodDescriptor<alluxio.grpc.GetPinnedFileIdsPRequest, alluxio.grpc.GetPinnedFileIdsPResponse> getGetPinnedFileIdsMethod;
     if ((getGetPinnedFileIdsMethod = FileSystemMasterWorkerServiceGrpc.getGetPinnedFileIdsMethod) == null) {
       synchronized (FileSystemMasterWorkerServiceGrpc.class) {
@@ -129,7 +113,7 @@ public final class FileSystemMasterWorkerServiceGrpc {
               io.grpc.MethodDescriptor.<alluxio.grpc.GetPinnedFileIdsPRequest, alluxio.grpc.GetPinnedFileIdsPResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
               .setFullMethodName(generateFullMethodName(
-                  "alluxio.grpc.FileSystemMasterWorkerService", "GetPinnedFileIds"))
+                  "alluxio.grpc.file.FileSystemMasterWorkerService", "GetPinnedFileIds"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.GetPinnedFileIdsPRequest.getDefaultInstance()))
@@ -142,22 +126,17 @@ public final class FileSystemMasterWorkerServiceGrpc {
      }
      return getGetPinnedFileIdsMethod;
   }
-  @io.grpc.ExperimentalApi("https://github.com/grpc/grpc-java/issues/1901")
-  @java.lang.Deprecated // Use {@link #getGetUfsInfoMethod()} instead. 
-  public static final io.grpc.MethodDescriptor<alluxio.grpc.GetUfsInfoPRequest,
-      alluxio.grpc.GetUfsInfoPResponse> METHOD_GET_UFS_INFO = getGetUfsInfoMethodHelper();
 
   private static volatile io.grpc.MethodDescriptor<alluxio.grpc.GetUfsInfoPRequest,
       alluxio.grpc.GetUfsInfoPResponse> getGetUfsInfoMethod;
 
-  @io.grpc.ExperimentalApi("https://github.com/grpc/grpc-java/issues/1901")
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + "GetUfsInfo",
+      requestType = alluxio.grpc.GetUfsInfoPRequest.class,
+      responseType = alluxio.grpc.GetUfsInfoPResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
   public static io.grpc.MethodDescriptor<alluxio.grpc.GetUfsInfoPRequest,
       alluxio.grpc.GetUfsInfoPResponse> getGetUfsInfoMethod() {
-    return getGetUfsInfoMethodHelper();
-  }
-
-  private static io.grpc.MethodDescriptor<alluxio.grpc.GetUfsInfoPRequest,
-      alluxio.grpc.GetUfsInfoPResponse> getGetUfsInfoMethodHelper() {
     io.grpc.MethodDescriptor<alluxio.grpc.GetUfsInfoPRequest, alluxio.grpc.GetUfsInfoPResponse> getGetUfsInfoMethod;
     if ((getGetUfsInfoMethod = FileSystemMasterWorkerServiceGrpc.getGetUfsInfoMethod) == null) {
       synchronized (FileSystemMasterWorkerServiceGrpc.class) {
@@ -166,7 +145,7 @@ public final class FileSystemMasterWorkerServiceGrpc {
               io.grpc.MethodDescriptor.<alluxio.grpc.GetUfsInfoPRequest, alluxio.grpc.GetUfsInfoPResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
               .setFullMethodName(generateFullMethodName(
-                  "alluxio.grpc.FileSystemMasterWorkerService", "GetUfsInfo"))
+                  "alluxio.grpc.file.FileSystemMasterWorkerService", "GetUfsInfo"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.GetUfsInfoPRequest.getDefaultInstance()))
@@ -220,7 +199,7 @@ public final class FileSystemMasterWorkerServiceGrpc {
      */
     public void fileSystemHeartbeat(alluxio.grpc.FileSystemHeartbeatPRequest request,
         io.grpc.stub.StreamObserver<alluxio.grpc.FileSystemHeartbeatPResponse> responseObserver) {
-      asyncUnimplementedUnaryCall(getFileSystemHeartbeatMethodHelper(), responseObserver);
+      asyncUnimplementedUnaryCall(getFileSystemHeartbeatMethod(), responseObserver);
     }
 
     /**
@@ -230,7 +209,7 @@ public final class FileSystemMasterWorkerServiceGrpc {
      */
     public void getFileInfo(alluxio.grpc.GetFileInfoPRequest request,
         io.grpc.stub.StreamObserver<alluxio.grpc.GetFileInfoPResponse> responseObserver) {
-      asyncUnimplementedUnaryCall(getGetFileInfoMethodHelper(), responseObserver);
+      asyncUnimplementedUnaryCall(getGetFileInfoMethod(), responseObserver);
     }
 
     /**
@@ -241,7 +220,7 @@ public final class FileSystemMasterWorkerServiceGrpc {
      */
     public void getPinnedFileIds(alluxio.grpc.GetPinnedFileIdsPRequest request,
         io.grpc.stub.StreamObserver<alluxio.grpc.GetPinnedFileIdsPResponse> responseObserver) {
-      asyncUnimplementedUnaryCall(getGetPinnedFileIdsMethodHelper(), responseObserver);
+      asyncUnimplementedUnaryCall(getGetPinnedFileIdsMethod(), responseObserver);
     }
 
     /**
@@ -252,34 +231,34 @@ public final class FileSystemMasterWorkerServiceGrpc {
      */
     public void getUfsInfo(alluxio.grpc.GetUfsInfoPRequest request,
         io.grpc.stub.StreamObserver<alluxio.grpc.GetUfsInfoPResponse> responseObserver) {
-      asyncUnimplementedUnaryCall(getGetUfsInfoMethodHelper(), responseObserver);
+      asyncUnimplementedUnaryCall(getGetUfsInfoMethod(), responseObserver);
     }
 
     @java.lang.Override public final io.grpc.ServerServiceDefinition bindService() {
       return io.grpc.ServerServiceDefinition.builder(getServiceDescriptor())
           .addMethod(
-            getFileSystemHeartbeatMethodHelper(),
+            getFileSystemHeartbeatMethod(),
             asyncUnaryCall(
               new MethodHandlers<
                 alluxio.grpc.FileSystemHeartbeatPRequest,
                 alluxio.grpc.FileSystemHeartbeatPResponse>(
                   this, METHODID_FILE_SYSTEM_HEARTBEAT)))
           .addMethod(
-            getGetFileInfoMethodHelper(),
+            getGetFileInfoMethod(),
             asyncUnaryCall(
               new MethodHandlers<
                 alluxio.grpc.GetFileInfoPRequest,
                 alluxio.grpc.GetFileInfoPResponse>(
                   this, METHODID_GET_FILE_INFO)))
           .addMethod(
-            getGetPinnedFileIdsMethodHelper(),
+            getGetPinnedFileIdsMethod(),
             asyncUnaryCall(
               new MethodHandlers<
                 alluxio.grpc.GetPinnedFileIdsPRequest,
                 alluxio.grpc.GetPinnedFileIdsPResponse>(
                   this, METHODID_GET_PINNED_FILE_IDS)))
           .addMethod(
-            getGetUfsInfoMethodHelper(),
+            getGetUfsInfoMethod(),
             asyncUnaryCall(
               new MethodHandlers<
                 alluxio.grpc.GetUfsInfoPRequest,
@@ -321,7 +300,7 @@ public final class FileSystemMasterWorkerServiceGrpc {
     public void fileSystemHeartbeat(alluxio.grpc.FileSystemHeartbeatPRequest request,
         io.grpc.stub.StreamObserver<alluxio.grpc.FileSystemHeartbeatPResponse> responseObserver) {
       asyncUnaryCall(
-          getChannel().newCall(getFileSystemHeartbeatMethodHelper(), getCallOptions()), request, responseObserver);
+          getChannel().newCall(getFileSystemHeartbeatMethod(), getCallOptions()), request, responseObserver);
     }
 
     /**
@@ -332,7 +311,7 @@ public final class FileSystemMasterWorkerServiceGrpc {
     public void getFileInfo(alluxio.grpc.GetFileInfoPRequest request,
         io.grpc.stub.StreamObserver<alluxio.grpc.GetFileInfoPResponse> responseObserver) {
       asyncUnaryCall(
-          getChannel().newCall(getGetFileInfoMethodHelper(), getCallOptions()), request, responseObserver);
+          getChannel().newCall(getGetFileInfoMethod(), getCallOptions()), request, responseObserver);
     }
 
     /**
@@ -344,7 +323,7 @@ public final class FileSystemMasterWorkerServiceGrpc {
     public void getPinnedFileIds(alluxio.grpc.GetPinnedFileIdsPRequest request,
         io.grpc.stub.StreamObserver<alluxio.grpc.GetPinnedFileIdsPResponse> responseObserver) {
       asyncUnaryCall(
-          getChannel().newCall(getGetPinnedFileIdsMethodHelper(), getCallOptions()), request, responseObserver);
+          getChannel().newCall(getGetPinnedFileIdsMethod(), getCallOptions()), request, responseObserver);
     }
 
     /**
@@ -356,7 +335,7 @@ public final class FileSystemMasterWorkerServiceGrpc {
     public void getUfsInfo(alluxio.grpc.GetUfsInfoPRequest request,
         io.grpc.stub.StreamObserver<alluxio.grpc.GetUfsInfoPResponse> responseObserver) {
       asyncUnaryCall(
-          getChannel().newCall(getGetUfsInfoMethodHelper(), getCallOptions()), request, responseObserver);
+          getChannel().newCall(getGetUfsInfoMethod(), getCallOptions()), request, responseObserver);
     }
   }
 
@@ -391,7 +370,7 @@ public final class FileSystemMasterWorkerServiceGrpc {
      */
     public alluxio.grpc.FileSystemHeartbeatPResponse fileSystemHeartbeat(alluxio.grpc.FileSystemHeartbeatPRequest request) {
       return blockingUnaryCall(
-          getChannel(), getFileSystemHeartbeatMethodHelper(), getCallOptions(), request);
+          getChannel(), getFileSystemHeartbeatMethod(), getCallOptions(), request);
     }
 
     /**
@@ -401,7 +380,7 @@ public final class FileSystemMasterWorkerServiceGrpc {
      */
     public alluxio.grpc.GetFileInfoPResponse getFileInfo(alluxio.grpc.GetFileInfoPRequest request) {
       return blockingUnaryCall(
-          getChannel(), getGetFileInfoMethodHelper(), getCallOptions(), request);
+          getChannel(), getGetFileInfoMethod(), getCallOptions(), request);
     }
 
     /**
@@ -412,7 +391,7 @@ public final class FileSystemMasterWorkerServiceGrpc {
      */
     public alluxio.grpc.GetPinnedFileIdsPResponse getPinnedFileIds(alluxio.grpc.GetPinnedFileIdsPRequest request) {
       return blockingUnaryCall(
-          getChannel(), getGetPinnedFileIdsMethodHelper(), getCallOptions(), request);
+          getChannel(), getGetPinnedFileIdsMethod(), getCallOptions(), request);
     }
 
     /**
@@ -423,7 +402,7 @@ public final class FileSystemMasterWorkerServiceGrpc {
      */
     public alluxio.grpc.GetUfsInfoPResponse getUfsInfo(alluxio.grpc.GetUfsInfoPRequest request) {
       return blockingUnaryCall(
-          getChannel(), getGetUfsInfoMethodHelper(), getCallOptions(), request);
+          getChannel(), getGetUfsInfoMethod(), getCallOptions(), request);
     }
   }
 
@@ -459,7 +438,7 @@ public final class FileSystemMasterWorkerServiceGrpc {
     public com.google.common.util.concurrent.ListenableFuture<alluxio.grpc.FileSystemHeartbeatPResponse> fileSystemHeartbeat(
         alluxio.grpc.FileSystemHeartbeatPRequest request) {
       return futureUnaryCall(
-          getChannel().newCall(getFileSystemHeartbeatMethodHelper(), getCallOptions()), request);
+          getChannel().newCall(getFileSystemHeartbeatMethod(), getCallOptions()), request);
     }
 
     /**
@@ -470,7 +449,7 @@ public final class FileSystemMasterWorkerServiceGrpc {
     public com.google.common.util.concurrent.ListenableFuture<alluxio.grpc.GetFileInfoPResponse> getFileInfo(
         alluxio.grpc.GetFileInfoPRequest request) {
       return futureUnaryCall(
-          getChannel().newCall(getGetFileInfoMethodHelper(), getCallOptions()), request);
+          getChannel().newCall(getGetFileInfoMethod(), getCallOptions()), request);
     }
 
     /**
@@ -482,7 +461,7 @@ public final class FileSystemMasterWorkerServiceGrpc {
     public com.google.common.util.concurrent.ListenableFuture<alluxio.grpc.GetPinnedFileIdsPResponse> getPinnedFileIds(
         alluxio.grpc.GetPinnedFileIdsPRequest request) {
       return futureUnaryCall(
-          getChannel().newCall(getGetPinnedFileIdsMethodHelper(), getCallOptions()), request);
+          getChannel().newCall(getGetPinnedFileIdsMethod(), getCallOptions()), request);
     }
 
     /**
@@ -494,7 +473,7 @@ public final class FileSystemMasterWorkerServiceGrpc {
     public com.google.common.util.concurrent.ListenableFuture<alluxio.grpc.GetUfsInfoPResponse> getUfsInfo(
         alluxio.grpc.GetUfsInfoPRequest request) {
       return futureUnaryCall(
-          getChannel().newCall(getGetUfsInfoMethodHelper(), getCallOptions()), request);
+          getChannel().newCall(getGetUfsInfoMethod(), getCallOptions()), request);
     }
   }
 
@@ -597,10 +576,10 @@ public final class FileSystemMasterWorkerServiceGrpc {
         if (result == null) {
           serviceDescriptor = result = io.grpc.ServiceDescriptor.newBuilder(SERVICE_NAME)
               .setSchemaDescriptor(new FileSystemMasterWorkerServiceFileDescriptorSupplier())
-              .addMethod(getFileSystemHeartbeatMethodHelper())
-              .addMethod(getGetFileInfoMethodHelper())
-              .addMethod(getGetPinnedFileIdsMethodHelper())
-              .addMethod(getGetUfsInfoMethodHelper())
+              .addMethod(getFileSystemHeartbeatMethod())
+              .addMethod(getGetFileInfoMethod())
+              .addMethod(getGetPinnedFileIdsMethod())
+              .addMethod(getGetUfsInfoMethod())
               .build();
         }
       }

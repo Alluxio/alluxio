@@ -14,8 +14,8 @@ package alluxio.client.cli.job;
 import alluxio.AlluxioURI;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
 import alluxio.client.file.FileOutStream;
-import alluxio.client.file.FileSystemClientOptions;
 import alluxio.client.file.URIStatus;
+import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.WritePType;
 import alluxio.job.persist.PersistConfig;
 import alluxio.job.util.JobTestUtils;
@@ -28,8 +28,8 @@ public abstract class JobShellTest extends AbstractFileSystemShellTest {
   protected long runPersistJob() throws Exception {
     // write a file in alluxio only
     AlluxioURI filePath = new AlluxioURI("/test");
-    FileOutStream os = mFileSystem.createFile(filePath, FileSystemClientOptions
-        .getCreateFileOptions().toBuilder().setWriteType(WritePType.WRITE_MUST_CACHE).build());
+    FileOutStream os = mFileSystem.createFile(filePath,
+        CreateFilePOptions.newBuilder().setWriteType(WritePType.WRITE_MUST_CACHE).build());
     os.write((byte) 0);
     os.write((byte) 1);
     os.close();

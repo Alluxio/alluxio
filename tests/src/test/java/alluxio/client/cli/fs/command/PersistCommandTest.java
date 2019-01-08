@@ -15,10 +15,10 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
 import alluxio.PropertyKey;
-import alluxio.client.file.FileSystemClientOptions;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.ExceptionMessage;
+import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.WritePType;
 import alluxio.security.authorization.Mode;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
@@ -159,8 +159,8 @@ public final class PersistCommandTest extends AbstractFileSystemShellTest {
     FileSystemTestUtils.createByteFile(mFileSystem, testFile, WritePType.WRITE_MUST_CACHE, 10);
     URIStatus status = mFileSystem.getStatus(testFile);
     Assert.assertFalse(status.isPersisted());
-    mFileSystem.setAttribute(grandParent, FileSystemClientOptions.getSetAttributeOptions()
-        .toBuilder().setMode(grandParentMode.toShort()).build());
+    mFileSystem.setAttribute(grandParent,
+        SetAttributePOptions.newBuilder().setMode(grandParentMode.toShort()).build());
     int ret = mFsShell.run("persist", testFile.toString());
 
     Assert.assertEquals(0, ret);

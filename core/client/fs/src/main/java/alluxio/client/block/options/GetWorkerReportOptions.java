@@ -13,6 +13,7 @@ package alluxio.client.block.options;
 
 import alluxio.grpc.GetWorkerReportPOptions;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 
 import java.io.Serializable;
@@ -132,7 +133,7 @@ public final class GetWorkerReportOptions implements Serializable {
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this)
+    return MoreObjects.toStringHelper(this)
         .add("addresses", mAddresses)
         .add("fieldRange", mFieldRange)
         .add("workerRange", mWorkerRange)

@@ -20,7 +20,6 @@ import alluxio.AlluxioURI;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.file.FileSystem;
-import alluxio.client.file.FileSystemClientOptions;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.ExceptionMessage;
@@ -164,7 +163,7 @@ public final class MoveDefinitionSelectExecutorsTest {
     setPathToNotExist("/dst/src");
     assignMoves("/src", "/dst/src");
     verify(mMockFileSystem).createDirectory(eq(new AlluxioURI("/dst/src/nested")),
-        Matchers.eq(FileSystemClientOptions.getCreateDirectoryOptions()));
+        Matchers.eq(CreateDirectoryPOptions.getDefaultInstance()));
   }
 
   @Test

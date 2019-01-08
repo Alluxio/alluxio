@@ -14,7 +14,6 @@ package alluxio.cli.fs.command;
 import alluxio.AlluxioURI;
 import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystem;
-import alluxio.client.file.FileSystemClientOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.SetAttributePOptions;
@@ -96,8 +95,8 @@ public final class ChownCommand extends AbstractFileSystemCommand {
    */
   private void chown(AlluxioURI path, String owner, boolean recursive)
       throws AlluxioException, IOException {
-    SetAttributePOptions options = FileSystemClientOptions.getSetAttributeOptions().toBuilder()
-        .setOwner(owner).setRecursive(recursive).build();
+    SetAttributePOptions options =
+        SetAttributePOptions.newBuilder().setOwner(owner).setRecursive(recursive).build();
     mFileSystem.setAttribute(path, options);
     System.out.println("Changed owner of " + path + " to " + owner);
   }
@@ -112,8 +111,8 @@ public final class ChownCommand extends AbstractFileSystemCommand {
    */
   private void chown(AlluxioURI path, String owner, String group, boolean recursive)
       throws AlluxioException, IOException {
-    SetAttributePOptions options = FileSystemClientOptions.getSetAttributeOptions().toBuilder()
-        .setOwner(owner).setGroup(group).setRecursive(recursive).build();
+    SetAttributePOptions options = SetAttributePOptions.newBuilder().setOwner(owner).setGroup(group)
+        .setRecursive(recursive).build();
     mFileSystem.setAttribute(path, options);
     System.out.println("Changed owner:group of " + path + " to " + owner + ":" + group + ".");
   }

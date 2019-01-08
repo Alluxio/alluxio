@@ -16,7 +16,6 @@ import alluxio.Constants;
 import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
-import alluxio.client.file.FileSystemClientOptions;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
@@ -97,8 +96,8 @@ public final class LoadCommand extends AbstractFileSystemCommand {
         load(newPath, local);
       }
     } else {
-      OpenFilePOptions options = FileSystemClientOptions.getOpenFileOptions().toBuilder()
-          .setReadType(ReadPType.READ_CACHE_PROMOTE).build();
+      OpenFilePOptions options =
+          OpenFilePOptions.newBuilder().setReadType(ReadPType.READ_CACHE_PROMOTE).build();
       if (local) {
         if (!FileSystemContext.get().hasLocalWorker()) {
           System.out.println("When local option is specified,"

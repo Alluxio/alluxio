@@ -13,7 +13,6 @@ package alluxio.client.cli.fs.command;
 
 import alluxio.AlluxioURI;
 import alluxio.client.file.FileInStream;
-import alluxio.client.file.FileSystemClientOptions;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.URIStatus;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
@@ -160,6 +159,7 @@ public final class CpCommandIntegrationTest extends AbstractFileSystemShellTest 
     FileSystemShellUtilsTest.resetFileHierarchy(mFileSystem);
     File testFile = new File(mLocalAlluxioCluster.getAlluxioHome() + "/testFile");
     testFile.createNewFile();
+    mFsShell.run("mkdir", mLocalAlluxioCluster.getAlluxioHome());
     mFsShell.run("copyFromLocal", testFile.getPath(), "/");
     Assert.assertTrue(mFileSystem.exists(new AlluxioURI("/testFile")));
     mLocalAlluxioCluster.stopWorkers();
@@ -169,8 +169,8 @@ public final class CpCommandIntegrationTest extends AbstractFileSystemShellTest 
 
   private boolean equals(AlluxioURI file1, AlluxioURI file2) throws Exception {
     try (Closer closer = Closer.create()) {
-      OpenFilePOptions openFileOptions = FileSystemClientOptions.getOpenFileOptions().toBuilder()
-          .setReadType(ReadPType.READ_NO_CACHE).build();
+      OpenFilePOptions openFileOptions =
+          OpenFilePOptions.newBuilder().setReadType(ReadPType.READ_NO_CACHE).build();
       FileInStream is1 = closer.register(mFileSystem.openFile(file1, openFileOptions));
       FileInStream is2 = closer.register(mFileSystem.openFile(file2, openFileOptions));
       return IOUtils.contentEquals(is1, is2);
@@ -287,8 +287,8 @@ public final class CpCommandIntegrationTest extends AbstractFileSystemShellTest 
     Assert.assertNotNull(status);
     Assert.assertEquals(SIZE_BYTES, status.getLength());
 
-    try (FileInStream tfis = mFileSystem.openFile(uri, FileSystemClientOptions.getOpenFileOptions()
-        .toBuilder().setReadType(ReadPType.READ_NO_CACHE).build())) {
+    try (FileInStream tfis = mFileSystem.openFile(uri,
+        OpenFilePOptions.newBuilder().setReadType(ReadPType.READ_NO_CACHE).build())) {
       byte[] read = new byte[SIZE_BYTES];
       tfis.read(read);
       Assert.assertTrue(BufferUtils.equalIncreasingByteArray(SIZE_BYTES, read));

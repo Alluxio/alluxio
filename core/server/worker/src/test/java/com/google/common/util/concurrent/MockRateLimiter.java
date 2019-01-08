@@ -38,7 +38,7 @@ public final class MockRateLimiter {
    */
   public MockRateLimiter(double permitsPerSecond) {
     mTicker = new FakeSleepingTicker();
-    mRateLimiter = RateLimiter.create(mTicker, permitsPerSecond);
+    mRateLimiter = RateLimiter.create(permitsPerSecond, mTicker);
   }
 
   /**

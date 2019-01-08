@@ -11,6 +11,7 @@
 
 package alluxio.security.authorization;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 
 import java.io.Serializable;
@@ -112,7 +113,7 @@ public final class AclEntry implements Serializable {
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this)
+    return MoreObjects.toStringHelper(this)
         .add("type", mType)
         .add("subject", mSubject)
         .add("actions", mActions)

@@ -14,12 +14,13 @@ package alluxio.client.cli.fs.command;
 import alluxio.AlluxioURI;
 import alluxio.PropertyKey;
 import alluxio.cli.fs.command.LsCommand;
-import alluxio.client.file.FileSystemClientOptions;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
 import alluxio.client.cli.fs.FileSystemShellUtilsTest;
+import alluxio.grpc.SetAclPOptions;
+import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.WritePType;
 import alluxio.master.file.meta.PersistenceState;
 import alluxio.security.authorization.AclEntry;
@@ -164,10 +165,8 @@ public final class LsCommandIntegrationTest extends AbstractFileSystemShellTest 
     URIStatus[] files = createFiles();
     AlluxioURI fileURI1 = new AlluxioURI("/testRoot/testDir/testFileB");
     AlluxioURI fileURI2 = new AlluxioURI("/testRoot/testFileA");
-    mFileSystem.setAttribute(fileURI1,
-        FileSystemClientOptions.getSetAttributeOptions().toBuilder().setPinned(true).build());
-    mFileSystem.setAttribute(fileURI2,
-        FileSystemClientOptions.getSetAttributeOptions().toBuilder().setPinned(true).build());
+    mFileSystem.setAttribute(fileURI1, SetAttributePOptions.newBuilder().setPinned(true).build());
+    mFileSystem.setAttribute(fileURI2, SetAttributePOptions.newBuilder().setPinned(true).build());
     URIStatus file1 = mFileSystem.getStatus(fileURI1);
     URIStatus file2 = mFileSystem.getStatus(fileURI2);
     mFsShell.run("ls", "-pR",  "/testRoot");
@@ -547,10 +546,10 @@ public final class LsCommandIntegrationTest extends AbstractFileSystemShellTest 
 
     mFileSystem.setAcl(new AlluxioURI("/testRoot/testDir"), SetAclAction.MODIFY,
         Arrays.asList(AclEntry.fromCliString("default:user:nameduser:rwx")),
-        FileSystemClientOptions.getSetAclOptions());
+        SetAclPOptions.getDefaultInstance());
     mFileSystem.setAcl(new AlluxioURI("/testRoot/testFile"), SetAclAction.MODIFY,
         Arrays.asList(AclEntry.fromCliString("user:nameduser:rwx")),
-        FileSystemClientOptions.getSetAclOptions());
+        SetAclPOptions.getDefaultInstance());
 
     mFsShell.run("ls", "--sort", "path", "/testRoot");
 

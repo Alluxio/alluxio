@@ -12,9 +12,9 @@
 package alluxio.client.fs;
 
 import alluxio.AlluxioURI;
+import alluxio.PropertyKey;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
-import alluxio.client.file.FileSystemClientOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.MountPOptions;
 import alluxio.grpc.WritePType;
@@ -67,7 +67,9 @@ public final class MultiUfsMountIntegrationTest extends BaseIntegrationTest {
 
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
-      new LocalAlluxioClusterResource.Builder().setStartCluster(false).build();
+      new LocalAlluxioClusterResource.Builder()
+          .setProperty(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, "CACHE_THROUGH")
+          .setStartCluster(false).build();
 
   @Before
   public void before() throws Exception {
@@ -84,12 +86,10 @@ public final class MultiUfsMountIntegrationTest extends BaseIntegrationTest {
     mLocalAlluxioCluster = mLocalAlluxioClusterResource.get();
     mFileSystem = mLocalAlluxioCluster.getClient();
     // Mount ufs1 to /mnt1 with specified options.
-    MountPOptions options1 =
-        FileSystemClientOptions.getMountOptions().toBuilder().putAllProperties(UFS_CONF1).build();
+    MountPOptions options1 = MountPOptions.newBuilder().putAllProperties(UFS_CONF1).build();
     mFileSystem.mount(mMountPoint1, new AlluxioURI(mUfsUri1), options1);
     // Mount ufs2 to /mnt2 with specified options.
-    MountPOptions options2 =
-        FileSystemClientOptions.getMountOptions().toBuilder().putAllProperties(UFS_CONF2).build();
+    MountPOptions options2 = MountPOptions.newBuilder().putAllProperties(UFS_CONF2).build();
     mFileSystem.mount(mMountPoint2, new AlluxioURI(mUfsUri2), options2);
   }
 
@@ -101,8 +101,8 @@ public final class MultiUfsMountIntegrationTest extends BaseIntegrationTest {
 
   @Test
   public void createFile() throws Exception {
-    CreateFilePOptions writeBoth = FileSystemClientOptions.getCreateFileOptions().toBuilder()
-        .setWriteType(WritePType.WRITE_CACHE_THROUGH).build();
+    CreateFilePOptions writeBoth =
+        CreateFilePOptions.newBuilder().setWriteType(WritePType.WRITE_CACHE_THROUGH).build();
     AlluxioURI file1 = mMountPoint1.join("file1");
     AlluxioURI file2 = mMountPoint2.join("file2");
     mFileSystem.createFile(file1, writeBoth).close();

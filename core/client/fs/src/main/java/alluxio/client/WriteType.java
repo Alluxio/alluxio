@@ -118,21 +118,18 @@ public enum WriteType {
     return (mValue == CACHE_THROUGH.mValue) || (mValue == THROUGH.mValue);
   }
 
-  // TODO(ggezer) Eliminate below parsers/converters for WriteType
-  private static final String PROTOHEADER = "WRITE_";
-
   /**
    * @param writePType proto type
    * @return wire type for given proto type
    */
   public static WriteType fromProto(WritePType writePType) {
-    return WriteType.valueOf(writePType.name().substring(PROTOHEADER.length()));
+    return WriteType.values()[writePType.getNumber() - 1];
   }
 
   /**
    * @return proto representation of this instance
    */
   public WritePType toProto() {
-    return WritePType.valueOf(PROTOHEADER + this.name());
+    return WritePType.values()[mValue - 1];
   }
 }

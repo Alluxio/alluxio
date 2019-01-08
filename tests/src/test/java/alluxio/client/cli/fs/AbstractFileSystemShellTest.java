@@ -20,9 +20,9 @@ import alluxio.cli.fs.FileSystemShell;
 import alluxio.cli.job.JobShell;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
-import alluxio.client.file.FileSystemClientOptions;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.exception.AlluxioException;
+import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.ReadPType;
 import alluxio.grpc.WritePType;
 import alluxio.master.LocalAlluxioCluster;
@@ -221,8 +221,8 @@ public abstract class AbstractFileSystemShellTest extends AbstractShellIntegrati
    * @return the content that has been read
    */
   protected byte[] readContent(AlluxioURI uri, int length) throws IOException, AlluxioException {
-    try (FileInStream tfis = mFileSystem.openFile(uri, FileSystemClientOptions.getOpenFileOptions()
-        .toBuilder().setReadType(ReadPType.READ_NO_CACHE).build())) {
+    try (FileInStream tfis = mFileSystem.openFile(uri,
+        OpenFilePOptions.newBuilder().setReadType(ReadPType.READ_NO_CACHE).build())) {
       byte[] read = new byte[length];
       tfis.read(read);
       return read;

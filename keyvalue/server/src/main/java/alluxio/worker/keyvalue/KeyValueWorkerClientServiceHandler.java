@@ -43,9 +43,12 @@ import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * RPC service handler on worker side to read a local key-value block.
+ *
+ * @deprecated This class is deprecated since version 2.0
  */
 // TODO(binfan): move logic outside and make this a simple wrapper.
 @ThreadSafe
+@Deprecated
 public final class KeyValueWorkerClientServiceHandler
     extends KeyValueWorkerClientServiceGrpc.KeyValueWorkerClientServiceImplBase {
   private static final Logger LOG =

@@ -14,10 +14,10 @@ package alluxio.client.fs;
 import alluxio.AlluxioURI;
 import alluxio.PropertyKey;
 import alluxio.client.file.FileSystem;
-import alluxio.client.file.FileSystemClientOptions;
 import alluxio.client.file.FileSystemMasterClient;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.NotFoundException;
+import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.master.MasterClientConfig;
 import alluxio.testutils.BaseIntegrationTest;
@@ -35,7 +35,7 @@ import java.io.IOException;
  */
 public final class FileSystemMasterClientIntegrationTest extends BaseIntegrationTest {
   private static final GetStatusPOptions GET_STATUS_OPTIONS =
-      FileSystemClientOptions.getGetStatusOptions();
+      GetStatusPOptions.getDefaultInstance();
 
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
@@ -50,7 +50,7 @@ public final class FileSystemMasterClientIntegrationTest extends BaseIntegration
     Assert.assertFalse(fsMasterClient.isConnected());
     fsMasterClient.connect();
     Assert.assertTrue(fsMasterClient.isConnected());
-    fsMasterClient.createFile(file, FileSystemClientOptions.getCreateFileOptions());
+    fsMasterClient.createFile(file, CreateFilePOptions.getDefaultInstance());
     Assert.assertNotNull(fsMasterClient.getStatus(file, GET_STATUS_OPTIONS));
     fsMasterClient.disconnect();
     Assert.assertFalse(fsMasterClient.isConnected());

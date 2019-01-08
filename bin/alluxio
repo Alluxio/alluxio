@@ -40,7 +40,6 @@ function printUsage {
   echo -e "  clearCache    \t Clear OS buffer cache of the machine."
   echo -e "  confDocGen    \t Generate configuration docs."
   echo -e "  thriftGen     \t Generate all thrift code."
-  echo -e "  protoGen      \t Generate all protocol buffer code."
   echo -e "  version       \t Print Alluxio version and exit."
   echo -e "  validateConf  \t Validate Alluxio conf and exit."
   echo -e "  validateEnv   \t Validate Alluxio environment."
@@ -384,38 +383,6 @@ function main {
       for srcFile in $(ls "${thriftSrcPath}"); do
         thrift -I "${BIN}/../core/common/src/thrift" --gen java:private-members,generated_annotations=undated -out "${thriftSrcPath}/../main/java/." "${thriftSrcPath}/${srcFile}"
       done
-    done
-  ;;
-  "protoGen")
-    proto_version="$(protoc --version)"
-    if ! [[ ${proto_version} == *3.5.1* ]]; then
-      echo "protoGen requires protoc version 3.5.1, but <protoc --version> returns <${proto_version}>"
-      exit 1
-    fi
-    rm -rf ${BIN}/../core/transport/src/main/java/alluxio/proto
-    for src_file in $(find ${BIN}/../core/transport/src/proto -name '*.proto' -type f); do
-      protoc --java_out=${BIN}/../core/transport/src/main/java --proto_path=${BIN}/../core/transport/src/proto ${src_file}
-    done
-  ;;
-  "grpcGen")
-    rm -rf ${BIN}/../core/transport-options/src/main/java/alluxio/grpc
-    for src_file in $(find ${BIN}/../core/transport-options/src/grpc -name '*.proto' -type f); do
-      protoc \
-        --java_out=${BIN}/../core/transport-options/src/main/java \
-        --proto_path=${BIN}/../core/transport-options/src/grpc \
-        --plugin=protoc-gen-grpc-java=${BIN}/protoc-gen-grpc-java-1.10.1-osx-x86_64.exe \
-        --grpc-java_out=${BIN}/../core/transport-options/src/main/java \
-        ${src_file}
-    done
-    rm -rf ${BIN}/../core/transport/src/main/java/alluxio/grpc
-    for src_file in $(find ${BIN}/../core/transport/src/grpc -name '*.proto' -type f); do
-      protoc \
-        --java_out=${BIN}/../core/transport/src/main/java \
-        --proto_path=${BIN}/../core/transport/src/grpc --proto_path=${BIN}/../core/transport-options/src/grpc \
-        --proto_path=${BIN}/../core/transport/src/proto \
-        --plugin=protoc-gen-grpc-java=${BIN}/protoc-gen-grpc-java-1.10.1-osx-x86_64.exe \
-        --grpc-java_out=${BIN}/../core/transport/src/main/java \
-        ${src_file}
     done
   ;;
   "clearCache")

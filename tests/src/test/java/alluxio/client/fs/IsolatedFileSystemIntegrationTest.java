@@ -16,7 +16,6 @@ import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
-import alluxio.client.file.FileSystemClientOptions;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.URIStatus;
 import alluxio.grpc.CreateFilePOptions;
@@ -64,8 +63,8 @@ public class IsolatedFileSystemIntegrationTest extends BaseIntegrationTest {
   @Before
   public final void before() throws Exception {
     mFileSystem = mLocalAlluxioClusterResource.get().getClient();
-    mWriteBoth = FileSystemClientOptions.getCreateFileOptions().toBuilder()
-        .setWriteType(WritePType.WRITE_CACHE_THROUGH).build();
+    mWriteBoth = CreateFilePOptions.newBuilder().setWriteType(WritePType.WRITE_CACHE_THROUGH)
+        .setRecursive(true).build();
   }
 
   @Test

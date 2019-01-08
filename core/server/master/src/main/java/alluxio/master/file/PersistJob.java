@@ -14,6 +14,7 @@ package alluxio.master.file;
 import alluxio.AlluxioURI;
 import alluxio.time.ExponentialTimer;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -137,7 +138,7 @@ public final class PersistJob {
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this).add("fileId", mFileId).add("uri", mUri).add("id", mId)
+    return MoreObjects.toStringHelper(this).add("fileId", mFileId).add("uri", mUri).add("id", mId)
         .add("tempUfsPath", mTempUfsPath).add("timer", mTimer).add("cancelState", mCancelState)
         .toString();
   }

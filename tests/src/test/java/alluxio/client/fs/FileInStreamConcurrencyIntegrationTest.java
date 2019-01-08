@@ -16,7 +16,6 @@ import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
-import alluxio.client.file.FileSystemClientOptions;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.WritePType;
@@ -50,8 +49,8 @@ public final class FileInStreamConcurrencyIntegrationTest extends BaseIntegratio
   @BeforeClass
   public static final void beforeClass() throws Exception {
     sFileSystem = sLocalAlluxioClusterResource.get().getClient();
-    sWriteAlluxio = FileSystemClientOptions.getCreateFileOptions().toBuilder()
-        .setWriteType(WritePType.WRITE_MUST_CACHE).build();
+    sWriteAlluxio = CreateFilePOptions.newBuilder().setWriteType(WritePType.WRITE_MUST_CACHE)
+        .setRecursive(true).build();
   }
 
   /**

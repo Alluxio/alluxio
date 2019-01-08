@@ -630,7 +630,7 @@ public class AbstractFileSystemTest {
     Arrays.sort(actualHosts);
     assertArrayEquals(expectedWorkerNames.stream().map(HostAndPort::toString).toArray(),
         actualNames);
-    assertArrayEquals(expectedWorkerNames.stream().map(HostAndPort::getHostText).toArray(),
+    assertArrayEquals(expectedWorkerNames.stream().map(HostAndPort::getHost).toArray(),
         actualHosts);
     alluxioHadoopFs.close();
   }

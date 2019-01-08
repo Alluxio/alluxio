@@ -34,8 +34,10 @@ import javax.annotation.concurrent.ThreadSafe;
 /**
  * Client for talking to a key-value worker server.
  *
+ * @deprecated This class is deprecated since version 2.0
  */
 @ThreadSafe
+@Deprecated
 public final class KeyValueWorkerClient extends AbstractClient {
   private KeyValueWorkerClientServiceGrpc.KeyValueWorkerClientServiceBlockingStub mClient =
       null;

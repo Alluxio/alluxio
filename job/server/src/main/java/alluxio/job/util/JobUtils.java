@@ -16,7 +16,6 @@ import alluxio.client.Cancelable;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.file.FileSystem;
-import alluxio.client.file.FileSystemClientOptions;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.InStreamOptions;
@@ -127,9 +126,9 @@ public final class JobUtils {
     // renamed, the job is still working on the correct file.
     URIStatus status = fs.getStatus(new AlluxioURI(path));
 
-    OpenFilePOptions openOptions = FileSystemClientOptions.getOpenFileOptions().toBuilder()
-        .setReadType(ReadPType.READ_NO_CACHE)
-        .setFileReadLocationPolicy(LocalFirstPolicy.class.getCanonicalName()).build();
+    OpenFilePOptions openOptions =
+        OpenFilePOptions.newBuilder().setReadType(ReadPType.READ_NO_CACHE)
+            .setFileReadLocationPolicy(LocalFirstPolicy.class.getCanonicalName()).build();
 
     InStreamOptions inOptions = new InStreamOptions(status, openOptions);
     OutStreamOptions outOptions = OutStreamOptions.defaults();

@@ -22,7 +22,6 @@ import alluxio.client.block.policy.options.GetWorkerOptions;
 import alluxio.client.block.stream.BlockInStream;
 import alluxio.client.block.stream.BlockOutStream;
 import alluxio.client.block.stream.BlockWorkerClient;
-import alluxio.client.file.FileSystemClientOptions;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.InStreamOptions;
@@ -282,7 +281,7 @@ public final class AlluxioBlockStoreTest {
     URIStatus dummyStatus =
         new URIStatus(new FileInfo().setPersisted(true).setBlockIds(Collections.singletonList(0L))
             .setFileBlockInfos(Collections.singletonList(new FileBlockInfo().setBlockInfo(info))));
-    OpenFilePOptions readOptions = FileSystemClientOptions.getOpenFileOptions().toBuilder()
+    OpenFilePOptions readOptions = OpenFilePOptions.newBuilder()
         .setFileReadLocationPolicy(MockFileWriteLocationPolicy.class.getTypeName()).build();
     InStreamOptions options = new InStreamOptions(dummyStatus, readOptions);
     ((MockFileWriteLocationPolicy) options.getUfsReadLocationPolicy())
@@ -302,7 +301,7 @@ public final class AlluxioBlockStoreTest {
     URIStatus dummyStatus =
         new URIStatus(new FileInfo().setPersisted(true).setBlockIds(Collections.singletonList(0L)));
     InStreamOptions options =
-        new InStreamOptions(dummyStatus, FileSystemClientOptions.getOpenFileOptions());
+        new InStreamOptions(dummyStatus, OpenFilePOptions.getDefaultInstance());
     when(mMasterClient.getBlockInfo(BLOCK_ID)).thenReturn(new BlockInfo());
     when(mMasterClient.getWorkerInfoList()).thenReturn(Collections.emptyList());
 
@@ -316,7 +315,7 @@ public final class AlluxioBlockStoreTest {
     URIStatus dummyStatus = new URIStatus(
         new FileInfo().setPersisted(false).setBlockIds(Collections.singletonList(0L)));
     InStreamOptions options =
-        new InStreamOptions(dummyStatus, FileSystemClientOptions.getOpenFileOptions());
+        new InStreamOptions(dummyStatus, OpenFilePOptions.getDefaultInstance());
     when(mMasterClient.getBlockInfo(BLOCK_ID)).thenReturn(new BlockInfo());
     when(mMasterClient.getWorkerInfoList()).thenReturn(Collections.emptyList());
 
@@ -455,7 +454,7 @@ public final class AlluxioBlockStoreTest {
         .getArgumentAt(0, GetWorkerOptions.class).getBlockWorkerInfos().iterator().next()
         .getNetAddress());
     InStreamOptions options =
-        new InStreamOptions(dummyStatus, FileSystemClientOptions.getOpenFileOptions());
+        new InStreamOptions(dummyStatus, OpenFilePOptions.getDefaultInstance());
     options.setUfsReadLocationPolicy(mockPolicy);
     when(mMasterClient.getBlockInfo(BLOCK_ID)).thenReturn(info);
     when(mMasterClient.getWorkerInfoList()).thenReturn(Arrays.stream(workers)
@@ -493,7 +492,7 @@ public final class AlluxioBlockStoreTest {
         .getArgumentAt(0, GetWorkerOptions.class).getBlockWorkerInfos().iterator().next()
         .getNetAddress());
     InStreamOptions options =
-        new InStreamOptions(dummyStatus, FileSystemClientOptions.getOpenFileOptions());
+        new InStreamOptions(dummyStatus, OpenFilePOptions.getDefaultInstance());
     options.setUfsReadLocationPolicy(mockPolicy);
     when(mMasterClient.getBlockInfo(BLOCK_ID)).thenReturn(info);
     when(mMasterClient.getWorkerInfoList()).thenReturn(Arrays.stream(workers)

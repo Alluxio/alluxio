@@ -17,7 +17,6 @@ import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.file.BaseFileSystem;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
-import alluxio.client.file.FileSystemClientOptions;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
 import alluxio.collections.Pair;
@@ -140,8 +139,8 @@ public final class PersistDefinition
       FileSystem fs = FileSystem.Factory.get();
       long bytesWritten;
       try (Closer closer = Closer.create()) {
-        OpenFilePOptions options = FileSystemClientOptions.getOpenFileOptions().toBuilder()
-            .setReadType(ReadPType.READ_NO_CACHE).build();
+        OpenFilePOptions options =
+            OpenFilePOptions.newBuilder().setReadType(ReadPType.READ_NO_CACHE).build();
         FileInStream in = closer.register(fs.openFile(uri, options));
         AlluxioURI dstPath = new AlluxioURI(ufsPath);
         // Create ancestor directories from top to the bottom. We cannot use recursive create

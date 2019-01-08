@@ -18,7 +18,6 @@ import alluxio.client.ReadType;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
-import alluxio.client.file.FileSystemClientOptions;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.URIStatus;
 import alluxio.grpc.CreateFilePOptions;
@@ -76,15 +75,15 @@ public final class FileInStreamIntegrationTest extends BaseIntegrationTest {
   @Before
   public void before() throws Exception {
     mFileSystem = mLocalAlluxioClusterResource.get().getClient();
-    mWriteBoth = FileSystemClientOptions.getCreateFileOptions().toBuilder()
-        .setMode(Mode.createFullAccess().toShort()).setBlockSizeBytes(BLOCK_SIZE)
-        .setWriteType(WritePType.WRITE_CACHE_THROUGH).build();
-    mWriteAlluxio = FileSystemClientOptions.getCreateFileOptions().toBuilder()
-        .setMode(Mode.createFullAccess().toShort()).setBlockSizeBytes(BLOCK_SIZE)
-        .setWriteType(WritePType.WRITE_MUST_CACHE).build();
-    mWriteUnderStore = FileSystemClientOptions.getCreateFileOptions().toBuilder()
-        .setMode(Mode.createFullAccess().toShort()).setBlockSizeBytes(BLOCK_SIZE)
-        .setWriteType(WritePType.WRITE_THROUGH).build();
+    mWriteBoth = CreateFilePOptions.newBuilder().setMode(Mode.createFullAccess().toShort())
+        .setBlockSizeBytes(BLOCK_SIZE).setWriteType(WritePType.WRITE_CACHE_THROUGH)
+        .setRecursive(true).build();
+    mWriteAlluxio = CreateFilePOptions.newBuilder().setMode(Mode.createFullAccess().toShort())
+        .setBlockSizeBytes(BLOCK_SIZE).setWriteType(WritePType.WRITE_MUST_CACHE).setRecursive(true)
+        .build();
+    mWriteUnderStore = CreateFilePOptions.newBuilder().setMode(Mode.createFullAccess().toShort())
+        .setBlockSizeBytes(BLOCK_SIZE).setWriteType(WritePType.WRITE_THROUGH).setRecursive(true)
+        .build();
     mTestPath = PathUtils.uniqPath();
 
     // Create files of varying size and write type to later read from
@@ -346,8 +345,8 @@ public final class FileInStreamIntegrationTest extends BaseIntegrationTest {
 
     // Create files of varying size and write type to later read from
     final AlluxioURI path = new AlluxioURI(mTestPath + "/largeFile");
-    FileSystemTestUtils.createByteFile(mFileSystem, path, FileSystemClientOptions
-        .getCreateFileOptions().toBuilder().setWriteType(WritePType.WRITE_THROUGH).build(), length);
+    FileSystemTestUtils.createByteFile(mFileSystem, path,
+        CreateFilePOptions.newBuilder().setWriteType(WritePType.WRITE_THROUGH).build(), length);
 
     final int concurrency = 10;
     final AtomicInteger count = new AtomicInteger(0);
@@ -356,8 +355,8 @@ public final class FileInStreamIntegrationTest extends BaseIntegrationTest {
       service.submit(new Runnable() {
         @Override
         public void run() {
-          try (FileInStream is = mFileSystem.openFile(path, FileSystemClientOptions
-              .getOpenFileOptions().toBuilder().setReadType(ReadPType.READ_CACHE).build())) {
+          try (FileInStream is = mFileSystem.openFile(path,
+              OpenFilePOptions.newBuilder().setReadType(ReadPType.READ_CACHE).build())) {
             int start = 0;
             while (start < length) {
               byte[] buffer = new byte[bufferSize];
@@ -369,8 +368,8 @@ public final class FileInStreamIntegrationTest extends BaseIntegrationTest {
           } catch (Exception e) {
             throw new RuntimeException(e);
           }
-          try (FileInStream is = mFileSystem.openFile(path, FileSystemClientOptions
-              .getOpenFileOptions().toBuilder().setReadType(ReadPType.READ_CACHE).build())) {
+          try (FileInStream is = mFileSystem.openFile(path,
+              OpenFilePOptions.newBuilder().setReadType(ReadPType.READ_CACHE).build())) {
             int start = 0;
             while (start < length) {
               byte[] buffer = new byte[bufferSize];
@@ -402,9 +401,8 @@ public final class FileInStreamIntegrationTest extends BaseIntegrationTest {
   public void remoteReadLargeFile() throws Exception {
     // write a file outside of Alluxio
     AlluxioURI filePath = new AlluxioURI(mTestPath + "/test");
-    try (FileOutStream os =
-        mFileSystem.createFile(filePath, FileSystemClientOptions.getCreateFileOptions().toBuilder()
-            .setBlockSizeBytes(16 * Constants.MB).setWriteType(WritePType.WRITE_THROUGH).build())) {
+    try (FileOutStream os = mFileSystem.createFile(filePath, CreateFilePOptions.newBuilder()
+        .setBlockSizeBytes(16 * Constants.MB).setWriteType(WritePType.WRITE_THROUGH).build())) {
       // Write a smaller byte array 10 times to avoid demanding 500mb of contiguous memory.
       byte[] bytes = BufferUtils.getIncreasingByteArray(50 * Constants.MB);
       for (int i = 0; i < 10; i++) {
@@ -412,8 +410,8 @@ public final class FileInStreamIntegrationTest extends BaseIntegrationTest {
       }
     }
 
-    OpenFilePOptions options = FileSystemClientOptions.getOpenFileOptions().toBuilder()
-        .setReadType(ReadPType.READ_CACHE_PROMOTE).build();
+    OpenFilePOptions options =
+        OpenFilePOptions.newBuilder().setReadType(ReadPType.READ_CACHE_PROMOTE).build();
     try (FileInStream in = mFileSystem.openFile(filePath, options)) {
       byte[] buf = new byte[8 * Constants.MB];
       while (in.read(buf) != -1) {
@@ -452,8 +450,8 @@ public final class FileInStreamIntegrationTest extends BaseIntegrationTest {
           return false;
         }
       });
-      FileInStream is = mFileSystem.openFile(uri, FileSystemClientOptions.getOpenFileOptions()
-          .toBuilder().setReadType(readType.toProto()).build());
+      FileInStream is = mFileSystem.openFile(uri,
+          OpenFilePOptions.newBuilder().setReadType(readType.toProto()).build());
       is.read();
       URIStatus status = mFileSystem.getStatus(uri);
       Assert.assertEquals(0, status.getInAlluxioPercentage());
@@ -500,8 +498,8 @@ public final class FileInStreamIntegrationTest extends BaseIntegrationTest {
           return false;
         }
       });
-      FileInStream is = mFileSystem.openFile(uri, FileSystemClientOptions.getOpenFileOptions()
-          .toBuilder().setReadType(readType.toProto()).build());
+      FileInStream is = mFileSystem.openFile(uri,
+          OpenFilePOptions.newBuilder().setReadType(readType.toProto()).build());
       URIStatus status = mFileSystem.getStatus(uri);
       is.seek(status.getBlockSizeBytes() + 1);
       is.read();
@@ -550,8 +548,8 @@ public final class FileInStreamIntegrationTest extends BaseIntegrationTest {
           return false;
         }
       });
-      FileInStream is = mFileSystem.openFile(uri, FileSystemClientOptions.getOpenFileOptions()
-          .toBuilder().setReadType(readType.toProto()).build());
+      FileInStream is = mFileSystem.openFile(uri,
+          OpenFilePOptions.newBuilder().setReadType(readType.toProto()).build());
       // Positioned reads trigger async caching after reading and do not need to wait for a close
       // or a block boundary to be crossed.
       URIStatus status = mFileSystem.getStatus(uri);
@@ -590,8 +588,8 @@ public final class FileInStreamIntegrationTest extends BaseIntegrationTest {
     String filename = mTestPath + "/file_" + MAX_LEN + "_" + mWriteUnderStore.hashCode();
     AlluxioURI uri = new AlluxioURI(filename);
 
-    FileInStream is = mFileSystem.openFile(uri, FileSystemClientOptions.getOpenFileOptions()
-        .toBuilder().setReadType(ReadPType.READ_CACHE).build());
+    FileInStream is = mFileSystem.openFile(uri,
+        OpenFilePOptions.newBuilder().setReadType(ReadPType.READ_CACHE).build());
     URIStatus status = mFileSystem.getStatus(uri);
     byte[] data = new byte[(int) status.getBlockSizeBytes() + 1];
     is.read(data);

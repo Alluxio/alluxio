@@ -21,13 +21,14 @@ import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
-import alluxio.client.file.FileSystemClientOptions;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.client.file.options.OutStreamOptions;
 import alluxio.client.file.policy.FileWriteLocationPolicy;
 import alluxio.client.file.policy.RoundRobinPolicy;
+import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.WritePType;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
@@ -85,8 +86,7 @@ public final class MultiWorkerIntegrationTest extends BaseIntegrationTest {
     AlluxioURI file = new AlluxioURI("/test");
     FileSystem fs = mResource.get().getClient();
     FileSystemTestUtils.createByteFile(fs, file.getPath(), fileSize,
-        FileSystemClientOptions.getCreateFileOptions().toBuilder()
-            .setWriteType(WritePType.WRITE_MUST_CACHE)
+        CreateFilePOptions.newBuilder().setWriteType(WritePType.WRITE_MUST_CACHE)
             .setFileWriteLocationPolicy(RoundRobinPolicy.class.getCanonicalName()).build());
     URIStatus status = fs.getStatus(file);
     assertEquals(100, status.getInAlluxioPercentage());
@@ -108,7 +108,7 @@ public final class MultiWorkerIntegrationTest extends BaseIntegrationTest {
     AlluxioURI filePath = new AlluxioURI("/test");
     createFileOnWorker(total, filePath, mResource.get().getWorkerAddress());
     FileSystem fs = mResource.get().getClient();
-    try (FileInStream in = fs.openFile(filePath, FileSystemClientOptions.getOpenFileOptions())) {
+    try (FileInStream in = fs.openFile(filePath, OpenFilePOptions.getDefaultInstance())) {
       byte[] buf = new byte[total];
       int size = in.read(buf, 0, offset);
       replicateFileBlocks(filePath);
@@ -133,7 +133,7 @@ public final class MultiWorkerIntegrationTest extends BaseIntegrationTest {
     AlluxioURI filePath = new AlluxioURI("/test");
     FileSystem fs = mResource.get().getClient();
     createFileOnWorker(total, filePath, mResource.get().getWorkerAddress());
-    try (FileInStream in = fs.openFile(filePath, FileSystemClientOptions.getOpenFileOptions())) {
+    try (FileInStream in = fs.openFile(filePath, OpenFilePOptions.getDefaultInstance())) {
       byte[] buf = new byte[total];
       int size = in.read(buf, 0, offset);
       replicateFileBlocks(filePath);
@@ -158,7 +158,7 @@ public final class MultiWorkerIntegrationTest extends BaseIntegrationTest {
     AlluxioURI filePath = new AlluxioURI("/test");
     FileSystem fs = mResource.get().getClient();
     createFileOnWorker(total, filePath, mResource.get().getWorkerAddress());
-    try (FileInStream in = fs.openFile(filePath, FileSystemClientOptions.getOpenFileOptions())) {
+    try (FileInStream in = fs.openFile(filePath, OpenFilePOptions.getDefaultInstance())) {
       byte[] buf = new byte[length];
       replicateFileBlocks(filePath);
       mResource.get().getWorkerProcess().stop();
@@ -173,10 +173,8 @@ public final class MultiWorkerIntegrationTest extends BaseIntegrationTest {
       throws IOException {
     FindFirstFileWriteLocationPolicy.sWorkerAddress = address;
     FileSystemTestUtils.createByteFile(mResource.get().getClient(), filePath,
-        FileSystemClientOptions.getCreateFileOptions().toBuilder()
-            .setWriteType(WritePType.WRITE_MUST_CACHE)
-            .setFileWriteLocationPolicy(FindFirstFileWriteLocationPolicy.class.getName())
-            .build(),
+        CreateFilePOptions.newBuilder().setWriteType(WritePType.WRITE_MUST_CACHE)
+            .setFileWriteLocationPolicy(FindFirstFileWriteLocationPolicy.class.getName()).build(),
         total);
   }
 

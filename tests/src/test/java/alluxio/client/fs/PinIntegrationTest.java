@@ -14,7 +14,6 @@ package alluxio.client.fs;
 import alluxio.AlluxioURI;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
-import alluxio.client.file.FileSystemClientOptions;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
 import alluxio.grpc.CreateFilePOptions;
@@ -51,10 +50,8 @@ public final class PinIntegrationTest extends BaseIntegrationTest {
   public final void before() throws Exception {
     mFileSystem = mLocalAlluxioClusterResource.get().getClient();
     mFSMasterClient = new FileSystemMasterClient(MasterClientConfig.defaults());
-    mSetPinned =
-        FileSystemClientOptions.getSetAttributeOptions().toBuilder().setPinned(true).build();
-    mUnsetPinned =
-        FileSystemClientOptions.getSetAttributeOptions().toBuilder().setPinned(false).build();
+    mSetPinned = SetAttributePOptions.newBuilder().setPinned(true).build();
+    mUnsetPinned = SetAttributePOptions.newBuilder().setPinned(false).build();
   }
 
   @After
@@ -158,8 +155,8 @@ public final class PinIntegrationTest extends BaseIntegrationTest {
   }
 
   private void createEmptyFile(AlluxioURI fileURI) throws IOException, AlluxioException {
-    CreateFilePOptions options = FileSystemClientOptions.getCreateFileOptions().toBuilder()
-        .setWriteType(WritePType.WRITE_MUST_CACHE).build();
+    CreateFilePOptions options =
+        CreateFilePOptions.newBuilder().setWriteType(WritePType.WRITE_MUST_CACHE).build();
     FileOutStream os = mFileSystem.createFile(fileURI, options);
     os.close();
   }

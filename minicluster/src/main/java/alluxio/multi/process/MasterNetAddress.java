@@ -11,7 +11,7 @@
 
 package alluxio.multi.process;
 
-import com.google.common.base.Objects;
+import com.google.common.base.MoreObjects;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -58,7 +58,7 @@ public class MasterNetAddress {
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this)
+    return MoreObjects.toStringHelper(this)
         .add("hostname", mHostname)
         .add("rpcPort", mRpcPort)
         .add("webPort", mWebPort)

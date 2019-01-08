@@ -27,14 +27,14 @@ import alluxio.master.MasterTestUtils;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.block.BlockMasterFactory;
 import alluxio.master.file.RpcContext;
+import alluxio.master.file.contexts.CreateFileContext;
+import alluxio.master.file.contexts.CreatePathContext;
 import alluxio.master.file.meta.InodeDirectoryIdGenerator;
 import alluxio.master.file.meta.InodeFile;
 import alluxio.master.file.meta.InodeTree;
 import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.file.meta.MountTable;
 import alluxio.master.file.meta.options.MountInfo;
-import alluxio.master.file.contexts.CreateFileContext;
-import alluxio.master.file.contexts.CreatePathContext;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalTestUtils;
 import alluxio.master.journal.NoopJournalContext;
@@ -55,13 +55,12 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Unit tests for {@link ReplicationChecker}.

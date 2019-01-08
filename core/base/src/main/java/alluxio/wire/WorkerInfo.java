@@ -11,6 +11,7 @@
 
 package alluxio.wire;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 
@@ -229,7 +230,7 @@ public final class WorkerInfo implements Serializable {
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this).add("id", mId).add("address", mAddress)
+    return MoreObjects.toStringHelper(this).add("id", mId).add("address", mAddress)
         .add("lastContactSec", mLastContactSec).add("state", mState)
         .add("capacityBytes", mCapacityBytes).add("usedBytes", mUsedBytes)
         .add("startTimeMs", mStartTimeMs).add("capacityBytesOnTiers", mCapacityBytesOnTiers)

@@ -22,31 +22,25 @@ import static io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall;
  * </pre>
  */
 @javax.annotation.Generated(
-    value = "by gRPC proto compiler (version 1.10.1)",
-    comments = "Source: key_value_master.proto")
+    value = "by gRPC proto compiler (version 1.17.1)",
+    comments = "Source: grpc/key_value_master.proto")
 public final class KeyValueMasterClientServiceGrpc {
 
   private KeyValueMasterClientServiceGrpc() {}
 
-  public static final String SERVICE_NAME = "alluxio.grpc.KeyValueMasterClientService";
+  public static final String SERVICE_NAME = "alluxio.grpc.keyvalue.KeyValueMasterClientService";
 
   // Static method descriptors that strictly reflect the proto.
-  @io.grpc.ExperimentalApi("https://github.com/grpc/grpc-java/issues/1901")
-  @java.lang.Deprecated // Use {@link #getCompletePartitionMethod()} instead. 
-  public static final io.grpc.MethodDescriptor<alluxio.grpc.CompletePartitionPRequest,
-      alluxio.grpc.CompletePartitionPResponse> METHOD_COMPLETE_PARTITION = getCompletePartitionMethodHelper();
-
   private static volatile io.grpc.MethodDescriptor<alluxio.grpc.CompletePartitionPRequest,
       alluxio.grpc.CompletePartitionPResponse> getCompletePartitionMethod;
 
-  @io.grpc.ExperimentalApi("https://github.com/grpc/grpc-java/issues/1901")
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + "CompletePartition",
+      requestType = alluxio.grpc.CompletePartitionPRequest.class,
+      responseType = alluxio.grpc.CompletePartitionPResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
   public static io.grpc.MethodDescriptor<alluxio.grpc.CompletePartitionPRequest,
       alluxio.grpc.CompletePartitionPResponse> getCompletePartitionMethod() {
-    return getCompletePartitionMethodHelper();
-  }
-
-  private static io.grpc.MethodDescriptor<alluxio.grpc.CompletePartitionPRequest,
-      alluxio.grpc.CompletePartitionPResponse> getCompletePartitionMethodHelper() {
     io.grpc.MethodDescriptor<alluxio.grpc.CompletePartitionPRequest, alluxio.grpc.CompletePartitionPResponse> getCompletePartitionMethod;
     if ((getCompletePartitionMethod = KeyValueMasterClientServiceGrpc.getCompletePartitionMethod) == null) {
       synchronized (KeyValueMasterClientServiceGrpc.class) {
@@ -55,7 +49,7 @@ public final class KeyValueMasterClientServiceGrpc {
               io.grpc.MethodDescriptor.<alluxio.grpc.CompletePartitionPRequest, alluxio.grpc.CompletePartitionPResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
               .setFullMethodName(generateFullMethodName(
-                  "alluxio.grpc.KeyValueMasterClientService", "CompletePartition"))
+                  "alluxio.grpc.keyvalue.KeyValueMasterClientService", "CompletePartition"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.CompletePartitionPRequest.getDefaultInstance()))
@@ -68,22 +62,17 @@ public final class KeyValueMasterClientServiceGrpc {
      }
      return getCompletePartitionMethod;
   }
-  @io.grpc.ExperimentalApi("https://github.com/grpc/grpc-java/issues/1901")
-  @java.lang.Deprecated // Use {@link #getCompleteStoreMethod()} instead. 
-  public static final io.grpc.MethodDescriptor<alluxio.grpc.CompleteStorePRequest,
-      alluxio.grpc.CompleteStorePResponse> METHOD_COMPLETE_STORE = getCompleteStoreMethodHelper();
 
   private static volatile io.grpc.MethodDescriptor<alluxio.grpc.CompleteStorePRequest,
       alluxio.grpc.CompleteStorePResponse> getCompleteStoreMethod;
 
-  @io.grpc.ExperimentalApi("https://github.com/grpc/grpc-java/issues/1901")
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + "completeStore",
+      requestType = alluxio.grpc.CompleteStorePRequest.class,
+      responseType = alluxio.grpc.CompleteStorePResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
   public static io.grpc.MethodDescriptor<alluxio.grpc.CompleteStorePRequest,
       alluxio.grpc.CompleteStorePResponse> getCompleteStoreMethod() {
-    return getCompleteStoreMethodHelper();
-  }
-
-  private static io.grpc.MethodDescriptor<alluxio.grpc.CompleteStorePRequest,
-      alluxio.grpc.CompleteStorePResponse> getCompleteStoreMethodHelper() {
     io.grpc.MethodDescriptor<alluxio.grpc.CompleteStorePRequest, alluxio.grpc.CompleteStorePResponse> getCompleteStoreMethod;
     if ((getCompleteStoreMethod = KeyValueMasterClientServiceGrpc.getCompleteStoreMethod) == null) {
       synchronized (KeyValueMasterClientServiceGrpc.class) {
@@ -92,7 +81,7 @@ public final class KeyValueMasterClientServiceGrpc {
               io.grpc.MethodDescriptor.<alluxio.grpc.CompleteStorePRequest, alluxio.grpc.CompleteStorePResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
               .setFullMethodName(generateFullMethodName(
-                  "alluxio.grpc.KeyValueMasterClientService", "completeStore"))
+                  "alluxio.grpc.keyvalue.KeyValueMasterClientService", "completeStore"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.CompleteStorePRequest.getDefaultInstance()))
@@ -105,22 +94,17 @@ public final class KeyValueMasterClientServiceGrpc {
      }
      return getCompleteStoreMethod;
   }
-  @io.grpc.ExperimentalApi("https://github.com/grpc/grpc-java/issues/1901")
-  @java.lang.Deprecated // Use {@link #getCreateStoreMethod()} instead. 
-  public static final io.grpc.MethodDescriptor<alluxio.grpc.CreateStorePRequest,
-      alluxio.grpc.CreateStorePResponse> METHOD_CREATE_STORE = getCreateStoreMethodHelper();
 
   private static volatile io.grpc.MethodDescriptor<alluxio.grpc.CreateStorePRequest,
       alluxio.grpc.CreateStorePResponse> getCreateStoreMethod;
 
-  @io.grpc.ExperimentalApi("https://github.com/grpc/grpc-java/issues/1901")
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + "CreateStore",
+      requestType = alluxio.grpc.CreateStorePRequest.class,
+      responseType = alluxio.grpc.CreateStorePResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
   public static io.grpc.MethodDescriptor<alluxio.grpc.CreateStorePRequest,
       alluxio.grpc.CreateStorePResponse> getCreateStoreMethod() {
-    return getCreateStoreMethodHelper();
-  }
-
-  private static io.grpc.MethodDescriptor<alluxio.grpc.CreateStorePRequest,
-      alluxio.grpc.CreateStorePResponse> getCreateStoreMethodHelper() {
     io.grpc.MethodDescriptor<alluxio.grpc.CreateStorePRequest, alluxio.grpc.CreateStorePResponse> getCreateStoreMethod;
     if ((getCreateStoreMethod = KeyValueMasterClientServiceGrpc.getCreateStoreMethod) == null) {
       synchronized (KeyValueMasterClientServiceGrpc.class) {
@@ -129,7 +113,7 @@ public final class KeyValueMasterClientServiceGrpc {
               io.grpc.MethodDescriptor.<alluxio.grpc.CreateStorePRequest, alluxio.grpc.CreateStorePResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
               .setFullMethodName(generateFullMethodName(
-                  "alluxio.grpc.KeyValueMasterClientService", "CreateStore"))
+                  "alluxio.grpc.keyvalue.KeyValueMasterClientService", "CreateStore"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.CreateStorePRequest.getDefaultInstance()))
@@ -142,22 +126,17 @@ public final class KeyValueMasterClientServiceGrpc {
      }
      return getCreateStoreMethod;
   }
-  @io.grpc.ExperimentalApi("https://github.com/grpc/grpc-java/issues/1901")
-  @java.lang.Deprecated // Use {@link #getDeleteStoreMethod()} instead. 
-  public static final io.grpc.MethodDescriptor<alluxio.grpc.DeleteStorePRequest,
-      alluxio.grpc.DeleteStorePResponse> METHOD_DELETE_STORE = getDeleteStoreMethodHelper();
 
   private static volatile io.grpc.MethodDescriptor<alluxio.grpc.DeleteStorePRequest,
       alluxio.grpc.DeleteStorePResponse> getDeleteStoreMethod;
 
-  @io.grpc.ExperimentalApi("https://github.com/grpc/grpc-java/issues/1901")
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + "DeleteStore",
+      requestType = alluxio.grpc.DeleteStorePRequest.class,
+      responseType = alluxio.grpc.DeleteStorePResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
   public static io.grpc.MethodDescriptor<alluxio.grpc.DeleteStorePRequest,
       alluxio.grpc.DeleteStorePResponse> getDeleteStoreMethod() {
-    return getDeleteStoreMethodHelper();
-  }
-
-  private static io.grpc.MethodDescriptor<alluxio.grpc.DeleteStorePRequest,
-      alluxio.grpc.DeleteStorePResponse> getDeleteStoreMethodHelper() {
     io.grpc.MethodDescriptor<alluxio.grpc.DeleteStorePRequest, alluxio.grpc.DeleteStorePResponse> getDeleteStoreMethod;
     if ((getDeleteStoreMethod = KeyValueMasterClientServiceGrpc.getDeleteStoreMethod) == null) {
       synchronized (KeyValueMasterClientServiceGrpc.class) {
@@ -166,7 +145,7 @@ public final class KeyValueMasterClientServiceGrpc {
               io.grpc.MethodDescriptor.<alluxio.grpc.DeleteStorePRequest, alluxio.grpc.DeleteStorePResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
               .setFullMethodName(generateFullMethodName(
-                  "alluxio.grpc.KeyValueMasterClientService", "DeleteStore"))
+                  "alluxio.grpc.keyvalue.KeyValueMasterClientService", "DeleteStore"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.DeleteStorePRequest.getDefaultInstance()))
@@ -179,22 +158,17 @@ public final class KeyValueMasterClientServiceGrpc {
      }
      return getDeleteStoreMethod;
   }
-  @io.grpc.ExperimentalApi("https://github.com/grpc/grpc-java/issues/1901")
-  @java.lang.Deprecated // Use {@link #getGetPartitionInfoMethod()} instead. 
-  public static final io.grpc.MethodDescriptor<alluxio.grpc.GetPartitionInfoPRequest,
-      alluxio.grpc.GetPartitionInfoPResponse> METHOD_GET_PARTITION_INFO = getGetPartitionInfoMethodHelper();
 
   private static volatile io.grpc.MethodDescriptor<alluxio.grpc.GetPartitionInfoPRequest,
       alluxio.grpc.GetPartitionInfoPResponse> getGetPartitionInfoMethod;
 
-  @io.grpc.ExperimentalApi("https://github.com/grpc/grpc-java/issues/1901")
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + "GetPartitionInfo",
+      requestType = alluxio.grpc.GetPartitionInfoPRequest.class,
+      responseType = alluxio.grpc.GetPartitionInfoPResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
   public static io.grpc.MethodDescriptor<alluxio.grpc.GetPartitionInfoPRequest,
       alluxio.grpc.GetPartitionInfoPResponse> getGetPartitionInfoMethod() {
-    return getGetPartitionInfoMethodHelper();
-  }
-
-  private static io.grpc.MethodDescriptor<alluxio.grpc.GetPartitionInfoPRequest,
-      alluxio.grpc.GetPartitionInfoPResponse> getGetPartitionInfoMethodHelper() {
     io.grpc.MethodDescriptor<alluxio.grpc.GetPartitionInfoPRequest, alluxio.grpc.GetPartitionInfoPResponse> getGetPartitionInfoMethod;
     if ((getGetPartitionInfoMethod = KeyValueMasterClientServiceGrpc.getGetPartitionInfoMethod) == null) {
       synchronized (KeyValueMasterClientServiceGrpc.class) {
@@ -203,7 +177,7 @@ public final class KeyValueMasterClientServiceGrpc {
               io.grpc.MethodDescriptor.<alluxio.grpc.GetPartitionInfoPRequest, alluxio.grpc.GetPartitionInfoPResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
               .setFullMethodName(generateFullMethodName(
-                  "alluxio.grpc.KeyValueMasterClientService", "GetPartitionInfo"))
+                  "alluxio.grpc.keyvalue.KeyValueMasterClientService", "GetPartitionInfo"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.GetPartitionInfoPRequest.getDefaultInstance()))
@@ -216,22 +190,17 @@ public final class KeyValueMasterClientServiceGrpc {
      }
      return getGetPartitionInfoMethod;
   }
-  @io.grpc.ExperimentalApi("https://github.com/grpc/grpc-java/issues/1901")
-  @java.lang.Deprecated // Use {@link #getMergeStoreMethod()} instead. 
-  public static final io.grpc.MethodDescriptor<alluxio.grpc.MergeStorePRequest,
-      alluxio.grpc.MergeStorePResponse> METHOD_MERGE_STORE = getMergeStoreMethodHelper();
 
   private static volatile io.grpc.MethodDescriptor<alluxio.grpc.MergeStorePRequest,
       alluxio.grpc.MergeStorePResponse> getMergeStoreMethod;
 
-  @io.grpc.ExperimentalApi("https://github.com/grpc/grpc-java/issues/1901")
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + "MergeStore",
+      requestType = alluxio.grpc.MergeStorePRequest.class,
+      responseType = alluxio.grpc.MergeStorePResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
   public static io.grpc.MethodDescriptor<alluxio.grpc.MergeStorePRequest,
       alluxio.grpc.MergeStorePResponse> getMergeStoreMethod() {
-    return getMergeStoreMethodHelper();
-  }
-
-  private static io.grpc.MethodDescriptor<alluxio.grpc.MergeStorePRequest,
-      alluxio.grpc.MergeStorePResponse> getMergeStoreMethodHelper() {
     io.grpc.MethodDescriptor<alluxio.grpc.MergeStorePRequest, alluxio.grpc.MergeStorePResponse> getMergeStoreMethod;
     if ((getMergeStoreMethod = KeyValueMasterClientServiceGrpc.getMergeStoreMethod) == null) {
       synchronized (KeyValueMasterClientServiceGrpc.class) {
@@ -240,7 +209,7 @@ public final class KeyValueMasterClientServiceGrpc {
               io.grpc.MethodDescriptor.<alluxio.grpc.MergeStorePRequest, alluxio.grpc.MergeStorePResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
               .setFullMethodName(generateFullMethodName(
-                  "alluxio.grpc.KeyValueMasterClientService", "MergeStore"))
+                  "alluxio.grpc.keyvalue.KeyValueMasterClientService", "MergeStore"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.MergeStorePRequest.getDefaultInstance()))
@@ -253,22 +222,17 @@ public final class KeyValueMasterClientServiceGrpc {
      }
      return getMergeStoreMethod;
   }
-  @io.grpc.ExperimentalApi("https://github.com/grpc/grpc-java/issues/1901")
-  @java.lang.Deprecated // Use {@link #getRenameStoreMethod()} instead. 
-  public static final io.grpc.MethodDescriptor<alluxio.grpc.RenameStorePRequest,
-      alluxio.grpc.RenameStorePResponse> METHOD_RENAME_STORE = getRenameStoreMethodHelper();
 
   private static volatile io.grpc.MethodDescriptor<alluxio.grpc.RenameStorePRequest,
       alluxio.grpc.RenameStorePResponse> getRenameStoreMethod;
 
-  @io.grpc.ExperimentalApi("https://github.com/grpc/grpc-java/issues/1901")
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + "RenameStore",
+      requestType = alluxio.grpc.RenameStorePRequest.class,
+      responseType = alluxio.grpc.RenameStorePResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
   public static io.grpc.MethodDescriptor<alluxio.grpc.RenameStorePRequest,
       alluxio.grpc.RenameStorePResponse> getRenameStoreMethod() {
-    return getRenameStoreMethodHelper();
-  }
-
-  private static io.grpc.MethodDescriptor<alluxio.grpc.RenameStorePRequest,
-      alluxio.grpc.RenameStorePResponse> getRenameStoreMethodHelper() {
     io.grpc.MethodDescriptor<alluxio.grpc.RenameStorePRequest, alluxio.grpc.RenameStorePResponse> getRenameStoreMethod;
     if ((getRenameStoreMethod = KeyValueMasterClientServiceGrpc.getRenameStoreMethod) == null) {
       synchronized (KeyValueMasterClientServiceGrpc.class) {
@@ -277,7 +241,7 @@ public final class KeyValueMasterClientServiceGrpc {
               io.grpc.MethodDescriptor.<alluxio.grpc.RenameStorePRequest, alluxio.grpc.RenameStorePResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
               .setFullMethodName(generateFullMethodName(
-                  "alluxio.grpc.KeyValueMasterClientService", "RenameStore"))
+                  "alluxio.grpc.keyvalue.KeyValueMasterClientService", "RenameStore"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.RenameStorePRequest.getDefaultInstance()))
@@ -330,7 +294,7 @@ public final class KeyValueMasterClientServiceGrpc {
      */
     public void completePartition(alluxio.grpc.CompletePartitionPRequest request,
         io.grpc.stub.StreamObserver<alluxio.grpc.CompletePartitionPResponse> responseObserver) {
-      asyncUnimplementedUnaryCall(getCompletePartitionMethodHelper(), responseObserver);
+      asyncUnimplementedUnaryCall(getCompletePartitionMethod(), responseObserver);
     }
 
     /**
@@ -341,7 +305,7 @@ public final class KeyValueMasterClientServiceGrpc {
      */
     public void completeStore(alluxio.grpc.CompleteStorePRequest request,
         io.grpc.stub.StreamObserver<alluxio.grpc.CompleteStorePResponse> responseObserver) {
-      asyncUnimplementedUnaryCall(getCompleteStoreMethodHelper(), responseObserver);
+      asyncUnimplementedUnaryCall(getCompleteStoreMethod(), responseObserver);
     }
 
     /**
@@ -352,7 +316,7 @@ public final class KeyValueMasterClientServiceGrpc {
      */
     public void createStore(alluxio.grpc.CreateStorePRequest request,
         io.grpc.stub.StreamObserver<alluxio.grpc.CreateStorePResponse> responseObserver) {
-      asyncUnimplementedUnaryCall(getCreateStoreMethodHelper(), responseObserver);
+      asyncUnimplementedUnaryCall(getCreateStoreMethod(), responseObserver);
     }
 
     /**
@@ -363,7 +327,7 @@ public final class KeyValueMasterClientServiceGrpc {
      */
     public void deleteStore(alluxio.grpc.DeleteStorePRequest request,
         io.grpc.stub.StreamObserver<alluxio.grpc.DeleteStorePResponse> responseObserver) {
-      asyncUnimplementedUnaryCall(getDeleteStoreMethodHelper(), responseObserver);
+      asyncUnimplementedUnaryCall(getDeleteStoreMethod(), responseObserver);
     }
 
     /**
@@ -374,7 +338,7 @@ public final class KeyValueMasterClientServiceGrpc {
      */
     public void getPartitionInfo(alluxio.grpc.GetPartitionInfoPRequest request,
         io.grpc.stub.StreamObserver<alluxio.grpc.GetPartitionInfoPResponse> responseObserver) {
-      asyncUnimplementedUnaryCall(getGetPartitionInfoMethodHelper(), responseObserver);
+      asyncUnimplementedUnaryCall(getGetPartitionInfoMethod(), responseObserver);
     }
 
     /**
@@ -385,7 +349,7 @@ public final class KeyValueMasterClientServiceGrpc {
      */
     public void mergeStore(alluxio.grpc.MergeStorePRequest request,
         io.grpc.stub.StreamObserver<alluxio.grpc.MergeStorePResponse> responseObserver) {
-      asyncUnimplementedUnaryCall(getMergeStoreMethodHelper(), responseObserver);
+      asyncUnimplementedUnaryCall(getMergeStoreMethod(), responseObserver);
     }
 
     /**
@@ -396,55 +360,55 @@ public final class KeyValueMasterClientServiceGrpc {
      */
     public void renameStore(alluxio.grpc.RenameStorePRequest request,
         io.grpc.stub.StreamObserver<alluxio.grpc.RenameStorePResponse> responseObserver) {
-      asyncUnimplementedUnaryCall(getRenameStoreMethodHelper(), responseObserver);
+      asyncUnimplementedUnaryCall(getRenameStoreMethod(), responseObserver);
     }
 
     @java.lang.Override public final io.grpc.ServerServiceDefinition bindService() {
       return io.grpc.ServerServiceDefinition.builder(getServiceDescriptor())
           .addMethod(
-            getCompletePartitionMethodHelper(),
+            getCompletePartitionMethod(),
             asyncUnaryCall(
               new MethodHandlers<
                 alluxio.grpc.CompletePartitionPRequest,
                 alluxio.grpc.CompletePartitionPResponse>(
                   this, METHODID_COMPLETE_PARTITION)))
           .addMethod(
-            getCompleteStoreMethodHelper(),
+            getCompleteStoreMethod(),
             asyncUnaryCall(
               new MethodHandlers<
                 alluxio.grpc.CompleteStorePRequest,
                 alluxio.grpc.CompleteStorePResponse>(
                   this, METHODID_COMPLETE_STORE)))
           .addMethod(
-            getCreateStoreMethodHelper(),
+            getCreateStoreMethod(),
             asyncUnaryCall(
               new MethodHandlers<
                 alluxio.grpc.CreateStorePRequest,
                 alluxio.grpc.CreateStorePResponse>(
                   this, METHODID_CREATE_STORE)))
           .addMethod(
-            getDeleteStoreMethodHelper(),
+            getDeleteStoreMethod(),
             asyncUnaryCall(
               new MethodHandlers<
                 alluxio.grpc.DeleteStorePRequest,
                 alluxio.grpc.DeleteStorePResponse>(
                   this, METHODID_DELETE_STORE)))
           .addMethod(
-            getGetPartitionInfoMethodHelper(),
+            getGetPartitionInfoMethod(),
             asyncUnaryCall(
               new MethodHandlers<
                 alluxio.grpc.GetPartitionInfoPRequest,
                 alluxio.grpc.GetPartitionInfoPResponse>(
                   this, METHODID_GET_PARTITION_INFO)))
           .addMethod(
-            getMergeStoreMethodHelper(),
+            getMergeStoreMethod(),
             asyncUnaryCall(
               new MethodHandlers<
                 alluxio.grpc.MergeStorePRequest,
                 alluxio.grpc.MergeStorePResponse>(
                   this, METHODID_MERGE_STORE)))
           .addMethod(
-            getRenameStoreMethodHelper(),
+            getRenameStoreMethod(),
             asyncUnaryCall(
               new MethodHandlers<
                 alluxio.grpc.RenameStorePRequest,
@@ -485,7 +449,7 @@ public final class KeyValueMasterClientServiceGrpc {
     public void completePartition(alluxio.grpc.CompletePartitionPRequest request,
         io.grpc.stub.StreamObserver<alluxio.grpc.CompletePartitionPResponse> responseObserver) {
       asyncUnaryCall(
-          getChannel().newCall(getCompletePartitionMethodHelper(), getCallOptions()), request, responseObserver);
+          getChannel().newCall(getCompletePartitionMethod(), getCallOptions()), request, responseObserver);
     }
 
     /**
@@ -497,7 +461,7 @@ public final class KeyValueMasterClientServiceGrpc {
     public void completeStore(alluxio.grpc.CompleteStorePRequest request,
         io.grpc.stub.StreamObserver<alluxio.grpc.CompleteStorePResponse> responseObserver) {
       asyncUnaryCall(
-          getChannel().newCall(getCompleteStoreMethodHelper(), getCallOptions()), request, responseObserver);
+          getChannel().newCall(getCompleteStoreMethod(), getCallOptions()), request, responseObserver);
     }
 
     /**
@@ -509,7 +473,7 @@ public final class KeyValueMasterClientServiceGrpc {
     public void createStore(alluxio.grpc.CreateStorePRequest request,
         io.grpc.stub.StreamObserver<alluxio.grpc.CreateStorePResponse> responseObserver) {
       asyncUnaryCall(
-          getChannel().newCall(getCreateStoreMethodHelper(), getCallOptions()), request, responseObserver);
+          getChannel().newCall(getCreateStoreMethod(), getCallOptions()), request, responseObserver);
     }
 
     /**
@@ -521,7 +485,7 @@ public final class KeyValueMasterClientServiceGrpc {
     public void deleteStore(alluxio.grpc.DeleteStorePRequest request,
         io.grpc.stub.StreamObserver<alluxio.grpc.DeleteStorePResponse> responseObserver) {
       asyncUnaryCall(
-          getChannel().newCall(getDeleteStoreMethodHelper(), getCallOptions()), request, responseObserver);
+          getChannel().newCall(getDeleteStoreMethod(), getCallOptions()), request, responseObserver);
     }
 
     /**
@@ -533,7 +497,7 @@ public final class KeyValueMasterClientServiceGrpc {
     public void getPartitionInfo(alluxio.grpc.GetPartitionInfoPRequest request,
         io.grpc.stub.StreamObserver<alluxio.grpc.GetPartitionInfoPResponse> responseObserver) {
       asyncUnaryCall(
-          getChannel().newCall(getGetPartitionInfoMethodHelper(), getCallOptions()), request, responseObserver);
+          getChannel().newCall(getGetPartitionInfoMethod(), getCallOptions()), request, responseObserver);
     }
 
     /**
@@ -545,7 +509,7 @@ public final class KeyValueMasterClientServiceGrpc {
     public void mergeStore(alluxio.grpc.MergeStorePRequest request,
         io.grpc.stub.StreamObserver<alluxio.grpc.MergeStorePResponse> responseObserver) {
       asyncUnaryCall(
-          getChannel().newCall(getMergeStoreMethodHelper(), getCallOptions()), request, responseObserver);
+          getChannel().newCall(getMergeStoreMethod(), getCallOptions()), request, responseObserver);
     }
 
     /**
@@ -557,7 +521,7 @@ public final class KeyValueMasterClientServiceGrpc {
     public void renameStore(alluxio.grpc.RenameStorePRequest request,
         io.grpc.stub.StreamObserver<alluxio.grpc.RenameStorePResponse> responseObserver) {
       asyncUnaryCall(
-          getChannel().newCall(getRenameStoreMethodHelper(), getCallOptions()), request, responseObserver);
+          getChannel().newCall(getRenameStoreMethod(), getCallOptions()), request, responseObserver);
     }
   }
 
@@ -591,7 +555,7 @@ public final class KeyValueMasterClientServiceGrpc {
      */
     public alluxio.grpc.CompletePartitionPResponse completePartition(alluxio.grpc.CompletePartitionPRequest request) {
       return blockingUnaryCall(
-          getChannel(), getCompletePartitionMethodHelper(), getCallOptions(), request);
+          getChannel(), getCompletePartitionMethod(), getCallOptions(), request);
     }
 
     /**
@@ -602,7 +566,7 @@ public final class KeyValueMasterClientServiceGrpc {
      */
     public alluxio.grpc.CompleteStorePResponse completeStore(alluxio.grpc.CompleteStorePRequest request) {
       return blockingUnaryCall(
-          getChannel(), getCompleteStoreMethodHelper(), getCallOptions(), request);
+          getChannel(), getCompleteStoreMethod(), getCallOptions(), request);
     }
 
     /**
@@ -613,7 +577,7 @@ public final class KeyValueMasterClientServiceGrpc {
      */
     public alluxio.grpc.CreateStorePResponse createStore(alluxio.grpc.CreateStorePRequest request) {
       return blockingUnaryCall(
-          getChannel(), getCreateStoreMethodHelper(), getCallOptions(), request);
+          getChannel(), getCreateStoreMethod(), getCallOptions(), request);
     }
 
     /**
@@ -624,7 +588,7 @@ public final class KeyValueMasterClientServiceGrpc {
      */
     public alluxio.grpc.DeleteStorePResponse deleteStore(alluxio.grpc.DeleteStorePRequest request) {
       return blockingUnaryCall(
-          getChannel(), getDeleteStoreMethodHelper(), getCallOptions(), request);
+          getChannel(), getDeleteStoreMethod(), getCallOptions(), request);
     }
 
     /**
@@ -635,7 +599,7 @@ public final class KeyValueMasterClientServiceGrpc {
      */
     public alluxio.grpc.GetPartitionInfoPResponse getPartitionInfo(alluxio.grpc.GetPartitionInfoPRequest request) {
       return blockingUnaryCall(
-          getChannel(), getGetPartitionInfoMethodHelper(), getCallOptions(), request);
+          getChannel(), getGetPartitionInfoMethod(), getCallOptions(), request);
     }
 
     /**
@@ -646,7 +610,7 @@ public final class KeyValueMasterClientServiceGrpc {
      */
     public alluxio.grpc.MergeStorePResponse mergeStore(alluxio.grpc.MergeStorePRequest request) {
       return blockingUnaryCall(
-          getChannel(), getMergeStoreMethodHelper(), getCallOptions(), request);
+          getChannel(), getMergeStoreMethod(), getCallOptions(), request);
     }
 
     /**
@@ -657,7 +621,7 @@ public final class KeyValueMasterClientServiceGrpc {
      */
     public alluxio.grpc.RenameStorePResponse renameStore(alluxio.grpc.RenameStorePRequest request) {
       return blockingUnaryCall(
-          getChannel(), getRenameStoreMethodHelper(), getCallOptions(), request);
+          getChannel(), getRenameStoreMethod(), getCallOptions(), request);
     }
   }
 
@@ -692,7 +656,7 @@ public final class KeyValueMasterClientServiceGrpc {
     public com.google.common.util.concurrent.ListenableFuture<alluxio.grpc.CompletePartitionPResponse> completePartition(
         alluxio.grpc.CompletePartitionPRequest request) {
       return futureUnaryCall(
-          getChannel().newCall(getCompletePartitionMethodHelper(), getCallOptions()), request);
+          getChannel().newCall(getCompletePartitionMethod(), getCallOptions()), request);
     }
 
     /**
@@ -704,7 +668,7 @@ public final class KeyValueMasterClientServiceGrpc {
     public com.google.common.util.concurrent.ListenableFuture<alluxio.grpc.CompleteStorePResponse> completeStore(
         alluxio.grpc.CompleteStorePRequest request) {
       return futureUnaryCall(
-          getChannel().newCall(getCompleteStoreMethodHelper(), getCallOptions()), request);
+          getChannel().newCall(getCompleteStoreMethod(), getCallOptions()), request);
     }
 
     /**
@@ -716,7 +680,7 @@ public final class KeyValueMasterClientServiceGrpc {
     public com.google.common.util.concurrent.ListenableFuture<alluxio.grpc.CreateStorePResponse> createStore(
         alluxio.grpc.CreateStorePRequest request) {
       return futureUnaryCall(
-          getChannel().newCall(getCreateStoreMethodHelper(), getCallOptions()), request);
+          getChannel().newCall(getCreateStoreMethod(), getCallOptions()), request);
     }
 
     /**
@@ -728,7 +692,7 @@ public final class KeyValueMasterClientServiceGrpc {
     public com.google.common.util.concurrent.ListenableFuture<alluxio.grpc.DeleteStorePResponse> deleteStore(
         alluxio.grpc.DeleteStorePRequest request) {
       return futureUnaryCall(
-          getChannel().newCall(getDeleteStoreMethodHelper(), getCallOptions()), request);
+          getChannel().newCall(getDeleteStoreMethod(), getCallOptions()), request);
     }
 
     /**
@@ -740,7 +704,7 @@ public final class KeyValueMasterClientServiceGrpc {
     public com.google.common.util.concurrent.ListenableFuture<alluxio.grpc.GetPartitionInfoPResponse> getPartitionInfo(
         alluxio.grpc.GetPartitionInfoPRequest request) {
       return futureUnaryCall(
-          getChannel().newCall(getGetPartitionInfoMethodHelper(), getCallOptions()), request);
+          getChannel().newCall(getGetPartitionInfoMethod(), getCallOptions()), request);
     }
 
     /**
@@ -752,7 +716,7 @@ public final class KeyValueMasterClientServiceGrpc {
     public com.google.common.util.concurrent.ListenableFuture<alluxio.grpc.MergeStorePResponse> mergeStore(
         alluxio.grpc.MergeStorePRequest request) {
       return futureUnaryCall(
-          getChannel().newCall(getMergeStoreMethodHelper(), getCallOptions()), request);
+          getChannel().newCall(getMergeStoreMethod(), getCallOptions()), request);
     }
 
     /**
@@ -764,7 +728,7 @@ public final class KeyValueMasterClientServiceGrpc {
     public com.google.common.util.concurrent.ListenableFuture<alluxio.grpc.RenameStorePResponse> renameStore(
         alluxio.grpc.RenameStorePRequest request) {
       return futureUnaryCall(
-          getChannel().newCall(getRenameStoreMethodHelper(), getCallOptions()), request);
+          getChannel().newCall(getRenameStoreMethod(), getCallOptions()), request);
     }
   }
 
@@ -882,13 +846,13 @@ public final class KeyValueMasterClientServiceGrpc {
         if (result == null) {
           serviceDescriptor = result = io.grpc.ServiceDescriptor.newBuilder(SERVICE_NAME)
               .setSchemaDescriptor(new KeyValueMasterClientServiceFileDescriptorSupplier())
-              .addMethod(getCompletePartitionMethodHelper())
-              .addMethod(getCompleteStoreMethodHelper())
-              .addMethod(getCreateStoreMethodHelper())
-              .addMethod(getDeleteStoreMethodHelper())
-              .addMethod(getGetPartitionInfoMethodHelper())
-              .addMethod(getMergeStoreMethodHelper())
-              .addMethod(getRenameStoreMethodHelper())
+              .addMethod(getCompletePartitionMethod())
+              .addMethod(getCompleteStoreMethod())
+              .addMethod(getCreateStoreMethod())
+              .addMethod(getDeleteStoreMethod())
+              .addMethod(getGetPartitionInfoMethod())
+              .addMethod(getMergeStoreMethod())
+              .addMethod(getRenameStoreMethod())
               .build();
         }
       }

@@ -22,31 +22,25 @@ import static io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall;
  * </pre>
  */
 @javax.annotation.Generated(
-    value = "by gRPC proto compiler (version 1.10.1)",
-    comments = "Source: job_master.proto")
+    value = "by gRPC proto compiler (version 1.17.1)",
+    comments = "Source: grpc/job_master.proto")
 public final class JobMasterWorkerServiceGrpc {
 
   private JobMasterWorkerServiceGrpc() {}
 
-  public static final String SERVICE_NAME = "alluxio.grpc.JobMasterWorkerService";
+  public static final String SERVICE_NAME = "alluxio.grpc.job.JobMasterWorkerService";
 
   // Static method descriptors that strictly reflect the proto.
-  @io.grpc.ExperimentalApi("https://github.com/grpc/grpc-java/issues/1901")
-  @java.lang.Deprecated // Use {@link #getHeartbeatMethod()} instead. 
-  public static final io.grpc.MethodDescriptor<alluxio.grpc.JobHeartbeatPRequest,
-      alluxio.grpc.JobHeartbeatPResponse> METHOD_HEARTBEAT = getHeartbeatMethodHelper();
-
   private static volatile io.grpc.MethodDescriptor<alluxio.grpc.JobHeartbeatPRequest,
       alluxio.grpc.JobHeartbeatPResponse> getHeartbeatMethod;
 
-  @io.grpc.ExperimentalApi("https://github.com/grpc/grpc-java/issues/1901")
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + "Heartbeat",
+      requestType = alluxio.grpc.JobHeartbeatPRequest.class,
+      responseType = alluxio.grpc.JobHeartbeatPResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
   public static io.grpc.MethodDescriptor<alluxio.grpc.JobHeartbeatPRequest,
       alluxio.grpc.JobHeartbeatPResponse> getHeartbeatMethod() {
-    return getHeartbeatMethodHelper();
-  }
-
-  private static io.grpc.MethodDescriptor<alluxio.grpc.JobHeartbeatPRequest,
-      alluxio.grpc.JobHeartbeatPResponse> getHeartbeatMethodHelper() {
     io.grpc.MethodDescriptor<alluxio.grpc.JobHeartbeatPRequest, alluxio.grpc.JobHeartbeatPResponse> getHeartbeatMethod;
     if ((getHeartbeatMethod = JobMasterWorkerServiceGrpc.getHeartbeatMethod) == null) {
       synchronized (JobMasterWorkerServiceGrpc.class) {
@@ -55,7 +49,7 @@ public final class JobMasterWorkerServiceGrpc {
               io.grpc.MethodDescriptor.<alluxio.grpc.JobHeartbeatPRequest, alluxio.grpc.JobHeartbeatPResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
               .setFullMethodName(generateFullMethodName(
-                  "alluxio.grpc.JobMasterWorkerService", "Heartbeat"))
+                  "alluxio.grpc.job.JobMasterWorkerService", "Heartbeat"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.JobHeartbeatPRequest.getDefaultInstance()))
@@ -68,22 +62,17 @@ public final class JobMasterWorkerServiceGrpc {
      }
      return getHeartbeatMethod;
   }
-  @io.grpc.ExperimentalApi("https://github.com/grpc/grpc-java/issues/1901")
-  @java.lang.Deprecated // Use {@link #getRegisterJobWorkerMethod()} instead. 
-  public static final io.grpc.MethodDescriptor<alluxio.grpc.RegisterJobWorkerPRequest,
-      alluxio.grpc.RegisterJobWorkerPResponse> METHOD_REGISTER_JOB_WORKER = getRegisterJobWorkerMethodHelper();
 
   private static volatile io.grpc.MethodDescriptor<alluxio.grpc.RegisterJobWorkerPRequest,
       alluxio.grpc.RegisterJobWorkerPResponse> getRegisterJobWorkerMethod;
 
-  @io.grpc.ExperimentalApi("https://github.com/grpc/grpc-java/issues/1901")
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + "RegisterJobWorker",
+      requestType = alluxio.grpc.RegisterJobWorkerPRequest.class,
+      responseType = alluxio.grpc.RegisterJobWorkerPResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
   public static io.grpc.MethodDescriptor<alluxio.grpc.RegisterJobWorkerPRequest,
       alluxio.grpc.RegisterJobWorkerPResponse> getRegisterJobWorkerMethod() {
-    return getRegisterJobWorkerMethodHelper();
-  }
-
-  private static io.grpc.MethodDescriptor<alluxio.grpc.RegisterJobWorkerPRequest,
-      alluxio.grpc.RegisterJobWorkerPResponse> getRegisterJobWorkerMethodHelper() {
     io.grpc.MethodDescriptor<alluxio.grpc.RegisterJobWorkerPRequest, alluxio.grpc.RegisterJobWorkerPResponse> getRegisterJobWorkerMethod;
     if ((getRegisterJobWorkerMethod = JobMasterWorkerServiceGrpc.getRegisterJobWorkerMethod) == null) {
       synchronized (JobMasterWorkerServiceGrpc.class) {
@@ -92,7 +81,7 @@ public final class JobMasterWorkerServiceGrpc {
               io.grpc.MethodDescriptor.<alluxio.grpc.RegisterJobWorkerPRequest, alluxio.grpc.RegisterJobWorkerPResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
               .setFullMethodName(generateFullMethodName(
-                  "alluxio.grpc.JobMasterWorkerService", "RegisterJobWorker"))
+                  "alluxio.grpc.job.JobMasterWorkerService", "RegisterJobWorker"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.RegisterJobWorkerPRequest.getDefaultInstance()))
@@ -145,7 +134,7 @@ public final class JobMasterWorkerServiceGrpc {
      */
     public void heartbeat(alluxio.grpc.JobHeartbeatPRequest request,
         io.grpc.stub.StreamObserver<alluxio.grpc.JobHeartbeatPResponse> responseObserver) {
-      asyncUnimplementedUnaryCall(getHeartbeatMethodHelper(), responseObserver);
+      asyncUnimplementedUnaryCall(getHeartbeatMethod(), responseObserver);
     }
 
     /**
@@ -156,20 +145,20 @@ public final class JobMasterWorkerServiceGrpc {
      */
     public void registerJobWorker(alluxio.grpc.RegisterJobWorkerPRequest request,
         io.grpc.stub.StreamObserver<alluxio.grpc.RegisterJobWorkerPResponse> responseObserver) {
-      asyncUnimplementedUnaryCall(getRegisterJobWorkerMethodHelper(), responseObserver);
+      asyncUnimplementedUnaryCall(getRegisterJobWorkerMethod(), responseObserver);
     }
 
     @java.lang.Override public final io.grpc.ServerServiceDefinition bindService() {
       return io.grpc.ServerServiceDefinition.builder(getServiceDescriptor())
           .addMethod(
-            getHeartbeatMethodHelper(),
+            getHeartbeatMethod(),
             asyncUnaryCall(
               new MethodHandlers<
                 alluxio.grpc.JobHeartbeatPRequest,
                 alluxio.grpc.JobHeartbeatPResponse>(
                   this, METHODID_HEARTBEAT)))
           .addMethod(
-            getRegisterJobWorkerMethodHelper(),
+            getRegisterJobWorkerMethod(),
             asyncUnaryCall(
               new MethodHandlers<
                 alluxio.grpc.RegisterJobWorkerPRequest,
@@ -210,7 +199,7 @@ public final class JobMasterWorkerServiceGrpc {
     public void heartbeat(alluxio.grpc.JobHeartbeatPRequest request,
         io.grpc.stub.StreamObserver<alluxio.grpc.JobHeartbeatPResponse> responseObserver) {
       asyncUnaryCall(
-          getChannel().newCall(getHeartbeatMethodHelper(), getCallOptions()), request, responseObserver);
+          getChannel().newCall(getHeartbeatMethod(), getCallOptions()), request, responseObserver);
     }
 
     /**
@@ -222,7 +211,7 @@ public final class JobMasterWorkerServiceGrpc {
     public void registerJobWorker(alluxio.grpc.RegisterJobWorkerPRequest request,
         io.grpc.stub.StreamObserver<alluxio.grpc.RegisterJobWorkerPResponse> responseObserver) {
       asyncUnaryCall(
-          getChannel().newCall(getRegisterJobWorkerMethodHelper(), getCallOptions()), request, responseObserver);
+          getChannel().newCall(getRegisterJobWorkerMethod(), getCallOptions()), request, responseObserver);
     }
   }
 
@@ -256,7 +245,7 @@ public final class JobMasterWorkerServiceGrpc {
      */
     public alluxio.grpc.JobHeartbeatPResponse heartbeat(alluxio.grpc.JobHeartbeatPRequest request) {
       return blockingUnaryCall(
-          getChannel(), getHeartbeatMethodHelper(), getCallOptions(), request);
+          getChannel(), getHeartbeatMethod(), getCallOptions(), request);
     }
 
     /**
@@ -267,7 +256,7 @@ public final class JobMasterWorkerServiceGrpc {
      */
     public alluxio.grpc.RegisterJobWorkerPResponse registerJobWorker(alluxio.grpc.RegisterJobWorkerPRequest request) {
       return blockingUnaryCall(
-          getChannel(), getRegisterJobWorkerMethodHelper(), getCallOptions(), request);
+          getChannel(), getRegisterJobWorkerMethod(), getCallOptions(), request);
     }
   }
 
@@ -302,7 +291,7 @@ public final class JobMasterWorkerServiceGrpc {
     public com.google.common.util.concurrent.ListenableFuture<alluxio.grpc.JobHeartbeatPResponse> heartbeat(
         alluxio.grpc.JobHeartbeatPRequest request) {
       return futureUnaryCall(
-          getChannel().newCall(getHeartbeatMethodHelper(), getCallOptions()), request);
+          getChannel().newCall(getHeartbeatMethod(), getCallOptions()), request);
     }
 
     /**
@@ -314,7 +303,7 @@ public final class JobMasterWorkerServiceGrpc {
     public com.google.common.util.concurrent.ListenableFuture<alluxio.grpc.RegisterJobWorkerPResponse> registerJobWorker(
         alluxio.grpc.RegisterJobWorkerPRequest request) {
       return futureUnaryCall(
-          getChannel().newCall(getRegisterJobWorkerMethodHelper(), getCallOptions()), request);
+          getChannel().newCall(getRegisterJobWorkerMethod(), getCallOptions()), request);
     }
   }
 
@@ -407,8 +396,8 @@ public final class JobMasterWorkerServiceGrpc {
         if (result == null) {
           serviceDescriptor = result = io.grpc.ServiceDescriptor.newBuilder(SERVICE_NAME)
               .setSchemaDescriptor(new JobMasterWorkerServiceFileDescriptorSupplier())
-              .addMethod(getHeartbeatMethodHelper())
-              .addMethod(getRegisterJobWorkerMethodHelper())
+              .addMethod(getHeartbeatMethod())
+              .addMethod(getRegisterJobWorkerMethod())
               .build();
         }
       }

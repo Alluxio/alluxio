@@ -13,6 +13,7 @@ package alluxio.wire;
 
 import alluxio.annotation.PublicApi;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 
@@ -107,7 +108,7 @@ public final class BlockInfo implements Serializable {
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this).add("id", mBlockId).add("length", mLength)
+    return MoreObjects.toStringHelper(this).add("id", mBlockId).add("length", mLength)
         .add("locations", mLocations).toString();
   }
 }

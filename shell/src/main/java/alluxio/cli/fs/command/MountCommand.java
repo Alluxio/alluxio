@@ -14,7 +14,6 @@ package alluxio.cli.fs.command;
 import alluxio.AlluxioURI;
 import alluxio.cli.fsadmin.report.UfsCommand;
 import alluxio.client.file.FileSystem;
-import alluxio.client.file.FileSystemClientOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.MountPOptions;
@@ -90,7 +89,7 @@ public final class MountCommand extends AbstractFileSystemCommand {
     }
     AlluxioURI alluxioPath = new AlluxioURI(args[0]);
     AlluxioURI ufsPath = new AlluxioURI(args[1]);
-    MountPOptions.Builder optionsBuilder = FileSystemClientOptions.getMountOptions().toBuilder();
+    MountPOptions.Builder optionsBuilder = MountPOptions.newBuilder();
 
     if (cl.hasOption(READONLY_OPTION.getLongOpt())) {
       optionsBuilder.setReadOnly(true);

@@ -11,6 +11,7 @@
 
 package alluxio.wire;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 
 import java.io.Serializable;
@@ -177,7 +178,7 @@ public class MountPointInfo implements Serializable {
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this).add("ufsUrl", mUfsUri).add("ufsType", mUfsType)
+    return MoreObjects.toStringHelper(this).add("ufsUrl", mUfsUri).add("ufsType", mUfsType)
         .add("ufsCapacityBytes", mUfsCapacityBytes).add("ufsUsedBytes", mUfsUsedBytes)
         .add("readOnly", mReadOnly).add("properties", mProperties)
         .add("shared", mShared).toString();

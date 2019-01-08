@@ -17,7 +17,6 @@ import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
-import alluxio.client.file.FileSystemClientOptions;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.AlluxioException;
@@ -86,8 +85,8 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
     String fileData;
     URIStatus status = fs.getStatus(path);
     if (status.isCompleted()) {
-      OpenFilePOptions options = FileSystemClientOptions.getOpenFileOptions().toBuilder()
-          .setReadType(ReadPType.READ_NO_CACHE).build();
+      OpenFilePOptions options =
+          OpenFilePOptions.newBuilder().setReadType(ReadPType.READ_NO_CACHE).build();
       try (FileInStream is = fs.openFile(path, options)) {
         int len = (int) Math.min(5 * Constants.KB, status.getLength() - offset);
         byte[] data = new byte[len];

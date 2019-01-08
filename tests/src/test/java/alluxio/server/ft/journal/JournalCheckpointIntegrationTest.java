@@ -19,11 +19,12 @@ import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.client.MetaMasterClient;
 import alluxio.client.RetryHandlingMetaMasterClient;
-import alluxio.client.file.FileSystemClientOptions;
 import alluxio.client.file.FileSystemMasterClient;
 import alluxio.client.file.RetryHandlingFileSystemMasterClient;
 import alluxio.exception.AccessControlException;
+import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.UfsPMode;
+import alluxio.grpc.UpdateUfsModePOptions;
 import alluxio.grpc.WritePType;
 import alluxio.master.LocalAlluxioCluster;
 import alluxio.master.MasterClientConfig;
@@ -79,13 +80,13 @@ public class JournalCheckpointIntegrationTest extends BaseIntegrationTest {
   public void recoverUfsState() throws Exception {
     FileSystemMasterClient client =
         new RetryHandlingFileSystemMasterClient(MasterClientConfig.defaults());
-    client.updateUfsMode(new AlluxioURI(""), FileSystemClientOptions.getUpdateUfsModeOptions()
-        .toBuilder().setUfsMode(UfsPMode.READ_ONLY).build());
+    client.updateUfsMode(new AlluxioURI(""),
+        UpdateUfsModePOptions.newBuilder().setUfsMode(UfsPMode.READ_ONLY).build());
 
     backupAndRestore();
     try {
-      mCluster.getClient().createDirectory(new AlluxioURI("/test"), FileSystemClientOptions
-          .getCreateDirectoryOptions().toBuilder().setWriteType(WritePType.WRITE_THROUGH).build());
+      mCluster.getClient().createDirectory(new AlluxioURI("/test"),
+          CreateDirectoryPOptions.newBuilder().setWriteType(WritePType.WRITE_THROUGH).build());
       fail("Expected an exception to be thrown");
     } catch (AccessControlException e) {
       // Expected

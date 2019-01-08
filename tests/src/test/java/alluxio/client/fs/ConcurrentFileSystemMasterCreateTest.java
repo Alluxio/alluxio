@@ -19,8 +19,8 @@ import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.UnderFileSystemFactoryRegistryRule;
 import alluxio.client.file.FileSystem;
-import alluxio.client.file.FileSystemClientOptions;
 import alluxio.client.file.URIStatus;
+import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.LoadMetadataPType;
 import alluxio.grpc.WritePType;
@@ -127,9 +127,8 @@ public class ConcurrentFileSystemMasterCreateTest extends BaseIntegrationTest {
     AlluxioURI[] paths = new AlluxioURI[numThreads];
 
     // Create the existing path with CACHE_THROUGH that it will be persisted.
-    mFileSystem.createDirectory(new AlluxioURI("/existing/path/dir/"),
-        FileSystemClientOptions.getCreateDirectoryOptions().toBuilder().setRecursive(true)
-            .setWriteType(WritePType.WRITE_CACHE_THROUGH).build());
+    mFileSystem.createDirectory(new AlluxioURI("/existing/path/dir/"), CreateDirectoryPOptions
+        .newBuilder().setRecursive(true).setWriteType(WritePType.WRITE_CACHE_THROUGH).build());
 
     for (int i = 0; i < numThreads; i++) {
       paths[i] =
@@ -155,9 +154,8 @@ public class ConcurrentFileSystemMasterCreateTest extends BaseIntegrationTest {
     AlluxioURI[] paths = new AlluxioURI[numThreads];
 
     // Create the existing path with MUST_CACHE, so subsequent creates have to persist the dirs.
-    mFileSystem.createDirectory(new AlluxioURI("/existing/path/dir/"),
-        FileSystemClientOptions.getCreateDirectoryOptions().toBuilder().setRecursive(true)
-            .setWriteType(WritePType.WRITE_MUST_CACHE).build());
+    mFileSystem.createDirectory(new AlluxioURI("/existing/path/dir/"), CreateDirectoryPOptions
+        .newBuilder().setRecursive(true).setWriteType(WritePType.WRITE_MUST_CACHE).build());
 
     for (int i = 0; i < numThreads; i++) {
       paths[i] =
@@ -304,8 +302,7 @@ public class ConcurrentFileSystemMasterCreateTest extends BaseIntegrationTest {
     if (writeType != null) {
       // create inodes in Alluxio
       mFileSystem.createDirectory(new AlluxioURI("/existing/path/"),
-          FileSystemClientOptions.getCreateDirectoryOptions().toBuilder().setRecursive(true)
-              .setWriteType(writeType).build());
+          CreateDirectoryPOptions.newBuilder().setRecursive(true).setWriteType(writeType).build());
     }
 
     // Generate path names for threads.
@@ -335,8 +332,8 @@ public class ConcurrentFileSystemMasterCreateTest extends BaseIntegrationTest {
           + "\n" + Throwables.getStackTraceAsString(errors.get(0)));
     }
 
-    ListStatusPOptions listOptions = FileSystemClientOptions.getListStatusOptions().toBuilder()
-        .setLoadMetadataType(LoadMetadataPType.NEVER).build();
+    ListStatusPOptions listOptions =
+        ListStatusPOptions.newBuilder().setLoadMetadataType(LoadMetadataPType.NEVER).build();
 
     List<URIStatus> files = mFileSystem.listStatus(new AlluxioURI("/"), listOptions);
     Assert.assertEquals(1, files.size());

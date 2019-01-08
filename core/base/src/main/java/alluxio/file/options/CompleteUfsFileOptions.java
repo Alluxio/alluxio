@@ -13,6 +13,7 @@ package alluxio.file.options;
 
 import alluxio.security.authorization.Mode;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -98,7 +99,7 @@ public abstract class CompleteUfsFileOptions<T extends CompleteUfsFileOptions> {
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this)
+    return MoreObjects.toStringHelper(this)
         .add("owner", mOwner)
         .add("group", mGroup)
         .add("mode", mMode)

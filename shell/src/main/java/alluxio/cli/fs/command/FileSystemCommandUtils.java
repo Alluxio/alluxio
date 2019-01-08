@@ -14,7 +14,6 @@ package alluxio.cli.fs.command;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.client.file.FileSystem;
-import alluxio.client.file.FileSystemClientOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.TtlAction;
@@ -43,8 +42,8 @@ public final class FileSystemCommandUtils {
    */
   public static void setTtl(FileSystem fs, AlluxioURI path, long ttlMs,
       TtlAction ttlAction) throws AlluxioException, IOException {
-    SetAttributePOptions options = FileSystemClientOptions.getSetAttributeOptions().toBuilder()
-        .setRecursive(true).setTtl(ttlMs).setTtlAction(ttlAction).build();
+    SetAttributePOptions options = SetAttributePOptions.newBuilder().setRecursive(true)
+        .setTtl(ttlMs).setTtlAction(ttlAction).build();
     fs.setAttribute(path, options);
   }
 
@@ -57,8 +56,7 @@ public final class FileSystemCommandUtils {
    */
   public static void setPinned(FileSystem fs, AlluxioURI path, boolean pinned)
       throws AlluxioException, IOException {
-    SetAttributePOptions options =
-        FileSystemClientOptions.getSetAttributeOptions().toBuilder().setPinned(pinned).build();
+    SetAttributePOptions options = SetAttributePOptions.newBuilder().setPinned(pinned).build();
     fs.setAttribute(path, options);
   }
 }

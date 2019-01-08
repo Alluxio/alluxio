@@ -57,8 +57,14 @@ public final class GrpcUtils {
    * @return the converted proto options
    */
   public static GetStatusPOptions toGetStatusOptions(ExistsPOptions existsOptions) {
-    return GetStatusPOptions.newBuilder().setLoadMetadataType(existsOptions.getLoadMetadataType())
-            .setCommonOptions(existsOptions.getCommonOptions()).build();
+    GetStatusPOptions.Builder getStatusOptionsBuilder = GetStatusPOptions.newBuilder();
+    if (existsOptions.hasCommonOptions()) {
+      getStatusOptionsBuilder.setCommonOptions(existsOptions.getCommonOptions());
+    }
+    if (existsOptions.hasLoadMetadataType()) {
+      getStatusOptionsBuilder.setLoadMetadataType(existsOptions.getLoadMetadataType());
+    }
+    return getStatusOptionsBuilder.build();
   }
 
   /**
@@ -467,7 +473,7 @@ public final class GrpcUtils {
     List<alluxio.grpc.WorkerNetAddress> ufsLocations = new ArrayList<>();
     for (String ufsLocation : fileBlockInfo.getUfsLocations()) {
       HostAndPort address = HostAndPort.fromString(ufsLocation);
-      ufsLocations.add(alluxio.grpc.WorkerNetAddress.newBuilder().setHost(address.getHostText())
+      ufsLocations.add(alluxio.grpc.WorkerNetAddress.newBuilder().setHost(address.getHost())
           .setDataPort(address.getPortOrDefault(-1)).build());
     }
     return alluxio.grpc.FileBlockInfo.newBuilder()

@@ -15,7 +15,6 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.client.file.FileSystem;
-import alluxio.client.file.FileSystemClientOptions;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.DirectoryNotEmptyException;
@@ -119,8 +118,7 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
   public int chmod(String path, @mode_t long mode) {
     AlluxioURI uri = mPathResolverCache.getUnchecked(path);
 
-    SetAttributePOptions options =
-        FileSystemClientOptions.getSetAttributeOptions().toBuilder().setMode((short) mode).build();
+    SetAttributePOptions options = SetAttributePOptions.newBuilder().setMode((short) mode).build();
     try {
       mFileSystem.setAttribute(uri, options);
     } catch (IOException | AlluxioException e) {
@@ -159,7 +157,7 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
       }
 
       SetAttributePOptions.Builder optionsBuilder =
-          FileSystemClientOptions.getSetAttributeOptions().toBuilder().setGroup(groupName);
+          SetAttributePOptions.newBuilder().setGroup(groupName);
       final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
 
       if (uid != -1 && uid != 4294967295L) {

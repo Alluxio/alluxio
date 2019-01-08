@@ -17,6 +17,7 @@ import alluxio.util.OSUtils;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
@@ -269,7 +270,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
 
     @Override
     public String toString() {
-      return Objects.toStringHelper(this)
+      return MoreObjects.toStringHelper(this)
           .add("alias", mAlias)
           .add("defaultValue", mDefaultValue)
           .add("description", mDescription)
@@ -3062,6 +3063,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.CLIENT)
           .build();
+  public static final PropertyKey AUTHENTICATION_STALE_CHANNEL_PURGE_INTERVAL =
+      new Builder(Name.AUTHENTICATION_STALE_CHANNEL_PURGE_INTERVAL)
+          .setDefaultValue("60min")
+          .setDescription("Interval at which stale channels will be removed from "
+              + "authentication cache.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
 
   //
   // Mesos and Yarn related properties
@@ -3859,6 +3868,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String SECURITY_LOGIN_IMPERSONATION_USERNAME =
         "alluxio.security.login.impersonation.username";
     public static final String SECURITY_LOGIN_USERNAME = "alluxio.security.login.username";
+    public static final String AUTHENTICATION_STALE_CHANNEL_PURGE_INTERVAL =
+        "alluxio.security.stale.channel.purge.interval";
 
     //
     // Job service
@@ -4025,7 +4036,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
 
     @Override
     public String toString() {
-      return Objects.toStringHelper(this).add("format", mFormat).add("pattern", mPattern)
+      return MoreObjects.toStringHelper(this).add("format", mFormat).add("pattern", mPattern)
           .toString();
     }
 

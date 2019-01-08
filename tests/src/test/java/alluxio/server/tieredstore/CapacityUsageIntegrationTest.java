@@ -16,7 +16,6 @@ import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
-import alluxio.client.file.FileSystemClientOptions;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
 import alluxio.grpc.CreateFilePOptions;
@@ -70,8 +69,7 @@ public class CapacityUsageIntegrationTest extends BaseIntegrationTest {
       buf.put((byte) k);
     }
 
-    CreateFilePOptions options =
-        FileSystemClientOptions.getCreateFileOptions().toBuilder().setWriteType(writeType).build();
+    CreateFilePOptions options = CreateFilePOptions.newBuilder().setWriteType(writeType).build();
     FileOutStream os = mFileSystem.createFile(filePath, options);
     os.write(buf.array());
     os.close();

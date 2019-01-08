@@ -22,7 +22,6 @@ import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
-import alluxio.client.file.FileSystemClientOptions;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
 import alluxio.conf.InstancedConfiguration;
@@ -135,7 +134,9 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
       if (mFileSystem.exists(uri)) {
         throw new IOException(ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(uri));
       }
-      return new FSDataOutputStream(mFileSystem.createFile(uri), mStatistics);
+      return new FSDataOutputStream(
+          mFileSystem.createFile(uri, CreateFilePOptions.newBuilder().setRecursive(true).build()),
+          mStatistics);
     } catch (AlluxioException e) {
       throw new IOException(e);
     }
@@ -175,8 +176,8 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     }
 
     AlluxioURI uri = new AlluxioURI(HadoopUtils.getPathWithoutScheme(path));
-    CreateFilePOptions options = FileSystemClientOptions.getCreateFileOptions().toBuilder()
-        .setBlockSizeBytes(blockSize).setMode(permission.toShort()).build();
+    CreateFilePOptions options = CreateFilePOptions.newBuilder().setBlockSizeBytes(blockSize)
+        .setMode(permission.toShort()).setRecursive(true).build();
 
     FileOutStream outStream;
     try {
@@ -256,8 +257,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
       mStatistics.incrementWriteOps(1);
     }
     AlluxioURI uri = new AlluxioURI(HadoopUtils.getPathWithoutScheme(path));
-    DeletePOptions options =
-        FileSystemClientOptions.getDeleteOptions().toBuilder().setRecursive(recursive).build();
+    DeletePOptions options = DeletePOptions.newBuilder().setRecursive(recursive).build();
     try {
       mFileSystem.delete(uri, options);
       return true;
@@ -301,7 +301,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
             // Case 1: Fallback to use under file system locations with co-located workers.
             Map<String, WorkerNetAddress> finalWorkerHosts = getHostToWorkerMap();
             locations = fileBlockInfo.getUfsLocations().stream().map(
-                location -> finalWorkerHosts.get(HostAndPort.fromString(location).getHostText()))
+                location -> finalWorkerHosts.get(HostAndPort.fromString(location).getHost()))
                 .filter(Objects::nonNull).collect(toList());
           }
           if (locations.isEmpty() && Configuration
@@ -315,7 +315,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
             .map(worker -> HostAndPort.fromParts(worker.getHost(), worker.getDataPort()))
             .collect(toList());
         String[] names = addresses.stream().map(HostAndPort::toString).toArray(String[]::new);
-        String[] hosts = addresses.stream().map(HostAndPort::getHostText).toArray(String[]::new);
+        String[] hosts = addresses.stream().map(HostAndPort::getHost).toArray(String[]::new);
         blockLocations.add(
             new BlockLocation(names, hosts, offset, fileBlockInfo.getBlockInfo().getLength()));
       }
@@ -328,7 +328,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
 
   @Override
   public short getDefaultReplication() {
-    return (short) Math.max(1, FileSystemClientOptions.getCreateFileOptions().getReplicationMin());
+    return (short) Math.max(1, Configuration.getInt(PropertyKey.USER_FILE_REPLICATION_MIN));
   }
 
   @Override
@@ -339,8 +339,8 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
       if (!mFileSystem.exists(uri) || mFileSystem.getStatus(uri).isFolder()) {
         return false;
       }
-      mFileSystem.setAttribute(uri, (SetAttributePOptions) FileSystemClientOptions
-          .getSetAttributeOptions().toBuilder().setReplicationMin(replication).build());
+      mFileSystem.setAttribute(uri, (SetAttributePOptions) SetAttributePOptions.newBuilder()
+          .setReplicationMin(replication).build());
       return true;
     } catch (AlluxioException e) {
       throw new IOException(e);
@@ -394,8 +394,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
       throws IOException {
     LOG.debug("setOwner({},{},{})", path, username, groupname);
     AlluxioURI uri = new AlluxioURI(HadoopUtils.getPathWithoutScheme(path));
-    SetAttributePOptions.Builder optionsBuilder =
-        FileSystemClientOptions.getSetAttributeOptions().toBuilder();
+    SetAttributePOptions.Builder optionsBuilder = SetAttributePOptions.newBuilder();
     boolean ownerOrGroupChanged = false;
     if (username != null && !username.isEmpty()) {
       optionsBuilder.setOwner(username).setRecursive(false);
@@ -424,8 +423,8 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
   public void setPermission(Path path, FsPermission permission) throws IOException {
     LOG.debug("setMode({},{})", path, permission.toString());
     AlluxioURI uri = new AlluxioURI(HadoopUtils.getPathWithoutScheme(path));
-    SetAttributePOptions options = FileSystemClientOptions.getSetAttributeOptions().toBuilder()
-        .setMode(permission.toShort()).setRecursive(false).build();
+    SetAttributePOptions options =
+        SetAttributePOptions.newBuilder().setMode(permission.toShort()).setRecursive(false).build();
     try {
       mFileSystem.setAttribute(uri, options);
     } catch (AlluxioException e) {
@@ -680,8 +679,8 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
       mStatistics.incrementWriteOps(1);
     }
     AlluxioURI uri = new AlluxioURI(HadoopUtils.getPathWithoutScheme(path));
-    CreateDirectoryPOptions options = FileSystemClientOptions.getCreateDirectoryOptions()
-        .toBuilder().setRecursive(true).setAllowExists(true).setMode(permission.toShort()).build();
+    CreateDirectoryPOptions options = CreateDirectoryPOptions.newBuilder().setRecursive(true)
+        .setAllowExists(true).setMode(permission.toShort()).build();
     try {
       mFileSystem.createDirectory(uri, options);
       return true;

@@ -22,31 +22,25 @@ import static io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall;
  * </pre>
  */
 @javax.annotation.Generated(
-    value = "by gRPC proto compiler (version 1.10.1)",
-    comments = "Source: job_master.proto")
+    value = "by gRPC proto compiler (version 1.17.1)",
+    comments = "Source: grpc/job_master.proto")
 public final class JobMasterClientServiceGrpc {
 
   private JobMasterClientServiceGrpc() {}
 
-  public static final String SERVICE_NAME = "alluxio.grpc.JobMasterClientService";
+  public static final String SERVICE_NAME = "alluxio.grpc.job.JobMasterClientService";
 
   // Static method descriptors that strictly reflect the proto.
-  @io.grpc.ExperimentalApi("https://github.com/grpc/grpc-java/issues/1901")
-  @java.lang.Deprecated // Use {@link #getCancelMethod()} instead. 
-  public static final io.grpc.MethodDescriptor<alluxio.grpc.CancelPRequest,
-      alluxio.grpc.CancelPResponse> METHOD_CANCEL = getCancelMethodHelper();
-
   private static volatile io.grpc.MethodDescriptor<alluxio.grpc.CancelPRequest,
       alluxio.grpc.CancelPResponse> getCancelMethod;
 
-  @io.grpc.ExperimentalApi("https://github.com/grpc/grpc-java/issues/1901")
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + "Cancel",
+      requestType = alluxio.grpc.CancelPRequest.class,
+      responseType = alluxio.grpc.CancelPResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
   public static io.grpc.MethodDescriptor<alluxio.grpc.CancelPRequest,
       alluxio.grpc.CancelPResponse> getCancelMethod() {
-    return getCancelMethodHelper();
-  }
-
-  private static io.grpc.MethodDescriptor<alluxio.grpc.CancelPRequest,
-      alluxio.grpc.CancelPResponse> getCancelMethodHelper() {
     io.grpc.MethodDescriptor<alluxio.grpc.CancelPRequest, alluxio.grpc.CancelPResponse> getCancelMethod;
     if ((getCancelMethod = JobMasterClientServiceGrpc.getCancelMethod) == null) {
       synchronized (JobMasterClientServiceGrpc.class) {
@@ -55,7 +49,7 @@ public final class JobMasterClientServiceGrpc {
               io.grpc.MethodDescriptor.<alluxio.grpc.CancelPRequest, alluxio.grpc.CancelPResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
               .setFullMethodName(generateFullMethodName(
-                  "alluxio.grpc.JobMasterClientService", "Cancel"))
+                  "alluxio.grpc.job.JobMasterClientService", "Cancel"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.CancelPRequest.getDefaultInstance()))
@@ -68,22 +62,17 @@ public final class JobMasterClientServiceGrpc {
      }
      return getCancelMethod;
   }
-  @io.grpc.ExperimentalApi("https://github.com/grpc/grpc-java/issues/1901")
-  @java.lang.Deprecated // Use {@link #getGetJobStatusMethod()} instead. 
-  public static final io.grpc.MethodDescriptor<alluxio.grpc.GetJobStatusPRequest,
-      alluxio.grpc.GetJobStatusPResponse> METHOD_GET_JOB_STATUS = getGetJobStatusMethodHelper();
 
   private static volatile io.grpc.MethodDescriptor<alluxio.grpc.GetJobStatusPRequest,
       alluxio.grpc.GetJobStatusPResponse> getGetJobStatusMethod;
 
-  @io.grpc.ExperimentalApi("https://github.com/grpc/grpc-java/issues/1901")
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + "GetJobStatus",
+      requestType = alluxio.grpc.GetJobStatusPRequest.class,
+      responseType = alluxio.grpc.GetJobStatusPResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
   public static io.grpc.MethodDescriptor<alluxio.grpc.GetJobStatusPRequest,
       alluxio.grpc.GetJobStatusPResponse> getGetJobStatusMethod() {
-    return getGetJobStatusMethodHelper();
-  }
-
-  private static io.grpc.MethodDescriptor<alluxio.grpc.GetJobStatusPRequest,
-      alluxio.grpc.GetJobStatusPResponse> getGetJobStatusMethodHelper() {
     io.grpc.MethodDescriptor<alluxio.grpc.GetJobStatusPRequest, alluxio.grpc.GetJobStatusPResponse> getGetJobStatusMethod;
     if ((getGetJobStatusMethod = JobMasterClientServiceGrpc.getGetJobStatusMethod) == null) {
       synchronized (JobMasterClientServiceGrpc.class) {
@@ -92,7 +81,7 @@ public final class JobMasterClientServiceGrpc {
               io.grpc.MethodDescriptor.<alluxio.grpc.GetJobStatusPRequest, alluxio.grpc.GetJobStatusPResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
               .setFullMethodName(generateFullMethodName(
-                  "alluxio.grpc.JobMasterClientService", "GetJobStatus"))
+                  "alluxio.grpc.job.JobMasterClientService", "GetJobStatus"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.GetJobStatusPRequest.getDefaultInstance()))
@@ -105,22 +94,17 @@ public final class JobMasterClientServiceGrpc {
      }
      return getGetJobStatusMethod;
   }
-  @io.grpc.ExperimentalApi("https://github.com/grpc/grpc-java/issues/1901")
-  @java.lang.Deprecated // Use {@link #getListAllMethod()} instead. 
-  public static final io.grpc.MethodDescriptor<alluxio.grpc.ListAllPRequest,
-      alluxio.grpc.ListAllPResponse> METHOD_LIST_ALL = getListAllMethodHelper();
 
   private static volatile io.grpc.MethodDescriptor<alluxio.grpc.ListAllPRequest,
       alluxio.grpc.ListAllPResponse> getListAllMethod;
 
-  @io.grpc.ExperimentalApi("https://github.com/grpc/grpc-java/issues/1901")
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + "ListAll",
+      requestType = alluxio.grpc.ListAllPRequest.class,
+      responseType = alluxio.grpc.ListAllPResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
   public static io.grpc.MethodDescriptor<alluxio.grpc.ListAllPRequest,
       alluxio.grpc.ListAllPResponse> getListAllMethod() {
-    return getListAllMethodHelper();
-  }
-
-  private static io.grpc.MethodDescriptor<alluxio.grpc.ListAllPRequest,
-      alluxio.grpc.ListAllPResponse> getListAllMethodHelper() {
     io.grpc.MethodDescriptor<alluxio.grpc.ListAllPRequest, alluxio.grpc.ListAllPResponse> getListAllMethod;
     if ((getListAllMethod = JobMasterClientServiceGrpc.getListAllMethod) == null) {
       synchronized (JobMasterClientServiceGrpc.class) {
@@ -129,7 +113,7 @@ public final class JobMasterClientServiceGrpc {
               io.grpc.MethodDescriptor.<alluxio.grpc.ListAllPRequest, alluxio.grpc.ListAllPResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
               .setFullMethodName(generateFullMethodName(
-                  "alluxio.grpc.JobMasterClientService", "ListAll"))
+                  "alluxio.grpc.job.JobMasterClientService", "ListAll"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.ListAllPRequest.getDefaultInstance()))
@@ -142,22 +126,17 @@ public final class JobMasterClientServiceGrpc {
      }
      return getListAllMethod;
   }
-  @io.grpc.ExperimentalApi("https://github.com/grpc/grpc-java/issues/1901")
-  @java.lang.Deprecated // Use {@link #getRunMethod()} instead. 
-  public static final io.grpc.MethodDescriptor<alluxio.grpc.RunPRequest,
-      alluxio.grpc.RunPResponse> METHOD_RUN = getRunMethodHelper();
 
   private static volatile io.grpc.MethodDescriptor<alluxio.grpc.RunPRequest,
       alluxio.grpc.RunPResponse> getRunMethod;
 
-  @io.grpc.ExperimentalApi("https://github.com/grpc/grpc-java/issues/1901")
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + "Run",
+      requestType = alluxio.grpc.RunPRequest.class,
+      responseType = alluxio.grpc.RunPResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
   public static io.grpc.MethodDescriptor<alluxio.grpc.RunPRequest,
       alluxio.grpc.RunPResponse> getRunMethod() {
-    return getRunMethodHelper();
-  }
-
-  private static io.grpc.MethodDescriptor<alluxio.grpc.RunPRequest,
-      alluxio.grpc.RunPResponse> getRunMethodHelper() {
     io.grpc.MethodDescriptor<alluxio.grpc.RunPRequest, alluxio.grpc.RunPResponse> getRunMethod;
     if ((getRunMethod = JobMasterClientServiceGrpc.getRunMethod) == null) {
       synchronized (JobMasterClientServiceGrpc.class) {
@@ -166,7 +145,7 @@ public final class JobMasterClientServiceGrpc {
               io.grpc.MethodDescriptor.<alluxio.grpc.RunPRequest, alluxio.grpc.RunPResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
               .setFullMethodName(generateFullMethodName(
-                  "alluxio.grpc.JobMasterClientService", "Run"))
+                  "alluxio.grpc.job.JobMasterClientService", "Run"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.RunPRequest.getDefaultInstance()))
@@ -219,7 +198,7 @@ public final class JobMasterClientServiceGrpc {
      */
     public void cancel(alluxio.grpc.CancelPRequest request,
         io.grpc.stub.StreamObserver<alluxio.grpc.CancelPResponse> responseObserver) {
-      asyncUnimplementedUnaryCall(getCancelMethodHelper(), responseObserver);
+      asyncUnimplementedUnaryCall(getCancelMethod(), responseObserver);
     }
 
     /**
@@ -230,7 +209,7 @@ public final class JobMasterClientServiceGrpc {
      */
     public void getJobStatus(alluxio.grpc.GetJobStatusPRequest request,
         io.grpc.stub.StreamObserver<alluxio.grpc.GetJobStatusPResponse> responseObserver) {
-      asyncUnimplementedUnaryCall(getGetJobStatusMethodHelper(), responseObserver);
+      asyncUnimplementedUnaryCall(getGetJobStatusMethod(), responseObserver);
     }
 
     /**
@@ -241,7 +220,7 @@ public final class JobMasterClientServiceGrpc {
      */
     public void listAll(alluxio.grpc.ListAllPRequest request,
         io.grpc.stub.StreamObserver<alluxio.grpc.ListAllPResponse> responseObserver) {
-      asyncUnimplementedUnaryCall(getListAllMethodHelper(), responseObserver);
+      asyncUnimplementedUnaryCall(getListAllMethod(), responseObserver);
     }
 
     /**
@@ -252,34 +231,34 @@ public final class JobMasterClientServiceGrpc {
      */
     public void run(alluxio.grpc.RunPRequest request,
         io.grpc.stub.StreamObserver<alluxio.grpc.RunPResponse> responseObserver) {
-      asyncUnimplementedUnaryCall(getRunMethodHelper(), responseObserver);
+      asyncUnimplementedUnaryCall(getRunMethod(), responseObserver);
     }
 
     @java.lang.Override public final io.grpc.ServerServiceDefinition bindService() {
       return io.grpc.ServerServiceDefinition.builder(getServiceDescriptor())
           .addMethod(
-            getCancelMethodHelper(),
+            getCancelMethod(),
             asyncUnaryCall(
               new MethodHandlers<
                 alluxio.grpc.CancelPRequest,
                 alluxio.grpc.CancelPResponse>(
                   this, METHODID_CANCEL)))
           .addMethod(
-            getGetJobStatusMethodHelper(),
+            getGetJobStatusMethod(),
             asyncUnaryCall(
               new MethodHandlers<
                 alluxio.grpc.GetJobStatusPRequest,
                 alluxio.grpc.GetJobStatusPResponse>(
                   this, METHODID_GET_JOB_STATUS)))
           .addMethod(
-            getListAllMethodHelper(),
+            getListAllMethod(),
             asyncUnaryCall(
               new MethodHandlers<
                 alluxio.grpc.ListAllPRequest,
                 alluxio.grpc.ListAllPResponse>(
                   this, METHODID_LIST_ALL)))
           .addMethod(
-            getRunMethodHelper(),
+            getRunMethod(),
             asyncUnaryCall(
               new MethodHandlers<
                 alluxio.grpc.RunPRequest,
@@ -320,7 +299,7 @@ public final class JobMasterClientServiceGrpc {
     public void cancel(alluxio.grpc.CancelPRequest request,
         io.grpc.stub.StreamObserver<alluxio.grpc.CancelPResponse> responseObserver) {
       asyncUnaryCall(
-          getChannel().newCall(getCancelMethodHelper(), getCallOptions()), request, responseObserver);
+          getChannel().newCall(getCancelMethod(), getCallOptions()), request, responseObserver);
     }
 
     /**
@@ -332,7 +311,7 @@ public final class JobMasterClientServiceGrpc {
     public void getJobStatus(alluxio.grpc.GetJobStatusPRequest request,
         io.grpc.stub.StreamObserver<alluxio.grpc.GetJobStatusPResponse> responseObserver) {
       asyncUnaryCall(
-          getChannel().newCall(getGetJobStatusMethodHelper(), getCallOptions()), request, responseObserver);
+          getChannel().newCall(getGetJobStatusMethod(), getCallOptions()), request, responseObserver);
     }
 
     /**
@@ -344,7 +323,7 @@ public final class JobMasterClientServiceGrpc {
     public void listAll(alluxio.grpc.ListAllPRequest request,
         io.grpc.stub.StreamObserver<alluxio.grpc.ListAllPResponse> responseObserver) {
       asyncUnaryCall(
-          getChannel().newCall(getListAllMethodHelper(), getCallOptions()), request, responseObserver);
+          getChannel().newCall(getListAllMethod(), getCallOptions()), request, responseObserver);
     }
 
     /**
@@ -356,7 +335,7 @@ public final class JobMasterClientServiceGrpc {
     public void run(alluxio.grpc.RunPRequest request,
         io.grpc.stub.StreamObserver<alluxio.grpc.RunPResponse> responseObserver) {
       asyncUnaryCall(
-          getChannel().newCall(getRunMethodHelper(), getCallOptions()), request, responseObserver);
+          getChannel().newCall(getRunMethod(), getCallOptions()), request, responseObserver);
     }
   }
 
@@ -390,7 +369,7 @@ public final class JobMasterClientServiceGrpc {
      */
     public alluxio.grpc.CancelPResponse cancel(alluxio.grpc.CancelPRequest request) {
       return blockingUnaryCall(
-          getChannel(), getCancelMethodHelper(), getCallOptions(), request);
+          getChannel(), getCancelMethod(), getCallOptions(), request);
     }
 
     /**
@@ -401,7 +380,7 @@ public final class JobMasterClientServiceGrpc {
      */
     public alluxio.grpc.GetJobStatusPResponse getJobStatus(alluxio.grpc.GetJobStatusPRequest request) {
       return blockingUnaryCall(
-          getChannel(), getGetJobStatusMethodHelper(), getCallOptions(), request);
+          getChannel(), getGetJobStatusMethod(), getCallOptions(), request);
     }
 
     /**
@@ -412,7 +391,7 @@ public final class JobMasterClientServiceGrpc {
      */
     public alluxio.grpc.ListAllPResponse listAll(alluxio.grpc.ListAllPRequest request) {
       return blockingUnaryCall(
-          getChannel(), getListAllMethodHelper(), getCallOptions(), request);
+          getChannel(), getListAllMethod(), getCallOptions(), request);
     }
 
     /**
@@ -423,7 +402,7 @@ public final class JobMasterClientServiceGrpc {
      */
     public alluxio.grpc.RunPResponse run(alluxio.grpc.RunPRequest request) {
       return blockingUnaryCall(
-          getChannel(), getRunMethodHelper(), getCallOptions(), request);
+          getChannel(), getRunMethod(), getCallOptions(), request);
     }
   }
 
@@ -458,7 +437,7 @@ public final class JobMasterClientServiceGrpc {
     public com.google.common.util.concurrent.ListenableFuture<alluxio.grpc.CancelPResponse> cancel(
         alluxio.grpc.CancelPRequest request) {
       return futureUnaryCall(
-          getChannel().newCall(getCancelMethodHelper(), getCallOptions()), request);
+          getChannel().newCall(getCancelMethod(), getCallOptions()), request);
     }
 
     /**
@@ -470,7 +449,7 @@ public final class JobMasterClientServiceGrpc {
     public com.google.common.util.concurrent.ListenableFuture<alluxio.grpc.GetJobStatusPResponse> getJobStatus(
         alluxio.grpc.GetJobStatusPRequest request) {
       return futureUnaryCall(
-          getChannel().newCall(getGetJobStatusMethodHelper(), getCallOptions()), request);
+          getChannel().newCall(getGetJobStatusMethod(), getCallOptions()), request);
     }
 
     /**
@@ -482,7 +461,7 @@ public final class JobMasterClientServiceGrpc {
     public com.google.common.util.concurrent.ListenableFuture<alluxio.grpc.ListAllPResponse> listAll(
         alluxio.grpc.ListAllPRequest request) {
       return futureUnaryCall(
-          getChannel().newCall(getListAllMethodHelper(), getCallOptions()), request);
+          getChannel().newCall(getListAllMethod(), getCallOptions()), request);
     }
 
     /**
@@ -494,7 +473,7 @@ public final class JobMasterClientServiceGrpc {
     public com.google.common.util.concurrent.ListenableFuture<alluxio.grpc.RunPResponse> run(
         alluxio.grpc.RunPRequest request) {
       return futureUnaryCall(
-          getChannel().newCall(getRunMethodHelper(), getCallOptions()), request);
+          getChannel().newCall(getRunMethod(), getCallOptions()), request);
     }
   }
 
@@ -597,10 +576,10 @@ public final class JobMasterClientServiceGrpc {
         if (result == null) {
           serviceDescriptor = result = io.grpc.ServiceDescriptor.newBuilder(SERVICE_NAME)
               .setSchemaDescriptor(new JobMasterClientServiceFileDescriptorSupplier())
-              .addMethod(getCancelMethodHelper())
-              .addMethod(getGetJobStatusMethodHelper())
-              .addMethod(getListAllMethodHelper())
-              .addMethod(getRunMethodHelper())
+              .addMethod(getCancelMethod())
+              .addMethod(getGetJobStatusMethod())
+              .addMethod(getListAllMethod())
+              .addMethod(getRunMethod())
               .build();
         }
       }

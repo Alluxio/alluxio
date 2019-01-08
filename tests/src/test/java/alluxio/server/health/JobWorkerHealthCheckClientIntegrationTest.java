@@ -41,8 +41,7 @@ public class JobWorkerHealthCheckClientIntegrationTest extends BaseIntegrationTe
   public final void before() throws Exception {
     mLocalAlluxioJobCluster = new LocalAlluxioJobCluster();
     mLocalAlluxioJobCluster.start();
-    // TODO(ggezer) call getWorker() after turning JobWorkerProcess into a gRPC server.
-    InetSocketAddress address = mLocalAlluxioJobCluster.getMaster().getRpcAddress();
+    InetSocketAddress address = mLocalAlluxioJobCluster.getWorker().getRpcAddress();
     mHealthCheckClient = new JobWorkerHealthCheckClient(address, () -> new CountingRetry(1));
   }
 

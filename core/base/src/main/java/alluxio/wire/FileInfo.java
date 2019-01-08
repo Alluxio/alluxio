@@ -16,6 +16,7 @@ import alluxio.grpc.TtlAction;
 import alluxio.security.authorization.AccessControlList;
 import alluxio.security.authorization.DefaultAccessControlList;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 
@@ -611,7 +612,10 @@ public final class FileInfo implements Serializable {
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this).add("fileId", mFileId).add("name", mName).add("path", mPath)
+    return MoreObjects.toStringHelper(this)
+        .add("fileId", mFileId)
+        .add("name", mName)
+        .add("path", mPath)
         .add("ufsPath", mUfsPath).add("length", mLength).add("blockSizeBytes", mBlockSizeBytes)
         .add("creationTimeMs", mCreationTimeMs).add("completed", mCompleted).add("folder", mFolder)
         .add("pinned", mPinned).add("cacheable", mCacheable).add("persisted", mPersisted)

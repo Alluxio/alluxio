@@ -19,7 +19,6 @@ import alluxio.AlluxioURI;
 import alluxio.PropertyKey;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
-import alluxio.client.file.FileSystemClientOptions;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.grpc.CreateFilePOptions;
@@ -68,8 +67,8 @@ public final class FreeAndDeleteIntegrationTest extends BaseIntegrationTest {
   @Before
   public final void before() throws Exception {
     mFileSystem = mLocalAlluxioClusterResource.get().getClient();
-    mWriteBoth = FileSystemClientOptions.getCreateFileOptions().toBuilder()
-        .setWriteType(WritePType.WRITE_CACHE_THROUGH).build();
+    mWriteBoth = CreateFilePOptions.newBuilder().setWriteType(WritePType.WRITE_CACHE_THROUGH)
+        .setRecursive(true).build();
   }
 
   @Test

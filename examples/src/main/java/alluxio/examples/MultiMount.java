@@ -15,7 +15,6 @@ import alluxio.AlluxioURI;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
-import alluxio.client.file.FileSystemClientOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.WritePType;
 
@@ -102,8 +101,8 @@ public final class MultiMount {
 
       // Open the output stream, setting the write type to make sure result is persisted.
       System.out.print("opening " + outputPath + " ... ");
-      CreateFilePOptions options = FileSystemClientOptions.getCreateFileOptions().toBuilder()
-          .setWriteType(WritePType.WRITE_CACHE_THROUGH).build();
+      CreateFilePOptions options =
+          CreateFilePOptions.newBuilder().setWriteType(WritePType.WRITE_CACHE_THROUGH).build();
       FileOutStream os = fileSystem.createFile(outputPath, options);
       System.out.println("done");
 

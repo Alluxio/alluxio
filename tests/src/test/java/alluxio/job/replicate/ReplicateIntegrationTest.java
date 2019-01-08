@@ -13,9 +13,9 @@ package alluxio.job.replicate;
 
 import alluxio.AlluxioURI;
 import alluxio.client.file.FileOutStream;
-import alluxio.client.file.FileSystemClientOptions;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
+import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.WritePType;
 import alluxio.job.JobIntegrationTest;
 import alluxio.util.io.BufferUtils;
@@ -40,9 +40,8 @@ public final class ReplicateIntegrationTest extends JobIntegrationTest {
 
     // write a file outside of Alluxio
     AlluxioURI filePath = new AlluxioURI(TEST_URI);
-    FileOutStream os =
-        mFileSystem.createFile(filePath, FileSystemClientOptions.getCreateFileOptions().toBuilder()
-            .setWriteType(WritePType.WRITE_THROUGH).setBlockSizeBytes(TEST_BLOCK_SIZE).build());
+    FileOutStream os = mFileSystem.createFile(filePath, CreateFilePOptions.newBuilder()
+        .setWriteType(WritePType.WRITE_THROUGH).setBlockSizeBytes(TEST_BLOCK_SIZE).build());
     os.write(BufferUtils.getIncreasingByteArray(TEST_BLOCK_SIZE + 1));
     os.close();
 

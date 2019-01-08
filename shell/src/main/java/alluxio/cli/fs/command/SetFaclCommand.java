@@ -14,7 +14,6 @@ package alluxio.cli.fs.command;
 import alluxio.AlluxioURI;
 import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystem;
-import alluxio.client.file.FileSystemClientOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.SetAclPOptions;
@@ -100,8 +99,8 @@ public final class SetFaclCommand extends AbstractFileSystemCommand {
   @Override
   protected void runPlainPath(AlluxioURI path, CommandLine cl)
       throws AlluxioException, IOException {
-    SetAclPOptions options = FileSystemClientOptions.getSetAclOptions().toBuilder()
-        .setRecursive(cl.hasOption(RECURSIVE_OPTION.getOpt())).build();
+    SetAclPOptions options =
+        SetAclPOptions.newBuilder().setRecursive(cl.hasOption(RECURSIVE_OPTION.getOpt())).build();
 
     List<AclEntry> entries = Collections.emptyList();
     SetAclAction action = SetAclAction.REPLACE;

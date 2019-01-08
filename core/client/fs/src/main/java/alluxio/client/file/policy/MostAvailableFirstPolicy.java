@@ -16,7 +16,7 @@ import alluxio.client.block.policy.BlockLocationPolicy;
 import alluxio.client.block.policy.options.GetWorkerOptions;
 import alluxio.wire.WorkerNetAddress;
 
-import com.google.common.base.Objects;
+import com.google.common.base.MoreObjects;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -65,6 +65,6 @@ public final class MostAvailableFirstPolicy
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this).toString();
+    return MoreObjects.toStringHelper(this).toString();
   }
 }

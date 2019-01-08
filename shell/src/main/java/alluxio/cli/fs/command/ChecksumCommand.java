@@ -15,7 +15,6 @@ import alluxio.AlluxioURI;
 import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
-import alluxio.client.file.FileSystemClientOptions;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
@@ -82,8 +81,8 @@ public final class ChecksumCommand extends AbstractFileSystemCommand {
    */
   private String calculateChecksum(AlluxioURI filePath)
       throws AlluxioException, IOException {
-    OpenFilePOptions options = FileSystemClientOptions.getOpenFileOptions().toBuilder()
-        .setReadType(ReadPType.READ_NO_CACHE).build();
+    OpenFilePOptions options =
+        OpenFilePOptions.newBuilder().setReadType(ReadPType.READ_NO_CACHE).build();
     try (FileInStream fis = mFileSystem.openFile(filePath, options)) {
       return DigestUtils.md5Hex(fis);
     }

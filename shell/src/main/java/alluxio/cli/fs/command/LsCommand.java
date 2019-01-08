@@ -14,7 +14,6 @@ package alluxio.cli.fs.command;
 import alluxio.AlluxioURI;
 import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystem;
-import alluxio.client.file.FileSystemClientOptions;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
@@ -228,8 +227,7 @@ public final class LsCommand extends AbstractFileSystemCommand {
       return;
     }
 
-    ListStatusPOptions.Builder optionsBuilder =
-        FileSystemClientOptions.getListStatusOptions().toBuilder();
+    ListStatusPOptions.Builder optionsBuilder = ListStatusPOptions.newBuilder();
     if (forceLoadMetadata) {
       optionsBuilder.setLoadMetadataType(LoadMetadataPType.ALWAYS);
     }

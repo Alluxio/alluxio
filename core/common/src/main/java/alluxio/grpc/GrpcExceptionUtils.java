@@ -100,7 +100,7 @@ public final class GrpcExceptionUtils {
         alluxioStatus = alluxio.exception.status.Status.UNKNOWN;
     }
 
-    Throwable cause = e;
+    Throwable cause = (e.getCause() != null) ? e.getCause() : e;
     if (e.getTrailers() != null && e.getTrailers().containsKey(sInnerCauseKey)) {
       cause = (Throwable) SerializationUtils.deserialize(e.getTrailers().get(sInnerCauseKey));
     }

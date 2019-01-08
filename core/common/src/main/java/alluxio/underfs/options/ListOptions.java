@@ -13,6 +13,7 @@ package alluxio.underfs.options;
 
 import alluxio.annotation.PublicApi;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -77,7 +78,7 @@ public final class ListOptions {
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this)
+    return MoreObjects.toStringHelper(this)
         .add("recursive", mRecursive)
         .toString();
   }

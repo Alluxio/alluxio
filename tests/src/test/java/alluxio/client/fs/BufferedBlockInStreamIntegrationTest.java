@@ -15,7 +15,6 @@ import alluxio.AlluxioURI;
 import alluxio.client.block.stream.BlockInStream;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
-import alluxio.client.file.FileSystemClientOptions;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.exception.AlluxioException;
 import alluxio.grpc.CreateFilePOptions;
@@ -63,10 +62,13 @@ public final class BufferedBlockInStreamIntegrationTest extends BaseIntegrationT
 
   private static List<CreateFilePOptions> getOptionSet() {
     List<CreateFilePOptions> ret = new ArrayList<>(3);
-    CreateFilePOptions optionsDefault = FileSystemClientOptions.getCreateFileOptions();
-    ret.add(optionsDefault.toBuilder().setWriteType(WritePType.WRITE_CACHE_THROUGH).build());
-    ret.add(optionsDefault.toBuilder().setWriteType(WritePType.WRITE_MUST_CACHE).build());
-    ret.add(optionsDefault.toBuilder().setWriteType(WritePType.WRITE_THROUGH).build());
+    CreateFilePOptions optionsDefault = CreateFilePOptions.getDefaultInstance();
+    ret.add(optionsDefault.toBuilder().setWriteType(WritePType.WRITE_CACHE_THROUGH)
+        .setRecursive(true).build());
+    ret.add(optionsDefault.toBuilder().setWriteType(WritePType.WRITE_MUST_CACHE).setRecursive(true)
+        .build());
+    ret.add(optionsDefault.toBuilder().setWriteType(WritePType.WRITE_THROUGH).setRecursive(true)
+        .build());
     return ret;
   }
 

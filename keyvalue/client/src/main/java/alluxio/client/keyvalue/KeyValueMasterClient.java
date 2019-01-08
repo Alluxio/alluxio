@@ -33,8 +33,11 @@ import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * A wrapper for the gRPC client to interact with the key-value master, used by Alluxio clients.
+ *
+ *  @deprecated This class is deprecated since version 2.0
  */
 @ThreadSafe
+@Deprecated
 public final class KeyValueMasterClient extends AbstractMasterClient {
   private KeyValueMasterClientServiceGrpc.KeyValueMasterClientServiceBlockingStub mClient =
       null;

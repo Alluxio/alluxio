@@ -14,7 +14,7 @@ package alluxio.client.block;
 import alluxio.annotation.PublicApi;
 import alluxio.wire.WorkerNetAddress;
 
-import com.google.common.base.Objects;
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -65,7 +65,7 @@ public final class BlockWorkerInfo {
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this)
+    return MoreObjects.toStringHelper(this)
         .add("netAddress", mNetAddress)
         .add("capacityBytes", mCapacityBytes)
         .add("usedBytes", mUsedBytes)

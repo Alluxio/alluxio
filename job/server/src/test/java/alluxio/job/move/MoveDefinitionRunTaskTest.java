@@ -20,7 +20,6 @@ import static org.mockito.Mockito.when;
 import alluxio.AlluxioURI;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileSystem;
-import alluxio.client.file.FileSystemClientOptions;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.MockFileInStream;
 import alluxio.client.file.MockFileOutStream;
@@ -130,17 +129,15 @@ public final class MoveDefinitionRunTaskTest {
    */
   @Test
   @Ignore
-  // TODO(ggezer) Fix matching for proto type.
+  // TODO(ggezer) Fix.
   public void writeTypeTest() throws Exception {
     runTask(TEST_SOURCE, TEST_SOURCE, TEST_DESTINATION, WriteType.CACHE_THROUGH);
-    verify(mMockFileSystem).createFile(eq(new AlluxioURI(TEST_DESTINATION)),
-        Matchers.eq(FileSystemClientOptions.getCreateFileOptions().toBuilder()
-            .setWriteType(WritePType.WRITE_CACHE_THROUGH)).build());
+    verify(mMockFileSystem).createFile(eq(new AlluxioURI(TEST_DESTINATION)), Matchers
+        .eq(CreateFilePOptions.newBuilder().setWriteType(WritePType.WRITE_CACHE_THROUGH)).build());
 
     runTask(TEST_SOURCE, TEST_SOURCE, TEST_DESTINATION, WriteType.MUST_CACHE);
-    verify(mMockFileSystem).createFile(eq(new AlluxioURI(TEST_DESTINATION)),
-        Matchers.eq(FileSystemClientOptions.getCreateFileOptions().toBuilder()
-            .setWriteType(WritePType.WRITE_MUST_CACHE)).build());
+    verify(mMockFileSystem).createFile(eq(new AlluxioURI(TEST_DESTINATION)), Matchers
+        .eq(CreateFilePOptions.newBuilder().setWriteType(WritePType.WRITE_MUST_CACHE)).build());
   }
 
   /**
