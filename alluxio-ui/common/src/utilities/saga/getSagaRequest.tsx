@@ -15,8 +15,11 @@ export const getSagaRequest = (AxiosFunctionName: string, endpoint: string, succ
     }
 
     if (params.payload.queryString) {
-      const queryString = Object.keys(params.payload.queryString).map(key => key + '=' + params.payload.queryString[key]).join('&');
-      apiEndpoint += `?${queryString}`;
+      const queryString = Object.keys(params.payload.queryString)
+        .filter(key => params.payload.queryString[key] !== undefined)
+        .map(key => key + '=' + encodeURIComponent(params.payload.queryString[key]))
+        .join('&');
+      apiEndpoint += queryString.length ? `?${queryString}` : '';
     }
   }
 
