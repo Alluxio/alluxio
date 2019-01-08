@@ -33,6 +33,7 @@ function main {
     run_args+=" -it"
   fi
 
+  local home="/home/jenkins"
   # Needed to run fuse tests:
   run_args+=" --cap-add SYS_ADMIN"
   run_args+=" --device /dev/fuse"
@@ -48,10 +49,10 @@ function main {
 
   # Since we're running as a user unknown to the Docker container, we need to explicitly
   # configure anything that's relative to ${HOME}.
-  run_args+=" -v ${ALLUXIO_DOCKER_M2}:/home/jenkins/.m2"
-  run_args+=" -e npm_config_cache=/home/jenkins/.npm"
-  run_args+=" -e HOME=/home/jenkins"
-  run_args+=" -e MAVEN_CONFIG=/home/jenkins/.m2"
+  run_args+=" -e HOME=${home}"
+  run_args+=" -v ${ALLUXIO_DOCKER_M2}:${home}/.m2"
+  run_args+=" -e npm_config_cache=${home}/.npm"
+  run_args+=" -e MAVEN_CONFIG=${home}/.m2"
 
   run_args+=" -e ALLUXIO_USE_FIXED_TEST_PORTS=true"
 
