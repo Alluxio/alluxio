@@ -22,7 +22,7 @@ then
 fi
 if [ -z "${ALLUXIO_DOCKER_IMAGE}" ]
 then
-  ALLUXIO_DOCKER_IMAGE="alluxio/alluxio-maven:0.0.2"
+  ALLUXIO_DOCKER_IMAGE="alluxio/alluxio-maven:0.0.3"
 fi
 
 docker run \
