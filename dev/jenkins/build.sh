@@ -21,4 +21,4 @@ mygid=$(id -g)
 echo "$myuid:x:$myuid:$mygid:anonymous uid:/home/jenkins:/bin/false" >> /etc/passwd
 
 git clean -fdx
-mvn -Duser.home=/home/jenkins -T 4C clean install -PcompileJsp -Pdeveloper -Dmaven.javadoc.skip -Dsurefire.forkCount=8
+mvn -Duser.home=/home/jenkins -T 4C clean install -PcompileJsp -Pdeveloper -Dmaven.javadoc.skip -Dsurefire.forkCount=8 $@
