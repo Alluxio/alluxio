@@ -1872,7 +1872,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       .build();
   public static final PropertyKey WORKER_MASTER_CONNECT_RETRY_TIMEOUT =
       new Builder(Name.WORKER_MASTER_CONNECT_RETRY_TIMEOUT)
-          .setDescription("Retry period before workers give up on connecting to master")
+          .setDescription("Retry period before workers give up on connecting to master and exit.")
           .setDefaultValue("1hour")
           .setScope(Scope.WORKER)
           .build();
@@ -2775,7 +2775,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.USER_NETWORK_READER_BUFFER_SIZE_MESSAGES)
           .setDefaultValue(16)
           .setDescription("When a client reads from a remote worker, the maximum number of "
-              + "messages to buffer by the client.")
+              + "messages to buffer by the client. A message can be either a command response, "
+              + "a data chunk, or a gRPC stream event such as complete or error.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
@@ -2790,14 +2791,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.USER_NETWORK_WRITER_BUFFER_SIZE_MESSAGES)
           .setDefaultValue(16)
           .setDescription("When a client writes to a remote worker, the maximum number of messages "
-              + "to buffer by the client.")
+              + "to buffer by the client. A message can be either a command response, a data "
+              + "chunk, or a gRPC stream event such as complete or error.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_NETWORK_WRITER_CHUNK_SIZE_BYTES =
       new Builder(Name.USER_NETWORK_WRITER_CHUNK_SIZE_BYTES)
           .setDefaultValue("64KB")
-          .setDescription("When a client writes to a remote worker, the maximum packet size.")
+          .setDescription("When a client writes to a remote worker, the maximum chunk size.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();

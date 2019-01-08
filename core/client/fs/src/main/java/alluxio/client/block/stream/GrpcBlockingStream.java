@@ -68,15 +68,6 @@ public class GrpcBlockingStream<ReqT, ResT> {
   /**
    * @param rpcFunc the gRPC bi-directional stream stub function
    * @param bufferSize maximum number of incoming messages the buffer can hold
-   */
-  public GrpcBlockingStream(Function<StreamObserver<ResT>, StreamObserver<ReqT>> rpcFunc,
-      int bufferSize) {
-    this(rpcFunc, bufferSize, "");
-  }
-
-  /**
-   * @param rpcFunc the gRPC bi-directional stream stub function
-   * @param bufferSize maximum number of incoming messages the buffer can hold
    * @param description description of this stream
    */
   public GrpcBlockingStream(Function<StreamObserver<ResT>, StreamObserver<ReqT>> rpcFunc,
@@ -242,7 +233,7 @@ public class GrpcBlockingStream<ReqT, ResT> {
 
   private String formatErrorMessage(String format, Object... args) {
     StringBuilder errorMessage = new StringBuilder(String.format(format, args));
-    return new StringBuilder(errorMessage).append(String.format(" (%s)", args)).toString();
+    return new StringBuilder(errorMessage).append(String.format(" (%s)", mDescription)).toString();
   }
 
   private final class ResponseStreamObserver
