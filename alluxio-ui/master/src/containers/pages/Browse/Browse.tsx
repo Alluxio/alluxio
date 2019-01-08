@@ -1,4 +1,4 @@
-import {faFile, faFolder} from '@fortawesome/free-solid-svg-icons'
+import {faFile, faFolder} from '@fortawesome/free-regular-svg-icons'
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome'
 import React from 'react';
 import {connect} from 'react-redux';
@@ -59,18 +59,17 @@ class Browse extends React.Component<AllProps, IBrowseState> {
     this.state = {end, limit, offset, path: path || '/', lastFetched: {}};
   }
 
-  public componentWillReceiveProps(props: AllProps) {
-    const {refreshValue} = this.props;
-    if (props.refreshValue !== refreshValue) {
-      const {path, offset, limit, end} = this.state;
-      this.fetchData(path, offset, limit, end);
-    }
-  }
-
   public componentDidUpdate(prevProps: AllProps) {
-    if (this.props.location.search !== prevProps.location.search) {
+    const {refreshValue, location: {search}} = this.props;
+    const {refreshValue: prevRefreshValue, location: {search: prevSearch}} = prevProps;
+    if (search !== prevSearch) {
       const {path, offset, limit, end} = parseQuerystring(this.props.location.search);
       this.setState({path, offset, limit, end});
+      this.fetchData(path, offset, limit, end);
+
+    }
+    if (refreshValue !== prevRefreshValue) {
+      const {path, offset, limit, end} = this.state;
       this.fetchData(path, offset, limit, end);
     }
   }

@@ -46,18 +46,16 @@ class Data extends React.Component<AllProps, IDataState> {
     this.state = {offset, limit, lastFetched: {}};
   }
 
-  public componentWillReceiveProps(props: AllProps) {
-    const {refreshValue} = this.props;
-    if (props.refreshValue !== refreshValue) {
-      const {offset, limit} = this.state;
+  public componentDidUpdate(prevProps: AllProps) {
+    const {refreshValue, location: {search}} = this.props;
+    const {refreshValue: prevRefreshValue, location: {search: prevSearch}} = prevProps;
+    if (search !== prevSearch) {
+      const {offset, limit} = parseQuerystring(search);
+      this.setState({offset, limit});
       this.fetchData(offset, limit);
     }
-  }
-
-  public componentDidUpdate(prevProps: AllProps) {
-    if (this.props.location.search !== prevProps.location.search) {
-      const {offset, limit} = parseQuerystring(this.props.location.search);
-      this.setState({offset, limit});
+    if (refreshValue !== prevRefreshValue) {
+      const {offset, limit} = this.state;
       this.fetchData(offset, limit);
     }
   }

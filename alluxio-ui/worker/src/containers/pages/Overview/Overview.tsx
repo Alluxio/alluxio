@@ -26,9 +26,8 @@ interface IOverviewProps {
 type AllProps = IPropsFromState & IPropsFromDispatch & IOverviewProps;
 
 class Overview extends React.Component<AllProps> {
-  public componentWillReceiveProps(props: AllProps) {
-    const {refreshValue} = this.props;
-    if (props.refreshValue !== refreshValue) {
+  public componentDidUpdate(prevProps: AllProps) {
+    if (this.props.refreshValue !== prevProps.refreshValue) {
       this.props.fetchRequest();
     }
   }

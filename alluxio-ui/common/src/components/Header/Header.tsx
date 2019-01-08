@@ -124,6 +124,7 @@ export class Header extends React.PureComponent<IHeaderProps, IHeaderState> {
     if (autoRefreshCallback) {
       autoRefreshCallback(isAutoRefreshing);
     }
+    this.closeHeaderOnClick();
   }
 
   private toggleHamburgerMenu() {

@@ -51,18 +51,16 @@ class BlockInfo extends React.Component<AllProps, IBlockInfoState> {
     this.state = {end, limit, offset, path: path || '/', lastFetched: {}};
   }
 
-  public componentWillReceiveProps(props: AllProps) {
-    const {refreshValue} = this.props;
-    if (props.refreshValue !== refreshValue) {
-      const {path, offset, limit, end} = this.state;
+  public componentDidUpdate(prevProps: AllProps) {
+    const {refreshValue, location: {search}} = this.props;
+    const {refreshValue: prevRefreshValue, location: {search: prevSearch}} = prevProps;
+    if (search !== prevSearch) {
+      const {path, offset, limit, end} = parseQuerystring(search);
+      this.setState({path, offset, limit, end});
       this.fetchData(path, offset, limit, end);
     }
-  }
-
-  public componentDidUpdate(prevProps: AllProps) {
-    if (this.props.location.search !== prevProps.location.search) {
-      const {path, offset, limit, end} = parseQuerystring(this.props.location.search);
-      this.setState({path, offset, limit, end});
+    if (refreshValue !== prevRefreshValue) {
+      const {path, offset, limit, end} = this.state;
       this.fetchData(path, offset, limit, end);
     }
   }
