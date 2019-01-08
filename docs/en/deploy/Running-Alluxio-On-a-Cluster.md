@@ -123,7 +123,7 @@ non-object storage such as HDFS or NFS is available, or no Zookeeper cluster is 
 
 ### Setting up Zookeeper HA Cluster
 
-The prerequisites of Setting up Zookeeper HA cluster is:
+The prerequisites of setting up Zookeeper HA cluster is:
 * Multiple master nodes, and 1 or more worker nodes
 * SSH login without password to all nodes. You can add a public SSH key for the host into
 `~/.ssh/authorized_keys`. See [this tutorial](http://www.linuxproblem.org/art_9.html) for more details.
@@ -261,10 +261,7 @@ for the application.
   
 If using embedded journal, users can configure the following parameter.
 
-- `alluxio.master.rpc.addresses=master_hostname_1:19998;master_hostname_2:19998;master_hostname_3:19998`
-
-If both parameters are set, the Zookeeper configuration always take precedence. 
-However, embedded journal configurations should not be set when using UFS journal with Zookeeper.
+- `alluxio.master.rpc.addresses=master_hostname_1:19998,master_hostname_2:19998,master_hostname_3:19998`
 
 When the application is configured with these parameters, the Alluxio URI can be simplified to
 `alluxio:///path`, since the HA cluster information is already configured.

@@ -15,7 +15,7 @@ a recovering master will read the edit logs to restore itself back to its previo
 We use the term "journal" to refer to the system of edit logs used to support fault-tolerance.
 The purpose of this documentation is to help Alluxio administrators understand and manage the Alluxio journal.
 
-## UFS Journal VS Embedded Journal
+## UFS Journal vs Embedded Journal
 
 The UFS journal simplifies certain aspects of Alluxio operation, but it relies on 
 an external Zookeeper cluster for coordination, and relies on a UFS for persistent storage. 
