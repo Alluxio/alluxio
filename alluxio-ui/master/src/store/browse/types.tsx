@@ -1,3 +1,5 @@
+import {AxiosResponse} from 'axios';
+
 import {IFileBlockInfo, IFileInfo} from '@alluxio/common-ui/src/constants';
 
 export interface IBrowse {
@@ -29,6 +31,7 @@ export const enum BrowseActionTypes {
 
 export interface IBrowseState {
   readonly browse: IBrowse;
-  readonly errors?: string;
+  readonly errors?: AxiosResponse;
   readonly loading: boolean;
+  readonly response?: AxiosResponse;
 }

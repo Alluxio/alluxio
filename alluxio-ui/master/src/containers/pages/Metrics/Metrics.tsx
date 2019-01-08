@@ -1,3 +1,4 @@
+import {AxiosResponse} from 'axios';
 import React from 'react';
 import {connect} from 'react-redux';
 import {Alert, Progress, Table} from 'reactstrap';
@@ -8,7 +9,7 @@ import {fetchRequest} from '../../../store/metrics/actions';
 import {IMetrics} from '../../../store/metrics/types';
 
 interface IPropsFromState {
-  errors: string;
+  errors: AxiosResponse;
   loading: boolean;
   metrics: IMetrics;
 }

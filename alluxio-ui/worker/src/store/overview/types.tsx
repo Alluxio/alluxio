@@ -1,3 +1,4 @@
+import {AxiosResponse} from 'axios';
 import {IStorageTierInfo} from '../../constants';
 
 export interface IOverview {
@@ -22,5 +23,6 @@ export const enum OverviewActionTypes {
 export interface IOverviewState {
   readonly loading: boolean;
   readonly overview: IOverview;
-  readonly errors?: string;
+  readonly errors?: AxiosResponse;
+  readonly response?: AxiosResponse;
 }

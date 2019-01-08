@@ -1,3 +1,4 @@
+import {AxiosResponse} from 'axios';
 import React from 'react';
 import {connect} from 'react-redux';
 import {Alert, Progress, Table} from 'reactstrap';
@@ -10,7 +11,7 @@ import {fetchRequest} from '../../../store/overview/actions';
 import {IOverview} from '../../../store/overview/types';
 
 interface IPropsFromState {
-  errors: string;
+  errors: AxiosResponse;
   loading: boolean;
   overview: IOverview;
 }

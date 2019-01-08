@@ -1,3 +1,5 @@
+import {AxiosResponse} from 'axios';
+
 import {IFileInfo} from '@alluxio/common-ui/src/constants';
 
 export interface ILogs {
@@ -20,5 +22,6 @@ export const enum LogsActionTypes {
 export interface ILogsState {
   readonly loading: boolean;
   readonly logs: ILogs;
-  readonly errors?: string;
+  readonly errors?: AxiosResponse;
+  readonly response?: AxiosResponse;
 }

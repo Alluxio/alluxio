@@ -22,7 +22,7 @@ export const logsReducer: Reducer<ILogsState> = (state = initialState, action) =
     case LogsActionTypes.FETCH_REQUEST:
       return {...state, loading: true};
     case LogsActionTypes.FETCH_SUCCESS:
-      return {...state, loading: false, logs: action.payload};
+      return {...state, loading: false, logs: action.payload.data, response: action.payload};
     case LogsActionTypes.FETCH_ERROR:
       return {...state, loading: false, errors: action.payload};
     default:

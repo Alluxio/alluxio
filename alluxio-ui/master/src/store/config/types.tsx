@@ -1,3 +1,5 @@
+import {AxiosResponse} from 'axios';
+
 import {IConfigTriple} from '../../constants';
 
 export interface IConfig {
@@ -14,5 +16,6 @@ export const enum ConfigActionTypes {
 export interface IConfigState {
   readonly loading: boolean;
   readonly config: IConfig;
-  readonly errors?: string;
+  readonly errors?: AxiosResponse;
+  readonly response?: AxiosResponse;
 }

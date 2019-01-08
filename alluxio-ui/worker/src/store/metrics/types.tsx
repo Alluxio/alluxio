@@ -1,3 +1,5 @@
+import {AxiosResponse} from 'axios';
+
 import {ICounter} from '@alluxio/common-ui/src/constants';
 
 export interface IMetrics {
@@ -20,5 +22,6 @@ export const enum MetricsActionTypes {
 export interface IMetricsState {
   readonly loading: boolean;
   readonly metrics: IMetrics;
-  readonly errors?: string;
+  readonly errors?: AxiosResponse;
+  readonly response?: AxiosResponse;
 }

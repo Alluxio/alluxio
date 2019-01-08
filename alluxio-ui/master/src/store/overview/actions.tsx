@@ -1,7 +1,8 @@
+import {AxiosResponse} from 'axios';
 import {action} from 'typesafe-actions';
 
-import {IOverview, OverviewActionTypes} from './types';
+import {OverviewActionTypes} from './types';
 
 export const fetchRequest = () => action(OverviewActionTypes.FETCH_REQUEST);
-export const fetchSuccess = (overview: IOverview) => action(OverviewActionTypes.FETCH_SUCCESS, overview);
+export const fetchSuccess = (response: AxiosResponse) => action(OverviewActionTypes.FETCH_SUCCESS, response);
 export const fetchError = (message: string) => action(OverviewActionTypes.FETCH_ERROR, message);

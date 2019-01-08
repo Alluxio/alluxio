@@ -17,7 +17,7 @@ export const workersReducer: Reducer<IWorkersState> = (state = initialState, act
     case WorkersActionTypes.FETCH_REQUEST:
       return {...state, loading: true};
     case WorkersActionTypes.FETCH_SUCCESS:
-      return {...state, loading: false, workers: action.payload};
+      return {...state, loading: false, workers: action.payload.data, response: action.payload};
     case WorkersActionTypes.FETCH_ERROR:
       return {...state, loading: false, errors: action.payload};
     default:

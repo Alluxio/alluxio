@@ -1,3 +1,5 @@
+import {AxiosResponse} from 'axios';
+
 import {IFileInfo} from '@alluxio/common-ui/src/constants';
 
 export interface IData {
@@ -18,5 +20,6 @@ export const enum DataActionTypes {
 export interface IDataState {
   readonly loading: boolean;
   readonly data: IData;
-  readonly errors?: string;
+  readonly errors?: AxiosResponse;
+  readonly response?: AxiosResponse;
 }

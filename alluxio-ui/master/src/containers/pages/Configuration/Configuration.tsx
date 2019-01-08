@@ -1,3 +1,4 @@
+import {AxiosResponse} from 'axios';
 import React from 'react';
 import {connect} from 'react-redux';
 import {Alert, Table} from 'reactstrap';
@@ -9,7 +10,7 @@ import {fetchRequest} from '../../../store/config/actions';
 import {IConfig} from '../../../store/config/types';
 
 interface IPropsFromState {
-  errors: string;
+  errors: AxiosResponse;
   loading: boolean;
   config: IConfig;
 }

@@ -50,7 +50,7 @@ export const browseReducer: Reducer<IBrowseState> = (state = initialState, actio
     case BrowseActionTypes.FETCH_REQUEST:
       return {...state, loading: true};
     case BrowseActionTypes.FETCH_SUCCESS:
-      return {...state, loading: false, browse: action.payload};
+      return {...state, loading: false, browse: action.payload.data, response: action.payload};
     case BrowseActionTypes.FETCH_ERROR:
       return {...state, loading: false, errors: action.payload};
     default:

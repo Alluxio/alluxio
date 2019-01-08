@@ -18,7 +18,7 @@ export const metricsReducer: Reducer<IMetricsState> = (state = initialState, act
     case MetricsActionTypes.FETCH_REQUEST:
       return {...state, loading: true};
     case MetricsActionTypes.FETCH_SUCCESS:
-      return {...state, loading: false, metrics: action.payload};
+      return {...state, loading: false, metrics: action.payload.data, response: action.payload};
     case MetricsActionTypes.FETCH_ERROR:
       return {...state, loading: false, errors: action.payload};
     default:

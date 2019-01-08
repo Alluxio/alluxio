@@ -1,5 +1,4 @@
-export * from './saga/getSagaFetchGenerator';
-export * from './saga/getSagaPostGenerator';
+export * from './saga/getSagaRequest';
 
 export * from './misc/getDebouncedFunction';
 export * from './misc/parseQueryString';
@@ -13,4 +12,3 @@ export * from './handlers/getDropdownItemHandler';
 export * from './validators/isNotEmpty';
 
 export * from './views/getRoutedViewRenderer';
-

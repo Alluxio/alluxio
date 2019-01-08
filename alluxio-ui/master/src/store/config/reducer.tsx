@@ -16,7 +16,7 @@ export const configReducer: Reducer<IConfigState> = (state = initialState, actio
     case ConfigActionTypes.FETCH_REQUEST:
       return {...state, loading: true};
     case ConfigActionTypes.FETCH_SUCCESS:
-      return {...state, loading: false, config: action.payload};
+      return {...state, loading: false, config: action.payload.data, response: action.payload};
     case ConfigActionTypes.FETCH_ERROR:
       return {...state, loading: false, errors: action.payload};
     default:

@@ -1,3 +1,5 @@
+import {AxiosResponse} from 'axios';
+
 import {INodeInfo} from '../../constants';
 
 export interface IWorkers {
@@ -15,5 +17,6 @@ export const enum WorkersActionTypes {
 export interface IWorkersState {
   readonly loading: boolean;
   readonly workers: IWorkers;
-  readonly errors?: string;
+  readonly errors?: AxiosResponse;
+  readonly response?: AxiosResponse;
 }

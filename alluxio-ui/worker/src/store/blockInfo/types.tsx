@@ -1,3 +1,5 @@
+import {AxiosResponse} from 'axios';
+
 import {IFileBlockInfo, IFileInfo} from '@alluxio/common-ui/src/constants';
 
 export interface IBlockInfo {
@@ -21,6 +23,7 @@ export const enum BlockInfoActionTypes {
 
 export interface IBlockInfoState {
   readonly blockInfo: IBlockInfo;
-  readonly errors?: string;
+  readonly errors?: AxiosResponse;
   readonly loading: boolean;
+  readonly response?: AxiosResponse;
 }

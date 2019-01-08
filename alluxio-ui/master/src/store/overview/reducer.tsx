@@ -43,7 +43,7 @@ export const overviewReducer: Reducer<IOverviewState> = (state = initialState, a
     case OverviewActionTypes.FETCH_REQUEST:
       return {...state, loading: true};
     case OverviewActionTypes.FETCH_SUCCESS:
-      return {...state, loading: false, overview: action.payload};
+      return {...state, loading: false, overview: action.payload.data, response: action.payload};
     case OverviewActionTypes.FETCH_ERROR:
       return {...state, loading: false, errors: action.payload};
     default:

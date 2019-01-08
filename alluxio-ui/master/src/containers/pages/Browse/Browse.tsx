@@ -1,5 +1,6 @@
 import {faFile, faFolder} from '@fortawesome/free-regular-svg-icons'
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome'
+import {AxiosResponse} from 'axios';
 import React from 'react';
 import {connect} from 'react-redux';
 import {Link} from 'react-router-dom';
@@ -17,7 +18,7 @@ import './Browse.css';
 
 interface IPropsFromState {
   browse: IBrowse;
-  errors: string;
+  errors: AxiosResponse;
   loading: boolean;
   location: {
     search: string;

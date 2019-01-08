@@ -1,3 +1,4 @@
+import {AxiosResponse} from 'axios';
 import React from 'react';
 import {connect} from 'react-redux';
 import {Link} from 'react-router-dom';
@@ -12,7 +13,7 @@ import {fetchRequest} from '../../../store/logs/actions';
 import {ILogs} from '../../../store/logs/types';
 
 interface IPropsFromState {
-  errors: string;
+  errors: AxiosResponse;
   loading: boolean;
   location: {
     search: string;

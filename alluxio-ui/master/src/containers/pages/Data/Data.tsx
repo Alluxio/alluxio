@@ -1,3 +1,4 @@
+import {AxiosResponse} from 'axios';
 import React from 'react';
 import {connect} from 'react-redux';
 import {Alert, Table} from 'reactstrap';
@@ -12,7 +13,7 @@ import {IData} from '../../../store/data/types';
 
 interface IPropsFromState {
   data: IData;
-  errors: string;
+  errors: AxiosResponse;
   loading: boolean;
   location: {
     search: string;
