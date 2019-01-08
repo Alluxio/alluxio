@@ -71,6 +71,8 @@ public final class AuthenticatedUserInjector implements ServerInterceptor {
           call.close(Status.UNAUTHENTICATED, headers);
           callClosed = true;
         }
+        // Move the call up to the handler chain,
+        // if we have not closed the call already due to authentication error.
         if (!callClosed) {
           super.onHalfClose();
         }

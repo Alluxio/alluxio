@@ -3869,7 +3869,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.security.login.impersonation.username";
     public static final String SECURITY_LOGIN_USERNAME = "alluxio.security.login.username";
     public static final String AUTHENTICATION_STALE_CHANNEL_PURGE_INTERVAL =
-        "alluxio.security.purge.interval";
+        "alluxio.security.stale.channel.purge.interval";
 
     //
     // Job service

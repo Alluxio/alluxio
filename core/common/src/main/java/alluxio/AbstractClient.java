@@ -342,7 +342,9 @@ public abstract class AbstractClient implements Client {
         return rpc.call();
       } catch (StatusRuntimeException e) {
         AlluxioStatusException se = GrpcExceptionUtils.fromGrpcStatusException(e);
-        if (se.getStatus() == Status.UNAVAILABLE || se.getStatus() == Status.UNAUTHENTICATED) {
+        if (se.getStatus() == Status.UNAVAILABLE
+            || se.getStatus() == Status.CANCELED
+            || se.getStatus() == Status.UNAUTHENTICATED) {
           ex = se;
         } else {
           throw se;

@@ -19,6 +19,7 @@ import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.ServiceType;
 import alluxio.retry.CountingRetry;
 
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -69,7 +70,8 @@ public final class AbstractClientTest {
   }
 
   // TODO(ggezer) Fix
-  // @Test
+  @Ignore
+  @Test
   public void unsupportedVersion() throws Exception {
     //mExpectedException.expect(IOException.class);
     mExpectedException.expectMessage(INCOMPATIBLE_VERSION.getMessage(SERVICE_NAME, 0, 1));
@@ -80,7 +82,8 @@ public final class AbstractClientTest {
   }
 
   // TODO(ggezer) Fix
-  // @Test
+  @Ignore
+  @Test
   public void supportedVersion() throws Exception {
     final AbstractClient client = mock(BaseTestClient.class);
     when(client.getRemoteServiceVersion()).thenReturn(1L);
