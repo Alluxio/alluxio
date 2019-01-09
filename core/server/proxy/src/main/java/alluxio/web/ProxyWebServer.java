@@ -65,6 +65,7 @@ public final class ProxyWebServer extends WebServer {
       }
     };
     ServletHolder servletHolder = new ServletHolder("Alluxio Proxy Web Service", servlet);
-    mServletContextHandler.addServlet(servletHolder, PathUtils.concatPath(Constants.REST_API_PREFIX, "*"));
+    mServletContextHandler
+        .addServlet(servletHolder, PathUtils.concatPath(Constants.REST_API_PREFIX, "*"));
   }
 }

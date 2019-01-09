@@ -75,7 +75,8 @@ public final class MasterWebServer extends WebServer {
     };
 
     ServletHolder servletHolder = new ServletHolder("Alluxio Master Web Service", servlet);
-    mServletContextHandler.addServlet(servletHolder, PathUtils.concatPath(Constants.REST_API_PREFIX, "*"));
+    mServletContextHandler
+        .addServlet(servletHolder, PathUtils.concatPath(Constants.REST_API_PREFIX, "*"));
 
     // STATIC assets
     try {
