@@ -120,6 +120,10 @@ public final class CachingInodeStore implements InodeStore {
 
   @Override
   public Optional<Long> getChildId(InodeDirectoryView inode, String name) {
+    Optional<Long> childId = Optional.ofNullable(mEdgeCache.getIfPresent(new Edge(inode.getId(), name)));
+    if (childId.isPresent()) {
+      return childId;
+    }
     return mBackingStore.getChildId(inode, name);
   }
 

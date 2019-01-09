@@ -38,7 +38,7 @@ public final class MasterTestUtils {
         .setJournalSystem(journalSystem)
         .setSafeModeManager(new TestSafeModeManager())
         .setBackupManager(mock(BackupManager.class))
-        .setMetastore(new RocksMetastore())
+        .setMetastore(new HeapMetastore())
         .setStartTimeMs(-1)
         .setPort(-1)
         .build();

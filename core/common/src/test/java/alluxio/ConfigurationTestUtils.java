@@ -76,6 +76,7 @@ public final class ConfigurationTestUtils {
     }
     // Sets up the journal folder
     conf.put(PropertyKey.MASTER_JOURNAL_FOLDER, PathUtils.concatPath(workDirectory, "journal"));
+    conf.put(PropertyKey.MASTER_METASTORE_DIR, PathUtils.concatPath(workDirectory, "metastore"));
 
     conf.put(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, "1KB");
     conf.put(PropertyKey.USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES, "64");
