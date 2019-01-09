@@ -47,9 +47,8 @@ public class WebServerIntegrationTest extends BaseIntegrationTest {
   // Web pages that will be verified.
   private static final Multimap<ServiceType, String> PAGES =
       new ImmutableListMultimap.Builder<ServiceType, String>()
-          .putAll(ServiceType.MASTER_WEB, "/overview", "/browse", "/config", "/workers",
-              "/data", "/logs", "/metrics")
-          .putAll(ServiceType.WORKER_WEB, "/overview", "/blockInfo", "/logs", "/metrics")
+          .putAll(ServiceType.MASTER_WEB, "/")
+          .putAll(ServiceType.WORKER_WEB, "/")
           .build();
 
   @Rule
