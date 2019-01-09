@@ -319,7 +319,11 @@ public final class FileSystemContext implements Closeable {
    * @return the acquired file system master client
    */
   public FileSystemMasterClient acquireMasterClient() {
-    return mFileSystemMasterClientPool.acquire();
+    try {
+      return mFileSystemMasterClientPool.acquire();
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   /**
@@ -338,12 +342,16 @@ public final class FileSystemContext implements Closeable {
    * @return the acquired file system master client resource
    */
   public CloseableResource<FileSystemMasterClient> acquireMasterClientResource() {
-    return new CloseableResource<FileSystemMasterClient>(mFileSystemMasterClientPool.acquire()) {
-      @Override
-      public void close() {
-        mFileSystemMasterClientPool.release(get());
-      }
-    };
+    try {
+      return new CloseableResource<FileSystemMasterClient>(mFileSystemMasterClientPool.acquire()) {
+        @Override
+        public void close() {
+          mFileSystemMasterClientPool.release(get());
+        }
+      };
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   /**
