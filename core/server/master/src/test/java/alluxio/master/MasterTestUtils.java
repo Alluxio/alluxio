@@ -15,7 +15,7 @@ import static org.mockito.Mockito.mock;
 
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.noop.NoopJournalSystem;
-import alluxio.master.metastore.rocks.RocksMetastore;
+import alluxio.master.metastore.java.HeapMetastore;
 
 /**
  * Util methods to help with master testing.

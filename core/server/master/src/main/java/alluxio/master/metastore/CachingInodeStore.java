@@ -11,6 +11,12 @@
 
 package alluxio.master.metastore;
 
+import java.util.Iterator;
+import java.util.Optional;
+
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
+
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.master.file.meta.Edge;
@@ -18,12 +24,6 @@ import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeDirectoryView;
 import alluxio.master.file.meta.InodeView;
 import alluxio.master.file.meta.MutableInode;
-
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
-
-import java.util.Iterator;
-import java.util.Optional;
 
 /**
  * An inode store which caches inode tree metadata and delegates to another inode store for cache
@@ -120,7 +120,8 @@ public final class CachingInodeStore implements InodeStore {
 
   @Override
   public Optional<Long> getChildId(InodeDirectoryView inode, String name) {
-    Optional<Long> childId = Optional.ofNullable(mEdgeCache.getIfPresent(new Edge(inode.getId(), name)));
+    Optional<Long> childId =
+        Optional.ofNullable(mEdgeCache.getIfPresent(new Edge(inode.getId(), name)));
     if (childId.isPresent()) {
       return childId;
     }
