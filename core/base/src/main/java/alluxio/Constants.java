@@ -141,12 +141,6 @@ public final class Constants {
   public static final String LOCALITY_RACK = "rack";
   public static final String MESOS_LOCAL_INSTALL = "LOCAL";
 
-  /**
-   * Maximum number of seconds to wait for thrift servers to stop on shutdown. Tests use a value of
-   * 0 instead of this value so that they can run faster.
-   */
-  public static final int THRIFT_STOP_TIMEOUT_SECONDS = 60;
-
   // Time-to-live
   public static final long NO_TTL = -1;
 

@@ -511,7 +511,6 @@ service FileSystemMasterClientService {
 
   /**
    * Deletes a file or a directory and returns whether the remove operation succeeded.
-   * NOTUnfortunately, the method cannot be called "delete" as that is a reserved Thrift keyword.
    */
   rpc Remove(DeletePRequest) returns (DeletePResponse);
 

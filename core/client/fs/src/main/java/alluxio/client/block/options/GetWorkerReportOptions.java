@@ -147,11 +147,11 @@ public final class GetWorkerReportOptions implements Serializable {
     GetWorkerReportPOptions.Builder optionsBuilder = GetWorkerReportPOptions.newBuilder();
     optionsBuilder.addAllAddresses(mAddresses);
     if (mFieldRange != null) {
-      Set<alluxio.grpc.WorkerInfoField> thriftFieldRange = new HashSet<>();
+      Set<alluxio.grpc.WorkerInfoField> protoFieldRange = new HashSet<>();
       for (WorkerInfoField field : mFieldRange) {
-        thriftFieldRange.add(field.toProto());
+        protoFieldRange.add(field.toProto());
       }
-      optionsBuilder.addAllFieldRanges(thriftFieldRange);
+      optionsBuilder.addAllFieldRanges(protoFieldRange);
     }
     optionsBuilder.setWorkerRange(mWorkerRange.toProto());
     return optionsBuilder.build();

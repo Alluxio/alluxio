@@ -15,7 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystem;
-import alluxio.client.job.JobThriftClientUtils;
+import alluxio.client.job.JobGrpcClientUtils;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.job.move.MoveConfig;
@@ -57,10 +57,10 @@ public final class DistributedMvCommand extends AbstractFileSystemCommand {
     if (mFileSystem.exists(dstPath)) {
       throw new RuntimeException(dstPath + " already exists");
     }
-    Thread thread = JobThriftClientUtils.createProgressThread(2 * Constants.SECOND_MS, System.out);
+    Thread thread = JobGrpcClientUtils.createProgressThread(2 * Constants.SECOND_MS, System.out);
     thread.start();
     try {
-      JobThriftClientUtils.run(new MoveConfig(srcPath.getPath(), dstPath.getPath(), null, true), 3);
+      JobGrpcClientUtils.run(new MoveConfig(srcPath.getPath(), dstPath.getPath(), null, true), 3);
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
       return -1;

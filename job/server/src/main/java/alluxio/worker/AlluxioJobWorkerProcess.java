@@ -50,7 +50,7 @@ public final class AlluxioJobWorkerProcess implements JobWorkerProcess {
   /** The job worker. */
   private JobWorker mJobWorker;
 
-  /** RPC local port for thrift. */
+  /** RPC local port for gRPC. */
   private int mRPCPort;
 
   /** gRPC server. */

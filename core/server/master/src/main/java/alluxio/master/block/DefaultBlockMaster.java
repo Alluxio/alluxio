@@ -761,7 +761,6 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
 
   @Override
   public long getWorkerId(WorkerNetAddress workerNetAddress) {
-    // TODO(gpang): Clone WorkerNetAddress in case thrift re-uses the object. Does thrift re-use it?
     MasterWorkerInfo existingWorker = mWorkers.getFirstByField(ADDRESS_INDEX, workerNetAddress);
     if (existingWorker != null) {
       // This worker address is already mapped to a worker id.

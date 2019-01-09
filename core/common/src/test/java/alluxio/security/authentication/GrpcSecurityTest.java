@@ -69,7 +69,7 @@ public class GrpcSecurityTest {
 
     Configuration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.CUSTOM.getAuthName());
     Configuration.set(PropertyKey.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER_CLASS,
-        TransportProviderTest.ExactlyMatchAuthenticationProvider.class.getName());
+        ExactlyMatchAuthenticationProvider.class.getName());
     GrpcServer server = createServer(AuthType.CUSTOM);
     server.start();
     GrpcChannelBuilder channelBuilder =
@@ -84,7 +84,7 @@ public class GrpcSecurityTest {
 
     Configuration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.CUSTOM.getAuthName());
     Configuration.set(PropertyKey.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER_CLASS,
-        TransportProviderTest.ExactlyMatchAuthenticationProvider.class.getName());
+        ExactlyMatchAuthenticationProvider.class.getName());
     GrpcServer server = createServer(AuthType.CUSTOM);
     server.start();
     GrpcChannelBuilder channelBuilder =

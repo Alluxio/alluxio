@@ -26,11 +26,11 @@ import javax.annotation.concurrent.ThreadSafe;
 import javax.security.auth.Subject;
 
 /**
- * This class provides util methods for {@link TransportProvider}s.
+ * This class provides util methods for {@link SaslParticipantProvider}s.
  */
 @ThreadSafe
-public final class TransportProviderUtils {
-  private static final Logger LOG = LoggerFactory.getLogger(TransportProviderUtils.class);
+public final class SaslParticipantProviderUtils {
+  private static final Logger LOG = LoggerFactory.getLogger(SaslParticipantProviderUtils.class);
 
   /**
    * @param subject the subject to use (can be null)
@@ -74,5 +74,5 @@ public final class TransportProviderUtils {
     return impersonationUser;
   }
 
-  private TransportProviderUtils() {} // prevent instantiation
+  private SaslParticipantProviderUtils() {} // prevent instantiation
 }

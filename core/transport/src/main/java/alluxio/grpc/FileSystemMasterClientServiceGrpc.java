@@ -830,7 +830,6 @@ public final class FileSystemMasterClientServiceGrpc {
      * <pre>
      **
      * Deletes a file or a directory and returns whether the remove operation succeeded.
-     * NOTUnfortunately, the method cannot be called "delete" as that is a reserved Thrift keyword.
      * </pre>
      */
     public void remove(alluxio.grpc.DeletePRequest request,
@@ -1235,7 +1234,6 @@ public final class FileSystemMasterClientServiceGrpc {
      * <pre>
      **
      * Deletes a file or a directory and returns whether the remove operation succeeded.
-     * NOTUnfortunately, the method cannot be called "delete" as that is a reserved Thrift keyword.
      * </pre>
      */
     public void remove(alluxio.grpc.DeletePRequest request,
@@ -1493,7 +1491,6 @@ public final class FileSystemMasterClientServiceGrpc {
      * <pre>
      **
      * Deletes a file or a directory and returns whether the remove operation succeeded.
-     * NOTUnfortunately, the method cannot be called "delete" as that is a reserved Thrift keyword.
      * </pre>
      */
     public alluxio.grpc.DeletePResponse remove(alluxio.grpc.DeletePRequest request) {
@@ -1753,7 +1750,6 @@ public final class FileSystemMasterClientServiceGrpc {
      * <pre>
      **
      * Deletes a file or a directory and returns whether the remove operation succeeded.
-     * NOTUnfortunately, the method cannot be called "delete" as that is a reserved Thrift keyword.
      * </pre>
      */
     public com.google.common.util.concurrent.ListenableFuture<alluxio.grpc.DeletePResponse> remove(

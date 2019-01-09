@@ -154,7 +154,6 @@
     <jersey.version>2.22</jersey.version>
     <jetty.version>9.2.16.v20160414</jetty.version>
     <junit.version>4.12</junit.version>
-    <libthrift.version>0.9.3</libthrift.version>
     <log4j.version>1.2.17</log4j.version>
     <maven.version>3.3.9</maven.version>
     <metrics.version>3.1.2</metrics.version>
@@ -567,18 +566,6 @@
         <groupId>org.apache.sling</groupId>
         <artifactId>maven-jspc-plugin</artifactId>
         <version>2.0.8</version>
-      </dependency>
-      <dependency>
-        <groupId>org.apache.thrift</groupId>
-        <artifactId>libthrift</artifactId>
-        <version>${libthrift.version}</version>
-        <exclusions>
-          <!-- Excluded to avoid conflict with the version Alluxio uses. -->
-          <exclusion>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-          </exclusion>
-        </exclusions>
       </dependency>
       <dependency>
         <groupId>org.apache.zookeeper</groupId>
@@ -1159,7 +1146,7 @@
             <sourceDirectory>${project.build.testSourceDirectory}</sourceDirectory>
           </sourceDirectories>
           <includeTestSourceDirectory>true</includeTestSourceDirectory>
-          <excludes>**/org/apache/jsp/**,**/alluxio/thrift/**,**/alluxio/proto/**,**/alluxio/grpc/**</excludes>
+          <excludes>**/org/apache/jsp/**,**/alluxio/proto/**,**/alluxio/grpc/**</excludes>
           <encoding>UTF-8</encoding>
           <consoleOutput>true</consoleOutput>
           <failsOnError>true</failsOnError>
@@ -1187,14 +1174,11 @@
           <excludes>
 
             <!-- Code Exclusions -->
-            <exclude>**/src/main/java/alluxio/thrift/*</exclude>
             <exclude>**/src/main/java/alluxio/proto/**</exclude>
             <exclude>**/src/main/java/alluxio/grpc/**</exclude>
-            <exclude>**/src/main/java/alluxio/perf/thrift/*</exclude>
             <exclude>**/src/main/resources/*</exclude>
             <exclude>**/src/main/webapp/css/*</exclude>
             <exclude>**/src/main/webapp/js/*</exclude>
-            <exclude>**/src/thrift/*</exclude>
             <exclude>**/src/proto/**</exclude>
             <exclude>**/src/deb/**/*</exclude>
             <exclude>**/src/test/resources/**</exclude>

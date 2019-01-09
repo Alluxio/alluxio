@@ -382,17 +382,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "should be the same on the clients and server.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .build();
-  /**
-   * @deprecated since 1.8.0 and will be removed in 2.0.
-   */
-  @Deprecated
-  public static final PropertyKey NETWORK_THRIFT_FRAME_SIZE_BYTES_MAX =
-      new Builder(Name.NETWORK_THRIFT_FRAME_SIZE_BYTES_MAX)
-          .setDefaultValue("16MB")
-          .setDescription("(Experimental) The largest allowable frame size used for Thrift "
-              + "RPC communication.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .build();
   public static final PropertyKey SITE_CONF_DIR =
       new Builder(Name.SITE_CONF_DIR)
           .setDefaultSupplier(
@@ -1427,7 +1416,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.MASTER_SERVING_THREAD_TIMEOUT)
           .setDefaultValue("5m")
           .setDescription("When stepping down from being the primary, the master will wait this "
-              + "long for the thrift serving thread to stop before giving up and shutting down "
+              + "long for the gRPC serving thread to stop before giving up and shutting down "
               + "the server")
           .setIsHidden(true)
           .setScope(Scope.MASTER)
@@ -1645,7 +1634,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
             return 2048;
           }, "A third of the max file descriptors limit, if b/w 2048 and 32768")
           .setDescription("The maximum number of incoming RPC requests to master that can be "
-              + "handled. This value is used to configure maximum number of threads in Thrift "
+              + "handled. This value is used to configure maximum number of threads in gRPC "
               + "thread pool with master.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
@@ -1655,7 +1644,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue(512)
           .setDescription("The minimum number of threads used to handle incoming RPC requests "
               + "to master. This value is used to configure minimum number of threads in "
-              + "Thrift thread pool with master.")
+              + "gRPC thread pool with master.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
@@ -1711,7 +1700,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue(2048)
           .setDescription("The maximum number of incoming RPC requests to block worker that "
               + "can be handled. This value is used to configure maximum number of threads in "
-              + "Thrift thread pool with block worker. This value should be greater than the "
+              + "gRPC thread pool with block worker. This value should be greater than the "
               + "sum of `alluxio.user.block.worker.client.threads` across concurrent Alluxio "
               + "clients. Otherwise, the worker connection pool can be drained, preventing "
               + "new connections from being established.")
@@ -1723,7 +1712,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue(256)
           .setDescription("The minimum number of threads used to handle incoming RPC requests "
               + "to block worker. This value is used to configure minimum number of threads "
-              + "in Thrift thread pool with block worker.")
+              + "in gRPC thread pool with block worker.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
@@ -3522,8 +3511,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.network.host.resolution.timeout";
     public static final String NETWORK_NETTY_HEARTBEAT_TIMEOUT_MS =
         "alluxio.network.netty.heartbeat.timeout";
-    public static final String NETWORK_THRIFT_FRAME_SIZE_BYTES_MAX =
-        "alluxio.network.thrift.frame.size.bytes.max";
     public static final String SITE_CONF_DIR = "alluxio.site.conf.dir";
     public static final String TEST_MODE = "alluxio.test.mode";
     public static final String TMP_DIRS = "alluxio.tmp.dirs";
@@ -3740,8 +3727,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.startup.block.integrity.check.enabled";
     public static final String MASTER_STARTUP_CONSISTENCY_CHECK_ENABLED =
         "alluxio.master.startup.consistency.check.enabled";
-    public static final String MASTER_THRIFT_SHUTDOWN_TIMEOUT =
-        "alluxio.master.thrift.shutdown.timeout";
     public static final String MASTER_GRPC_CHANNEL_SHUTDOWN_TIMEOUT =
             "alluxio.master.grpc.channel.shutdown.timeout";
     public static final String MASTER_GRPC_SERVER_SHUTDOWN_TIMEOUT =

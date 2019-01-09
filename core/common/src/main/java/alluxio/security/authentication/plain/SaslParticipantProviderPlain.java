@@ -20,7 +20,7 @@ import alluxio.security.User;
 import alluxio.security.authentication.AuthType;
 import alluxio.security.authentication.AuthenticationProvider;
 import alluxio.security.authentication.SaslParticipantProvider;
-import alluxio.security.authentication.TransportProviderUtils;
+import alluxio.security.authentication.SaslParticipantProviderUtils;
 
 import javax.security.auth.Subject;
 import javax.security.sasl.Sasl;
@@ -56,7 +56,7 @@ public class SaslParticipantProviderPlain implements SaslParticipantProvider {
     }
 
     // Determine the impersonation user
-    String impersonationUser = TransportProviderUtils.getImpersonationUser(subject);
+    String impersonationUser = SaslParticipantProviderUtils.getImpersonationUser(subject);
 
     if (impersonationUser != null
         && Configuration.isSet(PropertyKey.SECURITY_LOGIN_IMPERSONATION_USERNAME)

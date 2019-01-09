@@ -31,11 +31,11 @@ import java.util.concurrent.atomic.AtomicReference;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * Utils for interacting with the job service through a Thrift client.
+ * Utils for interacting with the job service through a gRPC client.
  */
 @ThreadSafe
-public final class JobThriftClientUtils {
-  private static final Logger LOG = LoggerFactory.getLogger(JobThriftClientUtils.class);
+public final class JobGrpcClientUtils {
+  private static final Logger LOG = LoggerFactory.getLogger(JobGrpcClientUtils.class);
 
   /**
    * Runs the specified job and waits for it to finish. If the job fails, it is retried the given
@@ -146,5 +146,5 @@ public final class JobThriftClientUtils {
     return finishedJobInfo.get();
   }
 
-  private JobThriftClientUtils() {} // prevent instantiation
+  private JobGrpcClientUtils() {} // prevent instantiation
 }
