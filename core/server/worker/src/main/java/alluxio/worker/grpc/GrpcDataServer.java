@@ -149,4 +149,9 @@ public final class GrpcDataServer implements DataServer {
   public boolean isClosed() {
     return !mServer.isServing();
   }
+
+  @Override
+  public void awaitTermination() {
+    mServer.awaitTermination();
+  }
 }

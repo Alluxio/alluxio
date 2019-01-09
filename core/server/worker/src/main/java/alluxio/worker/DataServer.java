@@ -63,4 +63,9 @@ public interface DataServer extends Closeable {
    * @return true if the {@link DataServer} is closed, false otherwise
    */
   boolean isClosed();
+
+  /**
+   * Waits for server to terminate.
+   */
+  void awaitTermination();
 }

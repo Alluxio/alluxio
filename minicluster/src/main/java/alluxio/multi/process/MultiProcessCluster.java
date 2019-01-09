@@ -556,7 +556,6 @@ public final class MultiProcessCluster {
         ramdisk.getAbsolutePath());
     conf.put(PropertyKey.LOGS_DIR, logsDir.getAbsolutePath());
     conf.put(PropertyKey.WORKER_RPC_PORT, Integer.toString(rpcPort));
-    conf.put(PropertyKey.WORKER_DATA_PORT, Integer.toString(dataPort));
     conf.put(PropertyKey.WORKER_WEB_PORT, Integer.toString(webPort));
 
     Worker worker = mCloser.register(new Worker(logsDir, conf));

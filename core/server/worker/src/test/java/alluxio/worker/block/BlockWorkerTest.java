@@ -84,7 +84,7 @@ public class BlockWorkerTest {
           .put(PropertyKey.WORKER_TIERED_STORE_LEVEL0_DIRS_PATH,
               AlluxioTestDirectory.createTemporaryDirectory("WORKER_TIERED_STORE_LEVEL0_DIRS_PATH")
                   .getAbsolutePath())
-          .put(PropertyKey.WORKER_DATA_PORT, Integer.toString(0))
+          .put(PropertyKey.WORKER_RPC_PORT, Integer.toString(0))
           .put(PropertyKey.WORKER_TIERED_STORE_LEVEL1_ALIAS, "HDD")
           .put(PropertyKey.WORKER_TIERED_STORE_LEVEL1_DIRS_PATH, AlluxioTestDirectory
               .createTemporaryDirectory("WORKER_TIERED_STORE_LEVEL1_DIRS_PATH").getAbsolutePath())

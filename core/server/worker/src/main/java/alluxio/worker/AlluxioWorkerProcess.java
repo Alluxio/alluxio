@@ -16,8 +16,6 @@ import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
 import alluxio.grpc.GrpcServer;
-import alluxio.grpc.GrpcServerBuilder;
-import alluxio.grpc.GrpcService;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.sink.MetricsServlet;
 import alluxio.metrics.sink.PrometheusMetricsServlet;
@@ -42,12 +40,10 @@ import io.netty.channel.unix.DomainSocketAddress;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.ServiceLoader;
 import java.util.UUID;
 import java.util.concurrent.Callable;
@@ -79,9 +75,6 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
 
   /** Worker Web UI server. */
   private WebServer mWebServer;
-
-  /** gRPC server. */
-  private GrpcServer mGrpcServer;
 
   /** Used for auto binding. **/
   private ServerSocket mBindSocket;
@@ -143,7 +136,7 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
 
       // Setup Data server
       mDataServer = DataServer.Factory
-          .create(NetworkAddressUtils.getBindAddress(ServiceType.WORKER_DATA), this);
+          .create(NetworkAddressUtils.getBindAddress(ServiceType.WORKER_RPC), this);
 
       // Setup domain socket data server
       if (isDomainSocketEnabled()) {
@@ -243,15 +236,15 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
 
     // Start serving RPC, this will block
     LOG.info("Alluxio worker version {} started. "
-            + "bindHost={}, connectHost={}, rpcPort={}, dataPort={}, webPort={}",
+            + "bindHost={}, connectHost={}, rpcPort={}, webPort={}",
         RuntimeConstants.VERSION,
         NetworkAddressUtils.getBindHost(ServiceType.WORKER_RPC),
         NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC),
         NetworkAddressUtils.getPort(ServiceType.WORKER_RPC),
-        NetworkAddressUtils.getPort(ServiceType.WORKER_DATA),
         NetworkAddressUtils.getPort(ServiceType.WORKER_WEB));
 
-    startServingRPCServer();
+    mDataServer.awaitTermination();
+
     LOG.info("Alluxio worker ended");
   }
 
@@ -267,7 +260,7 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
   }
 
   private boolean isServing() {
-    return mGrpcServer != null && mGrpcServer.isServing();
+    return mDataServer != null && !mDataServer.isClosed();
   }
 
   private void startWorkers() throws Exception {
@@ -284,11 +277,6 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
       mDomainSocketDataServer.close();
       mDomainSocketDataServer = null;
     }
-    if (isServing()) {
-      if (!mGrpcServer.shutdown()) {
-        LOG.warn("RPC server shutdown timed out.");
-      }
-    }
     mUfsManager.close();
     try {
       mWebServer.stop();
@@ -296,39 +284,6 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
       LOG.error("Failed to stop {} web server", this, e);
     }
     MetricsSystem.stopSinks();
-  }
-
-  private void registerServices(GrpcServerBuilder serverBuilder,
-      Map<alluxio.grpc.ServiceType, GrpcService> services) {
-    for (Map.Entry<alluxio.grpc.ServiceType, GrpcService> service : services.entrySet()) {
-      serverBuilder.addService(service.getKey(), service.getValue());
-      LOG.info("Registered worker service: {}", service.getKey().name());
-    }
-  }
-
-  private void startServingRPCServer() {
-    try {
-      if (mBindSocket != null) {
-        // Socket opened for auto bind.
-        // Close it.
-        mBindSocket.close();
-      }
-
-      LOG.info("Starting gRPC server on address {}", mRpcAddress);
-      GrpcServerBuilder serverBuilder = GrpcServerBuilder.forAddress(mRpcAddress);
-      for (Worker worker : mRegistry.getServers()) {
-        registerServices(serverBuilder, worker.getServices());
-      }
-
-      mGrpcServer = serverBuilder.build().start();
-      Configuration.set(PropertyKey.WORKER_RPC_PORT, Integer.toString(mGrpcServer.getBindPort()));
-      LOG.info("Started gRPC server on address {}", mRpcAddress);
-
-      // Wait until the server is shut down.
-      mGrpcServer.awaitTermination();
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
   }
 
   /**

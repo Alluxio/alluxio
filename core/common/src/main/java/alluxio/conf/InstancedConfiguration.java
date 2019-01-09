@@ -356,8 +356,6 @@ public class InstancedConfiguration implements AlluxioConfiguration {
     if (maxWorkersPerHost > 1) {
       String message = "%s cannot be specified when allowing multiple workers per host with "
           + PropertyKey.Name.INTEGRATION_YARN_WORKERS_PER_HOST_MAX + "=" + maxWorkersPerHost;
-      Preconditions.checkState(System.getProperty(PropertyKey.Name.WORKER_DATA_PORT) == null,
-          String.format(message, PropertyKey.WORKER_DATA_PORT));
       Preconditions.checkState(System.getProperty(PropertyKey.Name.WORKER_RPC_PORT) == null,
           String.format(message, PropertyKey.WORKER_RPC_PORT));
       Preconditions.checkState(System.getProperty(PropertyKey.Name.WORKER_WEB_PORT) == null,
