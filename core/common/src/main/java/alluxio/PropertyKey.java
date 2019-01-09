@@ -1223,7 +1223,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey MASTER_METASTORE_INODE_CACHE_SIZE =
       new Builder(Name.MASTER_METASTORE_INODE_CACHE_SIZE)
           .setDefaultValue("1000000")
-          .setDescription("The number of inodes to cache on-heap.")
+          .setDescription("The number of inodes to cache on-heap. "
+              + "This only applies to off-heap metastores, e.g. ROCKS.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
