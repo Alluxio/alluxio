@@ -31,7 +31,6 @@ import java.util.Optional;
  */
 public final class CachingInodeStore implements InodeStore {
   private final InodeStore mBackingStore;
-  private final InstancedConfiguration mConf;
 
   // Cache recently-accessed inodes.
   private final Cache<Long, MutableInode<?>> mInodeCache;
@@ -45,7 +44,6 @@ public final class CachingInodeStore implements InodeStore {
    */
   public CachingInodeStore(InodeStore backingStore, InstancedConfiguration conf) {
     mBackingStore = backingStore;
-    mConf = conf;
     mInodeCache = CacheBuilder.newBuilder()
         .maximumSize(conf.getInt(PropertyKey.MASTER_METASTORE_INODE_CACHE_SIZE)).build();
     mEdgeCache = CacheBuilder.newBuilder()
