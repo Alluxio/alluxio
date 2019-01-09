@@ -48,6 +48,10 @@ public final class GrpcDataServer implements DataServer {
   private final SocketAddress mSocketAddress;
   private final long mTimeoutMs =
       Configuration.getMs(PropertyKey.WORKER_NETWORK_SHUTDOWN_TIMEOUT);
+  private final long mKeepAliveTimeMs =
+      Configuration.getMs(PropertyKey.WORKER_NETWORK_KEEPALIVE_TIME_MS);
+  private final long mKeepAliveTimeoutMs =
+      Configuration.getMs(PropertyKey.WORKER_NETWORK_KEEPALIVE_TIMEOUT_MS);
   private final long mFlowControlWindow =
       Configuration.getBytes(PropertyKey.WORKER_NETWORK_FLOWCONTROL_WINDOW);
   private final long mQuietPeriodMs =
@@ -69,6 +73,8 @@ public final class GrpcDataServer implements DataServer {
       mServer = createServerBuilder(address, NettyUtils.WORKER_CHANNEL_TYPE)
           .addService(new GrpcService(new BlockWorkerImpl(workerProcess)))
           .flowControlWindow((int) mFlowControlWindow)
+          .keepAliveTime(mKeepAliveTimeMs, TimeUnit.MILLISECONDS)
+          .keepAliveTimeout(mKeepAliveTimeoutMs, TimeUnit.MILLISECONDS)
           .build()
           .start();
     } catch (IOException e) {

@@ -126,6 +126,10 @@ public class GrpcManagedChannelPool {
    */
   private ManagedChannel createManagedChannel(ChannelKey channelKey) {
     NettyChannelBuilder channelBuilder = NettyChannelBuilder.forAddress(channelKey.mAddress);
+    if (channelKey.mKeepAliveTime.isPresent()) {
+      channelBuilder.keepAliveTime(channelKey.mKeepAliveTime.get().getFirst(),
+          channelKey.mKeepAliveTime.get().getSecond());
+    }
     if (channelKey.mKeepAliveTimeout.isPresent()) {
       channelBuilder.keepAliveTimeout(channelKey.mKeepAliveTimeout.get().getFirst(),
           channelKey.mKeepAliveTimeout.get().getSecond());
@@ -184,6 +188,7 @@ public class GrpcManagedChannelPool {
   public static class ChannelKey {
     private SocketAddress mAddress;
     private boolean mPlain = false;
+    private Optional<Pair<Long, TimeUnit>> mKeepAliveTime = Optional.empty();
     private Optional<Pair<Long, TimeUnit>> mKeepAliveTimeout = Optional.empty();
     private Optional<Integer> mMaxInboundMessageSize = Optional.empty();
     private Optional<Integer> mFlowControlWindow = Optional.empty();
@@ -216,8 +221,18 @@ public class GrpcManagedChannelPool {
     }
 
     /**
+     * @param keepAliveTime keep alive time for the underlying channel
+     * @param timeUnit time unit for the keepAliveTime parameter
+     * @return the modified {@link ChannelKey}
+     */
+    public ChannelKey setKeepAliveTime(long keepAliveTime, TimeUnit timeUnit) {
+      mKeepAliveTime = Optional.of(new Pair<>(keepAliveTime, timeUnit));
+      return this;
+    }
+
+    /**
      * @param keepAliveTimeout keep alive timeout for the underlying channel
-     * @param timeUnit timeout for the keepAliveTimeout parameter
+     * @param timeUnit time unit for the keepAliveTimeout parameter
      * @return the modified {@link ChannelKey}
      */
     public ChannelKey setKeepAliveTimeout(long keepAliveTimeout, TimeUnit timeUnit) {
@@ -269,6 +284,7 @@ public class GrpcManagedChannelPool {
         ChannelKey otherKey = (ChannelKey) other;
         return mAddress == otherKey.mAddress
             && mPlain == otherKey.mPlain
+            && mKeepAliveTime == otherKey.mKeepAliveTime
             && mKeepAliveTimeout == otherKey.mKeepAliveTimeout
             && mFlowControlWindow == otherKey.mFlowControlWindow
             && mMaxInboundMessageSize == otherKey.mMaxInboundMessageSize

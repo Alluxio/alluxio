@@ -27,6 +27,7 @@ import java.net.SocketAddress;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.Executor;
+import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Nullable;
 
@@ -80,6 +81,30 @@ public final class GrpcServerBuilder {
    */
   public GrpcServerBuilder flowControlWindow(int flowControlWindow) {
     mNettyServerBuilder = mNettyServerBuilder.flowControlWindow(flowControlWindow);
+    return this;
+  }
+
+  /**
+   * Sets the keep alive time.
+   *
+   * @param keepAliveTime the time to wait after idle before pinging client
+   * @param timeUnit unit of the time
+   * @return an updated instance of this {@link GrpcServerBuilder}
+   */
+  public GrpcServerBuilder keepAliveTime(long keepAliveTime, TimeUnit timeUnit) {
+    mNettyServerBuilder = mNettyServerBuilder.keepAliveTime(keepAliveTime, timeUnit);
+    return this;
+  }
+
+  /**
+   * Sets the keep alive timeout.
+   *
+   * @param keepAliveTimeout time to wait after pinging client before closing the connection
+   * @param timeUnit unit of the timeout
+   * @return an updated instance of this {@link GrpcServerBuilder}
+   */
+  public GrpcServerBuilder keepAliveTimeout(long keepAliveTimeout, TimeUnit timeUnit) {
+    mNettyServerBuilder = mNettyServerBuilder.keepAliveTimeout(keepAliveTimeout, timeUnit);
     return this;
   }
 

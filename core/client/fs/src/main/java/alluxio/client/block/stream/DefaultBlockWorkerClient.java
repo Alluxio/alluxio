@@ -51,6 +51,8 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
   private static final Logger LOGGER =
       LoggerFactory.getLogger(DefaultBlockWorkerClient.class.getName());
 
+  private static final long KEEPALIVE_TIME_MS =
+      Configuration.getMs(PropertyKey.USER_NETWORK_KEEPALIVE_TIME_MS);
   private static final long KEEPALIVE_TIMEOUT_MS =
       Configuration.getMs(PropertyKey.USER_NETWORK_KEEPALIVE_TIMEOUT_MS);
   private static final long GRPC_FLOWCONTROL_WINDOW =
@@ -78,6 +80,7 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
       mChannel = GrpcChannelBuilder.forAddress(address).setSubject(subject)
           .setChannelType(NettyUtils.getClientChannelClass(!(address instanceof InetSocketAddress)))
           .setEventLoopGroup(WORKER_GROUP)
+          .setKeepAliveTime(KEEPALIVE_TIME_MS, TimeUnit.MILLISECONDS)
           .setKeepAliveTimeout(KEEPALIVE_TIMEOUT_MS, TimeUnit.MILLISECONDS)
           .setMaxInboundMessageSize((int) MAX_INBOUND_MESSAGE_SIZE)
           .setFlowControlWindow((int) GRPC_FLOWCONTROL_WINDOW).build();

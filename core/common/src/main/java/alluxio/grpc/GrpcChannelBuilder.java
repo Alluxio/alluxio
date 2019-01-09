@@ -106,10 +106,22 @@ public final class GrpcChannelBuilder {
   }
 
   /**
-   * Sets the time waiting for read activity after sending a keepalive ping.
+   * Sets the time to wait after receiving last message before pinging the server.
    *
-   * @param keepAliveTimeout the timeout for waiting after keepalive ping
-   * @param timeUnit the time unit for the keepalive timeout
+   * @param keepAliveTime the time to wait after receiving last message before pinging server
+   * @param timeUnit unit of the time
+   * @return the updated {@link GrpcChannelBuilder} instance
+   */
+  public GrpcChannelBuilder setKeepAliveTime(long keepAliveTime, TimeUnit timeUnit) {
+    mChannelKey.setKeepAliveTime(keepAliveTime, timeUnit);
+    return this;
+  }
+
+  /**
+   * Sets the maximum time waiting for response after pinging server before closing connection.
+   *
+   * @param keepAliveTimeout the time to wait after pinging server before closing the connection
+   * @param timeUnit unit of the timeout
    * @return the updated {@link GrpcChannelBuilder} instance
    */
   public GrpcChannelBuilder setKeepAliveTimeout(long keepAliveTimeout, TimeUnit timeUnit) {
