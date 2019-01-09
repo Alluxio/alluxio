@@ -138,17 +138,17 @@ public class RocksInodeStore implements InodeStore {
 
   @Override
   public Optional<MutableInode<?>> getMutable(long id) {
-    byte[] inodeBytes;
+    byte[] inode;
     try {
-      inodeBytes = mDb.get(mInodesColumn, Longs.toByteArray(id));
+      inode = mDb.get(mInodesColumn, Longs.toByteArray(id));
     } catch (RocksDBException e) {
       throw new RuntimeException(e);
     }
-    if (inodeBytes == null) {
+    if (inode == null) {
       return Optional.empty();
     }
     try {
-      return Optional.of(MutableInode.fromProto(InodeMeta.Inode.parseFrom(inodeBytes)));
+      return Optional.of(MutableInode.fromProto(InodeMeta.Inode.parseFrom(inode)));
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
