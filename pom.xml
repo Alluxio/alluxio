@@ -170,7 +170,7 @@
   </properties>
 
   <modules>
-    <module>alluxio-ui</module>
+    <!--<module>alluxio-ui</module>-->
     <module>assembly</module>
     <module>core</module>
     <module>examples</module>
@@ -1187,6 +1187,14 @@
             <exclude>**/.checkstyle</exclude>
             <exclude>**/src/main/assembly/*</exclude>
             <exclude>**/.idea/**</exclude>
+            <exclude>alluxio-ui/**/.nvmrc</exclude>
+            <exclude>alluxio-ui/**/*.svg</exclude>
+            <exclude>alluxio-ui/**/.env*</exclude>
+            <exclude>alluxio-ui/**/node/**</exclude>
+            <exclude>alluxio-ui/**/node_modules/**</exclude>
+            <exclude>alluxio-ui/**/src/**/*.css</exclude>
+            <exclude>alluxio-ui/**/public/index.html</exclude>
+            <exclude>alluxio-ui/**/build/**</exclude>
 
             <!-- Documentation Exclusions -->
             <exclude>docs/**/*</exclude>
@@ -1202,7 +1210,8 @@
             <alluxio>SCRIPT_STYLE</alluxio>
             <go>SLASHSTAR_STYLE</go>
             <java>SLASHSTAR_STYLE</java>
-            <jsx>SLASHSTAR_STYLE</jsx>
+            <tsx>SLASHSTAR_STYLE</tsx>
+            <scss>SLASHSTAR_STYLE</scss>
             <properties.template>SCRIPT_STYLE</properties.template>
             <sh.template>SCRIPT_STYLE</sh.template>
             <workers>SCRIPT_STYLE</workers>
