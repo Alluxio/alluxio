@@ -41,7 +41,7 @@ public class RunOperation {
 
   @Parameter(names = {"-op", "-operation"},
       description = "the operation to perform. Options are [CreateEmptyFile, "
-          + "CreateAndDeleteEmptyFile, CreateFile, ListDir]",
+          + "CreateAndDeleteEmptyFile, CreateFile, ListStatus]",
       required = true)
   private Operation mOperation;
   @Parameter(names = {"-n", "-num"},
