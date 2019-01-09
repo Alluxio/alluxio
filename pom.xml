@@ -170,7 +170,7 @@
   </properties>
 
   <modules>
-    <!--<module>alluxio-ui</module>-->
+    <module>alluxio-ui</module>
     <module>assembly</module>
     <module>core</module>
     <module>examples</module>
