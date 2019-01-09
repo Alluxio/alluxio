@@ -273,6 +273,8 @@ public class RocksInodeStore implements InodeStore {
     );
 
     DBOptions options = new DBOptions()
+        // Concurrent memtable write is not supported for hash linked list memtable
+        .setAllowConcurrentMemtableWrite(false)
         .setMaxOpenFiles(-1)
         .setCreateIfMissing(true)
         .setCreateMissingColumnFamilies(true);
@@ -280,8 +282,6 @@ public class RocksInodeStore implements InodeStore {
     if (Configuration.getBoolean(PropertyKey.MASTER_METASTORE_ROCKS_IN_MEMORY)) {
       options.setAllowMmapReads(true);
       options.setAllowMmapWrites(true);
-      // Concurrent memtable write is not supported for plain table format.
-      options.setAllowConcurrentMemtableWrite(false);
     }
 
     // a list which will hold the handles for the column families once the db is opened
