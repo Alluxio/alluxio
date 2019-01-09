@@ -11,19 +11,20 @@
 
 package alluxio.master.metastore;
 
-import java.util.Iterator;
-import java.util.Optional;
-
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
-
 import alluxio.Configuration;
 import alluxio.PropertyKey;
+import alluxio.conf.InstancedConfiguration;
 import alluxio.master.file.meta.Edge;
 import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeDirectoryView;
 import alluxio.master.file.meta.InodeView;
 import alluxio.master.file.meta.MutableInode;
+
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
+
+import java.util.Iterator;
+import java.util.Optional;
 
 /**
  * An inode store which caches inode tree metadata and delegates to another inode store for cache
@@ -31,20 +32,24 @@ import alluxio.master.file.meta.MutableInode;
  */
 public final class CachingInodeStore implements InodeStore {
   private final InodeStore mBackingStore;
+  private final InstancedConfiguration mConf;
 
   // Cache recently-accessed inodes.
-  private final Cache<Long, MutableInode<?>> mInodeCache = CacheBuilder.newBuilder()
-      .maximumSize(Configuration.getInt(PropertyKey.MASTER_METASTORE_INODE_CACHE_SIZE)).build();
+  private final Cache<Long, MutableInode<?>> mInodeCache;
 
   // Cache recently-accessed inode tree edges.
-  private final Cache<Edge, Long> mEdgeCache = CacheBuilder.newBuilder()
-      .maximumSize(Configuration.getInt(PropertyKey.MASTER_METASTORE_INODE_CACHE_SIZE)).build();
+  private final Cache<Edge, Long> mEdgeCache;;
 
   /**
    * @param backingStore the backing inode store
    */
-  public CachingInodeStore(InodeStore backingStore) {
+  public CachingInodeStore(InodeStore backingStore, InstancedConfiguration conf) {
     mBackingStore = backingStore;
+    mConf = conf;
+    mInodeCache = CacheBuilder.newBuilder()
+        .maximumSize(conf.getInt(PropertyKey.MASTER_METASTORE_INODE_CACHE_SIZE)).build();
+    mEdgeCache = CacheBuilder.newBuilder()
+        .maximumSize(conf.getInt(PropertyKey.MASTER_METASTORE_INODE_CACHE_SIZE)).build();
   }
 
   @Override
