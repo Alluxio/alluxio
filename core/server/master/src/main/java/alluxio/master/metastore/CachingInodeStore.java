@@ -11,7 +11,6 @@
 
 package alluxio.master.metastore;
 
-import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.master.file.meta.Edge;
@@ -38,10 +37,11 @@ public final class CachingInodeStore implements InodeStore {
   private final Cache<Long, MutableInode<?>> mInodeCache;
 
   // Cache recently-accessed inode tree edges.
-  private final Cache<Edge, Long> mEdgeCache;;
+  private final Cache<Edge, Long> mEdgeCache;
 
   /**
    * @param backingStore the backing inode store
+   * @param conf configuration
    */
   public CachingInodeStore(InodeStore backingStore, InstancedConfiguration conf) {
     mBackingStore = backingStore;
