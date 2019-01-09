@@ -121,30 +121,25 @@ public final class AlluxioMasterRestServiceHandler {
   @ReturnType("alluxio.wire.AlluxioMasterInfo")
   public Response getInfo(@QueryParam(QUERY_RAW_CONFIGURATION) final Boolean rawConfiguration) {
     // TODO(jiri): Add a mechanism for retrieving only a subset of the fields.
-    return RestUtils.call(new RestUtils.RestCallable<AlluxioMasterInfo>() {
-      @Override
-      public AlluxioMasterInfo call() throws Exception {
-        boolean rawConfig = false;
-        if (rawConfiguration != null) {
-          rawConfig = rawConfiguration;
-        }
-        AlluxioMasterInfo result =
-            new AlluxioMasterInfo()
-                .setCapacity(getCapacityInternal())
-                .setConfiguration(getConfigurationInternal(rawConfig))
-                .setLostWorkers(mBlockMaster.getLostWorkersInfoList())
-                .setMetrics(getMetricsInternal())
-                .setMountPoints(getMountPointsInternal())
-                .setRpcAddress(mMasterProcess.getRpcAddress().toString())
-                .setStartTimeMs(mMasterProcess.getStartTimeMs())
-                .setStartupConsistencyCheck(getStartupConsistencyCheckInternal())
-                .setTierCapacity(getTierCapacityInternal())
-                .setUfsCapacity(getUfsCapacityInternal())
-                .setUptimeMs(mMasterProcess.getUptimeMs())
-                .setVersion(RuntimeConstants.VERSION)
-                .setWorkers(mBlockMaster.getWorkerInfoList());
-        return result;
+    return RestUtils.call(() -> {
+      boolean rawConfig = false;
+      if (rawConfiguration != null) {
+        rawConfig = rawConfiguration;
       }
+      return new AlluxioMasterInfo()
+          .setCapacity(getCapacityInternal())
+          .setConfiguration(getConfigurationInternal(rawConfig))
+          .setLostWorkers(mBlockMaster.getLostWorkersInfoList())
+          .setMetrics(getMetricsInternal())
+          .setMountPoints(getMountPointsInternal())
+          .setRpcAddress(mMasterProcess.getRpcAddress().toString())
+          .setStartTimeMs(mMasterProcess.getStartTimeMs())
+          .setStartupConsistencyCheck(getStartupConsistencyCheckInternal())
+          .setTierCapacity(getTierCapacityInternal())
+          .setUfsCapacity(getUfsCapacityInternal())
+          .setUptimeMs(mMasterProcess.getUptimeMs())
+          .setVersion(RuntimeConstants.VERSION)
+          .setWorkers(mBlockMaster.getWorkerInfoList());
     });
   }
 
@@ -173,7 +168,7 @@ public final class AlluxioMasterRestServiceHandler {
   @ReturnType("java.util.SortedMap<java.lang.String, java.lang.Long>")
   @Deprecated
   public Response getMetrics() {
-    return RestUtils.call(() -> getMetricsInternal());
+    return RestUtils.call(this::getMetricsInternal);
   }
 
   /**

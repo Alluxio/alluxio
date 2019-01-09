@@ -13,7 +13,6 @@ package alluxio.client.metrics;
 
 import alluxio.AbstractMasterClient;
 import alluxio.Constants;
-import alluxio.client.file.FileSystemContext;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.Metric;
 import alluxio.grpc.MetricsHeartbeatPOptions;
@@ -21,6 +20,7 @@ import alluxio.grpc.MetricsHeartbeatPRequest;
 import alluxio.grpc.MetricsMasterClientServiceGrpc;
 import alluxio.grpc.ServiceType;
 import alluxio.master.MasterClientConfig;
+import alluxio.metrics.MetricsSystem;
 import alluxio.retry.RetryUtils;
 import alluxio.util.network.NetworkAddressUtils;
 
@@ -74,7 +74,7 @@ public class MetricsMasterClient extends AbstractMasterClient {
     connect();
     try {
       MetricsHeartbeatPRequest.Builder request = MetricsHeartbeatPRequest.newBuilder();
-      request.setClientId(FileSystemContext.get().getId());
+      request.setClientId(MetricsSystem.getAppId());
       request.setHostname(NetworkAddressUtils.getClientHostName());
       request.setOptions(MetricsHeartbeatPOptions.newBuilder().addAllMetrics(metrics).build());
       mClient.metricsHeartbeat(request.build());

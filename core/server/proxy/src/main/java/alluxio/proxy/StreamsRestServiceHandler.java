@@ -70,16 +70,13 @@ public final class StreamsRestServiceHandler {
   @Path(ID_PARAM + CLOSE)
   @ReturnType("java.lang.Void")
   public Response close(@PathParam("id") final Integer id) {
-    return RestUtils.call(new RestUtils.RestCallable<Void>() {
-      @Override
-      public Void call() throws Exception {
-        // When a stream is invalidated from the cache, the removal listener of the cache will
-        // automatically close the stream.
-        if (mStreamCache.invalidate(id) == null) {
-          throw new IllegalArgumentException("stream does not exist");
-        }
-        return null;
+    return RestUtils.call((RestUtils.RestCallable<Void>) () -> {
+      // When a stream is invalidated from the cache, the removal listener of the cache will
+      // automatically close the stream.
+      if (mStreamCache.invalidate(id) == null) {
+        throw new IllegalArgumentException("stream does not exist");
       }
+      return null;
     });
   }
 

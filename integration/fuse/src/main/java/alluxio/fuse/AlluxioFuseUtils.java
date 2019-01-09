@@ -113,6 +113,27 @@ public final class AlluxioFuseUtils {
   }
 
   /**
+   * Checks whether fuse is installed in local file system.
+   * Alluxio-Fuse only support mac and linux.
+   *
+   * @return true if fuse is installed, false otherwise
+   */
+  public static boolean isFuseInstalled() {
+    try {
+      if (OSUtils.isLinux()) {
+        String result = ShellUtils.execCommand("fusermount", "-V");
+        return !result.isEmpty();
+      } else if (OSUtils.isMacOS()) {
+        String result = ShellUtils.execCommand("bash", "-c", "mount | grep FUSE");
+        return !result.isEmpty();
+      }
+    } catch (Exception e) {
+      return false;
+    }
+    return false;
+  }
+
+  /**
    * Runs the "id" command with the given options on the passed username.
    *
    * @param option option to pass to id (either -u or -g)

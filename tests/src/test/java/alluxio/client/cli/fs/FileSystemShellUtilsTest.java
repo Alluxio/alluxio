@@ -25,7 +25,6 @@ import alluxio.master.LocalAlluxioCluster;
 import alluxio.testutils.LocalAlluxioClusterResource;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.thrift.TException;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -174,7 +173,7 @@ public final class FileSystemShellUtilsTest {
    * @param fsType the type of file system
    * @return a list of files that matches inputPath
    */
-  public List<String> getPaths(String path, FsType fsType) throws IOException, TException {
+  public List<String> getPaths(String path, FsType fsType) throws IOException {
     List<String> ret = null;
     if (fsType == FsType.TFS) {
       List<AlluxioURI> tPaths =
@@ -212,7 +211,7 @@ public final class FileSystemShellUtilsTest {
   }
 
   @Test
-  public void getPath() throws IOException, AlluxioException, TException {
+  public void getPath() throws IOException, AlluxioException {
     for (FsType fsType : FsType.values()) {
       String rootDir = resetFsHierarchy(fsType);
 

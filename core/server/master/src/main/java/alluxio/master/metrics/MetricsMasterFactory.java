@@ -12,7 +12,7 @@
 package alluxio.master.metrics;
 
 import alluxio.Constants;
-import alluxio.master.MasterContext;
+import alluxio.master.CoreMasterContext;
 import alluxio.master.MasterFactory;
 import alluxio.master.MasterRegistry;
 
@@ -25,7 +25,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * Factory to create a {@link MetricsMaster} instance.
  */
 @ThreadSafe
-public final class MetricsMasterFactory implements MasterFactory {
+public final class MetricsMasterFactory implements MasterFactory<CoreMasterContext> {
   private static final Logger LOG = LoggerFactory.getLogger(MetricsMasterFactory.class);
 
   /**
@@ -44,7 +44,7 @@ public final class MetricsMasterFactory implements MasterFactory {
   }
 
   @Override
-  public MetricsMaster create(MasterRegistry registry, MasterContext context) {
+  public MetricsMaster create(MasterRegistry registry, CoreMasterContext context) {
     LOG.info("Creating {} ", MetricsMaster.class.getName());
     MetricsMaster master = new DefaultMetricsMaster(context);
     registry.add(MetricsMaster.class, master);

@@ -47,7 +47,6 @@ import javax.security.auth.Subject;
 /**
  * The base class for clients.
  */
-// TODO(peis): Consolidate this to ThriftClientPool.
 @ThreadSafe
 public abstract class AbstractClient implements Client {
   private static final Logger LOG = LoggerFactory.getLogger(AbstractClient.class);
@@ -219,13 +218,6 @@ public abstract class AbstractClient implements Client {
       } catch (IOException e) {
         LOG.warn("Failed to connect ({}) with {} @ {}: {}", retryPolicy.getAttemptCount(),
             getServiceName(), mAddress, e.getMessage());
-        if (e.getCause() instanceof java.net.SocketTimeoutException) {
-          // Do not retry if socket timeout.
-          String message = "Thrift transport open times out. Please check whether the "
-              + "authentication types match between client and server. Note that NOSASL client "
-              + "is not able to connect to servers with SIMPLE security mode.";
-          throw new UnavailableException(message, e);
-        }
       }
     }
     // Reaching here indicates that we did not successfully connect.
@@ -285,7 +277,7 @@ public abstract class AbstractClient implements Client {
      * The task where RPC happens.
      *
      * @return RPC result
-     * @throws StatusRuntimeException when any exception defined in thrift happens
+     * @throws StatusRuntimeException when any exception defined in gRPC happens
      */
     V call() throws StatusRuntimeException;
   }

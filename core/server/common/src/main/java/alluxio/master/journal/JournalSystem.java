@@ -14,9 +14,14 @@ package alluxio.master.journal;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.master.journal.noop.NoopJournalSystem;
+import alluxio.master.journal.raft.RaftJournalConfiguration;
+import alluxio.master.journal.raft.RaftJournalSystem;
 import alluxio.master.journal.ufs.UfsJournalSystem;
 import alluxio.proto.journal.Journal.JournalEntry;
+import alluxio.util.CommonUtils;
+import alluxio.util.network.NetworkAddressUtils.ServiceType;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 
@@ -191,6 +196,17 @@ public interface JournalSystem {
           return new NoopJournalSystem();
         case UFS:
           return new UfsJournalSystem(mLocation, mQuietTimeMs);
+        case EMBEDDED:
+          ServiceType serviceType;
+          if (CommonUtils.PROCESS_TYPE.get().equals(CommonUtils.ProcessType.MASTER)) {
+            serviceType = ServiceType.MASTER_RAFT;
+          } else {
+            // We might reach here during journal formatting. In that case the journal system is
+            // never started, so any value of serviceType is fine.
+            serviceType = ServiceType.JOB_MASTER_RAFT;
+          }
+          return RaftJournalSystem.create(RaftJournalConfiguration.defaults(serviceType)
+                  .setPath(new File(mLocation.getPath())));
         default:
           throw new IllegalStateException("Unrecognized journal type: " + journalType);
       }

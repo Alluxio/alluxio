@@ -70,9 +70,20 @@ public final class NetworkAddressUtils {
    * bind address.
    */
   public enum ServiceType {
+    /**
+     * Job master Raft service (Netty).
+     */
+    JOB_MASTER_RAFT("Alluxio Job Master Raft service", PropertyKey.JOB_MASTER_HOSTNAME,
+        PropertyKey.JOB_MASTER_BIND_HOST, PropertyKey.JOB_MASTER_EMBEDDED_JOURNAL_PORT),
 
     /**
-     * Job master RPC service (Thrift).
+     * Master Raft service (Netty).
+     */
+    MASTER_RAFT("Alluxio Master Raft service", PropertyKey.MASTER_HOSTNAME,
+        PropertyKey.MASTER_BIND_HOST, PropertyKey.MASTER_EMBEDDED_JOURNAL_PORT),
+
+    /**
+     * Job master RPC service (gRPC).
      */
     JOB_MASTER_RPC("Alluxio Job Manager Master RPC service", PropertyKey.JOB_MASTER_HOSTNAME,
         PropertyKey.JOB_MASTER_BIND_HOST, PropertyKey.JOB_MASTER_RPC_PORT),
@@ -84,7 +95,7 @@ public final class NetworkAddressUtils {
         PropertyKey.JOB_MASTER_WEB_BIND_HOST, PropertyKey.JOB_MASTER_WEB_PORT),
 
     /**
-     * Job worker RPC service (Thrift).
+     * Job worker RPC service (gRPC).
      */
     JOB_WORKER_RPC("Alluxio Job Manager Worker RPC service", PropertyKey.WORKER_HOSTNAME,
         PropertyKey.JOB_WORKER_BIND_HOST, PropertyKey.JOB_WORKER_RPC_PORT),
@@ -96,7 +107,7 @@ public final class NetworkAddressUtils {
         PropertyKey.JOB_WORKER_WEB_BIND_HOST, PropertyKey.JOB_WORKER_WEB_PORT),
 
     /**
-     * Master RPC service (Thrift).
+     * Master RPC service (gRPC).
      */
     MASTER_RPC("Alluxio Master RPC service", PropertyKey.MASTER_HOSTNAME,
         PropertyKey.MASTER_BIND_HOST, PropertyKey.MASTER_RPC_PORT),
@@ -108,7 +119,7 @@ public final class NetworkAddressUtils {
         PropertyKey.MASTER_WEB_BIND_HOST, PropertyKey.MASTER_WEB_PORT),
 
     /**
-     * Worker RPC service (Thrift).
+     * Worker RPC service (gRPC).
      */
     WORKER_RPC("Alluxio Worker RPC service", PropertyKey.WORKER_HOSTNAME,
         PropertyKey.WORKER_BIND_HOST, PropertyKey.WORKER_RPC_PORT),
@@ -710,7 +721,7 @@ public final class NetworkAddressUtils {
 
   /**
    * Test if the input address is serving an Alluxio service. This method make use of the
-   * Thrift protocol for performing service communication.
+   * gRPC protocol for performing service communication.
    *
    * @param address the network address to ping
    * @param serviceType the Alluxio service type

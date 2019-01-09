@@ -13,6 +13,8 @@ package alluxio.worker.grpc;
 
 import alluxio.exception.status.AlluxioStatusException;
 
+import com.google.common.base.MoreObjects;
+
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -41,5 +43,11 @@ class Error {
    */
   public boolean isNotifyClient() {
     return mNotifyClient;
+  }
+
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this).add("cause", mCause).add("notifyClient", mNotifyClient)
+        .toString();
   }
 }

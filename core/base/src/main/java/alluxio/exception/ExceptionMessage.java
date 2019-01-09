@@ -30,6 +30,7 @@ public enum ExceptionMessage {
   PATH_DOES_NOT_EXIST("Path \"{0}\" does not exist."),
   PATH_MUST_BE_FILE("Path \"{0}\" must be a file."),
   PATH_MUST_BE_DIRECTORY("Path \"{0}\" must be a directory."),
+  PATH_MUST_BE_MOUNT_POINT("Path \"{0}\" must be a mount point."),
   PATH_INVALID("Path \"{0}\" is invalid."),
 
   // general block
@@ -39,6 +40,9 @@ public enum ExceptionMessage {
   NO_SPACE_FOR_BLOCK_ON_WORKER("There is no worker with enough space for a new block of size {0}"),
   NO_WORKER_AVAILABLE_ON_ADDRESS("No Alluxio worker available for address {0}"),
   NO_WORKER_AVAILABLE("No available Alluxio worker found"),
+
+  // active sync
+  FAILED_INITIAL_SYNC("IOException encountered during initial syncing of sync point {0}"),
 
   // block lock manager
   LOCK_ID_FOR_DIFFERENT_BLOCK("lockId {0,number,#} is for blockId {1,number,#}, not {2,number,#}"),
@@ -123,6 +127,10 @@ public enum ExceptionMessage {
   JOURNAL_WRITE_FAILURE("Failed to write to journal file ({0}): {1}"),
   JOURNAL_FLUSH_FAILURE("Failed to flush journal file ({0}): {1}"),
   UNEXPECTED_JOURNAL_ENTRY("Unexpected entry in journal: {0}"),
+
+  // Raft journal
+  FAILED_RAFT_BOOTSTRAP("Failed to bootstrap raft cluster with addresses {0}: {1}"),
+  FAILED_RAFT_CONNECT("Failed to connect to raft cluster with addresses {0}: {1}"),
 
   // file
   CANNOT_READ_DIRECTORY("Cannot read from {0} because it is a directory"),
@@ -277,6 +285,7 @@ public enum ExceptionMessage {
   // job manager
   JOB_DEFINITION_DOES_NOT_EXIST("The job definition for config {0} does not exist"),
   JOB_DOES_NOT_EXIST("The job of id {0} does not exist"),
+  JOB_MASTER_FULL_CAPACITY("Job master is at full capacity of {0} jobs"),
 
   // block worker
   FAILED_COMMIT_BLOCK_TO_MASTER("Failed to commit block with blockId {0,number,#} to master"),

@@ -24,7 +24,7 @@ public final class MasterTestUtils {
   /**
    * @return a basic master context for the purpose of testing
    */
-  public static MasterContext testMasterContext() {
+  public static CoreMasterContext testMasterContext() {
     return testMasterContext(new NoopJournalSystem());
   }
 
@@ -32,9 +32,14 @@ public final class MasterTestUtils {
    * @return a basic master context for the purpose of testing
    * @param journalSystem a journal system to use in the context
    */
-  public static MasterContext testMasterContext(JournalSystem journalSystem) {
-    return new MasterContext(journalSystem, new TestSafeModeManager(),
-        mock(BackupManager.class), -1, -1);
+  public static CoreMasterContext testMasterContext(JournalSystem journalSystem) {
+    return CoreMasterContext.newBuilder()
+        .setJournalSystem(journalSystem)
+        .setSafeModeManager(new TestSafeModeManager())
+        .setBackupManager(mock(BackupManager.class))
+        .setStartTimeMs(-1)
+        .setPort(-1)
+        .build();
   }
 
   private MasterTestUtils() {} // Not intended for instatiation.

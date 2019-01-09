@@ -39,7 +39,6 @@ function printUsage {
   echo -e "  copyDir <PATH>\t Copy the PATH to all worker nodes."
   echo -e "  clearCache    \t Clear OS buffer cache of the machine."
   echo -e "  confDocGen    \t Generate configuration docs."
-  echo -e "  thriftGen     \t Generate all thrift code."
   echo -e "  version       \t Print Alluxio version and exit."
   echo -e "  validateConf  \t Validate Alluxio conf and exit."
   echo -e "  validateEnv   \t Validate Alluxio environment."
@@ -375,15 +374,6 @@ function main {
     CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
     ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.logger.type=Console"
     runJavaClass "$@"
-  ;;
-  "thriftGen")
-    declare -a thriftSrcPaths=($(find "${BIN}/.." -name "*.thrift" -print0 | xargs -0 -n1 dirname | sort | uniq))
-    for thriftSrcPath in ${thriftSrcPaths[@]}; do
-      rm -rf "${thriftSrcPath}/../main/java/alluxio/thrift"
-      for srcFile in $(ls "${thriftSrcPath}"); do
-        thrift -I "${BIN}/../core/common/src/thrift" --gen java:private-members,generated_annotations=undated -out "${thriftSrcPath}/../main/java/." "${thriftSrcPath}/${srcFile}"
-      done
-    done
   ;;
   "clearCache")
     sync; echo 3 > /proc/sys/vm/drop_caches ;

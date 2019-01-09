@@ -11,6 +11,7 @@
 
 package alluxio.web;
 
+import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
@@ -221,18 +222,24 @@ public final class WebInterfaceGeneralServlet extends HttpServlet {
     request.setAttribute("configCheckWarnNum",
         report.getConfigWarns().values().stream().mapToInt(List::size).sum());
 
+    StorageTierInfo[] infos = generateOrderedStorageTierInfo();
+    request.setAttribute("storageTierInfos", infos);
+
     setUfsAttributes(request);
   }
 
   private void setUfsAttributes(HttpServletRequest request) {
     FileSystemMaster fsMaster = mMasterProcess.getMaster(FileSystemMaster.class);
-    Map<String, MountPointInfo> mountPoints = fsMaster.getMountTable();
-    MountPointInfo mountInfo = mountPoints.get(MountTable.ROOT);
-    if (mountInfo == null) {
-      LOG.error("Missing root mount info");
+    MountPointInfo mountInfo;
+    try {
+      mountInfo = fsMaster.getMountPointInfo(new AlluxioURI(MountTable.ROOT));
+    } catch (Throwable e) {
+      LOG.error("Unable to get mount point information of Alluxio root", e);
+      request.setAttribute("diskCapacity", "UNKNOWN");
+      request.setAttribute("diskUsedCapacity", "UNKNOWN");
+      request.setAttribute("diskFreeCapacity", "UNKNOWN");
       return;
     }
-
     long capacityBytes = mountInfo.getUfsCapacityBytes();
     long usedBytes = mountInfo.getUfsUsedBytes();
     long freeBytes = -1;
@@ -257,8 +264,5 @@ public final class WebInterfaceGeneralServlet extends HttpServlet {
       freeSpace = FormatUtils.getSizeFromBytes(freeBytes);
     }
     request.setAttribute("diskFreeCapacity", freeSpace);
-
-    StorageTierInfo[] infos = generateOrderedStorageTierInfo();
-    request.setAttribute("storageTierInfos", infos);
   }
 }

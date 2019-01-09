@@ -17,8 +17,8 @@ The following is a checklist to run through to address common problems when tuni
 
 1. Are all nodes working?
 
-   Check that the Alluxio cluster is healthy. You can check the web user interface at 
-   `http://MasterHost:19999` to see if the masters and workers are working correctly from a browser. 
+   Check that the Alluxio cluster is healthy. You can check the web user interface at
+   `http://MasterHost:19999` to see if the masters and workers are working correctly from a browser.
    Alternatively, you can run `bin/alluxio fsadmin report` to collect similar information from the console.
    Important metrics to verify if any nodes are out of service are the number of lost workers and
    the last heartbeat time.
@@ -32,7 +32,7 @@ The following is a checklist to run through to address common problems when tuni
    If the local throughput is zero or significantly lower than the total throughput,
    the compute application is likely not interfacing with a local Alluxio worker.
    The Alluxio client uses hostname matching to discover a local Alluxio worker;
-   check that the client and worker use the same hostname string. 
+   check that the client and worker use the same hostname string.
    Configuring `alluxio.user.hostname` and `alluxio.worker.hostname` sets the client and worker
    hostnames respectively.
 
@@ -59,7 +59,7 @@ The following is a checklist to run through to address common problems when tuni
 
    This could indicate that the client is timing out when communicating with the Alluxio worker.
    To increase the timeout, configure `alluxio.user.network.netty.timeout`, which has a default of `30s`.
-    
+
    If write operations are timing out, configure `alluxio.user.network.netty.writer.close.timeout`,
    which has a default of `5m`. This is especially important when writing large files to object stores
    with a slow network connection. The entire object is uploaded at once upon closing the file.
@@ -68,7 +68,7 @@ The following is a checklist to run through to address common problems when tuni
 
    Frequent and long GC operations on master or worker JVMs drastically slow down the process.
    This can be identified by adding logging for GC events; append the following to `conf/allulxio-env.sh`:
-   
+
 ```
 ALLUXIO_JAVA_OPTS=" -XX:+PrintGCDetails -XX:+PrintTenuringDistribution -XX:+PrintGCTimestamps"
 ```
@@ -89,7 +89,7 @@ To detect long GC pauses, Alluxio administrators can set `alluxio.master.jvm.mon
 for masters or `alluxio.worker.jvm.monitor.enabled=true` for workers.
 This will trigger a monitoring thread that periodically measures the delay between two GC pauses.
 A long delay could indicate that the process is spending significant time garbage collecting.
-The following parameters tune the behavior of the monitor thread: 
+The following parameters tune the behavior of the monitor thread:
 
 <table class="table table-striped">
 <tr><th>Property</th><th>Default</th><th>Description</th></tr>
@@ -121,7 +121,7 @@ One way to avoid this situation is to apply a deterministic hashing policy by sp
 following configuration property:
 
 ```
-alluxio.user.ufs.block.read.location.policy=DeterministicHashPolicy
+alluxio.user.ufs.block.read.location.policy=alluxio.client.block.policy.DeterministicHashPolicy
 ```
 
 This will cause Alluxio to select a single random worker to read the given block from the UFS
@@ -206,8 +206,8 @@ If this is set to 0, the cache is disabled and the `Once` setting will behave li
 
 ### Block thread pool size
 
-The `alluxio.worker.block.threads.max` property configures the maximum number of incoming RPC requests to 
-worker that can be handled. 
+The `alluxio.worker.block.threads.max` property configures the maximum number of incoming RPC requests to
+worker that can be handled.
 This value is used to configure maximum number of threads in Thrift thread pool of the block worker.
 This value should be greater than the sum of `alluxio.user.block.worker.client.threads` across concurrent Alluxio clients.
 Otherwise, the worker connection pool can be drained, preventing new connections from being established.

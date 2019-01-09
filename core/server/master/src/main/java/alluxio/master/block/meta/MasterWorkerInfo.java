@@ -361,6 +361,19 @@ public final class MasterWorkerInfo {
   }
 
   /**
+   * Sets the capacity of the worker in bytes.
+   *
+   * @param capacityBytesOnTiers used bytes on each storage tier
+   */
+  public void updateCapacityBytes(Map<String, Long> capacityBytesOnTiers) {
+    mCapacityBytes = 0;
+    mTotalBytesOnTiers = capacityBytesOnTiers;
+    for (long t : mTotalBytesOnTiers.values()) {
+      mCapacityBytes += t;
+    }
+  }
+
+  /**
    * Sets the used space of the worker in bytes.
    *
    * @param usedBytesOnTiers used bytes on each storage tier

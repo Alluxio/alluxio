@@ -11,8 +11,9 @@
 
 package alluxio.master.file.meta;
 
-import javax.annotation.concurrent.ThreadSafe;
 import java.util.List;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * This class represents a list of locked inodePaths.
@@ -40,7 +41,7 @@ public class LockedInodePathList implements AutoCloseable {
 
   @Override
   public void close() {
-    for (LockedInodePath lockedInodePath: mInodePathList) {
+    for (LockedInodePath lockedInodePath : mInodePathList) {
       lockedInodePath.close();
     }
   }

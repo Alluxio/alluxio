@@ -225,4 +225,14 @@ public final class StorageTier {
   public List<StorageDir> getStorageDirs() {
     return Collections.unmodifiableList(mDirs);
   }
+
+  /**
+   * Removes a directory.
+   * @param dir directory to be removed
+   */
+  public void removeStorageDir(StorageDir dir) {
+    if (mDirs.remove(dir)) {
+      mCapacityBytes -=  dir.getCapacityBytes();
+    }
+  }
 }

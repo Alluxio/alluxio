@@ -16,6 +16,7 @@ import alluxio.client.job.JobMasterClientPool;
 import alluxio.exception.BlockInfoException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.JobDoesNotExistException;
+import alluxio.exception.status.ResourceExhaustedException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.job.replicate.DefaultReplicationHandler;
@@ -24,6 +25,7 @@ import alluxio.master.SafeModeManager;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.meta.InodeFileView;
 import alluxio.master.file.meta.InodeTree;
+import alluxio.master.file.meta.InodeTree.LockPattern;
 import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.file.meta.PersistenceState;
 import alluxio.wire.BlockInfo;
@@ -143,7 +145,7 @@ public final class ReplicationChecker implements HeartbeatExecutor {
       // file and may increase lock contention in this tree. Investigate if we could avoid
       // locking the entire path but just the inode file since this access is read-only.
       try (LockedInodePath inodePath =
-          mInodeTree.lockFullInodePath(inodeId, InodeTree.LockMode.READ)) {
+          mInodeTree.lockFullInodePath(inodeId, LockPattern.READ)) {
         InodeFileView file = inodePath.getInodeFile();
         for (long blockId : file.getBlockIds()) {
           BlockInfo blockInfo = null;
@@ -209,8 +211,8 @@ public final class ReplicationChecker implements HeartbeatExecutor {
           default:
             LOG.warn("Unexpected replication mode {}.", mode);
         }
-      } catch (JobDoesNotExistException e) {
-        LOG.warn("The job service is busy, will retry later.");
+      } catch (JobDoesNotExistException | ResourceExhaustedException e) {
+        LOG.warn("The job service is busy, will retry later. {}", e.toString());
         mQuietPeriodSeconds = (mQuietPeriodSeconds == 0) ? 1 :
             Math.min(MAX_QUIET_PERIOD_SECONDS, mQuietPeriodSeconds * 2);
         return;

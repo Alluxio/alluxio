@@ -82,10 +82,6 @@
       <artifactId>hadoop-minicluster</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.apache.thrift</groupId>
-      <artifactId>libthrift</artifactId>
-    </dependency>
-    <dependency>
       <groupId>org.reflections</groupId>
       <artifactId>reflections</artifactId>
     </dependency>
@@ -213,6 +209,11 @@
     <dependency>
       <groupId>org.alluxio</groupId>
       <artifactId>alluxio-underfs-local</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-integration-fuse</artifactId>
       <version>${project.version}</version>
     </dependency>
   </dependencies>

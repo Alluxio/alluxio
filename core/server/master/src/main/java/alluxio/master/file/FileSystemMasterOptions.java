@@ -180,7 +180,6 @@ public final class FileSystemMasterOptions{
         .setCommonOptions(commonDefaults())
         .setTtlAction(TtlAction.DELETE)
         .setRecursive(false)
-        .setPinned(false)
         .build();
   }
 

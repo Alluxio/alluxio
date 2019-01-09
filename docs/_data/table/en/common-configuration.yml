@@ -1,7 +1,5 @@
 alluxio.conf.dir:
   'The directory containing files used to configure Alluxio. Note: This property must be specified as a JVM property; it is not accepted in alluxio-site.properties.'
-alluxio.conf.validation.enabled:
-  'Whether to validate the configuration properties when initializing Alluxio clients or server process.'
 alluxio.debug:
   'Set to true to enable debug mode which has additional logging and info in the Web UI.'
 alluxio.extensions.dir:
@@ -18,10 +16,40 @@ alluxio.fuse.user.group.translation.enabled:
   'Whether to translate Alluxio users and groups into Unix users and groups when exposing Alluxio files through the FUSE API. When this property is set to false, the user and group for all FUSE files will match the user who started the alluxio-fuse process.'
 alluxio.home:
   'Alluxio installation directory.'
-alluxio.keyvalue.enabled:
-  'Whether the key-value service is enabled.'
-alluxio.keyvalue.partition.size.bytes.max:
-  'Maximum allowable size of a single key-value partition in a store. This value should be no larger than the block size set by alluxio.user.block.size.bytes.default'
+alluxio.job.master.bind.host:
+  'N/A'
+alluxio.job.master.client.threads:
+  'N/A'
+alluxio.job.master.finished.job.retention.ms:
+  'N/A'
+alluxio.job.master.hostname:
+  'N/A'
+alluxio.job.master.job.capacity:
+  'N/A'
+alluxio.job.master.lost.worker.interval.ms:
+  'N/A'
+alluxio.job.master.rpc.port:
+  'N/A'
+alluxio.job.master.web.bind.host:
+  'N/A'
+alluxio.job.master.web.hostname:
+  'N/A'
+alluxio.job.master.web.port:
+  'N/A'
+alluxio.job.master.worker.heartbeat.interval.ms:
+  'N/A'
+alluxio.job.master.worker.timeout.ms:
+  'N/A'
+alluxio.job.worker.bind.host:
+  'N/A'
+alluxio.job.worker.data.port:
+  'N/A'
+alluxio.job.worker.rpc.port:
+  'N/A'
+alluxio.job.worker.web.bind.host:
+  'N/A'
+alluxio.job.worker.web.port:
+  'N/A'
 alluxio.jvm.monitor.info.threshold:
   'Extra sleep time longer than this threshold, log INFO.'
 alluxio.jvm.monitor.sleep.interval:
@@ -54,8 +82,6 @@ alluxio.logserver.threads.min:
   'The minimum number of threads used by logserver to service logging requests.'
 alluxio.metrics.conf.file:
   'The file path of the metrics system configuration file. By default it is `metrics.properties` in the `conf` directory.'
-alluxio.metrics.context.shutdown.timeout:
-  'Time to wait for the metrics context to shut down. The main purpose for this property is to allow tests to shut down faster.'
 alluxio.network.host.resolution.timeout:
   'During startup of the Master and Worker processes Alluxio needs to ensure that they are listening on externally resolvable and reachable host names. To do this, Alluxio will automatically attempt to select an appropriate host name if one was not explicitly specified. This represents the maximum amount of time spent waiting to determine if a candidate host name is resolvable over the network.'
 alluxio.network.netty.heartbeat.timeout:
@@ -83,13 +109,13 @@ alluxio.test.mode:
 alluxio.tmp.dirs:
   'The path(s) to store Alluxio temporary files, use commas as delimiters. If multiple paths are specified, one will be selected at random per temporary file. Currently, only files to be uploaded to object stores are stored in these paths.'
 alluxio.underfs.address:
-  'Alluxio directory in the under file system.'
+  'Under file storage address. This property is deprecated; use alluxio.master.mount.table.root.ufs instead'
 alluxio.underfs.allow.set.owner.failure:
   'Whether to allow setting owner in UFS to fail. When set to true, it is possible file or directory owners diverge between Alluxio and UFS.'
 alluxio.underfs.cleanup.enabled:
-  'Whether or not to clean up under filesystem periodically. Some ufs operations may not be completed and cleaned up successfully in normal ways and leave some intermediate data that needs periodical cleanup. If enabled, all the mount points will be cleaned up when a leader master starts or cleanup interval is reached. This should be used sparingly.'
+  'Whether or not to clean up under file storage periodically.Some ufs operations may not be completed and cleaned up successfully in normal ways and leave some intermediate data that needs periodical cleanup.If enabled, all the mount points will be cleaned up when a leader master starts or cleanup interval is reached. This should be used sparingly.'
 alluxio.underfs.cleanup.interval:
-  'The interval for periodically cleaning all the mounted under filesystem.'
+  'The interval for periodically cleaning all the  mounted under file storages.'
 alluxio.underfs.gcs.owner.id.to.username.mapping:
   'Optionally, specify a preset gcs owner id to Alluxio username static mapping in the format "id1=user1;id2=user2". The Google Cloud Storage IDs can be found at the console address https://console.cloud.google.com/storage/settings . Please use the "Owners" one.'
 alluxio.underfs.hdfs.configuration:
@@ -100,6 +126,14 @@ alluxio.underfs.hdfs.prefixes:
   'Optionally, specify which prefixes should run through the HDFS implementation of UnderFileSystem. The delimiter is any whitespace and/or '',''.'
 alluxio.underfs.hdfs.remote:
   'Boolean indicating whether or not the under storage worker nodes are remote with respect to Alluxio worker nodes. If set to true, Alluxio will not attempt to discover locality information from the under storage because locality is impossible. This will improve performance. The default value is false.'
+alluxio.underfs.kodo.connect.timeout:
+  'The connect timeout of kodo.'
+alluxio.underfs.kodo.downloadhost:
+  'The download domain of Kodo bucket.'
+alluxio.underfs.kodo.endpoint:
+  'The endpoint of Kodo bucket.'
+alluxio.underfs.kodo.requests.max:
+  'The maximum number of kodo connections.'
 alluxio.underfs.listing.length:
   'The maximum number of directory entries to list in a single query to under file system. If the total number of entries is greater than the specified length, multiple queries will be issued.'
 alluxio.underfs.object.store.mount.shared.publicly:
@@ -157,9 +191,9 @@ alluxio.underfs.s3a.signer.algorithm:
 alluxio.underfs.s3a.socket.timeout:
   'Length of the socket timeout when communicating with S3.'
 alluxio.underfs.s3a.streaming.upload.enabled:
-  'If true, using streaming upload to write to S3A.'
+  '(Experimental) If true, using streaming upload to write to S3A.'
 alluxio.underfs.s3a.streaming.upload.partition.size:
-  'Maximum allowable size of a single buffer file when using S3A streaming upload. When the buffer file reaches the partition size, it will be uploaded and the upcoming data will write to other buffer files. If the partition size is too small, S3A upload speed might be affected.'
+  'Maximum allowable size of a single buffer file when using S3A streaming upload. When the buffer file reaches the partition size, it will be uploaded and the upcoming data will write to other buffer files.If the partition size is too small, S3A upload speed might be affected. '
 alluxio.web.file.info.enabled:
   'Whether detailed file information are enabled for the web UI.'
 alluxio.web.resources:
@@ -169,7 +203,7 @@ alluxio.web.temp.path:
 alluxio.web.threads:
   'How many threads to use for the web server.'
 alluxio.work.dir:
-  'The directory to use for Alluxio''s working directory. By default, the journal, logs, and under file system data (if using local filesystem) are written here.'
+  'The directory to use for Alluxio''s working directory. By default, the journal, logs, and under file storage data (if using local filesystem) are written here.'
 alluxio.zookeeper.address:
   'Address of ZooKeeper.'
 alluxio.zookeeper.connection.timeout:
@@ -178,6 +212,10 @@ alluxio.zookeeper.election.path:
   'Election directory in ZooKeeper.'
 alluxio.zookeeper.enabled:
   'If true, setup master fault tolerant mode using ZooKeeper.'
+alluxio.zookeeper.job.election.path:
+  'N/A'
+alluxio.zookeeper.job.leader.path:
+  'N/A'
 alluxio.zookeeper.leader.inquiry.retry:
   'The number of retries to inquire leader from ZooKeeper.'
 alluxio.zookeeper.leader.path:
@@ -206,6 +244,10 @@ fs.gcs.accessKeyId:
   'The access key of GCS bucket.'
 fs.gcs.secretAccessKey:
   'The secret key of GCS bucket.'
+fs.kodo.accesskey:
+  'The access key of Kodo bucket.'
+fs.kodo.secretkey:
+  'The secret key of Kodo bucket.'
 fs.oss.accessKeyId:
   'The access key of OSS bucket.'
 fs.oss.accessKeySecret:

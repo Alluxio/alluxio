@@ -49,6 +49,7 @@ import alluxio.master.MasterInquireClient;
 import alluxio.security.authorization.AclEntry;
 import alluxio.uri.Authority;
 import alluxio.wire.MountPointInfo;
+import alluxio.wire.SyncPointInfo;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -366,6 +367,20 @@ public class BaseFileSystem implements FileSystem {
   }
 
   @Override
+  public List<SyncPointInfo> getSyncPathList() throws IOException, AlluxioException {
+    FileSystemMasterClient masterClient = mFileSystemContext.acquireMasterClient();
+    try {
+      return masterClient.getSyncPathList();
+    } catch (UnavailableException e) {
+      throw e;
+    } catch (AlluxioStatusException e) {
+      throw e.toAlluxioException();
+    } finally {
+      mFileSystemContext.releaseMasterClient(masterClient);
+    }
+  }
+
+  @Override
   public FileInStream openFile(AlluxioURI path)
       throws FileDoesNotExistException, IOException, AlluxioException {
     return openFile(path, OpenFilePOptions.getDefaultInstance());
@@ -450,6 +465,51 @@ public class BaseFileSystem implements FileSystem {
     try {
       masterClient.setAttribute(path, options);
       LOG.debug("Set attributes for {}, options: {}", path.getPath(), options);
+    } catch (NotFoundException e) {
+      throw new FileDoesNotExistException(e.getMessage());
+    } catch (UnavailableException e) {
+      throw e;
+    } catch (AlluxioStatusException e) {
+      throw e.toAlluxioException();
+    } finally {
+      mFileSystemContext.releaseMasterClient(masterClient);
+    }
+  }
+
+  /**
+   * Starts the active syncing process on an Alluxio path.
+   *
+   * @param path the path to sync
+   */
+  @Override
+  public void startSync(AlluxioURI path)
+      throws FileDoesNotExistException, IOException, AlluxioException {
+    FileSystemMasterClient masterClient = mFileSystemContext.acquireMasterClient();
+    try {
+      masterClient.startSync(path);
+      LOG.debug("Start syncing for {}", path.getPath());
+    } catch (NotFoundException e) {
+      throw new FileDoesNotExistException(e.getMessage());
+    } catch (UnavailableException e) {
+      throw e;
+    } catch (AlluxioStatusException e) {
+      throw e.toAlluxioException();
+    } finally {
+      mFileSystemContext.releaseMasterClient(masterClient);
+    }
+  }
+
+  /**
+   * Stops the active syncing process on an Alluxio path.
+   * @param path the path to stop syncing
+   */
+  @Override
+  public void stopSync(AlluxioURI path)
+      throws FileDoesNotExistException, IOException, AlluxioException {
+    FileSystemMasterClient masterClient = mFileSystemContext.acquireMasterClient();
+    try {
+      masterClient.stopSync(path);
+      LOG.debug("Stop syncing for {}", path.getPath());
     } catch (NotFoundException e) {
       throw new FileDoesNotExistException(e.getMessage());
     } catch (UnavailableException e) {

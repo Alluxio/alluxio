@@ -13,6 +13,8 @@ package alluxio.worker.grpc;
 
 import alluxio.proto.dataserver.Protocol;
 
+import com.google.common.base.MoreObjects;
+
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -57,5 +59,11 @@ public final class BlockWriteRequest extends WriteRequest {
    */
   public boolean hasCreateUfsBlockOptions() {
     return mCreateUfsBlockOptions != null;
+  }
+
+  @Override
+  protected MoreObjects.ToStringHelper toStringHelper() {
+    return super.toStringHelper().add("tier", mTier)
+        .add("createUfsBlockOptions", mCreateUfsBlockOptions);
   }
 }

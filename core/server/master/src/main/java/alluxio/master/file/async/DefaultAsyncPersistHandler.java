@@ -168,16 +168,20 @@ public final class DefaultAsyncPersistHandler implements AsyncPersistHandler {
     Set<Long> scheduledFiles = mWorkerToAsyncPersistFiles.get(workerId);
     try {
       for (long fileId : scheduledFiles) {
-        FileInfo fileInfo = mFileSystemMasterView.getFileInfo(fileId);
-        if (fileInfo.isCompleted()) {
-          fileIdsToPersist.add(fileId);
-          List<Long> blockIds = new ArrayList<>();
-          for (FileBlockInfo fileBlockInfo : mFileSystemMasterView
-              .getFileBlockInfoList(mFileSystemMasterView.getPath(fileId))) {
-            blockIds.add(fileBlockInfo.getBlockInfo().getBlockId());
-          }
+        try {
+          FileInfo fileInfo = mFileSystemMasterView.getFileInfo(fileId);
+          if (fileInfo.isCompleted()) {
+            fileIdsToPersist.add(fileId);
+            List<Long> blockIds = new ArrayList<>();
+            for (FileBlockInfo fileBlockInfo : mFileSystemMasterView
+                .getFileBlockInfoList(mFileSystemMasterView.getPath(fileId))) {
+              blockIds.add(fileBlockInfo.getBlockInfo().getBlockId());
+            }
 
-          filesToPersist.add(new PersistFile(fileId, blockIds));
+            filesToPersist.add(new PersistFile(fileId, blockIds));
+          }
+        } catch (FileDoesNotExistException e) {
+          LOG.warn("FileId {} does not exist, ignore persistence it", fileId);
         }
       }
     } catch (UnavailableException e) {

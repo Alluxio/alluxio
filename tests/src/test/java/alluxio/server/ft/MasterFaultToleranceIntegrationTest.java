@@ -287,11 +287,13 @@ public class MasterFaultToleranceIntegrationTest extends BaseIntegrationTest {
       assertEquals(2, blockMaster1.getWorkerCount());
       // Worker heartbeats should return "Nothing"
       assertEquals(CommandType.Nothing,
-          blockMaster1.workerHeartbeat(workerId1a, Collections.EMPTY_MAP, Collections.EMPTY_LIST,
-              Collections.EMPTY_MAP, Lists.newArrayList()).getCommandType());
+          blockMaster1.workerHeartbeat(workerId1a, null, Collections.EMPTY_MAP,
+              Collections.EMPTY_LIST, Collections.EMPTY_MAP, Lists.newArrayList())
+              .getCommandType());
       assertEquals(CommandType.Nothing,
-          blockMaster1.workerHeartbeat(workerId2a, Collections.EMPTY_MAP, Collections.EMPTY_LIST,
-              Collections.EMPTY_MAP, Lists.newArrayList()).getCommandType());
+          blockMaster1.workerHeartbeat(workerId2a, null, Collections.EMPTY_MAP,
+              Collections.EMPTY_LIST, Collections.EMPTY_MAP, Lists.newArrayList())
+              .getCommandType());
 
       assertTrue(cluster.stopLeader());
       cluster.waitForNewMaster(CLUSTER_WAIT_TIMEOUT_MS);
@@ -302,7 +304,7 @@ public class MasterFaultToleranceIntegrationTest extends BaseIntegrationTest {
 
       // Worker 2 tries to heartbeat (with original id), and should get "Register" in response.
       assertEquals(CommandType.Register, blockMaster2
-          .workerHeartbeat(workerId2a, Collections.EMPTY_MAP, Collections.EMPTY_LIST,
+          .workerHeartbeat(workerId2a, null, Collections.EMPTY_MAP, Collections.EMPTY_LIST,
               Collections.EMPTY_MAP, Lists.newArrayList()).getCommandType());
 
       // Worker 2 re-registers (and gets a new worker id)
@@ -313,9 +315,10 @@ public class MasterFaultToleranceIntegrationTest extends BaseIntegrationTest {
           RegisterWorkerPOptions.getDefaultInstance());
 
       // Worker 1 tries to heartbeat (with original id), and should get "Register" in response.
-      assertEquals(CommandType.Register, blockMaster2
-          .workerHeartbeat(workerId1a, Collections.EMPTY_MAP, Collections.EMPTY_LIST,
-              Collections.EMPTY_MAP, Lists.newArrayList()).getCommandType());
+      assertEquals(CommandType.Register,
+          blockMaster2.workerHeartbeat(workerId1a, null, Collections.EMPTY_MAP,
+              Collections.EMPTY_LIST, Collections.EMPTY_MAP, Lists.newArrayList())
+              .getCommandType());
 
       // Worker 1 re-registers (and gets a new worker id)
       long workerId1b =

@@ -71,6 +71,7 @@ public final class Constants {
   // See https://cloud.google.com/storage/docs/cloud-console
   public static final String HEADER_GCS = "gs://";
   public static final String HEADER_COS = "cos://";
+  public static final String HEADER_KODO = "kodo://";
 
   public static final int MAX_PORT = 65535;
 
@@ -139,12 +140,6 @@ public final class Constants {
   public static final String LOCALITY_NODE = "node";
   public static final String LOCALITY_RACK = "rack";
   public static final String MESOS_LOCAL_INSTALL = "LOCAL";
-
-  /**
-   * Maximum number of seconds to wait for thrift servers to stop on shutdown. Tests use a value of
-   * 0 instead of this value so that they can run faster.
-   */
-  public static final int THRIFT_STOP_TIMEOUT_SECONDS = 60;
 
   // Time-to-live
   public static final long NO_TTL = -1;

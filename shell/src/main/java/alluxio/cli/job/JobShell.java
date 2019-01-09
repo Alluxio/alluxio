@@ -46,7 +46,7 @@ public final class JobShell extends AbstractShell {
   public static void main(String[] argv) throws IOException {
     int ret;
 
-    if (!ConfigurationUtils.masterHostConfigured()) {
+    if (!ConfigurationUtils.masterHostConfigured() && argv.length > 0) {
       System.out.println(String.format(
           "Cannot run alluxio job shell; master hostname is not "
               + "configured. Please modify %s to either set %s or configure zookeeper with "

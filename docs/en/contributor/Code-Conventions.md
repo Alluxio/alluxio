@@ -21,24 +21,15 @@ We greatly appreciate any contribution; whether new features or bug fixes.
 
 - We encourage you to break your work into small, single-purpose patches if possible. It is much
 harder to merge in a large change with a lot of disjoint features.
-- We track issues and features in our [JIRA](https://alluxio.atlassian.net/). If you have not
-registered an account, please do so!
-- Open a ticket in [JIRA](https://alluxio.atlassian.net/) detailing the proposed change and what
-purpose it serves.
+- We track issues and features in our [Github Issues](https://github.com/alluxio/alluxio/issues).
+Open a ticket detailing the proposed change and what purpose it serves.
 - Submit the patch as a GitHub pull request. For a tutorial, see the GitHub guides on
 [forking a repo](https://help.github.com/articles/fork-a-repo) and
 [sending a pull request](https://help.github.com/articles/using-pull-requests).
-- In your pull request title, make sure to reference the JIRA ticket. This will connect the
-ticket to the proposed code changes. for example:
-
-~~~~~
-[ALLUXIO-100] Implement an awesome new feature
-~~~~~
-
-- In the description field of the pull request, please include a link to the JIRA ticket.
-
-Note that for some minor changes it is not required to create corresponding JIRA tickets before
-submitting the pull requests. For instance:
+- If your pull request aims to solve an existing Github issue,
+please include a link to the Github Issue in the description field of the pull request,
+like "Fixes #1234", "Fixed #1234", "Fix #1234", "Closes #1234",
+"Closed #1234", or "Close #1234".
 
 - For pull requests that only address typos or formatting issues in source code, you
 can prefix the titles of your pull requests with "[SMALLFIX]", for example:
@@ -55,7 +46,6 @@ markdown files in `docs` directory), you can prefix the titles of your pull requ
 ~~~~~
 [DOCFIX] Improve documentation of how to contribute to Alluxio
 ~~~~~
-
 
 
 ### System Settings
@@ -89,16 +79,17 @@ with the following changes or deviations:
     sUnderFSAddress;`
 - Bash scripts follow [Google Shell style](https://google.github.io/styleguide/shell.xml), and
 must be compatible with Bash 3.x
-- You can download our
+- If you use Eclipse:
+    - You can download our
 [Eclipse formatter]({{ '/resources/alluxio-code-formatter-eclipse.xml' | relativize_url }})
-- For Eclipse to organize your imports correctly, configure "Organize Imports" to look like
+    - To organize your imports correctly, configure "Organize Imports" to look like
 [this]({{ '/resources/eclipse_imports.png' | relativize_url }})
 - If you use IntelliJ IDEA:
-- You can either use our formatter with the help from
+    - You can either use our formatter with the help from
 [Eclipse Code Formatter](https://github.com/krasa/EclipseCodeFormatter#instructions)
 or use [Eclipse Code Formatter Plugin](http://plugins.jetbrains.com/plugin/6546) in
 IntelliJ IDEA.
-- To automatically format the **import**, configure in
+    - To automatically format the **import**, configure in
 Preferences->Code Style->Java->Imports->Import Layout according to
 [this order]({{ '/resources/intellij_imports.png' | relativize_url }})
 - To automatically reorder methods alphabetically, try the

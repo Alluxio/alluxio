@@ -82,4 +82,11 @@ public interface BlockStoreEventListener {
    * @param blockId the id of the block to be removed
    */
   void onRemoveBlockByWorker(long sessionId, long blockId);
+
+  /**
+   * Actions when a block is lost.
+   *
+   * @param blockId the id of the lost block
+   */
+  void onBlockLost(long blockId);
 }

@@ -35,6 +35,8 @@ var hadoopDistributions = map[string]version{
 	"hadoop-2.7": parseVersion("2.7.3"),
 	"hadoop-2.8": parseVersion("2.8.0"),
 	"hadoop-2.9": parseVersion("2.9.0"),
+	"hadoop-3.0": parseVersion("3.0.3"),
+	"hadoop-3.1": parseVersion("3.1.1"),
 	// This distribution type is built with 2.2.0, but doesn't include the hadoop version in the name.
 	"default": parseVersion("2.2.0"),
 }

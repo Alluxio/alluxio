@@ -15,7 +15,6 @@ import alluxio.Constants;
 import alluxio.collections.FieldIndex;
 import alluxio.collections.IndexDefinition;
 import alluxio.collections.UniqueFieldIndex;
-import alluxio.exception.InvalidPathException;
 import alluxio.master.ProtobufUtils;
 import alluxio.master.file.contexts.CreateDirectoryContext;
 import alluxio.proto.journal.File.InodeDirectoryEntry;
@@ -31,12 +30,10 @@ import com.google.common.collect.ImmutableSet;
 import java.util.HashSet;
 import java.util.Set;
 
-import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * Alluxio file system's directory representation in the file system master. The inode must be
- * locked ({@link #lockRead()} or {@link #lockWrite()}) before methods are called.
+ * Alluxio file system's directory representation in the file system master.
  */
 @NotThreadSafe
 public final class InodeDirectory extends Inode<InodeDirectory> implements InodeDirectoryView {
@@ -87,44 +84,6 @@ public final class InodeDirectory extends Inode<InodeDirectory> implements Inode
   @Override
   public InodeView getChild(String name) {
     return mChildren.getFirst(name);
-  }
-
-  @Override
-  @Nullable
-  public InodeView getChildReadLock(String name, InodeLockList lockList) throws
-      InvalidPathException {
-    while (true) {
-      Inode child = mChildren.getFirst(name);
-      if (child == null) {
-        return null;
-      }
-      lockList.lockReadAndCheckParent(child, this);
-      if (mChildren.getFirst(name) != child) {
-        // The locked child has changed, so unlock and try again.
-        lockList.unlockLast();
-        continue;
-      }
-      return child;
-    }
-  }
-
-  @Override
-  @Nullable
-  public InodeView getChildWriteLock(String name, InodeLockList lockList) throws
-      InvalidPathException {
-    while (true) {
-      Inode child = mChildren.getFirst(name);
-      if (child == null) {
-        return null;
-      }
-      lockList.lockWriteAndCheckParent(child, this);
-      if (mChildren.getFirst(name) != child) {
-        // The locked child has changed, so unlock and try again.
-        lockList.unlockLast();
-        continue;
-      }
-      return child;
-    }
   }
 
   @Override

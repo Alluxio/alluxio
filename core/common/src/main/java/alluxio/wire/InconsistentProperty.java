@@ -149,9 +149,9 @@ public final class InconsistentProperty {
   }
 
   /**
-   * Creates a new instance of {@link InconsistentProperty} from thrift representation.
+   * Creates a new instance of {@link InconsistentProperty} from proto representation.
    *
-   * @param inconsistentProperty the thrift representation of an inconsistent property
+   * @param inconsistentProperty the proto representation of an inconsistent property
    * @return the instance
    */
   public static InconsistentProperty fromProto(

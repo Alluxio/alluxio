@@ -113,11 +113,15 @@ can be viewed by visiting [localhost:19999](http://localhost:19999).
 The home page for the Alluxio worker web interface is similar to the home page for the Alluxio master,
 but shows information specific to the particular worker.
 
+![workerHome]({{ '/img/screenshot_workerOverview.png' | relativize_url }})
+
 ### BlockInfo Page
 
 In the "BlockInfo" page, information on the files stored by the worker is shown,
 such as the file size and which tiers the file is stored on.
 Clicking on a file shows the blocks of that file.
+
+![workerBlockInfo]({{ '/img/screenshot_workerBlockInfo.png' | relativize_url }})
 
 ### Worker Metrics 
 

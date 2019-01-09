@@ -121,7 +121,7 @@ public final class UfsJournalCheckpointThread extends Thread {
   public void run() {
     try {
       runInternal();
-    } catch (RuntimeException e) {
+    } catch (Throwable e) {
       LOG.error("{}: Failed to run journal checkpoint thread, crashing.", mMaster.getName(), e);
       throw e;
     }

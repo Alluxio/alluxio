@@ -1,3 +1,17 @@
+alluxio.master.activesync.batchinterval:
+  'Time interval to batch incoming events for active syncing UFS'
+alluxio.master.activesync.eventrate.interval:
+  'The time interval we use to estimate incoming event rate'
+alluxio.master.activesync.interval:
+  'Time interval to periodically actively sync UFS'
+alluxio.master.activesync.maxactivity:
+  'Max number of changes in a directory to be considered for active syncing'
+alluxio.master.activesync.maxage:
+  'Number of intervals before force syncing a directory as part of actively syncing UFS'
+alluxio.master.activesync.polltimeout:
+  'Max time to wait before timing out a polling operation'
+alluxio.master.activesync.retry.timeout:
+  'Retry period before workers give up on connecting to master'
 alluxio.master.audit.logging.enabled:
   'Set to true to enable file system master audit. Note: This property must be specified as a JVM property; it is not accepted in alluxio-site.properties.'
 alluxio.master.audit.logging.queue.capacity:
@@ -6,10 +20,6 @@ alluxio.master.backup.directory:
   'Default directory for writing master metadata backups. This path is relative to the root directory of the root UFS. For example, if the root ufs directory is hdfs://cluster/alluxio/data, the default backup directory will be hdfs://cluster/alluxio_backups'
 alluxio.master.bind.host:
   'The hostname that Alluxio master binds to.'
-alluxio.master.client.socket.cleanup.interval:
-  'Interval for removing closed client sockets from internal tracking.'
-alluxio.master.cluster.metrics.update.interval:
-  'The interval for periodically updating the cluster level metrics.'
 alluxio.master.connection.timeout:
   'Timeout of connections between master and client. A value of 0 means never timeout'
 alluxio.master.file.async.persist.handler:
@@ -72,12 +82,24 @@ alluxio.master.periodic.block.integrity.check.interval:
   'The period for the block integrity check, disabled if <= 0.'
 alluxio.master.periodic.block.integrity.check.repair:
   'Whether the system should delete orphaned blocks found during the periodic integrity check. This is an experimental feature.'
+alluxio.master.persistence.checker.interval.ms:
+  'N/A'
+alluxio.master.persistence.initial.interval.ms:
+  'N/A'
+alluxio.master.persistence.initial.wait.time.ms:
+  'N/A'
+alluxio.master.persistence.max.interval.ms:
+  'N/A'
+alluxio.master.persistence.max.total.wait.time.ms:
+  'N/A'
+alluxio.master.persistence.scheduler.interval.ms:
+  'N/A'
 alluxio.master.port:
   'The port that Alluxio master node runs on.'
 alluxio.master.principal:
   'Kerberos principal for Alluxio master.'
-alluxio.master.serving.thread.timeout:
-  'When stepping down from being the primary, the master will wait this long for the thrift serving thread to stop before giving up and shutting down the server.'
+alluxio.master.replication.check.interval.ms:
+  'N/A'
 alluxio.master.startup.block.integrity.check.enabled:
   'Whether the system should be checked on startup for orphaned blocks (blocks having no corresponding files but still taking system resource due to various system failures). Orphaned blocks will be deleted during master startup if this property is true. This property is available since 1.7.1'
 alluxio.master.startup.consistency.check.enabled:

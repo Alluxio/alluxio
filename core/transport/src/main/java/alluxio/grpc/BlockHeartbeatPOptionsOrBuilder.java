@@ -30,4 +30,38 @@ public interface BlockHeartbeatPOptionsOrBuilder extends
    */
   alluxio.grpc.MetricOrBuilder getMetricsOrBuilder(
       int index);
+
+  /**
+   * <code>map&lt;string, int64&gt; capacityBytesOnTiers = 2;</code>
+   */
+  int getCapacityBytesOnTiersCount();
+  /**
+   * <code>map&lt;string, int64&gt; capacityBytesOnTiers = 2;</code>
+   */
+  boolean containsCapacityBytesOnTiers(
+      java.lang.String key);
+  /**
+   * Use {@link #getCapacityBytesOnTiersMap()} instead.
+   */
+  @java.lang.Deprecated
+  java.util.Map<java.lang.String, java.lang.Long>
+  getCapacityBytesOnTiers();
+  /**
+   * <code>map&lt;string, int64&gt; capacityBytesOnTiers = 2;</code>
+   */
+  java.util.Map<java.lang.String, java.lang.Long>
+  getCapacityBytesOnTiersMap();
+  /**
+   * <code>map&lt;string, int64&gt; capacityBytesOnTiers = 2;</code>
+   */
+
+  long getCapacityBytesOnTiersOrDefault(
+      java.lang.String key,
+      long defaultValue);
+  /**
+   * <code>map&lt;string, int64&gt; capacityBytesOnTiers = 2;</code>
+   */
+
+  long getCapacityBytesOnTiersOrThrow(
+      java.lang.String key);
 }

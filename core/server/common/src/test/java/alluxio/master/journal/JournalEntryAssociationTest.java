@@ -17,7 +17,9 @@ import static org.junit.Assert.assertNotNull;
 import alluxio.proto.journal.Block.BlockContainerIdGeneratorEntry;
 import alluxio.proto.journal.Block.BlockInfoEntry;
 import alluxio.proto.journal.Block.DeleteBlockEntry;
+import alluxio.proto.journal.File;
 import alluxio.proto.journal.File.AddMountPointEntry;
+import alluxio.proto.journal.File.AddSyncPointEntry;
 import alluxio.proto.journal.File.AsyncPersistRequestEntry;
 import alluxio.proto.journal.File.CompleteFileEntry;
 import alluxio.proto.journal.File.DeleteFileEntry;
@@ -29,6 +31,7 @@ import alluxio.proto.journal.File.InodeLastModificationTimeEntry;
 import alluxio.proto.journal.File.NewBlockEntry;
 import alluxio.proto.journal.File.PersistDirectoryEntry;
 import alluxio.proto.journal.File.ReinitializeFileEntry;
+import alluxio.proto.journal.File.RemoveSyncPointEntry;
 import alluxio.proto.journal.File.RenameEntry;
 import alluxio.proto.journal.File.SetAclEntry;
 import alluxio.proto.journal.File.SetAttributeEntry;
@@ -67,6 +70,8 @@ public class JournalEntryAssociationTest {
   // journal entry, make sure to add it here.
   private static List<JournalEntry> ENTRIES = Arrays.asList(
       JournalEntry.newBuilder().setAddMountPoint(AddMountPointEntry.getDefaultInstance()).build(),
+      JournalEntry.newBuilder().setAddSyncPoint(AddSyncPointEntry.getDefaultInstance()).build(),
+      JournalEntry.newBuilder().setActiveSyncTxId(File.ActiveSyncTxIdEntry.getDefaultInstance()).build(),
       JournalEntry.newBuilder().setAsyncPersistRequest(AsyncPersistRequestEntry.getDefaultInstance()).build(),
       JournalEntry.newBuilder().setBlockContainerIdGenerator(BlockContainerIdGeneratorEntry.getDefaultInstance()).build(),
       JournalEntry.newBuilder().setBlockInfo(BlockInfoEntry.getDefaultInstance()).build(),
@@ -89,6 +94,7 @@ public class JournalEntryAssociationTest {
       JournalEntry.newBuilder().setNewBlock(NewBlockEntry.getDefaultInstance()).build(),
       JournalEntry.newBuilder().setPersistDirectory(PersistDirectoryEntry.getDefaultInstance()).build(),
       JournalEntry.newBuilder().setReinitializeFile(ReinitializeFileEntry.getDefaultInstance()).build(),
+      JournalEntry.newBuilder().setRemoveSyncPoint(RemoveSyncPointEntry.getDefaultInstance()).build(),
       JournalEntry.newBuilder().setRename(RenameEntry.getDefaultInstance()).build(),
       JournalEntry.newBuilder().setRenameStore(RenameStoreEntry.getDefaultInstance()).build(),
       JournalEntry.newBuilder().setSetAcl(SetAclEntry.getDefaultInstance()).build(),
@@ -117,6 +123,8 @@ public class JournalEntryAssociationTest {
   public void testFullCoverage() {
     int expectedNumFields = JournalEntry.getDescriptor().getFields().size();
     // subtract 1 for sequence_number
+    expectedNumFields--;
+    // subtract 1 for journal_entries
     expectedNumFields--;
     assertEquals(expectedNumFields, ENTRIES.size());
   }

@@ -17,21 +17,11 @@ priority: 2
 
 -   我们鼓励你每次尽可能提交小的、单一目的的补丁包，因为要合并一个含有许多不相关的特性的大的改动十分困难。
 
--   我们会追踪[JIRA](https://alluxio.atlassian.net/)里的issues和features，如果你还没有帐号，请先进行注册。
-
--   设立[JIRA](https://alluxio.atlassian.net/)里的一个ticket，在里面详细介绍提议的修改和该修改的目的。
-
 -   将你的修改作为一个GitHub pull request进行提交，可以查看Github向导中的[forking a repo](https://help.github.com/articles/fork-a-repo)和[sending a pull request](https://help.github.com/articles/using-pull-requests)学习如何进行这些操作。
 
--   在你提交的pull request的标题中，确保其引用了该JIRA ticket，这将会连接到该指定的ticket。例如：
-
-~~~~~
-[ALLUXIO-100] Implement an awesome new feature
-~~~~~
-
--   在pull request的描述框中，请添加该JIRA ticket的超链接。
-
-注意对于一些很小的修改，在提交pull request之前不必创建对应的JIRA tickets，例如
+-   如果提交的pull request为了解决一个已知的Github Issue，请在该pull request的描述中请添加该Github Issue的链接。
+例如"Fixes #1234"，"Fixed #1234"，"Fix #1234"，"Closes #1234"，
+"Closed #1234"或者"Close #1234"。
 
 -   对于仅仅修改一些错别字或者进行一些格式化的pull request，你可以在该pull request的标题中添加"[SMALLFIX]"前缀，例如：
 

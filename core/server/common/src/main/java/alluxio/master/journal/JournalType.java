@@ -15,6 +15,7 @@ package alluxio.master.journal;
  * Enumerates the different types of journals that Alluxio may be configured with.
  */
 public enum JournalType {
+  EMBEDDED,
   NOOP,
   UFS,
   ;

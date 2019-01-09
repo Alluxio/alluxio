@@ -28,8 +28,8 @@ import alluxio.heartbeat.ManuallyScheduleHeartbeat;
 import alluxio.job.JobConfig;
 import alluxio.job.wire.JobInfo;
 import alluxio.job.wire.Status;
+import alluxio.master.CoreMasterContext;
 import alluxio.master.DefaultSafeModeManager;
-import alluxio.master.MasterContext;
 import alluxio.master.MasterRegistry;
 import alluxio.master.MasterTestUtils;
 import alluxio.master.SafeModeManager;
@@ -526,7 +526,7 @@ public final class PersistenceTest {
     mRegistry = new MasterRegistry();
     JournalSystem journalSystem =
         JournalTestUtils.createJournalSystem(mJournalFolder.getAbsolutePath());
-    MasterContext context = MasterTestUtils.testMasterContext(journalSystem);
+    CoreMasterContext context = MasterTestUtils.testMasterContext(journalSystem);
     new MetricsMasterFactory().create(mRegistry, context);
     new BlockMasterFactory().create(mRegistry, context);
     mFileSystemMaster = new FileSystemMasterFactory().create(mRegistry, context);

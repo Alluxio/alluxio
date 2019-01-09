@@ -17,7 +17,9 @@ Alluxio 有一个 [Python 客户端](https://github.com/Alluxio/alluxio-py)，�
 使用HTTP代理服务器有性能上的影响。特别的是，使用这个代理服务器需要一个额外的跳。为了达到最佳性能，运行这个代理服务器的时候推荐在每个计算节点上分配一个Alluxio worker。
 
 # 安装python客户端库
-命令：$ pip install alluxio
+```bash
+$ pip install alluxio
+```
 
 # 使用示例
 下面的程序示例包括了如何在Alluxio创建目录、下载、上传、检查文件是否存在以及文件列表状态。

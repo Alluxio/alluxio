@@ -20,7 +20,7 @@ Alluxio兼容Mesos 0.23.0及之后的版本。
 默认情况下，Alluxio Master需要端口19998和19999，Alluxio Worker需要端口29998,29999和30000。
 要使Mesos运行Alluxio，您必须将这些端口提供给Mesos框架，或者更改Alluxio端口。
 
-####使端口可用
+#### 使端口可用
 
 启动Mesos slave时，可以指定要管理的端口资源。
 
@@ -28,7 +28,7 @@ Alluxio兼容Mesos 0.23.0及之后的版本。
 $ /usr/local/sbin/mesos-slave --resources='ports:[19998-19999,29998-30000]'
 ```
 
-####更改Alluxio端口
+#### 更改Alluxio端口
 
 或者，您可以在`alluxio-site.properties`文件中指定Alluxio端口，如下所示：
 

@@ -37,23 +37,6 @@ A GitHub account is required in order to contribute to the Alluxio repository.
 You will need to know an email address that is associated with your GitHub account in order to make
 contributions. You can check this in [your profile email settings](https://github.com/settings/emails)
 
-#### Jira Account
-
-The [Alluxio open source project uses JIRA](https://alluxio.atlassian.net/projects/ALLUXIO/issues)
-to track features, bugs, and issues. Please
-[create an Alluxio JIRA account](https://alluxio.atlassian.net/admin/users/sign-up) in order to
-open tickets, track tickets, and provide fixes for tickets. If you are unable to create a JIRA
-account through the portal, please send a message to jira-admin@alluxio.org in the following
-format:
-
-```
-Subject: JIRA Account Request
-Body:
-	Email Address: example@example.com
-	Username: JohnS
-	Full Name: John Smith
-```
-
 ## Forking the Alluxio Repository
 
 In order to contribute code to Alluxio, you first have to fork the Alluxio repo. If you have not
@@ -117,7 +100,7 @@ This should take less than 1 minute.
 Here are more
 [details for building Alluxio]({{ '/en/contributor/Building-Alluxio-From-Source.html' | relativize_url }}).
 
-## Taking a New Contributor JIRA Ticket
+## Taking a New Contributor Task
 
 There are multiple levels of tickets in Alluxio. The levels are:
 **New Contributor**, **Beginner**, **Intermediate**, **Advanced**. New contributors to Alluxio
@@ -131,14 +114,17 @@ All new contributors are recommended to resolve two **New Contributor** tasks be
 larger tasks. This is a good way to familiarize yourself with the entire process of contributing to
 Alluxio.
 
-Browse any of the open [New Contributor Alluxio Tasks](https://alluxio.atlassian.net/issues/?jql=project%20%3D%20ALLUXIO%20AND%20status%20%3D%20Open%20AND%20labels%20%3D%20NewContributor%20AND%20assignee%20in%20(EMPTY))
-and find one that is unassigned. You can press the link **Assign to me** in order to assign the
-ticket to yourself. You should assign a ticket to yourself before you start working on it, so others
+Browse any of the open [New Contributor Alluxio Tasks](https://github.com/Alluxio/new-contributor-tasks/issues)
+and find one that is unassigned. You can press the link **Assign to yourself** in order to assign
+the task to yourself. You should assign a ticket to yourself before you start working on it, so others
 in the community know you are working on the ticket.
 
-Notice that all Alluxio JIRA tickets are named by **ALLUXIO-####** where **####** is a number. This
-name will be important later, when you create a pull request. The title of the pull request for this
-ticket will be titled like, **[ALLUXIO-XXXX] Awesome Feature**.
+Notice that all issues on Github are assigned with a number.
+If your issue number is 123,
+include "Fixes Alluxio/new-contributor-tasks#123", "Fixed Alluxio/new-contributor-tasks#123",
+"Fix Alluxio/new-contributor-tasks#123", "Closes Alluxio/new-contributor-tasks#123",
+"Closed Alluxio/new-contributor-tasks#123", or "Close Alluxio/new-contributor-tasks#123" in your
+pull request message.
 
 ### Creating a Branch in your Clone
 
@@ -146,7 +132,7 @@ After you have taken ticket, go back to the terminal, and go to the directory of
 Now, you can start working on the fix!
 
 In order to submit a change to Alluxio, it is best practice to do all of your changes for a single
-JIRA ticket, in its own branch. Therefore, the following will show you how to create a branch.
+issue, in its own branch. Therefore, the following will show you how to create a branch.
 
 First, make sure you are on the `master` branch in your clone. You switch to your `master` branch
 with:
@@ -173,7 +159,7 @@ $ git checkout -b awesome_feature
 ```
 
 This will create the branch, and switch to it. Now, you can modify the necessary code to address the
-JIRA ticket.
+issue.
 
 ### Creating Local Commits
 
@@ -196,7 +182,7 @@ commits](https://git-scm.com/book/en/v2/Git-Basics-Recording-Changes-to-the-Repo
 
 ### Sending a Pull Request
 
-After you have finished all the changes to address the JIRA ticket, you are ready to submit a pull
+After you have finished all the changes to address the issue, you are ready to submit a pull
 request to the Alluxio project! Here are [detailed instructions on sending a pull
 request](https://help.github.com/articles/using-pull-requests/),
 but the following is a common way to do it.
@@ -219,13 +205,17 @@ In the **Open a pull request** page, the base fork should be `Alluxio/alluxio`, 
 should be **master**. The head fork will be your fork, and the compare branch should be the branch
 you want to submit the pull request for.
 
-For the title of the pull request, the title should be prefixed by the JIRA ticket name. Therefore,
-the title will look something like **[ALLUXIO-1234] Awesome Feature** (In the title, please replace
+For the title of the pull request, the title should be something like **Awesome Feature** (In the title, please replace
 "Awesome Feature" with something more informative regarding your request, e.g., "Fix format in error message"
 or "Improve java doc of method Foo").
 
-In the first line of the description box, please add a link back to the JIRA ticket. The link will
-look something like: `https://alluxio.atlassian.net/browse/ALLUXIO-####`.
+If this pull request is addressing a Github issue,
+please add a link back to the issue in the first line of the description box.
+For example, if this pull request aims to solve Github Issue 1234
+include "Fixes #1234", "Fixed #1234", "Fix #1234", "Closes #1234",
+"Closed #1234", or "Close #1234" in your pull request message.
+If the issue is from new contributor tasks, prefix the number "#1234" with repository name
+"Alluxio/new-contributor-tasks".
 
 If you are submitting fixes to documentation, or fixing minor things which don't require a ticket
 (for example, small typos in code) you may prefix your pull request title with either **[DOCFIX]**
@@ -266,8 +256,6 @@ Congratulations! You have successfully contributed to Alluxio! Thank you for joi
 
 There are a few things that new contributors can do to familiarize themselves with Alluxio:
 
-1. Take on some
-   [Beginner Alluxio tickets](https://alluxio.atlassian.net/issues/?jql=project%20%3D%20ALLUXIO%20AND%20status%20%3D%20Open%20AND%20labels%20%3D%20Beginner%20AND%20assignee%20in%20(EMPTY)).
 1.  [Run Alluxio Locally]({{ '/en/deploy/Running-Alluxio-Locally.html' | relativize_url }})
 1.  [Run Alluxio on a Cluster]({{ '/en/deploy/Running-Alluxio-On-a-Cluster.html' | relativize_url }})
 1.  Read [Configuration Settings]({{ '/en/basic/Configuration-Settings.html' | relativize_url }}) and
@@ -275,9 +263,9 @@ There are a few things that new contributors can do to familiarize themselves wi
 1.  Read a [Code Example](https://github.com/alluxio/alluxio/blob/master/examples/src/main/java/alluxio/examples/BasicOperations.java)
 1.  [Build Alluxio From Source]({{ '/en/contributor/Building-Alluxio-From-Source.html' | relativize_url }})
 1.  Fork the repository, add unit tests or javadoc for one or two files, and submit a pull request.
-You are also welcome to address issues in our [JIRA](https://alluxio.atlassian.net/browse/ALLUXIO).
+You are also welcome to address issues in our [Github Issues](https://github.com/Alluxio/alluxio/issues).
 Here is a list of unassigned
-[New Contributor Tasks](https://alluxio.atlassian.net/issues/?jql=project%20%3D%20ALLUXIO%20AND%20status%20%3D%20Open%20AND%20labels%20%3D%20NewContributor%20AND%20assignee%20in%20(EMPTY)).
+[New Contributor Tasks](https://github.com/Alluxio/new-contributor-tasks/issues).
 Please limit 2 tasks per New Contributor.
 Afterwards, try some Beginner/Intermediate tasks, or ask in the
 [User Mailing List](https://groups.google.com/forum/?fromgroups#!forum/alluxio-users).

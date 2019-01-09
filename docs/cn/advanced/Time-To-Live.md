@@ -67,7 +67,7 @@ SetAttributeOptions options = SetAttributeOptions.defaults().setTtl(ttlMs).setTt
 alluxioFs.setAttribute(path);
 ```
 
-查看[Javad文档](http://www.alluxio.org/javadoc/{{site.ALLUXIO_MAJOR_VERSION}}/index.html)获取更多信息
+查看[Java 文档](https://www.alluxio.org/javadoc/{{site.ALLUXIO_MAJOR_VERSION}}/index.html)获取更多信息
 
 ### 被动加载元数据或创建文件
 

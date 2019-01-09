@@ -9,7 +9,7 @@ priority: 0
 * 内容列表
 {:toc}
 
-Alluxio管理Alluxio workers的本地存储，包括内存，来充当分布式缓冲缓存区。这个在用户应用程序和各种底层存储之间的快速数据层可以很大程度上改善I/O性能。
+Alluxio管理了Alluxio workers节点的包括内存在内的本地存储，来充当分布式缓冲缓存区。这个在用户应用程序和各种底层存储之间的快速数据层可以很大程度上改善I/O性能。
 
 每个Alluxio节点管理的存储数量和类型由用户配置决定。Alluxio还支持层次化存储，这使得系统存储能够感知介质，让数据存储获得类似于L1/L2 cpu缓存的优化。
 
@@ -38,7 +38,7 @@ alluxio.worker.tieredstore.level0.dirs.path=/mnt/ramdisk,/mnt/ssd1,/mnt/ssd2
 
 提供的路径应该指向本地文件系统中安装的相应存储介质的路径。为了启动短路操作，这些路径的权限应该允许客户端用户在改路径上读写和执行。例如，与启动Alluxio服务的用户在同一用户组的客户端用户需要770的权限。
 
-更新存储介质后，我们需要指出每个存储分配了多少存储空间。例如，如果我们想在ramdisk上使用16 GB，在每个SSD上使用100 GB，
+更新存储介质后，我们需要指出为每个存储目录分配多少存储空间。例如，如果我们想在ramdisk上使用16 GB，在每个SSD上使用100 GB，
 
 ```
 alluxio.worker.tieredstore.level0.dirs.quota=16GB,100GB,100GB

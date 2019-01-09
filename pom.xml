@@ -132,6 +132,10 @@
       <name>MireDot Releases</name>
       <url>http://nexus.qmino.com/content/repositories/miredot</url>
     </repository>
+    <repository>
+      <id>alluxio.artifacts</id>
+      <url>http://alluxio.artifacts.s3-website-us-east-1.amazonaws.com/release</url>
+    </repository>
   </repositories>
 
   <properties>
@@ -139,6 +143,7 @@
     <apache.curator-test.version>2.12.0</apache.curator-test.version>
     <aws.amazonaws.version>1.11.215</aws.amazonaws.version>
     <build.path>build</build.path>
+    <copycat.version>1.2.12</copycat.version>
     <cxf.version>2.7.0</cxf.version>
     <glusterfs-hadoop.version>2.3.13</glusterfs-hadoop.version>
     <gmetric4j.version>1.0.7</gmetric4j.version>
@@ -149,7 +154,6 @@
     <jersey.version>2.22</jersey.version>
     <jetty.version>9.2.16.v20160414</jetty.version>
     <junit.version>4.12</junit.version>
-    <libthrift.version>0.9.3</libthrift.version>
     <log4j.version>1.2.17</log4j.version>
     <maven.version>3.3.9</maven.version>
     <metrics.version>3.1.2</metrics.version>
@@ -163,6 +167,7 @@
     <surefire.forkCount>2</surefire.forkCount>
     <surefire.useSystemClassLoader>true</surefire.useSystemClassLoader>
     <surefire.excludesFile>slow-tests</surefire.excludesFile>
+    <surefire.rerunFailingTestsCount>1</surefire.rerunFailingTestsCount>
     <test.output.redirect>true</test.output.redirect>
   </properties>
 
@@ -530,6 +535,22 @@
         <version>4.4.6</version>
       </dependency>
       <dependency>
+        <groupId>io.atomix.copycat.alluxio</groupId>
+        <artifactId>copycat-server</artifactId>
+        <version>${copycat.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.atomix.copycat.alluxio</groupId>
+        <artifactId>copycat-client</artifactId>
+        <version>${copycat.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.atomix.catalyst</groupId>
+        <artifactId>catalyst-netty</artifactId>
+        <!-- catalyst-netty is versioned independently of other Atomix services -->
+        <version>1.2.1</version>
+      </dependency>
+      <dependency>
         <groupId>org.apache.mesos</groupId>
         <artifactId>mesos</artifactId>
         <version>0.23.0</version>
@@ -545,18 +566,6 @@
         <groupId>org.apache.sling</groupId>
         <artifactId>maven-jspc-plugin</artifactId>
         <version>2.0.8</version>
-      </dependency>
-      <dependency>
-        <groupId>org.apache.thrift</groupId>
-        <artifactId>libthrift</artifactId>
-        <version>${libthrift.version}</version>
-        <exclusions>
-          <!-- Excluded to avoid conflict with the version Alluxio uses. -->
-          <exclusion>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-          </exclusion>
-        </exclusions>
       </dependency>
       <dependency>
         <groupId>org.apache.zookeeper</groupId>
@@ -989,6 +998,7 @@
             <argLine>-Djava.net.preferIPv4Stack=true</argLine>
             <excludesFile>${build.path}/surefire/${surefire.excludesFile}</excludesFile>
             <forkCount>${surefire.forkCount}</forkCount>
+            <rerunFailingTestsCount>${surefire.rerunFailingTestsCount}</rerunFailingTestsCount>
             <redirectTestOutputToFile>${test.output.redirect}</redirectTestOutputToFile>
             <reuseForks>false</reuseForks>
             <runOrder>alphabetical</runOrder>
@@ -1011,7 +1021,7 @@
         <plugin>
           <groupId>org.codehaus.mojo</groupId>
           <artifactId>findbugs-maven-plugin</artifactId>
-          <version>3.0.2</version>
+          <version>3.0.5</version>
         </plugin>
         <plugin>
           <groupId>org.codehaus.mojo</groupId>
@@ -1136,7 +1146,7 @@
             <sourceDirectory>${project.build.testSourceDirectory}</sourceDirectory>
           </sourceDirectories>
           <includeTestSourceDirectory>true</includeTestSourceDirectory>
-          <excludes>**/org/apache/jsp/**,**/alluxio/thrift/**,**/alluxio/proto/**,**/alluxio/grpc/**</excludes>
+          <excludes>**/org/apache/jsp/**,**/alluxio/proto/**,**/alluxio/grpc/**</excludes>
           <encoding>UTF-8</encoding>
           <consoleOutput>true</consoleOutput>
           <failsOnError>true</failsOnError>
@@ -1164,14 +1174,11 @@
           <excludes>
 
             <!-- Code Exclusions -->
-            <exclude>**/src/main/java/alluxio/thrift/*</exclude>
             <exclude>**/src/main/java/alluxio/proto/**</exclude>
             <exclude>**/src/main/java/alluxio/grpc/**</exclude>
-            <exclude>**/src/main/java/alluxio/perf/thrift/*</exclude>
             <exclude>**/src/main/resources/*</exclude>
             <exclude>**/src/main/webapp/css/*</exclude>
             <exclude>**/src/main/webapp/js/*</exclude>
-            <exclude>**/src/thrift/*</exclude>
             <exclude>**/src/proto/**</exclude>
             <exclude>**/src/deb/**/*</exclude>
             <exclude>**/src/test/resources/**</exclude>

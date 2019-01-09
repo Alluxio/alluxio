@@ -19,7 +19,7 @@ priority: 3
 扩展jar包在Alluxio server运行时动态加载，使得Alluxio能与新的底层存储扩展交互而不用重启。
 Alluxio server使用Java [ServiceLoader](https://docs.oracle.com/javase/7/docs/api/java/util/ServiceLoader.html)来发现底层存储API。
 提供者要把`alluxio.underfs.UnderFileSystemFactory`的接口的实现包含在内。
-实现的宣传方式是在`META_INF/services`中包含一个文本文件，其中只有一行指向实现该接口的类。
+实现的宣传方式是在`META-INF/services`中包含一个文本文件，其中只有一行指向实现该接口的类。
 
 ### 依赖管理
 
@@ -85,7 +85,7 @@ public class DummyUnderFileSystemFactory implements UnderFileSystemFactory {
 
 ### 声明该服务
 
-在`src/main/resources/META_INF/services/alluxio.underfs.UnderFileSystemFactory`创建文件来告知ServiceLoader完成的`UnderFileSystemFactory`。
+在`src/main/resources/META-INF/services/alluxio.underfs.UnderFileSystemFactory`创建文件来告知ServiceLoader完成的`UnderFileSystemFactory`。
 
 ```
 alluxio.underfs.dummy.DummyUnderFileSystemFactory

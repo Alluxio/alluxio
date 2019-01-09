@@ -44,7 +44,7 @@ $ cd ${ALLUXIO_HOME}
 To make sure your code follows our style conventions you may run. Note that this is run any time
 you run targets such as `compile`, `install`, or `test`.
 
-{% include Contributing-To-Alluxio/checkstyle.md %}
+{% include Contributing-to-Alluxio/checkstyle.md %}
 
 ### FindBugs
 

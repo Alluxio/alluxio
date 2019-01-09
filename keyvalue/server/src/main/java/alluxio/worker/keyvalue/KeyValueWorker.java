@@ -72,11 +72,11 @@ public final class KeyValueWorker extends AbstractWorker {
 
   @Override
   public void start(WorkerNetAddress address) {
-    // nothing to do, Thrift service will be started by the Alluxio worker process
+    // nothing to do, gRPC service will be started by the Alluxio worker process
   }
 
   @Override
   public void stop() throws IOException {
-    // nothing to do, Thrift service will be started by the Alluxio worker process
+    // nothing to do, gRPC service will be started by the Alluxio worker process
   }
 }

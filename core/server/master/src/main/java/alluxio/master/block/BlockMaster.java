@@ -179,14 +179,16 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
    * Updates metadata when a worker periodically heartbeats with the master.
    *
    * @param workerId the worker id
+   * @param capacityBytesOnTiers a mapping from tier alias to the capacity bytes
    * @param usedBytesOnTiers a mapping from tier alias to the used bytes
    * @param removedBlockIds a list of block ids removed from this worker
    * @param addedBlocksOnTiers a mapping from tier alias to the added blocks
    * @param metrics worker metrics
    * @return an optional command for the worker to execute
    */
-  Command workerHeartbeat(long workerId, Map<String, Long> usedBytesOnTiers,
-      List<Long> removedBlockIds, Map<String, List<Long>> addedBlocksOnTiers, List<Metric> metrics);
+  Command workerHeartbeat(long workerId, Map<String, Long> capacityBytesOnTiers,
+      Map<String, Long> usedBytesOnTiers, List<Long> removedBlockIds, Map<String,
+      List<Long>> addedBlocksOnTiers, List<Metric> metrics);
 
   /**
    * @return the block ids of lost blocks in Alluxio

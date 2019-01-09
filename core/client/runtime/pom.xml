@@ -73,8 +73,6 @@
       <!--dependencies introduced by applications. The protobuf dependency is already shaded in the internal protobuf-->
       <!--module rather than in the runtime module, because it is also depended by other libraries included in-->
       <!--the runtime module, thus shading protobuf during the runtime jar packaging will over-shade references of protobuf.-->
-      <!--Ideally, the thrift dependency should also be shaded in the public jar in the same way as shading protobuf,-->
-      <!--however, this will break compilation due to existing signatures referencing thrift shared among modules.-->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-shade-plugin</artifactId>
@@ -141,10 +139,6 @@
                 <relocation>
                   <pattern>org.apache.jute</pattern>
                   <shadedPattern>${shading.prefix}.org.apache.jute</shadedPattern>
-                </relocation>
-                <relocation>
-                  <pattern>org.apache.thrift</pattern>
-                  <shadedPattern>${shading.prefix}.org.apache.thrift</shadedPattern>
                 </relocation>
                 <relocation>
                   <pattern>org.apache.zookeeper</pattern>

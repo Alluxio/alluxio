@@ -32,9 +32,10 @@ import alluxio.grpc.ServiceType;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.heartbeat.HeartbeatThread;
-import alluxio.master.AbstractMaster;
+import alluxio.master.BackupManager;
+import alluxio.master.CoreMaster;
+import alluxio.master.CoreMasterContext;
 import alluxio.master.MasterClientConfig;
-import alluxio.master.MasterContext;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.meta.checkconf.ServerConfigurationChecker;
 import alluxio.master.meta.checkconf.ServerConfigurationStore;
@@ -45,6 +46,8 @@ import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.IdUtils;
+import alluxio.util.ThreadFactoryUtils;
+import alluxio.util.URIUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.executor.ExecutorServiceFactory;
 import alluxio.util.io.PathUtils;
@@ -73,6 +76,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.Executors;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -80,7 +84,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * The default meta master.
  */
 @NotThreadSafe
-public final class DefaultMetaMaster extends AbstractMaster implements MetaMaster {
+public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
   private static final Logger LOG = LoggerFactory.getLogger(DefaultMetaMaster.class);
   private static final Set<Class<? extends Server>> DEPS =
       ImmutableSet.<Class<? extends Server>>of(BlockMaster.class);
@@ -130,13 +134,19 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
   /** The address of this master. */
   private Address mMasterAddress;
 
+  /** The root ufs. */
+  private final UnderFileSystem mUfs;
+
+  /** The metadata daily backup. */
+  private DailyMetadataBackup mDailyBackup;
+
   /**
    * Creates a new instance of {@link DefaultMetaMaster}.
    *
    * @param blockMaster a block master handle
    * @param masterContext the context for Alluxio master
    */
-  DefaultMetaMaster(BlockMaster blockMaster, MasterContext masterContext) {
+  DefaultMetaMaster(BlockMaster blockMaster, CoreMasterContext masterContext) {
     this(blockMaster, masterContext,
         ExecutorServiceFactories.cachedThreadPool(Constants.META_MASTER_NAME));
   }
@@ -149,16 +159,23 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
    * @param executorServiceFactory a factory for creating the executor service to use for running
    *        maintenance threads
    */
-  DefaultMetaMaster(BlockMaster blockMaster, MasterContext masterContext,
+  DefaultMetaMaster(BlockMaster blockMaster, CoreMasterContext masterContext,
       ExecutorServiceFactory executorServiceFactory) {
     super(masterContext, new SystemClock(), executorServiceFactory);
     mMasterAddress =
         new Address().setHost(Configuration.getOrDefault(PropertyKey.MASTER_HOSTNAME, "localhost"))
-            .setRpcPort(masterContext.getPort());
+            .setRpcPort(mPort);
     mBlockMaster = blockMaster;
     mBlockMaster.registerLostWorkerFoundListener(mWorkerConfigStore::lostNodeFound);
     mBlockMaster.registerWorkerLostListener(mWorkerConfigStore::handleNodeLost);
     mBlockMaster.registerNewWorkerConfListener(mWorkerConfigStore::registerNewConf);
+
+    if (URIUtils.isLocalFilesystem(Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS))) {
+      mUfs = UnderFileSystem.Factory
+          .create("/", UnderFileSystemConfiguration.defaults());
+    } else {
+      mUfs = UnderFileSystem.Factory.createForRoot();
+    }
   }
 
   @Override
@@ -215,6 +232,12 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
           new HeartbeatThread(HeartbeatContext.MASTER_LOG_CONFIG_REPORT_SCHEDULING,
           new LogConfigReportHeartbeatExecutor(),
           (int) Configuration.getMs(PropertyKey.MASTER_LOG_CONFIG_REPORT_HEARTBEAT_INTERVAL)));
+
+      if (Configuration.getBoolean(PropertyKey.MASTER_DAILY_BACKUP_ENABLED)) {
+        mDailyBackup = new DailyMetadataBackup(this, Executors.newSingleThreadScheduledExecutor(
+            ThreadFactoryUtils.build("DailyMetadataBackup-%d", true)), mUfs);
+        mDailyBackup.start();
+      }
     } else {
       boolean haEnabled = Configuration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED);
       if (haEnabled) {
@@ -231,17 +254,25 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
   }
 
   @Override
+  public void stop() throws IOException {
+    if (mDailyBackup != null) {
+      mDailyBackup.stop();
+      mDailyBackup = null;
+    }
+    super.stop();
+  }
+
+  @Override
   public BackupResponse backup(BackupOptions options) throws IOException {
     String dir = options.getTargetDirectory();
     if (dir == null) {
       dir = Configuration.get(PropertyKey.MASTER_BACKUP_DIRECTORY);
     }
-    UnderFileSystem ufs;
-    if (options.isLocalFileSystem()) {
+    UnderFileSystem ufs = mUfs;
+    if (options.isLocalFileSystem() && !ufs.getUnderFSType().equals("local")) {
       ufs = UnderFileSystem.Factory.create("/", UnderFileSystemConfiguration.defaults());
       LOG.info("Backing up to local filesystem in directory {}", dir);
     } else {
-      ufs = UnderFileSystem.Factory.createForRoot();
       LOG.info("Backing up to root UFS in directory {}", dir);
     }
     if (!ufs.isDirectory(dir)) {
@@ -252,13 +283,13 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
     String backupFilePath;
     try (LockResource lr = new LockResource(mMasterContext.pauseStateLock())) {
       Instant now = Instant.now();
-      String backupFileName = String.format("alluxio-backup-%s-%s.gz",
+      String backupFileName = String.format(BackupManager.BACKUP_FILE_FORMAT,
           DateTimeFormatter.ISO_LOCAL_DATE.withZone(ZoneId.of("UTC")).format(now),
           now.toEpochMilli());
       backupFilePath = PathUtils.concatPath(dir, backupFileName);
       try {
         try (OutputStream ufsStream = ufs.create(backupFilePath)) {
-          mMasterContext.getBackupManager().backup(ufsStream);
+          mBackupManager.backup(ufsStream);
         }
       } catch (Throwable t) {
         try {
@@ -356,12 +387,12 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
 
   @Override
   public long getStartTimeMs() {
-    return mMasterContext.getStartTimeMs();
+    return mStartTimeMs;
   }
 
   @Override
   public long getUptimeMs() {
-    return System.currentTimeMillis() - mMasterContext.getStartTimeMs();
+    return System.currentTimeMillis() - mStartTimeMs;
   }
 
   @Override
@@ -371,7 +402,7 @@ public final class DefaultMetaMaster extends AbstractMaster implements MetaMaste
 
   @Override
   public boolean isInSafeMode() {
-    return mMasterContext.getSafeModeManager().isInSafeMode();
+    return mSafeModeManager.isInSafeMode();
   }
 
   @Override

@@ -31,6 +31,22 @@
   <dependencies>
     <!-- External dependencies -->
     <dependency>
+      <groupId>com.beust</groupId>
+      <artifactId>jcommander</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.atomix.copycat.alluxio</groupId>
+      <artifactId>copycat-server</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.atomix.copycat.alluxio</groupId>
+      <artifactId>copycat-client</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.atomix.catalyst</groupId>
+      <artifactId>catalyst-netty</artifactId>
+    </dependency>
+    <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-core</artifactId>
     </dependency>
@@ -81,10 +97,6 @@
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-lang3</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.thrift</groupId>
-      <artifactId>libthrift</artifactId>
     </dependency>
     <dependency>
       <groupId>org.eclipse.jetty</groupId>
