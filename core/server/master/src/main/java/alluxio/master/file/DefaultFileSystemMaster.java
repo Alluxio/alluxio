@@ -2408,7 +2408,8 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
             }
 
             try (LockedInodePath descendant = inodePath
-                .lockDescendant(inodePath.getUri().joinUnsafe(childStatus.getName()), LockPattern.READ)) {
+                .lockDescendant(inodePath.getUri().joinUnsafe(childStatus.getName()),
+                    LockPattern.READ)) {
               LoadMetadataOptions loadMetadataOptions =
                   LoadMetadataOptions.defaults().setLoadDescendantType(DescendantType.NONE)
                       .setCreateAncestors(false).setUfsStatus(childStatus);
