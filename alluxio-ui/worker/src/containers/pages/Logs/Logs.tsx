@@ -172,7 +172,7 @@ class Logs extends React.Component<AllProps, ILogsState> {
             <td>{fileInfo.modificationTime}</td>
             <td>{fileInfo.id}</td>
             <td>
-              {/*TODO: what goes here?*/}
+              {/*TODO(william): what goes here?*/}
             </td>
             <td>{fileInfo.absolutePath}</td>
             <td>
