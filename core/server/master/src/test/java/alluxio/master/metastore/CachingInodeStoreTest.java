@@ -19,9 +19,7 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 
 import alluxio.PropertyKey;
-import alluxio.conf.AlluxioProperties;
 import alluxio.conf.InstancedConfiguration;
-import alluxio.conf.Source;
 import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.MutableInodeDirectory;
 import alluxio.master.file.meta.MutableInodeFile;

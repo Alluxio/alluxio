@@ -11,7 +11,6 @@
 
 package alluxio.master.metastore.rocks;
 
-import alluxio.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.master.metastore.BlockStore;
 import alluxio.master.metastore.CachingInodeStore;
@@ -29,6 +28,8 @@ public class RocksMetastore implements Metastore {
 
   /**
    * Constructs a new RocksMetastore.
+   *
+   * @param conf configuration
    */
   public RocksMetastore(InstancedConfiguration conf) {
     try {
