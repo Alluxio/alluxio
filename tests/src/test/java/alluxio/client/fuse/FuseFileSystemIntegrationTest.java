@@ -11,6 +11,8 @@
 
 package alluxio.client.fuse;
 
+import static org.junit.Assert.fail;
+
 import alluxio.AlluxioTestDirectory;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
@@ -183,8 +185,7 @@ public class FuseFileSystemIntegrationTest {
   @Test
   public void ddDuAndRm() throws Exception {
     String testFile = "/ddTestFile";
-    ShellUtils.execCommand("dd", "if=/dev/zero",
-        "of=" + sMountPoint + testFile, "count=10", "bs=" + 4 * Constants.KB);
+    createFileInFuse(testFile);
 
     // Fuse release() is async
     // Open the file to make sure dd is completed
@@ -217,11 +218,10 @@ public class FuseFileSystemIntegrationTest {
     // ls -sh has different results in osx
     Assume.assumeTrue(OSUtils.isLinux());
     String testFile = "/lsTestFile";
-    ShellUtils.execCommand("dd", "if=/dev/zero",
-        "of=" + sMountPoint + testFile, "count=10", "bs=" + 4 * Constants.KB);
+    createFileInFuse(testFile);
 
-    // Fuse release() is async, Fuse getattr() will wait for file completed and get the
-    // right file size
+    // Fuse getattr() will wait for file to be completed
+    // when fuse release returns but does not finish
     String out = ShellUtils.execCommand("ls", "-sh", sMountPoint + testFile);
     Assert.assertFalse(out.isEmpty());
     Assert.assertEquals("40K", out.split("\\s+")[0]);
@@ -264,6 +264,20 @@ public class FuseFileSystemIntegrationTest {
     Assert.assertTrue(lsResult.contains("lsTestFile"));
     Assert.assertTrue(lsResult.contains("touchTestFile"));
     Assert.assertTrue(sFileSystem.exists(new AlluxioURI(touchTestFile)));
+  }
+
+  /**
+   * Create a file in Alluxio fuse mount point.
+   *
+   * @param filename the target file name
+   */
+  private void createFileInFuse(String filename) {
+    try {
+      ShellUtils.execCommand("dd", "if=/dev/zero",
+          "of=" + sMountPoint + filename, "count=10", "bs=" + 4 * Constants.KB);
+    } catch (IOException e) {
+      fail();
+    }
   }
 
   /**

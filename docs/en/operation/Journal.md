@@ -15,7 +15,29 @@ a recovering master will read the edit logs to restore itself back to its previo
 We use the term "journal" to refer to the system of edit logs used to support fault-tolerance.
 The purpose of this documentation is to help Alluxio administrators understand and manage the Alluxio journal.
 
-## Configuration
+## UFS Journal vs Embedded Journal
+
+The UFS journal simplifies certain aspects of Alluxio operation, but it relies on 
+an external Zookeeper cluster for coordination, and relies on a UFS for persistent storage. 
+To get reasonable performance, the UFS journal requires a UFS that supports fast streaming writes, 
+such as HDFS or NFS.
+
+The embedded journal does its own coordination and persistent storage, but has a few limitations.
+
+First, `n` masters using the embedded journal can tolerate only `floor(n/2)` master failures, 
+compared to `n-1` for UFS journal. For example, With `3` masters, UFS journal can tolerate `2` failures, 
+while embedded journal can only tolerate `1`. However, UFS journal depends on Zookeeper, 
+which similarly only supports `floor(#zookeeper_nodes / 2)` failures.
+
+The other limitation is that embedded journal does not support dynamically changing master membership. 
+With UFS journal, replacing a master on `host1` with a new master on `host2` is as simple as starting a new master on `host2`, 
+then killing the master on `host1`. Changing the masters in an embedded journal cluster requires backing up the cluster, 
+shutting it down, and then starting up again with the new masters using the backup.
+
+If a fast UFS and Zookeeper cluster are readily available and stable, it is recommended to use the UFS journal. 
+Otherwise, we recommend using the embedded journal.
+
+## UFS Journal Configuration
 
 The most important configuration value to set for the journal is
 `alluxio.master.journal.folder`. This must be set to a filesystem folder that is
@@ -39,6 +61,45 @@ Use the local file system to store the journal:
 ```
 alluxio.master.journal.folder=/opt/alluxio/journal
 ```
+
+## Embedded Journal Configuration
+
+### Required configuration
+
+The configuration specified below should be applied to both Alluxio servers and Alluxio clients.
+
+Set the journal type to "EMBEDDED":
+```
+alluxio.master.journal.type=EMBEDDED
+```
+
+Set the addresses of all masters in the cluster. The default embedded journal port is `19200`.
+```
+alluxio.master.embedded.journal.addresses=master_hostname_1:19200,master_hostname_2:19200,master_hostname_3:19200
+```
+
+### Optional configuration
+
+* `alluxio.master.embedded.journal.port`: The port masters use for embedded journal communication. Default: `19200`.
+* `alluxio.master.port`: The port masters use for RPCs. Default: `19998`.
+* `alluxio.master.rpc.addresses`: A list of comma-separated `host:port` RPC addresses where the client 
+should look for masters when using multiple masters without Zookeeper. This property is not used when Zookeeper is enabled, 
+since Zookeeper already stores the master addresses. If this is not set, clients will look for masters using the hostnames 
+from `alluxio.master.embedded.journal.addresses` and the master rpc port.
+
+### Job service configuration
+
+It is usually best not to set any of these - by default the job master will use the same hostnames as the Alluxio master, 
+so it is enough to set only `alluxio.master.embedded.journal.addresses`. These properties only need to be set 
+when the job service is being run independent from the rest of the system or using a non-standard port.
+
+* `alluxio.job.master.embedded.journal.port`: the port job masters use for embedded journal communications. Default: `20003`.
+* `alluxio.job.master.embedded.journal.addresses`: a comma-separated list of journal addresses for all job masters in the cluster. 
+The format is `hostname1:port1,hostname2:port2,...`.
+* `alluxio.job.master.rpc.addresses`: A list of comma-separated host:port RPC addresses where the client should look for job masters 
+when using multiple job masters without Zookeeper. This property is not used when Zookeeper is enabled, 
+since Zookeeper already stores the job master addresses. If this is not set, clients will look for job masters using the hostnames 
+from `alluxio.master.embedded.journal.addresses` and the job master rpc port.
 
 ## Formatting the journal
 
@@ -74,6 +135,29 @@ alluxio.master.backup.directory=/alluxio/backups
 
 See the [backup command documentation]({{ '/en/operation/Admin-CLI.html' | relativize_url }}#backup)
 for additional backup options.
+
+### Automatically backing up the journal
+
+Alluxio supports automatically taking primary master metadata snapshots every day at a fixed time 
+so that Alluxio metadata can be restored to at most one day before.
+This functionality is enabled by setting the following property in `${ALLUXIO_HOME}/conf/alluxio-site.properties`:
+
+```
+alluxio.master.daily.backup.enabled=true
+```
+
+The time to take daily snapshots is defined by `alluxio.master.daily.backup.time`. For example, if 
+a user specified `alluxio.master.daily.backup.time=05:30`, the Alluxio primary master will back up its metadata 
+to the `alluxio.master.backup.directory` of the root UFS every day at 5:30am UTC. 
+We recommend setting the backup time to an off-peak time to avoid interfering with other users of the system.
+
+In the daily backup, the backup directory needs to be an absolute path within the root UFS. 
+For example, if `alluxio.master.backup.directory=/alluxio_backups` 
+and `alluxio.master.mount.table.root.ufs=hdfs://192.168.1.1:9000/alluxio/underfs`, 
+the default backup directory would be `hdfs://192.168.1.1:9000/alluxio_backups`.
+
+The files to retain in the backup directory is limited by `alluxio.master.daily.backup.files.retained`.
+Users can set this property to the number of backup files they want to keep in the backup directory.
 
 ### Restoring from a backup
 

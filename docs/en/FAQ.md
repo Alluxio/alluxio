@@ -89,13 +89,15 @@ Other Alluxio events can be found [here](https://alluxio.org/resources/events).
 
 ## Where can I report issues or propose new features?
 
-[JIRA](https://alluxio.atlassian.net/projects/ALLUXIO) is used to track feature development and issues.
-To report an issue or propose a feature, post on the JIRA Alluxio issue tracker.
-Registration is required before posting.
+[Github Issues](https://github.com/alluxio/alluxio/issues) is used to track feature
+development and issues.
+To report an issue or propose a feature, post on the Github issue.
 
 ## Where can I get more help?
 
-For any questions related to installation, contribution or feedback, please send an email to the
+For any questions related to installation, contribution or feedback, please
+join our [Alluxio community Slack Channel](https://www.alluxio.org/slack) or
+send an email to the
 [Alluxio User Mailing List](https://groups.google.com/forum/?fromgroups#!forum/alluxio-users).
 We look forward to seeing you there.
 

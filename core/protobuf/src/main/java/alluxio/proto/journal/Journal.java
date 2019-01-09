@@ -544,12 +544,62 @@ public final class Journal {
      * <code>optional .alluxio.proto.journal.UpdateInodeFileEntry update_inode_file = 37;</code>
      */
     alluxio.proto.journal.File.UpdateInodeFileEntryOrBuilder getUpdateInodeFileOrBuilder();
+
+    // repeated .alluxio.proto.journal.JournalEntry journal_entries = 39;
+    /**
+     * <code>repeated .alluxio.proto.journal.JournalEntry journal_entries = 39;</code>
+     *
+     * <pre>
+     * This journal entry is a list of other entries. when a journal entry
+     * contains other journal entries, all other optional fields must be unset.
+     * </pre>
+     */
+    java.util.List<alluxio.proto.journal.Journal.JournalEntry> 
+        getJournalEntriesList();
+    /**
+     * <code>repeated .alluxio.proto.journal.JournalEntry journal_entries = 39;</code>
+     *
+     * <pre>
+     * This journal entry is a list of other entries. when a journal entry
+     * contains other journal entries, all other optional fields must be unset.
+     * </pre>
+     */
+    alluxio.proto.journal.Journal.JournalEntry getJournalEntries(int index);
+    /**
+     * <code>repeated .alluxio.proto.journal.JournalEntry journal_entries = 39;</code>
+     *
+     * <pre>
+     * This journal entry is a list of other entries. when a journal entry
+     * contains other journal entries, all other optional fields must be unset.
+     * </pre>
+     */
+    int getJournalEntriesCount();
+    /**
+     * <code>repeated .alluxio.proto.journal.JournalEntry journal_entries = 39;</code>
+     *
+     * <pre>
+     * This journal entry is a list of other entries. when a journal entry
+     * contains other journal entries, all other optional fields must be unset.
+     * </pre>
+     */
+    java.util.List<? extends alluxio.proto.journal.Journal.JournalEntryOrBuilder> 
+        getJournalEntriesOrBuilderList();
+    /**
+     * <code>repeated .alluxio.proto.journal.JournalEntry journal_entries = 39;</code>
+     *
+     * <pre>
+     * This journal entry is a list of other entries. when a journal entry
+     * contains other journal entries, all other optional fields must be unset.
+     * </pre>
+     */
+    alluxio.proto.journal.Journal.JournalEntryOrBuilder getJournalEntriesOrBuilder(
+        int index);
   }
   /**
    * Protobuf type {@code alluxio.proto.journal.JournalEntry}
    *
    * <pre>
-   * next available id: 39
+   * next available id: 40
    * </pre>
    */
   public static final class JournalEntry extends
@@ -1048,6 +1098,14 @@ public final class Journal {
               bitField0_ |= 0x00800000;
               break;
             }
+            case 314: {
+              if (!((mutable_bitField1_ & 0x00000008) == 0x00000008)) {
+                journalEntries_ = new java.util.ArrayList<alluxio.proto.journal.Journal.JournalEntry>();
+                mutable_bitField1_ |= 0x00000008;
+              }
+              journalEntries_.add(input.readMessage(alluxio.proto.journal.Journal.JournalEntry.PARSER, extensionRegistry));
+              break;
+            }
           }
         }
       } catch (com.google.protobuf.InvalidProtocolBufferException e) {
@@ -1056,6 +1114,9 @@ public final class Journal {
         throw new com.google.protobuf.InvalidProtocolBufferException(
             e.getMessage()).setUnfinishedMessage(this);
       } finally {
+        if (((mutable_bitField1_ & 0x00000008) == 0x00000008)) {
+          journalEntries_ = java.util.Collections.unmodifiableList(journalEntries_);
+        }
         this.unknownFields = unknownFields.build();
         makeExtensionsImmutable();
       }
@@ -1901,6 +1962,67 @@ public final class Journal {
       return updateInodeFile_;
     }
 
+    // repeated .alluxio.proto.journal.JournalEntry journal_entries = 39;
+    public static final int JOURNAL_ENTRIES_FIELD_NUMBER = 39;
+    private java.util.List<alluxio.proto.journal.Journal.JournalEntry> journalEntries_;
+    /**
+     * <code>repeated .alluxio.proto.journal.JournalEntry journal_entries = 39;</code>
+     *
+     * <pre>
+     * This journal entry is a list of other entries. when a journal entry
+     * contains other journal entries, all other optional fields must be unset.
+     * </pre>
+     */
+    public java.util.List<alluxio.proto.journal.Journal.JournalEntry> getJournalEntriesList() {
+      return journalEntries_;
+    }
+    /**
+     * <code>repeated .alluxio.proto.journal.JournalEntry journal_entries = 39;</code>
+     *
+     * <pre>
+     * This journal entry is a list of other entries. when a journal entry
+     * contains other journal entries, all other optional fields must be unset.
+     * </pre>
+     */
+    public java.util.List<? extends alluxio.proto.journal.Journal.JournalEntryOrBuilder> 
+        getJournalEntriesOrBuilderList() {
+      return journalEntries_;
+    }
+    /**
+     * <code>repeated .alluxio.proto.journal.JournalEntry journal_entries = 39;</code>
+     *
+     * <pre>
+     * This journal entry is a list of other entries. when a journal entry
+     * contains other journal entries, all other optional fields must be unset.
+     * </pre>
+     */
+    public int getJournalEntriesCount() {
+      return journalEntries_.size();
+    }
+    /**
+     * <code>repeated .alluxio.proto.journal.JournalEntry journal_entries = 39;</code>
+     *
+     * <pre>
+     * This journal entry is a list of other entries. when a journal entry
+     * contains other journal entries, all other optional fields must be unset.
+     * </pre>
+     */
+    public alluxio.proto.journal.Journal.JournalEntry getJournalEntries(int index) {
+      return journalEntries_.get(index);
+    }
+    /**
+     * <code>repeated .alluxio.proto.journal.JournalEntry journal_entries = 39;</code>
+     *
+     * <pre>
+     * This journal entry is a list of other entries. when a journal entry
+     * contains other journal entries, all other optional fields must be unset.
+     * </pre>
+     */
+    public alluxio.proto.journal.Journal.JournalEntryOrBuilder getJournalEntriesOrBuilder(
+        int index) {
+      return journalEntries_.get(index);
+    }
+
     private void initFields() {
       sequenceNumber_ = 0L;
       activeSyncTxId_ = alluxio.proto.journal.File.ActiveSyncTxIdEntry.getDefaultInstance();
@@ -1937,6 +2059,7 @@ public final class Journal {
       updateInode_ = alluxio.proto.journal.File.UpdateInodeEntry.getDefaultInstance();
       updateInodeDirectory_ = alluxio.proto.journal.File.UpdateInodeDirectoryEntry.getDefaultInstance();
       updateInodeFile_ = alluxio.proto.journal.File.UpdateInodeFileEntry.getDefaultInstance();
+      journalEntries_ = java.util.Collections.emptyList();
     }
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
@@ -2054,6 +2177,9 @@ public final class Journal {
       }
       if (((bitField0_ & 0x00800000) == 0x00800000)) {
         output.writeMessage(38, newBlock_);
+      }
+      for (int i = 0; i < journalEntries_.size(); i++) {
+        output.writeMessage(39, journalEntries_.get(i));
       }
       getUnknownFields().writeTo(output);
     }
@@ -2204,6 +2330,10 @@ public final class Journal {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(38, newBlock_);
       }
+      for (int i = 0; i < journalEntries_.size(); i++) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(39, journalEntries_.get(i));
+      }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
       return size;
@@ -2286,7 +2416,7 @@ public final class Journal {
      * Protobuf type {@code alluxio.proto.journal.JournalEntry}
      *
      * <pre>
-     * next available id: 39
+     * next available id: 40
      * </pre>
      */
     public static final class Builder extends
@@ -2350,6 +2480,7 @@ public final class Journal {
           getUpdateInodeFieldBuilder();
           getUpdateInodeDirectoryFieldBuilder();
           getUpdateInodeFileFieldBuilder();
+          getJournalEntriesFieldBuilder();
         }
       }
       private static Builder create() {
@@ -2564,6 +2695,12 @@ public final class Journal {
           updateInodeFileBuilder_.clear();
         }
         bitField1_ = (bitField1_ & ~0x00000004);
+        if (journalEntriesBuilder_ == null) {
+          journalEntries_ = java.util.Collections.emptyList();
+          bitField1_ = (bitField1_ & ~0x00000008);
+        } else {
+          journalEntriesBuilder_.clear();
+        }
         return this;
       }
 
@@ -2870,6 +3007,15 @@ public final class Journal {
         } else {
           result.updateInodeFile_ = updateInodeFileBuilder_.build();
         }
+        if (journalEntriesBuilder_ == null) {
+          if (((bitField1_ & 0x00000008) == 0x00000008)) {
+            journalEntries_ = java.util.Collections.unmodifiableList(journalEntries_);
+            bitField1_ = (bitField1_ & ~0x00000008);
+          }
+          result.journalEntries_ = journalEntries_;
+        } else {
+          result.journalEntries_ = journalEntriesBuilder_.build();
+        }
         result.bitField0_ = to_bitField0_;
         result.bitField1_ = to_bitField1_;
         onBuilt();
@@ -2991,6 +3137,32 @@ public final class Journal {
         }
         if (other.hasUpdateInodeFile()) {
           mergeUpdateInodeFile(other.getUpdateInodeFile());
+        }
+        if (journalEntriesBuilder_ == null) {
+          if (!other.journalEntries_.isEmpty()) {
+            if (journalEntries_.isEmpty()) {
+              journalEntries_ = other.journalEntries_;
+              bitField1_ = (bitField1_ & ~0x00000008);
+            } else {
+              ensureJournalEntriesIsMutable();
+              journalEntries_.addAll(other.journalEntries_);
+            }
+            onChanged();
+          }
+        } else {
+          if (!other.journalEntries_.isEmpty()) {
+            if (journalEntriesBuilder_.isEmpty()) {
+              journalEntriesBuilder_.dispose();
+              journalEntriesBuilder_ = null;
+              journalEntries_ = other.journalEntries_;
+              bitField1_ = (bitField1_ & ~0x00000008);
+              journalEntriesBuilder_ = 
+                com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders ?
+                   getJournalEntriesFieldBuilder() : null;
+            } else {
+              journalEntriesBuilder_.addAllMessages(other.journalEntries_);
+            }
+          }
         }
         this.mergeUnknownFields(other.getUnknownFields());
         return this;
@@ -7175,6 +7347,336 @@ public final class Journal {
         return updateInodeFileBuilder_;
       }
 
+      // repeated .alluxio.proto.journal.JournalEntry journal_entries = 39;
+      private java.util.List<alluxio.proto.journal.Journal.JournalEntry> journalEntries_ =
+        java.util.Collections.emptyList();
+      private void ensureJournalEntriesIsMutable() {
+        if (!((bitField1_ & 0x00000008) == 0x00000008)) {
+          journalEntries_ = new java.util.ArrayList<alluxio.proto.journal.Journal.JournalEntry>(journalEntries_);
+          bitField1_ |= 0x00000008;
+         }
+      }
+
+      private com.google.protobuf.RepeatedFieldBuilder<
+          alluxio.proto.journal.Journal.JournalEntry, alluxio.proto.journal.Journal.JournalEntry.Builder, alluxio.proto.journal.Journal.JournalEntryOrBuilder> journalEntriesBuilder_;
+
+      /**
+       * <code>repeated .alluxio.proto.journal.JournalEntry journal_entries = 39;</code>
+       *
+       * <pre>
+       * This journal entry is a list of other entries. when a journal entry
+       * contains other journal entries, all other optional fields must be unset.
+       * </pre>
+       */
+      public java.util.List<alluxio.proto.journal.Journal.JournalEntry> getJournalEntriesList() {
+        if (journalEntriesBuilder_ == null) {
+          return java.util.Collections.unmodifiableList(journalEntries_);
+        } else {
+          return journalEntriesBuilder_.getMessageList();
+        }
+      }
+      /**
+       * <code>repeated .alluxio.proto.journal.JournalEntry journal_entries = 39;</code>
+       *
+       * <pre>
+       * This journal entry is a list of other entries. when a journal entry
+       * contains other journal entries, all other optional fields must be unset.
+       * </pre>
+       */
+      public int getJournalEntriesCount() {
+        if (journalEntriesBuilder_ == null) {
+          return journalEntries_.size();
+        } else {
+          return journalEntriesBuilder_.getCount();
+        }
+      }
+      /**
+       * <code>repeated .alluxio.proto.journal.JournalEntry journal_entries = 39;</code>
+       *
+       * <pre>
+       * This journal entry is a list of other entries. when a journal entry
+       * contains other journal entries, all other optional fields must be unset.
+       * </pre>
+       */
+      public alluxio.proto.journal.Journal.JournalEntry getJournalEntries(int index) {
+        if (journalEntriesBuilder_ == null) {
+          return journalEntries_.get(index);
+        } else {
+          return journalEntriesBuilder_.getMessage(index);
+        }
+      }
+      /**
+       * <code>repeated .alluxio.proto.journal.JournalEntry journal_entries = 39;</code>
+       *
+       * <pre>
+       * This journal entry is a list of other entries. when a journal entry
+       * contains other journal entries, all other optional fields must be unset.
+       * </pre>
+       */
+      public Builder setJournalEntries(
+          int index, alluxio.proto.journal.Journal.JournalEntry value) {
+        if (journalEntriesBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          ensureJournalEntriesIsMutable();
+          journalEntries_.set(index, value);
+          onChanged();
+        } else {
+          journalEntriesBuilder_.setMessage(index, value);
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .alluxio.proto.journal.JournalEntry journal_entries = 39;</code>
+       *
+       * <pre>
+       * This journal entry is a list of other entries. when a journal entry
+       * contains other journal entries, all other optional fields must be unset.
+       * </pre>
+       */
+      public Builder setJournalEntries(
+          int index, alluxio.proto.journal.Journal.JournalEntry.Builder builderForValue) {
+        if (journalEntriesBuilder_ == null) {
+          ensureJournalEntriesIsMutable();
+          journalEntries_.set(index, builderForValue.build());
+          onChanged();
+        } else {
+          journalEntriesBuilder_.setMessage(index, builderForValue.build());
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .alluxio.proto.journal.JournalEntry journal_entries = 39;</code>
+       *
+       * <pre>
+       * This journal entry is a list of other entries. when a journal entry
+       * contains other journal entries, all other optional fields must be unset.
+       * </pre>
+       */
+      public Builder addJournalEntries(alluxio.proto.journal.Journal.JournalEntry value) {
+        if (journalEntriesBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          ensureJournalEntriesIsMutable();
+          journalEntries_.add(value);
+          onChanged();
+        } else {
+          journalEntriesBuilder_.addMessage(value);
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .alluxio.proto.journal.JournalEntry journal_entries = 39;</code>
+       *
+       * <pre>
+       * This journal entry is a list of other entries. when a journal entry
+       * contains other journal entries, all other optional fields must be unset.
+       * </pre>
+       */
+      public Builder addJournalEntries(
+          int index, alluxio.proto.journal.Journal.JournalEntry value) {
+        if (journalEntriesBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          ensureJournalEntriesIsMutable();
+          journalEntries_.add(index, value);
+          onChanged();
+        } else {
+          journalEntriesBuilder_.addMessage(index, value);
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .alluxio.proto.journal.JournalEntry journal_entries = 39;</code>
+       *
+       * <pre>
+       * This journal entry is a list of other entries. when a journal entry
+       * contains other journal entries, all other optional fields must be unset.
+       * </pre>
+       */
+      public Builder addJournalEntries(
+          alluxio.proto.journal.Journal.JournalEntry.Builder builderForValue) {
+        if (journalEntriesBuilder_ == null) {
+          ensureJournalEntriesIsMutable();
+          journalEntries_.add(builderForValue.build());
+          onChanged();
+        } else {
+          journalEntriesBuilder_.addMessage(builderForValue.build());
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .alluxio.proto.journal.JournalEntry journal_entries = 39;</code>
+       *
+       * <pre>
+       * This journal entry is a list of other entries. when a journal entry
+       * contains other journal entries, all other optional fields must be unset.
+       * </pre>
+       */
+      public Builder addJournalEntries(
+          int index, alluxio.proto.journal.Journal.JournalEntry.Builder builderForValue) {
+        if (journalEntriesBuilder_ == null) {
+          ensureJournalEntriesIsMutable();
+          journalEntries_.add(index, builderForValue.build());
+          onChanged();
+        } else {
+          journalEntriesBuilder_.addMessage(index, builderForValue.build());
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .alluxio.proto.journal.JournalEntry journal_entries = 39;</code>
+       *
+       * <pre>
+       * This journal entry is a list of other entries. when a journal entry
+       * contains other journal entries, all other optional fields must be unset.
+       * </pre>
+       */
+      public Builder addAllJournalEntries(
+          java.lang.Iterable<? extends alluxio.proto.journal.Journal.JournalEntry> values) {
+        if (journalEntriesBuilder_ == null) {
+          ensureJournalEntriesIsMutable();
+          super.addAll(values, journalEntries_);
+          onChanged();
+        } else {
+          journalEntriesBuilder_.addAllMessages(values);
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .alluxio.proto.journal.JournalEntry journal_entries = 39;</code>
+       *
+       * <pre>
+       * This journal entry is a list of other entries. when a journal entry
+       * contains other journal entries, all other optional fields must be unset.
+       * </pre>
+       */
+      public Builder clearJournalEntries() {
+        if (journalEntriesBuilder_ == null) {
+          journalEntries_ = java.util.Collections.emptyList();
+          bitField1_ = (bitField1_ & ~0x00000008);
+          onChanged();
+        } else {
+          journalEntriesBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .alluxio.proto.journal.JournalEntry journal_entries = 39;</code>
+       *
+       * <pre>
+       * This journal entry is a list of other entries. when a journal entry
+       * contains other journal entries, all other optional fields must be unset.
+       * </pre>
+       */
+      public Builder removeJournalEntries(int index) {
+        if (journalEntriesBuilder_ == null) {
+          ensureJournalEntriesIsMutable();
+          journalEntries_.remove(index);
+          onChanged();
+        } else {
+          journalEntriesBuilder_.remove(index);
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .alluxio.proto.journal.JournalEntry journal_entries = 39;</code>
+       *
+       * <pre>
+       * This journal entry is a list of other entries. when a journal entry
+       * contains other journal entries, all other optional fields must be unset.
+       * </pre>
+       */
+      public alluxio.proto.journal.Journal.JournalEntry.Builder getJournalEntriesBuilder(
+          int index) {
+        return getJournalEntriesFieldBuilder().getBuilder(index);
+      }
+      /**
+       * <code>repeated .alluxio.proto.journal.JournalEntry journal_entries = 39;</code>
+       *
+       * <pre>
+       * This journal entry is a list of other entries. when a journal entry
+       * contains other journal entries, all other optional fields must be unset.
+       * </pre>
+       */
+      public alluxio.proto.journal.Journal.JournalEntryOrBuilder getJournalEntriesOrBuilder(
+          int index) {
+        if (journalEntriesBuilder_ == null) {
+          return journalEntries_.get(index);  } else {
+          return journalEntriesBuilder_.getMessageOrBuilder(index);
+        }
+      }
+      /**
+       * <code>repeated .alluxio.proto.journal.JournalEntry journal_entries = 39;</code>
+       *
+       * <pre>
+       * This journal entry is a list of other entries. when a journal entry
+       * contains other journal entries, all other optional fields must be unset.
+       * </pre>
+       */
+      public java.util.List<? extends alluxio.proto.journal.Journal.JournalEntryOrBuilder> 
+           getJournalEntriesOrBuilderList() {
+        if (journalEntriesBuilder_ != null) {
+          return journalEntriesBuilder_.getMessageOrBuilderList();
+        } else {
+          return java.util.Collections.unmodifiableList(journalEntries_);
+        }
+      }
+      /**
+       * <code>repeated .alluxio.proto.journal.JournalEntry journal_entries = 39;</code>
+       *
+       * <pre>
+       * This journal entry is a list of other entries. when a journal entry
+       * contains other journal entries, all other optional fields must be unset.
+       * </pre>
+       */
+      public alluxio.proto.journal.Journal.JournalEntry.Builder addJournalEntriesBuilder() {
+        return getJournalEntriesFieldBuilder().addBuilder(
+            alluxio.proto.journal.Journal.JournalEntry.getDefaultInstance());
+      }
+      /**
+       * <code>repeated .alluxio.proto.journal.JournalEntry journal_entries = 39;</code>
+       *
+       * <pre>
+       * This journal entry is a list of other entries. when a journal entry
+       * contains other journal entries, all other optional fields must be unset.
+       * </pre>
+       */
+      public alluxio.proto.journal.Journal.JournalEntry.Builder addJournalEntriesBuilder(
+          int index) {
+        return getJournalEntriesFieldBuilder().addBuilder(
+            index, alluxio.proto.journal.Journal.JournalEntry.getDefaultInstance());
+      }
+      /**
+       * <code>repeated .alluxio.proto.journal.JournalEntry journal_entries = 39;</code>
+       *
+       * <pre>
+       * This journal entry is a list of other entries. when a journal entry
+       * contains other journal entries, all other optional fields must be unset.
+       * </pre>
+       */
+      public java.util.List<alluxio.proto.journal.Journal.JournalEntry.Builder> 
+           getJournalEntriesBuilderList() {
+        return getJournalEntriesFieldBuilder().getBuilderList();
+      }
+      private com.google.protobuf.RepeatedFieldBuilder<
+          alluxio.proto.journal.Journal.JournalEntry, alluxio.proto.journal.Journal.JournalEntry.Builder, alluxio.proto.journal.Journal.JournalEntryOrBuilder> 
+          getJournalEntriesFieldBuilder() {
+        if (journalEntriesBuilder_ == null) {
+          journalEntriesBuilder_ = new com.google.protobuf.RepeatedFieldBuilder<
+              alluxio.proto.journal.Journal.JournalEntry, alluxio.proto.journal.Journal.JournalEntry.Builder, alluxio.proto.journal.Journal.JournalEntryOrBuilder>(
+                  journalEntries_,
+                  ((bitField1_ & 0x00000008) == 0x00000008),
+                  getParentForChildren(),
+                  isClean());
+          journalEntries_ = null;
+        }
+        return journalEntriesBuilder_;
+      }
+
       // @@protoc_insertion_point(builder_scope:alluxio.proto.journal.JournalEntry)
     }
 
@@ -7203,7 +7705,7 @@ public final class Journal {
       "\n\025journal/journal.proto\022\025alluxio.proto.j" +
       "ournal\032\023journal/block.proto\032\022journal/fil" +
       "e.proto\032\027journal/key_value.proto\032\025journa" +
-      "l/lineage.proto\"\306\022\n\014JournalEntry\022\027\n\017sequ" +
+      "l/lineage.proto\"\204\023\n\014JournalEntry\022\027\n\017sequ" +
       "ence_number\030\001 \001(\003\022E\n\021active_sync_tx_id\030\"" +
       " \001(\0132*.alluxio.proto.journal.ActiveSyncT" +
       "xIdEntry\022@\n\016add_sync_point\030  \001(\0132(.allux" +
@@ -7262,8 +7764,9 @@ public final class Journal {
       "\n\026update_inode_directory\030$ \001(\01320.alluxio",
       ".proto.journal.UpdateInodeDirectoryEntry" +
       "\022F\n\021update_inode_file\030% \001(\0132+.alluxio.pr" +
-      "oto.journal.UpdateInodeFileEntryB\027\n\025allu" +
-      "xio.proto.journal"
+      "oto.journal.UpdateInodeFileEntry\022<\n\017jour" +
+      "nal_entries\030\' \003(\0132#.alluxio.proto.journa" +
+      "l.JournalEntryB\027\n\025alluxio.proto.journal"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
       new com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner() {
@@ -7275,7 +7778,7 @@ public final class Journal {
           internal_static_alluxio_proto_journal_JournalEntry_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_alluxio_proto_journal_JournalEntry_descriptor,
-              new java.lang.String[] { "SequenceNumber", "ActiveSyncTxId", "AddSyncPoint", "AddMountPoint", "AsyncPersistRequest", "BlockContainerIdGenerator", "BlockInfo", "CompleteFile", "CompletePartition", "CompleteStore", "CreateStore", "DeleteBlock", "DeleteFile", "DeleteLineage", "DeleteMountPoint", "DeleteStore", "InodeDirectory", "InodeDirectoryIdGenerator", "InodeFile", "InodeLastModificationTime", "Lineage", "LineageIdGenerator", "MergeStore", "NewBlock", "PersistDirectory", "ReinitializeFile", "RemoveSyncPoint", "Rename", "RenameStore", "SetAcl", "SetAttribute", "UpdateUfsMode", "UpdateInode", "UpdateInodeDirectory", "UpdateInodeFile", });
+              new java.lang.String[] { "SequenceNumber", "ActiveSyncTxId", "AddSyncPoint", "AddMountPoint", "AsyncPersistRequest", "BlockContainerIdGenerator", "BlockInfo", "CompleteFile", "CompletePartition", "CompleteStore", "CreateStore", "DeleteBlock", "DeleteFile", "DeleteLineage", "DeleteMountPoint", "DeleteStore", "InodeDirectory", "InodeDirectoryIdGenerator", "InodeFile", "InodeLastModificationTime", "Lineage", "LineageIdGenerator", "MergeStore", "NewBlock", "PersistDirectory", "ReinitializeFile", "RemoveSyncPoint", "Rename", "RenameStore", "SetAcl", "SetAttribute", "UpdateUfsMode", "UpdateInode", "UpdateInodeDirectory", "UpdateInodeFile", "JournalEntries", });
           return null;
         }
       };

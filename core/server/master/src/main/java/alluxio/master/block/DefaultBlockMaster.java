@@ -1097,28 +1097,13 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
     @VisibleForTesting
     public static void registerGauges(final BlockMaster master) {
       MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(CAPACITY_TOTAL),
-          new Gauge<Long>() {
-            @Override
-            public Long getValue() {
-              return master.getCapacityBytes();
-            }
-          });
+          master::getCapacityBytes);
 
       MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(CAPACITY_USED),
-          new Gauge<Long>() {
-            @Override
-            public Long getValue() {
-              return master.getUsedBytes();
-            }
-          });
+          master::getUsedBytes);
 
       MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(CAPACITY_FREE),
-          new Gauge<Long>() {
-            @Override
-            public Long getValue() {
-              return master.getCapacityBytes() - master.getUsedBytes();
-            }
-          });
+          () -> master.getCapacityBytes() - master.getUsedBytes());
 
       for (int i = 0; i < master.getGlobalStorageTierAssoc().size(); i++) {
         String alias = master.getGlobalStorageTierAssoc().getAlias(i);
