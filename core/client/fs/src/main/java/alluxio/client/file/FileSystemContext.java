@@ -538,16 +538,4 @@ public final class FileSystemContext implements Closeable {
           .toString();
     }
   }
-
-  private static final class NettyChannelProperties {
-    private WorkerNetAddress mWorkerNetAddress;
-
-    public NettyChannelProperties(WorkerNetAddress workerNetAddress) {
-      mWorkerNetAddress = workerNetAddress;
-    }
-
-    public WorkerNetAddress getWorkerNetAddress() {
-      return mWorkerNetAddress;
-    }
-  }
 }
