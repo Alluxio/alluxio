@@ -170,7 +170,7 @@
   </properties>
 
   <modules>
-    <!--<module>alluxio-ui</module>-->
+    <module>alluxio-ui</module>
     <module>assembly</module>
     <module>core</module>
     <module>examples</module>
@@ -1202,6 +1202,7 @@
             <alluxio>SCRIPT_STYLE</alluxio>
             <go>SLASHSTAR_STYLE</go>
             <java>SLASHSTAR_STYLE</java>
+            <jsx>SLASHSTAR_STYLE</jsx>
             <properties.template>SCRIPT_STYLE</properties.template>
             <sh.template>SCRIPT_STYLE</sh.template>
             <workers>SCRIPT_STYLE</workers>
