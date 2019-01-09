@@ -18,11 +18,6 @@ import static org.mockito.Matchers.anyLong;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 
-import com.google.common.collect.Iterables;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mockito;
-
 import alluxio.PropertyKey;
 import alluxio.conf.AlluxioProperties;
 import alluxio.conf.InstancedConfiguration;
@@ -33,6 +28,11 @@ import alluxio.master.file.meta.MutableInodeFile;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
 import alluxio.master.metastore.java.HeapInodeStore;
+
+import com.google.common.collect.Iterables;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mockito;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -50,12 +50,9 @@ public class CachingInodeStoreTest {
 
   @Before
   public void before() {
-    AlluxioProperties props = new AlluxioProperties();
-    props.put(PropertyKey.MASTER_METASTORE_INODE_CACHE_SIZE, Long.toString(CACHE_SIZE),
-        Source.RUNTIME);
-    InstancedConfiguration conf = new InstancedConfiguration(props);
     mBackingStore = spy(new HeapInodeStore());
-    mStore = new CachingInodeStore(mBackingStore, conf);
+    mStore = new CachingInodeStore(mBackingStore, InstancedConfiguration.newBuilder()
+        .setProperty(PropertyKey.MASTER_METASTORE_INODE_CACHE_SIZE, CACHE_SIZE).build());
     mStore.writeInode(TEST_INODE_DIR);
   }
 

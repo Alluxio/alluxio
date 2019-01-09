@@ -65,7 +65,7 @@ final class MasterUtils {
       case HEAP:
         return new HeapMetastore();
       case ROCKS:
-        return new RocksMetastore();
+        return new RocksMetastore(Configuration.global());
       default:
         throw new IllegalStateException("Unknown metastore type: " + type);
     }
