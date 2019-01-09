@@ -76,7 +76,6 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
    */
   public AlluxioURI(String pathStr) {
     mUri = URI.Factory.create(pathStr);
-    mUriString = pathStr;
   }
 
   /**
