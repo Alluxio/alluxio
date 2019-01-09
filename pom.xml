@@ -1193,7 +1193,6 @@
             <exclude>alluxio-ui/**/node/**</exclude>
             <exclude>alluxio-ui/**/node_modules/**</exclude>
             <exclude>alluxio-ui/**/src/**/*.css</exclude>
-            <exclude>alluxio-ui/**/public/index.html</exclude>
             <exclude>alluxio-ui/**/build/**</exclude>
 
             <!-- Documentation Exclusions -->
