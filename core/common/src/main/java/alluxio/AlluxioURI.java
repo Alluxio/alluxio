@@ -66,7 +66,8 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
   /** A {@link URI} is used to hold the URI components. */
   private final URI mUri;
 
-  private String mUriString = "";
+  // Cached string version of the AlluxioURI
+  private String mUriString = null;
 
   /**
    * Constructs an {@link AlluxioURI} from a String. Path strings are URIs, but with unescaped
@@ -470,7 +471,7 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
    */
   @Override
   public String toString() {
-    if (!mUriString.isEmpty()) {
+    if (mUriString != null) {
       return mUriString;
     }
     StringBuilder sb = new StringBuilder();
