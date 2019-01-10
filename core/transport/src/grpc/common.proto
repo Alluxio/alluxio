@@ -7,14 +7,14 @@ option java_outer_classname = "CommonProto";
 package alluxio.grpc;
 
 enum Bits {
-    NONE = 1;
-    EXECUTE = 2;
-    WRITE = 3;
-    WRITE_EXECUTE = 4;
-    READ = 5;
-    READ_EXECUTE = 6;
-    READ_WRITE = 7;
-    ALL = 8;
+  NONE = 1;
+  EXECUTE = 2;
+  WRITE = 3;
+  WRITE_EXECUTE = 4;
+  READ = 5;
+  READ_EXECUTE = 6;
+  READ_WRITE = 7;
+  ALL = 8;
 }
 
 message Mode {

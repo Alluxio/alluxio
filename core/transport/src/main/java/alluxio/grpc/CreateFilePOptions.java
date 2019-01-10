@@ -308,7 +308,7 @@ private static final long serialVersionUID = 0L;
    */
   public alluxio.grpc.WritePType getWriteType() {
     alluxio.grpc.WritePType result = alluxio.grpc.WritePType.valueOf(writeType_);
-    return result == null ? alluxio.grpc.WritePType.WRITE_MUST_CACHE : result;
+    return result == null ? alluxio.grpc.WritePType.MUST_CACHE : result;
   }
 
   public static final int COMMONOPTIONS_FIELD_NUMBER = 10;
@@ -1175,7 +1175,7 @@ private static final long serialVersionUID = 0L;
      */
     public alluxio.grpc.WritePType getWriteType() {
       alluxio.grpc.WritePType result = alluxio.grpc.WritePType.valueOf(writeType_);
-      return result == null ? alluxio.grpc.WritePType.WRITE_MUST_CACHE : result;
+      return result == null ? alluxio.grpc.WritePType.MUST_CACHE : result;
     }
     /**
      * <code>optional .alluxio.grpc.file.WritePType writeType = 9;</code>

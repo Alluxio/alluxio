@@ -9,55 +9,55 @@ package alluxio.grpc;
 public enum WritePType
     implements com.google.protobuf.ProtocolMessageEnum {
   /**
-   * <code>WRITE_MUST_CACHE = 1;</code>
+   * <code>MUST_CACHE = 1;</code>
    */
-  WRITE_MUST_CACHE(1),
+  MUST_CACHE(1),
   /**
-   * <code>WRITE_TRY_CACHE = 2;</code>
+   * <code>TRY_CACHE = 2;</code>
    */
-  WRITE_TRY_CACHE(2),
+  TRY_CACHE(2),
   /**
-   * <code>WRITE_CACHE_THROUGH = 3;</code>
+   * <code>CACHE_THROUGH = 3;</code>
    */
-  WRITE_CACHE_THROUGH(3),
+  CACHE_THROUGH(3),
   /**
-   * <code>WRITE_THROUGH = 4;</code>
+   * <code>THROUGH = 4;</code>
    */
-  WRITE_THROUGH(4),
+  THROUGH(4),
   /**
-   * <code>WRITE_ASYNC_THROUGH = 5;</code>
+   * <code>ASYNC_THROUGH = 5;</code>
    */
-  WRITE_ASYNC_THROUGH(5),
+  ASYNC_THROUGH(5),
   /**
-   * <code>WRITE_NONE = 6;</code>
+   * <code>NONE = 6;</code>
    */
-  WRITE_NONE(6),
+  NONE(6),
   ;
 
   /**
-   * <code>WRITE_MUST_CACHE = 1;</code>
+   * <code>MUST_CACHE = 1;</code>
    */
-  public static final int WRITE_MUST_CACHE_VALUE = 1;
+  public static final int MUST_CACHE_VALUE = 1;
   /**
-   * <code>WRITE_TRY_CACHE = 2;</code>
+   * <code>TRY_CACHE = 2;</code>
    */
-  public static final int WRITE_TRY_CACHE_VALUE = 2;
+  public static final int TRY_CACHE_VALUE = 2;
   /**
-   * <code>WRITE_CACHE_THROUGH = 3;</code>
+   * <code>CACHE_THROUGH = 3;</code>
    */
-  public static final int WRITE_CACHE_THROUGH_VALUE = 3;
+  public static final int CACHE_THROUGH_VALUE = 3;
   /**
-   * <code>WRITE_THROUGH = 4;</code>
+   * <code>THROUGH = 4;</code>
    */
-  public static final int WRITE_THROUGH_VALUE = 4;
+  public static final int THROUGH_VALUE = 4;
   /**
-   * <code>WRITE_ASYNC_THROUGH = 5;</code>
+   * <code>ASYNC_THROUGH = 5;</code>
    */
-  public static final int WRITE_ASYNC_THROUGH_VALUE = 5;
+  public static final int ASYNC_THROUGH_VALUE = 5;
   /**
-   * <code>WRITE_NONE = 6;</code>
+   * <code>NONE = 6;</code>
    */
-  public static final int WRITE_NONE_VALUE = 6;
+  public static final int NONE_VALUE = 6;
 
 
   public final int getNumber() {
@@ -74,12 +74,12 @@ public enum WritePType
 
   public static WritePType forNumber(int value) {
     switch (value) {
-      case 1: return WRITE_MUST_CACHE;
-      case 2: return WRITE_TRY_CACHE;
-      case 3: return WRITE_CACHE_THROUGH;
-      case 4: return WRITE_THROUGH;
-      case 5: return WRITE_ASYNC_THROUGH;
-      case 6: return WRITE_NONE;
+      case 1: return MUST_CACHE;
+      case 2: return TRY_CACHE;
+      case 3: return CACHE_THROUGH;
+      case 4: return THROUGH;
+      case 5: return ASYNC_THROUGH;
+      case 6: return NONE;
       default: return null;
     }
   }

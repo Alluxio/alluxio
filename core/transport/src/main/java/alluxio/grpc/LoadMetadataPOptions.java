@@ -152,13 +152,13 @@ private static final long serialVersionUID = 0L;
   public static final int LOADDESCENDANTTYPE_FIELD_NUMBER = 3;
   private int loadDescendantType_;
   /**
-   * <code>optional .alluxio.grpc.file.LoadDescendantPType loadDescendantType = 3;</code>
+   * <code>optional .alluxio.grpc.fscommon.LoadDescendantPType loadDescendantType = 3;</code>
    */
   public boolean hasLoadDescendantType() {
     return ((bitField0_ & 0x00000004) == 0x00000004);
   }
   /**
-   * <code>optional .alluxio.grpc.file.LoadDescendantPType loadDescendantType = 3;</code>
+   * <code>optional .alluxio.grpc.fscommon.LoadDescendantPType loadDescendantType = 3;</code>
    */
   public alluxio.grpc.LoadDescendantPType getLoadDescendantType() {
     alluxio.grpc.LoadDescendantPType result = alluxio.grpc.LoadDescendantPType.valueOf(loadDescendantType_);
@@ -648,20 +648,20 @@ private static final long serialVersionUID = 0L;
 
     private int loadDescendantType_ = 0;
     /**
-     * <code>optional .alluxio.grpc.file.LoadDescendantPType loadDescendantType = 3;</code>
+     * <code>optional .alluxio.grpc.fscommon.LoadDescendantPType loadDescendantType = 3;</code>
      */
     public boolean hasLoadDescendantType() {
       return ((bitField0_ & 0x00000004) == 0x00000004);
     }
     /**
-     * <code>optional .alluxio.grpc.file.LoadDescendantPType loadDescendantType = 3;</code>
+     * <code>optional .alluxio.grpc.fscommon.LoadDescendantPType loadDescendantType = 3;</code>
      */
     public alluxio.grpc.LoadDescendantPType getLoadDescendantType() {
       alluxio.grpc.LoadDescendantPType result = alluxio.grpc.LoadDescendantPType.valueOf(loadDescendantType_);
       return result == null ? alluxio.grpc.LoadDescendantPType.NONE : result;
     }
     /**
-     * <code>optional .alluxio.grpc.file.LoadDescendantPType loadDescendantType = 3;</code>
+     * <code>optional .alluxio.grpc.fscommon.LoadDescendantPType loadDescendantType = 3;</code>
      */
     public Builder setLoadDescendantType(alluxio.grpc.LoadDescendantPType value) {
       if (value == null) {
@@ -673,7 +673,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>optional .alluxio.grpc.file.LoadDescendantPType loadDescendantType = 3;</code>
+     * <code>optional .alluxio.grpc.fscommon.LoadDescendantPType loadDescendantType = 3;</code>
      */
     public Builder clearLoadDescendantType() {
       bitField0_ = (bitField0_ & ~0x00000004);

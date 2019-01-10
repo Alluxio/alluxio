@@ -34,11 +34,11 @@ public interface LoadMetadataPOptionsOrBuilder extends
   boolean getCreateAncestors();
 
   /**
-   * <code>optional .alluxio.grpc.file.LoadDescendantPType loadDescendantType = 3;</code>
+   * <code>optional .alluxio.grpc.fscommon.LoadDescendantPType loadDescendantType = 3;</code>
    */
   boolean hasLoadDescendantType();
   /**
-   * <code>optional .alluxio.grpc.file.LoadDescendantPType loadDescendantType = 3;</code>
+   * <code>optional .alluxio.grpc.fscommon.LoadDescendantPType loadDescendantType = 3;</code>
    */
   alluxio.grpc.LoadDescendantPType getLoadDescendantType();
 

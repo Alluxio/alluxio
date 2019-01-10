@@ -143,7 +143,7 @@ public final class FileSystemTestUtils {
    */
   public static void loadFile(FileSystem fs, String fileName) {
     try (FileInStream is = fs.openFile(new AlluxioURI(fileName),
-        OpenFilePOptions.newBuilder().setReadType(ReadPType.READ_CACHE).build())) {
+        OpenFilePOptions.newBuilder().setReadType(ReadPType.CACHE).build())) {
       IOUtils.copy(is, ByteStreams.nullOutputStream());
     } catch (IOException | AlluxioException e) {
       throw new RuntimeException(e);
@@ -159,9 +159,9 @@ public final class FileSystemTestUtils {
    */
   public static OpenFilePOptions toOpenFileOptions(CreateFilePOptions op) {
     if (WriteType.fromProto(op.getWriteType()).getAlluxioStorageType().isStore()) {
-      return OpenFilePOptions.newBuilder().setReadType(ReadPType.READ_CACHE).build();
+      return OpenFilePOptions.newBuilder().setReadType(ReadPType.CACHE).build();
     }
-    return OpenFilePOptions.newBuilder().setReadType(ReadPType.READ_NO_CACHE).build();
+    return OpenFilePOptions.newBuilder().setReadType(ReadPType.NO_CACHE).build();
   }
 
   private FileSystemTestUtils() {} // prevent instantiation
