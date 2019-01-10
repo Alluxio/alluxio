@@ -299,7 +299,7 @@ public final class FileOutStreamAsyncWriteJobIntegrationTest
     checkFileInAlluxio(mUri, LEN);
     checkFileNotInUnderStorage(status.getUfsPath());
     status = mFileSystem.getStatus(mUri);
-    Assert.assertEquals(TEST_OPTIONS.getMode(), status.getMode());
+    Assert.assertEquals(Mode.fromProto(TEST_OPTIONS.getMode()).toShort(), status.getMode());
     Assert.assertEquals(TEST_OPTIONS.getTtl(), status.getTtl());
     Assert.assertEquals(TEST_OPTIONS.getTtlAction(), status.getTtlAction());
 
@@ -308,12 +308,13 @@ public final class FileOutStreamAsyncWriteJobIntegrationTest
     checkFileInAlluxio(mUri, LEN);
     checkFileInUnderStorage(mUri, LEN);
     status = mFileSystem.getStatus(mUri);
-    Assert.assertEquals(TEST_OPTIONS.getMode(), status.getMode());
+    Assert.assertEquals(Mode.fromProto(TEST_OPTIONS.getMode()).toShort(), status.getMode());
     Assert.assertEquals(TEST_OPTIONS.getTtl(), status.getTtl());
     Assert.assertEquals(TEST_OPTIONS.getTtlAction(), status.getTtlAction());
     // Skip checking mode for object stores
     Assume.assumeFalse(ufs.isObjectStorage());
-    Assert.assertEquals(TEST_OPTIONS.getMode(), ufs.getFileStatus(ufsPath).getMode());
+    Assert.assertEquals(Mode.fromProto(TEST_OPTIONS.getMode()).toShort(),
+        ufs.getFileStatus(ufsPath).getMode());
   }
 
   @Test
@@ -327,7 +328,7 @@ public final class FileOutStreamAsyncWriteJobIntegrationTest
     checkFileInAlluxio(mUri, LEN);
     checkFileNotInUnderStorage(status.getUfsPath());
     status = mFileSystem.getStatus(mUri);
-    Assert.assertEquals(TEST_OPTIONS.getMode(), status.getMode());
+    Assert.assertEquals(Mode.fromProto(TEST_OPTIONS.getMode()).toShort(), status.getMode());
     Assert.assertEquals(TEST_OPTIONS.getTtl(), status.getTtl());
     Assert.assertEquals(TEST_OPTIONS.getTtlAction(), status.getTtlAction());
 
@@ -336,12 +337,13 @@ public final class FileOutStreamAsyncWriteJobIntegrationTest
     checkFileInAlluxio(mUri, LEN);
     checkFileInUnderStorage(mUri, LEN);
     status = mFileSystem.getStatus(mUri);
-    Assert.assertEquals(TEST_OPTIONS.getMode(), status.getMode());
+    Assert.assertEquals(Mode.fromProto(TEST_OPTIONS.getMode()).toShort(), status.getMode());
     Assert.assertEquals(TEST_OPTIONS.getTtl(), status.getTtl());
     Assert.assertEquals(TEST_OPTIONS.getTtlAction(), status.getTtlAction());
     // Skip checking mode for object stores
     Assume.assumeFalse(ufs.isObjectStorage());
-    Assert.assertEquals(TEST_OPTIONS.getMode(), ufs.getFileStatus(ufsPath).getMode());
+    Assert.assertEquals(Mode.fromProto(TEST_OPTIONS.getMode()).toShort(),
+        ufs.getFileStatus(ufsPath).getMode());
   }
 
   @Test
@@ -354,12 +356,13 @@ public final class FileOutStreamAsyncWriteJobIntegrationTest
     URIStatus status = mFileSystem.getStatus(mUri);
     String ufsPath = status.getUfsPath();
     UnderFileSystem ufs = UnderFileSystem.Factory.create(ufsPath);
-    Assert.assertEquals(TEST_OPTIONS.getMode(), status.getMode());
+    Assert.assertEquals(Mode.fromProto(TEST_OPTIONS.getMode()).toShort(), status.getMode());
     Assert.assertEquals(TEST_OPTIONS.getTtl(), status.getTtl());
     Assert.assertEquals(TEST_OPTIONS.getTtlAction(), status.getTtlAction());
     // Skip checking mode for object stores
     Assume.assumeFalse(ufs.isObjectStorage());
-    Assert.assertEquals(TEST_OPTIONS.getMode(), ufs.getFileStatus(ufsPath).getMode());
+    Assert.assertEquals(Mode.fromProto(TEST_OPTIONS.getMode()).toShort(),
+        ufs.getFileStatus(ufsPath).getMode());
   }
 
   @Test
@@ -465,7 +468,7 @@ public final class FileOutStreamAsyncWriteJobIntegrationTest
     checkFileInAlluxio(newUri, LEN);
     checkFileNotInUnderStorage(newUfsPath);
     status = mFileSystem.getStatus(newUri);
-    Assert.assertEquals(TEST_OPTIONS.getMode(), status.getMode());
+    Assert.assertEquals(Mode.fromProto(TEST_OPTIONS.getMode()).toShort(), status.getMode());
     Assert.assertEquals(TEST_OPTIONS.getTtl(), status.getTtl());
     Assert.assertEquals(TEST_OPTIONS.getTtlAction(), status.getTtlAction());
 
@@ -476,12 +479,13 @@ public final class FileOutStreamAsyncWriteJobIntegrationTest
     checkFileInAlluxio(newUri, LEN);
     checkFileInUnderStorage(newUri, LEN);
     status = mFileSystem.getStatus(newUri);
-    Assert.assertEquals(TEST_OPTIONS.getMode(), status.getMode());
+    Assert.assertEquals(Mode.fromProto(TEST_OPTIONS.getMode()).toShort(), status.getMode());
     Assert.assertEquals(TEST_OPTIONS.getTtl(), status.getTtl());
     Assert.assertEquals(TEST_OPTIONS.getTtlAction(), status.getTtlAction());
     // Skip checking mode for object stores
     Assume.assumeFalse(ufs.isObjectStorage());
-    Assert.assertEquals(TEST_OPTIONS.getMode(), ufs.getFileStatus(newUfsPath).getMode());
+    Assert.assertEquals(Mode.fromProto(TEST_OPTIONS.getMode()).toShort(),
+        ufs.getFileStatus(newUfsPath).getMode());
   }
 
   @Test
