@@ -57,7 +57,6 @@ public class LocalFirstPolicyIntegrationTest extends BaseIntegrationTest {
     map.put(PropertyKey.MASTER_RPC_PORT, "0");
     map.put(PropertyKey.MASTER_WEB_PORT, "0");
     map.put(PropertyKey.WORKER_RPC_PORT, "0");
-    map.put(PropertyKey.WORKER_DATA_PORT, "0");
     map.put(PropertyKey.WORKER_WEB_PORT, "0");
 
     return map;

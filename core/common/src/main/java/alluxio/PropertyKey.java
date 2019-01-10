@@ -1663,6 +1663,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey WORKER_BIND_HOST =
       new Builder(Name.WORKER_BIND_HOST)
+          .setAlias(new String[]{Name.WORKER_DATA_BIND_HOST})
           .setDefaultValue("0.0.0.0")
           .setDescription("The hostname Alluxio's worker node binds to.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -1706,13 +1707,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
-  public static final PropertyKey WORKER_DATA_BIND_HOST =
-      new Builder(Name.WORKER_DATA_BIND_HOST)
-          .setDefaultValue("0.0.0.0")
-          .setDescription("The hostname that the Alluxio worker's data server runs on.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.WORKER)
-          .build();
   public static final PropertyKey WORKER_DATA_FOLDER =
       new Builder(Name.WORKER_DATA_FOLDER)
           .setDefaultValue("/alluxioworker/")
@@ -1726,19 +1720,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue("rwxrwxrwx")
           .setDescription("The permission set for the worker data folder. If short circuit is used "
               + "this folder should be accessible by all users (rwxrwxrwx).")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.WORKER)
-          .build();
-  public static final PropertyKey WORKER_DATA_HOSTNAME =
-      new Builder(Name.WORKER_DATA_HOSTNAME)
-          .setDescription("The hostname of Alluxio worker data service.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.WORKER)
-          .build();
-  public static final PropertyKey WORKER_DATA_PORT =
-      new Builder(Name.WORKER_DATA_PORT)
-          .setDefaultValue(29999)
-          .setDescription("The port Alluxio's worker's data server runs on.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
@@ -2014,7 +1995,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       .build();
   public static final PropertyKey WORKER_RPC_PORT =
       new Builder(Name.WORKER_RPC_PORT)
-          .setDefaultValue(29998)
+          .setAlias(new String[]{Name.WORKER_DATA_PORT})
+          .setDefaultValue(29999)
           .setDescription("The port Alluxio's worker node runs on.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
