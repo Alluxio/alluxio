@@ -101,8 +101,8 @@ public final class MultiMount {
 
       // Open the output stream, setting the write type to make sure result is persisted.
       System.out.print("opening " + outputPath + " ... ");
-      CreateFilePOptions options =
-          CreateFilePOptions.newBuilder().setWriteType(WritePType.WRITE_CACHE_THROUGH).build();
+      CreateFilePOptions options = CreateFilePOptions.newBuilder()
+          .setWriteType(WritePType.WRITE_CACHE_THROUGH).setRecursive(true).build();
       FileOutStream os = fileSystem.createFile(outputPath, options);
       System.out.println("done");
 
