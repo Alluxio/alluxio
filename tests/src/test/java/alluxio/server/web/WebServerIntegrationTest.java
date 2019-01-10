@@ -47,9 +47,8 @@ public class WebServerIntegrationTest extends BaseIntegrationTest {
   // Web pages that will be verified.
   private static final Multimap<ServiceType, String> PAGES =
       new ImmutableListMultimap.Builder<ServiceType, String>()
-          .putAll(ServiceType.MASTER_WEB, "/home", "/browse", "/configuration", "/workers",
-              "/memory", "/browseLogs", "/metricsui")
-          .putAll(ServiceType.WORKER_WEB, "/home", "/blockInfo", "/browseLogs", "/metricsui")
+          .putAll(ServiceType.MASTER_WEB, "/")
+          .putAll(ServiceType.WORKER_WEB, "/")
           .build();
 
   @Rule
@@ -115,7 +114,7 @@ public class WebServerIntegrationTest extends BaseIntegrationTest {
 
       while (pageScanner.hasNextLine()) {
         String line = pageScanner.nextLine();
-        if (line.equals("<title>Alluxio</title>") || line.equals("<title>Workers</title>")) {
+        if (line.contains("<title>Alluxio</title>") || line.contains("<title>Workers</title>")) {
           verified = true;
           break;
         }
