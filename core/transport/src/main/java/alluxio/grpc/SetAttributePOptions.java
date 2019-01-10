@@ -97,11 +97,11 @@ private static final long serialVersionUID = 0L;
             break;
           }
           case 58: {
-            alluxio.grpc.Mode.Builder subBuilder = null;
+            alluxio.grpc.PMode.Builder subBuilder = null;
             if (((bitField0_ & 0x00000040) == 0x00000040)) {
               subBuilder = mode_.toBuilder();
             }
-            mode_ = input.readMessage(alluxio.grpc.Mode.PARSER, extensionRegistry);
+            mode_ = input.readMessage(alluxio.grpc.PMode.PARSER, extensionRegistry);
             if (subBuilder != null) {
               subBuilder.mergeFrom(mode_);
               mode_ = subBuilder.buildPartial();
@@ -308,24 +308,24 @@ private static final long serialVersionUID = 0L;
   }
 
   public static final int MODE_FIELD_NUMBER = 7;
-  private alluxio.grpc.Mode mode_;
+  private alluxio.grpc.PMode mode_;
   /**
-   * <code>optional .alluxio.grpc.Mode mode = 7;</code>
+   * <code>optional .alluxio.grpc.PMode mode = 7;</code>
    */
   public boolean hasMode() {
     return ((bitField0_ & 0x00000040) == 0x00000040);
   }
   /**
-   * <code>optional .alluxio.grpc.Mode mode = 7;</code>
+   * <code>optional .alluxio.grpc.PMode mode = 7;</code>
    */
-  public alluxio.grpc.Mode getMode() {
-    return mode_ == null ? alluxio.grpc.Mode.getDefaultInstance() : mode_;
+  public alluxio.grpc.PMode getMode() {
+    return mode_ == null ? alluxio.grpc.PMode.getDefaultInstance() : mode_;
   }
   /**
-   * <code>optional .alluxio.grpc.Mode mode = 7;</code>
+   * <code>optional .alluxio.grpc.PMode mode = 7;</code>
    */
-  public alluxio.grpc.ModeOrBuilder getModeOrBuilder() {
-    return mode_ == null ? alluxio.grpc.Mode.getDefaultInstance() : mode_;
+  public alluxio.grpc.PModeOrBuilder getModeOrBuilder() {
+    return mode_ == null ? alluxio.grpc.PMode.getDefaultInstance() : mode_;
   }
 
   public static final int RECURSIVE_FIELD_NUMBER = 8;
@@ -400,6 +400,12 @@ private static final long serialVersionUID = 0L;
     if (isInitialized == 1) return true;
     if (isInitialized == 0) return false;
 
+    if (hasMode()) {
+      if (!getMode().isInitialized()) {
+        memoizedIsInitialized = 0;
+        return false;
+      }
+    }
     memoizedIsInitialized = 1;
     return true;
   }
@@ -940,6 +946,11 @@ private static final long serialVersionUID = 0L;
     }
 
     public final boolean isInitialized() {
+      if (hasMode()) {
+        if (!getMode().isInitialized()) {
+          return false;
+        }
+      }
       return true;
     }
 
@@ -1246,29 +1257,29 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
-    private alluxio.grpc.Mode mode_ = null;
+    private alluxio.grpc.PMode mode_ = null;
     private com.google.protobuf.SingleFieldBuilderV3<
-        alluxio.grpc.Mode, alluxio.grpc.Mode.Builder, alluxio.grpc.ModeOrBuilder> modeBuilder_;
+        alluxio.grpc.PMode, alluxio.grpc.PMode.Builder, alluxio.grpc.PModeOrBuilder> modeBuilder_;
     /**
-     * <code>optional .alluxio.grpc.Mode mode = 7;</code>
+     * <code>optional .alluxio.grpc.PMode mode = 7;</code>
      */
     public boolean hasMode() {
       return ((bitField0_ & 0x00000040) == 0x00000040);
     }
     /**
-     * <code>optional .alluxio.grpc.Mode mode = 7;</code>
+     * <code>optional .alluxio.grpc.PMode mode = 7;</code>
      */
-    public alluxio.grpc.Mode getMode() {
+    public alluxio.grpc.PMode getMode() {
       if (modeBuilder_ == null) {
-        return mode_ == null ? alluxio.grpc.Mode.getDefaultInstance() : mode_;
+        return mode_ == null ? alluxio.grpc.PMode.getDefaultInstance() : mode_;
       } else {
         return modeBuilder_.getMessage();
       }
     }
     /**
-     * <code>optional .alluxio.grpc.Mode mode = 7;</code>
+     * <code>optional .alluxio.grpc.PMode mode = 7;</code>
      */
-    public Builder setMode(alluxio.grpc.Mode value) {
+    public Builder setMode(alluxio.grpc.PMode value) {
       if (modeBuilder_ == null) {
         if (value == null) {
           throw new NullPointerException();
@@ -1282,10 +1293,10 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>optional .alluxio.grpc.Mode mode = 7;</code>
+     * <code>optional .alluxio.grpc.PMode mode = 7;</code>
      */
     public Builder setMode(
-        alluxio.grpc.Mode.Builder builderForValue) {
+        alluxio.grpc.PMode.Builder builderForValue) {
       if (modeBuilder_ == null) {
         mode_ = builderForValue.build();
         onChanged();
@@ -1296,15 +1307,15 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>optional .alluxio.grpc.Mode mode = 7;</code>
+     * <code>optional .alluxio.grpc.PMode mode = 7;</code>
      */
-    public Builder mergeMode(alluxio.grpc.Mode value) {
+    public Builder mergeMode(alluxio.grpc.PMode value) {
       if (modeBuilder_ == null) {
         if (((bitField0_ & 0x00000040) == 0x00000040) &&
             mode_ != null &&
-            mode_ != alluxio.grpc.Mode.getDefaultInstance()) {
+            mode_ != alluxio.grpc.PMode.getDefaultInstance()) {
           mode_ =
-            alluxio.grpc.Mode.newBuilder(mode_).mergeFrom(value).buildPartial();
+            alluxio.grpc.PMode.newBuilder(mode_).mergeFrom(value).buildPartial();
         } else {
           mode_ = value;
         }
@@ -1316,7 +1327,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>optional .alluxio.grpc.Mode mode = 7;</code>
+     * <code>optional .alluxio.grpc.PMode mode = 7;</code>
      */
     public Builder clearMode() {
       if (modeBuilder_ == null) {
@@ -1329,33 +1340,33 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>optional .alluxio.grpc.Mode mode = 7;</code>
+     * <code>optional .alluxio.grpc.PMode mode = 7;</code>
      */
-    public alluxio.grpc.Mode.Builder getModeBuilder() {
+    public alluxio.grpc.PMode.Builder getModeBuilder() {
       bitField0_ |= 0x00000040;
       onChanged();
       return getModeFieldBuilder().getBuilder();
     }
     /**
-     * <code>optional .alluxio.grpc.Mode mode = 7;</code>
+     * <code>optional .alluxio.grpc.PMode mode = 7;</code>
      */
-    public alluxio.grpc.ModeOrBuilder getModeOrBuilder() {
+    public alluxio.grpc.PModeOrBuilder getModeOrBuilder() {
       if (modeBuilder_ != null) {
         return modeBuilder_.getMessageOrBuilder();
       } else {
         return mode_ == null ?
-            alluxio.grpc.Mode.getDefaultInstance() : mode_;
+            alluxio.grpc.PMode.getDefaultInstance() : mode_;
       }
     }
     /**
-     * <code>optional .alluxio.grpc.Mode mode = 7;</code>
+     * <code>optional .alluxio.grpc.PMode mode = 7;</code>
      */
     private com.google.protobuf.SingleFieldBuilderV3<
-        alluxio.grpc.Mode, alluxio.grpc.Mode.Builder, alluxio.grpc.ModeOrBuilder> 
+        alluxio.grpc.PMode, alluxio.grpc.PMode.Builder, alluxio.grpc.PModeOrBuilder> 
         getModeFieldBuilder() {
       if (modeBuilder_ == null) {
         modeBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
-            alluxio.grpc.Mode, alluxio.grpc.Mode.Builder, alluxio.grpc.ModeOrBuilder>(
+            alluxio.grpc.PMode, alluxio.grpc.PMode.Builder, alluxio.grpc.PModeOrBuilder>(
                 getMode(),
                 getParentForChildren(),
                 isClean());

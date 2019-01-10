@@ -17,10 +17,10 @@ enum Bits {
   ALL = 8;
 }
 
-message Mode {
-  optional Bits ownerBits = 1;
-  optional Bits groupBits = 2;
-  optional Bits otherBits = 3;
+message PMode {
+  required Bits ownerBits = 1;
+  required Bits groupBits = 2;
+  required Bits otherBits = 3;
 }
 
 /**

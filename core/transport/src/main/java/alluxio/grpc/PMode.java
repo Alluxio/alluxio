@@ -4,18 +4,18 @@
 package alluxio.grpc;
 
 /**
- * Protobuf type {@code alluxio.grpc.Mode}
+ * Protobuf type {@code alluxio.grpc.PMode}
  */
-public  final class Mode extends
+public  final class PMode extends
     com.google.protobuf.GeneratedMessageV3 implements
-    // @@protoc_insertion_point(message_implements:alluxio.grpc.Mode)
-    ModeOrBuilder {
+    // @@protoc_insertion_point(message_implements:alluxio.grpc.PMode)
+    PModeOrBuilder {
 private static final long serialVersionUID = 0L;
-  // Use Mode.newBuilder() to construct.
-  private Mode(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+  // Use PMode.newBuilder() to construct.
+  private PMode(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
     super(builder);
   }
-  private Mode() {
+  private PMode() {
     ownerBits_ = 1;
     groupBits_ = 1;
     otherBits_ = 1;
@@ -26,7 +26,7 @@ private static final long serialVersionUID = 0L;
   getUnknownFields() {
     return this.unknownFields;
   }
-  private Mode(
+  private PMode(
       com.google.protobuf.CodedInputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
@@ -99,27 +99,27 @@ private static final long serialVersionUID = 0L;
   }
   public static final com.google.protobuf.Descriptors.Descriptor
       getDescriptor() {
-    return alluxio.grpc.CommonProto.internal_static_alluxio_grpc_Mode_descriptor;
+    return alluxio.grpc.CommonProto.internal_static_alluxio_grpc_PMode_descriptor;
   }
 
   protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internalGetFieldAccessorTable() {
-    return alluxio.grpc.CommonProto.internal_static_alluxio_grpc_Mode_fieldAccessorTable
+    return alluxio.grpc.CommonProto.internal_static_alluxio_grpc_PMode_fieldAccessorTable
         .ensureFieldAccessorsInitialized(
-            alluxio.grpc.Mode.class, alluxio.grpc.Mode.Builder.class);
+            alluxio.grpc.PMode.class, alluxio.grpc.PMode.Builder.class);
   }
 
   private int bitField0_;
   public static final int OWNERBITS_FIELD_NUMBER = 1;
   private int ownerBits_;
   /**
-   * <code>optional .alluxio.grpc.Bits ownerBits = 1;</code>
+   * <code>required .alluxio.grpc.Bits ownerBits = 1;</code>
    */
   public boolean hasOwnerBits() {
     return ((bitField0_ & 0x00000001) == 0x00000001);
   }
   /**
-   * <code>optional .alluxio.grpc.Bits ownerBits = 1;</code>
+   * <code>required .alluxio.grpc.Bits ownerBits = 1;</code>
    */
   public alluxio.grpc.Bits getOwnerBits() {
     alluxio.grpc.Bits result = alluxio.grpc.Bits.valueOf(ownerBits_);
@@ -129,13 +129,13 @@ private static final long serialVersionUID = 0L;
   public static final int GROUPBITS_FIELD_NUMBER = 2;
   private int groupBits_;
   /**
-   * <code>optional .alluxio.grpc.Bits groupBits = 2;</code>
+   * <code>required .alluxio.grpc.Bits groupBits = 2;</code>
    */
   public boolean hasGroupBits() {
     return ((bitField0_ & 0x00000002) == 0x00000002);
   }
   /**
-   * <code>optional .alluxio.grpc.Bits groupBits = 2;</code>
+   * <code>required .alluxio.grpc.Bits groupBits = 2;</code>
    */
   public alluxio.grpc.Bits getGroupBits() {
     alluxio.grpc.Bits result = alluxio.grpc.Bits.valueOf(groupBits_);
@@ -145,13 +145,13 @@ private static final long serialVersionUID = 0L;
   public static final int OTHERBITS_FIELD_NUMBER = 3;
   private int otherBits_;
   /**
-   * <code>optional .alluxio.grpc.Bits otherBits = 3;</code>
+   * <code>required .alluxio.grpc.Bits otherBits = 3;</code>
    */
   public boolean hasOtherBits() {
     return ((bitField0_ & 0x00000004) == 0x00000004);
   }
   /**
-   * <code>optional .alluxio.grpc.Bits otherBits = 3;</code>
+   * <code>required .alluxio.grpc.Bits otherBits = 3;</code>
    */
   public alluxio.grpc.Bits getOtherBits() {
     alluxio.grpc.Bits result = alluxio.grpc.Bits.valueOf(otherBits_);
@@ -164,6 +164,18 @@ private static final long serialVersionUID = 0L;
     if (isInitialized == 1) return true;
     if (isInitialized == 0) return false;
 
+    if (!hasOwnerBits()) {
+      memoizedIsInitialized = 0;
+      return false;
+    }
+    if (!hasGroupBits()) {
+      memoizedIsInitialized = 0;
+      return false;
+    }
+    if (!hasOtherBits()) {
+      memoizedIsInitialized = 0;
+      return false;
+    }
     memoizedIsInitialized = 1;
     return true;
   }
@@ -209,10 +221,10 @@ private static final long serialVersionUID = 0L;
     if (obj == this) {
      return true;
     }
-    if (!(obj instanceof alluxio.grpc.Mode)) {
+    if (!(obj instanceof alluxio.grpc.PMode)) {
       return super.equals(obj);
     }
-    alluxio.grpc.Mode other = (alluxio.grpc.Mode) obj;
+    alluxio.grpc.PMode other = (alluxio.grpc.PMode) obj;
 
     boolean result = true;
     result = result && (hasOwnerBits() == other.hasOwnerBits());
@@ -255,69 +267,69 @@ private static final long serialVersionUID = 0L;
     return hash;
   }
 
-  public static alluxio.grpc.Mode parseFrom(
+  public static alluxio.grpc.PMode parseFrom(
       java.nio.ByteBuffer data)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
-  public static alluxio.grpc.Mode parseFrom(
+  public static alluxio.grpc.PMode parseFrom(
       java.nio.ByteBuffer data,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static alluxio.grpc.Mode parseFrom(
+  public static alluxio.grpc.PMode parseFrom(
       com.google.protobuf.ByteString data)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
-  public static alluxio.grpc.Mode parseFrom(
+  public static alluxio.grpc.PMode parseFrom(
       com.google.protobuf.ByteString data,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static alluxio.grpc.Mode parseFrom(byte[] data)
+  public static alluxio.grpc.PMode parseFrom(byte[] data)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
-  public static alluxio.grpc.Mode parseFrom(
+  public static alluxio.grpc.PMode parseFrom(
       byte[] data,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static alluxio.grpc.Mode parseFrom(java.io.InputStream input)
+  public static alluxio.grpc.PMode parseFrom(java.io.InputStream input)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseWithIOException(PARSER, input);
   }
-  public static alluxio.grpc.Mode parseFrom(
+  public static alluxio.grpc.PMode parseFrom(
       java.io.InputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseWithIOException(PARSER, input, extensionRegistry);
   }
-  public static alluxio.grpc.Mode parseDelimitedFrom(java.io.InputStream input)
+  public static alluxio.grpc.PMode parseDelimitedFrom(java.io.InputStream input)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseDelimitedWithIOException(PARSER, input);
   }
-  public static alluxio.grpc.Mode parseDelimitedFrom(
+  public static alluxio.grpc.PMode parseDelimitedFrom(
       java.io.InputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
   }
-  public static alluxio.grpc.Mode parseFrom(
+  public static alluxio.grpc.PMode parseFrom(
       com.google.protobuf.CodedInputStream input)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseWithIOException(PARSER, input);
   }
-  public static alluxio.grpc.Mode parseFrom(
+  public static alluxio.grpc.PMode parseFrom(
       com.google.protobuf.CodedInputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
@@ -329,7 +341,7 @@ private static final long serialVersionUID = 0L;
   public static Builder newBuilder() {
     return DEFAULT_INSTANCE.toBuilder();
   }
-  public static Builder newBuilder(alluxio.grpc.Mode prototype) {
+  public static Builder newBuilder(alluxio.grpc.PMode prototype) {
     return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
   }
   public Builder toBuilder() {
@@ -344,25 +356,25 @@ private static final long serialVersionUID = 0L;
     return builder;
   }
   /**
-   * Protobuf type {@code alluxio.grpc.Mode}
+   * Protobuf type {@code alluxio.grpc.PMode}
    */
   public static final class Builder extends
       com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
-      // @@protoc_insertion_point(builder_implements:alluxio.grpc.Mode)
-      alluxio.grpc.ModeOrBuilder {
+      // @@protoc_insertion_point(builder_implements:alluxio.grpc.PMode)
+      alluxio.grpc.PModeOrBuilder {
     public static final com.google.protobuf.Descriptors.Descriptor
         getDescriptor() {
-      return alluxio.grpc.CommonProto.internal_static_alluxio_grpc_Mode_descriptor;
+      return alluxio.grpc.CommonProto.internal_static_alluxio_grpc_PMode_descriptor;
     }
 
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
-      return alluxio.grpc.CommonProto.internal_static_alluxio_grpc_Mode_fieldAccessorTable
+      return alluxio.grpc.CommonProto.internal_static_alluxio_grpc_PMode_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
-              alluxio.grpc.Mode.class, alluxio.grpc.Mode.Builder.class);
+              alluxio.grpc.PMode.class, alluxio.grpc.PMode.Builder.class);
     }
 
-    // Construct using alluxio.grpc.Mode.newBuilder()
+    // Construct using alluxio.grpc.PMode.newBuilder()
     private Builder() {
       maybeForceBuilderInitialization();
     }
@@ -390,23 +402,23 @@ private static final long serialVersionUID = 0L;
 
     public com.google.protobuf.Descriptors.Descriptor
         getDescriptorForType() {
-      return alluxio.grpc.CommonProto.internal_static_alluxio_grpc_Mode_descriptor;
+      return alluxio.grpc.CommonProto.internal_static_alluxio_grpc_PMode_descriptor;
     }
 
-    public alluxio.grpc.Mode getDefaultInstanceForType() {
-      return alluxio.grpc.Mode.getDefaultInstance();
+    public alluxio.grpc.PMode getDefaultInstanceForType() {
+      return alluxio.grpc.PMode.getDefaultInstance();
     }
 
-    public alluxio.grpc.Mode build() {
-      alluxio.grpc.Mode result = buildPartial();
+    public alluxio.grpc.PMode build() {
+      alluxio.grpc.PMode result = buildPartial();
       if (!result.isInitialized()) {
         throw newUninitializedMessageException(result);
       }
       return result;
     }
 
-    public alluxio.grpc.Mode buildPartial() {
-      alluxio.grpc.Mode result = new alluxio.grpc.Mode(this);
+    public alluxio.grpc.PMode buildPartial() {
+      alluxio.grpc.PMode result = new alluxio.grpc.PMode(this);
       int from_bitField0_ = bitField0_;
       int to_bitField0_ = 0;
       if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
@@ -453,16 +465,16 @@ private static final long serialVersionUID = 0L;
       return (Builder) super.addRepeatedField(field, value);
     }
     public Builder mergeFrom(com.google.protobuf.Message other) {
-      if (other instanceof alluxio.grpc.Mode) {
-        return mergeFrom((alluxio.grpc.Mode)other);
+      if (other instanceof alluxio.grpc.PMode) {
+        return mergeFrom((alluxio.grpc.PMode)other);
       } else {
         super.mergeFrom(other);
         return this;
       }
     }
 
-    public Builder mergeFrom(alluxio.grpc.Mode other) {
-      if (other == alluxio.grpc.Mode.getDefaultInstance()) return this;
+    public Builder mergeFrom(alluxio.grpc.PMode other) {
+      if (other == alluxio.grpc.PMode.getDefaultInstance()) return this;
       if (other.hasOwnerBits()) {
         setOwnerBits(other.getOwnerBits());
       }
@@ -478,6 +490,15 @@ private static final long serialVersionUID = 0L;
     }
 
     public final boolean isInitialized() {
+      if (!hasOwnerBits()) {
+        return false;
+      }
+      if (!hasGroupBits()) {
+        return false;
+      }
+      if (!hasOtherBits()) {
+        return false;
+      }
       return true;
     }
 
@@ -485,11 +506,11 @@ private static final long serialVersionUID = 0L;
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
-      alluxio.grpc.Mode parsedMessage = null;
+      alluxio.grpc.PMode parsedMessage = null;
       try {
         parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
       } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-        parsedMessage = (alluxio.grpc.Mode) e.getUnfinishedMessage();
+        parsedMessage = (alluxio.grpc.PMode) e.getUnfinishedMessage();
         throw e.unwrapIOException();
       } finally {
         if (parsedMessage != null) {
@@ -502,20 +523,20 @@ private static final long serialVersionUID = 0L;
 
     private int ownerBits_ = 1;
     /**
-     * <code>optional .alluxio.grpc.Bits ownerBits = 1;</code>
+     * <code>required .alluxio.grpc.Bits ownerBits = 1;</code>
      */
     public boolean hasOwnerBits() {
       return ((bitField0_ & 0x00000001) == 0x00000001);
     }
     /**
-     * <code>optional .alluxio.grpc.Bits ownerBits = 1;</code>
+     * <code>required .alluxio.grpc.Bits ownerBits = 1;</code>
      */
     public alluxio.grpc.Bits getOwnerBits() {
       alluxio.grpc.Bits result = alluxio.grpc.Bits.valueOf(ownerBits_);
       return result == null ? alluxio.grpc.Bits.NONE : result;
     }
     /**
-     * <code>optional .alluxio.grpc.Bits ownerBits = 1;</code>
+     * <code>required .alluxio.grpc.Bits ownerBits = 1;</code>
      */
     public Builder setOwnerBits(alluxio.grpc.Bits value) {
       if (value == null) {
@@ -527,7 +548,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>optional .alluxio.grpc.Bits ownerBits = 1;</code>
+     * <code>required .alluxio.grpc.Bits ownerBits = 1;</code>
      */
     public Builder clearOwnerBits() {
       bitField0_ = (bitField0_ & ~0x00000001);
@@ -538,20 +559,20 @@ private static final long serialVersionUID = 0L;
 
     private int groupBits_ = 1;
     /**
-     * <code>optional .alluxio.grpc.Bits groupBits = 2;</code>
+     * <code>required .alluxio.grpc.Bits groupBits = 2;</code>
      */
     public boolean hasGroupBits() {
       return ((bitField0_ & 0x00000002) == 0x00000002);
     }
     /**
-     * <code>optional .alluxio.grpc.Bits groupBits = 2;</code>
+     * <code>required .alluxio.grpc.Bits groupBits = 2;</code>
      */
     public alluxio.grpc.Bits getGroupBits() {
       alluxio.grpc.Bits result = alluxio.grpc.Bits.valueOf(groupBits_);
       return result == null ? alluxio.grpc.Bits.NONE : result;
     }
     /**
-     * <code>optional .alluxio.grpc.Bits groupBits = 2;</code>
+     * <code>required .alluxio.grpc.Bits groupBits = 2;</code>
      */
     public Builder setGroupBits(alluxio.grpc.Bits value) {
       if (value == null) {
@@ -563,7 +584,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>optional .alluxio.grpc.Bits groupBits = 2;</code>
+     * <code>required .alluxio.grpc.Bits groupBits = 2;</code>
      */
     public Builder clearGroupBits() {
       bitField0_ = (bitField0_ & ~0x00000002);
@@ -574,20 +595,20 @@ private static final long serialVersionUID = 0L;
 
     private int otherBits_ = 1;
     /**
-     * <code>optional .alluxio.grpc.Bits otherBits = 3;</code>
+     * <code>required .alluxio.grpc.Bits otherBits = 3;</code>
      */
     public boolean hasOtherBits() {
       return ((bitField0_ & 0x00000004) == 0x00000004);
     }
     /**
-     * <code>optional .alluxio.grpc.Bits otherBits = 3;</code>
+     * <code>required .alluxio.grpc.Bits otherBits = 3;</code>
      */
     public alluxio.grpc.Bits getOtherBits() {
       alluxio.grpc.Bits result = alluxio.grpc.Bits.valueOf(otherBits_);
       return result == null ? alluxio.grpc.Bits.NONE : result;
     }
     /**
-     * <code>optional .alluxio.grpc.Bits otherBits = 3;</code>
+     * <code>required .alluxio.grpc.Bits otherBits = 3;</code>
      */
     public Builder setOtherBits(alluxio.grpc.Bits value) {
       if (value == null) {
@@ -599,7 +620,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>optional .alluxio.grpc.Bits otherBits = 3;</code>
+     * <code>required .alluxio.grpc.Bits otherBits = 3;</code>
      */
     public Builder clearOtherBits() {
       bitField0_ = (bitField0_ & ~0x00000004);
@@ -618,39 +639,39 @@ private static final long serialVersionUID = 0L;
     }
 
 
-    // @@protoc_insertion_point(builder_scope:alluxio.grpc.Mode)
+    // @@protoc_insertion_point(builder_scope:alluxio.grpc.PMode)
   }
 
-  // @@protoc_insertion_point(class_scope:alluxio.grpc.Mode)
-  private static final alluxio.grpc.Mode DEFAULT_INSTANCE;
+  // @@protoc_insertion_point(class_scope:alluxio.grpc.PMode)
+  private static final alluxio.grpc.PMode DEFAULT_INSTANCE;
   static {
-    DEFAULT_INSTANCE = new alluxio.grpc.Mode();
+    DEFAULT_INSTANCE = new alluxio.grpc.PMode();
   }
 
-  public static alluxio.grpc.Mode getDefaultInstance() {
+  public static alluxio.grpc.PMode getDefaultInstance() {
     return DEFAULT_INSTANCE;
   }
 
-  @java.lang.Deprecated public static final com.google.protobuf.Parser<Mode>
-      PARSER = new com.google.protobuf.AbstractParser<Mode>() {
-    public Mode parsePartialFrom(
+  @java.lang.Deprecated public static final com.google.protobuf.Parser<PMode>
+      PARSER = new com.google.protobuf.AbstractParser<PMode>() {
+    public PMode parsePartialFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
-      return new Mode(input, extensionRegistry);
+      return new PMode(input, extensionRegistry);
     }
   };
 
-  public static com.google.protobuf.Parser<Mode> parser() {
+  public static com.google.protobuf.Parser<PMode> parser() {
     return PARSER;
   }
 
   @java.lang.Override
-  public com.google.protobuf.Parser<Mode> getParserForType() {
+  public com.google.protobuf.Parser<PMode> getParserForType() {
     return PARSER;
   }
 
-  public alluxio.grpc.Mode getDefaultInstanceForType() {
+  public alluxio.grpc.PMode getDefaultInstanceForType() {
     return DEFAULT_INSTANCE;
   }
 

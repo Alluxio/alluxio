@@ -3,8 +3,8 @@
 
 package alluxio.grpc;
 
-public interface ModeOrBuilder extends
-    // @@protoc_insertion_point(interface_extends:alluxio.grpc.Mode)
+public interface PModeOrBuilder extends
+    // @@protoc_insertion_point(interface_extends:alluxio.grpc.PMode)
     com.google.protobuf.MessageOrBuilder {
 
   /**

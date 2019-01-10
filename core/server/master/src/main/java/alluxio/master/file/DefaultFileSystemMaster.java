@@ -2978,8 +2978,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
     // for chown
     boolean rootRequired = options.hasOwner();
     // for chgrp, chmod
-    boolean ownerRequired =
-        (options.hasGroup()) || (options.hasMode());
+    boolean ownerRequired = (options.hasGroup()) || (options.hasMode());
     if (options.hasOwner() && options.hasGroup()) {
       try {
         checkUserBelongsToGroup(options.getOwner(), options.getGroup());
@@ -3562,7 +3561,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
       }
     }
     boolean ownerGroupChanged = (protoOptions.hasOwner()) || (protoOptions.hasGroup());
-    boolean modeChanged = (protoOptions.hasMode());
+    boolean modeChanged = protoOptions.hasMode();
     // If the file is persisted in UFS, also update corresponding owner/group/permission.
     if ((ownerGroupChanged || modeChanged) && updateUfs && inode.isPersisted()) {
       if ((inode instanceof InodeFileView) && !((InodeFileView) inode).isCompleted()) {

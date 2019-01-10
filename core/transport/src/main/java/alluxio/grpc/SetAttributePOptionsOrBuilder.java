@@ -72,17 +72,17 @@ public interface SetAttributePOptionsOrBuilder extends
       getGroupBytes();
 
   /**
-   * <code>optional .alluxio.grpc.Mode mode = 7;</code>
+   * <code>optional .alluxio.grpc.PMode mode = 7;</code>
    */
   boolean hasMode();
   /**
-   * <code>optional .alluxio.grpc.Mode mode = 7;</code>
+   * <code>optional .alluxio.grpc.PMode mode = 7;</code>
    */
-  alluxio.grpc.Mode getMode();
+  alluxio.grpc.PMode getMode();
   /**
-   * <code>optional .alluxio.grpc.Mode mode = 7;</code>
+   * <code>optional .alluxio.grpc.PMode mode = 7;</code>
    */
-  alluxio.grpc.ModeOrBuilder getModeOrBuilder();
+  alluxio.grpc.PModeOrBuilder getModeOrBuilder();
 
   /**
    * <code>optional bool recursive = 8;</code>
