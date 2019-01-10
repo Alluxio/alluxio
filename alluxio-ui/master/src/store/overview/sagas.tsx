@@ -9,6 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
+import axios from 'axios';
 import {all, fork, takeLatest} from 'redux-saga/effects';
 
 import {getSagaRequest} from '@alluxio/common-ui/src/utilities';
@@ -18,7 +19,7 @@ import {OverviewActionTypes} from './types';
 const API_ENDPOINT = `${process.env.REACT_APP_API_ROOT}/webui_overview`;
 
 const watchRequest = function* () {
-  yield takeLatest(OverviewActionTypes.FETCH_REQUEST, getSagaRequest('get', API_ENDPOINT, fetchSuccess, fetchError));
+  yield takeLatest(OverviewActionTypes.FETCH_REQUEST, getSagaRequest(axios.get, API_ENDPOINT, fetchSuccess, fetchError));
 };
 
 export const overviewSaga = function* () {

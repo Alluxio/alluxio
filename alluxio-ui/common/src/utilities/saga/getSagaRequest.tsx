@@ -9,15 +9,14 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-import axios from 'axios';
 import {call, put} from 'redux-saga/effects';
 import {ActionType} from 'typesafe-actions';
 
-const performRequest = (axiosFunctionName: string, endpoint: string, payload: any) => axios[axiosFunctionName](endpoint, payload)
+const performRequest = (axiosMethod: Function, endpoint: string, payload: any) => axiosMethod(endpoint, payload)
   .then((response: any) => ({response}))
   .catch((error: any) => ({error}));
 
-export const getSagaRequest = (AxiosFunctionName: string, endpoint: string, successFunction: ActionType<any>, errorFunction: ActionType<any>) => function* (params: any) {
+export const getSagaRequest = (AxiosFunction: Function, endpoint: string, successFunction: ActionType<any>, errorFunction: ActionType<any>) => function* (params: any) {
   let apiEndpoint = endpoint;
 
   if (params && params.payload) {
@@ -35,7 +34,7 @@ export const getSagaRequest = (AxiosFunctionName: string, endpoint: string, succ
   }
 
   try {
-    const response = yield call(performRequest, AxiosFunctionName, apiEndpoint, params.payload || {});
+    const response = yield call(performRequest, AxiosFunction, apiEndpoint, params.payload || {});
     if (response.error) {
       yield put(errorFunction(response.error.response));
     } else {

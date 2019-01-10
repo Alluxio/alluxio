@@ -13,7 +13,7 @@ import {clearTimeout, setTimeout} from 'timers';
 
 export const getDebouncedFunction = (fn: () => void, delay: number, leadingAndEnding: boolean = false) => {
   let timeout: any;
-  let args: any[];
+  let args: any;
   let timeNow: number;
   let lastCallTime: number;
 
