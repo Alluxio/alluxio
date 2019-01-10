@@ -55,7 +55,8 @@ public interface InodeStore extends ReadOnlyInodeStore {
   void clear();
 
   /**
-   * Makes an inode the child of the specified parent.
+   * Makes an inode the child of the specified parent. The added child must already exist in the
+   * inode store.
    *
    * @param parentId the parent id
    * @param inode the child inode
