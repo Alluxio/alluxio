@@ -204,7 +204,7 @@ public class MasterFaultToleranceIntegrationTest extends BaseIntegrationTest {
   public void createFiles() throws Exception {
     int clients = 10;
     CreateFilePOptions option = CreateFilePOptions.newBuilder().setBlockSizeBytes(1024)
-        .setWriteType(WritePType.WRITE_THROUGH).build();
+        .setWriteType(WritePType.THROUGH).build();
     for (int k = 0; k < clients; k++) {
       mFileSystem.createFile(new AlluxioURI(AlluxioURI.SEPARATOR + k), option).close();
     }

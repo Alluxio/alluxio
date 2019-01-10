@@ -52,7 +52,7 @@ public class BlockMasterIntegrityIntegrationTest {
     int len = 10;
     FileSystem fs = mCluster.getClient();
     BlockWorker worker = mCluster.getWorkerProcess().getWorker(BlockWorker.class);
-    FileSystemTestUtils.createByteFile(fs, uri, WritePType.WRITE_MUST_CACHE, len);
+    FileSystemTestUtils.createByteFile(fs, uri, WritePType.MUST_CACHE, len);
     Assert.assertEquals(1, worker.getStoreMetaFull().getNumberOfBlocks());
     mCluster.stopWorkers();
     fs.delete(uri);
@@ -73,7 +73,7 @@ public class BlockMasterIntegrityIntegrationTest {
     int len = 10;
     FileSystem fs = mCluster.getClient();
     BlockWorker worker = mCluster.getWorkerProcess().getWorker(BlockWorker.class);
-    FileSystemTestUtils.createByteFile(fs, uri, WritePType.WRITE_MUST_CACHE, len);
+    FileSystemTestUtils.createByteFile(fs, uri, WritePType.MUST_CACHE, len);
     Assert.assertEquals(1, worker.getStoreMetaFull().getNumberOfBlocks());
     removeFileMetadata(uri);
     mCluster.stopWorkers();
@@ -95,7 +95,7 @@ public class BlockMasterIntegrityIntegrationTest {
     int len = 10;
     FileSystem fs = mCluster.getClient();
     BlockWorker worker = mCluster.getWorkerProcess().getWorker(BlockWorker.class);
-    FileSystemTestUtils.createByteFile(fs, uri, WritePType.WRITE_MUST_CACHE, len);
+    FileSystemTestUtils.createByteFile(fs, uri, WritePType.MUST_CACHE, len);
     Assert.assertEquals(1, worker.getStoreMetaFull().getNumberOfBlocks());
     removeFileMetadata(uri);
     CommonUtils.waitFor("invalid blocks to be deleted",

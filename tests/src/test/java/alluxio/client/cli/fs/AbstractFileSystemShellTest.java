@@ -80,7 +80,7 @@ public abstract class AbstractFileSystemShellTest extends AbstractShellIntegrati
    * @param bytes file size
    */
   protected void copyToLocalWithBytes(int bytes) throws Exception {
-    FileSystemTestUtils.createByteFile(mFileSystem, "/testFile", WritePType.WRITE_MUST_CACHE,
+    FileSystemTestUtils.createByteFile(mFileSystem, "/testFile", WritePType.MUST_CACHE,
         bytes);
     mFsShell.run("copyToLocal", "/testFile",
         mLocalAlluxioCluster.getAlluxioHome() + "/testFile");
@@ -222,7 +222,7 @@ public abstract class AbstractFileSystemShellTest extends AbstractShellIntegrati
    */
   protected byte[] readContent(AlluxioURI uri, int length) throws IOException, AlluxioException {
     try (FileInStream tfis = mFileSystem.openFile(uri,
-        OpenFilePOptions.newBuilder().setReadType(ReadPType.READ_NO_CACHE).build())) {
+        OpenFilePOptions.newBuilder().setReadType(ReadPType.NO_CACHE).build())) {
       byte[] read = new byte[length];
       tfis.read(read);
       return read;

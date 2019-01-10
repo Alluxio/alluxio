@@ -95,7 +95,7 @@ public class ConcurrentFileSystemMasterSetTtlTest extends BaseIntegrationTest {
       files[i] = new AlluxioURI("/file" + i);
       mFileSystem
           .createFile(files[i],
-              CreateFilePOptions.newBuilder().setWriteType(WritePType.WRITE_MUST_CACHE).build())
+              CreateFilePOptions.newBuilder().setWriteType(WritePType.MUST_CACHE).build())
           .close();
       ttls[i] = random.nextInt(2 * TTL_INTERVAL_MS);
     }

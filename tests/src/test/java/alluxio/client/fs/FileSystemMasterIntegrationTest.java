@@ -491,7 +491,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     FileSystem fs = mLocalAlluxioClusterResource.get().getClient();
     for (int i = 0; i < 3; i++) {
       FileSystemTestUtils.createByteFile(fs, PathUtils.concatPath(dir, "file" + i), 100,
-          CreateFilePOptions.newBuilder().setWriteType(WritePType.WRITE_MUST_CACHE).build());
+          CreateFilePOptions.newBuilder().setWriteType(WritePType.MUST_CACHE).build());
     }
     fs.delete(dir, DeletePOptions.newBuilder().setRecursive(true).build());
     assertFalse(fs.exists(dir));

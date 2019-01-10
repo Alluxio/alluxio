@@ -51,7 +51,7 @@ public class BlockMasterJournalIntegrationTest {
     BlockMaster blockMaster =
         mCluster.getLocalAlluxioMaster().getMasterProcess().getMaster(BlockMaster.class);
     AlluxioURI file = new AlluxioURI("/test");
-    FileSystemTestUtils.createByteFile(fs, file, WritePType.WRITE_MUST_CACHE, 10);
+    FileSystemTestUtils.createByteFile(fs, file, WritePType.MUST_CACHE, 10);
     URIStatus status = fs.getStatus(file);
     Long blockId = status.getBlockIds().get(0);
     assertNotNull(blockMaster.getBlockInfo(blockId));
@@ -67,7 +67,7 @@ public class BlockMasterJournalIntegrationTest {
     BlockMaster blockMaster =
         mCluster.getLocalAlluxioMaster().getMasterProcess().getMaster(BlockMaster.class);
     AlluxioURI file = new AlluxioURI("/test");
-    FileSystemTestUtils.createByteFile(fs, file, WritePType.WRITE_MUST_CACHE, 10);
+    FileSystemTestUtils.createByteFile(fs, file, WritePType.MUST_CACHE, 10);
     URIStatus status = fs.getStatus(file);
     Long blockId = status.getBlockIds().get(0);
     assertNotNull(blockMaster.getBlockInfo(blockId));

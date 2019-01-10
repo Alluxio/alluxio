@@ -103,7 +103,7 @@ public final class SetFaclCommandIntegrationTest extends AbstractFileSystemShell
     Assert.assertEquals(expected, mOutput.toString());
 
     FileSystemTestUtils.createByteFile(mFileSystem,
-        "/testRoot/testDir/testDir2/testFileD", WritePType.WRITE_MUST_CACHE, 10);
+        "/testRoot/testDir/testDir2/testFileD", WritePType.MUST_CACHE, 10);
 
     mFsShell.run("getfacl", "/testRoot/testDir/testDir2");
     stringEntries = new ArrayList<>(DIR_FACL_STRING_ENTRIES);
@@ -147,10 +147,10 @@ public final class SetFaclCommandIntegrationTest extends AbstractFileSystemShell
   // Helper function to create a set of files in the file system
   private URIStatus[] createFiles() throws IOException, AlluxioException {
     FileSystemTestUtils.createByteFile(mFileSystem, "/testRoot/testFileA",
-        WritePType.WRITE_MUST_CACHE, 10);
+        WritePType.MUST_CACHE, 10);
     FileSystemTestUtils.createByteFile(mFileSystem, "/testRoot/testDir/testFileB",
-        WritePType.WRITE_MUST_CACHE, 20);
-    FileSystemTestUtils.createByteFile(mFileSystem, "/testRoot/testFileC", WritePType.WRITE_THROUGH,
+        WritePType.MUST_CACHE, 20);
+    FileSystemTestUtils.createByteFile(mFileSystem, "/testRoot/testFileC", WritePType.THROUGH,
         30);
 
     URIStatus[] files = new URIStatus[4];

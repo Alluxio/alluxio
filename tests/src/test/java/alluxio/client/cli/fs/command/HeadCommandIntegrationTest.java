@@ -27,14 +27,14 @@ public final class HeadCommandIntegrationTest extends AbstractFileSystemShellTes
 
   @Test
   public void headEmptyFile() throws Exception {
-    FileSystemTestUtils.createByteFile(mFileSystem, "/emptyFile", WritePType.WRITE_MUST_CACHE, 0);
+    FileSystemTestUtils.createByteFile(mFileSystem, "/emptyFile", WritePType.MUST_CACHE, 0);
     int ret = mFsShell.run("head", "/emptyFile");
     Assert.assertEquals(0, ret);
   }
 
   @Test
   public void headLargeFile() throws Exception {
-    FileSystemTestUtils.createByteFile(mFileSystem, "/testFile", WritePType.WRITE_MUST_CACHE, 2048);
+    FileSystemTestUtils.createByteFile(mFileSystem, "/testFile", WritePType.MUST_CACHE, 2048);
     mFsShell.run("head", "/testFile");
     byte[] expect = BufferUtils.getIncreasingByteArray(1024, 1024);
     Assert.assertArrayEquals(expect, mOutput.toByteArray());
@@ -48,7 +48,7 @@ public final class HeadCommandIntegrationTest extends AbstractFileSystemShellTes
 
   @Test
   public void headSmallFile() throws Exception {
-    FileSystemTestUtils.createByteFile(mFileSystem, "/testFile", WritePType.WRITE_MUST_CACHE, 10);
+    FileSystemTestUtils.createByteFile(mFileSystem, "/testFile", WritePType.MUST_CACHE, 10);
     mFsShell.run("head", "/testFile");
     byte[] expect = BufferUtils.getIncreasingByteArray(10);
     Assert.assertArrayEquals(expect, mOutput.toByteArray());
@@ -74,7 +74,7 @@ public final class HeadCommandIntegrationTest extends AbstractFileSystemShellTes
 
   @Test
   public void headFileWithUserSpecifiedBytes() throws Exception {
-    FileSystemTestUtils.createByteFile(mFileSystem, "/testFile", WritePType.WRITE_MUST_CACHE,
+    FileSystemTestUtils.createByteFile(mFileSystem, "/testFile", WritePType.MUST_CACHE,
         10000);
     mFsShell.run("head", "-c", "10000", "/testFile");
     byte[] expect = BufferUtils.getIncreasingByteArray(0, 10000);
@@ -83,7 +83,7 @@ public final class HeadCommandIntegrationTest extends AbstractFileSystemShellTes
 
   @Test
   public void headFileWithUserSpecifiedBytesWithUnit() throws Exception {
-    FileSystemTestUtils.createByteFile(mFileSystem, "/testFile", WritePType.WRITE_MUST_CACHE,
+    FileSystemTestUtils.createByteFile(mFileSystem, "/testFile", WritePType.MUST_CACHE,
         10000);
     mFsShell.run("head", "-c", "2KB", "/testFile");
     byte[] expect = BufferUtils.getIncreasingByteArray(0, 2048);

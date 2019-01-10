@@ -127,7 +127,7 @@ public final class JobUtils {
     URIStatus status = fs.getStatus(new AlluxioURI(path));
 
     OpenFilePOptions openOptions =
-        OpenFilePOptions.newBuilder().setReadType(ReadPType.READ_NO_CACHE)
+        OpenFilePOptions.newBuilder().setReadType(ReadPType.NO_CACHE)
             .setFileReadLocationPolicy(LocalFirstPolicy.class.getCanonicalName()).build();
 
     InStreamOptions inOptions = new InStreamOptions(status, openOptions);

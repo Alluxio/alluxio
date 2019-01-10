@@ -99,10 +99,10 @@ public final class LsCommandIntegrationTest extends AbstractFileSystemShellTest 
   // Helper function to create a set of files in the file system
   private URIStatus[] createFiles() throws IOException, AlluxioException {
     FileSystemTestUtils.createByteFile(mFileSystem, "/testRoot/testFileA",
-        WritePType.WRITE_MUST_CACHE, 10);
+        WritePType.MUST_CACHE, 10);
     FileSystemTestUtils.createByteFile(mFileSystem, "/testRoot/testDir/testFileB",
-        WritePType.WRITE_MUST_CACHE, 20);
-    FileSystemTestUtils.createByteFile(mFileSystem, "/testRoot/testFileC", WritePType.WRITE_THROUGH,
+        WritePType.MUST_CACHE, 20);
+    FileSystemTestUtils.createByteFile(mFileSystem, "/testRoot/testFileC", WritePType.THROUGH,
         30);
 
     URIStatus[] files = new URIStatus[4];
@@ -374,7 +374,7 @@ public final class LsCommandIntegrationTest extends AbstractFileSystemShellTest 
           PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "NOSASL"})
   public void lsWithFormatSpecifierCharacter() throws IOException, AlluxioException {
     String fileName = "/localhost%2C61764%2C1476207067267..meta.1476207073442.meta";
-    FileSystemTestUtils.createByteFile(mFileSystem, fileName, WritePType.WRITE_MUST_CACHE, 10);
+    FileSystemTestUtils.createByteFile(mFileSystem, fileName, WritePType.MUST_CACHE, 10);
     URIStatus file = mFileSystem.getStatus(new AlluxioURI(fileName));
     mFsShell.run("ls", "/");
     String expected = getLsNoAclResultStr(fileName, file.getLastModificationTimeMs(), 10,
@@ -391,11 +391,11 @@ public final class LsCommandIntegrationTest extends AbstractFileSystemShellTest 
                   PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "NOSASL"})
   public void lsWithSortByPath() throws IOException, AlluxioException {
     FileSystemTestUtils.createByteFile(mFileSystem, "/testRoot/testLongFile",
-        WritePType.WRITE_MUST_CACHE, 100);
+        WritePType.MUST_CACHE, 100);
     FileSystemTestUtils.createByteFile(mFileSystem, "/testRoot/testFileZ",
-        WritePType.WRITE_MUST_CACHE, 10);
+        WritePType.MUST_CACHE, 10);
     FileSystemTestUtils.createByteFile(mFileSystem, "/testRoot/testFileA",
-        WritePType.WRITE_MUST_CACHE, 50);
+        WritePType.MUST_CACHE, 50);
     URIStatus testFileA = mFileSystem.getStatus(new AlluxioURI("/testRoot/testFileA"));
     URIStatus testFileZ = mFileSystem.getStatus(new AlluxioURI("/testRoot/testFileZ"));
     URIStatus testLongFile = mFileSystem.getStatus(new AlluxioURI("/testRoot/testLongFile"));
@@ -420,11 +420,11 @@ public final class LsCommandIntegrationTest extends AbstractFileSystemShellTest 
                   PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "NOSASL"})
   public void lsWithSortBySize() throws IOException, AlluxioException {
     FileSystemTestUtils.createByteFile(mFileSystem, "/testRoot/testFileA",
-        WritePType.WRITE_MUST_CACHE, 50, 50);
+        WritePType.MUST_CACHE, 50, 50);
     FileSystemTestUtils.createByteFile(mFileSystem, "/testRoot/testFileZ",
-        WritePType.WRITE_MUST_CACHE, 10, 10);
+        WritePType.MUST_CACHE, 10, 10);
     FileSystemTestUtils.createByteFile(mFileSystem, "/testRoot/testLongFile",
-        WritePType.WRITE_MUST_CACHE, 100, 100);
+        WritePType.MUST_CACHE, 100, 100);
     URIStatus testFileA = mFileSystem.getStatus(new AlluxioURI("/testRoot/testFileA"));
     URIStatus testFileZ = mFileSystem.getStatus(new AlluxioURI("/testRoot/testFileZ"));
     URIStatus testLongFile = mFileSystem.getStatus(new AlluxioURI("/testRoot/testLongFile"));
@@ -449,11 +449,11 @@ public final class LsCommandIntegrationTest extends AbstractFileSystemShellTest 
                   PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "NOSASL"})
   public void lsWithSortBySizeAndReverse() throws IOException, AlluxioException {
     FileSystemTestUtils.createByteFile(mFileSystem, "/testRoot/testFileA",
-        WritePType.WRITE_MUST_CACHE, 50, 50);
+        WritePType.MUST_CACHE, 50, 50);
     FileSystemTestUtils.createByteFile(mFileSystem, "/testRoot/testFileZ",
-        WritePType.WRITE_MUST_CACHE, 10, 10);
+        WritePType.MUST_CACHE, 10, 10);
     FileSystemTestUtils.createByteFile(mFileSystem, "/testRoot/testLongFile",
-        WritePType.WRITE_MUST_CACHE, 100, 100);
+        WritePType.MUST_CACHE, 100, 100);
     URIStatus testFileA = mFileSystem.getStatus(new AlluxioURI("/testRoot/testFileA"));
     URIStatus testFileZ = mFileSystem.getStatus(new AlluxioURI("/testRoot/testFileZ"));
     URIStatus testLongFile = mFileSystem.getStatus(new AlluxioURI("/testRoot/testLongFile"));
@@ -478,7 +478,7 @@ public final class LsCommandIntegrationTest extends AbstractFileSystemShellTest 
                   PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "NOSASL"})
   public void lsWithInvalidSortOption() throws IOException, AlluxioException {
     FileSystemTestUtils.createByteFile(mFileSystem, "/testRoot/testFileA",
-        WritePType.WRITE_MUST_CACHE, 50, 50);
+        WritePType.MUST_CACHE, 50, 50);
     mFsShell.run("ls", "--sort", "unknownfield", "/testRoot");
     String expected = "Invalid sort option `unknownfield` for --sort\n";
     Assert.assertEquals(expected, mOutput.toString());
@@ -493,11 +493,11 @@ public final class LsCommandIntegrationTest extends AbstractFileSystemShellTest 
                   PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "NOSASL"})
   public void lsReverseWithoutSort() throws IOException, AlluxioException {
     FileSystemTestUtils.createByteFile(mFileSystem, "/testRoot/testFileA",
-        WritePType.WRITE_MUST_CACHE, 50, 50);
+        WritePType.MUST_CACHE, 50, 50);
     FileSystemTestUtils.createByteFile(mFileSystem, "/testRoot/testFileZ",
-        WritePType.WRITE_MUST_CACHE, 10, 10);
+        WritePType.MUST_CACHE, 10, 10);
     FileSystemTestUtils.createByteFile(mFileSystem, "/testRoot/testLongFile",
-        WritePType.WRITE_MUST_CACHE, 100, 100);
+        WritePType.MUST_CACHE, 100, 100);
     URIStatus testFileA = mFileSystem.getStatus(new AlluxioURI("/testRoot/testFileA"));
     URIStatus testFileZ = mFileSystem.getStatus(new AlluxioURI("/testRoot/testFileZ"));
     URIStatus testLongFile = mFileSystem.getStatus(new AlluxioURI("/testRoot/testLongFile"));
@@ -527,9 +527,9 @@ public final class LsCommandIntegrationTest extends AbstractFileSystemShellTest 
     clearAndLogin(testUser);
 
     FileSystemTestUtils.createByteFile(mFileSystem, "/testRoot/testDir/testFileB",
-        WritePType.WRITE_MUST_CACHE, 20);
+        WritePType.MUST_CACHE, 20);
     FileSystemTestUtils.createByteFile(mFileSystem, "/testRoot/testFile",
-        WritePType.WRITE_MUST_CACHE, size, size);
+        WritePType.MUST_CACHE, size, size);
 
     mFsShell.run("ls", "--sort", "path", "/testRoot");
 

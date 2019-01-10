@@ -54,7 +54,7 @@ public final class FileOutStreamAsyncWriteJobIntegrationTest
    */
   private URIStatus createAsyncFile() throws Exception {
     writeIncreasingByteArrayToFile(mUri, LEN, CreateFilePOptions.newBuilder()
-        .setWriteType(WritePType.WRITE_ASYNC_THROUGH).setRecursive(true).build());
+        .setWriteType(WritePType.ASYNC_THROUGH).setRecursive(true).build());
     return mFileSystem.getStatus(mUri);
   }
 

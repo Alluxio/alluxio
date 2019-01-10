@@ -45,7 +45,7 @@ public class FileSystemBlockLocationIntegrationTest extends BaseIntegrationTest 
     conf.set("fs.alluxio.impl", FileSystem.class.getName());
 
     alluxio.client.file.FileSystem alluxioFS = sLocalAlluxioClusterResource.get().getClient();
-    FileSystemTestUtils.createByteFile(alluxioFS, "/testFile1", WritePType.WRITE_CACHE_THROUGH,
+    FileSystemTestUtils.createByteFile(alluxioFS, "/testFile1", WritePType.CACHE_THROUGH,
         FILE_LEN);
 
     URI uri = URI.create(sLocalAlluxioClusterResource.get().getMasterURI());

@@ -31,7 +31,7 @@ public final class ChecksumCommandIntegrationTest extends AbstractFileSystemShel
    */
   @Test
   public void checksum() throws Exception {
-    FileSystemTestUtils.createByteFile(mFileSystem, "/testFile", WritePType.WRITE_MUST_CACHE, 10);
+    FileSystemTestUtils.createByteFile(mFileSystem, "/testFile", WritePType.MUST_CACHE, 10);
     mFsShell.run("checksum", "/testFile");
     String str = mOutput.toString();
     String[] splitString = str.split("\\s+");
@@ -51,9 +51,9 @@ public final class ChecksumCommandIntegrationTest extends AbstractFileSystemShel
   @Test
   public void checksumWildCard() throws Exception {
     FileSystemTestUtils.createByteFile(mFileSystem, "/testDir/testFileA",
-        WritePType.WRITE_MUST_CACHE, 10);
+        WritePType.MUST_CACHE, 10);
     FileSystemTestUtils.createByteFile(mFileSystem, "/testDir2/testFileB",
-        WritePType.WRITE_MUST_CACHE, 10);
+        WritePType.MUST_CACHE, 10);
     mFsShell.run("checksum", "/testDir*/testFile*");
     String str = mOutput.toString();
     String[] splitString = str.split("\\s+");

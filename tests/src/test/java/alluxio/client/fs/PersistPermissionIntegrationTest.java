@@ -53,7 +53,7 @@ public final class PersistPermissionIntegrationTest extends AbstractFileOutStrea
 
     AlluxioURI filePath = new AlluxioURI(PathUtils.uniqPath());
     FileOutStream os = mFileSystem.createFile(filePath, CreateFilePOptions.newBuilder()
-        .setWriteType(WritePType.WRITE_CACHE_THROUGH).setRecursive(true).build());
+        .setWriteType(WritePType.CACHE_THROUGH).setRecursive(true).build());
     os.write((byte) 0);
     os.write((byte) 1);
     os.close();
@@ -79,7 +79,7 @@ public final class PersistPermissionIntegrationTest extends AbstractFileOutStrea
 
     AlluxioURI filePath = new AlluxioURI(PathUtils.uniqPath());
     FileOutStream os = mFileSystem.createFile(filePath, CreateFilePOptions.newBuilder()
-        .setWriteType(WritePType.WRITE_ASYNC_THROUGH).setRecursive(true).build());
+        .setWriteType(WritePType.ASYNC_THROUGH).setRecursive(true).build());
     os.write((byte) 0);
     os.write((byte) 1);
     os.close();
@@ -111,7 +111,7 @@ public final class PersistPermissionIntegrationTest extends AbstractFileOutStrea
 
     AlluxioURI filePath = new AlluxioURI(PathUtils.uniqPath());
     mFileSystem.createFile(filePath, CreateFilePOptions.newBuilder()
-        .setWriteType(WritePType.WRITE_ASYNC_THROUGH).setRecursive(true).build()).close();
+        .setWriteType(WritePType.ASYNC_THROUGH).setRecursive(true).build()).close();
 
     // check the file is completed but not persisted
     URIStatus status = mFileSystem.getStatus(filePath);

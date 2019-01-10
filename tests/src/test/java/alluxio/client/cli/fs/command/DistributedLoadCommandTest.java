@@ -30,10 +30,10 @@ import java.io.IOException;
 public final class DistributedLoadCommandTest extends AbstractFileSystemShellTest {
   @Test
   public void loadDir() throws IOException, AlluxioException {
-    FileSystemTestUtils.createByteFile(mFileSystem, "/testRoot/testFileA", WritePType.WRITE_THROUGH,
+    FileSystemTestUtils.createByteFile(mFileSystem, "/testRoot/testFileA", WritePType.THROUGH,
         10);
     FileSystemTestUtils
-        .createByteFile(mFileSystem, "/testRoot/testFileB", WritePType.WRITE_MUST_CACHE, 10);
+        .createByteFile(mFileSystem, "/testRoot/testFileB", WritePType.MUST_CACHE, 10);
     AlluxioURI uriA = new AlluxioURI("/testRoot/testFileA");
     AlluxioURI uriB = new AlluxioURI("/testRoot/testFileB");
 
@@ -51,7 +51,7 @@ public final class DistributedLoadCommandTest extends AbstractFileSystemShellTes
 
   @Test
   public void loadFile() throws IOException, AlluxioException {
-    FileSystemTestUtils.createByteFile(mFileSystem, "/testFile", WritePType.WRITE_THROUGH, 10);
+    FileSystemTestUtils.createByteFile(mFileSystem, "/testFile", WritePType.THROUGH, 10);
     AlluxioURI uri = new AlluxioURI("/testFile");
     URIStatus status = mFileSystem.getStatus(uri);
     Assert.assertFalse(status.getInMemoryPercentage() == 100);

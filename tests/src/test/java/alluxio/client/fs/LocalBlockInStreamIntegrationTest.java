@@ -59,13 +59,13 @@ public final class LocalBlockInStreamIntegrationTest extends BaseIntegrationTest
   @BeforeClass
   public static final void beforeClass() throws Exception {
     sFileSystem = sLocalAlluxioClusterResource.get().getClient();
-    sWriteBoth = CreateFilePOptions.newBuilder().setWriteType(WritePType.WRITE_CACHE_THROUGH)
+    sWriteBoth = CreateFilePOptions.newBuilder().setWriteType(WritePType.CACHE_THROUGH)
         .setRecursive(true).build();
-    sWriteAlluxio = CreateFilePOptions.newBuilder().setWriteType(WritePType.WRITE_MUST_CACHE)
+    sWriteAlluxio = CreateFilePOptions.newBuilder().setWriteType(WritePType.MUST_CACHE)
         .setRecursive(true).build();
     sReadCachePromote =
-        OpenFilePOptions.newBuilder().setReadType(ReadPType.READ_CACHE_PROMOTE).build();
-    sReadNoCache = OpenFilePOptions.newBuilder().setReadType(ReadPType.READ_NO_CACHE).build();
+        OpenFilePOptions.newBuilder().setReadType(ReadPType.CACHE_PROMOTE).build();
+    sReadNoCache = OpenFilePOptions.newBuilder().setReadType(ReadPType.NO_CACHE).build();
     sTestPath = PathUtils.uniqPath();
 
     // Create files of varying size and write type to later read from

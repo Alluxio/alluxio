@@ -54,7 +54,7 @@ public class FileSystemUtilsIntegrationTest extends BaseIntegrationTest {
   @BeforeClass
   public static void beforeClass() throws Exception {
     sFileSystem = sLocalAlluxioClusterResource.get().getClient();
-    sWriteBoth = CreateFilePOptions.newBuilder().setWriteType(WritePType.WRITE_CACHE_THROUGH)
+    sWriteBoth = CreateFilePOptions.newBuilder().setWriteType(WritePType.CACHE_THROUGH)
         .setRecursive(true).build();
   }
 

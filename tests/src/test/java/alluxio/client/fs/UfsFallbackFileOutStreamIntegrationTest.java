@@ -90,7 +90,7 @@ public class UfsFallbackFileOutStreamIntegrationTest extends AbstractFileOutStre
     }).toResource()) {
       AlluxioURI filePath = new AlluxioURI(PathUtils.uniqPath());
       CreateFilePOptions op = CreateFilePOptions.newBuilder()
-          .setWriteType(WritePType.WRITE_ASYNC_THROUGH).setRecursive(true).build();
+          .setWriteType(WritePType.ASYNC_THROUGH).setRecursive(true).build();
       writeIncreasingBytesToFile(filePath, mFileLength, op);
 
       CommonUtils.sleepMs(1);
@@ -122,7 +122,7 @@ public class UfsFallbackFileOutStreamIntegrationTest extends AbstractFileOutStre
     }).toResource()) {
       AlluxioURI filePath = new AlluxioURI(PathUtils.uniqPath());
       CreateFilePOptions op = CreateFilePOptions.newBuilder()
-          .setWriteType(WritePType.WRITE_ASYNC_THROUGH).setRecursive(true).build();
+          .setWriteType(WritePType.ASYNC_THROUGH).setRecursive(true).build();
       writeIncreasingBytesToFile(filePath, mFileLength, op);
 
       CommonUtils.sleepMs(1);

@@ -86,7 +86,7 @@ public class JournalCheckpointIntegrationTest extends BaseIntegrationTest {
     backupAndRestore();
     try {
       mCluster.getClient().createDirectory(new AlluxioURI("/test"),
-          CreateDirectoryPOptions.newBuilder().setWriteType(WritePType.WRITE_THROUGH).build());
+          CreateDirectoryPOptions.newBuilder().setWriteType(WritePType.THROUGH).build());
       fail("Expected an exception to be thrown");
     } catch (AccessControlException e) {
       // Expected

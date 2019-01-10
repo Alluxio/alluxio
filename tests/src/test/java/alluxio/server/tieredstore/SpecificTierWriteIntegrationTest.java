@@ -95,7 +95,7 @@ public class SpecificTierWriteIntegrationTest extends BaseIntegrationTest {
   private void writeFileAndCheckUsage(int writeTier, long memBytes, long ssdBytes, long hddBytes)
       throws Exception {
     CreateFilePOptions createOptions = CreateFilePOptions.newBuilder().setWriteTier(writeTier)
-        .setWriteType(WritePType.WRITE_MUST_CACHE)
+        .setWriteType(WritePType.MUST_CACHE)
         .setFileWriteLocationPolicy(LocalFirstPolicy.class.getTypeName()).build();
     FileOutStream os = mFileSystem.createFile(
         new AlluxioURI("/tier-" + writeTier + "_" + CommonUtils.randomAlphaNumString(5)),

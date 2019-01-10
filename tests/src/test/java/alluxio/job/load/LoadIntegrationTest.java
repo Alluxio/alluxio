@@ -39,7 +39,7 @@ public final class LoadIntegrationTest extends JobIntegrationTest {
     // write a file outside of Alluxio
     AlluxioURI filePath = new AlluxioURI(TEST_URI);
     FileOutStream os = mFileSystem.createFile(filePath,
-        CreateFilePOptions.newBuilder().setWriteType(WritePType.WRITE_THROUGH).build());
+        CreateFilePOptions.newBuilder().setWriteType(WritePType.THROUGH).build());
     os.write((byte) 0);
     os.write((byte) 1);
     os.close();
@@ -67,7 +67,7 @@ public final class LoadIntegrationTest extends JobIntegrationTest {
     // write a file outside of Alluxio
     AlluxioURI filePath = new AlluxioURI(TEST_URI);
     FileOutStream os = mFileSystem.createFile(filePath, CreateFilePOptions.newBuilder()
-        .setWriteType(WritePType.WRITE_THROUGH).setBlockSizeBytes(16 * Constants.KB).build());
+        .setWriteType(WritePType.THROUGH).setBlockSizeBytes(16 * Constants.KB).build());
     byte[] bytes = BufferUtils.getIncreasingByteArray(500 * Constants.KB);
     os.write(bytes);
     os.close();

@@ -82,7 +82,7 @@ public final class ChecksumCommand extends AbstractFileSystemCommand {
   private String calculateChecksum(AlluxioURI filePath)
       throws AlluxioException, IOException {
     OpenFilePOptions options =
-        OpenFilePOptions.newBuilder().setReadType(ReadPType.READ_NO_CACHE).build();
+        OpenFilePOptions.newBuilder().setReadType(ReadPType.NO_CACHE).build();
     try (FileInStream fis = mFileSystem.openFile(filePath, options)) {
       return DigestUtils.md5Hex(fis);
     }

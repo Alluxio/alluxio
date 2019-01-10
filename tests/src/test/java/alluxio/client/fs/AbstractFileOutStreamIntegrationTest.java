@@ -129,7 +129,7 @@ public abstract class AbstractFileOutStreamIntegrationTest extends BaseIntegrati
     URIStatus status = mFileSystem.getStatus(filePath);
     Assert.assertEquals(fileLen, status.getLength());
     try (FileInStream is = mFileSystem.openFile(filePath,
-        OpenFilePOptions.newBuilder().setReadType(ReadPType.READ_NO_CACHE).build())) {
+        OpenFilePOptions.newBuilder().setReadType(ReadPType.NO_CACHE).build())) {
       byte[] res = new byte[(int) status.getLength()];
       Assert.assertEquals((int) status.getLength(), is.read(res));
       Assert.assertTrue(BufferUtils.equalIncreasingByteArray(fileLen, res));

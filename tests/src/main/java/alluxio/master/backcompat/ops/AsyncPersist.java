@@ -35,13 +35,13 @@ public final class AsyncPersist extends FsTestOp {
   @Override
   public void apply(FileSystem fs) throws Exception {
     try (FileOutStream out = fs.createFile(FILE, CreateFilePOptions.newBuilder()
-        .setBlockSizeBytes(Constants.KB).setWriteType(WritePType.WRITE_ASYNC_THROUGH).build())) {
+        .setBlockSizeBytes(Constants.KB).setWriteType(WritePType.ASYNC_THROUGH).build())) {
       out.write("test".getBytes());
     }
     // Nested file
     try (FileOutStream out =
         fs.createFile(NESTED_FILE, CreateFilePOptions.newBuilder().setBlockSizeBytes(Constants.KB)
-            .setWriteType(WritePType.WRITE_ASYNC_THROUGH).setRecursive(true).build())) {
+            .setWriteType(WritePType.ASYNC_THROUGH).setRecursive(true).build())) {
       out.write("test".getBytes());
     }
     CommonUtils.waitFor("files to be persisted", () -> {

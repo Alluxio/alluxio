@@ -66,7 +66,7 @@ public final class PersistMultipleMountsIntegrationTest
     String path = PathUtils.uniqPath();
     AlluxioURI filePath = new AlluxioURI(path);
     FileOutStream os = mFileSystem.createFile(filePath, CreateFilePOptions.newBuilder()
-        .setWriteType(WritePType.WRITE_CACHE_THROUGH).setRecursive(true).build());
+        .setWriteType(WritePType.CACHE_THROUGH).setRecursive(true).build());
     os.write((byte) 0);
     os.write((byte) 1);
     os.close();
@@ -87,7 +87,7 @@ public final class PersistMultipleMountsIntegrationTest
     String path = PathUtils.uniqPath();
     AlluxioURI filePath = new AlluxioURI(MOUNT_PATH + path);
     FileOutStream os = mFileSystem.createFile(filePath, CreateFilePOptions.newBuilder()
-        .setWriteType(WritePType.WRITE_CACHE_THROUGH).setRecursive(true).build());
+        .setWriteType(WritePType.CACHE_THROUGH).setRecursive(true).build());
     os.write((byte) 0);
     os.write((byte) 1);
     os.close();

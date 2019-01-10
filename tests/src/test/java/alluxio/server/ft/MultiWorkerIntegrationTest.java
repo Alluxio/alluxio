@@ -86,7 +86,7 @@ public final class MultiWorkerIntegrationTest extends BaseIntegrationTest {
     AlluxioURI file = new AlluxioURI("/test");
     FileSystem fs = mResource.get().getClient();
     FileSystemTestUtils.createByteFile(fs, file.getPath(), fileSize,
-        CreateFilePOptions.newBuilder().setWriteType(WritePType.WRITE_MUST_CACHE)
+        CreateFilePOptions.newBuilder().setWriteType(WritePType.MUST_CACHE)
             .setFileWriteLocationPolicy(RoundRobinPolicy.class.getCanonicalName()).build());
     URIStatus status = fs.getStatus(file);
     assertEquals(100, status.getInAlluxioPercentage());
@@ -173,7 +173,7 @@ public final class MultiWorkerIntegrationTest extends BaseIntegrationTest {
       throws IOException {
     FindFirstFileWriteLocationPolicy.sWorkerAddress = address;
     FileSystemTestUtils.createByteFile(mResource.get().getClient(), filePath,
-        CreateFilePOptions.newBuilder().setWriteType(WritePType.WRITE_MUST_CACHE)
+        CreateFilePOptions.newBuilder().setWriteType(WritePType.MUST_CACHE)
             .setFileWriteLocationPolicy(FindFirstFileWriteLocationPolicy.class.getName()).build(),
         total);
   }

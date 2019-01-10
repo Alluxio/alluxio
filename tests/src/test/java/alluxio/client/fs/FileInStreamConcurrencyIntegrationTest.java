@@ -49,7 +49,7 @@ public final class FileInStreamConcurrencyIntegrationTest extends BaseIntegratio
   @BeforeClass
   public static final void beforeClass() throws Exception {
     sFileSystem = sLocalAlluxioClusterResource.get().getClient();
-    sWriteAlluxio = CreateFilePOptions.newBuilder().setWriteType(WritePType.WRITE_MUST_CACHE)
+    sWriteAlluxio = CreateFilePOptions.newBuilder().setWriteType(WritePType.MUST_CACHE)
         .setRecursive(true).build();
   }
 

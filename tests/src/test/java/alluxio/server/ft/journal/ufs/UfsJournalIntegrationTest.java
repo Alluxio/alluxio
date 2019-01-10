@@ -446,12 +446,12 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
     };
 
     CreateDirectoryPOptions options = CreateDirectoryPOptions.newBuilder().setRecursive(true)
-        .setWriteType(WritePType.WRITE_MUST_CACHE).build();
+        .setWriteType(WritePType.MUST_CACHE).build();
     for (String directory : directories) {
       mFileSystem.createDirectory(new AlluxioURI(directory), options);
     }
 
-    options = options.toBuilder().setWriteType(WritePType.WRITE_CACHE_THROUGH).setAllowExists(true)
+    options = options.toBuilder().setWriteType(WritePType.CACHE_THROUGH).setAllowExists(true)
         .build();
     for (String directory : directories) {
       mFileSystem.createDirectory(new AlluxioURI(directory), options);

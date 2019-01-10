@@ -82,14 +82,14 @@ public class TieredStoreIntegrationTest extends BaseIntegrationTest {
     HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 10, TimeUnit.SECONDS);
 
     AlluxioURI file = new AlluxioURI("/test1");
-    FileSystemTestUtils.createByteFile(mFileSystem, file, WritePType.WRITE_MUST_CACHE, fileSize);
+    FileSystemTestUtils.createByteFile(mFileSystem, file, WritePType.MUST_CACHE, fileSize);
 
     HeartbeatScheduler.execute(HeartbeatContext.WORKER_BLOCK_SYNC);
 
     Assert.assertEquals(100, mFileSystem.getStatus(file).getInAlluxioPercentage());
     // Open the file
     OpenFilePOptions options =
-        OpenFilePOptions.newBuilder().setReadType(ReadPType.READ_CACHE).build();
+        OpenFilePOptions.newBuilder().setReadType(ReadPType.CACHE).build();
     FileInStream in = mFileSystem.openFile(file, options);
     Assert.assertEquals(0, in.read());
 
@@ -112,7 +112,7 @@ public class TieredStoreIntegrationTest extends BaseIntegrationTest {
 
     // After the file is closed, the master's delete should go through and new files can be created
     AlluxioURI newFile = new AlluxioURI("/test2");
-    FileSystemTestUtils.createByteFile(mFileSystem, newFile, WritePType.WRITE_MUST_CACHE,
+    FileSystemTestUtils.createByteFile(mFileSystem, newFile, WritePType.MUST_CACHE,
         MEM_CAPACITY_BYTES);
     HeartbeatScheduler.execute(HeartbeatContext.WORKER_BLOCK_SYNC);
     Assert.assertEquals(100, mFileSystem.getStatus(newFile).getInAlluxioPercentage());
@@ -126,7 +126,7 @@ public class TieredStoreIntegrationTest extends BaseIntegrationTest {
     // Create a file that fills the entire Alluxio store
     AlluxioURI file = new AlluxioURI("/test1");
     // Half of mem capacity to avoid triggering async eviction
-    FileSystemTestUtils.createByteFile(mFileSystem, file, WritePType.WRITE_MUST_CACHE,
+    FileSystemTestUtils.createByteFile(mFileSystem, file, WritePType.MUST_CACHE,
         MEM_CAPACITY_BYTES / 2);
     HeartbeatScheduler.execute(HeartbeatContext.WORKER_BLOCK_SYNC);
 
@@ -139,7 +139,7 @@ public class TieredStoreIntegrationTest extends BaseIntegrationTest {
     // Try to create a file that cannot be stored unless the previous file is evicted, expect an
     // exception since worker cannot serve the request
     mThrown.expect(Exception.class);
-    FileSystemTestUtils.createByteFile(mFileSystem, "/test2", WritePType.WRITE_MUST_CACHE,
+    FileSystemTestUtils.createByteFile(mFileSystem, "/test2", WritePType.MUST_CACHE,
         MEM_CAPACITY_BYTES);
   }
 
@@ -151,7 +151,7 @@ public class TieredStoreIntegrationTest extends BaseIntegrationTest {
     // Create a file that fills the entire Alluxio store
     AlluxioURI file1 = new AlluxioURI("/test1");
     FileSystemTestUtils
-        .createByteFile(mFileSystem, file1, WritePType.WRITE_MUST_CACHE, MEM_CAPACITY_BYTES);
+        .createByteFile(mFileSystem, file1, WritePType.MUST_CACHE, MEM_CAPACITY_BYTES);
     HeartbeatScheduler.execute(HeartbeatContext.WORKER_BLOCK_SYNC);
 
     // Pin the file
@@ -170,7 +170,7 @@ public class TieredStoreIntegrationTest extends BaseIntegrationTest {
     // should succeed
     AlluxioURI file2 = new AlluxioURI("/test2");
     FileSystemTestUtils
-        .createByteFile(mFileSystem, file2, WritePType.WRITE_MUST_CACHE, MEM_CAPACITY_BYTES);
+        .createByteFile(mFileSystem, file2, WritePType.MUST_CACHE, MEM_CAPACITY_BYTES);
     HeartbeatScheduler.execute(HeartbeatContext.WORKER_BLOCK_SYNC);
 
     // File 2 should be in memory and File 1 should be evicted
@@ -186,11 +186,11 @@ public class TieredStoreIntegrationTest extends BaseIntegrationTest {
     AlluxioURI uri1 = new AlluxioURI("/file1");
     AlluxioURI uri2 = new AlluxioURI("/file2");
     AlluxioURI uri3 = new AlluxioURI("/file3");
-    FileSystemTestUtils.createByteFile(mFileSystem, uri1, WritePType.WRITE_CACHE_THROUGH,
+    FileSystemTestUtils.createByteFile(mFileSystem, uri1, WritePType.CACHE_THROUGH,
         MEM_CAPACITY_BYTES / 3);
-    FileSystemTestUtils.createByteFile(mFileSystem, uri2, WritePType.WRITE_CACHE_THROUGH,
+    FileSystemTestUtils.createByteFile(mFileSystem, uri2, WritePType.CACHE_THROUGH,
         MEM_CAPACITY_BYTES / 2);
-    FileSystemTestUtils.createByteFile(mFileSystem, uri3, WritePType.WRITE_CACHE_THROUGH,
+    FileSystemTestUtils.createByteFile(mFileSystem, uri3, WritePType.CACHE_THROUGH,
         MEM_CAPACITY_BYTES / 2);
 
     HeartbeatScheduler.execute(HeartbeatContext.WORKER_BLOCK_SYNC);
@@ -221,7 +221,7 @@ public class TieredStoreIntegrationTest extends BaseIntegrationTest {
     }
 
     FileInStream is = mFileSystem.openFile(toPromote,
-        OpenFilePOptions.newBuilder().setReadType(ReadPType.READ_CACHE_PROMOTE).build());
+        OpenFilePOptions.newBuilder().setReadType(ReadPType.CACHE_PROMOTE).build());
     byte[] buf = new byte[toPromoteLen];
     int len = is.read(buf);
     is.close();

@@ -78,13 +78,13 @@ public class CapacityUsageIntegrationTest extends BaseIntegrationTest {
   private void deleteDuringEviction(int i) throws IOException, AlluxioException {
     final AlluxioURI fileName1 = new AlluxioURI("/file" + i + "_1");
     final AlluxioURI fileName2 = new AlluxioURI("/file" + i + "_2");
-    createAndWriteFile(fileName1, WritePType.WRITE_CACHE_THROUGH, MEM_CAPACITY_BYTES);
+    createAndWriteFile(fileName1, WritePType.CACHE_THROUGH, MEM_CAPACITY_BYTES);
     URIStatus fileStatus1 = mFileSystem.getStatus(fileName1);
     Assert.assertTrue(fileStatus1.getInMemoryPercentage() == 100);
     // Deleting file1, command will be sent by master to worker asynchronously
     mFileSystem.delete(fileName1);
     // Meanwhile creating file2. If creation arrives earlier than deletion, it will evict file1
-    createAndWriteFile(fileName2, WritePType.WRITE_CACHE_THROUGH, MEM_CAPACITY_BYTES / 4);
+    createAndWriteFile(fileName2, WritePType.CACHE_THROUGH, MEM_CAPACITY_BYTES / 4);
     URIStatus fileStatus2 = mFileSystem.getStatus(fileName2);
     Assert.assertTrue(fileStatus2.getInMemoryPercentage() == 100);
     mFileSystem.delete(fileName2);

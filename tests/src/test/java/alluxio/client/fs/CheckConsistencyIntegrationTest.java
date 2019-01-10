@@ -63,9 +63,9 @@ public class CheckConsistencyIntegrationTest extends BaseIntegrationTest {
             .getMaster(FileSystemMaster.class);
     mFileSystem = FileSystem.Factory.get();
     CreateDirectoryPOptions dirOptions =
-        CreateDirectoryPOptions.newBuilder().setWriteType(WritePType.WRITE_CACHE_THROUGH).build();
+        CreateDirectoryPOptions.newBuilder().setWriteType(WritePType.CACHE_THROUGH).build();
     CreateFilePOptions fileOptions =
-        CreateFilePOptions.newBuilder().setWriteType(WritePType.WRITE_CACHE_THROUGH).build();
+        CreateFilePOptions.newBuilder().setWriteType(WritePType.CACHE_THROUGH).build();
     mFileSystem.createDirectory(DIRECTORY, dirOptions);
     mFileSystem.createFile(FILE, fileOptions).close();
   }
@@ -119,9 +119,9 @@ public class CheckConsistencyIntegrationTest extends BaseIntegrationTest {
   @Test
   public void largeTree() throws Exception {
     CreateDirectoryPOptions dirOptions =
-        CreateDirectoryPOptions.newBuilder().setWriteType(WritePType.WRITE_CACHE_THROUGH).build();
+        CreateDirectoryPOptions.newBuilder().setWriteType(WritePType.CACHE_THROUGH).build();
     CreateFilePOptions fileOptions =
-        CreateFilePOptions.newBuilder().setWriteType(WritePType.WRITE_CACHE_THROUGH).build();
+        CreateFilePOptions.newBuilder().setWriteType(WritePType.CACHE_THROUGH).build();
     AlluxioURI nestedDir = DIRECTORY.join("/dir2");
     AlluxioURI topLevelFile = new AlluxioURI("/file");
     AlluxioURI thirdLevelFile = nestedDir.join("/file");

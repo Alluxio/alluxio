@@ -128,7 +128,7 @@ public class ConcurrentFileSystemMasterCreateTest extends BaseIntegrationTest {
 
     // Create the existing path with CACHE_THROUGH that it will be persisted.
     mFileSystem.createDirectory(new AlluxioURI("/existing/path/dir/"), CreateDirectoryPOptions
-        .newBuilder().setRecursive(true).setWriteType(WritePType.WRITE_CACHE_THROUGH).build());
+        .newBuilder().setRecursive(true).setWriteType(WritePType.CACHE_THROUGH).build());
 
     for (int i = 0; i < numThreads; i++) {
       paths[i] =
@@ -155,7 +155,7 @@ public class ConcurrentFileSystemMasterCreateTest extends BaseIntegrationTest {
 
     // Create the existing path with MUST_CACHE, so subsequent creates have to persist the dirs.
     mFileSystem.createDirectory(new AlluxioURI("/existing/path/dir/"), CreateDirectoryPOptions
-        .newBuilder().setRecursive(true).setWriteType(WritePType.WRITE_MUST_CACHE).build());
+        .newBuilder().setRecursive(true).setWriteType(WritePType.MUST_CACHE).build());
 
     for (int i = 0; i < numThreads; i++) {
       paths[i] =
@@ -176,12 +176,12 @@ public class ConcurrentFileSystemMasterCreateTest extends BaseIntegrationTest {
 
   @Test
   public void concurrentLoadFileMetadataExistingDir() throws Exception {
-    runLoadMetadata(WritePType.WRITE_CACHE_THROUGH, false, true, false);
+    runLoadMetadata(WritePType.CACHE_THROUGH, false, true, false);
   }
 
   @Test
   public void concurrentLoadFileMetadataNonPersistedDir() throws Exception {
-    runLoadMetadata(WritePType.WRITE_MUST_CACHE, false, true, false);
+    runLoadMetadata(WritePType.MUST_CACHE, false, true, false);
   }
 
   @Test
@@ -191,12 +191,12 @@ public class ConcurrentFileSystemMasterCreateTest extends BaseIntegrationTest {
 
   @Test
   public void concurrentLoadSameFileMetadataExistingDir() throws Exception {
-    runLoadMetadata(WritePType.WRITE_CACHE_THROUGH, true, true, false);
+    runLoadMetadata(WritePType.CACHE_THROUGH, true, true, false);
   }
 
   @Test
   public void concurrentLoadSameFileMetadataNonPersistedDir() throws Exception {
-    runLoadMetadata(WritePType.WRITE_MUST_CACHE, true, true, false);
+    runLoadMetadata(WritePType.MUST_CACHE, true, true, false);
   }
 
   @Test
@@ -206,12 +206,12 @@ public class ConcurrentFileSystemMasterCreateTest extends BaseIntegrationTest {
 
   @Test
   public void concurrentLoadDirMetadataExistingDir() throws Exception {
-    runLoadMetadata(WritePType.WRITE_CACHE_THROUGH, false, false, false);
+    runLoadMetadata(WritePType.CACHE_THROUGH, false, false, false);
   }
 
   @Test
   public void concurrentLoadDirMetadataNonPersistedDir() throws Exception {
-    runLoadMetadata(WritePType.WRITE_MUST_CACHE, false, false, false);
+    runLoadMetadata(WritePType.MUST_CACHE, false, false, false);
   }
 
   @Test
@@ -221,12 +221,12 @@ public class ConcurrentFileSystemMasterCreateTest extends BaseIntegrationTest {
 
   @Test
   public void concurrentLoadSameDirMetadataExistingDir() throws Exception {
-    runLoadMetadata(WritePType.WRITE_CACHE_THROUGH, true, false, false);
+    runLoadMetadata(WritePType.CACHE_THROUGH, true, false, false);
   }
 
   @Test
   public void concurrentLoadSameDirMetadataNonPersistedDir() throws Exception {
-    runLoadMetadata(WritePType.WRITE_MUST_CACHE, true, false, false);
+    runLoadMetadata(WritePType.MUST_CACHE, true, false, false);
   }
 
   @Test
@@ -236,12 +236,12 @@ public class ConcurrentFileSystemMasterCreateTest extends BaseIntegrationTest {
 
   @Test
   public void concurrentListDirsExistingDir() throws Exception {
-    runLoadMetadata(WritePType.WRITE_CACHE_THROUGH, false, false, true);
+    runLoadMetadata(WritePType.CACHE_THROUGH, false, false, true);
   }
 
   @Test
   public void concurrentListDirsNonPersistedDir() throws Exception {
-    runLoadMetadata(WritePType.WRITE_MUST_CACHE, false, false, true);
+    runLoadMetadata(WritePType.MUST_CACHE, false, false, true);
   }
 
   @Test
@@ -251,12 +251,12 @@ public class ConcurrentFileSystemMasterCreateTest extends BaseIntegrationTest {
 
   @Test
   public void concurrentListFilesExistingDir() throws Exception {
-    runLoadMetadata(WritePType.WRITE_CACHE_THROUGH, false, true, true);
+    runLoadMetadata(WritePType.CACHE_THROUGH, false, true, true);
   }
 
   @Test
   public void concurrentListFilesNonPersistedDir() throws Exception {
-    runLoadMetadata(WritePType.WRITE_MUST_CACHE, false, true, true);
+    runLoadMetadata(WritePType.MUST_CACHE, false, true, true);
   }
 
   /**
@@ -276,7 +276,7 @@ public class ConcurrentFileSystemMasterCreateTest extends BaseIntegrationTest {
 
     int uniquePaths = useSinglePath ? 1 : numThreads;
 
-    if (writeType != WritePType.WRITE_CACHE_THROUGH) {
+    if (writeType != WritePType.CACHE_THROUGH) {
       // all 3 components must be synced to UFS.
       limitMs = 3 * SLEEP_MS * bufferFactor;
     }

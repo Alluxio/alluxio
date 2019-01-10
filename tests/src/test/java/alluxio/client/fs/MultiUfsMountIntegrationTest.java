@@ -102,7 +102,7 @@ public final class MultiUfsMountIntegrationTest extends BaseIntegrationTest {
   @Test
   public void createFile() throws Exception {
     CreateFilePOptions writeBoth =
-        CreateFilePOptions.newBuilder().setWriteType(WritePType.WRITE_CACHE_THROUGH).build();
+        CreateFilePOptions.newBuilder().setWriteType(WritePType.CACHE_THROUGH).build();
     AlluxioURI file1 = mMountPoint1.join("file1");
     AlluxioURI file2 = mMountPoint2.join("file2");
     mFileSystem.createFile(file1, writeBoth).close();
