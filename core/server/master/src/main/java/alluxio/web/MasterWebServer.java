@@ -11,7 +11,9 @@
 
 package alluxio.web;
 
+import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.master.MasterProcess;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.util.io.PathUtils;
@@ -26,11 +28,9 @@ import org.glassfish.jersey.servlet.ServletContainer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.net.InetSocketAddress;
 import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.servlet.ServletException;
@@ -80,23 +80,17 @@ public final class MasterWebServer extends WebServer {
 
     // STATIC assets
     try {
-      String resourceDirPathString = "alluxio-ui/master/build/";
-      ClassLoader cl = MasterWebServer.class.getClassLoader();
-      URL resourceDir = cl.getResource(resourceDirPathString);
-      if (resourceDir == null) {
-        return;
-      }
-      URI webRootUri = resourceDir.toURI();
-      mServletContextHandler.setBaseResource(Resource.newResource(webRootUri));
+      String resourceDirPathString =
+          Configuration.get(PropertyKey.WEB_RESOURCES) + "/master/build/";
+      File resourceDir = new File(resourceDirPathString);
+      mServletContextHandler.setBaseResource(Resource.newResource(resourceDir.getAbsolutePath()));
       mServletContextHandler.setWelcomeFiles(new String[] {"index.html"});
-      mServletContextHandler.setResourceBase(resourceDirPathString);
+      mServletContextHandler.setResourceBase(resourceDir.getAbsolutePath());
       mServletContextHandler.addServlet(DefaultServlet.class, "/");
       ErrorPageErrorHandler errorHandler = new ErrorPageErrorHandler();
-      errorHandler.addErrorPage(404,
-          "/"); // TODO(william): consider a rewrite rule instead of an error handler
+      // TODO(william): consider a rewrite rule instead of an error handler
+      errorHandler.addErrorPage(404, "/");
       mServletContextHandler.setErrorHandler(errorHandler);
-    } catch (URISyntaxException e) {
-      LOG.error("ERROR: unable to set base resource path", e);
     } catch (MalformedURLException e) {
       LOG.error("ERROR: resource path is malformed", e);
     }

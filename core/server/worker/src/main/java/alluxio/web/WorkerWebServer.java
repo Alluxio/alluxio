@@ -11,7 +11,9 @@
 
 package alluxio.web;
 
+import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.util.io.PathUtils;
 import alluxio.worker.WorkerProcess;
 import alluxio.worker.block.BlockWorker;
@@ -26,11 +28,9 @@ import org.glassfish.jersey.servlet.ServletContainer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.net.InetSocketAddress;
 import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.servlet.ServletException;
@@ -77,23 +77,17 @@ public final class WorkerWebServer extends WebServer {
 
     // STATIC assets
     try {
-      String resourceDirPathString = "alluxio-ui/worker/build/";
-      ClassLoader cl = WorkerWebServer.class.getClassLoader();
-      URL resourceDir = cl.getResource(resourceDirPathString);
-      if (resourceDir == null) {
-        return;
-      }
-      URI webRootUri = resourceDir.toURI();
-      mServletContextHandler.setBaseResource(Resource.newResource(webRootUri));
+      String resourceDirPathString =
+          Configuration.get(PropertyKey.WEB_RESOURCES) + "/worker/build/";
+      File resourceDir = new File(resourceDirPathString);
+      mServletContextHandler.setBaseResource(Resource.newResource(resourceDir.getAbsolutePath()));
       mServletContextHandler.setWelcomeFiles(new String[] {"index.html"});
-      mServletContextHandler.setResourceBase(resourceDirPathString);
+      mServletContextHandler.setResourceBase(resourceDir.getAbsolutePath());
       mServletContextHandler.addServlet(DefaultServlet.class, "/");
-      // TODO(william): consider a rewrite rule instead of an error handler
       ErrorPageErrorHandler errorHandler = new ErrorPageErrorHandler();
+      // TODO(william): consider a rewrite rule instead of an error handler
       errorHandler.addErrorPage(404, "/");
       mServletContextHandler.setErrorHandler(errorHandler);
-    } catch (URISyntaxException e) {
-      LOG.error("ERROR: unable to set base resource path", e);
     } catch (MalformedURLException e) {
       LOG.error("ERROR: resource path is malformed", e);
     }
