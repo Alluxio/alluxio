@@ -57,27 +57,6 @@
         <inherited>false</inherited>
         <executions>
           <execution>
-            <id>Remove cached node modules and built web applications</id>
-            <phase>clean</phase>
-            <goals>
-              <goal>exec</goal>
-            </goals>
-            <configuration>
-              <executable>rm</executable>
-              <arguments>
-                <argument>-rf</argument>
-                <argument>node</argument>
-                <argument>node_modules</argument>
-                <argument>common/build</argument>
-                <argument>common/node_modules</argument>
-                <argument>master/build</argument>
-                <argument>master/node_modules</argument>
-                <argument>worker/build</argument>
-                <argument>worker/node_modules</argument>
-              </arguments>
-            </configuration>
-          </execution>
-          <execution>
             <id>Install npm dependencies for packages</id>
             <phase>generate-sources</phase>
             <goals>
@@ -102,6 +81,8 @@
               <arguments>
                 <argument>node_modules/.bin/lerna</argument>
                 <argument>run</argument>
+                <argument>--stream</argument>
+                <argument>--parallel</argument>
                 <argument>build</argument>
               </arguments>
             </configuration>

@@ -1,5 +1,5 @@
 {
-  "name": "@alluxio/alluxio-ui-worker",
+  "name": "@alluxio/worker-ui",
   "version": "1.0.0",
   "private": true,
   "dependencies": {
