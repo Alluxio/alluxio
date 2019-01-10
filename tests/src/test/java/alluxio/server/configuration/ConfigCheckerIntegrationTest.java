@@ -95,7 +95,7 @@ public class ConfigCheckerIntegrationTest extends BaseIntegrationTest {
 
   @Test
   public void multiNodes() throws Exception {
-    PropertyKey key = PropertyKey.NETWORK_NETTY_HEARTBEAT_TIMEOUT_MS;
+    PropertyKey key = PropertyKey.UNDERFS_LISTING_LENGTH;
     // Prepare properties
     Map<Integer, Map<PropertyKey, String>> properties = generatePropertyWithDifferentValues(
         TEST_NUM_MASTERS + TEST_NUM_WORKERS, key);

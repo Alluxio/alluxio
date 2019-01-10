@@ -25,7 +25,7 @@
  * The {@link alluxio.worker.DataServer} interface defines how to start/stop, and get port details;
  * to start, object init is used. The implementation of this interface is in
  * {@link alluxio.worker.grpc.GrpcDataServer}. It creates an {@link alluxio.worker.DataServer}
- * instance based on Netty which is an asynchronous event-driven network application framework.
+ * instance based on gRPC which is a high performance universal remote procedure call framework.
  *
  * Data server handles the following types of block requests:
  * <ul>

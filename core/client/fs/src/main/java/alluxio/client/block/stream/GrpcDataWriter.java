@@ -56,14 +56,14 @@ public final class GrpcDataWriter implements DataWriter {
   private static final Logger LOG = LoggerFactory.getLogger(GrpcDataWriter.class);
 
   private static final int WRITE_BUFFER_SIZE =
-      (int) Configuration.getMs(PropertyKey.USER_NETWORK_NETTY_WRITER_BUFFER_SIZE_PACKETS);
+      Configuration.getInt(PropertyKey.USER_NETWORK_WRITER_BUFFER_SIZE_MESSAGES);
   private static final long WRITE_TIMEOUT_MS =
-      Configuration.getMs(PropertyKey.USER_NETWORK_NETTY_TIMEOUT_MS);
+      Configuration.getMs(PropertyKey.USER_NETWORK_DATA_TIMEOUT_MS);
   private static final long CLOSE_TIMEOUT_MS =
-      Configuration.getMs(PropertyKey.USER_NETWORK_NETTY_WRITER_CLOSE_TIMEOUT_MS);
+      Configuration.getMs(PropertyKey.USER_NETWORK_WRITER_CLOSE_TIMEOUT_MS);
   /** Uses a long flush timeout since flush in S3 streaming upload may take a long time. */
   private static final long FLUSH_TIMEOUT_MS =
-      Configuration.getMs(PropertyKey.USER_NETWORK_NETTY_WRITER_FLUSH_TIMEOUT);
+      Configuration.getMs(PropertyKey.USER_NETWORK_WRITER_FLUSH_TIMEOUT);
 
   private final FileSystemContext mContext;
   private final BlockWorkerClient mClient;
@@ -143,7 +143,7 @@ public final class GrpcDataWriter implements DataWriter {
     mPartialRequest = builder.buildPartial();
     mChunkSize = chunkSize;
     mClient = client;
-    mStream = new GrpcBlockingStream<>(mClient::writeBlock, WRITE_BUFFER_SIZE);
+    mStream = new GrpcBlockingStream<>(mClient::writeBlock, WRITE_BUFFER_SIZE, address.toString());
     mStream.send(WriteRequest.newBuilder().setCommand(mPartialRequest.toBuilder()).build(),
         WRITE_TIMEOUT_MS);
   }
@@ -156,11 +156,15 @@ public final class GrpcDataWriter implements DataWriter {
   @Override
   public void writeChunk(final ByteBuf buf) throws IOException {
     mPosToQueue += buf.readableBytes();
-    mStream.send(WriteRequest.newBuilder().setCommand(mPartialRequest).setChunk(
-        Chunk.newBuilder()
-            .setData(UnsafeByteOperations.unsafeWrap(buf.nioBuffer()))
-            .build()).build(),
-        WRITE_TIMEOUT_MS);
+    try {
+      mStream.send(WriteRequest.newBuilder().setCommand(mPartialRequest).setChunk(
+          Chunk.newBuilder()
+              .setData(UnsafeByteOperations.unsafeWrap(buf.nioBuffer()))
+              .build()).build(),
+          WRITE_TIMEOUT_MS);
+    } finally {
+      buf.release();
+    }
   }
 
   /**

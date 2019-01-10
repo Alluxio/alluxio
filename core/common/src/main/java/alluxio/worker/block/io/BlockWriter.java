@@ -34,7 +34,6 @@ public interface BlockWriter extends Closeable {
 
   /**
    * Appends buf.readableBytes() bytes to the end of this block writer from the given buf.
-   * This is only called in the netty data server.
    *
    * @param buf the byte buffer to hold the data
    * @return the size of data that was appended in bytes

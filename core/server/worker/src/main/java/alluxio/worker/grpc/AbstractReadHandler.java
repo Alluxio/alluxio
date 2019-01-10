@@ -73,10 +73,9 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>>
   private final ReentrantLock mLock = new ReentrantLock();
 
   /**
-   * This is only created in the netty I/O thread when a read request is received, reset when
-   * another request is received.
+   * This is only created in the gRPC event thread when a read request is received.
    * Using "volatile" because we want any value change of this variable to be
-   * visible across both netty and I/O threads, meanwhile no atomicity of operation is assumed;
+   * visible across both gRPC and I/O threads, meanwhile no atomicity of operation is assumed;
    */
   private volatile T mContext;
   private StreamObserver<ReadResponse> mResponseObserver;
@@ -103,7 +102,6 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>>
       mContext = createRequestContext(request);
       validateReadRequest(request);
       mContext.setPosToQueue(mContext.getRequest().getStart());
-      mContext.setPosToWrite(mContext.getRequest().getStart());
       mDataReaderExecutor.submit(createDataReader(mContext, mResponseObserver));
       mContext.setDataReaderActive(true);
     } catch (Exception e) {

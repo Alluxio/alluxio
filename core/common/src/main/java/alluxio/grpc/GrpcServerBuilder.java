@@ -19,6 +19,7 @@ import io.grpc.ServerInterceptor;
 import io.grpc.ServerInterceptors;
 import io.grpc.ServerServiceDefinition;
 import io.grpc.netty.NettyServerBuilder;
+import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.ServerChannel;
 
@@ -26,6 +27,7 @@ import java.net.SocketAddress;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.Executor;
+import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Nullable;
 
@@ -83,6 +85,30 @@ public final class GrpcServerBuilder {
   }
 
   /**
+   * Sets the keep alive time.
+   *
+   * @param keepAliveTime the time to wait after idle before pinging client
+   * @param timeUnit unit of the time
+   * @return an updated instance of this {@link GrpcServerBuilder}
+   */
+  public GrpcServerBuilder keepAliveTime(long keepAliveTime, TimeUnit timeUnit) {
+    mNettyServerBuilder = mNettyServerBuilder.keepAliveTime(keepAliveTime, timeUnit);
+    return this;
+  }
+
+  /**
+   * Sets the keep alive timeout.
+   *
+   * @param keepAliveTimeout time to wait after pinging client before closing the connection
+   * @param timeUnit unit of the timeout
+   * @return an updated instance of this {@link GrpcServerBuilder}
+   */
+  public GrpcServerBuilder keepAliveTimeout(long keepAliveTimeout, TimeUnit timeUnit) {
+    mNettyServerBuilder = mNettyServerBuilder.keepAliveTimeout(keepAliveTimeout, timeUnit);
+    return this;
+  }
+
+  /**
    * Sets the netty channel type.
    *
    * @param channelType the netty channel type for the server
@@ -90,6 +116,18 @@ public final class GrpcServerBuilder {
    */
   public GrpcServerBuilder channelType(Class<? extends ServerChannel> channelType) {
     mNettyServerBuilder = mNettyServerBuilder.channelType(channelType);
+    return this;
+  }
+
+  /**
+   * Sets a netty channel option.
+   *
+   * @param option the option to be set
+   * @param value the new value
+   * @return an updated instance of this {@link GrpcServerBuilder}
+   */
+  public <T> GrpcServerBuilder withChildOption(ChannelOption<T> option, T value) {
+    mNettyServerBuilder = mNettyServerBuilder.withChildOption(option, value);
     return this;
   }
 

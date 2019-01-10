@@ -18,7 +18,6 @@ import alluxio.grpc.GrpcExceptionUtils;
 import alluxio.grpc.WriteRequest;
 import alluxio.grpc.WriteRequestCommand;
 import alluxio.grpc.WriteResponse;
-import alluxio.resource.LockResource;
 
 import com.google.protobuf.ByteString;
 import com.codahale.metrics.Counter;
@@ -29,8 +28,6 @@ import com.google.common.base.Throwables;
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.concurrent.locks.ReentrantLock;
 
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -55,8 +52,6 @@ abstract class AbstractWriteHandler<T extends WriteRequestContext<?>> {
   private static final Logger LOG = LoggerFactory.getLogger(AbstractWriteHandler.class);
 
   private final StreamObserver<WriteResponse> mResponseObserver;
-
-  private ReentrantLock mLock = new ReentrantLock();
 
   /**
    * This is initialized only once for a whole file or block in
@@ -83,7 +78,7 @@ abstract class AbstractWriteHandler<T extends WriteRequestContext<?>> {
    * @param writeRequest the request from the client
    */
   public void write(WriteRequest writeRequest) {
-    try (LockResource lr = new LockResource(mLock)) {
+    try {
       if (mContext == null) {
         mContext = createRequestContext(writeRequest);
       } else {
@@ -116,7 +111,7 @@ abstract class AbstractWriteHandler<T extends WriteRequestContext<?>> {
    */
   public void onCompleted() {
     Preconditions.checkState(mContext != null);
-    try (LockResource lr = new LockResource(mLock)) {
+    try {
       completeRequest(mContext);
       replySuccess();
     } catch (Exception e) {
@@ -129,7 +124,7 @@ abstract class AbstractWriteHandler<T extends WriteRequestContext<?>> {
    * Handles request cancellation event.
    */
   public void onCancel() {
-    try (LockResource lr = new LockResource(mLock)) {
+    try {
       cancelRequest(mContext);
       replyCancel();
     } catch (Exception e) {
@@ -180,7 +175,7 @@ abstract class AbstractWriteHandler<T extends WriteRequestContext<?>> {
   }
 
   private void flush() {
-    try (LockResource lr = new LockResource(mLock)) {
+    try {
       flushRequest(mContext);
       replyFlush();
     } catch (Exception e) {
@@ -196,7 +191,7 @@ abstract class AbstractWriteHandler<T extends WriteRequestContext<?>> {
    * @param error the error
    */
   private void abort(Error error) {
-    try (LockResource lr = new LockResource(mLock)) {
+    try {
       if (mContext == null || mContext.getError() != null || mContext.isDoneUnsafe()) {
         // Note, we may reach here via events due to network errors bubbling up before
         // mContext is initialized, or stream error after the request is finished.
@@ -284,11 +279,7 @@ abstract class AbstractWriteHandler<T extends WriteRequestContext<?>> {
    * Writes an error response.
    */
   private void replyError() {
-    Error error;
-    try (LockResource lr = new LockResource(mLock)) {
-      error = Preconditions.checkNotNull(mContext.getError());
-    }
-
+    Error error = Preconditions.checkNotNull(mContext.getError());
     if (error.isNotifyClient()) {
       mResponseObserver.onError(GrpcExceptionUtils.toGrpcStatusException(error.getCause()));
     }

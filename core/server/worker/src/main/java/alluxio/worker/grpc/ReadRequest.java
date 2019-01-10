@@ -16,7 +16,7 @@ import alluxio.util.IdUtils;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * Represents a read request received from netty channel.
+ * Represents a read request received from gRPC stream.
  */
 @ThreadSafe
 class ReadRequest {

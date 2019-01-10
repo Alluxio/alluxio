@@ -42,9 +42,9 @@ public final class LocalFileDataWriter implements DataWriter {
   private static final long FILE_BUFFER_BYTES =
       Configuration.getBytes(PropertyKey.USER_FILE_BUFFER_BYTES);
   private static final int WRITE_BUFFER_SIZE =
-      (int) Configuration.getMs(PropertyKey.USER_NETWORK_NETTY_WRITER_BUFFER_SIZE_PACKETS);
+      Configuration.getInt(PropertyKey.USER_NETWORK_WRITER_BUFFER_SIZE_MESSAGES);
   private static final long WRITE_TIMEOUT_MS =
-      Configuration.getMs(PropertyKey.USER_NETWORK_NETTY_TIMEOUT_MS);
+      Configuration.getMs(PropertyKey.USER_NETWORK_DATA_TIMEOUT_MS);
   private final BlockWorkerClient mBlockWorker;
   private final LocalFileBlockWriter mWriter;
   private final long mChunkSize;
@@ -90,7 +90,8 @@ public final class LocalFileDataWriter implements DataWriter {
       }
       CreateLocalBlockRequest createRequest = builder.build();
       GrpcBlockingStream<CreateLocalBlockRequest, CreateLocalBlockResponse> stream =
-          new GrpcBlockingStream<>(blockWorker::createLocalBlock, WRITE_BUFFER_SIZE);
+          new GrpcBlockingStream<>(blockWorker::createLocalBlock, WRITE_BUFFER_SIZE,
+              address.toString());
       stream.send(createRequest, WRITE_TIMEOUT_MS);
       CreateLocalBlockResponse response = stream.receive(WRITE_TIMEOUT_MS);
       Preconditions.checkState(response != null && response.hasPath());

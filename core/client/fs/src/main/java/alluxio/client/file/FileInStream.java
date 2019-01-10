@@ -333,7 +333,7 @@ public class FileInStream extends InputStream implements BoundedStream, Position
         .getBlockInfo().getLocations().size() >= mStatus.getReplicationMax();
     cache = cache && !overReplicated;
     boolean passiveCache = Configuration.getBoolean(PropertyKey.USER_FILE_PASSIVE_CACHE_ENABLED);
-    long channelTimeout = Configuration.getMs(PropertyKey.USER_NETWORK_NETTY_TIMEOUT_MS);
+    long channelTimeout = Configuration.getMs(PropertyKey.USER_NETWORK_DATA_TIMEOUT_MS);
     // Get relevant information from the stream.
     WorkerNetAddress dataSource = stream.getAddress();
     long blockId = stream.getId();

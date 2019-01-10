@@ -21,8 +21,12 @@ import alluxio.util.network.NettyUtils;
 import alluxio.worker.DataServer;
 import alluxio.worker.WorkerProcess;
 
+import io.netty.buffer.PooledByteBufAllocator;
+import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.ServerChannel;
+import io.netty.channel.epoll.EpollChannelOption;
+import io.netty.channel.epoll.EpollMode;
 import io.netty.channel.unix.DomainSocketAddress;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,6 +48,10 @@ public final class GrpcDataServer implements DataServer {
   private final SocketAddress mSocketAddress;
   private final long mTimeoutMs =
       Configuration.getMs(PropertyKey.WORKER_NETWORK_SHUTDOWN_TIMEOUT);
+  private final long mKeepAliveTimeMs =
+      Configuration.getMs(PropertyKey.WORKER_NETWORK_KEEPALIVE_TIME_MS);
+  private final long mKeepAliveTimeoutMs =
+      Configuration.getMs(PropertyKey.WORKER_NETWORK_KEEPALIVE_TIMEOUT_MS);
   private final long mFlowControlWindow =
       Configuration.getBytes(PropertyKey.WORKER_NETWORK_FLOWCONTROL_WINDOW);
   private final long mQuietPeriodMs =
@@ -65,6 +73,8 @@ public final class GrpcDataServer implements DataServer {
       mServer = createServerBuilder(address, NettyUtils.WORKER_CHANNEL_TYPE)
           .addService(new GrpcService(new BlockWorkerImpl(workerProcess)))
           .flowControlWindow((int) mFlowControlWindow)
+          .keepAliveTime(mKeepAliveTimeMs, TimeUnit.MILLISECONDS)
+          .keepAliveTimeout(mKeepAliveTimeoutMs, TimeUnit.MILLISECONDS)
           .build()
           .start();
     } catch (IOException e) {
@@ -90,10 +100,20 @@ public final class GrpcDataServer implements DataServer {
             true);
     Class<? extends ServerChannel> socketChannelClass = NettyUtils.getServerChannelClass(
         mSocketAddress instanceof DomainSocketAddress);
+    if (type == ChannelType.EPOLL) {
+      builder.withChildOption(EpollChannelOption.EPOLL_MODE, EpollMode.LEVEL_TRIGGERED);
+    }
     return builder
         .bossEventLoopGroup(mBossGroup)
         .workerEventLoopGroup(mWorkerGroup)
-        .channelType(socketChannelClass);
+        .channelType(socketChannelClass)
+        .withChildOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
+        // set write buffer
+        // this is the default, but its recommended to set it in case of change in future netty.
+        .withChildOption(ChannelOption.WRITE_BUFFER_HIGH_WATER_MARK,
+            (int) Configuration.getBytes(PropertyKey.WORKER_NETWORK_NETTY_WATERMARK_HIGH))
+        .withChildOption(ChannelOption.WRITE_BUFFER_LOW_WATER_MARK,
+            (int) Configuration.getBytes(PropertyKey.WORKER_NETWORK_NETTY_WATERMARK_LOW));
   }
 
   @Override

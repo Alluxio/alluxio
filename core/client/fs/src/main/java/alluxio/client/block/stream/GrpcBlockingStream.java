@@ -47,6 +47,7 @@ public class GrpcBlockingStream<ReqT, ResT> {
   private final ClientCallStreamObserver<ReqT> mRequestObserver;
   /** Buffer that stores responses to be consumed by {@link GrpcBlockingStream#receive(long)}. */
   private final BlockingQueue<Object> mResponses;
+  private final String mDescription;
   private boolean mCompleted = false;
   private boolean mClosed = false;
   private boolean mCanceled = false;
@@ -67,12 +68,14 @@ public class GrpcBlockingStream<ReqT, ResT> {
   /**
    * @param rpcFunc the gRPC bi-directional stream stub function
    * @param bufferSize maximum number of incoming messages the buffer can hold
+   * @param description description of this stream
    */
   public GrpcBlockingStream(Function<StreamObserver<ResT>, StreamObserver<ReqT>> rpcFunc,
-      int bufferSize) {
+      int bufferSize, String description) {
     mResponses = new ArrayBlockingQueue<>(bufferSize);
     mResponseObserver = new ResponseStreamObserver();
     mRequestObserver = (ClientCallStreamObserver) rpcFunc.apply(mResponseObserver);
+    mDescription = description;
   }
 
   /**
@@ -85,7 +88,8 @@ public class GrpcBlockingStream<ReqT, ResT> {
    */
   public void send(ReqT request, long timeoutMs) throws IOException {
     if (mClosed || mCanceled) {
-      throw new CanceledException("Stream is already closed or canceled.");
+      throw new CanceledException(formatErrorMessage(
+          "Failed to send request %s: stream is already closed or canceled.", request));
     }
     try (LockResource lr = new LockResource(mLock)) {
       while (true) {
@@ -96,11 +100,12 @@ public class GrpcBlockingStream<ReqT, ResT> {
         try {
           if (!mReadyOrFailed.await(timeoutMs, TimeUnit.MILLISECONDS)) {
             throw new DeadlineExceededException(
-                String.format("Timeout sending request %s after %dms.", request, timeoutMs));
+                formatErrorMessage("Timeout sending request %s after %dms.", request, timeoutMs));
           }
         } catch (InterruptedException e) {
           Thread.currentThread().interrupt();
-          throw new CanceledException(e);
+          throw new CanceledException(formatErrorMessage(
+              "Failed to send request %s: interrupted while waiting for server.", request), e);
         }
       }
     }
@@ -121,13 +126,13 @@ public class GrpcBlockingStream<ReqT, ResT> {
       return null;
     }
     if (mCanceled) {
-      throw new CanceledException("Stream is already canceled.");
+      throw new CanceledException(formatErrorMessage("Stream is already canceled."));
     }
     try {
       Object response = mResponses.poll(timeoutMs, TimeUnit.MILLISECONDS);
       if (response == null) {
         throw new DeadlineExceededException(
-            String.format("Timeout waiting for response after %dms.", timeoutMs));
+            formatErrorMessage("Timeout waiting for response after %dms.", timeoutMs));
       }
       if (response == mResponseObserver) {
         mCompleted = true;
@@ -137,7 +142,7 @@ public class GrpcBlockingStream<ReqT, ResT> {
       return (ResT) response;
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
-      throw new CanceledException(e);
+      throw new CanceledException(formatErrorMessage("Interrupted while waiting for response."), e);
     }
   }
 
@@ -215,12 +220,20 @@ public class GrpcBlockingStream<ReqT, ResT> {
       if (ex.getStatus() == Status.CANCELED) {
         // Streams are canceled when server is shutdown. Convert it to UnavailableException for
         // client to retry.
-        ex = new UnavailableException("Stream is canceled by server.", ex);
+        ex = new UnavailableException(formatErrorMessage("Stream is canceled by server."), ex);
       }
     } else {
       ex = AlluxioStatusException.fromThrowable(mError);
     }
-    return ex;
+    // attaches description to the exception while maintaining the cause
+    return (AlluxioStatusException) AlluxioStatusException
+        .from(ex.getStatus(), formatErrorMessage(ex.getMessage()))
+        .initCause(ex.getCause());
+  }
+
+  private String formatErrorMessage(String format, Object... args) {
+    StringBuilder errorMessage = new StringBuilder(String.format(format, args));
+    return new StringBuilder(errorMessage).append(String.format(" (%s)", mDescription)).toString();
   }
 
   private final class ResponseStreamObserver

@@ -112,7 +112,7 @@ public class UfsFallbackFileOutStreamIntegrationTest extends AbstractFileOutStre
 
   @Ignore("Files may be lost due to evicting and committing before file is complete.")
   @Test
-  public void nettyWrite() throws Exception {
+  public void grpcWrite() throws Exception {
     try (Closeable c = new ConfigurationRule(new HashMap<PropertyKey, String>() {
       {
         put(PropertyKey.USER_FILE_BUFFER_BYTES, String.valueOf(mUserFileBufferSize));

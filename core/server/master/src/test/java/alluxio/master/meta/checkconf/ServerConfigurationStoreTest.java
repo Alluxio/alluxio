@@ -39,7 +39,7 @@ public class ServerConfigurationStoreTest {
 
   @Before
   public void before() {
-    PropertyKey keyEnforce = PropertyKey.NETWORK_NETTY_HEARTBEAT_TIMEOUT_MS;
+    PropertyKey keyEnforce = PropertyKey.ZOOKEEPER_ELECTION_PATH;
     PropertyKey keyWarn = PropertyKey.WORKER_FREE_SPACE_TIMEOUT;
     mConfigListOne = Arrays.asList(
         ConfigProperty.newBuilder().setName(keyEnforce.getName()).setSource("Test")

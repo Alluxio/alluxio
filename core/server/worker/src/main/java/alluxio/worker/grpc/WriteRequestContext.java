@@ -19,8 +19,9 @@ import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * Represents the context of a write request received from netty channel. This class serves the
- * shared states of the request and can be accessed concurrently by the netty thread and I/O thread.
+ * Represents the context of a write request received from gRPC stream. This class serves the
+ * shared states of the request and can be accessed concurrently by the gRPC event thread
+ * and I/O thread.
  *
  * @param <T> type of the write request
  */
@@ -31,25 +32,16 @@ public class WriteRequestContext<T extends WriteRequest> {
   private final T mRequest;
 
   /**
-   * The error seen in either the netty I/O thread (e.g. failed to read from the network) or the
+   * The error seen in either the gRPC event threads (e.g. failed to read from the network) or the
    * data writer thread (e.g. failed to write the data).
    */
   @GuardedBy("AbstractWriteHandler#mLock")
   private alluxio.worker.grpc.Error mError;
 
   /**
-   * The next pos to queue to the buffer. This is only updated and used by the netty I/O thread.
+   * The next pos to queue to the buffer. This is only updated and used by the gRPC event thread.
    */
   private long mPos;
-  /**
-   * The next pos to write to the block worker. This is only updated by the data writer
-   * thread. The netty I/O reads this only for sanity check during initialization.
-   *
-   * Using "volatile" because we want any value change of this variable to be
-   * visible across both netty and I/O threads, meanwhile only one updater means atomicity of
-   * operations is unnecessary;
-   */
-  protected volatile long mPosToWrite;
 
   private Counter mCounter;
   private Meter mMeter;
@@ -63,7 +55,6 @@ public class WriteRequestContext<T extends WriteRequest> {
   public WriteRequestContext(T request) {
     mRequest = request;
     mPos = 0;
-    mPosToWrite = 0;
     mDone = false;
   }
 

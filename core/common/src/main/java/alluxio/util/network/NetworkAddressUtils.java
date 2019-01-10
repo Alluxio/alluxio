@@ -125,7 +125,7 @@ public final class NetworkAddressUtils {
         PropertyKey.WORKER_BIND_HOST, PropertyKey.WORKER_RPC_PORT),
 
     /**
-     * Worker data service (Netty).
+     * Worker data service (gRPC).
      */
     WORKER_DATA("Alluxio Worker data service", PropertyKey.WORKER_DATA_HOSTNAME,
         PropertyKey.WORKER_DATA_BIND_HOST, PropertyKey.WORKER_DATA_PORT),

@@ -38,9 +38,9 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public final class LocalFileDataReader implements DataReader {
   private static final int READ_BUFFER_SIZE =
-      (int) Configuration.getMs(PropertyKey.USER_NETWORK_NETTY_READER_BUFFER_SIZE_PACKETS);
+      Configuration.getInt(PropertyKey.USER_NETWORK_READER_BUFFER_SIZE_MESSAGES);
   private static final long READ_TIMEOUT_MS =
-      Configuration.getMs(PropertyKey.USER_NETWORK_NETTY_TIMEOUT_MS);
+      Configuration.getMs(PropertyKey.USER_NETWORK_DATA_TIMEOUT_MS);
   /** The file reader to read a local block. */
   private final LocalFileBlockReader mReader;
   private final long mEnd;
@@ -123,7 +123,8 @@ public final class LocalFileDataReader implements DataReader {
       boolean isPromote = ReadType.fromProto(options.getOptions().getReadType()).isPromote();
       OpenLocalBlockRequest request = OpenLocalBlockRequest.newBuilder()
           .setBlockId(mBlockId).setPromote(isPromote).build();
-      mStream = new GrpcBlockingStream<>(mBlockWorker::openLocalBlock, READ_BUFFER_SIZE);
+      mStream = new GrpcBlockingStream<>(mBlockWorker::openLocalBlock, READ_BUFFER_SIZE,
+          address.toString());
       mStream.send(request, READ_TIMEOUT_MS);
       OpenLocalBlockResponse response = mStream.receive(READ_TIMEOUT_MS);
       Preconditions.checkState(response.hasPath());

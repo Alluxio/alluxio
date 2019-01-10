@@ -30,7 +30,7 @@ import java.io.IOException;
  * Utilities for handling server RPC calls.
  *
  * There are three types of RPC calls: 1. RPCs that only throw AlluxioException 2. RPCs that throw
- * AlluxioException and IOException 3. Netty RPCs
+ * AlluxioException and IOException 3. Streaming RPCs
  *
  * For each of these, there are two types of methods 1. call(callable) - for internal methods,
  * executes the method without any logging or metrics 2. call(logger, callable, method name,
@@ -224,7 +224,7 @@ public final class RpcUtils {
   }
 
   /**
-   * Handles a netty RPC callable with logging.
+   * Handles a streaming RPC callable with logging.
    *
    * @param logger the logger to use for this call
    * @param callable the callable to call
@@ -234,8 +234,8 @@ public final class RpcUtils {
    * @param <T> the return type of the callable
    * @return the rpc result
    */
-  public static <T> T nettyRPCAndLog(Logger logger, NettyRpcCallable<T> callable, String methodName,
-      String description, Object... args) {
+  public static <T> T streamingRPCAndLog(Logger logger, StreamingRpcCallable<T> callable,
+      String methodName, String description, Object... args) {
     // avoid string format for better performance if debug is off
     String debugDesc = logger.isDebugEnabled() ? String.format(description, args) : null;
     try (Timer.Context ctx = MetricsSystem.timer(getQualifiedMetricName(methodName)).time()) {
@@ -253,7 +253,7 @@ public final class RpcUtils {
   }
 
   /**
-   * Handles a netty RPC callable with logging.
+   * Handles a streaming RPC callable with logging.
    *
    * @param logger the logger to use for this call
    * @param callable the callable to call
@@ -265,7 +265,7 @@ public final class RpcUtils {
    * @param args the arguments for the description
    * @param <T> the return type of the callable
    */
-  public static <T> void nettyRPCAndLog(Logger logger, NettyRpcCallable<T> callable,
+  public static <T> void streamingRPCAndLog(Logger logger, StreamingRpcCallable<T> callable,
       String methodName, boolean sendResponse, boolean completeResponse, String description,
       StreamObserver<T> responseObserver, Object... args) {
     // avoid string format for better performance if debug is off
@@ -333,11 +333,11 @@ public final class RpcUtils {
   }
 
   /**
-   * An interface representing a netty RPC callable.
+   * An interface representing a streaming RPC callable.
    *
    * @param <T> the return type of the callable
    */
-  public interface NettyRpcCallable<T> {
+  public interface StreamingRpcCallable<T> {
     /**
      * The RPC implementation.
      *
