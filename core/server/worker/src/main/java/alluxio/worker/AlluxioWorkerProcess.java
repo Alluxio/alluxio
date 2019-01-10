@@ -132,10 +132,13 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
         bindPort = configuredBindAddress.getPort();
       }
       mRpcAddress = new InetSocketAddress(configuredBindAddress.getHostName(), bindPort);
-
+      if (mBindSocket != null) {
+        // Socket opened for auto bind.
+        // Close it.
+        mBindSocket.close();
+      }
       // Setup Data server
-      mDataServer = DataServer.Factory
-          .create(mRpcAddress, this);
+      mDataServer = DataServer.Factory.create(mRpcAddress, this);
 
       // Setup domain socket data server
       if (isDomainSocketEnabled()) {
