@@ -351,7 +351,7 @@ message SetAttributePOptions {
   optional bool persisted = 4;
   optional string owner = 5;
   optional string group = 6;
-  optional int32 mode = 7;
+  optional Mode mode = 7;
   optional bool recursive = 8;
   optional int32 replicationMax = 9;
   optional int32 replicationMin = 10;

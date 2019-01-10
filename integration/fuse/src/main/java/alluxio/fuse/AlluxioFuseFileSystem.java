@@ -147,7 +147,7 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
     AlluxioURI uri = mPathResolverCache.getUnchecked(path);
 
     SetAttributePOptions options = SetAttributePOptions.newBuilder()
-        .setMode(new alluxio.security.authorization.Mode((short) mode).toShort()).build();
+        .setMode(new alluxio.security.authorization.Mode((short) mode).toProto()).build();
     try {
       mFileSystem.setAttribute(uri, options);
     } catch (IOException | AlluxioException e) {

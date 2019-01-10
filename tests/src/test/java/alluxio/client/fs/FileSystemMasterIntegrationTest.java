@@ -1127,7 +1127,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
 
     mThrown.expect(AccessControlException.class);
     mFsMaster.setAttribute(alluxioFile, SetAttributeContext
-        .defaults(SetAttributePOptions.newBuilder().setMode((short) 0777)));
+        .defaults(SetAttributePOptions.newBuilder().setMode(new Mode((short) 0777).toProto())));
   }
 
   @Test

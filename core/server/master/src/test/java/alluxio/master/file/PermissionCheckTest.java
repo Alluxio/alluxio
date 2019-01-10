@@ -883,8 +883,8 @@ public final class PermissionCheckTest {
   private void verifySetAcl(TestUser runUser, String path, String owner, String group,
       short mode, boolean recursive) throws Exception {
     try (Closeable r = new AuthenticatedUserRule(runUser.getUser()).toResource()) {
-      SetAttributeContext context = SetAttributeContext
-          .defaults(SetAttributePOptions.newBuilder().setMode(mode).setRecursive(recursive));
+      SetAttributeContext context = SetAttributeContext.defaults(SetAttributePOptions.newBuilder()
+          .setMode(new Mode(mode).toProto()).setRecursive(recursive));
       if (owner != null) {
         context.getOptions().setOwner(owner);
       }

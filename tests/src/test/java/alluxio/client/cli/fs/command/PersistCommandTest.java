@@ -160,7 +160,7 @@ public final class PersistCommandTest extends AbstractFileSystemShellTest {
     URIStatus status = mFileSystem.getStatus(testFile);
     Assert.assertFalse(status.isPersisted());
     mFileSystem.setAttribute(grandParent,
-        SetAttributePOptions.newBuilder().setMode(grandParentMode.toShort()).build());
+        SetAttributePOptions.newBuilder().setMode(grandParentMode.toProto()).build());
     int ret = mFsShell.run("persist", testFile.toString());
 
     Assert.assertEquals(0, ret);
