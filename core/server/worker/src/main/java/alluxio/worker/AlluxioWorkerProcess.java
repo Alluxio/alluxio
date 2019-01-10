@@ -135,7 +135,7 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
 
       // Setup Data server
       mDataServer = DataServer.Factory
-          .create(NetworkAddressUtils.getBindAddress(ServiceType.WORKER_RPC), this);
+          .create(mRpcAddress, this);
 
       // Setup domain socket data server
       if (isDomainSocketEnabled()) {
