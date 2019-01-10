@@ -1897,7 +1897,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.WORKER_NETWORK_ASYNC_CACHE_MANAGER_THREADS_MAX)
           .setDefaultValue(8)
           .setDescription("The maximum number of threads used to cache blocks asynchronously in "
-              + "the gRPC data server.")
+              + "the data server.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();

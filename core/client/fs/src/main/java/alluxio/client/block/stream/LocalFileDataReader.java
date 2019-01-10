@@ -38,7 +38,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public final class LocalFileDataReader implements DataReader {
   private static final int READ_BUFFER_SIZE =
-      (int) Configuration.getMs(PropertyKey.USER_NETWORK_READER_BUFFER_SIZE_MESSAGES);
+      Configuration.getInt(PropertyKey.USER_NETWORK_READER_BUFFER_SIZE_MESSAGES);
   private static final long READ_TIMEOUT_MS =
       Configuration.getMs(PropertyKey.USER_NETWORK_DATA_TIMEOUT_MS);
   /** The file reader to read a local block. */

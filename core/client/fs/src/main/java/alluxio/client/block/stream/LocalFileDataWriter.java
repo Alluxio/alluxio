@@ -42,7 +42,7 @@ public final class LocalFileDataWriter implements DataWriter {
   private static final long FILE_BUFFER_BYTES =
       Configuration.getBytes(PropertyKey.USER_FILE_BUFFER_BYTES);
   private static final int WRITE_BUFFER_SIZE =
-      (int) Configuration.getMs(PropertyKey.USER_NETWORK_WRITER_BUFFER_SIZE_MESSAGES);
+      Configuration.getInt(PropertyKey.USER_NETWORK_WRITER_BUFFER_SIZE_MESSAGES);
   private static final long WRITE_TIMEOUT_MS =
       Configuration.getMs(PropertyKey.USER_NETWORK_DATA_TIMEOUT_MS);
   private final BlockWorkerClient mBlockWorker;

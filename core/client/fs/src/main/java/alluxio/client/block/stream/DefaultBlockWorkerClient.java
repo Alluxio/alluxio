@@ -51,6 +51,8 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
   private static final Logger LOGGER =
       LoggerFactory.getLogger(DefaultBlockWorkerClient.class.getName());
 
+  private static final long DATA_TIMEOUT =
+      Configuration.getMs(PropertyKey.USER_NETWORK_DATA_TIMEOUT_MS);
   private static final long KEEPALIVE_TIME_MS =
       Configuration.getMs(PropertyKey.USER_NETWORK_KEEPALIVE_TIME_MS);
   private static final long KEEPALIVE_TIMEOUT_MS =
@@ -137,15 +139,14 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
 
   @Override
   public RemoveBlockResponse removeBlock(final RemoveBlockRequest request) {
-    return mBlockingStub.withDeadlineAfter(
-        Configuration.getMs(PropertyKey.USER_NETWORK_DATA_TIMEOUT_MS), TimeUnit.MILLISECONDS)
+    return mBlockingStub.withDeadlineAfter(DATA_TIMEOUT, TimeUnit.MILLISECONDS)
         .removeBlock(request);
   }
 
   @Override
   public void asyncCache(final AsyncCacheRequest request) {
-    mAsyncStub.withDeadlineAfter(Configuration.getMs(PropertyKey.USER_NETWORK_DATA_TIMEOUT_MS),
-        TimeUnit.MILLISECONDS).asyncCache(request, new StreamObserver<AsyncCacheResponse>() {
+    mAsyncStub.withDeadlineAfter(DATA_TIMEOUT, TimeUnit.MILLISECONDS)
+        .asyncCache(request, new StreamObserver<AsyncCacheResponse>() {
           @Override
           public void onNext(AsyncCacheResponse value) {
             // we don't use response from the RPC

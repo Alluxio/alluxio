@@ -56,7 +56,7 @@ public final class GrpcDataWriter implements DataWriter {
   private static final Logger LOG = LoggerFactory.getLogger(GrpcDataWriter.class);
 
   private static final int WRITE_BUFFER_SIZE =
-      (int) Configuration.getMs(PropertyKey.USER_NETWORK_WRITER_BUFFER_SIZE_MESSAGES);
+      Configuration.getInt(PropertyKey.USER_NETWORK_WRITER_BUFFER_SIZE_MESSAGES);
   private static final long WRITE_TIMEOUT_MS =
       Configuration.getMs(PropertyKey.USER_NETWORK_DATA_TIMEOUT_MS);
   private static final long CLOSE_TIMEOUT_MS =
