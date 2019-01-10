@@ -45,12 +45,13 @@ public class InodeLockManagerTest {
     edgeLockTest(LockMode.READ, LockMode.READ, false);
   }
 
-  private void inodeLockTest(LockMode take, LockMode tryToTake, boolean expectBlocking) throws Exception {
+  private void inodeLockTest(LockMode take, LockMode tryToTake, boolean expectBlocking)
+      throws Exception {
     InodeLockManager lockManager = new InodeLockManager();
     AtomicBoolean threadFinished = new AtomicBoolean(false);
     InodeFile inode = InodeFile.create(0, 0, "name", 0, CreateFileOptions.defaults());
     LockResource lock = lockManager.lockInode(inode, take);
-    Thread t = new Thread(() ->{
+    Thread t = new Thread(() -> {
       // Copy the inode to make sure we aren't comparing inodes by reference.
       InodeFile inodeCopy = InodeFile.fromJournalEntry(inode.toJournalEntry().getInodeFile());
       try (LockResource lr = lockManager.lockInode(inodeCopy, tryToTake)) {
@@ -66,11 +67,12 @@ public class InodeLockManagerTest {
     CommonUtils.waitFor("lock to be acquired by the second thread", () -> threadFinished.get());
   }
 
-  private void edgeLockTest(LockMode take, LockMode tryToTake, boolean expectBlocking) throws Exception {
+  private void edgeLockTest(LockMode take, LockMode tryToTake, boolean expectBlocking)
+      throws Exception {
     InodeLockManager lockManager = new InodeLockManager();
     AtomicBoolean threadFinished = new AtomicBoolean(false);
     LockResource lock = lockManager.lockEdge(new Edge(10, "name"), take);
-    Thread t = new Thread(() ->{
+    Thread t = new Thread(() -> {
       // Use a new Edge each time to make sure we aren't comparing edges by reference.
       try (LockResource lr = lockManager.lockEdge(new Edge(10, "name"), tryToTake)) {
         threadFinished.set(true);
