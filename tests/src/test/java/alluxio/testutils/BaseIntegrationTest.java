@@ -12,6 +12,7 @@
 package alluxio.testutils;
 
 import alluxio.Constants;
+import alluxio.metrics.MetricsSystem;
 import alluxio.util.io.PathUtils;
 
 import org.apache.log4j.Appender;
@@ -19,6 +20,7 @@ import org.apache.log4j.FileAppender;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.PatternLayout;
 import org.junit.AssumptionViolatedException;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.rules.RuleChain;
 import org.junit.rules.TestWatcher;
@@ -41,6 +43,11 @@ public abstract class BaseIntegrationTest {
   @Rule
   public RuleChain mRules = RuleChain.outerRule(logHandler())
       .around(Timeout.millis(Constants.MAX_TEST_DURATION_MS));
+
+  @Before
+  public void baseBefore() {
+    MetricsSystem.clearAllMetrics();
+  }
 
   private TestWatcher logHandler() {
     return new TestWatcher() {
