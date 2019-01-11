@@ -18,7 +18,6 @@ import static org.junit.Assert.assertTrue;
 import alluxio.PropertyKey;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.master.file.meta.Inode;
-import alluxio.master.file.meta.MutableInode;
 import alluxio.master.file.meta.MutableInodeDirectory;
 import alluxio.master.file.meta.MutableInodeFile;
 import alluxio.master.file.options.CreateDirectoryOptions;
@@ -47,7 +46,7 @@ public class InodeStoreTest {
         new CachingInodeStore(new RocksInodeStore(), conf));
   }
 
-  private final static MutableInodeDirectory ROOT = inodeDir(0, -1, "");
+  private static final MutableInodeDirectory ROOT = inodeDir(0, -1, "");
 
   private final InodeStore mStore;
 

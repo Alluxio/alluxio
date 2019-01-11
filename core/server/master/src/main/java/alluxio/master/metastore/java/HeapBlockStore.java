@@ -91,6 +91,7 @@ public class HeapBlockStore implements BlockStore {
 
   @Override
   public void removeLocation(long blockId, long workerId) {
+    mBlockLocations.computeIfAbsent(blockId, x -> new HashMap<>(4));
     mBlockLocations.get(blockId).remove(workerId);
   }
 }
