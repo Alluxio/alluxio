@@ -170,7 +170,7 @@ public final class CpCommandIntegrationTest extends AbstractFileSystemShellTest 
   private boolean equals(AlluxioURI file1, AlluxioURI file2) throws Exception {
     try (Closer closer = Closer.create()) {
       OpenFilePOptions openFileOptions =
-          OpenFilePOptions.newBuilder().setReadType(ReadPType.READ_NO_CACHE).build();
+          OpenFilePOptions.newBuilder().setReadType(ReadPType.NO_CACHE).build();
       FileInStream is1 = closer.register(mFileSystem.openFile(file1, openFileOptions));
       FileInStream is2 = closer.register(mFileSystem.openFile(file2, openFileOptions));
       return IOUtils.contentEquals(is1, is2);
@@ -288,7 +288,7 @@ public final class CpCommandIntegrationTest extends AbstractFileSystemShellTest 
     Assert.assertEquals(SIZE_BYTES, status.getLength());
 
     try (FileInStream tfis = mFileSystem.openFile(uri,
-        OpenFilePOptions.newBuilder().setReadType(ReadPType.READ_NO_CACHE).build())) {
+        OpenFilePOptions.newBuilder().setReadType(ReadPType.NO_CACHE).build())) {
       byte[] read = new byte[SIZE_BYTES];
       tfis.read(read);
       Assert.assertTrue(BufferUtils.equalIncreasingByteArray(SIZE_BYTES, read));
@@ -475,7 +475,7 @@ public final class CpCommandIntegrationTest extends AbstractFileSystemShellTest 
 
   @Override
   protected void copyToLocalWithBytes(int bytes) throws Exception {
-    FileSystemTestUtils.createByteFile(mFileSystem, "/testFile", WritePType.WRITE_MUST_CACHE,
+    FileSystemTestUtils.createByteFile(mFileSystem, "/testFile", WritePType.MUST_CACHE,
         bytes);
     String[] cmd = new String[] {"cp", "/testFile",
         "file://" + mLocalAlluxioCluster.getAlluxioHome() + "/testFile"};

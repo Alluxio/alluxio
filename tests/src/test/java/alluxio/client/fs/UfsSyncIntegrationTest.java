@@ -37,6 +37,7 @@ import alluxio.grpc.RenamePOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.WritePType;
 import alluxio.master.MasterClientConfig;
+import alluxio.security.authorization.Mode;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.underfs.UnderFileSystem;
@@ -340,7 +341,7 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
   public void mountPointNested() throws Exception {
     String ufsPath = Files.createTempDir().getAbsolutePath();
     mFileSystem.createDirectory(new AlluxioURI("/nested/mnt/"), CreateDirectoryPOptions.newBuilder()
-        .setRecursive(true).setWriteType(WritePType.WRITE_CACHE_THROUGH).build());
+        .setRecursive(true).setWriteType(WritePType.CACHE_THROUGH).build());
     mFileSystem.mount(new AlluxioURI("/nested/mnt/ufs"), new AlluxioURI(ufsPath));
 
     // recursively sync (setAttribute enables recursive sync)
@@ -428,14 +429,14 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
 
     // Set initial alluxio permissions
     mFileSystem.setAttribute(new AlluxioURI(alluxioPath(EXISTING_FILE)),
-        SetAttributePOptions.newBuilder().setMode((short) 0777).build());
+        SetAttributePOptions.newBuilder().setMode(new Mode((short) 0777).toProto()).build());
 
     URIStatus status = mFileSystem.getStatus(new AlluxioURI(alluxioPath(EXISTING_FILE)), options);
     String startFingerprint = status.getUfsFingerprint();
 
     // Change alluxio permissions
     mFileSystem.setAttribute(new AlluxioURI(alluxioPath(EXISTING_FILE)),
-        SetAttributePOptions.newBuilder().setMode((short) 0655).build());
+        SetAttributePOptions.newBuilder().setMode(new Mode((short) 0655).toProto()).build());
 
     status = mFileSystem.getStatus(new AlluxioURI(alluxioPath(EXISTING_FILE)), options);
     String endFingerprint = status.getUfsFingerprint();
@@ -529,7 +530,7 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
     Configuration.set(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL, "0");
 
     mFileSystem.createFile(new AlluxioURI(alluxioPath(NEW_NESTED_FILE)),
-        CreateFilePOptions.newBuilder().setWriteType(WritePType.WRITE_CACHE_THROUGH)
+        CreateFilePOptions.newBuilder().setWriteType(WritePType.CACHE_THROUGH)
             .setCommonOptions(PSYNC_ALWAYS).setRecursive(true).build())
         .close();
 
@@ -610,7 +611,7 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
 
   private void writeMustCacheFile(String path, int sizeFactor) throws Exception {
     CreateFilePOptions options = CreateFilePOptions.newBuilder()
-        .setWriteType(WritePType.WRITE_MUST_CACHE).setRecursive(true).build();
+        .setWriteType(WritePType.MUST_CACHE).setRecursive(true).build();
     FileOutStream os = mFileSystem.createFile(new AlluxioURI(path), options);
     for (int i = 0; i < sizeFactor; i++) {
       os.write("test".getBytes());

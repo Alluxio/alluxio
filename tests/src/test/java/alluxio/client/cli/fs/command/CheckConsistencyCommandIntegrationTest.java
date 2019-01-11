@@ -35,9 +35,9 @@ public class CheckConsistencyCommandIntegrationTest extends AbstractFileSystemSh
   @Test
   public void consistent() throws Exception {
     FileSystemTestUtils.createByteFile(mFileSystem, "/testRoot/testFileA",
-        WritePType.WRITE_CACHE_THROUGH, 10);
+        WritePType.CACHE_THROUGH, 10);
     FileSystemTestUtils.createByteFile(mFileSystem, "/testRoot/testDir/testFileB",
-        WritePType.WRITE_CACHE_THROUGH, 20);
+        WritePType.CACHE_THROUGH, 20);
     mFsShell.run("checkConsistency", "/testRoot");
     String expected = "/testRoot is consistent with the under storage system.\n";
     Assert.assertEquals(expected, mOutput.toString());
@@ -52,9 +52,9 @@ public class CheckConsistencyCommandIntegrationTest extends AbstractFileSystemSh
   @Test
   public void inconsistent() throws Exception {
     FileSystemTestUtils
-        .createByteFile(mFileSystem, "/testRoot/testFileA", WritePType.WRITE_CACHE_THROUGH, 10);
+        .createByteFile(mFileSystem, "/testRoot/testFileA", WritePType.CACHE_THROUGH, 10);
     FileSystemTestUtils.createByteFile(mFileSystem, "/testRoot/testDir/testFileB",
-            WritePType.WRITE_CACHE_THROUGH, 20);
+            WritePType.CACHE_THROUGH, 20);
     String ufsPath = mFileSystem.getStatus(new AlluxioURI("/testRoot/testDir")).getUfsPath();
     UnderFileSystem ufs = UnderFileSystem.Factory.create(ufsPath);
     ufs.deleteDirectory(ufsPath, DeleteOptions.defaults().setRecursive(true));
@@ -75,7 +75,7 @@ public class CheckConsistencyCommandIntegrationTest extends AbstractFileSystemSh
     Assert.assertTrue(!mFileSystem.exists(new AlluxioURI("/testRoot/testDir/testFileB")));
 
     FileSystemTestUtils.createByteFile(mFileSystem, "/testRoot/testDir/testFileB",
-            WritePType.WRITE_CACHE_THROUGH, 20);
+            WritePType.CACHE_THROUGH, 20);
     ufsPath = mFileSystem.getStatus(new AlluxioURI("/testRoot/testDir/testFileB")).getUfsPath();
     ufs.deleteFile(ufsPath);
     OutputStream outputStream = ufs.create(ufsPath);
@@ -99,10 +99,10 @@ public class CheckConsistencyCommandIntegrationTest extends AbstractFileSystemSh
   @Test
   public void wildcard() throws Exception {
     FileSystemTestUtils.createByteFile(mFileSystem, "/testRoot/testDir2/testFileA",
-        WritePType.WRITE_CACHE_THROUGH, 10);
+        WritePType.CACHE_THROUGH, 10);
 
     FileSystemTestUtils.createByteFile(mFileSystem, "/testRoot/testDir/testFileB",
-        WritePType.WRITE_CACHE_THROUGH, 20);
+        WritePType.CACHE_THROUGH, 20);
     mFsShell.run("checkConsistency", "/testRoot/*/testFile*");
     String expected = "/testRoot/testDir/testFileB is consistent with the under storage system.\n"
             + "/testRoot/testDir2/testFileA is consistent "

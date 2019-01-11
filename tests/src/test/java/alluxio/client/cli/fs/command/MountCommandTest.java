@@ -48,7 +48,7 @@ public final class MountCommandTest extends AbstractFileSystemShellTest {
     // Dir in Alluxio can be persisted to UFS
     AlluxioURI testDir = mountPoint.join("testDir");
     mFileSystem.createDirectory(testDir,
-        CreateDirectoryPOptions.newBuilder().setWriteType(WritePType.WRITE_CACHE_THROUGH).build());
+        CreateDirectoryPOptions.newBuilder().setWriteType(WritePType.CACHE_THROUGH).build());
     Assert.assertTrue(fileExists(testDir));
     Assert.assertTrue(Files.exists(Paths.get(ufsPath, "testDir")));
   }
@@ -85,7 +85,7 @@ public final class MountCommandTest extends AbstractFileSystemShellTest {
       Assert.assertEquals(0, mFsShell
           .run("mount", "--option", "k1=v1", "--option", "k2=v2", mountPoint.toString(), ufsPath));
       FileSystemTestUtils.createByteFile(mFileSystem,
-          "/mnt/testFile1", WritePType.WRITE_CACHE_THROUGH, 20);
+          "/mnt/testFile1", WritePType.CACHE_THROUGH, 20);
       Assert.assertTrue(mFileSystem.exists(new AlluxioURI("/mnt/testFile1")));
       URIStatus status = mFileSystem.getStatus(new AlluxioURI("/mnt/testFile1"));
       Assert.assertTrue(status.isPersisted());

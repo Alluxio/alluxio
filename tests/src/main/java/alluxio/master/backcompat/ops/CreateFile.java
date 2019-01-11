@@ -45,9 +45,9 @@ public final class CreateFile extends FsTestOp {
     Utils.createFile(fs, PATH);
     Utils.createFile(fs, NESTED);
     Utils.createFile(fs, MODE, CreateFilePOptions.newBuilder().setBlockSizeBytes(Constants.KB)
-        .setRecursive(true).setMode(TEST_MODE.toShort()).build());
+        .setRecursive(true).setMode(TEST_MODE.toProto()).build());
     Utils.createFile(fs, THROUGH, CreateFilePOptions.newBuilder().setBlockSizeBytes(Constants.KB)
-        .setRecursive(true).setWriteType(WritePType.WRITE_THROUGH).build());
+        .setRecursive(true).setWriteType(WritePType.THROUGH).build());
     Utils.createFile(fs, TTL,
         CreateFilePOptions.newBuilder().setBlockSizeBytes(Constants.KB).setRecursive(true)
             .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setTtl(TEST_TTL)

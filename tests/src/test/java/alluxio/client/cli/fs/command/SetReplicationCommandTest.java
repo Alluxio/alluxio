@@ -35,7 +35,7 @@ public final class SetReplicationCommandTest extends AbstractFileSystemShellTest
 
   @Test
   public void setReplicationMin() throws Exception {
-    FileSystemTestUtils.createByteFile(mFileSystem, TEST_FILE, WritePType.WRITE_MUST_CACHE, 10);
+    FileSystemTestUtils.createByteFile(mFileSystem, TEST_FILE, WritePType.MUST_CACHE, 10);
     int ret = mFsShell.run("setReplication", "-min", "1", TEST_FILE);
     Assert.assertEquals(0, ret);
 
@@ -45,7 +45,7 @@ public final class SetReplicationCommandTest extends AbstractFileSystemShellTest
 
   @Test
   public void setReplicationMax() throws Exception {
-    FileSystemTestUtils.createByteFile(mFileSystem, TEST_FILE, WritePType.WRITE_MUST_CACHE, 10);
+    FileSystemTestUtils.createByteFile(mFileSystem, TEST_FILE, WritePType.MUST_CACHE, 10);
     int ret = mFsShell.run("setReplication", "-max", "2", TEST_FILE);
     Assert.assertEquals(0, ret);
 
@@ -55,7 +55,7 @@ public final class SetReplicationCommandTest extends AbstractFileSystemShellTest
 
   @Test
   public void setReplicationMinMax() throws Exception {
-    FileSystemTestUtils.createByteFile(mFileSystem, TEST_FILE, WritePType.WRITE_MUST_CACHE, 10);
+    FileSystemTestUtils.createByteFile(mFileSystem, TEST_FILE, WritePType.MUST_CACHE, 10);
     int ret = mFsShell.run("setReplication", "-min", "1", "-max", "2", TEST_FILE);
     Assert.assertEquals(0, ret);
 
@@ -66,21 +66,21 @@ public final class SetReplicationCommandTest extends AbstractFileSystemShellTest
 
   @Test
   public void setReplicationNoMinMax() throws Exception {
-    FileSystemTestUtils.createByteFile(mFileSystem, TEST_FILE, WritePType.WRITE_MUST_CACHE, 10);
+    FileSystemTestUtils.createByteFile(mFileSystem, TEST_FILE, WritePType.MUST_CACHE, 10);
     int ret = mFsShell.run("setReplication", TEST_FILE);
     Assert.assertEquals(-1, ret);
   }
 
   @Test
   public void setReplicationBadMinMax() throws Exception {
-    FileSystemTestUtils.createByteFile(mFileSystem, TEST_FILE, WritePType.WRITE_MUST_CACHE, 10);
+    FileSystemTestUtils.createByteFile(mFileSystem, TEST_FILE, WritePType.MUST_CACHE, 10);
     int ret = mFsShell.run("setReplication", "-min", "2", "-max", "1", TEST_FILE);
     Assert.assertEquals(-1, ret);
   }
 
   @Test
   public void setReplicationBadMinMaxSeparately() throws Exception {
-    FileSystemTestUtils.createByteFile(mFileSystem, TEST_FILE, WritePType.WRITE_MUST_CACHE, 10);
+    FileSystemTestUtils.createByteFile(mFileSystem, TEST_FILE, WritePType.MUST_CACHE, 10);
     int ret = mFsShell.run("setReplication", "-min", "2", TEST_FILE);
     Assert.assertEquals(0, ret);
     ret = mFsShell.run("setReplication", "-max", "1", TEST_FILE);
@@ -89,7 +89,7 @@ public final class SetReplicationCommandTest extends AbstractFileSystemShellTest
 
   @Test
   public void setReplicationZeroMin() throws Exception {
-    FileSystemTestUtils.createByteFile(mFileSystem, TEST_FILE, WritePType.WRITE_MUST_CACHE, 10);
+    FileSystemTestUtils.createByteFile(mFileSystem, TEST_FILE, WritePType.MUST_CACHE, 10);
     int ret = mFsShell.run("setReplication", "-min", "0", TEST_FILE);
     Assert.assertEquals(0, ret);
 
@@ -99,14 +99,14 @@ public final class SetReplicationCommandTest extends AbstractFileSystemShellTest
 
   @Test
   public void setReplicationNegativeMax() throws Exception {
-    FileSystemTestUtils.createByteFile(mFileSystem, TEST_FILE, WritePType.WRITE_MUST_CACHE, 10);
+    FileSystemTestUtils.createByteFile(mFileSystem, TEST_FILE, WritePType.MUST_CACHE, 10);
     int ret = mFsShell.run("setReplication", "-max", "-2", TEST_FILE);
     Assert.assertEquals(-1, ret);
   }
 
   @Test
   public void setReplicationInfinityMax() throws Exception {
-    FileSystemTestUtils.createByteFile(mFileSystem, TEST_FILE, WritePType.WRITE_MUST_CACHE, 10);
+    FileSystemTestUtils.createByteFile(mFileSystem, TEST_FILE, WritePType.MUST_CACHE, 10);
     int ret = mFsShell.run("setReplication", "-max", "-1", TEST_FILE);
     Assert.assertEquals(0, ret);
 
@@ -116,7 +116,7 @@ public final class SetReplicationCommandTest extends AbstractFileSystemShellTest
 
   @Test
   public void setReplicationZeroMax() throws Exception {
-    FileSystemTestUtils.createByteFile(mFileSystem, TEST_FILE, WritePType.WRITE_MUST_CACHE, 10);
+    FileSystemTestUtils.createByteFile(mFileSystem, TEST_FILE, WritePType.MUST_CACHE, 10);
     int ret = mFsShell.run("setReplication", "-max", "0", TEST_FILE);
     Assert.assertEquals(0, ret);
 
@@ -126,14 +126,14 @@ public final class SetReplicationCommandTest extends AbstractFileSystemShellTest
 
   @Test
   public void setReplicationNegativeMin() throws Exception {
-    FileSystemTestUtils.createByteFile(mFileSystem, TEST_FILE, WritePType.WRITE_MUST_CACHE, 10);
+    FileSystemTestUtils.createByteFile(mFileSystem, TEST_FILE, WritePType.MUST_CACHE, 10);
     int ret = mFsShell.run("setReplication", "-min", "-2", TEST_FILE);
     Assert.assertEquals(-1, ret);
   }
 
   @Test
   public void setReplicationNegativeMinMax() throws Exception {
-    FileSystemTestUtils.createByteFile(mFileSystem, TEST_FILE, WritePType.WRITE_MUST_CACHE, 10);
+    FileSystemTestUtils.createByteFile(mFileSystem, TEST_FILE, WritePType.MUST_CACHE, 10);
     int ret = mFsShell.run("setReplication", "-min", "-2", "-max", "-1", TEST_FILE);
     Assert.assertEquals(-1, ret);
   }

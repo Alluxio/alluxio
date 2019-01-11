@@ -35,6 +35,7 @@ import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.grpc.SetAttributePOptions;
+import alluxio.security.authorization.Mode;
 import alluxio.wire.FileInfo;
 
 import com.google.common.cache.LoadingCache;
@@ -91,7 +92,8 @@ public class AlluxioFuseFileSystemTest {
     long mode = 123;
     mFuseFs.chmod("/foo/bar", mode);
     AlluxioURI expectedPath = BASE_EXPECTED_URI.join("/foo/bar");
-    SetAttributePOptions options = SetAttributePOptions.newBuilder().setMode((short) mode).build();
+    SetAttributePOptions options =
+        SetAttributePOptions.newBuilder().setMode(new Mode((short) mode).toProto()).build();
     verify(mFileSystem).setAttribute(expectedPath, options);
   }
 

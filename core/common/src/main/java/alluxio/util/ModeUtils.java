@@ -15,6 +15,7 @@ import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.exception.ExceptionMessage;
+import alluxio.grpc.PMode;
 import alluxio.security.authorization.Mode;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -48,6 +49,16 @@ public final class ModeUtils {
    */
   public static Mode applyDirectoryUMask(Mode mode) {
     return applyUMask(mode, getUMask());
+  }
+
+  /**
+   * Used to get short value of a proto {@link PMode}.
+   *
+   * @param pMode proto mode
+   * @return short value
+   */
+  public static short protoToShort(PMode pMode) {
+    return Mode.fromProto(pMode).toShort();
   }
 
   /**

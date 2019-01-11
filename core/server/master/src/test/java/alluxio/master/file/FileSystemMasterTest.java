@@ -86,6 +86,7 @@ import alluxio.master.metrics.MetricsMasterFactory;
 import alluxio.metrics.Metric;
 import alluxio.security.GroupMappingServiceTestUtils;
 import alluxio.security.authorization.AclEntry;
+import alluxio.security.authorization.Mode;
 import alluxio.util.IdUtils;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
@@ -383,9 +384,9 @@ public final class FileSystemMasterTest {
     // userA has permissions to delete directory and nested file
     createFileWithSingleBlock(NESTED_FILE_URI);
     mFileSystemMaster.setAttribute(NESTED_URI, SetAttributeContext
-        .defaults(SetAttributePOptions.newBuilder().setMode((short) 0777)));
+        .defaults(SetAttributePOptions.newBuilder().setMode(new Mode((short) 0777).toProto())));
     mFileSystemMaster.setAttribute(NESTED_FILE_URI, SetAttributeContext
-        .defaults(SetAttributePOptions.newBuilder().setMode((short) 0777)));
+        .defaults(SetAttributePOptions.newBuilder().setMode(new Mode((short) 0777).toProto())));
     try (AuthenticatedClientUserResource userA = new AuthenticatedClientUserResource("userA")) {
       mFileSystemMaster.delete(NESTED_URI,
           DeleteContext.defaults(DeletePOptions.newBuilder().setRecursive(true)));
@@ -400,11 +401,11 @@ public final class FileSystemMasterTest {
     createFileWithSingleBlock(NESTED_FILE_URI);
     createFileWithSingleBlock(NESTED_FILE2_URI);
     mFileSystemMaster.setAttribute(NESTED_URI, SetAttributeContext
-        .defaults(SetAttributePOptions.newBuilder().setMode((short) 0777)));
+        .defaults(SetAttributePOptions.newBuilder().setMode(new Mode((short) 0777).toProto())));
     mFileSystemMaster.setAttribute(NESTED_FILE_URI, SetAttributeContext
-        .defaults(SetAttributePOptions.newBuilder().setMode((short) 0700)));
+        .defaults(SetAttributePOptions.newBuilder().setMode(new Mode((short) 0700).toProto())));
     mFileSystemMaster.setAttribute(NESTED_FILE2_URI, SetAttributeContext
-        .defaults(SetAttributePOptions.newBuilder().setMode((short) 0777)));
+        .defaults(SetAttributePOptions.newBuilder().setMode(new Mode((short) 0777).toProto())));
     try (AuthenticatedClientUserResource userA = new AuthenticatedClientUserResource("userA")) {
       mFileSystemMaster.delete(NESTED_URI,
           DeleteContext.defaults(DeletePOptions.newBuilder().setRecursive(true)));
@@ -1070,8 +1071,8 @@ public final class FileSystemMasterTest {
     }
 
     // Test with permissions
-    mFileSystemMaster.setAttribute(NESTED_URI, SetAttributeContext
-        .defaults(SetAttributePOptions.newBuilder().setMode((short) 0400).setRecursive(true)));
+    mFileSystemMaster.setAttribute(NESTED_URI, SetAttributeContext.defaults(SetAttributePOptions
+        .newBuilder().setMode(new Mode((short) 0400).toProto()).setRecursive(true)));
     try (Closeable r = new AuthenticatedUserRule("test_user1").toResource()) {
       // Test recursive listStatus
       infos = mFileSystemMaster.listStatus(ROOT_URI, ListStatusContext.defaults(ListStatusPOptions
@@ -1449,8 +1450,8 @@ public final class FileSystemMasterTest {
   @Test
   public void setAclWithoutOwner() throws Exception {
     createFileWithSingleBlock(NESTED_FILE_URI);
-    mFileSystemMaster.setAttribute(NESTED_URI,
-        SetAttributeContext.defaults(SetAttributePOptions.newBuilder().setMode((short) 0777)));
+    mFileSystemMaster.setAttribute(NESTED_URI, SetAttributeContext
+        .defaults(SetAttributePOptions.newBuilder().setMode(new Mode((short) 0777).toProto())));
     Set<String> entries = Sets.newHashSet(mFileSystemMaster
         .getFileInfo(NESTED_FILE_URI, GET_STATUS_CONTEXT).convertAclToStringEntries());
     assertEquals(3, entries.size());
@@ -1467,8 +1468,8 @@ public final class FileSystemMasterTest {
   @Test
   public void setAclNestedWithoutOwner() throws Exception {
     createFileWithSingleBlock(NESTED_FILE_URI);
-    mFileSystemMaster.setAttribute(NESTED_URI, SetAttributeContext
-        .defaults(SetAttributePOptions.newBuilder().setMode((short) 0777).setOwner("userA")));
+    mFileSystemMaster.setAttribute(NESTED_URI, SetAttributeContext.defaults(SetAttributePOptions
+        .newBuilder().setMode(new Mode((short) 0777).toProto()).setOwner("userA")));
     Set<String> entries = Sets.newHashSet(mFileSystemMaster
         .getFileInfo(NESTED_FILE_URI, GET_STATUS_CONTEXT).convertAclToStringEntries());
     assertEquals(3, entries.size());

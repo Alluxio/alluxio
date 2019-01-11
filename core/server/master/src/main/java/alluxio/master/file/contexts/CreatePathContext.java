@@ -76,7 +76,7 @@ public abstract class CreatePathContext<T extends GeneratedMessageV3.Builder<?>,
       mGroup = SecurityUtils.getGroupFromGrpcClient();
     }
     // Initialize mPersisted based on proto write type.
-    WritePType writeType = WritePType.WRITE_NONE;
+    WritePType writeType = WritePType.NONE;
     if (optionsBuilder instanceof CreateFilePOptions.Builder) {
       writeType = ((CreateFilePOptions.Builder) optionsBuilder).getWriteType();
     } else if (optionsBuilder instanceof CreateDirectoryPOptions.Builder) {
@@ -90,7 +90,7 @@ public abstract class CreatePathContext<T extends GeneratedMessageV3.Builder<?>,
     // Populate extracted fields from given options
     if (optionsBuilder instanceof CreateFilePOptions.Builder) {
       CreateFilePOptions.Builder fileOptions = (CreateFilePOptions.Builder) optionsBuilder;
-      mMode = new Mode((short) fileOptions.getMode());
+      mMode = Mode.fromProto(fileOptions.getMode());
       mRecursive = fileOptions.getRecursive();
       mTtl = fileOptions.getCommonOptions().getTtl();
       mTtlAction = fileOptions.getCommonOptions().getTtlAction();
@@ -99,7 +99,7 @@ public abstract class CreatePathContext<T extends GeneratedMessageV3.Builder<?>,
     // Populate extracted fields from given options
     if (optionsBuilder instanceof CreateDirectoryPOptions.Builder) {
       CreateDirectoryPOptions.Builder dirOptions = (CreateDirectoryPOptions.Builder) optionsBuilder;
-      mMode = new Mode((short) dirOptions.getMode());
+      mMode = Mode.fromProto(dirOptions.getMode());
       mRecursive = dirOptions.getRecursive();
       mTtl = dirOptions.getCommonOptions().getTtl();
       mTtlAction = dirOptions.getCommonOptions().getTtlAction();

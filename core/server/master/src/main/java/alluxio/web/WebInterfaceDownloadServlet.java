@@ -126,7 +126,7 @@ public final class WebInterfaceDownloadServlet extends HttpServlet {
     ServletOutputStream out = null;
     try {
       OpenFilePOptions options =
-          OpenFilePOptions.newBuilder().setReadType(ReadPType.READ_NO_CACHE).build();
+          OpenFilePOptions.newBuilder().setReadType(ReadPType.NO_CACHE).build();
       is = alluxioClient.openFile(path, options);
       out = response.getOutputStream();
       ByteStreams.copy(is, out);

@@ -34,6 +34,7 @@ import alluxio.master.file.contexts.ListStatusContext;
 import alluxio.master.journal.ufs.UfsJournal;
 import alluxio.master.journal.ufs.UfsJournalSnapshot;
 import alluxio.security.authentication.AuthenticatedClientUser;
+import alluxio.security.authorization.Mode;
 import alluxio.security.group.GroupMappingService;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
@@ -445,12 +446,12 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
     };
 
     CreateDirectoryPOptions options = CreateDirectoryPOptions.newBuilder().setRecursive(true)
-        .setWriteType(WritePType.WRITE_MUST_CACHE).build();
+        .setWriteType(WritePType.MUST_CACHE).build();
     for (String directory : directories) {
       mFileSystem.createDirectory(new AlluxioURI(directory), options);
     }
 
-    options = options.toBuilder().setWriteType(WritePType.WRITE_CACHE_THROUGH).setAllowExists(true)
+    options = options.toBuilder().setWriteType(WritePType.CACHE_THROUGH).setAllowExists(true)
         .build();
     for (String directory : directories) {
       mFileSystem.createDirectory(new AlluxioURI(directory), options);
@@ -601,8 +602,8 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
     mFileSystem.createFile(filePath, op).close();
 
     // TODO(chaomin): also setOwner and setGroup once there's a way to fake the owner/group in UFS.
-    mFileSystem.setAttribute(filePath,
-        SetAttributePOptions.newBuilder().setMode((short) 0400).setRecursive(false).build());
+    mFileSystem.setAttribute(filePath, SetAttributePOptions.newBuilder()
+        .setMode(new Mode((short) 0400).toProto()).setRecursive(false).build());
 
     URIStatus status = mFileSystem.getStatus(filePath);
 

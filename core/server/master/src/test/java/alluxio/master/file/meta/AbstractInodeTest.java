@@ -48,7 +48,7 @@ public abstract class AbstractInodeTest {
   protected static InodeDirectory createInodeDirectory() {
     return InodeDirectory.create(1, 0, "test1",
         CreateDirectoryContext
-            .defaults(CreateDirectoryPOptions.newBuilder().setMode(TEST_DIR_MODE.toShort()))
+            .defaults(CreateDirectoryPOptions.newBuilder().setMode(TEST_DIR_MODE.toProto()))
             .setOwner(TEST_OWNER).setGroup(TEST_GROUP));
   }
 
@@ -60,7 +60,7 @@ public abstract class AbstractInodeTest {
     return InodeFile.create(id, 1, "testFile" + id, 0,
         CreateFileContext
             .defaults(CreateFilePOptions.newBuilder().setBlockSizeBytes(Constants.KB)
-                .setMode(TEST_FILE_MODE.toShort()))
+                .setMode(TEST_FILE_MODE.toProto()))
             .setOwner(TEST_OWNER).setGroup(TEST_GROUP));
   }
 }

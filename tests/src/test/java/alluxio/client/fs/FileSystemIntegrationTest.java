@@ -69,7 +69,7 @@ public final class FileSystemIntegrationTest extends BaseIntegrationTest {
   public void before() throws Exception {
     mFileSystem = mLocalAlluxioClusterResource.get().getClient();
     mWriteBoth = CreateFilePOptions.newBuilder().setRecursive(true)
-        .setWriteType(WritePType.WRITE_CACHE_THROUGH).build();
+        .setWriteType(WritePType.CACHE_THROUGH).build();
     mUfs = UnderFileSystem.Factory.createForRoot();
   }
 
@@ -115,9 +115,9 @@ public final class FileSystemIntegrationTest extends BaseIntegrationTest {
   public void deleteDirectoryWithPersistedWritesInProgress() throws Exception {
     final AlluxioURI testFolder = new AlluxioURI("/testFolder");
     mFileSystem.createDirectory(testFolder,
-        CreateDirectoryPOptions.newBuilder().setWriteType(WritePType.WRITE_CACHE_THROUGH).build());
+        CreateDirectoryPOptions.newBuilder().setWriteType(WritePType.CACHE_THROUGH).build());
     FileOutStream out = mFileSystem.createFile(new AlluxioURI("/testFolder/testFile"),
-        CreateFilePOptions.newBuilder().setWriteType(WritePType.WRITE_CACHE_THROUGH).build());
+        CreateFilePOptions.newBuilder().setWriteType(WritePType.CACHE_THROUGH).build());
     out.write(TEST_BYTES);
     out.flush();
     // Need to wait for the file to be flushed, see ALLUXIO-2899

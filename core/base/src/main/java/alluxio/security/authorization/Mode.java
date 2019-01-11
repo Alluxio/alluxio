@@ -13,6 +13,7 @@ package alluxio.security.authorization;
 
 import alluxio.Constants;
 import alluxio.annotation.PublicApi;
+import alluxio.grpc.PMode;
 
 import com.google.common.base.Preconditions;
 
@@ -227,6 +228,30 @@ public final class Mode {
   @Override
   public String toString() {
     return mOwnerBits.toString() + mGroupBits.toString() + mOtherBits.toString();
+  }
+
+  /**
+   * Creates {@link Mode} from proto {@link PMode}.
+   *
+   * @param pMode proto mode
+   * @return created mode
+   */
+  public static Mode fromProto(PMode pMode) {
+    Bits ownerBits = pMode.hasOwnerBits() ? Bits.valueOf(pMode.getOwnerBits().name()) : Bits.NONE;
+    Bits groupBits = pMode.hasGroupBits() ? Bits.valueOf(pMode.getGroupBits().name()) : Bits.NONE;
+    Bits otherBits = pMode.hasOtherBits() ? Bits.valueOf(pMode.getOtherBits().name()) : Bits.NONE;
+    return new Mode(ownerBits, groupBits, otherBits);
+  }
+
+  /**
+   * @return proto representation of this mode instance
+   */
+  public PMode toProto() {
+    return PMode.newBuilder()
+        .setOwnerBits(alluxio.grpc.Bits.valueOf(mOwnerBits.name()))
+        .setGroupBits(alluxio.grpc.Bits.valueOf(mGroupBits.name()))
+        .setOtherBits(alluxio.grpc.Bits.valueOf(mOtherBits.name()))
+        .build();
   }
 
   /**

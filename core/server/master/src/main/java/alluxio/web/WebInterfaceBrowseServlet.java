@@ -86,7 +86,7 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
     URIStatus status = fs.getStatus(path);
     if (status.isCompleted()) {
       OpenFilePOptions options =
-          OpenFilePOptions.newBuilder().setReadType(ReadPType.READ_NO_CACHE).build();
+          OpenFilePOptions.newBuilder().setReadType(ReadPType.NO_CACHE).build();
       try (FileInStream is = fs.openFile(path, options)) {
         int len = (int) Math.min(5 * Constants.KB, status.getLength() - offset);
         byte[] data = new byte[len];

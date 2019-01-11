@@ -79,7 +79,7 @@ public enum SyncPointStatus
   }
   public static final com.google.protobuf.Descriptors.EnumDescriptor
       getDescriptor() {
-    return alluxio.grpc.FileSystemMasterProto.getDescriptor().getEnumTypes().get(4);
+    return alluxio.grpc.FileSystemMasterProto.getDescriptor().getEnumTypes().get(3);
   }
 
   private static final SyncPointStatus[] VALUES = values();

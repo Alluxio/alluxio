@@ -161,7 +161,7 @@ public final class CopyFromLocalCommandIntegrationTest extends AbstractFileSyste
     Assert.assertEquals(SIZE_BYTES, status.getLength());
 
     try (FileInStream tfis = mFileSystem.openFile(uri,
-        OpenFilePOptions.newBuilder().setReadType(ReadPType.READ_NO_CACHE).build())) {
+        OpenFilePOptions.newBuilder().setReadType(ReadPType.NO_CACHE).build())) {
       byte[] read = new byte[SIZE_BYTES];
       tfis.read(read);
       Assert.assertTrue(BufferUtils.equalIncreasingByteArray(SIZE_BYTES, read));

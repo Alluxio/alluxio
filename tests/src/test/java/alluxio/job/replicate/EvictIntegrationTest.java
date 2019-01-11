@@ -45,7 +45,7 @@ public final class EvictIntegrationTest extends JobIntegrationTest {
 
     AlluxioURI filePath = new AlluxioURI(TEST_URI);
     FileOutStream os = mFileSystem.createFile(filePath, CreateFilePOptions.newBuilder()
-        .setWriteType(WritePType.WRITE_MUST_CACHE).setBlockSizeBytes(TEST_BLOCK_SIZE).build());
+        .setWriteType(WritePType.MUST_CACHE).setBlockSizeBytes(TEST_BLOCK_SIZE).build());
     os.write(BufferUtils.getIncreasingByteArray(TEST_BLOCK_SIZE + 1));
     os.close();
 

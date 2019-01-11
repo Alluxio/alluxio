@@ -38,6 +38,7 @@ import alluxio.grpc.SetAttributePOptions;
 import alluxio.master.MasterInquireClient.ConnectDetails;
 import alluxio.master.MasterInquireClient.Factory;
 import alluxio.security.User;
+import alluxio.security.authorization.Mode;
 import alluxio.uri.Authority;
 import alluxio.uri.MultiMasterAuthority;
 import alluxio.uri.SingleMasterAuthority;
@@ -178,7 +179,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
 
     AlluxioURI uri = new AlluxioURI(HadoopUtils.getPathWithoutScheme(path));
     CreateFilePOptions options = CreateFilePOptions.newBuilder().setBlockSizeBytes(blockSize)
-        .setMode(permission.toShort()).setRecursive(true).build();
+        .setMode(new Mode(permission.toShort()).toProto()).setRecursive(true).build();
 
     FileOutStream outStream;
     try {
@@ -424,8 +425,8 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
   public void setPermission(Path path, FsPermission permission) throws IOException {
     LOG.debug("setMode({},{})", path, permission.toString());
     AlluxioURI uri = new AlluxioURI(HadoopUtils.getPathWithoutScheme(path));
-    SetAttributePOptions options =
-        SetAttributePOptions.newBuilder().setMode(permission.toShort()).setRecursive(false).build();
+    SetAttributePOptions options = SetAttributePOptions.newBuilder()
+        .setMode(new Mode(permission.toShort()).toProto()).setRecursive(false).build();
     try {
       mFileSystem.setAttribute(uri, options);
     } catch (AlluxioException e) {
@@ -693,7 +694,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     }
     AlluxioURI uri = new AlluxioURI(HadoopUtils.getPathWithoutScheme(path));
     CreateDirectoryPOptions options = CreateDirectoryPOptions.newBuilder().setRecursive(true)
-        .setAllowExists(true).setMode(permission.toShort()).build();
+        .setAllowExists(true).setMode(new Mode(permission.toShort()).toProto()).build();
     try {
       mFileSystem.createDirectory(uri, options);
       return true;

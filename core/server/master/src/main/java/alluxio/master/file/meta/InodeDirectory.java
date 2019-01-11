@@ -294,7 +294,7 @@ public final class InodeDirectory extends Inode<InodeDirectory> implements Inode
         .setTtlAction(context.getOptions().getCommonOptions().getTtlAction())
         .setOwner(context.getOwner())
         .setGroup(context.getGroup())
-        .setMode((short) context.getOptions().getMode())
+        .setMode(context.getMode().toShort())
         .setAcl(context.getAcl())
         // SetAcl call is also setting default AclEntries
         .setAcl(context.getDefaultAcl())

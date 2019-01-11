@@ -12,6 +12,7 @@
 package alluxio.web;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.hubspot.jackson.datatype.protobuf.ProtobufModule;
 
 import javax.ws.rs.ext.ContextResolver;
@@ -33,6 +34,7 @@ public class JacksonProtobufObjectMapperProvider implements ContextResolver<Obje
 
   private static ObjectMapper createDefaultMapper() {
     final ObjectMapper jackson = new ObjectMapper();
+    jackson.setPropertyNamingStrategy(PropertyNamingStrategy.LOWER_CAMEL_CASE);
     jackson.registerModule(new ProtobufModule());
     return jackson;
   }

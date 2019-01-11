@@ -35,11 +35,11 @@ public final class CountCommandTest extends AbstractFileSystemShellTest {
   @Test
   public void count() throws Exception {
     FileSystemTestUtils.createByteFile(mFileSystem, "/testRoot/testFileA",
-        WritePType.WRITE_MUST_CACHE, 10);
+        WritePType.MUST_CACHE, 10);
     FileSystemTestUtils.createByteFile(mFileSystem, "/testRoot/testDir/testFileB",
-        WritePType.WRITE_MUST_CACHE, 20);
+        WritePType.MUST_CACHE, 20);
     FileSystemTestUtils.createByteFile(mFileSystem, "/testRoot/testFileB",
-        WritePType.WRITE_MUST_CACHE, 30);
+        WritePType.MUST_CACHE, 30);
     mFsShell.run("count", "/testRoot");
     String expected = "";
     String format = "%-25s%-25s%-15s\n";

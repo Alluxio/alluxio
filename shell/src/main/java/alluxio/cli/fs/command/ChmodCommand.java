@@ -84,7 +84,7 @@ public final class ChmodCommand extends AbstractFileSystemCommand {
       AlluxioException, IOException {
     Mode mode = ModeParser.parse(modeStr);
     SetAttributePOptions options =
-        SetAttributePOptions.newBuilder().setMode(mode.toShort()).setRecursive(recursive).build();
+        SetAttributePOptions.newBuilder().setMode(mode.toProto()).setRecursive(recursive).build();
     mFileSystem.setAttribute(path, options);
     System.out
         .println("Changed permission of " + path + " to " + Integer.toOctalString(mode.toShort()));

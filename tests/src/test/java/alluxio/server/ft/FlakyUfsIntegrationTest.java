@@ -79,7 +79,7 @@ public final class FlakyUfsIntegrationTest extends BaseIntegrationTest {
     mFs.createDirectory(new AlluxioURI("/dir"));
     for (int i = 0; i < 100; i++) {
       FileSystemTestUtils.createByteFile(mFs, "/dir/test" + i, 100,
-          CreateFilePOptions.newBuilder().setWriteType(WritePType.WRITE_CACHE_THROUGH).build());
+          CreateFilePOptions.newBuilder().setWriteType(WritePType.CACHE_THROUGH).build());
     }
     String ufs = LOCAL_UFS_PATH;
     // This will make the "/dir" directory out of sync so that the files are deleted individually.

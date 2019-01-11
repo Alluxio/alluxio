@@ -2517,7 +2517,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
     if (resolution.getShared()) {
       mode.setOtherBits(mode.getOtherBits().or(mode.getOwnerBits()));
     }
-    createFileContext.getOptions().setMode(mode.toShort());
+    createFileContext.getOptions().setMode(mode.toProto());
     if (acl != null) {
       createFileContext.setAcl(acl.getEntries());
     }
@@ -2595,7 +2595,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
     if (resolution.getShared()) {
       mode.setOtherBits(mode.getOtherBits().or(mode.getOwnerBits()));
     }
-    createDirectoryContext.getOptions().setMode(mode.toShort());
+    createDirectoryContext.getOptions().setMode(mode.toProto());
     createDirectoryContext.setOwner(ufsOwner).setGroup(ufsGroup)
         .setUfsStatus(context.getUfsStatus());
     if (acl != null) {
@@ -2978,8 +2978,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
     // for chown
     boolean rootRequired = options.hasOwner();
     // for chgrp, chmod
-    boolean ownerRequired =
-        (options.hasGroup()) || (options.hasMode() && options.getMode() != Constants.INVALID_MODE);
+    boolean ownerRequired = (options.hasGroup()) || (options.hasMode());
     if (options.hasOwner() && options.hasGroup()) {
       try {
         checkUserBelongsToGroup(options.getOwner(), options.getGroup());
@@ -3419,7 +3418,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
           long opTimeMs = System.currentTimeMillis();
           setAttributeSingleFile(rpcContext, inodePath, false, opTimeMs, SetAttributeContext
               .defaults(SetAttributePOptions.newBuilder().setOwner(ufsFpParsed.getTag(Tag.OWNER))
-                  .setGroup(ufsFpParsed.getTag(Tag.GROUP)).setMode(mode))
+                  .setGroup(ufsFpParsed.getTag(Tag.GROUP)).setMode(new Mode(mode).toProto()))
               .setUfsFingerprint(ufsFingerprint));
         }
       }
@@ -3562,8 +3561,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
       }
     }
     boolean ownerGroupChanged = (protoOptions.hasOwner()) || (protoOptions.hasGroup());
-    boolean modeChanged =
-        (protoOptions.hasMode() && protoOptions.getMode() != Constants.INVALID_MODE);
+    boolean modeChanged = protoOptions.hasMode();
     // If the file is persisted in UFS, also update corresponding owner/group/permission.
     if ((ownerGroupChanged || modeChanged) && updateUfs && inode.isPersisted()) {
       if ((inode instanceof InodeFileView) && !((InodeFileView) inode).isCompleted()) {
@@ -3596,7 +3594,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
             if (modeChanged) {
               try {
                 mode = String.valueOf(protoOptions.getMode());
-                ufs.setMode(ufsUri, (short) protoOptions.getMode());
+                ufs.setMode(ufsUri, ModeUtils.protoToShort(protoOptions.getMode()));
               } catch (IOException e) {
                 throw new AccessControlException("Could not setMode for UFS file " + ufsUri
                     + " . Aborting the setAttribute operation in Alluxio.", e);
@@ -3630,7 +3628,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
       entry.setGroup(protoOptions.getGroup());
     }
     if (modeChanged) {
-      entry.setMode(protoOptions.getMode());
+      entry.setMode(ModeUtils.protoToShort(protoOptions.getMode()));
     }
     mInodeTree.updateInode(rpcContext, entry.build());
   }

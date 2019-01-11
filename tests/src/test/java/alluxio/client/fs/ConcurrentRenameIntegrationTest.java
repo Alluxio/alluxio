@@ -70,9 +70,9 @@ public class ConcurrentRenameIntegrationTest extends BaseIntegrationTest {
    * file but flag the file to be treated as persisted, which will invoke ufs operations.
    */
   private static CreateFilePOptions sCreatePersistedFileOptions =
-      CreateFilePOptions.newBuilder().setWriteType(WritePType.WRITE_THROUGH).build();
+      CreateFilePOptions.newBuilder().setWriteType(WritePType.THROUGH).build();
   private static CreateDirectoryPOptions sCreatePersistedDirOptions = CreateDirectoryPOptions
-      .newBuilder().setWriteType(WritePType.WRITE_THROUGH).setRecursive(true).build();
+      .newBuilder().setWriteType(WritePType.THROUGH).setRecursive(true).build();
 
   private FileSystem mFileSystem;
 
@@ -495,7 +495,7 @@ public class ConcurrentRenameIntegrationTest extends BaseIntegrationTest {
       // Don't want sleeping ufs behavior, so do not write to ufs
       mFileSystem
           .createFile(file,
-              CreateFilePOptions.newBuilder().setWriteType(WritePType.WRITE_MUST_CACHE).build())
+              CreateFilePOptions.newBuilder().setWriteType(WritePType.MUST_CACHE).build())
           .close();
       Thread renamer = new Thread(new Runnable() {
         @Override

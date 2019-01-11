@@ -120,7 +120,7 @@ public class TierPromoteIntegrationTest extends BaseIntegrationTest {
 
     // After reading with CACHE_PROMOTE, the file should be in memory
     FileInStream in = mFileSystem.openFile(path1,
-        OpenFilePOptions.newBuilder().setReadType(ReadPType.READ_CACHE_PROMOTE).build());
+        OpenFilePOptions.newBuilder().setReadType(ReadPType.CACHE_PROMOTE).build());
     byte[] buf = new byte[size];
     while (in.read(buf) != -1) {
       // read the entire file

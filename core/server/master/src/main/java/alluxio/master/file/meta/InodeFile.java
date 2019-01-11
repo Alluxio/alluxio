@@ -415,7 +415,7 @@ public final class InodeFile extends Inode<InodeFile> implements InodeFileView {
         .setLastModificationTimeMs(context.getOperationTimeMs(), true)
         .setOwner(context.getOwner())
         .setGroup(context.getGroup())
-        .setMode((short) context.getOptions().getMode())
+        .setMode(context.getMode().toShort())
         .setAcl(context.getAcl())
         .setPersistenceState(context.getPersisted() ? PersistenceState.PERSISTED
             : PersistenceState.NOT_PERSISTED);

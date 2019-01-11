@@ -43,7 +43,7 @@ public final class PersistIntegrationTest extends JobIntegrationTest {
     // write a file in alluxio only
     AlluxioURI filePath = new AlluxioURI(TEST_URI);
     FileOutStream os = mFileSystem.createFile(filePath,
-        CreateFilePOptions.newBuilder().setWriteType(WritePType.WRITE_MUST_CACHE).build());
+        CreateFilePOptions.newBuilder().setWriteType(WritePType.MUST_CACHE).build());
     os.write((byte) 0);
     os.write((byte) 1);
     os.close();
@@ -78,7 +78,7 @@ public final class PersistIntegrationTest extends JobIntegrationTest {
     // write a file in alluxio only
     AlluxioURI filePath = new AlluxioURI(TEST_URI);
     FileOutStream os = mFileSystem.createFile(filePath,
-        CreateFilePOptions.newBuilder().setWriteType(WritePType.WRITE_MUST_CACHE).build());
+        CreateFilePOptions.newBuilder().setWriteType(WritePType.MUST_CACHE).build());
     os.write((byte) 0);
     os.write((byte) 1);
     os.close();

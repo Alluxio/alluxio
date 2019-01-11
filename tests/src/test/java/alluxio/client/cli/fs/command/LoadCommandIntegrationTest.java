@@ -32,10 +32,10 @@ import java.io.IOException;
 public final class LoadCommandIntegrationTest extends AbstractFileSystemShellTest {
   @Test
   public void loadDir() throws IOException, AlluxioException {
-    FileSystemTestUtils.createByteFile(mFileSystem, "/testRoot/testFileA", WritePType.WRITE_THROUGH,
+    FileSystemTestUtils.createByteFile(mFileSystem, "/testRoot/testFileA", WritePType.THROUGH,
         10);
     FileSystemTestUtils
-        .createByteFile(mFileSystem, "/testRoot/testFileB", WritePType.WRITE_MUST_CACHE, 10);
+        .createByteFile(mFileSystem, "/testRoot/testFileB", WritePType.MUST_CACHE, 10);
     AlluxioURI uriA = new AlluxioURI("/testRoot/testFileA");
     AlluxioURI uriB = new AlluxioURI("/testRoot/testFileB");
 
@@ -53,7 +53,7 @@ public final class LoadCommandIntegrationTest extends AbstractFileSystemShellTes
 
   @Test
   public void loadFile() throws IOException, AlluxioException {
-    FileSystemTestUtils.createByteFile(mFileSystem, "/testFile", WritePType.WRITE_THROUGH, 10);
+    FileSystemTestUtils.createByteFile(mFileSystem, "/testFile", WritePType.THROUGH, 10);
     AlluxioURI uri = new AlluxioURI("/testFile");
     URIStatus status = mFileSystem.getStatus(uri);
     assertFalse(status.getInAlluxioPercentage() == 100);
@@ -65,7 +65,7 @@ public final class LoadCommandIntegrationTest extends AbstractFileSystemShellTes
 
   @Test
   public void loadFileWithLocalOption() throws IOException, AlluxioException {
-    FileSystemTestUtils.createByteFile(mFileSystem, "/testFile", WritePType.WRITE_CACHE_THROUGH,
+    FileSystemTestUtils.createByteFile(mFileSystem, "/testFile", WritePType.CACHE_THROUGH,
         10);
     AlluxioURI uri = new AlluxioURI("/testFile");
     URIStatus status = mFileSystem.getStatus(uri);
@@ -74,7 +74,7 @@ public final class LoadCommandIntegrationTest extends AbstractFileSystemShellTes
     mFsShell.run("load", "--local", "/testFile");
     Assert.assertEquals("/testFile" + " loaded" + "\n", mOutput.toString());
     // Testing "load --local" works when the file isn't already loaded
-    FileSystemTestUtils.createByteFile(mFileSystem, "/testFile2", WritePType.WRITE_THROUGH, 10);
+    FileSystemTestUtils.createByteFile(mFileSystem, "/testFile2", WritePType.THROUGH, 10);
     uri = new AlluxioURI("/testFile2");
     status = mFileSystem.getStatus(uri);
     assertFalse(status.getInAlluxioPercentage() == 100);
@@ -85,9 +85,9 @@ public final class LoadCommandIntegrationTest extends AbstractFileSystemShellTes
 
   @Test
   public void loadFileWithWildcard() throws IOException, AlluxioException {
-    FileSystemTestUtils.createByteFile(mFileSystem, "/testDir1/testFile1", WritePType.WRITE_THROUGH,
+    FileSystemTestUtils.createByteFile(mFileSystem, "/testDir1/testFile1", WritePType.THROUGH,
         10);
-    FileSystemTestUtils.createByteFile(mFileSystem, "/testDir2/testFile2", WritePType.WRITE_THROUGH,
+    FileSystemTestUtils.createByteFile(mFileSystem, "/testDir2/testFile2", WritePType.THROUGH,
         10);
     AlluxioURI uri = new AlluxioURI("/testDir1/testFile1");
     URIStatus status = mFileSystem.getStatus(uri);

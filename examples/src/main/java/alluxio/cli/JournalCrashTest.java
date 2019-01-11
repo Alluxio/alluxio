@@ -245,7 +245,7 @@ public final class JournalCrashTest {
 
     // Set NO_STORE and NO_PERSIST so that this test can work without AlluxioWorker.
     sCreateFileOptions =
-        CreateFilePOptions.newBuilder().setWriteType(WritePType.WRITE_NONE).build();
+        CreateFilePOptions.newBuilder().setWriteType(WritePType.NONE).build();
     // Set the max retry to avoid long pending for client disconnect.
     if (System.getProperty(PropertyKey.USER_RPC_RETRY_MAX_NUM_RETRY.toString()) == null) {
       System.setProperty(PropertyKey.USER_RPC_RETRY_MAX_NUM_RETRY.toString(), "10");

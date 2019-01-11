@@ -59,9 +59,9 @@ public class ConcurrentDeleteIntegrationTest extends BaseIntegrationTest {
    * file but flag the file to be treated as persisted, which will invoke ufs operations.
    */
   private static CreateFilePOptions sCreatePersistedFileOptions =
-      CreateFilePOptions.newBuilder().setWriteType(WritePType.WRITE_THROUGH).build();
+      CreateFilePOptions.newBuilder().setWriteType(WritePType.THROUGH).build();
   private static CreateDirectoryPOptions sCreatePersistedDirOptions =
-      CreateDirectoryPOptions.newBuilder().setWriteType(WritePType.WRITE_THROUGH).build();
+      CreateDirectoryPOptions.newBuilder().setWriteType(WritePType.THROUGH).build();
 
   private FileSystem mFileSystem;
 

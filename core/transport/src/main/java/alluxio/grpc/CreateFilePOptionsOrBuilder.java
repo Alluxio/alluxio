@@ -26,13 +26,17 @@ public interface CreateFilePOptionsOrBuilder extends
   boolean getRecursive();
 
   /**
-   * <code>optional int32 mode = 3;</code>
+   * <code>optional .alluxio.grpc.PMode mode = 3;</code>
    */
   boolean hasMode();
   /**
-   * <code>optional int32 mode = 3;</code>
+   * <code>optional .alluxio.grpc.PMode mode = 3;</code>
    */
-  int getMode();
+  alluxio.grpc.PMode getMode();
+  /**
+   * <code>optional .alluxio.grpc.PMode mode = 3;</code>
+   */
+  alluxio.grpc.PModeOrBuilder getModeOrBuilder();
 
   /**
    * <code>optional int32 replicationMax = 4;</code>

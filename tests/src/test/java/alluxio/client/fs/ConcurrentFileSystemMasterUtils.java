@@ -50,7 +50,7 @@ public class ConcurrentFileSystemMasterUtils {
    * but flag the file to be treated as persisted, which will invoke ufs operations.
    */
   private static CreateFilePOptions sCreatePersistedFileOptions = CreateFilePOptions.newBuilder()
-      .setWriteType(WritePType.WRITE_THROUGH).setRecursive(true).build();
+      .setWriteType(WritePType.THROUGH).setRecursive(true).build();
 
   /**
    * Unary file operations for concurrent tests.

@@ -60,9 +60,9 @@ public final class StartupConsistencyCheckIntegrationTest extends BaseIntegratio
   @Before
   public void before() throws Exception {
     CreateFilePOptions fileOptions =
-        CreateFilePOptions.newBuilder().setWriteType(WritePType.WRITE_THROUGH).build();
+        CreateFilePOptions.newBuilder().setWriteType(WritePType.THROUGH).build();
     CreateDirectoryPOptions dirOptions =
-        CreateDirectoryPOptions.newBuilder().setWriteType(WritePType.WRITE_THROUGH).build();
+        CreateDirectoryPOptions.newBuilder().setWriteType(WritePType.THROUGH).build();
 
     mCluster = mLocalAlluxioClusterResource.get();
     mFileSystem = mCluster.getClient();

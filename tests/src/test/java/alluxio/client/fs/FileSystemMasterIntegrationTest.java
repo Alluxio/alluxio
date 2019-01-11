@@ -491,7 +491,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     FileSystem fs = mLocalAlluxioClusterResource.get().getClient();
     for (int i = 0; i < 3; i++) {
       FileSystemTestUtils.createByteFile(fs, PathUtils.concatPath(dir, "file" + i), 100,
-          CreateFilePOptions.newBuilder().setWriteType(WritePType.WRITE_MUST_CACHE).build());
+          CreateFilePOptions.newBuilder().setWriteType(WritePType.MUST_CACHE).build());
     }
     fs.delete(dir, DeletePOptions.newBuilder().setRecursive(true).build());
     assertFalse(fs.exists(dir));
@@ -1127,7 +1127,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
 
     mThrown.expect(AccessControlException.class);
     mFsMaster.setAttribute(alluxioFile, SetAttributeContext
-        .defaults(SetAttributePOptions.newBuilder().setMode((short) 0777)));
+        .defaults(SetAttributePOptions.newBuilder().setMode(new Mode((short) 0777).toProto())));
   }
 
   @Test
@@ -1161,9 +1161,8 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     AlluxioURI path = new AlluxioURI(Paths.get("/d1", "d2", "d3", "d4").toString());
 
     mFsMaster.createDirectory(path,
-        CreateDirectoryContext
-            .defaults(CreateDirectoryPOptions.newBuilder().setRecursive(true).setMode((short) 0755))
-            .setPersisted(true));
+        CreateDirectoryContext.defaults(CreateDirectoryPOptions.newBuilder().setRecursive(true)
+            .setMode(new Mode((short) 0755).toProto())).setPersisted(true));
 
     long fileId = mFsMaster.getFileId(new AlluxioURI("/d1"));
     FileInfo fileInfo = mFsMaster.getFileInfo(fileId);
@@ -1209,9 +1208,8 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     AlluxioURI path = new AlluxioURI(Paths.get("/d1", "d2", "d3", "d4").toString());
     String ufsPath = Paths.get(ufs, "d1", "d2", "d3", "d4").toString();
     mFsMaster.createDirectory(path,
-        CreateDirectoryContext
-            .defaults(CreateDirectoryPOptions.newBuilder().setRecursive(true).setMode((short) 0700))
-            .setPersisted(true));
+        CreateDirectoryContext.defaults(CreateDirectoryPOptions.newBuilder().setRecursive(true)
+            .setMode(new Mode((short) 0700).toProto())).setPersisted(true));
     long fileId = mFsMaster.getFileId(path);
     FileInfo fileInfo = mFsMaster.getFileInfo(fileId);
     Assert.assertEquals("d4", fileInfo.getName());
@@ -1238,9 +1236,8 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
 
     // this should fail
     mFsMaster.createDirectory(path,
-        CreateDirectoryContext
-            .defaults(CreateDirectoryPOptions.newBuilder().setRecursive(true).setMode((short) 0755))
-            .setPersisted(true));
+        CreateDirectoryContext.defaults(CreateDirectoryPOptions.newBuilder().setRecursive(true)
+            .setMode(new Mode((short) 0755).toProto())).setPersisted(true));
   }
 
   /**
@@ -1307,9 +1304,8 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     AlluxioURI parentPath = new AlluxioURI("/" + parentName);
     AlluxioURI path = new AlluxioURI("/" + Paths.get(parentName, childName));
     mFsMaster.createDirectory(path,
-        CreateDirectoryContext
-            .defaults(CreateDirectoryPOptions.newBuilder().setRecursive(true).setMode((short) 0700))
-            .setPersisted(true));
+        CreateDirectoryContext.defaults(CreateDirectoryPOptions.newBuilder().setRecursive(true)
+            .setMode(new Mode((short) 0700).toProto())).setPersisted(true));
     long fileId = mFsMaster.getFileId(path);
 
     // calls getFileInfo on child to load metadata of parent

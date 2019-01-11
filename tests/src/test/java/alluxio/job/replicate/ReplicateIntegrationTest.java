@@ -67,7 +67,7 @@ public final class ReplicateIntegrationTest extends JobIntegrationTest {
 
   private void createFileOutsideOfAlluxio(AlluxioURI uri) throws Exception {
     try (FileOutStream os = mFileSystem.createFile(uri,
-        CreateFilePOptions.newBuilder().setWriteType(WritePType.WRITE_THROUGH)
+        CreateFilePOptions.newBuilder().setWriteType(WritePType.THROUGH)
             .setBlockSizeBytes(TEST_BLOCK_SIZE).setRecursive(true).build())) {
       os.write(BufferUtils.getIncreasingByteArray(TEST_BLOCK_SIZE + 1));
     }

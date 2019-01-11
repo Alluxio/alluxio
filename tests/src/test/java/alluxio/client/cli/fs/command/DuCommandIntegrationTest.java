@@ -26,13 +26,13 @@ public final class DuCommandIntegrationTest extends AbstractFileSystemShellTest 
   @Test
   public void du() throws Exception {
     FileSystemTestUtils.createByteFile(mFileSystem, "/testRoot/testFileA",
-        WritePType.WRITE_MUST_CACHE, 0);
+        WritePType.MUST_CACHE, 0);
     FileSystemTestUtils.createByteFile(mFileSystem, "/testRoot/testFileB",
-        WritePType.WRITE_MUST_CACHE, 21243);
+        WritePType.MUST_CACHE, 21243);
     FileSystemTestUtils.createByteFile(mFileSystem, "/testRoot/testDir/testFileC",
-        WritePType.WRITE_THROUGH, 9712654);
+        WritePType.THROUGH, 9712654);
     FileSystemTestUtils.createByteFile(mFileSystem, "/testRoot/testDir/testDir/testFileD",
-        WritePType.WRITE_THROUGH, 532982);
+        WritePType.THROUGH, 532982);
 
     String expected = "";
 
@@ -63,11 +63,11 @@ public final class DuCommandIntegrationTest extends AbstractFileSystemShellTest 
   @Test
   public void duWildcard() throws Exception {
     FileSystemTestUtils.createByteFile(mFileSystem, "/testRoot/testDir1/testFileA",
-        WritePType.WRITE_MUST_CACHE, 10);
+        WritePType.MUST_CACHE, 10);
     FileSystemTestUtils.createByteFile(mFileSystem, "/testRoot/testDir2/testFileB",
-        WritePType.WRITE_THROUGH, 20);
+        WritePType.THROUGH, 20);
     FileSystemTestUtils.createByteFile(mFileSystem, "/testRoot/testDir2/testNotIncludeFile",
-        WritePType.WRITE_MUST_CACHE, 30);
+        WritePType.MUST_CACHE, 30);
 
     mFsShell.run("du", "/testRoot/*/testFile*");
     String expected = "File Size     In Alluxio       Path\n"

@@ -133,11 +133,11 @@ public final class MoveDefinitionRunTaskTest {
   public void writeTypeTest() throws Exception {
     runTask(TEST_SOURCE, TEST_SOURCE, TEST_DESTINATION, WriteType.CACHE_THROUGH);
     verify(mMockFileSystem).createFile(eq(new AlluxioURI(TEST_DESTINATION)), Matchers
-        .eq(CreateFilePOptions.newBuilder().setWriteType(WritePType.WRITE_CACHE_THROUGH)).build());
+        .eq(CreateFilePOptions.newBuilder().setWriteType(WritePType.CACHE_THROUGH)).build());
 
     runTask(TEST_SOURCE, TEST_SOURCE, TEST_DESTINATION, WriteType.MUST_CACHE);
     verify(mMockFileSystem).createFile(eq(new AlluxioURI(TEST_DESTINATION)), Matchers
-        .eq(CreateFilePOptions.newBuilder().setWriteType(WritePType.WRITE_MUST_CACHE)).build());
+        .eq(CreateFilePOptions.newBuilder().setWriteType(WritePType.MUST_CACHE)).build());
   }
 
   /**

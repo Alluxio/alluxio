@@ -131,7 +131,7 @@ private static final long serialVersionUID = 0L;
    */
   public alluxio.grpc.ReadPType getReadType() {
     alluxio.grpc.ReadPType result = alluxio.grpc.ReadPType.valueOf(readType_);
-    return result == null ? alluxio.grpc.ReadPType.READ_NO_CACHE : result;
+    return result == null ? alluxio.grpc.ReadPType.NO_CACHE : result;
   }
 
   public static final int MAXUFSREADCONCURRENCY_FIELD_NUMBER = 2;
@@ -643,7 +643,7 @@ private static final long serialVersionUID = 0L;
      */
     public alluxio.grpc.ReadPType getReadType() {
       alluxio.grpc.ReadPType result = alluxio.grpc.ReadPType.valueOf(readType_);
-      return result == null ? alluxio.grpc.ReadPType.READ_NO_CACHE : result;
+      return result == null ? alluxio.grpc.ReadPType.NO_CACHE : result;
     }
     /**
      * <code>optional .alluxio.grpc.file.ReadPType readType = 1;</code>
