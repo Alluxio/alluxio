@@ -11,6 +11,7 @@
 
 package alluxio.master.file.meta;
 
+import alluxio.collections.LRUCache;
 import alluxio.concurrent.WeakSafeReentrantReadWriteLock;
 import alluxio.master.file.meta.InodeTree.LockMode;
 import alluxio.resource.LockResource;
@@ -44,32 +45,14 @@ public class InodeLockManager {
    * We use weak values so that when nothing holds a reference to
    * a lock, the garbage collector can remove the lock's entry from the cache.
    */
-  public final LoadingCache<Long, WeakSafeReentrantReadWriteLock> mInodeLocks =
-      CacheBuilder.<Long, WeakSafeReentrantReadWriteLock>newBuilder()
-          .weakValues()
-          .initialCapacity(1_000)
-          .concurrencyLevel(100)
-          .build(new CacheLoader<Long, WeakSafeReentrantReadWriteLock>() {
-            @Override
-            public WeakSafeReentrantReadWriteLock load(Long key) {
-              return new WeakSafeReentrantReadWriteLock();
-            }
-          });
+  public final LRUCache<Long, WeakSafeReentrantReadWriteLock> mInodeLocks =
+      new LRUCache<>(()-> new WeakSafeReentrantReadWriteLock(), 1000, 1000000, 100);
 
   /**
    * Cache for supplying edge locks, similar to mInodeLocks.
    */
-  public final LoadingCache<Edge, WeakSafeReentrantReadWriteLock> mEdgeLocks =
-      CacheBuilder.<Long, WeakSafeReentrantReadWriteLock>newBuilder()
-          .weakValues()
-          .initialCapacity(1_000)
-          .concurrencyLevel(100)
-          .build(new CacheLoader<Edge, WeakSafeReentrantReadWriteLock>() {
-            @Override
-            public WeakSafeReentrantReadWriteLock load(Edge key) {
-              return new WeakSafeReentrantReadWriteLock();
-            }
-          });
+  public final LRUCache<Edge, WeakSafeReentrantReadWriteLock> mEdgeLocks =
+      new LRUCache<>(()-> new WeakSafeReentrantReadWriteLock(), 1000, 1000000, 100);
 
   /**
    * Cache for supplying inode persistence locks. Before a thread can persist an inode, it must
