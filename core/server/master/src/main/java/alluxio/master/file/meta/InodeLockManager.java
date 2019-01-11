@@ -45,12 +45,13 @@ public class InodeLockManager {
    * We use weak values so that when nothing holds a reference to
    * a lock, the garbage collector can remove the lock's entry from the cache.
    */
+
   public final LRUCache<Long, WeakSafeReentrantReadWriteLock> mInodeLocks =
       new LRUCache<>(()-> new WeakSafeReentrantReadWriteLock(), 1000, 1000000, 100);
-
   /**
    * Cache for supplying edge locks, similar to mInodeLocks.
    */
+
   public final LRUCache<Edge, WeakSafeReentrantReadWriteLock> mEdgeLocks =
       new LRUCache<>(()-> new WeakSafeReentrantReadWriteLock(), 1000, 1000000, 100);
 
