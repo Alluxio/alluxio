@@ -168,15 +168,15 @@ public final class PermissionCheckerTest {
   public static void beforeClass() throws Exception {
     sFileContext = CreateFileContext
         .defaults(CreateFilePOptions.newBuilder().setBlockSizeBytes(Constants.KB)
-            .setMode(TEST_NORMAL_MODE.toShort()))
+            .setMode(TEST_NORMAL_MODE.toProto()))
         .setOwner(TEST_USER_2.getUser()).setGroup(TEST_USER_2.getGroup());
     sWeirdFileContext = CreateFileContext
         .defaults(CreateFilePOptions.newBuilder().setBlockSizeBytes(Constants.KB)
-            .setMode(TEST_WEIRD_MODE.toShort()))
+            .setMode(TEST_WEIRD_MODE.toProto()))
         .setOwner(TEST_USER_1.getUser()).setGroup(TEST_USER_1.getGroup());
     sNestedFileContext = CreateFileContext
         .defaults(CreateFilePOptions.newBuilder().setBlockSizeBytes(Constants.KB)
-            .setMode(TEST_NORMAL_MODE.toShort()).setRecursive(true))
+            .setMode(TEST_NORMAL_MODE.toProto()).setRecursive(true))
         .setOwner(TEST_USER_1.getUser()).setGroup(TEST_USER_1.getGroup());
 
     // setup an InodeTree
@@ -233,7 +233,7 @@ public final class PermissionCheckerTest {
       InodeTree.CreatePathResult result = sTree.createPath(RpcContext.NOOP, inodePath, context);
       ((InodeFile) result.getCreated().get(result.getCreated().size() - 1))
           .setOwner(context.getOwner()).setGroup(context.getGroup())
-          .setMode((short) context.getOptions().getMode());
+          .setMode(context.getMode().toShort());
     }
   }
 

@@ -2517,7 +2517,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
     if (resolution.getShared()) {
       mode.setOtherBits(mode.getOtherBits().or(mode.getOwnerBits()));
     }
-    createFileContext.getOptions().setMode(mode.toShort());
+    createFileContext.getOptions().setMode(mode.toProto());
     if (acl != null) {
       createFileContext.setAcl(acl.getEntries());
     }
@@ -2595,7 +2595,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
     if (resolution.getShared()) {
       mode.setOtherBits(mode.getOtherBits().or(mode.getOwnerBits()));
     }
-    createDirectoryContext.getOptions().setMode(mode.toShort());
+    createDirectoryContext.getOptions().setMode(mode.toProto());
     createDirectoryContext.setOwner(ufsOwner).setGroup(ufsGroup)
         .setUfsStatus(context.getUfsStatus());
     if (acl != null) {

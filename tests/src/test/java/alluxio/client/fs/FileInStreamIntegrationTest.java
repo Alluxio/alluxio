@@ -75,13 +75,13 @@ public final class FileInStreamIntegrationTest extends BaseIntegrationTest {
   @Before
   public void before() throws Exception {
     mFileSystem = mLocalAlluxioClusterResource.get().getClient();
-    mWriteBoth = CreateFilePOptions.newBuilder().setMode(Mode.createFullAccess().toShort())
+    mWriteBoth = CreateFilePOptions.newBuilder().setMode(Mode.createFullAccess().toProto())
         .setBlockSizeBytes(BLOCK_SIZE).setWriteType(WritePType.CACHE_THROUGH)
         .setRecursive(true).build();
-    mWriteAlluxio = CreateFilePOptions.newBuilder().setMode(Mode.createFullAccess().toShort())
+    mWriteAlluxio = CreateFilePOptions.newBuilder().setMode(Mode.createFullAccess().toProto())
         .setBlockSizeBytes(BLOCK_SIZE).setWriteType(WritePType.MUST_CACHE).setRecursive(true)
         .build();
-    mWriteUnderStore = CreateFilePOptions.newBuilder().setMode(Mode.createFullAccess().toShort())
+    mWriteUnderStore = CreateFilePOptions.newBuilder().setMode(Mode.createFullAccess().toProto())
         .setBlockSizeBytes(BLOCK_SIZE).setWriteType(WritePType.THROUGH).setRecursive(true)
         .build();
     mTestPath = PathUtils.uniqPath();

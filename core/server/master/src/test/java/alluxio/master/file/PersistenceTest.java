@@ -458,7 +458,7 @@ public final class PersistenceTest {
     mFileSystemMaster.createFile(path,
         CreateFileContext
             .defaults(
-                CreateFilePOptions.newBuilder().setMode(Mode.createFullAccess().toShort()))
+                CreateFilePOptions.newBuilder().setMode(Mode.createFullAccess().toProto()))
             .setOwner(owner).setGroup(group));
     mFileSystemMaster.completeFile(path, CompleteFileContext.defaults());
     return path;

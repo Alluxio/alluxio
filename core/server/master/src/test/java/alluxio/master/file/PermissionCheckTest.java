@@ -210,7 +210,7 @@ public final class PermissionCheckTest {
     // create "/testDir" for user1
     try (Closeable r = new AuthenticatedUserRule(TEST_USER_ADMIN.getUser()).toResource()) {
       mFileSystemMaster.createDirectory(new AlluxioURI("/testDir"), CreateDirectoryContext
-          .defaults(CreateDirectoryPOptions.newBuilder().setMode(TEST_DIR_MODE.toShort()))
+          .defaults(CreateDirectoryPOptions.newBuilder().setMode(TEST_DIR_MODE.toProto()))
           .setOwner(TEST_USER_1.getUser()).setGroup(TEST_USER_1.getGroup()));
     }
 
@@ -219,7 +219,7 @@ public final class PermissionCheckTest {
       mFileSystemMaster.createFile(new AlluxioURI("/testDir/file"),
           CreateFileContext
               .defaults(CreateFilePOptions.newBuilder().setBlockSizeBytes(Constants.KB)
-                  .setMode(TEST_FILE_MODE.toShort()))
+                  .setMode(TEST_FILE_MODE.toProto()))
               .setOwner(TEST_USER_1.getUser()).setGroup(TEST_USER_1.getGroup()));
     }
 
@@ -228,7 +228,7 @@ public final class PermissionCheckTest {
       mFileSystemMaster.createFile(new AlluxioURI("/testFile"),
           CreateFileContext
               .defaults(CreateFilePOptions.newBuilder().setBlockSizeBytes(Constants.KB)
-                  .setMode(TEST_FILE_MODE.toShort()))
+                  .setMode(TEST_FILE_MODE.toProto()))
               .setOwner(TEST_USER_2.getUser()).setGroup(TEST_USER_2.getGroup()));
     }
   }
@@ -236,7 +236,7 @@ public final class PermissionCheckTest {
   private InodeDirectory getRootInode() {
     return InodeDirectory.create(0, -1, "",
         CreateDirectoryContext
-            .defaults(CreateDirectoryPOptions.newBuilder().setMode(TEST_DIR_MODE.toShort()))
+            .defaults(CreateDirectoryPOptions.newBuilder().setMode(TEST_DIR_MODE.toProto()))
             .setOwner(TEST_USER_ADMIN.getUser()).setGroup(TEST_USER_ADMIN.getGroup()));
   }
 

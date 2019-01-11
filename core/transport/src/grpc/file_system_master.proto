@@ -71,7 +71,7 @@ message CreateDirectoryPResponse {}
 message CreateDirectoryPOptions {
   optional bool recursive = 1;
   optional bool allowExists = 2;
-  optional int32 mode = 3;
+  optional PMode mode = 3;
   optional WritePType writeType = 4;
   optional FileSystemMasterCommonPOptions commonOptions = 5;
 }
@@ -85,7 +85,7 @@ message CreateFilePResponse {}
 message CreateFilePOptions {
   optional int64 blockSizeBytes = 1;
   optional bool recursive = 2;
-  optional int32 mode = 3;
+  optional PMode mode = 3;
   optional int32 replicationMax = 4;
   optional int32 replicationMin = 5;
   optional int32 replicationDurable = 6;

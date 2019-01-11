@@ -21,6 +21,7 @@ import alluxio.proto.journal.File.UpdateInodeFileEntry;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.security.authorization.AccessControlList;
 import alluxio.security.authorization.DefaultAccessControlList;
+import alluxio.security.authorization.Mode;
 import alluxio.util.proto.ProtoUtils;
 import alluxio.wire.FileInfo;
 
@@ -415,7 +416,7 @@ public final class InodeFile extends Inode<InodeFile> implements InodeFileView {
         .setLastModificationTimeMs(context.getOperationTimeMs(), true)
         .setOwner(context.getOwner())
         .setGroup(context.getGroup())
-        .setMode((short) context.getOptions().getMode())
+        .setMode(context.getMode().toShort())
         .setAcl(context.getAcl())
         .setPersistenceState(context.getPersisted() ? PersistenceState.PERSISTED
             : PersistenceState.NOT_PERSISTED);

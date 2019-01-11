@@ -71,7 +71,7 @@ public final class FileSystemMasterOptions{
   public static CreateDirectoryPOptions createDirectoryDefaults() {
     return CreateDirectoryPOptions.newBuilder()
         .setCommonOptions(commonDefaults())
-        .setMode(ModeUtils.applyDirectoryUMask(Mode.defaults()).toShort())
+        .setMode(ModeUtils.applyDirectoryUMask(Mode.defaults()).toProto())
         .setRecursive(false)
         .setWriteType(Configuration
             .getEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class).toProto())
@@ -90,7 +90,7 @@ public final class FileSystemMasterOptions{
         .setWriteTier(Configuration.getInt(PropertyKey.USER_FILE_WRITE_TIER_DEFAULT))
         .setWriteType(Configuration
             .getEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class).toProto())
-        .setMode(ModeUtils.applyFileUMask(Mode.defaults()).toShort())
+        .setMode(ModeUtils.applyFileUMask(Mode.defaults()).toProto())
         .setReplicationDurable(Configuration.getInt(PropertyKey.USER_FILE_REPLICATION_DURABLE))
         .setReplicationMin(Configuration.getInt(PropertyKey.USER_FILE_REPLICATION_MIN))
         .setReplicationMax(Configuration.getInt(PropertyKey.USER_FILE_REPLICATION_MAX)).build();

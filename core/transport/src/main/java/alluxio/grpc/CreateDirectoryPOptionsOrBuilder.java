@@ -26,13 +26,17 @@ public interface CreateDirectoryPOptionsOrBuilder extends
   boolean getAllowExists();
 
   /**
-   * <code>optional int32 mode = 3;</code>
+   * <code>optional .alluxio.grpc.PMode mode = 3;</code>
    */
   boolean hasMode();
   /**
-   * <code>optional int32 mode = 3;</code>
+   * <code>optional .alluxio.grpc.PMode mode = 3;</code>
    */
-  int getMode();
+  alluxio.grpc.PMode getMode();
+  /**
+   * <code>optional .alluxio.grpc.PMode mode = 3;</code>
+   */
+  alluxio.grpc.PModeOrBuilder getModeOrBuilder();
 
   /**
    * <code>optional .alluxio.grpc.file.WritePType writeType = 4;</code>

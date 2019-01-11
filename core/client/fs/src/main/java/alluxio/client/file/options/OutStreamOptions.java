@@ -74,7 +74,7 @@ public final class OutStreamOptions {
       mBlockSizeBytes = options.getBlockSizeBytes();
     }
     if (options.hasMode()) {
-      mMode = new Mode((short) options.getMode());
+      mMode = Mode.fromProto(options.getMode());
     }
     if (options.hasReplicationDurable()) {
       mReplicationDurable = options.getReplicationDurable();

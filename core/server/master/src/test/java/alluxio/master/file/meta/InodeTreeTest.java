@@ -140,17 +140,17 @@ public final class InodeTreeTest {
     sFileContext =
         CreateFileContext
             .defaults(CreateFilePOptions.newBuilder().setBlockSizeBytes(Constants.KB)
-                .setMode(TEST_FILE_MODE.toShort()))
+                .setMode(TEST_FILE_MODE.toProto()))
             .setOwner(TEST_OWNER).setGroup(TEST_GROUP);
     sDirectoryContext = CreateDirectoryContext
-        .defaults(CreateDirectoryPOptions.newBuilder().setMode(TEST_DIR_MODE.toShort()))
+        .defaults(CreateDirectoryPOptions.newBuilder().setMode(TEST_DIR_MODE.toProto()))
         .setOwner(TEST_OWNER).setGroup(TEST_GROUP);
     sNestedFileContext = CreateFileContext
         .defaults(CreateFilePOptions.newBuilder().setBlockSizeBytes(Constants.KB)
-            .setMode(TEST_FILE_MODE.toShort()).setRecursive(true))
+            .setMode(TEST_FILE_MODE.toProto()).setRecursive(true))
         .setOwner(TEST_OWNER).setGroup(TEST_GROUP);
     sNestedDirectoryContext = CreateDirectoryContext.defaults(
-        CreateDirectoryPOptions.newBuilder().setMode(TEST_DIR_MODE.toShort()).setRecursive(true))
+        CreateDirectoryPOptions.newBuilder().setMode(TEST_DIR_MODE.toProto()).setRecursive(true))
         .setOwner(TEST_OWNER).setGroup(TEST_GROUP);
   }
 
@@ -259,7 +259,7 @@ public final class InodeTreeTest {
   @Test
   public void createPathNonExtendedAclTest() throws Exception {
     CreateDirectoryContext dirContext = CreateDirectoryContext.defaults(
-        CreateDirectoryPOptions.newBuilder().setRecursive(true).setMode(TEST_DIR_MODE.toShort()))
+        CreateDirectoryPOptions.newBuilder().setRecursive(true).setMode(TEST_DIR_MODE.toProto()))
             .setOwner(TEST_OWNER).setGroup(TEST_GROUP);
     // create nested directory
     InodeTree.CreatePathResult createResult = createPath(mTree, NESTED_URI, dirContext);
@@ -319,7 +319,7 @@ public final class InodeTreeTest {
   @Test
   public void createPathExtendedAclTest() throws Exception {
     CreateDirectoryContext dirContext = CreateDirectoryContext.defaults(
-        CreateDirectoryPOptions.newBuilder().setRecursive(true).setMode(TEST_DIR_MODE.toShort()))
+        CreateDirectoryPOptions.newBuilder().setRecursive(true).setMode(TEST_DIR_MODE.toProto()))
         .setOwner(TEST_OWNER).setGroup(TEST_GROUP);
     // create nested directory /nested/test
     InodeTree.CreatePathResult createResult = createPath(mTree, NESTED_URI, dirContext);
@@ -349,7 +349,7 @@ public final class InodeTreeTest {
     // create nested file
     CreateFileContext fileContext = CreateFileContext
         .defaults(
-            CreateFilePOptions.newBuilder().setRecursive(true).setMode(TEST_FILE_MODE.toShort()))
+            CreateFilePOptions.newBuilder().setRecursive(true).setMode(TEST_FILE_MODE.toProto()))
         .setOwner(TEST_OWNER).setGroup(TEST_GROUP);
     createResult = createPath(mTree, NESTED_FILE_URI, fileContext);
     created = createResult.getCreated();
@@ -381,7 +381,7 @@ public final class InodeTreeTest {
 
     // Need to use updated options to set the correct last mod time.
     CreateDirectoryContext dirContext = CreateDirectoryContext.defaults(
-        CreateDirectoryPOptions.newBuilder().setRecursive(true).setMode(TEST_DIR_MODE.toShort()))
+        CreateDirectoryPOptions.newBuilder().setRecursive(true).setMode(TEST_DIR_MODE.toProto()))
             .setOwner(TEST_OWNER).setGroup(TEST_GROUP);
 
     // create nested directory
