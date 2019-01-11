@@ -157,6 +157,7 @@ public final class GrpcDataWriter implements DataWriter {
   public void writeChunk(final ByteBuf buf) throws IOException {
     mPosToQueue += buf.readableBytes();
     try {
+      // TODO(bf8086): find a way to do zero-copy data streaming
       mStream.send(WriteRequest.newBuilder().setCommand(mPartialRequest).setChunk(
           Chunk.newBuilder()
               .setData(ByteString.copyFrom(buf.nioBuffer()))
