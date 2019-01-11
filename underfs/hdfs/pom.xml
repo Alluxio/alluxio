@@ -25,7 +25,8 @@
     <!-- The following paths need to be defined here as well as in the parent pom so that mvn can -->
     <!-- run properly from sub-project directories -->
     <build.path>${project.parent.parent.basedir}/build</build.path>
-    <ufs.hadoop.version>${hadoop.version}</ufs.hadoop.version>
+    <!-- Decouple hadoop versions between north and south bound -->
+    <ufs.hadoop.version>2.2.0</ufs.hadoop.version>
   </properties>
 
   <dependencies>
@@ -57,7 +58,8 @@
   <profiles>
     <!-- Profile to build this UFS module connecting to hdfs 1 -->
     <profile>
-      <id>hadoop-1</id>
+      <!-- Decouple hadoop profiles: hadoop-1 to indicate north bound and ufs-hadoop-1 to indicate the south bound -->
+      <id>ufs-hadoop-1</id>
       <dependencies>
         <dependency>
           <groupId>org.apache.hadoop</groupId>
@@ -84,7 +86,8 @@
 
     <!-- Profile to build this UFS module connecting to hdfs 2, this is the default profile -->
     <profile>
-      <id>hadoop-2</id>
+      <!-- Decouple hadoop profiles: hadoop-2 to indicate north bound and ufs-hadoop-2 to indicate the south bound -->
+      <id>ufs-hadoop-2</id>
       <activation>
         <activeByDefault>true</activeByDefault>
       </activation>
@@ -198,6 +201,22 @@
         <artifactId>copy-rename-maven-plugin</artifactId>
       </plugin>
 
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>templating-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>filter-src</id>
+            <goals>
+              <goal>filter-sources</goal>
+            </goals>
+            <configuration>
+              <sourceDirectory>${basedir}/src/main/java-templates</sourceDirectory>
+              <outputDirectory>${basedir}/src/main/java</outputDirectory>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
       <plugin>
         <groupId>com.igormaznitsa</groupId>
         <artifactId>jcp</artifactId>
