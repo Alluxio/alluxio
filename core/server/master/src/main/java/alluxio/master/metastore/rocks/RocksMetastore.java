@@ -33,8 +33,8 @@ public class RocksMetastore implements Metastore {
    */
   public RocksMetastore(InstancedConfiguration conf) {
     try {
-      mInodeStore = new CachingInodeStore(new RocksInodeStore(), conf);
-      mBlockStore = new RocksBlockStore();
+      mInodeStore = new CachingInodeStore(new RocksInodeStore(conf), conf);
+      mBlockStore = new RocksBlockStore(conf);
     } catch (RocksDBException e) {
       throw new RuntimeException(e);
     }

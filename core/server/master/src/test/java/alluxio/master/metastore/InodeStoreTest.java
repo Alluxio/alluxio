@@ -15,6 +15,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import alluxio.AlluxioTestDirectory;
 import alluxio.PropertyKey;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.master.file.meta.Inode;
@@ -41,9 +42,12 @@ public class InodeStoreTest {
   @Parameters
   public static Iterable<InodeStore> parameters() throws Exception {
     InstancedConfiguration conf = InstancedConfiguration.newBuilder()
-        .setProperty(PropertyKey.MASTER_METASTORE_INODE_CACHE_SIZE, 3).build();
-    return Arrays.asList(new HeapInodeStore(), new RocksInodeStore(),
-        new CachingInodeStore(new RocksInodeStore(), conf));
+        .setProperty(PropertyKey.MASTER_METASTORE_DIR,
+            AlluxioTestDirectory.createTemporaryDirectory("inode-store-test"))
+        .setProperty(PropertyKey.MASTER_METASTORE_INODE_CACHE_SIZE, 3)
+        .build();
+    return Arrays.asList(new HeapInodeStore(), new RocksInodeStore(conf),
+        new CachingInodeStore(new RocksInodeStore(conf), conf));
   }
 
   private static final MutableInodeDirectory ROOT = inodeDir(0, -1, "");

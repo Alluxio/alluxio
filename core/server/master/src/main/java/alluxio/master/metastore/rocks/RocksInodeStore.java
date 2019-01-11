@@ -11,8 +11,8 @@
 
 package alluxio.master.metastore.rocks;
 
-import alluxio.Configuration;
 import alluxio.PropertyKey;
+import alluxio.conf.InstancedConfiguration;
 import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeDirectoryView;
 import alluxio.master.file.meta.InodeView;
@@ -59,6 +59,7 @@ public class RocksInodeStore implements InodeStore {
   private final WriteOptions mDisableWAL;
   private final ReadOptions mReadPrefixSameAsStart;
 
+  private final InstancedConfiguration mConf;
   private final String mBaseDir;
 
   private String mDbPath;
@@ -69,9 +70,12 @@ public class RocksInodeStore implements InodeStore {
 
   /**
    * Creates and initializes a rocks block store.
+   *
+   * @param conf configuration
    */
-  public RocksInodeStore() throws RocksDBException {
-    mBaseDir = Configuration.get(PropertyKey.MASTER_METASTORE_DIR);
+  public RocksInodeStore(InstancedConfiguration conf) throws RocksDBException {
+    mConf = conf;
+    mBaseDir = conf.get(PropertyKey.MASTER_METASTORE_DIR);
     RocksDB.loadLibrary();
     mDisableWAL = new WriteOptions().setDisableWAL(true);
     mReadPrefixSameAsStart = new ReadOptions().setPrefixSameAsStart(true);
@@ -254,7 +258,7 @@ public class RocksInodeStore implements InodeStore {
     new File(mBaseDir).mkdirs();
 
     TableFormatConfig tableFormatConfig;
-    if (Configuration.getBoolean(PropertyKey.MASTER_METASTORE_ROCKS_IN_MEMORY)) {
+    if (mConf.getBoolean(PropertyKey.MASTER_METASTORE_ROCKS_IN_MEMORY)) {
       tableFormatConfig = new PlainTableConfig();
     } else {
       tableFormatConfig = new BlockBasedTableConfig();
@@ -279,7 +283,7 @@ public class RocksInodeStore implements InodeStore {
         .setCreateIfMissing(true)
         .setCreateMissingColumnFamilies(true);
 
-    if (Configuration.getBoolean(PropertyKey.MASTER_METASTORE_ROCKS_IN_MEMORY)) {
+    if (mConf.getBoolean(PropertyKey.MASTER_METASTORE_ROCKS_IN_MEMORY)) {
       options.setAllowMmapReads(true);
       options.setAllowMmapWrites(true);
     }
