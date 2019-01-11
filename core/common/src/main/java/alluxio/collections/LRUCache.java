@@ -87,6 +87,7 @@ public class LRUCache<K, V> {
   }
 
   public void put(final K key, final V value) {
+    // TODO:(yuzhu) avoid calling get twice
     Future<V> future = mCache.get(key);
     if (future == null) {
       putIfAbsent(key, value);
