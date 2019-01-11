@@ -66,6 +66,9 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
   /** A {@link URI} is used to hold the URI components. */
   private final URI mUri;
 
+  // Cached string version of the AlluxioURI
+  private String mUriString = null;
+
   /**
    * Constructs an {@link AlluxioURI} from a String. Path strings are URIs, but with unescaped
    * elements and some additional normalization.
@@ -468,6 +471,9 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
    */
   @Override
   public String toString() {
+    if (mUriString != null) {
+      return mUriString;
+    }
     StringBuilder sb = new StringBuilder();
     if (mUri.getScheme() != null) {
       sb.append(mUri.getScheme());
@@ -492,6 +498,7 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
       sb.append("?");
       sb.append(mUri.getQuery());
     }
-    return sb.toString();
+    mUriString = sb.toString();
+    return mUriString;
   }
 }
