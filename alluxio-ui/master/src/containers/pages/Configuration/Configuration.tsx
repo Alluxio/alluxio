@@ -21,7 +21,7 @@ import {fetchRequest} from '../../../store/config/actions';
 import {IConfig} from '../../../store/config/types';
 
 interface IPropsFromState {
-  errors: AxiosResponse;
+  errors?: AxiosResponse;
   loading: boolean;
   config: IConfig;
 }

@@ -30,9 +30,11 @@ module.exports = {
     // ...add your webpack config customisation, rewires, etc...
     const srcPath = resolveApp('src');
     const commonUiSrcPath = resolveApp('../common/src');
-    config.module.rules[0].include = [srcPath, commonUiSrcPath];
-    config.module.rules[1].oneOf[1].include = [srcPath, commonUiSrcPath];
-    config.module.rules[1].oneOf[2].include = [srcPath, commonUiSrcPath];
+    config.resolve.plugins[1].appSrcs = [srcPath, commonUiSrcPath];
+    config.module.rules[1].include = [srcPath, commonUiSrcPath];
+    config.module.rules[2].oneOf[1].include = [srcPath, commonUiSrcPath];
+    config.plugins[9].options.watch = [srcPath, commonUiSrcPath];
+    config.plugins[9].watch = [srcPath, commonUiSrcPath];
     return config;
   }
 };

@@ -25,7 +25,7 @@ export interface IOverview {
   'version': string;
 }
 
-export const enum OverviewActionTypes {
+export enum OverviewActionTypes {
   FETCH_REQUEST = '@@overview/FETCH_REQUEST',
   FETCH_SUCCESS = '@@overview/FETCH_SUCCESS',
   FETCH_ERROR = '@@overview/FETCH_ERROR'

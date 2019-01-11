@@ -18,7 +18,7 @@ export interface IConfig {
   whitelist: string[];
 }
 
-export const enum ConfigActionTypes {
+export enum ConfigActionTypes {
   FETCH_REQUEST = '@@config/FETCH_REQUEST',
   FETCH_SUCCESS = '@@config/FETCH_SUCCESS',
   FETCH_ERROR = '@@config/FETCH_ERROR'

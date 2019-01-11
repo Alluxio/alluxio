@@ -24,7 +24,7 @@ import {IData} from '../../../store/data/types';
 
 interface IPropsFromState {
   data: IData;
-  errors: AxiosResponse;
+  errors?: AxiosResponse;
   loading: boolean;
   location: {
     search: string;

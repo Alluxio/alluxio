@@ -21,7 +21,7 @@ import {fetchRequest} from '../../../store/workers/actions';
 import {IWorkers} from '../../../store/workers/types';
 
 interface IPropsFromState {
-  errors: AxiosResponse;
+  errors?: AxiosResponse;
   loading: boolean;
   workers: IWorkers;
 }

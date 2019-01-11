@@ -11,19 +11,19 @@
     "@fortawesome/react-fontawesome": "^0.1.3",
     "axios": "~0.18.0",
     "babel-polyfill": "~6.26.0",
-    "bootstrap": "~4.1.3",
-    "connected-react-router": "~5.0.1",
-    "react": "~16.6.3",
-    "react-dom": "~16.6.3",
+    "bootstrap": "~4.2.1",
+    "connected-react-router": "~6.1.0",
+    "react": "~16.7.0",
+    "react-dom": "~16.7.0",
     "react-helmet": "~5.2.0",
-    "react-redux": "~5.1.1",
+    "react-redux": "~6.0.0",
     "react-router-dom": "~4.3.1",
     "react-scripts": "^2.1.3",
-    "reactstrap": "~6.5.0",
+    "reactstrap": "~7.0.2",
     "redux": "~4.0.1",
     "redux-saga": "~0.16.2",
     "source-sans-pro": "^2.40.0",
-    "typesafe-actions": "~2.0.4"
+    "typesafe-actions": "~3.0.0"
   },
   "scripts": {
     "build-css": "node-sass-chokidar --include-path ./src --include-path ./node_modules src/ -o src/",
@@ -39,26 +39,26 @@
     "eject": "react-scripts eject"
   },
   "devDependencies": {
-    "@types/bootstrap": "~4.1.3",
+    "@types/bootstrap": "~4.2.0",
     "@types/enzyme": "~3.1.15",
     "@types/enzyme-adapter-react-16": "~1.0.3",
-    "@types/jest": "~23.3.10",
-    "@types/node": "~10.12.10",
-    "@types/react": "~16.7.9",
+    "@types/jest": "~23.3.12",
+    "@types/node": "~10.12.18",
+    "@types/react": "~16.7.18",
     "@types/react-dom": "~16.0.11",
-    "@types/react-helmet": "~5.0.7",
-    "@types/react-redux": "~6.0.10",
+    "@types/react-helmet": "~5.0.8",
+    "@types/react-redux": "~6.0.12",
     "@types/react-router-dom": "~4.3.1",
-    "@types/reactstrap": "~6.4.3",
-    "enzyme": "~3.7.0",
-    "enzyme-adapter-react-16": "~1.7.0",
-    "enzyme-to-json": "~3.3.4",
+    "@types/reactstrap": "~6.4.4",
+    "enzyme": "~3.8.0",
+    "enzyme-adapter-react-16": "~1.7.1",
+    "enzyme-to-json": "~3.3.5",
     "node-sass-chokidar": "~1.3.4",
     "npm-run-all": "~4.1.5",
-    "react-app-rewired": "~1.6.2",
-    "react-test-renderer": "~16.6.3",
+    "react-app-rewired": "~2.0.1",
+    "react-test-renderer": "~16.7.0",
     "redux-devtools-extension": "~2.13.7",
-    "typescript": "~3.2.1"
+    "typescript": "~3.2.2"
   },
   "jest": {
     "snapshotSerializers": [
@@ -68,5 +68,11 @@
   "engines": {
     "node": "10.11.0",
     "npm": "6.4.1"
-  }
+  },
+  "browserslist": [
+    ">0.2%",
+    "not dead",
+    "not ie <= 11",
+    "not op_mini all"
+  ]
 }

@@ -21,11 +21,11 @@ import {IFileBlockInfo, IFileInfo} from '@alluxio/common-ui/src/constants';
 import {parseQuerystring} from '@alluxio/common-ui/src/utilities';
 import {IApplicationState} from '../../../store';
 import {fetchRequest} from '../../../store/blockInfo/actions';
-import {IBlockInfo} from '../../../store/blockInfo/types';
+import {IBlockInfo, IFileBlocksOnTier} from '../../../store/blockInfo/types';
 
 interface IPropsFromState {
   blockInfo: IBlockInfo;
-  errors: AxiosResponse;
+  errors?: AxiosResponse;
   loading: boolean;
   location: {
     search: string;
@@ -84,8 +84,9 @@ class BlockInfo extends React.Component<AllProps, IBlockInfoState> {
 
   public render() {
     const {errors, blockInfo} = this.props;
-    let queryStringSuffix = ['offset', 'limit', 'end'].filter((key: string) => this.state[key] !== undefined)
-      .map((key: string) => `${key}=${this.state[key]}`).join('&');
+    let queryStringSuffix = Object.entries(this.state)
+      .filter((obj: any[]) => ['offset', 'limit', 'end'].includes(obj[0]) && obj[1] != undefined)
+      .map((obj: any) => `${obj[0]}=${obj[1]}`).join('&');
     queryStringSuffix = queryStringSuffix ? '&' + queryStringSuffix : queryStringSuffix;
 
     if (errors || blockInfo.invalidPathError || blockInfo.fatalError) {
@@ -128,12 +129,11 @@ class BlockInfo extends React.Component<AllProps, IBlockInfoState> {
           </tr>
           </thead>
           <tbody>
-            {Object.keys(blockInfo.fileBlocksOnTier).map((index: string) => {
-              const fileBlocksOnTier = blockInfo.fileBlocksOnTier[index];
+            {blockInfo.fileBlocksOnTier.map((fileBlocksOnTier: IFileBlocksOnTier) => {
               return Object.keys(fileBlocksOnTier).map((tierAlias: string) => {
                 const fileBlocksDatas: IFileBlockInfo[] = fileBlocksOnTier[tierAlias];
                 return fileBlocksDatas.map((fileBlocksData: IFileBlockInfo) => (
-                  <tr key={index + tierAlias}>
+                  <tr key={fileBlocksData.id}>
                     <td>{fileBlocksData.id}</td>
                     <td>{tierAlias}</td>
                     <td>{fileBlocksData.blockLength}</td>
