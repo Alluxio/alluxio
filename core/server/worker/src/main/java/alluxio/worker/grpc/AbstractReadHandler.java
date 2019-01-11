@@ -24,7 +24,7 @@ import alluxio.resource.LockResource;
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Meter;
 import com.google.common.base.Preconditions;
-import com.google.protobuf.UnsafeByteOperations;
+import com.google.protobuf.ByteString;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 import io.grpc.stub.ServerCallStreamObserver;
@@ -286,32 +286,36 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>>
           Preconditions.checkState(chunkSize > 0);
         }
 
-        DataBuffer chunk;
+        DataBuffer chunk = null;
         try {
           chunk = getDataBuffer(mContext, mResponse, start, chunkSize);
+          if (chunk != null) {
+            try (LockResource lr = new LockResource(mLock)) {
+              mContext.setPosToQueue(mContext.getPosToQueue() + chunk.getLength());
+            }
+          }
+          if (chunk == null || chunk.getLength() < chunkSize || start + chunkSize == mRequest
+              .getEnd()) {
+            // This can happen if the requested read length is greater than the actual length of the
+            // block or file starting from the given offset.
+            setEof();
+          }
+
+          if (chunk != null) {
+            ReadResponse response = ReadResponse.newBuilder().setChunk(Chunk.newBuilder()
+                .setData(ByteString.copyFrom(chunk.getReadOnlyByteBuffer())).build())
+                .build();
+            mResponse.onNext(response);
+            incrementMetrics(chunk.getLength());
+          }
         } catch (Exception e) {
           LOG.error("Failed to read data.", e);
           setError(new Error(AlluxioStatusException.fromThrowable(e), true));
           continue;
-        }
-        if (chunk != null) {
-          try (LockResource lr = new LockResource(mLock)) {
-            mContext.setPosToQueue(mContext.getPosToQueue() + chunk.getLength());
+        } finally {
+          if (chunk != null) {
+            chunk.release();
           }
-        }
-        if (chunk == null || chunk.getLength() < chunkSize || start + chunkSize == mRequest
-            .getEnd()) {
-          // This can happen if the requested read length is greater than the actual length of the
-          // block or file starting from the given offset.
-          setEof();
-        }
-
-        if (chunk != null) {
-          ReadResponse response = ReadResponse.newBuilder().setChunk(Chunk.newBuilder()
-              .setData(UnsafeByteOperations.unsafeWrap(chunk.getReadOnlyByteBuffer())).build())
-              .build();
-          mResponse.onNext(response);
-          incrementMetrics(chunk.getLength());
         }
       }
 
