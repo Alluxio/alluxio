@@ -19,7 +19,7 @@ export interface IWorkers {
   'failedNodeInfos': INodeInfo[]
 }
 
-export const enum WorkersActionTypes {
+export enum WorkersActionTypes {
   FETCH_REQUEST = '@@workers/FETCH_REQUEST',
   FETCH_SUCCESS = '@@workers/FETCH_SUCCESS',
   FETCH_ERROR = '@@workers/FETCH_ERROR'

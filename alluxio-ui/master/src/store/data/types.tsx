@@ -22,7 +22,7 @@ export interface IData {
   'showPermissions': boolean;
 }
 
-export const enum DataActionTypes {
+export enum DataActionTypes {
   FETCH_REQUEST = '@@data/FETCH_REQUEST',
   FETCH_SUCCESS = '@@data/FETCH_SUCCESS',
   FETCH_ERROR = '@@data/FETCH_ERROR'

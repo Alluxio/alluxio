@@ -21,7 +21,7 @@ import {fetchRequest} from '../../../store/overview/actions';
 import {IOverview} from '../../../store/overview/types';
 
 interface IPropsFromState {
-  errors: AxiosResponse;
+  errors?: AxiosResponse;
   loading: boolean;
   overview: IOverview;
 }

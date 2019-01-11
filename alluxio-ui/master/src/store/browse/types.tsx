@@ -34,7 +34,7 @@ export interface IBrowse {
   'viewingOffset': number;
 }
 
-export const enum BrowseActionTypes {
+export enum BrowseActionTypes {
   FETCH_REQUEST = '@@browse/FETCH_REQUEST',
   FETCH_SUCCESS = '@@browse/FETCH_SUCCESS',
   FETCH_ERROR = '@@browse/FETCH_ERROR'

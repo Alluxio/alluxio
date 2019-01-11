@@ -24,7 +24,7 @@ export interface ILogs {
   'viewingOffset': number;
 }
 
-export const enum LogsActionTypes {
+export enum LogsActionTypes {
   FETCH_REQUEST = '@@logs/FETCH_REQUEST',
   FETCH_SUCCESS = '@@logs/FETCH_SUCCESS',
   FETCH_ERROR = '@@logs/FETCH_ERROR'

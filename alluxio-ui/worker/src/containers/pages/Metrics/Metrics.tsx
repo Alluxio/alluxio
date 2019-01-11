@@ -20,7 +20,7 @@ import {fetchRequest} from '../../../store/metrics/actions';
 import {IMetrics} from '../../../store/metrics/types';
 
 interface IPropsFromState {
-  errors: AxiosResponse;
+  errors?: AxiosResponse;
   loading: boolean;
   metrics: IMetrics;
 }

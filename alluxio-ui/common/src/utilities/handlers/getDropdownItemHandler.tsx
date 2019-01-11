@@ -13,7 +13,7 @@ import React from 'react';
 
 import {FieldValidatorFunctionsType, getDropdownItemValidator} from './getDropdownItemValidator';
 
-type DropdownValidatorFunctionType = (this: any, event: React.FormEvent<HTMLElement>, isFormSubmission: boolean) => void;
+type DropdownValidatorFunctionType = (this: any, event: React.FormEvent<HTMLInputElement>, isFormSubmission?: boolean) => void;
 
 export const getDropdownItemHandler = (elementId: string, elementName: string, fieldValidatorFunctions: FieldValidatorFunctionsType) => {
   let inputValidatorFunction: DropdownValidatorFunctionType;
@@ -21,7 +21,7 @@ export const getDropdownItemHandler = (elementId: string, elementName: string, f
     inputValidatorFunction = getDropdownItemValidator(elementId, elementName, fieldValidatorFunctions);
   }
 
-  return function(this: any, event: React.MouseEvent<HTMLElement>, isFormSubmission?: boolean) {
+  return function(this: any, event: React.MouseEvent<HTMLInputElement>, isFormSubmission?: boolean) {
     const element = event.currentTarget;
     const elementValue = element && element.getAttribute('dropdownvalue');
     if (inputValidatorFunction) {

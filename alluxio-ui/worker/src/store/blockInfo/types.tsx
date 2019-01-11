@@ -13,12 +13,14 @@ import {AxiosResponse} from 'axios';
 
 import {IFileBlockInfo, IFileInfo} from '@alluxio/common-ui/src/constants';
 
+export interface IFileBlocksOnTier {
+  [tierAlias: string]: IFileBlockInfo[];
+}
+
 export interface IBlockInfo {
   'blockSizeBytes': string;
   'fatalError': string;
-  'fileBlocksOnTier': Array<{
-    [tierAlias: string]: IFileBlockInfo[];
-  }>;
+  'fileBlocksOnTier': IFileBlocksOnTier[];
   'fileInfos': IFileInfo[];
   'invalidPathError': string;
   'ntotalFile': number;
@@ -26,7 +28,7 @@ export interface IBlockInfo {
   'path': string;
 }
 
-export const enum BlockInfoActionTypes {
+export enum BlockInfoActionTypes {
   FETCH_REQUEST = '@@blockInfo/FETCH_REQUEST',
   FETCH_SUCCESS = '@@blockInfo/FETCH_SUCCESS',
   FETCH_ERROR = '@@blockInfo/FETCH_ERROR'

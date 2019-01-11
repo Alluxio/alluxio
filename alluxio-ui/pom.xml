@@ -102,6 +102,8 @@
               <arguments>
                 <argument>node_modules/.bin/lerna</argument>
                 <argument>run</argument>
+                <argument>--stream</argument>
+                <argument>--parallel</argument>
                 <argument>build</argument>
               </arguments>
             </configuration>

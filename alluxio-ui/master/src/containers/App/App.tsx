@@ -11,7 +11,7 @@
 
 import {ConnectedRouter} from 'connected-react-router';
 import React from 'react';
-import {connect, Provider} from 'react-redux';
+import {connect} from 'react-redux';
 import {StaticContext} from 'react-router';
 import {Redirect, Route, RouteComponentProps, Switch} from 'react-router-dom';
 import {Dispatch, Store} from 'redux';
@@ -31,7 +31,6 @@ interface IPropsFromDispatch {
 }
 
 interface IAppProps {
-  store: Store<IApplicationState>;
   history: History;
 }
 
@@ -61,31 +60,29 @@ class App extends React.Component<AllProps, IAppState> {
     const {refreshValue} = this.state;
 
     return (
-      <Provider store={store}>
-        <ConnectedRouter history={history as any}>
-          <div className="App pt-5 pb-4">
-            <div className="container-fluid sticky-top header-wrapper">
-              <Header history={history} data={headerNavigationData} autoRefreshCallback={this.setAutoRefresh}/>
-            </div>
-            <div className="pages container-fluid mt-3">
-              <Switch>
-                <Route exact={true} path="/" render={this.redirectToOverview}/>
-                <Route path="/overview" exact={true} render={getRoutedViewRenderer(Overview, {refreshValue})}/>
-                <Route path="/browse" exact={true} render={getRoutedViewRenderer(Browse, {refreshValue})}/>
-                <Route path="/config" exact={true} render={getRoutedViewRenderer(Configuration, {refreshValue})}/>
-                <Route path="/data" exact={true} render={getRoutedViewRenderer(Data, {refreshValue})}/>
-                <Route path="/logs" exact={true} render={getRoutedViewRenderer(Logs, {refreshValue})}/>
-                <Route path="/metrics" exact={true} render={getRoutedViewRenderer(Metrics, {refreshValue})}/>
-                <Route path="/workers" exact={true} render={getRoutedViewRenderer(Workers, {refreshValue})}/>
-                <Route render={this.redirectToOverview}/>
-              </Switch>
-            </div>
-            <div className="container-fluid footer-wrapper">
-              <Footer data={footerNavigationData}/>
-            </div>
+      <ConnectedRouter history={history as any}>
+        <div className="App pt-5 pb-4">
+          <div className="container-fluid sticky-top header-wrapper">
+            <Header history={history} data={headerNavigationData} autoRefreshCallback={this.setAutoRefresh}/>
           </div>
-        </ConnectedRouter>
-      </Provider>
+          <div className="pages container-fluid mt-3">
+            <Switch>
+              <Route exact={true} path="/" render={this.redirectToOverview}/>
+              <Route path="/overview" exact={true} render={getRoutedViewRenderer(Overview, {refreshValue})}/>
+              <Route path="/browse" exact={true} render={getRoutedViewRenderer(Browse, {refreshValue})}/>
+              <Route path="/config" exact={true} render={getRoutedViewRenderer(Configuration, {refreshValue})}/>
+              <Route path="/data" exact={true} render={getRoutedViewRenderer(Data, {refreshValue})}/>
+              <Route path="/logs" exact={true} render={getRoutedViewRenderer(Logs, {refreshValue})}/>
+              <Route path="/metrics" exact={true} render={getRoutedViewRenderer(Metrics, {refreshValue})}/>
+              <Route path="/workers" exact={true} render={getRoutedViewRenderer(Workers, {refreshValue})}/>
+              <Route render={this.redirectToOverview}/>
+            </Switch>
+          </div>
+          <div className="container-fluid footer-wrapper">
+            <Footer data={footerNavigationData}/>
+          </div>
+        </div>
+      </ConnectedRouter>
     );
   }
 

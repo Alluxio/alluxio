@@ -16,6 +16,7 @@ import {Action, createBrowserHistory, Location} from 'history';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import {Helmet} from 'react-helmet';
+import {Provider} from 'react-redux';
 
 import configureStore from './configureStore';
 import {App} from './containers';
@@ -28,6 +29,12 @@ import 'bootstrap/dist/css/bootstrap-grid.min.css';
 import 'bootstrap/dist/css/bootstrap-reboot.min.css';
 import './index.css';
 // tslint:enable:ordered-imports
+
+declare global {
+  interface Window {
+    initialReduxState: any;
+  }
+}
 
 const history = createBrowserHistory();
 history.listen((loc: Location, action: Action) => {
@@ -59,7 +66,9 @@ ReactDOM.render(
       <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
       <title>Alluxio Worker</title>
     </Helmet>
-    <App store={store} history={history}/>
+    <Provider store={store}>
+      <App history={history}/>
+    </Provider>
   </React.Fragment>,
   document.getElementById('root') as HTMLElement
 );

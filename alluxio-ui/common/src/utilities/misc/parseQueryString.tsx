@@ -21,7 +21,7 @@ export const parseQuerystring = (searchString: string): IParsedQueryString => {
     throw new Error('unable to parse querystring');
   }
 
-  const parsedSearch = {};
+  const parsedSearch: IParsedQueryString = {};
   for (let i = 0; i < searchArray.length; i += 2) {
     parsedSearch[searchArray[i]] = searchArray[i + 1];
   }

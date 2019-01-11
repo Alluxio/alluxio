@@ -53,7 +53,7 @@ export class FileView extends React.PureComponent<IFileViewProps> {
     super(props);
   }
 
-public render(): JSX.Element {
+  public render(): JSX.Element {
     const {
       allowDownload,
       beginInputHandler,
@@ -72,7 +72,8 @@ public render(): JSX.Element {
     return (
       <React.Fragment>
         <h5>
-          {viewData.currentDirectory ? viewData.currentDirectory.absolutePath : viewData.currentPath}: <small>First 5KB from {viewData.viewingOffset} in ASCII</small>
+          {viewData.currentDirectory ? viewData.currentDirectory.absolutePath : viewData.currentPath}: <small>First 5KB
+          from {viewData.viewingOffset} in ASCII</small>
         </h5>
         <Form className="mb-3 viewData-file-form" id="viewDataFileForm" inline={true}>
           <FormGroup className="mb-2 mr-sm-2 w-100">

@@ -24,7 +24,7 @@ import {fetchRequest} from '../../../store/logs/actions';
 import {ILogs} from '../../../store/logs/types';
 
 interface IPropsFromState {
-  errors: AxiosResponse;
+  errors?: AxiosResponse;
   loading: boolean;
   location: {
     search: string;
@@ -97,8 +97,9 @@ class Logs extends React.Component<AllProps, ILogsState> {
 
   public render() {
     const {errors, logs} = this.props;
-    let queryStringSuffix = ['offset', 'limit', 'end'].filter((key: string) => this.state[key] !== undefined)
-      .map((key: string) => `${key}=${this.state[key]}`).join('&');
+    let queryStringSuffix = Object.entries(this.state)
+      .filter((obj: any[]) => ['offset', 'limit', 'end'].includes(obj[0]) && obj[1] != undefined)
+      .map((obj: any) => `${obj[0]}=${obj[1]}`).join('&');
     queryStringSuffix = queryStringSuffix ? '&' + queryStringSuffix : queryStringSuffix;
 
     if (errors || logs.invalidPathError || logs.fatalError) {
@@ -128,13 +129,13 @@ class Logs extends React.Component<AllProps, ILogsState> {
   private renderFileView(logs: ILogs, queryStringSuffix: string) {
     const {textAreaHeight, path, offset, end, lastFetched} = this.state;
     const offsetInputHandler = this.createInputHandler('offset', value => value).bind(this);
-    const beginInputHandler = this.createInputHandler('end', value => undefined).bind(this);
-    const endInputHandler = this.createInputHandler('end', value => '1').bind(this);
+    const beginInputHandler = this.createButtonHandler('end', value => undefined).bind(this);
+    const endInputHandler = this.createButtonHandler('end', value => '1').bind(this);
     return (
-        <FileView beginInputHandler={beginInputHandler} end={end} endInputHandler={endInputHandler}
-                  lastFetched={lastFetched} offset={offset} offsetInputHandler={offsetInputHandler} path={path}
-                  queryStringPrefix="/logs" queryStringSuffix={queryStringSuffix} textAreaHeight={textAreaHeight}
-                  viewData={logs}/>
+      <FileView beginInputHandler={beginInputHandler} end={end} endInputHandler={endInputHandler}
+                lastFetched={lastFetched} offset={offset} offsetInputHandler={offsetInputHandler} path={path}
+                queryStringPrefix="/logs" queryStringSuffix={queryStringSuffix} textAreaHeight={textAreaHeight}
+                viewData={logs}/>
     );
   }
 
@@ -210,9 +211,13 @@ class Logs extends React.Component<AllProps, ILogsState> {
   private createInputHandler(stateKey: string, stateValueCallback: (value: string) => string | undefined) {
     return (event: React.ChangeEvent<HTMLInputElement>) => {
       const value = event.target.value;
-      const state = {};
-      state[stateKey] = stateValueCallback(value);
-      this.setState(state);
+      this.setState({...this.state, [stateKey]: stateValueCallback(value)});
+    };
+  }
+
+  private createButtonHandler(stateKey: string, stateValueCallback: (value?: string) => string | undefined) {
+    return (event: React.MouseEvent<HTMLButtonElement>) => {
+      this.setState({...this.state, [stateKey]: stateValueCallback()});
     };
   }
 
