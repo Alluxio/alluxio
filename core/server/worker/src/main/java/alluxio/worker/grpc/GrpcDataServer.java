@@ -60,6 +60,8 @@ public final class GrpcDataServer implements DataServer {
   private EventLoopGroup mBossGroup;
   private EventLoopGroup mWorkerGroup;
   private GrpcServer mServer;
+  /** non-null when the server is used with domain socket address.  */
+  private DomainSocketAddress mDomainSocketAddress = null;
 
   /**
    * Creates a new instance of {@link GrpcDataServer}.
@@ -77,6 +79,11 @@ public final class GrpcDataServer implements DataServer {
           .keepAliveTimeout(mKeepAliveTimeoutMs, TimeUnit.MILLISECONDS)
           .build()
           .start();
+      // There is no way to query domain socket address afterwards.
+      // So store the bind address if it's domain socket address.
+      if (address instanceof DomainSocketAddress) {
+        mDomainSocketAddress = (DomainSocketAddress) address;
+      }
     } catch (IOException e) {
       LOG.error("Server failed to start on {}", address.toString(), e);
       throw new RuntimeException(e);
@@ -138,11 +145,16 @@ public final class GrpcDataServer implements DataServer {
 
   @Override
   public SocketAddress getBindAddress() {
-    int port = mServer.getBindPort();
-    if (port < 0) {
-      return null;
+    if (mDomainSocketAddress != null) {
+      return mDomainSocketAddress;
+    } else {
+      // Server is created with Inet address.
+      int port = mServer.getBindPort();
+      if (port < 0) {
+        return null;
+      }
+      return new InetSocketAddress(port);
     }
-    return new InetSocketAddress(port);
   }
 
   @Override
