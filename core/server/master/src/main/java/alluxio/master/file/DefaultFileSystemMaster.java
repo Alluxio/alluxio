@@ -3594,7 +3594,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
             if (modeChanged) {
               try {
                 mode = String.valueOf(protoOptions.getMode());
-                ufs.setMode(ufsUri, Mode.fromProto(protoOptions.getMode()).toShort());
+                ufs.setMode(ufsUri, ModeUtils.protoToShort(protoOptions.getMode()));
               } catch (IOException e) {
                 throw new AccessControlException("Could not setMode for UFS file " + ufsUri
                     + " . Aborting the setAttribute operation in Alluxio.", e);
@@ -3628,7 +3628,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
       entry.setGroup(protoOptions.getGroup());
     }
     if (modeChanged) {
-      entry.setMode(Mode.fromProto(protoOptions.getMode()).toShort());
+      entry.setMode(ModeUtils.protoToShort(protoOptions.getMode()));
     }
     mInodeTree.updateInode(rpcContext, entry.build());
   }
