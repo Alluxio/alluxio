@@ -13,6 +13,7 @@ package alluxio.collections;
 
 import com.google.common.cache.AbstractLoadingCache;
 import com.google.common.cache.LoadingCache;
+import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -64,6 +65,7 @@ public class LRUCache<K, V> {
       throw new RuntimeException(e.getCause());
     }
   }
+
   public V getValue(final K key) throws InterruptedException, ExecutionException {
     try {
       final Future<V> future = createFutureIfAbsent(key, mDefaultLoader);
@@ -80,7 +82,18 @@ public class LRUCache<K, V> {
     }
   }
 
-  public void setValueIfAbsent(final K key, final V value) {
+  public void putIfAbsent(final K key, final V value) {
     createFutureIfAbsent(key, () -> value);
+  }
+
+  public void put(final K key, final V value) {
+    Future<V> future = mCache.get(key);
+    if (future == null) {
+      putIfAbsent(key, value);
+    } else {
+      future = Futures.immediateFuture(value);
+      mCache.put(key, future);
+
+    }
   }
 }
