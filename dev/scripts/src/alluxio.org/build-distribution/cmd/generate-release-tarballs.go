@@ -34,6 +34,9 @@ func init() {
 }
 
 func checkReleaseFlags() error {
+	if err := checkRootFlags(); err != nil {
+		return err
+	}
 	for _, distribution := range strings.Split(hadoopDistributionsFlag, ",") {
 		_, ok := hadoopDistributions[distribution]
 		if !ok {
@@ -44,6 +47,9 @@ func checkReleaseFlags() error {
 }
 
 func release(_ *cmdline.Env, _ []string) error {
+	if err := updateRootFlags(); err != nil {
+		return err
+	}
 	if err := checkReleaseFlags(); err != nil {
 		return err
 	}
