@@ -68,6 +68,7 @@ import alluxio.master.journal.JournalTestUtils;
 import alluxio.master.metrics.MetricsMaster;
 import alluxio.master.metrics.MetricsMasterFactory;
 import alluxio.metrics.Metric;
+import alluxio.metrics.MetricsSystem;
 import alluxio.security.GroupMappingServiceTestUtils;
 import alluxio.security.authorization.AclEntry;
 import alluxio.thrift.Command;
@@ -195,6 +196,7 @@ public final class FileSystemMasterTest {
   @Before
   public void before() throws Exception {
     GroupMappingServiceTestUtils.resetCache();
+    MetricsSystem.clearAllMetrics();
     // This makes sure that the mount point of the UFS corresponding to the Alluxio root ("/")
     // doesn't exist by default (helps loadRootTest).
     mUnderFS = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
