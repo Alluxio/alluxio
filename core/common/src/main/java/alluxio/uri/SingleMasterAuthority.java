@@ -64,6 +64,6 @@ public class SingleMasterAuthority implements Authority {
 
   @Override
   public String toString() {
-    return String.format("%s:%d", mHost, mPort);
+    return mHost + ":" + mPort;
   }
 }
