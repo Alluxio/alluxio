@@ -11,10 +11,10 @@
 
 package alluxio.master.keyvalue;
 
-import alluxio.Configuration;
+import alluxio.conf.ServerConfiguration;
 import alluxio.Constants;
-import alluxio.PropertyKey;
 import alluxio.master.CoreMasterContext;
+import alluxio.conf.PropertyKey;
 import alluxio.master.MasterFactory;
 import alluxio.master.MasterRegistry;
 import alluxio.master.file.FileSystemMaster;
@@ -38,7 +38,7 @@ public final class KeyValueMasterFactory implements MasterFactory<CoreMasterCont
 
   @Override
   public boolean isEnabled() {
-    return Configuration.getBoolean(PropertyKey.KEY_VALUE_ENABLED);
+    return ServerConfiguration.getBoolean(PropertyKey.KEY_VALUE_ENABLED);
   }
 
   @Override

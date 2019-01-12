@@ -16,6 +16,7 @@ import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
+import alluxio.conf.ServerConfiguration;
 import alluxio.job.JobMasterContext;
 import alluxio.job.util.SerializableVoid;
 import alluxio.wire.BlockInfo;
@@ -55,7 +56,8 @@ public final class PersistDefinitionTest {
     mMockFileSystemContext = PowerMockito.mock(FileSystemContext.class);
     mMockBlockStore = PowerMockito.mock(AlluxioBlockStore.class);
     PowerMockito.mockStatic(AlluxioBlockStore.class);
-    PowerMockito.when(AlluxioBlockStore.create(mMockFileSystemContext)).thenReturn(mMockBlockStore);
+    PowerMockito.when(AlluxioBlockStore.create(mMockFileSystemContext,
+        ServerConfiguration.global())).thenReturn(mMockBlockStore);
   }
 
   @Test

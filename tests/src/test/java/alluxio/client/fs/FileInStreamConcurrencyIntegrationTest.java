@@ -12,8 +12,8 @@
 package alluxio.client.fs;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
-import alluxio.PropertyKey;
+import alluxio.conf.ServerConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
@@ -38,7 +38,7 @@ import java.util.List;
 public final class FileInStreamConcurrencyIntegrationTest extends BaseIntegrationTest {
   private static final int BLOCK_SIZE = 30;
   private static int sNumReadThreads =
-      Configuration.getInt(PropertyKey.USER_BLOCK_MASTER_CLIENT_THREADS) * 10;
+      ServerConfiguration.getInt(PropertyKey.USER_BLOCK_MASTER_CLIENT_THREADS) * 10;
 
   @ClassRule
   public static LocalAlluxioClusterResource sLocalAlluxioClusterResource =

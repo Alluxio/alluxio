@@ -11,8 +11,7 @@
 
 package alluxio.retry;
 
-import alluxio.Configuration;
-import alluxio.PropertyKey;
+import alluxio.conf.PropertyKey;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,10 +51,10 @@ public final class RetryUtils {
   /**
    * @return the default client retry
    */
-  public static RetryPolicy defaultClientRetry() {
-    Duration maxRetryDuration = Configuration.getDuration(PropertyKey.USER_RPC_RETRY_MAX_DURATION);
-    Duration baseSleepMs = Configuration.getDuration(PropertyKey.USER_RPC_RETRY_BASE_SLEEP_MS);
-    Duration maxSleepMs = Configuration.getDuration(PropertyKey.USER_RPC_RETRY_MAX_SLEEP_MS);
+  public static RetryPolicy defaultClientRetry(Duration maxRetryDuration, Duration baseSleepMs, Duration maxSleepMs) {
+//    Duration maxRetryDuration = Configuration.getDuration(PropertyKey.USER_RPC_RETRY_MAX_DURATION);
+//    Duration baseSleepMs = Configuration.getDuration(PropertyKey.USER_RPC_RETRY_BASE_SLEEP_MS);
+//    Duration maxSleepMs = Configuration.getDuration(PropertyKey.USER_RPC_RETRY_MAX_SLEEP_MS);
     return ExponentialTimeBoundedRetry.builder()
         .withMaxDuration(maxRetryDuration)
         .withInitialSleep(baseSleepMs)
@@ -66,10 +65,10 @@ public final class RetryUtils {
   /**
    * @return the default worker to master client retry
    */
-  public static RetryPolicy defaultWorkerMasterClientRetry() {
+  public static RetryPolicy defaultWorkerMasterClientRetry(
+      Duration workerMasterConnectRetryTimeout) {
     return ExponentialTimeBoundedRetry.builder()
-        .withMaxDuration(Duration
-            .ofMillis(Configuration.getMs(PropertyKey.WORKER_MASTER_CONNECT_RETRY_TIMEOUT)))
+        .withMaxDuration(workerMasterConnectRetryTimeout)
         .withInitialSleep(Duration.ofMillis(100))
         .withMaxSleep(Duration.ofSeconds(5))
         .build();

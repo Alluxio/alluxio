@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.ListStatusPOptions;
@@ -67,8 +68,8 @@ public final class DuCommand extends AbstractFileSystemCommand {
   /**
    * @param fs the filesystem of Alluxio
    */
-  public DuCommand(FileSystem fs) {
-    super(fs);
+  public DuCommand(FileSystem fs, AlluxioConfiguration conf) {
+    super(fs, conf);
   }
 
   @Override
@@ -99,7 +100,7 @@ public final class DuCommand extends AbstractFileSystemCommand {
   /**
    * Gets and prints the size information of the input path according to options.
    *
-   * @param path the path to get size info of
+   * @param path the path to create size info of
    * @param statuses the statuses of files and folders
    * @param readable whether to print info of human readable format
    * @param summarize whether to display the aggregate summary lengths
@@ -143,10 +144,10 @@ public final class DuCommand extends AbstractFileSystemCommand {
 
   /**
    * Gets the size and its percentage information, if readable option is provided,
-   * get the size in human readable format.
+   * create the size in human readable format.
    *
    * @param readable whether to print info of human readable format
-   * @param size the size to get information from
+   * @param size the size to create information from
    * @param totalSize the total size to calculate percentage information
    * @return the formatted value and percentage information
    */

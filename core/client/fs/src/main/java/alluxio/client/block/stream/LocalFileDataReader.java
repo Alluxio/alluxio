@@ -11,8 +11,9 @@
 
 package alluxio.client.block.stream;
 
-import alluxio.Configuration;
-import alluxio.PropertyKey;
+import alluxio.ClientContext;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.client.ReadType;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.InStreamOptions;
@@ -73,8 +74,8 @@ public final class LocalFileDataReader implements DataReader {
     ByteBuffer buffer = mReader.read(mPos, Math.min(mChunkSize, mEnd - mPos));
     DataBuffer dataBuffer = new DataByteBuffer(buffer, buffer.remaining());
     mPos += dataBuffer.getLength();
-    MetricsSystem.counter(ClientMetrics.BYTES_READ_LOCAL).inc(dataBuffer.getLength());
-    MetricsSystem.meter(ClientMetrics.BYTES_READ_LOCAL_THROUGHPUT).mark(dataBuffer.getLength());
+//    MetricsSystem.counter(ClientMetrics.BYTES_READ_LOCAL).inc(dataBuffer.getLength());
+//    MetricsSystem.meter(ClientMetrics.BYTES_READ_LOCAL_THROUGHPUT).mark(dataBuffer.getLength());
     return dataBuffer;
   }
 
@@ -103,7 +104,7 @@ public final class LocalFileDataReader implements DataReader {
     private final long mChunkSize;
     private final GrpcBlockingStream<OpenLocalBlockRequest, OpenLocalBlockResponse> mStream;
     private LocalFileBlockReader mReader;
-    private boolean mClosed;
+    private final long mReadTimeoutMs;
 
     /**
      * Creates an instance of {@link Factory}.

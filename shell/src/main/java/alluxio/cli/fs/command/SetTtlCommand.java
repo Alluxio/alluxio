@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.cli.CommandUtils;
 import alluxio.cli.fs.FileSystemShellUtils;
 import alluxio.client.file.FileSystem;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.util.CommonUtils;
@@ -51,8 +52,8 @@ public final class SetTtlCommand extends AbstractFileSystemCommand {
   /**
    * @param fs the filesystem of Alluxio
    */
-  public SetTtlCommand(FileSystem fs) {
-    super(fs);
+  public SetTtlCommand(FileSystem fs, AlluxioConfiguration conf) {
+    super(fs, conf);
   }
 
   @Override

@@ -13,6 +13,7 @@ package alluxio.client.keyvalue;
 
 import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
+import alluxio.conf.*;
 import alluxio.exception.AlluxioException;
 
 import com.google.common.base.Preconditions;
@@ -41,7 +42,7 @@ public interface KeyValuePartitionReader extends Closeable, KeyValueIterable {
      * @param uri Alluxio URI of the key-value partition to use as input
      * @return an instance of a {@link KeyValuePartitionReader}
      */
-    public static KeyValuePartitionReader create(AlluxioURI uri)
+    public static KeyValuePartitionReader create(AlluxioURI uri, AlluxioConfiguration conf)
         throws AlluxioException, IOException {
       Preconditions.checkNotNull(uri, "uri");
       FileSystem fs = FileSystem.Factory.get();
@@ -49,7 +50,7 @@ public interface KeyValuePartitionReader extends Closeable, KeyValueIterable {
       // Each partition file should only contain one block.
       // TODO(binfan): throw exception if a partition file has more than one blocks
       long blockId = blockIds.get(0);
-      return new BaseKeyValuePartitionReader(blockId);
+      return new BaseKeyValuePartitionReader(blockId, conf);
     }
 
     /**
@@ -59,9 +60,9 @@ public interface KeyValuePartitionReader extends Closeable, KeyValueIterable {
      * @param blockId blockId the key-value partition to use as input
      * @return an instance of a {@link KeyValuePartitionReader}
      */
-    public static KeyValuePartitionReader create(long blockId)
+    public static KeyValuePartitionReader create(long blockId, AlluxioConfiguration conf)
         throws AlluxioException, IOException {
-      return new BaseKeyValuePartitionReader(blockId);
+      return new BaseKeyValuePartitionReader(blockId, conf);
     }
   }
 
@@ -69,7 +70,7 @@ public interface KeyValuePartitionReader extends Closeable, KeyValueIterable {
    * Gets the value associated with the given key in the key-value partition, returning null if the
    * key is not found.
    *
-   * @param key key to get, cannot be null
+   * @param key key to create, cannot be null
    * @return bytes of the value if found, null otherwise
    */
   byte[] get(byte[] key) throws IOException, AlluxioException;
@@ -79,7 +80,7 @@ public interface KeyValuePartitionReader extends Closeable, KeyValueIterable {
    * key is not found. Both key and value are in ByteBuffer to make zero-copy possible for better
    * performance.
    *
-   * @param key key to get, cannot be null
+   * @param key key to create, cannot be null
    * @return bytes of the value if found, null otherwise
    */
   ByteBuffer get(ByteBuffer key) throws IOException, AlluxioException;

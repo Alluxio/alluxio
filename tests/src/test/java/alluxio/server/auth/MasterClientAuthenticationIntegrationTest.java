@@ -12,10 +12,11 @@
 package alluxio.server.auth;
 
 import alluxio.AlluxioURI;
+import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.security.LoginUserTestUtils;
-import alluxio.PropertyKey;
+import alluxio.conf.PropertyKey;
 import alluxio.client.file.FileSystemMasterClient;
 import alluxio.exception.status.UnavailableException;
 import alluxio.master.MasterClientConfig;
@@ -92,7 +93,8 @@ public final class MasterClientAuthenticationIntegrationTest extends BaseIntegra
           PropertyKey.Name.SECURITY_LOGIN_USERNAME, "alluxio"})
   public void customAuthenticationDenyConnect() throws Exception {
     try (FileSystemMasterClient masterClient =
-        FileSystemMasterClient.Factory.create(MasterClientConfig.defaults())) {
+        FileSystemMasterClient.Factory.create(MasterClientConfig.defaults(ServerConfiguration.global()),
+            ServerConfiguration.global())) {
       Assert.assertFalse(masterClient.isConnected());
       // Using no-alluxio as loginUser to connect to Master, the IOException will be thrown
       LoginUserTestUtils.resetLoginUser("no-alluxio");
@@ -106,7 +108,8 @@ public final class MasterClientAuthenticationIntegrationTest extends BaseIntegra
       confParams = {PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "SIMPLE"})
   public void simpleAuthenticationIsolatedClassLoader() throws Exception {
     FileSystemMasterClient masterClient =
-        FileSystemMasterClient.Factory.create(MasterClientConfig.defaults());
+        FileSystemMasterClient.Factory.create(MasterClientConfig.defaults(
+            ServerConfiguration.global()), ServerConfiguration.global());
     Assert.assertFalse(masterClient.isConnected());
 
     // Get the current context class loader to retrieve the classpath URLs.
@@ -134,7 +137,8 @@ public final class MasterClientAuthenticationIntegrationTest extends BaseIntegra
    */
   private void authenticationOperationTest(String filename) throws Exception {
     FileSystemMasterClient masterClient =
-        FileSystemMasterClient.Factory.create(MasterClientConfig.defaults());
+        FileSystemMasterClient.Factory.create(MasterClientConfig.defaults(
+            ServerConfiguration.global()), ServerConfiguration.global());
     Assert.assertFalse(masterClient.isConnected());
     masterClient.connect();
     Assert.assertTrue(masterClient.isConnected());

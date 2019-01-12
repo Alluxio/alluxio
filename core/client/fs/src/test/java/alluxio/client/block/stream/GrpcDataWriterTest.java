@@ -17,7 +17,11 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
 import alluxio.ConfigurationRule;
-import alluxio.PropertyKey;
+import alluxio.ConfigurationTestUtils;
+import alluxio.Constants;
+import alluxio.conf.ConfigurationTest;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.OutStreamOptions;
 import alluxio.grpc.Chunk;
@@ -72,7 +76,7 @@ public final class GrpcDataWriterTest {
   @Rule
   public ConfigurationRule mConfigurationRule =
       new ConfigurationRule(PropertyKey.USER_NETWORK_WRITER_CHUNK_SIZE_BYTES,
-          String.valueOf(CHUNK_SIZE));
+          String.valueOf(CHUNK_SIZE), mConf);
 
   @Before
   public void before() throws Exception {
@@ -180,7 +184,7 @@ public final class GrpcDataWriterTest {
     DataWriter writer =
         GrpcDataWriter.create(mContext, mAddress, BLOCK_ID, length,
             RequestType.ALLUXIO_BLOCK,
-            OutStreamOptions.defaults().setWriteTier(TIER));
+            OutStreamOptions.defaults(mConf).setWriteTier(TIER));
     return writer;
   }
 

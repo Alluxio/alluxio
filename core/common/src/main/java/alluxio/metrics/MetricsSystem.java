@@ -12,11 +12,12 @@
 package alluxio.metrics;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
-import alluxio.PropertyKey;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.metrics.sink.Sink;
 import alluxio.util.CommonUtils;
 import alluxio.util.IdUtils;
+import alluxio.util.ConfigurationUtils;
 import alluxio.util.network.NetworkAddressUtils;
 
 import com.codahale.metrics.Counter;
@@ -55,6 +56,9 @@ public final class MetricsSystem {
 
   private static final ConcurrentHashMap<String, String> CACHED_METRICS = new ConcurrentHashMap<>();
   private static String sAppId;
+  private static int sResolveTimeout =
+      (int)new InstancedConfiguration(ConfigurationUtils.defaults())
+               .getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS);
 
   /**
    * An enum of supported instance type.
@@ -123,14 +127,13 @@ public final class MetricsSystem {
    * Starts sinks specified in the configuration. This is an no-op if the sinks have already been
    * started. Note: This has to be called after Alluxio configuration is initialized.
    */
-  public static void startSinks() {
+  public static void startSinks(String metricsConfFile) {
     synchronized (MetricsSystem.class) {
       if (sSinks != null) {
         LOG.info("Sinks have already been started.");
         return;
       }
     }
-    String metricsConfFile = Configuration.get(PropertyKey.METRICS_CONF_FILE);
     if (metricsConfFile.isEmpty()) {
       LOG.info("Metrics is not enabled.");
       return;
@@ -212,7 +215,7 @@ public final class MetricsSystem {
       case JOB_MASTER:
         return getJobMasterMetricName(name);
       case JOB_WORKER:
-        return getJobWorkerMetricName(name);
+        return getJobWorkerMetricName(name, sResolveTimeout);
       default:
         throw new IllegalStateException("Unknown process type");
     }
@@ -299,7 +302,7 @@ public final class MetricsSystem {
    * @param name the metric name
    * @return the metric registry name
    */
-  public static String getJobWorkerMetricName(String name) {
+  public static String getJobWorkerMetricName(String name, int resolveTimeoutMs) {
     return getMetricNameWithUniqueId(InstanceType.JOB_WORKER, name);
   }
 
@@ -312,7 +315,10 @@ public final class MetricsSystem {
    * @return the metric registry name
    */
   private static String getMetricNameWithUniqueId(InstanceType instance, String name) {
-    return instance + "." + NetworkAddressUtils.getLocalHostMetricName() + "." + name;
+    return instance
+        + "."
+        + NetworkAddressUtils.getLocalHostMetricName(sResolveTimeout)
+        + "." + name;
   }
 
   /**

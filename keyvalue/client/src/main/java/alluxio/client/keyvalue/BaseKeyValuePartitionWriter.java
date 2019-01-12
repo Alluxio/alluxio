@@ -11,9 +11,7 @@
 
 package alluxio.client.keyvalue;
 
-import alluxio.Configuration;
 import alluxio.Constants;
-import alluxio.PropertyKey;
 import alluxio.client.AbstractOutStream;
 import alluxio.util.io.ByteIOUtils;
 
@@ -58,7 +56,7 @@ final class BaseKeyValuePartitionWriter implements KeyValuePartitionWriter {
    *
    * @param fileOutStream output stream to store the key-value file
    */
-  BaseKeyValuePartitionWriter(AbstractOutStream fileOutStream) {
+  BaseKeyValuePartitionWriter(AbstractOutStream fileOutStream, long partitionSizeBytesMax) {
     mFileOutStream = Preconditions.checkNotNull(fileOutStream, "fileOutStream");
     // TODO(binfan): write a header in the file
 
@@ -66,7 +64,7 @@ final class BaseKeyValuePartitionWriter implements KeyValuePartitionWriter {
     mIndex = LinearProbingIndex.createEmptyIndex();
     mClosed = false;
     mCanceled = false;
-    mMaxSizeBytes = Configuration.getBytes(PropertyKey.KEY_VALUE_PARTITION_SIZE_BYTES_MAX);
+    mMaxSizeBytes = partitionSizeBytesMax;
   }
 
   @Override

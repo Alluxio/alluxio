@@ -17,8 +17,12 @@ import static org.mockito.Mockito.when;
 
 import alluxio.client.MetaMasterClient;
 import alluxio.client.block.BlockMasterClient;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.grpc.MasterInfo;
 import alluxio.util.CommonUtils;
+import alluxio.util.ConfigurationUtils;
 import alluxio.wire.BlockMasterInfo;
 
 import org.hamcrest.collection.IsIterableContainingInOrder;
@@ -37,6 +41,10 @@ import java.util.List;
 import java.util.Map;
 
 public class SummaryCommandTest {
+
+  private static final AlluxioConfiguration sConf =
+      new InstancedConfiguration(ConfigurationUtils.defaults());
+
   private MetaMasterClient mMetaMasterClient;
   private BlockMasterClient mBlockMasterClient;
   private ByteArrayOutputStream mOutputStream;
@@ -94,18 +102,18 @@ public class SummaryCommandTest {
   @Test
   public void summary() throws IOException {
     SummaryCommand summaryCommand = new SummaryCommand(mMetaMasterClient,
-        mBlockMasterClient, mPrintStream);
+        mBlockMasterClient, sConf.get(PropertyKey.USER_DATE_FORMAT_PATTERN), mPrintStream);
     summaryCommand.run();
-    checkIfOutputValid();
+    checkIfOutputValid(sConf.get(PropertyKey.USER_DATE_FORMAT_PATTERN));
   }
 
   /**
    * Checks if the output is expected.
    */
-  private void checkIfOutputValid() {
+  private void checkIfOutputValid(String dateFormatPattern) {
     String output = new String(mOutputStream.toByteArray(), StandardCharsets.UTF_8);
     // Skip checking startTime which relies on system time zone
-    String startTime =  CommonUtils.convertMsToDate(1131242343122L);
+    String startTime =  CommonUtils.convertMsToDate(1131242343122L, dateFormatPattern);
     List<String> expectedOutput = Arrays.asList("Alluxio cluster summary: ",
         "    Master Address: testAddress",
         "    Web Port: 1231",

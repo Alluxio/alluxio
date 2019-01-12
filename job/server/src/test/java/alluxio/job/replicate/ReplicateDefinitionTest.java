@@ -36,6 +36,8 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.client.file.options.OutStreamOptions;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.NotFoundException;
 import alluxio.job.JobMasterContext;
@@ -84,7 +86,8 @@ public final class ReplicateDefinitionTest {
   private static final WorkerNetAddress ADDRESS_3 =
       new WorkerNetAddress().setHost("host3").setDataPort(10);
   private static final WorkerNetAddress LOCAL_ADDRESS =
-      new WorkerNetAddress().setHost(NetworkAddressUtils.getLocalHostName()).setDataPort(10);
+      new WorkerNetAddress().setHost(NetworkAddressUtils.getLocalHostName((int)ServerConfiguration.getMs(
+          PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS))).setDataPort(10);
   private static final WorkerInfo WORKER_INFO_1 = new WorkerInfo().setAddress(ADDRESS_1);
   private static final WorkerInfo WORKER_INFO_2 = new WorkerInfo().setAddress(ADDRESS_2);
   private static final WorkerInfo WORKER_INFO_3 = new WorkerInfo().setAddress(ADDRESS_3);
@@ -122,7 +125,7 @@ public final class ReplicateDefinitionTest {
     blockInfo.setLocations(blockLocations);
     when(mMockBlockStore.getInfo(TEST_BLOCK_ID)).thenReturn(blockInfo);
     PowerMockito.mockStatic(AlluxioBlockStore.class);
-    when(AlluxioBlockStore.create(mMockFileSystemContext)).thenReturn(mMockBlockStore);
+    when(AlluxioBlockStore.create(mMockFileSystemContext, ServerConfiguration.global())).thenReturn(mMockBlockStore);
 
     String path = "/test";
     ReplicateConfig config = new ReplicateConfig(path, TEST_BLOCK_ID, numReplicas);
@@ -156,7 +159,7 @@ public final class ReplicateDefinitionTest {
         .thenReturn(new BlockInfo().setBlockId(TEST_BLOCK_ID)
             .setLocations(Lists.newArrayList(new BlockLocation().setWorkerAddress(ADDRESS_1))));
     PowerMockito.mockStatic(AlluxioBlockStore.class);
-    when(AlluxioBlockStore.create(mMockFileSystemContext)).thenReturn(mMockBlockStore);
+    when(AlluxioBlockStore.create(mMockFileSystemContext, ServerConfiguration.global())).thenReturn(mMockBlockStore);
 
     ReplicateConfig config = new ReplicateConfig(path, TEST_BLOCK_ID, 1 /* value not used */);
     ReplicateDefinition definition =

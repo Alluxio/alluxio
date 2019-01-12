@@ -11,8 +11,8 @@
 
 package alluxio.grpc;
 
-import alluxio.Configuration;
-import alluxio.PropertyKey;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.status.UnauthenticatedException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.security.authentication.AuthType;
@@ -45,15 +45,15 @@ public final class GrpcChannelBuilder {
 
   /** Whether to authenticate the channel with the server. */
   protected boolean mAuthenticateChannel;
-  /** Authentication type to use. */
-  protected AuthType mAuthType;
 
-  private GrpcChannelBuilder(SocketAddress address) {
+  protected AlluxioConfiguration mConfiguration;
+
+  private GrpcChannelBuilder(SocketAddress address, AlluxioConfiguration conf) {
     mChannelKey = GrpcManagedChannelPool.ChannelKey.create();
     mChannelKey.setAddress(address).usePlaintext();
     mUseSubject = true;
     mAuthenticateChannel = true;
-    mAuthType = Configuration.getEnum(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.class);
+    mConfiguration = conf;
   }
 
   /**
@@ -62,8 +62,8 @@ public final class GrpcChannelBuilder {
    * @param address the host address
    * @return a new instance of {@link GrpcChannelBuilder}
    */
-  public static GrpcChannelBuilder forAddress(SocketAddress address) {
-    return new GrpcChannelBuilder(address);
+  public static GrpcChannelBuilder forAddress(SocketAddress address, AlluxioConfiguration conf) {
+    return new GrpcChannelBuilder(address, conf);
   }
 
   /**
@@ -184,16 +184,20 @@ public final class GrpcChannelBuilder {
     Channel clientChannel = underlyingChannel;
 
     if (mAuthenticateChannel) {
+
       // Create channel authenticator based on provided content.
       ChannelAuthenticator channelAuthenticator;
+      // Authentication type.
+      AuthType authType = mConfiguration
+          .getEnum(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.class);
       if (mUseSubject) {
-        channelAuthenticator = new ChannelAuthenticator(mParentSubject, mAuthType);
+        channelAuthenticator = new ChannelAuthenticator(mParentSubject, mConfiguration);
       } else {
         channelAuthenticator =
-            new ChannelAuthenticator(mUserName, mPassword, mImpersonationUser, mAuthType);
+            new ChannelAuthenticator(mUserName, mPassword, mImpersonationUser, authType);
       }
       // Get an authenticated wrapper channel over given managed channel.
-      clientChannel = channelAuthenticator.authenticate(underlyingChannel);
+      clientChannel = channelAuthenticator.authenticate(underlyingChannel, mConfiguration);
     }
     // Create the channel after authentication with the target.
     return new GrpcChannel(mChannelKey, clientChannel);

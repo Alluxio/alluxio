@@ -22,7 +22,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * The single place to get, set, and update job worker id.
+ * The single place to create, set, and update job worker id.
  *
  * This class should be the only source of job worker id within the same job worker process.
  */
@@ -38,11 +38,11 @@ public final class JobWorkerIdRegistry {
   private JobWorkerIdRegistry() {}
 
   /**
-   * Registers with {@link JobMaster} to get a new job worker id.
+   * Registers with {@link JobMaster} to create a new job worker id.
    *
    * @param jobMasterClient the job master client to be used for RPC
    * @param workerAddress current worker address
-   * @throws IOException when fails to get a new worker id
+   * @throws IOException when fails to create a new worker id
    * @throws ConnectionFailedException if network connection failed
    */
   public static void registerWorker(JobMasterClient jobMasterClient, WorkerNetAddress workerAddress)

@@ -13,6 +13,7 @@ package alluxio.worker.job;
 
 import alluxio.AbstractMasterClient;
 import alluxio.Constants;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.grpc.JobCommand;
 import alluxio.grpc.JobHeartbeatPRequest;
 import alluxio.grpc.JobMasterWorkerServiceGrpc;
@@ -24,6 +25,7 @@ import alluxio.wire.WorkerNetAddress;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.function.Consumer;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -41,8 +43,9 @@ public final class RetryHandlingJobMasterClient extends AbstractMasterClient
    *
    * @param conf job master client configuration
    */
-  public RetryHandlingJobMasterClient(JobMasterClientConfig conf) {
-    super(conf);
+  public RetryHandlingJobMasterClient(JobMasterClientConfig conf,
+      AlluxioConfiguration alluxioConf) {
+    super(conf, alluxioConf);
   }
 
   @Override
@@ -61,7 +64,7 @@ public final class RetryHandlingJobMasterClient extends AbstractMasterClient
   }
 
   @Override
-  protected void beforeConnect() throws IOException {
+  protected void beforeConnect(Consumer<AlluxioConfiguration> configurationUpdateCallback) throws IOException {
     // Job master client does not load cluster-default because job worker has loaded it on start
   }
 

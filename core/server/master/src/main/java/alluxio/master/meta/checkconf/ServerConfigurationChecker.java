@@ -11,8 +11,8 @@
 
 package alluxio.master.meta.checkconf;
 
-import alluxio.PropertyKey;
-import alluxio.PropertyKey.ConsistencyCheckLevel;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.PropertyKey.ConsistencyCheckLevel;
 import alluxio.grpc.ConfigStatus;
 import alluxio.grpc.Scope;
 import alluxio.wire.Address;
@@ -159,7 +159,7 @@ public class ServerConfigurationChecker {
    * Fills the configuration map.
    *
    * @param targetMap the map to fill
-   * @param recordMap the map to get data from
+   * @param recordMap the map to create data from
    */
   private void fillConfMap(Map<PropertyKey, Map<Optional<String>, List<String>>> targetMap,
       Map<Address, List<ConfigRecord>> recordMap) {

@@ -14,6 +14,7 @@ package alluxio.job.replicate;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
+import alluxio.conf.ServerConfiguration;
 import alluxio.job.AbstractVoidJobDefinition;
 import alluxio.job.JobMasterContext;
 import alluxio.job.JobWorkerContext;
@@ -52,7 +53,7 @@ public final class ReplicateDefinition
    * Constructs a new {@link ReplicateDefinition} instance.
    */
   public ReplicateDefinition() {
-    this(FileSystemContext.get());
+    this(FileSystemContext.create());
   }
 
   /**
@@ -89,7 +90,8 @@ public final class ReplicateDefinition
     int numReplicas = config.getReplicas();
     Preconditions.checkArgument(numReplicas > 0);
 
-    AlluxioBlockStore blockStore = AlluxioBlockStore.create(mFileSystemContext);
+    AlluxioBlockStore blockStore = AlluxioBlockStore.create(mFileSystemContext,
+        ServerConfiguration.global());
     BlockInfo blockInfo = blockStore.getInfo(blockId);
 
     Set<String> hosts = new HashSet<>();

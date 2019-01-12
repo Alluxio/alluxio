@@ -15,7 +15,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import alluxio.PropertyKey;
+import alluxio.conf.PropertyKey;
 import alluxio.grpc.ConfigProperty;
 import alluxio.wire.Address;
 

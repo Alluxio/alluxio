@@ -20,6 +20,7 @@ import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.stream.BlockOutStream;
 import alluxio.client.block.stream.UnderFileSystemFileOutStream;
 import alluxio.client.file.options.OutStreamOptions;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.UnavailableException;
@@ -81,7 +82,8 @@ public class FileOutStream extends AbstractOutStream {
    * @param options the client options
    * @param context the file system context
    */
-  public FileOutStream(AlluxioURI path, OutStreamOptions options, FileSystemContext context)
+  public FileOutStream(AlluxioURI path, OutStreamOptions options, FileSystemContext context,
+      AlluxioConfiguration conf)
       throws IOException {
     mCloser = Closer.create();
     mUri = Preconditions.checkNotNull(path, "path");
@@ -90,7 +92,7 @@ public class FileOutStream extends AbstractOutStream {
     mUnderStorageType = options.getUnderStorageType();
     mOptions = options;
     mContext = context;
-    mBlockStore = AlluxioBlockStore.create(mContext);
+    mBlockStore = AlluxioBlockStore.create(mContext, conf);
     mPreviousBlockOutStreams = new ArrayList<>();
     mClosed = false;
     mCanceled = false;
@@ -107,7 +109,8 @@ public class FileOutStream extends AbstractOutStream {
       }
       try {
         mUnderStorageOutputStream = mCloser
-            .register(UnderFileSystemFileOutStream.create(mContext, workerNetAddress, mOptions));
+            .register(UnderFileSystemFileOutStream.create(mContext, workerNetAddress, mOptions,
+                conf));
       } catch (Throwable t) {
         throw CommonUtils.closeAndRethrow(mCloser, t);
       }

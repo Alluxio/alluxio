@@ -12,8 +12,8 @@
 package alluxio.web;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
-import alluxio.PropertyKey;
+import alluxio.conf.ServerConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.RuntimeConstants;
 import alluxio.StorageTierAssoc;
 import alluxio.master.MasterProcess;
@@ -181,14 +181,15 @@ public final class WebInterfaceGeneralServlet extends HttpServlet {
     BlockMaster blockMaster = mMasterProcess.getMaster(BlockMaster.class);
     FileSystemMaster fileSystemMaster = mMasterProcess.getMaster(FileSystemMaster.class);
 
-    request.setAttribute("debug", Configuration.getBoolean(PropertyKey.DEBUG));
+    request.setAttribute("debug", ServerConfiguration.getBoolean(PropertyKey.DEBUG));
 
     request.setAttribute("masterNodeAddress", mMasterProcess.getRpcAddress().toString());
 
     request.setAttribute("uptime", CommonUtils
         .convertMsToClockTime(System.currentTimeMillis() - mMetaMaster.getStartTimeMs()));
 
-    request.setAttribute("startTime", CommonUtils.convertMsToDate(mMetaMaster.getStartTimeMs()));
+    request.setAttribute("startTime", CommonUtils.convertMsToDate(mMetaMaster.getStartTimeMs(),
+        ServerConfiguration.get(PropertyKey.USER_DATE_FORMAT_PATTERN)));
 
     request.setAttribute("version", RuntimeConstants.VERSION);
 

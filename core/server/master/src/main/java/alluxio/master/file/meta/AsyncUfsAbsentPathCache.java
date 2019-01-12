@@ -12,8 +12,8 @@
 package alluxio.master.file.meta;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
-import alluxio.PropertyKey;
+import alluxio.conf.ServerConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.InvalidPathException;
 import alluxio.master.file.meta.options.MountInfo;
 import alluxio.resource.CloseableResource;
@@ -52,7 +52,7 @@ public final class AsyncUfsAbsentPathCache implements UfsAbsentPathCache {
   private static final int THREAD_KEEP_ALIVE_SECONDS = 60;
   /** Number of paths to cache. */
   private static final int MAX_PATHS =
-      Configuration.getInt(PropertyKey.MASTER_UFS_PATH_CACHE_CAPACITY);
+      ServerConfiguration.getInt(PropertyKey.MASTER_UFS_PATH_CACHE_CAPACITY);
 
   /** The mount table. */
   private final MountTable mMountTable;
@@ -205,7 +205,7 @@ public final class AsyncUfsAbsentPathCache implements UfsAbsentPathCache {
   }
 
   /**
-   * @param alluxioUri the Alluxio path to get the mount info for
+   * @param alluxioUri the Alluxio path to create the mount info for
    * @return the {@link MountInfo} of the given Alluxio path, or null if it doesn't exist
    */
   private MountInfo getMountInfo(AlluxioURI alluxioUri) {
@@ -214,7 +214,7 @@ public final class AsyncUfsAbsentPathCache implements UfsAbsentPathCache {
       return mMountTable.getMountInfo(resolution.getMountId());
     } catch (Exception e) {
       // Catch Exception in case the mount point doesn't exist currently.
-      LOG.warn("Failed to get mount info for path {}. message: {}", alluxioUri, e.getMessage());
+      LOG.warn("Failed to create mount info for path {}. message: {}", alluxioUri, e.getMessage());
       return null;
     }
   }
@@ -223,7 +223,7 @@ public final class AsyncUfsAbsentPathCache implements UfsAbsentPathCache {
    * Returns a sequence of Alluxio paths for a specified path, starting from the path component at
    * a specific index, to the specified path.
    *
-   * @param alluxioUri the Alluxio path to get the nested paths for
+   * @param alluxioUri the Alluxio path to create the nested paths for
    * @param startComponentIndex the index to the starting path component,
    *        root directory has index 0
    * @return a list of nested paths from the starting component to the given path

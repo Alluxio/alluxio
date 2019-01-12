@@ -11,6 +11,8 @@
 
 package alluxio;
 
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.security.LoginUser;
 import alluxio.security.LoginUserTestUtils;
 import alluxio.security.User;
@@ -29,17 +31,19 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class LoginUserRule extends AbstractResourceRule {
   private final String mUser;
   private User mPreviousLoginUser = null;
+  private final InstancedConfiguration mConfiguration;
 
   /**
    * @param user the user name to set as authenticated user
    */
-  public LoginUserRule(String user) {
+  public LoginUserRule(String user, InstancedConfiguration conf) {
     mUser = user;
+    mConfiguration = conf;
   }
 
   @Override
   public void before() throws Exception {
-    mPreviousLoginUser = LoginUser.get();
+    mPreviousLoginUser = LoginUser.get(mConfiguration);
     LoginUserTestUtils.resetLoginUser(mUser);
   }
 

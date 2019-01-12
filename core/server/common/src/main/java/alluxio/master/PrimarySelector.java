@@ -11,8 +11,8 @@
 
 package alluxio.master;
 
-import alluxio.Configuration;
-import alluxio.PropertyKey;
+import alluxio.conf.ServerConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.util.interfaces.Scoped;
 
 import java.io.IOException;
@@ -42,9 +42,9 @@ public interface PrimarySelector {
      * @return a primary selector based on zookeeper configuration
      */
     public static PrimarySelector createZkPrimarySelector() {
-      String zkAddress = Configuration.get(PropertyKey.ZOOKEEPER_ADDRESS);
-      String zkElectionPath = Configuration.get(PropertyKey.ZOOKEEPER_ELECTION_PATH);
-      String zkLeaderPath = Configuration.get(PropertyKey.ZOOKEEPER_LEADER_PATH);
+      String zkAddress = ServerConfiguration.get(PropertyKey.ZOOKEEPER_ADDRESS);
+      String zkElectionPath = ServerConfiguration.get(PropertyKey.ZOOKEEPER_ELECTION_PATH);
+      String zkLeaderPath = ServerConfiguration.get(PropertyKey.ZOOKEEPER_LEADER_PATH);
       return new PrimarySelectorClient(zkAddress, zkElectionPath, zkLeaderPath);
     }
 
@@ -52,9 +52,9 @@ public interface PrimarySelector {
      * @return a job master primary selector based on zookeeper configuration
      */
     public static PrimarySelector createZkJobPrimarySelector() {
-      String zkAddress = Configuration.get(PropertyKey.ZOOKEEPER_ADDRESS);
-      String zkElectionPath = Configuration.get(PropertyKey.ZOOKEEPER_JOB_ELECTION_PATH);
-      String zkLeaderPath = Configuration.get(PropertyKey.ZOOKEEPER_JOB_LEADER_PATH);
+      String zkAddress = ServerConfiguration.get(PropertyKey.ZOOKEEPER_ADDRESS);
+      String zkElectionPath = ServerConfiguration.get(PropertyKey.ZOOKEEPER_JOB_ELECTION_PATH);
+      String zkLeaderPath = ServerConfiguration.get(PropertyKey.ZOOKEEPER_JOB_LEADER_PATH);
       return new PrimarySelectorClient(zkAddress, zkElectionPath, zkLeaderPath);
     }
 

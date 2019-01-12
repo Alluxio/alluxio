@@ -13,6 +13,7 @@ package alluxio.client.block;
 
 import alluxio.Client;
 import alluxio.client.block.options.GetWorkerReportOptions;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.master.MasterClientConfig;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockMasterInfo;
@@ -44,8 +45,9 @@ public interface BlockMasterClient extends Client {
      * @param conf master client configuration
      * @return a new {@link BlockMasterClient} instance
      */
-    public static BlockMasterClient create(MasterClientConfig conf) {
-      return new RetryHandlingBlockMasterClient(conf);
+    public static BlockMasterClient create(MasterClientConfig conf,
+        AlluxioConfiguration alluxioConf) {
+      return new RetryHandlingBlockMasterClient(conf, alluxioConf);
     }
   }
 
@@ -68,7 +70,7 @@ public interface BlockMasterClient extends Client {
   /**
    * Returns the {@link BlockInfo} for a block id.
    *
-   * @param blockId the block id to get the BlockInfo for
+   * @param blockId the block id to create the BlockInfo for
    * @return the {@link BlockInfo}
    */
   BlockInfo getBlockInfo(final long blockId) throws IOException;

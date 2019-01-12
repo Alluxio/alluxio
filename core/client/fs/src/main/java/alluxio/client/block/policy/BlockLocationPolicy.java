@@ -14,6 +14,7 @@ package alluxio.client.block.policy;
 import alluxio.annotation.PublicApi;
 import alluxio.client.block.policy.options.CreateOptions;
 import alluxio.client.block.policy.options.GetWorkerOptions;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.util.CommonUtils;
 import alluxio.wire.WorkerNetAddress;
 
@@ -47,16 +48,19 @@ public interface BlockLocationPolicy {
      * @param options the block location policy creation options
      * @return a new instance of {@link BlockLocationPolicy}
      */
-    public static BlockLocationPolicy create(CreateOptions options) {
+    public static BlockLocationPolicy create(CreateOptions options,
+        AlluxioConfiguration alluxioConf) {
       int numShards = options.getDeterministicHashPolicyNumShards();
       try {
         Class<BlockLocationPolicy> clazz =
             (Class<BlockLocationPolicy>) Class.forName(options.getLocationPolicyClassName());
         if (numShards > 1) {
-          return CommonUtils.createNewClassInstance(clazz, new Class[] {Integer.class},
+          return CommonUtils.createNewClassInstance(clazz,
+              new Class[] {Integer.class},
               new Object[] {numShards});
         } else {
-          return CommonUtils.createNewClassInstance(clazz, new Class[] {}, new Object[] {});
+          return CommonUtils.createNewClassInstance(clazz, new Class[] {AlluxioConfiguration.class},
+              new Object[] {alluxioConf});
         }
       } catch (ClassNotFoundException e) {
         throw new RuntimeException(e);
@@ -67,7 +71,7 @@ public interface BlockLocationPolicy {
   /**
    * Gets the worker's network address for serving operations requested for the block.
    *
-   * @param options the options to get a block worker network address for a block
+   * @param options the options to create a block worker network address for a block
    * @return the address of the worker to write to, null if no worker can be selected
    */
   @Nullable

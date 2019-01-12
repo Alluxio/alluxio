@@ -11,8 +11,8 @@
 
 package alluxio.worker;
 
-import alluxio.Configuration;
-import alluxio.PropertyKey;
+import alluxio.conf.ServerConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.util.CommonUtils;
 
 import java.io.Closeable;
@@ -43,7 +43,7 @@ public interface DataServer extends Closeable {
      */
     public static DataServer create(final SocketAddress dataAddress, final WorkerProcess worker) {
       return CommonUtils.createNewClassInstance(
-          Configuration.<DataServer>getClass(PropertyKey.WORKER_DATA_SERVER_CLASS),
+          ServerConfiguration.<DataServer>getClass(PropertyKey.WORKER_DATA_SERVER_CLASS),
           new Class[] {SocketAddress.class, WorkerProcess.class},
           new Object[] {dataAddress, worker});
     }

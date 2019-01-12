@@ -12,6 +12,7 @@
 package alluxio.common;
 
 import alluxio.HealthCheckClient;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.status.UnauthenticatedException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.ServiceType;
@@ -33,6 +34,7 @@ public class RpcPortHealthCheckClient implements HealthCheckClient {
   private final InetSocketAddress mNodeAddress;
   private final ServiceType mServiceType;
   private final Supplier<RetryPolicy> mRetryPolicySupplier;
+  private final AlluxioConfiguration mConf;
 
   /**
    * Creates a worker health check client.
@@ -43,10 +45,12 @@ public class RpcPortHealthCheckClient implements HealthCheckClient {
    */
   public RpcPortHealthCheckClient(InetSocketAddress nodeAddress,
       ServiceType serviceType,
-      Supplier<RetryPolicy> retryPolicySupplier) {
+      Supplier<RetryPolicy> retryPolicySupplier,
+      AlluxioConfiguration conf) {
     mNodeAddress = nodeAddress;
     mServiceType = serviceType;
     mRetryPolicySupplier = retryPolicySupplier;
+    mConf = conf;
   }
 
   @Override
@@ -55,7 +59,7 @@ public class RpcPortHealthCheckClient implements HealthCheckClient {
     while (retry.attempt()) {
       try {
         LOG.debug("Checking whether {} is listening for RPCs", mNodeAddress);
-        NetworkAddressUtils.pingService(mNodeAddress, mServiceType);
+        NetworkAddressUtils.pingService(mNodeAddress, mServiceType, mConf);
         LOG.debug("Successfully connected to {}", mNodeAddress);
         return true;
       } catch (UnavailableException e) {

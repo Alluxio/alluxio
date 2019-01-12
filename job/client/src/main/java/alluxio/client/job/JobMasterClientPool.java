@@ -11,8 +11,8 @@
 
 package alluxio.client.job;
 
-import alluxio.Configuration;
-import alluxio.PropertyKey;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.resource.ResourcePool;
 import alluxio.worker.job.JobMasterClientConfig;
 
@@ -30,13 +30,15 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class JobMasterClientPool extends ResourcePool<JobMasterClient> {
   private final Queue<JobMasterClient> mClientList;
+  private final AlluxioConfiguration mAlluxioConf;
 
   /**
    * Creates a new job master client pool.
    */
-  public JobMasterClientPool() {
-    super(Configuration.getInt(PropertyKey.JOB_MASTER_CLIENT_THREADS));
+  public JobMasterClientPool(AlluxioConfiguration alluxioConf) {
+    super(alluxioConf.getInt(PropertyKey.JOB_MASTER_CLIENT_THREADS));
     mClientList = new ConcurrentLinkedQueue<>();
+    mAlluxioConf = alluxioConf;
   }
 
   @Override
@@ -49,7 +51,8 @@ public final class JobMasterClientPool extends ResourcePool<JobMasterClient> {
 
   @Override
   protected JobMasterClient createNewResource() {
-    JobMasterClient client = JobMasterClient.Factory.create(JobMasterClientConfig.defaults());
+    JobMasterClient client = JobMasterClient.Factory.create(JobMasterClientConfig.defaults(
+        mAlluxioConf), mAlluxioConf);
     mClientList.add(client);
     return client;
   }

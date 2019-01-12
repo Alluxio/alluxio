@@ -15,7 +15,10 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.when;
 
 import alluxio.ConfigurationRule;
-import alluxio.PropertyKey;
+import alluxio.ConfigurationTestUtils;
+import alluxio.client.ReadType;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.InStreamOptions;
@@ -50,6 +53,7 @@ public class BlockInStreamTest {
   private FileSystemContext mMockContext;
   private BlockInfo mInfo;
   private InStreamOptions mOptions;
+  private InstancedConfiguration mConf = ConfigurationTestUtils.defaults();
 
   @Before
   public void before() throws Exception {
@@ -74,7 +78,7 @@ public class BlockInStreamTest {
             Matchers.any(BlockWorkerClient.class));
     mInfo = new BlockInfo().setBlockId(1);
     mOptions = new InStreamOptions(new URIStatus(new FileInfo().setBlockIds(Collections
-        .singletonList(1L))));
+        .singletonList(1L))), mConf);
   }
 
   @Test
@@ -82,7 +86,7 @@ public class BlockInStreamTest {
     WorkerNetAddress dataSource = new WorkerNetAddress();
     BlockInStream.BlockInStreamSource dataSourceType = BlockInStream.BlockInStreamSource.LOCAL;
     BlockInStream stream =
-        BlockInStream.create(mMockContext, mInfo, dataSource, dataSourceType, mOptions);
+        BlockInStream.create(mMockContext, mInfo, dataSource, dataSourceType, mOptions, mConf);
     Assert.assertTrue(stream.isShortCircuit());
   }
 
@@ -91,7 +95,7 @@ public class BlockInStreamTest {
     WorkerNetAddress dataSource = new WorkerNetAddress();
     BlockInStream.BlockInStreamSource dataSourceType = BlockInStream.BlockInStreamSource.REMOTE;
     BlockInStream stream =
-        BlockInStream.create(mMockContext, mInfo, dataSource, dataSourceType, mOptions);
+        BlockInStream.create(mMockContext, mInfo, dataSource, dataSourceType, mOptions, mConf);
     Assert.assertFalse(stream.isShortCircuit());
   }
 
@@ -100,18 +104,18 @@ public class BlockInStreamTest {
     WorkerNetAddress dataSource = new WorkerNetAddress();
     BlockInStream.BlockInStreamSource dataSourceType = BlockInStream.BlockInStreamSource.UFS;
     BlockInStream stream =
-        BlockInStream.create(mMockContext, mInfo, dataSource, dataSourceType, mOptions);
+        BlockInStream.create(mMockContext, mInfo, dataSource, dataSourceType, mOptions, mConf);
     Assert.assertFalse(stream.isShortCircuit());
   }
 
   @Test
   public void createShortCircuitDisabled() throws Exception {
     try (Closeable c =
-        new ConfigurationRule(PropertyKey.USER_SHORT_CIRCUIT_ENABLED, "false").toResource()) {
+        new ConfigurationRule(PropertyKey.USER_SHORT_CIRCUIT_ENABLED, "false", mConf).toResource()) {
       WorkerNetAddress dataSource = new WorkerNetAddress();
       BlockInStream.BlockInStreamSource dataSourceType = BlockInStream.BlockInStreamSource.LOCAL;
       BlockInStream stream =
-          BlockInStream.create(mMockContext, mInfo, dataSource, dataSourceType, mOptions);
+          BlockInStream.create(mMockContext, mInfo, dataSource, dataSourceType, mOptions, mConf);
       Assert.assertFalse(stream.isShortCircuit());
     }
   }
@@ -119,12 +123,13 @@ public class BlockInStreamTest {
   @Test
   public void createDomainSocketEnabled() throws Exception {
     PowerMockito.mockStatic(NettyUtils.class);
-    PowerMockito.when(NettyUtils.isDomainSocketSupported(Matchers.any(WorkerNetAddress.class)))
+    PowerMockito.when(NettyUtils.isDomainSocketSupported(Matchers.any(WorkerNetAddress.class),
+        Matchers.any(InstancedConfiguration.class)))
         .thenReturn(true);
     WorkerNetAddress dataSource = new WorkerNetAddress();
     BlockInStream.BlockInStreamSource dataSourceType = BlockInStream.BlockInStreamSource.LOCAL;
     BlockInStream stream =
-        BlockInStream.create(mMockContext, mInfo, dataSource, dataSourceType, mOptions);
+        BlockInStream.create(mMockContext, mInfo, dataSource, dataSourceType, mOptions, mConf);
     Assert.assertFalse(stream.isShortCircuit());
   }
 }

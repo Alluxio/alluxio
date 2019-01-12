@@ -11,8 +11,10 @@
 
 package alluxio.client.keyvalue;
 
+import alluxio.ConfigurationTestUtils;
 import alluxio.client.ByteArrayOutStream;
 
+import alluxio.conf.PropertyKey;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -39,7 +41,8 @@ public final class ByteBufferKeyValuePartitionReaderTest {
   @BeforeClass
   public static void beforeClass() throws Exception {
     ByteArrayOutStream outStream = new ByteArrayOutStream();
-    BaseKeyValuePartitionWriter writer = new BaseKeyValuePartitionWriter(outStream);
+    BaseKeyValuePartitionWriter writer = new BaseKeyValuePartitionWriter(outStream,
+        ConfigurationTestUtils.defaults().getBytes(PropertyKey.KEY_VALUE_PARTITION_SIZE_BYTES_MAX));
     writer.put(KEY1, VALUE1);
     writer.put(KEY2, VALUE2);
     writer.close();

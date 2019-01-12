@@ -11,7 +11,8 @@
 
 package alluxio.client.hadoop;
 
-import alluxio.PropertyKey;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.hadoop.FileSystem;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
@@ -70,8 +71,8 @@ public final class FileSystemRenameIntegrationTest extends BaseIntegrationTest {
     URI uri = URI.create(sLocalAlluxioClusterResource.get().getMasterURI());
 
     sTFS = org.apache.hadoop.fs.FileSystem.get(uri, conf);
-    sUfsRoot = alluxio.Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
-    sUfs = UnderFileSystem.Factory.createForRoot();
+    sUfsRoot = ServerConfiguration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+    sUfs = UnderFileSystem.Factory.createForRoot(ServerConfiguration.global());
   }
 
   @Test

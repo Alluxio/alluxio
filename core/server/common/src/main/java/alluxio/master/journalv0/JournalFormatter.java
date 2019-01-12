@@ -11,8 +11,8 @@
 
 package alluxio.master.journalv0;
 
-import alluxio.Configuration;
-import alluxio.PropertyKey;
+import alluxio.conf.ServerConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.util.CommonUtils;
 
@@ -39,7 +39,7 @@ public interface JournalFormatter {
      */
     public static JournalFormatter create() {
       return CommonUtils.createNewClassInstance(
-          Configuration.<JournalFormatter>getClass(PropertyKey.MASTER_JOURNAL_FORMATTER_CLASS),
+          ServerConfiguration.<JournalFormatter>getClass(PropertyKey.MASTER_JOURNAL_FORMATTER_CLASS),
           null, null);
     }
   }

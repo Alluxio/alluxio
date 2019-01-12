@@ -11,9 +11,8 @@
 
 package alluxio.master;
 
-import alluxio.AlluxioConfiguration;
-import alluxio.Configuration;
-import alluxio.PropertyKey;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.status.UnavailableException;
 import alluxio.master.SingleMasterInquireClient.SingleMasterConnectDetails;
 import alluxio.master.ZkMasterInquireClient.ZkMasterConnectDetails;
@@ -70,16 +69,6 @@ public interface MasterInquireClient {
    */
   class Factory {
     /**
-     * Creates an instance of {@link MasterInquireClient} based on the current configuration. The
-     * returned instance may be shared, so it should not be closed by callers of this method.
-     *
-     * @return a master inquire client
-     */
-    public static MasterInquireClient create() {
-      return create(Configuration.global());
-    }
-
-    /**
      * @param conf configuration for creating the master inquire client
      * @return a master inquire client
      */
@@ -98,17 +87,17 @@ public interface MasterInquireClient {
     }
 
     public static MasterInquireClient createForJobMaster() {
-      if (Configuration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED)) {
-        return ZkMasterInquireClient.getClient(Configuration.get(PropertyKey.ZOOKEEPER_ADDRESS),
-            Configuration.get(PropertyKey.ZOOKEEPER_JOB_ELECTION_PATH),
-            Configuration.get(PropertyKey.ZOOKEEPER_JOB_LEADER_PATH));
+      if (ServerConfiguration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED)) {
+        return ZkMasterInquireClient.getClient(ServgerConfiguration.get(PropertyKey.ZOOKEEPER_ADDRESS),
+            ServerConfiguration.get(PropertyKey.ZOOKEEPER_JOB_ELECTION_PATH),
+            ServerConfiguration.get(PropertyKey.ZOOKEEPER_JOB_LEADER_PATH));
       } else if (ConfigurationUtils.getJobMasterRpcAddresses(Configuration.global())
           .size() > 1) {
         return new PollingMasterInquireClient(
             ConfigurationUtils.getJobMasterRpcAddresses(Configuration.global()));
       } else {
         return new SingleMasterInquireClient(
-            NetworkAddressUtils.getConnectAddress(ServiceType.JOB_MASTER_RPC));
+            NetworkAddressUtils.getConnectAddress(ServiceType.JOB_MASTER_RPC, conf));
       }
     }
     /**

@@ -18,12 +18,14 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import alluxio.AlluxioURI;
+import alluxio.ConfigurationTestUtils;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.MockFileInStream;
 import alluxio.client.file.MockFileOutStream;
 import alluxio.client.file.URIStatus;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.WritePType;
@@ -65,11 +67,12 @@ public final class MoveDefinitionRunTaskTest {
 
   @Before
   public void before() throws Exception {
+    AlluxioConfiguration conf = ConfigurationTestUtils.defaults();
     mMockFileSystem = Mockito.mock(FileSystem.class);
     mMockFileSystemContext = PowerMockito.mock(FileSystemContext.class);
-    mMockInStream = new MockFileInStream(FileSystemContext.get(), TEST_SOURCE_CONTENTS);
+    mMockInStream = new MockFileInStream(FileSystemContext.create(), TEST_SOURCE_CONTENTS, conf);
     when(mMockFileSystem.openFile(new AlluxioURI(TEST_SOURCE))).thenReturn(mMockInStream);
-    mMockOutStream = new MockFileOutStream();
+    mMockOutStream = new MockFileOutStream(conf);
     when(mMockFileSystem.createFile(eq(new AlluxioURI(TEST_DESTINATION)),
         any(CreateFilePOptions.class))).thenReturn(mMockOutStream);
     mMockUfsManager = Mockito.mock(UfsManager.class);

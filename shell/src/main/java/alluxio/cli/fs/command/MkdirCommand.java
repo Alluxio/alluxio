@@ -14,6 +14,7 @@ package alluxio.cli.fs.command;
 import alluxio.AlluxioURI;
 import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystem;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.CreateDirectoryPOptions;
@@ -36,8 +37,8 @@ public final class MkdirCommand extends AbstractFileSystemCommand {
    *
    * @param fs the filesystem of Alluxio
    */
-  public MkdirCommand(FileSystem fs) {
-    super(fs);
+  public MkdirCommand(FileSystem fs, AlluxioConfiguration conf) {
+    super(fs, conf);
   }
 
   @Override

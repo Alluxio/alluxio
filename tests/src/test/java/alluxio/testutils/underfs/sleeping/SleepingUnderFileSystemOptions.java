@@ -176,14 +176,14 @@ public class SleepingUnderFileSystemOptions {
   }
 
   /**
-   * @return milliseconds to sleep before executing a get block size call
+   * @return milliseconds to sleep before executing a create block size call
    */
   public long getGetBlockSizeByteMs() {
     return mGetBlockSizeByteMs;
   }
 
   /**
-   * @param getBlockSizeByteMs milliseconds to sleep before executing a get block size call
+   * @param getBlockSizeByteMs milliseconds to sleep before executing a create block size call
    * @return the updated object
    */
   public SleepingUnderFileSystemOptions setGetBlockSizeByteMs(long getBlockSizeByteMs) {
@@ -192,14 +192,14 @@ public class SleepingUnderFileSystemOptions {
   }
 
   /**
-   * @return milliseconds to sleep before executing a get conf call
+   * @return milliseconds to sleep before executing a create conf call
    */
   public long getGetConfMs() {
     return mGetConfMs;
   }
 
   /**
-   * @param getConfMs milliseconds to sleep before executing a get conf call
+   * @param getConfMs milliseconds to sleep before executing a create conf call
    * @return the updated object
    */
   public SleepingUnderFileSystemOptions setGetConfMs(long getConfMs) {
@@ -208,14 +208,14 @@ public class SleepingUnderFileSystemOptions {
   }
 
   /**
-   * @return milliseconds to sleep before executing a get directory status call
+   * @return milliseconds to sleep before executing a create directory status call
    */
   public long getGetDirectoryStatusMs() {
     return mGetDirectoryStatusMs;
   }
 
   /**
-   * @param getDirectoryStatusMs milliseconds to sleep before executing a get directory status call
+   * @param getDirectoryStatusMs milliseconds to sleep before executing a create directory status call
    * @return the updated object
    */
   public SleepingUnderFileSystemOptions setGetDirectoryStatusMs(long getDirectoryStatusMs) {
@@ -224,14 +224,14 @@ public class SleepingUnderFileSystemOptions {
   }
 
   /**
-   * @return milliseconds to sleep before executing a get file location call
+   * @return milliseconds to sleep before executing a create file location call
    */
   public long getGetFileLocationsMs() {
     return mGetFileLocationsMs;
   }
 
   /**
-   * @param getFileLocationsMs milliseconds to sleep before executing a get file location call
+   * @param getFileLocationsMs milliseconds to sleep before executing a create file location call
    * @return the updated object
    */
   public SleepingUnderFileSystemOptions setGetFileLocationsMs(long getFileLocationsMs) {
@@ -240,14 +240,14 @@ public class SleepingUnderFileSystemOptions {
   }
 
   /**
-   * @return milliseconds to sleep before executing a get file status call
+   * @return milliseconds to sleep before executing a create file status call
    */
   public long getGetFileStatusMs() {
     return mGetFileStatusMs;
   }
 
   /**
-   * @param getFileStatusMs milliseconds to sleep before executing a get file status call
+   * @param getFileStatusMs milliseconds to sleep before executing a create file status call
    * @return the updated object
    */
   public SleepingUnderFileSystemOptions setGetFileStatusMs(long getFileStatusMs) {
@@ -272,14 +272,14 @@ public class SleepingUnderFileSystemOptions {
   }
 
   /**
-   * @return milliseconds to sleep before executing a get space call
+   * @return milliseconds to sleep before executing a create space call
    */
   public long getGetSpaceMs() {
     return mGetSpaceMs;
   }
 
   /**
-   * @param getSpaceMs milliseconds to sleep before executing a get space call
+   * @param getSpaceMs milliseconds to sleep before executing a create space call
    * @return the updated object
    */
   public SleepingUnderFileSystemOptions setGetSpaceMs(long getSpaceMs) {
@@ -288,14 +288,14 @@ public class SleepingUnderFileSystemOptions {
   }
 
   /**
-   * @return milliseconds to sleep before executing a get underfs type call
+   * @return milliseconds to sleep before executing a create underfs type call
    */
   public long getGetUnderFSTypeMs() {
     return mGetUnderFSTypeMs;
   }
 
   /**
-   * @param getUnderFSTypeMs milliseconds to sleep before executing a get underfs type call
+   * @param getUnderFSTypeMs milliseconds to sleep before executing a create underfs type call
    * @return the updated object
    */
   public SleepingUnderFileSystemOptions setGetUnderFSTypeMs(long getUnderFSTypeMs) {

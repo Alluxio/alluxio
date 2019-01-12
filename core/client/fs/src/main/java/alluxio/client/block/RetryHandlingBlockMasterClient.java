@@ -14,6 +14,7 @@ package alluxio.client.block;
 import alluxio.AbstractMasterClient;
 import alluxio.Constants;
 import alluxio.client.block.options.GetWorkerReportOptions;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.grpc.BlockMasterClientServiceGrpc;
 import alluxio.grpc.GetBlockInfoPRequest;
 import alluxio.grpc.GetBlockMasterInfoPOptions;
@@ -49,8 +50,8 @@ public final class RetryHandlingBlockMasterClient extends AbstractMasterClient
    *
    * @param conf master client configuration
    */
-  public RetryHandlingBlockMasterClient(MasterClientConfig conf) {
-    super(conf);
+  public RetryHandlingBlockMasterClient(MasterClientConfig conf, AlluxioConfiguration alluxioConf) {
+    super(conf, alluxioConf);
   }
 
   @Override
@@ -102,7 +103,7 @@ public final class RetryHandlingBlockMasterClient extends AbstractMasterClient
   /**
    * Returns the {@link BlockInfo} for a block id.
    *
-   * @param blockId the block id to get the BlockInfo for
+   * @param blockId the block id to create the BlockInfo for
    * @return the {@link BlockInfo}
    */
   public BlockInfo getBlockInfo(final long blockId) throws IOException {

@@ -13,11 +13,13 @@ package alluxio.proxy;
 
 import alluxio.AlluxioURI;
 import alluxio.RestUtils;
+import alluxio.Server;
 import alluxio.StreamCache;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
+import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
@@ -66,7 +68,7 @@ public final class PathsRestServiceHandler {
   public static final String DELETE = "delete";
   public static final String EXISTS = "exists";
   public static final String FREE = "free";
-  public static final String GET_STATUS = "get-status";
+  public static final String GET_STATUS = "create-status";
   public static final String LIST_STATUS = "list-status";
   public static final String MOUNT = "mount";
   public static final String OPEN_FILE = "open-file";
@@ -112,7 +114,7 @@ public final class PathsRestServiceHandler {
         }
         return null;
       }
-    });
+    }, ServerConfiguration.global());
   }
 
   /**
@@ -138,7 +140,7 @@ public final class PathsRestServiceHandler {
         }
         return mStreamCache.put(os);
       }
-    });
+    }, ServerConfiguration.global());
   }
 
   /**
@@ -161,7 +163,7 @@ public final class PathsRestServiceHandler {
         }
         return null;
       }
-    });
+    }, ServerConfiguration.global());
   }
 
   /**
@@ -183,7 +185,7 @@ public final class PathsRestServiceHandler {
           return mFileSystem.exists(new AlluxioURI(path), options);
         }
       }
-    });
+    }, ServerConfiguration.global());
   }
 
   /**
@@ -206,7 +208,7 @@ public final class PathsRestServiceHandler {
         }
         return null;
       }
-    });
+    }, ServerConfiguration.global());
   }
 
   /**
@@ -228,7 +230,7 @@ public final class PathsRestServiceHandler {
           return mFileSystem.getStatus(new AlluxioURI(path), options);
         }
       }
-    });
+    }, ServerConfiguration.global());
   }
 
   /**
@@ -252,7 +254,7 @@ public final class PathsRestServiceHandler {
           return mFileSystem.listStatus(new AlluxioURI(path), options);
         }
       }
-    });
+    }, ServerConfiguration.global());
   }
 
   /**
@@ -279,7 +281,7 @@ public final class PathsRestServiceHandler {
         }
         return null;
       }
-    });
+    }, ServerConfiguration.global());
   }
 
   /**
@@ -304,7 +306,7 @@ public final class PathsRestServiceHandler {
         }
         return mStreamCache.put(is);
       }
-    });
+    }, ServerConfiguration.global());
   }
 
   /**
@@ -331,7 +333,7 @@ public final class PathsRestServiceHandler {
         }
         return null;
       }
-    });
+    }, ServerConfiguration.global());
   }
 
   /**
@@ -355,7 +357,7 @@ public final class PathsRestServiceHandler {
         }
         return null;
       }
-    });
+    }, ServerConfiguration.global());
   }
 
   /**
@@ -378,6 +380,6 @@ public final class PathsRestServiceHandler {
         }
         return null;
       }
-    });
+    }, ServerConfiguration.global());
   }
 }

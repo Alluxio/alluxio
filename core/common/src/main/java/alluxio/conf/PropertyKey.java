@@ -9,8 +9,12 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio;
+package alluxio.conf;
 
+import alluxio.Constants;
+import alluxio.DefaultSupplier;
+import alluxio.ProjectConstants;
+import alluxio.RuntimeConstants;
 import alluxio.exception.ExceptionMessage;
 import alluxio.grpc.Scope;
 import alluxio.util.OSUtils;

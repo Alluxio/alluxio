@@ -11,9 +11,10 @@
 
 package alluxio.cli;
 
-import alluxio.Configuration;
-import alluxio.ConfigurationValueOptions;
-import alluxio.PropertyKey;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.ConfigurationValueOptions;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.client.RetryHandlingMetaMasterConfigClient;
 import alluxio.grpc.ConfigProperty;
 import alluxio.master.MasterClientConfig;
@@ -132,18 +133,18 @@ public final class GetConf {
   }
 
   /**
-   * Implements get configuration.
+   * Implements create configuration.
    *
    * @param args list of arguments
    * @return 0 on success, 1 on failures
    */
-  public static int getConf(String... args) {
+  public static int getConf(AlluxioConfiguration conf, String... args) {
     return getConfImpl(
-        () -> new RetryHandlingMetaMasterConfigClient(MasterClientConfig.defaults()), args);
+        () -> new RetryHandlingMetaMasterConfigClient(MasterClientConfig.defaults(conf), conf), args);
   }
 
   /**
-   * Implements get configuration.
+   * Implements create configuration.
    *
    * @param clientSupplier a functor to return a config client of meta master
    * @param args list of arguments
@@ -151,7 +152,8 @@ public final class GetConf {
    */
   @VisibleForTesting
   public static int getConfImpl(
-      Supplier<RetryHandlingMetaMasterConfigClient> clientSupplier, String... args) {
+      Supplier<RetryHandlingMetaMasterClient> clientSupplier,
+      AlluxioConfiguration conf, String... args) {
     CommandLineParser parser = new DefaultParser();
     CommandLine cmd;
     try {
@@ -168,16 +170,16 @@ public final class GetConf {
       try (RetryHandlingMetaMasterConfigClient client = clientSupplier.get()) {
         client.getConfiguration().forEach(prop -> confMap.put(prop.getName(), prop));
       } catch (IOException e) {
-        System.out.println("Unable to get master-side configuration: " + e.getMessage());
+        System.out.println("Unable to create master-side configuration: " + e.getMessage());
         return -1;
       }
     } else {
       // load local configuration
-      for (PropertyKey key : Configuration.keySet()) {
+      for (PropertyKey key : conf.keySet()) {
         if (key.isBuiltIn()) {
           ConfigProperty.Builder config = ConfigProperty.newBuilder().setName(key.getName())
-              .setSource(Configuration.getSource(key).toString());
-          String val = Configuration.getOrDefault(key, null,
+              .setSource(conf.getSource(key).toString());
+          String val = conf.getOrDefault(key, null,
               ConfigurationValueOptions.defaults().useDisplayValue(true));
           if (val != null) {
             config.setValue(val);
@@ -261,7 +263,7 @@ public final class GetConf {
    * @param args the arguments to specify the unit (optional) and configuration key (optional)
    */
   public static void main(String[] args) {
-    System.exit(getConf(args));
+    System.exit(getConf(new InstancedConfiguration(ConfigurationUtils.defaults()), args));
   }
 
   private GetConf() {} // this class is not intended for instantiation

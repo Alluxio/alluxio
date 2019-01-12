@@ -12,7 +12,7 @@
 package alluxio.server.health;
 
 import alluxio.AlluxioURI;
-import alluxio.PropertyKey;
+import alluxio.conf.PropertyKey;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.grpc.WritePType;
@@ -57,7 +57,7 @@ public class BlockMasterIntegrityIntegrationTest {
     mCluster.stopWorkers();
     fs.delete(uri);
     mCluster.restartMasters();
-    mCluster.startWorkers(); // creates a new worker, so need to get the new BlockWorker
+    mCluster.startWorkers(); // creates a new worker, so need to create the new BlockWorker
     BlockWorker newWorker = mCluster.getWorkerProcess().getWorker(BlockWorker.class);
     CommonUtils.waitFor("orphan blocks to be deleted",
         () -> newWorker.getStoreMetaFull().getNumberOfBlocks() == 0,
@@ -78,7 +78,7 @@ public class BlockMasterIntegrityIntegrationTest {
     removeFileMetadata(uri);
     mCluster.stopWorkers();
     mCluster.restartMasters();
-    mCluster.startWorkers(); // creates a new worker, so need to get the new BlockWorker
+    mCluster.startWorkers(); // creates a new worker, so need to create the new BlockWorker
     BlockWorker newWorker = mCluster.getWorkerProcess().getWorker(BlockWorker.class);
     CommonUtils.waitFor("invalid blocks to be deleted",
         () -> newWorker.getStoreMetaFull().getNumberOfBlocks() == 0,

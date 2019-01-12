@@ -12,10 +12,12 @@
 package alluxio.client.file;
 
 import alluxio.AlluxioURI;
+import alluxio.ClientContext;
 import alluxio.Constants;
 import alluxio.annotation.PublicApi;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.client.file.options.OutStreamOptions;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.ExceptionMessage;
@@ -70,13 +72,14 @@ import javax.annotation.concurrent.ThreadSafe;
 public class BaseFileSystem implements FileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(BaseFileSystem.class);
 
-  protected final FileSystemContext mFileSystemContext;
+  protected ClientContext mClientContext;
+  protected FileSystemContext mFileSystemContext;
 
   /**
-   * @param context file system context
+   * @param context client context
    * @return a {@link BaseFileSystem}
    */
-  public static BaseFileSystem get(FileSystemContext context) {
+  public static BaseFileSystem create(ClientContext context) {
     return new BaseFileSystem(context);
   }
 
@@ -85,8 +88,14 @@ public class BaseFileSystem implements FileSystem {
    *
    * @param context file system context
    */
-  protected BaseFileSystem(FileSystemContext context) {
-    mFileSystemContext = context;
+  protected BaseFileSystem(ClientContext context) {
+    this(context, FileSystemContext.create(context.getSubject(), context.getConfiguration()));
+  }
+
+  protected BaseFileSystem(ClientContext context, FileSystemContext fsContext) {
+    mClientContext = context;
+    mFileSystemContext = fsContext;
+
   }
 
   @Override
@@ -147,12 +156,12 @@ public class BaseFileSystem implements FileSystem {
       mFileSystemContext.releaseMasterClient(masterClient);
     }
 
-    OutStreamOptions outStreamOptions = new OutStreamOptions(options);
+    OutStreamOptions outStreamOptions = new OutStreamOptions(options, mClientContext.getConfiguration());
     outStreamOptions.setUfsPath(status.getUfsPath());
     outStreamOptions.setMountId(status.getMountId());
     outStreamOptions.setAcl(status.getAcl());
     try {
-      return new FileOutStream(path, outStreamOptions, mFileSystemContext);
+      return new FileOutStream(path, outStreamOptions, mFileSystemContext, mClientContext.getConfiguration());
     } catch (Exception e) {
       delete(path);
       throw e;
@@ -395,8 +404,10 @@ public class BaseFileSystem implements FileSystem {
       throw new FileDoesNotExistException(
           ExceptionMessage.CANNOT_READ_DIRECTORY.getMessage(status.getName()));
     }
-    InStreamOptions inStreamOptions = new InStreamOptions(status, options);
-    return new FileInStream(status, inStreamOptions, mFileSystemContext);
+    AlluxioConfiguration conf = mClientContext.getConfiguration();
+    InStreamOptions inStreamOptions = new InStreamOptions(status, options, conf);
+    return new FileInStream(status, inStreamOptions, mFileSystemContext,
+        mClientContext.getConfiguration());
   }
 
   @Override
@@ -547,7 +558,7 @@ public class BaseFileSystem implements FileSystem {
    * Checks an {@link AlluxioURI} for scheme and authority information. Warn the user and throw an
    * exception if necessary.
    */
-  private static void checkUri(AlluxioURI uri) {
+  private void checkUri(AlluxioURI uri) {
     if (uri.hasScheme()) {
       String warnMsg = "The URI scheme \"{}\" is ignored and not required in URIs passed to"
           + " the Alluxio Filesystem client.";
@@ -572,7 +583,8 @@ public class BaseFileSystem implements FileSystem {
       /* Even if we choose to log the warning, check if the Configuration host matches what the
        * user passes. If not, throw an exception letting the user know they don't match.
        */
-      Authority configured = MasterInquireClient.Factory.create().getConnectDetails().toAuthority();
+      Authority configured =
+          MasterInquireClient.Factory.create(mClientContext.getConfiguration()).getConnectDetails().toAuthority();
       if (!configured.equals(uri.getAuthority())) {
         throw new IllegalArgumentException(
             String.format("The URI authority %s does not match the configured " + "value of %s.",

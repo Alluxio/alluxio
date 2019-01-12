@@ -12,9 +12,9 @@
 package alluxio.examples.keyvalue;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
 import alluxio.Constants;
-import alluxio.PropertyKey;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.RuntimeConstants;
 import alluxio.cli.CliUtils;
 import alluxio.client.keyvalue.KeyValueIterator;
@@ -22,6 +22,7 @@ import alluxio.client.keyvalue.KeyValuePair;
 import alluxio.client.keyvalue.KeyValueStoreReader;
 import alluxio.client.keyvalue.KeyValueStoreWriter;
 import alluxio.client.keyvalue.KeyValueSystem;
+import alluxio.util.ConfigurationUtils;
 import alluxio.util.io.BufferUtils;
 
 import org.slf4j.Logger;
@@ -42,6 +43,9 @@ public final class KeyValueStoreOperations implements Callable<Boolean> {
   private final int mPartitionLength = Constants.MB;
   private final int mNumKeyValuePairs = 10;
 
+  private static final InstancedConfiguration sConf =
+      new InstancedConfiguration(ConfigurationUtils.defaults());
+
   private AlluxioURI mStoreUri;
   private Map<ByteBuffer, ByteBuffer> mKeyValuePairs = new HashMap<>();
 
@@ -54,11 +58,10 @@ public final class KeyValueStoreOperations implements Callable<Boolean> {
 
   @Override
   public Boolean call() throws Exception {
-    Configuration.set(PropertyKey.KEY_VALUE_ENABLED, String.valueOf(true));
-    Configuration
-        .set(PropertyKey.KEY_VALUE_PARTITION_SIZE_BYTES_MAX, String.valueOf(mPartitionLength));
+    sConf.set(PropertyKey.KEY_VALUE_ENABLED, String.valueOf(true));
+    sConf.set(PropertyKey.KEY_VALUE_PARTITION_SIZE_BYTES_MAX, String.valueOf(mPartitionLength));
 
-    KeyValueSystem kvs = KeyValueSystem.Factory.create();
+    KeyValueSystem kvs = KeyValueSystem.Factory.create(sConf);
 
     KeyValueStoreWriter writer = kvs.createStore(mStoreUri);
     putKeyValuePairs(writer);
@@ -93,7 +96,7 @@ public final class KeyValueStoreOperations implements Callable<Boolean> {
       return false;
     }
 
-    // API: KeyValueStoreReader#get
+    // API: KeyValueStoreReader#create
     for (Map.Entry<ByteBuffer, ByteBuffer> pair : mKeyValuePairs.entrySet()) {
       ByteBuffer expectedValue = pair.getValue();
       ByteBuffer gotValue = reader.get(pair.getKey());
@@ -130,7 +133,7 @@ public final class KeyValueStoreOperations implements Callable<Boolean> {
       System.exit(-1);
     }
 
-    if (!Configuration.getBoolean(PropertyKey.KEY_VALUE_ENABLED)) {
+    if (!sConf.getBoolean(PropertyKey.KEY_VALUE_ENABLED)) {
       System.out.println("Alluxio key value service is disabled. To run this test, please set "
           + PropertyKey.KEY_VALUE_ENABLED + " to be true and restart the cluster.");
       System.exit(-1);

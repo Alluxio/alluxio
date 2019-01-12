@@ -12,10 +12,10 @@
 package alluxio.master.file;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
+import alluxio.conf.ServerConfiguration;
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
-import alluxio.PropertyKey;
+import alluxio.conf.PropertyKey;
 import alluxio.client.job.JobMasterClient;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.FileDoesNotExistException;
@@ -93,26 +93,26 @@ public final class PersistenceTest {
 
   @Before
   public void before() throws Exception {
-    AuthenticatedClientUser.set(LoginUser.get().getName());
+    AuthenticatedClientUser.set(LoginUser.get(ServerConfiguration.global()).getName());
     TemporaryFolder tmpFolder = new TemporaryFolder();
     tmpFolder.create();
     File ufsRoot = tmpFolder.newFolder();
-    Configuration.set(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS, ufsRoot.getAbsolutePath());
-    Configuration.set(PropertyKey.MASTER_PERSISTENCE_INITIAL_INTERVAL_MS, 0);
-    Configuration.set(PropertyKey.MASTER_PERSISTENCE_MAX_INTERVAL_MS, 1000);
-    Configuration.set(PropertyKey.MASTER_PERSISTENCE_INITIAL_WAIT_TIME_MS, 0);
-    Configuration.set(PropertyKey.MASTER_PERSISTENCE_MAX_TOTAL_WAIT_TIME_MS, 1000);
+    ServerConfiguration.set(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS, ufsRoot.getAbsolutePath());
+    ServerConfiguration.set(PropertyKey.MASTER_PERSISTENCE_INITIAL_INTERVAL_MS, 0);
+    ServerConfiguration.set(PropertyKey.MASTER_PERSISTENCE_MAX_INTERVAL_MS, 1000);
+    ServerConfiguration.set(PropertyKey.MASTER_PERSISTENCE_INITIAL_WAIT_TIME_MS, 0);
+    ServerConfiguration.set(PropertyKey.MASTER_PERSISTENCE_MAX_TOTAL_WAIT_TIME_MS, 1000);
     mJournalFolder = tmpFolder.newFolder();
     mSafeModeManager = new DefaultSafeModeManager();
     mStartTimeMs = System.currentTimeMillis();
-    mPort = Configuration.getInt(PropertyKey.MASTER_RPC_PORT);
+    mPort = ServerConfiguration.getInt(PropertyKey.MASTER_RPC_PORT);
     startServices();
   }
 
   @After
   public void after() throws Exception {
     stopServices();
-    ConfigurationTestUtils.resetConfiguration();
+    ServerConfiguration.reset();
     AuthenticatedClientUser.remove();
   }
 
@@ -198,7 +198,7 @@ public final class PersistenceTest {
       fileInfo = mFileSystemMaster.getFileInfo(testFile, GET_STATUS_CONTEXT);
       Map<Long, PersistJob> persistJobs = getPersistJobs();
       PersistJob job = persistJobs.get(fileInfo.getFileId());
-      UnderFileSystem ufs = UnderFileSystem.Factory.create(job.getTempUfsPath());
+      UnderFileSystem ufs = UnderFileSystem.Factory.create(job.getTempUfsPath(), ServerConfiguration.global());
       UnderFileSystemUtils.touch(ufs, job.getTempUfsPath());
     }
 
@@ -315,7 +315,7 @@ public final class PersistenceTest {
    */
   @Test(timeout = 20000)
   public void retryPersistJobRenameDelete() throws Exception {
-    AuthenticatedClientUser.set(LoginUser.get().getName());
+    AuthenticatedClientUser.set(LoginUser.get(ServerConfiguration.global()).getName());
     // Create src file and directory, checking the internal state.
     AlluxioURI alluxioDirSrc = new AlluxioURI("/src");
     mFileSystemMaster.createDirectory(alluxioDirSrc,
@@ -358,7 +358,7 @@ public final class PersistenceTest {
     {
       Map<Long, PersistJob> persistJobs = getPersistJobs();
       PersistJob job = persistJobs.get(fileId);
-      UnderFileSystem ufs = UnderFileSystem.Factory.create(job.getTempUfsPath());
+      UnderFileSystem ufs = UnderFileSystem.Factory.create(job.getTempUfsPath(), ServerConfiguration.global());
       UnderFileSystemUtils.touch(ufs, job.getTempUfsPath());
     }
 
@@ -453,8 +453,8 @@ public final class PersistenceTest {
 
   private AlluxioURI createTestFile() throws Exception {
     AlluxioURI path = new AlluxioURI("/" + CommonUtils.randomAlphaNumString(10));
-    String owner = SecurityUtils.getOwnerFromGrpcClient();
-    String group = SecurityUtils.getGroupFromGrpcClient();
+    String owner = SecurityUtils.getOwnerFromGrpcClient(ServerConfiguration.global());
+    String group = SecurityUtils.getGroupFromGrpcClient(ServerConfiguration.global());
     mFileSystemMaster.createFile(path,
         CreateFileContext
             .defaults(
@@ -535,7 +535,7 @@ public final class PersistenceTest {
     mRegistry.start(true);
     mMockJobMasterClient = Mockito.mock(JobMasterClient.class);
     PowerMockito.mockStatic(JobMasterClient.Factory.class);
-    Mockito.when(JobMasterClient.Factory.create(Mockito.any(JobMasterClientConfig.class)))
+    Mockito.when(JobMasterClient.Factory.create(Mockito.any(JobMasterClientConfig.class), ServerConfiguration.global()))
         .thenReturn(mMockJobMasterClient);
   }
 

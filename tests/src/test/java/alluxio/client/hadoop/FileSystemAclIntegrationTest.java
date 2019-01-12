@@ -12,8 +12,9 @@
 package alluxio.client.hadoop;
 
 import alluxio.Constants;
+import alluxio.conf.ServerConfiguration;
 import alluxio.hadoop.HadoopClientTestUtils;
-import alluxio.PropertyKey;
+import alluxio.conf.PropertyKey;
 import alluxio.hadoop.FileSystem;
 import alluxio.security.authentication.AuthType;
 import alluxio.security.authorization.Mode;
@@ -93,8 +94,8 @@ public final class FileSystemAclIntegrationTest extends BaseIntegrationTest {
     URI uri = URI.create(sLocalAlluxioClusterResource.get().getMasterURI());
 
     sTFS = org.apache.hadoop.fs.FileSystem.get(uri, conf);
-    sUfsRoot = alluxio.Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
-    sUfs = UnderFileSystem.Factory.createForRoot();
+    sUfsRoot = ServerConfiguration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+    sUfs = UnderFileSystem.Factory.createForRoot(ServerConfiguration.global());
   }
 
   @After
@@ -463,7 +464,7 @@ public final class FileSystemAclIntegrationTest extends BaseIntegrationTest {
       sTFS.delete(file, false);
       // Create a file directly in UFS and set the corresponding mode.
       String ufsPath = PathUtils.concatPath(sUfsRoot, file);
-      sUfs.create(ufsPath, CreateOptions.defaults().setOwner("testuser").setGroup("testgroup")
+      sUfs.create(ufsPath, CreateOptions.defaults(ServerConfiguration.global()).setOwner("testuser").setGroup("testgroup")
           .setMode(new Mode((short) value))).close();
       Assert.assertTrue(sUfs.isFile(PathUtils.concatPath(sUfsRoot, file)));
       // Check the mode is consistent in Alluxio namespace once it's loaded from UFS to Alluxio.
@@ -489,7 +490,7 @@ public final class FileSystemAclIntegrationTest extends BaseIntegrationTest {
       // Create a directory directly in UFS and set the corresponding mode.
       String ufsPath = PathUtils.concatPath(sUfsRoot, dir);
       sUfs.mkdirs(ufsPath,
-          MkdirsOptions.defaults().setCreateParent(false).setOwner("testuser").setGroup("testgroup")
+          MkdirsOptions.defaults(ServerConfiguration.global()).setCreateParent(false).setOwner("testuser").setGroup("testgroup")
               .setMode(new Mode((short) value)));
       Assert.assertTrue(sUfs.isDirectory(PathUtils.concatPath(sUfsRoot, dir)));
       // Check the mode is consistent in Alluxio namespace once it's loaded from UFS to Alluxio.
@@ -502,7 +503,7 @@ public final class FileSystemAclIntegrationTest extends BaseIntegrationTest {
   public void s3GetPermission() throws Exception {
     Assume.assumeTrue(UnderFileSystemUtils.isS3(sUfs));
 
-    alluxio.Configuration.unset(PropertyKey.UNDERFS_S3_OWNER_ID_TO_USERNAME_MAPPING);
+    ServerConfiguration.unset(PropertyKey.UNDERFS_S3_OWNER_ID_TO_USERNAME_MAPPING);
     Path fileA = new Path("/s3GetPermissionFile");
     create(sTFS, fileA);
     Assert.assertTrue(sUfs.isFile(PathUtils.concatPath(sUfsRoot, fileA)));
@@ -519,7 +520,7 @@ public final class FileSystemAclIntegrationTest extends BaseIntegrationTest {
   public void gcsGetPermission() throws Exception {
     Assume.assumeTrue(UnderFileSystemUtils.isGcs(sUfs));
 
-    alluxio.Configuration.unset(PropertyKey.UNDERFS_GCS_OWNER_ID_TO_USERNAME_MAPPING);
+    ServerConfiguration.unset(PropertyKey.UNDERFS_GCS_OWNER_ID_TO_USERNAME_MAPPING);
     Path fileA = new Path("/gcsGetPermissionFile");
     create(sTFS, fileA);
     Assert.assertTrue(sUfs.isFile(PathUtils.concatPath(sUfsRoot, fileA)));

@@ -13,6 +13,8 @@ package alluxio.client.block.policy;
 
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.policy.options.GetWorkerOptions;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.MoreObjects;
@@ -41,7 +43,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  *
  * This policy is useful for limiting the amount of replication that occurs when reading blocks from
  * the UFS with high concurrency. With 30 workers and 100 remote clients reading the same block
- * concurrently, the replication level for the block would get close to 30 as each workers reads
+ * concurrently, the replication level for the block would create close to 30 as each workers reads
  * and caches the block for one or more clients. If the clients use DeterministicHashPolicy with
  * 3 shards, the 100 clients will split their reads between just 3 workers, so that the replication
  * level for the block will be only 3 when the data is first loaded.
@@ -49,7 +51,6 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public final class DeterministicHashPolicy implements BlockLocationPolicy {
   /** The default number of shards to serve a block. */
-  private static final int DEFAULT_NUM_SHARDS = 1;
   private final int mShards;
   private final Random mRandom = new Random();
   private final HashFunction mHashFunc = Hashing.md5();
@@ -57,8 +58,8 @@ public final class DeterministicHashPolicy implements BlockLocationPolicy {
   /**
    * Constructs a new {@link DeterministicHashPolicy}.
    */
-  public DeterministicHashPolicy() {
-    this(DEFAULT_NUM_SHARDS);
+  public DeterministicHashPolicy(AlluxioConfiguration alluxioConf) {
+    this(alluxioConf.getInt(PropertyKey.USER_UFS_BLOCK_READ_LOCATION_POLICY_DETERMINISTIC_HASH_SHARDS));
   }
 
   /**

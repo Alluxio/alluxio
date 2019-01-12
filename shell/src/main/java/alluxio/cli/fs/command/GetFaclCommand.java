@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 
@@ -33,8 +34,8 @@ public final class GetFaclCommand extends AbstractFileSystemCommand {
   /**
    * @param fs the filesystem of Alluxio
    */
-  public GetFaclCommand(FileSystem fs) {
-    super(fs);
+  public GetFaclCommand(FileSystem fs, AlluxioConfiguration conf) {
+    super(fs, conf);
   }
 
   @Override

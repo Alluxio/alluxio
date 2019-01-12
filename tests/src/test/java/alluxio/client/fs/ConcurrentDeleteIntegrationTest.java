@@ -14,10 +14,11 @@ package alluxio.client.fs;
 import alluxio.AlluxioURI;
 import alluxio.AuthenticatedUserRule;
 import alluxio.Constants;
-import alluxio.PropertyKey;
+import alluxio.conf.PropertyKey;
 import alluxio.UnderFileSystemFactoryRegistryRule;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
+import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.WritePType;
@@ -68,7 +69,8 @@ public class ConcurrentDeleteIntegrationTest extends BaseIntegrationTest {
   private String mLocalUfsPath = Files.createTempDir().getAbsolutePath();
 
   @Rule
-  public AuthenticatedUserRule mAuthenticatedUser = new AuthenticatedUserRule(TEST_USER);
+  public AuthenticatedUserRule mAuthenticatedUser = new AuthenticatedUserRule(TEST_USER,
+      ServerConfiguration.global());
 
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
@@ -194,7 +196,7 @@ public class ConcurrentDeleteIntegrationTest extends BaseIntegrationTest {
         .unaryOperation(mFileSystem, ConcurrentFileSystemMasterUtils.UnaryOperation.DELETE, paths,
             LIMIT_MS);
 
-    // We should get an error for all but 1 delete
+    // We should create an error for all but 1 delete
     Assert.assertEquals(numThreads - 1, errors.size());
 
     List<URIStatus> files = mFileSystem.listStatus(new AlluxioURI("/"));
@@ -218,7 +220,7 @@ public class ConcurrentDeleteIntegrationTest extends BaseIntegrationTest {
         .unaryOperation(mFileSystem, ConcurrentFileSystemMasterUtils.UnaryOperation.DELETE, paths,
             LIMIT_MS);
 
-    // We should get an error for all but 1 delete
+    // We should create an error for all but 1 delete
     Assert.assertEquals(numThreads - 1, errors.size());
     List<URIStatus> dirs = mFileSystem.listStatus(new AlluxioURI("/"));
     Assert.assertEquals(0, dirs.size());

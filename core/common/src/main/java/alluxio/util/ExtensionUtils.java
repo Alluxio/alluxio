@@ -11,9 +11,7 @@
 
 package alluxio.util;
 
-import alluxio.Configuration;
 import alluxio.Constants;
-import alluxio.PropertyKey;
 
 import java.io.File;
 import java.io.FileFilter;
@@ -33,8 +31,7 @@ public final class ExtensionUtils {
    *
    * @return an array of files (one file per jar)
    */
-  public static File[] listExtensions() {
-    String extensionDir = Configuration.get(PropertyKey.EXTENSIONS_DIR);
+  public static File[] listExtensions(String extensionDir) {
     File[] extensions = new File(extensionDir).listFiles(new FileFilter() {
       public boolean accept(File file) {
         return file.getPath().toLowerCase().endsWith(Constants.EXTENSION_JAR);

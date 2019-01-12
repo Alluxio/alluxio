@@ -12,6 +12,7 @@
 package alluxio.underfs;
 
 import alluxio.AlluxioURI;
+import alluxio.conf.ServerConfiguration;
 import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.UfsInfo;
@@ -42,7 +43,9 @@ public final class JobUfsManager extends AbstractUfsManager {
    * Constructs an instance of {@link JobUfsManager}.
    */
   public JobUfsManager() {
-    mMasterClient = mCloser.register(new FileSystemMasterClient(MasterClientConfig.defaults()));
+    mMasterClient =
+        mCloser.register(new FileSystemMasterClient(MasterClientConfig.defaults(ServerConfiguration.global()),
+            ServerConfiguration.global()));
   }
 
   @Override
@@ -58,18 +61,19 @@ public final class JobUfsManager extends AbstractUfsManager {
       info = mMasterClient.getUfsInfo(mountId);
     } catch (IOException e) {
       throw new UnavailableException(
-          String.format("Failed to get UFS info for mount point with id %d", mountId), e);
+          String.format("Failed to create UFS info for mount point with id %d", mountId), e);
     }
     Preconditions.checkState((info.hasUri() && info.hasProperties()), "unknown mountId");
     super.addMount(mountId, new AlluxioURI(info.getUri()),
-        UnderFileSystemConfiguration.defaults().setReadOnly(info.getProperties().getReadOnly())
+        UnderFileSystemConfiguration.defaults(ServerConfiguration.global()).setReadOnly(info.getProperties().getReadOnly())
             .setShared(info.getProperties().getShared())
-            .setMountSpecificConf(info.getProperties().getPropertiesMap()));
+            .createMountSpecificConf(info.getProperties().getPropertiesMap()));
     UfsClient ufsClient = super.get(mountId);
     try (CloseableResource<UnderFileSystem> ufsResource = ufsClient.acquireUfsResource()) {
       UnderFileSystem ufs = ufsResource.get();
       ufs.connectFromWorker(
-          NetworkAddressUtils.getConnectHost(NetworkAddressUtils.ServiceType.WORKER_RPC));
+          NetworkAddressUtils.getConnectHost(NetworkAddressUtils.ServiceType.WORKER_RPC,
+              ServerConfiguration.global()));
     } catch (IOException e) {
       removeMount(mountId);
       throw new UnavailableException(

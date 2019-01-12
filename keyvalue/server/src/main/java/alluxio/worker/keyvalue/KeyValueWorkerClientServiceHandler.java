@@ -110,7 +110,7 @@ public final class KeyValueWorkerClientServiceHandler
         }
       } catch (InvalidWorkerStateException e) {
         // We shall never reach here
-        LOG.error("Reaching invalid state to get all keys", e);
+        LOG.error("Reaching invalid state to create all keys", e);
       } finally {
         mBlockWorker.unlockBlock(lockId);
       }
@@ -129,7 +129,7 @@ public final class KeyValueWorkerClientServiceHandler
         response.setSize(getReader(sessionId, lockId, request.getBlockId()).size());
       } catch (InvalidWorkerStateException e) {
         // We shall never reach here
-        LOG.error("Reaching invalid state to get size", e);
+        LOG.error("Reaching invalid state to create size", e);
       } finally {
         mBlockWorker.unlockBlock(lockId);
       }
@@ -138,7 +138,7 @@ public final class KeyValueWorkerClientServiceHandler
   }
 
   /**
-   * Internal logic to get value from the given block.
+   * Internal logic to create value from the given block.
    *
    * @param blockId Block Id
    * @param keyBuffer bytes of key
@@ -153,7 +153,7 @@ public final class KeyValueWorkerClientServiceHandler
       return getReader(sessionId, lockId, blockId).get(keyBuffer);
     } catch (InvalidWorkerStateException e) {
       // We shall never reach here
-      LOG.error("Reaching invalid state to get a key", e);
+      LOG.error("Reaching invalid state to create a key", e);
     } finally {
       mBlockWorker.unlockBlock(lockId);
     }

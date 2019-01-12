@@ -12,7 +12,7 @@
 package alluxio.client.cli.fs;
 
 import alluxio.Constants;
-import alluxio.PropertyKey;
+import alluxio.conf.PropertyKey;
 import alluxio.SystemErrRule;
 import alluxio.SystemOutRule;
 import alluxio.testutils.BaseIntegrationTest;

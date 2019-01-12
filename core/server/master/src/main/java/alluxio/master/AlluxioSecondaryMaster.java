@@ -11,10 +11,10 @@
 
 package alluxio.master;
 
-import alluxio.Configuration;
+import alluxio.conf.ServerConfiguration;
 import alluxio.Process;
 import alluxio.ProcessUtils;
-import alluxio.PropertyKey;
+import alluxio.conf.PropertyKey;
 import alluxio.RuntimeConstants;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalUtils;
@@ -53,7 +53,7 @@ public final class AlluxioSecondaryMaster implements Process {
       mSafeModeManager = new DefaultSafeModeManager();
       mBackupManager = new BackupManager(mRegistry);
       mStartTimeMs = System.currentTimeMillis();
-      mPort = Configuration.getInt(PropertyKey.MASTER_RPC_PORT);
+      mPort = ServerConfiguration.getInt(PropertyKey.MASTER_RPC_PORT);
       // Create masters.
       MasterUtils.createMasters(mRegistry, CoreMasterContext.newBuilder()
           .setJournalSystem(mJournalSystem)

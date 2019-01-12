@@ -14,6 +14,7 @@ package alluxio.client.cli.fs.command;
 import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
+import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.ExistsPOptions;
 import alluxio.grpc.LoadMetadataPType;
 import alluxio.grpc.WritePType;
@@ -56,7 +57,7 @@ public class CheckConsistencyCommandIntegrationTest extends AbstractFileSystemSh
     FileSystemTestUtils.createByteFile(mFileSystem, "/testRoot/testDir/testFileB",
             WritePType.CACHE_THROUGH, 20);
     String ufsPath = mFileSystem.getStatus(new AlluxioURI("/testRoot/testDir")).getUfsPath();
-    UnderFileSystem ufs = UnderFileSystem.Factory.create(ufsPath);
+    UnderFileSystem ufs = UnderFileSystem.Factory.create(ufsPath, ServerConfiguration.global());
     ufs.deleteDirectory(ufsPath, DeleteOptions.defaults().setRecursive(true));
     mFsShell.run("checkConsistency", "/testRoot");
     StringBuilder expected = new StringBuilder();

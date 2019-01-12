@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.cli.Command;
 import alluxio.cli.fs.FileSystemShellUtils;
 import alluxio.client.file.FileSystem;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.AlluxioException;
 
 import com.google.common.base.Joiner;
@@ -34,9 +35,11 @@ import java.util.List;
 public abstract class AbstractFileSystemCommand implements Command {
 
   protected FileSystem mFileSystem;
+  protected AlluxioConfiguration mConfiguration;
 
-  protected AbstractFileSystemCommand(FileSystem fs) {
+  protected AbstractFileSystemCommand(FileSystem fs, AlluxioConfiguration alluxioConf) {
     mFileSystem = fs;
+    mConfiguration = alluxioConf;
   }
 
   /**

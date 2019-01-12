@@ -11,9 +11,6 @@
 
 package alluxio.security.group;
 
-import alluxio.Configuration;
-import alluxio.PropertyKey;
-
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -56,20 +53,20 @@ public class CachedGroupMapping implements GroupMappingService {
    *
    * @param service group mapping service
    */
-  public CachedGroupMapping(GroupMappingService service) {
+  public CachedGroupMapping(GroupMappingService service, long groupMappingCacheTimeout) {
     mService = service;
-    long timeoutMs = Configuration.getMs(PropertyKey.SECURITY_GROUP_MAPPING_CACHE_TIMEOUT_MS);
-    mCacheEnabled = timeoutMs > 0;
+//    long groupMappingCacheTimeout = Configuration.getMs(PropertyKey.SECURITY_GROUP_MAPPING_CACHE_TIMEOUT_MS);
+    mCacheEnabled = groupMappingCacheTimeout > 0;
     if (mCacheEnabled) {
       mCache = CacheBuilder.newBuilder()
           // the maximum number of entries the cache may contain.
           .maximumSize(MAXSIZE)
           // active entries are eligible for automatic refresh once the specified time duration has
           // elapsed after the entry was last modified.
-          .refreshAfterWrite(timeoutMs, TimeUnit.MILLISECONDS)
+          .refreshAfterWrite(groupMappingCacheTimeout, TimeUnit.MILLISECONDS)
           // each entry should be automatically removed from the cache once the specified time
           // duration has elapsed after the entry was last modified.
-          .expireAfterWrite(10 * timeoutMs, TimeUnit.MILLISECONDS)
+          .expireAfterWrite(10 * groupMappingCacheTimeout, TimeUnit.MILLISECONDS)
           .build(new GroupMappingCacheLoader());
     }
   }

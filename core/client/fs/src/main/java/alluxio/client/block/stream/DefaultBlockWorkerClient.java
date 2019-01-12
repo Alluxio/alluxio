@@ -11,10 +11,15 @@
 
 package alluxio.client.block.stream;
 
-import alluxio.Configuration;
-import alluxio.PropertyKey;
+
 import alluxio.grpc.AsyncCacheRequest;
 import alluxio.grpc.AsyncCacheResponse;
+import alluxio.conf.Configuration;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
+import alluxio.exception.status.UnauthenticatedException;
+import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.BlockWorkerGrpc;
 import alluxio.grpc.CreateLocalBlockRequest;
 import alluxio.grpc.CreateLocalBlockResponse;
@@ -29,6 +34,7 @@ import alluxio.grpc.RemoveBlockRequest;
 import alluxio.grpc.RemoveBlockResponse;
 import alluxio.grpc.WriteRequest;
 import alluxio.grpc.WriteResponse;
+import alluxio.util.ConfigurationUtils;
 import alluxio.util.network.NettyUtils;
 
 import io.grpc.StatusRuntimeException;
@@ -51,19 +57,11 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
   private static final Logger LOGGER =
       LoggerFactory.getLogger(DefaultBlockWorkerClient.class.getName());
 
-  private static final long DATA_TIMEOUT =
-      Configuration.getMs(PropertyKey.USER_NETWORK_DATA_TIMEOUT_MS);
-  private static final long KEEPALIVE_TIME_MS =
-      Configuration.getMs(PropertyKey.USER_NETWORK_KEEPALIVE_TIME_MS);
-  private static final long KEEPALIVE_TIMEOUT_MS =
-      Configuration.getMs(PropertyKey.USER_NETWORK_KEEPALIVE_TIMEOUT_MS);
-  private static final long GRPC_FLOWCONTROL_WINDOW =
-      Configuration.getBytes(PropertyKey.USER_NETWORK_FLOWCONTROL_WINDOW);
-  private static final long MAX_INBOUND_MESSAGE_SIZE =
-      Configuration.getBytes(PropertyKey.USER_NETWORK_MAX_INBOUND_MESSAGE_SIZE);
   private static final EventLoopGroup WORKER_GROUP = NettyUtils
-      .createEventLoop(NettyUtils.USER_CHANNEL_TYPE,
-          Configuration.getInt(PropertyKey.USER_NETWORK_NETTY_WORKER_THREADS),
+      .createEventLoop(
+          NettyUtils.getUserChannel(new InstancedConfiguration(ConfigurationUtils.defaults())),
+          new InstancedConfiguration(ConfigurationUtils.defaults())
+              .getInt(PropertyKey.USER_NETWORK_NETTY_WORKER_THREADS),
           "netty-client-worker-%d", true);
 
   private GrpcChannel mChannel;
@@ -77,17 +75,18 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
    * @param subject the user subject, can be null if the user is not available
    * @param address the address of the worker
    */
-  public DefaultBlockWorkerClient(Subject subject, SocketAddress address) throws IOException {
+  public DefaultBlockWorkerClient(Subject subject, SocketAddress address,
+      AlluxioConfiguration alluxioConf) {
     try {
-      mChannel = GrpcChannelBuilder.forAddress(address).setSubject(subject)
-          .setChannelType(NettyUtils.getClientChannelClass(!(address instanceof InetSocketAddress)))
+      mChannel = GrpcChannelBuilder.forAddress(address, alluxioConf).setSubject(subject)
+          .setChannelType(NettyUtils.getClientChannelClass(!(address instanceof InetSocketAddress), alluxioConf))
           .setEventLoopGroup(WORKER_GROUP)
-          .setKeepAliveTime(KEEPALIVE_TIME_MS, TimeUnit.MILLISECONDS)
-          .setKeepAliveTimeout(KEEPALIVE_TIMEOUT_MS, TimeUnit.MILLISECONDS)
-          .setMaxInboundMessageSize((int) MAX_INBOUND_MESSAGE_SIZE)
-          .setFlowControlWindow((int) GRPC_FLOWCONTROL_WINDOW).build();
-    } catch (StatusRuntimeException e) {
-      throw GrpcExceptionUtils.fromGrpcStatusException(e);
+          .setKeepAliveTimeout(alluxioConf.getMs(PropertyKey.USER_NETWORK_KEEPALIVE_TIMEOUT_MS), TimeUnit.MILLISECONDS)
+          .setMaxInboundMessageSize((int) alluxioConf.getMs(PropertyKey.USER_NETWORK_MAX_INBOUND_MESSAGE_SIZE))
+          .setFlowControlWindow((int) alluxioConf.getMs(PropertyKey.USER_NETWORK_FLOWCONTROL_WINDOW))
+                     .build();
+    } catch (UnauthenticatedException | UnavailableException e) {
+      throw new RuntimeException("Failed to build channel.", e);
     }
     mBlockingStub = BlockWorkerGrpc.newBlockingStub(mChannel);
     mAsyncStub = BlockWorkerGrpc.newStub(mChannel);

@@ -12,9 +12,9 @@
 package alluxio.cli.fs;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.Constants;
-import alluxio.PropertyKey;
+import alluxio.conf.PropertyKey;
 import alluxio.cli.Command;
 import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystem;
@@ -52,8 +52,8 @@ public final class FileSystemShellUtils {
    * @param path the path to obtain the local path from
    * @return the local path in string format
    */
-  public static String getFilePath(String path) throws IOException {
-    path = validatePath(path);
+  public static String getFilePath(String path, AlluxioConfiguration conf) throws IOException {
+    path = validatePath(path, conf);
     if (path.startsWith(Constants.HEADER)) {
       path = path.substring(Constants.HEADER.length());
     } else if (path.startsWith(Constants.HEADER_FT)) {
@@ -71,7 +71,7 @@ public final class FileSystemShellUtils {
    *         part is provided, the host and port are retrieved from property,
    *         alluxio.master.hostname and alluxio.master.port, respectively.
    */
-  public static String validatePath(String path) throws IOException {
+  public static String validatePath(String path, AlluxioConfiguration conf) throws IOException {
     if (path.startsWith(Constants.HEADER) || path.startsWith(Constants.HEADER_FT)) {
       if (!path.contains(":")) {
         throw new IOException("Invalid Path: " + path + ". Use " + Constants.HEADER
@@ -80,9 +80,9 @@ public final class FileSystemShellUtils {
         return path;
       }
     } else {
-      String hostname = NetworkAddressUtils.getConnectHost(ServiceType.MASTER_RPC);
-      int port =  Configuration.getInt(PropertyKey.MASTER_RPC_PORT);
-      if (Configuration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED)) {
+      String hostname = NetworkAddressUtils.getConnectHost(ServiceType.MASTER_RPC, conf);
+      int port =  conf.getInt(PropertyKey.MASTER_RPC_PORT);
+      if (conf.getBoolean(PropertyKey.ZOOKEEPER_ENABLED)) {
         return PathUtils.concatPath(Constants.HEADER_FT + hostname + ":" + port, path);
       }
       return PathUtils.concatPath(Constants.HEADER + hostname + ":" + port, path);

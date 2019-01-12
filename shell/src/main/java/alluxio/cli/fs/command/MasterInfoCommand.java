@@ -13,6 +13,7 @@ package alluxio.cli.fs.command;
 
 import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystem;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.master.MasterInquireClient;
@@ -33,8 +34,8 @@ public final class MasterInfoCommand extends AbstractFileSystemCommand {
   /**
    * @param fs the {@link FileSystem}
    */
-  public MasterInfoCommand(FileSystem fs) {
-    super(fs);
+  public MasterInfoCommand(FileSystem fs, AlluxioConfiguration conf) {
+    super(fs, conf);
   }
 
   @Override
@@ -49,7 +50,7 @@ public final class MasterInfoCommand extends AbstractFileSystemCommand {
 
   @Override
   public int run(CommandLine cl) {
-    MasterInquireClient inquireClient = MasterInquireClient.Factory.create();
+    MasterInquireClient inquireClient = MasterInquireClient.Factory.create(mConfiguration);
     try {
       InetSocketAddress leaderAddress = inquireClient.getPrimaryRpcAddress();
       System.out.println("Current leader master: " + leaderAddress.toString());

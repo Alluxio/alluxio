@@ -14,11 +14,12 @@ package alluxio.client.fs;
 import alluxio.AlluxioURI;
 import alluxio.AuthenticatedUserRule;
 import alluxio.Constants;
-import alluxio.PropertyKey;
+import alluxio.conf.PropertyKey;
 import alluxio.UnderFileSystemFactoryRegistryRule;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.collections.ConcurrentHashSet;
+import alluxio.conf.ServerConfiguration;
 import alluxio.exception.AlluxioException;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
@@ -79,7 +80,8 @@ public class ConcurrentRenameIntegrationTest extends BaseIntegrationTest {
   private String mLocalUfsPath = Files.createTempDir().getAbsolutePath();
 
   @Rule
-  public AuthenticatedUserRule mAuthenticatedUser = new AuthenticatedUserRule(TEST_USER);
+  public AuthenticatedUserRule mAuthenticatedUser = new AuthenticatedUserRule(TEST_USER,
+      ServerConfiguration.global());
 
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
@@ -169,7 +171,7 @@ public class ConcurrentRenameIntegrationTest extends BaseIntegrationTest {
 
     ConcurrentHashSet<Throwable> errors = concurrentRename(srcs, dsts);
 
-    // We should get an error for all but 1 rename
+    // We should create an error for all but 1 rename
     Assert.assertEquals(numThreads - 1, errors.size());
 
     List<URIStatus> files = mFileSystem.listStatus(new AlluxioURI("/"));
@@ -198,7 +200,7 @@ public class ConcurrentRenameIntegrationTest extends BaseIntegrationTest {
 
     ConcurrentHashSet<Throwable> errors = concurrentRename(srcs, dsts);
 
-    // We should get an error for all but 1 rename
+    // We should create an error for all but 1 rename
     assertErrorsSizeEquals(errors, numThreads - 1);
     // Only one renamed dir should exist
     List<URIStatus> existingDirs = mFileSystem.listStatus(new AlluxioURI("/"));
@@ -226,7 +228,7 @@ public class ConcurrentRenameIntegrationTest extends BaseIntegrationTest {
 
     ConcurrentHashSet<Throwable> errors = concurrentRename(srcs, dsts);
 
-    // We should get an error for all but 1 rename.
+    // We should create an error for all but 1 rename.
     assertErrorsSizeEquals(errors, numThreads - 1);
 
     List<URIStatus> files = mFileSystem.listStatus(new AlluxioURI("/"));
@@ -267,7 +269,7 @@ public class ConcurrentRenameIntegrationTest extends BaseIntegrationTest {
 
     ConcurrentHashSet<Throwable> errors = concurrentRename(srcs, dsts);
 
-    // We should get no errors
+    // We should create no errors
     assertErrorsSizeEquals(errors, 0);
 
     List<URIStatus> dir1Files = mFileSystem.listStatus(dir1);
@@ -309,7 +311,7 @@ public class ConcurrentRenameIntegrationTest extends BaseIntegrationTest {
 
     ConcurrentHashSet<Throwable> errors = concurrentRename(srcs, dsts);
 
-    // We should get no errors.
+    // We should create no errors.
     assertErrorsSizeEquals(errors, 0);
 
     List<URIStatus> dir1Files = mFileSystem.listStatus(dir1);
@@ -354,7 +356,7 @@ public class ConcurrentRenameIntegrationTest extends BaseIntegrationTest {
 
     ConcurrentHashSet<Throwable> errors = concurrentRename(srcs, dsts);
 
-    // We should get no errors.
+    // We should create no errors.
     assertErrorsSizeEquals(errors, 0);
 
     List<URIStatus> dir1Files = mFileSystem.listStatus(dir1);
@@ -397,7 +399,7 @@ public class ConcurrentRenameIntegrationTest extends BaseIntegrationTest {
 
     ConcurrentHashSet<Throwable> errors = concurrentRename(srcs, dsts);
 
-    // We should get no errors.
+    // We should create no errors.
     assertErrorsSizeEquals(errors, 0);
 
     List<URIStatus> dir1Files = mFileSystem.listStatus(dir1);

@@ -11,8 +11,6 @@
 
 package alluxio.client.block.stream;
 
-import alluxio.Configuration;
-import alluxio.PropertyKey;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.OutStreamOptions;
@@ -85,7 +83,7 @@ public final class LocalFileDataWriter implements DataWriter {
           CreateLocalBlockRequest.newBuilder().setBlockId(blockId)
               .setTier(options.getWriteTier()).setSpaceToReserve(FILE_BUFFER_BYTES);
       if (options.getWriteType() == WriteType.ASYNC_THROUGH
-          && Configuration.getBoolean(PropertyKey.USER_FILE_UFS_TIER_ENABLED)) {
+          && ufsTierEnabled) {
         builder.setCleanupOnFailure(false);
       }
       CreateLocalBlockRequest createRequest = builder.build();

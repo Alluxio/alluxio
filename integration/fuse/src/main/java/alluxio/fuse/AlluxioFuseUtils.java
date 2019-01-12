@@ -69,7 +69,7 @@ public final class AlluxioFuseUtils {
     try {
       return Long.parseLong(result);
     } catch (NumberFormatException e) {
-      LOG.error("Failed to get gid from group name {}.", groupName);
+      LOG.error("Failed to create gid from group name {}.", groupName);
       return -1;
     }
   }
@@ -145,7 +145,7 @@ public final class AlluxioFuseUtils {
     try {
       output = ShellUtils.execCommand("id", option, username).trim();
     } catch (IOException e) {
-      LOG.error("Failed to get id from {} with option {}", username, option);
+      LOG.error("Failed to create id from {} with option {}", username, option);
       return -1;
     }
     return Long.parseLong(output);

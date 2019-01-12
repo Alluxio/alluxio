@@ -11,6 +11,7 @@
 
 package alluxio.underfs;
 
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.extensions.ExtensionFactoryRegistry;
 
 import org.slf4j.Logger;
@@ -67,8 +68,8 @@ public final class UnderFileSystemFactoryRegistry {
    * @return factory if available, null otherwise
    */
   @Nullable
-  public static UnderFileSystemFactory find(String path) {
-    return find(path, null);
+  public static UnderFileSystemFactory find(String path, AlluxioConfiguration alluxioConf) {
+    return find(path, null, alluxioConf);
   }
 
   /**
@@ -80,8 +81,8 @@ public final class UnderFileSystemFactoryRegistry {
    */
   @Nullable
   public static UnderFileSystemFactory find(
-      String path, @Nullable UnderFileSystemConfiguration ufsConf) {
-    List<UnderFileSystemFactory> factories = findAll(path, ufsConf);
+      String path, @Nullable UnderFileSystemConfiguration ufsConf, AlluxioConfiguration alluxioConf) {
+    List<UnderFileSystemFactory> factories = findAll(path, ufsConf, alluxioConf);
     if (factories.isEmpty()) {
       LOG.warn("No Under File System Factory implementation supports the path {}. Please check if "
           + "the under storage path is valid.", path);
@@ -100,8 +101,8 @@ public final class UnderFileSystemFactoryRegistry {
    * @return list of factories that support the given path which may be an empty list
    */
   public static List<UnderFileSystemFactory> findAll(String path,
-      UnderFileSystemConfiguration ufsConf) {
-    return sRegistryInstance.findAll(path, ufsConf);
+      UnderFileSystemConfiguration ufsConf, AlluxioConfiguration alluxioConf) {
+    return sRegistryInstance.findAll(path, ufsConf, alluxioConf);
   }
 
   private static synchronized void init() {

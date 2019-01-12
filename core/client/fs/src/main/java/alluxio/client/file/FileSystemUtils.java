@@ -12,9 +12,8 @@
 package alluxio.client.file;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
 import alluxio.Constants;
-import alluxio.PropertyKey;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.grpc.CheckConsistencyPOptions;
 import alluxio.util.CommonUtils;
@@ -53,11 +52,11 @@ public final class FileSystemUtils {
    *         before the file was complete.
    * @throws InterruptedException if the thread receives an interrupt while waiting for file
    *         completion
-   * @see #waitCompleted(FileSystem, AlluxioURI, long, TimeUnit)
+   * @see #waitCompleted(FileSystem, AlluxioURI, long, TimeUnit, long)
    */
-  public static boolean waitCompleted(FileSystem fs, AlluxioURI uri)
+  public static boolean waitCompleted(FileSystem fs, AlluxioURI uri, long waitCompletedPollMs)
       throws IOException, AlluxioException, InterruptedException {
-    return FileSystemUtils.waitCompleted(fs, uri, -1, TimeUnit.MILLISECONDS);
+    return FileSystemUtils.waitCompleted(fs, uri, -1, TimeUnit.MILLISECONDS, waitCompletedPollMs);
   }
 
   /**
@@ -90,11 +89,10 @@ public final class FileSystemUtils {
    *         completion
    */
   public static boolean waitCompleted(final FileSystem fs, final AlluxioURI uri,
-      final long timeout, final TimeUnit tunit)
+      final long timeout, final TimeUnit tunit, long fileWaitCompletedPollMs)
           throws IOException, AlluxioException, InterruptedException {
 
     final long deadline = System.currentTimeMillis() + tunit.toMillis(timeout);
-    final long pollPeriod = Configuration.getMs(PropertyKey.USER_FILE_WAITCOMPLETED_POLL_MS);
     boolean completed = false;
     long timeleft = deadline - System.currentTimeMillis();
 
@@ -112,8 +110,8 @@ public final class FileSystemUtils {
       } else if (!completed) {
         long toSleep;
 
-        if (timeout < 0 || timeleft > pollPeriod) {
-          toSleep = pollPeriod;
+        if (timeout < 0 || timeleft > fileWaitCompletedPollMs) {
+          toSleep = fileWaitCompletedPollMs;
         } else {
           toSleep = timeleft;
         }
@@ -134,7 +132,7 @@ public final class FileSystemUtils {
    */
   public static void persistFile(final FileSystem fs, final AlluxioURI uri)
       throws IOException, TimeoutException, InterruptedException {
-    FileSystemContext context = FileSystemContext.get();
+    FileSystemContext context = FileSystemContext.create();
     FileSystemMasterClient client = context.acquireMasterClient();
     try {
       client.scheduleAsyncPersist(uri);
@@ -162,7 +160,7 @@ public final class FileSystemUtils {
    */
   public static List<AlluxioURI> checkConsistency(AlluxioURI path,
       CheckConsistencyPOptions options) throws IOException {
-    FileSystemContext context = FileSystemContext.get();
+    FileSystemContext context = FileSystemContext.create();
     FileSystemMasterClient client = context.acquireMasterClient();
     try {
       return client.checkConsistency(path, options);

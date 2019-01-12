@@ -19,6 +19,7 @@ import org.powermock.reflect.Whitebox;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -92,16 +93,23 @@ public final class CommonUtils {
    * @param excludedFields names of fields which should not impact equality
    */
   public static <T> void testEquals(Class<T> clazz, String... excludedFields) {
+    testEquals(clazz,null, null, excludedFields);
+  }
+
+  public static <T> void testEquals(Class<T> clazz, Class<?>[] ctorClassArgs,
+      Object[] ctorArgs, String... excludedFields) {
     Set<String> excludedFieldsSet = new HashSet<>(Arrays.asList(excludedFields));
     EqualsTester equalsTester = new EqualsTester();
-    equalsTester.addEqualityGroup(createBaseObject(clazz), createBaseObject(clazz));
+    equalsTester.addEqualityGroup(
+        createBaseObject(clazz, ctorClassArgs, ctorArgs),
+        createBaseObject(clazz, ctorClassArgs, ctorArgs));
     // For each non-excluded field, create an object of the class with only that field changed.
     for (Field field : getNonStaticFields(clazz)) {
       if (excludedFieldsSet.contains(field.getName())) {
         continue;
       }
       field.setAccessible(true);
-      T instance = createBaseObject(clazz);
+      T instance = createBaseObject(clazz, ctorClassArgs, ctorArgs);
       try {
         field.set(instance, getValuesForFieldType(field.getType()).get(1));
       } catch (Exception e) {
@@ -131,6 +139,50 @@ public final class CommonUtils {
       throw new RuntimeException(e);
     }
   }
+
+  /**
+   * Creates new instance of a class by calling a constructor that receives ctorClassArgs arguments.
+   *
+   * @param <T> type of the object
+   * @param clazz the class to create
+   * @param ctorClassArgs parameters type list of the constructor to initiate, if null default
+   *        constructor will be called
+   * @param ctorArgs the arguments to pass the constructor
+   * @return new class object
+   * @throws RuntimeException if the class cannot be instantiated
+   */
+  private static <T> T createBaseObject(Class<T> clazz, Class<?>[] ctorClassArgs,
+      Object[] ctorArgs) {
+    try {
+      Constructor<T> ctor;
+      if (ctorClassArgs == null || ctorClassArgs.length == 0) {
+        ctor = clazz.getDeclaredConstructor();
+      } else {
+        ctor = clazz.getConstructor(ctorClassArgs);
+      }
+      ctor.setAccessible(true);
+
+      T instance;
+      if (ctorClassArgs == null || ctorClassArgs.length == 0) {
+        instance = ctor.newInstance();
+      } else {
+        instance = ctor.newInstance(ctorArgs);
+      }
+
+      for (Field field : getNonStaticFields(clazz)) {
+        field.setAccessible(true);
+        field.set(instance, getValuesForFieldType(field.getType()).get(0));
+      }
+      return instance;
+    } catch (InvocationTargetException e) {
+      throw new RuntimeException(e.getCause());
+    } catch (ReflectiveOperationException e) {
+      throw new RuntimeException(e);
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
+
 
   /**
    * Returns a list of at least two values of the given type.

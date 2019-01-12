@@ -12,10 +12,9 @@
 package alluxio.client.fs;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
-import alluxio.ConfigurationTestUtils;
+import alluxio.conf.ServerConfiguration;
 import alluxio.Constants;
-import alluxio.PropertyKey;
+import alluxio.conf.PropertyKey;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
@@ -74,7 +73,7 @@ public final class ImpersonationIntegrationTest extends BaseIntegrationTest {
 
   @After
   public void after() throws Exception {
-    ConfigurationTestUtils.resetConfiguration();
+    ServerConfiguration.reset();
   }
 
   @Before
@@ -84,7 +83,7 @@ public final class ImpersonationIntegrationTest extends BaseIntegrationTest {
     FileSystem.Factory.get().setAttribute(new AlluxioURI("/"),
         SetAttributePOptions.newBuilder().setMode(new Mode((short) 0777).toProto()).build());
     // Enable client impersonation by default
-    Configuration
+    ServerConfiguration
         .set(PropertyKey.SECURITY_LOGIN_IMPERSONATION_USERNAME, Constants.IMPERSONATION_HDFS_USER);
   }
 
@@ -97,9 +96,9 @@ public final class ImpersonationIntegrationTest extends BaseIntegrationTest {
   @Test
   @LocalAlluxioClusterResource.Config(confParams = {IMPERSONATION_GROUPS_CONFIG, "*"})
   public void impersonationNotUsed() throws Exception {
-    Configuration
+    ServerConfiguration
         .set(PropertyKey.SECURITY_LOGIN_IMPERSONATION_USERNAME, Constants.IMPERSONATION_NONE);
-    FileSystemContext context = FileSystemContext.get(createHdfsSubject());
+    FileSystemContext context = FileSystemContext.create(createHdfsSubject(), ServerConfiguration.global());
     FileSystem fs = mLocalAlluxioClusterResource.get().getClient(context);
     fs.createFile(new AlluxioURI("/impersonation-test")).close();
     List<URIStatus> listing = fs.listStatus(new AlluxioURI("/"));
@@ -112,9 +111,9 @@ public final class ImpersonationIntegrationTest extends BaseIntegrationTest {
   @LocalAlluxioClusterResource.Config(confParams = {IMPERSONATION_GROUPS_CONFIG, "*"})
   public void impersonationArbitraryUserDisallowed() throws Exception {
     String arbitraryUser = "arbitrary_user";
-    Configuration
+    ServerConfiguration
         .set(PropertyKey.SECURITY_LOGIN_IMPERSONATION_USERNAME, arbitraryUser);
-    FileSystemContext context = FileSystemContext.get(createHdfsSubject());
+    FileSystemContext context = FileSystemContext.create(createHdfsSubject(), ServerConfiguration.global());
     FileSystem fs = mLocalAlluxioClusterResource.get().getClient(context);
     fs.createFile(new AlluxioURI("/impersonation-test")).close();
     List<URIStatus> listing = fs.listStatus(new AlluxioURI("/"));
@@ -232,7 +231,7 @@ public final class ImpersonationIntegrationTest extends BaseIntegrationTest {
   }
 
   private void checkCreateFile(Subject subject, String expectedUser) throws Exception {
-    FileSystemContext context = FileSystemContext.get(subject);
+    FileSystemContext context = FileSystemContext.create(subject, ServerConfiguration.global());
     FileSystem fs = mLocalAlluxioClusterResource.get().getClient(context);
     fs.createFile(new AlluxioURI("/impersonation-test")).close();
     List<URIStatus> listing = fs.listStatus(new AlluxioURI("/"));

@@ -11,9 +11,10 @@
 
 package alluxio.worker;
 
-import alluxio.Configuration;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.ServerConfiguration;
 import alluxio.Constants;
-import alluxio.PropertyKey;
+import alluxio.conf.PropertyKey;
 import alluxio.Server;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.grpc.GrpcService;
@@ -68,7 +69,9 @@ public final class JobWorker extends AbstractWorker {
     super(
         Executors.newFixedThreadPool(1, ThreadFactoryUtils.build("job-worker-heartbeat-%d", true)));
     mUfsManager = ufsManager;
-    mJobMasterClient = JobMasterClient.Factory.create(JobMasterClientConfig.defaults());
+    mJobMasterClient =
+        JobMasterClient.Factory.create(JobMasterClientConfig.defaults(ServerConfiguration.global()),
+        ServerConfiguration.global());
     mTaskExecutorManager = new TaskExecutorManager();
   }
 
@@ -90,12 +93,12 @@ public final class JobWorker extends AbstractWorker {
   @Override
   public void start(WorkerNetAddress address) throws IOException {
     // Start serving metrics system, this will not block
-    MetricsSystem.startSinks();
+    MetricsSystem.startSinks(ServerConfiguration.get(PropertyKey.METRICS_CONF_FILE));
 
     try {
       JobWorkerIdRegistry.registerWorker(mJobMasterClient, address);
     } catch (ConnectionFailedException e) {
-      LOG.error("Failed to get a worker id from job master", e);
+      LOG.error("Failed to create a worker id from job master", e);
       throw Throwables.propagate(e);
     }
 
@@ -103,7 +106,8 @@ public final class JobWorker extends AbstractWorker {
         new HeartbeatThread(HeartbeatContext.JOB_WORKER_COMMAND_HANDLING,
             new CommandHandlingExecutor(mTaskExecutorManager, mUfsManager, mJobMasterClient,
                 address),
-            Configuration.getInt(PropertyKey.JOB_MASTER_WORKER_HEARTBEAT_INTERVAL_MS)));
+            ServerConfiguration.getInt(PropertyKey.JOB_MASTER_WORKER_HEARTBEAT_INTERVAL_MS),
+            ServerConfiguration.global()));
   }
 
   @Override

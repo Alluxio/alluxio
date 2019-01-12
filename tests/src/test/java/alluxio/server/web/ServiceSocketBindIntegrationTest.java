@@ -12,6 +12,7 @@
 package alluxio.server.web;
 
 import alluxio.client.block.BlockMasterClient;
+import alluxio.conf.ServerConfiguration;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.master.LocalAlluxioCluster;
@@ -65,7 +66,8 @@ public class ServiceSocketBindIntegrationTest extends BaseIntegrationTest {
    */
   private void connectServices() throws IOException, ConnectionFailedException {
     // connect Master RPC service
-    mBlockMasterClient = BlockMasterClient.Factory.create(MasterClientConfig.defaults());
+    mBlockMasterClient =
+        BlockMasterClient.Factory.create(MasterClientConfig.defaults(ServerConfiguration.global()), ServerConfiguration.global());
     mBlockMasterClient.connect();
 
     // connect Worker RPC service
@@ -77,7 +79,7 @@ public class ServiceSocketBindIntegrationTest extends BaseIntegrationTest {
 
     // connect Master Web service
     InetSocketAddress masterWebAddr =
-        NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_WEB);
+        NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_WEB, ServerConfiguration.global());
     mMasterWebService = (HttpURLConnection) new URL(
         "http://" + masterWebAddr.getAddress().getHostAddress() + ":" + masterWebAddr.getPort()
             + "/css/custom.min.css").openConnection();
@@ -160,8 +162,10 @@ public class ServiceSocketBindIntegrationTest extends BaseIntegrationTest {
     // Connect to Master RPC service on loopback, while Master is listening on local hostname.
     InetSocketAddress masterRpcAddr = new InetSocketAddress("127.0.0.1",
         mLocalAlluxioCluster.getLocalAlluxioMaster().getRpcLocalPort());
-    mBlockMasterClient = BlockMasterClient.Factory.create(MasterClientConfig.defaults()
-        .withMasterInquireClient(new SingleMasterInquireClient(masterRpcAddr)));
+    mBlockMasterClient = BlockMasterClient.Factory.create(MasterClientConfig.defaults(
+        ServerConfiguration.global()).withMasterInquireClient(
+            new SingleMasterInquireClient(masterRpcAddr)),
+        ServerConfiguration.global());
     try {
       mBlockMasterClient.connect();
       Assert.fail("Client should not have successfully connected to master RPC service.");

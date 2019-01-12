@@ -13,6 +13,7 @@ package alluxio.hadoop.mapreduce;
 
 import alluxio.annotation.PublicApi;
 import alluxio.client.keyvalue.KeyValueSystem;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.AlluxioException;
 
 import org.apache.hadoop.fs.FileSystem;
@@ -38,7 +39,7 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class KeyValueOutputCommitter extends FileOutputCommitter {
   private static final Logger LOG = LoggerFactory.getLogger(KeyValueOutputCommitter.class);
 
-  private static final KeyValueSystem KEY_VALUE_SYSTEM = KeyValueSystem.Factory.create();
+  private final KeyValueSystem mKeyValueSystem;
 
   /**
    * Constructor.
@@ -46,9 +47,11 @@ public final class KeyValueOutputCommitter extends FileOutputCommitter {
    * @param outputPath the job's output path, or null if the output committer is a noop
    * @param taskContext the task's context
    */
-  public KeyValueOutputCommitter(Path outputPath, TaskAttemptContext taskContext)
+  public KeyValueOutputCommitter(Path outputPath, TaskAttemptContext taskContext,
+      AlluxioConfiguration conf)
       throws IOException {
     super(outputPath, taskContext);
+    mKeyValueSystem = KeyValueSystem.Factory.create(conf);
   }
 
   /**
@@ -72,7 +75,7 @@ public final class KeyValueOutputCommitter extends FileOutputCommitter {
   @Override
   public void commitTask(TaskAttemptContext taskContext) throws IOException {
     try {
-      KEY_VALUE_SYSTEM.mergeStore(KeyValueOutputFormat.getTaskOutputURI(taskContext),
+      mKeyValueSystem.mergeStore(KeyValueOutputFormat.getTaskOutputURI(taskContext),
           KeyValueOutputFormat.getJobOutputURI(taskContext));
     } catch (AlluxioException e) {
       throw new IOException(e);
@@ -92,7 +95,7 @@ public final class KeyValueOutputCommitter extends FileOutputCommitter {
     // keep the code compile with early Hadoop versions, we catch this exception.
     try {
       try {
-        KEY_VALUE_SYSTEM.deleteStore(KeyValueOutputFormat.getTaskOutputURI(taskContext));
+        mKeyValueSystem.deleteStore(KeyValueOutputFormat.getTaskOutputURI(taskContext));
       } catch (AlluxioException e) {
         throw new IOException(e);
       }

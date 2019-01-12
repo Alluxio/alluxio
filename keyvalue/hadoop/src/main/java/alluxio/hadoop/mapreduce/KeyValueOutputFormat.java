@@ -14,6 +14,7 @@ package alluxio.hadoop.mapreduce;
 import alluxio.AlluxioURI;
 import alluxio.annotation.PublicApi;
 import alluxio.client.keyvalue.KeyValueSystem;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.AlluxioException;
 
 import org.apache.hadoop.fs.Path;
@@ -43,11 +44,15 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class KeyValueOutputFormat extends FileOutputFormat<BytesWritable, BytesWritable> {
   private OutputCommitter mCommitter;
+  private final AlluxioConfiguration mConf;
+
 
   /**
    * Constructs a new {@link KeyValueOutputFormat}.
    */
-  public KeyValueOutputFormat() {}
+  public KeyValueOutputFormat(AlluxioConfiguration conf) {
+    mConf = conf;
+  }
 
   /**
    * @param taskContext MapReduce task context
@@ -69,7 +74,7 @@ public final class KeyValueOutputFormat extends FileOutputFormat<BytesWritable, 
   @Override
   public RecordWriter<BytesWritable, BytesWritable> getRecordWriter(
       TaskAttemptContext taskAttemptContext) throws IOException {
-    return new KeyValueRecordWriter(getTaskOutputURI(taskAttemptContext));
+    return new KeyValueRecordWriter(getTaskOutputURI(taskAttemptContext), mConf);
   }
 
   /**
@@ -83,7 +88,7 @@ public final class KeyValueOutputFormat extends FileOutputFormat<BytesWritable, 
   public void checkOutputSpecs(JobContext jobContext) throws IOException {
     super.checkOutputSpecs(jobContext);
     try {
-      KeyValueSystem.Factory.create().createStore(KeyValueOutputFormat.getJobOutputURI(jobContext))
+      KeyValueSystem.Factory.create(mConf).createStore(KeyValueOutputFormat.getJobOutputURI(jobContext))
           .close();
     } catch (AlluxioException e) {
       throw new IOException(e);
@@ -98,7 +103,7 @@ public final class KeyValueOutputFormat extends FileOutputFormat<BytesWritable, 
   public OutputCommitter getOutputCommitter(TaskAttemptContext taskContext) throws IOException {
     if (mCommitter == null) {
       mCommitter = new KeyValueOutputCommitter(new Path(KeyValueOutputFormat.getJobOutputURI(
-          taskContext).toString()), taskContext);
+          taskContext).toString()), taskContext, mConf);
     }
     return mCommitter;
   }

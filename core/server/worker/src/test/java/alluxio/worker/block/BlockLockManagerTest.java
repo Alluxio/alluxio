@@ -15,9 +15,9 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 
-import alluxio.Configuration;
+import alluxio.conf.ServerConfiguration;
 import alluxio.ConfigurationTestUtils;
-import alluxio.PropertyKey;
+import alluxio.conf.PropertyKey;
 import alluxio.collections.ConcurrentHashSet;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ExceptionMessage;
@@ -72,7 +72,7 @@ public final class BlockLockManagerTest {
 
   @After
   public void after() throws Exception {
-    ConfigurationTestUtils.resetConfiguration();
+    ServerConfiguration.reset();
   }
 
   /**
@@ -80,7 +80,7 @@ public final class BlockLockManagerTest {
    */
   @Test
   public void lockBlock() {
-    // Read-lock on can both get through
+    // Read-lock on can both create through
     long lockId1 = mLockManager.lockBlock(TEST_SESSION_ID, TEST_BLOCK_ID, BlockLockType.READ);
     long lockId2 = mLockManager.lockBlock(TEST_SESSION_ID, TEST_BLOCK_ID, BlockLockType.READ);
     assertNotEquals(lockId1, lockId2);
@@ -153,7 +153,7 @@ public final class BlockLockManagerTest {
     mThrown.expect(BlockDoesNotExistException.class);
     mThrown.expectMessage(ExceptionMessage.LOCK_RECORD_NOT_FOUND_FOR_LOCK_ID.getMessage(lockId2));
     mLockManager.cleanupSession(sessionId2);
-    // Expect validating sessionId1 to get through
+    // Expect validating sessionId1 to create through
     mLockManager.validateLock(sessionId1, TEST_BLOCK_ID, lockId1);
     // Because sessionId2 has been cleaned up, expect validating sessionId2 to throw IOException
     mLockManager.validateLock(sessionId2, TEST_BLOCK_ID, lockId2);
@@ -329,6 +329,6 @@ public final class BlockLockManagerTest {
   }
 
   private void setMaxLocks(int maxLocks) {
-    Configuration.set(PropertyKey.WORKER_TIERED_STORE_BLOCK_LOCKS, Integer.toString(maxLocks));
+    ServerConfiguration.set(PropertyKey.WORKER_TIERED_STORE_BLOCK_LOCKS, Integer.toString(maxLocks));
   }
 }

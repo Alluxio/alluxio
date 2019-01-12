@@ -11,6 +11,7 @@
 
 package alluxio;
 
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.Status;
 import alluxio.security.LoginUser;
@@ -39,11 +40,12 @@ public final class RestUtils {
    * @param callable the callable to call
    * @return the response object
    */
-  public static <T> Response call(RestUtils.RestCallable<T> callable) {
+  public static <T> Response call(RestUtils.RestCallable<T> callable,
+      AlluxioConfiguration alluxioConf) {
     try {
       // TODO(cc): reconsider how to enable authentication
-      if (SecurityUtils.isSecurityEnabled() && AuthenticatedClientUser.get() == null) {
-        AuthenticatedClientUser.set(LoginUser.get().getName());
+      if (SecurityUtils.isSecurityEnabled(alluxioConf) && AuthenticatedClientUser.get(alluxioConf) == null) {
+        AuthenticatedClientUser.set(LoginUser.get(alluxioConf).getName());
       }
     } catch (IOException e) {
       LOG.warn("Failed to set AuthenticatedClientUser in REST service handler: {}", e.getMessage());

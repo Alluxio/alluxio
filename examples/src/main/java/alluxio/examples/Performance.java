@@ -12,15 +12,16 @@
 package alluxio.examples;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
 import alluxio.Constants;
-import alluxio.PropertyKey;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.RuntimeConstants;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.exception.AlluxioException;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.util.CommonUtils;
+import alluxio.util.ConfigurationUtils;
 import alluxio.util.FormatUtils;
 
 import com.google.common.base.Preconditions;
@@ -579,6 +580,8 @@ public final class Performance {
       System.exit(-1);
     }
 
+    InstancedConfiguration conf = new InstancedConfiguration(ConfigurationUtils.defaults());
+
     HostAndPort masterAddress = HostAndPort.fromString(args[0]);
     sFileName = args[1];
     sBlockSizeBytes = Integer.parseInt(args[2]);
@@ -592,7 +595,7 @@ public final class Performance {
     sFileBytes = sBlocksPerFile * sBlockSizeBytes;
     sFilesBytes = sFileBytes * sFiles;
 
-    long fileBufferBytes = Configuration.getBytes(PropertyKey.USER_FILE_BUFFER_BYTES);
+    long fileBufferBytes = conf.getBytes(PropertyKey.USER_FILE_BUFFER_BYTES);
     sResultPrefix = String.format(
         "Threads %d FilesPerThread %d TotalFiles %d "
             + "BLOCK_SIZE_KB %d BLOCKS_PER_FILE %d FILE_SIZE_MB %d "
@@ -602,8 +605,8 @@ public final class Performance {
 
     CommonUtils.warmUpLoop();
 
-    Configuration.set(PropertyKey.MASTER_HOSTNAME, masterAddress.getHost());
-    Configuration.set(PropertyKey.MASTER_RPC_PORT, Integer.toString(masterAddress.getPort()));
+    conf.set(PropertyKey.MASTER_HOSTNAME, masterAddress.getHost());
+    conf.set(PropertyKey.MASTER_RPC_PORT, Integer.toString(masterAddress.getPort()));
 
     if (testCase == 1) {
       sResultPrefix = "AlluxioFilesWriteTest " + sResultPrefix;

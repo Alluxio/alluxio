@@ -24,6 +24,8 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import alluxio.ConfigurationTestUtils;
+import alluxio.client.ReadType;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.stream.BlockInStream;
@@ -31,6 +33,9 @@ import alluxio.client.block.stream.BlockInStream.BlockInStreamSource;
 import alluxio.client.block.stream.TestBlockInStream;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.client.util.ClientTestUtils;
+import alluxio.conf.ConfigurationTest;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.OpenFilePOptions;
@@ -80,6 +85,9 @@ public final class FileInStreamTest {
   private FileInfo mInfo;
   private URIStatus mStatus;
 
+
+  private static InstancedConfiguration mConf = ConfigurationTestUtils.defaults();
+
   private List<TestBlockInStream> mInStreams;
 
   private FileInStream mTestStream;
@@ -112,15 +120,16 @@ public final class FileInStreamTest {
    */
   @Before
   public void before() throws Exception {
+    mConf = ConfigurationTestUtils.defaults();
     mInfo = new FileInfo().setBlockSizeBytes(BLOCK_LENGTH).setLength(FILE_LENGTH);
 
-    ClientTestUtils.setSmallBufferSizes();
+    ClientTestUtils.setSmallBufferSizes(mConf);
 
     mContext = PowerMockito.mock(FileSystemContext.class);
     PowerMockito.when(mContext.getLocalWorker()).thenReturn(new WorkerNetAddress());
     mBlockStore = mock(AlluxioBlockStore.class);
     PowerMockito.mockStatic(AlluxioBlockStore.class);
-    PowerMockito.when(AlluxioBlockStore.create(mContext)).thenReturn(mBlockStore);
+    PowerMockito.when(AlluxioBlockStore.create(mContext, mConf)).thenReturn(mBlockStore);
     PowerMockito.when(mBlockStore.getEligibleWorkers()).thenReturn(new ArrayList<>());
 
     // Set up BufferedBlockInStreams and caching streams
@@ -152,12 +161,13 @@ public final class FileInStreamTest {
 
     OpenFilePOptions readOptions =
         OpenFilePOptions.newBuilder().setReadType(ReadPType.CACHE_PROMOTE).build();
-    mTestStream = new FileInStream(mStatus, new InStreamOptions(mStatus, readOptions), mContext);
+    mTestStream = new FileInStream(mStatus, new InStreamOptions(mStatus, readOptions,
+        mConf), mContext, mConf);
   }
 
   @After
   public void after() {
-    ClientTestUtils.resetClient();
+    ClientTestUtils.resetClient(mConf);
   }
 
   /**
@@ -334,7 +344,11 @@ public final class FileInStreamTest {
   public void longSeekBackwardCachingPartiallyReadBlocks() throws IOException {
     OpenFilePOptions options =
         OpenFilePOptions.newBuilder().setReadType(ReadPType.CACHE_PROMOTE).build();
-    mTestStream = new FileInStream(mStatus, new InStreamOptions(mStatus, options), mContext);
+    mTestStream = new FileInStream(mStatus, new InStreamOptions(mStatus, options,
+        mConf.getEnum(PropertyKey.USER_FILE_READ_TYPE_DEFAULT, ReadType.class),
+        mConf.get(PropertyKey.USER_UFS_BLOCK_READ_LOCATION_POLICY),
+        mConf.getInt(PropertyKey.USER_UFS_BLOCK_READ_LOCATION_POLICY_DETERMINISTIC_HASH_SHARDS),
+        mConf.getInt(PropertyKey.USER_UFS_BLOCK_READ_CONCURRENCY_MAX)), mContext, mConf);
     int seekAmount = (int) (BLOCK_LENGTH / 4 + BLOCK_LENGTH);
     int readAmount = (int) (BLOCK_LENGTH * 3 - BLOCK_LENGTH / 2);
     byte[] buffer = new byte[readAmount];
@@ -352,11 +366,15 @@ public final class FileInStreamTest {
    */
   @Test
   public void testSeekWithNoLocalWorker() throws IOException {
-    // Overrides the get local worker call
+    // Overrides the create local worker call
     PowerMockito.when(mContext.getLocalWorker()).thenReturn(null);
     OpenFilePOptions options =
         OpenFilePOptions.newBuilder().setReadType(ReadPType.CACHE_PROMOTE).build();
-    mTestStream = new FileInStream(mStatus, new InStreamOptions(mStatus, options), mContext);
+    mTestStream = new FileInStream(mStatus, new InStreamOptions(mStatus, options,
+        mConf.getEnum(PropertyKey.USER_FILE_READ_TYPE_DEFAULT, ReadType.class),
+        mConf.get(PropertyKey.USER_UFS_BLOCK_READ_LOCATION_POLICY),
+        mConf.getInt(PropertyKey.USER_UFS_BLOCK_READ_LOCATION_POLICY_DETERMINISTIC_HASH_SHARDS),
+        mConf.getInt(PropertyKey.USER_UFS_BLOCK_READ_CONCURRENCY_MAX)), mContext, mConf);
     int readAmount = (int) (BLOCK_LENGTH / 2);
     byte[] buffer = new byte[readAmount];
     // read and seek several times
@@ -374,7 +392,11 @@ public final class FileInStreamTest {
   public void seekAndClose() throws IOException {
     OpenFilePOptions options =
         OpenFilePOptions.newBuilder().setReadType(ReadPType.CACHE_PROMOTE).build();
-    mTestStream = new FileInStream(mStatus, new InStreamOptions(mStatus, options), mContext);
+    mTestStream = new FileInStream(mStatus, new InStreamOptions(mStatus, options,
+        mConf.getEnum(PropertyKey.USER_FILE_READ_TYPE_DEFAULT, ReadType.class),
+        mConf.get(PropertyKey.USER_UFS_BLOCK_READ_LOCATION_POLICY),
+        mConf.getInt(PropertyKey.USER_UFS_BLOCK_READ_LOCATION_POLICY_DETERMINISTIC_HASH_SHARDS),
+        mConf.getInt(PropertyKey.USER_UFS_BLOCK_READ_CONCURRENCY_MAX)), mContext, mConf);
     int seekAmount = (int) (BLOCK_LENGTH / 2);
     mTestStream.seek(seekAmount);
     mTestStream.close();
@@ -390,7 +412,12 @@ public final class FileInStreamTest {
   public void shortSeekBackwardCachingPartiallyReadBlocks() throws IOException {
     OpenFilePOptions options =
         OpenFilePOptions.newBuilder().setReadType(ReadPType.CACHE_PROMOTE).build();
-    mTestStream = new FileInStream(mStatus, new InStreamOptions(mStatus, options), mContext);
+    mTestStream = new FileInStream(mStatus, new InStreamOptions(mStatus, options,
+        mConf.getEnum(PropertyKey.USER_FILE_READ_TYPE_DEFAULT, ReadType.class),
+        mConf.get(PropertyKey.USER_UFS_BLOCK_READ_LOCATION_POLICY),
+        mConf.getInt(PropertyKey.USER_UFS_BLOCK_READ_LOCATION_POLICY_DETERMINISTIC_HASH_SHARDS),
+        mConf.getInt(PropertyKey.USER_UFS_BLOCK_READ_CONCURRENCY_MAX)
+        ), mContext, mConf);
     int seekAmount = (int) (BLOCK_LENGTH / 4);
     int readAmount = (int) (BLOCK_LENGTH * 2 - BLOCK_LENGTH / 2);
     byte[] buffer = new byte[readAmount];
@@ -416,7 +443,11 @@ public final class FileInStreamTest {
   public void longSeekForwardCachingPartiallyReadBlocks() throws IOException {
     OpenFilePOptions options =
         OpenFilePOptions.newBuilder().setReadType(ReadPType.CACHE_PROMOTE).build();
-    mTestStream = new FileInStream(mStatus, new InStreamOptions(mStatus, options), mContext);
+    mTestStream = new FileInStream(mStatus, new InStreamOptions(mStatus, options,
+        mConf.getEnum(PropertyKey.USER_FILE_READ_TYPE_DEFAULT, ReadType.class),
+        mConf.get(PropertyKey.USER_UFS_BLOCK_READ_LOCATION_POLICY),
+        mConf.getInt(PropertyKey.USER_UFS_BLOCK_READ_LOCATION_POLICY_DETERMINISTIC_HASH_SHARDS),
+        mConf.getInt(PropertyKey.USER_UFS_BLOCK_READ_CONCURRENCY_MAX)), mContext, mConf);
     int seekAmount = (int) (BLOCK_LENGTH / 4 + BLOCK_LENGTH);
     int readAmount = (int) (BLOCK_LENGTH / 2);
     byte[] buffer = new byte[readAmount];
@@ -441,7 +472,8 @@ public final class FileInStreamTest {
   public void shortSeekForwardCachingPartiallyReadBlocks() throws IOException {
     OpenFilePOptions options =
         OpenFilePOptions.newBuilder().setReadType(ReadPType.CACHE_PROMOTE).build();
-    mTestStream = new FileInStream(mStatus, new InStreamOptions(mStatus, options), mContext);
+    mTestStream = new FileInStream(mStatus, new InStreamOptions(mStatus, options,
+        mConf), mContext, mConf);
     int seekAmount = (int) (BLOCK_LENGTH / 4);
     int readAmount = (int) (BLOCK_LENGTH * 2 - BLOCK_LENGTH / 2);
     byte[] buffer = new byte[readAmount];
@@ -467,7 +499,12 @@ public final class FileInStreamTest {
   public void seekBackwardSmallSeekBuffer() throws IOException {
     OpenFilePOptions options =
         OpenFilePOptions.newBuilder().setReadType(ReadPType.CACHE_PROMOTE).build();
-    mTestStream = new FileInStream(mStatus, new InStreamOptions(mStatus, options), mContext);
+    mTestStream = new FileInStream(mStatus, new InStreamOptions(mStatus, options,
+        mConf.getEnum(PropertyKey.USER_FILE_READ_TYPE_DEFAULT, ReadType.class),
+        mConf.get(PropertyKey.USER_UFS_BLOCK_READ_LOCATION_POLICY),
+        mConf.getInt(PropertyKey.USER_UFS_BLOCK_READ_LOCATION_POLICY_DETERMINISTIC_HASH_SHARDS),
+        mConf.getInt(PropertyKey.USER_UFS_BLOCK_READ_CONCURRENCY_MAX)),
+        mContext, mConf);
     int readAmount = (int) (BLOCK_LENGTH / 2);
     byte[] buffer = new byte[readAmount];
     mTestStream.read(buffer);
@@ -485,7 +522,8 @@ public final class FileInStreamTest {
   public void seekBackwardToFileBeginning() throws IOException {
     OpenFilePOptions options =
         OpenFilePOptions.newBuilder().setReadType(ReadPType.CACHE_PROMOTE).build();
-    mTestStream = new FileInStream(mStatus, new InStreamOptions(mStatus, options), mContext);
+    mTestStream = new FileInStream(mStatus, new InStreamOptions(mStatus, options,
+        mConf), mContext, mConf);
     int seekAmount = (int) (BLOCK_LENGTH / 4 + BLOCK_LENGTH);
 
     // Seek forward.

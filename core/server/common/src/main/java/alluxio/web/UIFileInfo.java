@@ -13,6 +13,8 @@ package alluxio.web;
 
 import alluxio.AlluxioURI;
 import alluxio.client.file.URIStatus;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.master.file.meta.PersistenceState;
 import alluxio.security.authorization.Mode;
 import alluxio.util.CommonUtils;
@@ -210,14 +212,14 @@ public final class UIFileInfo {
     if (mCreationTimeMs == LocalFileInfo.EMPTY_CREATION_TIME) {
       return "";
     }
-    return CommonUtils.convertMsToDate(mCreationTimeMs);
+    return CommonUtils.convertMsToDate(mCreationTimeMs, ServerConfiguration.get(PropertyKey.USER_DATE_FORMAT_PATTERN));
   }
 
   /**
    * @return the modification time (in milliseconds)
    */
   public String getModificationTime() {
-    return CommonUtils.convertMsToDate(mLastModificationTimeMs);
+    return CommonUtils.convertMsToDate(mLastModificationTimeMs, ServerConfiguration.get(PropertyKey.USER_DATE_FORMAT_PATTERN));
   }
 
   /**

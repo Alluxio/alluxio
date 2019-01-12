@@ -11,8 +11,8 @@
 
 package alluxio.master.journal;
 
-import alluxio.Configuration;
-import alluxio.PropertyKey;
+import alluxio.conf.ServerConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.master.journal.noop.NoopJournalSystem;
 import alluxio.master.journal.raft.RaftJournalConfiguration;
 import alluxio.master.journal.raft.RaftJournalSystem;
@@ -159,7 +159,7 @@ public interface JournalSystem {
   class Builder {
     private URI mLocation;
     private long mQuietTimeMs =
-        Configuration.getMs(PropertyKey.MASTER_JOURNAL_TAILER_SHUTDOWN_QUIET_WAIT_TIME_MS);
+        ServerConfiguration.getMs(PropertyKey.MASTER_JOURNAL_TAILER_SHUTDOWN_QUIET_WAIT_TIME_MS);
 
     /**
      * Creates a new journal system builder.
@@ -190,7 +190,7 @@ public interface JournalSystem {
      */
     public JournalSystem build() {
       JournalType journalType =
-          Configuration.getEnum(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.class);
+          ServerConfiguration.getEnum(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.class);
       switch (journalType) {
         case NOOP:
           return new NoopJournalSystem();

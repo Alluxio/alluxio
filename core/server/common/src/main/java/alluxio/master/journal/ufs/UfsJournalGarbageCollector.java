@@ -11,9 +11,9 @@
 
 package alluxio.master.journal.ufs;
 
-import alluxio.Configuration;
+import alluxio.conf.ServerConfiguration;
 import alluxio.Constants;
-import alluxio.PropertyKey;
+import alluxio.conf.PropertyKey;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.ThreadFactoryUtils;
 
@@ -60,7 +60,7 @@ final class UfsJournalGarbageCollector implements Closeable {
           public void run() {
             gc();
           }
-        }, Constants.SECOND_MS, Configuration.getMs(PropertyKey.MASTER_JOURNAL_GC_PERIOD_MS),
+        }, Constants.SECOND_MS, ServerConfiguration.getMs(PropertyKey.MASTER_JOURNAL_GC_PERIOD_MS),
         TimeUnit.MILLISECONDS);
   }
 
@@ -129,8 +129,8 @@ final class UfsJournalGarbageCollector implements Closeable {
     }
 
     long thresholdMs = file.isTmpCheckpoint()
-        ? Configuration.getMs(PropertyKey.MASTER_JOURNAL_TEMPORARY_FILE_GC_THRESHOLD_MS)
-        : Configuration.getMs(PropertyKey.MASTER_JOURNAL_GC_THRESHOLD_MS);
+        ? ServerConfiguration.getMs(PropertyKey.MASTER_JOURNAL_TEMPORARY_FILE_GC_THRESHOLD_MS)
+        : ServerConfiguration.getMs(PropertyKey.MASTER_JOURNAL_GC_THRESHOLD_MS);
 
     if (System.currentTimeMillis() - lastModifiedTimeMs > thresholdMs) {
       deleteNoException(file.getLocation());

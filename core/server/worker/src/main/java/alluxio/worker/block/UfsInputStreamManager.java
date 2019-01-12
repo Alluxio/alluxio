@@ -11,9 +11,9 @@
 
 package alluxio.worker.block;
 
-import alluxio.Configuration;
+import alluxio.conf.ServerConfiguration;
 import alluxio.Constants;
-import alluxio.PropertyKey;
+import alluxio.conf.PropertyKey;
 import alluxio.underfs.SeekableUnderFileInputStream;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.OpenOptions;
@@ -59,7 +59,7 @@ public class UfsInputStreamManager {
   private static final Logger LOG = LoggerFactory.getLogger(UfsInputStreamManager.class);
   private static final long UNAVAILABLE_RESOURCE_ID = -1;
   private static final boolean CACHE_ENABLED =
-      Configuration.getBoolean(PropertyKey.WORKER_UFS_INSTREAM_CACHE_ENABLED);
+      ServerConfiguration.getBoolean(PropertyKey.WORKER_UFS_INSTREAM_CACHE_ENABLED);
 
   /**
    * A map from the ufs file id to the metadata of the input streams. Synchronization on this map
@@ -118,9 +118,9 @@ public class UfsInputStreamManager {
           }
         };
     mUnderFileInputStreamCache = CacheBuilder.newBuilder()
-        .maximumSize(Configuration.getInt(PropertyKey.WORKER_UFS_INSTREAM_CACHE_MAX_SIZE))
+        .maximumSize(ServerConfiguration.getInt(PropertyKey.WORKER_UFS_INSTREAM_CACHE_MAX_SIZE))
         .expireAfterAccess(
-            Configuration.getMs(PropertyKey.WORKER_UFS_INSTREAM_CACHE_EXPIRARTION_TIME),
+            ServerConfiguration.getMs(PropertyKey.WORKER_UFS_INSTREAM_CACHE_EXPIRARTION_TIME),
             TimeUnit.MILLISECONDS)
         .removalListener(RemovalListeners.asynchronous(listener, mRemovalThreadPool)).build();
   }

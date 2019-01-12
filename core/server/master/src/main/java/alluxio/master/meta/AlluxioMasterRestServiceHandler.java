@@ -12,8 +12,9 @@
 package alluxio.master.meta;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
-import alluxio.ConfigurationValueOptions;
+import alluxio.Server;
+import alluxio.conf.ServerConfiguration;
+import alluxio.conf.ConfigurationValueOptions;
 import alluxio.MasterStorageTierAssoc;
 import alluxio.RestUtils;
 import alluxio.RuntimeConstants;
@@ -110,7 +111,7 @@ public final class AlluxioMasterRestServiceHandler {
   }
 
   /**
-   * @summary get the Alluxio master information
+   * @summary create the Alluxio master information
    * @param rawConfiguration if it's true, raw configuration values are returned,
    *    otherwise, they are looked up; if it's not provided in URL queries, then
    *    it is null, which means false.
@@ -140,11 +141,11 @@ public final class AlluxioMasterRestServiceHandler {
           .setUptimeMs(mMasterProcess.getUptimeMs())
           .setVersion(RuntimeConstants.VERSION)
           .setWorkers(mBlockMaster.getWorkerInfoList());
-    });
+    }, ServerConfiguration.global());
   }
 
   /**
-   * @summary get the configuration map, the keys are ordered alphabetically.
+   * @summary create the configuration map, the keys are ordered alphabetically.
    * @return the response object
    * @deprecated since version 1.4 and will be removed in version 2.0
    * @see #getInfo(Boolean)
@@ -154,11 +155,11 @@ public final class AlluxioMasterRestServiceHandler {
   @ReturnType("java.util.SortedMap<java.lang.String, java.lang.String>")
   @Deprecated
   public Response getConfiguration() {
-    return RestUtils.call(() -> getConfigurationInternal(true));
+    return RestUtils.call(() -> getConfigurationInternal(true), ServerConfiguration.global());
   }
 
   /**
-   * @summary get the master metrics, the keys are ordered alphabetically.
+   * @summary create the master metrics, the keys are ordered alphabetically.
    * @return the response object
    * @deprecated since version 1.4 and will be removed in version 2.0
    * @see #getInfo(Boolean)
@@ -168,11 +169,11 @@ public final class AlluxioMasterRestServiceHandler {
   @ReturnType("java.util.SortedMap<java.lang.String, java.lang.Long>")
   @Deprecated
   public Response getMetrics() {
-    return RestUtils.call(this::getMetricsInternal);
+    return RestUtils.call(this::getMetricsInternal, ServerConfiguration.global());
   }
 
   /**
-   * @summary get the master rpc address
+   * @summary create the master rpc address
    * @return the response object
    * @deprecated since version 1.4 and will be removed in version 2.0
    * @see #getInfo(Boolean)
@@ -182,11 +183,11 @@ public final class AlluxioMasterRestServiceHandler {
   @ReturnType("java.lang.String")
   @Deprecated
   public Response getRpcAddress() {
-    return RestUtils.call(() -> mMasterProcess.getRpcAddress().toString());
+    return RestUtils.call(() -> mMasterProcess.getRpcAddress().toString(), ServerConfiguration.global());
   }
 
   /**
-   * @summary get the start time of the master
+   * @summary create the start time of the master
    * @return the response object
    * @deprecated since version 1.4 and will be removed in version 2.0
    * @see #getInfo(Boolean)
@@ -196,11 +197,11 @@ public final class AlluxioMasterRestServiceHandler {
   @ReturnType("java.lang.Long")
   @Deprecated
   public Response getStartTimeMs() {
-    return RestUtils.call(() -> mMasterProcess.getStartTimeMs());
+    return RestUtils.call(() -> mMasterProcess.getStartTimeMs(), ServerConfiguration.global());
   }
 
   /**
-   * @summary get the uptime of the master
+   * @summary create the uptime of the master
    * @return the response object
    * @deprecated since version 1.4 and will be removed in version 2.0
    * @see #getInfo(Boolean)
@@ -210,11 +211,11 @@ public final class AlluxioMasterRestServiceHandler {
   @ReturnType("java.lang.Long")
   @Deprecated
   public Response getUptimeMs() {
-    return RestUtils.call(() -> mMasterProcess.getUptimeMs());
+    return RestUtils.call(() -> mMasterProcess.getUptimeMs(), ServerConfiguration.global());
   }
 
   /**
-   * @summary get the version of the master
+   * @summary create the version of the master
    * @return the response object
    * @deprecated since version 1.4 and will be removed in version 2.0
    * @see #getInfo(Boolean)
@@ -224,11 +225,11 @@ public final class AlluxioMasterRestServiceHandler {
   @ReturnType("java.lang.String")
   @Deprecated
   public Response getVersion() {
-    return RestUtils.call(() -> RuntimeConstants.VERSION);
+    return RestUtils.call(() -> RuntimeConstants.VERSION, ServerConfiguration.global());
   }
 
   /**
-   * @summary get the total capacity of all workers in bytes
+   * @summary create the total capacity of all workers in bytes
    * @return the response object
    * @deprecated since version 1.4 and will be removed in version 2.0
    * @see #getInfo(Boolean)
@@ -238,11 +239,11 @@ public final class AlluxioMasterRestServiceHandler {
   @ReturnType("java.lang.Long")
   @Deprecated
   public Response getCapacityBytes() {
-    return RestUtils.call(() -> mBlockMaster.getCapacityBytes());
+    return RestUtils.call(() -> mBlockMaster.getCapacityBytes(), ServerConfiguration.global());
   }
 
   /**
-   * @summary get the used capacity
+   * @summary create the used capacity
    * @return the response object
    * @deprecated since version 1.4 and will be removed in version 2.0
    * @see #getInfo(Boolean)
@@ -252,11 +253,11 @@ public final class AlluxioMasterRestServiceHandler {
   @ReturnType("java.lang.Long")
   @Deprecated
   public Response getUsedBytes() {
-    return RestUtils.call(() -> mBlockMaster.getUsedBytes());
+    return RestUtils.call(() -> mBlockMaster.getUsedBytes(), ServerConfiguration.global());
   }
 
   /**
-   * @summary get the free capacity
+   * @summary create the free capacity
    * @return the response object
    * @deprecated since version 1.4 and will be removed in version 2.0
    * @see #getInfo(Boolean)
@@ -266,11 +267,12 @@ public final class AlluxioMasterRestServiceHandler {
   @ReturnType("java.lang.Long")
   @Deprecated
   public Response getFreeBytes() {
-    return RestUtils.call(() -> mBlockMaster.getCapacityBytes() - mBlockMaster.getUsedBytes());
+    return RestUtils.call(() -> mBlockMaster.getCapacityBytes() - mBlockMaster.getUsedBytes(),
+        ServerConfiguration.global());
   }
 
   /**
-   * @summary get the total ufs capacity in bytes, a negative value means the capacity is unknown.
+   * @summary create the total ufs capacity in bytes, a negative value means the capacity is unknown.
    * @return the response object
    * @deprecated since version 1.4 and will be removed in version 2.0
    * @see #getInfo(Boolean)
@@ -280,11 +282,11 @@ public final class AlluxioMasterRestServiceHandler {
   @ReturnType("java.lang.Long")
   @Deprecated
   public Response getUfsCapacityBytes() {
-    return RestUtils.call(() -> getUfsCapacityInternal().getTotal());
+    return RestUtils.call(() -> getUfsCapacityInternal().getTotal(), ServerConfiguration.global());
   }
 
   /**
-   * @summary get the used disk capacity, a negative value means the capacity is unknown.
+   * @summary create the used disk capacity, a negative value means the capacity is unknown.
    * @return the response object
    * @deprecated since version 1.4 and will be removed in version 2.0
    * @see #getInfo(Boolean)
@@ -294,11 +296,11 @@ public final class AlluxioMasterRestServiceHandler {
   @ReturnType("java.lang.Long")
   @Deprecated
   public Response getUfsUsedBytes() {
-    return RestUtils.call(() -> getUfsCapacityInternal().getUsed());
+    return RestUtils.call(() -> getUfsCapacityInternal().getUsed(), ServerConfiguration.global());
   }
 
   /**
-   * @summary get the free ufs capacity in bytes, a negative value means the capacity is unknown.
+   * @summary create the free ufs capacity in bytes, a negative value means the capacity is unknown.
    * @return the response object
    * @deprecated since version 1.4 and will be removed in version 2.0
    * @see #getInfo(Boolean)
@@ -315,7 +317,7 @@ public final class AlluxioMasterRestServiceHandler {
         return capacity.getTotal() - capacity.getUsed();
       }
       return -1;
-    });
+    }, ServerConfiguration.global());
   }
 
   private Comparator<String> getTierAliasComparator() {
@@ -332,7 +334,7 @@ public final class AlluxioMasterRestServiceHandler {
   }
 
   /**
-   * @summary get the mapping from tier alias to total capacity of the tier in bytes, keys are in
+   * @summary create the mapping from tier alias to total capacity of the tier in bytes, keys are in
    *    the order from tier alias with smaller ordinal to those with larger ones.
    * @return the response object
    * @deprecated since version 1.4 and will be removed in version 2.0
@@ -349,11 +351,11 @@ public final class AlluxioMasterRestServiceHandler {
         capacityBytesOnTiers.put(tierBytes.getKey(), tierBytes.getValue());
       }
       return capacityBytesOnTiers;
-    });
+    }, ServerConfiguration.global());
   }
 
   /**
-   * @summary get the mapping from tier alias to the used bytes of the tier, keys are in the order
+   * @summary create the mapping from tier alias to the used bytes of the tier, keys are in the order
    *    from tier alias with smaller ordinal to those with larger ones.
    * @return the response object
    * @deprecated since version 1.4 and will be removed in version 2.0
@@ -370,11 +372,11 @@ public final class AlluxioMasterRestServiceHandler {
         usedBytesOnTiers.put(tierBytes.getKey(), tierBytes.getValue());
       }
       return usedBytesOnTiers;
-    });
+    }, ServerConfiguration.global());
   }
 
   /**
-   * @summary get the count of workers
+   * @summary create the count of workers
    * @return the response object
    * @deprecated since version 1.4 and will be removed in version 2.0
    * @see #getInfo(Boolean)
@@ -384,11 +386,11 @@ public final class AlluxioMasterRestServiceHandler {
   @ReturnType("java.lang.Integer")
   @Deprecated
   public Response getWorkerCount() {
-    return RestUtils.call(()->mBlockMaster.getWorkerCount());
+    return RestUtils.call(()->mBlockMaster.getWorkerCount(), ServerConfiguration.global());
   }
 
   /**
-   * @summary get the list of worker descriptors
+   * @summary create the list of worker descriptors
    * @return the response object
    * @deprecated since version 1.4 and will be removed in version 2.0
    * @see #getInfo(Boolean)
@@ -398,7 +400,7 @@ public final class AlluxioMasterRestServiceHandler {
   @ReturnType("java.util.List<alluxio.wire.WorkerInfo>")
   @Deprecated
   public Response getWorkerInfoList() {
-    return RestUtils.call(()-> mBlockMaster.getWorkerInfoList());
+    return RestUtils.call(()-> mBlockMaster.getWorkerInfoList(), ServerConfiguration.global());
   }
 
   private Capacity getCapacityInternal() {
@@ -407,7 +409,7 @@ public final class AlluxioMasterRestServiceHandler {
   }
 
   private Map<String, String> getConfigurationInternal(boolean raw) {
-    return new TreeMap<>(Configuration
+    return new TreeMap<>(ServerConfiguration
         .toMap(ConfigurationValueOptions.defaults().useDisplayValue(true).useRawValue(raw)));
   }
 
@@ -483,6 +485,6 @@ public final class AlluxioMasterRestServiceHandler {
   @ReturnType("alluxio.wire.LogInfo")
   public Response logLevel(@QueryParam(LOG_ARGUMENT_NAME) final String logName, @QueryParam
       (LOG_ARGUMENT_LEVEL) final String level) {
-    return RestUtils.call(() -> LogUtils.setLogLevel(logName, level));
+    return RestUtils.call(() -> LogUtils.setLogLevel(logName, level), ServerConfiguration.global());
   }
 }

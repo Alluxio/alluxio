@@ -13,6 +13,7 @@ package alluxio.master.meta;
 
 import alluxio.AbstractMasterClient;
 import alluxio.Constants;
+import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.GetMasterIdPRequest;
 import alluxio.grpc.MasterHeartbeatPRequest;
@@ -43,7 +44,7 @@ public final class RetryHandlingMetaMasterMasterClient extends AbstractMasterCli
    * @param conf master client configuration
    */
   public RetryHandlingMetaMasterMasterClient(MasterClientConfig conf) {
-    super(conf);
+    super(conf, ServerConfiguration.global());
   }
 
   @Override
@@ -69,7 +70,7 @@ public final class RetryHandlingMetaMasterMasterClient extends AbstractMasterCli
   /**
    * Returns a master id for a master address.
    *
-   * @param address the address to get a master id for
+   * @param address the address to create a master id for
    * @return a master id
    */
   public long getId(final Address address) throws IOException {

@@ -11,6 +11,8 @@
 
 package alluxio.heartbeat;
 
+import alluxio.ConfigurationTestUtils;
+import alluxio.conf.InstancedConfiguration;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -62,6 +64,8 @@ public final class HeartbeatThreadTest {
   private static final int NUMBER_OF_THREADS = 10;
 
   private ExecutorService mExecutorService;
+
+  private InstancedConfiguration mConfiguration = ConfigurationTestUtils.defaults();
 
   @Before
   public void before() {
@@ -136,7 +140,7 @@ public final class HeartbeatThreadTest {
       try (ManuallyScheduleHeartbeat.Resource r =
           new ManuallyScheduleHeartbeat.Resource(Arrays.asList(mThreadName))) {
         DummyHeartbeatExecutor executor = new DummyHeartbeatExecutor();
-        HeartbeatThread ht = new HeartbeatThread(mThreadName, executor, 1);
+        HeartbeatThread ht = new HeartbeatThread(mThreadName, executor, 1, mConfiguration);
 
         // Run the HeartbeatThread.
         mExecutorService.submit(ht);

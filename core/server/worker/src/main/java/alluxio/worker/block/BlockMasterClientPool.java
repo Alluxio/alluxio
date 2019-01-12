@@ -11,8 +11,8 @@
 
 package alluxio.worker.block;
 
-import alluxio.Configuration;
-import alluxio.PropertyKey;
+import alluxio.conf.ServerConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.master.MasterClientConfig;
 import alluxio.resource.ResourcePool;
 
@@ -37,7 +37,7 @@ public final class BlockMasterClientPool extends ResourcePool<BlockMasterClient>
    * Creates a new block master client pool.
    */
   public BlockMasterClientPool() {
-    super(Configuration.getInt(PropertyKey.WORKER_BLOCK_MASTER_CLIENT_POOL_SIZE));
+    super(ServerConfiguration.getInt(PropertyKey.WORKER_BLOCK_MASTER_CLIENT_POOL_SIZE));
     mClientList = new ConcurrentLinkedQueue<>();
   }
 
@@ -53,7 +53,8 @@ public final class BlockMasterClientPool extends ResourcePool<BlockMasterClient>
 
   @Override
   protected BlockMasterClient createNewResource() {
-    BlockMasterClient client = new BlockMasterClient(MasterClientConfig.defaults());
+    BlockMasterClient client =
+        new BlockMasterClient(MasterClientConfig.defaults(ServerConfiguration.global()));
     mClientList.add(client);
     return client;
   }

@@ -13,6 +13,8 @@ package alluxio.web;
 
 import alluxio.RuntimeConstants;
 import alluxio.collections.Pair;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.util.CommonUtils;
 import alluxio.util.FormatUtils;
 import alluxio.worker.block.BlockStoreMeta;
@@ -112,7 +114,8 @@ public final class WebInterfaceWorkerGeneralServlet extends HttpServlet {
      * @return the start time
      */
     public String getStartTime() {
-      return CommonUtils.convertMsToDate(mStartTimeMs);
+      return CommonUtils.convertMsToDate(mStartTimeMs,
+          ServerConfiguration.get(PropertyKey.USER_DATE_FORMAT_PATTERN));
     }
 
     /**

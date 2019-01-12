@@ -11,10 +11,10 @@
 
 package alluxio.master;
 
-import alluxio.Configuration;
+import alluxio.conf.ServerConfiguration;
 import alluxio.Constants;
 import alluxio.Process;
-import alluxio.PropertyKey;
+import alluxio.conf.PropertyKey;
 import alluxio.master.job.JobMaster;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalUtils;
@@ -43,7 +43,7 @@ public interface JobMasterProcess extends Process {
       JournalSystem journalSystem = new JournalSystem.Builder()
           .setLocation(URIUtils.appendPathOrDie(journalLocation, Constants.JOB_JOURNAL_NAME))
           .build();
-      if (Configuration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED)) {
+      if (ServerConfiguration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED)) {
         PrimarySelector primarySelector = PrimarySelector.Factory.createZkJobPrimarySelector();
         return new FaultTolerantAlluxioJobMasterProcess(journalSystem, primarySelector);
       }

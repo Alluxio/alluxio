@@ -11,8 +11,8 @@
 
 package alluxio.client.block.stream;
 
-import alluxio.Configuration;
-import alluxio.PropertyKey;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.client.Cancelable;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileSystemContext;
@@ -55,16 +55,16 @@ public interface DataWriter extends Closeable, Cancelable {
      * @return the {@link DataWriter} instance
      */
     public static DataWriter create(FileSystemContext context, long blockId, long blockSize,
-        WorkerNetAddress address, OutStreamOptions options) throws IOException {
-      if (CommonUtils.isLocalHost(address) && Configuration
+        WorkerNetAddress address, OutStreamOptions options, AlluxioConfiguration alluxioConf) throws IOException {
+      if (CommonUtils.isLocalHost(address, alluxioConf) && alluxioConf
           .getBoolean(PropertyKey.USER_SHORT_CIRCUIT_ENABLED) && !NettyUtils
-          .isDomainSocketSupported(address)) {
+          .isDomainSocketSupported(address, alluxioConf)) {
         if (options.getWriteType() == WriteType.ASYNC_THROUGH
-            && Configuration.getBoolean(PropertyKey.USER_FILE_UFS_TIER_ENABLED)) {
+            && alluxioConf.getBoolean(PropertyKey.USER_FILE_UFS_TIER_ENABLED)) {
           LOG.info("Creating UFS-fallback short circuit output stream for block {} @ {}", blockId,
               address);
           return UfsFallbackLocalFileDataWriter.create(
-              context, address, blockId, blockSize, options);
+              context, address, blockId, blockSize, options, alluxioConf);
         }
         LOG.debug("Creating short circuit output stream for block {} @ {}", blockId, address);
         return LocalFileDataWriter.create(context, address, blockId, options);

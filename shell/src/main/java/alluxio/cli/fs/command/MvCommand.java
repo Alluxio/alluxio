@@ -14,6 +14,7 @@ package alluxio.cli.fs.command;
 import alluxio.AlluxioURI;
 import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystem;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 
@@ -32,8 +33,8 @@ public final class MvCommand extends AbstractFileSystemCommand {
   /**
    * @param fs the filesystem of Alluxio
    */
-  public MvCommand(FileSystem fs) {
-    super(fs);
+  public MvCommand(FileSystem fs, AlluxioConfiguration conf) {
+    super(fs, conf);
   }
 
   @Override

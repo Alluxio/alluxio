@@ -12,6 +12,7 @@
 package alluxio.job.persist;
 
 import alluxio.AlluxioURI;
+import alluxio.ClientContext;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.file.BaseFileSystem;
@@ -20,6 +21,7 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
 import alluxio.collections.Pair;
+import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.ReadPType;
 import alluxio.job.AbstractVoidJobDefinition;
@@ -64,8 +66,9 @@ public final class PersistDefinition
    * Constructs a new {@link PersistDefinition}.
    */
   public PersistDefinition() {
-    mFileSystemContext = FileSystemContext.get();
-    mFileSystem = BaseFileSystem.get(FileSystemContext.get());
+    mFileSystemContext = FileSystemContext.create();
+    mFileSystem = BaseFileSystem.create(ClientContext.create(mFileSystemContext.getParentSubject(),
+        ServerConfiguration.copyProperties()));
   }
 
   /**
@@ -88,7 +91,7 @@ public final class PersistDefinition
 
     AlluxioURI uri = new AlluxioURI(config.getFilePath());
     List<BlockWorkerInfo> alluxioWorkerInfoList =
-        AlluxioBlockStore.create(mFileSystemContext).getAllWorkers();
+        AlluxioBlockStore.create(mFileSystemContext, ServerConfiguration.global()).getAllWorkers();
     BlockWorkerInfo workerWithMostBlocks = JobUtils.getWorkerWithMostBlocks(alluxioWorkerInfoList,
         mFileSystem.getStatus(uri).getFileBlockInfos());
 
@@ -153,7 +156,7 @@ public final class PersistDefinition
         while (!ufs.isDirectory(curUfsPath.toString()) && curAlluxioPath != null) {
           URIStatus curDirStatus = fs.getStatus(curAlluxioPath);
           ufsDirsToMakeWithOptions.push(new Pair<>(curUfsPath.toString(),
-              MkdirsOptions.defaults().setCreateParent(false).setOwner(curDirStatus.getOwner())
+              MkdirsOptions.defaults(ServerConfiguration.global()).setCreateParent(false).setOwner(curDirStatus.getOwner())
                   .setGroup(curDirStatus.getGroup())
                   .setMode(new Mode((short) curDirStatus.getMode()))));
           curAlluxioPath = curAlluxioPath.getParent();
@@ -172,7 +175,8 @@ public final class PersistDefinition
         }
         URIStatus uriStatus = fs.getStatus(uri);
         OutputStream out = closer.register(
-            ufs.create(dstPath.toString(), CreateOptions.defaults().setOwner(uriStatus.getOwner())
+            ufs.create(dstPath.toString(),
+                CreateOptions.defaults(ServerConfiguration.global()).setOwner(uriStatus.getOwner())
                 .setGroup(uriStatus.getGroup()).setMode(new Mode((short) uriStatus.getMode()))));
         bytesWritten = IOUtils.copyLarge(in, out);
         incrementPersistedMetric(ufsClient.getUfsMountPointUri(), bytesWritten);

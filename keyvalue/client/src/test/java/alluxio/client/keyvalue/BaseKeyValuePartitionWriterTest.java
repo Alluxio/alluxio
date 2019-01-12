@@ -17,12 +17,12 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertNull;
 
-import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
-import alluxio.PropertyKey;
 import alluxio.client.ByteArrayOutStream;
 
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -38,8 +38,11 @@ public final class BaseKeyValuePartitionWriterTest {
   private static final byte[] VALUE1 = "value1".getBytes();
   private static final byte[] VALUE2 = "value2_bar".getBytes();
 
+  private static InstancedConfiguration sConf = ConfigurationTestUtils.defaults();
+
   private ByteArrayOutStream mOutStream = new ByteArrayOutStream();
-  private BaseKeyValuePartitionWriter mWriter = new BaseKeyValuePartitionWriter(mOutStream);
+  private BaseKeyValuePartitionWriter mWriter = new BaseKeyValuePartitionWriter(mOutStream,
+      sConf.getBytes(PropertyKey.KEY_VALUE_PARTITION_SIZE_BYTES_MAX));
 
   @Rule
   public final ExpectedException mThrown = ExpectedException.none();
@@ -133,12 +136,12 @@ public final class BaseKeyValuePartitionWriterTest {
   @Test
   public void canPutKeyValue() throws Exception {
     long size = mWriter.byteCount() + KEY1.length + VALUE1.length + 2 * Constants.BYTES_IN_INTEGER;
-    Configuration.set(PropertyKey.KEY_VALUE_PARTITION_SIZE_BYTES_MAX, String.valueOf(size));
-    mWriter = new BaseKeyValuePartitionWriter(mOutStream);
+    sConf.set(PropertyKey.KEY_VALUE_PARTITION_SIZE_BYTES_MAX, String.valueOf(size));
+    mWriter = new BaseKeyValuePartitionWriter(mOutStream, sConf.getBytes(PropertyKey.KEY_VALUE_PARTITION_SIZE_BYTES_MAX));
     assertTrue(mWriter.canPut(KEY1, VALUE1));
     mWriter.put(KEY1, VALUE1);
     assertFalse(mWriter.canPut(KEY1, VALUE1));
-    ConfigurationTestUtils.resetConfiguration();
+    sConf = ConfigurationTestUtils.defaults();
   }
 
   /**

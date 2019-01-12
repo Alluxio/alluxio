@@ -12,7 +12,7 @@
 package alluxio.job;
 
 import alluxio.Constants;
-import alluxio.PropertyKey;
+import alluxio.conf.PropertyKey;
 import alluxio.client.file.FileSystem;
 import alluxio.job.util.JobTestUtils;
 import alluxio.job.wire.JobInfo;

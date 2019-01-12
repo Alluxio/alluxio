@@ -13,6 +13,7 @@ package alluxio.master.file;
 
 import alluxio.AbstractMasterClient;
 import alluxio.Constants;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.grpc.FileSystemMasterWorkerServiceGrpc;
 import alluxio.grpc.GetFileInfoPRequest;
 import alluxio.grpc.GetUfsInfoPRequest;
@@ -40,8 +41,8 @@ public final class FileSystemMasterClient extends AbstractMasterClient {
    *
    * @param conf master client configuration
    */
-  public FileSystemMasterClient(MasterClientConfig conf) {
-    super(conf);
+  public FileSystemMasterClient(MasterClientConfig conf, AlluxioConfiguration alluxioConf) {
+    super(conf, alluxioConf);
   }
 
   @Override
@@ -65,7 +66,7 @@ public final class FileSystemMasterClient extends AbstractMasterClient {
   }
 
   /**
-   * @param fileId the id of the file for which to get the {@link FileInfo}
+   * @param fileId the id of the file for which to create the {@link FileInfo}
    * @return the file info for the given file id
    */
   public FileInfo getFileInfo(final long fileId) throws IOException {

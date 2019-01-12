@@ -13,7 +13,8 @@ package alluxio.underfs.cos;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
-import alluxio.PropertyKey;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.underfs.ObjectUnderFileSystem;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
@@ -69,7 +70,8 @@ public class COSUnderFileSystem extends ObjectUnderFileSystem {
    * @param conf the configuration for this UFS
    * @return the created {@link COSUnderFileSystem} instance
    */
-  public static COSUnderFileSystem createInstance(AlluxioURI uri, UnderFileSystemConfiguration conf)
+  public static COSUnderFileSystem createInstance(AlluxioURI uri, UnderFileSystemConfiguration conf,
+                                                  AlluxioConfiguration alluxioConf)
       throws Exception {
     String bucketName = UnderFileSystemUtils.getBucketName(uri);
     Preconditions.checkArgument(conf.isSet(PropertyKey.COS_ACCESS_KEY),
@@ -89,7 +91,7 @@ public class COSUnderFileSystem extends ObjectUnderFileSystem {
     ClientConfig clientConfig = createCOSClientConfig(regionName, conf);
     COSClient client = new COSClient(cred, clientConfig);
 
-    return new COSUnderFileSystem(uri, client, bucketName, appId, conf);
+    return new COSUnderFileSystem(uri, client, bucketName, appId, conf, alluxioConf);
   }
 
   /**
@@ -101,8 +103,8 @@ public class COSUnderFileSystem extends ObjectUnderFileSystem {
    * @param conf configuration for this UFS
    */
   protected COSUnderFileSystem(AlluxioURI uri, COSClient client, String bucketName, String appId,
-      UnderFileSystemConfiguration conf) {
-    super(uri, conf);
+                               UnderFileSystemConfiguration conf, AlluxioConfiguration alluxioConf) {
+    super(uri, conf, alluxioConf);
     mClient = client;
     mBucketName = bucketName;
     mBucketNameInternal = bucketName + "-" + appId;
@@ -148,7 +150,7 @@ public class COSUnderFileSystem extends ObjectUnderFileSystem {
 
   @Override
   protected OutputStream createObject(String key) throws IOException {
-    return new COSOutputStream(mBucketNameInternal, key, mClient);
+    return new COSOutputStream(mBucketNameInternal, key, mClient, mAlluxioConf.getList(PropertyKey.TMP_DIRS, ","));
   }
 
   @Override
@@ -177,7 +179,7 @@ public class COSUnderFileSystem extends ObjectUnderFileSystem {
     ListObjectsRequest request = new ListObjectsRequest();
     request.setBucketName(mBucketNameInternal);
     request.setPrefix(key);
-    request.setMaxKeys(getListingChunkLength());
+    request.setMaxKeys(getListingChunkLength(mAlluxioConf));
     request.setDelimiter(delimiter);
 
     ObjectListing result = getObjectListingChunk(request);

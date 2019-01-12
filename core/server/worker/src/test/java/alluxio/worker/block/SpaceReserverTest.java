@@ -17,8 +17,9 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import alluxio.ConfigurationRule;
-import alluxio.PropertyKey;
+import alluxio.conf.PropertyKey;
 import alluxio.Sessions;
+import alluxio.conf.ServerConfiguration;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.heartbeat.HeartbeatThread;
@@ -82,11 +83,12 @@ public class SpaceReserverTest {
 
     try (Closeable c = new ConfigurationRule(ImmutableMap.of(
         PropertyKey.WORKER_TIERED_STORE_LEVEL0_RESERVED_RATIO, "0.2",
-        PropertyKey.WORKER_TIERED_STORE_LEVEL1_RESERVED_RATIO, "0.3")).toResource()) {
+        PropertyKey.WORKER_TIERED_STORE_LEVEL1_RESERVED_RATIO, "0.3"),
+        ServerConfiguration.global()).toResource()) {
       SpaceReserver spaceReserver = new SpaceReserver(blockWorker);
 
       mExecutorService.submit(new HeartbeatThread(HeartbeatContext.WORKER_SPACE_RESERVER,
-          spaceReserver, 0));
+          spaceReserver, 0, ServerConfiguration.global()));
 
       // Run the space reserver once.
       HeartbeatScheduler.execute(HeartbeatContext.WORKER_SPACE_RESERVER);
@@ -126,11 +128,11 @@ public class SpaceReserverTest {
         put(PropertyKey.WORKER_TIERED_STORE_LEVEL2_HIGH_WATERMARK_RATIO, "0.8");
         put(PropertyKey.WORKER_TIERED_STORE_LEVEL2_LOW_WATERMARK_RATIO, "0.6");
       }
-    }).toResource()) {
+    }, ServerConfiguration.global()).toResource()) {
       SpaceReserver spaceReserver = new SpaceReserver(blockWorker);
 
       mExecutorService.submit(new HeartbeatThread(HeartbeatContext.WORKER_SPACE_RESERVER,
-          spaceReserver, 0));
+          spaceReserver, 0, ServerConfiguration.global()));
 
       // Run the space reserver once.
       HeartbeatScheduler.execute(HeartbeatContext.WORKER_SPACE_RESERVER);
@@ -172,11 +174,11 @@ public class SpaceReserverTest {
         put(PropertyKey.WORKER_TIERED_STORE_LEVEL2_HIGH_WATERMARK_RATIO, "0.8");
         put(PropertyKey.WORKER_TIERED_STORE_LEVEL2_LOW_WATERMARK_RATIO, "0.6");
       }
-    }).toResource()) {
+    }, ServerConfiguration.global()).toResource()) {
       SpaceReserver spaceReserver = new SpaceReserver(blockWorker);
 
       mExecutorService.submit(new HeartbeatThread(HeartbeatContext.WORKER_SPACE_RESERVER,
-          spaceReserver, 0));
+          spaceReserver, 0, ServerConfiguration.global()));
 
       // Run the space reserver once.
       HeartbeatScheduler.execute(HeartbeatContext.WORKER_SPACE_RESERVER);
@@ -219,11 +221,11 @@ public class SpaceReserverTest {
         put(PropertyKey.WORKER_TIERED_STORE_LEVEL2_HIGH_WATERMARK_RATIO, "0.2");
         put(PropertyKey.WORKER_TIERED_STORE_LEVEL2_LOW_WATERMARK_RATIO, "0.1");
       }
-    }).toResource()) {
+    }, ServerConfiguration.global()).toResource()) {
       SpaceReserver spaceReserver = new SpaceReserver(blockWorker);
 
       mExecutorService.submit(new HeartbeatThread(HeartbeatContext.WORKER_SPACE_RESERVER,
-          spaceReserver, 0));
+          spaceReserver, 0, ServerConfiguration.global()));
 
       // Run the space reserver once.
       HeartbeatScheduler.execute(HeartbeatContext.WORKER_SPACE_RESERVER);

@@ -11,8 +11,9 @@
 
 package alluxio.worker;
 
-import alluxio.Configuration;
-import alluxio.ConfigurationValueOptions;
+import alluxio.Server;
+import alluxio.conf.ServerConfiguration;
+import alluxio.conf.ConfigurationValueOptions;
 import alluxio.RestUtils;
 import alluxio.RuntimeConstants;
 import alluxio.WorkerStorageTierAssoc;
@@ -94,7 +95,7 @@ public final class AlluxioWorkerRestServiceHandler {
   }
 
   /**
-   * @summary get the Alluxio master information
+   * @summary create the Alluxio master information
    * @param rawConfiguration if it's true, raw configuration values are returned,
    *    otherwise, they are looked up; if it's not provided in URL queries, then
    *    it is null, which means false.
@@ -125,11 +126,11 @@ public final class AlluxioWorkerRestServiceHandler {
                 .setVersion(RuntimeConstants.VERSION);
         return result;
       }
-    });
+    }, ServerConfiguration.global());
   }
 
   /**
-   * @summary get the configuration map, the keys are ordered alphabetically.
+   * @summary create the configuration map, the keys are ordered alphabetically.
    * @return the response object
    * @deprecated since version 1.4 and will be removed in version 2.0
    * @see #getInfo(Boolean)
@@ -139,11 +140,11 @@ public final class AlluxioWorkerRestServiceHandler {
   @ReturnType("java.util.SortedMap<java.lang.String, java.lang.String>")
   @Deprecated
   public Response getConfiguration() {
-    return RestUtils.call(() -> getConfigurationInternal(true));
+    return RestUtils.call(() -> getConfigurationInternal(true), ServerConfiguration.global());
   }
 
   /**
-   * @summary get the address of the worker
+   * @summary create the address of the worker
    * @return the response object
    * @deprecated since version 1.4 and will be removed in version 2.0
    * @see #getInfo(Boolean)
@@ -153,11 +154,11 @@ public final class AlluxioWorkerRestServiceHandler {
   @ReturnType("java.lang.String")
   @Deprecated
   public Response getRpcAddress() {
-    return RestUtils.call(() -> mWorkerProcess.getRpcAddress().toString());
+    return RestUtils.call(() -> mWorkerProcess.getRpcAddress().toString(), ServerConfiguration.global());
   }
 
   /**
-   * @summary get the total capacity of the worker in bytes
+   * @summary create the total capacity of the worker in bytes
    * @return the response object
    * @deprecated since version 1.4 and will be removed in version 2.0
    * @see #getInfo(Boolean)
@@ -167,11 +168,11 @@ public final class AlluxioWorkerRestServiceHandler {
   @ReturnType("java.lang.Long")
   @Deprecated
   public Response getCapacityBytes() {
-    return RestUtils.call(() -> mStoreMeta.getCapacityBytes());
+    return RestUtils.call(() -> mStoreMeta.getCapacityBytes(), ServerConfiguration.global());
   }
 
   /**
-   * @summary get the used bytes of the worker
+   * @summary create the used bytes of the worker
    * @return the response object
    * @deprecated since version 1.4 and will be removed in version 2.0
    * @see #getInfo(Boolean)
@@ -181,11 +182,11 @@ public final class AlluxioWorkerRestServiceHandler {
   @ReturnType("java.lang.Long")
   @Deprecated
   public Response getUsedBytes() {
-    return RestUtils.call(mStoreMeta::getUsedBytes);
+    return RestUtils.call(mStoreMeta::getUsedBytes, ServerConfiguration.global());
   }
 
   /**
-   * @summary get the mapping from tier alias to the total capacity of the tier in bytes, the keys
+   * @summary create the mapping from tier alias to the total capacity of the tier in bytes, the keys
    *    are in the order from tier aliases with smaller ordinals to those with larger ones.
    * @return the response object
    * @deprecated since version 1.4 and will be removed in version 2.0
@@ -205,11 +206,11 @@ public final class AlluxioWorkerRestServiceHandler {
         }
         return capacityBytesOnTiers;
       }
-    });
+    }, ServerConfiguration.global());
   }
 
   /**
-   * @summary get the mapping from tier alias to the used bytes of the tier, the keys are in the
+   * @summary create the mapping from tier alias to the used bytes of the tier, the keys are in the
    *    order from tier aliases with smaller ordinals to those with larger ones.
    * @return the response object
    * @deprecated since version 1.4 and will be removed in version 2.0
@@ -229,11 +230,11 @@ public final class AlluxioWorkerRestServiceHandler {
         }
         return usedBytesOnTiers;
       }
-    });
+    }, ServerConfiguration.global());
   }
 
   /**
-   * @summary get the mapping from tier alias to the paths of the directories in the tier
+   * @summary create the mapping from tier alias to the paths of the directories in the tier
    * @return the response object
    * @deprecated since version 1.4 and will be removed in version 2.0
    * @see #getInfo(Boolean)
@@ -243,11 +244,11 @@ public final class AlluxioWorkerRestServiceHandler {
   @ReturnType("java.util.SortedMap<java.lang.String, java.util.List<java.lang.String>>")
   @Deprecated
   public Response getDirectoryPathsOnTiers() {
-    return RestUtils.call(() -> getTierPathsInternal());
+    return RestUtils.call(() -> getTierPathsInternal(), ServerConfiguration.global());
   }
 
   /**
-   * @summary get the version of the worker
+   * @summary create the version of the worker
    * @return the response object
    * @deprecated since version 1.4 and will be removed in version 2.0
    * @see #getInfo(Boolean)
@@ -257,11 +258,11 @@ public final class AlluxioWorkerRestServiceHandler {
   @ReturnType("java.lang.String")
   @Deprecated
   public Response getVersion() {
-    return RestUtils.call(() -> RuntimeConstants.VERSION);
+    return RestUtils.call(() -> RuntimeConstants.VERSION, ServerConfiguration.global());
   }
 
   /**
-   * @summary get the start time of the worker in milliseconds
+   * @summary create the start time of the worker in milliseconds
    * @return the response object
    * @deprecated since version 1.4 and will be removed in version 2.0
    * @see #getInfo(Boolean)
@@ -271,11 +272,11 @@ public final class AlluxioWorkerRestServiceHandler {
   @ReturnType("java.lang.Long")
   @Deprecated
   public Response getStartTimeMs() {
-    return RestUtils.call(() -> mWorkerProcess.getStartTimeMs());
+    return RestUtils.call(() -> mWorkerProcess.getStartTimeMs(), ServerConfiguration.global());
   }
 
   /**
-   * @summary get the uptime of the worker in milliseconds
+   * @summary create the uptime of the worker in milliseconds
    * @return the response object
    * @deprecated since version 1.4 and will be removed in version 2.0
    * @see #getInfo(Boolean)
@@ -285,11 +286,11 @@ public final class AlluxioWorkerRestServiceHandler {
   @ReturnType("java.lang.Long")
   @Deprecated
   public Response getUptimeMs() {
-    return RestUtils.call(() -> mWorkerProcess.getUptimeMs());
+    return RestUtils.call(() -> mWorkerProcess.getUptimeMs(), ServerConfiguration.global());
   }
 
   /**
-   * @summary get the worker metrics
+   * @summary create the worker metrics
    * @return the response object
    * @deprecated since version 1.4 and will be removed in version 2.0
    * @see #getInfo(Boolean)
@@ -299,7 +300,7 @@ public final class AlluxioWorkerRestServiceHandler {
   @ReturnType("java.util.SortedMap<java.lang.String, java.lang.Long>")
   @Deprecated
   public Response getMetrics() {
-    return RestUtils.call(() -> getMetricsInternal());
+    return RestUtils.call(() -> getMetricsInternal(), ServerConfiguration.global());
   }
 
   private Capacity getCapacityInternal() {
@@ -308,7 +309,7 @@ public final class AlluxioWorkerRestServiceHandler {
   }
 
   private Map<String, String> getConfigurationInternal(boolean raw) {
-    return new TreeMap<>(Configuration.toMap(
+    return new TreeMap<>(ServerConfiguration.toMap(
         ConfigurationValueOptions.defaults().useDisplayValue(true).useRawValue(raw)));
   }
 
@@ -382,6 +383,6 @@ public final class AlluxioWorkerRestServiceHandler {
       public LogInfo call() throws Exception {
         return LogUtils.setLogLevel(logName, level);
       }
-    });
+    }, ServerConfiguration.global());
   }
 }

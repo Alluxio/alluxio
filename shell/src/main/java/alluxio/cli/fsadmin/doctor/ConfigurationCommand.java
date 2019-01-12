@@ -33,7 +33,7 @@ public class ConfigurationCommand {
   /**
    * Creates a new instance of {@link ConfigurationCommand}.
    *
-   * @param metaMasterClient client to get server-side configuration report information
+   * @param metaMasterClient client to create server-side configuration report information
    * @param printStream stream to print configuration errors/warnings to
    */
   public ConfigurationCommand(MetaMasterClient metaMasterClient, PrintStream printStream) {

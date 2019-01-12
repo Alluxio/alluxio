@@ -11,6 +11,8 @@
 
 package alluxio.client.file.options;
 
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.security.authorization.Mode;
 import alluxio.util.ModeUtils;
 import alluxio.util.SecurityUtils;
@@ -30,14 +32,14 @@ public final class CreateUfsFileOptions
    *
    * @return the default {@link CreateUfsFileOptions}
    */
-  public static CreateUfsFileOptions defaults() {
-    return new CreateUfsFileOptions();
+  public static CreateUfsFileOptions defaults(AlluxioConfiguration alluxioConf) {
+    return new CreateUfsFileOptions(alluxioConf);
   }
 
-  private CreateUfsFileOptions() {
-    mOwner = SecurityUtils.getOwnerFromLoginModule();
-    mGroup = SecurityUtils.getGroupFromLoginModule();
-    mMode = ModeUtils.applyFileUMask(Mode.defaults());
+  private CreateUfsFileOptions(AlluxioConfiguration alluxioConf) {
+    mOwner = SecurityUtils.getOwnerFromLoginModule(alluxioConf);
+    mGroup = SecurityUtils.getGroupFromLoginModule(alluxioConf);
+    mMode = ModeUtils.applyFileUMask(Mode.defaults(), alluxioConf.get(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK));
     // TODO(chaomin): set permission based on the alluxio file. Not needed for now since the
     // file is always created with default permission.
   }

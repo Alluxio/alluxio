@@ -12,8 +12,8 @@
 package alluxio.master.file.async;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
-import alluxio.PropertyKey;
+import alluxio.conf.ServerConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.FileDoesNotExistException;
@@ -54,7 +54,7 @@ public interface AsyncPersistHandler {
      */
     public static AsyncPersistHandler create(FileSystemMasterView view) {
       return CommonUtils.createNewClassInstance(
-          Configuration
+          ServerConfiguration
               .<AsyncPersistHandler>getClass(PropertyKey.MASTER_FILE_ASYNC_PERSIST_HANDLER),
           new Class[] {FileSystemMasterView.class}, new Object[] {view});
     }

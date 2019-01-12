@@ -11,6 +11,8 @@
 
 package alluxio.underfs.s3a;
 
+import alluxio.ConfigurationTestUtils;
+import alluxio.conf.InstancedConfiguration;
 import alluxio.exception.PreconditionMessage;
 import alluxio.underfs.AbstractUnderFileSystemContractTest;
 import alluxio.underfs.UnderFileSystem;
@@ -37,7 +39,8 @@ public final class S3AUnderFileSystemContractTest extends AbstractUnderFileSyste
   @Override
   public UnderFileSystem createUfs(String path, UnderFileSystemConfiguration conf)
       throws Exception {
-    return new S3AUnderFileSystemFactory().create(path, conf);
+    return new S3AUnderFileSystemFactory().create(path, conf,
+        new InstancedConfiguration(ConfigurationTestUtils.defaults()));
   }
 
   @Override

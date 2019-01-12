@@ -12,8 +12,8 @@
 package alluxio.web;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
-import alluxio.PropertyKey;
+import alluxio.conf.ServerConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.master.MasterProcess;
@@ -63,16 +63,17 @@ public final class WebInterfaceMemoryServlet extends HttpServlet {
   @Override
   public void doGet(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException {
-    if (!Configuration.getBoolean(PropertyKey.WEB_FILE_INFO_ENABLED)) {
+    if (!ServerConfiguration.getBoolean(PropertyKey.WEB_FILE_INFO_ENABLED)) {
       return;
     }
-    if (SecurityUtils.isSecurityEnabled() && AuthenticatedClientUser.get() == null) {
-      AuthenticatedClientUser.set(LoginUser.get().getName());
+    if (SecurityUtils.isSecurityEnabled(ServerConfiguration.global())
+            && AuthenticatedClientUser.get(ServerConfiguration.global()) == null) {
+      AuthenticatedClientUser.set(LoginUser.get(ServerConfiguration.global()).getName());
     }
     request.setAttribute("masterNodeAddress", mMasterProcess.getRpcAddress().toString());
     request.setAttribute("fatalError", "");
     request.setAttribute("showPermissions",
-        Configuration.getBoolean(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED));
+        ServerConfiguration.getBoolean(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED));
 
     FileSystemMaster fileSystemMaster = mMasterProcess.getMaster(FileSystemMaster.class);
 

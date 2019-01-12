@@ -12,9 +12,9 @@
 package alluxio.master;
 
 import alluxio.AlluxioTestDirectory;
-import alluxio.Configuration;
+import alluxio.conf.ServerConfiguration;
 import alluxio.Constants;
-import alluxio.PropertyKey;
+import alluxio.conf.PropertyKey;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.master.journal.JournalType;
@@ -58,8 +58,8 @@ public final class LocalAlluxioMaster {
   private Thread mSecondaryMasterThread;
 
   private LocalAlluxioMaster() throws IOException {
-    mHostname = NetworkAddressUtils.getConnectHost(ServiceType.MASTER_RPC);
-    mJournalFolder = Configuration.get(PropertyKey.MASTER_JOURNAL_FOLDER);
+    mHostname = NetworkAddressUtils.getConnectHost(ServiceType.MASTER_RPC, ServerConfiguration.global());
+    mJournalFolder = ServerConfiguration.get(PropertyKey.MASTER_JOURNAL_FOLDER);
   }
 
   /**
@@ -70,7 +70,7 @@ public final class LocalAlluxioMaster {
   public static LocalAlluxioMaster create() throws IOException {
     String workDirectory = uniquePath();
     FileUtils.deletePathRecursively(workDirectory);
-    Configuration.set(PropertyKey.WORK_DIR, workDirectory);
+    ServerConfiguration.set(PropertyKey.WORK_DIR, workDirectory);
     return create(workDirectory);
   }
 

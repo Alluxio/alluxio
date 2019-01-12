@@ -12,8 +12,9 @@
 package alluxio.master;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
-import alluxio.PropertyKey;
+import alluxio.Server;
+import alluxio.conf.ServerConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.RuntimeConstants;
 import alluxio.grpc.GrpcService;
 import alluxio.master.journal.JournalSystem;
@@ -113,9 +114,9 @@ public class AlluxioMasterProcess implements MasterProcess {
    */
   AlluxioMasterProcess(JournalSystem journalSystem) {
     mJournalSystem = Preconditions.checkNotNull(journalSystem, "journalSystem");
-    mMinWorkerThreads = Configuration.getInt(PropertyKey.MASTER_WORKER_THREADS_MIN);
-    mMaxWorkerThreads = Configuration.getInt(PropertyKey.MASTER_WORKER_THREADS_MAX);
-    int connectionTimeout = (int) Configuration.getMs(PropertyKey.MASTER_CONNECTION_TIMEOUT_MS);
+    mMinWorkerThreads = ServerConfiguration.getInt(PropertyKey.MASTER_WORKER_THREADS_MIN);
+    mMaxWorkerThreads = ServerConfiguration.getInt(PropertyKey.MASTER_WORKER_THREADS_MAX);
+    int connectionTimeout = (int) ServerConfiguration.getMs(PropertyKey.MASTER_CONNECTION_TIMEOUT_MS);
 
     Preconditions.checkArgument(mMaxWorkerThreads >= mMinWorkerThreads,
         PropertyKey.MASTER_WORKER_THREADS_MAX + " can not be less than "
@@ -131,26 +132,26 @@ public class AlluxioMasterProcess implements MasterProcess {
       // use (any random free port).
       // In a production or any real deployment setup, port '0' should not be used as it will make
       // deployment more complicated.
-      if (!Configuration.getBoolean(PropertyKey.TEST_MODE)) {
-        Preconditions.checkState(Configuration.getInt(PropertyKey.MASTER_RPC_PORT) > 0,
+      if (!ServerConfiguration.getBoolean(PropertyKey.TEST_MODE)) {
+        Preconditions.checkState(ServerConfiguration.getInt(PropertyKey.MASTER_RPC_PORT) > 0,
             this + " rpc port is only allowed to be zero in test mode.");
-        Preconditions.checkState(Configuration.getInt(PropertyKey.MASTER_WEB_PORT) > 0,
+        Preconditions.checkState(ServerConfiguration.getInt(PropertyKey.MASTER_WEB_PORT) > 0,
             this + " web port is only allowed to be zero in test mode.");
       }
 
       // Random port binding.
       InetSocketAddress configuredBindAddress =
-          NetworkAddressUtils.getBindAddress(ServiceType.MASTER_RPC);
+          NetworkAddressUtils.getBindAddress(ServiceType.MASTER_RPC, ServerConfiguration.global());
       if (configuredBindAddress.getPort() == 0) {
-        mBindSocket = new ServerSocket(0);
-        mPort = mBindSocket.getLocalPort();
-        Configuration.set(PropertyKey.MASTER_RPC_PORT, Integer.toString(mPort));
+        mGrpcServer = GrpcServerBuilder.forAddress(configuredBindAddress, ServerConfiguration.global()).build().start();
+        mPort = mGrpcServer.getBindPort();
+        ServerConfiguration.set(PropertyKey.MASTER_RPC_PORT, Integer.toString(mPort));
       } else {
         mPort = configuredBindAddress.getPort();
       }
 
-      mRpcBindAddress = NetworkAddressUtils.getBindAddress(ServiceType.MASTER_RPC);
-      mRpcConnectAddress = NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC);
+      mRpcBindAddress = NetworkAddressUtils.getBindAddress(ServiceType.MASTER_RPC, ServerConfiguration.global());
+      mRpcConnectAddress = NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, ServerConfiguration.global());
 
       if (!mJournalSystem.isFormatted()) {
         throw new RuntimeException(
@@ -254,9 +255,9 @@ public class AlluxioMasterProcess implements MasterProcess {
   protected void startMasters(boolean isLeader) {
     try {
       if (isLeader) {
-        if (Configuration.isSet(PropertyKey.MASTER_JOURNAL_INIT_FROM_BACKUP)) {
+        if (ServerConfiguration.isSet(PropertyKey.MASTER_JOURNAL_INIT_FROM_BACKUP)) {
           AlluxioURI backup =
-              new AlluxioURI(Configuration.get(PropertyKey.MASTER_JOURNAL_INIT_FROM_BACKUP));
+              new AlluxioURI(ServerConfiguration.get(PropertyKey.MASTER_JOURNAL_INIT_FROM_BACKUP));
           if (mJournalSystem.isEmpty()) {
             initFromBackup(backup);
           } else {
@@ -278,7 +279,7 @@ public class AlluxioMasterProcess implements MasterProcess {
     if (URIUtils.isLocalFilesystem(backup.toString())) {
       ufs = UnderFileSystem.Factory.create("/", UnderFileSystemConfiguration.defaults());
     } else {
-      ufs = UnderFileSystem.Factory.createForRoot();
+      ufs = UnderFileSystem.Factory.createForRoot(ServerConfiguration.global());
     }
     try (UnderFileSystem closeUfs = ufs;
          InputStream ufsIn = ufs.open(backup.getPath())) {
@@ -310,17 +311,17 @@ public class AlluxioMasterProcess implements MasterProcess {
    * @param stopMessage empty string or the message that the master loses the leadership
    */
   protected void startServing(String startMessage, String stopMessage) {
-    MetricsSystem.startSinks();
+    MetricsSystem.startSinks(ServerConfiguration.get(PropertyKey.METRICS_CONF_FILE));
     startServingWebServer();
     startJvmMonitorProcess();
     LOG.info("Alluxio master version {} started{}. "
             + "bindHost={}, connectHost={}, rpcPort={}, webPort={}",
         RuntimeConstants.VERSION,
         startMessage,
-        NetworkAddressUtils.getBindAddress(ServiceType.MASTER_RPC),
-        NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC),
-        NetworkAddressUtils.getPort(ServiceType.MASTER_RPC),
-        NetworkAddressUtils.getPort(ServiceType.MASTER_WEB));
+        NetworkAddressUtils.getBindAddress(ServiceType.MASTER_RPC, ServerConfiguration.global()),
+        NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, ServerConfiguration.global()),
+        NetworkAddressUtils.getPort(ServiceType.MASTER_RPC, ServerConfiguration.global()),
+        NetworkAddressUtils.getPort(ServiceType.MASTER_WEB, ServerConfiguration.global()));
     startServingRPCServer();
     LOG.info("Alluxio master ended{}", stopMessage);
   }
@@ -331,9 +332,9 @@ public class AlluxioMasterProcess implements MasterProcess {
    */
   protected void startServingWebServer() {
     mWebServer = new MasterWebServer(ServiceType.MASTER_WEB.getServiceName(),
-        NetworkAddressUtils.getBindAddress(ServiceType.MASTER_WEB), this);
+        NetworkAddressUtils.getBindAddress(ServiceType.MASTER_WEB, ServerConfiguration.global()), this);
     // reset master web port
-    Configuration.set(PropertyKey.MASTER_WEB_PORT, Integer.toString(mWebServer.getLocalPort()));
+    ServerConfiguration.set(PropertyKey.MASTER_WEB_PORT, Integer.toString(mWebServer.getLocalPort()));
     // Add the metrics servlet to the web server.
     mWebServer.addHandler(mMetricsServlet.getHandler());
     // Add the prometheus metrics servlet to the web server.
@@ -346,8 +347,11 @@ public class AlluxioMasterProcess implements MasterProcess {
    * Starts jvm monitor process, to monitor jvm.
    */
   protected void startJvmMonitorProcess() {
-    if (Configuration.getBoolean(PropertyKey.MASTER_JVM_MONITOR_ENABLED)) {
-      mJvmPauseMonitor = new JvmPauseMonitor();
+    if (ServerConfiguration.getBoolean(PropertyKey.MASTER_JVM_MONITOR_ENABLED)) {
+      mJvmPauseMonitor = new JvmPauseMonitor(
+          ServerConfiguration.getMs(PropertyKey.JVM_MONITOR_SLEEP_INTERVAL_MS),
+          ServerConfiguration.getMs(PropertyKey.JVM_MONITOR_INFO_THRESHOLD_MS),
+          ServerConfiguration.getMs(PropertyKey.JVM_MONITOR_WARN_THRESHOLD_MS));
       mJvmPauseMonitor.start();
     }
   }
@@ -375,7 +379,8 @@ public class AlluxioMasterProcess implements MasterProcess {
       }
 
       LOG.info("Starting gRPC server on address {}", mRpcBindAddress);
-      GrpcServerBuilder serverBuilder = GrpcServerBuilder.forAddress(mRpcBindAddress);
+      GrpcServerBuilder serverBuilder = GrpcServerBuilder.forAddress(mRpcBindAddress,
+          ServerConfiguration.global());
       for (Master master : mRegistry.getServers()) {
         registerServices(serverBuilder, master.getServices());
       }

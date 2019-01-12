@@ -11,10 +11,11 @@
 
 package alluxio.hadoop;
 
-import alluxio.AlluxioURI;
+import alluxio.*;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
+import alluxio.conf.*;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
@@ -53,12 +54,14 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
    * @param uri the Alluxio file URI
    * @param stats filesystem statistics
    */
-  public HdfsFileInputStream(FileSystemContext context, AlluxioURI uri, Statistics stats)
+  public HdfsFileInputStream(FileSystemContext context, AlluxioURI uri, Statistics stats,
+      AlluxioConfiguration conf)
       throws IOException {
     LOG.debug("HdfsFileInputStream({}, {})", uri, stats);
 
     mStatistics = stats;
-    FileSystem fs = FileSystem.Factory.get(context);
+    FileSystem fs = FileSystem.Factory.get(ClientContext.create(context.getParentSubject(),
+        conf.getProperties()));
     try {
       mInputStream = fs.openFile(uri, OpenFilePOptions.getDefaultInstance());
     } catch (FileDoesNotExistException e) {

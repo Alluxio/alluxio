@@ -15,6 +15,7 @@ import alluxio.cli.CommandUtils;
 import alluxio.cli.fs.command.AbstractFileSystemCommand;
 import alluxio.client.file.FileSystem;
 import alluxio.client.job.JobContext;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.status.InvalidArgumentException;
 
 import org.apache.commons.cli.CommandLine;
@@ -37,8 +38,8 @@ public final class LeaderCommand extends AbstractFileSystemCommand {
    *
    * @param fs the Alluxio filesystem client
    */
-  public LeaderCommand(FileSystem fs) {
-    super(fs);
+  public LeaderCommand(FileSystem fs, AlluxioConfiguration alluxioConf) {
+    super(fs, alluxioConf);
   }
 
   @Override
@@ -54,11 +55,11 @@ public final class LeaderCommand extends AbstractFileSystemCommand {
   @Override
   public int run(CommandLine cl) {
     try {
-      InetSocketAddress address = JobContext.INSTANCE.getJobMasterAddress();
+      InetSocketAddress address = JobContext.create(mConfiguration).getJobMasterAddress();
       System.out.println(address.getHostName());
     } catch (Exception e) {
-      LOG.error("Failed to get the primary job master", e);
-      System.out.println("Failed to get the primary job master.");
+      LOG.error("Failed to create the primary job master", e);
+      System.out.println("Failed to create the primary job master.");
       return -1;
     }
     return 0;

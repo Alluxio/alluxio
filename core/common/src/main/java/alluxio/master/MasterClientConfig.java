@@ -11,6 +11,8 @@
 
 package alluxio.master;
 
+import alluxio.conf.AlluxioConfiguration;
+
 import javax.security.auth.Subject;
 
 /**
@@ -23,8 +25,8 @@ public class MasterClientConfig {
   /**
    * @return a master client configuration with default values
    */
-  public static MasterClientConfig defaults() {
-    return new MasterClientConfig().withMasterInquireClient(MasterInquireClient.Factory.create());
+  public static MasterClientConfig defaults(AlluxioConfiguration conf) {
+    return new MasterClientConfig().withMasterInquireClient(MasterInquireClient.Factory.create(conf));
   }
 
   /**

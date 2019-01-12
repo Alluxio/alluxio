@@ -11,9 +11,10 @@
 
 package alluxio.cli.fs;
 
-import alluxio.Configuration;
 import alluxio.Constants;
-import alluxio.PropertyKey;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.cli.AbstractShell;
 import alluxio.cli.Command;
 import alluxio.client.file.FileSystem;
@@ -48,8 +49,8 @@ public final class FileSystemShell extends AbstractShell {
    */
   public static void main(String[] argv) throws IOException {
     int ret;
-
-    if (!ConfigurationUtils.masterHostConfigured() && argv.length > 0 && !argv[0].equals("help")) {
+    InstancedConfiguration conf = new InstancedConfiguration(ConfigurationUtils.defaults());
+    if (!ConfigurationUtils.masterHostConfigured(conf) && argv.length > 0 && !argv[0].equals("help")) {
       System.out.println(String.format(
           "Cannot run alluxio fs shell; master hostname is not "
               + "configured. Please modify %s to either set %s or configure zookeeper with "
@@ -60,8 +61,8 @@ public final class FileSystemShell extends AbstractShell {
     }
 
     // Reduce the RPC retry max duration to fall earlier for CLIs
-    Configuration.set(PropertyKey.USER_RPC_RETRY_MAX_DURATION, "5s", Source.DEFAULT);
-    try (FileSystemShell shell = new FileSystemShell()) {
+    conf.set(PropertyKey.USER_RPC_RETRY_MAX_DURATION, "5s", Source.DEFAULT);
+    try (FileSystemShell shell = new FileSystemShell(conf)) {
       ret = shell.run(argv);
     }
     System.exit(ret);
@@ -70,8 +71,8 @@ public final class FileSystemShell extends AbstractShell {
   /**
    * Creates a new instance of {@link FileSystemShell}.
    */
-  public FileSystemShell() {
-    super(CMD_ALIAS);
+  public FileSystemShell(InstancedConfiguration conf) {
+    super(CMD_ALIAS, conf);
   }
 
   @Override

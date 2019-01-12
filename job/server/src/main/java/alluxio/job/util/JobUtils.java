@@ -13,6 +13,7 @@ package alluxio.job.util;
 
 import alluxio.AlluxioURI;
 import alluxio.client.Cancelable;
+import alluxio.client.ReadType;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.file.FileSystem;
@@ -23,6 +24,9 @@ import alluxio.client.file.options.OutStreamOptions;
 import alluxio.client.file.policy.LocalFirstPolicy;
 import alluxio.collections.IndexDefinition;
 import alluxio.collections.IndexedSet;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.NotFoundException;
@@ -103,9 +107,10 @@ public final class JobUtils {
    */
   public static void loadBlock(FileSystem fs, FileSystemContext context, String path, long blockId)
       throws AlluxioException, IOException {
-    AlluxioBlockStore blockStore = AlluxioBlockStore.create(context);
+    AlluxioBlockStore blockStore = AlluxioBlockStore.create(context, ServerConfiguration.global());
 
-    String localHostName = NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC);
+    String localHostName = NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC,
+        ServerConfiguration.global());
     List<BlockWorkerInfo> workerInfoList = blockStore.getAllWorkers();
     WorkerNetAddress localNetAddress = null;
 
@@ -130,8 +135,9 @@ public final class JobUtils {
         OpenFilePOptions.newBuilder().setReadType(ReadPType.NO_CACHE)
             .setFileReadLocationPolicy(LocalFirstPolicy.class.getCanonicalName()).build();
 
-    InStreamOptions inOptions = new InStreamOptions(status, openOptions);
-    OutStreamOptions outOptions = OutStreamOptions.defaults();
+    AlluxioConfiguration conf = ServerConfiguration.global();
+    InStreamOptions inOptions = new InStreamOptions(status, openOptions, conf);
+    OutStreamOptions outOptions = OutStreamOptions.defaults(conf);
 
     // use -1 to reuse the existing block size for this block
     try (OutputStream outputStream =

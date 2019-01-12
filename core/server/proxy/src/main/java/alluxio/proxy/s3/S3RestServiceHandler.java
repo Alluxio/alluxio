@@ -12,9 +12,9 @@
 package alluxio.proxy.s3;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
+import alluxio.conf.ServerConfiguration;
 import alluxio.Constants;
-import alluxio.PropertyKey;
+import alluxio.conf.PropertyKey;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
@@ -146,7 +146,7 @@ public final class S3RestServiceHandler {
         checkBucketIsAlluxioDirectory(bucketPath);
 
         // Delete the bucket.
-        DeletePOptions options = DeletePOptions.newBuilder().setAlluxioOnly(Configuration
+        DeletePOptions options = DeletePOptions.newBuilder().setAlluxioOnly(ServerConfiguration
             .get(PropertyKey.PROXY_S3_DELETE_TYPE).equals(Constants.S3_DELETE_IN_ALLUXIO_ONLY))
             .build();
         try {
@@ -540,7 +540,7 @@ public final class S3RestServiceHandler {
     String bucketPath = parseBucketPath(AlluxioURI.SEPARATOR + bucket);
     // Delete the object.
     String objectPath = bucketPath + AlluxioURI.SEPARATOR + object;
-    DeletePOptions options = DeletePOptions.newBuilder().setAlluxioOnly(Configuration
+    DeletePOptions options = DeletePOptions.newBuilder().setAlluxioOnly(ServerConfiguration
         .get(PropertyKey.PROXY_S3_DELETE_TYPE).equals(Constants.S3_DELETE_IN_ALLUXIO_ONLY)).build();
     try {
       mFileSystem.delete(new AlluxioURI(objectPath), options);
@@ -662,7 +662,7 @@ public final class S3RestServiceHandler {
   }
 
   private WritePType getS3WriteType() {
-    return Configuration.getEnum(PropertyKey.PROXY_S3_WRITE_TYPE, WriteType.class).toProto();
+    return ServerConfiguration.getEnum(PropertyKey.PROXY_S3_WRITE_TYPE, WriteType.class).toProto();
   }
 
   private class URIStatusNameComparator implements Comparator<URIStatus> {

@@ -11,7 +11,7 @@
 
 package alluxio.client.hadoop;
 
-import alluxio.PropertyKey;
+import alluxio.conf.PropertyKey;
 import alluxio.hadoop.FileSystem;
 import alluxio.security.authentication.AuthType;
 import alluxio.testutils.LocalAlluxioClusterResource;

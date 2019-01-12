@@ -32,6 +32,7 @@ import alluxio.wire.WorkerNetAddress;
  * </p>
  */
 @PublicApi
+@Deprecated
 // TODO(peis): Deprecate this and use BlockLocationPolicy in 2.0.
 public interface FileWriteLocationPolicy {
   /**

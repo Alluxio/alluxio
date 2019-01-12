@@ -13,10 +13,12 @@ package alluxio.client.meta;
 
 import static org.junit.Assert.assertEquals;
 
+import alluxio.Server;
 import alluxio.client.MetaMasterClient;
 import alluxio.client.MetaMasterConfigClient;
 import alluxio.client.RetryHandlingMetaMasterClient;
 import alluxio.client.RetryHandlingMetaMasterConfigClient;
+import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.MasterInfo;
 import alluxio.grpc.MasterInfoField;
@@ -50,7 +52,8 @@ public final class MetaMasterIntegrationTest extends BaseIntegrationTest {
   @Test
   public void getInfoAllFields() throws Exception {
     try (MetaMasterClient client =
-        new RetryHandlingMetaMasterClient(MasterClientConfig.defaults())) {
+        new RetryHandlingMetaMasterClient(MasterClientConfig.defaults(ServerConfiguration.global()),
+            ServerConfiguration.global())) {
       MasterInfo info = client.getMasterInfo(Collections.emptySet());
       assertEquals(mWebPort, info.getWebPort());
     }
@@ -59,7 +62,8 @@ public final class MetaMasterIntegrationTest extends BaseIntegrationTest {
   @Test
   public void getMasterInfoWebPort() throws Exception {
     try (MetaMasterClient client =
-        new RetryHandlingMetaMasterClient(MasterClientConfig.defaults())) {
+        new RetryHandlingMetaMasterClient(MasterClientConfig.defaults(ServerConfiguration.global()),
+            ServerConfiguration.global())) {
       MasterInfo info = client.getMasterInfo(new HashSet<>(Arrays
           .asList(MasterInfoField.WEB_PORT)));
       assertEquals(mWebPort, info.getWebPort());
@@ -69,7 +73,8 @@ public final class MetaMasterIntegrationTest extends BaseIntegrationTest {
   @Test
   public void getConfigurationWebPort() throws Exception {
     try (MetaMasterConfigClient client =
-             new RetryHandlingMetaMasterConfigClient(MasterClientConfig.defaults())) {
+             new RetryHandlingMetaMasterConfigClient(MasterClientConfig.defaults(ServerConfiguration.global()),
+             ServerConfiguration.global())) {
       List<ConfigProperty> configList = client.getConfiguration();
       int configWebPort = -1;
       for (ConfigProperty info : configList) {

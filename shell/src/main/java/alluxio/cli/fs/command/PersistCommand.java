@@ -17,6 +17,7 @@ import alluxio.cli.fs.FileSystemShellUtils;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemUtils;
 import alluxio.client.file.URIStatus;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.util.ThreadFactoryUtils;
@@ -60,8 +61,8 @@ public final class PersistCommand extends AbstractFileSystemCommand {
   /**
    * @param fs the filesystem of Alluxio
    */
-  public PersistCommand(FileSystem fs) {
-    super(fs);
+  public PersistCommand(FileSystem fs, AlluxioConfiguration conf) {
+    super(fs, conf);
   }
 
   @Override

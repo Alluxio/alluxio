@@ -12,11 +12,12 @@
 package alluxio.client.fs;
 
 import alluxio.AlluxioURI;
-import alluxio.PropertyKey;
+import alluxio.conf.PropertyKey;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
+import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.ReadPType;
@@ -146,7 +147,7 @@ public abstract class AbstractFileOutStreamIntegrationTest extends BaseIntegrati
   protected void checkFileInUnderStorage(AlluxioURI filePath, int fileLen) throws Exception {
     URIStatus status = mFileSystem.getStatus(filePath);
     String checkpointPath = status.getUfsPath();
-    UnderFileSystem ufs = UnderFileSystem.Factory.create(checkpointPath);
+    UnderFileSystem ufs = UnderFileSystem.Factory.create(checkpointPath, ServerConfiguration.global());
 
     try (InputStream is = ufs.open(checkpointPath)) {
       byte[] res = new byte[(int) status.getLength()];

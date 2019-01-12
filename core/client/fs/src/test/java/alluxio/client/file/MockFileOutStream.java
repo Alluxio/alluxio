@@ -13,6 +13,7 @@ package alluxio.client.file;
 
 import alluxio.AlluxioURI;
 import alluxio.client.file.options.OutStreamOptions;
+import alluxio.conf.AlluxioConfiguration;
 
 import java.io.ByteArrayOutputStream;
 import java.io.FileOutputStream;
@@ -28,8 +29,8 @@ public final class MockFileOutStream extends FileOutStream {
    * Creates a mock {@link FileOutputStream} which will store any bytes written to it for later
    * inspection during tests.
    */
-  public MockFileOutStream() throws IOException {
-    super(new AlluxioURI("/"), OutStreamOptions.defaults(), FileSystemContext.get());
+  public MockFileOutStream(AlluxioConfiguration conf) throws IOException {
+    super(new AlluxioURI("/"), OutStreamOptions.defaults(conf), FileSystemContext.create(), conf);
     mStream = new ByteArrayOutputStream();
   }
 

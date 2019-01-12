@@ -11,6 +11,8 @@
 
 package alluxio.job.replicate;
 
+import alluxio.conf.ServerConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.stream.BlockWorkerClient;
@@ -56,7 +58,7 @@ public final class EvictDefinition
    * Constructs a new {@link EvictDefinition}.
    */
   public EvictDefinition() {
-    mFileSystemContext = FileSystemContext.get();
+    mFileSystemContext = FileSystemContext.create();
   }
 
   /**
@@ -81,7 +83,8 @@ public final class EvictDefinition
     long blockId = config.getBlockId();
     int numReplicas = config.getReplicas();
 
-    AlluxioBlockStore blockStore = AlluxioBlockStore.create(mFileSystemContext);
+    AlluxioBlockStore blockStore = AlluxioBlockStore.create(mFileSystemContext,
+        ServerConfiguration.global());
     BlockInfo blockInfo = blockStore.getInfo(blockId);
 
     Set<String> hosts = new HashSet<>();
@@ -111,10 +114,12 @@ public final class EvictDefinition
   @Override
   public SerializableVoid runTask(EvictConfig config, SerializableVoid args,
       JobWorkerContext jobWorkerContext) throws Exception {
-    AlluxioBlockStore blockStore = AlluxioBlockStore.create();
+    AlluxioBlockStore blockStore = AlluxioBlockStore.create(mFileSystemContext,
+        ServerConfiguration.global());
 
     long blockId = config.getBlockId();
-    String localHostName = NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC);
+    String localHostName = NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC,
+        ServerConfiguration.global());
     List<BlockWorkerInfo> workerInfoList = blockStore.getAllWorkers();
     WorkerNetAddress localNetAddress = null;
 
@@ -131,7 +136,7 @@ public final class EvictDefinition
 
     RemoveBlockRequest request = RemoveBlockRequest.newBuilder().setBlockId(blockId).build();
     try (BlockWorkerClient blockWorker =
-             FileSystemContext.get().acquireBlockWorkerClient(localNetAddress)) {
+             FileSystemContext.create().acquireBlockWorkerClient(localNetAddress)) {
       blockWorker.removeBlock(request);
     } catch (NotFoundException e) {
       // Instead of throwing this exception, we continue here because the block to evict does not

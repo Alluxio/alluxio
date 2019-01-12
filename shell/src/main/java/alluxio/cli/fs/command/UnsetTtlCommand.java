@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystem;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.TtlAction;
@@ -34,8 +35,8 @@ public final class UnsetTtlCommand extends AbstractFileSystemCommand {
   /**
    * @param fs the filesystem of Alluxio
    */
-  public UnsetTtlCommand(FileSystem fs) {
-    super(fs);
+  public UnsetTtlCommand(FileSystem fs, AlluxioConfiguration conf) {
+    super(fs, conf);
   }
 
   @Override

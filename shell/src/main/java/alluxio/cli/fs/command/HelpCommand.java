@@ -15,6 +15,7 @@ import alluxio.cli.Command;
 import alluxio.cli.CommandUtils;
 import alluxio.cli.fs.FileSystemShellUtils;
 import alluxio.client.file.FileSystem;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 
@@ -65,8 +66,8 @@ public final class HelpCommand extends AbstractFileSystemCommand {
   /**
    * @param fs the filesystem of Alluxio
    */
-  public HelpCommand(FileSystem fs) {
-    super(fs);
+  public HelpCommand(FileSystem fs, AlluxioConfiguration conf) {
+    super(fs, conf);
   }
 
   @Override

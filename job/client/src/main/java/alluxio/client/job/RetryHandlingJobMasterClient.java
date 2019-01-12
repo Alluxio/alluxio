@@ -13,6 +13,7 @@ package alluxio.client.job;
 
 import alluxio.AbstractMasterClient;
 import alluxio.Constants;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.grpc.CancelPRequest;
 import alluxio.grpc.GetJobStatusPRequest;
 import alluxio.grpc.JobMasterClientServiceGrpc;
@@ -30,6 +31,7 @@ import io.grpc.StatusRuntimeException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.List;
+import java.util.function.Consumer;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -47,8 +49,9 @@ public final class RetryHandlingJobMasterClient extends AbstractMasterClient
    *
    * @param conf master client configuration
    */
-  public RetryHandlingJobMasterClient(JobMasterClientConfig conf) {
-    super(conf);
+  public RetryHandlingJobMasterClient(JobMasterClientConfig conf,
+      AlluxioConfiguration alluxioConf) {
+    super(conf, alluxioConf);
   }
 
   @Override
@@ -67,7 +70,7 @@ public final class RetryHandlingJobMasterClient extends AbstractMasterClient
   }
 
   @Override
-  protected void beforeConnect() throws IOException {
+  protected void beforeConnect(Consumer<AlluxioConfiguration> configurationUpdateCallback) throws IOException {
     // Job master client does not load cluster-default configuration because only the master
     // will use this client
   }

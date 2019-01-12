@@ -12,6 +12,7 @@
 package alluxio.worker;
 
 import alluxio.common.RpcPortHealthCheckClient;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.grpc.ServiceType;
 import alluxio.retry.RetryPolicy;
 
@@ -35,8 +36,8 @@ public class WorkerHealthCheckClient extends RpcPortHealthCheckClient {
    * @param retryPolicySupplier the retry policy supplier
    */
   public WorkerHealthCheckClient(InetSocketAddress jobWorkerAddress,
-      Supplier<RetryPolicy> retryPolicySupplier) {
+      Supplier<RetryPolicy> retryPolicySupplier, AlluxioConfiguration conf) {
     // TODO(ggezer) Send a valid value after FSWorker implementation.
-    super(jobWorkerAddress, ServiceType.UNKNOWN_SERVICE, retryPolicySupplier);
+    super(jobWorkerAddress, ServiceType.UNKNOWN_SERVICE, retryPolicySupplier, conf);
   }
 }

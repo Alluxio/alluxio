@@ -15,6 +15,7 @@ import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.FileSystemMasterClient;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.master.MasterInquireClient;
@@ -39,8 +40,8 @@ public final class LeaderCommand extends AbstractFileSystemCommand {
   /**
    * @param fs the filesystem of Alluxio
    */
-  public LeaderCommand(FileSystem fs) {
-    super(fs);
+  public LeaderCommand(FileSystem fs, AlluxioConfiguration conf) {
+    super(fs, conf);
   }
 
   @Override
@@ -56,14 +57,14 @@ public final class LeaderCommand extends AbstractFileSystemCommand {
   @Override
   public int run(CommandLine cl) {
     try (CloseableResource<FileSystemMasterClient> client =
-        FileSystemContext.get().acquireMasterClientResource()) {
+        FileSystemContext.create().acquireMasterClientResource()) {
       try {
         InetSocketAddress address = client.get().getAddress();
         System.out.println(address.getHostName());
 
         List<InetSocketAddress> addresses = Arrays.asList(address);
         MasterInquireClient inquireClient = new PollingMasterInquireClient(addresses, () ->
-                new ExponentialBackoffRetry(50, 100, 2)
+                new ExponentialBackoffRetry(50, 100, 2), mConfiguration
         );
         try {
           inquireClient.getPrimaryRpcAddress();
@@ -71,7 +72,7 @@ public final class LeaderCommand extends AbstractFileSystemCommand {
           System.err.println("The leader is not currently serving requests.");
         }
       } catch (UnavailableException e) {
-        System.err.println("Failed to get the leader master.");
+        System.err.println("Failed to create the leader master.");
       }
     }
     return 0;

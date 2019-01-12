@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.annotation.PublicApi;
 import alluxio.client.keyvalue.KeyValueMasterClient;
 import alluxio.client.keyvalue.KeyValueSystem;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.grpc.PartitionInfo;
 import alluxio.master.MasterClientConfig;
 
@@ -43,13 +44,16 @@ import javax.annotation.concurrent.ThreadSafe;
 @PublicApi
 @ThreadSafe
 public final class KeyValueInputFormat extends InputFormat<BytesWritable, BytesWritable> {
-  private final KeyValueMasterClient mKeyValueMasterClient =
-      new KeyValueMasterClient(MasterClientConfig.defaults());
+  private final KeyValueMasterClient mKeyValueMasterClient;
+  private final AlluxioConfiguration mConf;
 
   /**
    * Constructs a new {@link KeyValueInputFormat}.
    */
-  public KeyValueInputFormat() {}
+  public KeyValueInputFormat(AlluxioConfiguration conf) {
+    mKeyValueMasterClient = new KeyValueMasterClient(MasterClientConfig.defaults(conf), conf);
+    mConf = conf;
+  }
 
   /**
    * Returns a list of {@link KeyValueInputSplit} where each split is one key-value partition.
@@ -68,7 +72,7 @@ public final class KeyValueInputFormat extends InputFormat<BytesWritable, BytesW
         List<PartitionInfo> partitionInfos =
             mKeyValueMasterClient.getPartitionInfo(new AlluxioURI(path.toString()));
         for (PartitionInfo partitionInfo : partitionInfos) {
-          splits.add(new KeyValueInputSplit(partitionInfo));
+          splits.add(new KeyValueInputSplit(partitionInfo, mConf));
         }
       }
     } catch (Exception e) {
@@ -80,6 +84,6 @@ public final class KeyValueInputFormat extends InputFormat<BytesWritable, BytesW
   @Override
   public RecordReader<BytesWritable, BytesWritable> createRecordReader(InputSplit inputSplit,
       TaskAttemptContext taskContext) throws IOException {
-    return new KeyValueRecordReader();
+    return new KeyValueRecordReader(mConf);
   }
 }
