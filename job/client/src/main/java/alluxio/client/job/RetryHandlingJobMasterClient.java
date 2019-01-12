@@ -28,7 +28,6 @@ import com.google.protobuf.ByteString;
 import io.grpc.StatusRuntimeException;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.util.List;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -108,11 +107,11 @@ public final class RetryHandlingJobMasterClient extends AbstractMasterClient
 
   @Override
   public long run(final JobConfig jobConfig) throws IOException {
-    final ByteBuffer configBytes = ByteBuffer.wrap(SerializationUtils.serialize(jobConfig));
+    final byte[] jobConfigSerialized = SerializationUtils.serialize(jobConfig);
     return retryRPC(new RpcCallable<Long>() {
       public Long call() throws StatusRuntimeException {
-        return mClient
-            .run(RunPRequest.newBuilder().setJobConfig(ByteString.copyFrom(configBytes)).build())
+        return mClient.run(
+            RunPRequest.newBuilder().setJobConfig(ByteString.copyFrom(jobConfigSerialized)).build())
             .getJobId();
       }
     });
