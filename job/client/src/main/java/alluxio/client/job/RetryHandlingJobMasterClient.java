@@ -107,12 +107,10 @@ public final class RetryHandlingJobMasterClient extends AbstractMasterClient
 
   @Override
   public long run(final JobConfig jobConfig) throws IOException {
-    final byte[] jobConfigSerialized = SerializationUtils.serialize(jobConfig);
+    final ByteString jobConfigStr = ByteString.copyFrom(SerializationUtils.serialize(jobConfig));
     return retryRPC(new RpcCallable<Long>() {
       public Long call() throws StatusRuntimeException {
-        return mClient.run(
-            RunPRequest.newBuilder().setJobConfig(ByteString.copyFrom(jobConfigSerialized)).build())
-            .getJobId();
+        return mClient.run(RunPRequest.newBuilder().setJobConfig(jobConfigStr).build()).getJobId();
       }
     });
   }
