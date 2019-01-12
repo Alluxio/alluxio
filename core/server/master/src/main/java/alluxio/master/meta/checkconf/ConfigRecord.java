@@ -11,7 +11,7 @@
 
 package alluxio.master.meta.checkconf;
 
-import alluxio.PropertyKey;
+import alluxio.conf.PropertyKey;
 
 import javax.annotation.Nullable;
 import java.util.Optional;

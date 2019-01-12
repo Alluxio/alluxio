@@ -36,7 +36,7 @@ public class EvictorTestUtils {
    * @param plan the eviction plan
    * @param meta the metadata manager
    * @return true if blocks are in the same dir otherwise false
-   * @throws BlockDoesNotExistException if fail to get metadata of a block
+   * @throws BlockDoesNotExistException if fail to create metadata of a block
    */
   public static boolean blocksInTheSameDir(EvictionPlan plan, BlockMetadataManager meta)
       throws BlockDoesNotExistException {
@@ -74,7 +74,7 @@ public class EvictorTestUtils {
    *         {@link #blocksInTheSameDir(EvictionPlan, BlockMetadataManager)} and
    *         {@link #requestSpaceSatisfied(long, EvictionPlan, BlockMetadataManager)} are true,
    *         otherwise false
-   * @throws alluxio.exception.BlockDoesNotExistException when fail to get metadata of a block
+   * @throws alluxio.exception.BlockDoesNotExistException when fail to create metadata of a block
    */
   public static boolean validNonCascadingPlan(long bytesToBeAvailable, EvictionPlan plan,
       BlockMetadataManager metaManager) throws BlockDoesNotExistException {
@@ -195,7 +195,7 @@ public class EvictorTestUtils {
    * @param plan the eviction plan, should not be null
    * @param meta the metadata manager
    * @return true if the request can be satisfied otherwise false
-   * @throws alluxio.exception.BlockDoesNotExistException if can not get metadata of a block
+   * @throws alluxio.exception.BlockDoesNotExistException if can not create metadata of a block
    */
   public static boolean requestSpaceSatisfied(long bytesToBeAvailable, EvictionPlan plan,
       BlockMetadataManager meta) throws BlockDoesNotExistException {

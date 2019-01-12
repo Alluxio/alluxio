@@ -13,11 +13,12 @@ package alluxio.job.master;
 
 import static org.junit.Assert.assertTrue;
 
+import alluxio.conf.ServerConfiguration;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.ConfigurationRule;
 import alluxio.Constants;
 import alluxio.testutils.LocalAlluxioClusterResource;
-import alluxio.PropertyKey;
+import alluxio.conf.PropertyKey;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
@@ -44,7 +45,8 @@ public class LostWorkerIntegrationTest extends BaseIntegrationTest {
 
   @Rule
   public ConfigurationRule mConfigurationRule = new ConfigurationRule(ImmutableMap.of(
-      PropertyKey.JOB_MASTER_WORKER_TIMEOUT_MS, Integer.toString(WORKER_HEARTBEAT_TIMEOUT_MS)));
+      PropertyKey.JOB_MASTER_WORKER_TIMEOUT_MS, Integer.toString(WORKER_HEARTBEAT_TIMEOUT_MS)),
+      ServerConfiguration.global());
 
   // We need this because LocalAlluxioJobCluster doesn't work without it.
   @Rule

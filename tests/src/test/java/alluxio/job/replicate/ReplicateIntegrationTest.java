@@ -78,8 +78,8 @@ public final class ReplicateIntegrationTest extends JobIntegrationTest {
     // run the replicate job for mBlockId1
     waitForJobToFinish(mJobMaster.run(new ReplicateConfig(TEST_URI, mBlockId1, 1)));
 
-    BlockInfo blockInfo1 = AdjustJobTestUtils.getBlock(mBlockId1, FileSystemContext.get());
-    BlockInfo blockInfo2 = AdjustJobTestUtils.getBlock(mBlockId2, FileSystemContext.get());
+    BlockInfo blockInfo1 = AdjustJobTestUtils.getBlock(mBlockId1, FileSystemContext.create());
+    BlockInfo blockInfo2 = AdjustJobTestUtils.getBlock(mBlockId2, FileSystemContext.create());
     Assert.assertEquals(1, blockInfo1.getLocations().size());
     Assert.assertEquals(0, blockInfo2.getLocations().size());
     Assert.assertEquals(TEST_BLOCK_SIZE, blockInfo1.getLength());
@@ -91,8 +91,8 @@ public final class ReplicateIntegrationTest extends JobIntegrationTest {
     // run the replicate job for mBlockId2
     waitForJobToFinish(mJobMaster.run(new ReplicateConfig(TEST_URI, mBlockId2, 1)));
 
-    BlockInfo blockInfo1 = AdjustJobTestUtils.getBlock(mBlockId1, FileSystemContext.get());
-    BlockInfo blockInfo2 = AdjustJobTestUtils.getBlock(mBlockId2, FileSystemContext.get());
+    BlockInfo blockInfo1 = AdjustJobTestUtils.getBlock(mBlockId1, FileSystemContext.create());
+    BlockInfo blockInfo2 = AdjustJobTestUtils.getBlock(mBlockId2, FileSystemContext.create());
     Assert.assertEquals(0, blockInfo1.getLocations().size());
     Assert.assertEquals(1, blockInfo2.getLocations().size());
     Assert.assertEquals(TEST_BLOCK_SIZE, blockInfo1.getLength());

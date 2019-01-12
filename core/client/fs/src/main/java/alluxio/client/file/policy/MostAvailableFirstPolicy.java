@@ -14,6 +14,7 @@ package alluxio.client.file.policy;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.policy.BlockLocationPolicy;
 import alluxio.client.block.policy.options.GetWorkerOptions;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.MoreObjects;
@@ -32,7 +33,7 @@ public final class MostAvailableFirstPolicy
   /**
    * Constructs a new {@link MostAvailableFirstPolicy}.
    */
-  public MostAvailableFirstPolicy() {}
+  public MostAvailableFirstPolicy(AlluxioConfiguration alluxioConf) {}
 
   @Override
   public WorkerNetAddress getWorkerForNextBlock(Iterable<BlockWorkerInfo> workerInfoList,

@@ -15,9 +15,12 @@ import static alluxio.exception.ExceptionMessage.INCOMPATIBLE_VERSION;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.InstancedConfiguration;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.ServiceType;
 import alluxio.retry.CountingRetry;
+import alluxio.util.ConfigurationUtils;
 
 import org.junit.Ignore;
 import org.junit.Rule;
@@ -37,7 +40,7 @@ public final class AbstractClientTest {
 
   private static class BaseTestClient extends AbstractClient {
     protected BaseTestClient() {
-      super(null, null, () -> new CountingRetry(1));
+      super(null, new InstancedConfiguration(ConfigurationUtils.defaults()), null, () -> new CountingRetry(1));
     }
 
     @Override

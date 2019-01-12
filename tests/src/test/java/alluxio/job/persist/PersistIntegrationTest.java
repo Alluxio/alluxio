@@ -17,6 +17,7 @@ import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.FileSystemMasterClient;
 import alluxio.client.file.URIStatus;
+import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.WritePType;
 import alluxio.job.JobIntegrationTest;
@@ -56,7 +57,7 @@ public final class PersistIntegrationTest extends JobIntegrationTest {
     // run the persist job and check that it succeeds
     waitForJobToFinish(mJobMaster.run(new PersistConfig("/test", 1, true, status.getUfsPath())));
     String ufsPath = status.getUfsPath();
-    UnderFileSystem ufs = UnderFileSystem.Factory.create(ufsPath);
+    UnderFileSystem ufs = UnderFileSystem.Factory.create(ufsPath, ServerConfiguration.global());
     Assert.assertTrue(ufs.exists(ufsPath));
 
     // run the persist job again with the overwrite flag and check that it succeeds

@@ -13,6 +13,7 @@ package alluxio.client.keyvalue;
 
 import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
+import alluxio.conf.*;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
@@ -58,15 +59,18 @@ class BaseKeyValueStoreWriter implements KeyValueStoreWriter {
   /** Byte array of the last input key. */
   private byte[] mLastKey = null;
 
+  private final AlluxioConfiguration mConf;
+
   /**
    * Constructs a {@link BaseKeyValueStoreWriter}. This constructor will create a new key-value
    * store at the given {@link AlluxioURI}.
    *
    * @param uri URI of the store
    */
-  BaseKeyValueStoreWriter(AlluxioURI uri) throws IOException {
+  BaseKeyValueStoreWriter(AlluxioURI uri, AlluxioConfiguration conf) throws IOException {
     LOG.info("Create KeyValueStoreWriter for {}", uri);
-    mMasterClient = new KeyValueMasterClient(MasterClientConfig.defaults());
+    mConf = conf;
+    mMasterClient = new KeyValueMasterClient(MasterClientConfig.defaults(conf), conf);
 
     mStoreUri = Preconditions.checkNotNull(uri, "uri");
     mMasterClient.createStore(mStoreUri);
@@ -122,7 +126,7 @@ class BaseKeyValueStoreWriter implements KeyValueStoreWriter {
       if (mWriter != null) {
         completePartition();
       }
-      mWriter = KeyValuePartitionWriter.Factory.create(getPartitionName());
+      mWriter = KeyValuePartitionWriter.Factory.create(getPartitionName(), mConf);
       mKeyStart = null;
       mKeyLimit = null;
     }

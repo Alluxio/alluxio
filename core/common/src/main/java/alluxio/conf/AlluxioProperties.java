@@ -13,8 +13,6 @@ package alluxio.conf;
 
 import static java.util.stream.Collectors.toSet;
 
-import alluxio.PropertyKey;
-
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Maps;
 import org.slf4j.Logger;
@@ -100,11 +98,21 @@ public class AlluxioProperties {
    * @param value value to put
    * @param source the source of this value for the key
    */
-  public void put(PropertyKey key, String value, Source source) {
+  protected void put(PropertyKey key, String value, Source source) {
     if (!mUserProps.containsKey(key) || source.compareTo(getSource(key)) >= 0) {
       mUserProps.put(key, Optional.ofNullable(value));
       mSources.put(key, source);
     }
+  }
+
+  /**
+   * Puts the key value pair specified by users.
+   *
+   * @param key key to put
+   * @param value value to put
+   */
+  public void set(PropertyKey key, String value) {
+    put(key, value, Source.RUNTIME);
   }
 
   /**
@@ -187,6 +195,10 @@ public class AlluxioProperties {
     for (Map.Entry<PropertyKey, String> entry : entrySet()) {
       action.accept(entry.getKey(), entry.getValue());
     }
+  }
+
+  public AlluxioProperties copy() {
+    return new AlluxioProperties(this);
   }
 
   /**

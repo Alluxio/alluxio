@@ -11,6 +11,8 @@
 
 package alluxio.security.authentication;
 
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.status.UnauthenticatedException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.SaslAuthenticationServiceGrpc;
@@ -27,6 +29,7 @@ import io.grpc.stub.StreamObserver;
 
 import javax.security.auth.Subject;
 import javax.security.sasl.SaslClient;
+import java.security.Security;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -53,17 +56,19 @@ public class ChannelAuthenticator {
   /** Internal ID used to identify the channel that is being authenticated. */
   protected UUID mChannelId;
 
+  private boolean mSecurityEnabled;
+
   /**
    * Creates {@link ChannelAuthenticator} instance.
    *
    * @param subject javax subject to use for authentication
-   * @param authType authentication type
    */
-  public ChannelAuthenticator(Subject subject, AuthType authType) {
+  public ChannelAuthenticator(Subject subject, AlluxioConfiguration conf) {
     mUseSubject = true;
     mChannelId = UUID.randomUUID();
     mParentSubject = subject;
-    mAuthType = authType;
+    mAuthType = conf.getEnum(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.class);
+    mSecurityEnabled = SecurityUtils.isSecurityEnabled(conf);
   }
 
   /**
@@ -92,7 +97,7 @@ public class ChannelAuthenticator {
    * @return channel that is augmented for authentication
    * @throws UnauthenticatedException
    */
-  public Channel authenticate(ManagedChannel managedChannel)
+  public Channel authenticate(ManagedChannel managedChannel, AlluxioConfiguration conf)
       throws UnauthenticatedException, UnavailableException {
     if (mAuthType == AuthType.NOSASL) {
       return managedChannel;
@@ -103,7 +108,7 @@ public class ChannelAuthenticator {
     SaslClient saslClient;
     if (mUseSubject) {
       saslClient =
-          SaslParticipantProvider.Factory.create(mAuthType).createSaslClient(mParentSubject);
+          SaslParticipantProvider.Factory.create(mAuthType).createSaslClient(mParentSubject, conf);
     } else {
       saslClient = SaslParticipantProvider.Factory.create(mAuthType).createSaslClient(mUserName,
           mPassword, mImpersonationUser);
@@ -133,7 +138,7 @@ public class ChannelAuthenticator {
    * @return the list of interceptors that are required for configured authentication
    */
   private List<ClientInterceptor> getInterceptors(SaslClient saslClient) {
-    if (!SecurityUtils.isSecurityEnabled()) {
+    if (mSecurityEnabled) {
       return Collections.emptyList();
     }
     List<ClientInterceptor> interceptorsList = new ArrayList<>();

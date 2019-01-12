@@ -20,9 +20,8 @@ import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import alluxio.Configuration;
-import alluxio.ConfigurationTestUtils;
-import alluxio.PropertyKey;
+import alluxio.conf.ServerConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ExceptionMessage;
@@ -86,13 +85,13 @@ public final class TieredBlockStoreTest {
    */
   @Before
   public void before() throws Exception {
-    ConfigurationTestUtils.resetConfiguration();
-    Configuration.set(PropertyKey.WORKER_TIERED_STORE_RESERVER_ENABLED, "false");
+    ServerConfiguration.reset();
+    ServerConfiguration.set(PropertyKey.WORKER_TIERED_STORE_RESERVER_ENABLED, "false");
     File tempFolder = mTestFolder.newFolder();
     TieredBlockStoreTestUtils.setupDefaultConf(tempFolder.getAbsolutePath());
     mBlockStore = new TieredBlockStore();
 
-    // TODO(bin): Avoid using reflection to get private members.
+    // TODO(bin): Avoid using reflection to create private members.
     Field field = mBlockStore.getClass().getDeclaredField("mMetaManager");
     field.setAccessible(true);
     mMetaManager = (BlockMetadataManager) field.get(mBlockStore);
@@ -497,7 +496,7 @@ public final class TieredBlockStoreTest {
   }
 
   /**
-   * Tests that an exception is thrown when trying to get a writer for the block that does not
+   * Tests that an exception is thrown when trying to create a writer for the block that does not
    * exist.
    */
   @Test

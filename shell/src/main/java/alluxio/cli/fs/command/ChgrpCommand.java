@@ -14,6 +14,7 @@ package alluxio.cli.fs.command;
 import alluxio.AlluxioURI;
 import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystem;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.SetAttributePOptions;
@@ -46,8 +47,8 @@ public final class ChgrpCommand extends AbstractFileSystemCommand {
    *
    * @param fs an Alluxio file system handle
    */
-  public ChgrpCommand(FileSystem fs) {
-    super(fs);
+  public ChgrpCommand(FileSystem fs, AlluxioConfiguration conf) {
+    super(fs, conf);
   }
 
   @Override

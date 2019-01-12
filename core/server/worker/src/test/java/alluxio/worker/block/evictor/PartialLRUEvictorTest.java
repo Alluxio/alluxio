@@ -12,6 +12,7 @@
 package alluxio.worker.block.evictor;
 
 import alluxio.ConfigurationTestUtils;
+import alluxio.conf.ServerConfiguration;
 import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.TieredBlockStoreTestUtils;
 import alluxio.worker.block.meta.StorageDir;
@@ -41,7 +42,7 @@ public class PartialLRUEvictorTest extends EvictorTestBase {
    */
   @After
   public void after() {
-    ConfigurationTestUtils.resetConfiguration();
+    ServerConfiguration.reset();
   }
 
   /**

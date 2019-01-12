@@ -11,8 +11,9 @@
 
 package alluxio.master.journalv0.ufs;
 
-import alluxio.Configuration;
-import alluxio.PropertyKey;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.ServerConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.RuntimeConstants;
 import alluxio.exception.ExceptionMessage;
 import alluxio.master.journalv0.JournalFormatter;
@@ -80,7 +81,7 @@ public final class UfsJournalWriter implements JournalWriter {
     } catch (URISyntaxException e) {
       throw new RuntimeException(e);
     }
-    mUfs = UnderFileSystem.Factory.create(mJournal.getLocation());
+    mUfs = UnderFileSystem.Factory.create(mJournal.getLocation(), ServerConfiguration.global());
     mCheckpointManager = new UfsCheckpointManager(mUfs, mJournal.getCheckpoint(), this);
   }
 
@@ -125,7 +126,7 @@ public final class UfsJournalWriter implements JournalWriter {
     }
     if (mEntryOutputStream == null) {
       mEntryOutputStream = new EntryOutputStream(mUfs, mJournal.getCurrentLog(),
-          mJournal.getJournalFormatter(), this);
+          mJournal.getJournalFormatter(), this, ServerConfiguration.global());
     }
     mEntryOutputStream.write(entry);
   }
@@ -304,6 +305,7 @@ public final class UfsJournalWriter implements JournalWriter {
      * the previous write failed and may have left a corrupted entry at the end of the current log.
      */
     private boolean mRotateLogForNextWrite = false;
+    private final AlluxioConfiguration mAlluxioConf;
 
     /**
      * @param ufs the under storage holding the journal
@@ -313,14 +315,15 @@ public final class UfsJournalWriter implements JournalWriter {
      *        complete the log when it needs to be rotated
      */
     public EntryOutputStream(UnderFileSystem ufs, URI log, JournalFormatter journalFormatter,
-        UfsJournalWriter journalWriter) throws IOException {
+        UfsJournalWriter journalWriter, AlluxioConfiguration alluxioConf) throws IOException {
       mUfs = ufs;
+      mAlluxioConf = alluxioConf;
       mCurrentLog = log;
       mJournalFormatter = journalFormatter;
       mJournalWriter = journalWriter;
-      mMaxLogSize = Configuration.getBytes(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX);
+      mMaxLogSize = ServerConfiguration.getBytes(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX);
       mRawOutputStream = mUfs.create(mCurrentLog.toString(),
-          CreateOptions.defaults().setEnsureAtomic(false).setCreateParent(true));
+          CreateOptions.defaults(alluxioConf).setEnsureAtomic(false).setCreateParent(true));
       LOG.info("Opened current log file: {}", mCurrentLog);
       mDataOutputStream = new DataOutputStream(mRawOutputStream);
     }
@@ -398,7 +401,7 @@ public final class UfsJournalWriter implements JournalWriter {
       mDataOutputStream.close();
       mJournalWriter.completeCurrentLog();
       mRawOutputStream = mUfs.create(mCurrentLog.toString(),
-          CreateOptions.defaults().setEnsureAtomic(false).setCreateParent(true));
+          CreateOptions.defaults(mAlluxioConf).setEnsureAtomic(false).setCreateParent(true));
       LOG.info("Opened current log file: {}", mCurrentLog);
       mDataOutputStream = new DataOutputStream(mRawOutputStream);
     }

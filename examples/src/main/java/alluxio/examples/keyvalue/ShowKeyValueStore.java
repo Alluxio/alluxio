@@ -17,6 +17,8 @@ import alluxio.client.keyvalue.KeyValueIterator;
 import alluxio.client.keyvalue.KeyValuePair;
 import alluxio.client.keyvalue.KeyValueStoreReader;
 import alluxio.client.keyvalue.KeyValueSystem;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.util.ConfigurationUtils;
 import alluxio.util.FormatUtils;
 import alluxio.util.io.BufferUtils;
 
@@ -24,6 +26,10 @@ import alluxio.util.io.BufferUtils;
  * Prints out (key, value) pairs, or only keys, or only values in a key-value store.
  */
 public final class ShowKeyValueStore {
+
+  private static final InstancedConfiguration sConf =
+      new InstancedConfiguration(ConfigurationUtils.defaults());
+
   private static void show(KeyValuePair pair, String scope) {
     String key = FormatUtils.byteArrayToHexString(BufferUtils.newByteArrayFromByteBuffer(
         pair.getKey()));
@@ -60,7 +66,8 @@ public final class ShowKeyValueStore {
       System.exit(-1);
     }
 
-    KeyValueStoreReader reader = KeyValueSystem.Factory.create().openStore(new AlluxioURI(args[0]));
+    KeyValueStoreReader reader =
+        KeyValueSystem.Factory.create(sConf).openStore(new AlluxioURI(args[0]));
     KeyValueIterator iterator = reader.iterator();
     while (iterator.hasNext()) {
       show(iterator.next(), args[1]);

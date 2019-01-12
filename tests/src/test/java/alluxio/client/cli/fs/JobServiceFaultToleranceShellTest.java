@@ -18,6 +18,7 @@ import alluxio.AlluxioURI;
 import alluxio.ConfigurationTestUtils;
 import alluxio.cli.fs.FileSystemShell;
 import alluxio.client.file.FileSystem;
+import alluxio.conf.ServerConfiguration;
 import alluxio.master.LocalAlluxioJobCluster;
 import alluxio.master.MultiMasterLocalAlluxioCluster;
 import alluxio.testutils.BaseIntegrationTest;
@@ -54,7 +55,7 @@ public final class JobServiceFaultToleranceShellTest extends BaseIntegrationTest
     mLocalAlluxioJobCluster.stop();
     mLocalAlluxioCluster.stop();
     System.setOut(System.out);
-    ConfigurationTestUtils.resetConfiguration();
+    ServerConfiguration.reset();
   }
 
   @Test
@@ -64,7 +65,7 @@ public final class JobServiceFaultToleranceShellTest extends BaseIntegrationTest
       out.write("Hello".getBytes());
     }
 
-    try (FileSystemShell shell = new FileSystemShell()) {
+    try (FileSystemShell shell = new FileSystemShell(ServerConfiguration.global())) {
       int exitCode = shell.run("distributedMv", "/test", "/test2");
       assertEquals("Command failed, output: " + mOutput.toString(), 0, exitCode);
     }

@@ -11,8 +11,8 @@
 
 package alluxio.client.file;
 
-import alluxio.Configuration;
-import alluxio.PropertyKey;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.master.MasterClientConfig;
 import alluxio.master.MasterInquireClient;
 import alluxio.resource.ResourcePool;
@@ -34,6 +34,7 @@ public final class FileSystemMasterClientPool extends ResourcePool<FileSystemMas
   private final MasterInquireClient mMasterInquireClient;
   private final Queue<FileSystemMasterClient> mClientList;
   private final Subject mSubject;
+  private final AlluxioConfiguration mAlluxioConf;
 
   /**
    * Creates a new file system master client pool.
@@ -41,11 +42,13 @@ public final class FileSystemMasterClientPool extends ResourcePool<FileSystemMas
    * @param subject the parent subject
    * @param masterInquireClient a client for determining the master address
    */
-  public FileSystemMasterClientPool(Subject subject, MasterInquireClient masterInquireClient) {
-    super(Configuration.getInt(PropertyKey.USER_FILE_MASTER_CLIENT_THREADS));
+  public FileSystemMasterClientPool(Subject subject, MasterInquireClient masterInquireClient,
+      AlluxioConfiguration conf) {
+    super(conf.getInt(PropertyKey.USER_FILE_MASTER_CLIENT_THREADS));
     mMasterInquireClient = masterInquireClient;
     mClientList = new ConcurrentLinkedQueue<>();
     mSubject = subject;
+    mAlluxioConf = conf;
   }
 
   /**
@@ -56,11 +59,12 @@ public final class FileSystemMasterClientPool extends ResourcePool<FileSystemMas
    * @param clientThreads the number of client threads to use
    */
   public FileSystemMasterClientPool(Subject subject, MasterInquireClient masterInquireClient,
-      int clientThreads) {
+      int clientThreads, AlluxioConfiguration conf) {
     super(clientThreads);
     mMasterInquireClient = masterInquireClient;
     mClientList = new ConcurrentLinkedQueue<>();
     mSubject = subject;
+    mAlluxioConf = conf;
   }
 
   @Override
@@ -76,7 +80,7 @@ public final class FileSystemMasterClientPool extends ResourcePool<FileSystemMas
   @Override
   protected FileSystemMasterClient createNewResource() {
     FileSystemMasterClient client = FileSystemMasterClient.Factory.create(MasterClientConfig
-        .defaults().withSubject(mSubject).withMasterInquireClient(mMasterInquireClient));
+        .defaults(mAlluxioConf).withSubject(mSubject).withMasterInquireClient(mMasterInquireClient), mAlluxioConf);
     mClientList.add(client);
     return client;
   }

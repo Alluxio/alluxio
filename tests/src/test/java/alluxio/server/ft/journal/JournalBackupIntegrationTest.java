@@ -18,10 +18,11 @@ import alluxio.AlluxioTestDirectory;
 import alluxio.AlluxioURI;
 import alluxio.ConfigurationRule;
 import alluxio.Constants;
-import alluxio.PropertyKey;
+import alluxio.conf.PropertyKey;
 import alluxio.client.MetaMasterClient;
 import alluxio.client.RetryHandlingMetaMasterClient;
 import alluxio.client.file.FileSystem;
+import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.WritePType;
 import alluxio.master.MasterClientConfig;
@@ -52,7 +53,7 @@ public final class JournalBackupIntegrationTest extends BaseIntegrationTest {
     {
       put(PropertyKey.USER_METRICS_COLLECTION_ENABLED, "false");
     }
-  });
+  }, ServerConfiguration.global());
 
   @After
   public void after() throws Exception {
@@ -153,6 +154,8 @@ public final class JournalBackupIntegrationTest extends BaseIntegrationTest {
 
   private MetaMasterClient getMetaClient(MultiProcessCluster cluster) {
     return new RetryHandlingMetaMasterClient(
-        MasterClientConfig.defaults().withMasterInquireClient(cluster.getMasterInquireClient()));
+        MasterClientConfig.defaults(
+            ServerConfiguration.global()).withMasterInquireClient(cluster.getMasterInquireClient()),
+        ServerConfiguration.global());
   }
 }

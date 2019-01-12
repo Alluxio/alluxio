@@ -13,6 +13,7 @@ package alluxio.client.keyvalue;
 
 import alluxio.AbstractClient;
 import alluxio.Constants;
+import alluxio.conf.*;
 import alluxio.exception.AlluxioException;
 import alluxio.grpc.GetNextKeysPRequest;
 import alluxio.grpc.GetPRequest;
@@ -47,8 +48,8 @@ public final class KeyValueWorkerClient extends AbstractClient {
    *
    * @param workerNetAddress location of the worker to connect to
    */
-  public KeyValueWorkerClient(WorkerNetAddress workerNetAddress) {
-    super(null, NetworkAddressUtils.getRpcPortSocketAddress(workerNetAddress));
+  public KeyValueWorkerClient(WorkerNetAddress workerNetAddress, AlluxioConfiguration conf) {
+    super(null, conf, NetworkAddressUtils.getRpcPortSocketAddress(workerNetAddress));
   }
 
   @Override
@@ -75,7 +76,7 @@ public final class KeyValueWorkerClient extends AbstractClient {
    * Gets the value of a given {@code key} from a specific key-value block.
    *
    * @param blockId The id of the block
-   * @param key the key to get the value for
+   * @param key the key to create the value for
    * @return ByteBuffer of value, or null if not found
    */
   public ByteBuffer get(final long blockId, final ByteBuffer key)
@@ -93,7 +94,7 @@ public final class KeyValueWorkerClient extends AbstractClient {
   /**
    * Gets a batch of keys next to the current key in the partition.
    * <p>
-   * If current key is null, it means get the initial batch of keys.
+   * If current key is null, it means create the initial batch of keys.
    * If there are no more next keys, an empty list is returned.
    *
    * @param blockId the id of the partition

@@ -12,6 +12,7 @@
 package alluxio.client.keyvalue;
 
 import alluxio.AlluxioURI;
+import alluxio.conf.*;
 import alluxio.exception.AlluxioException;
 import alluxio.grpc.PartitionInfo;
 import alluxio.master.MasterClientConfig;
@@ -40,17 +41,20 @@ class BaseKeyValueStoreReader implements KeyValueStoreReader {
   /** A list of partitions of the store. */
   private final List<PartitionInfo> mPartitions;
 
+  private final AlluxioConfiguration mConf;
+
   /**
    * Constructs a {@link BaseKeyValueStoreReader} instance.
    *
    * @param uri URI of the key-value store
    */
-  BaseKeyValueStoreReader(AlluxioURI uri) throws IOException {
+  BaseKeyValueStoreReader(AlluxioURI uri, AlluxioConfiguration conf) throws IOException {
     // TODO(binfan): use a thread pool to manage the client.
     LOG.info("Create KeyValueStoreReader for {}", uri);
-    mMasterClient = new KeyValueMasterClient(MasterClientConfig.defaults());
+    mMasterClient = new KeyValueMasterClient(MasterClientConfig.defaults(conf), conf);
     mPartitions = mMasterClient.getPartitionInfo(uri);
     mMasterClient.close();
+    mConf = conf;
   }
 
   @Override
@@ -84,7 +88,8 @@ class BaseKeyValueStoreReader implements KeyValueStoreReader {
       } else {
         // The key is either in this partition or not in the key-value store
         long blockId = partition.getBlockId();
-        try (KeyValuePartitionReader reader = KeyValuePartitionReader.Factory.create(blockId)) {
+        try (KeyValuePartitionReader reader =
+                 KeyValuePartitionReader.Factory.create(blockId, mConf)) {
           return reader.get(key);
         }
       }
@@ -94,7 +99,7 @@ class BaseKeyValueStoreReader implements KeyValueStoreReader {
 
   @Override
   public KeyValueIterator iterator() throws IOException, AlluxioException {
-    return new KeyValueStoreIterator(mPartitions);
+    return new KeyValueStoreIterator(mPartitions, mConf);
   }
 
   @Override

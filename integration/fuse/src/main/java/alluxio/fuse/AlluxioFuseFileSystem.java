@@ -12,8 +12,8 @@
 package alluxio.fuse;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
-import alluxio.PropertyKey;
+import alluxio.conf.ServerConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
@@ -112,6 +112,7 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
   private final IndexedSet<OpenFileEntry> mOpenFiles;
 
   private long mNextOpenFileId;
+  private final String mFsName;
 
   /**
    * Creates a new instance of {@link AlluxioFuseFileSystem}.
@@ -119,16 +120,17 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
    * @param fs Alluxio file system
    * @param opts options
    */
-  public AlluxioFuseFileSystem(FileSystem fs, AlluxioFuseOptions opts) {
+  public AlluxioFuseFileSystem(FileSystem fs, AlluxioFuseOptions opts, AlluxioConfiguration conf) {
     super();
+    mFsName = conf.get(PropertyKey.FUSE_FS_NAME);
     mFileSystem = fs;
     mAlluxioRootPath = Paths.get(opts.getAlluxioRoot());
     mNextOpenFileId = 0L;
     mOpenFiles = new IndexedSet<>(ID_INDEX, PATH_INDEX);
 
-    final int maxCachedPaths = Configuration.getInt(PropertyKey.FUSE_CACHED_PATHS_MAX);
+    final int maxCachedPaths = conf.getInt(PropertyKey.FUSE_CACHED_PATHS_MAX);
     mIsUserGroupTranslation
-        = Configuration.getBoolean(PropertyKey.FUSE_USER_GROUP_TRANSLATION_ENABLED);
+        = conf.getBoolean(PropertyKey.FUSE_USER_GROUP_TRANSLATION_ENABLED);
     mPathResolverCache = CacheBuilder.newBuilder()
         .maximumSize(maxCachedPaths)
         .build(new PathCacheLoader());
@@ -187,7 +189,7 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
         userName = AlluxioFuseUtils.getUserName(uid);
         if (userName.isEmpty()) {
           // This should never be reached
-          LOG.error("Failed to get user name from uid {}", uid);
+          LOG.error("Failed to create user name from uid {}", uid);
           return -ErrorCodes.EFAULT();
         }
         optionsBuilder.setOwner(userName);
@@ -387,7 +389,7 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
    */
   @Override
   public String getFSName() {
-    return Configuration.get(PropertyKey.FUSE_FS_NAME);
+    return mFsName;
   }
 
   /**

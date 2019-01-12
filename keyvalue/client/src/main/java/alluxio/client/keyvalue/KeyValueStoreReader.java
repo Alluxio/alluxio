@@ -28,7 +28,7 @@ public interface KeyValueStoreReader extends Closeable, KeyValueIterable {
    * values (e.g., larger than 10KB), {@link #get(ByteBuffer)} might be more efficient by taking
    * advantage from zero-copy.
    *
-   * @param key key to get, cannot be null
+   * @param key key to create, cannot be null
    * @return value associated with the given key, or null if not found
    */
   byte[] get(byte[] key) throws IOException, AlluxioException;
@@ -36,7 +36,7 @@ public interface KeyValueStoreReader extends Closeable, KeyValueIterable {
   /**
    * Gets the value associated with {@code key}, returns null if not found.
    *
-   * @param key key to get, cannot be null
+   * @param key key to create, cannot be null
    * @return value associated with the given key, or null if not found
    */
   ByteBuffer get(ByteBuffer key) throws IOException, AlluxioException;

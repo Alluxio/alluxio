@@ -11,9 +11,9 @@
 
 package alluxio.hadoop;
 
-import alluxio.Configuration;
 import alluxio.ProjectConstants;
-import alluxio.PropertyKey;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.client.file.FileSystemContext;
 
 import org.powermock.core.classloader.MockClassLoader;
@@ -32,10 +32,10 @@ public final class HadoopClientTestUtils {
    *
    * This method should only be used as a cleanup mechanism between tests.
    */
-  public static void resetClient() {
+  public static void resetClient(InstancedConfiguration conf) {
     try {
-      Configuration.set(PropertyKey.USER_METRICS_COLLECTION_ENABLED, false);
-      FileSystemContext.get().reset(Configuration.global());
+      conf.set(PropertyKey.USER_METRICS_COLLECTION_ENABLED, false);
+      FileSystemContext.create().reset();
       Whitebox.setInternalState(AbstractFileSystem.class, "sInitialized", false);
     } catch (Exception e) {
       throw new RuntimeException(e);

@@ -11,8 +11,8 @@
 
 package alluxio.web;
 
-import alluxio.Configuration;
-import alluxio.PropertyKey;
+import alluxio.conf.ServerConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.master.block.BlockMaster;
 import alluxio.util.FormatUtils;
 import alluxio.wire.WorkerInfo;
@@ -223,7 +223,7 @@ public final class WebInterfaceWorkersServlet extends HttpServlet {
    * @param request the {@link HttpServletRequest} object
    */
   private void populateValues(HttpServletRequest request) throws IOException {
-    request.setAttribute("debug", Configuration.getBoolean(PropertyKey.DEBUG));
+    request.setAttribute("debug", ServerConfiguration.getBoolean(PropertyKey.DEBUG));
 
     List<WorkerInfo> workerInfos = mBlockMaster.getWorkerInfoList();
     NodeInfo[] normalNodeInfos = generateOrderedNodeInfos(workerInfos);

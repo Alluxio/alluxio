@@ -24,10 +24,10 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import alluxio.AlluxioTestDirectory;
-import alluxio.Configuration;
+import alluxio.conf.ServerConfiguration;
 import alluxio.ConfigurationRule;
 import alluxio.Constants;
-import alluxio.PropertyKey;
+import alluxio.conf.PropertyKey;
 import alluxio.Sessions;
 import alluxio.WorkerStorageTierAssoc;
 import alluxio.exception.BlockAlreadyExistsException;
@@ -61,7 +61,7 @@ import java.util.Set;
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({BlockMasterClient.class, BlockMasterClientPool.class, FileSystemMasterClient.class,
     BlockHeartbeatReporter.class, BlockMetricsReporter.class, BlockMeta.class,
-    BlockStoreLocation.class, StorageDir.class, Configuration.class, UnderFileSystem.class,
+    BlockStoreLocation.class, StorageDir.class, ServerConfiguration.class, UnderFileSystem.class,
     BlockWorker.class, Sessions.class})
 public class BlockWorkerTest {
 
@@ -88,7 +88,7 @@ public class BlockWorkerTest {
           .put(PropertyKey.WORKER_TIERED_STORE_LEVEL1_ALIAS, "HDD")
           .put(PropertyKey.WORKER_TIERED_STORE_LEVEL1_DIRS_PATH, AlluxioTestDirectory
               .createTemporaryDirectory("WORKER_TIERED_STORE_LEVEL1_DIRS_PATH").getAbsolutePath())
-          .build());
+          .build(), ServerConfiguration.global());
 
   /**
    * Sets up all dependencies before a test runs.

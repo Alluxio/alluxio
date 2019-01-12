@@ -31,7 +31,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * // Create a cluster instance
  * localAlluxioCluster = new LocalAlluxioCluster(WORKER_CAPACITY_BYTES, BLOCK_SIZE_BYTES);
  * // If you have special conf parameter to set for integration tests:
- * Configuration testConf = localAlluxioCluster.newTestConf();
+ * ServerConfiguration testConf = localAlluxioCluster.newTestConf();
  * testConf.set(Constants.USER_FILE_BUFFER_BYTES, String.valueOf(BUFFER_BYTES));
  * // After setting up the test conf, start this local cluster:
  * localAlluxioCluster.start(testConf);

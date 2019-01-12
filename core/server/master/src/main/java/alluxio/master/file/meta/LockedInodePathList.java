@@ -32,7 +32,7 @@ public class LockedInodePathList implements AutoCloseable {
   }
 
   /**
-   * get the associated inodePathList.
+   * create the associated inodePathList.
    * @return the list of inodePaths
    */
   public List<LockedInodePath> getInodePathList() {

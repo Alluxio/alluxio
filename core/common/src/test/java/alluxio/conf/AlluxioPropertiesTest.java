@@ -18,8 +18,6 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
-import alluxio.PropertyKey;
-
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.junit.After;

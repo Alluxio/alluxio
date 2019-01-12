@@ -11,9 +11,9 @@
 
 package alluxio.master.journal;
 
-import alluxio.Configuration;
+import alluxio.conf.ServerConfiguration;
 import alluxio.ProcessUtils;
-import alluxio.PropertyKey;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.JournalClosedException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.proto.journal.Journal.JournalEntry;
@@ -36,9 +36,9 @@ public final class MasterJournalContext implements JournalContext {
   private static final Logger LOG = LoggerFactory.getLogger(MasterJournalContext.class);
   private static final long INVALID_FLUSH_COUNTER = -1;
   private static final long FLUSH_RETRY_TIMEOUT_MS =
-      Configuration.getMs(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS);
+      ServerConfiguration.getMs(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS);
   private static final int FLUSH_RETRY_INTERVAL_MS =
-      (int) Configuration.getMs(PropertyKey.MASTER_JOURNAL_FLUSH_RETRY_INTERVAL);
+      (int) ServerConfiguration.getMs(PropertyKey.MASTER_JOURNAL_FLUSH_RETRY_INTERVAL);
 
   private final AsyncJournalWriter mAsyncJournalWriter;
   private long mFlushCounter;

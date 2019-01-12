@@ -11,8 +11,9 @@
 
 package alluxio.worker.grpc;
 
-import alluxio.Configuration;
-import alluxio.PropertyKey;
+import alluxio.conf.ServerConfiguration;
+import alluxio.Constants;
+import alluxio.conf.PropertyKey;
 import alluxio.grpc.GrpcServer;
 import alluxio.grpc.GrpcServerBuilder;
 import alluxio.grpc.GrpcService;
@@ -47,15 +48,16 @@ public final class GrpcDataServer implements DataServer {
 
   private final SocketAddress mSocketAddress;
   private final long mTimeoutMs =
-      Configuration.getMs(PropertyKey.WORKER_NETWORK_SHUTDOWN_TIMEOUT);
+      ServerConfiguration.getMs(PropertyKey.WORKER_NETWORK_SHUTDOWN_TIMEOUT);
   private final long mKeepAliveTimeMs =
-      Configuration.getMs(PropertyKey.WORKER_NETWORK_KEEPALIVE_TIME_MS);
+      ServerConfiguration.getMs(PropertyKey.WORKER_NETWORK_KEEPALIVE_TIME_MS);
   private final long mKeepAliveTimeoutMs =
-      Configuration.getMs(PropertyKey.WORKER_NETWORK_KEEPALIVE_TIMEOUT_MS);
+      ServerConfiguration.getMs(PropertyKey.WORKER_NETWORK_KEEPALIVE_TIMEOUT_MS);
+
   private final long mFlowControlWindow =
-      Configuration.getBytes(PropertyKey.WORKER_NETWORK_FLOWCONTROL_WINDOW);
+      ServerConfiguration.getBytes(PropertyKey.WORKER_NETWORK_FLOWCONTROL_WINDOW);
   private final long mQuietPeriodMs =
-      Configuration.getMs(PropertyKey.WORKER_NETWORK_NETTY_SHUTDOWN_QUIET_PERIOD);
+      ServerConfiguration.getMs(PropertyKey.WORKER_NETWORK_NETTY_SHUTDOWN_QUIET_PERIOD);
 
   private EventLoopGroup mBossGroup;
   private EventLoopGroup mWorkerGroup;
@@ -72,7 +74,7 @@ public final class GrpcDataServer implements DataServer {
   public GrpcDataServer(final SocketAddress address, final WorkerProcess workerProcess) {
     mSocketAddress = address;
     try {
-      mServer = createServerBuilder(address, NettyUtils.WORKER_CHANNEL_TYPE)
+      mServer = createServerBuilder(address, NettyUtils.getWorkerChannel(ServerConfiguration.global()))
           .addService(new GrpcService(new BlockWorkerImpl(workerProcess)))
           .flowControlWindow((int) mFlowControlWindow)
           .keepAliveTime(mKeepAliveTimeMs, TimeUnit.MILLISECONDS)
@@ -92,11 +94,11 @@ public final class GrpcDataServer implements DataServer {
   }
 
   private GrpcServerBuilder createServerBuilder(SocketAddress address, ChannelType type) {
-    GrpcServerBuilder builder = GrpcServerBuilder.forAddress(address);
-    int bossThreadCount = Configuration.getInt(PropertyKey.WORKER_NETWORK_NETTY_BOSS_THREADS);
+    GrpcServerBuilder builder = GrpcServerBuilder.forAddress(address, ServerConfiguration.global());
+    int bossThreadCount = ServerConfiguration.getInt(PropertyKey.WORKER_NETWORK_NETTY_BOSS_THREADS);
     // If number of worker threads is 0, Netty creates (#processors * 2) threads by default.
     int workerThreadCount =
-        Configuration.getInt(PropertyKey.WORKER_NETWORK_NETTY_WORKER_THREADS);
+        ServerConfiguration.getInt(PropertyKey.WORKER_NETWORK_NETTY_WORKER_THREADS);
     String dataServerEventLoopNamePrefix =
         "data-server-" + ((mSocketAddress instanceof DomainSocketAddress) ? "domain-socket" :
             "tcp-socket");

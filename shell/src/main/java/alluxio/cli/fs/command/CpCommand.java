@@ -12,9 +12,9 @@
 package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.Constants;
-import alluxio.PropertyKey;
+import alluxio.conf.PropertyKey;
 import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
@@ -66,8 +66,8 @@ public final class CpCommand extends AbstractFileSystemCommand {
   /**
    * @param fs the filesystem of Alluxio
    */
-  public CpCommand(FileSystem fs) {
-    super(fs);
+  public CpCommand(FileSystem fs, AlluxioConfiguration conf) {
+    super(fs, conf);
   }
 
   @Override
@@ -403,7 +403,7 @@ public final class CpCommand extends AbstractFileSystemCommand {
       try (Closer closer = Closer.create()) {
         CreateFilePOptions createOptions = CreateFilePOptions.newBuilder()
             .setFileWriteLocationPolicy(
-                Configuration.get(PropertyKey.USER_FILE_COPY_FROM_LOCAL_WRITE_LOCATION_POLICY))
+                mConfiguration.get(PropertyKey.USER_FILE_COPY_FROM_LOCAL_WRITE_LOCATION_POLICY))
             .build();
         os = closer.register(mFileSystem.createFile(dstPath, createOptions));
         FileInputStream in = closer.register(new FileInputStream(src));

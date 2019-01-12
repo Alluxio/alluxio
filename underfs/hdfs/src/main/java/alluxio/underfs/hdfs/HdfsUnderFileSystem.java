@@ -13,8 +13,8 @@ package alluxio.underfs.hdfs;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
-import alluxio.PropertyKey;
-import alluxio.SyncInfo;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.collections.Pair;
 import alluxio.retry.CountingRetry;
 import alluxio.retry.RetryPolicy;
@@ -102,9 +102,9 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
    * @return a new HDFS {@link UnderFileSystem} instance
    */
   public static HdfsUnderFileSystem createInstance(
-      AlluxioURI ufsUri, UnderFileSystemConfiguration conf) {
+      AlluxioURI ufsUri, UnderFileSystemConfiguration conf, AlluxioConfiguration alluxioConf) {
     Configuration hdfsConf = createConfiguration(conf);
-    return new HdfsUnderFileSystem(ufsUri, conf, hdfsConf);
+    return new HdfsUnderFileSystem(ufsUri, conf, hdfsConf, alluxioConf);
   }
 
   /**
@@ -115,8 +115,8 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
    * @param hdfsConf the configuration for HDFS
    */
   public HdfsUnderFileSystem(AlluxioURI ufsUri, UnderFileSystemConfiguration conf,
-      Configuration hdfsConf) {
-    super(ufsUri, conf);
+      Configuration hdfsConf, AlluxioConfiguration alluxioConf) {
+    super(ufsUri, conf, alluxioConf);
 
     // Create the supported HdfsAclProvider if possible.
     HdfsAclProvider hdfsAclProvider = new NoopHdfsAclProvider();

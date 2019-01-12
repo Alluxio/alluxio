@@ -12,6 +12,7 @@
 package alluxio.worker;
 
 import alluxio.Process;
+import alluxio.conf.ServerConfiguration;
 import alluxio.network.TieredIdentityFactory;
 import alluxio.underfs.UfsManager;
 import alluxio.wire.TieredIdentity;
@@ -34,7 +35,7 @@ public interface WorkerProcess extends Process {
      * @return a new instance of {@link WorkerProcess}
      */
     public static WorkerProcess create() {
-      return create(TieredIdentityFactory.localIdentity());
+      return create(TieredIdentityFactory.localIdentity(ServerConfiguration.global()));
     }
 
     /**
@@ -99,8 +100,8 @@ public interface WorkerProcess extends Process {
   int getWebLocalPort();
 
   /**
-   * @param clazz the class of the worker to get
-   * @param <T> the type of the worker to get
+   * @param clazz the class of the worker to create
+   * @param <T> the type of the worker to create
 
    * @return the given worker
    */

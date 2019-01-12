@@ -11,9 +11,9 @@
 
 package alluxio.master.job;
 
-import alluxio.Configuration;
+import alluxio.conf.ServerConfiguration;
 import alluxio.ConfigurationTestUtils;
-import alluxio.PropertyKey;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.ResourceExhaustedException;
 import alluxio.job.JobConfig;
@@ -55,7 +55,7 @@ public final class JobMasterTest {
   @Before
   public void before() throws Exception {
     // Can't use ConfigurationRule due to conflicts with PowerMock.
-    Configuration.set(PropertyKey.JOB_MASTER_JOB_CAPACITY, TEST_JOB_MASTER_JOB_CAPACITY);
+    ServerConfiguration.set(PropertyKey.JOB_MASTER_JOB_CAPACITY, TEST_JOB_MASTER_JOB_CAPACITY);
     mJobMaster =
         new JobMaster(new MasterContext(new NoopJournalSystem()), Mockito.mock(UfsManager.class));
     mJobMaster.start(true);
@@ -64,7 +64,7 @@ public final class JobMasterTest {
   @After
   public void after() throws Exception {
     mJobMaster.stop();
-    ConfigurationTestUtils.resetConfiguration();
+    ServerConfiguration.reset();
   }
 
   @Test

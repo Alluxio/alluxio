@@ -16,6 +16,7 @@ import alluxio.cli.CommandUtils;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 
@@ -43,8 +44,8 @@ public final class StatCommand extends AbstractFileSystemCommand {
   /**
    * @param fs the filesystem of Alluxio
    */
-  public StatCommand(FileSystem fs) {
-    super(fs);
+  public StatCommand(FileSystem fs, AlluxioConfiguration conf) {
+    super(fs, conf);
   }
 
   @Override
@@ -76,7 +77,7 @@ public final class StatCommand extends AbstractFileSystemCommand {
       } else {
         System.out.println(path + " is a file path.");
         System.out.println(status);
-        AlluxioBlockStore blockStore = AlluxioBlockStore.create();
+        AlluxioBlockStore blockStore = AlluxioBlockStore.create(mConfiguration);
         List<Long> blockIds = status.getBlockIds();
         if (blockIds.isEmpty()) {
           System.out.println("This file does not contain any blocks.");

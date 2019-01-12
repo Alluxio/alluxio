@@ -33,6 +33,7 @@ import java.io.OutputStream;
 import java.security.DigestOutputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -70,7 +71,7 @@ public final class COSOutputStream extends OutputStream {
    * @param key the key of the file
    * @param client the client for COS
    */
-  public COSOutputStream(String bucketName, String key, COSClient client) throws IOException {
+  public COSOutputStream(String bucketName, String key, COSClient client, List<String> tmpDirs) throws IOException {
     Preconditions.checkArgument(bucketName != null && !bucketName.isEmpty(),
         "Bucket name must not be null or empty.");
     Preconditions.checkArgument(key != null && !key.isEmpty(),
@@ -80,7 +81,7 @@ public final class COSOutputStream extends OutputStream {
     mKey = key;
     mCosClient = client;
 
-    mFile = new File(PathUtils.concatPath(CommonUtils.getTmpDir(), UUID.randomUUID()));
+    mFile = new File(PathUtils.concatPath(CommonUtils.getTmpDir(tmpDirs), UUID.randomUUID()));
 
     try {
       mHash = MessageDigest.getInstance("MD5");

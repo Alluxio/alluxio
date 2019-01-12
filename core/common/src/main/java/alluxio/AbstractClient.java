@@ -11,6 +11,8 @@
 
 package alluxio;
 
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.AlluxioStatusException;
@@ -28,6 +30,7 @@ import alluxio.retry.RetryPolicy;
 import alluxio.retry.RetryUtils;
 import alluxio.security.LoginUser;
 import alluxio.grpc.GrpcChannel;
+import alluxio.util.ConfigurationUtils;
 import alluxio.util.SecurityUtils;
 import alluxio.grpc.GrpcExceptionUtils;
 
@@ -39,6 +42,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -75,7 +79,7 @@ public abstract class AbstractClient implements Client {
    */
   protected long mServiceVersion;
 
-  private final Subject mParentSubject;
+  protected ClientContext mContext;
 
   /**
    * Creates a new client base.
@@ -83,8 +87,11 @@ public abstract class AbstractClient implements Client {
    * @param subject the parent subject, set to null if not present
    * @param address the address
    */
-  public AbstractClient(Subject subject, InetSocketAddress address) {
-    this(subject, address, RetryUtils::defaultClientRetry);
+  public AbstractClient(Subject subject, AlluxioConfiguration conf, InetSocketAddress address) {
+    this(subject, conf, address, () -> RetryUtils.defaultClientRetry(
+          conf.getDuration(PropertyKey.USER_RPC_RETRY_MAX_NUM_RETRY),
+          conf.getDuration(PropertyKey.USER_RPC_RETRY_BASE_SLEEP_MS),
+          conf.getDuration(PropertyKey.USER_RPC_RETRY_MAX_SLEEP_MS)));
   }
 
   /**
@@ -94,10 +101,10 @@ public abstract class AbstractClient implements Client {
    * @param address the address
    * @param retryPolicySupplier factory for retry policies to be used when performing RPCs
    */
-  public AbstractClient(Subject subject, InetSocketAddress address,
+  public AbstractClient(Subject subject, AlluxioConfiguration conf, InetSocketAddress address,
       Supplier<RetryPolicy> retryPolicySupplier) {
     mAddress = address;
-    mParentSubject = subject;
+    mContext = ClientContext.create(subject, conf.getProperties());
     mRetryPolicySupplier = retryPolicySupplier;
     mServiceVersion = Constants.UNKNOWN_SERVICE_VERSION;
   }
@@ -154,10 +161,17 @@ public abstract class AbstractClient implements Client {
    * This method is called before the connection is connected. Implementations should add any
    * additional operations before the connection is connected.
    */
-  protected void beforeConnect() throws IOException {
+  protected void beforeConnect(Consumer<AlluxioConfiguration> configurationUpdateCallback)
+      throws IOException {
     // Bootstrap once for clients
     if (!isConnected()) {
-      Configuration.loadClusterDefault(mAddress);
+      // Unfortunately not as simple as before..... we'll need to pass some kind of callback which
+      // updates the configuration within the client context.
+      if (!mContext.getConfiguration().clusterDefaultsLoaded()) {
+        AlluxioConfiguration conf = ConfigurationUtils.loadClusterDefaults(mAddress, mContext.getConfiguration());
+        configurationUpdateCallback.accept(conf);
+      }
+
     }
   }
 
@@ -203,10 +217,15 @@ public abstract class AbstractClient implements Client {
         continue;
       }
       try {
-        beforeConnect();
+        beforeConnect((AlluxioConfiguration conf) -> {
+          mContext = ClientContext.create(mContext.getSubject(), conf.getProperties());
+        });
         LOG.info("Alluxio client (version {}) is trying to connect with {} @ {}",
             RuntimeConstants.VERSION, getServiceName(), mAddress);
-        mChannel = GrpcChannelBuilder.forAddress(mAddress).setSubject(mParentSubject).build();
+        mChannel = GrpcChannelBuilder
+            .forAddress(mAddress, mContext.getConfiguration())
+            .setSubject(mContext.getSubject())
+            .build();
         // Create stub for version service on host
         mVersionService = ServiceVersionClientServiceGrpc.newBlockingStub(mChannel);
         mConnected = true;
@@ -358,9 +377,10 @@ public abstract class AbstractClient implements Client {
   // TODO(calvin): General tag logic should be in getMetricName
   private String getQualifiedMetricName(String metricName) {
     try {
-      if (SecurityUtils.isAuthenticationEnabled() && LoginUser.get() != null) {
-        return Metric.getMetricNameWithTags(metricName, CommonMetrics.TAG_USER, LoginUser.get()
-            .getName());
+      if (SecurityUtils.isAuthenticationEnabled(mContext.getConfiguration())
+          && LoginUser.get(mContext.getConfiguration()) != null) {
+        return Metric.getMetricNameWithTags(metricName, CommonMetrics.TAG_USER,
+            LoginUser.get(mContext.getConfiguration()).getName());
       } else {
         return metricName;
       }

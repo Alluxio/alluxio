@@ -16,6 +16,7 @@ import alluxio.client.cli.fs.AbstractFileSystemShellTest;
 import alluxio.cli.fs.FileSystemShellUtils;
 import alluxio.cli.fs.command.HelpCommand;
 
+import alluxio.conf.ServerConfiguration;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -47,7 +48,7 @@ public final class HelpCommandIntegrationTest extends AbstractFileSystemShellTes
   @Test
   public void help() throws IOException {
     Assert.assertEquals(0, mFsShell.run("help", "help"));
-    HelpCommand cmd = new HelpCommand(mFileSystem);
+    HelpCommand cmd = new HelpCommand(mFileSystem, ServerConfiguration.global());
     StringWriter stringWriter = new StringWriter();
     PrintWriter printWriter = new PrintWriter(stringWriter);
     HelpCommand.printCommandInfo(cmd, printWriter);

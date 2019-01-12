@@ -15,6 +15,8 @@ import alluxio.AlluxioURI;
 import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.InvalidArgumentException;
@@ -146,7 +148,7 @@ public final class LsCommand extends AbstractFileSystemCommand {
   public static String formatLsString(boolean hSize, boolean acl, boolean isFolder, String
       permission,
       String userName, String groupName, long size, long lastModifiedTime, int inAlluxioPercentage,
-      String persistenceState, String path) {
+      String persistenceState, String path, String dateFormatPattern) {
     String inAlluxioState;
     String sizeStr;
     if (isFolder) {
@@ -159,11 +161,12 @@ public final class LsCommand extends AbstractFileSystemCommand {
 
     if (acl) {
       return String.format(LS_FORMAT, permission, userName, groupName,
-          sizeStr, persistenceState, CommonUtils.convertMsToDate(lastModifiedTime),
+          sizeStr, persistenceState, CommonUtils.convertMsToDate(lastModifiedTime, dateFormatPattern),
           inAlluxioState, path);
     } else {
       return String.format(LS_FORMAT_NO_ACL, sizeStr,
-          persistenceState, CommonUtils.convertMsToDate(lastModifiedTime), inAlluxioState, path);
+          persistenceState, CommonUtils.convertMsToDate(lastModifiedTime, dateFormatPattern), inAlluxioState,
+          path);
     }
   }
 
@@ -172,11 +175,13 @@ public final class LsCommand extends AbstractFileSystemCommand {
     boolean hasExtended = status.getAcl().hasExtended()
         || !status.getDefaultAcl().isEmpty();
 
-    System.out.print(formatLsString(hSize, SecurityUtils.isSecurityEnabled(), status.isFolder(),
+    System.out.print(formatLsString(hSize, SecurityUtils.isSecurityEnabled(mConfiguration),
+        status.isFolder(),
         FormatUtils.formatMode((short) status.getMode(), status.isFolder(), hasExtended),
         status.getOwner(), status.getGroup(), status.getLength(),
         status.getLastModificationTimeMs(), status.getInAlluxioPercentage(),
-        status.getPersistenceState(), status.getPath()));
+        status.getPersistenceState(), status.getPath(),
+        mConfiguration.get(PropertyKey.USER_DATE_FORMAT_PATTERN)));
   }
 
   /**
@@ -185,8 +190,8 @@ public final class LsCommand extends AbstractFileSystemCommand {
    *
    * @param fs the filesystem of Alluxio
    */
-  public LsCommand(FileSystem fs) {
-    super(fs);
+  public LsCommand(FileSystem fs, AlluxioConfiguration conf) {
+    super(fs, conf);
   }
 
   @Override

@@ -11,8 +11,8 @@
 
 package alluxio.worker.block;
 
-import alluxio.Configuration;
-import alluxio.PropertyKey;
+import alluxio.conf.ServerConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.Sessions;
 import alluxio.StorageTierAssoc;
 import alluxio.WorkerStorageTierAssoc;
@@ -93,13 +93,13 @@ public class TieredBlockStore implements BlockStore {
   private static final Logger LOG = LoggerFactory.getLogger(TieredBlockStore.class);
 
   private static final boolean RESERVER_ENABLED =
-      Configuration.getBoolean(PropertyKey.WORKER_TIERED_STORE_RESERVER_ENABLED);
+      ServerConfiguration.getBoolean(PropertyKey.WORKER_TIERED_STORE_RESERVER_ENABLED);
   private static final long FREE_SPACE_TIMEOUT_MS =
-      Configuration.getMs(PropertyKey.WORKER_FREE_SPACE_TIMEOUT);
+      ServerConfiguration.getMs(PropertyKey.WORKER_FREE_SPACE_TIMEOUT);
   private static final int EVICTION_INTERVAL_MS =
-      (int) Configuration.getMs(PropertyKey.WORKER_TIERED_STORE_RESERVER_INTERVAL_MS);
+      (int) ServerConfiguration.getMs(PropertyKey.WORKER_TIERED_STORE_RESERVER_INTERVAL_MS);
   private static final int MAX_RETRIES =
-      Configuration.getInt(PropertyKey.WORKER_TIERED_STORE_RETRY);
+      ServerConfiguration.getInt(PropertyKey.WORKER_TIERED_STORE_RETRY);
 
   private final BlockMetadataManager mMetaManager;
   private final BlockLockManager mLockManager;
@@ -695,7 +695,7 @@ public class TieredBlockStore implements BlockStore {
   }
 
   /**
-   * Tries to get an eviction plan to free a certain amount of space in the given location, and
+   * Tries to create an eviction plan to free a certain amount of space in the given location, and
    * carries out this plan with the best effort.
    *
    * @param sessionId the session id
@@ -926,7 +926,7 @@ public class TieredBlockStore implements BlockStore {
    */
   // TODO(peis): Consider using domain socket to avoid setting the permission to 777.
   private static void createBlockFile(String blockPath) throws IOException {
-    FileUtils.createBlockPath(blockPath);
+    FileUtils.createBlockPath(blockPath, ServerConfiguration.get(PropertyKey.WORKER_DATA_FOLDER_PERMISSIONS));
     FileUtils.createFile(blockPath);
     FileUtils.changeLocalFileToFullPermission(blockPath);
     LOG.debug("Created new file block, block path: {}", blockPath);

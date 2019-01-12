@@ -16,6 +16,7 @@ import alluxio.cli.CommandUtils;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.wire.BlockLocation;
@@ -37,8 +38,8 @@ public final class LocationCommand extends AbstractFileSystemCommand {
    *
    * @param fs the filesystem of Alluxio
    */
-  public LocationCommand(FileSystem fs) {
-    super(fs);
+  public LocationCommand(FileSystem fs, AlluxioConfiguration conf) {
+    super(fs, conf);
   }
 
   @Override
@@ -52,7 +53,7 @@ public final class LocationCommand extends AbstractFileSystemCommand {
     URIStatus status = mFileSystem.getStatus(plainPath);
 
     System.out.println(plainPath + " with file id " + status.getFileId() + " is on nodes: ");
-    AlluxioBlockStore blockStore = AlluxioBlockStore.create();
+    AlluxioBlockStore blockStore = AlluxioBlockStore.create(mConfiguration);
     for (long blockId : status.getBlockIds()) {
       for (BlockLocation location : blockStore.getInfo(blockId).getLocations()) {
         System.out.println(location.getWorkerAddress().getHost());

@@ -11,8 +11,8 @@
 
 package alluxio.worker.block.meta;
 
-import alluxio.Configuration;
-import alluxio.PropertyKey;
+import alluxio.conf.ServerConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.ExceptionMessage;
 import alluxio.util.io.PathUtils;
 import alluxio.worker.block.TieredBlockStoreTestUtils;
@@ -118,7 +118,7 @@ public class StorageTierTest {
   }
 
   /**
-   * Tests that an exception is thrown when trying to get a directory by a non-existing index.
+   * Tests that an exception is thrown when trying to create a directory by a non-existing index.
    */
   @Test
   public void getDir() {
@@ -146,7 +146,7 @@ public class StorageTierTest {
   public void blankStorageTier() throws Exception {
     PropertyKey tierDirCapacityConf =
         PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA.format(0);
-    Configuration.unset(tierDirCapacityConf);
+    ServerConfiguration.unset(tierDirCapacityConf);
     mThrown.expect(RuntimeException.class);
     mThrown.expectMessage(ExceptionMessage.UNDEFINED_CONFIGURATION_KEY.getMessage(
         PropertyKey.WORKER_TIERED_STORE_LEVEL0_DIRS_QUOTA.getName()));
@@ -157,7 +157,7 @@ public class StorageTierTest {
   public void tolerantFailureInStorageDir() throws Exception {
     PropertyKey tierDirPathConf =
         PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(0);
-    Configuration.set(tierDirPathConf, "/dev/null/invalid," + mTestDirPath1);
+    ServerConfiguration.set(tierDirPathConf, "/dev/null/invalid," + mTestDirPath1);
     mTier = StorageTier.newStorageTier("MEM");
     List<StorageDir> dirs = mTier.getStorageDirs();
     Assert.assertEquals(1, dirs.size());

@@ -13,6 +13,7 @@ package alluxio.master.block;
 
 import alluxio.Constants;
 import alluxio.RestUtils;
+import alluxio.conf.ServerConfiguration;
 import alluxio.master.MasterProcess;
 import alluxio.web.MasterWebServer;
 
@@ -59,29 +60,30 @@ public final class BlockMasterClientRestServiceHandler {
   }
 
   /**
-   * @summary get the service name
+   * @summary create the service name
    * @return the response object
    */
   @GET
   @Path(SERVICE_NAME)
   @ReturnType("java.lang.String")
   public Response getServiceName() {
-    return RestUtils.call(() -> Constants.BLOCK_MASTER_CLIENT_SERVICE_NAME);
+    return RestUtils.call(() -> Constants.BLOCK_MASTER_CLIENT_SERVICE_NAME, ServerConfiguration.global());
   }
 
   /**
-   * @summary get the service version
+   * @summary create the service version
    * @return the response object
    */
   @GET
   @Path(SERVICE_VERSION)
   @ReturnType("java.lang.Long")
   public Response getServiceVersion() {
-    return RestUtils.call(() -> Constants.BLOCK_MASTER_CLIENT_SERVICE_VERSION);
+    return RestUtils.call(() -> Constants.BLOCK_MASTER_CLIENT_SERVICE_VERSION,
+        ServerConfiguration.global());
   }
 
   /**
-   * @summary get the block descriptor for a block
+   * @summary create the block descriptor for a block
    * @param blockId the block id
    * @return the response object
    */
@@ -92,6 +94,6 @@ public final class BlockMasterClientRestServiceHandler {
     return RestUtils.call(() -> {
       Preconditions.checkNotNull(blockId, "required 'blockId' parameter is missing");
       return mBlockMaster.getBlockInfo(blockId);
-    });
+    }, ServerConfiguration.global());
   }
 }

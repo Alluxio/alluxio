@@ -22,6 +22,7 @@ import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
+import alluxio.conf.ServerConfiguration;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
@@ -92,7 +93,7 @@ public final class MoveDefinitionSelectExecutorsTest {
     mMockFileSystem = Mockito.mock(FileSystem.class);
     mMockUfsManager = Mockito.mock(UfsManager.class);
     PowerMockito.mockStatic(AlluxioBlockStore.class);
-    PowerMockito.when(AlluxioBlockStore.create(mMockFileSystemContext)).thenReturn(mMockBlockStore);
+    PowerMockito.when(AlluxioBlockStore.create(mMockFileSystemContext, ServerConfiguration.global())).thenReturn(mMockBlockStore);
     when(mMockBlockStore.getAllWorkers()).thenReturn(BLOCK_WORKERS);
     createDirectory("/");
   }

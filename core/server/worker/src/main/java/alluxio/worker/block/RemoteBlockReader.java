@@ -13,6 +13,8 @@ package alluxio.worker.block;
 
 import alluxio.client.block.stream.BlockInStream;
 import alluxio.client.file.FileSystemContext;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.block.io.BlockReader;
@@ -107,8 +109,11 @@ public class RemoteBlockReader implements BlockReader {
     }
     WorkerNetAddress address = new WorkerNetAddress().setHost(mDataSource.getHostName())
         .setDataPort(mDataSource.getPort());
-    mInputStream = BlockInStream.createRemoteBlockInStream(FileSystemContext.get(), mBlockId,
-        address, BlockInStream.BlockInStreamSource.REMOTE, mBlockSize, mUfsOptions);
+    mInputStream = BlockInStream.createRemoteBlockInStream(FileSystemContext.create(), mBlockId,
+        address, BlockInStream.BlockInStreamSource.REMOTE, mBlockSize, mUfsOptions,
+        ServerConfiguration.getBytes(PropertyKey.USER_NETWORK_NETTY_READER_PACKET_SIZE_BYTES),
+        ServerConfiguration.getInt(PropertyKey.USER_NETWORK_NETTY_READER_BUFFER_SIZE_PACKETS),
+        ServerConfiguration.getMs(PropertyKey.USER_NETWORK_NETTY_TIMEOUT_MS));
     mChannel = Channels.newChannel(mInputStream);
   }
 }

@@ -13,6 +13,7 @@ package alluxio.client.keyvalue;
 
 import alluxio.AlluxioURI;
 import alluxio.annotation.PublicApi;
+import alluxio.conf.*;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
@@ -36,19 +37,22 @@ import javax.annotation.concurrent.ThreadSafe;
 @PublicApi
 @ThreadSafe
 public final class BaseKeyValueSystem implements KeyValueSystem {
-  private final KeyValueMasterClient mMasterClient =
-      new KeyValueMasterClient(MasterClientConfig.defaults());
+  private final KeyValueMasterClient mMasterClient;
+  private final AlluxioConfiguration mConf;
 
   /**
    * Constructs a new {@link BaseKeyValueSystem}.
    */
-  public BaseKeyValueSystem() {}
+  public BaseKeyValueSystem(AlluxioConfiguration conf) {
+    mMasterClient = new KeyValueMasterClient(MasterClientConfig.defaults(conf), conf);
+    mConf = conf;
+  }
 
   @Override
   public KeyValueStoreReader openStore(AlluxioURI uri) throws IOException, AlluxioException {
     Preconditions.checkNotNull(uri, PreconditionMessage.URI_KEY_VALUE_STORE_NULL);
     try {
-      return new BaseKeyValueStoreReader(uri);
+      return new BaseKeyValueStoreReader(uri, mConf);
     } catch (UnavailableException e) {
       throw e;
     } catch (AlluxioStatusException e) {
@@ -60,7 +64,7 @@ public final class BaseKeyValueSystem implements KeyValueSystem {
   public KeyValueStoreWriter createStore(AlluxioURI uri) throws IOException, AlluxioException {
     Preconditions.checkNotNull(uri, PreconditionMessage.URI_KEY_VALUE_STORE_NULL);
     try {
-      return new BaseKeyValueStoreWriter(uri);
+      return new BaseKeyValueStoreWriter(uri, mConf);
     } catch (UnavailableException e) {
       throw e;
     } catch (AlluxioStatusException e) {

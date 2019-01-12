@@ -14,9 +14,10 @@ package alluxio.worker.grpc;
 import alluxio.AlluxioTestDirectory;
 import alluxio.AlluxioURI;
 import alluxio.ConfigurationRule;
-import alluxio.PropertyKey;
 import alluxio.grpc.RequestType;
 import alluxio.grpc.WriteRequest;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.underfs.UfsManager;
@@ -71,7 +72,7 @@ public class UfsFallbackBlockWriteHandlerTest extends AbstractWriteHandlerTest {
               .getAbsolutePath());
           put(PropertyKey.WORKER_TIERED_STORE_LEVELS, "1");
         }
-      });
+      }, ServerConfiguration.global());
 
   @Before
   public void before() throws Exception {

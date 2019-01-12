@@ -13,6 +13,7 @@ package alluxio.cli.fs.command;
 
 import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystem;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 
@@ -34,9 +35,9 @@ public final class CopyToLocalCommand extends AbstractFileSystemCommand {
   /**
    * @param fs the filesystem of Alluxio
    */
-  public CopyToLocalCommand(FileSystem fs) {
-    super(fs);
-    mCpCommand = new CpCommand(fs);
+  public CopyToLocalCommand(FileSystem fs, AlluxioConfiguration conf) {
+    super(fs, conf);
+    mCpCommand = new CpCommand(fs, conf);
   }
 
   @Override

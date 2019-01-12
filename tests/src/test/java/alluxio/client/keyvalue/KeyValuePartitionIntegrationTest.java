@@ -13,8 +13,9 @@ package alluxio.client.keyvalue;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
-import alluxio.PropertyKey;
+import alluxio.conf.PropertyKey;
 import alluxio.client.file.FileSystem;
+import alluxio.conf.ServerConfiguration;
 import alluxio.exception.AlluxioException;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
@@ -104,13 +105,15 @@ public final class KeyValuePartitionIntegrationTest extends BaseIntegrationTest 
    */
   @Test
   public void readerWriter() throws Exception {
-    mKeyValuePartitionWriter = KeyValuePartitionWriter.Factory.create(mPartitionUri);
+    mKeyValuePartitionWriter = KeyValuePartitionWriter.Factory.create(mPartitionUri,
+        ServerConfiguration.global());
     mKeyValuePartitionWriter.put(KEY1, VALUE1);
     mKeyValuePartitionWriter.put(KEY2, VALUE2);
     mKeyValuePartitionWriter.close();
     // Expect the key-value partition exists as an Alluxio file
     Assert.assertTrue(sFileSystem.exists(mPartitionUri));
-    mKeyValuePartitionReader = KeyValuePartitionReader.Factory.create(mPartitionUri);
+    mKeyValuePartitionReader = KeyValuePartitionReader.Factory.create(mPartitionUri,
+        ServerConfiguration.global());
     Assert.assertArrayEquals(VALUE1, mKeyValuePartitionReader.get(KEY1));
     Assert.assertArrayEquals(VALUE2, mKeyValuePartitionReader.get(KEY2));
     Assert.assertNull(mKeyValuePartitionReader.get("NoSuchKey".getBytes()));
@@ -125,13 +128,15 @@ public final class KeyValuePartitionIntegrationTest extends BaseIntegrationTest 
     byte[][] keys = new byte[][]{KEY1, KEY2};
     byte[][] values = new byte[][]{VALUE1, VALUE2};
     for (int size = 0; size <= 2; size++) {
-      mKeyValuePartitionWriter = KeyValuePartitionWriter.Factory.create(mPartitionUri);
+      mKeyValuePartitionWriter = KeyValuePartitionWriter.Factory.create(mPartitionUri,
+          ServerConfiguration.global());
       for (int i = 0; i < size; i++) {
         mKeyValuePartitionWriter.put(keys[i], values[i]);
       }
       mKeyValuePartitionWriter.close();
 
-      mKeyValuePartitionReader = KeyValuePartitionReader.Factory.create(mPartitionUri);
+      mKeyValuePartitionReader = KeyValuePartitionReader.Factory.create(mPartitionUri,
+          ServerConfiguration.global());
       Assert.assertEquals(size, mKeyValuePartitionReader.size());
       mKeyValuePartitionReader.close();
 
@@ -146,8 +151,10 @@ public final class KeyValuePartitionIntegrationTest extends BaseIntegrationTest 
   @Test
   public void emptyPartitionIterator() throws Exception {
     // Creates an empty partition.
-    KeyValuePartitionWriter.Factory.create(mPartitionUri).close();
-    mKeyValuePartitionReader = KeyValuePartitionReader.Factory.create(mPartitionUri);
+    KeyValuePartitionWriter.Factory.create(mPartitionUri,
+        ServerConfiguration.global()).close();
+    mKeyValuePartitionReader = KeyValuePartitionReader.Factory.create(mPartitionUri,
+        ServerConfiguration.global());
     Assert.assertFalse(mKeyValuePartitionReader.iterator().hasNext());
     mKeyValuePartitionReader.close();
   }
@@ -163,13 +170,15 @@ public final class KeyValuePartitionIntegrationTest extends BaseIntegrationTest 
     List<KeyValuePair> pairs = genKeyValuePairs(BASE_KEY_VALUE_NUMBER);
     List<KeyValuePair> iteratedPairs = Lists.newArrayListWithExpectedSize(pairs.size());
 
-    mKeyValuePartitionWriter = KeyValuePartitionWriter.Factory.create(mPartitionUri);
+    mKeyValuePartitionWriter = KeyValuePartitionWriter.Factory.create(mPartitionUri,
+        ServerConfiguration.global());
     for (KeyValuePair pair : pairs) {
       mKeyValuePartitionWriter.put(pair.getKey().array(), pair.getValue().array());
     }
     mKeyValuePartitionWriter.close();
 
-    mKeyValuePartitionReader = KeyValuePartitionReader.Factory.create(mPartitionUri);
+    mKeyValuePartitionReader = KeyValuePartitionReader.Factory.create(mPartitionUri,
+        ServerConfiguration.global());
     KeyValueIterator iterator = mKeyValuePartitionReader.iterator();
     while (iterator.hasNext()) {
       iteratedPairs.add(iterator.next());
@@ -190,7 +199,8 @@ public final class KeyValuePartitionIntegrationTest extends BaseIntegrationTest 
   @Test
   public void createWriterUriNotNull() throws IOException, AlluxioException {
     mThrown.expect(NullPointerException.class);
-    KeyValuePartitionWriter.Factory.create(null);
+    KeyValuePartitionWriter.Factory.create(null,
+        ServerConfiguration.global());
   }
 
   /**
@@ -198,7 +208,8 @@ public final class KeyValuePartitionIntegrationTest extends BaseIntegrationTest 
    */
   @Test
   public void createWriter() throws IOException, AlluxioException {
-    mKeyValuePartitionWriter = KeyValuePartitionWriter.Factory.create(mPartitionUri);
+    mKeyValuePartitionWriter = KeyValuePartitionWriter.Factory.create(mPartitionUri,
+        ServerConfiguration.global());
     Assert.assertNotNull(mKeyValuePartitionWriter);
     mKeyValuePartitionWriter.close();
   }
@@ -210,7 +221,8 @@ public final class KeyValuePartitionIntegrationTest extends BaseIntegrationTest 
   @Test
   public void createReaderUriNotNull() throws IOException, AlluxioException {
     mThrown.expect(NullPointerException.class);
-    KeyValuePartitionReader.Factory.create(null);
+    KeyValuePartitionReader.Factory.create(null,
+        ServerConfiguration.global());
   }
 
   /**
@@ -219,10 +231,12 @@ public final class KeyValuePartitionIntegrationTest extends BaseIntegrationTest 
    */
   @Test
   public void createReaderWithUri() throws IOException, AlluxioException {
-    mKeyValuePartitionWriter = KeyValuePartitionWriter.Factory.create(mPartitionUri);
+    mKeyValuePartitionWriter = KeyValuePartitionWriter.Factory.create(mPartitionUri,
+        ServerConfiguration.global());
     mKeyValuePartitionWriter.close();
 
-    mKeyValuePartitionReader = KeyValuePartitionReader.Factory.create(mPartitionUri);
+    mKeyValuePartitionReader = KeyValuePartitionReader.Factory.create(mPartitionUri,
+        ServerConfiguration.global());
     Assert.assertNotNull(mKeyValuePartitionReader);
     mKeyValuePartitionReader.close();
   }
@@ -233,12 +247,14 @@ public final class KeyValuePartitionIntegrationTest extends BaseIntegrationTest 
    */
   @Test
   public void createReaderWithBlockId() throws IOException, AlluxioException {
-    mKeyValuePartitionWriter = KeyValuePartitionWriter.Factory.create(mPartitionUri);
+    mKeyValuePartitionWriter = KeyValuePartitionWriter.Factory.create(mPartitionUri,
+        ServerConfiguration.global());
     mKeyValuePartitionWriter.close();
 
     long blockId = sFileSystem.getStatus(mPartitionUri).getBlockIds().get(0);
 
-    KeyValuePartitionReader reader = KeyValuePartitionReader.Factory.create(blockId);
+    KeyValuePartitionReader reader = KeyValuePartitionReader.Factory.create(blockId,
+        ServerConfiguration.global());
     Assert.assertNotNull(reader);
     reader.close();
   }

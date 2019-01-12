@@ -12,7 +12,8 @@
 package alluxio.client.fs;
 
 import alluxio.AlluxioURI;
-import alluxio.PropertyKey;
+import alluxio.client.ReadType;
+import alluxio.conf.PropertyKey;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.stream.BlockInStream;
 import alluxio.client.block.stream.BlockInStream.BlockInStreamSource;
@@ -23,6 +24,7 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.InStreamOptions;
+import alluxio.conf.ServerConfiguration;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.NotFoundException;
 import alluxio.grpc.CreateFilePOptions;
@@ -244,14 +246,14 @@ public class RemoteReadIntegrationTest extends BaseIntegrationTest {
       FileSystemTestUtils.createByteFile(mFileSystem, uri, mWriteAlluxio, k);
 
       URIStatus status = mFileSystem.getStatus(uri);
-      InStreamOptions options = new InStreamOptions(status);
+      InStreamOptions options = new InStreamOptions(status, ServerConfiguration.global());
       long blockId = status.getBlockIds().get(0);
-      AlluxioBlockStore blockStore = AlluxioBlockStore.create();
+      AlluxioBlockStore blockStore = AlluxioBlockStore.create(ServerConfiguration.global());
       BlockInfo info = blockStore.getInfo(blockId);
       WorkerNetAddress workerAddr = info.getLocations().get(0).getWorkerAddress();
       BlockInStream is =
-          BlockInStream.create(FileSystemContext.get(), options.getBlockInfo(blockId),
-              workerAddr, BlockInStreamSource.REMOTE, options);
+          BlockInStream.create(FileSystemContext.create(), options.getBlockInfo(blockId),
+              workerAddr, BlockInStreamSource.REMOTE, options, ServerConfiguration.global());
       byte[] ret = new byte[k];
       int value = is.read();
       int cnt = 0;
@@ -279,13 +281,13 @@ public class RemoteReadIntegrationTest extends BaseIntegrationTest {
       FileSystemTestUtils.createByteFile(mFileSystem, uri, mWriteAlluxio, k);
 
       URIStatus status = mFileSystem.getStatus(uri);
-      InStreamOptions options = new InStreamOptions(status);
+      InStreamOptions options = new InStreamOptions(status, ServerConfiguration.global());
       long blockId = status.getBlockIds().get(0);
-      BlockInfo info = AlluxioBlockStore.create().getInfo(blockId);
+      BlockInfo info = AlluxioBlockStore.create(ServerConfiguration.global()).getInfo(blockId);
       WorkerNetAddress workerAddr = info.getLocations().get(0).getWorkerAddress();
       BlockInStream is =
-          BlockInStream.create(FileSystemContext.get(), options.getBlockInfo(blockId),
-              workerAddr, BlockInStreamSource.REMOTE, options);
+          BlockInStream.create(FileSystemContext.create(), options.getBlockInfo(blockId),
+              workerAddr, BlockInStreamSource.REMOTE, options, ServerConfiguration.global());
       byte[] ret = new byte[k];
       int read = is.read(ret);
       Assert
@@ -307,13 +309,13 @@ public class RemoteReadIntegrationTest extends BaseIntegrationTest {
       FileSystemTestUtils.createByteFile(mFileSystem, uri, mWriteAlluxio, k);
 
       URIStatus status = mFileSystem.getStatus(uri);
-      InStreamOptions options = new InStreamOptions(status);
+      InStreamOptions options = new InStreamOptions(status, ServerConfiguration.global());
       long blockId = status.getBlockIds().get(0);
-      BlockInfo info = AlluxioBlockStore.create().getInfo(blockId);
+      BlockInfo info = AlluxioBlockStore.create(ServerConfiguration.global()).getInfo(blockId);
       WorkerNetAddress workerAddr = info.getLocations().get(0).getWorkerAddress();
       BlockInStream is =
-          BlockInStream.create(FileSystemContext.get(), options.getBlockInfo(blockId),
-              workerAddr, BlockInStreamSource.REMOTE, options);
+          BlockInStream.create(FileSystemContext.create(), options.getBlockInfo(blockId),
+              workerAddr, BlockInStreamSource.REMOTE, options, ServerConfiguration.global());
       byte[] ret = new byte[k / 2];
       int read = 0;
       while (read < k / 2) {
@@ -550,14 +552,14 @@ public class RemoteReadIntegrationTest extends BaseIntegrationTest {
       HeartbeatScheduler.execute(HeartbeatContext.WORKER_BLOCK_SYNC);
 
       URIStatus status = mFileSystem.getStatus(uri);
-      InStreamOptions options = new InStreamOptions(status);
+      InStreamOptions options = new InStreamOptions(status, ServerConfiguration.global());
       long blockId = status.getBlockIds().get(0);
-      BlockInfo info = AlluxioBlockStore.create().getInfo(blockId);
+      BlockInfo info = AlluxioBlockStore.create(ServerConfiguration.global()).getInfo(blockId);
 
       WorkerNetAddress workerAddr = info.getLocations().get(0).getWorkerAddress();
       BlockInStream is =
-          BlockInStream.create(FileSystemContext.get(), options.getBlockInfo(blockId),
-              workerAddr, BlockInStreamSource.REMOTE, options);
+          BlockInStream.create(FileSystemContext.create(), options.getBlockInfo(blockId),
+              workerAddr, BlockInStreamSource.REMOTE, options, ServerConfiguration.global());
       Assert.assertEquals(0, is.read());
       mFileSystem.delete(uri);
       HeartbeatScheduler.execute(HeartbeatContext.WORKER_BLOCK_SYNC);
@@ -573,8 +575,8 @@ public class RemoteReadIntegrationTest extends BaseIntegrationTest {
       // Try to create an in stream again, and it should fail.
       BlockInStream is2 = null;
       try {
-        is2 = BlockInStream.create(FileSystemContext.get(), options.getBlockInfo(blockId),
-            workerAddr, BlockInStreamSource.REMOTE, options);
+        is2 = BlockInStream.create(FileSystemContext.create(), options.getBlockInfo(blockId),
+            workerAddr, BlockInStreamSource.REMOTE, options, ServerConfiguration.global());
       } catch (NotFoundException e) {
         // Expected since the file has been deleted.
       } finally {

@@ -14,9 +14,9 @@ package alluxio.client.block;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
-import alluxio.Configuration;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.Constants;
-import alluxio.PropertyKey;
+import alluxio.conf.PropertyKey;
 import alluxio.client.WriteType;
 import alluxio.client.block.policy.BlockLocationPolicy;
 import alluxio.client.block.policy.options.GetWorkerOptions;
@@ -68,6 +68,7 @@ public final class AlluxioBlockStore {
 
   private final FileSystemContext mContext;
   private final TieredIdentity mTieredIdentity;
+  private final AlluxioConfiguration mAlluxioConf;
 
   /** Cached map for workers. */
   private List<BlockWorkerInfo> mWorkerInfoList = null;
@@ -79,8 +80,8 @@ public final class AlluxioBlockStore {
    *
    * @return the {@link AlluxioBlockStore} created
    */
-  public static AlluxioBlockStore create() {
-    return create(FileSystemContext.get());
+  public static AlluxioBlockStore create(AlluxioConfiguration alluxioConf) {
+    return create(FileSystemContext.create(), alluxioConf);
   }
 
   /**
@@ -89,8 +90,9 @@ public final class AlluxioBlockStore {
    * @param context the file system context
    * @return the {@link AlluxioBlockStore} created
    */
-  public static AlluxioBlockStore create(FileSystemContext context) {
-    return new AlluxioBlockStore(context, TieredIdentityFactory.localIdentity());
+  public static AlluxioBlockStore create(FileSystemContext context,
+      AlluxioConfiguration alluxioConf) {
+    return new AlluxioBlockStore(context, TieredIdentityFactory.localIdentity(alluxioConf), alluxioConf);
   }
 
   /**
@@ -100,11 +102,13 @@ public final class AlluxioBlockStore {
    * @param tieredIdentity the tiered identity
    */
   @VisibleForTesting
-  AlluxioBlockStore(FileSystemContext context, TieredIdentity tieredIdentity) {
+  AlluxioBlockStore(FileSystemContext context, TieredIdentity tieredIdentity,
+      AlluxioConfiguration alluxioConf) {
     mContext = context;
+    mAlluxioConf = alluxioConf;
     mTieredIdentity = tieredIdentity;
     mWorkerRefreshPolicy =
-        new TimeoutRefresh(Configuration.getMs(PropertyKey.USER_WORKER_LIST_REFRESH_INTERVAL));
+        new TimeoutRefresh(alluxioConf.getMs(PropertyKey.USER_WORKER_LIST_REFRESH_INTERVAL));
   }
 
   /**
@@ -210,7 +214,8 @@ public final class AlluxioBlockStore {
               .collect(toList());
       Collections.shuffle(tieredLocations);
       Optional<TieredIdentity> nearest =
-          TieredIdentityUtils.nearest(mTieredIdentity, tieredLocations);
+          TieredIdentityUtils.nearest(mTieredIdentity, tieredLocations,
+              mAlluxioConf.getBoolean(PropertyKey.LOCALITY_COMPARE_NODE_IP));
       if (nearest.isPresent()) {
         dataSource = locations.stream().map(BlockLocation::getWorkerAddress)
             .filter(addr -> addr.getTieredIdentity().equals(nearest.get())).findFirst().get();
@@ -222,7 +227,7 @@ public final class AlluxioBlockStore {
         }
       }
     }
-    // Can't get data from Alluxio, get it from the UFS instead
+    // Can't create data from Alluxio, create it from the UFS instead
     if (dataSource == null) {
       dataSourceType = BlockInStreamSource.UFS;
       BlockLocationPolicy policy =
@@ -239,7 +244,7 @@ public final class AlluxioBlockStore {
     }
 
     try {
-      return BlockInStream.create(mContext, info, dataSource, dataSourceType, options);
+      return BlockInStream.create(mContext, info, dataSource, dataSourceType, options, mAlluxioConf);
     } catch (UnavailableException e) {
       //When BlockInStream created failed, it will update the passed-in failedWorkers
       //to attempt to avoid reading from this failed worker in next try.
@@ -289,7 +294,7 @@ public final class AlluxioBlockStore {
     }
     LOG.debug("Create block outstream for {} of block size {} at address {}, using options: {}",
         blockId, blockSize, address, options);
-    return BlockOutStream.create(mContext, blockId, blockSize, address, options);
+    return BlockOutStream.create(mContext, blockId, blockSize, address, options, mAlluxioConf);
   }
 
   /**
@@ -353,7 +358,8 @@ public final class AlluxioBlockStore {
           workerAddressList.size(), initialReplicas));
     }
     return BlockOutStream
-        .createReplicatedBlockOutStream(mContext, blockId, blockSize, workerAddressList, options);
+        .createReplicatedBlockOutStream(mContext, blockId, blockSize, workerAddressList, options,
+            mAlluxioConf);
   }
 
   /**

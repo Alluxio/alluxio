@@ -12,8 +12,8 @@
 package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
-import alluxio.PropertyKey;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystem;
 import alluxio.exception.AlluxioException;
@@ -51,8 +51,8 @@ public final class FreeCommand extends AbstractFileSystemCommand {
    *
    * @param fs the filesystem of Alluxio
    */
-  public FreeCommand(FileSystem fs) {
-    super(fs);
+  public FreeCommand(FileSystem fs, AlluxioConfiguration conf) {
+    super(fs, conf);
   }
 
   @Override
@@ -69,7 +69,7 @@ public final class FreeCommand extends AbstractFileSystemCommand {
   protected void runPlainPath(AlluxioURI path, CommandLine cl)
       throws AlluxioException, IOException {
     int interval =
-        Math.toIntExact(Configuration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS));
+        Math.toIntExact(mConfiguration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS));
     FreePOptions options =
         FreePOptions.newBuilder().setRecursive(true).setForced(cl.hasOption("f")).build();
     mFileSystem.free(path, options);

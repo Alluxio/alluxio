@@ -15,6 +15,8 @@ import alluxio.Constants;
 import alluxio.Sessions;
 import alluxio.StorageTierAssoc;
 import alluxio.WorkerStorageTierAssoc;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockDoesNotExistException;
@@ -61,7 +63,9 @@ public class AsyncCacheRequestManager {
     mAsyncCacheExecutor = service;
     mBlockWorker = blockWorker;
     mPendingRequests = new ConcurrentHashMap<>();
-    mLocalWorkerHostname = NetworkAddressUtils.getLocalHostName();
+    mLocalWorkerHostname =
+        NetworkAddressUtils.getLocalHostName(
+            (int)ServerConfiguration.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS));
   }
 
   /**

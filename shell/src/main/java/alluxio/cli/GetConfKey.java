@@ -11,7 +11,7 @@
 
 package alluxio.cli;
 
-import alluxio.PropertyKey;
+import alluxio.conf.PropertyKey;
 
 import com.google.common.collect.ImmutableMap;
 
@@ -47,7 +47,7 @@ public final class GetConfKey {
   }
 
   /**
-   * Implements get configuration key.
+   * Implements create configuration key.
    *
    * @param args the arguments to specify the environment variable name
    * @return 0 on success, 1 on failures

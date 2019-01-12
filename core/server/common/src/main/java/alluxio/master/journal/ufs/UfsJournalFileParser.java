@@ -11,6 +11,8 @@
 
 package alluxio.master.journal.ufs;
 
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.ServerConfiguration;
 import alluxio.master.journal.JournalFileParser;
 import alluxio.proto.journal.Journal;
 import alluxio.underfs.UnderFileSystem;
@@ -50,7 +52,7 @@ public final class UfsJournalFileParser implements JournalFileParser {
    */
   public UfsJournalFileParser(URI location) {
     mLocation = Preconditions.checkNotNull(location, "location");
-    mUfs = UnderFileSystem.Factory.create(mLocation);
+    mUfs = UnderFileSystem.Factory.create(mLocation, ServerConfiguration.global());
   }
 
   @Override

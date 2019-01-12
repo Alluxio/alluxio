@@ -32,6 +32,7 @@ import java.io.OutputStream;
 import java.security.DigestOutputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -69,7 +70,7 @@ public final class OSSOutputStream extends OutputStream {
    * @param key the key of the file
    * @param client the client for OSS
    */
-  public OSSOutputStream(String bucketName, String key, OSSClient client) throws IOException {
+  public OSSOutputStream(String bucketName, String key, OSSClient client, List<String> tmpDirs) throws IOException {
     Preconditions.checkArgument(bucketName != null && !bucketName.isEmpty(),
         "Bucket name must not be null or empty.");
     Preconditions.checkArgument(key != null && !key.isEmpty(),
@@ -79,7 +80,7 @@ public final class OSSOutputStream extends OutputStream {
     mKey = key;
     mOssClient = client;
 
-    mFile = new File(PathUtils.concatPath(CommonUtils.getTmpDir(), UUID.randomUUID()));
+    mFile = new File(PathUtils.concatPath(CommonUtils.getTmpDir(tmpDirs), UUID.randomUUID()));
 
     try {
       mHash = MessageDigest.getInstance("MD5");

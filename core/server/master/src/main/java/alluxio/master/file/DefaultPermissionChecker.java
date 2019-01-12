@@ -11,8 +11,8 @@
 
 package alluxio.master.file;
 
-import alluxio.Configuration;
-import alluxio.PropertyKey;
+import alluxio.conf.ServerConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidPathException;
@@ -55,9 +55,9 @@ public class DefaultPermissionChecker implements PermissionChecker {
   public DefaultPermissionChecker(InodeTree inodeTree) {
     mInodeTree = Preconditions.checkNotNull(inodeTree, "inodeTree");
     mPermissionCheckEnabled =
-        Configuration.getBoolean(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED);
+        ServerConfiguration.getBoolean(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED);
     mFileSystemSuperGroup =
-        Configuration.get(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP);
+        ServerConfiguration.get(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP);
   }
 
   @Override
@@ -77,7 +77,7 @@ public class DefaultPermissionChecker implements PermissionChecker {
     List<InodeView> inodeList = inodePath.getInodeList();
 
     // collects user and groups
-    String user = AuthenticatedClientUser.getClientUser();
+    String user = AuthenticatedClientUser.getClientUser(ServerConfiguration.global());
     List<String> groups = getGroups(user);
 
     // remove the last element if all components of the path exist, since we only check the parent.
@@ -98,7 +98,7 @@ public class DefaultPermissionChecker implements PermissionChecker {
     List<InodeView> inodeList = inodePath.getInodeList();
 
     // collects user and groups
-    String user = AuthenticatedClientUser.getClientUser();
+    String user = AuthenticatedClientUser.getClientUser(ServerConfiguration.global());
     List<String> groups = getGroups(user);
 
     checkInodeList(user, groups, bits, inodePath.getUri().getPath(), inodeList, false);
@@ -114,7 +114,7 @@ public class DefaultPermissionChecker implements PermissionChecker {
 
     // collects user and groups
     try {
-      String user = AuthenticatedClientUser.getClientUser();
+      String user = AuthenticatedClientUser.getClientUser(ServerConfiguration.global());
       List<String> groups = getGroups(user);
       return getPermissionInternal(user, groups, inodePath.getUri().getPath(), inodeList);
     } catch (AccessControlException e) {
@@ -141,13 +141,13 @@ public class DefaultPermissionChecker implements PermissionChecker {
   }
 
   /**
-   * @param user the user to get groups for
+   * @param user the user to create groups for
    * @return the groups for the given user
    * @throws AccessControlException if the group service information cannot be accessed
    */
   private List<String> getGroups(String user) throws AccessControlException {
     try {
-      return CommonUtils.getGroups(user);
+      return CommonUtils.getGroups(user, ServerConfiguration.global());
     } catch (IOException e) {
       throw new AccessControlException(
           ExceptionMessage.PERMISSION_DENIED.getMessage(e.getMessage()));
@@ -167,7 +167,7 @@ public class DefaultPermissionChecker implements PermissionChecker {
     List<InodeView> inodeList = inodePath.getInodeList();
 
     // collects user and groups
-    String user = AuthenticatedClientUser.getClientUser();
+    String user = AuthenticatedClientUser.getClientUser(ServerConfiguration.global());
     List<String> groups = getGroups(user);
 
     if (isPrivilegedUser(user, groups)) {
@@ -184,7 +184,7 @@ public class DefaultPermissionChecker implements PermissionChecker {
    */
   private void checkSuperUser() throws AccessControlException {
     // collects user and groups
-    String user = AuthenticatedClientUser.getClientUser();
+    String user = AuthenticatedClientUser.getClientUser(ServerConfiguration.global());
     List<String> groups = getGroups(user);
     if (!isPrivilegedUser(user, groups)) {
       throw new AccessControlException(ExceptionMessage.PERMISSION_DENIED

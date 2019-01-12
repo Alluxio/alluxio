@@ -11,8 +11,8 @@
 
 package alluxio.worker.keyvalue;
 
-import alluxio.Configuration;
-import alluxio.PropertyKey;
+import alluxio.conf.ServerConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.underfs.UfsManager;
 import alluxio.worker.WorkerFactory;
 import alluxio.worker.WorkerRegistry;
@@ -37,7 +37,7 @@ public final class KeyValueWorkerFactory implements WorkerFactory {
 
   @Override
   public boolean isEnabled() {
-    return Configuration.getBoolean(PropertyKey.KEY_VALUE_ENABLED);
+    return ServerConfiguration.getBoolean(PropertyKey.KEY_VALUE_ENABLED);
   }
 
   @Override

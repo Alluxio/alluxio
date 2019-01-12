@@ -11,10 +11,7 @@
 
 package alluxio.conf;
 
-import alluxio.AlluxioConfiguration;
-import alluxio.ConfigurationValueOptions;
-import alluxio.PropertyKey;
-import alluxio.PropertyKey.Template;
+import alluxio.conf.PropertyKey.Template;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
 import alluxio.util.FormatUtils;
@@ -33,7 +30,9 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -50,6 +49,8 @@ public class InstancedConfiguration implements AlluxioConfiguration {
   /** Source of the truth of all property values (default or customized). */
   protected AlluxioProperties mProperties;
 
+  private AtomicBoolean mClusterDefaultsLoaded = new AtomicBoolean(false);
+
   /**
    * @param properties alluxio properties underlying this configuration
    */
@@ -58,10 +59,19 @@ public class InstancedConfiguration implements AlluxioConfiguration {
   }
 
   /**
+   * @param properties alluxio properties underlying this configuration
+   */
+  public InstancedConfiguration(AlluxioProperties properties, boolean clusterDefaultsLoaded) {
+    mProperties = properties;
+    mClusterDefaultsLoaded.set(clusterDefaultsLoaded);
+  }
+
+  /**
    * @param conf configuration to copy
    */
   public InstancedConfiguration(InstancedConfiguration conf) {
     mProperties = new AlluxioProperties(conf.mProperties);
+    mClusterDefaultsLoaded.set(conf.clusterDefaultsLoaded());
   }
 
   /**
@@ -121,6 +131,46 @@ public class InstancedConfiguration implements AlluxioConfiguration {
     } catch (UnresolvablePropertyException e) {
       return false;
     }
+  }
+
+  /**
+   * Sets the value for the appropriate key in the {@link Properties}.
+   *
+   * @param key the key to set
+   * @param value the value for the key
+   */
+  public void set(PropertyKey key, Object value) {
+    set(key, String.valueOf(value), Source.RUNTIME);
+  }
+
+  /**
+   * Sets the value for the appropriate key in the {@link Properties} by source.
+   *
+   * @param key the key to set
+   * @param value the value for the key
+   * @param source the source of the the properties (e.g., system property, default and etc)
+   */
+  public void set(PropertyKey key, Object value, Source source) {
+    Preconditions.checkArgument(key != null && value != null && !value.equals(""),
+        String.format("The key value pair (%s, %s) cannot be null", key, value));
+    Preconditions.checkArgument(!value.equals(""),
+        String.format("The key \"%s\" cannot be have an empty string as a value. Use "
+            + "ServerConfiguration.unset to remove a key from the configuration.", key));
+   mProperties.put(key, String.valueOf(value), source);
+  }
+
+  /**
+   * Unsets the value for the appropriate key in the {@link Properties}.
+   *
+   * @param key the key to unset
+   */
+  public void unset(PropertyKey key) {
+    Preconditions.checkNotNull(key, "key");
+    mProperties.remove(key);
+  }
+
+  public void merge(Map<?, ?> properties, Source source) {
+    mProperties.merge(properties, source);
   }
 
   @Override
@@ -266,11 +316,6 @@ public class InstancedConfiguration implements AlluxioConfiguration {
   }
 
   @Override
-  public void merge(Map<?, ?> properties, Source source) {
-    mProperties.merge(properties, source);
-  }
-
-  @Override
   public Map<String, String> toMap(ConfigurationValueOptions opts) {
     Map<String, String> map = new HashMap<>();
     // Cannot use Collectors.toMap because we support null keys.
@@ -296,6 +341,11 @@ public class InstancedConfiguration implements AlluxioConfiguration {
     checkUserFileBufferBytes();
     checkZkConfiguration();
     checkTieredLocality();
+  }
+
+  @Override
+  public boolean clusterDefaultsLoaded(){
+    return mClusterDefaultsLoaded.get();
   }
 
   /**

@@ -16,11 +16,16 @@ import alluxio.RuntimeConstants;
 import alluxio.client.keyvalue.KeyValueStoreReader;
 import alluxio.client.keyvalue.KeyValueStoreWriter;
 import alluxio.client.keyvalue.KeyValueSystem;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.util.ConfigurationUtils;
 
 /**
  * A quick start tutorial for creating a key-value store, putting and getting some key-value pairs.
  */
 public final class KeyValueStoreQuickStart {
+
+  private static final InstancedConfiguration sConf =
+      new InstancedConfiguration(ConfigurationUtils.defaults());
 
   private KeyValueStoreQuickStart() {} // prevent instantiation
 
@@ -37,7 +42,7 @@ public final class KeyValueStoreQuickStart {
     }
 
     AlluxioURI storeUri = new AlluxioURI(args[0]);
-    KeyValueSystem kvs = KeyValueSystem.Factory.create();
+    KeyValueSystem kvs = KeyValueSystem.Factory.create(sConf);
 
     // Creates a store.
     KeyValueStoreWriter writer = kvs.createStore(storeUri);

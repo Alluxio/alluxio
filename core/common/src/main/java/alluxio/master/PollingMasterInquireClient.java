@@ -13,6 +13,7 @@ package alluxio.master;
 
 import static java.util.stream.Collectors.joining;
 
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.status.UnauthenticatedException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.retry.ExponentialBackoffRetry;
@@ -22,6 +23,7 @@ import alluxio.grpc.GrpcChannelBuilder;
 import alluxio.grpc.ServiceType;
 import alluxio.grpc.ServiceVersionClientServiceGrpc;
 import alluxio.retry.RetryPolicy;
+import alluxio.security.authentication.AuthType;
 import alluxio.uri.Authority;
 import alluxio.uri.MultiMasterAuthority;
 
@@ -45,6 +47,7 @@ public class PollingMasterInquireClient implements MasterInquireClient {
 
   private final MultiMasterConnectDetails mConnectDetails;
   private final Supplier<RetryPolicy> mRetryPolicySupplier;
+  private final AlluxioConfiguration mConfiguration;
 
   /**
    * @param masterAddresses the potential master addresses
@@ -58,9 +61,11 @@ public class PollingMasterInquireClient implements MasterInquireClient {
    * @param retryPolicySupplier the retry policy supplier
    */
   public PollingMasterInquireClient(List<InetSocketAddress> masterAddresses,
-      Supplier<RetryPolicy> retryPolicySupplier) {
+      Supplier<RetryPolicy> retryPolicySupplier,
+      AlluxioConfiguration conf) {
     mConnectDetails = new MultiMasterConnectDetails(masterAddresses);
     mRetryPolicySupplier = retryPolicySupplier;
+    mConfiguration = conf;
   }
 
   @Override
@@ -98,7 +103,7 @@ public class PollingMasterInquireClient implements MasterInquireClient {
 
   private void pingMetaService(InetSocketAddress address)
       throws UnauthenticatedException, UnavailableException {
-    GrpcChannel channel = GrpcChannelBuilder.forAddress(address).build();
+    GrpcChannel channel = GrpcChannelBuilder.forAddress(address, mConfiguration).build();
     ServiceVersionClientServiceGrpc.ServiceVersionClientServiceBlockingStub versionClient =
         ServiceVersionClientServiceGrpc.newBlockingStub(channel);
     versionClient.getServiceVersion(GetServiceVersionPRequest.newBuilder()

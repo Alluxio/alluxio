@@ -18,6 +18,8 @@ import alluxio.client.keyvalue.KeyValueIterator;
 import alluxio.client.keyvalue.KeyValuePair;
 import alluxio.client.keyvalue.KeyValueStoreReader;
 import alluxio.client.keyvalue.KeyValueSystem;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.util.ConfigurationUtils;
 import alluxio.util.FormatUtils;
 import alluxio.util.io.BufferUtils;
 
@@ -33,6 +35,9 @@ import java.util.concurrent.Callable;
 public final class SameKeyValueStoresTest implements Callable<Boolean> {
   private static final Logger LOG = LoggerFactory.getLogger(SameKeyValueStoresTest.class);
 
+  private static final InstancedConfiguration sConf =
+      new InstancedConfiguration(ConfigurationUtils.defaults());
+
   private final AlluxioURI mStoreUri1;
   private final AlluxioURI mStoreUri2;
 
@@ -47,7 +52,7 @@ public final class SameKeyValueStoresTest implements Callable<Boolean> {
 
   @Override
   public Boolean call() throws Exception {
-    KeyValueSystem kvs = KeyValueSystem.Factory.create();
+    KeyValueSystem kvs = KeyValueSystem.Factory.create(sConf);
     KeyValueStoreReader reader1 = kvs.openStore(mStoreUri1);
     KeyValueStoreReader reader2 = kvs.openStore(mStoreUri2);
     boolean pass = areTheSameStores(reader1, reader2);

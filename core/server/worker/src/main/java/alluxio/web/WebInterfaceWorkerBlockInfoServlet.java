@@ -12,8 +12,8 @@
 package alluxio.web;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
-import alluxio.PropertyKey;
+import alluxio.conf.ServerConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.WorkerStorageTierAssoc;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
@@ -74,7 +74,7 @@ public final class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
   @Override
   protected void doGet(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException {
-    if (!Configuration.getBoolean(PropertyKey.WEB_FILE_INFO_ENABLED)) {
+    if (!ServerConfiguration.getBoolean(PropertyKey.WEB_FILE_INFO_ENABLED)) {
       return;
     }
     request.setAttribute("fatalError", "");
@@ -140,7 +140,7 @@ public final class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
           uiFileInfos.add(getUiFileInfo(fileId));
         } catch (Exception e) {
           // The file might have been deleted, log a warning and ignore this file.
-          LOG.warn("Unable to get file info for fileId {}. {}", fileId, e.getMessage());
+          LOG.warn("Unable to create file info for fileId {}. {}", fileId, e.getMessage());
         }
       }
       request.setAttribute("fileInfos", uiFileInfos);

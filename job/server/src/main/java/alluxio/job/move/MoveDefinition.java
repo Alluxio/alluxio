@@ -12,8 +12,9 @@
 package alluxio.job.move;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
-import alluxio.PropertyKey;
+import alluxio.ClientContext;
+import alluxio.conf.ServerConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.client.WriteType;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.BlockWorkerInfo;
@@ -97,8 +98,11 @@ public final class MoveDefinition
    * Constructs a new {@link MoveDefinition}.
    */
   public MoveDefinition() {
-    mFileSystemContext = FileSystemContext.get();
-    mFileSystem = BaseFileSystem.get(FileSystemContext.get());
+    mFileSystemContext = FileSystemContext.create();
+    mFileSystem =
+        BaseFileSystem.create(
+            ClientContext.create(mFileSystemContext.getParentSubject(),
+                ServerConfiguration.copyProperties()));
   }
 
   /**
@@ -166,7 +170,7 @@ public final class MoveDefinition
     checkMoveValid(config);
 
     List<BlockWorkerInfo> alluxioWorkerInfoList =
-        AlluxioBlockStore.create(mFileSystemContext).getAllWorkers();
+        AlluxioBlockStore.create(mFileSystemContext, ServerConfiguration.global()).getAllWorkers();
     Preconditions.checkState(!jobWorkerInfoList.isEmpty(), "No workers are available");
 
     List<URIStatus> allPathStatuses = getPathStatuses(source);
@@ -276,7 +280,7 @@ public final class MoveDefinition
   public SerializableVoid runTask(MoveConfig config, ArrayList<MoveCommand> commands,
       JobWorkerContext jobWorkerContext) throws Exception {
     WriteType writeType = config.getWriteType() == null
-        ? Configuration.getEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class)
+        ? ServerConfiguration.getEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class)
         : WriteType.valueOf(config.getWriteType());
     for (MoveCommand command : commands) {
       move(command, writeType.toProto(), mFileSystem);

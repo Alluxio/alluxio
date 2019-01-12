@@ -52,7 +52,7 @@ public final class UnderFileSystemBlockStore implements SessionCleanable {
 
   /**
    * This lock protects mBlocks, mSessionIdToBlockIds and mBlockIdToSessionIds. For any read/write
-   * operations to these maps, the lock needs to be acquired. But once you get the block
+   * operations to these maps, the lock needs to be acquired. But once you create the block
    * information from the map (e.g. mBlocks), the lock does not need to be acquired. For example,
    * the block reader/writer within the BlockInfo can be updated without acquiring this lock.
    * This is based on the assumption that one session won't open multiple readers/writers on the

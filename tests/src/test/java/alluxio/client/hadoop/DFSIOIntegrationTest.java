@@ -12,7 +12,7 @@
 package alluxio.client.hadoop;
 
 import alluxio.Constants;
-import alluxio.PropertyKey;
+import alluxio.conf.PropertyKey;
 import alluxio.hadoop.FileSystem;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
@@ -875,10 +875,10 @@ public class DFSIOIntegrationTest extends BaseIntegrationTest implements Tool {
    * @return
    */
   static long parseSize(String arg) {
-    String[] args = arg.split("\\D", 2); // get digits
+    String[] args = arg.split("\\D", 2); // create digits
     assert args.length <= 2;
     long nrBytes = Long.parseLong(args[0]);
-    String bytesMult = arg.substring(args[0].length()); // get byte multiple
+    String bytesMult = arg.substring(args[0].length()); // create byte multiple
     return nrBytes * ByteMultiple.parseString(bytesMult).value();
   }
 

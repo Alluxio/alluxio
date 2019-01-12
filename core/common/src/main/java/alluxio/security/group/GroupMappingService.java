@@ -11,8 +11,8 @@
 
 package alluxio.security.group;
 
-import alluxio.Configuration;
-import alluxio.PropertyKey;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.annotation.PublicApi;
 import alluxio.util.CommonUtils;
 
@@ -50,15 +50,16 @@ public interface GroupMappingService {
      *
      * @return the groups mapping service being used to map user-to-groups
      */
-    public static GroupMappingService get() {
+    public static GroupMappingService get(AlluxioConfiguration conf) {
       if (sCachedGroupMapping == null) {
         synchronized (Factory.class) {
           if (sCachedGroupMapping == null) {
             LOG.debug("Creating new Groups object");
             GroupMappingService groupMappingService =
-                CommonUtils.createNewClassInstance(Configuration.<GroupMappingService>getClass(
+                CommonUtils.createNewClassInstance(conf.<GroupMappingService>getClass(
                     PropertyKey.SECURITY_GROUP_MAPPING_CLASS), null, null);
-            sCachedGroupMapping = new CachedGroupMapping(groupMappingService);
+            long cacheTimeout = conf.getMs(PropertyKey.SECURITY_GROUP_MAPPING_CACHE_TIMEOUT_MS);
+            sCachedGroupMapping = new CachedGroupMapping(groupMappingService, cacheTimeout);
           }
         }
       }

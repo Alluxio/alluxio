@@ -11,8 +11,8 @@
 
 package alluxio.master;
 
-import alluxio.Configuration;
-import alluxio.PropertyKey;
+import alluxio.conf.ServerConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.worker.JobWorkerProcess;
@@ -118,15 +118,15 @@ public final class LocalAlluxioJobCluster {
   private void updateTestConf() throws IOException {
     setHostname();
 
-    Configuration.set(PropertyKey.JOB_MASTER_BIND_HOST, mHostname);
-    Configuration.set(PropertyKey.JOB_MASTER_HOSTNAME, mHostname);
-    Configuration.set(PropertyKey.JOB_MASTER_RPC_PORT, Integer.toString(0));
-    Configuration.set(PropertyKey.JOB_MASTER_WEB_PORT, Integer.toString(0));
-    Configuration.set(PropertyKey.JOB_MASTER_WEB_BIND_HOST, mHostname);
-    Configuration.set(PropertyKey.JOB_WORKER_BIND_HOST, mHostname);
-    Configuration.set(PropertyKey.JOB_WORKER_RPC_PORT, Integer.toString(0));
-    Configuration.set(PropertyKey.JOB_WORKER_WEB_PORT, Integer.toString(0));
-    Configuration.set(PropertyKey.JOB_WORKER_WEB_BIND_HOST, mHostname);
+    ServerConfiguration.set(PropertyKey.JOB_MASTER_BIND_HOST, mHostname);
+    ServerConfiguration.set(PropertyKey.JOB_MASTER_HOSTNAME, mHostname);
+    ServerConfiguration.set(PropertyKey.JOB_MASTER_RPC_PORT, Integer.toString(0));
+    ServerConfiguration.set(PropertyKey.JOB_MASTER_WEB_PORT, Integer.toString(0));
+    ServerConfiguration.set(PropertyKey.JOB_MASTER_WEB_BIND_HOST, mHostname);
+    ServerConfiguration.set(PropertyKey.JOB_WORKER_BIND_HOST, mHostname);
+    ServerConfiguration.set(PropertyKey.JOB_WORKER_RPC_PORT, Integer.toString(0));
+    ServerConfiguration.set(PropertyKey.JOB_WORKER_WEB_PORT, Integer.toString(0));
+    ServerConfiguration.set(PropertyKey.JOB_WORKER_WEB_BIND_HOST, mHostname);
   }
 
   /**
@@ -137,7 +137,7 @@ public final class LocalAlluxioJobCluster {
    */
   private void startMaster() throws IOException, ConnectionFailedException {
     mMaster = JobMasterProcess.Factory.create();
-    Configuration
+    ServerConfiguration
         .set(PropertyKey.JOB_MASTER_RPC_PORT, String.valueOf(mMaster.getRpcAddress().getPort()));
     Runnable runMaster = new Runnable() {
       @Override

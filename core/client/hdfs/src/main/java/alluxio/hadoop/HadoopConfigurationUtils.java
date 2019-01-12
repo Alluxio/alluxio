@@ -11,11 +11,11 @@
 
 package alluxio.hadoop;
 
-import alluxio.AlluxioConfiguration;
-import alluxio.Configuration;
-import alluxio.PropertyKey;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.conf.Source;
 
+import alluxio.util.ConfigurationUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,7 +25,7 @@ import java.util.Properties;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * Utility class for merging Alluxio {@link Configuration} with Hadoop's Configuration class.
+ * Utility class for merging {@link AlluxioConfiguration} with Hadoop's Configuration class.
  */
 @ThreadSafe
 public final class HadoopConfigurationUtils {
@@ -39,7 +39,7 @@ public final class HadoopConfigurationUtils {
    * @param source the {@link org.apache.hadoop.conf.Configuration} to merge
    * @param alluxioConfiguration the Alluxio configuration to merge to
    */
-  public static void mergeHadoopConfiguration(org.apache.hadoop.conf.Configuration source,
+  public static AlluxioConfiguration mergeHadoopConfiguration(org.apache.hadoop.conf.Configuration source,
       AlluxioConfiguration alluxioConfiguration) {
     // Load Alluxio configuration if any and merge to the one in Alluxio file system
     // Push Alluxio configuration to the Job configuration
@@ -54,7 +54,9 @@ public final class HadoopConfigurationUtils {
     LOG.info("Loading Alluxio properties from Hadoop configuration: {}", alluxioConfProperties);
     // Merge the relevant Hadoop configuration into Alluxio's configuration.
     // TODO(jiri): support multiple client configurations (ALLUXIO-2034)
-    alluxioConfiguration.merge(alluxioConfProperties, Source.RUNTIME);
-    alluxioConfiguration.validate();
+    AlluxioConfiguration conf = ConfigurationUtils.merge(alluxioConfiguration,
+        alluxioConfProperties, Source.RUNTIME);
+    conf.validate();
+    return conf;
   }
 }

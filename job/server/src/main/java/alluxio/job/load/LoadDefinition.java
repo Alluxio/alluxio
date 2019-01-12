@@ -12,12 +12,14 @@
 package alluxio.job.load;
 
 import alluxio.AlluxioURI;
+import alluxio.ClientContext;
 import alluxio.Constants;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.file.BaseFileSystem;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
+import alluxio.conf.ServerConfiguration;
 import alluxio.exception.status.FailedPreconditionException;
 import alluxio.job.AbstractVoidJobDefinition;
 import alluxio.job.JobMasterContext;
@@ -59,7 +61,7 @@ public final class LoadDefinition
    * Constructs a new {@link LoadDefinition}.
    */
   public LoadDefinition() {
-    mFileSystem = BaseFileSystem.get(FileSystemContext.get());
+    mFileSystem = BaseFileSystem.create(ClientContext.create(null, ServerConfiguration.copyProperties()));
   }
 
   /**
@@ -79,7 +81,8 @@ public final class LoadDefinition
     // Filter out workers which have no local job worker available.
     List<String> missingJobWorkerHosts = new ArrayList<>();
     List<BlockWorkerInfo> workers = new ArrayList<>();
-    for (BlockWorkerInfo worker : AlluxioBlockStore.create().getAllWorkers()) {
+    for (BlockWorkerInfo worker :
+        AlluxioBlockStore.create(null, ServerConfiguration.global()).getAllWorkers()) {
       if (jobWorkersByAddress.containsKey(worker.getNetAddress().getHost())) {
         workers.add(worker);
       } else {
@@ -135,7 +138,7 @@ public final class LoadDefinition
       JobWorkerContext jobWorkerContext) throws Exception {
     for (LoadTask task : tasks) {
       JobUtils
-          .loadBlock(mFileSystem, FileSystemContext.get(), config.getFilePath(), task.getBlockId());
+          .loadBlock(mFileSystem, FileSystemContext.create(), config.getFilePath(), task.getBlockId());
       LOG.info("Loaded block " + task.getBlockId());
     }
     return null;

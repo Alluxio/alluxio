@@ -11,9 +11,9 @@
 
 package alluxio.worker.block;
 
-import alluxio.Configuration;
+import alluxio.conf.ServerConfiguration;
 import alluxio.Constants;
-import alluxio.PropertyKey;
+import alluxio.conf.PropertyKey;
 import alluxio.RuntimeConstants;
 import alluxio.Server;
 import alluxio.Sessions;
@@ -90,7 +90,7 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   private final BlockMasterClient mBlockMasterClient;
   /**
    * Block master clients. commitBlock is the only reason to keep a pool of block master clients
-   * on each worker. We should either improve our RPC model in the master or get rid of the
+   * on each worker. We should either improve our RPC model in the master or create rid of the
    * necessity to call commitBlock in the workers.
    */
   private final BlockMasterClientPool mBlockMasterClientPool;
@@ -128,7 +128,8 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
    * @param ufsManager ufs manager
    */
   DefaultBlockWorker(UfsManager ufsManager) {
-    this(new BlockMasterClientPool(), new FileSystemMasterClient(MasterClientConfig.defaults()),
+    this(new BlockMasterClientPool(),
+        new FileSystemMasterClient(MasterClientConfig.defaults(ServerConfiguration.global())),
         new Sessions(), new TieredBlockStore(), ufsManager);
   }
 
@@ -196,10 +197,11 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   public void start(WorkerNetAddress address) throws IOException {
     mAddress = address;
     try {
-      RetryUtils.retry("get worker id", () -> mWorkerId.set(mBlockMasterClient.getId(address)),
-          RetryUtils.defaultWorkerMasterClientRetry());
+      RetryUtils.retry("create worker id", () -> mWorkerId.set(mBlockMasterClient.getId(address)),
+          RetryUtils.defaultWorkerMasterClientRetry(ServerConfiguration
+                                                        .getDuration(PropertyKey.WORKER_MASTER_CONNECT_RETRY_TIMEOUT)));
     } catch (Exception e) {
-      throw new RuntimeException("Failed to get a worker id from block master: " + e.getMessage());
+      throw new RuntimeException("Failed to create a worker id from block master: " + e.getMessage());
     }
 
     Preconditions.checkNotNull(mWorkerId, "mWorkerId");
@@ -215,21 +217,23 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
     mSessionCleaner = new SessionCleaner(mSessions, mBlockStore, mUnderFileSystemBlockStore);
 
     // Setup space reserver
-    if (Configuration.getBoolean(PropertyKey.WORKER_TIERED_STORE_RESERVER_ENABLED)) {
+    if (ServerConfiguration.getBoolean(PropertyKey.WORKER_TIERED_STORE_RESERVER_ENABLED)) {
       mSpaceReserver = new SpaceReserver(this);
       getExecutorService().submit(
           new HeartbeatThread(HeartbeatContext.WORKER_SPACE_RESERVER, mSpaceReserver,
-              (int) Configuration.getMs(PropertyKey.WORKER_TIERED_STORE_RESERVER_INTERVAL_MS)));
+              (int) ServerConfiguration.getMs(PropertyKey.WORKER_TIERED_STORE_RESERVER_INTERVAL_MS), ServerConfiguration.global()));
     }
 
     getExecutorService()
         .submit(new HeartbeatThread(HeartbeatContext.WORKER_BLOCK_SYNC, mBlockMasterSync,
-            (int) Configuration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS)));
+            (int) ServerConfiguration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS),
+            ServerConfiguration.global()));
 
     // Start the pinlist syncer to perform the periodical fetching
     getExecutorService()
         .submit(new HeartbeatThread(HeartbeatContext.WORKER_PIN_LIST_SYNC, mPinListSync,
-            (int) Configuration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS)));
+            (int) ServerConfiguration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS),
+            ServerConfiguration.global()));
 
     // Setup storage checker
     if (Configuration.getBoolean(PropertyKey.WORKER_STORAGE_CHECKER_ENABLED)) {

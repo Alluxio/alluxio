@@ -12,7 +12,9 @@
 package alluxio.cli.job;
 
 import alluxio.Constants;
-import alluxio.PropertyKey;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.cli.AbstractShell;
 import alluxio.cli.Command;
 import alluxio.cli.CommandUtils;
@@ -45,8 +47,9 @@ public final class JobShell extends AbstractShell {
    */
   public static void main(String[] argv) throws IOException {
     int ret;
+    InstancedConfiguration conf = new InstancedConfiguration(ConfigurationUtils.defaults());
 
-    if (!ConfigurationUtils.masterHostConfigured() && argv.length > 0) {
+    if (!ConfigurationUtils.masterHostConfigured(conf) && argv.length > 0) {
       System.out.println(String.format(
           "Cannot run alluxio job shell; master hostname is not "
               + "configured. Please modify %s to either set %s or configure zookeeper with "
@@ -56,7 +59,7 @@ public final class JobShell extends AbstractShell {
       System.exit(1);
     }
 
-    try (JobShell shell = new JobShell()) {
+    try (JobShell shell = new JobShell(conf)) {
       ret = shell.run(argv);
     }
     System.exit(ret);
@@ -65,8 +68,8 @@ public final class JobShell extends AbstractShell {
   /**
    * Creates a new instance of {@link JobShell}.
    */
-  public JobShell() {
-    super(CMD_ALIAS);
+  public JobShell(InstancedConfiguration conf) {
+    super(CMD_ALIAS, conf);
   }
 
   @Override

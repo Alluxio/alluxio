@@ -11,8 +11,8 @@
 
 package alluxio.client.block.stream;
 
-import alluxio.Configuration;
-import alluxio.PropertyKey;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.Seekable;
 import alluxio.client.BoundedStream;
 import alluxio.client.PositionedReadable;
@@ -95,7 +95,8 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
    * @return the {@link BlockInStream} object
    */
   public static BlockInStream create(FileSystemContext context, BlockInfo info,
-      WorkerNetAddress dataSource, BlockInStreamSource dataSourceType, InStreamOptions options)
+      WorkerNetAddress dataSource, BlockInStreamSource dataSourceType, InStreamOptions options,
+      AlluxioConfiguration alluxioConf)
       throws IOException {
     URIStatus status = options.getStatus();
     ReadType readType = ReadType.fromProto(options.getOptions().getReadType());
@@ -109,15 +110,15 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
     // Add UFS fallback options
     builder.setOpenUfsBlockOptions(options.getOpenUfsBlockOptions(blockId));
 
-    boolean shortCircuit = Configuration.getBoolean(PropertyKey.USER_SHORT_CIRCUIT_ENABLED);
-    boolean sourceSupportsDomainSocket = NettyUtils.isDomainSocketSupported(dataSource);
+    boolean shortCircuit = alluxioConf.getBoolean(PropertyKey.USER_SHORT_CIRCUIT_ENABLED);
+    boolean sourceSupportsDomainSocket = NettyUtils.isDomainSocketSupported(dataSource, alluxioConf);
     boolean sourceIsLocal = dataSourceType == BlockInStreamSource.LOCAL;
 
     // Short circuit
     if (sourceIsLocal && shortCircuit && !sourceSupportsDomainSocket) {
       LOG.debug("Creating short circuit input stream for block {} @ {}", blockId, dataSource);
       try {
-        return createLocalBlockInStream(context, dataSource, blockId, blockSize, options);
+        return createLocalBlockInStream(context, dataSource, blockId, blockSize, options, alluxioConf);
       } catch (NotFoundException e) {
         // Failed to do short circuit read because the block is not available in Alluxio.
         // We will try to read via gRPC. So this exception is ignored.
@@ -144,9 +145,10 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
    * @return the {@link BlockInStream} created
    */
   private static BlockInStream createLocalBlockInStream(FileSystemContext context,
-      WorkerNetAddress address, long blockId, long length, InStreamOptions options)
+      WorkerNetAddress address, long blockId, long length, InStreamOptions options,
+      AlluxioConfiguration alluxioConf)
       throws IOException {
-    long chunkSize = Configuration.getBytes(PropertyKey.USER_LOCAL_READER_CHUNK_SIZE_BYTES);
+    long chunkSize = alluxioConf.getBytes(PropertyKey.USER_LOCAL_READER_CHUNK_SIZE_BYTES);
     return new BlockInStream(
         new LocalFileDataReader.Factory(context, address, blockId, chunkSize, options),
         address, BlockInStreamSource.LOCAL, blockId, length);
@@ -160,14 +162,13 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
    * @param blockSource the source location of the block
    * @param blockSize the block size
    * @param readRequestPartial the partial read request
-   * @param options the in stream options
    * @return the {@link BlockInStream} created
    */
   private static BlockInStream createGrpcBlockInStream(FileSystemContext context,
       WorkerNetAddress address, BlockInStreamSource blockSource,
-      ReadRequest readRequestPartial, long blockSize, InStreamOptions options) {
+      ReadRequest readRequestPartial, long blockSize, InStreamOptions options, AlluxioConfiguration alluxioConf) {
     long chunkSize =
-        Configuration.getBytes(PropertyKey.USER_NETWORK_READER_CHUNK_SIZE_BYTES);
+        alluxioConf.getBytes(PropertyKey.USER_NETWORK_READER_CHUNK_SIZE_BYTES);
     DataReader.Factory factory = new GrpcDataReader.Factory(context, address,
         readRequestPartial.toBuilder().setChunkSize(chunkSize).buildPartial());
     return new BlockInStream(factory, address, blockSource, readRequestPartial.getBlockId(),
@@ -189,9 +190,9 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
    */
   public static BlockInStream createRemoteBlockInStream(FileSystemContext context, long blockId,
       WorkerNetAddress address, BlockInStreamSource blockSource, long blockSize,
-      Protocol.OpenUfsBlockOptions ufsOptions) {
+      Protocol.OpenUfsBlockOptions ufsOptions, AlluxioConfiguration alluxioConf) {
     long chunkSize =
-        Configuration.getBytes(PropertyKey.USER_NETWORK_READER_CHUNK_SIZE_BYTES);
+        alluxioConf.getBytes(PropertyKey.USER_NETWORK_READER_CHUNK_SIZE_BYTES);
     ReadRequest readRequest = ReadRequest.newBuilder().setBlockId(blockId)
         .setOpenUfsBlockOptions(ufsOptions).setChunkSize(chunkSize).buildPartial();
     DataReader.Factory factory = new GrpcDataReader.Factory(context, address,

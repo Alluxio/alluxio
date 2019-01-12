@@ -11,7 +11,7 @@
 
 package alluxio.web;
 
-import alluxio.PropertyKey;
+import alluxio.conf.PropertyKey;
 import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.GetConfigurationPOptions;
 import alluxio.master.file.FileSystemMaster;
@@ -46,8 +46,8 @@ public final class WebInterfaceConfigurationServlet extends HttpServlet {
   /**
    * Creates a new instance of {@link WebInterfaceConfigurationServlet}.
    *
-   * @param fsMaster file system master to get white list
-   * @param metaMaster the meta master to get configuration
+   * @param fsMaster file system master to create white list
+   * @param metaMaster the meta master to create configuration
    */
   public WebInterfaceConfigurationServlet(FileSystemMaster fsMaster, MetaMaster metaMaster) {
     mFsMaster = fsMaster;

@@ -16,6 +16,7 @@ import alluxio.cli.fs.command.AbstractFileSystemCommand;
 import alluxio.client.file.FileSystem;
 import alluxio.client.job.JobContext;
 import alluxio.client.job.JobMasterClient;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.InvalidArgumentException;
@@ -51,8 +52,8 @@ public final class StatCommand extends AbstractFileSystemCommand {
    *
    * @param fs the Alluxio filesystem client
    */
-  public StatCommand(FileSystem fs) {
-    super(fs);
+  public StatCommand(FileSystem fs, AlluxioConfiguration alluxioConf) {
+    super(fs, alluxioConf);
   }
 
   @Override
@@ -69,12 +70,12 @@ public final class StatCommand extends AbstractFileSystemCommand {
   public int run(CommandLine cl) throws AlluxioException, IOException {
     long id = Long.parseLong(cl.getArgs()[0]);
     try (CloseableResource<JobMasterClient> client =
-        JobContext.INSTANCE.acquireMasterClientResource()) {
+        JobContext.create(mConfiguration).acquireMasterClientResource()) {
       JobInfo info = client.get().getStatus(id);
       System.out.print(formatOutput(cl, info));
     } catch (Exception e) {
-      LOG.error("Failed to get status of the job", e);
-      System.out.println("Failed to get status of the job " + id);
+      LOG.error("Failed to create status of the job", e);
+      System.out.println("Failed to create status of the job " + id);
       return -1;
     }
     return 0;

@@ -13,6 +13,8 @@ package alluxio.worker.file;
 
 import alluxio.AbstractMasterClient;
 import alluxio.Constants;
+import alluxio.Server;
+import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.FileSystemCommand;
 import alluxio.grpc.FileSystemHeartbeatPOptions;
 import alluxio.grpc.FileSystemHeartbeatPRequest;
@@ -47,7 +49,7 @@ public final class FileSystemMasterClient extends AbstractMasterClient {
    * @param conf master client configuration
    */
   public FileSystemMasterClient(MasterClientConfig conf) {
-    super(conf);
+    super(conf, ServerConfiguration.global());
   }
 
   @Override
@@ -71,7 +73,7 @@ public final class FileSystemMasterClient extends AbstractMasterClient {
   }
 
   /**
-   * @param fileId the id of the file for which to get the {@link FileInfo}
+   * @param fileId the id of the file for which to create the {@link FileInfo}
    * @return the file info for the given file id
    */
   public FileInfo getFileInfo(final long fileId) throws IOException {

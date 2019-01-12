@@ -11,7 +11,6 @@
 
 package alluxio.security.authentication.plain;
 
-import alluxio.Configuration;
 import alluxio.security.authentication.AuthType;
 import alluxio.security.authentication.AuthenticationProvider;
 import alluxio.util.CommonUtils;
@@ -22,9 +21,9 @@ import javax.security.sasl.AuthenticationException;
 /**
  * An authentication provider implementation that allows {@link AuthenticationProvider} to be
  * customized at configuration time. This authentication provider is created if authentication type
- * specified in {@link Configuration} is {@link AuthType#CUSTOM}. It requires the property
- * {@code alluxio.security.authentication.custom.provider} to be set in {@link Configuration
- * Configuration} to determine which provider to load.
+ * specified in {@link alluxio.conf.AlluxioConfiguration} is {@link AuthType#CUSTOM}. It requires
+ * the property {@code alluxio.security.authentication.custom.provider} to be set in
+ * {@link alluxio.conf.AlluxioConfiguration} to determine which provider to load.
  */
 @NotThreadSafe
 public final class CustomAuthenticationProvider implements AuthenticationProvider {

@@ -13,6 +13,7 @@ package alluxio.client;
 
 import alluxio.AbstractMasterClient;
 import alluxio.Constants;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.grpc.BackupPOptions;
 import alluxio.grpc.GetConfigReportPOptions;
@@ -46,8 +47,8 @@ public class RetryHandlingMetaMasterClient extends AbstractMasterClient
    *
    * @param conf master client configuration
    */
-  public RetryHandlingMetaMasterClient(MasterClientConfig conf) {
-    super(conf);
+  public RetryHandlingMetaMasterClient(MasterClientConfig conf, AlluxioConfiguration alluxioConf) {
+    super(conf, alluxioConf);
   }
 
   @Override

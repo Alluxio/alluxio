@@ -11,6 +11,8 @@
 
 package alluxio.underfs.hdfs;
 
+import alluxio.ConfigurationTestUtils;
+import alluxio.conf.InstancedConfiguration;
 import alluxio.underfs.AbstractUnderFileSystemContractTest;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
@@ -35,7 +37,7 @@ public final class HdfsUnderFileSystemContractTest extends AbstractUnderFileSyst
   @Override
   public UnderFileSystem createUfs(String path, UnderFileSystemConfiguration conf)
       throws Exception {
-    return new HdfsUnderFileSystemFactory().create(path, conf);
+    return new HdfsUnderFileSystemFactory().create(path, conf, mConfiguration);
   }
 
   @Override

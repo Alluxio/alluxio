@@ -11,7 +11,7 @@
 
 package alluxio.master.meta.checkconf;
 
-import alluxio.PropertyKey;
+import alluxio.conf.PropertyKey;
 import alluxio.grpc.ConfigProperty;
 import alluxio.wire.Address;
 

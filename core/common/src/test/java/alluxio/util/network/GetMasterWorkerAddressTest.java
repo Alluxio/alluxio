@@ -11,12 +11,11 @@
 
 package alluxio.util.network;
 
-import alluxio.Configuration;
-import alluxio.ConfigurationTestUtils;
-import alluxio.PropertyKey;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
+import alluxio.util.ConfigurationUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -28,41 +27,39 @@ import java.net.InetSocketAddress;
  */
 public class GetMasterWorkerAddressTest {
 
-  @After
-  public void after() {
-    ConfigurationTestUtils.resetConfiguration();
-  }
-
   /**
    * Tests the {@link NetworkAddressUtils#getConnectAddress(ServiceType)} method for
    * a master node.
    */
   @Test
   public void getMasterAddress() {
+    InstancedConfiguration conf = new InstancedConfiguration(ConfigurationUtils.defaults());
     // connect host and port
-    Configuration.set(PropertyKey.MASTER_HOSTNAME, "RemoteMaster1");
-    Configuration.set(PropertyKey.MASTER_RPC_PORT, "10000");
-    String defaultHostname = NetworkAddressUtils.getLocalHostName();
+    conf.set(PropertyKey.MASTER_HOSTNAME, "RemoteMaster1");
+    conf.set(PropertyKey.MASTER_RPC_PORT, "10000");
+    int resolveTimeout = (int)conf.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS);
+    String defaultHostname = NetworkAddressUtils.getLocalHostName(resolveTimeout);
     int defaultPort = Integer.parseInt(PropertyKey.MASTER_RPC_PORT.getDefaultValue());
     InetSocketAddress masterAddress =
-        NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC);
+        NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, conf);
     Assert.assertEquals(new InetSocketAddress("RemoteMaster1", 10000), masterAddress);
-    ConfigurationTestUtils.resetConfiguration();
+    conf = new InstancedConfiguration(ConfigurationUtils.defaults());
 
     // port only
-    Configuration.set(PropertyKey.MASTER_RPC_PORT, "20000");
-    masterAddress = NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC);
+    conf.set(PropertyKey.MASTER_RPC_PORT, "20000");
+    masterAddress = NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, conf);
     Assert.assertEquals(new InetSocketAddress(defaultHostname, 20000), masterAddress);
-    ConfigurationTestUtils.resetConfiguration();
+    conf = new InstancedConfiguration(ConfigurationUtils.defaults());
 
     // connect host only
-    Configuration.set(PropertyKey.MASTER_HOSTNAME, "RemoteMaster3");
-    masterAddress = NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC);
+    conf.set(PropertyKey.MASTER_HOSTNAME, "RemoteMaster3");
+    masterAddress = NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, conf);
     Assert.assertEquals(new InetSocketAddress("RemoteMaster3", defaultPort), masterAddress);
-    ConfigurationTestUtils.resetConfiguration();
+    conf = new InstancedConfiguration(ConfigurationUtils.defaults());
+
 
     // all default
-    masterAddress = NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC);
+    masterAddress = NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, conf);
     Assert.assertEquals(new InetSocketAddress(defaultHostname, defaultPort), masterAddress);
   }
 }

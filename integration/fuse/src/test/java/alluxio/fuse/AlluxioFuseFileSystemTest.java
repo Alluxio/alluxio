@@ -30,7 +30,9 @@ import static org.mockito.Mockito.times;
 import alluxio.AlluxioURI;
 import alluxio.ConfigurationRule;
 import alluxio.Constants;
-import alluxio.PropertyKey;
+import alluxio.ConfigurationTestUtils;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
@@ -68,11 +70,12 @@ public class AlluxioFuseFileSystemTest {
   private AlluxioFuseFileSystem mFuseFs;
   private FileSystem mFileSystem;
   private FuseFileInfo mFileInfo;
+  private InstancedConfiguration mConf = ConfigurationTestUtils.defaults();
 
   @Rule
   public ConfigurationRule mConfiguration =
       new ConfigurationRule(ImmutableMap.of(PropertyKey.FUSE_CACHED_PATHS_MAX, "0",
-          PropertyKey.FUSE_USER_GROUP_TRANSLATION_ENABLED, "true"));
+          PropertyKey.FUSE_USER_GROUP_TRANSLATION_ENABLED, "true"), mConf);
 
   @Before
   public void before() throws Exception {
@@ -82,7 +85,7 @@ public class AlluxioFuseFileSystemTest {
 
     mFileSystem = mock(FileSystem.class);
     try {
-      mFuseFs = new AlluxioFuseFileSystem(mFileSystem, opts);
+      mFuseFs = new AlluxioFuseFileSystem(mFileSystem, opts, mConf);
     } catch (UnsatisfiedLinkError e) {
       // stop test and ignore if FuseFileSystem fails to create due to missing libfuse library
       Assume.assumeNoException(e);

@@ -11,14 +11,25 @@
 
 package alluxio.underfs;
 
+import alluxio.ConfigurationTestUtils;
+import alluxio.conf.InstancedConfiguration;
 import org.junit.Assert;
 import org.junit.Assume;
+import org.junit.Before;
 import org.junit.Test;
 
 /**
  * Unit tests for {@link UnderFileSystem}.
  */
 public final class UnderFileSystemTest {
+
+  private InstancedConfiguration mConfiguration;
+
+  @Before
+  public void before() {
+    mConfiguration = ConfigurationTestUtils.defaults();
+  }
+
   /**
    * Tests the {@link UnderFileSystemFactoryRegistry#find(String)} method when using a core
    * factory.
@@ -26,10 +37,10 @@ public final class UnderFileSystemTest {
   @Test
   public void coreFactory() {
     // Supported in core
-    UnderFileSystemFactory factory = UnderFileSystemFactoryRegistry.find("/test/path");
+    UnderFileSystemFactory factory = UnderFileSystemFactoryRegistry.find("/test/path", mConfiguration);
     Assert.assertNull("An UnderFileSystemFactory should not exist for local file paths", factory);
 
-    factory = UnderFileSystemFactoryRegistry.find("file:///test/path");
+    factory = UnderFileSystemFactoryRegistry.find("file:///test/path", mConfiguration);
     Assert.assertNull("An UnderFileSystemFactory should not exist for local file paths", factory);
   }
 
@@ -48,27 +59,27 @@ public final class UnderFileSystemTest {
 
     // Requires additional modules
     UnderFileSystemFactory factory =
-        UnderFileSystemFactoryRegistry.find("hdfs://localhost/test/path");
+        UnderFileSystemFactoryRegistry.find("hdfs://localhost/test/path", mConfiguration);
     Assert.assertNull(
         "No UnderFileSystemFactory should exist for HDFS paths as it requires a separate module",
         factory);
 
-    factory = UnderFileSystemFactoryRegistry.find("oss://localhost/test/path");
+    factory = UnderFileSystemFactoryRegistry.find("oss://localhost/test/path", mConfiguration);
     Assert.assertNull(
         "No UnderFileSystemFactory should exist for OSS paths as it requires a separate module",
         factory);
 
-    factory = UnderFileSystemFactoryRegistry.find("s3://localhost/test/path");
+    factory = UnderFileSystemFactoryRegistry.find("s3://localhost/test/path", mConfiguration);
     Assert.assertNull(
         "No UnderFileSystemFactory should exist for S3 paths as it requires a separate module",
         factory);
 
-    factory = UnderFileSystemFactoryRegistry.find("s3a://localhost/test/path");
+    factory = UnderFileSystemFactoryRegistry.find("s3a://localhost/test/path", mConfiguration);
     Assert.assertNull(
         "No UnderFileSystemFactory should exist for S3 paths as it requires a separate module",
         factory);
 
-    factory = UnderFileSystemFactoryRegistry.find("glusterfs://localhost/test/path");
+    factory = UnderFileSystemFactoryRegistry.find("glusterfs://localhost/test/path", mConfiguration);
     Assert.assertNull("No UnderFileSystemFactory should exist for Gluster FS paths as it requires"
         + " a separate module", factory);
   }

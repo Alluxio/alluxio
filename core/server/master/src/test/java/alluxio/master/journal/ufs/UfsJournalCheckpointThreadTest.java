@@ -11,9 +11,9 @@
 
 package alluxio.master.journal.ufs;
 
-import alluxio.Configuration;
+import alluxio.conf.ServerConfiguration;
 import alluxio.ConfigurationTestUtils;
-import alluxio.PropertyKey;
+import alluxio.conf.PropertyKey;
 import alluxio.master.MockMaster;
 import alluxio.master.NoopMaster;
 import alluxio.proto.journal.Journal;
@@ -49,13 +49,13 @@ public final class UfsJournalCheckpointThreadTest {
   public void before() throws Exception {
     URI location = URIUtils
         .appendPathOrDie(new URI(mFolder.newFolder().getAbsolutePath()), "FileSystemMaster");
-    mUfs = Mockito.spy(UnderFileSystem.Factory.create(location));
+    mUfs = Mockito.spy(UnderFileSystem.Factory.create(location, ServerConfiguration.global()));
     mJournal = new UfsJournal(location, new NoopMaster(), mUfs, 0);
   }
 
   @After
   public void after() throws Exception {
-    ConfigurationTestUtils.resetConfiguration();
+    ServerConfiguration.reset();
   }
 
   /**
@@ -63,7 +63,7 @@ public final class UfsJournalCheckpointThreadTest {
    */
   @Test
   public void checkpointBeforeShutdown() throws Exception {
-    Configuration.set(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES, "2");
+    ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES, "2");
     buildCompletedLog(0, 10);
     buildIncompleteLog(10, 15);
     MockMaster mockMaster = new MockMaster();
@@ -94,7 +94,7 @@ public final class UfsJournalCheckpointThreadTest {
    */
   @Test
   public void checkpointAfterShutdown() throws Exception {
-    Configuration.set(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES, "2");
+    ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES, "2");
     buildCompletedLog(0, 10);
     buildIncompleteLog(10, 15);
     MockMaster mockMaster = new MockMaster();

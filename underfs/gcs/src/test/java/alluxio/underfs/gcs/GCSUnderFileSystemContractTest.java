@@ -11,6 +11,7 @@
 
 package alluxio.underfs.gcs;
 
+import alluxio.ConfigurationTestUtils;
 import alluxio.underfs.AbstractUnderFileSystemContractTest;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
@@ -35,7 +36,7 @@ public final class GCSUnderFileSystemContractTest extends AbstractUnderFileSyste
   @Override
   public UnderFileSystem createUfs(String path, UnderFileSystemConfiguration conf)
       throws Exception {
-    return new GCSUnderFileSystemFactory().create(path, conf);
+    return new GCSUnderFileSystemFactory().create(path, conf, ConfigurationTestUtils.defaults());
   }
 
   @Override

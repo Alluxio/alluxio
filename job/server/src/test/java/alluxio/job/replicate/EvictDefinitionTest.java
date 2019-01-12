@@ -13,6 +13,7 @@ package alluxio.job.replicate;
 
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.file.FileSystemContext;
+import alluxio.conf.ServerConfiguration;
 import alluxio.job.JobMasterContext;
 import alluxio.job.util.SerializableVoid;
 import alluxio.wire.BlockInfo;
@@ -79,7 +80,7 @@ public final class EvictDefinitionTest {
     blockInfo.setLocations(blockLocations);
     Mockito.when(mMockBlockStore.getInfo(TEST_BLOCK_ID)).thenReturn(blockInfo);
     PowerMockito.mockStatic(AlluxioBlockStore.class);
-    PowerMockito.when(AlluxioBlockStore.create(mMockFileSystemContext)).thenReturn(mMockBlockStore);
+    PowerMockito.when(AlluxioBlockStore.create(mMockFileSystemContext, ServerConfiguration.global())).thenReturn(mMockBlockStore);
 
     EvictConfig config = new EvictConfig(TEST_BLOCK_ID, replicas);
     EvictDefinition definition = new EvictDefinition(mMockFileSystemContext);

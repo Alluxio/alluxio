@@ -11,6 +11,10 @@
 
 package alluxio.underfs.oss;
 
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
+import alluxio.util.ConfigurationUtils;
 import com.aliyun.oss.OSSClient;
 import com.aliyun.oss.OSSException;
 import com.aliyun.oss.model.ObjectMetadata;
@@ -42,6 +46,8 @@ public class OSSOutputStreamTest {
   private OSSClient mOssClient;
   private File mFile;
   private BufferedOutputStream mLocalOutputStream;
+  private static final AlluxioConfiguration mConf =
+      new InstancedConfiguration(ConfigurationUtils.defaults());
 
   /**
    * The exception expected to be thrown.
@@ -71,7 +77,8 @@ public class OSSOutputStreamTest {
             .thenThrow(new IOException(errorMessage));
     mThrown.expect(IOException.class);
     mThrown.expectMessage(errorMessage);
-    new OSSOutputStream("testBucketName", "testKey", mOssClient).close();
+    new OSSOutputStream("testBucketName", "testKey", mOssClient,
+        mConf.getList(PropertyKey.TMP_DIRS, ",")).close();
   }
 
   /**
@@ -84,7 +91,7 @@ public class OSSOutputStreamTest {
             .withArguments(Mockito.any(DigestOutputStream.class)).thenReturn(mLocalOutputStream);
     PowerMockito.whenNew(BufferedOutputStream.class)
             .withArguments(Mockito.any(FileOutputStream.class)).thenReturn(mLocalOutputStream);
-    OSSOutputStream stream = new OSSOutputStream("testBucketName", "testKey", mOssClient);
+    OSSOutputStream stream = new OSSOutputStream("testBucketName", "testKey", mOssClient, mConf.getList(PropertyKey.TMP_DIRS, ","));
     stream.write(1);
     stream.close();
     Mockito.verify(mLocalOutputStream).write(1);
@@ -101,7 +108,7 @@ public class OSSOutputStreamTest {
             .withArguments(Mockito.any(DigestOutputStream.class)).thenReturn(mLocalOutputStream);
     PowerMockito.whenNew(BufferedOutputStream.class)
             .withArguments(Mockito.any(FileOutputStream.class)).thenReturn(mLocalOutputStream);
-    OSSOutputStream stream = new OSSOutputStream("testBucketName", "testKey", mOssClient);
+    OSSOutputStream stream = new OSSOutputStream("testBucketName", "testKey", mOssClient, mConf.getList(PropertyKey.TMP_DIRS, ","));
     byte[] b = new byte[1];
     stream.write(b, 0, 1);
     stream.close();
@@ -118,7 +125,7 @@ public class OSSOutputStreamTest {
             .withArguments(Mockito.any(DigestOutputStream.class)).thenReturn(mLocalOutputStream);
     PowerMockito.whenNew(BufferedOutputStream.class)
             .withArguments(Mockito.any(FileOutputStream.class)).thenReturn(mLocalOutputStream);
-    OSSOutputStream stream = new OSSOutputStream("testBucketName", "testKey", mOssClient);
+    OSSOutputStream stream = new OSSOutputStream("testBucketName", "testKey", mOssClient, mConf.getList(PropertyKey.TMP_DIRS, ","));
     byte[] b = new byte[1];
     stream.write(b);
     stream.close();
@@ -141,7 +148,7 @@ public class OSSOutputStreamTest {
             .when(mOssClient.putObject(Mockito.anyString(), Mockito.anyString(),
                     Mockito.any(InputStream.class), Mockito.any(ObjectMetadata.class)))
             .thenThrow(new OSSException(errorMessage));
-    OSSOutputStream stream = new OSSOutputStream("testBucketName", "testKey", mOssClient);
+    OSSOutputStream stream = new OSSOutputStream("testBucketName", "testKey", mOssClient, mConf.getList(PropertyKey.TMP_DIRS, ","));
     mThrown.expect(IOException.class);
     mThrown.expectMessage(errorMessage);
     stream.close();
@@ -159,7 +166,7 @@ public class OSSOutputStreamTest {
     FileInputStream inputStream = PowerMockito.mock(FileInputStream.class);
     PowerMockito.whenNew(FileInputStream.class).withArguments(mFile).thenReturn(inputStream);
 
-    OSSOutputStream stream = new OSSOutputStream("testBucketName", "testKey", mOssClient);
+    OSSOutputStream stream = new OSSOutputStream("testBucketName", "testKey", mOssClient, mConf.getList(PropertyKey.TMP_DIRS, ","));
     stream.close();
     Mockito.verify(mFile).delete();
   }
@@ -172,7 +179,7 @@ public class OSSOutputStreamTest {
   public void testFlush() throws Exception {
     PowerMockito.whenNew(BufferedOutputStream.class)
             .withArguments(Mockito.any(DigestOutputStream.class)).thenReturn(mLocalOutputStream);
-    OSSOutputStream stream = new OSSOutputStream("testBucketName", "testKey", mOssClient);
+    OSSOutputStream stream = new OSSOutputStream("testBucketName", "testKey", mOssClient, mConf.getList(PropertyKey.TMP_DIRS, ","));
     stream.flush();
     stream.close();
     Mockito.verify(mLocalOutputStream).flush();

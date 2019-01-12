@@ -11,6 +11,7 @@
 
 package alluxio.worker.job;
 
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.master.MasterClientConfig;
 import alluxio.master.MasterInquireClient.Factory;
 
@@ -22,9 +23,9 @@ public class JobMasterClientConfig extends MasterClientConfig {
   /**
    * @return a master client configuration with default values
    */
-  public static JobMasterClientConfig defaults() {
+  public static JobMasterClientConfig defaults(AlluxioConfiguration alluxioConf) {
     JobMasterClientConfig conf = new JobMasterClientConfig();
-    conf.withMasterInquireClient(Factory.createForJobMaster());
+    conf.withMasterInquireClient(Factory.createForJobMaster(alluxioConf));
     return conf;
   }
 }

@@ -11,7 +11,7 @@
 
 package alluxio.multi.process;
 
-import alluxio.PropertyKey;
+import alluxio.conf.PropertyKey;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Preconditions;

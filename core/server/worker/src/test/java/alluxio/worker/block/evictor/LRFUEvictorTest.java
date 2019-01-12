@@ -11,8 +11,8 @@
 
 package alluxio.worker.block.evictor;
 
-import alluxio.Configuration;
-import alluxio.PropertyKey;
+import alluxio.conf.ServerConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.worker.block.BlockMetadataManager;
 import alluxio.worker.block.BlockMetadataManagerView;
 import alluxio.worker.block.BlockStoreEventListener;
@@ -66,12 +66,12 @@ public class LRFUEvictorTest {
     mManagerView =
         new BlockMetadataManagerView(mMetaManager, Collections.<Long>emptySet(),
             Collections.<Long>emptySet());
-    Configuration.set(PropertyKey.WORKER_EVICTOR_CLASS, LRFUEvictor.class.getName());
-    Configuration.set(PropertyKey.WORKER_ALLOCATOR_CLASS, MaxFreeAllocator.class.getName());
+    ServerConfiguration.set(PropertyKey.WORKER_EVICTOR_CLASS, LRFUEvictor.class.getName());
+    ServerConfiguration.set(PropertyKey.WORKER_ALLOCATOR_CLASS, MaxFreeAllocator.class.getName());
     Allocator allocator = Allocator.Factory.create(mManagerView);
-    mStepFactor = Configuration.getDouble(PropertyKey.WORKER_EVICTOR_LRFU_STEP_FACTOR);
+    mStepFactor = ServerConfiguration.getDouble(PropertyKey.WORKER_EVICTOR_LRFU_STEP_FACTOR);
     mAttenuationFactor =
-        Configuration.getDouble(PropertyKey.WORKER_EVICTOR_LRFU_ATTENUATION_FACTOR);
+        ServerConfiguration.getDouble(PropertyKey.WORKER_EVICTOR_LRFU_ATTENUATION_FACTOR);
     mEvictor = Evictor.Factory.create(mManagerView, allocator);
   }
 

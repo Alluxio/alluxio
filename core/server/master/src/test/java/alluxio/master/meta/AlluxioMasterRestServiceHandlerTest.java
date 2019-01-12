@@ -22,8 +22,10 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import alluxio.ConfigurationRule;
-import alluxio.PropertyKey;
+import alluxio.Server;
+import alluxio.conf.PropertyKey;
 import alluxio.RuntimeConstants;
+import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.RegisterWorkerPOptions;
 import alluxio.master.CoreMasterContext;
 import alluxio.master.MasterProcess;
@@ -107,7 +109,7 @@ public final class AlluxioMasterRestServiceHandlerTest {
     {
       put(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS, TEST_PATH);
     }
-  });
+  }, ServerConfiguration.global());
 
   @Before
   public void before() throws Exception {
@@ -157,7 +159,8 @@ public final class AlluxioMasterRestServiceHandlerTest {
     when(underFileSystemMock.getSpace(TEST_PATH, UnderFileSystem.SpaceType.SPACE_USED)).thenReturn(
         UFS_SPACE_USED);
     when(underFileSystemFactoryMock.create(eq(TEST_PATH),
-        Matchers.<UnderFileSystemConfiguration>any())).thenReturn(underFileSystemMock);
+        Matchers.<UnderFileSystemConfiguration>any(), ServerConfiguration.global()))
+        .thenReturn(underFileSystemMock);
     UnderFileSystemFactoryRegistry.register(underFileSystemFactoryMock);
   }
 

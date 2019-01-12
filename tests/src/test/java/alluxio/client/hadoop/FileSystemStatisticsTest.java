@@ -11,7 +11,7 @@
 
 package alluxio.client.hadoop;
 
-import alluxio.PropertyKey;
+import alluxio.conf.PropertyKey;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.grpc.WritePType;
 import alluxio.hadoop.FileSystem;

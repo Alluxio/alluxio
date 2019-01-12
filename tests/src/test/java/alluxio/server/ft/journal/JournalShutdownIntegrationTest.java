@@ -19,11 +19,10 @@ import static org.mockito.Mockito.spy;
 
 import alluxio.AlluxioURI;
 import alluxio.AuthenticatedUserRule;
-import alluxio.Configuration;
+import alluxio.conf.ServerConfiguration;
 import alluxio.ConfigurationRule;
-import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
-import alluxio.PropertyKey;
+import alluxio.conf.PropertyKey;
 import alluxio.SystemPropertyRule;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileSystem;
@@ -68,7 +67,8 @@ public class JournalShutdownIntegrationTest extends BaseIntegrationTest {
       new SystemPropertyRule("fs.hdfs.impl.disable.cache", "true");
 
   @Rule
-  public AuthenticatedUserRule mAuthenticatedUser = new AuthenticatedUserRule("test");
+  public AuthenticatedUserRule mAuthenticatedUser = new AuthenticatedUserRule("test",
+      ServerConfiguration.global());
 
   @Rule
   public ConfigurationRule mConfigRule =
@@ -76,7 +76,7 @@ public class JournalShutdownIntegrationTest extends BaseIntegrationTest {
           .put(PropertyKey.MASTER_JOURNAL_TAILER_SHUTDOWN_QUIET_WAIT_TIME_MS, "100")
           .put(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES, "2")
           .put(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX, "32")
-          .put(PropertyKey.USER_RPC_RETRY_MAX_SLEEP_MS, "1sec").build());
+          .put(PropertyKey.USER_RPC_RETRY_MAX_SLEEP_MS, "1sec").build(), ServerConfiguration.global());
 
   private static final long SHUTDOWN_TIME_MS = 15 * Constants.SECOND_MS;
   private static final String TEST_FILE_DIR = "/files/";
@@ -95,9 +95,9 @@ public class JournalShutdownIntegrationTest extends BaseIntegrationTest {
   @After
   public final void after() throws Exception {
     mExecutorsForClient.shutdown();
-    ConfigurationTestUtils.resetConfiguration();
-    Configuration.set(PropertyKey.USER_METRICS_COLLECTION_ENABLED, false);
-    FileSystemContext.get().reset(Configuration.global());
+    ServerConfiguration.reset();
+    ServerConfiguration.set(PropertyKey.USER_METRICS_COLLECTION_ENABLED, false);
+    FileSystemContext.create().reset();
   }
 
   @Test
@@ -171,7 +171,7 @@ public class JournalShutdownIntegrationTest extends BaseIntegrationTest {
     awaitClientTermination();
     // Fail the creation of UFS
     doThrow(new RuntimeException()).when(factory).create(anyString(),
-        any(UnderFileSystemConfiguration.class));
+        any(UnderFileSystemConfiguration.class), ServerConfiguration.global());
     createFsMasterFromJournal();
   }
 
@@ -190,7 +190,7 @@ public class JournalShutdownIntegrationTest extends BaseIntegrationTest {
     awaitClientTermination();
     // Fail the creation of UFS
     doThrow(new RuntimeException()).when(factory).create(anyString(),
-        any(UnderFileSystemConfiguration.class));
+        any(UnderFileSystemConfiguration.class), ServerConfiguration.global());
     createFsMasterFromJournal();
   }
 
@@ -200,7 +200,8 @@ public class JournalShutdownIntegrationTest extends BaseIntegrationTest {
    */
   private UnderFileSystemFactory mountUnmount(FileSystem fs) throws Exception {
     SleepingUnderFileSystem sleepingUfs = new SleepingUnderFileSystem(new AlluxioURI("sleep:///"),
-        new SleepingUnderFileSystemOptions(), UnderFileSystemConfiguration.defaults());
+        new SleepingUnderFileSystemOptions(), UnderFileSystemConfiguration.defaults(),
+        ServerConfiguration.global());
     SleepingUnderFileSystemFactory sleepingUfsFactory =
         new SleepingUnderFileSystemFactory(sleepingUfs);
     UnderFileSystemFactoryRegistry.register(sleepingUfsFactory);
@@ -245,7 +246,7 @@ public class JournalShutdownIntegrationTest extends BaseIntegrationTest {
     // Setup and start the local alluxio cluster.
     LocalAlluxioCluster cluster = new LocalAlluxioCluster();
     cluster.initConfiguration();
-    Configuration.set(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.MUST_CACHE);
+    ServerConfiguration.set(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.MUST_CACHE);
     cluster.start();
     return cluster;
   }

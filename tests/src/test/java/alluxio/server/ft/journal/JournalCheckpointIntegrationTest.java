@@ -15,8 +15,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
-import alluxio.PropertyKey;
+import alluxio.conf.ServerConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.client.MetaMasterClient;
 import alluxio.client.RetryHandlingMetaMasterClient;
 import alluxio.client.file.FileSystemMasterClient;
@@ -73,13 +73,14 @@ public class JournalCheckpointIntegrationTest extends BaseIntegrationTest {
     assertEquals(3, mCluster.getClient().getMountTable().size());
     mCluster.getClient().unmount(alluxioMount1);
     assertEquals(2, mCluster.getClient().getMountTable().size());
-    Configuration.unset(PropertyKey.MASTER_JOURNAL_INIT_FROM_BACKUP);
+    ServerConfiguration.unset(PropertyKey.MASTER_JOURNAL_INIT_FROM_BACKUP);
   }
 
   @Test
   public void recoverUfsState() throws Exception {
     FileSystemMasterClient client =
-        new RetryHandlingFileSystemMasterClient(MasterClientConfig.defaults());
+        new RetryHandlingFileSystemMasterClient(MasterClientConfig.defaults(
+            ServerConfiguration.global()), ServerConfiguration.global());
     client.updateUfsMode(new AlluxioURI(""),
         UpdateUfsModePOptions.newBuilder().setUfsMode(UfsPMode.READ_ONLY).build());
 
@@ -95,9 +96,11 @@ public class JournalCheckpointIntegrationTest extends BaseIntegrationTest {
 
   private void backupAndRestore() throws Exception {
     File backup = mFolder.newFolder("backup");
-    MetaMasterClient metaClient = new RetryHandlingMetaMasterClient(MasterClientConfig.defaults());
+    MetaMasterClient metaClient =
+        new RetryHandlingMetaMasterClient(MasterClientConfig.defaults(
+            ServerConfiguration.global()), ServerConfiguration.global());
     AlluxioURI backupURI = metaClient.backup(backup.getAbsolutePath(), true).getBackupUri();
-    Configuration.set(PropertyKey.MASTER_JOURNAL_INIT_FROM_BACKUP, backupURI);
+    ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_INIT_FROM_BACKUP, backupURI);
     mCluster.formatAndRestartMasters();
   }
 }

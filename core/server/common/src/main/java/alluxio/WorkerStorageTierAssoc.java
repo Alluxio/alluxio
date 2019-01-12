@@ -11,6 +11,9 @@
 
 package alluxio;
 
+import alluxio.conf.ServerConfiguration;
+import alluxio.conf.PropertyKey;
+
 import java.util.List;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -22,7 +25,7 @@ import javax.annotation.concurrent.ThreadSafe;
 public class WorkerStorageTierAssoc extends StorageTierAssoc {
 
   /**
-   * Creates a new instance of {@link WorkerStorageTierAssoc} using a {@link Configuration}.
+   * Creates a new instance of {@link WorkerStorageTierAssoc} using a {@link ServerConfiguration}.
    */
   public WorkerStorageTierAssoc() {
     super(PropertyKey.WORKER_TIERED_STORE_LEVELS,

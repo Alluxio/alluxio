@@ -12,8 +12,8 @@
 package alluxio.web;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
-import alluxio.PropertyKey;
+import alluxio.conf.ServerConfiguration;
+import alluxio.conf.PropertyKey;
 
 import com.google.common.io.ByteStreams;
 
@@ -58,7 +58,7 @@ public final class WebInterfaceDownloadLocalServlet extends HttpServlet {
     }
 
     // Download a file from the local filesystem.
-    File logsDir = new File(Configuration.get(PropertyKey.LOGS_DIR));
+    File logsDir = new File(ServerConfiguration.get(PropertyKey.LOGS_DIR));
 
     // Only allow filenames as the path, to avoid downloading arbitrary local files.
     requestPath = new File(requestPath).getName();

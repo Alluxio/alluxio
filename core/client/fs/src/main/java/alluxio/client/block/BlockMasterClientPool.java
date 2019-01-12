@@ -11,8 +11,8 @@
 
 package alluxio.client.block;
 
-import alluxio.Configuration;
-import alluxio.PropertyKey;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.master.MasterClientConfig;
 import alluxio.master.MasterInquireClient;
 import alluxio.resource.ResourcePool;
@@ -36,6 +36,7 @@ public final class BlockMasterClientPool extends ResourcePool<BlockMasterClient>
   private final MasterInquireClient mMasterInquireClient;
   private final Queue<BlockMasterClient> mClientList;
   private final Subject mSubject;
+  private final AlluxioConfiguration mAlluxioConf;
 
   /**
    * Creates a new block master client pool.
@@ -43,8 +44,10 @@ public final class BlockMasterClientPool extends ResourcePool<BlockMasterClient>
    * @param subject the parent subject
    * @param masterInquireClient a client for determining the master address
    */
-  public BlockMasterClientPool(Subject subject, MasterInquireClient masterInquireClient) {
-    super(Configuration.getInt(PropertyKey.USER_BLOCK_MASTER_CLIENT_THREADS));
+  public BlockMasterClientPool(Subject subject, MasterInquireClient masterInquireClient,
+      AlluxioConfiguration alluxioConf) {
+    super(alluxioConf.getInt(PropertyKey.USER_BLOCK_MASTER_CLIENT_THREADS));
+    mAlluxioConf = alluxioConf;
     mSubject = subject;
     mMasterInquireClient = masterInquireClient;
     mClientList = new ConcurrentLinkedQueue<>();
@@ -62,8 +65,8 @@ public final class BlockMasterClientPool extends ResourcePool<BlockMasterClient>
 
   @Override
   protected BlockMasterClient createNewResource() {
-    BlockMasterClient client = BlockMasterClient.Factory.create(MasterClientConfig.defaults()
-        .withSubject(mSubject).withMasterInquireClient(mMasterInquireClient));
+    BlockMasterClient client = BlockMasterClient.Factory.create(MasterClientConfig.defaults(mAlluxioConf)
+        .withSubject(mSubject).withMasterInquireClient(mMasterInquireClient), mAlluxioConf);
     mClientList.add(client);
     return client;
   }

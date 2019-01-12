@@ -11,6 +11,8 @@
 
 package alluxio;
 
+import alluxio.conf.ServerConfiguration;
+import alluxio.conf.PropertyKey;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -68,7 +70,7 @@ public final class ProcessUtils {
     if (t != null) {
       message += "\n" + ExceptionUtils.getStackTrace(t);
     }
-    if (Configuration.getBoolean(PropertyKey.TEST_MODE)) {
+    if (ServerConfiguration.getBoolean(PropertyKey.TEST_MODE)) {
       throw new RuntimeException(message);
     }
     logger.error(message);

@@ -13,6 +13,7 @@ package alluxio.client.keyvalue;
 
 import alluxio.AlluxioURI;
 import alluxio.annotation.PublicApi;
+import alluxio.conf.*;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
@@ -36,9 +37,9 @@ public interface KeyValueSystem {
     /**
      * @return a {@link KeyValueSystem} instance
      */
-    public static synchronized KeyValueSystem create() {
+    public static synchronized KeyValueSystem create(AlluxioConfiguration conf) {
       if (sKeyValueSystem == null) {
-        sKeyValueSystem = new BaseKeyValueSystem();
+        sKeyValueSystem = new BaseKeyValueSystem(conf);
       }
       return sKeyValueSystem;
     }

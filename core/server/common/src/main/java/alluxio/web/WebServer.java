@@ -12,8 +12,8 @@
 package alluxio.web;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
-import alluxio.PropertyKey;
+import alluxio.conf.ServerConfiguration;
+import alluxio.conf.PropertyKey;
 
 import com.google.common.base.Preconditions;
 import org.eclipse.jetty.server.Connector;
@@ -64,7 +64,7 @@ public abstract class WebServer {
     mServiceName = serviceName;
 
     QueuedThreadPool threadPool = new QueuedThreadPool();
-    int webThreadCount = Configuration.getInt(PropertyKey.WEB_THREADS);
+    int webThreadCount = ServerConfiguration.getInt(PropertyKey.WEB_THREADS);
 
     // Jetty needs at least (1 + selectors + acceptors) threads.
     threadPool.setMinThreads(webThreadCount * 2 + 1);
@@ -89,9 +89,9 @@ public abstract class WebServer {
 
     mWebAppContext = new WebAppContext();
     mWebAppContext.setContextPath(AlluxioURI.SEPARATOR);
-    File warPath = new File(Configuration.get(PropertyKey.WEB_RESOURCES));
+    File warPath = new File(ServerConfiguration.get(PropertyKey.WEB_RESOURCES));
     mWebAppContext.setWar(warPath.getAbsolutePath());
-    String webTempPath = Configuration.get(PropertyKey.WEB_TEMP_PATH);
+    String webTempPath = ServerConfiguration.get(PropertyKey.WEB_TEMP_PATH);
     LOG.info("Using temporary directory {} for web server resources", webTempPath);
     if (!Files.exists(Paths.get(webTempPath))) {
       try {

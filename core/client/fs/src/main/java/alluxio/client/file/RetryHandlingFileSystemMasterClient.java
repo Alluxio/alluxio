@@ -14,6 +14,7 @@ package alluxio.client.file;
 import alluxio.AbstractMasterClient;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.grpc.CheckConsistencyPOptions;
 import alluxio.grpc.CheckConsistencyPRequest;
@@ -81,8 +82,9 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
    *
    * @param conf master client configuration
    */
-  public RetryHandlingFileSystemMasterClient(MasterClientConfig conf) {
-    super(conf);
+  public RetryHandlingFileSystemMasterClient(MasterClientConfig conf,
+      AlluxioConfiguration alluxioConf) {
+    super(conf, alluxioConf);
   }
 
   @Override

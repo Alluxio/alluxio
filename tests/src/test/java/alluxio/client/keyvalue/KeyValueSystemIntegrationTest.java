@@ -12,9 +12,9 @@
 package alluxio.client.keyvalue;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
+import alluxio.conf.ServerConfiguration;
 import alluxio.Constants;
-import alluxio.PropertyKey;
+import alluxio.conf.PropertyKey;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
@@ -74,7 +74,7 @@ public final class KeyValueSystemIntegrationTest extends BaseIntegrationTest {
 
   @BeforeClass
   public static void beforeClass() throws Exception {
-    sKeyValueSystem = KeyValueSystem.Factory.create();
+    sKeyValueSystem = KeyValueSystem.Factory.create(ServerConfiguration.global());
   }
 
   @Before
@@ -262,7 +262,7 @@ public final class KeyValueSystemIntegrationTest extends BaseIntegrationTest {
     final int keyLength = 4; // 4Byte key
     final int valueLength = 500 * Constants.KB; // 500KB value
 
-    Configuration
+    ServerConfiguration
         .set(PropertyKey.KEY_VALUE_PARTITION_SIZE_BYTES_MAX, String.valueOf(maxPartitionSize));
     try {
       mWriter = sKeyValueSystem.createStore(mStoreUri);
@@ -332,7 +332,9 @@ public final class KeyValueSystemIntegrationTest extends BaseIntegrationTest {
   }
 
   private int getPartitionNumber(AlluxioURI storeUri) throws Exception {
-    try (KeyValueMasterClient client = new KeyValueMasterClient(MasterClientConfig.defaults())) {
+    try (KeyValueMasterClient client =
+             new KeyValueMasterClient(MasterClientConfig.defaults(ServerConfiguration.global()),
+              ServerConfiguration.global())) {
       return client.getPartitionInfo(storeUri).size();
     }
   }
@@ -351,7 +353,7 @@ public final class KeyValueSystemIntegrationTest extends BaseIntegrationTest {
       List<KeyValuePair> keyValuePairs) throws Exception {
     // These sizes are carefully selected, one partition holds only one key-value pair.
     final long maxPartitionSize = Constants.MB; // Each partition is at most 1 MB
-    Configuration
+    ServerConfiguration
         .set(PropertyKey.KEY_VALUE_PARTITION_SIZE_BYTES_MAX, String.valueOf(maxPartitionSize));
     final int keyLength = 4; // 4Byte key
     final int valueLength = 500 * Constants.KB; // 500KB value
@@ -512,7 +514,7 @@ public final class KeyValueSystemIntegrationTest extends BaseIntegrationTest {
    */
   @Test
   public void create() {
-    KeyValueSystem system = KeyValueSystem.Factory.create();
+    KeyValueSystem system = KeyValueSystem.Factory.create(ServerConfiguration.global());
     Assert.assertNotNull(system);
   }
 }

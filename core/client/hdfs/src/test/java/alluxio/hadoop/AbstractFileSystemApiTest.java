@@ -15,9 +15,9 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
-import alluxio.PropertyKey;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.TestLoggerRule;
 
 import org.junit.After;
@@ -37,16 +37,18 @@ public final class AbstractFileSystemApiTest {
   @Rule
   public TestLoggerRule mTestLogger = new TestLoggerRule();
 
+  private InstancedConfiguration mConf = ConfigurationTestUtils.defaults();
+
   @Before
   public void before() {
     // To make the test run faster.
-    Configuration.set(PropertyKey.METRICS_CONTEXT_SHUTDOWN_TIMEOUT, "0sec");
+    mConf.set(PropertyKey.METRICS_CONTEXT_SHUTDOWN_TIMEOUT, "0sec");
   }
 
   @After
   public void after() {
-    HadoopClientTestUtils.resetClient();
-    ConfigurationTestUtils.resetConfiguration();
+    HadoopClientTestUtils.resetClient(mConf);
+    mConf = ConfigurationTestUtils.defaults();
   }
 
   @Test
@@ -74,8 +76,8 @@ public final class AbstractFileSystemApiTest {
   public void parseZkUriWithPlusDelimiters() throws Exception {
     FileSystem.get(URI.create("alluxio://zk@a:0+b:1+c:2/"),
         new org.apache.hadoop.conf.Configuration());
-    assertTrue(Configuration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED));
-    assertEquals("a:0,b:1,c:2", Configuration.get(PropertyKey.ZOOKEEPER_ADDRESS));
+    assertTrue(mConf.getBoolean(PropertyKey.ZOOKEEPER_ENABLED));
+    assertEquals("a:0,b:1,c:2", mConf.get(PropertyKey.ZOOKEEPER_ADDRESS));
   }
 
   private boolean loggedAuthorityWarning() {

@@ -13,6 +13,9 @@ package alluxio.cli.extensions;
 
 import alluxio.cli.AbstractShell;
 import alluxio.cli.Command;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.util.ConfigurationUtils;
 
 import java.util.Map;
 
@@ -23,8 +26,8 @@ public final class ExtensionsShell extends AbstractShell {
   /**
    * Construct a new instance of {@link ExtensionsShell}.
    */
-  ExtensionsShell() {
-    super(null);
+  ExtensionsShell(InstancedConfiguration conf) {
+    super(null, conf);
   }
 
   /**
@@ -33,7 +36,8 @@ public final class ExtensionsShell extends AbstractShell {
    * @param args array of arguments given by the user's input from the terminal
    */
   public static void main(String[] args) {
-    ExtensionsShell extensionShell = new ExtensionsShell();
+    ExtensionsShell extensionShell = new ExtensionsShell(new InstancedConfiguration(
+        ConfigurationUtils.defaults()));
     System.exit(extensionShell.run(args));
   }
 

@@ -17,6 +17,8 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import alluxio.ConfigurationTestUtils;
+import alluxio.conf.InstancedConfiguration;
 import alluxio.master.MasterClientConfig;
 
 import org.junit.Test;
@@ -28,15 +30,17 @@ import org.powermock.modules.junit4.PowerMockRunner;
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(BlockMasterClient.Factory.class)
 public class BlockMasterClientPoolTest {
+
+  private InstancedConfiguration mConf = ConfigurationTestUtils.defaults();
   @Test
   public void create() throws Exception {
     BlockMasterClient expectedClient = mock(BlockMasterClient.class);
     PowerMockito.mockStatic(BlockMasterClient.Factory.class);
     when(BlockMasterClient.Factory
-        .create(any(MasterClientConfig.class)))
+        .create(any(MasterClientConfig.class), any(InstancedConfiguration.class)))
         .thenReturn(expectedClient);
     BlockMasterClient client;
-    try (BlockMasterClientPool pool = new BlockMasterClientPool(null, null)) {
+    try (BlockMasterClientPool pool = new BlockMasterClientPool(null, null, mConf)) {
       client = pool.acquire();
       assertEquals(expectedClient, client);
       pool.release(client);

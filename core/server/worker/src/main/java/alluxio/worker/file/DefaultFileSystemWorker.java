@@ -11,9 +11,9 @@
 
 package alluxio.worker.file;
 
-import alluxio.Configuration;
+import alluxio.conf.ServerConfiguration;
 import alluxio.Constants;
-import alluxio.PropertyKey;
+import alluxio.conf.PropertyKey;
 import alluxio.Server;
 import alluxio.grpc.GrpcService;
 import alluxio.grpc.ServiceType;
@@ -74,11 +74,12 @@ public final class DefaultFileSystemWorker extends AbstractWorker implements Fil
     mWorkerId = blockWorker.getWorkerId();
     mUfsManager = ufsManager;
     mFileDataManager = new FileDataManager(Preconditions.checkNotNull(blockWorker, "blockWorker"),
-        RateLimiter.create(Configuration.getBytes(PropertyKey.WORKER_FILE_PERSIST_RATE_LIMIT)),
+        RateLimiter.create(ServerConfiguration.getBytes(PropertyKey.WORKER_FILE_PERSIST_RATE_LIMIT)),
         mUfsManager);
 
     // Setup AbstractMasterClient
-    mFileSystemMasterWorkerClient = new FileSystemMasterClient(MasterClientConfig.defaults());
+    mFileSystemMasterWorkerClient =
+        new FileSystemMasterClient(MasterClientConfig.defaults(ServerConfiguration.global()));
   }
 
   @Override
@@ -102,7 +103,8 @@ public final class DefaultFileSystemWorker extends AbstractWorker implements Fil
         new HeartbeatThread(HeartbeatContext.WORKER_FILESYSTEM_MASTER_SYNC,
             new FileWorkerMasterSyncExecutor(mFileDataManager, mFileSystemMasterWorkerClient,
                 mWorkerId),
-            (int) Configuration.getMs(PropertyKey.WORKER_FILESYSTEM_HEARTBEAT_INTERVAL_MS)));
+            (int) ServerConfiguration.getMs(PropertyKey.WORKER_FILESYSTEM_HEARTBEAT_INTERVAL_MS),
+            ServerConfiguration.global()));
   }
 
   @Override

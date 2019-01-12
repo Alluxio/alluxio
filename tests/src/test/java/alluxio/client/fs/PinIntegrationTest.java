@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
+import alluxio.conf.ServerConfiguration;
 import alluxio.exception.AlluxioException;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.SetAttributePOptions;
@@ -49,7 +50,7 @@ public final class PinIntegrationTest extends BaseIntegrationTest {
   @Before
   public final void before() throws Exception {
     mFileSystem = mLocalAlluxioClusterResource.get().getClient();
-    mFSMasterClient = new FileSystemMasterClient(MasterClientConfig.defaults());
+    mFSMasterClient = new FileSystemMasterClient(MasterClientConfig.defaults(ServerConfiguration.global()));
     mSetPinned = SetAttributePOptions.newBuilder().setPinned(true).build();
     mUnsetPinned = SetAttributePOptions.newBuilder().setPinned(false).build();
   }

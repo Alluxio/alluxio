@@ -11,9 +11,6 @@
 
 package alluxio.util;
 
-import alluxio.PropertyKey;
-import alluxio.Configuration;
-
 import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
@@ -62,10 +59,10 @@ public final class JvmPauseMonitor {
   /**
    * Constructs JvmPauseMonitor.
    */
-  public JvmPauseMonitor() {
-    mGcSleepIntervalMs = Configuration.getMs(PropertyKey.JVM_MONITOR_SLEEP_INTERVAL_MS);
-    mWarnThresholdMs = Configuration.getMs(PropertyKey.JVM_MONITOR_WARN_THRESHOLD_MS);
-    mInfoThresholdMs = Configuration.getMs(PropertyKey.JVM_MONITOR_INFO_THRESHOLD_MS);
+  public JvmPauseMonitor(long gcSleepIntervalMs, long warnThresholdMs, long infoThresholdMs) {
+    mGcSleepIntervalMs = gcSleepIntervalMs;
+    mWarnThresholdMs = warnThresholdMs;
+    mInfoThresholdMs = infoThresholdMs;
   }
 
   /**

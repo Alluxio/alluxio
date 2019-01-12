@@ -15,6 +15,7 @@ import alluxio.client.keyvalue.KeyValueIterator;
 import alluxio.client.keyvalue.KeyValuePair;
 import alluxio.client.keyvalue.KeyValuePartitionReader;
 import alluxio.client.keyvalue.KeyValueSystem;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.AlluxioException;
 import alluxio.util.io.BufferUtils;
 
@@ -48,10 +49,14 @@ final class KeyValueRecordReader extends RecordReader<BytesWritable, BytesWritab
   /** Current value. */
   private BytesWritable mCurrentValue;
 
+  private final AlluxioConfiguration mConf;
+
   /**
    * Creates a {@link KeyValueRecordReader} for generating key-value pairs of a partition.
    */
-  public KeyValueRecordReader() {}
+  public KeyValueRecordReader(AlluxioConfiguration conf) {
+    mConf = conf;
+  }
 
   @Override
   public void initialize(InputSplit split, TaskAttemptContext context)
@@ -62,7 +67,7 @@ final class KeyValueRecordReader extends RecordReader<BytesWritable, BytesWritab
         throw new IOException("Split is required to be KeyValueInputSplit");
       }
       mReader =
-          KeyValuePartitionReader.Factory.create(((KeyValueInputSplit) split).getPartitionId());
+          KeyValuePartitionReader.Factory.create(((KeyValueInputSplit) split).getPartitionId(), mConf);
       mKeyValuePairIterator = mReader.iterator();
       mNumVisitedKeyValuePairs = 0;
       mNumKeyValuePairs = mReader.size();

@@ -11,7 +11,8 @@
 
 package alluxio.checker;
 
-import alluxio.PropertyKey;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
@@ -99,16 +100,16 @@ public final class CheckerUtils {
    * @param reportWriter save user-facing messages to a generated file
    * @return true if Alluxio HA mode is supported, false otherwise
    */
-  public static boolean supportAlluxioHA(PrintWriter reportWriter) {
-    if (alluxio.Configuration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED)) {
+  public static boolean supportAlluxioHA(PrintWriter reportWriter, AlluxioConfiguration conf) {
+    if (conf.getBoolean(PropertyKey.ZOOKEEPER_ENABLED)) {
       reportWriter.println("Alluixo is running in high availability mode.\n");
-      if (!alluxio.Configuration.isSet(PropertyKey.ZOOKEEPER_ADDRESS)) {
+      if (!conf.isSet(PropertyKey.ZOOKEEPER_ADDRESS)) {
         reportWriter.println("Please set Zookeeper address to support "
             + "Alluxio high availability mode.\n");
         return false;
       } else {
         reportWriter.printf("Zookeeper address is: %s.%n",
-            alluxio.Configuration.get(PropertyKey.ZOOKEEPER_ADDRESS));
+            conf.get(PropertyKey.ZOOKEEPER_ADDRESS));
       }
     }
     return true;

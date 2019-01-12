@@ -145,7 +145,7 @@ public final class LinearProbingIndex implements Index {
 
   /**
    * @param key the key
-   * @param reader the reader to be used to get key from payload
+   * @param reader the reader to be used to create key from payload
    * @return bucket offset in the {@link Index} of the key, -1 if no such key is found
    */
   private int bucketOffset(ByteBuffer key, PayloadReader reader) {

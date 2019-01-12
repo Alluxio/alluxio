@@ -11,8 +11,8 @@
 
 package alluxio.security.authentication;
 
-import alluxio.Configuration;
-import alluxio.PropertyKey;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.status.UnauthenticatedException;
 import alluxio.grpc.SaslAuthenticationServiceGrpc;
 import alluxio.grpc.SaslMessage;
@@ -59,11 +59,14 @@ public class DefaultAuthenticationServer
   protected final long mCleanupIntervalMs =
       Configuration.getMs(PropertyKey.AUTHENTICATION_INACTIVE_CHANNEL_REAUTHENTICATE_PERIOD);
 
+  private final AlluxioConfiguration mConfiguration;
+
   /**
    * Creates {@link DefaultAuthenticationServer} instance.
    */
-  public DefaultAuthenticationServer() {
-    checkSupported(Configuration.getEnum(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.class));
+  public DefaultAuthenticationServer(AlluxioConfiguration conf) {
+    checkSupported(conf.getEnum(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.class));
+    mConfiguration = conf;
     mChannels = new ConcurrentHashMap<>();
     mScheduler = Executors.newScheduledThreadPool(1,
         ThreadFactoryUtils.build("auth-cleanup", true));
@@ -75,7 +78,7 @@ public class DefaultAuthenticationServer
   @Override
   public StreamObserver<SaslMessage> authenticate(StreamObserver<SaslMessage> responseObserver) {
     // Create and return server sasl driver that will coordinate authentication traffic.
-    SaslStreamServerDriver driver = new SaslStreamServerDriver(this);
+    SaslStreamServerDriver driver = new SaslStreamServerDriver(this, mConfiguration);
     driver.setClientObserver(responseObserver);
     return driver;
   }
@@ -159,12 +162,12 @@ public class DefaultAuthenticationServer
 
   @Override
   public List<ServerInterceptor> getInterceptors() {
-    if (!SecurityUtils.isSecurityEnabled()) {
+    if (!SecurityUtils.isSecurityEnabled(mConfiguration)) {
       return Collections.emptyList();
     }
     List<ServerInterceptor> interceptorsList = new ArrayList<>(2);
     AuthType authType =
-        Configuration.getEnum(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.class);
+        mConfiguration.getEnum(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.class);
     checkSupported(authType);
     switch (authType) {
       case SIMPLE:
