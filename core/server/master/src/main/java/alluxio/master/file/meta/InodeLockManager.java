@@ -11,7 +11,7 @@
 
 package alluxio.master.file.meta;
 
-import alluxio.collections.LRUCache;
+import alluxio.collections.LockCache;
 import alluxio.concurrent.WeakSafeReentrantReadWriteLock;
 import alluxio.master.file.meta.InodeTree.LockMode;
 import alluxio.resource.LockResource;
@@ -46,14 +46,14 @@ public class InodeLockManager {
    * a lock, the garbage collector can remove the lock's entry from the cache.
    */
 
-  public final LRUCache<Long, WeakSafeReentrantReadWriteLock> mInodeLocks =
-      new LRUCache<>(()-> new WeakSafeReentrantReadWriteLock(), 1000, 1000000, 100);
+  public final LockCache<Long, WeakSafeReentrantReadWriteLock> mInodeLocks =
+      new LockCache<>((key)-> new WeakSafeReentrantReadWriteLock(), 1000, 1000000, 100);
   /**
    * Cache for supplying edge locks, similar to mInodeLocks.
    */
 
-  public final LRUCache<Edge, WeakSafeReentrantReadWriteLock> mEdgeLocks =
-      new LRUCache<>(()-> new WeakSafeReentrantReadWriteLock(), 1000, 1000000, 100);
+  public final LockCache<Edge, WeakSafeReentrantReadWriteLock> mEdgeLocks =
+      new LockCache<>((key)-> new WeakSafeReentrantReadWriteLock(), 1000, 1000000, 100);
 
   /**
    * Cache for supplying inode persistence locks. Before a thread can persist an inode, it must
@@ -74,22 +74,22 @@ public class InodeLockManager {
 
   @VisibleForTesting
   boolean inodeReadLockedByCurrentThread(long inodeId) {
-    return mInodeLocks.getUnchecked(inodeId).getReadHoldCount() > 0;
+    return mInodeLocks.get(inodeId).getReadHoldCount() > 0;
   }
 
   @VisibleForTesting
   boolean inodeWriteLockedByCurrentThread(long inodeId) {
-    return mInodeLocks.getUnchecked(inodeId).getWriteHoldCount() > 0;
+    return mInodeLocks.get(inodeId).getWriteHoldCount() > 0;
   }
 
   @VisibleForTesting
   boolean edgeReadLockedByCurrentThread(Edge edge) {
-    return mEdgeLocks.getUnchecked(edge).getReadHoldCount() > 0;
+    return mEdgeLocks.get(edge).getReadHoldCount() > 0;
   }
 
   @VisibleForTesting
   boolean edgeWriteLockedByCurrentThread(Edge edge) {
-    return mEdgeLocks.getUnchecked(edge).getWriteHoldCount() > 0;
+    return mEdgeLocks.get(edge).getWriteHoldCount() > 0;
   }
 
   /**
@@ -100,7 +100,7 @@ public class InodeLockManager {
    * @return a lock resource which must be closed to release the lock
    */
   public LockResource lockInode(InodeView inode, LockMode mode) {
-    return lock(mInodeLocks.getUnchecked(inode.getId()), mode);
+    return lock(mInodeLocks.get(inode.getId()), mode);
   }
 
   /**
@@ -111,7 +111,7 @@ public class InodeLockManager {
    * @return a lock resource which must be closed to release the lock
    */
   public LockResource lockEdge(Edge edge, LockMode mode) {
-    return lock(mEdgeLocks.getUnchecked(edge), mode);
+    return lock(mEdgeLocks.get(edge), mode);
   }
 
   /**
