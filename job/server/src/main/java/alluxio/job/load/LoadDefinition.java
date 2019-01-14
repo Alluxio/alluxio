@@ -61,7 +61,7 @@ public final class LoadDefinition
    * Constructs a new {@link LoadDefinition}.
    */
   public LoadDefinition() {
-    mFileSystem = BaseFileSystem.create(ClientContext.create(null, ServerConfiguration.copyProperties()));
+    mFileSystem = BaseFileSystem.create(FileSystemContext.create());
   }
 
   /**
@@ -82,7 +82,7 @@ public final class LoadDefinition
     List<String> missingJobWorkerHosts = new ArrayList<>();
     List<BlockWorkerInfo> workers = new ArrayList<>();
     for (BlockWorkerInfo worker :
-        AlluxioBlockStore.create(null, ServerConfiguration.global()).getAllWorkers()) {
+        AlluxioBlockStore.create(ServerConfiguration.global()).getAllWorkers()) {
       if (jobWorkersByAddress.containsKey(worker.getNetAddress().getHost())) {
         workers.add(worker);
       } else {

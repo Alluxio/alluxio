@@ -13,8 +13,6 @@ package alluxio.client.block.stream;
 
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.OutStreamOptions;
-import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.PropertyKey;
 import alluxio.exception.status.ResourceExhaustedException;
 import alluxio.grpc.RequestType;
 import alluxio.wire.WorkerNetAddress;
@@ -42,7 +40,6 @@ public final class UfsFallbackLocalFileDataWriter implements DataWriter {
   private final OutStreamOptions mOutStreamOptions;
   private GrpcDataWriter mGrpcDataWriter;
   private boolean mIsWritingToLocal;
-  private final AlluxioConfiguration mAlluxioConf;
 
   /**
    * @param context the file system context

@@ -12,12 +12,12 @@
 package alluxio.job.replicate;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
-import alluxio.PropertyKey;
+import alluxio.conf.PropertyKey;
 import alluxio.TestLoggerRule;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
+import alluxio.conf.ServerConfiguration;
 import alluxio.exception.ExceptionMessage;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.heartbeat.HeartbeatContext;
@@ -110,7 +110,7 @@ public final class ReplicateIntegrationTest extends JobIntegrationTest {
       createFileOutsideOfAlluxio(uri);
     }
     String exceptionMsg = ExceptionMessage.JOB_MASTER_FULL_CAPACITY
-        .getMessage(Configuration.get(PropertyKey.JOB_MASTER_JOB_CAPACITY));
+        .getMessage(ServerConfiguration.get(PropertyKey.JOB_MASTER_JOB_CAPACITY));
     String replicationCheckerMsg = "The job service is busy, will retry later."
         + " alluxio.exception.status.ResourceExhaustedException: " + exceptionMsg;
     String rpcUtilsMsg = "Error=alluxio.exception.status.ResourceExhaustedException: "

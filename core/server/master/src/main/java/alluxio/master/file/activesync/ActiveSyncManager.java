@@ -12,10 +12,10 @@
 package alluxio.master.file.activesync;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
 import alluxio.ProcessUtils;
-import alluxio.PropertyKey;
 import alluxio.SyncInfo;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidPathException;
 import alluxio.heartbeat.HeartbeatContext;
@@ -170,7 +170,7 @@ public class ActiveSyncManager implements JournalEntryIterable, JournalEntryRepl
 
       try {
         if ((txId == SyncInfo.INVALID_TXID)
-            && Configuration.getBoolean(PropertyKey.MASTER_ACTIVE_UFS_SYNC_INITIAL_SYNC)) {
+            && ServerConfiguration.getBoolean(PropertyKey.MASTER_ACTIVE_UFS_SYNC_INITIAL_SYNC)) {
           mExecutorService.submit(
               () -> mFilterMap.get(mountId).parallelStream().forEach(
                   syncPoint -> {
@@ -178,7 +178,8 @@ public class ActiveSyncManager implements JournalEntryIterable, JournalEntryRepl
                       RetryUtils.retry("active sync during start",
                           () -> mFileSystemMaster.activeSyncMetadata(syncPoint,
                               null, getExecutor()),
-                          RetryUtils.defaultActiveSyncClientRetry());
+                          RetryUtils.defaultActiveSyncClientRetry(ServerConfiguration
+                              .getMs(PropertyKey.MASTER_ACTIVE_UFS_POLL_TIMEOUT)));
                     } catch (IOException e) {
                       LOG.warn("IOException encountered during active sync while starting {}", e);
                     }
@@ -208,8 +209,8 @@ public class ActiveSyncManager implements JournalEntryIterable, JournalEntryRepl
       ActiveSyncer syncer = new ActiveSyncer(mFileSystemMaster, this, mMountTable, mountId);
       Future<?> future = getExecutor().submit(
           new HeartbeatThread(HeartbeatContext.MASTER_ACTIVE_UFS_SYNC,
-              syncer,
-              (int) Configuration.getMs(PropertyKey.MASTER_ACTIVE_UFS_SYNC_INTERVAL)));
+              syncer, (int) ServerConfiguration.getMs(PropertyKey.MASTER_ACTIVE_UFS_SYNC_INTERVAL),
+              ServerConfiguration.global()));
       mPollerMap.put(mountId, future);
     }
   }
@@ -581,7 +582,7 @@ public class ActiveSyncManager implements JournalEntryIterable, JournalEntryRepl
 
       mSyncPathStatus.put(uri, syncFuture);
     }
-    if (Configuration.getBoolean(PropertyKey.MASTER_ACTIVE_UFS_SYNC_INITIAL_SYNC)) {
+    if (ServerConfiguration.getBoolean(PropertyKey.MASTER_ACTIVE_UFS_SYNC_INITIAL_SYNC)) {
       mFileSystemMaster.activeSyncMetadata(uri, null, getExecutor());
     }
   }

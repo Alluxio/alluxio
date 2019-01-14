@@ -61,9 +61,9 @@ public class BlockOutStream extends OutputStream implements BoundedStream, Cance
    * @return the {@link OutputStream} object
    */
   public static BlockOutStream create(FileSystemContext context, long blockId, long blockSize,
-      WorkerNetAddress address, OutStreamOptions options, AlluxioConfiguration alluxioConf) throws IOException {
+      WorkerNetAddress address, OutStreamOptions options) throws IOException {
     DataWriter dataWriter =
-        DataWriter.Factory.create(context, blockId, blockSize, address, options, alluxioConf);
+        DataWriter.Factory.create(context, blockId, blockSize, address, options);
     return new BlockOutStream(dataWriter, blockSize, address);
   }
 
@@ -108,11 +108,11 @@ public class BlockOutStream extends OutputStream implements BoundedStream, Cance
    */
   public static BlockOutStream createReplicatedBlockOutStream(FileSystemContext context,
       long blockId, long blockSize, java.util.List<WorkerNetAddress> workerNetAddresses,
-      OutStreamOptions options, AlluxioConfiguration alluxioConf) throws IOException {
+      OutStreamOptions options) throws IOException {
     List<DataWriter> dataWriters = new ArrayList<>();
     for (WorkerNetAddress address: workerNetAddresses) {
       DataWriter dataWriter =
-            DataWriter.Factory.create(context, blockId, blockSize, address, options, alluxioConf);
+            DataWriter.Factory.create(context, blockId, blockSize, address, options);
       dataWriters.add(dataWriter);
     }
     return new BlockOutStream(dataWriters, blockSize, workerNetAddresses);

@@ -13,6 +13,7 @@ package alluxio.cli.fs.command;
 
 import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystem;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 
@@ -32,8 +33,8 @@ public class GetSyncPathListCommand extends AbstractFileSystemCommand{
    *
    * @param fs file system
    */
-  public GetSyncPathListCommand(FileSystem fs) {
-    super(fs);
+  public GetSyncPathListCommand(FileSystem fs, AlluxioConfiguration alluxioConf) {
+    super(fs, alluxioConf);
   }
 
   @Override

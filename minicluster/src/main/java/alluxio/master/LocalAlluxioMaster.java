@@ -112,7 +112,7 @@ public final class LocalAlluxioMaster {
     mMasterThread.start();
     TestUtils.waitForReady(mMasterProcess);
     // Don't start a secondary master when using the Raft journal.
-    if (Configuration.getEnum(PropertyKey.MASTER_JOURNAL_TYPE,
+    if (ServerConfiguration.getEnum(PropertyKey.MASTER_JOURNAL_TYPE,
         JournalType.class) == JournalType.EMBEDDED) {
       return;
     }

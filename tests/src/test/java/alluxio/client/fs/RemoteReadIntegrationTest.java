@@ -253,7 +253,7 @@ public class RemoteReadIntegrationTest extends BaseIntegrationTest {
       WorkerNetAddress workerAddr = info.getLocations().get(0).getWorkerAddress();
       BlockInStream is =
           BlockInStream.create(FileSystemContext.create(), options.getBlockInfo(blockId),
-              workerAddr, BlockInStreamSource.REMOTE, options, ServerConfiguration.global());
+              workerAddr, BlockInStreamSource.REMOTE, options);
       byte[] ret = new byte[k];
       int value = is.read();
       int cnt = 0;
@@ -287,7 +287,7 @@ public class RemoteReadIntegrationTest extends BaseIntegrationTest {
       WorkerNetAddress workerAddr = info.getLocations().get(0).getWorkerAddress();
       BlockInStream is =
           BlockInStream.create(FileSystemContext.create(), options.getBlockInfo(blockId),
-              workerAddr, BlockInStreamSource.REMOTE, options, ServerConfiguration.global());
+              workerAddr, BlockInStreamSource.REMOTE, options);
       byte[] ret = new byte[k];
       int read = is.read(ret);
       Assert
@@ -315,7 +315,7 @@ public class RemoteReadIntegrationTest extends BaseIntegrationTest {
       WorkerNetAddress workerAddr = info.getLocations().get(0).getWorkerAddress();
       BlockInStream is =
           BlockInStream.create(FileSystemContext.create(), options.getBlockInfo(blockId),
-              workerAddr, BlockInStreamSource.REMOTE, options, ServerConfiguration.global());
+              workerAddr, BlockInStreamSource.REMOTE, options);
       byte[] ret = new byte[k / 2];
       int read = 0;
       while (read < k / 2) {
@@ -559,7 +559,7 @@ public class RemoteReadIntegrationTest extends BaseIntegrationTest {
       WorkerNetAddress workerAddr = info.getLocations().get(0).getWorkerAddress();
       BlockInStream is =
           BlockInStream.create(FileSystemContext.create(), options.getBlockInfo(blockId),
-              workerAddr, BlockInStreamSource.REMOTE, options, ServerConfiguration.global());
+              workerAddr, BlockInStreamSource.REMOTE, options);
       Assert.assertEquals(0, is.read());
       mFileSystem.delete(uri);
       HeartbeatScheduler.execute(HeartbeatContext.WORKER_BLOCK_SYNC);
@@ -576,7 +576,7 @@ public class RemoteReadIntegrationTest extends BaseIntegrationTest {
       BlockInStream is2 = null;
       try {
         is2 = BlockInStream.create(FileSystemContext.create(), options.getBlockInfo(blockId),
-            workerAddr, BlockInStreamSource.REMOTE, options, ServerConfiguration.global());
+            workerAddr, BlockInStreamSource.REMOTE, options);
       } catch (NotFoundException e) {
         // Expected since the file has been deleted.
       } finally {

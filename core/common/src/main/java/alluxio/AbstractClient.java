@@ -167,8 +167,8 @@ public abstract class AbstractClient implements Client {
     if (!isConnected()) {
       // Unfortunately not as simple as before..... we'll need to pass some kind of callback which
       // updates the configuration within the client context.
-      if (!mContext.getConfiguration().clusterDefaultsLoaded()) {
-        AlluxioConfiguration conf = ConfigurationUtils.loadClusterDefaults(mAddress, mContext.getConfiguration());
+      if (!mContext.getConf().clusterDefaultsLoaded()) {
+        AlluxioConfiguration conf = ConfigurationUtils.loadClusterDefaults(mAddress, mContext.getConf());
         configurationUpdateCallback.accept(conf);
       }
 
@@ -223,7 +223,7 @@ public abstract class AbstractClient implements Client {
         LOG.info("Alluxio client (version {}) is trying to connect with {} @ {}",
             RuntimeConstants.VERSION, getServiceName(), mAddress);
         mChannel = GrpcChannelBuilder
-            .forAddress(mAddress, mContext.getConfiguration())
+            .forAddress(mAddress, mContext.getConf())
             .setSubject(mContext.getSubject())
             .build();
         // Create stub for version service on host
@@ -377,10 +377,10 @@ public abstract class AbstractClient implements Client {
   // TODO(calvin): General tag logic should be in getMetricName
   private String getQualifiedMetricName(String metricName) {
     try {
-      if (SecurityUtils.isAuthenticationEnabled(mContext.getConfiguration())
-          && LoginUser.get(mContext.getConfiguration()) != null) {
+      if (SecurityUtils.isAuthenticationEnabled(mContext.getConf())
+          && LoginUser.get(mContext.getConf()) != null) {
         return Metric.getMetricNameWithTags(metricName, CommonMetrics.TAG_USER,
-            LoginUser.get(mContext.getConfiguration()).getName());
+            LoginUser.get(mContext.getConf()).getName());
       } else {
         return metricName;
       }

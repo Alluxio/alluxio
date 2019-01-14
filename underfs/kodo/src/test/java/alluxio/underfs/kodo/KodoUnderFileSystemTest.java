@@ -12,6 +12,8 @@
 package alluxio.underfs.kodo;
 
 import alluxio.AlluxioURI;
+import alluxio.ConfigurationTestUtils;
+import alluxio.conf.InstancedConfiguration;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.options.DeleteOptions;
 
@@ -28,12 +30,15 @@ import java.io.IOException;
  */
 public class KodoUnderFileSystemTest {
 
+  private static final InstancedConfiguration sConf = ConfigurationTestUtils.defaults();
+
   private KodoUnderFileSystem mKodoUnderFileSystem;
   private KodoClient mClient;
 
   private static final String PATH = "path";
   private static final String SRC = "src";
   private static final String DST = "dst";
+
 
   /**
    * Set up.
@@ -43,7 +48,7 @@ public class KodoUnderFileSystemTest {
     mClient = Mockito.mock(KodoClient.class);
 
     mKodoUnderFileSystem = new KodoUnderFileSystem(new AlluxioURI(""), mClient,
-        UnderFileSystemConfiguration.defaults());
+        UnderFileSystemConfiguration.defaults(), sConf);
   }
 
   /**

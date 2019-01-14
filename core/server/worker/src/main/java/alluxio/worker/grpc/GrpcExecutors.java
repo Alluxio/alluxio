@@ -40,7 +40,7 @@ final class GrpcExecutors {
 
   public static final ExecutorService BLOCK_READER_EXECUTOR =
       new ThreadPoolExecutor(THREADS_MIN,
-          Configuration.getInt(PropertyKey.WORKER_NETWORK_BLOCK_READER_THREADS_MAX),
+           ServerConfiguration.getInt(PropertyKey.WORKER_NETWORK_BLOCK_READER_THREADS_MAX),
           THREAD_STOP_MS, TimeUnit.MILLISECONDS, new SynchronousQueue<>(),
           ThreadFactoryUtils.build("BlockDataReaderExecutor-%d", true));
 

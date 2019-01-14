@@ -56,7 +56,7 @@ public class KodoInputStream extends MultiRangeObjectInputStream {
    * @return a new {@link InputStream}
    */
   @Override
-  protected InputStream createStream(long startPos, long endPos) throws IOException {
+  protected InputStream createStream(long startPos, long endPos, long blockSize) throws IOException {
     return mKodoclent.getObject(mKey, startPos, endPos, mContentLength);
   }
 }

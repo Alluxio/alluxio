@@ -184,10 +184,10 @@ public class NetworkAddressUtilsTest {
     // connect host and wildcard bind host with port
     switch (service) {
       case JOB_MASTER_RAFT:
-        Configuration.set(PropertyKey.JOB_MASTER_EMBEDDED_JOURNAL_PORT, "20000");
+        mConfiguration.set(PropertyKey.JOB_MASTER_EMBEDDED_JOURNAL_PORT, "20000");
         break;
       case MASTER_RAFT:
-        Configuration.set(PropertyKey.MASTER_EMBEDDED_JOURNAL_PORT, "20000");
+        mConfiguration.set(PropertyKey.MASTER_EMBEDDED_JOURNAL_PORT, "20000");
         break;
       case JOB_MASTER_RPC:
         mConfiguration.set(PropertyKey.JOB_MASTER_RPC_PORT, "20000");

@@ -90,8 +90,7 @@ public final class ReplicateDefinition
     int numReplicas = config.getReplicas();
     Preconditions.checkArgument(numReplicas > 0);
 
-    AlluxioBlockStore blockStore = AlluxioBlockStore.create(mFileSystemContext,
-        ServerConfiguration.global());
+    AlluxioBlockStore blockStore = AlluxioBlockStore.create(mFileSystemContext);
     BlockInfo blockInfo = blockStore.getInfo(blockId);
 
     Set<String> hosts = new HashSet<>();

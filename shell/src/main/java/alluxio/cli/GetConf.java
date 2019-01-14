@@ -11,6 +11,7 @@
 
 package alluxio.cli;
 
+import alluxio.client.RetryHandlingMetaMasterClient;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.ConfigurationValueOptions;
 import alluxio.conf.InstancedConfiguration;
@@ -140,7 +141,9 @@ public final class GetConf {
    */
   public static int getConf(AlluxioConfiguration conf, String... args) {
     return getConfImpl(
-        () -> new RetryHandlingMetaMasterConfigClient(MasterClientConfig.defaults(conf), conf), args);
+        () -> new RetryHandlingMetaMasterConfigClient(MasterClientConfig.defaults(conf), conf),
+        conf,
+        args);
   }
 
   /**
@@ -151,8 +154,7 @@ public final class GetConf {
    * @return 0 on success, 1 on failures
    */
   @VisibleForTesting
-  public static int getConfImpl(
-      Supplier<RetryHandlingMetaMasterClient> clientSupplier,
+  public static int getConfImpl(Supplier<RetryHandlingMetaMasterConfigClient> clientSupplier,
       AlluxioConfiguration conf, String... args) {
     CommandLineParser parser = new DefaultParser();
     CommandLine cmd;

@@ -16,7 +16,6 @@ import alluxio.exception.status.UnauthenticatedException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.AsyncCacheRequest;
 import alluxio.grpc.AsyncCacheResponse;
-import alluxio.conf.Configuration;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
@@ -74,6 +73,7 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
   private BlockWorkerGrpc.BlockWorkerStub mStreamingAsyncStub;
   private BlockWorkerGrpc.BlockWorkerBlockingStub mRpcBlockingStub;
   private BlockWorkerGrpc.BlockWorkerStub mRpcAsyncStub;
+  private final long mDataTimeoutMs;
 
   /**
    * Creates a client instance for communicating with block worker.
@@ -98,6 +98,7 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
     mRpcBlockingStub = BlockWorkerGrpc.newBlockingStub(mRpcChannel);
     mRpcAsyncStub = BlockWorkerGrpc.newStub(mRpcChannel);
     mAddress = address;
+    mDataTimeoutMs = alluxioConf.getMs(PropertyKey.USER_NETWORK_DATA_TIMEOUT_MS);
   }
 
   @Override
@@ -137,13 +138,13 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
 
   @Override
   public RemoveBlockResponse removeBlock(final RemoveBlockRequest request) {
-    return mRpcBlockingStub.withDeadlineAfter(DATA_TIMEOUT, TimeUnit.MILLISECONDS)
+    return mRpcBlockingStub.withDeadlineAfter(mDataTimeoutMs, TimeUnit.MILLISECONDS)
         .removeBlock(request);
   }
 
   @Override
   public void asyncCache(final AsyncCacheRequest request) {
-    mRpcAsyncStub.withDeadlineAfter(DATA_TIMEOUT, TimeUnit.MILLISECONDS)
+    mRpcAsyncStub.withDeadlineAfter(mDataTimeoutMs, TimeUnit.MILLISECONDS)
         .asyncCache(request, new StreamObserver<AsyncCacheResponse>() {
           @Override
           public void onNext(AsyncCacheResponse value) {

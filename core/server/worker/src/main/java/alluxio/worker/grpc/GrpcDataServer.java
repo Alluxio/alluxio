@@ -108,7 +108,7 @@ public final class GrpcDataServer implements DataServer {
         .createEventLoop(type, workerThreadCount, dataServerEventLoopNamePrefix + "-worker-%d",
             true);
     Class<? extends ServerChannel> socketChannelClass = NettyUtils.getServerChannelClass(
-        mSocketAddress instanceof DomainSocketAddress);
+        mSocketAddress instanceof DomainSocketAddress, ServerConfiguration.global());
     if (type == ChannelType.EPOLL) {
       builder.withChildOption(EpollChannelOption.EPOLL_MODE, EpollMode.LEVEL_TRIGGERED);
     }
@@ -120,9 +120,9 @@ public final class GrpcDataServer implements DataServer {
         // set write buffer
         // this is the default, but its recommended to set it in case of change in future netty.
         .withChildOption(ChannelOption.WRITE_BUFFER_HIGH_WATER_MARK,
-            (int) Configuration.getBytes(PropertyKey.WORKER_NETWORK_NETTY_WATERMARK_HIGH))
+            (int) ServerConfiguration.getBytes(PropertyKey.WORKER_NETWORK_NETTY_WATERMARK_HIGH))
         .withChildOption(ChannelOption.WRITE_BUFFER_LOW_WATER_MARK,
-            (int) Configuration.getBytes(PropertyKey.WORKER_NETWORK_NETTY_WATERMARK_LOW));
+            (int) ServerConfiguration.getBytes(PropertyKey.WORKER_NETWORK_NETTY_WATERMARK_LOW));
   }
 
   @Override

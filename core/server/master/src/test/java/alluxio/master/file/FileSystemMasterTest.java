@@ -1458,7 +1458,8 @@ public final class FileSystemMasterTest {
         .getFileInfo(NESTED_FILE_URI, GET_STATUS_CONTEXT).convertAclToStringEntries());
     assertEquals(3, entries.size());
 
-    try (AuthenticatedClientUserResource userA = new AuthenticatedClientUserResource("userA")) {
+    try (AuthenticatedClientUserResource userA = new AuthenticatedClientUserResource("userA",
+        ServerConfiguration.global())) {
       Set<String> newEntries = Sets.newHashSet("user::rwx", "group::rwx", "other::rwx");
       mThrown.expect(AccessControlException.class);
       mFileSystemMaster.setAcl(NESTED_FILE_URI, SetAclAction.REPLACE,
@@ -1477,7 +1478,8 @@ public final class FileSystemMasterTest {
     assertEquals(3, entries.size());
     // recursive setAcl should fail if one of the child is not owned by the user
     mThrown.expect(AccessControlException.class);
-    try (AuthenticatedClientUserResource userA = new AuthenticatedClientUserResource("userA")) {
+    try (AuthenticatedClientUserResource userA = new AuthenticatedClientUserResource("userA",
+        ServerConfiguration.global())) {
       Set<String> newEntries = Sets.newHashSet("user::rwx", "group::rwx", "other::rwx");
       mFileSystemMaster.setAcl(NESTED_URI, SetAclAction.REPLACE,
           newEntries.stream().map(AclEntry::fromCliString).collect(Collectors.toList()),

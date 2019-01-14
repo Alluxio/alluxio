@@ -18,13 +18,17 @@ import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.powermock.api.mockito.PowerMockito.when;
 
+import alluxio.ClientContext;
+import alluxio.ConfigurationTestUtils;
 import alluxio.client.file.FileSystemContext;
 import alluxio.grpc.Chunk;
 import alluxio.grpc.ReadRequest;
 import alluxio.grpc.ReadResponse;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.DataByteBuffer;
+import alluxio.util.ConfigurationUtils;
 import alluxio.util.io.BufferUtils;
 import alluxio.wire.WorkerNetAddress;
 
@@ -66,6 +70,8 @@ public final class GrpcDataReaderTest {
   @Before
   public void before() throws Exception {
     mContext = PowerMockito.mock(FileSystemContext.class);
+    when(mContext.getClientContext()).thenReturn(ClientContext.create(null,
+        ConfigurationUtils.defaults()));
     mAddress = mock(WorkerNetAddress.class);
     ReadRequest readRequest =
         ReadRequest.newBuilder().setBlockId(BLOCK_ID).setChunkSize(CHUNK_SIZE).build();
@@ -73,10 +79,10 @@ public final class GrpcDataReaderTest {
 
     mClient = mock(BlockWorkerClient.class);
     mRequestObserver = mock(ClientCallStreamObserver.class);
-    PowerMockito.when(mContext.acquireBlockWorkerClient(mAddress)).thenReturn(mClient);
+    when(mContext.acquireBlockWorkerClient(mAddress)).thenReturn(mClient);
     PowerMockito.doNothing().when(mContext).releaseBlockWorkerClient(mAddress, mClient);
-    PowerMockito.when(mClient.readBlock(any(StreamObserver.class))).thenReturn(mRequestObserver);
-    PowerMockito.when(mRequestObserver.isReady()).thenReturn(true);
+    when(mClient.readBlock(any(StreamObserver.class))).thenReturn(mRequestObserver);
+    when(mRequestObserver.isReady()).thenReturn(true);
   }
 
   @After

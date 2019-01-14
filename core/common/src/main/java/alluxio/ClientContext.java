@@ -10,8 +10,8 @@ import javax.security.auth.Subject;
 
 public class ClientContext {
 
-  public final AlluxioConfiguration mConf;
-  public final Subject mSubject;
+  private final AlluxioConfiguration mConf;
+  private final Subject mSubject;
 
   /**
    * A client context with information about the subject and configuration of the client.
@@ -57,12 +57,11 @@ public class ClientContext {
 
   }
 
-  public AlluxioConfiguration getConfiguration() {
+  public AlluxioConfiguration getConf() {
     return mConf;
   }
 
   public Subject getSubject() {
     return mSubject;
   }
-
 }

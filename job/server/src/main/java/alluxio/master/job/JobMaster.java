@@ -11,6 +11,7 @@
 
 package alluxio.master.job;
 
+import alluxio.Server;
 import alluxio.conf.ServerConfiguration;
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
@@ -93,7 +94,7 @@ public final class JobMaster extends AbstractNonJournaledMaster {
   /**
    * The total number of jobs that the JobMaster may run at any moment.
    */
-  private final long mCapacity = Configuration.getLong(PropertyKey.JOB_MASTER_JOB_CAPACITY);
+  private final long mCapacity = ServerConfiguration.getLong(PropertyKey.JOB_MASTER_JOB_CAPACITY);
 
   /**
    * All worker information. Access must be controlled on mWorkers using the RW lock(mWorkerRWLock).

@@ -15,7 +15,9 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
+import alluxio.ClientContext;
 import alluxio.ConfigurationRule;
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
@@ -73,6 +75,8 @@ public final class GrpcDataWriterTest {
   private WorkerNetAddress mAddress;
   private BlockWorkerClient mClient;
   private ClientCallStreamObserver<WriteRequest> mRequestObserver;
+  private InstancedConfiguration mConf = ConfigurationTestUtils.defaults();
+
   @Rule
   public ConfigurationRule mConfigurationRule =
       new ConfigurationRule(PropertyKey.USER_NETWORK_WRITER_CHUNK_SIZE_BYTES,
@@ -81,6 +85,7 @@ public final class GrpcDataWriterTest {
   @Before
   public void before() throws Exception {
     mContext = PowerMockito.mock(FileSystemContext.class);
+    when(mContext.getClientContext()).thenReturn(ClientContext.create(null, mConf.getProperties()));
     mAddress = mock(WorkerNetAddress.class);
 
     mClient = mock(BlockWorkerClient.class);

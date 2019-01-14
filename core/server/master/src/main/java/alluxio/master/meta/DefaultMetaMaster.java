@@ -171,11 +171,12 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
     mBlockMaster.registerWorkerLostListener(mWorkerConfigStore::handleNodeLost);
     mBlockMaster.registerNewWorkerConfListener(mWorkerConfigStore::registerNewConf);
 
-    if (URIUtils.isLocalFilesystem(Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS))) {
+    if (URIUtils.isLocalFilesystem(ServerConfiguration
+        .get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS))) {
       mUfs = UnderFileSystem.Factory
           .create("/", UnderFileSystemConfiguration.defaults());
     } else {
-      mUfs = UnderFileSystem.Factory.createForRoot();
+      mUfs = UnderFileSystem.Factory.createForRoot(ServerConfiguration.global());
     }
   }
 
@@ -233,7 +234,8 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
       getExecutorService().submit(
           new HeartbeatThread(HeartbeatContext.MASTER_LOG_CONFIG_REPORT_SCHEDULING,
           new LogConfigReportHeartbeatExecutor(),
-          (int) ServerConfiguration.getMs(PropertyKey.MASTER_LOG_CONFIG_REPORT_HEARTBEAT_INTERVAL)));
+          (int) ServerConfiguration.getMs(PropertyKey.MASTER_LOG_CONFIG_REPORT_HEARTBEAT_INTERVAL),
+              ServerConfiguration.global()));
 
       if (ServerConfiguration.getBoolean(PropertyKey.MASTER_DAILY_BACKUP_ENABLED)) {
         mDailyBackup = new DailyMetadataBackup(this, Executors.newSingleThreadScheduledExecutor(

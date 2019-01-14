@@ -34,7 +34,7 @@ public final class MockFileInStream extends FileInStream {
    */
   public MockFileInStream(FileSystemContext context, byte[] bytes, AlluxioConfiguration conf) {
     super(new URIStatus(new FileInfo()), new InStreamOptions(new URIStatus(new FileInfo()),
-        conf), context, conf);
+        conf), context);
     mStream = new ByteArrayInputStream(bytes);
   }
 

@@ -16,6 +16,7 @@ import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import alluxio.ClientContext;
 import alluxio.ConfigurationTestUtils;
 import alluxio.client.ReadType;
 import alluxio.client.WriteType;
@@ -167,11 +168,12 @@ public final class AlluxioBlockStoreTest {
     mContext = PowerMockito.mock(FileSystemContext.class);
     when(mContext.acquireBlockMasterClientResource())
         .thenReturn(new DummyCloseableResource<>(mMasterClient));
+    when(mContext.getClientContext()).thenReturn(ClientContext.create(null, sConf.getProperties()));
     mLocalAddr =
         new WorkerNetAddress().setHost(NetworkAddressUtils.getLocalHostName((int)sConf.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS)));
 
     mBlockStore = new AlluxioBlockStore(mContext,
-        TieredIdentityFactory.fromString("node=" + WORKER_HOSTNAME_LOCAL, sConf), sConf);
+        TieredIdentityFactory.fromString("node=" + WORKER_HOSTNAME_LOCAL, sConf));
 
     when(mContext.acquireBlockWorkerClient(any(WorkerNetAddress.class)))
         .thenReturn(mWorkerClient);

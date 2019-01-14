@@ -3258,6 +3258,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.JOB_WORKER_BIND_HOST).setDefaultValue("0.0.0.0").build();
   public static final PropertyKey JOB_WORKER_DATA_PORT =
       new Builder(Name.JOB_WORKER_DATA_PORT).setDefaultValue(30002).build();
+  public static final PropertyKey JOB_WORKER_HOSTNAME = new Builder(Name.JOB_WORKER_HOSTNAME)
+      .setDescription("The hostname of Alluxio job worker.")
+      .setScope(Scope.WORKER)
+      .build();
   public static final PropertyKey JOB_WORKER_RPC_PORT =
       new Builder(Name.JOB_WORKER_RPC_PORT).setDefaultValue(30001).build();
   public static final PropertyKey JOB_WORKER_WEB_BIND_HOST =
@@ -3970,6 +3974,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
 
     public static final String JOB_WORKER_BIND_HOST = "alluxio.job.worker.bind.host";
     public static final String JOB_WORKER_DATA_PORT = "alluxio.job.worker.data.port";
+    public static final String JOB_WORKER_HOSTNAME = "alluxio.worker.hostname";
     public static final String JOB_WORKER_RPC_PORT = "alluxio.job.worker.rpc.port";
     public static final String JOB_WORKER_WEB_BIND_HOST = "alluxio.job.worker.web.bind.host";
     public static final String JOB_WORKER_WEB_PORT = "alluxio.job.worker.web.port";

@@ -50,18 +50,15 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
   /**
    * Constructs a new stream for reading a file from HDFS.
    *
-   * @param context the file system context
+   * @param fs the file system
    * @param uri the Alluxio file URI
    * @param stats filesystem statistics
    */
-  public HdfsFileInputStream(FileSystemContext context, AlluxioURI uri, Statistics stats,
-      AlluxioConfiguration conf)
+  public HdfsFileInputStream(FileSystem fs, AlluxioURI uri, Statistics stats)
       throws IOException {
     LOG.debug("HdfsFileInputStream({}, {})", uri, stats);
 
     mStatistics = stats;
-    FileSystem fs = FileSystem.Factory.get(ClientContext.create(context.getParentSubject(),
-        conf.getProperties()));
     try {
       mInputStream = fs.openFile(uri, OpenFilePOptions.getDefaultInstance());
     } catch (FileDoesNotExistException e) {

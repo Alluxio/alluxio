@@ -607,7 +607,7 @@ public final class MultiProcessCluster {
         for (MasterNetAddress address : mMasterAddresses) {
           addresses.add(new InetSocketAddress(address.getHostname(), address.getRpcPort()));
         }
-        return new PollingMasterInquireClient(addresses);
+        return new PollingMasterInquireClient(addresses, ServerConfiguration.global());
       case ZOOKEEPER_HA:
         return ZkMasterInquireClient.getClient(mCuratorServer.getConnectString(),
             ServerConfiguration.get(PropertyKey.ZOOKEEPER_ELECTION_PATH),

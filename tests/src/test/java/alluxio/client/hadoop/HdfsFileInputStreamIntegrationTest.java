@@ -76,17 +76,17 @@ public final class HdfsFileInputStreamIntegrationTest extends BaseIntegrationTes
     mFileSystem = sLocalAlluxioClusterResource.get().getClient();
     FileSystemTestUtils
         .createByteFile(mFileSystem, IN_MEMORY_FILE, WritePType.CACHE_THROUGH, FILE_LEN);
-    mInMemInputStream = new HdfsFileInputStream(FileSystemContext.create(),
-        new AlluxioURI(IN_MEMORY_FILE), null, ServerConfiguration.global());
+    mInMemInputStream = new HdfsFileInputStream(mFileSystem,
+        new AlluxioURI(IN_MEMORY_FILE), null);
   }
 
   private void createUfsInStream(ReadType readType) throws Exception {
     String defaultReadType = ServerConfiguration.get(PropertyKey.USER_FILE_READ_TYPE_DEFAULT);
     ServerConfiguration.set(PropertyKey.USER_FILE_READ_TYPE_DEFAULT, readType.name());
-    FileSystemTestUtils.createByteFile(mFileSystem, UFS_ONLY_FILE, WritePType.WRITE_THROUGH,
+    FileSystemTestUtils.createByteFile(mFileSystem, UFS_ONLY_FILE, WritePType.THROUGH,
         FILE_LEN);
-    mUfsInputStream = new HdfsFileInputStream(FileSystemContext.create(),
-        new AlluxioURI(UFS_ONLY_FILE), null, ServerConfiguration.global());
+    mUfsInputStream = new HdfsFileInputStream(mFileSystem,
+        new AlluxioURI(UFS_ONLY_FILE), null);
     ServerConfiguration.set(PropertyKey.USER_FILE_READ_TYPE_DEFAULT, defaultReadType);
   }
 

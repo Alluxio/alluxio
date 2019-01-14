@@ -13,6 +13,8 @@ package alluxio.master.file.activesync;
 
 import alluxio.AlluxioURI;
 import alluxio.SyncInfo;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.meta.MountTable;
@@ -84,7 +86,8 @@ public class ActiveSyncer implements HeartbeatExecutor {
                 RetryUtils.retry("Full Sync", () -> {
                   mFileSystemMaster.activeSyncMetadata(alluxioUri, null,
                       mSyncManager.getExecutor());
-                }, RetryUtils.defaultActiveSyncClientRetry());
+                }, RetryUtils.defaultActiveSyncClientRetry(ServerConfiguration
+                    .getMs(PropertyKey.MASTER_ACTIVE_UFS_POLL_TIMEOUT)));
               } else {
                 LOG.debug("sync {}", ufsUri.toString());
                 RetryUtils.retry("Incremental Sync", () -> {
@@ -93,7 +96,8 @@ public class ActiveSyncer implements HeartbeatExecutor {
                           .map(mMountTable::reverseResolve).collect(Collectors.toSet()),
                       mSyncManager.getExecutor()
                   );
-                }, RetryUtils.defaultActiveSyncClientRetry());
+                }, RetryUtils.defaultActiveSyncClientRetry(ServerConfiguration
+                    .getMs(PropertyKey.MASTER_ACTIVE_UFS_POLL_TIMEOUT)));
               }
               // Journal the latest processed txId
               mFileSystemMaster.recordActiveSyncTxid(syncInfo.getTxId(), mMountId);

@@ -110,10 +110,7 @@ public class RemoteBlockReader implements BlockReader {
     WorkerNetAddress address = new WorkerNetAddress().setHost(mDataSource.getHostName())
         .setDataPort(mDataSource.getPort());
     mInputStream = BlockInStream.createRemoteBlockInStream(FileSystemContext.create(), mBlockId,
-        address, BlockInStream.BlockInStreamSource.REMOTE, mBlockSize, mUfsOptions,
-        ServerConfiguration.getBytes(PropertyKey.USER_NETWORK_NETTY_READER_PACKET_SIZE_BYTES),
-        ServerConfiguration.getInt(PropertyKey.USER_NETWORK_NETTY_READER_BUFFER_SIZE_PACKETS),
-        ServerConfiguration.getMs(PropertyKey.USER_NETWORK_NETTY_TIMEOUT_MS));
+        address, BlockInStream.BlockInStreamSource.REMOTE, mBlockSize, mUfsOptions);
     mChannel = Channels.newChannel(mInputStream);
   }
 }

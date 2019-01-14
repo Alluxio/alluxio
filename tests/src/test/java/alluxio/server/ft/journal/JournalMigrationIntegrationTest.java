@@ -15,10 +15,11 @@ import static org.junit.Assert.assertEquals;
 
 import alluxio.AlluxioTestDirectory;
 import alluxio.AlluxioURI;
-import alluxio.PropertyKey;
+import alluxio.conf.PropertyKey;
 import alluxio.client.MetaMasterClient;
 import alluxio.client.RetryHandlingMetaMasterClient;
 import alluxio.client.file.FileSystem;
+import alluxio.conf.ServerConfiguration;
 import alluxio.master.MasterClientConfig;
 import alluxio.multi.process.MultiProcessCluster;
 import alluxio.multi.process.MultiProcessCluster.DeployMode;
@@ -47,7 +48,8 @@ public final class JournalMigrationIntegrationTest extends BaseIntegrationTest {
     try {
       FileSystem fs = cluster.getFileSystemClient();
       MetaMasterClient metaClient = new RetryHandlingMetaMasterClient(
-          MasterClientConfig.defaults().withMasterInquireClient(cluster.getMasterInquireClient()));
+          MasterClientConfig.defaults(ServerConfiguration.global()).withMasterInquireClient(
+              cluster.getMasterInquireClient()), ServerConfiguration.global());
       for (int i = 0; i < NUM_DIRS; i++) {
         fs.createDirectory(new AlluxioURI("/dir" + i));
       }

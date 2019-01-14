@@ -13,6 +13,7 @@ package alluxio.client;
 
 import alluxio.AbstractMasterClient;
 import alluxio.Constants;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.GetConfigurationPOptions;
 import alluxio.grpc.MetaMasterConfigurationServiceGrpc;
@@ -38,8 +39,9 @@ public class RetryHandlingMetaMasterConfigClient extends AbstractMasterClient
    *
    * @param conf master client configuration
    */
-  public RetryHandlingMetaMasterConfigClient(MasterClientConfig conf) {
-    super(conf);
+  public RetryHandlingMetaMasterConfigClient(MasterClientConfig conf,
+      AlluxioConfiguration alluxioConf) {
+    super(conf, alluxioConf);
   }
 
   @Override

@@ -83,8 +83,7 @@ public final class EvictDefinition
     long blockId = config.getBlockId();
     int numReplicas = config.getReplicas();
 
-    AlluxioBlockStore blockStore = AlluxioBlockStore.create(mFileSystemContext,
-        ServerConfiguration.global());
+    AlluxioBlockStore blockStore = AlluxioBlockStore.create(mFileSystemContext);
     BlockInfo blockInfo = blockStore.getInfo(blockId);
 
     Set<String> hosts = new HashSet<>();
@@ -114,8 +113,7 @@ public final class EvictDefinition
   @Override
   public SerializableVoid runTask(EvictConfig config, SerializableVoid args,
       JobWorkerContext jobWorkerContext) throws Exception {
-    AlluxioBlockStore blockStore = AlluxioBlockStore.create(mFileSystemContext,
-        ServerConfiguration.global());
+    AlluxioBlockStore blockStore = AlluxioBlockStore.create(mFileSystemContext);
 
     long blockId = config.getBlockId();
     String localHostName = NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC,

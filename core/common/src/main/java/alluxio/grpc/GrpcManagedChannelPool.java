@@ -1,7 +1,7 @@
 package alluxio.grpc;
 
-import alluxio.Configuration;
-import alluxio.PropertyKey;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.collections.Pair;
 import alluxio.resource.LockResource;
 import alluxio.util.CommonUtils;
@@ -42,7 +42,10 @@ public class GrpcManagedChannelPool {
   private static GrpcManagedChannelPool sInstance;
 
   static {
-    sInstance = new GrpcManagedChannelPool();
+    sInstance =
+        new GrpcManagedChannelPool(new InstancedConfiguration(ConfigurationUtils.defaults()).getMs(
+            PropertyKey.MASTER_GRPC_CHANNEL_SHUTDOWN_TIMEOUT
+        ));
   }
 
   /**
@@ -65,10 +68,12 @@ public class GrpcManagedChannelPool {
   /** Timeout for health check on managed channels. */
   private long mHealthCheckTimeoutMs;
 
+  private final long mChannelShutdownTimeoutMs;
+
   /**
    * Creates a new {@link GrpcManagedChannelPool}.
    */
-  public GrpcManagedChannelPool() {
+  public GrpcManagedChannelPool(long channelShutdownTimeoutMs) {
     mChannels = new HashMap<>();
     mLock = new ReentrantReadWriteLock(true);
     mHealthCheckTimeoutMs =

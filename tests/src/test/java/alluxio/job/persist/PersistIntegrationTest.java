@@ -12,7 +12,7 @@
 package alluxio.job.persist;
 
 import alluxio.AlluxioURI;
-import alluxio.PropertyKey;
+import alluxio.conf.PropertyKey;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.FileSystemMasterClient;
@@ -90,7 +90,7 @@ public final class PersistIntegrationTest extends JobIntegrationTest {
     // kill job worker
     mLocalAlluxioJobCluster.getWorker().stop();
     // persist the file
-    FileSystemContext context = FileSystemContext.get();
+    FileSystemContext context = FileSystemContext.create();
     FileSystemMasterClient client = context.acquireMasterClient();
     try {
       client.scheduleAsyncPersist(new AlluxioURI(TEST_URI));
@@ -114,7 +114,7 @@ public final class PersistIntegrationTest extends JobIntegrationTest {
     status = mFileSystem.getStatus(filePath);
     Assert.assertEquals(PersistenceState.NOT_PERSISTED.toString(), status.getPersistenceState());
     String ufsPath = status.getUfsPath();
-    UnderFileSystem ufs = UnderFileSystem.Factory.create(ufsPath);
+    UnderFileSystem ufs = UnderFileSystem.Factory.create(ufsPath, ServerConfiguration.global());
     Assert.assertFalse(ufs.exists(ufsPath));
   }
 }
