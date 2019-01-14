@@ -163,8 +163,7 @@ class Browse extends React.Component<AllProps, IBrowseState> {
               <td>{fileBlock.id}</td>
               <td>{fileBlock.blockLength}</td>
               <td>
-                {/*TODO(william): fix this to be part of the fileBlock in the api*/}
-                {browse.highestTierAlias ? 'YES' : 'NO'}
+                {fileBlock.inTier ? 'YES' : 'NO'}
               </td>
               <td>
                 {fileBlock.locations.map((location: string) => (
