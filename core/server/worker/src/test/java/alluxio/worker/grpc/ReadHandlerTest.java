@@ -13,7 +13,6 @@ package alluxio.worker.grpc;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.verify;
 
 import alluxio.Configuration;
@@ -40,6 +39,7 @@ import org.mockito.ArgumentCaptor;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.TimeoutException;
@@ -53,6 +53,7 @@ public abstract class ReadHandlerTest {
   protected AbstractReadHandler mReadHandlerNoException;
   protected AbstractReadHandler mReadHandler;
   protected ServerCallStreamObserver<ReadResponse> mResponseObserver;
+  protected List<ReadResponse> mResponses = new ArrayList<>();
   protected boolean mResponseCompleted;
   protected Throwable mError;
 
@@ -69,7 +70,7 @@ public abstract class ReadHandlerTest {
   public void readFullFile() throws Exception {
     long checksumExpected = populateInputFile(CHUNK_SIZE * 10, 0, CHUNK_SIZE * 10 - 1);
     mReadHandler.onNext(buildReadRequest(0, CHUNK_SIZE * 10));
-    checkAllReadResponses(mResponseObserver, checksumExpected);
+    checkAllReadResponses(mResponses, checksumExpected);
   }
 
   /**
@@ -81,7 +82,7 @@ public abstract class ReadHandlerTest {
     long end = CHUNK_SIZE * 10 - 99;
     long checksumExpected = populateInputFile(CHUNK_SIZE * 10, start, end);
     mReadHandler.onNext(buildReadRequest(start, end + 1 - start));
-    checkAllReadResponses(mResponseObserver, checksumExpected);
+    checkAllReadResponses(mResponses, checksumExpected);
   }
 
   /**
@@ -156,10 +157,11 @@ public abstract class ReadHandlerTest {
   /**
    * Checks all the read responses.
    */
-  protected void checkAllReadResponses(StreamObserver<ReadResponse> responseObserver,
+  protected void checkAllReadResponses(List<ReadResponse> responses,
       long checksumExpected) throws Exception {
     long checksumActual = 0;
-    for (ReadResponse readResponse : waitForResponses(responseObserver)) {
+    waitForResponses();
+    for (ReadResponse readResponse : responses) {
       if (readResponse == null) {
         Assert.fail();
         break;
@@ -192,18 +194,12 @@ public abstract class ReadHandlerTest {
   }
 
   /**
-   * Waits for one read response message.
-   *
-   * @param responseObserver the response stream observer
-   * @return the read response
+   * Waits for response messages.
    */
-  protected List<ReadResponse> waitForResponses(final StreamObserver<ReadResponse> responseObserver)
+  protected void waitForResponses()
       throws TimeoutException, InterruptedException {
     CommonUtils.waitFor("response", () -> mResponseCompleted || mError != null,
         WaitForOptions.defaults().setTimeoutMs(Constants.MINUTE_MS));
-    ArgumentCaptor<ReadResponse> captor = ArgumentCaptor.forClass(ReadResponse.class);
-    verify(responseObserver, atLeast(1)).onNext(captor.capture());
-    return captor.getAllValues();
   }
 
   /**
