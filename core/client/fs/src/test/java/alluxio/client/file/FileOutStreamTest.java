@@ -113,7 +113,7 @@ public class FileOutStreamTest {
     mFileSystemMasterClient = PowerMockito.mock(FileSystemMasterClient.class);
 
     PowerMockito.mockStatic(AlluxioBlockStore.class);
-    PowerMockito.when(AlluxioBlockStore.create(mFileSystemContext, sConf)).thenReturn(mBlockStore);
+    PowerMockito.when(AlluxioBlockStore.create(mFileSystemContext)).thenReturn(mBlockStore);
 
     when(mFileSystemContext.acquireMasterClientResource())
         .thenReturn(new DummyCloseableResource<>(mFileSystemMasterClient));
@@ -168,8 +168,7 @@ public class FileOutStreamTest {
     PowerMockito.mockStatic(UnderFileSystemFileOutStream.class);
     PowerMockito.when(
         UnderFileSystemFileOutStream.create(any(FileSystemContext.class),
-            any(WorkerNetAddress.class), any(OutStreamOptions.class),
-            any(InstancedConfiguration.class))).thenReturn(
+            any(WorkerNetAddress.class), any(OutStreamOptions.class))).thenReturn(
         mUnderStorageOutputStream);
 
     OutStreamOptions options = OutStreamOptions.defaults(sConf).setBlockSizeBytes(BLOCK_LENGTH)
@@ -455,6 +454,6 @@ public class FileOutStreamTest {
    */
   private FileOutStream createTestStream(AlluxioURI path, OutStreamOptions options)
       throws IOException {
-    return new FileOutStream(path, options, mFileSystemContext, sConf);
+    return new FileOutStream(path, options, mFileSystemContext);
   }
 }

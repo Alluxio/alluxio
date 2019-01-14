@@ -56,8 +56,8 @@ public class DefaultAuthenticationServer
   protected final ScheduledExecutorService mScheduler;
 
   /** Interval for clean-up task to fire. */
-  protected final long mCleanupIntervalMs =
-      Configuration.getMs(PropertyKey.AUTHENTICATION_STALE_CHANNEL_PURGE_INTERVAL);
+  protected final long mCleanupIntervalMs;
+
 
   private final AlluxioConfiguration mConfiguration;
 
@@ -66,6 +66,8 @@ public class DefaultAuthenticationServer
    */
   public DefaultAuthenticationServer(AlluxioConfiguration conf) {
     checkSupported(conf.getEnum(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.class));
+    mCleanupIntervalMs =
+        conf.getMs(PropertyKey.AUTHENTICATION_STALE_CHANNEL_PURGE_INTERVAL);
     mConfiguration = conf;
     mChannels = new ConcurrentHashMap<>();
     mScheduler = Executors.newScheduledThreadPool(1,

@@ -411,7 +411,6 @@ public final class NetworkAddressUtils {
     return getLocalHostName((int)conf.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS));
   }
 
-  // TODO(zac): Handle the JOB_WORKER case in this method.
   /**
    * Gets a local node name from configuration if it is available, falling back on localhost lookup.
    *
@@ -424,6 +423,10 @@ public final class NetworkAddressUtils {
           return conf.get(PropertyKey.JOB_MASTER_HOSTNAME);
         }
         break;
+      case JOB_WORKER:
+        if (conf.isSet(PropertyKey.JOB_WORKER_HOSTNAME)) {
+          return conf.get(PropertyKey.JOB_WORKER_HOSTNAME);
+        }
       case CLIENT:
         if (conf.isSet(PropertyKey.USER_HOSTNAME)) {
           return conf.get(PropertyKey.USER_HOSTNAME);

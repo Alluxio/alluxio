@@ -79,8 +79,8 @@ public final class BaseFileSystemTest {
   private FileSystemMasterClient mFileSystemMasterClient;
 
   private class DummyAlluxioFileSystem extends BaseFileSystem {
-    public DummyAlluxioFileSystem(ClientContext context, FileSystemContext fsContext) {
-      super(context, fsContext);
+    public DummyAlluxioFileSystem(FileSystemContext fsContext) {
+      super(fsContext);
     }
   }
 
@@ -91,7 +91,8 @@ public final class BaseFileSystemTest {
   public void before() {
     mClientContext = ClientContext.create(mConf.getProperties());
     mFileContext = PowerMockito.mock(FileSystemContext.class);
-    mFileSystem = new DummyAlluxioFileSystem(mClientContext, mFileContext);
+    when(mFileContext.getClientContext()).thenReturn(mClientContext);
+    mFileSystem = new DummyAlluxioFileSystem(mFileContext);
     mFileSystemMasterClient = PowerMockito.mock(FileSystemMasterClient.class);
     when(mFileContext.acquireMasterClient()).thenReturn(mFileSystemMasterClient);
   }

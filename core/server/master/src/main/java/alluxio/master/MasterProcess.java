@@ -41,7 +41,7 @@ public interface MasterProcess extends Process {
       URI journalLocation = JournalUtils.getJournalLocation();
       JournalSystem journalSystem =
           new JournalSystem.Builder().setLocation(journalLocation).build();
-      if (ServerConfigurationConfiguration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED)) {
+      if (ServerConfiguration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED)) {
         Preconditions.checkState(!(journalSystem instanceof RaftJournalSystem),
             "Raft journal cannot be used with Zookeeper enabled");
         PrimarySelector primarySelector = PrimarySelector.Factory.createZkPrimarySelector();

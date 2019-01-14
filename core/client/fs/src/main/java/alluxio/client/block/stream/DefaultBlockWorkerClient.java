@@ -14,7 +14,6 @@ package alluxio.client.block.stream;
 
 import alluxio.grpc.AsyncCacheRequest;
 import alluxio.grpc.AsyncCacheResponse;
-import alluxio.conf.Configuration;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
@@ -25,7 +24,6 @@ import alluxio.grpc.CreateLocalBlockRequest;
 import alluxio.grpc.CreateLocalBlockResponse;
 import alluxio.grpc.GrpcChannel;
 import alluxio.grpc.GrpcChannelBuilder;
-import alluxio.grpc.GrpcExceptionUtils;
 import alluxio.grpc.OpenLocalBlockRequest;
 import alluxio.grpc.OpenLocalBlockResponse;
 import alluxio.grpc.ReadRequest;
@@ -37,7 +35,6 @@ import alluxio.grpc.WriteResponse;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.network.NettyUtils;
 
-import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
 import io.netty.channel.EventLoopGroup;
 import org.slf4j.Logger;
@@ -68,6 +65,7 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
   private SocketAddress mAddress;
   private BlockWorkerGrpc.BlockWorkerBlockingStub mBlockingStub;
   private BlockWorkerGrpc.BlockWorkerStub mAsyncStub;
+  private final long mDataTimeoutMs;
 
   /**
    * Creates a client instance for communicating with block worker.
@@ -91,6 +89,7 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
     mBlockingStub = BlockWorkerGrpc.newBlockingStub(mChannel);
     mAsyncStub = BlockWorkerGrpc.newStub(mChannel);
     mAddress = address;
+    mDataTimeoutMs = alluxioConf.getMs(PropertyKey.USER_NETWORK_DATA_TIMEOUT_MS);
   }
 
   /**
@@ -98,10 +97,11 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
    *
    * @param channel the gRPC channel
    */
-  public DefaultBlockWorkerClient(GrpcChannel channel) {
+  public DefaultBlockWorkerClient(GrpcChannel channel, long dataTimeoutMs) {
     mChannel = channel;
     mBlockingStub = BlockWorkerGrpc.newBlockingStub(mChannel);
     mAsyncStub = BlockWorkerGrpc.newStub(mChannel);
+    mDataTimeoutMs = dataTimeoutMs;
   }
 
   @Override
@@ -138,13 +138,13 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
 
   @Override
   public RemoveBlockResponse removeBlock(final RemoveBlockRequest request) {
-    return mBlockingStub.withDeadlineAfter(DATA_TIMEOUT, TimeUnit.MILLISECONDS)
+    return mBlockingStub.withDeadlineAfter(mDataTimeoutMs, TimeUnit.MILLISECONDS)
         .removeBlock(request);
   }
 
   @Override
   public void asyncCache(final AsyncCacheRequest request) {
-    mAsyncStub.withDeadlineAfter(DATA_TIMEOUT, TimeUnit.MILLISECONDS)
+    mAsyncStub.withDeadlineAfter(mDataTimeoutMs, TimeUnit.MILLISECONDS)
         .asyncCache(request, new StreamObserver<AsyncCacheResponse>() {
           @Override
           public void onNext(AsyncCacheResponse value) {

@@ -11,6 +11,7 @@
 
 package alluxio.conf;
 
+import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.GetConfigurationPOptions;
@@ -351,8 +352,7 @@ public final class ServerConfiguration {
    *
    * @param address the master address
    */
-  public static void loadClusterDefaults(InetSocketAddress address) throws
-      UnavailableException {
+  public static void loadClusterDefaults(InetSocketAddress address) throws AlluxioStatusException {
     AlluxioConfiguration conf = ConfigurationUtils.loadClusterDefaults(address, global());
     CONF = new InstancedConfiguration(conf.getProperties());
   }

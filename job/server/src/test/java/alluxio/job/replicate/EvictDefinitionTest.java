@@ -80,7 +80,7 @@ public final class EvictDefinitionTest {
     blockInfo.setLocations(blockLocations);
     Mockito.when(mMockBlockStore.getInfo(TEST_BLOCK_ID)).thenReturn(blockInfo);
     PowerMockito.mockStatic(AlluxioBlockStore.class);
-    PowerMockito.when(AlluxioBlockStore.create(mMockFileSystemContext, ServerConfiguration.global())).thenReturn(mMockBlockStore);
+    PowerMockito.when(AlluxioBlockStore.create(mMockFileSystemContext)).thenReturn(mMockBlockStore);
 
     EvictConfig config = new EvictConfig(TEST_BLOCK_ID, replicas);
     EvictDefinition definition = new EvictDefinition(mMockFileSystemContext);

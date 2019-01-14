@@ -14,6 +14,7 @@ package alluxio.cli.fs.command;
 import alluxio.AlluxioURI;
 import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystem;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 
@@ -34,8 +35,8 @@ public final class StartSyncCommand extends AbstractFileSystemCommand {
   /**
    * @param fs the filesystem of Alluxio
    */
-  public StartSyncCommand(FileSystem fs) {
-    super(fs);
+  public StartSyncCommand(FileSystem fs, AlluxioConfiguration alluxioConf) {
+    super(fs, alluxioConf);
   }
 
   @Override

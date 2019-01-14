@@ -1,9 +1,10 @@
 package alluxio.grpc;
 
-import alluxio.Configuration;
-import alluxio.PropertyKey;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.collections.Pair;
 import alluxio.resource.LockResource;
+import alluxio.util.ConfigurationUtils;
 import com.google.common.base.Verify;
 import io.grpc.ManagedChannel;
 import io.grpc.netty.NettyChannelBuilder;
@@ -29,7 +30,10 @@ public class GrpcManagedChannelPool {
   private static GrpcManagedChannelPool sInstance;
 
   static {
-    sInstance = new GrpcManagedChannelPool();
+    sInstance =
+        new GrpcManagedChannelPool(new InstancedConfiguration(ConfigurationUtils.defaults()).getMs(
+            PropertyKey.MASTER_GRPC_CHANNEL_SHUTDOWN_TIMEOUT
+        ));
   }
 
   /**
@@ -50,12 +54,15 @@ public class GrpcManagedChannelPool {
   /** Used to control access to mChannel */
   private ReentrantReadWriteLock mLock;
 
+  private final long mChannelShutdownTimeoutMs;
+
   /**
    * Creates a new {@link GrpcManagedChannelPool}.
    */
-  public GrpcManagedChannelPool() {
+  public GrpcManagedChannelPool(long channelShutdownTimeoutMs) {
     mChannels = new HashMap<>();
     mLock = new ReentrantReadWriteLock(true);
+    mChannelShutdownTimeoutMs = channelShutdownTimeoutMs;
   }
 
   /**
@@ -102,9 +109,7 @@ public class GrpcManagedChannelPool {
             ManagedChannel channel = mChannels.remove(channelKey).reference();
             channel.shutdown();
             try {
-              channel.awaitTermination(
-                  Configuration.getMs(PropertyKey.MASTER_GRPC_CHANNEL_SHUTDOWN_TIMEOUT),
-                  TimeUnit.MILLISECONDS);
+              channel.awaitTermination(mChannelShutdownTimeoutMs, TimeUnit.MILLISECONDS);
             } catch (InterruptedException e) {
               Thread.currentThread().interrupt();
               // Allow thread to exit.

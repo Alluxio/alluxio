@@ -98,11 +98,8 @@ public final class MoveDefinition
    * Constructs a new {@link MoveDefinition}.
    */
   public MoveDefinition() {
-    mFileSystemContext = FileSystemContext.create();
-    mFileSystem =
-        BaseFileSystem.create(
-            ClientContext.create(mFileSystemContext.getParentSubject(),
-                ServerConfiguration.copyProperties()));
+    mFileSystemContext = FileSystemContext.create(null, ServerConfiguration.global());
+    mFileSystem = BaseFileSystem.create(mFileSystemContext);
   }
 
   /**
@@ -170,7 +167,7 @@ public final class MoveDefinition
     checkMoveValid(config);
 
     List<BlockWorkerInfo> alluxioWorkerInfoList =
-        AlluxioBlockStore.create(mFileSystemContext, ServerConfiguration.global()).getAllWorkers();
+        AlluxioBlockStore.create(mFileSystemContext).getAllWorkers();
     Preconditions.checkState(!jobWorkerInfoList.isEmpty(), "No workers are available");
 
     List<URIStatus> allPathStatuses = getPathStatuses(source);

@@ -73,7 +73,6 @@ public class FileInStream extends InputStream implements BoundedStream, Position
   private final AlluxioBlockStore mBlockStore;
   private final FileSystemContext mContext;
   private final boolean mPassiveCachingEnabled;
-  private final long mNettyTimeout;
 
   /* Convenience values derived from mStatus, use these instead of querying mStatus. */
   /** Length of the file in bytes. */
@@ -96,14 +95,13 @@ public class FileInStream extends InputStream implements BoundedStream, Position
   /** A map of worker addresses to the most recent epoch time when client fails to read from it. */
   private Map<WorkerNetAddress, Long> mFailedWorkers = new HashMap<>();
 
-  protected FileInStream(URIStatus status, InStreamOptions options, FileSystemContext context,
-      AlluxioConfiguration conf) {
+  protected FileInStream(URIStatus status, InStreamOptions options, FileSystemContext context) {
+    AlluxioConfiguration conf = context.getClientContext().getConf();
     mPassiveCachingEnabled = conf.getBoolean(PropertyKey.USER_FILE_PASSIVE_CACHE_ENABLED);
     mBlockWorkerClientReadRetry = conf.getInt(PropertyKey.USER_BLOCK_WORKER_CLIENT_READ_RETRY);
-    mNettyTimeout = conf.getMs(PropertyKey.USER_NETWORK_NETTY_TIMEOUT_MS);
     mStatus = status;
     mOptions = options;
-    mBlockStore = AlluxioBlockStore.create(context, conf);
+    mBlockStore = AlluxioBlockStore.create(context);
     mContext = context;
 
     mLength = mStatus.getLength();
@@ -337,8 +335,6 @@ public class FileInStream extends InputStream implements BoundedStream, Position
         && mStatus.getFileBlockInfos().get((int) (getPos() / mBlockSize))
         .getBlockInfo().getLocations().size() >= mStatus.getReplicationMax();
     cache = cache && !overReplicated;
-    boolean passiveCache = ServerConfiguration.getBoolean(PropertyKey.USER_FILE_PASSIVE_CACHE_ENABLED);
-    long channelTimeout = ServerConfiguration.getMs(PropertyKey.USER_NETWORK_DATA_TIMEOUT_MS);
     // Get relevant information from the stream.
     WorkerNetAddress dataSource = stream.getAddress();
     long blockId = stream.getId();

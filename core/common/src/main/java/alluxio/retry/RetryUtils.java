@@ -85,10 +85,10 @@ public final class RetryUtils {
   /**
    * @return the default active sync retry behavior
    */
-  public static RetryPolicy defaultActiveSyncClientRetry() {
+  public static RetryPolicy defaultActiveSyncClientRetry(long activeUfsPollTimeoutMs) {
     return ExponentialTimeBoundedRetry.builder()
         .withMaxDuration(Duration
-            .ofMillis(Configuration.getMs(PropertyKey.MASTER_ACTIVE_UFS_POLL_TIMEOUT)))
+            .ofMillis(activeUfsPollTimeoutMs))
         .withInitialSleep(Duration.ofMillis(100))
         .withMaxSleep(Duration.ofSeconds(60))
         .build();

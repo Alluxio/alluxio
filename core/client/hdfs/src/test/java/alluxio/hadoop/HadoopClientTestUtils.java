@@ -35,7 +35,6 @@ public final class HadoopClientTestUtils {
   public static void resetClient(InstancedConfiguration conf) {
     try {
       conf.set(PropertyKey.USER_METRICS_COLLECTION_ENABLED, false);
-      FileSystemContext.create().reset();
       Whitebox.setInternalState(AbstractFileSystem.class, "sInitialized", false);
     } catch (Exception e) {
       throw new RuntimeException(e);

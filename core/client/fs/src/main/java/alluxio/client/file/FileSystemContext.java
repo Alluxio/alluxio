@@ -13,6 +13,7 @@ package alluxio.client.file;
 
 import alluxio.ClientContext;
 import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.AlluxioProperties;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.client.block.BlockMasterClient;
@@ -28,17 +29,16 @@ import alluxio.master.MasterClientConfig;
 import alluxio.master.MasterInquireClient;
 import alluxio.metrics.MetricsSystem;
 import alluxio.resource.CloseableResource;
+import alluxio.util.ConfigurationUtils;
+import alluxio.util.IdUtils;
 import alluxio.util.ThreadFactoryUtils;
-import alluxio.util.ThreadUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
 import com.codahale.metrics.Gauge;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Objects;
-import io.netty.bootstrap.Bootstrap;
-import io.netty.channel.Channel;
+import jline.internal.Nullable;
 import jline.internal.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,13 +49,10 @@ import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import javax.annotation.Nonnull;
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
 import javax.security.auth.Subject;
@@ -91,8 +88,6 @@ public final class FileSystemContext implements Closeable {
   private MetricsMasterClient mMetricsMasterClient;
   private ClientMasterSync mClientMasterSync;
 
-  @GuardedBy("CONTEXT_CACHE_LOCK")
-  private int mRefCount;
 
   /** The shared master inquire client associated with the {@link FileSystemContext}. */
   @GuardedBy("this")
@@ -115,6 +110,8 @@ public final class FileSystemContext implements Closeable {
 
   private final ClientContext mClientContext;
 
+  private final String mAppId;
+
   /**
    * @return the instance of file system context with no subject associated
    */
@@ -126,9 +123,21 @@ public final class FileSystemContext implements Closeable {
    * @param subject the parent subject, set to null if not present
    * @return the context
    */
-  public static FileSystemContext create(Subject subject, AlluxioConfiguration conf) {
-    FileSystemContext context = new FileSystemContext(subject, conf);
-    context.init(MasterInquireClient.Factory.create(conf));
+  public static FileSystemContext create(Subject subject, @Nullable AlluxioConfiguration conf) {
+    AlluxioProperties props = null;
+    if (conf != null) {
+      props = conf.getProperties();
+    }
+    return create(subject, props);
+  }
+
+  /**
+   * @param subject the parent subject, set to null if not present
+   * @return the context
+   */
+  public static FileSystemContext create(Subject subject, @Nullable AlluxioProperties props) {
+    FileSystemContext context = new FileSystemContext(subject, props);
+    context.init(MasterInquireClient.Factory.create(context.getClientContext().getConf()));
     return context;
   }
 
@@ -139,7 +148,7 @@ public final class FileSystemContext implements Closeable {
   public static FileSystemContext create(ClientContext clientContext) {
     Preconditions.checkNotNull(clientContext);
     FileSystemContext ctx = new FileSystemContext(clientContext);
-    ctx.init(MasterInquireClient.Factory.create(clientContext.mConf));
+    ctx.init(MasterInquireClient.Factory.create(clientContext.getConf()));
     return ctx;
   }
 
@@ -155,7 +164,11 @@ public final class FileSystemContext implements Closeable {
    */
   @VisibleForTesting
   public static FileSystemContext create(Subject subject, MasterInquireClient masterInquireClient, AlluxioConfiguration conf) {
-    FileSystemContext context = new FileSystemContext(subject, conf);
+    AlluxioProperties props = null;
+    if (conf != null){
+      props = conf.getProperties();
+    }
+    FileSystemContext context = new FileSystemContext(subject, props);
     context.init(masterInquireClient);
     return context;
   }
@@ -165,10 +178,8 @@ public final class FileSystemContext implements Closeable {
    *
    * @param subject the parent subject, set to null if not present
    */
-  private FileSystemContext(Subject subject, AlluxioConfiguration alluxioConf) {
-    // Makes a copy of the properties so that a thread with the reference to them can't change them
-    // after instantiation.
-    this(ClientContext.create(subject, alluxioConf.getProperties()));
+  private FileSystemContext(Subject subject, @Nullable AlluxioProperties alluxioProps) {
+      this(ClientContext.create(subject, alluxioProps));
   }
 
   /**
@@ -181,7 +192,14 @@ public final class FileSystemContext implements Closeable {
     mExecutorService = Executors.newFixedThreadPool(1,
         ThreadFactoryUtils.build("metrics-master-heartbeat-%d", true));
     mClosed = new AtomicBoolean(false);
-    mRefCount = 0;
+
+
+    mAppId = ctx.getConf().isSet(PropertyKey.USER_APP_ID)
+                 ? ctx.getConf().get(PropertyKey.USER_APP_ID) : IdUtils.createFileSystemContextId();
+    LOG.info("Created filesystem context with id {}. This ID will be used for identifying info "
+                 + "from the client, such as metrics. It can be set manually through the {} property",
+        mAppId, PropertyKey.Name.USER_APP_ID);
+
   }
 
   /**
@@ -193,23 +211,23 @@ public final class FileSystemContext implements Closeable {
     mMasterInquireClient = masterInquireClient;
     mFileSystemMasterClientPool =
         new FileSystemMasterClientPool(mClientContext.getSubject(), mMasterInquireClient,
-            mClientContext.getConfiguration());
+            mClientContext.getConf());
     mBlockMasterClientPool = new BlockMasterClientPool(mClientContext.getSubject(),
-        mMasterInquireClient, mClientContext.getConfiguration());
+        mMasterInquireClient, mClientContext.getConf());
     mClosed.set(false);
 
-    if (mClientContext.getConfiguration().getBoolean(PropertyKey.USER_METRICS_COLLECTION_ENABLED)) {
+    if (mClientContext.getConf().getBoolean(PropertyKey.USER_METRICS_COLLECTION_ENABLED)) {
       // setup metrics master client sync
-      mMetricsMasterClient = new MetricsMasterClient(MasterClientConfig.defaults(mClientContext.getConfiguration())
+      mMetricsMasterClient = new MetricsMasterClient(MasterClientConfig.defaults(mClientContext.getConf())
           .withSubject(mClientContext.getSubject()).withMasterInquireClient(mMasterInquireClient)
-          , mClientContext.getConfiguration());
+          , mClientContext.getConf());
       mClientMasterSync = new ClientMasterSync(mMetricsMasterClient, this);
       mExecutorService = Executors.newFixedThreadPool(1,
           ThreadFactoryUtils.build("metrics-master-heartbeat-%d", true));
       mExecutorService
           .submit(new HeartbeatThread(HeartbeatContext.MASTER_METRICS_SYNC, mClientMasterSync,
-              (int) mClientContext.getConfiguration().getMs(PropertyKey.USER_METRICS_HEARTBEAT_INTERVAL_MS),
-              mClientContext.getConfiguration()));
+              (int) mClientContext.getConf().getMs(PropertyKey.USER_METRICS_HEARTBEAT_INTERVAL_MS),
+              mClientContext.getConf()));
       // register the shutdown hook
       try {
         Runtime.getRuntime().addShutdownHook(new MetricsMasterSyncShutDownHook());
@@ -260,18 +278,26 @@ public final class FileSystemContext implements Closeable {
    */
   public synchronized void reset() throws IOException {
     close();
-    init(MasterInquireClient.Factory.create(mClientContext.getConfiguration()));
+    init(MasterInquireClient.Factory.create(mClientContext.getConf()));
   }
 
-  /**
-   * @return the parent subject
-   */
-  public Subject getParentSubject() {
-    return mClientContext.getSubject();
-  }
+//  /**
+//   * @return the parent subject
+//   */
+//  public Subject getParentSubject() {
+//    return mClientContext.getSubject();
+//  }
+//
+//  public AlluxioConfiguration getConfiguration() {
+//    return mClientContext.getConf();
+//  }
 
-  public ClientContext getClientContext() {
+  public ClientContext getClientContext(){
     return mClientContext;
+  }
+
+  public String getAppId() {
+    return mAppId;
   }
 
 //  /**
@@ -352,8 +378,10 @@ public final class FileSystemContext implements Closeable {
    */
   public BlockWorkerClient acquireBlockWorkerClient(final WorkerNetAddress workerNetAddress)
       throws IOException {
-    SocketAddress address = NetworkAddressUtils.getDataPortSocketAddress(workerNetAddress, mClientContext.mConf);
-    return BlockWorkerClient.Factory.create(mParentSubject, address. mClientContext.mConf);
+    SocketAddress address = NetworkAddressUtils.getDataPortSocketAddress(workerNetAddress,
+        mClientContext.getConf());
+    return BlockWorkerClient.Factory.create(mClientContext.getSubject(), address,
+        mClientContext.getConf());
   }
 
   /**
@@ -365,7 +393,7 @@ public final class FileSystemContext implements Closeable {
   public void releaseBlockWorkerClient(WorkerNetAddress workerNetAddress,
       BlockWorkerClient client) {
     SocketAddress address = NetworkAddressUtils.getDataPortSocketAddress(workerNetAddress,
-        mClientContext.getConfiguration());
+        mClientContext.getConf());
     try {
       client.close();
     } catch (IOException e) {
@@ -396,7 +424,7 @@ public final class FileSystemContext implements Closeable {
   private void initializeLocalWorker() throws IOException {
     List<WorkerNetAddress> addresses = getWorkerAddresses();
     if (!addresses.isEmpty()) {
-      if (addresses.get(0).getHost().equals(NetworkAddressUtils.getClientHostName(mClientContext.getConfiguration()))) {
+      if (addresses.get(0).getHost().equals(NetworkAddressUtils.getClientHostName(mClientContext.getConf()))) {
         mLocalWorker = addresses.get(0);
       }
     }
@@ -422,7 +450,7 @@ public final class FileSystemContext implements Closeable {
     // Convert the worker infos into net addresses, if there are local addresses, only keep those
     List<WorkerNetAddress> workerNetAddresses = new ArrayList<>();
     List<WorkerNetAddress> localWorkerNetAddresses = new ArrayList<>();
-    String localHostname = NetworkAddressUtils.getClientHostName(mClientContext.getConfiguration());
+    String localHostname = NetworkAddressUtils.getClientHostName(mClientContext.getConf());
     for (WorkerInfo info : infos) {
       WorkerNetAddress netAddress = info.getAddress();
       if (netAddress.getHost().equals(localHostname)) {

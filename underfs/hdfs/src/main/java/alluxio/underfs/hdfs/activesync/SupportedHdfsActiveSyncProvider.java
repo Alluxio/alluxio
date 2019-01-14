@@ -12,10 +12,9 @@
 package alluxio.underfs.hdfs.activesync;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
-import alluxio.PropertyKey;
 import alluxio.SyncInfo;
 import alluxio.collections.ConcurrentHashSet;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.InvalidPathException;
 import alluxio.resource.LockResource;
 import alluxio.underfs.hdfs.HdfsActiveSyncProvider;
@@ -59,11 +58,6 @@ public class SupportedHdfsActiveSyncProvider implements HdfsActiveSyncProvider {
   private final ExecutorService mExecutorService;
   private Future<?> mPollingThread;
   private List<AlluxioURI> mUfsUriList;
-
-  private static final int MAX_ACTIVITY =
-      Configuration.getInt(PropertyKey.MASTER_ACTIVE_UFS_SYNC_MAX_ACTIVITY);
-  private static final int MAX_AGE =
-      Configuration.getInt(PropertyKey.MASTER_ACTIVE_UFS_SYNC_MAX_AGE);
 
   // a map mapping SyncPoints to a set of files that have been changed under that syncPoint
   private Map<String, Set<AlluxioURI>> mChangedFiles;

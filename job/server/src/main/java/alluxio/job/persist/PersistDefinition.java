@@ -13,6 +13,7 @@ package alluxio.job.persist;
 
 import alluxio.AlluxioURI;
 import alluxio.ClientContext;
+import alluxio.Server;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.file.BaseFileSystem;
@@ -66,9 +67,8 @@ public final class PersistDefinition
    * Constructs a new {@link PersistDefinition}.
    */
   public PersistDefinition() {
-    mFileSystemContext = FileSystemContext.create();
-    mFileSystem = BaseFileSystem.create(ClientContext.create(mFileSystemContext.getParentSubject(),
-        ServerConfiguration.copyProperties()));
+    mFileSystemContext = FileSystemContext.create(null, ServerConfiguration.global());
+    mFileSystem = BaseFileSystem.create(mFileSystemContext);
   }
 
   /**
@@ -91,7 +91,7 @@ public final class PersistDefinition
 
     AlluxioURI uri = new AlluxioURI(config.getFilePath());
     List<BlockWorkerInfo> alluxioWorkerInfoList =
-        AlluxioBlockStore.create(mFileSystemContext, ServerConfiguration.global()).getAllWorkers();
+        AlluxioBlockStore.create(mFileSystemContext).getAllWorkers();
     BlockWorkerInfo workerWithMostBlocks = JobUtils.getWorkerWithMostBlocks(alluxioWorkerInfoList,
         mFileSystem.getStatus(uri).getFileBlockInfos());
 

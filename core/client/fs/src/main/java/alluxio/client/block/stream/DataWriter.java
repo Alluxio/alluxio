@@ -55,7 +55,8 @@ public interface DataWriter extends Closeable, Cancelable {
      * @return the {@link DataWriter} instance
      */
     public static DataWriter create(FileSystemContext context, long blockId, long blockSize,
-        WorkerNetAddress address, OutStreamOptions options, AlluxioConfiguration alluxioConf) throws IOException {
+        WorkerNetAddress address, OutStreamOptions options) throws IOException {
+      AlluxioConfiguration alluxioConf = context.getClientContext().getConf();
       if (CommonUtils.isLocalHost(address, alluxioConf) && alluxioConf
           .getBoolean(PropertyKey.USER_SHORT_CIRCUIT_ENABLED) && !NettyUtils
           .isDomainSocketSupported(address, alluxioConf)) {
@@ -64,13 +65,13 @@ public interface DataWriter extends Closeable, Cancelable {
           LOG.info("Creating UFS-fallback short circuit output stream for block {} @ {}", blockId,
               address);
           return UfsFallbackLocalFileDataWriter.create(
-              context, address, blockId, blockSize, options, alluxioConf);
+              context, address, blockId, blockSize, options);
         }
         LOG.debug("Creating short circuit output stream for block {} @ {}", blockId, address);
         return LocalFileDataWriter.create(context, address, blockId, options);
       } else {
         LOG.debug("Creating gRPC output stream for block {} @ {} from client {}", blockId, address,
-            NetworkAddressUtils.getClientHostName());
+            NetworkAddressUtils.getClientHostName(alluxioConf));
         return GrpcDataWriter
             .create(context, address, blockId, blockSize, RequestType.ALLUXIO_BLOCK,
                 options);

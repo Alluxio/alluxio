@@ -95,13 +95,6 @@ public class ConfigurationTest {
   }
 
   @Test
-  public void containsKey() {
-    assertFalse(mConfiguration.isSet(PropertyKey.ZOOKEEPER_ADDRESS));
-    mConfiguration.set(PropertyKey.ZOOKEEPER_ADDRESS, "address");
-    assertTrue(mConfiguration.isSet(PropertyKey.ZOOKEEPER_ADDRESS));
-  }
-
-  @Test
   public void isSet() {
     assertFalse(mConfiguration.isSet(PropertyKey.ZOOKEEPER_ADDRESS));
     mConfiguration.set(PropertyKey.ZOOKEEPER_ADDRESS, "address");

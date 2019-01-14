@@ -28,7 +28,9 @@ import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.GetConfigurationPOptions;
 import alluxio.grpc.GrpcChannel;
 import alluxio.grpc.GrpcChannelBuilder;
+import alluxio.grpc.GrpcExceptionUtils;
 import alluxio.grpc.MetaMasterClientServiceGrpc;
+import alluxio.grpc.MetaMasterConfigurationServiceGrpc;
 import alluxio.grpc.Scope;
 import alluxio.grpc.GrpcUtils;
 import alluxio.util.io.PathUtils;
@@ -89,7 +91,8 @@ public final class ConfigurationUtils {
    * @return the job master rpc addresses
    */
   public static List<InetSocketAddress> getJobMasterRpcAddresses(AlluxioConfiguration conf) {
-    int jobRpcPort = NetworkAddressUtils.getPort(NetworkAddressUtils.ServiceType.JOB_MASTER_RPC);
+    int jobRpcPort = NetworkAddressUtils.getPort(NetworkAddressUtils.ServiceType.JOB_MASTER_RPC,
+        conf);
     if (conf.isSet(PropertyKey.JOB_MASTER_RPC_ADDRESSES)) {
       return parseInetSocketAddresses(
           conf.getList(PropertyKey.JOB_MASTER_RPC_ADDRESSES, ","));
@@ -360,7 +363,7 @@ public final class ConfigurationUtils {
    * @param address the master address
    */
   public static AlluxioConfiguration loadClusterDefaults(InetSocketAddress address, AlluxioConfiguration conf)
-      throws UnavailableException {
+      throws AlluxioStatusException {
     if (!conf.getBoolean(PropertyKey.USER_CONF_CLUSTER_DEFAULT_ENABLED)
         || conf.clusterDefaultsLoaded()) {
       return conf;
@@ -376,14 +379,15 @@ public final class ConfigurationUtils {
       List<alluxio.grpc.ConfigProperty> clusterConfig;
 
       try {
-        channel = GrpcChannelBuilder.forAddress(address, conf)
-            .disableAuthentication().build();
-        MetaMasterClientServiceGrpc.MetaMasterClientServiceBlockingStub client =
-            MetaMasterClientServiceGrpc.newBlockingStub(channel);
+        channel = GrpcChannelBuilder.forAddress(address, conf).disableAuthentication().build();
+        MetaMasterConfigurationServiceGrpc.MetaMasterConfigurationServiceBlockingStub client =
+            MetaMasterConfigurationServiceGrpc.newBlockingStub(channel);
         clusterConfig =
             client.getConfiguration(GetConfigurationPOptions.newBuilder().setRawValue(true).build())
                 .getConfigsList();
       } catch (io.grpc.StatusRuntimeException e) {
+        AlluxioStatusException ase = GrpcExceptionUtils.fromGrpcStatusException(e);
+        LOG.warn("Failed to handshake with master {} : {}", address, ase.getMessage());
         throw new UnavailableException(String.format(
             "Failed to handshake with master %s to load cluster default configuration values",
             address), e);
@@ -391,7 +395,9 @@ public final class ConfigurationUtils {
         throw new RuntimeException(String.format(
             "Received authentication exception with authentication disabled. Host:%s", address), e);
       } finally {
-        channel.shutdown();
+        if (channel != null) {
+          channel.shutdown();
+        }
       }
 
       // merge conf returned by master as the cluster default into ServerConfiguration

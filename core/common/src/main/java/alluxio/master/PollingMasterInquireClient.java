@@ -52,8 +52,10 @@ public class PollingMasterInquireClient implements MasterInquireClient {
   /**
    * @param masterAddresses the potential master addresses
    */
-  public PollingMasterInquireClient(List<InetSocketAddress> masterAddresses) {
-    this(masterAddresses, () -> new ExponentialBackoffRetry(20, 2000, 30));
+  public PollingMasterInquireClient(List<InetSocketAddress> masterAddresses,
+      AlluxioConfiguration alluxioConf) {
+    this(masterAddresses, () -> new ExponentialBackoffRetry(20, 2000, 30),
+        alluxioConf);
   }
 
   /**

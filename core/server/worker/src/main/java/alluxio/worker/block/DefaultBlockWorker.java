@@ -236,11 +236,12 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
             ServerConfiguration.global()));
 
     // Setup storage checker
-    if (Configuration.getBoolean(PropertyKey.WORKER_STORAGE_CHECKER_ENABLED)) {
+    if (ServerConfiguration.getBoolean(PropertyKey.WORKER_STORAGE_CHECKER_ENABLED)) {
       mStorageChecker = new StorageChecker();
       getExecutorService()
           .submit(new HeartbeatThread(HeartbeatContext.WORKER_STORAGE_HEALTH, mStorageChecker,
-              (int) Configuration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS)));
+              (int) ServerConfiguration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS),
+                  ServerConfiguration.global()));
     }
 
     // Start the session cleanup checker to perform the periodical checking

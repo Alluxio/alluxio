@@ -12,6 +12,7 @@
 package alluxio.grpc;
 
 import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.security.authentication.AuthenticationServer;
 import alluxio.security.authentication.DefaultAuthenticationServer;
 import alluxio.util.SecurityUtils;
@@ -205,6 +206,7 @@ public final class GrpcServerBuilder {
   public GrpcServer build() {
     addService(new GrpcService(new ServiceVersionClientServiceHandler(mServices))
         .disableAuthentication());
-    return new GrpcServer(mNettyServerBuilder.build());
+    return new GrpcServer(mNettyServerBuilder.build(),
+        mConfiguration.getMs(PropertyKey.MASTER_GRPC_SERVER_SHUTDOWN_TIMEOUT));
   }
 }

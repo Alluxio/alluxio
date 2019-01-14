@@ -184,7 +184,8 @@ public final class AlluxioJobWorkerProcess implements JobWorkerProcess {
       }
 
       LOG.info("Starting gRPC server on address {}", mRpcAddress);
-      GrpcServerBuilder serverBuilder = GrpcServerBuilder.forAddress(mRpcAddress);
+      GrpcServerBuilder serverBuilder = GrpcServerBuilder.forAddress(mRpcAddress,
+          ServerConfiguration.global());
 
       for (Map.Entry<alluxio.grpc.ServiceType, GrpcService> serviceEntry : mJobWorker.getServices()
           .entrySet()) {

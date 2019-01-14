@@ -107,7 +107,7 @@ public final class JobUtils {
    */
   public static void loadBlock(FileSystem fs, FileSystemContext context, String path, long blockId)
       throws AlluxioException, IOException {
-    AlluxioBlockStore blockStore = AlluxioBlockStore.create(context, ServerConfiguration.global());
+    AlluxioBlockStore blockStore = AlluxioBlockStore.create(context);
 
     String localHostName = NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC,
         ServerConfiguration.global());

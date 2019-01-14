@@ -24,6 +24,7 @@ import alluxio.grpc.ServiceType;
 import alluxio.master.MasterClientConfig;
 import alluxio.metrics.MetricsSystem;
 import alluxio.retry.RetryUtils;
+import alluxio.util.IdUtils;
 import alluxio.util.network.NetworkAddressUtils;
 
 import java.io.IOException;
@@ -76,8 +77,8 @@ public class MetricsMasterClient extends AbstractMasterClient {
     connect();
     try {
       MetricsHeartbeatPRequest.Builder request = MetricsHeartbeatPRequest.newBuilder();
-      request.setClientId(FileSystemContext.create().getId());
-      request.setHostname(NetworkAddressUtils.getClientHostName(mContext.getConfiguration()));
+      request.setClientId(IdUtils.createOrGetAppIdFromConfig(mContext.getConf()));
+      request.setHostname(NetworkAddressUtils.getClientHostName(mContext.getConf()));
       request.setOptions(MetricsHeartbeatPOptions.newBuilder().addAllMetrics(metrics).build());
       mClient.metricsHeartbeat(request.build());
     } catch (io.grpc.StatusRuntimeException e) {

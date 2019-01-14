@@ -93,7 +93,7 @@ public final class MoveDefinitionSelectExecutorsTest {
     mMockFileSystem = Mockito.mock(FileSystem.class);
     mMockUfsManager = Mockito.mock(UfsManager.class);
     PowerMockito.mockStatic(AlluxioBlockStore.class);
-    PowerMockito.when(AlluxioBlockStore.create(mMockFileSystemContext, ServerConfiguration.global())).thenReturn(mMockBlockStore);
+    PowerMockito.when(AlluxioBlockStore.create(mMockFileSystemContext)).thenReturn(mMockBlockStore);
     when(mMockBlockStore.getAllWorkers()).thenReturn(BLOCK_WORKERS);
     createDirectory("/");
   }

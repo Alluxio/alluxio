@@ -30,7 +30,8 @@ public final class MockFileOutStream extends FileOutStream {
    * inspection during tests.
    */
   public MockFileOutStream(AlluxioConfiguration conf) throws IOException {
-    super(new AlluxioURI("/"), OutStreamOptions.defaults(conf), FileSystemContext.create(), conf);
+    super(new AlluxioURI("/"), OutStreamOptions.defaults(conf), FileSystemContext.create(null,
+        conf));
     mStream = new ByteArrayOutputStream();
   }
 
