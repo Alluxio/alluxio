@@ -51,7 +51,7 @@ export class Paginator extends React.PureComponent<IPaginagorProps> {
     const prevPage = currentPage - 1;
     const nextPage = currentPage + 1;
 
-    if (numPages === 1) {
+    if (numPages <= 1) {
       return null;
     }
 
