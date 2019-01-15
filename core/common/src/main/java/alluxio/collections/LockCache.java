@@ -22,24 +22,27 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 
 public class LockCache<K, V> {
   static class ValNode<V> {
     private WeakReference<V> mValue;
-    private volatile boolean mAccessed;
+    private V mAccessed;
 
     private ValNode(V val) {
       mValue = new WeakReference<>(val);
-      mAccessed = true;
+      mAccessed = val;
     }
 
     public void setAccessed(boolean accessed) {
-      mAccessed = accessed;
+      if (accessed) {
+        mAccessed = mValue.get();
+      } else {
+        mAccessed = null;
+      }
     }
 
-    public boolean getAccessed() { return mAccessed; }
+    public boolean getAccessed() { return mAccessed != null; }
 
     public final boolean equals(Object o) {
       if (this == o) {
@@ -55,28 +58,34 @@ public class LockCache<K, V> {
   }
   private static final Logger LOG = LoggerFactory.getLogger(LockCache.class);
   private final static float DEFAULT_LOAD_FACTOR = 0.75f;
+  public static final float HIGH_WATERMARK_RATIO = 0.9f;
 
-  private final ConcurrentHashMap<K, ValNode<V>> mCache;
+  private final Map<K, ValNode<V>> mCache;
   private final int mConcurrencyLevel;
   private final int mInitSize;
-  private final long mMaxSize;
+  /* A suggested maximum size for the cache */
+  private final int mMaxSize;
+  private final int mHighWatermark;
   private final Function<? super K, ? extends V> mDefaultLoader;
   private Iterator<Map.Entry<K, ValNode<V>>> mIterator;
   private final AtomicBoolean mEvictor;
 
   public LockCache(@Nullable Function<? super K, ? extends V> defaultLoader, int initialSize,
-      long maxSize, int concurrencyLevel) {
+      int maxSize, int concurrencyLevel) {
     mDefaultLoader = defaultLoader;
     mConcurrencyLevel = concurrencyLevel;
     mInitSize = initialSize;
     mMaxSize = maxSize;
+    mHighWatermark = (int) Math.round(HIGH_WATERMARK_RATIO * maxSize);
     mCache = new ConcurrentHashMap<>(mInitSize, DEFAULT_LOAD_FACTOR, concurrencyLevel);
     mIterator =  mCache.entrySet().iterator();
     mEvictor = new AtomicBoolean(false);
   }
 
   private void evictIfFull() {
-    long numToEvict = mCache.mappingCount() - mMaxSize;
+    long numToEvict = mCache.size() - mHighWatermark;
+
+    LOG.info("test");
     if (numToEvict < 0) {
       return;
     }
@@ -89,8 +98,8 @@ public class LockCache<K, V> {
         }
         Map.Entry<K, ValNode<V>> candidate = mIterator.next();
 
-        if (candidate.getValue().mAccessed) {
-          candidate.getValue().mAccessed = false;
+        if (candidate.getValue().getAccessed()) {
+          candidate.getValue().setAccessed(false);
         } else {
           if (candidate.getValue().mValue.get() == null) {
             mIterator.remove();
@@ -104,27 +113,37 @@ public class LockCache<K, V> {
 
   public V get(final K key) {
     Preconditions.checkNotNull(key, "key can not be null");
-    evictIfFull();
-    ValNode<V> value = mCache.computeIfAbsent(
-        key, (k) -> new ValNode<>(mDefaultLoader.apply(k)));
-    V val = value.mValue.get();
+    ValNode<V> value = null;
+    V val = null;
+    while (value == null) {
+      value = mCache.computeIfAbsent(
+          key, (k) -> {
+            if (mCache.size() < mMaxSize) {
+              return new ValNode<>(mDefaultLoader.apply(k));
+            } else {
+              return null;
+            }
+          });
+      val = value.mValue.get();
+      evictIfFull();
+    }
     if (val == null) {
       V newVal = mDefaultLoader.apply(key);
       value.mValue = new WeakReference<>(newVal);
+      value.setAccessed(true);
       return newVal;
     } else {
+      value.setAccessed(true);
       return val;
     }
   }
 
-  public void putIfAbsent(final K key, final V value) {
+  public boolean contains(final K key) {
     Preconditions.checkNotNull(key, "key can not be null");
-    evictIfFull();
-    mCache.computeIfAbsent(key, (k) -> new ValNode<>(value));
+    return mCache.containsKey(key);
   }
 
-  public void put(final K key, final V value) {
-    Preconditions.checkNotNull(key, "key can not be null");
-    mCache.put(key, new ValNode<>(value));
+  public int size() {
+    return mCache.size();
   }
 }
