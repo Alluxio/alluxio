@@ -85,7 +85,6 @@ public class LockCache<K, V> {
   private void evictIfFull() {
     long numToEvict = mCache.size() - mHighWatermark;
 
-    LOG.info("test");
     if (numToEvict < 0) {
       return;
     }
@@ -128,6 +127,7 @@ public class LockCache<K, V> {
       evictIfFull();
     }
     if (val == null) {
+      // the old value has been garbage collected
       V newVal = mDefaultLoader.apply(key);
       value.mValue = new WeakReference<>(newVal);
       value.setAccessed(true);
