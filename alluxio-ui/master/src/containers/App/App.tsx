@@ -33,25 +33,16 @@ interface IAppProps {
   history: History;
 }
 
-interface IAppState {
-  refreshValue: boolean;
-}
-
 type AllProps = IPropsFromDispatch & IAppProps;
 
-class App extends React.Component<AllProps, IAppState> {
+class App extends React.Component<AllProps> {
   private readonly refreshInterval = 30000;
   private intervalHandle: any;
 
   constructor(props: AllProps) {
     super(props);
 
-    this.flipRefreshValue = this.flipRefreshValue.bind(this);
     this.setAutoRefresh = this.setAutoRefresh.bind(this);
-
-    this.state = {
-      refreshValue: false
-    };
   }
 
   public render() {
@@ -88,10 +79,6 @@ class App extends React.Component<AllProps, IAppState> {
     return (
       <Redirect to="/overview"/>
     );
-  }
-
-  private flipRefreshValue() {
-    this.setState({refreshValue: !this.state.refreshValue});
   }
 
   private setAutoRefresh(shouldAutoRefresh: boolean) {
