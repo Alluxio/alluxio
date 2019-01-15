@@ -32,10 +32,10 @@
     "build-js": "react-app-rewired build --scripts-version react-scripts",
     "start": "npm-run-all --parallel watch-css start-js",
     "build": "npm-run-all --parallel build-css build-js",
-    "test": "react-app-rewired test --scripts-version react-scripts --env=jsdom --watch",
-    "test-ci": "CI=true react-app-rewired test --scripts-version react-scripts --env=jsdom",
-    "coverage": "react-app-rewired test --scripts-version react-scripts --env=jsdom --coverage --collectCoverageFrom=src/**/*tsx --collectCoverageFrom=!src/*tsx --watch",
-    "coverage-ci": "CI=true react-app-rewired test --scripts-version react-scripts --env=jsdom --coverage --collectCoverageFrom=src/**/*tsx --collectCoverageFrom=!src/*tsx",
+    "test": "npm run build-css && react-app-rewired test --scripts-version react-scripts --env=jsdom --watch --verbose=false",
+    "test-ci": "npm run build-css && CI=true react-app-rewired test --scripts-version react-scripts --env=jsdom",
+    "coverage": "npm run build-css && react-app-rewired test --scripts-version react-scripts --env=jsdom --coverage --collectCoverageFrom=src/**/*tsx --collectCoverageFrom=!src/*tsx --watch",
+    "coverage-ci": "npm run build-css && CI=true react-app-rewired test --scripts-version react-scripts --env=jsdom --coverage --collectCoverageFrom=src/**/*tsx --collectCoverageFrom=!src/*tsx",
     "eject": "react-scripts eject"
   },
   "devDependencies": {
@@ -50,6 +50,8 @@
     "@types/react-redux": "^6.0.12",
     "@types/react-router-dom": "^4.3.1",
     "@types/reactstrap": "^6.4.4",
+    "@types/redux-mock-store": "^1.0.0",
+    "@types/sinon": "^7.0.3",
     "enzyme": "^3.8.0",
     "enzyme-adapter-react-16": "^1.7.1",
     "enzyme-to-json": "^3.3.5",
@@ -58,6 +60,8 @@
     "react-app-rewired": "^2.0.1",
     "react-test-renderer": "^16.7.0",
     "redux-devtools-extension": "^2.13.7",
+    "redux-mock-store": "^1.5.3",
+    "sinon": "^7.2.2",
     "typescript": "^3.2.2"
   },
   "jest": {
