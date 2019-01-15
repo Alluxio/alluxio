@@ -11,7 +11,7 @@
 
 import {connectRouter, RouterState} from 'connected-react-router';
 import {History} from 'history';
-import {Action, AnyAction, combineReducers, Dispatch} from 'redux';
+import {combineReducers} from 'redux';
 import {all, fork} from 'redux-saga/effects';
 
 import {refreshReducer} from '@alluxio/common-ui/src/store/refresh/reducer';
@@ -48,10 +48,6 @@ export interface IApplicationState {
   refresh: IRefreshState;
   router: RouterState;
   workers: IWorkersState;
-}
-
-export interface IConnectedReduxProps<A extends Action = AnyAction> {
-  dispatch: Dispatch<A>;
 }
 
 export const rootReducer = (history: History) => combineReducers<IApplicationState>({
