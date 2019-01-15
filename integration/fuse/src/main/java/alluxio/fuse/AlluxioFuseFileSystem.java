@@ -238,16 +238,14 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
     LOG.trace("create({}, {}) [Alluxio: {}]", path, Integer.toHexString(flags), uri);
 
     try {
+      if (mOpenFiles.size() >= MAX_OPEN_FILES) {
+        LOG.error("Cannot open {}: too many open files (MAX_OPEN_FILES: {})", uri,
+            MAX_OPEN_FILES);
+        return -ErrorCodes.EMFILE();
+      }
       synchronized (mOpenFiles) {
-        if (mOpenFiles.size() >= MAX_OPEN_FILES) {
-          LOG.error("Cannot open {}: too many open files (MAX_OPEN_FILES: {})", uri,
-              MAX_OPEN_FILES);
-          return -ErrorCodes.EMFILE();
-        }
-
         mOpenFiles.add(new OpenFileEntry(mNextOpenFileId, path,
             null, mFileSystem.createFile(uri)));
-        LOG.debug("Alluxio OutStream created for {}", path);
         fi.fh.set(mNextOpenFileId);
 
         // Assuming I will never wrap around (2^64 open files are quite a lot anyway)
@@ -285,9 +283,7 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
     LOG.trace("flush({})", path);
     final long fd = fi.fh.get();
     OpenFileEntry oe;
-    synchronized (mOpenFiles) {
-      oe = mOpenFiles.getFirstByField(ID_INDEX, fd);
-    }
+    oe = mOpenFiles.getFirstByField(ID_INDEX, fd);
     if (oe == null) {
       LOG.error("Cannot find fd for {} in table", path);
       return -ErrorCodes.EBADFD();
@@ -322,14 +318,9 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
       }
       URIStatus status = mFileSystem.getStatus(turi);
       if (!status.isCompleted()) {
-        boolean writing;
-        synchronized (mOpenFiles) {
-          // Fuse release() returns but does not finish is not considered as writing here
-          writing = mOpenFiles.contains(PATH_INDEX, path);
-        }
         // Always block waiting for file to be completed except when the file is writing
         // We do not want to block the writing process
-        if (!writing && !waitForFileCompleted(turi)) {
+        if (!mOpenFiles.contains(PATH_INDEX, path) && !waitForFileCompleted(turi)) {
           LOG.error("File {} is not completed", path);
         }
         status = mFileSystem.getStatus(turi);
@@ -466,16 +457,15 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
         return -ErrorCodes.EFAULT();
       }
 
-      synchronized (mOpenFiles) {
-        if (mOpenFiles.size() == MAX_OPEN_FILES) {
-          LOG.error("Cannot open {}: too many open files", uri);
-          return ErrorCodes.EMFILE();
-        }
+      if (mOpenFiles.size() >= MAX_OPEN_FILES) {
+        LOG.error("Cannot open {}: too many open files", uri);
+        return ErrorCodes.EMFILE();
+      }
 
+      synchronized (mOpenFiles) {
         mOpenFiles.add(new OpenFileEntry(mNextOpenFileId, path,
             mFileSystem.openFile(uri), null));
         fi.fh.set(mNextOpenFileId);
-
         // Assuming I will never wrap around (2^64 open files are quite a lot anyway)
         mNextOpenFileId += 1;
       }
@@ -522,9 +512,7 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
     final int sz = (int) size;
     final long fd = fi.fh.get();
     OpenFileEntry oe;
-    synchronized (mOpenFiles) {
-      oe = mOpenFiles.getFirstByField(ID_INDEX, fd);
-    }
+    oe = mOpenFiles.getFirstByField(ID_INDEX, fd);
     if (oe == null) {
       LOG.error("Cannot find fd for {} in table", path);
       return -ErrorCodes.EBADFD();
@@ -670,9 +658,9 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
         return -ErrorCodes.EEXIST();
       }
       mFileSystem.rename(oldUri, newUri);
-      synchronized (mOpenFiles) {
-        if (mOpenFiles.contains(PATH_INDEX, oldPath)) {
-          OpenFileEntry oe = mOpenFiles.getFirstByField(PATH_INDEX, oldPath);
+      if (mOpenFiles.contains(PATH_INDEX, oldPath)) {
+        OpenFileEntry oe = mOpenFiles.getFirstByField(PATH_INDEX, oldPath);
+        synchronized (mOpenFiles) {
           oe.setPath(newPath);
         }
       }
@@ -775,10 +763,7 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
     LOG.trace("write({}, {}, {})", path, size, offset);
     final int sz = (int) size;
     final long fd = fi.fh.get();
-    OpenFileEntry oe;
-    synchronized (mOpenFiles) {
-      oe = mOpenFiles.getFirstByField(ID_INDEX, fd);
-    }
+    OpenFileEntry oe = mOpenFiles.getFirstByField(ID_INDEX, fd);
     if (oe == null) {
       LOG.error("Cannot find fd for {} in table", path);
       return -ErrorCodes.EBADFD();
