@@ -47,13 +47,13 @@ public class InodeLockManager {
    */
 
   public final LockCache<Long, WeakSafeReentrantReadWriteLock> mInodeLocks =
-      new LockCache<>((key)-> new WeakSafeReentrantReadWriteLock(), 1000, 1000000, 100);
+      new LockCache<>((key)-> new WeakSafeReentrantReadWriteLock(), 1000, 10000, 100);
   /**
    * Cache for supplying edge locks, similar to mInodeLocks.
    */
 
   public final LockCache<Edge, WeakSafeReentrantReadWriteLock> mEdgeLocks =
-      new LockCache<>((key)-> new WeakSafeReentrantReadWriteLock(), 1000, 1000000, 100);
+      new LockCache<>((key)-> new WeakSafeReentrantReadWriteLock(), 1000, 10000, 100);
 
   /**
    * Cache for supplying inode persistence locks. Before a thread can persist an inode, it must
