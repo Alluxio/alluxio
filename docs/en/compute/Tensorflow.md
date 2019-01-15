@@ -13,16 +13,18 @@ This guide describes how to run [Tensorflow](https://www.tensorflow.org/) on top
 
 ## Overview
 
-Tensorflow enables developers to quickly and easily get started with deep learning. In the deep learning
-section, we already illustrate the data challenges of deep learning and how Alluxio helps solving 
-the challenges. In this tutorial, we will provide an easy image recognition example.
+Tensorflow enables developers to quickly and easily get started with deep learning. 
+In the [deep learning]({{ '/en/compute/Deep-Learning.html' | relativize_url }}) section, 
+we already illustrate the data challenges of deep learning and how Alluxio helps solving 
+the challenges. In this tutorial, we will provide some hands on examples and tips for running Tensorflow
+on top of Alluxio-Fuse.
 
 ## Prerequisites
 
 * Setup Java for Java 8 Update 60 or higher (8u60+), 64-bit.
 * Alluxio has been set up and is running.
 
-### Setting up Alluxio-Fuse
+## Setting up Alluxio-Fuse
 
 In this section, we will follow the instructions in the
 [FUSE section]({{ '/en/api/FUSE-API.html' | relativize_url }}) to setup FUSE 
@@ -59,20 +61,13 @@ Check the status of the FUSE process with:
 $ ./integration/fuse/bin/alluxio-fuse stat
 ```
 
-Browse the data at the mounted folder; it should display the training data stored in the cloud.
-
-```bash
-$ cd /mnt/fuse
-$ ls
-```
-
-This folder is ready for the deep learning frameworks to use, which would treat the Alluxio
+The mounted folder `/mnt/fuse` is ready for the deep learning frameworks to use, which would treat the Alluxio
 storage as a local folder. This folder will be used for the Tensorflow training in the next
 section.
 
 ## Examples: Image Recognition on Alluxio-Fuse
 
-If the data is already in a remote data storage, you can mount it as a folder under 
+If the trainning data is already in a remote data storage, you can mount it as a folder under 
 the Alluxio `/trainning-data` directory. Those data will be visible to the applications running on
 local `/mnt/fuse/`.
 
@@ -91,36 +86,59 @@ $ ./bin/alluxio fs mkdir /trainning-data/imagenet
 $ ./bin/alluxio fs copyFromLocal inception-2015-12-05.tgz /trainning-data/imagenet 
 ```
 
+Browse the data at the mounted folder; it should display the image net training data.
+
+```bash
+$ cd /mnt/fuse
+$ ls
+```
+
 To run the image recognition test, we need to download the 
 [image recognition script](https://github.com/tensorflow/models/tree/master/tutorials/image/imagenet)
-and run it with our data:
+and run it with our data directory.
 
 ```bash
 $ python classify_image.py --model_dir /mnt/fuse/imagenet/
 ```
 
-### Examples: Tensorflow benchmark
+## Tips
 
+### Write Tensorflow applications with data location parameter
 
-
-After mounting the under storage once, data in various under storages becomes immediately
-available through Alluxio and can be transparently accessed to the benchmark without any
-modification to either Tensorflow or the benchmark scripts. This greatly simplifies the
-application development, which otherwise would need the integration of each particular storage
+When running tensorflow on top of HDFS, S3, and other under storages, it requires to 
+configure Tensorflow and change tensorflow applications. Through Alluxio-Fuse,
+users only need to mount their various under storages to Alluxio once, and mount the 
+parent folder of those under storages that containing training data to local filesystem.
+After mounting, data in various under storages become immediately available through Alluxio
+fuse mount point and can be transparently accessed to Tensorflow applications.
+If the tensorflow application has the data location parameter, we only need to pass the 
+data location inside fuse mount point to the tensorflow application without modifying it.
+This greatly simplifies the application development, which otherwise 
+would need the integration of each particular storage
 system as well as the configurations of the credentials.
 
-Alluxio also brings performance benefits.
-The benchmark evaluates the throughput of the training model from the input training images in
-units of images/sec. The training involves three stages of utilizing different resources:
- - Data reads (I/O): choose and read image files from source.
- - Image Processing (CPU): Decode image records into images, preprocess, and organize into
- mini-batches.
- - Modeling training (GPU): Calculate and update the parameters in the multiple convolutional
- layers
+### Co-locating Tensorflow with Alluxio worker
 
-By co-locating Alluxio worker with the deep learning frameworks, Alluxio caches the remote data
+By co-locating Tensorflow applications with Alluxio worker, Alluxio caches the remote data
 locally for the future access, providing data locality. Without Alluxio, slow remote
-storage may result in bottleneck on I/O and leave GPU resources underutilized. For
-example, among the benchmark models, we found AlexNet has relatively simpler architecture and
-therefore more likely to result in an I/O bottleneck when storage becomes slower. Alluxio
-brings nearly 2X performance improvement on an EC2 p2.8xlarge machine.
+storage may result in bottleneck on I/O and leave GPU resources underutilized. 
+When concurrently writing or reading big files, Alluxio-Fuse can provide significantly better
+performance when running on Alluxio worker node. When the worker node has big enough memory space to 
+host all the training data, Alluxio-Fuse on worker node can provide nearly 2X performance improvement.
+
+### Configure Alluxio write type and read type
+
+Many Tensorflow applications generates a lot of small intermediate files during their
+workflow. Those intermediate files are only useful for a short time and are not needed to be 
+persistent to under storages. If we directly link Tensorflow with remote storages, all the 
+files no matter it is data, intermediate files, or results will write to the storage and become 
+persistent. It is a waste of resources and the write/read time will be relatively slow.
+But with Alluxio, we are adding a cache layer between the Tensorflow applications and remote storages.
+
+The `alluxio.user.file.writetype.default` is by default set to `MUST_CACHE` 
+and `alluxio.user.file.readtype.default` is `CACHE_PROMOTE`. 
+We can read the data from remote storages and cache them for future usage
+and write to the top tier of Alluxio worker storage. This will accelerate our Tensorflow workflow
+by writing to and reading from memory.
+
+If the remote storage is s3, the advantages will be more obvious.
