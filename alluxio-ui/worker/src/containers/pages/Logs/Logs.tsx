@@ -66,12 +66,12 @@ class Logs extends React.Component<AllProps, ILogsState> {
 
   public componentDidUpdate(prevProps: AllProps) {
     const {refresh, location: {search}} = this.props;
-    const {refresh: prevRefreshValue, location: {search: prevSearch}} = prevProps;
+    const {refresh: prevRefresh, location: {search: prevSearch}} = prevProps;
     if (search !== prevSearch) {
       const {path, offset, limit, end} = parseQuerystring(search);
       this.setState({path, offset, limit, end});
       this.fetchData(path, offset, limit, end);
-    } else if (refresh !== prevRefreshValue) {
+    } else if (refresh !== prevRefresh) {
       const {path, offset, limit, end} = this.state;
       this.fetchData(path, offset, limit, end);
     }
