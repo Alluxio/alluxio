@@ -24,21 +24,18 @@ interface IPropsFromState {
   errors?: AxiosResponse;
   loading: boolean;
   overview: IOverview;
+  refresh: boolean;
 }
 
 interface IPropsFromDispatch {
   fetchRequest: typeof fetchRequest;
 }
 
-interface IOverviewProps {
-  refreshValue: boolean;
-}
-
-type AllProps = IPropsFromState & IPropsFromDispatch & IOverviewProps;
+type AllProps = IPropsFromState & IPropsFromDispatch;
 
 class Overview extends React.Component<AllProps> {
   public componentWillUpdate(prevProps: AllProps) {
-    if (this.props.refreshValue !== prevProps.refreshValue) {
+    if (this.props.refresh !== prevProps.refresh) {
       this.props.fetchRequest();
     }
   }
@@ -206,10 +203,11 @@ class Overview extends React.Component<AllProps> {
   }
 }
 
-const mapStateToProps = ({overview}: IApplicationState) => ({
+const mapStateToProps = ({overview, refresh}: IApplicationState) => ({
   errors: overview.errors,
   loading: overview.loading,
-  overview: overview.overview
+  overview: overview.overview,
+  refresh: refresh.refresh
 });
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({

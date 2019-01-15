@@ -14,6 +14,8 @@ import {History} from 'history';
 import {Action, AnyAction, combineReducers, Dispatch} from 'redux';
 import {all, fork} from 'redux-saga/effects';
 
+import {refreshReducer} from '@alluxio/common-ui/src/store/refresh/reducer';
+import {IRefreshState} from '@alluxio/common-ui/src/store/refresh/types';
 import {blockInfoReducer} from './blockInfo/reducer';
 import {blockInfoSaga} from './blockInfo/sagas';
 import {IBlockInfoState} from './blockInfo/types';
@@ -32,6 +34,7 @@ export interface IApplicationState {
   logs: ILogsState;
   metrics: IMetricsState;
   overview: IOverviewState;
+  refresh: IRefreshState;
   router: RouterState;
 }
 
@@ -44,6 +47,7 @@ export const rootReducer = (history: History) => combineReducers<IApplicationSta
   logs: logsReducer,
   metrics: metricsReducer,
   overview: overviewReducer,
+  refresh: refreshReducer,
   router: connectRouter(history)
 });
 

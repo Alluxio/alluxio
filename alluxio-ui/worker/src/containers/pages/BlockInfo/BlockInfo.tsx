@@ -30,14 +30,11 @@ interface IPropsFromState {
   location: {
     search: string;
   };
+  refresh: boolean;
 }
 
 interface IPropsFromDispatch {
   fetchRequest: typeof fetchRequest;
-}
-
-interface IBlockInfoProps {
-  refreshValue: boolean;
 }
 
 interface IBlockInfoState {
@@ -53,7 +50,7 @@ interface IBlockInfoState {
   };
 }
 
-type AllProps = IPropsFromState & IPropsFromDispatch & IBlockInfoProps;
+type AllProps = IPropsFromState & IPropsFromDispatch;
 
 class BlockInfo extends React.Component<AllProps, IBlockInfoState> {
   constructor(props: AllProps) {
@@ -64,14 +61,13 @@ class BlockInfo extends React.Component<AllProps, IBlockInfoState> {
   }
 
   public componentDidUpdate(prevProps: AllProps) {
-    const {refreshValue, location: {search}} = this.props;
-    const {refreshValue: prevRefreshValue, location: {search: prevSearch}} = prevProps;
+    const {refresh, location: {search}} = this.props;
+    const {refresh: prevRefresh, location: {search: prevSearch}} = prevProps;
     if (search !== prevSearch) {
       const {path, offset, limit, end} = parseQuerystring(search);
       this.setState({path, offset, limit, end});
       this.fetchData(path, offset, limit, end);
-    }
-    if (refreshValue !== prevRefreshValue) {
+    } else if (refresh !== prevRefresh) {
       const {path, offset, limit, end} = this.state;
       this.fetchData(path, offset, limit, end);
     }
@@ -204,10 +200,11 @@ class BlockInfo extends React.Component<AllProps, IBlockInfoState> {
   }
 }
 
-const mapStateToProps = ({blockInfo}: IApplicationState) => ({
+const mapStateToProps = ({blockInfo, refresh}: IApplicationState) => ({
   blockInfo: blockInfo.blockInfo,
   errors: blockInfo.errors,
-  loading: blockInfo.loading
+  loading: blockInfo.loading,
+  refresh: refresh.refresh
 });
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({

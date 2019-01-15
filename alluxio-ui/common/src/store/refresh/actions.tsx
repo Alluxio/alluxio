@@ -9,15 +9,8 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-export * from './saga/getSagaRequest';
+import {action} from 'typesafe-actions';
 
-export * from './misc/getDebouncedFunction';
-export * from './misc/parseQueryString';
-export * from './misc/isExternalLink';
-export * from './misc/bytesToString';
+import {RefreshActionTypes} from './types';
 
-export * from './handlers/getInputHandler';
-export * from './handlers/getDropdownItemHandler';
-// export * from './handlers/getInputValidator'; // NOTE: no need to import this since it is only usedby the handlers
-
-export * from './validators/isNotEmpty';
+export const triggerRefresh = () => action(RefreshActionTypes.TRIGGER_REFRESH);

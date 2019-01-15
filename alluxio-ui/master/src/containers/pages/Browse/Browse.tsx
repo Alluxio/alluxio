@@ -34,14 +34,11 @@ interface IPropsFromState {
   location: {
     search: string;
   };
+  refresh: boolean;
 }
 
 interface IPropsFromDispatch {
   fetchRequest: typeof fetchRequest;
-}
-
-interface IBrowseProps {
-  refreshValue: boolean;
 }
 
 interface IBrowseState {
@@ -58,7 +55,7 @@ interface IBrowseState {
   textAreaHeight?: number;
 }
 
-type AllProps = IPropsFromState & IPropsFromDispatch & IBrowseProps;
+type AllProps = IPropsFromState & IPropsFromDispatch;
 
 class Browse extends React.Component<AllProps, IBrowseState> {
   private readonly textAreaResizeMs = 100;
@@ -72,15 +69,13 @@ class Browse extends React.Component<AllProps, IBrowseState> {
   }
 
   public componentDidUpdate(prevProps: AllProps) {
-    const {refreshValue, location: {search}} = this.props;
-    const {refreshValue: prevRefreshValue, location: {search: prevSearch}} = prevProps;
+    const {refresh, location: {search}} = this.props;
+    const {refresh: prevRefresh, location: {search: prevSearch}} = prevProps;
     if (search !== prevSearch) {
       const {path, offset, limit, end} = parseQuerystring(this.props.location.search);
       this.setState({path, offset, limit, end});
       this.fetchData(path, offset, limit, end);
-
-    }
-    if (refreshValue !== prevRefreshValue) {
+    } else if (refresh !== prevRefresh) {
       const {path, offset, limit, end} = this.state;
       this.fetchData(path, offset, limit, end);
     }
@@ -276,10 +271,11 @@ class Browse extends React.Component<AllProps, IBrowseState> {
   }
 }
 
-const mapStateToProps = ({browse}: IApplicationState) => ({
+const mapStateToProps = ({browse, refresh}: IApplicationState) => ({
   browse: browse.browse,
   errors: browse.errors,
-  loading: browse.loading
+  loading: browse.loading,
+  refresh: refresh.refresh
 });
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
