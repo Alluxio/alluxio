@@ -38,7 +38,7 @@ interface IAppState {
 type AllProps = IPropsFromDispatch & IAppProps;
 
 class App extends React.Component<AllProps, IAppState> {
-  private readonly refreshInterval = 5000;
+  private readonly refreshInterval = 30000;
   private intervalHandle: any;
 
   constructor(props: AllProps) {
