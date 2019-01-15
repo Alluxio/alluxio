@@ -12,7 +12,9 @@
 package cmd
 
 import (
+	"fmt"
 	"v.io/x/lib/cmdline"
+	"strings"
 )
 
 var (
@@ -30,8 +32,27 @@ or generating a suite of release tarballs.
 	}
 
 	debugFlag bool
+	ufsModulesFlag string
 )
+
+func updateRootFlags() error {
+	if strings.ToLower(ufsModulesFlag) == "all" {
+		ufsModulesFlag = strings.Join(validModules(ufsModules), ",")
+	}
+	return nil
+}
+
+func checkRootFlags() error {
+	for _, module := range strings.Split(ufsModulesFlag, ",") {
+		if _, ok := ufsModules[module]; !ok {
+			return fmt.Errorf("ufs module %v not recognized", module)
+		}
+	}
+	return nil
+}
 
 func init() {
 	Root.Flags.BoolVar(&debugFlag, "debug", false, "whether to run this tool in debug mode to generate additional console output")
+	Root.Flags.StringVar(&ufsModulesFlag, "ufs-modules", strings.Join(defaultModules(ufsModules), ","),
+		fmt.Sprintf("a comma-separated list of ufs modules to compile into the distribution tarball(s). Specify 'all' to build all ufs modules. Supported ufs modules: [%v]", strings.Join(validModules(ufsModules), ",")))
 }
