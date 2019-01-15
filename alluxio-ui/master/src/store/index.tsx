@@ -14,6 +14,8 @@ import {History} from 'history';
 import {Action, AnyAction, combineReducers, Dispatch} from 'redux';
 import {all, fork} from 'redux-saga/effects';
 
+import {refreshReducer} from '@alluxio/common-ui/src/store/refresh/reducer';
+import {IRefreshState} from '@alluxio/common-ui/src/store/refresh/types';
 import {browseReducer} from './browse/reducer';
 import {browseSaga} from './browse/sagas';
 import {IBrowseState} from './browse/types';
@@ -43,6 +45,7 @@ export interface IApplicationState {
   logs: ILogsState;
   metrics: IMetricsState;
   overview: IOverviewState;
+  refresh: IRefreshState;
   router: RouterState;
   workers: IWorkersState;
 }
@@ -58,6 +61,7 @@ export const rootReducer = (history: History) => combineReducers<IApplicationSta
   logs: logsReducer,
   metrics: metricsReducer,
   overview: overviewReducer,
+  refresh: refreshReducer,
   router: connectRouter(history),
   workers: workersReducer
 });

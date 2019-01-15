@@ -23,6 +23,7 @@ import {IWorkers} from '../../../store/workers/types';
 interface IPropsFromState {
   errors?: AxiosResponse;
   loading: boolean;
+  refresh: boolean;
   workers: IWorkers;
 }
 
@@ -30,15 +31,11 @@ interface IPropsFromDispatch {
   fetchRequest: typeof fetchRequest;
 }
 
-interface IWorkersProps {
-  refreshValue: boolean;
-}
-
-type AllProps = IPropsFromState & IPropsFromDispatch & IWorkersProps;
+type AllProps = IPropsFromState & IPropsFromDispatch;
 
 class Workers extends React.Component<AllProps> {
   public componentDidUpdate(prevProps: AllProps) {
-    if (this.props.refreshValue !== prevProps.refreshValue) {
+    if (this.props.refresh !== prevProps.refresh) {
       this.props.fetchRequest();
     }
   }
@@ -134,9 +131,10 @@ class Workers extends React.Component<AllProps> {
   }
 }
 
-const mapStateToProps = ({workers}: IApplicationState) => ({
+const mapStateToProps = ({refresh, workers}: IApplicationState) => ({
   errors: workers.errors,
   loading: workers.loading,
+  refresh: refresh.refresh,
   workers: workers.workers
 });
 

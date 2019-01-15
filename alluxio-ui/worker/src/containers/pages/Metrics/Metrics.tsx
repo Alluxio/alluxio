@@ -22,6 +22,7 @@ import {IMetrics} from '../../../store/metrics/types';
 interface IPropsFromState {
   errors?: AxiosResponse;
   loading: boolean;
+  refresh: boolean;
   metrics: IMetrics;
 }
 
@@ -29,15 +30,11 @@ interface IPropsFromDispatch {
   fetchRequest: typeof fetchRequest;
 }
 
-interface IMetricsProps {
-  refreshValue: boolean;
-}
-
-type AllProps = IPropsFromState & IPropsFromDispatch & IMetricsProps;
+type AllProps = IPropsFromState & IPropsFromDispatch;
 
 class Metrics extends React.Component<AllProps> {
   public componentDidUpdate(prevProps: AllProps) {
-    if (this.props.refreshValue !== prevProps.refreshValue) {
+    if (this.props.refresh !== prevProps.refresh) {
       this.props.fetchRequest();
     }
   }
@@ -119,10 +116,11 @@ class Metrics extends React.Component<AllProps> {
   }
 }
 
-const mapStateToProps = ({metrics}: IApplicationState) => ({
+const mapStateToProps = ({metrics, refresh}: IApplicationState) => ({
   errors: metrics.errors,
   loading: metrics.loading,
-  metrics: metrics.metrics
+  metrics: metrics.metrics,
+  refresh: refresh.refresh
 });
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({

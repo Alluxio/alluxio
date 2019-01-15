@@ -21,24 +21,21 @@ import {fetchRequest} from '../../../store/config/actions';
 import {IConfig} from '../../../store/config/types';
 
 interface IPropsFromState {
+  config: IConfig;
   errors?: AxiosResponse;
   loading: boolean;
-  config: IConfig;
+  refresh: boolean;
 }
 
 interface IPropsFromDispatch {
   fetchRequest: typeof fetchRequest;
 }
 
-interface IConfigurationProps {
-  refreshValue: boolean;
-}
-
-type AllProps = IPropsFromState & IPropsFromDispatch & IConfigurationProps;
+type AllProps = IPropsFromState & IPropsFromDispatch;
 
 class Configuration extends React.Component<AllProps> {
   public componentDidUpdate(prevProps: AllProps) {
-    if (this.props.refreshValue !== prevProps.refreshValue) {
+    if (this.props.refresh !== prevProps.refresh) {
       this.props.fetchRequest();
     }
   }
@@ -102,10 +99,12 @@ class Configuration extends React.Component<AllProps> {
   }
 }
 
-const mapStateToProps = ({config}: IApplicationState) => ({
+const mapStateToProps = ({config, refresh}: IApplicationState) => ({
   config: config.config,
   errors: config.errors,
-  loading: config.loading
+  loading: config.loading,
+  refresh: refresh.refresh
+
 });
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({

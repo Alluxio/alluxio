@@ -9,15 +9,19 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-export * from './saga/getSagaRequest';
+import {Reducer} from 'redux';
 
-export * from './misc/getDebouncedFunction';
-export * from './misc/parseQueryString';
-export * from './misc/isExternalLink';
-export * from './misc/bytesToString';
+import {RefreshActionTypes, IRefreshState} from './types';
 
-export * from './handlers/getInputHandler';
-export * from './handlers/getDropdownItemHandler';
-// export * from './handlers/getInputValidator'; // NOTE: no need to import this since it is only usedby the handlers
+const initialState: IRefreshState = {
+  refresh: false
+};
 
-export * from './validators/isNotEmpty';
+export const refreshReducer: Reducer<IRefreshState> = (state = initialState, action) => {
+  switch (action.type) {
+    case RefreshActionTypes.TRIGGER_REFRESH:
+      return {...state, refresh: !state.refresh};
+    default:
+      return state;
+  }
+};

@@ -30,14 +30,11 @@ interface IPropsFromState {
     search: string;
   };
   logs: ILogs;
+  refresh: boolean;
 }
 
 interface IPropsFromDispatch {
   fetchRequest: typeof fetchRequest;
-}
-
-interface ILogsProps {
-  refreshValue: boolean;
 }
 
 interface ILogsState {
@@ -54,7 +51,7 @@ interface ILogsState {
   textAreaHeight?: number;
 }
 
-type AllProps = IPropsFromState & IPropsFromDispatch & ILogsProps;
+type AllProps = IPropsFromState & IPropsFromDispatch;
 
 class Logs extends React.Component<AllProps, ILogsState> {
   private readonly textAreaResizeMs = 100;
@@ -68,14 +65,14 @@ class Logs extends React.Component<AllProps, ILogsState> {
   }
 
   public componentDidUpdate(prevProps: AllProps) {
-    const {refreshValue, location: {search}} = this.props;
-    const {refreshValue: prevRefreshValue, location: {search: prevSearch}} = prevProps;
+    const {refresh, location: {search}} = this.props;
+    const {refresh: prevRefresh, location: {search: prevSearch}} = prevProps;
     if (search !== prevSearch) {
       const {path, offset, limit, end} = parseQuerystring(search);
       this.setState({path, offset, limit, end});
       this.fetchData(path, offset, limit, end);
     }
-    if (refreshValue !== prevRefreshValue) {
+    if (refresh !== prevRefresh) {
       const {path, offset, limit, end} = this.state;
       this.fetchData(path, offset, limit, end);
     }
@@ -226,10 +223,11 @@ class Logs extends React.Component<AllProps, ILogsState> {
   }
 }
 
-const mapStateToProps = ({logs}: IApplicationState) => ({
+const mapStateToProps = ({logs, refresh}: IApplicationState) => ({
   errors: logs.errors,
   loading: logs.loading,
-  logs: logs.logs
+  logs: logs.logs,
+  refresh: refresh.refresh
 });
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
