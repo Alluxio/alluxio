@@ -89,7 +89,7 @@ public abstract class AbstractClient implements Client {
    */
   public AbstractClient(Subject subject, AlluxioConfiguration conf, InetSocketAddress address) {
     this(subject, conf, address, () -> RetryUtils.defaultClientRetry(
-          conf.getDuration(PropertyKey.USER_RPC_RETRY_MAX_NUM_RETRY),
+          conf.getDuration(PropertyKey.USER_RPC_RETRY_MAX_DURATION),
           conf.getDuration(PropertyKey.USER_RPC_RETRY_BASE_SLEEP_MS),
           conf.getDuration(PropertyKey.USER_RPC_RETRY_MAX_SLEEP_MS)));
   }
