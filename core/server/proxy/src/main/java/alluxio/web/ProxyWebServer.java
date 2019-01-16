@@ -11,6 +11,8 @@
 
 package alluxio.web;
 
+import alluxio.ClientContext;
+import alluxio.Server;
 import alluxio.conf.ServerConfiguration;
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
@@ -60,7 +62,10 @@ public final class ProxyWebServer extends WebServer {
         super.init();
         getServletContext().setAttribute(ALLUXIO_PROXY_SERVLET_RESOURCE_KEY, proxyProcess);
         getServletContext()
-            .setAttribute(FILE_SYSTEM_SERVLET_RESOURCE_KEY, FileSystem.Factory.get());
+            .setAttribute(FILE_SYSTEM_SERVLET_RESOURCE_KEY,
+                FileSystem.Factory.get(ClientContext.create(
+                    null,
+                    ServerConfiguration.global().getProperties())));
         getServletContext().setAttribute(STREAM_CACHE_SERVLET_RESOURCE_KEY,
             new StreamCache(ServerConfiguration.getMs(PropertyKey.PROXY_STREAM_CACHE_TIMEOUT_MS)));
       }
