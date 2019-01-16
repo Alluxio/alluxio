@@ -80,8 +80,8 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
           .setChannelType(NettyUtils.getClientChannelClass(!(address instanceof InetSocketAddress), alluxioConf))
           .setEventLoopGroup(WORKER_GROUP)
           .setKeepAliveTimeout(alluxioConf.getMs(PropertyKey.USER_NETWORK_KEEPALIVE_TIMEOUT_MS), TimeUnit.MILLISECONDS)
-          .setMaxInboundMessageSize((int) alluxioConf.getMs(PropertyKey.USER_NETWORK_MAX_INBOUND_MESSAGE_SIZE))
-          .setFlowControlWindow((int) alluxioConf.getMs(PropertyKey.USER_NETWORK_FLOWCONTROL_WINDOW))
+          .setMaxInboundMessageSize((int) alluxioConf.getBytes(PropertyKey.USER_NETWORK_MAX_INBOUND_MESSAGE_SIZE))
+          .setFlowControlWindow((int) alluxioConf.getBytes(PropertyKey.USER_NETWORK_FLOWCONTROL_WINDOW))
                      .build();
     } catch (UnauthenticatedException | UnavailableException e) {
       throw new RuntimeException("Failed to build channel.", e);

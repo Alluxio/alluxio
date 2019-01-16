@@ -138,7 +138,7 @@ public class ChannelAuthenticator {
    * @return the list of interceptors that are required for configured authentication
    */
   private List<ClientInterceptor> getInterceptors(SaslClient saslClient) {
-    if (mSecurityEnabled) {
+    if (!mSecurityEnabled) {
       return Collections.emptyList();
     }
     List<ClientInterceptor> interceptorsList = new ArrayList<>();
