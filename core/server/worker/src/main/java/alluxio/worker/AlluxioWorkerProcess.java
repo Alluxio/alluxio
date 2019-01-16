@@ -130,7 +130,7 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
       if (configuredBindAddress.getPort() == 0) {
         mBindSocket = new ServerSocket(0);
         bindPort = mBindSocket.getLocalPort();
-        ServerConfiguration.set(PropertyKey.WORKER_RPC_PORT, Integer.toString(bindPort));
+//        ServerConfiguration.set(PropertyKey.WORKER_RPC_PORT, Integer.toString(bindPort));
       } else {
         bindPort = configuredBindAddress.getPort();
       }

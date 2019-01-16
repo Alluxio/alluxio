@@ -54,10 +54,6 @@ public final class GrpcServerBuilder {
     mConfiguration = conf;
     mServices = new HashSet<>();
     mNettyServerBuilder = nettyServerBuilder;
-    Logger log = LoggerFactory.getLogger(GrpcServerBuilder.class);
-    conf.getProperties().forEach((PropertyKey pk, String value) -> log.warn(String.format(
-        "configDump: %s, %s", pk.toString(), value)));
-
     if (SecurityUtils.isAuthenticationEnabled(conf)) {
       LoggerFactory.getLogger(GrpcServerBuilder.class).warn("Authentication ENABLED");
       mAuthenticationServer = new DefaultAuthenticationServer(conf);

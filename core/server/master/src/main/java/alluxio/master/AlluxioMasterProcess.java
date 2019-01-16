@@ -143,8 +143,8 @@ public class AlluxioMasterProcess implements MasterProcess {
       InetSocketAddress configuredBindAddress =
           NetworkAddressUtils.getBindAddress(ServiceType.MASTER_RPC, ServerConfiguration.global());
       if (configuredBindAddress.getPort() == 0) {
-        mGrpcServer = GrpcServerBuilder.forAddress(configuredBindAddress, ServerConfiguration.global()).build().start();
-        mPort = mGrpcServer.getBindPort();
+        mBindSocket = new ServerSocket(0);
+        mPort = mBindSocket.getLocalPort();
         ServerConfiguration.set(PropertyKey.MASTER_RPC_PORT, Integer.toString(mPort));
       } else {
         mPort = configuredBindAddress.getPort();
