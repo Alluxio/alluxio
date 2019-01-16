@@ -87,10 +87,10 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
       // Disables channel pooling for data streaming to achieve better throughput.
       // Channel is still reused due to client pooling.
       mStreamingChannel = buildChannel(subject, address,
-          GrpcManagedChannelPool.PoolingStrategy.DISABLED);
+          GrpcManagedChannelPool.PoolingStrategy.DISABLED, alluxioConf);
       // Uses default pooling strategy for RPC calls for better scalability.
       mRpcChannel = buildChannel(subject, address,
-          GrpcManagedChannelPool.PoolingStrategy.DEFAULT);
+          GrpcManagedChannelPool.PoolingStrategy.DEFAULT, alluxioConf);
     } catch (StatusRuntimeException e) {
       throw GrpcExceptionUtils.fromGrpcStatusException(e);
     }
