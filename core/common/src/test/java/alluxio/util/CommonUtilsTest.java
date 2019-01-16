@@ -18,6 +18,7 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.security.group.CachedGroupMapping;
@@ -266,7 +267,7 @@ public class CommonUtilsTest {
    */
   @Test
   public void getGroups() throws Throwable {
-    InstancedConfiguration conf = new InstancedConfiguration(ConfigurationUtils.defaults());
+    InstancedConfiguration conf = ConfigurationTestUtils.defaults();
 
     String userName = "alluxio-user1";
     String userGroup1 = "alluxio-user1-group1";

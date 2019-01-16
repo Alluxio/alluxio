@@ -161,6 +161,8 @@ public class InstancedConfiguration implements AlluxioConfiguration {
 
   /**
    * Unsets the value for the appropriate key in the {@link Properties}.
+   * If the PropertyKey has a default value, it will still be considered set after executing this
+   * method.
    *
    * @param key the key to unset
    */

@@ -502,7 +502,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     // fsContext.
 
     Map<String, Object> uriConfProperties = getConfigurationFromUri(uri);
-    AlluxioProperties alluxioProps = new AlluxioProperties();
+    AlluxioProperties alluxioProps = ConfigurationUtils.defaults();
     alluxioProps.merge(uriConfProperties, Source.RUNTIME);
     mFsContext = FileSystemContext.create(getHadoopSubject(), alluxioProps);
 

@@ -24,6 +24,8 @@ import io.grpc.netty.NettyServerBuilder;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.ServerChannel;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.net.SocketAddress;
 import java.util.HashSet;
@@ -52,7 +54,12 @@ public final class GrpcServerBuilder {
     mConfiguration = conf;
     mServices = new HashSet<>();
     mNettyServerBuilder = nettyServerBuilder;
+    Logger log = LoggerFactory.getLogger(GrpcServerBuilder.class);
+    conf.getProperties().forEach((PropertyKey pk, String value) -> log.warn(String.format(
+        "configDump: %s, %s", pk.toString(), value)));
+
     if (SecurityUtils.isAuthenticationEnabled(conf)) {
+      LoggerFactory.getLogger(GrpcServerBuilder.class).warn("Authentication ENABLED");
       mAuthenticationServer = new DefaultAuthenticationServer(conf);
       addService(new GrpcService(mAuthenticationServer).disableAuthentication());
     }

@@ -15,6 +15,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
@@ -23,6 +24,7 @@ import static org.mockito.Mockito.when;
 
 import alluxio.ConfigurationRule;
 import alluxio.Server;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.RuntimeConstants;
 import alluxio.conf.ServerConfiguration;
@@ -159,7 +161,7 @@ public final class AlluxioMasterRestServiceHandlerTest {
     when(underFileSystemMock.getSpace(TEST_PATH, UnderFileSystem.SpaceType.SPACE_USED)).thenReturn(
         UFS_SPACE_USED);
     when(underFileSystemFactoryMock.create(eq(TEST_PATH),
-        Matchers.<UnderFileSystemConfiguration>any(), ServerConfiguration.global()))
+        Matchers.<UnderFileSystemConfiguration>any(), any(AlluxioConfiguration.class)))
         .thenReturn(underFileSystemMock);
     UnderFileSystemFactoryRegistry.register(underFileSystemFactoryMock);
   }

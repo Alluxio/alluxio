@@ -23,6 +23,7 @@ import alluxio.util.ConfigurationUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.wire.WorkerNetAddress;
 
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -36,10 +37,10 @@ import java.net.UnknownHostException;
  */
 public class NetworkAddressUtilsTest {
 
-  private InstancedConfiguration mConfiguration;
+  private InstancedConfiguration mConfiguration = ConfigurationTestUtils.defaults();
 
-  @Before
-  public void before() {
+  @After
+  public void after() {
     mConfiguration = ConfigurationTestUtils.defaults();
   }
 
@@ -131,7 +132,9 @@ public class NetworkAddressUtilsTest {
   @Test
   public void testGetBindAddress() throws Exception {
     for (ServiceType service : ServiceType.values()) {
-      getBindAddress(service);
+        getBindAddress(service);
+        // Need to reset configuration for each service;
+//        mConfiguration = ConfigurationTestUtils.defaults();
     }
   }
 
@@ -240,10 +243,10 @@ public class NetworkAddressUtilsTest {
     assertEquals(new InetSocketAddress(NetworkAddressUtils.WILDCARD_ADDRESS, 20000),
         workerAddress);
 
-    // empty connect host and empty bind host with port
+    // unset connect host and bind host with port
     mConfiguration.unset(service.getBindHostKey());
     workerAddress = NetworkAddressUtils.getBindAddress(service, mConfiguration);
-    assertEquals(new InetSocketAddress(localHostName, 20000), workerAddress);
+    assertEquals(new InetSocketAddress(NetworkAddressUtils.WILDCARD_ADDRESS, 20000), workerAddress);
   }
 
   @Test
