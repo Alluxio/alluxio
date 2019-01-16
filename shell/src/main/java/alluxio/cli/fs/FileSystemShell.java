@@ -82,6 +82,6 @@ public final class FileSystemShell extends AbstractShell {
 
   @Override
   protected Map<String, Command> loadCommands() {
-    return FileSystemShellUtils.loadCommands(FileSystem.Factory.get());
+    return FileSystemShellUtils.loadCommands(FileSystem.Factory.get(), mConfiguration);
   }
 }
