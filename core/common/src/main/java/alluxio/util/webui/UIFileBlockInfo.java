@@ -129,7 +129,7 @@ public final class UIFileBlockInfo {
   }
 
   /**
-   * Gets whether the block is in the highest tier alias
+   * Gets whether the block is in the highest tier alias.
    *
    * @return true if it's in the highest tier alias
    */
