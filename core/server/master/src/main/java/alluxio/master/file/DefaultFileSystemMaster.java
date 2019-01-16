@@ -2420,20 +2420,12 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
               continue;
             }
 
-            try (LockedInodePath descendant = inodePath
-<<<<<<< HEAD
-                .lockDescendant(inodePath.getUri().join(childStatus.getName()), LockPattern.READ)) {
+            try (LockedInodePath descendant = inodePath.lockDescendant(
+                inodePath.getUri().joinUnsafe(childStatus.getName()), LockPattern.READ)) {
               LoadMetadataContext loadMetadataContext = LoadMetadataContext
                   .defaults(LoadMetadataPOptions.newBuilder()
                       .setLoadDescendantType(LoadDescendantPType.NONE).setCreateAncestors(false))
                   .setUfsStatus(childStatus);
-=======
-                .lockDescendant(inodePath.getUri().joinUnsafe(childStatus.getName()),
-                    LockPattern.READ)) {
-              LoadMetadataOptions loadMetadataOptions =
-                  LoadMetadataOptions.defaults().setLoadDescendantType(DescendantType.NONE)
-                      .setCreateAncestors(false).setUfsStatus(childStatus);
->>>>>>> upstream/master
               try {
                 loadMetadataInternal(rpcContext, descendant, loadMetadataContext);
               } catch (FileNotFoundException e) {
