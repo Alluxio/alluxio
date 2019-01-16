@@ -235,7 +235,7 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
   public int create(String path, @mode_t long mode, FuseFileInfo fi) {
     final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
     final int flags = fi.flags.get();
-    LOG.info("create({}, {}) [Alluxio: {}]", path, Integer.toHexString(flags), uri);
+    LOG.trace("create({}, {}) [Alluxio: {}]", path, Integer.toHexString(flags), uri);
 
     try {
       if (mOpenFiles.size() >= MAX_OPEN_FILES) {
@@ -439,7 +439,7 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
     // (see {@code man 2 open} for the structure of the flags bitfield)
     // File creation flags are the last two bits of flags
     final int flags = fi.flags.get();
-    LOG.info("open({}, 0x{}) [Alluxio: {}]", path, Integer.toHexString(flags), uri);
+    LOG.trace("open({}, 0x{}) [Alluxio: {}]", path, Integer.toHexString(flags), uri);
 
     try {
       if (!mFileSystem.exists(uri)) {
@@ -614,15 +614,11 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
    */
   @Override
   public int release(String path, FuseFileInfo fi) {
-    LOG.info("release({})", path);
+    LOG.trace("release({})", path);
     OpenFileEntry oe;
-    synchronized (mOpenFiles) {
-      // Synchronized as earlier as possible so that hopefully the following getattr()
-      // will be blocked waiting for the {@link FileOutStream.close()} to be completed
-      final long fd = fi.fh.get();
-      oe = mOpenFiles.getFirstByField(ID_INDEX, fd);
-      mOpenFiles.remove(oe);
-    }
+    final long fd = fi.fh.get();
+    oe = mOpenFiles.getFirstByField(ID_INDEX, fd);
+    mOpenFiles.remove(oe);
     if (oe == null) {
       LOG.error("Cannot find fd for {} in table", path);
       return -ErrorCodes.EBADFD();
@@ -660,9 +656,7 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
       mFileSystem.rename(oldUri, newUri);
       if (mOpenFiles.contains(PATH_INDEX, oldPath)) {
         OpenFileEntry oe = mOpenFiles.getFirstByField(PATH_INDEX, oldPath);
-        synchronized (mOpenFiles) {
-          oe.setPath(newPath);
-        }
+        oe.setPath(newPath);
       }
     } catch (FileDoesNotExistException e) {
       LOG.debug("File {} does not exist", oldPath);
