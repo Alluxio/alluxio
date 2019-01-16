@@ -12,6 +12,7 @@
 package alluxio.master.file;
 
 import alluxio.AlluxioURI;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.ServerConfiguration;
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
@@ -73,6 +74,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Map;
 import java.util.Random;
+
+import static org.mockito.Matchers.any;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(JobMasterClient.Factory.class)
@@ -154,7 +157,7 @@ public final class PersistenceTest {
     // Mock the job service interaction.
     Random random = new Random();
     long jobId = random.nextLong();
-    Mockito.when(mMockJobMasterClient.run(Mockito.any(JobConfig.class))).thenReturn(jobId);
+    Mockito.when(mMockJobMasterClient.run(any(JobConfig.class))).thenReturn(jobId);
 
     // Repeatedly execute the persistence checker heartbeat, checking the internal state.
     {
@@ -232,7 +235,7 @@ public final class PersistenceTest {
     // Mock the job service interaction.
     Random random = new Random();
     long jobId = random.nextLong();
-    Mockito.when(mMockJobMasterClient.run(Mockito.any(JobConfig.class))).thenReturn(jobId);
+    Mockito.when(mMockJobMasterClient.run(any(JobConfig.class))).thenReturn(jobId);
 
     // Repeatedly execute the persistence checker heartbeat, checking the internal state.
     {
@@ -275,7 +278,7 @@ public final class PersistenceTest {
     // Mock the job service interaction.
     Random random = new Random();
     long jobId = random.nextLong();
-    Mockito.when(mMockJobMasterClient.run(Mockito.any(JobConfig.class))).thenReturn(jobId);
+    Mockito.when(mMockJobMasterClient.run(any(JobConfig.class))).thenReturn(jobId);
 
     // Repeatedly execute the persistence checker heartbeat, checking the internal state.
     {
@@ -333,7 +336,7 @@ public final class PersistenceTest {
     // Mock the job service interaction.
     Random random = new Random();
     long jobId = random.nextLong();
-    Mockito.when(mMockJobMasterClient.run(Mockito.any(JobConfig.class))).thenReturn(jobId);
+    Mockito.when(mMockJobMasterClient.run(any(JobConfig.class))).thenReturn(jobId);
 
     // Execute the persistence scheduler heartbeat, checking the internal state.
     HeartbeatScheduler.execute(HeartbeatContext.MASTER_PERSISTENCE_SCHEDULER);
@@ -380,7 +383,7 @@ public final class PersistenceTest {
 
     // Mock job service interaction.
     jobId = random.nextLong();
-    Mockito.when(mMockJobMasterClient.run(Mockito.any(JobConfig.class))).thenReturn(jobId);
+    Mockito.when(mMockJobMasterClient.run(any(JobConfig.class))).thenReturn(jobId);
 
     // Execute the persistence scheduler heartbeat, checking the internal state.
     HeartbeatScheduler.execute(HeartbeatContext.MASTER_PERSISTENCE_SCHEDULER);
@@ -434,7 +437,7 @@ public final class PersistenceTest {
     // Mock the job service interaction.
     Random random = new Random();
     long jobId = random.nextLong();
-    Mockito.when(mMockJobMasterClient.run(Mockito.any(JobConfig.class))).thenReturn(jobId);
+    Mockito.when(mMockJobMasterClient.run(any(JobConfig.class))).thenReturn(jobId);
 
     // Repeatedly execute the persistence checker heartbeat, checking the internal state.
     {
@@ -535,7 +538,8 @@ public final class PersistenceTest {
     mRegistry.start(true);
     mMockJobMasterClient = Mockito.mock(JobMasterClient.class);
     PowerMockito.mockStatic(JobMasterClient.Factory.class);
-    Mockito.when(JobMasterClient.Factory.create(Mockito.any(JobMasterClientConfig.class), ServerConfiguration.global()))
+    Mockito.when(JobMasterClient.Factory.create(any(JobMasterClientConfig.class),
+        any(AlluxioConfiguration.class)))
         .thenReturn(mMockJobMasterClient);
   }
 

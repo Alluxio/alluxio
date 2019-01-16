@@ -19,6 +19,7 @@ import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
+import alluxio.ClientContext;
 import alluxio.ConfigurationRule;
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
@@ -31,6 +32,7 @@ import alluxio.grpc.Chunk;
 import alluxio.grpc.RequestType;
 import alluxio.grpc.WriteRequest;
 import alluxio.util.CommonUtils;
+import alluxio.util.ConfigurationUtils;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.io.BufferUtils;
 import alluxio.wire.WorkerNetAddress;
@@ -137,6 +139,7 @@ public class UfsFallbackLocalFileDataWriterTest {
 
   private ByteBuffer mBuffer;
   private FixedCapacityTestDataWriter mLocalWriter;
+  private ClientContext mClientContext;
   private FileSystemContext mContext;
   private WorkerNetAddress mAddress;
   private BlockWorkerClient mClient;
@@ -151,11 +154,13 @@ public class UfsFallbackLocalFileDataWriterTest {
 
   @Before
   public void before() throws Exception {
+    mClientContext = ClientContext.create(mConf.getProperties());
     mContext = PowerMockito.mock(FileSystemContext.class);
     mAddress = Mockito.mock(WorkerNetAddress.class);
 
     mClient = mock(BlockWorkerClient.class);
     mRequestObserver = mock(ClientCallStreamObserver.class);
+    PowerMockito.when(mContext.getClientContext()).thenReturn(mClientContext);
     PowerMockito.when(mContext.acquireBlockWorkerClient(mAddress)).thenReturn(mClient);
     PowerMockito.doNothing().when(mContext).releaseBlockWorkerClient(mAddress, mClient);
     PowerMockito.when(mClient.writeBlock(any(StreamObserver.class))).thenReturn(mRequestObserver);

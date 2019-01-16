@@ -57,7 +57,6 @@ public final class UnderFileSystemBlockReaderTest {
   private UfsManager mUfsManager;
   private UfsInputStreamManager mUfsInstreamManager;
   private Protocol.OpenUfsBlockOptions mOpenUfsBlockOptions;
-  private InstancedConfiguration mConf = ConfigurationTestUtils.defaults();
 
   /** Rule to create a new temporary folder during each test. */
   @Rule
@@ -76,7 +75,7 @@ public final class UnderFileSystemBlockReaderTest {
               .getAbsolutePath());
           put(PropertyKey.WORKER_TIERED_STORE_LEVELS, "1");
         }
-      }, mConf);
+      }, ServerConfiguration.global());
 
   @Before
   public void before() throws Exception {
@@ -89,7 +88,7 @@ public final class UnderFileSystemBlockReaderTest {
     mUfsManager = mock(UfsManager.class);
     mUfsInstreamManager = new UfsInputStreamManager();
     UfsClient ufsClient = new UfsClient(
-        () -> UnderFileSystem.Factory.create(testFilePath, mConf),
+        () -> UnderFileSystem.Factory.create(testFilePath, ServerConfiguration.global()),
         new AlluxioURI(testFilePath));
     when(mUfsManager.get(anyLong())).thenReturn(ufsClient);
 

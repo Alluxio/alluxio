@@ -222,18 +222,6 @@ public final class NetworkAddressUtils {
     assertValidPort(address.getPort());
   }
 
-//  /**
-//   * Helper method to get the {@link InetSocketAddress} address for client to communicate with the
-//   * service.
-//   *
-//   * @param service the service name used to connect
-//   * @return the service address that a client (typically outside the service machine) uses to
-//   *         communicate with service.
-//   */
-//  public static InetSocketAddress getConnectAddress(ServiceType service, AlluxioConfiguration conf) {
-//    return getConnectAddress(service, conf);
-//  }
-
   /**
    * Helper method to get the {@link InetSocketAddress} address for client to communicate with the
    * service.
@@ -247,50 +235,6 @@ public final class NetworkAddressUtils {
       AlluxioConfiguration conf) {
     return new InetSocketAddress(getConnectHost(service, conf), getPort(service, conf));
   }
-//
-//  /**
-//   * Provides an externally resolvable hostname for client to communicate with the service. If the
-//   * hostname is not explicitly specified, Alluxio will try to use the bind host. If the bind host
-//   * is wildcard, Alluxio will automatically determine an appropriate hostname from local machine.
-//   * The various possibilities shown in the following table:
-//   * <table>
-//   * <caption>Hostname Scenarios</caption> <thead>
-//   * <tr>
-//   * <th>Specified Hostname</th>
-//   * <th>Specified Bind Host</th>
-//   * <th>Returned Connect Host</th>
-//   * </tr>
-//   * </thead> <tbody>
-//   * <tr>
-//   * <td>hostname</td>
-//   * <td>hostname</td>
-//   * <td>hostname</td>
-//   * </tr>
-//   * <tr>
-//   * <td>not defined</td>
-//   * <td>hostname</td>
-//   * <td>hostname</td>
-//   * </tr>
-//   * <tr>
-//   * <td>hostname</td>
-//   * <td>0.0.0.0 or not defined</td>
-//   * <td>hostname</td>
-//   * </tr>
-//   * <tr>
-//   * <td>not defined</td>
-//   * <td>0.0.0.0 or not defined</td>
-//   * <td>localhost</td>
-//   * </tr>
-//   * </tbody>
-//   * </table>
-//   *
-//   * @param service Service type used to connect
-//   * @return the externally resolvable hostname that the client can use to communicate with the
-//   *         service.
-//   */
-//  public static String getConnectHost(ServiceType service) {
-//    return getConnectHost(service, Configuration.global());
-//  }
 
   /**
    * Provides an externally resolvable hostname for client to communicate with the service. If the

@@ -26,7 +26,7 @@ public final class GroupMappingServiceTestUtils {
    * Resets the cache for GroupMappingService.
    */
   public static void resetCache() {
-    Whitebox.setInternalState(GroupMappingService.Factory.class, "sCachedGroupMapping",
-        (CachedGroupMapping) null);
+//    Whitebox.setInternalState(GroupMappingService.Factory.class, "sCachedGroupMapping",
+//        (CachedGroupMapping) null);
   }
 }

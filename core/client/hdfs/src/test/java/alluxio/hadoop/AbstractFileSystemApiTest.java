@@ -24,6 +24,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 import java.io.IOException;
 import java.net.URI;
@@ -36,6 +37,9 @@ public final class AbstractFileSystemApiTest {
 
   @Rule
   public TestLoggerRule mTestLogger = new TestLoggerRule();
+
+  @Rule
+  public ExpectedException mThrown = ExpectedException.none();
 
   private InstancedConfiguration mConf = ConfigurationTestUtils.defaults();
 
@@ -54,8 +58,10 @@ public final class AbstractFileSystemApiTest {
   @Test
   public void unknownAuthorityTriggersWarning() throws IOException {
     URI unknown = URI.create("alluxio://test/");
+    mThrown.expectMessage("Authority \"test\" is unknown. The client will not be configured with " +
+        "this authority. The authority connection details will be loaded from the client "
+        + "configuration.");
     FileSystem.get(unknown, new org.apache.hadoop.conf.Configuration());
-    assertTrue(mTestLogger.wasLogged("Authority \"test\" is unknown"));
   }
 
   @Test
@@ -74,10 +80,14 @@ public final class AbstractFileSystemApiTest {
 
   @Test
   public void parseZkUriWithPlusDelimiters() throws Exception {
-    FileSystem.get(URI.create("alluxio://zk@a:0+b:1+c:2/"),
+    org.apache.hadoop.fs.FileSystem fs = FileSystem.get(URI.create("alluxio://zk@a:0+b:1+c:2/"),
         new org.apache.hadoop.conf.Configuration());
-    assertTrue(mConf.getBoolean(PropertyKey.ZOOKEEPER_ENABLED));
-    assertEquals("a:0,b:1,c:2", mConf.get(PropertyKey.ZOOKEEPER_ADDRESS));
+    assertTrue(fs instanceof AbstractFileSystem);
+    AbstractFileSystem afs = (AbstractFileSystem)fs;
+    assertTrue(afs.mFsContext.getClientContext().getConf()
+        .getBoolean(PropertyKey.ZOOKEEPER_ENABLED));
+    assertEquals("a:0,b:1,c:2", afs.mFsContext.getClientContext().getConf()
+        .get(PropertyKey.ZOOKEEPER_ADDRESS));
   }
 
   private boolean loggedAuthorityWarning() {

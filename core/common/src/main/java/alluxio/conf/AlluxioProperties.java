@@ -153,7 +153,10 @@ public class AlluxioProperties {
    * @param key key to remove
    */
   public void remove(PropertyKey key) {
-    mUserProps.put(key, Optional.empty());
+    // remove is a nop if the key doesn't already exist
+    if (mUserProps.containsKey(key)) {
+      mUserProps.remove(key);
+    }
   }
 
   /**
@@ -164,7 +167,8 @@ public class AlluxioProperties {
    */
   public boolean isSet(PropertyKey key) {
     if (mUserProps.containsKey(key)) {
-      return mUserProps.get(key).isPresent();
+      Optional<String> val = mUserProps.get(key);
+      return val.isPresent();
     }
     // In case key is not the reference to the original key
     return PropertyKey.fromString(key.toString()).getDefaultValue() != null;
