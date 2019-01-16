@@ -19,6 +19,7 @@ import alluxio.cli.fs.FileSystemShell;
 import alluxio.cli.fs.FileSystemShellUtils;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
+import alluxio.conf.ServerConfiguration;
 import alluxio.exception.AlluxioException;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.WritePType;
@@ -268,7 +269,7 @@ public final class FileSystemShellUtilsTest {
 
   @Test
   public void loadCommands() {
-    Map<String, Command> map = FileSystemShellUtils.loadCommands(mFileSystem);
+    Map<String, Command> map = FileSystemShellUtils.loadCommands(mFileSystem, ServerConfiguration.global());
 
     String pkgName = Command.class.getPackage().getName();
     Reflections reflections = new Reflections(pkgName);

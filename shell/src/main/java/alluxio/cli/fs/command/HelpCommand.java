@@ -79,7 +79,7 @@ public final class HelpCommand extends AbstractFileSystemCommand {
   public int run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();
     SortedSet<String> sortedCmds;
-    Map<String, Command> commands = FileSystemShellUtils.loadCommands(mFileSystem);
+    Map<String, Command> commands = FileSystemShellUtils.loadCommands(mFileSystem, mConfiguration);
     try (PrintWriter pw = new PrintWriter(System.out)) {
       if (args.length == 0) {
         // print help messages for all supported commands.

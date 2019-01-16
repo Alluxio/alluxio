@@ -63,7 +63,8 @@ public final class HelpCommandIntegrationTest extends AbstractFileSystemShellTes
   @Test
   public void helpAllCommand() throws IOException {
     Assert.assertEquals(0, mFsShell.run("help"));
-    final Map<String, Command> commands = FileSystemShellUtils.loadCommands(mFileSystem);
+    final Map<String, Command> commands = FileSystemShellUtils.loadCommands(mFileSystem,
+        ServerConfiguration.global());
     String expected = "";
     SortedSet<String> sortedCmds = new TreeSet<>(commands.keySet());
     for (String cmd : sortedCmds) {

@@ -220,9 +220,11 @@ public final class FileSystemShellUtils {
    * @param fileSystem the {@link FileSystem} instance to construct the command
    * @return a mapping from command name to command instance
    */
-  public static Map<String, Command> loadCommands(FileSystem fileSystem) {
+  public static Map<String, Command> loadCommands(FileSystem fileSystem,
+      AlluxioConfiguration alluxioConf) {
     return CommandUtils.loadCommands(FileSystemShell.class.getPackage().getName(),
-        new Class[] {FileSystem.class}, new Object[] {fileSystem});
+        new Class[] {FileSystem.class, AlluxioConfiguration.class}, new Object[] {fileSystem,
+            alluxioConf});
   }
 
   /**
