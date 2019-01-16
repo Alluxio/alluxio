@@ -12,6 +12,7 @@
 package alluxio.job.load;
 
 import alluxio.AlluxioURI;
+import alluxio.ClientContext;
 import alluxio.ConfigurationTestUtils;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.BlockWorkerInfo;
@@ -70,15 +71,18 @@ public class LoadDefinitionTest {
   private FileSystem mMockFileSystem;
   private AlluxioBlockStore mMockBlockStore;
   private JobMasterContext mMockJobMasterContext;
+  private FileSystemContext mMockFsContext;
 
   @Before
   public void before() throws Exception {
     mMockJobMasterContext = Mockito.mock(JobMasterContext.class);
     mMockFileSystem = PowerMockito.mock(FileSystem.class);
     mMockBlockStore = PowerMockito.mock(AlluxioBlockStore.class);
+    mMockFsContext = PowerMockito.mock(FileSystemContext.class);
     PowerMockito.mockStatic(AlluxioBlockStore.class);
     PowerMockito.when(AlluxioBlockStore.create(ServerConfiguration.global())).thenReturn(mMockBlockStore);
     Mockito.when(mMockBlockStore.getAllWorkers()).thenReturn(BLOCK_WORKERS);
+    PowerMockito.when(mMockFsContext.getClientContext()).thenReturn(ClientContext.create(ServerConfiguration.getProperties()));
   }
 
   @Test
@@ -88,7 +92,7 @@ public class LoadDefinitionTest {
     createFileWithNoLocations(TEST_URI, numBlocks);
     LoadConfig config = new LoadConfig(TEST_URI, replication);
     Map<WorkerInfo, ArrayList<LoadTask>> assignments =
-        new LoadDefinition(mMockFileSystem).selectExecutors(config,
+        new LoadDefinition(mMockFsContext, mMockFileSystem).selectExecutors(config,
             JOB_WORKERS, mMockJobMasterContext);
     // Check that we are loading the right number of blocks.
     int totalBlockLoads = 0;
@@ -106,7 +110,7 @@ public class LoadDefinitionTest {
     createFileWithNoLocations(TEST_URI, 10);
     LoadConfig config = new LoadConfig(TEST_URI, 1);
     Map<WorkerInfo, ArrayList<LoadTask>> assignments =
-        new LoadDefinition(mMockFileSystem).selectExecutors(config,
+        new LoadDefinition(mMockFsContext, mMockFileSystem).selectExecutors(config,
             JOB_WORKERS, mMockJobMasterContext);
     Assert.assertEquals(1, assignments.size());
     Assert.assertEquals(10, assignments.values().iterator().next().size());
@@ -117,7 +121,7 @@ public class LoadDefinitionTest {
     createFileWithNoLocations(TEST_URI, 1);
     LoadConfig config = new LoadConfig(TEST_URI, 5); // set replication to 5
     try {
-      new LoadDefinition(mMockFileSystem).selectExecutors(config,
+      new LoadDefinition(mMockFsContext, mMockFileSystem).selectExecutors(config,
           JOB_WORKERS, mMockJobMasterContext);
       Assert.fail();
     } catch (Exception e) {
@@ -135,7 +139,7 @@ public class LoadDefinitionTest {
     createFileWithNoLocations(TEST_URI, 1);
     LoadConfig config = new LoadConfig(TEST_URI, 2); // set replication to 2
     try {
-      new LoadDefinition(mMockFileSystem).selectExecutors(config,
+      new LoadDefinition(mMockFsContext, mMockFileSystem).selectExecutors(config,
           JOB_WORKERS, mMockJobMasterContext);
       Assert.fail();
     } catch (Exception e) {

@@ -90,12 +90,11 @@ public final class PersistIntegrationTest extends JobIntegrationTest {
     // kill job worker
     mLocalAlluxioJobCluster.getWorker().stop();
     // persist the file
-    FileSystemContext context = FileSystemContext.create();
-    FileSystemMasterClient client = context.acquireMasterClient();
+    FileSystemMasterClient client = mFsContext.acquireMasterClient();
     try {
       client.scheduleAsyncPersist(new AlluxioURI(TEST_URI));
     } finally {
-      context.releaseMasterClient(client);
+      mFsContext.releaseMasterClient(client);
     }
     CommonUtils.waitFor("persist timeout", () -> {
       try {

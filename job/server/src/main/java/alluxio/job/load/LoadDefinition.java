@@ -56,12 +56,14 @@ public final class LoadDefinition
   private static final int MAX_BUFFER_SIZE = 500 * Constants.MB;
 
   private final FileSystem mFileSystem;
+  private final FileSystemContext mFsContext;
 
   /**
    * Constructs a new {@link LoadDefinition}.
    */
   public LoadDefinition() {
-    mFileSystem = BaseFileSystem.create(FileSystemContext.create());
+    mFsContext = FileSystemContext.create(ServerConfiguration.global());
+    mFileSystem = BaseFileSystem.create(mFsContext);
   }
 
   /**
@@ -69,7 +71,8 @@ public final class LoadDefinition
    *
    * @param fileSystem file system client
    */
-  public LoadDefinition(FileSystem fileSystem) {
+  public LoadDefinition(FileSystemContext fsContext, FileSystem fileSystem) {
+    mFsContext = fsContext;
     mFileSystem = fileSystem;
   }
 
@@ -138,7 +141,7 @@ public final class LoadDefinition
       JobWorkerContext jobWorkerContext) throws Exception {
     for (LoadTask task : tasks) {
       JobUtils
-          .loadBlock(mFileSystem, FileSystemContext.create(), config.getFilePath(), task.getBlockId());
+          .loadBlock(mFileSystem, mFsContext, config.getFilePath(), task.getBlockId());
       LOG.info("Loaded block " + task.getBlockId());
     }
     return null;

@@ -43,6 +43,7 @@ import alluxio.util.io.PathUtils;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.WorkerNetAddress;
 
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.ClassRule;
@@ -68,6 +69,7 @@ public class RemoteReadIntegrationTest extends BaseIntegrationTest {
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource;
   private FileSystem mFileSystem = null;
+  private FileSystemContext mFsContext;
   private CreateFilePOptions mWriteAlluxio;
   private CreateFilePOptions mWriteUnderStore;
   private OpenFilePOptions mReadNoCache;
@@ -89,12 +91,18 @@ public class RemoteReadIntegrationTest extends BaseIntegrationTest {
   @Before
   public final void before() throws Exception {
     mFileSystem = mLocalAlluxioClusterResource.get().getClient();
+    mFsContext = FileSystemContext.create(ServerConfiguration.global());
     mWriteAlluxio = CreateFilePOptions.newBuilder().setWriteType(WritePType.MUST_CACHE)
         .setRecursive(true).build();
     mWriteUnderStore = CreateFilePOptions.newBuilder().setWriteType(WritePType.THROUGH)
         .setRecursive(true).build();
     mReadCache = OpenFilePOptions.newBuilder().setReadType(ReadPType.CACHE_PROMOTE).build();
     mReadNoCache = OpenFilePOptions.newBuilder().setReadType(ReadPType.NO_CACHE).build();
+  }
+
+  @After
+  public void after() throws Exception {
+    mFsContext.close();
   }
 
   /**
@@ -252,7 +260,7 @@ public class RemoteReadIntegrationTest extends BaseIntegrationTest {
       BlockInfo info = blockStore.getInfo(blockId);
       WorkerNetAddress workerAddr = info.getLocations().get(0).getWorkerAddress();
       BlockInStream is =
-          BlockInStream.create(FileSystemContext.create(), options.getBlockInfo(blockId),
+          BlockInStream.create(mFsContext, options.getBlockInfo(blockId),
               workerAddr, BlockInStreamSource.REMOTE, options);
       byte[] ret = new byte[k];
       int value = is.read();
@@ -286,7 +294,7 @@ public class RemoteReadIntegrationTest extends BaseIntegrationTest {
       BlockInfo info = AlluxioBlockStore.create(ServerConfiguration.global()).getInfo(blockId);
       WorkerNetAddress workerAddr = info.getLocations().get(0).getWorkerAddress();
       BlockInStream is =
-          BlockInStream.create(FileSystemContext.create(), options.getBlockInfo(blockId),
+          BlockInStream.create(mFsContext, options.getBlockInfo(blockId),
               workerAddr, BlockInStreamSource.REMOTE, options);
       byte[] ret = new byte[k];
       int read = is.read(ret);
@@ -314,7 +322,7 @@ public class RemoteReadIntegrationTest extends BaseIntegrationTest {
       BlockInfo info = AlluxioBlockStore.create(ServerConfiguration.global()).getInfo(blockId);
       WorkerNetAddress workerAddr = info.getLocations().get(0).getWorkerAddress();
       BlockInStream is =
-          BlockInStream.create(FileSystemContext.create(), options.getBlockInfo(blockId),
+          BlockInStream.create(mFsContext, options.getBlockInfo(blockId),
               workerAddr, BlockInStreamSource.REMOTE, options);
       byte[] ret = new byte[k / 2];
       int read = 0;
@@ -558,7 +566,7 @@ public class RemoteReadIntegrationTest extends BaseIntegrationTest {
 
       WorkerNetAddress workerAddr = info.getLocations().get(0).getWorkerAddress();
       BlockInStream is =
-          BlockInStream.create(FileSystemContext.create(), options.getBlockInfo(blockId),
+          BlockInStream.create(mFsContext, options.getBlockInfo(blockId),
               workerAddr, BlockInStreamSource.REMOTE, options);
       Assert.assertEquals(0, is.read());
       mFileSystem.delete(uri);
@@ -575,7 +583,7 @@ public class RemoteReadIntegrationTest extends BaseIntegrationTest {
       // Try to create an in stream again, and it should fail.
       BlockInStream is2 = null;
       try {
-        is2 = BlockInStream.create(FileSystemContext.create(), options.getBlockInfo(blockId),
+        is2 = BlockInStream.create(mFsContext, options.getBlockInfo(blockId),
             workerAddr, BlockInStreamSource.REMOTE, options);
       } catch (NotFoundException e) {
         // Expected since the file has been deleted.
