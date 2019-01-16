@@ -90,16 +90,16 @@ import java.util.concurrent.ConcurrentMap;
 public final class MoveDefinition
     extends AbstractVoidJobDefinition<MoveConfig, ArrayList<MoveCommand>> {
   private static final Logger LOG = LoggerFactory.getLogger(MoveDefinition.class);
-  private final FileSystemContext mFileSystemContext;
   private final FileSystem mFileSystem;
+  private final FileSystemContext mFsContext;
   private final Random mRandom = new Random();
 
   /**
    * Constructs a new {@link MoveDefinition}.
    */
   public MoveDefinition() {
-    mFileSystemContext = FileSystemContext.create(null, ServerConfiguration.global());
-    mFileSystem = BaseFileSystem.create(mFileSystemContext);
+    mFsContext = FileSystemContext.create(ServerConfiguration.global());
+    mFileSystem = BaseFileSystem.create(mFsContext);
   }
 
   /**
@@ -109,7 +109,7 @@ public final class MoveDefinition
    * @param fileSystem file system client
    */
   public MoveDefinition(FileSystemContext context, FileSystem fileSystem) {
-    mFileSystemContext = context;
+    mFsContext = context;
     mFileSystem = fileSystem;
   }
 
@@ -167,7 +167,7 @@ public final class MoveDefinition
     checkMoveValid(config);
 
     List<BlockWorkerInfo> alluxioWorkerInfoList =
-        AlluxioBlockStore.create(mFileSystemContext).getAllWorkers();
+        AlluxioBlockStore.create(mFsContext).getAllWorkers();
     Preconditions.checkState(!jobWorkerInfoList.isEmpty(), "No workers are available");
 
     List<URIStatus> allPathStatuses = getPathStatuses(source);

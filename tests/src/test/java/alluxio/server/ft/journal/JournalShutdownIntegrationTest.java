@@ -86,18 +86,21 @@ public class JournalShutdownIntegrationTest extends BaseIntegrationTest {
   private ClientThread mCreateFileThread;
   /** Executor for running client threads. */
   private ExecutorService mExecutorsForClient;
+  private FileSystemContext mFsContext;
+
 
   @Before
   public final void before() throws Exception {
     mExecutorsForClient = Executors.newFixedThreadPool(1);
+    mFsContext = FileSystemContext.create(ServerConfiguration.global());
   }
 
   @After
   public final void after() throws Exception {
     mExecutorsForClient.shutdown();
+    mFsContext.close();
     ServerConfiguration.reset();
     ServerConfiguration.set(PropertyKey.USER_METRICS_COLLECTION_ENABLED, false);
-    FileSystemContext.create().reset();
   }
 
   @Test

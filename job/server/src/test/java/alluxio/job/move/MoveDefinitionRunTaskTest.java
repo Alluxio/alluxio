@@ -18,6 +18,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import alluxio.AlluxioURI;
+import alluxio.ClientContext;
 import alluxio.ConfigurationTestUtils;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileSystem;
@@ -70,7 +71,9 @@ public final class MoveDefinitionRunTaskTest {
     AlluxioConfiguration conf = ConfigurationTestUtils.defaults();
     mMockFileSystem = Mockito.mock(FileSystem.class);
     mMockFileSystemContext = PowerMockito.mock(FileSystemContext.class);
-    mMockInStream = new MockFileInStream(FileSystemContext.create(), TEST_SOURCE_CONTENTS, conf);
+    when(mMockFileSystemContext.getClientContext())
+        .thenReturn(ClientContext.create(conf.getProperties()));
+    mMockInStream = new MockFileInStream(mMockFileSystemContext, TEST_SOURCE_CONTENTS, conf);
     when(mMockFileSystem.openFile(new AlluxioURI(TEST_SOURCE))).thenReturn(mMockInStream);
     mMockOutStream = new MockFileOutStream(conf);
     when(mMockFileSystem.createFile(eq(new AlluxioURI(TEST_DESTINATION)),

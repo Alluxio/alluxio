@@ -11,6 +11,7 @@
 
 package alluxio.job.replicate;
 
+import alluxio.ClientContext;
 import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.client.block.AlluxioBlockStore;
@@ -52,22 +53,20 @@ public final class EvictDefinition
     extends AbstractVoidJobDefinition<EvictConfig, SerializableVoid> {
   private static final Logger LOG = LoggerFactory.getLogger(EvictDefinition.class);
 
-  private final FileSystemContext mFileSystemContext;
+  private final FileSystemContext mFsContext;
 
   /**
    * Constructs a new {@link EvictDefinition}.
    */
   public EvictDefinition() {
-    mFileSystemContext = FileSystemContext.create();
+    mFsContext = FileSystemContext.create(ServerConfiguration.global());
   }
 
   /**
-   * Constructs a new {@link EvictDefinition} with FileSystem context and instance.
-   *
-   * @param fileSystemContext file system context
+   * Constructs a new {@link EvictDefinition} with the given {@link FileSystemContext}.
    */
-  public EvictDefinition(FileSystemContext fileSystemContext) {
-    mFileSystemContext = fileSystemContext;
+  public EvictDefinition(FileSystemContext fsContext) {
+    mFsContext = fsContext;
   }
 
   @Override
@@ -83,7 +82,7 @@ public final class EvictDefinition
     long blockId = config.getBlockId();
     int numReplicas = config.getReplicas();
 
-    AlluxioBlockStore blockStore = AlluxioBlockStore.create(mFileSystemContext);
+    AlluxioBlockStore blockStore = AlluxioBlockStore.create(mFsContext);
     BlockInfo blockInfo = blockStore.getInfo(blockId);
 
     Set<String> hosts = new HashSet<>();
@@ -113,7 +112,7 @@ public final class EvictDefinition
   @Override
   public SerializableVoid runTask(EvictConfig config, SerializableVoid args,
       JobWorkerContext jobWorkerContext) throws Exception {
-    AlluxioBlockStore blockStore = AlluxioBlockStore.create(mFileSystemContext);
+    AlluxioBlockStore blockStore = AlluxioBlockStore.create(mFsContext);
 
     long blockId = config.getBlockId();
     String localHostName = NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC,
@@ -134,7 +133,7 @@ public final class EvictDefinition
 
     RemoveBlockRequest request = RemoveBlockRequest.newBuilder().setBlockId(blockId).build();
     try (BlockWorkerClient blockWorker =
-             FileSystemContext.create().acquireBlockWorkerClient(localNetAddress)) {
+             mFsContext.acquireBlockWorkerClient(localNetAddress)) {
       blockWorker.removeBlock(request);
     } catch (NotFoundException e) {
       // Instead of throwing this exception, we continue here because the block to evict does not
