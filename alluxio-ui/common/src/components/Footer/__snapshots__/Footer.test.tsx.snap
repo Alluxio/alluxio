@@ -1,0 +1,67 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Footer React component Matches snapshot 1`] = `
+<StaticRouter
+  basename=""
+  context={Object {}}
+  location="someLocation"
+>
+  <Router
+    history={
+      Object {
+        "action": "POP",
+        "block": [Function],
+        "createHref": [Function],
+        "go": [Function],
+        "goBack": [Function],
+        "goForward": [Function],
+        "listen": [Function],
+        "location": Object {
+          "hash": "",
+          "pathname": "someLocation",
+          "search": "",
+          "state": undefined,
+        },
+        "push": [Function],
+        "replace": [Function],
+      }
+    }
+  >
+    <Footer
+      data={Array []}
+    >
+      <div
+        className="footer mt-auto card bg-light"
+      >
+        <div
+          className="mx-auto"
+        >
+          <Nav
+            tag="ul"
+            vertical={false}
+          >
+            <ul
+              className="nav"
+            />
+          </Nav>
+        </div>
+      </div>
+    </Footer>
+  </Router>
+</StaticRouter>
+`;
+
+exports[`Footer Shallow component Matches snapshot 1`] = `
+<div
+  className="footer mt-auto card bg-light"
+>
+  <div
+    className="mx-auto"
+  >
+    <Nav
+      tag="ul"
+      vertical={false}
+    />
+  </div>
+</div>
+`;

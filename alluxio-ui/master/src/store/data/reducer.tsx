@@ -13,7 +13,7 @@ import {Reducer} from 'redux';
 
 import {DataActionTypes, IDataState} from './types';
 
-const initialState: IDataState = {
+export const initialDataState: IDataState = {
   data: {
     'fatalError': '',
     'fileInfos': [{
@@ -44,7 +44,7 @@ const initialState: IDataState = {
   loading: false
 };
 
-export const dataReducer: Reducer<IDataState> = (state = initialState, action) => {
+export const dataReducer: Reducer<IDataState> = (state = initialDataState, action) => {
   switch (action.type) {
     case DataActionTypes.FETCH_REQUEST:
       return {...state, loading: true};

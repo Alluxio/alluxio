@@ -57,7 +57,7 @@ interface IBrowseState {
 
 type AllProps = IPropsFromState & IPropsFromDispatch;
 
-class Browse extends React.Component<AllProps, IBrowseState> {
+export class Browse extends React.Component<AllProps, IBrowseState> {
   private readonly textAreaResizeMs = 100;
   private readonly debouncedUpdateTextAreaHeight = getDebouncedFunction(this.updateTextAreaHeight.bind(this), this.textAreaResizeMs, true);
 

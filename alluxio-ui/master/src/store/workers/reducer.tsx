@@ -13,7 +13,7 @@ import {Reducer} from 'redux';
 
 import {IWorkersState, WorkersActionTypes} from './types';
 
-const initialState: IWorkersState = {
+export const initialWorkersState: IWorkersState = {
   errors: undefined,
   loading: false,
   workers: {
@@ -23,7 +23,7 @@ const initialState: IWorkersState = {
   }
 };
 
-export const workersReducer: Reducer<IWorkersState> = (state = initialState, action) => {
+export const workersReducer: Reducer<IWorkersState> = (state = initialWorkersState, action) => {
   switch (action.type) {
     case WorkersActionTypes.FETCH_REQUEST:
       return {...state, loading: true};

@@ -13,7 +13,7 @@ import {Reducer} from 'redux';
 
 import {BlockInfoActionTypes, IBlockInfoState} from './types';
 
-const initialState: IBlockInfoState = {
+export const initialBlockInfoState: IBlockInfoState = {
   blockInfo: {
     'blockSizeBytes': '',
     'fatalError': '',
@@ -28,7 +28,7 @@ const initialState: IBlockInfoState = {
   loading: false
 };
 
-export const blockInfoReducer: Reducer<IBlockInfoState> = (state = initialState, action) => {
+export const blockInfoReducer: Reducer<IBlockInfoState> = (state = initialBlockInfoState, action) => {
   switch (action.type) {
     case BlockInfoActionTypes.FETCH_REQUEST:
       return {...state, loading: true};

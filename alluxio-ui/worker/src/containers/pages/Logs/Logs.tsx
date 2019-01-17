@@ -53,7 +53,7 @@ interface ILogsState {
 
 type AllProps = IPropsFromState & IPropsFromDispatch;
 
-class Logs extends React.Component<AllProps, ILogsState> {
+export class Logs extends React.Component<AllProps, ILogsState> {
   private readonly textAreaResizeMs = 100;
   private readonly debouncedUpdateTextAreaHeight = getDebouncedFunction(this.updateTextAreaHeight.bind(this), this.textAreaResizeMs, true);
 

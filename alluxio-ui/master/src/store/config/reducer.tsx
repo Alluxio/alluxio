@@ -13,7 +13,7 @@ import {Reducer} from 'redux';
 
 import {ConfigActionTypes, IConfigState} from './types';
 
-const initialState: IConfigState = {
+export const initialConfigState: IConfigState = {
   config: {
     configuration: [],
     whitelist: []
@@ -22,7 +22,7 @@ const initialState: IConfigState = {
   loading: false
 };
 
-export const configReducer: Reducer<IConfigState> = (state = initialState, action) => {
+export const configReducer: Reducer<IConfigState> = (state = initialConfigState, action) => {
   switch (action.type) {
     case ConfigActionTypes.FETCH_REQUEST:
       return {...state, loading: true};

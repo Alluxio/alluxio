@@ -12,7 +12,7 @@
 import React from 'react';
 import {LoadingMessage} from './components';
 
-class App extends React.Component {
+export class App extends React.Component {
   public render() {
     return (
       <div className="App">

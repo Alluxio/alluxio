@@ -14,27 +14,27 @@ import {History} from 'history';
 import {combineReducers} from 'redux';
 import {all, fork} from 'redux-saga/effects';
 
-import {refreshReducer} from '@alluxio/common-ui/src/store/refresh/reducer';
+import {initialRefreshState, refreshReducer} from '@alluxio/common-ui/src/store/refresh/reducer';
 import {IRefreshState} from '@alluxio/common-ui/src/store/refresh/types';
-import {browseReducer} from './browse/reducer';
+import {browseReducer, initialBrowseState} from './browse/reducer';
 import {browseSaga} from './browse/sagas';
 import {IBrowseState} from './browse/types';
-import {configReducer} from './config/reducer';
+import {configReducer, initialConfigState} from './config/reducer';
 import {configSaga} from './config/sagas';
 import {IConfigState} from './config/types';
-import {dataReducer} from './data/reducer';
+import {dataReducer, initialDataState} from './data/reducer';
 import {dataSaga} from './data/sagas';
 import {IDataState} from './data/types';
-import {logsReducer} from './logs/reducer';
+import {initialLogsState, logsReducer} from './logs/reducer';
 import {logsSaga} from './logs/sagas';
 import {ILogsState} from './logs/types';
-import {metricsReducer} from './metrics/reducer';
+import {initialMetricsState, metricsReducer} from './metrics/reducer';
 import {metricsSaga} from './metrics/sagas';
 import {IMetricsState} from './metrics/types';
-import {overviewReducer} from './overview/reducer';
+import {initialOverviewState, overviewReducer} from './overview/reducer';
 import {overviewSaga} from './overview/sagas';
 import {IOverviewState} from './overview/types';
-import {workersReducer} from './workers/reducer';
+import {initialWorkersState, workersReducer} from './workers/reducer';
 import {workersSaga} from './workers/sagas';
 import {IWorkersState} from './workers/types';
 
@@ -46,7 +46,7 @@ export interface IApplicationState {
   metrics: IMetricsState;
   overview: IOverviewState;
   refresh: IRefreshState;
-  router: RouterState;
+  router?: RouterState;
   workers: IWorkersState;
 }
 
@@ -72,4 +72,15 @@ export const rootSaga = function* () {
     fork(overviewSaga),
     fork(workersSaga)
   ]);
+};
+
+export const initialState: IApplicationState = {
+  browse: initialBrowseState,
+  config: initialConfigState,
+  data: initialDataState,
+  logs: initialLogsState,
+  metrics: initialMetricsState,
+  overview: initialOverviewState,
+  refresh: initialRefreshState,
+  workers: initialWorkersState
 };

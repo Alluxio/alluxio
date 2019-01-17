@@ -21,15 +21,5 @@
   },
   "include": [
     "src"
-  ],
-  "exclude": [
-    "acceptance-tests",
-    "build",
-    "jest",
-    "node_modules",
-    "public",
-    "scripts",
-    "src/setupTests.ts",
-    "webpack"
   ]
 }

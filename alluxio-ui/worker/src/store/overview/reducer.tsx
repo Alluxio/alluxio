@@ -13,7 +13,7 @@ import {Reducer} from 'redux';
 
 import {IOverviewState, OverviewActionTypes} from './types';
 
-const initialState: IOverviewState = {
+export const initialOverviewState: IOverviewState = {
   errors: undefined,
   loading: false,
   overview: {
@@ -30,7 +30,7 @@ const initialState: IOverviewState = {
   }
 };
 
-export const overviewReducer: Reducer<IOverviewState> = (state = initialState, action) => {
+export const overviewReducer: Reducer<IOverviewState> = (state = initialOverviewState, action) => {
   switch (action.type) {
     case OverviewActionTypes.FETCH_REQUEST:
       return {...state, loading: true};

@@ -13,7 +13,7 @@ import {Reducer} from 'redux';
 
 import {BrowseActionTypes, IBrowseState} from './types';
 
-const initialState: IBrowseState = {
+export const initialBrowseState: IBrowseState = {
   browse: {
     'accessControlException': '',
     'blockSizeBytes': '',
@@ -56,7 +56,7 @@ const initialState: IBrowseState = {
   loading: false,
 };
 
-export const browseReducer: Reducer<IBrowseState> = (state = initialState, action) => {
+export const browseReducer: Reducer<IBrowseState> = (state = initialBrowseState, action) => {
   switch (action.type) {
     case BrowseActionTypes.FETCH_REQUEST:
       return {...state, loading: true};

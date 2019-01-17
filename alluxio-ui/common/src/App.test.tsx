@@ -9,12 +9,44 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
+import {configure, mount, ReactWrapper, shallow, ShallowWrapper} from 'enzyme';
+import Adapter from 'enzyme-adapter-react-16';
 import React from 'react';
-import ReactDOM from 'react-dom';
+
 import App from './App';
 
-it('renders without crashing', () => {
-  const div = document.createElement('div');
-  ReactDOM.render(<App />, div);
-  ReactDOM.unmountComponentAtNode(div);
+configure({adapter: new Adapter()});
+
+describe('App', () => {
+  describe('Shallow component', () => {
+    let shallowWrapper: ShallowWrapper;
+
+    beforeAll(() => {
+      shallowWrapper = shallow(<App/>);
+    });
+
+    it('Renders without crashing', () => {
+      expect(shallowWrapper.length).toEqual(1);
+    });
+
+    it('Matches snapshot', () => {
+      expect(shallowWrapper).toMatchSnapshot();
+    });
+  });
+
+  describe('React component', () => {
+    let reactWrapper: ReactWrapper;
+
+    beforeAll(() => {
+      reactWrapper = mount(<App/>);
+    });
+
+    it('Renders without crashing', () => {
+      expect(reactWrapper.length).toEqual(1);
+    });
+
+    it('Matches snapshot', () => {
+      expect(reactWrapper).toMatchSnapshot();
+    });
+  });
 });

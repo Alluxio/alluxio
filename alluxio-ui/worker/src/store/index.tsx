@@ -14,18 +14,18 @@ import {History} from 'history';
 import {combineReducers} from 'redux';
 import {all, fork} from 'redux-saga/effects';
 
-import {refreshReducer} from '@alluxio/common-ui/src/store/refresh/reducer';
+import {initialRefreshState, refreshReducer} from '@alluxio/common-ui/src/store/refresh/reducer';
 import {IRefreshState} from '@alluxio/common-ui/src/store/refresh/types';
-import {blockInfoReducer} from './blockInfo/reducer';
+import {blockInfoReducer, initialBlockInfoState} from './blockInfo/reducer';
 import {blockInfoSaga} from './blockInfo/sagas';
 import {IBlockInfoState} from './blockInfo/types';
-import {logsReducer} from './logs/reducer';
+import {initialLogsState, logsReducer} from './logs/reducer';
 import {logsSaga} from './logs/sagas';
 import {ILogsState} from './logs/types';
-import {metricsReducer} from './metrics/reducer';
+import {initialMetricsState, metricsReducer} from './metrics/reducer';
 import {metricsSaga} from './metrics/sagas';
 import {IMetricsState} from './metrics/types';
-import {overviewReducer} from './overview/reducer';
+import {initialOverviewState, overviewReducer} from './overview/reducer';
 import {overviewSaga} from './overview/sagas';
 import {IOverviewState} from './overview/types';
 
@@ -35,7 +35,7 @@ export interface IApplicationState {
   metrics: IMetricsState;
   overview: IOverviewState;
   refresh: IRefreshState;
-  router: RouterState;
+  router?: RouterState;
 }
 
 export const rootReducer = (history: History) => combineReducers<IApplicationState>({
@@ -54,4 +54,12 @@ export const rootSaga = function* () {
     fork(metricsSaga),
     fork(overviewSaga)
   ]);
+};
+
+export const initialState: IApplicationState = {
+  blockInfo: initialBlockInfoState,
+  logs: initialLogsState,
+  metrics: initialMetricsState,
+  overview: initialOverviewState,
+  refresh: initialRefreshState
 };

@@ -13,11 +13,11 @@ import {Reducer} from 'redux';
 
 import {RefreshActionTypes, IRefreshState} from './types';
 
-const initialState: IRefreshState = {
+export const initialRefreshState: IRefreshState = {
   refresh: false
 };
 
-export const refreshReducer: Reducer<IRefreshState> = (state = initialState, action) => {
+export const refreshReducer: Reducer<IRefreshState> = (state = initialRefreshState, action) => {
   switch (action.type) {
     case RefreshActionTypes.TRIGGER_REFRESH:
       return {...state, refresh: !state.refresh};

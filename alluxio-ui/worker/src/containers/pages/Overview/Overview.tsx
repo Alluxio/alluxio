@@ -34,7 +34,7 @@ interface IPropsFromDispatch {
 
 type AllProps = IPropsFromState & IPropsFromDispatch;
 
-class Overview extends React.Component<AllProps> {
+export class Overview extends React.Component<AllProps> {
   public componentDidUpdate(prevProps: AllProps) {
     if (this.props.refresh !== prevProps.refresh) {
       this.props.fetchRequest();

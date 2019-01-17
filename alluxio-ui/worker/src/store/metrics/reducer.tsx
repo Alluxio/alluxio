@@ -13,7 +13,7 @@ import {Reducer} from 'redux';
 
 import {IMetricsState, MetricsActionTypes} from './types';
 
-const initialState: IMetricsState = {
+export const initialMetricsState: IMetricsState = {
   errors: undefined,
   loading: false,
   metrics: {
@@ -24,7 +24,7 @@ const initialState: IMetricsState = {
   }
 };
 
-export const metricsReducer: Reducer<IMetricsState> = (state = initialState, action) => {
+export const metricsReducer: Reducer<IMetricsState> = (state = initialMetricsState, action) => {
   switch (action.type) {
     case MetricsActionTypes.FETCH_REQUEST:
       return {...state, loading: true};

@@ -10,6 +10,7 @@
  */
 
 import {ConnectedRouter} from 'connected-react-router';
+import {History, LocationState} from 'history';
 import React from 'react';
 import {connect} from 'react-redux';
 import {StaticContext} from 'react-router';
@@ -17,23 +18,24 @@ import {Redirect, Route, RouteComponentProps, Switch} from 'react-router-dom';
 import {Dispatch} from 'redux';
 
 import {Footer, Header} from '@alluxio/common-ui/src/components';
+import {footerNavigationData} from '@alluxio/common-ui/src/constants';
 import {triggerRefresh} from '@alluxio/common-ui/src/store/refresh/actions';
 import {BlockInfo, Logs, Metrics, Overview} from '..';
-import {footerNavigationData, headerNavigationData} from '../../constants';
+import {headerNavigationData} from '../../constants';
 
 import './App.css';
 
 interface IPropsFromDispatch {
-  [key: string]: any;
+  triggerRefresh: typeof triggerRefresh;
 }
 
 interface IAppProps {
-  history: History;
+  history: History<LocationState>;
 }
 
 type AllProps = IPropsFromDispatch & IAppProps;
 
-class App extends React.Component<AllProps> {
+export class App extends React.Component<AllProps> {
   private readonly refreshInterval = 30000;
   private intervalHandle: any;
 

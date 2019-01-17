@@ -13,7 +13,7 @@ import {Reducer} from 'redux';
 
 import {ILogsState, LogsActionTypes} from './types';
 
-const initialState: ILogsState = {
+export const initialLogsState: ILogsState = {
   errors: undefined,
   loading: false,
   logs: {
@@ -28,7 +28,7 @@ const initialState: ILogsState = {
   }
 };
 
-export const logsReducer: Reducer<ILogsState> = (state = initialState, action) => {
+export const logsReducer: Reducer<ILogsState> = (state = initialLogsState, action) => {
   switch (action.type) {
     case LogsActionTypes.FETCH_REQUEST:
       return {...state, loading: true};
