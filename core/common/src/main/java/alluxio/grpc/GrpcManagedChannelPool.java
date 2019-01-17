@@ -19,7 +19,6 @@ import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
 import java.net.SocketAddress;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Optional;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -61,8 +60,7 @@ public class GrpcManagedChannelPool {
   /** Used to control access to mChannel */
   private ReentrantReadWriteLock mLock;
 
-  private HashSet<ChannelKey> mChannelsToRelease;
-  /** Scheduler for destruction of released channels. */
+  /** Scheduler for destruction of idle channels. */
   protected final ScheduledExecutorService mScheduler;
 
   /**
@@ -72,7 +70,6 @@ public class GrpcManagedChannelPool {
     mChannels = new HashMap<>();
     mLock = new ReentrantReadWriteLock(true);
 
-    mChannelsToRelease = new HashSet<>();
     mScheduler = Executors.newScheduledThreadPool(1,
             ThreadFactoryUtils.build("grpc-channel-terminator", true));
 
@@ -85,18 +82,14 @@ public class GrpcManagedChannelPool {
     }, channelTerminationIntervalMs, channelTerminationIntervalMs, TimeUnit.MILLISECONDS);
   }
 
-  private void destroyChannels() {
+  private synchronized void destroyChannels() {
     try (LockResource lockExclusive = new LockResource(mLock.writeLock())) {
-      int iDestroyed = 0, iReactivated = 0;
-      for (ChannelKey channelKey : mChannelsToRelease) {
-        Verify.verify(mChannels.containsKey(channelKey));
-        ManagedChannelReference channelRef = mChannels.get(channelKey);
-        channelRef.reference();
-        if (!channelRef.dereference()) {
-          iReactivated++;
-        } else {
-          iDestroyed++;
-          ManagedChannel channel = channelRef.reference();
+      int iDestroyed = 0;
+      for (HashMap.Entry<ChannelKey, ManagedChannelReference> channelEntry : mChannels.entrySet()) {
+        ChannelKey channelKey = channelEntry.getKey();
+        ManagedChannelReference channelReference = channelEntry.getValue();
+        if (channelReference.getRefCount() <= 0) {
+          ManagedChannel channel = channelReference.get();
           channel.shutdown();
           try {
             channel.awaitTermination(
@@ -109,12 +102,13 @@ public class GrpcManagedChannelPool {
             channel.shutdownNow();
           }
           Verify.verify(channel.isShutdown());
+          mChannels.remove(channelKey);
+          iDestroyed++;
           LOG.debug("Destroyed gRPC managed channel for key:{}", channelKey);
         }
       }
-      mChannelsToRelease.clear();
-      LOG.debug("gRPC channel termination stats: pending: {}, reactivated: {}, destroyed: {}",
-          mChannelsToRelease.size(), iReactivated, iDestroyed);
+      LOG.debug("gRPC channel terminator shut down {} channels. Remaining active channel count: {}",
+          iDestroyed, mChannels.size());
     }
   }
 
@@ -146,24 +140,9 @@ public class GrpcManagedChannelPool {
    * @param channelKey host address
    */
   public void releaseManagedChannel(ChannelKey channelKey) {
-    boolean disposeChannel = false;
     try (LockResource lockShared = new LockResource(mLock.readLock())) {
-      if (mChannels.containsKey(channelKey) && mChannels.get(channelKey).dereference()) {
-        disposeChannel = true;
-      }
-    }
-    if (disposeChannel) {
-      try (LockResource lockExclusive = new LockResource(mLock.writeLock())) {
-        if (mChannels.containsKey(channelKey)) {
-          mChannels.get(channelKey).reference();
-          if (mChannels.get(channelKey).dereference()) {
-            // Mark channel for destruction.
-            // It'll be destroyed by the channel-termination callback
-            // unless reacquired until callback fire time.
-            mChannelsToRelease.add(channelKey);
-          }
-        }
-      }
+      Verify.verify(mChannels.containsKey(channelKey));
+      mChannels.get(channelKey).dereference();
     }
   }
 
@@ -223,11 +202,23 @@ public class GrpcManagedChannelPool {
 
     /**
      * Decrement the ref-count for underlying {@link ManagedChannel}.
-     *
-     * @return {@code true} if underlying object is no longer referenced
      */
-    private boolean dereference() {
-      return mRefCount.decrementAndGet() <= 0;
+    private void dereference() {
+      mRefCount.decrementAndGet();
+    }
+
+    /**
+     * @return current ref-count.
+     */
+    private int getRefCount() {
+      return mRefCount.get();
+    }
+
+    /**
+     * @return the underlying {@link ManagedChannel} without changing the ref-count
+     */
+    private ManagedChannel get(){
+      return mChannel;
     }
   }
 
