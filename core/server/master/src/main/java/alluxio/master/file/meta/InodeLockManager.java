@@ -15,6 +15,7 @@ import alluxio.collections.LockCache;
 import alluxio.concurrent.WeakSafeReentrantReadWriteLock;
 import alluxio.master.file.meta.InodeTree.LockMode;
 import alluxio.resource.LockResource;
+import alluxio.resource.RefCountLockResource;
 import alluxio.util.interfaces.Scoped;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -153,9 +154,9 @@ public class InodeLockManager {
   private LockResource lock(ReadWriteLock lock, LockMode mode, AtomicInteger refCounter) {
     switch (mode) {
       case READ:
-        return new LockResource(lock.readLock(), refCounter);
+        return new RefCountLockResource(lock.readLock(), refCounter);
       case WRITE:
-        return new LockResource(lock.writeLock(), refCounter);
+        return new RefCountLockResource(lock.writeLock(), refCounter);
       default:
         throw new IllegalStateException("Unknown lock mode: " + mode);
     }

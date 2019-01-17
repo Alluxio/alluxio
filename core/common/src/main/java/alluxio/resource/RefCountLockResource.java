@@ -11,30 +11,24 @@
 
 package alluxio.resource;
 
-import java.io.Closeable;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Lock;
 
 /**
- * A resource lock that makes it possible to acquire and release locks using the following idiom:
- *
- * <pre>
- *   try (LockResource r = new LockResource(lock)) {
- *     ...
- *   }
- * </pre>
+ * Reference counted Lock resource, automatically unlocks and decrements the reference count.
  */
-// extends Closeable instead of AutoCloseable to enable usage with Guava's Closer.
-public class LockResource implements Closeable {
-  private final Lock mLock;
+public class RefCountLockResource extends LockResource {
+  private final AtomicInteger mRefCount;
 
   /**
    * Creates a new instance of {@link LockResource} using the given lock.
    *
    * @param lock the lock to acquire
+   * @param refCount ref count for the lock
    */
-  public LockResource(Lock lock) {
-    mLock = lock;
-    mLock.lock();
+  public RefCountLockResource(Lock lock, AtomicInteger refCount) {
+    super(lock);
+    mRefCount = refCount;
   }
 
   /**
@@ -43,6 +37,9 @@ public class LockResource implements Closeable {
    */
   @Override
   public void close() {
-    mLock.unlock();
+    super.close();
+    if (mRefCount != null) {
+      mRefCount.decrementAndGet();
+    }
   }
 }
