@@ -13,16 +13,13 @@ package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
 import alluxio.cli.CommandUtils;
-import alluxio.client.file.FileSystem;
-import alluxio.conf.AlluxioConfiguration;
+import alluxio.client.file.FileSystemContext;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
-
 import org.apache.commons.cli.CommandLine;
 
-import java.io.IOException;
-
 import javax.annotation.concurrent.ThreadSafe;
+import java.io.IOException;
 
 /**
  * Renames a file or directory specified by args. Will fail if the new path name already exists.
@@ -31,10 +28,10 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class MvCommand extends AbstractFileSystemCommand {
 
   /**
-   * @param fs the filesystem of Alluxio
+   * @param fsContext the filesystem of Alluxio
    */
-  public MvCommand(FileSystem fs, AlluxioConfiguration conf) {
-    super(fs, conf);
+  public MvCommand(FileSystemContext fsContext) {
+    super(fsContext);
   }
 
   @Override

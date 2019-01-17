@@ -13,17 +13,15 @@ package alluxio.cli.fs.command;
 
 import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystem;
-import alluxio.conf.AlluxioConfiguration;
+import alluxio.client.file.FileSystemContext;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.master.MasterInquireClient;
-
 import org.apache.commons.cli.CommandLine;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.net.InetSocketAddress;
 import java.util.List;
-
-import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Prints information regarding master fault tolerance such as leader address, list of master
@@ -32,10 +30,10 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class MasterInfoCommand extends AbstractFileSystemCommand {
   /**
-   * @param fs the {@link FileSystem}
+   * @param fsContext the {@link FileSystem}
    */
-  public MasterInfoCommand(FileSystem fs, AlluxioConfiguration conf) {
-    super(fs, conf);
+  public MasterInfoCommand(FileSystemContext fsContext) {
+    super(fsContext);
   }
 
   @Override
@@ -50,7 +48,8 @@ public final class MasterInfoCommand extends AbstractFileSystemCommand {
 
   @Override
   public int run(CommandLine cl) {
-    MasterInquireClient inquireClient = MasterInquireClient.Factory.create(mConfiguration);
+    MasterInquireClient inquireClient =
+        MasterInquireClient.Factory.create(mFsContext.getClientContext().getConf());
     try {
       InetSocketAddress leaderAddress = inquireClient.getPrimaryRpcAddress();
       System.out.println("Current leader master: " + leaderAddress.toString());

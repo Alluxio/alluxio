@@ -66,7 +66,7 @@ public interface UnderFileSystem extends Closeable {
      * @return instance of the under layer file system
      */
     public static UnderFileSystem create(String path, AlluxioConfiguration conf) {
-      return create(path, UnderFileSystemConfiguration.defaults(), conf);
+      return create(path, UnderFileSystemConfiguration.defaults(conf), conf);
     }
 
     /**

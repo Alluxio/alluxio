@@ -93,7 +93,7 @@ public class LocalFirstPolicyIntegrationTest extends BaseIntegrationTest {
     TestUtils.waitForReady(worker1);
     TestUtils.waitForReady(worker2);
 
-    FileSystem fs = FileSystem.Factory.get();
+    FileSystem fs = FileSystem.Factory.get(ServerConfiguration.global());
 
     // Write to the worker in node1
     {

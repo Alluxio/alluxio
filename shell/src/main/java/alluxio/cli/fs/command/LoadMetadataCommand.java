@@ -12,15 +12,12 @@
 package alluxio.cli.fs.command;
 
 import alluxio.cli.CommandUtils;
-import alluxio.client.file.FileSystem;
-import alluxio.conf.AlluxioConfiguration;
+import alluxio.client.file.FileSystemContext;
 import alluxio.exception.status.InvalidArgumentException;
-
 import org.apache.commons.cli.CommandLine;
 
-import java.io.IOException;
-
 import javax.annotation.concurrent.ThreadSafe;
+import java.io.IOException;
 
 /**
  * Loads metadata for the given Alluxio path from UFS.
@@ -36,8 +33,8 @@ public final class LoadMetadataCommand extends AbstractFileSystemCommand {
    *
    * @param fs the filesystem of Alluxio
    */
-  public LoadMetadataCommand(FileSystem fs, AlluxioConfiguration conf) {
-    super(fs, conf);
+  public LoadMetadataCommand(FileSystemContext fsContext) {
+    super(fsContext);
   }
 
   @Override

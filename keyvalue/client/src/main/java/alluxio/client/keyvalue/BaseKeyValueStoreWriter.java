@@ -42,7 +42,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 class BaseKeyValueStoreWriter implements KeyValueStoreWriter {
   private static final Logger LOG = LoggerFactory.getLogger(BaseKeyValueStoreWriter.class);
 
-  private final FileSystem mFileSystem = FileSystem.Factory.get();
+  private final FileSystem mFileSystem;
   private final KeyValueMasterClient mMasterClient;
   private final AlluxioURI mStoreUri;
 
@@ -70,6 +70,7 @@ class BaseKeyValueStoreWriter implements KeyValueStoreWriter {
   BaseKeyValueStoreWriter(AlluxioURI uri, AlluxioConfiguration conf) throws IOException {
     LOG.info("Create KeyValueStoreWriter for {}", uri);
     mConf = conf;
+    mFileSystem = FileSystem.Factory.get(mConf);
     mMasterClient = new KeyValueMasterClient(MasterClientConfig.defaults(conf), conf);
 
     mStoreUri = Preconditions.checkNotNull(uri, "uri");

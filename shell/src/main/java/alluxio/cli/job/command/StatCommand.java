@@ -14,6 +14,7 @@ package alluxio.cli.job.command;
 import alluxio.cli.CommandUtils;
 import alluxio.cli.fs.command.AbstractFileSystemCommand;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemContext;
 import alluxio.client.job.JobContext;
 import alluxio.client.job.JobMasterClient;
 import alluxio.conf.AlluxioConfiguration;
@@ -50,10 +51,10 @@ public final class StatCommand extends AbstractFileSystemCommand {
   /**
    * Creates the job stat command.
    *
-   * @param fs the Alluxio filesystem client
+   * @param fsContext the Alluxio filesystem client
    */
-  public StatCommand(FileSystem fs, AlluxioConfiguration alluxioConf) {
-    super(fs, alluxioConf);
+  public StatCommand(FileSystemContext fsContext) {
+    super(fsContext);
   }
 
   @Override
@@ -70,7 +71,8 @@ public final class StatCommand extends AbstractFileSystemCommand {
   public int run(CommandLine cl) throws AlluxioException, IOException {
     long id = Long.parseLong(cl.getArgs()[0]);
     try (CloseableResource<JobMasterClient> client =
-        JobContext.create(mConfiguration).acquireMasterClientResource()) {
+        JobContext.create(mFsContext.getClientContext().getConf())
+            .acquireMasterClientResource()) {
       JobInfo info = client.get().getStatus(id);
       System.out.print(formatOutput(cl, info));
     } catch (Exception e) {

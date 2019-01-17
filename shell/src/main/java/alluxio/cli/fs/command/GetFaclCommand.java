@@ -13,18 +13,15 @@ package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
 import alluxio.cli.CommandUtils;
-import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
-import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
-
 import org.apache.commons.cli.CommandLine;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.io.IOException;
 import java.util.List;
-
-import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Displays ACL info of a path.
@@ -34,8 +31,8 @@ public final class GetFaclCommand extends AbstractFileSystemCommand {
   /**
    * @param fs the filesystem of Alluxio
    */
-  public GetFaclCommand(FileSystem fs, AlluxioConfiguration conf) {
-    super(fs, conf);
+  public GetFaclCommand(FileSystemContext fsContext) {
+    super(fsContext);
   }
 
   @Override

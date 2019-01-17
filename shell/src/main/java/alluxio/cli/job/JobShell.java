@@ -11,7 +11,9 @@
 
 package alluxio.cli.job;
 
+import alluxio.ClientContext;
 import alluxio.Constants;
+import alluxio.client.file.FileSystemContext;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
@@ -80,6 +82,6 @@ public final class JobShell extends AbstractShell {
   @Override
   protected Map<String, Command> loadCommands() {
     return CommandUtils.loadCommands(JobShell.class.getPackage().getName(),
-        new Class[] {FileSystem.class}, new Object[] {FileSystem.Factory.get()});
+        new Class[] {FileSystemContext.class}, new Object[] {FileSystemContext.create(null, mConfiguration)});
   }
 }

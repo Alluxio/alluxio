@@ -14,18 +14,15 @@ package alluxio.cli.fs.command;
 import alluxio.AlluxioURI;
 import alluxio.cli.CommandUtils;
 import alluxio.client.block.AlluxioBlockStore;
-import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
-import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.wire.BlockLocation;
-
 import org.apache.commons.cli.CommandLine;
 
-import java.io.IOException;
-
 import javax.annotation.concurrent.ThreadSafe;
+import java.io.IOException;
 
 /**
  * Displays a list of hosts that have the file specified in args stored.
@@ -36,10 +33,10 @@ public final class LocationCommand extends AbstractFileSystemCommand {
    * Constructs a new instance to display a list of hosts that have the file specified in args
    * stored.
    *
-   * @param fs the filesystem of Alluxio
+   * @param fsContext the filesystem of Alluxio
    */
-  public LocationCommand(FileSystem fs, AlluxioConfiguration conf) {
-    super(fs, conf);
+  public LocationCommand(FileSystemContext fsContext) {
+    super(fsContext);
   }
 
   @Override
@@ -53,7 +50,8 @@ public final class LocationCommand extends AbstractFileSystemCommand {
     URIStatus status = mFileSystem.getStatus(plainPath);
 
     System.out.println(plainPath + " with file id " + status.getFileId() + " is on nodes: ");
-    AlluxioBlockStore blockStore = AlluxioBlockStore.create(mConfiguration);
+    AlluxioBlockStore blockStore = AlluxioBlockStore.create(mFsContext.getClientContext()
+        .getConf());
     for (long blockId : status.getBlockIds()) {
       for (BlockLocation location : blockStore.getInfo(blockId).getLocations()) {
         System.out.println(location.getWorkerAddress().getHost());

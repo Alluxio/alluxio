@@ -14,25 +14,22 @@ package alluxio.cli.fs.command;
 import alluxio.AlluxioURI;
 import alluxio.cli.CommandUtils;
 import alluxio.client.block.AlluxioBlockStore;
-import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
-import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
-
 import com.google.common.base.Preconditions;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Displays the path's info.
@@ -42,10 +39,10 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class StatCommand extends AbstractFileSystemCommand {
   /**
-   * @param fs the filesystem of Alluxio
+   * @param fsContext the filesystem of Alluxio
    */
-  public StatCommand(FileSystem fs, AlluxioConfiguration conf) {
-    super(fs, conf);
+  public StatCommand(FileSystemContext fsContext) {
+    super(fsContext);
   }
 
   @Override
@@ -77,7 +74,8 @@ public final class StatCommand extends AbstractFileSystemCommand {
       } else {
         System.out.println(path + " is a file path.");
         System.out.println(status);
-        AlluxioBlockStore blockStore = AlluxioBlockStore.create(mConfiguration);
+        AlluxioBlockStore blockStore = AlluxioBlockStore.create(mFsContext.getClientContext()
+            .getConf());
         List<Long> blockIds = status.getBlockIds();
         if (blockIds.isEmpty()) {
           System.out.println("This file does not contain any blocks.");

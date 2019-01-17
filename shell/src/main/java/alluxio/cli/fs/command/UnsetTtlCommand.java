@@ -14,17 +14,14 @@ package alluxio.cli.fs.command;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.cli.CommandUtils;
-import alluxio.client.file.FileSystem;
-import alluxio.conf.AlluxioConfiguration;
+import alluxio.client.file.FileSystemContext;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.TtlAction;
-
 import org.apache.commons.cli.CommandLine;
 
-import java.io.IOException;
-
 import javax.annotation.concurrent.ThreadSafe;
+import java.io.IOException;
 
 /**
  * Unsets the TTL value for the given path.
@@ -33,10 +30,10 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class UnsetTtlCommand extends AbstractFileSystemCommand {
 
   /**
-   * @param fs the filesystem of Alluxio
+   * @param fsContext the filesystem of Alluxio
    */
-  public UnsetTtlCommand(FileSystem fs, AlluxioConfiguration conf) {
-    super(fs, conf);
+  public UnsetTtlCommand(FileSystemContext fsContext) {
+    super(fsContext);
   }
 
   @Override

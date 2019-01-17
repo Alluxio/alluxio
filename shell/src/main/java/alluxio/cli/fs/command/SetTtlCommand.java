@@ -14,20 +14,17 @@ package alluxio.cli.fs.command;
 import alluxio.AlluxioURI;
 import alluxio.cli.CommandUtils;
 import alluxio.cli.fs.FileSystemShellUtils;
-import alluxio.client.file.FileSystem;
-import alluxio.conf.AlluxioConfiguration;
+import alluxio.client.file.FileSystemContext;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
-import alluxio.util.CommonUtils;
 import alluxio.grpc.TtlAction;
-
+import alluxio.util.CommonUtils;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
-import java.io.IOException;
-
 import javax.annotation.concurrent.ThreadSafe;
+import java.io.IOException;
 
 /**
  * Sets a new TTL value for the file at path both of the TTL value and the path are specified by
@@ -52,8 +49,8 @@ public final class SetTtlCommand extends AbstractFileSystemCommand {
   /**
    * @param fs the filesystem of Alluxio
    */
-  public SetTtlCommand(FileSystem fs, AlluxioConfiguration conf) {
-    super(fs, conf);
+  public SetTtlCommand(FileSystemContext fsContext) {
+    super(fsContext);
   }
 
   @Override

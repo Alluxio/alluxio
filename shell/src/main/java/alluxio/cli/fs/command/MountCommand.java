@@ -13,23 +13,20 @@ package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
 import alluxio.cli.fsadmin.report.UfsCommand;
-import alluxio.client.file.FileSystem;
-import alluxio.conf.AlluxioConfiguration;
+import alluxio.client.file.FileSystemContext;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.MountPOptions;
 import alluxio.wire.MountPointInfo;
-
 import com.google.common.collect.Maps;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.io.IOException;
 import java.util.Map;
 import java.util.Properties;
-
-import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Mounts a UFS path onto an Alluxio path.
@@ -65,8 +62,8 @@ public final class MountCommand extends AbstractFileSystemCommand {
   /**
    * @param fs the filesystem of Alluxio
    */
-  public MountCommand(FileSystem fs, AlluxioConfiguration conf) {
-    super(fs, conf);
+  public MountCommand(FileSystemContext fsContext) {
+    super(fsContext);
   }
 
   @Override

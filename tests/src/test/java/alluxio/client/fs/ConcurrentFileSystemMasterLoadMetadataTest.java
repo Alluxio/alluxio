@@ -41,7 +41,7 @@ public final class ConcurrentFileSystemMasterLoadMetadataTest {
 
   @Before
   public void before() {
-    mFileSystem = FileSystem.Factory.get();
+    mFileSystem = FileSystem.Factory.get(ServerConfiguration.global());
   }
 
   @Test

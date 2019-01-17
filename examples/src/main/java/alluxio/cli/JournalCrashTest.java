@@ -267,7 +267,7 @@ public final class JournalCrashTest {
       LOG.info("Round {}: Planning Master Alive Time {}ms.", rounds, aliveTimeMs);
 
       System.out.println("Round " + rounds + " : Launch Clients...");
-      sFileSystem = FileSystem.Factory.get();
+      sFileSystem = FileSystem.Factory.get(sConf);
       try {
         sFileSystem.delete(new AlluxioURI(sTestDir));
       } catch (Exception e) {

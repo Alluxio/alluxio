@@ -231,7 +231,7 @@ public final class KeyValueSystemIntegrationTest extends BaseIntegrationTest {
     final int keyLength = 4; // 4Byte key
     final int valueLength = 500 * Constants.KB; // 500KB value
 
-    FileSystem fs = FileSystem.Factory.get();
+    FileSystem fs = FileSystem.Factory.get(ServerConfiguration.global());
 
     AlluxioURI storeUri = createStoreOfMultiplePartitions(numKeys, null);
 

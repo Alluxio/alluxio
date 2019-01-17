@@ -14,20 +14,19 @@ package alluxio.cli.fs.command;
 import alluxio.AlluxioURI;
 import alluxio.cli.CommandUtils;
 import alluxio.cli.fs.FileSystemShellUtils;
-import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.FileSystemUtils;
 import alluxio.client.file.URIStatus;
-import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.util.ThreadFactoryUtils;
-
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -39,8 +38,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
-
-import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Persists files or directories currently stored only in Alluxio to the UnderFileSystem.
@@ -59,10 +56,10 @@ public final class PersistCommand extends AbstractFileSystemCommand {
           .build();
 
   /**
-   * @param fs the filesystem of Alluxio
+   * @param fsContext the filesystem of Alluxio
    */
-  public PersistCommand(FileSystem fs, AlluxioConfiguration conf) {
-    super(fs, conf);
+  public PersistCommand(FileSystemContext fsContext) {
+    super(fsContext);
   }
 
   @Override
@@ -179,7 +176,7 @@ public final class PersistCommand extends AbstractFileSystemCommand {
       AlluxioURI toPersist = mFilesToPersist.poll();
       while (toPersist != null) {
         try {
-          FileSystemUtils.persistFile(mFileSystem, toPersist);
+          FileSystemUtils.persistFile(mFileSystem, mFsContext, toPersist);
           synchronized (mProgressLock) { // Prevents out of order progress tracking.
             String progress = "(" + mCompletedFiles.incrementAndGet() + "/" + mTotalFiles + ")";
             System.out.println(progress + " Successfully persisted file: " + toPersist);

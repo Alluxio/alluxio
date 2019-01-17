@@ -14,22 +14,19 @@ package alluxio.cli.fs.command;
 import alluxio.cli.Command;
 import alluxio.cli.CommandUtils;
 import alluxio.cli.fs.FileSystemShellUtils;
-import alluxio.client.file.FileSystem;
-import alluxio.conf.AlluxioConfiguration;
+import alluxio.client.file.FileSystemContext;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
-
 import jline.TerminalFactory;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.HelpFormatter;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
-
-import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Command for print help message for the given command. If there isn't given command, print help
@@ -66,8 +63,8 @@ public final class HelpCommand extends AbstractFileSystemCommand {
   /**
    * @param fs the filesystem of Alluxio
    */
-  public HelpCommand(FileSystem fs, AlluxioConfiguration conf) {
-    super(fs, conf);
+  public HelpCommand(FileSystemContext fsContext) {
+    super(fsContext);
   }
 
   @Override
@@ -79,7 +76,7 @@ public final class HelpCommand extends AbstractFileSystemCommand {
   public int run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();
     SortedSet<String> sortedCmds;
-    Map<String, Command> commands = FileSystemShellUtils.loadCommands(mFileSystem, mConfiguration);
+    Map<String, Command> commands = FileSystemShellUtils.loadCommands(mFsContext);
     try (PrintWriter pw = new PrintWriter(System.out)) {
       if (args.length == 0) {
         // print help messages for all supported commands.

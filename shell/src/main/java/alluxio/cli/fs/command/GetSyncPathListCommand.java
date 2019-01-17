@@ -13,12 +13,11 @@ package alluxio.cli.fs.command;
 
 import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemContext;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
-
 import alluxio.wire.SyncPointInfo;
-
 import org.apache.commons.cli.CommandLine;
 
 import java.io.IOException;
@@ -31,10 +30,10 @@ public class GetSyncPathListCommand extends AbstractFileSystemCommand{
   /**
    * Create a GetSyncPathListCommand object.
    *
-   * @param fs file system
+   * @param fsContext file system
    */
-  public GetSyncPathListCommand(FileSystem fs, AlluxioConfiguration alluxioConf) {
-    super(fs, alluxioConf);
+  public GetSyncPathListCommand(FileSystemContext fsContext) {
+    super(fsContext);
   }
 
   @Override

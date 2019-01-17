@@ -75,7 +75,7 @@ public class RenameFailureJournalTest {
 
   @Before
   public void before() throws Exception {
-    mFs = FileSystem.Factory.get();
+    mFs = FileSystem.Factory.get(ServerConfiguration.global());
   }
 
   @Test

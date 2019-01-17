@@ -11,6 +11,7 @@
 
 package alluxio.cli.fsadmin;
 
+import alluxio.ClientContext;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.FileSystemMasterClient;
 import alluxio.conf.AlluxioConfiguration;
@@ -54,7 +55,8 @@ public final class FileSystemAdminShellUtils {
    */
   public static void checkMasterClientService(AlluxioConfiguration conf) throws IOException {
     try (CloseableResource<FileSystemMasterClient> client =
-      FileSystemContext.create().acquireMasterClientResource()) {
+      FileSystemContext.create(ClientContext.create(null, conf.getProperties()))
+          .acquireMasterClientResource()) {
       InetSocketAddress address = client.get().getAddress();
 
       List<InetSocketAddress> addresses = Arrays.asList(address);

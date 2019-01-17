@@ -14,10 +14,10 @@ package alluxio.cli.fs.command;
 import alluxio.AlluxioURI;
 import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemContext;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
-
 import org.apache.commons.cli.CommandLine;
 
 import java.io.IOException;
@@ -30,10 +30,10 @@ public class StopSyncCommand extends AbstractFileSystemCommand {
   /**
    * Create a StopSync Command object.
    *
-   * @param fs the filesystem of Alluxio
+   * @param fsContext the filesystem of Alluxio
    */
-  public StopSyncCommand(FileSystem fs, AlluxioConfiguration alluxioConf) {
-    super(fs, alluxioConf);
+  public StopSyncCommand(FileSystemContext fsContext) {
+    super(fsContext);
   }
 
   @Override

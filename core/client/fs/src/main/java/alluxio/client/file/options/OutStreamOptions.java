@@ -94,7 +94,9 @@ public final class OutStreamOptions {
     if (options.hasFileWriteLocationPolicy()) {
       try {
         mLocationPolicy = (FileWriteLocationPolicy) CommonUtils.createNewClassInstance(
-            Class.forName(options.getFileWriteLocationPolicy()), new Class[] {}, new Object[] {});
+            Class.forName(options.getFileWriteLocationPolicy()),
+            new Class[] {AlluxioConfiguration.class},
+            new Object[] {alluxioConf});
       } catch (Exception e) {
         throw new RuntimeException(e);
       }

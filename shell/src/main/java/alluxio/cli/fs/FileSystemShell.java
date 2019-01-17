@@ -11,7 +11,9 @@
 
 package alluxio.cli.fs;
 
+import alluxio.ClientContext;
 import alluxio.Constants;
+import alluxio.client.file.FileSystemContext;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
@@ -36,6 +38,8 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public final class FileSystemShell extends AbstractShell {
   private static final Logger LOG = LoggerFactory.getLogger(FileSystemShell.class);
+
+  protected final FileSystemContext mFilesystemContext;
 
   private static final Map<String, String[]> CMD_ALIAS = ImmutableMap.<String, String[]>builder()
       .put("lsr", new String[] {"ls", "-R"})
@@ -73,6 +77,7 @@ public final class FileSystemShell extends AbstractShell {
    */
   public FileSystemShell(InstancedConfiguration conf) {
     super(CMD_ALIAS, conf);
+    mFilesystemContext = FileSystemContext.create(null, mConfiguration.getProperties());
   }
 
   @Override
@@ -82,6 +87,6 @@ public final class FileSystemShell extends AbstractShell {
 
   @Override
   protected Map<String, Command> loadCommands() {
-    return FileSystemShellUtils.loadCommands(FileSystem.Factory.get(), mConfiguration);
+    return FileSystemShellUtils.loadCommands(FileSystemContext.create(null, mConfiguration));
   }
 }

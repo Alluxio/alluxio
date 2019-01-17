@@ -122,8 +122,8 @@ public final class FileSystemContext implements Closeable {
   /**
    * @return the instance of file system context with no subject associated
    */
-  public static FileSystemContext create() {
-    return create(null, new InstancedConfiguration(ConfigurationUtils.defaults()));
+  public static FileSystemContext create(AlluxioConfiguration alluxioConf) {
+    return create(null, alluxioConf);
   }
 
   /**

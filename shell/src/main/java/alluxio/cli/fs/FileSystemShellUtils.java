@@ -12,6 +12,7 @@
 package alluxio.cli.fs;
 
 import alluxio.AlluxioURI;
+import alluxio.client.file.FileSystemContext;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
@@ -217,14 +218,12 @@ public final class FileSystemShellUtils {
    * Gets all {@link Command} instances in the same package as {@link FileSystemShell} and load them
    * into a map. Provides a way to gain these commands information by their CommandName.
    *
-   * @param fileSystem the {@link FileSystem} instance to construct the command
+   * @param fsContext the {@link FileSystemContext} instance to construct the command
    * @return a mapping from command name to command instance
    */
-  public static Map<String, Command> loadCommands(FileSystem fileSystem,
-      AlluxioConfiguration alluxioConf) {
+  public static Map<String, Command> loadCommands(FileSystemContext fsContext) {
     return CommandUtils.loadCommands(FileSystemShell.class.getPackage().getName(),
-        new Class[] {FileSystem.class, AlluxioConfiguration.class}, new Object[] {fileSystem,
-            alluxioConf});
+        new Class[] {FileSystemContext.class}, new Object[] {fsContext});
   }
 
   /**

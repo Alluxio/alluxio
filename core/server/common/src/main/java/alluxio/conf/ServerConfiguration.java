@@ -85,6 +85,10 @@ public final class ServerConfiguration {
     return new AlluxioProperties(CONF.getProperties());
   }
 
+  public static AlluxioProperties getProperties() {
+    return CONF.getProperties();
+  }
+
   /**
    * Merges the current configuration properties with new properties. If a property exists
    * both in the new and current configuration, the one from the new configuration wins if
