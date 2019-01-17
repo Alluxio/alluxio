@@ -1891,7 +1891,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey WORKER_NETWORK_FLOWCONTROL_WINDOW =
       new Builder(Name.WORKER_NETWORK_FLOWCONTROL_WINDOW)
-          .setDefaultValue("1MB")
+          .setDefaultValue("2MB")
           .setDescription("The HTTP2 flow control window used by worker gRPC connections. Larger "
               + "value will allow more data to be buffered but will use more memory.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -2708,7 +2708,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey USER_NETWORK_FLOWCONTROL_WINDOW =
       new Builder(Name.USER_NETWORK_FLOWCONTROL_WINDOW)
-          .setDefaultValue("1MB")
+          .setDefaultValue("2MB")
           .setDescription("The HTTP2 flow control window used by user gRPC connections. Larger "
               + "value will allow more data to be buffered but will use more memory.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -2764,7 +2764,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey USER_NETWORK_READER_CHUNK_SIZE_BYTES =
       new Builder(Name.USER_NETWORK_READER_CHUNK_SIZE_BYTES)
-          .setDefaultValue("64KB")
+          .setDefaultValue("1MB")
           .setDescription("When a client reads from a remote worker, the maximum chunk size.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
@@ -2780,7 +2780,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey USER_NETWORK_WRITER_CHUNK_SIZE_BYTES =
       new Builder(Name.USER_NETWORK_WRITER_CHUNK_SIZE_BYTES)
-          .setDefaultValue("64KB")
+          .setDefaultValue("1MB")
           .setDescription("When a client writes to a remote worker, the maximum chunk size.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
