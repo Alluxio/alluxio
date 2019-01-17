@@ -74,22 +74,22 @@ public class InodeLockManager {
 
   @VisibleForTesting
   boolean inodeReadLockedByCurrentThread(long inodeId) {
-    return mInodeLocks.get(inodeId).getReadHoldCount() > 0;
+    return mInodeLocks.get(inodeId).get().getReadHoldCount() > 0;
   }
 
   @VisibleForTesting
   boolean inodeWriteLockedByCurrentThread(long inodeId) {
-    return mInodeLocks.get(inodeId).getWriteHoldCount() > 0;
+    return mInodeLocks.get(inodeId).get().getWriteHoldCount() > 0;
   }
 
   @VisibleForTesting
   boolean edgeReadLockedByCurrentThread(Edge edge) {
-    return mEdgeLocks.get(edge).getReadHoldCount() > 0;
+    return mEdgeLocks.get(edge).get().getReadHoldCount() > 0;
   }
 
   @VisibleForTesting
   boolean edgeWriteLockedByCurrentThread(Edge edge) {
-    return mEdgeLocks.get(edge).getWriteHoldCount() > 0;
+    return mEdgeLocks.get(edge).get().getWriteHoldCount() > 0;
   }
 
   /**
@@ -100,7 +100,7 @@ public class InodeLockManager {
    * @return a lock resource which must be closed to release the lock
    */
   public LockResource lockInode(InodeView inode, LockMode mode) {
-    return lock(mInodeLocks.get(inode.getId()), mode);
+    return lock(mInodeLocks.get(inode.getId()).get(), mode);
   }
 
   /**
@@ -111,7 +111,7 @@ public class InodeLockManager {
    * @return a lock resource which must be closed to release the lock
    */
   public LockResource lockEdge(Edge edge, LockMode mode) {
-    return lock(mEdgeLocks.get(edge), mode);
+    return lock(mEdgeLocks.get(edge).get(), mode);
   }
 
   /**

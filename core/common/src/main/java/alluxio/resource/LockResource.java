@@ -12,6 +12,7 @@
 package alluxio.resource;
 
 import java.io.Closeable;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Lock;
 
 /**
@@ -26,6 +27,7 @@ import java.util.concurrent.locks.Lock;
 // extends Closeable instead of AutoCloseable to enable usage with Guava's Closer.
 public class LockResource implements Closeable {
   private final Lock mLock;
+  private final AtomicInteger mRefCount;
 
   /**
    * Creates a new instance of {@link LockResource} using the given lock.
@@ -35,13 +37,23 @@ public class LockResource implements Closeable {
   public LockResource(Lock lock) {
     mLock = lock;
     mLock.lock();
+    mRefCount = null;
+  }
+
+  public LockResource(Lock lock, AtomicInteger refCount) {
+    mLock = lock;
+    mLock.lock();
+    mRefCount = refCount;
   }
 
   /**
-   * Releases the lock.
+   * Releases the lock and decrement the ref count if a ref counter was provided in the
    */
   @Override
   public void close() {
     mLock.unlock();
+    if (mRefCount != null) {
+      mRefCount.decrementAndGet();
+    }
   }
 }

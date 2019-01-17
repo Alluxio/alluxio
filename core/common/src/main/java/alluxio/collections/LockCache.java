@@ -11,131 +11,139 @@
 
 package alluxio.collections;
 
-import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
-import java.lang.ref.WeakReference;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Function;
 
 public class LockCache<K, V> {
-  static class ValNode<V> {
-    private WeakReference<V> mValue;
-    private V mAccessed;
+  public class ValNode<V> {
+    private V mValue;
+    private boolean mIsAccessed;
+    private AtomicInteger mRefCount;
+    private boolean mIsNew;
 
-    private ValNode(V val) {
-      mValue = new WeakReference<>(val);
-      mAccessed = val;
+    private ValNode(V value) {
+      mValue = value;
+      mIsAccessed = false;
+      mRefCount = new AtomicInteger(0);
+      mIsNew = true;
     }
 
-    public void setAccessed(boolean accessed) {
-      if (accessed) {
-        mAccessed = mValue.get();
-      } else {
-        mAccessed = null;
-      }
+    public AtomicInteger getRefCounter() {
+      return mRefCount;
     }
 
-    public boolean getAccessed() { return mAccessed != null; }
-
-    public final boolean equals(Object o) {
-      if (this == o) {
-        return true;
-      }
-      if (!(o instanceof ValNode)) {
-        return false;
-      }
-      ValNode<V> that = (ValNode) o;
-      return Objects.equal(mValue, that.mValue);
-
+    public V get() {
+      return mValue;
     }
   }
+
   private static final Logger LOG = LoggerFactory.getLogger(LockCache.class);
   private final static float DEFAULT_LOAD_FACTOR = 0.75f;
-  public static final float HIGH_WATERMARK_RATIO = 0.9f;
+  static final float SOFT_LIMIT_RATIO = 0.9f;
 
   private final Map<K, ValNode<V>> mCache;
   private final int mConcurrencyLevel;
   private final int mInitSize;
   /* A suggested maximum size for the cache */
-  private final int mMaxSize;
-  private final int mHighWatermark;
+  private final int mHardLimit;
+  private final int mSoftLimit;
   private final Function<? super K, ? extends V> mDefaultLoader;
   private Iterator<Map.Entry<K, ValNode<V>>> mIterator;
-  private final AtomicBoolean mEvictor;
+  private final Lock mEvictLock;
 
   public LockCache(@Nullable Function<? super K, ? extends V> defaultLoader, int initialSize,
       int maxSize, int concurrencyLevel) {
     mDefaultLoader = defaultLoader;
     mConcurrencyLevel = concurrencyLevel;
     mInitSize = initialSize;
-    mMaxSize = maxSize;
-    mHighWatermark = (int) Math.round(HIGH_WATERMARK_RATIO * maxSize);
+    mHardLimit = maxSize;
+    mSoftLimit = (int) Math.round(SOFT_LIMIT_RATIO * maxSize);
     mCache = new ConcurrentHashMap<>(mInitSize, DEFAULT_LOAD_FACTOR, concurrencyLevel);
-    mIterator =  mCache.entrySet().iterator();
-    mEvictor = new AtomicBoolean(false);
+    mIterator = mCache.entrySet().iterator();
+    mEvictLock = new ReentrantLock();
   }
 
-  private void evictIfFull() {
-    long numToEvict = mCache.size() - mHighWatermark;
+  private void evictIfOverLimit() {
+    long numToEvict = mCache.size() - mSoftLimit;
 
-    if (numToEvict < 0) {
+    if (numToEvict <= 0) {
       return;
     }
     // this will block if every lock has a reference on them.
-    if (mEvictor.compareAndSet(false, true)) {
-      // This thread is the evictor
-      while (numToEvict > 0) {
-        if (!mIterator.hasNext()) {
-          mIterator = mCache.entrySet().iterator();
-        }
-        Map.Entry<K, ValNode<V>> candidate = mIterator.next();
-
-        if (candidate.getValue().getAccessed()) {
-          candidate.getValue().setAccessed(false);
-        } else {
-          if (candidate.getValue().mValue.get() == null) {
-            mIterator.remove();
-            numToEvict--;
+    if (mEvictLock.tryLock()) {
+      try {
+        // This thread is the evictor
+        while (numToEvict > 0) {
+          if (!mIterator.hasNext()) {
+            mIterator = mCache.entrySet().iterator();
+          }
+          Map.Entry<K, ValNode<V>> candidateMapEntry = mIterator.next();
+          ValNode<V> candidate = candidateMapEntry.getValue();
+          if (candidate.mIsAccessed) {
+            candidate.mIsAccessed = false;
+          } else {
+            if ((!candidate.mIsNew) && candidate.mRefCount.compareAndSet(0, Integer.MIN_VALUE)) {
+              // the value object can be evicted, at the same time we make refCount minValue
+              mIterator.remove();
+              numToEvict--;
+            }
           }
         }
+
+      } finally {
+        mEvictLock.unlock();
       }
-      mEvictor.set(false);
     }
   }
 
-  public V get(final K key) {
+  public ValNode<V> get(final K key) {
     Preconditions.checkNotNull(key, "key can not be null");
-    ValNode<V> value = null;
-    V val = null;
-    while (value == null) {
-      value = mCache.computeIfAbsent(
-          key, (k) -> {
-            if (mCache.size() < mMaxSize) {
-              return new ValNode<>(mDefaultLoader.apply(k));
-            } else {
-              return null;
-            }
-          });
-      val = value.mValue.get();
-      evictIfFull();
+    ValNode<V> oldCacheEntry = null;
+    ValNode<V> cacheEntry;
+    while (true) {
+      // repeat until we get a cacheEntry that is not in the process of being removed.
+      cacheEntry = mCache.computeIfAbsent(key, k -> {
+        if (mCache.size() >= mHardLimit) {
+          return null;
+        } else {
+          return new ValNode<>(mDefaultLoader.apply(k));
+        }
+      });
+
+      if (cacheEntry == null) {
+        // cache is at hard limit
+        try {
+          Thread.sleep(100);
+          evictIfOverLimit();
+        } catch (InterruptedException e) {
+          Thread.currentThread().interrupt();
+        }
+        continue;
+      }
+
+      if ((oldCacheEntry != cacheEntry)
+          && cacheEntry.mRefCount.incrementAndGet() > 0) {
+        // refCount went negative, we are evicting this entry
+        cacheEntry.mIsNew = false;
+        evictIfOverLimit();
+        return cacheEntry;
+      } else {
+        oldCacheEntry = cacheEntry;
+        evictIfOverLimit();
+        // TODO: sleep here to prevent overloading the cache
+      }
     }
-    if (val == null) {
-      // the old value has been garbage collected
-      V newVal = mDefaultLoader.apply(key);
-      value.mValue = new WeakReference<>(newVal);
-      value.setAccessed(true);
-      return newVal;
-    } else {
-      value.setAccessed(true);
-      return val;
-    }
+
   }
 
   public boolean contains(final K key) {
