@@ -48,9 +48,10 @@ public abstract class AbstractShell implements Closeable {
    * @param commandAlias replacements for commands
    */
   public AbstractShell(Map<String, String[]> commandAlias, InstancedConfiguration conf) {
-    mCommands = loadCommands();
+    mConfiguration = conf; // This needs to go first in case loadCommands() uses the reference to
+    // the configuration
     mCommandAlias = commandAlias;
-    mConfiguration = conf;
+    mCommands = loadCommands();
   }
 
   /**

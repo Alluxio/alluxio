@@ -130,14 +130,14 @@ public final class FileSystemUtils {
    * @param fs {@link FileSystem} to carry out Alluxio operations
    * @param uri the uri of the file to persist
    */
-  public static void persistFile(final FileSystem fs, final AlluxioURI uri)
+  public static void persistFile(final FileSystem fs, final FileSystemContext fsContext,
+      final AlluxioURI uri)
       throws IOException, TimeoutException, InterruptedException {
-    FileSystemContext context = FileSystemContext.create();
-    FileSystemMasterClient client = context.acquireMasterClient();
+    FileSystemMasterClient client = fsContext.acquireMasterClient();
     try {
       client.scheduleAsyncPersist(uri);
     } finally {
-      context.releaseMasterClient(client);
+      fsContext.releaseMasterClient(client);
     }
     CommonUtils.waitFor(String.format("%s to be persisted", uri) , () -> {
       try {
@@ -158,14 +158,13 @@ public final class FileSystemUtils {
    * @param options method options
    * @return a list of inconsistent files and directories
    */
-  public static List<AlluxioURI> checkConsistency(AlluxioURI path,
+  public static List<AlluxioURI> checkConsistency(FileSystemContext fsContext, AlluxioURI path,
       CheckConsistencyPOptions options) throws IOException {
-    FileSystemContext context = FileSystemContext.create();
-    FileSystemMasterClient client = context.acquireMasterClient();
+    FileSystemMasterClient client = fsContext.acquireMasterClient();
     try {
       return client.checkConsistency(path, options);
     } finally {
-      context.releaseMasterClient(client);
+      fsContext.releaseMasterClient(client);
     }
   }
 }

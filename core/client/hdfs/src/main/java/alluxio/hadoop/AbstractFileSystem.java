@@ -510,7 +510,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
       if (sInitialized) {
         if (!connectDetailsMatch(uriConfProperties, conf)) {
           LOG.warn(ExceptionMessage.DIFFERENT_CONNECTION_DETAILS.getMessage(
-              FileSystemContext.create().getMasterInquireClient().getConnectDetails()));
+              mFsContext.getMasterInquireClient().getConnectDetails()));
           initializeInternal(uriConfProperties, conf);
         }
       } else {
@@ -556,7 +556,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     // This must be reset to pick up the change to the master address.
     LOG.info("Initializing filesystem context with connect details {}",
         Factory.getConnectDetails(mFsContext.getClientContext().getConf()));
-    FileSystemContext.create().reset();
+    mFsContext.reset();
   }
 
   /**

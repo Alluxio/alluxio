@@ -179,6 +179,8 @@ public final class LocalAlluxioJobCluster {
    * Sets hostname.
    */
   private void setHostname() {
-    mHostname = NetworkAddressUtils.getLocalHostName(100);
+    mHostname =
+        NetworkAddressUtils.getLocalHostName(
+            (int)ServerConfiguration.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS));
   }
 }

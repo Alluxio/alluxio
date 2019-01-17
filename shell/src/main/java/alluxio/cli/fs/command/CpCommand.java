@@ -12,25 +12,23 @@
 package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
-import alluxio.conf.AlluxioConfiguration;
 import alluxio.Constants;
-import alluxio.conf.PropertyKey;
 import alluxio.cli.CommandUtils;
+import alluxio.cli.fs.FileSystemShellUtils;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
-import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
-import alluxio.cli.fs.FileSystemShellUtils;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.util.io.PathUtils;
-
 import com.google.common.base.Joiner;
 import com.google.common.io.Closer;
 import org.apache.commons.cli.CommandLine;
@@ -39,6 +37,7 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.RandomStringUtils;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -47,8 +46,6 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.List;
-
-import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Copies a file or a directory in the Alluxio filesystem.
@@ -64,10 +61,10 @@ public final class CpCommand extends AbstractFileSystemCommand {
           .build();
 
   /**
-   * @param fs the filesystem of Alluxio
+   * @param fsContext the filesystem of Alluxio
    */
-  public CpCommand(FileSystem fs, AlluxioConfiguration conf) {
-    super(fs, conf);
+  public CpCommand(FileSystemContext fsContext) {
+    super(fsContext);
   }
 
   @Override
@@ -403,7 +400,8 @@ public final class CpCommand extends AbstractFileSystemCommand {
       try (Closer closer = Closer.create()) {
         CreateFilePOptions createOptions = CreateFilePOptions.newBuilder()
             .setFileWriteLocationPolicy(
-                mConfiguration.get(PropertyKey.USER_FILE_COPY_FROM_LOCAL_WRITE_LOCATION_POLICY))
+                mFsContext.getClientContext().getConf()
+                    .get(PropertyKey.USER_FILE_COPY_FROM_LOCAL_WRITE_LOCATION_POLICY))
             .build();
         os = closer.register(mFileSystem.createFile(dstPath, createOptions));
         FileInputStream in = closer.register(new FileInputStream(src));

@@ -12,10 +12,8 @@
 package alluxio.cli.fs.command;
 
 import alluxio.cli.CommandUtils;
-import alluxio.client.file.FileSystem;
-import alluxio.conf.AlluxioConfiguration;
+import alluxio.client.file.FileSystemContext;
 import alluxio.exception.status.InvalidArgumentException;
-
 import org.apache.commons.cli.CommandLine;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -31,8 +29,8 @@ public final class FileInfoCommand extends AbstractFileSystemCommand {
   /**
    * @param fs the filesystem of Alluxio
    */
-  public FileInfoCommand(FileSystem fs, AlluxioConfiguration conf) {
-    super(fs, conf);
+  public FileInfoCommand(FileSystemContext fsContext) {
+    super(fsContext);
   }
 
   @Override

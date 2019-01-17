@@ -15,6 +15,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.AlluxioURI;
+import alluxio.ClientContext;
 import alluxio.ConfigurationTestUtils;
 import alluxio.cli.fs.FileSystemShell;
 import alluxio.client.file.FileSystem;
@@ -60,7 +61,7 @@ public final class JobServiceFaultToleranceShellTest extends BaseIntegrationTest
 
   @Test
   public void distributedMv() throws Exception {
-    FileSystem fs = FileSystem.Factory.get();
+    FileSystem fs = FileSystem.Factory.get(ServerConfiguration.global());
     try (OutputStream out = fs.createFile(new AlluxioURI("/test"))) {
       out.write("Hello".getBytes());
     }

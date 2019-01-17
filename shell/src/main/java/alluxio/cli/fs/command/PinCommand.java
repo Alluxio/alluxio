@@ -13,16 +13,13 @@ package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
 import alluxio.cli.CommandUtils;
-import alluxio.client.file.FileSystem;
-import alluxio.conf.AlluxioConfiguration;
+import alluxio.client.file.FileSystemContext;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
-
 import org.apache.commons.cli.CommandLine;
 
-import java.io.IOException;
-
 import javax.annotation.concurrent.ThreadSafe;
+import java.io.IOException;
 
 /**
  * Pins the given file or folder (recursively pinning all children if a folder). Pinned files are
@@ -34,8 +31,8 @@ public final class PinCommand extends AbstractFileSystemCommand {
   /**
    * @param fs the filesystem of Alluxio
    */
-  public PinCommand(FileSystem fs, AlluxioConfiguration conf) {
-    super(fs, conf);
+  public PinCommand(FileSystemContext fsContext) {
+    super(fsContext);
   }
 
   @Override

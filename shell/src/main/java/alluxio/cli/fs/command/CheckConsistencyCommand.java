@@ -13,15 +13,13 @@ package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
 import alluxio.cli.CommandUtils;
-import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.FileSystemUtils;
 import alluxio.client.file.URIStatus;
-import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.CheckConsistencyPOptions;
 import alluxio.grpc.DeletePOptions;
-
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
@@ -44,10 +42,10 @@ public class CheckConsistencyCommand extends AbstractFileSystemCommand {
           .build();
 
   /**
-   * @param fs the filesystem of Alluxio
+   * @param fsContext the filesystem of Alluxio
    */
-  public CheckConsistencyCommand(FileSystem fs, AlluxioConfiguration conf) {
-    super(fs, conf);
+  public CheckConsistencyCommand(FileSystemContext fsContext) {
+    super(fsContext);
   }
 
   @Override
@@ -92,7 +90,8 @@ public class CheckConsistencyCommand extends AbstractFileSystemCommand {
   private void checkConsistency(AlluxioURI path, boolean repairConsistency) throws
   AlluxioException, IOException {
     List<AlluxioURI> inconsistentUris =
-        FileSystemUtils.checkConsistency(path, CheckConsistencyPOptions.getDefaultInstance());
+        FileSystemUtils.checkConsistency(mFsContext, path,
+            CheckConsistencyPOptions.getDefaultInstance());
     if (inconsistentUris.isEmpty()) {
       System.out.println(path + " is consistent with the under storage system.");
       return;

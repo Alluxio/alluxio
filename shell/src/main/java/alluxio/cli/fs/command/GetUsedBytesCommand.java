@@ -14,14 +14,12 @@ package alluxio.cli.fs.command;
 import alluxio.cli.CommandUtils;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.file.FileSystem;
-import alluxio.conf.AlluxioConfiguration;
+import alluxio.client.file.FileSystemContext;
 import alluxio.exception.status.InvalidArgumentException;
-
 import org.apache.commons.cli.CommandLine;
 
-import java.io.IOException;
-
 import javax.annotation.concurrent.ThreadSafe;
+import java.io.IOException;
 
 /**
  * Gets number of bytes used in the {@link FileSystem}.
@@ -31,10 +29,10 @@ public final class GetUsedBytesCommand extends AbstractFileSystemCommand {
   /**
    * Constructs a new instance to create the number of bytes used in the {@link FileSystem}.
    *
-   * @param fs the filesystem of Alluxio
+   * @param fsContext the filesystem of Alluxio
    */
-  public GetUsedBytesCommand(FileSystem fs, AlluxioConfiguration conf) {
-    super(fs, conf);
+  public GetUsedBytesCommand(FileSystemContext fsContext) {
+    super(fsContext);
   }
 
   @Override
@@ -49,7 +47,7 @@ public final class GetUsedBytesCommand extends AbstractFileSystemCommand {
 
   @Override
   public int run(CommandLine cl) throws IOException {
-    AlluxioBlockStore blockStore = AlluxioBlockStore.create(mConfiguration);
+    AlluxioBlockStore blockStore = AlluxioBlockStore.create(mFsContext.getClientContext().getConf());
     long usedBytes = blockStore.getUsedBytes();
     System.out.println("Used Bytes: " + usedBytes);
     return 0;

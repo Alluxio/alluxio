@@ -13,21 +13,18 @@ package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
 import alluxio.cli.CommandUtils;
-import alluxio.client.file.FileSystem;
-import alluxio.conf.AlluxioConfiguration;
+import alluxio.client.file.FileSystemContext;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.SetAttributePOptions;
-
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.io.IOException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Changes the owner of a file or directory specified by args.
@@ -48,10 +45,10 @@ public final class ChownCommand extends AbstractFileSystemCommand {
   /**
    * Creates a new instance of {@link ChownCommand}.
    *
-   * @param fs an Alluxio file system handle
+   * @param fsContext an Alluxio file system handle
    */
-  public ChownCommand(FileSystem fs, AlluxioConfiguration conf) {
-    super(fs, conf);
+  public ChownCommand(FileSystemContext fsContext) {
+    super(fsContext);
   }
 
   @Override

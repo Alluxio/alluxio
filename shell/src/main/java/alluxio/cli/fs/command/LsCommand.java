@@ -13,9 +13,8 @@ package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
 import alluxio.cli.CommandUtils;
-import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
-import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
@@ -25,20 +24,18 @@ import alluxio.grpc.LoadMetadataPType;
 import alluxio.util.CommonUtils;
 import alluxio.util.FormatUtils;
 import alluxio.util.SecurityUtils;
-
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.io.IOException;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.HashMap;
-import java.util.Comparator;
 import java.util.Optional;
 import java.util.stream.Collectors;
-
-import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Displays information for the path specified in args. Depends on different options, this command
@@ -175,13 +172,14 @@ public final class LsCommand extends AbstractFileSystemCommand {
     boolean hasExtended = status.getAcl().hasExtended()
         || !status.getDefaultAcl().isEmpty();
 
-    System.out.print(formatLsString(hSize, SecurityUtils.isSecurityEnabled(mConfiguration),
+    System.out.print(formatLsString(hSize,
+        SecurityUtils.isSecurityEnabled(mFsContext.getClientContext().getConf()),
         status.isFolder(),
         FormatUtils.formatMode((short) status.getMode(), status.isFolder(), hasExtended),
         status.getOwner(), status.getGroup(), status.getLength(),
         status.getLastModificationTimeMs(), status.getInAlluxioPercentage(),
         status.getPersistenceState(), status.getPath(),
-        mConfiguration.get(PropertyKey.USER_DATE_FORMAT_PATTERN)));
+        mFsContext.getClientContext().getConf().get(PropertyKey.USER_DATE_FORMAT_PATTERN)));
   }
 
   /**
@@ -190,8 +188,8 @@ public final class LsCommand extends AbstractFileSystemCommand {
    *
    * @param fs the filesystem of Alluxio
    */
-  public LsCommand(FileSystem fs, AlluxioConfiguration conf) {
-    super(fs, conf);
+  public LsCommand(FileSystemContext fsContext) {
+    super(fsContext);
   }
 
   @Override

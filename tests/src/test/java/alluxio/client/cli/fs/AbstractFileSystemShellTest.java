@@ -60,12 +60,12 @@ public abstract class AbstractFileSystemShellTest extends AbstractShellIntegrati
   @Before
   public final void before() throws Exception {
     mLocalAlluxioCluster = mLocalAlluxioClusterResource.get();
-    mFileSystem = mLocalAlluxioCluster.getClient();
-    mFsShell = new FileSystemShell(ServerConfiguration.global());
     mLocalAlluxioJobCluster = new alluxio.master.LocalAlluxioJobCluster();
     mLocalAlluxioJobCluster.start();
+    mFileSystem = mLocalAlluxioCluster.getClient();
     mJobMaster = mLocalAlluxioJobCluster.getMaster().getJobMaster();
     mJobShell = new alluxio.cli.job.JobShell(ServerConfiguration.global());
+    mFsShell = new FileSystemShell(ServerConfiguration.global());
   }
 
   @After

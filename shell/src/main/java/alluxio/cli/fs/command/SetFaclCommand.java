@@ -13,26 +13,23 @@ package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
 import alluxio.cli.CommandUtils;
-import alluxio.client.file.FileSystem;
-import alluxio.conf.AlluxioConfiguration;
+import alluxio.client.file.FileSystemContext;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
+import alluxio.grpc.SetAclAction;
 import alluxio.grpc.SetAclPOptions;
 import alluxio.security.authorization.AclEntry;
-import alluxio.grpc.SetAclAction;
-
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Displays ACL info of a path.
@@ -79,10 +76,10 @@ public final class SetFaclCommand extends AbstractFileSystemCommand {
       .build();
 
   /**
-   * @param fs the filesystem of Alluxio
+   * @param fsContext the filesystem of Alluxio
    */
-  public SetFaclCommand(FileSystem fs, AlluxioConfiguration conf) {
-    super(fs, conf);
+  public SetFaclCommand(FileSystemContext fsContext) {
+    super(fsContext);
   }
 
   @Override

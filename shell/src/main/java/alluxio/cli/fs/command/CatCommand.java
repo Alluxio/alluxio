@@ -15,20 +15,17 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileInStream;
-import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
-import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.OpenFilePOptions;
-
 import org.apache.commons.cli.CommandLine;
 
-import java.io.IOException;
-
 import javax.annotation.concurrent.ThreadSafe;
+import java.io.IOException;
 
 /**
  * Prints the file's contents to the console.
@@ -36,10 +33,10 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class CatCommand extends AbstractFileSystemCommand {
   /**
-   * @param fs the filesystem of Alluxio
+   * @param fsContext the filesystem of Alluxio
    */
-  public CatCommand(FileSystem fs, AlluxioConfiguration conf) {
-    super(fs, conf);
+  public CatCommand(FileSystemContext fsContext) {
+    super(fsContext);
   }
 
   @Override

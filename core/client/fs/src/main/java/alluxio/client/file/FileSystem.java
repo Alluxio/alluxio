@@ -70,8 +70,8 @@ public interface FileSystem {
 
     private Factory() {} // prevent instantiation
 
-    public static FileSystem get() {
-      return get(ClientContext.create());
+    public static FileSystem get(AlluxioConfiguration alluxioConf) {
+      return get(FileSystemContext.create(null, alluxioConf));
     }
 
     public static FileSystem get(FileSystemContext context) {

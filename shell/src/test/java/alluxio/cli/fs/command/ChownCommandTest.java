@@ -46,7 +46,7 @@ public class ChownCommandTest {
 
   @Test
   public void chownPanicIllegalOwnerName() throws AlluxioException, IOException {
-    ChownCommand command = new ChownCommand(null, sConf);
+    ChownCommand command = new ChownCommand(null);
 
     String expectedOutput =
         String.format("Failed to parse user.1:group1 as user or user:group%n");
@@ -66,7 +66,7 @@ public class ChownCommandTest {
 
   @Test
   public void chownPanicIllegalGroupName() throws AlluxioException, IOException {
-    ChownCommand command = new ChownCommand(null, sConf);
+    ChownCommand command = new ChownCommand(null);
 
     String expectedOutput = String.format("Failed to parse user1:group.1 as user or user:group%n");
     verifyChownCommandReturnValueAndOutput(command, -1, expectedOutput,

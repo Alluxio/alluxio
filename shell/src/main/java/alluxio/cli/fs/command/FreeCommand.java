@@ -12,25 +12,22 @@
 package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
-import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.PropertyKey;
 import alluxio.cli.CommandUtils;
-import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemContext;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.FreePOptions;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
-
 import com.google.common.base.Throwables;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.io.IOException;
 import java.util.concurrent.TimeoutException;
-
-import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Frees the given file or folder from Alluxio storage (recursively freeing all children if a
@@ -51,8 +48,8 @@ public final class FreeCommand extends AbstractFileSystemCommand {
    *
    * @param fs the filesystem of Alluxio
    */
-  public FreeCommand(FileSystem fs, AlluxioConfiguration conf) {
-    super(fs, conf);
+  public FreeCommand(FileSystemContext fsContext) {
+    super(fsContext);
   }
 
   @Override
@@ -69,7 +66,8 @@ public final class FreeCommand extends AbstractFileSystemCommand {
   protected void runPlainPath(AlluxioURI path, CommandLine cl)
       throws AlluxioException, IOException {
     int interval =
-        Math.toIntExact(mConfiguration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS));
+        Math.toIntExact(mFsContext.getClientContext().getConf()
+            .getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS));
     FreePOptions options =
         FreePOptions.newBuilder().setRecursive(true).setForced(cl.hasOption("f")).build();
     mFileSystem.free(path, options);

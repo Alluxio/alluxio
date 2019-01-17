@@ -200,7 +200,7 @@ public final class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
    * @return the {@link UIFileInfo} object of the file
    */
   private UIFileInfo getUiFileInfo(AlluxioURI filePath) throws IOException, AlluxioException {
-    return getUiFileInfo(FileSystem.Factory.get().getStatus(filePath));
+    return getUiFileInfo(FileSystem.Factory.get(ServerConfiguration.global()).getStatus(filePath));
   }
 
   /**

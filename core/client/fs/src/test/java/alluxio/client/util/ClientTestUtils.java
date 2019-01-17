@@ -45,6 +45,6 @@ public final class ClientTestUtils {
 
   private static void resetContexts(InstancedConfiguration conf) throws IOException {
     conf.set(PropertyKey.USER_METRICS_COLLECTION_ENABLED, false);
-    FileSystemContext.create().reset();
+//    FileSystemContext.create().reset();
   }
 }
