@@ -51,7 +51,9 @@ public final class GrpcChannel extends Channel {
    * Shuts down the channel.
    */
   public void shutdown() {
-    GrpcManagedChannelPool.INSTANCE().releaseManagedChannel(mChannelKey);
+    if(!mChannelReleased) {
+      GrpcManagedChannelPool.INSTANCE().releaseManagedChannel(mChannelKey);
+    }
     mChannelReleased = true;
   }
 

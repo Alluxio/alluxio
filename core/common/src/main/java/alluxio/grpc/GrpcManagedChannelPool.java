@@ -18,7 +18,9 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
 import java.net.SocketAddress;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -61,7 +63,7 @@ public class GrpcManagedChannelPool {
   private ReentrantReadWriteLock mLock;
 
   /** Scheduler for destruction of idle channels. */
-  protected final ScheduledExecutorService mScheduler;
+  protected ScheduledExecutorService mScheduler;
 
   /**
    * Creates a new {@link GrpcManagedChannelPool}.
@@ -70,9 +72,31 @@ public class GrpcManagedChannelPool {
     mChannels = new HashMap<>();
     mLock = new ReentrantReadWriteLock(true);
 
-    mScheduler = Executors.newScheduledThreadPool(1,
-            ThreadFactoryUtils.build("grpc-channel-terminator", true));
+    startScheduler();
+  }
 
+  /**
+   * Restarts the pool by restarting the termination scheduler.
+   */
+  public void restart() throws InterruptedException {
+
+    try (LockResource lockExclusive = new LockResource(mLock.writeLock())) {
+      mScheduler.shutdown();
+      // Wait for each channel termination upto configured single channel timeout
+      long singleChannelTimeoutMs =
+          Configuration.getMs(PropertyKey.MASTER_GRPC_CHANNEL_SHUTDOWN_TIMEOUT);
+      long waitTimeMs = mChannels.size() * singleChannelTimeoutMs;
+      mScheduler.awaitTermination(waitTimeMs, TimeUnit.MILLISECONDS);
+      mScheduler.shutdownNow();
+    }
+
+    startScheduler();
+  }
+
+  private void startScheduler() {
+
+    mScheduler = Executors.newScheduledThreadPool(1,
+        ThreadFactoryUtils.build("grpc-channel-terminator", true));
     // Channel termination callback will be fired in the same interval as
     // the channel shutdown timeout.
     long channelTerminationIntervalMs =
@@ -83,33 +107,40 @@ public class GrpcManagedChannelPool {
   }
 
   private synchronized void destroyChannels() {
+    int channelCount = 0;
+    int destroyedCount = 0;
+    List<Pair<ChannelKey, ManagedChannelReference>> channelsToDestroy = new ArrayList<>();
     try (LockResource lockExclusive = new LockResource(mLock.writeLock())) {
-      int iDestroyed = 0;
+      channelCount = mChannels.size();
       for (HashMap.Entry<ChannelKey, ManagedChannelReference> channelEntry : mChannels.entrySet()) {
         ChannelKey channelKey = channelEntry.getKey();
         ManagedChannelReference channelReference = channelEntry.getValue();
         if (channelReference.getRefCount() <= 0) {
-          ManagedChannel channel = channelReference.get();
-          channel.shutdown();
-          try {
-            channel.awaitTermination(
-                Configuration.getMs(PropertyKey.MASTER_GRPC_CHANNEL_SHUTDOWN_TIMEOUT),
-                TimeUnit.MILLISECONDS);
-          } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            // Allow thread to exit.
-          } finally {
-            channel.shutdownNow();
-          }
-          Verify.verify(channel.isShutdown());
           mChannels.remove(channelKey);
-          iDestroyed++;
-          LOG.debug("Destroyed gRPC managed channel for key:{}", channelKey);
+          channelsToDestroy.add(new Pair(channelKey, channelReference));
         }
       }
-      LOG.debug("gRPC channel terminator shut down {} channels. Remaining active channel count: {}",
-          iDestroyed, mChannels.size());
     }
+
+    for (Pair<ChannelKey, ManagedChannelReference> channelPair : channelsToDestroy) {
+      ManagedChannel channel = channelPair.getSecond().get();
+      channel.shutdown();
+      try {
+        channel.awaitTermination(
+            Configuration.getMs(PropertyKey.MASTER_GRPC_CHANNEL_SHUTDOWN_TIMEOUT),
+            TimeUnit.MILLISECONDS);
+      } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+        // Allow thread to exit.
+      } finally {
+        channel.shutdownNow();
+      }
+      Verify.verify(channel.isShutdown());
+      destroyedCount++;
+      LOG.debug("Destroyed gRPC managed channel for key:{}", channelPair.getFirst());
+    }
+    LOG.debug("gRPC channel terminator shut down {} of {} total channels.", destroyedCount,
+        channelCount);
   }
 
   /**
@@ -227,7 +258,7 @@ public class GrpcManagedChannelPool {
    */
   public static class ChannelKey {
     private SocketAddress mAddress;
-    private boolean mPlain = false;
+    private boolean mPlain = true;
     private Optional<Pair<Long, TimeUnit>> mKeepAliveTime = Optional.empty();
     private Optional<Pair<Long, TimeUnit>> mKeepAliveTimeout = Optional.empty();
     private Optional<Integer> mMaxInboundMessageSize = Optional.empty();
