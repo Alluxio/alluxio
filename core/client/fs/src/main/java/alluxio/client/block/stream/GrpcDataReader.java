@@ -71,11 +71,13 @@ public final class GrpcDataReader implements DataReader {
     mPosToRead = readRequest.getOffset();
     mReadRequest = readRequest;
     AlluxioConfiguration alluxioConf = context.getClientContext().getConf();
-    mReaderBufferSizeMessages = alluxioConf.getInt(PropertyKey.USER_NETWORK_READER_BUFFER_SIZE_MESSAGES);
+    mReaderBufferSizeMessages = alluxioConf
+        .getInt(PropertyKey.USER_NETWORK_READER_BUFFER_SIZE_MESSAGES);
     mDataTimeoutMs = alluxioConf.getMs(PropertyKey.USER_NETWORK_DATA_TIMEOUT_MS);
 
     mClient = mContext.acquireBlockWorkerClient(address);
-    mStream = new GrpcBlockingStream<>(mClient::readBlock, mReaderBufferSizeMessages, address.toString());
+    mStream = new GrpcBlockingStream<>(mClient::readBlock, mReaderBufferSizeMessages,
+        address.toString());
     mStream.send(mReadRequest, mDataTimeoutMs);
   }
 

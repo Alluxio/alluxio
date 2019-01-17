@@ -57,9 +57,12 @@ public final class DeterministicHashPolicy implements BlockLocationPolicy {
 
   /**
    * Constructs a new {@link DeterministicHashPolicy}.
+   *
+   * @param alluxioConf Alluxio's configuration
    */
   public DeterministicHashPolicy(AlluxioConfiguration alluxioConf) {
-    this(alluxioConf.getInt(PropertyKey.USER_UFS_BLOCK_READ_LOCATION_POLICY_DETERMINISTIC_HASH_SHARDS));
+    this(alluxioConf
+        .getInt(PropertyKey.USER_UFS_BLOCK_READ_LOCATION_POLICY_DETERMINISTIC_HASH_SHARDS));
   }
 
   /**

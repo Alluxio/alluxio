@@ -81,7 +81,8 @@ public final class MasterInquireClientTest {
           NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, mConfiguration));
       assertCurrentConnectString(singleConnect);
       try (Closeable c2 =
-          new ConfigurationRule(PropertyKey.ZOOKEEPER_ENABLED, "true", mConfiguration).toResource()) {
+          new ConfigurationRule(PropertyKey.ZOOKEEPER_ENABLED, "true", mConfiguration)
+              .toResource()) {
         ConnectDetails zkConnect = new ZkMasterConnectDetails(zkAddr, leaderPath);
         assertCurrentConnectString(zkConnect);
         assertEquals("zk@zkAddr:1234/my/leader/path", zkConnect.toString());

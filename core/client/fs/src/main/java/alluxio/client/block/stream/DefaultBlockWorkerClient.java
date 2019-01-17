@@ -11,7 +11,6 @@
 
 package alluxio.client.block.stream;
 
-
 import alluxio.grpc.AsyncCacheRequest;
 import alluxio.grpc.AsyncCacheResponse;
 import alluxio.conf.AlluxioConfiguration;
@@ -72,16 +71,21 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
    *
    * @param subject the user subject, can be null if the user is not available
    * @param address the address of the worker
+   * @param alluxioConf Alluxio's configuration
    */
   public DefaultBlockWorkerClient(Subject subject, SocketAddress address,
       AlluxioConfiguration alluxioConf) {
     try {
       mChannel = GrpcChannelBuilder.forAddress(address, alluxioConf).setSubject(subject)
-          .setChannelType(NettyUtils.getClientChannelClass(!(address instanceof InetSocketAddress), alluxioConf))
+          .setChannelType(NettyUtils.getClientChannelClass(!(address instanceof InetSocketAddress),
+              alluxioConf))
           .setEventLoopGroup(WORKER_GROUP)
-          .setKeepAliveTimeout(alluxioConf.getMs(PropertyKey.USER_NETWORK_KEEPALIVE_TIMEOUT_MS), TimeUnit.MILLISECONDS)
-          .setMaxInboundMessageSize((int) alluxioConf.getBytes(PropertyKey.USER_NETWORK_MAX_INBOUND_MESSAGE_SIZE))
-          .setFlowControlWindow((int) alluxioConf.getBytes(PropertyKey.USER_NETWORK_FLOWCONTROL_WINDOW))
+          .setKeepAliveTimeout(alluxioConf.getMs(PropertyKey.USER_NETWORK_KEEPALIVE_TIMEOUT_MS),
+              TimeUnit.MILLISECONDS)
+          .setMaxInboundMessageSize(
+              (int) alluxioConf.getBytes(PropertyKey.USER_NETWORK_MAX_INBOUND_MESSAGE_SIZE))
+          .setFlowControlWindow(
+              (int) alluxioConf.getBytes(PropertyKey.USER_NETWORK_FLOWCONTROL_WINDOW))
                      .build();
     } catch (UnauthenticatedException | UnavailableException e) {
       throw new RuntimeException("Failed to build channel.", e);
@@ -96,6 +100,7 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
    * Creates a client instance for communicating with block worker.
    *
    * @param channel the gRPC channel
+   * @param dataTimeoutMs The data timeout on the gRPC channel
    */
   public DefaultBlockWorkerClient(GrpcChannel channel, long dataTimeoutMs) {
     mChannel = channel;

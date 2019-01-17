@@ -13,16 +13,15 @@ package alluxio.security.authentication;
 
 import alluxio.ConfigurationTestUtils;
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.InstancedConfiguration;
 import alluxio.exception.status.UnauthenticatedException;
 import alluxio.security.authentication.plain.PlainSaslServerProvider;
 import alluxio.security.authentication.plain.SaslParticipantProviderPlain;
 
-import alluxio.util.ConfigurationUtils;
 import org.junit.Assert;
+import org.junit.rules.ExpectedException;
+
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
 import javax.security.sasl.SaslClient;
 import javax.security.sasl.SaslException;

@@ -30,6 +30,7 @@ public final class CreateUfsFileOptions
    * Creates a default {@link CreateUfsFileOptions} with owner, group from login module and
    * default file mode.
    *
+   * @param alluxioConf Alluxio's configuration
    * @return the default {@link CreateUfsFileOptions}
    */
   public static CreateUfsFileOptions defaults(AlluxioConfiguration alluxioConf) {
@@ -39,7 +40,8 @@ public final class CreateUfsFileOptions
   private CreateUfsFileOptions(AlluxioConfiguration alluxioConf) {
     mOwner = SecurityUtils.getOwnerFromLoginModule(alluxioConf);
     mGroup = SecurityUtils.getGroupFromLoginModule(alluxioConf);
-    mMode = ModeUtils.applyFileUMask(Mode.defaults(), alluxioConf.get(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK));
+    mMode = ModeUtils.applyFileUMask(Mode.defaults(), alluxioConf
+        .get(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK));
     // TODO(chaomin): set permission based on the alluxio file. Not needed for now since the
     // file is always created with default permission.
   }

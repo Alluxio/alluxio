@@ -17,10 +17,9 @@ import alluxio.master.MasterClientConfig;
 import alluxio.master.MasterInquireClient;
 import alluxio.retry.RetryPolicy;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.net.InetSocketAddress;
 import java.util.function.Supplier;
-
-import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * The base class for master clients.

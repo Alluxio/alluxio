@@ -41,14 +41,15 @@ public final class FileSystemMasterClientPool extends ResourcePool<FileSystemMas
    *
    * @param subject the parent subject
    * @param masterInquireClient a client for determining the master address
+   * @param alluxioConf Alluxio's configuration
    */
   public FileSystemMasterClientPool(Subject subject, MasterInquireClient masterInquireClient,
-      AlluxioConfiguration conf) {
-    super(conf.getInt(PropertyKey.USER_FILE_MASTER_CLIENT_THREADS));
+      AlluxioConfiguration alluxioConf) {
+    super(alluxioConf.getInt(PropertyKey.USER_FILE_MASTER_CLIENT_THREADS));
     mMasterInquireClient = masterInquireClient;
     mClientList = new ConcurrentLinkedQueue<>();
     mSubject = subject;
-    mAlluxioConf = conf;
+    mAlluxioConf = alluxioConf;
   }
 
   /**
@@ -57,14 +58,15 @@ public final class FileSystemMasterClientPool extends ResourcePool<FileSystemMas
    * @param subject the parent subject
    * @param masterInquireClient a client for determining the master address
    * @param clientThreads the number of client threads to use
+   * @param alluxioConf Alluxio's configuration
    */
   public FileSystemMasterClientPool(Subject subject, MasterInquireClient masterInquireClient,
-      int clientThreads, AlluxioConfiguration conf) {
+      int clientThreads, AlluxioConfiguration alluxioConf) {
     super(clientThreads);
     mMasterInquireClient = masterInquireClient;
     mClientList = new ConcurrentLinkedQueue<>();
     mSubject = subject;
-    mAlluxioConf = conf;
+    mAlluxioConf = alluxioConf;
   }
 
   @Override
@@ -80,7 +82,8 @@ public final class FileSystemMasterClientPool extends ResourcePool<FileSystemMas
   @Override
   protected FileSystemMasterClient createNewResource() {
     FileSystemMasterClient client = FileSystemMasterClient.Factory.create(MasterClientConfig
-        .defaults(mAlluxioConf).withSubject(mSubject).withMasterInquireClient(mMasterInquireClient), mAlluxioConf);
+        .defaults(mAlluxioConf).withSubject(mSubject).withMasterInquireClient(mMasterInquireClient),
+        mAlluxioConf);
     mClientList.add(client);
     return client;
   }

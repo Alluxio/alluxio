@@ -35,7 +35,7 @@ public final class DeterministicHashPolicyTest {
   private static final int PORT = 1;
 
   private final List<BlockWorkerInfo> mWorkerInfos = new ArrayList<>();
-  private static final InstancedConfiguration sConf = ConfigurationTestUtils.defaults();
+  private static InstancedConfiguration sConf = ConfigurationTestUtils.defaults();
 
   @Before
   public void before() {

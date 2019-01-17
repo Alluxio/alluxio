@@ -78,7 +78,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
     UnderFileSystemFileOutStream.class})
 public class FileOutStreamTest {
 
-  private InstancedConfiguration sConf = ConfigurationTestUtils.defaults();
+  private static InstancedConfiguration sConf = ConfigurationTestUtils.defaults();
 
   @Rule
   public LoginUserRule mLoginUser = new LoginUserRule("Test", sConf);

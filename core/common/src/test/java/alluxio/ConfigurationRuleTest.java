@@ -16,6 +16,7 @@ import static org.junit.Assert.assertFalse;
 
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
+
 import com.google.common.collect.ImmutableMap;
 import org.junit.Test;
 import org.junit.runners.model.Statement;

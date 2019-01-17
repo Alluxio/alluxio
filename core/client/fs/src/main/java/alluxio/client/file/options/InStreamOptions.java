@@ -45,7 +45,9 @@ public final class InStreamOptions {
 
   /**
    * Creates with the default {@link OpenFilePOptions}.
+   *
    * @param status the file to create the options for
+   * @param alluxioConf Alluxio's configuration
    */
   public InStreamOptions(URIStatus status, AlluxioConfiguration alluxioConf) {
     this(status, OpenFilePOptions.getDefaultInstance(), alluxioConf);
@@ -55,6 +57,7 @@ public final class InStreamOptions {
    * Creates with given {@link OpenFilePOptions} instance.
    * @param status URI status
    * @param options OpenFile options
+   * @param alluxioConf Alluxio's configuration
    */
   public InStreamOptions(URIStatus status, OpenFilePOptions options,
       AlluxioConfiguration alluxioConf) {
@@ -64,8 +67,10 @@ public final class InStreamOptions {
             .toProto())
         .setFileReadLocationPolicy(
             alluxioConf.get(PropertyKey.USER_UFS_BLOCK_READ_LOCATION_POLICY))
-        .setHashingNumberOfShards(alluxioConf.getInt(PropertyKey.USER_UFS_BLOCK_READ_LOCATION_POLICY_DETERMINISTIC_HASH_SHARDS))
-        .setMaxUfsReadConcurrency(alluxioConf.getInt(PropertyKey.USER_UFS_BLOCK_READ_CONCURRENCY_MAX));
+        .setHashingNumberOfShards(alluxioConf
+            .getInt(PropertyKey.USER_UFS_BLOCK_READ_LOCATION_POLICY_DETERMINISTIC_HASH_SHARDS))
+        .setMaxUfsReadConcurrency(alluxioConf
+            .getInt(PropertyKey.USER_UFS_BLOCK_READ_CONCURRENCY_MAX));
     // Merge default options with given options.
     OpenFilePOptions openOptions = openOptionsBuilder.mergeFrom(options).build();
 

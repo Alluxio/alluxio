@@ -110,14 +110,16 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
     builder.setOpenUfsBlockOptions(options.getOpenUfsBlockOptions(blockId));
     AlluxioConfiguration alluxioConf = context.getClientContext().getConf();
     boolean shortCircuit = alluxioConf.getBoolean(PropertyKey.USER_SHORT_CIRCUIT_ENABLED);
-    boolean sourceSupportsDomainSocket = NettyUtils.isDomainSocketSupported(dataSource, alluxioConf);
+    boolean sourceSupportsDomainSocket = NettyUtils.isDomainSocketSupported(dataSource,
+        alluxioConf);
     boolean sourceIsLocal = dataSourceType == BlockInStreamSource.LOCAL;
 
     // Short circuit
     if (sourceIsLocal && shortCircuit && !sourceSupportsDomainSocket) {
       LOG.debug("Creating short circuit input stream for block {} @ {}", blockId, dataSource);
       try {
-        return createLocalBlockInStream(context, dataSource, blockId, blockSize, options, alluxioConf);
+        return createLocalBlockInStream(context, dataSource, blockId, blockSize, options,
+            alluxioConf);
       } catch (NotFoundException e) {
         // Failed to do short circuit read because the block is not available in Alluxio.
         // We will try to read via gRPC. So this exception is ignored.

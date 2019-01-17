@@ -33,6 +33,9 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class SpecificHostPolicy implements FileWriteLocationPolicy, BlockLocationPolicy {
   private final String mHostname;
 
+  /**
+   * @param alluxioConf Alluxio's configuration
+   */
   public SpecificHostPolicy(AlluxioConfiguration alluxioConf) {
     this(alluxioConf.get(PropertyKey.WORKER_HOSTNAME));
   }

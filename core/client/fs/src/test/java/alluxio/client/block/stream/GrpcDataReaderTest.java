@@ -21,7 +21,6 @@ import static org.mockito.Mockito.verify;
 import static org.powermock.api.mockito.PowerMockito.when;
 
 import alluxio.ClientContext;
-import alluxio.ConfigurationTestUtils;
 import alluxio.client.file.FileSystemContext;
 import alluxio.grpc.Chunk;
 import alluxio.grpc.ReadRequest;

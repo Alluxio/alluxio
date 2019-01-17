@@ -17,7 +17,6 @@ import static org.mockito.Mockito.when;
 import alluxio.ClientContext;
 import alluxio.ConfigurationRule;
 import alluxio.ConfigurationTestUtils;
-import alluxio.client.ReadType;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.client.file.FileSystemContext;
@@ -114,7 +113,8 @@ public class BlockInStreamTest {
   @Test
   public void createShortCircuitDisabled() throws Exception {
     try (Closeable c =
-        new ConfigurationRule(PropertyKey.USER_SHORT_CIRCUIT_ENABLED, "false", mConf).toResource()) {
+        new ConfigurationRule(PropertyKey.USER_SHORT_CIRCUIT_ENABLED, "false", mConf)
+            .toResource()) {
       WorkerNetAddress dataSource = new WorkerNetAddress();
       when(mMockContext.getClientContext()).thenReturn(ClientContext.create(mConf.getProperties()));
       BlockInStream.BlockInStreamSource dataSourceType = BlockInStream.BlockInStreamSource.LOCAL;
@@ -132,8 +132,8 @@ public class BlockInStreamTest {
         .thenReturn(true);
     WorkerNetAddress dataSource = new WorkerNetAddress();
     BlockInStream.BlockInStreamSource dataSourceType = BlockInStream.BlockInStreamSource.LOCAL;
-    BlockInStream stream =
-        BlockInStream.create(mMockContext, mInfo, dataSource, dataSourceType, mOptions);
-  Assert.assertFalse(stream.isShortCircuit());
+    BlockInStream stream = BlockInStream.create(mMockContext, mInfo, dataSource, dataSourceType,
+        mOptions);
+    Assert.assertFalse(stream.isShortCircuit());
   }
 }

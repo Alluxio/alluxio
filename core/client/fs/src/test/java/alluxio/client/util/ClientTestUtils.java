@@ -13,7 +13,6 @@ package alluxio.client.util;
 
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.client.file.FileSystemContext;
 
 import java.io.IOException;
 
@@ -45,6 +44,5 @@ public final class ClientTestUtils {
 
   private static void resetContexts(InstancedConfiguration conf) throws IOException {
     conf.set(PropertyKey.USER_METRICS_COLLECTION_ENABLED, false);
-//    FileSystemContext.create().reset();
   }
 }

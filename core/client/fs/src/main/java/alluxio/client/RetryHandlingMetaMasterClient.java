@@ -46,6 +46,7 @@ public class RetryHandlingMetaMasterClient extends AbstractMasterClient
    * Creates a new meta master client.
    *
    * @param conf master client configuration
+   * @param alluxioConf Alluxio's configuration
    */
   public RetryHandlingMetaMasterClient(MasterClientConfig conf, AlluxioConfiguration alluxioConf) {
     super(conf, alluxioConf);

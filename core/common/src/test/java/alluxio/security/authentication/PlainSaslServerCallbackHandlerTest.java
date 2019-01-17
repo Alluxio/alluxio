@@ -17,11 +17,11 @@ import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.security.authentication.plain.PlainSaslServerCallbackHandler;
 
-import alluxio.util.ConfigurationUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+
 import org.junit.rules.ExpectedException;
 
 import javax.security.auth.callback.Callback;

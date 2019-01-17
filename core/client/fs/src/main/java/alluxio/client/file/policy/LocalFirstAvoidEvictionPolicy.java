@@ -44,17 +44,22 @@ public final class LocalFirstAvoidEvictionPolicy
 
   /**
    * Constructs a {@link LocalFirstAvoidEvictionPolicy}.
+   *
+   * @param alluxioConf Alluxio's configuration
    */
-  public LocalFirstAvoidEvictionPolicy(AlluxioConfiguration conf) {
-    mPolicy = new LocalFirstPolicy(conf);
-    mFileWriteCapacityReserved = conf.getBytes(PropertyKey.USER_FILE_WRITE_AVOID_EVICTION_POLICY_RESERVED_BYTES);
+  public LocalFirstAvoidEvictionPolicy(AlluxioConfiguration alluxioConf) {
+    mPolicy = new LocalFirstPolicy(alluxioConf);
+    mFileWriteCapacityReserved = alluxioConf
+        .getBytes(PropertyKey.USER_FILE_WRITE_AVOID_EVICTION_POLICY_RESERVED_BYTES);
   }
 
   @VisibleForTesting
   LocalFirstAvoidEvictionPolicy(TieredIdentity localTieredIdentity,
       AlluxioConfiguration conf) {
-    mPolicy = LocalFirstPolicy.create(localTieredIdentity, conf.getBoolean(PropertyKey.LOCALITY_COMPARE_NODE_IP));
-    mFileWriteCapacityReserved = conf.getBytes(PropertyKey.USER_FILE_WRITE_AVOID_EVICTION_POLICY_RESERVED_BYTES);
+    mPolicy = LocalFirstPolicy.create(localTieredIdentity,
+        conf.getBoolean(PropertyKey.LOCALITY_COMPARE_NODE_IP));
+    mFileWriteCapacityReserved = conf
+        .getBytes(PropertyKey.USER_FILE_WRITE_AVOID_EVICTION_POLICY_RESERVED_BYTES);
   }
 
   @Override

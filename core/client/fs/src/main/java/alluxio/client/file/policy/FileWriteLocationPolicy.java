@@ -30,6 +30,8 @@ import alluxio.wire.WorkerNetAddress;
  * <p>
  * A policy must have an empty constructor to be used as default policy.
  * </p>
+ * @deprecated this API is deprecated in favor of using the
+ * {@link alluxio.client.block.policy.BlockLocationPolicy}
  */
 @PublicApi
 @Deprecated

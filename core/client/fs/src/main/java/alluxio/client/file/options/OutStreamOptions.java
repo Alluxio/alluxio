@@ -56,6 +56,7 @@ public final class OutStreamOptions {
   private long mMountId;
 
   /**
+   * @param alluxioConf Alluxio's configuration
    * @return the default {@link OutStreamOptions}
    */
   public static OutStreamOptions defaults(AlluxioConfiguration alluxioConf) {
@@ -66,6 +67,7 @@ public final class OutStreamOptions {
    * Creates an {@link OutStreamOptions} instance from given options.
    *
    * @param options CreateFile options
+   * @param alluxioConf Alluxio's configuration
    * @throws Exception if FileWriteLocationPolicy can't be loaded
    */
   public OutStreamOptions(CreateFilePOptions options, AlluxioConfiguration alluxioConf) {
@@ -116,7 +118,8 @@ public final class OutStreamOptions {
     mWriteType = alluxioConf.getEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class);
     mOwner = SecurityUtils.getOwnerFromLoginModule(alluxioConf);
     mGroup = SecurityUtils.getGroupFromLoginModule(alluxioConf);
-    mMode = ModeUtils.applyFileUMask(Mode.defaults(), alluxioConf.get(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK));
+    mMode = ModeUtils.applyFileUMask(Mode.defaults(), alluxioConf
+        .get(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK));
     mMountId = IdUtils.INVALID_MOUNT_ID;
     mReplicationDurable = alluxioConf.getInt(PropertyKey.USER_FILE_REPLICATION_DURABLE);
     mReplicationMax = alluxioConf.getInt(PropertyKey.USER_FILE_REPLICATION_MAX);

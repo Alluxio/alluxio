@@ -18,7 +18,6 @@ import alluxio.ConfigurationRule;
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.LoginUserRule;
-import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.client.AlluxioStorageType;
@@ -36,7 +35,6 @@ import alluxio.util.ModeUtils;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import org.junit.After;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -74,7 +72,7 @@ public class OutStreamOptionsTest {
   public LoginUserRule mRule = new LoginUserRule("test_user", mConf);
 
   @After
-  public void after(){
+  public void after() {
     mConf = ConfigurationTestUtils.defaults();
   }
 
@@ -94,8 +92,7 @@ public class OutStreamOptionsTest {
     assertEquals(alluxioType, options.getAlluxioStorageType());
     assertEquals(64 * Constants.MB, options.getBlockSizeBytes());
     assertTrue(options.getLocationPolicy() instanceof LocalFirstPolicy);
-    // DON'T COMMIT THIS - NEED TO DO SECURITY DESIGN LATER
-//    assertEquals("test_user", options.getOwner());
+    assertEquals("test_user", options.getOwner());
     assertEquals("test_group", options.getGroup());
     assertEquals(ModeUtils.applyFileUMask(Mode.defaults(),
         mConf.get(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK)), options.getMode());

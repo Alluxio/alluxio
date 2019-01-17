@@ -45,9 +45,12 @@ public final class LocalFirstPolicy implements FileWriteLocationPolicy, BlockLoc
 
   /**
    * Constructs a {@link LocalFirstPolicy}.
+   *
+   * @param alluxioConf Alluxio's configuration
    */
   public LocalFirstPolicy(AlluxioConfiguration alluxioConf) {
-    this(TieredIdentityFactory.localIdentity(alluxioConf), alluxioConf.getBoolean(PropertyKey.LOCALITY_COMPARE_NODE_IP));
+    this(TieredIdentityFactory.localIdentity(alluxioConf),
+        alluxioConf.getBoolean(PropertyKey.LOCALITY_COMPARE_NODE_IP));
   }
 
   /**
@@ -79,7 +82,8 @@ public final class LocalFirstPolicy implements FileWriteLocationPolicy, BlockLoc
         .map(worker -> worker.getNetAddress().getTieredIdentity())
         .filter(Objects::nonNull)
         .collect(Collectors.toList());
-    Optional<TieredIdentity> nearest = TieredIdentityUtils.nearest(mTieredIdentity, identities, mCompareNodeIps);
+    Optional<TieredIdentity> nearest = TieredIdentityUtils.nearest(mTieredIdentity, identities,
+        mCompareNodeIps);
     if (!nearest.isPresent()) {
       return null;
     }
