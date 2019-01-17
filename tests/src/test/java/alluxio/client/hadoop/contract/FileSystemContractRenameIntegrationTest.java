@@ -11,6 +11,9 @@
 
 package alluxio.client.hadoop.contract;
 
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
+import alluxio.hadoop.HadoopConfigurationUtils;
 import alluxio.testutils.LocalAlluxioClusterResource;
 
 import org.apache.hadoop.conf.Configuration;
@@ -21,10 +24,14 @@ import org.junit.Rule;
 public class FileSystemContractRenameIntegrationTest extends AbstractContractRenameTest {
   @Rule
   public LocalAlluxioClusterResource mClusterResource =
-      new LocalAlluxioClusterResource.Builder().build();
+      new LocalAlluxioClusterResource.Builder()
+          // Adding this fixed an error in allocating enough space in seekBigFile and PosBulkRead
+          .setProperty(PropertyKey.USER_FILE_BUFFER_BYTES, "1k")
+          .build();
 
   @Override
   protected AbstractFSContract createContract(Configuration conf) {
-    return new FileSystemContract(conf, mClusterResource.get());
+    return new FileSystemContract(HadoopConfigurationUtils.mergeAlluxioConfiguration(conf,
+        ServerConfiguration.global()), mClusterResource.get());
   }
 }

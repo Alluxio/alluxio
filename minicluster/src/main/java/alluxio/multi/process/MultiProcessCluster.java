@@ -27,6 +27,7 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystem.Factory;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.RetryHandlingFileSystemMasterClient;
+import alluxio.conf.Source;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.MasterInfo;
 import alluxio.master.LocalAlluxioCluster;
@@ -215,6 +216,7 @@ public final class MultiProcessCluster {
       formatJournal();
     }
     writeConf();
+    ServerConfiguration.merge(mProperties, Source.RUNTIME);
 
     // Start servers
     LOG.info("Starting alluxio cluster {} with base directory {}", mClusterName,

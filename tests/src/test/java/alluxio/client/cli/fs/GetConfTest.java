@@ -21,12 +21,14 @@ import alluxio.cli.GetConf;
 import alluxio.client.RetryHandlingMetaMasterConfigClient;
 import alluxio.grpc.ConfigProperty;
 
+import alluxio.util.ConfigurationUtils;
 import com.google.common.collect.ImmutableMap;
 import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mockito;
 
+import javax.security.auth.login.Configuration;
 import java.io.ByteArrayOutputStream;
 import java.io.Closeable;
 import java.util.Arrays;
@@ -120,10 +122,13 @@ public final class GetConfTest {
     try (Closeable p = new SystemPropertyRule(ImmutableMap.of(
         PropertyKey.CONF_VALIDATION_ENABLED.toString(), "false",
         PropertyKey.ZOOKEEPER_ENABLED.toString(), "true")).toResource()) {
+      ConfigurationUtils.reloadProperties();
       ServerConfiguration.reset();
       assertEquals(0, GetConf.getConf(ServerConfiguration.global(),
           PropertyKey.ZOOKEEPER_ENABLED.toString()));
       assertEquals("true\n", mOutputStream.toString());
+    } finally {
+      ConfigurationUtils.reloadProperties();
     }
   }
 

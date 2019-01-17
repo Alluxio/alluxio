@@ -13,6 +13,7 @@ package alluxio.cli.fsadmin.command;
 
 import alluxio.AlluxioURI;
 import alluxio.cli.CommandUtils;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.UfsPMode;
@@ -43,7 +44,7 @@ public final class UfsCommand extends AbstractFsAdminCommand {
   /**
    * @param context fsadmin command context
    */
-  public UfsCommand(Context context) {
+  public UfsCommand(Context context, AlluxioConfiguration alluxioConf) {
     super(context);
   }
 

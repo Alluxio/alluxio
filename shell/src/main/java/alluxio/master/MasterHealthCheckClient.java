@@ -52,10 +52,10 @@ public class MasterHealthCheckClient implements HealthCheckClient {
     /**
      * Constructs the builder with default values.
      */
-    public Builder() {
+    public Builder(AlluxioConfiguration alluxioConf) {
       mProcessCheck = true;
       mAlluxioMasterName = "alluxio.master.AlluxioMaster";
-      mConf = new InstancedConfiguration(ConfigurationUtils.defaults());
+      mConf = alluxioConf;
     }
 
     /**

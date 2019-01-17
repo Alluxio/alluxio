@@ -11,6 +11,7 @@
 
 package alluxio.cli.fsadmin;
 
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.cli.AbstractShell;
@@ -78,6 +79,6 @@ public final class FileSystemAdminShell extends AbstractShell {
         System.out
     );
     return CommandUtils.loadCommands(FileSystemAdminShell.class.getPackage().getName(),
-        new Class[] {Context.class}, new Object[] {context});
+        new Class[] {Context.class, AlluxioConfiguration.class}, new Object[] {context, mConfiguration});
   }
 }
