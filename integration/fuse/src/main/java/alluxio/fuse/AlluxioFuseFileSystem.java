@@ -282,8 +282,7 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
   public int flush(String path, FuseFileInfo fi) {
     LOG.trace("flush({})", path);
     final long fd = fi.fh.get();
-    OpenFileEntry oe;
-    oe = mOpenFiles.getFirstByField(ID_INDEX, fd);
+    OpenFileEntry oe = mOpenFiles.getFirstByField(ID_INDEX, fd);
     if (oe == null) {
       LOG.error("Cannot find fd for {} in table", path);
       return -ErrorCodes.EBADFD();
@@ -617,8 +616,10 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
     LOG.trace("release({})", path);
     OpenFileEntry oe;
     final long fd = fi.fh.get();
-    oe = mOpenFiles.getFirstByField(ID_INDEX, fd);
-    mOpenFiles.remove(oe);
+    synchronized (mOpenFiles) {
+      oe = mOpenFiles.getFirstByField(ID_INDEX, fd);
+      mOpenFiles.remove(oe);
+    }
     if (oe == null) {
       LOG.error("Cannot find fd for {} in table", path);
       return -ErrorCodes.EBADFD();
@@ -654,9 +655,11 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
         return -ErrorCodes.EEXIST();
       }
       mFileSystem.rename(oldUri, newUri);
-      if (mOpenFiles.contains(PATH_INDEX, oldPath)) {
-        OpenFileEntry oe = mOpenFiles.getFirstByField(PATH_INDEX, oldPath);
-        oe.setPath(newPath);
+      synchronized (mOpenFiles) {
+        if (mOpenFiles.contains(PATH_INDEX, oldPath)) {
+          OpenFileEntry oe = mOpenFiles.getFirstByField(PATH_INDEX, oldPath);
+          oe.setPath(newPath);
+        }
       }
     } catch (FileDoesNotExistException e) {
       LOG.debug("File {} does not exist", oldPath);
