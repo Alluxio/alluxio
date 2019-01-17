@@ -35,7 +35,6 @@ import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
-import alluxio.client.file.options.DeleteOptions;
 import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
@@ -408,10 +407,9 @@ public class AlluxioFuseFileSystemTest {
   @Test
   public void rmdir() throws Exception {
     AlluxioURI expectedPath = BASE_EXPECTED_URI.join("/foo/bar");
-    DeleteOptions options = DeleteOptions.defaults().setRecursive(true);
-    doNothing().when(mFileSystem).delete(expectedPath, options);
+    doNothing().when(mFileSystem).delete(expectedPath);
     mFuseFs.rmdir("/foo/bar");
-    verify(mFileSystem).delete(expectedPath, options);
+    verify(mFileSystem).delete(expectedPath);
   }
 
   @Test
