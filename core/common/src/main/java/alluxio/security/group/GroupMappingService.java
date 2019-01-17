@@ -40,6 +40,7 @@ public interface GroupMappingService {
     // TODO(chaomin): maintain a map from SECURITY_GROUP_MAPPING_CLASS name to cachedGroupMapping.
     // Currently the single global cached GroupMappingService assumes that there is no dynamic
     // configuration change for {@link Constants#SECURITY_GROUP_MAPPING_CLASS}.
+    private static CachedGroupMapping sCachedGroupMapping = null;
 
     // prevent instantiation
     private Factory() {
@@ -51,12 +52,19 @@ public interface GroupMappingService {
      * @return the groups mapping service being used to map user-to-groups
      */
     public static GroupMappingService get(AlluxioConfiguration conf) {
-      LOG.debug("Creating new Groups object");
-      GroupMappingService groupMappingService =
-          CommonUtils.createNewClassInstance(conf.<GroupMappingService>getClass(
-              PropertyKey.SECURITY_GROUP_MAPPING_CLASS), null, null);
-      long cacheTimeout = conf.getMs(PropertyKey.SECURITY_GROUP_MAPPING_CACHE_TIMEOUT_MS);
-      return new CachedGroupMapping(groupMappingService, cacheTimeout);
+      if (sCachedGroupMapping == null) {
+        synchronized (Factory.class) {
+          if (sCachedGroupMapping == null) {
+            LOG.debug("Creating new Groups object");
+            GroupMappingService groupMappingService =
+                CommonUtils.createNewClassInstance(conf.<GroupMappingService>getClass(
+                    PropertyKey.SECURITY_GROUP_MAPPING_CLASS), null, null);
+            sCachedGroupMapping = new CachedGroupMapping(groupMappingService,
+                conf.getMs(PropertyKey.SECURITY_GROUP_MAPPING_CACHE_TIMEOUT_MS));
+          }
+        }
+      }
+      return sCachedGroupMapping;
     }
   }
 

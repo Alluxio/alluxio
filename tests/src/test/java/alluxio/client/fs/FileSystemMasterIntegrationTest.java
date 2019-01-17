@@ -16,6 +16,7 @@ import static org.junit.Assume.assumeFalse;
 
 import alluxio.AlluxioURI;
 import alluxio.AuthenticatedUserRule;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.ServerConfiguration;
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
@@ -905,7 +906,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     UfsDirectoryStatus ufsStatus = new
         UfsDirectoryStatus("test", "owner", "group", (short) 511);
     Mockito.when(mockUfsFactory.create(Matchers.eq(ufsBase), Matchers.any(),
-        ServerConfiguration.global())).thenReturn(mockUfs);
+        Matchers.any(AlluxioConfiguration.class))).thenReturn(mockUfs);
     Mockito.when(mockUfs.isDirectory(ufsBase)).thenReturn(true);
     Mockito.when(mockUfs.resolveUri(new AlluxioURI(ufsBase), ""))
         .thenReturn(new AlluxioURI(ufsBase));

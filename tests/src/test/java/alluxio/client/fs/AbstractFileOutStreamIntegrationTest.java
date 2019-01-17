@@ -79,7 +79,21 @@ public abstract class AbstractFileOutStreamIntegrationTest extends BaseIntegrati
    */
   protected void writeIncreasingBytesToFile(AlluxioURI filePath, int fileLen, CreateFilePOptions op)
       throws Exception {
-    try (FileOutStream os = mFileSystem.createFile(filePath, op)) {
+    writeIncreasingBytesToFile(mFileSystem, filePath, fileLen, op);
+  }
+
+  /**
+   * Helper to write an Alluxio file with stream of bytes of increasing byte value.
+   *
+   * @param fs the FileSystemClient to use
+   * @param filePath path of the tmp file
+   * @param fileLen length of the file
+   * @param op options to create file
+   */
+  protected void writeIncreasingBytesToFile(FileSystem fs, AlluxioURI filePath, int fileLen,
+      CreateFilePOptions op)
+      throws Exception {
+    try (FileOutStream os = fs.createFile(filePath, op)) {
       for (int k = 0; k < fileLen; k++) {
         os.write((byte) k);
       }
