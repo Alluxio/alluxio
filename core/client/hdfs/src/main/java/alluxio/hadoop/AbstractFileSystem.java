@@ -554,6 +554,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     props.merge(uriConfProperties, Source.RUNTIME);
 
     // This must be reset to pick up the change to the master address.
+    mFsContext = FileSystemContext.create(new InstancedConfiguration(props));
     LOG.info("Initializing filesystem context with connect details {}",
         Factory.getConnectDetails(mFsContext.getClientContext().getConf()));
     mFsContext.reset();

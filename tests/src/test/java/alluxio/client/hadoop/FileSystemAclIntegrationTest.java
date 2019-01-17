@@ -16,6 +16,7 @@ import alluxio.conf.ServerConfiguration;
 import alluxio.hadoop.HadoopClientTestUtils;
 import alluxio.conf.PropertyKey;
 import alluxio.hadoop.FileSystem;
+import alluxio.hadoop.HadoopConfigurationUtils;
 import alluxio.security.authentication.AuthType;
 import alluxio.security.authorization.Mode;
 import alluxio.testutils.BaseIntegrationTest;
@@ -24,6 +25,7 @@ import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.MkdirsOptions;
+import alluxio.util.ConfigurationUtils;
 import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.io.PathUtils;
 
@@ -36,11 +38,16 @@ import org.apache.hadoop.fs.permission.FsPermission;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Assume;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.junit.runner.RunWith;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.IOException;
 import java.net.URI;
@@ -90,10 +97,12 @@ public final class FileSystemAclIntegrationTest extends BaseIntegrationTest {
   public static void beforeClass() throws Exception {
     Configuration conf = new Configuration();
     conf.set("fs.alluxio.impl", FileSystem.class.getName());
+    conf = HadoopConfigurationUtils.mergeAlluxioConfiguration(conf, ServerConfiguration.global());
 
     URI uri = URI.create(sLocalAlluxioClusterResource.get().getMasterURI());
 
-    sTFS = org.apache.hadoop.fs.FileSystem.get(uri, conf);
+    sTFS = org.apache.hadoop.fs.FileSystem.get(uri, HadoopConfigurationUtils
+        .mergeAlluxioConfiguration(conf, ServerConfiguration.global()));
     sUfsRoot = ServerConfiguration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
     sUfs = UnderFileSystem.Factory.createForRoot(ServerConfiguration.global());
   }

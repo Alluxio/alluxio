@@ -753,7 +753,7 @@ public class AbstractFileSystemTest {
     when(mMockMasterInquireClient.getConnectDetails()).thenReturn(
         new SingleMasterConnectDetails(new InetSocketAddress("defaultHost", 1)));
     PowerMockito.mockStatic(FileSystemContext.class);
-    PowerMockito.when(FileSystemContext.create(any(AlluxioConfiguration.class))).thenReturn(mMockFileSystemContext);
+    PowerMockito.when(FileSystemContext.create(any(AlluxioConfiguration.class))).thenReturn(mMockFileSystemContextCustomized);
     PowerMockito.when(FileSystemContext.create(any(Subject.class), any(AlluxioConfiguration.class)))
         .thenReturn(mMockFileSystemContextCustomized);
     PowerMockito.when(FileSystemContext.create(any(Subject.class), any(AlluxioProperties.class)))

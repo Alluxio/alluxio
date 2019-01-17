@@ -39,7 +39,8 @@ public final class HadoopConfigurationUtils {
    * @param source the {@link org.apache.hadoop.conf.Configuration} to merge
    * @param alluxioConfiguration the Alluxio configuration to merge to
    */
-  public static AlluxioConfiguration mergeHadoopConfiguration(org.apache.hadoop.conf.Configuration source,
+  public static AlluxioConfiguration mergeHadoopConfiguration(
+      org.apache.hadoop.conf.Configuration source,
       AlluxioConfiguration alluxioConfiguration) {
     // Load Alluxio configuration if any and merge to the one in Alluxio file system
     // Push Alluxio configuration to the Job configuration
@@ -53,10 +54,22 @@ public final class HadoopConfigurationUtils {
     }
     LOG.info("Loading Alluxio properties from Hadoop configuration: {}", alluxioConfProperties);
     // Merge the relevant Hadoop configuration into Alluxio's configuration.
-    // TODO(jiri): support multiple client configurations (ALLUXIO-2034)
+
     AlluxioConfiguration conf = ConfigurationUtils.merge(alluxioConfiguration,
         alluxioConfProperties, Source.RUNTIME);
     conf.validate();
     return conf;
+  }
+
+  public static org.apache.hadoop.conf.Configuration mergeAlluxioConfiguration(
+      org.apache.hadoop.conf.Configuration source, AlluxioConfiguration alluxioConf) {
+    org.apache.hadoop.conf.Configuration mergedConf = new org.apache.hadoop.conf.Configuration();
+    source.forEach((Map.Entry<String, String> e) -> mergedConf.set(e.getKey(), e.getValue()));
+    alluxioConf.getProperties().forEach((PropertyKey pk, String val) -> {
+      if (val != null) {
+        mergedConf.set(pk.getName(), val);
+      }
+    });
+    return mergedConf;
   }
 }

@@ -16,6 +16,7 @@ import static org.junit.Assert.assertEquals;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.client.ReadType;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.client.WriteType;
 import alluxio.client.block.AlluxioBlockStore;
@@ -62,6 +63,8 @@ public final class MultiWorkerIntegrationTest extends BaseIntegrationTest {
   public static class FindFirstFileWriteLocationPolicy implements FileWriteLocationPolicy {
     // Set this prior to sending the create request to FSM.
     private static WorkerNetAddress sWorkerAddress;
+
+    public FindFirstFileWriteLocationPolicy(AlluxioConfiguration alluxioConf){ }
 
     @Override
     public WorkerNetAddress getWorkerForNextBlock(Iterable<BlockWorkerInfo> workerInfoList,
