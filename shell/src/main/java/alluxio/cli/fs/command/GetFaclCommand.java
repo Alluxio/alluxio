@@ -17,11 +17,12 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
+
 import org.apache.commons.cli.CommandLine;
 
-import javax.annotation.concurrent.ThreadSafe;
 import java.io.IOException;
 import java.util.List;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Displays ACL info of a path.
@@ -29,7 +30,7 @@ import java.util.List;
 @ThreadSafe
 public final class GetFaclCommand extends AbstractFileSystemCommand {
   /**
-   * @param fs the filesystem of Alluxio
+   * @param fsContext the filesystem of Alluxio
    */
   public GetFaclCommand(FileSystemContext fsContext) {
     super(fsContext);

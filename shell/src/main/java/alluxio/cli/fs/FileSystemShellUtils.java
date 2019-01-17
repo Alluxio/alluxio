@@ -51,10 +51,12 @@ public final class FileSystemShellUtils {
    * from a path, leaving only the local file path.
    *
    * @param path the path to obtain the local path from
+   * @param alluxioConf Alluxio's configuration
    * @return the local path in string format
    */
-  public static String getFilePath(String path, AlluxioConfiguration conf) throws IOException {
-    path = validatePath(path, conf);
+  public static String getFilePath(String path, AlluxioConfiguration alluxioConf)
+      throws IOException {
+    path = validatePath(path, alluxioConf);
     if (path.startsWith(Constants.HEADER)) {
       path = path.substring(Constants.HEADER.length());
     } else if (path.startsWith(Constants.HEADER_FT)) {
@@ -68,11 +70,13 @@ public final class FileSystemShellUtils {
    * {@link Constants#HEADER_FT} and a hostname:port specified.
    *
    * @param path the path to be verified
+   * @param alluxioConf Alluxio's configuration
    * @return the verified path in a form like alluxio://host:port/dir. If only the "/dir" or "dir"
    *         part is provided, the host and port are retrieved from property,
    *         alluxio.master.hostname and alluxio.master.port, respectively.
    */
-  public static String validatePath(String path, AlluxioConfiguration conf) throws IOException {
+  public static String validatePath(String path, AlluxioConfiguration alluxioConf)
+      throws IOException {
     if (path.startsWith(Constants.HEADER) || path.startsWith(Constants.HEADER_FT)) {
       if (!path.contains(":")) {
         throw new IOException("Invalid Path: " + path + ". Use " + Constants.HEADER
@@ -81,9 +85,9 @@ public final class FileSystemShellUtils {
         return path;
       }
     } else {
-      String hostname = NetworkAddressUtils.getConnectHost(ServiceType.MASTER_RPC, conf);
-      int port =  conf.getInt(PropertyKey.MASTER_RPC_PORT);
-      if (conf.getBoolean(PropertyKey.ZOOKEEPER_ENABLED)) {
+      String hostname = NetworkAddressUtils.getConnectHost(ServiceType.MASTER_RPC, alluxioConf);
+      int port =  alluxioConf.getInt(PropertyKey.MASTER_RPC_PORT);
+      if (alluxioConf.getBoolean(PropertyKey.ZOOKEEPER_ENABLED)) {
         return PathUtils.concatPath(Constants.HEADER_FT + hostname + ":" + port, path);
       }
       return PathUtils.concatPath(Constants.HEADER + hostname + ":" + port, path);

@@ -127,7 +127,6 @@ public final class TestRunner {
     List<OperationType> operations = mOperation == null ? Lists.newArrayList(OperationType.values())
         : Lists.newArrayList(OperationType.valueOf(mOperation));
 
-
     for (ReadType readType : readTypes) {
       for (WriteType writeType : writeTypes) {
         for (OperationType opType : operations) {

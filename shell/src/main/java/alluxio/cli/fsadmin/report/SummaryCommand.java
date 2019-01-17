@@ -14,7 +14,6 @@ package alluxio.cli.fsadmin.report;
 import alluxio.cli.fsadmin.FileSystemAdminShellUtils;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.client.MetaMasterClient;
-import alluxio.conf.AlluxioConfiguration;
 import alluxio.grpc.MasterInfo;
 import alluxio.grpc.MasterInfoField;
 import alluxio.util.CommonUtils;
@@ -50,6 +49,7 @@ public class SummaryCommand {
    *
    * @param metaMasterClient client to connect to meta master
    * @param blockMasterClient client to connect to block master
+   * @param dateFormatPattern the pattern to follow when printing the date
    * @param printStream stream to print summary information to
    */
   public SummaryCommand(MetaMasterClient metaMasterClient,
@@ -58,7 +58,6 @@ public class SummaryCommand {
     mBlockMasterClient = blockMasterClient;
     mPrintStream = printStream;
     mDateFormatPattern = dateFormatPattern;
-
   }
 
   /**
@@ -88,7 +87,8 @@ public class SummaryCommand {
     print("Master Address: " + masterInfo.getLeaderMasterAddress());
     print("Web Port: " + masterInfo.getWebPort());
     print("Rpc Port: " + masterInfo.getRpcPort());
-    print("Started: " + CommonUtils.convertMsToDate(masterInfo.getStartTimeMs(), mDateFormatPattern));
+    print("Started: " + CommonUtils.convertMsToDate(masterInfo.getStartTimeMs(),
+        mDateFormatPattern));
     print("Uptime: " + CommonUtils.convertMsToClockTime(masterInfo.getUpTimeMs()));
     print("Version: " + masterInfo.getVersion());
     print("Safe Mode: " + masterInfo.getSafeMode());

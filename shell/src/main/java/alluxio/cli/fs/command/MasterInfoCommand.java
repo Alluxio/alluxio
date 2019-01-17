@@ -17,11 +17,12 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.master.MasterInquireClient;
+
 import org.apache.commons.cli.CommandLine;
 
-import javax.annotation.concurrent.ThreadSafe;
 import java.net.InetSocketAddress;
 import java.util.List;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Prints information regarding master fault tolerance such as leader address, list of master

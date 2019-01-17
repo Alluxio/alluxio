@@ -13,11 +13,9 @@ package alluxio.cli.job.command;
 
 import alluxio.cli.CommandUtils;
 import alluxio.cli.fs.command.AbstractFileSystemCommand;
-import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.job.JobContext;
 import alluxio.client.job.JobMasterClient;
-import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.resource.CloseableResource;

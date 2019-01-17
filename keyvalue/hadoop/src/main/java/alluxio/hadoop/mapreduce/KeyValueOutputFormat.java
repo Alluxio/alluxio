@@ -46,12 +46,13 @@ public final class KeyValueOutputFormat extends FileOutputFormat<BytesWritable, 
   private OutputCommitter mCommitter;
   private final AlluxioConfiguration mConf;
 
-
   /**
    * Constructs a new {@link KeyValueOutputFormat}.
+   *
+   * @param alluxioConf Alluxio's configuration
    */
-  public KeyValueOutputFormat(AlluxioConfiguration conf) {
-    mConf = conf;
+  public KeyValueOutputFormat(AlluxioConfiguration alluxioConf) {
+    mConf = alluxioConf;
   }
 
   /**
@@ -88,7 +89,8 @@ public final class KeyValueOutputFormat extends FileOutputFormat<BytesWritable, 
   public void checkOutputSpecs(JobContext jobContext) throws IOException {
     super.checkOutputSpecs(jobContext);
     try {
-      KeyValueSystem.Factory.create(mConf).createStore(KeyValueOutputFormat.getJobOutputURI(jobContext))
+      KeyValueSystem.Factory.create(mConf)
+          .createStore(KeyValueOutputFormat.getJobOutputURI(jobContext))
           .close();
     } catch (AlluxioException e) {
       throw new IOException(e);

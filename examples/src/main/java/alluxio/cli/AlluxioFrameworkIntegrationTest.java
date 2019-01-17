@@ -45,7 +45,7 @@ import java.util.Map.Entry;
 public final class AlluxioFrameworkIntegrationTest {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioFrameworkIntegrationTest.class);
 
-  private static final InstancedConfiguration sConf =
+  private static InstancedConfiguration sConf =
       new InstancedConfiguration(ConfigurationUtils.defaults());
 
   private static final String JDK_URL =

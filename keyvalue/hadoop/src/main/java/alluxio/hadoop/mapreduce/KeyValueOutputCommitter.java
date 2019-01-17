@@ -46,12 +46,13 @@ public final class KeyValueOutputCommitter extends FileOutputCommitter {
    *
    * @param outputPath the job's output path, or null if the output committer is a noop
    * @param taskContext the task's context
+   * @param alluxioConf Alluxio's configuration
    */
   public KeyValueOutputCommitter(Path outputPath, TaskAttemptContext taskContext,
-      AlluxioConfiguration conf)
+      AlluxioConfiguration alluxioConf)
       throws IOException {
     super(outputPath, taskContext);
-    mKeyValueSystem = KeyValueSystem.Factory.create(conf);
+    mKeyValueSystem = KeyValueSystem.Factory.create(alluxioConf);
   }
 
   /**

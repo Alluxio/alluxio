@@ -20,9 +20,9 @@ import static org.junit.Assert.assertNull;
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.client.ByteArrayOutStream;
-
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
+
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -137,7 +137,8 @@ public final class BaseKeyValuePartitionWriterTest {
   public void canPutKeyValue() throws Exception {
     long size = mWriter.byteCount() + KEY1.length + VALUE1.length + 2 * Constants.BYTES_IN_INTEGER;
     sConf.set(PropertyKey.KEY_VALUE_PARTITION_SIZE_BYTES_MAX, String.valueOf(size));
-    mWriter = new BaseKeyValuePartitionWriter(mOutStream, sConf.getBytes(PropertyKey.KEY_VALUE_PARTITION_SIZE_BYTES_MAX));
+    mWriter = new BaseKeyValuePartitionWriter(mOutStream,
+        sConf.getBytes(PropertyKey.KEY_VALUE_PARTITION_SIZE_BYTES_MAX));
     assertTrue(mWriter.canPut(KEY1, VALUE1));
     mWriter.put(KEY1, VALUE1);
     assertFalse(mWriter.canPut(KEY1, VALUE1));

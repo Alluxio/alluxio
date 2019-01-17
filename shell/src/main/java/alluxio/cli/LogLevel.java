@@ -98,14 +98,15 @@ public final class LogLevel {
    * Implements log level setting and getting.
    *
    * @param args list of arguments contains target, logName and level
+   * @param alluxioConf Alluxio's configuration
    * @exception ParseException if there is an error in parsing
    */
-  public static void logLevel(String[] args, AlluxioConfiguration conf) throws ParseException,
-                                                                               IOException {
+  public static void logLevel(String[] args, AlluxioConfiguration alluxioConf)
+      throws ParseException, IOException {
     CommandLineParser parser = new DefaultParser();
     CommandLine cmd = parser.parse(OPTIONS, args, true /* stopAtNonOption */);
 
-    List<TargetInfo> targets = parseOptTarget(cmd, conf);
+    List<TargetInfo> targets = parseOptTarget(cmd, alluxioConf);
     String logName = parseOptLogName(cmd);
     String level = parseOptLevel(cmd);
 
@@ -114,7 +115,8 @@ public final class LogLevel {
     }
   }
 
-  private static List<TargetInfo> parseOptTarget(CommandLine cmd, AlluxioConfiguration conf) throws IOException {
+  private static List<TargetInfo> parseOptTarget(CommandLine cmd, AlluxioConfiguration conf)
+      throws IOException {
     String[] targets;
     if (cmd.hasOption(TARGET_OPTION_NAME)) {
       String argTarget = cmd.getOptionValue(TARGET_OPTION_NAME);
@@ -131,7 +133,8 @@ public final class LogLevel {
     return getTargetInfos(targets, conf);
   }
 
-  private static List<TargetInfo> getTargetInfos(String[] targets, AlluxioConfiguration conf) throws IOException {
+  private static List<TargetInfo> getTargetInfos(String[] targets, AlluxioConfiguration conf)
+      throws IOException {
     List<TargetInfo> targetInfoList = new ArrayList<>();
     for (String target : targets) {
       if (target.equals(ROLE_MASTER)) {

@@ -22,11 +22,12 @@ import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.ReadPType;
+
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.codec.digest.DigestUtils;
 
-import javax.annotation.concurrent.ThreadSafe;
 import java.io.IOException;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Calculates the MD5 checksum for a file.
@@ -35,7 +36,7 @@ import java.io.IOException;
 public final class ChecksumCommand extends AbstractFileSystemCommand {
 
   /**
-   * @param fs the filesystem of Alluxio
+   * @param fsContext the filesystem of Alluxio
    */
   public ChecksumCommand(FileSystemContext fsContext) {
     super(fsContext);

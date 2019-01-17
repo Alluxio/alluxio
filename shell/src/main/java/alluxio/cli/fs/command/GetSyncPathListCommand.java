@@ -12,12 +12,11 @@
 package alluxio.cli.fs.command;
 
 import alluxio.cli.CommandUtils;
-import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
-import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.wire.SyncPointInfo;
+
 import org.apache.commons.cli.CommandLine;
 
 import java.io.IOException;

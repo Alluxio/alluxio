@@ -19,8 +19,8 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.WritePType;
-
 import alluxio.util.ConfigurationUtils;
+
 import org.apache.commons.io.IOUtils;
 
 /**

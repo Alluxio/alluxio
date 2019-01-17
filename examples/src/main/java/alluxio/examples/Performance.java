@@ -14,7 +14,6 @@ package alluxio.examples;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.client.file.FileSystemContext;
-import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.RuntimeConstants;
@@ -40,7 +39,6 @@ import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.channels.FileChannel.MapMode;
-import java.nio.file.Files;
 
 /**
  * Example to show the performance of Alluxio.
@@ -214,8 +212,9 @@ public final class Performance {
      * @param left the id of the worker on the left
      * @param right the id of the worker on the right
      * @param buf the buffer to write
+     * @param fs the filesystem client to use
      */
-    public AlluxioWriterWorker(int id, int left, int right, ByteBuffer buf, FileSystem fs) throws IOException {
+    public AlluxioWriterWorker(int id, int left, int right, ByteBuffer buf, FileSystem fs) {
       super(id, left, right, buf);
       mFileSystem = fs;
     }
@@ -267,8 +266,9 @@ public final class Performance {
      * @param left the id of the worker on the left
      * @param right the id of the worker on the right
      * @param buf the buffer to read
+     * @param fs the filesystem client to use
      */
-    public AlluxioReadWorker(int id, int left, int right, ByteBuffer buf, FileSystem fs) throws IOException {
+    public AlluxioReadWorker(int id, int left, int right, ByteBuffer buf, FileSystem fs) {
       super(id, left, right, buf);
       mFileSystem = fs;
     }
@@ -611,7 +611,6 @@ public final class Performance {
     conf.set(PropertyKey.MASTER_RPC_PORT, Integer.toString(masterAddress.getPort()));
 
     FileSystemContext fsContext = FileSystemContext.create(null, conf);
-
 
     if (testCase == 1) {
       sResultPrefix = "AlluxioFilesWriteTest " + sResultPrefix;

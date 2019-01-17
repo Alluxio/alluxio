@@ -16,10 +16,11 @@ import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystemContext;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
+
 import org.apache.commons.cli.CommandLine;
 
-import javax.annotation.concurrent.ThreadSafe;
 import java.io.IOException;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Unpins the given file or folder (recursively unpinning all children if a folder). Pinned files

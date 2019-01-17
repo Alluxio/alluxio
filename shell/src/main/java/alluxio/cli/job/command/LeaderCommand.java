@@ -13,10 +13,8 @@ package alluxio.cli.job.command;
 
 import alluxio.cli.CommandUtils;
 import alluxio.cli.fs.command.AbstractFileSystemCommand;
-import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.job.JobContext;
-import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.status.InvalidArgumentException;
 
 import org.apache.commons.cli.CommandLine;

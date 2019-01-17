@@ -12,7 +12,7 @@
 package alluxio.client.keyvalue;
 
 import alluxio.AlluxioURI;
-import alluxio.conf.*;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.AlluxioException;
 import alluxio.grpc.PartitionInfo;
 import alluxio.master.MasterClientConfig;

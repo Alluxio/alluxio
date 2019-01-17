@@ -33,9 +33,11 @@ public class JobMasterHealthCheckClient extends RpcPortHealthCheckClient {
    *
    * @param jobMasterAddress The potential job_master address
    * @param retryPolicySupplier the retry policy supplier
+   * @param alluxioConf Alluxio's configuration
    */
   public JobMasterHealthCheckClient(InetSocketAddress jobMasterAddress,
-      Supplier<RetryPolicy> retryPolicySupplier, AlluxioConfiguration conf) {
-    super(jobMasterAddress, ServiceType.JOB_MASTER_CLIENT_SERVICE, retryPolicySupplier, conf);
+      Supplier<RetryPolicy> retryPolicySupplier, AlluxioConfiguration alluxioConf) {
+    super(jobMasterAddress, ServiceType.JOB_MASTER_CLIENT_SERVICE, retryPolicySupplier,
+        alluxioConf);
   }
 }

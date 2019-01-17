@@ -17,10 +17,11 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.CreateDirectoryPOptions;
+
 import org.apache.commons.cli.CommandLine;
 
-import javax.annotation.concurrent.ThreadSafe;
 import java.io.IOException;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Creates a new directory specified by the path in args, including any parent folders that are

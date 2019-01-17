@@ -15,7 +15,6 @@ import static org.junit.Assert.assertEquals;
 
 import alluxio.ConfigurationRule;
 import alluxio.ConfigurationTestUtils;
-import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 
@@ -27,17 +26,17 @@ import org.junit.Test;
  * Unit tests for {@link JobContext}.
  */
 public final class JobContextTest {
-  private static final InstancedConfiguration sConfiguration = ConfigurationTestUtils.defaults();
+  private static InstancedConfiguration sConf = ConfigurationTestUtils.defaults();
 
   @Rule
   public ConfigurationRule mConf = new ConfigurationRule(ImmutableMap.of(
       PropertyKey.MASTER_HOSTNAME, "host1",
       PropertyKey.JOB_MASTER_HOSTNAME, "host2"
-  ), sConfiguration);
+  ), sConf);
 
   @Test
   public void getAddress() throws Exception {
-    try (JobContext context = JobContext.create(sConfiguration)) {
+    try (JobContext context = JobContext.create(sConf)) {
       assertEquals("host2", context.getJobMasterAddress().getHostName());
     }
   }

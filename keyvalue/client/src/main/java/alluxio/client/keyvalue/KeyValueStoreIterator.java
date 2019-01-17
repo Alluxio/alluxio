@@ -11,7 +11,7 @@
 
 package alluxio.client.keyvalue;
 
-import alluxio.conf.*;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.AlluxioException;
 import alluxio.grpc.PartitionInfo;
 
@@ -39,15 +39,16 @@ public final class KeyValueStoreIterator implements KeyValueIterator {
 
   /**
    * @param partitions the partitions to use
+   * @param alluxioConf Alluxio's configuration
    */
-  public KeyValueStoreIterator(List<PartitionInfo> partitions, AlluxioConfiguration conf)
+  public KeyValueStoreIterator(List<PartitionInfo> partitions, AlluxioConfiguration alluxioConf)
       throws IOException, AlluxioException {
     mPartitions = Preconditions.checkNotNull(partitions, "partitions");
-    mConf = conf;
+    mConf = alluxioConf;
     if (mPartitions.size() > 0) {
       mPartitionIndex = 0;
       long blockId = mPartitions.get(0).getBlockId();
-      KeyValuePartitionReader reader = KeyValuePartitionReader.Factory.create(blockId, conf);
+      KeyValuePartitionReader reader = KeyValuePartitionReader.Factory.create(blockId, alluxioConf);
       mPartitionIterator = reader.iterator();
     }
   }

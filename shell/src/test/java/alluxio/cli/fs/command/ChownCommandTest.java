@@ -11,10 +11,8 @@
 
 package alluxio.cli.fs.command;
 
-import alluxio.conf.InstancedConfiguration;
 import alluxio.exception.AlluxioException;
 
-import alluxio.util.ConfigurationUtils;
 import org.apache.commons.cli.CommandLine;
 import org.junit.After;
 import org.junit.Assert;
@@ -40,9 +38,6 @@ public class ChownCommandTest {
     System.setOut(null);
     System.setErr(null);
   }
-
-  private static final InstancedConfiguration sConf=
-      new InstancedConfiguration(ConfigurationUtils.defaults());
 
   @Test
   public void chownPanicIllegalOwnerName() throws AlluxioException, IOException {

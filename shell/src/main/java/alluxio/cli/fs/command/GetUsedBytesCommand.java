@@ -16,10 +16,11 @@ import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.exception.status.InvalidArgumentException;
+
 import org.apache.commons.cli.CommandLine;
 
-import javax.annotation.concurrent.ThreadSafe;
 import java.io.IOException;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Gets number of bytes used in the {@link FileSystem}.
@@ -47,7 +48,8 @@ public final class GetUsedBytesCommand extends AbstractFileSystemCommand {
 
   @Override
   public int run(CommandLine cl) throws IOException {
-    AlluxioBlockStore blockStore = AlluxioBlockStore.create(mFsContext.getClientContext().getConf());
+    AlluxioBlockStore blockStore = AlluxioBlockStore.create(mFsContext.getClientContext()
+        .getConf());
     long usedBytes = blockStore.getUsedBytes();
     System.out.println("Used Bytes: " + usedBytes);
     return 0;

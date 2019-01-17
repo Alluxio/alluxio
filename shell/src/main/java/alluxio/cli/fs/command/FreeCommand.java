@@ -20,14 +20,15 @@ import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.FreePOptions;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
+
 import com.google.common.base.Throwables;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
-import javax.annotation.concurrent.ThreadSafe;
 import java.io.IOException;
 import java.util.concurrent.TimeoutException;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Frees the given file or folder from Alluxio storage (recursively freeing all children if a
@@ -46,7 +47,7 @@ public final class FreeCommand extends AbstractFileSystemCommand {
   /**
    * Constructs a new instance to free the given file or folder from Alluxio.
    *
-   * @param fs the filesystem of Alluxio
+   * @param fsContext the filesystem of Alluxio
    */
   public FreeCommand(FileSystemContext fsContext) {
     super(fsContext);

@@ -17,8 +17,8 @@ import alluxio.client.file.FileSystem;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.exception.AlluxioException;
-
 import alluxio.util.ConfigurationUtils;
+
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 
@@ -70,11 +70,14 @@ public class RunOperation {
    * @param args command-line arguments
    */
   public static void main(String[] args) {
-    System.exit(new RunOperation(new InstancedConfiguration(ConfigurationUtils.defaults())).run(args));
+    System.exit(new RunOperation(new InstancedConfiguration(ConfigurationUtils.defaults()))
+        .run(args));
   }
 
   /**
    * Constructs a new {@link RunOperation} object.
+   *
+   * @param alluxioConf Alluxio's configuration
    */
   public RunOperation(AlluxioConfiguration alluxioConf) {
     mFileSystem = FileSystem.Factory.get(alluxioConf);
