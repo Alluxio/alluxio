@@ -24,6 +24,7 @@ import com.google.common.cache.LoadingCache;
 
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReadWriteLock;
 
 /**
@@ -74,22 +75,38 @@ public class InodeLockManager {
 
   @VisibleForTesting
   boolean inodeReadLockedByCurrentThread(long inodeId) {
-    return mInodeLocks.get(inodeId).get().getReadHoldCount() > 0;
+    LockCache<Long, WeakSafeReentrantReadWriteLock>.ValNode<WeakSafeReentrantReadWriteLock>
+        valNode = mInodeLocks.get(inodeId);
+    boolean result = valNode.get().getReadHoldCount() > 0;
+    valNode.getRefCounter().decrementAndGet();
+    return result;
   }
 
   @VisibleForTesting
   boolean inodeWriteLockedByCurrentThread(long inodeId) {
-    return mInodeLocks.get(inodeId).get().getWriteHoldCount() > 0;
+    LockCache<Long, WeakSafeReentrantReadWriteLock>.ValNode<WeakSafeReentrantReadWriteLock>
+        valNode = mInodeLocks.get(inodeId);
+    boolean result = valNode.get().getWriteHoldCount() > 0;
+    valNode.getRefCounter().decrementAndGet();
+    return result;
   }
 
   @VisibleForTesting
   boolean edgeReadLockedByCurrentThread(Edge edge) {
-    return mEdgeLocks.get(edge).get().getReadHoldCount() > 0;
+    LockCache<Edge, WeakSafeReentrantReadWriteLock>.ValNode<WeakSafeReentrantReadWriteLock>
+        valNode = mEdgeLocks.get(edge);
+    boolean result = valNode.get().getReadHoldCount() > 0;
+    valNode.getRefCounter().decrementAndGet();
+    return result;
   }
 
   @VisibleForTesting
   boolean edgeWriteLockedByCurrentThread(Edge edge) {
-    return mEdgeLocks.get(edge).get().getWriteHoldCount() > 0;
+    LockCache<Edge, WeakSafeReentrantReadWriteLock>.ValNode<WeakSafeReentrantReadWriteLock>
+        valNode = mEdgeLocks.get(edge);
+    boolean result = valNode.get().getWriteHoldCount() > 0;
+    valNode.getRefCounter().decrementAndGet();
+    return result;
   }
 
   /**
@@ -100,7 +117,9 @@ public class InodeLockManager {
    * @return a lock resource which must be closed to release the lock
    */
   public LockResource lockInode(InodeView inode, LockMode mode) {
-    return lock(mInodeLocks.get(inode.getId()).get(), mode);
+    LockCache<Long, WeakSafeReentrantReadWriteLock>.ValNode<WeakSafeReentrantReadWriteLock>
+    valNode = mInodeLocks.get(inode.getId());
+    return lock(valNode.get(), mode, valNode.getRefCounter());
   }
 
   /**
@@ -111,7 +130,9 @@ public class InodeLockManager {
    * @return a lock resource which must be closed to release the lock
    */
   public LockResource lockEdge(Edge edge, LockMode mode) {
-    return lock(mEdgeLocks.get(edge).get(), mode);
+    LockCache<Edge, WeakSafeReentrantReadWriteLock>.ValNode<WeakSafeReentrantReadWriteLock>
+    valNode = mEdgeLocks.get(edge);
+    return lock(valNode.get(), mode, valNode.getRefCounter());
   }
 
   /**
@@ -129,12 +150,12 @@ public class InodeLockManager {
     return Optional.empty();
   }
 
-  private LockResource lock(ReadWriteLock lock, LockMode mode) {
+  private LockResource lock(ReadWriteLock lock, LockMode mode, AtomicInteger refCounter) {
     switch (mode) {
       case READ:
-        return new LockResource(lock.readLock());
+        return new LockResource(lock.readLock(), refCounter);
       case WRITE:
-        return new LockResource(lock.writeLock());
+        return new LockResource(lock.writeLock(), refCounter);
       default:
         throw new IllegalStateException("Unknown lock mode: " + mode);
     }
