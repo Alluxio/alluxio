@@ -17,6 +17,7 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
+
 import org.apache.commons.cli.CommandLine;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -30,7 +31,7 @@ import java.util.List;
 public final class CountCommand extends AbstractFileSystemCommand {
 
   /**
-   * @param fs the filesystem of Alluxio
+   * @param fsContext the filesystem of Alluxio
    */
   public CountCommand(FileSystemContext fsContext) {
     super(fsContext);
@@ -62,10 +63,10 @@ public final class CountCommand extends AbstractFileSystemCommand {
     URIStatus status = mFileSystem.getStatus(path);
 
     if (!status.isFolder()) {
-      return new long[] { 1L, 0L, status.getLength() };
+      return new long[]{1L, 0L, status.getLength()};
     }
 
-    long[] rtn = new long[] { 0L, 1L, 0L };
+    long[] rtn = new long[]{0L, 1L, 0L};
 
     List<URIStatus> statuses;
     try {

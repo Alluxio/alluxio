@@ -13,8 +13,8 @@ package alluxio.client.keyvalue;
 
 import alluxio.ConfigurationTestUtils;
 import alluxio.client.ByteArrayOutStream;
-
 import alluxio.conf.PropertyKey;
+
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;

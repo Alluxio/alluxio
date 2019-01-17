@@ -24,11 +24,11 @@ import alluxio.grpc.LoadMetadataPType;
 import alluxio.util.CommonUtils;
 import alluxio.util.FormatUtils;
 import alluxio.util.SecurityUtils;
+
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
-import javax.annotation.concurrent.ThreadSafe;
 import java.io.IOException;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -36,6 +36,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Displays information for the path specified in args. Depends on different options, this command
@@ -140,6 +141,7 @@ public final class LsCommand extends AbstractFileSystemCommand {
    * @param inAlluxioPercentage whether the file is in Alluxio
    * @param persistenceState the persistence state of the file
    * @param path path of the file or folder
+   * @param dateFormatPattern the format to follow when printing dates
    * @return the formatted string according to acl and isFolder
    */
   public static String formatLsString(boolean hSize, boolean acl, boolean isFolder, String
@@ -158,12 +160,12 @@ public final class LsCommand extends AbstractFileSystemCommand {
 
     if (acl) {
       return String.format(LS_FORMAT, permission, userName, groupName,
-          sizeStr, persistenceState, CommonUtils.convertMsToDate(lastModifiedTime, dateFormatPattern),
-          inAlluxioState, path);
+          sizeStr, persistenceState, CommonUtils.convertMsToDate(lastModifiedTime,
+              dateFormatPattern), inAlluxioState, path);
     } else {
       return String.format(LS_FORMAT_NO_ACL, sizeStr,
-          persistenceState, CommonUtils.convertMsToDate(lastModifiedTime, dateFormatPattern), inAlluxioState,
-          path);
+          persistenceState, CommonUtils.convertMsToDate(lastModifiedTime, dateFormatPattern),
+          inAlluxioState, path);
     }
   }
 
@@ -186,7 +188,7 @@ public final class LsCommand extends AbstractFileSystemCommand {
    * Constructs a new instance to display information for all directories and files directly under
    * the path specified in args.
    *
-   * @param fs the filesystem of Alluxio
+   * @param fsContext the filesystem of Alluxio
    */
   public LsCommand(FileSystemContext fsContext) {
     super(fsContext);

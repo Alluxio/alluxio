@@ -22,10 +22,12 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.OpenFilePOptions;
+
 import org.apache.commons.cli.CommandLine;
 
-import javax.annotation.concurrent.ThreadSafe;
 import java.io.IOException;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Prints the file's contents to the console.

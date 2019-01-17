@@ -12,12 +12,9 @@
 package alluxio.client.job;
 
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.PropertyKey;
 import alluxio.exception.status.UnavailableException;
 import alluxio.master.MasterInquireClient;
 import alluxio.resource.CloseableResource;
-
-import com.google.common.annotations.VisibleForTesting;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -47,6 +44,7 @@ public final class JobContext implements Closeable  {
   /**
    * Creates a job context.
    *
+   * @param alluxioConf Alluxio's configuration
    * @return the context
    */
   public static JobContext create(AlluxioConfiguration alluxioConf) {

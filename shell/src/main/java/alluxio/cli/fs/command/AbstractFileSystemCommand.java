@@ -16,18 +16,17 @@ import alluxio.cli.Command;
 import alluxio.cli.fs.FileSystemShellUtils;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
-import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.AlluxioException;
-
 import alluxio.util.ConfigurationUtils;
+
 import com.google.common.base.Joiner;
 import org.apache.commons.cli.CommandLine;
 
-import javax.annotation.concurrent.ThreadSafe;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * The base class for all the FileSystem {@link alluxio.cli.Command} classes.

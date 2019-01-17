@@ -19,6 +19,7 @@ import alluxio.client.job.JobGrpcClientUtils;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.job.move.MoveConfig;
+
 import org.apache.commons.cli.CommandLine;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -31,7 +32,7 @@ import java.io.IOException;
 public final class DistributedMvCommand extends AbstractFileSystemCommand {
 
   /**
-   * @param fs the filesystem of Alluxio
+   * @param fsContext the filesystem of Alluxio
    */
   public DistributedMvCommand(FileSystemContext fsContext) {
     super(fsContext);
@@ -59,7 +60,7 @@ public final class DistributedMvCommand extends AbstractFileSystemCommand {
     thread.start();
     try {
       JobGrpcClientUtils.run(new MoveConfig(srcPath.getPath(), dstPath.getPath(), null, true),
-      3, mFsContext.getClientContext().getConf());
+          3, mFsContext.getClientContext().getConf());
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
       return -1;

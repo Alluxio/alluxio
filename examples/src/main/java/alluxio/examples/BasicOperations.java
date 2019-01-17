@@ -54,6 +54,7 @@ public class BasicOperations implements Callable<Boolean> {
    * @param filePath the path for the files
    * @param readType the {@link ReadPType}
    * @param writeType the {@link WritePType}
+   * @param fsContext the {@link FileSystemContext } to use for client operations
    */
   public BasicOperations(AlluxioURI filePath, ReadType readType, WriteType writeType,
       FileSystemContext fsContext) {

@@ -45,13 +45,15 @@ public final class JobGrpcClientUtils {
    *
    * @param config configuration for the job to run
    * @param attempts number of times to try running the job before giving up
+   * @param alluxioConf Alluxio's configuration
    */
-  public static void run(JobConfig config, int attempts, AlluxioConfiguration alluxioConf) throws InterruptedException {
+  public static void run(JobConfig config, int attempts, AlluxioConfiguration alluxioConf)
+      throws InterruptedException {
     CountingRetry retryPolicy = new CountingRetry(attempts);
     while (retryPolicy.attempt()) {
       long jobId;
-      try (JobMasterClient client =
-          JobMasterClient.Factory.create(JobMasterClientConfig.defaults(alluxioConf), alluxioConf)) {
+      try (JobMasterClient client = JobMasterClient.Factory.create(
+          JobMasterClientConfig.defaults(alluxioConf), alluxioConf)) {
         jobId = client.run(config);
       } catch (Exception e) {
         // job could not be started, retry
@@ -112,7 +114,8 @@ public final class JobGrpcClientUtils {
    * @param jobId the ID of the job to wait for
    * @return the job info for the job once it finishes or null if the job status cannot be fetched
    */
-  private static JobInfo waitFor(final long jobId, AlluxioConfiguration alluxioConf) throws InterruptedException {
+  private static JobInfo waitFor(final long jobId, AlluxioConfiguration alluxioConf)
+      throws InterruptedException {
     final AtomicReference<JobInfo> finishedJobInfo = new AtomicReference<>();
     try (final JobMasterClient client =
         JobMasterClient.Factory.create(JobMasterClientConfig.defaults(alluxioConf), alluxioConf)) {

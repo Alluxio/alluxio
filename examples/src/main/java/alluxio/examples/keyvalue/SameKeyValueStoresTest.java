@@ -35,7 +35,7 @@ import java.util.concurrent.Callable;
 public final class SameKeyValueStoresTest implements Callable<Boolean> {
   private static final Logger LOG = LoggerFactory.getLogger(SameKeyValueStoresTest.class);
 
-  private static final InstancedConfiguration sConf =
+  private static InstancedConfiguration sConf =
       new InstancedConfiguration(ConfigurationUtils.defaults());
 
   private final AlluxioURI mStoreUri1;

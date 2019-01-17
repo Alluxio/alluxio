@@ -43,7 +43,7 @@ public final class KeyValueStoreOperations implements Callable<Boolean> {
   private final int mPartitionLength = Constants.MB;
   private final int mNumKeyValuePairs = 10;
 
-  private static final InstancedConfiguration sConf =
+  private static InstancedConfiguration sConf =
       new InstancedConfiguration(ConfigurationUtils.defaults());
 
   private AlluxioURI mStoreUri;

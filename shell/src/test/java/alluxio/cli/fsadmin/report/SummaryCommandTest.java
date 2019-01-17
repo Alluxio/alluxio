@@ -42,7 +42,7 @@ import java.util.Map;
 
 public class SummaryCommandTest {
 
-  private static final AlluxioConfiguration sConf =
+  private static AlluxioConfiguration sConf =
       new InstancedConfiguration(ConfigurationUtils.defaults());
 
   private MetaMasterClient mMetaMasterClient;

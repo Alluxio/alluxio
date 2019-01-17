@@ -20,8 +20,8 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
 import alluxio.grpc.CreateFilePOptions;
-
 import alluxio.util.ConfigurationUtils;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,16 +41,15 @@ public class BasicCheckpoint implements Callable<Boolean> {
   private final int mNumFiles;
   private final FileSystemContext mFsContext;
 
-
   /**
    * @param fileFolder folder to use for the files
    * @param numFiles the number of files
+   * @param fsContext filesystem context to use for client operations
    */
   public BasicCheckpoint(String fileFolder, int numFiles, FileSystemContext fsContext) {
     mFileFolder = fileFolder;
     mNumFiles = numFiles;
     mFsContext = fsContext;
-
   }
 
   @Override

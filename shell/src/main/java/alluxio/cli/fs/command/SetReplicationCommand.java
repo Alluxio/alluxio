@@ -17,12 +17,13 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.SetAttributePOptions;
+
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
-import javax.annotation.concurrent.ThreadSafe;
 import java.io.IOException;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Changes the replication level of a file or directory specified by args.
@@ -41,7 +42,7 @@ public final class SetReplicationCommand extends AbstractFileSystemCommand {
           .build();
 
   /**
-   * @param fs the filesystem of Alluxio
+   * @param fsContext the filesystem of Alluxio
    */
   public SetReplicationCommand(FileSystemContext fsContext) {
     super(fsContext);

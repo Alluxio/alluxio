@@ -21,14 +21,15 @@ import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.ReadPType;
+
 import com.google.common.io.Closer;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
-import javax.annotation.concurrent.ThreadSafe;
 import java.io.IOException;
 import java.util.List;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Loads a file or directory in Alluxio space, making it resident in Alluxio.
@@ -46,7 +47,7 @@ public final class LoadCommand extends AbstractFileSystemCommand {
   /**
    * Constructs a new instance to load a file or directory in Alluxio space.
    *
-   * @param fs the filesystem of Alluxio
+   * @param fsContext the filesystem of Alluxio
    */
   public LoadCommand(FileSystemContext fsContext) {
     super(fsContext);

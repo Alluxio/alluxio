@@ -17,16 +17,17 @@ import alluxio.cli.fs.FileSystemShellUtils;
 import alluxio.client.file.FileSystemContext;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
+
 import jline.TerminalFactory;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.HelpFormatter;
 
-import javax.annotation.concurrent.ThreadSafe;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Command for print help message for the given command. If there isn't given command, print help
@@ -61,7 +62,7 @@ public final class HelpCommand extends AbstractFileSystemCommand {
   }
 
   /**
-   * @param fs the filesystem of Alluxio
+   * @param fsContext the filesystem of Alluxio
    */
   public HelpCommand(FileSystemContext fsContext) {
     super(fsContext);

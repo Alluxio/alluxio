@@ -11,7 +11,6 @@
 
 package alluxio.cli;
 
-import alluxio.client.RetryHandlingMetaMasterClient;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.ConfigurationValueOptions;
 import alluxio.conf.InstancedConfiguration;
@@ -136,25 +135,27 @@ public final class GetConf {
   /**
    * Implements create configuration.
    *
+   * @param alluxioConf Alluxio's configuration
    * @param args list of arguments
    * @return 0 on success, 1 on failures
    */
-  public static int getConf(AlluxioConfiguration conf, String... args) {
+  public static int getConf(AlluxioConfiguration alluxioConf, String... args) {
     return getConfImpl(
-        () -> new RetryHandlingMetaMasterConfigClient(MasterClientConfig.defaults(conf), conf),
-        conf, args);
+        () -> new RetryHandlingMetaMasterConfigClient(MasterClientConfig.defaults(alluxioConf),
+            alluxioConf), alluxioConf, args);
   }
 
   /**
    * Implements create configuration.
    *
    * @param clientSupplier a functor to return a config client of meta master
+   * @param alluxioConf Alluxio's configuration
    * @param args list of arguments
    * @return 0 on success, 1 on failures
    */
   @VisibleForTesting
   public static int getConfImpl(Supplier<RetryHandlingMetaMasterConfigClient> clientSupplier,
-      AlluxioConfiguration conf, String... args) {
+      AlluxioConfiguration alluxioConf, String... args) {
     CommandLineParser parser = new DefaultParser();
     CommandLine cmd;
     try {
@@ -176,11 +177,11 @@ public final class GetConf {
       }
     } else {
       // load local configuration
-      for (PropertyKey key : conf.keySet()) {
+      for (PropertyKey key : alluxioConf.keySet()) {
         if (key.isBuiltIn()) {
           ConfigProperty.Builder config = ConfigProperty.newBuilder().setName(key.getName())
-              .setSource(conf.getSource(key).toString());
-          String val = conf.getOrDefault(key, null,
+              .setSource(alluxioConf.getSource(key).toString());
+          String val = alluxioConf.getOrDefault(key, null,
               ConfigurationValueOptions.defaults().useDisplayValue(true));
           if (val != null) {
             config.setValue(val);

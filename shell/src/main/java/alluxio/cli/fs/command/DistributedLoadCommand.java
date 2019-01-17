@@ -19,6 +19,7 @@ import alluxio.client.job.JobGrpcClientUtils;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.job.load.LoadConfig;
+
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
@@ -37,7 +38,7 @@ public final class DistributedLoadCommand extends AbstractFileSystemCommand {
   /**
    * Constructs a new instance to load a file or directory in Alluxio space.
    *
-   * @param fs the filesystem of Alluxio
+   * @param fsContext the filesystem of Alluxio
    */
   public DistributedLoadCommand(FileSystemContext fsContext) {
     super(fsContext);
@@ -84,7 +85,7 @@ public final class DistributedLoadCommand extends AbstractFileSystemCommand {
    *
    * @param filePath The {@link AlluxioURI} path to load into Alluxio memory
    * @throws AlluxioException when Alluxio exception occurs
-   * @throws IOException when non-Alluxio exception occurs
+   * @throws IOException      when non-Alluxio exception occurs
    */
   private void load(AlluxioURI filePath, int replication)
       throws AlluxioException, IOException, InterruptedException {

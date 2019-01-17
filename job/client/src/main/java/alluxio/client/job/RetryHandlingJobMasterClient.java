@@ -47,6 +47,7 @@ public final class RetryHandlingJobMasterClient extends AbstractMasterClient
    * Creates a new job master client.
    *
    * @param conf master client configuration
+   * @param alluxioConf Alluxio's configuration
    */
   public RetryHandlingJobMasterClient(JobMasterClientConfig conf,
       AlluxioConfiguration alluxioConf) {
@@ -69,7 +70,8 @@ public final class RetryHandlingJobMasterClient extends AbstractMasterClient
   }
 
   @Override
-  protected void beforeConnect(Consumer<AlluxioConfiguration> configurationUpdateCallback) throws IOException {
+  protected void beforeConnect(Consumer<AlluxioConfiguration> configurationUpdateCallback)
+      throws IOException {
     // Job master client does not load cluster-default configuration because only the master
     // will use this client
   }

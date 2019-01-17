@@ -19,12 +19,13 @@ import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.TtlAction;
 import alluxio.util.CommonUtils;
+
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
-import javax.annotation.concurrent.ThreadSafe;
 import java.io.IOException;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Sets a new TTL value for the file at path both of the TTL value and the path are specified by
@@ -47,7 +48,7 @@ public final class SetTtlCommand extends AbstractFileSystemCommand {
   private long mTtlMs;
 
   /**
-   * @param fs the filesystem of Alluxio
+   * @param fsContext the filesystem of Alluxio
    */
   public SetTtlCommand(FileSystemContext fsContext) {
     super(fsContext);

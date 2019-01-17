@@ -37,6 +37,7 @@ public class BackupCommand extends AbstractFsAdminCommand {
           .build();
   /**
    * @param context fsadmin command context
+   * @param alluxioConf Alluxio's configuration
    */
   public BackupCommand(Context context, AlluxioConfiguration alluxioConf) {
     super(context);

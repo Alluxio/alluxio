@@ -16,10 +16,11 @@ import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.exception.status.InvalidArgumentException;
+
 import org.apache.commons.cli.CommandLine;
 
-import javax.annotation.concurrent.ThreadSafe;
 import java.io.IOException;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Gets the capacity of the {@link FileSystem}.
@@ -29,7 +30,7 @@ public final class GetCapacityBytesCommand extends AbstractFileSystemCommand {
   /**
    * Constructs a new instance to create the capacity of the {@link FileSystem}.
    *
-   * @param fs the filesystem of Alluxio
+   * @param fsContext the filesystem of Alluxio
    */
   public GetCapacityBytesCommand(FileSystemContext fsContext) {
     super(fsContext);

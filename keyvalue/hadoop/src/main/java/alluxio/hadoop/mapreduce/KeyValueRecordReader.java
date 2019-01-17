@@ -53,9 +53,11 @@ final class KeyValueRecordReader extends RecordReader<BytesWritable, BytesWritab
 
   /**
    * Creates a {@link KeyValueRecordReader} for generating key-value pairs of a partition.
+   *
+   * @param alluxioConf Alluxio's configuration
    */
-  public KeyValueRecordReader(AlluxioConfiguration conf) {
-    mConf = conf;
+  public KeyValueRecordReader(AlluxioConfiguration alluxioConf) {
+    mConf = alluxioConf;
   }
 
   @Override
@@ -67,7 +69,8 @@ final class KeyValueRecordReader extends RecordReader<BytesWritable, BytesWritab
         throw new IOException("Split is required to be KeyValueInputSplit");
       }
       mReader =
-          KeyValuePartitionReader.Factory.create(((KeyValueInputSplit) split).getPartitionId(), mConf);
+          KeyValuePartitionReader.Factory.create(((KeyValueInputSplit) split).getPartitionId(),
+              mConf);
       mKeyValuePairIterator = mReader.iterator();
       mNumVisitedKeyValuePairs = 0;
       mNumKeyValuePairs = mReader.size();

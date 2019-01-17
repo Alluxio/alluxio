@@ -11,16 +11,13 @@
 
 package alluxio.cli.job;
 
-import alluxio.ClientContext;
 import alluxio.Constants;
 import alluxio.client.file.FileSystemContext;
-import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.cli.AbstractShell;
 import alluxio.cli.Command;
 import alluxio.cli.CommandUtils;
-import alluxio.client.file.FileSystem;
 import alluxio.util.ConfigurationUtils;
 
 import com.google.common.collect.ImmutableMap;
@@ -69,9 +66,11 @@ public final class JobShell extends AbstractShell {
 
   /**
    * Creates a new instance of {@link JobShell}.
+   *
+   * @param alluxioConf Alluxio's configuration
    */
-  public JobShell(InstancedConfiguration conf) {
-    super(CMD_ALIAS, conf);
+  public JobShell(InstancedConfiguration alluxioConf) {
+    super(CMD_ALIAS, alluxioConf);
   }
 
   @Override
@@ -82,6 +81,7 @@ public final class JobShell extends AbstractShell {
   @Override
   protected Map<String, Command> loadCommands() {
     return CommandUtils.loadCommands(JobShell.class.getPackage().getName(),
-        new Class[] {FileSystemContext.class}, new Object[] {FileSystemContext.create(null, mConfiguration)});
+        new Class[] {FileSystemContext.class}, new Object[] {FileSystemContext.create(null,
+            mConfiguration)});
   }
 }

@@ -24,7 +24,7 @@ import alluxio.util.ConfigurationUtils;
  */
 public final class KeyValueStoreQuickStart {
 
-  private static final InstancedConfiguration sConf =
+  private static InstancedConfiguration sConf =
       new InstancedConfiguration(ConfigurationUtils.defaults());
 
   private KeyValueStoreQuickStart() {} // prevent instantiation

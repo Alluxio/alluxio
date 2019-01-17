@@ -16,9 +16,7 @@ import alluxio.Constants;
 import alluxio.HealthCheckClient;
 import alluxio.client.file.FileSystem;
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.InstancedConfiguration;
 import alluxio.util.CommonUtils;
-import alluxio.util.ConfigurationUtils;
 import alluxio.util.ShellUtils;
 
 import org.slf4j.Logger;
@@ -51,6 +49,8 @@ public class MasterHealthCheckClient implements HealthCheckClient {
 
     /**
      * Constructs the builder with default values.
+     *
+     * @param alluxioConf Alluxio's configuration
      */
     public Builder(AlluxioConfiguration alluxioConf) {
       mProcessCheck = true;
@@ -67,8 +67,13 @@ public class MasterHealthCheckClient implements HealthCheckClient {
       return this;
     }
 
-    public Builder withConfiguration(AlluxioConfiguration conf) {
-      mConf = conf;
+    /**
+     *
+     * @param alluxioConf Alluxio's configuration
+     * @return a builder which utlizes the given alluxio configuration
+     */
+    public Builder withConfiguration(AlluxioConfiguration alluxioConf) {
+      mConf = alluxioConf;
       return this;
     }
 
@@ -163,13 +168,14 @@ public class MasterHealthCheckClient implements HealthCheckClient {
    *
    * @param alluxioMasterName the Alluxio master process name
    * @param processCheck whether to check the AlluxioMaster process is alive
+   * @param alluxioConf Alluxio's configuration
    */
   public MasterHealthCheckClient(String alluxioMasterName, boolean processCheck,
-      AlluxioConfiguration conf) {
+      AlluxioConfiguration alluxioConf) {
     mAlluxioMasterName = alluxioMasterName;
     mProcessCheck = processCheck;
     mExecutorService = Executors.newFixedThreadPool(2);
-    mConf = conf;
+    mConf = alluxioConf;
   }
 
   @Override

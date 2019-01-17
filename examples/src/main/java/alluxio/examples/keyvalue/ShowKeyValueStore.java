@@ -27,7 +27,7 @@ import alluxio.util.io.BufferUtils;
  */
 public final class ShowKeyValueStore {
 
-  private static final InstancedConfiguration sConf =
+  private static InstancedConfiguration sConf =
       new InstancedConfiguration(ConfigurationUtils.defaults());
 
   private static void show(KeyValuePair pair, String scope) {

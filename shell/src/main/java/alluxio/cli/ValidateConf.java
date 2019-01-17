@@ -13,6 +13,7 @@ package alluxio.cli;
 
 import alluxio.conf.InstancedConfiguration;
 import alluxio.util.ConfigurationUtils;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

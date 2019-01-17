@@ -20,12 +20,13 @@ import alluxio.master.MasterInquireClient;
 import alluxio.master.PollingMasterInquireClient;
 import alluxio.resource.CloseableResource;
 import alluxio.retry.ExponentialBackoffRetry;
+
 import org.apache.commons.cli.CommandLine;
 
-import javax.annotation.concurrent.ThreadSafe;
 import java.net.InetSocketAddress;
 import java.util.Arrays;
 import java.util.List;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Prints the current leader master host name.

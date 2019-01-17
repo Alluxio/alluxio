@@ -43,9 +43,11 @@ public final class FileSystemAdminShell extends AbstractShell {
 
   /**
    * Construct a new instance of {@link FileSystemAdminShell}.
+   *
+   * @param alluxioConf Alluxio's configuration
    */
-  public FileSystemAdminShell(InstancedConfiguration conf) {
-    super(null, conf);
+  public FileSystemAdminShell(InstancedConfiguration alluxioConf) {
+    super(null, alluxioConf);
   }
 
   /**
@@ -73,12 +75,16 @@ public final class FileSystemAdminShell extends AbstractShell {
   @Override
   protected Map<String, Command> loadCommands() {
     Context context = new Context(
-        new RetryHandlingFileSystemMasterClient(MasterClientConfig.defaults(mConfiguration), mConfiguration),
-        new RetryHandlingBlockMasterClient(MasterClientConfig.defaults(mConfiguration), mConfiguration),
-        new RetryHandlingMetaMasterClient(MasterClientConfig.defaults(mConfiguration), mConfiguration),
+        new RetryHandlingFileSystemMasterClient(MasterClientConfig.defaults(mConfiguration),
+            mConfiguration),
+        new RetryHandlingBlockMasterClient(MasterClientConfig.defaults(mConfiguration),
+            mConfiguration),
+        new RetryHandlingMetaMasterClient(MasterClientConfig.defaults(mConfiguration),
+            mConfiguration),
         System.out
     );
     return CommandUtils.loadCommands(FileSystemAdminShell.class.getPackage().getName(),
-        new Class[] {Context.class, AlluxioConfiguration.class}, new Object[] {context, mConfiguration});
+        new Class[] {Context.class, AlluxioConfiguration.class}, new Object[] {context,
+            mConfiguration});
   }
 }
