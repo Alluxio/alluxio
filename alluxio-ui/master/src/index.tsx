@@ -15,7 +15,6 @@ import 'raf/polyfill';
 import {Action, createBrowserHistory, Location} from 'history';
 import React from 'react';
 import ReactDOM from 'react-dom';
-import {Helmet} from 'react-helmet';
 import {Provider} from 'react-redux';
 
 import configureStore from './configureStore';
@@ -54,11 +53,6 @@ const store = configureStore(history, initialState);
 
 ReactDOM.render(
   <React.Fragment>
-    <Helmet>
-      <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
-      <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-      <title>Alluxio Master</title>
-    </Helmet>
     <Provider store={store}>
       <App history={history}/>
     </Provider>

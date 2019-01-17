@@ -9,6 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
+import 'babel-polyfill';
 import 'raf/polyfill';
 import React from 'react';
 import ReactDOM from 'react-dom';
