@@ -668,7 +668,26 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
   @Override
   public int rmdir(String path) {
     LOG.trace("rmdir({})", path);
-    return rmInternal(path, true);
+    final AlluxioURI turi = mPathResolverCache.getUnchecked(path);
+
+    try {
+      DeleteOptions options = DeleteOptions.defaults().setRecursive(true);
+      mFileSystem.delete(turi, options);
+    } catch (FileDoesNotExistException e) {
+      LOG.debug("Directory does not exist {}", path, e);
+      return -ErrorCodes.ENOENT();
+    } catch (IOException e) {
+      LOG.error("IOException on {}", path, e);
+      return -ErrorCodes.EIO();
+    } catch (AlluxioException e) {
+      LOG.error("AlluxioException on {}", path, e);
+      return -ErrorCodes.EFAULT();
+    } catch (Throwable e) {
+      LOG.error("Unexpected exception on {}", path, e);
+      return -ErrorCodes.EFAULT();
+    }
+
+    return 0;
   }
 
   /**
@@ -690,7 +709,25 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
   @Override
   public int unlink(String path) {
     LOG.trace("unlink({})", path);
-    return rmInternal(path, false);
+    final AlluxioURI turi = mPathResolverCache.getUnchecked(path);
+
+    try {
+      mFileSystem.delete(turi);
+    } catch (FileDoesNotExistException e) {
+      LOG.debug("File does not exist {}", path, e);
+      return -ErrorCodes.ENOENT();
+    } catch (IOException e) {
+      LOG.error("IOException on {}", path, e);
+      return -ErrorCodes.EIO();
+    } catch (AlluxioException e) {
+      LOG.error("AlluxioException on {}", path, e);
+      return -ErrorCodes.EFAULT();
+    } catch (Throwable e) {
+      LOG.error("Unexpected exception on {}", path, e);
+      return -ErrorCodes.EFAULT();
+    }
+
+    return 0;
   }
 
   /**
