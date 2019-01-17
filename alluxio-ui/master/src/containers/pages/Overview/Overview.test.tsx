@@ -21,14 +21,14 @@ import sinon from 'sinon';
 import configureStore from '../../../configureStore'
 import {initialState, IApplicationState} from '../../../store';
 import ConnectedApp from '../../App/App';
-import {Overview} from './Overview';
+import {AllProps, Overview} from './Overview';
 
 configure({adapter: new Adapter()});
 
 describe('Overview', () => {
   let history: History<LocationState>;
   let store: Store<IApplicationState>;
-  let props: any;
+  let props: AllProps;
 
   beforeAll(() => {
     history = createBrowserHistory({keyLength: 0});

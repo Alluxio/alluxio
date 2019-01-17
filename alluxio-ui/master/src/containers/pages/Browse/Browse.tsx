@@ -55,7 +55,7 @@ interface IBrowseState {
   textAreaHeight?: number;
 }
 
-type AllProps = IPropsFromState & IPropsFromDispatch;
+export type AllProps = IPropsFromState & IPropsFromDispatch;
 
 export class Browse extends React.Component<AllProps, IBrowseState> {
   private readonly textAreaResizeMs = 100;

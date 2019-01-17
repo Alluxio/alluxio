@@ -45,7 +45,7 @@ interface IDataState {
   }
 }
 
-type AllProps = IPropsFromState & IPropsFromDispatch;
+export type AllProps = IPropsFromState & IPropsFromDispatch;
 
 export class Data extends React.Component<AllProps, IDataState> {
   constructor(props: AllProps) {

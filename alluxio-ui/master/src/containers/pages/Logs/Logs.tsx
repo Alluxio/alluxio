@@ -51,7 +51,7 @@ interface ILogsState {
   textAreaHeight?: number;
 }
 
-type AllProps = IPropsFromState & IPropsFromDispatch;
+export type AllProps = IPropsFromState & IPropsFromDispatch;
 
 export class Logs extends React.Component<AllProps, ILogsState> {
   private readonly textAreaResizeMs = 100;

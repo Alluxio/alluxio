@@ -20,7 +20,7 @@ import sinon from 'sinon';
 
 import configureStore from '../../configureStore'
 import {initialState, IApplicationState} from '../../store';
-import ConnectedApp, {App} from './App';
+import ConnectedApp, {AllProps, App} from './App';
 
 configure({adapter: new Adapter()});
 
@@ -38,7 +38,7 @@ describe('App', () => {
     let shallowWrapper: ShallowWrapper;
 
     beforeAll(() => {
-      const props = {
+      const props: AllProps = {
         triggerRefresh: sinon.spy(() => {})
       };
       shallowWrapper = shallow(<App {...props} history={history}/>);

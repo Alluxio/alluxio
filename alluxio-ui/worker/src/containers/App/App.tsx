@@ -33,7 +33,7 @@ interface IAppProps {
   history: History<LocationState>;
 }
 
-type AllProps = IPropsFromDispatch & IAppProps;
+export type AllProps = IPropsFromDispatch & IAppProps;
 
 export class App extends React.Component<AllProps> {
   private readonly refreshInterval = 30000;

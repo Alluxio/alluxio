@@ -32,7 +32,7 @@ interface IPropsFromDispatch {
   fetchRequest: typeof fetchRequest;
 }
 
-type AllProps = IPropsFromState & IPropsFromDispatch;
+export type AllProps = IPropsFromState & IPropsFromDispatch;
 
 export class Overview extends React.Component<AllProps> {
   public componentDidUpdate(prevProps: AllProps) {

@@ -50,7 +50,7 @@ interface IBlockInfoState {
   };
 }
 
-type AllProps = IPropsFromState & IPropsFromDispatch;
+export type AllProps = IPropsFromState & IPropsFromDispatch;
 
 export class BlockInfo extends React.Component<AllProps, IBlockInfoState> {
   constructor(props: AllProps) {
