@@ -26,7 +26,7 @@ import alluxio.util.proto.ProtoUtils;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Preconditions;
-import com.google.protobuf.ByteString;
+import com.google.protobuf.UnsafeByteOperations;
 import io.netty.buffer.ByteBuf;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -160,10 +160,9 @@ public final class GrpcDataWriter implements DataWriter {
   public void writeChunk(final ByteBuf buf) throws IOException {
     mPosToQueue += buf.readableBytes();
     try {
-      // TODO(bf8086): find a way to do zero-copy data streaming
       mStream.send(WriteRequest.newBuilder().setCommand(mPartialRequest).setChunk(
           Chunk.newBuilder()
-              .setData(ByteString.copyFrom(buf.nioBuffer()))
+              .setData(UnsafeByteOperations.unsafeWrap(buf.nioBuffer()))
               .build()).build(),
           mDataTimeoutMs);
     } finally {
