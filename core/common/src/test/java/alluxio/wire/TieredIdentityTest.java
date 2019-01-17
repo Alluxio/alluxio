@@ -56,13 +56,17 @@ public class TieredIdentityTest {
 
     boolean resolveIp = mConfiguration.getBoolean(PropertyKey.LOCALITY_COMPARE_NODE_IP);
     assertSame(id1, TieredIdentityUtils
-        .nearest(TieredIdentityFactory.fromString("node=D,rack=rack1", mConfiguration), identities, resolveIp).get());
+        .nearest(TieredIdentityFactory.fromString("node=D,rack=rack1", mConfiguration), identities,
+            resolveIp).get());
     assertSame(id2, TieredIdentityUtils
-        .nearest(TieredIdentityFactory.fromString("node=B,rack=rack2", mConfiguration), identities, resolveIp).get());
+        .nearest(TieredIdentityFactory.fromString("node=B,rack=rack2", mConfiguration), identities,
+            resolveIp).get());
     assertSame(id3, TieredIdentityUtils
-        .nearest(TieredIdentityFactory.fromString("node=C,rack=rack2", mConfiguration), identities, resolveIp).get());
+        .nearest(TieredIdentityFactory.fromString("node=C,rack=rack2", mConfiguration), identities,
+            resolveIp).get());
     assertSame(id1, TieredIdentityUtils
-        .nearest(TieredIdentityFactory.fromString("node=D,rack=rack3", mConfiguration), identities, resolveIp).get());
+        .nearest(TieredIdentityFactory.fromString("node=D,rack=rack3", mConfiguration), identities,
+            resolveIp).get());
   }
 
   @Test

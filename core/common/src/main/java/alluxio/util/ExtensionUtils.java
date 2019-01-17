@@ -29,6 +29,7 @@ public final class ExtensionUtils {
   /**
    * List extension jars from the configured extensions directory.
    *
+   * @param extensionDir the directory containing extensions
    * @return an array of files (one file per jar)
    */
   public static File[] listExtensions(String extensionDir) {

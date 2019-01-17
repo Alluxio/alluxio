@@ -41,7 +41,8 @@ public class SaslParticipantProviderPlain implements SaslParticipantProvider {
   }
 
   @Override
-  public SaslClient createSaslClient(Subject subject, AlluxioConfiguration conf) throws UnauthenticatedException {
+  public SaslClient createSaslClient(Subject subject, AlluxioConfiguration conf)
+      throws UnauthenticatedException {
     String username = null;
     String password = "noPassword";
 
@@ -84,7 +85,8 @@ public class SaslParticipantProviderPlain implements SaslParticipantProvider {
   }
 
   @Override
-  public SaslServer createSaslServer(String serverName, AlluxioConfiguration conf) throws SaslException {
+  public SaslServer createSaslServer(String serverName, AlluxioConfiguration conf)
+      throws SaslException {
     return createSaslServer(new Runnable() {
       @Override
       public void run() {}
@@ -92,11 +94,13 @@ public class SaslParticipantProviderPlain implements SaslParticipantProvider {
   }
 
   @Override
-  public SaslServer createSaslServer(Runnable runnable, String serverName, AlluxioConfiguration conf) throws SaslException {
+  public SaslServer createSaslServer(Runnable runnable, String serverName,
+      AlluxioConfiguration conf) throws SaslException {
     AuthType authType =
         conf.getEnum(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.class);
     AuthenticationProvider provider = AuthenticationProvider.Factory.create(authType, conf);
     return Sasl.createSaslServer(PlainSaslServerProvider.MECHANISM, null, serverName,
-        new HashMap<String, String>(), new PlainSaslServerCallbackHandler(provider, runnable, conf));
+        new HashMap<String, String>(), new PlainSaslServerCallbackHandler(provider, runnable,
+            conf));
   }
 }

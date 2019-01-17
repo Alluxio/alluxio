@@ -23,10 +23,12 @@ public class MasterClientConfig {
   private MasterInquireClient mMasterInquireClient;
 
   /**
+   * @param conf Alluxio's configuration
    * @return a master client configuration with default values
    */
   public static MasterClientConfig defaults(AlluxioConfiguration conf) {
-    return new MasterClientConfig().withMasterInquireClient(MasterInquireClient.Factory.create(conf));
+    return new MasterClientConfig().withMasterInquireClient(
+        MasterInquireClient.Factory.create(conf));
   }
 
   /**

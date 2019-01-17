@@ -32,6 +32,7 @@ public final class ModeUtils {
    * Applies the default umask for newly created files to this mode.
    *
    * @param mode the mode to update
+   * @param authUmask the umask to apply on the file
    * @return the updated object
    */
   public static Mode applyFileUMask(Mode mode, String authUmask) {
@@ -44,6 +45,7 @@ public final class ModeUtils {
    * Applies the default umask for newly created directories to this mode.
    *
    * @param mode the mode to update
+   * @param authUmask the umask to apply on the directory
    * @return the updated object
    */
   public static Mode applyDirectoryUMask(Mode mode, String authUmask) {

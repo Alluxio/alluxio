@@ -11,9 +11,9 @@
 
 package alluxio.util;
 
-import alluxio.conf.AlluxioProperties;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
+
 import com.google.common.collect.Lists;
 import org.junit.Assert;
 import org.junit.Ignore;
@@ -30,7 +30,8 @@ public final class JvmPauseMonitorTest {
     long warnThreshold = conf.getMs(PropertyKey.JVM_MONITOR_WARN_THRESHOLD_MS);
     long infoThreshold = conf.getMs(PropertyKey.JVM_MONITOR_INFO_THRESHOLD_MS);
 
-    JvmPauseMonitor jvmPauseMonitor = new JvmPauseMonitor(gcSleepInterval, warnThreshold, infoThreshold);
+    JvmPauseMonitor jvmPauseMonitor = new JvmPauseMonitor(gcSleepInterval, warnThreshold,
+        infoThreshold);
     jvmPauseMonitor.start();
     List<String> list = Lists.newArrayList();
     int i = 0;

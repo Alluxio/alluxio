@@ -46,8 +46,10 @@ public class SaslStreamServerDriver implements StreamObserver<SaslMessage> {
    * Creates {@link SaslStreamServerDriver} for given {@link AuthenticationServer}.
    *
    * @param authenticationServer authentication server
+   * @param conf Alluxio's configuration
    */
-  public SaslStreamServerDriver(AuthenticationServer authenticationServer, AlluxioConfiguration conf) {
+  public SaslStreamServerDriver(AuthenticationServer authenticationServer,
+      AlluxioConfiguration conf) {
     mAuthenticationServer = authenticationServer;
     mConfiguration = conf;
   }
@@ -72,7 +74,8 @@ public class SaslStreamServerDriver implements StreamObserver<SaslMessage> {
         AuthType authType = AuthType.valueOf(saslMessage.getAuthenticationName());
         // TODO(ggezer) wire server name?
         mSaslServer =
-            SaslParticipantProvider.Factory.create(authType).createSaslServer("localhost", mConfiguration);
+            SaslParticipantProvider.Factory.create(authType).createSaslServer("localhost",
+                mConfiguration);
         mSaslHandshakeServerHandler =
             SaslHandshakeServerHandler.Factory.create(authType, mSaslServer);
         // Unregister from registry if in case it was authenticated before.

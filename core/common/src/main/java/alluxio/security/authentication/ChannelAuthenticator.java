@@ -29,7 +29,6 @@ import io.grpc.stub.StreamObserver;
 
 import javax.security.auth.Subject;
 import javax.security.sasl.SaslClient;
-import java.security.Security;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -62,6 +61,7 @@ public class ChannelAuthenticator {
    * Creates {@link ChannelAuthenticator} instance.
    *
    * @param subject javax subject to use for authentication
+   * @param conf Alluxio's configuration
    */
   public ChannelAuthenticator(Subject subject, AlluxioConfiguration conf) {
     mUseSubject = true;
@@ -94,6 +94,7 @@ public class ChannelAuthenticator {
    * the channel based on authentication type.
    *
    * @param managedChannel the managed channel for whch authentication is taking place
+   * @param conf Alluxio's configuration
    * @return channel that is augmented for authentication
    * @throws UnauthenticatedException
    */

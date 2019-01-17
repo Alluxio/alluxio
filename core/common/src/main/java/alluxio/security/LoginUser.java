@@ -51,6 +51,11 @@ public final class LoginUser {
    * runs Alluxio client. When Alluxio client gets a user by this method and connects to Alluxio
    * service, this user represents the client and is maintained in service.
    *
+   * Note that until if the authentication type or login user changes between the first
+   * invocation of this method that it is possible the cached user won't respect the updated
+   * configuration properties.
+   *
+   * @param conf Alluxio's current configuration
    * @return the login user
    */
   public static User get(AlluxioConfiguration conf) throws UnauthenticatedException {

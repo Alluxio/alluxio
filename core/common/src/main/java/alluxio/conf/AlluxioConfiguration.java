@@ -16,7 +16,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Alluxio configuration.
@@ -178,11 +177,11 @@ public interface AlluxioConfiguration {
   Map<String, String> getNestedProperties(PropertyKey prefixKey);
 
   /**
-   * Gets a copy of the AlluioxProperties which back the AlluxioConfiguration
+   * Gets the {@link AlluxioProperties} which back the {@link AlluxioConfiguration}.
    *
+   * @return A set of AlluxioProperties representing the configuration
    */
   AlluxioProperties getProperties();
-
 
   /**
    * @param key the property key
@@ -214,8 +213,7 @@ public interface AlluxioConfiguration {
 
   /**
    * Determines whether or not the cluster defaults have been loaded into this configuration.
-   * @return
+   * @return whether or not the cluster defaults were loaded for this configuration
    */
   boolean clusterDefaultsLoaded();
-
 }

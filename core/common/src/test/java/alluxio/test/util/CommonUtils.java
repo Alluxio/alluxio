@@ -93,7 +93,7 @@ public final class CommonUtils {
    * @param excludedFields names of fields which should not impact equality
    */
   public static <T> void testEquals(Class<T> clazz, String... excludedFields) {
-    testEquals(clazz,null, null, excludedFields);
+    testEquals(clazz, null, null, excludedFields);
   }
 
   public static <T> void testEquals(Class<T> clazz, Class<?>[] ctorClassArgs,
@@ -118,26 +118,6 @@ public final class CommonUtils {
       equalsTester.addEqualityGroup(instance);
     }
     equalsTester.testEquals();
-  }
-
-  /**
-   * @param clazz a class
-   * @return an object of the given class with fields set according to the first values returned by
-   *         {@link #getValuesForFieldType(Class)}
-   */
-  private static <T> T createBaseObject(Class<T> clazz) {
-    try {
-      Constructor<T> constructor = clazz.getDeclaredConstructor();
-      constructor.setAccessible(true);
-      T instance = constructor.newInstance();
-      for (Field field : getNonStaticFields(clazz)) {
-        field.setAccessible(true);
-        field.set(instance, getValuesForFieldType(field.getType()).get(0));
-      }
-      return instance;
-    } catch (Exception e) {
-      throw new RuntimeException(e);
-    }
   }
 
   /**
@@ -182,7 +162,6 @@ public final class CommonUtils {
       throw new RuntimeException(e);
     }
   }
-
 
   /**
    * Returns a list of at least two values of the given type.

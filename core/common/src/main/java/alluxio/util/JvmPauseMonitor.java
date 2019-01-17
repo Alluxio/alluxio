@@ -58,6 +58,9 @@ public final class JvmPauseMonitor {
 
   /**
    * Constructs JvmPauseMonitor.
+   * @param gcSleepIntervalMs The time in milliseconds to sleep for in checking for GC pauses
+   * @param warnThresholdMs when gc pauses exceeds this time in milliseconds log WARN
+   * @param infoThresholdMs when gc pauses exceeds this time in milliseconds log INFO
    */
   public JvmPauseMonitor(long gcSleepIntervalMs, long warnThresholdMs, long infoThresholdMs) {
     mGcSleepIntervalMs = gcSleepIntervalMs;

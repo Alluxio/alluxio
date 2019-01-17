@@ -201,6 +201,11 @@ public class AlluxioProperties {
     }
   }
 
+  /**
+   * Makes a copy of the backing properties and returns them in a new object.
+   *
+   * @return a copy of the current properties
+   */
   public AlluxioProperties copy() {
     return new AlluxioProperties(this);
   }

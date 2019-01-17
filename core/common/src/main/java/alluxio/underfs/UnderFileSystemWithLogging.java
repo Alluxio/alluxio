@@ -59,13 +59,14 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
   private final String mPath;
   private final AlluxioConfiguration mConfiguration;
 
-
   /**
    * Creates a new {@link UnderFileSystemWithLogging} which forwards all calls to the provided
    * {@link UnderFileSystem} implementation.
    *
    * @param path the UFS path
    * @param ufs the implementation which will handle all the calls
+   * @param conf Alluxio's configuration
+   *
    */
   // TODO(adit): Remove this method. ALLUXIO-2643.
   UnderFileSystemWithLogging(String path, UnderFileSystem ufs, AlluxioConfiguration conf) {
@@ -73,7 +74,6 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
     mPath = path;
     mUnderFileSystem = ufs;
     mConfiguration = conf;
-
   }
 
   @Override
@@ -765,7 +765,8 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
   // TODO(calvin): General tag logic should be in getMetricName
   private String getQualifiedMetricName(String metricName) {
     try {
-      if (SecurityUtils.isAuthenticationEnabled(mConfiguration) && AuthenticatedClientUser.get(mConfiguration) != null) {
+      if (SecurityUtils.isAuthenticationEnabled(mConfiguration)
+          && AuthenticatedClientUser.get(mConfiguration) != null) {
         return Metric.getMetricNameWithTags(metricName, CommonMetrics.TAG_USER,
             AuthenticatedClientUser.get(mConfiguration).getName(), WorkerMetrics.TAG_UFS,
             MetricsSystem.escape(new AlluxioURI(mPath)), WorkerMetrics.TAG_UFS_TYPE,

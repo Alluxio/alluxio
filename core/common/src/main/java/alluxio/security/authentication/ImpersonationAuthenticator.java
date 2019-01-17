@@ -49,6 +49,8 @@ public final class ImpersonationAuthenticator {
 
   /**
    * Constructs a new {@link ImpersonationAuthenticator}.
+   *
+   * @param conf conf Alluxio's configuration
    */
   public ImpersonationAuthenticator(AlluxioConfiguration conf) {
     mImpersonationGroups = new HashMap<>();

@@ -75,10 +75,11 @@ public final class CommonUtils {
   }
 
   /**
+   * @param tmpDirs the list of possible temporary directories to pick from
    * @return a path to a temporary directory based on the user configuration
    */
   public static String getTmpDir(List<String> tmpDirs) {
-    Preconditions.checkState(!tmpDirs.isEmpty(), "No temporary directories configured");
+    Preconditions.checkState(!tmpDirs.isEmpty(), "No temporary directories available");
     if (tmpDirs.size() == 1) {
       return tmpDirs.get(0);
     }
@@ -88,6 +89,7 @@ public final class CommonUtils {
 
   /**
    * @param storageDir the root of a storage directory in tiered storage
+   * @param conf Alluxio's current configuration
    *
    * @return the worker data folder path after each storage directory, the final path will be like
    * "/mnt/ramdisk/alluxioworker" for storage dir "/mnt/ramdisk" by appending
@@ -312,9 +314,11 @@ public final class CommonUtils {
    * Gets the primary group name of a user.
    *
    * @param userName Alluxio user name
+   * @param conf Alluxio's configuration
    * @return primary group name
    */
-  public static String getPrimaryGroupName(String userName, AlluxioConfiguration conf) throws IOException {
+  public static String getPrimaryGroupName(String userName, AlluxioConfiguration conf)
+      throws IOException {
     List<String> groups = getGroups(userName, conf);
     return (groups != null && groups.size() > 0) ? groups.get(0) : "";
   }
@@ -323,6 +327,7 @@ public final class CommonUtils {
    * Using {@link CachedGroupMapping} to get the group list of a user.
    *
    * @param userName Alluxio user name
+   * @param conf Alluxio's configuration
    * @return the group list of the user
    */
   public static List<String> getGroups(String userName, AlluxioConfiguration conf)
@@ -582,6 +587,7 @@ public final class CommonUtils {
 
   /**
    * @param address the Alluxio worker network address
+   * @param conf Alluxio's configuration
    * @return true if the worker is local
    */
   public static boolean isLocalHost(WorkerNetAddress address, AlluxioConfiguration conf) {
@@ -592,6 +598,7 @@ public final class CommonUtils {
    * Converts a millisecond number to a formatted date String.
    *
    * @param millis a long millisecond number
+   * @param dateFormatPattern the date format to follow when converting. i.e. mm-dd-yyyy
    * @return formatted date String
    */
   public static String convertMsToDate(long millis, String dateFormatPattern) {

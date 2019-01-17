@@ -59,6 +59,7 @@ public final class ZkMasterInquireClient implements MasterInquireClient, Closeab
    * @param zookeeperAddress the address for Zookeeper
    * @param electionPath the path of the master election
    * @param leaderPath the path of the leader
+   * @param inquireRetryCount the number of times to retry connections
    * @return the client
    */
   public static synchronized ZkMasterInquireClient getClient(String zookeeperAddress,
@@ -66,7 +67,8 @@ public final class ZkMasterInquireClient implements MasterInquireClient, Closeab
     ZkMasterConnectDetails connectDetails =
         new ZkMasterConnectDetails(zookeeperAddress, leaderPath);
     if (!sCreatedClients.containsKey(connectDetails)) {
-      sCreatedClients.put(connectDetails, new ZkMasterInquireClient(connectDetails, electionPath, inquireRetryCount));
+      sCreatedClients.put(connectDetails, new ZkMasterInquireClient(connectDetails, electionPath,
+          inquireRetryCount));
     }
     return sCreatedClients.get(connectDetails);
   }
@@ -77,7 +79,8 @@ public final class ZkMasterInquireClient implements MasterInquireClient, Closeab
    * @param connectDetails connect details
    * @param electionPath the path of the master election
    */
-  private ZkMasterInquireClient(ZkMasterConnectDetails connectDetails, String electionPath, int inquireRetryCount) {
+  private ZkMasterInquireClient(ZkMasterConnectDetails connectDetails, String electionPath,
+      int inquireRetryCount) {
     mConnectDetails = connectDetails;
     mElectionPath = electionPath;
 

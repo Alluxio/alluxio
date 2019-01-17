@@ -34,6 +34,7 @@ public abstract class AbstractMasterClient extends AbstractClient {
    * Creates a new master client base.
    *
    * @param clientConf master client configuration
+   * @param alluxioConf Alluxio's configuration
    */
   public AbstractMasterClient(MasterClientConfig clientConf, AlluxioConfiguration alluxioConf) {
     super(clientConf.getSubject(), alluxioConf, null);
@@ -46,6 +47,7 @@ public abstract class AbstractMasterClient extends AbstractClient {
    * @param clientConf master client configuration
    * @param address address to connect to
    * @param retryPolicySupplier retry policy to use
+   * @param alluxioConf Alluxio's configuration
    */
   public AbstractMasterClient(MasterClientConfig clientConf, AlluxioConfiguration alluxioConf,
       InetSocketAddress address, Supplier<RetryPolicy> retryPolicySupplier) {

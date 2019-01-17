@@ -58,11 +58,12 @@ public class DefaultAuthenticationServer
   /** Interval for clean-up task to fire. */
   protected final long mCleanupIntervalMs;
 
-
   private final AlluxioConfiguration mConfiguration;
 
   /**
    * Creates {@link DefaultAuthenticationServer} instance.
+   *
+   * @param conf Alluxio's configuration
    */
   public DefaultAuthenticationServer(AlluxioConfiguration conf) {
     checkSupported(conf.getEnum(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.class));
@@ -167,7 +168,8 @@ public class DefaultAuthenticationServer
       return Collections.emptyList();
     }
     List<ServerInterceptor> interceptorsList = new ArrayList<>();
-    AuthType authType = mConfiguration.getEnum(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.class);
+    AuthType authType = mConfiguration.getEnum(PropertyKey.SECURITY_AUTHENTICATION_TYPE,
+        AuthType.class);
     checkSupported(authType);
     switch (authType) {
       case SIMPLE:

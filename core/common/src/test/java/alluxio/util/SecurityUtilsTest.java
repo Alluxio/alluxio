@@ -29,8 +29,8 @@ public final class SecurityUtilsTest {
   private InstancedConfiguration mConfiguration;
 
   @Before
-  public void before(){
-    mConfiguration = new InstancedConfiguration(ConfigurationUtils.defaults());
+  public void before() {
+    mConfiguration = ConfigurationTestUtils.defaults();
   }
 
   @After

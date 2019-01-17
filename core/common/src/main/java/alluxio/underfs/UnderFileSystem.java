@@ -87,9 +87,11 @@ public interface UnderFileSystem extends Closeable {
      *
      * @param path path
      * @param ufsConf optional configuration object for the UFS, may be null
+     * @param alluxioConf Alluxio's configuration
      * @return client for the under file system
      */
-    public static UnderFileSystem create(String path, UnderFileSystemConfiguration ufsConf, AlluxioConfiguration alluxioConf) {
+    public static UnderFileSystem create(String path, UnderFileSystemConfiguration ufsConf,
+        AlluxioConfiguration alluxioConf) {
       // Try to obtain the appropriate factory
       List<UnderFileSystemFactory> factories =
           UnderFileSystemFactoryRegistry.findAll(path, ufsConf, alluxioConf);
@@ -106,7 +108,8 @@ public interface UnderFileSystem extends Closeable {
           // when creation is done.
           Thread.currentThread().setContextClassLoader(factory.getClass().getClassLoader());
           // Use the factory to create the actual client for the Under File System
-          return new UnderFileSystemWithLogging(path, factory.create(path, ufsConf, alluxioConf), alluxioConf);
+          return new UnderFileSystemWithLogging(path, factory.create(path, ufsConf, alluxioConf),
+              alluxioConf);
         } catch (Throwable e) {
           // Catching Throwable rather than Exception to catch service loading errors
           errors.add(e);

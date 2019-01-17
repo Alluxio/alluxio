@@ -52,6 +52,7 @@ public final class UnderFileSystemConfiguration extends InstancedConfiguration {
   }
 
   /**
+   * @param alluxioConf Alluxio's configuration
    * @return UFS configuration from a given alluxio configuration
    */
   public static UnderFileSystemConfiguration defaults(AlluxioConfiguration alluxioConf) {
@@ -94,7 +95,7 @@ public final class UnderFileSystemConfiguration extends InstancedConfiguration {
     return mShared;
   }
 
-  /**≤
+  /**
    * @param readOnly whether only read operations are permitted
    * @return the updated configuration object
    */
