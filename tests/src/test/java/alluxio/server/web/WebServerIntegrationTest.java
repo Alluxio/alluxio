@@ -111,8 +111,8 @@ public class WebServerIntegrationTest extends BaseIntegrationTest {
 
       while (pageScanner.hasNextLine()) {
         String line = pageScanner.nextLine();
-        if (line.contains("<title>Alluxio Master</title>") ||
-            line.contains("<title>Alluxio Worker</title>")) {
+        if (line.contains("<title>Alluxio Master</title>") || line
+            .contains("<title>Alluxio Worker</title>")) {
           verified = true;
           break;
         }
