@@ -24,7 +24,7 @@ describe('Paginator', () => {
   beforeAll(() => {
     props = {
       baseUrl: '',
-      total: 0,
+      total: 0
     };
   });
 

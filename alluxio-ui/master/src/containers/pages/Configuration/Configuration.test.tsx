@@ -16,7 +16,7 @@ import {createBrowserHistory, History, LocationState} from 'history';
 import React from 'react';
 import {Provider} from 'react-redux';
 import {Store} from 'redux';
-import sinon from 'sinon';
+import sinon, {SinonSpy} from 'sinon';
 
 import configureStore from '../../../configureStore'
 import {initialState, IApplicationState} from '../../../store';
@@ -35,12 +35,15 @@ describe('Configuration', () => {
     history.push('/config');
     store = configureStore(history, initialState);
     props = {
-      location: {search: ''},
       fetchRequest: sinon.spy(() => {}),
       config: initialState.config.config,
       loading: initialState.config.loading,
       refresh: initialState.refresh.refresh
     };
+  });
+
+  afterEach(() => {
+    sinon.restore();
   });
 
   describe('Shallow component', () => {
@@ -72,6 +75,10 @@ describe('Configuration', () => {
 
     it('Contains the component', () => {
       expect(reactWrapper.find('.configuration-page').length).toEqual(1);
+    });
+
+    it('Calls fetchRequest', () => {
+      sinon.assert.called(props.fetchRequest as SinonSpy);
     });
 
     it('Matches snapshot', () => {

@@ -16,7 +16,7 @@ import {createBrowserHistory, History, LocationState} from 'history';
 import React from 'react';
 import {Provider} from 'react-redux';
 import {Store} from 'redux';
-import sinon from 'sinon';
+import sinon, {SinonSpy} from 'sinon';
 
 import configureStore from '../../../configureStore'
 import {initialState, IApplicationState} from '../../../store';
@@ -41,6 +41,10 @@ describe('BlockInfo', () => {
       loading: initialState.blockInfo.loading,
       refresh: initialState.refresh.refresh
     };
+  });
+
+  afterEach(() => {
+    sinon.restore();
   });
 
   describe('Shallow component', () => {
@@ -72,6 +76,10 @@ describe('BlockInfo', () => {
 
     it('Contains the component', () => {
       expect(reactWrapper.find('.blockInfo-page').length).toEqual(1);
+    });
+
+    it('Calls fetchRequest', () => {
+      sinon.assert.called(props.fetchRequest as SinonSpy);
     });
 
     it('Matches snapshot', () => {
