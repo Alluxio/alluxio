@@ -19,13 +19,11 @@ import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.util.CommonUtils;
 import alluxio.util.CommonUtils.ProcessType;
-import alluxio.util.ConfigurationUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.wire.WorkerNetAddress;
 
 import org.junit.After;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 
 import java.io.Closeable;
@@ -66,7 +64,7 @@ public class NetworkAddressUtilsTest {
    * @param service the service name used to connect
    */
   private void getConnectAddress(ServiceType service) throws Exception {
-    int resolveTimeout = (int)mConfiguration.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS);
+    int resolveTimeout = (int) mConfiguration.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS);
     String localHostName = NetworkAddressUtils.getLocalHostName(resolveTimeout);
     InetSocketAddress masterAddress;
 
@@ -126,15 +124,14 @@ public class NetworkAddressUtilsTest {
   }
 
    /**
-   * Tests the
-   * {@link NetworkAddressUtils#getBindAddress(ServiceType, alluxio.conf.AlluxioConfiguration)} method.
+    * Tests the
+    * {@link NetworkAddressUtils#getBindAddress(ServiceType, alluxio.conf.AlluxioConfiguration)}
+    * method.
    */
   @Test
   public void testGetBindAddress() throws Exception {
     for (ServiceType service : ServiceType.values()) {
-        getBindAddress(service);
-        // Need to reset configuration for each service;
-//        mConfiguration = ConfigurationTestUtils.defaults();
+      getBindAddress(service);
     }
   }
 
@@ -145,7 +142,7 @@ public class NetworkAddressUtilsTest {
    * @param service the service name used to connect
    */
   private void getBindAddress(ServiceType service) throws Exception {
-    int resolveTimeout = (int)mConfiguration.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS);
+    int resolveTimeout = (int) mConfiguration.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS);
     String localHostName = NetworkAddressUtils.getLocalHostName(resolveTimeout);
     InetSocketAddress workerAddress;
 
@@ -252,7 +249,8 @@ public class NetworkAddressUtilsTest {
   @Test
   public void getLocalNodeNameClient() throws Exception {
     CommonUtils.PROCESS_TYPE.set(ProcessType.CLIENT);
-    try (Closeable c = new ConfigurationRule(PropertyKey.USER_HOSTNAME, "client", mConfiguration).toResource()) {
+    try (Closeable c = new ConfigurationRule(PropertyKey.USER_HOSTNAME, "client", mConfiguration)
+        .toResource()) {
       assertEquals("client", NetworkAddressUtils.getLocalNodeName(mConfiguration));
     }
   }
@@ -260,7 +258,8 @@ public class NetworkAddressUtilsTest {
   @Test
   public void getLocalNodeNameWorker() throws Exception {
     CommonUtils.PROCESS_TYPE.set(ProcessType.WORKER);
-    try (Closeable c = new ConfigurationRule(PropertyKey.WORKER_HOSTNAME, "worker", mConfiguration).toResource()) {
+    try (Closeable c = new ConfigurationRule(PropertyKey.WORKER_HOSTNAME, "worker", mConfiguration)
+        .toResource()) {
       assertEquals("worker", NetworkAddressUtils.getLocalNodeName(mConfiguration));
     }
   }
@@ -268,14 +267,15 @@ public class NetworkAddressUtilsTest {
   @Test
   public void getLocalNodeNameMaster() throws Exception {
     CommonUtils.PROCESS_TYPE.set(ProcessType.MASTER);
-    try (Closeable c = new ConfigurationRule(PropertyKey.MASTER_HOSTNAME, "master", mConfiguration).toResource()) {
+    try (Closeable c = new ConfigurationRule(PropertyKey.MASTER_HOSTNAME, "master", mConfiguration)
+        .toResource()) {
       assertEquals("master", NetworkAddressUtils.getLocalNodeName(mConfiguration));
     }
   }
 
   @Test
   public void getLocalNodeNameLookup() throws Exception {
-    int resolveTimeout = (int)mConfiguration.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS);
+    int resolveTimeout = (int) mConfiguration.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS);
     assertEquals(NetworkAddressUtils.getLocalHostName(resolveTimeout),
         NetworkAddressUtils.getLocalNodeName(mConfiguration));
   }
@@ -335,7 +335,7 @@ public class NetworkAddressUtilsTest {
 
   @Test
   public void getDefaultClientHostname() {
-    int resolveTimeout = (int)mConfiguration.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS);
+    int resolveTimeout = (int) mConfiguration.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS);
     assertEquals(NetworkAddressUtils.getLocalHostName(resolveTimeout),
         NetworkAddressUtils.getClientHostName(mConfiguration));
   }

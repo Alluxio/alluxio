@@ -11,7 +11,6 @@
 
 package alluxio.security.authentication;
 
-import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.status.UnauthenticatedException;
 
 import io.grpc.BindableService;

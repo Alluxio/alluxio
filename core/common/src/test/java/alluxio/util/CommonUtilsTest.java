@@ -98,7 +98,7 @@ public class CommonUtilsTest {
 
     // Test single tmp dir
     String singleDir = "/tmp";
-    List<String> singleDirList = Arrays.asList( "/tmp");
+    List<String> singleDirList = Arrays.asList("/tmp");
     assertEquals(singleDir, CommonUtils.getTmpDir(singleDirList));
     // Test multiple tmp dir
     List<String> multiDirs = Arrays.asList("/tmp1", "/tmp2", "/tmp3");

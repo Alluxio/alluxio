@@ -85,6 +85,7 @@ public abstract class AbstractClient implements Client {
    * Creates a new client base.
    *
    * @param subject the parent subject, set to null if not present
+   * @param conf Alluxio's configuration
    * @param address the address
    */
   public AbstractClient(Subject subject, AlluxioConfiguration conf, InetSocketAddress address) {
@@ -98,6 +99,7 @@ public abstract class AbstractClient implements Client {
    * Creates a new client base.
    *
    * @param subject the parent subject, set to null if not present
+   * @param conf Alluxio's configuration
    * @param address the address
    * @param retryPolicySupplier factory for retry policies to be used when performing RPCs
    */
@@ -160,6 +162,8 @@ public abstract class AbstractClient implements Client {
   /**
    * This method is called before the connection is connected. Implementations should add any
    * additional operations before the connection is connected.
+   * @param configurationUpdateCallback The function to update the context configuration after
+   * loading the cluster defaults
    */
   protected void beforeConnect(Consumer<AlluxioConfiguration> configurationUpdateCallback)
       throws IOException {
@@ -168,10 +172,10 @@ public abstract class AbstractClient implements Client {
       // Unfortunately not as simple as before..... we'll need to pass some kind of callback which
       // updates the configuration within the client context.
       if (!mContext.getConf().clusterDefaultsLoaded()) {
-        AlluxioConfiguration conf = ConfigurationUtils.loadClusterDefaults(mAddress, mContext.getConf());
+        AlluxioConfiguration conf = ConfigurationUtils.loadClusterDefaults(mAddress,
+            mContext.getConf());
         configurationUpdateCallback.accept(conf);
       }
-
     }
   }
 

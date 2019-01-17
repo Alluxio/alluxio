@@ -28,7 +28,6 @@ public final class AuthenticatedUserRuleTest {
   private static final String RULE_USER = "rule-user";
   private static final String OUTSIDE_RULE_USER = "outside-rule-user";
 
-
   private InstancedConfiguration mConfiguration = ConfigurationTestUtils.defaults();
 
   private final Statement mStatement = new Statement() {

@@ -52,10 +52,10 @@ public class CachedGroupMapping implements GroupMappingService {
    * Constructor with specified {@link GroupMappingService}. Initializes the cache if enabled.
    *
    * @param service group mapping service
+   * @param groupMappingCacheTimeout The timeout in millseconds before we should reload the cache
    */
   public CachedGroupMapping(GroupMappingService service, long groupMappingCacheTimeout) {
     mService = service;
-//    long groupMappingCacheTimeout = Configuration.getMs(PropertyKey.SECURITY_GROUP_MAPPING_CACHE_TIMEOUT_MS);
     mCacheEnabled = groupMappingCacheTimeout > 0;
     if (mCacheEnabled) {
       mCache = CacheBuilder.newBuilder()

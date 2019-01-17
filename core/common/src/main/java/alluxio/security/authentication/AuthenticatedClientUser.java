@@ -60,6 +60,7 @@ public final class AuthenticatedClientUser {
   /**
    * Gets the {@link User} from the {@link ThreadLocal} variable.
    *
+   * @param conf Alluxio's configuration
    * @return the client user, null if the user is not present
    */
   // TODO(peis): Fail early if the user is not able to be set to avoid returning null.
@@ -80,6 +81,7 @@ public final class AuthenticatedClientUser {
   /**
    * Gets the user name from the {@link ThreadLocal} variable.
    *
+   * @param conf Alluxio's configuration
    * @return the client user in string
    * @throws AccessControlException there is no authenticated user for this thread or
    *         the authentication is not enabled

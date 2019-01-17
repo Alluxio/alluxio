@@ -15,7 +15,6 @@ import alluxio.annotation.PublicApi;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.extensions.ExtensionFactory;
 
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 /**
@@ -35,11 +34,13 @@ public interface UnderFileSystemFactory
    * @param alluxioConf configuration object for alluxio
    * @return the client
    */
-  UnderFileSystem create(String path, @Nullable UnderFileSystemConfiguration conf, @Nonnull AlluxioConfiguration alluxioConf);
+  UnderFileSystem create(String path, @Nullable UnderFileSystemConfiguration conf,
+      AlluxioConfiguration alluxioConf);
 
   /**
    * Gets whether this factory supports the given path and thus whether calling the
-   * {@link #create(String, UnderFileSystemConfiguration, AlluxioConfiguration)} can succeed for this path.
+   * {@link #create(String, UnderFileSystemConfiguration, AlluxioConfiguration)} can succeed for
+   * this path.
    *
    * @param path file path
    * @return true if the path is supported, false otherwise
@@ -48,7 +49,10 @@ public interface UnderFileSystemFactory
 
   /**
    * Gets whether this factory supports the given path and thus whether calling the
-   * {@link #create(String, UnderFileSystemConfiguration, AlluxioConfiguration)} can succeed for this path.
+   * {@link #create(String, UnderFileSystemConfiguration, AlluxioConfiguration)} can succeed for
+   * this path.
+   *
+   *
    *
    * @param path file path
    * @param conf optional configuration object for the UFS, may be null

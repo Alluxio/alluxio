@@ -18,8 +18,8 @@ import alluxio.ConfigurationRule;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.security.group.provider.IdentityUserGroupsMapping;
-
 import alluxio.util.ConfigurationUtils;
+
 import org.junit.Test;
 
 import java.io.Closeable;

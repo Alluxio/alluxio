@@ -47,8 +47,10 @@ public final class HeartbeatThread implements Runnable {
    * @param executor identifies the heartbeat thread executor; an instance of a class that
    *        implements the HeartbeatExecutor interface
    * @param intervalMs Sleep time between different heartbeat
+   * @param conf Alluxio's configuration
    */
-  public HeartbeatThread(String threadName, HeartbeatExecutor executor, long intervalMs, AlluxioConfiguration conf) {
+  public HeartbeatThread(String threadName, HeartbeatExecutor executor, long intervalMs,
+      AlluxioConfiguration conf) {
     mThreadName = threadName;
     mExecutor = Preconditions.checkNotNull(executor, "executor");
     Class<? extends HeartbeatTimer> timerClass = HeartbeatContext.getTimerClass(threadName);
@@ -60,7 +62,8 @@ public final class HeartbeatThread implements Runnable {
   @Override
   public void run() {
     try {
-      if (SecurityUtils.isSecurityEnabled(mConfiguration) && AuthenticatedClientUser.get(mConfiguration) == null) {
+      if (SecurityUtils.isSecurityEnabled(mConfiguration)
+          && AuthenticatedClientUser.get(mConfiguration) == null) {
         AuthenticatedClientUser.set(LoginUser.get(mConfiguration).getName());
       }
     } catch (IOException e) {

@@ -29,7 +29,6 @@ import alluxio.grpc.GetConfigurationPOptions;
 import alluxio.grpc.GrpcChannel;
 import alluxio.grpc.GrpcChannelBuilder;
 import alluxio.grpc.GrpcExceptionUtils;
-import alluxio.grpc.MetaMasterClientServiceGrpc;
 import alluxio.grpc.MetaMasterConfigurationServiceGrpc;
 import alluxio.grpc.Scope;
 import alluxio.grpc.GrpcUtils;
@@ -64,8 +63,6 @@ public final class ConfigurationUtils {
   private static String sSourcePropertyFile = null;
 
   private static Object sDefaultPropertiesLock = new Object();
-
-
 
   private ConfigurationUtils() {} // prevent instantiation
 
@@ -215,6 +212,7 @@ public final class ConfigurationUtils {
   }
 
   /**
+   * @param conf the configuration to use
    * @return whether the configuration describes how to find the job master host, either through
    *         explicit configuration or through zookeeper
    */
@@ -226,6 +224,7 @@ public final class ConfigurationUtils {
   }
 
   /**
+   * @param conf the configuration to use
    * @return whether the configuration describes how to find the master host, either through
    *         explicit configuration or through zookeeper
    */
@@ -239,6 +238,7 @@ public final class ConfigurationUtils {
   /**
    * Gets all configuration properties filtered by the specified scope.
    *
+   * @param conf the configuration to use
    * @param scope the scope to filter by
    * @return the properties
    */
@@ -275,6 +275,8 @@ public final class ConfigurationUtils {
   /**
    * Returns an instance of {@link AlluxioConfiguration} with the defaults and values from
    * alluxio-site properties.
+   *
+   * @return The default set of Alluxio properties loaded from the site-properties file
    */
   public static AlluxioProperties defaults() {
 
@@ -291,7 +293,10 @@ public final class ConfigurationUtils {
     return sDefaultProperties.copy();
   }
 
-  public synchronized static void reloadProperties(){
+  /**
+   * Forces the static site properties to be reloaded from disk.
+   */
+  public static synchronized void reloadProperties() {
     // Step1: bootstrap the configuration. This is necessary because we need to resolve alluxio.home
     // (likely to be in system properties) to locate the conf dir to search for the site property
     // file.
@@ -334,35 +339,39 @@ public final class ConfigurationUtils {
   /**
    * Validates the configuration.
    *
+   * @param conf the configuration to validate
    * @throws IllegalStateException if invalid configuration is encountered
    */
   public static void validate(AlluxioProperties conf) {
     new InstancedConfiguration(conf).validate();
   }
 
-
   /**
    * Merges the current configuration properties with new properties. If a property exists
    * both in the new and current configuration, the one from the new configuration wins if
    * its priority is higher or equal than the existing one.
    *
+   * @param conf the base configuration
    * @param properties the source {@link Properties} to be merged
    * @param source the source of the the properties (e.g., system property, default and etc)
+   * @return The configuration with the new properties merged in
    */
-  public static AlluxioConfiguration merge(AlluxioConfiguration conf, Map<?, ?> properties, Source source) {
+  public static AlluxioConfiguration merge(AlluxioConfiguration conf, Map<?, ?> properties,
+      Source source) {
     AlluxioProperties props = conf.getProperties();
     props.merge(properties, source);
     return new InstancedConfiguration(props);
   }
 
-
-
   /**
    * Loads cluster default values from the meta master.
    *
    * @param address the master address
+   * @param conf configuration to use
+   * @return An updated configuration object containing the cluster defaults
    */
-  public static AlluxioConfiguration loadClusterDefaults(InetSocketAddress address, AlluxioConfiguration conf)
+  public static AlluxioConfiguration loadClusterDefaults(InetSocketAddress address,
+      AlluxioConfiguration conf)
       throws AlluxioStatusException {
     if (!conf.getBoolean(PropertyKey.USER_CONF_CLUSTER_DEFAULT_ENABLED)
         || conf.clusterDefaultsLoaded()) {
@@ -433,5 +442,4 @@ public final class ConfigurationUtils {
       return updatedConf;
     }
   }
-
 }

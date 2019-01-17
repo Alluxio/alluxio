@@ -52,6 +52,7 @@ public final class TieredIdentityFactory {
   private static volatile TieredIdentity sInstance = null;
 
   /**
+   * @param conf Alluxio's configuration
    * @return the singleton tiered identity instance for this JVM
    */
   public static TieredIdentity localIdentity(AlluxioConfiguration conf) {
@@ -101,6 +102,7 @@ public final class TieredIdentityFactory {
   }
 
   /**
+   * @param conf Alluxio's configuration
    * @return a tiered identity created from running the user-provided script
    */
   @Nullable
@@ -133,9 +135,11 @@ public final class TieredIdentityFactory {
 
   /**
    * @param identityString tiered identity string to parse
+   * @param conf Alluxio's configuration
    * @return the parsed tiered identity
    */
-  public static TieredIdentity fromString(String identityString, AlluxioConfiguration conf) throws IOException {
+  public static TieredIdentity fromString(String identityString, AlluxioConfiguration conf)
+      throws IOException {
     Set<String> allTiers = Sets.newHashSet(conf.getList(PropertyKey.LOCALITY_ORDER, ","));
     Map<String, String> tiers = new HashMap<>();
     for (String tier : identityString.split(",")) {

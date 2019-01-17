@@ -60,6 +60,7 @@ public class InstancedConfiguration implements AlluxioConfiguration {
 
   /**
    * @param properties alluxio properties underlying this configuration
+   * @param clusterDefaultsLoaded Whether or not the properties represent the cluster defaults
    */
   public InstancedConfiguration(AlluxioProperties properties, boolean clusterDefaultsLoaded) {
     mProperties = properties;
@@ -156,7 +157,7 @@ public class InstancedConfiguration implements AlluxioConfiguration {
     Preconditions.checkArgument(!value.equals(""),
         String.format("The key \"%s\" cannot be have an empty string as a value. Use "
             + "ServerConfiguration.unset to remove a key from the configuration.", key));
-   mProperties.put(key, String.valueOf(value), source);
+    mProperties.put(key, String.valueOf(value), source);
   }
 
   /**
@@ -171,6 +172,11 @@ public class InstancedConfiguration implements AlluxioConfiguration {
     mProperties.remove(key);
   }
 
+  /**
+   * Merges map of properties into the current alluxio properties.
+   * @param properties Map of keys to values
+   * @param source The source type for these properties
+   */
   public void merge(Map<?, ?> properties, Source source) {
     mProperties.merge(properties, source);
   }
@@ -346,7 +352,7 @@ public class InstancedConfiguration implements AlluxioConfiguration {
   }
 
   @Override
-  public boolean clusterDefaultsLoaded(){
+  public boolean clusterDefaultsLoaded() {
     return mClusterDefaultsLoaded.get();
   }
 

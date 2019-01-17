@@ -16,7 +16,6 @@ import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.metrics.sink.Sink;
 import alluxio.util.CommonUtils;
-import alluxio.util.IdUtils;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.network.NetworkAddressUtils;
 
@@ -56,7 +55,7 @@ public final class MetricsSystem {
 
   private static final ConcurrentHashMap<String, String> CACHED_METRICS = new ConcurrentHashMap<>();
   private static int sResolveTimeout =
-      (int)new InstancedConfiguration(ConfigurationUtils.defaults())
+      (int) new InstancedConfiguration(ConfigurationUtils.defaults())
                .getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS);
 
   /**
@@ -125,6 +124,8 @@ public final class MetricsSystem {
   /**
    * Starts sinks specified in the configuration. This is an no-op if the sinks have already been
    * started. Note: This has to be called after Alluxio configuration is initialized.
+   *
+   * @param metricsConfFile the location of the metrics configuration file
    */
   public static void startSinks(String metricsConfFile) {
     synchronized (MetricsSystem.class) {
@@ -214,7 +215,7 @@ public final class MetricsSystem {
       case JOB_MASTER:
         return getJobMasterMetricName(name);
       case JOB_WORKER:
-        return getJobWorkerMetricName(name, sResolveTimeout);
+        return getJobWorkerMetricName(name);
       default:
         throw new IllegalStateException("Unknown process type");
     }
@@ -301,7 +302,7 @@ public final class MetricsSystem {
    * @param name the metric name
    * @return the metric registry name
    */
-  public static String getJobWorkerMetricName(String name, int resolveTimeoutMs) {
+  public static String getJobWorkerMetricName(String name) {
     return getMetricNameWithUniqueId(InstanceType.JOB_WORKER, name);
   }
 

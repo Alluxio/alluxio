@@ -12,7 +12,6 @@
 package alluxio.util;
 
 import alluxio.Constants;
-import alluxio.conf.PropertyKey;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.TieredIdentity;
 
@@ -34,6 +33,7 @@ public final class TieredIdentityUtils {
    *
    * @param tier a wire type locality tier
    * @param otherTier a wire type locality tier to compare to
+   * @param resolveIpAddress whether or not to resolve hostnames to IP addresses for node locality
    * @return true if the wire type locality tier matches the given tier
    */
   public static boolean matches(TieredIdentity.LocalityTier tier,
@@ -68,6 +68,7 @@ public final class TieredIdentityUtils {
   /**
    * @param tieredIdentity the tiered identity
    * @param identities the tiered identities to compare to
+   * @param resolveIpAddress whether or not to resolve IP addresses for node locality
    * @return the identity closest to this one. If none of the identities match, the first identity
    *         is returned
    */

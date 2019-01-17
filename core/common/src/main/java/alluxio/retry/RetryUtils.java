@@ -11,8 +11,6 @@
 
 package alluxio.retry;
 
-import alluxio.conf.PropertyKey;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,12 +47,15 @@ public final class RetryUtils {
   }
 
   /**
+   * Gives a ClientRetry based on the given parameters.
+   *
+   * @param maxRetryDuration the maximum total duration to retry for
+   * @param baseSleepMs initial sleep time in milliseconds
+   * @param maxSleepMs max sleep time in milliseconds
    * @return the default client retry
    */
-  public static RetryPolicy defaultClientRetry(Duration maxRetryDuration, Duration baseSleepMs, Duration maxSleepMs) {
-//    Duration maxRetryDuration = Configuration.getDuration(PropertyKey.USER_RPC_RETRY_MAX_DURATION);
-//    Duration baseSleepMs = Configuration.getDuration(PropertyKey.USER_RPC_RETRY_BASE_SLEEP_MS);
-//    Duration maxSleepMs = Configuration.getDuration(PropertyKey.USER_RPC_RETRY_MAX_SLEEP_MS);
+  public static RetryPolicy defaultClientRetry(Duration maxRetryDuration, Duration baseSleepMs,
+      Duration maxSleepMs) {
     return ExponentialTimeBoundedRetry.builder()
         .withMaxDuration(maxRetryDuration)
         .withInitialSleep(baseSleepMs)
@@ -63,6 +64,8 @@ public final class RetryUtils {
   }
 
   /**
+   * @param workerMasterConnectRetryTimeout the max duration to wait between retrying for worker
+   *                                        and master
    * @return the default worker to master client retry
    */
   public static RetryPolicy defaultWorkerMasterClientRetry(
@@ -83,6 +86,7 @@ public final class RetryUtils {
   }
 
   /**
+   * @param activeUfsPollTimeoutMs the max time in milliseconds to wait for active ufs sync retries
    * @return the default active sync retry behavior
    */
   public static RetryPolicy defaultActiveSyncClientRetry(long activeUfsPollTimeoutMs) {

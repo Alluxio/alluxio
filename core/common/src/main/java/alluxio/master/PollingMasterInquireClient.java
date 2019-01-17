@@ -23,7 +23,6 @@ import alluxio.grpc.GrpcChannelBuilder;
 import alluxio.grpc.ServiceType;
 import alluxio.grpc.ServiceVersionClientServiceGrpc;
 import alluxio.retry.RetryPolicy;
-import alluxio.security.authentication.AuthType;
 import alluxio.uri.Authority;
 import alluxio.uri.MultiMasterAuthority;
 
@@ -51,6 +50,7 @@ public class PollingMasterInquireClient implements MasterInquireClient {
 
   /**
    * @param masterAddresses the potential master addresses
+   * @param alluxioConf Alluxio's configuration
    */
   public PollingMasterInquireClient(List<InetSocketAddress> masterAddresses,
       AlluxioConfiguration alluxioConf) {
@@ -61,13 +61,14 @@ public class PollingMasterInquireClient implements MasterInquireClient {
   /**
    * @param masterAddresses the potential master addresses
    * @param retryPolicySupplier the retry policy supplier
+   * @param alluxioConf Alluxio's configuration
    */
   public PollingMasterInquireClient(List<InetSocketAddress> masterAddresses,
       Supplier<RetryPolicy> retryPolicySupplier,
-      AlluxioConfiguration conf) {
+      AlluxioConfiguration alluxioConf) {
     mConnectDetails = new MultiMasterConnectDetails(masterAddresses);
     mRetryPolicySupplier = retryPolicySupplier;
-    mConfiguration = conf;
+    mConfiguration = alluxioConf;
   }
 
   @Override
