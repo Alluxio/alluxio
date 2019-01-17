@@ -29,8 +29,11 @@ import java.util.Map;
  */
 public final class ConfigurationTestUtils {
 
-
-  public static InstancedConfiguration defaults(){
+  /**
+   * Return an instanced configuration with default value from the site properties file.
+   * @return the default configuration
+   */
+  public static InstancedConfiguration defaults() {
     return new InstancedConfiguration(ConfigurationUtils.defaults());
   }
 
@@ -44,8 +47,8 @@ public final class ConfigurationTestUtils {
    * @param workDirectory the work directory in which to configure the journal and tiered storage
    * @return the configuration
    */
-  public static Map<PropertyKey, String> testConfigurationDefaults(AlluxioConfiguration alluxioConf, String hostname,
-      String workDirectory) {
+  public static Map<PropertyKey, String> testConfigurationDefaults(AlluxioConfiguration alluxioConf,
+      String hostname, String workDirectory) {
     Map<PropertyKey, String> conf = new HashMap<>();
     conf.put(PropertyKey.MASTER_HOSTNAME, hostname);
     conf.put(PropertyKey.WORKER_BIND_HOST, hostname);

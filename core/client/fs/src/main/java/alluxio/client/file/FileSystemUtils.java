@@ -48,6 +48,7 @@ public final class FileSystemUtils {
    *
    * @param fs a {@link FileSystem} instance
    * @param uri the URI of the file on which the thread should wait
+   * @param waitCompletedPollMs milliseconds to wait between polling the filesystem
    * @return true if the file is complete when this method returns and false if the method timed out
    *         before the file was complete.
    * @throws InterruptedException if the thread receives an interrupt while waiting for file
@@ -83,6 +84,7 @@ public final class FileSystemUtils {
    * @param uri the URI of the file whose completion status is to be watied for
    * @param timeout maximum time the calling thread should be blocked on this call
    * @param tunit the @{link TimeUnit} instance describing the {@code timeout} parameter
+   * @param fileWaitCompletedPollMs the milliseconds to wait between polling
    * @return true if the file is complete when this method returns and false if the method timed out
    *         before the file was complete.
    * @throws InterruptedException if the thread receives an interrupt while waiting for file
@@ -128,6 +130,7 @@ public final class FileSystemUtils {
    * Persists the given file to the under file system.
    *
    * @param fs {@link FileSystem} to carry out Alluxio operations
+   * @param fsContext the {@link FileSystemContext} linked to the {@link FileSystem} client
    * @param uri the uri of the file to persist
    */
   public static void persistFile(final FileSystem fs, final FileSystemContext fsContext,
@@ -154,6 +157,7 @@ public final class FileSystemUtils {
    * Checks the consistency of Alluxio metadata against the under storage for all files and
    * directories in a given subtree.
    *
+   * @param fsContext the {@link FileSystemContext} linked to the {@link FileSystem} client
    * @param path the root of the subtree to check
    * @param options method options
    * @return a list of inconsistent files and directories

@@ -43,6 +43,7 @@ public final class BlockMasterClientPool extends ResourcePool<BlockMasterClient>
    *
    * @param subject the parent subject
    * @param masterInquireClient a client for determining the master address
+   * @param alluxioConf Alluxio's configuration
    */
   public BlockMasterClientPool(Subject subject, MasterInquireClient masterInquireClient,
       AlluxioConfiguration alluxioConf) {
@@ -65,8 +66,9 @@ public final class BlockMasterClientPool extends ResourcePool<BlockMasterClient>
 
   @Override
   protected BlockMasterClient createNewResource() {
-    BlockMasterClient client = BlockMasterClient.Factory.create(MasterClientConfig.defaults(mAlluxioConf)
-        .withSubject(mSubject).withMasterInquireClient(mMasterInquireClient), mAlluxioConf);
+    BlockMasterClient client = BlockMasterClient.Factory.create(MasterClientConfig
+        .defaults(mAlluxioConf).withSubject(mSubject).withMasterInquireClient(mMasterInquireClient),
+        mAlluxioConf);
     mClientList.add(client);
     return client;
   }

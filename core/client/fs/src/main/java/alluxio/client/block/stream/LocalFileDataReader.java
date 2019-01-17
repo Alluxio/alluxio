@@ -103,7 +103,6 @@ public final class LocalFileDataReader implements DataReader {
     private final long mDataTimeoutMs;
     private boolean mClosed;
 
-
     /**
      * Creates an instance of {@link Factory}.
      *

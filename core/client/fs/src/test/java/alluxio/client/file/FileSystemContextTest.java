@@ -11,10 +11,6 @@
 
 package alluxio.client.file;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotSame;
-import static org.junit.Assert.assertSame;
-
 import alluxio.ClientContext;
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
@@ -25,7 +21,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import javax.security.auth.Subject;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -85,11 +80,12 @@ public final class FileSystemContextTest {
   }
 
   class AcquireClient implements Runnable {
+
     private final FileSystemContext mFsCtx;
+
     public AcquireClient(FileSystemContext fsContext) {
       mFsCtx = fsContext;
     }
-
 
     @Override
     public void run() {

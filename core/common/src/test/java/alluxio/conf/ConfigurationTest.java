@@ -23,8 +23,8 @@ import alluxio.Constants;
 import alluxio.DefaultSupplier;
 import alluxio.SystemPropertyRule;
 import alluxio.conf.PropertyKey.Template;
-
 import alluxio.util.ConfigurationUtils;
+
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import org.hamcrest.CoreMatchers;
@@ -74,7 +74,6 @@ public class ConfigurationTest {
     ConfigurationUtils.reloadProperties();
   }
 
-
   @Test
   public void defaultLoggerCorrectlyLoaded() throws Exception {
     // Avoid interference from system properties. site-properties will not be loaded during tests
@@ -119,7 +118,8 @@ public class ConfigurationTest {
   @Test
   public void getIntResolve() {
     mConfiguration.set(PropertyKey.LOGSERVER_THREADS_MAX, "${alluxio.master.worker.threads.max}");
-    mConfiguration.set(PropertyKey.MASTER_WORKER_THREADS_MAX, "${alluxio.worker.block.threads.max}");
+    mConfiguration.set(PropertyKey.MASTER_WORKER_THREADS_MAX,
+        "${alluxio.worker.block.threads.max}");
     mConfiguration.set(PropertyKey.WORKER_BLOCK_THREADS_MAX, "10");
     assertEquals(10, mConfiguration.getInt(PropertyKey.LOGSERVER_THREADS_MAX));
   }
@@ -939,7 +939,8 @@ public class ConfigurationTest {
         "foo").toResource()) {
       resetConf();
       assertEquals("foo",
-          mConfiguration.get(Template.MASTER_JOURNAL_UFS_OPTION_PROPERTY.format("fs.obs.endpoint")));
+          mConfiguration.get(Template.MASTER_JOURNAL_UFS_OPTION_PROPERTY
+              .format("fs.obs.endpoint")));
     }
   }
 }

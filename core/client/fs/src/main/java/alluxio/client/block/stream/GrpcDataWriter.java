@@ -151,7 +151,8 @@ public final class GrpcDataWriter implements DataWriter {
     mPartialRequest = builder.buildPartial();
     mChunkSize = chunkSize;
     mClient = client;
-    mStream = new GrpcBlockingStream<>(mClient::writeBlock, mWriterBufferSizeMessages, address.toString());
+    mStream = new GrpcBlockingStream<>(mClient::writeBlock, mWriterBufferSizeMessages,
+        address.toString());
     mStream.send(WriteRequest.newBuilder().setCommand(mPartialRequest.toBuilder()).build(),
         mDataTimeoutMs);
   }

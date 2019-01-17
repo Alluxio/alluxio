@@ -13,7 +13,7 @@ package alluxio.client.keyvalue;
 
 import alluxio.AlluxioURI;
 import alluxio.annotation.PublicApi;
-import alluxio.conf.*;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
@@ -42,6 +42,8 @@ public final class BaseKeyValueSystem implements KeyValueSystem {
 
   /**
    * Constructs a new {@link BaseKeyValueSystem}.
+   *
+   * @param conf Alluxio's configuration
    */
   public BaseKeyValueSystem(AlluxioConfiguration conf) {
     mMasterClient = new KeyValueMasterClient(MasterClientConfig.defaults(conf), conf);

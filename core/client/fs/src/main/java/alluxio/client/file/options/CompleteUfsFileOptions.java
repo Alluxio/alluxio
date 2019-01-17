@@ -30,6 +30,7 @@ public final class CompleteUfsFileOptions
    * Creates a default {@link CompleteUfsFileOptions} with owner, group from login module and
    * default file mode.
    *
+   * @param alluxioConf Alluxio's configuration
    * @return the default {@link CompleteUfsFileOptions}
    */
   public static CompleteUfsFileOptions defaults(AlluxioConfiguration alluxioConf) {

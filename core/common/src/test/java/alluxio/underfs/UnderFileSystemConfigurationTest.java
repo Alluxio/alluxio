@@ -40,7 +40,8 @@ public final class UnderFileSystemConfigurationTest {
   @Test
   public void getValueWhenGlobalConfHasProperty() throws Exception {
     // Set property in global configuration
-    try (Closeable c = new ConfigurationRule(PropertyKey.S3A_ACCESS_KEY, "bar", mConfiguration).toResource()) {
+    try (Closeable c = new ConfigurationRule(PropertyKey.S3A_ACCESS_KEY, "bar", mConfiguration)
+        .toResource()) {
       Random random = new Random();
       boolean readOnly = random.nextBoolean();
       boolean shared = random.nextBoolean();
@@ -61,7 +62,8 @@ public final class UnderFileSystemConfigurationTest {
   public void getValueWhenGlobalConfOverridesPropertyWithDefaultValue() throws Exception {
     // Set property in global configuration
     try (Closeable c =
-        new ConfigurationRule(PropertyKey.UNDERFS_LISTING_LENGTH, "2000", mConfiguration).toResource()) {
+        new ConfigurationRule(PropertyKey.UNDERFS_LISTING_LENGTH, "2000", mConfiguration)
+            .toResource()) {
       UnderFileSystemConfiguration conf = UnderFileSystemConfiguration.defaults(mConfiguration);
       assertEquals("2000", conf.get(PropertyKey.UNDERFS_LISTING_LENGTH));
     }
@@ -70,7 +72,8 @@ public final class UnderFileSystemConfigurationTest {
   @Test
   public void getValueWhenGlobalConfHasNotProperty() throws Exception {
     // Set property in global configuration
-    try (Closeable c = new ConfigurationRule(PropertyKey.S3A_ACCESS_KEY, null, mConfiguration).toResource()) {
+    try (Closeable c = new ConfigurationRule(PropertyKey.S3A_ACCESS_KEY, null, mConfiguration)
+        .toResource()) {
       Random random = new Random();
       boolean readOnly = random.nextBoolean();
       boolean shared = random.nextBoolean();
@@ -85,7 +88,8 @@ public final class UnderFileSystemConfigurationTest {
         // expect to pass
       }
       UnderFileSystemConfiguration conf2 =
-          conf.createMountSpecificConf(ImmutableMap.of(PropertyKey.S3A_ACCESS_KEY.toString(), "foo"));
+          conf.createMountSpecificConf(ImmutableMap.of(PropertyKey.S3A_ACCESS_KEY.toString(),
+              "foo"));
       assertEquals(readOnly, conf2.isReadOnly());
       assertEquals(shared, conf2.isShared());
       assertEquals("foo", conf2.get(PropertyKey.S3A_ACCESS_KEY));
@@ -95,7 +99,8 @@ public final class UnderFileSystemConfigurationTest {
   @Test
   public void containsWhenGlobalConfHasProperty() throws Exception {
     // Unset property in global configuration
-    try (Closeable c = new ConfigurationRule(PropertyKey.S3A_ACCESS_KEY, "bar", mConfiguration).toResource()) {
+    try (Closeable c = new ConfigurationRule(PropertyKey.S3A_ACCESS_KEY, "bar", mConfiguration)
+        .toResource()) {
       Random random = new Random();
       boolean readOnly = random.nextBoolean();
       boolean shared = random.nextBoolean();
@@ -113,7 +118,8 @@ public final class UnderFileSystemConfigurationTest {
   @Test
   public void containsWhenGlobalConfHasNotProperty() throws Exception {
     // Unset property in global configuration
-    try (Closeable c = new ConfigurationRule(PropertyKey.S3A_ACCESS_KEY, null, mConfiguration).toResource()) {
+    try (Closeable c = new ConfigurationRule(PropertyKey.S3A_ACCESS_KEY, null, mConfiguration)
+        .toResource()) {
       Random random = new Random();
       boolean readOnly = random.nextBoolean();
       boolean shared = random.nextBoolean();
@@ -123,7 +129,7 @@ public final class UnderFileSystemConfigurationTest {
       assertFalse(conf.isSet(PropertyKey.S3A_ACCESS_KEY));
       UnderFileSystemConfiguration conf2 =
           conf.createMountSpecificConf(ImmutableMap.of(PropertyKey.S3A_ACCESS_KEY.toString(),
-          "foo"));
+              "foo"));
       assertEquals(readOnly, conf2.isReadOnly());
       assertEquals(shared, conf2.isShared());
       assertTrue(conf2.isSet(PropertyKey.S3A_ACCESS_KEY));
@@ -133,8 +139,9 @@ public final class UnderFileSystemConfigurationTest {
   @Test
   public void setUserSpecifiedConfRepeatedly() throws Exception {
     UnderFileSystemConfiguration conf = UnderFileSystemConfiguration.defaults(mConfiguration);
-        UnderFileSystemConfiguration conf2 =
-            conf.createMountSpecificConf(ImmutableMap.of(PropertyKey.S3A_ACCESS_KEY.toString(), "foo"));
+    UnderFileSystemConfiguration conf2 =
+        conf.createMountSpecificConf(ImmutableMap.of(PropertyKey.S3A_ACCESS_KEY.toString(),
+            "foo"));
     assertEquals("foo", conf2.get(PropertyKey.S3A_ACCESS_KEY));
     assertEquals(1, conf2.getMountSpecificConf().size());
     conf2 = conf.createMountSpecificConf(ImmutableMap.of(PropertyKey.S3A_SECRET_KEY.toString(),

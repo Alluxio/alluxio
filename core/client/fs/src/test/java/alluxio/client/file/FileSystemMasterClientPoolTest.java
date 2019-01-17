@@ -15,7 +15,6 @@ import static org.junit.Assert.assertEquals;
 
 import alluxio.ConfigurationTestUtils;
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.ConfigurationTest;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.master.MasterClientConfig;
 

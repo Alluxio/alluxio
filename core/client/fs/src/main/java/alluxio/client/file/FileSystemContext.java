@@ -14,7 +14,6 @@ package alluxio.client.file;
 import alluxio.ClientContext;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.AlluxioProperties;
-import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.client.block.BlockMasterClientPool;
@@ -75,11 +74,6 @@ import javax.security.auth.Subject;
 public final class FileSystemContext implements Closeable {
   private static final Logger LOG = LoggerFactory.getLogger(FileSystemContext.class);
 
-  static {
-//    MetricsSystem.startSinks();
-//    Metrics.initializeGauges();
-  }
-
   // Master client pools.
   private volatile FileSystemMasterClientPool mFileSystemMasterClientPool;
   private volatile BlockMasterClientPool mBlockMasterClientPool;
@@ -90,7 +84,6 @@ public final class FileSystemContext implements Closeable {
   private ExecutorService mExecutorService;
   private MetricsMasterClient mMetricsMasterClient;
   private ClientMasterSync mClientMasterSync;
-
 
   // The data server channel pools. This pool will only grow and keys are not removed.
   private final ConcurrentHashMap<ClientPoolKey, BlockWorkerClientPool>
@@ -111,15 +104,11 @@ public final class FileSystemContext implements Closeable {
    */
   @GuardedBy("this")
   private WorkerNetAddress mLocalWorker;
-
-  /** The parent user associated with the {@link FileSystemContext}. */
-//  private final Subject mParentSubject;
-
   private final ClientContext mClientContext;
-
   private final String mAppId;
 
   /**
+   * @param alluxioConf Alluxio's configuration
    * @return the instance of file system context with no subject associated
    */
   public static FileSystemContext create(AlluxioConfiguration alluxioConf) {
@@ -128,18 +117,21 @@ public final class FileSystemContext implements Closeable {
 
   /**
    * @param subject the parent subject, set to null if not present
+   * @param alluxioConf Alluxio's configuration
    * @return the context
    */
-  public static FileSystemContext create(Subject subject, @Nullable AlluxioConfiguration conf) {
+  public static FileSystemContext create(Subject subject,
+      @Nullable AlluxioConfiguration alluxioConf) {
     AlluxioProperties props = null;
-    if (conf != null) {
-      props = conf.getProperties();
+    if (alluxioConf != null) {
+      props = alluxioConf.getProperties();
     }
     return create(subject, props);
   }
 
   /**
    * @param subject the parent subject, set to null if not present
+   * @param props Alluxio's configuration properties
    * @return the context
    */
   public static FileSystemContext create(Subject subject, @Nullable AlluxioProperties props) {
@@ -167,13 +159,15 @@ public final class FileSystemContext implements Closeable {
    * @param masterInquireClient the client to use for determining the master; note that if the
    *        context is reset, this client will be replaced with a new masterInquireClient based on
    *        the original configuration.
+   * @param alluxioConf Alluxio's configuration
    * @return the context
    */
   @VisibleForTesting
-  public static FileSystemContext create(Subject subject, MasterInquireClient masterInquireClient, AlluxioConfiguration conf) {
+  public static FileSystemContext create(Subject subject, MasterInquireClient masterInquireClient,
+      AlluxioConfiguration alluxioConf) {
     AlluxioProperties props = null;
-    if (conf != null){
-      props = conf.getProperties();
+    if (alluxioConf != null) {
+      props = alluxioConf.getProperties();
     }
     FileSystemContext context = new FileSystemContext(subject, props);
     context.init(masterInquireClient);
@@ -200,13 +194,11 @@ public final class FileSystemContext implements Closeable {
         ThreadFactoryUtils.build("metrics-master-heartbeat-%d", true));
     mClosed = new AtomicBoolean(false);
 
-
     mAppId = ctx.getConf().isSet(PropertyKey.USER_APP_ID)
                  ? ctx.getConf().get(PropertyKey.USER_APP_ID) : IdUtils.createFileSystemContextId();
     LOG.info("Created filesystem context with id {}. This ID will be used for identifying info "
-                 + "from the client, such as metrics. It can be set manually through the {} property",
+            + "from the client, such as metrics. It can be set manually through the {} property",
         mAppId, PropertyKey.Name.USER_APP_ID);
-
   }
 
   /**
@@ -225,9 +217,9 @@ public final class FileSystemContext implements Closeable {
 
     if (mClientContext.getConf().getBoolean(PropertyKey.USER_METRICS_COLLECTION_ENABLED)) {
       // setup metrics master client sync
-      mMetricsMasterClient = new MetricsMasterClient(MasterClientConfig.defaults(mClientContext.getConf())
-          .withSubject(mClientContext.getSubject()).withMasterInquireClient(mMasterInquireClient)
-          , mClientContext.getConf());
+      mMetricsMasterClient = new MetricsMasterClient(MasterClientConfig.defaults(mClientContext
+          .getConf()).withSubject(mClientContext.getSubject())
+          .withMasterInquireClient(mMasterInquireClient), mClientContext.getConf());
       mClientMasterSync = new ClientMasterSync(mMetricsMasterClient, this);
       mExecutorService = Executors.newFixedThreadPool(1,
           ThreadFactoryUtils.build("metrics-master-heartbeat-%d", true));
@@ -288,31 +280,19 @@ public final class FileSystemContext implements Closeable {
     init(MasterInquireClient.Factory.create(mClientContext.getConf()));
   }
 
-//  /**
-//   * @return the parent subject
-//   */
-//  public Subject getParentSubject() {
-//    return mClientContext.getSubject();
-//  }
-//
-//  public AlluxioConfiguration getConfiguration() {
-//    return mClientContext.getConf();
-//  }
-
-  public ClientContext getClientContext(){
+  /**
+   * @return the {@link ClientContext} backing this {@link FileSystemContext}
+   */
+  public ClientContext getClientContext() {
     return mClientContext;
   }
 
+  /**
+   * @return The application ID associated with this {@link FileSystemContext}
+   */
   public String getAppId() {
     return mAppId;
   }
-
-//  /**
-//   * @return the configuration used to initialize the context
-//   */
-//  public AlluxioConfiguration getConfiguration() {
-//    return mClientContext.getConfiguration();
-//  }
 
   /**
    * @return the master address
@@ -444,7 +424,8 @@ public final class FileSystemContext implements Closeable {
   private void initializeLocalWorker() throws IOException {
     List<WorkerNetAddress> addresses = getWorkerAddresses();
     if (!addresses.isEmpty()) {
-      if (addresses.get(0).getHost().equals(NetworkAddressUtils.getClientHostName(mClientContext.getConf()))) {
+      if (addresses.get(0).getHost().equals(NetworkAddressUtils.getClientHostName(mClientContext
+          .getConf()))) {
         mLocalWorker = addresses.get(0);
       }
     }

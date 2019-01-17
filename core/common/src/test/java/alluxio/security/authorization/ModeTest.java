@@ -158,7 +158,8 @@ public final class ModeTest {
     mThrown.expect(IllegalArgumentException.class);
     mThrown.expectMessage(ExceptionMessage.INVALID_CONFIGURATION_VALUE.getMessage(umask,
         PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK));
-    ModeUtils.applyDirectoryUMask(Mode.defaults(), mConfiguration.get(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK));
+    ModeUtils.applyDirectoryUMask(Mode.defaults(), mConfiguration
+        .get(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK));
   }
 
   /**

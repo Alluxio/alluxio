@@ -16,8 +16,6 @@ import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.security.authentication.AuthType;
 
-import alluxio.util.ConfigurationUtils;
-
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;

@@ -13,7 +13,6 @@ package alluxio.client.metrics;
 
 import alluxio.AbstractMasterClient;
 import alluxio.Constants;
-import alluxio.client.file.FileSystemContext;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.Metric;
@@ -22,15 +21,13 @@ import alluxio.grpc.MetricsHeartbeatPRequest;
 import alluxio.grpc.MetricsMasterClientServiceGrpc;
 import alluxio.grpc.ServiceType;
 import alluxio.master.MasterClientConfig;
-import alluxio.metrics.MetricsSystem;
 import alluxio.retry.RetryUtils;
 import alluxio.util.IdUtils;
 import alluxio.util.network.NetworkAddressUtils;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.io.IOException;
 import java.util.List;
-
-import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * A client to use for interacting with a metrics master.
@@ -43,6 +40,7 @@ public class MetricsMasterClient extends AbstractMasterClient {
    * Creates a new metrics master client.
    *
    * @param conf master client configuration
+   * @param alluxioConf Alluxio's configuration
    */
   public MetricsMasterClient(MasterClientConfig conf, AlluxioConfiguration alluxioConf) {
     super(conf, alluxioConf, null, RetryUtils::defaultMetricsClientRetry);

@@ -13,6 +13,7 @@ package alluxio.heartbeat;
 
 import alluxio.ConfigurationTestUtils;
 import alluxio.conf.InstancedConfiguration;
+
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;

@@ -12,7 +12,6 @@
 package alluxio.client.file;
 
 import alluxio.AlluxioURI;
-import alluxio.ClientContext;
 import alluxio.Constants;
 import alluxio.annotation.PublicApi;
 import alluxio.client.file.options.InStreamOptions;
@@ -55,11 +54,10 @@ import alluxio.wire.SyncPointInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
-
-import javax.annotation.concurrent.ThreadSafe;
 
 /**
 * Default implementation of the {@link FileSystem} interface. Developers can extend this class
@@ -88,7 +86,6 @@ public class BaseFileSystem implements FileSystem {
    */
   protected BaseFileSystem(FileSystemContext fsContext) {
     mFsContext = fsContext;
-
   }
 
   @Override

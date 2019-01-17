@@ -80,6 +80,7 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
    *
    * @param subject the user subject, can be null if the user is not available
    * @param address the address of the worker
+   * @param alluxioConf Alluxio's configuration
    */
   public DefaultBlockWorkerClient(Subject subject, SocketAddress address,
       AlluxioConfiguration alluxioConf) {

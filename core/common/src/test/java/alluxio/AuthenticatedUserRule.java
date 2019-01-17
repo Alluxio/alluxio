@@ -11,7 +11,6 @@
 
 package alluxio;
 
-import alluxio.conf.ConfigurationTest;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.security.User;
 import alluxio.security.authentication.AuthenticatedClientUser;

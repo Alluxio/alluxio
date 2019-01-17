@@ -127,15 +127,16 @@ public class GrpcSecurityTest {
 
   private InetSocketAddress getServerConnectAddress(GrpcServer server) {
     return new InetSocketAddress(NetworkAddressUtils
-        .getLocalHostName((int)mConfiguration.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS)),
-        server.getBindPort());
+        .getLocalHostName((int) mConfiguration
+            .getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS)), server.getBindPort());
   }
 
   private GrpcServer createServer(AuthType authType) {
     mConfiguration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, authType.name());
     GrpcServerBuilder serverBuilder = GrpcServerBuilder
         .forAddress(new InetSocketAddress(NetworkAddressUtils
-            .getLocalHostName((int)mConfiguration.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS)), 0), mConfiguration);
+            .getLocalHostName((int) mConfiguration
+                .getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS)), 0), mConfiguration);
     return serverBuilder.build();
   }
 

@@ -19,8 +19,8 @@ import java.io.IOException;
 /**
  * Interface to be implemented in classes that support iterating over key-value pairs.
  *
- * TODO(cc): Try to create rid of KeyValueIterable and KeyValueIterator when AlluxioException becomes
- * a subclass of IOException.
+ * TODO(cc): Try to create rid of KeyValueIterable and KeyValueIterator when AlluxioException
+ * becomes a subclass of IOException.
  */
 @PublicApi
 public interface KeyValueIterable {

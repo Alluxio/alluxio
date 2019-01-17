@@ -15,7 +15,6 @@ import alluxio.client.BoundedStream;
 import alluxio.client.Cancelable;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.OutStreamOptions;
-import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.PreconditionMessage;
 import alluxio.wire.WorkerNetAddress;
 

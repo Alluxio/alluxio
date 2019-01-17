@@ -103,7 +103,8 @@ public final class LocalFileDataWriter implements DataWriter {
       LocalFileBlockWriter writer =
           closer.register(new LocalFileBlockWriter(response.getPath()));
       return new LocalFileDataWriter(chunkSize, blockWorker,
-          writer, createRequest, stream, closer, writerBufferSizeMessages, fileBufferByes, dataTimeout);
+          writer, createRequest, stream, closer, writerBufferSizeMessages, fileBufferByes,
+          dataTimeout);
     } catch (Exception e) {
       throw CommonUtils.closeAndRethrow(closer, e);
     }

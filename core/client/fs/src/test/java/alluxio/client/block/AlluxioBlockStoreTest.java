@@ -18,7 +18,6 @@ import static org.mockito.Mockito.when;
 
 import alluxio.ClientContext;
 import alluxio.ConfigurationTestUtils;
-import alluxio.client.ReadType;
 import alluxio.client.WriteType;
 import alluxio.client.block.policy.BlockLocationPolicy;
 import alluxio.client.block.policy.options.GetWorkerOptions;
@@ -31,7 +30,6 @@ import alluxio.client.file.options.InStreamOptions;
 import alluxio.client.file.options.OutStreamOptions;
 import alluxio.client.file.policy.FileWriteLocationPolicy;
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.ConfigurationTest;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.NotFoundException;
@@ -89,12 +87,13 @@ import javax.annotation.concurrent.ThreadSafe;
 @PrepareForTest({FileSystemContext.class})
 public final class AlluxioBlockStoreTest {
 
-  private static final InstancedConfiguration sConf = ConfigurationTestUtils.defaults();
+  private static InstancedConfiguration sConf = ConfigurationTestUtils.defaults();
 
   private static final long BLOCK_ID = 3L;
   private static final long BLOCK_LENGTH = 100L;
   private static final String WORKER_HOSTNAME_LOCAL =
-      NetworkAddressUtils.getLocalHostName((int)sConf.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS));
+      NetworkAddressUtils.getLocalHostName((int) sConf
+          .getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS));
   private static final String WORKER_HOSTNAME_REMOTE = "remote";
   private static final WorkerNetAddress WORKER_NET_ADDRESS_LOCAL = new WorkerNetAddress()
       .setHost(WORKER_HOSTNAME_LOCAL);
@@ -102,7 +101,6 @@ public final class AlluxioBlockStoreTest {
       .setHost(WORKER_HOSTNAME_REMOTE);
   private ClientCallStreamObserver mStreamObserver;
   private static final ExecutorService EXECUTOR = Executors.newFixedThreadPool(4);
-
 
   /**
    * A mock class used to return controlled result when selecting workers.
@@ -170,7 +168,8 @@ public final class AlluxioBlockStoreTest {
         .thenReturn(new DummyCloseableResource<>(mMasterClient));
     when(mContext.getClientContext()).thenReturn(ClientContext.create(null, sConf.getProperties()));
     mLocalAddr =
-        new WorkerNetAddress().setHost(NetworkAddressUtils.getLocalHostName((int)sConf.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS)));
+        new WorkerNetAddress().setHost(NetworkAddressUtils.getLocalHostName(
+            (int) sConf.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS)));
 
     mBlockStore = new AlluxioBlockStore(mContext,
         TieredIdentityFactory.fromString("node=" + WORKER_HOSTNAME_LOCAL, sConf));

@@ -27,7 +27,6 @@ import alluxio.underfs.options.ListOptions;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.underfs.options.OpenOptions;
 import alluxio.util.CommonUtils;
-import alluxio.util.ConfigurationUtils;
 import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.io.PathUtils;
 
@@ -102,7 +101,8 @@ public abstract class AbstractUnderFileSystemContractTest {
   @Test
   public void createAtomic() throws IOException {
     String testFile = PathUtils.concatPath(mUnderfsAddress, "createAtomic");
-    OutputStream stream = mUfs.create(testFile, CreateOptions.defaults(mConfiguration).setEnsureAtomic(true));
+    OutputStream stream = mUfs.create(testFile, CreateOptions.defaults(mConfiguration)
+        .setEnsureAtomic(true));
     stream.write(TEST_BYTES);
     assertFalse(mUfs.isFile(testFile));
     stream.close();
@@ -123,14 +123,16 @@ public abstract class AbstractUnderFileSystemContractTest {
 
     mThrown.expect(IOException.class);
     String testFile = PathUtils.concatPath(mUnderfsAddress, "createNoParent/testFile");
-    OutputStream o = mUfs.create(testFile, CreateOptions.defaults(mConfiguration).setCreateParent(false));
+    OutputStream o = mUfs.create(testFile, CreateOptions.defaults(mConfiguration)
+        .setCreateParent(false));
     o.close();
   }
 
   @Test
   public void createParent() throws IOException {
     String testFile = PathUtils.concatPath(mUnderfsAddress, "createParent/testFile");
-    OutputStream o = mUfs.create(testFile, CreateOptions.defaults(mConfiguration).setCreateParent(true));
+    OutputStream o = mUfs.create(testFile, CreateOptions.defaults(mConfiguration)
+        .setCreateParent(true));
     o.close();
     assertTrue(mUfs.exists(testFile));
   }
@@ -213,7 +215,8 @@ public abstract class AbstractUnderFileSystemContractTest {
         PathUtils.concatPath(testDirNonEmptyChildDir, "testDirNonEmptyChildDirF");
     mUfs.mkdirs(testDirEmpty, MkdirsOptions.defaults(mConfiguration).setCreateParent(false));
     mUfs.mkdirs(testDirNonEmpty, MkdirsOptions.defaults(mConfiguration).setCreateParent(false));
-    mUfs.mkdirs(testDirNonEmptyChildDir, MkdirsOptions.defaults(mConfiguration).setCreateParent(false));
+    mUfs.mkdirs(testDirNonEmptyChildDir, MkdirsOptions.defaults(mConfiguration)
+        .setCreateParent(false));
     createEmptyFile(testDirNonEmptyChildFile);
     createEmptyFile(testDirNonEmptyChildDirFile);
     mUfs.deleteDirectory(testDirEmpty, DeleteOptions.defaults().setRecursive(false));
@@ -326,7 +329,8 @@ public abstract class AbstractUnderFileSystemContractTest {
     String testDirNonEmptyChildDirFile =
         PathUtils.concatPath(testDirNonEmptyChildDir, "testDirNonEmptyChildDirF");
     mUfs.mkdirs(testDirNonEmpty, MkdirsOptions.defaults(mConfiguration).setCreateParent(false));
-    mUfs.mkdirs(testDirNonEmptyChildDir, MkdirsOptions.defaults(mConfiguration).setCreateParent(false));
+    mUfs.mkdirs(testDirNonEmptyChildDir, MkdirsOptions.defaults(mConfiguration)
+        .setCreateParent(false));
     createEmptyFile(testDirNonEmptyChildFile);
     createEmptyFile(testDirNonEmptyChildDirFile);
     String[] expectedResTopDir = new String[] {"testDirNonEmpty2", "testDirNonEmptyF"};
@@ -657,7 +661,8 @@ public abstract class AbstractUnderFileSystemContractTest {
     for (int i = 0; i < numFiles; ++i) {
       children[numFiles + i] =
           PathUtils.concatPath(topLevelDirectory, folderPrefix + String.format("%04d", i));
-      mUfs.mkdirs(children[numFiles + i], MkdirsOptions.defaults(mConfiguration).setCreateParent(false));
+      mUfs.mkdirs(children[numFiles + i], MkdirsOptions.defaults(mConfiguration)
+          .setCreateParent(false));
     }
 
     return new LargeDirectoryConfig(topLevelDirectory, children);

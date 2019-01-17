@@ -32,6 +32,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 public class BlockMasterClientPoolTest {
 
   private InstancedConfiguration mConf = ConfigurationTestUtils.defaults();
+
   @Test
   public void create() throws Exception {
     BlockMasterClient expectedClient = mock(BlockMasterClient.class);

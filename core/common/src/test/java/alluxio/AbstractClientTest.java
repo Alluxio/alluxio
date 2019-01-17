@@ -15,7 +15,6 @@ import static alluxio.exception.ExceptionMessage.INCOMPATIBLE_VERSION;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.ServiceType;
@@ -40,7 +39,8 @@ public final class AbstractClientTest {
 
   private static class BaseTestClient extends AbstractClient {
     protected BaseTestClient() {
-      super(null, new InstancedConfiguration(ConfigurationUtils.defaults()), null, () -> new CountingRetry(1));
+      super(null, new InstancedConfiguration(ConfigurationUtils.defaults()), null,
+          () -> new CountingRetry(1));
     }
 
     @Override
