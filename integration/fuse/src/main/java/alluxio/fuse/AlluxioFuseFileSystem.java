@@ -16,7 +16,6 @@ import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
-import alluxio.client.file.options.DeleteOptions;
 import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.collections.IndexDefinition;
 import alluxio.collections.IndexedSet;
@@ -668,26 +667,7 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
   @Override
   public int rmdir(String path) {
     LOG.trace("rmdir({})", path);
-    final AlluxioURI turi = mPathResolverCache.getUnchecked(path);
-
-    try {
-      DeleteOptions options = DeleteOptions.defaults().setRecursive(true);
-      mFileSystem.delete(turi, options);
-    } catch (FileDoesNotExistException e) {
-      LOG.debug("Directory does not exist {}", path, e);
-      return -ErrorCodes.ENOENT();
-    } catch (IOException e) {
-      LOG.error("IOException on {}", path, e);
-      return -ErrorCodes.EIO();
-    } catch (AlluxioException e) {
-      LOG.error("AlluxioException on {}", path, e);
-      return -ErrorCodes.EFAULT();
-    } catch (Throwable e) {
-      LOG.error("Unexpected exception on {}", path, e);
-      return -ErrorCodes.EFAULT();
-    }
-
-    return 0;
+    return rmInternal(path);
   }
 
   /**
@@ -696,7 +676,7 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
    */
   @Override
   public int truncate(String path, long size) {
-    LOG.error("Cannot change size of {}", path);
+    LOG.error("Truncate is not supported {}", path);
     return -ErrorCodes.EFAULT();
   }
 
@@ -709,25 +689,7 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
   @Override
   public int unlink(String path) {
     LOG.trace("unlink({})", path);
-    final AlluxioURI turi = mPathResolverCache.getUnchecked(path);
-
-    try {
-      mFileSystem.delete(turi);
-    } catch (FileDoesNotExistException e) {
-      LOG.debug("File does not exist {}", path, e);
-      return -ErrorCodes.ENOENT();
-    } catch (IOException e) {
-      LOG.error("IOException on {}", path, e);
-      return -ErrorCodes.EIO();
-    } catch (AlluxioException e) {
-      LOG.error("AlluxioException on {}", path, e);
-      return -ErrorCodes.EFAULT();
-    } catch (Throwable e) {
-      LOG.error("Unexpected exception on {}", path, e);
-      return -ErrorCodes.EFAULT();
-    }
-
-    return 0;
+    return rmInternal(path);
   }
 
   /**
@@ -793,21 +755,16 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
   }
 
   /**
-   * Convenience internal method to remove files or directories.
+   * Convenience internal method to remove files or non-empty directories.
    *
    * @param path The path to remove
-   * @param isDirectory true when removing a directory, false otherwise
    * @return 0 on success, a negative value on error
    */
-  private int rmInternal(String path, boolean isDirectory) {
+  private int rmInternal(String path) {
     final AlluxioURI turi = mPathResolverCache.getUnchecked(path);
 
     try {
-      DeleteOptions options = DeleteOptions.defaults();
-      if (isDirectory) {
-        options.setRecursive(true);
-      }
-      mFileSystem.delete(turi, options);
+      mFileSystem.delete(turi);
     } catch (FileDoesNotExistException e) {
       LOG.debug("File does not exist {}", path, e);
       return -ErrorCodes.ENOENT();
