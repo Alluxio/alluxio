@@ -16,6 +16,7 @@ import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
+import alluxio.client.file.options.DeleteOptions;
 import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.collections.IndexDefinition;
 import alluxio.collections.IndexedSet;
@@ -312,9 +313,6 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
     final AlluxioURI turi = mPathResolverCache.getUnchecked(path);
     LOG.trace("getattr({}) [Alluxio: {}]", path, turi);
     try {
-      if (!mFileSystem.exists(turi)) {
-        return -ErrorCodes.ENOENT();
-      }
       URIStatus status = mFileSystem.getStatus(turi);
       if (!status.isCompleted()) {
         // Always block waiting for file to be completed except when the file is writing
@@ -441,10 +439,6 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
     LOG.trace("open({}, 0x{}) [Alluxio: {}]", path, Integer.toHexString(flags), uri);
 
     try {
-      if (!mFileSystem.exists(uri)) {
-        LOG.error("File {} does not exist", uri);
-        return -ErrorCodes.ENOENT();
-      }
       final URIStatus status = mFileSystem.getStatus(uri);
       if (status.isFolder()) {
         LOG.error("File {} is a directory", uri);
@@ -510,8 +504,7 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
     LOG.trace("read({}, {}, {})", path, size, offset);
     final int sz = (int) size;
     final long fd = fi.fh.get();
-    OpenFileEntry oe;
-    oe = mOpenFiles.getFirstByField(ID_INDEX, fd);
+    OpenFileEntry oe = mOpenFiles.getFirstByField(ID_INDEX, fd);
     if (oe == null) {
       LOG.error("Cannot find fd for {} in table", path);
       return -ErrorCodes.EBADFD();
@@ -566,13 +559,6 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
     LOG.trace("readdir({}) [Alluxio: {}]", path, turi);
 
     try {
-      if (!mFileSystem.exists(turi)) {
-        return -ErrorCodes.ENOENT();
-      }
-      final URIStatus status = mFileSystem.getStatus(turi);
-      if (!status.isFolder()) {
-        return -ErrorCodes.ENOTDIR();
-      }
       final List<URIStatus> ls = mFileSystem.listStatus(turi);
       // standard . and .. entries
       filter.apply(buff, ".", null, 0);
@@ -646,14 +632,6 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
     LOG.trace("rename({}, {}) [Alluxio: {}, {}]", oldPath, newPath, oldUri, newUri);
 
     try {
-      if (!mFileSystem.exists(oldUri)) {
-        LOG.error("File {} does not exist", oldPath);
-        return -ErrorCodes.ENOENT();
-      }
-      if (mFileSystem.exists(newUri)) {
-        LOG.error("File {} already exists, please delete the destination file first", newPath);
-        return -ErrorCodes.EEXIST();
-      }
       mFileSystem.rename(oldUri, newUri);
       synchronized (mOpenFiles) {
         if (mOpenFiles.contains(PATH_INDEX, oldPath)) {
@@ -664,6 +642,9 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
     } catch (FileDoesNotExistException e) {
       LOG.debug("File {} does not exist", oldPath);
       return -ErrorCodes.ENOENT();
+    } catch (FileAlreadyExistsException e) {
+      LOG.debug("File {} already exists", newPath);
+      return -ErrorCodes.EEXIST();
     } catch (IOException e) {
       LOG.error("IOException while moving {} to {}", oldPath, newPath, e);
       return -ErrorCodes.EIO();
@@ -687,7 +668,7 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
   @Override
   public int rmdir(String path) {
     LOG.trace("rmdir({})", path);
-    return rmInternal(path, false);
+    return rmInternal(path, true);
   }
 
   /**
@@ -696,24 +677,8 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
    */
   @Override
   public int truncate(String path, long size) {
-    final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
-    try {
-      if (!mFileSystem.exists(uri)) {
-        LOG.error("File {} does not exist", uri);
-        return -ErrorCodes.ENOENT();
-      }
-    } catch (IOException e) {
-      LOG.error("IOException encountered at path {}", path, e);
-      return -ErrorCodes.EIO();
-    } catch (AlluxioException e) {
-      LOG.error("AlluxioException encountered at path {}", path, e);
-      return -ErrorCodes.EFAULT();
-    } catch (Throwable e) {
-      LOG.error("Unexpected exception at path {}", path, e);
-      return -ErrorCodes.EFAULT();
-    }
-    LOG.error("File {} exists and cannot be overwritten. Please delete the file first", uri);
-    return -ErrorCodes.EEXIST();
+    LOG.error("Cannot change size of {}", path);
+    return -ErrorCodes.EFAULT();
   }
 
   /**
@@ -725,7 +690,7 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
   @Override
   public int unlink(String path) {
     LOG.trace("unlink({})", path);
-    return rmInternal(path, true);
+    return rmInternal(path, false);
   }
 
   /**
@@ -794,25 +759,18 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
    * Convenience internal method to remove files or directories.
    *
    * @param path The path to remove
-   * @param mustBeFile When true, returns an error when trying to
-   *                   remove a directory
+   * @param isDirectory true when removing a directory, false otherwise
    * @return 0 on success, a negative value on error
    */
-  private int rmInternal(String path, boolean mustBeFile) {
+  private int rmInternal(String path, boolean isDirectory) {
     final AlluxioURI turi = mPathResolverCache.getUnchecked(path);
 
     try {
-      if (!mFileSystem.exists(turi)) {
-        LOG.error("File {} does not exist", turi);
-        return -ErrorCodes.ENOENT();
+      DeleteOptions options = DeleteOptions.defaults();
+      if (isDirectory) {
+        options.setRecursive(true);
       }
-      final URIStatus status = mFileSystem.getStatus(turi);
-      if (mustBeFile && status.isFolder()) {
-        LOG.error("File {} is a directory", turi);
-        return -ErrorCodes.EISDIR();
-      }
-
-      mFileSystem.delete(turi);
+      mFileSystem.delete(turi, options);
     } catch (FileDoesNotExistException e) {
       LOG.debug("File does not exist {}", path, e);
       return -ErrorCodes.ENOENT();

@@ -20,6 +20,7 @@ import static org.mockito.Matchers.anyInt;
 import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.atMost;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -34,7 +35,10 @@ import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
+import alluxio.client.file.options.DeleteOptions;
 import alluxio.client.file.options.SetAttributeOptions;
+import alluxio.exception.FileAlreadyExistsException;
+import alluxio.exception.FileDoesNotExistException;
 import alluxio.security.authorization.Mode;
 import alluxio.wire.FileInfo;
 
@@ -195,7 +199,6 @@ public class AlluxioFuseFileSystemTest {
     URIStatus status = new URIStatus(info);
 
     // mock fs
-    when(mFileSystem.exists(any(AlluxioURI.class))).thenReturn(true);
     when(mFileSystem.getStatus(any(AlluxioURI.class))).thenReturn(status);
 
     FileStat stat = new FileStat(Runtime.getSystemRuntime());
@@ -225,7 +228,6 @@ public class AlluxioFuseFileSystemTest {
     URIStatus status = new URIStatus(info);
 
     // mock fs
-    when(mFileSystem.exists(any(AlluxioURI.class))).thenReturn(true);
     when(mFileSystem.getStatus(any(AlluxioURI.class))).thenReturn(status);
 
     FileStat stat = new FileStat(Runtime.getSystemRuntime());
@@ -238,7 +240,6 @@ public class AlluxioFuseFileSystemTest {
 
     // If the file is not being written and is not completed,
     // we will wait for the file to complete
-    verify(mFileSystem).exists(expectedPath);
     verify(mFileSystem, atLeast(10)).getStatus(expectedPath);
     assertEquals(0, stat.st_size.longValue());
 
@@ -308,7 +309,6 @@ public class AlluxioFuseFileSystemTest {
     setUpOpenMock(expectedPath);
 
     mFuseFs.open("/foo/bar", mFileInfo);
-    verify(mFileSystem).exists(expectedPath);
     verify(mFileSystem).getStatus(expectedPath);
     verify(mFileSystem).openFile(expectedPath);
   }
@@ -320,7 +320,6 @@ public class AlluxioFuseFileSystemTest {
     fi.setCompleted(false);
 
     mFuseFs.open("/foo/bar", mFileInfo);
-    verify(mFileSystem).exists(expectedPath);
     verify(mFileSystem, atLeast(100)).getStatus(expectedPath);
     verify(mFileSystem, never()).openFile(expectedPath);
   }
@@ -337,7 +336,6 @@ public class AlluxioFuseFileSystemTest {
     t.start();
     Thread.sleep(1000);
     // If the file exists but is not completed, we will wait for the file to complete
-    verify(mFileSystem).exists(expectedPath);
     verify(mFileSystem, atLeast(10)).getStatus(expectedPath);
     verify(mFileSystem, never()).openFile(expectedPath);
 
@@ -384,8 +382,7 @@ public class AlluxioFuseFileSystemTest {
   public void rename() throws Exception {
     AlluxioURI oldPath = BASE_EXPECTED_URI.join("/old");
     AlluxioURI newPath = BASE_EXPECTED_URI.join("/new");
-    when(mFileSystem.exists(oldPath)).thenReturn(true);
-    when(mFileSystem.exists(newPath)).thenReturn(false);
+    doNothing().when(mFileSystem).rename(oldPath, newPath);
     mFuseFs.rename("/old", "/new");
     verify(mFileSystem).rename(oldPath, newPath);
   }
@@ -393,7 +390,9 @@ public class AlluxioFuseFileSystemTest {
   @Test
   public void renameOldNotExist() throws Exception {
     AlluxioURI oldPath = BASE_EXPECTED_URI.join("/old");
-    when(mFileSystem.exists(oldPath)).thenReturn(false);
+    AlluxioURI newPath = BASE_EXPECTED_URI.join("/new");
+    doThrow(new FileDoesNotExistException("File /old does not exist"))
+        .when(mFileSystem).rename(oldPath, newPath);
     assertEquals(-ErrorCodes.ENOENT(), mFuseFs.rename("/old", "/new"));
   }
 
@@ -401,23 +400,18 @@ public class AlluxioFuseFileSystemTest {
   public void renameNewExist() throws Exception {
     AlluxioURI oldPath = BASE_EXPECTED_URI.join("/old");
     AlluxioURI newPath = BASE_EXPECTED_URI.join("/new");
-    when(mFileSystem.exists(oldPath)).thenReturn(true);
-    when(mFileSystem.exists(newPath)).thenReturn(true);
-    mFuseFs.rename("/old", "/new");
+    doThrow(new FileAlreadyExistsException("File /new already exists"))
+        .when(mFileSystem).rename(oldPath, newPath);
     assertEquals(-ErrorCodes.EEXIST(), mFuseFs.rename("/old", "/new"));
   }
 
   @Test
   public void rmdir() throws Exception {
     AlluxioURI expectedPath = BASE_EXPECTED_URI.join("/foo/bar");
-    FileInfo info = new FileInfo();
-    info.setFolder(true);
-    URIStatus status = new URIStatus(info);
-    when(mFileSystem.getStatus(expectedPath)).thenReturn(status);
-    when(mFileSystem.exists(expectedPath)).thenReturn(true);
-    doNothing().when(mFileSystem).delete(expectedPath);
+    DeleteOptions options = DeleteOptions.defaults().setRecursive(true);
+    doNothing().when(mFileSystem).delete(expectedPath, options);
     mFuseFs.rmdir("/foo/bar");
-    verify(mFileSystem).delete(expectedPath);
+    verify(mFileSystem).delete(expectedPath, options);
   }
 
   @Test
@@ -447,14 +441,9 @@ public class AlluxioFuseFileSystemTest {
   @Test
   public void unlink() throws Exception {
     AlluxioURI expectedPath = BASE_EXPECTED_URI.join("/foo/bar");
-    FileInfo info = new FileInfo();
-    info.setFolder(false);
-    URIStatus status = new URIStatus(info);
-    when(mFileSystem.getStatus(expectedPath)).thenReturn(status);
-    when(mFileSystem.exists(expectedPath)).thenReturn(true);
-    doNothing().when(mFileSystem).delete(expectedPath);
+    doNothing().when(mFileSystem).delete(expectedPath, DeleteOptions.defaults());
     mFuseFs.unlink("/foo/bar");
-    verify(mFileSystem).delete(expectedPath);
+    verify(mFileSystem).delete(expectedPath, DeleteOptions.defaults());
   }
 
   @Test
@@ -489,7 +478,6 @@ public class AlluxioFuseFileSystemTest {
     fi.setFolder(false);
     URIStatus status = new URIStatus(fi);
 
-    when(mFileSystem.exists(uri)).thenReturn(true);
     when(mFileSystem.getStatus(uri)).thenReturn(status);
     return fi;
   }
