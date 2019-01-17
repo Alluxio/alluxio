@@ -38,8 +38,7 @@ public class LockResource implements Closeable {
   }
 
   /**
-   * Releases the lock and decrement the ref count if a ref counter was provided
-   * at construction time.
+   * Releases the lock.
    */
   @Override
   public void close() {

@@ -41,13 +41,11 @@ public class LockCache<K, V> {
     private V mValue;
     private boolean mIsAccessed;
     private AtomicInteger mRefCount;
-    private boolean mIsNew;
 
     private ValNode(V value) {
       mValue = value;
       mIsAccessed = false;
-      mRefCount = new AtomicInteger(0);
-      mIsNew = true;
+      mRefCount = new AtomicInteger(1);
     }
 
     /**
@@ -112,6 +110,7 @@ public class LockCache<K, V> {
       try {
         // This thread is the evictor
         while (numToEvict > 0) {
+
           if (!mIterator.hasNext()) {
             mIterator = mCache.entrySet().iterator();
           }
@@ -120,7 +119,7 @@ public class LockCache<K, V> {
           if (candidate.mIsAccessed) {
             candidate.mIsAccessed = false;
           } else {
-            if ((!candidate.mIsNew) && candidate.mRefCount.compareAndSet(0, Integer.MIN_VALUE)) {
+            if (candidate.mRefCount.compareAndSet(0, Integer.MIN_VALUE)) {
               // the value object can be evicted, at the same time we make refCount minValue
               mIterator.remove();
               numToEvict--;
@@ -146,7 +145,12 @@ public class LockCache<K, V> {
     ValNode<V> cacheEntry;
     while (true) {
       // repeat until we get a cacheEntry that is not in the process of being removed.
-      cacheEntry = mCache.computeIfAbsent(key, k -> {
+      cacheEntry = mCache.compute(key, (k, v) -> {
+        if (v != null) {
+          v.getRefCounter().incrementAndGet();
+          return v;
+        }
+        // new cache entry
         if (mCache.size() >= mHardLimit) {
           return null;
         } else {
@@ -166,9 +170,7 @@ public class LockCache<K, V> {
       }
 
       if ((oldCacheEntry != cacheEntry)
-          && cacheEntry.mRefCount.incrementAndGet() > 0) {
-        // refCount went negative, we are evicting this entry
-        cacheEntry.mIsNew = false;
+          && cacheEntry.mRefCount.get() > 0) {
         evictIfOverLimit();
         return cacheEntry;
       } else {

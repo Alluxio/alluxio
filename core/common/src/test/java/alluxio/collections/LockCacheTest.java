@@ -17,6 +17,11 @@ import static org.junit.Assert.assertTrue;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.Iterator;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
+
 /**
  * Tests the {@link LockCache} class.
  */
@@ -56,23 +61,29 @@ public class LockCacheTest {
     }
   }
 
-  private void insert(int low, int high, int totalThreadCount) {
+  private Thread insert(int low, int high, int totalThreadCount) {
     Thread t = new Thread(() -> {
       for (int i = low; i < high; i++) {
-        int val = mCache.get(i).get();
-        assertTrue(mCache.size() < MAX_SIZE);
+        LockCache<Integer, Integer>.ValNode<Integer> valNode = mCache.get(i);
+        assertTrue(mCache.size() <= MAX_SIZE + totalThreadCount);
         assertTrue(mCache.contains(i));
-        assertEquals(i, val);
+        assertEquals(i, valNode.get().intValue());
+        valNode.getRefCounter().decrementAndGet();
       }
     });
     t.start();
+    return t;
   }
 
   @Test
-  public void parallelInsertTest() {
-    insert(0, MAX_SIZE * 2, 4);
-    insert(0, MAX_SIZE * 2, 4);
-    insert(MAX_SIZE * 2, MAX_SIZE * 4, 4);
-    insert(MAX_SIZE * 2, MAX_SIZE * 4, 4);
+  public void parallelInsertTest() throws InterruptedException {
+    Thread t1 = insert(0, MAX_SIZE * 2, 4);
+    Thread t2 = insert(0, MAX_SIZE * 2, 4);
+    Thread t3 = insert(MAX_SIZE * 2, MAX_SIZE * 4, 4);
+    Thread t4 = insert(MAX_SIZE * 2, MAX_SIZE * 4, 4);
+    t1.join();
+    t2.join();
+    t3.join();
+    t4.join();
   }
 }
