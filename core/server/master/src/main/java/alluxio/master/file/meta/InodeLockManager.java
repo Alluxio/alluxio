@@ -118,7 +118,7 @@ public class InodeLockManager {
    */
   public LockResource lockInode(InodeView inode, LockMode mode) {
     LockCache<Long, WeakSafeReentrantReadWriteLock>.ValNode<WeakSafeReentrantReadWriteLock>
-    valNode = mInodeLocks.get(inode.getId());
+        valNode = mInodeLocks.get(inode.getId());
     return lock(valNode.get(), mode, valNode.getRefCounter());
   }
 
@@ -131,7 +131,7 @@ public class InodeLockManager {
    */
   public LockResource lockEdge(Edge edge, LockMode mode) {
     LockCache<Edge, WeakSafeReentrantReadWriteLock>.ValNode<WeakSafeReentrantReadWriteLock>
-    valNode = mEdgeLocks.get(edge);
+        valNode = mEdgeLocks.get(edge);
     return lock(valNode.get(), mode, valNode.getRefCounter());
   }
 

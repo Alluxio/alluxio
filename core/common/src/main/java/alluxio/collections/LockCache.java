@@ -24,7 +24,19 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Function;
 
+/**
+ * A cache specifically designed to contain locks and will NOT evict any entries
+ * that are in use.
+ *
+ * @param <K> key to the cache
+ * @param <V> often a lock type
+ */
 public class LockCache<K, V> {
+  /**
+   * Node containing value and other information to be stored in the cache.
+   *
+   * @param <V> value type
+   */
   public class ValNode<V> {
     private V mValue;
     private boolean mIsAccessed;
@@ -38,22 +50,31 @@ public class LockCache<K, V> {
       mIsNew = true;
     }
 
+    /**
+     * Get the ref counter associated with this value node.
+     *
+     * @return a ref counter
+     */
     public AtomicInteger getRefCounter() {
       return mRefCount;
     }
 
+    /**
+     * get the value contained in the value node.
+     *
+     * @return the value
+     */
     public V get() {
       return mValue;
     }
   }
 
   private static final Logger LOG = LoggerFactory.getLogger(LockCache.class);
-  private final static float DEFAULT_LOAD_FACTOR = 0.75f;
+  private static final float DEFAULT_LOAD_FACTOR = 0.75f;
   static final float SOFT_LIMIT_RATIO = 0.9f;
 
   private final Map<K, ValNode<V>> mCache;
-  private final int mConcurrencyLevel;
-  private final int mInitSize;
+
   /* A suggested maximum size for the cache */
   private final int mHardLimit;
   private final int mSoftLimit;
@@ -61,14 +82,21 @@ public class LockCache<K, V> {
   private Iterator<Map.Entry<K, ValNode<V>>> mIterator;
   private final Lock mEvictLock;
 
+  /**
+   * Constructor for a lock cache.
+   *
+   * @param defaultLoader specify a function to generate a value based on a key
+   * @param initialSize initial size of the cache
+   * @param maxSize maximum size of the cache
+   * @param concurrencyLevel concurrency level of the cache
+   */
   public LockCache(@Nullable Function<? super K, ? extends V> defaultLoader, int initialSize,
       int maxSize, int concurrencyLevel) {
     mDefaultLoader = defaultLoader;
-    mConcurrencyLevel = concurrencyLevel;
-    mInitSize = initialSize;
+
     mHardLimit = maxSize;
     mSoftLimit = (int) Math.round(SOFT_LIMIT_RATIO * maxSize);
-    mCache = new ConcurrentHashMap<>(mInitSize, DEFAULT_LOAD_FACTOR, concurrencyLevel);
+    mCache = new ConcurrentHashMap<>(initialSize, DEFAULT_LOAD_FACTOR, concurrencyLevel);
     mIterator = mCache.entrySet().iterator();
     mEvictLock = new ReentrantLock();
   }
@@ -99,13 +127,19 @@ public class LockCache<K, V> {
             }
           }
         }
-
       } finally {
         mEvictLock.unlock();
       }
     }
   }
 
+  /**
+   * get the value from the cache.
+   *
+   * @param key the key to look up the cache
+   * @return the value contained in the cache, if it is already in cache,
+   * otherwise generate an entry based on the loader
+   */
   public ValNode<V> get(final K key) {
     Preconditions.checkNotNull(key, "key can not be null");
     ValNode<V> oldCacheEntry = null;
@@ -140,17 +174,27 @@ public class LockCache<K, V> {
       } else {
         oldCacheEntry = cacheEntry;
         evictIfOverLimit();
-        // TODO: sleep here to prevent overloading the cache
+        //TODO(yuzhu): sleep here to prevent overloading the cache
       }
     }
-
   }
 
+  /**
+   * returns whether the cache contains a particular key.
+   *
+   * @param key the key to look up in the cache
+   * @return true if the key is contained in the cache
+   */
   public boolean contains(final K key) {
     Preconditions.checkNotNull(key, "key can not be null");
     return mCache.containsKey(key);
   }
 
+  /**
+   * returns the size of the cache.
+   *
+   * @return the number of entries cached
+   */
   public int size() {
     return mCache.size();
   }

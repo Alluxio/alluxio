@@ -29,7 +29,7 @@ public class LockCacheTest {
    */
   @Before
   public void before() {
-    mCache = new LockCache<>(k -> new Integer(k),2, MAX_SIZE, 4);
+    mCache = new LockCache<>(k -> new Integer(k), 2, MAX_SIZE, 4);
   }
 
   @Test(timeout = 10000)
@@ -43,7 +43,7 @@ public class LockCacheTest {
       assertTrue(mCache.size() < MAX_SIZE);
       valNode.getRefCounter().decrementAndGet();
     }
-    for (int i = highWaterMark; i< MAX_SIZE; i++) {
+    for (int i = highWaterMark; i < MAX_SIZE; i++) {
       mCache.get(i).getRefCounter().decrementAndGet();
     }
     // it should be full now
@@ -66,14 +66,13 @@ public class LockCacheTest {
       }
     });
     t.start();
-
   }
+
   @Test
   public void parallelInsertTest() {
     insert(0, MAX_SIZE * 2, 4);
-    insert(0, MAX_SIZE * 2,4);
-    insert(MAX_SIZE * 2, MAX_SIZE * 4,4);
-    insert(MAX_SIZE * 2, MAX_SIZE * 4,4);
+    insert(0, MAX_SIZE * 2, 4);
+    insert(MAX_SIZE * 2, MAX_SIZE * 4, 4);
+    insert(MAX_SIZE * 2, MAX_SIZE * 4, 4);
   }
-
 }

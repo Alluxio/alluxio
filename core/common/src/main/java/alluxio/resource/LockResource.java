@@ -40,6 +40,12 @@ public class LockResource implements Closeable {
     mRefCount = null;
   }
 
+  /**
+   * Creates a new instance of {@link LockResource} using the given lock.
+   *
+   * @param lock the lock to acquire
+   * @param refCount ref count for the lock
+   */
   public LockResource(Lock lock, AtomicInteger refCount) {
     mLock = lock;
     mLock.lock();
@@ -47,7 +53,8 @@ public class LockResource implements Closeable {
   }
 
   /**
-   * Releases the lock and decrement the ref count if a ref counter was provided in the
+   * Releases the lock and decrement the ref count if a ref counter was provided
+   * at construction time.
    */
   @Override
   public void close() {
