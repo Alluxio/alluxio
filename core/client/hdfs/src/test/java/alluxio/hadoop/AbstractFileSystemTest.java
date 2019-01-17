@@ -219,7 +219,8 @@ public class AbstractFileSystemTest {
       Configuration conf = getConf();
       conf.set("fs.alluxio.impl.disable.cache", "true");
       org.apache.hadoop.fs.FileSystem fs1 = org.apache.hadoop.fs.FileSystem.get(uri, conf);
-      verify(mMockFileSystemContext, times(1)).reset();
+      verify(mMockFileSystemContextCustomized, times(1)).reset();
+
       // The filesystem context should return a master inquire client based on the latest config
       // 
       // THIS CAN'T WORK ANY MORE
@@ -291,7 +292,7 @@ public class AbstractFileSystemTest {
     URI uri = URI.create(Constants.HEADER + "otherhost:410/");
     org.apache.hadoop.fs.FileSystem.get(uri, getConf());
 
-    verify(mMockFileSystemContext).reset();
+    verify(mMockFileSystemContextCustomized).reset();
   }
 
   @Test
@@ -316,7 +317,7 @@ public class AbstractFileSystemTest {
     assertEquals("host1:2181,host2:2181,host3:2181",
         mConfiguration.get(PropertyKey.ZOOKEEPER_ADDRESS));
 
-    verify(mMockFileSystemContext, times(3)).reset();
+    verify(mMockFileSystemContextCustomized, times(3)).reset();
   }
 
   @Test
@@ -333,7 +334,7 @@ public class AbstractFileSystemTest {
     assertEquals("19998", mConfiguration.get(PropertyKey.MASTER_RPC_PORT));
     assertFalse(mConfiguration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED));
     assertFalse(mConfiguration.isSet(PropertyKey.ZOOKEEPER_ADDRESS));
-    verify(mMockFileSystemContext, times(2)).reset();
+    verify(mMockFileSystemContextCustomized, times(2)).reset();
   }
 
   @Test
@@ -341,7 +342,7 @@ public class AbstractFileSystemTest {
     // Change to multi-master uri
     URI uri = URI.create(Constants.HEADER + "host1:19998,host2:19998,host3:19998/tmp/path.txt");
     org.apache.hadoop.fs.FileSystem.get(uri, getConf());
-    verify(mMockFileSystemContext).reset();
+    verify(mMockFileSystemContextCustomized).reset();
 
 
     assertFalse(mClientContext.getConf().getBoolean(PropertyKey.ZOOKEEPER_ENABLED));
@@ -366,7 +367,7 @@ public class AbstractFileSystemTest {
     assertEquals("host1:19998,host2:19998,host3:19998",
         mClientContext.getConf().get(PropertyKey.MASTER_RPC_ADDRESSES));
 
-    verify(mMockFileSystemContext, times(2)).reset();
+    verify(mMockFileSystemContextCustomized, times(2)).reset();
   }
 
   @Test
@@ -389,7 +390,7 @@ public class AbstractFileSystemTest {
     assertEquals(1,
         ConfigurationUtils.getMasterRpcAddresses(mClientContext.getConf()).size());
 
-    verify(mMockFileSystemContext, times(2)).reset();
+    verify(mMockFileSystemContextCustomized, times(2)).reset();
   }
 
   /**
