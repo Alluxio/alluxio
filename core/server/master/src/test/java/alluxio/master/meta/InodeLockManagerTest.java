@@ -31,18 +31,18 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class InodeLockManagerTest {
   @Test(timeout = 10000)
   public void lockInode() throws Exception {
-    inodeLockTest(LockResource.LockMode.WRITE, LockMode.READ, true);
-    inodeLockTest(LockResource.LockMode.READ,  LockMode.WRITE, true);
-    inodeLockTest(LockResource.LockMode.WRITE, LockMode.WRITE, true);
-    inodeLockTest(LockResource.LockMode.READ,  LockMode.READ, false);
+    inodeLockTest(LockMode.WRITE, LockMode.READ, true);
+    inodeLockTest(LockMode.READ,  LockMode.WRITE, true);
+    inodeLockTest(LockMode.WRITE, LockMode.WRITE, true);
+    inodeLockTest(LockMode.READ,  LockMode.READ, false);
   }
 
   @Test(timeout = 10000)
   public void lockEdge() throws Exception {
-    edgeLockTest(LockResource.LockMode.WRITE, LockMode.READ, true);
-    edgeLockTest(LockResource.LockMode.READ,  LockMode.WRITE, true);
-    edgeLockTest(LockResource.LockMode.WRITE, LockMode.WRITE, true);
-    edgeLockTest(LockResource.LockMode.READ,  LockMode.READ, false);
+    edgeLockTest(LockMode.WRITE, LockMode.READ, true);
+    edgeLockTest(LockMode.READ,  LockMode.WRITE, true);
+    edgeLockTest(LockMode.WRITE, LockMode.WRITE, true);
+    edgeLockTest(LockMode.READ,  LockMode.READ, false);
   }
 
   private void inodeLockTest(LockMode take, LockMode tryToTake, boolean expectBlocking)
