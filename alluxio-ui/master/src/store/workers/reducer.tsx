@@ -14,13 +14,13 @@ import {Reducer} from 'redux';
 import {IWorkersState, WorkersActionTypes} from './types';
 
 export const initialWorkersState: IWorkersState = {
-  errors: undefined,
-  loading: false,
-  workers: {
+  data: {
     'debug': false,
     'failedNodeInfos': [],
     'normalNodeInfos': []
-  }
+  },
+  errors: undefined,
+  loading: false
 };
 
 export const workersReducer: Reducer<IWorkersState> = (state = initialWorkersState, action) => {
@@ -28,7 +28,7 @@ export const workersReducer: Reducer<IWorkersState> = (state = initialWorkersSta
     case WorkersActionTypes.FETCH_REQUEST:
       return {...state, loading: true};
     case WorkersActionTypes.FETCH_SUCCESS:
-      return {...state, loading: false, workers: action.payload.data, response: action.payload};
+      return {...state, loading: false, data: action.payload.data, response: action.payload, errors: undefined};
     case WorkersActionTypes.FETCH_ERROR:
       return {...state, loading: false, errors: action.payload};
     default:

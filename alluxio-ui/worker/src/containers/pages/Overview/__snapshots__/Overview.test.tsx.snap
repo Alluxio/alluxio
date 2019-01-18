@@ -692,6 +692,20 @@ exports[`Overview App with connected component Matches snapshot 1`] = `
                         }
                       >
                         <Overview
+                          data={
+                            Object {
+                              "capacityBytes": "",
+                              "storageDirs": Array [],
+                              "usageOnTiers": Array [],
+                              "usedBytes": "",
+                              "version": "",
+                              "workerInfo": Object {
+                                "startTime": "",
+                                "uptime": "",
+                                "workerAddress": "",
+                              },
+                            }
+                          }
                           fetchRequest={[Function]}
                           history={
                             Object {
@@ -728,20 +742,6 @@ exports[`Overview App with connected component Matches snapshot 1`] = `
                               "params": Object {},
                               "path": "/overview",
                               "url": "/overview",
-                            }
-                          }
-                          overview={
-                            Object {
-                              "capacityBytes": "",
-                              "storageDirs": Array [],
-                              "usageOnTiers": Array [],
-                              "usedBytes": "",
-                              "version": "",
-                              "workerInfo": Object {
-                                "startTime": "",
-                                "uptime": "",
-                                "workerAddress": "",
-                              },
                             }
                           }
                           refresh={false}

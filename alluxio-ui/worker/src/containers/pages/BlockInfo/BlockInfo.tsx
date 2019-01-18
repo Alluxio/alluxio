@@ -24,7 +24,7 @@ import {fetchRequest} from '../../../store/blockInfo/actions';
 import {IBlockInfo, IFileBlocksOnTier} from '../../../store/blockInfo/types';
 
 interface IPropsFromState {
-  blockInfo: IBlockInfo;
+  data: IBlockInfo;
   errors?: AxiosResponse;
   loading: boolean;
   location: {
@@ -79,7 +79,7 @@ export class BlockInfo extends React.Component<AllProps, IBlockInfoState> {
   }
 
   public render() {
-    const {errors, blockInfo} = this.props;
+    const {errors, data: blockInfo} = this.props;
     let queryStringSuffix = Object.entries(this.state)
       .filter((obj: any[]) => ['offset', 'limit', 'end'].includes(obj[0]) && obj[1] != undefined)
       .map((obj: any) => `${obj[0]}=${obj[1]}`).join('&');
@@ -201,7 +201,7 @@ export class BlockInfo extends React.Component<AllProps, IBlockInfoState> {
 }
 
 const mapStateToProps = ({blockInfo, refresh}: IApplicationState) => ({
-  blockInfo: blockInfo.blockInfo,
+  data: blockInfo.data,
   errors: blockInfo.errors,
   loading: blockInfo.loading,
   refresh: refresh.refresh

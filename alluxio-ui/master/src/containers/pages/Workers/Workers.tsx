@@ -21,10 +21,10 @@ import {fetchRequest} from '../../../store/workers/actions';
 import {IWorkers} from '../../../store/workers/types';
 
 interface IPropsFromState {
+  data: IWorkers;
   errors?: AxiosResponse;
   loading: boolean;
   refresh: boolean;
-  workers: IWorkers;
 }
 
 interface IPropsFromDispatch {
@@ -45,7 +45,7 @@ export class Workers extends React.Component<AllProps> {
   }
 
   public render() {
-    const {errors, workers} = this.props;
+    const {errors, data: workers} = this.props;
 
     if (errors) {
       return (
@@ -54,6 +54,8 @@ export class Workers extends React.Component<AllProps> {
         </Alert>
       );
     }
+
+    console.log(workers);
 
     return (
       <div className="workers-page">
@@ -132,10 +134,10 @@ export class Workers extends React.Component<AllProps> {
 }
 
 const mapStateToProps = ({refresh, workers}: IApplicationState) => ({
+  data: workers.data,
   errors: workers.errors,
   loading: workers.loading,
-  refresh: refresh.refresh,
-  workers: workers.workers
+  refresh: refresh.refresh
 });
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({

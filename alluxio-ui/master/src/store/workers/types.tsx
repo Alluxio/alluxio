@@ -26,8 +26,8 @@ export enum WorkersActionTypes {
 }
 
 export interface IWorkersState {
-  readonly loading: boolean;
-  readonly workers: IWorkers;
+  readonly data: IWorkers;
   readonly errors?: AxiosResponse;
+  readonly loading: boolean;
   readonly response?: AxiosResponse;
 }

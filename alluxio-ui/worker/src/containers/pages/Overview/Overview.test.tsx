@@ -36,7 +36,7 @@ describe('Overview', () => {
     store = configureStore(history, initialState);
     props = {
       fetchRequest: sinon.spy(() => {}),
-      overview: initialState.overview.overview,
+      data: initialState.overview.data,
       loading: initialState.overview.loading,
       refresh: initialState.refresh.refresh
     };

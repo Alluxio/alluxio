@@ -21,7 +21,7 @@ import {fetchRequest} from '../../../store/config/actions';
 import {IConfig} from '../../../store/config/types';
 
 interface IPropsFromState {
-  config: IConfig;
+  data: IConfig;
   errors?: AxiosResponse;
   loading: boolean;
   refresh: boolean;
@@ -45,7 +45,7 @@ export class Configuration extends React.Component<AllProps> {
   }
 
   public render() {
-    const {errors, config} = this.props;
+    const {errors, data: config} = this.props;
 
     if (errors) {
       return (
@@ -100,7 +100,7 @@ export class Configuration extends React.Component<AllProps> {
 }
 
 const mapStateToProps = ({config, refresh}: IApplicationState) => ({
-  config: config.config,
+  data: config.data,
   errors: config.errors,
   loading: config.loading,
   refresh: refresh.refresh

@@ -763,7 +763,7 @@ exports[`Configuration App with connected component Matches snapshot 1`] = `
                         }
                       >
                         <Configuration
-                          config={
+                          data={
                             Object {
                               "configuration": Array [],
                               "whitelist": Array [],

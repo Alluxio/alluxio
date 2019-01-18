@@ -763,7 +763,7 @@ exports[`Browse App with connected component Matches snapshot 1`] = `
                         }
                       >
                         <Browse
-                          browse={
+                          data={
                             Object {
                               "accessControlException": "",
                               "blockSizeBytes": "",

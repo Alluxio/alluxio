@@ -36,7 +36,7 @@ describe('Workers', () => {
     store = configureStore(history, initialState);
     props = {
       fetchRequest: sinon.spy(() => {}),
-      workers: initialState.workers.workers,
+      data: initialState.workers.data,
       loading: initialState.workers.loading,
       refresh: initialState.refresh.refresh
     };

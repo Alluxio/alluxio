@@ -36,7 +36,7 @@ describe('Metrics', () => {
     store = configureStore(history, initialState);
     props = {
       fetchRequest: sinon.spy(() => {}),
-      metrics: initialState.metrics.metrics,
+      data: initialState.metrics.data,
       loading: initialState.metrics.loading,
       refresh: initialState.refresh.refresh
     };

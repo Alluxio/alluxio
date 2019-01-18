@@ -20,9 +20,9 @@ import {fetchRequest} from '../../../store/metrics/actions';
 import {IMetrics} from '../../../store/metrics/types';
 
 interface IPropsFromState {
+  data: IMetrics;
   errors?: AxiosResponse;
   loading: boolean;
-  metrics: IMetrics;
   refresh: boolean;
 }
 
@@ -44,7 +44,7 @@ export class Metrics extends React.Component<AllProps> {
   }
 
   public render() {
-    const {errors, metrics} = this.props;
+    const {errors, data: metrics} = this.props;
 
     if (errors) {
       return (
@@ -307,9 +307,9 @@ export class Metrics extends React.Component<AllProps> {
 }
 
 const mapStateToProps = ({metrics, refresh}: IApplicationState) => ({
+  data: metrics.data,
   errors: metrics.errors,
   loading: metrics.loading,
-  metrics: metrics.metrics,
   refresh: refresh.refresh
 });
 

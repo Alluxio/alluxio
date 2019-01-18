@@ -39,9 +39,10 @@ describe('App', () => {
 
     beforeAll(() => {
       const props: AllProps = {
-        triggerRefresh: sinon.spy(() => {})
+        triggerRefresh: sinon.spy(() => {}),
+        history
       };
-      shallowWrapper = shallow(<App {...props} history={history}/>);
+      shallowWrapper = shallow(<App {...props}/>);
     });
 
     it('Renders without crashing', () => {

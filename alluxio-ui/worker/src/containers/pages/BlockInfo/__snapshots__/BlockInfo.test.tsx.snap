@@ -692,7 +692,7 @@ exports[`BlockInfo App with connected component Matches snapshot 1`] = `
                         }
                       >
                         <BlockInfo
-                          blockInfo={
+                          data={
                             Object {
                               "blockSizeBytes": "",
                               "fatalError": "",

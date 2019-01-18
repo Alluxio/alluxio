@@ -763,6 +763,13 @@ exports[`Workers App with connected component Matches snapshot 1`] = `
                         }
                       >
                         <Workers
+                          data={
+                            Object {
+                              "debug": false,
+                              "failedNodeInfos": Array [],
+                              "normalNodeInfos": Array [],
+                            }
+                          }
                           fetchRequest={[Function]}
                           history={
                             Object {
@@ -802,13 +809,6 @@ exports[`Workers App with connected component Matches snapshot 1`] = `
                             }
                           }
                           refresh={false}
-                          workers={
-                            Object {
-                              "debug": false,
-                              "failedNodeInfos": Array [],
-                              "normalNodeInfos": Array [],
-                            }
-                          }
                         >
                           <div
                             className="workers-page"

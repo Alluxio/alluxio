@@ -21,9 +21,9 @@ import {fetchRequest} from '../../../store/overview/actions';
 import {IOverview} from '../../../store/overview/types';
 
 interface IPropsFromState {
+  data: IOverview;
   errors?: AxiosResponse;
   loading: boolean;
-  overview: IOverview;
   refresh: boolean;
 }
 
@@ -45,7 +45,7 @@ export class Overview extends React.Component<AllProps> {
   }
 
   public render() {
-    const {errors, overview} = this.props;
+    const {errors, data: overview} = this.props;
 
     if (errors) {
       return (
@@ -204,9 +204,9 @@ export class Overview extends React.Component<AllProps> {
 }
 
 const mapStateToProps = ({overview, refresh}: IApplicationState) => ({
+  data: overview.data,
   errors: overview.errors,
   loading: overview.loading,
-  overview: overview.overview,
   refresh: refresh.refresh
 });
 

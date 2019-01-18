@@ -763,6 +763,32 @@ exports[`Metrics App with connected component Matches snapshot 1`] = `
                         }
                       >
                         <Metrics
+                          data={
+                            Object {
+                              "cacheHitLocal": "",
+                              "cacheHitRemote": "",
+                              "cacheMiss": "0.00",
+                              "masterCapacityFreePercentage": 0,
+                              "masterCapacityUsedPercentage": 0,
+                              "masterUnderfsCapacityFreePercentage": 0,
+                              "masterUnderfsCapacityUsedPercentage": 0,
+                              "operationMetrics": Object {},
+                              "rpcInvocationMetrics": Object {},
+                              "totalBytesReadLocal": "",
+                              "totalBytesReadLocalThroughput": "",
+                              "totalBytesReadRemote": "",
+                              "totalBytesReadRemoteThroughput": "",
+                              "totalBytesReadUfs": "",
+                              "totalBytesReadUfsThroughput": "",
+                              "totalBytesWrittenAlluxio": "",
+                              "totalBytesWrittenAlluxioThroughput": "",
+                              "totalBytesWrittenUfs": "",
+                              "totalBytesWrittenUfsThroughput": "",
+                              "ufsOps": Object {},
+                              "ufsReadSize": Object {},
+                              "ufsWriteSize": Object {},
+                            }
+                          }
                           fetchRequest={[Function]}
                           history={
                             Object {
@@ -799,32 +825,6 @@ exports[`Metrics App with connected component Matches snapshot 1`] = `
                               "params": Object {},
                               "path": "/metrics",
                               "url": "/metrics",
-                            }
-                          }
-                          metrics={
-                            Object {
-                              "cacheHitLocal": "",
-                              "cacheHitRemote": "",
-                              "cacheMiss": "0.00",
-                              "masterCapacityFreePercentage": 0,
-                              "masterCapacityUsedPercentage": 0,
-                              "masterUnderfsCapacityFreePercentage": 0,
-                              "masterUnderfsCapacityUsedPercentage": 0,
-                              "operationMetrics": Object {},
-                              "rpcInvocationMetrics": Object {},
-                              "totalBytesReadLocal": "",
-                              "totalBytesReadLocalThroughput": "",
-                              "totalBytesReadRemote": "",
-                              "totalBytesReadRemoteThroughput": "",
-                              "totalBytesReadUfs": "",
-                              "totalBytesReadUfsThroughput": "",
-                              "totalBytesWrittenAlluxio": "",
-                              "totalBytesWrittenAlluxioThroughput": "",
-                              "totalBytesWrittenUfs": "",
-                              "totalBytesWrittenUfsThroughput": "",
-                              "ufsOps": Object {},
-                              "ufsReadSize": Object {},
-                              "ufsWriteSize": Object {},
                             }
                           }
                           refresh={false}

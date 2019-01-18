@@ -14,7 +14,7 @@ import {Reducer} from 'redux';
 import {BrowseActionTypes, IBrowseState} from './types';
 
 export const initialBrowseState: IBrowseState = {
-  browse: {
+  data: {
     'accessControlException': '',
     'blockSizeBytes': '',
     'currentDirectory': {
@@ -61,7 +61,7 @@ export const browseReducer: Reducer<IBrowseState> = (state = initialBrowseState,
     case BrowseActionTypes.FETCH_REQUEST:
       return {...state, loading: true};
     case BrowseActionTypes.FETCH_SUCCESS:
-      return {...state, loading: false, browse: action.payload.data, response: action.payload};
+      return {...state, loading: false, data: action.payload.data, response: action.payload, errors: undefined};
     case BrowseActionTypes.FETCH_ERROR:
       return {...state, loading: false, errors: action.payload};
     default:

@@ -763,6 +763,41 @@ exports[`App Connected component Matches snapshot 1`] = `
                         }
                       >
                         <Overview
+                          data={
+                            Object {
+                              "capacity": Object {
+                                "total": 0,
+                                "used": 100,
+                              },
+                              "configCheckErrors": Array [],
+                              "configCheckStatus": "",
+                              "configCheckWarns": Array [],
+                              "consistencyCheckStatus": "",
+                              "debug": false,
+                              "diskCapacity": "",
+                              "diskFreeCapacity": "",
+                              "diskUsedCapacity": "",
+                              "freeCapacity": "",
+                              "inconsistentPathItems": Array [],
+                              "inconsistentPaths": 0,
+                              "liveWorkerNodes": 0,
+                              "masterNodeAddress": "",
+                              "startTime": "",
+                              "storageTierInfos": Array [
+                                Object {
+                                  "capacity": "",
+                                  "freeCapacity": "",
+                                  "freeSpacePercent": 0,
+                                  "storageTierAlias": "",
+                                  "usedCapacity": "",
+                                  "usedSpacePercent": 100,
+                                },
+                              ],
+                              "uptime": "",
+                              "usedCapacity": "",
+                              "version": "",
+                            }
+                          }
                           fetchRequest={[Function]}
                           history={
                             Object {
@@ -799,41 +834,6 @@ exports[`App Connected component Matches snapshot 1`] = `
                               "params": Object {},
                               "path": "/overview",
                               "url": "/overview",
-                            }
-                          }
-                          overview={
-                            Object {
-                              "capacity": Object {
-                                "total": 0,
-                                "used": 100,
-                              },
-                              "configCheckErrors": Array [],
-                              "configCheckStatus": "",
-                              "configCheckWarns": Array [],
-                              "consistencyCheckStatus": "",
-                              "debug": false,
-                              "diskCapacity": "",
-                              "diskFreeCapacity": "",
-                              "diskUsedCapacity": "",
-                              "freeCapacity": "",
-                              "inconsistentPathItems": Array [],
-                              "inconsistentPaths": 0,
-                              "liveWorkerNodes": 0,
-                              "masterNodeAddress": "",
-                              "startTime": "",
-                              "storageTierInfos": Array [
-                                Object {
-                                  "capacity": "",
-                                  "freeCapacity": "",
-                                  "freeSpacePercent": 0,
-                                  "storageTierAlias": "",
-                                  "usedCapacity": "",
-                                  "usedSpacePercent": 100,
-                                },
-                              ],
-                              "uptime": "",
-                              "usedCapacity": "",
-                              "version": "",
                             }
                           }
                           refresh={false}

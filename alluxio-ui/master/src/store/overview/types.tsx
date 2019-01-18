@@ -45,8 +45,8 @@ export enum OverviewActionTypes {
 }
 
 export interface IOverviewState {
-  readonly loading: boolean;
-  readonly overview: IOverview;
+  readonly data: IOverview;
   readonly errors?: AxiosResponse;
+  readonly loading: boolean;
   readonly response?: AxiosResponse;
 }

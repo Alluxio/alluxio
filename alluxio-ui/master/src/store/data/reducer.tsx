@@ -49,7 +49,7 @@ export const dataReducer: Reducer<IDataState> = (state = initialDataState, actio
     case DataActionTypes.FETCH_REQUEST:
       return {...state, loading: true};
     case DataActionTypes.FETCH_SUCCESS:
-      return {...state, loading: false, data: action.payload.data, response: action.payload};
+      return {...state, loading: false, data: action.payload.data, response: action.payload, errors: undefined};
     case DataActionTypes.FETCH_ERROR:
       return {...state, loading: false, errors: action.payload};
     default:

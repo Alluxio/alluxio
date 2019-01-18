@@ -29,8 +29,8 @@ export enum DataActionTypes {
 }
 
 export interface IDataState {
-  readonly loading: boolean;
   readonly data: IData;
+  readonly loading: boolean;
   readonly errors?: AxiosResponse;
   readonly response?: AxiosResponse;
 }

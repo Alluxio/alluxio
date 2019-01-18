@@ -692,6 +692,14 @@ exports[`Metrics App with connected component Matches snapshot 1`] = `
                         }
                       >
                         <Metrics
+                          data={
+                            Object {
+                              "operationMetrics": Object {},
+                              "rpcInvocationMetrics": Object {},
+                              "workerCapacityFreePercentage": 0,
+                              "workerCapacityUsedPercentage": 0,
+                            }
+                          }
                           fetchRequest={[Function]}
                           history={
                             Object {
@@ -728,14 +736,6 @@ exports[`Metrics App with connected component Matches snapshot 1`] = `
                               "params": Object {},
                               "path": "/metrics",
                               "url": "/metrics",
-                            }
-                          }
-                          metrics={
-                            Object {
-                              "operationMetrics": Object {},
-                              "rpcInvocationMetrics": Object {},
-                              "workerCapacityFreePercentage": 0,
-                              "workerCapacityUsedPercentage": 0,
                             }
                           }
                           refresh={false}

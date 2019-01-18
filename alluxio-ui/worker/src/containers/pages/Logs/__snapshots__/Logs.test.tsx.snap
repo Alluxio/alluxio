@@ -692,6 +692,18 @@ exports[`Logs App with connected component Matches snapshot 1`] = `
                         }
                       >
                         <Logs
+                          data={
+                            Object {
+                              "currentPath": "",
+                              "debug": false,
+                              "fatalError": "",
+                              "fileData": "",
+                              "fileInfos": Array [],
+                              "invalidPathError": "",
+                              "ntotalFile": 0,
+                              "viewingOffset": 0,
+                            }
+                          }
                           fetchRequest={[Function]}
                           history={
                             Object {
@@ -720,18 +732,6 @@ exports[`Logs App with connected component Matches snapshot 1`] = `
                               "pathname": "/logs",
                               "search": "",
                               "state": undefined,
-                            }
-                          }
-                          logs={
-                            Object {
-                              "currentPath": "",
-                              "debug": false,
-                              "fatalError": "",
-                              "fileData": "",
-                              "fileInfos": Array [],
-                              "invalidPathError": "",
-                              "ntotalFile": 0,
-                              "viewingOffset": 0,
                             }
                           }
                           match={

@@ -37,7 +37,7 @@ describe('BlockInfo', () => {
     props = {
       location: {search: ''},
       fetchRequest: sinon.spy(() => {}),
-      blockInfo: initialState.blockInfo.blockInfo,
+      data: initialState.blockInfo.data,
       loading: initialState.blockInfo.loading,
       refresh: initialState.refresh.refresh
     };

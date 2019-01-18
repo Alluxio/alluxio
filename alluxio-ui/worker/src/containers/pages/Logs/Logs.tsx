@@ -24,12 +24,12 @@ import {fetchRequest} from '../../../store/logs/actions';
 import {ILogs} from '../../../store/logs/types';
 
 interface IPropsFromState {
+  data: ILogs;
   errors?: AxiosResponse;
   loading: boolean;
   location: {
     search: string;
   };
-  logs: ILogs;
   refresh: boolean;
 }
 
@@ -92,7 +92,7 @@ export class Logs extends React.Component<AllProps, ILogsState> {
   }
 
   public render() {
-    const {errors, logs} = this.props;
+    const {errors, data: logs} = this.props;
     let queryStringSuffix = Object.entries(this.state)
       .filter((obj: any[]) => ['offset', 'limit', 'end'].includes(obj[0]) && obj[1] != undefined)
       .map((obj: any) => `${obj[0]}=${obj[1]}`).join('&');
@@ -223,9 +223,9 @@ export class Logs extends React.Component<AllProps, ILogsState> {
 }
 
 const mapStateToProps = ({logs, refresh}: IApplicationState) => ({
+  data: logs.data,
   errors: logs.errors,
   loading: logs.loading,
-  logs: logs.logs,
   refresh: refresh.refresh
 });
 

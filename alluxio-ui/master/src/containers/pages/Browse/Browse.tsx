@@ -28,7 +28,7 @@ import {IBrowse} from '../../../store/browse/types';
 import './Browse.css';
 
 interface IPropsFromState {
-  browse: IBrowse;
+  data: IBrowse;
   errors?: AxiosResponse;
   loading: boolean;
   location: {
@@ -96,7 +96,7 @@ export class Browse extends React.Component<AllProps, IBrowseState> {
   }
 
   public render() {
-    const {errors, browse} = this.props;
+    const {errors, data: browse} = this.props;
     let queryStringSuffix = Object.entries(this.state)
       .filter((obj: any[]) => ['offset', 'limit', 'end'].includes(obj[0]) && obj[1] != undefined)
       .map((obj: any) => `${obj[0]}=${obj[1]}`).join('&');
@@ -272,7 +272,7 @@ export class Browse extends React.Component<AllProps, IBrowseState> {
 }
 
 const mapStateToProps = ({browse, refresh}: IApplicationState) => ({
-  browse: browse.browse,
+  data: browse.data,
   errors: browse.errors,
   loading: browse.loading,
   refresh: refresh.refresh

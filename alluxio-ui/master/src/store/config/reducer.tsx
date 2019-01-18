@@ -14,7 +14,7 @@ import {Reducer} from 'redux';
 import {ConfigActionTypes, IConfigState} from './types';
 
 export const initialConfigState: IConfigState = {
-  config: {
+  data: {
     configuration: [],
     whitelist: []
   },
@@ -27,7 +27,7 @@ export const configReducer: Reducer<IConfigState> = (state = initialConfigState,
     case ConfigActionTypes.FETCH_REQUEST:
       return {...state, loading: true};
     case ConfigActionTypes.FETCH_SUCCESS:
-      return {...state, loading: false, config: action.payload.data, response: action.payload};
+      return {...state, loading: false, data: action.payload.data, response: action.payload, errors: undefined};
     case ConfigActionTypes.FETCH_ERROR:
       return {...state, loading: false, errors: action.payload};
     default:

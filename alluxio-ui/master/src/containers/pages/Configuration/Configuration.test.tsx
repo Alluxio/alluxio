@@ -36,7 +36,7 @@ describe('Configuration', () => {
     store = configureStore(history, initialState);
     props = {
       fetchRequest: sinon.spy(() => {}),
-      config: initialState.config.config,
+      data: initialState.config.data,
       loading: initialState.config.loading,
       refresh: initialState.refresh.refresh
     };

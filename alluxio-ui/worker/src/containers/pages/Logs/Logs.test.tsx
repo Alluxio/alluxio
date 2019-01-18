@@ -37,7 +37,7 @@ describe('Logs', () => {
     props = {
       location: {search: ''},
       fetchRequest: sinon.spy(() => {}),
-      logs: initialState.logs.logs,
+      data: initialState.logs.data,
       loading: initialState.logs.loading,
       refresh: initialState.refresh.refresh
     };

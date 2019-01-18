@@ -25,8 +25,8 @@ export enum ConfigActionTypes {
 }
 
 export interface IConfigState {
+  readonly data: IConfig;
   readonly loading: boolean;
-  readonly config: IConfig;
   readonly errors?: AxiosResponse;
   readonly response?: AxiosResponse;
 }

@@ -14,7 +14,7 @@ import {Reducer} from 'redux';
 import {BlockInfoActionTypes, IBlockInfoState} from './types';
 
 export const initialBlockInfoState: IBlockInfoState = {
-  blockInfo: {
+  data: {
     'blockSizeBytes': '',
     'fatalError': '',
     'fileBlocksOnTier': [],
@@ -33,7 +33,7 @@ export const blockInfoReducer: Reducer<IBlockInfoState> = (state = initialBlockI
     case BlockInfoActionTypes.FETCH_REQUEST:
       return {...state, loading: true};
     case BlockInfoActionTypes.FETCH_SUCCESS:
-      return {...state, loading: false, blockInfo: action.payload.data, response: action.payload};
+      return {...state, loading: false, data: action.payload.data, response: action.payload, errors: undefined};
     case BlockInfoActionTypes.FETCH_ERROR:
       return {...state, loading: false, errors: action.payload};
     default:
