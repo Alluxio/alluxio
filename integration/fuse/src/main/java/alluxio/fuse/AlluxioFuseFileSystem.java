@@ -248,8 +248,7 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
 
       FileOutStream os = mFileSystem.createFile(uri);
       synchronized (mOpenFiles) {
-        mOpenFiles.add(new OpenFileEntry(mNextOpenFileId, path,
-            null, os));
+        mOpenFiles.add(new OpenFileEntry(mNextOpenFileId, path, null, os));
         fi.fh.set(mNextOpenFileId);
 
         // Assuming I will never wrap around (2^64 open files are quite a lot anyway)
@@ -460,8 +459,7 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
 
       FileInStream is = mFileSystem.openFile(uri);
       synchronized (mOpenFiles) {
-        mOpenFiles.add(new OpenFileEntry(mNextOpenFileId, path,
-            is, null));
+        mOpenFiles.add(new OpenFileEntry(mNextOpenFileId, path, is, null));
         fi.fh.set(mNextOpenFileId);
         // Assuming I will never wrap around (2^64 open files are quite a lot anyway)
         mNextOpenFileId += 1;
