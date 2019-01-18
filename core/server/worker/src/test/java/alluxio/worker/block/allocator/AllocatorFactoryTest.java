@@ -12,7 +12,6 @@
 package alluxio.worker.block.allocator;
 
 import alluxio.conf.ServerConfiguration;
-import alluxio.ConfigurationTestUtils;
 import alluxio.conf.PropertyKey;
 import alluxio.worker.block.BlockMetadataManagerView;
 import alluxio.worker.block.TieredBlockStoreTestUtils;
@@ -77,7 +76,8 @@ public final class AllocatorFactoryTest {
    */
   @Test
   public void createRoundRobinAllocator() {
-    ServerConfiguration.set(PropertyKey.WORKER_ALLOCATOR_CLASS, RoundRobinAllocator.class.getName());
+    ServerConfiguration.set(PropertyKey.WORKER_ALLOCATOR_CLASS,
+        RoundRobinAllocator.class.getName());
     Allocator allocator = Allocator.Factory.create(mManagerView);
     Assert.assertTrue(allocator instanceof RoundRobinAllocator);
   }

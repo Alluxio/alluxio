@@ -75,8 +75,10 @@ public class LocalUnderFileSystem extends BaseUnderFileSystem
    *
    * @param uri the {@link AlluxioURI} for this UFS
    * @param ufsConf UFS configuration
+   * @param alluxioConf Alluxio's configuration
    */
-  public LocalUnderFileSystem(AlluxioURI uri, UnderFileSystemConfiguration ufsConf, AlluxioConfiguration alluxioConf) {
+  public LocalUnderFileSystem(AlluxioURI uri, UnderFileSystemConfiguration ufsConf,
+      AlluxioConfiguration alluxioConf) {
     super(uri, ufsConf, alluxioConf);
   }
 

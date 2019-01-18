@@ -34,7 +34,8 @@ public final class BlockIntegrityChecker implements HeartbeatExecutor {
    */
   public BlockIntegrityChecker(FileSystemMaster fsm) {
     mFileSystemMaster = fsm;
-    mRepair = ServerConfiguration.getBoolean(PropertyKey.MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_REPAIR);
+    mRepair = ServerConfiguration
+        .getBoolean(PropertyKey.MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_REPAIR);
   }
 
   @Override

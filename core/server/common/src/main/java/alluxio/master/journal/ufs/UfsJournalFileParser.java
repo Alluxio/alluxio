@@ -11,7 +11,6 @@
 
 package alluxio.master.journal.ufs;
 
-import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.ServerConfiguration;
 import alluxio.master.journal.JournalFileParser;
 import alluxio.proto.journal.Journal;

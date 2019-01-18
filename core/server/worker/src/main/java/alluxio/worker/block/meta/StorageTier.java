@@ -124,7 +124,8 @@ public final class StorageTier {
     try {
       info = ShellUtils.getUnixMountInfo();
     } catch (IOException e) {
-      LOG.warn("Failed to create mount information for verifying memory capacity: {}", e.getMessage());
+      LOG.warn("Failed to create mount information for verifying memory capacity: {}",
+          e.getMessage());
       return;
     }
     boolean foundMountInfo = false;

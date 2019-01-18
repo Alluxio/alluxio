@@ -12,7 +12,6 @@
 package alluxio.master;
 
 import alluxio.AlluxioURI;
-import alluxio.Server;
 import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.RuntimeConstants;
@@ -116,7 +115,8 @@ public class AlluxioMasterProcess implements MasterProcess {
     mJournalSystem = Preconditions.checkNotNull(journalSystem, "journalSystem");
     mMinWorkerThreads = ServerConfiguration.getInt(PropertyKey.MASTER_WORKER_THREADS_MIN);
     mMaxWorkerThreads = ServerConfiguration.getInt(PropertyKey.MASTER_WORKER_THREADS_MAX);
-    int connectionTimeout = (int) ServerConfiguration.getMs(PropertyKey.MASTER_CONNECTION_TIMEOUT_MS);
+    int connectionTimeout = (int) ServerConfiguration
+        .getMs(PropertyKey.MASTER_CONNECTION_TIMEOUT_MS);
 
     Preconditions.checkArgument(mMaxWorkerThreads >= mMinWorkerThreads,
         PropertyKey.MASTER_WORKER_THREADS_MAX + " can not be less than "
@@ -150,8 +150,10 @@ public class AlluxioMasterProcess implements MasterProcess {
         mPort = configuredBindAddress.getPort();
       }
 
-      mRpcBindAddress = NetworkAddressUtils.getBindAddress(ServiceType.MASTER_RPC, ServerConfiguration.global());
-      mRpcConnectAddress = NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, ServerConfiguration.global());
+      mRpcBindAddress = NetworkAddressUtils.getBindAddress(ServiceType.MASTER_RPC,
+          ServerConfiguration.global());
+      mRpcConnectAddress = NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC,
+          ServerConfiguration.global());
 
       if (!mJournalSystem.isFormatted()) {
         throw new RuntimeException(
@@ -332,9 +334,11 @@ public class AlluxioMasterProcess implements MasterProcess {
    */
   protected void startServingWebServer() {
     mWebServer = new MasterWebServer(ServiceType.MASTER_WEB.getServiceName(),
-        NetworkAddressUtils.getBindAddress(ServiceType.MASTER_WEB, ServerConfiguration.global()), this);
+        NetworkAddressUtils.getBindAddress(ServiceType.MASTER_WEB, ServerConfiguration.global()),
+        this);
     // reset master web port
-    ServerConfiguration.set(PropertyKey.MASTER_WEB_PORT, Integer.toString(mWebServer.getLocalPort()));
+    ServerConfiguration.set(PropertyKey.MASTER_WEB_PORT,
+        Integer.toString(mWebServer.getLocalPort()));
     // Add the metrics servlet to the web server.
     mWebServer.addHandler(mMetricsServlet.getHandler());
     // Add the prometheus metrics servlet to the web server.

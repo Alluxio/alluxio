@@ -11,8 +11,6 @@
 
 package alluxio.master.journal.ufs;
 
-import alluxio.Server;
-import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.RuntimeConstants;
@@ -270,7 +268,8 @@ final class UfsJournalLogWriter implements JournalWriter {
     UfsJournalFile currentLog = UfsJournalFile.createLogFile(newLog, mNextSequenceNumber,
         UfsJournal.UNKNOWN_SEQUENCE_NUMBER);
     OutputStream outputStream = mUfs.create(currentLog.getLocation().toString(),
-        CreateOptions.defaults(ServerConfiguration.global()).setEnsureAtomic(false).setCreateParent(true));
+        CreateOptions.defaults(ServerConfiguration.global()).setEnsureAtomic(false)
+            .setCreateParent(true));
     mJournalOutputStream = new JournalOutputStream(currentLog, outputStream);
     LOG.info("Created current log file: {}", currentLog);
   }

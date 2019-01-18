@@ -11,10 +11,11 @@
 
 package alluxio.master.file;
 
+import static org.mockito.Matchers.any;
+
 import alluxio.AlluxioURI;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.ServerConfiguration;
-import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
 import alluxio.client.job.JobMasterClient;
@@ -74,8 +75,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Map;
 import java.util.Random;
-
-import static org.mockito.Matchers.any;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(JobMasterClient.Factory.class)
@@ -201,7 +200,8 @@ public final class PersistenceTest {
       fileInfo = mFileSystemMaster.getFileInfo(testFile, GET_STATUS_CONTEXT);
       Map<Long, PersistJob> persistJobs = getPersistJobs();
       PersistJob job = persistJobs.get(fileInfo.getFileId());
-      UnderFileSystem ufs = UnderFileSystem.Factory.create(job.getTempUfsPath(), ServerConfiguration.global());
+      UnderFileSystem ufs = UnderFileSystem.Factory.create(job.getTempUfsPath(),
+          ServerConfiguration.global());
       UnderFileSystemUtils.touch(ufs, job.getTempUfsPath());
     }
 
@@ -361,7 +361,8 @@ public final class PersistenceTest {
     {
       Map<Long, PersistJob> persistJobs = getPersistJobs();
       PersistJob job = persistJobs.get(fileId);
-      UnderFileSystem ufs = UnderFileSystem.Factory.create(job.getTempUfsPath(), ServerConfiguration.global());
+      UnderFileSystem ufs = UnderFileSystem.Factory.create(job.getTempUfsPath(),
+          ServerConfiguration.global());
       UnderFileSystemUtils.touch(ufs, job.getTempUfsPath());
     }
 

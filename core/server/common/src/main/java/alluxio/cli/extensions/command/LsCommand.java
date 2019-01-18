@@ -13,7 +13,6 @@ package alluxio.cli.extensions.command;
 
 import alluxio.cli.Command;
 import alluxio.cli.CommandUtils;
-import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.util.ExtensionUtils;
 
@@ -36,6 +35,8 @@ public final class LsCommand implements Command {
 
   /**
    * Constructs a new instance of {@link LsCommand}.
+   *
+   * @param extensionsDir the path to the directory containing the extensions
    */
   public LsCommand(String extensionsDir) {
     mExtensionsDir = extensionsDir;

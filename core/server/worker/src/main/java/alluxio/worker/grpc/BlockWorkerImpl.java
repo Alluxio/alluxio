@@ -12,7 +12,6 @@
 package alluxio.worker.grpc;
 
 import alluxio.RpcUtils;
-import alluxio.client.file.FileSystemContext;
 import alluxio.grpc.AsyncCacheRequest;
 import alluxio.grpc.AsyncCacheResponse;
 import alluxio.grpc.BlockWorkerGrpc;

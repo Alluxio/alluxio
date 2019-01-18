@@ -22,7 +22,6 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import alluxio.conf.ServerConfiguration;
-import alluxio.ConfigurationTestUtils;
 import alluxio.conf.PropertyKey;
 import alluxio.proto.journal.Journal.JournalEntry;
 

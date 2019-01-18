@@ -13,8 +13,6 @@ package alluxio.worker.block;
 
 import alluxio.client.block.stream.BlockInStream;
 import alluxio.client.file.FileSystemContext;
-import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.block.io.BlockReader;
@@ -45,6 +43,7 @@ public class RemoteBlockReader implements BlockReader {
   /**
    * Constructs a remote block reader. It will read from a remote worker based on the data source.
    *
+   * @param fsContext the filesystem context to use to create {@link BlockInStream}
    * @param blockId the block to cache
    * @param blockSize the size of the block
    * @param dataSource the data source to cache from

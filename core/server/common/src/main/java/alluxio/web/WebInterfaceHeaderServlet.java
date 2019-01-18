@@ -11,7 +11,6 @@
 
 package alluxio.web;
 
-import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.util.network.NetworkAddressUtils;

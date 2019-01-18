@@ -94,7 +94,8 @@ public final class FileSystemMasterOptions{
             .getEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class).toProto())
         .setMode(ModeUtils.applyFileUMask(Mode.defaults(),
             ServerConfiguration.get(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK)).toProto())
-        .setReplicationDurable(ServerConfiguration.getInt(PropertyKey.USER_FILE_REPLICATION_DURABLE))
+        .setReplicationDurable(ServerConfiguration
+            .getInt(PropertyKey.USER_FILE_REPLICATION_DURABLE))
         .setReplicationMin(ServerConfiguration.getInt(PropertyKey.USER_FILE_REPLICATION_MIN))
         .setReplicationMax(ServerConfiguration.getInt(PropertyKey.USER_FILE_REPLICATION_MAX))
                .build();
@@ -108,7 +109,8 @@ public final class FileSystemMasterOptions{
         .setCommonOptions(commonDefaults())
         .setRecursive(false)
         .setAlluxioOnly(false)
-        .setUnchecked(ServerConfiguration.getBoolean(PropertyKey.USER_FILE_DELETE_UNCHECKED)).build();
+        .setUnchecked(ServerConfiguration.getBoolean(PropertyKey.USER_FILE_DELETE_UNCHECKED))
+        .build();
   }
 
   /**

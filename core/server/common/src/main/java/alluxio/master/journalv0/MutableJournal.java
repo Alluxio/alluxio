@@ -11,7 +11,6 @@
 
 package alluxio.master.journalv0;
 
-import alluxio.conf.AlluxioConfiguration;
 import alluxio.master.journalv0.ufs.UfsMutableJournal;
 import alluxio.util.URIUtils;
 

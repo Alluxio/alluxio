@@ -11,7 +11,6 @@
 
 package alluxio;
 
-import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.Status;

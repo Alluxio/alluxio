@@ -74,8 +74,8 @@ public final class DefaultFileSystemWorker extends AbstractWorker implements Fil
     mWorkerId = blockWorker.getWorkerId();
     mUfsManager = ufsManager;
     mFileDataManager = new FileDataManager(Preconditions.checkNotNull(blockWorker, "blockWorker"),
-        RateLimiter.create(ServerConfiguration.getBytes(PropertyKey.WORKER_FILE_PERSIST_RATE_LIMIT)),
-        mUfsManager);
+        RateLimiter.create(ServerConfiguration
+            .getBytes(PropertyKey.WORKER_FILE_PERSIST_RATE_LIMIT)), mUfsManager);
 
     // Setup AbstractMasterClient
     mFileSystemMasterWorkerClient =

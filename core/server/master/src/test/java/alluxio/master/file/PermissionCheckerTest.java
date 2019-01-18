@@ -15,7 +15,6 @@ import static org.mockito.Mockito.mock;
 
 import alluxio.AlluxioURI;
 import alluxio.conf.ServerConfiguration;
-import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AccessControlException;
@@ -195,7 +194,8 @@ public final class PermissionCheckerTest {
     GroupMappingServiceTestUtils.resetCache();
     ServerConfiguration.set(PropertyKey.SECURITY_GROUP_MAPPING_CLASS,
         FakeUserGroupsMapping.class.getName());
-    ServerConfiguration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
+    ServerConfiguration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE,
+        AuthType.SIMPLE.getAuthName());
     ServerConfiguration.set(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true");
     ServerConfiguration
         .set(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP, TEST_SUPER_GROUP);

@@ -171,8 +171,8 @@ public final class UnderFileSystemUtilsTest {
   }
 
   private MkdirsOptions createMkdirsOptions(String owner) {
-    return MkdirsOptions.defaults(ServerConfiguration.global()).setCreateParent(false).setOwner(owner).setGroup(mGroup)
-        .setMode(mMode);
+    return MkdirsOptions.defaults(ServerConfiguration.global()).setCreateParent(false)
+        .setOwner(owner).setGroup(mGroup).setMode(mMode);
   }
 
   private URIStatus createStatus(String owner, String group, Mode mode, boolean isMountPoint) {

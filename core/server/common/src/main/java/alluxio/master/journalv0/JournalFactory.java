@@ -11,8 +11,6 @@
 
 package alluxio.master.journalv0;
 
-import alluxio.conf.AlluxioConfiguration;
-
 /**
  * Factory for creating named journals.
  */

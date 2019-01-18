@@ -93,7 +93,8 @@ public final class Sessions {
       if (mSessions.containsKey(sessionId)) {
         mSessions.get(sessionId).heartbeat();
       } else {
-        int sessionTimeoutMs = (int) ServerConfiguration.getMs(PropertyKey.WORKER_SESSION_TIMEOUT_MS);
+        int sessionTimeoutMs = (int) ServerConfiguration
+            .getMs(PropertyKey.WORKER_SESSION_TIMEOUT_MS);
         mSessions.put(sessionId, new SessionInfo(sessionId, sessionTimeoutMs));
       }
     }

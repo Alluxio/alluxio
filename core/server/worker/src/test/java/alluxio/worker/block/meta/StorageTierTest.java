@@ -13,7 +13,6 @@ package alluxio.worker.block.meta;
 
 import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.exception.ExceptionMessage;
 import alluxio.util.io.PathUtils;
 import alluxio.worker.block.TieredBlockStoreTestUtils;
 

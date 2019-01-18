@@ -12,7 +12,6 @@
 package alluxio.master.journal.ufs;
 
 import alluxio.conf.ServerConfiguration;
-import alluxio.ConfigurationTestUtils;
 import alluxio.conf.PropertyKey;
 import alluxio.underfs.UnderFileSystemConfiguration;
 

@@ -174,7 +174,8 @@ public final class FileSystemMasterTest {
   public ExpectedException mThrown = ExpectedException.none();
 
   @Rule
-  public AuthenticatedUserRule mAuthenticatedUser = new AuthenticatedUserRule(TEST_USER, ServerConfiguration.global());
+  public AuthenticatedUserRule mAuthenticatedUser = new AuthenticatedUserRule(TEST_USER,
+      ServerConfiguration.global());
 
   @Rule
   public LoginUserRule mLoginUser = new LoginUserRule(TEST_USER, ServerConfiguration.global());
@@ -387,7 +388,8 @@ public final class FileSystemMasterTest {
         .defaults(SetAttributePOptions.newBuilder().setMode(new Mode((short) 0777).toProto())));
     mFileSystemMaster.setAttribute(NESTED_FILE_URI, SetAttributeContext
         .defaults(SetAttributePOptions.newBuilder().setMode(new Mode((short) 0777).toProto())));
-    try (AuthenticatedClientUserResource userA = new AuthenticatedClientUserResource("userA", ServerConfiguration.global())) {
+    try (AuthenticatedClientUserResource userA = new AuthenticatedClientUserResource("userA",
+        ServerConfiguration.global())) {
       mFileSystemMaster.delete(NESTED_URI,
           DeleteContext.defaults(DeletePOptions.newBuilder().setRecursive(true)));
     }
@@ -406,7 +408,8 @@ public final class FileSystemMasterTest {
         .defaults(SetAttributePOptions.newBuilder().setMode(new Mode((short) 0700).toProto())));
     mFileSystemMaster.setAttribute(NESTED_FILE2_URI, SetAttributeContext
         .defaults(SetAttributePOptions.newBuilder().setMode(new Mode((short) 0777).toProto())));
-    try (AuthenticatedClientUserResource userA = new AuthenticatedClientUserResource("userA", ServerConfiguration.global())) {
+    try (AuthenticatedClientUserResource userA = new AuthenticatedClientUserResource("userA",
+        ServerConfiguration.global())) {
       mFileSystemMaster.delete(NESTED_URI,
           DeleteContext.defaults(DeletePOptions.newBuilder().setRecursive(true)));
       fail("Deleting a directory w/ insufficient permission on child should fail");
@@ -1073,7 +1076,8 @@ public final class FileSystemMasterTest {
     // Test with permissions
     mFileSystemMaster.setAttribute(NESTED_URI, SetAttributeContext.defaults(SetAttributePOptions
         .newBuilder().setMode(new Mode((short) 0400).toProto()).setRecursive(true)));
-    try (Closeable r = new AuthenticatedUserRule("test_user1", ServerConfiguration.global()).toResource()) {
+    try (Closeable r = new AuthenticatedUserRule("test_user1", ServerConfiguration.global())
+        .toResource()) {
       // Test recursive listStatus
       infos = mFileSystemMaster.listStatus(ROOT_URI, ListStatusContext.defaults(ListStatusPOptions
           .newBuilder().setLoadMetadataType(LoadMetadataPType.ALWAYS).setRecursive(true)));
@@ -1725,8 +1729,8 @@ public final class FileSystemMasterTest {
   }
 
   /**
-   * Tests that an exception is thrown when trying to create information about a file after it has been
-   * deleted because of a TTL of 0.
+   * Tests that an exception is thrown when trying to create information about a file after it
+   * has been deleted because of a TTL of 0.
    */
   @Test
   public void setTtlForFileWithNoTtl() throws Exception {
@@ -1775,8 +1779,8 @@ public final class FileSystemMasterTest {
   }
 
   /**
-   * Tests that an exception is thrown when trying to create information about a file after it has been
-   * deleted after the TTL has been set to 0.
+   * Tests that an exception is thrown when trying to create information about a file after it
+   * has been deleted after the TTL has been set to 0.
    */
   @Test
   public void setSmallerTtlForFileWithTtl() throws Exception {

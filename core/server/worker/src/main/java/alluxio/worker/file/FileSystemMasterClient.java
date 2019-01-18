@@ -13,7 +13,6 @@ package alluxio.worker.file;
 
 import alluxio.AbstractMasterClient;
 import alluxio.Constants;
-import alluxio.Server;
 import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.FileSystemCommand;
 import alluxio.grpc.FileSystemHeartbeatPOptions;

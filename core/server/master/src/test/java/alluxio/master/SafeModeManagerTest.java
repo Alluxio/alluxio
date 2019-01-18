@@ -14,7 +14,6 @@ package alluxio.master;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import alluxio.Server;
 import alluxio.conf.ServerConfiguration;
 import alluxio.ConfigurationRule;
 import alluxio.conf.PropertyKey;

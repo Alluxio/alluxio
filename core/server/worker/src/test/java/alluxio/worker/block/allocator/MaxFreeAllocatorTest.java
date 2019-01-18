@@ -12,7 +12,6 @@
 package alluxio.worker.block.allocator;
 
 import alluxio.conf.ServerConfiguration;
-import alluxio.ConfigurationTestUtils;
 import alluxio.conf.PropertyKey;
 
 import org.junit.Test;

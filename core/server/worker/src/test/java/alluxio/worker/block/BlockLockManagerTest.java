@@ -16,7 +16,6 @@ import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.conf.ServerConfiguration;
-import alluxio.ConfigurationTestUtils;
 import alluxio.conf.PropertyKey;
 import alluxio.collections.ConcurrentHashSet;
 import alluxio.exception.BlockDoesNotExistException;
@@ -329,6 +328,7 @@ public final class BlockLockManagerTest {
   }
 
   private void setMaxLocks(int maxLocks) {
-    ServerConfiguration.set(PropertyKey.WORKER_TIERED_STORE_BLOCK_LOCKS, Integer.toString(maxLocks));
+    ServerConfiguration.set(PropertyKey.WORKER_TIERED_STORE_BLOCK_LOCKS,
+        Integer.toString(maxLocks));
   }
 }

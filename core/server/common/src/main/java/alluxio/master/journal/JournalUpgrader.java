@@ -88,15 +88,14 @@ public final class JournalUpgrader {
 
     private final AlluxioConfiguration mAlluxioConf;
 
-
     private Upgrader(String master, AlluxioConfiguration alluxioConf) {
       mMaster = master;
       mAlluxioConf = alluxioConf;
       mJournalV0 = (new alluxio.master.journalv0.MutableJournal.Factory(
           getJournalLocation(sJournalDirectoryV0))).create(master);
       mJournalV1 =
-          new UfsJournal(getJournalLocation(ServerConfiguration.get(PropertyKey.MASTER_JOURNAL_FOLDER)),
-              new NoopMaster(master), 0);
+          new UfsJournal(getJournalLocation(ServerConfiguration
+              .get(PropertyKey.MASTER_JOURNAL_FOLDER)), new NoopMaster(master), 0);
 
       mUfs = UnderFileSystem.Factory.create(sJournalDirectoryV0, alluxioConf);
 
@@ -171,7 +170,8 @@ public final class JournalUpgrader {
       }
 
       if (!mUfs.exists(mCheckpointsV1.toString())) {
-        mUfs.mkdirs(mCheckpointsV1.toString(), MkdirsOptions.defaults(mAlluxioConf).setCreateParent(true));
+        mUfs.mkdirs(mCheckpointsV1.toString(), MkdirsOptions.defaults(mAlluxioConf)
+            .setCreateParent(true));
       }
       if (!mUfs.exists(mLogsV1.toString())) {
         mUfs.mkdirs(mLogsV1.toString(), MkdirsOptions.defaults(mAlluxioConf).setCreateParent(true));

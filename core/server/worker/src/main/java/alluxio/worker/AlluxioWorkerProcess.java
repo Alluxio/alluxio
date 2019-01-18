@@ -120,13 +120,15 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
           new WorkerWebServer(NetworkAddressUtils.getBindAddress(ServiceType.WORKER_WEB,
               ServerConfiguration.global()), this,
               mRegistry.get(BlockWorker.class),
-              NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC, ServerConfiguration.global()),
+              NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC,
+                  ServerConfiguration.global()),
               mStartTimeMs);
 
       // Random port binding.
       int bindPort;
       InetSocketAddress configuredBindAddress =
-              NetworkAddressUtils.getBindAddress(ServiceType.WORKER_RPC, ServerConfiguration.global());
+              NetworkAddressUtils.getBindAddress(ServiceType.WORKER_RPC,
+                  ServerConfiguration.global());
       if (configuredBindAddress.getPort() == 0) {
         mBindSocket = new ServerSocket(0);
         bindPort = mBindSocket.getLocalPort();
@@ -322,7 +324,8 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
   @Override
   public WorkerNetAddress getAddress() {
     return new WorkerNetAddress()
-        .setHost(NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC, ServerConfiguration.global()))
+        .setHost(NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC,
+            ServerConfiguration.global()))
         .setRpcPort(mRpcAddress.getPort())
         .setDataPort(getDataLocalPort())
         .setDomainSocketPath(getDataDomainSocketPath())

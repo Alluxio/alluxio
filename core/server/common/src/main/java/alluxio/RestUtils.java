@@ -38,13 +38,15 @@ public final class RestUtils {
    *
    * @param <T> the return type of the callable
    * @param callable the callable to call
+   * @param alluxioConf Alluxio's configuration
    * @return the response object
    */
   public static <T> Response call(RestUtils.RestCallable<T> callable,
       AlluxioConfiguration alluxioConf) {
     try {
       // TODO(cc): reconsider how to enable authentication
-      if (SecurityUtils.isSecurityEnabled(alluxioConf) && AuthenticatedClientUser.get(alluxioConf) == null) {
+      if (SecurityUtils.isSecurityEnabled(alluxioConf)
+          && AuthenticatedClientUser.get(alluxioConf) == null) {
         AuthenticatedClientUser.set(LoginUser.get(alluxioConf).getName());
       }
     } catch (IOException e) {

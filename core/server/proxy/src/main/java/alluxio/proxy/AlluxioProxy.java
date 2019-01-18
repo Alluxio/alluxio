@@ -13,8 +13,6 @@ package alluxio.proxy;
 
 import alluxio.Constants;
 import alluxio.ProcessUtils;
-import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.RuntimeConstants;
 import alluxio.conf.ServerConfiguration;
