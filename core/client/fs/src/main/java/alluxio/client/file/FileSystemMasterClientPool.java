@@ -49,6 +49,8 @@ public final class FileSystemMasterClientPool extends DynamicResourcePool<FileSy
     super(Options.defaultOptions()
         .setMinCapacity(Configuration.getInt(PropertyKey.USER_FILE_MASTER_CLIENT_POOL_SIZE_MIN))
         .setMaxCapacity(Configuration.getInt(PropertyKey.USER_FILE_MASTER_CLIENT_POOL_SIZE_MAX))
+        .setGcIntervalMs(
+            Configuration.getMs(PropertyKey.USER_FILE_MASTER_CLIENT_POOL_GC_INTERVAL_MS))
         .setGcExecutor(GC_EXECUTOR));
     mGcThresholdMs =
         Configuration.getMs(PropertyKey.USER_FILE_MASTER_CLIENT_POOL_GC_THRESHOLD_MS);

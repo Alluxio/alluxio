@@ -2282,7 +2282,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.USER_BLOCK_MASTER_CLIENT_POOL_SIZE_MIN)
           .setDefaultValue(0)
           .setDescription("The minimum number of block master clients cached in the block master "
-              + "client pool. For LLAP, this should be set to zero.")
+              + "client pool. For long running processes, this should be set to zero.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
@@ -2293,6 +2293,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .setAlias(new String[] {Name.USER_BLOCK_MASTER_CLIENT_THREADS})
+          .build();
+    public static final PropertyKey USER_BLOCK_MASTER_CLIENT_POOL_GC_INTERVAL_MS =
+      new Builder(Name.USER_BLOCK_MASTER_CLIENT_POOL_GC_INTERVAL_MS)
+          .setDefaultValue("120sec")
+          .setDescription("The interval at which block master client GC checks occur.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_BLOCK_MASTER_CLIENT_POOL_GC_THRESHOLD_MS =
       new Builder(Name.USER_BLOCK_MASTER_CLIENT_POOL_GC_THRESHOLD_MS)
@@ -2450,17 +2457,24 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.USER_FILE_MASTER_CLIENT_POOL_SIZE_MIN)
           .setDefaultValue(0)
           .setDescription("The minimum number of fs master clients cached in the fs master "
-              + "client pool. For LLAP, this should be set to zero.")
+              + "client pool. For long running processes, this should be set to zero.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
-    public static final PropertyKey USER_FILE_MASTER_CLIENT_POOL_SIZE_MAX =
+  public static final PropertyKey USER_FILE_MASTER_CLIENT_POOL_SIZE_MAX =
       new Builder(Name.USER_FILE_MASTER_CLIENT_POOL_SIZE_MAX)
           .setDescription("The maximum number of fs master clients cached in the fs master "
               + "client pool.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .setAlias(new String[] {Name.USER_FILE_MASTER_CLIENT_THREADS})
+          .build();
+  public static final PropertyKey USER_FILE_MASTER_CLIENT_POOL_GC_INTERVAL_MS =
+      new Builder(Name.USER_FILE_MASTER_CLIENT_POOL_GC_INTERVAL_MS)
+          .setDefaultValue("120sec")
+          .setDescription("The interval at which file system master client GC checks occur.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_FILE_MASTER_CLIENT_POOL_GC_THRESHOLD_MS =
       new Builder(Name.USER_FILE_MASTER_CLIENT_POOL_GC_THRESHOLD_MS)
@@ -3566,6 +3580,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.block.master.client.pool.size.min";
     public static final String USER_BLOCK_MASTER_CLIENT_POOL_SIZE_MAX =
         "alluxio.user.block.master.client.pool.size.max";
+    public static final String USER_BLOCK_MASTER_CLIENT_POOL_GC_INTERVAL_MS =
+        "alluxio.user.block.master.client.pool.gc.interval";
     public static final String USER_BLOCK_MASTER_CLIENT_POOL_GC_THRESHOLD_MS =
         "alluxio.user.block.master.client.pool.gc.threshold";
     public static final String USER_BLOCK_REMOTE_READER_CLASS =
@@ -3602,6 +3618,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.file.master.client.pool.size.min";
     public static final String USER_FILE_MASTER_CLIENT_POOL_SIZE_MAX =
         "alluxio.user.file.master.client.pool.size.max";
+    public static final String USER_FILE_MASTER_CLIENT_POOL_GC_INTERVAL_MS =
+        "alluxio.user.file.master.client.pool.gc.interval";
     public static final String USER_FILE_MASTER_CLIENT_POOL_GC_THRESHOLD_MS =
         "alluxio.user.file.master.client.pool.gc.threshold";
     public static final String USER_FILE_METADATA_LOAD_TYPE =
