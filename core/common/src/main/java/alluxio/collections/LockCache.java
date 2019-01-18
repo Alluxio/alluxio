@@ -78,7 +78,7 @@ public class LockCache<K> {
    * start evicting entries.
    */
   private void evictIfOverLimit() {
-    long numToEvict = mCache.size() - mSoftLimit;
+    int numToEvict = mCache.size() - mSoftLimit;
 
     if (numToEvict <= 0) {
       return;
@@ -86,6 +86,8 @@ public class LockCache<K> {
 
     if (mEvictLock.tryLock()) {
       try {
+        // update the total number to evict while we are holding the lock
+        numToEvict = mCache.size() - mSoftLimit;
         // This thread won the race as the evictor
         while (numToEvict > 0) {
           if (!mIterator.hasNext()) {
@@ -145,20 +147,14 @@ public class LockCache<K> {
 
   private ValNode getValNode(K key) {
     Preconditions.checkNotNull(key, "key can not be null");
-    // oldCacheEntry keeps track of the last cache entry that was in the process of being removed.
-    // we do not need to do anything if we did not get a new CacheEntry
-    ValNode oldCacheEntry = null;
     ValNode cacheEntry;
     while (true) {
       // repeat until we get a cacheEntry that is not in the process of being removed.
       cacheEntry = mCache.compute(key, (k, v) -> {
         if (v != null) {
-          if (v.mRefCount.incrementAndGet() < 0) {
-            // refCount went negative, some other thread is evicting this entry
-            // we return null, so it will either be removed by this thread or the other thread
-            // since removal is atomic in concurrentHashMaps, this is safe to do
-            return null;
-          }
+          // we want to maintain the invariant that only one thread is removing from the map.
+          // Returning anything other than v would break that invariant.
+          v.mRefCount.incrementAndGet();
           v.mIsAccessed = true;
           return v;
         }
@@ -171,23 +167,30 @@ public class LockCache<K> {
       });
 
       if (cacheEntry == null) {
-        // cache is at hard limit, or we are in the middle of removing the cacheEntry
+        // cache is at hard limit
         try {
           if (System.currentTimeMillis() - mLastSizeWarningTime > 60000) {
             LOG.warn("Cache at hard limit, cache ize = " + mCache.size()
                 + " softLimit = " + mSoftLimit + " hardLimit = " + mHardLimit);
             mLastSizeWarningTime = System.currentTimeMillis();
           }
-          Thread.sleep(100);
+          Thread.sleep(5);
           evictIfOverLimit();
         } catch (InterruptedException e) {
           throw new RuntimeException(e);
         }
         continue;
       }
-
       evictIfOverLimit();
-      return cacheEntry;
+      if (cacheEntry.mRefCount.get() > 0) {
+        return cacheEntry;
+      } else {
+        try {
+          Thread.sleep(5);
+        } catch (InterruptedException e) {
+          throw new RuntimeException(e);
+        }
+      }
     }
   }
 
