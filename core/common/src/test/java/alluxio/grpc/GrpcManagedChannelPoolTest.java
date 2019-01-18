@@ -13,11 +13,13 @@ package alluxio.grpc;
 
 import static org.junit.Assert.assertTrue;
 
-import alluxio.Configuration;
-import alluxio.PropertyKey;
+import alluxio.ConfigurationTestUtils;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.util.SleepUtils;
 
 import io.grpc.ManagedChannel;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -30,9 +32,16 @@ import java.util.concurrent.TimeUnit;
  */
 public final class GrpcManagedChannelPoolTest {
 
+  private static InstancedConfiguration sConf = ConfigurationTestUtils.defaults();
+
   @Before
   public void before() throws Exception {
     GrpcManagedChannelPool.INSTANCE().restart();
+  }
+
+  @After
+  public void after() throws Exception {
+    sConf = ConfigurationTestUtils.defaults();
   }
 
   @Test
@@ -108,36 +117,40 @@ public final class GrpcManagedChannelPoolTest {
   @Test
   public void testTermination() throws Exception {
     // This will cause channel terminator to run every second.
-    Configuration.set(PropertyKey.MASTER_GRPC_CHANNEL_SHUTDOWN_TIMEOUT, "1sec");
-    GrpcManagedChannelPool.INSTANCE().restart();
+    sConf.set(PropertyKey.MASTER_GRPC_CHANNEL_SHUTDOWN_TIMEOUT, "1sec");
+    GrpcManagedChannelPool pool =
+        new GrpcManagedChannelPool(sConf
+            .getMs(PropertyKey.MASTER_GRPC_CHANNEL_SHUTDOWN_TIMEOUT));
 
     GrpcManagedChannelPool.ChannelKey key1 = GrpcManagedChannelPool.ChannelKey.create();
     key1.setAddress(new InetSocketAddress("localhost", 1));
 
-    ManagedChannel channel1 = GrpcManagedChannelPool.INSTANCE().acquireManagedChannel(key1);
-    GrpcManagedChannelPool.INSTANCE().releaseManagedChannel(key1);
+    ManagedChannel channel1 = pool.acquireManagedChannel(key1);
+    pool.releaseManagedChannel(key1);
     // Give enough time for channel terminator to run through channels.
     SleepUtils.sleepMs(TimeUnit.SECONDS.toMillis(5));
-    ManagedChannel channel2 = GrpcManagedChannelPool.INSTANCE().acquireManagedChannel(key1);
+    ManagedChannel channel2 = pool.acquireManagedChannel(key1);
     assertTrue(channel1 != channel2);
 
-    GrpcManagedChannelPool.INSTANCE().releaseManagedChannel(key1);
+    pool.releaseManagedChannel(key1);
   }
 
   @Test
   public void testReacquiringBeforeTermination() throws Exception {
     // This will cause channel terminator to run every minute.
-    Configuration.set(PropertyKey.MASTER_GRPC_CHANNEL_SHUTDOWN_TIMEOUT, "1min");
-    GrpcManagedChannelPool.INSTANCE().restart();
+    sConf.set(PropertyKey.MASTER_GRPC_CHANNEL_SHUTDOWN_TIMEOUT, "1min");
+    GrpcManagedChannelPool pool =
+        new GrpcManagedChannelPool(sConf
+            .getMs(PropertyKey.MASTER_GRPC_CHANNEL_SHUTDOWN_TIMEOUT));
 
     GrpcManagedChannelPool.ChannelKey key1 = GrpcManagedChannelPool.ChannelKey.create();
     key1.setAddress(new InetSocketAddress("localhost", 1));
 
-    ManagedChannel channel1 = GrpcManagedChannelPool.INSTANCE().acquireManagedChannel(key1);
-    GrpcManagedChannelPool.INSTANCE().releaseManagedChannel(key1);
-    ManagedChannel channel2 = GrpcManagedChannelPool.INSTANCE().acquireManagedChannel(key1);
+    ManagedChannel channel1 = pool.acquireManagedChannel(key1);
+    pool.releaseManagedChannel(key1);
+    ManagedChannel channel2 = pool.acquireManagedChannel(key1);
     assertTrue(channel1 == channel2);
 
-    GrpcManagedChannelPool.INSTANCE().releaseManagedChannel(key1);
+    pool.releaseManagedChannel(key1);
   }
 }
