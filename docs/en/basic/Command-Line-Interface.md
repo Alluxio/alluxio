@@ -613,9 +613,9 @@ For more details, see [Unified Namespace]({{ '/en/advanced/Namespace-Management.
 
 Options:
 
-* `--readonly` option sets the mount point to be readonly in Alluxio
 * `--option <key>=<val>` option passes an property to this mount point, such as S3 credentials
-* `--shared` option sets the mount point to be shared with all Alluxio users.
+* `--readonly` option sets the mount point to be readonly in Alluxio
+* `--shared` option sets the permission bits of the mount point to be accessible for all Alluxio users
 
 Note that `--readonly` mounts are useful to prevent accidental write operations.
 If multiple Alluxio satellite clusters mount a remote storage cluster which serves as the central source of truth,
