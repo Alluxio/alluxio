@@ -11,7 +11,6 @@
 
 package alluxio.master.job;
 
-import alluxio.Server;
 import alluxio.conf.ServerConfiguration;
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
@@ -369,7 +368,8 @@ public final class JobMaster extends AbstractNonJournaledMaster {
 
     @Override
     public void heartbeat() {
-      int masterWorkerTimeoutMs = ServerConfiguration.getInt(PropertyKey.JOB_MASTER_WORKER_TIMEOUT_MS);
+      int masterWorkerTimeoutMs = ServerConfiguration
+          .getInt(PropertyKey.JOB_MASTER_WORKER_TIMEOUT_MS);
       List<MasterWorkerInfo> lostWorkers = new ArrayList<MasterWorkerInfo>();
       // Run under shared lock for mWorkers
       try (LockResource workersLockShared = new LockResource(mWorkerRWLock.readLock())) {

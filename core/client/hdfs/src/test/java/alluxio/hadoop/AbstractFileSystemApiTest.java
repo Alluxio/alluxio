@@ -58,8 +58,8 @@ public final class AbstractFileSystemApiTest {
   @Test
   public void unknownAuthorityTriggersWarning() throws IOException {
     URI unknown = URI.create("alluxio://test/");
-    mThrown.expectMessage("Authority \"test\" is unknown. The client will not be configured with " +
-        "this authority. The authority connection details will be loaded from the client "
+    mThrown.expectMessage("Authority \"test\" is unknown. The client will not be configured with "
+        + "this authority. The authority connection details will be loaded from the client "
         + "configuration.");
     FileSystem.get(unknown, new org.apache.hadoop.conf.Configuration());
   }
@@ -83,7 +83,7 @@ public final class AbstractFileSystemApiTest {
     org.apache.hadoop.fs.FileSystem fs = FileSystem.get(URI.create("alluxio://zk@a:0+b:1+c:2/"),
         new org.apache.hadoop.conf.Configuration());
     assertTrue(fs instanceof AbstractFileSystem);
-    AbstractFileSystem afs = (AbstractFileSystem)fs;
+    AbstractFileSystem afs = (AbstractFileSystem) fs;
     assertTrue(afs.mFsContext.getClientContext().getConf()
         .getBoolean(PropertyKey.ZOOKEEPER_ENABLED));
     assertEquals("a:0,b:1,c:2", afs.mFsContext.getClientContext().getConf()

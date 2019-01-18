@@ -16,7 +16,6 @@ import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
-import alluxio.conf.ServerConfiguration;
 import alluxio.job.JobMasterContext;
 import alluxio.job.util.SerializableVoid;
 import alluxio.wire.BlockInfo;

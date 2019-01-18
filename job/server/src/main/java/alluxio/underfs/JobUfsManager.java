@@ -44,8 +44,8 @@ public final class JobUfsManager extends AbstractUfsManager {
    */
   public JobUfsManager() {
     mMasterClient =
-        mCloser.register(new FileSystemMasterClient(MasterClientConfig.defaults(ServerConfiguration.global()),
-            ServerConfiguration.global()));
+        mCloser.register(new FileSystemMasterClient(MasterClientConfig.defaults(
+            ServerConfiguration.global())));
   }
 
   @Override
@@ -65,7 +65,8 @@ public final class JobUfsManager extends AbstractUfsManager {
     }
     Preconditions.checkState((info.hasUri() && info.hasProperties()), "unknown mountId");
     super.addMount(mountId, new AlluxioURI(info.getUri()),
-        UnderFileSystemConfiguration.defaults(ServerConfiguration.global()).setReadOnly(info.getProperties().getReadOnly())
+        UnderFileSystemConfiguration.defaults(ServerConfiguration.global())
+            .setReadOnly(info.getProperties().getReadOnly())
             .setShared(info.getProperties().getShared())
             .createMountSpecificConf(info.getProperties().getPropertiesMap()));
     UfsClient ufsClient = super.get(mountId);

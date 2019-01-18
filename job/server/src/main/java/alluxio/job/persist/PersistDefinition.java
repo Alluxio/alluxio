@@ -12,8 +12,6 @@
 package alluxio.job.persist;
 
 import alluxio.AlluxioURI;
-import alluxio.ClientContext;
-import alluxio.Server;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.file.BaseFileSystem;
@@ -74,11 +72,11 @@ public final class PersistDefinition
   /**
    * Constructs a new {@link PersistDefinition} with FileSystem context and instance.
    *
-   * @param context file system context
-   * @param fileSystem file system client
+   * @param fsContext the {@link FileSystemContext} used by the {@link FileSystem}
+   * @param fileSystem the {@link FileSystem} client
    */
-  public PersistDefinition(FileSystemContext context, FileSystem fileSystem) {
-    mFsContext = context;
+  public PersistDefinition(FileSystemContext fsContext, FileSystem fileSystem) {
+    mFsContext = fsContext;
     mFileSystem = fileSystem;
   }
 
@@ -155,7 +153,8 @@ public final class PersistDefinition
         while (!ufs.isDirectory(curUfsPath.toString()) && curAlluxioPath != null) {
           URIStatus curDirStatus = mFileSystem.getStatus(curAlluxioPath);
           ufsDirsToMakeWithOptions.push(new Pair<>(curUfsPath.toString(),
-              MkdirsOptions.defaults(ServerConfiguration.global()).setCreateParent(false).setOwner(curDirStatus.getOwner())
+              MkdirsOptions.defaults(ServerConfiguration.global()).setCreateParent(false)
+                  .setOwner(curDirStatus.getOwner())
                   .setGroup(curDirStatus.getGroup())
                   .setMode(new Mode((short) curDirStatus.getMode()))));
           curAlluxioPath = curAlluxioPath.getParent();

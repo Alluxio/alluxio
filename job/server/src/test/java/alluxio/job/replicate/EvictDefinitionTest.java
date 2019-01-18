@@ -13,7 +13,6 @@ package alluxio.job.replicate;
 
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.file.FileSystemContext;
-import alluxio.conf.ServerConfiguration;
 import alluxio.job.JobMasterContext;
 import alluxio.job.util.SerializableVoid;
 import alluxio.wire.BlockInfo;

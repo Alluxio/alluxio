@@ -58,7 +58,8 @@ public final class LocalAlluxioMaster {
   private Thread mSecondaryMasterThread;
 
   private LocalAlluxioMaster() throws IOException {
-    mHostname = NetworkAddressUtils.getConnectHost(ServiceType.MASTER_RPC, ServerConfiguration.global());
+    mHostname = NetworkAddressUtils.getConnectHost(ServiceType.MASTER_RPC,
+        ServerConfiguration.global());
     mJournalFolder = ServerConfiguration.get(PropertyKey.MASTER_JOURNAL_FOLDER);
   }
 

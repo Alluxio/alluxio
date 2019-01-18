@@ -14,7 +14,6 @@ package alluxio.hadoop;
 import alluxio.ProjectConstants;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.client.file.FileSystemContext;
 
 import org.powermock.core.classloader.MockClassLoader;
 import org.powermock.reflect.Whitebox;

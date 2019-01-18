@@ -14,7 +14,6 @@ package alluxio.hadoop;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 
-import alluxio.ClientContext;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.AlluxioURI;
 import alluxio.conf.AlluxioProperties;
@@ -275,7 +274,8 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
 
   @Override
   public long getDefaultBlockSize() {
-    return mFsContext.getClientContext().getConf().getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
+    return mFsContext.getClientContext().getConf()
+        .getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
   }
 
   @Nullable
@@ -619,7 +619,6 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
 
     return newDetails.equals(oldDetails);
   }
-
 
   /**
    * @return the hadoop subject if exists, null if not exist

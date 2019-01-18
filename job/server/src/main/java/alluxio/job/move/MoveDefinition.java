@@ -12,7 +12,6 @@
 package alluxio.job.move;
 
 import alluxio.AlluxioURI;
-import alluxio.ClientContext;
 import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.client.WriteType;
@@ -105,11 +104,11 @@ public final class MoveDefinition
   /**
    * Constructs a new {@link MoveDefinition} with FileSystem context and instance.
    *
-   * @param context file system context
-   * @param fileSystem file system client
+   * @param fsContext the {@link FileSystemContext} used by the {@link FileSystem}
+   * @param fileSystem the {@link FileSystem} client
    */
-  public MoveDefinition(FileSystemContext context, FileSystem fileSystem) {
-    mFsContext = context;
+  public MoveDefinition(FileSystemContext fsContext, FileSystem fileSystem) {
+    mFsContext = fsContext;
     mFileSystem = fileSystem;
   }
 
