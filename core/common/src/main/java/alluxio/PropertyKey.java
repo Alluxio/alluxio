@@ -1253,8 +1253,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("Maximum concurrency level for the inodelock cache")
           .setScope(Scope.MASTER)
           .build();
-
-
   public static final PropertyKey MASTER_JOURNAL_FLUSH_BATCH_TIME_MS =
       new Builder(Name.MASTER_JOURNAL_FLUSH_BATCH_TIME_MS)
           .setAlias(new String[]{"alluxio.master.journal.flush.batch.time.ms"})

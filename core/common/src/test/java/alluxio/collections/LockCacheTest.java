@@ -91,8 +91,8 @@ public class LockCacheTest {
       try (LockResource resource1 = mCache.get(1, LockMode.READ)) {
         try (LockResource resource2 = mCache.get(2, LockMode.READ)) {
           try (LockResource resource3 = mCache.get(3, LockMode.READ)) {
-            for (int j = 0; j< 10; j++) {
-              for (int i = 0; i< 1000; i++) {
+            for (int j = 0; j < 10; j++) {
+              for (int i = 0; i < 1000; i++) {
                 LockResource resource = mCache.get(i, LockMode.READ);
                 resource.close();
               }

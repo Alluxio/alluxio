@@ -39,6 +39,11 @@ public class LockResource implements Closeable {
     mLock.lock();
   }
 
+  /**
+   * Get the lock from the lock resource.
+   *
+   * @return the lock object
+   */
   @VisibleForTesting
   public Lock getLock() {
     return mLock;
