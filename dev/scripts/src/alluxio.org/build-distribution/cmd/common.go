@@ -41,6 +41,45 @@ var hadoopDistributions = map[string]version{
 	"default": parseVersion("2.2.0"),
 }
 
+type module struct {
+	name      string // the name used in the generated tarball
+	isDefault bool   // whether to build the module by default
+	mavenArgs string // maven args for building the module
+}
+
+// ufsModules is a map from ufs module to information for building the module.
+var ufsModules = map[string]module{
+	"ufs-hadoop-1.0": {"hadoop-1.0", false, "-pl underfs/hdfs -Pufs-hadoop-1 -Dufs.hadoop.version=1.0.4"},
+	"ufs-hadoop-1.2": {"hadoop-1.2", true, "-pl underfs/hdfs -Pufs-hadoop-1 -Dufs.hadoop.version=1.2.1"},
+	"ufs-hadoop-2.2": {"hadoop-2.2", true, "-pl underfs/hdfs -Pufs-hadoop-2 -Dufs.hadoop.version=2.2.0"},
+	"ufs-hadoop-2.3": {"hadoop-2.3", false, "-pl underfs/hdfs -Pufs-hadoop-2 -Dufs.hadoop.version=2.3.0"},
+	"ufs-hadoop-2.4": {"hadoop-2.4", false, "-pl underfs/hdfs -Pufs-hadoop-2 -Dufs.hadoop.version=2.4.1"},
+	"ufs-hadoop-2.5": {"hadoop-2.5", false, "-pl underfs/hdfs -Pufs-hadoop-2 -Dufs.hadoop.version=2.5.2"},
+	"ufs-hadoop-2.6": {"hadoop-2.6", false, "-pl underfs/hdfs -Pufs-hadoop-2 -Dufs.hadoop.version=2.6.5 -PhdfsActiveSync"},
+	"ufs-hadoop-2.7": {"hadoop-2.7", true, "-pl underfs/hdfs -Pufs-hadoop-2 -Dufs.hadoop.version=2.7.3 -PhdfsActiveSync"},
+	"ufs-hadoop-2.8": {"hadoop-2.8", false, "-pl underfs/hdfs -Pufs-hadoop-2 -Dufs.hadoop.version=2.8.0 -PhdfsActiveSync"},
+}
+
+func validModules(modules map[string]module) []string {
+	result := []string{}
+	for moduleName := range modules {
+		result = append(result, moduleName)
+	}
+	sort.Strings(result)
+	return result
+}
+
+func defaultModules(modules map[string]module) []string {
+	result := []string{}
+	for moduleName := range modules {
+		if modules[moduleName].isDefault {
+			result = append(result, moduleName)
+		}
+	}
+	sort.Strings(result)
+	return result
+}
+
 func validHadoopDistributions() []string {
 	var result []string
 	for distribution := range hadoopDistributions {

@@ -2421,11 +2421,19 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
             }
 
             try (LockedInodePath descendant = inodePath
+<<<<<<< HEAD
                 .lockDescendant(inodePath.getUri().join(childStatus.getName()), LockPattern.READ)) {
               LoadMetadataContext loadMetadataContext = LoadMetadataContext
                   .defaults(LoadMetadataPOptions.newBuilder()
                       .setLoadDescendantType(LoadDescendantPType.NONE).setCreateAncestors(false))
                   .setUfsStatus(childStatus);
+=======
+                .lockDescendant(inodePath.getUri().joinUnsafe(childStatus.getName()),
+                    LockPattern.READ)) {
+              LoadMetadataOptions loadMetadataOptions =
+                  LoadMetadataOptions.defaults().setLoadDescendantType(DescendantType.NONE)
+                      .setCreateAncestors(false).setUfsStatus(childStatus);
+>>>>>>> upstream/master
               try {
                 loadMetadataInternal(rpcContext, descendant, loadMetadataContext);
               } catch (FileNotFoundException e) {
@@ -3197,7 +3205,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
           UfsStatus[] children = ufs.listStatus(ufsUri.toString(), listOptions);
           if (children != null) {
             for (UfsStatus childStatus : children) {
-              statusCache.put(path.join(childStatus.getName()),
+              statusCache.put(path.joinUnsafe(childStatus.getName()),
                   childStatus);
             }
           }
@@ -3469,7 +3477,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
           // Technically we don't need to lock here since inodePath is already write-locked. We can
           // improve this by implementing a way to traverse an inode path without locking.
           try (LockedInodePath descendant = inodePath.lockDescendant(
-              inodePath.getUri().join(inodeEntry.getKey()), LockPattern.WRITE_EDGE)) {
+              inodePath.getUri().joinUnsafe(inodeEntry.getKey()), LockPattern.WRITE_EDGE)) {
             // Recursively sync children
             if (syncDescendantType != DescendantType.ALL) {
               syncDescendantType = DescendantType.NONE;
