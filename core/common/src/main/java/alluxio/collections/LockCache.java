@@ -14,6 +14,7 @@ package alluxio.collections;
 import alluxio.resource.LockResource;
 import alluxio.resource.RefCountLockResource;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,7 +38,6 @@ import java.util.function.Function;
 public class LockCache<K> {
   /**
    * Node containing value and other information to be stored in the cache.
-   *
    */
   public class ValNode {
     private ReentrantReadWriteLock mValue;
@@ -60,9 +60,9 @@ public class LockCache<K> {
     }
 
     /**
-     * get the value contained in the value node.
+     * Get the value contained in the value node.
      *
-     * @return the value
+     * @return the lock contained in the value node
      */
     public ReentrantReadWriteLock get() {
       return mValue;
@@ -76,7 +76,7 @@ public class LockCache<K> {
   private final Map<K, ValNode> mCache;
 
   /**
-   * softLimit = hardLimit * softLimitRatio
+   * SoftLimit = hardLimit * softLimitRatio
    * once the size reaches softlimit, eviction starts to happen,
    * once the size reaches hardlimit, blocking starts to happen.
    */
@@ -142,16 +142,16 @@ public class LockCache<K> {
   }
 
   /**
-   * get the value from the cache.
+   * Get the value from the cache.
    *
    * @param key the key to look up the cache
    * @param mode lockMode to acquire
    * @return the value contained in the cache, if it is already in cache,
-   * otherwise generate an entry based on the loader
+   *         otherwise generate an entry based on the loader
    */
 
   public LockResource get(final K key, LockResource.LockMode mode) {
-    ValNode valNode = getValNode(key, true);
+    ValNode valNode = getValNode(key);
     ReentrantReadWriteLock lock = valNode.mValue;
     switch (mode) {
       case READ:
@@ -169,12 +169,13 @@ public class LockCache<K> {
    * @param key key to look up the value
    * @return the lock associated with the key
    */
+
+  @VisibleForTesting
   public ReentrantReadWriteLock getRawReadWriteLock(final K key) {
-    ValNode valNode = getValNode(key, false);
-    return valNode.get();
+    return mCache.getOrDefault(key, new ValNode(new ReentrantReadWriteLock())).mValue;
   }
 
-  private ValNode getValNode(final K key, boolean refCount) {
+  private ValNode getValNode(final K key) {
     Preconditions.checkNotNull(key, "key can not be null");
     // oldCacheEntry keeps track of the last cache entry that was in the process of being removed.
     // we do not need to do anything if we did not get a new CacheEntry
@@ -200,7 +201,8 @@ public class LockCache<K> {
         // cache is at hard limit
         try {
           if (System.currentTimeMillis() - mLastLogTime > 60000) {
-            LOG.info("Cache at hard limit, size = " + mCache.size());
+            LOG.warn("Cache at hard limit, cache ize = " + mCache.size()
+                + " softLimit = " + mSoftLimit + " hardLimit = " + mHardLimit);
             mLastLogTime = System.currentTimeMillis();
           }
           Thread.sleep(100);
@@ -225,7 +227,7 @@ public class LockCache<K> {
   }
 
   /**
-   * returns whether the cache contains a particular key.
+   * Returns whether the cache contains a particular key.
    *
    * @param key the key to look up in the cache
    * @return true if the key is contained in the cache
@@ -236,7 +238,7 @@ public class LockCache<K> {
   }
 
   /**
-   * returns the size of the cache.
+   * Returns the size of the cache.
    *
    * @return the number of entries cached
    */

@@ -72,26 +72,22 @@ public class InodeLockManager {
 
   @VisibleForTesting
   boolean inodeReadLockedByCurrentThread(long inodeId) {
-    ReentrantReadWriteLock lock = mInodeLocks.getRawReadWriteLock(inodeId);
-    return lock.getReadHoldCount() > 0;
+    return mInodeLocks.getRawReadWriteLock(inodeId).getReadHoldCount() > 0;
   }
 
   @VisibleForTesting
   boolean inodeWriteLockedByCurrentThread(long inodeId) {
-    ReentrantReadWriteLock lock = mInodeLocks.getRawReadWriteLock(inodeId);
-    return lock.getWriteHoldCount() > 0;
+    return mInodeLocks.getRawReadWriteLock(inodeId).getWriteHoldCount() > 0;
   }
 
   @VisibleForTesting
   boolean edgeReadLockedByCurrentThread(Edge edge) {
-    ReentrantReadWriteLock lock = mEdgeLocks.getRawReadWriteLock(edge);
-    return lock.getReadHoldCount() > 0;
+    return mEdgeLocks.getRawReadWriteLock(edge).getReadHoldCount() > 0;
   }
 
   @VisibleForTesting
   boolean edgeWriteLockedByCurrentThread(Edge edge) {
-    ReentrantReadWriteLock lock = mEdgeLocks.getRawReadWriteLock(edge);
-    return lock.getWriteHoldCount() > 0;
+    return mEdgeLocks.getRawReadWriteLock(edge).getWriteHoldCount() > 0;
   }
 
   /**
