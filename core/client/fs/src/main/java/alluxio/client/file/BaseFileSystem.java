@@ -69,10 +69,10 @@ import java.util.Map;
 public class BaseFileSystem implements FileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(BaseFileSystem.class);
 
-  protected FileSystemContext mFsContext;
+  protected final FileSystemContext mFsContext;
 
   /**
-   * @param context client context
+   * @param context the {@link FileSystemContext} to use in this client
    * @return a {@link BaseFileSystem}
    */
   public static BaseFileSystem create(FileSystemContext context) {

@@ -105,6 +105,7 @@ public final class FileSystemContext implements Closeable {
    */
   @GuardedBy("this")
   private WorkerNetAddress mLocalWorker;
+
   private final ClientContext mClientContext;
   private final String mAppId;
 
@@ -261,7 +262,6 @@ public final class FileSystemContext implements Closeable {
     mMasterInquireClient = null;
 
     synchronized (this) {
-      // Commenting out to disable client metrics
       if (mMetricsMasterClient != null) {
         ThreadUtils.shutdownAndAwaitTermination(mExecutorService,
             mClientContext.getConf().getMs(PropertyKey.METRICS_CONTEXT_SHUTDOWN_TIMEOUT));
