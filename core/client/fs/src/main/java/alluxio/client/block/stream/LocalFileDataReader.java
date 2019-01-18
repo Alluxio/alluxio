@@ -18,6 +18,8 @@ import alluxio.client.file.options.InStreamOptions;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.OpenLocalBlockRequest;
 import alluxio.grpc.OpenLocalBlockResponse;
+import alluxio.metrics.ClientMetrics;
+import alluxio.metrics.MetricsSystem;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.DataByteBuffer;
 import alluxio.wire.WorkerNetAddress;
@@ -37,8 +39,6 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class LocalFileDataReader implements DataReader {
   /** The file reader to read a local block. */
   private final LocalFileBlockReader mReader;
-//  private final int mReaderBufferSize;
-//  private final long mDataTimeoutMs;
   private final long mEnd;
   private final long mChunkSize;
   private long mPos;
@@ -68,8 +68,8 @@ public final class LocalFileDataReader implements DataReader {
     ByteBuffer buffer = mReader.read(mPos, Math.min(mChunkSize, mEnd - mPos));
     DataBuffer dataBuffer = new DataByteBuffer(buffer, buffer.remaining());
     mPos += dataBuffer.getLength();
-//    MetricsSystem.counter(ClientMetrics.BYTES_READ_LOCAL).inc(dataBuffer.getLength());
-//    MetricsSystem.meter(ClientMetrics.BYTES_READ_LOCAL_THROUGHPUT).mark(dataBuffer.getLength());
+    MetricsSystem.counter(ClientMetrics.BYTES_READ_LOCAL).inc(dataBuffer.getLength());
+    MetricsSystem.meter(ClientMetrics.BYTES_READ_LOCAL_THROUGHPUT).mark(dataBuffer.getLength());
     return dataBuffer;
   }
 

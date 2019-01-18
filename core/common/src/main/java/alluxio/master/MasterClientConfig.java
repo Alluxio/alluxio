@@ -26,7 +26,7 @@ public class MasterClientConfig {
   private AlluxioConfiguration mAlluxioConf;
 
   // Prevent instantiation
-  private MasterClientConfig(){ }
+  protected MasterClientConfig(){ }
 
   /**
    * @param alluxioConf Alluxio configuration

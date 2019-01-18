@@ -26,7 +26,8 @@ public class JobMasterClientConfig extends MasterClientConfig {
    */
   public static JobMasterClientConfig defaults(AlluxioConfiguration alluxioConf) {
     JobMasterClientConfig conf = new JobMasterClientConfig();
-    conf.withMasterInquireClient(Factory.createForJobMaster(alluxioConf));
+    conf.withConfiguration(alluxioConf)
+        .withMasterInquireClient(Factory.createForJobMaster(alluxioConf));
     return conf;
   }
 }
