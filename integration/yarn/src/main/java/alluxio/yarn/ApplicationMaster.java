@@ -134,6 +134,7 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
    * @param numWorkers the number of workers to launch
    * @param masterAddress the address at which to start the Alluxio master
    * @param resourcePath an hdfs path shared by all yarn nodes which can be used to share resources
+   * @param alluxioConf Alluxio's configuration
    */
   public ApplicationMaster(int numWorkers, String masterAddress, String resourcePath,
       AlluxioConfiguration alluxioConf) {
@@ -310,8 +311,8 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
     mYarnClient.start();
 
     // Register with ResourceManager
-    String hostname =
-        NetworkAddressUtils.getLocalHostName((int)mAlluxioConf.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS));
+    String hostname = NetworkAddressUtils.getLocalHostName((int) mAlluxioConf
+            .getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS));
     mRMClient.registerApplicationMaster(hostname, 0 /* port */, "" /* tracking url */);
     LOG.info("ApplicationMaster registered");
   }
