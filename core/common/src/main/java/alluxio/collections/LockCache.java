@@ -170,7 +170,7 @@ public class LockCache<K> {
         // cache is at hard limit
         try {
           if (System.currentTimeMillis() - mLastSizeWarningTime > 60000) {
-            LOG.warn("Cache at hard limit, cache ize = " + mCache.size()
+            LOG.warn("Cache at hard limit, cache size = " + mCache.size()
                 + " softLimit = " + mSoftLimit + " hardLimit = " + mHardLimit);
             mLastSizeWarningTime = System.currentTimeMillis();
           }
