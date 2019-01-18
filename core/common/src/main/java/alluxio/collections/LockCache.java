@@ -35,9 +35,8 @@ public class LockCache<K, V> {
   /**
    * Node containing value and other information to be stored in the cache.
    *
-   * @param <V> value type
    */
-  public class ValNode<V> {
+  public class ValNode {
     private V mValue;
     private boolean mIsAccessed;
     private AtomicInteger mRefCount;
@@ -71,13 +70,17 @@ public class LockCache<K, V> {
   private static final float DEFAULT_LOAD_FACTOR = 0.75f;
   static final float SOFT_LIMIT_RATIO = 0.9f;
 
-  private final Map<K, ValNode<V>> mCache;
+  private final Map<K, ValNode> mCache;
 
-  /* A suggested maximum size for the cache */
+  /**
+   * softLimit = hardLimit * softLimitRatio
+   * once the size reaches softlimit, eviction starts to happen,
+   * once the size reaches hardlimit, blocking starts to happen.
+   */
   private final int mHardLimit;
   private final int mSoftLimit;
   private final Function<? super K, ? extends V> mDefaultLoader;
-  private Iterator<Map.Entry<K, ValNode<V>>> mIterator;
+  private Iterator<Map.Entry<K, ValNode>> mIterator;
   private final Lock mEvictLock;
 
   /**
@@ -105,17 +108,17 @@ public class LockCache<K, V> {
     if (numToEvict <= 0) {
       return;
     }
-    // this will block if every lock has a reference on them.
+
     if (mEvictLock.tryLock()) {
       try {
-        // This thread is the evictor
+        // This thread won the race as the evictor
         while (numToEvict > 0) {
 
           if (!mIterator.hasNext()) {
             mIterator = mCache.entrySet().iterator();
           }
-          Map.Entry<K, ValNode<V>> candidateMapEntry = mIterator.next();
-          ValNode<V> candidate = candidateMapEntry.getValue();
+          Map.Entry<K, ValNode> candidateMapEntry = mIterator.next();
+          ValNode candidate = candidateMapEntry.getValue();
           if (candidate.mIsAccessed) {
             candidate.mIsAccessed = false;
           } else {
@@ -139,22 +142,25 @@ public class LockCache<K, V> {
    * @return the value contained in the cache, if it is already in cache,
    * otherwise generate an entry based on the loader
    */
-  public ValNode<V> get(final K key) {
+  public ValNode get(final K key) {
     Preconditions.checkNotNull(key, "key can not be null");
-    ValNode<V> oldCacheEntry = null;
-    ValNode<V> cacheEntry;
+    // oldCacheEntry keeps track of the last cache entry that was in the process of being removed.
+    // we do not need to do anything if we did not get a new CacheEntry
+    ValNode oldCacheEntry = null;
+    ValNode cacheEntry;
     while (true) {
       // repeat until we get a cacheEntry that is not in the process of being removed.
       cacheEntry = mCache.compute(key, (k, v) -> {
         if (v != null) {
           v.getRefCounter().incrementAndGet();
+          v.mIsAccessed = true;
           return v;
         }
         // new cache entry
         if (mCache.size() >= mHardLimit) {
           return null;
         } else {
-          return new ValNode<>(mDefaultLoader.apply(k));
+          return new ValNode(mDefaultLoader.apply(k));
         }
       });
 
@@ -164,7 +170,7 @@ public class LockCache<K, V> {
           Thread.sleep(100);
           evictIfOverLimit();
         } catch (InterruptedException e) {
-          Thread.currentThread().interrupt();
+          throw new RuntimeException(e);
         }
         continue;
       }
@@ -174,6 +180,7 @@ public class LockCache<K, V> {
         evictIfOverLimit();
         return cacheEntry;
       } else {
+        // refCount went negative, we are evicting this entry
         oldCacheEntry = cacheEntry;
         evictIfOverLimit();
         //TODO(yuzhu): sleep here to prevent overloading the cache

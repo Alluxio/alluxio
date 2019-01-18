@@ -17,11 +17,6 @@ import static org.junit.Assert.assertTrue;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.Iterator;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicInteger;
-
 /**
  * Tests the {@link LockCache} class.
  */
@@ -43,7 +38,7 @@ public class LockCacheTest {
 
     for (int i = 0; i < highWaterMark; i++) {
       assertEquals(i , mCache.size());
-      LockCache<Integer, Integer>.ValNode<Integer> valNode = mCache.get(i);
+      LockCache<Integer, Integer>.ValNode valNode = mCache.get(i);
       assertEquals(i, valNode.get().intValue());
       assertTrue(mCache.size() < MAX_SIZE);
       valNode.getRefCounter().decrementAndGet();
@@ -53,7 +48,7 @@ public class LockCacheTest {
     }
     // it should be full now
     for (int i = highWaterMark; i < 2 * MAX_SIZE; i++) {
-      LockCache<Integer, Integer>.ValNode<Integer> valNode = mCache.get(i);
+      LockCache<Integer, Integer>.ValNode valNode = mCache.get(i);
       assertEquals(i, valNode.get().intValue());
       assertTrue(mCache.contains(i));
       assertTrue(mCache.size() <= MAX_SIZE);
@@ -64,7 +59,7 @@ public class LockCacheTest {
   private Thread insert(int low, int high, int totalThreadCount) {
     Thread t = new Thread(() -> {
       for (int i = low; i < high; i++) {
-        LockCache<Integer, Integer>.ValNode<Integer> valNode = mCache.get(i);
+        LockCache<Integer, Integer>.ValNode valNode = mCache.get(i);
         assertTrue(mCache.size() <= MAX_SIZE + totalThreadCount);
         assertTrue(mCache.contains(i));
         assertEquals(i, valNode.get().intValue());
