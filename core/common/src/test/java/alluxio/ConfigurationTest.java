@@ -745,7 +745,7 @@ public class ConfigurationTest {
     assertTrue(resolvedMap.containsKey("alluxio.master.journal.folder"));
     assertTrue(resolvedMap.containsKey("alluxio.proxy.web.port"));
     assertTrue(resolvedMap.containsKey("alluxio.security.authentication.type"));
-    assertTrue(resolvedMap.containsKey("alluxio.user.block.master.client.threads"));
+    assertTrue(resolvedMap.containsKey("alluxio.user.block.master.client.pool.size.max"));
     assertTrue(resolvedMap.containsKey("alluxio.worker.bind.host"));
   }
 
