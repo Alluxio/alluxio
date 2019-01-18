@@ -11,10 +11,9 @@
 
 package alluxio;
 
-import alluxio.conf.ConfigurationTest;
-import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;
+
 import com.google.common.collect.ImmutableMap;
 import org.junit.Assert;
 import org.junit.Test;

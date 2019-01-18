@@ -13,6 +13,7 @@ package alluxio;
 
 import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;
+
 import com.google.common.collect.ImmutableBiMap;
 
 import java.util.ArrayList;
@@ -54,8 +55,8 @@ public abstract class StorageTierAssoc {
   }
 
   /**
-   * Constructs a new instance using the given {@link ServerConfiguration} object. The mapping cannot be
-   * modified after creation.
+   * Constructs a new instance using the given {@link ServerConfiguration} object. The mapping
+   * cannot be modified after creation.
    *
    * @param levelsProperty the property in the conf that specifies how many levels there are
    * @param template the format for the conf that identifies the alias for each level

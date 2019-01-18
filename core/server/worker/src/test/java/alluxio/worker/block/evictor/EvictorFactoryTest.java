@@ -11,9 +11,7 @@
 
 package alluxio.worker.block.evictor;
 
-import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.ServerConfiguration;
-import alluxio.ConfigurationTestUtils;
 import alluxio.conf.PropertyKey;
 import alluxio.worker.block.BlockMetadataManager;
 import alluxio.worker.block.BlockMetadataManagerView;

@@ -15,8 +15,6 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
-import alluxio.ConfigurationTestUtils;
-import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.ServerConfiguration;
 import alluxio.ConfigurationRule;
 import alluxio.conf.PropertyKey;
@@ -56,7 +54,8 @@ public final class FormatTest {
         mTemporaryFolder.newFolder("level2")
     };
     for (File dir : dirs) {
-      workerDataFolder = CommonUtils.getWorkerDataDirectory(dir.getPath(), ServerConfiguration.global());
+      workerDataFolder = CommonUtils.getWorkerDataDirectory(dir.getPath(),
+          ServerConfiguration.global());
       FileUtils.createDir(PathUtils.concatPath(workerDataFolder, "subdir"));
       FileUtils.createFile(PathUtils.concatPath(workerDataFolder, "file"));
     }
@@ -71,7 +70,8 @@ public final class FormatTest {
     }, ServerConfiguration.global()).toResource()) {
       Format.format(Format.Mode.WORKER, ServerConfiguration.global());
       for (File dir : dirs) {
-        workerDataFolder = CommonUtils.getWorkerDataDirectory(dir.getPath(), ServerConfiguration.global());
+        workerDataFolder = CommonUtils.getWorkerDataDirectory(dir.getPath(),
+            ServerConfiguration.global());
         assertTrue(FileUtils.exists(dir.getPath()));
         assertTrue(FileUtils.exists(workerDataFolder));
         assertEquals(PosixFilePermissions.fromString(perms), Files.getPosixFilePermissions(Paths
@@ -97,7 +97,8 @@ public final class FormatTest {
     };
     // Have files of same name as the target worker data dir in each tier
     for (File dir : dirs) {
-      workerDataFolder = CommonUtils.getWorkerDataDirectory(dir.getPath(), ServerConfiguration.global());
+      workerDataFolder = CommonUtils.getWorkerDataDirectory(dir.getPath(),
+          ServerConfiguration.global());
       FileUtils.createFile(workerDataFolder);
     }
     try (Closeable r = new ConfigurationRule(new HashMap<PropertyKey, String>() {

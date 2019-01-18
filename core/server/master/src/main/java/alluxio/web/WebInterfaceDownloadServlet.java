@@ -71,7 +71,8 @@ public final class WebInterfaceDownloadServlet extends HttpServlet {
     if (!ServerConfiguration.getBoolean(PropertyKey.WEB_FILE_INFO_ENABLED)) {
       return;
     }
-    if (SecurityUtils.isSecurityEnabled(ServerConfiguration.global()) && AuthenticatedClientUser.get(ServerConfiguration.global()) == null) {
+    if (SecurityUtils.isSecurityEnabled(ServerConfiguration.global())
+        && AuthenticatedClientUser.get(ServerConfiguration.global()) == null) {
       AuthenticatedClientUser.set(LoginUser.get(ServerConfiguration.global()).getName());
     }
     String requestPath = request.getParameter("path");

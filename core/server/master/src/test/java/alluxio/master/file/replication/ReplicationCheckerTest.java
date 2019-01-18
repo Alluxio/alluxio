@@ -15,7 +15,6 @@ import static org.mockito.Mockito.mock;
 
 import alluxio.AlluxioURI;
 import alluxio.conf.ServerConfiguration;
-import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.CreateFilePOptions;

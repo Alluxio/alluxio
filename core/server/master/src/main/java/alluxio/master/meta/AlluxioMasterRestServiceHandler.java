@@ -12,7 +12,6 @@
 package alluxio.master.meta;
 
 import alluxio.AlluxioURI;
-import alluxio.Server;
 import alluxio.conf.ServerConfiguration;
 import alluxio.conf.ConfigurationValueOptions;
 import alluxio.MasterStorageTierAssoc;
@@ -183,7 +182,8 @@ public final class AlluxioMasterRestServiceHandler {
   @ReturnType("java.lang.String")
   @Deprecated
   public Response getRpcAddress() {
-    return RestUtils.call(() -> mMasterProcess.getRpcAddress().toString(), ServerConfiguration.global());
+    return RestUtils.call(() -> mMasterProcess.getRpcAddress().toString(),
+        ServerConfiguration.global());
   }
 
   /**
@@ -272,7 +272,8 @@ public final class AlluxioMasterRestServiceHandler {
   }
 
   /**
-   * @summary create the total ufs capacity in bytes, a negative value means the capacity is unknown.
+   * @summary create the total ufs capacity in bytes, a negative value means the capacity is
+   * unknown.
    * @return the response object
    * @deprecated since version 1.4 and will be removed in version 2.0
    * @see #getInfo(Boolean)
@@ -355,8 +356,8 @@ public final class AlluxioMasterRestServiceHandler {
   }
 
   /**
-   * @summary create the mapping from tier alias to the used bytes of the tier, keys are in the order
-   *    from tier alias with smaller ordinal to those with larger ones.
+   * @summary create the mapping from tier alias to the used bytes of the tier, keys are in the
+   *          order from tier alias with smaller ordinal to those with larger ones.
    * @return the response object
    * @deprecated since version 1.4 and will be removed in version 2.0
    * @see #getInfo(Boolean)

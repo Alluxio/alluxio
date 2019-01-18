@@ -47,7 +47,7 @@ import java.util.Map;
 public class LocalUnderFileSystemTest {
   private String mLocalUfsRoot;
   private UnderFileSystem mLocalUfs;
-  private static AlluxioConfiguration mConf =
+  private static AlluxioConfiguration sConf =
       new InstancedConfiguration(ConfigurationUtils.defaults());
 
   @Rule
@@ -56,7 +56,7 @@ public class LocalUnderFileSystemTest {
   @Before
   public void before() throws IOException {
     mLocalUfsRoot = mTemporaryFolder.getRoot().getAbsolutePath();
-    mLocalUfs = UnderFileSystem.Factory.create(mLocalUfsRoot, mConf);
+    mLocalUfs = UnderFileSystem.Factory.create(mLocalUfsRoot, sConf);
   }
 
   @Test
@@ -139,7 +139,7 @@ public class LocalUnderFileSystemTest {
   public void mkdirsWithCreateParentEqualToFalse() throws IOException {
     String parentPath = PathUtils.concatPath(mLocalUfsRoot, getUniqueFileName());
     String dirpath = PathUtils.concatPath(parentPath, getUniqueFileName());
-    mLocalUfs.mkdirs(dirpath, MkdirsOptions.defaults(mConf).setCreateParent(false));
+    mLocalUfs.mkdirs(dirpath, MkdirsOptions.defaults(sConf).setCreateParent(false));
 
     assertFalse(mLocalUfs.isDirectory(dirpath));
 
@@ -176,7 +176,7 @@ public class LocalUnderFileSystemTest {
     List<String> fileLocations = mLocalUfs.getFileLocations(filepath);
     assertEquals(1, fileLocations.size());
     assertEquals(NetworkAddressUtils.getLocalHostName(
-        (int)mConf.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS)),
+        (int) sConf.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS)),
         fileLocations.get(0));
   }
 

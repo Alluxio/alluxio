@@ -13,7 +13,6 @@ package alluxio.proxy;
 
 import alluxio.AlluxioURI;
 import alluxio.RestUtils;
-import alluxio.Server;
 import alluxio.StreamCache;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;

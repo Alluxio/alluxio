@@ -544,7 +544,8 @@ public final class InodeTreeTest {
   }
 
   /**
-   * Tests that an exception is thrown when trying to create an Inode by a non-existing, nested path.
+   * Tests that an exception is thrown when trying to create an Inode by a non-existing, nested
+   * path.
    */
   @Test
   public void getInodeByNonexistingNestedPath() throws Exception {

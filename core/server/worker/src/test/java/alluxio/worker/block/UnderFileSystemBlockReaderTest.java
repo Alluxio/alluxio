@@ -20,8 +20,6 @@ import static org.mockito.Mockito.any;
 
 import alluxio.AlluxioTestDirectory;
 import alluxio.AlluxioURI;
-import alluxio.ConfigurationTestUtils;
-import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.ServerConfiguration;
 import alluxio.ConfigurationRule;
 import alluxio.conf.PropertyKey;

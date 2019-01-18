@@ -12,7 +12,6 @@
 package alluxio.web;
 
 import alluxio.ClientContext;
-import alluxio.Server;
 import alluxio.conf.ServerConfiguration;
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;

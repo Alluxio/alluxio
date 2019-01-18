@@ -67,7 +67,7 @@ public class AsyncCacheRequestManager {
     mPendingRequests = new ConcurrentHashMap<>();
     mLocalWorkerHostname =
         NetworkAddressUtils.getLocalHostName(
-            (int)ServerConfiguration.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS));
+            (int) ServerConfiguration.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS));
     mFsContext = FileSystemContext.create(null, ServerConfiguration.getProperties());
   }
 

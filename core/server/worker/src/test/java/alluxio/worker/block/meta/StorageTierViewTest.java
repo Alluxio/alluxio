@@ -76,7 +76,8 @@ public class StorageTierViewTest {
   }
 
   /**
-   * Tests that an exception is thrown when trying to create a storage directory view with a bad index.
+   * Tests that an exception is thrown when trying to create a storage directory view with a bad
+   * index.
    */
   @Test
   public void getDirViewBadIndex() {

@@ -12,7 +12,6 @@
 package alluxio.worker.grpc;
 
 import alluxio.conf.ServerConfiguration;
-import alluxio.Constants;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.GrpcServer;
 import alluxio.grpc.GrpcServerBuilder;
@@ -74,7 +73,8 @@ public final class GrpcDataServer implements DataServer {
   public GrpcDataServer(final SocketAddress address, final WorkerProcess workerProcess) {
     mSocketAddress = address;
     try {
-      mServer = createServerBuilder(address, NettyUtils.getWorkerChannel(ServerConfiguration.global()))
+      mServer = createServerBuilder(address, NettyUtils.getWorkerChannel(
+          ServerConfiguration.global()))
           .addService(new GrpcService(new BlockWorkerImpl(workerProcess)))
           .flowControlWindow((int) mFlowControlWindow)
           .keepAliveTime(mKeepAliveTimeMs, TimeUnit.MILLISECONDS)

@@ -11,7 +11,6 @@
 
 package alluxio.master.journalv0.ufs;
 
-import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.master.journalv0.JournalWriter;
@@ -75,7 +74,8 @@ public class UfsMutableJournal extends UfsJournal implements MutableJournal {
     // Create a breadcrumb that indicates that the journal folder has been formatted.
     try {
       UnderFileSystemUtils.touch(ufs, URIUtils.appendPath(mLocation,
-          ServerConfiguration.get(PropertyKey.MASTER_FORMAT_FILE_PREFIX) + System.currentTimeMillis())
+          ServerConfiguration.get(PropertyKey.MASTER_FORMAT_FILE_PREFIX)
+              + System.currentTimeMillis())
           .toString());
     } catch (URISyntaxException e) {
       throw new RuntimeException(e.getMessage());

@@ -46,9 +46,9 @@ public final class TieredBlockStoreTestUtils {
   public static final String WORKER_DATA_FOLDER = "/alluxioworker/";
 
   /**
-   * Sets up a {@link ServerConfiguration} for a {@link TieredBlockStore} with several tiers configured by
-   * the parameters. For simplicity, you can use {@link #setupDefaultConf(String)} which
-   * calls this method with default values.
+   * Sets up a {@link ServerConfiguration} for a {@link TieredBlockStore} with several tiers
+   * configured by the parameters. For simplicity, you can use {@link #setupDefaultConf(String)}
+   * which calls this method with default values.
    *
    * @param baseDir the directory path as prefix for all the paths of directories in the tiered
    *        storage; when specified, the directory needs to exist before calling this method
@@ -90,9 +90,9 @@ public final class TieredBlockStoreTestUtils {
   }
 
   /**
-   * Sets up a {@link ServerConfiguration} for a {@link TieredBlockStore} with only *one tier* configured
-   * by the parameters. For simplicity, you can use {@link #setupDefaultConf(String)} which
-   * sets up the tierBlockStore with default values.
+   * Sets up a {@link ServerConfiguration} for a {@link TieredBlockStore} with only *one tier*
+   * configured by the parameters. For simplicity, you can use {@link #setupDefaultConf(String)}
+   * which sets up the tierBlockStore with default values.
    *
    * This method modifies the configuration, so be sure to reset it when done.
    *

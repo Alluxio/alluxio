@@ -11,7 +11,6 @@
 
 package alluxio.worker;
 
-import alluxio.Server;
 import alluxio.conf.ServerConfiguration;
 import alluxio.conf.ConfigurationValueOptions;
 import alluxio.RestUtils;
@@ -154,7 +153,8 @@ public final class AlluxioWorkerRestServiceHandler {
   @ReturnType("java.lang.String")
   @Deprecated
   public Response getRpcAddress() {
-    return RestUtils.call(() -> mWorkerProcess.getRpcAddress().toString(), ServerConfiguration.global());
+    return RestUtils.call(() -> mWorkerProcess.getRpcAddress().toString(),
+        ServerConfiguration.global());
   }
 
   /**
@@ -186,8 +186,8 @@ public final class AlluxioWorkerRestServiceHandler {
   }
 
   /**
-   * @summary create the mapping from tier alias to the total capacity of the tier in bytes, the keys
-   *    are in the order from tier aliases with smaller ordinals to those with larger ones.
+   * @summary create the mapping from tier alias to the total capacity of the tier in bytes, the
+   *     keys are in the order from tier aliases with smaller ordinals to those with larger ones.
    * @return the response object
    * @deprecated since version 1.4 and will be removed in version 2.0
    * @see #getInfo(Boolean)

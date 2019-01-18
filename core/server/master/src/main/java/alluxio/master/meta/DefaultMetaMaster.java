@@ -164,7 +164,8 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
       ExecutorServiceFactory executorServiceFactory) {
     super(masterContext, new SystemClock(), executorServiceFactory);
     mMasterAddress =
-        new Address().setHost(ServerConfiguration.getOrDefault(PropertyKey.MASTER_HOSTNAME, "localhost"))
+        new Address().setHost(ServerConfiguration.getOrDefault(PropertyKey.MASTER_HOSTNAME,
+            "localhost"))
             .setRpcPort(mPort);
     mBlockMaster = blockMaster;
     mBlockMaster.registerLostWorkerFoundListener(mWorkerConfigStore::lostNodeFound);
@@ -247,10 +248,12 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
       if (haEnabled) {
         // Standby master should setup MetaMasterSync to communicate with the leader master
         RetryHandlingMetaMasterMasterClient metaMasterClient =
-            new RetryHandlingMetaMasterMasterClient(MasterClientConfig.defaults(ServerConfiguration.global()));
+            new RetryHandlingMetaMasterMasterClient(MasterClientConfig.defaults(
+                ServerConfiguration.global()));
         getExecutorService().submit(new HeartbeatThread(HeartbeatContext.META_MASTER_SYNC,
             new MetaMasterSync(mMasterAddress, metaMasterClient),
-            (int) ServerConfiguration.getMs(PropertyKey.MASTER_MASTER_HEARTBEAT_INTERVAL), ServerConfiguration.global()));
+            (int) ServerConfiguration.getMs(PropertyKey.MASTER_MASTER_HEARTBEAT_INTERVAL),
+            ServerConfiguration.global()));
         LOG.info("Standby master with address {} starts sending heartbeat to leader master.",
             mMasterAddress);
       }
@@ -280,7 +283,8 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
       LOG.info("Backing up to root UFS in directory {}", dir);
     }
     if (!ufs.isDirectory(dir)) {
-      if (!ufs.mkdirs(dir, MkdirsOptions.defaults(ServerConfiguration.global()).setCreateParent(true))) {
+      if (!ufs.mkdirs(dir, MkdirsOptions.defaults(ServerConfiguration.global())
+          .setCreateParent(true))) {
         throw new IOException(String.format("Failed to create directory %s", dir));
       }
     }
@@ -311,7 +315,8 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
     }
     AlluxioURI backupUri = new AlluxioURI(new AlluxioURI(rootUfs), new AlluxioURI(backupFilePath));
     return new BackupResponse(backupUri,
-        NetworkAddressUtils.getConnectHost(NetworkAddressUtils.ServiceType.MASTER_RPC, ServerConfiguration.global()));
+        NetworkAddressUtils.getConnectHost(NetworkAddressUtils.ServiceType.MASTER_RPC,
+            ServerConfiguration.global()));
   }
 
   @Override
@@ -325,8 +330,9 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
     for (PropertyKey key : ServerConfiguration.keySet()) {
       if (key.isBuiltIn()) {
         String source = ServerConfiguration.getSource(key).toString();
-        String value = ServerConfiguration.getOrDefault(key, null, ConfigurationValueOptions.defaults()
-            .useDisplayValue(true).useRawValue(options.getRawValue()));
+        String value = ServerConfiguration.getOrDefault(key, null,
+            ConfigurationValueOptions.defaults().useDisplayValue(true)
+                .useRawValue(options.getRawValue()));
         ConfigProperty.Builder config =
             ConfigProperty.newBuilder().setName(key.getName()).setSource(source);
         if (value != null) {

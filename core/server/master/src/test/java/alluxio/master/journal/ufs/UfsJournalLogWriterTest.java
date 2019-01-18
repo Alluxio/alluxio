@@ -14,7 +14,6 @@ package alluxio.master.journal.ufs;
 import static org.hamcrest.CoreMatchers.containsString;
 
 import alluxio.conf.ServerConfiguration;
-import alluxio.ConfigurationTestUtils;
 import alluxio.conf.PropertyKey;
 import alluxio.RuntimeConstants;
 import alluxio.exception.ExceptionMessage;

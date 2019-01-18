@@ -492,7 +492,8 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
       InodeDirectoryView root = mInodeTree.getRoot();
       if (root == null) {
         try (JournalContext context = createJournalContext()) {
-          mInodeTree.initializeRoot(SecurityUtils.getOwnerFromLoginModule(ServerConfiguration.global()),
+          mInodeTree.initializeRoot(
+              SecurityUtils.getOwnerFromLoginModule(ServerConfiguration.global()),
               SecurityUtils.getGroupFromLoginModule(ServerConfiguration.global()),
               ModeUtils.applyDirectoryUMask(Mode.createFullAccess(),
                   ServerConfiguration.get(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK)),
@@ -503,8 +504,8 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
         // Empty root owner indicates that previously the master had no security. In this case, the
         // master is allowed to be started with security turned on.
         String serverOwner = SecurityUtils.getOwnerFromLoginModule(ServerConfiguration.global());
-        if (SecurityUtils.isSecurityEnabled(ServerConfiguration.global()) && !root.getOwner().isEmpty()
-            && !root.getOwner().equals(serverOwner)) {
+        if (SecurityUtils.isSecurityEnabled(ServerConfiguration.global())
+            && !root.getOwner().isEmpty() && !root.getOwner().equals(serverOwner)) {
           // user is not the previous owner
           throw new PermissionDeniedException(ExceptionMessage.PERMISSION_DENIED.getMessage(String
               .format("Unauthorized user on root. inode owner: %s current user: %s",
@@ -551,7 +552,8 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
                     ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_INITIAL_INTERVAL_MS),
                     ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_MAX_INTERVAL_MS),
                     ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_INITIAL_WAIT_TIME_MS),
-                    ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_MAX_TOTAL_WAIT_TIME_MS)));
+                    ServerConfiguration.getMs(
+                        PropertyKey.MASTER_PERSISTENCE_MAX_TOTAL_WAIT_TIME_MS)));
               }
             }
           }
@@ -559,12 +561,13 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
       } catch (InvalidPathException | FileDoesNotExistException e) {
         throw new IllegalStateException(e);
       }
-      if (ServerConfiguration.getBoolean(PropertyKey.MASTER_STARTUP_BLOCK_INTEGRITY_CHECK_ENABLED)) {
+      if (ServerConfiguration
+          .getBoolean(PropertyKey.MASTER_STARTUP_BLOCK_INTEGRITY_CHECK_ENABLED)) {
         validateInodeBlocks(true);
       }
 
-      int blockIntegrityCheckInterval =
-          (int) ServerConfiguration.getMs(PropertyKey.MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_INTERVAL);
+      int blockIntegrityCheckInterval = (int) ServerConfiguration
+          .getMs(PropertyKey.MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_INTERVAL);
 
       if (blockIntegrityCheckInterval > 0) { // negative or zero interval implies disabled
         getExecutorService().submit(
@@ -602,8 +605,8 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
       getExecutorService().submit(
           new HeartbeatThread(HeartbeatContext.MASTER_PERSISTENCE_CHECKER,
               new PersistenceChecker(),
-              (int) ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_CHECKER_INTERVAL_MS)
-              , ServerConfiguration.global()));
+              (int) ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_CHECKER_INTERVAL_MS),
+              ServerConfiguration.global()));
       if (ServerConfiguration.getBoolean(PropertyKey.MASTER_STARTUP_CONSISTENCY_CHECK_ENABLED)) {
         mStartupConsistencyCheck = getExecutorService().submit(() -> startupCheckConsistency(
             ExecutorServiceFactories

@@ -42,15 +42,15 @@ public final class WorkerUfsManager extends AbstractUfsManager {
    * Constructs an instance of {@link WorkerUfsManager}.
    */
   public WorkerUfsManager() {
-    mMasterClient =
-        mCloser.register(new FileSystemMasterClient(MasterClientConfig.defaults(ServerConfiguration.global())));
+    mMasterClient = mCloser.register(new FileSystemMasterClient(MasterClientConfig.defaults(
+        ServerConfiguration.global())));
   }
 
   /**
    * {@inheritDoc}.
    *
-   * If this mount id is new to this worker, this method will query master to create the corresponding
-   * ufs info.
+   * If this mount id is new to this worker, this method will query master to create the
+   * corresponding ufs info.
    */
   @Override
   public UfsClient get(long mountId) throws NotFoundException, UnavailableException {

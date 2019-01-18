@@ -12,13 +12,8 @@
 package alluxio.conf;
 
 import alluxio.exception.status.AlluxioStatusException;
-import alluxio.exception.status.UnavailableException;
-import alluxio.grpc.ConfigProperty;
-import alluxio.grpc.GetConfigurationPOptions;
-import alluxio.grpc.GrpcExceptionUtils;
-import alluxio.grpc.MetaMasterConfigurationServiceGrpc;
-import alluxio.grpc.Scope;
 import alluxio.util.ConfigurationUtils;
+
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -61,19 +56,18 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class ServerConfiguration {
   private static final Logger LOG = LoggerFactory.getLogger(ServerConfiguration.class);
 
-  private static InstancedConfiguration CONF;
+  private static InstancedConfiguration sConf;
 
   static {
     reset();
   }
 
-
   /**
    * Resets the {@link AlluxioConfiguration} back the defaults and values from
    * alluxio-site properties.
    */
-  public static void reset(){
-    CONF = new InstancedConfiguration(ConfigurationUtils.defaults());
+  public static void reset() {
+    sConf = new InstancedConfiguration(ConfigurationUtils.defaults());
   }
 
   /**
@@ -82,11 +76,14 @@ public final class ServerConfiguration {
    * @return a copy of properties
    */
   public static AlluxioProperties copyProperties() {
-    return new AlluxioProperties(CONF.getProperties());
+    return new AlluxioProperties(sConf.getProperties());
   }
 
+  /**
+   * @return the {@link AlluxioProperties} backing the configuration
+   */
   public static AlluxioProperties getProperties() {
-    return CONF.getProperties();
+    return sConf.getProperties();
   }
 
   /**
@@ -98,7 +95,7 @@ public final class ServerConfiguration {
    * @param source the source of the the properties (e.g., system property, default and etc)
    */
   public static void merge(Map<?, ?> properties, Source source) {
-    CONF.merge(properties, source);
+    sConf.merge(properties, source);
   }
 
   // Public accessor methods
@@ -120,7 +117,7 @@ public final class ServerConfiguration {
    * @param source the source of the the properties (e.g., system property, default and etc)
    */
   public static void set(PropertyKey key, Object value, Source source) {
-    CONF.set(key, value, source);
+    sConf.set(key, value, source);
   }
 
   /**
@@ -130,7 +127,7 @@ public final class ServerConfiguration {
    */
   public static void unset(@Nonnull PropertyKey key) {
     Preconditions.checkNotNull(key, "key");
-    CONF.unset(key);
+    sConf.unset(key);
   }
 
   /**
@@ -141,7 +138,7 @@ public final class ServerConfiguration {
    * @return the value for the given key
    */
   public static String get(PropertyKey key) {
-    return CONF.get(key);
+    return sConf.get(key);
   }
 
   /**
@@ -153,7 +150,7 @@ public final class ServerConfiguration {
    * @return the value for the given key
    */
   public static String get(PropertyKey key, ConfigurationValueOptions options) {
-    return CONF.get(key, options);
+    return sConf.get(key, options);
   }
 
   /**
@@ -162,7 +159,7 @@ public final class ServerConfiguration {
    * @return the value
    */
   public static String getOrDefault(PropertyKey key, String defaultValue) {
-    return CONF.getOrDefault(key, defaultValue);
+    return sConf.getOrDefault(key, defaultValue);
   }
 
   /**
@@ -173,7 +170,7 @@ public final class ServerConfiguration {
    */
   public static String getOrDefault(PropertyKey key, String defaultValue,
       ConfigurationValueOptions options) {
-    return CONF.getOrDefault(key, defaultValue, options);
+    return sConf.getOrDefault(key, defaultValue, options);
   }
 
   /**
@@ -183,14 +180,14 @@ public final class ServerConfiguration {
    * @return true if there is value for the key, false otherwise
    */
   public static boolean isSet(PropertyKey key) {
-    return CONF.isSet(key);
+    return sConf.isSet(key);
   }
 
   /**
    * @return the keys configured by the configuration
    */
   public static Set<PropertyKey> keySet() {
-    return CONF.keySet();
+    return sConf.keySet();
   }
 
   /**
@@ -200,7 +197,7 @@ public final class ServerConfiguration {
    * @return the value for the given key as an {@code int}
    */
   public static int getInt(PropertyKey key) {
-    return CONF.getInt(key);
+    return sConf.getInt(key);
   }
 
   /**
@@ -210,7 +207,7 @@ public final class ServerConfiguration {
    * @return the value for the given key as a {@code long}
    */
   public static long getLong(PropertyKey key) {
-    return CONF.getLong(key);
+    return sConf.getLong(key);
   }
 
   /**
@@ -220,7 +217,7 @@ public final class ServerConfiguration {
    * @return the value for the given key as a {@code double}
    */
   public static double getDouble(PropertyKey key) {
-    return CONF.getDouble(key);
+    return sConf.getDouble(key);
   }
 
   /**
@@ -230,7 +227,7 @@ public final class ServerConfiguration {
    * @return the value for the given key as a {@code float}
    */
   public static float getFloat(PropertyKey key) {
-    return CONF.getFloat(key);
+    return sConf.getFloat(key);
   }
 
   /**
@@ -240,7 +237,7 @@ public final class ServerConfiguration {
    * @return the value for the given key as a {@code boolean}
    */
   public static boolean getBoolean(PropertyKey key) {
-    return CONF.getBoolean(key);
+    return sConf.getBoolean(key);
   }
 
   /**
@@ -251,7 +248,7 @@ public final class ServerConfiguration {
    * @return the list of values for the given key
    */
   public static List<String> getList(PropertyKey key, String delimiter) {
-    return CONF.getList(key, delimiter);
+    return sConf.getList(key, delimiter);
   }
 
   /**
@@ -263,7 +260,7 @@ public final class ServerConfiguration {
    * @return the value for the given key as an enum value
    */
   public static <T extends Enum<T>> T getEnum(PropertyKey key, Class<T> enumType) {
-    return CONF.getEnum(key, enumType);
+    return sConf.getEnum(key, enumType);
   }
 
   /**
@@ -273,7 +270,7 @@ public final class ServerConfiguration {
    * @return the bytes of the value for the given key
    */
   public static long getBytes(PropertyKey key) {
-    return CONF.getBytes(key);
+    return sConf.getBytes(key);
   }
 
   /**
@@ -283,7 +280,7 @@ public final class ServerConfiguration {
    * @return the time of key in millisecond unit
    */
   public static long getMs(PropertyKey key) {
-    return CONF.getMs(key);
+    return sConf.getMs(key);
   }
 
   /**
@@ -293,7 +290,7 @@ public final class ServerConfiguration {
    * @return the value of the key represented as a duration
    */
   public static Duration getDuration(PropertyKey key) {
-    return CONF.getDuration(key);
+    return sConf.getDuration(key);
   }
 
   /**
@@ -304,7 +301,7 @@ public final class ServerConfiguration {
    * @return the value for the given key as a class
    */
   public static <T> Class<T> getClass(PropertyKey key) {
-    return CONF.getClass(key);
+    return sConf.getClass(key);
   }
 
   /**
@@ -316,7 +313,7 @@ public final class ServerConfiguration {
    * @return a map from nested properties aggregated by the prefix
    */
   public static Map<String, String> getNestedProperties(PropertyKey prefixKey) {
-    return CONF.getNestedProperties(prefixKey);
+    return sConf.getNestedProperties(prefixKey);
   }
 
   /**
@@ -324,7 +321,7 @@ public final class ServerConfiguration {
    * @return the source for the given key
    */
   public static Source getSource(PropertyKey key) {
-    return CONF.getSource(key);
+    return sConf.getSource(key);
   }
 
   /**
@@ -332,7 +329,7 @@ public final class ServerConfiguration {
    *         null
    */
   public static Map<String, String> toMap() {
-    return CONF.toMap();
+    return sConf.toMap();
   }
 
   /**
@@ -341,14 +338,14 @@ public final class ServerConfiguration {
    *         null
    */
   public static Map<String, String> toMap(ConfigurationValueOptions opts) {
-    return CONF.toMap(opts);
+    return sConf.toMap(opts);
   }
 
   /**
    * @return the {@link InstancedConfiguration} object backing the global configuration
    */
   public static InstancedConfiguration global() {
-    return CONF;
+    return sConf;
   }
 
   /**
@@ -358,7 +355,7 @@ public final class ServerConfiguration {
    */
   public static void loadClusterDefaults(InetSocketAddress address) throws AlluxioStatusException {
     AlluxioConfiguration conf = ConfigurationUtils.loadClusterDefaults(address, global());
-    CONF = new InstancedConfiguration(conf.getProperties());
+    sConf = new InstancedConfiguration(conf.getProperties());
   }
 
   private ServerConfiguration() {} // prevent instantiation

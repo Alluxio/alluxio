@@ -12,7 +12,6 @@
 package alluxio.worker.file;
 
 import alluxio.AlluxioURI;
-import alluxio.Server;
 import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.Sessions;
@@ -267,7 +266,8 @@ public final class FileDataManager {
         mUfsManager.get(fileInfo.getMountId()).acquireUfsResource()) {
       UnderFileSystem ufs = ufsResource.get();
       String dstPath = prepareUfsFilePath(fileInfo, ufs);
-      OutputStream outputStream = ufs.create(dstPath, CreateOptions.defaults(ServerConfiguration.global())
+      OutputStream outputStream = ufs.create(dstPath,
+          CreateOptions.defaults(ServerConfiguration.global())
           .setOwner(fileInfo.getOwner()).setGroup(fileInfo.getGroup())
           .setMode(new Mode((short) fileInfo.getMode())));
       final WritableByteChannel outputChannel = Channels.newChannel(outputStream);

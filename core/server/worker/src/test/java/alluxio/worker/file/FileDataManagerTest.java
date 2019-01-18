@@ -24,7 +24,6 @@ import static org.mockito.Mockito.when;
 
 import alluxio.AlluxioURI;
 import alluxio.conf.ServerConfiguration;
-import alluxio.ConfigurationTestUtils;
 import alluxio.conf.PropertyKey;
 import alluxio.Sessions;
 import alluxio.client.file.FileSystem;
@@ -76,7 +75,8 @@ public final class FileDataManagerTest {
     mUfsManager = mock(UfsManager.class);
     mBlockWorker = mock(BlockWorker.class);
     mMockRateLimiter =
-        new MockRateLimiter(ServerConfiguration.getBytes(PropertyKey.WORKER_FILE_PERSIST_RATE_LIMIT));
+        new MockRateLimiter(ServerConfiguration
+            .getBytes(PropertyKey.WORKER_FILE_PERSIST_RATE_LIMIT));
     mCopyCounter = new AtomicInteger(0);
     mManager = new FileDataManager(mBlockWorker, mMockRateLimiter.getGuavaRateLimiter(),
         mUfsManager, () -> mMockFileSystem, (r, w) -> mCopyCounter.incrementAndGet());
@@ -133,7 +133,8 @@ public final class FileDataManagerTest {
     ServerConfiguration.set(PropertyKey.WORKER_FILE_PERSIST_RATE_LIMIT_ENABLED, "true");
     ServerConfiguration.set(PropertyKey.WORKER_FILE_PERSIST_RATE_LIMIT, "100");
     mMockRateLimiter =
-        new MockRateLimiter(ServerConfiguration.getBytes(PropertyKey.WORKER_FILE_PERSIST_RATE_LIMIT));
+        new MockRateLimiter(ServerConfiguration
+            .getBytes(PropertyKey.WORKER_FILE_PERSIST_RATE_LIMIT));
     mManager = new FileDataManager(mBlockWorker, mMockRateLimiter.getGuavaRateLimiter(),
         mUfsManager, () -> mMockFileSystem, (r, w) -> mCopyCounter.incrementAndGet());
 

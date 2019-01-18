@@ -38,9 +38,8 @@ public interface JournalFormatter {
      * @return the created formatter
      */
     public static JournalFormatter create() {
-      return CommonUtils.createNewClassInstance(
-          ServerConfiguration.<JournalFormatter>getClass(PropertyKey.MASTER_JOURNAL_FORMATTER_CLASS),
-          null, null);
+      return CommonUtils.createNewClassInstance(ServerConfiguration
+              .<JournalFormatter>getClass(PropertyKey.MASTER_JOURNAL_FORMATTER_CLASS), null, null);
     }
   }
 

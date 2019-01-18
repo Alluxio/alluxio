@@ -212,14 +212,16 @@ public final class UIFileInfo {
     if (mCreationTimeMs == LocalFileInfo.EMPTY_CREATION_TIME) {
       return "";
     }
-    return CommonUtils.convertMsToDate(mCreationTimeMs, ServerConfiguration.get(PropertyKey.USER_DATE_FORMAT_PATTERN));
+    return CommonUtils.convertMsToDate(mCreationTimeMs,
+        ServerConfiguration.get(PropertyKey.USER_DATE_FORMAT_PATTERN));
   }
 
   /**
    * @return the modification time (in milliseconds)
    */
   public String getModificationTime() {
-    return CommonUtils.convertMsToDate(mLastModificationTimeMs, ServerConfiguration.get(PropertyKey.USER_DATE_FORMAT_PATTERN));
+    return CommonUtils.convertMsToDate(mLastModificationTimeMs,
+        ServerConfiguration.get(PropertyKey.USER_DATE_FORMAT_PATTERN));
   }
 
   /**

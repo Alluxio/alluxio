@@ -11,7 +11,6 @@
 
 package alluxio.worker.block.evictor;
 
-import alluxio.ConfigurationTestUtils;
 import alluxio.conf.ServerConfiguration;
 import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.TieredBlockStoreTestUtils;

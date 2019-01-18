@@ -199,9 +199,10 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
     try {
       RetryUtils.retry("create worker id", () -> mWorkerId.set(mBlockMasterClient.getId(address)),
           RetryUtils.defaultWorkerMasterClientRetry(ServerConfiguration
-                                                        .getDuration(PropertyKey.WORKER_MASTER_CONNECT_RETRY_TIMEOUT)));
+              .getDuration(PropertyKey.WORKER_MASTER_CONNECT_RETRY_TIMEOUT)));
     } catch (Exception e) {
-      throw new RuntimeException("Failed to create a worker id from block master: " + e.getMessage());
+      throw new RuntimeException("Failed to create a worker id from block master: "
+          + e.getMessage());
     }
 
     Preconditions.checkNotNull(mWorkerId, "mWorkerId");
@@ -221,7 +222,8 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
       mSpaceReserver = new SpaceReserver(this);
       getExecutorService().submit(
           new HeartbeatThread(HeartbeatContext.WORKER_SPACE_RESERVER, mSpaceReserver,
-              (int) ServerConfiguration.getMs(PropertyKey.WORKER_TIERED_STORE_RESERVER_INTERVAL_MS), ServerConfiguration.global()));
+              (int) ServerConfiguration.getMs(PropertyKey.WORKER_TIERED_STORE_RESERVER_INTERVAL_MS),
+              ServerConfiguration.global()));
     }
 
     getExecutorService()

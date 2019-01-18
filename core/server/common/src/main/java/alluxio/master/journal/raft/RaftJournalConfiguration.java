@@ -60,8 +60,8 @@ public class RaftJournalConfiguration {
             ServerConfiguration.global()))
         .setMaxLogSize(ServerConfiguration.getBytes(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX))
         .setPath(new File(JournalUtils.getJournalLocation().getPath()))
-        .setStorageLevel(ServerConfiguration.getEnum(PropertyKey.MASTER_EMBEDDED_JOURNAL_STORAGE_LEVEL,
-            StorageLevel.class));
+        .setStorageLevel(ServerConfiguration
+            .getEnum(PropertyKey.MASTER_EMBEDDED_JOURNAL_STORAGE_LEVEL, StorageLevel.class));
   }
 
   /**
