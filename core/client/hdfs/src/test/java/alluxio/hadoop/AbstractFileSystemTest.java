@@ -24,7 +24,12 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import alluxio.*;
+import alluxio.AlluxioURI;
+import alluxio.ClientContext;
+import alluxio.ConfigurationRule;
+import alluxio.ConfigurationTestUtils;
+import alluxio.Constants;
+import alluxio.SystemPropertyRule;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.AlluxioProperties;
 import alluxio.conf.InstancedConfiguration;
@@ -67,7 +72,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -207,7 +211,6 @@ public class AbstractFileSystemTest {
     uri = URI.create("alluxio://host1:19998;host2:19998;host3:19998/path");
     fs = org.apache.hadoop.fs.FileSystem.get(uri, getConf());
     assertTrue(fs instanceof FileSystem);
-
   }
 
   @Test
@@ -222,9 +225,9 @@ public class AbstractFileSystemTest {
       verify(mMockFileSystemContextCustomized, times(1)).reset();
 
       // The filesystem context should return a master inquire client based on the latest config
-      // 
+
       // THIS CAN'T WORK ANY MORE
-      // FilesystemContexts won't have the same reference. We should still find a way to test the 
+      // FilesystemContexts won't have the same reference. We should still find a way to test the
       // right values
 //      when(mMockFileSystemContext.getMasterInquireClient())
 //          .thenReturn(MasterInquireClient.Factory.create(mConfiguration));
@@ -344,11 +347,9 @@ public class AbstractFileSystemTest {
     org.apache.hadoop.fs.FileSystem.get(uri, getConf());
     verify(mMockFileSystemContextCustomized).reset();
 
-
     assertFalse(mClientContext.getConf().getBoolean(PropertyKey.ZOOKEEPER_ENABLED));
     assertEquals("host1:19998,host2:19998,host3:19998",
         mClientContext.getConf().get(PropertyKey.MASTER_RPC_ADDRESSES));
-
   }
 
   @Test
@@ -655,7 +656,8 @@ public class AbstractFileSystemTest {
     List<WorkerNetAddress> expectedWorkers = Arrays.asList(worker1, worker2);
 
     try (Closeable conf =
-        new ConfigurationRule(PropertyKey.USER_UFS_BLOCK_LOCATION_ALL_FALLBACK_ENABLED, "true", mConfiguration)
+        new ConfigurationRule(PropertyKey.USER_UFS_BLOCK_LOCATION_ALL_FALLBACK_ENABLED, "true",
+            mConfiguration)
             .toResource()) {
       verifyBlockLocations(blockWorkers, ufsLocations, allWorkers, expectedWorkers);
     }
@@ -685,7 +687,8 @@ public class AbstractFileSystemTest {
     List<WorkerNetAddress> expectedWorkers = Arrays.asList(worker1, worker2);
 
     try (Closeable conf =
-        new ConfigurationRule(PropertyKey.USER_UFS_BLOCK_LOCATION_ALL_FALLBACK_ENABLED, "true", mConfiguration)
+        new ConfigurationRule(PropertyKey.USER_UFS_BLOCK_LOCATION_ALL_FALLBACK_ENABLED, "true",
+            mConfiguration)
             .toResource()) {
       verifyBlockLocations(blockWorkers, ufsLocations, allWorkers, expectedWorkers);
     }
@@ -711,7 +714,8 @@ public class AbstractFileSystemTest {
         .thenReturn(new URIStatus(fileInfo));
     AlluxioBlockStore blockStore = mock(AlluxioBlockStore.class);
     PowerMockito.mockStatic(AlluxioBlockStore.class);
-    PowerMockito.when(AlluxioBlockStore.create(any(FileSystemContext.class))).thenReturn(blockStore);
+    PowerMockito.when(AlluxioBlockStore.create(any(FileSystemContext.class)))
+        .thenReturn(blockStore);
     List<BlockWorkerInfo> eligibleWorkerInfos = allWorkers.stream().map(worker ->
         new BlockWorkerInfo(worker, 0, 0)).collect(toList());
     PowerMockito.when(blockStore.getEligibleWorkers()).thenReturn(eligibleWorkerInfos);
@@ -753,7 +757,8 @@ public class AbstractFileSystemTest {
     when(mMockMasterInquireClient.getConnectDetails()).thenReturn(
         new SingleMasterConnectDetails(new InetSocketAddress("defaultHost", 1)));
     PowerMockito.mockStatic(FileSystemContext.class);
-    PowerMockito.when(FileSystemContext.create(any(AlluxioConfiguration.class))).thenReturn(mMockFileSystemContextCustomized);
+    PowerMockito.when(FileSystemContext.create(any(AlluxioConfiguration.class)))
+        .thenReturn(mMockFileSystemContextCustomized);
     PowerMockito.when(FileSystemContext.create(any(Subject.class), any(AlluxioConfiguration.class)))
         .thenReturn(mMockFileSystemContextCustomized);
     PowerMockito.when(FileSystemContext.create(any(Subject.class), any(AlluxioProperties.class)))
@@ -763,8 +768,10 @@ public class AbstractFileSystemTest {
         .thenReturn(mMockFileSystemMasterClient);
     when(mMockFileSystemContextCustomized.acquireMasterClient())
         .thenReturn(mMockFileSystemMasterClient);
-    PowerMockito.when(mMockFileSystemContext.getMasterInquireClient()).thenReturn(mMockMasterInquireClient);
-    PowerMockito.when(mMockFileSystemContextCustomized.getMasterInquireClient()).thenReturn(mMockMasterInquireClient);
+    PowerMockito.when(mMockFileSystemContext.getMasterInquireClient())
+        .thenReturn(mMockMasterInquireClient);
+    PowerMockito.when(mMockFileSystemContextCustomized.getMasterInquireClient())
+        .thenReturn(mMockMasterInquireClient);
     doNothing().when(mMockFileSystemMasterClient).connect();
     when(mMockFileSystemContext.getMasterAddress())
         .thenReturn(new InetSocketAddress("defaultHost", 1));
@@ -775,7 +782,8 @@ public class AbstractFileSystemTest {
   }
 
   private void mockUserGroupInformation(String username) throws IOException {
-    // need to mock out since FileSystem.create calls UGI, which some times has issues on some systems
+    // need to mock out since FileSystem.create calls UGI, which occasionally has issues on some
+    // systems
     PowerMockito.mockStatic(UserGroupInformation.class);
     final UserGroupInformation ugi = mock(UserGroupInformation.class);
     when(UserGroupInformation.getCurrentUser()).thenReturn(ugi);

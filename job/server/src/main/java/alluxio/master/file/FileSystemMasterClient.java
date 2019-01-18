@@ -13,7 +13,7 @@ package alluxio.master.file;
 
 import alluxio.AbstractMasterClient;
 import alluxio.Constants;
-import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.FileSystemMasterWorkerServiceGrpc;
 import alluxio.grpc.GetFileInfoPRequest;
 import alluxio.grpc.GetUfsInfoPRequest;
@@ -41,8 +41,8 @@ public final class FileSystemMasterClient extends AbstractMasterClient {
    *
    * @param conf master client configuration
    */
-  public FileSystemMasterClient(MasterClientConfig conf, AlluxioConfiguration alluxioConf) {
-    super(conf, alluxioConf);
+  public FileSystemMasterClient(MasterClientConfig conf) {
+    super(conf, ServerConfiguration.global());
   }
 
   @Override

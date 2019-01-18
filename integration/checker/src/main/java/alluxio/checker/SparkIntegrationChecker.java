@@ -12,16 +12,16 @@
 package alluxio.checker;
 
 import alluxio.checker.CheckerUtils.Status;
-
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.util.ConfigurationUtils;
+
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
+import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
-import org.apache.spark.SparkConf;
 import scala.Serializable;
 import scala.Tuple2;
 

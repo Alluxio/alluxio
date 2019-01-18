@@ -14,8 +14,8 @@ package alluxio.hadoop;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.Source;
-
 import alluxio.util.ConfigurationUtils;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,6 +38,7 @@ public final class HadoopConfigurationUtils {
    *
    * @param source the {@link org.apache.hadoop.conf.Configuration} to merge
    * @param alluxioConfiguration the Alluxio configuration to merge to
+   * @return an alluxio configuration with the hadoop configuration merged
    */
   public static AlluxioConfiguration mergeHadoopConfiguration(
       org.apache.hadoop.conf.Configuration source,
@@ -61,6 +62,14 @@ public final class HadoopConfigurationUtils {
     return conf;
   }
 
+  /**
+   * Merges an {@link AlluxioConfiguration} into an hadoop
+   * {@link org.apache.hadoop.conf.Configuration}.
+   *
+   * @param source The source hadoop configuration
+   * @param alluxioConf the alluxio configuration to merge
+   * @return a hadoop configuration object with the properties from the {@link AlluxioConfiguration}
+   */
   public static org.apache.hadoop.conf.Configuration mergeAlluxioConfiguration(
       org.apache.hadoop.conf.Configuration source, AlluxioConfiguration alluxioConf) {
     org.apache.hadoop.conf.Configuration mergedConf = new org.apache.hadoop.conf.Configuration();

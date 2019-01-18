@@ -13,7 +13,6 @@ package alluxio.job.load;
 
 import alluxio.AlluxioURI;
 import alluxio.ClientContext;
-import alluxio.ConfigurationTestUtils;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.file.FileSystem;
@@ -80,9 +79,11 @@ public class LoadDefinitionTest {
     mMockBlockStore = PowerMockito.mock(AlluxioBlockStore.class);
     mMockFsContext = PowerMockito.mock(FileSystemContext.class);
     PowerMockito.mockStatic(AlluxioBlockStore.class);
-    PowerMockito.when(AlluxioBlockStore.create(ServerConfiguration.global())).thenReturn(mMockBlockStore);
+    PowerMockito.when(AlluxioBlockStore.create(ServerConfiguration.global()))
+        .thenReturn(mMockBlockStore);
     Mockito.when(mMockBlockStore.getAllWorkers()).thenReturn(BLOCK_WORKERS);
-    PowerMockito.when(mMockFsContext.getClientContext()).thenReturn(ClientContext.create(ServerConfiguration.getProperties()));
+    PowerMockito.when(mMockFsContext.getClientContext())
+        .thenReturn(ClientContext.create(ServerConfiguration.getProperties()));
   }
 
   @Test

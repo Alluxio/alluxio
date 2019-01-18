@@ -11,7 +11,6 @@
 
 package alluxio.worker;
 
-import alluxio.Server;
 import alluxio.conf.ServerConfiguration;
 import alluxio.Constants;
 import alluxio.ProcessUtils;
@@ -77,7 +76,8 @@ public final class AlluxioJobWorker {
         InetSocketAddress masterAddress = masterInquireClient.getPrimaryRpcAddress();
         ServerConfiguration.loadClusterDefaults(masterAddress);
       },
-          RetryUtils.defaultWorkerMasterClientRetry(ServerConfiguration.getDuration(PropertyKey.WORKER_MASTER_CONNECT_RETRY_TIMEOUT)));
+          RetryUtils.defaultWorkerMasterClientRetry(
+              ServerConfiguration.getDuration(PropertyKey.WORKER_MASTER_CONNECT_RETRY_TIMEOUT)));
     } catch (IOException e) {
       ProcessUtils.fatalError(LOG,
           "Failed to load cluster default configuration for job worker: %s", e.getMessage());

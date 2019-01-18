@@ -11,7 +11,6 @@
 
 package alluxio.job.replicate;
 
-import alluxio.ClientContext;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.file.BaseFileSystem;
 import alluxio.client.file.FileSystem;
@@ -63,8 +62,8 @@ public final class ReplicateDefinition
   /**
    * Constructs a new {@link ReplicateDefinition} instance.
    *
-   * @param fileSystem file system
-   * @param fsContext file system context
+   * @param fsContext the {@link FileSystemContext} used by the {@link FileSystem}
+   * @param fileSystem the {@link FileSystem} client
    */
   public ReplicateDefinition(FileSystemContext fsContext, FileSystem fileSystem) {
     mFsContext = fsContext;

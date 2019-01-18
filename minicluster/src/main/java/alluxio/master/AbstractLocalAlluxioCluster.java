@@ -165,7 +165,7 @@ public abstract class AbstractLocalAlluxioCluster {
     // Deletes the ufs dir for this test from to avoid permission problems
     UnderFileSystemUtils.deleteDirIfExists(ufs, underfsAddress);
 
-    // Creates ufs dir. This must be called before starting UFS with UnderFileSystemCluster.create().
+    // Creates ufs dir. This must be called before starting UFS with UnderFileSystemCluster.create()
     UnderFileSystemUtils.mkdirIfNotExists(ufs, underfsAddress);
 
     // Creates storage dirs for worker
@@ -261,7 +261,8 @@ public abstract class AbstractLocalAlluxioCluster {
     setHostname();
 
     for (Entry<PropertyKey, String> entry : ConfigurationTestUtils
-        .testConfigurationDefaults(ServerConfiguration.global(), mHostname, mWorkDirectory).entrySet()) {
+        .testConfigurationDefaults(ServerConfiguration.global(), mHostname, mWorkDirectory)
+        .entrySet()) {
       ServerConfiguration.set(entry.getKey(), entry.getValue());
     }
 

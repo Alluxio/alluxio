@@ -11,7 +11,6 @@
 
 package alluxio.master;
 
-import alluxio.Server;
 import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.RuntimeConstants;
@@ -92,7 +91,7 @@ public class AlluxioJobMasterProcess implements JobMasterProcess {
     if (!ServerConfiguration.isSet(PropertyKey.MASTER_HOSTNAME)) {
       ServerConfiguration.set(PropertyKey.MASTER_HOSTNAME,
           NetworkAddressUtils.getLocalHostName(
-              (int)ServerConfiguration.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS)));
+              (int) ServerConfiguration.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS)));
     }
     mUfsManager = new JobUfsManager();
     mJournalSystem = Preconditions.checkNotNull(journalSystem, "journalSystem");
@@ -116,7 +115,8 @@ public class AlluxioJobMasterProcess implements JobMasterProcess {
             "Master web port is only allowed to be zero in test mode.");
       }
       InetSocketAddress configuredAddress =
-          NetworkAddressUtils.getBindAddress(ServiceType.JOB_MASTER_RPC, ServerConfiguration.global());
+          NetworkAddressUtils.getBindAddress(ServiceType.JOB_MASTER_RPC,
+              ServerConfiguration.global());
       if (configuredAddress.getPort() == 0) {
         mBindSocket = new ServerSocket(0);
         mPort = mBindSocket.getLocalPort();
@@ -243,10 +243,14 @@ public class AlluxioJobMasterProcess implements JobMasterProcess {
             + "bindHost={}, connectHost={}, rpcPort={}, webPort={}",
         RuntimeConstants.VERSION,
         startMessage,
-        NetworkAddressUtils.getBindAddress(ServiceType.JOB_MASTER_RPC, ServerConfiguration.global()),
-        NetworkAddressUtils.getConnectAddress(ServiceType.JOB_MASTER_RPC, ServerConfiguration.global()),
-        NetworkAddressUtils.getPort(ServiceType.JOB_MASTER_RPC, ServerConfiguration.global()),
-        NetworkAddressUtils.getPort(ServiceType.JOB_MASTER_WEB, ServerConfiguration.global()));
+        NetworkAddressUtils.getBindAddress(ServiceType.JOB_MASTER_RPC,
+            ServerConfiguration.global()),
+        NetworkAddressUtils.getConnectAddress(ServiceType.JOB_MASTER_RPC,
+            ServerConfiguration.global()),
+        NetworkAddressUtils.getPort(ServiceType.JOB_MASTER_RPC,
+            ServerConfiguration.global()),
+        NetworkAddressUtils.getPort(ServiceType.JOB_MASTER_WEB,
+            ServerConfiguration.global()));
 
     startServingRPCServer();
     LOG.info("Alluxio job master ended");
@@ -254,10 +258,12 @@ public class AlluxioJobMasterProcess implements JobMasterProcess {
 
   protected void startServingWebServer() {
     mWebServer = new JobMasterWebServer(ServiceType.JOB_MASTER_WEB.getServiceName(),
-        NetworkAddressUtils.getBindAddress(ServiceType.JOB_MASTER_WEB, ServerConfiguration.global()),
+        NetworkAddressUtils.getBindAddress(ServiceType.JOB_MASTER_WEB,
+            ServerConfiguration.global()),
         this);
     // reset master web port
-    ServerConfiguration.set(PropertyKey.JOB_MASTER_WEB_PORT, Integer.toString(mWebServer.getLocalPort()));
+    ServerConfiguration.set(PropertyKey.JOB_MASTER_WEB_PORT,
+        Integer.toString(mWebServer.getLocalPort()));
     mWebServer.addHandler(mMetricsServlet.getHandler());
     mWebServer.start();
   }

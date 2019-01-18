@@ -12,7 +12,6 @@
 package alluxio.job.load;
 
 import alluxio.AlluxioURI;
-import alluxio.ClientContext;
 import alluxio.Constants;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.BlockWorkerInfo;
@@ -69,7 +68,8 @@ public final class LoadDefinition
   /**
    * Constructs a new {@link LoadDefinition} with FileSystem context and instance.
    *
-   * @param fileSystem file system client
+   * @param fsContext the {@link FileSystemContext} used by the {@link FileSystem}
+   * @param fileSystem the {@link FileSystem} client
    */
   public LoadDefinition(FileSystemContext fsContext, FileSystem fileSystem) {
     mFsContext = fsContext;

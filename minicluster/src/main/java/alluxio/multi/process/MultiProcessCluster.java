@@ -13,7 +13,6 @@ package alluxio.multi.process;
 
 import alluxio.AlluxioTestDirectory;
 import alluxio.AlluxioURI;
-import alluxio.ClientContext;
 import alluxio.conf.ServerConfiguration;
 import alluxio.ConfigurationRule;
 import alluxio.ConfigurationTestUtils;
@@ -197,7 +196,7 @@ public final class MultiProcessCluster {
     for (Entry<PropertyKey, String> entry :
         ConfigurationTestUtils.testConfigurationDefaults(ServerConfiguration.global(),
         NetworkAddressUtils.getLocalHostName(
-            (int)ServerConfiguration.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS)),
+            (int) ServerConfiguration.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS)),
         mWorkDir.getAbsolutePath()).entrySet()) {
       // Don't overwrite explicitly set properties.
       if (mProperties.containsKey(entry.getKey())) {
@@ -311,11 +310,14 @@ public final class MultiProcessCluster {
     }, WaitForOptions.defaults().setInterval(200).setTimeoutMs(timeoutMs));
   }
 
+  /**
+   * @return the {@link FileSystemContext} which can be used to access the cluster
+   */
   public synchronized FileSystemContext getFilesystemContext() {
     if (mFilesystemContext == null) {
       mFilesystemContext = FileSystemContext.create(null, getMasterInquireClient(),
           ServerConfiguration.global());
-          mCloser.register(mFilesystemContext);
+      mCloser.register(mFilesystemContext);
     }
     return mFilesystemContext;
   }
@@ -594,7 +596,8 @@ public final class MultiProcessCluster {
       return;
     }
     try (Closeable c = new ConfigurationRule(PropertyKey.MASTER_JOURNAL_FOLDER,
-        mProperties.get(PropertyKey.MASTER_JOURNAL_FOLDER), ServerConfiguration.global()).toResource()) {
+        mProperties.get(PropertyKey.MASTER_JOURNAL_FOLDER), ServerConfiguration.global())
+        .toResource()) {
       Format.format(Format.Mode.MASTER, ServerConfiguration.global());
     } catch (IOException e) {
       throw new RuntimeException(e);
@@ -678,7 +681,9 @@ public final class MultiProcessCluster {
   private List<MasterNetAddress> generateMasterAddresses(int numMasters) throws IOException {
     List<MasterNetAddress> addrs = new ArrayList<>();
     for (int i = 0; i < numMasters; i++) {
-      addrs.add(new MasterNetAddress(NetworkAddressUtils.getLocalHostName((int)ServerConfiguration.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS)),
+      addrs.add(new MasterNetAddress(NetworkAddressUtils
+          .getLocalHostName((int) ServerConfiguration
+              .getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS)),
           getNewPort(), getNewPort(), getNewPort()));
     }
     return addrs;

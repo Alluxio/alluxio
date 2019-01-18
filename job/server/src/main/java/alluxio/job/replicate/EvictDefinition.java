@@ -11,9 +11,8 @@
 
 package alluxio.job.replicate;
 
-import alluxio.ClientContext;
+import alluxio.client.file.FileSystem;
 import alluxio.conf.ServerConfiguration;
-import alluxio.conf.PropertyKey;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.stream.BlockWorkerClient;
@@ -64,6 +63,8 @@ public final class EvictDefinition
 
   /**
    * Constructs a new {@link EvictDefinition} with the given {@link FileSystemContext}.
+   *
+   * @param fsContext the {@link FileSystemContext} used by the {@link FileSystem}
    */
   public EvictDefinition(FileSystemContext fsContext) {
     mFsContext = fsContext;

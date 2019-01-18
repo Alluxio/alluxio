@@ -87,8 +87,9 @@ public final class ReplicateDefinitionTest {
   private static final WorkerNetAddress ADDRESS_3 =
       new WorkerNetAddress().setHost("host3").setDataPort(10);
   private static final WorkerNetAddress LOCAL_ADDRESS =
-      new WorkerNetAddress().setHost(NetworkAddressUtils.getLocalHostName((int)ServerConfiguration.getMs(
-          PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS))).setDataPort(10);
+      new WorkerNetAddress().setHost(NetworkAddressUtils
+          .getLocalHostName((int) ServerConfiguration
+              .getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS))).setDataPort(10);
   private static final WorkerInfo WORKER_INFO_1 = new WorkerInfo().setAddress(ADDRESS_1);
   private static final WorkerInfo WORKER_INFO_2 = new WorkerInfo().setAddress(ADDRESS_2);
   private static final WorkerInfo WORKER_INFO_3 = new WorkerInfo().setAddress(ADDRESS_3);
@@ -106,7 +107,8 @@ public final class ReplicateDefinitionTest {
   public void before() {
     mMockJobMasterContext = mock(JobMasterContext.class);
     mMockFileSystemContext = PowerMockito.mock(FileSystemContext.class);
-    when(mMockFileSystemContext.getClientContext()).thenReturn(ClientContext.create(ServerConfiguration.getProperties()));
+    when(mMockFileSystemContext.getClientContext())
+        .thenReturn(ClientContext.create(ServerConfiguration.getProperties()));
     mMockBlockStore = PowerMockito.mock(AlluxioBlockStore.class);
     mMockFileSystem = mock(FileSystem.class);
     mMockUfsManager = mock(UfsManager.class);
@@ -131,7 +133,8 @@ public final class ReplicateDefinitionTest {
 
     String path = "/test";
     ReplicateConfig config = new ReplicateConfig(path, TEST_BLOCK_ID, numReplicas);
-    ReplicateDefinition definition = new ReplicateDefinition(mMockFileSystemContext, mMockFileSystem);
+    ReplicateDefinition definition = new ReplicateDefinition(mMockFileSystemContext,
+        mMockFileSystem);
     return definition.selectExecutors(config, workerInfoList, mMockJobMasterContext);
   }
 
