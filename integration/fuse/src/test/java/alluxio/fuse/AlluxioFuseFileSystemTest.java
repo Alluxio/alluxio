@@ -17,6 +17,7 @@ import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
+import static org.mockito.Matchers.anyLong;
 import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.atMost;
 import static org.mockito.Mockito.doNothing;
@@ -350,9 +351,9 @@ public class AlluxioFuseFileSystemTest {
     setUpOpenMock(expectedPath);
 
     FileInStream fakeInStream = mock(FileInStream.class);
-    when(fakeInStream.read(any(byte[].class),
+    when(fakeInStream.positionedRead(anyLong(), any(byte[].class),
         anyInt(), anyInt())).then((Answer<Integer>) invocationOnMock -> {
-          byte[] myDest = (byte[]) invocationOnMock.getArguments()[0];
+          byte[] myDest = (byte[]) invocationOnMock.getArguments()[1];
           for (byte i = 0; i < 4; i++) {
             myDest[i] = i;
           }
