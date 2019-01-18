@@ -61,11 +61,14 @@ import javax.annotation.concurrent.ThreadSafe;
 import javax.security.auth.Subject;
 
 /**
- * A shared context that isolates all operations within a {@link FileSystem}. Usually, one user
- * only needs one instance of {@link FileSystemContext}.
+ * A context that isolates all operations within a {@link FileSystem}. Typically a user
+ * will only need more than one instance of a {@link FileSystemContext} if they wish to connect
+ * to Alluxio under different configuration values within the same JVM. {@link FileSystemContext}
+ * instances should be created sparingly as each instance creates its own thread pool of
+ * {@link FileSystemMasterClient} which can lead to inefficient use of client machine resources.
  *
  * <p>
- * NOTE: The context maintains a pool of file system master clients that is already thread-safe.
+ * NOTE: Each context maintains a pool of file system master clients that is already thread-safe.
  * Synchronizing {@link FileSystemContext} methods could lead to deadlock: thread A attempts to
  * acquire a client when there are no clients left in the pool and blocks holding a lock on the
  * {@link FileSystemContext}, when thread B attempts to release a client it owns it is unable to do
