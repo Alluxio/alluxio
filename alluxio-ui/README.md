@@ -36,7 +36,7 @@ This can be done in two ways:
 
 This can be done in two ways:
 
-1. Let lerna build everything: `lerna run test-ci`
+1. Let lerna test everything: `lerna run test-ci`
 1. Test everything independently:
     1. common-ui: `cd alluxio-ui/common-ui && npm run test`
     1. master-ui: `cd alluxio-ui/master-ui && npm run test`
@@ -48,8 +48,8 @@ NOTE: `test-ci` is meant to run tests once and quit (for continuous integration)
 
 This can be done in two ways:
 
-1. Let lerna build everything: `lerna run coverage-ci`
-1. Generate coverage fore everything independently:
+1. Let lerna generate coverage for everything: `lerna run coverage-ci`
+1. Generate coverage for everything independently:
     1. common-ui: `cd alluxio-ui/common-ui && npm run coverage`
     1. master-ui: `cd alluxio-ui/master-ui && npm run coverage`
     1. worker-ui: `cd alluxio-ui/worker-ui && npm run coverage`
