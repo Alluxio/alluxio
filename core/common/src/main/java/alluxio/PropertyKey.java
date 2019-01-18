@@ -2270,6 +2270,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   //
   // User related properties
   //
+  /**
+   * @deprecated It will be removed in 2.0.0.
+   */
+  @Deprecated
   public static final PropertyKey USER_BLOCK_MASTER_CLIENT_THREADS =
       new Builder(Name.USER_BLOCK_MASTER_CLIENT_THREADS)
           .setDefaultValue(10)
@@ -2288,7 +2292,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey USER_BLOCK_MASTER_CLIENT_POOL_SIZE_MAX =
       new Builder(Name.USER_BLOCK_MASTER_CLIENT_POOL_SIZE_MAX)
-          .setDescription("The maximum umber of block master clients cached in the block master "
+          .setDescription("The maximum number of block master clients cached in the block master "
               + "client pool.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
@@ -2445,6 +2449,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "before attempting to delete persisted directories recursively.")
           .setScope(Scope.CLIENT)
           .build();
+  /**
+   * @deprecated It will be removed in 2.0.0.
+   */
+  @Deprecated
   public static final PropertyKey USER_FILE_MASTER_CLIENT_THREADS =
       new Builder(Name.USER_FILE_MASTER_CLIENT_THREADS)
           .setDefaultValue(10)
@@ -2689,7 +2697,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.USER_NETWORK_NETTY_CHANNEL_POOL_SIZE_MIN)
           .setDefaultValue(0)
           .setDescription("The minimum number of netty channels cached in the netty channel "
-              + "pool. For LLAP, this should be set to zero.")
+              + "pool. For long running processes, this should be set to zero.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
