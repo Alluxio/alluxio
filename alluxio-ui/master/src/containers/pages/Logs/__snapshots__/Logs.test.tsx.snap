@@ -911,7 +911,7 @@ exports[`Logs App with connected component Matches snapshot 1`] = `
                         },
                         Object {
                           "innerText": "Resources",
-                          "url": "http://alluxio.org/alluxio-resources/",
+                          "url": "https://alluxio.org/alluxio-resources/",
                         },
                       ]
                     }
@@ -1014,19 +1014,19 @@ exports[`Logs App with connected component Matches snapshot 1`] = `
                               </li>
                             </NavItem>
                             <NavItem
-                              key="http://alluxio.org/alluxio-resources/"
+                              key="https://alluxio.org/alluxio-resources/"
                               tag="li"
                             >
                               <li
                                 className="nav-item"
                               >
                                 <NavLink
-                                  href="http://alluxio.org/alluxio-resources/"
+                                  href="https://alluxio.org/alluxio-resources/"
                                   tag="a"
                                 >
                                   <a
                                     className="nav-link"
-                                    href="http://alluxio.org/alluxio-resources/"
+                                    href="https://alluxio.org/alluxio-resources/"
                                     onClick={[Function]}
                                   >
                                     Resources

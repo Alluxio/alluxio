@@ -25,5 +25,5 @@ export const footerNavigationData : INavigationData[] = [{
   url: '/workers'
 }, {
   innerText: 'Resources',
-  url: 'http://alluxio.org/alluxio-resources/'
+  url: 'https://alluxio.org/alluxio-resources/'
 }];

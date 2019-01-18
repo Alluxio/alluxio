@@ -105,7 +105,7 @@ export class Overview extends React.Component<AllProps> {
                 <tbody>
                 <tr>
                   <th scope="row">Workers Capacity</th>
-                  <td>{data.freeCapacity}</td>
+                  <td>{data.capacity}</td>
                 </tr>
                 <tr>
                   <th scope="row">Workers Free / Used</th>
@@ -117,7 +117,7 @@ export class Overview extends React.Component<AllProps> {
                 </tr>
                 <tr>
                   <th scope="row">UnderFS Free / Used</th>
-                  <td>{data.diskCapacity} / {data.diskUsedCapacity}</td>
+                  <td>{data.diskFreeCapacity} / {data.diskUsedCapacity}</td>
                 </tr>
                 </tbody>
               </Table>

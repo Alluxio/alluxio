@@ -15,10 +15,7 @@ import {IOverviewState, OverviewActionTypes} from './types';
 
 export const initialOverviewState: IOverviewState = {
   data: {
-    'capacity': {
-      'total': 0,
-      'used': 100
-    },
+    'capacity': '',
     'configCheckErrors': [],
     'configCheckStatus': '',
     'configCheckWarns': [],

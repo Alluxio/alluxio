@@ -15,10 +15,7 @@ import {IScopedPropertyInfo, IStorageTierInfo} from '../../constants';
 
 export interface IOverview {
   'debug': boolean;
-  'capacity': {
-    'total': number;
-    'used': number;
-  };
+  'capacity': string;
   'configCheckErrors': IScopedPropertyInfo[];
   'configCheckStatus': string;
   'configCheckWarns': IScopedPropertyInfo[];
