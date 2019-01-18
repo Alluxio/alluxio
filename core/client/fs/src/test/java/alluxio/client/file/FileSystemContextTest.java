@@ -41,7 +41,8 @@ public final class FileSystemContextTest {
     final List<FileSystemMasterClient> clients = new ArrayList<>();
 
     // Acquire all the clients
-    for (int i = 0; i < Configuration.getInt(PropertyKey.USER_FILE_MASTER_CLIENT_POOL_SIZE_MAX); i++) {
+    for (int i = 0; i < Configuration
+        .getInt(PropertyKey.USER_FILE_MASTER_CLIENT_POOL_SIZE_MAX); i++) {
       clients.add(FileSystemContext.get().acquireMasterClient());
     }
     Thread acquireThread = new Thread(new AcquireClient());
